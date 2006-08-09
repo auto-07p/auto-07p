@@ -1,5 +1,5 @@
 bin_PROGRAMS = r3bplaut04
-INCLUDES = -I@top_srcdir@/includes -Wno-deprecated
+INCLUDES = -I@top_srcdir@/plaut04/includes -Wno-deprecated
 LIBS=$(DEPS_LIBS)
 
 r3bplaut04_SOURCES = readBif.c++         readSol.c++          drawCoords.c++         toInertialFrame.c++    createDisk.c++\

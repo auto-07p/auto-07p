@@ -1,11 +1,11 @@
-AC_INIT(src/gmain.c++)
+AC_INIT(plaut04/src/gmain.c++)
 
-PACKAGE=plaut04
-VERSION=0.1
+PACKAGE=AUTO
+VERSION=07p
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
-AM_CONFIG_HEADER(config.h)
+dnl AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
 
@@ -61,5 +61,5 @@ fi
 
 AC_SUBST(DEPS_LIBS)
 dnl AC_SUBST(DEPS_LIBS)
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile)
 

@@ -1,5 +1,5 @@
 bin_PROGRAMS = plaut04
-INCLUDES = -I@top_srcdir@/includes  -Wno-deprecated 
+INCLUDES = -I@top_srcdir@/plaut04/includes  -Wno-deprecated 
 LIBS=$(DEPS_LIBS)
 
 plaut04_SOURCES = gReadBif.c++         gReadSol.c++          drawCoords.c++ \
