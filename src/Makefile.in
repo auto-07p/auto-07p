@@ -1,0 +1,71 @@
+# ===> Makefile
+#
+#   Makefile            Xianjun WANG            3/1994
+#
+#   used to compile AUTO libraries
+#
+#
+FC=@FC@
+FFLAGS=@FFLAGS@
+OPT=@OPT_FLAG@
+OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o
+RM=rm -f
+#
+all: header compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
+  ../bin/listlabels ../bin/reduce ../bin/relabel move
+#
+header: 
+	@cp -p ../include/auto.h auto.h
+#
+compile: $(OBJ)
+#
+../lib/autlib1.o: autlib1.f auto.h
+	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
+#
+../lib/autlib2.o: autlib2.f auto.h
+	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
+#
+../lib/autlib3.o: autlib3.f auto.h
+	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
+#
+../lib/autlib4.o: autlib4.f auto.h
+	$(FC) $(FFLAGS) $(OPT) -c autlib4.f -o $@
+#
+../lib/autlib5.o: autlib5.f auto.h
+	$(FC) $(FFLAGS) $(OPT) -c autlib5.f -o $@
+#
+../bin/autlab: autlab.f auto.h
+	$(FC) $(FFLAGS) $(OPT) autlab.f -o $@
+#
+../bin/double: double.f auto.h
+	$(FC) $(FFLAGS) $(OPT) double.f -o $@
+#
+../bin/triple: triple.f auto.h
+	$(FC) $(FFLAGS) $(OPT) triple.f -o $@
+#
+../bin/kpbif: kpbif.f auto.h
+	$(FC) $(FFLAGS) $(OPT) kpbif.f -o $@
+#
+../bin/listlabels: listlabels.f auto.h
+	$(FC) $(FFLAGS) $(OPT) listlabels.f -o $@
+#
+../bin/reduce: reduce.f auto.h
+	$(FC) $(FFLAGS) $(OPT) reduce.f -o $@
+#
+../bin/relabel: relabel.f auto.h
+	$(FC) $(FFLAGS) $(OPT) relabel.f -o $@
+#
+fcon: $(AUTO_DIR)/src/fcon.f fcon.h
+	$(FC) $(FFLAGS) $(OPT) $(AUTO_DIR)/src/fcon.f -o fcon
+#
+zero: $(AUTO_DIR)/src/zero.f fcon.h
+	$(FC) $(FFLAGS) $(OPT) $(AUTO_DIR)/src/zero.f -o zero
+#
+../lib/eispack.o: eispack.f
+	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
+#
+move: $(OBJ)
+	@$(RM) auto.h
+#
+#  DO NOT ADD ANYTHING AFTER THIS LINE
+#

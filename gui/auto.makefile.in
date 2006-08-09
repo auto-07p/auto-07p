@@ -23,9 +23,9 @@
 #
 .IGNORE:
 #
-FC    	   = f77
-FFLAGS 	   = -c
-OPT    	   = -O
+FC    	   = @FC@
+FFLAGS 	   = @FFLAGS@
+OPT    	   = @OPT_FLAG@
 SRC        = $(PROGRAMNAME).f
 OBJ        = $(PROGRAMNAME).o
 EXE        = $(PROGRAMNAME).exe
@@ -39,7 +39,8 @@ run:
 	@echo "Starting $(PROGRAMNAME) ..."
 	@echo " "
 	@cp c.$(PROGRAMNAME) fort.2
-	@$(EXE)
+	@touch fort.3
+	@./$(EXE)
 	@rm -f fort.3
 	@echo " "
 	@echo "$(PROGRAMNAME) ... done"
@@ -51,16 +52,16 @@ rerun:
 	@echo " "        
 	@cp c.$(PROGRAMNAME) fort.2
 	@cp s.$(RESTARTNAME) fort.3
-	@$(EXE)
+	@./$(EXE)
 	@rm -f fort.3
 	@echo " " 
 	@echo "$(PROGRAMNAME) ... done"
 #
 $(EXE): $(OBJ)
-	$(FC) $(OPT) $(OBJ) -o $@ $(LIBS)
+	$(FC) $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS)
 #
 $(OBJ): $(SRC)
-	$(FC) $(FFLAGS) $(OPT) $(SRC) -o $@
+	$(FC) $(FFLAGS) $(OPT) -c $(SRC) -o $@
 #
 save:
 	@echo " "

@@ -167,7 +167,7 @@ fi
 
 AC_SUBST(DEPS_LIBS)
 dnl AC_SUBST(DEPS_LIBS)
-AC_OUTPUT(Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile)
+AC_OUTPUT(Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"

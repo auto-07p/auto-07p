@@ -1,0 +1,13 @@
+# %W% Makefile
+CFLAGS=@CFLAGS@
+CC=@CC@
+
+OBJ=tek2ps.o
+
+all: tek2ps
+
+tek2ps: $(OBJ) tek.h
+	$(CC) $(CFLAGS) -o $@ $(OBJ)
+
+clean:
+	$(RM) *.o tek2ps

@@ -3,8 +3,8 @@
 #
 .SUFFIXES: .f .o
 #
-FC     = f77
-FFLAGS =  -O -c
+FC     = @FC@
+FFLAGS = @FFLAGS@ -c 
 SRC    = plautdev.f plautint.f plautlib.f plautmain.f
 PGM    = ../bin/plaut
 RM     = rm -f

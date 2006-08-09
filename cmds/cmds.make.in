@@ -8,9 +8,9 @@
 #
 .IGNORE:
 #
-FC    	   = f77
-FFLAGS 	   = -c
-OPT    	   = -O
+FC    	   = @FC@
+FFLAGS 	   = @FFLAGS@
+OPT    	   = @OPT_FLAG@
 SRC        = $(EQUATION_NAME).f
 OBJ        = $(EQUATION_NAME).o
 EXE        = $(EQUATION_NAME).exe
@@ -19,15 +19,15 @@ RM         = rm -f
 # @rn
 run: $(EXE)
 	@echo "Starting $(EQUATION_NAME) ..."
-	@$(EXE)
+	@./$(EXE)
 	@rm -f fort.2 fort.3
 	@echo "$(EQUATION_NAME) ... done"
 #
 $(EXE): $(OBJ) $(LIBS)
-	$(FC) $(OPT) $(OBJ) -o $@ $(LIBS)
+	$(FC) $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS)
 #
 $(OBJ): $(SRC)
-	$(FC) $(FFLAGS) $(OPT) $(SRC) -o $@
+	$(FC) $(FFLAGS) $(OPT) -c $(SRC) -o $@
 
 #
 # DO NOT ADD ANYTHING AFTER THIS LINE

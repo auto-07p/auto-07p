@@ -8159,7 +8159,7 @@ ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 fi
 
 
-ac_config_files="$ac_config_files Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8748,9 +8748,16 @@ do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "gui/Makefile") CONFIG_FILES="$CONFIG_FILES gui/Makefile" ;;
+    "tek2ps/Makefile") CONFIG_FILES="$CONFIG_FILES tek2ps/Makefile" ;;
+    "plaut/Makefile") CONFIG_FILES="$CONFIG_FILES plaut/Makefile" ;;
     "plaut04/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/Makefile" ;;
     "plaut04/src/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/src/Makefile" ;;
     "plaut04/src/r3b/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/src/r3b/Makefile" ;;
+    "cmds/cmds.make") CONFIG_FILES="$CONFIG_FILES cmds/cmds.make" ;;
+    "cmds/Makefile") CONFIG_FILES="$CONFIG_FILES cmds/Makefile" ;;
+    "gui/auto.makefile") CONFIG_FILES="$CONFIG_FILES gui/auto.makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
