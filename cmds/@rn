@@ -1,0 +1,9 @@
+rm fort.10 fort.11 fort.12 fort.13
+f77 $AUTO_DIR/cmds/rename.f -o rename.exe
+ls r.* > fort.10
+ls p.* > fort.11
+ls q.* > fort.12
+rename.exe
+chmod u+x fort.13
+fort.13
+rm fort.10 fort.11 fort.12 fort.13 rename.exe

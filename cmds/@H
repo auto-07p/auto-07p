@@ -1,0 +1,24 @@
+if (test -r $1.dat) then
+cat $1.dat > fort.4
+fi
+#
+if ( test $# -eq 1 ) then
+	cat c.$1 > fort.2
+	cat h.$1 > fort.12
+	if (test -r s.$1) then
+		cat s.$1 > fort.3
+	fi
+	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+elif ( test $# -eq 2 ) then
+	cat c.$1.$2 > fort.2
+	cat h.$1.$2 > fort.12
+	if (test -r s.$1) then
+		cat s.$1 > fort.3
+	fi
+	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+else
+	cat c.$1.$2 > fort.2
+	cat h.$1.$2 > fort.12
+	cat s.$3 > fort.3
+	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+fi

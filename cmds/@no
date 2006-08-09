@@ -1,0 +1,5 @@
+if ( test $# -eq 1 ) then
+	grep NOTE d.$1
+else
+	grep NOTE fort.9
+fi

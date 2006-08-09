@@ -1,0 +1,13 @@
+cp $AUTO_DIR/include/fcon.h fcon.h
+echo " "
+echo "Starting conversion of $1.dat : "
+echo "(Required files : $1.f, c.$1, $1.dat)"
+echo " "
+f77 $AUTO_DIR/src/fcon.f $1.f -o fcon
+cp c.$1   fort.2
+cp $1.dat fort.3
+fcon
+mv fort.8 s.dat
+rm fcon* fort.2 fort.3
+echo " "
+echo "Conversion done : converted file saved as s.dat"

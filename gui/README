@@ -1,0 +1,13 @@
+This directory contains the following:
+
+README : this file.
+auto97.c : the Graphic User Interface(GUI) source code of AUTO97.
+r.aut : the default AUTO-constants file.
+aut.f : the default AUTO-equations file.
+sgi.makefile : GUI makefile for Silicon Graphic machines.
+sun.makefile : GUI makefile for Sun workstations.
+auto.makefile : makefile used by the GUI at run time.
+Makefile : copy of sgi.makefile or sun.makefile.
+==============================================================
+
+

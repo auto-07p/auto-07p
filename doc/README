@@ -1,0 +1,7 @@
+This directory contains auto.tex: the AUTO user manual TeX file.
+
+Type ``make'' to create auto.ps, the PostScript form of the manual.
+
+The file auto.ps is used by the GUI and by the @mn command for 
+the display of the on-line manual.
+

@@ -1,0 +1,620 @@
+%
+\documentstyle[12pt,epsf,include/harvard]{report}
+\parindent=0cm
+\setlength{\oddsidemargin}{-0.5cm}
+\setlength{\evensidemargin}{-0.5cm}
+\addtolength{\textwidth}{3.5cm}
+\addtolength{\textheight}{3.0cm}
+\setlength{\topmargin}{2.0cm}
+\setlength{\topskip}{0cm}
+\setlength{\headheight}{-2.0cm}
+\setlength{\headsep}{0pt}
+\setlength{\footskip}{1.5cm}
+\pagestyle{plain}
+\parskip 4pt
+%
+\newcommand{\ds}{\displaystyle}
+\newcommand{\beq}{\begin{equation}} 
+\newcommand{\eeq}{\end{equation}}
+\def\norm#1{\parallel#1\parallel}
+\def\abs#1{\mid#1\mid}
+\def\eps{\epsilon}
+\def\R{{\rm R}}
+\def\Rn{{\rm R}^n}
+%
+\begin{document}
+\bibliographystyle{include/agsm} 
+%
+\title{
+\LARGE {\sc AUTO} 97 :\\ 
+\Large CONTINUATION AND BIFURCATION SOFTWARE \\
+\Large FOR ORDINARY DIFFERENTIAL EQUATIONS\\ 
+\Large (with HomCont)\\
+}
+
+\newpage
+\section*{ ab : A Tutorial Demo.} 
+\vskip .25truein
+The equations, that model an A $\to$ B  reaction, are 
+
+\vskip .25truein
+$$  u_1 ' ~=~  -u_1 + p_1 (1-u_1) e^{u_2}, $$
+
+\vskip .25truein
+$$  u_2 ' ~=~  -u_2 +  p_1 p_2 ( 1-u_1) e^{u_2} - p_3 u_2. $$
+
+\newpage
+\section*{ Copying the Demo Files.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc Unix}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it cd}  & go to your main directory (or other directory)\\ 
+  {\it mkdir ab}  & create an empty work directory\\ 
+  {\it cd ab}  & change to the work directory\\
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+  {\it @dm ab}  & copy the demo files to the work directory\\
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section*{ Files Copied for Demo {\tt ab}.} 
+\vskip .5truein
+
+\begin{center}
+\begin{verbatim}
+% ls -l
+
+-rwxr-xr-x    1 doedel   user        1754 May 31 18:18 Makefile
+-rwxr-xr-x    1 doedel   user        1754 May 31 18:18 Makefile.sav
+-rwxr-xr-x    1 doedel   user        2310 May 31 18:18 ab.f
+-rwxr-xr-x    1 doedel   user         385 May 31 18:18 r.ab
+-rwxr-xr-x    1 doedel   user         385 May 31 18:18 r.ab.1
+-rwxr-xr-x    1 doedel   user         385 May 31 18:18 r.ab.2
+-rwxr-xr-x    1 doedel   user         386 May 31 18:18 r.ab.3
+-rwxr-xr-x    1 doedel   user         387 May 31 18:18 r.ab.4
+-rwxr-xr-x    1 doedel   user         387 May 31 18:18 r.ab.5
+\end{verbatim}
+\end{center}
+
+\newpage
+\section*{ The {\sc AUTO} Equations-File {\tt ab.f}} 
+
+\vskip .25truein
+\begin{center}
+\begin{verbatim}
+
+      SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
+C     ---------- ----
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION U(NDIM), PAR(*), F(NDIM), ICP(*)
+C
+       U1=U(1)
+       U2=U(2)
+       E=DEXP(U2)
+C
+       F(1)=-U1 + PAR(1)*(1-U1)*E
+       F(2)=-U2 + PAR(1)*PAR(2)*(1-U1)*E - PAR(3)*U2
+C
+      RETURN
+      END
+\end{verbatim}
+\end{center}
+
+\newpage
+~
+\vskip .25truein
+\begin{center}
+\begin{verbatim}
+
+      SUBROUTINE STPNT(NDIM,U,PAR)
+C     ---------- -----
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION U(NDIM), PAR(*)
+C
+       PAR(1)=0.
+       PAR(2)=14.
+       PAR(3)=2.
+C
+       U(1)=0.
+       U(2)=0.
+C
+      RETURN
+      END
+\end{verbatim}
+\end{center}
+
+\newpage
+\section*{ The {\sc AUTO} Constants-File {\tt r.ab}} 
+
+\vskip .5truein
+\begin{center}
+\begin{verbatim}
+2 1 0 1                  NDIM,IPS,IRS,ILP
+1   1                    NICP,(ICP(I),I=1,NICP)
+50 4 3 1 1 0 0 0         NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+100 0 0.15 0 100         NMX,RL0,RL1,A0,A1
+100 10 2 8 5 3 0         NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+1.e-6 1.e-6 0.0001       EPSL,EPSU,EPSS
+0.01 0.005 0.05 1        DS,DSMIN,DSMAX,IADS
+1                        NTHL,((I,THL(I)),I=1,NTHL)
+11 0.
+0                        NTHU,((I,THU(I)),I=1,NTHU)
+0                        NUZR,((I,UZR(I)),I=1,NUZR)
+\end{verbatim}
+\end{center}
+ 
+\newpage
+\section*{ Executing all Runs Automatically.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc Unix}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it make}  & execute all runs of demo {\tt ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\begin{center}
+\begin{verbatim}
+ab : first run : stationary solutions
+ 
+BR    PT  TY LAB    PAR(1)        L2-NORM         U(1)          U(2)     
+ 1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
+ 1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
+ 1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
+ 1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
+ 1    92  EP   5  1.512417E-01  4.369748E+00  9.155894E-01  4.272750E+00
+ Saved as *.ab
+
+ab : second run : periodic solutions
+ 
+BR    PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
+ 4    30       6  1.198815E-01  3.987129E+00  9.919113E-01  7.020342E+00  2.721044E+00
+ 4    60       7  1.153033E-01  3.146307E+00  9.995775E-01  9.957649E+00  6.147449E+00
+ 4    90       8  1.056503E-01  2.219179E+00  9.991661E-01  9.366097E+00  1.399772E+01
+ 4   120       9  1.055071E-01  1.696847E+00  9.990869E-01  9.296297E+00  9.956218E+01
+ 4   150  EP  10  1.055071E-01  1.603885E+00  9.997894E-01  9.281460E+00  1.867100E+03
+ Appended to *.ab
+\end{verbatim}
+\end{center}
+\newpage 
+\begin{center}
+\begin{verbatim} 
+ab : third run : a 2-parameter locus of folds
+ 
+BR    PT  TY LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
+ 2    27  LP  11  1.353352E-01  2.060123E+00  4.996530E-01  1.998613E+00  2.499998E+00
+ 2   100  EP  12  1.093816E-08  2.136506E+01  9.531479E-01  2.134378E+01 -3.748029E-01
+ Saved as *.2p
+ 
+
+
+ab : fourth run : the locus of folds in reverse direction
+ 
+BR    PT  TY LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
+ 2    35  EP  11 -1.319397E-03  9.964328E-01 -3.586515E-03  9.964263E-01 -1.050391E+00
+ Appended to *.2p
+
+
+ 
+ab : fifth run : a 2-parameter locus of Hopf points
+ 
+BR    PT  TY LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
+ 4   100  EP  11  8.809407E-05  1.174404E+01  9.146095E-01  1.170837E+01  9.362239E-02
+ Appended to *.2p
+\end{verbatim}
+\end{center}
+
+
+\newpage 
+\section*{ Resetting the Directory.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc Unix}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it make clean}  & remove data-files and temporary files of demo {\tt ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section*{ Executing Selected Runs Automatically.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc Unix}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it make first}  & execute the first run of demo {\tt ab} \\ 
+  {\it make third}  & execute the third run of demo {\tt ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Using {\sc AUTO}-Commands.}
+
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it make clean}  & reset the work directory \\ 
+\hline
+%==============================================================================
+  {\it cp r.ab.1 r.ab} & get the first constants-file \\ 
+  {\it @r ab} & compute a stationary solution branch with folds and Hopf bifurcation \\ 
+  {\it @sv ab} & save output-files as {\tt p.ab, q.ab, d.ab} \\ 
+\hline
+%==============================================================================
+  {\it cp r.ab.2 r.ab} &  get the second constants-file \\ 
+  {\it @r ab} & compute a branch of periodic solutions from the Hopf point \\ 
+  {\it @ap ab} & append the output-files to {\tt p.ab, q.ab, d.ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section*{ Abbreviated {\sc AUTO}-Commands.}
+
+\vskip .50truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+   COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it make clean}  & reset the work directory \\ 
+\hline
+%==============================================================================
+  {\it @R ab 1} &  (reads {\sc AUTO}-constants from {\tt r.ab.1}) \\ 
+  {\it @sv ab} & save output-files as {\tt p.ab, q.ab, d.ab} \\ 
+\hline
+%==============================================================================
+  {\it @R ab 2} &  (reads {\sc AUTO}-constants from {\tt r.ab.2})\\ 
+  {\it @ap ab} & append the output-files to {\tt p.ab, q.ab, d.ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+ 
+
+\newpage
+\section*{ Changes in AUTO-Constants between the two Runs.}
+
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | r | r | l |}
+\hline
+  Constant &  Run~1  &  Run~2 & Reason for Change \\
+\hline
+%==============================================================================
+  {\tt IPS}  & 1  & 2  &  To compute periodic solutions in Run~2 \\  
+\hline
+  {\tt IRS}  & 0  & 4  &  To specify the Hopf bifurcation restart label \\  
+\hline
+  {\tt NICP}  & 1  & 2  &  The second run has two free parameters\\  
+\hline
+  {\tt ICP}  & 1  &1,~11  &  To use and print {\tt PAR(1)} and {\tt PAR(11)} in Run~2\\  
+\hline
+  {\tt NMX}  & 100 &150  &  To allow more continuation steps in Run~2 \\  
+\hline
+  {\tt NPR}  & 100 & 30  &  To print output every 30 steps in Run~2 \\  
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Plotting the Results with {\sc PLAUT}.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it @p ab} & run {\sc PLAUT} to graph the contents of {\tt p.ab} and {\tt q.ab} \\  
+%==============================================================================
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section*{ Using {\sc PLAUT}.} 
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc PLAUT}-COMMAND  & ACTION \\
+\hline
+  {\it d1}  & choose one of the default settings\\ 
+  {\it bd0}  & plot the default bifurcation diagram; $L_2$-norm versus $p_1$ \\ 
+\hline
+  {\it bd}  & make a blow-up of current bifurcation diagram \\ 
+  {\it .08~ .14 ~.5~ 4.5} & enter diagram limits  \\
+\hline
+  {\it sav}  & save the current plot \\
+  {\it fig.1}  & upon prompt, enter a new file name, e.g., {\tt fig.1} \\
+\hline
+  {\it 2d}  & enter 2D mode, for plotting labeled solutions\\ 
+  {\it 6 7 10}  & select labeled orbits 6, 7, and 10 in {\tt q.ab}\\ 
+  {\it d}  & default orbit display; $u_1$ versus scaled time\\
+\hline
+  {\it 1 3}  & select columns 1 and 3 in {\tt q.ab} \\
+  {\it d}  & display the orbits; $u_2$ versus scaled time\\
+\hline
+  {\it 2 3}  & select columns 2 and 3 in {\tt q.ab} \\
+  {\it d}  & phase plane display; $u_2$ versus $u_1$\\
+\hline
+  {\it sav}  & save the current plot \\
+  {\it fig.2}  & upon prompt, enter a new file name \\
+\hline
+  {\it ex}  & exit from 2D mode  \\
+  {\it end}  & exit from {\sc PLAUT} \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\newpage
+
+\begin{figure}[h]
+\epsfysize 9.0cm
+\centerline{\epsffile{include/ab1.ps}}
+\end{figure}
+\newpage
+
+\begin{figure}[h]
+\epsfysize 9.0cm
+\centerline{\epsffile{include/ab2.ps}}
+\end{figure}
+\newpage
+
+\section*{ Following Folds and Hopf Bifurcations.} 
+%==============================================================================
+%==============================================================================
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+   COMMAND  & ACTION \\
+\hline
+  {\it cp r.ab.3 r.ab} & changes (from {\tt r.ab.1}) : IRS, NICP, ICP, ISW, DSMAX \\ 
+  {\it @r ab} &  compute a locus of folds \\ 
+  {\it @sv 2p} & save output-files as {\tt p.2p, q.2p, d.2p} \\ 
+\hline
+%==============================================================================
+  {\it cp r.ab.4 r.ab} & changes (from {\tt r.ab.3}) : DS (sign) \\ 
+  {\it @r ab} &  compute the  locus of folds in reverse direction \\ 
+  {\it @ap 2p} &  append the output-files to {\tt p.2p, q.2p, d.2p} \\ 
+\hline
+%==============================================================================
+  {\it cp r.ab.5 r.ab} & changes (from {\tt r.ab.4}) : IRS \\ 
+  {\it @r ab} &  compute a locus of Hopf points \\ 
+  {\it @ap 2p} & append the output-files to {\tt p.2p, q.2p, d.2p} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section*{ Running the Re-Labeling Program.}
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+  {\it @lb 2p} & run the relabeling  program on {\tt p.2p} and {\tt q.2p} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\newpage
+\section*{ Some Relabeling Commands.}
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| c | l |}
+\hline
+  RELABELING COMMAND  & ACTION \\
+\hline
+  l & list the labeled solutions in {\tt q.2p} \\
+  r & relabel the solutions  \\  
+  l & list the new solution labeling  \\
+  w & rewrite {\tt p.2p} and {\tt q.2p}  \\
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Plotting the 2-Parameter Diagram.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+  {\it @p 2p} & run {\sc PLAUT} to graph the contents of {\tt p.2p} and {\tt q.2p} \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Using {\sc PLAUT}.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc PLAUT}-COMMAND  & ACTION \\
+\hline
+  {\it d0}  & set default option\\ 
+  {\it ax}  & select axes \\ 
+  {\it 1 5}  & select real columns 1 ($p_1$) and 5 ($p_3$) in {\tt p.2p} \\ 
+  {\it bd0}  & plot the 2-parameter diagram; $p_3$ versus $p_1$ \\
+  {\it cl}  & clear the screen  \\
+\hline
+  {\it d2}  & set other default option\\ 
+  {\it bd0}  & plot the 2-parameter diagram; $p_3$ versus $p_1$ \\
+\hline
+  {\it bd}  & make a blow-up of the current diagram \\ 
+  {\it 0 ~.15~ 0~ 2.5} & enter diagram limits  \\
+  {\it sav}  & save plot \\
+  {\it fig.3}  & upon prompt, enter a new file name, e.g., {\tt fig.3} \\
+\hline
+  {\it end}  & exit from {\sc PLAUT} \\
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+\newpage
+
+\begin{figure}[h]
+\epsfysize 9.0cm
+\centerline{\epsffile{include/ab3.ps}}
+\end{figure}
+\newpage
+
+\section*{ Converting Saved {\sc PLAUT} Files to PostScript.} 
+
+\vskip .25truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  {\it @ps fig.1} & convert file {\tt fig.1} into {\sc PostScript} file {\tt fig.1.ps} \\ 
+  {\it lpr fig.1.ps} & system dependent : print {\tt fig.1.ps} on your printer \\ 
+\hline
+%==============================================================================
+  {\it @ps fig.2} & convert file {\tt fig.2} into {\sc PostScript} file {\tt fig.2.ps} \\ 
+  {\it lpr fig.2.ps} & system dependent : print {\tt fig.2.ps} on your printer \\ 
+\hline
+%==============================================================================
+  {\it @ps fig.3} & convert file {\tt fig.3} into {\sc PostScript} file {\tt fig.3.ps} \\ 
+  {\it lpr fig.3.ps} & system dependent : print {\tt fig.3.ps} on your printer \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Activating the GUI.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  {\sc AUTO}-COMMAND  & ACTION \\
+\hline
+{\it @auto} & Activate the Graphical User Interface \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\newpage
+\section*{ Using the GUI.} 
+
+\vskip .5truein
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  GUI-button  & ACTION \\
+\hline
+{\it Equations/Demo} & Select demo {\tt ab}, then press {\it OK} \\
+\hline
+{\it Previous}       & Push {\it Filter}, select file {\tt r.ab.1}, then press {\it OK} \\
+\hline
+{\it Run}            & This will execute Run~1 of demo {\tt ab} \\ 
+\hline
+{\it Save/Save}      & Save the output files as {\tt p.ab}, {\tt q.ab}, {\tt d.ab} \\ 
+\hline
+{\it Previous}       & Select file {\tt r.ab.2}, then press {\it OK} \\
+\hline
+{\it Run}            & This will execute Run~2  of demo {\tt ab}\\ 
+\hline
+{\it Append/Append}  & Append the output-files to {\tt p.ab}, {\tt q.ab}, {\tt d.ab} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\end{document}

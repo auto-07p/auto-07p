@@ -1,0 +1,23 @@
+
+#==============
+# AUTO Demo spb
+#==============
+
+print "\n***Continuation in lambda***"
+ld(e='spb',c='spb.1')
+run()
+sv('1')
+
+print "\n***Continuation in epsilon***"
+ld(e='spb',s='1',c='spb.2')
+run()
+sv('2')
+
+print "\n***Continuation in gamma***"
+ld(e='spb',c='spb.3',s='2')
+run()
+sv('3')
+
+print "\n***Clean the directory***"
+cl()
+

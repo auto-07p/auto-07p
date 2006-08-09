@@ -1,0 +1,19 @@
+Type "make" to compile PLAUT.
+Type "make clean" to remove unnecessary files after compilation.
+===============================================================
+Known Problems :
+
+ - The s-file orbit is not plotted correctly if, for example, the
+   first two lines of the data set look like :
+
+     1   20    9    3    4    1   41    5   87   10    4
+       0.0000000000E+00 -1.0483288692E-26 -3.8282567843E-16  1.5654469197E+00  1.5654469197E+00
+                                     ====
+
+
+ - Axes labelling algorithm does not always work properly.
+
+ - One should be able to select "A" ("all") after typing 2D while 
+   one is already in the 2D mode.
+
+

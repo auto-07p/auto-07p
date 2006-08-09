@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo phs
+#==============
+
+print "\n***Compute stationary solution families***"
+ld(e='phs',c='phs.1')
+run()
+sv('phs')
+
+print "\n***Compute a periodic solution family***"
+ld(c='phs.2',s='phs')
+run()
+ap('phs')
+
+print "\n***Clean the directory***"
+cl()
+

@@ -1,0 +1,20 @@
+#
+#   Makefile            Xianjun WANG            3/1994
+#
+.SUFFIXES: .f .o
+#
+FC     = f77
+FFLAGS =  -O -c
+SRC    = plautdev.f plautint.f plautlib.f plautmain.f
+PGM    = ../bin/plaut
+RM     = rm -f
+#
+.f.o:
+	$(FC) $(FFLAGS) $*.f -o $@
+#
+$(PGM): $(SRC:.f=.o)
+	$(FC) $(SRC:.f=.o) -o $@ 
+#
+clean:  
+	$(RM) *.o
+

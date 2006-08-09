@@ -1,0 +1,9 @@
+
+For installation instructions see the AUTO manual.  
+The LaTeX source file of the manual is in doc/auto.tex. 
+
+Note that you must define the correct path to the
+AUTO directory in your (.bashrc) resource file.
+
+This version of AUTO incorporates both a Linux and 
+a Python command language user interface (CLUI).

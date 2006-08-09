@@ -1,0 +1,31 @@
+cp: omitting directory `/home/amavisitors/redrod/src/auto/2000/demos/ab/CVS'Copying demo ab ... done
+Runner configured
+gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c ab.c
+gcc -O ab.o -o ab.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
+Starting ab ...
+ 
+  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
+   1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
+   1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
+   1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
+   1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
+   1    92  EP   5  1.512417E-01  4.369748E+00  9.155894E-01  4.272750E+00
+
+ Total Time    1.511E-02
+ab ... done
+Saving fort.7 as b.ab ... done
+Saving fort.8 as s.ab ... done
+Saving fort.9 as d.ab ... done
+Starting ab ...
+ 
+  BR    PT  TY LAB    PAR(0)        L2-NORM       MAX(1)        MAX(2)         PERIOD    
+   4    30       6  1.198815E-01  3.987129E+00  9.919113E-01  7.020342E+00  2.721044E+00
+   4    60       7  1.153033E-01  3.146307E+00  9.995775E-01  9.957649E+00  6.147449E+00
+   4    90       8  1.056503E-01  2.219179E+00  9.991660E-01  9.366073E+00  1.399772E+01
+   4   120       9  1.055071E-01  1.696848E+00  9.992682E-01  9.309299E+00  9.956168E+01
+   4   150  EP  10  1.055071E-01  1.604555E+00  9.992947E-01  9.298441E+00  1.659432E+03
+
+ Total Time    1.637E+00
+ab ... done
+Created plotter
+Created plotter

@@ -1,0 +1,43 @@
+#===> sun.makefile
+#
+#   Makefile written by Xianjun WANG in March 1994
+#
+#   This Makefile is used to compile the Graphic User Interface(GUI)
+#   source code for Sun(Sparc) Station machines.
+#
+#   Type "make -f sun.makefile" to compile
+#
+.SUFFIXES: .c .o
+#
+CC   = cc -O
+#
+# the following line defines the path where X11 and Motif header files
+# were installed. If X11 and Motif was installed in a different path
+# this following path should be modified to locate the them (X11 and Motif 
+# header files )
+#
+INC_DIR=$(MOTIFHOME)/include
+
+# the following line defines the path where X11 and Motif library files
+# were installed. If the library files for X11 and Motif was installed in 
+# a different path, this following path should be modified to locate the them 
+# as before
+#
+LIB_DIR=$(MOTIFHOME)/lib
+#
+CFLAGS = -I../include -c
+#SRC = auto97.c
+OBJ  = auto97.o
+PGM  = ../bin/AUTO97
+RM   = rm -f
+LIBS =  -L/lib -L/enmd/IXImd12x/lib -lXm -lXt -lXext -lICE -lSM  -lX11
+#
+.c.o:
+	$(CC) $(CFLAGS) -I$(INC_DIR) $*.c -o $@
+#
+$(PGM): $(OBJ)
+	$(CC) $(OBJ) -o $@ -L$(LIB_DIR) $(LIBS)
+#
+clean:  
+	$(RM) *.o *~
+

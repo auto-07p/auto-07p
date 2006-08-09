@@ -1,0 +1,13 @@
+
+#==============
+# AUTO Demo man
+#==============
+
+print "\n***Compute a bigger portion of the manifold***"
+ld(e='man',c='man.2',s='start')
+run()
+sv('man2')
+
+print "\n***Clean the directory***"
+cl()
+

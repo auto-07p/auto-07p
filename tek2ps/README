@@ -1,0 +1,25 @@
+This program will filter tektronix style plots to postscript output,
+letting you use your laserprinter instead of the thermal printer that
+tektronix has been selling since the dark ages.
+
+I haven't been able to really test the defocussed Z axis stuff (no plot
+programs that we have use it).
+
+I have put as much as possible into the prolog file so a user can fairly
+easily change the defaults I like to those he or she likes.  The tough
+part about figuring out how this works is understanding the Tek addressing
+schemes.  Other than that, it is pretty simple.  There is one `undocumented'
+flag: -d, which enables more verbose messages when an otherwise ignored
+character is encountered.  Usually, these are padding characters (4010s
+are very slow by modern standards).
+
+BE SURE TO EDIT THE PROGRAM (tek2ps.c, find def_pro) AND DOCUMENTATION
+(tek2ps.doc, about the tenth line) to put the correct location
+for the default prolog file in!
+
+Any corrections or additions?  Let me know at:
+
+Michael Fischbein                 msf@prandtl.arpa
+                                  msf@prandtl.arc.nasa.gov
+				  ...!seismo!decuac!csmunix!icase!msf
+

@@ -1,0 +1,5 @@
+if ( test $# -eq 1 ) then
+	grep "Bif. Function" d.$1
+else
+	grep "Bif. Function" fort.9
+fi

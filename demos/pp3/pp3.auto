@@ -1,0 +1,34 @@
+
+#==============
+# AUTO Demo pp3
+#==============
+
+print "\n***Compute stationary solution families***"
+ld(e='pp3',c='pp3.1')
+run()
+sv('pp3')
+
+print "\n***Compute a periodic solution family***"
+ld(c='pp3.2',s='pp3')
+run()
+ap('pp3')
+
+print "\n***Compute another periodic solution family***"
+ld(c='pp3.3')
+run()
+ap('pp3')
+
+print "\n***Relabel the output files***"
+rl('pp3')
+
+print "\n***Compute a locus of Hopf bifurcations***"
+ld(c='pp3.4',s='pp3')
+run()
+sv('hb')
+
+print "\n***Relabel the output files***"
+rl('hb')
+
+print "\n***Clean the directory***"
+cl()
+

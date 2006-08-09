@@ -1,0 +1,3 @@
+gzip --best b.*
+gzip --best s.*
+gzip --best d.*

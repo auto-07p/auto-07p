@@ -1,0 +1,47 @@
+.TH tek2ps 1
+.SH NAME
+tek2ps \- convert Tektronix\*R 4014 commands to PostScript\*R
+.SH SYNTAX
+tek2ps [-p \fIprologfile\fR] [-e] [-s \fIscale] files
+.SH OPTIONS
+.IP -p
+will use the named prologfile instead of the default (currently
+/disk2/home/doedel/auto/97/tek2ps/tekps.pro).
+.IP -e
+will make `erase' (ESC FF) and `hardcopy' (ESC ETB) synonymous: each will
+print the current page and then erase it.  The default will erase without
+printing or print without erasing.
+.IP -s
+will scale the entire plot by the per centage specified.  The default maps
+the Tektronix screen to a Portrait picture on a A4 sheet of paper.
+.SH DESCRIPTION
+.PP
+Tek2ps will take any output designed to be displayed on a Tektronix 4014
+terminal and translate it to PostScript suitable for sending to any PostScript
+device.  Some manual editing will probably be required if the PostScript
+is to be included in another file.  Tek2ps supports 10 and 12-bit addressing
+modes, incremental plots, and defocussed Z axis.  It does
+.I not
+support crosshair (GIN) mode or special point plot (6-bit greyscale).
+.PP
+Multiple
+.I files
+may be specified; if none are listed standard input is read.  Output is to
+standard output.
+.SH EXAMPLE
+plot -T4014 myplot | tek2ps | lpr -Plw
+.SH SPECIAL CONSIDERATIONS
+.PP
+If you place multiple screens in a single file, you must either use the
+hardcopy command followed by an erase to prevent overwriting, or the
+-e option.
+.SH FILES
+/mnt/cmb/msf/tek2ps/tekps.pro
+.SH SEE ALSO
+graph(1), plot(1)
+.SH BUGS
+Tek2ps will not support crosshair (GIN) mode or special point plot
+(6-bit greyscale).
+.SH AUTHOR
+Michael Fischbein
+

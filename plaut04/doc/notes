@@ -1,0 +1,76 @@
+
+2. A new @xxx command is create.
+@pl
+which should be put in $AUTO_DIR/cmds/
+the graphics tool is called `plot3d' --- the coin3d version
+which should be put in $AUTO_DIR/bin/
+The @pl command is:
+
+if ( test $# -eq 0 ) then
+        $AUTO_DIR/bin/plot3d
+elif ( test $# -eq 1 ) then
+        $AUTO_DIR/bin/plot3d $1
+elif ( test $# -eq 2 ) then
+        $AUTO_DIR/bin/plot3d $1 $2
+elif ( test $# -eq 3 ) then
+        $AUTO_DIR/bin/plot3d $1  $2  $3
+else
+        echo "Illegal command"
+fi
+
+
+3. insert following code to .autorc
+pl3     =commandPlot3D
+plot3D      =commandPlot3D
+
+4. insert following code to $AUTO_DIR/python/AUTOCommands.py
+
+class commandPlot3D(command):
+    """ Draw the solution or/and bifurcation using the 3D graphics tool
+                                                                                                                                             
+    Type FUNC() to draw the fort.* file in current directory.
+    Other formats for this command are:
+    FUNC('mu')             --- draw the fort.* files with the given mu.
+    FUNC('mu','file')      --- draw the *.file with the given mu.
+                               the *.file are supposed to be in
+                               the current dir
+    FUNC('mu','path', 'file')  --- draw the *.file with the given mu.
+                               the *.file are supposed to be in
+                               the dir on the path 'path'
+    """
+                                                                                                                                             
+    def __init__(self, mu= ' ', path= ' ', file=' '):
+        self.filename_list = mu + '  ' + path + ' ' + file
+                                                                                                                                             
+    def __call__(self):
+        os.system("@pl %s " % self.filename_list)
+        return ''
+
+5. structure of directories.
+
+
+$AUTO/
+   |
+   |-- plot3d --- keep the makefile and .rc 
+   |     |
+   |     |--- src  ---- keep source file(.c++) .h, Makefile, .rc)
+   |     |--- include --- keep the headers
+   |     |--- lib  --- keep the object file
+   |     |--- bin  --- keep the executable
+   |     |--- widgets  --- keep the widgets 
+   |     |--- doc  ---- keep the help/manual
+   |
+   |--- bin  
+   |--- cmds
+   |--- python
+
+The default plot3d.rc should be put at $AUTO/.
+The script @pl3d should be put at $AUTO/cmds/.
+The executable plot3d should be put at $AUTO/bin/.
+The widget should be put at $AUTO/plot3d/widgets/.
+
+DEPENDENCE:
+The Coin3d should be put at /usr/local/lib
+  libCoin.so.40.0.0  libsimage.so.20.2.2  libSoXt.so.0.0.0
+  The above three lib must be installed.
+ 

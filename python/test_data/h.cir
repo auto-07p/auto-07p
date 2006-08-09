@@ -1,0 +1,23 @@
+1 2 0 0 1    NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
+0 	     NREV,/,IREV(I),I=1,NDIM)
+0            NFIXED,(/,I,IFIXED(I)),I=1,NFIXED)
+0            NPSI,(/,I,IPSI(I)),I=1,NPSI)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

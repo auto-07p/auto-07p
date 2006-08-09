@@ -1,0 +1,133 @@
+
+\documentstyle[12pt]{article}
+
+\begin{document}
+\section{The Graphics Program PLAUT}
+
+\index{PLAUT} is a program that can be used to extract graphical
+information from the AUTO output files {\tt fort.7} and {\tt fort.8}.
+These files are referred to below as Unit 7 and Unit 8, respectively.
+When saved, these files are called {\tt p.xxx} and {\tt q.xxx}, respectively,
+ where {\tt xxx} stands for a user selected name.
+
+\subsection{The Principal PLAUT Commands}
+
+The principal PLAUT commands are 
+
+\begin{description}
+\item[\bf BD0 ---] This command is useful for an initial overview of the bifurcation
+                   diagram as stored in Unit~7.
+                   If you have not previously selected one of the default options 
+                   (D0, D1, D2, D3, or D4) described below, then you will be asked
+                   whether you want solution labels, grid lines, titles, or labeled axes.
+
+\item[\bf BD ---]  This command is the same as the BD0 command, except that you will be
+                   asked to enter the minimum and the maximum of the horizontal and 
+                   vertical axes.
+                   This is useful for blowing up portions of a previously displayed
+                   bifurcation diagram.
+
+\item[\bf AX ---]  With the AX command you can select any pair of columns of real
+                   numbers from Unit 7 as horizontal and vertical axis in the
+                   bifurcation diagram. (The default is columns 1 and 2).
+                   To determine what these columns represent, one can look at the
+                   screen ouput of the corresponding AUTO run, or one can inspect the
+                   column headings in the Unit~7 file.
+                                 
+\item[\bf 2D ---]  Upon entering the 2D command, the labels of all solutions stored 
+                   in Unit~8 will be listed and you can select one or more of these 
+                   for display. The number of solution components is also listed
+                   and you will be prompted to select two of these as horizontal and
+                   vertical axis in the display.
+                   Note that the first component is typically the independent 
+                   time or space variable scaled to the interval [0,1].
+
+\item[\bf SAV ---] To save the displayed plot in a file. You will be asked to enter
+                   a file name. Each plot must be stored in a separate new file.
+                   The plot is stored in compact PLOT10 format, which can be converted to 
+                   Postscript format with the AUTO {\tt @ps} and {\tt @pr}
+                   commands (See Section ???.)
+
+\item[\bf CL ---]  To clear the graphics window.
+
+\item[\bf LAB ---]  To list the labels of all solutions stored in Unit 8.
+                    Note that PLAUT requires all labels to be distinct.
+                    In case of multiple labels you can use the AUTO
+                    command {\tt @lb} to relabel solutions in
+                    Unit~7 and Unit~8.
+
+\item[\bf END ---]  To end execution of PLAUT.
+\end{description}
+
+
+\subsection{Default Options}
+
+After entering the commands BD0, BD, or 2D, you will be asked whether you 
+want solution labels, grid lines, titles, or axes labels.
+For quick plotting it is convenient to bypass these selections.
+This can be done by the default commands D0, D1, D2, D3, or D4 below.
+These can be entered as a single command before the BD0 or BD command,
+or they can be entered as prefixes in the BD0 or BD command. 
+Thus, for example, one can enter the command D1BD0.  
+
+\begin{description}
+\item[\bf D0 ---]  Use solid curves, showing solution labels and symbols.    
+\item[\bf D1 ---]  Use solid curves, except use dashed curves for unstable
+                   solutions and for solutions of unknown stability.
+                   Show solution labels and symbols.
+\item[\bf D2 ---]  As D1, but with grid lines.   
+\item[\bf D3 ---]  As D1, except for periodic solutions use 
+                   solid circles if stable,
+                   and open circles if unstable or if the stability
+                   is unknown.
+\item[\bf D4 ---]  Use solid curves, without labels and symbols.  
+\end{description}
+
+If no default option (D0, D1, D2, D3, or D4) has been selected 
+or if you want to override a default feature,
+then the the following commands can be used.
+These can be entered as individual commands or as prefixes.
+For example, one can enter the command SYDPBD0.
+
+\begin{description}     
+\item[\bf SY ---]    Use symbols for special solution points, for example,
+                     open square = bifurcation,
+                     solid square = Hopf bifurcation.
+\item[\bf DP ---]    ``Differential Plots'', i.e., show stability of the 
+                     solutions. Solid curves represent stable solutions.
+                     Dashed curves are used for unstable
+                     solutions and for solutions of unknown stability.
+                     For periodic solutions use solid and open circles
+                     to indicate stability/instability (or unknown
+                     stability).
+\item[\bf ST ---]    Set up titles and axes labels. 
+\item[\bf NU ---]    Normal usage (reset special options). 
+\end{description}
+
+
+\subsection{Other PLAUT Commands}
+
+The full PLAUT program has several other capabilities.
+The most useful of the additional commands are
+
+\begin{description}     
+\item[\bf SCR ---]  To change the diagram size.
+\item[\bf RSS ---]  To change the size of special point symbols.
+\end{description}
+
+
+\subsection{Printing PLAUT Files}
+ 
+\begin{description}
+
+\item[{\tt @ps} ---]
+To convert a PLAUT file {\tt fig.x} to {\sc Post}{\sc Script} format
+as {\tt fig.x.ps}.
+
+\item[{\tt @pr} ---]
+To convert a PLAUT file {\tt fig.x} to {\sc Post}{\sc Script}, and to
+send the resulting file {\tt fig.x.ps} to the printer.
+
+\end{description}
+
+\end{document}

@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo nep
+#==============
+
+print "\n***Compute the basic solution family***"
+ld(e='nep',c='nep.1')
+run()
+sv('nep')
+
+print "\n***Compute bifurcating solution families***"
+ld(c='nep.2',s='nep')
+data = sl('nep')
+for solution in data:
+    if solution["Type name"] == "BP":
+        ch("IRS", solution["Label"])
+        run()
+        ap('nep')
+
+print "\n***Clean the directory***"
+cl()

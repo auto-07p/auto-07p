@@ -1,0 +1,23 @@
+
+#==============
+# AUTO Demo ezp
+#==============
+
+print "\n***Compute a solution family***"
+ld(e='ezp',c='ezp.1')
+run()
+sv('ezp')
+
+print "\n***Compute one leg of the bifurcating family***"
+ld(e='ezp',c='ezp.2',s='ezp')
+run()
+ap('ezp')
+
+print "\n***Compute the other leg of the bifurcating family***"
+ld(e='ezp',c='ezp.3',s='ezp')
+run()
+ap('ezp')
+
+print "\n***Clean the directory***"
+cl()
+

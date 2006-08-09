@@ -1,0 +1,5 @@
+if ( test $# -eq 1 ) then
+	grep SPB d.$1
+else
+	grep SPB fort.9
+fi

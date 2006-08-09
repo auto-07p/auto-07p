@@ -1,0 +1,34 @@
+This is a start of documentation for the new AUTO front end.
+
+shortBindings.py is my attempt to reproduce the commands from the
+AUTO manual.
+
+runDemo.py is the only module from this directory used outside this
+directory.  Namely, it is used in util/test.py
+
+test.py runs the regression tests for all the modules which
+have a test function
+
+
+NOTE:
+
+Several source files have been copied from VBM into here.
+Any changes to these should be folded back into VBM.
+Namely:
+
+	parse7.py
+	parse8.py
+	parseR.py
+	graphics/plotter3d.py (used to be vbm_view_auto.py)
+	graphics/vbm_util_pages.py
+	src/auto_plotter3d.cc (used to be auto_physical.cc)	
+
+NOTE:
+
+Some files have been put into here from the Python distribution,
+and will only live here until Sebius upgrades his laptop.
+Namely:
+
+	re.py
+	code.py
+	codeop.py

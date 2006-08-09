@@ -1,0 +1,5 @@
+if ( test $# -eq 1 ) then
+	grep Fold d.$1
+else
+	grep Fold fort.9
+fi

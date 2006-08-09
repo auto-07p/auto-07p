@@ -1,0 +1,34 @@
+=== tek2ps.shar =========================
+Article 923 of comp.sources.unix:
+Path: s.cc.purdue.edu!h.cc.purdue.edu!j.cc.purdue.edu!pur-ee!iuvax!rutgers!ukma!uunet!rs
+From: rs@uunet.UU.NET (Rich Salz)
+Newsgroups: comp.sources.unix
+Subject: v11i049:  Tektronix4014 to PostScript filter
+Message-ID: <1607@uunet.UU.NET>
+Date: 17 Sep 87 03:19:50 GMT
+Organization: UUNET Communications Services, Arlington, VA
+Lines: 750
+Approved: rs@uunet.UU.NET
+
+Submitted-by: Michael S. Fischbein <msf@ames-nas.arpa>
+Posting-number: Volume 11, Issue 49
+Archive-name: tek2ps
+
+Here's my first contribution to the wonderful world of public domain source
+codes, with a tip of the hat to the GNU Manifesto.
+
+I've used several of the postings, so I thought I'd deliver this small piece
+up to the net.  We have several plot programs that have been developed or
+customized over the years, but they ALL support 4014s.  So, we now have a
+fast way to get good quality hardcopy.  Hope some other people can use it
+
+Just thought I'd explain one code peculiarity: the use of fprintf(stdout,....
+throughout is because I was originally going to add a -o outputfile option.
+Redirecting stdout seemed a better choice once it was written.
+		mike
+
+# This is a shell archive.  Remove anything before this line,
+# then unpack it by saving it in a file and typing "sh file".
+#
+# Contents:  Makefile README pstek.pro tek.h tek2ps.c tek2ps.doc
+ 

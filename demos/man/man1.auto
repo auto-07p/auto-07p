@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo man
+#==============
+
+print "\n***Compute an initial orbit in the manifold***"
+ld(e='man',c='man.0')
+run()
+sv('start')
+
+print "\n***Compute the manifold***"
+ld(c='man.1',s='start')
+run()
+sv('man1')
+
+print "\n***Clean the directory***"
+cl()
+

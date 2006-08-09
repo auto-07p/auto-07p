@@ -1,0 +1,3931 @@
+%!EPS-Adobe-1.0
+%%DocumentFonts:  Courier 
+%%Title: pstek prolog file, version 1.0 @(#)pstek.pro	1.10
+%%Creator: Michael Fischbein
+%% Copyright 1987 Michael Fischbein.  Commercial reproduction prohibited;
+%% non-profit reproduction and distribution encouraged.
+%%CreationDate: %?% 5 June 1987
+%%For: tektronics-to-PS converter
+%%BoundingBox: 0 395 560 740
+%%EndComments
+gsave
+-30 800 translate -90 rotate
+0.75 0.75 scale
+
+% Font definitions (make 3/4 functions to avoid scaling if not needed)
+/FntH /Courier findfont 80 scalefont def
+/DFntL { /FntL /Courier findfont 73.4 scalefont def } def
+/DFntM { /FntM /Courier findfont 50.2 scalefont def } def
+/DFntS { /FntS /Courier findfont 44 scalefont def } def
+
+% tektronix line styles
+/NV { [] 0 setdash } def	% normal vectors
+/DV { [8] 0 setdash } def	% dotted vectors
+/DDV { [8 8 32 8] 0 setdash } def	% dot-dash vectors
+/SDV { [32 8] 0 setdash } def	% short-dash vectors
+/LDV { [64 8] 0 setdash } def	% long-dash vectors
+
+% Defocussed Z axis and Focussed Z axis
+/DZ { .5 setgray } def
+/FZ {  0 setgray } def
+
+/PR	% char x y -> -  prints character
+{	moveto show } def
+
+/NP	% - -> - new page
+% change default scale and orentation to match tek's
+{	572 40 translate	% leave a border
+	90 rotate
+	% .71707 .692308 scale	% 0-1023X, 0-780Y
+	.1730769 .17626953 scale	%0-4096X, 0-3120Y
+} def
+
+/DP	% tsizey -> - erase and home
+{	clippath 1 setgray fill
+	0 setgray
+	0 exch moveto
+} def
+
+FntH  setfont
+
+NP
+
+0 3068 moveto
+%%89 DP
+592 540 moveto
+592 2600 lineto stroke 592 2600 moveto
+600 2600 lineto stroke 600 2600 moveto
+600 600 lineto stroke 600 600 moveto
+540 600 moveto
+3800 600 lineto stroke 3800 600 moveto
+3800 592 lineto stroke 3800 592 moveto
+540 592 lineto stroke 540 592 moveto
+600 2600 moveto
+3800 2600 lineto stroke 3800 2600 moveto
+3800 600 lineto stroke 3800 600 moveto
+3636 1692 moveto
+(z) 3636 1692 PR
+2292 2468 moveto
+(y) 2292 2468 PR
+728 888 moveto
+(x) 728 888 PR
+2200 1600 moveto
+3720 1600 lineto stroke 3720 1600 moveto
+3636 1552 moveto
+3720 1600 lineto stroke 3720 1600 moveto
+3636 1644 lineto stroke 3636 1644 moveto
+2200 1600 moveto
+2200 2548 lineto stroke 2200 2548 moveto
+2244 2468 moveto
+2200 2548 lineto stroke 2200 2548 moveto
+2152 2468 lineto stroke 2152 2468 moveto
+2200 1600 moveto
+680 760 lineto stroke 680 760 moveto
+728 840 moveto
+680 760 lineto stroke 680 760 moveto
+772 760 lineto stroke 772 760 moveto
+2824 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+2824 2052 moveto
+2820 2052 lineto stroke 2820 2052 moveto
+2816 2052 lineto stroke 2816 2052 moveto
+2812 2052 lineto stroke 2812 2052 moveto
+2808 2052 lineto stroke 2808 2052 moveto
+2804 2052 lineto stroke 2804 2052 moveto
+2800 2052 lineto stroke 2800 2052 moveto
+2792 2052 lineto stroke 2792 2052 moveto
+2788 2052 lineto stroke 2788 2052 moveto
+2780 2052 lineto stroke 2780 2052 moveto
+2772 2052 lineto stroke 2772 2052 moveto
+2764 2052 lineto stroke 2764 2052 moveto
+2756 2052 lineto stroke 2756 2052 moveto
+2744 2052 lineto stroke 2744 2052 moveto
+2732 2052 lineto stroke 2732 2052 moveto
+2724 2052 lineto stroke 2724 2052 moveto
+2708 2052 lineto stroke 2708 2052 moveto
+2696 2052 lineto stroke 2696 2052 moveto
+2680 2048 lineto stroke 2680 2048 moveto
+2664 2048 lineto stroke 2664 2048 moveto
+2648 2044 lineto stroke 2648 2044 moveto
+2632 2044 lineto stroke 2632 2044 moveto
+2612 2040 lineto stroke 2612 2040 moveto
+2588 2036 lineto stroke 2588 2036 moveto
+2564 2032 lineto stroke 2564 2032 moveto
+2540 2028 lineto stroke 2540 2028 moveto
+2516 2020 lineto stroke 2516 2020 moveto
+2488 2012 lineto stroke 2488 2012 moveto
+2464 2004 lineto stroke 2464 2004 moveto
+2436 1992 lineto stroke 2436 1992 moveto
+2408 1980 lineto stroke 2408 1980 moveto
+2384 1968 lineto stroke 2384 1968 moveto
+2356 1956 lineto stroke 2356 1956 moveto
+2328 1940 lineto stroke 2328 1940 moveto
+2304 1924 lineto stroke 2304 1924 moveto
+2276 1904 lineto stroke 2276 1904 moveto
+2252 1880 lineto stroke 2252 1880 moveto
+2228 1860 lineto stroke 2228 1860 moveto
+2204 1832 lineto stroke 2204 1832 moveto
+2180 1808 lineto stroke 2180 1808 moveto
+2160 1776 lineto stroke 2160 1776 moveto
+2140 1748 lineto stroke 2140 1748 moveto
+2124 1716 lineto stroke 2124 1716 moveto
+2112 1688 lineto stroke 2112 1688 moveto
+2104 1656 lineto stroke 2104 1656 moveto
+2096 1624 lineto stroke 2096 1624 moveto
+2088 1588 lineto stroke 2088 1588 moveto
+2088 1556 lineto stroke 2088 1556 moveto
+2088 1520 lineto stroke 2088 1520 moveto
+2092 1488 lineto stroke 2092 1488 moveto
+2100 1456 lineto stroke 2100 1456 moveto
+2112 1432 lineto stroke 2112 1432 moveto
+2128 1404 lineto stroke 2128 1404 moveto
+2144 1384 lineto stroke 2144 1384 moveto
+2168 1356 lineto stroke 2168 1356 moveto
+2196 1336 lineto stroke 2196 1336 moveto
+2228 1320 lineto stroke 2228 1320 moveto
+2260 1308 lineto stroke 2260 1308 moveto
+2288 1304 lineto stroke 2288 1304 moveto
+2320 1304 lineto stroke 2320 1304 moveto
+2352 1304 lineto stroke 2352 1304 moveto
+2384 1308 lineto stroke 2384 1308 moveto
+2416 1316 lineto stroke 2416 1316 moveto
+2452 1328 lineto stroke 2452 1328 moveto
+2484 1340 lineto stroke 2484 1340 moveto
+2516 1356 lineto stroke 2516 1356 moveto
+2556 1376 lineto stroke 2556 1376 moveto
+2588 1400 lineto stroke 2588 1400 moveto
+2624 1424 lineto stroke 2624 1424 moveto
+2656 1448 lineto stroke 2656 1448 moveto
+2688 1480 lineto stroke 2688 1480 moveto
+2720 1512 lineto stroke 2720 1512 moveto
+2748 1540 lineto stroke 2748 1540 moveto
+2772 1572 lineto stroke 2772 1572 moveto
+2796 1604 lineto stroke 2796 1604 moveto
+2820 1636 lineto stroke 2820 1636 moveto
+2840 1664 lineto stroke 2840 1664 moveto
+2856 1692 lineto stroke 2856 1692 moveto
+2868 1724 lineto stroke 2868 1724 moveto
+2884 1748 lineto stroke 2884 1748 moveto
+2892 1776 lineto stroke 2892 1776 moveto
+2900 1800 lineto stroke 2900 1800 moveto
+2908 1824 lineto stroke 2908 1824 moveto
+2912 1848 lineto stroke 2912 1848 moveto
+2916 1872 lineto stroke 2916 1872 moveto
+2920 1892 lineto stroke 2920 1892 moveto
+2920 1912 lineto stroke 2920 1912 moveto
+2920 1932 lineto stroke 2920 1932 moveto
+2916 1952 lineto stroke 2916 1952 moveto
+2912 1964 lineto stroke 2912 1964 moveto
+2908 1980 lineto stroke 2908 1980 moveto
+2900 1992 lineto stroke 2900 1992 moveto
+2896 2004 lineto stroke 2896 2004 moveto
+2888 2012 lineto stroke 2888 2012 moveto
+2884 2020 lineto stroke 2884 2020 moveto
+2876 2024 lineto stroke 2876 2024 moveto
+2872 2032 lineto stroke 2872 2032 moveto
+2864 2036 lineto stroke 2864 2036 moveto
+2860 2040 lineto stroke 2860 2040 moveto
+2856 2040 lineto stroke 2856 2040 moveto
+2852 2044 lineto stroke 2852 2044 moveto
+2848 2044 lineto stroke 2848 2044 moveto
+2844 2048 lineto stroke 2844 2048 moveto
+2836 2048 lineto stroke 2836 2048 moveto
+2832 2052 lineto stroke 2832 2052 moveto
+2828 2052 lineto stroke 2828 2052 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+3204 2272 moveto
+3204 2272 lineto stroke 3204 2272 moveto
+3212 2288 moveto
+3212 2288 lineto stroke 3212 2288 moveto
+3216 2304 moveto
+3216 2304 lineto stroke 3216 2304 moveto
+3220 2316 moveto
+3220 2316 lineto stroke 3220 2316 moveto
+3228 2332 moveto
+3228 2332 lineto stroke 3228 2332 moveto
+3232 2344 moveto
+3232 2344 lineto stroke 3232 2344 moveto
+3240 2360 moveto
+3240 2360 lineto stroke 3240 2360 moveto
+3248 2372 moveto
+3248 2372 lineto stroke 3248 2372 moveto
+3252 2388 moveto
+3252 2388 lineto stroke 3252 2388 moveto
+3260 2400 moveto
+3260 2400 lineto stroke 3260 2400 moveto
+3268 2416 moveto
+3268 2416 lineto stroke 3268 2416 moveto
+3276 2428 moveto
+3276 2428 lineto stroke 3276 2428 moveto
+3288 2440 moveto
+3288 2440 lineto stroke 3288 2440 moveto
+3296 2456 moveto
+3296 2456 lineto stroke 3296 2456 moveto
+3308 2468 moveto
+3308 2468 lineto stroke 3308 2468 moveto
+3320 2480 moveto
+3320 2480 lineto stroke 3320 2480 moveto
+3332 2492 moveto
+3332 2492 lineto stroke 3332 2492 moveto
+3348 2500 moveto
+3348 2500 lineto stroke 3348 2500 moveto
+3364 2508 moveto
+3364 2508 lineto stroke 3364 2508 moveto
+3384 2512 moveto
+3384 2512 lineto stroke 3384 2512 moveto
+3408 2512 moveto
+3408 2512 lineto stroke 3408 2512 moveto
+3424 2504 moveto
+3424 2504 lineto stroke 3424 2504 moveto
+3444 2496 moveto
+3444 2496 lineto stroke 3444 2496 moveto
+3456 2484 moveto
+3456 2484 lineto stroke 3456 2484 moveto
+3472 2476 moveto
+3472 2476 lineto stroke 3472 2476 moveto
+3484 2464 moveto
+3484 2464 lineto stroke 3484 2464 moveto
+3496 2448 moveto
+3496 2448 lineto stroke 3496 2448 moveto
+3504 2436 moveto
+3504 2436 lineto stroke 3504 2436 moveto
+3516 2424 moveto
+3516 2424 lineto stroke 3516 2424 moveto
+3524 2412 moveto
+3524 2412 lineto stroke 3524 2412 moveto
+3532 2396 moveto
+3532 2396 lineto stroke 3532 2396 moveto
+3540 2384 moveto
+3540 2384 lineto stroke 3540 2384 moveto
+3548 2368 moveto
+3548 2368 lineto stroke 3548 2368 moveto
+3556 2356 moveto
+3556 2356 lineto stroke 3556 2356 moveto
+3564 2344 moveto
+3564 2344 lineto stroke 3564 2344 moveto
+3572 2328 moveto
+3572 2328 lineto stroke 3572 2328 moveto
+3580 2316 moveto
+3580 2316 lineto stroke 3580 2316 moveto
+3588 2300 moveto
+3588 2300 lineto stroke 3588 2300 moveto
+3592 2288 moveto
+3592 2288 lineto stroke 3592 2288 moveto
+3600 2272 moveto
+3600 2272 lineto stroke 3600 2272 moveto
+3608 2260 moveto
+3608 2260 lineto stroke 3608 2260 moveto
+3612 2244 moveto
+3612 2244 lineto stroke 3612 2244 moveto
+3620 2232 moveto
+3620 2232 lineto stroke 3620 2232 moveto
+3624 2216 moveto
+3624 2216 lineto stroke 3624 2216 moveto
+3632 2200 moveto
+3632 2200 lineto stroke 3632 2200 moveto
+3636 2188 moveto
+3636 2188 lineto stroke 3636 2188 moveto
+3644 2172 moveto
+3644 2172 lineto stroke 3644 2172 moveto
+3648 2160 moveto
+3648 2160 lineto stroke 3648 2160 moveto
+3656 2144 moveto
+3656 2144 lineto stroke 3656 2144 moveto
+3660 2132 moveto
+3660 2132 lineto stroke 3660 2132 moveto
+3664 2116 moveto
+3664 2116 lineto stroke 3664 2116 moveto
+3668 2100 moveto
+3668 2100 lineto stroke 3668 2100 moveto
+3676 2088 moveto
+3676 2088 lineto stroke 3676 2088 moveto
+3680 2072 moveto
+3680 2072 lineto stroke 3680 2072 moveto
+3684 2060 moveto
+3684 2060 lineto stroke 3684 2060 moveto
+3688 2044 moveto
+3688 2044 lineto stroke 3688 2044 moveto
+3692 2028 moveto
+3692 2028 lineto stroke 3692 2028 moveto
+3692 2016 moveto
+3692 2016 lineto stroke 3692 2016 moveto
+3688 2000 moveto
+3688 2000 lineto stroke 3688 2000 moveto
+3668 2004 moveto
+3668 2004 lineto stroke 3668 2004 moveto
+3656 2016 moveto
+3656 2016 lineto stroke 3656 2016 moveto
+3640 2028 moveto
+3640 2028 lineto stroke 3640 2028 moveto
+3628 2040 moveto
+3628 2040 lineto stroke 3628 2040 moveto
+3616 2052 moveto
+3616 2052 lineto stroke 3616 2052 moveto
+3600 2064 moveto
+3600 2064 lineto stroke 3600 2064 moveto
+3588 2072 moveto
+3588 2072 lineto stroke 3588 2072 moveto
+3576 2084 moveto
+3576 2084 lineto stroke 3576 2084 moveto
+3560 2096 moveto
+3560 2096 lineto stroke 3560 2096 moveto
+3548 2108 moveto
+3548 2108 lineto stroke 3548 2108 moveto
+3532 2116 moveto
+3532 2116 lineto stroke 3532 2116 moveto
+3516 2128 moveto
+3516 2128 lineto stroke 3516 2128 moveto
+3500 2140 moveto
+3500 2140 lineto stroke 3500 2140 moveto
+3488 2148 moveto
+3488 2148 lineto stroke 3488 2148 moveto
+3472 2160 moveto
+3472 2160 lineto stroke 3472 2160 moveto
+3456 2168 moveto
+3456 2168 lineto stroke 3456 2168 moveto
+3440 2180 moveto
+3440 2180 lineto stroke 3440 2180 moveto
+3420 2188 moveto
+3420 2188 lineto stroke 3420 2188 moveto
+3404 2196 moveto
+3404 2196 lineto stroke 3404 2196 moveto
+3388 2204 moveto
+3388 2204 lineto stroke 3388 2204 moveto
+3368 2212 moveto
+3368 2212 lineto stroke 3368 2212 moveto
+3352 2220 moveto
+3352 2220 lineto stroke 3352 2220 moveto
+3332 2228 moveto
+3332 2228 lineto stroke 3332 2228 moveto
+3316 2236 moveto
+3316 2236 lineto stroke 3316 2236 moveto
+3296 2240 moveto
+3296 2240 lineto stroke 3296 2240 moveto
+3276 2244 moveto
+3276 2244 lineto stroke 3276 2244 moveto
+3256 2252 moveto
+3256 2252 lineto stroke 3256 2252 moveto
+3236 2256 moveto
+3236 2256 lineto stroke 3236 2256 moveto
+3216 2260 moveto
+3216 2260 lineto stroke 3216 2260 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+1804 2052 moveto
+1804 2052 lineto stroke 1804 2052 moveto
+1788 2052 moveto
+1788 2052 lineto stroke 1788 2052 moveto
+1772 2052 moveto
+1772 2052 lineto stroke 1772 2052 moveto
+1756 2052 moveto
+1756 2052 lineto stroke 1756 2052 moveto
+1740 2052 moveto
+1740 2052 lineto stroke 1740 2052 moveto
+1720 2052 moveto
+1720 2052 lineto stroke 1720 2052 moveto
+1704 2052 moveto
+1704 2052 lineto stroke 1704 2052 moveto
+1688 2052 moveto
+1688 2052 lineto stroke 1688 2052 moveto
+1672 2052 moveto
+1672 2052 lineto stroke 1672 2052 moveto
+1652 2048 moveto
+1652 2048 lineto stroke 1652 2048 moveto
+1636 2048 moveto
+1636 2048 lineto stroke 1636 2048 moveto
+1620 2048 moveto
+1620 2048 lineto stroke 1620 2048 moveto
+1600 2044 moveto
+1600 2044 lineto stroke 1600 2044 moveto
+1584 2044 moveto
+1584 2044 lineto stroke 1584 2044 moveto
+1568 2044 moveto
+1568 2044 lineto stroke 1568 2044 moveto
+1548 2040 moveto
+1548 2040 lineto stroke 1548 2040 moveto
+1532 2040 moveto
+1532 2040 lineto stroke 1532 2040 moveto
+1512 2036 moveto
+1512 2036 lineto stroke 1512 2036 moveto
+1492 2032 moveto
+1492 2032 lineto stroke 1492 2032 moveto
+1476 2028 moveto
+1476 2028 lineto stroke 1476 2028 moveto
+1456 2028 moveto
+1456 2028 lineto stroke 1456 2028 moveto
+1436 2024 moveto
+1436 2024 lineto stroke 1436 2024 moveto
+1420 2020 moveto
+1420 2020 lineto stroke 1420 2020 moveto
+1400 2016 moveto
+1400 2016 lineto stroke 1400 2016 moveto
+1380 2012 moveto
+1380 2012 lineto stroke 1380 2012 moveto
+1360 2004 moveto
+1360 2004 lineto stroke 1360 2004 moveto
+1340 2000 moveto
+1340 2000 lineto stroke 1340 2000 moveto
+1324 1996 moveto
+1324 1996 lineto stroke 1324 1996 moveto
+1304 1988 moveto
+1304 1988 lineto stroke 1304 1988 moveto
+1284 1984 moveto
+1284 1984 lineto stroke 1284 1984 moveto
+1264 1976 moveto
+1264 1976 lineto stroke 1264 1976 moveto
+1244 1968 moveto
+1244 1968 lineto stroke 1244 1968 moveto
+1220 1960 moveto
+1220 1960 lineto stroke 1220 1960 moveto
+1200 1952 moveto
+1200 1952 lineto stroke 1200 1952 moveto
+1180 1944 moveto
+1180 1944 lineto stroke 1180 1944 moveto
+1160 1936 moveto
+1160 1936 lineto stroke 1160 1936 moveto
+1140 1928 moveto
+1140 1928 lineto stroke 1140 1928 moveto
+1120 1916 moveto
+1120 1916 lineto stroke 1120 1916 moveto
+1096 1908 moveto
+1096 1908 lineto stroke 1096 1908 moveto
+1076 1896 moveto
+1076 1896 lineto stroke 1076 1896 moveto
+1056 1884 moveto
+1056 1884 lineto stroke 1056 1884 moveto
+1036 1872 moveto
+1036 1872 lineto stroke 1036 1872 moveto
+1012 1856 moveto
+1012 1856 lineto stroke 1012 1856 moveto
+992 1844 moveto
+992 1844 lineto stroke 992 1844 moveto
+972 1828 moveto
+972 1828 lineto stroke 972 1828 moveto
+952 1816 moveto
+952 1816 lineto stroke 952 1816 moveto
+932 1800 moveto
+932 1800 lineto stroke 932 1800 moveto
+912 1784 moveto
+912 1784 lineto stroke 912 1784 moveto
+892 1768 moveto
+892 1768 lineto stroke 892 1768 moveto
+872 1748 moveto
+872 1748 lineto stroke 872 1748 moveto
+856 1732 moveto
+856 1732 lineto stroke 856 1732 moveto
+840 1712 moveto
+840 1712 lineto stroke 840 1712 moveto
+824 1696 moveto
+824 1696 lineto stroke 824 1696 moveto
+808 1676 moveto
+808 1676 lineto stroke 808 1676 moveto
+792 1656 moveto
+792 1656 lineto stroke 792 1656 moveto
+780 1640 moveto
+780 1640 lineto stroke 780 1640 moveto
+768 1620 moveto
+768 1620 lineto stroke 768 1620 moveto
+756 1600 moveto
+756 1600 lineto stroke 756 1600 moveto
+744 1584 moveto
+744 1584 lineto stroke 744 1584 moveto
+736 1564 moveto
+736 1564 lineto stroke 736 1564 moveto
+728 1548 moveto
+728 1548 lineto stroke 728 1548 moveto
+720 1528 moveto
+720 1528 lineto stroke 720 1528 moveto
+716 1512 moveto
+716 1512 lineto stroke 716 1512 moveto
+712 1496 moveto
+712 1496 lineto stroke 712 1496 moveto
+708 1476 moveto
+708 1476 lineto stroke 708 1476 moveto
+704 1460 moveto
+704 1460 lineto stroke 704 1460 moveto
+704 1444 moveto
+704 1444 lineto stroke 704 1444 moveto
+700 1432 moveto
+700 1432 lineto stroke 700 1432 moveto
+704 1416 moveto
+704 1416 lineto stroke 704 1416 moveto
+704 1404 moveto
+704 1404 lineto stroke 704 1404 moveto
+708 1388 moveto
+708 1388 lineto stroke 708 1388 moveto
+712 1376 moveto
+712 1376 lineto stroke 712 1376 moveto
+716 1364 moveto
+716 1364 lineto stroke 716 1364 moveto
+724 1356 moveto
+724 1356 lineto stroke 724 1356 moveto
+728 1344 moveto
+728 1344 lineto stroke 728 1344 moveto
+736 1336 moveto
+736 1336 lineto stroke 736 1336 moveto
+748 1328 moveto
+748 1328 lineto stroke 748 1328 moveto
+756 1320 moveto
+756 1320 lineto stroke 756 1320 moveto
+768 1316 moveto
+768 1316 lineto stroke 768 1316 moveto
+784 1312 moveto
+784 1312 lineto stroke 784 1312 moveto
+796 1308 moveto
+796 1308 lineto stroke 796 1308 moveto
+812 1304 moveto
+812 1304 lineto stroke 812 1304 moveto
+828 1304 moveto
+828 1304 lineto stroke 828 1304 moveto
+844 1304 moveto
+844 1304 lineto stroke 844 1304 moveto
+860 1304 moveto
+860 1304 lineto stroke 860 1304 moveto
+880 1308 moveto
+880 1308 lineto stroke 880 1308 moveto
+896 1308 moveto
+896 1308 lineto stroke 896 1308 moveto
+916 1316 moveto
+916 1316 lineto stroke 916 1316 moveto
+936 1320 moveto
+936 1320 lineto stroke 936 1320 moveto
+956 1328 moveto
+956 1328 lineto stroke 956 1328 moveto
+976 1336 moveto
+976 1336 lineto stroke 976 1336 moveto
+996 1344 moveto
+996 1344 lineto stroke 996 1344 moveto
+1016 1352 moveto
+1016 1352 lineto stroke 1016 1352 moveto
+1040 1364 moveto
+1040 1364 lineto stroke 1040 1364 moveto
+1060 1372 moveto
+1060 1372 lineto stroke 1060 1372 moveto
+1080 1384 moveto
+1080 1384 lineto stroke 1080 1384 moveto
+1100 1396 moveto
+1100 1396 lineto stroke 1100 1396 moveto
+1124 1408 moveto
+1124 1408 lineto stroke 1124 1408 moveto
+1144 1420 moveto
+1144 1420 lineto stroke 1144 1420 moveto
+1164 1436 moveto
+1164 1436 lineto stroke 1164 1436 moveto
+1184 1448 moveto
+1184 1448 lineto stroke 1184 1448 moveto
+1204 1464 moveto
+1204 1464 lineto stroke 1204 1464 moveto
+1228 1480 moveto
+1228 1480 lineto stroke 1228 1480 moveto
+1248 1492 moveto
+1248 1492 lineto stroke 1248 1492 moveto
+1268 1508 moveto
+1268 1508 lineto stroke 1268 1508 moveto
+1288 1524 moveto
+1288 1524 lineto stroke 1288 1524 moveto
+1308 1540 moveto
+1308 1540 lineto stroke 1308 1540 moveto
+1328 1556 moveto
+1328 1556 lineto stroke 1328 1556 moveto
+1348 1572 moveto
+1348 1572 lineto stroke 1348 1572 moveto
+1364 1588 moveto
+1364 1588 lineto stroke 1364 1588 moveto
+1384 1604 moveto
+1384 1604 lineto stroke 1384 1604 moveto
+1404 1624 moveto
+1404 1624 lineto stroke 1404 1624 moveto
+1424 1640 moveto
+1424 1640 lineto stroke 1424 1640 moveto
+1440 1656 moveto
+1440 1656 lineto stroke 1440 1656 moveto
+1460 1672 moveto
+1460 1672 lineto stroke 1460 1672 moveto
+1480 1692 moveto
+1480 1692 lineto stroke 1480 1692 moveto
+1496 1708 moveto
+1496 1708 lineto stroke 1496 1708 moveto
+1516 1724 moveto
+1516 1724 lineto stroke 1516 1724 moveto
+1532 1744 moveto
+1532 1744 lineto stroke 1532 1744 moveto
+1552 1760 moveto
+1552 1760 lineto stroke 1552 1760 moveto
+1568 1780 moveto
+1568 1780 lineto stroke 1568 1780 moveto
+1588 1796 moveto
+1588 1796 lineto stroke 1588 1796 moveto
+1604 1812 moveto
+1604 1812 lineto stroke 1604 1812 moveto
+1620 1832 moveto
+1620 1832 lineto stroke 1620 1832 moveto
+1640 1848 moveto
+1640 1848 lineto stroke 1640 1848 moveto
+1656 1868 moveto
+1656 1868 lineto stroke 1656 1868 moveto
+1672 1888 moveto
+1672 1888 lineto stroke 1672 1888 moveto
+1688 1904 moveto
+1688 1904 lineto stroke 1688 1904 moveto
+1708 1924 moveto
+1708 1924 lineto stroke 1708 1924 moveto
+1724 1940 moveto
+1724 1940 lineto stroke 1724 1940 moveto
+1740 1960 moveto
+1740 1960 lineto stroke 1740 1960 moveto
+1756 1976 moveto
+1756 1976 lineto stroke 1756 1976 moveto
+1772 1996 moveto
+1772 1996 lineto stroke 1772 1996 moveto
+1788 2016 moveto
+1788 2016 lineto stroke 1788 2016 moveto
+1804 2032 moveto
+1804 2032 lineto stroke 1804 2032 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+2824 1392 moveto
+2824 1392 lineto stroke 2824 1392 moveto
+2808 1380 moveto
+2808 1380 lineto stroke 2808 1380 moveto
+2792 1368 moveto
+2792 1368 lineto stroke 2792 1368 moveto
+2776 1356 moveto
+2776 1356 lineto stroke 2776 1356 moveto
+2756 1344 moveto
+2756 1344 lineto stroke 2756 1344 moveto
+2740 1332 moveto
+2740 1332 lineto stroke 2740 1332 moveto
+2724 1324 moveto
+2724 1324 lineto stroke 2724 1324 moveto
+2708 1312 moveto
+2708 1312 lineto stroke 2708 1312 moveto
+2692 1300 moveto
+2692 1300 lineto stroke 2692 1300 moveto
+2676 1288 moveto
+2676 1288 lineto stroke 2676 1288 moveto
+2660 1276 moveto
+2660 1276 lineto stroke 2660 1276 moveto
+2644 1264 moveto
+2644 1264 lineto stroke 2644 1264 moveto
+2628 1256 moveto
+2628 1256 lineto stroke 2628 1256 moveto
+2612 1244 moveto
+2612 1244 lineto stroke 2612 1244 moveto
+2600 1232 moveto
+2600 1232 lineto stroke 2600 1232 moveto
+2584 1220 moveto
+2584 1220 lineto stroke 2584 1220 moveto
+2568 1208 moveto
+2568 1208 lineto stroke 2568 1208 moveto
+2552 1196 moveto
+2552 1196 lineto stroke 2552 1196 moveto
+2536 1188 moveto
+2536 1188 lineto stroke 2536 1188 moveto
+2520 1176 moveto
+2520 1176 lineto stroke 2520 1176 moveto
+2504 1164 moveto
+2504 1164 lineto stroke 2504 1164 moveto
+2488 1152 moveto
+2488 1152 lineto stroke 2488 1152 moveto
+2476 1140 moveto
+2476 1140 lineto stroke 2476 1140 moveto
+2460 1132 moveto
+2460 1132 lineto stroke 2460 1132 moveto
+2444 1120 moveto
+2444 1120 lineto stroke 2444 1120 moveto
+2428 1108 moveto
+2428 1108 lineto stroke 2428 1108 moveto
+2416 1096 moveto
+2416 1096 lineto stroke 2416 1096 moveto
+2400 1084 moveto
+2400 1084 lineto stroke 2400 1084 moveto
+2384 1076 moveto
+2384 1076 lineto stroke 2384 1076 moveto
+2372 1064 moveto
+2372 1064 lineto stroke 2372 1064 moveto
+2356 1052 moveto
+2356 1052 lineto stroke 2356 1052 moveto
+2344 1040 moveto
+2344 1040 lineto stroke 2344 1040 moveto
+2328 1028 moveto
+2328 1028 lineto stroke 2328 1028 moveto
+2316 1020 moveto
+2316 1020 lineto stroke 2316 1020 moveto
+2300 1008 moveto
+2300 1008 lineto stroke 2300 1008 moveto
+2288 996 moveto
+2288 996 lineto stroke 2288 996 moveto
+2272 984 moveto
+2272 984 lineto stroke 2272 984 moveto
+2260 976 moveto
+2260 976 lineto stroke 2260 976 moveto
+2248 964 moveto
+2248 964 lineto stroke 2248 964 moveto
+2232 952 moveto
+2232 952 lineto stroke 2232 952 moveto
+2220 940 moveto
+2220 940 lineto stroke 2220 940 moveto
+2208 932 moveto
+2208 932 lineto stroke 2208 932 moveto
+2196 920 moveto
+2196 920 lineto stroke 2196 920 moveto
+2184 908 moveto
+2184 908 lineto stroke 2184 908 moveto
+2172 900 moveto
+2172 900 lineto stroke 2172 900 moveto
+2160 888 moveto
+2160 888 lineto stroke 2160 888 moveto
+2152 876 moveto
+2152 876 lineto stroke 2152 876 moveto
+2140 868 moveto
+2140 868 lineto stroke 2140 868 moveto
+2132 856 moveto
+2132 856 lineto stroke 2132 856 moveto
+2120 844 moveto
+2120 844 lineto stroke 2120 844 moveto
+2112 836 moveto
+2112 836 lineto stroke 2112 836 moveto
+2104 824 moveto
+2104 824 lineto stroke 2104 824 moveto
+2096 816 moveto
+2096 816 lineto stroke 2096 816 moveto
+2092 804 moveto
+2092 804 lineto stroke 2092 804 moveto
+2088 796 moveto
+2088 796 lineto stroke 2088 796 moveto
+2088 788 moveto
+2088 788 lineto stroke 2088 788 moveto
+2092 780 moveto
+2092 780 lineto stroke 2092 780 moveto
+2100 776 moveto
+2100 776 lineto stroke 2100 776 moveto
+2120 776 moveto
+2120 776 lineto stroke 2120 776 moveto
+2144 780 moveto
+2144 780 lineto stroke 2144 780 moveto
+2176 788 moveto
+2176 788 lineto stroke 2176 788 moveto
+2204 796 moveto
+2204 796 lineto stroke 2204 796 moveto
+2232 808 moveto
+2232 808 lineto stroke 2232 808 moveto
+2260 820 moveto
+2260 820 lineto stroke 2260 820 moveto
+2284 828 moveto
+2284 828 lineto stroke 2284 828 moveto
+2308 840 moveto
+2308 840 lineto stroke 2308 840 moveto
+2332 852 moveto
+2332 852 lineto stroke 2332 852 moveto
+2356 864 moveto
+2356 864 lineto stroke 2356 864 moveto
+2380 876 moveto
+2380 876 lineto stroke 2380 876 moveto
+2400 888 moveto
+2400 888 lineto stroke 2400 888 moveto
+2424 900 moveto
+2424 900 lineto stroke 2424 900 moveto
+2444 912 moveto
+2444 912 lineto stroke 2444 912 moveto
+2464 924 moveto
+2464 924 lineto stroke 2464 924 moveto
+2484 932 moveto
+2484 932 lineto stroke 2484 932 moveto
+2504 944 moveto
+2504 944 lineto stroke 2504 944 moveto
+2524 956 moveto
+2524 956 lineto stroke 2524 956 moveto
+2544 968 moveto
+2544 968 lineto stroke 2544 968 moveto
+2564 980 moveto
+2564 980 lineto stroke 2564 980 moveto
+2580 992 moveto
+2580 992 lineto stroke 2580 992 moveto
+2600 1004 moveto
+2600 1004 lineto stroke 2600 1004 moveto
+2616 1016 moveto
+2616 1016 lineto stroke 2616 1016 moveto
+2632 1024 moveto
+2632 1024 lineto stroke 2632 1024 moveto
+2652 1036 moveto
+2652 1036 lineto stroke 2652 1036 moveto
+2668 1048 moveto
+2668 1048 lineto stroke 2668 1048 moveto
+2684 1060 moveto
+2684 1060 lineto stroke 2684 1060 moveto
+2700 1072 moveto
+2700 1072 lineto stroke 2700 1072 moveto
+2716 1084 moveto
+2716 1084 lineto stroke 2716 1084 moveto
+2728 1092 moveto
+2728 1092 lineto stroke 2728 1092 moveto
+2744 1104 moveto
+2744 1104 lineto stroke 2744 1104 moveto
+2756 1116 moveto
+2756 1116 lineto stroke 2756 1116 moveto
+2772 1128 moveto
+2772 1128 lineto stroke 2772 1128 moveto
+2784 1140 moveto
+2784 1140 lineto stroke 2784 1140 moveto
+2796 1148 moveto
+2796 1148 lineto stroke 2796 1148 moveto
+2808 1160 moveto
+2808 1160 lineto stroke 2808 1160 moveto
+2820 1172 moveto
+2820 1172 lineto stroke 2820 1172 moveto
+2832 1180 moveto
+2832 1180 lineto stroke 2832 1180 moveto
+2844 1192 moveto
+2844 1192 lineto stroke 2844 1192 moveto
+2852 1204 moveto
+2852 1204 lineto stroke 2852 1204 moveto
+2864 1212 moveto
+2864 1212 lineto stroke 2864 1212 moveto
+2872 1224 moveto
+2872 1224 lineto stroke 2872 1224 moveto
+2880 1232 moveto
+2880 1232 lineto stroke 2880 1232 moveto
+2888 1244 moveto
+2888 1244 lineto stroke 2888 1244 moveto
+2896 1252 moveto
+2896 1252 lineto stroke 2896 1252 moveto
+2900 1264 moveto
+2900 1264 lineto stroke 2900 1264 moveto
+2904 1272 moveto
+2904 1272 lineto stroke 2904 1272 moveto
+2912 1280 moveto
+2912 1280 lineto stroke 2912 1280 moveto
+2916 1292 moveto
+2916 1292 lineto stroke 2916 1292 moveto
+2916 1300 moveto
+2916 1300 lineto stroke 2916 1300 moveto
+2920 1308 moveto
+2920 1308 lineto stroke 2920 1308 moveto
+2920 1316 moveto
+2920 1316 lineto stroke 2920 1316 moveto
+2920 1324 moveto
+2920 1324 lineto stroke 2920 1324 moveto
+2920 1332 moveto
+2920 1332 lineto stroke 2920 1332 moveto
+2916 1340 moveto
+2916 1340 lineto stroke 2916 1340 moveto
+2912 1348 moveto
+2912 1348 lineto stroke 2912 1348 moveto
+2908 1356 moveto
+2908 1356 lineto stroke 2908 1356 moveto
+2904 1360 moveto
+2904 1360 lineto stroke 2904 1360 moveto
+2896 1368 moveto
+2896 1368 lineto stroke 2896 1368 moveto
+2888 1372 moveto
+2888 1372 lineto stroke 2888 1372 moveto
+2876 1376 moveto
+2876 1376 lineto stroke 2876 1376 moveto
+2864 1384 moveto
+2864 1384 lineto stroke 2864 1384 moveto
+2852 1388 moveto
+2852 1388 lineto stroke 2852 1388 moveto
+2836 1388 moveto
+2836 1388 lineto stroke 2836 1388 moveto
+2824 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+2824 2052 moveto
+2820 2052 lineto stroke 2820 2052 moveto
+2816 2052 lineto stroke 2816 2052 moveto
+2812 2052 lineto stroke 2812 2052 moveto
+2804 2052 lineto stroke 2804 2052 moveto
+2800 2052 lineto stroke 2800 2052 moveto
+2796 2052 lineto stroke 2796 2052 moveto
+2792 2052 lineto stroke 2792 2052 moveto
+2784 2052 lineto stroke 2784 2052 moveto
+2776 2052 lineto stroke 2776 2052 moveto
+2768 2052 lineto stroke 2768 2052 moveto
+2756 2052 lineto stroke 2756 2052 moveto
+2748 2052 lineto stroke 2748 2052 moveto
+2732 2052 lineto stroke 2732 2052 moveto
+2720 2052 lineto stroke 2720 2052 moveto
+2708 2052 lineto stroke 2708 2052 moveto
+2696 2052 lineto stroke 2696 2052 moveto
+2676 2052 lineto stroke 2676 2052 moveto
+2664 2052 lineto stroke 2664 2052 moveto
+2644 2048 lineto stroke 2644 2048 moveto
+2624 2048 lineto stroke 2624 2048 moveto
+2604 2044 lineto stroke 2604 2044 moveto
+2580 2044 lineto stroke 2580 2044 moveto
+2556 2040 lineto stroke 2556 2040 moveto
+2528 2036 lineto stroke 2528 2036 moveto
+2500 2028 lineto stroke 2500 2028 moveto
+2472 2024 lineto stroke 2472 2024 moveto
+2440 2016 lineto stroke 2440 2016 moveto
+2408 2008 lineto stroke 2408 2008 moveto
+2376 1996 lineto stroke 2376 1996 moveto
+2348 1984 lineto stroke 2348 1984 moveto
+2316 1972 lineto stroke 2316 1972 moveto
+2284 1960 lineto stroke 2284 1960 moveto
+2248 1944 lineto stroke 2248 1944 moveto
+2216 1928 lineto stroke 2216 1928 moveto
+2184 1908 lineto stroke 2184 1908 moveto
+2156 1888 lineto stroke 2156 1888 moveto
+2124 1864 lineto stroke 2124 1864 moveto
+2092 1840 lineto stroke 2092 1840 moveto
+2060 1808 lineto stroke 2060 1808 moveto
+2032 1780 lineto stroke 2032 1780 moveto
+2004 1748 lineto stroke 2004 1748 moveto
+1984 1720 lineto stroke 1984 1720 moveto
+1964 1688 lineto stroke 1964 1688 moveto
+1944 1656 lineto stroke 1944 1656 moveto
+1932 1624 lineto stroke 1932 1624 moveto
+1916 1592 lineto stroke 1916 1592 moveto
+1908 1556 lineto stroke 1908 1556 moveto
+1900 1524 lineto stroke 1900 1524 moveto
+1900 1492 lineto stroke 1900 1492 moveto
+1900 1464 lineto stroke 1900 1464 moveto
+1904 1436 lineto stroke 1904 1436 moveto
+1908 1412 lineto stroke 1908 1412 moveto
+1920 1388 lineto stroke 1920 1388 moveto
+1936 1360 lineto stroke 1936 1360 moveto
+1956 1340 lineto stroke 1956 1340 moveto
+1980 1324 lineto stroke 1980 1324 moveto
+2008 1312 lineto stroke 2008 1312 moveto
+2032 1304 lineto stroke 2032 1304 moveto
+2060 1300 lineto stroke 2060 1300 moveto
+2088 1300 lineto stroke 2088 1300 moveto
+2120 1300 lineto stroke 2120 1300 moveto
+2152 1308 lineto stroke 2152 1308 moveto
+2184 1316 lineto stroke 2184 1316 moveto
+2220 1328 lineto stroke 2220 1328 moveto
+2252 1344 lineto stroke 2252 1344 moveto
+2292 1360 lineto stroke 2292 1360 moveto
+2328 1384 lineto stroke 2328 1384 moveto
+2364 1404 lineto stroke 2364 1404 moveto
+2400 1428 lineto stroke 2400 1428 moveto
+2444 1464 lineto stroke 2444 1464 moveto
+2484 1500 lineto stroke 2484 1500 moveto
+2524 1536 lineto stroke 2524 1536 moveto
+2560 1568 lineto stroke 2560 1568 moveto
+2592 1604 lineto stroke 2592 1604 moveto
+2624 1636 lineto stroke 2624 1636 moveto
+2652 1668 lineto stroke 2652 1668 moveto
+2676 1700 lineto stroke 2676 1700 moveto
+2696 1728 lineto stroke 2696 1728 moveto
+2716 1752 lineto stroke 2716 1752 moveto
+2736 1780 lineto stroke 2736 1780 moveto
+2752 1804 lineto stroke 2752 1804 moveto
+2768 1828 lineto stroke 2768 1828 moveto
+2780 1852 lineto stroke 2780 1852 moveto
+2792 1872 lineto stroke 2792 1872 moveto
+2800 1892 lineto stroke 2800 1892 moveto
+2812 1916 lineto stroke 2812 1916 moveto
+2820 1932 lineto stroke 2820 1932 moveto
+2824 1952 lineto stroke 2824 1952 moveto
+2832 1964 lineto stroke 2832 1964 moveto
+2836 1980 lineto stroke 2836 1980 moveto
+2836 1992 lineto stroke 2836 1992 moveto
+2840 2004 lineto stroke 2840 2004 moveto
+2840 2012 lineto stroke 2840 2012 moveto
+2840 2020 lineto stroke 2840 2020 moveto
+2840 2024 lineto stroke 2840 2024 moveto
+2840 2028 lineto stroke 2840 2028 moveto
+2836 2032 lineto stroke 2836 2032 moveto
+2836 2036 lineto stroke 2836 2036 moveto
+2836 2040 lineto stroke 2836 2040 moveto
+2832 2044 lineto stroke 2832 2044 moveto
+2828 2048 lineto stroke 2828 2048 moveto
+2828 2052 lineto stroke 2828 2052 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+3204 2276 moveto
+3204 2276 lineto stroke 3204 2276 moveto
+3204 2288 moveto
+3204 2288 lineto stroke 3204 2288 moveto
+3208 2304 moveto
+3208 2304 lineto stroke 3208 2304 moveto
+3212 2320 moveto
+3212 2320 lineto stroke 3212 2320 moveto
+3216 2332 moveto
+3216 2332 lineto stroke 3216 2332 moveto
+3216 2348 moveto
+3216 2348 lineto stroke 3216 2348 moveto
+3220 2364 moveto
+3220 2364 lineto stroke 3220 2364 moveto
+3224 2376 moveto
+3224 2376 lineto stroke 3224 2376 moveto
+3228 2392 moveto
+3228 2392 lineto stroke 3228 2392 moveto
+3232 2404 moveto
+3232 2404 lineto stroke 3232 2404 moveto
+3236 2420 moveto
+3236 2420 lineto stroke 3236 2420 moveto
+3240 2436 moveto
+3240 2436 lineto stroke 3240 2436 moveto
+3244 2448 moveto
+3244 2448 lineto stroke 3244 2448 moveto
+3252 2464 moveto
+3252 2464 lineto stroke 3252 2464 moveto
+3256 2476 moveto
+3256 2476 lineto stroke 3256 2476 moveto
+3264 2492 moveto
+3264 2492 lineto stroke 3264 2492 moveto
+3272 2504 moveto
+3272 2504 lineto stroke 3272 2504 moveto
+3288 2516 moveto
+3288 2516 lineto stroke 3288 2516 moveto
+3308 2516 moveto
+3308 2516 lineto stroke 3308 2516 moveto
+3320 2504 moveto
+3320 2504 lineto stroke 3320 2504 moveto
+3332 2488 moveto
+3332 2488 lineto stroke 3332 2488 moveto
+3336 2476 moveto
+3336 2476 lineto stroke 3336 2476 moveto
+3344 2464 moveto
+3344 2464 lineto stroke 3344 2464 moveto
+3352 2448 moveto
+3352 2448 lineto stroke 3352 2448 moveto
+3356 2432 moveto
+3356 2432 lineto stroke 3356 2432 moveto
+3360 2420 moveto
+3360 2420 lineto stroke 3360 2420 moveto
+3368 2404 moveto
+3368 2404 lineto stroke 3368 2404 moveto
+3372 2392 moveto
+3372 2392 lineto stroke 3372 2392 moveto
+3376 2376 moveto
+3376 2376 lineto stroke 3376 2376 moveto
+3380 2360 moveto
+3380 2360 lineto stroke 3380 2360 moveto
+3384 2348 moveto
+3384 2348 lineto stroke 3384 2348 moveto
+3388 2332 moveto
+3388 2332 lineto stroke 3388 2332 moveto
+3392 2316 moveto
+3392 2316 lineto stroke 3392 2316 moveto
+3396 2304 moveto
+3396 2304 lineto stroke 3396 2304 moveto
+3400 2288 moveto
+3400 2288 lineto stroke 3400 2288 moveto
+3404 2276 moveto
+3404 2276 lineto stroke 3404 2276 moveto
+3404 2260 moveto
+3404 2260 lineto stroke 3404 2260 moveto
+3408 2244 moveto
+3408 2244 lineto stroke 3408 2244 moveto
+3412 2232 moveto
+3412 2232 lineto stroke 3412 2232 moveto
+3416 2216 moveto
+3416 2216 lineto stroke 3416 2216 moveto
+3420 2200 moveto
+3420 2200 lineto stroke 3420 2200 moveto
+3420 2188 moveto
+3420 2188 lineto stroke 3420 2188 moveto
+3424 2172 moveto
+3424 2172 lineto stroke 3424 2172 moveto
+3428 2156 moveto
+3428 2156 lineto stroke 3428 2156 moveto
+3432 2144 moveto
+3432 2144 lineto stroke 3432 2144 moveto
+3432 2128 moveto
+3432 2128 lineto stroke 3432 2128 moveto
+3436 2112 moveto
+3436 2112 lineto stroke 3436 2112 moveto
+3440 2100 moveto
+3440 2100 lineto stroke 3440 2100 moveto
+3440 2084 moveto
+3440 2084 lineto stroke 3440 2084 moveto
+3444 2068 moveto
+3444 2068 lineto stroke 3444 2068 moveto
+3444 2056 moveto
+3444 2056 lineto stroke 3444 2056 moveto
+3448 2040 moveto
+3448 2040 lineto stroke 3448 2040 moveto
+3448 2024 moveto
+3448 2024 lineto stroke 3448 2024 moveto
+3448 2008 moveto
+3448 2008 lineto stroke 3448 2008 moveto
+3444 2000 moveto
+3444 2000 lineto stroke 3444 2000 moveto
+3432 2012 moveto
+3432 2012 lineto stroke 3432 2012 moveto
+3424 2028 moveto
+3424 2028 lineto stroke 3424 2028 moveto
+3416 2040 moveto
+3416 2040 lineto stroke 3416 2040 moveto
+3408 2052 moveto
+3408 2052 lineto stroke 3408 2052 moveto
+3400 2068 moveto
+3400 2068 lineto stroke 3400 2068 moveto
+3392 2080 moveto
+3392 2080 lineto stroke 3392 2080 moveto
+3384 2096 moveto
+3384 2096 lineto stroke 3384 2096 moveto
+3376 2108 moveto
+3376 2108 lineto stroke 3376 2108 moveto
+3364 2120 moveto
+3364 2120 lineto stroke 3364 2120 moveto
+3356 2136 moveto
+3356 2136 lineto stroke 3356 2136 moveto
+3348 2148 moveto
+3348 2148 lineto stroke 3348 2148 moveto
+3336 2160 moveto
+3336 2160 lineto stroke 3336 2160 moveto
+3324 2172 moveto
+3324 2172 lineto stroke 3324 2172 moveto
+3316 2184 moveto
+3316 2184 lineto stroke 3316 2184 moveto
+3304 2196 moveto
+3304 2196 lineto stroke 3304 2196 moveto
+3288 2208 moveto
+3288 2208 lineto stroke 3288 2208 moveto
+3276 2220 moveto
+3276 2220 lineto stroke 3276 2220 moveto
+3260 2232 moveto
+3260 2232 lineto stroke 3260 2232 moveto
+3244 2240 moveto
+3244 2240 lineto stroke 3244 2240 moveto
+3228 2252 moveto
+3228 2252 lineto stroke 3228 2252 moveto
+3212 2256 moveto
+3212 2256 lineto stroke 3212 2256 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+1804 2052 moveto
+1804 2052 lineto stroke 1804 2052 moveto
+1788 2052 moveto
+1788 2052 lineto stroke 1788 2052 moveto
+1772 2052 moveto
+1772 2052 lineto stroke 1772 2052 moveto
+1756 2052 moveto
+1756 2052 lineto stroke 1756 2052 moveto
+1740 2052 moveto
+1740 2052 lineto stroke 1740 2052 moveto
+1724 2052 moveto
+1724 2052 lineto stroke 1724 2052 moveto
+1704 2052 moveto
+1704 2052 lineto stroke 1704 2052 moveto
+1688 2052 moveto
+1688 2052 lineto stroke 1688 2052 moveto
+1672 2052 moveto
+1672 2052 lineto stroke 1672 2052 moveto
+1656 2052 moveto
+1656 2052 lineto stroke 1656 2052 moveto
+1636 2052 moveto
+1636 2052 lineto stroke 1636 2052 moveto
+1620 2048 moveto
+1620 2048 lineto stroke 1620 2048 moveto
+1604 2048 moveto
+1604 2048 lineto stroke 1604 2048 moveto
+1584 2048 moveto
+1584 2048 lineto stroke 1584 2048 moveto
+1568 2044 moveto
+1568 2044 lineto stroke 1568 2044 moveto
+1548 2044 moveto
+1548 2044 lineto stroke 1548 2044 moveto
+1532 2040 moveto
+1532 2040 lineto stroke 1532 2040 moveto
+1512 2040 moveto
+1512 2040 lineto stroke 1512 2040 moveto
+1496 2036 moveto
+1496 2036 lineto stroke 1496 2036 moveto
+1476 2032 moveto
+1476 2032 lineto stroke 1476 2032 moveto
+1460 2028 moveto
+1460 2028 lineto stroke 1460 2028 moveto
+1440 2028 moveto
+1440 2028 lineto stroke 1440 2028 moveto
+1420 2024 moveto
+1420 2024 lineto stroke 1420 2024 moveto
+1404 2020 moveto
+1404 2020 lineto stroke 1404 2020 moveto
+1384 2016 moveto
+1384 2016 lineto stroke 1384 2016 moveto
+1364 2008 moveto
+1364 2008 lineto stroke 1364 2008 moveto
+1344 2004 moveto
+1344 2004 lineto stroke 1344 2004 moveto
+1324 2000 moveto
+1324 2000 lineto stroke 1324 2000 moveto
+1304 1992 moveto
+1304 1992 lineto stroke 1304 1992 moveto
+1284 1988 moveto
+1284 1988 lineto stroke 1284 1988 moveto
+1264 1980 moveto
+1264 1980 lineto stroke 1264 1980 moveto
+1244 1976 moveto
+1244 1976 lineto stroke 1244 1976 moveto
+1224 1968 moveto
+1224 1968 lineto stroke 1224 1968 moveto
+1204 1960 moveto
+1204 1960 lineto stroke 1204 1960 moveto
+1184 1952 moveto
+1184 1952 lineto stroke 1184 1952 moveto
+1164 1940 moveto
+1164 1940 lineto stroke 1164 1940 moveto
+1140 1932 moveto
+1140 1932 lineto stroke 1140 1932 moveto
+1120 1924 moveto
+1120 1924 lineto stroke 1120 1924 moveto
+1100 1912 moveto
+1100 1912 lineto stroke 1100 1912 moveto
+1080 1900 moveto
+1080 1900 lineto stroke 1080 1900 moveto
+1056 1888 moveto
+1056 1888 lineto stroke 1056 1888 moveto
+1036 1876 moveto
+1036 1876 lineto stroke 1036 1876 moveto
+1016 1864 moveto
+1016 1864 lineto stroke 1016 1864 moveto
+996 1852 moveto
+996 1852 lineto stroke 996 1852 moveto
+976 1836 moveto
+976 1836 lineto stroke 976 1836 moveto
+956 1820 moveto
+956 1820 lineto stroke 956 1820 moveto
+932 1808 moveto
+932 1808 lineto stroke 932 1808 moveto
+916 1792 moveto
+916 1792 lineto stroke 916 1792 moveto
+896 1772 moveto
+896 1772 lineto stroke 896 1772 moveto
+876 1756 moveto
+876 1756 lineto stroke 876 1756 moveto
+860 1740 moveto
+860 1740 lineto stroke 860 1740 moveto
+840 1720 moveto
+840 1720 lineto stroke 840 1720 moveto
+824 1704 moveto
+824 1704 lineto stroke 824 1704 moveto
+808 1684 moveto
+808 1684 lineto stroke 808 1684 moveto
+792 1664 moveto
+792 1664 lineto stroke 792 1664 moveto
+780 1648 moveto
+780 1648 lineto stroke 780 1648 moveto
+768 1628 moveto
+768 1628 lineto stroke 768 1628 moveto
+756 1608 moveto
+756 1608 lineto stroke 756 1608 moveto
+744 1592 moveto
+744 1592 lineto stroke 744 1592 moveto
+736 1572 moveto
+736 1572 lineto stroke 736 1572 moveto
+724 1556 moveto
+724 1556 lineto stroke 724 1556 moveto
+720 1536 moveto
+720 1536 lineto stroke 720 1536 moveto
+712 1520 moveto
+712 1520 lineto stroke 712 1520 moveto
+708 1500 moveto
+708 1500 lineto stroke 708 1500 moveto
+704 1484 moveto
+704 1484 lineto stroke 704 1484 moveto
+700 1468 moveto
+700 1468 lineto stroke 700 1468 moveto
+696 1452 moveto
+696 1452 lineto stroke 696 1452 moveto
+696 1436 moveto
+696 1436 lineto stroke 696 1436 moveto
+696 1424 moveto
+696 1424 lineto stroke 696 1424 moveto
+696 1408 moveto
+696 1408 lineto stroke 696 1408 moveto
+700 1396 moveto
+700 1396 lineto stroke 700 1396 moveto
+704 1384 moveto
+704 1384 lineto stroke 704 1384 moveto
+708 1372 moveto
+708 1372 lineto stroke 708 1372 moveto
+712 1360 moveto
+712 1360 lineto stroke 712 1360 moveto
+720 1348 moveto
+720 1348 lineto stroke 720 1348 moveto
+728 1340 moveto
+728 1340 lineto stroke 728 1340 moveto
+736 1332 moveto
+736 1332 lineto stroke 736 1332 moveto
+744 1324 moveto
+744 1324 lineto stroke 744 1324 moveto
+756 1316 moveto
+756 1316 lineto stroke 756 1316 moveto
+768 1312 moveto
+768 1312 lineto stroke 768 1312 moveto
+780 1304 moveto
+780 1304 lineto stroke 780 1304 moveto
+796 1304 moveto
+796 1304 lineto stroke 796 1304 moveto
+812 1300 moveto
+812 1300 lineto stroke 812 1300 moveto
+828 1300 moveto
+828 1300 lineto stroke 828 1300 moveto
+844 1300 moveto
+844 1300 lineto stroke 844 1300 moveto
+860 1300 moveto
+860 1300 lineto stroke 860 1300 moveto
+880 1304 moveto
+880 1304 lineto stroke 880 1304 moveto
+896 1308 moveto
+896 1308 lineto stroke 896 1308 moveto
+916 1312 moveto
+916 1312 lineto stroke 916 1312 moveto
+936 1320 moveto
+936 1320 lineto stroke 936 1320 moveto
+956 1324 moveto
+956 1324 lineto stroke 956 1324 moveto
+976 1332 moveto
+976 1332 lineto stroke 976 1332 moveto
+1000 1340 moveto
+1000 1340 lineto stroke 1000 1340 moveto
+1020 1352 moveto
+1020 1352 lineto stroke 1020 1352 moveto
+1040 1360 moveto
+1040 1360 lineto stroke 1040 1360 moveto
+1060 1372 moveto
+1060 1372 lineto stroke 1060 1372 moveto
+1084 1384 moveto
+1084 1384 lineto stroke 1084 1384 moveto
+1104 1396 moveto
+1104 1396 lineto stroke 1104 1396 moveto
+1124 1408 moveto
+1124 1408 lineto stroke 1124 1408 moveto
+1144 1424 moveto
+1144 1424 lineto stroke 1144 1424 moveto
+1168 1436 moveto
+1168 1436 lineto stroke 1168 1436 moveto
+1188 1452 moveto
+1188 1452 lineto stroke 1188 1452 moveto
+1208 1464 moveto
+1208 1464 lineto stroke 1208 1464 moveto
+1228 1480 moveto
+1228 1480 lineto stroke 1228 1480 moveto
+1248 1496 moveto
+1248 1496 lineto stroke 1248 1496 moveto
+1268 1508 moveto
+1268 1508 lineto stroke 1268 1508 moveto
+1288 1524 moveto
+1288 1524 lineto stroke 1288 1524 moveto
+1308 1540 moveto
+1308 1540 lineto stroke 1308 1540 moveto
+1328 1556 moveto
+1328 1556 lineto stroke 1328 1556 moveto
+1348 1572 moveto
+1348 1572 lineto stroke 1348 1572 moveto
+1368 1592 moveto
+1368 1592 lineto stroke 1368 1592 moveto
+1388 1608 moveto
+1388 1608 lineto stroke 1388 1608 moveto
+1404 1624 moveto
+1404 1624 lineto stroke 1404 1624 moveto
+1424 1640 moveto
+1424 1640 lineto stroke 1424 1640 moveto
+1444 1656 moveto
+1444 1656 lineto stroke 1444 1656 moveto
+1460 1676 moveto
+1460 1676 lineto stroke 1460 1676 moveto
+1480 1692 moveto
+1480 1692 lineto stroke 1480 1692 moveto
+1500 1708 moveto
+1500 1708 lineto stroke 1500 1708 moveto
+1516 1728 moveto
+1516 1728 lineto stroke 1516 1728 moveto
+1536 1744 moveto
+1536 1744 lineto stroke 1536 1744 moveto
+1552 1760 moveto
+1552 1760 lineto stroke 1552 1760 moveto
+1572 1780 moveto
+1572 1780 lineto stroke 1572 1780 moveto
+1588 1796 moveto
+1588 1796 lineto stroke 1588 1796 moveto
+1604 1816 moveto
+1604 1816 lineto stroke 1604 1816 moveto
+1624 1832 moveto
+1624 1832 lineto stroke 1624 1832 moveto
+1640 1852 moveto
+1640 1852 lineto stroke 1640 1852 moveto
+1656 1868 moveto
+1656 1868 lineto stroke 1656 1868 moveto
+1672 1888 moveto
+1672 1888 lineto stroke 1672 1888 moveto
+1692 1904 moveto
+1692 1904 lineto stroke 1692 1904 moveto
+1708 1924 moveto
+1708 1924 lineto stroke 1708 1924 moveto
+1724 1944 moveto
+1724 1944 lineto stroke 1724 1944 moveto
+1740 1960 moveto
+1740 1960 lineto stroke 1740 1960 moveto
+1756 1980 moveto
+1756 1980 lineto stroke 1756 1980 moveto
+1772 1996 moveto
+1772 1996 lineto stroke 1772 1996 moveto
+1788 2016 moveto
+1788 2016 lineto stroke 1788 2016 moveto
+1804 2032 moveto
+1804 2032 lineto stroke 1804 2032 moveto
+2824 1392 moveto
+2824 1392 lineto stroke 2824 1392 moveto
+2804 1380 moveto
+2804 1380 lineto stroke 2804 1380 moveto
+2784 1368 moveto
+2784 1368 lineto stroke 2784 1368 moveto
+2768 1356 moveto
+2768 1356 lineto stroke 2768 1356 moveto
+2748 1344 moveto
+2748 1344 lineto stroke 2748 1344 moveto
+2728 1332 moveto
+2728 1332 lineto stroke 2728 1332 moveto
+2712 1320 moveto
+2712 1320 lineto stroke 2712 1320 moveto
+2692 1308 moveto
+2692 1308 lineto stroke 2692 1308 moveto
+2672 1300 moveto
+2672 1300 lineto stroke 2672 1300 moveto
+2656 1288 moveto
+2656 1288 lineto stroke 2656 1288 moveto
+2636 1276 moveto
+2636 1276 lineto stroke 2636 1276 moveto
+2616 1264 moveto
+2616 1264 lineto stroke 2616 1264 moveto
+2600 1252 moveto
+2600 1252 lineto stroke 2600 1252 moveto
+2580 1240 moveto
+2580 1240 lineto stroke 2580 1240 moveto
+2564 1228 moveto
+2564 1228 lineto stroke 2564 1228 moveto
+2544 1216 moveto
+2544 1216 lineto stroke 2544 1216 moveto
+2524 1204 moveto
+2524 1204 lineto stroke 2524 1204 moveto
+2508 1196 moveto
+2508 1196 lineto stroke 2508 1196 moveto
+2488 1184 moveto
+2488 1184 lineto stroke 2488 1184 moveto
+2472 1172 moveto
+2472 1172 lineto stroke 2472 1172 moveto
+2452 1160 moveto
+2452 1160 lineto stroke 2452 1160 moveto
+2436 1148 moveto
+2436 1148 lineto stroke 2436 1148 moveto
+2416 1136 moveto
+2416 1136 lineto stroke 2416 1136 moveto
+2396 1124 moveto
+2396 1124 lineto stroke 2396 1124 moveto
+2380 1112 moveto
+2380 1112 lineto stroke 2380 1112 moveto
+2360 1104 moveto
+2360 1104 lineto stroke 2360 1104 moveto
+2344 1092 moveto
+2344 1092 lineto stroke 2344 1092 moveto
+2324 1080 moveto
+2324 1080 lineto stroke 2324 1080 moveto
+2308 1068 moveto
+2308 1068 lineto stroke 2308 1068 moveto
+2292 1056 moveto
+2292 1056 lineto stroke 2292 1056 moveto
+2272 1044 moveto
+2272 1044 lineto stroke 2272 1044 moveto
+2256 1032 moveto
+2256 1032 lineto stroke 2256 1032 moveto
+2236 1024 moveto
+2236 1024 lineto stroke 2236 1024 moveto
+2220 1012 moveto
+2220 1012 lineto stroke 2220 1012 moveto
+2200 1000 moveto
+2200 1000 lineto stroke 2200 1000 moveto
+2184 988 moveto
+2184 988 lineto stroke 2184 988 moveto
+2168 976 moveto
+2168 976 lineto stroke 2168 976 moveto
+2148 964 moveto
+2148 964 lineto stroke 2148 964 moveto
+2132 952 moveto
+2132 952 lineto stroke 2132 952 moveto
+2116 940 moveto
+2116 940 lineto stroke 2116 940 moveto
+2100 932 moveto
+2100 932 lineto stroke 2100 932 moveto
+2080 920 moveto
+2080 920 lineto stroke 2080 920 moveto
+2064 908 moveto
+2064 908 lineto stroke 2064 908 moveto
+2048 896 moveto
+2048 896 lineto stroke 2048 896 moveto
+2032 884 moveto
+2032 884 lineto stroke 2032 884 moveto
+2016 872 moveto
+2016 872 lineto stroke 2016 872 moveto
+2000 864 moveto
+2000 864 lineto stroke 2000 864 moveto
+1984 852 moveto
+1984 852 lineto stroke 1984 852 moveto
+1968 840 moveto
+1968 840 lineto stroke 1968 840 moveto
+1956 828 moveto
+1956 828 lineto stroke 1956 828 moveto
+1940 816 moveto
+1940 816 lineto stroke 1940 816 moveto
+1928 808 moveto
+1928 808 lineto stroke 1928 808 moveto
+1916 796 moveto
+1916 796 lineto stroke 1916 796 moveto
+1904 784 moveto
+1904 784 lineto stroke 1904 784 moveto
+1900 776 moveto
+1900 776 lineto stroke 1900 776 moveto
+1908 772 moveto
+1908 772 lineto stroke 1908 772 moveto
+1940 780 moveto
+1940 780 lineto stroke 1940 780 moveto
+1964 792 moveto
+1964 792 lineto stroke 1964 792 moveto
+1992 804 moveto
+1992 804 lineto stroke 1992 804 moveto
+2016 812 moveto
+2016 812 lineto stroke 2016 812 moveto
+2040 824 moveto
+2040 824 lineto stroke 2040 824 moveto
+2064 836 moveto
+2064 836 lineto stroke 2064 836 moveto
+2084 848 moveto
+2084 848 lineto stroke 2084 848 moveto
+2108 860 moveto
+2108 860 lineto stroke 2108 860 moveto
+2128 872 moveto
+2128 872 lineto stroke 2128 872 moveto
+2152 884 moveto
+2152 884 lineto stroke 2152 884 moveto
+2172 896 moveto
+2172 896 lineto stroke 2172 896 moveto
+2192 908 moveto
+2192 908 lineto stroke 2192 908 moveto
+2216 916 moveto
+2216 916 lineto stroke 2216 916 moveto
+2236 928 moveto
+2236 928 lineto stroke 2236 928 moveto
+2256 940 moveto
+2256 940 lineto stroke 2256 940 moveto
+2276 952 moveto
+2276 952 lineto stroke 2276 952 moveto
+2296 964 moveto
+2296 964 lineto stroke 2296 964 moveto
+2316 976 moveto
+2316 976 lineto stroke 2316 976 moveto
+2336 988 moveto
+2336 988 lineto stroke 2336 988 moveto
+2356 1000 moveto
+2356 1000 lineto stroke 2356 1000 moveto
+2376 1012 moveto
+2376 1012 lineto stroke 2376 1012 moveto
+2396 1024 moveto
+2396 1024 lineto stroke 2396 1024 moveto
+2412 1032 moveto
+2412 1032 lineto stroke 2412 1032 moveto
+2432 1044 moveto
+2432 1044 lineto stroke 2432 1044 moveto
+2452 1056 moveto
+2452 1056 lineto stroke 2452 1056 moveto
+2468 1068 moveto
+2468 1068 lineto stroke 2468 1068 moveto
+2488 1080 moveto
+2488 1080 lineto stroke 2488 1080 moveto
+2504 1092 moveto
+2504 1092 lineto stroke 2504 1092 moveto
+2524 1104 moveto
+2524 1104 lineto stroke 2524 1104 moveto
+2540 1116 moveto
+2540 1116 lineto stroke 2540 1116 moveto
+2560 1124 moveto
+2560 1124 lineto stroke 2560 1124 moveto
+2576 1136 moveto
+2576 1136 lineto stroke 2576 1136 moveto
+2592 1148 moveto
+2592 1148 lineto stroke 2592 1148 moveto
+2608 1160 moveto
+2608 1160 lineto stroke 2608 1160 moveto
+2628 1172 moveto
+2628 1172 lineto stroke 2628 1172 moveto
+2644 1184 moveto
+2644 1184 lineto stroke 2644 1184 moveto
+2660 1196 moveto
+2660 1196 lineto stroke 2660 1196 moveto
+2672 1204 moveto
+2672 1204 lineto stroke 2672 1204 moveto
+2688 1216 moveto
+2688 1216 lineto stroke 2688 1216 moveto
+2704 1228 moveto
+2704 1228 lineto stroke 2704 1228 moveto
+2720 1240 moveto
+2720 1240 lineto stroke 2720 1240 moveto
+2732 1252 moveto
+2732 1252 lineto stroke 2732 1252 moveto
+2744 1260 moveto
+2744 1260 lineto stroke 2744 1260 moveto
+2760 1272 moveto
+2760 1272 lineto stroke 2760 1272 moveto
+2772 1284 moveto
+2772 1284 lineto stroke 2772 1284 moveto
+2784 1292 moveto
+2784 1292 lineto stroke 2784 1292 moveto
+2792 1304 moveto
+2792 1304 lineto stroke 2792 1304 moveto
+2804 1316 moveto
+2804 1316 lineto stroke 2804 1316 moveto
+2812 1324 moveto
+2812 1324 lineto stroke 2812 1324 moveto
+2820 1336 moveto
+2820 1336 lineto stroke 2820 1336 moveto
+2828 1344 moveto
+2828 1344 lineto stroke 2828 1344 moveto
+2836 1356 moveto
+2836 1356 lineto stroke 2836 1356 moveto
+2836 1364 moveto
+2836 1364 lineto stroke 2836 1364 moveto
+2840 1372 moveto
+2840 1372 lineto stroke 2840 1372 moveto
+2836 1380 moveto
+2836 1380 lineto stroke 2836 1380 moveto
+2832 1388 moveto
+2832 1388 lineto stroke 2832 1388 moveto
+2824 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+2824 2052 moveto
+2820 2052 lineto stroke 2820 2052 moveto
+2816 2052 lineto stroke 2816 2052 moveto
+2812 2052 lineto stroke 2812 2052 moveto
+2804 2052 lineto stroke 2804 2052 moveto
+2800 2052 lineto stroke 2800 2052 moveto
+2792 2052 lineto stroke 2792 2052 moveto
+2788 2052 lineto stroke 2788 2052 moveto
+2780 2052 lineto stroke 2780 2052 moveto
+2772 2052 lineto stroke 2772 2052 moveto
+2760 2056 lineto stroke 2760 2056 moveto
+2752 2056 lineto stroke 2752 2056 moveto
+2740 2056 lineto stroke 2740 2056 moveto
+2728 2056 lineto stroke 2728 2056 moveto
+2712 2056 lineto stroke 2712 2056 moveto
+2700 2056 lineto stroke 2700 2056 moveto
+2684 2052 lineto stroke 2684 2052 moveto
+2668 2052 lineto stroke 2668 2052 moveto
+2648 2052 lineto stroke 2648 2052 moveto
+2632 2052 lineto stroke 2632 2052 moveto
+2612 2052 lineto stroke 2612 2052 moveto
+2588 2048 lineto stroke 2588 2048 moveto
+2564 2048 lineto stroke 2564 2048 moveto
+2536 2044 lineto stroke 2536 2044 moveto
+2508 2040 lineto stroke 2508 2040 moveto
+2480 2036 lineto stroke 2480 2036 moveto
+2448 2032 lineto stroke 2448 2032 moveto
+2416 2024 lineto stroke 2416 2024 moveto
+2380 2016 lineto stroke 2380 2016 moveto
+2344 2008 lineto stroke 2344 2008 moveto
+2308 1996 lineto stroke 2308 1996 moveto
+2272 1988 lineto stroke 2272 1988 moveto
+2236 1972 lineto stroke 2236 1972 moveto
+2196 1960 lineto stroke 2196 1960 moveto
+2160 1944 lineto stroke 2160 1944 moveto
+2124 1928 lineto stroke 2124 1928 moveto
+2088 1908 lineto stroke 2088 1908 moveto
+2052 1888 lineto stroke 2052 1888 moveto
+2016 1868 lineto stroke 2016 1868 moveto
+1980 1844 lineto stroke 1980 1844 moveto
+1944 1816 lineto stroke 1944 1816 moveto
+1908 1792 lineto stroke 1908 1792 moveto
+1880 1764 lineto stroke 1880 1764 moveto
+1848 1732 lineto stroke 1848 1732 moveto
+1820 1704 lineto stroke 1820 1704 moveto
+1796 1672 lineto stroke 1796 1672 moveto
+1768 1636 lineto stroke 1768 1636 moveto
+1748 1600 lineto stroke 1748 1600 moveto
+1728 1564 lineto stroke 1728 1564 moveto
+1712 1528 lineto stroke 1712 1528 moveto
+1704 1500 lineto stroke 1704 1500 moveto
+1696 1468 lineto stroke 1696 1468 moveto
+1692 1440 lineto stroke 1692 1440 moveto
+1692 1416 lineto stroke 1692 1416 moveto
+1696 1384 lineto stroke 1696 1384 moveto
+1708 1356 lineto stroke 1708 1356 moveto
+1724 1336 lineto stroke 1724 1336 moveto
+1744 1316 lineto stroke 1744 1316 moveto
+1764 1308 lineto stroke 1764 1308 moveto
+1788 1300 lineto stroke 1788 1300 moveto
+1816 1296 lineto stroke 1816 1296 moveto
+1840 1296 lineto stroke 1840 1296 moveto
+1872 1300 lineto stroke 1872 1300 moveto
+1904 1304 lineto stroke 1904 1304 moveto
+1936 1316 lineto stroke 1936 1316 moveto
+1972 1328 lineto stroke 1972 1328 moveto
+2008 1344 lineto stroke 2008 1344 moveto
+2044 1360 lineto stroke 2044 1360 moveto
+2084 1384 lineto stroke 2084 1384 moveto
+2120 1404 lineto stroke 2120 1404 moveto
+2168 1436 lineto stroke 2168 1436 moveto
+2216 1468 lineto stroke 2216 1468 moveto
+2256 1500 lineto stroke 2256 1500 moveto
+2300 1532 lineto stroke 2300 1532 moveto
+2340 1564 lineto stroke 2340 1564 moveto
+2376 1596 lineto stroke 2376 1596 moveto
+2412 1628 lineto stroke 2412 1628 moveto
+2444 1656 lineto stroke 2444 1656 moveto
+2476 1688 lineto stroke 2476 1688 moveto
+2508 1716 lineto stroke 2508 1716 moveto
+2536 1744 lineto stroke 2536 1744 moveto
+2560 1768 lineto stroke 2560 1768 moveto
+2588 1796 lineto stroke 2588 1796 moveto
+2612 1820 lineto stroke 2612 1820 moveto
+2636 1844 lineto stroke 2636 1844 moveto
+2656 1864 lineto stroke 2656 1864 moveto
+2680 1892 lineto stroke 2680 1892 moveto
+2700 1912 lineto stroke 2700 1912 moveto
+2716 1932 lineto stroke 2716 1932 moveto
+2732 1948 lineto stroke 2732 1948 moveto
+2748 1968 lineto stroke 2748 1968 moveto
+2760 1980 lineto stroke 2760 1980 moveto
+2772 1996 lineto stroke 2772 1996 moveto
+2780 2004 lineto stroke 2780 2004 moveto
+2788 2012 lineto stroke 2788 2012 moveto
+2796 2020 lineto stroke 2796 2020 moveto
+2800 2028 lineto stroke 2800 2028 moveto
+2804 2032 lineto stroke 2804 2032 moveto
+2812 2040 lineto stroke 2812 2040 moveto
+2816 2044 lineto stroke 2816 2044 moveto
+2820 2048 lineto stroke 2820 2048 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+3200 2276 moveto
+3200 2276 lineto stroke 3200 2276 moveto
+3200 2288 moveto
+3200 2288 lineto stroke 3200 2288 moveto
+3200 2304 moveto
+3200 2304 lineto stroke 3200 2304 moveto
+3200 2320 moveto
+3200 2320 lineto stroke 3200 2320 moveto
+3200 2332 moveto
+3200 2332 lineto stroke 3200 2332 moveto
+3200 2348 moveto
+3200 2348 lineto stroke 3200 2348 moveto
+3200 2364 moveto
+3200 2364 lineto stroke 3200 2364 moveto
+3200 2376 moveto
+3200 2376 lineto stroke 3200 2376 moveto
+3200 2392 moveto
+3200 2392 lineto stroke 3200 2392 moveto
+3200 2408 moveto
+3200 2408 lineto stroke 3200 2408 moveto
+3200 2424 moveto
+3200 2424 lineto stroke 3200 2424 moveto
+3200 2436 moveto
+3200 2436 lineto stroke 3200 2436 moveto
+3200 2452 moveto
+3200 2452 lineto stroke 3200 2452 moveto
+3200 2468 moveto
+3200 2468 lineto stroke 3200 2468 moveto
+3200 2480 moveto
+3200 2480 lineto stroke 3200 2480 moveto
+3200 2496 moveto
+3200 2496 lineto stroke 3200 2496 moveto
+3200 2512 moveto
+3200 2512 lineto stroke 3200 2512 moveto
+3200 2516 moveto
+3200 2516 lineto stroke 3200 2516 moveto
+3200 2504 moveto
+3200 2504 lineto stroke 3200 2504 moveto
+3200 2488 moveto
+3200 2488 lineto stroke 3200 2488 moveto
+3200 2472 moveto
+3200 2472 lineto stroke 3200 2472 moveto
+3200 2460 moveto
+3200 2460 lineto stroke 3200 2460 moveto
+3200 2444 moveto
+3200 2444 lineto stroke 3200 2444 moveto
+3200 2428 moveto
+3200 2428 lineto stroke 3200 2428 moveto
+3200 2416 moveto
+3200 2416 lineto stroke 3200 2416 moveto
+3200 2400 moveto
+3200 2400 lineto stroke 3200 2400 moveto
+3200 2384 moveto
+3200 2384 lineto stroke 3200 2384 moveto
+3200 2368 moveto
+3200 2368 lineto stroke 3200 2368 moveto
+3200 2356 moveto
+3200 2356 lineto stroke 3200 2356 moveto
+3200 2340 moveto
+3200 2340 lineto stroke 3200 2340 moveto
+3200 2324 moveto
+3200 2324 lineto stroke 3200 2324 moveto
+3200 2312 moveto
+3200 2312 lineto stroke 3200 2312 moveto
+3200 2296 moveto
+3200 2296 lineto stroke 3200 2296 moveto
+3200 2280 moveto
+3200 2280 lineto stroke 3200 2280 moveto
+3200 2268 moveto
+3200 2268 lineto stroke 3200 2268 moveto
+3200 2252 moveto
+3200 2252 lineto stroke 3200 2252 moveto
+3200 2236 moveto
+3200 2236 lineto stroke 3200 2236 moveto
+3200 2224 moveto
+3200 2224 lineto stroke 3200 2224 moveto
+3200 2208 moveto
+3200 2208 lineto stroke 3200 2208 moveto
+3200 2192 moveto
+3200 2192 lineto stroke 3200 2192 moveto
+3200 2176 moveto
+3200 2176 lineto stroke 3200 2176 moveto
+3200 2164 moveto
+3200 2164 lineto stroke 3200 2164 moveto
+3200 2148 moveto
+3200 2148 lineto stroke 3200 2148 moveto
+3200 2132 moveto
+3200 2132 lineto stroke 3200 2132 moveto
+3200 2120 moveto
+3200 2120 lineto stroke 3200 2120 moveto
+3200 2104 moveto
+3200 2104 lineto stroke 3200 2104 moveto
+3200 2088 moveto
+3200 2088 lineto stroke 3200 2088 moveto
+3200 2076 moveto
+3200 2076 lineto stroke 3200 2076 moveto
+3200 2060 moveto
+3200 2060 lineto stroke 3200 2060 moveto
+3200 2044 moveto
+3200 2044 lineto stroke 3200 2044 moveto
+3200 2028 moveto
+3200 2028 lineto stroke 3200 2028 moveto
+3200 2016 moveto
+3200 2016 lineto stroke 3200 2016 moveto
+3200 2000 moveto
+3200 2000 lineto stroke 3200 2000 moveto
+3200 2008 moveto
+3200 2008 lineto stroke 3200 2008 moveto
+3200 2024 moveto
+3200 2024 lineto stroke 3200 2024 moveto
+3200 2040 moveto
+3200 2040 lineto stroke 3200 2040 moveto
+3200 2052 moveto
+3200 2052 lineto stroke 3200 2052 moveto
+3200 2068 moveto
+3200 2068 lineto stroke 3200 2068 moveto
+3200 2084 moveto
+3200 2084 lineto stroke 3200 2084 moveto
+3200 2096 moveto
+3200 2096 lineto stroke 3200 2096 moveto
+3200 2112 moveto
+3200 2112 lineto stroke 3200 2112 moveto
+3200 2128 moveto
+3200 2128 lineto stroke 3200 2128 moveto
+3200 2144 moveto
+3200 2144 lineto stroke 3200 2144 moveto
+3200 2156 moveto
+3200 2156 lineto stroke 3200 2156 moveto
+3200 2172 moveto
+3200 2172 lineto stroke 3200 2172 moveto
+3200 2188 moveto
+3200 2188 lineto stroke 3200 2188 moveto
+3200 2200 moveto
+3200 2200 lineto stroke 3200 2200 moveto
+3200 2216 moveto
+3200 2216 lineto stroke 3200 2216 moveto
+3200 2232 moveto
+3200 2232 lineto stroke 3200 2232 moveto
+3200 2244 moveto
+3200 2244 lineto stroke 3200 2244 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+1804 2052 moveto
+1804 2052 lineto stroke 1804 2052 moveto
+1788 2052 moveto
+1788 2052 lineto stroke 1788 2052 moveto
+1772 2052 moveto
+1772 2052 lineto stroke 1772 2052 moveto
+1756 2056 moveto
+1756 2056 lineto stroke 1756 2056 moveto
+1740 2056 moveto
+1740 2056 lineto stroke 1740 2056 moveto
+1724 2056 moveto
+1724 2056 lineto stroke 1724 2056 moveto
+1708 2056 moveto
+1708 2056 lineto stroke 1708 2056 moveto
+1688 2056 moveto
+1688 2056 lineto stroke 1688 2056 moveto
+1672 2052 moveto
+1672 2052 lineto stroke 1672 2052 moveto
+1656 2052 moveto
+1656 2052 lineto stroke 1656 2052 moveto
+1640 2052 moveto
+1640 2052 lineto stroke 1640 2052 moveto
+1620 2052 moveto
+1620 2052 lineto stroke 1620 2052 moveto
+1604 2052 moveto
+1604 2052 lineto stroke 1604 2052 moveto
+1588 2048 moveto
+1588 2048 lineto stroke 1588 2048 moveto
+1568 2048 moveto
+1568 2048 lineto stroke 1568 2048 moveto
+1552 2044 moveto
+1552 2044 lineto stroke 1552 2044 moveto
+1532 2044 moveto
+1532 2044 lineto stroke 1532 2044 moveto
+1516 2040 moveto
+1516 2040 lineto stroke 1516 2040 moveto
+1496 2040 moveto
+1496 2040 lineto stroke 1496 2040 moveto
+1480 2036 moveto
+1480 2036 lineto stroke 1480 2036 moveto
+1460 2032 moveto
+1460 2032 lineto stroke 1460 2032 moveto
+1444 2028 moveto
+1444 2028 lineto stroke 1444 2028 moveto
+1424 2024 moveto
+1424 2024 lineto stroke 1424 2024 moveto
+1404 2024 moveto
+1404 2024 lineto stroke 1404 2024 moveto
+1384 2016 moveto
+1384 2016 lineto stroke 1384 2016 moveto
+1368 2012 moveto
+1368 2012 lineto stroke 1368 2012 moveto
+1348 2008 moveto
+1348 2008 lineto stroke 1348 2008 moveto
+1328 2004 moveto
+1328 2004 lineto stroke 1328 2004 moveto
+1308 2000 moveto
+1308 2000 lineto stroke 1308 2000 moveto
+1288 1992 moveto
+1288 1992 lineto stroke 1288 1992 moveto
+1268 1984 moveto
+1268 1984 lineto stroke 1268 1984 moveto
+1248 1980 moveto
+1248 1980 lineto stroke 1248 1980 moveto
+1228 1972 moveto
+1228 1972 lineto stroke 1228 1972 moveto
+1208 1964 moveto
+1208 1964 lineto stroke 1208 1964 moveto
+1188 1956 moveto
+1188 1956 lineto stroke 1188 1956 moveto
+1164 1948 moveto
+1164 1948 lineto stroke 1164 1948 moveto
+1144 1940 moveto
+1144 1940 lineto stroke 1144 1940 moveto
+1124 1928 moveto
+1124 1928 lineto stroke 1124 1928 moveto
+1104 1920 moveto
+1104 1920 lineto stroke 1104 1920 moveto
+1084 1908 moveto
+1084 1908 lineto stroke 1084 1908 moveto
+1060 1896 moveto
+1060 1896 lineto stroke 1060 1896 moveto
+1040 1884 moveto
+1040 1884 lineto stroke 1040 1884 moveto
+1020 1872 moveto
+1020 1872 lineto stroke 1020 1872 moveto
+1000 1856 moveto
+1000 1856 lineto stroke 1000 1856 moveto
+976 1844 moveto
+976 1844 lineto stroke 976 1844 moveto
+956 1828 moveto
+956 1828 lineto stroke 956 1828 moveto
+936 1812 moveto
+936 1812 lineto stroke 936 1812 moveto
+916 1796 moveto
+916 1796 lineto stroke 916 1796 moveto
+896 1780 moveto
+896 1780 lineto stroke 896 1780 moveto
+880 1764 moveto
+880 1764 lineto stroke 880 1764 moveto
+860 1748 moveto
+860 1748 lineto stroke 860 1748 moveto
+844 1728 moveto
+844 1728 lineto stroke 844 1728 moveto
+824 1712 moveto
+824 1712 lineto stroke 824 1712 moveto
+808 1692 moveto
+808 1692 lineto stroke 808 1692 moveto
+796 1676 moveto
+796 1676 lineto stroke 796 1676 moveto
+780 1656 moveto
+780 1656 lineto stroke 780 1656 moveto
+768 1636 moveto
+768 1636 lineto stroke 768 1636 moveto
+756 1620 moveto
+756 1620 lineto stroke 756 1620 moveto
+744 1600 moveto
+744 1600 lineto stroke 744 1600 moveto
+732 1580 moveto
+732 1580 lineto stroke 732 1580 moveto
+724 1564 moveto
+724 1564 lineto stroke 724 1564 moveto
+716 1544 moveto
+716 1544 lineto stroke 716 1544 moveto
+708 1528 moveto
+708 1528 lineto stroke 708 1528 moveto
+704 1508 moveto
+704 1508 lineto stroke 704 1508 moveto
+700 1492 moveto
+700 1492 lineto stroke 700 1492 moveto
+696 1476 moveto
+696 1476 lineto stroke 696 1476 moveto
+692 1460 moveto
+692 1460 lineto stroke 692 1460 moveto
+692 1444 moveto
+692 1444 lineto stroke 692 1444 moveto
+692 1428 moveto
+692 1428 lineto stroke 692 1428 moveto
+692 1416 moveto
+692 1416 lineto stroke 692 1416 moveto
+692 1400 moveto
+692 1400 lineto stroke 692 1400 moveto
+696 1388 moveto
+696 1388 lineto stroke 696 1388 moveto
+700 1376 moveto
+700 1376 lineto stroke 700 1376 moveto
+704 1364 moveto
+704 1364 lineto stroke 704 1364 moveto
+708 1352 moveto
+708 1352 lineto stroke 708 1352 moveto
+716 1344 moveto
+716 1344 lineto stroke 716 1344 moveto
+724 1332 moveto
+724 1332 lineto stroke 724 1332 moveto
+736 1324 moveto
+736 1324 lineto stroke 736 1324 moveto
+744 1316 moveto
+744 1316 lineto stroke 744 1316 moveto
+756 1312 moveto
+756 1312 lineto stroke 756 1312 moveto
+768 1304 moveto
+768 1304 lineto stroke 768 1304 moveto
+780 1300 moveto
+780 1300 lineto stroke 780 1300 moveto
+796 1300 moveto
+796 1300 lineto stroke 796 1300 moveto
+812 1296 moveto
+812 1296 lineto stroke 812 1296 moveto
+828 1296 moveto
+828 1296 lineto stroke 828 1296 moveto
+844 1296 moveto
+844 1296 lineto stroke 844 1296 moveto
+860 1300 moveto
+860 1300 lineto stroke 860 1300 moveto
+880 1300 moveto
+880 1300 lineto stroke 880 1300 moveto
+900 1304 moveto
+900 1304 lineto stroke 900 1304 moveto
+916 1312 moveto
+916 1312 lineto stroke 916 1312 moveto
+936 1316 moveto
+936 1316 lineto stroke 936 1316 moveto
+956 1324 moveto
+956 1324 lineto stroke 956 1324 moveto
+980 1332 moveto
+980 1332 lineto stroke 980 1332 moveto
+1000 1340 moveto
+1000 1340 lineto stroke 1000 1340 moveto
+1020 1352 moveto
+1020 1352 lineto stroke 1020 1352 moveto
+1040 1360 moveto
+1040 1360 lineto stroke 1040 1360 moveto
+1064 1372 moveto
+1064 1372 lineto stroke 1064 1372 moveto
+1084 1384 moveto
+1084 1384 lineto stroke 1084 1384 moveto
+1104 1396 moveto
+1104 1396 lineto stroke 1104 1396 moveto
+1124 1408 moveto
+1124 1408 lineto stroke 1124 1408 moveto
+1148 1424 moveto
+1148 1424 lineto stroke 1148 1424 moveto
+1168 1436 moveto
+1168 1436 lineto stroke 1168 1436 moveto
+1188 1448 moveto
+1188 1448 lineto stroke 1188 1448 moveto
+1208 1464 moveto
+1208 1464 lineto stroke 1208 1464 moveto
+1228 1480 moveto
+1228 1480 lineto stroke 1228 1480 moveto
+1248 1496 moveto
+1248 1496 lineto stroke 1248 1496 moveto
+1268 1508 moveto
+1268 1508 lineto stroke 1268 1508 moveto
+1288 1524 moveto
+1288 1524 lineto stroke 1288 1524 moveto
+1308 1540 moveto
+1308 1540 lineto stroke 1308 1540 moveto
+1328 1556 moveto
+1328 1556 lineto stroke 1328 1556 moveto
+1348 1572 moveto
+1348 1572 lineto stroke 1348 1572 moveto
+1368 1592 moveto
+1368 1592 lineto stroke 1368 1592 moveto
+1388 1608 moveto
+1388 1608 lineto stroke 1388 1608 moveto
+1404 1624 moveto
+1404 1624 lineto stroke 1404 1624 moveto
+1424 1640 moveto
+1424 1640 lineto stroke 1424 1640 moveto
+1444 1656 moveto
+1444 1656 lineto stroke 1444 1656 moveto
+1460 1676 moveto
+1460 1676 lineto stroke 1460 1676 moveto
+1480 1692 moveto
+1480 1692 lineto stroke 1480 1692 moveto
+1500 1708 moveto
+1500 1708 lineto stroke 1500 1708 moveto
+1516 1728 moveto
+1516 1728 lineto stroke 1516 1728 moveto
+1536 1744 moveto
+1536 1744 lineto stroke 1536 1744 moveto
+1552 1764 moveto
+1552 1764 lineto stroke 1552 1764 moveto
+1572 1780 moveto
+1572 1780 lineto stroke 1572 1780 moveto
+1588 1800 moveto
+1588 1800 lineto stroke 1588 1800 moveto
+1604 1816 moveto
+1604 1816 lineto stroke 1604 1816 moveto
+1624 1836 moveto
+1624 1836 lineto stroke 1624 1836 moveto
+1640 1852 moveto
+1640 1852 lineto stroke 1640 1852 moveto
+1656 1872 moveto
+1656 1872 lineto stroke 1656 1872 moveto
+1672 1888 moveto
+1672 1888 lineto stroke 1672 1888 moveto
+1692 1908 moveto
+1692 1908 lineto stroke 1692 1908 moveto
+1708 1924 moveto
+1708 1924 lineto stroke 1708 1924 moveto
+1724 1944 moveto
+1724 1944 lineto stroke 1724 1944 moveto
+1740 1960 moveto
+1740 1960 lineto stroke 1740 1960 moveto
+1756 1980 moveto
+1756 1980 lineto stroke 1756 1980 moveto
+1772 1996 moveto
+1772 1996 lineto stroke 1772 1996 moveto
+1788 2016 moveto
+1788 2016 lineto stroke 1788 2016 moveto
+1804 2036 moveto
+1804 2036 lineto stroke 1804 2036 moveto
+2824 1392 moveto
+2824 1392 lineto stroke 2824 1392 moveto
+2804 1380 moveto
+2804 1380 lineto stroke 2804 1380 moveto
+2780 1368 moveto
+2780 1368 lineto stroke 2780 1368 moveto
+2760 1356 moveto
+2760 1356 lineto stroke 2760 1356 moveto
+2740 1344 moveto
+2740 1344 lineto stroke 2740 1344 moveto
+2716 1332 moveto
+2716 1332 lineto stroke 2716 1332 moveto
+2696 1320 moveto
+2696 1320 lineto stroke 2696 1320 moveto
+2676 1308 moveto
+2676 1308 lineto stroke 2676 1308 moveto
+2656 1296 moveto
+2656 1296 lineto stroke 2656 1296 moveto
+2632 1284 moveto
+2632 1284 lineto stroke 2632 1284 moveto
+2612 1276 moveto
+2612 1276 lineto stroke 2612 1276 moveto
+2592 1264 moveto
+2592 1264 lineto stroke 2592 1264 moveto
+2572 1252 moveto
+2572 1252 lineto stroke 2572 1252 moveto
+2548 1240 moveto
+2548 1240 lineto stroke 2548 1240 moveto
+2528 1228 moveto
+2528 1228 lineto stroke 2528 1228 moveto
+2508 1216 moveto
+2508 1216 lineto stroke 2508 1216 moveto
+2488 1204 moveto
+2488 1204 lineto stroke 2488 1204 moveto
+2464 1192 moveto
+2464 1192 lineto stroke 2464 1192 moveto
+2444 1180 moveto
+2444 1180 lineto stroke 2444 1180 moveto
+2424 1168 moveto
+2424 1168 lineto stroke 2424 1168 moveto
+2400 1160 moveto
+2400 1160 lineto stroke 2400 1160 moveto
+2380 1148 moveto
+2380 1148 lineto stroke 2380 1148 moveto
+2360 1136 moveto
+2360 1136 lineto stroke 2360 1136 moveto
+2340 1124 moveto
+2340 1124 lineto stroke 2340 1124 moveto
+2316 1112 moveto
+2316 1112 lineto stroke 2316 1112 moveto
+2296 1100 moveto
+2296 1100 lineto stroke 2296 1100 moveto
+2276 1088 moveto
+2276 1088 lineto stroke 2276 1088 moveto
+2256 1076 moveto
+2256 1076 lineto stroke 2256 1076 moveto
+2232 1064 moveto
+2232 1064 lineto stroke 2232 1064 moveto
+2212 1052 moveto
+2212 1052 lineto stroke 2212 1052 moveto
+2192 1044 moveto
+2192 1044 lineto stroke 2192 1044 moveto
+2172 1032 moveto
+2172 1032 lineto stroke 2172 1032 moveto
+2148 1020 moveto
+2148 1020 lineto stroke 2148 1020 moveto
+2128 1008 moveto
+2128 1008 lineto stroke 2128 1008 moveto
+2108 996 moveto
+2108 996 lineto stroke 2108 996 moveto
+2084 984 moveto
+2084 984 lineto stroke 2084 984 moveto
+2064 972 moveto
+2064 972 lineto stroke 2064 972 moveto
+2044 960 moveto
+2044 960 lineto stroke 2044 960 moveto
+2024 948 moveto
+2024 948 lineto stroke 2024 948 moveto
+2000 936 moveto
+2000 936 lineto stroke 2000 936 moveto
+1980 928 moveto
+1980 928 lineto stroke 1980 928 moveto
+1960 916 moveto
+1960 916 lineto stroke 1960 916 moveto
+1940 904 moveto
+1940 904 lineto stroke 1940 904 moveto
+1916 892 moveto
+1916 892 lineto stroke 1916 892 moveto
+1896 880 moveto
+1896 880 lineto stroke 1896 880 moveto
+1876 868 moveto
+1876 868 lineto stroke 1876 868 moveto
+1856 856 moveto
+1856 856 lineto stroke 1856 856 moveto
+1832 844 moveto
+1832 844 lineto stroke 1832 844 moveto
+1812 832 moveto
+1812 832 lineto stroke 1812 832 moveto
+1792 824 moveto
+1792 824 lineto stroke 1792 824 moveto
+1772 812 moveto
+1772 812 lineto stroke 1772 812 moveto
+1748 800 moveto
+1748 800 lineto stroke 1748 800 moveto
+1728 788 moveto
+1728 788 lineto stroke 1728 788 moveto
+1708 776 moveto
+1708 776 lineto stroke 1708 776 moveto
+1700 772 moveto
+1700 772 lineto stroke 1700 772 moveto
+1720 784 moveto
+1720 784 lineto stroke 1720 784 moveto
+1740 796 moveto
+1740 796 lineto stroke 1740 796 moveto
+1764 808 moveto
+1764 808 lineto stroke 1764 808 moveto
+1784 816 moveto
+1784 816 lineto stroke 1784 816 moveto
+1804 828 moveto
+1804 828 lineto stroke 1804 828 moveto
+1824 840 moveto
+1824 840 lineto stroke 1824 840 moveto
+1848 852 moveto
+1848 852 lineto stroke 1848 852 moveto
+1868 864 moveto
+1868 864 lineto stroke 1868 864 moveto
+1888 876 moveto
+1888 876 lineto stroke 1888 876 moveto
+1908 888 moveto
+1908 888 lineto stroke 1908 888 moveto
+1932 900 moveto
+1932 900 lineto stroke 1932 900 moveto
+1952 912 moveto
+1952 912 lineto stroke 1952 912 moveto
+1972 924 moveto
+1972 924 lineto stroke 1972 924 moveto
+1992 932 moveto
+1992 932 lineto stroke 1992 932 moveto
+2016 944 moveto
+2016 944 lineto stroke 2016 944 moveto
+2036 956 moveto
+2036 956 lineto stroke 2036 956 moveto
+2056 968 moveto
+2056 968 lineto stroke 2056 968 moveto
+2080 980 moveto
+2080 980 lineto stroke 2080 980 moveto
+2100 992 moveto
+2100 992 lineto stroke 2100 992 moveto
+2120 1004 moveto
+2120 1004 lineto stroke 2120 1004 moveto
+2140 1016 moveto
+2140 1016 lineto stroke 2140 1016 moveto
+2164 1028 moveto
+2164 1028 lineto stroke 2164 1028 moveto
+2184 1040 moveto
+2184 1040 lineto stroke 2184 1040 moveto
+2204 1048 moveto
+2204 1048 lineto stroke 2204 1048 moveto
+2224 1060 moveto
+2224 1060 lineto stroke 2224 1060 moveto
+2248 1072 moveto
+2248 1072 lineto stroke 2248 1072 moveto
+2268 1084 moveto
+2268 1084 lineto stroke 2268 1084 moveto
+2288 1096 moveto
+2288 1096 lineto stroke 2288 1096 moveto
+2308 1108 moveto
+2308 1108 lineto stroke 2308 1108 moveto
+2332 1120 moveto
+2332 1120 lineto stroke 2332 1120 moveto
+2352 1132 moveto
+2352 1132 lineto stroke 2352 1132 moveto
+2372 1144 moveto
+2372 1144 lineto stroke 2372 1144 moveto
+2392 1156 moveto
+2392 1156 lineto stroke 2392 1156 moveto
+2416 1164 moveto
+2416 1164 lineto stroke 2416 1164 moveto
+2436 1176 moveto
+2436 1176 lineto stroke 2436 1176 moveto
+2456 1188 moveto
+2456 1188 lineto stroke 2456 1188 moveto
+2480 1200 moveto
+2480 1200 lineto stroke 2480 1200 moveto
+2500 1212 moveto
+2500 1212 lineto stroke 2500 1212 moveto
+2520 1224 moveto
+2520 1224 lineto stroke 2520 1224 moveto
+2540 1236 moveto
+2540 1236 lineto stroke 2540 1236 moveto
+2564 1248 moveto
+2564 1248 lineto stroke 2564 1248 moveto
+2584 1260 moveto
+2584 1260 lineto stroke 2584 1260 moveto
+2604 1272 moveto
+2604 1272 lineto stroke 2604 1272 moveto
+2624 1280 moveto
+2624 1280 lineto stroke 2624 1280 moveto
+2648 1292 moveto
+2648 1292 lineto stroke 2648 1292 moveto
+2668 1304 moveto
+2668 1304 lineto stroke 2668 1304 moveto
+2688 1316 moveto
+2688 1316 lineto stroke 2688 1316 moveto
+2708 1328 moveto
+2708 1328 lineto stroke 2708 1328 moveto
+2732 1340 moveto
+2732 1340 lineto stroke 2732 1340 moveto
+2752 1352 moveto
+2752 1352 lineto stroke 2752 1352 moveto
+2772 1364 moveto
+2772 1364 lineto stroke 2772 1364 moveto
+2796 1376 moveto
+2796 1376 lineto stroke 2796 1376 moveto
+2816 1388 moveto
+2816 1388 lineto stroke 2816 1388 moveto
+2824 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+2824 2052 moveto
+2820 2052 lineto stroke 2820 2052 moveto
+2816 2052 lineto stroke 2816 2052 moveto
+2808 2052 lineto stroke 2808 2052 moveto
+2800 2052 lineto stroke 2800 2052 moveto
+2796 2052 lineto stroke 2796 2052 moveto
+2792 2052 lineto stroke 2792 2052 moveto
+2784 2052 lineto stroke 2784 2052 moveto
+2776 2052 lineto stroke 2776 2052 moveto
+2768 2056 lineto stroke 2768 2056 moveto
+2756 2056 lineto stroke 2756 2056 moveto
+2744 2056 lineto stroke 2744 2056 moveto
+2732 2056 lineto stroke 2732 2056 moveto
+2720 2056 lineto stroke 2720 2056 moveto
+2704 2056 lineto stroke 2704 2056 moveto
+2692 2056 lineto stroke 2692 2056 moveto
+2676 2056 lineto stroke 2676 2056 moveto
+2656 2056 lineto stroke 2656 2056 moveto
+2640 2052 lineto stroke 2640 2052 moveto
+2620 2052 lineto stroke 2620 2052 moveto
+2596 2052 lineto stroke 2596 2052 moveto
+2576 2048 lineto stroke 2576 2048 moveto
+2548 2048 lineto stroke 2548 2048 moveto
+2520 2044 lineto stroke 2520 2044 moveto
+2492 2040 lineto stroke 2492 2040 moveto
+2460 2036 lineto stroke 2460 2036 moveto
+2424 2032 lineto stroke 2424 2032 moveto
+2388 2024 lineto stroke 2388 2024 moveto
+2352 2016 lineto stroke 2352 2016 moveto
+2312 2008 lineto stroke 2312 2008 moveto
+2276 2000 lineto stroke 2276 2000 moveto
+2232 1988 lineto stroke 2232 1988 moveto
+2192 1972 lineto stroke 2192 1972 moveto
+2148 1956 lineto stroke 2148 1956 moveto
+2112 1944 lineto stroke 2112 1944 moveto
+2076 1928 lineto stroke 2076 1928 moveto
+2036 1908 lineto stroke 2036 1908 moveto
+2000 1888 lineto stroke 2000 1888 moveto
+1960 1868 lineto stroke 1960 1868 moveto
+1924 1844 lineto stroke 1924 1844 moveto
+1884 1820 lineto stroke 1884 1820 moveto
+1848 1792 lineto stroke 1848 1792 moveto
+1812 1764 lineto stroke 1812 1764 moveto
+1780 1736 lineto stroke 1780 1736 moveto
+1748 1704 lineto stroke 1748 1704 moveto
+1720 1672 lineto stroke 1720 1672 moveto
+1692 1640 lineto stroke 1692 1640 moveto
+1664 1608 lineto stroke 1664 1608 moveto
+1644 1572 lineto stroke 1644 1572 moveto
+1624 1540 lineto stroke 1624 1540 moveto
+1612 1512 lineto stroke 1612 1512 moveto
+1600 1480 lineto stroke 1600 1480 moveto
+1592 1452 lineto stroke 1592 1452 moveto
+1588 1428 lineto stroke 1588 1428 moveto
+1588 1400 lineto stroke 1588 1400 moveto
+1592 1376 lineto stroke 1592 1376 moveto
+1596 1352 lineto stroke 1596 1352 moveto
+1608 1332 lineto stroke 1608 1332 moveto
+1624 1320 lineto stroke 1624 1320 moveto
+1640 1308 lineto stroke 1640 1308 moveto
+1660 1300 lineto stroke 1660 1300 moveto
+1684 1296 lineto stroke 1684 1296 moveto
+1708 1296 lineto stroke 1708 1296 moveto
+1736 1296 lineto stroke 1736 1296 moveto
+1768 1300 lineto stroke 1768 1300 moveto
+1796 1308 lineto stroke 1796 1308 moveto
+1832 1320 lineto stroke 1832 1320 moveto
+1872 1336 lineto stroke 1872 1336 moveto
+1908 1352 lineto stroke 1908 1352 moveto
+1948 1372 lineto stroke 1948 1372 moveto
+1992 1396 lineto stroke 1992 1396 moveto
+2036 1424 lineto stroke 2036 1424 moveto
+2080 1452 lineto stroke 2080 1452 moveto
+2120 1484 lineto stroke 2120 1484 moveto
+2164 1512 lineto stroke 2164 1512 moveto
+2208 1544 lineto stroke 2208 1544 moveto
+2248 1576 lineto stroke 2248 1576 moveto
+2284 1604 lineto stroke 2284 1604 moveto
+2324 1636 lineto stroke 2324 1636 moveto
+2360 1664 lineto stroke 2360 1664 moveto
+2392 1696 lineto stroke 2392 1696 moveto
+2424 1720 lineto stroke 2424 1720 moveto
+2456 1748 lineto stroke 2456 1748 moveto
+2488 1776 lineto stroke 2488 1776 moveto
+2516 1800 lineto stroke 2516 1800 moveto
+2544 1824 lineto stroke 2544 1824 moveto
+2576 1852 lineto stroke 2576 1852 moveto
+2604 1880 lineto stroke 2604 1880 moveto
+2632 1904 lineto stroke 2632 1904 moveto
+2656 1924 lineto stroke 2656 1924 moveto
+2684 1948 lineto stroke 2684 1948 moveto
+2708 1964 lineto stroke 2708 1964 moveto
+2724 1984 lineto stroke 2724 1984 moveto
+2740 1996 lineto stroke 2740 1996 moveto
+2756 2004 lineto stroke 2756 2004 moveto
+2768 2016 lineto stroke 2768 2016 moveto
+2776 2020 lineto stroke 2776 2020 moveto
+2784 2028 lineto stroke 2784 2028 moveto
+2792 2032 lineto stroke 2792 2032 moveto
+2800 2040 lineto stroke 2800 2040 moveto
+2808 2044 lineto stroke 2808 2044 moveto
+2816 2048 lineto stroke 2816 2048 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+3200 2276 moveto
+3200 2276 lineto stroke 3200 2276 moveto
+3196 2288 moveto
+3196 2288 lineto stroke 3196 2288 moveto
+3196 2304 moveto
+3196 2304 lineto stroke 3196 2304 moveto
+3196 2320 moveto
+3196 2320 lineto stroke 3196 2320 moveto
+3192 2332 moveto
+3192 2332 lineto stroke 3192 2332 moveto
+3192 2348 moveto
+3192 2348 lineto stroke 3192 2348 moveto
+3192 2364 moveto
+3192 2364 lineto stroke 3192 2364 moveto
+3188 2376 moveto
+3188 2376 lineto stroke 3188 2376 moveto
+3188 2392 moveto
+3188 2392 lineto stroke 3188 2392 moveto
+3184 2408 moveto
+3184 2408 lineto stroke 3184 2408 moveto
+3184 2420 moveto
+3184 2420 lineto stroke 3184 2420 moveto
+3180 2436 moveto
+3180 2436 lineto stroke 3180 2436 moveto
+3180 2452 moveto
+3180 2452 lineto stroke 3180 2452 moveto
+3176 2464 moveto
+3176 2464 lineto stroke 3176 2464 moveto
+3172 2480 moveto
+3172 2480 lineto stroke 3172 2480 moveto
+3168 2496 moveto
+3168 2496 lineto stroke 3168 2496 moveto
+3164 2508 moveto
+3164 2508 lineto stroke 3164 2508 moveto
+3156 2524 moveto
+3156 2524 lineto stroke 3156 2524 moveto
+3144 2516 moveto
+3144 2516 lineto stroke 3144 2516 moveto
+3140 2500 moveto
+3140 2500 lineto stroke 3140 2500 moveto
+3132 2488 moveto
+3132 2488 lineto stroke 3132 2488 moveto
+3132 2472 moveto
+3132 2472 lineto stroke 3132 2472 moveto
+3128 2456 moveto
+3128 2456 lineto stroke 3128 2456 moveto
+3124 2444 moveto
+3124 2444 lineto stroke 3124 2444 moveto
+3120 2428 moveto
+3120 2428 lineto stroke 3120 2428 moveto
+3120 2412 moveto
+3120 2412 lineto stroke 3120 2412 moveto
+3116 2400 moveto
+3116 2400 lineto stroke 3116 2400 moveto
+3116 2384 moveto
+3116 2384 lineto stroke 3116 2384 moveto
+3112 2368 moveto
+3112 2368 lineto stroke 3112 2368 moveto
+3112 2356 moveto
+3112 2356 lineto stroke 3112 2356 moveto
+3108 2340 moveto
+3108 2340 lineto stroke 3108 2340 moveto
+3108 2324 moveto
+3108 2324 lineto stroke 3108 2324 moveto
+3104 2308 moveto
+3104 2308 lineto stroke 3104 2308 moveto
+3104 2296 moveto
+3104 2296 lineto stroke 3104 2296 moveto
+3100 2280 moveto
+3100 2280 lineto stroke 3100 2280 moveto
+3100 2264 moveto
+3100 2264 lineto stroke 3100 2264 moveto
+3100 2252 moveto
+3100 2252 lineto stroke 3100 2252 moveto
+3096 2236 moveto
+3096 2236 lineto stroke 3096 2236 moveto
+3096 2220 moveto
+3096 2220 lineto stroke 3096 2220 moveto
+3092 2208 moveto
+3092 2208 lineto stroke 3092 2208 moveto
+3092 2192 moveto
+3092 2192 lineto stroke 3092 2192 moveto
+3092 2176 moveto
+3092 2176 lineto stroke 3092 2176 moveto
+3088 2164 moveto
+3088 2164 lineto stroke 3088 2164 moveto
+3088 2148 moveto
+3088 2148 lineto stroke 3088 2148 moveto
+3088 2132 moveto
+3088 2132 lineto stroke 3088 2132 moveto
+3084 2120 moveto
+3084 2120 lineto stroke 3084 2120 moveto
+3084 2104 moveto
+3084 2104 lineto stroke 3084 2104 moveto
+3084 2088 moveto
+3084 2088 lineto stroke 3084 2088 moveto
+3080 2072 moveto
+3080 2072 lineto stroke 3080 2072 moveto
+3080 2060 moveto
+3080 2060 lineto stroke 3080 2060 moveto
+3080 2044 moveto
+3080 2044 lineto stroke 3080 2044 moveto
+3080 2028 moveto
+3080 2028 lineto stroke 3080 2028 moveto
+3080 2016 moveto
+3080 2016 lineto stroke 3080 2016 moveto
+3080 2000 moveto
+3080 2000 lineto stroke 3080 2000 moveto
+3084 2008 moveto
+3084 2008 lineto stroke 3084 2008 moveto
+3088 2020 moveto
+3088 2020 lineto stroke 3088 2020 moveto
+3092 2036 moveto
+3092 2036 lineto stroke 3092 2036 moveto
+3096 2052 moveto
+3096 2052 lineto stroke 3096 2052 moveto
+3100 2064 moveto
+3100 2064 lineto stroke 3100 2064 moveto
+3104 2080 moveto
+3104 2080 lineto stroke 3104 2080 moveto
+3112 2096 moveto
+3112 2096 lineto stroke 3112 2096 moveto
+3116 2108 moveto
+3116 2108 lineto stroke 3116 2108 moveto
+3120 2124 moveto
+3120 2124 lineto stroke 3120 2124 moveto
+3124 2136 moveto
+3124 2136 lineto stroke 3124 2136 moveto
+3128 2152 moveto
+3128 2152 lineto stroke 3128 2152 moveto
+3136 2164 moveto
+3136 2164 lineto stroke 3136 2164 moveto
+3140 2180 moveto
+3140 2180 lineto stroke 3140 2180 moveto
+3148 2196 moveto
+3148 2196 lineto stroke 3148 2196 moveto
+3156 2208 moveto
+3156 2208 lineto stroke 3156 2208 moveto
+3164 2220 moveto
+3164 2220 lineto stroke 3164 2220 moveto
+3172 2236 moveto
+3172 2236 lineto stroke 3172 2236 moveto
+3184 2248 moveto
+3184 2248 lineto stroke 3184 2248 moveto
+3196 2260 moveto
+3196 2260 lineto stroke 3196 2260 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+1804 2052 moveto
+1804 2052 lineto stroke 1804 2052 moveto
+1788 2052 moveto
+1788 2052 lineto stroke 1788 2052 moveto
+1772 2056 moveto
+1772 2056 lineto stroke 1772 2056 moveto
+1756 2056 moveto
+1756 2056 lineto stroke 1756 2056 moveto
+1740 2056 moveto
+1740 2056 lineto stroke 1740 2056 moveto
+1724 2056 moveto
+1724 2056 lineto stroke 1724 2056 moveto
+1708 2056 moveto
+1708 2056 lineto stroke 1708 2056 moveto
+1692 2056 moveto
+1692 2056 lineto stroke 1692 2056 moveto
+1672 2056 moveto
+1672 2056 lineto stroke 1672 2056 moveto
+1656 2052 moveto
+1656 2052 lineto stroke 1656 2052 moveto
+1640 2052 moveto
+1640 2052 lineto stroke 1640 2052 moveto
+1624 2052 moveto
+1624 2052 lineto stroke 1624 2052 moveto
+1604 2052 moveto
+1604 2052 lineto stroke 1604 2052 moveto
+1588 2048 moveto
+1588 2048 lineto stroke 1588 2048 moveto
+1572 2048 moveto
+1572 2048 lineto stroke 1572 2048 moveto
+1552 2048 moveto
+1552 2048 lineto stroke 1552 2048 moveto
+1536 2044 moveto
+1536 2044 lineto stroke 1536 2044 moveto
+1516 2044 moveto
+1516 2044 lineto stroke 1516 2044 moveto
+1500 2040 moveto
+1500 2040 lineto stroke 1500 2040 moveto
+1480 2036 moveto
+1480 2036 lineto stroke 1480 2036 moveto
+1460 2036 moveto
+1460 2036 lineto stroke 1460 2036 moveto
+1444 2032 moveto
+1444 2032 lineto stroke 1444 2032 moveto
+1424 2028 moveto
+1424 2028 lineto stroke 1424 2028 moveto
+1404 2024 moveto
+1404 2024 lineto stroke 1404 2024 moveto
+1388 2020 moveto
+1388 2020 lineto stroke 1388 2020 moveto
+1368 2016 moveto
+1368 2016 lineto stroke 1368 2016 moveto
+1348 2012 moveto
+1348 2012 lineto stroke 1348 2012 moveto
+1328 2004 moveto
+1328 2004 lineto stroke 1328 2004 moveto
+1308 2000 moveto
+1308 2000 lineto stroke 1308 2000 moveto
+1288 1996 moveto
+1288 1996 lineto stroke 1288 1996 moveto
+1268 1988 moveto
+1268 1988 lineto stroke 1268 1988 moveto
+1248 1980 moveto
+1248 1980 lineto stroke 1248 1980 moveto
+1228 1976 moveto
+1228 1976 lineto stroke 1228 1976 moveto
+1208 1968 moveto
+1208 1968 lineto stroke 1208 1968 moveto
+1188 1960 moveto
+1188 1960 lineto stroke 1188 1960 moveto
+1168 1948 moveto
+1168 1948 lineto stroke 1168 1948 moveto
+1148 1940 moveto
+1148 1940 lineto stroke 1148 1940 moveto
+1124 1932 moveto
+1124 1932 lineto stroke 1124 1932 moveto
+1104 1920 moveto
+1104 1920 lineto stroke 1104 1920 moveto
+1084 1912 moveto
+1084 1912 lineto stroke 1084 1912 moveto
+1064 1900 moveto
+1064 1900 lineto stroke 1064 1900 moveto
+1040 1888 moveto
+1040 1888 lineto stroke 1040 1888 moveto
+1020 1876 moveto
+1020 1876 lineto stroke 1020 1876 moveto
+1000 1860 moveto
+1000 1860 lineto stroke 1000 1860 moveto
+980 1848 moveto
+980 1848 lineto stroke 980 1848 moveto
+960 1832 moveto
+960 1832 lineto stroke 960 1832 moveto
+940 1816 moveto
+940 1816 lineto stroke 940 1816 moveto
+920 1800 moveto
+920 1800 lineto stroke 920 1800 moveto
+900 1784 moveto
+900 1784 lineto stroke 900 1784 moveto
+880 1768 moveto
+880 1768 lineto stroke 880 1768 moveto
+860 1752 moveto
+860 1752 lineto stroke 860 1752 moveto
+844 1732 moveto
+844 1732 lineto stroke 844 1732 moveto
+828 1716 moveto
+828 1716 lineto stroke 828 1716 moveto
+812 1696 moveto
+812 1696 lineto stroke 812 1696 moveto
+796 1680 moveto
+796 1680 lineto stroke 796 1680 moveto
+780 1660 moveto
+780 1660 lineto stroke 780 1660 moveto
+768 1640 moveto
+768 1640 lineto stroke 768 1640 moveto
+756 1624 moveto
+756 1624 lineto stroke 756 1624 moveto
+744 1604 moveto
+744 1604 lineto stroke 744 1604 moveto
+732 1584 moveto
+732 1584 lineto stroke 732 1584 moveto
+724 1568 moveto
+724 1568 lineto stroke 724 1568 moveto
+716 1548 moveto
+716 1548 lineto stroke 716 1548 moveto
+708 1532 moveto
+708 1532 lineto stroke 708 1532 moveto
+700 1512 moveto
+700 1512 lineto stroke 700 1512 moveto
+696 1496 moveto
+696 1496 lineto stroke 696 1496 moveto
+692 1480 moveto
+692 1480 lineto stroke 692 1480 moveto
+688 1464 moveto
+688 1464 lineto stroke 688 1464 moveto
+688 1448 moveto
+688 1448 lineto stroke 688 1448 moveto
+688 1432 moveto
+688 1432 lineto stroke 688 1432 moveto
+688 1416 moveto
+688 1416 lineto stroke 688 1416 moveto
+688 1404 moveto
+688 1404 lineto stroke 688 1404 moveto
+692 1392 moveto
+692 1392 lineto stroke 692 1392 moveto
+696 1376 moveto
+696 1376 lineto stroke 696 1376 moveto
+700 1364 moveto
+700 1364 lineto stroke 700 1364 moveto
+704 1356 moveto
+704 1356 lineto stroke 704 1356 moveto
+712 1344 moveto
+712 1344 lineto stroke 712 1344 moveto
+720 1336 moveto
+720 1336 lineto stroke 720 1336 moveto
+728 1324 moveto
+728 1324 lineto stroke 728 1324 moveto
+736 1320 moveto
+736 1320 lineto stroke 736 1320 moveto
+748 1312 moveto
+748 1312 lineto stroke 748 1312 moveto
+760 1304 moveto
+760 1304 lineto stroke 760 1304 moveto
+772 1300 moveto
+772 1300 lineto stroke 772 1300 moveto
+788 1300 moveto
+788 1300 lineto stroke 788 1300 moveto
+804 1296 moveto
+804 1296 lineto stroke 804 1296 moveto
+820 1296 moveto
+820 1296 lineto stroke 820 1296 moveto
+836 1296 moveto
+836 1296 lineto stroke 836 1296 moveto
+852 1296 moveto
+852 1296 lineto stroke 852 1296 moveto
+872 1300 moveto
+872 1300 lineto stroke 872 1300 moveto
+888 1300 moveto
+888 1300 lineto stroke 888 1300 moveto
+908 1308 moveto
+908 1308 lineto stroke 908 1308 moveto
+928 1312 moveto
+928 1312 lineto stroke 928 1312 moveto
+948 1320 moveto
+948 1320 lineto stroke 948 1320 moveto
+968 1328 moveto
+968 1328 lineto stroke 968 1328 moveto
+988 1336 moveto
+988 1336 lineto stroke 988 1336 moveto
+1008 1344 moveto
+1008 1344 lineto stroke 1008 1344 moveto
+1032 1356 moveto
+1032 1356 lineto stroke 1032 1356 moveto
+1052 1364 moveto
+1052 1364 lineto stroke 1052 1364 moveto
+1072 1376 moveto
+1072 1376 lineto stroke 1072 1376 moveto
+1096 1388 moveto
+1096 1388 lineto stroke 1096 1388 moveto
+1116 1400 moveto
+1116 1400 lineto stroke 1116 1400 moveto
+1136 1416 moveto
+1136 1416 lineto stroke 1136 1416 moveto
+1156 1428 moveto
+1156 1428 lineto stroke 1156 1428 moveto
+1176 1444 moveto
+1176 1444 lineto stroke 1176 1444 moveto
+1200 1456 moveto
+1200 1456 lineto stroke 1200 1456 moveto
+1220 1472 moveto
+1220 1472 lineto stroke 1220 1472 moveto
+1240 1488 moveto
+1240 1488 lineto stroke 1240 1488 moveto
+1260 1504 moveto
+1260 1504 lineto stroke 1260 1504 moveto
+1280 1516 moveto
+1280 1516 lineto stroke 1280 1516 moveto
+1300 1532 moveto
+1300 1532 lineto stroke 1300 1532 moveto
+1320 1548 moveto
+1320 1548 lineto stroke 1320 1548 moveto
+1340 1564 moveto
+1340 1564 lineto stroke 1340 1564 moveto
+1356 1584 moveto
+1356 1584 lineto stroke 1356 1584 moveto
+1376 1600 moveto
+1376 1600 lineto stroke 1376 1600 moveto
+1396 1616 moveto
+1396 1616 lineto stroke 1396 1616 moveto
+1416 1632 moveto
+1416 1632 lineto stroke 1416 1632 moveto
+1432 1648 moveto
+1432 1648 lineto stroke 1432 1648 moveto
+1452 1668 moveto
+1452 1668 lineto stroke 1452 1668 moveto
+1472 1684 moveto
+1472 1684 lineto stroke 1472 1684 moveto
+1488 1700 moveto
+1488 1700 lineto stroke 1488 1700 moveto
+1508 1720 moveto
+1508 1720 lineto stroke 1508 1720 moveto
+1524 1736 moveto
+1524 1736 lineto stroke 1524 1736 moveto
+1544 1756 moveto
+1544 1756 lineto stroke 1544 1756 moveto
+1560 1772 moveto
+1560 1772 lineto stroke 1560 1772 moveto
+1580 1788 moveto
+1580 1788 lineto stroke 1580 1788 moveto
+1596 1808 moveto
+1596 1808 lineto stroke 1596 1808 moveto
+1612 1824 moveto
+1612 1824 lineto stroke 1612 1824 moveto
+1632 1844 moveto
+1632 1844 lineto stroke 1632 1844 moveto
+1648 1860 moveto
+1648 1860 lineto stroke 1648 1860 moveto
+1664 1880 moveto
+1664 1880 lineto stroke 1664 1880 moveto
+1684 1896 moveto
+1684 1896 lineto stroke 1684 1896 moveto
+1700 1916 moveto
+1700 1916 lineto stroke 1700 1916 moveto
+1716 1932 moveto
+1716 1932 lineto stroke 1716 1932 moveto
+1732 1952 moveto
+1732 1952 lineto stroke 1732 1952 moveto
+1748 1972 moveto
+1748 1972 lineto stroke 1748 1972 moveto
+1764 1988 moveto
+1764 1988 lineto stroke 1764 1988 moveto
+1780 2008 moveto
+1780 2008 lineto stroke 1780 2008 moveto
+1796 2024 moveto
+1796 2024 lineto stroke 1796 2024 moveto
+1812 2044 moveto
+1812 2044 lineto stroke 1812 2044 moveto
+2824 1392 moveto
+2824 1392 lineto stroke 2824 1392 moveto
+2800 1380 moveto
+2800 1380 lineto stroke 2800 1380 moveto
+2780 1368 moveto
+2780 1368 lineto stroke 2780 1368 moveto
+2756 1356 moveto
+2756 1356 lineto stroke 2756 1356 moveto
+2736 1344 moveto
+2736 1344 lineto stroke 2736 1344 moveto
+2712 1332 moveto
+2712 1332 lineto stroke 2712 1332 moveto
+2692 1320 moveto
+2692 1320 lineto stroke 2692 1320 moveto
+2668 1308 moveto
+2668 1308 lineto stroke 2668 1308 moveto
+2648 1296 moveto
+2648 1296 lineto stroke 2648 1296 moveto
+2624 1288 moveto
+2624 1288 lineto stroke 2624 1288 moveto
+2600 1276 moveto
+2600 1276 lineto stroke 2600 1276 moveto
+2580 1264 moveto
+2580 1264 lineto stroke 2580 1264 moveto
+2556 1252 moveto
+2556 1252 lineto stroke 2556 1252 moveto
+2536 1240 moveto
+2536 1240 lineto stroke 2536 1240 moveto
+2512 1228 moveto
+2512 1228 lineto stroke 2512 1228 moveto
+2492 1216 moveto
+2492 1216 lineto stroke 2492 1216 moveto
+2468 1204 moveto
+2468 1204 lineto stroke 2468 1204 moveto
+2448 1192 moveto
+2448 1192 lineto stroke 2448 1192 moveto
+2424 1180 moveto
+2424 1180 lineto stroke 2424 1180 moveto
+2400 1172 moveto
+2400 1172 lineto stroke 2400 1172 moveto
+2380 1160 moveto
+2380 1160 lineto stroke 2380 1160 moveto
+2356 1148 moveto
+2356 1148 lineto stroke 2356 1148 moveto
+2336 1136 moveto
+2336 1136 lineto stroke 2336 1136 moveto
+2312 1124 moveto
+2312 1124 lineto stroke 2312 1124 moveto
+2288 1112 moveto
+2288 1112 lineto stroke 2288 1112 moveto
+2268 1100 moveto
+2268 1100 lineto stroke 2268 1100 moveto
+2244 1088 moveto
+2244 1088 lineto stroke 2244 1088 moveto
+2224 1076 moveto
+2224 1076 lineto stroke 2224 1076 moveto
+2200 1068 moveto
+2200 1068 lineto stroke 2200 1068 moveto
+2176 1056 moveto
+2176 1056 lineto stroke 2176 1056 moveto
+2156 1044 moveto
+2156 1044 lineto stroke 2156 1044 moveto
+2132 1032 moveto
+2132 1032 lineto stroke 2132 1032 moveto
+2108 1020 moveto
+2108 1020 lineto stroke 2108 1020 moveto
+2088 1008 moveto
+2088 1008 lineto stroke 2088 1008 moveto
+2064 996 moveto
+2064 996 lineto stroke 2064 996 moveto
+2044 984 moveto
+2044 984 lineto stroke 2044 984 moveto
+2020 972 moveto
+2020 972 lineto stroke 2020 972 moveto
+1996 964 moveto
+1996 964 lineto stroke 1996 964 moveto
+1972 952 moveto
+1972 952 lineto stroke 1972 952 moveto
+1952 940 moveto
+1952 940 lineto stroke 1952 940 moveto
+1928 928 moveto
+1928 928 lineto stroke 1928 928 moveto
+1904 916 moveto
+1904 916 lineto stroke 1904 916 moveto
+1884 904 moveto
+1884 904 lineto stroke 1884 904 moveto
+1860 892 moveto
+1860 892 lineto stroke 1860 892 moveto
+1836 880 moveto
+1836 880 lineto stroke 1836 880 moveto
+1812 868 moveto
+1812 868 lineto stroke 1812 868 moveto
+1788 860 moveto
+1788 860 lineto stroke 1788 860 moveto
+1768 848 moveto
+1768 848 lineto stroke 1768 848 moveto
+1744 836 moveto
+1744 836 lineto stroke 1744 836 moveto
+1720 824 moveto
+1720 824 lineto stroke 1720 824 moveto
+1696 812 moveto
+1696 812 lineto stroke 1696 812 moveto
+1672 800 moveto
+1672 800 lineto stroke 1672 800 moveto
+1648 788 moveto
+1648 788 lineto stroke 1648 788 moveto
+1620 776 moveto
+1620 776 lineto stroke 1620 776 moveto
+1596 768 moveto
+1596 768 lineto stroke 1596 768 moveto
+1596 772 moveto
+1596 772 lineto stroke 1596 772 moveto
+1612 784 moveto
+1612 784 lineto stroke 1612 784 moveto
+1628 796 moveto
+1628 796 lineto stroke 1628 796 moveto
+1648 808 moveto
+1648 808 lineto stroke 1648 808 moveto
+1668 820 moveto
+1668 820 lineto stroke 1668 820 moveto
+1688 832 moveto
+1688 832 lineto stroke 1688 832 moveto
+1708 844 moveto
+1708 844 lineto stroke 1708 844 moveto
+1728 856 moveto
+1728 856 lineto stroke 1728 856 moveto
+1748 864 moveto
+1748 864 lineto stroke 1748 864 moveto
+1772 876 moveto
+1772 876 lineto stroke 1772 876 moveto
+1792 888 moveto
+1792 888 lineto stroke 1792 888 moveto
+1812 900 moveto
+1812 900 lineto stroke 1812 900 moveto
+1832 912 moveto
+1832 912 lineto stroke 1832 912 moveto
+1856 924 moveto
+1856 924 lineto stroke 1856 924 moveto
+1876 936 moveto
+1876 936 lineto stroke 1876 936 moveto
+1896 948 moveto
+1896 948 lineto stroke 1896 948 moveto
+1920 960 moveto
+1920 960 lineto stroke 1920 960 moveto
+1940 972 moveto
+1940 972 lineto stroke 1940 972 moveto
+1960 980 moveto
+1960 980 lineto stroke 1960 980 moveto
+1984 992 moveto
+1984 992 lineto stroke 1984 992 moveto
+2004 1004 moveto
+2004 1004 lineto stroke 2004 1004 moveto
+2028 1016 moveto
+2028 1016 lineto stroke 2028 1016 moveto
+2048 1028 moveto
+2048 1028 lineto stroke 2048 1028 moveto
+2072 1040 moveto
+2072 1040 lineto stroke 2072 1040 moveto
+2092 1052 moveto
+2092 1052 lineto stroke 2092 1052 moveto
+2116 1064 moveto
+2116 1064 lineto stroke 2116 1064 moveto
+2136 1076 moveto
+2136 1076 lineto stroke 2136 1076 moveto
+2160 1088 moveto
+2160 1088 lineto stroke 2160 1088 moveto
+2184 1096 moveto
+2184 1096 lineto stroke 2184 1096 moveto
+2204 1108 moveto
+2204 1108 lineto stroke 2204 1108 moveto
+2228 1120 moveto
+2228 1120 lineto stroke 2228 1120 moveto
+2248 1132 moveto
+2248 1132 lineto stroke 2248 1132 moveto
+2272 1144 moveto
+2272 1144 lineto stroke 2272 1144 moveto
+2296 1156 moveto
+2296 1156 lineto stroke 2296 1156 moveto
+2320 1168 moveto
+2320 1168 lineto stroke 2320 1168 moveto
+2340 1180 moveto
+2340 1180 lineto stroke 2340 1180 moveto
+2364 1192 moveto
+2364 1192 lineto stroke 2364 1192 moveto
+2388 1200 moveto
+2388 1200 lineto stroke 2388 1200 moveto
+2412 1212 moveto
+2412 1212 lineto stroke 2412 1212 moveto
+2436 1224 moveto
+2436 1224 lineto stroke 2436 1224 moveto
+2460 1236 moveto
+2460 1236 lineto stroke 2460 1236 moveto
+2484 1248 moveto
+2484 1248 lineto stroke 2484 1248 moveto
+2508 1260 moveto
+2508 1260 lineto stroke 2508 1260 moveto
+2532 1272 moveto
+2532 1272 lineto stroke 2532 1272 moveto
+2556 1280 moveto
+2556 1280 lineto stroke 2556 1280 moveto
+2580 1292 moveto
+2580 1292 lineto stroke 2580 1292 moveto
+2604 1304 moveto
+2604 1304 lineto stroke 2604 1304 moveto
+2632 1316 moveto
+2632 1316 lineto stroke 2632 1316 moveto
+2656 1328 moveto
+2656 1328 lineto stroke 2656 1328 moveto
+2684 1340 moveto
+2684 1340 lineto stroke 2684 1340 moveto
+2708 1348 moveto
+2708 1348 lineto stroke 2708 1348 moveto
+2736 1360 moveto
+2736 1360 lineto stroke 2736 1360 moveto
+2764 1372 moveto
+2764 1372 lineto stroke 2764 1372 moveto
+2792 1380 moveto
+2792 1380 lineto stroke 2792 1380 moveto
+2820 1392 moveto
+2820 1392 lineto stroke 2820 1392 moveto
+2824 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+2824 2052 moveto
+2820 2052 lineto stroke 2820 2052 moveto
+2812 2052 lineto stroke 2812 2052 moveto
+2808 2052 lineto stroke 2808 2052 moveto
+2800 2052 lineto stroke 2800 2052 moveto
+2796 2052 lineto stroke 2796 2052 moveto
+2788 2052 lineto stroke 2788 2052 moveto
+2780 2056 lineto stroke 2780 2056 moveto
+2772 2056 lineto stroke 2772 2056 moveto
+2764 2056 lineto stroke 2764 2056 moveto
+2752 2056 lineto stroke 2752 2056 moveto
+2740 2056 lineto stroke 2740 2056 moveto
+2728 2056 lineto stroke 2728 2056 moveto
+2712 2056 lineto stroke 2712 2056 moveto
+2696 2056 lineto stroke 2696 2056 moveto
+2680 2056 lineto stroke 2680 2056 moveto
+2660 2056 lineto stroke 2660 2056 moveto
+2640 2056 lineto stroke 2640 2056 moveto
+2620 2056 lineto stroke 2620 2056 moveto
+2596 2056 lineto stroke 2596 2056 moveto
+2572 2052 lineto stroke 2572 2052 moveto
+2544 2052 lineto stroke 2544 2052 moveto
+2516 2048 lineto stroke 2516 2048 moveto
+2480 2048 lineto stroke 2480 2048 moveto
+2448 2044 lineto stroke 2448 2044 moveto
+2408 2036 lineto stroke 2408 2036 moveto
+2372 2032 lineto stroke 2372 2032 moveto
+2332 2028 lineto stroke 2332 2028 moveto
+2292 2020 lineto stroke 2292 2020 moveto
+2248 2008 lineto stroke 2248 2008 moveto
+2204 2000 lineto stroke 2204 2000 moveto
+2160 1988 lineto stroke 2160 1988 moveto
+2112 1976 lineto stroke 2112 1976 moveto
+2068 1960 lineto stroke 2068 1960 moveto
+2020 1940 lineto stroke 2020 1940 moveto
+1968 1924 lineto stroke 1968 1924 moveto
+1920 1900 lineto stroke 1920 1900 moveto
+1872 1880 lineto stroke 1872 1880 moveto
+1820 1852 lineto stroke 1820 1852 moveto
+1772 1828 lineto stroke 1772 1828 moveto
+1724 1796 lineto stroke 1724 1796 moveto
+1680 1768 lineto stroke 1680 1768 moveto
+1640 1736 lineto stroke 1640 1736 moveto
+1600 1708 lineto stroke 1600 1708 moveto
+1564 1676 lineto stroke 1564 1676 moveto
+1532 1644 lineto stroke 1532 1644 moveto
+1496 1608 lineto stroke 1496 1608 moveto
+1468 1576 lineto stroke 1468 1576 moveto
+1440 1540 lineto stroke 1440 1540 moveto
+1420 1508 lineto stroke 1420 1508 moveto
+1404 1476 lineto stroke 1404 1476 moveto
+1388 1448 lineto stroke 1388 1448 moveto
+1380 1420 lineto stroke 1380 1420 moveto
+1372 1396 lineto stroke 1372 1396 moveto
+1372 1368 lineto stroke 1372 1368 moveto
+1376 1340 lineto stroke 1376 1340 moveto
+1384 1320 lineto stroke 1384 1320 moveto
+1400 1308 lineto stroke 1400 1308 moveto
+1416 1296 lineto stroke 1416 1296 moveto
+1436 1292 lineto stroke 1436 1292 moveto
+1460 1292 lineto stroke 1460 1292 moveto
+1484 1292 lineto stroke 1484 1292 moveto
+1516 1296 lineto stroke 1516 1296 moveto
+1548 1304 lineto stroke 1548 1304 moveto
+1580 1316 lineto stroke 1580 1316 moveto
+1616 1328 lineto stroke 1616 1328 moveto
+1656 1348 lineto stroke 1656 1348 moveto
+1696 1368 lineto stroke 1696 1368 moveto
+1736 1388 lineto stroke 1736 1388 moveto
+1780 1412 lineto stroke 1780 1412 moveto
+1832 1444 lineto stroke 1832 1444 moveto
+1880 1472 lineto stroke 1880 1472 moveto
+1928 1504 lineto stroke 1928 1504 moveto
+1980 1536 lineto stroke 1980 1536 moveto
+2028 1568 lineto stroke 2028 1568 moveto
+2072 1600 lineto stroke 2072 1600 moveto
+2120 1632 lineto stroke 2120 1632 moveto
+2164 1664 lineto stroke 2164 1664 moveto
+2204 1692 lineto stroke 2204 1692 moveto
+2248 1720 lineto stroke 2248 1720 moveto
+2284 1748 lineto stroke 2284 1748 moveto
+2324 1772 lineto stroke 2324 1772 moveto
+2364 1800 lineto stroke 2364 1800 moveto
+2400 1828 lineto stroke 2400 1828 moveto
+2436 1848 lineto stroke 2436 1848 moveto
+2468 1872 lineto stroke 2468 1872 moveto
+2504 1896 lineto stroke 2504 1896 moveto
+2540 1916 lineto stroke 2540 1916 moveto
+2572 1936 lineto stroke 2572 1936 moveto
+2600 1952 lineto stroke 2600 1952 moveto
+2632 1972 lineto stroke 2632 1972 moveto
+2660 1988 lineto stroke 2660 1988 moveto
+2684 2000 lineto stroke 2684 2000 moveto
+2708 2008 lineto stroke 2708 2008 moveto
+2724 2016 lineto stroke 2724 2016 moveto
+2736 2024 lineto stroke 2736 2024 moveto
+2752 2028 lineto stroke 2752 2028 moveto
+2760 2032 lineto stroke 2760 2032 moveto
+2772 2036 lineto stroke 2772 2036 moveto
+2780 2040 lineto stroke 2780 2040 moveto
+2788 2044 lineto stroke 2788 2044 moveto
+2800 2048 lineto stroke 2800 2048 moveto
+2808 2048 lineto stroke 2808 2048 moveto
+2816 2052 lineto stroke 2816 2052 moveto
+2824 2052 lineto stroke 2824 2052 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+3196 2276 moveto
+3196 2276 lineto stroke 3196 2276 moveto
+3192 2288 moveto
+3192 2288 lineto stroke 3192 2288 moveto
+3188 2304 moveto
+3188 2304 lineto stroke 3188 2304 moveto
+3184 2316 moveto
+3184 2316 lineto stroke 3184 2316 moveto
+3180 2332 moveto
+3180 2332 lineto stroke 3180 2332 moveto
+3176 2348 moveto
+3176 2348 lineto stroke 3176 2348 moveto
+3172 2360 moveto
+3172 2360 lineto stroke 3172 2360 moveto
+3168 2376 moveto
+3168 2376 lineto stroke 3168 2376 moveto
+3164 2392 moveto
+3164 2392 lineto stroke 3164 2392 moveto
+3156 2404 moveto
+3156 2404 lineto stroke 3156 2404 moveto
+3152 2420 moveto
+3152 2420 lineto stroke 3152 2420 moveto
+3144 2432 moveto
+3144 2432 lineto stroke 3144 2432 moveto
+3140 2448 moveto
+3140 2448 lineto stroke 3140 2448 moveto
+3132 2460 moveto
+3132 2460 lineto stroke 3132 2460 moveto
+3124 2476 moveto
+3124 2476 lineto stroke 3124 2476 moveto
+3116 2488 moveto
+3116 2488 lineto stroke 3116 2488 moveto
+3108 2500 moveto
+3108 2500 lineto stroke 3108 2500 moveto
+3096 2512 moveto
+3096 2512 lineto stroke 3096 2512 moveto
+3080 2524 moveto
+3080 2524 lineto stroke 3080 2524 moveto
+3060 2528 moveto
+3060 2528 lineto stroke 3060 2528 moveto
+3040 2524 moveto
+3040 2524 lineto stroke 3040 2524 moveto
+3024 2516 moveto
+3024 2516 lineto stroke 3024 2516 moveto
+3012 2504 moveto
+3012 2504 lineto stroke 3012 2504 moveto
+3000 2492 moveto
+3000 2492 lineto stroke 3000 2492 moveto
+2992 2476 moveto
+2992 2476 lineto stroke 2992 2476 moveto
+2984 2464 moveto
+2984 2464 lineto stroke 2984 2464 moveto
+2976 2448 moveto
+2976 2448 lineto stroke 2976 2448 moveto
+2968 2436 moveto
+2968 2436 lineto stroke 2968 2436 moveto
+2960 2424 moveto
+2960 2424 lineto stroke 2960 2424 moveto
+2952 2408 moveto
+2952 2408 lineto stroke 2952 2408 moveto
+2948 2392 moveto
+2948 2392 lineto stroke 2948 2392 moveto
+2940 2380 moveto
+2940 2380 lineto stroke 2940 2380 moveto
+2936 2364 moveto
+2936 2364 lineto stroke 2936 2364 moveto
+2928 2352 moveto
+2928 2352 lineto stroke 2928 2352 moveto
+2924 2336 moveto
+2924 2336 lineto stroke 2924 2336 moveto
+2920 2324 moveto
+2920 2324 lineto stroke 2920 2324 moveto
+2912 2308 moveto
+2912 2308 lineto stroke 2912 2308 moveto
+2908 2292 moveto
+2908 2292 lineto stroke 2908 2292 moveto
+2904 2280 moveto
+2904 2280 lineto stroke 2904 2280 moveto
+2900 2264 moveto
+2900 2264 lineto stroke 2900 2264 moveto
+2892 2252 moveto
+2892 2252 lineto stroke 2892 2252 moveto
+2888 2236 moveto
+2888 2236 lineto stroke 2888 2236 moveto
+2884 2220 moveto
+2884 2220 lineto stroke 2884 2220 moveto
+2880 2208 moveto
+2880 2208 lineto stroke 2880 2208 moveto
+2876 2192 moveto
+2876 2192 lineto stroke 2876 2192 moveto
+2872 2180 moveto
+2872 2180 lineto stroke 2872 2180 moveto
+2868 2164 moveto
+2868 2164 lineto stroke 2868 2164 moveto
+2864 2148 moveto
+2864 2148 lineto stroke 2864 2148 moveto
+2860 2136 moveto
+2860 2136 lineto stroke 2860 2136 moveto
+2856 2120 moveto
+2856 2120 lineto stroke 2856 2120 moveto
+2852 2104 moveto
+2852 2104 lineto stroke 2852 2104 moveto
+2848 2092 moveto
+2848 2092 lineto stroke 2848 2092 moveto
+2844 2076 moveto
+2844 2076 lineto stroke 2844 2076 moveto
+2840 2060 moveto
+2840 2060 lineto stroke 2840 2060 moveto
+2840 2048 moveto
+2840 2048 lineto stroke 2840 2048 moveto
+2836 2032 moveto
+2836 2032 lineto stroke 2836 2032 moveto
+2832 2016 moveto
+2832 2016 lineto stroke 2832 2016 moveto
+2832 2004 moveto
+2832 2004 lineto stroke 2832 2004 moveto
+2844 2000 moveto
+2844 2000 lineto stroke 2844 2000 moveto
+2856 2012 moveto
+2856 2012 lineto stroke 2856 2012 moveto
+2868 2024 moveto
+2868 2024 lineto stroke 2868 2024 moveto
+2880 2036 moveto
+2880 2036 lineto stroke 2880 2036 moveto
+2888 2048 moveto
+2888 2048 lineto stroke 2888 2048 moveto
+2900 2060 moveto
+2900 2060 lineto stroke 2900 2060 moveto
+2912 2072 moveto
+2912 2072 lineto stroke 2912 2072 moveto
+2924 2088 moveto
+2924 2088 lineto stroke 2924 2088 moveto
+2932 2100 moveto
+2932 2100 lineto stroke 2932 2100 moveto
+2944 2112 moveto
+2944 2112 lineto stroke 2944 2112 moveto
+2956 2124 moveto
+2956 2124 lineto stroke 2956 2124 moveto
+2972 2136 moveto
+2972 2136 lineto stroke 2972 2136 moveto
+2984 2148 moveto
+2984 2148 lineto stroke 2984 2148 moveto
+2996 2160 moveto
+2996 2160 lineto stroke 2996 2160 moveto
+3008 2168 moveto
+3008 2168 lineto stroke 3008 2168 moveto
+3024 2180 moveto
+3024 2180 lineto stroke 3024 2180 moveto
+3040 2192 moveto
+3040 2192 lineto stroke 3040 2192 moveto
+3056 2200 moveto
+3056 2200 lineto stroke 3056 2200 moveto
+3072 2212 moveto
+3072 2212 lineto stroke 3072 2212 moveto
+3088 2220 moveto
+3088 2220 lineto stroke 3088 2220 moveto
+3104 2228 moveto
+3104 2228 lineto stroke 3104 2228 moveto
+3120 2236 moveto
+3120 2236 lineto stroke 3120 2236 moveto
+3140 2244 moveto
+3140 2244 lineto stroke 3140 2244 moveto
+3160 2252 moveto
+3160 2252 lineto stroke 3160 2252 moveto
+3180 2256 moveto
+3180 2256 lineto stroke 3180 2256 moveto
+3200 2260 moveto
+3200 2260 lineto stroke 3200 2260 moveto
+1820 2052 moveto
+1820 2052 lineto stroke 1820 2052 moveto
+1804 2052 moveto
+1804 2052 lineto stroke 1804 2052 moveto
+1788 2052 moveto
+1788 2052 lineto stroke 1788 2052 moveto
+1772 2056 moveto
+1772 2056 lineto stroke 1772 2056 moveto
+1756 2056 moveto
+1756 2056 lineto stroke 1756 2056 moveto
+1740 2056 moveto
+1740 2056 lineto stroke 1740 2056 moveto
+1724 2056 moveto
+1724 2056 lineto stroke 1724 2056 moveto
+1708 2056 moveto
+1708 2056 lineto stroke 1708 2056 moveto
+1692 2056 moveto
+1692 2056 lineto stroke 1692 2056 moveto
+1676 2056 moveto
+1676 2056 lineto stroke 1676 2056 moveto
+1656 2056 moveto
+1656 2056 lineto stroke 1656 2056 moveto
+1640 2056 moveto
+1640 2056 lineto stroke 1640 2056 moveto
+1624 2056 moveto
+1624 2056 lineto stroke 1624 2056 moveto
+1608 2052 moveto
+1608 2052 lineto stroke 1608 2052 moveto
+1588 2052 moveto
+1588 2052 lineto stroke 1588 2052 moveto
+1572 2052 moveto
+1572 2052 lineto stroke 1572 2052 moveto
+1556 2048 moveto
+1556 2048 lineto stroke 1556 2048 moveto
+1536 2048 moveto
+1536 2048 lineto stroke 1536 2048 moveto
+1520 2044 moveto
+1520 2044 lineto stroke 1520 2044 moveto
+1500 2044 moveto
+1500 2044 lineto stroke 1500 2044 moveto
+1484 2040 moveto
+1484 2040 lineto stroke 1484 2040 moveto
+1464 2036 moveto
+1464 2036 lineto stroke 1464 2036 moveto
+1444 2036 moveto
+1444 2036 lineto stroke 1444 2036 moveto
+1428 2032 moveto
+1428 2032 lineto stroke 1428 2032 moveto
+1408 2028 moveto
+1408 2028 lineto stroke 1408 2028 moveto
+1388 2024 moveto
+1388 2024 lineto stroke 1388 2024 moveto
+1372 2020 moveto
+1372 2020 lineto stroke 1372 2020 moveto
+1352 2016 moveto
+1352 2016 lineto stroke 1352 2016 moveto
+1332 2008 moveto
+1332 2008 lineto stroke 1332 2008 moveto
+1312 2004 moveto
+1312 2004 lineto stroke 1312 2004 moveto
+1292 2000 moveto
+1292 2000 lineto stroke 1292 2000 moveto
+1272 1992 moveto
+1272 1992 lineto stroke 1272 1992 moveto
+1252 1988 moveto
+1252 1988 lineto stroke 1252 1988 moveto
+1232 1980 moveto
+1232 1980 lineto stroke 1232 1980 moveto
+1212 1972 moveto
+1212 1972 lineto stroke 1212 1972 moveto
+1192 1964 moveto
+1192 1964 lineto stroke 1192 1964 moveto
+1172 1956 moveto
+1172 1956 lineto stroke 1172 1956 moveto
+1148 1948 moveto
+1148 1948 lineto stroke 1148 1948 moveto
+1128 1936 moveto
+1128 1936 lineto stroke 1128 1936 moveto
+1108 1928 moveto
+1108 1928 lineto stroke 1108 1928 moveto
+1088 1916 moveto
+1088 1916 lineto stroke 1088 1916 moveto
+1064 1904 moveto
+1064 1904 lineto stroke 1064 1904 moveto
+1044 1892 moveto
+1044 1892 lineto stroke 1044 1892 moveto
+1024 1880 moveto
+1024 1880 lineto stroke 1024 1880 moveto
+1004 1868 moveto
+1004 1868 lineto stroke 1004 1868 moveto
+980 1856 moveto
+980 1856 lineto stroke 980 1856 moveto
+960 1840 moveto
+960 1840 lineto stroke 960 1840 moveto
+940 1824 moveto
+940 1824 lineto stroke 940 1824 moveto
+920 1808 moveto
+920 1808 lineto stroke 920 1808 moveto
+900 1792 moveto
+900 1792 lineto stroke 900 1792 moveto
+884 1776 moveto
+884 1776 lineto stroke 884 1776 moveto
+864 1760 moveto
+864 1760 lineto stroke 864 1760 moveto
+844 1744 moveto
+844 1744 lineto stroke 844 1744 moveto
+828 1724 moveto
+828 1724 lineto stroke 828 1724 moveto
+812 1704 moveto
+812 1704 lineto stroke 812 1704 moveto
+796 1688 moveto
+796 1688 lineto stroke 796 1688 moveto
+780 1668 moveto
+780 1668 lineto stroke 780 1668 moveto
+768 1648 moveto
+768 1648 lineto stroke 768 1648 moveto
+756 1632 moveto
+756 1632 lineto stroke 756 1632 moveto
+744 1612 moveto
+744 1612 lineto stroke 744 1612 moveto
+732 1592 moveto
+732 1592 lineto stroke 732 1592 moveto
+720 1576 moveto
+720 1576 lineto stroke 720 1576 moveto
+712 1556 moveto
+712 1556 lineto stroke 712 1556 moveto
+704 1540 moveto
+704 1540 lineto stroke 704 1540 moveto
+700 1520 moveto
+700 1520 lineto stroke 700 1520 moveto
+692 1504 moveto
+692 1504 lineto stroke 692 1504 moveto
+688 1488 moveto
+688 1488 lineto stroke 688 1488 moveto
+684 1472 moveto
+684 1472 lineto stroke 684 1472 moveto
+684 1456 moveto
+684 1456 lineto stroke 684 1456 moveto
+680 1440 moveto
+680 1440 lineto stroke 680 1440 moveto
+680 1424 moveto
+680 1424 lineto stroke 680 1424 moveto
+684 1408 moveto
+684 1408 lineto stroke 684 1408 moveto
+684 1396 moveto
+684 1396 lineto stroke 684 1396 moveto
+688 1384 moveto
+688 1384 lineto stroke 688 1384 moveto
+692 1372 moveto
+692 1372 lineto stroke 692 1372 moveto
+696 1360 moveto
+696 1360 lineto stroke 696 1360 moveto
+700 1348 moveto
+700 1348 lineto stroke 700 1348 moveto
+708 1336 moveto
+708 1336 lineto stroke 708 1336 moveto
+716 1328 moveto
+716 1328 lineto stroke 716 1328 moveto
+724 1320 moveto
+724 1320 lineto stroke 724 1320 moveto
+736 1312 moveto
+736 1312 lineto stroke 736 1312 moveto
+748 1308 moveto
+748 1308 lineto stroke 748 1308 moveto
+760 1300 moveto
+760 1300 lineto stroke 760 1300 moveto
+772 1296 moveto
+772 1296 lineto stroke 772 1296 moveto
+788 1292 moveto
+788 1292 lineto stroke 788 1292 moveto
+800 1292 moveto
+800 1292 lineto stroke 800 1292 moveto
+816 1292 moveto
+816 1292 lineto stroke 816 1292 moveto
+836 1292 moveto
+836 1292 lineto stroke 836 1292 moveto
+852 1292 moveto
+852 1292 lineto stroke 852 1292 moveto
+872 1296 moveto
+872 1296 lineto stroke 872 1296 moveto
+888 1300 moveto
+888 1300 lineto stroke 888 1300 moveto
+908 1304 moveto
+908 1304 lineto stroke 908 1304 moveto
+928 1312 moveto
+928 1312 lineto stroke 928 1312 moveto
+948 1316 moveto
+948 1316 lineto stroke 948 1316 moveto
+968 1324 moveto
+968 1324 lineto stroke 968 1324 moveto
+988 1332 moveto
+988 1332 lineto stroke 988 1332 moveto
+1012 1344 moveto
+1012 1344 lineto stroke 1012 1344 moveto
+1032 1352 moveto
+1032 1352 lineto stroke 1032 1352 moveto
+1052 1364 moveto
+1052 1364 lineto stroke 1052 1364 moveto
+1072 1376 moveto
+1072 1376 lineto stroke 1072 1376 moveto
+1096 1388 moveto
+1096 1388 lineto stroke 1096 1388 moveto
+1116 1400 moveto
+1116 1400 lineto stroke 1116 1400 moveto
+1136 1416 moveto
+1136 1416 lineto stroke 1136 1416 moveto
+1156 1428 moveto
+1156 1428 lineto stroke 1156 1428 moveto
+1176 1444 moveto
+1176 1444 lineto stroke 1176 1444 moveto
+1200 1456 moveto
+1200 1456 lineto stroke 1200 1456 moveto
+1220 1472 moveto
+1220 1472 lineto stroke 1220 1472 moveto
+1240 1488 moveto
+1240 1488 lineto stroke 1240 1488 moveto
+1260 1500 moveto
+1260 1500 lineto stroke 1260 1500 moveto
+1280 1516 moveto
+1280 1516 lineto stroke 1280 1516 moveto
+1300 1532 moveto
+1300 1532 lineto stroke 1300 1532 moveto
+1320 1548 moveto
+1320 1548 lineto stroke 1320 1548 moveto
+1340 1564 moveto
+1340 1564 lineto stroke 1340 1564 moveto
+1356 1584 moveto
+1356 1584 lineto stroke 1356 1584 moveto
+1376 1600 moveto
+1376 1600 lineto stroke 1376 1600 moveto
+1396 1616 moveto
+1396 1616 lineto stroke 1396 1616 moveto
+1416 1632 moveto
+1416 1632 lineto stroke 1416 1632 moveto
+1432 1648 moveto
+1432 1648 lineto stroke 1432 1648 moveto
+1452 1668 moveto
+1452 1668 lineto stroke 1452 1668 moveto
+1472 1684 moveto
+1472 1684 lineto stroke 1472 1684 moveto
+1488 1700 moveto
+1488 1700 lineto stroke 1488 1700 moveto
+1508 1720 moveto
+1508 1720 lineto stroke 1508 1720 moveto
+1524 1736 moveto
+1524 1736 lineto stroke 1524 1736 moveto
+1544 1756 moveto
+1544 1756 lineto stroke 1544 1756 moveto
+1560 1772 moveto
+1560 1772 lineto stroke 1560 1772 moveto
+1580 1788 moveto
+1580 1788 lineto stroke 1580 1788 moveto
+1596 1808 moveto
+1596 1808 lineto stroke 1596 1808 moveto
+1612 1824 moveto
+1612 1824 lineto stroke 1612 1824 moveto
+1632 1844 moveto
+1632 1844 lineto stroke 1632 1844 moveto
+1648 1860 moveto
+1648 1860 lineto stroke 1648 1860 moveto
+1664 1880 moveto
+1664 1880 lineto stroke 1664 1880 moveto
+1680 1896 moveto
+1680 1896 lineto stroke 1680 1896 moveto
+1700 1916 moveto
+1700 1916 lineto stroke 1700 1916 moveto
+1716 1936 moveto
+1716 1936 lineto stroke 1716 1936 moveto
+1732 1952 moveto
+1732 1952 lineto stroke 1732 1952 moveto
+1748 1972 moveto
+1748 1972 lineto stroke 1748 1972 moveto
+1764 1988 moveto
+1764 1988 lineto stroke 1764 1988 moveto
+1780 2008 moveto
+1780 2008 lineto stroke 1780 2008 moveto
+1796 2024 moveto
+1796 2024 lineto stroke 1796 2024 moveto
+1816 2044 moveto
+1816 2044 lineto stroke 1816 2044 moveto
+2824 1392 moveto
+2824 1392 lineto stroke 2824 1392 moveto
+2800 1380 moveto
+2800 1380 lineto stroke 2800 1380 moveto
+2776 1368 moveto
+2776 1368 lineto stroke 2776 1368 moveto
+2752 1356 moveto
+2752 1356 lineto stroke 2752 1356 moveto
+2728 1344 moveto
+2728 1344 lineto stroke 2728 1344 moveto
+2704 1332 moveto
+2704 1332 lineto stroke 2704 1332 moveto
+2680 1320 moveto
+2680 1320 lineto stroke 2680 1320 moveto
+2656 1312 moveto
+2656 1312 lineto stroke 2656 1312 moveto
+2632 1300 moveto
+2632 1300 lineto stroke 2632 1300 moveto
+2608 1288 moveto
+2608 1288 lineto stroke 2608 1288 moveto
+2584 1276 moveto
+2584 1276 lineto stroke 2584 1276 moveto
+2556 1264 moveto
+2556 1264 lineto stroke 2556 1264 moveto
+2532 1252 moveto
+2532 1252 lineto stroke 2532 1252 moveto
+2508 1240 moveto
+2508 1240 lineto stroke 2508 1240 moveto
+2484 1232 moveto
+2484 1232 lineto stroke 2484 1232 moveto
+2460 1220 moveto
+2460 1220 lineto stroke 2460 1220 moveto
+2436 1208 moveto
+2436 1208 lineto stroke 2436 1208 moveto
+2412 1196 moveto
+2412 1196 lineto stroke 2412 1196 moveto
+2388 1184 moveto
+2388 1184 lineto stroke 2388 1184 moveto
+2364 1172 moveto
+2364 1172 lineto stroke 2364 1172 moveto
+2340 1160 moveto
+2340 1160 lineto stroke 2340 1160 moveto
+2312 1152 moveto
+2312 1152 lineto stroke 2312 1152 moveto
+2288 1140 moveto
+2288 1140 lineto stroke 2288 1140 moveto
+2264 1128 moveto
+2264 1128 lineto stroke 2264 1128 moveto
+2240 1116 moveto
+2240 1116 lineto stroke 2240 1116 moveto
+2216 1104 moveto
+2216 1104 lineto stroke 2216 1104 moveto
+2192 1092 moveto
+2192 1092 lineto stroke 2192 1092 moveto
+2164 1080 moveto
+2164 1080 lineto stroke 2164 1080 moveto
+2140 1072 moveto
+2140 1072 lineto stroke 2140 1072 moveto
+2116 1060 moveto
+2116 1060 lineto stroke 2116 1060 moveto
+2092 1048 moveto
+2092 1048 lineto stroke 2092 1048 moveto
+2068 1036 moveto
+2068 1036 lineto stroke 2068 1036 moveto
+2040 1024 moveto
+2040 1024 lineto stroke 2040 1024 moveto
+2016 1012 moveto
+2016 1012 lineto stroke 2016 1012 moveto
+1992 1004 moveto
+1992 1004 lineto stroke 1992 1004 moveto
+1964 992 moveto
+1964 992 lineto stroke 1964 992 moveto
+1940 980 moveto
+1940 980 lineto stroke 1940 980 moveto
+1916 968 moveto
+1916 968 lineto stroke 1916 968 moveto
+1888 956 moveto
+1888 956 lineto stroke 1888 956 moveto
+1864 944 moveto
+1864 944 lineto stroke 1864 944 moveto
+1836 936 moveto
+1836 936 lineto stroke 1836 936 moveto
+1812 924 moveto
+1812 924 lineto stroke 1812 924 moveto
+1788 912 moveto
+1788 912 lineto stroke 1788 912 moveto
+1760 900 moveto
+1760 900 lineto stroke 1760 900 moveto
+1736 888 moveto
+1736 888 lineto stroke 1736 888 moveto
+1708 880 moveto
+1708 880 lineto stroke 1708 880 moveto
+1680 868 moveto
+1680 868 lineto stroke 1680 868 moveto
+1656 856 moveto
+1656 856 lineto stroke 1656 856 moveto
+1628 844 moveto
+1628 844 lineto stroke 1628 844 moveto
+1600 836 moveto
+1600 836 lineto stroke 1600 836 moveto
+1572 824 moveto
+1572 824 lineto stroke 1572 824 moveto
+1548 812 moveto
+1548 812 lineto stroke 1548 812 moveto
+1520 804 moveto
+1520 804 lineto stroke 1520 804 moveto
+1488 792 moveto
+1488 792 lineto stroke 1488 792 moveto
+1460 784 moveto
+1460 784 lineto stroke 1460 784 moveto
+1432 772 moveto
+1432 772 lineto stroke 1432 772 moveto
+1400 764 moveto
+1400 764 lineto stroke 1400 764 moveto
+1376 764 moveto
+1376 764 lineto stroke 1376 764 moveto
+1372 768 moveto
+1372 768 lineto stroke 1372 768 moveto
+1376 780 moveto
+1376 780 lineto stroke 1376 780 moveto
+1388 788 moveto
+1388 788 lineto stroke 1388 788 moveto
+1404 800 moveto
+1404 800 lineto stroke 1404 800 moveto
+1420 812 moveto
+1420 812 lineto stroke 1420 812 moveto
+1436 824 moveto
+1436 824 lineto stroke 1436 824 moveto
+1456 836 moveto
+1456 836 lineto stroke 1456 836 moveto
+1472 848 moveto
+1472 848 lineto stroke 1472 848 moveto
+1492 860 moveto
+1492 860 lineto stroke 1492 860 moveto
+1512 868 moveto
+1512 868 lineto stroke 1512 868 moveto
+1532 880 moveto
+1532 880 lineto stroke 1532 880 moveto
+1552 892 moveto
+1552 892 lineto stroke 1552 892 moveto
+1572 904 moveto
+1572 904 lineto stroke 1572 904 moveto
+1596 916 moveto
+1596 916 lineto stroke 1596 916 moveto
+1616 928 moveto
+1616 928 lineto stroke 1616 928 moveto
+1636 940 moveto
+1636 940 lineto stroke 1636 940 moveto
+1660 952 moveto
+1660 952 lineto stroke 1660 952 moveto
+1680 964 moveto
+1680 964 lineto stroke 1680 964 moveto
+1704 972 moveto
+1704 972 lineto stroke 1704 972 moveto
+1728 984 moveto
+1728 984 lineto stroke 1728 984 moveto
+1752 996 moveto
+1752 996 lineto stroke 1752 996 moveto
+1772 1008 moveto
+1772 1008 lineto stroke 1772 1008 moveto
+1796 1020 moveto
+1796 1020 lineto stroke 1796 1020 moveto
+1820 1032 moveto
+1820 1032 lineto stroke 1820 1032 moveto
+1844 1044 moveto
+1844 1044 lineto stroke 1844 1044 moveto
+1868 1056 moveto
+1868 1056 lineto stroke 1868 1056 moveto
+1892 1064 moveto
+1892 1064 lineto stroke 1892 1064 moveto
+1916 1076 moveto
+1916 1076 lineto stroke 1916 1076 moveto
+1944 1088 moveto
+1944 1088 lineto stroke 1944 1088 moveto
+1968 1100 moveto
+1968 1100 lineto stroke 1968 1100 moveto
+1992 1112 moveto
+1992 1112 lineto stroke 1992 1112 moveto
+2016 1124 moveto
+2016 1124 lineto stroke 2016 1124 moveto
+2044 1132 moveto
+2044 1132 lineto stroke 2044 1132 moveto
+2068 1144 moveto
+2068 1144 lineto stroke 2068 1144 moveto
+2096 1156 moveto
+2096 1156 lineto stroke 2096 1156 moveto
+2120 1168 moveto
+2120 1168 lineto stroke 2120 1168 moveto
+2148 1180 moveto
+2148 1180 lineto stroke 2148 1180 moveto
+2176 1188 moveto
+2176 1188 lineto stroke 2176 1188 moveto
+2200 1200 moveto
+2200 1200 lineto stroke 2200 1200 moveto
+2228 1212 moveto
+2228 1212 lineto stroke 2228 1212 moveto
+2256 1224 moveto
+2256 1224 lineto stroke 2256 1224 moveto
+2284 1232 moveto
+2284 1232 lineto stroke 2284 1232 moveto
+2312 1244 moveto
+2312 1244 lineto stroke 2312 1244 moveto
+2340 1256 moveto
+2340 1256 lineto stroke 2340 1256 moveto
+2368 1264 moveto
+2368 1264 lineto stroke 2368 1264 moveto
+2396 1276 moveto
+2396 1276 lineto stroke 2396 1276 moveto
+2424 1284 moveto
+2424 1284 lineto stroke 2424 1284 moveto
+2452 1296 moveto
+2452 1296 lineto stroke 2452 1296 moveto
+2484 1304 moveto
+2484 1304 lineto stroke 2484 1304 moveto
+2512 1316 moveto
+2512 1316 lineto stroke 2512 1316 moveto
+2540 1324 moveto
+2540 1324 lineto stroke 2540 1324 moveto
+2572 1332 moveto
+2572 1332 lineto stroke 2572 1332 moveto
+2600 1340 moveto
+2600 1340 lineto stroke 2600 1340 moveto
+2632 1348 moveto
+2632 1348 lineto stroke 2632 1348 moveto
+2660 1356 moveto
+2660 1356 lineto stroke 2660 1356 moveto
+2688 1364 moveto
+2688 1364 lineto stroke 2688 1364 moveto
+2720 1372 moveto
+2720 1372 lineto stroke 2720 1372 moveto
+2748 1380 moveto
+2748 1380 lineto stroke 2748 1380 moveto
+2776 1384 moveto
+2776 1384 lineto stroke 2776 1384 moveto
+2804 1388 moveto
+2804 1388 lineto stroke 2804 1388 moveto
+2876 2160 moveto
+showpage
+grestore

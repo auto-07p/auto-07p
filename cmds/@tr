@@ -1,0 +1,17 @@
+if ( test $# -eq 1 ) then
+	cp s.$1 fort.28
+	cp b.$1 b.$1~
+	mv s.$1 s.$1~
+	$AUTO_DIR/bin/triple
+	mv fort.38 s.$1
+	rm fort.28
+else
+	cp fort.8 fort.28
+	cp fort.7 fort.7~
+	mv fort.8 fort.8~
+	$AUTO_DIR/bin/triple
+	mv fort.38 fort.8
+	rm fort.28
+fi
+
+

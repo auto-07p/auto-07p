@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo r3b
+#==============
+
+print "\n***Compute the L1 Lyapunov family***"
+ld(e='r3b',c='r3b.L',s='start')
+run()
+sv('r3b')
+sv('L1')
+rl('r3b')
+
+print "\n***Compute the Halo family***"
+ld(c='r3b.H',s='r3b')
+run()
+ap('r3b')
+sv('H1')
+
+print "\n***Clean the directory***"
+cl()
+

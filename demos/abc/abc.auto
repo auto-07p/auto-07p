@@ -1,0 +1,25 @@
+
+#==============
+# AUTO Demo abc
+#==============
+
+print "\n***Compute a stationary solution family***"
+ld(e='abc',c='abc.1')
+run()
+sv('abc')
+
+print "\n***Compute periodic solution families***"
+ld(c='abc.2',s='abc')
+data = sl('abc')
+for solution in data:
+    if solution["Type name"] == "HB":
+        ch("IRS", solution["Label"])
+        run()
+        ap('abc')
+
+print "\n***Relabel the output files***"
+rl('abc')
+
+print "\n***Clean the directory***"
+cl()
+

@@ -1,0 +1,27 @@
+#Inventor V2.1 ascii
+Separator {
+    Complexity {
+	    type            OBJECT_SPACE
+        value           0.8
+        textureQuality  1.0
+    }
+    Material {
+	   ambientColor  [0 0  0] 
+	   diffuseColor   [0.9 0.9 .9] #0.9 0.9 0.8
+	   specularColor  [0  0  0] #0 0 0
+	   emissiveColor  [0  0  0] #0 0 0
+	   shininess      0.0
+       transparency   0.3
+    }
+	Transform {
+        translation 0.0  0.0  0.0
+    	scaleFactor 1.0  1.0  1.0
+    	rotation    1    0    0   1.5707963 
+    }
+    Cylinder {
+	    parts ALL
+        height 0.001
+		radius 1.0
+    }
+}
+

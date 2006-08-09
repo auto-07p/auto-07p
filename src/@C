@@ -1,0 +1,4 @@
+cp ../include/auto.h .
+f77 -c -O  autlib$1.f -o ../lib/autlib$1.o
+rm auto.h
+

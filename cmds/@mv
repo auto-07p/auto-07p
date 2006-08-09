@@ -1,0 +1,8 @@
+mv -f b.$1  b.$2
+mv -f s.$1  s.$2
+mv -f d.$1  d.$2
+cp -f c.$1  c.$2
+echo "Renaming b.$1 as b.$2 ... done"
+echo "Renaming s.$1 as s.$2 ... done"
+echo "Renaming d.$1 as d.$2 ... done"
+echo "Renaming c.$1 as c.$2 ... done"

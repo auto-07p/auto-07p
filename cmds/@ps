@@ -1,0 +1,1 @@
+cat $1 | $AUTO_DIR/tek2ps/tek2ps > $1.ps
