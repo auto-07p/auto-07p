@@ -26,7 +26,11 @@ extern	"C"	{	/* Begin scope of extern "C" */
 #include <ctype.h>
 #include <assert.h>
 #include <time.h>
+#if __STDC__
+#include <stdarg.h>
+#else
 #include <varargs.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <X11/Intrinsic.h>

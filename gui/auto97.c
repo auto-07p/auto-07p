@@ -19,7 +19,7 @@
      && !defined(c_plusplus)		\
      && !defined(FUNCPROTO)		\
      && !defined(XTFUNCPROTO)		\
-     && !defined(XMFUNCPROTO)
+     && !defined(XMFUNCPROTO)	
 #define	_NO_PROTO
 #endif	/* __STDC__ */
 #endif	/* _NO_PROTO */
@@ -37,7 +37,11 @@ extern	"C"	{	/* Begin scope of extern "C" */
 #include <ctype.h>
 #include <assert.h>
 #include <time.h>
+#if __STDC__
+#include <stdarg.h>
+#else
 #include <varargs.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <X11/Intrinsic.h>
@@ -70,7 +74,7 @@ extern	"C"	{	/* Begin scope of extern "C" */
 
 #ifdef	__cplusplus
 }	/* Close scope of extern "C" */
-#endif
+#endif 
 
 #endif /* _GUIMOTIF_H */
 
@@ -87,7 +91,7 @@ extern	"C"	{	/* Begin scope of extern "C" */
      && !defined(c_plusplus)		\
      && !defined(FUNCPROTO)		\
      && !defined(XTFUNCPROTO)		\
-     && !defined(XMFUNCPROTO)
+     && !defined(XMFUNCPROTO)	
 #define	_NO_PROTO
 #endif	/* __STDC__ */
 #endif	/* _NO_PROTO */
@@ -119,27 +123,23 @@ extern	"C"	{	/* Begin scope of extern "C" */
 #define  DIALOG_SAVE		304
 #define  DIALOG_HELP		305
 #define  DIALOG_PRINT		306
-#define  WX_BUTTONS             30
-#define  WX_DEBUG	        1
-#define  WX_TEXTLENGTH          20
+#define  WX_BUTTONS             30   
+#define  WX_DEBUG	        1   
+#define  WX_TEXTLENGTH          20  
 #define  DE_TEXTLENGTH          10
-#define  WX_FNLEN               100
+#define  WX_FNLEN               100  
 #define  XEDIT                  "xedit"
 #define  XEDIT_OPTION           1
 #define  EMACS                  "emacs"
 #define  EMACS_OPTION           2
 #define  AUTO_DIR               "AUTO_DIR"
-#define  MAX_NICP               10             /* has to be an even number 
-*/
-#define  MAX_NUZR               10             /* has to be an even number 
-*/
-#define  MAX_NTHL               10             /* has to be an even number 
-*/
-#define  MAX_NTHU               10             /* has to be an even number 
-*/
+#define  MAX_NICP               10             /* has to be an even number */
+#define  MAX_NUZR               10             /* has to be an even number */
+#define  MAX_NTHL               10             /* has to be an even number */
+#define  MAX_NTHU               10             /* has to be an even number */
 #define  NONE			0
-#define  DEFAULT_RFILE          "r.aut"
-#define  CURRENT_RFILE		"r.current"
+#define  DEFAULT_RFILE          "c.aut"
+#define  CURRENT_RFILE		"c.current"
 #define  DEFAULT_FILE           "aut.f"
 #define  DEFAULT_NAME           "aut.f"
 #define  TEXT_WIDTH             60
@@ -156,9 +156,9 @@ double value;
 */
 
 typedef struct _ClientData {
-
-Widget widget;
-int    data;
+  
+ Widget widget;
+ int    data;
 
 } ClientData;
 
@@ -200,13 +200,13 @@ typedef struct _GlobalWidget {
   Widget thuButton[2*MAX_NTHU];
   Widget uzrButton[2*MAX_NUZR];
   Widget icpButton[2*MAX_NICP];
-
+  
   Widget popThl,popThu,popIcp,popUzr;
 
   Widget copyFrom,copyTo;
   Widget moveFrom,moveTo;
   Widget appendFrom,appendTo;
-
+  
 
 } GlobalWidget;
 
@@ -223,10 +223,9 @@ Boolean question;
 int	numFileName;
 int     activeFile;
 int     numParameter;
-int     numDemo;
-int     nthl,nthu,nuzr,nicp;
-char    
-nthlStr[WX_TEXTLENGTH],nthuStr[WX_TEXTLENGTH],nuzrStr[WX_TEXTLENGTH];
+int     numDemo;  
+int     nthl,nthu,nuzr,nicp; 
+char    nthlStr[WX_TEXTLENGTH],nthuStr[WX_TEXTLENGTH],nuzrStr[WX_TEXTLENGTH];
 double  thlValue[2*MAX_NTHL];
 char    thlStrValue[2*MAX_NTHL][WX_TEXTLENGTH];
 double  thuValue[2*MAX_NTHU];
@@ -243,7 +242,7 @@ char    fileDir[WX_FNLEN];
 char    filePattern[WX_FNLEN];
 char    fileName[WX_FNLEN];
 char    demoFileName[WX_FNLEN];
-Boolean file_saved;
+Boolean file_saved;	
 char	xedit[WX_FNLEN];
 char	emacs[WX_FNLEN];
 char    command[WX_FNLEN];
@@ -255,7 +254,7 @@ extern GlobalPar GP;
 
 #ifdef	__cplusplus
 }	/* Close scope of extern "C" */
-#endif
+#endif 
 
 #endif /* _GUIDEFS_H */
 
@@ -272,7 +271,7 @@ extern GlobalPar GP;
      && !defined(c_plusplus)		\
      && !defined(FUNCPROTO)		\
      && !defined(XTFUNCPROTO)		\
-     && !defined(XMFUNCPROTO)
+     && !defined(XMFUNCPROTO)	
 #define	_NO_PROTO
 #endif	/* __STDC__ */
 #endif	/* _NO_PROTO */
@@ -315,9 +314,9 @@ extern void   CreateFilesMenu();
 extern XImage *CreateDefaultImage();
 extern void   CreateDefineMenu();
 extern void   CreateDemoMenu();
-extern void   CreateEditMenu();
-extern void   CreateFileMenu();
-extern void   CreateFileMenuDef();
+extern void   CreateEditMenu(); 
+extern void   CreateFileMenu(); 
+extern void   CreateFileMenuDef(); 
 extern Widget CreateFileSelectionDialog();
 extern Widget CreateFormCon();
 extern Widget CreateFormDefault();
@@ -330,7 +329,7 @@ extern Widget CreateFormStep();
 extern Widget CreateFormTol();
 extern void   CreateHelpMenu();
 extern Widget CreateLayout();
-extern void   CreateLoadRfileMenu();
+extern void   CreateLoadRfileMenu(); 
 extern void   CreateMenuBar();
 extern void   CreateMiscMenu();
 extern Widget CreateNewFileDialog();
@@ -462,9 +461,9 @@ extern void   CreateFilesMenu(Widget);
 extern XImage *CreateDefaultImage(char*, int, int);
 extern void   CreateDefineMenu(Widget);
 extern void   CreateDemoMenu(Widget);
-extern void   CreateEditMenu(Widget);
-extern void   CreateFileMenu(Widget);
-extern void   CreateFileMenuDef(Widget);
+extern void   CreateEditMenu(Widget); 
+extern void   CreateFileMenu(Widget); 
+extern void   CreateFileMenuDef(Widget); 
 extern Widget CreateFileSelectionDialog(Widget,int);
 extern Widget CreateFormCon(Widget);
 extern Widget CreateFormDefault(Widget);
@@ -477,7 +476,7 @@ extern Widget CreateFormStep(Widget);
 extern Widget CreateFormTol(Widget);
 extern void   CreateHelpMenu(Widget);
 extern Widget CreateLayout(Widget);
-extern void   CreateLoadRfileMenu(Widget);
+extern void   CreateLoadRfileMenu(Widget); 
 extern void   CreateMenuBar(Widget);
 extern void   CreateMiscMenu(Widget);
 extern Widget CreateNewFileDialog(Widget,int);
@@ -488,8 +487,7 @@ extern void   CreateSaveMenu(Widget);
 extern Widget CreateScrolledDemoList(Widget);
 extern Widget CreateScrolledHelpList(Widget);
 extern void   CreateSettingMenu(Widget);
-extern Widget 
-CreateSpWarningDialog(Widget,String,String,String,ArgList,int);
+extern Widget CreateSpWarningDialog(Widget,String,String,String,ArgList,int);
 extern void   CreateText(Widget);
 extern void   CreateWriteMenu(Widget);
 extern void   DefDriverCB(Widget,XtPointer,XtPointer);
@@ -498,20 +496,20 @@ extern void   DeletePrimarySelection(Time);
 extern void   DemoRunCB(Widget,XtPointer,XtPointer);
 extern void   DemoBrowseCB(Widget,XtPointer,XtPointer);
 extern void   DemoHelpCB(Widget,XtPointer,XtPointer);
-extern void   DialogAcceptCB(Widget,caddr_t,caddr_t);
-extern void   DialogApplyCB(Widget,caddr_t,caddr_t);
-extern void   DialogCancelCB(Widget,caddr_t,caddr_t);
+extern void   DialogAcceptCB(Widget,XtPointer,XtPointer);
+extern void   DialogApplyCB(Widget,XtPointer,XtPointer);
+extern void   DialogCancelCB(Widget,XtPointer,XtPointer);
 extern void   EntCancelCB(Widget,XtPointer,XtPointer);
 extern void   EntOkCB(Widget,XtPointer,XtPointer);
 extern void   ExitCB(Widget,XtPointer,XtPointer);
-extern void   FileChangedCB(Widget,caddr_t,caddr_t);
+extern void   FileChangedCB(Widget,XtPointer,XtPointer);
 extern int    GetAutoPid(char *);
 extern char   *GetDirName();
 extern void   GetJobName(char *,char *);
 extern char   **getstr(int,int);
 extern void   HelpCB(Widget ,XtPointer, XtPointer);
 extern void   ManualCB(Widget,XtPointer,XtPointer);
-extern void   MenuCB(Widget,caddr_t,caddr_t);
+extern void   MenuCB(Widget,XtPointer,XtPointer);
 extern Widget MoveData(Widget);
 extern void   MoveDataCB(Widget,XtPointer,XtPointer);
 extern void   NewOutputCB(Widget,XtPointer,XtPointer);
@@ -548,18 +546,16 @@ extern void   PopupRun(Widget);
 extern void   PopupStep(Widget);
 extern void   PopupTemplate(Widget,Widget*,Widget*,Widget*,
                             Widget*,Widget*,int);
-extern void   
-PopupTemplate1(Widget,Widget*,Widget*,Widget*,Widget*,Widget*);
+extern void   PopupTemplate1(Widget,Widget*,Widget*,Widget*,Widget*,Widget*);
 extern void   PopupTemplate2(Widget,Widget*);
-extern void   
-PopupTemplate3(Widget,Widget*,Widget*,Widget*,Widget*,Widget*);
+extern void   PopupTemplate3(Widget,Widget*,Widget*,Widget*,Widget*,Widget*);
 extern void   PopupTemplate4(Widget,Widget*,Widget*,Widget*);
 extern Widget PopupThl(Widget);
 extern Widget PopupThu(Widget);
 extern void   PopupTol(Widget);
 extern Widget PopupUzr(Widget);
-extern void   PostItCB(Widget,Widget,XButtonEvent *);
-extern void   PostItCB1(Widget,Widget,XButtonEvent *);
+extern void   PostItCB(Widget,XtPointer,XEvent *,Boolean *);
+extern void   PostItCB1(Widget,XtPointer,XEvent *,Boolean *);
 extern void   PrintCB(Widget,XtPointer,XtPointer);
 extern char*  ProgramName(char *);
 extern void   ReadDefCB(Widget,XtPointer,XtPointer);
@@ -573,21 +569,25 @@ extern void   RunDemo(char *);
 extern Boolean SaveFile();
 extern void   SaveParScreen(int);
 extern void   SelOkCB(Widget,XtPointer,XtPointer);
-extern void   SetParCB(Widget w, int *,XtPointer);
+extern void   SetParCB(Widget w,XtPointer,XtPointer);
 extern void   SetParScreen();
 extern void   StopCB(Widget,XtPointer,XtPointer);
 extern void   TekCB(Widget,XtPointer,XtPointer);
 extern void   TmpCB(Widget,XtPointer,XtPointer);
-extern void   UpdateTime(Widget, XtIntervalId);
+extern void   UpdateTime(XtPointer, XtIntervalId *);
 extern void   VtCB(Widget,XtPointer,XtPointer);
+#if __STDC__
+extern void   Wprintf(Widget,...);
+#else
 extern void   Wprintf(...);
+#endif
 extern void   WriteRfile(char *);
 
 #endif	/* _NO_PROTO */
 
 #ifdef	__cplusplus
 }	/* Close scope of extern "C" */
-#endif
+#endif 
 
 #endif  /* _GUIFUNCS_H */
 
@@ -602,7 +602,7 @@ extern void   WriteRfile(char *);
 ***********************************************************************
 **
 **			Main.c
-**
+**                           
 ************************************************************************
 */
 
@@ -630,7 +630,6 @@ main(int argc,char **argv)
   XtVaSetValues(mainWindow,XmNshadowThickness,0,NULL);
   XtManageChild(mainWindow);
   ConfigInit(mainWindow);
-
   CreateMenuBar(mainWindow);
   GW.mainWindow=CreateLayout(mainWindow);
   CreateText(GW.mainWindow);
@@ -654,11 +653,12 @@ Widget  CreateLayout(Widget parent)
 #endif
 
 {
-  Widget rtrn,form,rwcl,line,frame,frame1,button,pane,wgt,line1;
+  Widget rtrn,form,rwcl,line,frame,frame1,button,pane,wgt,line1; 
   Widget form2,frame2,rwcl2,clock;
 
   form = XmCreateForm(parent,"Form",NULL,0);
   XtManageChild(form);
+
 
   pane = XmCreateRowColumn(form,"RowColumn",NULL,0);
   XtManageChild(pane);
@@ -677,26 +677,28 @@ Widget  CreateLayout(Widget parent)
 */
 		NULL);
 
+
+
   form2=XmCreateForm(pane,"fm",NULL,0);
   XtManageChild(form2);
   clock = XmCreateLabel(form2,"Face",NULL,0);
   XtManageChild(clock);
-
   XtVaSetValues(clock,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
 		XmNleftAttachment,XmATTACH_FORM,
 		XmNrightAttachment,XmATTACH_FORM,
 		XmNtopOffset,5,
-		XmNbottomOffset,5,
+		XmNbottomOffset,5, 
 		XmNleftOffset,15,
 		XmNrightOffset,10,
 		NULL);
-
   UpdateTime(clock,NULL);
+
 
   wgt = XmCreateForm(pane,"Form",NULL,0);
   XtManageChild(wgt);
+
   frame = XmCreateFrame(wgt,"Frame",NULL,0);
   XtManageChild(frame);
   XtVaSetValues(frame,
@@ -704,7 +706,7 @@ Widget  CreateLayout(Widget parent)
 		XmNbottomAttachment,XmATTACH_NONE,
 		XmNleftAttachment,XmATTACH_FORM,
 		XmNrightAttachment,XmATTACH_FORM,
-		XmNtopOffset,5,
+		XmNtopOffset,5, 
 /*		XmNbottomOffset,5,*/
 		XmNleftOffset,10,
 		XmNrightOffset,4,
@@ -728,7 +730,7 @@ Widget  CreateLayout(Widget parent)
 		XmNtranslations,XtParseTranslationTable(transTable),
 		XmNaccelerator,"Shift<Key>P:",NULL);
 */
-  line = CreateFormProb(parent);
+  line = CreateFormProb(parent);  
   XtAddCallback(button,XmNactivateCallback,PopupCB,line);
   PopupProb(button);
 
@@ -847,7 +849,7 @@ Widget  CreateLayout(Widget parent)
   XtAddCallback(button,XmNactivateCallback,RunCB,2);
 
   button = XmCreatePushButton(rwcl,"Exit",NULL,0);
-  XtManageChild(button);
+  XtManageChild(button); 
   wgt = CreateQuestionDialog(parent);
   XtAddCallback(button,XmNactivateCallback,PopupCB,wgt);
 
@@ -862,7 +864,7 @@ Widget  CreateLayout(Widget parent)
   line1 = ReadFile(parent);
   button = XmCreatePushButton(rwcl,"Previous",NULL,0);
   XtManageChild(button);
-  XtAddCallback(button,XmNactivateCallback,PopupCB,line1);
+  XtAddCallback(button,XmNactivateCallback,PopupCB,line1);    
 
 
   button = XmCreatePushButton(rwcl,"Default",NULL,0);
@@ -873,13 +875,13 @@ Widget  CreateLayout(Widget parent)
   form2 = XmCreateForm(pane,"Fm",NULL,0);
   XtManageChild(form2);
   frame2=XmCreateFrame(form2,"Fr",NULL,0);
-  XtManageChild(frame2);
+  XtManageChild(frame2);  
   XtVaSetValues(frame2,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
 		XmNleftAttachment,XmATTACH_FORM,
 		XmNrightAttachment,XmATTACH_FORM,
-		XmNtopOffset,7,
+		XmNtopOffset,7,     
 		XmNbottomOffset,5,
 		XmNleftOffset,10,
 		XmNrightOffset,4,
@@ -915,7 +917,6 @@ Widget  CreateLayout(Widget parent)
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_FORM,
 		XmNleftAttachment,XmATTACH_WIDGET,
-
 		XmNrightAttachment,XmATTACH_NONE,
                 XmNleftWidget,pane,
 		XmNleftOffset,1,
@@ -952,7 +953,6 @@ Widget  CreateLayout(Widget parent)
 		XmNrightOffset,5,
 		NULL);
 
-
   rtrn = XmCreateMainWindow(frame,"Form",NULL,0);
 
   XtManageChild(rtrn);
@@ -978,7 +978,7 @@ void CreateText(Widget parent)
   Widget v,h;
 
   /* create text widget */
-
+	
   ac = 0;
   XtSetArg (al[ac], XmNrows, 24);  ac++;
   /* XtSetArg (al[ac], XmNcolumns, 80);  ac++;   */
@@ -990,7 +990,7 @@ void CreateText(Widget parent)
   XtSetArg (al[ac], XmNeditMode, XmMULTI_LINE_EDIT);  ac++;
   XtSetArg (al[ac], XmNscrollingPolicy, XmAUTOMATIC);  ac++;
   XtSetArg (al[ac], XmNblinkRate,0);  ac++;
-
+  
   GW.text = XmCreateScrolledText (parent, "text", al, ac);
 
 /*
@@ -1012,7 +1012,7 @@ void CreateText(Widget parent)
   XtVaSetValues(h,XmNwidth,10,NULL);
 */
   /* add value changed callback */
-
+	
   XtAddCallback (GW.text, XmNmodifyVerifyCallback, FileChangedCB, NULL);
 
 }
@@ -1023,7 +1023,7 @@ void CreateText(Widget parent)
 ***********************************************************************
 **
 **			ConfigInit.c
-**
+**                           
 ************************************************************************
 */
 
@@ -1052,8 +1052,8 @@ void	ConfigInit(Widget parent)
   strcpy(GP.xedit,XEDIT);
   strcpy(GP.emacs,EMACS);
 
-  GP.numDemo = sizeof(demoItems) / sizeof(demoItems[0]);
-  GP.numParameter = sizeof(parLabel) / sizeof(parLabel[0]);
+  GP.numDemo = sizeof(demoItems) / sizeof(demoItems[0]);  
+  GP.numParameter = sizeof(parLabel) / sizeof(parLabel[0]);  
   GW.parButton = (Widget*) malloc(GP.numParameter*sizeof(Widget));
   GW.probButton = (Widget*) malloc(4*sizeof(Widget));
   GW.disButton = (Widget*) malloc(3*sizeof(Widget));
@@ -1079,9 +1079,9 @@ void	ConfigInit(Widget parent)
   }
 
 /*
-  sprintf(GP.parStrValue[PAR_NUZR],"%d",GP.nuzr);
-  sprintf(GP.parStrValue[PAR_NTHL],"%d",GP.nthl);
-  sprintf(GP.parStrValue[PAR_NTHU],"%d",GP.nthu);
+  sprintf(GP.parStrValue[PAR_NUZR],"%d",GP.nuzr);    
+  sprintf(GP.parStrValue[PAR_NTHL],"%d",GP.nthl);    
+  sprintf(GP.parStrValue[PAR_NTHU],"%d",GP.nthu);    
 */
 
   for(i = 0; i < MAX_NTHL; i++){
@@ -1137,8 +1137,7 @@ void	ConfigInit(Widget parent)
 
     GP.demoXmItems[i] = XmStringCreateLtoR(demo,XmSTRING_DEFAULT_CHARSET);
 /*
-    GP.demoXmItems[i] = 
-XmStringCreateLtoR(demoItems[i],XmSTRING_DEFAULT_CHARSET);
+    GP.demoXmItems[i] = XmStringCreateLtoR(demoItems[i],XmSTRING_DEFAULT_CHARSET);
 */
   }
 
@@ -1148,7 +1147,7 @@ XmStringCreateLtoR(demoItems[i],XmSTRING_DEFAULT_CHARSET);
 
   GW.textDALG = XmCreateFormDialog(parent,"Message",NULL,0);
 
-  PopupTemplate2(GW.textDALG,&txtField);
+  PopupTemplate2(GW.textDALG,&txtField);  
 
   GW.textField = XmCreateScrolledText(txtField,"Browser",NULL,0);
   XtManageChild(GW.textField);
@@ -1163,7 +1162,7 @@ XmStringCreateLtoR(demoItems[i],XmSTRING_DEFAULT_CHARSET);
 		XmNscrollVertical, True,
 		XmNscrollHorizontal, True,
 		XmNscrollingPolicy, XmAUTOMATIC,
-		NULL);
+		NULL);   
 
 }
 
@@ -1171,7 +1170,7 @@ XmStringCreateLtoR(demoItems[i],XmSTRING_DEFAULT_CHARSET);
 ***********************************************************************
 **
 **			CreateMenuBar.c
-**
+**                           
 ************************************************************************
 */
 
@@ -1184,13 +1183,16 @@ void	CreateMenuBar(Widget parent)
 
 {
   Widget  menuBar;
+
   menuBar = XmCreateMenuBar(parent,"MenuBar",NULL,0);
   XtManageChild(menuBar);
+  
   CreateFileMenuDef(menuBar);
 
 /*
   CreateFileMenu(menuBar);
 */
+
   CreateEditMenu(menuBar);
   CreateWriteMenu(menuBar);
 
@@ -1198,7 +1200,9 @@ void	CreateMenuBar(Widget parent)
   CreateSettingMenu(menuBar);
   CreateActionMenu(menuBar);
 */
+
   CreateDefineMenu(menuBar);
+
   CreateRunMenu(menuBar);
 
 /*
@@ -1208,6 +1212,7 @@ void	CreateMenuBar(Widget parent)
 /*
   CreateBrowseRfileMenu(menuBar);
 */
+
   CreateSaveMenu(menuBar);
   CreateAppendMenu(menuBar);
   CreatePlotMenu(menuBar);
@@ -1223,7 +1228,7 @@ void	CreateMenuBar(Widget parent)
 ***********************************************************************
 **
 **			CreateFileMenuDef.c
-**
+**                           
 ************************************************************************
 */
 
@@ -1249,18 +1254,16 @@ void	CreateFileMenuDef(Widget menuBar)
   XtVaSetValues(cascade,XmNsubMenuId,menuPane,XmNmnemonic,'q',NULL);
   XtManageChild(cascade);
 
-  GW.open_dialog = XmCreateFileSelectionDialog(menuPane,"Selection", NULL, 
-0);
-  XtAddCallback(GW.open_dialog,XmNokCallback,DialogAcceptCB,DIALOG_FSELECT);
-  
-XtAddCallback(GW.open_dialog,XmNcancelCallback,DialogCancelCB,DIALOG_FSELECT);
+  GW.open_dialog = XmCreateFileSelectionDialog(menuPane,"Selection", NULL, 0);
+  XtAddCallback(GW.open_dialog,XmNokCallback,DialogAcceptCB,(XtPointer)DIALOG_FSELECT);
+  XtAddCallback(GW.open_dialog,XmNcancelCallback,DialogCancelCB,(XtPointer)DIALOG_FSELECT);
 
   button = XmSelectionBoxGetChild(GW.open_dialog,XmDIALOG_HELP_BUTTON);
   XtUnmanageChild(button);
-
+		 
   button = XmCreatePushButtonGadget(menuPane, "Old ...",NULL,0);
   XtVaSetValues(button,XmNmnemonic,'O',NULL);
-  XtAddCallback(button, XmNactivateCallback, MenuCB, MENU_OPEN);
+  XtAddCallback(button, XmNactivateCallback, MenuCB, (XtPointer)MENU_OPEN);
   XtManageChild(button);
 
 
@@ -1270,13 +1273,12 @@ XtAddCallback(GW.open_dialog,XmNcancelCallback,DialogCancelCB,DIALOG_FSELECT);
   button = XmSelectionBoxGetChild(GW.new_dialog,XmDIALOG_HELP_BUTTON);
   XtUnmanageChild(button);
 
-  XtAddCallback(GW.new_dialog, XmNokCallback,DialogAcceptCB, DIALOG_NEW);
-  XtAddCallback(GW.new_dialog, XmNcancelCallback,DialogCancelCB, 
-DIALOG_NEW);
+  XtAddCallback(GW.new_dialog, XmNokCallback,DialogAcceptCB, (XtPointer)DIALOG_NEW);
+  XtAddCallback(GW.new_dialog, XmNcancelCallback,DialogCancelCB, (XtPointer)DIALOG_NEW);
 
   button = XmCreatePushButtonGadget (menuPane, "New ...",NULL,0);
   XtVaSetValues(button,XmNmnemonic,'N',NULL);
-  XtAddCallback(button, XmNactivateCallback, MenuCB, MENU_NEW);
+  XtAddCallback(button, XmNactivateCallback, MenuCB, (XtPointer)MENU_NEW);
   XtManageChild(button);
 
 /*
@@ -1296,7 +1298,7 @@ DIALOG_NEW);
   XtAddCallback(button,XmNactivateCallback,PopupCB,GW.demo_list);
 
 #if 0
-
+		 
   sept = XmCreateSeparatorGadget(menuPane,"sp",NULL,0);
   XtManageChild(sept);
 
@@ -1307,26 +1309,23 @@ DIALOG_NEW);
 	   XmStringCreateLtoR("Close", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNmnemonic, 'C'); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Clear", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_CLOSE);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_CLOSE);
   XtManageChild (button);
 
   GW.close_warning = CreateSpWarningDialog(menuPane, "save_warning",
 			    "warning_image", "Save Changes?", al, ac);
 
-  
-XtAddCallback(GW.close_warning,XmNapplyCallback,DialogApplyCB,DIALOG_CWARNING);
-  XtAddCallback(GW.close_warning,XmNokCallback,DialogAcceptCB, 
-DIALOG_CWARNING);
+  XtAddCallback(GW.close_warning,XmNapplyCallback,DialogApplyCB,(XtPointer)DIALOG_CWARNING);
+  XtAddCallback(GW.close_warning,XmNokCallback,DialogAcceptCB, (XtPointer)DIALOG_CWARNING);
 
-*/
+*/		 
   ac = 0;
-  XtSetArg(al[ac], XmNlabelString,XmStringCreateLtoR("Save", 
-XmSTRING_DEFAULT_CHARSET));
+  XtSetArg(al[ac], XmNlabelString,XmStringCreateLtoR("Save", XmSTRING_DEFAULT_CHARSET)); 
   ac++;
-
+	   
   XtSetArg(al[ac], XmNmnemonic, 'S'); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Save", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_SAVE);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_SAVE);
   XtManageChild (button);
 
 
@@ -1335,7 +1334,7 @@ XmSTRING_DEFAULT_CHARSET));
 	   XmStringCreateLtoR("Save As ...", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNmnemonic, 'A'); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Save As ...", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_SAVE_AS);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_SAVE_AS);
   XtManageChild (button);
 
   ac = 0;
@@ -1343,7 +1342,7 @@ XmSTRING_DEFAULT_CHARSET));
 	   ("Save As ...", XmSTRING_DEFAULT_CHARSET));  ac++;
   GW.save_dialog = XmCreatePromptDialog(menuPane, "save dialog", al, ac);
   XtAddCallback (GW.save_dialog, XmNokCallback,
-		 DialogAcceptCB, DIALOG_SAVE);
+		 DialogAcceptCB, (XtPointer)DIALOG_SAVE);
 
 /*
 
@@ -1352,7 +1351,7 @@ XmSTRING_DEFAULT_CHARSET));
 	   XmStringCreateLtoR("Print", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNmnemonic, 'P'); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Print", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_PRINT);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_PRINT);
   XtManageChild (button);
 
   ac = 0;
@@ -1362,7 +1361,7 @@ XmSTRING_DEFAULT_CHARSET));
   GW.print_warning = CreateSpWarningDialog(menuPane, "print_warning",
 		  "warning_image", "Save file before printing?", al, ac);
   XtAddCallback (GW.print_warning, XmNokCallback,
-		 DialogAcceptCB, DIALOG_PRINT);
+		 DialogAcceptCB, (XtPointer)DIALOG_PRINT);
 */
 
   sept = XmCreateSeparatorGadget(menuPane,"sp",NULL,0);
@@ -1373,16 +1372,14 @@ XmSTRING_DEFAULT_CHARSET));
 	   XmStringCreateLtoR("Clear", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNmnemonic, 'C'); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Clear", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_CLOSE);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_CLOSE);
   XtManageChild (button);
 
   GW.close_warning = CreateSpWarningDialog(menuPane, "save_warning",
 			    "warning_image", "Save Changes?", al, ac);
 
-  
-XtAddCallback(GW.close_warning,XmNapplyCallback,DialogApplyCB,DIALOG_CWARNING);
-  XtAddCallback(GW.close_warning,XmNokCallback,DialogAcceptCB, 
-DIALOG_CWARNING);
+  XtAddCallback(GW.close_warning,XmNapplyCallback,DialogApplyCB,(XtPointer)DIALOG_CWARNING);
+  XtAddCallback(GW.close_warning,XmNokCallback,DialogAcceptCB, (XtPointer)DIALOG_CWARNING);
 
   sept = XmCreateSeparatorGadget(menuPane,"sp",NULL,0);
   XtManageChild(sept);
@@ -1395,16 +1392,16 @@ DIALOG_CWARNING);
 	   XmStringCreateLtoR("Escape", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNaccelerator, "<Key>Escape:"); ac++;
   button = XmCreatePushButtonGadget (menuPane, "Exit", al, ac);
-  XtAddCallback (button, XmNactivateCallback, MenuCB, MENU_EXIT);
+  XtAddCallback (button, XmNactivateCallback, MenuCB, (XtPointer)MENU_EXIT);
   XtManageChild (button);
 
   GW.exit_warning = CreateSpWarningDialog(menuPane, "exit warning",
 	            "warning_image", "Save Changes?", al, ac);
 
   XtAddCallback (GW.exit_warning, XmNapplyCallback,
-		 DialogApplyCB, DIALOG_XWARNING);
+		 DialogApplyCB, (XtPointer)DIALOG_XWARNING);
   XtAddCallback (GW.exit_warning, XmNokCallback,
-		 DialogAcceptCB, DIALOG_XWARNING);
+		 DialogAcceptCB, (XtPointer)DIALOG_XWARNING);
 
 #endif
 
@@ -1425,7 +1422,7 @@ void	DefDriverCB(Widget w,XtPointer userData, XtPointer callbackArg)
 
   strcpy(GP.fileName,DEFAULT_NAME);
 
-/*
+/*      
   autoDir = copyenv(AUTO_DIR);
 */
 
@@ -1436,18 +1433,17 @@ void	DefDriverCB(Widget w,XtPointer userData, XtPointer callbackArg)
 
 
   if (!OpenFile(command)) {
-
+    
     XtSetSensitive(GW.text, True);
     XtSetSensitive(GW.cut_button, True);
     XtSetSensitive(GW.copy_button, True);
     XtSetSensitive(GW.clear_button, True);
 
   }
+  
+  ReadDefCB(w,userData,callbackArg); 
 
-  ReadDefCB(w,userData,callbackArg);
-
-  printf("Loading default Auto-Equation and Auto-Constants files to buffer 
-... done\n");
+  printf("Loading default Auto-Equation and Auto-Constants files to buffer ... done\n");
 
 }
 
@@ -1457,7 +1453,7 @@ void	DefDriverCB(Widget w,XtPointer userData, XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateWriteMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -1486,7 +1482,7 @@ void	CreateWriteMenu(Widget menuBar)
   button = XmCreatePushButtonGadget(menuPane, "Write", NULL,0);
   XtManageChild(button);
   XtVaSetValues(button,XmNmnemonic,'W',NULL);
-  XtAddCallback(button, XmNactivateCallback, MenuCB, MENU_SAVE);
+  XtAddCallback(button, XmNactivateCallback, MenuCB, (XtPointer)MENU_SAVE);
 
   GW.save_dialog = XmCreatePromptDialog(menuPane, "save dialog",NULL,0);
   button = XmSelectionBoxGetChild(GW.save_dialog,XmDIALOG_HELP_BUTTON);
@@ -1494,12 +1490,12 @@ void	CreateWriteMenu(Widget menuBar)
   XtVaSetValues(GW.save_dialog,XmNselectionLabelString,
 		XmStringCreateSimple("Write as"),NULL,0);
 
-  XtAddCallback(GW.save_dialog,XmNokCallback,DialogAcceptCB, DIALOG_SAVE);
+  XtAddCallback(GW.save_dialog,XmNokCallback,DialogAcceptCB, (XtPointer)DIALOG_SAVE);
 
   bn = XmCreatePushButtonGadget(menuPane, "Write As ...",NULL,0);
   XtManageChild(bn);
   XtVaSetValues(bn,XmNmnemonic,'A',NULL);
-  XtAddCallback(bn, XmNactivateCallback, MenuCB, MENU_SAVE_AS);
+  XtAddCallback(bn, XmNactivateCallback, MenuCB, (XtPointer)MENU_SAVE_AS);
 
 }
 
@@ -1508,7 +1504,7 @@ void	CreateWriteMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreateEditMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -1533,7 +1529,7 @@ void	CreateEditMenu(Widget menuBar)
 
 
   /*	Create "Options" PulldownMenu.	*/
-
+	
   menuPane = XmCreatePulldownMenu(menuBar, "EditPane",NULL,0);
 /*
   XtManageChild(menuPane);
@@ -1561,9 +1557,9 @@ void	CreateEditMenu(Widget menuBar)
 
   XtSetArg(al[ac], XmNaccelerator, "<Key>Delete:"); ac++;
 */
-
+  
   GW.cut_button = XmCreatePushButtonGadget(menuPane, "Cut", NULL,0);
-  XtAddCallback(GW.cut_button, XmNactivateCallback, MenuCB, MENU_CUT);
+  XtAddCallback(GW.cut_button, XmNactivateCallback, MenuCB, (XtPointer)MENU_CUT);
   XtVaSetValues(GW.cut_button,XmNmnemonic,'C',NULL);
   XtManageChild(GW.cut_button);
   XtSetSensitive(GW.cut_button, False);
@@ -1580,7 +1576,7 @@ void	CreateEditMenu(Widget menuBar)
 */
 
   GW.copy_button = XmCreatePushButtonGadget(menuPane, "Copy", NULL,0);
-  XtAddCallback(GW.copy_button, XmNactivateCallback, MenuCB, MENU_COPY);
+  XtAddCallback(GW.copy_button, XmNactivateCallback, MenuCB, (XtPointer)MENU_COPY);
   XtManageChild(GW.copy_button);
   XtVaSetValues(GW.copy_button,XmNmnemonic,'o',NULL);
   XtSetSensitive(GW.copy_button, False);
@@ -1597,8 +1593,8 @@ void	CreateEditMenu(Widget menuBar)
 */
 
 
-  GW.paste_button = XmCreatePushButtonGadget(menuPane, "Paste",NULL,0);
-  XtAddCallback(GW.paste_button, XmNactivateCallback, MenuCB, MENU_PASTE);
+  GW.paste_button = XmCreatePushButtonGadget(menuPane, "Paste",NULL,0); 
+  XtAddCallback(GW.paste_button, XmNactivateCallback, MenuCB, (XtPointer)MENU_PASTE);
   XtManageChild(GW.paste_button);
   XtVaSetValues(GW.paste_button,XmNmnemonic,'P',NULL);
   XtSetSensitive(GW.paste_button, False);
@@ -1610,15 +1606,15 @@ void	CreateEditMenu(Widget menuBar)
   XtSetArg(al[ac], XmNlabelString,
 	   XmStringCreateLtoR("Clear", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetArg(al[ac], XmNmnemonic, 'e'); ac++;
-
+	
   /* pseudo accelerator - Text already handles
      this action appropriately */
-
+	
   XtSetArg(al[ac], XmNacceleratorText,
 	   XmStringCreateLtoR("Del", XmSTRING_DEFAULT_CHARSET)); ac++;
 
   GW.clear_button = XmCreatePushButtonGadget (menuPane, "Clear", al, ac);
-  XtAddCallback (GW.clear_button, XmNactivateCallback, MenuCB, MENU_CLEAR);
+  XtAddCallback (GW.clear_button, XmNactivateCallback, MenuCB, (XtPointer)MENU_CLEAR);
 /*
   XtManageChild (GW.clear_button);
 */
@@ -1629,11 +1625,11 @@ void	CreateEditMenu(Widget menuBar)
 }
 
 #ifdef _NO_PROTO
-XImage *CreateDefaultImage(bits, width, height)
+ XImage *CreateDefaultImage(bits, width, height)
 char *bits;
 int   width, height;
 #else
-XImage *CreateDefaultImage(char *bits, int width, int height)
+ XImage *CreateDefaultImage(char *bits, int width, int height)
 #endif
 
 {
@@ -1656,7 +1652,7 @@ XImage *CreateDefaultImage(char *bits, int width, int height)
 }
 
 /*
-**		 Open the present file.  Returns true if file
+**		 Open the present file.  Returns true if file 
 ** 		 exists and open is sucessful.
 */
 
@@ -1673,7 +1669,7 @@ Boolean OpenFile(char *file_name)
   int file_length,n;		/* Length of file. 	  */
   char *file_string;		/* Contents of file. 	  */
   FILE *fp = NULL;		/* Pointer to open file   */
-
+   
 
 /*
 
@@ -1681,14 +1677,13 @@ Boolean OpenFile(char *file_name)
 */
 
   if((fp = fopen(file_name, "r")) == NULL) {
-    if (fp != NULL)    fclose(fp);
     return (False);
-  }
+  } 
 
   if(stat(file_name, &statbuf) == 0)
     file_length = statbuf.st_size;
   else
-    file_length = MAX_FILESIZE;
+    file_length = MAX_FILESIZE; 
 
   n = 2*file_length+MIN_FILESIZE;
   file_string = (char *) XtMalloc(n);
@@ -1697,7 +1692,7 @@ Boolean OpenFile(char *file_name)
   file_string[file_length] = '\0';
   XmTextSetString(GW.text, file_string);
 
-  GP.file_saved = True;
+  GP.file_saved = True; 
   XtSetSensitive(GW.text, True);
   XtSetSensitive(GW.cut_button, True);
   XtSetSensitive(GW.copy_button, True);
@@ -1715,13 +1710,13 @@ Boolean OpenFile(char *file_name)
   int file_length;		/* Length of file. 	  */
   char *file_string;		/* Contents of file. 	  */
   FILE *fp = NULL;		/* Pointer to open file   */
-
+   
   if((fp = fopen(file_name, "r+")) == NULL)
     if((fp = fopen(file_name, "r")) != NULL) {
       /* fprintf(stderr, "Warning: unable to open the file\n"); */
       CloseFile();
       return (False);
-    }
+    } 
     else {
       return(False);
     }
@@ -1738,15 +1733,14 @@ Boolean OpenFile(char *file_name)
 
   /* close up the file */
 
-  if(fclose(fp) != NULL) fprintf(stderr, "Warning: unable to close 
-file.\n");
+  if(fclose(fp) != NULL) fprintf(stderr, "Warning: unable to close file.\n");
 
   /* added the file string to the text widget */
 
   XmTextSetString(GW.text, file_string);
 
   GP.file_saved = True; /* intialize to True */
-
+	 
   /* make appropriate item sensitive */
 
   XtSetSensitive(GW.text, True);
@@ -1768,17 +1762,16 @@ file.\n");
 **		Save the present file.
 */
 
-Boolean SaveFile()
+ Boolean SaveFile()
 
 {
   char *file_string = NULL;	   /* Contents of file.		      */
-  FILE *fp;
+  FILE *fp;		       	   
   char name[20],rname[20];
   int i=0;
 
   if((fp = fopen(ProgramName(GP.fileName), "w")) == NULL) {
-    fprintf(stderr, "Warning: unable to write file 
-%s\n",ProgramName(GP.fileName));
+    fprintf(stderr, "Warning: unable to write file %s\n",ProgramName(GP.fileName));
     return(False);;
   }
 
@@ -1788,7 +1781,7 @@ Boolean SaveFile()
 /*
     original line
 
-  fwrite(file_string, sizeof(char), strlen(file_string) + 1, fp);
+  fwrite(file_string, sizeof(char), strlen(file_string) + 1, fp); 
 
 */
 
@@ -1800,16 +1793,16 @@ Boolean SaveFile()
     ++i;
   name[i]='\0';
 
-  strcpy(rname,"r.");
+  strcpy(rname,"c.");
   strcat(rname,name);
 
   /* WriteRfile(CURRENT_RFILE); */
 
-  WriteRfile(rname);
+  WriteRfile(rname); 
 
 
   if (file_string != NULL) {
-    XtFree(file_string);
+    XtFree(file_string); 
   }
 
   if (fp != NULL)    fclose(fp);
@@ -1834,7 +1827,7 @@ Boolean SaveFile()
 /*  strcpy(tempname, mktemp("/tmp/xmeditXXXXXX"));*/
 
   strcpy(tempname, mktemp("/tmp/XAutoXXXXXX"));
-
+    
   if((tfp = fopen(tempname, "w")) == NULL) {
     fprintf(stderr, "Warning: unable to open temp file, text not saved.\n");
     return(False);;
@@ -1850,10 +1843,8 @@ Boolean SaveFile()
 
   /* flush and close the temp file */
 
-  if (fflush(tfp) != NULL) fprintf(stderr,"Warning: unable to flush 
-file.\n");
-  if (fclose(tfp) != NULL) fprintf(stderr,"Warning: unable to close 
-file.\n");
+  if (fflush(tfp) != NULL) fprintf(stderr,"Warning: unable to flush file.\n");
+  if (fclose(tfp) != NULL) fprintf(stderr,"Warning: unable to close file.\n");
 
   if (file_string != NULL) {
     XtFree(file_string); /* free the text string */
@@ -1867,13 +1858,13 @@ file.\n");
   unlink (tempname);
   if (status == 0) {
 
-  }
+  } 
   else {
     fprintf(stderr, "Warning: unable to save file.\n");
     XtFree(tempname);
     return(False);
   }
-
+           
     XtFree(tempname);
     return(True);
 
@@ -1886,7 +1877,7 @@ file.\n");
 **              Close the present file.
 */
 
-void CloseFile()
+ void CloseFile()
 
 {
 
@@ -1932,15 +1923,13 @@ void CopyFileToClipboard(Time time)
 #endif
 
 {
-  char *selected_string = XmTextGetSelection (GW.text);  /* text selection   
-  */
+  char *selected_string = XmTextGetSelection (GW.text);  /* text selection    */
   long item_id = 0;			      	      /* clipboard item id */
-  int data_id = 0;				      /* clipboard data id */
+  long data_id = 0;				      /* clipboard data id */
   int status = 0;				      /* clipboard status  */
   XmString clip_label;
 
-  /* using the clipboard facilities, copy the selected text to the clipboard 
-*/
+  /* using the clipboard facilities, copy the selected text to the clipboard */
 
   if(selected_string != NULL) {
     clip_label = XmStringCreateLtoR ("XM_EDITOR", XmSTRING_DEFAULT_CHARSET);
@@ -1969,8 +1958,7 @@ void CopyFileToClipboard(Time time)
 
     status = 0;
     while(status != ClipboardSuccess)
-      status = 
-XmClipboardEndCopy(XtDisplay(GW.text),XtWindow(GW.text),item_id);
+      status = XmClipboardEndCopy(XtDisplay(GW.text),XtWindow(GW.text),item_id);
 
     /* allow pasting when an item is sucessfully copied to the clipboard */
 
@@ -1978,7 +1966,7 @@ XmClipboardEndCopy(XtDisplay(GW.text),XtWindow(GW.text),item_id);
 
   }
 
-}
+}	
 
 
 /*
@@ -2007,8 +1995,7 @@ void DeletePrimarySelection(Time time)
 
   cm.type = ClientMessage;
   cm.display = XtDisplay(GW.text);
-  cm.message_type = XmInternAtom(XtDisplay(GW.text), "KILL_SELECTION", 
-FALSE);
+  cm.message_type = XmInternAtom(XtDisplay(GW.text), "KILL_SELECTION", FALSE);
   cm.window = XtWindow(GW.text);
   cm.format = 32;
   cm.data.l[0] = XA_PRIMARY;
@@ -2034,7 +2021,7 @@ void PasteItemFromClipboard()
   char *buffer;			      	      /* temporary text buffer 	 */
   unsigned long length;			      /* length of buffer     	 */
   unsigned long outlength = 0;	      	      /* length of bytes copied	 */
-  int private_id = 0;			      /* id of item on clipboard */
+  long private_id = 0;			      /* id of item on clipboard */
   XmTextPosition cursorPos;		      /* text cursor position 	 */
   register int ac;			      /* arg count  	      	 */
   Arg al[10];				      /* arg list	      	 */
@@ -2049,9 +2036,9 @@ void PasteItemFromClipboard()
       break;
     }
    }
-
+			
   if (length == 0) {
-    fprintf(stderr, "Warning: paste failed, no items to paste.\n");
+    fprintf(stderr, "Warning: paste failed, no items to paste.\n");	
     return;
   }
 
@@ -2059,14 +2046,13 @@ void PasteItemFromClipboard()
 
   buffer = XtMalloc(length);
 
-  status = XmClipboardRetrieve (XtDisplay(GW.text), XtWindow(GW.text), 
-"STRING",
+  status = XmClipboardRetrieve (XtDisplay(GW.text), XtWindow(GW.text), "STRING",
 				buffer, length, &outlength, &private_id);
-
+			
   /* Dialogs need to be added to indicate errors in pasting */
-
+  
   if (status != ClipboardSuccess) {
-    fprintf(stderr, "Warning: paste failed, status = %d\n", status);
+    fprintf(stderr, "Warning: paste failed, status = %d\n", status);	
     return;
   }
 
@@ -2074,7 +2060,7 @@ void PasteItemFromClipboard()
 
   XtSetArg(al[0], XmNcursorPosition, &cursorPos);
   XtGetValues(GW.text, al, 1);
-
+			
   /* add new text */
 
   XmTextReplace(GW.text, cursorPos, cursorPos, buffer);
@@ -2085,16 +2071,16 @@ void PasteItemFromClipboard()
 */
 
 #ifdef _NO_PROTO
-void 	FileChangedCB (w, client_data, call_data)
+void 	FileChangedCB (w, client_data, call_data) 
 Widget		w;		/*  widget id		*/
-caddr_t		client_data;	/*  data from application   */
-caddr_t		call_data;	/*  data from widget class  */
+XtPointer		client_data;	/*  data from application   */
+XtPointer		call_data;	/*  data from widget class  */
 #else
 void 	FileChangedCB
 (
 Widget		w,		/*  widget id		*/
-caddr_t		client_data,	/*  data from application   */
-caddr_t		call_data	/*  data from widget class  */
+XtPointer		client_data,	/*  data from application   */
+XtPointer		call_data	/*  data from widget class  */
 )
 #endif
 
@@ -2111,20 +2097,20 @@ caddr_t		call_data	/*  data from widget class  */
 */
 
 #ifdef	_NO_PROTO
-void 	MenuCB (w, client_data, call_data)
+void 	MenuCB (w, client_data, call_data) 
 Widget		w;		/*  widget id		*/
-caddr_t		client_data;	/*  data from application   */
-caddr_t		call_data;	/*  data from widget class  */
+XtPointer		client_data;	/*  data from application   */
+XtPointer		call_data;	/*  data from widget class  */
 #else
 void 	MenuCB
 (
 Widget		w,		/*  widget id		*/
-caddr_t		client_data,	/*  data from application   */
-caddr_t		call_data	/*  data from widget class  */
+XtPointer		client_data,	/*  data from application   */
+XtPointer		call_data	/*  data from widget class  */
 )
 #endif
 
-{
+{	
   register int ac;		/* arg count		    */
   Arg al[10];			/* arg list		    */
   /* char *command; */	       	/* command used in printing */
@@ -2132,7 +2118,7 @@ caddr_t		call_data	/*  data from widget class  */
   XmAnyCallbackStruct * cb;
   char progname[100];
 
-  switch ((int)client_data) {
+  switch ((size_t)client_data) {
 
   case MENU_OPEN:
 
@@ -2165,22 +2151,22 @@ caddr_t		call_data	/*  data from widget class  */
 
     SaveFile();
     break;
-
+    
   case MENU_SAVE_AS:
-
+	
     /* Display the 'save as' dialog with the
        present filename displayed in it. */
 
 
 /*
-
+    
     strcpy(progname,GetDirName());
 
     strcat(progname,"/");
     strcat(progname,ProgramName(GP.fileName));
 
     ac = 0;
-    while(progname[ac] != '.' && ac < 99)
+    while(progname[ac] != '.' && ac < 99) 
       ++ac;
     if(progname[ac] = '.')
       progname[ac] = '\0';
@@ -2196,8 +2182,7 @@ caddr_t		call_data	/*  data from widget class  */
       progname[ac] = '\0';
 
     ac = 0;
-    /*    XtSetArg(al[ac], 
-XmNtextString,XmStringCreateSimple(GP.fileName));*/
+    /*    XtSetArg(al[ac], XmNtextString,XmStringCreateSimple(GP.fileName));*/
     XtSetArg(al[ac], XmNtextString,XmStringCreateSimple(progname));
     ac++;
     XtSetValues(GW.save_dialog, al, ac);
@@ -2207,18 +2192,17 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
   case MENU_PRINT:
 
 #if 0
-
+	
     if (!GP.file_saved) {
       XtManageChild(GW.print_warning);
     }
     else if( strcmp(GP.fileName,EMPTY) != 0) {
 
-      /* malloc space for the command name.
+      /* malloc space for the command name. 
 	 Note: command = size of the filename +
 	 "lp " + null terminator */
-
-      /* command = (char *)malloc((strlen(GP.file_name) + 
-4)*sizeof(char));*/
+      
+      /* command = (char *)malloc((strlen(GP.file_name) + 4)*sizeof(char));*/
       /* sprintf(command, "lp < %s &", GP.file_name); */
       strcpy(GP.command,"lp < ");
       strcat(GP.command,GP.fileName);
@@ -2235,14 +2219,14 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
     break;
 
   case MENU_EXIT:
-
+	
     /* exit if there is no files open */
     if (!GP.file_saved) 		      /* display the 'save' message dialog */
       XtManageChild (GW.exit_warning);
     else {
-
+	
       /* close up file pointers and descriptors */
-
+	
       CloseFile();
 
       /* exit this program */
@@ -2258,15 +2242,15 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
   case MENU_CUT:
 
     {
-
+	
       /* needed to get the event time */
-
+      
       cb =(XmAnyCallbackStruct *) call_data;
 
       /* call routine to copy selection to clipboard */
-
+      
       CopyFileToClipboard(cb->event->xbutton.time);
-
+      
       /* call routine to delete primary selection */
 
 
@@ -2278,7 +2262,7 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
 
   case MENU_COPY:
     {
-
+	
       /* needed to get the event time */
 
       cb =(XmAnyCallbackStruct *) call_data;
@@ -2294,27 +2278,28 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
 
     /* call the routine that pastes the
        text at the cursor position */
-
+	
     PasteItemFromClipboard();
     break;
 
   case MENU_CLEAR:
-
+	
     /* call routine to delete primary selection */
-/*    DeletePrimarySelection();*/
-    DeletePrimarySelection(cb->event->xbutton.time);
+    /*added by Randy to get it to compile*/
+    DeletePrimarySelection(0);
+    /*************************************/
     break;
 
   case MENU_HELP:
-
+	
     /* no help at this time */
     break;
 
   default:
-
+	
     /* unknown client_data was recieved and
        there is no setup to handle this */
-
+	
     fprintf(stderr, "Warning: in menu callback\n");
     break;
   }
@@ -2327,38 +2312,38 @@ XmNtextString,XmStringCreateSimple(GP.fileName));*/
 */
 
 #ifdef	_NO_PROTO
-void DialogApplyCB (w, client_data, call_data)
+ void DialogApplyCB (w, client_data, call_data) 
 Widget		w;		/*  widget id		    */
-caddr_t		client_data;	/*  data from application   */
-caddr_t		call_data;	/*  data from widget class  */
+XtPointer		client_data;	/*  data from application   */
+XtPointer		call_data;	/*  data from widget class  */
 #else
-void DialogApplyCB
+ void DialogApplyCB
 (
 Widget		w,		/*  widget id		    */
-caddr_t		client_data,	/*  data from application   */
-caddr_t		call_data	/*  data from widget class  */
+XtPointer		client_data,	/*  data from application   */
+XtPointer		call_data	/*  data from widget class  */
 )
 #endif
 
 {
   /* char *command; */			/* command used in printing */
 
-  switch ((int)client_data)	{
-
+  switch ((size_t)client_data)	{
+    
   case DIALOG_PRINT:
 
     if( strcmp(GP.fileName,EMPTY) != 0) {
-
-      /* malloc space for the command name.
+	
+      /* malloc space for the command name. 
 	 Note: command = size of the filename +
 	 "lp " + null terminator */
-	/*
+	/*	
       command = XtMalloc(strlen(GP.file_name) + 4);
       sprintf(command, "lp < %s\0", GP.fileName); */
       strcpy(GP.command,"lp < ");
       strcat(GP.command,GP.fileName);
       strcat(GP.command," &");
-      if (system(GP.command) != NULL)
+      if (system(GP.command) != 0)
 	fprintf(stderr, "print failed");
       /* XtFree(command); */
     }
@@ -2370,16 +2355,16 @@ caddr_t		call_data	/*  data from widget class  */
     break;
 
   case DIALOG_XWARNING:
-
+	
     CloseFile();
     exit (1);
-    break;
+    break;		
 
   default:
-
+    
     /* unknown client_data was recieved and
        there is no setup to handle this */
-
+	
     fprintf (stderr, "Warning: in apply callback\n");
     break;
 
@@ -2391,26 +2376,26 @@ caddr_t		call_data	/*  data from widget class  */
 */
 
 #ifdef 	_NO_PROTO
-void DialogCancelCB (w, client_data, call_data)
+ void DialogCancelCB (w, client_data, call_data) 
 Widget		w;		/*  widget id		    */
-caddr_t		client_data;	/*  data from application   */
-caddr_t		call_data;	/*  data from widget class  */
+XtPointer		client_data;	/*  data from application   */
+XtPointer		call_data;	/*  data from widget class  */
 #else
-void DialogCancelCB
+ void DialogCancelCB
 (
 Widget		w,		/*  widget id		    */
-caddr_t		client_data,	/*  data from application   */
-caddr_t		call_data	/*  data from widget class  */
+XtPointer		client_data,	/*  data from application   */
+XtPointer		call_data	/*  data from widget class  */
 )
 #endif
 
 {
-  switch ((int)client_data){
-
+  switch ((size_t)client_data){
+	
   case DIALOG_FSELECT:
-
+	
     /* popdown the file selection box */
-
+    
     XtUnmanageChild (GW.open_dialog);
     break;
 
@@ -2420,15 +2405,15 @@ caddr_t		call_data	/*  data from widget class  */
   case DIALOG_PRINT:
   case DIALOG_SAVE:
   case DIALOG_HELP:
-
+	
     /* no action is necessary at this time */
     break;
-
+    
   default:
-
+	
     /* a unknown client_data was recieved and
        there is no setup to handle this */
-
+	
     fprintf (stderr, "Warning: in cancel callback\n");
     break;
   }
@@ -2440,16 +2425,16 @@ caddr_t		call_data	/*  data from widget class  */
 */
 
 #ifdef	_NO_PROTO
-void DialogAcceptCB (w, client_data, call_data)
+ void DialogAcceptCB (w, client_data, call_data) 
 Widget		w;		/*  widget id		    */
-caddr_t		client_data;	/*  data from application   */
-caddr_t		call_data;	/*  data from widget class  */
+XtPointer		client_data;	/*  data from application   */
+XtPointer		call_data;	/*  data from widget class  */
 #else
-void DialogAcceptCB
+ void DialogAcceptCB 
 (
 Widget		w,		/*  widget id		    */
-caddr_t		client_data,	/*  data from application   */
-caddr_t		call_data	/*  data from widget class  */
+XtPointer		client_data,	/*  data from application   */
+XtPointer		call_data	/*  data from widget class  */
 )
 #endif
 
@@ -2459,15 +2444,15 @@ caddr_t		call_data	/*  data from widget class  */
   char name[10],*autoDir;
   char *fileName,c1[100],c2[100];
   FILE *fp;
-
-  switch ((int)client_data){
-
+  
+  switch ((size_t)client_data){
+    
   case DIALOG_FSELECT:
-
+	
     /* open the file and read it into the text widget */
 
     if( strcmp(GP.fileName,EMPTY) != 0) {
-      /* XtFree(GP.file_name);
+      /* XtFree(GP.file_name); 
       GP.file_name = NULL; */
       strcpy(GP.fileName,EMPTY);
     }
@@ -2476,14 +2461,14 @@ caddr_t		call_data	/*  data from widget class  */
 	(XmFileSelectionBoxCallbackStruct *) call_data;
 
       /* get the filename from the file selection box */
-
+	
       XmStringGetLtoR(fcb->value, XmSTRING_DEFAULT_CHARSET, &fileName);
       XmStringGetLtoR(fcb->dir, XmSTRING_DEFAULT_CHARSET, &autoDir);
 
       strcpy(GP.fileName,fileName);
 
       /* Open file, print error if it does not exist. */
-
+	
       if (!OpenFile(GP.fileName)) {
 	fprintf(stderr, "\nWarning: unable to open the file\n");
 	XtUnmanageChild(GW.open_dialog);
@@ -2491,13 +2476,13 @@ caddr_t		call_data	/*  data from widget class  */
       }
 
       printf("\nLoading %s to buffer ... done\n",ProgramName(GP.fileName));
-
+ 
       /* load rfile if exist */
 
       GetJobName(name,ProgramName(GP.fileName));
-
+      
       strcpy(c1,autoDir);
-      strcat(c1,"r.");
+      strcat(c1,"c.");
       strcat(c1, name);
 
       fp = fopen(c1,"r");
@@ -2510,15 +2495,15 @@ caddr_t		call_data	/*  data from widget class  */
 
       if (fp != NULL)    fclose(fp);
       /* popdown the file selection box */
-
+            
       XtUnmanageChild(GW.open_dialog);
     }
     break;
 
   case DIALOG_NEW:
-
+	
     /* open the file and read it into the text widget */
-
+	
     if (strcmp(GP.fileName,EMPTY) != 0) {
       /*
       XtFree(GP.file_name);
@@ -2528,23 +2513,23 @@ caddr_t		call_data	/*  data from widget class  */
     {
       XmSelectionBoxCallbackStruct *scb =
 	(XmSelectionBoxCallbackStruct *) call_data;
-
+      
       /* get the filename string from the file
 	 name prompt box */
-
+		
       XmStringGetLtoR(scb->value, XmSTRING_DEFAULT_CHARSET, &fileName);
-
+      
       strcpy(GP.fileName,fileName);
       strcat(GP.fileName,".f");
 
       if( strcmp(fileName,EMPTY) == 0 )
 	strcpy(GP.fileName,DEFAULT_NAME);
-
-      /* load the default.f */
+      
+      /* load the default.c */
 
 /*
       autoDir = copyenv(AUTO_DIR);
-*/
+*/      
       strcpy(c2,GP.autoDir);
 /*
       strcat(c2,"/gui/default.f");
@@ -2555,19 +2540,19 @@ caddr_t		call_data	/*  data from widget class  */
       if (!OpenFile(c2)) {
 
 	/* make appropriate item sensitive */
-
+   			   	
 	XtSetSensitive(GW.text, True);
 	XtSetSensitive(GW.cut_button, True);
 	XtSetSensitive(GW.copy_button, True);
 	XtSetSensitive(GW.clear_button, True);
       }
-
+      
       if(strcmp(fileName,EMPTY) == 0)
 	printf("Loading %s to buffer ... done\n",DEFAULT_FILE);
       else
 	printf("Loading %s to buffer ... done\n",GP.fileName);
 
-      ReadDefCB(w, client_data, call_data);
+      ReadDefCB(w, client_data, call_data); 
 
       printf("Loading default Auto-Constants to buffer ... done\n");
 
@@ -2576,21 +2561,21 @@ caddr_t		call_data	/*  data from widget class  */
       XtUnmanageChild(GW.new_dialog);
     }
     break;
-
+    
   case DIALOG_CWARNING:
-
+	
     /* save the file */
-
+	
     if (SaveFile()) {
       CloseFile(); /* close the file */
     } else
       fprintf(stderr,"Warning: unable to save file, file not closed");
     break;
-
+    
   case DIALOG_XWARNING:
-
+	
     /* save the file */
-
+	
     if (SaveFile()) {
       CloseFile(); /* close the file */
       exit(0);
@@ -2600,36 +2585,36 @@ caddr_t		call_data	/*  data from widget class  */
     break;
 
   case DIALOG_SAVE:
-
+	
     {
       XmSelectionBoxCallbackStruct *scb =
 	(XmSelectionBoxCallbackStruct *) call_data;
-
+      
       /* get the filename string from the file
 	 selection box */
-
+		
       XmStringGetLtoR(scb->value, XmSTRING_DEFAULT_CHARSET, &fileName);
 
       strcpy(GP.fileName,fileName);
-
+     
 
       strcat(GP.fileName,".f");
 
-
+ 
       SaveFile();
-
+      
       XtUnmanageChild(GW.save_dialog);
     }
     break;
-
+    
   case DIALOG_PRINT:
 
     /* save the file */
 
     if (SaveFile()) {
       if ( strcmp(GP.fileName,EMPTY) != 0) {
-
-	/* malloc space for the command name.
+	
+	/* malloc space for the command name. 
 	   Note: command = size of the filename +
 	   "lp " + null terminator */
         /*
@@ -2638,25 +2623,25 @@ caddr_t		call_data	/*  data from widget class  */
 	strcpy(GP.command,"lp < ");
 	strcat(GP.command,GP.fileName);
 	strcat(GP.command," &");
-	if (system(GP.command) != NULL)
+	if (system(GP.command) != 0)
 	  fprintf(stderr, "print failed");
 	/* XtFree(command);*/
       }
     } else
-      fprintf(stderr,
+      fprintf(stderr, 
 	      "Warning: unable to save file, file not printed");
     break;
-
+    
   case DIALOG_HELP:
-
+	
     /* no help at this time */
-
+	
     break;
-
+    
   default:
-
+	
     /* unknown callback type */
-
+	
     fprintf (stderr, "Warning: in accept callback\n");
     break;
   }
@@ -2669,9 +2654,9 @@ caddr_t		call_data	/*  data from widget class  */
 */
 
 #ifdef _NO_PROTO
-Widget CreateSpWarningDialog
+ Widget CreateSpWarningDialog 
 (parent, name, image_string, message,arglist, argcount)
-
+					  
 Widget		parent;
 String		name;
 String		image_string;
@@ -2679,8 +2664,8 @@ String		message;
 ArgList		arglist;
 int		argcount;
 #else
-Widget CreateSpWarningDialog
-(
+ Widget CreateSpWarningDialog 
+(					  
 Widget		parent,
 String		name,
 String		image_string,
@@ -2734,7 +2719,7 @@ int		argcount
 
   apply_button = XmSelectionBoxGetChild (warning_dialog,
 					 XmDIALOG_APPLY_BUTTON);
-
+	
   ac = 0;
   XtSetArg(al[ac], XmNlabelString,
 	   XmStringCreateLtoR("Discard", XmSTRING_DEFAULT_CHARSET)); ac++;
@@ -2748,9 +2733,9 @@ int		argcount
 	   XmStringCreateLtoR("Save", XmSTRING_DEFAULT_CHARSET)); ac++;
   XtSetValues(ok_button, al, ac);
 
-
+	
   /*      Unmanage unneeded children.	*/
-
+        
   i = 0;
   kid[i++] = XmSelectionBoxGetChild (warning_dialog, XmDIALOG_TEXT);
    kid[i++] = XmSelectionBoxGetChild (warning_dialog,
@@ -2765,7 +2750,7 @@ int		argcount
 ***********************************************************************
 **
 **			CreateFileMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -2789,14 +2774,14 @@ void	CreateFileMenu(Widget menuBar)
   XtManageChild(filePDPN);
 */
 
-  newPUSH = XmCreatePushButtonGadget(filePDPN,"New",NULL,0);
+  newPUSH = XmCreatePushButtonGadget(filePDPN,"New",NULL,0); 
   XtVaSetValues(newPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(newPUSH);
 
   newFile = CreateNewFileDialog(menuBar,XEDIT_OPTION);
-  XtAddCallback(newPUSH,XmNactivateCallback,PopupCB,newFile);
+  XtAddCallback(newPUSH,XmNactivateCallback,PopupCB,newFile);  
 
-  openPUSH = XmCreatePushButtonGadget(filePDPN,"Open",NULL,0);
+  openPUSH = XmCreatePushButtonGadget(filePDPN,"Open",NULL,0); 
   XtVaSetValues(openPUSH,XmNmnemonic,'O',NULL);
   XtManageChild(openPUSH);
 
@@ -2806,10 +2791,10 @@ void	CreateFileMenu(Widget menuBar)
   lineSEPT = XmCreateSeparatorGadget(filePDPN,"Separator",NULL,0);
   XtManageChild(lineSEPT);
 
-  exitPUSH = XmCreatePushButtonGadget(filePDPN,"Exit",NULL,0);
+  exitPUSH = XmCreatePushButtonGadget(filePDPN,"Exit",NULL,0);  
   XtVaSetValues(exitPUSH,XmNmnemonic,'E',NULL);
   XtManageChild(exitPUSH);
-
+ 
   exitFile = CreateQuestionDialog(menuBar);
   XtAddCallback(exitPUSH,XmNactivateCallback,PopupCB,exitFile);
 
@@ -2837,7 +2822,7 @@ Widget	CreateFileSelectionDialog(Widget parent, int editor)
 
   XtAddCallback(rtrn,XmNokCallback,SelOkCB,clientData);
   XtAddCallback(rtrn,XmNcancelCallback,PopdownCB,rtrn);
-  XtAddCallback(rtrn,XmNhelpCallback,PopdownCB,rtrn);
+  XtAddCallback(rtrn,XmNhelpCallback,PopdownCB,rtrn);  
 
 /*
   free(clientData);
@@ -2862,9 +2847,9 @@ void	SelOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XmFileSelectionBoxCallbackStruct *cbs;
   ClientData *clientData;
   int editor;
+  
 
-
-  clientData = (ClientData*) userData;
+  clientData = (ClientData*) userData; 
   wgt        = clientData->widget;
   editor     = clientData->data;
   XtUnmanageChild(wgt);
@@ -2878,11 +2863,11 @@ void	SelOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
     strcpy(GP.fileName,filename);
     */
     if(editor==XEDIT_OPTION) {
-
+      	
       strcpy(name,GP.xedit);
     }
     else if(editor==EMACS_OPTION) {
-
+      	
       strcpy(name,GP.emacs);
     }
     else
@@ -2900,7 +2885,7 @@ void	SelOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
     system(name);
 
   }
-  else {
+  else { 
     while(*dir++)
       ++filename;
     strcpy(name,"File \"");
@@ -2925,20 +2910,21 @@ void	SelOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
 
 #ifdef _NO_PROTO
-void	PostItCB(w,popup,event)
+void	PostItCB(w,popup,event,b)
 Widget	w,popup;
 XButtonEvent *event;
+Boolean *b;
 #else
-void	PostItCB(Widget w,Widget popup,XButtonEvent * event)
+void	PostItCB(Widget w,XtPointer popup,XEvent * event, Boolean *b)
 #endif
 
 
 {
 
-  if(event->button != Button3)
+  if(((XButtonEvent *)event)->button != Button3)
     return;
 
-  XmMenuPosition(popup,event);
+  XmMenuPosition(popup,(XButtonEvent *)event);
   XtManageChild(popup);
 
 }
@@ -2946,20 +2932,21 @@ void	PostItCB(Widget w,Widget popup,XButtonEvent * event)
 
 
 #ifdef _NO_PROTO
-void	PostItCB1(w,popup,event)
+void	PostItCB1(w,popup,event,b)
 Widget	w,popup;
 XButtonEvent *event;
+Boolean *b;
 #else
-void	PostItCB1(Widget w,Widget popup,XButtonEvent * event)
+void	PostItCB1(Widget w,XtPointer popup,XEvent * event, Boolean *b)
 #endif
 
 
 {
 
-  if(event->button != Button1)
+  if(((XButtonEvent *)event)->button != Button1)
     return;
 
-  XmMenuPosition(popup,event);
+  XmMenuPosition(popup,(XButtonEvent *)event);
   XtManageChild(popup);
 
 }
@@ -2993,7 +2980,7 @@ void	PopupCB1(Widget w,XtPointer userData,XtPointer callbackArg)
      ClientData *tmp;
      char name[10];
      int i=0,who;
-
+     
      tmp = (ClientData *) userData;
 
      if(strcmp(GP.fileName,EMPTY) != 0) {
@@ -3047,7 +3034,7 @@ Widget	CreateNewFileDialog(Widget parent,int editor)
 
   rtrn = XmCreatePromptDialog(parent,"Prompt",NULL,0);
 
-  s1=XmStringCreateLtoR("Enter the New File Name",XmSTRING_DEFAULT_CHARSET);
+  s1=XmStringCreateLtoR("Enter the New File Name",XmSTRING_DEFAULT_CHARSET);  
   s2=XmStringCreateLtoR("Reset",XmSTRING_DEFAULT_CHARSET);
   s3=XmStringCreateLtoR("Quit",XmSTRING_DEFAULT_CHARSET);
 
@@ -3064,9 +3051,9 @@ Widget	CreateNewFileDialog(Widget parent,int editor)
   XmStringFree(s2);
   XmStringFree(s3);
 
-  XtAddCallback(rtrn,XmNokCallback,EntOkCB,editor);
-  XtAddCallback(rtrn,XmNapplyCallback,EntCancelCB,rtrn);
-  XtAddCallback(rtrn,XmNcancelCallback,EntCancelCB,rtrn);
+  XtAddCallback(rtrn,XmNokCallback,EntOkCB,(XtPointer)(size_t)editor);
+  XtAddCallback(rtrn,XmNapplyCallback,EntCancelCB,rtrn);  
+  XtAddCallback(rtrn,XmNcancelCallback,EntCancelCB,rtrn);  
 
   return rtrn;
 }
@@ -3086,10 +3073,10 @@ void	EntOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
    XmSelectionBoxCallbackStruct *cbs;
    int editor;
 
-   editor = (int) userData;
+   editor = (size_t) userData;
    cbs = (XmSelectionBoxCallbackStruct *) callbackArg;
    XmStringGetLtoR(cbs->value,XmSTRING_DEFAULT_CHARSET,&filename);
-
+ 
    if(XmStringEmpty(cbs->value) || noting(filename)) {
 
      strcpy(name,"No file Entered !");
@@ -3116,11 +3103,11 @@ void	EntOkCB(Widget w,XtPointer userData,XtPointer callbackArg)
        strcpy(GP.fileName,filename);
         */
        if(editor==XEDIT_OPTION) {
-
+	 	
 	 strcpy(name,GP.xedit);
        }
        else if(editor==EMACS_OPTION) {
-
+	 	
 	 strcpy(name,GP.emacs);
        }
        else
@@ -3169,7 +3156,7 @@ Boolean	noting(char *s)
 {
    while(*s == ' ') ++s;
 
-   if(*s == '\0')
+   if(*s == '\0') 
      return True;
    else
      return False;
@@ -3236,14 +3223,14 @@ void	ExitCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateSettingMenu.c
-**
+**                           
 ************************************************************************
 */
 
 
 #ifdef _NO_PROTO
 void	CreateSettingMenu(menuBar)
-Widget  menuBar;
+Widget  menuBar;	
 #else
 void	CreateSettingMenu(Widget menuBar)
 #endif
@@ -3251,7 +3238,7 @@ void	CreateSettingMenu(Widget menuBar)
 {
   Widget setPDPN,setCSCD,lineSEPT;
   Widget probPDPN,probCSCD,probFORM,probPUSH;
-  Widget fullPUSH,fullFORM;
+  Widget fullPUSH,fullFORM; 
   Widget accuPDPN,accuCSCD,accuFORM;
   Widget tolPDPN,tolCSCD,tolPUSH,tolFORM;
   Widget limPDPN,limCSCD,limPUSH,limFORM;
@@ -3259,7 +3246,7 @@ void	CreateSettingMenu(Widget menuBar)
   Widget crPDPN,crCSCD,conPDPN,conCSCD,conPUSH,conFORM;
   Widget runPDPN,runCSCD,runPUSH,runFORM;
   Widget outPDPN,outCSCD,outPUSH,outFORM;
-
+ 
   Widget ndim,nbc,nint,jac;
   Widget epsl,epsu,epss,itmx,nwtn,itnw;
   Widget nmx,rl0,rl1,a0,a1;
@@ -3292,7 +3279,7 @@ void	CreateSettingMenu(Widget menuBar)
   probCSCD = XmCreateCascadeButton(setPDPN,"Problem",NULL,0);
   XtVaSetValues(probCSCD,XmNsubMenuId,probPDPN,XmNmnemonic,'P',NULL);
   XtManageChild(probCSCD);
-
+  
   ndim  = XmCreatePushButtonGadget(probPDPN,"NDIM",NULL,0);
   XtVaSetValues(ndim,XmNmnemonic,'N',NULL);
   XtManageChild(ndim);
@@ -3319,7 +3306,7 @@ void	CreateSettingMenu(Widget menuBar)
   probFORM = CreateFormProb(menuBar);
   probPUSH=XmCreatePushButtonGadget(probPDPN,"All Above",NULL,0);
   XtVaSetValues(probPUSH,XmNmnemonic,'P',NULL);
-  XtManageChild(probPUSH);
+  XtManageChild(probPUSH);  
   XtAddCallback(probPUSH,XmNactivateCallback,PopupCB,probFORM);
 
 
@@ -3337,7 +3324,7 @@ void	CreateSettingMenu(Widget menuBar)
   XtVaSetValues(disCSCD,XmNsubMenuId,disPDPN,XmNmnemonic,'D',NULL);
   XtManageChild(disCSCD);
 
-
+   
   ntst   = XmCreatePushButtonGadget(disPDPN,"NTST",NULL,0);
   XtVaSetValues(ntst,XmNmnemonic,'N',NULL);
   XtManageChild(ntst);
@@ -3360,7 +3347,7 @@ void	CreateSettingMenu(Widget menuBar)
   disFORM = CreateFormDis(menuBar);
   disPUSH=XmCreatePushButtonGadget(disPDPN,"All Above",NULL,0);
   XtVaSetValues(disPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(disPUSH);
+  XtManageChild(disPUSH);  
   XtAddCallback(disPUSH,XmNactivateCallback,PopupCB,disFORM);
 
 
@@ -3368,7 +3355,7 @@ void	CreateSettingMenu(Widget menuBar)
   tolCSCD = XmCreateCascadeButton(accuPDPN,"Tolerance",NULL,0);
   XtVaSetValues(tolCSCD,XmNsubMenuId,tolPDPN,XmNmnemonic,'T',NULL);
   XtManageChild(tolCSCD);
-
+   
   epsl   = XmCreatePushButtonGadget(tolPDPN,"EPSL",NULL,0);
   XtVaSetValues(epsl,XmNmnemonic,'E',NULL);
   XtManageChild(epsl);
@@ -3407,9 +3394,9 @@ void	CreateSettingMenu(Widget menuBar)
   tolFORM = CreateFormTol(menuBar);
   tolPUSH=XmCreatePushButtonGadget(tolPDPN,"All Above",NULL,0);
   XtVaSetValues(tolPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(tolPUSH);
+  XtManageChild(tolPUSH);  
   XtAddCallback(tolPUSH,XmNactivateCallback,PopupCB,tolFORM);
-
+    
 
 
   stepPDPN = XmCreatePulldownMenu(accuPDPN,"StepPullDown",NULL,0);
@@ -3457,7 +3444,7 @@ void	CreateSettingMenu(Widget menuBar)
   stepFORM = CreateFormStep(menuBar);
   stepPUSH=XmCreatePushButtonGadget(stepPDPN,"All Above",NULL,0);
   XtVaSetValues(stepPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(stepPUSH);
+  XtManageChild(stepPUSH);  
   XtAddCallback(stepPUSH,XmNactivateCallback,PopupCB,stepFORM);
 
 
@@ -3466,7 +3453,7 @@ void	CreateSettingMenu(Widget menuBar)
   limCSCD = XmCreateCascadeButton(accuPDPN,"Limits",NULL,0);
   XtVaSetValues(limCSCD,XmNsubMenuId,limPDPN,XmNmnemonic,'L',NULL);
   XtManageChild(limCSCD);
-
+  
 
   nmx   = XmCreatePushButtonGadget(limPDPN,"NMX",NULL,0);
   XtVaSetValues(nmx,XmNmnemonic,'N',NULL);
@@ -3499,7 +3486,7 @@ void	CreateSettingMenu(Widget menuBar)
   limFORM=CreateFormLim(menuBar);
   limPUSH=XmCreatePushButtonGadget(limPDPN,"All Above",NULL,0);
   XtVaSetValues(limPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(limPUSH);
+  XtManageChild(limPUSH);  
   XtAddCallback(limPUSH,XmNactivateCallback,PopupCB,limFORM);
 
 
@@ -3509,7 +3496,7 @@ void	CreateSettingMenu(Widget menuBar)
   XtVaSetValues(crCSCD,XmNsubMenuId,crPDPN,XmNmnemonic,'C',NULL);
   XtManageChild(crCSCD);
 
-
+    
   conPDPN = XmCreatePulldownMenu(crPDPN,"ConPullDown",NULL,0);
   conCSCD = XmCreateCascadeButton(crPDPN,"Continuation",NULL,0);
   XtVaSetValues(conCSCD,XmNsubMenuId,conPDPN,XmNmnemonic,'C',NULL);
@@ -3520,7 +3507,7 @@ void	CreateSettingMenu(Widget menuBar)
   XtVaSetValues(nicp,XmNmnemonic,'N',NULL);
   XtManageChild(nicp);
   XtAddCallback(nicp,XmNactivateCallback,PopupCB,prompt);
-
+  
   icp   = XmCreatePushButtonGadget(conPDPN,"ICP",NULL,0);
   XtVaSetValues(icp,XmNmnemonic,'I',NULL);
   XtManageChild(icp);
@@ -3533,7 +3520,7 @@ void	CreateSettingMenu(Widget menuBar)
   conFORM = CreateFormCon(menuBar);
   conPUSH=XmCreatePushButtonGadget(conPDPN,"All Above",NULL,0);
   XtVaSetValues(conPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(conPUSH);
+  XtManageChild(conPUSH);  
   XtAddCallback(conPUSH,XmNactivateCallback,PopupCB,conFORM);
 
   runPDPN = XmCreatePulldownMenu(crPDPN,"RunPullDown",NULL,0);
@@ -3541,7 +3528,7 @@ void	CreateSettingMenu(Widget menuBar)
   XtVaSetValues(runCSCD,XmNsubMenuId,runPDPN,XmNmnemonic,'R',NULL);
   XtManageChild(runCSCD);
 
-
+  
   ilp   = XmCreatePushButtonGadget(runPDPN,"ILP",NULL,0);
   XtVaSetValues(ilp,XmNmnemonic,'I',NULL);
   XtManageChild(ilp);
@@ -3551,22 +3538,22 @@ void	CreateSettingMenu(Widget menuBar)
   XtVaSetValues(isp,XmNmnemonic,'S',NULL);
   XtManageChild(isp);
   XtAddCallback(isp,XmNactivateCallback,PopupCB,prompt);
-
+  
   isw   = XmCreatePushButtonGadget(runPDPN,"ISW",NULL,0);
   XtVaSetValues(isw,XmNmnemonic,'W',NULL);
   XtManageChild(isw);
   XtAddCallback(isw,XmNactivateCallback,PopupCB,prompt);
-
+  
   mxbf   = XmCreatePushButtonGadget(runPDPN,"MXBF",NULL,0);
   XtVaSetValues(mxbf,XmNmnemonic,'M',NULL);
   XtManageChild(mxbf);
   XtAddCallback(mxbf,XmNactivateCallback,PopupCB,prompt);
-
+  
   irs   = XmCreatePushButtonGadget(runPDPN,"IRS",NULL,0);
   XtVaSetValues(irs,XmNmnemonic,'R',NULL);
   XtManageChild(irs);
   XtAddCallback(irs,XmNactivateCallback,PopupCB,prompt);
-
+  
   ips   = XmCreatePushButtonGadget(runPDPN,"IPS",NULL,0);
   XtVaSetValues(ips,XmNmnemonic,'P',NULL);
   XtManageChild(ips);
@@ -3578,7 +3565,7 @@ void	CreateSettingMenu(Widget menuBar)
   runFORM=CreateFormRun(menuBar);
   runPUSH=XmCreatePushButtonGadget(runPDPN,"All Above",NULL,0);
   XtVaSetValues(runPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(runPUSH);
+  XtManageChild(runPUSH);  
   XtAddCallback(runPUSH,XmNactivateCallback,PopupCB,runFORM);
 
 
@@ -3644,7 +3631,7 @@ void	CreateSettingMenu(Widget menuBar)
   outFORM=CreateFormOut(menuBar);
   outPUSH=XmCreatePushButtonGadget(outPDPN,"All Above",NULL,0);
   XtVaSetValues(outPUSH,XmNmnemonic,'A',NULL);
-  XtManageChild(outPUSH);
+  XtManageChild(outPUSH);  
   XtAddCallback(outPUSH,XmNactivateCallback,PopupCB,outFORM);
 
 
@@ -3803,7 +3790,7 @@ void	CreateBoxProb(Widget parent)
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[0],NULL,0);
    XtManageChild(label);
    GW.probButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -3821,7 +3808,7 @@ void	CreateBoxProb(Widget parent)
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[1],NULL,0);
    XtManageChild(label);
    GW.probButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -3839,7 +3826,7 @@ void	CreateBoxProb(Widget parent)
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[2],NULL,0);
    XtManageChild(label);
    GW.probButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -3857,7 +3844,7 @@ void	CreateBoxProb(Widget parent)
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[3],NULL,0);
    XtManageChild(label);
    GW.probButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -3871,10 +3858,9 @@ void	CreateBoxProb(Widget parent)
 
    XtVaSetValues(GW.probButton[3],XmNeditable,False,NULL);
    popJac=PopupJac(GW.probButton[3]);
-   
-XtAddEventHandler(GW.probButton[3],ButtonPressMask,False,PostItCB,popJac);
+   XtAddEventHandler(GW.probButton[3],ButtonPressMask,False,PostItCB,popJac);
 
-}
+ }
 
 
 
@@ -3905,33 +3891,29 @@ void   OkFormProbCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
 
 #endif
-
-  tmp = (ClientData*) userData;
+  
+  tmp = (ClientData*) userData; 
 
   XtVaGetValues(GW.probButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_NDIM] = atof(value);
   sprintf(GP.parStrValue[PAR_NDIM],"%d",(int) GP.parValue[PAR_NDIM]);
+  XtVaSetValues(GW.parButton[PAR_NDIM],XmNvalue,GP.parStrValue[PAR_NDIM],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NDIM],XmNvalue,GP.parStrValue[PAR_NDIM],NULL);
-
   XtVaGetValues(GW.probButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_NBC] = atof(value);
   sprintf(GP.parStrValue[PAR_NBC],"%d",(int)GP.parValue[PAR_NBC]);
+  XtVaSetValues(GW.parButton[PAR_NBC],XmNvalue,GP.parStrValue[PAR_NBC],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NBC],XmNvalue,GP.parStrValue[PAR_NBC],NULL);
-
   XtVaGetValues(GW.probButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_NINT] = atof(value);
   sprintf(GP.parStrValue[PAR_NINT],"%d",(int)GP.parValue[PAR_NINT]);
+  XtVaSetValues(GW.parButton[PAR_NINT],XmNvalue,GP.parStrValue[PAR_NINT],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NINT],XmNvalue,GP.parStrValue[PAR_NINT],NULL);
-
   XtVaGetValues(GW.probButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_JAC] = atof(value);
   sprintf(GP.parStrValue[PAR_JAC],"%d",(int)GP.parValue[PAR_JAC]);
+  XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
   
-XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
-
 
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
@@ -3962,7 +3944,7 @@ Widget	CreateFormDis(Widget parent)
   userData1.data=1;
   userData2.widget=rtrn;
   userData2.data=0;
-
+  
   XtAddCallback(ok,XmNactivateCallback,OkFormDisCB,&userData1);
   XtAddCallback(apply,XmNactivateCallback,OkFormDisCB,&userData2);
   XtAddCallback(cancel,XmNactivateCallback,PopdownCB,rtrn);
@@ -3981,7 +3963,7 @@ Widget	CreateFormDis(Widget parent)
   XtAddCallback(rtrn,XmNokCallback,OkFormDisCB,NULL);
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
 
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -4073,8 +4055,7 @@ void	CreateBoxDis(Widget parent)
 {
    Widget rwcl,label,frame,popNcol;
 
-   
-XtVaSetValues(parent,XmNorientation,XmHORIZONTAL,XmNpacking,XmPACK_COLUMN,
+   XtVaSetValues(parent,XmNorientation,XmHORIZONTAL,XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -4082,7 +4063,7 @@ XtVaSetValues(parent,XmNorientation,XmHORIZONTAL,XmNpacking,XmPACK_COLUMN,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[4],NULL,0);
    XtManageChild(label);
    GW.disButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4099,7 +4080,7 @@ XtVaSetValues(parent,XmNorientation,XmHORIZONTAL,XmNpacking,XmPACK_COLUMN,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[5],NULL,0);
    XtManageChild(label);
    GW.disButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4113,15 +4094,14 @@ XtVaSetValues(parent,XmNorientation,XmHORIZONTAL,XmNpacking,XmPACK_COLUMN,
 
    XtVaSetValues(GW.disButton[1],XmNeditable,False,NULL);
    popNcol=PopupNcol(GW.disButton[1]);
-   
-XtAddEventHandler(GW.disButton[1],ButtonPressMask,False,PostItCB,popNcol);
+   XtAddEventHandler(GW.disButton[1],ButtonPressMask,False,PostItCB,popNcol);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
    XtManageChild(frame);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[6],NULL,0);
    XtManageChild(label);
    GW.disButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4133,7 +4113,7 @@ XtAddEventHandler(GW.disButton[1],ButtonPressMask,False,PostItCB,popNcol);
 		 XmNvalue,GP.parStrValue[PAR_IAD],
 		 NULL);
 
-}
+ }
 
 
 
@@ -4169,20 +4149,17 @@ void   OkFormDisCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XtVaGetValues(GW.disButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_NTST] = atof(value);
   sprintf(GP.parStrValue[PAR_NTST],"%d",(int)GP.parValue[PAR_NTST]);
+  XtVaSetValues(GW.parButton[PAR_NTST],XmNvalue,GP.parStrValue[PAR_NTST],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NTST],XmNvalue,GP.parStrValue[PAR_NTST],NULL);
-
   XtVaGetValues(GW.disButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_NCOL] = atof(value);
   sprintf(GP.parStrValue[PAR_NCOL],"%d",(int)GP.parValue[PAR_NCOL]);
+  XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-
   XtVaGetValues(GW.disButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_IAD] = atof(value);
   sprintf(GP.parStrValue[PAR_IAD],"%d",(int)GP.parValue[PAR_IAD]);
-  
-XtVaSetValues(GW.parButton[PAR_IAD],XmNvalue,GP.parStrValue[PAR_IAD],NULL);
+  XtVaSetValues(GW.parButton[PAR_IAD],XmNvalue,GP.parStrValue[PAR_IAD],NULL);
 
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
@@ -4229,7 +4206,7 @@ Widget	CreateFormTol(Widget parent)
   rtrn = XmCreateMessageDialog(parent,"Message",NULL,0);
   XtAddCallback(rtrn,XmNokCallback,OkFormTolCB,NULL);
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -4321,8 +4298,7 @@ void	CreateBoxTol(Widget parent)
 {
    Widget rwcl,label,frame;
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,2,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -4330,7 +4306,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[7],NULL,0);
    XtManageChild(label);
    GW.tolButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4348,7 +4324,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[8],NULL,0);
    XtManageChild(label);
    GW.tolButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4366,7 +4342,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[9],NULL,0);
    XtManageChild(label);
    GW.tolButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4384,7 +4360,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[10],NULL,0);
    XtManageChild(label);
    GW.tolButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4401,7 +4377,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[11],NULL,0);
    XtManageChild(label);
    GW.tolButton[4]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4418,7 +4394,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[12],NULL,0);
    XtManageChild(label);
    GW.tolButton[5]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4429,7 +4405,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNmaxLength,WX_TEXTLENGTH,
 		 XmNvalue,GP.parStrValue[12],
 		 NULL);
-}
+ }
 
 
 
@@ -4465,39 +4441,33 @@ void   OkFormTolCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XtVaGetValues(GW.tolButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_EPSL] = atof(value);
   sprintf(GP.parStrValue[PAR_EPSL],"%lg",GP.parValue[PAR_EPSL]);
+  XtVaSetValues(GW.parButton[PAR_EPSL],XmNvalue,GP.parStrValue[PAR_EPSL],NULL);
   
-XtVaSetValues(GW.parButton[PAR_EPSL],XmNvalue,GP.parStrValue[PAR_EPSL],NULL);
-
   XtVaGetValues(GW.tolButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_EPSU] = atof(value);
   sprintf(GP.parStrValue[PAR_EPSU],"%lg",GP.parValue[PAR_EPSU]);
+  XtVaSetValues(GW.parButton[PAR_EPSU],XmNvalue,GP.parStrValue[PAR_EPSU],NULL);
   
-XtVaSetValues(GW.parButton[PAR_EPSU],XmNvalue,GP.parStrValue[PAR_EPSU],NULL);
-
   XtVaGetValues(GW.tolButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_EPSS] = atof(value);
   sprintf(GP.parStrValue[PAR_EPSS],"%lg",GP.parValue[PAR_EPSS]);
+  XtVaSetValues(GW.parButton[PAR_EPSS],XmNvalue,GP.parStrValue[PAR_EPSS],NULL);
   
-XtVaSetValues(GW.parButton[PAR_EPSS],XmNvalue,GP.parStrValue[PAR_EPSS],NULL);
-
   XtVaGetValues(GW.tolButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_ITMX] = atof(value);
   sprintf(GP.parStrValue[PAR_ITMX],"%d",(int)GP.parValue[PAR_ITMX]);
+  XtVaSetValues(GW.parButton[PAR_ITMX],XmNvalue,GP.parStrValue[PAR_ITMX],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ITMX],XmNvalue,GP.parStrValue[PAR_ITMX],NULL);
-
   XtVaGetValues(GW.tolButton[4],XmNvalue,&value,NULL);
   GP.parValue[PAR_NWTN] = atof(value);
   sprintf(GP.parStrValue[PAR_NWTN],"%d",(int)GP.parValue[PAR_NWTN]);
+  XtVaSetValues(GW.parButton[PAR_NWTN],XmNvalue,GP.parStrValue[PAR_NWTN],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NWTN],XmNvalue,GP.parStrValue[PAR_NWTN],NULL);
-
   XtVaGetValues(GW.tolButton[5],XmNvalue,&value,NULL);
   GP.parValue[PAR_ITNW] = atof(value);
   sprintf(GP.parStrValue[PAR_ITNW],"%d",(int)GP.parValue[PAR_ITNW]);
+  XtVaSetValues(GW.parButton[PAR_ITNW],XmNvalue,GP.parStrValue[PAR_ITNW],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ITNW],XmNvalue,GP.parStrValue[PAR_ITNW],NULL);
-
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
 
@@ -4543,7 +4513,7 @@ Widget	CreateFormStep(Widget parent)
   rtrn = XmCreateMessageDialog(parent,"Message",NULL,0);
   XtAddCallback(rtrn,XmNokCallback,OkFormStepCB,NULL);
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -4636,8 +4606,7 @@ void	CreateBoxStep(Widget parent)
    Widget rwcl,label,frame;
    /*   Widget popThl,popThu; */
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,2,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -4645,7 +4614,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[13],NULL,0);
    XtManageChild(label);
    GW.stepButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4663,7 +4632,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[14],NULL,0);
    XtManageChild(label);
    GW.stepButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4681,7 +4650,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[15],NULL,0);
    XtManageChild(label);
    GW.stepButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4699,7 +4668,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[16],NULL,0);
    XtManageChild(label);
    GW.stepButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4717,7 +4686,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[34],NULL,0);
    XtManageChild(label);
    GW.stepButton[4]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4732,8 +4701,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 /*
    popThl=PopupThl(GW.stepButton[4]);
 */
-   
-XtAddEventHandler(GW.stepButton[4],ButtonPressMask,False,PostItCB1,GW.popThl);
+   XtAddEventHandler(GW.stepButton[4],ButtonPressMask,False,PostItCB1,GW.popThl);
 
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -4741,7 +4709,7 @@ XtAddEventHandler(GW.stepButton[4],ButtonPressMask,False,PostItCB1,GW.popThl);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[35],NULL,0);
    XtManageChild(label);
    GW.stepButton[5]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -4755,8 +4723,7 @@ XtAddEventHandler(GW.stepButton[4],ButtonPressMask,False,PostItCB1,GW.popThl);
 /*
    popThu=PopupThu(GW.stepButton[5]);
 */
-   
-XtAddEventHandler(GW.stepButton[5],ButtonPressMask,False,PostItCB1,GW.popThu);
+   XtAddEventHandler(GW.stepButton[5],ButtonPressMask,False,PostItCB1,GW.popThu);
 
 
 
@@ -4796,69 +4763,64 @@ void   OkFormStepCB(Widget w,XtPointer userData,XtPointer callbackArg)
   GP.parValue[PAR_DS] = atof(value);
   sprintf(GP.parStrValue[PAR_DS],"%lg",GP.parValue[PAR_DS]);
   XtVaSetValues(GW.parButton[PAR_DS],XmNvalue,GP.parStrValue[PAR_DS],NULL);
-
+  
   XtVaGetValues(GW.stepButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_DSMIN] = atof(value);
   sprintf(GP.parStrValue[PAR_DSMIN],"%lg",GP.parValue[PAR_DSMIN]);
+  XtVaSetValues(GW.parButton[PAR_DSMIN],XmNvalue,GP.parStrValue[PAR_DSMIN],NULL);
   
-XtVaSetValues(GW.parButton[PAR_DSMIN],XmNvalue,GP.parStrValue[PAR_DSMIN],NULL);
-
   XtVaGetValues(GW.stepButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_DSMAX] = atof(value);
   sprintf(GP.parStrValue[PAR_DSMAX],"%lg",GP.parValue[PAR_DSMAX]);
+  XtVaSetValues(GW.parButton[PAR_DSMAX],XmNvalue,GP.parStrValue[PAR_DSMAX],NULL);
   
-XtVaSetValues(GW.parButton[PAR_DSMAX],XmNvalue,GP.parStrValue[PAR_DSMAX],NULL);
-
   XtVaGetValues(GW.stepButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_IADS] = atof(value);
   sprintf(GP.parStrValue[PAR_IADS],"%d",(int)GP.parValue[PAR_IADS]);
+  XtVaSetValues(GW.parButton[PAR_IADS],XmNvalue,GP.parStrValue[PAR_IADS],NULL);
   
-XtVaSetValues(GW.parButton[PAR_IADS],XmNvalue,GP.parStrValue[PAR_IADS],NULL);
-
 /*
 
   XtVaGetValues(GW.stepButton[4],XmNvalue,&value,NULL);
   GP.parValue[PAR_NTHL] = atof(value);
   sprintf(GP.parStrValue[PAR_NTHL],"%lg",GP.parValue[PAR_NTHL]);
+  XtVaSetValues(GW.parButton[PAR_NTHL],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NTHL],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
-
   XtVaGetValues(GW.stepButton[5],XmNvalue,&value,NULL);
   GP.parValue[PAR_NTHU] = atof(value);
   sprintf(GP.parStrValue[PAR_NTHU],"%lg",GP.parValue[PAR_NTHU]);
+  XtVaSetValues(GW.parButton[PAR_NTHU],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
+
+
   
-XtVaSetValues(GW.parButton[PAR_NTHU],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
-
-
-
   GP.nthl = CountAny(2);
   GP.nthu = CountAny(3);
 
 
-  for(i = 0; i < GP.nthl; i++) {
+  for(i = 0; i < GP.nthl; i++) {	
     k1=2*i;
     k2=k1+1;
     XtVaGetValues(GW.thlButton[k2],XmNvalue,&value,NULL);
-    GP.thlValue[k2] = atof(value);
+    GP.thlValue[k2] = atof(value);    
     sprintf(GP.thlStrValue[k2],"%lg",GP.thlValue[k2]);
   }
+  
 
-
-  for(i = 0; i < GP.nthu; i++) {
+  for(i = 0; i < GP.nthu; i++) {	
     k1=2*i;
     k2=k1+1;
     XtVaGetValues(GW.thuButton[k2],XmNvalue,&value,NULL);
-    GP.thuValue[k2] = atof(value);
+    GP.thuValue[k2] = atof(value);    
     sprintf(GP.thuStrValue[k2],"%lg",GP.thuValue[k2]);
   }
-
+  
 */
 
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
 
 
-
+  
 }
 
 #ifdef _NO_PROTO
@@ -4899,9 +4861,9 @@ Widget	CreateFormLim(Widget parent)
 */
 
   rtrn = XmCreateMessageDialog(parent,"Message",NULL,0);
-  XtAddCallback(rtrn,XmNokCallback,OkFormLimCB,NULL);
+  XtAddCallback(rtrn,XmNokCallback,OkFormLimCB,NULL);  
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -4993,8 +4955,7 @@ void	CreateBoxLim(Widget parent)
 {
    Widget rwcl,label,frame;
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,2,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -5002,7 +4963,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[17],NULL,0);
    XtManageChild(label);
    GW.limButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5020,7 +4981,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[18],NULL,0);
    XtManageChild(label);
    GW.limButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5038,7 +4999,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[19],NULL,0);
    XtManageChild(label);
    GW.limButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5055,7 +5016,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[20],NULL,0);
    XtManageChild(label);
    GW.limButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5073,7 +5034,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[21],NULL,0);
    XtManageChild(label);
    GW.limButton[4]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5086,7 +5047,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 NULL);
 
 
-}
+ }
 
 #ifdef _NO_PROTO
 void   OkFormLimCB(w,userData,callbackArg)
@@ -5113,32 +5074,29 @@ void   OkFormLimCB(Widget w,XtPointer userData,XtPointer callbackArg)
     XtUnmanageChild(tmp->widget);
 
 #endif
-
+ 
   tmp = (ClientData *) userData;
 
   XtVaGetValues(GW.limButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_NMX] = atof(value);
   sprintf(GP.parStrValue[PAR_NMX],"%d",(int)GP.parValue[PAR_NMX]);
+  XtVaSetValues(GW.parButton[PAR_NMX],XmNvalue,GP.parStrValue[PAR_NMX],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NMX],XmNvalue,GP.parStrValue[PAR_NMX],NULL);
-
   XtVaGetValues(GW.limButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_RL0] = atof(value);
   sprintf(GP.parStrValue[PAR_RL0],"%lg",GP.parValue[PAR_RL0]);
+  XtVaSetValues(GW.parButton[PAR_RL0],XmNvalue,GP.parStrValue[PAR_RL0],NULL);
   
-XtVaSetValues(GW.parButton[PAR_RL0],XmNvalue,GP.parStrValue[PAR_RL0],NULL);
-
   XtVaGetValues(GW.limButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_RL1] = atof(value);
   sprintf(GP.parStrValue[PAR_RL1],"%lg",GP.parValue[PAR_RL1]);
+  XtVaSetValues(GW.parButton[PAR_RL1],XmNvalue,GP.parStrValue[PAR_RL1],NULL);
   
-XtVaSetValues(GW.parButton[PAR_RL1],XmNvalue,GP.parStrValue[PAR_RL1],NULL);
-
   XtVaGetValues(GW.limButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_A0] = atof(value);
   sprintf(GP.parStrValue[PAR_A0],"%lg",GP.parValue[PAR_A0]);
   XtVaSetValues(GW.parButton[PAR_A0],XmNvalue,GP.parStrValue[PAR_A0],NULL);
-
+  
   XtVaGetValues(GW.limButton[4],XmNvalue,&value,NULL);
   GP.parValue[PAR_A1] = atof(value);
   sprintf(GP.parStrValue[PAR_A1],"%lg",GP.parValue[PAR_A1]);
@@ -5187,7 +5145,7 @@ Widget	CreateFormCon(Widget parent)
   rtrn = XmCreateMessageDialog(parent,"Message",NULL,0);
   XtAddCallback(rtrn,XmNokCallback,OkFormConCB,NULL);
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -5278,8 +5236,7 @@ void	CreateBoxCon(Widget parent)
 {
    Widget rwcl,label,frame;
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,1,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -5287,7 +5244,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[22],NULL,0);
    XtManageChild(label);
    GW.conButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5305,7 +5262,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[23],NULL,0);
    XtManageChild(label);
    GW.conButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5318,10 +5275,9 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 NULL);
 
    XtVaSetValues(GW.conButton[1],XmNeditable,False,NULL);
-   
-XtAddEventHandler(GW.conButton[1],ButtonPressMask,False,PostItCB1,GW.popIcp);
+   XtAddEventHandler(GW.conButton[1],ButtonPressMask,False,PostItCB1,GW.popIcp);
 
-}
+ }
 
 
 #ifdef _NO_PROTO
@@ -5356,28 +5312,26 @@ void   OkFormConCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XtVaGetValues(GW.conButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_NICP] = atof(value);
   sprintf(GP.parStrValue[PAR_NICP],"%d",(int)GP.parValue[PAR_NICP]);
+  XtVaSetValues(GW.parButton[PAR_NICP],XmNvalue,GP.parStrValue[PAR_NICP],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NICP],XmNvalue,GP.parStrValue[PAR_NICP],NULL);
-
 /*
 
   XtVaGetValues(GW.conButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_ICP] = atof(value);
   sprintf(GP.parStrValue[PAR_ICP],"%d",(int)GP.parValue[PAR_ICP]);
+  XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
-
-
-  for(i = 0; i < (int)GP.parValue[PAR_NICP]; i++) {
+  
+  for(i = 0; i < (int)GP.parValue[PAR_NICP]; i++) {	
     k1=2*i;
     k2=k1+1;
     XtVaGetValues(GW.icpButton[k2],XmNvalue,&value,NULL);
-    GP.icpValue[k2] = atof(value);
+    GP.icpValue[k2] = atof(value);    
     sprintf(GP.icpStrValue[k2],"%d",(int)GP.icpValue[k2]);
   }
 
 */
-
+  
 
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
@@ -5423,7 +5377,7 @@ Widget	CreateFormRun(Widget parent)
   rtrn = XmCreateMessageDialog(parent,"Message",NULL,0);
   XtAddCallback(rtrn,XmNokCallback,OkFormRunCB,NULL);
   XtAddCallback(rtrn,XmNhelpCallback,PopupCB,GW.helpList);
-
+ 
   rwcl = XmCreateRowColumn(rtrn,"RowColumn",NULL,0);
   XtManageChild(rwcl);
 
@@ -5517,8 +5471,7 @@ void	CreateBoxRun(Widget parent)
    Widget popIlp,popIsp,popIsw,popIps;
 
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,2,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -5526,7 +5479,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[24],NULL,0);
    XtManageChild(label);
    GW.runButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5548,7 +5501,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
 
 
    label = XmCreateLabelGadget(rwcl,parLabel[25],NULL,0);
@@ -5573,7 +5526,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[26],NULL,0);
    XtManageChild(label);
    GW.runButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5595,7 +5548,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[27],NULL,0);
    XtManageChild(label);
    GW.runButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5613,7 +5566,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[28],NULL,0);
    XtManageChild(label);
    GW.runButton[4]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5631,7 +5584,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[29],NULL,0);
    XtManageChild(label);
    GW.runButton[5]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5648,7 +5601,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    popIps=PopupIps(GW.runButton[5]);
    XtAddEventHandler(GW.runButton[5],ButtonPressMask,False,PostItCB,popIps);
 
-}
+ }
 
 
 #ifdef _NO_PROTO
@@ -5684,38 +5637,32 @@ void   OkFormRunCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XtVaGetValues(GW.runButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_ILP] = atof(value);
   sprintf(GP.parStrValue[PAR_ILP],"%d",(int)GP.parValue[PAR_ILP]);
+  XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
-
   XtVaGetValues(GW.runButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_ISP] = atof(value);
   sprintf(GP.parStrValue[PAR_ISP],"%d",(int)GP.parValue[PAR_ISP]);
+  XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
-
   XtVaGetValues(GW.runButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_ISW] = atof(value);
   sprintf(GP.parStrValue[PAR_ISW],"%d",(int)GP.parValue[PAR_ISW]);
+  XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
   
-XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
-
   XtVaGetValues(GW.runButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_MXBF] = atof(value);
   sprintf(GP.parStrValue[PAR_MXBF],"%d",(int)GP.parValue[PAR_MXBF]);
+  XtVaSetValues(GW.parButton[PAR_MXBF],XmNvalue,GP.parStrValue[PAR_MXBF],NULL);
   
-XtVaSetValues(GW.parButton[PAR_MXBF],XmNvalue,GP.parStrValue[PAR_MXBF],NULL);
-
   XtVaGetValues(GW.runButton[4],XmNvalue,&value,NULL);
   GP.parValue[PAR_IRS] = atof(value);
   sprintf(GP.parStrValue[PAR_IRS],"%d",(int)GP.parValue[PAR_IRS]);
+  XtVaSetValues(GW.parButton[PAR_IRS],XmNvalue,GP.parStrValue[PAR_IRS],NULL);
   
-XtVaSetValues(GW.parButton[PAR_IRS],XmNvalue,GP.parStrValue[PAR_IRS],NULL);
-
   XtVaGetValues(GW.runButton[5],XmNvalue,&value,NULL);
   GP.parValue[PAR_IPS] = atof(value);
   sprintf(GP.parStrValue[PAR_IPS],"%d",(int)GP.parValue[PAR_IPS]);
-  
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+  XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
@@ -5857,8 +5804,7 @@ void	CreateBoxOut(Widget parent)
    Widget popIid;
 
 
-   
-XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
+   XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 XmNnumColumns,2,NULL);
 
    frame = XmCreateFrame(parent,"Frame",NULL,0);
@@ -5866,7 +5812,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[30],NULL,0);
    XtManageChild(label);
    GW.outButton[0]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5884,7 +5830,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[31],NULL,0);
    XtManageChild(label);
    GW.outButton[1]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5906,7 +5852,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[32],NULL,0);
    XtManageChild(label);
    GW.outButton[2]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5924,7 +5870,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[33],NULL,0);
    XtManageChild(label);
    GW.outButton[3]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5937,8 +5883,7 @@ XtVaSetValues(parent,XmNpacking,XmPACK_COLUMN,XmNorientation,XmHORIZONTAL,
 		 NULL);
 
    XtVaSetValues(GW.outButton[3],XmNeditable,False,NULL);
-   
-XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
+   XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
 
 
 /*
@@ -5948,7 +5893,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[33],NULL,0);
    XtManageChild(label);
    GW.outButton[4]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5966,7 +5911,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[34],NULL,0);
    XtManageChild(label);
    GW.outButton[5]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -5983,7 +5928,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[36],NULL,0);
    XtManageChild(label);
    GW.outButton[6]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -6001,7 +5946,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[37],NULL,0);
    XtManageChild(label);
    GW.outButton[7]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -6019,7 +5964,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
    rwcl = XmCreateRowColumn(frame,"RowColumn",NULL,0);
    XtManageChild(rwcl);
    XtVaSetValues(rwcl,XmNpacking,XmPACK_TIGHT,NULL);
-
+   
    label = XmCreateLabelGadget(rwcl,parLabel[38],NULL,0);
    XtManageChild(label);
    GW.outButton[8]=XmCreateTextField(rwcl,"Button",NULL,0);
@@ -6032,7 +5977,7 @@ XtAddEventHandler(GW.outButton[3],ButtonPressMask,False,PostItCB1,GW.popUzr);
 		 NULL);
 */
 
-}
+ }
 
 
 #ifdef _NO_PROTO
@@ -6068,43 +6013,39 @@ void   OkFormOutCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XtVaGetValues(GW.outButton[0],XmNvalue,&value,NULL);
   GP.parValue[PAR_NPR] = atof(value);
   sprintf(GP.parStrValue[PAR_NPR],"%d",(int)GP.parValue[PAR_NPR]);
+  XtVaSetValues(GW.parButton[PAR_NPR],XmNvalue,GP.parStrValue[PAR_NPR],NULL);
   
-XtVaSetValues(GW.parButton[PAR_NPR],XmNvalue,GP.parStrValue[PAR_NPR],NULL);
-
   XtVaGetValues(GW.outButton[1],XmNvalue,&value,NULL);
   GP.parValue[PAR_IID] = atof(value);
   sprintf(GP.parStrValue[PAR_IID],"%d",(int)GP.parValue[PAR_IID]);
+  XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
   
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
-
   XtVaGetValues(GW.outButton[2],XmNvalue,&value,NULL);
   GP.parValue[PAR_IPLT] = atof(value);
   sprintf(GP.parStrValue[PAR_IPLT],"%d",(int)GP.parValue[PAR_IPLT]);
+  XtVaSetValues(GW.parButton[PAR_IPLT],XmNvalue,GP.parStrValue[PAR_IPLT],NULL);
   
-XtVaSetValues(GW.parButton[PAR_IPLT],XmNvalue,GP.parStrValue[PAR_IPLT],NULL);
-
 /*
 
   XtVaGetValues(GW.outButton[3],XmNvalue,&value,NULL);
   GP.parValue[PAR_NUZR] = atof(value);
   sprintf(GP.parStrValue[PAR_NUZR],"%lg",GP.parValue[PAR_NUZR]);
+  XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
+
   
-XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
-
-
   GP.nuzr = CountAny(1);
 
-  for(i = 0; i < GP.nuzr; i++) {
+  for(i = 0; i < GP.nuzr; i++) {	
     k1=2*i;
     k2=k1+1;
     XtVaGetValues(GW.uzrButton[k2],XmNvalue,&value,NULL);
-    GP.uzrValue[k2] = atof(value);
+    GP.uzrValue[k2] = atof(value);    
     sprintf(GP.uzrStrValue[k2],"%lg",GP.uzrValue[k2]);
   }
-
+  
 */
 
-
+  
   if(tmp->data==1)
     XtUnmanageChild(tmp->widget);
 
@@ -6113,25 +6054,25 @@ XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
   GP.parValue[33] = atof(value);
   sprintf(GP.parStrValue[33],"%lg",GP.parValue[33]);
   XtVaSetValues(GW.parButton[33],XmNvalue,GP.parStrValue[33],NULL);
-
+  
   XtVaGetValues(GW.outButton[5],XmNvalue,&value,NULL);
   GP.parValue[34] = atof(value);
   sprintf(GP.parStrValue[34],"%lg",GP.parValue[34]);
   XtVaSetValues(GW.parButton[34],XmNvalue,GP.parStrValue[34],NULL);
-
-
+  
+  
   XtVaGetValues(GW.outButton[6],XmNvalue,&value,NULL);
   GP.parValue[36] = atof(value);
   sprintf(GP.parStrValue[36],"%lg",GP.parValue[36]);
   XtVaSetValues(GW.parButton[36],XmNvalue,GP.parStrValue[36],NULL);
-
-
+  
+  
   XtVaGetValues(GW.outButton[7],XmNvalue,&value,NULL);
   GP.parValue[37] = atof(value);
   sprintf(GP.parStrValue[37],"%lg",GP.parValue[37]);
   XtVaSetValues(GW.parButton[37],XmNvalue,GP.parStrValue[37],NULL);
-
-
+  
+  
   XtVaGetValues(GW.outButton[8],XmNvalue,&value,NULL);
   GP.parValue[38] = atof(value);
   sprintf(GP.parStrValue[38],"%lg",GP.parValue[38]);
@@ -6345,88 +6286,77 @@ void	CreateBox(Widget parent)
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popJac=PopupJac(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popJac);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popJac);
 	   break;
 
 	 case PAR_NCOL:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popNcol=PopupNcol(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popNcol);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popNcol);
 	   break;
 
 	 case PAR_ICP:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   GW.popIcp=PopupIcp(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popIcp);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popIcp);
 	   break;
 
 	 case PAR_ILP:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popIlp=PopupIlp(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIlp);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIlp);
 	   break;
 
 	 case PAR_ISP:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popIsp=PopupIsp(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIsp);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIsp);
 	   break;
 
 	 case PAR_ISW:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popIsw=PopupIsw(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIsw);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIsw);
 	   break;
 
 	 case PAR_IPS:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popIps=PopupIps(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIps);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIps);
 	   break;
 
 	 case PAR_IID:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   popIid=PopupIid(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIid);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB,popIid);
 	   break;
 
 	 case PAR_NUZR:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   GW.popUzr=PopupUzr(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popUzr);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popUzr);
 	   break;
 
 	 case PAR_NTHL:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   GW.popThl=PopupThl(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popThl);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popThl);
 	   break;
 
 	 case PAR_NTHU:
 
            XtVaSetValues(GW.parButton[i],XmNeditable,False,NULL);
 	   GW.popThu=PopupThu(GW.parButton[i]);
-	   
-XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popThu);
+	   XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popThu);
 	   break;
 
 	 default:
@@ -6434,7 +6364,7 @@ XtAddEventHandler(GW.parButton[i],ButtonPressMask,False,PostItCB1,GW.popThu);
 	 }
 
    }
-}
+ }
 
 
 #ifdef _NO_PROTO
@@ -6544,7 +6474,7 @@ void	OkFormDefCB(Widget w,XtPointer userData,XtPointer callbackArg)
     XtVaSetValues(GW.tolButton[4],XmNvalue,GP.parStrValue[PAR_NWTN],NULL);
     XtVaSetValues(GW.tolButton[5],XmNvalue,GP.parStrValue[PAR_ITNW],NULL);
 
-
+ 
    /* update step size settings */
 
     XtVaSetValues(GW.stepButton[0],XmNvalue,GP.parStrValue[PAR_DS],NULL);
@@ -6598,7 +6528,7 @@ void	OkFormDefCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateActionMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -6622,20 +6552,20 @@ void	CreateActionMenu(Widget menuBar)
 */
   compPUSH = XmCreatePushButtonGadget(actionPDPN,"Compile",NULL,0);
   XtVaSetValues(compPUSH,XmNmnemonic,'C',NULL);
-  XtManageChild(compPUSH);
+  XtManageChild(compPUSH);  
   XtAddCallback(compPUSH,XmNactivateCallback,RunCB,NULL);
 
   runPUSH = XmCreatePushButtonGadget(actionPDPN,"Run",NULL,0);
   XtVaSetValues(runPUSH,XmNmnemonic,'R',NULL);
-  XtManageChild(runPUSH);
+  XtManageChild(runPUSH);  
   XtAddCallback(runPUSH,XmNactivateCallback,RunCB,NULL);
 
   lineSEPT = XmCreateSeparatorGadget(actionPDPN,"Separator",NULL,0);
-  XtManageChild(lineSEPT);
+  XtManageChild(lineSEPT);  
 
   stopPUSH = XmCreatePushButtonGadget(actionPDPN,"Stop",NULL,0);
   XtVaSetValues(stopPUSH,XmNmnemonic,'S',NULL);
-  XtManageChild(stopPUSH);
+  XtManageChild(stopPUSH);  
   XtAddCallback(stopPUSH,XmNactivateCallback,StopCB,NULL);
 
 
@@ -6671,17 +6601,17 @@ void	RunCB(Widget w,XtPointer userData,XtPointer callbackArg)
      int  i=0,what;
      FILE *fp;
 
-     what = (int) userData;
-
+     what = (size_t) userData;
+     
      if( strcmp(GP.fileName,EMPTY) != 0 ) {
 
        if(what == 1) {
 
-	 env[0] = '\0';
+	 env[0] = '\0';	
 	 fp = fopen("Makefile","r");
 	 if(fp == NULL)
 	   system("cp $AUTO_DIR/gui/auto.makefile ./Makefile");
-/*	 fclose(fp); */
+/*	 if (fp != NULL)    fclose(fp); */
 
 	 strcpy(name,ProgramName(GP.fileName));
 	 while(name[i] != '.') {
@@ -6690,7 +6620,7 @@ void	RunCB(Widget w,XtPointer userData,XtPointer callbackArg)
 	 }
 	 env[i] = '\0';
 
-         strcpy(name,"q.");
+         strcpy(name,"s.");
 	 strcat(name,env);
 	 fp = fopen(name,"r");
 	 if (fp != NULL) {
@@ -6701,21 +6631,21 @@ void	RunCB(Widget w,XtPointer userData,XtPointer callbackArg)
 	 }
 	 if (fp != NULL)    fclose(fp);
 
-	 strcpy(name,"r.");
+	 strcpy(name,"c.");
 	 strcat(name,env);
 
 	 /* WriteRfile(CURRENT_RFILE); */
 
-	  WriteRfile(name);
+	  WriteRfile(name); 
 
-
+	 
 	 if(i==0) {
 	   if(GP.parValue[PAR_IRS] > 0.0) {
 	     if(GP.restart == 0)
 	       sprintf(command,"make restart PROGRAMNAME= RESTARTNAME= &");
 	     else {
 	       sprintf(command,"make restart PROGRAMNAME= RESTARTNAME=%s &",GP.q);
-	       GP.restart = 0;
+	       GP.restart = 0; 
 	     }
 	   }
 	   else {
@@ -6733,12 +6663,10 @@ void	RunCB(Widget w,XtPointer userData,XtPointer callbackArg)
 	 else {
 	   if(GP.parValue[PAR_IRS] > 0.0)	   {
 	     if(GP.restart == 0) {
-	       sprintf(command,"make restart PROGRAMNAME=%s RESTARTNAME=%s 
-&",env,env);
+	       sprintf(command,"make restart PROGRAMNAME=%s RESTARTNAME=%s &",env,env);
 	     }
 	     else {
-	       sprintf(command,"make restart PROGRAMNAME=%s RESTARTNAME=%s 
-&",env,GP.q);
+	       sprintf(command,"make restart PROGRAMNAME=%s RESTARTNAME=%s &",env,GP.q);
 	       GP.restart = 0;
 	     }
 	   }
@@ -6747,23 +6675,23 @@ void	RunCB(Widget w,XtPointer userData,XtPointer callbackArg)
 	       sprintf(command,"make PROGRAMNAME=%s RESTARTNAME=%s &",env,env);
 	     }
 	     else {
-	       sprintf(command,"make PROGRAMNAME=%s RESTARTNAME=%s &",env,GP.q);
+	       sprintf(command,"make PROGRAMNAME=%s RESTARTNAME=%s &",env,GP.q);	       
 	       GP.restart = 0;
 	     }
 	   }
 	   system(command);
 	 }
+	 
 
-
-/*
+/*   
 	 if(i==0) {
 	   putenv("PROGRAMNAME=");
 	 }
 	 else {
-
+	   	
 	   strcpy(GP.command,"PROGRAMNAME=");
 	   strcat(GP.command,env);
-	   putenv(GP.command);
+	   putenv(GP.command);	  
 
 	 }
 
@@ -6797,13 +6725,13 @@ void	StopCB(Widget w,XtPointer userData,XtPointer callbackArg)
   if(strcmp(GP.fileName,EMPTY) == 0)
     printf("No running program to be killed\n");
 
-  else {
+  else { 
 
     GetJobName(jobName,ProgramName(GP.fileName));
     if(strcmp(jobName,EMPTY) != 0)
-      GP.autoPid = GetAutoPid(jobName);
-
-    if(GP.autoPid == -1)
+      GP.autoPid = GetAutoPid(jobName);    
+    
+    if(GP.autoPid == -1) 
       printf("No running program to be killed\n");
     else {
       kill(GP.autoPid,SIGKILL);
@@ -6811,13 +6739,13 @@ void	StopCB(Widget w,XtPointer userData,XtPointer callbackArg)
     }
   }
 
-}
+}	
 
 /*
 ***********************************************************************
 **
 **			CreateSaveMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -6843,11 +6771,11 @@ void	CreateSaveMenu(Widget menuBar)
   savPUSH = XmCreatePushButtonGadget(savePDPN,"Save",NULL,0);
   XtVaSetValues(savPUSH,XmNmnemonic,'S',NULL);
   XtManageChild(savPUSH);
-  XtAddCallback(savPUSH,XmNactivateCallback,OutputCB,1);
+  XtAddCallback(savPUSH,XmNactivateCallback,OutputCB,(XtPointer *)1);
 
 
   prompt1 = XmCreatePromptDialog(menuBar,"Prompt",NULL,0);
-  XtAddCallback(prompt1,XmNokCallback,NewOutputCB,1);
+  XtAddCallback(prompt1,XmNokCallback,NewOutputCB,(XtPointer *)1);
 
   XtVaSetValues(prompt1,XmNselectionLabelString,
 		XmStringCreateSimple("Enter Name"),NULL);
@@ -6866,7 +6794,7 @@ void	CreateSaveMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreatePlotMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -6887,15 +6815,15 @@ void	CreatePlotMenu(Widget menuBar)
   plotCSCD = XmCreateCascadeButton(menuBar,"Plot",NULL,0);
   XtManageChild(plotCSCD);
   XtVaSetValues(plotCSCD,XmNsubMenuId,plotPDPN,XmNmnemonic,'P',NULL);
-
+ 
   defPUSH = XmCreatePushButtonGadget(plotPDPN,"Plot",NULL,0);
   XtVaSetValues(defPUSH,XmNmnemonic,'P',NULL);
   XtManageChild(defPUSH);
-  XtAddCallback(defPUSH,XmNactivateCallback,TekCB,1);
+  XtAddCallback(defPUSH,XmNactivateCallback,TekCB,(XtPointer *)1);
 
 
   prompt = XmCreatePromptDialog(menuBar,"Prompt",NULL,0);
-  XtAddCallback(prompt,XmNokCallback,TekCB,2);
+  XtAddCallback(prompt,XmNokCallback,TekCB,(XtPointer)2);
   XtVaSetValues(prompt,XmNselectionLabelString,
 		XmStringCreateSimple("Enter Name"),NULL);
   button = XmSelectionBoxGetChild(prompt,XmDIALOG_HELP_BUTTON);
@@ -6913,7 +6841,7 @@ void	CreatePlotMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreateAppendMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -6934,15 +6862,15 @@ void	CreateAppendMenu(Widget menuBar)
   appendCSCD = XmCreateCascadeButton(menuBar,"Append",NULL,0);
   XtManageChild(appendCSCD);
   XtVaSetValues(appendCSCD,XmNsubMenuId,appendPDPN,XmNmnemonic,'A',NULL);
-
+ 
   appPUSH = XmCreatePushButtonGadget(appendPDPN,"Append",NULL,0);
   XtVaSetValues(appPUSH,XmNmnemonic,'A',NULL);
   XtManageChild(appPUSH);
-  XtAddCallback(appPUSH,XmNactivateCallback,OutputCB,2);
+  XtAddCallback(appPUSH,XmNactivateCallback,OutputCB,(XtPointer)2);
 
-
+ 
   prompt2 = XmCreatePromptDialog(menuBar,"Prompt",NULL,0);
-  XtAddCallback(prompt2,XmNokCallback,NewOutputCB,2);
+  XtAddCallback(prompt2,XmNokCallback,NewOutputCB,(XtPointer)2);
 
   XtVaSetValues(prompt2,XmNselectionLabelString,
 		XmStringCreateSimple("Enter Name"),NULL);
@@ -6970,7 +6898,7 @@ XtPointer userData,callbackArg;
 void   NewOutputCB(Widget w,XtPointer userData,XtPointer callbackArg)
 #endif
 
-{
+{ 
   int who;
   char *newName,command[100];
   XmSelectionBoxCallbackStruct *cbs;
@@ -6978,33 +6906,33 @@ void   NewOutputCB(Widget w,XtPointer userData,XtPointer callbackArg)
   cbs = (XmSelectionBoxCallbackStruct *) callbackArg;
   XmStringGetLtoR(cbs->value,XmSTRING_DEFAULT_CHARSET,&newName);
 
-  who = (int) userData;
+  who = (size_t) userData;
 
-/*
+/* 	
   strcpy(command,"NEW_PROGRAMNAME=");
   strcat(command,newName);
   putenv(command);
-*/
+*/  
   switch(who) {
-
+    
   case 1:                          /* save as */
-
+    
     sprintf(command,"make saveas NEW_PROGRAMNAME=%s &",newName);
     system(command);
 /*
     system("make saveas &");
 */
     break;
-
+    
   case 2:                          /* append to */
 
     sprintf(command,"make appendto NEW_PROGRAMNAME=%s &",newName);
-    system(command);
+    system(command);    
 /*
     system("make appendto &");
 */
     break;
-
+    
   default:
     break;
 
@@ -7025,12 +6953,12 @@ void OutputCB(Widget w,XtPointer userData,XtPointer callbackArg)
      char name[20],env[20],command[100];
      int  i=0,what;
 
-     what = (int) userData;
+     what = (size_t) userData;
 
      if( strcmp(GP.fileName,EMPTY) != 0) {
 
        env[0] = '\0';
-
+     
        strcpy(name,ProgramName(GP.fileName));
        while(name[i] != '.') {
 	 env[i] = name[i];
@@ -7042,7 +6970,7 @@ void OutputCB(Widget w,XtPointer userData,XtPointer callbackArg)
        if(i==0) {
 	 putenv("PROGRAMNAME=");
        else {
-
+	 	
 	 strcpy(command,"PROGRAMNAME=");
 	 strcat(command,env);
 	 putenv(command);
@@ -7091,7 +7019,7 @@ void OutputCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateDemoMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7113,7 +7041,7 @@ void	CreateDemoMenu(Widget menuBar)
   demoCSCD = XmCreateCascadeButton(menuBar,"Demos",NULL,0);
   XtManageChild(demoCSCD);
   XtVaSetValues(demoCSCD,XmNsubMenuId,demoPDPN,XmNmnemonic,'o',NULL);
-
+ 
   selPUSH = XmCreatePushButtonGadget(demoPDPN,"Select ...",NULL,0);
   XtVaSetValues(selPUSH,XmNmnemonic,'S',NULL);
   XtManageChild(selPUSH);
@@ -7198,7 +7126,7 @@ Widget	CreateDemoList(Widget parent)
 
 {
     Widget rtrn,list;
-    XmString listTitle;
+    XmString listTitle;  
 
     listTitle = XmStringCreateSimple("Auto Demos:");
 
@@ -7250,7 +7178,7 @@ void DemoCopyCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(GP.demoFileName,demoItems[index],k-2);
+       strncpy(GP.demoFileName,demoItems[index],k-2);   
        GP.demoFileName[k-2] = '\0';
        strcpy(GP.fileName,demoItems[index]);
 
@@ -7263,7 +7191,7 @@ void DemoCopyCB(Widget w,XtPointer userData,XtPointer callbackArg)
        strcat(cmd,GP.demoFileName);
        strcat(cmd,"*  . &");
        system(cmd);
-
+	
        strcpy(cmd,demo);
        strcat(cmd,"/");
        strcat(cmd,GP.fileName);
@@ -7273,20 +7201,20 @@ void DemoCopyCB(Widget w,XtPointer userData,XtPointer callbackArg)
 	break;
       }
       printf("\nLoading %s to buffer ... done\n",demoItems[index]);
-
+ 
       /* load rfile  */
 
       strcpy(cmd,demo);
-      strcat(cmd,"/r.");
+      strcat(cmd,"/c.");
       strcat(cmd,GP.demoFileName);
 
       fp = fopen(cmd,"r");
       if(fp != NULL  && ReadRfile(cmd) == 0 ) {
 	SetParScreen();
-	printf("Loading r.%s to buffer ... done\n",GP.demoFileName);
+	printf("Loading c.%s to buffer ... done\n",GP.demoFileName);
       }
       else
-	printf("r.%s is not available\n",GP.demoFileName);
+	printf("c.%s is not available\n",GP.demoFileName);
 
       if (fp != NULL)    fclose(fp);
 
@@ -7317,7 +7245,7 @@ void DemoRunCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(GP.demoFileName,demoItems[index],k-2);
+       strncpy(GP.demoFileName,demoItems[index],k-2);   
        GP.demoFileName[k-2] = '\0';
        RunDemo(GP.demoFileName);
        break;
@@ -7343,7 +7271,7 @@ void DemoBrowseCB(Widget w,XtPointer userData,XtPointer callbackArg)
    FILE *fp=NULL;
    struct stat statbuf;
    char *fileStr,file[100],name[10];
-
+   
    index = -1;
 
    XtVaGetValues(w,XmNtextString,&item,NULL);
@@ -7351,7 +7279,7 @@ void DemoBrowseCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(name,demoItems[index],k-2);
+       strncpy(name,demoItems[index],k-2); 
        name[k-2] = '\0';
        strcpy(file,GP.autoDir);
        strcat(file,"/demos/");
@@ -7412,7 +7340,7 @@ void DemoHelpCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateDefineMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7430,7 +7358,7 @@ void	CreateDefineMenu(Widget menuBar)
   define = CreateFormDefault(menuBar);
   defineCSCD = XmCreateCascadeButton(menuBar,"Define",NULL,0);
   XtManageChild(defineCSCD);
-  XtVaSetValues(defineCSCD,XmNmnemonic,'D',NULL);
+  XtVaSetValues(defineCSCD,XmNmnemonic,'D',NULL);   
   XtAddCallback(defineCSCD,XmNactivateCallback,PopupCB,define);
 
 }
@@ -7441,7 +7369,7 @@ void	CreateDefineMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreateLoadRfileMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7462,12 +7390,12 @@ void	CreateLoadRfileMenu(Widget menuBar)
   miscCSCD = XmCreateCascadeButton(menuBar,"Load",NULL,0);
   XtManageChild(miscCSCD);
   XtVaSetValues(miscCSCD,XmNsubMenuId,miscPDPN,XmNmnemonic,'L',NULL);
-
+   
   readFile = ReadFile(menuBar);
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"New Rfile",NULL,0);
   XtVaSetValues(readPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(readPUSH);
-  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);
+  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);    
 
 
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"Default Rfile",NULL,0);
@@ -7487,7 +7415,7 @@ void	CreateLoadRfileMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreateRunMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7514,13 +7442,13 @@ void	CreateRunMenu(Widget menuBar)
   XtVaSetValues(runCSCD,XmNsubMenuId,runPDPN,XmNmnemonic,'R',NULL);
 */
   XtVaSetValues(runCSCD,XmNmnemonic,'R',NULL);
-  XtAddCallback(runCSCD,XmNactivateCallback,RunCB,1);
+  XtAddCallback(runCSCD,XmNactivateCallback,RunCB,(XtPointer *)1);
 
 /*
   runPUSH = XmCreatePushButtonGadget(runPDPN,"Run",NULL,0);
   XtVaSetValues(runPUSH,XmNmnemonic,'R',NULL);
   XtManageChild(runPUSH);
-  XtAddCallback(runPUSH,XmNactivateCallback,RunCB,1);
+  XtAddCallback(runPUSH,XmNactivateCallback,RunCB,(XtPointer *)1);
 */
 
 }
@@ -7530,7 +7458,7 @@ void	CreateRunMenu(Widget menuBar)
 ***********************************************************************
 **
 **			CreateFilesMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7651,7 +7579,7 @@ void	ReadDefCB(Widget w,XtPointer userData,XtPointer callbackArg)
   strcpy(command,GP.autoDir);
   strcat(command,"/gui/");
   strcat(command,DEFAULT_RFILE);
-  if(ReadRfile(command) == 0)
+  if(ReadRfile(command) == 0) 
     SetParScreen();
 }
 
@@ -7659,7 +7587,7 @@ void	ReadDefCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateBrowseRfileMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -7680,12 +7608,12 @@ void	CreateBrowseRfileMenu(Widget menuBar)
   miscCSCD = XmCreateCascadeButton(menuBar,"Browse",NULL,0);
   XtManageChild(miscCSCD);
   XtVaSetValues(miscCSCD,XmNsubMenuId,miscPDPN,XmNmnemonic,'B',NULL);
-
+   
   readFile = ReadFile(menuBar);
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"New Rfile",NULL,0);
   XtVaSetValues(readPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(readPUSH);
-  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);
+  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);    
 
 
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"Default Rfile",NULL,0);
@@ -7698,8 +7626,8 @@ void	CreateBrowseRfileMenu(Widget menuBar)
 /*
 ***********************************************************************
 **
-**			CreateMiscMenu.c
-**
+**			CreateMiscMenu.c 
+**                           
 ************************************************************************
 */
 
@@ -7725,8 +7653,8 @@ void	CreateMiscMenu(Widget menuBar)
   miscCSCD = XmCreateCascadeButton(menuBar,"Misc",NULL,0);
   XtManageChild(miscCSCD);
   XtVaSetValues(miscCSCD,XmNsubMenuId,miscPDPN,XmNmnemonic,'M',NULL);
-
-
+ 
+  
   tekPUSH = XmCreatePushButtonGadget(miscPDPN,"Tek Window ...",NULL,0);
   XtVaSetValues(tekPUSH,XmNmnemonic,'T',NULL);
   XtManageChild(tekPUSH);
@@ -7756,7 +7684,7 @@ void	CreateMiscMenu(Widget menuBar)
   enewPUSH = XmCreatePushButtonGadget(emacsPDPN,"New ...",NULL,0);
   XtVaSetValues(enewPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(enewPUSH);
-  XtAddCallback(enewPUSH,XmNactivateCallback,PopupCB,newFile);
+  XtAddCallback(enewPUSH,XmNactivateCallback,PopupCB,newFile);  
 
 
   openFile = CreateFileSelectionDialog(menuBar,EMACS_OPTION);
@@ -7778,14 +7706,14 @@ void	CreateMiscMenu(Widget menuBar)
   xnewPUSH = XmCreatePushButtonGadget(xeditPDPN,"New ...",NULL,0);
   XtVaSetValues(xnewPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(xnewPUSH);
-  XtAddCallback(xnewPUSH,XmNactivateCallback,PopupCB,newFile);
+  XtAddCallback(xnewPUSH,XmNactivateCallback,PopupCB,newFile);  
 
 
   openFile = CreateFileSelectionDialog(menuBar,XEDIT_OPTION);
   xopenPUSH = XmCreatePushButtonGadget(xeditPDPN,"Open ...",NULL,0);
   XtVaSetValues(xopenPUSH,XmNmnemonic,'O',NULL);
   XtManageChild(xopenPUSH);
-  XtAddCallback(xopenPUSH,XmNactivateCallback,PopupCB,openFile);
+  XtAddCallback(xopenPUSH,XmNactivateCallback,PopupCB,openFile);  
 
   lineSEPT = XmCreateSeparatorGadget(miscPDPN,"Separator",NULL,0);
   XtManageChild(lineSEPT);
@@ -7802,14 +7730,14 @@ void	CreateMiscMenu(Widget menuBar)
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"Load New Rfile",NULL,0);
   XtVaSetValues(readPUSH,XmNmnemonic,'N',NULL);
   XtManageChild(readPUSH);
-  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);
+  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);    
 
 
   readPUSH = XmCreatePushButtonGadget(miscPDPN,"Load Default Rfile",NULL,0);
   XtVaSetValues(readPUSH,XmNmnemonic,'D',NULL);
   XtManageChild(readPUSH);
 /*
-  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);
+  XtAddCallback(readPUSH,XmNactivateCallback,PopupCB,readFile);    
 */
 
 #endif
@@ -7829,21 +7757,21 @@ void   PrintCB(Widget w,XtPointer userData,XtPointer callbackArg)
 {
   char command[100];
 
-
+	
   if(strcmp(GP.fileName,EMPTY) != 0) {
 
-
+    	
     strcpy(command,PRINT_FILE);
     strcat(command,GP.fileName);
     strcat(command," &");
-    if (system(command) != NULL)
+    if (system(command) != 0)
       fprintf(stderr, "print failed");
 
   }
 
-  else
+  else 
     printf("No equation was load\n");
-
+   
 
 }
 
@@ -7919,19 +7847,19 @@ void	TekCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
 
 {
-  char name[20],env[20],*newName,command[100];
+  char name[20],env[20],*newName,command[100]; 
   int  i=0,what;
   XmSelectionBoxCallbackStruct *cbs;
 
-
-  what = (int) userData;
+  
+  what = (size_t) userData;
 
   if(what == 1) {	/* plot current */
 
     if(strcmp(GP.fileName,EMPTY) != 0) {
 
       env[0] = '\0';
-
+  
       strcpy(name,ProgramName(GP.fileName));
       while(name[i] != '.') {
 	env[i] = name[i];
@@ -7951,12 +7879,12 @@ void	TekCB(Widget w,XtPointer userData,XtPointer callbackArg)
       if(i==0)
 	putenv("PROGRAMNAME=");
       else {
-
+		
 	strcpy(command,"PROGRAMNAME=");
 	strcat(command,env);
 	putenv(command);
       }
-
+  
       system("make plot_current &");
 */
     }
@@ -7973,7 +7901,7 @@ void	TekCB(Widget w,XtPointer userData,XtPointer callbackArg)
     sprintf(command,"make plot_other NEW_PLOTNAME=%s &",newName);
     system(command);
 
-/*
+/*    	
     strcpy(command,"NEW_PLOTNAME=");
     strcat(command,newName);
     putenv(command);
@@ -8010,7 +7938,7 @@ void	VtCB(Widget w,XtPointer userData,XtPointer callbackArg)
 ***********************************************************************
 **
 **			CreateHelpMenu.c
-**
+**                           
 ************************************************************************
 */
 
@@ -8039,12 +7967,12 @@ void	CreateHelpMenu(Widget menuBar)
 
   parPUSH = XmCreatePushButtonGadget(helpPDPN,"AUTO-Consts ...",NULL,0);
   XtVaSetValues(parPUSH,XmNmnemonic,'P',NULL);
-  XtManageChild(parPUSH);
+  XtManageChild(parPUSH); 
 /*
   GW.helpList = CreateScrolledHelpList(menuBar);
 */
   XtAddCallback(parPUSH,XmNactivateCallback,PopupCB,GW.helpList);
-
+ 
   manPUSH = XmCreatePushButtonGadget(helpPDPN,"User Manual ...",NULL,0);
   XtVaSetValues(manPUSH,XmNmnemonic,'M',NULL);
 
@@ -8053,7 +7981,7 @@ void	CreateHelpMenu(Widget menuBar)
 		XmNaccelerator,"<Key>F1:",NULL);
 */
 
-  XtManageChild(manPUSH);
+  XtManageChild(manPUSH); 
   XtAddCallback(manPUSH,XmNactivateCallback,ManualCB,NULL);
 
 
@@ -8074,7 +8002,7 @@ void	ManualCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
 /*
   autoDir=copyenv(AUTO_DIR);
-*/
+*/  	
   strcpy(command,"ghostview ");
   strcat(command,GP.autoDir);
   strcat(command,"/doc/auto.ps &");
@@ -8103,7 +8031,7 @@ Widget	CreateScrolledHelpList(Widget parent)
     list = XmSelectionBoxGetChild(rtrn,XmDIALOG_HELP_BUTTON);
     XtUnmanageChild(list);
 
-
+   
     XtVaSetValues(rtrn,
 		  XmNlistLabelString,listTitle,
                   XmNlistItems, GP.parXmLabel,
@@ -8137,7 +8065,7 @@ void HelpCB(Widget w, XtPointer userData,XtPointer callbackArg)
    XmString item;
    XmSelectionBoxCallbackStruct *cbs;
    int i,index = -1;
-
+    
 
    cbs = (XmSelectionBoxCallbackStruct *) callbackArg;
    item=cbs->value;
@@ -8266,17 +8194,17 @@ void   clallCB(Widget w,XtPointer userData,XtPointer callbackArg)
 #ifdef _NO_PROTO
 void   SetParCB(w,userData,callbackArg)
 Widget w;
-int    *userData;
+XtPointer userData;
 XtPointer callbackArg;
 #else
-void   SetParCB(Widget w, int *userData, XtPointer callbackArg)
+void   SetParCB(Widget w, XtPointer userData, XtPointer callbackArg)
 #endif
 
 {
    int whichPar,value;
 
-   whichPar = userData[0];
-   value    = userData[1];
+   whichPar = ((int *)userData)[0];
+   value    = ((int *)userData)[1];
 
 
    switch (whichPar) {
@@ -8287,87 +8215,71 @@ void   SetParCB(Widget w, int *userData, XtPointer callbackArg)
 
        GP.parValue[PAR_JAC]=value;
        strcpy(GP.parStrValue[PAR_JAC],"0");
-       
-XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
-       
-XtVaSetValues(GW.probButton[3],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
+       XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
+       XtVaSetValues(GW.probButton[3],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
 
      }
      else if(value == 1) {
-
+       
        GP.parValue[PAR_JAC]=value;
        strcpy(GP.parStrValue[PAR_JAC],"1");
+       XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
+       XtVaSetValues(GW.probButton[3],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
        
-XtVaSetValues(GW.parButton[PAR_JAC],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
-       
-XtVaSetValues(GW.probButton[3],XmNvalue,GP.parStrValue[PAR_JAC],NULL);
-
      }
-     else
+     else 
        printf("SetParCB : failure in PAR_JAC\n");
-
+     
     break;
-
+     
    case PAR_NCOL:
 
      if(value==2) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"2");
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
        
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-
      }
      else if(value==3) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"3");
-       
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
      }
      else if(value==4) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"4");
-       
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
      }
      else if(value==5) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"5");
-       
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
      }
      else if(value==6) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"6");
-       
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
      }
      else if(value==7) {
 
        GP.parValue[PAR_NCOL]=value;
        strcpy(GP.parStrValue[PAR_NCOL],"7");
-       
-XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
-       
-XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.parButton[PAR_NCOL],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
+       XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
      }
      else
@@ -8381,8 +8293,7 @@ XtVaSetValues(GW.disButton[1],XmNvalue,GP.parStrValue[PAR_NCOL],NULL);
 
        GP.parValue[PAR_ILP]=value;
        strcpy(GP.parStrValue[PAR_ILP],"0");
-       
-XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
        XtVaSetValues(GW.runButton[0],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
 
      }
@@ -8390,8 +8301,7 @@ XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
 
        GP.parValue[PAR_ILP]=value;
        strcpy(GP.parStrValue[PAR_ILP],"1");
-       
-XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
        XtVaSetValues(GW.runButton[0],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
 
      }
@@ -8406,8 +8316,7 @@ XtVaSetValues(GW.parButton[PAR_ILP],XmNvalue,GP.parStrValue[PAR_ILP],NULL);
 
        GP.parValue[PAR_ISP]=value;
        strcpy(GP.parStrValue[PAR_ISP],"0");
-       
-XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
        XtVaSetValues(GW.runButton[1],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
      }
@@ -8415,8 +8324,7 @@ XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
        GP.parValue[PAR_ISP]=value;
        strcpy(GP.parStrValue[PAR_ISP],"1");
-       
-XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
        XtVaSetValues(GW.runButton[1],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
      }
@@ -8424,8 +8332,7 @@ XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
        GP.parValue[PAR_ISP]=value;
        strcpy(GP.parStrValue[PAR_ISP],"2");
-       
-XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
        XtVaSetValues(GW.runButton[1],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
      }
@@ -8433,8 +8340,7 @@ XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
        GP.parValue[PAR_ISP]=value;
        strcpy(GP.parStrValue[PAR_ISP],"3");
-       
-XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
        XtVaSetValues(GW.runButton[1],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
      }
@@ -8449,8 +8355,7 @@ XtVaSetValues(GW.parButton[PAR_ISP],XmNvalue,GP.parStrValue[PAR_ISP],NULL);
 
        GP.parValue[PAR_ISW]=value;
        strcpy(GP.parStrValue[PAR_ISW],"-1");;
-       
-XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
        XtVaSetValues(GW.runButton[2],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
      }
@@ -8458,8 +8363,7 @@ XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
        GP.parValue[PAR_ISW]=value;
        strcpy(GP.parStrValue[PAR_ISW],"1");
-       
-XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
        XtVaSetValues(GW.runButton[2],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
      }
@@ -8467,8 +8371,7 @@ XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
        GP.parValue[PAR_ISW]=value;
        strcpy(GP.parStrValue[PAR_ISW],"2");
-       
-XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
+       XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
        XtVaSetValues(GW.runButton[2],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
      }
@@ -8483,8 +8386,7 @@ XtVaSetValues(GW.parButton[PAR_ISW],XmNvalue,GP.parStrValue[PAR_ISW],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"-1");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8492,8 +8394,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"0");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8501,8 +8402,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"1");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8510,8 +8410,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"2");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8519,8 +8418,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"3");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8528,8 +8426,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"4");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8537,8 +8434,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"5");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8546,8 +8442,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"6");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8555,24 +8450,21 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"7");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
      }
      else if(value==8) {
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"8");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
      }
      else if(value==11) {
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"11");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8580,8 +8472,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"12");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8589,8 +8480,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"13");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8598,8 +8488,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"14");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8607,8 +8496,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IPS]=value;
        strcpy(GP.parStrValue[PAR_IPS],"15");
-       
-XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
+       XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
        XtVaSetValues(GW.runButton[5],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
      }
@@ -8623,8 +8511,7 @@ XtVaSetValues(GW.parButton[PAR_IPS],XmNvalue,GP.parStrValue[PAR_IPS],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"0");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8632,8 +8519,7 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"1");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8641,8 +8527,7 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"2");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8650,8 +8535,7 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"3");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8659,8 +8543,7 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"4");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8668,8 +8551,7 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
        GP.parValue[PAR_IID]=value;
        strcpy(GP.parStrValue[PAR_IID],"5");
-       
-XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
+       XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
        XtVaSetValues(GW.outButton[1],XmNvalue,GP.parStrValue[PAR_IID],NULL);
 
      }
@@ -8679,9 +8561,9 @@ XtVaSetValues(GW.parButton[PAR_IID],XmNvalue,GP.parStrValue[PAR_IID],NULL);
    default:
      printf("SetParCB : failure.\n");
      break;
-
+     
    }
-
+   
 }
 
 
@@ -8707,7 +8589,7 @@ Widget PopupIid(Widget parent)
 
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"IID Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -8783,7 +8665,7 @@ Widget PopupIps(Widget parent)
    p15[0] = PAR_IPS;
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"IPS Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -8895,7 +8777,7 @@ Widget PopupIsw(Widget parent)
    p3[0] = PAR_ISW;
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"ISW Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -8944,7 +8826,7 @@ Widget PopupIsp(Widget parent)
    p4[0] = PAR_ISP;
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"ISP Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -9000,7 +8882,7 @@ Widget PopupIlp(Widget parent)
    p2[0] = PAR_ILP;
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"ILP Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -9041,7 +8923,7 @@ Widget PopupJac(Widget parent)
    p2[0] = PAR_JAC;
 
    rtrn = XmCreatePopupMenu(parent,"Popup",NULL,0);
-
+   
    wgt = XmCreateLabelGadget(rtrn,"JAC Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -9085,7 +8967,7 @@ Widget PopupNcol(Widget parent)
    p4[0] = PAR_NCOL;
    p5[0] = PAR_NCOL;
    p6[0] = PAR_NCOL;
-
+   
    wgt = XmCreateLabelGadget(rtrn,"NCOL Menu",NULL,0);
    XtManageChild(wgt);
    wgt = XmCreateSeparatorGadget(rtrn,"Separator",NULL,0);
@@ -9154,7 +9036,7 @@ Widget PopupThl(Widget parent)
    XtVaSetValues(rwcl,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
 
 
    userData1.widget = rtrn;
@@ -9177,8 +9059,8 @@ Widget PopupThl(Widget parent)
 
 
    for(i = 0; i < MAX_NTHL; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
 
@@ -9207,7 +9089,7 @@ Widget PopupThl(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thlStrValue[k2],
 		   NULL);
-
+     
    }
 
 
@@ -9266,7 +9148,7 @@ Widget PopupThl(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
+   
    XtVaSetValues(wgt,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_NONE,
@@ -9278,8 +9160,8 @@ Widget PopupThl(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
-
+   
+   
    XtVaSetValues(form,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_FORM,
@@ -9371,13 +9253,13 @@ Widget PopupThl(Widget parent)
    label = XmCreateSeparatorGadget(rc2,"st",NULL,0);
    XtManageChild(label);
 */
-
+      
    for(i = 0; i < MAX_NTHL/2; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc1,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -9403,15 +9285,15 @@ Widget PopupThl(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thlStrValue[k2],
 		   NULL);
-
+     
    }
 
    for(i = MAX_NTHL/2; i < MAX_NTHL; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc2,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -9437,7 +9319,7 @@ Widget PopupThl(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thlStrValue[k2],
 		   NULL);
-
+     
    }
 
 #endif
@@ -9461,10 +9343,10 @@ void   DeleteCB(Widget w,XtPointer userData, XtPointer callbackArg)
   char *name,command[100];
 
   cbs=(XmSelectionBoxCallbackStruct *) callbackArg;
-
+      
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &name);
 
-
+  	
   sprintf(command,"make deletedata DELETEDATA=%s &",name);
   system(command);
 
@@ -9475,23 +9357,23 @@ void   DeleteCB(Widget w,XtPointer userData, XtPointer callbackArg)
   char *name;
 
   cbs=(XmSelectionBoxCallbackStruct *) callbackArg;
-
+      
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &name);
 
-
-  sprintf(GP.command,"rm -f p\.%s &\0",name);
+  	
+  sprintf(GP.command,"rm -f b\.%s &\0",name);
   system(GP.command);
-  printf("Deleting p.%s ... done\n",name);
+  printf("Deleting b.%s ... done\n",name);
 
-
-  sprintf(GP.command,"rm -f q\.%s &\0",name);
+  	
+  sprintf(GP.command,"rm -f s\.%s &\0",name);
   system(GP.command);
-  printf("Deleting q.%s ... done\n",name);
+  printf("Deleting s.%s ... done\n",name);
 
-
+  	
   sprintf(GP.command,"rm -f d\.%s &\0",name);
   system(GP.command);
-  printf("Deleting d.%s ... done\n",name);
+  printf("Deleting d.%s ... done\n",name); 
 
 #endif
 
@@ -9512,14 +9394,14 @@ void   RestartCB(Widget w,XtPointer userData, XtPointer callbackArg)
   char *name,command[100];
 
   cbs=(XmSelectionBoxCallbackStruct *) callbackArg;
-
+      
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &name);
 
 
   strcpy(GP.q,name);
   GP.restart = 1;
 
-
+  	
   sprintf(command,"make restartdata RESTARTDATA=%s &",name);
   system(command);
 
@@ -9533,7 +9415,7 @@ void   RestartCB(Widget w,XtPointer userData, XtPointer callbackArg)
   if(strcmp(GP.fileName,EMPTY) != 0) {
 
     cbs=(XmSelectionBoxCallbackStruct *) callbackArg;
-
+      
     XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &name);
 
     strcpy(nm,ProgramName(GP.fileName));
@@ -9542,28 +9424,27 @@ void   RestartCB(Widget w,XtPointer userData, XtPointer callbackArg)
     nm[i] = '\0';
 
 /*
-    sprintf(GP.command,"cp r\.%s r\.%s &",name,nm);
+    sprintf(GP.command,"cp c\.%s c\.%s &",name,nm);
     system(GP.command);
-    printf("Copying r.%s to r.%s ... done\n",name,nm);
+    printf("Copying c.%s to c.%s ... done\n",name,nm);
 
-    sprintf(GP.command,"cp p\.%s p\.%s &",name,nm);
+    sprintf(GP.command,"cp b\.%s b\.%s &",name,nm);
     system(GP.command);
-    printf("Copying p.%s to p.%s ... done\n",name,nm);
+    printf("Copying b.%s to b.%s ... done\n",name,nm);
 */
 
-
-    sprintf(GP.command,"cp q\.%s q\.%s &\0",name,nm);
+    	
+    sprintf(GP.command,"cp s\.%s s\.%s &\0",name,nm);
     system(GP.command);
-    printf("Copying q.%s to q.%s ... done\n",name,nm);
+    printf("Copying s.%s to s.%s ... done\n",name,nm);
 /*
     sprintf(GP.command,"cp d\.%s d\.%s &",name,nm);
     system(GP.command);
     printf("Copying d.%s to d.%s ... done\n",name,nm);
 
-    printf("Setting restart files as r.%s p.%s q.%s d.%s ... 
-done\n",name,name,name,name);
+    printf("Setting restart files as c.%s p.%s s.%s d.%s ... done\n",name,name,name,name);
 */
-    printf("Setting restart file as q.%s ... done\n",name);
+    printf("Setting restart file as s.%s ... done\n",name);
   }
   else
     printf("No equation was loaded\n");
@@ -9596,7 +9477,7 @@ void   CopyDataCB(Widget w,XtPointer userData, XtPointer callbackArg)
     XtVaGetValues(GW.copyTo,XmNvalue,&value,NULL);
     strcpy(to,value);
 
-
+    	
     sprintf(command,"make copydata COPYFROM=%s COPYTO=%s &",from,to);
     system(command);
 
@@ -9635,38 +9516,38 @@ void   CopyDataCB(Widget w,XtPointer userData, XtPointer callbackArg)
     strcpy(to,value);
 
 /*
-    strcpy(GP.command,"cp r\.");
+    strcpy(GP.command,"cp c\.");
     strcat(GP.command,from);
-    strcat(GP.command," r\.");
+    strcat(GP.command," c\.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
 
-    sprintf(GP.command,"cp r\.%s r\.%s &\0",from,to);
+    sprintf(GP.command,"cp c\.%s c\.%s &\0",from,to);
     system(GP.command);
-    printf("Copying r.%s to r.%s ... done\n",from,to);
-
-/*
-    strcpy(GP.command,"cp p\.");
-    strcat(GP.command,from);
-    strcat(GP.command," p\.");
-    strcat(GP.command,to);
-    strcat(GP.command,"\0");
-*/
-    sprintf(GP.command,"cp p\.%s p\.%s &\0",from,to);
-    system(GP.command);
-    printf("Copying p.%s to p.%s ... done\n",from,to);
+    printf("Copying c.%s to c.%s ... done\n",from,to);
 
 /*
-    strcpy(GP.command,"cp q\.");
+    strcpy(GP.command,"cp b\.");
     strcat(GP.command,from);
-    strcat(GP.command," q\.");
+    strcat(GP.command," b\.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"cp q\.%s q\.%s &\0",from,to);
+    sprintf(GP.command,"cp b\.%s b\.%s &\0",from,to);
     system(GP.command);
-    printf("Copying q.%s to q.%s ... done\n",from,to);
+    printf("Copying b.%s to b.%s ... done\n",from,to);
+
+/*
+    strcpy(GP.command,"cp s\.");
+    strcat(GP.command,from);
+    strcat(GP.command," s\.");
+    strcat(GP.command,to);
+    strcat(GP.command,"\0");
+*/
+    sprintf(GP.command,"cp s\.%s s\.%s &\0",from,to);
+    system(GP.command);
+    printf("Copying s.%s to s.%s ... done\n",from,to);
 
 /*
     strcpy(GP.command,"cp d\.");
@@ -9725,7 +9606,7 @@ Widget CopyData(Widget parent)
    XtVaSetValues(rc,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
    form = XmCreateForm(rc,"fm",NULL,0);
    XtManageChild(form);
    label1 = XmCreateLabelGadget(form,"  Copy",NULL,0);
@@ -9762,8 +9643,8 @@ Widget CopyData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
-
+  
+  
 
 
    form = XmCreateForm(rc,"fm",NULL,0);
@@ -9789,7 +9670,7 @@ Widget CopyData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   XtVaSetValues(GW.copyTo,
 		XmNtopAttachment,XmATTACH_FORM,
@@ -9802,7 +9683,7 @@ Widget CopyData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
    return rtrn;
 
 }
@@ -9831,7 +9712,7 @@ void   MoveDataCB(Widget w,XtPointer userData, XtPointer callbackArg)
     XtVaGetValues(GW.moveTo,XmNvalue,&value,NULL);
     strcpy(to,value);
 
-
+    
     sprintf(command,"make movedata MOVEFROM=%s MOVETO=%s &",from,to);
     system(command);
   }
@@ -9869,37 +9750,37 @@ void   MoveDataCB(Widget w,XtPointer userData, XtPointer callbackArg)
     strcpy(to,value);
 
 /*
-    strcpy(GP.command,"mv r.");
+    strcpy(GP.command,"mv c.");
     strcat(GP.command,from);
-    strcat(GP.command," r.");
+    strcat(GP.command," c.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"mv r\.%s r\.%s &\0",from,to);
+    sprintf(GP.command,"mv c\.%s c\.%s &\0",from,to);
     system(GP.command);
-    printf("Moving r.%s to r.%s ... done\n",from,to);
+    printf("Moving c.%s to c.%s ... done\n",from,to);
 
 /*
-    strcpy(GP.command,"mv p.");
+    strcpy(GP.command,"mv b.");
     strcat(GP.command,from);
-    strcat(GP.command," p.");
+    strcat(GP.command," b.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"mv p\.%s p\.%s &\0",from,to);
+    sprintf(GP.command,"mv b\.%s b\.%s &\0",from,to);
     system(GP.command);
-    printf("Moving p.%s to p.%s ... done\n",from,to);
+    printf("Moving b.%s to b.%s ... done\n",from,to);
 
 /*
-    strcpy(GP.command,"mv q.");
+    strcpy(GP.command,"mv s.");
     strcat(GP.command,from);
-    strcat(GP.command," q.");
+    strcat(GP.command," s.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"mv q\.%s q\.%s &\0",from,to);
+    sprintf(GP.command,"mv s\.%s s\.%s &\0",from,to);
     system(GP.command);
-    printf("Moving q.%s to q.%s ... done\n",from,to);
+    printf("Moving s.%s to s.%s ... done\n",from,to);
 
 /*
     strcpy(GP.command,"mv d.");
@@ -9959,7 +9840,7 @@ Widget MoveData(Widget parent)
    XtVaSetValues(rc,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
    form = XmCreateForm(rc,"fm",NULL,0);
    XtManageChild(form);
    label1 = XmCreateLabelGadget(form,"  Move",NULL,0);
@@ -9996,8 +9877,8 @@ Widget MoveData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
-
+  
+  
 
 
    form = XmCreateForm(rc,"fm",NULL,0);
@@ -10023,7 +9904,7 @@ Widget MoveData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   XtVaSetValues(GW.moveTo,
 		XmNtopAttachment,XmATTACH_FORM,
@@ -10036,7 +9917,7 @@ Widget MoveData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
    return rtrn;
 
 
@@ -10108,37 +9989,37 @@ void   AppendDataCB(Widget w,XtPointer userData, XtPointer callbackArg)
     strcpy(to,value);
 
 /*
-    strcpy(GP.command,"cat r.");
+    strcpy(GP.command,"cat c.");
     strcat(GP.command,from);
-    strcat(GP.command," >> r.");
+    strcat(GP.command," >> c.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"cat r\.%s >> r\.%s &\0",from,to);
+    sprintf(GP.command,"cat c\.%s >> c\.%s &\0",from,to);
     system(GP.command);
-    printf("Appending r.%s to r.%s ... done\n",from,to);
+    printf("Appending c.%s to c.%s ... done\n",from,to);
 
 /*
-    strcpy(GP.command,"cat p.");
+    strcpy(GP.command,"cat b.");
     strcat(GP.command,from);
-    strcat(GP.command," >> p.");
+    strcat(GP.command," >> b.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"cat p\.%s >> p\.%s &\0",from,to);
+    sprintf(GP.command,"cat b\.%s >> b\.%s &\0",from,to);
     system(GP.command);
-    printf("Appending p.%s to p.%s ... done\n",from,to);
+    printf("Appending b.%s to b.%s ... done\n",from,to);
 
 /*
-    strcpy(GP.command,"cat q.");
+    strcpy(GP.command,"cat s.");
     strcat(GP.command,from);
-    strcat(GP.command," >> q.");
+    strcat(GP.command," >> s.");
     strcat(GP.command,to);
     strcat(GP.command,"\0");
 */
-    sprintf(GP.command,"cat q\.%s >> q\.%s &\0",from,to);
+    sprintf(GP.command,"cat s\.%s >> s\.%s &\0",from,to);
     system(GP.command);
-    printf("Appending q.%s to q.%s ... done\n",from,to);
+    printf("Appending s.%s to s.%s ... done\n",from,to);
 
 /*
     strcpy(GP.command,"cat d.");
@@ -10199,7 +10080,7 @@ Widget AppendData(Widget parent)
    XtVaSetValues(rc,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
    form = XmCreateForm(rc,"fm",NULL,0);
    XtManageChild(form);
    label1 = XmCreateLabelGadget(form,"Append",NULL,0);
@@ -10236,8 +10117,8 @@ Widget AppendData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
-
+  
+  
 
 
    form = XmCreateForm(rc,"fm",NULL,0);
@@ -10263,7 +10144,7 @@ Widget AppendData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   XtVaSetValues(GW.appendTo,
 		XmNtopAttachment,XmATTACH_FORM,
@@ -10276,7 +10157,7 @@ Widget AppendData(Widget parent)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
    return rtrn;
 
 }
@@ -10308,7 +10189,7 @@ Widget PopupIcp(Widget parent)
    XtVaSetValues(rwcl,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
    userData1.widget = rtrn;
    userData1.data = 1;
    userData2.widget = rtrn;
@@ -10348,8 +10229,8 @@ Widget PopupIcp(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.icpStrValue[i],
 		   NULL);
-
-/*
+     
+/*     
      k1 = 2*i;
      k2 = k1+1;
 
@@ -10376,7 +10257,7 @@ Widget PopupIcp(Widget parent)
 		   XmNvalue,GP.icpStrValue[k2],
 		   NULL);
 */
-
+        
    }
 
 
@@ -10397,7 +10278,7 @@ void   TmpCB(Widget w,XtPointer userData,XtPointer callbackArg)
 {
   ClientData *tmp;
 
-
+   
    tmp = (ClientData *) userData;
 
    SaveParScreen(tmp->data);
@@ -10420,7 +10301,7 @@ void UzrToggleCB(Widget w,XtPointer userData,XtPointer callbackArg)
   XmToggleButtonCallbackStruct *cbs;
 
   cbs = (XmToggleButtonCallbackStruct *) callbackArg;
-  i = (int) userData;
+  i = (size_t) userData;
   if(cbs->set)
     GP.uzrToggle[i] = True;
 
@@ -10448,13 +10329,13 @@ Widget PopupUzr(Widget parent)
    XtVaSetValues(rwcl,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
 
    userData1.widget =rtrn;
    userData1.data =2;
    userData2.widget =rtrn;
    userData2.data =6;
-
+   
    XtAddCallback(ok,XmNactivateCallback,TmpCB,&userData1);
    XtAddCallback(apply,XmNactivateCallback,TmpCB,&userData2);
    XtAddCallback(cancel,XmNactivateCallback,PopdownCB,rtrn);
@@ -10463,8 +10344,8 @@ Widget PopupUzr(Widget parent)
 
    frame = XmCreateFrame(rwcl,"Frame",NULL,0);
    XtManageChild(frame);
-
-#if 0
+ 
+#if 0  
 
    t = XmCreateRowColumn(frame,"rc",NULL,0);
    XtManageChild(t);
@@ -10493,8 +10374,8 @@ Widget PopupUzr(Widget parent)
 
 
    for(i = 0; i < MAX_NUZR; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
 
@@ -10528,7 +10409,7 @@ Widget PopupUzr(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.uzrStrValue[k2],
 		   NULL);
-
+     
    }
 
 
@@ -10545,7 +10426,7 @@ Widget PopupUzr(Widget parent)
    userData1.data =2;
    userData2.widget =rtrn;
    userData2.data =6;
-
+   
    XtAddCallback(ok,XmNactivateCallback,TmpCB,&userData1);
    XtAddCallback(apply,XmNactivateCallback,TmpCB,&userData2);
    XtAddCallback(cancel,XmNactivateCallback,PopdownCB,rtrn);
@@ -10586,7 +10467,7 @@ Widget PopupUzr(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
+   
    XtVaSetValues(wgt,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_NONE,
@@ -10598,8 +10479,8 @@ Widget PopupUzr(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
-
+   
+   
    XtVaSetValues(form,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_FORM,
@@ -10692,13 +10573,13 @@ Widget PopupUzr(Widget parent)
    label = XmCreateSeparatorGadget(rc2,"st",NULL,0);
    XtManageChild(label);
 */
-
+      
    for(i = 0; i < MAX_NUZR/2; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc1,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -10724,15 +10605,15 @@ Widget PopupUzr(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.uzrStrValue[k2],
 		   NULL);
-
+     
    }
 
    for(i = MAX_NUZR/2; i < MAX_NUZR; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc2,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -10758,7 +10639,7 @@ Widget PopupUzr(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.uzrStrValue[k2],
 		   NULL);
-
+     
    }
 
 #endif
@@ -10776,12 +10657,12 @@ int	CountAny(int who)
 #endif
 
 {
-int i, k1,k2,num=0;
-char  *value;
+ int i, k1,k2,num=0;
+ char  *value;
 
-switch(who) {
-
-case 0:                /* icp */
+ switch(who) {
+ 
+ case 0:                /* icp */
 
   for(i=0; i<MAX_NICP; i++) {
      XtVaGetValues(GW.icpButton[i],XmNvalue,&value,NULL);
@@ -10795,10 +10676,10 @@ case 0:                /* icp */
        ++num;
 */
    }
-
+ 
    break;
 
-case 1:		/* uzr */
+ case 1:		/* uzr */
 
    for(i=0; i<MAX_NUZR; i++) {
      k1=2*i;
@@ -10809,7 +10690,7 @@ case 1:		/* uzr */
    }
    break;
 
-case 2:		/* thl */
+ case 2:		/* thl */
 
    for(i=0; i<MAX_NTHL; i++) {
      k1=2*i;
@@ -10820,7 +10701,7 @@ case 2:		/* thl */
    }
    break;
 
-case 3:		/* thu */
+ case 3:		/* thu */
 
    for(i=0; i<MAX_NTHU; i++) {
      k1=2*i;
@@ -10831,9 +10712,9 @@ case 3:		/* thu */
    }
    break;
 
-default:
+ default:
    break;
-}
+ }
 
   return num;
 
@@ -10864,7 +10745,7 @@ Widget PopupThu(Widget parent)
    XtVaSetValues(rwcl,XmNorientation,XmHORIZONTAL,
 		 XmNpacking,XmPACK_COLUMN,
 		 XmNnumColumns,1,NULL);
-
+  
 
 
    userData1.widget = rtrn;
@@ -10888,8 +10769,8 @@ Widget PopupThu(Widget parent)
 
 
    for(i = 0; i < MAX_NTHU; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
 
@@ -10918,7 +10799,7 @@ Widget PopupThu(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thuStrValue[k2],
 		   NULL);
-
+     
    }
 
 
@@ -10975,7 +10856,7 @@ Widget PopupThu(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
+   
    XtVaSetValues(wgt,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_NONE,
@@ -10987,8 +10868,8 @@ Widget PopupThu(Widget parent)
 		 XmNleftOffset,10,
 		 XmNrightOffset,10,
 		 NULL);
-
-
+   
+   
    XtVaSetValues(form,
 		 XmNtopAttachment,XmATTACH_WIDGET,
 		 XmNbottomAttachment,XmATTACH_FORM,
@@ -11081,13 +10962,13 @@ Widget PopupThu(Widget parent)
    label = XmCreateSeparatorGadget(rc2,"st",NULL,0);
    XtManageChild(label);
 */
-
+      
    for(i = 0; i < MAX_NTHU/2; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc1,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -11113,15 +10994,15 @@ Widget PopupThu(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thuStrValue[k2],
 		   NULL);
-
+     
    }
 
    for(i = MAX_NTHU/2; i < MAX_NTHU; i++)	{
-
-
+     
+     
      k1 = 2*i;
      k2 = k1+1;
-/*
+/*     
      frame = XmCreateFrame(rc2,"Frame",NULL,0);
      XtManageChild(frame);
 */
@@ -11147,7 +11028,7 @@ Widget PopupThu(Widget parent)
 		   XmNmaxLength,WX_TEXTLENGTH,
 		   XmNvalue,GP.thuStrValue[k2],
 		   NULL);
-
+     
    }
 
 #endif
@@ -11476,7 +11357,7 @@ Widget *ok,Widget *apply,Widget *cancel,Widget *help,int position)
   XtManageChild(form);
 
 
-
+  
   XtVaSetValues(*rwcl,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11488,7 +11369,7 @@ Widget *ok,Widget *apply,Widget *cancel,Widget *help,int position)
 		XmNrightOffset,10,
 		NULL);
 
-
+  
   XtVaSetValues(sept,
 		XmNtopAttachment,XmATTACH_WIDGET,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11512,7 +11393,7 @@ Widget *ok,Widget *apply,Widget *cancel,Widget *help,int position)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   *ok = XmCreatePushButton(form,"  Ok  ",NULL,0);
   XtManageChild(*ok);
@@ -11523,7 +11404,7 @@ Widget *ok,Widget *apply,Widget *cancel,Widget *help,int position)
   *cancel = XmCreatePushButton(form,"Cancel",NULL,0);
   XtManageChild(*cancel);
 
-
+  
   *help = XmCreatePushButton(form," Help ",NULL,0);
   XtManageChild(*help);
 
@@ -11585,8 +11466,7 @@ void   PopupTemplate1(parent,rwcl,ok,apply,cancel,help)
 Widget parent,*rwcl,*ok,*apply,*cancel,*help;
 #else
 void   PopupTemplate1
-(Widget parent,Widget *rwcl,Widget *ok,Widget *apply,Widget *cancel,Widget 
-*help)
+(Widget parent,Widget *rwcl,Widget *ok,Widget *apply,Widget *cancel,Widget *help)
 #endif
 
 {
@@ -11606,7 +11486,7 @@ void   PopupTemplate1
 		XmNpacking,XmPACK_COLUMN,
 		XmNnumColumns,1,NULL);
 */
-
+  
   XtVaSetValues(*rwcl,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11618,7 +11498,7 @@ void   PopupTemplate1
 		XmNrightOffset,10,
 		NULL);
 
-
+  
   XtVaSetValues(sept,
 		XmNtopAttachment,XmATTACH_WIDGET,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11642,7 +11522,7 @@ void   PopupTemplate1
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   *ok = XmCreatePushButton(form," Ok ",NULL,0);
   XtManageChild(*ok);
@@ -11653,7 +11533,7 @@ void   PopupTemplate1
   *cancel = XmCreatePushButton(form,"Cancel",NULL,0);
   XtManageChild(*cancel);
 
-
+  
   *help = XmCreatePushButton(form,"Help",NULL,0);
   XtManageChild(*help);
 
@@ -11732,8 +11612,7 @@ void   PopupTemplate3(parent,rwcl,ok,apply,cancel,help)
 Widget parent,*rwcl,*ok,*apply,*cancel,*help;
 #else
 void   PopupTemplate3
-(Widget parent,Widget *rwcl,Widget *ok,Widget *apply,Widget *cancel,Widget 
-*help)
+(Widget parent,Widget *rwcl,Widget *ok,Widget *apply,Widget *cancel,Widget *help)
 #endif
 
 {
@@ -11747,7 +11626,7 @@ void   PopupTemplate3
 
   rc = XmCreateRowColumn(parent,"rc",NULL,0);
   XtManageChild(rc);
-
+  
   XtVaSetValues(*rwcl,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11759,7 +11638,7 @@ void   PopupTemplate3
 		XmNrightOffset,10,
 		NULL);
 
-
+  
   XtVaSetValues(sept,
 		XmNtopAttachment,XmATTACH_WIDGET,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11783,7 +11662,7 @@ void   PopupTemplate3
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   XtVaSetValues(rc,XmNorientation,XmHORIZONTAL,
 		XmNpacking,XmPACK_COLUMN,
@@ -11823,7 +11702,7 @@ void   PopupTemplate4(Widget parent,Widget *rwcl,Widget *ok,Widget *cancel)
 
   form = XmCreateForm(parent,"fm",NULL,0);
   XtManageChild(form);
-
+  
   XtVaSetValues(*rwcl,
 		XmNtopAttachment,XmATTACH_FORM,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11835,7 +11714,7 @@ void   PopupTemplate4(Widget parent,Widget *rwcl,Widget *ok,Widget *cancel)
 		XmNrightOffset,10,
 		NULL);
 
-
+  
   XtVaSetValues(sept,
 		XmNtopAttachment,XmATTACH_WIDGET,
 		XmNbottomAttachment,XmATTACH_NONE,
@@ -11859,7 +11738,7 @@ void   PopupTemplate4(Widget parent,Widget *rwcl,Widget *ok,Widget *cancel)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   *ok = XmCreatePushButton(form,"  Ok  ",NULL,0);
   XtManageChild(*ok);
@@ -11919,7 +11798,7 @@ void   PopupTemplate2(Widget parent,Widget *fm)
 		XmNrightOffset,10,
 		NULL);
 
-
+  
   XtVaSetValues(sept,
 		XmNtopAttachment,XmATTACH_NONE,
 		XmNbottomAttachment,XmATTACH_WIDGET,
@@ -11942,13 +11821,13 @@ void   PopupTemplate2(Widget parent,Widget *fm)
 		XmNleftOffset,10,
 		XmNrightOffset,10,
 		NULL);
-
+  
 
   cancel = XmCreatePushButton(form,"Cancel",NULL,0);
   XtManageChild(cancel);
   XtAddCallback(cancel,XmNactivateCallback,PopdownCB,parent);
 
-/*
+/*  
   help = XmCreatePushButton(form," Help ",NULL,0);
   XtManageChild(help);
   XtAddCallback(help,XmNactivateCallback,PopupCB,GW.demoList);
@@ -11997,38 +11876,38 @@ void   PopupTemplate2(Widget parent,Widget *fm)
 enum {
 
   PAR_NDIM,
-  PAR_NBC,
+  PAR_NBC,                          
   PAR_NINT,
   PAR_JAC,
-  PAR_NTST,
-  PAR_NCOL,
+  PAR_NTST,     
+  PAR_NCOL,                         
   PAR_IAD,
   PAR_EPSL,
   PAR_EPSU,
-  PAR_EPSS,
+  PAR_EPSS,             
   PAR_ITMX,
   PAR_NWTN,
   PAR_ITNW,
   PAR_DS,
   PAR_DSMIN,
   PAR_DSMAX,
-  PAR_IADS,
+  PAR_IADS,                   
   PAR_NMX,
   PAR_RL0,
   PAR_RL1,
   PAR_A0,
   PAR_A1,
-  PAR_NICP,
+  PAR_NICP,                      
   PAR_ICP,
   PAR_ILP,
   PAR_ISP,
-  PAR_ISW,
+  PAR_ISW,               
   PAR_MXBF,
   PAR_IRS,
   PAR_IPS,
   PAR_NPR,
   PAR_IID,
-  PAR_IPLT,
+  PAR_IPLT,                     
   PAR_NUZR,
   PAR_NTHL,
   PAR_NTHU
@@ -12063,7 +11942,7 @@ extern void WriteRfile(char *rfile);
 extern TEMP GP;
 
 TEMP GP;
-
+  
 /*   tmp codes end  */
 
 
@@ -12084,6 +11963,7 @@ int    ReadRfile(char *rfile)
 
   if( (fp = fopen(rfile,"r")) == NULL)  {
     printf("Unable to open the file : %s\n",rfile);
+    if (fp != NULL)    fclose(fp);    
     return (-1);
   }
   if( fscanf(fp,"%lg%lg%lg%lg",
@@ -12095,10 +11975,10 @@ int    ReadRfile(char *rfile)
     return (-1);
   }
 
-  sprintf(GP.parStrValue[PAR_NDIM],"%d",(int) GP.parValue[PAR_NDIM]);
-  sprintf(GP.parStrValue[PAR_IPS ],"%d",(int) GP.parValue[PAR_IPS]);
-  sprintf(GP.parStrValue[PAR_IRS ],"%d",(int) GP.parValue[PAR_IRS]);
-  sprintf(GP.parStrValue[PAR_ILP ],"%d",(int) GP.parValue[PAR_ILP]);
+  sprintf(GP.parStrValue[PAR_NDIM],"%d",(int) GP.parValue[PAR_NDIM]);  
+  sprintf(GP.parStrValue[PAR_IPS ],"%d",(int) GP.parValue[PAR_IPS]);  
+  sprintf(GP.parStrValue[PAR_IRS ],"%d",(int) GP.parValue[PAR_IRS]);  
+  sprintf(GP.parStrValue[PAR_ILP ],"%d",(int) GP.parValue[PAR_ILP]);  
 
   while( (c=fgetc(fp)) != '\n' );
 
@@ -12108,26 +11988,26 @@ int    ReadRfile(char *rfile)
     if (fp != NULL)    fclose(fp);
     return (-1);
   }
-  sprintf(GP.parStrValue[PAR_NICP],"%d",(int) GP.parValue[PAR_NICP]);
+  sprintf(GP.parStrValue[PAR_NICP],"%d",(int) GP.parValue[PAR_NICP]);  
 
   if((int) GP.parValue[PAR_NICP] > MAX_NICP) {
     GP.nicpFlag = -1;
     GP.nicp = MAX_NICP;
   }
-  else
+  else  
     GP.nicp = (int) GP.parValue[PAR_NICP];
 
 
   for(c=0; c < (int)GP.parValue[PAR_NICP]; c++) {
     if( fscanf(fp,"%lg",&GP.icpValue[c]) != 1) {
-       if (fp != NULL)    fclose(fp);
+      if (fp != NULL)    fclose(fp);      
       return (-1);
     }
-    sprintf(GP.icpStrValue[c],"%d",(int) GP.icpValue[c]);
+    sprintf(GP.icpStrValue[c],"%d",(int) GP.icpValue[c]);  
   }
   if(( (int) GP.parValue[PAR_NICP]) > 0) {
     GP.parValue[PAR_ICP]=GP.icpValue[0];
-    sprintf(GP.parStrValue[PAR_ICP],"%d",(int)GP.parValue[PAR_ICP]);
+    sprintf(GP.parStrValue[PAR_ICP],"%d",(int)GP.parValue[PAR_ICP]);    
   }
   else {
     strcpy(GP.parStrValue[PAR_ICP],"");
@@ -12150,15 +12030,15 @@ int    ReadRfile(char *rfile)
     if (fp != NULL)    fclose(fp);
     return (-1);
   }
-
-  sprintf(GP.parStrValue[PAR_NTST],"%d",(int) GP.parValue[PAR_NTST]);
-  sprintf(GP.parStrValue[PAR_NCOL],"%d",(int) GP.parValue[PAR_NCOL]);
-  sprintf(GP.parStrValue[PAR_IAD],"%d",(int) GP.parValue[PAR_IAD]);
-  sprintf(GP.parStrValue[PAR_ISP],"%d",(int) GP.parValue[PAR_ISP]);
-  sprintf(GP.parStrValue[PAR_ISW],"%d",(int) GP.parValue[PAR_ISW]);
-  sprintf(GP.parStrValue[PAR_IPLT],"%d",(int) GP.parValue[PAR_IPLT]);
-  sprintf(GP.parStrValue[PAR_NBC],"%d",(int) GP.parValue[PAR_NBC]);
-  sprintf(GP.parStrValue[PAR_NINT],"%d",(int) GP.parValue[PAR_NINT]);
+  
+  sprintf(GP.parStrValue[PAR_NTST],"%d",(int) GP.parValue[PAR_NTST]);  
+  sprintf(GP.parStrValue[PAR_NCOL],"%d",(int) GP.parValue[PAR_NCOL]);  
+  sprintf(GP.parStrValue[PAR_IAD],"%d",(int) GP.parValue[PAR_IAD]);  
+  sprintf(GP.parStrValue[PAR_ISP],"%d",(int) GP.parValue[PAR_ISP]);  
+  sprintf(GP.parStrValue[PAR_ISW],"%d",(int) GP.parValue[PAR_ISW]);  
+  sprintf(GP.parStrValue[PAR_IPLT],"%d",(int) GP.parValue[PAR_IPLT]);  
+  sprintf(GP.parStrValue[PAR_NBC],"%d",(int) GP.parValue[PAR_NBC]);  
+  sprintf(GP.parStrValue[PAR_NINT],"%d",(int) GP.parValue[PAR_NINT]);  
 
 
   while( (c=fgetc(fp)) != '\n' );
@@ -12174,11 +12054,11 @@ int    ReadRfile(char *rfile)
     return (-1);
   }
 
-  sprintf(GP.parStrValue[PAR_NMX],"%d",(int) GP.parValue[PAR_NMX]);
-  sprintf(GP.parStrValue[PAR_RL0],"%lg", GP.parValue[PAR_RL0]);
-  sprintf(GP.parStrValue[PAR_RL1],"%lg", GP.parValue[PAR_RL1]);
-  sprintf(GP.parStrValue[PAR_A0],"%lg", GP.parValue[PAR_A0]);
-  sprintf(GP.parStrValue[PAR_A1],"%lg", GP.parValue[PAR_A1]);
+  sprintf(GP.parStrValue[PAR_NMX],"%d",(int) GP.parValue[PAR_NMX]);  
+  sprintf(GP.parStrValue[PAR_RL0],"%lg", GP.parValue[PAR_RL0]);  
+  sprintf(GP.parStrValue[PAR_RL1],"%lg", GP.parValue[PAR_RL1]);  
+  sprintf(GP.parStrValue[PAR_A0],"%lg", GP.parValue[PAR_A0]);  
+  sprintf(GP.parStrValue[PAR_A1],"%lg", GP.parValue[PAR_A1]);  
 
 
 
@@ -12197,13 +12077,13 @@ int    ReadRfile(char *rfile)
     return (-1);
   }
 
-  sprintf(GP.parStrValue[PAR_NPR],"%d",(int) GP.parValue[PAR_NPR]);
-  sprintf(GP.parStrValue[PAR_MXBF],"%d",(int) GP.parValue[PAR_MXBF]);
-  sprintf(GP.parStrValue[PAR_IID],"%d",(int) GP.parValue[PAR_IID]);
-  sprintf(GP.parStrValue[PAR_ITMX],"%d",(int) GP.parValue[PAR_ITMX]);
-  sprintf(GP.parStrValue[PAR_ITNW],"%d",(int) GP.parValue[PAR_ITNW]);
-  sprintf(GP.parStrValue[PAR_NWTN],"%d",(int) GP.parValue[PAR_NWTN]);
-  sprintf(GP.parStrValue[PAR_JAC],"%d",(int) GP.parValue[PAR_JAC]);
+  sprintf(GP.parStrValue[PAR_NPR],"%d",(int) GP.parValue[PAR_NPR]);  
+  sprintf(GP.parStrValue[PAR_MXBF],"%d",(int) GP.parValue[PAR_MXBF]);  
+  sprintf(GP.parStrValue[PAR_IID],"%d",(int) GP.parValue[PAR_IID]);  
+  sprintf(GP.parStrValue[PAR_ITMX],"%d",(int) GP.parValue[PAR_ITMX]);  
+  sprintf(GP.parStrValue[PAR_ITNW],"%d",(int) GP.parValue[PAR_ITNW]);  
+  sprintf(GP.parStrValue[PAR_NWTN],"%d",(int) GP.parValue[PAR_NWTN]);  
+  sprintf(GP.parStrValue[PAR_JAC],"%d",(int) GP.parValue[PAR_JAC]);  
 
 
   while( (c=fgetc(fp)) != '\n' );
@@ -12216,9 +12096,9 @@ int    ReadRfile(char *rfile)
     return (-1);
   }
 
-  sprintf(GP.parStrValue[PAR_EPSL],"%lg",GP.parValue[PAR_EPSL]);
-  sprintf(GP.parStrValue[PAR_EPSU],"%lg",GP.parValue[PAR_EPSU]);
-  sprintf(GP.parStrValue[PAR_EPSS],"%lg",GP.parValue[PAR_EPSS]);
+  sprintf(GP.parStrValue[PAR_EPSL],"%lg",GP.parValue[PAR_EPSL]);  
+  sprintf(GP.parStrValue[PAR_EPSU],"%lg",GP.parValue[PAR_EPSU]);  
+  sprintf(GP.parStrValue[PAR_EPSS],"%lg",GP.parValue[PAR_EPSS]);  
 
 
   while( (c=fgetc(fp)) != '\n' );
@@ -12233,10 +12113,10 @@ int    ReadRfile(char *rfile)
   }
 
 
-  sprintf(GP.parStrValue[PAR_DS],"%lg",GP.parValue[PAR_DS]);
-  sprintf(GP.parStrValue[PAR_DSMIN],"%lg",GP.parValue[PAR_DSMIN]);
-  sprintf(GP.parStrValue[PAR_DSMAX],"%lg",GP.parValue[PAR_DSMAX]);
-  sprintf(GP.parStrValue[PAR_IADS],"%d",(int) GP.parValue[PAR_IADS]);
+  sprintf(GP.parStrValue[PAR_DS],"%lg",GP.parValue[PAR_DS]);  
+  sprintf(GP.parStrValue[PAR_DSMIN],"%lg",GP.parValue[PAR_DSMIN]);  
+  sprintf(GP.parStrValue[PAR_DSMAX],"%lg",GP.parValue[PAR_DSMAX]);  
+  sprintf(GP.parStrValue[PAR_IADS],"%d",(int) GP.parValue[PAR_IADS]);  
 
 
   while( (c=fgetc(fp)) != '\n' );
@@ -12259,12 +12139,12 @@ int    ReadRfile(char *rfile)
       return (-1);
     }
     /*    while( (c=fgetc(fp)) != '\n' );*/
-    sprintf(GP.thlStrValue[k1],"%d",(int) GP.thlValue[k1]);
-    sprintf(GP.thlStrValue[k2],"%lg",      GP.thlValue[k2]);
+    sprintf(GP.thlStrValue[k1],"%d",(int) GP.thlValue[k1]);  
+    sprintf(GP.thlStrValue[k2],"%lg",      GP.thlValue[k2]);  
   }
   if(GP.nthl > 0) {
     GP.parValue[PAR_NTHL]=GP.thlValue[1];
-    sprintf(GP.parStrValue[PAR_NTHL],"%lg",GP.parValue[PAR_NTHL]);
+    sprintf(GP.parStrValue[PAR_NTHL],"%lg",GP.parValue[PAR_NTHL]);    
   }
   else {
     strcpy(GP.parStrValue[PAR_NTHL],"");
@@ -12285,14 +12165,14 @@ int    ReadRfile(char *rfile)
     if( fscanf(fp,"%lg%lg",&GP.thuValue[k1],&GP.thuValue[k2]) != 2) {
       if (fp != NULL)    fclose(fp);
       return (-1);
-    }
+    }	
     /*  while( (c=fgetc(fp)) != '\n' ); */
-    sprintf(GP.thuStrValue[k1],"%d",(int) GP.thuValue[k1]);
-    sprintf(GP.thuStrValue[k2],"%lg",      GP.thuValue[k2]);
+    sprintf(GP.thuStrValue[k1],"%d",(int) GP.thuValue[k1]);  
+    sprintf(GP.thuStrValue[k2],"%lg",      GP.thuValue[k2]);  
   }
   if(GP.nthu > 0) {
     GP.parValue[PAR_NTHU]=GP.thuValue[1];
-    sprintf(GP.parStrValue[PAR_NTHU],"%lg",GP.parValue[PAR_NTHU]);
+    sprintf(GP.parStrValue[PAR_NTHU],"%lg",GP.parValue[PAR_NTHU]);    
   }
   else {
     strcpy(GP.parStrValue[PAR_NTHU],"");
@@ -12313,19 +12193,19 @@ int    ReadRfile(char *rfile)
       if (fp != NULL)    fclose(fp);
       return (-1);
     }
-    sprintf(GP.uzrStrValue[k1],"%d",(int) GP.uzrValue[k1]);
-    sprintf(GP.uzrStrValue[k2],"%lg",      GP.uzrValue[k2]);
+    sprintf(GP.uzrStrValue[k1],"%d",(int) GP.uzrValue[k1]);  
+    sprintf(GP.uzrStrValue[k2],"%lg",      GP.uzrValue[k2]);  
   }
   if(GP.nuzr > 0) {
     GP.parValue[PAR_NUZR]=GP.uzrValue[1];
-    sprintf(GP.parStrValue[PAR_NUZR],"%lg",GP.parValue[PAR_NUZR]);
+    sprintf(GP.parStrValue[PAR_NUZR],"%lg",GP.parValue[PAR_NUZR]);    
   }
   else {
     strcpy(GP.parStrValue[PAR_NUZR],"");
   }
 
-
-   if (fp != NULL)    fclose(fp);
+  
+  if (fp != NULL)    fclose(fp);  
 
 
   for(c=0; c<MAX_NUZR; c++)
@@ -12354,7 +12234,7 @@ void   WriteRfile(char *rfile)
   int c,k1,k2;
   double tmp;
 
-  if( (fp = fopen(rfile,"w")) == NULL)
+  if( (fp = fopen(rfile,"w")) == NULL) 
     printf("Unable to write file : %s\n",rfile);
 
   fprintf(fp,"%d %d %d %d",
@@ -12369,7 +12249,7 @@ void   WriteRfile(char *rfile)
 
   k1=0;
   for(c=0; c < GP.nicp; c++) {
-    if(GP.icpToggle[c])
+    if(GP.icpToggle[c]) 
       ++k1;
   }
 
@@ -12394,7 +12274,7 @@ void   WriteRfile(char *rfile)
 	 (int)GP.parValue[PAR_IPLT],
 	 (int)GP.parValue[PAR_NBC],
 	 (int)GP.parValue[PAR_NINT]);
-
+  
   fprintf(fp,"\t\tNTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT\n");
 
   fprintf(fp,"%d %lg %lg %lg %lg ",
@@ -12434,11 +12314,11 @@ void   WriteRfile(char *rfile)
 
 
   fprintf(fp,"\t\tDS,DSMIN,DSMAX,IADS\n");
-
+  
 
   k1=0;
   for(c=0; c < GP.nthl; c++) {
-    if(GP.thlToggle[c])
+    if(GP.thlToggle[c]) 
       ++k1;
   }
 
@@ -12447,7 +12327,7 @@ void   WriteRfile(char *rfile)
 
   fprintf(fp,"%d ", k2);
   fprintf(fp,"\t\t\t\tNTHL,((I,THL(I)),I=1,NTHL)\n");
-
+  
   for(c=0; c < GP.nthl; c++) {
     k1=2*c;
     k2=k1+1;
@@ -12459,7 +12339,7 @@ void   WriteRfile(char *rfile)
 
   k1=0;
   for(c=0; c < GP.nthu; c++) {
-    if(GP.thuToggle[c])
+    if(GP.thuToggle[c]) 
       ++k1;
   }
 
@@ -12480,7 +12360,7 @@ void   WriteRfile(char *rfile)
 
   k1=0;
   for(c=0; c < GP.nuzr; c++) {
-    if(GP.uzrToggle[c])
+    if(GP.uzrToggle[c]) 
       ++k1;
   }
 
@@ -12589,7 +12469,7 @@ void   SetParScreen()
   for(i=GP.nicp; i<MAX_NICP; i++)
     XtVaSetValues(GW.icpButton[i],XmNvalue,"",NULL);
 
-  for(i=0; i< GP.nicp; i++)
+  for(i=0; i< GP.nicp; i++) 
     XtVaSetValues(GW.icpButton[i],XmNvalue,GP.icpStrValue[i],NULL);
 
   for(i=GP.nuzr; i<MAX_NUZR; i++)
@@ -12648,7 +12528,7 @@ void   SetParScreen()
     XtVaSetValues(GW.tolButton[4],XmNvalue,GP.parStrValue[11],NULL);
     XtVaSetValues(GW.tolButton[5],XmNvalue,GP.parStrValue[12],NULL);
 
-
+ 
    /* update step size settings */
 
     XtVaSetValues(GW.stepButton[0],XmNvalue,GP.parStrValue[13],NULL);
@@ -12703,20 +12583,20 @@ void   SaveParScreen(int who)
 #endif
 
 {
-
+  
 
   String value;
   int i,k1,k2;
   Boolean toggle;
 
   switch (who) {
-
+    
   case 1:
   case 5:
 
     GP.nicp = CountAny(0);
     if( GP.nicpFlag == 0) {
-
+      
       k1=0;
       for(i=0; i<GP.nicp; i++) {
         XtVaGetValues(GW.icpTg[i],XmNset,&toggle,NULL);
@@ -12726,37 +12606,35 @@ void   SaveParScreen(int who)
 	}
 	else
 	  GP.icpToggle[i]=False;
-
+	  
       }
 
       GP.parValue[PAR_NICP] = GP.nicp - k1;
 
 /*      GP.parValue[PAR_NICP]=GP.nicp; */
-      sprintf(GP.parStrValue[PAR_NICP],"%d",(int)GP.parValue[PAR_NICP]);
+      sprintf(GP.parStrValue[PAR_NICP],"%d",(int)GP.parValue[PAR_NICP]);      
     }
 
-    for(i = 0; i < GP.nicp; i++) {
+    for(i = 0; i < GP.nicp; i++) {	
 
       XtVaGetValues(GW.icpButton[i],XmNvalue,&value,NULL);
-      GP.icpValue[i] = atof(value);
+      GP.icpValue[i] = atof(value);    
       sprintf(GP.icpStrValue[i],"%d",(int) GP.icpValue[i]);
-
+      
     }
     if(GP.nicp>0) {
 
       k1=0;
-      while(GP.icpToggle[k1])
+      while(GP.icpToggle[k1]) 
 	++k1;
       GP.parValue[PAR_ICP] = GP.icpValue[k1];
 
 
-      sprintf(GP.parStrValue[PAR_ICP],"%d",(int)GP.parValue[PAR_ICP]);
-      
-XtVaSetValues(GW.parButton[PAR_NICP],XmNvalue,GP.parStrValue[PAR_NICP],NULL);
-      
-XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
+      sprintf(GP.parStrValue[PAR_ICP],"%d",(int)GP.parValue[PAR_ICP]); 
+      XtVaSetValues(GW.parButton[PAR_NICP],XmNvalue,GP.parStrValue[PAR_NICP],NULL);
+      XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
       XtVaSetValues(GW.conButton[0],XmNvalue,GP.parStrValue[PAR_NICP],NULL);
-      XtVaSetValues(GW.conButton[1],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
+      XtVaSetValues(GW.conButton[1],XmNvalue,GP.parStrValue[PAR_ICP],NULL);            
 
     }
 
@@ -12766,21 +12644,21 @@ XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
   case 6:
 
     GP.nuzr = CountAny(1);
-    for(i = 0; i < GP.nuzr; i++) {
+    for(i = 0; i < GP.nuzr; i++) {	
       k1=2*i;
       k2=k1+1;
-
+      
       XtVaGetValues(GW.uzrButton[k1],XmNvalue,&value,NULL);
-      GP.uzrValue[k1] = atof(value);
+      GP.uzrValue[k1] = atof(value);    
       sprintf(GP.uzrStrValue[k1],"%d",(int) GP.uzrValue[k1]);
-
+      
       XtVaGetValues(GW.uzrButton[k2],XmNvalue,&value,NULL);
-      GP.uzrValue[k2] = atof(value);
+      GP.uzrValue[k2] = atof(value);    
       sprintf(GP.uzrStrValue[k2],"%lg",GP.uzrValue[k2]);
-
+      
     }
     if(GP.nuzr > 0) {
-
+      
       k1=0;
       for(i=0; i<GP.nuzr; i++) {
         XtVaGetValues(GW.uzrTg[i],XmNset,&toggle,NULL);
@@ -12790,14 +12668,13 @@ XtVaSetValues(GW.parButton[PAR_ICP],XmNvalue,GP.parStrValue[PAR_ICP],NULL);
 	}
 	else
 	  GP.uzrToggle[i]=False;
-
+	  
       }
 
       GP.parValue[PAR_NUZR] = GP.nuzr - k1;
-      sprintf(GP.parStrValue[PAR_NUZR],"%d",(int) GP.parValue[PAR_NUZR]);
-
+      sprintf(GP.parStrValue[PAR_NUZR],"%d",(int) GP.parValue[PAR_NUZR]);       
       
-XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
+      XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
       XtVaSetValues(GW.outButton[3],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
     }
 
@@ -12809,22 +12686,22 @@ XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
 
 
     GP.nthl = CountAny(2);
-    for(i = 0; i < GP.nthl; i++) {
+    for(i = 0; i < GP.nthl; i++) {	
       k1=2*i;
       k2=k1+1;
-
+      
       XtVaGetValues(GW.thlButton[k1],XmNvalue,&value,NULL);
-      GP.thlValue[k1] = atof(value);
+      GP.thlValue[k1] = atof(value);    
       sprintf(GP.thlStrValue[k1],"%d",(int) GP.thlValue[k1]);
-
+      
       XtVaGetValues(GW.thlButton[k2],XmNvalue,&value,NULL);
-      GP.thlValue[k2] = atof(value);
+      GP.thlValue[k2] = atof(value);    
       sprintf(GP.thlStrValue[k2],"%lg",GP.thlValue[k2]);
-
+      
     }
     if(GP.nthl > 0) {
 
-
+      
       k1=0;
       for(i=0; i<GP.nthl; i++) {
         XtVaGetValues(GW.thlTg[i],XmNset,&toggle,NULL);
@@ -12834,41 +12711,39 @@ XtVaSetValues(GW.parButton[PAR_NUZR],XmNvalue,GP.parStrValue[PAR_NUZR],NULL);
 	}
 	else
 	  GP.thlToggle[i]=False;
-
+	  
       }
 
       GP.parValue[PAR_NTHL] = GP.nthl - k1;
 
 /*      GP.parValue[PAR_NTHL] = GP.nthl; */
-      sprintf(GP.parStrValue[PAR_NTHL],"%d",(int) GP.parValue[PAR_NTHL]);
-
-      
-XtVaSetValues(GW.parButton[PAR_NTHL],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
-      
-XtVaSetValues(GW.stepButton[4],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
+      sprintf(GP.parStrValue[PAR_NTHL],"%d",(int) GP.parValue[PAR_NTHL]);       
+       
+      XtVaSetValues(GW.parButton[PAR_NTHL],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
+      XtVaSetValues(GW.stepButton[4],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
     }
    break;
-
+    
   case 4:
   case 8:
 
 
     GP.nthu = CountAny(3);
-    for(i = 0; i < GP.nthu; i++) {
+    for(i = 0; i < GP.nthu; i++) {	
       k1=2*i;
       k2=k1+1;
-
+      
       XtVaGetValues(GW.thuButton[k1],XmNvalue,&value,NULL);
-      GP.thuValue[k1] = atof(value);
+      GP.thuValue[k1] = atof(value);    
       sprintf(GP.thuStrValue[k1],"%d",(int) GP.thuValue[k1]);
-
+      
       XtVaGetValues(GW.thuButton[k2],XmNvalue,&value,NULL);
-      GP.thuValue[k2] = atof(value);
+      GP.thuValue[k2] = atof(value);    
       sprintf(GP.thuStrValue[k2],"%lg",GP.thuValue[k2]);
-
+      
     }
     if(GP.nthu>0) {
-
+      
       k1=0;
       for(i=0; i<GP.nthu; i++) {
         XtVaGetValues(GW.thuTg[i],XmNset,&toggle,NULL);
@@ -12878,17 +12753,15 @@ XtVaSetValues(GW.stepButton[4],XmNvalue,GP.parStrValue[PAR_NTHL],NULL);
 	}
 	else
 	  GP.thuToggle[i]=False;
-
+	  
       }
 
       GP.parValue[PAR_NTHU] = GP.nthu - k1;
 /*      GP.parValue[PAR_NTHU] = GP.nthu; */
-      sprintf(GP.parStrValue[PAR_NTHU],"%d",(int)GP.parValue[PAR_NTHU]);
-
+      sprintf(GP.parStrValue[PAR_NTHU],"%d",(int)GP.parValue[PAR_NTHU]);       
       
-XtVaSetValues(GW.parButton[PAR_NTHU],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
-      
-XtVaSetValues(GW.stepButton[5],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
+      XtVaSetValues(GW.parButton[PAR_NTHU],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
+      XtVaSetValues(GW.stepButton[5],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
     }
 
     break;
@@ -12904,13 +12777,13 @@ XtVaSetValues(GW.stepButton[5],XmNvalue,GP.parStrValue[PAR_NTHU],NULL);
 
 main()
 {
-char *rfile="r.exp.1";
-char *tfile="r.exp";
+ char *rfile="c.exp.1";
+ char *tfile="c.exp";
 
-ReadRfile(rfile);
-printf("reading ... done\n");
-WriteRfile(tfile);
-
+ ReadRfile(rfile);
+ printf("reading ... done\n");
+ WriteRfile(tfile);
+  
 }
 
 #endif
@@ -12947,7 +12820,7 @@ char *jobName,*programName;
 void   GetJobName(char *jobName,char *programName)
 #endif
 
-{
+{   
    int i = 0,n;
 
    n = strlen(programName);
@@ -12988,28 +12861,29 @@ char *GetDirName()
 #ifdef _NO_PROTO
 void UpdateTime(w, id)
 Widget          w;
-XtIntervalId    id;
+XtIntervalId    *id;
 #else
-void UpdateTime(Widget w, XtIntervalId id)
+void UpdateTime(XtPointer w, XtIntervalId *id)
 #endif
 
 {
     long  tloc,nextSecond,nextMinute;
-
-    time(&tloc);
-
+   
+    time(&tloc); 
     Wprintf(w, "%s", ctime(&tloc));
-/*    nextSecond = (1- tloc % 1) * 1000;
+/*    nextSecond = (1- tloc % 1) * 1000; 
     XtAddTimeOut(nextSecond, UpdateTime, w);
 */
-    nextMinute = (60- tloc % 60) * 1000;
+    nextMinute = (60- tloc % 60) * 1000; 
     XtAddTimeOut(nextMinute, UpdateTime, w);
 }
 
-
-/*void Wprintf(va_alist)
-va_dcl*/
-void Wprintf(Widget w, ...)
+#if __STDC__
+void Wprintf(Widget w,...)
+#else
+void Wprintf(va_alist)
+va_dcl
+#endif
 {
   va_list   args;
   char      *format,str[100],s[20];  /* DANGER: Fixed buffer size */
@@ -13017,15 +12891,17 @@ void Wprintf(Widget w, ...)
   XmString  xmstr;
   int i;
 
-/*  va_start(args);*/
-  va_start(args, w);
-//  w = va_arg(args, Widget);
+#if __STDC__
+  va_start(args,w);
+#else
+  Widget    w;
+  va_start(args);
+  w = va_arg(args, Widget);
+#endif
 
   if(!XtIsSubclass(w, xmLabelWidgetClass))
     XtError("Wprintf() requires a Label Widget");
-
   format = va_arg(args, char *);
-
   vsprintf(str, format, args);
 
 /*  for(i=10; i<20; i++) */
@@ -13035,7 +12911,7 @@ void Wprintf(Widget w, ...)
 
   xmstr =  XmStringLtoRCreate(s, XmSTRING_DEFAULT_CHARSET);
   XtSetArg(wargs[0], XmNlabelString, xmstr);
-  XtSetValues(w, wargs, 1);
+  XtSetValues(w, wargs, 1);     
   va_end(args);
 }
 
@@ -13047,7 +12923,7 @@ char *pgm;
 int GetAutoPid(char *pgm)
 #endif
 
-{
+{ 
    int pid;
    FILE *fp;
    char command[100];
@@ -13056,8 +12932,8 @@ int GetAutoPid(char *pgm)
    strcat(command,pgm);
    strcat(command,"/ {print $1}' > autopid");
    system(command);
-
-   fp = fopen("autopid","r");
+   
+   fp = fopen("autopid","r");   
    if(fscanf(fp,"%d",&pid) != 1) {
      if (fp != NULL)    fclose(fp);
      system("rm -f autopid &");
@@ -13069,4 +12945,3 @@ int GetAutoPid(char *pgm)
      return pid;
    }
 }
-

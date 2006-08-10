@@ -14,7 +14,7 @@ CC   = @CC@
 CFLAGS = @CFLAGS@ @X_CFLAGS@ -I../include -c
 #SRC = auto97.c
 OBJ  = auto97.o
-PGM  = ../bin/AUTO97
+PGM  = ../bin/auto97
 RM   = rm -f
 LIBS = @X_PRE_LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
 #

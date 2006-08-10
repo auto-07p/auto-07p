@@ -233,20 +233,20 @@ extern void   DemoCopyCB(Widget,XtPointer,XtPointer);
 extern void   DemoRunCB(Widget,XtPointer,XtPointer);
 extern void   DemoBrowseCB(Widget,XtPointer,XtPointer);
 extern void   DemoHelpCB(Widget,XtPointer,XtPointer);
-extern void   DialogAcceptCB(Widget,caddr_t,caddr_t);
-extern void   DialogApplyCB(Widget,caddr_t,caddr_t);
-extern void   DialogCancelCB(Widget,caddr_t,caddr_t);
+extern void   DialogAcceptCB(Widget,XtPointer,XtPointer);
+extern void   DialogApplyCB(Widget,XtPointer,XtPointer);
+extern void   DialogCancelCB(Widget,XtPointer,XtPointer);
 extern void   EntCancelCB(Widget,XtPointer,XtPointer);
 extern void   EntOkCB(Widget,XtPointer,XtPointer);
 extern void   ExitCB(Widget,XtPointer,XtPointer);
-extern void   FileChangedCB(Widget,caddr_t,caddr_t);
+extern void   FileChangedCB(Widget,XtPointer,XtPointer);
 extern int    GetAutoPid(char *);
 extern char   *GetDirName();
 extern void   GetJobName(char *,char *);
 extern char   **getstr(int,int);
 extern void   HelpCB(Widget ,XtPointer, XtPointer);
 extern void   ManualCB(Widget,XtPointer,XtPointer);
-extern void   MenuCB(Widget,caddr_t,caddr_t);
+extern void   MenuCB(Widget,XtPointer,XtPointer);
 extern Widget MoveData(Widget);
 extern void   MoveDataCB(Widget,XtPointer,XtPointer);
 extern void   NewOutputCB(Widget,XtPointer,XtPointer);
@@ -291,8 +291,8 @@ extern Widget PopupThl(Widget);
 extern Widget PopupThu(Widget);
 extern void   PopupTol(Widget);
 extern Widget PopupUzr(Widget);
-extern void   PostItCB(Widget,Widget,XButtonEvent *);
-extern void   PostItCB1(Widget,Widget,XButtonEvent *);
+extern void   PostItCB(Widget,XtPointer,XEvent *,Boolean *);
+extern void   PostItCB1(Widget,XtPointer,XEvent *,Boolean *);
 extern void   PrintCB(Widget,XtPointer,XtPointer);
 extern char*  ProgramName(char *);
 extern void   ReadDefCB(Widget,XtPointer,XtPointer);
@@ -306,15 +306,19 @@ extern void   RunDemo(char *);
 extern Boolean SaveFile();
 extern void   SaveParScreen(int);
 extern void   SelOkCB(Widget,XtPointer,XtPointer);
-extern void   SetParCB(Widget w, int *,XtPointer);
+extern void   SetParCB(Widget w,XtPointer,XtPointer);
 extern void   SetParScreen();
 extern void   StopCB(Widget,XtPointer,XtPointer);
 extern void   TekCB(Widget,XtPointer,XtPointer);
 extern void   TmpCB(Widget,XtPointer,XtPointer);
-extern void   UpdateTime(Widget, XtIntervalId);
+extern void   UpdateTime(XtPointer, XtIntervalId *);
 extern void   UzrToggleCB(Widget,XtPointer,XtPointer);
 extern void   VtCB(Widget,XtPointer,XtPointer);
+#if __STDC__
+extern void   Wprintf(Widget,...);
+#else
 extern void   Wprintf(...);
+#endif
 extern void   WriteRfile(char *);
 
 #endif	/* _NO_PROTO */
