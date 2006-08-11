@@ -21,16 +21,17 @@ C
       DIMENSION IAP(*),ICP(*)
       DIMENSION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
-      COMMON /BLLOC/ DFU(NX2),DFP(NXP),UU1(NX),UU2(NX),FF1(NX),FF2(NX)
+      COMMON /BLLOC/ DFU(NX2)
 C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-      CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
-C
-      IF(IJAC.EQ.0)RETURN
+      IF(IJAC.EQ.0)THEN
+        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        RETURN
+      ENDIF
 C
 C Generate the Jacobian.
 C
@@ -42,24 +43,25 @@ C
       EP=HMACH*(1+UMX)
 C
       DO I=1,NDIM
+        UU=U(I)
+        U(I)=UU-EP
+        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
+        U(I)=UU+EP
+        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        U(I)=UU
         DO J=1,NDIM
-          UU1(J)=U(J)
-          UU2(J)=U(J)
-        ENDDO
-        UU1(I)=UU1(I)-EP
-        UU2(I)=UU2(I)+EP
-        CALL FFHO(IAP,RAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-        CALL FFHO(IAP,RAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
-        DO J=1,NDIM
-          DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
+          DFDU(J,I)=(F(J)-DFDU(J,I))/(2*EP)
         ENDDO
       ENDDO
 C
+      CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+      IF(IJAC==1)RETURN
+C
       DO I=1,NFPR
         PAR(ICP(I))=PAR(ICP(I))+EP
-        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
         DO J=1,NDIM
-          DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
+          DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
         ENDDO
         PAR(ICP(I))=PAR(ICP(I))-EP
       ENDDO
@@ -68,7 +70,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -77,11 +79,9 @@ C
 C
       DIMENSION IAP(*),ICP(*)
       DIMENSION RAP(*),U(NDIM),UOLD(*),PAR(*),F(*)
-      DIMENSION DFDU(NDM,*),DFDP(NDM,*)
+      DIMENSION DFDU(NDM,*)
 C
 C       Local
-C
-      DIMENSION U2(NDIMX),UOLD2(NDIMX),F2(NDIMX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
@@ -91,10 +91,10 @@ C
       IF(ISTART.GE.0)THEN
          IF(ITWIST.EQ.0)THEN
 C           *Evaluate the R.-H. sides
-            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
+            CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DUM1)
          ELSEIF(ITWIST.EQ.1)THEN
 C           *Adjoint variational equations for normal vector
-            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DFDP)
+            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUM1)
 C           *Set F = - (Df)^T u
             DO J=1,NDM
                DUM1=0.0D0
@@ -111,14 +111,7 @@ C           *Set F =  F + PAR(10) * f
       ELSE
 C        Homoclinic branch switching
          DO J=0,NDIM-NDM,NDM
-            DO I=1,NDM
-               U2(I) = U(J+I)
-               UOLD2(I) = UOLD(J+I)
-            ENDDO
-            CALL FUNI(IAP,RAP,NDM,U2,UOLD2,ICP,PAR,0,F2,DFDU,DFDP)
-            DO I=1,NDM
-               F(J+I) = F2(I)
-            ENDDO
+            CALL FUNC(NDM,U(J+1),ICP,PAR,0,F(J+1),DFDU,DUM1)
          ENDDO
       ENDIF
 C
@@ -157,14 +150,14 @@ C
       DIMENSION IAP(*),ICP(*)
       DIMENSION U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
 C Local
-      DIMENSION UU1(NDIMX),UU2(NDIMX),FF1(NBCX),FF2(NBCX),DFU(NBCX,M2X)
+      DIMENSION UU(NDIMX),FF1(NBCX),FF2(NBCX)
 C
        NBC0=IAP(24)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-       CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
+       CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F)
 C
        IF(IJAC.EQ.0)RETURN
 C
@@ -176,14 +169,14 @@ C
        ENDDO
        EP=HMACH*(1+UMX)
        DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U0(J)
-           UU2(J)=U0(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU1,U1,FF1,DFU)
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU2,U1,FF2,DFU)
+         UU(I)=U0(I)
+       ENDDO
+       DO I=1,NDIM
+         UU(I)=U0(I)-EP
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU,U1,FF1)
+         UU(I)=U0(I)+EP
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU,U1,FF2)
+         UU(I)=U0(I)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -197,14 +190,14 @@ C
        ENDDO
        EP=HMACH*(1+UMX)
        DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U1(J)
-           UU2(J)=U1(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU1,FF1,DFU)
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU2,FF2,DFU)
+         UU(I)=U1(I)
+       ENDDO
+       DO I=1,NDIM
+         UU(I)=U1(I)-EP
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU1,FF1)
+         UU(I)=U1(I)+EP
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU2,FF2)
+         UU(I)=U1(I)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -212,7 +205,7 @@ C
 C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF2,DFU)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF2)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
@@ -223,7 +216,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB,DBC)
+      SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -233,16 +226,15 @@ C
 C Generates the boundary conditions for homoclinic orbits.
 C
       DIMENSION ICP(*),IAP(*)
-      DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*),DBC(NBC,*)
+      DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*)
 C Local
-      DIMENSION VR(NX,NX),VT(NX,NX)
-      DIMENSION BOUND(NX,NX),RR(NX),RI(NX),XEQUIB1(NX),XEQUIB2(NX),F(NX)
-      DIMENSION FJ(NX)
+      DIMENSION VR(NX,NX,2),VT(NX,NX,2)
+      DIMENSION BOUND(NX,NX),RR(NX,2),RI(NX,2),XEQUIB1(NX),XEQUIB2(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BLHMU/ PU0(NX),PU1(NX)
       COMMON /BLBRN/ UMAX(NX)
+      COMMON /BLRTN/ IRTN,NRTN(NBCX)
 
       NDM=IAP(23)
 C
@@ -252,12 +244,6 @@ C     *Initialization
       ENDDO
       JB = 1
 C     
-C     *Update pu0,pu1
-      DO I=1,NDIM
-         PU0(I)=U0(I)
-         PU1(I)=U1(I)
-      ENDDO
-C
       IF ((IEQUIB.EQ.0).OR.(IEQUIB.EQ.-1)) THEN
          CALL PVLS(NDM,U0,PAR)
       ENDIF
@@ -266,7 +252,18 @@ C              write(9,*) 'Xequib:'
          XEQUIB1(I)=PAR(11+I)
 C              write(9,*) I,XEQUIB1(I)
       ENDDO
-      IF(IEQUIB.GE.0) THEN
+C     ** Rotations */
+      IF(IRTN.NE.0)THEN
+         DO I=1,NDIM
+            XEQUIB2(I)=XEQUIB1(I)
+            IF(NRTN(I).NE.0)THEN
+               IF(ISTART.LT.0)THEN
+                  PAR(19)=-ISTART*PI(2.d0)
+               ENDIF
+               XEQUIB2(I)=XEQUIB2(I)+PAR(19)*NRTN(I)
+            ENDIF
+         ENDDO
+      ELSEIF(IEQUIB.GE.0) THEN
          DO I=1,NDM
             XEQUIB2(I)=PAR(11+I)
          ENDDO
@@ -280,7 +277,7 @@ C     **Regular Continuation**
       IF(ISTART.NE.3) THEN
 C        *Projection boundary conditions for the homoclinic orbit
 C        *NSTAB boundary conditions at t=0
-	     CALL PRJCTI(BOUND,XEQUIB1,ICP,PAR,-1,1,1,NDM)
+	     CALL PRJCTI(IAP,RAP,BOUND,XEQUIB1,ICP,PAR,-1,1,1,NDM)
              DO I=1,NSTAB
                 DO K=1,NDM
                    FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(I,K)
@@ -290,7 +287,7 @@ C        *NSTAB boundary conditions at t=0
 C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
-            CALL PRJCTI(BOUND,XEQUIB2,ICP,PAR,1,2,1,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=NDM-NUNSTAB+1,NDM
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
@@ -315,52 +312,53 @@ C
                ENDIF
             ENDDO
          ENDIF
-         IEIG=0
          INEIG=0
 C        *NFIXED extra boundary conditions for the fixed conditions
          IF (NFIXED.GT.0) THEN
-            IF (IEIG.EQ.0) THEN
-               CALL EIGHI(1,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
-               IEIG=1
+            CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),VR(1,1,1),
+     *           XEQUIB1,ICP,PAR,NDM)
+            IF(IEQUIB.LT.0) THEN
+               CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),VR(1,1,1),
+     *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
                IF((IFIXED(I).GT.10).AND.(INEIG.EQ.0)) THEN
-                  CALL EIGHI(1,1,RR,RI,VT,XEQUIB1,ICP,PAR,NDM)
+                  CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+     *                 XEQUIB1,ICP,PAR,NDM)
                   INEIG=1
+                  IF(IEQUIB.LT.0) THEN
+                     CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),
+     *                    XEQUIB2,ICP,PAR,NDM)
+                  ENDIF
                ENDIF
-               FB(JB)=PSIHO(IAP,IFIXED(I),RR,RI,VR,VT,ICP,PAR)       
+               FB(JB)=PSIHO(IAP,IFIXED(I),RR,RI,VR,VT,ICP,PAR,U0,U1)
                JB = JB+1 
             ENDDO
-         ENDIF
-C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
-         IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
-            CALL FUNC(NDM,XEQUIB1,ICP,PAR,0,F,DUM1,DUM2)
-            DO I=1,NDM
-               FB(JB)=F(I)
-               JB = JB+1
-            ENDDO
-C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
-            IF (IEQUIB.EQ.-2) THEN
-               CALL FUNC(NDM,XEQUIB2,ICP,PAR,0,F,DUM1,DUM2)
-               DO I=1,NDM
-                  FB(JB)=F(I)
-                  JB = JB+1
-               ENDDO
-            ENDIF
          ENDIF
 C        *extra boundary condition in the case of a saddle-node homoclinic
          IF (IEQUIB.EQ.2) THEN
             IF(INEIG.EQ.0) THEN
-               CALL EIGHI(1,1,RR,RI,VT,XEQUIB1,ICP,PAR,NDM)
+               CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+     *              XEQUIB1,ICP,PAR,NDM)
                INEIG=1
 	    ENDIF
-	    FB(JB)=RR(NSTAB+1)
+	    FB(JB)=RR(NSTAB+1,1)
 	    JB=JB+1	
+         ENDIF
+C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
+         IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
+            CALL FUNC(NDM,XEQUIB1,ICP,PAR,0,FB(JB),DUM1,DUM2)
+            JB=JB+NDM
+C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
+            IF (IEQUIB.EQ.-2) THEN
+               CALL FUNC(NDM,XEQUIB2,ICP,PAR,0,FB(JB),DUM1,DUM2)
+               JB=JB+NDM
+            ENDIF
          ENDIF
 C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
-            CALL PRJCTI(BOUND,XEQUIB1,ICP,PAR,1,1,2,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB1,ICP,PAR,1,1,2,NDM)
             DO I=NDM-NUNSTAB+1,NDM
                DUM=0.0
                DO K=1,NDM
@@ -370,7 +368,7 @@ C           *-orthogonal to the unstable directions of A  at t=0
                JB = JB+1
             ENDDO
 C           *-orthogonal to the stable directions of A  at t=1
-            CALL PRJCTI(BOUND,XEQUIB2,ICP,PAR,-1,2,2,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB2,ICP,PAR,-1,2,2,NDM)
             DO I=1,NSTAB
                DUM=0.0
                DO K=1,NDM
@@ -379,7 +377,6 @@ C           *-orthogonal to the stable directions of A  at t=1
                FB(JB)=DUM 
                JB = JB+1
             ENDDO
-            RETURN
 C      Branch switching to n-homoclinic orbits.
          ELSEIF(ISTART.LT.0) THEN
 C         More boundary conditions: continuity+gaps
@@ -390,14 +387,17 @@ C         More boundary conditions: continuity+gaps
 C     Lin(-Sandstede): PAR(20,22,...) contain the gap sizes,
 C     PAR(NPARX-2*NDM+1...NPARX-NDM) contains the adjoint unit
 C     vector at the gaps.
-                     FB(JB)=FB(JB)+PAR(20+2*K)*PAR(NPARX-2*NDM+I)
+                     FB(JB)=FB(JB)-PAR(20+2*K)*PAR(NPARX-2*NDM+I)
                   ENDIF
                   JB = JB+1
                ENDDO
             ENDDO
 C     Poincare sections: <x-x_0,\dot x_0>=0
-C     PAR(NPARX-NDM+1...NPARX) contains the point x_0 in the original
+C     PAR(NPARX-NDM+1...NPARX) contains the derivatives of the
+C     point x_0 in the original
 C     homoclinic orbit that is furthest from the equilibrium.
+C     x_0=umax is initialized at each run to an end point, and so
+C     is always in the Poincare section
             IF (UMAX(1).GT.1.0D29) THEN
                DO I=1,NDM
                   UMAX(I) = U1(I)
@@ -412,11 +412,6 @@ C     homoclinic orbit that is furthest from the equilibrium.
          ENDIF
       ELSE
 C     **Starting Solutions using Homotopy**
-	 JB=0
-	 DO I=1,NBC
-	    FB(I)=0.d0
-	 ENDDO
-         INEIG=0
          IP=12
          IF(IEQUIB.GE.0) THEN 
             IP=IP+NDM
@@ -425,39 +420,34 @@ C     **Starting Solutions using Homotopy**
          ENDIF
          KP=IP
 C        *Explicit boundary conditions for homoclinic orbit at t=0
-         CALL EIGHI(1,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
-         IEIG=1
+         CALL EIGHI(IAP,RAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
+         JB=NDM+1
          IF(NUNSTAB.GT.1) THEN
-            DUM=0.0
+            FB(JB)=0.0
             KP=IP+NUNSTAB
-            JB=NDM+1
             DO J=1,NUNSTAB
                DO I=1,NDM
-                  FB(I)=FB(I)+U0(I)-XEQUIB1(I)-PAR(IP+J)*VR(NSTAB+J,I)
+                  FB(I)=FB(I)+U0(I)-XEQUIB1(I)-PAR(IP+J)*
+     *                 VR(NDM-NUNSTAB+J,I,1)
                ENDDO
-               DUM=DUM+PAR(IP+J)**2
+               FB(JB)=FB(JB)+PAR(IP+J)**2
             ENDDO
-	    JB=NDM+1
-            FB(JB)=DUM-PAR(IP)
+            FB(JB)=FB(JB)-PAR(IP)
 	    JB=JB+1
          ELSE
             KP=IP+1
             JB=NDM
             DO I=1,NDM
-               FB(I)=U0(I)-XEQUIB1(I)-PAR(IP)*PAR(IP+1)*VR(NSTAB+1,I)
+               FB(I)=U0(I)-XEQUIB1(I)-PAR(IP)*PAR(IP+1)*
+     *              VR(NDM-NUNSTAB+1,I,1)
             ENDDO
-	    JB=NDM+1	
          ENDIF
 C        *Projection boundary conditions for the homoclinic orbit at t=1
-         IF(INEIG.EQ.0) THEN
-            CALL EIGHI(1,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
-            INEIG=1
-         ENDIF
-         DO I=1,NUNSTAB
-            K=I+NSTAB
+         CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
+         DO I=NDM-NUNSTAB,NDM
             DUM=0.0D0
             DO J=1,NDM
-               DUM=DUM+(U1(J)-XEQUIB2(J))*VT(K,J)
+               DUM=DUM+(U1(J)-XEQUIB2(J))*VT(I,J,1)
             ENDDO 
             KP=KP+1
             FB(JB)=DUM-PAR(KP)
@@ -465,18 +455,12 @@ C        *Projection boundary conditions for the homoclinic orbit at t=1
          ENDDO
 C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
          IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
-            CALL FUNC(NDM,XEQUIB1,ICP,PAR,0,F,DUM1,DUM2)
-            DO I=1,NDM
-               FB(JB)=F(I)
-               JB=JB+1
-            ENDDO
+            CALL FUNC(NDM,XEQUIB1,ICP,PAR,0,FB(JB),DUM1,DUM2)
+            JB=JB+NDM
 C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
             IF (IEQUIB.EQ.-2) THEN
-               CALL FUNC(NDM,XEQUIB2,ICP,PAR,0,F,DUM1,DUM2)
-               DO I=1,NDM
-                  FB(JB)=F(I)
-                  JB = JB+1
-               ENDDO
+               CALL FUNC(NDM,XEQUIB2,ICP,PAR,0,FB(JB),DUM1,DUM2)
+               JB=JB+NDM
             ENDIF
          ENDIF
       ENDIF
@@ -485,11 +469,10 @@ C
 C      write(9,*) NBCN,NBC
 C *user defined extra boundary conditions
       IF (NBCN.GT.0) THEN
-         CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FJ,0,DBC)
-         DO K=1,NBCN
-            FB(JB)=FJ(K)
-            JB=JB+1
-         END DO
+         CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FB(JB),0,0)
+      ELSE
+         PRINT*,'Evil BUG!: Negative number of boundary conditions left'
+         STOP
       END IF
 C
       RETURN
@@ -634,13 +617,7 @@ C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
       COMMON /BLHMA/ COMPZERO
-      COMMON /BLHMU/ PU0(NX),PU1(NX)
       COMMON /BLBRN/ UMAX(NX)
-C
-      DO I=1,NX
-        PU0(NX)=0.d0
-        PU1(NX)=0.d0
-      ENDDO
 C
 C set various constants 
 C
@@ -1292,8 +1269,8 @@ C
       DO I=1,NDM
          XEQUIB(I)=PAR(11+I)
       ENDDO
-      CALL EIGHI(1,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
-      CALL EIGHI(1,2,RR,RI,VR,XEQUIB,ICP,PAR,NDM)
+      CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
+      CALL EIGHI(IAP,RAP,2,RR,RI,VR,XEQUIB,ICP,PAR,NDM)
 C
 C Set up artificial parameters at the left-hand end point of orbit
 C
@@ -1356,6 +1333,7 @@ C
 C
        IID=IAP(18)
        NDM=IAP(23)
+       NTST=IAP(5)
 C
         CALL PVLSBV(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C
@@ -1364,7 +1342,7 @@ C      *Compute eigenvalues
        DO I=1,NDM
          XEQUIB(I)=PAR(11+I)
        ENDDO
-       CALL EIGHI(1,2,RR,RI,V,XEQUIB,ICP,PAR,NDM)
+       CALL EIGHI(IAP,RAP,2,RR,RI,V,XEQUIB,ICP,PAR,NDM)
        IF(IID.GE.3)THEN
          WRITE(9,*) 'EIGENVALUES'
          DO J=1,NDM
@@ -1372,9 +1350,9 @@ C      *Compute eigenvalues
          ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHI(1,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
+          CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
           INEIG=1
-          ORIENT = PSIHO(IAP,0,RR,RI,V,VT,ICP,PAR)
+          ORIENT = PSIHO(IAP,0,RR,RI,V,VT,ICP,PAR,UPS(1,1),UPS(1,NTST))
           IF(IID.GE.3)THEN
             IF (ORIENT.LT.0.0D0) THEN
                WRITE(9,102) ORIENT             
@@ -1386,10 +1364,11 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
-          CALL EIGHI(1,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
+          CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
           INEIG=1
         ENDIF
-        PAR(20+IPSI(I))=PSIHO(IAP,IPSI(I),RR,RI,V,VT,ICP,PAR)
+        PAR(20+IPSI(I))=PSIHO(IAP,IPSI(I),RR,RI,V,VT,ICP,PAR,
+     *       UPS(1,1),UPS(1,NTST))
         IF(IID.GE.3)WRITE(9,104)IPSI(I),PAR(20+IPSI(I))
       ENDDO
 C  
@@ -1403,7 +1382,7 @@ C
       END
 C
 C     -------- ------- -------- -----
-      DOUBLE PRECISION FUNCTION PSIHO(IAP,IS,RR,RI,V,VT,ICP,PAR)
+      DOUBLE PRECISION FUNCTION PSIHO(IAP,IS,RR,RI,V,VT,ICP,PAR,PU0,PU1)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -1419,12 +1398,12 @@ C and right (PU1) endpoints of the solution (+  vector if that is computed)
 C
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
       DIMENSION IAP(*),ICP(*),PAR(*),RR(*),RI(*),V(NX,*),VT(NX,*)
+      DIMENSION PU0(*),PU1(*)
 C Local
       DIMENSION F0(NX),F1(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BLHMU/ PU0(NX),PU1(NX)
       COMMON /BLHMA/ COMPZERO
 C
       NDM=IAP(23)
@@ -1612,7 +1591,7 @@ C
       END
 C     
 C     ---------- -----
-      SUBROUTINE EIGHI(ISIGN,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
+      SUBROUTINE EIGHI(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX)
@@ -1621,14 +1600,14 @@ C
 C Local
       DIMENSION DFDU(NX,NX),DFDP(NX,NPARX),ZZ(NX,NX)
 C
-        CALL EIGHO(ISIGN,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
+        CALL EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *             DFDU,DFDP,ZZ)
 C
       RETURN
       END
 C
 C     ---------- -----
-      SUBROUTINE EIGHO(ISIGN,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
+      SUBROUTINE EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *                  DFDU,DFDP,ZZ)
 C
       INCLUDE 'auto.h'
@@ -1640,8 +1619,6 @@ C according to their real parts. Simple continuity with respect
 C previous call with same value of ITRANS.
 C
 C	input variables
-C		ISIGN  = 1 => left-hand endpoint
-C       	       = 2 => right-hand endpoint
 C               ITRANS = 1 use transpose of A
 C                      = 2 otherwise
 C
@@ -1653,8 +1630,8 @@ C                  eigenvectors
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(*),PAR(*),RR(*),RI(*),VRET(NX,*),XEQUIB(*)
-      DIMENSION DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NX,*)
+      DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
       DIMENSION RRDUM(NX),RIDUM(NX),VRDUM(NX,NX),VIDUM(NX,NX)
       DIMENSION VI(NX,NX),VR(NX,NX),F(NX)
@@ -1667,7 +1644,7 @@ C
 C
       IFAIL=0
 C     
-      CALL FUNC(NDM,XEQUIB,ICP,PAR,1,F,DFDU,DFDP)
+      CALL FUNI(IAP,RAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
 C     
       IF (ITRANS.EQ.1) THEN
          DO I=1,NDM
@@ -1733,7 +1710,7 @@ C
 C
 C Choose sign of real part of eigenvectors to be 
 C commensurate with that of the corresponding eigenvector 
-C from the previous call with the same value of ISIGN
+C from the previous call with the same value of ITRANS
 C
       IF (IEIGC(ITRANS).EQ.0) THEN
          DO J=1,NDM
@@ -1772,23 +1749,23 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE PRJCTI(BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM)
+      SUBROUTINE PRJCTI(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C Local
-      DIMENSION DFDU(NX,NX),DFDP(NX,NPARX)
+      DIMENSION DFDU(NX,NX)
 C
-        CALL PRJCTN(BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,DFDU,DFDP)
+      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,DFDU)
 C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE PRJCTN(BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,
-     *                  DFDU,DFDP)
+      SUBROUTINE PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,
+     *                  DFDU)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -1810,7 +1787,7 @@ C called with the same values of IS and ITRANS.
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(*),PAR(*),DFDU(NDM,*),DFDP(NDM,*)
+      DIMENSION ICP(*),PAR(*),DFDU(NDM,*)
       DIMENSION BOUND(NX,*),XEQUIB(*)
 C Local
       DIMENSION ER(NX),EI(NX),D(NX,NX),CNOW(NX,NX),CPREV(NX,NX,2,2)
@@ -1823,7 +1800,7 @@ C
       COMMON /BEYN/ CPREV,IFLAG
       COMMON /BLHMA/ COMPZERO
 C
-      CALL FUNC(NDM,XEQUIB,ICP,PAR,1,FDUM,DFDU,DFDP)
+      CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,DFDU,DDUM)
 C    
 C Compute transpose of A if ITRANS=1
       IF (ITRANS.EQ.1) THEN
