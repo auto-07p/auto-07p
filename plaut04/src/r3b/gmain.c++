@@ -3236,7 +3236,7 @@ showHelpDialog()
 
     char command[256];
     strcpy(command, autoDir);
-    strcat(command,"/r3bplaut04/doc/userguide.pdf");
+    strcat(command,"/plaut04/doc/userguide.pdf");
     if (access(command, R_OK) != 0)
     {
         system("xmessage 'Sorry, could not find "
@@ -3256,7 +3256,7 @@ showHelpDialog()
 
     strcpy(command, "xpdf  ");
     strcat(command, autoDir);
-    strcat(command, "/r3bplaut04/doc/userguide.pdf & ");
+    strcat(command, "/plaut04/doc/userguide.pdf & ");
     system(command);
 }
 
@@ -3612,10 +3612,10 @@ createSolutionSceneWithWidgets()
             double pos1 = 1-mass;
             double pos2 = -mass;
             strcpy(txtureFileName, autoDir);
-            strcat(txtureFileName,"/r3bplaut04/widgets/large.rgb");
+            strcat(txtureFileName,"/plaut04/widgets/large.rgb");
             result->addChild(createPrimary(1-mass+1e-9, pos2, 0.25*largePrimRadius, txtureFileName));
             strcpy(txtureFileName, autoDir);
-            strcat(txtureFileName,"/r3bplaut04/widgets/small.rgb");
+            strcat(txtureFileName,"/plaut04/widgets/small.rgb");
             result->addChild(createPrimary(mass-1e-9, pos1, 0.25*smallPrimRadius, txtureFileName));
         }
 
@@ -3630,7 +3630,7 @@ createSolutionSceneWithWidgets()
     {
         char bgFileName[256];
         strcpy(bgFileName, autoDir);
-        strcat(bgFileName, "/r3bplaut04/widgets/background.rgb");
+        strcat(bgFileName, "/plaut04/widgets/background.rgb");
         result->addChild(drawStarryBackground(bgFileName));
     }
 
@@ -4304,10 +4304,10 @@ createSolutionInertialFrameScene(float dis)
         else if(whichCoordSystem == INERTIAL_E )
             pos1 = -1, pos2= 0;
         strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/r3bplaut04/widgets/large.rgb");
+        strcat(txtureFileName,"/plaut04/widgets/large.rgb");
         aSep->addChild(createPrimary(1-mass+1e-9, pos1, 0.25*largePrimRadius, txtureFileName));
         strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/r3bplaut04/widgets/small.rgb");
+        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
         aSep->addChild(createPrimary(mass-1e-9, pos2, 0.25*smallPrimRadius, txtureFileName));
     }
 
@@ -4479,14 +4479,14 @@ createBifurcationScene()
 // create the primaries
     char txtureFileName[256];
     strcpy(txtureFileName, autoDir);
-    strcat(txtureFileName,"/r3bplaut04/widgets/large.rgb");
+    strcat(txtureFileName,"/plaut04/widgets/large.rgb");
     if(options[OPT_PRIMARY])
     {
         double pos1 = 1-mass;
         double pos2 = -mass;
         result->addChild(createPrimary(1-mass,pos2, 0.25*largePrimRadius, txtureFileName));
         strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/r3bplaut04/widgets/small.rgb");
+        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
         result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName));
     }
 
@@ -4494,7 +4494,7 @@ createBifurcationScene()
     if(options[OPT_LIB_POINTS])
     {
         strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/r3bplaut04/widgets/small.rgb");
+        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
         result->addChild(createLibrationPoint(mass, dis, libPtScaler,  txtureFileName));
     }
 
@@ -4508,7 +4508,7 @@ createBifurcationScene()
     {
         char bgFileName[256];
         strcpy(bgFileName, autoDir);
-        strcat(bgFileName, "/r3bplaut04/widgets/background.rgb");
+        strcat(bgFileName, "/plaut04/widgets/background.rgb");
         result->addChild(drawStarryBackground(bgFileName));
     }
 
@@ -8454,7 +8454,7 @@ readResourceParameters()
     FILE * inFile;
 
     strcpy(resource, autoDir);
-    strcat(resource,"/r3bplaut04/r3bplaut04.rc");
+    strcat(resource,"/plaut04/r3bplaut04.rc");
 
     inFile = fopen("r3bplaut04.rc", "r");
     if (!inFile)
