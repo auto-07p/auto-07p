@@ -489,7 +489,7 @@ C     ** Time evolution computations (parabolic systems)
              DO I=1,NPARX
                 PRM(I)=PAR(I)
              ENDDO
-             CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PRM,2,F,DFDU,DFDP)
+             CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PRM,0,F,DFDU,DFDP)
              IC1=(IC-1)*NDIM
              DO I=1,NDIM
                 FA(IC1+I,JJ)=F(I)-WPLOC(NCP1,IC)*UPS(JP1,I)
