@@ -13,7 +13,7 @@ AC_ARG_WITH(CC,
 
 AC_ARG_WITH(FC,
 [  --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default],
-[F77=$withval],)
+[FC=$withval],)
 
 AC_ARG_WITH(mpi-compiler,
 [  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],

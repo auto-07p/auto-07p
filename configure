@@ -2186,7 +2186,7 @@ fi
 
 # Check whether --with-FC was given.
 if test "${with_FC+set}" = set; then
-  withval=$with_FC; F77=$withval
+  withval=$with_FC; FC=$withval
 fi
 
 
