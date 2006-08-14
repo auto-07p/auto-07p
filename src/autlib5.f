@@ -234,7 +234,7 @@ C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
       COMMON /BLBRN/ UMAX(NX)
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NX)
 
       NDM=IAP(23)
 C
@@ -318,7 +318,7 @@ C        *NFIXED extra boundary conditions for the fixed conditions
             CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),VR(1,1,1),
      *           XEQUIB1,ICP,PAR,NDM)
             IF(IEQUIB.LT.0) THEN
-               CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),VR(1,1,1),
+               CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),VR(1,1,2),
      *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
@@ -343,7 +343,7 @@ C        *extra boundary condition in the case of a saddle-node homoclinic
                INEIG=1
 	    ENDIF
 	    FB(JB)=RR(NSTAB+1,1)
-	    JB=JB+1	
+	    JB=JB+1
          ENDIF
 C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
          IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
@@ -405,7 +405,8 @@ C     is always in the Poincare section
             ENDIF
             DO K=0,NDIM/NDM-2
                DO I=1,NDM
-                  FB(JB)=FB(JB)+(U1(K*NDM+I)-UMAX(I))*PAR(NPARX-NDM+I)
+                  FB(JB)=FB(JB)+
+     *                 (U1(K*NDM+I)-UMAX(K*NDM+I))*PAR(NPARX-NDM+I)
                ENDDO
                JB = JB + 1
             ENDDO
@@ -491,18 +492,17 @@ C Generates integral conditions for homoclinic bifurcation analysis
 C
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
-C Local
-      DIMENSION UU1(NDIMX),UU2(NDIMX),FF1(NINTX),FF2(NINTX)
-      DIMENSION DFU(NDIMX,M2X)
 C
        NNT0=IAP(25)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-       CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F,DFU)
+       IF(IJAC.EQ.0)THEN
+         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F)
+         RETURN
+       ENDIF
 C
-       IF(IJAC.EQ.0)RETURN
 C
 C Generate the Jacobian.
 C
@@ -514,30 +514,31 @@ C
        EP=HMACH*(1+UMX)
 C
        DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
-     *    UPOLD,FF1,DFU)
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
-     *    UPOLD,FF2,DFU)
-C
-
+         UU=U(I) 
+         U(I)=UU-EP
+         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+     *    UPOLD,F)
+         U(I)=UU+EP
+         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+     *    UPOLD,DINT(1,I))
+         U(I)=UU
 C
          DO J=1,NINT
-           DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
+           DINT(J,I)=(DINT(J,I)-F(J))/(2*EP)
          ENDDO
        ENDDO
 C
+C Generate the function.
+C
+       CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F)
+C
+       IF(IJAC.EQ.1)RETURN
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
          CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     *    UPOLD,FF1,DFU)
+     *    UPOLD,DINT(1,NDIM+ICP(I)))
          DO J=1,NINT
-           DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
+           DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
          ENDDO
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
@@ -547,7 +548,7 @@ C
 C
 C     ---------- ----
       SUBROUTINE FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     * UPOLD,FI,DINT)
+     * UPOLD,FI)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -558,8 +559,6 @@ C Generates the integral conditions for homoclinic orbits.
 C
       DIMENSION ICP(*),IAP(*)
       DIMENSION RAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
-      DIMENSION DINT(NINT,*),PAR(*)
-      dimension fj(NDIMX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
@@ -576,26 +575,23 @@ C
          ENDDO
          JB=JB+1
          FI(JB)=DUM
-      ENDIF
 C     
 C Integral phase condition for adjoint equation     
 C
-      IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-         DUM=0.d0
-         DO I=1,NDM
-            DUM=DUM+UOLD(NDM+I)*(U(NDM+I)-UOLD(NDM+I))
-         ENDDO
-         JB=JB+1
-         FI(2)=DUM
+         IF ((ITWIST.EQ.1)) THEN
+            DUM=0.d0
+            DO I=1,NDM
+               DUM=DUM+UOLD(NDM+I)*(U(NDM+I)-UOLD(NDM+I))
+            ENDDO
+            JB=JB+1
+            FI(JB)=DUM
+         ENDIF
       ENDIF
 C
 C User-defined integral constraints
 C
       IF (JB.LT.NINT) THEN
-      CALL ICND(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FJ,0,DINT) 
-         DO I=1,NINT-JB
-         FI(I+JB)=FJ(I)
-         END DO
+         CALL ICND(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI(JB),0,DUM1)
       END IF
 C
       RETURN
@@ -637,7 +633,7 @@ C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
       READ(12,*)NREV
-      IF(NREV.GT.0)READ(12,*)(IREV(I),I=1,NDIM)
+      IF(NREV.GT.0)READ(12,*)(IREV(I),I=1,NDM)
 C
       READ(12,*)NFIXED
       IF (NFIXED.GT.0)READ(12,*)(IFIXED(I),I=1,NFIXED)
@@ -721,12 +717,11 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE INTPHO(IAP,RAP,NDM,NCOLRS,TM,DTM,NDX,UPS,UDOTPS,T,DT,N,
+      SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,NDX,UPS,UDOTPS,T,DT,N,
      *     NDIM,J,J1)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M1T=NTSTX+1,M2T=NDIMX*NCOLX)
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
+      PARAMETER (MCL2=NCOLX+1)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION UPS(NDX,*), UDOTPS(NDX,*)
 C
@@ -747,7 +742,7 @@ C
       ENDDO
       DO I=0,NCOLRS-1
          Z=T+DT*I/NCOLRS
-         CALL INTWTS(IAP,RAP,NCP1,Z,X,W)
+         CALL INTWTS(NCP1,Z,X,W)
          K1=I*NDIM+N
          DO K=1,NDM
             UPS(J1,K1+K)=W(NCP1)*UPS(J+1,N+K)
@@ -764,7 +759,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE TRANHO(IAP,RAP,NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
+      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
      *     UDOTPS,PAR)
 C
 C     Transform the data representation of the homoclinic orbit into
@@ -786,10 +781,11 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
-      DIMENSION TTM(M1T),J2(3),A(3),B(3),T(3),TT(3),F(NX)
+      DIMENSION TTM(M1T),J2(3),A(3),B(3),T(3),TT(3)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLBRN/ UMAX(NX)
+      COMMON /BLRTN/ IRTN,NRTN(NX)
 C
 C First find maximum from the equilibrium
 C     
@@ -805,17 +801,28 @@ C
             JMAX=J
          ENDIF
       ENDDO
+      IF(IRTN.NE.0)THEN
+C Just use the point in the middle
+         UPSMAX = 0
+         DO I=1,NDM
+            IF(NRTN(I).NE.0)GOTO 1
+         ENDDO
+ 1       CONTINUE
+         DO J=1,NTSR+1
+            D1=DABS(UPS(J,I)-PAR(I+11))
+            UPSI=DABS(UPS(J,I)-(PAR(I+11)+PAR(19)*NRTN(I)))
+            IF(D1.LT.UPSI)UPSI=D1
+            IF(UPSI.GT.UPSMAX)THEN
+               UPSMAX=UPSI
+               JMAX=J
+            ENDIF
+         ENDDO
+      ENDIF
       TMMAX=TM(JMAX)
       DO I=1,NDM
          UMAX(I) = UPS(JMAX,I)
       ENDDO
-      CALL FUNC(NDM,UMAX,ICP,PAR,0,F,DUM1,DUM2)
-      DO I=1,NDM
-         PAR(NPARX-NDM+I)=F(I)
-      ENDDO
-C      DO I=1,NDM
-C         PAR(NPARX-NDM+I)=UPS(JMAX,I)
-C      ENDDO
+      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM),DUM1,DUM2)
 C     
 C     PAR(NPARX-NDM+1...NPARX) contains the point furthest from
 C     the equilibrium.
@@ -852,20 +859,32 @@ C     Prepare the new NDIM*NCOLRS dimensional UPS matrix
 C     Move everything to the end in "middle part format"
 C     so that we can subsequently overwrite the beginning.
 C 
+      PHDIFF=0
+      IADDPH=1
       DO L=2*NTSR,NTSR,-1
          J=L-2*NTSR+JMAX
-         IF (J.LE.0) J=J+NTSR
+         IF (J.LE.0) THEN
+            J=J+NTSR
+            IADDPH=0
+         ENDIF
          TTM(L)=TM(J)-TMMAX
          IF (TTM(L).LT.0) TTM(L)=TTM(L)+1D0
          DO K=0,(NCOLRS-1)*NDIM,NDIM
             DO I=K+1,K+NDM
-               UPS(L,I+NDM)=UPS(J,I)
-               UDOTPS(L,I+NDM)=UDOTPS(J,I)
+               IF(IRTN.NE.0)THEN
+                  PHDIFF=0
+                  IF(IADDPH.NE.0)PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)
+               ENDIF
+               UPS(L,I+NDM)=UPS(J,I)+PHDIFF
+               UDOTPS(L,I+NDM)=UDOTPS(J,I)+PHDIFF
                UPS(L,I)=UPS(J,I)
                UDOTPS(L,I)=UDOTPS(J,I)
-               IF (L.LE.2*NTSR-JMAX+1) THEN
-                  UPS(L+JMAX-1,I+NDIM-NDM)=UPS(J,I)
-                  UDOTPS(L+JMAX-1,I+NDIM-NDM)=UDOTPS(J,I)
+               IF (L.LE.2*NTSR-JMAX) THEN
+                  IF(IRTN.NE.0)THEN
+                     PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
+                  ENDIF
+                  UPS(L+JMAX,I+NDIM-NDM)=UPS(J,I)+PHDIFF
+                  UDOTPS(L+JMAX,I+NDIM-NDM)=UDOTPS(J,I)+PHDIFF
                ENDIF
             ENDDO
          ENDDO
@@ -905,18 +924,18 @@ C
 C     copy first part to temp arrays upst
 C     Replace UPS and UDOTPS by its interpolant on the new mesh :
 C     
-         CALL INTPHO(IAP,RAP,NDM,NCOLRS,TT(1),T(1)-TT(1),NDX,UPS,UDOTPS,
+         CALL INTPHO(NDM,NCOLRS,TT(1),T(1)-TT(1),NDX,UPS,UDOTPS,
      *        TM(J-1),DTM(J-1),0,NDIM,J2(1)-1,J-1)
 C
 C     Remesh middle part :
 C     
-         CALL INTPHO(IAP,RAP,NDM,NCOLRS,TT(2),T(2)-TT(2),NDX,UPS,UDOTPS,
+         CALL INTPHO(NDM,NCOLRS,TT(2),T(2)-TT(2),NDX,UPS,UDOTPS,
      *        TM(J-1),DTM(J-1),NDM,NDIM,J2(2)-1,J-1)
 C     
 C     Remesh last part :
 C     
-         CALL INTPHO(IAP,RAP,NDM,NCOLRS,TT(3),T(3)-TT(3),NDX,UPS,UDOTPS,
-     *        TM(J-1),DTM(J-1),NDIM-NDM,NDIM,J2(3)+JMAX-2,J-1)
+         CALL INTPHO(NDM,NCOLRS,TT(3),T(3)-TT(3),NDX,UPS,UDOTPS,
+     *        TM(J-1),DTM(J-1),NDIM-NDM,NDIM,J2(3)+JMAX-1,J-1)
 C     
 C     Copy middle parts, this applies only for 1->n switching
 C     where n>=3 and NDIM=(n+1)*NDM: (NDIM/NDM)-3 times.
@@ -924,26 +943,36 @@ C
          DO K2=NDM,NDIM-3*NDM,NDM
             DO K=NDM,(NCOLRS-1)*NDIM+NDM,NDIM
                DO I=K+1,K+NDM
-                  UPS(J-1,I+K2)=UPS(J-1,I)
-                  UDOTPS(J-1,I+K2)=UDOTPS(J-1,I)
+                  IF(IRTN.NE.0)THEN
+                     PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(K2/NDM)
+                  ENDIF
+                  UPS(J-1,I+K2)=UPS(J-1,I)+PHDIFF
+                  UDOTPS(J-1,I+K2)=UDOTPS(J-1,I)+PHDIFF
                ENDDO
             ENDDO
          ENDDO
          J2(I2)=J2(I2)+1
          TT(I2)=T(I2)
-         T(I2)=(TTM(J2(I2))+A(I2))/B(I2)
+         IF(J.LE.NTSR)THEN
+            T(I2)=(TTM(J2(I2))+A(I2))/B(I2)
+         ENDIF
       ENDDO
 C
 C     Adjust end points
 C
       DO I=1,NDM
+         IF(IRTN.NE.0)PHDIFF=PAR(19)*NRTN(I)
          DO K2=I,NDIM-NDM,NDM
-            UPS(NTSR+1,K2)=UPS(NTSR+2,I+NDM)
-            UDOTPS(NTSR+1,K2)=UDOTPS(NTSR+2,I+NDM)
+            UPS(NTSR+1,K2)=UPS(NTSR+2,I+NDM)+PHDIFF*((K2-I)/NDM-1)
+            UDOTPS(NTSR+1,K2)=UDOTPS(NTSR+2,I+NDM)+PHDIFF*((K2-I)/NDM-1)
          ENDDO
-         UPS(NTSR+1,I+NDIM-NDM)=UPS(1,I)
-         UDOTPS(NTSR+1,I+NDIM-NDM)=UDOTPS(1,I)
+         UPS(NTSR+1,I+NDIM-NDM)=UPS(1,I)+PHDIFF*-ISTART
+         UDOTPS(NTSR+1,I+NDIM-NDM)=UDOTPS(1,I)+PHDIFF*-ISTART
       ENDDO
+C
+C     Rotations: PAR(19) needs adjustment
+C
+      IF(IRTN.NE.0)PAR(19)=PAR(19)*-ISTART
       END
 C
 C     ---------- ------
@@ -967,6 +996,13 @@ C
       ENDDO
       TBASE=TIME-PAR(11)
       TM(NTSR*NCOPY+1)=1.0D0
+C
+C     first init last point; otherwise it's overwritten
+C
+      DO K=1,NDM
+         UPS(NTSR+1,K)=UPS(NTSR+1,K+(NCOPY-1)*NDM)
+         UDOTPS(NTSR+1,K)=UDOTPS(NTSR+1,K+(NCOPY-1)*NDM)
+      ENDDO
       DO K=NCOPY-1,0,-1
          DO J=NTSR,1,-1
             I=J+NTSR*K
@@ -993,12 +1029,6 @@ C
       ENDDO
       NTSR=NTSR*NCOPY
 C
-C Last equal to first
-C
-      DO K=1,NDIM
-         UPS(NTSR+1,K)=UPS(1,K)
-         UDOTPS(NTSR+1,K)=UDOTPS(1,K)
-      ENDDO
       PAR(10)=0.D0
       PAR(11)=TIME
       NAR=NDM
@@ -1017,6 +1047,8 @@ C
 C
       DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+      COMMON /BLHMA/ COMPZERO
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
 C Local
 C
@@ -1056,6 +1088,8 @@ C We hope that Newton's method will do the rest.
             ENDDO
          ENDIF
 C
+         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
+C
 C Find smallest value in norm
 C
        UPSMIN=1D20
@@ -1070,6 +1104,58 @@ C
            JMIN=J
          ENDIF
        ENDDO
+       IF(UPSMIN.LT.COMPZERO)THEN
+C
+C      try to get time central value if all points within a range
+C      are within an epsilon neighbourhood of the equilibrium
+C
+          T=0
+          J2=JMIN
+          J1=J2
+          J=JMIN-1
+          DO WHILE(J.NE.JMIN+1)
+             IF(J.EQ.0)J=NTSR+1
+             UPSI=0
+             DO I=1,NDM
+                UPSI=UPSI+(UPS(J,I)-PAR(I+11))*(UPS(J,I)-PAR(I+11))
+             ENDDO
+             IF(UPSI.GT.COMPZERO)THEN
+                J1=J+1
+                GOTO 1
+             ENDIF
+             J=J-1
+          ENDDO
+ 1        CONTINUE
+          J=JMIN+1
+          DO WHILE(J.NE.J1)
+             IF(J.EQ.NTSR+2)J=1
+             UPSI=0
+             DO I=1,NDM
+                UPSI=UPSI+(UPS(J,I)-PAR(I+11))*(UPS(J,I)-PAR(I+11))
+             ENDDO
+             IF(UPSI.GT.COMPZERO)THEN
+                J2=J-1
+                GOTO 2
+             ENDIF
+             J=J+1
+          ENDDO
+ 2        CONTINUE
+          T=(TM(J2)+TM(J1))/2
+          IF(J1.GT.J2)THEN
+             T=(TM(J2)+TM(J1)+1)/2
+             IF(T.GE.1)T=T-1
+             IF(TM(J1).LE.T)THEN
+                J2=NTSR+2
+             ELSE
+                J1=0
+             ENDIF
+          ENDIF
+          DO WHILE((TM(J1).LE.T).AND.(J1.LT.J2))
+             J1=J1+1
+          ENDDO
+          JMIN=j1
+          IF(T-TM(JMIN-1).LT.TM(JMIN)-T) JMIN=JMIN-1
+       ENDIF
        TMMIN=TM(JMIN)
 C
 C And then do the actual shift
@@ -1107,6 +1193,32 @@ C
           UDOTPS(NTSR+1,K)=UDOTPS(1,K)
         ENDDO
 C
+C Rotations
+C
+        IF(IRTN.NE.0)THEN
+           JR=0
+           DO J=1,NTSR+1
+              DO I=1,NDM
+                 IF(NRTN(I).NE.0) THEN
+                    IF(DABS((UPS(J+1,I)-UPS(J,I))/NRTN(I)).GT.
+     *                   DABS(PAR(19)/2)) THEN
+                       JR=J+1
+                       GOTO 3
+                    ENDIF
+                 ENDIF
+              ENDDO
+           ENDDO
+ 3         IF(JR.NE.0)THEN
+              DO J=JR,NTSR+1
+                 DO I=1,NCOLRS*NDIM
+                    IF (NRTN(MOD(I-1,NDIM)+1).NE.0) THEN
+                       UPS(J,I)=UPS(J,I)+PAR(19)*NRTN(MOD(I-1,NDIM)+1)
+                    ENDIF
+                 ENDDO
+              ENDDO
+           ENDIF
+        ENDIF
+C
        ENDIF
       ENDIF
 C
@@ -1115,11 +1227,12 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-         CALL TRANHO(IAP,RAP,NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
-     *        UDOTPS,PAR)
+         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
+         CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,UDOTPS,PAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
+         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)         
          DO J=1,NTSR+1
             DO K=0,NDIM*(NCOLRS-1),NDIM
                DO I=NDIM,NAR-NDM+1,-1
@@ -1134,9 +1247,13 @@ C Copy forelast part
          ENDDO
          PAR(16+2*NAR/NDM)=(UPS(1,NAR-NDM+1)-
      *            UPS(NTSR+1,NAR-2*NDM+1))/ PAR(NPARX-2*NDM+1)
-      ELSEIF (NAR.GT.2*NDM .AND. ISTART.GE.0) THEN
+      ELSEIF (ISTART.GE.0) THEN
 C        Use the usual representation again for normal continuation.
-         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+         IF (NAR.GT.2*NDM) THEN
+            CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+         ENDIF
+C        Look for rotations
+         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)            
       ENDIF
 C       
 C Preprocesses (perturbs) restart data to enable 
@@ -1166,154 +1283,102 @@ C     ---------- ------
 C
       INCLUDE 'auto.h'
 C
+      PARAMETER(NX=NDIMX,NPSIX=NPARX)
+C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a starting point for the continuation of a branch of
 C of solutions to general boundary value problems by calling the user
 C supplied subroutine STPNT where an analytical solution is given.
 C
-      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
-C Local
-      DIMENSION U(NDIMX)
-C
-       NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NFPR=IAP(29)
-C
-C Generate the (initially uniform) mesh.
-C
-       CALL MSH(IAP,RAP,TM)
-       DT=1.d0/(NTST*NCOL)
-C
-       DO J=1,NTST+1
-         IF(J.EQ.(NTST+1)) THEN
-           NCOL1=1
-         ELSE
-           NCOL1=NCOL
-         ENDIF
-         DO I=1,NCOL1
-           T=TM(J)+(I-1)*DT
-           K1=(I-1)*NDIM+1
-           K2=I*NDIM
-           CALL STPHO(IAP,ICP,U,PAR,T)
-           DO K=K1,K2
-             UPS(J,K)=U(K-K1+1)
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       NTSR=NTST
-       NCOLRS=NCOL
-       IBR=1
-       IAP(30)=IBR
-       LAB=0
-       IAP(37)=LAB
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
-       NODIR=1
-C
-      RETURN
-      END
-C
-C     ---------- -----
-      SUBROUTINE STPHO(IAP,ICP,U,PAR,T)
-C
-      INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C  
 C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNHO. 
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),ICP(*),PAR(*),U(*)
+      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
-      DIMENSION XEQUIB(NX),RR(NX),RI(NX),VR(NX,NX),VT(NX,NX)
+      DIMENSION U(NDIMX),RR(NX),RI(NX),VR(NX,NX),VT(NX,NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
 C
-      NDM=IAP(23)
+       NDIM=IAP(1)
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       NDM=IAP(23)
+       NFPR=IAP(29)
 C
-C Initialize parameters
+C Generate the (initially uniform) mesh.
 C
-      CALL STPNT(NDM,U,PAR,T)
+       CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,NDX,
+     *      UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
 C Initialize solution and additional parameters
 C
-      IF (ISTART.NE.3) RETURN
-C
-C-----------------------------------------------------------------------
-C ISTART = 1    CONTINUE
-C Obsolete option
-C      
-C      RETURN
-C
-C-----------------------------------------------------------------------
-C ISTART = 2    CONTINUE
-C     *Regular continuation (explicit solution in STHO)
-C
-C      RETURN
-C
-C-----------------------------------------------------------------------
-C ISTART = 3    CONTINUE
-C     *Starting solutions using homotopy
-C
-      CALL PVLS(NDM,U,PAR)
-      DO I=1,NDM
-         XEQUIB(I)=PAR(11+I)
-      ENDDO
-      CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
-      CALL EIGHI(IAP,RAP,2,RR,RI,VR,XEQUIB,ICP,PAR,NDM)
+       IF (ISTART.NE.3) THEN
+          CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
+          RETURN
+       ENDIF
+       DT=1.d0/(NTST*NCOL)
+       CALL PVLS(NDM,UPS,PAR)
+       CALL EIGHI(IAP,RAP,1,RR,RI,VT,PAR(11),ICP,PAR,NDM)
+       CALL EIGHI(IAP,RAP,2,RR,RI,VR,PAR(11),ICP,PAR,NDM)
 C
 C Set up artificial parameters at the left-hand end point of orbit
 C
-      IP=12
-      IF(IEQUIB.GE.0) THEN 
-         IP=IP+NDM
-      ELSE
-         IP=IP+2*NDM
-      ENDIF
-      KP=IP
+       IP=12
+       IF(IEQUIB.GE.0) THEN 
+          IP=IP+NDM
+       ELSE
+          IP=IP+2*NDM
+       ENDIF
+       KP=IP
 C
 C Parameters xi_1=1, xi_i=0, i=2,NSTAB
 C
-      PAR(IP+1)=1.0d0
-      IF(NUNSTAB.GT.1) THEN
-         DO I=2,NUNSTAB
-            PAR(IP+I)=0.0
-         ENDDO
-      ENDIF
-      IP=IP+NUNSTAB
+       PAR(IP+1)=1.0d0
+       IF(NUNSTAB.GT.1) THEN
+          DO I=2,NUNSTAB
+             PAR(IP+I)=0.0
+          ENDDO
+       ENDIF
+       IP=IP+NUNSTAB
 C     
 C Starting guess for homoclinic orbit in real principal unstable direction
 C
-      DO I=1,NDM
-         U(I)=XEQUIB(I)+VR(NSTAB+1,I)*PAR(KP)*PAR(KP+1)*
-     +        EXP(RR(NSTAB+1)*T*PAR(11))
-      ENDDO
-        write(9,111)(u(i),i=1,ndm)
-111     format('stpho : ',i3,e20.10)
+       DO J=1,NTST+1
+          IF(J.EQ.(NTST+1)) THEN
+             NCOL1=1
+          ELSE
+             NCOL1=NCOL
+          ENDIF
+          DO I=1,NCOL1
+             T=TM(J)+(I-1)*DT
+             K2=(I-1)*NDIM
+             DO K=1,NDIM
+                UPS(J,K2+K)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
+     +               EXP(RR(NSTAB+1)*T*PAR(11))
+             ENDDO
+             write(9,111)(ups(j,k2+k),k=1,ndim)
+ 111         format('stpho : ',i3,e20.10)
+          ENDDO
+       ENDDO
 C
 C Artificial parameters at the right-hand end point of the orbit
 C omega_i=<x(1)-x_o,w_i^*>
 C
-      DO I=1,NUNSTAB
-         PAR(IP+I)=0.0
-         DO J=1,NDM
-            PAR(IP+I)=PAR(IP+I)+VR(NSTAB+1,J)*PAR(KP)*PAR(KP+1)*
-     +           EXP(RR(NSTAB+1)*PAR(11))*VT(NSTAB+I,J)
-         ENDDO
-      ENDDO
-      IP=IP+NUNSTAB
+       DO I=1,NUNSTAB
+          PAR(IP+I)=0.0
+          DO J=1,NDM
+             PAR(IP+I)=PAR(IP+I)+VR(NSTAB+1,J)*PAR(KP)*PAR(KP+1)*
+     +            EXP(RR(NSTAB+1)*PAR(11))*VT(NSTAB+I,J)
+          ENDDO
+       ENDDO
+       IP=IP+NUNSTAB
+C
       RETURN
-C-----------------------------------------------------------------------
       END
 C
 C     ---------- ------
@@ -1326,10 +1391,12 @@ C
 C
       DIMENSION IAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
       DIMENSION P0(NDIM,*),P1(NDIM,*)
+C Local
+      DIMENSION PU0(NX),PU1(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BLEIG/ RR(NX),RI(NX),V(NX,NX),VT(NX,NX),XEQUIB(NX),INEIG
+      COMMON /BLEIG/ RR(NX,2),RI(NX,2),V(NX,NX,2),VT(NX,NX,2),INEIG
 C
        IID=IAP(18)
        NDM=IAP(23)
@@ -1339,20 +1406,39 @@ C
 C
 C      *Compute eigenvalues
        INEIG=0
-       DO I=1,NDM
-         XEQUIB(I)=PAR(11+I)
-       ENDDO
-       CALL EIGHI(IAP,RAP,2,RR,RI,V,XEQUIB,ICP,PAR,NDM)
+       CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(11),ICP,
+     *      PAR,NDM)
+       IF(IEQUIB.LT.0)THEN
+          CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(11+NDM),ICP,
+     *         PAR,NDM)
+       ENDIF
        IF(IID.GE.3)THEN
          WRITE(9,*) 'EIGENVALUES'
          DO J=1,NDM
-          WRITE(9,101) RR(J),RI(J)
+          WRITE(9,101) RR(J,1),RI(J,1)
          ENDDO
+         IF(IEQUIB.LT.0)THEN
+            WRITE(9,*) 'EIGENVALUES of RHS equilibrium'
+            DO J=1,NDM
+               WRITE(9,101) RR(J,2),RI(J,2)
+            ENDDO
+         ENDIF
+       ENDIF
+       IF (((ITWIST.EQ.1).AND.(ISTART.GE.0)).OR.NPSI.GT.0) THEN
+          DO I=1,NDIM
+             PU0(I)=UPS(1,I)
+             PU1(I)=UPS(NTST+1,I)
+          ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
+          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(11),ICP,
+     *         PAR,NDM)
+          IF(IEQUIB.LT.0)THEN
+             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(11+NDM),
+     *            ICP,PAR,NDM)
+          ENDIF
           INEIG=1
-          ORIENT = PSIHO(IAP,0,RR,RI,V,VT,ICP,PAR,UPS(1,1),UPS(1,NTST))
+          ORIENT = PSIHO(IAP,0,RR,RI,V,VT,ICP,PAR,PU0,PU1)
           IF(IID.GE.3)THEN
             IF (ORIENT.LT.0.0D0) THEN
                WRITE(9,102) ORIENT             
@@ -1364,11 +1450,15 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB,ICP,PAR,NDM)
+          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(11),ICP,
+     *          PAR,NDM)
+          IF(IEQUIB.LT.0)THEN
+             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(11+NDM),
+     *            ICP,PAR,NDM)
+          ENDIF
           INEIG=1
         ENDIF
-        PAR(20+IPSI(I))=PSIHO(IAP,IPSI(I),RR,RI,V,VT,ICP,PAR,
-     *       UPS(1,1),UPS(1,NTST))
+        PAR(20+IPSI(I))=PSIHO(IAP,IPSI(I),RR,RI,V,VT,ICP,PAR,PU0,PU1)
         IF(IID.GE.3)WRITE(9,104)IPSI(I),PAR(20+IPSI(I))
       ENDDO
 C  
@@ -1397,8 +1487,8 @@ C In the block ENDPTS are stored the co-ordinates of the left (PU0)
 C and right (PU1) endpoints of the solution (+  vector if that is computed)
 C
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION IAP(*),ICP(*),PAR(*),RR(*),RI(*),V(NX,*),VT(NX,*)
-      DIMENSION PU0(*),PU1(*)
+      DIMENSION IAP(*),ICP(*),PAR(*),RR(NX,*),RI(NX,*)
+      DIMENSION V(NX,NX,*),VT(NX,NX,*),PU0(*),PU1(*)
 C Local
       DIMENSION F0(NX),F1(NX)
 C
@@ -1444,17 +1534,17 @@ C
 C Resonant eigenvalues (neutral saddle)
 C
  1    CONTINUE
-      PSIHO=RR(NSTAB)+RR(NSTAB+1)+RI(NSTAB)+RI(NSTAB+1)
+      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RI(NSTAB,1)+RI(NSTAB+1,1)
       RETURN     
 C
 C Double real leading eigenvalues (stable)
 C   (saddle, saddle-focus transition)
 C
  2    CONTINUE
-      IF (ABS(RI(NSTAB)).GT.COMPZERO) THEN
-	 PSIHO=-(RI(NSTAB)-RI(NSTAB-1))**2
+      IF (ABS(RI(NSTAB,1)).GT.COMPZERO) THEN
+	 PSIHO=-(RI(NSTAB,1)-RI(NSTAB-1,1))**2
       ELSE
-	 PSIHO=(RR(NSTAB)-RR(NSTAB-1))**2
+	 PSIHO=(RR(NSTAB,1)-RR(NSTAB-1,1))**2
       ENDIF
       RETURN
 C     
@@ -1462,29 +1552,29 @@ C Double real positive eigenvalues (unstable)
 C   (saddle, saddle-focus transition)
 C
  3    CONTINUE
-      IF (ABS(RI(NSTAB+1)).GT.COMPZERO) THEN
-         PSIHO=-(RI(NSTAB+1)-RI(NSTAB+2))**2
+      IF (ABS(RI(NSTAB+1,1)).GT.COMPZERO) THEN
+         PSIHO=-(RI(NSTAB+1,1)-RI(NSTAB+2,1))**2
       ELSE
-         PSIHO=(RR(NSTAB+1)-RR(NSTAB+2))**2
+         PSIHO=(RR(NSTAB+1,1)-RR(NSTAB+2,1))**2
       ENDIF
       RETURN
 C
 C Neutral saddle, saddle-focus or bi-focus (includes 1, above, also) 
 C
  4    CONTINUE
-      PSIHO=RR(NSTAB)+RR(NSTAB+1)
+      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)
       RETURN     
 C
 C Neutrally-divergent saddle-focus (stable eigenvalues complex)
 C
  5    CONTINUE
-      PSIHO=RR(NSTAB)+RR(NSTAB+1)+RR(NSTAB-1)
+      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB-1,1)
       RETURN
 C
 C Neutrally-divergent saddle-focus (unstable eigenvalues complex)
 C
  6    CONTINUE
-      PSIHO=RR(NSTAB)+RR(NSTAB+1)+RR(NSTAB+2)
+      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB+2,1)
       RETURN
 C
 C Three leading eigenvalues (stable)
@@ -1493,13 +1583,13 @@ C
       VNORM1 = 0D0
       VNORM2 = 0D0      
       DO I=1,NDM
-          VNORM1 = VNORM1 + ABS(V(NSTAB,I))
-          VNORM2 = VNORM2 + ABS(V(NSTAB-2,I))
+          VNORM1 = VNORM1 + ABS(V(NSTAB,I,1))
+          VNORM2 = VNORM2 + ABS(V(NSTAB-2,I,1))
       ENDDO
       IF (VNORM1.GT.VNORM2) THEN
-        PSIHO=RR(NSTAB)-RR(NSTAB-2)
+        PSIHO=RR(NSTAB,1)-RR(NSTAB-2,1)
       ELSE
-        PSIHO=RR(NSTAB-2)-RR(NSTAB)
+        PSIHO=RR(NSTAB-2,1)-RR(NSTAB,1)
       ENDIF
       RETURN
 C
@@ -1509,13 +1599,13 @@ C
       VNORM1 = 0D0
       VNORM2 = 0D0      
       DO I=1,NDM
-          VNORM1 = VNORM1 + ABS(V(NSTAB+1,I))
-          VNORM2 = VNORM2 + ABS(V(NSTAB+3,I))
+          VNORM1 = VNORM1 + ABS(V(NSTAB+1,I,1))
+          VNORM2 = VNORM2 + ABS(V(NSTAB+3,I,1))
       ENDDO
       IF (VNORM1.GT.VNORM2) THEN
-        PSIHO=RR(NSTAB+1)-RR(NSTAB+3)
+        PSIHO=RR(NSTAB+1,1)-RR(NSTAB+3,1)
       ELSE
-        PSIHO=RR(NSTAB+3)-RR(NSTAB+1)
+        PSIHO=RR(NSTAB+3,1)-RR(NSTAB+1,1)
       ENDIF
       RETURN
 C
@@ -1523,13 +1613,13 @@ C Local bifurcation (zero eigenvalue or Hopf): NSTAB decreases
 C  (nb. the problem becomes ill-posed after a zero of 9 or 10)
 C
  9    CONTINUE
-      PSIHO=RR(NSTAB)
+      PSIHO=RR(NSTAB,1)
       RETURN
 C
 C Local bifurcation (zero eigenvalue or Hopf): NSTAB increases 
 C
  10   CONTINUE
-      PSIHO=RR(NSTAB+1) 
+      PSIHO=RR(NSTAB+1,1) 
       RETURN     
 C     
 C Orbit flip (with respect to leading stable direction)
@@ -1537,9 +1627,9 @@ C     e.g. 1D unstable manifold
 C
  11   CONTINUE
       DO J=1,NDM
-         PSIHO= PSIHO + F1(J)*VT(NSTAB,J)
+         PSIHO= PSIHO + F1(J)*VT(NSTAB,J,1)
       ENDDO
-      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB)/2.0D0)
+      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
       RETURN
 C
 C Orbit flip (with respect to leading unstable direction)
@@ -1547,9 +1637,9 @@ C     e.g. 1D stable manifold
 C
  12   CONTINUE
       DO J=1,NDM
-         PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J)
+         PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J,1)
       ENDDO
-      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1)/2.0D0)
+      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
       RETURN
 C
 C Inclination flip (critically twisted) with respect to stable manifold
@@ -1557,9 +1647,9 @@ C   e.g. 1D unstable manifold
 C
  13   CONTINUE
       DO I=1,NDM
-          PSIHO= PSIHO + PU0(NDM+I)*V(NSTAB,I)
+          PSIHO= PSIHO + PU0(NDM+I)*V(NSTAB,I,1)
       ENDDO
-      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB)/2.0D0)
+      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
       RETURN
 C
 C Inclination flip (critically twisted) with respect to unstable manifold
@@ -1567,16 +1657,16 @@ C   e.g. 1D stable manifold
 C
  14   CONTINUE
       DO I=1,NDM
-         PSIHO= PSIHO + PU1(NDM+I)*V(NSTAB+1,I)
+         PSIHO= PSIHO + PU1(NDM+I)*V(NSTAB+1,I,1)
       ENDDO
-      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1)/2.0D0)
+      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
       RETURN
 C
 C Non-central homoclinic to saddle-node (in stable manifold)
 C
  15   CONTINUE
       DO I=1,NDM 
-        PSIHO=PSIHO+(PAR(11+I)-PU1(I))*V(NSTAB+1,I)
+        PSIHO=PSIHO+(PAR(11+I)-PU1(I))*V(NSTAB+1,I,1)
       ENDDO
       RETURN
 C
@@ -1584,7 +1674,7 @@ C Non-central homoclinic to saddle-node (in unstable manifold)
 C
  16   CONTINUE
       DO I=1,NDM 
-        PSIHO=PSIHO+(PAR(11+I)-PU0(I))*V(NSTAB+1,I)
+        PSIHO=PSIHO+(PAR(11+I)-PU0(I))*V(NSTAB+1,I,1)
       ENDDO 
       RETURN
 C
@@ -1633,7 +1723,6 @@ C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NX,*)
       DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
-      DIMENSION RRDUM(NX),RIDUM(NX),VRDUM(NX,NX),VIDUM(NX,NX)
       DIMENSION VI(NX,NX),VR(NX,NX),F(NX)
       DIMENSION FV1(NX),IV1(NX)
 C
@@ -1648,13 +1737,10 @@ C
 C     
       IF (ITRANS.EQ.1) THEN
          DO I=1,NDM
-            DO J=1,NDM
-               VRDUM(I,J)=DFDU(J,I)
-            ENDDO
-         ENDDO
-         DO I=1,NDM
-            DO J=1,NDM
-               DFDU(I,J)=VRDUM(I,J)
+            DO J=1,I-1
+               TMP=DFDU(I,J)
+               DFDU(I,J)=DFDU(J,I)
+               DFDU(J,I)=TMP
             ENDDO
          ENDDO
       ENDIF
@@ -1667,12 +1753,12 @@ C
       ENDIF
 C 
       DO J=1,NDM 
-        IF(RI(J).GT.0.d0)THEN
+        IF((RI(J).GT.COMPZERO).AND.(J.LT.NDM))THEN
           DO I=1,NDM
             VR(I,J)=ZZ(I,J)
             VI(I,J)=ZZ(I,J+1)
           ENDDO
-        ELSEIF(RI(J).LT.0.d0)THEN
+        ELSEIF((RI(J).LT.-COMPZERO).AND.(J.GT.1))THEN
           DO I=1,NDM
             VR(I,J)= ZZ(I,J-1)
             VI(I,J)=-ZZ(I,J)
@@ -1690,19 +1776,19 @@ C
       DO I=1,NDM-1
          DO J=I+1,NDM
             IF (RR(I).GT.RR(J)) THEN
-               RRDUM(I)=RR(I)
-               RIDUM(I)=RI(I)
+               TMP=RR(I)
                RR(I)=RR(J)
-               RR(J)=RRDUM(I)
+               RR(J)=TMP
+               TMP=RI(I)
                RI(I)=RI(J)
-               RI(J)=RIDUM(I)
+               RI(J)=TMP
                DO K=1,NDM
-                  VRDUM(K,I)=VR(K,I)
+                  TMP=VR(K,I)
                   VR(K,I)=VR(K,J)
-                  VR(K,J)=VRDUM(K,I)
-                  VIDUM(K,I)=VI(K,I)
+                  VR(K,J)=TMP
+                  TMP=VI(K,I)
                   VI(K,I)=VI(K,J)
-                  VI(K,J)=VIDUM(K,I)
+                  VI(K,J)=TMP
                ENDDO
             ENDIF
          ENDDO
@@ -1756,16 +1842,16 @@ C
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C Local
-      DIMENSION DFDU(NX,NX)
+      DIMENSION A(NX,NX)
 C
-      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,DFDU)
+      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,A)
 C
       RETURN
       END
 C
 C     ---------- ------
       SUBROUTINE PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,
-     *                  DFDU)
+     *                  A)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -1787,12 +1873,12 @@ C called with the same values of IS and ITRANS.
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(*),PAR(*),DFDU(NDM,*)
+      DIMENSION ICP(*),PAR(*),A(NDM,*)
       DIMENSION BOUND(NX,*),XEQUIB(*)
 C Local
       DIMENSION ER(NX),EI(NX),D(NX,NX),CNOW(NX,NX),CPREV(NX,NX,2,2)
       DIMENSION DUM1(NX,NX),DUM2(NX,NX),FDUM(NX)
-      DIMENSION A(NX,NX),V(NX,NX),ORT(NX)
+      DIMENSION V(NX,NX),ORT(NX)
       INTEGER IR(NX),IC(NX),IFLAG(2,2),TYPE(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
@@ -1800,19 +1886,15 @@ C
       COMMON /BEYN/ CPREV,IFLAG
       COMMON /BLHMA/ COMPZERO
 C
-      CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,DFDU,DDUM)
+      CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
 C    
 C Compute transpose of A if ITRANS=1
       IF (ITRANS.EQ.1) THEN
         DO I=1,NDM
-          DO J=1,NDM
-            A(I,J)=DFDU(J,I)
-          ENDDO
-        ENDDO
-      ELSE
-        DO I=1,NDM
-          DO J=1,NDM
-            A(I,J)=DFDU(I,J)
+          DO J=1,I-1
+            TMP=A(I,J)
+            A(I,J)=A(J,I)
+            A(J,I)=TMP
           ENDDO
         ENDDO
       ENDIF
@@ -1854,6 +1936,11 @@ C
 C
 C Set previous matrix to be the present one if this is the first call
       IF (IFLAG(IS,ITRANS).NE.1234) THEN
+         DO I=1,NDM
+            DO J=1,NDM
+               CPREV(I,J,IS,ITRANS)=0.0D0
+            ENDDO
+         ENDDO
          DO I=K1,K2
             DO J=1,NDM
                CPREV(I,J,IS,ITRANS)=CNOW(I,J)

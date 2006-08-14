@@ -190,7 +190,7 @@ C
            DO L=1,NCP1
              X(L)=TM(J)+(L-1)*D
            ENDDO
-           CALL INTWTS(IAP,RAP,NCP1,Z,X,W)
+           CALL INTWTS(NCP1,Z,X,W)
            DO K=1,NDIM
              K1=(I-1)*NDIM+K
              UPS1(J1,K1)=W(NCP1)*UPS(J+1,K)
@@ -277,7 +277,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE INTWTS(IAP,RAP,N,Z,X,WTS)
+      SUBROUTINE INTWTS(N,Z,X,WTS)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C

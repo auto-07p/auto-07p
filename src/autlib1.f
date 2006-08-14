@@ -3181,7 +3181,7 @@ C
            DO L=1,NCP1
              X(L)=TM(J)+(L-1)*D
            ENDDO
-           CALL INTWTS(IAP,RAP,NCP1,Z,X,W)
+           CALL INTWTS(NCP1,Z,X,W)
            DO K=1,NDIM
              K1=(I-1)*NDIM+K
              UPS1(J1,K1)=W(NCP1)*UPS(J+1,K)
@@ -3268,7 +3268,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE INTWTS(IAP,RAP,N,Z,X,WTS)
+      SUBROUTINE INTWTS(N,Z,X,WTS)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -4238,7 +4238,7 @@ C
      *  NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,TM,DTM,EV,NODIR,THL,THU)
        CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C      
-       CALL SETRTN(IAP,NTST,NDX,UPS,PAR)
+       CALL SETRTN(IAP(23),NTST,NDX,UPS,PAR)
 C
        IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
          CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT,
@@ -4987,7 +4987,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE SETRTN(IAP,NTST,NDX,UPS,PAR)
+      SUBROUTINE SETRTN(NDM,NTST,NDX,UPS,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -4995,15 +4995,16 @@ C
 C
 C Initialization for rotations
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
-      DIMENSION IAP(*),UPS(NDX,*),PAR(*)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      DIMENSION UPS(NDX,*),PAR(*)
 C
-        PAR(19)=PI(2.d0)
-        NBC=IAP(12)
         IRTN=0
-        DO I=1,NBC
+        DO I=1,NDM
           NRTN(I)=NINT( (UPS(NTST+1,I)-UPS(1,I)) / PI(2.d0) )
-          IF(NRTN(I).NE.0)IRTN=1
+          IF(NRTN(I).NE.0)THEN
+             PAR(19)=PI(2.d0)
+             IRTN=1
+          ENDIF
         ENDDO
 C
       RETURN

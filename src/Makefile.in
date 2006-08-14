@@ -11,10 +11,10 @@ OPT=@OPT_FLAG@
 OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o
 RM=rm -f
 #
-all: header compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
+all: compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
   ../bin/listlabels ../bin/reduce ../bin/relabel move
 #
-header: 
+auto.h: 
 	@cp -p ../include/auto.h auto.h
 #
 compile: $(OBJ)
