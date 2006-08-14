@@ -471,7 +471,7 @@ C      write(9,*) NBCN,NBC
 C *user defined extra boundary conditions
       IF (NBCN.GT.0) THEN
          CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FB(JB),0,0)
-      ELSE
+      ELSEIF (NBCN.LT.0) THEN
          PRINT*,'Evil BUG!: Negative number of boundary conditions left'
          STOP
       END IF
@@ -1842,16 +1842,16 @@ C
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C Local
-      DIMENSION A(NX,NX)
+      DIMENSION A(NX,NX),V(NX,NX)
 C
-      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,A)
+      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,A,V)
 C
       RETURN
       END
 C
 C     ---------- ------
       SUBROUTINE PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,
-     *                  A)
+     *                  A,V)
 C
       INCLUDE 'auto.h'
       PARAMETER(NX=NDIMX,NPSIX=NPARX)
@@ -1873,12 +1873,12 @@ C called with the same values of IS and ITRANS.
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(*),PAR(*),A(NDM,*)
+      DIMENSION ICP(*),PAR(*),A(NDM,*),V(NDM,*)
       DIMENSION BOUND(NX,*),XEQUIB(*)
 C Local
       DIMENSION ER(NX),EI(NX),D(NX,NX),CNOW(NX,NX),CPREV(NX,NX,2,2)
       DIMENSION DUM1(NX,NX),DUM2(NX,NX),FDUM(NX)
-      DIMENSION V(NX,NX),ORT(NX)
+      DIMENSION ORT(NX)
       INTEGER IR(NX),IC(NX),IFLAG(2,2),TYPE(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
@@ -1900,8 +1900,8 @@ C Compute transpose of A if ITRANS=1
       ENDIF
 C
 C Compute basis V to put A in upper Hessenberg form
-        CALL ORTHES(NX,NDM,1,NDM,A,ORT)
-        CALL ORTRAN(NX,NDM,1,NDM,A,ORT,V)
+        CALL ORTHES(NDM,NDM,1,NDM,A,ORT)
+        CALL ORTRAN(NDM,NDM,1,NDM,A,ORT,V)
 C
 C Force A to be upper Hessenberg
         IF (NDM.GT.2) THEN
@@ -1915,7 +1915,7 @@ C
 C Computes basis to put A in "Quasi Upper-Triangular form"
 C with the positive (negative) eigenvalues first if IMFD =-1 (=1)
         EPS = COMPZERO
-        CALL HQR3LC(A,V,NDM,1,NDM,EPS,ER,EI,TYPE,NX,NX,IMFD)
+        CALL HQR3LC(A,V,NDM,1,NDM,EPS,ER,EI,TYPE,NDM,NDM,IMFD)
 C
 C Put the basis in the appropriate part of the matrix CNOW
         IF (IMFD.EQ.1) THEN
@@ -1988,4 +1988,3 @@ C
       END
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-
