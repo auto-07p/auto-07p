@@ -399,7 +399,7 @@ C     homoclinic orbit that is furthest from the equilibrium.
 C     x_0=umax is initialized at each run to an end point, and so
 C     is always in the Poincare section
             IF (UMAX(1).GT.1.0D29) THEN
-               DO I=1,NDM
+               DO I=1,NDIM
                   UMAX(I) = U1(I)
                ENDDO
             ENDIF
@@ -437,7 +437,6 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
 	    JB=JB+1
          ELSE
             KP=IP+1
-            JB=NDM
             DO I=1,NDM
                FB(I)=U0(I)-XEQUIB1(I)-PAR(IP)*PAR(IP+1)*
      *              VR(NDM-NUNSTAB+1,I,1)
@@ -445,7 +444,7 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
          ENDIF
 C        *Projection boundary conditions for the homoclinic orbit at t=1
          CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
-         DO I=NDM-NUNSTAB,NDM
+         DO I=NDM-NUNSTAB+1,NDM
             DUM=0.0D0
             DO J=1,NDM
                DUM=DUM+(U1(J)-XEQUIB2(J))*VT(I,J,1)
@@ -819,7 +818,7 @@ C Just use the point in the middle
          ENDDO
       ENDIF
       TMMAX=TM(JMAX)
-      DO I=1,NDM
+      DO I=1,NDIM
          UMAX(I) = UPS(JMAX,I)
       ENDDO
       CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM),DUM1,DUM2)
@@ -1293,7 +1292,7 @@ C supplied subroutine STPNT where an analytical solution is given.
 C
 C  
 C Generates a starting point for homoclinic continuation
-C If ISTART=2 it calls STPNHO. 
+C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
       DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
@@ -1323,8 +1322,8 @@ C
        ENDIF
        DT=1.d0/(NTST*NCOL)
        CALL PVLS(NDM,UPS,PAR)
-       CALL EIGHI(IAP,RAP,1,RR,RI,VT,PAR(11),ICP,PAR,NDM)
-       CALL EIGHI(IAP,RAP,2,RR,RI,VR,PAR(11),ICP,PAR,NDM)
+       CALL EIGHI(IAP,RAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
+       CALL EIGHI(IAP,RAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
 C
 C Set up artificial parameters at the left-hand end point of orbit
 C
@@ -1362,7 +1361,7 @@ C
      +               EXP(RR(NSTAB+1)*T*PAR(11))
              ENDDO
              write(9,111)(ups(j,k2+k),k=1,ndim)
- 111         format('stpho : ',i3,e20.10)
+ 111         format('stpho : ',e20.10)
           ENDDO
        ENDDO
 C
@@ -1406,10 +1405,10 @@ C
 C
 C      *Compute eigenvalues
        INEIG=0
-       CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(11),ICP,
+       CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
      *      PAR,NDM)
        IF(IEQUIB.LT.0)THEN
-          CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(11+NDM),ICP,
+          CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
      *         PAR,NDM)
        ENDIF
        IF(IID.GE.3)THEN
@@ -1431,10 +1430,10 @@ C      *Compute eigenvalues
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(11),ICP,
+          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *         PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(11+NDM),
+             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
@@ -1450,10 +1449,10 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(11),ICP,
+          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *          PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(11+NDM),
+             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
