@@ -539,12 +539,15 @@ C     ---------- ------
       SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NBC,NRC,C,D,IRF,ICF)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      INCLUDE 'auto.h'
 C
 C Arguments
       INTEGER   NOV,NA,NRA,NCA
       INTEGER   NCB,NBC,NRC,ICF(NCA,*),IRF(NRA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION D(NCB,*)
+C Local
+      DIMENSION IAMAX(NDIMX*NCOLX)
 C
 C Note that the summation of the adjacent overlapped part of C
 C is delayed until REDUCE, in order to merge it with other communications.
@@ -564,6 +567,7 @@ C
       DO 2 I=1,NA
          DO J=1,NRA
             IRF(J,I)=J
+            IAMAX(J)=NOV+IDAMAX(NEX,A(M1,J,I),1)
          ENDDO
          DO J=1,NCA
             ICF(J,I)=J
@@ -577,14 +581,13 @@ C           **Search for pivot (Complete pivoting)
             IPIV = IRP
             JPIV = IC
             DO K1=IRP,NRA
-               DO K2=IC,M2
-                  TPIV = DABS(A(ICF(K2,I),IRF(K1,I),I))
-                  IF(PIV.LT.TPIV)THEN
-                     PIV = TPIV
-                     IPIV = K1
-                     JPIV = K2
-                  ENDIF
-               ENDDO
+               IROW=IRF(K1,I)
+               TPIV = DABS(A(ICF(IAMAX(IROW),I),IROW,I))
+               IF(PIV.LT.TPIV)THEN
+                  PIV = TPIV
+                  IPIV = K1
+                  JPIV = IAMAX(IROW)
+               ENDIF
             ENDDO
 C           **Move indices
             ITMP        = ICF(IC,I)
@@ -602,17 +605,32 @@ C           **End of pivoting; elimination starts here
                RM=A(ICFIC,IRFIR,I)/PIV
                A(ICFIC,IRFIR,I)=RM
 	       IF(RM.NE.0.0)THEN
-               DO L=1,NOV
-                  A(L,IRFIR,I)=A(L,IRFIR,I)-RM*A(L,IRFIRP,I)
-               ENDDO
-               DO L=ICP1,NCA
-                  A(ICF(L,I),IRFIR,I)=
-     +                 A(ICF(L,I),IRFIR,I)-RM*A(ICF(L,I),IRFIRP,I)
-               ENDDO
-               DO L=1,NCB
-                  B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
-               ENDDO
+                  DO L=1,NOV
+                     A(L,IRFIR,I)=A(L,IRFIR,I)-RM*A(L,IRFIRP,I)
+                  ENDDO
+                  DO L=ICP1,NCA
+                     A(ICF(L,I),IRFIR,I)=
+     +                    A(ICF(L,I),IRFIR,I)-RM*A(ICF(L,I),IRFIRP,I)
+                  ENDDO
+                  DO L=1,NCB
+                     B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
+                  ENDDO
 	       ENDIF
+               IF((RM.NE.0.0).OR.(IAMAX(IRFIR).EQ.JPIV))THEN
+                  PPIV=0d0
+                  JPPIV=ICP1
+C     Recalculate absolute maximum for current row
+                  DO L=ICP1,M2
+                     TPIV=DABS(A(ICF(L,I),IRFIR,I))
+                     IF(PPIV.LT.TPIV)THEN
+                        PPIV=TPIV
+                        JPPIV=L
+                     ENDIF
+                  ENDDO
+                  IAMAX(IRFIR)=JPPIV
+               ELSEIF(IAMAX(IRFIR).EQ.IC)THEN
+                  IAMAX(IRFIR)=JPIV
+               ENDIF
             ENDDO
             DO IR=NBC+1,NRC
                RM=C(ICF(IC,I),IR,I)/PIV
