@@ -559,19 +559,15 @@ C
       M1    = NOV+1
       M2    = NOV+NEX
 C     
-C     Initialization
-      DO I=1,NA
+      ZERO = 0.D0
+C
+      DO 2 I=1,NA
          DO J=1,NRA
             IRF(J,I)=J
          ENDDO
          DO J=1,NCA
             ICF(J,I)=J
          ENDDO
-      ENDDO
-C
-      ZERO = 0.D0
-C
-      DO 2 I=1,NA
          DO 1 IC=M1,M2
             IR1=IC-NOV+1
             IRP=IR1-1
@@ -582,8 +578,7 @@ C           **Search for pivot (Complete pivoting)
             JPIV = IC
             DO K1=IRP,NRA
                DO K2=IC,M2
-                  TPIV = A(ICF(K2,I),IRF(K1,I),I)
-                  IF(TPIV.LT.ZERO)TPIV=-TPIV
+                  TPIV = DABS(A(ICF(K2,I),IRF(K1,I),I))
                   IF(PIV.LT.TPIV)THEN
                      PIV = TPIV
                      IPIV = K1
@@ -595,43 +590,43 @@ C           **Move indices
             ITMP        = ICF(IC,I)
             ICF(IC,I)   = ICF(JPIV,I)
             ICF(JPIV,I) = ITMP
+            ICFIC       = ICF(IC,I)
             ITMP        = IRF(IRP,I)
             IRF(IRP,I)  = IRF(IPIV,I)
             IRF(IPIV,I) = ITMP
+            IRFIRP      = IRF(IRP,I)
+            PIV=A(ICF(IC,I),IRF(IRP,I),I)
 C           **End of pivoting; elimination starts here
             DO IR=IR1,NRA
-               RM=A(ICF(IC,I),IRF(IR,I),I)/
-     +              A(ICF(IC,I),IRF(IRP,I),I)
-               A(ICF(IC,I),IRF(IR,I),I)=RM
+               IRFIR=IRF(IR,I)
+               RM=A(ICFIC,IRFIR,I)/PIV
+               A(ICFIC,IRFIR,I)=RM
 	       IF(RM.NE.0.0)THEN
                DO L=1,NOV
-                  A(L,IRF(IR,I),I)=A(L,IRF(IR,I),I)-RM*
-     +                 A(L,IRF(IRP,I),I)
+                  A(L,IRFIR,I)=A(L,IRFIR,I)-RM*A(L,IRFIRP,I)
                ENDDO
                DO L=ICP1,NCA
-                  A(ICF(L,I),IRF(IR,I),I)=
-     +                 A(ICF(L,I),IRF(IR,I),I)-RM*
-     +                 A(ICF(L,I),IRF(IRP,I),I)
+                  A(ICF(L,I),IRFIR,I)=
+     +                 A(ICF(L,I),IRFIR,I)-RM*A(ICF(L,I),IRFIRP,I)
                ENDDO
                DO L=1,NCB
-                  B(L,IRF(IR,I),I)=B(L,IRF(IR,I),I)-RM*
-     +                 B(L,IRF(IRP,I),I)
+                  B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
                ENDDO
 	       ENDIF
             ENDDO
             DO IR=NBC+1,NRC
-               RM=C(ICF(IC,I),IR,I)/A(ICF(IC,I),IRF(IRP,I),I)
+               RM=C(ICF(IC,I),IR,I)/PIV
                C(ICF(IC,I),IR,I)=RM
 	       IF(RM.NE.0.0)THEN
                DO L=1,NOV
-                  C(L,IR,I)=C(L,IR,I)-RM*A(L,IRF(IRP,I),I)
+                  C(L,IR,I)=C(L,IR,I)-RM*A(L,IRFIRP,I)
                ENDDO
                DO L=ICP1,NCA
                   C(ICF(L,I),IR,I)=C(ICF(L,I),IR,I)-RM*
-     +                 A(ICF(L,I),IRF(IRP,I),I)
-                  ENDDO
+     +                 A(ICF(L,I),IRFIRP,I)
+               ENDDO
                DO L=1,NCB
-                  D(L,IR)=D(L,IR)-RM*B(L,IRF(IRP,I),I)
+                  D(L,IR)=D(L,IR)-RM*B(L,IRFIRP,I)
                ENDDO
 	       ENDIF
             ENDDO
