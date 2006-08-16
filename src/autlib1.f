@@ -22,22 +22,13 @@ C Local
 C
 C Initialization :
 C
-      IAP(38)=MYNODE()
-      IAP(39)=NUMNODES()
-      IF(IAP(39).GT.1)THEN
-        IAP(40)=1
-      ELSE
-        IAP(40)=0
-      ENDIF
-C
        OPEN(2,FILE='fort.2',STATUS='old')
        OPEN(3,FILE='fort.3',STATUS='unknown')
        OPEN(7,FILE='fort.7',STATUS='unknown')
        OPEN(8,FILE='fort.8',STATUS='unknown')
        OPEN(9,FILE='fort.9',STATUS='unknown')
 C
- 1     T0=DCLOCK()
-       CALL AUTIM0(TIME0)
+ 1     CALL AUTIM0(TIME0)
        FOUND=.FALSE.
        CALL INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
        IF(EOF)STOP
@@ -51,7 +42,7 @@ C
          CALL FINDLB(IAP,RAP,IRS,NFPR,FOUND)
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
-           IF(IAP(38).EQ.0)WRITE(6,400)IRS
+           WRITE(6,400)IRS
            STOP
          ENDIF
        ENDIF
@@ -332,7 +323,7 @@ C        ** Continuation of folds (BVP, restart).
 C
        ELSE
 C        ** Error in INIT.
-         IF(IAP(38).EQ.0)WRITE(6,500)
+         WRITE(6,500)
          STOP
        ENDIF
 C-----------------------------------------------------------------------
@@ -342,11 +333,7 @@ C
       CALL WRBAR("=",47)
       WRITE(9,301)TOTTIM
       WRITE(6,301)TOTTIM
-
-      TOT=DCLOCK()-T0
 C
-C TOT is the total execution time on Intel Delta
-CX      IF(IAP(38).EQ.0)WRITE(9,301)TOT
  301  FORMAT(/,' Total Time ',E12.3)
 C
       GOTO 1
@@ -539,25 +526,25 @@ C
        NPAR=IAP(29)
 C
        IF(NDIM.GT.NDIMX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,101)NDIM,NDIMX
+         WRITE(6,101)NDIM,NDIMX
          STOP
        ELSEIF(NTST.GT.NTSTX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,102)NTST,NTSTX
+         WRITE(6,102)NTST,NTSTX
          STOP
        ELSEIF(NCOL.GT.NCOLX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,103)NCOL,NCOLX
+         WRITE(6,103)NCOL,NCOLX
          STOP
        ELSEIF(NBC.GT.NBCX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,104)NBC,NBCX
+         WRITE(6,104)NBC,NBCX
          STOP
        ELSEIF(NINT.GT.NINTX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,105)NINT,NINTX
+         WRITE(6,105)NINT,NINTX
          STOP
        ELSEIF(NUZR.GT.NUZRX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,106)NUZR,NUZRX
+         WRITE(6,106)NUZR,NUZRX
          STOP
        ELSEIF(NPAR.GT.NPARX)THEN
-         IF(IAP(38).EQ.0)WRITE(6,107)NPAR,NPARX
+         WRITE(6,107)NPAR,NPARX
          STOP
        ENDIF
 C
@@ -823,7 +810,7 @@ C            ** Fixed period
            ISW=-2
            ISP=0
            NMX=5
-           IF(IAP(38).EQ.0)WRITE(6,101)
+           WRITE(6,101)
 C
          ELSE IF( (IABS(ITP)/10.EQ.5 .OR. IABS(ITP)/10.EQ.6) 
      *           .AND. IPS.EQ.2)THEN
@@ -856,7 +843,7 @@ C            ** Fixed period
            ISW=-2
            ISP=0
            NMX=5
-           IF(IAP(38).EQ.0)WRITE(6,101)
+           WRITE(6,101)
 C
          ELSE IF(IABS(ITP)/10.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
 C          ** Continuation of period doubling bifurcations; restart
@@ -882,7 +869,7 @@ C          ** Continuation of torus bifurcations; start
            ISP=0
            ISW=-2
            NMX=5
-           IF(IAP(38).EQ.0)WRITE(6,101)
+           WRITE(6,101)
 C
          ELSE IF(IABS(ITP)/10.EQ.8 .AND. IPS.EQ.2)THEN
 C          ** Continuation of torus bifurcations; restart
@@ -910,7 +897,7 @@ C          ** Continuation of folds (BVP; start)
            ISW=-2
            ISP=0
            NMX=5
-           IF(IAP(38).EQ.0)WRITE(6,101)
+           WRITE(6,101)
 C
          ELSE IF( ( (IABS(ITP)/10).EQ.5 .OR. (IABS(ITP)/10).EQ.5 )
      *           .AND. IPS.EQ.4)THEN
@@ -1326,7 +1313,7 @@ C
        AA(NDIM+1,NDIM+1)=0.d0
 C
        IF(IID.GE.3)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
-       CALL NLVC(IAP(38),NDIM+1,M1AA,1,AA,DU,IR,IC)
+       CALL NLVC(NDIM+1,M1AA,1,AA,DU,IR,IC)
 C
 C Scale and make sure that the PAR(ICP(1))-dot is positive.
 C
@@ -1436,7 +1423,7 @@ C
        IAP(31)=NIT
        NTOT=IAP(32)
        NTOP=MOD(NTOT-1,9999)+1
-       IF(IID.GE.2.AND.IAP(38).EQ.0)THEN
+       IF(IID.GE.2)THEN
           IF(NIT.EQ.0)THEN
              CALL WRBAR("=",47)
              WRITE(9,100)
@@ -1478,7 +1465,7 @@ C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
-         CALL GE(IAP(38),NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
+         CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
      *           RHS,IR,IC,DET)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
@@ -1498,8 +1485,8 @@ C
            IF(ADU.GT.DUMX)DUMX=ADU
          ENDDO
 C
-         IF(IID.GE.2.AND.IAP(38).EQ.0)THEN
-            IF(IAP(38).EQ.0)WRITE(9,101)IBR,NTOP+1,
+         IF(IID.GE.2)THEN
+            WRITE(9,101)IBR,NTOP+1,
      *    NIT,RLCUR(1),RNRMV(NDM,U)
          ENDIF
 C
@@ -1524,7 +1511,7 @@ C
 C
 C Maximum number of iterations has been reached
 C
-3      IF(IADS.EQ.0.AND.IAP(38).EQ.0)WRITE(9,102)IBR,NTOP
+3      IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
  102   FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
        IF(IADS.EQ.0)GOTO 5
 C
@@ -1538,13 +1525,13 @@ C
        DO I=1,NDIM
          U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,103)
+       IF(IID.GE.2)WRITE(9,103)
  103   FORMAT(I4,I6,' NOTE:Retrying step')
        GOTO 1
 C
 C Minimum stepsize reached
 C
- 4     IF(IAP(38).EQ.0)WRITE(9,104)IBR,NTOP
+ 4     WRITE(9,104)IBR,NTOP
  104   FORMAT(I4,I6,' NOTE:No convergence using minimum step size')
  5     RLCUR(1)=RLOLD(1)
        PAR(ICP(1))=RLCUR(1)
@@ -1631,7 +1618,7 @@ C
 C
 C If requested write additional output on unit 9 :
 C
-       IF(IID.GE.2.AND.IAP(38).EQ.0)THEN
+       IF(IID.GE.2)THEN
           WRITE(9,101)ITLCSP,RDS
        ENDIF
 C
@@ -1652,7 +1639,7 @@ C        Use Mueller's method with bracketing for subsequent steps
          CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
          GOTO 1
        ELSE
-         IF(IAP(38).EQ.0)WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
+         WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
          Q=0.d0
          RETURN
        ENDIF
@@ -1723,7 +1710,7 @@ C
 C
 C If requested write additional output on unit 9 :
 C
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,101)IBR,NTOP+1,FNBPAE
+       IF(IID.GE.2)WRITE(9,101)IBR,NTOP+1,FNBPAE
  101   FORMAT(I4,I6,9X,'Bif. Function:',1PE14.5)
 C
       RETURN
@@ -1769,8 +1756,7 @@ C
        AA(NDIM+1,NDIM+1)=RLDOT(1)
        RHS(NDIM+1)=1.d0
 C
-       CALL GE(IAP(38),NDIM+1,M1AA,AA,1,NDIM+1,UD,
-     +      NDIM+1,RHS,IR,IC,DET)
+       CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
        RAP(14)=DET
        CALL NRMLZ(NDIM+1,UD)
        FNLPAE=UD(NDIM+1)
@@ -1779,7 +1765,7 @@ C
 C
 C If requested write additional output on unit 9 :
 C
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,101)IABS(IBR),NTOP+1,FNLPAE
+       IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNLPAE
  101   FORMAT(I4,I6,9X,'Fold Function:',1PE14.5)
 C
       RETURN
@@ -1891,21 +1877,19 @@ C
 C
        NTOT=IAP(32)
        NTOTP1=NTOT+1
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,101)IABS(IBR),NTOP+1,FNHBAE
+       IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNHBAE
        IF(NINS1.EQ.NDM)NTOTP1=-NTOTP1
 C
-       IF(IAP(38).EQ.0)THEN
-         WRITE(9,102)IABS(IBR),NTOP+1,NINS
-         IF(IPS.EQ.-1)THEN
-           DO I=1,NDM
+       WRITE(9,102)IABS(IBR),NTOP+1,NINS
+       IF(IPS.EQ.-1)THEN
+          DO I=1,NDM
              EVL=EV(I)
              WRITE(9,103)IABS(IBR),NTOP+1,I,EXP(EVL)
-           ENDDO
-         ELSE
-           DO I=1,NDM
+          ENDDO
+       ELSE
+          DO I=1,NDM
              WRITE(9,103)IABS(IBR),NTOP+1,I,EV(I)
-           ENDDO
-         ENDIF
+          ENDDO
        ENDIF
 C
  101   FORMAT(I4,I6,9X,'Hopf Function:',1PE14.5)
@@ -1978,7 +1962,7 @@ C
 C
 C Keep track of the number of branch points stored.
 C
-       IF(NBIF.EQ.NBIFX.AND.IAP(38).EQ.0)WRITE(9,101)IBR,NTOP
+       IF(NBIF.EQ.NBIFX)WRITE(9,101)IBR,NTOP
        IF(NBIF.GT.NBIFX)THEN
          NBIF=NBIFX
          IAP(35)=NBIF
@@ -1998,7 +1982,7 @@ C
        ENDDO
        AA(ND1,ND1)=RLDOT(1)
 C
-       CALL NLVC(IAP(38),ND1,M1AA,1,AA,DU,IR,IC)
+       CALL NLVC(ND1,M1AA,1,AA,DU,IR,IC)
 C
        SS=0.d0
        DO I=1,NDIM
@@ -2127,7 +2111,7 @@ C Write additional output on unit 9 if requested :
 C
        NDMR=NDIM
        IF(NDMR.GT.6)NDMR=6
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,101)IBR,NTOP,NIT,ICP(1),
+       IF(IID.GE.2)WRITE(9,101)IBR,NTOP,NIT,ICP(1),
      *   RLCUR(1),(U(I),I=1,NDMR)
 C
        RLM1=RLCUR(1)
@@ -2161,8 +2145,7 @@ C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
-         CALL GE(IAP(38),NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
-     +        RHS,IR,IC,DET)
+         CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
 C
@@ -2181,7 +2164,7 @@ C
            IF(AU.GT.UMX)UMX=AU
          ENDDO
 C
-         IF(IID.GE.2 .AND. IAP(38).EQ.0)THEN
+         IF(IID.GE.2)THEN
            WRITE(9,101)IBR,NTOP,NIT,ICP(1),RLCUR(1),(U(I),I=1,NDMR)
          ENDIF
 C
@@ -2194,7 +2177,7 @@ C
 C
 C Maximum number of iterations reached. Reduce stepsize and try again.
 C
-       IF(IADS.EQ.0.AND.IAP(38).EQ.0)WRITE(9,102)IBR,NTOP
+       IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
        IF(IADS.EQ.0)GOTO 5
 C
        MXT=ITNW
@@ -2205,12 +2188,12 @@ C
        DO I=1,NDIM
          U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,103)IBR,NTOP
+       IF(IID.GE.2)WRITE(9,103)IBR,NTOP
        GOTO 2
 C
 C Minimum stepsize reached.
 C
- 4     IF(IAP(38).EQ.0)WRITE(9,104)IBR,NTOP
+ 4     WRITE(9,104)IBR,NTOP
  5     RLCUR(1)=RLOLD(1)
        PAR(ICP(1))=RLCUR(1)
        DO I=1,NDIM
@@ -2285,8 +2268,6 @@ C
        EPSU=RAP(12)
        EPSS=RAP(13)
 C
-       IF(IAP(38).GT.0)RETURN
-C
        WRITE(7,101)RL0,RL1,A0,A1
        WRITE(7,102)EPSL,EPSU,EPSS
        WRITE(7,103)DS,DSMIN,DSMAX
@@ -2352,11 +2333,9 @@ C
          COL(I)='              '
        ENDDO
 C
-       IF(IAP(38).EQ.0)THEN
-          IF(IUNIT.EQ.6)WRITE(6,100)
-          IF(IUNIT.EQ.7)WRITE(7,101)
-          IF(IUNIT.EQ.9)WRITE(9,100)
-       ENDIF
+       IF(IUNIT.EQ.6)WRITE(6,100)
+       IF(IUNIT.EQ.7)WRITE(7,101)
+       IF(IUNIT.EQ.9)WRITE(9,100)
 C
        J=0
        DO I=1,N1
@@ -2437,14 +2416,12 @@ C
          ENDIF
        ENDDO
 C
-       IF(IAP(38).EQ.0)THEN
-          IF(IUNIT.EQ.6)THEN
-             WRITE(6,102)(COL(I),I=1,N1+N2+1)
-          ELSEIF(IUNIT.EQ.7)THEN
-             WRITE(7,103)(COL(I),I=1,N1+N2+1)
-          ELSEIF(IUNIT.EQ.9)THEN
-             WRITE(9,102)(COL(I),I=1,N1+N2+1)
-          ENDIF
+       IF(IUNIT.EQ.6)THEN
+          WRITE(6,102)(COL(I),I=1,N1+N2+1)
+       ELSEIF(IUNIT.EQ.7)THEN
+          WRITE(7,103)(COL(I),I=1,N1+N2+1)
+       ELSEIF(IUNIT.EQ.9)THEN
+          WRITE(9,102)(COL(I),I=1,N1+N2+1)
        ENDIF
 C
  100   FORMAT(' ')
@@ -2668,8 +2645,6 @@ C
          ATYPE='  '
        ENDIF
 C
-       IF(IAP(38).GT.0)RETURN
-C
        MTOT=MOD(NTOT-1,9999)+1
        IF(N2.EQ.0)THEN
          IF(MOD(ITP,10).NE.0)
@@ -2739,9 +2714,7 @@ C
        T=0.d0
        AMP=0.d0
        RAP(10)=AMP
-       
-       IF(IAP(38).GT.0)RETURN
-C
+C       
        MTOT=MOD(NTOT-1,9999)+1
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,0,0,NPARX
        WRITE(8,102)T,(U(I),I=1,NDIM)
@@ -2760,7 +2733,6 @@ C
 C
       DIMENSION AA(M1AA,*),RHS(*),IAP(*)
 C
-       IF(IAP(38).GT.0)RETURN
        WRITE(9,101)
        WRITE(9,100)(RHS(I),I=1,N)
        WRITE(9,102)
@@ -3443,7 +3415,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE NLVC(IAM,N,M,K,A,U,IR,IC)
+      SUBROUTINE NLVC(N,M,K,A,U,IR,IC)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3487,7 +3459,7 @@ C
              ENDIF
            ENDDO
          ENDDO
-         IF(PIV.LT.RSMALL.AND.IAM.EQ.0)WRITE(9,101)JJ,RSMALL
+         IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
 C
          KK=IR(JJ)
          IR(JJ)=IR(IPIV)
@@ -3580,7 +3552,7 @@ C
       END
 C
 C     ---------- --
-      SUBROUTINE GE(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
+      SUBROUTINE GE(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3605,7 +3577,6 @@ C
 C The input matrix A is overwritten.
 C
       DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-      INTEGER IAM
 C
        DO I=1,N
          IC(I)=I
@@ -3636,7 +3607,7 @@ C
          IF(IPIV.NE.JJ)DET=-DET
          IF(JPIV.NE.JJ)DET=-DET
 C
-         IF(PIV.LT.RSMALL.AND.IAM.EQ.0)WRITE(9,101)JJ,RSMALL
+         IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
 C
          K=IR(JJ)
          IR(JJ)=IR(IPIV)
@@ -3686,7 +3657,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE GESC(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
+      SUBROUTINE GESC(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3711,7 +3682,6 @@ C
 C The input matrix A is overwritten.
 C
       DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-      INTEGER IAM
 C
        DO I=1,N
          IC(I)=I
@@ -3743,7 +3713,7 @@ C
          IF(IPIV.NE.JJ)DET=-DET
          IF(JPIV.NE.JJ)DET=-DET
 C
-         IF(PIV.LT.RSMALL.AND.IAM.EQ.0)WRITE(9,101)JJ,RSMALL
+         IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
 C
          K=IR(JJ)
          IR(JJ)=IR(IPIV)
@@ -4678,7 +4648,7 @@ C
 C
 C Maximum number of iterations reached.
 C
- 3     IF(IADS.EQ.0.AND.IAP(38).EQ.0)WRITE(9,101)IBR,NTOP
+ 3     IF(IADS.EQ.0)WRITE(9,101)IBR,NTOP
        IF(IADS.EQ.0)GOTO 13
 C
 C Reduce stepsize and try again.
@@ -4695,12 +4665,12 @@ C
            UPS(J,I)=UOLDPS(J,I)+RDS*UDOTPS(J,I)
          ENDDO
        ENDDO
-       IF(IID.GE.2.AND.IAP(38).EQ.0)WRITE(9,102)IBR,NTOP
+       IF(IID.GE.2)WRITE(9,102)IBR,NTOP
        GOTO 1
 C
 C Minimum stepsize reached.
 C
- 12    IF(IAP(38).EQ.0)WRITE(9,103)IBR,NTOP
+ 12    WRITE(9,103)IBR,NTOP
  13    DO I=1,NFPR
          RLCUR(I)=RLOLD(I)
          PAR(ICP(I))=RLCUR(I)
@@ -5087,8 +5057,6 @@ C
            ENDDO
          ENDIF
 C
-         IF(IAP(38).GT.0)RETURN
-C
          IF(IID.GE.2)THEN
            WRITE(9,101)
             DO I=1,NFPR 
@@ -5184,7 +5152,7 @@ cxx???   Q=0.d0
 C
 C If requested write additional output on unit 9 :
 C
-       IF(IID.GE.2.AND.IAP(38).EQ.0)THEN
+       IF(IID.GE.2)THEN
          WRITE(9,101)NITSP1,RDS
        ENDIF
 C
@@ -5211,8 +5179,6 @@ C        Use Mueller's method with bracketing for subsequent steps
          CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
          GOTO 1
        ENDIF
-C
-       IF(IAP(38).GT.0)RETURN
 C
        WRITE(9,103)IBR,NTOP+1
        Q=0.d0
@@ -5281,7 +5247,7 @@ C
 C Scale the direction vector.
 C
          CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
-         IF(IID.GE.2.AND.IAP(38).EQ.0)THEN
+         IF(IID.GE.2)THEN
            WRITE(9,101)IABS(IBR),NTOP+1,RLDOT(1)
          ENDIF
 C
@@ -5331,7 +5297,7 @@ C
       DO I=1,NDIM**2
         PP(I)=P1(I)
       ENDDO                               
-      CALL GE(IAP(38),NDIM,NDIM,PP,0,1,U,1,F,IR,IC,DET)
+      CALL GE(NDIM,NDIM,PP,0,1,U,1,F,IR,IC,DET)
       RAP(14)=DET
 C
 C Set the determinant of the normalized reduced system.
@@ -5344,8 +5310,6 @@ C
         CHNG=.FALSE.
       ENDIF
       RAP(18)=FNBPBV
-C
-      IF(IAP(38).GT.0)RETURN
 C
       IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNBPBV
  101  FORMAT(I4,I6,9X,'BP   Function ',1PE14.5)
@@ -5441,15 +5405,13 @@ C (ISP is set to negative and detection of bifurations is discontinued)
 C
        AMIN= ABS( EV(1) - 1.d0 )
        IF(AMIN.GT.5.0E-2 .AND. ISP.EQ.2) THEN
-         IF(IAP(38).EQ.0)THEN
-            IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1
-            DO I=1,NDIM
-              WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
-            ENDDO
-         ENDIF
+         IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1
+         DO I=1,NDIM
+            WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
+         ENDDO
          NINS=0
          IAP(33)=NINS
-         IF(IAP(38).EQ.0)WRITE(9,104)IABS(IBR),NTOP+1,NINS
+         WRITE(9,104)IABS(IBR),NTOP+1,NINS
          ISP=-ISP
          IAP(9)=ISP
          RETURN
@@ -5460,15 +5422,13 @@ C sufficiently accurate again.
 C
        IF(ISP.LT.0)THEN
          IF(AMIN.LT.1.0E-2)THEN
-           IF(IAP(38).EQ.0)WRITE(9,102)IABS(IBR),NTOP+1
+           WRITE(9,102)IABS(IBR),NTOP+1
            ISP=-ISP
            IAP(9)=ISP
          ELSE
-           IF(IAP(38).EQ.0)THEN
-              DO I=1,NDIM
-                WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
-             ENDDO
-           ENDIF
+           DO I=1,NDIM
+              WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
+           ENDDO
            RETURN
          ENDIF
        ENDIF
@@ -5509,18 +5469,16 @@ C
        NINS=NINS1
        IAP(33)=NINS
        IF( IID.GE.2 .AND. (ISP.EQ.1 .OR. ISP.EQ.2))THEN
-          IF(IAP(38).EQ.0)WRITE(9,103)IABS(IBR),NTOP+1,D
+          WRITE(9,103)IABS(IBR),NTOP+1,D
        ENDIF
 C
 C Print the Floquet multipliers.
 C
        NINS=IAP(33)
-       IF(IAP(38).EQ.0)THEN
-          WRITE(9,104)IABS(IBR),NTOP+1,NINS
-          DO I=1,NDIM
-            WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
-          ENDDO
-       ENDIF
+       WRITE(9,104)IABS(IBR),NTOP+1,NINS
+       DO I=1,NDIM
+          WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
+       ENDDO
 C
  101   FORMAT(I4,I6,' NOTE:Multiplier inaccurate')
  102   FORMAT(I4,I6,' NOTE:Multiplier accurate again')
@@ -5851,8 +5809,6 @@ C
        NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPARX-1)/7+1
      *                          + (NFPR-1)/20+1
 C
-       IF(IAP(38).GT.0)RETURN
-C
        MTOT=MOD(NTOT-1,9999)+1
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,
      *             NTST,NCOL,NPARX
@@ -5948,17 +5904,15 @@ C
          ELSE
            NFPRP=5
          ENDIF
-         IF(IAP(38).EQ.0)THEN
-           IF(NITPS.EQ.0)CALL WRBAR("=",47)
-           IF(NITPS.EQ.0 .OR. IID.GE.3)THEN
-             WRITE(9,102)
-           ENDIF
-           MTOT=MOD(NTOT-1,9999)+1
-           WRITE(9,103)IBR,MTOT+1,NITPS,RLCUR(1),AMP
+         IF(NITPS.EQ.0)CALL WRBAR("=",47)
+         IF(NITPS.EQ.0 .OR. IID.GE.3)THEN
+            WRITE(9,102)
          ENDIF
+         MTOT=MOD(NTOT-1,9999)+1
+         WRITE(9,103)IBR,MTOT+1,NITPS,RLCUR(1),AMP
        ENDIF
 C
-       IF(IID.GE.5 .AND. IAP(38).EQ.0)THEN
+       IF(IID.GE.5)THEN
          WRITE(9,104)
          DO J=1,NTST
            RN=1.d0/NCOL
@@ -6033,9 +5987,7 @@ C
           ENDDO
         ENDDO
 C
-        IAM=0
-
-        CALL GE(IAM,NDIM,NDIMX,Q1,NDIM,NDIMX,P,NDIMX,Q0,IR,IC,DET)
+        CALL GE(NDIM,NDIMX,Q1,NDIM,NDIMX,P,NDIMX,Q0,IR,IC,DET)
         CALL RG(NDIMX,NDIM,P,WR,WI,1,Z,IV1,FV1,IERR)
 C
         WRITE(9,100)

@@ -125,7 +125,7 @@ C
        ELSE
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DFP)
        ENDIF
-       CALL NLVC(IAP(38),NDM,NDM,1,DFU,V,IR,IC)
+       CALL NLVC(NDM,NDM,1,DFU,V,IR,IC)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
          U(NDM+I)=V(I)
@@ -361,7 +361,7 @@ C       TRANSPOSE
            DD(NDM+1,I)=DFP((ICP(2)-1)*NDM+I)
          ENDDO
          DD(NDM+1,NDM+1)=DP(ICP(2))
-         CALL NLVC(IAP(38),NDM+1,NDIMX,1,DD,V,IR,IC)
+         CALL NLVC(NDM+1,NDIMX,1,DD,V,IR,IC)
          CALL NRMLZ(NDM+1,V)
          DO I=1,NDM+1
            U(NDM+I)=V(I)
@@ -608,7 +608,7 @@ C
          SMAT(I,I)=SMAT(I,I)-C1
          SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
        ENDDO
-       CALL NLVC(IAP(38),NDM2,2*NDIMX,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2*NDIMX,2,SMAT,V,IR,IC)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -778,7 +778,7 @@ C
            SMAT(NDM+I,NDM+J)=ROM*DFU((J-1)*NDM+I)
          ENDDO
        ENDDO
-       CALL NLVC(IAP(38),NDM2,2*NDIMX,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2*NDIMX,2,SMAT,V,IR,IC)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -949,7 +949,7 @@ C
            SMAT(NDM+I,NDM+J)=ROM*DFU((J-1)*NDM+I)
          ENDDO
        ENDDO
-       CALL NLVC(IAP(38),NDM2,2*NDIMX,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2*NDIMX,2,SMAT,V,IR,IC)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1185,7 +1185,7 @@ C
          ENDDO
        ENDDO
 C
-       CALL NLVC(IAP(38),NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
+       CALL NLVC(NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
@@ -1297,7 +1297,7 @@ C Note that the user period-scaling in FUNC is taken into account:
          ENDDO
        ENDDO
 C
-       CALL NLVC(IAP(38),NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
+       CALL NLVC(NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
@@ -1550,7 +1550,7 @@ C
          ENDDO
        ENDDO
 C
-       CALL NLVC(IAP(38),NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
+       CALL NLVC(NDIM2,2*NDIMX,2,SMAT,RNLLV,IR,IC)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
