@@ -140,39 +140,10 @@ C Local
       DIMENSION UBC0(NDIMX),UBC1(NDIMX),FBC(NBCX),DBC(NBCX*M2BC)
       DIMENSION FICD(NINTX),DICD(NINTX*M2INT)
       DIMENSION UIC(NDIMX),UIO(NDIMX),UID(NDIMX),UIP(NDIMX)
-      DIMENSION WPLOC(MCL2,MCL1),WI(MCL2),WP(MCL2,MCL1),WT(MCL2,MCL1)
+      DIMENSION WPLOC(MCL2),WI(MCL2),WP(MCL2,MCL1),WT(MCL2,MCL1)
 C
        CALL WINT(NCOL+1,WI)
        CALL GENWTS(NCOL,MCL2,WT,WP)
-C
-C Initialize to zero.
-C
-       DO I=1,NRC
-         FC(I)=0.d0
-         DO K=1,NCB
-           DD(K,I)=0.d0
-         ENDDO
-       ENDDO
-C
-C  NA is the local node's mesh interval number.
-C
-       DO I=1,NA
-         DO J=1,NRA
-           DO K=1,NCA
-             AA(K,J,I)=0.d0
-           ENDDO
-         ENDDO
-         DO J=1,NRA
-           DO K=1,NCB
-             BB(K,J,I)=0.d0
-           ENDDO
-         ENDDO
-         DO J=1,NCA
-           DO K=1,NRC
-             CC(J,K,I)=0.d0
-           ENDDO
-         ENDDO
-      ENDDO
 C
 C Set constants.
        NCP1=NCOL+1
@@ -186,11 +157,6 @@ C
           JP1=J+1
           DT=DTM(J)
           DDT=1.d0/DT
-          DO IC=1,NCOL
-             DO IB=1,NCP1
-                WPLOC(IB,IC)=DDT*WP(IB,IC)
-             ENDDO
-          ENDDO
           DO 1 IC=1,NCOL
              DO K=1,NDIM
                 U(K)=   WT(NCP1,IC)*   UPS(JP1,K)
@@ -209,31 +175,51 @@ C
                 PRM(I)=PAR(I)
              ENDDO
              CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PRM,2,F,DFDU,DFDP)
-             IC1=(IC-1)*NDIM
-             DO IB=1,NCP1
-                IB1=(IB-1)*NDIM
-                DO I=1,NDIM
-                   AA(IB1+I,IC1+I,J)=WPLOC(IB,IC)
-                   DO K=1,NDIM
-                      AA(IB1+K,IC1+I,J)=AA(IB1+K,IC1+I,J)
-     *                     -WT(IB,IC)*DFDU((K-1)*NDIM+I)
-                   ENDDO
+C     transpose DFDU for optimal access
+             DO II=0,NDIM-1
+                DO JJ=0,II-1
+                   TMP=DFDU(1+II+JJ*NDIM)
+                   DFDU(1+II+JJ*NDIM)=DFDU(1+JJ+II*NDIM)
+                   DFDU(1+JJ+II*NDIM)=TMP
                 ENDDO
              ENDDO
+             IC1=(IC-1)*NDIM
+             DO IB=1,NCP1
+                WPLOC(IB)=DDT*WP(IB,IC)
+             ENDDO
              DO I=1,NDIM
+                IB1=0
+                IDFDU=(I-1)*NDIM
+                DO IB=1,NCP1
+                   WTTMP=-WT(IB,IC)
+                   DO K=1,NDIM
+                      AA(IB1+K,IC1+I,J)=WTTMP*DFDU(IDFDU+K)
+                   ENDDO
+                   AA(IB1+I,IC1+I,J)=AA(IB1+I,IC1+I,J)+WPLOC(IB)
+                   IB1=IB1+NDIM
+                ENDDO
                 DO K=1,NCB
                    BB(K,IC1+I,J)=-DFDP((ICP(K)-1)*NDIM+I)
                 ENDDO
-                FA(IC1+I,J)=F(I)-WPLOC(NCP1,IC)*UPS(JP1,I)
+                FA(IC1+I,J)=F(I)-WPLOC(NCP1)*UPS(JP1,I)
                 DO K=1,NCOL
                    K1=(K-1)*NDIM+I
-                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K,IC)*UPS(J,K1)
+                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K)*UPS(J,K1)
                 ENDDO
              ENDDO
  1        CONTINUE
  2     CONTINUE
 C     
 C     Generate CC, DD and FC :
+C
+C Initialize to zero.
+C
+       DO I=1,NRC
+         FC(I)=0.d0
+         DO K=1,NCB
+           DD(K,I)=0.d0
+         ENDDO
+       ENDDO
 C     
 C     Boundary conditions :
 C     
@@ -499,11 +485,10 @@ C
 C
       IF(NLLV.EQ.0)THEN
          CALL CONRHS(NOV,NA,NRA,NCA,A,NBC,NRC,C,FA,FC,IRF,ICF)
-         CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
       ELSE
          CALL SETZERO(FA,FC,NA,NRA,NRC)
-         CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
       ENDIF
+      CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
       IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D,
