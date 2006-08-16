@@ -1185,7 +1185,7 @@ C            *Stop at the first found fold
 C
 C Check for branch point, and if so store data :
 C
-         IF(IABS(ISP).GT.1)THEN
+         IF(IABS(ISP).GT.0)THEN
            CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,M1AA,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RBP,THL,THU,IUZ,VUZ)
            ISTOP=IAP(34)
