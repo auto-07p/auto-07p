@@ -13,12 +13,12 @@ C
       INCLUDE 'auto.h'
 C
       PARAMETER (NROWX=NDIMX*NCOLX,NCLMX=NROWX+NDIMX,
-     *           NRCX=NBCX+NINTX+1,NCCX=NCLMX)
+     *           NRCX=NINTX+1,NCCX=NCLMX)
 C
       PARAMETER (M1AA=NCLMX,M2AA=NROWX,M3AA=NTSTX,
      *           M1BB=NPARX,M2BB=NROWX,M3BB=NTSTX,
      *           M1CC=NCCX,M2CC=NRCX,M3CC=NTSTX,
-     *           M1DD=NRCX,M2DD=NPARX)
+     *           M1DD=NRCX+NBCX,M2DD=NPARX)
       PARAMETER (NX=NDIMX,NX2=NX**2,NXP=NX*NPARX)
       PARAMETER (NAX=NTSTX+1)
 C
@@ -36,7 +36,7 @@ C Most of the required memory is allocated below
      *       A1((NDIMX**2)*NAX),A2((NDIMX**2)*NAX),
      *       S1((NDIMX**2)*NAX),S2((NDIMX**2)*NAX),
      *       BB(NPARX*NDIMX*NAX),
-     *       CC(NRCX*NDIMX*(NAX+1)),
+     *       CC(NRCX*NDIMX*(NAX+1)),CCBC(2*NBCX*NDIMX),
      *       FAA(NDIMX*NAX),
      *       CA1(NDIMX**2),
      *       ICF(NCLMX*NAX),IRF(NROWX*NAX),
@@ -59,8 +59,8 @@ C
 C
       IF(IFST.EQ.1)THEN
         CALL SETUBV(NDIM,IPS,NTST,NCOL,NBC,NINT,
-     +   NFPR,NRC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
-     +   IAP,RAP,PAR,ICP,RDS,A,B,C,D,FT,FC,RLCUR,RLOLD,
+     +   NFPR,NRC-NBC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
+     +   IAP,RAP,PAR,ICP,RDS,A,B,C,CCBC,D,FT,FC,RLCUR,RLOLD,
      +   RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU,P0,P1)
       ELSE
         CALL SETRHS(NDIM,IPS,NTST,NCOL,NBC,NINT,
@@ -71,7 +71,7 @@ C
 C
       CALL BRBD(A,B,C,D,FT,FC,P0,P1,IFST,
      +  IID,NLLV,DET,NDIM,NTST,NBC,NROW,NCLM,
-     +  NFPR,NRC,A1,A2,BB,CC,FAA,CA1,
+     +  NFPR,NRC,A1,A2,BB,CC,CCBC,FAA,CA1,
      +  S1,S2,ICF11,IPR,ICF1,ICF2,IRF,ICF)
 C
       CALL FAFT(FT,FA,NTST,NROW,NDX)         
@@ -115,7 +115,7 @@ C
 C     ---------- ---------
       SUBROUTINE SETUBV(NDIM,IPS,NA,NCOL,NBC,NINT,
      + NCB,NRC,NRA,NCA,FUNI,BCNI,ICNI,NDX,
-     + IAP,RAP,PAR,ICP,RDS,AA,BB,CC,DD,FA,FC,RLCUR,RLOLD,
+     + IAP,RAP,PAR,ICP,RDS,AA,BB,CC,CCBC,DD,FA,FC,RLCUR,RLOLD,
      + RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU,P0,P1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -127,7 +127,7 @@ C
       EXTERNAL FUNI, BCNI, ICNI
 C
       DIMENSION AA(NCA,NRA,*),BB(NCB,NRA,*)
-      DIMENSION CC(NCA,NRC,*),DD(NCB,*)
+      DIMENSION CC(NCA,NRC,*),CCBC(NDIM,NBC,*),DD(NCB,*)
 C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),DUPS(NDX,*)
       DIMENSION UOLDPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
@@ -213,9 +213,9 @@ C
 C Initialize to zero.
 C
        DO I=1,NRC
-         FC(I)=0.d0
+         FC(NBC+I)=0.d0
          DO K=1,NCB
-           DD(K,I)=0.d0
+           DD(K,NBC+I)=0.d0
          ENDDO
        ENDDO
 C     
@@ -230,8 +230,8 @@ C
          DO I=1,NBC
             FC(I)=-FBC(I)
             DO K=1,NDIM
-              CC(K,I,1)=DBC((K-1)*NBC+I)
-              CC(NRA+K,I,NA)=DBC((NDIM+K-1)*NBC+I)
+              CCBC(K,I,1)=DBC((K-1)*NBC+I)
+              CCBC(K,I,2)=DBC((NDIM+K-1)*NBC+I)
             ENDDO
             DO K=1,NCB
                DD(K,I)=DBC((2*NDIM+ICP(K)-1)*NBC+I)
@@ -266,7 +266,7 @@ C
                DO M=1,NINT
                   DO I=1,NDIM
                      K1=(K-1)*NDIM+I
-                     CC(K1,NBC+M,J)=DTM(J)*WI(K)*DICD((I-1)*NINT+M)
+                     CC(K1,M,J)=DTM(J)*WI(K)*DICD((I-1)*NINT+M)
                   ENDDO
                   DO I=1,NCB
                      DD(I,NBC+M)=DD(I,NBC+M)
@@ -294,11 +294,11 @@ C
 C     
        RLSUM=0.d0
        DO I=1,NCB
-          DD(I,NRC)=THL(ICP(I))*RLDOT(I)
+          DD(I,NBC+NRC)=THL(ICP(I))*RLDOT(I)
           RLSUM=RLSUM+THL(ICP(I))*(RLCUR(I)-RLOLD(I))*RLDOT(I)
        ENDDO
 C     
-       FC(NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
+       FC(NBC+NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
 C     
        RETURN
        END
@@ -444,7 +444,7 @@ C
 C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NA,NBC,NRA,NCA,
-     +  NCB,NRC,A1,A2,BB,CC,FAA,CA1,
+     +  NCB,NRC,A1,A2,BB,CC,CCBC,FAA,CA1,
      +  S1,S2,ICF11,IPR,ICF1,ICF2,IRF,ICF)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -461,7 +461,7 @@ C Arguments
       INTEGER   IDB,NLLV,NOV,NA,NBC,NRA
       INTEGER   NCA,NCB,NRC
       DOUBLE PRECISION DET
-      DIMENSION A(*),B(*),C(*),D(*),FA(*),FC(*),P0(*),P1(*)
+      DIMENSION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
       DIMENSION A1(*),A2(*),BB(*),CC(*),FAA(*),CA1(*)
       DIMENSION S1(*),S2(*)
       INTEGER   ICF11(*),IPR(*)
@@ -474,30 +474,31 @@ C Local
       INTEGER   IR(NCRE),IC(NCRE)
 C
       IF(IDB.GT.4)
-     +     CALL PRINT1(NOV,NA,NRA,NCA,NCB,NRC,A,B,C,D,FA,FC)
+     +     CALL PRINT1(NA,NRA,NCA,NCB,NRC,NBC,A,B,C,CCBC,D,FA,FC)
 
       IF(IFST.EQ.1)THEN
-         CALL CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NBC,NRC,C,D,IRF,ICF)
-         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
+         CALL CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC-NBC,C,
+     +        D(1,NBC+1),IRF,ICF)
+         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC-NBC,C,A1,A2,BB,CC,IRF)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
-         CALL CONRHS(NOV,NA,NRA,NCA,A,NBC,NRC,C,FA,FC,IRF,ICF)
+         CALL CONRHS(NOV,NA,NRA,NCA,A,NRC-NBC,C,FA,FC(NBC+1),IRF,ICF)
       ELSE
          CALL SETZERO(FA,FC,NA,NRA,NRC)
       ENDIF
       CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
       IF(IFST.EQ.1)
-     +     CALL REDUCE(A1,A2,BB,CC,D,
-     +     NA,NOV,NCB,NRC,S1,S2,CA1,ICF1,ICF2,ICF11,IPR,BUF,NBC)
+     +     CALL REDUCE(A1,A2,BB,CC,D(1,NBC+1),
+     +     NA,NOV,NCB,NRC-NBC,S1,S2,CA1,ICF1,ICF2,ICF11,IPR)
 C
       IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC,NA,NOV,NCB,NRC,CA1,ICF1,ICF2,ICF11,IPR,NBC,BUF)
+     +     FAA,FC(NBC+1),NA,NOV,NCB,NRC-NBC,CA1,ICF1,ICF2,ICF11,IPR)
 C
-      CALL DIMRGE(E,CC,D,FC,BUF,IR,IC,IFST,
-     +     NA,NRC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
+      CALL DIMRGE(E,CC,CCBC,D,FC,BUF,IR,IC,IFST,
+     +     NA,NRC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
       CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,
      +     SOL1,SOL2,SOL3,NA,NOV,NCB,ICF2,BUF)
@@ -534,14 +535,14 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NBC,NRC,C,D,IRF,ICF)
+      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
 C
 C Arguments
       INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NCB,NBC,NRC,ICF(NCA,*),IRF(NRA,*)
+      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION D(NCB,*)
 C Local
@@ -556,7 +557,6 @@ C
 C
 C Condensation of parameters (Elimination of local variables).
 C
-      NBCP1 = NBC+1
       M1    = NOV+1
       M2    = NOV+NEX
 C     
@@ -630,7 +630,7 @@ C     Recalculate absolute maximum for current row
                   IAMAX(IRFIR)=JPIV
                ENDIF
             ENDDO
-            DO IR=NBC+1,NRC
+            DO IR=1,NRC
                RM=C(ICF(IC,I),IR,I)/PIV
                C(ICF(IC,I),IR,I)=RM
 	       IF(RM.NE.0.0)THEN
@@ -653,14 +653,13 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE CONRHS(NOV,NA,NRA,NCA,A,
-     +  NBC,NRC,C,FA,FC,IRF,ICF)
+      SUBROUTINE CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC,IRF,ICF)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NBC,NRC,ICF(NCA,*),IRF(NRA,*)
+      INTEGER   NRC,ICF(NCA,*),IRF(NRA,*)
       DIMENSION A(NCA,NRA,*),C(NCA,NRC,*)
       DIMENSION FA(NRA,*),FC(*)
 C
@@ -669,7 +668,6 @@ C
 C
 C Condensation of right hand side.
 C
-      NBCP1 = NBC+1
       M1    = NOV+1
       M2    = NOV+NEX
 C
@@ -685,7 +683,7 @@ C
      +            FA(IRFIR,I)=FA(IRFIR,I)-
      +            A(ICFIC,IRFIR,I)*FA(IRFIRP,I)
             ENDDO
-            DO IR=NBCP1,NRC
+            DO IR=1,NRC
                IF(C(ICFIC,IR,I).NE.0.0)
      +            FC(IR)=FC(IR)-C(ICFIC,IR,I)*FA(IRFIRP,I)
             ENDDO
@@ -798,18 +796,18 @@ C
 C     ---------- ------
       SUBROUTINE REDUCE(A1,A2,BB,CC,DD,
      +  NA,NOV,NCB,NRC,S1,S2,CA1,ICF1,ICF2,
-     +  ICF11,IPR,BUF,NBC)
+     +  ICF11,IPR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
 C
 C Arguments
-      INTEGER   NA,NOV,NCB,NRC,NBC
+      INTEGER   NA,NOV,NCB,NRC
       INTEGER   ICF1(NOV,*),ICF2(NOV,*),ICF11(NOV,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*),BUF(*)
+      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*)
       DIMENSION DD(NCB,*)
       DIMENSION CA1(NOV,NOV,*),IPR(NOV,*)
 C
@@ -818,10 +816,8 @@ C Local
       DIMENSION IAMAX(2*NDIMX)
 C
       ZERO    = 0.0D0
-      NBCP1   = NBC+1
       NAP1    = NA+1
       NAM1    = NA-1
-      NRCMNBC = NRC-NBC
 C
 C Initialization
 C
@@ -1007,7 +1003,7 @@ C     recalculate absolute maximum for current row
                ENDIF
             ENDDO
 C     
-            DO IR=NBCP1,NRC
+            DO IR=1,NRC
                RM = CC(ICF2(IC,I1),IR,I2)/
      +              A2(ICF2(IC,I1),IC,I1)
                CC(ICF2(IC,I1),IR,I2)   = RM                  
@@ -1042,24 +1038,23 @@ C
 C     ---------- ------
       SUBROUTINE REDRHS(A1,A2,CC,
      +  FAA,FC,NA,NOV,NCB,NRC,CA1,ICF1,ICF2,
-     +  ICF11,IPR,NBC,TBUF)
+     +  ICF11,IPR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
 C
 C Arguments
-      INTEGER   NA,NOV,NRC,NBC
+      INTEGER   NA,NOV,NRC
       INTEGER   ICF1(NOV,*),ICF2(NOV,*),ICF11(NOV,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DIMENSION CC(NOV,NRC,*),TBUF(*)
+      DIMENSION CC(NOV,NRC,*)
       DIMENSION FAA(NOV,*),FC(*)
       DIMENSION CA1(NOV,NOV,*),IPR(NOV,*)
 C
 C Local
       DOUBLE PRECISION RM
 C
-      NBCP1   = NBC+1
       NAP1    = NA+1
       NAM1    = NA-1
 C
@@ -1089,7 +1084,7 @@ C Reduce concurrently in each node
                RM=A1(L1,IR,I2)
                FAA(IR,I2) = FAA(IR,I2)-RM*FAA(IC,I1)
             ENDDO
-            DO IR=NBCP1,NRC
+            DO IR=1,NRC
                L1=ICF2(IC,I1)
                RM=CC(L1,IR,I2)
                FC(IR)= FC(IR)-RM*FAA(IC,I1)
@@ -1101,15 +1096,15 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE DIMRGE(E,CC,D,FC,XE,IR,IC,IFST,
-     +  NA,NRC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
+      SUBROUTINE DIMRGE(E,CC,CCBC,D,FC,XE,IR,IC,IFST,
+     +  NA,NRC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NRC,NOV,NCB,IDB,NLLV
       INTEGER   IR(*),IC(*)
-      DIMENSION E(NOV+NRC,*),CC(NOV,NRC,*),D(NCB,*)
+      DIMENSION E(NOV+NRC,*),CC(NOV,NRC-NBC,*),CCBC(NOV,NBC,*),D(NCB,*)
       DIMENSION P0(NOV,*),P1(NOV,*),S(NOV,NOV,*)
       DIMENSION FAA(NOV,*),A2(NOV,NOV,*),BB(NCB,NOV,*)
       DIMENSION FC(*),XE(*),FCC(*)
@@ -1139,8 +1134,13 @@ C
          NOVPI=NOV+I
          DO J=1,NOV
             NOVPJ          = NOV+J
-            E(NOVPI,J)     = CC(J,I,1)
-            E(NOVPI,NOVPJ) = CC(J,I,NAP1)
+            IF(I.LE.NBC)THEN
+               E(NOVPI,J)     = CCBC(J,I,1)
+               E(NOVPI,NOVPJ) = CCBC(J,I,2)
+            ELSE
+               E(NOVPI,J)     = CC(J,I-NBC,1)
+               E(NOVPI,NOVPJ) = CC(J,I-NBC,NAP1)
+            ENDIF
          ENDDO
          DO J=1,NCB
             NOVPJ2          = 2*NOV+J
@@ -1341,12 +1341,12 @@ C
       END
 C           
 C     ---------- ------
-      SUBROUTINE PRINT1(NOV,NA,NRA,NCA,NCB,NRC,A,B,C,D,FA,FC)
+      SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NRC,NBC,A,B,C,CCBC,D,FA,FC)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DIMENSION D(NCB,*),FA(NRA,*),FC(*)
+      DIMENSION CCBC(NCA-NRA,NBC,*),D(NCB,*),FA(NRA,*),FC(*)
 C
        WRITE(9,101)
        DO I=1,NA
@@ -1361,7 +1361,13 @@ C
        DO I=1,NA
          WRITE(9,102)I
          DO IR=1,NRC
-           WRITE(9,103)(C(IC,IR,I),IC=1,NCA)
+           IF(IR.GT.NBC)THEN
+             WRITE(9,103)(C(IC,IR-NBC,I),IC=1,NCA)
+           ELSEIF(I.EQ.1)THEN
+             WRITE(9,103)(CCBC(IC,IR,1),IC=1,NCA-NRA)
+           ELSEIF(I.EQ.NA)THEN
+             WRITE(9,103)(CCBC(IC,IR,2),IC=NRA+1,NCA)
+           ENDIF
          ENDDO
        ENDDO
 C
