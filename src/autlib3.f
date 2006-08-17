@@ -3420,18 +3420,35 @@ C Local
       DIMENSION U1ZZ(NDIMX),U2ZZ(NDIMX),F1ZZ(NDIMX),F2ZZ(NDIMX)
 C
        JAC=IAP(22)
-       NFPR=IAP(29)
 C
 C Generate the function.
 C
-       IF(JAC.EQ.0)THEN
-         IJC=0
-       ELSE
+       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
          IJC=IJAC
+       ELSE
+         IJC=0
        ENDIF
        CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP,UOLD)
 C
-       IF(JAC.EQ.1 .OR. IJAC.EQ.0)RETURN
+       IF(JAC.EQ.1 .OR. IJAC.EQ.0 .OR. (JAC.EQ.-1.AND.IJAC.EQ.1))RETURN
+C
+       IF(IJAC.NE.1)THEN
+          NFPR=IAP(29)
+          DO I=1,NFPR
+             EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
+             PAR(ICP(I))=PAR(ICP(I))+EP
+             CALL FUNC(NDIM,U,ICP,PAR,0,F1ZZ,DFDU,DFDP,UOLD)
+             DO J=1,NDIM
+                DFDP(J,ICP(I))=(F1ZZ(J)-F(J))/EP
+             ENDDO
+             PAR(ICP(I))=PAR(ICP(I))-EP
+          ENDDO
+       ENDIF
+C
+C if the user specified the Jacobian but not the
+C parameter derivatives we return here
+C
+       IF (JAC.EQ.-1)RETURN
 C
 C Generate the Jacobian by differencing.
 C
@@ -3454,18 +3471,6 @@ C
          DO J=1,NDIM
            DFDU(J,I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
         ENDDO
-       ENDDO
-C
-       IF(IJAC.EQ.1)RETURN
-C
-       DO I=1,NFPR
-         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-         PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FUNC(NDIM,U,ICP,PAR,0,F1ZZ,DFDU,DFDP,UOLD)
-         DO J=1,NDIM
-           DFDP(J,ICP(I))=(F1ZZ(J)-F(J))/EP
-         ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
       RETURN
