@@ -772,6 +772,29 @@ C
       RETURN
       END
 C
+C     ------- -------- ------
+      INTEGER FUNCTION IMAXCF(N,A,ICFI)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+C Arguments
+      INTEGER N
+      DIMENSION A(*),ICFI(*)
+C
+      PIV = 0.0D0
+      IMAXCF = 1
+      DO K2=1,N
+         TPIV=DABS(A(ICFI(K2)))
+         IF(PIV.LT.TPIV)THEN
+            PIV=TPIV
+            IMAXCF=K2
+         ENDIF
+      ENDDO
+C
+      RETURN
+      END
+C
+C
 C     ---------- ------
       SUBROUTINE REDUCE(A1,A2,BB,CC,DD,
      +  NA,NOV,NCB,NRC,S1,S2,CA1,ICF1,ICF2,
@@ -792,6 +815,7 @@ C Arguments
 C
 C Local 
       DOUBLE PRECISION RM
+      DIMENSION IAMAX(2*NDIMX)
 C
       ZERO    = 0.0D0
       NBCP1   = NBC+1
@@ -825,41 +849,44 @@ C
          I2=I1+1
          I3=I2+1
 C
+         DO K1=1,NOV
+            IAMAX(K1)=IDAMAX(NOV,A2(1,K1,I1),1)
+         ENDDO
+         DO K1=1,NOV
+            IAMAX(NOV+K1)=IDAMAX(NOV,A1(1,K1,I2),1)
+         ENDDO
+C
          DO 2 IC=1,NOV
             ICP1=IC+1
 C
 C Complete pivoting; rows are swapped physically, columns swap indices
             PIV1 = ZERO
             IPIV1 = IC
-            JPIV1 = IC
             DO K1=IC,NOV
-               DO K2=IC,NOV
-                  TPIV      = A2(ICF2(K2,I1),K1,I1)
-                  IF(TPIV.LT.ZERO)TPIV=-TPIV
-                  IF(PIV1.LT.TPIV)THEN
-                     PIV1   = TPIV
-                     IPIV1  = K1
-                     JPIV1  = K2
-                  ENDIF
-               ENDDO
+               TPIV=DABS(A2(ICF2(IAMAX(K1),I1),K1,I1))
+               IF(PIV1.LT.TPIV)THEN
+                  PIV1   = TPIV
+                  IPIV1  = K1
+               ENDIF
             ENDDO
+            JPIV1=IAMAX(IPIV1)
 C
             PIV2 = ZERO
             IPIV2 = 1
-            JPIV2 = IC
             DO K1=1,NOV
-               DO K2=IC,NOV
-                  TPIV      = A1(ICF1(K2,I2),K1,I2)
-                  IF(TPIV.LT.ZERO)TPIV=-TPIV
-                  IF(PIV2.LT.TPIV)THEN
-                     PIV2   = TPIV
-                     IPIV2  = K1
-                     JPIV2  = K2
-                  ENDIF
-               ENDDO
+               TPIV=DABS(A1(ICF1(IAMAX(NOV+K1),I2),K1,I2))
+               IF(PIV2.LT.TPIV)THEN
+                  PIV2   = TPIV
+                  IPIV2  = K1
+               ENDIF
             ENDDO
+            JPIV2=IAMAX(NOV+IPIV2)
+C
+C rows are swapped physically, columns swap indices
 C
             IF(PIV1.GE.PIV2)THEN
+               IAMAX(IPIV1)      = IAMAX(IC)
+               JPIV              = JPIV1
                IPR(IC,I1)        = IPIV1
                ITMP              = ICF2(IC,I1)
                ICF2(IC,I1)       = ICF2(JPIV1,I1)
@@ -889,6 +916,8 @@ C
                   BB(L,IPIV1,I1) = TMP
                ENDDO
             ELSE
+               IAMAX(NOV+IPIV2)  = IAMAX(IC)
+               JPIV              = JPIV2
                IPR(IC,I1)        = NOV+IPIV2
                ITMP              = ICF2(IC,I1)
                ICF2(IC,I1)       = ICF2(JPIV2,I1)
@@ -941,6 +970,13 @@ C
                   BB(L,IR,I1) = BB(L,IR,I1)-RM*BB(L,IC,I1)
                ENDDO
 	       ENDIF
+               IF((RM.NE.0.0).OR.(IAMAX(IR).EQ.JPIV))THEN
+C     recalculate absolute maximum for current row
+                  IAMAX(IR) = IC+
+     +                 IMAXCF(NOV-IC,A2(1,IR,I1),ICF2(ICP1,I1))
+               ELSEIF(IAMAX(IR).EQ.IC)THEN
+                  IAMAX(IR) = JPIV
+               ENDIF
             ENDDO
 C     
             DO IR=1,NOV
@@ -962,6 +998,13 @@ C
                    BB(L,IR,I2) = BB(L,IR,I2)-RM*BB(L,IC,I1)
                  ENDDO
 	       ENDIF
+               IF((RM.NE.0.0).OR.(IAMAX(NOV+IR).EQ.JPIV))THEN
+C     recalculate absolute maximum for current row
+                  IAMAX(NOV+IR) = IC+
+     +                 IMAXCF(NOV-IC,A1(1,IR,I2),ICF1(ICP1,I2))
+               ELSEIF(IAMAX(NOV+IR).EQ.IC)THEN
+                  IAMAX(NOV+IR) = JPIV
+               ENDIF
             ENDDO
 C     
             DO IR=NBCP1,NRC
