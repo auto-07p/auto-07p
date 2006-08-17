@@ -1965,7 +1965,7 @@ C Calculate the (transpose of the) BEYN matrix D and hence BOUND
       ENDDO
 C     
       IF(MCOND.GT.0)THEN
-        CALL GE(0,MCOND,NX,DUM1,MCOND,NX,D,NX,DUM2,IR,IC,DET)
+        CALL GE(MCOND,NX,DUM1,MCOND,NX,D,NX,DUM2,IR,IC,DET)
       ENDIF
 C     
       DO I=1,MCOND
