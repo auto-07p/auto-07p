@@ -35,7 +35,7 @@ C Most of the required memory is allocated below
      *       C(M1CC*M2CC*NAX),D(M1DD*M2DD), 
      *       A1((NDIMX**2)*NAX),A2((NDIMX**2)*NAX),
      *       S1((NDIMX**2)*NAX),S2((NDIMX**2)*NAX),
-     *       BB(NDIMX*NPARX*NAX),
+     *       BB(NPARX*NDIMX*NAX),
      *       CC(NRCX*NDIMX*(NAX+1)),
      *       FAA(NDIMX*NAX),
      *       CA1(NDIMX**2),
@@ -708,7 +708,7 @@ C Arguments
       INTEGER   NCB,NRC,IRF(NRA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DIMENSION BB(NOV,NCB,*),CC(NOV,NRC,*)
+      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*)
 C
 C     DIMENSION FA(NRA,*),FAA(NOV,*)
 C
@@ -723,11 +723,11 @@ C
             IRFIR=IRF(NRA-NOV+IR,I)
             DO IC=1,NOV
                IC1=NCA-NOV+IC
-               A1(IR,IC,I)=A(IC,IRFIR,I)
-               A2(IR,IC,I)=A(IC1,IRFIR,I)
+               A1(IC,IR,I)=A(IC,IRFIR,I)
+               A2(IC,IR,I)=A(IC1,IRFIR,I)
             ENDDO     
             DO IC=1,NCB
-               BB(IR,IC,I)=B(IC,IRFIR,I)
+               BB(IC,IR,I)=B(IC,IRFIR,I)
             ENDDO
          ENDDO
       ENDDO
@@ -788,7 +788,7 @@ C Arguments
       INTEGER   ICF1(NOV,*),ICF2(NOV,*),ICF11(NOV,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DIMENSION BB(NOV,NCB,*),CC(NOV,NRC,*),BUF(*)
+      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*),BUF(*)
       DIMENSION DD(NCB,*)
       DIMENSION CA1(NOV,NOV,*),IPR(NOV,*)
 C
@@ -800,8 +800,6 @@ C
       NAP1    = NA+1
       NAM1    = NA-1
       NRCMNBC = NRC-NBC
-      LEN1    = 8*(NOV*(NRC-NBC))
-      LEN2    = 8*(NOV+NRC-NBC+1)
 C
 C Initialization
 C
@@ -811,15 +809,15 @@ C
             ICF2(K1,I)     = K1
             IPR(K1,I)      = K1
             DO K2=1,NOV
-               S2(K1,K2,I) = 0.0D0
-               S1(K1,K2,I) = 0.0D0
+               S2(K2,K1,I) = 0.0D0
+               S1(K2,K1,I) = 0.0D0
             ENDDO
          ENDDO
       ENDDO
 C
       DO IR=1,NOV
          DO IC=1,NOV
-            S1(IR,IC,1)=A1(IR,IC,1)
+            S1(IC,IR,1)=A1(IC,IR,1)
          ENDDO
       ENDDO
 C
@@ -838,7 +836,7 @@ C Complete pivoting; rows are swapped physically, columns swap indices
             JPIV1 = IC
             DO K1=IC,NOV
                DO K2=IC,NOV
-                  TPIV      = A2(K1,ICF2(K2,I1),I1)
+                  TPIV      = A2(ICF2(K2,I1),K1,I1)
                   IF(TPIV.LT.ZERO)TPIV=-TPIV
                   IF(PIV1.LT.TPIV)THEN
                      PIV1   = TPIV
@@ -853,7 +851,7 @@ C
             JPIV2 = IC
             DO K1=1,NOV
                DO K2=IC,NOV
-                  TPIV      = A1(K1,ICF1(K2,I2),I2)
+                  TPIV      = A1(ICF1(K2,I2),K1,I2)
                   IF(TPIV.LT.ZERO)TPIV=-TPIV
                   IF(PIV2.LT.TPIV)THEN
                      PIV2   = TPIV
@@ -873,24 +871,24 @@ C
                ICF1(JPIV1,I2)    = ITMP
 C Swapping
                DO L=1,NOV
-                  TMP            = S1(IC,L,I1)
-                  S1(IC,L,I1)    = S1(IPIV1,L,I1)
-                  S1(IPIV1,L,I1) = TMP
+                  TMP            = S1(L,IC,I1)
+                  S1(L,IC,I1)    = S1(L,IPIV1,I1)
+                  S1(L,IPIV1,I1) = TMP
                   IF(L.GE.IC)THEN
-                     TMP=A2(IC,ICF2(L,I1),I1)
-                     A2(IC,ICF2(L,I1),I1)= 
-     +                    A2(IPIV1,ICF2(L,I1),I1)
-                     A2(IPIV1,ICF2(L,I1),I1)= TMP
+                     TMP=A2(ICF2(L,I1),IC,I1)
+                     A2(ICF2(L,I1),IC,I1)= 
+     +                    A2(ICF2(L,I1),IPIV1,I1)
+                     A2(ICF2(L,I1),IPIV1,I1)= TMP
                   ENDIF
-                  TMP            = S2(IC,L,I1)
-                  S2(IC,L,I1)    = S2(IPIV1,L,I1)
-                  S2(IPIV1,L,I1) = TMP
+                  TMP            = S2(L,IC,I1)
+                  S2(L,IC,I1)    = S2(L,IPIV1,I1)
+                  S2(L,IPIV1,I1) = TMP
                ENDDO
 C
                DO L=1,NCB
-                  TMP            = BB(IC,L,I1)
-                  BB(IC,L,I1)    = BB(IPIV1,L,I1)
-                  BB(IPIV1,L,I1) = TMP
+                  TMP            = BB(L,IC,I1)
+                  BB(L,IC,I1)    = BB(L,IPIV1,I1)
+                  BB(L,IPIV1,I1) = TMP
                ENDDO
             ELSE
                IPR(IC,I1)        = NOV+IPIV2
@@ -903,88 +901,88 @@ C
 C Swapping
                DO L=1,NOV
                   IF(L.GE.IC)THEN
-                     TMP  = A2(IC,ICF2(L,I1),I1)
-                     A2(IC,ICF2(L,I1),I1)= 
-     +                    A1(IPIV2,ICF2(L,I1),I2)
-                     A1(IPIV2,ICF2(L,I1),I2) = TMP
+                     TMP  = A2(ICF2(L,I1),IC,I1)
+                     A2(ICF2(L,I1),IC,I1)= 
+     +                    A1(ICF2(L,I1),IPIV2,I2)
+                     A1(ICF2(L,I1),IPIV2,I2) = TMP
                   ENDIF
-                  TMP            = S2(IC,L,I1)
-                  S2(IC,L,I1)    = A2(IPIV2,L,I2)
-                  A2(IPIV2,L,I2) = TMP
-                  TMP            = S1(IC,L,I1)
-                  S1(IC,L,I1)    = S1(IPIV2,L,I2)
-                  S1(IPIV2,L,I2) = TMP                  
+                  TMP            = S2(L,IC,I1)
+                  S2(L,IC,I1)    = A2(L,IPIV2,I2)
+                  A2(L,IPIV2,I2) = TMP
+                  TMP            = S1(L,IC,I1)
+                  S1(L,IC,I1)    = S1(L,IPIV2,I2)
+                  S1(L,IPIV2,I2) = TMP                  
                ENDDO
                DO L=1,NCB
-                  TMP            = BB(IC,L,I1)
-                  BB(IC,L,I1)    = BB(IPIV2,L,I2)
-                  BB(IPIV2,L,I2) = TMP
+                  TMP            = BB(L,IC,I1)
+                  BB(L,IC,I1)    = BB(L,IPIV2,I2)
+                  BB(L,IPIV2,I2) = TMP
                ENDDO
             ENDIF
 C
 C End of pivoting; Elimination starts here
 C
             DO IR=ICP1,NOV
-               RM = A2(IR,ICF2(IC,I1),I1)/
-     +              A2(IC,ICF2(IC,I1),I1)
-               A2(IR,ICF2(IC,I1),I1)   = RM
+               RM = A2(ICF2(IC,I1),IR,I1)/
+     +              A2(ICF2(IC,I1),IC,I1)
+               A2(ICF2(IC,I1),IR,I1)   = RM
 C
                IF(RM.NE.0.0)THEN
                DO L=ICP1,NOV
-                  A2(IR,ICF2(L,I1),I1) =
-     +                 A2(IR,ICF2(L,I1),I1)-RM*
-     +                 A2(IC,ICF2(L,I1),I1)
+                  A2(ICF2(L,I1),IR,I1) =
+     +                 A2(ICF2(L,I1),IR,I1)-RM*
+     +                 A2(ICF2(L,I1),IC,I1)
                ENDDO
 C
                DO L=1,NOV
-                  S1(IR,L,I1) = S1(IR,L,I1)-RM*S1(IC,L,I1)
-                  S2(IR,L,I1) = S2(IR,L,I1)-RM*S2(IC,L,I1)
+                  S1(L,IR,I1) = S1(L,IR,I1)-RM*S1(L,IC,I1)
+                  S2(L,IR,I1) = S2(L,IR,I1)-RM*S2(L,IC,I1)
                ENDDO
 C
                DO L=1,NCB
-                  BB(IR,L,I1) = BB(IR,L,I1)-RM*BB(IC,L,I1)
+                  BB(L,IR,I1) = BB(L,IR,I1)-RM*BB(L,IC,I1)
                ENDDO
 	       ENDIF
             ENDDO
 C     
             DO IR=1,NOV
-               RM = A1(IR,ICF1(IC,I2),I2)/
-     +              A2(IC,ICF2(IC,I1),I1)
-               A1(IR,ICF1(IC,I2),I2)   = RM
+               RM = A1(ICF1(IC,I2),IR,I2)/
+     +              A2(ICF2(IC,I1),IC,I1)
+               A1(ICF1(IC,I2),IR,I2)   = RM
 C
 	       IF(RM.NE.0.0)THEN
                  DO L=ICP1,NOV
-                    A1(IR,ICF1(L,I2),I2) = 
-     +                 A1(IR,ICF1(L,I2),I2)-RM*
-     +                 A2(IC,ICF2(L,I1),I1)
+                    A1(ICF1(L,I2),IR,I2) = 
+     +                 A1(ICF1(L,I2),IR,I2)-RM*
+     +                 A2(ICF2(L,I1),IC,I1)
                  ENDDO
                  DO L=1,NOV
-                   S1(IR,L,I2) = S1(IR,L,I2)-RM*S1(IC,L,I1)
-                   A2(IR,L,I2) = A2(IR,L,I2)-RM*S2(IC,L,I1)
+                   S1(L,IR,I2) = S1(L,IR,I2)-RM*S1(L,IC,I1)
+                   A2(L,IR,I2) = A2(L,IR,I2)-RM*S2(L,IC,I1)
                  ENDDO
                  DO L=1,NCB
-                   BB(IR,L,I2) = BB(IR,L,I2)-RM*BB(IC,L,I1)
+                   BB(L,IR,I2) = BB(L,IR,I2)-RM*BB(L,IC,I1)
                  ENDDO
 	       ENDIF
             ENDDO
 C     
             DO IR=NBCP1,NRC
                RM = CC(ICF2(IC,I1),IR,I2)/
-     +              A2(IC,ICF2(IC,I1),I1)
+     +              A2(ICF2(IC,I1),IC,I1)
                CC(ICF2(IC,I1),IR,I2)   = RM                  
 C
                IF(RM.NE.0.0)THEN
                  DO L=ICP1,NOV
                     CC(ICF2(L,I1),IR,I2) = 
      +                 CC(ICF2(L,I1),IR,I2)-RM*
-     +                 A2(IC,ICF2(L,I1),I1)
+     +                 A2(ICF2(L,I1),IC,I1)
                  ENDDO
                  DO L=1,NOV
-                    CC(L,IR,1)  = CC(L,IR,1)-RM*S1(IC,L,I1)
-                    CC(L,IR,I3) = CC(L,IR,I3)-RM*S2(IC,L,I1)
+                    CC(L,IR,1)  = CC(L,IR,1)-RM*S1(L,IC,I1)
+                    CC(L,IR,I3) = CC(L,IR,I3)-RM*S2(L,IC,I1)
                  ENDDO
                  DO L=1,NCB
-                    DD(L,IR)    = DD(L,IR)-RM*BB(IC,L,I1)
+                    DD(L,IR)    = DD(L,IR)-RM*BB(L,IC,I1)
                  ENDDO
                ENDIF
              ENDDO           
@@ -1042,12 +1040,12 @@ C Reduce concurrently in each node
             ENDIF
             DO IR=ICP1,NOV
                L1=ICF2(IC,I1)
-               RM=A2(IR,L1,I1)
+               RM=A2(L1,IR,I1)
                FAA(IR,I1)=FAA(IR,I1)-RM*FAA(IC,I1)
             ENDDO
             DO IR=1,NOV
                L1=ICF1(IC,I2)
-               RM=A1(IR,L1,I2)
+               RM=A1(L1,IR,I2)
                FAA(IR,I2) = FAA(IR,I2)-RM*FAA(IC,I1)
             ENDDO
             DO IR=NBCP1,NRC
@@ -1072,31 +1070,27 @@ C Arguments
       INTEGER   IR(*),IC(*)
       DIMENSION E(NOV+NRC,*),CC(NOV,NRC,*),D(NCB,*)
       DIMENSION P0(NOV,*),P1(NOV,*),S(NOV,NOV,*)
-      DIMENSION FAA(NOV,*),A2(NOV,NOV,*),BB(NOV,NCB,*)
+      DIMENSION FAA(NOV,*),A2(NOV,NOV,*),BB(NCB,NOV,*)
       DIMENSION FC(*),XE(*),FCC(*)
 C
 C Local
-      INTEGER  I,J,MSGLEN1,MSGLEN2
+      INTEGER  I,J
 C
-C Define message length in bytes
-C     
       NAP1    = NA+1
-      MSGLEN1 = 8*NRC*NOV
-      MSGLEN2 = 8*(NOV+NRC+2*NOV**2+1)
       NCR     = NRC+NOV
 C     
 C Copy
       DO I=1,NOV
          DO J=1,NOV
             NOVPJ      = NOV+J
-            E(I,J)     = S(I,J,NA)
-            P0(I,J)    = S(I,J,NA)
-            E(I,NOVPJ) = A2(I,J,NA)
-            P1(I,J)    = A2(I,J,NA)
+            E(I,J)     = S(J,I,NA)
+            P0(I,J)    = S(J,I,NA)
+            E(I,NOVPJ) = A2(J,I,NA)
+            P1(I,J)    = A2(J,I,NA)
          ENDDO
          DO J=1,NCB
             NOVPJ2      = 2*NOV+J
-            E(I,NOVPJ2) = BB(I,J,NA)
+            E(I,NOVPJ2) = BB(J,I,NA)
          ENDDO
       ENDDO
 C     
@@ -1197,7 +1191,7 @@ C
 C Arguments
       INTEGER   NA,NOV,NCB,ICF2(NOV,*)
       DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DIMENSION A2(NOV,NOV,*),BB(NOV,NCB,*)
+      DIMENSION A2(NOV,NOV,*),BB(NCB,NOV,*)
       DIMENSION SOL1(NOV,*),SOL2(NOV,*),SOL3(NOV,*)
       DIMENSION FAA(NOV,*),FC(*),FCC(*),BUF(*)
 C
@@ -1205,10 +1199,6 @@ C Local
       INTEGER I,K
       DOUBLE PRECISION SM
 C
-      NOV2    = 2*NOV
-      NOV3    = 3*NOV
-      IBUF    = 8*(NOV3+1)
-
       DO L=1,NOV
          SOL1(L,NA) = FCC(L)
          SOL2(L,NA) = FC(L)
@@ -1227,18 +1217,18 @@ C Backsubstitution process; concurrently in each node.
          DO K=NOV,1,-1
             SM=0.0D0
             DO L=1,NOV
-               SM=SM+SOL1(L,I)*S1(K,L,I)
-               SM=SM+SOL3(L,I)*S2(K,L,I)
+               SM=SM+SOL1(L,I)*S1(L,K,I)
+               SM=SM+SOL3(L,I)*S2(L,K,I)
             ENDDO
             DO L=1,NCB
-               SM=SM+FC(NOV+L)*BB(K,L,I)
+               SM=SM+FC(NOV+L)*BB(L,K,I)
             ENDDO
             DO L=K+1,NOV
                L1=ICF2(L,I)
-               SM=SM+SOL2(L1,I)*A2(K,L1,I)
+               SM=SM+SOL2(L1,I)*A2(L1,K,I)
             ENDDO
             L2=ICF2(K,I)
-            SOL2(L2,I)=(FAA(K,I)-SM)/A2(K,L2,I)
+            SOL2(L2,I)=(FAA(K,I)-SM)/A2(L2,K,I)
          ENDDO
          DO L=1,NOV
             SOL1(L,I+1)=SOL2(L,I)
