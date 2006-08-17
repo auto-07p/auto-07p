@@ -155,8 +155,6 @@ C Generate AA , BB and FA :
 C
        DO 2 J=1,NA
           JP1=J+1
-          DT=DTM(J)
-          DDT=1.d0/DT
           DO 1 IC=1,NCOL
              DO K=1,NDIM
                 U(K)=   WT(NCP1,IC)*   UPS(JP1,K)
@@ -185,7 +183,7 @@ C     transpose DFDU for optimal access
              ENDDO
              IC1=(IC-1)*NDIM
              DO IB=1,NCP1
-                WPLOC(IB)=DDT*WP(IB,IC)
+                WPLOC(IB)=WP(IB,IC)/DTM(J)
              ENDDO
              DO I=1,NDIM
                 IB1=0
