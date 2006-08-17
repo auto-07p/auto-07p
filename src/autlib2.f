@@ -1130,7 +1130,7 @@ C
 C
 C Solve for FCC
       IF(NLLV.EQ.0)THEN
-         CALL GE(NCR,NCR,E,1,NCR,FCC,NCR,XE,IR,IC,DET)
+         CALL GE(0,NCR,NCR,E,1,NCR,FCC,NCR,XE,IR,IC,DET)
       ELSEIF(NLLV.GT.0)THEN
          CALL NLVC(NCR,NCR,NLLV,E,FCC,IR,IC)
       ELSE
@@ -1138,7 +1138,7 @@ C Solve for FCC
             XE(I)=0.D0
          ENDDO
          XE(NCR)=1.D0
-         CALL GE(NCR,NCR,E,1,NCR,FCC,NCR,XE,IR,IC,DET)
+         CALL GE(0,NCR,NCR,E,1,NCR,FCC,NCR,XE,IR,IC,DET)
       ENDIF
 
       IF(IDB.GE.4)THEN

@@ -1465,7 +1465,7 @@ C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
-         CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
+         CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
      *           RHS,IR,IC,DET)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
@@ -1756,7 +1756,7 @@ C
        AA(NDIM+1,NDIM+1)=RLDOT(1)
        RHS(NDIM+1)=1.d0
 C
-       CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
+       CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
        RAP(14)=DET
        CALL NRMLZ(NDIM+1,UD)
        FNLPAE=UD(NDIM+1)
@@ -2145,7 +2145,7 @@ C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
-         CALL GE(NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
+         CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
 C
@@ -3552,7 +3552,7 @@ C
       END
 C
 C     ---------- --
-      SUBROUTINE GE(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
+      SUBROUTINE GE(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -5297,7 +5297,7 @@ C
       DO I=1,NDIM**2
         PP(I)=P1(I)
       ENDDO                               
-      CALL GE(NDIM,NDIM,PP,0,1,U,1,F,IR,IC,DET)
+      CALL GE(0,NDIM,NDIM,PP,0,1,U,1,F,IR,IC,DET)
       RAP(14)=DET
 C
 C Set the determinant of the normalized reduced system.
@@ -5987,7 +5987,7 @@ C
           ENDDO
         ENDDO
 C
-        CALL GE(NDIM,NDIMX,Q1,NDIM,NDIMX,P,NDIMX,Q0,IR,IC,DET)
+        CALL GE(0,NDIM,NDIMX,Q1,NDIM,NDIMX,P,NDIMX,Q0,IR,IC,DET)
         CALL RG(NDIMX,NDIM,P,WR,WI,1,Z,IV1,FV1,IERR)
 C
         WRITE(9,100)
