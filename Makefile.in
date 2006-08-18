@@ -23,6 +23,9 @@ plaut04: .FORCE
 
 tek2ps: .FORCE
 	cd ./tek2ps;$(MAKE)
+# this rule is just there to fool automake from plaut04
+am--refresh:
+
 #
 clean:
 	cd ./src;$(MAKE) clean
