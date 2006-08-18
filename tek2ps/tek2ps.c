@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tek.h"
 
 extern char	*optarg;
@@ -30,6 +31,7 @@ main(argc, argv)
 	int		used_large=FALSE, used_med=FALSE, used_small=FALSE;
 	int		dark_vector, HiX=0, HiY=0, LoY=0, LoX=0, BX=0, BY=0;
 	int		gotLoY=FALSE, debug=FALSE, beamon, pr_on_er=FALSE;
+	int		ignore_er=FALSE;
 	double		scale_factor=1.0;
 
 	auto_dir = getenv("AUTO_DIR");
@@ -38,7 +40,7 @@ main(argc, argv)
 	strcat(pro_fn, "/tek2ps/pstek.pro");
 
 	/* first, parse command line */
-	while ((c = getopt (argc, argv, "s:p:de")) != EOF) {
+	while ((c = getopt (argc, argv, "s:p:dei")) != EOF) {
 		switch (c) {
 		case 'p' :	/* use custom prolog */
 			pro_fn = optarg;
@@ -55,6 +57,10 @@ main(argc, argv)
 		case 'e':	/* turn on print-before-erase */
 				/* and erase-after-print */
 			pr_on_er = TRUE;
+			break;
+
+		case 'i':	/* ignore erase */
+			ignore_er = TRUE;
 			break;
 
 		case 's':	/* set scale option */
@@ -391,8 +397,11 @@ main(argc, argv)
 						fprintf(stdout,"%f %f scale\n", scale_factor, scale_factor);
 					}
 				}
-				fprintf(stdout, "%d DP\n", tsizey);
-				cx = 0; cy = YDIM - tsizey;
+				
+				if (!ignore_er) {
+					fprintf(stdout, "%d DP\n", tsizey);
+					cx = 0; cy = YDIM - tsizey;
+				}
 				break;
 
 			case ( '8' ):
