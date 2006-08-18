@@ -6,8 +6,8 @@
 #   front end.
 SHELL=/bin/sh
 #
-all: src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
-cmd: src @PLAUT@
+all: doc src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+cmd: doc src @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)

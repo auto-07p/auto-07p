@@ -5,12 +5,14 @@ RM     = rm -f
 #
 all:  manual
 #
-manual: auto.tex
+manual: auto.ps
+#
+auto.ps:auto.tex
 	latex auto.tex
-#	bibtex auto
+	bibtex auto
 	latex auto.tex
 	dvips auto -o auto.ps
-	ghostview auto.ps &
+	gv auto.ps &
 #
 clean:
 	@echo "Cleaning auto.doc ..."
