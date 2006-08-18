@@ -3206,11 +3206,16 @@ C
 C
 C Generate the new mesh in TMNEW :
 C
-       DO J1=1,NNEWP1
+       DO J1=1,NNEW
          J=IAL(J1)
          X=(UNEQ(J1)-EQF(J))/(EQF(J+1)-EQF(J))
          TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
        ENDDO
+C
+C Assign TMNEW(NNEWP1) explicitly because of loss of precision
+C problems when EQF(NOLDP1) and EQF(NOLD) are very close
+C
+       TMNEW(NNEWP1)=TMOLD(NOLDP1)
 C
       RETURN
       END
