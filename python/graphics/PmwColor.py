@@ -10,6 +10,7 @@ _PI = math.pi
 _TWO_PI = _PI * 2
 _THIRD_PI = _PI / 3
 _SIXTH_PI = _PI / 6
+_MAX_RGB = float(256 * 256 - 1) # max size of rgb values returned from Tk
 
 def setscheme(root, background=None, **kw):
     root = root._root()
@@ -26,18 +27,18 @@ def getdefaultpalette(root):
     scbar = Tkinter.Scrollbar(root)
 
     orig = {}
-    orig['activeBackground'] = ckbtn.configure('activebackground')[4]
-    orig['activeForeground'] = ckbtn.configure('activeforeground')[4]
-    orig['background'] = ckbtn.configure('background')[4]
-    orig['disabledForeground'] = ckbtn.configure('disabledforeground')[4]
-    orig['foreground'] = ckbtn.configure('foreground')[4]
-    orig['highlightBackground'] = ckbtn.configure('highlightbackground')[4]
-    orig['highlightColor'] = ckbtn.configure('highlightcolor')[4]
-    orig['insertBackground'] = entry.configure('insertbackground')[4]
-    orig['selectColor'] = ckbtn.configure('selectcolor')[4]
-    orig['selectBackground'] = entry.configure('selectbackground')[4]
-    orig['selectForeground'] = entry.configure('selectforeground')[4]
-    orig['troughColor'] = scbar.configure('troughcolor')[4]
+    orig['activeBackground'] = str(ckbtn.configure('activebackground')[4])
+    orig['activeForeground'] = str(ckbtn.configure('activeforeground')[4])
+    orig['background'] = str(ckbtn.configure('background')[4])
+    orig['disabledForeground'] = str(ckbtn.configure('disabledforeground')[4])
+    orig['foreground'] = str(ckbtn.configure('foreground')[4])
+    orig['highlightBackground'] = str(ckbtn.configure('highlightbackground')[4])
+    orig['highlightColor'] = str(ckbtn.configure('highlightcolor')[4])
+    orig['insertBackground'] = str(entry.configure('insertbackground')[4])
+    orig['selectColor'] = str(ckbtn.configure('selectcolor')[4])
+    orig['selectBackground'] = str(entry.configure('selectbackground')[4])
+    orig['selectForeground'] = str(entry.configure('selectforeground')[4])
+    orig['troughColor'] = str(scbar.configure('troughcolor')[4])
 
     ckbtn.destroy()
     entry.destroy()
@@ -53,26 +54,7 @@ def changebrightness(root, colorName, brightness):
     # Convert the color name into its hue and back into a color of the
     # required brightness.
 
-    if colorName[0] == '#':
-	# Extract rgb information from the color name itself, assuming
-	# it is either #rgb, #rrggbb, #rrrgggbbb, or #rrrrggggbbbb
-	# This is useful, since tk may return incorrect rgb values if
-	# the colormap is full - it will return the rbg values of the
-	# closest color available.
-        colorName = colorName[1:]
-        digits = len(colorName) / 3
-        factor = 16 ** (4 - digits)
-        rgb = (
-            string.atoi(colorName[0:digits], 16) * factor,
-            string.atoi(colorName[digits:digits * 2], 16) * factor,
-            string.atoi(colorName[digits * 2:digits * 3], 16) * factor,
-        )
-    else:
-	# We have no choice but to ask Tk what the rgb values are.
-	rgb = root.winfo_rgb(colorName)
-
-    f = float(256 * 256 - 1) # max size of rgb values returned from Tk
-    rgb = (rgb[0] / f, rgb[1] / f, rgb[2] / f)
+    rgb = name2rgb(root, colorName)
     hue, saturation, intensity = rgb2hsi(rgb)
     if saturation == 0.0:
         hue = None
@@ -83,8 +65,6 @@ def hue2name(hue, brightness = None):
     # hue is None, return a grey of the requested brightness.
 
     if hue is None:
-	h = 0.0
-	s = 0.0
 	rgb = hsi2rgb(0.0, 0.0, brightness)
     else:
 	while hue < 0:
@@ -92,42 +72,47 @@ def hue2name(hue, brightness = None):
 	while hue >= _TWO_PI:
 	    hue = hue - _TWO_PI
 
-	h = hue
-	rgb = hsi2rgb(h, 1.0, 1.0)
+	rgb = hsi2rgb(hue, 1.0, 1.0)
 	if brightness is not None:
 	    b = rgb2brightness(rgb)
 	    i = 1.0 - (1.0 - brightness) * b
-	    s = hsi2saturation(brightness, h, i)
-	    rgb = hsi2rgb(h, s, i)
+	    s = bhi2saturation(brightness, hue, i)
+	    rgb = hsi2rgb(hue, s, i)
 
     return rgb2name(rgb)
 
-def hsi2saturation(brightness, h, i):
-    if h >= _TWO_PI:
-	h = h - _TWO_PI
-    h = h / _THIRD_PI
-    f = h - math.floor(h)
+def bhi2saturation(brightness, hue, intensity):
+    while hue < 0:
+        hue = hue + _TWO_PI
+    while hue >= _TWO_PI:
+        hue = hue - _TWO_PI
+    hue = hue / _THIRD_PI
+    f = hue - math.floor(hue)
 
-    pp = i
-    pq = i * f
-    pt = i - i * f
+    pp = intensity
+    pq = intensity * f
+    pt = intensity - intensity * f
     pv = 0
 
-    h = int(h)
-    if   h == 0: rgb = (pv, pt, pp)
-    elif h == 1: rgb = (pq, pv, pp)
-    elif h == 2: rgb = (pp, pv, pt)
-    elif h == 3: rgb = (pp, pq, pv)
-    elif h == 4: rgb = (pt, pp, pv)
-    elif h == 5: rgb = (pv, pp, pq)
+    hue = int(hue)
+    if   hue == 0: rgb = (pv, pt, pp)
+    elif hue == 1: rgb = (pq, pv, pp)
+    elif hue == 2: rgb = (pp, pv, pt)
+    elif hue == 3: rgb = (pp, pq, pv)
+    elif hue == 4: rgb = (pt, pp, pv)
+    elif hue == 5: rgb = (pv, pp, pq)
 
-    return (i - brightness) / rgb2brightness(rgb)
+    return (intensity - brightness) / rgb2brightness(rgb)
 
 def hsi2rgb(hue, saturation, intensity):
     i = intensity
     if saturation == 0:
 	rgb = [i, i, i]
     else:
+	while hue < 0:
+	    hue = hue + _TWO_PI
+	while hue >= _TWO_PI:
+	    hue = hue - _TWO_PI
 	hue = hue / _THIRD_PI
 	f = hue - math.floor(hue)
 	p = i * (1.0 - saturation)
@@ -152,11 +137,11 @@ def hsi2rgb(hue, saturation, intensity):
 
     return rgb
 
-def average(col1, col2, fraction):
+def average(rgb1, rgb2, fraction):
     return (
-	col2[0] * fraction + col1[0] * (1.0 - fraction),
-	col2[1] * fraction + col1[1] * (1.0 - fraction),
-	col2[2] * fraction + col1[2] * (1.0 - fraction)
+	rgb2[0] * fraction + rgb1[0] * (1.0 - fraction),
+	rgb2[1] * fraction + rgb1[1] * (1.0 - fraction),
+	rgb2[2] * fraction + rgb1[2] * (1.0 - fraction)
     )
 
 def rgb2name(rgb):
@@ -201,6 +186,29 @@ def rgb2hsi(rgb):
 
     return (hue, saturation, intensity)
 
+def name2rgb(root, colorName, asInt = 0):
+    if colorName[0] == '#':
+	# Extract rgb information from the color name itself, assuming
+	# it is either #rgb, #rrggbb, #rrrgggbbb, or #rrrrggggbbbb
+	# This is useful, since tk may return incorrect rgb values if
+	# the colormap is full - it will return the rbg values of the
+	# closest color available.
+        colorName = colorName[1:]
+        digits = len(colorName) / 3
+        factor = 16 ** (4 - digits)
+        rgb = (
+            string.atoi(colorName[0:digits], 16) * factor,
+            string.atoi(colorName[digits:digits * 2], 16) * factor,
+            string.atoi(colorName[digits * 2:digits * 3], 16) * factor,
+        )
+    else:
+	# We have no choice but to ask Tk what the rgb values are.
+	rgb = root.winfo_rgb(colorName)
+
+    if not asInt:
+        rgb = (rgb[0] / _MAX_RGB, rgb[1] / _MAX_RGB, rgb[2] / _MAX_RGB)
+    return rgb
+
 def _calcPalette(root, background=None, **kw):
     # Create a map that has the complete new palette.  If some colors
     # aren't specified, compute them from other colors that are specified.
@@ -215,11 +223,8 @@ def _calcPalette(root, background=None, **kw):
     if not new.has_key('foreground'):
 	new['foreground'] = 'black'
 
-    f = float(256 * 256 - 1) # max size of rgb values returned from Tk
-    bg = root.winfo_rgb(new['background'])
-    bg = (bg[0] / f, bg[1] / f, bg[2] / f)
-    fg = root.winfo_rgb(new['foreground'])
-    fg = (fg[0] / f, fg[1] / f, fg[2] / f)
+    bg = name2rgb(root, new['background'])
+    fg = name2rgb(root, new['foreground'])
 
     for i in ('activeForeground', 'insertBackground', 'selectForeground',
 	    'highlightColor'):
@@ -318,7 +323,7 @@ def _recolorTree(widget, oldpalette, newcolors):
     for dbOption in newcolors.keys():
         option = string.lower(dbOption)
         try:
-            value = widget.cget(option)
+            value = str(widget.cget(option))
         except:
             continue
         if oldpalette is None or value == oldpalette[dbOption]:
@@ -335,16 +340,16 @@ def changecolor(widget, background=None, **kw):
      _recolorTree(widget, widget._Pmw_oldpalette, newpalette)
      widget._Pmw_oldpalette = newpalette
 
-def bordercolors(root, color):
+def bordercolors(root, colorName):
     # This is the same method that Tk uses for shadows, in TkpGetShadows.
 
     lightRGB = []
     darkRGB = []
-    for value in root.winfo_rgb(color):
+    for value in name2rgb(root, colorName, 1):
         value40pc = (14 * value) / 10
-        if value40pc > 65535:
-            value40pc = 65535
-        valueHalfWhite = (65535 + value) / 2;
+        if value40pc > _MAX_RGB:
+            value40pc = _MAX_RGB
+        valueHalfWhite = (_MAX_RGB + value) / 2;
         lightRGB.append(max(value40pc, valueHalfWhite))
 
         darkValue = (60 * value) / 100
