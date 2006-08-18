@@ -71,8 +71,8 @@ class parseB:
         for x in self.data:
             if x["TY number"] != 0:
                 rep=rep+"TY:  "+type_translation(x["TY number"])["long name"]+" "
-                rep=rep+"LAB: "+`x["LAB"]`+"\n"
-                rep=rep+`x["data"]`+"\n"
+                rep=rep+"LAB: "+str(x["LAB"])+"\n"
+                rep=rep+str(x["data"])+"\n"
                 
         return rep
 
@@ -156,7 +156,7 @@ class parseB:
     def writeRaw(self,output):
         for vector in self:
             for point in vector["data"]:
-                output.write(`point`+" ")
+                output.write(str(point)+" ")
             output.write("\n")
                 
     def write(self,output):

@@ -90,13 +90,13 @@ class WindowPlotter(Pmw.MegaToplevel):
         labels = []
         if not(self.grapher.cget("label_defaults") is None):
             for x in self.grapher.cget("label_defaults"):
-                labels.append(`x`)
+                labels.append(str(x))
         default_labels = self.grapher.cget("solution").getLabels()
         for i in range(len(default_labels)):
             labels.append("[%d]"%default_labels[i])
         all = "["
         for i in range(len(default_labels)):
-            all = all + `default_labels[i]` + ","
+            all = all + str(default_labels[i]) + ","
         all = all[:-1]+"]"
         labels.append(all)
         typeEntry = self.createcomponent('typeEntry',
@@ -126,7 +126,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         # to integers here
         list=map(string.atoi,list)
         # but the _modifyOption method expects a string, so we change the whole thing to a string here
-        self._modifyOption("label",`list`)
+        self._modifyOption("label",str(list))
 
     def _setOptionWindow(self):
         keys = self.grapher.configure().keys()
@@ -177,7 +177,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         
 
         optionLabel.setentry(key)
-        valueLabel.setentry(`self.grapher.cget(key)`)
+        valueLabel.setentry(str(self.grapher.cget(key)))
         valueEntry.clear()
         if type(self.grapher.cget(key)) == types.IntType:
             valueEntry.configure(validate={"validator":"integer"})
@@ -228,7 +228,7 @@ class WindowPlotter2D(WindowPlotter):
             list = []
             if not(self.grapher.cget("bifurcation_column_defaults") is None):
                 for x in self.grapher.cget("bifurcation_column_defaults"):
-                    list.append(`x`)
+                    list.append(str(x))
             if len(self.grapher.cget("bifurcation_diagram")) > 0:
                 for i in range(len(self.grapher.cget("bifurcation_diagram")[0]["data"])):
                     list.append("[%d]"%i)
@@ -244,7 +244,7 @@ class WindowPlotter2D(WindowPlotter):
             list = []
             if not(self.grapher.cget("solution_column_defaults") is None):
                 for x in self.grapher.cget("solution_column_defaults"):
-                    list.append(`x`)
+                    list.append(str(x))
             list.append("['t']")
             if len(self.grapher.cget("solution")) > 0:
                 for i in range(len(self.grapher.cget("solution").getIndex(0)["data"][0]["u"])):
@@ -300,7 +300,7 @@ class WindowPlotter3D(WindowPlotter):
             list = []
             if not(self.grapher.cget("bifurcation_column_defaults") is None):
                 for x in self.grapher.cget("bifurcation_column_defaults"):
-                    list.append(`x`)
+                    list.append(str(x))
             if len(self.grapher.cget("bifurcation_diagram")) > 0:
                 for i in range(len(self.grapher.cget("bifurcation_diagram")[0]["data"])):
                     list.append("[%d]"%i)
@@ -322,7 +322,7 @@ class WindowPlotter3D(WindowPlotter):
             list = []
             if not(self.grapher.cget("solution_column_defaults") is None):
                 for x in self.grapher.cget("solution_column_defaults"):
-                    list.append(`x`)
+                    list.append(str(x))
             list.append("['t']")
             if len(self.grapher.cget("solution")) > 0:
                 for i in range(len(self.grapher.cget("solution")[0]["data"][0]["u"])):

@@ -110,29 +110,29 @@ class parseH(UserDict):
 
     def write(self,output):
 #        output.write(self.dataString)
-	output.write(`self["NUNSTAB"]`+" "+`self["NSTAB"]`+" ")
-	output.write(`self["IEQUIB"]` +" "+`self["ITWIST"]`+" ")
-	output.write(`self["ISTART"]` +" ")
+	output.write(str(self["NUNSTAB"])+" "+str(self["NSTAB"])+" ")
+	output.write(str(self["IEQUIB"]) +" "+str(self["ITWIST"])+" ")
+	output.write(str(self["ISTART"]) +" ")
 	output.write("          "+line1_comment+"\n")
 
-	output.write(`self["NREV"]`+" ")
+	output.write(str(self["NREV"])+" ")
 	output.write("          "+line2_comment+"\n")
 	for i in range(self["NREV"]):
-	    output.write(`self["IREV"][i]`+" ")
+	    output.write(str(self["IREV"][i])+" ")
 	if self["NREV"] > 0:
 	    output.write("\n")
 
-	output.write(`self["NFIXED"]`+" ")
+	output.write(str(self["NFIXED"])+" ")
 	output.write("          "+line3_comment+"\n")
 	for i in range(self["NFIXED"]):
-	    output.write(`self["IFIXED"][i]`+" ")
+	    output.write(str(self["IFIXED"][i])+" ")
 	if self["NFIXED"] > 0:
 	    output.write("\n")
 
-	output.write(`self["NPSI"]`+" ")
+	output.write(str(self["NPSI"])+" ")
 	output.write("          "+line4_comment+"\n")
 	for i in range(self["NPSI"]):
-	    output.write(`self["IPSI"][i]`+" ")
+	    output.write(str(self["IPSI"][i])+" ")
 	if self["NPSI"] > 0:
 	    output.write("\n")
         

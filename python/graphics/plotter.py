@@ -228,8 +228,8 @@ class plotter(grapher.GUIGrapher):
                     for label in labels:
                         self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
 
-                    xnames = xnames + " " + `xcolumns[j]`
-                    ynames = ynames + " " + `ycolumns[j]`
+                    xnames = xnames + " " + str(xcolumns[j])
+                    ynames = ynames + " " + str(ycolumns[j])
                 grapher.GUIGrapher._configNoDraw(self,
                                                  xlabel="Columns %s"%xnames,
                                                  ylabel="Columns %s"%ynames)

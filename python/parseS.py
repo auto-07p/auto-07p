@@ -56,11 +56,11 @@ class parseS:
 
     def __str__(self):
         rep = ""
-        rep = rep + "Number of solutions :" + `len(self)` + "\n"
+        rep = rep + "Number of solutions :" + str(len(self)) + "\n"
         labels = self.getLabels()
         rep = rep + "Labels: "
         for i in range(len(labels)):
-            rep = rep + `labels[i]` + " "
+            rep = rep + str(labels[i]) + " "
         rep = rep + "\n"
         return rep
 
@@ -253,7 +253,7 @@ class AUTOSolution(UserDict.UserDict):
         rep=""
         for key in keys:
             if key != "data":
-                rep=rep+`key`+": "+`self[key]`+"\n"
+                rep=rep+str(key)+": "+str(self[key])+"\n"
         return rep
     def __getitem__(self,key):
         big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p"]
@@ -302,9 +302,9 @@ class AUTOSolution(UserDict.UserDict):
 
     def writeRaw(self,output):
         for vector in self["data"]:
-            output.write(`vector["t"]`+" ")
+            output.write(str(vector["t"])+" ")
             for point in vector["u"]:
-                output.write(`point`+" ")
+                output.write(str(point)+" ")
             output.write("\n")
             
     def read(self,input,start=None,end=None):

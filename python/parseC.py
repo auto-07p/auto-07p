@@ -176,57 +176,57 @@ class parseC(UserDict):
 	    self.data["UZR"][i]["PAR value"] = atof(data[1])
 
     def write(self,output):
-	output.write(`self["NDIM"]`+" "+`self["IPS"]`+" ")
-	output.write(`self["IRS"]` +" "+`self["ILP"]`+" ")
+	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
+	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
 	output.write("          "+line1_comment+"\n")
 	
-	output.write(`self["__NICP"]`+" ")
+	output.write(str(self["__NICP"])+" ")
 	for i in range(self["__NICP"]):
-	    output.write(`self["ICP"][i]`+" ")
+	    output.write(str(self["ICP"][i])+" ")
 	output.write("          "+line2_comment+"\n")
 	
-	output.write(`self["NTST"]`+" "+`self["NCOL"]`+" ")
-	output.write(`self["IAD"]` +" "+`self["ISP"]`+" ")
-	output.write(`self["ISW"]` +" "+`self["IPLT"]`+" ")
-	output.write(`self["NBC"]` +" "+`self["NINT"]`+" ")
+	output.write(str(self["NTST"])+" "+str(self["NCOL"])+" ")
+	output.write(str(self["IAD"]) +" "+str(self["ISP"])+" ")
+	output.write(str(self["ISW"]) +" "+str(self["IPLT"])+" ")
+	output.write(str(self["NBC"]) +" "+str(self["NINT"])+" ")
 	output.write("          "+line3_comment+"\n")
 	
-	output.write(`self["NMX"]`+" "+`self["RL0"]`+" ")
-	output.write(`self["RL1"]` +" "+`self["A0"]`+" ")
-	output.write(`self["A1"]` +" ")
+	output.write(str(self["NMX"])+" "+str(self["RL0"])+" ")
+	output.write(str(self["RL1"]) +" "+str(self["A0"])+" ")
+	output.write(str(self["A1"]) +" ")
 	output.write("          "+line4_comment+"\n")
 
-	output.write(`self["NPR"]`+" "+`self["MXBF"]`+" ")
-	output.write(`self["IID"]` +" "+`self["ITMX"]`+" ")
-	output.write(`self["ITNW"]` +" "+`self["NWTN"]`+" ")
-	output.write(`self["JAC"]` +" ")
+	output.write(str(self["NPR"])+" "+str(self["MXBF"])+" ")
+	output.write(str(self["IID"]) +" "+str(self["ITMX"])+" ")
+	output.write(str(self["ITNW"]) +" "+str(self["NWTN"])+" ")
+	output.write(str(self["JAC"]) +" ")
 	output.write("          "+line5_comment+"\n")
 
-	output.write(`self["EPSL"]`+" "+`self["EPSU"]`+" ")
-	output.write(`self["EPSS"]` +" ")
+	output.write(str(self["EPSL"])+" "+str(self["EPSU"])+" ")
+	output.write(str(self["EPSS"]) +" ")
 	output.write("          "+line6_comment+"\n")
 
-	output.write(`self["DS"]` +" "+`self["DSMIN"]`+" ")
-	output.write(`self["DSMAX"]` +" "+`self["IADS"]`+" ")
+	output.write(str(self["DS"]) +" "+str(self["DSMIN"])+" ")
+	output.write(str(self["DSMAX"]) +" "+str(self["IADS"])+" ")
 	output.write("          "+line7_comment+"\n")
 	
-	output.write(`self["__NTHL"]`)
+	output.write(str(self["__NTHL"]))
 	output.write("          "+line8_comment+"\n")
 	for i in range(self["__NTHL"]):
-	    output.write(`self["THL"][i]["PAR index"]`+" ")
-	    output.write(`self["THL"][i]["PAR value"]`+"\n")
+	    output.write(str(self["THL"][i]["PAR index"])+" ")
+	    output.write(str(self["THL"][i]["PAR value"])+"\n")
 
-	output.write(`self["__NTHU"]`)
+	output.write(str(self["__NTHU"]))
 	output.write("          "+line9_comment+"\n")
 	for i in range(self["__NTHU"]):
-	    output.write(`self["THU"][i]["PAR index"]`+" ")
-	    output.write(`self["THU"][i]["PAR value"]`+"\n")
+	    output.write(str(self["THU"][i]["PAR index"])+" ")
+	    output.write(str(self["THU"][i]["PAR value"])+"\n")
 
-	output.write(`self["__NUZR"]`)
+	output.write(str(self["__NUZR"]))
 	output.write("          "+line10_comment+"\n")
 	for i in range(self["__NUZR"]):
-	    output.write(`self["UZR"][i]["PAR index"]`+" ")
-	    output.write(`self["UZR"][i]["PAR value"]`+"\n")
+	    output.write(str(self["UZR"][i]["PAR index"])+" ")
+	    output.write(str(self["UZR"][i]["PAR value"])+"\n")
         output.flush()
 
 def pointtest(a):

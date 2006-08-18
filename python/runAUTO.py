@@ -88,7 +88,7 @@ class runAUTO:
         pids = string.split(pids,"\n")
         pids = pids[:-1]
         for pid in pids:
-            self.options["verbose_print"]('Killing: '+`pid`)
+            self.options["verbose_print"]('Killing: '+str(pid))
             pid = string.split(pid)
             pid = string.atoi(pid[0])
             command = "/bin/kill -KILL %d"%(pid,)

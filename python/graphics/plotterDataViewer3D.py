@@ -467,7 +467,7 @@ class plotter3D(optionHandler.OptionHandler,geom.Geometry):
         send_data["grid"] = grid
         send_data["cube"] = cube
         send_data["options"] = options
-        send_string = `id(send_data)`
+        send_string = str(id(send_data))
         self.file(send_string)
                
 

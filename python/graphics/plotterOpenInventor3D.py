@@ -332,7 +332,7 @@ class plotter3D(optionHandler.OptionHandler,Tkinter.Frame):
         send_data["grid"] = grid
         send_data["cube"] = cube
         send_data["options"] = options
-        send_string = `id(send_data)`
+        send_string = str(id(send_data))
 
         output = open("AUTOtest.iv","w")
         output.write("#Inventor V2.1 ascii\n")
