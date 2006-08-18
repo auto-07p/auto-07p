@@ -153,10 +153,11 @@ class commandUserData(command):
         rval.info("(Required files : %s.c, c.%s, %s.dat)\n"%(self.data[0],
                                                                      self.data[0],
                                                                      self.data[0]))
-        rval.system("gcc -I$AUTO_DIR/include -L$AUTO_DIR/lib $AUTO_DIR/src/fcon.c %s.c -o fcon -lauto_f2c -lm"%(self.data[0],))
+        rval.system("cp $AUTO_DIR/include/fcon.h fcon.h")
+        rval.system("make -f $AUTO_DIR/src/Makefile USERFILE=%s.f fcon > /dev/null"%(self.data[0],))
         rval.system("cp c.%s   fort.2"%(self.data[0],))
         rval.system("cp %s.dat fort.3"%(self.data[0],))
-        rval.system("fcon")
+        rval.system("./fcon")
         rval.system("mv fort.8 s.dat")
         rval.system("rm fcon* fort.2 fort.3")
         rval.info("Conversion done : converted file saved as s.dat\n")

@@ -492,5 +492,6 @@ C
 C
       DOUBLE PRECISION FUNCTION GETP(CODE,IC,UPS)
 C Dummy routine (in case GETP is called in the user routine PVLS)
+      GETP=0.0d0
       RETURN
       END
