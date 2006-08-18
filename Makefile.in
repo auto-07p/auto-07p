@@ -1,0 +1,42 @@
+#===> Makefile
+#
+#   Makefile originally written by Xianjun WANG in March 1994.
+#
+#   Redone by Randy C. Paffenroth 1999 for use with a configure script and python
+#   front end.
+SHELL=/bin/sh
+#
+all: src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+cmd: src @PLAUT@
+
+src: .FORCE
+	cd ./src;$(MAKE)
+
+gui: .FORCE
+	cd ./gui;$(MAKE)
+
+plaut: .FORCE
+	cd ./plaut;$(MAKE)
+
+plaut04: .FORCE
+	cd ./plaut04;$(MAKE)
+
+tek2ps: .FORCE
+	cd ./tek2ps;$(MAKE)
+#
+clean:
+	cd ./src;$(MAKE) clean
+	cd ./gui;$(MAKE) clean
+	cd ./plaut;$(MAKE) clean
+	cd ./tek2ps;$(MAKE) clean
+#
+superclean:  clean
+	rm -rf config.cache config.log config.status autom4te*.cache
+	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
+	  kpbif listlabels reduce relabel plaut04 r3bplaut04;
+	cd ./lib; rm -f *.o *.a
+	@echo "Super cleaning ... done"
+
+.FORCE:
+
+
