@@ -3178,11 +3178,14 @@ C---
        TY     = IY
        RINC   = ACOS(-1.0) / 2.0
        NPOINT = 5
-       DO 1 R = RADI,RADINC,-RADINC
+       R = RADI
+ 1     IF (R.LT.RADINC) GOTO 2
          RADIUS = R
          ANGLE  = ACOS(-1.0) / 4.0
          CALL DPSHAP(RADIUS,RINC,ANGLE,NPOINT,TX,TY)
- 1     CONTINUE
+         R = R - RADINC
+         GOTO 1
+ 2     CONTINUE
        IX = TX
        IY = TY
        CALL PLCMDS(20)
@@ -3232,10 +3235,13 @@ C---
        TY     = IY
        NPOINT = 4
        RINC   = ACOS(-1.0) * 2.0 / 3.0
-       DO 2 R = RADI,RADINC,-RADINC
+       R = RADI
+ 1     IF (R.LT.RADINC) GOTO 2
          RADIUS = R
          ANGLE  = ACOS(-1.0) / 2.0
          CALL DPSHAP(RADIUS,RINC,ANGLE,NPOINT,TX,TY)
+         R = R - RADINC
+         GOTO 1
  2     CONTINUE
        IX = TX
        IY = TY
@@ -3286,11 +3292,14 @@ C---
        TY     = IY
        RINC   = ACOS(-1.0) / 5.0
        NPOINT = 11
-       DO 1 R = RADI,RADINC,-RADINC
+       R = RADI
+ 1     IF (R.LT.RADINC) GOTO 2
          RADIUS = R
          ANGLE  = 0
          CALL DPSHAP(RADIUS,RINC,ANGLE,NPOINT,TX,TY)
- 1     CONTINUE
+         R = R - RADINC
+         GOTO 1
+ 2     CONTINUE
        IX = TX
        CALL PLCMDS(20)
        IY = TY
@@ -3378,11 +3387,14 @@ C---
        TY     = IY
        RINC   = ACOS(-1.0) / 2.0
        NPOINT = 5
-       DO 1 R = RADI,RADINC,-RADINC
+       R = RADI
+ 1     IF (R.LT.RADINC) GOTO 2
          RADIUS = R
          ANGLE  = RINC
          CALL DPSHAP(RADIUS,RINC,ANGLE,NPOINT,TX,TY)
- 1     CONTINUE
+         R = R - RADINC
+         GOTO 1
+ 2     CONTINUE
        IX = TX
        IY = TY
        CALL PLCMDS(20)
@@ -3432,11 +3444,14 @@ C---
        TY     = IY
        NPOINT = 4
        RINC   = ACOS(-1.0) * 2.0 / 3.0
-       DO 1 R= RADI,RADINC,-RADINC
+       R = RADI
+ 1     IF (R.LT.RADINC) GOTO 2
          RADIUS = R
          ANGLE  = ACOS(-1.0) / 6.0
          CALL DPSHAP(RADIUS,RINC,ANGLE,NPOINT,TX,TY)
- 1     CONTINUE
+         R = R - RADINC
+         GOTO 1
+ 2     CONTINUE
        IX = TX
        IY = TY
        CALL PLCMDS(20)
@@ -6223,11 +6238,14 @@ C---
         NPOINT = 11
         C      = 0
         R1     = COVTXY(C+5)
-        DO 1 R = R1,RADINC,-RADINC
+        R      = R1
+ 1      IF (R.LT.RADINC) GOTO 2
           RADIUS = R
           ANGLE  = 0.0
           CALL DPSHAP(RADIUS,AINCR,ANGLE,NPOINT,TX,TY)
- 1      CONTINUE
+          R = R - RADINC
+          GOTO 1
+ 2      CONTINUE
         IX = TX
         IY = TY
         CALL PLCMDS(20)
