@@ -8,4 +8,5 @@ plaut04_SOURCES = gReadBif.c++         gReadSol.c++          drawCoords.c++ \
 	createCoords.c++    axis.c++             createLegend.c++       gmain.c++ \
 	rounding.c++
 
-
+all-local: $(bin_PROGRAMS)
+	mv $(bin_PROGRAMS) @top_srcdir@/bin

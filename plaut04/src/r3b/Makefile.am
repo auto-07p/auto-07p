@@ -6,3 +6,6 @@ r3bplaut04_SOURCES = readBif.c++         readSol.c++          drawCoords.c++    
         createPrimary.c++   createLibPoint.c++   normalizeSolData.c++   normalizeBifData.c++   stringtrim.c++ \
         printToPS.c++       tube.c++             polygon3d.c++          readFM.c++             createBoundingBox.c++\
         createCoords.c++    axis.c++             createLegend.c++       gmain.c++              rounding.c++
+
+all-local: $(bin_PROGRAMS)
+	mv $(bin_PROGRAMS) @top_srcdir@/bin
