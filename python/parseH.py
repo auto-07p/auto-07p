@@ -81,11 +81,12 @@ class parseH(UserDict):
 	data = split(line)
 	self["NREV"] = atoi(data[0])
 	self["IREV"] = []
+        data = []
 	if self["NREV"] > 0:
 	    line = input.readline()
 	    data = split(line)
-	for i in range(self["NREV"]):
-	    self["IREV"].append(atoi(data[i]))
+	for i in data:
+	    self["IREV"].append(atoi(i))
 
 	line = input.readline()
 	data = split(line)
@@ -117,8 +118,8 @@ class parseH(UserDict):
 
 	output.write(str(self["NREV"])+" ")
 	output.write("          "+line2_comment+"\n")
-	for i in range(self["NREV"]):
-	    output.write(str(self["IREV"][i])+" ")
+	for i in self["IREV"]:
+	    output.write(str(i)+" ")
 	if self["NREV"] > 0:
 	    output.write("\n")
 
