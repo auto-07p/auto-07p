@@ -97,6 +97,8 @@ class parseS:
             data = split(data)
             # This is where we detect the end of the file
             if len(data) == 0:
+                data = file.read(1)
+            if len(data) == 0:
                 self.data[-1]._setEnd(start_of_current_solution+guess_at_size+1)
                 break
             else:
