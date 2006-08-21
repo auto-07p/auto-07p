@@ -79,6 +79,8 @@ class plotter(grapher.GUIGrapher):
             self._plotNoDraw()
             self.__needsPlot = None
         self.clear()
+        self.computeXRange()
+        self.computeYRange()	
         self.draw()
         self.update()
         
@@ -130,6 +132,8 @@ class plotter(grapher.GUIGrapher):
     def plot(self):
         self._plotNoDraw()
         self.clear()
+        self.computeXRange()
+        self.computeYRange()
         self.draw()
 
     def __plot7(self):
@@ -155,7 +159,7 @@ class plotter(grapher.GUIGrapher):
                         current_index = 0
                     x.append(solution.getIndex(i)["data"][xcolumns[j]]) 
                     y.append(solution.getIndex(i)["data"][ycolumns[j]])
-
+                    
                     if solution.getIndex(i)["LAB"] != 0:
                         labels.append({})
                         labels[-1]["index"] = current_index
@@ -189,7 +193,7 @@ class plotter(grapher.GUIGrapher):
         grapher.GUIGrapher._configNoDraw(self,
                                          xlabel="Column %d"%xcolumns[0],
                                          ylabel="Column %d"%ycolumns[0])
-        
+
     def __plot8(self):
         self.delAllData()
         xcolumns = self.cget("solution_x")
@@ -198,26 +202,27 @@ class plotter(grapher.GUIGrapher):
         if len(xcolumns) == len(ycolumns):
             xnames="Error"
             ynames="Error"
-            for k in range(len(self.cget("index"))):
-                solution = self.cget("solution").getIndex(self.cget("index")[k])["data"]
+            for index in self.cget("index"):
+                solution = self.cget("solution").getIndex(index)["data"]
+                r = range(len(solution))
                 xnames = ""
                 ynames = ""
                 for j in range(len(xcolumns)):
-                    x = []
-                    y = []
                     labels = []
-                    for i in range(len(solution)):
-                        if xcolumns[j] == "t":
-                            x.append(solution[i]["t"])
-                        else:
-                            x.append(solution[i]["u"][xcolumns[j]])
-                        if ycolumns[j] == "t":
-                            y.append(solution[i]["t"])
-                        else:
-                            y.append(solution[i]["u"][ycolumns[j]])
+                    xc = xcolumns[j]
+                    yc = ycolumns[j]
+                    if xc == "t":
+                        x = map(lambda i, s=solution: s[i]["t"], r)
+                    else:
+                        x = map(lambda i, s=solution, c = xc: s[i]["u"][c], r)
+                    if yc == "t":
+                        y = map(lambda i, s=solution: s[i]["t"], r)
+                    else:
+                        y = map(lambda i, s=solution, c = yc: s[i]["u"][c], r)
 
-                        if not(self.cget("mark_t") is None):
-                            if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:                        
+                    if not(self.cget("mark_t") is None):
+                        for i in r:
+                            if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:
                                 labels.append({})
                                 labels[-1]["index"] = i
                                 labels[-1]["text"] = ""
@@ -233,6 +238,7 @@ class plotter(grapher.GUIGrapher):
                 grapher.GUIGrapher._configNoDraw(self,
                                                  xlabel="Columns %s"%xnames,
                                                  ylabel="Columns %s"%ynames)
+
 
 def test():
     import parseB
@@ -250,7 +256,7 @@ def test():
     foo.update()
     print "Hit return to continue"
     raw_input()
-
+    foo.clear()
     foo.config(type="solution",label=[6])
     foo.plot()
     foo.update()

@@ -107,15 +107,17 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 new_array["miny"]=min(array[1])
                 new_array["maxy"]=max(array[1])
             self.data.append(new_array)
-            self.computeXRange()
-            self.computeYRange()
         
     def addData(self,data):        
         self._addData(data)
+        self.computeXRange()
+        self.computeYRange()
         self.draw()
 
     def addArray(self,array):        
         self._addData((array,))
+        self.computeXRange()
+        self.computeYRange()
         self.draw()
 
     def addDataNoDraw(self,data):        
@@ -184,20 +186,22 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             minimums=[]
             for entry in self.data:
                 minimums.append(entry["minx"])
-            guess_minimum = min(minimums)
+            if minimums != []:
+                guess_minimum = min(minimums)
 
         if guess_maximum is None:
             maximums=[]
             for entry in self.data:
                 maximums.append(entry["maxx"])
-            guess_maximum = max(maximums)
+            if maximums != []:
+                guess_maximum = max(maximums)
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
             self._configNoDraw(minx=dict["min"])
             self._configNoDraw(maxx=dict["max"])
             self._configNoDraw(xticks=dict["divisions"])
-        else:
+        elif guess_maximum != None:
             self._configNoDraw(minx=guess_minimum-1)
             self._configNoDraw(maxx=guess_maximum+1)
             
@@ -206,20 +210,22 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             minimums=[]
             for entry in self.data:
                 minimums.append(entry["miny"])
-            guess_minimum = min(minimums)
+            if minimums != []:
+                guess_minimum = min(minimums)
 
         if guess_maximum is None:
             maximums=[]
             for entry in self.data:
                 maximums.append(entry["maxy"])
-            guess_maximum = max(maximums)
+            if maximums != []:
+                guess_maximum = max(maximums)
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
             self._configNoDraw(miny=dict["min"])
             self._configNoDraw(maxy=dict["max"])
             self._configNoDraw(yticks=dict["divisions"])
-        else:
+        elif guess_minimum != None:
             self._configNoDraw(miny=guess_minimum-1)
             self._configNoDraw(maxy=guess_maximum+1)
 
@@ -254,24 +260,31 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                                     int(width)-right_margin,int(height)-bottom_margin,
                                     left_margin,int(height)-bottom_margin,fill="",outline=self.cget("foreground"))
         # data
+        line_width=self.cget("line_width")
+        adjwidth = width - (left_margin + right_margin)
+        adjheight = height - (top_margin + bottom_margin)
+        xscale = (maxx - minx) / adjwidth
+        yscale = (maxy - miny) / adjheight
         for i in range(len(self.data)):
-            end=self.__valueToCanvasFast(self.getData(i,0),minx,maxx,miny,maxy,
+            fill=color_list[i%len(color_list)]
+            curve="curve:%d"%(i,)
+            n=len(self.getData(i,"x"))
+            [x,y]=self.__valueToCanvasFast(self.getData(i,0),minx,maxx,miny,maxy,
                                             width,height,left_margin,right_margin,top_margin,bottom_margin)
-            for j in range(len(self.getData(i,"x"))-1):
-                start=end
-                end=self.__valueToCanvasFast(self.getData(i,j+1),minx,maxx,miny,maxy,
-                                             width,height,left_margin,right_margin,top_margin,bottom_margin)
-                #end=self.valueToCanvas(self.getData(i,j+1))
-                if not(start is None or end is None):
-                    self.create_line(start[0],start[1],end[0],end[1],
-                                     width=self.cget("line_width"),tags=("data_point:%d"%(j,),"curve:%d"%(i,),"data"),
-                                     fill=color_list[i%len(color_list)])
-            
             # If we only have one point we draw a small circle
             if len(self.getData(i,"x")) == 1:
-                self.create_oval(end[0]-3,end[1]-3,end[0]+3,end[1]+3,
+                self.create_oval(x-3,y-3,x+3,y+3,
                                  tags=("data_point:%d"%(0,),"curve:%d"%(i,),"data"),
                                  fill=color_list[i%len(color_list)])
+            else:
+                line = [x, y]
+                xs = self.data[i]["x"]
+                ys = self.data[i]["y"]
+                for j in range(1, n):
+                    line.append((xs[j]-minx) / xscale + left_margin)
+                    line.append((adjheight - (ys[j]-miny) / yscale + top_margin))
+                self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill)
+            
         if self.cget("decorations"):
             # clip stuff outside box
             self.create_polygon(0,0,
@@ -337,7 +350,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                              text=self.cget("ylabel"),anchor="nw",fill=self.cget("foreground"))
             self.create_text(int(width)-left_margin*0.3,int(height)-bottom_margin*0.1,
                              text=self.cget("xlabel"),anchor="se",fill=self.cget("foreground"))
-            
+
+        
     def valueToCanvas(self,val):
         if len(val) != 2:
             raise GrapherError,"Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements."

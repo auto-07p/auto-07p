@@ -207,8 +207,7 @@ class parseB:
                 item["section"] = section
                 item["data"]=[]
                 item["index"] = len(self.data)
-                for i in range(4,len(line)):
-                    item["data"].append(AUTOatof(line[i]))
+                item["data"].extend(map(AUTOatof, line[4:]))
                 # We keep two lists of references to the
                 # data, one is just the data in the file
                 # and the other includes the header.

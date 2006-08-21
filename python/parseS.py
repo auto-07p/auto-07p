@@ -363,45 +363,36 @@ class AUTOSolution(UserDict.UserDict):
         input = self.__input
         input.seek(self.__start_of_data)
 	self["data"] = []
+        solution = self["data"]
 	for i in range(self.__numSValues):
-	    self["data"].append({})
-            self["data"][i]["u"] = []
-	    j = 0
-	    while j < self.__numEntriesPerBlock:
-		line = input.readline()
-		if not line: raise PrematureEndofData
-		data = split(line)
-		for k in range(len(data)):
-		    if j == 0:
-			self["data"][i]["t"] = AUTOatof(data[k])
-		    else:
-                        # not sure about this one... I think it is maybe a
-                        # bug in the Fortran print routines... or more probably
-                        # I am being a bonehead...
-                        if data[k] == "0.0000000000E":
-                            self["data"][i]["u"].append(0.0)
-                        else:
-                            self["data"][i]["u"].append(AUTOatof(data[k]))
-		    j = j + 1
+	    solution.append({})
+            point = solution[i]
+	    line = input.readline()
+	    if not line: raise PrematureEndofData
+	    data = split(line)
+            pointu = point["u"] = []
+            if len(data) > 0:
+                point["t"] = AUTOatof(data[0])
+                data = data[1:]
+            j = 0
+	    while len(pointu) < self.__numEntriesPerBlock - 1:
+                if pointu != []:
+                    line = input.readline()
+		    if not line: raise PrematureEndofData
+		    data = split(line)
+                pointu.extend(map(AUTOatof, data))
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
 	    self["Free Parameters"] = []
 	    line = input.readline()
 	    if not line: raise PrematureEndofData
-	    data = split(line)
-	    for i in range(len(data)):
-		self["Free Parameters"].append(atoi(data[i]))
+            self["Free Parameters"].extend(map(atoi, split(line)))
 	    self["Parameter NULL vector"] = []
             while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
                 line = input.readline()
                 if not line: raise PrematureEndofData
-                data = split(line)
-                for i in range(len(data)):
-                    try:
-                        self["Parameter NULL vector"].append(AUTOatof(data[i]))
-                    except ValueError:
-                        self["Parameter NULL vector"].append(0.0)
+                self["Parameter NULL vector"].extend(map(AUTOatof, split(line)))
 
 	    if len(self["Parameter NULL vector"]) != len(self["Free Parameters"]):
 		print "BEWARE!! size of parameter NULL vector and number of changing"
@@ -410,32 +401,19 @@ class AUTOSolution(UserDict.UserDict):
 		exit(1)
 
 	    for i in range(self.__numSValues):
-		self["data"][i]["u dot"] = []
+                udot = self["data"][i]["u dot"] = []
 		j = 0
-		while j < self.__numEntriesPerBlock-1:
+		while len(udot) < self.__numEntriesPerBlock-1:
 		    line = input.readline()
 		    if not line: raise PrematureEndofData
 		    data = split(line)
-		    for k in range(len(data)):
-			# there is a bug on the SGI which prints out numbers of the 
-			# for x.xxxxxxxx-323 and x.xxxxxx-324.  When I get these
-			# I reset to 0.
-			try:
-			    self["data"][i]["u dot"].append(AUTOatof(data[k]))
-			except ValueError:
-			    self["data"][i]["u dot"].append(0)
+                    udot.extend(map(AUTOatof, data))
 
-			j = j + 1
-
-	self["Parameters"] = []
-	j = 0
-	while j < self.__numFreeParameters:
+	parameters = self["Parameters"] = []
+	while len(parameters) < self.__numFreeParameters:
 	    line = input.readline()
 	    if not line: raise PrematureEndofData
-	    data = split(line)
-	    for k in range(len(data)):
-		self["Parameters"].append(AUTOatof(data[k]))
-		j = j + 1
+            parameters.extend(map(AUTOatof, split(line)))
 	    
         self.__end = input.tell()
         self["parameters"] = self["Parameters"]
@@ -544,6 +522,9 @@ def AUTOatof(input_string):
                 #  This is the case where you have 0.0000000E
                 value=atof(strip(input_string)[0:-1])
             elif input_string[-4] == "-":
+		# there is a bug on the SGI which prints out numbers of the 
+		# for x.xxxxxxxx-323 and x.xxxxxx-324.  When I get these
+		# I reset to 0.
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 value=0.0
             else:
