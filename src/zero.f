@@ -1,13 +1,12 @@
 C=======================================================================
 C=======================================================================
-C    Utility Program for "zeroing small mumbers" in an AUTO q.xxx file
+C    Utility Program for "zeroing small numbers" in an AUTO s.xxx file
 C=======================================================================
 C=======================================================================
 C
-      INCLUDE 'fcon.h'
-      PARAMETER (NRX=NTSTX*NCOLX+1)
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION U(NRX,NDIMX),TM(NRX),RLDOT(NPARX),PAR(NPARX),ICP(NPARX)
+C
+      ALLOCATABLE TM(:),RLDOT(:),PAR(:),U(:,:),ICP(:)
       PARAMETER (EPS = 1d-16)
 C
        L=0
@@ -16,10 +15,12 @@ C
  1     CONTINUE
          READ(28,*,END=99)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *               NAR,NROWPR,NTST,NCOL,NPAR
+         ALLOCATE(RLDOT(NPAR),PAR(NPAR),ICP(NPAR))
          IF(NTST.EQ.0)THEN
              WRITE(38,101)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *                         NAR,NROWPR,NTST,NCOL,NPAR
 C            --------------------------------------------
+             ALLOCATE(TM(1),U(1,NAR-1))
              J=1
              READ(28,*) TM(J),(U(J,I),I=1,NAR-1) 
              DO I=1,NAR-1
@@ -37,6 +38,7 @@ C            --------------------------------------------
 C            --------------------------------------------
              WRITE(38,101)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *                         NAR,NROWPR,NTST,NCOL,NPAR
+             ALLOCATE(TM(NTPL),U(NTPL,NAR-1))
              DO J=1,NTPL
                READ(28,*)   TM(J),(U(J,I),I=1,NAR-1) 
                DO I=1,NAR-1
@@ -69,6 +71,7 @@ C            --------------------------------------------
              WRITE(38,102)(PAR(I),I=1,NPAR)
 C            --------------------------------------------
            ENDIF
+           DEALLOCATE(RLDOT,PAR,ICP,TM,U)
        GOTO 1
 C
  101   FORMAT(6I6,I8,I6,I8,3I5)

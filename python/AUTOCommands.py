@@ -150,11 +150,14 @@ class commandUserData(command):
 	rval=valueSystem()
         rval.info("NOTE: This command does not use filename templates\n")
         rval.info("Starting conversion of %s.dat : \n"%(self.data[0],))
-        rval.info("(Required files : %s.c, c.%s, %s.dat)\n"%(self.data[0],
-                                                                     self.data[0],
-                                                                     self.data[0]))
-        rval.system("cp $AUTO_DIR/include/fcon.h fcon.h")
-        rval.system("make -f $AUTO_DIR/src/Makefile USERFILE=%s.f fcon > /dev/null"%(self.data[0],))
+        if glob.glob("%s.f"%(self.data[0],)) == []:
+            equation_file="%s.c"%(self.data[0],)
+        else:
+            equation_file="%s.f"%(self.data[0],)
+        rval.info("(Required files : %s, c.%s, %s.dat)\n"%(equation_file,
+                                                           self.data[0],
+                                                           self.data[0]))
+        rval.system("make -f $AUTO_DIR/src/Makefile EQUATION_NAME=%s fcon"%(self.data[0],))
         rval.system("cp c.%s   fort.2"%(self.data[0],))
         rval.system("cp %s.dat fort.3"%(self.data[0],))
         rval.system("./fcon")

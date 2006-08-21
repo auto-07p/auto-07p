@@ -3,13 +3,12 @@ C     ------- ------
 C
 C This program converts a data file into a labeled AUTO solution
 C
-      INCLUDE 'fcon.h'
-      PARAMETER (NDX=NTSTX+1,M2U=NDIMX*NCOLX)
+      PARAMETER (NIAP=10,NPARX=36)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(NIAP),ICP(NPARX),U(NDIMX)
-      DIMENSION PAR(NPARX),TM(NDX),DTM(NDX),UPS(NDX,M2U),VPS(NDX,M2U)
+      DIMENSION IAP(NIAP),ICP(NPARX),PAR(NPARX)
+      ALLOCATABLE U(:),TM(:),DTM(:),UPS(:,:),VPS(:,:)
 C
        OPEN(2,FILE='fort.2',STATUS='old')
        OPEN(3,FILE='fort.3',STATUS='unknown')
@@ -22,21 +21,26 @@ C
 C
         CALL INIT(IAP)
         NDIM=IAP(1)
+        ALLOCATE(U(NDIM))
         NTST=IAP(5)
         NCOL=IAP(6)
 C
         NOLD=0
  1      CONTINUE
           NOLD=NOLD+1
-          IF(NOLD.GT.NTSTX)THEN
-            WRITE(6,101)NTSTX
-            STOP
-          ENDIF
-          READ(3,*,END=2)TM(NOLD),(UPS(NOLD,I),I=1,NDIM)         
+          READ(3,*,END=2)TEMP,(TEMP,I=1,NDIM)
         GOTO 1
 C
  2      NOLD=NOLD-2
-        NCOLD=1
+        NDX=NOLD+1
+        IF(NTST+1.GT.NDX)NDX=NTST+1
+        ALLOCATE(TM(NDX),DTM(NDX),UPS(NDX,NDIM*NCOL),VPS(NDX,NDIM*NCOL))
+C
+        REWIND 3
+        DO J=1,NOLD+1
+          READ(3,*)TM(J),(UPS(J,I),I=1,NDIM)
+        ENDDO
+C
         PERIOD=TM(NOLD+1)-TM(1)
         DO I=NOLD+1,1,-1
           TM(I)=(TM(I)-TM(1))/PERIOD
@@ -44,17 +48,15 @@ C
         DO I=1,NOLD
           DTM(I)=TM(I+1)-TM(I)
         ENDDO
-        CALL ADAPT(IAP,RAP,NOLD,NCOLD,NTST,NCOL,TM,DTM,NDX,UPS,VPS)
+        CALL ADAPT(IAP,NOLD,1,NTST,NCOL,TM,DTM,NDX,UPS,VPS)
 C
         ICP(1)=1
         RLDOT=1.d0
         PAR(11)=PERIOD
         CALL STPNT(NDIM,U,PAR,T)
-        CALL WRTBV8(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,VPS,TM,DTM)
+        CALL WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,VPS,TM,DTM,NPARX)
 C
- 101  FORMAT(/,' Error : More than ',I5,' data points.',
-     *       ' (Increase NTSTX in auto/97/include/con.h)')
-       
+        DEALLOCATE(U,TM,DTM,UPS,VPS)
 C
       STOP
       END
@@ -86,10 +88,7 @@ C
       END
 C
 C     ---------- -----
-      SUBROUTINE ADAPT(IAP,RAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
-C
-      INCLUDE 'fcon.h'
-      PARAMETER (M1T=NTSTX+1,M2T=NDIMX*NCOLX)
+      SUBROUTINE ADAPT(IAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -99,7 +98,7 @@ C intervals. The functions UPS and VPS are interpolated on new mesh.
 C
       DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TINT(M1T),UINT(M1T,M2T),TM2(M1T),ITM(M1T)
+      ALLOCATABLE TINT(:),TM2(:),UINT(:,:),ITM(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -109,8 +108,11 @@ C
        NNEWP1=NNEW+1
        NRWNEW=NDIM*NCNEW
 C
-       DO J=1,M1T
-         DO I=1,M2T
+       ALLOCATE(TINT(NNEWP1),UINT(NNEWP1,NRWNEW))
+       ALLOCATE(TM2(NNEWP1),ITM(NNEWP1))
+C
+       DO J=1,NNEWP1
+         DO I=1,NRWNEW
            UINT(J,I)=0.d0
          ENDDO
        ENDDO
@@ -125,11 +127,11 @@ C
 C
 C Generate the new mesh :
 C
-       CALL NEWMSH(IAP,RAP,NDX,UPS,NOLD,NCOLD,TM,DTM,NNEW,TINT,IPER)
+       CALL NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TM,DTM,NNEW,TINT,IPER)
 C
 C Replace UPS by its interpolant on the new mesh :
 C
-       CALL INTERP(IAP,RAP,NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW,
+       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW,
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
@@ -139,7 +141,7 @@ C
 C
 C Replace VPS by its interpolant on the new mesh :
 C
-       CALL INTERP(IAP,RAP,NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW,
+       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW,
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
@@ -155,23 +157,22 @@ C
          TM(J+1)=TINT(J+1)
        ENDDO
 C
+       DEALLOCATE(UINT,TINT,TM2,ITM)
+C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE INTERP(IAP,RAP,NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,
-     * TM2,ITM1)
-C
-      INCLUDE 'fcon.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
+      SUBROUTINE INTERP(NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,TM2,ITM1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 C
-      DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NDX,*)
+      DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(N1,*)
 C Local
-      DIMENSION X(MCL2),W(MCL2)
+      ALLOCATABLE W(:),X(:)
+      ALLOCATE(W(NC+1),X(NC+1))
 C
        NCP1=NC+1
        N1M1=N1-1
@@ -182,7 +183,7 @@ C
          DO J1=1,N1M1
            TM2(J1)=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
          ENDDO
-         CALL ORDR(IAP,RAP,N,TM,N1M1,TM2,ITM1)
+         CALL ORDR(N,TM,N1M1,TM2,ITM1)
          DO J1=1,N1M1
            J=ITM1(J1)
            Z=TM2(J1)
@@ -205,30 +206,27 @@ C
        DO I=1,NDIM
          UPS1(N1,I)=UPS(N,I)
        ENDDO
+       DEALLOCATE(W,X)
 C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE NEWMSH(IAP,RAP,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,
+      SUBROUTINE NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,
      * NNEW,TMNEW,IPER)
-C
-      INCLUDE 'fcon.h'
-      PARAMETER (M1T=NTSTX+1,M2T=NDIMX*NCOLX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Redistributes the mesh according to the function EQDF.
 C
-      DIMENSION IAP(*),TMOLD(*),DTMOLD(*),TMNEW(*)
+      DIMENSION TMOLD(*),DTMOLD(*),TMNEW(*)
 C Local
-      DIMENSION EQF(M1T),UNEQ(M1T),IAL(M1T)
-C
-       NDIM=IAP(1)
+      ALLOCATABLE EQF(:),UNEQ(:),IAL(:)
+      ALLOCATE(IAL(NNEW+1),UNEQ(NNEW+1),EQF(NOLD+1))
 C
 C Put the values of the monotonely increasing function EQDF in EQF.
 C
-       CALL EQDF(IAP,RAP,NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
+       CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
 C
 C Uniformly divide the range of EQDF :
 C
@@ -239,21 +237,27 @@ C
          UNEQ(J)=(J-1)*DAL
        ENDDO
 C
-       CALL ORDR(IAP,RAP,NOLDP1,EQF,NNEWP1,UNEQ,IAL)
+       CALL ORDR(NOLDP1,EQF,NNEWP1,UNEQ,IAL)
 C
 C Generate the new mesh in TMNEW :
 C
-       DO J1=1,NNEWP1
+       DO J1=1,NNEW
          J=IAL(J1)
          X=(UNEQ(J1)-EQF(J))/(EQF(J+1)-EQF(J))
          TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
        ENDDO
 C
+C Assign TMNEW(NNEWP1) explicitly because of loss of precision
+C problems when EQF(NOLDP1) and EQF(NOLD) are very close
+C
+       TMNEW(NNEWP1)=TMOLD(NOLDP1)
+C
+       DEALLOCATE(IAL,UNEQ,EQF)
       RETURN
       END
 C
 C     ---------- ----
-      SUBROUTINE ORDR(IAP,RAP,N,TM,N1,TM1,ITM1)
+      SUBROUTINE ORDR(N,TM,N1,TM1,ITM1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -265,6 +269,7 @@ C
 C
        K0=2
        DO J1=1,N1
+         K1=K0
          DO J=K0,N
            K1=J
            IF(TM1(J1).LT.TM(J))GOTO 1
@@ -301,19 +306,17 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE EQDF(IAP,RAP,NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
-C
-      INCLUDE 'fcon.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1,M1T=NTSTX+1,M2T=NDIMX*NCOLX)
+      SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),EQF(*),DTM(*)
+      DIMENSION UPS(NDX,*),EQF(*),DTM(*)
       LOGICAL SMALL
 C Local
-      DIMENSION WH(MCL2),HD(M1T,M2T)
+      ALLOCATABLE WH(:),HD(:,:)
+      ALLOCATE(WH(NCOL+1),HD(NTST+1,NCOL*NDIM))
 C
 C Compute approximation to NCOL-th derivative :
        CALL CNTDIF(NCOL,WH)
@@ -382,6 +385,7 @@ C
          EQF(J+1)=EQF(J)+DTM(J)*E
        ENDDO
 C
+       DEALLOCATE(WH,HD)
       RETURN
       END
 C
@@ -419,9 +423,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE WRTBV8(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
-C
-      INCLUDE 'fcon.h'
+      SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM,NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
