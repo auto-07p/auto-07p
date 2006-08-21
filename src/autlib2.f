@@ -28,20 +28,24 @@ C
       DIMENSION IAP(*),RAP(*)
 C
 C Local
-      DIMENSION FT(M2AA*NAX)
+      ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
+      ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:)
+      ALLOCATABLE FAA(:,:), FT(:,:)
+      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),ICF1(:,:),ICF2(:,:)
+      SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,FAA,ICF,IRF,IPR,ICF1,ICF2
 C
 C Most of the required memory is allocated below
-      COMMON /BLAUT/ A(M1AA*M2AA*NAX),B(M1BB*M2BB*NAX),
-     *       C(M1CC*M2CC*NAX),D(M1DD*M2DD), 
-     *       A1((NDIMX**2)*NAX),A2((NDIMX**2)*NAX),
-     *       S1((NDIMX**2)*NAX),S2((NDIMX**2)*NAX),
-     *       BB(NPARX*NDIMX*NAX),
-     *       CC(NRCX*NDIMX*(NAX+1)),CCBC(2*NBCX*NDIMX),
-     *       FAA(NDIMX*NAX),
-     *       ICF(NCLMX*NAX),IRF(NROWX*NAX),
-     *       IPR(NDIMX*NAX),
-     *       ICF1(NDIMX*NAX),ICF2(NDIMX*NAX)
-       COMMON /BLLOC/ DFU(NX2),DFP(NXP),UU1(NX),UU2(NX),FF1(NX),FF2(NX)
+C
+C This is an interesting section of code.  The main point
+C is that setubv and conpar only get called when ifst
+C is 1.  This is a optimization since you can solve
+C the system using the previously factored jacobian.
+C One thing to watch out for is that two seperate calls
+C of solvbv_ talk to each other through these arrays,
+C so it is only safe to get rid of them when ifst is
+C 1 (since their entries will then be recreated in conpar
+C  and setubv).
+C
 C
       NDIM=IAP(1)
       IPS=IAP(2)
@@ -54,6 +58,25 @@ C
       NRC=NBC+NINT+1
       NROW=NDIM*NCOL
       NCLM=NROW+NDIM
+      IF(IFST.EQ.1)THEN
+         IF(ALLOCATED(A))THEN
+C           Free floating point arrays
+            DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,FAA)
+C           Free integer arrays
+            DEALLOCATE(ICF,IRF,IPR,ICF1,ICF2)
+         ENDIF
+C
+         ALLOCATE(A(NCLM,NROW,NTST+1),B(NFPR,NROW,NTST+1))
+         ALLOCATE(C(NCLM,NINT+1,NTST+1),D(NFPR,NRC))
+         ALLOCATE(A1(NDIM,NDIM,NTST+1),A2(NDIM,NDIM,NTST+1))
+         ALLOCATE(S1(NDIM,NDIM,NTST+1),S2(NDIM,NDIM,NTST+1))
+         ALLOCATE(BB(NFPR,NDIM,NTST+1),CC(NDIM,NINT+1,NTST+1))
+         ALLOCATE(CCBC(NDIM,NBC,2),FAA(NDIM,NTST+1))
+C
+         ALLOCATE(ICF(NCLM,NTST+1),IRF(NROW,NTST+1),IPR(NDIM,NTST+1))
+         ALLOCATE(ICF1(NDIM,NTST+1),ICF2(NDIM,NTST+1))
+      ENDIF
+      ALLOCATE(FT(NROW,NTST+1))
 C
       IF(IFST.EQ.1)THEN
         CALL SETUBV(NDIM,IPS,NTST,NCOL,NBC,NINT,
@@ -76,6 +99,7 @@ C
 C
       RAP(14)=DET
 C
+      DEALLOCATE(FT)
       RETURN
       END
 C
