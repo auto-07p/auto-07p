@@ -3233,6 +3233,7 @@ C
 C
        K0=2
        DO J1=1,N1
+         K1=K0
          DO J=K0,N
            K1=J
            IF(TM1(J1).LT.TM(J))GOTO 1
