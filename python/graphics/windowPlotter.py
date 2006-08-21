@@ -37,12 +37,11 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.menuBar.addmenu("File","File operations")
         self.menuBar.addmenu("Options","View and set options")
         self.menuBar.addmenu("Help","View help on the plotting widget",side="right")
-        self.menuBar.grid(row=0,sticky=Tkinter.E+Tkinter.W)
+        self.menuBar.pack(fill=Tkinter.X)
 
         self.grapher = self.createcomponent('grapher',
                                             (), None,
                                             grapherClass,interior)
-        self.grapher.grid(row=1,sticky=Tkinter.E+Tkinter.W+Tkinter.S+Tkinter.N)
 
         self.menuBar.addmenuitem("File",
                                  "command",
@@ -64,9 +63,10 @@ class WindowPlotter(Pmw.MegaToplevel):
 
 
         topbox = Tkinter.Frame(interior,relief="raised",borderwidth=2)
-        topbox.grid(row=3)
+        topbox.pack(side=Tkinter.BOTTOM)
         box = Tkinter.Frame(topbox)
 
+        self.grapher.pack(expand=True,fill=Tkinter.BOTH)
         if self.grapher.cget("type") == "bifurcation":
             labelEntry = self.createcomponent('labelEntry',
                                               (), None,

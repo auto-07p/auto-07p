@@ -47,6 +47,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["symbol_color"] = ("red",None)
         optionDefaults["smart_label"] = (0,None)
         optionDefaults["line_width"] = (2,None)
+        optionDefaults["realwidth"] = (1,None)
+        optionDefaults["realheight"] = (1,None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -241,8 +243,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         bottom_margin = self.cget("bottom_margin")
         left_margin = self.cget("left_margin")
         right_margin = self.cget("right_margin")
-        width = int(self["width"])
-        height = int(self["height"])
+        width = int(self.cget("realwidth"))
+        height = int(self.cget("realheight"))
 
         if self.cget("decorations"):
             # border
@@ -343,8 +345,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         maxx=self.cget("maxx")
         miny=self.cget("miny")
         maxy=self.cget("maxy")
-        width = int(self["width"])
-        height = int(self["height"])
+        width = int(self.cget("realwidth"))
+        height = int(self.cget("realheight"))
         left_margin = self.cget("left_margin")
         right_margin = self.cget("right_margin")
         top_margin = self.cget("top_margin")
@@ -367,13 +369,13 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         x = val[0]
         if x < self.cget("left_margin"):
             x = self.cget("left_margin")
-        if x > int(self["width"]) - self.cget("right_margin"):
-            x = int(self["width"]) - self.cget("right_margin")
+        if x > int(self.cget("realwidth")) - self.cget("right_margin"):
+            x = int(self.cget("realwidth")) - self.cget("right_margin")
         y = val[1]
         if y < self.cget("top_margin"):
             y = self.cget("top_margin")
-        if y > int(self["height"]) - self.cget("bottom_margin"):
-            y = int(self["height"]) - self.cget("bottom_margin")
+        if y > int(self.cget("realheight")) - self.cget("bottom_margin"):
+            y = int(self.cget("realheight")) - self.cget("bottom_margin")
 
         x = x - self.cget("left_margin")
         y = y - self.cget("bottom_margin")
@@ -381,8 +383,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         maxx=self.cget("maxx")
         miny=self.cget("miny")
         maxy=self.cget("maxy")
-        return [minx + (maxx-minx)*float(x)/(float(self["width"])-(self.cget("left_margin")+self.cget("right_margin"))),
-                maxy - (maxy-miny)*float(y)/(float(self["height"])-(self.cget("bottom_margin")+self.cget("top_margin")))]
+        return [minx + (maxx-minx)*float(x)/(float(self.cget("realwidth"))-(self.cget("left_margin")+self.cget("right_margin"))),
+                maxy - (maxy-miny)*float(y)/(float(self.cget("realheight"))-(self.cget("bottom_margin")+self.cget("top_margin")))]
 
 class LabeledGrapher(BasicGrapher):
     def __init__(self,parent=None,cnf={},**kw):
@@ -428,7 +430,7 @@ class LabeledGrapher(BasicGrapher):
                     y = data[1]
                     #pick a good direction for the label
                     if (self.getData(i,"y")[second] - self.getData(i,"y")[first]) > 0:
-                        if (x < int(self["width"])-(20+self.cget("left_margin"))) and (y > (20+self.cget("top_margin"))):
+                        if (x < int(self.cget("realwidth"))-(20+self.cget("left_margin"))) and (y > (20+self.cget("top_margin"))):
                             xoffset = 10
                             yoffset = -10
                             anchor="sw"
@@ -574,10 +576,13 @@ class InteractiveGrapher(LabeledGrapher):
 #            self.config(minx=vx[0],maxx=vx[1],miny=vy[0],maxy=vy[1])
 
     def drawWrapper(self,e):
-        # This is wierd and I don't trust it.  It seems the width and height returned
-        # from the <Configure> command are 2 pixles too large.  I am not even sure
-        # why I need to set these.  It seems they should get set themselves.
-        self.configure(width=e.width-2,height=e.height-2)
+        # Note: we should not update self["width"] and self["height"] here, because
+        # those can be 2 or 4 less
+        self._configNoDraw(realwidth=e.width)
+        self._configNoDraw(realheight=e.height)
+        self.configure()
+        self.clear()
+        self.draw()
 
 class GUIGrapher(InteractiveGrapher):
     def __init__(self,parent=None,cnf={},**kw):
