@@ -6,7 +6,7 @@ VERSION=07p
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_MAINTAINER_MODE
 
-dnl AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(include/config.h)
 
 AC_ARG_WITH(CC,
 [  --with-CC=COMMAND       Choose a C compiler other then the default],

@@ -7,7 +7,10 @@
 #ifndef F2C_INCLUDE
 #define F2C_INCLUDE
 
+#include "config.h"
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <math.h>
 
 typedef long int integer;
@@ -39,35 +42,56 @@ typedef integer logical;
 #define ARRAY2D(array,i,j) array[(i) + (j) * array ## _dim1]
 #define ARRAY3D(array,i,j,k) array[(i) + ((j)  + (k) * array ## _dim2) * array ## _dim1]
 
-/* cabs.c */
-double f__cabs(double real, double imag);
-/* d_imag.c */
-double d_imag(doublecomplex *z);
-/* d_lg10.c */
-double d_lg10(doublereal *x);
-/* d_sign.c */
-double d_sign(doublereal a, doublereal b);
-/* etime_.c */
-double etime(float *tarray);
-/* i_dnnt.c */
-integer i_dnnt(doublereal *x);
-/* i_nint.c */
-integer i_nint(real *x);
-/* pow_dd.c */
-double pow_dd(doublereal *ap, doublereal *bp);
-/* pow_di.c */
-double pow_di(doublereal *ap, integer *bp);
-/* pow_ii.c */
-integer pow_ii(integer ap, integer bp);
-/* r_lg10.c */
-double r_lg10(real x);
-/* z_abs.c */
-double z_abs(doublecomplex *z);
-/* z_exp.c */
-void z_exp(doublecomplex *r, doublecomplex *z);
-/* z_log.c */
-void z_log(doublecomplex *r, doublecomplex *z);
-
+#ifdef FC_FUNC
+#define blhom_1 FC_FUNC(blhom,BLHOM)
 #endif
 
+/* problem defined functions*/
+typedef int user_func_t(integer ndim, const doublereal *u, const integer *icp,
+	 const doublereal *par, integer ijac, 
+	 doublereal *f, doublereal *dfdu, doublereal *dfdp);
+typedef int user_stpnt_t(integer ndim, doublereal t, 
+	  doublereal *u, doublereal *par);
+typedef int user_bcnd_t(integer ndim, const doublereal *par, const integer *icp, integer nbc, 
+	 const doublereal *u0, const doublereal *u1, integer ijac,
+	 doublereal *f, doublereal *dbc);
+typedef int user_icnd_t(integer ndim, const doublereal *par, const integer *icp, integer nint, 
+	 const doublereal *u, const doublereal *uold, const doublereal *udot, 
+	 const doublereal *upold, integer ijac,
+	 doublereal *fi, doublereal *dint);
+typedef int user_fopt_t(integer ndim, const doublereal *u, const integer *icp, 
+	 const doublereal *par, integer ijac, 
+	 doublereal *fs, doublereal *dfdu, doublereal *dfdp);
+typedef int user_pvls_t(integer ndim, const doublereal *u, doublereal *par);
 
+typedef struct {
+  user_func_t *func;
+  user_stpnt_t *stpnt;
+  user_bcnd_t *bcnd;
+  user_icnd_t *icnd;
+  user_fopt_t *fopt;
+  user_pvls_t *pvls;
+  int uses_fortran;
+} user_function_list;
+extern const user_function_list user;
+
+/* C wrapper for getp; call it getp_ if we have name clashes */
+#define name 1
+#if FC_FUNC(name,NAME) == 1
+#define getp getp_
+#endif
+#undef name
+extern doublereal getp(char *code, integer ic, doublereal *u);
+
+#ifndef WRAPPER
+/* user functions */
+static user_func_t func;
+static user_stpnt_t stpnt;
+static user_bcnd_t bcnd;
+static user_icnd_t icnd;
+static user_fopt_t fopt;
+static user_pvls_t pvls;
+const user_function_list user = { func, stpnt, bcnd, icnd, fopt, pvls };
+#endif
+
+#endif
