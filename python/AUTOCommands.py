@@ -1127,6 +1127,17 @@ class commandRunCommand(command):
 
 try:
     import windowPlotter
+    try:
+        import readline
+    except:
+        pass
+    import select
+
+    # this polling loop is here so that Cygwin Python does not "hang" the
+    # plot window while Python waits for a user input
+    def handleevents():
+        while select.select([sys.stdin],[],[],0.02) == ([], [], []):
+            _root.dooneevent()
 
     #####################################################
     #  Plotting commands
@@ -1165,6 +1176,13 @@ try:
             # Get rid of the initial window
             root=Tkinter.Tk()
             root.withdraw()
+            if sys.platform == "cygwin":
+                try:
+                    readline.set_pre_input_hook(handleevents)
+                    global _root
+                    _root=root
+                except:
+                    pass
             if self.name1["bifurcationDiagram"] is None:
                 self.handle = windowPlotter.WindowPlotter2D(root,self.options,grapher_bifurcation_diagram_filename="fort.7",
                                                             grapher_solution_filename="fort.8",
@@ -1209,6 +1227,13 @@ try:
             # Get rid of the initial window
             root=Tkinter.Tk()
             root.withdraw()
+            if sys.platform == "cygwin":
+                try:
+                    readline.set_pre_input_hook(handleevents)
+                    global _root
+                    _root=root
+                except:
+                    pass
             if self.name1["bifurcationDiagram"] is None:
                 self.handle = windowPlotter.WindowPlotter3D(root,self.options,grapher_bifurcation_diagram_filename="fort.7",
                                                             grapher_solution_filename="fort.8")
