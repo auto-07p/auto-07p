@@ -301,7 +301,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             odd_tick_length=self.cget("odd_tick_length")
             even_tick_length=self.cget("even_tick_length")
             
-            xticks=self.cget("xticks")
+            xticks=int(self.cget("xticks"))
             tick_start_y=yw+bottom_margin
             for i in range(xticks):
                 # The odd tick marks should be longer
@@ -317,7 +317,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 if i != 0 and i != xticks - 1 and self.cget("grid") == "yes":
                     self.create_line(tick_x,tick_start_y,tick_x,tick_start_y-yw,
                                      fill=self.cget("foreground"),stipple="gray50")
-            yticks=self.cget("yticks")
+            yticks=int(self.cget("yticks"))
             tick_start_x=left_margin
             tick_end_x=left_margin*(1-tick_length)
             for i in range(yticks):
