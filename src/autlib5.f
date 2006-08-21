@@ -780,10 +780,9 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
-      DIMENSION TTM(M1T),J2(3),A(3),B(3),T(3),TT(3)
+      DIMENSION TTM(M1T),J2(3),A(3),B(3),T(3),TT(3),UMAX(NX)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLBRN/ UMAX(NX)
       COMMON /BLRTN/ IRTN,NRTN(NX)
 C
 C First find maximum from the equilibrium
@@ -818,10 +817,10 @@ C Just use the point in the middle
          ENDDO
       ENDIF
       TMMAX=TM(JMAX)
-      DO I=1,NDIM
+      DO I=1,NDM
          UMAX(I) = UPS(JMAX,I)
       ENDDO
-      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM),DUM1,DUM2)
+      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM+1),DUM1,DUM2)
 C     
 C     PAR(NPARX-NDM+1...NPARX) contains the point furthest from
 C     the equilibrium.
