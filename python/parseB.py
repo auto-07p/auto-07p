@@ -154,7 +154,11 @@ class parseB:
         return array
 
     def writeRaw(self,output):
+        first = 1
         for vector in self:
+            if vector["PT"] == 1 and first == 0:
+                output.write("\n")
+            first = 0
             for point in vector["data"]:
                 output.write(str(point)+" ")
             output.write("\n")
