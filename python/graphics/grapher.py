@@ -2,6 +2,7 @@
 import Tkinter
 import Pmw
 import tkSimpleDialog
+import tkFileDialog
 import string
 import types
 import AUTOutil
@@ -657,7 +658,7 @@ class GUIGrapher(InteractiveGrapher):
         
     def generatePostscript(self,filename=None):
         if filename is None:
-            filename = tkSimpleDialog.askstring("Filename","Enter here")
+            filename = tkFileDialog.asksaveasfilename(defaultextension=".eps",title="Save as Postscript File")
         self.update()
         self.postscript(file=filename)
 
