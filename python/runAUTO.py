@@ -258,7 +258,7 @@ class runAUTO:
         else:
             self.options["executable"] = executable
 
-        command = "(cd %s;/usr/bin/time %s %s)"%(self.options["dir"],self.options["time_flag"],executable)
+        command = "(cd %s;time %s %s)"%(self.options["dir"],self.options["time_flag"],executable)
         self.__runCommand(command)
 
     def runCommand(self,command=None):
