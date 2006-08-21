@@ -52,7 +52,7 @@ class parseS:
     def __init__(self,filename=None):
         self.data=[]
         if not (filename is None):
-            self.__setFile(open(filename,"r"))
+            self.__setFile(open(filename,"rb"))
 
     def __str__(self):
         rep = ""
@@ -164,7 +164,7 @@ class parseS:
         output.flush()
 
     def readFilename(self,filename):
-	input = open(filename,"r")
+	input = open(filename,"rb")
         self.__setFile(input)
 
     def writeFilename(self,filename):
@@ -270,12 +270,12 @@ class AUTOSolution(UserDict.UserDict):
 	return parseB.type_translation(self["Type number"])["long name"]
 
     def readAllFilename(self,filename):
-	input = open(filename,"r")
+	input = open(filename,"rb")
 	self.readAll(input)
 	input.close()
 
     def readFilename(self,filename):
-	input = open(filename,"r")
+	input = open(filename,"rb")
 	self.read(input)
 	input.close()
 
@@ -583,7 +583,7 @@ def test():
 
     print "Testing reading from a stream"
     foo = parseS()
-    fp = open("test_data/fort.8","r")
+    fp = open("test_data/fort.8","rb")
     foo.read(fp)    
     if len(foo) != 5:
         raise AUTORegressionError("File length incorrect")

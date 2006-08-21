@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import getopt,sys,os,popen2,string
-import signal, os, fcntl, time
+import signal, os, time
 import cStringIO
 import re
 import types
@@ -14,7 +14,10 @@ demo_max_time=-1
 class runAUTO:
     def __init__(self,cnf={},**kw):
         # Set the signal handler
-        signal.signal(signal.SIGALRM, self.__handler)
+        try:
+            signal.signal(signal.SIGALRM, self.__handler)
+        except:
+            pass
         self.internalLog = None
         self.internalErr = None
         
@@ -96,7 +99,10 @@ class runAUTO:
             os.system(command)
         # Restart the alarm to make sure everything gets killed
         self.options["verbose_print"].flush()
-        signal.alarm(20)
+        try:
+            signal.alarm(20)
+        except:
+            pass
 
     def __resetInternalLogs(self):
         if self.internalLog is None:
@@ -280,25 +286,29 @@ class runAUTO:
         # The command runs here.
         # This is done as the object version so I can use the "poll" method
         # later on to see if it is still running.
-        demo_object = popen2.Popen3(command,1,1)
-
-        stdout = demo_object.fromchild
-        stdin  = demo_object.tochild
-        stderr = demo_object.childerr
-        alarm_demo = self.options["dir"]
-        if(demo_max_time > 0):
-            signal.alarm(demo_max_time)
-        tmp_out = cStringIO.StringIO()
-        while (demo_object.poll() == -1):
-            try:
-                line = stdout.readline()
-                if self.options["verbose"] == "yes":
-                    self.options["verbose_print"].write(line)
-                    self.options["verbose_print"].flush()
-                tmp_out.write(line)
-                time.sleep(0.1)
-            except:
-                demo_killed = 1
+        try:
+            demo_object = popen2.Popen3(command,1,1)
+            stdout = demo_object.fromchild
+            stdin = demo_object.tochild
+            stderr = demo_object.childerr
+            alarm_demo = self.options["dir"]
+            if(demo_max_time > 0):
+                signal.alarm(demo_max_time)
+            tmp_out = cStringIO.StringIO()
+            while (demo_object.poll() == -1):
+                try:
+                    line = stdout.readline()
+                    if self.options["verbose"] == "yes":
+                        self.options["verbose_print"].write(line)
+                        self.options["verbose_print"].flush()
+                    tmp_out.write(line)
+                    time.sleep(0.1)
+                except:
+                    demo_killed = 1
+        except:
+            command = "sh -c '%s'"%(command)
+            stdout, stdin, stderr = popen2.popen3(command)
+            tmp_out = cStringIO.StringIO()
         line = stdout.readline()
         # Read the rest of the data from stdout
         while len(line) > 0:
@@ -323,7 +333,10 @@ class runAUTO:
                     pass
                 else:
                     self.__printErr(line)
-        signal.alarm(0)
+        try:
+            signal.alarm(0)
+        except:
+            pass
 
         # Check to see if output files were created.
         # If not, set the two output streams to be None.

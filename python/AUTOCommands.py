@@ -1476,8 +1476,15 @@ class valueSystem:
     def __str__(self):
         return self.value
     def system(self,command):
-        import commands
-        self.value = self.value + commands.getoutput(command)
+        import os
+        if os.name == "posix":
+            import commands
+            self.value = self.value + commands.getoutput(command)
+        else:
+            pipe = os.popen('sh -c \'{ ' + command + '; } 2>&1\'', 'r')
+            text = pipe.read()
+            if text[-1:] == '\n': text = text[:-1]
+            self.value = self.value + text
     def interact(self,command):
         import os
         os.system(command)
