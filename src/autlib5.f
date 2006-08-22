@@ -10,7 +10,6 @@ C     ---------- ----
       SUBROUTINE FNHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
       INCLUDE 'auto.h'
-      PARAMETER (NX=NDIMX,NX2=NX**2,NXP=NX*NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -21,15 +20,20 @@ C
       DIMENSION IAP(*),ICP(*)
       DIMENSION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
-      COMMON /BLLOC/ DFU(NX2)
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+      ALLOCATABLE DFU(:)
 C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
+      IF(ISTART.GE.0.AND.ITWIST.EQ.1)THEN
+        ALLOCATE(DFU(NDIM*NDIM))
+      ENDIF
       IF(IJAC.EQ.0)THEN
         CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        IF(ALLOCATED(DFU))DEALLOCATE(DFU)
         RETURN
       ENDIF
 C
@@ -55,7 +59,10 @@ C
       ENDDO
 C
       CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
-      IF(IJAC==1)RETURN
+      IF(IJAC==1)THEN
+        IF(ALLOCATED(DFU))DEALLOCATE(DFU)
+        RETURN
+      ENDIF
 C
       DO I=1,NFPR
         PAR(ICP(I))=PAR(ICP(I))+EP
@@ -66,6 +73,7 @@ C
         PAR(ICP(I))=PAR(ICP(I))-EP
       ENDDO
 C
+      IF(ALLOCATED(DFU))DEALLOCATE(DFU)
       RETURN
       END
 C
@@ -73,7 +81,6 @@ C     ---------- ----
       SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -84,7 +91,6 @@ C
 C       Local
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
 C
       NDM=IAP(23)
 C
@@ -139,8 +145,6 @@ C     ---------- ----
 C
       INCLUDE 'auto.h'
 C
-      PARAMETER (M2X=2*NDIMX+NPARX)
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
@@ -150,7 +154,7 @@ C
       DIMENSION IAP(*),ICP(*)
       DIMENSION U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
 C Local
-      DIMENSION UU(NDIMX),FF1(NBCX),FF2(NBCX)
+      ALLOCATABLE UU(:),FF1(:),FF2(:)
 C
        NBC0=IAP(24)
        NFPR=IAP(29)
@@ -160,6 +164,7 @@ C
        CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F)
 C
        IF(IJAC.EQ.0)RETURN
+       ALLOCATE(UU(NDIM),FF1(NBC),FF2(NBC))
 C
 C Derivatives with respect to U0.
 C
@@ -212,6 +217,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+      DEALLOCATE(FF1,FF2,UU)
       RETURN
       END
 C
@@ -228,15 +234,17 @@ C
       DIMENSION ICP(*),IAP(*)
       DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*)
 C Local
-      DIMENSION VR(NX,NX,2),VT(NX,NX,2)
-      DIMENSION BOUND(NX,NX),RR(NX,2),RI(NX,2),XEQUIB1(NX),XEQUIB2(NX)
+      ALLOCATABLE VR(:,:,:),VT(:,:,:)
+      ALLOCATABLE BOUND(:,:),RR(:,:),RI(:,:),XEQUIB1(:),XEQUIB2(:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
       COMMON /BLBRN/ UMAX(NX)
       COMMON /BLRTN/ IRTN,NRTN(NX)
-
+C
       NDM=IAP(23)
+      ALLOCATE(VR(NDM,NDM,2),VT(NDM,NDM,2),BOUND(NDM,NDM))
+      ALLOCATE(RR(NDM,2),RI(NDM,2),XEQUIB1(NDM),XEQUIB2(NDM))
 C
 C     *Initialization
       DO I=1,NBC
@@ -475,6 +483,7 @@ C *user defined extra boundary conditions
          STOP
       END IF
 C
+      DEALLOCATE(VR,VT,BOUND,RR,RI,XEQUIB1,XEQUIB2)
       RETURN
       END
 C
@@ -483,7 +492,6 @@ C     ---------- ----
      * F,IJAC,DINT)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M2X=NDIMX+NPARX)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
@@ -550,7 +558,6 @@ C     ---------- ----
      * UPOLD,FI)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -560,7 +567,6 @@ C
       DIMENSION RAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
 C
       NDM=IAP(23)
       JB=0
@@ -720,13 +726,12 @@ C     ---------- ------
      *     NDIM,J,J1)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL2=NCOLX+1)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION UPS(NDX,*), UDOTPS(NDX,*)
 C
 C Local
 C
-      DIMENSION X(MCL2),W(MCL2)
+      ALLOCATABLE X(:),W(:)
 C
 C     Finds interpolant (TM(.) , UPS(.), UDOTPS(.) ) on the new mesh
 C     at times TM,TM+DTM using the old mesh at times T,T+DT.
@@ -734,6 +739,7 @@ C
 C     Used by TRANHO to initiate branch switching to n-homoclinic orbits.
 C
       NCP1=NCOLRS+1
+      ALLOCATE(X(NCP1),W(NCP1))
 C
       D=DTM/NCOLRS
       DO L=1,NCP1
@@ -754,6 +760,7 @@ C
          ENDDO
       ENDDO
 C
+      DEALLOCATE(X,W)
       RETURN
       END
 C
@@ -776,14 +783,16 @@ C
 C     Called by PREHO
 C
       INCLUDE 'auto.h'
-      PARAMETER (NX=NDIMX,M1T=NTSTX+1)
+      PARAMETER (NX=NDIMX)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
-      DIMENSION TTM(M1T),J2(3),A(3),B(3),T(3),TT(3),UMAX(NX)
+      DIMENSION J2(3),A(3),B(3),T(3),TT(3)
+      ALLOCATABLE TTM(:),UMAX(:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLRTN/ IRTN,NRTN(NX)
+      ALLOCATE(TTM(NTSR*2),UMAX(NDM))
 C
 C First find maximum from the equilibrium
 C     
@@ -971,6 +980,8 @@ C
 C     Rotations: PAR(19) needs adjustment
 C
       IF(IRTN.NE.0)PAR(19)=PAR(19)*-ISTART
+      DEALLOCATE(TTM,UMAX)
+      RETURN
       END
 C
 C     ---------- ------
@@ -1050,7 +1061,7 @@ C
 C
 C Local
 C
-      DIMENSION F(NDIMX), UI(NDIMX)
+      ALLOCATABLE F(:),UI(:)
 C
       NDIM=IAP(1)
       NDM=IAP(23)
@@ -1065,6 +1076,7 @@ C explicitely given. This is just the point where the speed is minimal.
 C We hope that Newton's method will do the rest.
 
          IF (IEQUIB.GT.0) THEN
+            ALLOCATE(UI(NDM),F(NDM))
             UPSMIN=1D20
             JMIN=1
             DO J=1,NTSR+1
@@ -1084,6 +1096,7 @@ C We hope that Newton's method will do the rest.
             DO I=1,NDM
                PAR(11+I)=UPS(JMIN,I)
             ENDDO
+            DEALLOCATE(UI,F)
          ENDIF
 C
          CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
@@ -1281,8 +1294,6 @@ C     ---------- ------
 C
       INCLUDE 'auto.h'
 C
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a starting point for the continuation of a branch of
@@ -1297,10 +1308,9 @@ C
       DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
-      DIMENSION U(NDIMX),RR(NX),RI(NX),VR(NX,NX),VT(NX,NX)
+      ALLOCATABLE U(:),RR(:),RI(:),VR(:,:),VT(:,:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -1319,6 +1329,8 @@ C
           CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
           RETURN
        ENDIF
+C
+       ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
        DT=1.d0/(NTST*NCOL)
        CALL PVLS(NDM,UPS,PAR)
        CALL EIGHI(IAP,RAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
@@ -1376,6 +1388,7 @@ C
        ENDDO
        IP=IP+NUNSTAB
 C
+      DEALLOCATE(RR,RI,VR,VT)
       RETURN
       END
 C
@@ -1383,18 +1396,21 @@ C     ---------- ------
       SUBROUTINE PVLSHO(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
+      PARAMETER(NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
       DIMENSION P0(NDIM,*),P1(NDIM,*)
 C Local
-      DIMENSION PU0(NX),PU1(NX)
+      ALLOCATABLE PU0(:),PU1(:)
+      ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BLEIG/ RR(NX,2),RI(NX,2),V(NX,NX,2),VT(NX,NX,2),INEIG
+      COMMON /BLHMP/ IPSI(NPSIX)
+C
+      ALLOCATE(PU0(NDIM),PU1(NDIM))
+      ALLOCATE(RR(NDIM,2),RI(NDIM,2),V(NDIM,NDIM,2),VT(NDIM,NDIM,2))
 C
        IID=IAP(18)
        NDM=IAP(23)
@@ -1460,6 +1476,7 @@ C
         IF(IID.GE.3)WRITE(9,104)IPSI(I),PAR(20+IPSI(I))
       ENDDO
 C  
+      DEALLOCATE(PU0,PU1,RR,RI,V,VT)
       RETURN
 C
  101  FORMAT(1X,'(',F12.7,',',1X,F12.7,')')
@@ -1473,7 +1490,6 @@ C     -------- ------- -------- -----
       DOUBLE PRECISION FUNCTION PSIHO(IAP,IS,RR,RI,V,VT,ICP,PAR,PU0,PU1)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
 C
 C The conditions for degenerate homoclinic orbits are given by PSI(IS)=0.
 C 
@@ -1485,17 +1501,17 @@ C In the block ENDPTS are stored the co-ordinates of the left (PU0)
 C and right (PU1) endpoints of the solution (+  vector if that is computed)
 C
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION IAP(*),ICP(*),PAR(*),RR(NX,*),RI(NX,*)
-      DIMENSION V(NX,NX,*),VT(NX,NX,*),PU0(*),PU1(*)
+      DIMENSION IAP(*),ICP(*),PAR(*),RR(IAP(23),*),RI(IAP(23),*)
+      DIMENSION V(IAP(23),IAP(23),*),VT(IAP(23),IAP(23),*),PU0(*),PU1(*)
 C Local
-      DIMENSION F0(NX),F1(NX)
+      ALLOCATABLE F0(:),F1(:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
       COMMON /BLHMA/ COMPZERO
 C
       NDM=IAP(23)
 C
+      ALLOCATE(F0(NDM),F1(NDM))
       CALL FUNC(NDM,PU0,ICP,PAR,0,F0,DUM1,DUM2)
       CALL FUNC(NDM,PU1,ICP,PAR,0,F1,DUM1,DUM2)
 C
@@ -1527,6 +1543,8 @@ C
          RETURN
       ENDIF
 C
+      IF(IS.NE.11)DEALLOCATE(F1)
+      IF(IS.NE.12)DEALLOCATE(F0)
       GOTO(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)IS
 C
 C Resonant eigenvalues (neutral saddle)
@@ -1628,6 +1646,7 @@ C
          PSIHO= PSIHO + F1(J)*VT(NSTAB,J,1)
       ENDDO
       PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
+      DEALLOCATE(F1)
       RETURN
 C
 C Orbit flip (with respect to leading unstable direction)
@@ -1638,6 +1657,7 @@ C
          PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J,1)
       ENDDO
       PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
+      DEALLOCATE(F0)
       RETURN
 C
 C Inclination flip (critically twisted) with respect to stable manifold
@@ -1682,14 +1702,15 @@ C     ---------- -----
       SUBROUTINE EIGHI(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C Local
-      DIMENSION DFDU(NX,NX),DFDP(NX,NPARX),ZZ(NX,NX)
+      ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
 C
+        ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPARX),ZZ(NDM,NDM))
         CALL EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *             DFDU,DFDP,ZZ)
+        DEALLOCATE(DFDU,DFDP,ZZ)
 C
       RETURN
       END
@@ -1699,7 +1720,6 @@ C     ---------- -----
      *                  DFDU,DFDP,ZZ)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
 C
 C Uses EISPACK routine RG to calculate the eigenvalues/eigenvectors
 C of the linearization matrix a (obtained from DFHO) and orders them
@@ -1718,17 +1738,18 @@ C                  eigenvectors
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NX,*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NDM,*)
       DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
-      DIMENSION VI(NX,NX),VR(NX,NX),F(NX)
-      DIMENSION FV1(NX),IV1(NX)
+      DIMENSION IEIGC(2)
+      ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
+      ALLOCATABLE VRPREV(:,:,:)
+      SAVE IEIGC,VRPREV
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
       COMMON /BLHMA/ COMPZERO
-      COMMON /BLHME/ VRPREV(2,NX,NX),IEIGC(2)
 C
+      ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM),FV1(NDM),IV1(NDM))
       IFAIL=0
 C     
       CALL FUNI(IAP,RAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
@@ -1797,6 +1818,7 @@ C commensurate with that of the corresponding eigenvector
 C from the previous call with the same value of ITRANS
 C
       IF (IEIGC(ITRANS).EQ.0) THEN
+         IF(.NOT.ALLOCATED(VRPREV))ALLOCATE(VRPREV(2,NDM,NDM))
          DO J=1,NDM
             DO I=1,NDM
                VRPREV(ITRANS,I,J)=VR(I,J)
@@ -1829,6 +1851,7 @@ C
          ENDDO
       ENDDO
 C     
+      DEALLOCATE(VI,VR,F,FV1,IV1)
       RETURN
       END
 C
@@ -1836,13 +1859,14 @@ C     ---------- ------
       SUBROUTINE PRJCTI(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C Local
-      DIMENSION A(NX,NX),V(NX,NX)
+      ALLOCATABLE A(:,:),V(:,:)
 C
+      ALLOCATE(A(NDM,NDM),V(NDM,NDM))
       CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,A,V)
+      DEALLOCATE(A,V)
 C
       RETURN
       END
@@ -1852,7 +1876,6 @@ C     ---------- ------
      *                  A,V)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
 C
 C Compute NUNSTAB (or NSTAB) projection boundary condition functions
 C onto to the UNSTABLE (or STABLE) manifold of the appropriate equilibrium
@@ -1872,20 +1895,21 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION ICP(*),PAR(*),A(NDM,*),V(NDM,*)
-      DIMENSION BOUND(NX,*),XEQUIB(*)
+      DIMENSION BOUND(NDM,*),XEQUIB(*)
 C Local
-      DIMENSION ER(NX),EI(NX),D(NX,NX),CNOW(NX,NX),CPREV(NX,NX,2,2)
-      DIMENSION DUM1(NX,NX),DUM2(NX,NX),FDUM(NX)
-      DIMENSION ORT(NX)
-      INTEGER IR(NX),IC(NX),IFLAG(2,2),TYPE(NX)
+      INTEGER TYPE,IFLAG(2,2)
+      ALLOCATABLE ER(:),EI(:),D(:,:),CNOW(:,:),CPREV(:,:,:,:)
+      ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
+      ALLOCATABLE IR(:),IC(:),TYPE(:)
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BEYN/ CPREV,IFLAG
+      SAVE CPREV,IFLAG
       COMMON /BLHMA/ COMPZERO
 C
+      ALLOCATE(FDUM(NDM))
       CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
-C    
+      DEALLOCATE(FDUM)
+C
 C Compute transpose of A if ITRANS=1
       IF (ITRANS.EQ.1) THEN
         DO I=1,NDM
@@ -1898,8 +1922,11 @@ C Compute transpose of A if ITRANS=1
       ENDIF
 C
 C Compute basis V to put A in upper Hessenberg form
+C    
+        ALLOCATE(ORT(NDM))
         CALL ORTHES(NDM,NDM,1,NDM,A,ORT)
         CALL ORTRAN(NDM,NDM,1,NDM,A,ORT,V)
+        DEALLOCATE(ORT)
 C
 C Force A to be upper Hessenberg
         IF (NDM.GT.2) THEN
@@ -1913,7 +1940,9 @@ C
 C Computes basis to put A in "Quasi Upper-Triangular form"
 C with the positive (negative) eigenvalues first if IMFD =-1 (=1)
         EPS = COMPZERO
+        ALLOCATE(TYPE(NDM),ER(NDM),EI(NDM))
         CALL HQR3LC(A,V,NDM,1,NDM,EPS,ER,EI,TYPE,NDM,NDM,IMFD)
+        DEALLOCATE(TYPE,ER,EI)
 C
 C Put the basis in the appropriate part of the matrix CNOW
         IF (IMFD.EQ.1) THEN
@@ -1926,6 +1955,7 @@ C Put the basis in the appropriate part of the matrix CNOW
         MCOND=K2-K1+1
         M0=K1-1
 C
+        ALLOCATE(CNOW(NDM,NDM))
         DO I=K1,K2   
           DO J=1,NDM  
            CNOW(I,J) = V(J,I-K1+1)
@@ -1934,6 +1964,7 @@ C
 C
 C Set previous matrix to be the present one if this is the first call
       IF (IFLAG(IS,ITRANS).NE.1234) THEN
+         IF (.NOT.ALLOCATED(CPREV))ALLOCATE(CPREV(NDM,NDM,2,2))
          DO I=1,NDM
             DO J=1,NDM
                CPREV(I,J,IS,ITRANS)=0.0D0
@@ -1946,10 +1977,12 @@ C Set previous matrix to be the present one if this is the first call
             ENDDO
          ENDDO
          IFLAG(IS,ITRANS)=1234
+         DEALLOCATE(CNOW)
 	 RETURN
       ENDIF
 C     
 C Calculate the (transpose of the) BEYN matrix D and hence BOUND 
+      ALLOCATE(D(NDM,NDM),DUM1(NDM,NDM),DUM2(NDM,NDM))
       DO I=1,MCOND
         DO J=1,MCOND
           DUM1(I,J)=0.0D0
@@ -1964,7 +1997,9 @@ C Calculate the (transpose of the) BEYN matrix D and hence BOUND
       ENDDO
 C     
       IF(MCOND.GT.0)THEN
-        CALL GE(0,MCOND,NX,DUM1,MCOND,NX,D,NX,DUM2,IR,IC,DET)
+        ALLOCATE(IR(NDM),IC(NDM))
+        CALL GE(0,MCOND,NDM,DUM1,MCOND,NDM,D,NDM,DUM2,IR,IC,DET)
+        DEALLOCATE(IR,IC)
       ENDIF
 C     
       DO I=1,MCOND
@@ -1982,6 +2017,7 @@ C
          ENDDO
       ENDDO
 C     
+      DEALLOCATE(D,DUM1,DUM2)
       RETURN
       END
 C-----------------------------------------------------------------------
