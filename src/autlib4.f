@@ -54,7 +54,7 @@ C-----------------------------------------------------------------------
 C
       SUBROUTINE FLOWKM (NDIM, C0, C1, IID, RWORK, EV)
 C
-C     IMPLICIT UNDEFINED (A-Z,a-z)
+      IMPLICIT NONE
 C
 C  Subroutine to compute Floquet multipliers via the "deflated circuit 
 C  pencil" method. This routine is called by the AUTO routine FNSPBV
@@ -69,24 +69,22 @@ C  Local declarations:
 C
 C
 C  Maximum order of problem.  **** (To avoid changing too many AUTO'86
-C  routines, I need to declare some local array storage here --- MAXDIM )
+C  routines, I need to declare some local array storage here )
 C
-      INCLUDE 'auto.h'
-      INTEGER           MAXDIM
-      PARAMETER         (MAXDIM = NDIMX)
       INTEGER           LEFT, RIGHT
       PARAMETER         (LEFT = 1, RIGHT = 2)
 C
       INTEGER           I, J, NDIMM1
-      DOUBLE PRECISION  X(MAXDIM),BETA,V(MAXDIM),
+      DOUBLE PRECISION  X(:),BETA,V(:),
      &                  NRMC0X, NRMC1X, CONST
       LOGICAL           INFEV
 C
 C  storage for SVD computations
 C
       INTEGER           SVDJOB, SVDINF
-      DOUBLE PRECISION  SVDS(MAXDIM+1), SVDE(MAXDIM), SVDWRK(MAXDIM),
-     &                  SVDU(1,1), SVDV(MAXDIM,MAXDIM), SVDTOL
+      DOUBLE PRECISION  SVDS(:), SVDE(:), SVDWRK(:),
+     &                  SVDU(1,1), SVDV(:,:), SVDTOL
+      ALLOCATABLE       X,V,SVDS,SVDE,SVDWRK,SVDV
 C  compute right singular vectors only
       PARAMETER         (SVDTOL = 1.0D-16)
       PARAMETER         (SVDJOB = 1)
@@ -94,8 +92,9 @@ C
 C  storage for generalized eigenvalue computations
 C
       INTEGER           QZIERR
-      DOUBLE PRECISION  QZZ(1, 1), QZEPS1, QZALFR(MAXDIM),
-     &                  QZALFI(MAXDIM), QZBETA(MAXDIM)
+      DOUBLE PRECISION  QZZ(1, 1), QZEPS1, QZALFR(:),
+     &                  QZALFI(:), QZBETA(:)
+      ALLOCATABLE       QZALFR,QZALFI,QZBETA
       LOGICAL           QZMATZ
 C  don't want to accumulate the transforms --- vectors not needed
       PARAMETER         (QZMATZ = .FALSE.)
@@ -124,12 +123,8 @@ C
 cxx   DOUBLE COMPLEX    DCMPLX
       INTRINSIC         DMAX1, DABS, DCMPLX
 C
-C  Make sure that you have enough local storage.
-C
-      IF (NDIM .GT. MAXDIM) THEN
-          WRITE (9, 900)
-          STOP
-      END IF
+      ALLOCATE(SVDE(NDIM),SVDS(NDIM+1),SVDV(NDIM,NDIM),V(NDIM),X(NDIM))
+      ALLOCATE(QZALFI(NDIM),QZBETA(NDIM),QZALFR(NDIM),SVDWRK(NDIM))
 C
 C Change sign of P1 so that we get the sign of the multipliers right.
 C
@@ -185,7 +180,7 @@ C
       ENDDO
 C
       CALL EZSVD ( RWORK, NDIM, NDIM, NDIM, SVDS, SVDE, SVDU, 1,
-     &             SVDV, MAXDIM, SVDWRK, SVDJOB, SVDINF, SVDTOL )
+     &             SVDV, NDIM, SVDWRK, SVDJOB, SVDINF, SVDTOL )
       IF (SVDINF .NE. 0) WRITE (9, 901) SVDINF
 C
 C  Apply a Householder matrix (call it H1) based on the null vector
@@ -193,10 +188,10 @@ C  to (C0, C1) from the right.  H1 = SVDV = ( Xperp | X ), where X
 C  is the null vector.
 C
       CALL DGEMM ( 'n', 'n', NDIM, NDIM, NDIM, 1.0d0, C0, NDIM, 
-     &             SVDV, MAXDIM, 0.0d0, RWORK, NDIM )
+     &             SVDV, NDIM, 0.0d0, RWORK, NDIM )
       CALL DGEMC ( NDIM, NDIM, RWORK, NDIM, C0, NDIM, .FALSE. )
       CALL DGEMM ( 'n', 'n', NDIM, NDIM, NDIM, 1.0d0, C1, NDIM, 
-     &             SVDV, MAXDIM, 0.0d0, RWORK, NDIM )
+     &             SVDV, NDIM, 0.0d0, RWORK, NDIM )
       CALL DGEMC ( NDIM, NDIM, RWORK, NDIM, C1, NDIM, .FALSE. )
 C
 C  Apply a Householder matrix (call it H2) based on 
@@ -295,6 +290,7 @@ C
 C
 C  Done!
 C
+      DEALLOCATE(X,V,SVDS,SVDE,SVDWRK,SVDV,QZALFR,QZALFI,QZBETA)
       RETURN
 C
 C  Format statements
@@ -306,8 +302,6 @@ C
  105  FORMAT(' Deflated cicuit pencil (H2^T)*(C0, C1)*(H1) ')
  106  FORMAT('   (H2^T)*C0*(H1) : ')
  107  FORMAT('   (H2^T)*C1*(H1) : ')
- 900  FORMAT(' NOTE : Subroutine FLOWKM doesn''t have enough storage : ',
-     &     /,'        Recompile with larger value of MAXDIM')
  901  FORMAT(' NOTE : Warning from subroutine FLOWKM : ',
      &     /,'        SVD routine returned SVDINF = ', I4,
      &     /,'        Floquet multiplier calculations may be wrong')
@@ -334,7 +328,7 @@ C  Ref: Golub and van Loan, Matrix Calcualtions,
 C       First Edition, Pages 38-43
 C
       SUBROUTINE DHHPR ( K, J, N, X, INCX, BETA, V )
-C     IMPLICIT UNDEFINED (A-Z,a-z)
+      IMPLICIT NONE
 C     .. Scalar Arguments ..
       INTEGER            J, K, N, INCX
       DOUBLE PRECISION   BETA
@@ -473,7 +467,7 @@ C     End of DHHPR.
 C
       END
       SUBROUTINE DHHAP ( K, J, N, Q, BETA, V, JOB, A, LDA )
-      IMPLICIT LOGICAL (A-Z)
+      IMPLICIT NONE
 C     .. Scalar Arguments ..
       INTEGER            J, K, N, Q, JOB, LDA
       DOUBLE PRECISION   BETA
