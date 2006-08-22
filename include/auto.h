@@ -4,7 +4,7 @@ C NOTE : Do not change NPARX, NIAP, NRAP
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
-      PARAMETER (NDIMX=20,NCOLX=4,NTSTX=1000,NBCX=NDIMX+3,NINTX=6,
+      PARAMETER (NDIMX=20,NCOLX=4,NBCX=NDIMX+3,NINTX=6,
      *           NPARX=36,NBIFX=20,NUZRX=50,
      *           NIAP=41,NRAP=19)
 C-----------------------------------------------------------------------

@@ -4,10 +4,8 @@ C      Utility Program for ``tripling'' solutions in an AUTO q.xxx file
 C==============================================================================
 C==============================================================================
 C
-      INCLUDE 'auto.h'
-      PARAMETER (NRX=NTSTX*NCOLX+1)
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION U(NRX,NDIMX),TM(NRX),RLDOT(NPARX),PAR(NPARX),ICP(NPARX)
+      ALLOCATABLE TM(:),RLDOT(:),PAR(:),U(:,:),ICP(:)
 C
        L=0
        OPEN(28,FILE='fort.28',STATUS='old')
@@ -15,9 +13,11 @@ C
  1     CONTINUE
          READ(28,*,END=99)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *               NAR,NROWPR,NTST,NCOL,NPAR1
+         ALLOCATE(RLDOT(NPAR),PAR(NPAR),ICP(NPAR))
          IF(NTST.EQ.0)THEN
              WRITE(38,101)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *                         NAR,NROWPR,NTST,NCOL,NPAR1
+             ALLOCATE(TM(1),U(1,NAR-1))
              J=1
              READ(28,*) TM(J),(U(J,I),I=1,NAR-1) 
              WRITE(38,102)TM(J),(U(J,I),I=1,NAR-1)
@@ -29,6 +29,7 @@ C
              NROWPR=NROWPR+4*NTPL-4
              WRITE(38,101)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL1,
      *                         NAR,NROWPR,NTST,NCOL,NPAR1
+             ALLOCATE(TM(NTPL),U(NTPL,NAR-1))
              DO J=1,NTPL
                READ(28,*) TM(J),(U(J,I),I=1,NAR-1) 
                WRITE(38,102)TM(J)/3,(U(J,I),I=1,NAR-1)
@@ -59,6 +60,7 @@ C
              PAR(11)=3*PAR(11)
              WRITE(38,102)(PAR(I),I=1,NPAR1)
            ENDIF
+           DEALLOCATE(RLDOT,PAR,ICP,TM,U)
        GOTO 1
 C
  101   FORMAT(6I6,I8,I6,I8,3I5)

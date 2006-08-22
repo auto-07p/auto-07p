@@ -528,9 +528,6 @@ C
        IF(NDIM.GT.NDIMX)THEN
          WRITE(6,101)NDIM,NDIMX
          STOP
-       ELSEIF(NTST.GT.NTSTX)THEN
-         WRITE(6,102)NTST,NTSTX
-         STOP
        ELSEIF(NCOL.GT.NCOLX)THEN
          WRITE(6,103)NCOL,NCOLX
          STOP
@@ -550,8 +547,6 @@ C
 C
  101   FORMAT(' Dimension exceeded : NDIM=',I5,'  maximum=',I5,/,
      *        ' (Increase NDIMX in auto.h and recompile AUTO)')
- 102   FORMAT(' Dimension exceeded : NTST=',I5,'  maximum=',I5,/,
-     *        ' (Increase NTSTX in auto.h and recompile AUTO)')
  103   FORMAT(' Dimension exceeded : NCOL=',I5,'  maximum=',I5,/,
      *        ' (Increase NCOLX in auto.h and recompile AUTO)')
  104   FORMAT(' Dimension exceeded : NBC =',I5,'  maximum=',I5,/,
@@ -3052,7 +3047,6 @@ C     ---------- -----
       SUBROUTINE ADAPT(IAP,RAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M1T=NTSTX+1,M2T=NDIMX*NCOLX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3062,18 +3056,20 @@ C intervals. The functions UPS and VPS are interpolated on new mesh.
 C
       DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TINT(M1T),UINT(M1T,M2T),TM2(M1T),ITM(M1T)
+      ALLOCATABLE TINT(:),UINT(:,:),TM2(:),ITM(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
+       NCOL=IAP(6)
        ISW=IAP(10)
+       ALLOCATE(TINT(NDX),UINT(NDX,NDIM*NCOL),TM2(NDX),ITM(NDX))
 C
        NOLDP1=NOLD+1
        NNEWP1=NNEW+1
        NRWNEW=NDIM*NCNEW
 C
-       DO J=1,M1T
-         DO I=1,M2T
+       DO J=1,NDX
+         DO I=1,NDIM*NCOL
            UINT(J,I)=0.d0
          ENDDO
        ENDDO
@@ -3118,6 +3114,7 @@ C
          TM(J+1)=TINT(J+1)
        ENDDO
 C
+      DEALLOCATE(TINT,UINT,TM2,ITM)
       RETURN
       END
 C
@@ -3177,7 +3174,6 @@ C     ---------- ------
      * NNEW,TMNEW,IPER)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M1T=NTSTX+1,M2T=NDIMX*NCOLX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3185,7 +3181,8 @@ C Redistributes the mesh according to the function EQDF.
 C
       DIMENSION IAP(*),TMOLD(*),DTMOLD(*),TMNEW(*)
 C Local
-      DIMENSION EQF(M1T),UNEQ(M1T),IAL(M1T)
+      ALLOCATABLE EQF(:),UNEQ(:),IAL(:)
+      ALLOCATE(EQF(NOLD+1),UNEQ(NNEW+1),IAL(NNEW+1))
 C
        NDIM=IAP(1)
 C
@@ -3217,6 +3214,7 @@ C problems when EQF(NOLDP1) and EQF(NOLD) are very close
 C
        TMNEW(NNEWP1)=TMOLD(NOLDP1)
 C
+      DEALLOCATE(EQF,UNEQ,IAL)
       RETURN
       END
 C
@@ -3273,7 +3271,6 @@ C     ---------- ----
       SUBROUTINE EQDF(IAP,RAP,NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1,M1T=NTSTX+1,M2T=NDIMX*NCOLX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3282,7 +3279,8 @@ C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),EQF(*),DTM(*)
       LOGICAL SMALL
 C Local
-      DIMENSION WH(MCL2),HD(M1T,M2T)
+      ALLOCATABLE WH(:),HD(:,:)
+      ALLOCATE(WH(NCOL+1),HD(NTST+1,NDIM*NCOL))
 C
 C Compute approximation to NCOL-th derivative :
        CALL CNTDIF(NCOL,WH)
@@ -3308,6 +3306,7 @@ C
          DO I=1,NTST+1
            EQF(I)=I-1
          ENDDO
+         DEALLOCATE(WH,HD)
          RETURN
        ENDIF
 C
@@ -3349,6 +3348,7 @@ C
        ENDDO
 C
 C
+       DEALLOCATE(WH,HD)
       RETURN
       END
 C
@@ -4136,9 +4136,6 @@ C     ---------- ------
      * PVLI,THL,THU,IUZ,VUZ)
 C
       INCLUDE 'auto.h'
-      PARAMETER (NDX=NTSTX+1,M2U=NDIMX*NCOLX,M1C=NBCX+NINTX+1,
-     *           ND2=2*NDIMX)
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Controls the computation of solution branches.
@@ -4147,11 +4144,11 @@ C
 C
       DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*)
 C Local
-      COMPLEX*16 EV(NDIMX)
-      DIMENSION UPS(NDX,M2U),UOLDPS(NDX,M2U),UPOLDP(NDX,M2U)
-      DIMENSION DUPS(NDX,M2U),UDOTPS(NDX,M2U),FA(NDX,M2U),FC(M1C)
-      DIMENSION TM(NDX),DTM(NDX),P0(NDIMX**2),P1(NDIMX**2),UZR(NUZRX)
       DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX) 
+      COMPLEX*16 EV
+      ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
+      ALLOCATABLE DUPS(:,:),UDOTPS(:,:),FA(:,:),FC(:),TM(:),DTM(:)
+      ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
 C
 C INITIALIZE COMPUTATION OF BRANCH
 C
@@ -4165,8 +4162,17 @@ C
        IADS=IAP(8)
        ISP=IAP(9)
        ISW=IAP(10)
+       NBC=IAP(12)
+       NINT=IAP(13)
        NUZR=IAP(15)
        ITPST=IAP(28)
+       NDX=NTST+1
+C
+       ALLOCATE(UPS(NDX,NDIM*NCOL),UOLDPS(NDX,NDIM*NCOL))
+       ALLOCATE(UPOLDP(NDX,NDIM*NCOL),DUPS(NDX,NDIM*NCOL))
+       ALLOCATE(UDOTPS(NDX,NDIM*NCOL),FA(NDX,NDIM*NCOL))
+       ALLOCATE(FC(NBC+NINT+1),TM(NDX),DTM(NDX))
+       ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR),EV(NDIM))
 C
        DS=RAP(1)
 C
@@ -4199,7 +4205,7 @@ C
       ENDDO
 C
        DO J=1,NDX
-         DO I=1,M2U
+         DO I=1,NDIM*NCOL
            UPS(J,I)=0.d0
            UOLDPS(J,I)=0.d0
            UPOLDP(J,I)=0.d0
@@ -4385,9 +4391,10 @@ C
        ISTOP=IAP(34)
        IF(ISTOP.EQ.0)THEN
          GOTO 1
-       ELSE
-         RETURN
        ENDIF
+       DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,DUPS,UDOTPS,FA,FC,TM,DTM,P0,P1)
+       DEALLOCATE(UZR)
+       RETURN
 C
       END
 C
@@ -4720,35 +4727,96 @@ C
 C
       COMPLEX*16 EV(*)
 C
-      DIMENSION IAP(*),UPS(NDX,*),UOLDPS(NDX,*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION IAP(*)
+      DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*),UDOTPS(NDX,*)
+      DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+C
+      LOGICAL FOUND
+      ALLOCATABLE UPSN(:,:),UPOLDN(:,:),UDOTPN(:,:),TMN(:),DTMN(:)
 C
        NDIM=IAP(1)
+       IPS=IAP(2)
        IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
        ISW=IAP(10)
+       NDM=IAP(23)
        NFPR=IAP(29)
 C
 C Get restart data :
 C
+C     First take a peek at the file to see if ntst, ndim and
+C     ncol are different then the values found in
+C     the parameter file fort.2.
+C
+       IF(IRS.GT.0)THEN
+         CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
+         READ(3,*)IBR,NTOTRS,ITPRS,LAB,NFPRS,ISWRS,NTPLRS,NARS,NSKIP,
+     *        NTSRS,NCOLRS,NPARR
+         NTST3=NTSRS
+         NCOL3=NCOLRS
+         NDIM3=NARS-1
+       ELSE
+         NTST3=NTST
+         NCOL3=NCOL
+         NDIM3=NDIM
+       ENDIF
+       
+C use the bigger of the size defined in fort.2 and the one defined in fort.8
+       NTSTU=MAX(NTST,NTST3)
+       NCOLU=MAX(NCOL,NCOL3)
+       NDIMU=NDIM
+       NDXLOC=(NTSTU+1)*NCOLU
+C
+C Autodetect special case when homoclinic branch switching is
+C completed and the orbit's representation has to be
+C changed.
+C
+       IF(IPS.EQ.9.AND.NDIM3.GT.(NDM*2).AND.NDIM3.GT.NDIM)THEN
+         NDXLOC=(NTSTU+1)*(NDIM3/NDM)
+         NDIMU=NDIM3
+         IAP(1)=NDIMU
+       ENDIF
+       ALLOCATE(UPSN(NDXLOC,NDIMU*NCOLU),UPOLDN(NDXLOC,NDIMU*NCOLU))
+       ALLOCATE(UDOTPN(NDXLOC,NDIMU*NCOLU),TMN(NDXLOC),DTMN(NDXLOC))
+C initialize arrays
+       DO I=1,NDXLOC
+         DO J=1,NDIMU*NCOLU
+           UPSN(I,J)=0.0d0
+           UPOLDN(I,J)=0.0d0
+           UDOTPN(I,J)=0.0d0
+         ENDDO
+       ENDDO
+C
        CALL STPNT(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT,
-     *  NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     *  NDXLOC,UPSN,UDOTPN,UPOLDN,TMN,DTMN,NODIR,THL,THU)
+       IAP(1)=NDIM
 C
 C Determine a suitable starting label and branch number.
 C
        CALL NEWLAB(IAP,RAP)
 C
        DO J=1,NTSRS
-         DTM(J)=TM(J+1)-TM(J)
+         DTMN(J)=TMN(J+1)-TMN(J)
        ENDDO
 C
 C Adapt mesh if necessary :
 C
        IF( NTST.NE.NTSRS .OR. NCOL.NE.NCOLRS)THEN
-         CALL ADAPT(IAP,RAP,NTSRS,NCOLRS,NTST,NCOL,TM,DTM,NDX,
-     *   UPS,UDOTPS)
+         CALL ADAPT(IAP,RAP,NTSRS,NCOLRS,NTST,NCOL,TMN,DTMN,NDXLOC,
+     *   UPSN,UDOTPN)
        ENDIF
+C Copy from the temporary large arrays into the normal arrays.
+       DO I=1,NTST+1
+         DTM(I)=DTMN(I)
+         TM(I)=TMN(I)
+         DO J=1,NDIM*NCOL
+           UPS(I,J)=UPSN(I,J)
+           UPOLDP(I,J)=UPOLDN(I,J)
+           UDOTPS(I,J)=UDOTPN(I,J)
+         ENDDO
+       ENDDO
+       DEALLOCATE(DTMN,TMN,UPSN,UPOLDN,UDOTPN)
 C
 C Set UOLDPS, RLOLD.
 C
@@ -4812,12 +4880,6 @@ C
        NTSRP1=NTSRS+1
 C
        NDIMRS=NARS-1
-C     Autodetect special case when homoclinic branch switching is
-C     completed and the orbit's representation has to be
-C     changed.
-       IF(IPS.EQ.9 .AND. NDIMRS.GT.IAP(23)*2 .AND. NDIMRS.GT.NDIM) THEN
-          NDIM=NDIMRS
-       ENDIF
        NSKIP1=(NDIMRS+1)/8 - NDIM/7
        NSKIP2=(NDIMRS+1)/9 - NDIM/8
        IF(NDIM.LE.NDIMRS)THEN
@@ -4897,8 +4959,6 @@ C
            RETURN
          ENDIF
        ENDDO
-C
- 101  FORMAT(4X,1P7E19.10)
 C
       RETURN
       END
@@ -6020,16 +6080,12 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      COMMON /BLPV/ DTV(NTSTX+1),RAV(NRAP),IAV(NIAP)
-      DIMENSION IAP(*),RAP(*)
+      POINTER DTV(:),RAV(:),IAV(:)
+      COMMON /BLPV/ DTV,RAV,IAV
+      TARGET IAP(NIAP),RAP(NRAP)
 C
-       DO I=1,NIAP
-         IAV(I)=IAP(I)
-       ENDDO
-C
-       DO I=1,NRAP
-         RAV(I)=RAP(I)
-       ENDDO
+      IAV=>IAP
+      RAV=>RAP
 C
       RETURN
       END
@@ -6040,20 +6096,13 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      COMMON /BLPV/ DTV(NTSTX+1),RAV(NRAP),IAV(NIAP)
-      DIMENSION IAP(*),RAP(*),DTM(*)
+      POINTER DTV(:),RAV(:),IAV(:)
+      COMMON /BLPV/ DTV,RAV,IAV
+      TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5)+1)
 C
-       DO I=1,NIAP
-         IAV(I)=IAP(I)
-       ENDDO
-C
-       DO I=1,NRAP
-         RAV(I)=RAP(I)
-       ENDDO
-C
-       DO I=1,NTSTX+1
-         DTV(I)=DTM(I)
-       ENDDO
+      IAV=>IAP
+      RAV=>RAP
+      DTV=>DTM
 C
       RETURN
       END
@@ -6064,13 +6113,13 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      COMMON /BLPV/ DTV(NTSTX+1),RAV(NRAP),IAV(NIAP)
-      DIMENSION UPS(NTSTX+1,*)
+      POINTER DTV(:),RAV(:),IAV(:)
+      COMMON /BLPV/ DTV,RAV,IAV
+      DIMENSION UPS(IAV(5)+1,*)
       CHARACTER*3 CODE
 C
-        NX=NTSTX+1
         IPS=IAV(2)
-        NTST=IAV(5)
+        NX=IAV(5)+1
 C
         IF( IABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
           IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
@@ -6110,7 +6159,7 @@ C
           ELSEIF(CODE.EQ.'BV0'.OR.CODE.EQ.'bv0')THEN
             GETP=UPS(1,IC)
           ELSEIF(CODE.EQ.'BV1'.OR.CODE.EQ.'bv1')THEN
-            GETP=UPS(NTST+1,IC)
+            GETP=UPS(NX,IC)
           ELSEIF(CODE.EQ.'STP'.OR.CODE.EQ.'stp')THEN
             GETP=RAV(5)
           ELSEIF(CODE.EQ.'FLD'.OR.CODE.EQ.'fld')THEN
