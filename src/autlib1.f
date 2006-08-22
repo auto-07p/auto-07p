@@ -14,11 +14,20 @@ C
       EXTERNAL BCPS,BCNI,BCPL,BCPD,BCTR,BCBL,BCPO,BCHO
       EXTERNAL ICPS,ICNI,ICPE,ICPL,ICPD,ICTR,ICBL,ICPO,ICHO
 C
+      INTERFACE
+        SUBROUTINE INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
+          IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+          LOGICAL EOF
+          DIMENSION IAP(*),RAP(*),THL(*),THU(*),PAR(*),ICP(*)
+          POINTER IUZ(:),VUZ(:)
+        END SUBROUTINE INIT
+      END INTERFACE
+C
       LOGICAL FOUND,EOF
 C Local
       DIMENSION IAP(NIAP),RAP(NRAP)
       DIMENSION THL(NPARX),THU(NDIMX),PAR(2*NPARX),ICP(2*NPARX)
-      DIMENSION IUZ(NUZRX),VUZ(NUZRX)
+      POINTER IUZ(:),VUZ(:)
 C
 C Initialization :
 C
@@ -358,7 +367,8 @@ C
 C Reads the file of continuation constants
 C
       LOGICAL EOF
-      DIMENSION IAP(*),RAP(*),THL(*),THU(*),PAR(*),ICP(*),IUZ(*),VUZ(*)
+      DIMENSION IAP(*),RAP(*),THL(*),THU(*),PAR(*),ICP(*)
+      POINTER IUZ(:),VUZ(:)
 C
       DO I=1,NPARX
         ICP(I)=I
@@ -402,6 +412,7 @@ C
       ENDIF
       READ(2,*)NUZR
       IF(NUZR.GT.0)THEN
+        ALLOCATE(IUZ(NUZR),VUZ(NUZR))
         DO I=1,NUZR
           READ(2,*)IUZ(I),VUZ(I)
         ENDDO
@@ -518,21 +529,10 @@ C
       DIMENSION IAP(*)
 C
        NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NBC=IAP(12)
-       NINT=IAP(13)
-       NUZR=IAP(15)
        NPAR=IAP(29)
 C
        IF(NDIM.GT.NDIMX)THEN
          WRITE(6,101)NDIM,NDIMX
-         STOP
-       ELSEIF(NCOL.GT.NCOLX)THEN
-         WRITE(6,103)NCOL,NCOLX
-         STOP
-       ELSEIF(NUZR.GT.NUZRX)THEN
-         WRITE(6,106)NUZR,NUZRX
          STOP
        ELSEIF(NPAR.GT.NPARX)THEN
          WRITE(6,107)NPAR,NPARX
@@ -541,10 +541,6 @@ C
 C
  101   FORMAT(' Dimension exceeded : NDIM=',I5,'  maximum=',I5,/,
      *        ' (Increase NDIMX in auto.h and recompile AUTO)')
- 103   FORMAT(' Dimension exceeded : NCOL=',I5,'  maximum=',I5,/,
-     *        ' (Increase NCOLX in auto.h and recompile AUTO)')
- 106   FORMAT(' Dimension exceeded : NUZR=',I5,'  maximum=',I5,/,
-     *        ' (Increase NUZRX in auto.h and recompile AUTO)')
  107   FORMAT(' Dimension exceeded : NPAR=',I5,'  maximum=',I5,/,
      *        ' (Increase NPARX in auto.h and recompile AUTO)')
 C
@@ -937,7 +933,6 @@ C     ---------- ------
       SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
 C
       INCLUDE 'auto.h'
-      PARAMETER (NDX=NDIMX,M1AA=NDIMX+1,M1SB=NBIFX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -947,12 +942,11 @@ C
 C
       DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*)
 C Local
-      DIMENSION AA(M1AA,M1AA),RHS(M1AA)
-      DIMENSION U(NDX),DU(M1AA),UDOT(NDX),UOLD(NDX)
-      DIMENSION STUD(M1SB,NDX),STU(M1SB,NDX),STLA(M1SB),STLD(M1SB)
-      DIMENSION F(NDX),DFDU(NDX**2),DFDP(NDX*NPARX)
-      DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX),UZR(NUZRX)
+      DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX)
+      ALLOCATABLE AA(:,:),RHS(:),U(:),DU(:),UDOT(:),UOLD(:),STUD(:,:)
+      ALLOCATABLE STU(:,:),STLA(:),STLD(:),F(:),DFDU(:),DFDP(:),UZR(:)
 C
+       NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
        ILP=IAP(4)
@@ -966,6 +960,11 @@ C
        IBR=IAP(30)
 C
        DS=RAP(1)
+C
+       ALLOCATE(AA(NDIM+1,NDIM+1),RHS(NDIM+1),U(NDIM),DU(NDIM+1))
+       ALLOCATE(UDOT(NDIM),UOLD(NDIM),STUD(NBIFX,NDIM),STU(NBIFX,NDIM))
+       ALLOCATE(STLA(NBIFX),STLD(NBIFX),F(NDIM),DFDU(NDIM**2))
+       ALLOCATE(DFDP(NDIM*NPARX),UZR(NUZR))
 C
        NINS=0
        IAP(33)=NINS
@@ -992,7 +991,7 @@ C
        LAB=0
        IAP(37)=LAB
 C
-       DO I=1,NDX
+       DO I=1,NDIM
          U(I)=0.d0
          DU(I)=0.d0
          UDOT(I)=0.d0
@@ -1030,7 +1029,7 @@ C
 C
 C Starting procedure  (to get second point on first branch) :
 C
-       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS,
+       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,NDIM+1,AA,RHS,
      *  RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
@@ -1040,7 +1039,7 @@ C
 C
 C Initialize computation of the next bifurcating branch.
 C
- 2     CALL SWPNT(IAP,RAP,PAR,ICP,RDS,M1SB,STUD,STU,STLA,STLD,
+ 2     CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIFX,STUD,STU,STLA,STLD,
      *  RLCUR,RLOLD,RLDOT,U,UDOT)
 C
        IPOS=IAP(36)
@@ -1080,7 +1079,7 @@ C
 C
 C Determine the second point on the bifurcating branch
 C
-       CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,M1AA,AA,RHS,RLCUR,RLOLD,RLDOT,
+       CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,NDIM+1,AA,RHS,RLCUR,RLOLD,RLDOT,
      *  U,DU,UOLD,UDOT,F,DFDU,DFDP,RDS,THL,THU)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
@@ -1100,7 +1099,7 @@ C
 C
 C Find the next solution point on the branch
 C
-        CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS,
+        CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,NDIM+1,AA,RHS,
      *   RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
         ISTOP=IAP(34)
         IF(ISTOP.EQ.1)GOTO 5
@@ -1110,7 +1109,7 @@ C
        IF(NUZR.GT.0)THEN
          DO IUZR=1,NUZR
            IAP(26)=IUZR
-           CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,M1AA,AA,RHS,RLCUR,
+           CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,UZR(IUZR),THL,THU,
      *      IUZ,VUZ)
            ISTOP=IAP(34)
@@ -1136,7 +1135,7 @@ C
 C Check for fold
 C
          IF(IABS(ILP).GT.0)THEN
-           CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,M1AA,AA,RHS,RLCUR,
+           CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RLP,THL,THU,IUZ,VUZ)
            ITP=IAP(27)
            IF(ITP.EQ.-1) THEN
@@ -1158,7 +1157,7 @@ C
 C Check for branch point, and if so store data :
 C
          IF(IABS(ISP).GT.0)THEN
-           CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,M1AA,AA,RHS,RLCUR,
+           CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RBP,THL,THU,IUZ,VUZ)
            ISTOP=IAP(34)
            IF(ISTOP.EQ.1)GOTO 5
@@ -1169,7 +1168,7 @@ C
                IAP(27)=ITP
                NBIF=NBIF+1
                IAP(35)=NBIF
-               CALL STBIF(IAP,RAP,PAR,ICP,M1AA,AA,M1SB,STUD,STU,STLA,
+               CALL STBIF(IAP,RAP,PAR,ICP,NDIM+1,AA,NBIFX,STUD,STU,STLA,
      *          STLD,RLCUR,RLOLD,RLDOT,U,DU,UDOT,DFDU,DFDP,THL,THU)
                RLP=0.d0
                RBP=0.d0
@@ -1186,7 +1185,7 @@ C
 C Check for Hopf bifurcation
 C
          IF(IABS(IPS).EQ.1)THEN
-           CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,M1AA,AA,RHS,RLCUR,
+           CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,REV,THL,THU,IUZ,VUZ)
            ISTOP=IAP(34)
            IF(ISTOP.EQ.1)GOTO 5
@@ -1219,6 +1218,8 @@ C
        NBIF=IAP(35)
        IF(NBIF.NE.0 .AND. NBFC.LT.IABS(MXBF))GOTO 2
 C
+      DEALLOCATE(AA,RHS,U,DU,UDOT,UOLD,STUD,STU,STLA,STLD,F,DFDU,DFDP)
+      DEALLOCATE(UZR)
       RETURN
       END
 C
@@ -2762,7 +2763,6 @@ C     ---------- ------
       SUBROUTINE GENWTS(NCOL,N1,WT,WP)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -2776,7 +2776,8 @@ C         WP : for the first derivative,
 C
       DIMENSION WT(N1,*),WP(N1,*)   
 C Local
-      DIMENSION ZM(MCL1),XM(MCL2)
+      ALLOCATABLE ZM(:),XM(:)
+      ALLOCATE(ZM(NCOL),XM(NCOL+1))
 C
 C Generate the collocation points :
        CALL CPNTS(NCOL,ZM)
@@ -2816,6 +2817,7 @@ C Weights for derivatives :
          ENDDO
        ENDDO
 C
+      DEALLOCATE(ZM,XM)
       RETURN
       END
 C
@@ -3113,7 +3115,6 @@ C     ---------- ------
      * TM2,ITM1)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3121,7 +3122,8 @@ C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 C
       DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NDX,*)
 C Local
-      DIMENSION X(MCL2),W(MCL2)
+      ALLOCATABLE X(:),W(:)
+      ALLOCATE(X(NC+1),W(NC+1))
 C
        NCP1=NC+1
        N1M1=N1-1
@@ -3156,6 +3158,7 @@ C
          UPS1(N1,I)=UPS(N,I)
        ENDDO
 C
+      DEALLOCATE(X,W)
       RETURN
       END
 C
@@ -3896,7 +3899,6 @@ C     ------ --------- -------- -----
       DOUBLE PRECISION FUNCTION RINPR(IAP,NDIM1,NDX,UPS,VPS,DTM,THU)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3905,11 +3907,12 @@ C (Using the first NDIM1 components only.)
 C
       DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),DTM(*),THU(*)
 C Local
-      DIMENSION WI(MCL2)
+      ALLOCATABLE WI(:)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
+       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -3930,6 +3933,7 @@ C
 C
        RINPR=S
 C
+      DEALLOCATE(WI)
       RETURN
       END
 C
@@ -3951,7 +3955,6 @@ C     ------ --------- -------- -----
       DOUBLE PRECISION FUNCTION RINTG(IAP,NDX,IC,UPS,DTM)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3959,11 +3962,12 @@ C Computes the integral of the IC'th component of UPS.
 C
       DIMENSION IAP(*),UPS(NDX,*),DTM(*)
 C Local
-      DIMENSION WI(MCL2)
+      ALLOCATABLE WI(:)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
+       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -3982,6 +3986,7 @@ C
 C
        RINTG=S
 C
+      DEALLOCATE(WI)
       RETURN
       END
 C
@@ -3989,7 +3994,6 @@ C     ------ --------- -------- -----
       DOUBLE PRECISION FUNCTION RNRM2(IAP,NDX,IC,UPS,DTM)
 C
       INCLUDE 'auto.h'
-      PARAMETER (MCL1=NCOLX,MCL2=MCL1+1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3997,11 +4001,12 @@ C Computes the L2-norm of the IC'th component of UPS.
 C 
       DIMENSION IAP(*),UPS(NDX,*),DTM(*)
 C Local
-      DIMENSION WI(MCL2)
+      ALLOCATABLE WI(:)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
+       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -4020,6 +4025,7 @@ C
 C
        RNRM2=DSQRT(S)
 C
+      DEALLOCATE(WI)
       RETURN
       END
 C
