@@ -531,12 +531,6 @@ C
        ELSEIF(NCOL.GT.NCOLX)THEN
          WRITE(6,103)NCOL,NCOLX
          STOP
-       ELSEIF(NBC.GT.NBCX)THEN
-         WRITE(6,104)NBC,NBCX
-         STOP
-       ELSEIF(NINT.GT.NINTX)THEN
-         WRITE(6,105)NINT,NINTX
-         STOP
        ELSEIF(NUZR.GT.NUZRX)THEN
          WRITE(6,106)NUZR,NUZRX
          STOP
@@ -549,10 +543,6 @@ C
      *        ' (Increase NDIMX in auto.h and recompile AUTO)')
  103   FORMAT(' Dimension exceeded : NCOL=',I5,'  maximum=',I5,/,
      *        ' (Increase NCOLX in auto.h and recompile AUTO)')
- 104   FORMAT(' Dimension exceeded : NBC =',I5,'  maximum=',I5,/,
-     *        ' (Increase NBCX  in auto.h and recompile AUTO)')
- 105   FORMAT(' Dimension exceeded : NINT=',I5,'  maximum=',I5,/,
-     *        ' (Increase NINTX in auto.h and recompile AUTO)')
  106   FORMAT(' Dimension exceeded : NUZR=',I5,'  maximum=',I5,/,
      *        ' (Increase NUZRX in auto.h and recompile AUTO)')
  107   FORMAT(' Dimension exceeded : NPAR=',I5,'  maximum=',I5,/,

@@ -1023,7 +1023,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
       DIMENSION PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -1063,7 +1063,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -1096,7 +1096,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION TM(*),UPS(NDX,*),UDOTPS(NDX,*),PAR(*)
 C
        PAR(11)=2.d0*PAR(11)
@@ -1856,7 +1856,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
       DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -1899,7 +1899,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2135,7 +2135,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
 C Generate boundary conditions for the 2-parameter continuation
 C of period doubling bifurcations.
@@ -2185,7 +2185,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2408,7 +2408,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
       DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -2466,7 +2466,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -2724,7 +2724,7 @@ C
 C
       INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
 C
 C Generates the boundary conditions for periodic optimization problems.
 C
@@ -2768,7 +2768,6 @@ C
 C
       INCLUDE 'auto.h'
       PARAMETER (NX=NDIMX,NX2=NX**2,NXP=NX*NPARX)
-      PARAMETER (M2X=NDIMX+NPARX)
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for periodic optimization problems.
@@ -2777,7 +2776,8 @@ C
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
       COMMON /BLLOC/ DFU(NX2),DFP(NXP),UU1(NX),UU2(NX),FF1(NX),FF2(NX)
-      DIMENSION F1(NINTX),F2(NINTX),DNT(NINTX,M2X)
+      ALLOCATABLE F1(:),F2(:),DNT(:,:)
+      ALLOCATE(DNT(NINT,NDIM+NPARX))
 C
        NDM=IAP(23)
        NNT0=IAP(25)
@@ -2788,10 +2788,14 @@ C
        CALL FIPO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *  UPOLD,F,DNT,NDM,DFU,DFP)
 C
-       IF(IJAC.EQ.0)RETURN
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DNT)
+         RETURN
+       ENDIF
 C
 C Generate the Jacobian.
 C
+       ALLOCATE(F1(NINT),F2(NINT))
        UMX=0.d0
        DO I=1,NDIM
          IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
@@ -2825,6 +2829,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+       DEALLOCATE(DNT,F1,F2)
       RETURN
       END
 C
@@ -2836,7 +2841,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NBCX)
+      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
@@ -3101,7 +3106,6 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M2X=2*NDIMX+NPARX)
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the boundary conditions for the 2-parameter continuation
@@ -3109,7 +3113,8 @@ C of folds (BVP).
 C
       DIMENSION IAP(*),U0(*),U1(*),F(NBC),ICP(*),PAR(*),DBC(NBC,*)
 C Local
-      DIMENSION UU1(NDIMX),UU2(NDIMX),FF1(NBCX),FF2(NBCX),DFU(NBCX,M2X)
+      ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
+      ALLOCATE(DFU(NBC,2*NDIM+NPARX))
 C
        NBC0=IAP(24)
        NFPR=IAP(29)
@@ -3118,7 +3123,12 @@ C Generate the function.
 C
        CALL FBBL(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
 C
-       IF(IJAC.EQ.0)RETURN
+       IF(IJAC.EQ.0)THEN
+          DEALLOCATE(DFU)
+          RETURN
+       ENDIF
+C
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NBC),FF2(NBC))
 C
 C Derivatives with respect to U0.
 C
@@ -3162,6 +3172,12 @@ C
          ENDDO
        ENDDO
 C
+       DEALLOCATE(FF1,UU1,UU2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF2,DFU)
+         RETURN
+       ENDIF
+C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
          CALL FBBL(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF2,DFU)
@@ -3171,6 +3187,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+      DEALLOCATE(DFU,FF2)
       RETURN
       END
 C
@@ -3210,7 +3227,6 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      PARAMETER (M2X=NDIMX+NPARX)
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for the 2-parameter continuation of
@@ -3219,8 +3235,8 @@ C
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
-      DIMENSION UU1(NDIMX),UU2(NDIMX),FF1(NINTX),FF2(NINTX)
-      DIMENSION DFU(NDIMX,M2X)
+      ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
+      ALLOCATE(DFU(NDIM,NDIM+NPARX))
 C
        NNT0=IAP(25)
        NFPR=IAP(29)
@@ -3229,7 +3245,12 @@ C Generate the function.
 C
        CALL FIBL(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F,DFU)
 C
-       IF(IJAC.EQ.0)RETURN
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DFU)
+         RETURN
+       ENDIF
+C
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NINT),FF2(NINT))
 C
 C Generate the Jacobian.
 C
@@ -3256,6 +3277,12 @@ C
          ENDDO
        ENDDO
 C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF1,DFU)
+         RETURN
+       ENDIF
+C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
          CALL FIBL(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
@@ -3266,6 +3293,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+      DEALLOCATE(FF1,DFU)
       RETURN
       END
 C
@@ -3488,7 +3516,7 @@ C Interface subroutine to the user supplied BCND.
 C
       DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C Local
-      DIMENSION U1ZZ(NDIMX),U2ZZ(NDIMX),F1ZZ(NBCX),F2ZZ(NBCX)
+      ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
 C
        JAC=IAP(22)
        NFPR=IAP(29)
@@ -3503,6 +3531,8 @@ C
        CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
 C
        IF(JAC.EQ.1 .OR. IJAC.EQ.0)RETURN
+C
+       ALLOCATE(U1ZZ(NDIM),U2ZZ(NDIM),F1ZZ(NBC),F2ZZ(NBC))
 C
 C Generate the Jacobian by differencing.
 C
@@ -3548,7 +3578,11 @@ C
          ENDDO
        ENDDO
 C
-       IF(IJAC.EQ.1)RETURN
+       DEALLOCATE(U1ZZ,U2ZZ,F2ZZ)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(F1ZZ)
+         RETURN
+       ENDIF
 C
        DO I=1,NFPR
          EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
@@ -3560,6 +3594,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+      DEALLOCATE(F1ZZ)
       RETURN
       END
 C
@@ -3577,7 +3612,7 @@ C
       DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*)
       DIMENSION F(*),DINT(NINT,*),ICP(*),PAR(*)
 C Local
-      DIMENSION U1ZZ(NDIMX),U2ZZ(NDIMX),F1ZZ(NINTX),F2ZZ(NINTX)
+      ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
 C
        JAC=IAP(22)
        NFPR=IAP(29)
@@ -3592,6 +3627,8 @@ C
        CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
 C
        IF(JAC.EQ.1 .OR. IJAC.EQ.0)RETURN
+C
+       ALLOCATE(U1ZZ(NDIM),U2ZZ(NDIM),F1ZZ(NINT),F2ZZ(NINT))
 C
 C Generate the Jacobian by differencing.
 C
@@ -3616,7 +3653,11 @@ C
          ENDDO
        ENDDO
 C
-       IF(IJAC.EQ.1)RETURN
+       DEALLOCATE(U1ZZ,U2ZZ,F2ZZ)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(F1ZZ)
+         RETURN
+       ENDIF
 C
        DO I=1,NFPR
          EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
@@ -3628,6 +3669,7 @@ C
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
+      DEALLOCATE(F1ZZ)
       RETURN
       END
 C
