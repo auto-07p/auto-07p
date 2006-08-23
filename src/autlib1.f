@@ -5051,9 +5051,14 @@ C
 C
 C Initialization for rotations
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION UPS(NDX,*),PAR(*)
+      DATA IRTN /-1/
 C
+        IF(IRTN.EQ.-1)THEN
+          ALLOCATE(NRTN(NDM))
+        ENDIF
         IRTN=0
         DO I=1,NDM
           NRTN(I)=NINT( (UPS(NTST+1,I)-UPS(1,I)) / PI(2.d0) )

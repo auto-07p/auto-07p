@@ -1023,7 +1023,8 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
 C
       DIMENSION PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -1063,7 +1064,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -1096,7 +1098,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION TM(*),UPS(NDX,*),UDOTPS(NDX,*),PAR(*)
 C
        PAR(11)=2.d0*PAR(11)
@@ -1856,7 +1859,8 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
 C
       DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -1899,7 +1903,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2135,7 +2140,8 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
 C
 C Generate boundary conditions for the 2-parameter continuation
 C of period doubling bifurcations.
@@ -2185,7 +2191,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2408,7 +2415,8 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
 C
       DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
@@ -2466,7 +2474,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -2724,7 +2733,8 @@ C
 C
       INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
 C
 C Generates the boundary conditions for periodic optimization problems.
 C
@@ -2841,7 +2851,8 @@ C
 C
       INCLUDE 'auto.h'
 C
-      COMMON /BLRTN/ IRTN,NRTN(NDIMX)
+      POINTER NRTN(:)
+      COMMON /BLRTN/ IRTN,NRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
