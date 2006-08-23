@@ -497,30 +497,22 @@ C
 C     ---------- -------
       SUBROUTINE WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 C
-      PARAMETER (NDIMX=2000,NPARX=100)
       DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-      DOUBLE PRECISION U(NDIMX+1),RLDOT(NPARX),PAR(NPARX)
-      INTEGER ICP(NPARX)
+      DOUBLE PRECISION U,RLDOT,PAR
+      INTEGER ICP
+      ALLOCATABLE U(:),RLDOT(:),PAR(:),ICP(:)
 C
        L=0
        REWIND 28
  1     CONTINUE
          READ(28,*,END=99)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *               NAR,NROWPR,NTST,NCOL,NPAR1
-         IF(NAR.GT.NDIMX+1)THEN
-           WRITE(6,104)LAB
-           STOP
-         ENDIF
-         IF(NPAR1.GT.NPARX)THEN
-           WRITE(6,103)
-           NPAR2=NPARX
-         ELSE
-           NPAR2=NPAR1
-         ENDIF
+         NPAR2=NPAR1
          L=L+1
          IF(LNL(L).GT.0)
      *   WRITE(38,101)IBR,NTOT,ITP,LNL(L),NFPR,ISW,NTPL,
      *             NAR,NROWPR,NTST,NCOL,NPAR2
+         ALLOCATE(U(NAR),ICP(NFPR),RLDOT(NFPR),PAR(NPAR2))
          DO 2 J=1,NTPL
            READ(28,*)  (U(I),I=1,NAR) 
            IF(LNL(L).GT.0)
@@ -551,17 +543,12 @@ C
          ENDIF
          IF(LNL(L).GT.0)
      *   WRITE(38,102)(PAR(I),I=1,NPAR2)
+         DEALLOCATE(U,ICP,RLDOT,PAR)
        GOTO 1
 C
  100   FORMAT(20I5)
  101   FORMAT(6I6,I8,I6,I8,3I5)
  102   FORMAT(4X,1P7E19.10)
- 103   FORMAT(' Warning : NPARX too small;',
-     *        ' parameter values may be lost')
- 104   FORMAT(/,' ERROR : NDIMX too small in auto/97/relabel.f .',/,
-     *        ' Increase NDIMX in subroutine WRFILE8 and recompile.',/, 
-     *        ' Error occured when writing Solution ',I5,'.',/,
-     *        ' Execution terminated. Recover original files.',/)
 C
  99   RETURN
       END
