@@ -225,7 +225,7 @@ C     ---------- ----
       SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
+      PARAMETER(NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -234,13 +234,13 @@ C
       DIMENSION ICP(*),IAP(*)
       DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*)
 C Local
-      ALLOCATABLE VR(:,:,:),VT(:,:,:)
+      ALLOCATABLE VR(:,:,:),VT(:,:,:),UMAX(:)
       ALLOCATABLE BOUND(:,:),RR(:,:),RI(:,:),XEQUIB1(:),XEQUIB2(:)
+      SAVE UMAX
 C
+      POINTER NRTN(:),IREV(:)
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
-      COMMON /BLBRN/ UMAX(NX)
-      POINTER NRTN(:)
+      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
       COMMON /BLRTN/ IRTN,NRTN
 C
       NDM=IAP(23)
@@ -407,7 +407,8 @@ C     point x_0 in the original
 C     homoclinic orbit that is furthest from the equilibrium.
 C     x_0=umax is initialized at each run to an end point, and so
 C     is always in the Poincare section
-            IF (UMAX(1).GT.1.0D29) THEN
+            IF (.NOT.ALLOCATED(UMAX)) THEN
+               ALLOCATE(UMAX(NDIM))
                DO I=1,NDIM
                   UMAX(I) = U1(I)
                ENDDO
@@ -609,17 +610,17 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(HMACHHO=1.0d-13,NX=NDIMX,NPSIX=NPARX)
+      PARAMETER(HMACHHO=1.0d-13,NPSIX=NPARX)
       DIMENSION PAR(*),IAP(*),ICP(*)
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
 C Sets other constants in the following common blocks.
 C
+      POINTER IREV(:)
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
+      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
       COMMON /BLHMA/ COMPZERO
-      COMMON /BLBRN/ UMAX(NX)
 C
 C set various constants 
 C
@@ -638,6 +639,7 @@ C
 C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
+      ALLOCATE(IREV(NDM))
       READ(12,*)NREV
       IF(NREV.GT.0)READ(12,*)(IREV(I),I=1,NDM)
 C
@@ -651,8 +653,6 @@ C
 C        n-homoclinic branch switching
          NFREE=NFREE-ISTART-1
          NDIM=NDM*(-ISTART+1)
-C        high value to detect later
-         UMAX(1) = 1.0D30 
 C      
 C Free parameter (artificial parameter for psi)
 C nondegeneracy parameter of the adjoint
@@ -784,7 +784,6 @@ C
 C     Called by PREHO
 C
       INCLUDE 'auto.h'
-      PARAMETER (NX=NDIMX)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
@@ -1246,7 +1245,6 @@ C
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
-         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)         
          DO J=1,NTSR+1
             DO K=0,NDIM*(NCOLRS-1),NDIM
                DO I=NDIM,NAR-NDM+1,-1
@@ -1399,7 +1397,7 @@ C     ---------- ------
       SUBROUTINE PVLSHO(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C
       INCLUDE 'auto.h'
-      PARAMETER(NX=NDIMX,NPSIX=NPARX)
+      PARAMETER(NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -1409,8 +1407,9 @@ C Local
       ALLOCATABLE PU0(:),PU1(:)
       ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
 C
+      POINTER IREV(:)
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV(NX)
+      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
 C
       ALLOCATE(PU0(NDIM),PU1(NDIM))
       ALLOCATE(RR(NDIM,2),RI(NDIM,2),V(NDIM,NDIM,2),VT(NDIM,NDIM,2))

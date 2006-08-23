@@ -5054,10 +5054,14 @@ C
       POINTER NRTN(:)
       COMMON /BLRTN/ IRTN,NRTN
       DIMENSION UPS(NDX,*),PAR(*)
-      DATA IRTN /-1/
+      LOGICAL FIRST
+      SAVE FIRST
+      DATA FIRST /.TRUE./
+      DATA IRTN /0/
 C
-        IF(IRTN.EQ.-1)THEN
+        IF(FIRST)THEN
           ALLOCATE(NRTN(NDM))
+          FIRST=.FALSE.
         ENDIF
         IRTN=0
         DO I=1,NDM
