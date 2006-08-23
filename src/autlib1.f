@@ -18,16 +18,16 @@ C
         SUBROUTINE INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
           IMPLICIT DOUBLE PRECISION (A-H,O-Z)
           LOGICAL EOF
-          DIMENSION IAP(*),RAP(*),THL(*),THU(*),PAR(*),ICP(*)
-          POINTER IUZ(:),VUZ(:)
+          DIMENSION IAP(*),RAP(*),THL(*),PAR(*),ICP(*)
+          POINTER IUZ(:),VUZ(:),THU(:)
         END SUBROUTINE INIT
       END INTERFACE
 C
       LOGICAL FOUND,EOF
 C Local
       DIMENSION IAP(NIAP),RAP(NRAP)
-      DIMENSION THL(NPARX),THU(NDIMX),PAR(2*NPARX),ICP(2*NPARX)
-      POINTER IUZ(:),VUZ(:)
+      DIMENSION THL(NPARX),PAR(2*NPARX),ICP(2*NPARX)
+      POINTER IUZ(:),VUZ(:),THU(:)
 C
 C Initialization :
 C
@@ -367,8 +367,8 @@ C
 C Reads the file of continuation constants
 C
       LOGICAL EOF
-      DIMENSION IAP(*),RAP(*),THL(*),THU(*),PAR(*),ICP(*)
-      POINTER IUZ(:),VUZ(:)
+      DIMENSION IAP(*),RAP(*),THL(*),PAR(*),ICP(*)
+      POINTER IUZ(:),VUZ(:),THU(:)
 C
       DO I=1,NPARX
         ICP(I)=I
@@ -377,11 +377,20 @@ C
         PAR(NPARX+I)=0.d0
         THL(ICP(I))=1.d0
       ENDDO
-      DO I=1,NDIMX
+C
+      READ(2,*,END=5) NDIM,IPS,IRS,ILP
+C
+C     we allocate THU (a pointer to the THU arrau in the
+C     main program) here since this is the place where we 
+C     know the size.  It is 8 times bigger then ndim since
+C     INIT can modify THU based on the problem type,
+C     but only up to making it 8 times larger.
+C
+      ALLOCATE(THU(8*NDIM))
+      DO I=1,NDIM*8
         THU(I)=1.d0
       ENDDO
 C
-      READ(2,*,END=5) NDIM,IPS,IRS,ILP
       READ(2,*) NICP,(ICP(NPARX+I),I=1,NICP)
       IF(NICP.GT.0)THEN
         DO I=1,NICP
@@ -528,20 +537,14 @@ C Check dimensions.
 C
       DIMENSION IAP(*)
 C
-       NDIM=IAP(1)
        NPAR=IAP(29)
 C
-       IF(NDIM.GT.NDIMX)THEN
-         WRITE(6,101)NDIM,NDIMX
-         STOP
-       ELSEIF(NPAR.GT.NPARX)THEN
-         WRITE(6,107)NPAR,NPARX
+       IF(NPAR.GT.NPARX)THEN
+         WRITE(6,101)NPAR,NPARX
          STOP
        ENDIF
 C
- 101   FORMAT(' Dimension exceeded : NDIM=',I5,'  maximum=',I5,/,
-     *        ' (Increase NDIMX in auto.h and recompile AUTO)')
- 107   FORMAT(' Dimension exceeded : NPAR=',I5,'  maximum=',I5,/,
+ 101   FORMAT(' Dimension exceeded : NPAR=',I5,'  maximum=',I5,/,
      *        ' (Increase NPARX in auto.h and recompile AUTO)')
 C
       RETURN
@@ -1274,7 +1277,7 @@ C
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 C
 C Local
-      DIMENSION IR(NDIMX+1),IC(NDIMX+1)
+      ALLOCATABLE IR(:),IC(:)
 C
        NDIM=IAP(1)
        IID=IAP(18)
@@ -1299,7 +1302,9 @@ C
        AA(NDIM+1,NDIM+1)=0.d0
 C
        IF(IID.GE.3)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
+       ALLOCATE(IR(NDIM+1),IC(NDIM+1))
        CALL NLVC(NDIM+1,M1AA,1,AA,DU,IR,IC)
+       DEALLOCATE(IR,IC)
 C
 C Scale and make sure that the PAR(ICP(1))-dot is positive.
 C
@@ -1388,7 +1393,7 @@ C
       DIMENSION F(*),DFDU(*),DFDP(*),THL(*),THU(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 C Local
-      DIMENSION IR(NDIMX+1),IC(NDIMX+1)
+      ALLOCATABLE IR(:),IC(:)
 C
        NDIM=IAP(1)
        IADS=IAP(8)
@@ -1451,8 +1456,10 @@ C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
+         ALLOCATE(IR(NDIM+1),IC(NDIM+1))
          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
      *           RHS,IR,IC,DET)
+         DEALLOCATE(IR,IC)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
 C
@@ -1717,7 +1724,7 @@ C
       DIMENSION AA(M1AA,*),RHS(*),U(*),UOLD(*),UDOT(*),DFDU(*),DFDP(*) 
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 C Local
-      DIMENSION UD(NDIMX+1),IR(NDIMX+1),IC(NDIMX+1)
+      ALLOCATABLE UD(:),IR(:),IC(:)
 C
       LOGICAL CHNG
 C
@@ -1742,10 +1749,12 @@ C
        AA(NDIM+1,NDIM+1)=RLDOT(1)
        RHS(NDIM+1)=1.d0
 C
+       ALLOCATE(UD(NDIM+1),IR(NDIM+1),IC(NDIM+1))
        CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
        RAP(14)=DET
        CALL NRMLZ(NDIM+1,UD)
        FNLPAE=UD(NDIM+1)
+       DEALLOCATE(UD,IR,IC)
        RAP(16)=FNLPAE
        CHNG=.TRUE.
 C
@@ -1773,7 +1782,8 @@ C
       DIMENSION AA(M1AA,*),RHS(*),U(*),UOLD(*),UDOT(*)
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      COMPLEX*16 EV(NDIMX), ZTMP
+      COMPLEX*16 EV, ZTMP
+      ALLOCATABLE EV(:)
       LOGICAL CHNG
 C
        NDIM=IAP(1)
@@ -1785,6 +1795,7 @@ C
        IBR=IAP(30)
        NTOT=IAP(32)
        NTOP=MOD(NTOT-1,9999)+1
+       ALLOCATE(EV(NDIM))
 C
 C INITIALIZE
 C
@@ -1882,6 +1893,7 @@ C
  102   FORMAT(/,I4,I6,9X,'Eigenvalues  :   Stable:',I4)
  103   FORMAT(I4,I6,9X,'Eigenvalue',I3,":",1P2E14.5)
 C
+      DEALLOCATE(EV)
       RETURN
       END
 C
@@ -1937,8 +1949,7 @@ C
       DIMENSION IAP(*),AA(M1AA,*),U(*),DU(*),UDOT(*),DFDU(*),DFDP(*)
       DIMENSION STUD(M1SB,*),STU(M1SB,*),STLA(*),STLD(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
-C Local
-      DIMENSION IR(NDIMX+1),IC(NDIMX+1)
+      ALLOCATABLE IR(:),IC(:)
 C
        NDIM=IAP(1)
        IBR=IAP(30)
@@ -1968,7 +1979,9 @@ C
        ENDDO
        AA(ND1,ND1)=RLDOT(1)
 C
+       ALLOCATE(IR(NDIM+1),IC(NDIM+1))
        CALL NLVC(ND1,M1AA,1,AA,DU,IR,IC)
+       DEALLOCATE(IR,IC)
 C
        SS=0.d0
        DO I=1,NDIM
@@ -2064,7 +2077,7 @@ C
       DIMENSION IAP(*),RAP(*),F(*),DFDU(*),DFDP(*),THL(*),THU(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 C Local
-      DIMENSION IR(NDIMX+1),IC(NDIMX+1),U1(NDIMX+1)
+      ALLOCATABLE IR(:),IC(:),U1(:)
 C
        NDIM=IAP(1)
        IADS=IAP(8)
@@ -2101,6 +2114,7 @@ C
      *   RLCUR(1),(U(I),I=1,NDMR)
 C
        RLM1=RLCUR(1)
+       ALLOCATE(IR(NDIM+1),IC(NDIM+1),U1(NDIM+1))
        DO I=1,NDIM
          U1(I)=U(I)
        ENDDO
@@ -2132,6 +2146,7 @@ C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
+         DEALLOCATE(IR,IC,U1)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
 C
@@ -2158,7 +2173,10 @@ C Check whether relative error has reached user-supplied tolerance :
 C
          RDRLM=DABS(DRLM)/(1.d0+DABS(RLCUR(1)))
          RDUMX=DUMX/(1.d0+UMX)
-         IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)RETURN
+         IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
+           DEALLOCATE(IR,IC,U1)
+           RETURN
+         ENDIF
  3     CONTINUE
 C
 C Maximum number of iterations reached. Reduce stepsize and try again.
@@ -2188,6 +2206,7 @@ C
        ISTOP=1
        IAP(34)=ISTOP
 C
+       DEALLOCATE(IR,IC,U1)
       RETURN
  101   FORMAT(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=',
      * 1PE11.3,1X,'U=',1P7E11.3)
@@ -3355,7 +3374,6 @@ C     ---------- ---
       SUBROUTINE EIG(IAP,NDIM,M1A,A,EV,IER)
 C
       INCLUDE 'auto.h'
-      PARAMETER (NXSQ=NDIMX**2)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3369,9 +3387,8 @@ C
 C
       COMPLEX*16 EV(*)
 C Local
-      DIMENSION WR(NDIMX),WI(NDIMX),Z(NXSQ)
-      DIMENSION FV1(NDIMX)
-      INTEGER   IV1(NDIMX)
+      ALLOCATABLE WR(:),WI(:),Z(:),FV1(:),IV1(:)
+      ALLOCATE(WR(NDIM),WI(NDIM),Z(NDIM*NDIM),FV1(NDIM),IV1(NDIM))
 C
        IID=IAP(18)
        IBR=IAP(30)
@@ -3410,6 +3427,7 @@ C
  103   FORMAT(/,' Eigenvectors (by row):')
  104   FORMAT(4X,1P7E19.10)
 C
+      DEALLOCATE(WR,WI,Z,FV1,IV1)
       RETURN
       END
 C
@@ -4495,8 +4513,7 @@ C
       DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),IAP(*)
 C Local
-      DIMENSION U(NDIMX),UOLD(NDIMX),F(NDIMX)
-      DIMENSION DFDU(NDIMX**2),DFDP(NDIMX*NPARX)
+      ALLOCATABLE U(:),UOLD(:),F(:),DFDU(:),DFDP(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -4507,6 +4524,9 @@ C
        DO I=1,NFPR
          PAR(ICP(I))=RLOLD(I)
        ENDDO
+C
+       ALLOCATE(U(NDIM),UOLD(NDIM),F(NDIM))
+       ALLOCATE(DFDU(NDIM**2),DFDP(NDIM*NPARX))
 C
        DO J=1,NTST+1
          DO I=1,NDIM
@@ -4546,6 +4566,7 @@ C
          PAR(ICP(I))=RLCUR(I)
        ENDDO
 C
+      DEALLOCATE(U,UOLD,F,DFDU,DFDP)
       RETURN
       END
 C
@@ -4944,7 +4965,7 @@ C
 C Take care of the case where the free parameters have been changed at
 C the restart point.
 C
-       NODIR=0	
+       NODIR=0
        IF(NFPRS.NE.NFPR)THEN
          NODIR=1
          RETURN
@@ -4974,12 +4995,13 @@ C
       DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
-      DIMENSION U(NDIMX)
+      ALLOCATABLE U(:)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
        NFPR=IAP(29)
+       ALLOCATE(U(NDIM))
 C
 C Generate the (initially uniform) mesh.
 C
@@ -5016,6 +5038,7 @@ C
 C
        NODIR=1
 C
+      DEALLOCATE(U)
       RETURN
       END
 C
@@ -5342,7 +5365,7 @@ C
 C
       DIMENSION IAP(*),RAP(*),P1(*)
 C Local
-      DIMENSION IR(NDIMX),IC(NDIMX),PP(NDIMX**2)
+      ALLOCATABLE IR(:),IC(:),PP(:)
 C
        NDIM=IAP(1)
        IID=IAP(18)
@@ -5357,10 +5380,12 @@ C
 C
 C Compute the determinant of P1.
 C
+      ALLOCATE(IR(NDIM),IC(NDIM),PP(NDIM**2))
       DO I=1,NDIM**2
         PP(I)=P1(I)
       ENDDO                               
       CALL GE(0,NDIM,NDIM,PP,0,1,U,1,F,IR,IC,DET)
+      DEALLOCATE(IR,IC,PP)
       RAP(14)=DET
 C
 C Set the determinant of the normalized reduced system.
@@ -5398,7 +5423,7 @@ C of the unit circle or when a real eigenvalues passes through -1.
       COMPLEX*16 EV(*),ZTMP
       DIMENSION IAP(*),RAP(*),P0(*),P1(*)
 C Local
-      DIMENSION WRK(NDIMX**2)
+      ALLOCATABLE WRK(:)
 C
       LOGICAL CHNG
 C
@@ -5424,7 +5449,9 @@ C
        ENDIF
 C
 C  Compute the Floquet multipliers
+      ALLOCATE(WRK(NDIM**2))
       CALL FLOWKM(NDIM, P0, P1, IID, WRK, EV)
+      DEALLOCATE(WRK)
 C
 C Find the multiplier closest to z=1.
 C
@@ -6038,10 +6065,13 @@ C
       DIMENSION P0(NDIM,*),P1(NDIM,*)
 C
 C Local
-      DIMENSION Q0(NDIMX,NDIMX), Q1(NDIMX,NDIMX), P(NDIMX,NDIMX)
-      DIMENSION Z(NDIMX,NDIMX), WR(NDIMX), WI(NDIMX)
-      DIMENSION IR(NDIMX), IC(NDIMX)
-      DIMENSION IV1(NDIMX), FV1(NDIMX)
+      ALLOCATABLE Q0(:,:), Q1(:,:), P(:,:), Z(:,:), WR(:), WI(:)
+      ALLOCATABLE IR(:), IC(:), IV1(:), FV1(:)
+C
+      ALLOCATE(Q0(NDIM,NDIM), Q1(NDIM,NDIM), P(NDIM,NDIM))
+      ALLOCATE(Z(NDIM,NDIM), WR(NDIM), WI(NDIM))
+      ALLOCATE(IR(NDIM), IC(NDIM))
+      ALLOCATE(IV1(NDIM), FV1(NDIM))
 C
         DO I=1,NDIM
           DO J=1,NDIM
@@ -6050,8 +6080,8 @@ C
           ENDDO
         ENDDO
 C
-        CALL GE(0,NDIM,NDIMX,Q1,NDIM,NDIMX,P,NDIMX,Q0,IR,IC,DET)
-        CALL RG(NDIMX,NDIM,P,WR,WI,1,Z,IV1,FV1,IERR)
+        CALL GE(0,NDIM,NDIM,Q1,NDIM,NDIM,P,NDIM,Q0,IR,IC,DET)
+        CALL RG(NDIM,NDIM,P,WR,WI,1,Z,IV1,FV1,IERR)
 C
         WRITE(9,100)
         WRITE(9,101)
@@ -6067,6 +6097,7 @@ cxx
  101    FORMAT(" ")
  102    FORMAT(1P2E14.5," | ",1P8E14.5)
 C
+      DEALLOCATE(Q0,Q1,P,Z,WR,WI,IR,IC,IV1,FV1)
       RETURN
       END
 C
