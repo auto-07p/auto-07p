@@ -2146,7 +2146,6 @@ C Use Gauss elimination with pivoting to solve the linearized system :
 C
          IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
-         DEALLOCATE(IR,IC,U1)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
 C
