@@ -650,7 +650,6 @@ FC
 FCFLAGS
 ac_ct_FC
 FCLIBS
-FFLAGS
 XMKMF
 CXXCPP
 X_CFLAGS
@@ -659,6 +658,7 @@ X_LIBS
 X_EXTRA_LIBS
 GREP
 EGREP
+FFLAGS
 PLAUT
 PLAUT04
 GUI
@@ -1262,8 +1262,8 @@ Optional Features:
 			  (and sometimes confusing) to the casual installer
   --enable-plaut          Compile the Plaut plotting package (default: yes)
   --enable-plaut04        Compile the Plaut04 plotting package (default: yes)
-  --enable-gui          Compile the Motif based GUI package (default: no)
-  --enable-tek2ps          Compile the Tek2ps conversion utility (default: yes)
+  --enable-gui            Compile the Motif based GUI package (default: no)
+  --enable-tek2ps         Compile the Tek2ps conversion utility (default: yes)
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
 
@@ -1272,8 +1272,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-CC=COMMAND       Choose a C compiler other then the default
   --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default
-  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)
   --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)
+  --with-openmp           Try to use OpenMP (default: yes)
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -2221,14 +2221,9 @@ if test "${with_FC+set}" = set; then
 fi
 
 
-
-# Check whether --with-mpi-compiler was given.
-if test "${with_mpi_compiler+set}" = set; then
-  withval=$with_mpi_compiler; MPI_COMPILER=${withval}
-else
-  MPI_COMPILER=mpicc
-fi
-
+#AC_ARG_WITH(mpi-compiler,
+#[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],
+#[MPI_COMPILER=${withval}],[MPI_COMPILER=mpicc])
 
 
 # Check whether --with-optimization-flags was given.
@@ -2236,6 +2231,15 @@ if test "${with_optimization_flags+set}" = set; then
   withval=$with_optimization_flags; OPT_FLAG=$withval
 else
   OPT_FLAG="-O"
+fi
+
+
+
+# Check whether --with-openmp was given.
+if test "${with_openmp+set}" = set; then
+  withval=$with_openmp; openmp=$withval
+else
+  openmp="yes"
 fi
 
 
@@ -2277,8 +2281,6 @@ fi
 
 
 
-
-CFLAGS=""
 
 #if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
@@ -4095,8 +4097,7 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-if test "$FC" != "no"; then
-  ac_ext=${ac_fc_srcext-f}
+ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
@@ -5314,12 +5315,105 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+
+if test x$openmp = "xyes"; then
+  # Check for OpenMP.  If it exists we try to use it.
+
+
+{ echo "$as_me:$LINENO: checking for OpenMP flag of Fortran compiler" >&5
+echo $ECHO_N "checking for OpenMP flag of Fortran compiler... $ECHO_C" >&6; }
+if test "${ax_cv_fc_openmp+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  FC="true"
-  FFLAGS=""
+  saveFCFLAGS=$FCFLAGS
+ax_cv_fc_openmp=unknown
+# Flags to try:  -fopenmp (gcc), -openmp (icc), -mp (SGI & PGI),
+#                -xopenmp (Sun), -omp (Tru64), -qsmp=omp (AIX), none
+ax_openmp_flags="-fopenmp -openmp -mp -xopenmp -omp -qsmp=omp none"
+if test "x$OPENMP_FCFLAGS" != x; then
+  ax_openmp_flags="$OPENMP_FCFLAGS $ax_openmp_flags"
+fi
+for ax_openmp_flag in $ax_openmp_flags; do
+  case $ax_openmp_flag in
+    none) FCFLAGS=$saveFC ;;
+    *) FCFLAGS="$saveFCFLAGS $ax_openmp_flag" ;;
+  esac
+  cat >conftest.$ac_ext <<_ACEOF
+      program main
+      call omp_set_num_threads
+      end
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_fc_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ax_cv_fc_openmp=$ax_openmp_flag; break
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
 
 
 fi
+
+rm -f core conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+done
+FCFLAGS=$saveFCFLAGS
+
+fi
+{ echo "$as_me:$LINENO: result: $ax_cv_fc_openmp" >&5
+echo "${ECHO_T}$ax_cv_fc_openmp" >&6; }
+if test "x$ax_cv_fc_openmp" = "xunknown"; then
+  openmp="no"
+else
+  if test "x$ax_cv_fc_openmp" != "xnone"; then
+    OPENMP_FCFLAGS=$ax_cv_fc_openmp
+  fi
+  FFLAGS="$FFLAGS $OPENMP_FCFLAGS"
+fi
+
+fi
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
 { echo "$as_me:$LINENO: checking whether ${MAKE-make} sets \$(MAKE)" >&5
 echo $ECHO_N "checking whether ${MAKE-make} sets \$(MAKE)... $ECHO_C" >&6; }
 set x ${MAKE-make}; ac_make=`echo "$2" | sed 's/+/p/g; s/[^a-zA-Z0-9_]/_/g'`
@@ -7782,6 +7876,7 @@ fi
 
 
 
+
 if test x$ENABLE_PLAUT = xyes; then
    PLAUT=plaut
 else
@@ -8937,7 +9032,6 @@ FC!$FC$ac_delim
 FCFLAGS!$FCFLAGS$ac_delim
 ac_ct_FC!$ac_ct_FC$ac_delim
 FCLIBS!$FCLIBS$ac_delim
-FFLAGS!$FFLAGS$ac_delim
 XMKMF!$XMKMF$ac_delim
 CXXCPP!$CXXCPP$ac_delim
 X_CFLAGS!$X_CFLAGS$ac_delim
@@ -8946,6 +9040,7 @@ X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
+FFLAGS!$FFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -9597,19 +9692,19 @@ if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"
 fi
 
-if test x$PTHREADS = "xyes" && test x$MPI != "xyes"; then
+if test x$openmp = "xyes" && test x$MPI != "xyes"; then
   echo "***************************************************"
-  echo "AUTO has been configured with support for Pthreads"
+  echo "AUTO has been configured with support for OpenMP"
   echo "***************************************************"
 fi
-if test x$PTHREADS != "xyes" && test x$MPI = "xyes"; then
+if test x$openmp != "xyes" && test x$MPI = "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for MPI"
   echo "***************************************************"
 fi
-if test x$PTHREADS = "xyes" && test x$MPI = "xyes"; then
+if test x$openmp = "xyes" && test x$MPI = "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for"
-  echo "Pthreads and MPI"
+  echo "OpenMP and MPI"
   echo "***************************************************"
 fi

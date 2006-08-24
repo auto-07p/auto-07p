@@ -16,13 +16,17 @@ AC_ARG_WITH(FC,
 [  --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default],
 [FC=$withval],)
 
-AC_ARG_WITH(mpi-compiler,
-[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],
-[MPI_COMPILER=${withval}],[MPI_COMPILER=mpicc])
+#AC_ARG_WITH(mpi-compiler,
+#[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],
+#[MPI_COMPILER=${withval}],[MPI_COMPILER=mpicc])
 
 AC_ARG_WITH(optimization-flags,
 [  --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)],
 [OPT_FLAG=$withval],[OPT_FLAG="-O"])
+
+AC_ARG_WITH(openmp,
+[  --with-openmp           Try to use OpenMP (default: yes)],
+[openmp=$withval],[openmp="yes"])
 
 #AC_ARG_WITH(mpi,
 #[  --with-mpi              Try to use MPI (default: no)],
@@ -37,18 +41,16 @@ AC_ARG_ENABLE(plaut04,
 [ENABLE_PLAUT04=$enableval],ENABLE_PLAUT04=yes)
 
 AC_ARG_ENABLE(gui,
-[  --enable-gui          Compile the Motif based GUI package (default: no)],
+[  --enable-gui            Compile the Motif based GUI package (default: no)],
 [ENABLE_GUI=$enableval],ENABLE_GUI=no)
 
 AC_ARG_ENABLE(tek2ps,
-[  --enable-tek2ps          Compile the Tek2ps conversion utility (default: yes)],
+[  --enable-tek2ps         Compile the Tek2ps conversion utility (default: yes)],
 [ENABLE_TEK2PS=$enableval],ENABLE_TEK2PS=yes)
 
 AC_SUBST(OPT_FLAG)
 
 dnl Checks for programs.
-
-CFLAGS=""
 
 #if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
@@ -68,15 +70,15 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_LANG_CPLUSPLUS
 
-if test "$FC" != "no"; then
-  AC_PROG_FC(,[Fortran 90])
-  AC_FC_WRAPPERS
-else
-  FC="true"
-  FFLAGS=""
-  AC_SUBST(FC)
-  AC_SUBST(FFLAGS)
+AC_PROG_FC(,[Fortran 90])
+AC_FC_WRAPPERS
+AC_LANG_PUSH(Fortran)
+if test x$openmp = "xyes"; then
+  # Check for OpenMP.  If it exists we try to use it.
+  AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")
 fi
+AC_LANG_POP
+
 AC_PROG_MAKE_SET
 
 dnl Checks for libraries.
@@ -92,6 +94,7 @@ AC_CHECK_LIB(Xm,XmCreateMainWindow,X_LIBS="$X_LIBS -lXm -lXt -lX11",
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_SUBST(CFLAGS)
+AC_SUBST(FFLAGS)
 
 if test x$ENABLE_PLAUT = xyes; then
    PLAUT=plaut
@@ -179,19 +182,19 @@ if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"
 fi 
 
-if test x$PTHREADS = "xyes" && test x$MPI != "xyes"; then
+if test x$openmp = "xyes" && test x$MPI != "xyes"; then
   echo "***************************************************"
-  echo "AUTO has been configured with support for Pthreads"   
+  echo "AUTO has been configured with support for OpenMP"
   echo "***************************************************"
 fi
-if test x$PTHREADS != "xyes" && test x$MPI = "xyes"; then
+if test x$openmp != "xyes" && test x$MPI = "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for MPI"   
   echo "***************************************************"
 fi
-if test x$PTHREADS = "xyes" && test x$MPI = "xyes"; then
+if test x$openmp = "xyes" && test x$MPI = "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for" 
-  echo "Pthreads and MPI"   
+  echo "OpenMP and MPI"   
   echo "***************************************************"
 fi
