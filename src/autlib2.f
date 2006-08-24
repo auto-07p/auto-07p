@@ -467,19 +467,20 @@ C     ---------- ----
      +  NCB,NRC,A1,A2,BB,CC,CCBC,FAA,
      +  S1,S2,IPR,ICF1,ICF2,IRF,ICF)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      INCLUDE 'auto.h'
+      IMPLICIT NONE
 C
 C Arguments
-      INTEGER   IDB,NLLV,NOV,NA,NBC,NRA
+      INTEGER   IFST,IDB,NLLV,NOV,NA,NBC,NRA
       INTEGER   NCA,NCB,NRC
       DOUBLE PRECISION DET
-      DIMENSION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
-      DIMENSION A1(*),A2(*),BB(*),CC(*),FAA(*)
-      DIMENSION S1(*),S2(*)
+      DOUBLE PRECISION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
+      DOUBLE PRECISION A1(*),A2(*),BB(*),CC(*),CCBC(*),FAA(*)
+      DOUBLE PRECISION S1(*),S2(*)
       INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)      
 C
 C Local
+      DOUBLE PRECISION SOL1,SOL2,SOL3,FCC,E
+      INTEGER IR,IC
       ALLOCATABLE SOL1(:),SOL2(:),SOL3(:),FCC(:),E(:,:),IR(:),IC(:)
       ALLOCATE(SOL1(NOV*(NA+1)),SOL2(NOV*(NA+1)),SOL3(NOV*(NA+1)))
       ALLOCATE(FCC(2*NOV+NRC+2*NOV*NOV+1),E(NOV+NRC,2*NOV+NRC))
@@ -525,11 +526,11 @@ C
 C     ---------- -------
       SUBROUTINE SETZERO(FA,FC,NA,NRA,NRC)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NA,NRA,NRC
-      DIMENSION FA(NRA,*),FC(*)
+      DOUBLE PRECISION FA(NRA,*),FC(*)
 C
 C Local
       INTEGER    I,J
@@ -547,8 +548,9 @@ C
       RETURN
       END
 C
+C     This is the per-CPU process function of CONPAR
 C     ---------- ------
-      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+      SUBROUTINE CONPAP(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
@@ -566,7 +568,6 @@ C is delayed until REDUCE, in order to merge it with other communications.
 C NA is the local NTST.
 C
       NEX=NCA-2*NOV
-      IF(NEX.EQ.0)RETURN
       ALLOCATE(IAMAX(NRA))
 C
 C Condensation of parameters (Elimination of local variables).
@@ -664,6 +665,54 @@ C     Recalculate absolute maximum for current row
  2    CONTINUE
 C
       DEALLOCATE(IAMAX)
+      RETURN
+      END
+C
+C     ---------- ------
+      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+C
+C$    USE OMP_LIB
+      IMPLICIT NONE
+C
+C Arguments
+      INTEGER   NOV,NA,NRA,NCA
+      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*)
+      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
+      DOUBLE PRECISION D(NCB,*)
+C Local
+      INTEGER I,J,K,N,IAM,NT
+      DOUBLE PRECISION, ALLOCATABLE :: DD(:,:)
+      IF(NCA.EQ.2*NOV)RETURN
+C
+C Condensation of parameters (Elimination of local variables).
+C
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,NT,DD,J,K,I,N)
+      IAM = 0
+      NT = 1
+C$    IAM = OMP_GET_THREAD_NUM()
+C$    NT = OMP_GET_NUM_THREADS()
+      ALLOCATE(DD(NCB,NRC))
+      DO J=1,NRC
+         DO K=1,NCB
+            DD(K,J)=0.0d0
+         ENDDO
+      ENDDO
+      I = IAM*NA/NT+1
+      N = (IAM+1)*NA/NT+1-I
+      CALL CONPAP(NOV,N,NRA,NCA,A(1,1,I),NCB,B(1,1,I),NRC,C(1,1,I),DD,
+     +     IRF(1,I),ICF(1,I))
+C
+C     This is were we sum into the global copy of the d array
+C
+      DO J=1,NRC
+         DO K=1,NCB
+C$OMP ATOMIC
+            D(K,J)=D(K,J)+DD(K,J)
+         ENDDO
+      ENDDO
+      DEALLOCATE(DD)
+C$OMP END PARALLEL
+C
       RETURN
       END
 C
