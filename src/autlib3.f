@@ -3561,7 +3561,7 @@ C
        ELSE
          IJC=0
        ENDIF
-       CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP,UOLD)
+       CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP)
 C
        IF(JAC.EQ.1 .OR. IJAC.EQ.0 .OR. (JAC.EQ.-1.AND.IJAC.EQ.1))RETURN
 C
@@ -3571,7 +3571,7 @@ C
           DO I=1,NFPR
              EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
              PAR(ICP(I))=PAR(ICP(I))+EP
-             CALL FUNC(NDIM,U,ICP,PAR,0,F1ZZ,DFDU,DFDP,UOLD)
+             CALL FUNC(NDIM,U,ICP,PAR,0,F1ZZ,DFDU,DFDP)
              DO J=1,NDIM
                 DFDP(J,ICP(I))=(F1ZZ(J)-F(J))/EP
              ENDDO
@@ -3604,8 +3604,8 @@ C
          ENDDO
          U1ZZ(I)=U1ZZ(I)-EP
          U2ZZ(I)=U2ZZ(I)+EP
-         CALL FUNC(NDIM,U1ZZ,ICP,PAR,0,F1ZZ,DFDU,DFDP,UOLD)
-         CALL FUNC(NDIM,U2ZZ,ICP,PAR,0,F2ZZ,DFDU,DFDP,UOLD)
+         CALL FUNC(NDIM,U1ZZ,ICP,PAR,0,F1ZZ,DFDU,DFDP)
+         CALL FUNC(NDIM,U2ZZ,ICP,PAR,0,F2ZZ,DFDU,DFDP)
          DO J=1,NDIM
            DFDU(J,I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
         ENDDO
