@@ -16,7 +16,7 @@ RM=rm -f
 all: compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
   ../bin/listlabels ../bin/reduce ../bin/relabel ../lib/libauto_c.a move
 #
-auto.h: 
+auto.h: ../include/auto.h
 	@cp -p ../include/auto.h auto.h
 #
 compile: $(OBJ)

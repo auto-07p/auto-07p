@@ -125,6 +125,86 @@ C
       END
 C
 C     ---------- ---------
+      SUBROUTINE SUBVSR(NDIM,IPS,NA,NBC,NCB,NRC,NRA,BCNI,NDX,
+     + IAP,RAP,PAR,ICP,RDS,CCBC,DD,FC,RLCUR,RLOLD,
+     + RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU)
+C
+      IMPLICIT NONE
+      INTEGER NPARX,NBIFX,NIAP,NRAP
+      include 'auto.h'
+C
+C     This subroutine handles the non-parallel part of SETUBV, that is,
+C     * the boundary conditions (not much to parallelize here and
+C       HomCont relies on non-parallel execution): the arrays CCBC,
+C       DUPS, and parts of DD and FC.
+C     * creating the pseudo-arclength parts of FC and DD
+C
+      EXTERNAL BCNI
+      DOUBLE PRECISION RINPR
+C
+      INTEGER NDIM,IPS,NA,NBC,NCB,NRC,NRA,NDX,IAP(*),ICP(*)
+      DOUBLE PRECISION RDS,CCBC(NDIM,NBC,*),DD(NCB,*)
+      DOUBLE PRECISION RAP(*),UPS(NDX,*),DUPS(NDX,*)
+      DOUBLE PRECISION UOLDPS(NDX,*),UDOTPS(NDX,*)
+      DOUBLE PRECISION FC(*),DTM(*),PAR(*)
+      DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+C
+C Local
+      DOUBLE PRECISION, ALLOCATABLE :: UBC0(:),UBC1(:),FBC(:),DBC(:,:)
+      INTEGER I,J,K
+      DOUBLE PRECISION RLSUM
+C
+C Set constants.
+       DO I=1,NCB
+         PAR(ICP(I))=RLCUR(I)
+       ENDDO
+C
+C     ** Time evolution computations (parabolic systems)
+       IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
+C
+      ALLOCATE(UBC0(NDIM),UBC1(NDIM),FBC(NBC),DBC(NBC,2*NDIM+NPARX))
+C
+C     Boundary conditions :
+C     
+       IF(NBC.GT.0)THEN
+         DO I=1,NDIM
+            UBC0(I)=UPS(1,I)
+            UBC1(I)=UPS(NA+1,I)
+         ENDDO
+         CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)     
+         DO I=1,NBC
+            FC(I)=-FBC(I)
+            DO K=1,NDIM
+               CCBC(K,I,1)=DBC(I,K)
+               CCBC(K,I,2)=DBC(I,NDIM+K)
+            ENDDO
+            DO K=1,NCB
+               DD(K,I)=DBC(I,2*NDIM+ICP(K))
+            ENDDO
+         ENDDO    
+C       Save difference :
+       ENDIF
+       DO J=1,NA+1
+         DO I=1,NRA
+            DUPS(J,I)=UPS(J,I)-UOLDPS(J,I)
+          ENDDO
+       ENDDO
+C
+C     Pseudo-arclength equation :
+C
+       RLSUM=0.d0
+       DO I=1,NCB
+          DD(I,NBC+NRC)=THL(ICP(I))*RLDOT(I)
+          RLSUM=RLSUM+THL(ICP(I))*(RLCUR(I)-RLOLD(I))*RLDOT(I)
+       ENDDO
+C
+       FC(NBC+NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
+C
+       DEALLOCATE(UBC0,UBC1,FBC,DBC)
+       RETURN
+       END
+C
+C     ---------- ---------
       SUBROUTINE SETUBV(NDIM,IPS,NA,NCOL,NBC,NINT,
      + NCB,NRC,NRA,NCA,FUNI,BCNI,ICNI,NDX,
      + IAP,RAP,PAR,ICP,RDS,AA,BB,CC,CCBC,DD,FA,FC,RLCUR,RLOLD,
@@ -144,26 +224,26 @@ C
       DIMENSION ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 C
 C Local
-      ALLOCATABLE DFDU(:),DFDP(:),UOLD(:),U(:),F(:),UBC0(:),UBC1(:)
-      ALLOCATABLE FBC(:),DBC(:),FICD(:),DICD(:),UIC(:),UIO(:),UID(:)
+      ALLOCATABLE DFDU(:),DFDP(:),UOLD(:),U(:),F(:)
+      ALLOCATABLE FICD(:),DICD(:),UIC(:),UIO(:),UID(:)
       ALLOCATABLE UIP(:),WPLOC(:),WI(:),WP(:,:),WT(:,:)
       DIMENSION PRM(NPARX)
 C
       ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPARX),UOLD(NDIM),U(NDIM))
-      ALLOCATE(F(NDIM),UBC0(NDIM),UBC1(NDIM),FBC(NBC))
-      ALLOCATE(DBC(NBC*(2*NDIM+NPARX)),FICD(NINT))
+      ALLOCATE(F(NDIM),FICD(NINT))
       ALLOCATE(DICD(NINT*(NDIM+NPARX)),UIC(NDIM),UIO(NDIM))
       ALLOCATE(UID(NDIM),UIP(NDIM),WPLOC(NCOL+1),WI(NCOL+1))
       ALLOCATE(WP(NCOL+1,NCOL),WT(NCOL+1,NCOL))
+C
+       CALL SUBVSR(NDIM,IPS,NA,NBC,NCB,NRC,NRA,BCNI,NDX,
+     +     IAP,RAP,PAR,ICP,RDS,CCBC,DD,FC,RLCUR,RLOLD,
+     +     RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU)
 C
        CALL WINT(NCOL+1,WI)
        CALL GENWTS(NCOL,NCOL+1,WT,WP)
 C
 C Set constants.
        NCP1=NCOL+1
-       DO I=1,NCB
-         PAR(ICP(I))=RLCUR(I)
-       ENDDO
 C
 C Generate AA , BB and FA :
 C
@@ -179,10 +259,6 @@ C
                    UOLD(K) =UOLD(K) +WT(L,IC)*UOLDPS(J,L1)
                 ENDDO
              ENDDO
-C
-C     ** Time evolution computations (parabolic systems)
-             IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
-C
              DO I=1,NPARX
                 PRM(I)=PAR(I)
              ENDDO
@@ -226,38 +302,12 @@ C     Generate CC, DD and FC :
 C
 C Initialize to zero.
 C
-       DO I=1,NRC
+       DO I=1,NINT
          FC(NBC+I)=0.d0
          DO K=1,NCB
            DD(K,NBC+I)=0.d0
          ENDDO
        ENDDO
-C     
-C     Boundary conditions :
-C     
-       IF(NBC.GT.0)THEN
-         DO I=1,NDIM
-            UBC0(I)=UPS(1,I)
-            UBC1(I)=UPS(NA+1,I)
-         ENDDO
-         CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)     
-         DO I=1,NBC
-            FC(I)=-FBC(I)
-            DO K=1,NDIM
-              CCBC(K,I,1)=DBC((K-1)*NBC+I)
-              CCBC(K,I,2)=DBC((NDIM+K-1)*NBC+I)
-            ENDDO
-            DO K=1,NCB
-               DD(K,I)=DBC((2*NDIM+ICP(K)-1)*NBC+I)
-            ENDDO
-         ENDDO    
-C       Save difference :    
-         DO J=1,NA+1
-            DO I=1,NRA
-               DUPS(J,I)=UPS(J,I)-UOLDPS(J,I)
-            ENDDO
-         ENDDO
-       ENDIF
 C     
 C     Integral constraints :
 C     
@@ -306,15 +356,7 @@ C
           ENDDO
        ENDDO
 C     
-       RLSUM=0.d0
-       DO I=1,NCB
-          DD(I,NBC+NRC)=THL(ICP(I))*RLDOT(I)
-          RLSUM=RLSUM+THL(ICP(I))*(RLCUR(I)-RLOLD(I))*RLDOT(I)
-       ENDDO
-C     
-       FC(NBC+NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
-C     
-       DEALLOCATE(DFDU,DFDP,UOLD,U,F,UBC0,UBC1,FBC,DBC,FICD,DICD)
+       DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD)
        DEALLOCATE(UIC,UIO,UID,UIP,WPLOC,WI,WP,WT)
        RETURN
        END
