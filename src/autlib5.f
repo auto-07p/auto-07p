@@ -633,7 +633,7 @@ C
       NDM=NDIM
       COMPZERO=HMACHHO
 C
-      OPEN(UNIT=12,FILE='fort.12',STATUS='OLD')
+      OPEN(UNIT=12,FILE='fort.12',STATUS='OLD',ACCESS='sequential')
       READ(12,*)NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
 C
 C updated reading in of constants for reversible equations

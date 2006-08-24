@@ -8,8 +8,8 @@ C
       ALLOCATABLE TM(:),RLDOT(:),PAR(:),U(:,:),ICP(:)
 C
        L=0
-       OPEN(28,FILE='fort.28',STATUS='old')
-       OPEN(38,FILE='fort.38',STATUS='unknown')
+       OPEN(28,FILE='fort.28',STATUS='old',ACCESS='sequential')
+       OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
  1     CONTINUE
          READ(28,*,END=99)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,
      *               NAR,NROWPR,NTST,NCOL,NPAR1

@@ -10,9 +10,9 @@ C
       DIMENSION IAP(NIAP),ICP(NPARX),PAR(NPARX)
       ALLOCATABLE U(:),TM(:),DTM(:),UPS(:,:),VPS(:,:)
 C
-       OPEN(2,FILE='fort.2',STATUS='old')
-       OPEN(3,FILE='fort.3',STATUS='unknown')
-       OPEN(8,FILE='fort.8',STATUS='unknown')
+       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
+       OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
+       OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
 C
         DO I=1,NPARX
           PAR(I)=0.d0

@@ -31,11 +31,11 @@ C Local
 C
 C Initialization :
 C
-       OPEN(2,FILE='fort.2',STATUS='old')
-       OPEN(3,FILE='fort.3',STATUS='unknown')
-       OPEN(7,FILE='fort.7',STATUS='unknown')
-       OPEN(8,FILE='fort.8',STATUS='unknown')
-       OPEN(9,FILE='fort.9',STATUS='unknown')
+       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
+       OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
+       OPEN(7,FILE='fort.7',STATUS='unknown',ACCESS='sequential')
+       OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
+       OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
 C
  1     CALL AUTIM0(TIME0)
        FOUND=.FALSE.

@@ -51,8 +51,8 @@ C---
        COMMON /CB3D/ B3DC
        COMMON /SPNUM/ SP1,SP2,SP3,SP4
 C---
-       OPEN(17,FILE='fort.17',STATUS='unknown')
-       OPEN(18,FILE='fort.18',STATUS='unknown')
+       OPEN(17,FILE='fort.17',STATUS='unknown',ACCESS='sequential')
+       OPEN(18,FILE='fort.18',STATUS='unknown',ACCESS='sequential')
 C
        IWRITE = 6
        ITERM  = 6

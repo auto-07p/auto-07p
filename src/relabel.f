@@ -11,10 +11,10 @@ C
       DIMENSION LFR(MXLB),LTO(MXLB)
       LOGICAL CHCKLB
 C
-       OPEN(27,FILE='fort.27',STATUS='old')
-       OPEN(28,FILE='fort.28',STATUS='old')
-       OPEN(37,FILE='fort.37',STATUS='unknown')
-       OPEN(38,FILE='fort.38',STATUS='unknown')
+       OPEN(27,FILE='fort.27',STATUS='old',ACCESS='sequential')
+       OPEN(28,FILE='fort.28',STATUS='old',ACCESS='sequential')
+       OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
+       OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
 C
        CALL RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 C
