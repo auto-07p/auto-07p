@@ -103,13 +103,6 @@ else
 fi
 AC_SUBST(PLAUT)
 
-if test x$ENABLE_PLAUT04 = xyes; then
-   PLAUT04=plaut04
-else
-   PLAUT04=""
-fi
-AC_SUBST(PLAUT04)
-
 if test x$no_x != xyes && test x$ENABLE_GUI = xyes; then
    GUI=gui
 else
@@ -126,6 +119,7 @@ AC_SUBST(TEK2PS)
 
 dnl AC_HAVE_LIBRARY([m])
 
+PLAUT04_TEST=yes
 AC_HAVE_LIBRARY([Coin],COIN3D="yes",COIN3D="no")
 if test x$COIN3D = "xno"; then
 {
@@ -134,7 +128,7 @@ if test x$COIN3D = "xno"; then
 	if test x$OI = "xno"; then
 	{
 		echo "configure: error: OI is not installed"; 
-		exit 1; 
+		PLAUT04_TEST=no
 	}
 	else
 	{
@@ -142,7 +136,7 @@ if test x$COIN3D = "xno"; then
 		echo "configure: SGI Open Inventor OK. $DEPS_LIBS"; 
 		AC_HAVE_LIBRARY([InventorXt],OIXTLIB="yes",OIXTLIB="no")
 		if test x$OIXTLIB = "xno"; then
-			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; exit 1; }
+			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; PLAUT04_TEST=no; }
 		else
 		{
 			DEPS_LIBS="$DEPS_LIBS -lInventorXt"
@@ -159,7 +153,7 @@ else
 
 	AC_HAVE_LIBRARY([SoXt],SOXTLIB="yes",SOXTLIB="no")
 	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoXt Library is not installed"; exit 1; }
+		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
 		DEPS_LIBS="$DEPS_LIBS -lSoXt"
@@ -168,6 +162,13 @@ else
 	fi
 }
 fi
+
+if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
+    PLAUT04=plaut04
+else
+    PLAUT04=""
+fi
+AC_SUBST(PLAUT04)
 
 AC_SUBST(DEPS_LIBS)
 dnl AC_SUBST(DEPS_LIBS)
@@ -181,7 +182,15 @@ if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "compilation of the GUI had been disabled.          "
   echo "***************************************************"
 fi 
-
+if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xno; then
+  echo "***************************************************"
+  echo "It was requested that the plotting utility PLAUT04 "
+  echo "be compiled but the proper libraries (Coin3D and   "
+  echo "SoXt or Open Inventor and Open Inventor Xt) and    "
+  echo "Motif libraries (libXm) could not be found.  The   "
+  echo "compilation of PLAUT04 has been disabled.          "
+  echo "***************************************************"
+fi 
 if test x$openmp = "xyes" && test x$MPI != "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for OpenMP"

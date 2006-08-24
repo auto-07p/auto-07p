@@ -660,9 +660,9 @@ GREP
 EGREP
 FFLAGS
 PLAUT
-PLAUT04
 GUI
 TEK2PS
+PLAUT04
 DEPS_LIBS
 LIBOBJS
 LTLIBOBJS'
@@ -7884,13 +7884,6 @@ else
 fi
 
 
-if test x$ENABLE_PLAUT04 = xyes; then
-   PLAUT04=plaut04
-else
-   PLAUT04=""
-fi
-
-
 if test x$no_x != xyes && test x$ENABLE_GUI = xyes; then
    GUI=gui
 else
@@ -7906,6 +7899,7 @@ fi
 
 
 
+PLAUT04_TEST=yes
 { echo "$as_me:$LINENO: checking for main in -lCoin" >&5
 echo $ECHO_N "checking for main in -lCoin... $ECHO_C" >&6; }
 if test "${ac_cv_lib_Coin_main+set}" = set; then
@@ -8084,7 +8078,7 @@ ac_cv_lib_Inventor=ac_cv_lib_Inventor_main
 	if test x$OI = "xno"; then
 	{
 		echo "configure: error: OI is not installed";
-		exit 1;
+		PLAUT04_TEST=no
 	}
 	else
 	{
@@ -8177,7 +8171,7 @@ fi
 ac_cv_lib_InventorXt=ac_cv_lib_InventorXt_main
 
 		if test x$OIXTLIB = "xno"; then
-			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; exit 1; }
+			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; PLAUT04_TEST=no; }
 		else
 		{
 			DEPS_LIBS="$DEPS_LIBS -lInventorXt"
@@ -8279,7 +8273,7 @@ fi
 ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 
 	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoXt Library is not installed"; exit 1; }
+		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
 		DEPS_LIBS="$DEPS_LIBS -lSoXt"
@@ -8288,6 +8282,13 @@ ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 	fi
 }
 fi
+
+if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
+    PLAUT04=plaut04
+else
+    PLAUT04=""
+fi
+
 
 
 ac_config_files="$ac_config_files Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile"
@@ -9083,9 +9084,9 @@ ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
 PLAUT!$PLAUT$ac_delim
-PLAUT04!$PLAUT04$ac_delim
 GUI!$GUI$ac_delim
 TEK2PS!$TEK2PS$ac_delim
+PLAUT04!$PLAUT04$ac_delim
 DEPS_LIBS!$DEPS_LIBS$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
@@ -9691,7 +9692,15 @@ if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "compilation of the GUI had been disabled.          "
   echo "***************************************************"
 fi
-
+if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xno; then
+  echo "***************************************************"
+  echo "It was requested that the plotting utility PLAUT04 "
+  echo "be compiled but the proper libraries (Coin3D and   "
+  echo "SoXt or Open Inventor and Open Inventor Xt) and    "
+  echo "Motif libraries (libXm) could not be found.  The   "
+  echo "compilation of PLAUT04 has been disabled.          "
+  echo "***************************************************"
+fi
 if test x$openmp = "xyes" && test x$MPI != "xyes"; then
   echo "***************************************************"
   echo "AUTO has been configured with support for OpenMP"
