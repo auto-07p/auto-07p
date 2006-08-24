@@ -5051,7 +5051,7 @@ C
 C Initialization for rotations
 C
       POINTER NRTN(:)
-      COMMON /BLRTN/ IRTN,NRTN
+      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION UPS(NDX,*),PAR(*)
       LOGICAL FIRST
       SAVE FIRST
