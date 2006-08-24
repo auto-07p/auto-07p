@@ -8464,10 +8464,12 @@ C--
  1	 WRITE(6,*) ' ENTER FILE NAME:'
 	 READ(5,3) FLNAME
 	 IF (FLNAME .EQ.' ') THEN
-	   OPEN(UNIT=16, FILE='fig.1', STATUS='unknown',ACCESS='sequential')
+	   OPEN(UNIT=16, FILE='fig.1', STATUS='unknown',
+     +           ACCESS='sequential')
 	 ELSE 
 	   CALL RESLAB(FLNAME)
-	   OPEN(UNIT=16, FILE=FLNAME, STATUS='unknown',ACCESS='sequential')
+	   OPEN(UNIT=16, FILE=FLNAME, STATUS='unknown',
+     +          ACCESS='sequential')
 	 END IF
 	 RETURN
 C--
