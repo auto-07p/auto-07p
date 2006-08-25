@@ -263,8 +263,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         line_width=self.cget("line_width")
         adjwidth = width - (left_margin + right_margin)
         adjheight = height - (top_margin + bottom_margin)
-        xscale = (maxx - minx) / adjwidth
-        yscale = (maxy - miny) / adjheight
+        xscale = (float(maxx) - minx) / adjwidth
+        yscale = (float(maxy) - miny) / adjheight
         for i in range(len(self.data)):
             fill=color_list[i%len(color_list)]
             curve="curve:%d"%(i,)
