@@ -8,6 +8,15 @@
 #define LBL_OFFSET   4
 
 
+#ifdef LESSTIF_VERSION
+#include <Xm/ComboBoxP.h>
+#ifndef XmNwrap
+#define XmNwrap ((char *)&_XmStrings[19401])
+#endif
+#undef XmFONTLIST_DEFAULT_TAG
+#define XmFONTLIST_DEFAULT_TAG NULL
+#endif
+
 float STATIONARY_POINT_RADIUS = 0.01;
 int specialColorItems = CL_SP_ITEMS;
 
@@ -357,6 +366,12 @@ lineWidthCB(Widget, XtPointer userData, XtPointer callData)
     int           position;
 
     XtVaGetValues (spin, XmNspinBoxChildType, &type, XmNposition, &position, NULL);
+#ifdef LESSTIF_VERSION
+    if (position < 10) {
+        position = 10;
+        XtVaSetValues (spin, XmNposition, position, NULL);
+    }
+#endif
 
     lineWidthScaler = position/10.0;
 
@@ -1228,7 +1243,9 @@ buildMenu(Widget parent)
 
 // menu bar
     Widget menubar = XmCreateMenuBar(parent, "menuBar", NULL, 0);
+#ifndef LESSTIF_VERSION
     XtVaSetValues (menubar, XmNshadowThickness, 1, NULL);
+#endif
     pulldown1 = buildFileMenu(menubar);
     pulldown2 = buildCenterMenu(menubar);
     pulldown3 = buildStyleMenu(menubar);
@@ -1433,6 +1450,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
+#ifdef LESSTIF_VERSION
+    Widget list = CB_List(xAxisList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+        XmListAddItem(list,xList[i],0);
+    XtVaSetValues(xAxisList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              60,
+        XmNcolumns,            2,
+        NULL);
+    XmComboBoxUpdate(xAxisList);
+#endif
+
 // Add Callback function for the x-axis drop down list
     XtAddCallback (xAxisList, XmNselectionCallback,
         xListCallBack, NULL);
@@ -1460,6 +1490,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
+#ifdef LESSTIF_VERSION
+    list = CB_List(yAxisList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+	XmListAddItem(list,yList[i],0);
+    XtVaSetValues(yAxisList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              60,
+        XmNcolumns,            2,
+        NULL);
+    XmComboBoxUpdate(yAxisList);
+#endif
+
     XtAddCallback (yAxisList, XmNselectionCallback,
         yListCallBack, NULL);
 
@@ -1485,6 +1528,20 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNmarginHeight,       1,
         XmNpositionMode,       XmZERO_BASED,
         NULL);
+
+#ifdef LESSTIF_VERSION
+    list = CB_List(zAxisList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+        XmListAddItem(list,zList[i],0);
+    XtVaSetValues(zAxisList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              60,
+        XmNcolumns,            2,
+        NULL);
+    XmComboBoxUpdate(zAxisList);
+#endif
+
 
 // Add Callback function for the z-axis drop down list
     XtAddCallback (zAxisList, XmNselectionCallback,
@@ -1515,6 +1572,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNselectedPosition,   lblChoice[0]+LBL_OFFSET-1, //lblIndices[0],
         XmNpositionMode,       XmZERO_BASED,
         NULL);
+
+#ifdef LESSTIF_VERSION
+    list = CB_List(labelsList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+	XmListAddItem(list,lblList[i],0);
+    XtVaSetValues(labelsList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              86,
+        XmNcolumns,            6,
+        NULL);
+    XmComboBoxUpdate(labelsList);
+#endif
 
     for (i = 0; i < count; i++)
         XmStringFree(lblList[i]);
@@ -1558,6 +1628,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
+#ifdef LESSTIF_VERSION
+    list = CB_List(numPeriodAnimatedList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+	XmListAddItem(list,numPList[i],0);
+    XtVaSetValues(numPeriodAnimatedList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              70,
+        XmNcolumns,            3,
+        NULL);
+    XmComboBoxUpdate(numPeriodAnimatedList);
+#endif
+
 // Add Callback function for the numberPeriodAnimated drop down list
     XtAddCallback (numPeriodAnimatedList, XmNselectionCallback,
         numPeriodAnimatedCB, NULL);
@@ -1587,6 +1670,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNselectedPosition,   coloringMethod+specialColorItems,
         XmNpositionMode,       XmZERO_BASED,
         NULL);
+
+#ifdef LESSTIF_VERSION
+    list = CB_List(colorMethodSeletionList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+        XmListAddItem(list,clrMethodList[i],0);
+    XtVaSetValues(colorMethodSeletionList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              80,
+        XmNcolumns,            5,
+        NULL);
+    XmComboBoxUpdate(colorMethodSeletionList);
+#endif
 
 // Add Callback function for the coloring method seletion drop down list
     XtAddCallback (colorMethodSeletionList, XmNselectionCallback,
@@ -1677,21 +1773,31 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 
 // create spinbox for the line width control.
     n = 0;
+    XtSetArg (args[n], XmNarrowSize, 12); n++;
     XtSetArg (args[n], XmNspinBoxChildType, XmNUMERIC); n++;
     XtSetArg (args[n], XmNminimumValue, 10); n++;
-    XtSetArg (args[n], XmNmaximumValue, 100); n++;
     XtSetArg (args[n], XmNincrementValue, 1); n++;
     XtSetArg (args[n], XmNdecimalPoints, 1); n++;
     XtSetArg (args[n], XmNpositionType, XmPOSITION_VALUE); n++;
     XtSetArg (args[n], XmNposition, lineWidthScaler+10); n++;
     XtSetArg (args[n], XmNcolumns,  3); n++;
-    XtSetArg (args[n], XmNarrowSize, 12); n++;
     XtSetArg (args[n], XmNwrap, FALSE); n++;
+#ifdef LESSTIF_VERSION
+    XtSetArg (args[n], XmNmaximumValue, 110); n++;
+    Widget spinBox = XmCreateSpinBox (listCarrier, "spinBox", args, 1);
+    Widget tf = XmCreateTextField(spinBox, "tf", args+1, n-1);
+    XtManageChild(tf);
+    XtManageChild(spinBox);
+    XtAddCallback(tf, XmNvalueChangedCallback,
+        lineWidthCB, (XtPointer)tf);
+#else
+    XtSetArg (args[n], XmNmaximumValue, 100); n++;
     Widget spinBox = XmCreateSimpleSpinBox (listCarrier, "spinBox", args, n);
 
 // Callbacks for the spinebox
     XtAddCallback(spinBox, XmNvalueChangedCallback,
         lineWidthCB, (XtPointer)spinBox);
+#endif
 
 // create RENDER AREA FOR THE graphics.
 #ifdef USE_EXAM_VIEWER
@@ -2009,7 +2115,11 @@ linePatternToggledCB(Widget w, XtPointer client_data, XtPointer call_data)
     int which = (int)client_data;
     int lineNumber=0, columnNumber =0;
 
+#ifdef LESSTIF_VERSION
+    cbs->set == XmSET ? "on" : cbs->set==0 ? "off" : "interminate";
+#else
     cbs->set == XmSET ? "on" : cbs->set==XmOFF ? "off" : "interminate";
+#endif
 }
 
 
