@@ -50,6 +50,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["error_symbol"]           = ("X",self.__optionCallback)
         optionDefaults["use_labels"]             = (1,self.__optionCallback)
 
+        optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
 
         parser = ConfigParser.ConfigParser()
         parser.add_section("AUTO_plotter")

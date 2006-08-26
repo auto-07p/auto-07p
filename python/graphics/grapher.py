@@ -670,11 +670,13 @@ class GUIGrapher(InteractiveGrapher):
         elif type(self.cget(key)) == types.StringType:
             self.valueEntry.configure(validate={"validator":"alphanumeric"})
         
-    def generatePostscript(self,filename=None):
+    def generatePostscript(self,filename=None,pscolormode=None):
+        if pscolormode is None:
+            pscolormode=self.cget("ps_colormode")
         if filename is None:
             filename = tkFileDialog.asksaveasfilename(defaultextension=".eps",title="Save as Postscript File")
         self.update()
-        self.postscript(file=filename)
+        self.postscript(file=filename,colormode=pscolormode)
 
     def printValueBindings(self):
         self.bind("<ButtonPress-1>",self.printValueWrapper)
