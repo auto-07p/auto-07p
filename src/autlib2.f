@@ -372,9 +372,9 @@ C
       DOUBLE PRECISION RDS,RLCUR(*),RLOLD(*),RLDOT(*)
 C
 C Local
-      ALLOCATABLE WI(:),WP(:,:),WT(:,:),DDD(:,:),FCFC(:)
+      ALLOCATABLE WI(:),WP(:,:),WT(:,:),DDD(:,:,:),FCFC(:,:)
       DOUBLE PRECISION WI,WP,WT,DDD,FCFC
-      INTEGER NB,NU,J,K,IAM,NT
+      INTEGER NB,NU,I,J,K,IAM,NT
 C
       ALLOCATE(WI(NCOL+1),WP(NCOL+1,NCOL),WT(NCOL+1,NCOL))
 C
@@ -382,40 +382,43 @@ C
      +     IAP,RAP,PAR,ICP,RDS,CCBC,DD,FC,RLCUR,RLOLD,
      +     RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU)
 C
-      DO J=1,NINT
-         FC(NBC+J)=0.d0
-         DO K=1,NCB
-            DD(K,NBC+J)=0.d0
-         ENDDO
-      ENDDO
-C
       CALL WINT(NCOL+1,WI)
       CALL GENWTS(NCOL,NCOL+1,WT,WP)
 C
-C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,NT,DDD,FCFC,J,K,NB,NU)
-      IAM = 0
       NT = 1
+C$    NT = OMP_GET_MAX_THREADS()
+      IF(NT.GT.1)THEN
+         ALLOCATE(DDD(NCB,NINT,NT-1),FCFC(NINT,NT-1))
+      ENDIF
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,NB,NU)
+      IAM = 0
 C$    IAM = OMP_GET_THREAD_NUM()
-C$    NT = OMP_GET_NUM_THREADS()
-      ALLOCATE(DDD(NCB,NINT),FCFC(NINT))
       NB = IAM*NA/NT+1
       NU = (IAM+1)*NA/NT
-      CALL SUBVPA(NDIM,NB,NU,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +      IAP,RAP,PAR,ICP,AA,BB,CC,DDD,FA,FCFC,
-     +      UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+      IF(IAM.EQ.0)THEN
+         CALL SUBVPA(NDIM,NB,NU,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +        IAP,RAP,PAR,ICP,AA,BB,CC,DD(1,NBC+1),FA,FC(NBC+1),
+     +        UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+      ELSE
+         CALL SUBVPA(NDIM,NB,NU,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +        IAP,RAP,PAR,ICP,AA,BB,CC,DDD(1,1,IAM),FA,FCFC,
+     +        UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+      ENDIF
+C$OMP END PARALLEL
 C
 C     This is were we sum into the global copy of the d array
 C
-      DO J=1,NINT
-         DO K=1,NCB
-C$OMP ATOMIC
-            DD(K,NBC+J)=DD(K,NBC+J)+DDD(K,J)
+      IF(NT.GT.1)THEN
+         DO I=1,NT-1
+            DO J=1,NINT
+               DO K=1,NCB
+                  DD(K,NBC+J)=DD(K,NBC+J)+DDD(K,J,I)
+               ENDDO
+               FC(NBC+J)=FC(NBC+J)+FCFC(J,I)
+            ENDDO
          ENDDO
-C$OMP ATOMIC
-         FC(NBC+J)=FC(NBC+J)+FCFC(J)
-      ENDDO
-      DEALLOCATE(DDD,FCFC)
-C$OMP END PARALLEL
+         DEALLOCATE(DDD,FCFC)
+      ENDIF
 C
       DEALLOCATE(WI,WP,WT)
       RETURN
@@ -789,7 +792,7 @@ C
 C Condensation of parameters (Elimination of local variables).
 C
       NT = 1
-C$    NT = OMP_GET_NUM_THREADS()
+C$    NT = OMP_GET_MAX_THREADS()
       IF(NT.GT.1)THEN
         ALLOCATE(DD(NCB,NRC,NT-1))
       ENDIF
