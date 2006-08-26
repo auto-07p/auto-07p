@@ -783,37 +783,46 @@ C Arguments
       DOUBLE PRECISION D(NCB,*)
 C Local
       INTEGER I,J,K,N,IAM,NT
-      DOUBLE PRECISION, ALLOCATABLE :: DD(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: DD(:,:,:)
       IF(NCA.EQ.2*NOV)RETURN
 C
 C Condensation of parameters (Elimination of local variables).
 C
-C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,NT,DD,J,K,I,N)
-      IAM = 0
       NT = 1
-C$    IAM = OMP_GET_THREAD_NUM()
 C$    NT = OMP_GET_NUM_THREADS()
-      ALLOCATE(DD(NCB,NRC))
-      DO J=1,NRC
-         DO K=1,NCB
-            DD(K,J)=0.0d0
-         ENDDO
-      ENDDO
+      IF(NT.GT.1)THEN
+        ALLOCATE(DD(NCB,NRC,NT-1))
+      ENDIF
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,J,K,I,N)
+      IAM = 0
+C$    IAM = OMP_GET_THREAD_NUM()
       I = IAM*NA/NT+1
       N = (IAM+1)*NA/NT+1-I
-      CALL CONPAP(NOV,N,NRA,NCA,A(1,1,I),NCB,B(1,1,I),NRC,C(1,1,I),DD,
-     +     IRF(1,I),ICF(1,I))
+      IF(IAM.EQ.0)THEN
+        CALL CONPAP(NOV,N,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+      ELSE
+        DO J=1,NRC
+          DO K=1,NCB
+            DD(K,J,IAM)=0.0d0
+          ENDDO
+        ENDDO
+        CALL CONPAP(NOV,N,NRA,NCA,A(1,1,I),NCB,B(1,1,I),NRC,C(1,1,I),
+     +       DD(1,1,IAM),IRF(1,I),ICF(1,I))
+      ENDIF
+C$OMP END PARALLEL
 C
 C     This is were we sum into the global copy of the d array
 C
-      DO J=1,NRC
-         DO K=1,NCB
-C$OMP ATOMIC
-            D(K,J)=D(K,J)+DD(K,J)
-         ENDDO
-      ENDDO
-      DEALLOCATE(DD)
-C$OMP END PARALLEL
+      IF(NT.GT.1)THEN
+        DO I=1,NT-1
+          DO J=1,NRC
+            DO K=1,NCB
+              D(K,J)=D(K,J)+DD(K,J,I)
+            ENDDO
+          ENDDO
+        ENDDO
+        DEALLOCATE(DD)
+      ENDIF
 C
       RETURN
       END
