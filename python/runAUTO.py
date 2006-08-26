@@ -251,8 +251,8 @@ class runAUTO:
         cd dir
         executable"""
         if executable is None:
-            if not(self.opions["executable"] is None):
-                executable = self.opions["executable"]
+            if not(self.options["executable"] is None):
+                executable = self.options["executable"]
             else:
                 raise AUTORuntimeError("No executable set")
         else:
