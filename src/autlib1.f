@@ -2292,6 +2292,7 @@ C
        ELSE
          WRITE(7,112)(ICP(I),I=1,NFPR)
        ENDIF
+       CALL FLUSH(7)
 C
  101   FORMAT('   0 ',1P4E12.4)
  102   FORMAT('   0   EPSL=',1PE11.4,'  EPSU =',1PE11.4,
@@ -2422,6 +2423,7 @@ C
 C
        IF(IUNIT.EQ.6)THEN
           WRITE(6,102)(COL(I),I=1,N1+N2+1)
+          CALL FLUSH(6)
        ELSEIF(IUNIT.EQ.7)THEN
           WRITE(7,103)(COL(I),I=1,N1+N2+1)
        ELSEIF(IUNIT.EQ.9)THEN
@@ -2433,6 +2435,7 @@ C
  102   FORMAT('  BR    PT  TY  LAB ',8A14)
  103   FORMAT('   0    PT  TY  LAB ',8A14)
 C
+      CALL FLUSH(7)
       RETURN
       END
 C
@@ -2651,25 +2654,31 @@ C
 C
        MTOT=MOD(NTOT-1,9999)+1
        IF(N2.EQ.0)THEN
-         IF(MOD(ITP,10).NE.0)
-     *   WRITE(6,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *   (PAR(ICU(I)),I=2,N1)
+         IF(MOD(ITP,10).NE.0)THEN
+           WRITE(6,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
+     *           (PAR(ICU(I)),I=2,N1)
+           CALL FLUSH(6)
+         ENDIF
          WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
      *   (PAR(ICU(I)),I=2,N1)
          WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *   (PAR(ICU(I)),I=2,N1)
        ELSE
          IF(N1.EQ.1)THEN
-           IF(MOD(ITP,10).NE.0)
-     *     WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *     (U(I),I=1,N2)
+           IF(MOD(ITP,10).NE.0)THEN
+             WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),
+     *             VAXIS,(U(I),I=1,N2)
+             CALL FLUSH(6)
+           ENDIF
            WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,(U(I),I=1,N2)
            WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *     (U(I),I=1,N2)
          ELSE
-           IF(MOD(ITP,10).NE.0)
-     *     WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *     (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
+           IF(MOD(ITP,10).NE.0)THEN
+             WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),
+     *             VAXIS,(U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
+             CALL FLUSH(6)
+           ENDIF
            WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
      *     (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
            WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
@@ -2680,6 +2689,7 @@ C
  101   FORMAT(I4,I6,2X,A2,I5,1P8E14.5)
  102   FORMAT(I4,I6,I4,I5,1P8E14.5)
 C
+      CALL FLUSH(7)
       RETURN
       END
 C
@@ -2727,6 +2737,7 @@ C
  101   FORMAT(6I6,I8,I6,I8,3I5)
  102   FORMAT(4X,1P7E19.10)
 C
+       CALL FLUSH(8)
        RETURN
        END
 C
@@ -5965,6 +5976,7 @@ C
  102   FORMAT(4X,1P7E19.10)
  103   FORMAT(20I5)
 C
+      CALL FLUSH(8)
       RETURN
       END
 C
