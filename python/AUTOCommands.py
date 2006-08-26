@@ -1125,6 +1125,29 @@ class commandRunCommand(command):
             return valueRun(log,err)
 
 
+class commandPlotter3D(command):
+    """3D plotting of data.
+
+    Type FUNC('xxx') to run the graphics program PLAUT04 for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).
+
+    Type FUNC() to run the graphics program PLAUT04 for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.
+    """
+
+    def __init__(self,name1=None):
+        self.data = []
+        if not name1 is None:
+            self.data.append(name1)
+    def __call__(self):
+        if self.data == []:
+            os.system("sh -c $AUTO_DIR/bin/plaut04 &")
+        else:
+            os.system("sh -c '$AUTO_DIR/bin/plaut04 %s' &"%(self.data[0],))
+        return valueString("")
+
+
 try:
     import windowPlotter
     try:
@@ -1196,57 +1219,6 @@ try:
                 self.handle.update()
                 return valueStringAndData("Created plotter\n",self.handle.grapher)
 
-    class commandPlotter3D(commandWithFilenameTemplate):
-        """3D plotting of data.
-
-        Type FUNC('xxx') to run the graphics program for the graphical
-        inspection of the data-files b.xxx and s.xxx (if you are using the
-        default filename templates).  The return value will be the handle
-        for the graphics window.
-
-        Type FUNC() to run the graphics program for the graphical
-        inspection of the output-files 'fort.7' and 'fort.8'.  The return
-        value will be the handle for the graphics window.
-        """
-
-        def __init__(self,name=None,templates=None,options={},**kw):
-            self.options = AUTOutil.cnfmerge((options,kw))
-            commandWithFilenameTemplate.__init__(self,name,None,templates)
-        def __call__(self):
-            import Tkinter
-            # root has to be here since I am passing options in
-            # a dictionary.  Otherwise the default agruements
-            # get messed up
-            # NOTE: options set here go to the MegaToplevel!, while
-            # the return value of this function is the underlying
-            # grapher.  Accordingly:
-            # foo = commandPlotter3D(foo="bar").data
-            # is not the same as
-            # foo.config(foo="bar")
-
-            # Get rid of the initial window
-            root=Tkinter.Tk()
-            root.withdraw()
-            if sys.platform == "cygwin":
-                try:
-                    readline.set_pre_input_hook(handleevents)
-                    global _root
-                    _root=root
-                except:
-                    pass
-            if self.name1["bifurcationDiagram"] is None:
-                self.handle = windowPlotter.WindowPlotter3D(root,self.options,grapher_bifurcation_diagram_filename="fort.7",
-                                                            grapher_solution_filename="fort.8")
-                self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle.grapher)
-            else:
-                self.handle = windowPlotter.WindowPlotter3D(root,self.options,grapher_bifurcation_diagram_filename="%s"%self.name1["bifurcationDiagram"],
-                                                            grapher_solution_filename="%s"%self.name1["solution"])
-                self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle.grapher)
-
-
-
 except:
     print
     print "-------------------------------------------------------------"
@@ -1264,16 +1236,6 @@ except:
         
         def __call__(self):
             return valueString("2D plotting has been disabled\n")
-    class commandPlotter3D(commandWithFilenameTemplate):
-        """3D plotting of data.
-
-        Plotting of data has been disabled in the AUTO2000 CLUI.
-        This is probably because the Python interpretor cannot
-        load the Tkinter module.
-        """
-
-        def __call__(self):
-            return valueString("3D plotting has been disabled\n")
 
 
 

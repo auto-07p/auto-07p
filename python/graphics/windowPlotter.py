@@ -4,14 +4,6 @@ import Tkinter
 import Pmw
 import AUTOutil
 import plotter
-try:
-    import plotterDataViewer3D
-except:
-    pass
-try:
-    import plotterOpenInventor3D
-except:
-    pass
 import types
 import string
 
@@ -254,88 +246,6 @@ class WindowPlotter2D(WindowPlotter):
 
             self.xEntry.setentry(self.grapher.cget("solution_x"))
             self.yEntry.setentry(self.grapher.cget("solution_y"))
-
-class WindowPlotter3D(WindowPlotter):
-    def __init__(self,parent=None,cnf={},**kw):
-        WindowPlotter.__init__(self,plotterDataViewer3D.plotter3D,parent,AUTOutil.cnfmerge((cnf,kw)))
-#        WindowPlotter.__init__(self,plotterOpenInventor3D.plotter3D,parent,AUTOutil.cnfmerge((cnf,kw)))
-    def _extraButtons(self,box):
-        self.xEntry = self.createcomponent('xEntry',
-                                      (), None,
-                                      Pmw.ComboBox,box,
-                                      labelpos="w",
-                                      label_text="X")
-        self.xEntry.grid(row=0,column=0)
-
-        self.yEntry = self.createcomponent('yEntry',
-                                      (), None,
-                                      Pmw.ComboBox,box,
-                                      labelpos="w",
-                                      label_text="Y")
-        self.yEntry.grid(row=0,column=1)
-
-        self.zEntry = self.createcomponent('zEntry',
-                                      (), None,
-                                      Pmw.ComboBox,box,
-                                      labelpos="w",
-                                      label_text="Z")
-        self.zEntry.grid(row=1,column=0)
-
-        self.colorEntry = self.createcomponent('colorEntry',
-                                      (), None,
-                                      Pmw.ComboBox,box,
-                                      labelpos="w",
-                                      label_text="COLOR")
-        self.colorEntry.grid(row=1,column=1)
-
-        self.typeUpdateCallback()
-        
-    def typeUpdateCallback(self):
-        if self.grapher.cget("type") == "bifurcation":
-            self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_x",entry))
-            self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_y",entry))
-            self.zEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_z",entry))
-            self.colorEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_color",entry))
-
-            list = []
-            if not(self.grapher.cget("bifurcation_column_defaults") is None):
-                for x in self.grapher.cget("bifurcation_column_defaults"):
-                    list.append(str(x))
-            if len(self.grapher.cget("bifurcation_diagram")) > 0:
-                for i in range(len(self.grapher.cget("bifurcation_diagram")[0]["data"])):
-                    list.append("[%d]"%i)
-            self.xEntry.setlist(list)
-            self.yEntry.setlist(list)
-            self.zEntry.setlist(list)
-            self.colorEntry.setlist(list)
-
-            self.xEntry.setentry(self.grapher.cget("bifurcation_x"))
-            self.yEntry.setentry(self.grapher.cget("bifurcation_y"))
-            self.zEntry.setentry(self.grapher.cget("bifurcation_z"))
-            self.colorEntry.setentry(self.grapher.cget("bifurcation_color"))
-        else:
-            self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_x",entry))
-            self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_y",entry))
-            self.zEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_z",entry))
-            self.colorEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_color",entry))
-
-            list = []
-            if not(self.grapher.cget("solution_column_defaults") is None):
-                for x in self.grapher.cget("solution_column_defaults"):
-                    list.append(str(x))
-            list.append("['t']")
-            if len(self.grapher.cget("solution")) > 0:
-                for i in range(len(self.grapher.cget("solution")[0]["data"][0]["u"])):
-                    list.append("[%d]"%i)
-            self.xEntry.setlist(list)
-            self.yEntry.setlist(list)
-            self.zEntry.setlist(list)
-            self.colorEntry.setlist(list)
-
-            self.xEntry.setentry(self.grapher.cget("solution_x"))
-            self.yEntry.setentry(self.grapher.cget("solution_y"))
-            self.zEntry.setentry(self.grapher.cget("solution_z"))
-            self.colorEntry.setentry(self.grapher.cget("solution_color"))
 
 
 
