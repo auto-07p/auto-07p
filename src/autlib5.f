@@ -263,7 +263,7 @@ C              write(9,*) I,XEQUIB1(I)
       ENDDO
 C     ** Rotations */
       IF(IRTN.NE.0)THEN
-         DO I=1,NDIM
+         DO I=1,NDM
             XEQUIB2(I)=XEQUIB1(I)
             IF(NRTN(I).NE.0)THEN
                IF(ISTART.LT.0)THEN
@@ -1010,8 +1010,8 @@ C
 C     first init last point; otherwise it's overwritten
 C
       DO K=1,NDM
-         UPS(NTSR+1,K)=UPS(NTSR+1,K+(NCOPY-1)*NDM)
-         UDOTPS(NTSR+1,K)=UDOTPS(NTSR+1,K+(NCOPY-1)*NDM)
+         UPS(NTSR*NCOPY+1,K)=UPS(NTSR+1,K+(NCOPY-1)*NDM)
+         UDOTPS(NTSR*NCOPY+1,K)=UDOTPS(NTSR+1,K+(NCOPY-1)*NDM)
       ENDDO
       DO K=NCOPY-1,0,-1
          DO J=NTSR,1,-1
@@ -1068,6 +1068,27 @@ C
       NDIM=IAP(1)
       NDM=IAP(23)
 C
+      IF (ISTART.GE.0.AND.NAR.GT.2*NDM) THEN
+C        Use the usual representation again for normal continuation.
+         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+      ENDIF
+C     Look for rotations
+      CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
+      IF (ISTART.LT.0 .AND. .NOT.(NAR.LT.NDIM .AND. NAR.LT.3*NDM)) THEN
+C        Adjust rotations
+        IF(IRTN.EQ.0)ALLOCATE(NRTN(NDM))
+        IRTN=0
+        DO I=1,NDM
+          NRTN(I)=NINT( (UPS(NTSR+1,NAR-NDM+I)-UPS(1,I)) / 
+     *          (PI(2.d0) * (-ISTART)) )
+          IF(NRTN(I).NE.0)THEN
+             PAR(19)=PI(2.d0)
+             IRTN=1
+          ENDIF
+        ENDDO
+        IF(IRTN.EQ.0)DEALLOCATE(NRTN)
+      ENDIF
+C
 C Shift phase if necessary if continuing from
 C a periodic orbit into a homoclinic one
 C
@@ -1100,8 +1121,6 @@ C We hope that Newton's method will do the rest.
             ENDDO
             DEALLOCATE(UI,F)
          ENDIF
-C
-         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
 C
 C Find smallest value in norm
 C
@@ -1240,7 +1259,6 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
          CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,UDOTPS,PAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
@@ -1259,13 +1277,6 @@ C Copy forelast part
          ENDDO
          PAR(16+2*NAR/NDM)=(UPS(1,NAR-NDM+1)-
      *            UPS(NTSR+1,NAR-2*NDM+1))/ PAR(NPARX-2*NDM+1)
-      ELSEIF (ISTART.GE.0) THEN
-C        Use the usual representation again for normal continuation.
-         IF (NAR.GT.2*NDM) THEN
-            CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
-         ENDIF
-C        Look for rotations
-         CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)            
       ENDIF
 C       
 C Preprocesses (perturbs) restart data to enable 

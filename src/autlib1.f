@@ -5064,15 +5064,9 @@ C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
       DIMENSION UPS(NDX,*),PAR(*)
-      LOGICAL FIRST
-      SAVE FIRST
-      DATA FIRST /.TRUE./
       DATA IRTN /0/
 C
-        IF(FIRST)THEN
-          ALLOCATE(NRTN(NDM))
-          FIRST=.FALSE.
-        ENDIF
+        ALLOCATE(NRTN(NDM))
         IRTN=0
         DO I=1,NDM
           NRTN(I)=NINT( (UPS(NTST+1,I)-UPS(1,I)) / PI(2.d0) )
@@ -5081,6 +5075,7 @@ C
              IRTN=1
           ENDIF
         ENDDO
+        IF(IRTN.EQ.0)DEALLOCATE(NRTN)
 C
       RETURN
       END
