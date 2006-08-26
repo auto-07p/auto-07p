@@ -2,12 +2,6 @@
 
 import sys
 import os
-
-# Now, for machines which use python 1.5.1 instead of 1.5.2 we need
-# to include a few files from the 1.5.2 distribution
-if int(sys.version[0]) <= 1 and int(sys.version[2]) <= 5 and int(sys.version[4]) < 2 :
-    sys.path.append(os.environ["AUTO_DIR"]+'/python/python-1.5.1_compatibility')
-
 import code
 import string
 import AUTOclui
