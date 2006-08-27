@@ -65,10 +65,7 @@ dnl Checks for programs.
 
 AC_PROG_CC
 
-AC_PROG_CXX
-
 AC_PROG_INSTALL
-AC_LANG_CPLUSPLUS
 
 AC_PROG_FC(,[Fortran 90])
 AC_FC_WRAPPERS
@@ -165,6 +162,8 @@ fi
 
 if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
+    AC_PROG_CXX
+    AC_LANG_CPLUSPLUS
 else
     PLAUT04=""
 fi
