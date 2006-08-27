@@ -6,8 +6,8 @@
 #   front end.
 SHELL=/bin/sh
 #
-all: doc src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
-cmd: doc src @PLAUT@
+all: src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+cmd: src @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)
@@ -23,21 +23,30 @@ plaut04: .FORCE
 
 tek2ps: .FORCE
 	cd ./tek2ps;$(MAKE)
+
 # this rule is just there to fool automake from plaut04
 am--refresh:
 
 #
 clean:
-	cd ./src;$(MAKE) clean
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
+	cd ./plaut04;$(MAKE) clean
 	cd ./tek2ps;$(MAKE) clean
+	cd ./doc;$(MAKE) clean
 #
 superclean:  clean
+	cd ./plaut04;$(MAKE) distclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
 	  kpbif listlabels reduce relabel plaut04 r3bplaut04;
 	cd ./lib; rm -f *.o *.a
+	rmdir lib 2> /dev/null
+	cd ./doc; $(MAKE) superclean
+	cd ./include; rm -f stamp-h1
+	rm -f python/*.pyc python/graphics/*.pyc
+	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
+	  tek2ps/Makefile gui/auto.makefile include/config.h cmds/cmds.make
 	@echo "Super cleaning ... done"
 
 .FORCE:
