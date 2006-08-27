@@ -224,7 +224,7 @@ to plot in the Python CLUI, \AUTO uses \filef{ pythonw} instead of
 
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
-to use Gfortran, MSYS (see \webf{http://www.mingw.org}),
+to use GFortran, MSYS (see \webf{http://www.mingw.org}),
 combined with a native Win32 version of Python,
 obtained at \webf{http://www.python.org}. To install this setup:
 \begin{itemize}
@@ -235,7 +235,7 @@ Install the minimal Unix-like environment MSYS from
 \webf{http://www.mingw.org}. You do not need to install MinGW
 itself.
 \item
-Install Gfortran from \webf{http://wiki.gnu.org/Gfortran}.
+Install GFortran from \webf{http://gcc.gnu.org/wiki/GFortran}.
 \item
 Open a CMD.EXE window (click Start, Run, type {\tt cmd}
 in the input box and press the Enter key), and run {\tt sh} in the
@@ -300,9 +300,9 @@ the effective dimension is 3{\tt NDIM}+2.
 \section{Compatibility with Earlier Versions.} \label{sec:Compatibility}
 Unlike earlier versions, \AUTO can no longer be compiled using a pure
 Fortran 77 compiler, but you need at least a Fortran 90 compiler.
-A free Fortran 95 compiler, Gfortran, is shipped with most recent
+A free Fortran 95 compiler, GFortran, is shipped with most recent
 Linux distributions, or can be obtained at
-\webf{http://wiki.gnu.org/Gfortran}, which contains binaries for
+\webf{http://gcc.gnu.org/wiki/GFortran}, which contains binaries for
 Linux, Mac OS X and Windows. \AUTO was also tested with the free
 compiler {\tt g95}, and there exist various, untested, commercial Fortran
 9x compilers as well.
@@ -352,11 +352,11 @@ and even run in a serial mode,
 through the use of the environment variable {\tt OMP\_NUM\_THREADS}.
 
 For example, to run the \AUTO executable \filef{ auto.exe}
-in serial mode you just type \commandf{ export OMP\_NUM\_THREADS=1}.  To run the
-same command in parallel on 4 processors you type 
+in serial mode you just type \commandf{ export OMP\_NUM\_THREADS=1}.
+To run the same command in parallel on 4 processors you type 
 \commandf{export OMP\_NUM\_THREADS=4}. Without any {\tt OMP\_NUM\_THREADS}
-set its number is equal to the actual number of processors
-on the system.
+set the number of processors that \AUTO will use is often equal to the
+actual number of processors on the system.
 
 %==============================================================================
 %==============================================================================
