@@ -1,4 +1,11 @@
-
+NOTE: this is a preliminary version of AUTO-07p.
+It is already usable, but the demos and the manual
+in particular need more work.
+Please have a look at the manual, doc/auto.ps,
+in particular Chapter 1, for information about
+requirements and differences with earlier versions
+of AUTO.
+---------
 For installation instructions see the AUTO manual.  
 The LaTeX source file of the manual is in doc/auto.tex. 
 
