@@ -125,54 +125,89 @@ Engineering and Physical Science Research Council and the Nuffield Foundation.
 %==============================================================================
 %==============================================================================
 \section{ Installation.} \label{sec:Installation}
-The {\cal AUTO} files {\tt auto.ps.gz, auto.tar.gz} and {\tt README} 
-are available via FTP from 
-directory {\tt pub/doedel/auto} at {\it ftp.cs.concordia.ca}.
+%The {\cal AUTO} files {\tt auto.ps.gz, auto.tar.gz} and {\tt README} 
+%are available via FTP from 
+%directory {\tt pub/doedel/auto} at {\it ftp.cs.concordia.ca}.
+The {\cal AUTO} file {\tt auto07p-0.1.tar.gz} is
+available via HTTP from {\it http://sourceforge.net/projects/auto2000}.
 The {\tt README} file contains the instructions for printing this manual.
-Below it is assumed that you are using the Linux {\it bash} shell 
-and that the file {\tt auto.tar.gz} is in your main directory.
+Below it is assumed that you are using the Unix (e.g. {\it bash}) shell 
+and that the file {\tt auto07p-0.1.tar.gz} is in your main directory.
 
 While in your main directory, enter the commands
-{\it gunzip auto.tar.gz},
-followed by
-{\it tar xvfo auto.tar}.
-This will result in a directory {\tt auto}, 
-with one subdirectory, {\tt auto/07}. 
-Type {\it cd auto/07}  
-to change directory to {\tt auto/07}.
-Then type {\it make}.  
-Upon compilation, type 
-{\it make clean}  
+\commandf{gunzip auto07p-0.1.tar.gz},
+followed by\\
+\commandf{tar xvfo auto07p-0.1.tar}.
+This will result in a directory \filef{ auto}, 
+with one subdirectory, \filef{ auto/07p}. 
+Type \commandf{ cd auto/07p}
+to change directory to \filef{ auto/07p}.
+Then type 
+\commandf{ ./configure}~,
+to check your system for required compilers and libraries.
+Once the \filef{ configure} script has finished you 
+may then type \commandf{ make} to compile \AUTO
+and its ancillary software.
+The \filef{ configure} script is designed to detect the details
+of your system which \AUTO requires to compile successfully.
+If either the \filef{ configure} script or the \filef{ make} command
+should fail, you may assist the \filef{ configure} script by giving
+it various command line options.  Please type \commandf{ ./configure --help}
+for more details.
+Upon compilation, you may type 
+\commandf{ make clean}  
 to remove unnecessary files.
-Also add the following two commands:
-{\it export AUTO\_DIR=/mnt/auto/07}
-(correcting the path, if necessary), and
-{\it PATH="\$PATH:\$AUTO\_DIR/cmds:\$AUTO\_DIR/bin:."}
-to your {\tt .bashrc} file.
+
+To run \AUTO you need to set your environment variables correctly.
+Assuming \AUTO is installed in your home directory, the following
+commands set your environment variables so that you will be able to
+run the \AUTO commands, and may be placed into your \filef{.login},
+\filef{.profile}, or \filef{.cshrc} file, as appropriate.  If you are
+using a \commandf{sh} compatible shell, such as \commandf{sh},
+\commandf{bash}, \commandf{ksh}, or \commandf{ash} enter the command
+\commandf{ source~ {\rm \$}HOME/auto/07p/cmds/auto.env.sh}.  On the
+other hand, if you are using a \commandf{csh} compatible shell, such
+as \commandf{csh} or \commandf{tcsh}, enter the command \commandf{
+source~ {\rm \$}HOME/auto/2000/cmds/auto.env}.
 
 The Graphical User Interface (GUI) requires the {\cal X-Window} system
 and {\cal Motif}.
-It may be necessary to enter their correct pathname in the Makefile
-in {\tt auto/07/gui}.
-Note that the GUI is not strictly necessary, since {\cal AUTO} can be run very effectively using the Linux Command Language User Interface (CLUI).
+Note that the GUI is not strictly necessary, since {\cal AUTO} can be run very effectively using the Unix Command Language User Interface (CLUI).
 Moreover, long or complicated sequences of {\cal AUTO} calculations can
 be programmed using the alternative Python CLUI. 
-To compile {\cal AUTO} without the GUI, type {\it make cmd} in directory 
-{\tt auto/07}.
+THe GUI is not compiled by default. To compile
+\AUTO with the GUI, type \commandf{ ./configure --enable-gui}
+and then \filef{ make} in the directory \filef{ auto/07p}.
 
-For timing purposes, the file {\tt auto/07/src/autlib1.f}
+The new graphic tool for \AUTO data visualization, PLAUT04, is
+compiled by default, but depends on a few libraries that may not be
+in a standard installation of a typical Unix-like
+system. These libraries may be available as optional packages,
+though. Specifically, PLAUT04 requires at least either SGI Open
+Inventor 2.5.10or Coin3D 2.2 with SoXt 1.1.0. It also needs the
+libraries simage 1.6 and (Open)Motif or LessTif 2.0. Any higher
+version numbers should also work. The configure script checks
+for these libraries and outputs a warning if any of these libraries
+cannot be found; if they are not available you can still compile
+all other components of \AUTO using \filef{ make}.
+
+For timing purposes, the file {\tt auto/07p/src/autlib1.f}
 contains references to the function {\it etime}.
-If this function is not automatically supplied by your f77 compiler then it can be 
+If this function is not automatically supplied by your Fortran compiler then it can be 
 replaced by an appropriate alternative call, or it can be disabled by replacing
 the two occurrences of the string {\it T=etime(timaray)} with {\it T=0.}
-To recompile {\tt autlib1.f}, type {\it @C 1} in directory {\tt auto/07/src}.
+To recompile {\tt autlib1.f}, type {\it @C 1} in directory {\tt
+  auto/07p/src}. Similarly, this file contains references to the
+subroutine {\it FLUSH} to avoid buffering of screen output when
+running \AUTO from Python. These calls can be commented out if your
+Fortran compiler does not support them.
 
-To enable the PostScript conversion command {\it @ps}, 
-type {\it make} in directory.  {\tt auto/07/tek2ps}.
-To generate the on-line manual, type {\it make} in {\tt auto/07/doc}.
+The PostScript conversion command {\it @ps} is compiled by
+default. Alternatively you can type {\it make} in directory.  {\tt auto/07p/tek2ps}.
+To generate the on-line manual, type {\it make} in {\tt auto/07p/doc}.
 
 To prepare {\cal AUTO} for transfer to another machine, type {\it make superclean}
-in directory {\tt auto/07} before creating the {\it tar}-file. 
+in directory {\tt auto/07p} before creating the {\it tar}-file. 
 This will remove all executable, object, and other non-essential files, and
 thereby reduce the size of the package.
 
@@ -180,23 +215,69 @@ Some {\cal EISPACK} routines used by {\cal AUTO} for computing eigenvalues and
 Floquet multipliers are included in the package
 (\citename{EISPACK:76} \citeyear{EISPACK:76}).
 
+\subsection{Installation on Mac OS X}
+\AUTO runs on Mac OS X using the above instructions provided that
+you have the development tools
+installed. You do not need to start an X server to run AUTO. To be able
+to plot in the Python CLUI, \AUTO uses \filef{ pythonw} instead of
+\filef{ python}. This should happen automatically.
+
+\subsection{Installation on Windows}
+A native, light-weight solution for running AUTO on Windows is
+to use Gfortran, MSYS (see \webf{http://www.mingw.org}),
+combined with a native Win32 version of Python,
+obtained at \webf{http://www.python.org}. To install this setup:
+\begin{itemize}
+\item
+Install Python from \webf{http://www.python.org}.
+\item
+Install the minimal Unix-like environment MSYS from
+\webf{http://www.mingw.org}. You do not need to install MinGW
+itself.
+\item
+Install Gfortran from \webf{http://wiki.gnu.org/Gfortran}.
+\item
+Open a CMD.EXE window (click Start, Run, type {\tt cmd}
+in the input box and press the Enter key), and run {\tt sh} in the
+MSYS directory, for instance, using
+\filef{ c:\textbackslash msys\textbackslash 1.0\textbackslash
+bin\textbackslash sh $--$login $-$i }
+(the Python CLUI does not work in the default MSYS shell environment
+ accessed by its desktop icon).
+\item
+The {\tt sh} command put you in a home directory, where you can unpack
+\AUTO using \filef{gunzip} and \filef{tar}, as described above.
+\item
+Make sure that the {\tt gfortran} and {\tt python} binaries
+are in your {\tt PATH}, and that their directories are at the front of it.
+You can do this, for instance, using the shell command
+\commandf{ export PATH="/c/Python24:/c/Program Files/gfortran/bin:\$PATH" }.
+You can also inspect, edit and then source the file
+\filef{auto/07p/cmds/auto.env.sh} to achieve this.
+\item
+Now you should be able to run configure, make, and run \AUTO as
+shown above.
+\end{itemize}
+
+Alternatively, \AUTO runs on Windows as above using the Unix-like
+environment Cygwin (see \webf{http://www.cygwin.com}). You should have
+at least the default installation, \filef{gcc}, \filef{gfortran},
+\filef{make}, and \filef{ python } installed. The 2D-plot command
+is not as reponsive in Cygwin Python as in the above native setup, however.
+
+In both cases, an X server is not necessary, unless you wish to try to run
+PLAUT, PLAUT04, or the GUI.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
-There are size restrictions in the file {\tt auto/07/include/auto.h}
+There are size restrictions in the file {\tt auto/07p/include/auto.h}
 on the following {\cal AUTO}-constants~:
-the effective problem dimension {\tt NDIM},
-the number of collocation points {\tt NCOL},
-the number of mesh intervals {\tt NTST},
-the effective number of boundary conditions {\tt NBC},
-the effective number of integral conditions {\tt NINT},
-the effective number of equation parameters {\tt NPAR},
+the effective number of equation parameters {\tt NPAR}, and
 the number of stored branch points {\tt NBIF} for algebraic problems,
-and the number of user output points {\tt NUZR}. 
 See Chapter~\ref{ch:AUTO_constants} 
 for the significance these constants. 
 Their maxima are denoted by the  corresponding constant followed by an{\tt X}.
-For example, {\tt NDIMX} in {\tt auto.h} denotes the maximum value 
-of {\tt NDIM}.
+For example, {\tt NPARX} in {\tt auto.h} denotes the maximum value 
+of {\tt NPAR}.
 If any of these maxima is exceeded in an {\cal AUTO}-run then a message 
 will be printed.
 The exception is the the maximum value of {\tt NPAR},
@@ -205,10 +286,7 @@ Upon installation {\tt NPARX}=36; it should never be decreased below that value;
 see also Section~\ref{sec:Restrictions_on_PAR}.
 Size restrictions can be changed by editing {\tt auto.h}.
 This must be followed by recompilation by typing {\it make} 
-in directory {\tt auto/07/src}.
-{\it It is strongly recommended that {\tt NCOLX=4} be used, and that 
-the value of {\tt NDIMX} and {\tt NTSTX} be chosen as small as
-possible for the intended application of {\cal AUTO}}.
+in directory {\tt auto/07p/src}.
 
 Note that in certain cases the {\it effective dimension} may be greater
 than the user dimension.
@@ -220,6 +298,15 @@ the effective dimension is 3{\tt NDIM}+2.
  
  
 \section{Compatibility with Earlier Versions.} \label{sec:Compatibility}
+Unlike earlier versions, \AUTO can no longer be compiled using a pure
+Fortran 77 compiler, but you need at least a Fortran 90 compiler.
+A free Fortran 95 compiler, Gfortran, is shipped with most recent
+Linux distributions, or can be obtained at
+\webf{http://wiki.gnu.org/Gfortran}, which contains binaries for
+Linux, Mac OS X and Windows. \AUTO was also tested with the free
+compiler {\tt g95}, and there exist various, untested, commercial Fortran
+9x compilers as well.
+
 The {\cal AUTO} output files are now called 
 {\tt b.xxx} (the bifurcation-diagram-file),
 {\tt s.xxx} (the solution-file),
@@ -230,7 +317,47 @@ compared to recent versions of {\cal AUTO}, such as {\cal AUTO97}
 and {\cal AUTO2000}.
 The main change compared to {\cal AUTO97} is that there is now a
 programmable Python CLUI.
+
+When upgrading from {\cal AUTO2000}, you can continue to use
+equations-files written in C. However, there is now a strict
+difference between indexing of the array {\tt par[]} in the
+C file and the references to it using {\tt PAR()} in constants
+files and output, using {\tt par[i]=PAR(I+1)}. In practise this
+means that you do not have to change the C file, but need to
+add 1 to all parameter indices in the constant files, namely
+{\tt ICP(I)}, {\tt THL(I)}, and {\tt UZR(I)}. For example,
+the period is referenced by {\tt par[10]} in the C file,
+but by {\tt PAR(11)} in the constants file. Equation files
+written in C are used in the homoclinic branch switching
+demo in Chapter~\ref{ch:HomCont_hbs}.
  
+\section{Parallel Version.} \label{sec:Parallel}
+\AUTO contains code which allows
+it to run in on parallel computers.  Namely,
+it can use OpenMP to run most of its code in parallel
+on shared-memory multi-processors.
+When the \filef{ configure} script is run it will try to
+detect if the Fortran compiler supports OpenMP; examples
+are Gfortran 4.2 and the Intel Fortran Compiler.
+If it is successful the necessary compiler flags are used
+to enable OpenMP in \AUTO.
+To force the \filef{ configure} script not to use OpenMP,
+one may type \commandf{ ./configure --without-openmp},
+and then type \commandf{ make}.
+On the other hand, unless there is some
+particular difficulty, we recommend that that the 
+\filef{ configure} script be used without arguments, since the
+parallel version of \AUTO may easily be controlled,
+and even run in a serial mode,  
+through the use of the environment variable {\tt OMP\_NUM\_THREADS}.
+
+For example, to run the \AUTO executable \filef{ auto.exe}
+in serial mode you just type \commandf{ export OMP\_NUM\_THREADS=1}.  To run the
+same command in parallel on 4 processors you type 
+\commandf{export OMP\_NUM\_THREADS=4}. Without any {\tt OMP\_NUM\_THREADS}
+set its number is equal to the actual number of processors
+on the system.
+
 %==============================================================================
 %==============================================================================
 \chapter{ Overview of Capabilities.} \label{ch:Overview}
@@ -456,12 +583,12 @@ A source file {\tt xxx.f} containing the Fortran routines
 Here {\tt xxx} stands for a user-selected name. 
 If any of these routines is irrelevant 
 to the problem then its body need not be completed.
-Examples are in {\tt auto/07/demos}, where, e.g.,
+Examples are in {\tt auto/07p/demos}, where, e.g.,
 the file {\tt ab/ab.f} defines a two-dimensional dynamical system,
 and the file {\tt exp/exp.f} defines a boundary value problem.
 The simplest way to create a new equations-file is to copy 
 an appropriate demo file.
-For a fully documented equations-file see {\tt auto/07/gui/aut.f}.
+For a fully documented equations-file see {\tt auto/07p/gui/aut.f}.
 In GUI mode, this file can be directly loaded with the GUI-button 
 {\it Equations/New}; see Section~\ref{sec:GUI_Menu_bar}.
  
@@ -470,7 +597,7 @@ In GUI mode, this file can be directly loaded with the GUI-button
 {\cal AUTO}-constants for {\tt xxx.f} are normally expected 
 in a corresponding file {\tt c.xxx}.
 Specific examples include {\tt ab/r.ab}
-and {\tt exp/r.exp} in {\tt auto/07/demos}.
+and {\tt exp/r.exp} in {\tt auto/07p/demos}.
 See Chapter~\ref{ch:AUTO_constants}
 for the significance of each constant.
 
@@ -516,7 +643,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
 %==============================================================================
 %==============================================================================
-\chapter{ Running {\cal AUTO} using Linux Commands.} \label{sec:command_mode}
+\chapter{ Running {\cal AUTO} using Unix Commands.} \label{sec:command_mode}
 %==============================================================================
 %==============================================================================
 {\cal AUTO} can be run with the GUI described in Chapter~\ref{ch:GUI} 
@@ -527,7 +654,7 @@ and a corresponding constants-file {\tt c.xxx}
 (see Section~\ref{ch:User_supplied_files})
 must be in the current user directory.
 \\
-{\it Do not run {\cal AUTO} in the directory {\tt auto/07} 
+{\it Do not run {\cal AUTO} in the directory {\tt auto/07p} 
 or in any of its subdirectories.}
 
 \section{ Basic commands.} 
@@ -791,7 +918,7 @@ or in any of its subdirectories.}
 \item[\tt @dm]~:
   Type {\it @dm xxx} 
   to copy all files 
-  from {\tt auto/07/demos/xxx}
+  from {\tt auto/07p/demos/xxx}
   to the current user directory.
   Here {\tt xxx} denotes a demo name; e.g., {\tt abc}.
   Note that the {\it @dm} command also copies a {\it Makefile}
@@ -803,26 +930,1717 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 
-\item[\tt @mn]~: Use {\cal Ghostview} to view the PostScript version of this manual.
+\item[\tt @mn]~: Use {\cal gv} to view the PostScript version of this manual.
 \end{itemize}
 
 \newpage
 
 %==============================================================================
 %==============================================================================
-\chapter{ Running {\cal AUTO} using Python Commands.} \label{sec:python_mode}
+\chapter{ Running {\cal AUTO} using Python Commands.} \label{ch:python_mode}
 %==============================================================================
 %==============================================================================
+
+ \section{ Typographical Conventions }
+ This chapter uses the following conventions.
+ All code examples will be in in the following font.
+
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> copydemo("ab")
+ Copying demo ab ... done 
+ \end{boxedverbatim} 
+ \end{center}
+ }
+
+ To distinguish commands which are typed to the Unix
+ shell from those which are typed to the \AUTO
+ command line user interface (CLUI) we will use the
+ following two prompts.
+
+ \begin{tabular}{|l|l|}
+ \hline 
+ \verb!>! & Commands which follow this prompt are for the Unix shell. \\ \hline
+ \verb!AUTO>!   & Commands which follow this prompt are for the \AUTO CLUI. \\ \hline
+ \end{tabular}
+
+ \section{ General Overview.} \label{sec:CLUI_Overview}
+ The \AUTO command line user interface (CLUI) is similar
+ to the command language described in Section~\ref{sec:command_mode}
+ in that it facilitates the interactive creating and editing of 
+ equations-files and constants-files.
+ It differs from the other command language in that it is based 
+ on the object-oriented scripting language \python~ (see \citename{Lut:96} \citeyear{Lut:96})
+ and provides extensive programming capabilities.
+ This chapter will provide documentation for the \AUTO CLUI commands,
+ but is not intended as a tutorial for the \python~ language.
+ We will attempt to make this chapter self contained by describing
+ all \python~ constructs that we use in the examples, but
+ for more extensive documentation on the \python~ language,
+ including tutorials and pointers to further documentation,
+ please see \citename{Lut:96} \citeyear{Lut:96} or the
+ web page \webf{http://www.python.org} which contains
+ an excellent tutorial at 
+ \webf{http://www.python.org/doc/current/tut/tut.html}.
+
+ To use the CLUI for a new equation, change to an empty directory.
+ For an existing equations-file, change to its directory.
+ (\emp{Do not activate the CLUI in the directory \filef{auto/2000} 
+ or in any of its subdirectories.})
+ Then type 
+
+ \centerline {\commandf{auto}.}
+
+ If your command search path has been correctly set (see
+ Section~\ref{sec:Installation}), this command will start the \AUTO CLUI
+ interactive interpretor and provide you with the \AUTO CLUI prompt.
+
+ \begin{figure}[htbp]
+ {\small 
+ \begin{center} \begin{boxedverbatim}
+ > auto
+ Initializing
+ Python 1.5.2 (1, Feb  1 2000, 16:32:16)  [GCC egcs-2.91.66 19990314/Linux 
+ Copyright 1991-1995 Stichting Mathematisch Centrum, Amsterdam
+ (AUTOInteractiveConsole)
+ AUTO> 
+ \end{boxedverbatim}
+ \end{center}
+ }
+ \caption[Starting the \AUTO CLUI.]
+ {Typing \commandf{auto} at the Unix shell prompt starts the
+ \AUTO CLUI.  }
+ \label{exa:clui_starting}
+ \end{figure}
+
+ In addition to the examples in the following sections there are
+ several example scripts which can be found in
+ \filef{auto/2000/demos/python} and are listed in
+ Table~\ref{tbl:demo_scripts}.  These scripts are fully annotated and
+ provide good examples of how \AUTO CLUI scripts are written.  The
+ scripts in \filef{auto/2000/demos/python/n-body} are espcially lucid
+ examples and preform various related parts of a calculation involving
+ the gravitional N-body problem.  
+ Scripts which end in the
+ suffix \filef{.auto} are called ``basic'' scripts and can
+ be run by typing \commandf{auto scriptname.auto}.
+ The scripts show in Section~\ref{sec:clui_first_example}
+ and Section~\ref{sec:clui_complex_example} are examples
+ of basic scripts.
+ Scripts which end in the
+ suffix \filef{.xauto} are called ``expert'' scripts and can
+ be run by typing \commandf{autox scriptname.xauto}.
+ More information on expert scripts can be 
+ found in Section~\ref{sec:clui_extending}.
+ See the \filef{README} file in that
+ directory for more information.
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l |}
+ \hline
+ Script & Description \\
+ \hline
+ demo1.auto & \begin{minipage}{3in}\smallskip The demo script from Section~\ref{sec:clui_first_example}.\smallskip\end{minipage} \\
+ \hline
+ demo2.auto & \begin{minipage}{3in}\smallskip The demo script from Section~\ref{sec:clui_complex_example}.\smallskip\end{minipage} \\
+ \hline
+ userScript.xauto & \begin{minipage}{3in}\smallskip The expert demo script from Figure~\ref{exa:clui_complex_function}.\smallskip\end{minipage} \\
+ \hline
+ userScript.py & \begin{minipage}{3in}\smallskip The loadable expert demo script from Figure~\ref{exa:clui_complex_interactive}.\smallskip\end{minipage} \\
+ \hline
+ fullTest.auto & \begin{minipage}{3in}\smallskip A script which uses the entire \AUTO command set, except for the plotting commands.\smallskip\end{minipage} \\
+ \hline
+ plotter.auto & \begin{minipage}{3in}\smallskip A demonstration of some of the plotting capabilities of \AUTO. \smallskip\end{minipage}\\
+ \hline
+ fullTest.auto & \begin{minipage}{3in}\smallskip A script which implements the tutorial from Section~\ref{sec:Demos_ab}. \smallskip\end{minipage}\\
+
+ \hline n-body/compute\_lagrange\_points\_family.auto 
+ & \begin{minipage}{3in}\smallskip A basic script which computes and plots all of the
+ ``Lagrange points'' as a function of the ratio of the masses of
+ the two planets.\smallskip\end{minipage}\\
+
+ \hline n-body/compute\_lagrange\_points\_0.5.auto
+ & \begin{minipage}{3in}\smallskip A basic script which computes all of the ``Lagrange
+ points'' for the case where the masses of the two planets are
+ equal, and saves the data.
+ \smallskip\end{minipage}\\
+
+ \hline n-body/compute\_periodic\_family.xauto
+ & \begin{minipage}{3in}\smallskip An expert script which starts at a ``Lagrange
+ point'' computed by compute\_lagrange\_points\_0.5.auto
+ and continues in the ratio of the masses until
+ a specified mass ratio is reached.  It then computes
+ a family of periodic orbits for each pair of
+ purely complex eigenvalues.
+ \smallskip\end{minipage}\\
+
+ \hline n-body/to\_matlab.xauto
+ & \begin{minipage}{3in}\smallskip A script which takes a set of \AUTO data files and creates
+ a set of files formatted for importing into Matlab
+ for either plotting or further calculations.
+ \smallskip\end{minipage}\\
+ \hline
+ \end{tabular}
+ \caption[Available demo scripts.]
+ {The various demonstration scripts for the \AUTO CLUI.}
+ \label{tbl:demo_scripts}
+ \end{center}
+ \end{table}
+
+ \section{ First Example } \label{sec:clui_first_example}
+
+ We begin with a simple example of the \AUTO CLUI.  In this example we
+ copy the \filef{ab} demo from the \AUTO installation directory and
+ run it.  For more information on the \filef{ab} demo see
+ Section~\ref{sec:Demos_ab}.
+ The commands listed in Table~\ref{tbl:example_clui_1}
+ will copy the demo files to your work directory and run
+ the first part of the demo.
+ The results of running these commands are shown in Figure~\ref{exa:clui_first_example}.
+
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l |}
+ \hline
+   {\cal Unix}-COMMAND  & ACTION \\
+ \hline
+ %==============================================================================
+   \commandf{ auto}  & start the \AUTO CLUI\\ 
+ \hline
+   \AUTO CLUI COMMAND  & ACTION \\
+ \hline
+   \commandf{ copydemo('ab')}  & copy the demo files to the work directory\\
+   \commandf{ load(equation='ab')}  & load the filename \filef{ab.f} into memory\\
+   \commandf{ load(constants='ab.1')}  & load the contents of the file \filef{r.ab.1} into memory\\
+   \commandf{ run()}  & run \AUTO with the current set of files\\
+ \hline
+ %==============================================================================
+ \end{tabular}
+ \caption[Running the demo \filef{ ab} files.]
+ {Running the demo \filef{ ab} files.}
+ \label{tbl:example_clui_1}
+ \end{center}
+ \end{table}
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ > auto
+ Python 2.3.5 (#2, Jun 13 2006, 23:12:55) 
+ [GCC 4.1.2 20060613 (prerelease) (Debian 4.1.1-4)] on linux2
+ Type "help", "copyright", "credits" or "license" for more information.
+ (AUTOInteractiveConsole)
+ AUTO> copydemo('ab')
+ Copying demo ab ... done
+ AUTO> load(equation='ab')
+ Runner configured
+ AUTO> load(constants='ab')
+ Runner configured
+ AUTO> run()
+ gfortran  -O -c ab.f -o ab.o
+ gfortran -O ab.o -o ab.exe /home/enbeo/auto/07pp/lib/*.o
+ Starting ab ...
+ 
+   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
+    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+    1    31  UZ    2   1.40000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    36  UZ    3   1.50000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    41  UZ    4   1.60000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    51  EP    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+
+ Total Time    0.240E-01
+ ab ... done
+ AUTO>
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[The first example of the \AUTO CLUI.]
+ {Typing \commandf{auto} at the Unix shell prompt starts the
+ \AUTO CLUI.  The rest of the commands are interpreted by
+ the \AUTO CLUI.}
+ \label{exa:clui_first_example}
+ \end{figure}
+
+
+ Let us examine more closely what action each of the commands 
+ performs.  First, \commandf{copydemo('ab')} 
+ (Section~\ref{sec:clui_ref_commandCopyDemo} in the reference) copies the files in 
+ \filef{ \$AUTO\_DIR/demo/ab} into the work directory.  
+
+ Next, \commandf{load(equation='ab')} 
+ (Section~\ref{sec:clui_ref_commandRunnerLoadName} in the reference)
+ informs the \AUTO CLUI that the name of
+ the user defined function file is \filef{ab.c}.  The command
+ \commandf{load} is one of the most commonly used commands in the
+ \AUTO CLUI, since it reads and parses the user files which are
+ manipulated by other commands.  The \AUTO CLUI stores this setting
+ until it is changed by a command, such as another \commandf{load}
+ command.  The idea of storing information is one of the ideas that
+ sets the CLUI apart from the command language described in
+ Section~\ref{sec:command_mode}.
+
+ Next, \commandf{load(constants='ab.1')} parses the \AUTO
+ constants file \filef{c.ab.1} and reads it into memory.  Note that
+ \emp{changes to the file \filef{c.ab.1} after it has been loaded in
+ will not be used by \AUTO unless it is loaded in again after the
+ changes are made}.  
+
+ Finally, \commandf{run()} 
+ (Section~\ref{sec:clui_ref_commandRun} in the reference)
+ uses the user defined functions loaded
+ by the \commandf{load(equation='ab')} command, and the \AUTO constants
+ loaded by the \commandf{load(constants='ab.1')} to run \AUTO.
+
+ Figure~\ref{exa:clui_first_example} showed two of 
+ the file types that the 
+ \commandf{load} command can read into memory, namely 
+ the user defined function file and the \AUTO constants
+ file (Section~\ref{ch:User_supplied_files}).  
+ There are two other files types that can be read
+ in using the \commandf{load} command, and they are
+ the restart solution file (Section~\ref{ch:Output_files})
+ and the {\cal HomCont} parameter
+ file (Section~\ref{sec:HomCont_files}).
+
+ Note that the name given to the load
+ command is not the same as the filename which is read
+ in, for example \commandf{load(constants='ab.1')} reads in 
+ the file \filef{c.ab.1}.  This difference is 
+ a result of the automatic transformation of the
+ filenames by the 
+ \AUTO CLUI into the
+ standard names used by \AUTO.  
+ The standard filename
+ transformations are show in Table~\ref{tbl:clui_filename_translation}. 
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l | l | l |}
+ \hline
+ Long name & Short name & Name entered & Transformed file name \\
+ \hline
+ equation  & e          & foo          &foo.c \\
+ \hline
+ constants  & c          & foo          & c.foo \\
+ \hline
+ solution  & s          & foo          & s.foo \\
+ \hline
+ bifurcationDiagram  & b          & foo          &b.foo \\
+ \hline
+ diagnostics  & d          & foo          &d.foo \\
+ \hline
+ homcont  & h          & foo          &h.foo \\
+ \hline
+ \end{tabular}
+ \caption[Standard \AUTO CLUI filename translations.]
+ {This table shows the standard \AUTO CLUI filename
+ translations.  In \filef{load} and \filef{run}
+ commands either the long name or the short name may be
+ used for loading the appropriate files.}
+ \label{tbl:clui_filename_translation}
+ \end{center}
+ \end{table}
+
+ Since the \commandf{load} command is so common, there are
+ various shorthand versions of it.  First, there are short versions
+ of the various arguments as shown in Table~\ref{tbl:clui_filename_translation}.
+ For example, the command \commandf{load(constants='ab.1')} can 
+ be shortened to \commandf{load(c='ab.1')}.
+ Next, several different
+ files may be loaded at once using the same \commandf{load} command.
+ For example, the two commands in Figure~\ref{exa:clui_two_command}
+ have the same effect as the single command in 
+ Figure~\ref{exa:clui_one_command}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> load(e='ab')
+ Runner configured
+ AUTO> load(c='ab.1)
+ Runner configured
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Loading two files individually]
+ {Loading two files individually.}
+ \label{exa:clui_two_command}
+ \end{figure}
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> load(e='ab',c='ab.1')
+ Runner configured
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Loading two files at the same time]
+ {Loading two files at the same time.}
+ \label{exa:clui_one_command}
+ \end{figure}
+
+ Also, since it is common that several files will be loaded that
+ have the same base name \commandf{load('ab')} performs the same 
+ action as \commandf{load(e='ab',c='ab',s='ab',h='ab')}.  Note, 
+ for the command \commandf{load('ab')} it is only required that 
+ \filef{ab.c} and \filef{c.ab} exist;  \filef{s.ab} and
+ \filef{h.ab} are optional, and if they do not exist,
+ no error message will be given.  
+
+
+ \section{ Scripting }
+
+ Section~\ref{sec:clui_first_example} showed commands
+ being interactively entered at the \AUTO CLUI
+ prompt, but since the \AUTO CLUI is based 
+ on \python~ one has the ability to write
+ scripts for performing sequences of commands
+ automatically.  A \python~ script is very similar
+ to the interactive mode shown in Section~\ref{sec:clui_first_example}
+ except that the commands are placed in a file and
+ read all at once.  For example, if the
+ commands from Figure~\ref{exa:clui_first_example} where placed 
+ into the file \filef{demo1.auto}, in the format shown in 
+ Figure~\ref{exa:clui_first_script}, then the commands
+ could be run all at once by typing \commandf{auto demo1.auto}.
+ See Figure~\ref{exa:clui_run_first_script} for the
+ full output.
+
+ \begin{figure}[htb]
+ {\small \begin{center} \begin{boxedverbatim}
+ copydemo('ab')
+ load(equation='ab')
+ load(constants='ab.1')
+ run()
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[First example of a \AUTO CLUI script.]
+ {The commands from Figure~\ref{exa:clui_first_example}
+ and they would appear in a \AUTO CLUI script file.
+ The source for this script can be found in \filef{\$AUTO\_DIR/demos/python/demo1.auto}.
+ }
+ \label{exa:clui_first_script}
+ \end{figure}
+
+ \begin{figure}[htb]
+ {\small \begin{center} \begin{boxedverbatim}
+ > cat demo1.auto
+ copydemo('ab')
+ load(equation='ab')
+ load(constants='ab.1')
+ run()
+
+ > auto demo1.auto 
+ Initializing
+ Copying demo ab ... done
+ Runner configured
+ Runner configured
+ gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c ab.c
+ gcc -O ab.o -o ab.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread 
+ -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
+ Starting ab ...
+
+    1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
+    1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
+    1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
+    1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
+    1    92  EP   5  1.512417E-01  4.369748E+00  9.155894E-01  4.272750E+00
+
+  Total Time    8.740E-02
+ ab ... done
+ > 
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Figure of running a simple \AUTO CLUI script.]
+ {This Figure starts by listing the contents
+ of the \filef{demo1.auto} file using the Unix
+ \commandf{cat} command.  The file is then run through
+ the \AUTO CLUI by typing {auto demo1.auto} 
+ and the output is shown.}
+ \label{exa:clui_run_first_script}
+ \end{figure}
+
+
+ \section{ Second Example } \label{sec:clui_complex_example}
+
+ In Section~\ref{sec:clui_first_example} we showed a very simple
+ \AUTO CLUI script, in this Section we will describe a more
+ complex example, which introduces several new \AUTO CLUI
+ commands as well as some basic \python~ constructs for conditionals
+ and looping.  We will not provide an exhaustive reference for
+ the \python~ language, but only 
+ the very basics.  For more extensive documentation we refer the
+ reader to \citename{Lut:96} \citeyear{Lut:96} or the
+ web page \webf{http://www.python.org}.
+ In this section we will describe each line of the script
+ in detail, and the full text of the script is in
+ Figure~\ref{exa:clui_complex_script}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ copydemo('bvp')
+
+ ld('bvp')
+ run()
+ sv('bvp')
+ ld(s='bvp')
+ data = sl('bvp')
+ ch("NTST",50)
+ for solution in data:
+     if solution["Type name"] == "BP":
+         ch("IRS", solution["Label"])
+         ch("ISW", -1)
+         # Compute forward
+         run()
+         ap('bvp')
+         # Compute back
+         ch("DS",-pr("DS"))
+         run()
+         ap('bvp')
+
+ plot('bvp')
+ wait()
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[A complex example of a \AUTO CLUI script.]
+ {This Figure shows a more complex \AUTO CLUI script.
+ The source for this script can be found in \filef{\$AUTO\_DIR/demos/python/demo2.auto}.
+ }
+ \label{exa:clui_complex_script}
+ \end{figure}
+
+ The script begins with a section, extracted into 
+ Figure~\ref{exa:clui_complex_first}, which performs a task 
+ identical to that shown in Figure~\ref{exa:clui_first_example}
+ except that the shorthand discussed in 
+ Section~\ref{sec:clui_first_example} is used for the 
+ \commandf{ld} command.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ copydemo('bvp')
+
+ ld('bvp')
+ run()
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[The first part of the  complex \AUTO CLUI script.]
+ {The first part of the  complex \AUTO CLUI script.}
+ \label{exa:clui_complex_first}
+ \end{figure}
+
+ The next section of the script, extracted into 
+ Figure~\ref{exa:clui_complex_second}, introduces
+ three new \AUTO CLUI commands.  First, \commandf{sv('bvp')}
+ (Section~\ref{sec:clui_ref_commandCopyDataFiles} in the reference)
+ saves the results of the \AUTO run into files using
+ the base name \filef{bvp} and the filename extensions in
+ Table~\ref{tbl:clui_filename_translation}.  For example,
+ in this case the bifurcation diagram file \filef{fort.7}
+ will be saved as \filef{b.bvp}, 
+ the solution file \filef{fort.8}
+ will be saved as \filef{s.bvp}, and  
+ the diagnostics file \filef{fort.9}
+ will be saved as \filef{d.bvp}.  Next, \commandf{ld(s='bvp')}
+ loads the solution file \filef{s.bvp} into memory
+ so that it can be used by \AUTO for further calculations.
+
+ Up to this point all of the commands presented have had
+ analogs in the command language discussed in 
+ Section~\ref{sec:command_mode}, and the \AUTO CLUI has
+ been designed in this way to make it easy for users to
+ migrate from the old command language to the
+ \AUTO CLUI.  The next command, namely \commandf{data = sl('bvp')}
+ (Section~\ref{sec:clui_ref_commandParseSolutionFile} in the reference)
+ is the first command which has no analog in the 
+ old command language.
+ The command \commandf{sl('bvp')} parses the file \filef{s.bvp}
+ and returns a python object which encapsulates the
+ information contained in the file and presents it to the
+ user in an easy to use format.  Accordingly, the
+ command \commandf{data = sl('bvp')} stores this easy to
+ use representation of the object in the \python~
+ variable \commandf{data}.
+ Note, variables in \python~ are different from those in languages
+ such as {\cal C} in that their type does not have to be
+ declared before they are created.
+ Finally, \commandf{ch("NTST",50)}  
+ (Section~\ref{sec:clui_ref_commandRunnerConfigFort2} in the reference)
+ changes the \parf{NTST} value to \parf{50} (see Section~\ref{sec:NDIM}).
+ To be precise, the command \commandf{ch("NTST",50)} only modifies
+ the ``in memory'' version of the \AUTO constants created
+ by the \commandf{ld('bvp')} command.
+ The original file \filef{c.bvp} is \emp{not} modified.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ sv('bvp')
+ ld(s='bvp')
+ data = sl('bvp')
+ ch("NTST",50)
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[The second part of the  complex \AUTO CLUI script.]
+ {The second part of the  complex \AUTO CLUI script.}
+ \label{exa:clui_complex_second}
+ \end{figure}
+
+ The next section of the script, extracted into 
+ Figure~\ref{exa:clui_complex_third}, shows as example
+ of looping and conditionals in an \AUTO CLUI script.
+ The first line \commandf{for solution in data:} is
+ the \python~ syntax for loops.  The \commandf{data} variable
+ was defined in Figure~\ref{exa:clui_complex_second}
+ to be the parsed version of an \AUTO \filef{fort.8}
+ file, and accordingly contains a list of the solutions
+ from the \filef{fort.8} file.  The command 
+ \commandf{for solution in data:} is used to loop
+ over all solutions in the data variable by 
+ setting the variable \commandf{solution} to
+ be one of the solutions in \commandf{data}
+ and then calling the rest of the code in the
+ block.  
+
+ \python~ differs from most other computer languages in that
+ blocks of code are not defined by some delimiter, such
+ as \commandf{\{\}} in {\cal C}, but by indentation.  
+ In Figure~\ref{exa:clui_complex_script} the commands
+ \commandf{plot('bvp')} and \commandf{wait()} are not
+ part of the loop, because they are indented 
+ differently.  This can be confusing first time users of \python~,
+ but it has the advantage that the code
+ is forced to have a consistent indentation style.
+
+ The next command in the script, \commandf{if solution["Type name"] == "BP":}
+ is a \python~ conditional.  
+ It examines the contents of the
+ variable \commandf{solution} (which is one of the entries
+ in the array of solutions \commandf{data}) 
+ and checks to see if the condition
+ \commandf{solution["Type name"] == "BP"} holds.  
+ For parsed \filef{fort.8}
+ files \commandf{Type name} \commandf{BP} corresponds to a bifurcation
+ point.  Accordingly, the function of this loop and conditional
+ is to examine every solution in the \filef{fort.8} file and
+ run the following commands if the solution is a bifurcation
+ point.
+
+ The next line
+ is \commandf{ch("IRS", solution["Label"])} which changes
+ the ``in memory'' version of the \AUTO constants file to 
+ set \parf{IRS} (see Section~\ref{sec:IRS}) equal to the label
+ of the bifurcation point. We then use \commandf{ch("ISW", -1)} to change
+ the \AUTO constant \parf{ISW} to \commandf{-1}, which
+ indicates a branch switch (see Section~\ref{sec:ISW}).
+
+ We then use a \commandf{run()} command to perform the
+ calculation of the bifurcating branch and then append the
+ data to the \filef{s.bvp}, \filef{b.bvp}, and
+ \filef{d.bvp} files with the \commandf{ap('bvp')}
+ command (Section~\ref{sec:clui_ref_commandAppend} in the reference).
+ In addition, as can be seen in Figure~\ref{exa:clui_complex_third},
+ the \commandf{\#} character is the \python~ comment character.
+ When the \python~ interpretor encounters a \commandf{\#} character
+ it ignores everything from that character to the end of the line.
+
+ Finally, we us \commandf{ch("DS",-pr("DS"))} to change the
+ \AUTO initial step size from positive to negative, which allows
+ us to compute the bifurcating branch in the other direction
+ (see Section~\ref{sec:DS}).  Running the \AUTO calculation
+ with the \commandf{run()} command and appending the
+ data the appropriate files with the \commandf{ap('bvp')} command
+ completes the body of the loop.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ for solution in data:
+     if solution["Type name"] == "BP":
+         ch("IRS", solution["Label"])
+         ch("ISW", -1)
+         # Compute forward
+         run()
+         ap('bvp')
+         # Compute back
+         ch("DS",-pr("DS"))
+         run()
+         ap('bvp')
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[The second part of the  complex \AUTO CLUI script.]
+ {The second part of the  complex \AUTO CLUI script.}
+ \label{exa:clui_complex_third}
+ \end{figure}
+
+ Now that the section of script shown in 
+ Figure~\ref{exa:clui_complex_third} has finished computing the
+ bifurcation diagram, the command \commandf{plot('bvp')}
+ brings up a plotting window 
+ (Section~\ref{sec:clui_ref_commandPlotter} in the reference),
+ and the command \commandf{wait()} causes the \AUTO CLUI
+ to wait for input.  You may now exit the \AUTO CLUI
+ by pressing any key in the window in which you started
+ the \AUTO CLUI.
+
+ \section{ Extending the \AUTO CLUI } \label{sec:clui_extending}
+
+ The code in Figure~\ref{exa:clui_complex_script}
+ performed a very useful and common procedure, it started an \AUTO
+ calculation and performed additional continuations
+ at every point which \AUTO detected as a bifurcation.
+ Unfortunately, the script as written can only be used
+ for the \filef{bvp} demo.  In this section we will 
+ generalize the script in Figure~\ref{exa:clui_complex_script}
+ for use with any demo, and demonstrate how it
+ can be imported back into the interactive
+ mode to create a new command
+ for the \AUTO CLUI.  Several examples of such
+ ``expert'' scripts can be found in \filef{auto/2000/demos/python/n-body}.
+
+ Just as loops and conditionals can be used in \python~,
+ one can also define functions.  For example,
+ Figure~\ref{exa:clui_complex_function} is a
+ functional version of script from 
+ Figure~\ref{exa:clui_complex_script}.
+ The changes are actually quite minor.  
+ The first line, \commandf{from AUTOclui import *},
+ includes the definitions of the \AUTO CLUI commands,
+ and must be included in all \AUTO CLUI scripts
+ which define functions.
+ The next line, 
+ \commandf{def myRun(demo):},
+ begins the function definition, and 
+ creates a function named \commandf{myRun} which
+ takes one argument \commandf{demo}.  The
+ rest of the script is the same except that it
+ has been indented to indicate that it is
+ part of the function definition, and all occurrences
+ of string \commandf{'bvp'} have been replaced
+ with the variable \commandf{demo}.
+ Finally we have added a line \commandf{myRun('bvp')}
+ which actually calls the function we have 
+ created and runs the same computation as
+ the original script.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ from AUTOclui import *
+
+ def myRun(demo):
+
+     copydemo(demo)
+
+     ld(demo)
+     run()
+     sv(demo)
+     ld(s=demo)
+     data = sl(demo)
+     ch("NTST",50)
+     for solution in data:
+         if solution["Type name"] == "BP":
+             ch("IRS", solution["Label"])
+             ch("ISW", -1)
+             # Compute forward
+             run()
+             ap(demo)
+             # Compute back
+             ch("DS",-pr("DS"))
+             run()
+             ap(demo)
+
+     plot(demo)
+     wait()
+
+ myRun('bvp')
+
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[A complex \AUTO CLUI script as a function.]
+ {This Figure shows a complex \AUTO CLUI script
+ written as a function.
+ The source for this script can be found in \filef{\$AUTO\_DIR/demos/python/userScript.xauto}.
+ }
+ \label{exa:clui_complex_function}
+ \end{figure}
+
+ While the script in Figure~\ref{exa:clui_complex_function} is 
+ only slightly different then the one showed in 
+ Figure~\ref{exa:clui_complex_script} it is much more powerful.
+ Not only can it be used as a script for running any demo
+ by modifying the last line, it can be read back into
+ the interactive mode of the \AUTO CLUI and
+ used to create a new command, 
+ as in Figure~\ref{exa:clui_complex_interactive}.
+ First, we create a file called \filef{userScript.py}
+ which contains the script from 
+ Figure~\ref{exa:clui_complex_function}, with
+ one minor modification.  We want the function only
+ to run when we use it interactively, not when
+ the file \filef{userScript.py} is read in, so we
+ remove the last line where the function is called.
+ We start the \AUTO CLUI with the Unix command
+ \commandf{auto}, and once the \AUTO CLUI is running
+ we use the command \commandf{from userScript import *},
+ to import the file \filef{userScript.py} into the
+ \AUTO CLUI.  The \commandf{import} command makes
+ all functions in that file available for
+ our use (in this case \commandf{myRun} is the only 
+ one).  It is important to note that 
+ \commandf{from userScript import *} does \emp{not}
+ use the \filef{.py} extension on the file name. 
+ After importing our new function, we may use it
+ just like any other function in the \AUTO
+ CLUI, for example by typing \commandf{myRun('bvp')}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ > cp \$AUTO\_DIR/python/demo/userScript.py .
+ > ls
+ userScript.py
+ > cat userScript.py
+ # This is an example script for the AUTO2000 command line user
+ # interface.  See the "Command Line User Interface" chapter in the
+ # manual for more details.
+ from AUTOclui import *
+
+ def myRun(demo):
+
+     copydemo(demo)
+
+     ld(demo)
+     run()
+     sv(demo)
+     ld(s=demo)
+     data = sl(demo)
+     ch("NTST",50)
+     for solution in data:
+         if solution["Type name"] == "BP":
+             ch("IRS", solution["Label"])
+             ch("ISW", -1)
+             # Compute forward
+             run()
+             ap(demo)
+             # Compute back
+             ch("DS",-pr("DS"))
+             run()
+             ap(demo)
+
+     plot(demo)
+     wait()
+
+ > auto
+ Initializing
+ Python 1.5.2 (#1, Feb  1 2000, 16:32:16)  [GCC egcs-2.91.66 19990314/Linux 
+ (egcs- on linux-i386
+ Copyright 1991-1995 Stichting Mathematisch Centrum, Amsterdam
+ (AUTOInteractiveConsole)
+ AUTO> from userScript import *
+ AUTO> myRun('bvp')
+ ...
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[An example of using a user created function interactively.]
+ {This Figure shows the functional version of the
+  \AUTO CLUI from Figure~\ref{exa:clui_complex_function} being 
+ used as an extension to the \AUTO CLUI.  The source
+ code for this script can be found in 
+ \filef{ \$AUTO\_DIR/python/demo/userScript.py }}
+ \label{exa:clui_complex_interactive}
+ \end{figure}
+
+ \section{Bifurcation Diagram Files}
+ Using the \commandf{commandParseDiagramFile} 
+ command (Section~\ref{sec:clui_ref_commandParseDiagramFile} in the reference)
+ the user can parse and read into memory an \AUTO bifurcation
+ diagram file.   For example, the command  \commandf{commandParseDiagramFile('ab')}
+ would parse the file \filef{b.ab} (if you are using the standard
+ filename translations from Table~\ref{tbl:clui_filename_translation})
+ and return an object which encapsulates
+ the bifurcation diagram in an easy to use form.
+
+ The object returned by the \commandf{commandParseDiagramFile} 
+ is a list of all of the solutions in the appropriate
+ bifurcation diagram file, and each solution is a Python
+ dictionary with entries for each piece of
+ data for the solution.  For example, the sequence of commands
+ in Figure~\ref{exa:clui parse diagram}, prints out the
+ label of the first solution in a bifurcation diagram.
+ The queriable parts of the object are listed in
+ Table~\ref{tbl:clui parse diagram}.
+
+ The individual elements of the array may be accessed 
+ in two ways, either by index of the solution using the
+ \commandf{[]} syntax or by label number using the
+ \commandf{()} syntax.  For example, assume that the parsed object is contained
+ in a variable \commandf{data}.  
+ The first solution may be accessed 
+ using the command \commandf{data[0]}, while the solution with
+ label \commandf{57} may be accessed using the command \commandf{data(57)}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> data=dg('ab')
+ Parsed file: b.ab
+ AUTO> print data[0]
+ {'LAB': 6, 'TY name': 'EP', 'data': [0.0, 0.0, 0.0, 0.0], 'section': 12, 
+ 'BR': 2, 'PT': 1, 'TY number': 9}
+ AUTO> print data[0]['LAB']
+ 6
+ AUTO> 
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[An example of parsing a bifurcation diagram.]
+ {This figure shows an example of parsing a bifurcation diagram.
+ The first command, \commandf{data=dg('ab')}, reads in the bifurcation
+ diagram and puts it into the variable \commandf{data}.
+ The second command, \commandf{print data[0]} prints out all of
+ the data about the first solution in the list.
+ The third command, \commandf{print data[0]['LAB']}, prints
+ out the label of the first point.
+ }
+ \label{exa:clui parse diagram}
+ \end{figure}
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l |}
+ \hline
+ Query string & Meaning \\
+ \hline
+ TY name &  The short name for the solution type (see Table~\ref{tbl:clui type translation}). \\
+ \hline
+ TY number &  The number of the solution type (see Table~\ref{tbl:clui type translation}). \\
+ \hline
+ BR  &  The branch number. \\
+ \hline
+ PT  &  The point number. \\
+ \hline
+ LAB  &  The solution label, if any. \\
+ \hline
+ section  &  A unique identifier for each branch in a file with multiple branches. \\
+ \hline
+ data  &  An array which contains the \AUTO output. \\
+ \hline
+ \end{tabular}
+ \caption[Contents of a bifurcation diagram object.]
+ {This table shows the strings that can be used to
+ query a bifurcation diagram object and their
+ meanings.}
+ \label{tbl:clui parse diagram}
+ \end{center}
+ \end{table}
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l | l |}
+ \hline
+ Type & Short Name & Number \\
+ \hline
+ No Label & No Label &  \\
+ \hline
+ Branch point (algebraic problem) & BP & 1 \\
+ \hline
+ Fold (algebraic problem) & LP & 2 \\
+ \hline
+ Hopf bifurcation (algebraic problem) & HB & 3 \\
+ \hline
+ Regular point (every NPR steps) & RG & 4 \\
+ \hline
+ User requested point & UZ & -4 \\
+ \hline
+ Fold (ODE) & LP & 5 \\
+ \hline
+ Bifurcation point (ODE) & BP & 6 \\
+ \hline
+ Period doubling bifurcation (ODE) & PD & 7 \\
+ \hline
+ Bifurcation to invarient torus (ODE) & TR & 8 \\
+ \hline
+ Normal begin or end & EP & 9 \\
+ \hline
+ Abnormal termination & MX & -9 \\
+ \hline
+ \end{tabular}
+ \caption[Type translations.]
+ {This table shows the the various types of points
+ that can be in solution and bifurcation diagram
+ files, with their short names and numbers.}
+ \label{tbl:clui type translation}
+ \end{center}
+ \end{table}
+
+ \section{Solution Files}
+ Using the \commandf{commandParseSolutionFile} 
+ command (Section~\ref{sec:clui_ref_commandParseSolutionFile} in the reference)
+ the user can parse and read into memory an \AUTO bifurcation
+ solution file.   For example, the command  \commandf{commandParseSolutionFile('ab')}
+ would parse the file \filef{b.ab} (if you are using the standard
+ filename translations from Table~\ref{tbl:clui_filename_translation})
+ and return an object which encapsulates
+ the bifurcation solution in a easy to use form.
+
+ The object returned by the \commandf{commandParseSolutionFile} 
+ is a list of all of the solutions in the appropriate
+ bifurcation solution file, and each solution is a Python
+ dictionary with entries for each  piece of
+ data for the solution.  For example, the sequence of commands
+ in Figure~\ref{exa:clui parse solution}, prints out the
+ label of the first solution in a bifurcation solution.
+ The queriable parts of the object are listed in
+ Table~\ref{tbl:clui parse solution}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> data=sl()
+ Parsed file: fort.8
+ AUTO> print data[0]
+ 'Branch number': 2
+ 'ISW': 1
+ 'Label': 6
+ 'NCOL': 0
+ 'NTST': 0
+ 'Parameters': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
+ 'Point number': 1
+ 'Type name': 'EP'
+ 'Type number': 9
+ 'p': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
+ 'parameters': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
+ AUTO> print data[0]['Label']
+ 6
+ AUTO> data[0]["data"][0]
+ {'t': 0.0, 'u': [0.0, 0.0]}
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[An example of parsing a bifurcation solution.]
+ {This figure shows an example of parsing a bifurcation solution.
+ The first command, \commandf{data=dg('ab')}, reads in the bifurcation
+ solution and puts it into the variable \commandf{data}.
+ The second command, \commandf{print data[0]} prints out all of
+ the data about the first solution in the list.
+ The third command, \commandf{print data[0]['Label']}, prints
+ out the label of the first point.  The last command prints
+ the value of the solution at the first point of the
+ first solution.
+ }
+ \label{exa:clui parse solution}
+ \end{figure}
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l |}
+ \hline
+ Query string & Meaning \\
+ \hline
+ data  & \begin{minipage}{4in} \smallskip An array which contains the \AUTO output. \smallskip \end{minipage} \\
+ \hline
+ Branch number & \begin{minipage}{4in} \smallskip The number of the branch to which the solution belongs. \smallskip \end{minipage} \\ 
+ \hline
+ ISW & \begin{minipage}{4in} \smallskip  The ISW value used to start the calcluation.  See Section~\ref{sec:ISW}. \smallskip \end{minipage} \\ 
+ \hline
+ Label & \begin{minipage}{4in} \smallskip The label of the solution.   \smallskip \end{minipage} \\ 
+ \hline
+ NCOL & \begin{minipage}{4in} \smallskip The number of collocation points used to compute the solution.  See Section~\ref{sec:NCOL}. \smallskip \end{minipage} \\ 
+ \hline
+ NTST & \begin{minipage}{4in} \smallskip The number of mesh intervals used to compute the solution.  See Section~\ref{sec:NTST}. \smallskip \end{minipage} \\ 
+ \hline
+ Parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. \smallskip \end{minipage} \\ 
+ \hline
+ Point number & \begin{minipage}{4in} \smallskip The number of the point in the given branch.  \smallskip \end{minipage} \\  
+ \hline
+ Type name & \begin{minipage}{4in} \smallskip A short string which describes the type of the solution (see Table~\ref{tbl:clui type translation}). \smallskip \end{minipage} \\  
+ \hline
+ Type number & \begin{minipage}{4in} \smallskip A number which describes the type of the solution (see Table~\ref{tbl:clui type translation}).  \smallskip \end{minipage} \\  
+ \hline
+ p & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameter'). \smallskip \end{minipage} \\  
+ \hline
+ parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameter').\smallskip \end{minipage} \\  
+ \hline
+ \end{tabular}
+ \caption[Contents of a bifurcation solution object.]
+ {This table shows the strings that can be used to
+ query a bifurcation solution object and their
+ meanings.}
+ \label{tbl:clui parse solution}
+ \end{center}
+ \end{table}
+
+ The individual elements of the array may be accessed 
+ in two ways, either by the index of the solution using the
+ \commandf{[]} syntax or by label number using the
+ \commandf{()} syntax.  For example, sssume that the parsed object is contained
+ in a variable \commandf{data}.  
+ The first solution may be accessed 
+ using the command \commandf{data[0]}, while the solution with
+ label \commandf{57} may be accessed using the command \commandf{data(57)}.
+
+ \section{Exporting output data for use by Python or external
+   visualization tools.}
+
+ The bifurcation and solution file classes have two methods that are 
+ particularily useful for creating data which can be used in other
+ programs.  First, there is a method called \commandf{toArray} which
+ takes a bifurcation diagram or solution and
+ returns a standard Python array.  Second, there is a method called
+ \commandf{writeRawFilename} which will create a standard ASCII file
+ which contains the bifurcation diagram or the solution. 
+ In the solution ASCII file, the first element of each row will be
+ the 't' value and the following elements will be the
+ values of the components at that 't' value. Such ASCII files
+ can be readily parsed and plotted by external tools such as
+ Gnuplot and MATLAB.
+
+ For example, we assume
+ that the parsed bifurcation diagram is contained in a variable
+ \commandf{b}, for instance, using \commandf{b=dg('ab')}.  If
+ one wanted to have the bifurcation diagram returned as a Python array
+ one would type \commandf{b.toArray()}.  Similarily, if one wanted
+ to write out the bifurcation diagram to the file \commandf{outputfile}
+ one would type \commandf{b.writeRawFilename('outputfile')}.
+
+ Now we assume that the parsed solution file is contained
+ in a variable \commandf{s}, for example, using \commandf{s=sl('ab')}.
+ To get the solution with label \commandf{57} returned as a Python
+ array one would type \commandf{s(57).toArray()}.
+ Similarily, if one wanted to write out the solution
+ to the file \commandf{outputfile} one would type
+ \commandf{s(57).writeRawFilename('outputfile')}.
+
+ \section{ The \filef{.autorc} File }
+
+ Much of the default behavior of the \AUTO CLUI
+ can be controlled by the \filef{.autorc} file.
+ The \filef{.autorc} file can exist in
+ either the main \AUTO directory, the users
+ home directory, or the current directory.  For any
+ option which is defined in more then one file, 
+ the \filef{.autorc} file
+ in the current directory (if it exists) takes precedence, 
+ followed by the \filef{.autorc} file
+ in the users home directory (if it exists), and then the
+ \filef{.autorc} file in the main \AUTO directory.  Hence, 
+ options may be defined on either a per directory, per
+ user, or global basis.  
+
+ The first section of the \filef{.autorc} file
+ begins with the line \commandf{[AUTO\_command\_aliases]}
+ and this section defines short names, or aliases,
+ for the \AUTO CLUI commands.  
+ Each line thereafter is a definition of
+ a command, similiar to 
+ \commandf{branchPoint     =commandQueryBranchPoint}.
+ The right hand side of the assignment
+ is the internal \AUTO CLUI name for the command,
+ while the left hand side is the desired alias.  
+ Aliases and
+ internal names may be used interchangably, but the
+ intention is that the aliases will be more commonly
+ used.  A default set of aliases is provided, and
+ these aliases will be used in the examples in the
+ rest of this Chapter.  The default aliases
+ are listed in the reference in Section~\ref{sec:clui reference}.
+
+ %FIXME:  Fix the documentation here
+ {\em NOTE:  Defaults for the plotting tool may be included in
+ the .autorc file as well.  The documentation for this
+ is under developement, but the file \filef{\$AUTO\_DIR/.autorc}
+ contains examples of how these options may be set.}
+
+ \section{Two Dimensional Plotting Tool}\label{clui:2d plotting}
+
+ The two dimensional plotting tool can be run by using the command
+ \commandf{plot()} to plot the files \filef{fort.7} and \filef{fort.8}
+ after a calculation has been run, or using the command
+ \commandf{plot('foo')} to plote the data in the
+ files \filef{s.foo} and \filef{b.foo}.  
+
+ The menu bar provides two buttons.  The \commandf{File}
+ button brings up a menu which allows the user to save
+ the current plot as a Postscript file or
+ to quit the plotter.
+ The \commandf{Options} button allows the plotter
+ configuration options to be modified.
+ The available options are decribed in
+ Table~\ref{tbl:clui 2d plotter specific options}.  In addition, the options can 
+ be set from within the CLUI.  For example,
+ the set of commands in Figure~\ref{exa:plotter_example} shows how to
+ create a plotter and change its background color to black.  The
+ demo script \filef{auto/2000/demo/python/plotter.py} contains several
+ examples of changing options in plotters.
+
+ Pressing the right mouse button in the plotting window brings
+ up a menu of buttons which control several aspects
+ of the plotting window.  The top two toggle buttons
+ control what function the left button performs.  
+ The \commandf{print value} button causes the
+ left button to print out the numerical value underneath
+ the pointer when it is clicked.
+ When \commandf{zoom} button is checked the left
+ mouse button may be held down to create
+ a box in the plot.  When the left button
+ is released the plot will zoom to the selected
+ portion of the diagram.
+ The \commandf{unzoom} button returns the
+ diagram to the default zoom. 
+ The \commandf{Postscript} button allows the user
+ to save the plot as a Postscript file.
+ The \commandf{Configure...} button brings up
+ the dialog for setting configuration options.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim} 
+ AUTO> plot=pl()
+ Created plotter
+ AUTO> plot.config(bg="black")
+ AUTO> 
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Configuring a two-dimensional plotter.]
+ {This example shows how a plotter is created, and
+ how the background color may be changed to black.
+ All other configuration options are set similarily.
+ Note, the above commands assume that the files
+ fort.7 and fort.8 exist in the current directory.
+ }
+ \label{exa:plotter_example}
+ \end{figure}
+
+ \begin{longtable}{| l | l |}
+ \hline
+ Query string & Meaning \\
+ \hline
+ background  &  The background color of the plot. \\
+ \hline
+ bifurcation\_column\_defaults  & A set of bifurcation columns the user is likely to use. \\
+ \hline
+ bifurcation\_diagram  &  A parsed bifurcation diagram file to plot. \\
+ \hline
+ bifurcation\_diagram\_filename  & The filename of the bifurcation diagram to plot. \\
+ \hline
+ bifurcation\_symbol  &  The symbol to use for bifurcation points. \\ 
+ \hline
+ bifurcation\_x  & The column to plot along the X-axis for bifurcation diagrams. \\
+ \hline
+ bifurcation\_y  & The column to plot along the Y-axis for bifurcation diagrams. \\
+ \hline
+ color\_list  &  A list of colors to use for multiple plots. \\
+ \hline
+ decorations  & Turn on or off the axis, tick marks, etc. \\
+ \hline
+ error\_symbol  &    The symbol to use for error points. \\ 
+ \hline
+ foreground  &  The background color of the plot. \\
+ \hline
+ grid  &  Turn on or off the grid. \\
+ \hline
+ hopf\_symbol  &    The symbol to use for Hopf bifurcation points. \\ 
+ \hline
+ index  & An array of indicies to plot.\\
+ \hline
+ label  & An array of labels to plot.\\
+ \hline
+ label\_defaults  & A set of labels that the user is likely to use. \\
+ \hline
+ limit\_point\_symbol  &    The symbol to use for limit points. \\ 
+ \hline
+ mark\_t  &  The t value to marker with a small ball. \\      
+ \hline
+ maxx  & The upper bound for the x-axis of the plot. \\
+ \hline
+ maxy  & The upper bound for the y-axis of the plot. \\
+ \hline
+ minx  &  The lower bound for the x-axis of the plot. \\
+ \hline
+ miny  & The lower bound for the y-axis of the plot. \\
+ \hline
+ period\_doubling\_symbol  &   The symbol to use for period doubling bifurcation points. \\ 
+ \hline
+ ps\_colormode  & The PostScript output mode: 'color', 'gray' or 'monochrome'. \\ 
+ \hline
+ runner  &  The runner object from which to get data. \\       
+ \hline
+ special\_point\_colors  &    An array of colors used to mark special points. \\ 
+ \hline
+ special\_point\_radius  &    The radius of the spheres used to mark special points. \\ 
+ \hline
+ solution  &  A parsed solution file to plot. \\
+ \hline
+ solution\_column\_defaults  & A set of solution columns the user is likely to use.\\
+ \hline
+ solution\_filename  & The filename of the solution to plot. \\
+ \hline
+ solution\_x  &  The column to plot along the X-axis for solutions. \\
+ \hline
+ solution\_y  & The column to plot along the Y-axis for solutions. \\
+ \hline
+ symbol\_font  &  The font to use for marker symbols. \\
+ \hline
+ symbol\_color  & The color to use for the marker symbols. \\
+ \hline
+ tick\_label\_template  & A string which defines the format of the tick labels. \\
+ \hline
+ tick\_length  &  The length of the tick marks. \\
+ \hline
+ torus\_symbol  &    The symbol to use for torus bifurcation points. \\ 
+ \hline
+ type  & The type of the plot, either ``solution'' or ``bifurcation''. \\  
+ \hline
+ user\_point\_symbol  &   The symbol to use for user defined output points. \\ 
+ \hline
+ xlabel  & The label for the x-axis. \\
+ \hline
+ xmargin  & The margin between the graph and the right and left edges. \\
+ \hline
+ xticks  & The number of ticks on the x-axis. \\
+ \hline
+ ylabel  & The label for the y-axis. \\
+ \hline
+ ymargin  & The margin between the graph and the top and bottom edges. \\
+ \hline
+ yticks  & The number of ticks on the y-axis. \\
+ \hline
+ \caption[The options for the \AUTO CLUI two dimensional
+ plotting window.]
+ {This table shows the options that
+ can be set for the \AUTO CLUI two dimensional
+ plotting window and their meanings.}
+ \label{tbl:clui 2d plotter specific options}
+ \end{longtable}
+
+ \section{Three Dimensional Plotting Tool}
+
+ The \AUTO three dimensional plotting tool, PLAUT04, as described
+ in Chapter~\ref{ch:PLAUT04}, can be run from the Python CLUI
+ using the command
+ \commandf{plot3} or \commandf{commandPlotter3D}, in a similar
+ fashion to \commandf{plot}. It does not use the options that
+ are used for the two-dimensional plotting window.
+
+ \floatstyle{plain}
+ \restylefloat{figure}
+
+ \section{ Quick Reference } \label{sec:clui quick reference}
+
+ In this section we have created a table of all of the \AUTO CLUI
+ commands, their abbreviations, and a one line description of what
+ function they perform.  Each command may be entered using 
+ its full name or any of its aliases.
+
+\begin{longtable}{|l|p{1.5in}|p{2in}|}
+\hline 
+Command & Aliases & Description\\ \hline 
+commandAppend & ap append  & Append data files.\\ \hline 
+commandCat & cat  & Print the contents of a file\\ \hline 
+commandCd & cd  & Change directories.\\ \hline 
+commandClean & clean cl  & Clean the current directory.\\ \hline 
+commandCopyAndLoadDemo & dm demo  & Copy a demo into the current directory and load it.\\ \hline 
+commandCopyDataFiles & copy cp  & Copy data files.\\ \hline 
+commandCopyDemo & copydemo  & Copy a demo into the current directory.\\ \hline 
+commandCopyFortFiles & sv save  & Save data files.\\ \hline 
+commandCreateGUI & gui  & Show AUTOs graphical user interface.\\ \hline 
+commandDeleteDataFiles & delete dl  & Delete data files.\\ \hline 
+commandDeleteFortFiles & df deletefort  & Clear the current directory of fort files.\\ \hline 
+commandDouble & double db  & Double a solution.\\ \hline 
+commandInteractiveHelp & man help  & Get help on the AUTO commands.\\ \hline 
+commandLs & ls  & List the current directory.\\ \hline 
+commandMoveFiles & move mv  & Move data-files to a new name.\\ \hline 
+commandParseConstantsFile & cn constantsget  & Get the current continuation constants.\\ \hline 
+commandParseDiagramAndSolutionFile & bt diagramandsolutionget  & Parse both bifurcation diagram and solution.\\ \hline 
+commandParseDiagramFile & dg diagramget  & Parse a bifurcation diagram.\\ \hline 
+commandParseSolutionFile & sl solutionget  & Parse solution file:\\ \hline 
+commandPlotter & p2 pl plot  & 2D plotting of data.\\ \hline 
+commandPlotter3D & plot3 p3  & 3D plotting of data.\\ \hline 
+commandQueryBranchPoint & br bp branchpoint  & Print the ``branch-point function''.\\ \hline 
+commandQueryEigenvalue & eigenvalue ev eg  & Print eigenvalues of Jacobian (algebraic case).\\ \hline 
+commandQueryFloquet & fl floquet  & Print the Floquet multipliers.\\ \hline 
+commandQueryHopf & hb hp hopf lp  & Print the value of the ``Hopf function''.\\ \hline 
+commandQueryIterations & iterations it  & Print the number of Newton interations.\\ \hline 
+commandQueryLimitpoint & lm limitpoint  & Print the value of the ``limit point function''.\\ \hline 
+commandQueryNote & nt note  & Print notes in info file.\\ \hline 
+commandQuerySecondaryPeriod & sc secondaryperiod sp  & Print value of ``secondary-periodic bif. fcn''.\\ \hline 
+commandQueryStepsize & ss stepsize st  & Print continuation step sizes.\\ \hline 
+commandRun & r run rn  & Run AUTO.\\ \hline 
+commandRunnerConfigFort2 & changeconstant cc ch  & Modify continuation constants.\\ \hline 
+commandRunnerConfigFort12 & hch  & Modify HomCOnt continuation constants.\\ \hline 
+commandRunnerLoadName & ld load  & Load files into the AUTO runner.\\ \hline 
+commandRunnerPrintFort2 & pc pr printconstant  & Print continuation parameters.\\ \hline 
+commandRunnerPrintFort12 & hpr & Print HomCont continuation parameters.\\ \hline 
+commandShell & shell  & Run a shell command.\\ \hline 
+commandTriple & tr triple  & Triple a solution.\\ \hline 
+commandUserData & us userdata  & Covert user-supplied data files.\\ \hline 
+commandWait & wait  & Wait for the user to enter a key.\\ \hline 
+\end{longtable}
+
+\pagebreak
+\section{ Reference }  \label{sec:clui reference}
+\subsection{commandAppend} \label{sec:clui_ref_commandAppend}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Append data files.\section*{Description}
+
+    Type commandAppend('xxx') to append the output-files fort.7, fort.8,
+    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
+    using the default filename templates).
+
+    Type commandAppend('xxx','yyy') to append existing data-files s.xxx, b.xxx,
+    and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
+    the default filename templates).
+    \section*{Aliases}
+ap append \medskip\hrule\end{minipage}\subsection{commandCat} \label{sec:clui_ref_commandCat}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the contents of a file\section*{Description}
+
+    Type 'commandCat xxx' to list the contents of the file 'xxx'.  This calls the
+    Unix function 'cat' for reading the file.  
+    \section*{Aliases}
+cat \medskip\hrule\end{minipage}\subsection{commandCd} \label{sec:clui_ref_commandCd}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Change directories.\section*{Description}
+    
+    Type 'commandCd xxx' to change to the directory 'xxx'.  This command
+    understands both shell variables and home directory expansion.
+    \section*{Aliases}
+cd \medskip\hrule\end{minipage}\subsection{commandClean} \label{sec:clui_ref_commandClean}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Clean the current directory.\section*{Description}
+
+    Type commandClean() to clean the current directory.  This command will
+    delete all files of the form fort.*, *.o, and *.exe.
+    \section*{Aliases}
+clean cl \medskip\hrule\end{minipage}\subsection{commandCopyAndLoadDemo} \label{sec:clui_ref_commandCopyAndLoadDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Copy a demo into the current directory and load it.\section*{Description}
+
+    Type commandCopyAndLoadDemo('xxx') to copy all files from auto/2000/demos/xxx to the
+    current user directory.  Here 'xxx' denotes a demo name; e.g.,
+    'abc'.  Note that the 'dm' command also copies a Makefile to the
+    current user directory. To avoid the overwriting of existing
+    files, always run demos in a clean work directory.  NOTE: This
+    command automatically performs the commandRunnerLoadName command
+    as well.
+    \section*{Aliases}
+dm demo \medskip\hrule\end{minipage}\subsection{commandCopyDataFiles} \label{sec:clui_ref_commandCopyDataFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Copy data files.\section*{Description}
+
+    Type commandCopyDataFiles('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
+    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
+    default filename templates).
+    \section*{Aliases}
+copy cp \medskip\hrule\end{minipage}\subsection{commandCopyDemo} \label{sec:clui_ref_commandCopyDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Copy a demo into the current directory.\section*{Description}
+
+    Type commandCopyDemo('xxx') to copy all files from auto/2000/demos/xxx to the
+    current user directory.  Here 'xxx' denotes a demo name; e.g.,
+    'abc'.  Note that the 'dm' command also copies a Makefile to the
+    current user directory. To avoid the overwriting of existing
+    files, always run demos in a clean work directory.
+    \section*{Aliases}
+copydemo \medskip\hrule\end{minipage}\subsection{commandCopyFortFiles} \label{sec:clui_ref_commandCopyFortFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Save data files.\section*{Description}
+
+    Type commandCopyFortFiles('xxx') to save the output-files fort.7, fort.8, fort.9,
+    to b.xxx, s.xxx, d.xxx (if you are using the default filename
+    templates).  Existing files with these names will be overwritten.
+    \section*{Aliases}
+sv save \medskip\hrule\end{minipage}\subsection{commandCreateGUI} \label{sec:clui_ref_commandCreateGUI}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Show AUTOs graphical user interface.\section*{Description}
+
+    Type commandCreateGUI() to start AUTOs graphical user interface.
+    
+    NOTE: This command is not implemented yet.
+    \section*{Aliases}
+gui \medskip\hrule\end{minipage}\subsection{commandDeleteDataFiles} \label{sec:clui_ref_commandDeleteDataFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Delete data files.\section*{Description}
+
+    Type commandDeleteDataFiles('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
+    (if you are using the default filename templates).
+    \section*{Aliases}
+delete dl \medskip\hrule\end{minipage}\subsection{commandDeleteFortFiles} \label{sec:clui_ref_commandDeleteFortFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Clear the current directory of fort files.\section*{Description}
+
+    Type commandDeleteFortFiles() to clean the current directory.  This command will
+    delete all files of the form fort.*.
+    \section*{Aliases}
+df deletefort \medskip\hrule\end{minipage}\subsection{commandDouble} \label{sec:clui_ref_commandDouble}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Double a solution.\section*{Description}
+
+    Type commandDouble() to double the solution in 'fort.7' and 'fort.8'.
+
+    Type commandDouble('xxx') to double the solution in b.xxx and s.xxx (if you
+    are using the default filename templates).
+    \section*{Aliases}
+double db \medskip\hrule\end{minipage}\subsection{commandInteractiveHelp} \label{sec:clui_ref_commandInteractiveHelp}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Get help on the AUTO commands.\section*{Description}
+    
+    Type 'help' to list all commands with a online help.
+    Type 'help xxx' to get help for command 'xxx'.
+    \section*{Aliases}
+man help \medskip\hrule\end{minipage}\subsection{commandLs} \label{sec:clui_ref_commandLs}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+List the current directory.\section*{Description}
+    
+    Type 'commandLs' to run the system 'ls' command in the current directory.  This
+    command will accept whatever arguments are accepted by the Unix command
+    'ls'.
+    \section*{Aliases}
+ls \medskip\hrule\end{minipage}\subsection{commandMoveFiles} \label{sec:clui_ref_commandMoveFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Move data-files to a new name.\section*{Description}
+
+    Type commandMoveFiles('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
+    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
+    default filename templates).  \section*{Aliases}
+move mv \medskip\hrule\end{minipage}\subsection{commandParseConstantsFile} \label{sec:clui_ref_commandParseConstantsFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Get the current continuation constants.\section*{Description}
+
+    Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
+    c.xxx (if you are using the default filename templates).
+    \section*{Aliases}
+cn constantsget \medskip\hrule\end{minipage}\subsection{commandParseDiagramAndSolutionFile} \label{sec:clui_ref_commandParseDiagramAndSolutionFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Parse both bifurcation diagram and solution.\section*{Description}
+
+    Type commandParseDiagramAndSolutionFile('xxx') to get a parsed version of the diagram file b.xxx
+    and solution file s.xxx (if you are using the default filename
+    templates).
+    \section*{Aliases}
+bt diagramandsolutionget \medskip\hrule\end{minipage}\subsection{commandParseDiagramFile} \label{sec:clui_ref_commandParseDiagramFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Parse a bifurcation diagram.\section*{Description}
+
+    Type commandParseDiagramFile('xxx') to get a parsed version of the diagram file b.xxx
+    (if you are using the default filename templates).
+    \section*{Aliases}
+dg diagramget \medskip\hrule\end{minipage}\subsection{commandParseSolutionFile} \label{sec:clui_ref_commandParseSolutionFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Parse solution file:\section*{Description}
+
+    Type commandParseSolutionFile('xxx') to get a parsed version of the solution file
+    s.xxx (if you are using the default filename templates).
+    \section*{Aliases}
+sl solutionget \medskip\hrule\end{minipage}\subsection{commandPlotter} \label{sec:clui_ref_commandPlotter}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+2D plotting of data.\section*{Description}
+
+    Type commandPlotter('xxx') to run the graphics program for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).  The return value will be the handle
+    for the graphics window.
+
+    Type commandPlotter() to run the graphics program for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.  The return
+    value will be the handle for the graphics window.
+    \section*{Aliases}
+p2 pl plot \medskip\hrule\end{minipage}\subsection{commandPlotter3D} \label{sec:clui_ref_commandPlotter3D}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+3D plotting of data.\section*{Description}
+
+    Type commandPlotter3D('xxx') to run the graphics program for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).  The return value will be the handle
+    for the graphics window.
+
+    Type commandPlotter3D() to run the graphics program for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.  The return
+    value will be the handle for the graphics window.
+    \section*{Aliases}
+plot3 p3 \medskip\hrule\end{minipage}\subsection{commandQueryBranchPoint} \label{sec:clui_ref_commandQueryBranchPoint}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the ``branch-point function''.\section*{Description}
+    
+    Type commandQueryBranchPoint() to list the value of the ``branch-point function'' 
+    in the output-file fort.9. This function vanishes at a branch point.
+    
+    Type commandQueryBranchPoint('xxx') to list the value of the ``branch-point function''
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+br bp branchpoint \medskip\hrule\end{minipage}\subsection{commandQueryEigenvalue} \label{sec:clui_ref_commandQueryEigenvalue}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print eigenvalues of Jacobian (algebraic case).\section*{Description}
+
+    Type commandQueryEigenvalue() to list the eigenvalues of the Jacobian 
+    in fort.9. 
+    (Algebraic problems.)
+
+    Type commandQueryEigenvalue('xxx') to list the eigenvalues of the Jacobian 
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+eigenvalue ev eg \medskip\hrule\end{minipage}\subsection{commandQueryFloquet} \label{sec:clui_ref_commandQueryFloquet}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the Floquet multipliers.\section*{Description}
+
+    Type commandQueryFloquet() to list the Floquet multipliers
+    in the output-file fort.9. 
+    (Differential equations.)
+
+    Type commandQueryFloquet('xxx') to list the Floquet multipliers 
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+fl floquet \medskip\hrule\end{minipage}\subsection{commandQueryHopf} \label{sec:clui_ref_commandQueryHopf}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the value of the ``Hopf function''.\section*{Description}
+
+    Type commandQueryHopf() to list the value of the ``Hopf function'' 
+    in the output-file fort.9. This function
+    vanishes at a Hopf bifurcation point.
+
+    Type commandQueryHopf('xxx') to list the value of the ``Hopf function''
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+hb hp hopf lp \medskip\hrule\end{minipage}\subsection{commandQueryIterations} \label{sec:clui_ref_commandQueryIterations}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the number of Newton interations.\section*{Description}
+
+    Type commandQueryIterations() to list the number of Newton iterations per
+    continuation step in fort.9. 
+
+    Type commandQueryIterations('xxx') to list the number of Newton iterations per
+    continuation step in the info file 'd.xxx'.
+    \section*{Aliases}
+iterations it \medskip\hrule\end{minipage}\subsection{commandQueryLimitpoint} \label{sec:clui_ref_commandQueryLimitpoint}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print the value of the ``limit point function''.\section*{Description}
+
+    Type commandQueryLimitpoint() to list the value of the ``limit point function'' 
+    in the output-file fort.9. This function
+    vanishes at a limit point (fold).
+
+    Type commandQueryLimitpoint('xxx') to list the value of the ``limit point function'' 
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+lm limitpoint \medskip\hrule\end{minipage}\subsection{commandQueryNote} \label{sec:clui_ref_commandQueryNote}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print notes in info file.\section*{Description}
+
+    Type commandQueryNote() to show any notes 
+    in the output-file fort.9.
+
+    Type commandQueryNote('xxx') to show any notes 
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+nt note \medskip\hrule\end{minipage}\subsection{commandQuerySecondaryPeriod} \label{sec:clui_ref_commandQuerySecondaryPeriod}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print value of ``secondary-periodic bif. fcn''.\section*{Description}
+
+    Type commandQuerySecondaryPeriod()  to list the value of the 
+    ``secondary-periodic bifurcation function'' 
+    in the output-file 'fort.9. This function
+    vanishes at period-doubling and torus bifurcations.
+
+    Type commandQuerySecondaryPeriod('xxx') to list the value of the
+    ``secondary-periodic bifurcation function''
+    in the info file 'd.xxx'.
+    \section*{Aliases}
+sc secondaryperiod sp \medskip\hrule\end{minipage}\subsection{commandQueryStepsize} \label{sec:clui_ref_commandQueryStepsize}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print continuation step sizes.\section*{Description}
+
+    Type commandQueryStepsize() to list the continuation step size for each
+    continuation step in  'fort.9. 
+
+    Type commandQueryStepsize('xxx') to list the continuation step size for each
+    continuation step in the info file 'd.xxx'.
+    \section*{Aliases}
+ss stepsize st \medskip\hrule\end{minipage}\subsection{commandRun} \label{sec:clui_ref_commandRun}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Run AUTO.\section*{Description}
+
+    Type commandRun([options]) to run AUTO with the given options.
+    There are four possible options:
+    \begin{verbatim}
+    Long name   Short name    Description
+    -------------------------------------------
+    equation    e             The equations file
+    constants   c             The AUTO constants file
+    solution    s             The restart solution file
+    homcont     h             The Homcont parameter file
+    \end{verbatim}
+    Options which are not explicitly set retain their previous value.
+    For example one may type: commandRun(e='ab',c='ab.1') to use 'ab.c' as
+    the equations file and c.ab.1 as the constants file (if you are
+    using the default filename templates).
+
+    Type commandRun('name') load all files with base 'name'.
+    This does the same thing as running
+    commandRun(e='name',c='name,s='name',h='name').
+    \section*{Aliases}
+r run rn \medskip\hrule\end{minipage}\subsection{commandRunnerConfigFort2} \label{sec:clui_ref_commandRunnerConfigFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Modify continuation constants.\section*{Description}
+
+    Type commandRunnerConfigFort2('xxx',yyy) to change the constant 'xxx' to have
+    value yyy.
+    \section*{Aliases}
+changeconstant cc ch \medskip\hrule\end{minipage}\subsection{commandRunnerConfigFort12} \label{sec:clui_ref_commandRunnerConfigFort12}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Modify HomCont continuation constants.\section*{Description}
+
+    Type commandRunnerConfigFort12('xxx',yyy) to change the HomCont constant 'xxx' to have
+    value yyy.
+    \section*{Aliases}
+hch \medskip\hrule\end{minipage}\subsection{commandRunnerLoadName} \label{sec:clui_ref_commandRunnerLoadName}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Load files into the AUTO runner.\section*{Description}
+
+    Type commandRunnerLoadName([options]) to modify AUTO runner.
+    There are four possible options:
+    \begin{verbatim}
+    Long name   Short name    Description
+    -------------------------------------------
+    equation    e             The equations file
+    constants   c             The AUTO constants file
+    solution    s             The restart solution file
+    homcont     h             The Homcont parameter file
+    \end{verbatim}
+    Options which are not explicitly set retain their previous value.
+    For example one may type: commandRunnerLoadName(e='ab',c='ab.1') to use 'ab.c' as
+    the equations file and c.ab.1 as the constants file (if you are
+    using the default filename templates).
+
+    Type commandRunnerLoadName('name') load all files with base 'name'.
+    This does the same thing as running
+    commandRunnerLoadName(e='name',c='name,s='name',h='name').
+    \section*{Aliases}
+ld load \medskip\hrule\end{minipage}\subsection{commandRunnerPrintFort2} \label{sec:clui_ref_commandRunnerPrintFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print continuation parameters.\section*{Description}
+
+    Type commandRunnerPrintFort2() to print all the parameters.
+    Type commandRunnerPrintFort2('xxx') to return the parameter 'xxx'.
+    \section*{Aliases}
+pc pr printconstant \medskip\hrule\end{minipage}\subsection{commandRunnerPrintFort12} \label{sec:clui_ref_commandRunnerPrintFort12}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Print HomCont continuation parameters.\section*{Description}
+
+    Type commandRunnerPrintFort12() to print all the parameters.
+    Type commandRunnerPrintFort12('xxx') to return the parameter 'xxx'.
+    \section*{Aliases}
+hpr \medskip\hrule\end{minipage}\subsection{commandShell} \label{sec:clui_ref_commandShell}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Run a shell command.\section*{Description}
+        
+    Type 'shell xxx' to run the command 'xxx' in the Unix shell and display
+    the results in the AUTO command line user interface.
+    \section*{Aliases}
+shell \medskip\hrule\end{minipage}\subsection{commandTriple} \label{sec:clui_ref_commandTriple}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Triple a solution.\section*{Description}
+
+    Type commandTriple() to triple the solution in 'fort.7' and 'fort.8'.
+
+    Type commandTriple('xxx') to triple the solution in b.xxx and s.xxx (if you
+    are using the default filename templates).
+    \section*{Aliases}
+tr triple \medskip\hrule\end{minipage}\subsection{commandUserData} \label{sec:clui_ref_commandUserData}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Covert user-supplied data files.\section*{Description}
+
+    Type commandUserData('xxx') to convert a user-supplied data file 'xxx.dat' to
+    AUTO format. The converted file is called 's.dat'.  The original
+    file is left unchanged.  AUTO automatically sets the period in
+    PAR(10).  Other parameter values must be set in 'stpnt'. (When
+    necessary, PAR(10) may also be redefined there.)  The
+    constants-file file 'c.xxx' must be present, as the AUTO-constants
+    'NTST' and 'NCOL' are used to define the new mesh.  For examples
+    of using the 'userData' command see demos 'lor' and 'pen' (where
+    it has the old name 'fc').
+    \section*{Aliases}
+us userdata \medskip\hrule\end{minipage}\subsection{commandWait} \label{sec:clui_ref_commandWait}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Wait for the user to enter a key.\section*{Description}
+
+    Type 'commandWait' to have the AUTO interface wait
+    until the user hits any key (mainly used in scripts).
+    \section*{Aliases}
+wait \medskip\hrule\end{minipage}
+
 
 %==============================================================================
 %==============================================================================
 \chapter{ Output Files.} \label{ch:Output_files}
 %==============================================================================
 %==============================================================================
-{\cal AUTO} writes four output-files~:
+{\cal AUTO} writes to standard output and three output-files~:
 \begin{itemize}
-\item[-] {\tt fort.6}~:~
-  A summary of the computation is written in {\tt fort.6}, which usually
+\item[-] standard output:~
+  A summary of the computation is written to standard output, which usually
   corresponds to the window in which {\cal AUTO} is run. 
   Only special, labeled solution points are noted, namely those listed
   in Table~\ref{tbl:Solution_Types}.
@@ -889,15 +2707,19 @@ which can then be printed by ``parameter overspecification'';
 see Section~\ref{sec:Parameter_over_specification}.
 For an example see demo {\tt pvl}.
 
-The {\cal AUTO}-commands {\it @sv}, {\it @ap}, and {\it @df} can be used 
+The {\cal AUTO}-commands {\it @sv}(\commandf{sv}), {\it @ap}(\commandf{ap}),
+ and {\it @df}(\commandf{df}) can be used 
 to manipulate  the output-files {\tt fort.7}, {\tt fort.8},
 and {\tt fort.9}.
-Furthermore, the {\cal AUTO}-command {\it @lb} can be used to delete and
+Furthermore, the {\cal AUTO}-command {\it @lb}(\commandf{rl}) can be
+used to delete and
 relabel solutions simultaneously in {\tt fort.7} and {\tt fort.8}.
 For details see Section~\ref{sec:command_mode}.
 
-The graphics program {\cal PLAUT} can be used to graphically inspect 
-the data in {\tt fort.7} and {\tt fort.8}; see Chapter~\ref{ch:PLAUT}.
+The graphics programs {\cal PLAUT}, {\cal PLAUT04}, and the Python
+CLUI command \commandf{plot} can be used to graphically inspect 
+the data in {\tt fort.7} and {\tt fort.8}; see Chapters~\ref{ch:PLAUT},
+~\ref{ch:PLAUT04}, and ~\ref{ch:python_mode}.
  
 %==============================================================================
 %==============================================================================
@@ -1053,7 +2875,7 @@ output-files and data-files;
 see Section~\ref{sec:command_mode} for corresponding commands.
 To use the GUI for a new equation, change to an empty work directory.
 For an existing equations-file, change to its directory.
-({\it Do not activate the GUI in the directory {\tt auto/07} 
+({\it Do not activate the GUI in the directory {\tt auto/07p} 
 or in any of its subdirectories.})
 Then type 
 
@@ -1325,25 +3147,25 @@ clicking {\it Files/Append}.
 \section{ Customizing the GUI.} \label{sec:Customizing_the_GUI}
 \subsection{ Print-button.}
 The {\it Misc/Print}-button on the Menu Bar can be customized 
-by editing the file {\tt GuiConsts.h} in directory {\tt auto/07/include}.
+by editing the file {\tt GuiConsts.h} in directory {\tt auto/07p/include}.
 
 \subsection{ GUI colors.}
 GUI colors can be customized by creating an X resource file.
-Two model files can be found in directory {\tt auto/07/gui}, namely,
+Two model files can be found in directory {\tt auto/07p/gui}, namely,
 {\tt Xdefaults.1} and {\tt Xdefaults.2}.
 To become effective, edit one of these, if desired,
 and copy it to {\tt .Xdefaults} in your home directory.
 Color names can often be found in the system file {\tt /usr/lib/X11/rgb.txt}.
 
 \subsection{ On-line help.}
-The file {\tt auto/07/include/GuiGlobal.h}
+The file {\tt auto/07p/include/GuiGlobal.h}
 contains on-line help on {\cal AUTO}-constants and demos.
 The text can be updated, subject to a modifiable maximum length.
 On SGI machines this is 10240 bytes,
 which can be increased, for example, to 20480 bytes, 
 by replacing the line
 {\it CC = cc -Wf, -XNl10240 -O}
-in {\tt auto/07/gui/Makefile} by
+in {\tt auto/07p/gui/Makefile} by
 {\it CC = cc -Wf, -XNl20480 -O}
 On other machines, the maximum message length is the system defined maximum
 string literal length.
@@ -1361,7 +3183,7 @@ then the constants that define the computation
 are normally expected in the file  {\tt c.xxx}.
 The general format of this file is the same for all {\cal AUTO} runs.
 For example, the file {\tt c.ab} 
-in directory {\tt auto/07/demos/ab} is listed below.
+in directory {\tt auto/07p/demos/ab} is listed below.
 (The tutorial demo {\tt ab} is described in detail in 
 Chapter~\ref{ch:Demos:_Tutorial}.)  
 
@@ -2177,7 +3999,7 @@ The following restrictions apply~:
 
 \begin{itemize}
 \item[-]
-  The maximum number of parameters, {\tt NPARX} in {\tt auto/07/include/auto.h},
+  The maximum number of parameters, {\tt NPARX} in {\tt auto/07p/include/auto.h},
   has pre-defined value {\tt NPARX}=36.  {\tt NPARX} should not normally be increased
   and it should never be decreased.
   Any increase of {\tt NPARX} must be followed by recompilation of {\cal AUTO}.
@@ -2276,18 +4098,9 @@ in particular to verify whether solutions labeled as BP or TR
 (cf.~Table~\ref{tbl:Solution_Types}) have indeed  been correctly classified.
  
 \section{ Memory Requirements.} \label{sec:Memory_requirements}
-Pre-defined maximum values of certain {\cal AUTO}-constants
-are in {\tt auto/07/include/auto.h}; 
-see also Section~\ref{sec:Restrictions}. 
-These maxima affect the run-time memory requirements
-and should not be set to unnecessarily large values.
-If an application only solves algebraic systems and if {\tt NDIM} is ``large''
-then memory requirements can be much reduced by setting each of
-{\tt NTSTX}, {\tt NCOLX}, {\tt NBCX}, {\tt NINTX}, 
-equal to $1$ in {\tt auto/07/include/auto.h},
-followed by recompilation of the {\cal AUTO} libraries.
-
-
+The run-time memory requirements depend on the values the user set in
+the constants file and are roughly proportional to the value
+${\tt NTST}\times{\tt NDIM}\times({\tt NCOL}\times{\tt NDIM}+{\tt NBC}+{\tt NINT})$. 
 
 %==============================================================================
 %==============================================================================
@@ -2296,7 +4109,7 @@ followed by recompilation of the {\cal AUTO} libraries.
 %==============================================================================
 \newpage
 \section{ Introduction.} \label{sec:Tutorial_Introduction}
-The directory {\tt auto/07/demos} has a large number of subdirectories,
+The directory {\tt auto/07p/demos} has a large number of subdirectories,
 for example {\tt ab}, {\tt pp2}, {\tt exp}, etc.,
 each containing all necessary files for certain illustrative calculations.
 Each subdirectory, say {\tt xxx}, corresponds to a particular equation
@@ -2895,10 +4708,10 @@ To execute all runs of a selected demo with the GUI,
 click {\it Demos/Select}, select a demo,
 and click the {\it Run}-button in the pop-up window.
 This will actually run the demo in the corresponding subdirectory
-of {\tt auto/07/demos}, which is only possible if you have write access
+of {\tt auto/07p/demos}, which is only possible if you have write access
 to this directory. 
 Make sure to click the {\it Demos/Reset}-button afterwards.
-Do not otherwise run {\cal AUTO} in the directory {\tt auto/07} 
+Do not otherwise run {\cal AUTO} in the directory {\tt auto/07p} 
 or in any of its subdirectories.
 
 
@@ -2951,7 +4764,7 @@ are given by
  s_2 '&=
  (s_0 +\mu - s_2) + (s_1 - s_2) - \rho R (s_2), \\\end{array} \end{equation}
 where
-$$ R (s)={s \over 1+s+ \kappa s^{2} }.$$
+$$ R (s)=\frac{s}{1+s+ \kappa s^{2} }.$$
 The free parameter is $s_0$. Other parameters are fixed.
 This equation is also considered in 
 \citename{DoKeKe:91a} \citeyear{DoKeKe:91a}.
@@ -3304,7 +5117,7 @@ of demo {\tt abc}.}
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Linux Commands for running demo {\tt abc}.}
+\caption{Unix Commands for running demo {\tt abc}.}
 \label{tbl:demo_abcL}
 \end{center}
 \end{table}
@@ -3665,7 +5478,7 @@ are given by
  a' &=\alpha (a_{0} - a) - \rho R (s,a), \\
 \end{array} \end{equation}
 where
-$$ R(s,a)={s a \over 1+s+ \kappa s^{2} },
+$$ R(s,a)=\frac{s a}{1+s+ \kappa s^{2} },
 \qquad \kappa  > 0. $$
 The free parameter is $\rho$.
 In the fold continuation $s_0$ is also free.
@@ -4013,7 +5826,7 @@ as free problem parameters.
 \hline
 %==============================================================================
   {\it @pn pen} & run an animation program to view the solutions in {\tt s.pen} \\ 
-  & (on SGI machines only; see also the file {\tt auto/07/pendula/README}).
+  & (on SGI machines only; see also the file {\tt auto/07p/pendula/README}).
   \\ 
 \hline
 %==============================================================================
@@ -4039,7 +5852,7 @@ The equations modeling the circuit are
  u_3' &=  - \beta~ u_2~,  
 \end{array} \end{equation}
 where
-$$ h(x) = a_1 x + {1 \over 2}~ (a_0 - a_1) ~
+$$ h(x) = a_1 x + \frac{1}{2}~ (a_0 - a_1) ~
   \bigl\{ \abs{x+1} -  \abs{x-1} \bigr\}~,$$
 and where we take
 $\beta = 14.3$, $a_0 = - 1/7$, $a_1 = 2/7$.
@@ -4051,7 +5864,7 @@ it is necessary that the solution be sufficiently smooth.
 Moreover, the adaptive mesh selection strategy will fail
 if the solution or one of its lower order derivatives has discontinuities.
 For these reasons  we use the smooth approximation
-$$ \abs{x} ~\approx~ {2 x \over \pi } ~ {\rm arctan}(Kx),$$
+$$ \abs{x} ~\approx~ \frac{2 x}{\pi} ~ {\rm arctan}(Kx),$$
 which get better as $K$ increases.
 In the numerical calculations below we use $K = 10$.
 The free parameter is $\alpha$.
@@ -4453,17 +6266,17 @@ $$ u_1(0)=0, \qquad u_2(0)=0, \qquad u_4(0)=1-\gamma, $$
 and (asymptotic) right boundary conditions
 \begin{equation} \begin{array}{cl}
   & \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~ u_2(1) + u_3(1)
-  - \gamma ~ { u_4(1) \over a(f_\infty,\gamma) } = 0,  \\
-  & a(f_\infty,\gamma)~ { b^2(f_\infty,\gamma) \over \gamma } ~u_2(1)
+  - \gamma ~ \frac{ u_4(1) }{ a(f_\infty,\gamma) } = 0,  \\
+  & a(f_\infty,\gamma)~ \frac{ b^2(f_\infty,\gamma) }{ \gamma } ~u_2(1)
   + \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~u_4(1) 
   + u_5(1) = 0, \\
  & u_1(1) = f_\infty,
  \end{array} \end{equation}
 where
 \begin{equation} \begin{array}{cl}
- & a(f_\infty,\gamma) = {1 \over \sqrt{2} }
+ & a(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} + f_\infty^2 \bigr]^{1/2}, \\
- & b(f_\infty,\gamma) = {1 \over \sqrt{2} }
+ & b(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} - f_\infty^2 \bigr]^{1/2}.  \\
 \end{array} \end{equation}
 Note that there are five differential equations and six boundary conditions.
@@ -4505,7 +6318,7 @@ This demo illustrates the use of continuation to compute
 solutions to the singularly perturbed boundary value problem
 \begin{equation} \begin{array}{cl}
   u_1 ' &= u_2  ,  \\
-  u_2 ' &= {\lambda \over \eps} \bigl(
+  u_2 ' &= \frac{\lambda }{ \eps} \bigl(
   u_1 u_2 (u_1^2 - 1) + u_1
   \bigr)  , \\ \end{array} \end{equation}
 with boundary conditions $u_1(0)=3/2$,  $u_1(1)=\gamma.$
@@ -4627,8 +6440,8 @@ imaginary part.
 This demo uses Euler's method to locate a stationary solution of
 a nonlinear parabolic PDE, followed by continuation of this stationary
 state in a free problem parameter. The equation is
- $$ {\partial u \over \partial t} 
-  = D~{\partial^2 u \over \partial x^2} ~+~  p_1~ u ~( 1-u) , $$
+ $$ \frac{\partial u }{ \partial t} 
+  = D~\frac{\partial^2 u }{ \partial x^2} ~+~  p_1~ u ~( 1-u) , $$
 on the space interval $[0,L]$, where $L=$~{\tt PAR(11)}~$=10$ is fixed throughout,
 as is the diffusion constant $D=$~{\tt PAR(15)}~$=0.1$.
 The boundary conditions are $u(0) = u(L) = 0$ for all time.
@@ -5348,7 +7161,7 @@ with boundary conditions
 \end{array} \end{equation}
 The objective functional is
 $$ \omega = \int_0^{1} (u_1(t)-1)^{2}~ dt
-  +  {1\over{10}} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
+  +  \frac{1}{10} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
 The  successive continuation equations are given by
 \begin{equation} \begin{array}{cl}
   u_1'(t) &= u_2(t), \\
@@ -5361,7 +7174,7 @@ The  successive continuation equations are given by
 \end{array} \end{equation}
 where
 $$ p_{u_1} \equiv
-  {{\partial p} \over {\partial u_1}} =
+  \frac{{\partial p} }{ {\partial u_1}} =
   1 + 2\lambda_2 u_1 + 4\lambda_3 u_1^{3},$$
 with 
 \begin{equation} \begin{array}{cl}
@@ -5369,22 +7182,22 @@ with
   u_1(1) = 0,\qquad  &w_1(1) + \beta_2 = 0,\qquad  w_2(1) = 0, \\\end{array} \end{equation}
 
 $$ \int_0^{1} \bigl[ \omega - (u_1(t)-1)^{2}
-  - {1\over{10}} \sum_{k=1}^{3} \lambda_{k}^{2} \bigr]~ dt = 0, $$
+  - \frac{1}{10} \sum_{k=1}^{3} \lambda_{k}^{2} \bigr]~ dt = 0, $$
 
 $$ \int_0^{1} \bigl[w_1^{2}(t) - \alpha_0 \bigr]~ dt = 0, $$
  
 \begin{equation} \begin{array}{cl}
   &\int_0^{1} \bigl[
   -e^{p(u_1,\lambda_2,\lambda_3)} w_2(t)
-  - {1\over 5}\gamma \lambda_1
+  - \frac{1}{5}\gamma \lambda_1
   \bigr]~ dt = 0, \\
   &\int_0^{1} \bigl[
   -\lambda_1 e^{p(u_1,\lambda_2,\lambda_3)} u_1(t)^{2} w_2(t)
-  - {1\over 5}\gamma \lambda_2
+  - \frac{1}{5}\gamma \lambda_2
   - \tau_2  \bigr]~ dt = 0, \\
   &\int_0^{1} \bigl[
   -\lambda_1 e^{p(u_1,\lambda_2,\lambda_3)} u_1(t)^{4} w_2(t)
-  - {1\over 5}\gamma \lambda_3
+  - \frac{1}{5}\gamma \lambda_3
   - \tau_3 \bigr]~ dt = 0. \\\end{array} \end{equation}
 
 In the first run the free equation parameter is $\lambda_1$.
@@ -5540,10 +7353,10 @@ This gives the first order system
 where $z=x+ct$, and $' = d/dz$.
 If $a=1/2$ and $c=0$ then there are two analytically known
 heteroclinic connections, one of which is given by
-$$ u_1(z) = {
-  {e^{{1 \over 2} \sqrt{2} z}}
-  \over
-  {1 + e^{{1 \over 2} \sqrt{2} z}}  },
+$$ u_1(z) = \frac{
+  {e^{\frac{1}{2} \sqrt{2} z}}
+  }{
+  {1 + e^{\frac{1 }{ 2} \sqrt{2} z}}  },
   \qquad  u_2(z) = u_1'(z),  \qquad  -\infty < z < \infty.
   $$
 The second heteroclinic connection is obtained by reflecting the
@@ -5658,11 +7471,11 @@ becomes
   & u_2'(\xi) = T \bigl[ c u_2 - B(u_1) u_2^{2} - C(u_1)\bigr]. \\
 \end{array} \end{equation}
 For Case~1 this equation has a known exact solution, namely,
-$$ u(\xi) = { 1 \over 1 + exp(T\xi) }, \qquad
-  v(\xi) = { -{1 \over 2}  \over 1 + exp(-T\xi) }. $$
+$$ u(\xi) = \frac{ 1 }{ 1 + exp(T\xi) }, \qquad
+  v(\xi) = \frac{ -\frac{1 }{ 2}  }{ 1 + exp(-T\xi) }. $$
 This solution has wave speed $c=1$.
 In the limit as $T \rightarrow \infty$ its phase plane trajectory
-connects the stationary points $(1,0)$ and $(0,-{1 \over 2})$.
+connects the stationary points $(1,0)$ and $(0,-\frac{1 }{ 2})$.
  
 The sharp traveling wave in Case~2
 can now be obtained using the following homotopy.
@@ -5838,7 +7651,7 @@ The equations are
 $i=1,\cdots$,{\tt NDIM}/2,
 with boundary conditions $ u_i(0)=0$, $u_i(1)=0.$
 Here 
-$$ e(u) = \sum_{k=0}^{n} ~ {u^k \over k!} ~ , $$
+$$ e(u) = \sum_{k=0}^{n} ~ \frac{u^k }{ k!} ~ , $$
 with $n=25$.
 The computation requires 10 full $LU$-decompositions of the linearized system
 that arises from Newton's method for solving the collocation equations.
@@ -5892,7 +7705,7 @@ description of the present version.
 
 The current implementation of {\cal HomCont} must be considered as experimental,
 and updates are anticipated.
-The {\cal HomCont} routines are in the file {\tt auto/07/src/autlib5.f}. 
+The {\cal HomCont} routines are in the file {\tt auto/07p/src/autlib5.f}. 
 Expert users wishing to modify the routines may look there.
 Note also that at present, {\cal HomCont} can be run only in 
 {\cal AUTO} Command Mode and not with the GUI. 
@@ -5994,7 +7807,7 @@ Section~\ref{sec:Starting_strategies} for more details.
 \subsection{\tt ISTART}  \label{sec:ISTART}
 \begin{itemize}
 \item[-] {\tt ISTART=1}~:  
-This option is no obsolete in the current version. 
+This option is obsolete in the current version. 
 It may be used as a flag that a solution is to be
 restarted from a previously computed point or
 from numerical data converted into {\cal AUTO} format using {\tt @fc}.
@@ -6007,12 +7820,69 @@ In this case {\tt IRS>0}.
 %a previously-obtained output point from {\cal AUTO}.
 \item[-] {\tt ISTART=2}~: 
 If {\tt IRS=0}, an explicit solution must be specified in the
-routine {\tt STPNT} in the usual format. 
+subroutine {\tt STPNT} in the usual format. 
 \item[-] {\tt ISTART=3}~: 
-The ``homotopy" approach is used for starting, see 
+The ``homotopy'' approach is used for starting, see 
 Section~\ref{sec:Starting_strategies} 
 for more details. Note that this is not available with the choice 
 {\tt IEQUIB=2}.
+\item[-] {\tt ISTART=4}~:
+A phase-shift is performed for homoclinic orbits to let the
+equilibrium (either fixed or non-fixed, depending on IEQUIB)
+correspond to $t=0$ and $t=1$. This is necessary if a periodic
+orbit that is close to a homoclinic orbit is continued into
+a homoclinic orbit.
+\item[-] {\tt ISTART=-N, $N=1,2,3,\ldots$}~:
+Homoclinic branch switching: this description is for reference only.
+We refer to the demo in Chapter~\ref{ch:HomCont_hbs} to see how this
+can be used in actual practice and to \citeasnoun{OlChKr:03} for
+theory and background.
+
+The orbit is split into $N+1$ parts and
+{\cal AUTO} sees it as an $(N+1)\times${\tt NDIM}-dimensional object.
+The first part $u_0$ goes from the equilibrium to the point $x_0$ that is 
+furthest from the equilibrium. 
+Then follow $N-1$ shifted copies of the orbit, which travel
+from the point $x_0$ back to the point $x_0$. The last part $U_N$
+goes from the point $x_0$ back to the equilibrium. 
+The derivatives $\dot{x}_0$ with respect to time
+of the point that is furthest from the equilibrium are stored at the 
+parameters {\tt PAR(NPARX-NDIM+1...NPARX)}.
+
+If {\tt ITWIST=1}, and this was also the case in the preceding run,
+then a copy of the adjoint vector $\Psi$ at $x_0$ is stored at the parameters
+{\tt PAR(NPARX-NDIM*2+1...NPARX-NDIM)} and Lin's method can be used
+to do homoclinic branch switching. To be more precise, the individual parts
+$u_i$ and $u_{i+1}$ are at distances $\varepsilon_i$ away from each
+other, along the Lin vector $Psi$, at the left- and right-hand end
+points. These gaps $\varepsilon_i$ are at parameters
+{\tt PAR(20+2*i)}. Moreover, each part (except $u_{N+1}$) ends at
+at a Poincar\'e section which goes through $x_0$ and is perpendicular
+to $\dot{x}_0$.
+
+The times $T_i$ that each part $u_i$ takes are stored as follows: 
+$T_0=${\tt PAR(10)}, $T_N=${\tt PAR(11)} and $T_i=${\tt PAR(19+2*i)}
+for $i=1\ldots N-1$. Through a continuation in problem parameters,
+gaps $\varepsilon_i$, and times $T_i$ 
+it is possible to switch from a $1$-homoclinic to
+an $N$-homoclinic orbit.
+
+If {\tt ITWIST=0}, the adjoint vector is not computed and Lin's
+method is not used. Instead, AUTO produces a gap
+$\varepsilon$={\tt PAR(22)} at the right-hand end point $p$ of
+$u_{N+1}$, measuring the distance between the stable manifold of the
+equilibrium and $p$. This technique can also be used to find 2-homoclinic
+orbits, by varying in $\varepsilon$ and $T_1$, similar to the method
+described before, but only if the unstable manifold in
+one-dimensional. Because this method is more limited than the method
+using Lin vectors, we do not recommend it for normal usage.
+
+To switch back to a normal homoclinic orbit, set {\tt ISTART} back to
+a positive value such as 1. Now HomCont has lost all the information
+about the adjoint, so if {\tt ITWIST} is set to 0, HomCont
+does a normal continuation without the adjoint, and
+if {\tt ITWIST} is set to 1, one needs to do a Newton dummy step
+first to recalculate the adhoint.
 \end{itemize}
 
 \subsection{\tt NREV, IREV}  \label{sec:IREV}
@@ -6103,7 +7973,7 @@ see Section~\ref{sec:HomCont_Test_functions}.
  Finally, the values of the {\tt NPSI} activated test functions are written. 
 
 \section{ Test Functions.} \label{sec:HomCont_Test_functions}
-Codimension-two homoclinic orbits are detected along families of codim
+Codimension-two homoclinic orbits are detected along branches of codim
 1 homoclinics by locating zeroes of certain test functions
 $\psi_i$. The test functions that are ``switched on'' during any
 continuation are given by the choice of the labels $i$, and are
@@ -6183,8 +8053,9 @@ There are four possible starting procedures for continuation.
 \item[{\bf(i)}]
 Data can be read from a previously-obtained output point from {\cal AUTO}
  (e.g., from continuation of a periodic orbit up to large period;
-note that the end-point of the data stored must be close to the
-equilibrium). These data can be read from fort.8 (saved to {\tt
+note that if the end-point of the data stored is not close to the
+equilibrium, a phase shift must be performed by setting
+{\tt ISTART=4}). These data can be read from fort.8 (saved to {\tt
 s.xxx}) by making {\tt IRS} correspond to the label of the data
 point in question.
 
@@ -8058,7 +9929,721 @@ which again ends at a no convergence error for similar reasons.
 \end{center}
 \end{table}
 
+%==============================================================================
+%==============================================================================
+\chapter{ {\cal HomCont} Demo : Homoclinic branch switching.} \label{ch:HomCont_hbs}
+%==============================================================================
+%==============================================================================
 
+%==============================================================================
+%DEMO=hbs======================================================================
+%==============================================================================
+
+This demo illustrates homoclinic branch switching, which is an
+implementation of Lin's method \cite{Li:90,Sa:93,Ye:01}
+as described in \citeasnoun{OlChKr:03}. We use a
+direct branch switching method to switch from 1- to 2- and
+3-homoclinic orbits near an inclination flip bifurcation 
+in a model due to Sandstede, 
+which was introduced in Chapter~\ref{ch:HomCont_san}.
+This also shows how to obtain a homoclinic orbit through continuation
+of a periodic orbit born at a Hopf bifurcation.
+Thereafter, we illustrate homoclinic branch switching for the
+FitzHugh-Nagumo equations and a 5th-order Korteweg-De Vries model.
+
+The equation files in these demos are written in C.
+
+\section{ Branch switching at an inclination flip in Sand\-stede's
+  model.}
+\label{sec:HomCont_hbs_san}
+Consider the system \cite{Sa:95b}
+\begin{equation} \begin{array}{rcl}
+\dot{x} & = & a x + b y - a x^2 - \alpha z x (2-3x), \\
+\dot{y} & = & b x + a y - \frac{3}{2} x (b x + a y) + \alpha z 2 y, \\
+\dot{z} & = & c z + \mu x + 3 x z + \alpha (x^2 (1-x) - y^2).
+\end{array} \end{equation}
+as given in the file \filef{ sib.c}, where for simplicity we have
+set $\tilde\mu=0$, $\beta=1$ and $\gamma=3$.
+
+We study an inclination flip that exists for $a=0.375$,
+$b=0.625$ and $c=-0.75$. This corresponds to the situation
+where the eigenvalues of the equilibrium at the origin are
+$a+b=1$, $a-b=-0.25$ and $c=-0.75$. Hence, the corresponding
+bifurcation diagram consists of a complicated structure involving a
+fan of infinitely many $n$-periodic and $n$-homoclinic orbits
+for arbitrary $n$ and a region with horseshoe dynamics; see
+also \citeasnoun{HoKr:00} and the references therein.
+
+This computation starts from an equilibrium at $(2/3,0,0)$, which
+exists for $a=\mu=\alpha=0$. Also, $b$ is set to $0.625$ (the value
+we would like it to be) and $c$ is set to $-2.5$ in \funcf{stpnt}.
+Choosing $c=-2$ at this stage leads to convergence problems.
+This equilibrium is not the one corresponding to the homoclinic orbit,
+but it is an equilibrium with complex eigenvalues, that we can follow
+until it reaches a Hopf bifurcation. A periodic orbit emanates from 
+this Hopf bifurcation and can be followed to the homoclinic orbit.
+However, first we need to change $a$ from $0$ to $0.375$.
+
+All the following commands, except for \commandf{demo('sib')}
+are contained within the file \commandf{'sib.auto'} which you can 
+either execute in a batch mode by entering\\
+\commandf{> auto sib.auto}\\
+or step by step using\\
+\commandf{AUTO> demofile('sib.auto')}.
+
+We start by copying the demo to the current work directory 
+and running the first step
+\begin{center}
+\commandf{ demo('sib') }\\
+\commandf{ ld('sib') } \\
+\commandf{ rn() } \\
+\commandf{ sv('1') }
+\end{center}
+The equilibrium is followed in $a$ until $a$ (or \parf{ PAR(1)}) is at our
+desired value, $0.375$.
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(1)     ...    U(1)          U(2)          U(3)     
+   1     1  EP    1   0.00000E+00 ... 6.66667E-01   0.00000E+00   0.00000E+00
+   1     5  EP    2   3.75000E-01 ... 6.66667E-01  -1.33333E-01   0.00000E+00
+\end{verbatim}
+The output is saved in the files \filef{ b.1}, \filef{ s.1} and
+\filef{ d.1}.
+Next we continue in $\alpha$ (\parf{PAR(4)}) until a Hopf bifurcation is
+found:
+\begin{center}
+\commandf{ rn(c='sib.2',s='1') }\\
+\commandf{ sv('2') }
+\end{center}
+or, alternatively,
+\begin{center}
+\commandf{ cc("IRS",2) }\\
+\commandf{ cc("ICP",[4]) }\\
+\commandf{ rn(s='1') }\\
+\commandf{ sv('2') }
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)     ...    U(1)          U(2)          U(3)     
+   1     6  HB    3   3.18429E-01 ... 6.54375E-01  -1.34754E-01   7.70102E-02
+\end{verbatim}
+The output is saved in the files \filef{ b.2}, \filef{ s.2} and
+\filef{ d.2}.
+This Hopf bifurcation can then be continued into a periodic orbit. The
+periodic orbit eventually reaches a homoclinic bifurcation. We
+continue in $\mu$=\parf{PAR(5)} and \parf{PAR(11)}, 
+which corresponds to the period, and stop when the period is equal to $35$.
+\begin{center}
+\commandf{ rn(c='sib.3',s='2') } \\
+\commandf{ sv('3') }
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(5)        L2-NORM    ...    PERIOD    
+   3    10        5  -2.41881E-03   6.70569E-01 ...  1.08975E+01
+                                                ...
+   3    40        8  -1.29495E-02   6.14547E-01 ...  1.41297E+01
+                                                ...
+   3    81  EP   13  -1.04657E-04   4.01829E-01 ...  3.50000E+01
+\end{verbatim}
+The output is saved in the files \filef{ b.3}, \filef{ s.3} and
+\filef{ d.3}. Note that $\mu$ first decreases and then increases towards
+$0$, which is precisely what we expect in this model, as homoclinic
+orbits occur on the line $\mu=0$ in the $(\alpha,\mu)$-plane.
+It is now instructive to look at a phase space diagram to see what is
+going on.
+\begin{center}
+\commandf{ plot('3') }
+\end{center}
+Selecting 'solution' for Type, [5,6,7,8,9,10,11,12,13] for Label,
+[0] for X and [1] for Y, we obtain the diagram depicted in 
+Figure~\ref{hopfbif}(a), where the periodic orbit grows from the
+Hopf equilibrium to a homoclinic orbit.
+\begin{figure}[htb]
+\begin{center}
+\begin{picture}(400,180)
+\put(0,0){
+\put(157,148){(a)}
+\includegraphics[scale=0.5]{include/hopfbif.eps}}
+\put(200,0){
+\put(157,148){(b)}
+\includegraphics[scale=0.5]{include/notshifted.eps}}
+\end{picture}
+\caption{Periodic orbit growing from a Hopf bifurcation to a
+  homoclinic orbit (a). The unshifted homoclinic orbit (b).}
+\label{hopfbif}
+\end{center}
+\end{figure}
+
+Note however, that the homoclinic orbit has the wrong left-hand and
+right-hand end points. This can be seen by plotting the solution
+corresponding to Label [13] using 't' vs. 'x' (coordinate [0]), 
+as depicted in Figure~\ref{hopfbif}(b).
+
+Hence, in order to continue this as a real homoclinic 
+we have to give {\cal HomCont} special instructions, to do a phase-shift in
+time. This can be done by setting \parf{ISTART=4}. Moreover, 
+since we have not specified the value of
+the equilibrium at the origin in \filef{ sib.c}, 
+we need to set \parf{IEQUIB=1} to let
+{\cal HomCont} detect the equilibrium. Note that in this case this is not
+strictly necessary; however, we do this for instructional purposes.
+
+Now we use {\cal HomCont} to continue the homoclinic orbit in $c$ and $\mu$ 
+(\parf{PAR(3)}, \parf{PAR(5)}), to get the desired value $c=-2.0$.
+\begin{center}
+\commandf{ rn(c='sib.4',h='sib.shift',s='3') } \\
+\commandf{ sv('4') }
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(3)        L2-NORM      ...    PAR(5)     
+   3    51  EP   14  -2.00000E+00   4.01890E-01   ...  2.66146E-09
+\end{verbatim}
+The output is saved in the files \filef{ b.4}, \filef{ s.4} and
+\filef{ d.4}. Note that \parf{PAR(5)}=$\mu$ remains zero, which is exactly
+what we expect.
+
+Next we want to add a solution to the adjoint equation to this
+solution. This is achieved by making the change \parf{ ITWIST = 1}
+saved in \filef{ h.sib.twist}. Also, we set \parf{ISTART} to 1 to tell 
+{\cal HomCont} that it is should not try to shift the orbit anymore.
+\begin{center}
+\commandf{ rn(c='sib.5',h='sib.twist',s='4') } \\
+\commandf{ sv('5') }
+\end{center}
+or, alternatively,
+\begin{center}
+\commandf{ cc("IRS",14) }\\
+\commandf{ cc("ICP",[5,8])}\\
+\commandf{ cc("NMX",2)}\\
+\commandf{ hch("ITWIST",1)}\\
+\commandf{ hch("ISTART",1)}\\
+\commandf{ rn(s='4')}\\
+\commandf{ sv('5')}
+\end{center}
+where \commandf{hch} means ``change {\cal HomCont} constant''.
+The output is stored in \filef{ b.5}, \filef{ s.5}  and \filef{ d.5}.
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(5)        L2-NORM    ...    PAR(8)     
+   3     2  EP   15   2.66146E-09   4.01890E-01 ...   1.00000E-02
+\end{verbatim}
+Here \parf{PAR(8)} is a dummy (unused) parameter and $\mu$ just stays where
+it is. Now that we have obtained the solution of the adjoint equation,
+we are able to detect inclination flips. This can be achieved by
+setting \parf{NPSI} to 1, \parf{IPSI(1)} to 13, and monitoring \parf{PAR(33)}.
+\begin{center}
+\commandf{ rn(c='sib.6',h='sib.if',s='5') } \\
+\commandf{ sv('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)        L2-NORM    ...  PAR(5)        PAR(33)
+   3    19  UZ   16   7.11774E-02   4.01890E-01 ... 1.24376E-11  -2.36702E-07
+\end{verbatim}   
+The output is stored in \filef{ b.6}, \filef{ s.6}  and \filef{ d.6}.
+Hence an inclination flip was found at $\alpha=0.711774$.
+
+Now we are ready to perform homoclinic branch switching, using
+the techniques described in \cite{OlChKr:03}. 
+Our first aim is to find a 2-homoclinic orbit. The
+ingredients we need are: a homoclinic orbit where $n$-homoclinic orbits
+are close by, and the solution to the adjoint equation to
+obtain the Lin vector. Since both ingredients are there, we can now
+continue in $\mu$, $\varepsilon_1$ and $T_1$, to obtain the initial
+Lin gap. Recall from Chapter~\ref{ch:HomCont} that the Lin gaps 
+$\varepsilon_i$ correspond to
+\parf{PAR(20+i*2)} and the time intervals $T_i$ 
+correspond to \parf{PAR(21+i*2)}. We stop when
+$\varepsilon_1=0.2$. We need to specify \parf{ITWIST=2}, to tell 
+{\cal HomCont} we
+aim to find a 2-homoclinic orbit, so that it will split it up in three
+parts with two potential Lin gaps. We effectively have a 9-dimensional
+system at this point.
+\begin{center}
+\commandf{ rn(c='sib.7',h='sib.hbs2',s='6') } \\
+\commandf{ sv('7') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(21)       L2-NORM    ...  PAR(22)       PAR(5)     
+   3    10       18   3.45897E+01   4.46818E-01 ... 7.87712E-07  -1.55885E-11
+   3    20       19   2.73699E+01   4.46818E-01 ... 2.91119E-05  -1.63974E-09
+   3    30       20   1.73720E+01   4.46817E-01 ... 4.42273E-03  -3.10167E-05
+   3    38  EP   21   1.01451E+01   4.46796E-01 ... 2.00000E-01  -1.48615E-02
+\end{verbatim}
+The output is stored in \filef{ b.7}, \filef{ s.7}  and \filef{ d.7}.
+Here we see that $T_1$, the time it takes to make the first loop with
+respect to the Poincar\'e section, decreases. This is illustrated in
+Figure~\ref{broken}. Next we are ready to close this gap, by continuing
+in $\alpha$, $\mu$, and $\varepsilon_1$, while keeping $T_1$ at a
+constant value.
+\begin{figure}[htb]
+\begin{center}
+\begin{picture}(400,180)
+\put(0,0){
+\put(157,148){(a)}
+\includegraphics[scale=0.5]{include/loop.eps}}
+\put(200,0){
+\put(157,148){(b)}
+\includegraphics[scale=0.5]{include/broken.eps}}
+\end{picture}
+\caption{Behaviour of the second piece of the
+`broken homoclinic orbit' when creating a Lin gap (a).
+Projection of the ``broken homoclinic orbit''
+onto the $(x,y)$-plane, where $\varepsilon_1=0.2$. To include all the
+pieces necessary to obtain this
+figure, the ``X'' box must contain [0,3,6] and the ``Y'' box must contain
+[1,4,7] (b).}
+\label{broken}
+\end{center}
+\end{figure}
+\begin{center}
+\commandf{ rn(c='sib.8',h='sib.hbs2',s='7') } \\
+\commandf{ ap('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)        PAR(22)    
+   3     3  UZ   22   7.40000E-02   4.46781E-01 ... -1.43162E-02   1.93746E-01
+   3    32  EP   23   1.98414E-01   4.46590E-01 ... -6.05495E-03   2.29300E-06
+\end{verbatim}
+The output is appended to \filef{ b.6}, \filef{ s.6}  and \filef{  d.6}.
+Now we have obtained a 2-homoclinic orbit at label 24. However, the
+homoclinic orbit is still split in three parts. We can switch back to
+a normal orbit by setting \parf{ITWIST} back to 0 and continuing in the usual
+way. Here we continue back to the inclination flip point in $\alpha$
+and $\mu$.
+\begin{center}
+\commandf{ rn(c='sib.9',h='sib.hom',s='6') } \\
+\commandf{ ap('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
+   3     7  UZ   24   1.50000E-01   4.94490E-01 ... -3.60248E-03
+   3    30  EP   25   7.61403E-02   4.98746E-01 ... -2.64847E-06
+\end{verbatim}
+So the 2-homoclinic orbit converges back to the 1-homoclinic orbit at
+the inclination flip bifurcation.
+The output is appended to \filef{ b.6}, \filef{ s.6}  and \filef{  d.6}.
+The resulting 2-homoclinic orbits can be seen using
+\begin{center}
+\commandf{ plot('6') }
+\end{center} 
+and is depicted in Figure~\ref{hom2.eps}(a).
+\begin{figure}[htb]
+\begin{center}
+\begin{picture}(400,180)
+\put(0,0){
+\put(157,148){(a)}
+\includegraphics[scale=0.5]{include/hom2.eps}}
+\put(200,0){
+\put(157,148){(b)}
+\includegraphics[scale=0.5]{include/hom3.eps}}
+\end{picture}
+\caption{The 2-homoclinic orbit as $a$ is changed (a).
+The two different 3-homoclinic orbits (b).}
+\label{hom2.eps}
+\end{center}
+\end{figure}
+
+Next, we aim to find a 3-homoclinic orbit. To do so, we
+restart at the inclination flip point at label 16 and set
+\parf{ITWIST=3}. Moreover, we need to continue in one more
+gap, $\varepsilon_2$=\parf{PAR(24)} and, once again, stop
+when $\varepsilon_1$=\parf{PAR(22)=0}. Note that the 
+dimension of the boundary value problem we continue
+is now equal to 12. This is not to be confused with the setting
+of \parf{NDIM=3} in the parameter file, because {\cal HomCont} handles this
+internally.
+\begin{center}
+\commandf{ rn(c='sib.10',h='sib.hbs3',s='6') } \\
+\commandf{ sv('10') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(21)    ...   PAR(22)       PAR(24)       PAR(5)     
+   3    10       26   3.45896E+01 ...  7.87894E-07   6.42157E-07  -1.06346E-11
+   3    20       27   2.73699E+01 ...  2.91126E-05   6.51591E-07  -1.63655E-09
+   3    30       28   1.73719E+01 ...  4.42289E-03   1.44090E-04  -3.10188E-05
+   3    38  EP   29   1.01451E+01 ...  2.00000E-01   6.97445E-02  -1.48615E-02
+\end{verbatim}
+The output is stored in \filef{ b.10}, \filef{ s.10}  and \filef{ d.10}.
+Now we need to subsequently close the Lin gaps. Our strategy is to
+keep $T_1$ fixed. We first continue in $\alpha$, $\mu$,
+$\varepsilon_1$ and $\varepsilon_2$ until $\varepsilon_1=0$.
+\begin{center}
+\commandf{ rn(c='sib.11',h='sib.hbs3',s='10') } \\
+\commandf{ ap('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)     ...   PAR(5)        PAR(22)       PAR(24)
+   3     6  UZ   30   8.20000E-02 ... -1.29790E-02   1.76995E-01   6.37184E-02
+   3    32  EP   31   1.98414E-01 ... -6.05495E-03   2.30717E-06   3.62449E-02
+\end{verbatim}
+The output is appended to \filef{ b.6}, \filef{ s.6}  and \filef{ d.6}.
+Note that this continuation is very similar to the one where we found
+a 2-homoclinic orbit. In fact we have now found a 2-homoclinic orbit
+(numerically) followed by a `broken' 1-homoclinic orbit; only the mesh
+is not aligned.
+
+The next step is to close the gap corresponding to $\varepsilon_2$ to
+obtain a 3-homoclinic orbit. We replace the continuation parameter
+$\varepsilon_1$ by $T_2$, because $T_2$ (\parf{PAR(23)})
+still has to be decreased from
+its high value (35) and $\varepsilon_1$ needs to stay at 0.
+\begin{center}
+\commandf{ rn(c='sib.12',h='sib.hbs3',s='6') } \\
+\commandf{ ap('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)     ...   PAR(5)        PAR(23)       PAR(24)
+   3    16  UZ   32   1.98395E-01 ... -6.05536E-03   2.01311E+01   1.82491E-08
+   3    24  UZ   33   1.80000E-01 ... -6.50293E-03   1.27554E+01  -3.14294E-02
+   3    30  UZ   34   1.66990E-01 ... -6.89269E-03   9.41745E+00  -1.03179E-06
+   3    32  EP   35   1.78172E-01 ... -6.55364E-03   9.50300E+00  -7.20367E-02
+\end{verbatim}
+The output is appended to \filef{ b.6}, \filef{ s.6}  and \filef{ d.6}.
+Note that we have found two zeros of \parf{PAR(24)}, at labels 32 and
+34, respectively. The two zeros
+correspond to two different 3-homoclinic
+orbits, which, when followed from periodic orbits, both emanate from
+from the same saddle-node bifurcation.
+These two 3-homoclinic orbits are depicted in Figure~\ref{hom2.eps}(b).
+We can follow both of these back to the inclination flip point, by
+setting \parf{ITWIST} back to 0:
+\begin{center}
+\commandf{ rn(c='sib.13',h='sib.hom',s='6') } \\
+\commandf{ ap('6') }
+\end{center} 
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
+   3    13  UZ   36   1.29999E-01   5.04807E-01 ... -2.33902E-03
+   3    30  EP   37   9.27258E-02   5.06560E-01 ... -2.76788E-04
+\end{verbatim}
+\begin{center}
+\commandf{ rn(c='sib.14',h='sib.hom',s='6') } \\
+\commandf{ ap('6') }
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
+   3     7  UZ   38   1.45000E-01   5.47347E-01 ... -4.79400E-03
+   3    30  EP   39   8.39401E-02   5.52605E-01 ... -7.36741E-05
+\end{verbatim}
+All the output is appended to \filef{ b.6}, \filef{ s.6}  and \filef{  d.6}.
+The bifurcation diagram and the paths we followed when closing the Lin
+gaps are depicted in Figure~\ref{parspace}. It is possible and
+straightforward to obtain $4, 5, 6, \dots$-homoclinic orbits by 
+extending the above strategy.
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{include/parspace.eps}
+\caption{Parameter space diagram near an inclination flip. 
+The curve
+through label 17 corresponds to a 1-homoclinic orbit. 
+The opening of the Lin gaps occurs along the vertical line from
+label 16 to label 23. The curves
+through labels 23 and 30 denote the path that is followed when
+closing the Lin gaps. The (approximately overlaid)
+curves though labels 25 and 35 correspond to the 
+2- and one of the 3-homoclinic orbits.
+Finally, the curve through label 37 corresponds to the other
+3-homoclinic orbit, which was obtained for \parf{PAR(22)}=$T_2=12.03201$.}
+\label{parspace}
+\end{center}
+\end{figure}
+
+\section{ Branch switching for a Shil'nikov type homoclinic orbit in
+the FitzHugh-Nagumo equations.}
+
+The FitzHugh-Nagumo (FHN) equations \cite{FitzH:61,NaArYo:62} 
+are a simplified version of the
+Hodgkin-Huxley equations \cite{HoHu:52}. 
+They model nerve axon dynamics and are given by
+
+\begin{equation}
+\begin{split}
+u_t&=u_{xx}-f_a(u)-w, \\
+w_t&=\epsilon(u-\gamma w),
+\end{split}
+\label{fhnpde}
+\end{equation}
+where
+\[
+f_a(u) = u (u-a)(u-1).
+\]
+
+Travelling wave solutions of the form $(u,w)(x,t)=(u,w)(\xi)$, where
+$\xi=x+ct$ are solutions of the following ODE system:
+
+\begin{equation}
+\begin{split}
+\dot u &= v,\\
+\dot v &= c v + f_a(u) + w,\\
+\dot w &= \frac{\epsilon}{c} (u - \gamma w).
+\end{split}
+\label{fhnode}
+\end{equation}
+In particular we consider solitary wave solutions of \eqref{fhnpde}.
+These correspond to orbits homoclinic to $(u,v,w)=0$ in system \eqref{fhnode}.
+In our numerical example we keep $\gamma=0$.
+
+We aim to find a $2$-homoclinic orbit at a Shil'nikov bifurcation.
+All the commands given here are in the file fnb.auto.
+First we obtain a homoclinic orbit using a homotopy technique (see
+\citeasnoun{FrDoMo:94}), using \parf{ISTART=3}, for the parameter 
+values $c=0.21, a=0.2, \epsilon=0.0025$.
+
+\begin{center}
+\commandf{ demo('sib') }\\
+\commandf{ld('fnb')}\\
+\commandf{rn()}\\
+\commandf{sv('1')}
+\end{center}
+
+Among the output we see:
+\begin{verbatim}
+  BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(17)
+   1    20  UZ    3   2.92257E+01   2.37916E-01 ... -1.68000E-09
+\end{verbatim}
+and a zero of \parf{PAR(17)} means that a zero of an artificial parameter has
+been located and the right-hand end point of the corresponding
+solution belongs to the plane that is tangent to the stable manifold
+at the saddle. This point still needs to come closer to the
+equilibrium, which we can achieve by further increasing the period to
+300, while keeping \parf{PAR(17)} at 0:
+\begin{center}
+\commandf{rn(c='fnb.2',h='fnb.1',s='1')}\\
+\commandf{sv('2')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(2)
+   1   190  UZ   10   3.00000E+02   7.37932E-02 ...  1.79286E-01
+\end{verbatim}
+
+Next we stop using the homotopy technique and increase the period even
+further, to 1000.
+\begin{center}
+\commandf{rn(c='fnb.3',h='fnb.3',s='2')}\\
+\commandf{sv('3')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(2)
+   1    80  UZ   13   1.00000E+03   4.04183E-02 ...  1.79286E-01
+\end{verbatim}
+
+A continuation in \parf{PAR(2)}=$a$ and \parf{PAR(1)}=$c$ needs to be 
+performed to arrive
+at the place where we wish to find a 2-homoclinic orbit: $a=0$. At the
+same time we monitor \parf{PAR(22)} to locate Belyakov points.
+\begin{center}
+\commandf{rn(c='fnb.4',h='fnb.4',s='3')}\\
+\commandf{sv('4')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(1)        PAR(22)
+   1     6  UZ   15   1.31812E-01   3.28710E-02 ...  2.17166E-01  -6.31243E-06
+   1    23  UZ   19  -8.54548E-08   1.56158E-02 ...  2.74218E-01  -9.88772E-02
+\end{verbatim}
+Hence, there exists a Belyakov point at $(a,c)=(0.131812,0.21766)$.
+At label 19 we have a lower value of $a$ than at the Belyakov point,
+and by inspection of the file
+\filef{d.4} we can observe that the equilibrium has one positive
+eigenvalue and a complex conjugate pair of eigenvalues with negative
+real part, and conclude that this orbit is of Shil'nikov type.
+Before starting the homoclinic branch switching, we calculate
+the adjoint to obtain a `Lin vector':
+\begin{center}
+\commandf{rn(c='fnb.5',h='fnb.5',s='4')}\\
+\commandf{sv('5')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(9)        L2-NORM    ...   PAR(3)     
+   1     2  EP   28  -1.00000E+00   1.56158E-02 ...  2.50000E-03
+\end{verbatim}
+Next, we continue in the time $T_1$ (\parf{PAR(21)}), the gap
+$\varepsilon_1$ (\parf{PAR(22)}) and $c$ (\parf{PAR(1)}), 
+and by setting \parf{ISTART}=-2
+we try to locate a 2-homoclinic orbit:
+\begin{center}
+\commandf{rn(c='fnb.6',h='fnb.6',s='5')}\\
+\commandf{sv('6')}
+\end{center}
+In fact we find many of them, exactly as is predicted by the theory:
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(21)    ...   PAR(1)        PAR(22)
+... 
+   1   175  UZ   46   1.64818E+02 ...  2.74218E-01   4.59218E-16
+   1   180  UZ   47   1.44759E+02 ...  2.74218E-01  -1.43728E-14
+   1   184  UZ   48   1.24939E+02 ...  2.74218E-01   1.55506E-13
+   1   189  UZ   49   1.04615E+02 ...  2.74218E-01  -2.37665E-11
+   1   193  UZ   50   8.53538E+01 ...  2.74218E-01   1.02165E-11
+   1   198  UZ   51   6.37899E+01 ...  2.74218E-01  -5.74204E-14
+\end{verbatim}
+Each of these homoclinic orbits differ 
+by about 20 in the value $T_1$. This is about 
+the time it takes to make one half-turn close to and
+around the equilibrium, so that orbits differ by the number of 
+half turns around the equilibrium before a big excursion
+in phase space. Note that the variation of 
+$c$ is so small that it does not appear.
+
+A plot of $T_1$ vs. $\varepsilon_1$ gives insight into how the gap
+is opened and closed in the continuation process. This is depicted in 
+Figure~\ref{shilgap}.
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{include/shilgap.eps}
+\caption{A plot of $\varepsilon_1$ as a function of $T_1$ 
+during our computation of Shil'nikov-type two-homoclinic orbits. 
+Each zero corresponds to a different orbit.}
+\label{shilgap}
+\end{center}
+\end{figure}
+We are now in a
+position to continue each of these orbits as a
+normal homoclinic orbit by setting \parf{ISTART=1} and
+\parf{ITWIST=0}. We leave
+this as an exercise to the reader.
+
+\section{ Branch switching to a 3-homoclinic orbit in
+a\\ 5th-order Korteweg-De Vries model}
+
+In \citeasnoun{ChGr:97} the following water wave model was considered:
+\begin{equation}
+\frac{2}{15}r''''-b r''+ar+\frac{3}{2}r^2-
+\frac{1}{2}(r')^2+[rr']' = 0.
+\label{cgode}
+\end{equation}
+It represents solitary-wave solutions $r(x+at)$, $r\to 0$ as $x\to
+\pm\infty$ of the 5th-order PDE
+\[
+r_t+\frac{2}{15}r_{xxxx}-b r_{xxx}+3r r_x+2 r_x r_{xx}+r r_{xxx=0},
+\]
+where $a$ is the wave speed.
+The ODE corresponds to a Hamiltonian system with Hamiltonian
+\[ H=-\frac{1}{2}q_1^3-\frac{1}{2}a q_1^2+p_1 q_2-\frac{1}{2}b q_2^2+
+\frac{15}{4}p_2^2+\frac{1}{2}q_2^2 q_1 \]
+and 
+\[q_1=r, \quad q_2=r', \quad p_1=-\frac{2}{15}r'''+br'-rr', \quad p_2=\frac{2}{15}r''.\]
+System \eqref{cgode} is also reversible under the transformation 
+\[ t \mapsto -t, (q_1,q_2,p_1,p_2)\mapsto (q_1,-q_2,-p_1,p_2),\] 
+but we do not exploit the reversible structure (\parf{IREV=0}), and
+instead use it as an example of Hamiltonian system.
+This system exhibits an orbit flip for a reversible Hamiltonian system.
+In Hamiltonian systems, homoclinic orbits are codimension-zero
+phenomena, and we have to add an additional parameter $\lambda$ that breaks
+the Hamiltonian structure in this system, by introducing artificial friction.
+Thus, the actual system of equations that is
+used for continuation is
+\[\dot x=(\lambda I + J)\nabla H(x),\]
+where $x=(q_1,q_2,p_1,p_2)$ and $J$ is the usual skew symmetric matrix
+in $\mathbb{R}^4$.
+It is now possible to continue a homoclinic orbit in {\cal HomCont} in two
+parameters ($\lambda$ and either $a$ or $b$); see also
+\citeasnoun{Be:90a}.
+
+An explicit solution exists for $a=3/5(2b+1)(b-2), b\geq -1/2$, and it is
+given by 
+\[r(t)=3(b+\frac{1}{2})\mathrm{sech}^2\left([\frac{3}{4}(2b+1)]^{1/2}t\right).\]
+It corresponds to a reversible orbit flip for $b>2$ ($a>0$) 
+We start from this explicit solution, using \parf{ISTART=2}, for $a=3$ and
+$b=(\sqrt{65}+3)/4$:
+
+\begin{center}
+\commandf{demo('kdv') }\\
+\commandf{ld('kdv')}\\
+\commandf{rn()}\\
+\commandf{sv('1')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(1)        L2-NORM    ...   PAR(3)     
+   1     1  EP    1   3.00000E+00   5.56544E+00 ...  0.00000E+00
+   1     2  EP    2   3.04959E+00   5.49141E+00 ...  1.77919E-17
+\end{verbatim}
+Here \parf{PAR(1)}=$a$, \parf{PAR(2)}=$b$, and
+\parf{PAR(3)}=$\lambda$. We have only done a
+very small continuation to give \AUTO a chance to create a good mesh
+and avoid convergence problems later.
+Next, we set \parf{ITWIST=1} and calculate the adjoint:
+\begin{center}
+\commandf{rn(c='kdv.2',h='kdv.2',s='1')}\\
+\commandf{sv('2')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(9)
+   1     2  EP    3   2.76556E+00   5.49140E+00 ... -7.62944E-08
+\end{verbatim}
+We now need to move back to the orbit flip at $a=3$:
+\begin{center}
+\commandf{rn(c='kdv.3',h='kdv.3',s='2')}\\
+\commandf{sv('3')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(1)        L2-NORM    ...   PAR(3)     
+   1    14  UZ    5   3.00000E+00   5.47612E+00 ...  1.47274E-09
+\end{verbatim}
+Now all preparations are done to start homoclinic branch
+switching. This is very similar to the technique used in 
+Sandstede's model in Section~\ref{sec:HomCont_hbs_san}; 
+to find a 3-homoclinic orbit, we open 2 Lin gaps,
+until $T_1=3.5$, while also varying $\lambda$=\parf{PAR(3)}.
+\begin{center}
+\commandf{rn(c='kdv.4',h='kdv.4',s='3')}\\
+\commandf{sv('4')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(3)     ...   PAR(21)       PAR(22)       PAR(24)
+   1    13        8   6.31458E-10 ...  1.65469E+01  -8.57681E-08  -7.30773E-07
+   1    23  UZ    9   1.46493E-09 ...  9.92489E+00  -5.84373E-12   1.93098E-07
+   1    26       10   4.01320E-09 ...  6.92406E+00   2.59555E-07   7.47534E-07
+   1    33  EP   11   2.15487E-06 ...  3.50000E+00   7.92587E-04   3.98390E-04
+\end{verbatim}
+We then look for an orbit with $a<3$ and close the gap corresponding 
+to $\varepsilon_1$=\parf{PAR(22)}, for decreasing $a$.
+\begin{center}
+\commandf{rn(c='kdv.5',h='kdv.5',s='4')}\\
+\commandf{sv('5')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(2)     ...   PAR(3)        PAR(22)       PAR(24)
+   1    10       12   2.58030E+00 ...  2.15869E-06   7.65037E-04   3.82464E-04
+   1    13  UZ   13   2.32044E+00 ...  4.02730E-11   1.17522E-10   1.69655E-08
+   1    20  EP   14  -1.14985E-01 ... -8.87194E-04  -7.18231E-01  -3.31153E-01
+\end{verbatim}
+and finally close the gap corresponding to $\varepsilon_2$=\parf{PAR(24)},
+\begin{center}
+\commandf{rn(c='kdv.6',h='kdv.6',s='5')}\\
+\commandf{sv('6')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(2)     ...   PAR(3)        PAR(23)       PAR(24)
+   1    35       15   2.31893E+00 ... -2.16070E-08   7.69046E+00  -1.08126E-05
+   1    51  UZ   16   2.34039E+00 ...  2.83533E-07   3.47976E+00   1.42651E-04
+   1    58  UZ   17   3.08085E+00 ...  1.84952E-12   3.50004E+00  -1.64827E-10
+   1    70  EP   18   3.08870E+00 ... -8.10422E-08   5.87541E+00  -4.82991E-05
+\end{verbatim}
+so that a three-homoclinic orbit is found. Here the zero at label
+16 is the one we are looking for. At label 17, $a$=\parf{PAR(1)} 
+has changed
+considerably to the extend that $a>3$ and a second 3-homoclinic orbit 
+is found. Note that for all zeros of \parf{PAR(24)}=$\varepsilon_2$, the
+parameter $\lambda$=\parf{PAR(3)} is also zero (within \AUTO accuracy), 
+which it has to be to remain
+within the original Hamiltonian system.
+Setting \parf{ISTART=1}, a normal ``trivial'' continuation (with \parf{NMX=1})
+of the orbit corresponding to label 16
+lets {\cal HomCont} produce a proper concatenated
+3-homoclinic orbit:
+\begin{center}
+\commandf{rn(c='kdv.7',h='kdv.7',s='6')}\\
+\commandf{sv('7')}
+\end{center}
+\begin{verbatim}
+  BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(3)     
+   1     1  EP   19   2.34039E+00   7.51157E+00 ...  2.83533E-07
+\end{verbatim}
+This 3-homoclinic orbit is depicted in Figure~\ref{kdv3hom}.
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.5]{include/kdv3hom.eps}
+\caption{A 3-homoclinic orbit in a 5th-order Hamiltonian 
+Korteweg-De Vries model.}
+\label{kdv3hom}
+\end{center}
+\end{figure}
 
 %==============================================================================
 %==============================================================================
