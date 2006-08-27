@@ -4,7 +4,7 @@ export PYTHONPATH
 
 if test "`uname`" == "Darwin"; then
   if which pythonw > /dev/null; then
-    exec pythonw $AUTO_DIR/python/interactiveBindings.py $*;
+    exec pythonw $*;
   fi
 fi
-$AUTO_DIR/python/interactiveBindings.py $*;
+python $*;
