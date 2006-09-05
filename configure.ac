@@ -165,6 +165,8 @@ if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = 
     AC_PROG_CXX
     AC_LANG_CPLUSPLUS
 else
+    am__fastdepCXX_TRUE='#'
+    am__fastdepCXX_FALSE=
     PLAUT04=""
 fi
 AC_SUBST(PLAUT04)
