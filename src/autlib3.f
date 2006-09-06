@@ -3393,21 +3393,52 @@ C
 C     ---------- ----
       SUBROUTINE FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
-      INCLUDE 'auto.h'
+      DOUBLE PRECISION HMACH,RSMALL,RLARGE
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Interface subroutine to user supplied FUNC.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),ICP(*),PAR(*),F(*)
-      DIMENSION DFDU(NDIM,*),DFDP(NDIM,*)
-C Local
-      ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
+      INTEGER IAP(*),ICP(*),NDIM,IJAC
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*)
+      DOUBLE PRECISION DFDU(NDIM,*),DFDP(NDIM,*)
+C
+      INTEGER JAC,I,J,NFPR,IJC
+      DOUBLE PRECISION UMX,EP,UU
 C
        JAC=IAP(22)
 C
 C Generate the function.
+C
+C
+C if the user specified the Jacobian but not the
+C parameter derivatives we do not generate the Jacobian here
+C
+       IF(JAC.EQ.0.AND.IJAC.NE.0)THEN
+C
+C Generate the Jacobian by differencing.
+C
+         UMX=0.d0
+         DO I=1,NDIM
+           IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+         ENDDO
+C
+         EP=HMACH*(1+UMX)
+C
+         DO I=1,NDIM
+           UU=U(I)
+           U(I)=UU-EP
+           CALL FUNC(NDIM,U,ICP,PAR,0,F,DFDU,DFDP)
+           U(I)=UU+EP
+           CALL FUNC(NDIM,U,ICP,PAR,0,DFDU(1,I),DFDU,DFDP)
+           U(I)=UU
+           DO J=1,NDIM
+             DFDU(J,I)=(DFDU(J,I)-F(J))/(2*EP)
+           ENDDO
+         ENDDO
+C
+       ENDIF
 C
        IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
          IJC=IJAC
@@ -3415,56 +3446,18 @@ C
          IJC=0
        ENDIF
        CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP)
-C
-       IF(JAC.EQ.1 .OR. IJAC.EQ.0 .OR. (JAC.EQ.-1.AND.IJAC.EQ.1))RETURN
-C
-       ALLOCATE(F1ZZ(NDIM))
-       IF(IJAC.NE.1)THEN
-          NFPR=IAP(29)
-          DO I=1,NFPR
-             EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-             PAR(ICP(I))=PAR(ICP(I))+EP
-             CALL FUNC(NDIM,U,ICP,PAR,0,F1ZZ,DFDU,DFDP)
-             DO J=1,NDIM
-                DFDP(J,ICP(I))=(F1ZZ(J)-F(J))/EP
-             ENDDO
-             PAR(ICP(I))=PAR(ICP(I))-EP
-          ENDDO
-       ENDIF
-C
-C if the user specified the Jacobian but not the
-C parameter derivatives we return here
-C
-       IF (JAC.EQ.-1)THEN
-         DEALLOCATE(F1ZZ)
-         RETURN
-       ENDIF
-C
-C Generate the Jacobian by differencing.
-C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-       ENDDO
-C
-       EP=HMACH*(1+UMX)
-C
-       ALLOCATE(U1ZZ(NDIM),U2ZZ(NDIM),F2ZZ(NDIM))
-       DO I=1,NDIM
+       IF(JAC.EQ.1.OR.IJAC.NE.2)RETURN
+       NFPR=IAP(29)
+       DO I=1,NFPR
+         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FUNC(NDIM,U,ICP,PAR,0,DFDP(1,ICP(I)),DFDU,DFDP)
          DO J=1,NDIM
-           U1ZZ(J)=U(J)
-           U2ZZ(J)=U(J)
+           DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
          ENDDO
-         U1ZZ(I)=U1ZZ(I)-EP
-         U2ZZ(I)=U2ZZ(I)+EP
-         CALL FUNC(NDIM,U1ZZ,ICP,PAR,0,F1ZZ,DFDU,DFDP)
-         CALL FUNC(NDIM,U2ZZ,ICP,PAR,0,F2ZZ,DFDU,DFDP)
-         DO J=1,NDIM
-           DFDU(J,I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
-        ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
-       DEALLOCATE(U1ZZ,U2ZZ,F1ZZ,F2ZZ)
       RETURN
       END
 C
