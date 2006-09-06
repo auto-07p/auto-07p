@@ -3149,8 +3149,7 @@ C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 C
       DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NDX,*)
 C Local
-      ALLOCATABLE X(:),W(:)
-      ALLOCATE(X(NC+1),W(NC+1))
+      DIMENSION X(NC+1),W(NC+1)
 C
        NCP1=NC+1
        N1M1=N1-1
@@ -3185,7 +3184,6 @@ C
          UPS1(N1,I)=UPS(N,I)
        ENDDO
 C
-      DEALLOCATE(X,W)
       RETURN
       END
 C
