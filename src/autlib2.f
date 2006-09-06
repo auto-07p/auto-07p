@@ -721,13 +721,8 @@ C           **End of pivoting; elimination starts here
                RM=A(ICFIC,IRFIR,I)/PIV
                A(ICFIC,IRFIR,I)=RM
 	       IF(RM.NE.0.0)THEN
-                  DO L=1,NOV
-                     A(L,IRFIR,I)=A(L,IRFIR,I)-RM*A(L,IRFIRP,I)
-                  ENDDO
-                  DO L=ICP1,NCA
-                     A(ICF(L,I),IRFIR,I)=
-     +                    A(ICF(L,I),IRFIR,I)-RM*A(ICF(L,I),IRFIRP,I)
-                  ENDDO
+                  CALL SUBROA(NOV,ICP1,NCA,A(1,IRFIR,I),A(1,IRFIRP,I),
+     +                 ICF(1,I),RM)
                   DO L=1,NCB
                      B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
                   ENDDO
@@ -752,16 +747,11 @@ C     Recalculate absolute maximum for current row
                RM=C(ICF(IC,I),IR,I)/PIV
                C(ICF(IC,I),IR,I)=RM
 	       IF(RM.NE.0.0)THEN
-               DO L=1,NOV
-                  C(L,IR,I)=C(L,IR,I)-RM*A(L,IRFIRP,I)
-               ENDDO
-               DO L=ICP1,NCA
-                  C(ICF(L,I),IR,I)=C(ICF(L,I),IR,I)-RM*
-     +                 A(ICF(L,I),IRFIRP,I)
-               ENDDO
-               DO L=1,NCB
-                  D(L,IR)=D(L,IR)-RM*B(L,IRFIRP,I)
-               ENDDO
+                  CALL SUBROA(NOV,ICP1,NCA,C(1,IR,I),A(1,IRFIRP,I),
+     +                 ICF(1,I),RM)
+                  DO L=1,NCB
+                     D(L,IR)=D(L,IR)-RM*B(L,IRFIRP,I)
+                  ENDDO
 	       ENDIF
             ENDDO
  1       CONTINUE
@@ -769,6 +759,27 @@ C     Recalculate absolute maximum for current row
 C
       DEALLOCATE(IAMAX)
       RETURN
+C
+      CONTAINS
+C
+C     ---------- ------
+      SUBROUTINE SUBROA(NOV,ICP1,NCA,A,AP,ICF,RM)
+      IMPLICIT NONE
+C Arguments
+      DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
+      DOUBLE PRECISION, INTENT(INOUT) :: A(*)
+      INTEGER, INTENT(IN) :: NOV,ICP1,NCA,ICF(*)
+C Local
+      INTEGER L
+C
+      DO L=1,NOV
+         A(L)=A(L)-RM*AP(L)
+      ENDDO
+      DO L=ICP1,NCA
+         A(ICF(L))=A(ICF(L))-RM*AP(ICF(L))
+      ENDDO
+      END SUBROUTINE
+C
       END
 C
 C     ---------- ------
