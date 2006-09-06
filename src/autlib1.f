@@ -2805,8 +2805,7 @@ C         WP : for the first derivative,
 C
       DIMENSION WT(N1,*),WP(N1,*)   
 C Local
-      ALLOCATABLE ZM(:),XM(:)
-      ALLOCATE(ZM(NCOL),XM(NCOL+1))
+      DIMENSION ZM(NCOL),XM(NCOL+1)
 C
 C Generate the collocation points :
        CALL CPNTS(NCOL,ZM)
@@ -2846,7 +2845,6 @@ C Weights for derivatives :
          ENDDO
        ENDDO
 C
-      DEALLOCATE(ZM,XM)
       RETURN
       END
 C
@@ -3301,8 +3299,9 @@ C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),EQF(*),DTM(*)
       LOGICAL SMALL
 C Local
-      ALLOCATABLE WH(:),HD(:,:)
-      ALLOCATE(WH(NCOL+1),HD(NTST+1,NDIM*NCOL))
+      DIMENSION WH(NCOL+1)
+      ALLOCATABLE HD(:,:)
+      ALLOCATE(HD(NTST+1,NDIM*NCOL))
 C
 C Compute approximation to NCOL-th derivative :
        CALL CNTDIF(NCOL,WH)
@@ -3328,7 +3327,7 @@ C
          DO I=1,NTST+1
            EQF(I)=I-1
          ENDDO
-         DEALLOCATE(WH,HD)
+         DEALLOCATE(HD)
          RETURN
        ENDIF
 C
@@ -3370,7 +3369,7 @@ C
        ENDDO
 C
 C
-       DEALLOCATE(WH,HD)
+       DEALLOCATE(HD)
       RETURN
       END
 C
@@ -3935,12 +3934,11 @@ C (Using the first NDIM1 components only.)
 C
       DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),DTM(*),THU(*)
 C Local
-      ALLOCATABLE WI(:)
+      DIMENSION WI(IAP(6)+1)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
-       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -3961,7 +3959,6 @@ C
 C
        RINPR=S
 C
-      DEALLOCATE(WI)
       RETURN
       END
 C
@@ -3990,12 +3987,11 @@ C Computes the integral of the IC'th component of UPS.
 C
       DIMENSION IAP(*),UPS(NDX,*),DTM(*)
 C Local
-      ALLOCATABLE WI(:)
+      DIMENSION WI(IAP(6)+1)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
-       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -4014,7 +4010,6 @@ C
 C
        RINTG=S
 C
-      DEALLOCATE(WI)
       RETURN
       END
 C
@@ -4029,12 +4024,11 @@ C Computes the L2-norm of the IC'th component of UPS.
 C 
       DIMENSION IAP(*),UPS(NDX,*),DTM(*)
 C Local
-      ALLOCATABLE WI(:)
+      DIMENSION WI(IAP(6)+1)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
-       ALLOCATE(WI(NCOL+1))
 C
 C Weights for the integration formulae :
        CALL WINT(NCOL+1,WI)
@@ -4053,7 +4047,6 @@ C
 C
        RNRM2=DSQRT(S)
 C
-      DEALLOCATE(WI)
       RETURN
       END
 C

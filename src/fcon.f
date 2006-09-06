@@ -315,8 +315,9 @@ C
       DIMENSION UPS(NDX,*),EQF(*),DTM(*)
       LOGICAL SMALL
 C Local
-      ALLOCATABLE WH(:),HD(:,:)
-      ALLOCATE(WH(NCOL+1),HD(NTST+1,NCOL*NDIM))
+      DIMENSION WH(NCOL+1)
+      ALLOCATABLE HD(:,:)
+      ALLOCATE(HD(NTST+1,NCOL*NDIM))
 C
 C Compute approximation to NCOL-th derivative :
        CALL CNTDIF(NCOL,WH)
@@ -385,7 +386,7 @@ C
          EQF(J+1)=EQF(J)+DTM(J)*E
        ENDDO
 C
-       DEALLOCATE(WH,HD)
+       DEALLOCATE(HD)
       RETURN
       END
 C
