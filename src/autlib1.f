@@ -4875,36 +4875,24 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE STPNBV(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT,
-     * NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+      SUBROUTINE READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
+     *      UDOTPS,TM,ITPRS,NDX)
 C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-C This subroutine locates and retrieves the information required to
-C restart computation at the point with label IRS.
-C This information is expected on unit 3.
-C
-      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
+      DIMENSION IAP(*),PAR(*),ICPRS(*)
+      DIMENSION RLDOTRS(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
-C
-      LOGICAL FOUND,EOF3
+      DIMENSION TEMP(7)
 C
        NDIM=IAP(1)
-       IPS=IAP(2)
-       IRS=IAP(3)
-       ISW=IAP(10)
-       NFPR=IAP(29)
-C
-       CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
-       READ(3,*)IBR,NTOTRS,ITPRS,LAB,NFPRS,ISWRS,NTPLRS,NARS,NSKIP,
+       READ(3,*)IBR,NTOT,ITPRS,LAB,NFPR,ISW,NTPL,NARS,NSKIP,
      * NTSRS,NCOLRS,NPARR
        IAP(30)=IBR
        IAP(37)=LAB
-       NTSRP1=NTSRS+1
+       NRSP1=NTSRS+1
 C
        NDIMRS=NARS-1
        NSKIP1=(NDIMRS+1)/8 - NDIM/7
@@ -4924,13 +4912,13 @@ C
          ENDDO
          TM(J)=TEMP(1)
        ENDDO
-       READ(3,*)TM(NTSRP1),(UPS(NTSRP1,K),K=1,NDIMRD)
+       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDIMRD)
        IF(NSKIP1.GT.0)CALL SKIP3(NSKIP1,EOF3)
 C
-       READ(3,*)(ICPRS(I),I=1,NFPRS)
-       READ(3,*)(RLDOT(I),I=1,NFPRS)
+       READ(3,*)(ICPRS(K),K=1,NFPR)
+       READ(3,*)(RLDOTRS(K),K=1,NFPR)
 C
-C Read U-dot (deriv. with respect to arclength along solution branch).
+C Read U-dot (derivative with respect to arclength).
 C
        DO J=1,NTSRS
          DO I=1,NCOLRS
@@ -4940,7 +4928,7 @@ C
            IF(NSKIP2.GT.0)CALL SKIP3(NSKIP2,EOF3)
          ENDDO
        ENDDO
-       READ(3,*)(UDOTPS(NTSRP1,K),K=1,NDIMRD)
+       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDIMRD)
        IF(NSKIP2.GT.0)CALL SKIP3(NSKIP2,EOF3)
 C
 C Read the parameter values.
@@ -4948,10 +4936,42 @@ C
        IF(NPARR.GT.NPARX)THEN
          NPARR=NPARX
          WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data :',
+ 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
      *          ' PAR(i) set to zero, for i > ',I3)
        ENDIF
        READ(3,*)(PAR(I),I=1,NPARR)
+C
+      RETURN
+      END
+C
+C     ---------- ------
+      SUBROUTINE STPNBV(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT,
+     * NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+C
+      INCLUDE 'auto.h'
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+C This subroutine locates and retrieves the information required to
+C restart computation at the point with label IRS.
+C This information is expected on unit 3.
+C
+      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
+C Local
+      DIMENSION ICPRS(NPARX)
+C
+      LOGICAL FOUND,EOF3
+C
+       NDIM=IAP(1)
+       IPS=IAP(2)
+       IRS=IAP(3)
+       ISW=IAP(10)
+       NFPR=IAP(29)
+C
+       CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
+       CALL READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS,
+     *      UDOTPS,TM,ITPRS,NDX)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))

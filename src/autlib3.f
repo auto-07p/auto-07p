@@ -2013,7 +2013,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -2025,59 +2025,23 @@ C
        IBR=IAP(30)
 C
        CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
-       READ(3,*)IBR,NTOT1,ITP1,LAB1,NFPR1,ISW1,NTPL1,NAR1,NSKIP1,
-     * NTSR,NCOLRS,NPARR
-       IAP(30)=IBR
-       NRSP1=NTSR+1
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
-         ENDDO
-         TM(J)=TEMP(1)
-       ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDM)
-C
-       READ(3,*)ICPRS(1),ICPRS(2)
-       READ(3,*)RD1,RD2
-C
-C Read U-dot (derivative with respect to arclength).
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)(UDOTPS(J,K),K=K1,K2)
-         ENDDO
-       ENDDO
-       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDM)
-C
-C Read the parameter values.
-C
-       IF(NPARR.GT.NPARX)THEN
-         NPARR=NPARX
-         WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
-     *          ' PAR(i) set to zero, for i > ',I3)
-       ENDIF
-       READ(3,*)(PAR(I),I=1,NPARR)
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
+     *      TM,ITPRS,NDX)
 C
 C Complement starting data
          PAR(12)=0.d0
          PAR(13)=0.d0
          IF(ICP(3).EQ.11)THEN
 C          Variable period
-           RLDOT(1)=RD1
+           RLDOT(1)=RLDOTRS(1)
            RLDOT(2)=0.d0
-           RLDOT(3)=RD2
+           RLDOT(3)=RLDOTRS(2)
            RLDOT(4)=0.d0
 C          Variable period
          ELSE
 C          Fixed period
-           RLDOT(1)=RD1
-           RLDOT(2)=RD2
+           RLDOT(1)=RLDOTRS(1)
+           RLDOT(2)=RLDOTRS(2)
            RLDOT(3)=0.d0
            RLDOT(4)=0.d0
          ENDIF
@@ -2092,6 +2056,7 @@ C          Fixed period
            ENDDO
          ENDDO
          K1=NDM+1
+         NRSP1=NTSR+1
          DO K=K1,NDIM
            UPS(NRSP1,K)=0.d0
            UDOTPS(NRSP1,K)=0.d0
@@ -2308,7 +2273,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -2319,44 +2284,10 @@ C
        IBR=IAP(30)
 C
        CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
-       READ(3,*)IBR,NTOT1,ITP1,LAB1,NFPR1,ISW1,NTPL1,NAR1,NSKIP1,
-     * NTSR,NCOLRS,NPARR
-       IAP(30)=IBR
-       NRSP1=NTSR+1
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
-         ENDDO
-         TM(J)=TEMP(1)
-       ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDM)
-C
-       READ(3,*)ICPRS(1),ICPRS(2)
-       READ(3,*)RLDOT(1),RLDOT(2)
-C
-C Read U-dot (derivative with respect to arclength).
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)(UDOTPS(J,K),K=K1,K2)
-         ENDDO
-       ENDDO
-       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDM)
-C
-C Read the parameter values.
-C
-       IF(NPARR.GT.NPARX)THEN
-         NPARR=NPARX
-         WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
-     *          ' PAR(i) set to zero, for i > ',I3)
-       ENDIF
-       READ(3,*)(PAR(I),I=1,NPARR)
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
+     *      TM,ITPRS,NDX)
+       RLDOT(1)=RLDOTRS(1)
+       RLDOT(2)=RLDOTRS(2)
 C
 C Complement starting data 
          PAR(13)=0.d0
@@ -2372,6 +2303,7 @@ C Complement starting data
            ENDDO
          ENDDO
          K1=NDM+1
+         NRSP1=NTSR+1
          DO K=K1,NDIM
            UPS(NRSP1,K)=0.d0
            UDOTPS(NRSP1,K)=0.d0
@@ -2609,7 +2541,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -2620,66 +2552,38 @@ C
        IBR=IAP(30)
 C
        CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
-       READ(3,*)IBR,NTOT1,ITP1,LAB1,NFPR1,ISW1,NTPL1,NAR1,NSKIP1,
-     * NTSR,NCOLRS,NPARR
-       IAP(30)=IBR
-       NRSP1=NTSR+1
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
+     *      TM,ITPRS,NDX)
 C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
-           K2P1=K2+1
-           K3=K2+NDM
-           DO K=K2P1,K3
-             UPS(J,K)    =0.0001*DSIN(TEMP(I))
-             UPS(J,K+NDM)=0.0001*DCOS(TEMP(I))
-           ENDDO
-         ENDDO
-         TM(J)=TEMP(1)
-       ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDM)
-       DO I=1,NDM
-         UPS(NRSP1,NDM+I)=0.d0
-         UPS(NRSP1,2*NDM+I)=0.d0
-       ENDDO
-C
-       READ(3,*)ICPRS(1),ICPRS(2)
-       READ(3,*)RLDOT(1),RLDOT(2)
+       RLDOT(1)=RLDOTRS(1)
+       RLDOT(2)=RLDOTRS(2)
        RLDOT(3)=0.d0
        RLDOT(4)=0.d0
 C
-C Read the direction vector and initialize the starting direction.
-C
        DO J=1,NTSR
          DO I=1,NCOLRS
            K1=(I-1)*NDIM+1
            K2=K1+NDM-1
-           READ(3,*)(UDOTPS(J,K),K=K1,K2)
            K2P1=K2+1
            K3=K2+NDM
+           T=TM(J)+(I-1)*(TM(J+1)-TM(J))/NCOLRS
            DO K=K2P1,K3
+             UPS(J,K)    =0.0001*DSIN(T)
+             UPS(J,K+NDM)=0.0001*DCOS(T)
              UDOTPS(J,K)=0.d0
              UDOTPS(J,K+NDM)=0.d0
            ENDDO
          ENDDO
        ENDDO
-       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDM)
+       NRSP1=NTSR+1
+       DO I=1,NDM
+         UPS(NRSP1,NDM+I)=0.d0
+         UPS(NRSP1,2*NDM+I)=0.d0
+       ENDDO
        DO I=1,NDM
          UDOTPS(NRSP1,NDM+I)=0.d0
          UDOTPS(NRSP1,2*NDM+I)=0.d0
        ENDDO
-C
-C Read the parameter values.
-C
-       IF(NPARR.GT.NPARX)THEN
-         NPARR=NPARX
-         WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
-     *          ' PAR(i) set to zero, for i > ',I3)
-       ENDIF
-       READ(3,*)(PAR(I),I=1,NPARR)
 C
        PAR(13)=0.d0
 C
@@ -2997,7 +2901,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
       ALLOCATABLE U(:)
 C
       LOGICAL FOUND
@@ -3009,45 +2913,11 @@ C
        IBR=IAP(30)
 C
        CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
-       READ(3,*)IBR,NTOT1,ITP1,LAB1,NFPR1,ISW1,NTPL1,NAR1,NSKIP1,
-     * NTSR,NCOLRS,NPARR
-       IAP(30)=IBR
-       NRSP1=NTSR+1
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
-         ENDDO
-         TM(J)=TEMP(1)
-       ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDM)
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
+     *      TM,ITPRS,NDX)
        DO J=1,NTSR
          DTM(J)=TM(J+1)-TM(J)
        ENDDO
-C
-       READ(3,*)ICPRS(1),ICPRS(2)
-       READ(3,*)RLD1,RLD2
-C
-C Read U-dot (derivative with respect to arclength).
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)(UDOTPS(J,K),K=K1,K2)
-         ENDDO
-       ENDDO
-       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDM)
-C
-C Read the parameter values.
-       IF(NPARR.GT.NPARX)THEN
-         NPARR=NPARX
-         WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
-     *          ' PAR(i) set to zero, for i > ',I3)
-       ENDIF
-       READ(3,*)(PAR(I),I=1,NPARR)
 C
 C Compute the starting value of the objective functional
 C (using UPOLDP for temporary storage)
@@ -3063,6 +2933,7 @@ C (using UPOLDP for temporary storage)
            UPOLDP(J,K1)=FS
          ENDDO
        ENDDO
+       NRSP1=NTSR+1
        DO K=1,NDM
           U(K)=UPS(NRSP1,K)
        ENDDO
@@ -3460,7 +3331,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION TEMP(7),ICPRS(NPARX)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -3471,46 +3342,28 @@ C
        IBR=IAP(30)
 C
        CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
-       READ(3,*)IBR,NTOT1,ITP1,LAB1,NFPR1,ISW1,NTPL1,NAR1,NSKIP1,
-     * NTSR,NCOLRS,NPARR
-       IAP(30)=IBR
-       NRSP1=NTSR+1
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
+     *      TM,ITPRS,NDX)
+C
+       NFPR0=NFPR/2
+       DO I=1,NFPR0
+         RLDOT(I)=RLDOTRS(I)
+       ENDDO
 C
        DO J=1,NTSR
          DO I=1,NCOLRS
            K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
-         ENDDO
-         TM(J)=TEMP(1)
-       ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDM)
-C
-       NFPR0=NFPR/2
-       READ(3,*)ICPRS(1)
-       READ(3,*)(RLDOT(I),I=1,NFPR0)
-C
-C Read U-dot (Derivative with respect to arclength).
-C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+NDM+1
-           K2=I*NDIM
-           READ(3,*)(UPS(J,K),K=K1,K2)
+           K2=I*NDIM-NDM
+           DO K=K1,K2
+             UPS(J,K+NDM)=UDOTPS(J,K)
+             UDOTPS(J,K)=0.d0
+           ENDDO
          ENDDO
        ENDDO
-       K1=NDM+1
-       READ(3,*)(UPS(NRSP1,K),K=K1,NDIM)
-C
-C Read the parameter values.
-C
-       IF(NPARR.GT.NPARX)THEN
-         NPARR=NPARX
-         WRITE(6,100)NPARR
- 100     FORMAT(' Warning : NPARX too small for restart data : ',/,
-     *          ' PAR(i) set to zero, for i > ',I3)
-       ENDIF
-       READ(3,*)(PAR(I),I=1,NPARR)
+       DO K=1,NDIM-NDM
+         UPS(NTSR,K+NDM)=UDOTPS(NTSR,K)
+         UDOTPS(NTSR,K)=0.d0
+       ENDDO
 C
        NFPX=NFPR/2-1
        IF(NFPX.GT.0) THEN
