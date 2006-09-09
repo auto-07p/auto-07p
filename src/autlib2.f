@@ -703,24 +703,14 @@ C           **End of pivoting; elimination starts here
                RM=A(ICFIC,IRFIR,I)/PIV
                A(ICFIC,IRFIR,I)=RM
 	       IF(RM.NE.0.0)THEN
-                  CALL SUBROA(NOV,ICP1,NCA,A(1,IRFIR,I),A(1,IRFIRP,I),
-     +                 ICF(1,I),RM)
+                  IAMAX(IRFIR)=IC+IMSBRA(NOV,NCA-NOV-IC,NCA,
+     +                 A(1,IRFIR,I),A(1,IRFIRP,I),ICF(ICP1,I),RM)
                   DO L=1,NCB
                      B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
                   ENDDO
-	       ENDIF
-               IF((RM.NE.0.0).OR.(IAMAX(IRFIR).EQ.JPIV))THEN
-                  PPIV=0d0
-                  JPPIV=ICP1
-C     Recalculate absolute maximum for current row
-                  DO L=ICP1,M2
-                     TPIV=DABS(A(ICF(L,I),IRFIR,I))
-                     IF(PPIV.LT.TPIV)THEN
-                        PPIV=TPIV
-                        JPPIV=L
-                     ENDIF
-                  ENDDO
-                  IAMAX(IRFIR)=JPPIV
+               ELSEIF(IAMAX(IRFIR).EQ.JPIV)THEN
+                  IAMAX(IRFIR)=
+     +                 IC+IMAXCF(NCA-NOV-IC,A(1,IRFIR,I),ICF(ICP1,I))
                ELSEIF(IAMAX(IRFIR).EQ.IC)THEN
                   IAMAX(IRFIR)=JPIV
                ENDIF
@@ -729,8 +719,8 @@ C     Recalculate absolute maximum for current row
                RM=C(ICF(IC,I),IR,I)/PIV
                C(ICF(IC,I),IR,I)=RM
 	       IF(RM.NE.0.0)THEN
-                  CALL SUBROA(NOV,ICP1,NCA,C(1,IR,I),A(1,IRFIRP,I),
-     +                 ICF(1,I),RM)
+                  CALL SUBRAC(NOV,NCA-IC,C(1,IR,I),A(1,IRFIRP,I),
+     +                 ICF(ICP1,I),RM)
                   DO L=1,NCB
                      D(L,IR)=D(L,IR)-RM*B(L,IRFIRP,I)
                   ENDDO
@@ -744,21 +734,52 @@ C
 C
       CONTAINS
 C
-C     ---------- ------
-      SUBROUTINE SUBROA(NOV,ICP1,NCA,A,AP,ICF,RM)
+C     -------- ------
+      FUNCTION IMSBRA(NOV,N,NCA,A,AP,ICF,RM)
       IMPLICIT NONE
 C Arguments
       DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
       DOUBLE PRECISION, INTENT(INOUT) :: A(*)
-      INTEGER, INTENT(IN) :: NOV,ICP1,NCA,ICF(*)
+      INTEGER, INTENT(IN) :: NOV,N,NCA,ICF(*)
 C Local
-      INTEGER L
+      INTEGER L,IMSBRA
+      DOUBLE PRECISION PPIV,TPIV,V
 C
       DO L=1,NOV
          A(L)=A(L)-RM*AP(L)
       ENDDO
-      DO L=ICP1,NCA
-         A(ICF(L))=A(ICF(L))-RM*AP(ICF(L))
+      PPIV=0d0
+      IMSBRA=1
+      DO L=1,N
+         V=A(ICF(L))-RM*AP(ICF(L))
+C     Also recalculate absolute maximum for current row
+         A(ICF(L))=V
+         TPIV=DABS(V)
+         IF(PPIV.LT.TPIV)THEN
+            PPIV=TPIV
+            IMSBRA=L
+         ENDIF
+      ENDDO
+      DO L=NCA-NOV+1,NCA
+         A(L)=A(L)-RM*AP(L)
+      ENDDO
+      END FUNCTION
+C
+C     ---------- ------
+      SUBROUTINE SUBRAC(NOV,N,C,AP,ICF,RM)
+      IMPLICIT NONE
+C Arguments
+      DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
+      DOUBLE PRECISION, INTENT(INOUT) :: C(*)
+      INTEGER, INTENT(IN) :: NOV,N,ICF(*)
+C Local
+      INTEGER L
+C
+      DO L=1,NOV
+         C(L)=C(L)-RM*AP(L)
+      ENDDO
+      DO L=1,N
+         C(ICF(L))=C(ICF(L))-RM*AP(ICF(L))
       ENDDO
       END SUBROUTINE
 C
