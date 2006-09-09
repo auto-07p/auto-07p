@@ -751,12 +751,12 @@ C
          CALL INTWTS(NCP1,Z,X,W)
          K1=I*NDIM+N
          DO K=1,NDM
-            UPS(J1,K1+K)=W(NCP1)*UPS(J+1,N+K)
-            UDOTPS(J1,K1+K)=W(NCP1)*UDOTPS(J+1,N+K)
+            UPS(K1+K,J1)=W(NCP1)*UPS(N+K,J+1)
+            UDOTPS(K1+K,J1)=W(NCP1)*UDOTPS(N+K,J+1)
             DO L=1,NCOLRS
                L1=K+(L-1)*NDIM+N
-               UPS(J1,K1+K)=UPS(J1,K1+K)+W(L)*UPS(J,L1)
-               UDOTPS(J1,K1+K)=UDOTPS(J1,K1+K)+W(L)*UDOTPS(J,L1)
+               UPS(K1+K,J1)=UPS(K1+K,J1)+W(L)*UPS(L1,J)
+               UDOTPS(K1+K,J1)=UDOTPS(K1+K,J1)+W(L)*UDOTPS(L1,J)
             ENDDO
          ENDDO
       ENDDO
@@ -802,7 +802,7 @@ C
       DO J=1,NTSR+1
          UPSI=0
          DO I=1,NDM
-            UPSI=UPSI+(UPS(J,I)-PAR(11+I))*(UPS(J,I)-PAR(11+I))
+            UPSI=UPSI+(UPS(I,J)-PAR(11+I))*(UPS(I,J)-PAR(11+I))
          ENDDO
          IF (UPSI.GT.UPSMAX) THEN
             UPSMAX=UPSI
@@ -817,8 +817,8 @@ C Just use the point in the middle
          ENDDO
  1       CONTINUE
          DO J=1,NTSR+1
-            D1=DABS(UPS(J,I)-PAR(I+11))
-            UPSI=DABS(UPS(J,I)-(PAR(I+11)+PAR(19)*NRTN(I)))
+            D1=DABS(UPS(I,J)-PAR(I+11))
+            UPSI=DABS(UPS(I,J)-(PAR(I+11)+PAR(19)*NRTN(I)))
             IF(D1.LT.UPSI)UPSI=D1
             IF(UPSI.GT.UPSMAX)THEN
                UPSMAX=UPSI
@@ -828,7 +828,7 @@ C Just use the point in the middle
       ENDIF
       TMMAX=TM(JMAX)
       DO I=1,NDM
-         UMAX(I) = UPS(JMAX,I)
+         UMAX(I) = UPS(I,JMAX)
       ENDDO
       CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM+1),DUM1,DUM2)
 C     
@@ -854,8 +854,8 @@ C
       IF (ITWIST.EQ.1) THEN
          DNORM=0.D0
          DO I=1,NDM
-            PAR(NPARX-2*NDM+I)=UPS(JMAX,NDM+I)
-            DNORM=DNORM+UPS(JMAX,NDM+I)*UPS(JMAX,NDM+I)
+            PAR(NPARX-2*NDM+I)=UPS(NDM+I,JMAX)
+            DNORM=DNORM+UPS(NDM+I,JMAX)*UPS(NDM+I,JMAX)
          ENDDO
          DNORM=DSQRT(DNORM)
          DO I=1,NDM
@@ -883,16 +883,16 @@ C
                   PHDIFF=0
                   IF(IADDPH.NE.0)PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)
                ENDIF
-               UPS(L,I+NDM)=UPS(J,I)+PHDIFF
-               UDOTPS(L,I+NDM)=UDOTPS(J,I)+PHDIFF
-               UPS(L,I)=UPS(J,I)
-               UDOTPS(L,I)=UDOTPS(J,I)
+               UPS(I+NDM,L)=UPS(I,J)+PHDIFF
+               UDOTPS(I+NDM,L)=UDOTPS(I,J)+PHDIFF
+               UPS(I,L)=UPS(I,J)
+               UDOTPS(I,L)=UDOTPS(I,J)
                IF (L.LE.2*NTSR-JMAX) THEN
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
-                  UPS(L+JMAX,I+NDIM-NDM)=UPS(J,I)+PHDIFF
-                  UDOTPS(L+JMAX,I+NDIM-NDM)=UDOTPS(J,I)+PHDIFF
+                  UPS(I+NDIM-NDM,L+JMAX)=UPS(I,J)+PHDIFF
+                  UDOTPS(I+NDIM-NDM,L+JMAX)=UDOTPS(I,J)+PHDIFF
                ENDIF
             ENDDO
          ENDDO
@@ -954,8 +954,8 @@ C
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(K2/NDM)
                   ENDIF
-                  UPS(J-1,I+K2)=UPS(J-1,I)+PHDIFF
-                  UDOTPS(J-1,I+K2)=UDOTPS(J-1,I)+PHDIFF
+                  UPS(I+K2,J-1)=UPS(I,J-1)+PHDIFF
+                  UDOTPS(I+K2,J-1)=UDOTPS(I,J-1)+PHDIFF
                ENDDO
             ENDDO
          ENDDO
@@ -971,11 +971,11 @@ C
       DO I=1,NDM
          IF(IRTN.NE.0)PHDIFF=PAR(19)*NRTN(I)
          DO K2=I,NDIM-NDM,NDM
-            UPS(NTSR+1,K2)=UPS(NTSR+2,I+NDM)+PHDIFF*((K2-I)/NDM-1)
-            UDOTPS(NTSR+1,K2)=UDOTPS(NTSR+2,I+NDM)+PHDIFF*((K2-I)/NDM-1)
+            UPS(K2,NTSR+1)=UPS(I+NDM,NTSR+2)+PHDIFF*((K2-I)/NDM-1)
+            UDOTPS(K2,NTSR+1)=UDOTPS(I+NDM,NTSR+2)+PHDIFF*((K2-I)/NDM-1)
          ENDDO
-         UPS(NTSR+1,I+NDIM-NDM)=UPS(1,I)+PHDIFF*(-ISTART)
-         UDOTPS(NTSR+1,I+NDIM-NDM)=UDOTPS(1,I)+PHDIFF*(-ISTART)
+         UPS(I+NDIM-NDM,NTSR+1)=UPS(I,1)+PHDIFF*(-ISTART)
+         UDOTPS(I+NDIM-NDM,NTSR+1)=UDOTPS(I,1)+PHDIFF*(-ISTART)
       ENDDO
 C
 C     Rotations: PAR(19) needs adjustment
@@ -1010,16 +1010,16 @@ C
 C     first init last point; otherwise it's overwritten
 C
       DO K=1,NDM
-         UPS(NTSR*NCOPY+1,K)=UPS(NTSR+1,K+(NCOPY-1)*NDM)
-         UDOTPS(NTSR*NCOPY+1,K)=UDOTPS(NTSR+1,K+(NCOPY-1)*NDM)
+         UPS(K,NTSR*NCOPY+1)=UPS(K+(NCOPY-1)*NDM,NTSR+1)
+         UDOTPS(K,NTSR*NCOPY+1)=UDOTPS(K+(NCOPY-1)*NDM,NTSR+1)
       ENDDO
       DO K=NCOPY-1,0,-1
          DO J=NTSR,1,-1
             I=J+NTSR*K
             DO L=0,NCOLRS-1
                DO M=1,NDM
-                  UPS(I,L*NDIM+M)=UPS(J,L*NAR+K*NDM+M)
-                  UDOTPS(I,L*NDIM+M)=UDOTPS(J,L*NAR+K*NDM+M)
+                  UPS(L*NDIM+M,I)=UPS(L*NAR+K*NDM+M,J)
+                  UDOTPS(L*NDIM+M,I)=UDOTPS(L*NAR+K*NDM+M,J)
                ENDDO
             ENDDO
             IF (K.EQ.0) THEN
@@ -1079,7 +1079,7 @@ C        Adjust rotations
         IF(IRTN.EQ.0)ALLOCATE(NRTN(NDM))
         IRTN=0
         DO I=1,NDM
-          NRTN(I)=NINT( (UPS(NTSR+1,NAR-NDM+I)-UPS(1,I)) / 
+          NRTN(I)=NINT( (UPS(NAR-NDM+I,NTSR+1)-UPS(I,1)) / 
      *          (PI(2.d0) * (-ISTART)) )
           IF(NRTN(I).NE.0)THEN
              PAR(19)=PI(2.d0)
@@ -1104,7 +1104,7 @@ C We hope that Newton's method will do the rest.
             JMIN=1
             DO J=1,NTSR+1
                DO I=1,NDM
-                  UI(I) = UPS(J,I)
+                  UI(I) = UPS(I,J)
                ENDDO
                CALL FUNC(NDM,UI,ICP,PAR,0,F,DUM1,DUM2)
                UPSI=0
@@ -1117,7 +1117,7 @@ C We hope that Newton's method will do the rest.
                ENDIF
             ENDDO
             DO I=1,NDM
-               PAR(11+I)=UPS(JMIN,I)
+               PAR(11+I)=UPS(I,JMIN)
             ENDDO
             DEALLOCATE(UI,F)
          ENDIF
@@ -1129,7 +1129,7 @@ C
        DO J=1,NTSR+1
          UPSI=0
          DO I=1,NDM
-           UPSI=UPSI+(UPS(J,I)-PAR(11+I))*(UPS(J,I)-PAR(11+I))
+           UPSI=UPSI+(UPS(I,J)-PAR(11+I))*(UPS(I,J)-PAR(11+I))
          ENDDO
          IF (UPSI.LT.UPSMIN) THEN
            UPSMIN=UPSI
@@ -1149,7 +1149,7 @@ C
              IF(J.EQ.0)J=NTSR+1
              UPSI=0
              DO I=1,NDM
-                UPSI=UPSI+(UPS(J,I)-PAR(I+11))*(UPS(J,I)-PAR(I+11))
+                UPSI=UPSI+(UPS(I,J)-PAR(I+11))*(UPS(I,J)-PAR(I+11))
              ENDDO
              IF(UPSI.GT.COMPZERO)THEN
                 J1=J+1
@@ -1163,7 +1163,7 @@ C
              IF(J.EQ.NTSR+2)J=1
              UPSI=0
              DO I=1,NDM
-                UPSI=UPSI+(UPS(J,I)-PAR(I+11))*(UPS(J,I)-PAR(I+11))
+                UPSI=UPSI+(UPS(I,J)-PAR(I+11))*(UPS(I,J)-PAR(I+11))
              ENDDO
              IF(UPSI.GT.COMPZERO)THEN
                 J2=J-1
@@ -1200,8 +1200,8 @@ C
               IST=IST+1
               TM(J)=TM(IST)
               DO K=1,NCOLRS*NDIM
-                  UPS(J,K)=UPS(IST,K)
-               UDOTPS(J,K)=UDOTPS(IST,K)
+                  UPS(K,J)=UPS(K,IST)
+               UDOTPS(K,J)=UDOTPS(K,IST)
               ENDDO
               J=IST
            ENDIF
@@ -1212,8 +1212,8 @@ C
            TM(I)=TM(J)-TMMIN
            IF (TM(I).LT.0) TM(I)=TM(I)+1.0D0
            DO K=1,NCOLRS*NDIM
-                  UPS(I,K)=UPS(J,K)
-               UDOTPS(I,K)=UDOTPS(J,K)
+                  UPS(K,I)=UPS(K,J)
+               UDOTPS(K,I)=UDOTPS(K,J)
            ENDDO
         ENDDO
 C
@@ -1221,8 +1221,8 @@ C Last equal to first
 C
         TM(NTSR+1)=1.0D0
         DO K=1,NCOLRS*NDIM
-             UPS(NTSR+1,K)=UPS(1,K)
-          UDOTPS(NTSR+1,K)=UDOTPS(1,K)
+             UPS(K,NTSR+1)=UPS(K,1)
+          UDOTPS(K,NTSR+1)=UDOTPS(K,1)
         ENDDO
 C
 C Rotations
@@ -1232,7 +1232,7 @@ C
            DO J=1,NTSR+1
               DO I=1,NDM
                  IF(NRTN(I).NE.0) THEN
-                    IF(DABS((UPS(J+1,I)-UPS(J,I))/NRTN(I)).GT.
+                    IF(DABS((UPS(I,J+1)-UPS(I,J))/NRTN(I)).GT.
      *                   DABS(PAR(19)/2)) THEN
                        JR=J+1
                        GOTO 3
@@ -1244,7 +1244,7 @@ C
               DO J=JR,NTSR+1
                  DO I=1,NCOLRS*NDIM
                     IF (NRTN(MOD(I-1,NDIM)+1).NE.0) THEN
-                       UPS(J,I)=UPS(J,I)+PAR(19)*NRTN(MOD(I-1,NDIM)+1)
+                       UPS(I,J)=UPS(I,J)+PAR(19)*NRTN(MOD(I-1,NDIM)+1)
                     ENDIF
                  ENDDO
               ENDDO
@@ -1266,8 +1266,8 @@ C Copy forelast part
          DO J=1,NTSR+1
             DO K=0,NDIM*(NCOLRS-1),NDIM
                DO I=NDIM,NAR-NDM+1,-1
-                  UPS(J,K+I)=UPS(J,K+I-NDIM+NAR)
-                  UDOTPS(J,K+I)=UDOTPS(J,K+I-NDIM+NAR)
+                  UPS(K+I,J)=UPS(K+I-NDIM+NAR,J)
+                  UDOTPS(K+I,J)=UDOTPS(K+I-NDIM+NAR,J)
                ENDDO
             ENDDO
          ENDDO
@@ -1275,8 +1275,8 @@ C Copy forelast part
             PAR(16+2*(NAR/NDM+I))=PAR(16+2*NAR/NDM)
             PAR(15+2*(NAR/NDM+I))=PAR(15+2*NAR/NDM)
          ENDDO
-         PAR(16+2*NAR/NDM)=(UPS(1,NAR-NDM+1)-
-     *            UPS(NTSR+1,NAR-2*NDM+1))/ PAR(NPARX-2*NDM+1)
+         PAR(16+2*NAR/NDM)=(UPS(NAR-NDM+1,1)-
+     *            UPS(NAR-2*NDM+1,NTSR+1))/ PAR(NPARX-2*NDM+1)
       ENDIF
 C       
 C Preprocesses (perturbs) restart data to enable 
@@ -1288,12 +1288,12 @@ C
            K1=(I-1)*NDIM+1
            K2=I*NDIM
            DO K=K1+NAR,K2
-             UPS(J,K)=0.1d0
+             UPS(K,J)=0.1d0
            ENDDO
          ENDDO
        ENDDO
        DO K=1+NAR,NDIM
-         UPS(NTSR+1,K)=0.1d0
+         UPS(K,NTSR+1)=0.1d0
        ENDDO
       ENDIF
 C
@@ -1380,7 +1380,7 @@ C
              T=TM(J)+(I-1)*DT
              K2=(I-1)*NDIM
              DO K=1,NDIM
-                UPS(J,K2+K)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
+                UPS(K2+K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
      +               EXP(RR(NSTAB+1)*T*PAR(11))
              ENDDO
              write(9,111)(ups(j,k2+k),k=1,ndim)
@@ -1453,8 +1453,8 @@ C      *Compute eigenvalues
        ENDIF
        IF (((ITWIST.EQ.1).AND.(ISTART.GE.0)).OR.NPSI.GT.0) THEN
           DO I=1,NDIM
-             PU0(I)=UPS(1,I)
-             PU1(I)=UPS(NTST+1,I)
+             PU0(I)=UPS(I,1)
+             PU1(I)=UPS(I,NTST+1)
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN

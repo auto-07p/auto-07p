@@ -1171,8 +1171,8 @@ C
          DO I1=1,NDIM
           DO I2=1,NCOL
            I=(I2-1)*NDIM+I1
-              UPS(NTST+J,I)=   UPS(NTST+1,I1)+   UPS(J,I)-   UPS(1,I1)
-           UDOTPS(NTST+J,I)=UDOTPS(NTST+1,I1)+UDOTPS(J,I)-UDOTPS(1,I1)
+              UPS(I,NTST+J)=   UPS(I1,NTST+1)+   UPS(I,J)-   UPS(I1,1)
+           UDOTPS(I,NTST+J)=UDOTPS(I1,NTST+1)+UDOTPS(I,J)-UDOTPS(I1,1)
           ENDDO
          ENDDO
        ENDDO
@@ -1256,9 +1256,9 @@ C
          S=DSIN(TPI*T)
          C=DCOS(TPI*T)
          DO K=1,NDIM
-           UDOTPS(J,K)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(J,K)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(J,K)=U(K)
+           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+           UPS(K,J)=U(K)
          ENDDO
        ENDDO
 C
@@ -1269,9 +1269,9 @@ C
            C=DCOS(TPI*T)
            DO  K=1,NDIM
              K1=I*NDIM+K
-             UDOTPS(J,K1)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(J,K1)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(J,K1)=U(K)
+             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+             UPS(K1,J)=U(K)
            ENDDO
          ENDDO
        ENDDO
@@ -1369,9 +1369,9 @@ C
          S=DSIN(TPI*T)
          C=DCOS(TPI*T)
          DO K=1,NDIM
-           UDOTPS(J,K)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(J,K)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(J,K)=U(K)
+           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+           UPS(K,J)=U(K)
          ENDDO
        ENDDO
 C
@@ -1382,9 +1382,9 @@ C
            C=DCOS(TPI*T)
            DO  K=1,NDIM
              K1=I*NDIM+K
-             UDOTPS(J,K1)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(J,K1)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(J,K1)=U(K)
+             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+             UPS(K1,J)=U(K)
            ENDDO
          ENDDO
        ENDDO
@@ -1621,9 +1621,9 @@ C
          S=DSIN(TPI*T)
          C=DCOS(TPI*T)
          DO K=1,NDIM
-           UDOTPS(J,K)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(J,K)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(J,K)=U(K)
+           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+           UPS(K,J)=U(K)
          ENDDO
        ENDDO
 C
@@ -1634,9 +1634,9 @@ C
            C=DCOS(TPI*T)
            DO K=1,NDIM
              K1=I*NDIM+K
-             UDOTPS(J,K1)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(J,K1)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(J,K1)=U(K)
+             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
+             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
+             UPS(K1,J)=U(K)
            ENDDO
          ENDDO
        ENDDO
@@ -2050,16 +2050,16 @@ C          Fixed period
              K1=(I-1)*NDIM+NDM+1
              K2=I*NDIM
              DO K=K1,K2
-               UPS(J,K)=0.d0
-               UDOTPS(J,K)=0.d0
+               UPS(K,J)=0.d0
+               UDOTPS(K,J)=0.d0
              ENDDO
            ENDDO
          ENDDO
          K1=NDM+1
          NRSP1=NTSR+1
          DO K=K1,NDIM
-           UPS(NRSP1,K)=0.d0
-           UDOTPS(NRSP1,K)=0.d0
+           UPS(K,NRSP1)=0.d0
+           UDOTPS(K,NRSP1)=0.d0
          ENDDO
 C
        DO I=1,NFPR
@@ -2297,8 +2297,8 @@ C Complement starting data
              K1=(I-1)*NDIM+NDM+1
              K2=I*NDIM
              DO K=K1,K2
-               UPS(J,K)=0.d0
-               UDOTPS(J,K)=0.d0
+               UPS(K,J)=0.d0
+               UDOTPS(K,J)=0.d0
              ENDDO
            ENDDO
          ENDDO
@@ -2568,21 +2568,21 @@ C
            K3=K2+NDM
            T=TM(J)+(I-1)*(TM(J+1)-TM(J))/NCOLRS
            DO K=K2P1,K3
-             UPS(J,K)    =0.0001*DSIN(T)
-             UPS(J,K+NDM)=0.0001*DCOS(T)
-             UDOTPS(J,K)=0.d0
-             UDOTPS(J,K+NDM)=0.d0
+             UPS(K,J)    =0.0001*DSIN(T)
+             UPS(K+NDM,J)=0.0001*DCOS(T)
+             UDOTPS(K,J)=0.d0
+             UDOTPS(K+NDM,J)=0.d0
            ENDDO
          ENDDO
        ENDDO
        NRSP1=NTSR+1
        DO I=1,NDM
-         UPS(NRSP1,NDM+I)=0.d0
-         UPS(NRSP1,2*NDM+I)=0.d0
+         UPS(NDM+I,NRSP1)=0.d0
+         UPS(2*NDM+I,NRSP1)=0.d0
        ENDDO
        DO I=1,NDM
-         UDOTPS(NRSP1,NDM+I)=0.d0
-         UDOTPS(NRSP1,2*NDM+I)=0.d0
+         UDOTPS(NDM+I,NRSP1)=0.d0
+         UDOTPS(2*NDM+I,NRSP1)=0.d0
        ENDDO
 C
        PAR(13)=0.d0
@@ -2927,19 +2927,19 @@ C (using UPOLDP for temporary storage)
            K1=(I-1)*NDIM+1
            K2=K1+NDM-1
            DO K=K1,K2
-             U(K-K1+1)=UPS(J,K)
+             U(K-K1+1)=UPS(K,J)
            ENDDO
            CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
-           UPOLDP(J,K1)=FS
+           UPOLDP(K1,J)=FS
          ENDDO
        ENDDO
        NRSP1=NTSR+1
        DO K=1,NDM
-          U(K)=UPS(NRSP1,K)
+          U(K)=UPS(K,NRSP1)
        ENDDO
        CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
        DEALLOCATE(U)
-       UPOLDP(NRSP1,1)=FS
+       UPOLDP(1,NRSP1)=FS
        PAR(10)=RINTG(IAP,NDX,1,UPOLDP,DTM)
 C
 C Complement starting data
@@ -2953,13 +2953,13 @@ C
            K1=(I-1)*NDIM+NDM+1
            K2=I*NDIM
            DO K=K1,K2
-             UPS(J,K)=0.d0
+             UPS(K,J)=0.d0
            ENDDO
          ENDDO
        ENDDO
        K1=NDM+1
        DO K=K1,NDIM
-         UPS(NRSP1,K)=0.d0
+         UPS(K,NRSP1)=0.d0
        ENDDO
 C
        DO I=1,NFPR
@@ -3355,14 +3355,14 @@ C
            K1=(I-1)*NDIM+1
            K2=I*NDIM-NDM
            DO K=K1,K2
-             UPS(J,K+NDM)=UDOTPS(J,K)
-             UDOTPS(J,K)=0.d0
+             UPS(K+NDM,J)=UDOTPS(K,J)
+             UDOTPS(K,J)=0.d0
            ENDDO
          ENDDO
        ENDDO
        DO K=1,NDIM-NDM
-         UPS(NTSR,K+NDM)=UDOTPS(NTSR,K)
-         UDOTPS(NTSR,K)=0.d0
+         UPS(K+NDM,NTSR)=UDOTPS(K,NTSR)
+         UDOTPS(K,NTSR)=0.d0
        ENDDO
 C
        NFPX=NFPR/2-1

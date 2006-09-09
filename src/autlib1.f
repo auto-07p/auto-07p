@@ -3079,17 +3079,17 @@ C Local
 C
        NDIM=IAP(1)
        IPS=IAP(2)
-       NCOL=IAP(6)
        ISW=IAP(10)
-       ALLOCATE(TINT(NDX),UINT(NDX,NDIM*NCOL),TM2(NDX),ITM(NDX))
 C
        NOLDP1=NOLD+1
        NNEWP1=NNEW+1
        NRWNEW=NDIM*NCNEW
+       ALLOCATE(TINT(NNEWP1),UINT(NRWNEW,NNEWP1))
+       ALLOCATE(TM2(NNEWP1),ITM(NNEWP1))
 C
-       DO J=1,NDX
-         DO I=1,NDIM*NCOL
-           UINT(J,I)=0.d0
+       DO J=1,NNEWP1
+         DO I=1,NRWNEW
+           UINT(I,J)=0.d0
          ENDDO
        ENDDO
 C
@@ -3111,7 +3111,7 @@ C
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
-           UPS(J,I)=UINT(J,I)
+           UPS(I,J)=UINT(I,J)
          ENDDO
        ENDDO
 C
@@ -3121,7 +3121,7 @@ C
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
-           VPS(J,I)=UINT(J,I)
+           VPS(I,J)=UINT(I,J)
          ENDDO
        ENDDO
 C
@@ -3147,7 +3147,7 @@ C
 C
 C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 C
-      DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NDX,*)
+      DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NC1*NDIM,*)
 C Local
       DIMENSION X(NC+1),W(NC+1)
 C
@@ -3171,17 +3171,17 @@ C
            CALL INTWTS(NCP1,Z,X,W)
            DO K=1,NDIM
              K1=(I-1)*NDIM+K
-             UPS1(J1,K1)=W(NCP1)*UPS(J+1,K)
+             UPS1(K1,J1)=W(NCP1)*UPS(K,J+1)
              DO L=1,NC
                L1=K+(L-1)*NDIM
-               UPS1(J1,K1)=UPS1(J1,K1)+W(L)*UPS(J,L1)
+               UPS1(K1,J1)=UPS1(K1,J1)+W(L)*UPS(L1,J)
              ENDDO
            ENDDO
          ENDDO
        ENDDO
 C
        DO I=1,NDIM
-         UPS1(N1,I)=UPS(N,I)
+         UPS1(I,N1)=UPS(I,N)
        ENDDO
 C
       RETURN
@@ -3299,7 +3299,7 @@ C
 C Local
       DIMENSION WH(NCOL+1)
       ALLOCATABLE HD(:,:)
-      ALLOCATE(HD(NTST+1,NDIM*NCOL))
+      ALLOCATE(HD(NDIM*NCOL,NTST+1))
 C
 C Compute approximation to NCOL-th derivative :
        CALL CNTDIF(NCOL,WH)
@@ -3309,13 +3309,13 @@ C
          JP1=J+1
          SC=1.d0/DTM(J)**NCOL
          DO I=1,NDIM
-           HD(J,I)=WH(NCOL+1)*UPS(JP1,I)
+           HD(I,J)=WH(NCOL+1)*UPS(I,JP1)
            DO K=1,NCOL
              K1=I+(K-1)*NDIM
-             HD(J,I)=HD(J,I)+WH(K)*UPS(J,K1)
+             HD(I,J)=HD(I,J)+WH(K)*UPS(K1,J)
            ENDDO
-           HD(J,I)=SC*HD(J,I)
-           IF(DABS(HD(J,I)).GT.HMACH)SMALL=.FALSE.
+           HD(I,J)=SC*HD(I,J)
+           IF(DABS(HD(I,J)).GT.HMACH)SMALL=.FALSE.
          ENDDO
        ENDDO
 C
@@ -3332,13 +3332,13 @@ C
        IF(IPER.EQ.1)THEN
 C        *Extend by periodicity :
          DO I=1,NDIM
-           HD(NTST+1,I)=HD(1,I)
+           HD(I,NTST+1)=HD(I,1)
          ENDDO
          DTM(NTST+1)=DTM(1)
        ELSE
 C        *Extend by extrapolation :
          DO I=1,NDIM
-           HD(NTST+1,I)=2*HD(NTST,I)-HD(NTST-1,I)
+           HD(I,NTST+1)=2*HD(I,NTST)-HD(I,NTST-1)
          ENDDO
          DTM(NTST+1)=DTM(NTST)
        ENDIF
@@ -3350,7 +3350,7 @@ C
          DTAV=.5d0*(DTM(J)+DTM(J+1))
          SC=1.d0/DTAV
          DO I=1,NDIM
-           HD(J,I)=SC*( HD(JP1,I)-HD(J,I) )
+           HD(I,J)=SC*( HD(I,JP1)-HD(I,J) )
          ENDDO
        ENDDO
 C
@@ -3361,7 +3361,7 @@ C
        DO J=1,NTST
          E=0.d0
          DO I=1,NDIM
-           E=E+DABS( HD(J,I) )**PWR
+           E=E+DABS( HD(I,J) )**PWR
          ENDDO
          EQF(J+1)=EQF(J)+DTM(J)*E
        ENDDO
@@ -3948,9 +3948,9 @@ C
          DO I=1,NDIM1
            DO K=1,NCOL
              K1=(K-1)*NDIM+I
-             SJ=SJ+WI(K)*THU(I)*UPS(J,K1)*VPS(J,K1)
+             SJ=SJ+WI(K)*THU(I)*UPS(K1,J)*VPS(K1,J)
            ENDDO
-           SJ=SJ+WI(NCOL+1)*THU(I)*UPS(JP1,I)*VPS(JP1,I)
+           SJ=SJ+WI(NCOL+1)*THU(I)*UPS(I,JP1)*VPS(I,JP1)
          ENDDO
          S=S+DTM(J)*SJ
        ENDDO
@@ -4000,9 +4000,9 @@ C
          SJ=0.d0
            DO K=1,NCOL
              K1=(K-1)*NDIM+IC
-             SJ=SJ+WI(K)*UPS(J,K1)
+             SJ=SJ+WI(K)*UPS(K1,J)
            ENDDO
-           SJ=SJ+WI(NCOL+1)*UPS(JP1,IC)
+           SJ=SJ+WI(NCOL+1)*UPS(IC,JP1)
          S=S+DTM(J)*SJ
        ENDDO
 C
@@ -4037,9 +4037,9 @@ C
          SJ=0.d0
            DO K=1,NCOL
              K1=(K-1)*NDIM+IC
-             SJ=SJ+WI(K)*UPS(J,K1)**2
+             SJ=SJ+WI(K)*UPS(K1,J)**2
            ENDDO
-           SJ=SJ+WI(NCOL+1)*UPS(JP1,IC)**2
+           SJ=SJ+WI(NCOL+1)*UPS(IC,JP1)**2
          S=S+DTM(J)*SJ
        ENDDO
 C
@@ -4061,15 +4061,15 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
 C
-       RMXUPS=UPS(1,I)
+       RMXUPS=UPS(I,1)
 C
        DO J=1,NTST
          DO K=1,NCOL
            K1=(K-1)*NDIM+I
-           IF(UPS(J,K1).GT.RMXUPS)RMXUPS=UPS(J,K1)
+           IF(UPS(K1,J).GT.RMXUPS)RMXUPS=UPS(K1,J)
          ENDDO
        ENDDO
-       IF(UPS(NTST+1,I).GT.RMXUPS)RMXUPS=UPS(NTST+1,I)
+       IF(UPS(I,NTST+1).GT.RMXUPS)RMXUPS=UPS(I,NTST+1)
 C
       RETURN
       END
@@ -4087,15 +4087,15 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
 C
-       RMNUPS=UPS(1,I)
+       RMNUPS=UPS(I,1)
 C
        DO J=1,NTST
          DO K=1,NCOL
            K1=(K-1)*NDIM+I
-           IF(UPS(J,K1).LT.RMNUPS)RMNUPS=UPS(J,K1)
+           IF(UPS(K1,J).LT.RMNUPS)RMNUPS=UPS(K1,J)
          ENDDO
        ENDDO
-       IF(UPS(NTST+1,I).LT.RMNUPS)RMNUPS=UPS(NTST+1,I)
+       IF(UPS(I,NTST+1).LT.RMNUPS)RMNUPS=UPS(I,NTST+1)
 C
       RETURN
       END
@@ -4125,12 +4125,12 @@ C
        NROW=NDIM*NCOL
        DO J=1,NTST
          DO I=1,NROW
-           DVPS(J,I)=DVPS(J,I)*SC
+           DVPS(I,J)=DVPS(I,J)*SC
          ENDDO
        ENDDO
 C
        DO I=1,NDIM
-         DVPS(NTST+1,I)=DVPS(NTST+1,I)*SC
+         DVPS(I,NTST+1)=DVPS(I,NTST+1)*SC
        ENDDO
 C
        DO I=1,NFPR
@@ -4181,12 +4181,12 @@ C
        NINT=IAP(13)
        NUZR=IAP(15)
        ITPST=IAP(28)
-       NDX=NTST+1
+       NDX=NDIM*NCOL
 C
-       ALLOCATE(UPS(NDX,NDIM*NCOL),UOLDPS(NDX,NDIM*NCOL))
-       ALLOCATE(UPOLDP(NDX,NDIM*NCOL),DUPS(NDX,NDIM*NCOL))
-       ALLOCATE(UDOTPS(NDX,NDIM*NCOL),FA(NDX,NDIM*NCOL))
-       ALLOCATE(FC(NBC+NINT+1),TM(NDX),DTM(NDX))
+       ALLOCATE(UPS(NDX,NTST+1),UOLDPS(NDX,NTST+1))
+       ALLOCATE(UPOLDP(NDX,NTST+1),DUPS(NDX,NTST+1))
+       ALLOCATE(UDOTPS(NDX,NTST+1),FA(NDX,NTST+1))
+       ALLOCATE(FC(NBC+NINT+1),TM(NTST+1),DTM(NTST+1))
        ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR),EV(NDIM))
 C
        DS=RAP(1)
@@ -4219,14 +4219,14 @@ C
         RLDOT(I)=0.d0
       ENDDO
 C
-       DO J=1,NDX
-         DO I=1,NDIM*NCOL
-           UPS(J,I)=0.d0
-           UOLDPS(J,I)=0.d0
-           UPOLDP(J,I)=0.d0
-           DUPS(J,I)=0.d0
-           UDOTPS(J,I)=0.d0
-           FA(J,I)=0.d0
+       DO J=1,NTST+1
+         DO I=1,NDX
+           UPS(I,J)=0.d0
+           UOLDPS(I,J)=0.d0
+           UPOLDP(I,J)=0.d0
+           DUPS(I,J)=0.d0
+           UDOTPS(I,J)=0.d0
+           FA(I,J)=0.d0
          ENDDO
        ENDDO
 C
@@ -4442,7 +4442,7 @@ C
        NROW=NDIM*NCOL
        DO J=1,NTST+1
          DO I=1,NROW
-           UDOTPS(J,I)=(UPS(J,I)-UOLDPS(J,I))*DDS
+           UDOTPS(I,J)=(UPS(I,J)-UOLDPS(I,J))*DDS
          ENDDO
        ENDDO
        DO I=1,NFPR
@@ -4491,8 +4491,8 @@ C
        ENDDO
        DO J=1,NTST+1
          DO I=1,NROW
-           UOLDPS(J,I)=UPS(J,I)
-           UPS(J,I)=UPS(J,I)+RDS*UDOTPS(J,I)
+           UOLDPS(I,J)=UPS(I,J)
+           UPS(I,J)=UPS(I,J)+RDS*UDOTPS(I,J)
          ENDDO
        ENDDO
 C
@@ -4531,16 +4531,16 @@ C
 C
        DO J=1,NTST+1
          DO I=1,NDIM
-           U(I)=UOLDPS(J,I)
+           U(I)=UOLDPS(I,J)
            IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-             UOLD(I)=2*UOLDPS(J,I)-UPS(J,I)
+             UOLD(I)=2*UOLDPS(I,J)-UPS(I,J)
            ELSE
-             UOLD(I)=UOLDPS(J,I)
+             UOLD(I)=UOLDPS(I,J)
            ENDIF
          ENDDO
          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
          DO I=1,NDIM
-           UPOLDP(J,I)=F(I)
+           UPOLDP(I,J)=F(I)
          ENDDO
        ENDDO
 C
@@ -4549,16 +4549,16 @@ C
          N1=K*NDIM
          DO J=1,NTST
            DO I=1,NDIM
-             U(I)=UOLDPS(J,N1+I)
+             U(I)=UOLDPS(N1+I,J)
              IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-               UOLD(I)=2*UOLDPS(J,N1+I)-UPS(J,N1+I)
+               UOLD(I)=2*UOLDPS(N1+I,J)-UPS(N1+I,J)
              ELSE
-               UOLD(I)=UOLDPS(J,N1+I)
+               UOLD(I)=UOLDPS(N1+I,J)
              ENDIF
            ENDDO
            CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
            DO I=1,NDIM
-             UPOLDP(J,N1+I)=F(I)
+             UPOLDP(N1+I,J)=F(I)
            ENDDO
          ENDDO
        ENDDO
@@ -4631,7 +4631,7 @@ C
 C Add Newton increments.
 C
          DO I=1,NDIM
-           UPS(NTST+1,I)=UPS(NTST+1,I)+FC(I)
+           UPS(I,NTST+1)=UPS(I,NTST+1)+FC(I)
          ENDDO
          DO I=1,NFPR
            RLCUR(I)=RLCUR(I)+FC(NDIM+I)
@@ -4643,11 +4643,11 @@ C
          NROW=NDIM*NCOL
          DO J=1,NTST
            DO I=1,NROW
-             ADU=DABS(FA(J,I))
+             ADU=DABS(FA(I,J))
              IF(ADU.GT.DUMX)DUMX=ADU
-             AU=DABS(UPS(J,I))
+             AU=DABS(UPS(I,J))
              IF(AU.GT.UMX)UMX=AU
-             UPS(J,I)=UPS(J,I)+FA(J,I)
+             UPS(I,J)=UPS(I,J)+FA(I,J)
            ENDDO
          ENDDO
 C
@@ -4694,7 +4694,7 @@ C
        ENDDO
        DO J=1,NTST+1
          DO I=1,NROW
-           UPS(J,I)=UOLDPS(J,I)+RDS*UDOTPS(J,I)
+           UPS(I,J)=UOLDPS(I,J)+RDS*UDOTPS(I,J)
          ENDDO
        ENDDO
        IF(IID.GE.2)WRITE(9,102)IBR,NTOP
@@ -4709,7 +4709,7 @@ C
        ENDDO
        DO J=1,NTST+1
          DO I=1,NROW
-           UPS(J,I)=UOLDPS(J,I)
+           UPS(I,J)=UOLDPS(I,J)
          ENDDO
        ENDDO
        ISTOP=1
@@ -4784,7 +4784,8 @@ C use the bigger of the size defined in fort.2 and the one defined in fort.8
        NTSTU=MAX(NTST,NTST3)
        NCOLU=MAX(NCOL,NCOL3)
        NDIMU=NDIM
-       NDXLOC=(NTSTU+1)*NCOLU
+       NDXLOC=NDIMU*NCOLU
+       NTSTCU=(NTSTU+1)*NCOLU
 C
 C Autodetect special case when homoclinic branch switching is
 C completed and the orbit's representation has to be
@@ -4795,14 +4796,14 @@ C
          NDIMU=NDIM3
          IAP(1)=NDIMU
        ENDIF
-       ALLOCATE(UPSN(NDXLOC,NDIMU*NCOLU),UPOLDN(NDXLOC,NDIMU*NCOLU))
-       ALLOCATE(UDOTPN(NDXLOC,NDIMU*NCOLU),TMN(NDXLOC),DTMN(NDXLOC))
+       ALLOCATE(UPSN(NDXLOC,NTSTCU),UPOLDN(NDXLOC,NTSTCU))
+       ALLOCATE(UDOTPN(NDXLOC,NTSTCU),TMN(NTSTCU),DTMN(NTSTCU))
 C initialize arrays
-       DO I=1,NDXLOC
-         DO J=1,NDIMU*NCOLU
-           UPSN(I,J)=0.0d0
-           UPOLDN(I,J)=0.0d0
-           UDOTPN(I,J)=0.0d0
+       DO I=1,NTSTCU
+         DO J=1,NDXLOC
+           UPSN(J,I)=0.0d0
+           UPOLDN(J,I)=0.0d0
+           UDOTPN(J,I)=0.0d0
          ENDDO
        ENDDO
 C
@@ -4829,9 +4830,9 @@ C Copy from the temporary large arrays into the normal arrays.
          DTM(I)=DTMN(I)
          TM(I)=TMN(I)
          DO J=1,NDIM*NCOL
-           UPS(I,J)=UPSN(I,J)
-           UPOLDP(I,J)=UPOLDN(I,J)
-           UDOTPS(I,J)=UDOTPN(I,J)
+           UPS(J,I)=UPSN(J,I)
+           UPOLDP(J,I)=UPOLDN(J,I)
+           UDOTPS(J,I)=UDOTPN(J,I)
          ENDDO
        ENDDO
        DEALLOCATE(DTMN,TMN,UPSN,UPOLDN,UDOTPN)
@@ -4844,9 +4845,9 @@ C
        ENDDO
 C
        NROW=NDIM*NCOL
-       DO I=1,NROW
-         DO J=1,NTST+1
-           UOLDPS(J,I)=UPS(J,I)
+       DO J=1,NTST+1
+         DO I=1,NROW
+           UOLDPS(I,J)=UPS(I,J)
          ENDDO
        ENDDO
 C
@@ -4898,12 +4899,12 @@ C
          DO I=1,NCOLRS
            K1=(I-1)*NDIM+1
            K2=K1+NDIMRD-1
-           READ(3,*)TEMP(I),(UPS(J,K),K=K1,K2)
+           READ(3,*)TEMP(I),(UPS(K,J),K=K1,K2)
            IF(NSKIP1.GT.0)CALL SKIP3(NSKIP1,EOF3)
          ENDDO
          TM(J)=TEMP(1)
        ENDDO
-       READ(3,*)TM(NRSP1),(UPS(NRSP1,K),K=1,NDIMRD)
+       READ(3,*)TM(NRSP1),(UPS(K,NRSP1),K=1,NDIMRD)
        IF(NSKIP1.GT.0)CALL SKIP3(NSKIP1,EOF3)
 C
        READ(3,*)(ICPRS(K),K=1,NFPR)
@@ -4915,11 +4916,11 @@ C
          DO I=1,NCOLRS
            K1=(I-1)*NDIM+1
            K2=K1+NDIMRD-1
-           READ(3,*)(UDOTPS(J,K),K=K1,K2)
+           READ(3,*)(UDOTPS(K,J),K=K1,K2)
            IF(NSKIP2.GT.0)CALL SKIP3(NSKIP2,EOF3)
          ENDDO
        ENDDO
-       READ(3,*)(UDOTPS(NRSP1,K),K=1,NDIMRD)
+       READ(3,*)(UDOTPS(K,NRSP1),K=1,NDIMRD)
        IF(NSKIP2.GT.0)CALL SKIP3(NSKIP2,EOF3)
 C
 C Read the parameter values.
@@ -5041,7 +5042,7 @@ C
            K2=I*NDIM
            CALL STPNT(NDIM,U,PAR,T)
            DO K=K1,K2
-             UPS(J,K)=U(K-K1+1)
+             UPS(K,J)=U(K-K1+1)
            ENDDO
          ENDDO
        ENDDO
@@ -5080,7 +5081,7 @@ C
         ALLOCATE(NRTN(NDM))
         IRTN=0
         DO I=1,NDM
-          NRTN(I)=NINT( (UPS(NTST+1,I)-UPS(1,I)) / PI(2.d0) )
+          NRTN(I)=NINT( (UPS(I,NTST+1)-UPS(I,1)) / PI(2.d0) )
           IF(NRTN(I).NE.0)THEN
              PAR(19)=PI(2.d0)
              IRTN=1
@@ -5120,7 +5121,7 @@ C
        IF(IPERP.EQ.0)THEN
          DO J=1,NTST+1
            DO I=1,NROW
-             UDOTPS(J,I)=0.d0
+             UDOTPS(I,J)=0.d0
            ENDDO
          ENDDO
          DO I=1,NFPR
@@ -5138,7 +5139,7 @@ C
 C Compute the starting direction.
 C
          DO I=1,NDIM
-           UDOTPS(NTST+1,I)=FC(I)
+           UDOTPS(I,NTST+1)=FC(I)
          ENDDO
          DO I=1,NFPR
            RLDOT(I)=FC(NDIM+I)
@@ -5147,7 +5148,7 @@ C
 C
          DO J=1,NTST
            DO I=1,NROW
-             UDOTPS(J,I)=FA(J,I)
+             UDOTPS(I,J)=FA(I,J)
            ENDDO
          ENDDO
 C
@@ -5163,7 +5164,7 @@ C
            ENDDO
            DO J=1,NTST+1
              DO I=1,NROW
-               UDOTPS(J,I)=-UDOTPS(J,I)
+               UDOTPS(I,J)=-UDOTPS(I,J)
              ENDDO
            ENDDO
          ENDIF
@@ -5341,7 +5342,7 @@ C
      *    P0,P1,THL,THU)
 C
          DO I=1,NDIM
-           UDOTPS(NTST+1,I)=FC(I)
+           UDOTPS(I,NTST+1)=FC(I)
          ENDDO
 C
          DO I=1,NFPR
@@ -5351,7 +5352,7 @@ C
          NROW=NDIM*NCOL
          DO J=1,NTST
            DO I=1,NROW
-             UDOTPS(J,I)=FA(J,I)
+             UDOTPS(I,J)=FA(I,J)
           ENDDO
          ENDDO
 C
@@ -5941,7 +5942,7 @@ Cxxx====================================================================
            K1=(I-1)*NDIM+1
            K2=I*NDIM
            T=TM(J)+(I-1)*RN*DTM(J)
-           WRITE(8,102)T,(UPS(J,K),K=K1,K2)
+           WRITE(8,102)T,(UPS(K,J),K=K1,K2)
 Cxxx====================================================================
 Cxxx Test problem
            er = err(ups(j,k1),T)
@@ -5956,7 +5957,7 @@ C Write global error and mesh error
 Cxxx       write(10,100)ncol,ntst,eg,em
 Cxxx 100   FORMAT(4X,I2,I4,1P7D11.3)
 Cxxx====================================================================
-       WRITE(8,102)TM(NTST+1),(UPS(NTST+1,I),I=1,NDIM)
+       WRITE(8,102)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
 C
 C Write the free parameter indices:
 C
@@ -5969,10 +5970,10 @@ C
          DO I=1,NCOL
            K1=(I-1)*NDIM+1
            K2=I*NDIM
-           WRITE(8,102)(UDOTPS(J,K),K=K1,K2)
+           WRITE(8,102)(UDOTPS(K,J),K=K1,K2)
          ENDDO
        ENDDO
-       WRITE(8,102)(UDOTPS(NTST+1,K),K=1,NDIM)
+       WRITE(8,102)(UDOTPS(K,NTST+1),K=1,NDIM)
 C
 C Write the parameter values.
 C
@@ -6036,10 +6037,10 @@ C
              T=TM(J)+(I-1)*RN*DTM(J)
              K1=(I-1)*NDIM+1
              K2=I*NDIM
-             WRITE(9,105)T,(UPS(J,K),K=K1,K2)
+             WRITE(9,105)T,(UPS(K,J),K=K1,K2)
            ENDDO
          ENDDO
-         WRITE(9,105)TM(NTST+1),(UPS(NTST+1,I),I=1,NDIM)
+         WRITE(9,105)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
        ENDIF
 C
  102   FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
@@ -6168,11 +6169,11 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       POINTER DTV(:),RAV(:),IAV(:)
       COMMON /BLPV/ DTV,RAV,IAV
-      DIMENSION UPS(IAV(5)+1,*)
+      DIMENSION UPS(IAV(1)*IAV(6),*)
       CHARACTER*3 CODE
 C
         IPS=IAV(2)
-        NX=IAV(5)+1
+        NX=IAV(1)*IAV(6)
 C
         IF( IABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
           IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
@@ -6210,9 +6211,9 @@ C
           ELSEIF(CODE.EQ.'MIN'.OR.CODE.EQ.'min')THEN
             GETP=RMNUPS(IAV,NX,IC,UPS)
           ELSEIF(CODE.EQ.'BV0'.OR.CODE.EQ.'bv0')THEN
-            GETP=UPS(1,IC)
+            GETP=UPS(IC,1)
           ELSEIF(CODE.EQ.'BV1'.OR.CODE.EQ.'bv1')THEN
-            GETP=UPS(NX,IC)
+            GETP=UPS(IC,IAV(5)+1)
           ELSEIF(CODE.EQ.'STP'.OR.CODE.EQ.'stp')THEN
             GETP=RAV(5)
           ELSEIF(CODE.EQ.'FLD'.OR.CODE.EQ.'fld')THEN

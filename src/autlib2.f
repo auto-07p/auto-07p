@@ -20,7 +20,7 @@ C
 C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
       ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:)
-      ALLOCATABLE FAA(:,:), FT(:,:)
+      ALLOCATABLE FAA(:,:)
       ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),ICF1(:,:),ICF2(:,:)
       SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,FAA,ICF,IRF,IPR,ICF1,ICF2
 C
@@ -66,30 +66,26 @@ C
          ALLOCATE(ICF(NCLM,NTST+1),IRF(NROW,NTST+1),IPR(NDIM,NTST+1))
          ALLOCATE(ICF1(NDIM,NTST+1),ICF2(NDIM,NTST+1))
       ENDIF
-      ALLOCATE(FT(NROW,NTST+1))
 C
       IF(IFST.EQ.1)THEN
         CALL SETUBV(NDIM,IPS,NTST,NCOL,NBC,NINT,
      +   NFPR,NRC-NBC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
-     +   IAP,RAP,PAR,ICP,RDS,A,B,C,CCBC,D,FT,FC,RLCUR,RLOLD,
+     +   IAP,RAP,PAR,ICP,RDS,A,B,C,CCBC,D,FA,FC,RLCUR,RLOLD,
      +   RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU)
       ELSE
         CALL SETRHS(NDIM,IPS,NTST,NCOL,NBC,NINT,
      +   NFPR,NRC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
-     +   IAP,RAP,PAR,ICP,RDS,FT,FC,RLCUR,RLOLD,
+     +   IAP,RAP,PAR,ICP,RDS,FA,FC,RLCUR,RLOLD,
      +   RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU)
       ENDIF
 C
-      CALL BRBD(A,B,C,D,FT,FC,P0,P1,IFST,
+      CALL BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IID,NLLV,DET,NDIM,NTST,NBC,NROW,NCLM,
      +  NFPR,NRC,A1,A2,BB,CC,CCBC,FAA,
      +  S1,S2,IPR,ICF1,ICF2,IRF,ICF)
 C
-      CALL FAFT(FT,FA,NTST,NROW,NDX)         
-C
       RAP(14)=DET
 C
-      DEALLOCATE(FT)
       RETURN
       END
 C
@@ -105,20 +101,6 @@ C
           ENDDO
         ENDIF
         FC(I)=0.0D0
-      ENDDO
-C
-      RETURN
-      END
-C
-C     ---------- ----
-      SUBROUTINE FAFT(FF,FA,NTST,NROW,NDX)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION FA(NDX,*),FF(NROW,*)
-C
-      DO I=1,NTST
-         DO J=1,NROW
-            FA(I,J)=FF(J,I)
-         ENDDO
       ENDDO
 C
       RETURN
@@ -168,8 +150,8 @@ C     Boundary conditions :
 C     
        IF(NBC.GT.0)THEN
          DO I=1,NDIM
-            UBC0(I)=UPS(1,I)
-            UBC1(I)=UPS(NA+1,I)
+            UBC0(I)=UPS(I,1)
+            UBC1(I)=UPS(I,NA+1)
          ENDDO
          CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)     
          DO I=1,NBC
@@ -186,7 +168,7 @@ C       Save difference :
        ENDIF
        DO J=1,NA+1
          DO I=1,NRA
-            DUPS(J,I)=UPS(J,I)-UOLDPS(J,I)
+            DUPS(I,J)=UPS(I,J)-UOLDPS(I,J)
           ENDDO
        ENDDO
 C
@@ -241,12 +223,12 @@ C
           JP1=J+1
           DO 1 IC=1,NCOL
              DO K=1,NDIM
-                U(K)=   WT(NCP1,IC)*   UPS(JP1,K)
-                UOLD(K)=WT(NCP1,IC)*UOLDPS(JP1,K)
+                U(K)=   WT(NCP1,IC)*   UPS(K,JP1)
+                UOLD(K)=WT(NCP1,IC)*UOLDPS(K,JP1)
                 DO L=1,NCOL
                    L1=(L-1)*NDIM+K
-                   U(K)=U(K)        +WT(L,IC)*   UPS(J,L1)
-                   UOLD(K) =UOLD(K) +WT(L,IC)*UOLDPS(J,L1)
+                   U(K)=U(K)        +WT(L,IC)*   UPS(L1,J)
+                   UOLD(K) =UOLD(K) +WT(L,IC)*UOLDPS(L1,J)
                 ENDDO
              ENDDO
              DO I=1,NPARX
@@ -279,10 +261,10 @@ C     transpose DFDU for optimal access
                 DO K=1,NCB
                    BB(K,IC1+I,J)=-DFDP((ICP(K)-1)*NDIM+I)
                 ENDDO
-                FA(IC1+I,J)=F(I)-WPLOC(NCP1)*UPS(JP1,I)
+                FA(IC1+I,J)=F(I)-WPLOC(NCP1)*UPS(I,JP1)
                 DO K=1,NCOL
                    K1=(K-1)*NDIM+I
-                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K)*UPS(J,K1)
+                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K)*UPS(K1,J)
                 ENDDO
              ENDDO
  1        CONTINUE
@@ -310,10 +292,10 @@ C
                   J1=J
                   IF(K.EQ.NCP1)I1=I
                   IF(K.EQ.NCP1)J1=JP1
-                  UIC(I)=UPS(J1,I1)
-                  UIO(I)=UOLDPS(J1,I1)
-                  UID(I)=UDOTPS(J1,I1)
-                  UIP(I)=UPOLDP(J1,I1)
+                  UIC(I)=UPS(I1,J1)
+                  UIO(I)=UOLDPS(I1,J1)
+                  UID(I)=UDOTPS(I1,J1)
+                  UIP(I)=UPOLDP(I1,J1)
                ENDDO
                CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
      *              FICD,2,DICD)
@@ -339,10 +321,10 @@ C
           DO I=1,NDIM
              DO K=1,NCOL
                 K1=(K-1)*NDIM+I
-                CC(K1,NRC,J)=DTM(J)*THU(I)*WI(K)*UDOTPS(J,K1)
+                CC(K1,NRC,J)=DTM(J)*THU(I)*WI(K)*UDOTPS(K1,J)
              ENDDO
              CC(NRA+I,NRC,J)=
-     +            DTM(J)*THU(I)*WI(NCP1)*UDOTPS(JP1,I)
+     +            DTM(J)*THU(I)*WI(NCP1)*UDOTPS(I,JP1)
           ENDDO
        ENDDO
 C     
@@ -479,12 +461,12 @@ C
           ENDDO
           DO 1 IC=1,NCOL
              DO K=1,NDIM
-                U(K)   =WT(NCP1,IC)*UPS(JP1,K)
-                UOLD(K)=WT(NCP1,IC)*UOLDPS(JP1,K)
+                U(K)   =WT(NCP1,IC)*UPS(K,JP1)
+                UOLD(K)=WT(NCP1,IC)*UOLDPS(K,JP1)
                 DO L=1,NCOL
                    L1=(L-1)*NDIM+K
-                   U(K)   =U(K)   +WT(L,IC)*UPS(J,L1)
-                   UOLD(K)=UOLD(K)+WT(L,IC)*UOLDPS(J,L1)
+                   U(K)   =U(K)   +WT(L,IC)*UPS(L1,J)
+                   UOLD(K)=UOLD(K)+WT(L,IC)*UOLDPS(L1,J)
                 ENDDO
              ENDDO
 
@@ -497,10 +479,10 @@ C     ** Time evolution computations (parabolic systems)
              CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PRM,0,F,DFDU,DFDP)
              IC1=(IC-1)*NDIM
              DO I=1,NDIM
-                FA(IC1+I,J)=F(I)-WPLOC(NCP1,IC)*UPS(JP1,I)
+                FA(IC1+I,J)=F(I)-WPLOC(NCP1,IC)*UPS(I,JP1)
                 DO K=1,NCOL
                    K1=(K-1)*NDIM+I
-                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K,IC)*UPS(J,K1)
+                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K,IC)*UPS(K1,J)
                 ENDDO
              ENDDO
  1        CONTINUE
@@ -512,8 +494,8 @@ C     Boundary conditions :
 C     
        IF(NBC.GT.0)THEN
          DO I=1,NDIM
-            UBC0(I)=UPS(1,I)
-            UBC1(I)=UPS(NA+1,I)
+            UBC0(I)=UPS(I,1)
+            UBC1(I)=UPS(I,NA+1)
         ENDDO
          CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)
          DO I=1,NBC
@@ -522,7 +504,7 @@ C
 C       Save difference :
          DO J=1,NA+1
             DO I=1,NRA
-               DUPS(J,I)=UPS(J,I)-UOLDPS(J,I)
+               DUPS(I,J)=UPS(I,J)-UOLDPS(I,J)
             ENDDO
          ENDDO
        ENDIF
@@ -537,10 +519,10 @@ C     Integral constraints :
                   J1=J
                   IF(K.EQ.NCP1)I1=I
                   IF(K.EQ.NCP1)J1=JP1
-                  UIC(I)=UPS(J1,I1)
-                  UIO(I)=UOLDPS(J1,I1)
-                  UID(I)=UDOTPS(J1,I1)
-                  UIP(I)=UPOLDP(J1,I1)
+                  UIC(I)=UPS(I1,J1)
+                  UIO(I)=UOLDPS(I1,J1)
+                  UID(I)=UDOTPS(I1,J1)
+                  UIP(I)=UPOLDP(I1,J1)
                ENDDO
                CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
      *              FICD,2,DICD)
