@@ -612,9 +612,10 @@ C Arguments
       INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)      
 C
 C Local
-      DOUBLE PRECISION SOL1,SOL2,SOL3,FCC,E
+      DOUBLE PRECISION SOL1,SOL2,SOL3,FCC,E,X
       INTEGER IR,IC
       ALLOCATABLE SOL1(:),SOL2(:),SOL3(:),FCC(:),E(:,:),IR(:),IC(:)
+      ALLOCATABLE X(:)
       ALLOCATE(SOL1(NOV*(NA+1)),SOL2(NOV*(NA+1)),SOL3(NOV*(NA+1)))
       ALLOCATE(FCC(2*NOV+NRC+2*NOV*NOV+1),E(NOV+NRC,2*NOV+NRC))
       ALLOCATE(IR(2*NOV+NRC+2*NOV*NOV+1),IC(2*NOV+NRC+2*NOV*NOV+1))
@@ -649,8 +650,10 @@ C
       CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,
      +     SOL1,SOL2,SOL3,NA,NOV,NCB,ICF2)
 C
+      ALLOCATE(X(NRA))
       CALL INFPAR(A,B,FA,SOL1,SOL2,FC,
-     *     NA,NOV,NRA,NCA,NCB,IRF,ICF)
+     *     NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      DEALLOCATE(X)
 C
       DEALLOCATE(SOL1,SOL2,SOL3,FCC,E,IR,IC)
       RETURN
@@ -681,27 +684,22 @@ C
       RETURN
       END
 C
-C     This is the per-CPU process function of CONPAR
+C     This is the per-CPU, per-element process function of CONPAR
 C     ---------- ------
-      SUBROUTINE CONPAP(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+      SUBROUTINE CONPAP(NOV,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF,IAMAX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
 C
 C Arguments
-      INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*)
-      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DIMENSION D(NCB,*)
-C Local
-      ALLOCATABLE IAMAX(:)
+      INTEGER   NOV,NRA,NCA
+      INTEGER   NCB,NRC,ICF(*),IRF(*)
+      DIMENSION A(NCA,*),B(NCB,*),C(NCA,*),D(NCB,*),IAMAX(*)
 C
 C Note that the summation of the adjacent overlapped part of C
 C is delayed until REDUCE, in order to merge it with other communications.
-C NA is the local NTST.
 C
       NEX=NCA-2*NOV
-      ALLOCATE(IAMAX(NRA))
 C
 C Condensation of parameters (Elimination of local variables).
 C
@@ -710,25 +708,24 @@ C
 C     
       ZERO = 0.D0
 C
-      DO 2 I=1,NA
          DO J=1,NRA
-            IRF(J,I)=J
-            IAMAX(J)=NOV+IDAMAX(NEX,A(M1,J,I),1)
+            IRF(J)=J
+            IAMAX(J)=NOV+IDAMAX(NEX,A(NOV+1,J),1)
          ENDDO
          DO J=1,NCA
-            ICF(J,I)=J
+            ICF(J)=J
          ENDDO
          DO 1 IC=M1,M2
-            IR1=IC-NOV+1
-            IRP=IR1-1
+            IRP=IC-NOV
+            IR1=IRP+1
             ICP1=IC+1
 C           **Search for pivot (Complete pivoting)
             PIV = ZERO
             IPIV = IRP
             JPIV = IC
             DO K1=IRP,NRA
-               IROW=IRF(K1,I)
-               TPIV = DABS(A(ICF(IAMAX(IROW),I),IROW,I))
+               IROW=IRF(K1)
+               TPIV = DABS(A(ICF(IAMAX(IROW)),IROW))
                IF(PIV.LT.TPIV)THEN
                   PIV = TPIV
                   IPIV = K1
@@ -736,68 +733,68 @@ C           **Search for pivot (Complete pivoting)
                ENDIF
             ENDDO
 C           **Move indices
-            ITMP        = ICF(IC,I)
-            ICF(IC,I)   = ICF(JPIV,I)
-            ICF(JPIV,I) = ITMP
-            ICFIC       = ICF(IC,I)
-            ITMP        = IRF(IRP,I)
-            IRF(IRP,I)  = IRF(IPIV,I)
-            IRF(IPIV,I) = ITMP
-            IRFIRP      = IRF(IRP,I)
-            PIV=A(ICF(IC,I),IRF(IRP,I),I)
+            ITMP        = ICF(IC)
+            ICF(IC)     = ICF(JPIV)
+            ICF(JPIV)   = ITMP
+            ICFIC       = ICF(IC)
+            ITMP        = IRF(IRP)
+            IRF(IRP)    = IRF(IPIV)
+            IRF(IPIV)   = ITMP
+            IRFIRP      = IRF(IRP)
 C           **End of pivoting; elimination starts here
+            PIV=A(ICFIC,IRFIRP)
+            NRAMIC=NRA-IC
             DO IR=IR1,NRA
-               IRFIR=IRF(IR,I)
-               RM=A(ICFIC,IRFIR,I)/PIV
-               A(ICFIC,IRFIR,I)=RM
+               IRFIR=IRF(IR)
+               RM=A(ICFIC,IRFIR)/PIV
+               A(ICFIC,IRFIR)=RM
 	       IF(RM.NE.0.0)THEN
-                  IAMAX(IRFIR)=IC+IMSBRA(NOV,NCA-NOV-IC,NCA,
-     +                 A(1,IRFIR,I),A(1,IRFIRP,I),ICF(ICP1,I),RM)
+                  CALL IMSBRA(NOV,NCA,NRAMIC,A(1,IRFIR),A(1,IRFIRP),
+     +                 ICF(ICP1),IAMAX(IRFIR),RM)
+                  IAMAX(IRFIR)=IAMAX(IRFIR)+IC
                   DO L=1,NCB
-                     B(L,IRFIR,I)=B(L,IRFIR,I)-RM*B(L,IRFIRP,I)
+                     B(L,IRFIR)=B(L,IRFIR)-RM*B(L,IRFIRP)
                   ENDDO
-               ELSEIF(IAMAX(IRFIR).EQ.JPIV)THEN
-                  IAMAX(IRFIR)=
-     +                 IC+IMAXCF(NCA-NOV-IC,A(1,IRFIR,I),ICF(ICP1,I))
+               ELSEIF(IAMAX(IRFIR).EQ.IAMAX(IRFIRP))THEN
+                  IAMAX(IRFIR)=IC+IMAXCF(NRAMIC,A,ICF(ICP1))
                ELSEIF(IAMAX(IRFIR).EQ.IC)THEN
-                  IAMAX(IRFIR)=JPIV
+                  IAMAX(IRFIR)=IAMAX(IRFIRP)
                ENDIF
             ENDDO
             DO IR=1,NRC
-               RM=C(ICF(IC,I),IR,I)/PIV
-               C(ICF(IC,I),IR,I)=RM
+               RM=C(ICFIC,IR)/PIV
+               C(ICFIC,IR)=RM
 	       IF(RM.NE.0.0)THEN
-                  CALL SUBRAC(NOV,NCA-IC,C(1,IR,I),A(1,IRFIRP,I),
-     +                 ICF(ICP1,I),RM)
+                  CALL SUBRAC(NOV,NCA-IC,C(1,IR),A(1,IRFIRP),
+     +                 ICF(ICP1),RM)
                   DO L=1,NCB
-                     D(L,IR)=D(L,IR)-RM*B(L,IRFIRP,I)
+                     D(L,IR)=D(L,IR)-RM*B(L,IRFIRP)
                   ENDDO
 	       ENDIF
             ENDDO
+
  1       CONTINUE
- 2    CONTINUE
-C
-      DEALLOCATE(IAMAX)
       RETURN
 C
       CONTAINS
 C
-C     -------- ------
-      FUNCTION IMSBRA(NOV,N,NCA,A,AP,ICF,RM)
+C     ---------- ------
+      SUBROUTINE IMSBRA(NOV,NCA,N,A,AP,ICF,IAMAX,RM)
       IMPLICIT NONE
 C Arguments
       DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
       DOUBLE PRECISION, INTENT(INOUT) :: A(*)
       INTEGER, INTENT(IN) :: NOV,N,NCA,ICF(*)
+      INTEGER, INTENT(OUT) :: IAMAX
 C Local
-      INTEGER L,IMSBRA
+      INTEGER L
       DOUBLE PRECISION PPIV,TPIV,V
 C
       DO L=1,NOV
          A(L)=A(L)-RM*AP(L)
       ENDDO
       PPIV=0d0
-      IMSBRA=1
+      IAMAX=1
       DO L=1,N
          V=A(ICF(L))-RM*AP(ICF(L))
 C     Also recalculate absolute maximum for current row
@@ -805,13 +802,13 @@ C     Also recalculate absolute maximum for current row
          TPIV=DABS(V)
          IF(PPIV.LT.TPIV)THEN
             PPIV=TPIV
-            IMSBRA=L
+            IAMAX=L
          ENDIF
       ENDDO
       DO L=NCA-NOV+1,NCA
          A(L)=A(L)-RM*AP(L)
       ENDDO
-      END FUNCTION
+      END SUBROUTINE
 C
 C     ---------- ------
       SUBROUTINE SUBRAC(NOV,N,C,AP,ICF,RM)
@@ -845,33 +842,42 @@ C Arguments
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DOUBLE PRECISION D(NCB,*)
 C Local
-      INTEGER I,J,K,N,IAM,NT
+      INTEGER I,J,K,NB,NU,IAM,NT
       DOUBLE PRECISION, ALLOCATABLE :: DD(:,:,:)
+      INTEGER, ALLOCATABLE :: IAMAX(:)
       IF(NCA.EQ.2*NOV)RETURN
 C
 C Condensation of parameters (Elimination of local variables).
+C NA is the local NTST.
 C
       NT = 1
 C$    NT = OMP_GET_MAX_THREADS()
       IF(NT.GT.1)THEN
         ALLOCATE(DD(NCB,NRC,NT-1))
       ENDIF
-C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,J,K,I,N)
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,J,K,NB,NU,IAMAX)
       IAM = 0
 C$    IAM = OMP_GET_THREAD_NUM()
-      I = IAM*NA/NT+1
-      N = (IAM+1)*NA/NT+1-I
+      NU = (IAM+1)*NA/NT
+      ALLOCATE(IAMAX(NRA))
       IF(IAM.EQ.0)THEN
-        CALL CONPAP(NOV,N,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+        DO J=1,NU
+          CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
+     +          D,IRF(1,J),ICF(1,J),IAMAX)
+        ENDDO
       ELSE
         DO J=1,NRC
           DO K=1,NCB
             DD(K,J,IAM)=0.0d0
           ENDDO
         ENDDO
-        CALL CONPAP(NOV,N,NRA,NCA,A(1,1,I),NCB,B(1,1,I),NRC,C(1,1,I),
-     +       DD(1,1,IAM),IRF(1,I),ICF(1,I))
+        NB = IAM*NA/NT+1
+        DO J=NB,NU
+          CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
+     +          DD(1,1,IAM),IRF(1,J),ICF(1,J),IAMAX)
+        ENDDO
       ENDIF
+      DEALLOCATE(IAMAX)
 C$OMP END PARALLEL
 C
 C     This is were we sum into the global copy of the d array
@@ -1525,7 +1531,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE INFPAR(A,B,FA,SOL1,SOL2,FC,
-     +  NA,NOV,NRA,NCA,NCB,IRF,ICF)
+     +  NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
@@ -1533,12 +1539,10 @@ C
 C  Arguments
       INTEGER   NA,NOV,NRA,NCA,NCB,IRF(NRA,*),ICF(NCA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
-      DIMENSION SOL1(NOV,*),SOL2(NOV,*)
+      DIMENSION SOL1(NOV,*),SOL2(NOV,*),X(*)
 C
 C Local
       DOUBLE PRECISION SM
-      ALLOCATABLE X(:)
-      ALLOCATE(X(NRA))
 C
 C Determine the local varables by backsubstitition.
 C
@@ -1579,7 +1583,6 @@ C        **Copy SOL1 and X into FA
       ENDDO
 C
 C     
-      DEALLOCATE(X)
       RETURN
       END
 C           
