@@ -1119,8 +1119,6 @@ C
 C
       INCLUDE 'auto.h'
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -1961,8 +1959,6 @@ C
 C
       INCLUDE 'auto.h'
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2225,8 +2221,6 @@ C
 C
       INCLUDE 'auto.h'
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2486,8 +2480,6 @@ C
 C
       INCLUDE 'auto.h'
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -2832,8 +2824,6 @@ C
 C
       INCLUDE 'auto.h'
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
