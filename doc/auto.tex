@@ -334,8 +334,9 @@ demo in Chapter~\ref{ch:HomCont_hbs}.
 \section{Parallel Version.} \label{sec:Parallel}
 \AUTO contains code which allows
 it to run in on parallel computers.  Namely,
-it can use OpenMP to run most of its code in parallel
-on shared-memory multi-processors.
+it can use either OpenMP to run most of its code in parallel
+on shared-memory multi-processors, or the MPI message passing
+library.
 When the \filef{ configure} script is run it will try to
 detect if the Fortran compiler supports OpenMP; examples
 are Gfortran 4.2 and the Intel Fortran Compiler.
@@ -357,6 +358,22 @@ To run the same command in parallel on 4 processors you type
 \commandf{export OMP\_NUM\_THREADS=4}. Without any {\tt OMP\_NUM\_THREADS}
 set the number of processors that \AUTO will use is often equal to the
 actual number of processors on the system.
+
+The MPI message passing library is not used by default. You can enable it
+by typing  \commandf{ ./configure --with-mpi }. If OpenMP and MPI are
+both used then \AUTO uses mixed mode, with MPI parallelisation
+occurring at the top level.
+
+Running the MPI version is somewhat more complex because of the fact
+that MPI normally uses some external program for starting the
+computational processes.  The exact name and command line options of
+this external program depends on your MPI installation.  A common name
+for this MPI external program is \filef{ mpirun}, and a common command
+line option which defines the number of computational processes is \filef{
+-np}.  Accordingly, if you wanted to run the MPI version of \AUTO
+on four processors, with the above external program, you would
+type \filef{ mpirun -np 4 file.exe}.  Please see your local MPI
+documentation for more detail.
 
 %==============================================================================
 %==============================================================================

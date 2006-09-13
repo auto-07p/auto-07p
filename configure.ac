@@ -18,7 +18,7 @@ AC_ARG_WITH(FC,
 
 AC_ARG_WITH(mpi-compiler,
 [  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpif90)],
-[MPI_COMPILER=${withval}],[MPI_COMPILER=mpif90])
+[MPI_COMPILER=${withval}])
 
 AC_ARG_WITH(optimization-flags,
 [  --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)],
@@ -56,7 +56,17 @@ MPIFILE=nompi.f90
 if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
   # we try and us it to override the default compiler.
-  AC_PATH_PROG(MPIFC,$MPI_COMPILER,"no")
+  if test x$MPI_COMPILER = "x"; then
+    # sometimes (FC4/5) mpif77 actually calls f95...
+    AC_CHECK_PROGS(MPIFC,[mpif90 mpif95 mpif77],"no")
+    if test x$MPIFC = mpif77; then
+      if ! ( $MPIFC -v 2>&1 | grep f95 > /dev/null ) ; then
+	MPIFC=no
+      fi
+    fi
+  else
+    AC_CHECK_PROG(MPIFC,$MPI_COMPILER,$MPI_COMPILER,"no")
+  fi
   if test x$MPIFC != "xno"; then
     MPI="yes"
     MPIFILE=mpi.f90
