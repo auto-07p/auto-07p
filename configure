@@ -624,6 +624,8 @@ MAINTAINER_MODE_TRUE
 MAINTAINER_MODE_FALSE
 MAINT
 OPT_FLAG
+MPIFC
+MPIFILE
 CC
 CFLAGS
 LDFLAGS
@@ -1272,8 +1274,10 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-CC=COMMAND       Choose a C compiler other then the default
   --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default
+  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpif90)
   --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)
   --with-openmp           Try to use OpenMP (default: yes)
+  --with-mpi              Try to use MPI (default: no)
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -2221,9 +2225,14 @@ if test "${with_FC+set}" = set; then
 fi
 
 
-#AC_ARG_WITH(mpi-compiler,
-#[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],
-#[MPI_COMPILER=${withval}],[MPI_COMPILER=mpicc])
+
+# Check whether --with-mpi-compiler was given.
+if test "${with_mpi_compiler+set}" = set; then
+  withval=$with_mpi_compiler; MPI_COMPILER=${withval}
+else
+  MPI_COMPILER=mpif90
+fi
+
 
 
 # Check whether --with-optimization-flags was given.
@@ -2243,9 +2252,14 @@ else
 fi
 
 
-#AC_ARG_WITH(mpi,
-#[  --with-mpi              Try to use MPI (default: no)],
-#[mpi=$withval],[mpi="no"])
+
+# Check whether --with-mpi was given.
+if test "${with_mpi+set}" = set; then
+  withval=$with_mpi; mpi=$withval
+else
+  mpi="no"
+fi
+
 
 # Check whether --enable-plaut was given.
 if test "${enable_plaut+set}" = set; then
@@ -2282,16 +2296,58 @@ fi
 
 
 
-#if test x$mpi = "xyes"; then
+MPIFILE=nompi.f90
+if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
   # we try and us it to override the default compiler.
-#  AC_PATH_PROG(MPICC,$MPI_COMPILER,"no")
-#  if test x$MPICC != "xno"; then
-#    MPI="yes"
-#    CFLAGS="$CFLAGS -DMPI"
-#    CC=$MPICC
-#  fi
-#fi
+  # Extract the first word of "$MPI_COMPILER", so it can be a program name with args.
+set dummy $MPI_COMPILER; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_MPIFC+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $MPIFC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MPIFC="$MPIFC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MPIFC="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_MPIFC" && ac_cv_path_MPIFC=""no""
+  ;;
+esac
+fi
+MPIFC=$ac_cv_path_MPIFC
+if test -n "$MPIFC"; then
+  { echo "$as_me:$LINENO: result: $MPIFC" >&5
+echo "${ECHO_T}$MPIFC" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+  if test x$MPIFC != "xno"; then
+    MPI="yes"
+    MPIFILE=mpi.f90
+    FC=$MPIFC
+  fi
+fi
+
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -9043,6 +9099,8 @@ MAINTAINER_MODE_TRUE!$MAINTAINER_MODE_TRUE$ac_delim
 MAINTAINER_MODE_FALSE!$MAINTAINER_MODE_FALSE$ac_delim
 MAINT!$MAINT$ac_delim
 OPT_FLAG!$OPT_FLAG$ac_delim
+MPIFC!$MPIFC$ac_delim
+MPIFILE!$MPIFILE$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -9076,8 +9134,6 @@ PLAUT!$PLAUT$ac_delim
 GUI!$GUI$ac_delim
 TEK2PS!$TEK2PS$ac_delim
 CXX!$CXX$ac_delim
-CXXFLAGS!$CXXFLAGS$ac_delim
-ac_ct_CXX!$ac_ct_CXX$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -9119,6 +9175,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+CXXFLAGS!$CXXFLAGS$ac_delim
+ac_ct_CXX!$ac_ct_CXX$ac_delim
 CXXDEPMODE!$CXXDEPMODE$ac_delim
 am__fastdepCXX_TRUE!$am__fastdepCXX_TRUE$ac_delim
 am__fastdepCXX_FALSE!$am__fastdepCXX_FALSE$ac_delim
@@ -9128,7 +9186,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 9; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

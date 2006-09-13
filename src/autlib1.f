@@ -5,15 +5,6 @@ C
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      EXTERNAL FNWS,FUNI,FNDS,FNPS,FNWP,FNPE,FNC1,FNC2,FNLP,FNHO,FNTI
-      EXTERNAL FNHB,FNHD,FNHW,FNPL,FNPD,FNTR,FNBL,FNPO,FNSP
-      EXTERNAL STPNUS,STPNAE,STPNBV,STPNUB,STPNPS,STPNWP,STPNC1,STPNC2
-      EXTERNAL STPNLP,STPNHB,STPNHD,STPNHW,STPNPL,STPNPD,STPNTR,STPNBL
-      EXTERNAL STPNPO,STPNHO,STPNPB
-      EXTERNAL PVLSBV,PVLSHO
-      EXTERNAL BCPS,BCNI,BCPL,BCPD,BCTR,BCBL,BCPO,BCHO
-      EXTERNAL ICPS,ICNI,ICPE,ICPL,ICPD,ICTR,ICBL,ICPO,ICHO
-C
       INTERFACE
         SUBROUTINE INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
           IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -31,6 +22,9 @@ C Local
 C
 C Initialization :
 C
+      CALL MPIINI()
+      IAP(38)=0
+C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
        OPEN(7,FILE='fort.7',STATUS='unknown',ACCESS='sequential')
@@ -40,7 +34,10 @@ C
  1     CALL AUTIM0(TIME0)
        FOUND=.FALSE.
        CALL INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
-       IF(EOF)STOP
+       IF(EOF)THEN
+         CALL MPIEND()
+         STOP
+       ENDIF
 C
 C Find restart label and determine type of restart point.
 C
@@ -55,12 +52,47 @@ C
            STOP
          ENDIF
        ENDIF
+C
+       CALL MPIIAP(IAP)
+       CALL AUTOI(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ)
+C-----------------------------------------------------------------------
+C
+      CALL AUTIM1(TIME1)
+      TOTTIM=TIME1-TIME0
+      CALL WRBAR("=",47)
+      WRITE(9,301)TOTTIM
+      WRITE(6,301)TOTTIM
+      GOTO 1
+C
+ 301  FORMAT(/,' Total Time ',E12.3)
+C
+C Error Message.
+ 400  FORMAT(' Restart label ',I4,' not found')
+C
+      END
+C
+C
+C     ---------- ----
+      SUBROUTINE AUTOI(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ)
+C
+      EXTERNAL FNWS,FUNI,FNDS,FNPS,FNWP,FNPE,FNC1,FNC2,FNLP,FNHO,FNTI
+      EXTERNAL FNHB,FNHD,FNHW,FNPL,FNPD,FNTR,FNBL,FNPO,FNSP
+      EXTERNAL STPNUS,STPNAE,STPNBV,STPNUB,STPNPS,STPNWP,STPNC1,STPNC2
+      EXTERNAL STPNLP,STPNHB,STPNHD,STPNHW,STPNPL,STPNPD,STPNTR,STPNBL
+      EXTERNAL STPNPO,STPNHO,STPNPB
+      EXTERNAL PVLSBV,PVLSHO
+      EXTERNAL BCPS,BCNI,BCPL,BCPD,BCTR,BCBL,BCPO,BCHO
+      EXTERNAL ICPS,ICNI,ICPE,ICPL,ICPD,ICTR,ICBL,ICPO,ICHO
+C
+      INTEGER IAP(*)
+C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C  One-parameter continuations
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
        IPS=IAP(2)
+       IRS=IAP(3)
        ISW=IAP(10)
        ITP=IAP(27)
        NFPR=IAP(29)
@@ -335,19 +367,9 @@ C        ** Error in INIT.
          WRITE(6,500)
          STOP
        ENDIF
-C-----------------------------------------------------------------------
+ 3     CONTINUE
 C
- 3    CALL AUTIM1(TIME1)
-      TOTTIM=TIME1-TIME0
-      CALL WRBAR("=",47)
-      WRITE(9,301)TOTTIM
-      WRITE(6,301)TOTTIM
-C
- 301  FORMAT(/,' Total Time ',E12.3)
-C
-      GOTO 1
-C Error Messages.
- 400  FORMAT(' Restart label ',I4,' not found')
+C Error Message.
  500  FORMAT(' Initialization Error')
 C
       END
@@ -563,8 +585,14 @@ C
 C
 C This is the entry subroutine for algebraic systems.
 C
+      INTEGER IAP(*)
+C
       EXTERNAL FUNI,STPNT
 C
+       IF(IAP(38).GT.0)THEN
+         CALL MPIWFI(.FALSE.,FUNI,STPNT)
+         RETURN
+       ENDIF
        CALL INIT1(IAP,RAP,ICP,PAR)
        CALL CHDIM(IAP)
        CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
@@ -580,8 +608,16 @@ C
 C
 C THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 C
+      INTEGER IAP(*)
+C
       EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
 C
+       IF(IAP(38).GT.0)THEN
+C        This is a little trick to tell MPI workers what FUNI and ICNI
+C        are.
+         CALL MPIWFI(.TRUE.,FUNI,ICNI)
+         RETURN
+       ENDIF
        CALL INIT1(IAP,RAP,ICP,PAR)
        CALL CHDIM(IAP)
        CALL CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT,

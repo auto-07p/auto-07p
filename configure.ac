@@ -16,9 +16,9 @@ AC_ARG_WITH(FC,
 [  --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default],
 [FC=$withval],)
 
-#AC_ARG_WITH(mpi-compiler,
-#[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpicc)],
-#[MPI_COMPILER=${withval}],[MPI_COMPILER=mpicc])
+AC_ARG_WITH(mpi-compiler,
+[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpif90)],
+[MPI_COMPILER=${withval}],[MPI_COMPILER=mpif90])
 
 AC_ARG_WITH(optimization-flags,
 [  --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)],
@@ -28,9 +28,9 @@ AC_ARG_WITH(openmp,
 [  --with-openmp           Try to use OpenMP (default: yes)],
 [openmp=$withval],[openmp="yes"])
 
-#AC_ARG_WITH(mpi,
-#[  --with-mpi              Try to use MPI (default: no)],
-#[mpi=$withval],[mpi="no"])
+AC_ARG_WITH(mpi,
+[  --with-mpi              Try to use MPI (default: no)],
+[mpi=$withval],[mpi="no"])
 
 AC_ARG_ENABLE(plaut,
 [  --enable-plaut          Compile the Plaut plotting package (default: yes)],
@@ -52,16 +52,18 @@ AC_SUBST(OPT_FLAG)
 
 dnl Checks for programs.
 
-#if test x$mpi = "xyes"; then
+MPIFILE=nompi.f90
+if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
   # we try and us it to override the default compiler.
-#  AC_PATH_PROG(MPICC,$MPI_COMPILER,"no")
-#  if test x$MPICC != "xno"; then
-#    MPI="yes"
-#    CFLAGS="$CFLAGS -DMPI" 
-#    CC=$MPICC
-#  fi
-#fi
+  AC_PATH_PROG(MPIFC,$MPI_COMPILER,"no")
+  if test x$MPIFC != "xno"; then
+    MPI="yes"
+    MPIFILE=mpi.f90
+    FC=$MPIFC
+  fi
+fi
+AC_SUBST(MPIFILE)
 
 AC_PROG_CC
 

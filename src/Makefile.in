@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o
+OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o ../lib/mpi.o
 RM=rm -f
 #
 all: lib compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
@@ -79,6 +79,9 @@ zero: $(AUTO_DIR)/src/zero.f
 #
 ../lib/eispack.o: eispack.f
 	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
+#
+../lib/mpi.o: @MPIFILE@
+	$(FC) $(FFLAGS) $(OPT) -c @MPIFILE@ -o $@
 #
 move: $(OBJ)
 	@$(RM) auto.h
