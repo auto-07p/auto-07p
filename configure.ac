@@ -1,11 +1,5 @@
 AC_INIT(plaut04/src/gmain.c++)
 
-PACKAGE=AUTO
-VERSION=07p
-
-AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
-AM_MAINTAINER_MODE
-
 AC_CONFIG_HEADERS(include/config.h)
 
 AC_ARG_WITH(CC,
@@ -177,8 +171,6 @@ if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = 
     AC_PROG_CXX
     AC_LANG_CPLUSPLUS
 else
-    am__fastdepCXX_TRUE='#'
-    am__fastdepCXX_FALSE=
     PLAUT04=""
 fi
 AC_SUBST(PLAUT04)

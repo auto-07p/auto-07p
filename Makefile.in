@@ -24,9 +24,6 @@ plaut04: .FORCE
 tek2ps: .FORCE
 	cd ./tek2ps;$(MAKE)
 
-# this rule is just there to fool automake from plaut04
-am--refresh:
-
 #
 clean:
 	cd ./gui;$(MAKE) clean
@@ -36,7 +33,7 @@ clean:
 	cd ./doc;$(MAKE) clean
 #
 superclean:  clean
-	cd ./plaut04;$(MAKE) distclean
+	cd ./plaut04;$(MAKE) superclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
 	  kpbif listlabels reduce relabel plaut04 r3bplaut04;
