@@ -5113,7 +5113,6 @@ C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
       DIMENSION UPS(NDX,*),PAR(*)
-      DATA IRTN /0/
 C
         ALLOCATE(NRTN(NDM))
         IRTN=0
@@ -6279,6 +6278,7 @@ C     ---------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
+      EXTERNAL etime
       REAL timaray(2)
 C
 C Set initial time for measuring CPU time used.
@@ -6293,6 +6293,7 @@ C     ---------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
+      EXTERNAL etime
       REAL timaray(2)
 C
 C Set final time for measuring CPU time used.

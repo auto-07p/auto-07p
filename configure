@@ -616,6 +616,7 @@ INSTALL_DATA
 FCFLAGS
 ac_ct_FC
 FCFLAGS_f90
+COMPAT
 FCLIBS
 SET_MAKE
 XMKMF
@@ -3401,12 +3402,16 @@ ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
-# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
+# ifc needs -Vaxlib to use FLUSH and ETIME.
+unset COMPAT
 cat >conftest.$ac_ext <<_ACEOF
 
   program main
+  real t(2),r,etime
+  external etime
   print *,'hello'
   call flush(6)
+  r=etime(t)
   end
 
 _ACEOF
@@ -3453,8 +3458,11 @@ sed 's/^/| /' conftest.$ac_ext >&5
   cat >conftest.$ac_ext <<_ACEOF
 
     program main
+    real t(2),r,etime
+    external etime
     print *,'hello'
     call flush(6)
+    r=etime(t)
     end
 
 _ACEOF
@@ -3497,7 +3505,7 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	FCFLAGS=$tmp
+	FCFLAGS=$tmp;COMPAT="../lib/compat.o"
 fi
 
 rm -f core conftest.err conftest.$ac_objext \
@@ -3506,6 +3514,7 @@ fi
 
 rm -f core conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
+
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
@@ -8538,6 +8547,7 @@ INSTALL_DATA!$INSTALL_DATA$ac_delim
 FCFLAGS!$FCFLAGS$ac_delim
 ac_ct_FC!$ac_ct_FC$ac_delim
 FCFLAGS_f90!$FCFLAGS_f90$ac_delim
+COMPAT!$COMPAT$ac_delim
 FCLIBS!$FCLIBS$ac_delim
 SET_MAKE!$SET_MAKE$ac_delim
 XMKMF!$XMKMF$ac_delim
@@ -8561,7 +8571,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 75; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 76; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

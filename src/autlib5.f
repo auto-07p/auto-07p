@@ -1337,8 +1337,8 @@ C
 C
 C Initialize solution and additional parameters
 C
+       CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
        IF (ISTART.NE.3) THEN
-          CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
           RETURN
        ENDIF
 C

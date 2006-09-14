@@ -73,19 +73,27 @@ AC_FC_FREEFORM(,
   echo Please check with the manual.
   exit 1
 )
-# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
+# ifc needs -Vaxlib to use FLUSH and ETIME.
+unset COMPAT
 AC_LINK_IFELSE([
   program main
+  real t(2),r,etime
+  external etime
   print *,'hello'
   call flush(6)
+  r=etime(t)
   end
 ],,[ tmp=FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
   AC_LINK_IFELSE([
     program main
+    real t(2),r,etime
+    external etime
     print *,'hello'
     call flush(6)
+    r=etime(t)
     end
-  ],FFLAGS="$FFLAGS -Vaxlib",FCFLAGS=$tmp)])
+  ],FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="../lib/compat.o"])])
+AC_SUBST(COMPAT)
 AC_FC_WRAPPERS
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
