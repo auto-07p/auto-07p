@@ -5,6 +5,7 @@
 #   Redone by Randy C. Paffenroth 1999 for use with a configure script and python
 #   front end.
 SHELL=/bin/sh
+@SET_MAKE@
 #
 all: src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
 cmd: src @PLAUT@
@@ -36,9 +37,8 @@ superclean:  clean
 	cd ./plaut04;$(MAKE) superclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
-	  kpbif listlabels reduce relabel plaut04 r3bplaut04;
-	cd ./lib; rm -f *.o *.a
-	rmdir lib 2> /dev/null
+	  kpbif listlabels reduce relabel plaut04 r3bplaut04
+	cd ./lib; $(MAKE) superclean
 	cd ./doc; $(MAKE) superclean
 	cd ./include; rm -f stamp-h1
 	rm -f python/*.pyc python/graphics/*.pyc

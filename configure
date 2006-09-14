@@ -599,8 +599,9 @@ LIBS
 build_alias
 host_alias
 target_alias
-OPT_FLAG
+FC
 MPIFC
+OPT_FLAG
 MPIFILE
 CC
 CFLAGS
@@ -612,9 +613,9 @@ OBJEXT
 INSTALL_PROGRAM
 INSTALL_SCRIPT
 INSTALL_DATA
-FC
 FCFLAGS
 ac_ct_FC
+FCFLAGS_f90
 FCLIBS
 SET_MAKE
 XMKMF
@@ -640,11 +641,12 @@ ac_subst_files=''
       ac_precious_vars='build_alias
 host_alias
 target_alias
+FC
+MPIFC
 CC
 CFLAGS
 LDFLAGS
 CPPFLAGS
-FC
 FCFLAGS
 XMKMF
 CPP
@@ -1231,22 +1233,20 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-CC=COMMAND       Choose a C compiler other then the default
-  --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default
-  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpif90)
   --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)
   --with-openmp           Try to use OpenMP (default: yes)
   --with-mpi              Try to use MPI (default: no)
   --with-x                use the X Window System
 
 Some influential environment variables:
+  FC          Choose a Fortran (>=90) compiler other then the default
+  MPIFC       Command to use to compile MPI programs (default: mpif90)
   CC          C compiler command
   CFLAGS      C compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
               nonstandard directory <lib dir>
   CPPFLAGS    C/C++/Objective C preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
-  FC          Fortran compiler command
   FCFLAGS     Fortran compiler flags
   XMKMF       Path to xmkmf, Makefile generator for X Window System
   CPP         C preprocessor
@@ -1680,24 +1680,6 @@ ac_config_headers="$ac_config_headers include/config.h"
 
 
 
-# Check whether --with-CC was given.
-if test "${with_CC+set}" = set; then
-  withval=$with_CC; CC=$withval
-fi
-
-
-
-# Check whether --with-FC was given.
-if test "${with_FC+set}" = set; then
-  withval=$with_FC; FC=$withval
-fi
-
-
-
-# Check whether --with-mpi-compiler was given.
-if test "${with_mpi_compiler+set}" = set; then
-  withval=$with_mpi_compiler; MPI_COMPILER=${withval}
-fi
 
 
 
@@ -1766,7 +1748,7 @@ MPIFILE=nompi.f90
 if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
   # we try and us it to override the default compiler.
-  if test x$MPI_COMPILER = "x"; then
+  if test x$MPIFC = "x"; then
     # sometimes (FC4/5) mpif77 actually calls f95...
     for ac_prog in mpif90 mpif95 mpif77
 do
@@ -1816,45 +1798,6 @@ test -n "$MPIFC" || MPIFC=""no""
 	MPIFC=no
       fi
     fi
-  else
-    # Extract the first word of "$MPI_COMPILER", so it can be a program name with args.
-set dummy $MPI_COMPILER; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_MPIFC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$MPIFC"; then
-  ac_cv_prog_MPIFC="$MPIFC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_MPIFC="$MPI_COMPILER"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_MPIFC" && ac_cv_prog_MPIFC=""no""
-fi
-fi
-MPIFC=$ac_cv_prog_MPIFC
-if test -n "$MPIFC"; then
-  { echo "$as_me:$LINENO: result: $MPIFC" >&5
-echo "${ECHO_T}$MPIFC" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
   fi
   if test x$MPIFC != "xno"; then
     MPI="yes"
@@ -2981,8 +2924,16 @@ ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+
+if test x$FCFLAGS != "x"; then
+  FFLAGS=$FCFLAGS
+fi
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 if test -n "$ac_tool_prefix"; then
-  for ac_prog in f90 xlf90 pgf90 pghpf epcf90 gfortran g95 f95 fort xlf95 ifort ifc efc pgf95 lf95 ftn
+  for ac_prog in gfortran g95 f95 fort xlf95 ifort ifc efc pgf95 lf95 ftn f90 xlf90 pgf90 pghpf epcf90 g77 f77 xlf frt pgf77 cf77 fort77 fl32 af77
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -3026,7 +2977,7 @@ fi
 fi
 if test -z "$FC"; then
   ac_ct_FC=$FC
-  for ac_prog in f90 xlf90 pgf90 pghpf epcf90 gfortran g95 f95 fort xlf95 ifort ifc efc pgf95 lf95 ftn
+  for ac_prog in gfortran g95 f95 fort xlf95 ifort ifc efc pgf95 lf95 ftn f90 xlf90 pgf90 pghpf epcf90 g77 f77 xlf frt pgf77 cf77 fort77 fl32 af77
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -3264,12 +3215,290 @@ else
   fi
 fi
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
+# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
+cat >conftest.$ac_ext <<_ACEOF
+      program main
+      call flush
+      end
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_fc_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  :
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	FCFLAGS="$FFLAGS -Vaxlib"
+
+cat >conftest.$ac_ext <<_ACEOF
+      program main
+      call etime
+      end
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_fc_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  FFLAGS=$FCFLAGS
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+rm -f core conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+{ echo "$as_me:$LINENO: checking for Fortran flag to compile .f90 files" >&5
+echo $ECHO_N "checking for Fortran flag to compile .f90 files... $ECHO_C" >&6; }
+if test "${ac_cv_fc_srcext_f90+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_ext=f90
+ac_fcflags_srcext_save=$ac_fcflags_srcext
+ac_fcflags_srcext=
+ac_cv_fc_srcext_f90=unknown
+for ac_flag in none -qsuffix=f=f90 -Tf; do
+  test "x$ac_flag" != xnone && ac_fcflags_srcext="$ac_flag"
+  cat >conftest.$ac_ext <<_ACEOF
+      program main
+
+      end
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_fc_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_fc_srcext_f90=$ac_flag; break
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+done
+rm -f conftest.$ac_objext conftest.f90
+ac_fcflags_srcext=$ac_fcflags_srcext_save
+
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_fc_srcext_f90" >&5
+echo "${ECHO_T}$ac_cv_fc_srcext_f90" >&6; }
+if test "x$ac_cv_fc_srcext_f90" = xunknown; then
+  { { echo "$as_me:$LINENO: error: Fortran could not compile .f90 files" >&5
+echo "$as_me: error: Fortran could not compile .f90 files" >&2;}
+   { (exit 1); exit 1; }; }
+else
+  ac_fc_srcext=f90
+  if test "x$ac_cv_fc_srcext_f90" = xnone; then
+    ac_fcflags_srcext=""
+    FCFLAGS_f90=""
+  else
+    ac_fcflags_srcext=$ac_cv_fc_srcext_f90
+    FCFLAGS_f90=$ac_cv_fc_srcext_f90
+  fi
+
+
+fi
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+{ echo "$as_me:$LINENO: checking for Fortran flag needed to allow free-form source" >&5
+echo $ECHO_N "checking for Fortran flag needed to allow free-form source... $ECHO_C" >&6; }
+if test "${ac_cv_fc_freeform+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_fc_freeform=unknown
+ac_fc_freeform_FCFLAGS_save=$FCFLAGS
+for ac_flag in none -ffree-form -FR -free -qfree -Mfree -Mfreeform \
+               -freeform "-f free"
+do
+  test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_freeform_FCFLAGS_save $ac_flag"
+  cat >conftest.$ac_ext <<_ACEOF
+
+  program freeform
+       ! FIXME: how to best confuse non-freeform compilers?
+       print *, 'Hello ', &
+           'world.'
+       end
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_fc_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_fc_freeform=$ac_flag; break
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+done
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+FCFLAGS=$ac_fc_freeform_FCFLAGS_save
+
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_fc_freeform" >&5
+echo "${ECHO_T}$ac_cv_fc_freeform" >&6; }
+if test "x$ac_cv_fc_freeform" = xunknown; then
+  echo Fortran 77 compilers no longer work to compile AUTO.
+  echo Please check with the manual.
+  exit 1
+
+else
+  if test "x$ac_cv_fc_freeform" != xnone; then
+    FCFLAGS="$FCFLAGS $ac_cv_fc_freeform"
+  fi
+
+fi
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
@@ -3606,11 +3835,10 @@ echo "${ECHO_T}$ac_cv_fc_libs" >&6; }
 FCLIBS="$ac_cv_fc_libs"
 
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 ac_ext=${ac_fc_srcext-f}
@@ -3808,11 +4036,10 @@ See \`config.log' for more details." >&2;}
 fi
 
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
@@ -4098,11 +4325,10 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_fc_mangling" >&5
 echo "${ECHO_T}$ac_cv_fc_mangling" >&6; }
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
@@ -4188,12 +4414,6 @@ _ACEOF
 echo "$as_me: WARNING: unknown Fortran name-mangling scheme" >&2;}
           ;;
 esac
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
@@ -6759,7 +6979,6 @@ fi
 
 
 
-
 if test x$ENABLE_PLAUT = xyes; then
    PLAUT=plaut
 else
@@ -8296,8 +8515,9 @@ LIBS!$LIBS$ac_delim
 build_alias!$build_alias$ac_delim
 host_alias!$host_alias$ac_delim
 target_alias!$target_alias$ac_delim
-OPT_FLAG!$OPT_FLAG$ac_delim
+FC!$FC$ac_delim
 MPIFC!$MPIFC$ac_delim
+OPT_FLAG!$OPT_FLAG$ac_delim
 MPIFILE!$MPIFILE$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
@@ -8309,9 +8529,9 @@ OBJEXT!$OBJEXT$ac_delim
 INSTALL_PROGRAM!$INSTALL_PROGRAM$ac_delim
 INSTALL_SCRIPT!$INSTALL_SCRIPT$ac_delim
 INSTALL_DATA!$INSTALL_DATA$ac_delim
-FC!$FC$ac_delim
 FCFLAGS!$FCFLAGS$ac_delim
 ac_ct_FC!$ac_ct_FC$ac_delim
+FCFLAGS_f90!$FCFLAGS_f90$ac_delim
 FCLIBS!$FCLIBS$ac_delim
 SET_MAKE!$SET_MAKE$ac_delim
 XMKMF!$XMKMF$ac_delim
@@ -8335,7 +8555,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 74; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 75; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

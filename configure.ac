@@ -2,17 +2,8 @@ AC_INIT(plaut04/src/gmain.c++)
 
 AC_CONFIG_HEADERS(include/config.h)
 
-AC_ARG_WITH(CC,
-[  --with-CC=COMMAND       Choose a C compiler other then the default],
-[CC=$withval],)
-
-AC_ARG_WITH(FC,
-[  --with-FC=COMMAND       Choose a Fortran (>=90) compiler other then the default],
-[FC=$withval],)
-
-AC_ARG_WITH(mpi-compiler,
-[  --with-mpi-compiler=COMMAND       Command to use to compile MPI programs (default:  mpif90)],
-[MPI_COMPILER=${withval}])
+AC_ARG_VAR(FC, [Choose a Fortran (>=90) compiler other then the default])
+AC_ARG_VAR(MPIFC, [Command to use to compile MPI programs (default:  mpif90)])
 
 AC_ARG_WITH(optimization-flags,
 [  --with-optimization-flags=FLAGS       Choose an optimization flag to give to the compilers (default: -O)],
@@ -50,7 +41,7 @@ MPIFILE=nompi.f90
 if test x$mpi = "xyes"; then
   # We first check for the MPI compilation script.  If it exists
   # we try and us it to override the default compiler.
-  if test x$MPI_COMPILER = "x"; then
+  if test x$MPIFC = "x"; then
     # sometimes (FC4/5) mpif77 actually calls f95...
     AC_CHECK_PROGS(MPIFC,[mpif90 mpif95 mpif77],"no")
     if test x$MPIFC = mpif77; then
@@ -58,8 +49,6 @@ if test x$mpi = "xyes"; then
 	MPIFC=no
       fi
     fi
-  else
-    AC_CHECK_PROG(MPIFC,$MPI_COMPILER,$MPI_COMPILER,"no")
   fi
   if test x$MPIFC != "xno"; then
     MPI="yes"
@@ -73,9 +62,22 @@ AC_PROG_CC
 
 AC_PROG_INSTALL
 
-AC_PROG_FC(,[Fortran 90])
-AC_FC_WRAPPERS
 AC_LANG_PUSH(Fortran)
+if test x$FCFLAGS != "x"; then
+  FFLAGS=$FCFLAGS
+fi
+AC_PROG_FC
+# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
+AC_TRY_LINK_FUNC(flush,,
+  FCFLAGS="$FFLAGS -Vaxlib"
+  AC_TRY_LINK_FUNC(etime,FFLAGS=$FCFLAGS))
+AC_FC_SRCEXT(f90)
+AC_FC_FREEFORM(,
+  echo Fortran 77 compilers no longer work to compile AUTO.
+  echo Please check with the manual.
+  exit 1
+)
+AC_FC_WRAPPERS
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
   AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")
@@ -96,7 +98,6 @@ AC_CHECK_LIB(Xm,XmCreateMainWindow,X_LIBS="$X_LIBS -lXm -lXt -lX11",
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_SUBST(CFLAGS)
 AC_SUBST(FFLAGS)
 
 if test x$ENABLE_PLAUT = xyes; then

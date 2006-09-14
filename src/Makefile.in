@@ -80,11 +80,15 @@ zero: $(AUTO_DIR)/src/zero.f
 ../lib/eispack.o: eispack.f
 	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
 #
-../lib/mpi.o: @MPIFILE@
+../lib/mpi.o: @MPIFILE@ auto.h
 	$(FC) $(FFLAGS) $(OPT) -c @MPIFILE@ -o $@
 #
 move: $(OBJ)
 	@$(RM) auto.h
+#
+superclean:
+	cd ../lib && rm -f *.o *.a
+	rmdir ../lib 2> /dev/null
 #
 #  DO NOT ADD ANYTHING AFTER THIS LINE
 #
