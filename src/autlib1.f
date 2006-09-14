@@ -6280,7 +6280,6 @@ C     ---------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
-      EXTERNAL etime
       REAL timaray(2)
 C
 C Set initial time for measuring CPU time used.
@@ -6295,7 +6294,6 @@ C     ---------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
-      EXTERNAL etime
       REAL timaray(2)
 C
 C Set final time for measuring CPU time used.

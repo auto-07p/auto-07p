@@ -3408,7 +3408,6 @@ cat >conftest.$ac_ext <<_ACEOF
 
   program main
   real t(2),r,etime
-  external etime
   print *,'hello'
   call flush(6)
   r=etime(t)
@@ -3454,12 +3453,11 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	 tmp=FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+	 tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
   cat >conftest.$ac_ext <<_ACEOF
 
     program main
     real t(2),r,etime
-    external etime
     print *,'hello'
     call flush(6)
     r=etime(t)

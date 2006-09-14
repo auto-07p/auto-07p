@@ -78,16 +78,14 @@ unset COMPAT
 AC_LINK_IFELSE([
   program main
   real t(2),r,etime
-  external etime
   print *,'hello'
   call flush(6)
   r=etime(t)
   end
-],,[ tmp=FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+],,[ tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
   AC_LINK_IFELSE([
     program main
     real t(2),r,etime
-    external etime
     print *,'hello'
     call flush(6)
     r=etime(t)
