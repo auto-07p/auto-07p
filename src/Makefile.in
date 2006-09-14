@@ -91,7 +91,7 @@ move: $(OBJ)
 #
 superclean:
 	cd ../lib && rm -f *.o *.a
-	rmdir ../lib 2> /dev/null
+	rmdir ../lib 2> /dev/null; true
 #
 #  DO NOT ADD ANYTHING AFTER THIS LINE
 #
