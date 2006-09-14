@@ -67,16 +67,25 @@ if test x$FCFLAGS != "x"; then
   FFLAGS=$FCFLAGS
 fi
 AC_PROG_FC
-# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
-AC_TRY_LINK_FUNC(flush,,
-  FCFLAGS="$FFLAGS -Vaxlib"
-  AC_TRY_LINK_FUNC(etime,FFLAGS=$FCFLAGS))
 AC_FC_SRCEXT(f90)
 AC_FC_FREEFORM(,
   echo Fortran 77 compilers no longer work to compile AUTO.
   echo Please check with the manual.
   exit 1
 )
+# ifc and ifort need -Vaxlib to use FLUSH and ETIME.
+AC_LINK_IFELSE([
+  program main
+  print *,'hello'
+  call flush(6)
+  end
+],,[ tmp=FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+  AC_LINK_IFELSE([
+    program main
+    print *,'hello'
+    call flush(6)
+    end
+  ],FFLAGS="$FFLAGS -Vaxlib",FCFLAGS=$tmp)])
 AC_FC_WRAPPERS
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
