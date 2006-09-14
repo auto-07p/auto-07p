@@ -125,37 +125,36 @@ Engineering and Physical Science Research Council and the Nuffield Foundation.
 %==============================================================================
 %==============================================================================
 \section{ Installation.} \label{sec:Installation}
-%The {\cal AUTO} files {\tt auto.ps.gz, auto.tar.gz} and {\tt README} 
+%The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
-%directory {\tt pub/doedel/auto} at {\it ftp.cs.concordia.ca}.
-The {\cal AUTO} file {\tt auto07p-0.1.tar.gz} is
-available via HTTP from {\it http://sourceforge.net/projects/auto2000}.
-The {\tt README} file contains the instructions for printing this manual.
-Below it is assumed that you are using the Unix (e.g. {\it bash}) shell 
-and that the file {\tt auto07p-0.1.tar.gz} is in your main directory.
+%directory {\filef pub/doedel/auto} at \webf{ftp.cs.concordia.ca}.
+The {\cal AUTO} file \filef{auto07p-0.2.tar.gz} is
+available via \webf{http://indy.cs.concordia.ca/auto}.
+%The {\filef README} file contains the instructions for printing this manual.
+Below it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
+and that the file \filef{auto07p-0.2.tar.gz} is in your main directory.
 
 While in your main directory, enter the commands
 \commandf{gunzip auto07p-0.1.tar.gz},
-followed by\\
-\commandf{tar xvfo auto07p-0.1.tar}.
-This will result in a directory \filef{ auto}, 
-with one subdirectory, \filef{ auto/07p}. 
-Type \commandf{ cd auto/07p}
-to change directory to \filef{ auto/07p}.
-Then type 
-\commandf{ ./configure}~,
+followed by \commandf{tar xvfo auto07p-0.1.tar}.
+This will result in a directory \filef{auto}, 
+with one subdirectory, \filef{auto/07p}. 
+Type \commandf{cd auto/07p}
+to change directory to \filef{auto/07p}.
+Then type
+\commandf{./configure}~,
 to check your system for required compilers and libraries.
-Once the \filef{ configure} script has finished you 
-may then type \commandf{ make} to compile \AUTO
+Once the \filef{configure} script has finished you 
+may then type \commandf{make} to compile \AUTO
 and its ancillary software.
-The \filef{ configure} script is designed to detect the details
+The \filef{configure} script is designed to detect the details
 of your system which \AUTO requires to compile successfully.
-If either the \filef{ configure} script or the \filef{ make} command
-should fail, you may assist the \filef{ configure} script by giving
-it various command line options.  Please type \commandf{ ./configure --help}
+If either the \filef{configure} script or the \filef{make} command
+should fail, you may assist the \filef{configure} script by giving
+it various command line options.  Please type \commandf{./configure --help}
 for more details.
 Upon compilation, you may type 
-\commandf{ make clean}  
+\commandf{make clean}  
 to remove unnecessary files.
 
 To run \AUTO you need to set your environment variables correctly.
@@ -171,43 +170,45 @@ as \commandf{csh} or \commandf{tcsh}, enter the command \commandf{
 source~ {\rm \$}HOME/auto/2000/cmds/auto.env}.
 
 The Graphical User Interface (GUI) requires the {\cal X-Window} system
-and {\cal Motif}.
-Note that the GUI is not strictly necessary, since {\cal AUTO} can be run very effectively using the Unix Command Language User Interface (CLUI).
+and {\cal Motif} or {\cal LessTif}.
+Note that the GUI is not strictly necessary, since {\cal AUTO} can be
+run very effectively using the Unix Command Language User Interface (CLUI).
 Moreover, long or complicated sequences of {\cal AUTO} calculations can
 be programmed using the alternative Python CLUI. 
 THe GUI is not compiled by default. To compile
-\AUTO with the GUI, type \commandf{ ./configure --enable-gui}
-and then \filef{ make} in the directory \filef{ auto/07p}.
+\AUTO with the GUI, type \commandf{./configure --enable-gui}
+and then \commandf{make} in the directory \filef{auto/07p}.
 
 The new graphic tool for \AUTO data visualization, PLAUT04, is
 compiled by default, but depends on a few libraries that may not be
 in a standard installation of a typical Unix-like
 system. These libraries may be available as optional packages,
 though. Specifically, PLAUT04 requires at least either SGI Open
-Inventor 2.5.10or Coin3D 2.2 with SoXt 1.1.0. It also needs the
+Inventor 2.5.10 or Coin3D 2.2 with SoXt 1.1.0. It also needs the
 libraries simage 1.6 and (Open)Motif or LessTif 2.0. Any higher
 version numbers should also work. The configure script checks
 for these libraries and outputs a warning if any of these libraries
 cannot be found; if they are not available you can still compile
-all other components of \AUTO using \filef{ make}.
+all other components of \AUTO using \filef{make}.
 
-For timing purposes, the file {\tt auto/07p/src/autlib1.f}
+For timing purposes, the file \filef{auto/07p/src/autlib1.f}
 contains references to the function {\it etime}.
-If this function is not automatically supplied by your Fortran compiler then it can be 
-replaced by an appropriate alternative call, or it can be disabled by replacing
-the two occurrences of the string {\it T=etime(timaray)} with {\it T=0.}
-To recompile {\tt autlib1.f}, type {\it @C 1} in directory {\tt
-  auto/07p/src}. Similarly, this file contains references to the
+Similarly, this file contains references to the
 subroutine {\it FLUSH} to avoid buffering of screen output when
-running \AUTO from Python. These calls can be commented out if your
-Fortran compiler does not support them.
+running \AUTO from Python. These routines are not part of any
+Fortran standard but are common extensions. The \filef{configure}
+script checks if your compiler supplies them. If they are not
+supplied then the dummy replacement routines in \filef{src/compat.f}
+are used.
 
-The PostScript conversion command {\it @ps} is compiled by
-default. Alternatively you can type {\it make} in directory.  {\tt auto/07p/tek2ps}.
-To generate the on-line manual, type {\it make} in {\tt auto/07p/doc}.
+The PostScript conversion command \commandf{@ps} is compiled by
+default. Alternatively you can type \commandf{make} in the directory
+\filef{auto/07p/tek2ps}.
+To generate the on-line manual, type \commandf{make} in \filef{auto/07p/doc}.
 
-To prepare {\cal AUTO} for transfer to another machine, type {\it make superclean}
-in directory {\tt auto/07p} before creating the {\it tar}-file. 
+To prepare {\cal AUTO} for transfer to another machine,
+type \commandf{make superclean}
+in the directory \filef{auto/07p} before creating the \filef{tar}-file. 
 This will remove all executable, object, and other non-essential files, and
 thereby reduce the size of the package.
 
@@ -219,8 +220,8 @@ Floquet multipliers are included in the package
 \AUTO runs on Mac OS X using the above instructions provided that
 you have the development tools
 installed. You do not need to start an X server to run AUTO. To be able
-to plot in the Python CLUI, \AUTO uses \filef{ pythonw} instead of
-\filef{ python}. This should happen automatically.
+to plot in the Python CLUI, \AUTO uses \filef{pythonw} instead of
+\filef{python}. This should happen automatically.
 
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
@@ -251,7 +252,7 @@ The {\tt sh} command put you in a home directory, where you can unpack
 Make sure that the {\tt gfortran} and {\tt python} binaries
 are in your {\tt PATH}, and that their directories are at the front of it.
 You can do this, for instance, using the shell command
-\commandf{ export PATH="/c/Python24:/c/Program Files/gfortran/bin:\$PATH" }.
+\commandf{export PATH="/c/Python24:/c/Program Files/gfortran/bin:\$PATH" }.
 You can also inspect, edit and then source the file
 \filef{auto/07p/cmds/auto.env.sh} to achieve this.
 \item
@@ -262,7 +263,7 @@ shown above.
 Alternatively, \AUTO runs on Windows as above using the Unix-like
 environment Cygwin (see \webf{http://www.cygwin.com}). You should have
 at least the default installation, \filef{gcc}, \filef{gfortran},
-\filef{make}, and \filef{ python } installed. The 2D-plot command
+\filef{make}, and \filef{python} installed. The 2D-plot command
 is not as reponsive in Cygwin Python as in the above native setup, however.
 
 In both cases, an X server is not necessary, unless you wish to try to run
@@ -4110,14 +4111,16 @@ multiplier in the diagnostics output-file {\tt fort.9}.
 If this multiplier becomes inaccurate then the automatic detection 
 of potential secondary periodic bifurcations (if {\tt ISP}=2) is discontinued 
 and a warning is printed in {\tt fort.9}.
-It is strongly recommended that the contents of this file be habitually inspected,
+It is strongly recommended that the contents of this file be
+habitually inspected,
 in particular to verify whether solutions labeled as BP or TR 
 (cf.~Table~\ref{tbl:Solution_Types}) have indeed  been correctly classified.
  
 \section{ Memory Requirements.} \label{sec:Memory_requirements}
 The run-time memory requirements depend on the values the user set in
 the constants file and are roughly proportional to the value
-${\tt NTST}\times{\tt NDIM}\times({\tt NCOL}\times{\tt NDIM}+{\tt NBC}+{\tt NINT})$. 
+${\tt NTST}\times({\tt NDIM}\times({\tt NCOL}+1)+{\tt NBC})\times
+({\tt NDIM}\times{\tt NCOL}+{\tt NINT}+1)$.
 
 %==============================================================================
 %==============================================================================
