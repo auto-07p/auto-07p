@@ -113,7 +113,7 @@ subroutine mpiwfi(autobv,funi,icni)
   double precision, allocatable :: aa(:,:,:), bb(:,:,:), cc(:,:,:), dd(:,:)
   double precision, allocatable :: fa(:,:), fc(:)
 
-  integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na, loop_offset
+  integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na
   integer :: params(8)
 
   if (.not.autobv) then
@@ -136,10 +136,8 @@ subroutine mpiwfi(autobv,funi,icni)
         ! input scalars
         call MPI_Recv(na,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
              MPI_COMM_WORLD,stat,ierr)
-        call MPI_Recv(loop_offset,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
-             MPI_COMM_WORLD,stat,ierr)
         call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-        call mpi_setubv_worker(funi,icni,na,loop_offset,params)
+        call mpi_setubv_worker(funi,icni,na,params)
         call mpi_conpar_worker(na,params)
      case default
         print *,'Unknown message recieved: ', message_type
@@ -180,16 +178,16 @@ contains
     if(nint>0)deallocate(fc)
   end subroutine mpi_conpar_worker
 
-  subroutine mpi_setubv_worker(funi,icni,na,loop_offset,params)
+  subroutine mpi_setubv_worker(funi,icni,na,params)
     implicit none
     include 'mpif.h'
     integer NIAP,NRAP,NPARX,NBIFX
     include 'auto.h'
     integer, parameter :: NPARX2=2*NPARX
 
-    integer :: na, loop_offset, params(8)
+    integer :: na, params(8)
 
-    integer :: ndim, ncol, nint, ncb, nrc, nra, nca, ntst
+    integer :: ndim, ncol, nint, ncb, nrc, nra, nca
     integer :: i, j, ierr
 
     integer, allocatable :: iap(:),icp(:)
@@ -197,7 +195,6 @@ contains
     double precision, allocatable :: wp(:,:), wt(:,:), wi(:), udotps(:,:)
     double precision, allocatable :: upoldp(:,:), thu(:), rldot(:)
     double precision, allocatable :: dtm(:)
-    double precision dum
 
     integer :: pos, bufsize, size_int, size_double
     integer, allocatable :: buffer(:)
@@ -211,11 +208,8 @@ contains
     nrc=params(5)
     ncol=params(6)
     nint=params(7)
-    ntst=params(8)
 
     allocate(iap(NIAP),rap(NRAP),par(NPARX2),icp(NPARX))
-    allocate(ups(ndim*ncol,ntst+1),uoldps(ndim*ncol,ntst+1))
-    allocate(udotps(ndim*ncol,ntst+1),upoldp(ndim*ncol,ntst+1))
     allocate(wp(ncol+1,ncol),wt(ncol+1,ncol),wi(ncol+1))
     allocate(thu(ndim*8),rldot(NPARX))
 
@@ -225,13 +219,9 @@ contains
 
     call MPI_Pack_size(NIAP+NPARX,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
     call MPI_Pack_size(NRAP+NPARX2+ &
-         (ntst+1)*ndim*ncol+ &
-         (ntst+1)*ndim*ncol+ &
          (ncol + 1)*ncol+    &
          (ncol + 1)*ncol+    &
          (ncol + 1)+         &
-         (ntst+1)*ndim*ncol+ &
-         (ntst+1)*ndim*ncol+ &
          ndim*8+             &
          NPARX,              &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
@@ -249,19 +239,11 @@ contains
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,icp   ,NPARX, &
          MPI_INTEGER,MPI_COMM_WORLD,ierr)
-    call MPI_Unpack(buffer,bufsize,pos,ups   ,(ntst+1)*ndim*ncol, &
-         MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-    call MPI_Unpack(buffer,bufsize,pos,uoldps,(ntst+1)*ndim*ncol, &
-         MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,wp    ,(ncol + 1)*ncol, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,wt    ,(ncol + 1)*ncol, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,wi    ,(ncol + 1), &
-         MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-    call MPI_Unpack(buffer,bufsize,pos,udotps,(ntst+1)*ndim*ncol, &
-         MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-    call MPI_Unpack(buffer,bufsize,pos,upoldp,(ntst+1)*ndim*ncol, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,thu   ,ndim*8, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
@@ -270,9 +252,8 @@ contains
     deallocate(buffer)
 
     allocate(dtm(na))
-    call MPI_Scatterv(dum,dum,dum,MPI_DOUBLE_PRECISION, &
-         dtm,na,MPI_DOUBLE_PRECISION, &
-         0,MPI_COMM_WORLD,ierr)
+    allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
+    call mpisbv_comm(na,nra,dtm,ups,uoldps,udotps,upoldp,0)
 
     ! output arrays
 
@@ -297,17 +278,9 @@ contains
        enddo
     enddo
 
-    ! this call uses the loop_offset variable since up and uoldps
-    ! and sent by the MPI version in their entirety, but
-    ! aa, bb, cc, and fa have been shifted.  The loop_offset
-    ! variable contains the original value of loop_start and shifts
-    ! ups etc too
-    call subvpi(ndim, na, ncol, nint, &
-         ncb, nrc, nra, nca, funi, icni, ndim*ncol, &
-         iap, rap, par, icp, &
-         aa, bb, cc, dd, fa, fc, ups(1,loop_offset+1), &
-         uoldps(1,loop_offset+1), udotps(1,loop_offset+1), &
-         upoldp(1,loop_offset+1), dtm, thu, wi, wp, wt)
+    call subvpi(ndim, na, ncol, nint, ncb, nrc, nra, nca, funi, icni, nra, &
+         iap, rap, par, icp, aa, bb, cc, dd, fa, fc, ups, &
+         uoldps, udotps, upoldp, dtm, thu, wi, wp, wt)
 
     ! free input arrays
     deallocate(iap,rap,par,icp,ups,uoldps,dtm,wp,wt,udotps,upoldp,wi,thu)
@@ -434,6 +407,48 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
 
 end subroutine mpicon
 
+subroutine mpisbv_comm(na,nra,dtm,ups,uoldps,udotps,upoldp,comm_size)
+  implicit none
+
+  include 'mpif.h'
+
+  integer :: na, nra, comm_size
+  double precision :: dtm(*),ups(nra,*),uoldps(nra,*),udotps(nra,*)
+  double precision :: upoldp(nra,*)
+
+  integer :: i,loop_start,loop_end,ierr
+  integer, allocatable :: dtm_counts(:), dtm_displacements(:)
+  integer, allocatable :: ups_counts(:), ups_displacements(:)
+
+  allocate(dtm_counts(comm_size),dtm_displacements(comm_size))
+  allocate(ups_counts(comm_size),ups_displacements(comm_size))
+
+  do i=1,comm_size
+    loop_start = ((i-1)*na)/comm_size
+    loop_end = (i*na)/comm_size
+    dtm_counts(i) = loop_end-loop_start
+    dtm_displacements(i) = loop_start
+    ups_counts(i) = nra*(loop_end-loop_start+1)
+    ups_displacements(i) = nra*loop_start
+  enddo
+  dtm_counts(1) = 0
+  ups_counts(1) = 0
+
+  call MPI_Scatterv(dtm,dtm_counts,dtm_displacements,MPI_DOUBLE_PRECISION, &
+       dtm,na,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Scatterv(ups,ups_counts,ups_displacements,MPI_DOUBLE_PRECISION, &
+       ups,(na+1)*nra,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Scatterv(uoldps,ups_counts,ups_displacements,MPI_DOUBLE_PRECISION, &
+       uoldps,(na+1)*nra,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Scatterv(udotps,ups_counts,ups_displacements,MPI_DOUBLE_PRECISION, &
+       udotps,(na+1)*nra,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Scatterv(upoldp,ups_counts,ups_displacements,MPI_DOUBLE_PRECISION, &
+       upoldp,(na+1)*nra,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+  deallocate(dtm_counts,dtm_displacements,ups_counts,ups_displacements)
+
+end subroutine mpisbv_comm
+
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
      rldot,ups,uoldps,udotps,upoldp,dtm,thu,wi,wp,wt,comm_size)
   implicit none
@@ -451,17 +466,12 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   double precision :: ups(ndx,*),uoldps(ndx,*),udotps(ndx,*),upoldp(ndx,*)
   double precision :: dtm(*),thu(*),wi(*),wp(ncol+1,*),wt(ncol+1,*)
 
-  integer :: loop_start,loop_end,local_na,i,ierr,params(8)
-  integer, allocatable :: dtm_counts(:), dtm_displacements(:)
+  integer :: loop_start,loop_end,local_na,i,ierr,params(7)
   integer, allocatable :: buffer(:)
   integer pos,bufsize,size_int,size_double
-  double precision dum
 
   call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
   if(comm_size<2)return
-  allocate(dtm_counts(comm_size),dtm_displacements(comm_size))
-  dtm_counts(1) = 0
-  dtm_displacements(1) = 0
   
   do i=2,comm_size
     
@@ -471,12 +481,9 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
 
     loop_start = ((i-1)*na)/comm_size
     loop_end = (i*na)/comm_size
-    dtm_counts(i) = (loop_end-loop_start)
-    dtm_displacements(i) = (loop_start)
 
     local_na = loop_end-loop_start
     call MPI_Send(local_na  ,1,MPI_INTEGER,i-1,0,MPI_COMM_WORLD,ierr)
-    call MPI_Send(loop_start,1,MPI_INTEGER,i-1,0,MPI_COMM_WORLD,ierr)
   enddo
 
   params(1)=ndim
@@ -486,21 +493,16 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   params(5)=nrc
   params(6)=ncol
   params(7)=nint
-  params(8)=na
-  call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(params,7,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
   ! Here we compute the number of elements in the iap and rap structures.
   ! Since each of the structures is homogeneous we just divide the total
   ! size by the size of the individual elements.
   call MPI_Pack_size(NIAP+NPARX,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
   call MPI_Pack_size(NRAP+NPARX2+ &
-                  (na+1)*ndim*ncol+ &
-                  (na+1)*ndim*ncol+ &
                   (ncol + 1)*ncol+  &
                   (ncol + 1)*ncol+  &
                   (ncol + 1)+       &
-                  (na+1)*ndim*ncol+ &
-                  (na+1)*ndim*ncol+ &
                   ndim*8+           &
                   NPARX,            &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
@@ -516,20 +518,12 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
        MPI_COMM_WORLD,ierr)
   call MPI_Pack(icp    ,NPARX,MPI_INTEGER,buffer,bufsize,pos, &
        MPI_COMM_WORLD,ierr)
-  call MPI_Pack(ups    ,(na+1)*ndim*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
-       pos,MPI_COMM_WORLD,ierr)
-  call MPI_Pack(uoldps ,(na+1)*ndim*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
-       pos,MPI_COMM_WORLD,ierr)
   call MPI_Pack(wp     ,(ncol + 1)*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
        pos,MPI_COMM_WORLD,ierr)
   call MPI_Pack(wt     ,(ncol + 1)*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
        pos,MPI_COMM_WORLD,ierr)
   call MPI_Pack(wi     ,ncol + 1,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
        MPI_COMM_WORLD,ierr)
-  call MPI_Pack(udotps ,(na+1)*ndim*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
-       pos,MPI_COMM_WORLD,ierr)
-  call MPI_Pack(upoldp ,(na+1)*ndim*ncol,MPI_DOUBLE_PRECISION,buffer,bufsize, &
-       pos,MPI_COMM_WORLD,ierr)
 
   call MPI_Pack(thu    ,ndim*8,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
        MPI_COMM_WORLD,ierr)
@@ -539,9 +533,7 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   call MPI_Bcast(buffer,pos,MPI_PACKED,0,MPI_COMM_WORLD,ierr)
   deallocate(buffer)
 
-  call MPI_Scatterv(dtm,dtm_counts,dtm_displacements,MPI_DOUBLE_PRECISION, &
-       dum,0,MPI_DOUBLE_PRECISION, &
-       0 ,MPI_COMM_WORLD,ierr)
+  call mpisbv_comm(na,nra,dtm,ups,uoldps,udotps,upoldp,comm_size)
 
   ! Worker runs here
 
