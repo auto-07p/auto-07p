@@ -203,7 +203,7 @@ contains
     integer, allocatable :: iap(:),icp(:)
     double precision, allocatable :: rap(:), par(:), ups(:,:), uoldps(:,:)
     double precision, allocatable :: wp(:,:), wt(:,:), wi(:), udotps(:,:)
-    double precision, allocatable :: upoldp(:,:), thu(:), thl(:), rldot(:)
+    double precision, allocatable :: upoldp(:,:), thu(:), rldot(:)
     double precision, allocatable :: dtm(:), fa(:,:), fc(:)
     double precision dum
 
@@ -234,7 +234,7 @@ contains
     allocate(ups(ndim*ncol,ntst+1),uoldps(ndim*ncol,ntst+1))
     allocate(udotps(ndim*ncol,ntst+1),upoldp(ndim*ncol,ntst+1))
     allocate(wp(ncol+1,ncol),wt(ncol+1,ncol),wi(ncol+1))
-    allocate(thu(ndim*8),thl(ncb),rldot(NPARX))
+    allocate(thu(ndim*8),rldot(NPARX))
 
     ! Here we compute the number of elements in the iap and rap structures.
     ! Since each of the structures is homogeneous we just divide the total
@@ -250,7 +250,6 @@ contains
          (ntst+1)*ndim*ncol+ &
          (ntst+1)*ndim*ncol+ &
          ndim*8+             &
-         ncb+                &
          NPARX,              &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
     bufsize = size_int + size_double
@@ -282,8 +281,6 @@ contains
     call MPI_Unpack(buffer,bufsize,pos,upoldp,(ntst+1)*ndim*ncol, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,thu   ,ndim*8, &
-         MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-    call MPI_Unpack(buffer,bufsize,pos,thl   ,ncb, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
     call MPI_Unpack(buffer,bufsize,pos,rldot ,NPARX, &
          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
@@ -336,7 +333,7 @@ contains
 
     ! free input arrays
     deallocate(iap,rap,par,icp,ups,uoldps,dtm,wp,wt,udotps,upoldp,wi,thu)
-    deallocate(thl,rldot,fa)
+    deallocate(rldot,fa)
     if(nint>0) deallocate(fc)
   end subroutine mpi_setubv_worker
 
@@ -447,7 +444,7 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
 end subroutine mpicon
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
-     fa,fc,rldot,ups,uoldps,udotps,upoldp,dtm,thl,thu,wi,wp,wt,comm_size)
+     fa,fc,rldot,ups,uoldps,udotps,upoldp,dtm,thu,wi,wp,wt,comm_size)
   implicit none
   integer NIAP,NRAP,NPARX,NBIFX
 
@@ -461,7 +458,7 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   integer :: ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap(*),icp(*),comm_size
   double precision :: rap(*),par(*),fa(nra,*),fc(*),rldot(*)
   double precision :: ups(ndx,*),uoldps(ndx,*),udotps(ndx,*),upoldp(ndx,*)
-  double precision :: dtm(*),thl(*),thu(*),wi(*),wp(ncol+1,*),wt(ncol+1,*)
+  double precision :: dtm(*),thu(*),wi(*),wp(ncol+1,*),wt(ncol+1,*)
 
   integer :: loop_start,loop_end,local_na,i,ierr,params(8)
   integer, allocatable :: fa_counts(:), fa_displacements(:)
@@ -521,7 +518,6 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
                   (na+1)*ndim*ncol+ &
                   (na+1)*ndim*ncol+ &
                   ndim*8+           &
-                  ncb+              &
                   NPARX,            &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
   bufsize = size_int + size_double
@@ -552,8 +548,6 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
        pos,MPI_COMM_WORLD,ierr)
 
   call MPI_Pack(thu    ,ndim*8,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-       MPI_COMM_WORLD,ierr)
-  call MPI_Pack(thl    ,ncb,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
        MPI_COMM_WORLD,ierr)
   call MPI_Pack(rldot  ,NPARX,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
        MPI_COMM_WORLD,ierr)
