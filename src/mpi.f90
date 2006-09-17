@@ -114,7 +114,7 @@ subroutine mpiwfi(autobv,funi,icni)
   double precision, allocatable :: fa(:,:), fc(:)
 
   integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na
-  integer :: params(8)
+  integer :: params(9)
 
   if (.not.autobv) then
      print *,'Illegal problem type for MPI'
@@ -136,7 +136,7 @@ subroutine mpiwfi(autobv,funi,icni)
         ! input scalars
         call MPI_Recv(na,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
              MPI_COMM_WORLD,stat,ierr)
-        call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        call MPI_Bcast(params,9,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         call mpi_setubv_worker(funi,icni,na,params)
         call mpi_conpar_worker(na,params)
      case default
@@ -152,7 +152,7 @@ contains
 
     integer :: na, params(*)
 
-    integer :: nov, nra, nca, ncb, nrc, nint
+    integer :: nov, nra, nca, ncb, nrc, nint, ifst
     integer, allocatable :: irf(:,:), icf(:,:)
     double precision dum
 
@@ -162,6 +162,7 @@ contains
     nca = params(3)
     ncb = params(4)
     nrc = params(5)
+    ifst = params(8)
     nint = nrc-1
 
     !input/output arrays
@@ -171,7 +172,7 @@ contains
     call conpar(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
 
     call mpicon_comm(na, nra, nca, aa, ncb, bb, nrc, cc, dd, dum, fa, fc, &
-         dum, irf, icf, 0)
+         dum, irf, icf, ifst, 0)
 
     deallocate(irf,icf)
     deallocate(aa,bb,cc,dd,fa)
@@ -185,9 +186,9 @@ contains
     include 'auto.h'
     integer, parameter :: NPARX2=2*NPARX
 
-    integer :: na, params(8)
+    integer :: na, params(9)
 
-    integer :: ndim, ncol, nint, ncb, nrc, nra, nca
+    integer :: ndim, ncol, nint, ncb, nrc, nra, nca, ifst
     integer :: i, j, ierr
 
     integer, allocatable :: iap(:),icp(:)
@@ -207,6 +208,7 @@ contains
     nrc=params(5)
     ncol=params(6)
     nint=params(7)
+    ifst=params(8)
 
     allocate(iap(NIAP),rap(NRAP),par(NPARX2),icp(NPARX))
     allocate(thu(ndim*8),rldot(NPARX))
@@ -265,9 +267,9 @@ contains
        enddo
     enddo
 
-    call subvpi(ndim, na, ncol, nint, ncb, nrc, nra, nca, funi, icni, nra, &
+    call setubv(ndim, na, ncol, nint, ncb, nrc, nra, nca, funi, icni, nra, &
          iap, rap, par, icp, aa, bb, cc, dd, fa, fc, ups, &
-         uoldps, udotps, upoldp, dtm, thu)
+         uoldps, udotps, upoldp, dtm, thu, ifst)
 
     ! free input arrays
     deallocate(iap,rap,par,icp,ups,uoldps,dtm,udotps,upoldp,thu)
@@ -277,12 +279,12 @@ contains
 end subroutine mpiwfi
 
 subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
-     fcrec, irf, icf, comm_size)
+     fcrec, irf, icf, ifst, comm_size)
   implicit none
   include 'mpif.h'
 
   integer :: na, nra, nca, ncb, nrc, nint
-  integer :: icf(nca,*), irf(nra,*), comm_size
+  integer :: icf(nca,*), irf(nra,*), ifst, comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
   double precision :: d(ncb,*),drec(ncb,*),fa(nra,*),fc(*),fcrec(*)
 
@@ -294,12 +296,30 @@ subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
   integer, allocatable :: icf_counts(:),icf_displacements(:)
   integer, allocatable :: fa_counts(:), fa_displacements(:)
 
+  allocate(fa_counts(comm_size),fa_displacements(comm_size))
+  do i=1,comm_size
+     loop_start = ((i-1)*na)/comm_size
+     loop_end = (i*na)/comm_size
+     if(i==1)loop_end = 0
+     fa_counts(i) = nra*(loop_end-loop_start)
+     fa_displacements(i) = nra*loop_start
+  enddo
+  call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION, &
+       fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
+       0,MPI_COMM_WORLD,ierr)
+  deallocate(fa_counts,fa_displacements)
+  nint=nrc-1
+  if(nint>0)then
+     call MPI_Reduce(fc,fcrec,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+          MPI_COMM_WORLD,ierr)
+  endif
+  if(ifst==0)return
+
   allocate(a_counts(comm_size),a_displacements(comm_size))
   allocate(b_counts(comm_size),b_displacements(comm_size))
   allocate(c_counts(comm_size),c_displacements(comm_size))
   allocate(irf_counts(comm_size),irf_displacements(comm_size))
   allocate(icf_counts(comm_size),icf_displacements(comm_size))
-  allocate(fa_counts(comm_size),fa_displacements(comm_size))
 
   do i=1,comm_size
      loop_start = ((i-1)*na)/comm_size
@@ -315,8 +335,6 @@ subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
      irf_displacements(i) = nra*loop_start
      icf_counts(i) = nca*(loop_end-loop_start)
      icf_displacements(i) = nca*loop_start
-     fa_counts(i) = nra*(loop_end-loop_start)
-     fa_displacements(i) = nra*loop_start
   enddo
 
   call MPI_Gatherv(a, nca*nra*na,MPI_DOUBLE_PRECISION, &
@@ -335,31 +353,21 @@ subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
        icf,icf_counts,icf_displacements,MPI_INTEGER, &
        0,MPI_COMM_WORLD,ierr)
 
-  call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION, &
-       fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
-       0,MPI_COMM_WORLD,ierr)
-
   deallocate(a_counts,a_displacements,b_counts,b_displacements)
   deallocate(c_counts,c_displacements,irf_counts,irf_displacements)
-  deallocate(icf_counts,icf_displacements,fa_counts,fa_displacements)
+  deallocate(icf_counts,icf_displacements)
 
   call MPI_Reduce(d,drec,ncb*nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
        MPI_COMM_WORLD,ierr)
 
-  nint=nrc-1
-  if(nint>0)then
-     call MPI_Reduce(fc,fcrec,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-          MPI_COMM_WORLD,ierr)
-  endif
-
 end subroutine mpicon_comm
 
 subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
-     comm_size)
+     ifst, comm_size)
   implicit none
   include 'mpif.h'
 
-  integer :: na, nra, nca, ncb, nrc, nint
+  integer :: na, nra, nca, ncb, nrc, nint, ifst
   integer :: icf(nca,*), irf(nra,*), comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
   double precision :: d(ncb,*),fa(nra,*),fc(*)
@@ -377,13 +385,15 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
   if(nint>0)allocate(fctemp(nint))
 
   call mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, dtemp, fa, fc, &
-     fctemp, irf, icf, comm_size)
+     fctemp, irf, icf, ifst, comm_size)
 
-  do i=1,nrc
-     do j=1,ncb
-        d(i,j)=dtemp(j,i)
+  if(ifst==1)then
+     do i=1,nrc
+        do j=1,ncb
+           d(i,j)=dtemp(j,i)
+        enddo
      enddo
-  enddo
+  endif
   deallocate(dtemp)
   if(nint>0)then
      do i=1,nint
@@ -437,7 +447,7 @@ subroutine mpisbv_comm(na,nra,dtm,ups,uoldps,udotps,upoldp,comm_size)
 end subroutine mpisbv_comm
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
-     rldot,ups,uoldps,udotps,upoldp,dtm,thu,comm_size)
+     rldot,ups,uoldps,udotps,upoldp,dtm,thu,ifst,nllv,comm_size)
   implicit none
   integer NIAP,NRAP,NPARX,NBIFX
 
@@ -448,11 +458,12 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
 
-  integer :: ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap(*),icp(*),comm_size
+  integer :: ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap(*),icp(*)
+  integer :: ifst,nllv,comm_size
   double precision :: rap(*),par(*),rldot(*),dtm(*),thu(*)
   double precision :: ups(ndx,*),uoldps(ndx,*),udotps(ndx,*),upoldp(ndx,*)
 
-  integer :: loop_start,loop_end,local_na,i,ierr,params(7)
+  integer :: loop_start,loop_end,local_na,i,ierr,params(9)
   integer, allocatable :: buffer(:)
   integer pos,bufsize,size_int,size_double
 
@@ -479,7 +490,9 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   params(5)=nrc
   params(6)=ncol
   params(7)=nint
-  call MPI_Bcast(params,7,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  params(8)=ifst
+  params(9)=nllv
+  call MPI_Bcast(params,9,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
   ! Here we compute the number of elements in the iap and rap structures.
   ! Since each of the structures is homogeneous we just divide the total

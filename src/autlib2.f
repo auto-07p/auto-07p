@@ -15,7 +15,7 @@ C
 C Sets up and solves the linear equations for one Newton/Chord iteration
 C
       EXTERNAL FUNI,BCNI,ICNI
-      DIMENSION IAP(*),RAP(*)
+      DIMENSION IAP(*),RAP(*),FC(*)
 C
 C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
@@ -38,14 +38,14 @@ C  and setubv).
 C
 C
       NDIM=IAP(1)
-      IPS=IAP(2)
       NTST=IAP(5)
       NCOL=IAP(6)
       NBC=IAP(12)
       NINT=IAP(13)
       IID=IAP(18)
       NFPR=IAP(29)
-      NRC=NBC+NINT+1
+      NRC=NINT+1
+      NRD=NRC+NBC
       NROW=NDIM*NCOL
       NCLM=NROW+NDIM
       IF(IFST.EQ.1)THEN
@@ -57,7 +57,7 @@ C           Free integer arrays
          ENDIF
 C
          ALLOCATE(A(NCLM,NROW,NTST+1),B(NFPR,NROW,NTST+1))
-         ALLOCATE(C(NCLM,NINT+1,NTST+1),D(NFPR,NRC))
+         ALLOCATE(C(NCLM,NRC,NTST+1),D(NFPR,NRD))
          ALLOCATE(A1(NDIM,NDIM,NTST+1),A2(NDIM,NDIM,NTST+1))
          ALLOCATE(S1(NDIM,NDIM,NTST+1),S2(NDIM,NDIM,NTST+1))
          ALLOCATE(BB(NFPR,NDIM,NTST+1),CC(NDIM,NINT+1,NTST+1))
@@ -67,22 +67,19 @@ C
          ALLOCATE(ICF1(NDIM,NTST+1),ICF2(NDIM,NTST+1))
       ENDIF
 C
-      IF(IFST.EQ.1)THEN
-        CALL SETUBV(NDIM,IPS,NTST,NCOL,NBC,NINT,
-     +   NFPR,NRC-NBC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
-     +   IAP,RAP,PAR,ICP,RDS,A,B,C,CCBC,D,FA,FC,RLCUR,RLOLD,
-     +   RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU,NT)
-      ELSE
-        CALL SETRHS(NDIM,IPS,NTST,NCOL,NBC,NINT,
-     +   NFPR,NRC,NROW,NCLM,FUNI,BCNI,ICNI,NDX,
-     +   IAP,RAP,PAR,ICP,RDS,FA,FC,RLCUR,RLOLD,
-     +   RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU)
-      ENDIF
+      CALL SUBVSR(NDIM,NTST,NBC,NFPR,NRD,NROW,BCNI,NDX,
+     +  IAP,RAP,PAR,ICP,RDS,CCBC,D,FC,RLCUR,RLOLD,
+     +  RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
+      CALL MPISBV(NDIM,NTST,NCOL,NINT,NFPR,NRC,NROW,NCLM,NDX,IAP,RAP,
+     + PAR,ICP,RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,NLLV,KWT)
+      CALL SETUBV(NDIM,NTST/KWT,NCOL,NINT,NFPR,NRC,NROW,NCLM,
+     +   FUNI,ICNI,NDX,IAP,RAP,PAR,ICP,A,B,C,D(1,NBC+1),FA,
+     +   FC(NBC+1),UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST)
 C
       CALL BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IID,NLLV,DET,NDIM,NTST,NBC,NROW,NCLM,
-     +  NFPR,NRC,A1,A2,BB,CC,CCBC,FAA,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,NT)
+     +  NFPR,NRD,A1,A2,BB,CC,CCBC,FAA,
+     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,KWT)
 C
       RAP(14)=DET
 C
@@ -107,9 +104,9 @@ C
       END
 C
 C     ---------- ---------
-      SUBROUTINE SUBVSR(NDIM,IPS,NA,NBC,NCB,NRC,NRA,BCNI,NDX,
+      SUBROUTINE SUBVSR(NDIM,NTST,NBC,NCB,NRD,NRA,BCNI,NDX,
      + IAP,RAP,PAR,ICP,RDS,CCBC,DD,FC,RLCUR,RLOLD,
-     + RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU)
+     + RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
 C
       IMPLICIT NONE
       INTEGER NPARX,NBIFX,NIAP,NRAP
@@ -124,7 +121,7 @@ C
       EXTERNAL BCNI
       DOUBLE PRECISION RINPR
 C
-      INTEGER NDIM,IPS,NA,NBC,NCB,NRC,NRA,NDX,IAP(*),ICP(*)
+      INTEGER NDIM,NTST,NBC,NCB,NRD,NRA,NDX,IAP(*),ICP(*),IFST
       DOUBLE PRECISION RDS,CCBC(NDIM,NBC,*),DD(NCB,*)
       DOUBLE PRECISION RAP(*),UPS(NDX,*),DUPS(NDX,*)
       DOUBLE PRECISION UOLDPS(NDX,*),UDOTPS(NDX,*)
@@ -133,7 +130,7 @@ C
 C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: UBC0(:),UBC1(:),FBC(:),DBC(:,:)
-      INTEGER I,J,K
+      INTEGER I,J,K,IPS
       DOUBLE PRECISION RLSUM
 C
 C Set constants.
@@ -142,6 +139,7 @@ C Set constants.
        ENDDO
 C
 C     ** Time evolution computations (parabolic systems)
+       IPS=IAP(2)
        IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
 C
       ALLOCATE(UBC0(NDIM),UBC1(NDIM),FBC(NBC),DBC(NBC,2*NDIM+NPARX))
@@ -151,22 +149,24 @@ C
        IF(NBC.GT.0)THEN
          DO I=1,NDIM
             UBC0(I)=UPS(I,1)
-            UBC1(I)=UPS(I,NA+1)
+            UBC1(I)=UPS(I,NTST+1)
          ENDDO
-         CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)     
+         CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,IFST*2,DBC)
          DO I=1,NBC
             FC(I)=-FBC(I)
-            DO K=1,NDIM
-               CCBC(K,I,1)=DBC(I,K)
-               CCBC(K,I,2)=DBC(I,NDIM+K)
-            ENDDO
-            DO K=1,NCB
-               DD(K,I)=DBC(I,2*NDIM+ICP(K))
-            ENDDO
+            IF(IFST.EQ.1)THEN
+               DO K=1,NDIM
+                  CCBC(K,I,1)=DBC(I,K)
+                  CCBC(K,I,2)=DBC(I,NDIM+K)
+               ENDDO
+               DO K=1,NCB
+                  DD(K,I)=DBC(I,2*NDIM+ICP(K))
+               ENDDO
+            ENDIF
          ENDDO    
 C       Save difference :
        ENDIF
-       DO J=1,NA+1
+       DO J=1,NTST+1
          DO I=1,NRA
             DUPS(I,J)=UPS(I,J)-UOLDPS(I,J)
           ENDDO
@@ -176,27 +176,29 @@ C     Pseudo-arclength equation :
 C
        RLSUM=0.d0
        DO I=1,NCB
-          DD(I,NBC+NRC)=THL(ICP(I))*RLDOT(I)
+          IF(IFST.EQ.1)THEN
+             DD(I,NRD)=THL(ICP(I))*RLDOT(I)
+          ENDIF
           RLSUM=RLSUM+THL(ICP(I))*(RLCUR(I)-RLOLD(I))*RLDOT(I)
        ENDDO
 C
-       FC(NBC+NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
+       FC(NRD)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
 C
        DEALLOCATE(UBC0,UBC1,FBC,DBC)
        RETURN
        END
 C
 C     ---------- ------
-      SUBROUTINE SUBVPI(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
+      SUBROUTINE SETUBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
      + ICNI,NDX,IAP,RAP,PAR,ICP,AA,BB,CC,DD,FA,FC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST)
 C
 C$    USE OMP_LIB
       IMPLICIT NONE
       INTEGER NPARX,NBIFX,NIAP,NRAP
       INCLUDE 'auto.h'
 C
-      INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,NDX
+      INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,NDX,IFST
       INTEGER IAP(*),ICP(*)
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
       DOUBLE PRECISION DD(NCB,*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*)
@@ -225,15 +227,27 @@ C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IAM,N)
 C$    IAM = OMP_GET_THREAD_NUM()
       I = IAM*NA/NT+1
       N = (IAM+1)*NA/NT+1-I
-      IF(IAM.EQ.0)THEN
-         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +        IAP,RAP,PAR,ICP,AA,BB,CC,DD,FA,FC,
-     +        UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+      IF(IFST.EQ.1)THEN
+         IF(IAM.EQ.0)THEN
+            CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +           IAP,RAP,PAR,ICP,AA,BB,CC,DD,FA,FC,
+     +           UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+         ELSE
+            CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +           IAP,RAP,PAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),
+     +           DDD(1,1,IAM),FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
+     +           UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT)
+         ENDIF
       ELSE
-         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +        IAP,RAP,PAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),
-     +        DDD(1,1,IAM),FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
-     +        UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT)
+         IF (IAM.EQ.0)THEN
+            CALL SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,NDX,IAP,
+     +           RAP,PAR,ICP,FA,FC,UPS,UOLDPS,
+     +           UDOTPS,UPOLDP,DTM,WI,WP,WT)
+         ELSE
+            CALL SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,NDX,IAP,
+     +           RAP,PAR,ICP,FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
+     +           UDOTPS(1,I),UPOLDP(1,I),DTM(I),WI,WP,WT)
+         ENDIF
       ENDIF
 C$OMP END PARALLEL
 C
@@ -242,9 +256,11 @@ C
       IF(NT.GT.1)THEN
          DO I=1,NT-1
             DO J=1,NINT
-               DO K=1,NCB
-                  DD(K,J)=DD(K,J)+DDD(K,J,I)
-               ENDDO
+               IF(IFST.EQ.1)THEN
+                  DO K=1,NCB
+                     DD(K,J)=DD(K,J)+DDD(K,J,I)
+                  ENDDO
+               ENDIF
                FC(J)=FC(J)+FCFC(J,I)
             ENDDO
          ENDDO
@@ -337,11 +353,11 @@ C
       EXTERNAL FUNI
 C
       INTEGER, INTENT(IN) :: NDIM,NCOL,NCB,NCA,NDX,IAP(*),ICP(*)
-      DOUBLE PRECISION, INTENT(IN) :: DTM,RAP(*),PAR(*),WT(*),WP(*)
+      DOUBLE PRECISION, INTENT(IN) :: DTM,PAR(*),WT(*),WP(*)
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,*),UOLDPS(NDX,*)
       DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,*),BB(NCB,*),FA(*),U(*)
       DOUBLE PRECISION, INTENT(OUT) :: UOLD(*),DFDU(NDIM,*),DFDP(NDIM,*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(*),RAP(*)
 C
 C Local
       DOUBLE PRECISION PRM(NPARX),WPLOC(NCOL+1),WTTMP,TMP
@@ -439,90 +455,38 @@ C
       ENDDO
       END SUBROUTINE
 C
-      END
-C
-C     ---------- ---------
-      SUBROUTINE SETUBV(NDIM,IPS,NA,NCOL,NBC,NINT,
-     + NCB,NRC,NRA,NCA,FUNI,BCNI,ICNI,NDX,
-     + IAP,RAP,PAR,ICP,RDS,AA,BB,CC,CCBC,DD,FA,FC,RLCUR,RLOLD,
-     + RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU,NT)
-C
-      IMPLICIT NONE
-C
-      EXTERNAL FUNI, BCNI, ICNI
-C
-      INTEGER NDIM,IPS,NA,NCOL,NBC,NINT,NCB,NRC,NRA,NCA,NDX,NT
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*)
-      DOUBLE PRECISION CC(NCA,NRC,*),CCBC(NDIM,NBC,*),DD(NCB,*),RAP(*)
-      DOUBLE PRECISION UPS(NDX,*),DUPS(NDX,*),UOLDPS(NDX,*)
-      DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
-      DOUBLE PRECISION DTM(*),PAR(*),THL(*),THU(*)
-      DOUBLE PRECISION RDS,RLCUR(*),RLOLD(*),RLDOT(*)
-C
-      CALL SUBVSR(NDIM,IPS,NA,NBC,NCB,NRC,NRA,BCNI,NDX,
-     +     IAP,RAP,PAR,ICP,RDS,CCBC,DD,FC,RLCUR,RLOLD,
-     +     RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU)
-C
-      CALL MPISBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,NDX,IAP,RAP,PAR,
-     +     ICP,RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,NT)
-      CALL SUBVPI(NDIM,NA/NT,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +     IAP,RAP,PAR,ICP,AA,BB,CC,DD(1,NBC+1),FA,FC(NBC+1),
-     +     UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU)
-C
-      RETURN
-      END
-C
 C     ---------- ------
-      SUBROUTINE SETRHS(NDIM,IPS,NA,NCOL,NBC,NINT,
-     + NCB,NRC,NRA,NCA,FUNI,BCNI,ICNI,NDX,
-     + IAP,RAP,PAR,ICP,RDS,FA,FC,RLCUR,RLOLD,
-     + RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,DTM,THL,THU)
+      SUBROUTINE SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,
+     + NDX,IAP,RAP,PAR,ICP,FA,FC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,WI,WP,WT)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      INCLUDE 'auto.h'
+      EXTERNAL FUNI,ICNI
 C
-      EXTERNAL FUNI, BCNI, ICNI
-C
-C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),DUPS(NDX,*)
-      DIMENSION UOLDPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION FA(NRA,*),FC(*),DTM(*),PAR(*)
-      DIMENSION ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      INTEGER NDIM,N,NCOL,NINT,NRA,IAP(*),ICP(*),NDX
+      DOUBLE PRECISION RAP(*),UPS(NDX,*),UOLDPS(NDX,*)
+      DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
+      DOUBLE PRECISION DTM(*),PAR(*),WI(*),WP(NCOL+1,*),WT(NCOL+1,*)
 C
 C Local
-      ALLOCATABLE DFDU(:),DFDP(:),UOLD(:),U(:),F(:),UBC0(:),UBC1(:)
-      ALLOCATABLE FBC(:),DBC(:),FICD(:),DICD(:),UIC(:),UIO(:),UID(:)
-      ALLOCATABLE UIP(:)
-      DIMENSION WPLOC(NCOL+1,NCOL),WI(NCOL+1)
-      DIMENSION WP(NCOL+1,NCOL),WT(NCOL+1,NCOL),PRM(NPARX)
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U,
+     +  F,FICD,DICD,UIC,UIO,UID,UIP
+      INTEGER I,J,K,L,M,IB,IC,IC1,NCP1,I1,J1,JP1,K1,L1
+      DOUBLE PRECISION WPLOC(NCOL+1,NCOL),PRM(NPARX),DDT
 C
       ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPARX),UOLD(NDIM),U(NDIM))
-      ALLOCATE(F(NDIM),UBC0(NDIM),UBC1(NDIM),FBC(NBC))
-      ALLOCATE(DBC(NBC*(2*NDIM+NPARX)),FICD(NINT))
-      ALLOCATE(DICD(NINT*(NDIM+NPARX)),UIC(NDIM),UIO(NDIM))
-      ALLOCATE(UID(NDIM),UIP(NDIM))
-C
-       CALL WINT(NCOL+1,WI)
-       CALL GENWTS(NCOL,NCOL+1,WT,WP)
+      ALLOCATE(F(NDIM),FICD(NINT),DICD(NINT*(NDIM+NPARX)))
+      ALLOCATE(UIC(NDIM),UIO(NDIM),UID(NDIM),UIP(NDIM))
 C
 C Initialize to zero.
-       DO I=1,NRC
+       DO I=1,NINT
          FC(I)=0.d0
        ENDDO
-C
-C Set constants.
        NCP1=NCOL+1
-       DO I=1,NCB
-         PAR(ICP(I))=RLCUR(I)
-       ENDDO
 C
 C Generate FA :
 C
-       DO 2 J=1,NA
+       DO 2 J=1,N
           JP1=J+1
-          DT=DTM(J)
-          DDT=1.d0/DT
+          DDT=1.d0/DTM(J)
           DO IC=1,NCOL
              DO IB=1,NCP1
                 WPLOC(IB,IC)=DDT*WP(IB,IC)
@@ -538,10 +502,6 @@ C
                    UOLD(K)=UOLD(K)+WT(L,IC)*UOLDPS(L1,J)
                 ENDDO
              ENDDO
-
-C     ** Time evolution computations (parabolic systems)
-             IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
-
              DO I=1,NPARX
                 PRM(I)=PAR(I)
              ENDDO
@@ -558,26 +518,7 @@ C     ** Time evolution computations (parabolic systems)
  2     CONTINUE
 C     
 C     Generate FC :
-C     
-C     Boundary conditions :
-C     
-       IF(NBC.GT.0)THEN
-         DO I=1,NDIM
-            UBC0(I)=UPS(I,1)
-            UBC1(I)=UPS(I,NA+1)
-        ENDDO
-         CALL BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,2,DBC)
-         DO I=1,NBC
-            FC(I)=-FBC(I)
-         ENDDO
-C       Save difference :
-         DO J=1,NA+1
-            DO I=1,NRA
-               DUPS(I,J)=UPS(I,J)-UOLDPS(I,J)
-            ENDDO
-         ENDDO
-       ENDIF
-C     
+C
 C     Integral constraints :     
        IF(NINT.GT.0)THEN
          DO J=1,NA
@@ -596,36 +537,29 @@ C     Integral constraints :
                CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
      *              FICD,2,DICD)
                DO M=1,NINT
-                  FC(NBC+M)=FC(NBC+M)-DTM(J)*WI(K)*FICD(M)
+                  FC(M)=FC(M)-DTM(J)*WI(K)*FICD(M)
                ENDDO
             ENDDO
          ENDDO
        ENDIF
 C     
-C     Pseudo-arclength equation :
-       RLSUM=0.d0
-       DO I=1,NCB
-          RLSUM=RLSUM+THL(ICP(I))*(RLCUR(I)-RLOLD(I))*RLDOT(I)
-       ENDDO
-C     
-       FC(NRC)=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
-C     
-       DEALLOCATE(DFDU,DFDP,UOLD,U,F,UBC0,UBC1,FBC,DBC,FICD,DICD)
-       DEALLOCATE(UIC,UIO,UID,UIP)
+       DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD,UIC,UIO,UID,UIP)
        RETURN
-       END
+       END SUBROUTINE
+C
+      END
 C
 C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NA,NBC,NRA,NCA,
-     +  NCB,NRC,A1,A2,BB,CC,CCBC,FAA,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,NT)
+     +  NCB,NRD,A1,A2,BB,CC,CCBC,FAA,
+     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
       INTEGER   IFST,IDB,NLLV,NOV,NA,NBC,NRA
-      INTEGER   NCA,NCB,NRC,NT
+      INTEGER   NCA,NCB,NRD,KWT
       DOUBLE PRECISION DET
       DOUBLE PRECISION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
       DOUBLE PRECISION A1(*),A2(*),BB(*),CC(*),CCBC(*),FAA(*)
@@ -634,43 +568,45 @@ C Arguments
 C
 C Local
       DOUBLE PRECISION SOL1,SOL2,SOL3,FCC,E,X
-      INTEGER IR,IC
+      INTEGER IR,IC,NRC
       ALLOCATABLE SOL1(:),SOL2(:),SOL3(:),FCC(:),E(:,:),IR(:),IC(:)
       ALLOCATABLE X(:)
       ALLOCATE(SOL1(NOV*(NA+1)),SOL2(NOV*(NA+1)),SOL3(NOV*(NA+1)))
-      ALLOCATE(FCC(2*NOV+NRC+2*NOV*NOV+1),E(NOV+NRC,2*NOV+NRC))
-      ALLOCATE(IR(2*NOV+NRC+2*NOV*NOV+1),IC(2*NOV+NRC+2*NOV*NOV+1))
+      ALLOCATE(FCC(2*NOV+NRD+2*NOV*NOV+1),E(NOV+NRD,2*NOV+NRD))
+      ALLOCATE(IR(2*NOV+NRD+2*NOV*NOV+1),IC(2*NOV+NRD+2*NOV*NOV+1))
+C
+      NRC=NRD-NBC
 C
       IF(IDB.GT.4)
-     +     CALL PRINT1(NA,NRA,NCA,NCB,NRC,NBC,A,B,C,CCBC,D,FA,FC)
+     +     CALL PRINT1(NA,NRA,NCA,NCB,NRD,NBC,A,B,C,CCBC,D,FA,FC)
 
       IF(IFST.EQ.1)THEN
-         CALL CONPAR(NOV,NA/NT,NRA,NCA,A,NCB,B,NRC-NBC,C,
+         CALL CONPAR(NOV,NA/KWT,NRA,NCA,A,NCB,B,NRC,C,
      +        D(1,NBC+1),IRF,ICF)
-         IF(NT.GT.1)THEN
-            CALL MPICON(NA,NRA,NCA,A,NCB,B,NRC-NBC,C,
-     +           D(1,NBC+1),FA,FC(NBC+1),IRF,ICF,NT)
+         IF(KWT.GT.1)THEN
+            CALL MPICON(NA,NRA,NCA,A,NCB,B,NRC,C,
+     +           D(1,NBC+1),FA,FC(NBC+1),IRF,ICF,IFST,KWT)
          ENDIF
-         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC-NBC,C,A1,A2,BB,CC,IRF)
+         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
-         CALL CONRHS(NOV,NA,NRA,NCA,A,NRC-NBC,C,FA,FC(NBC+1),IRF,ICF)
+         CALL CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF,ICF)
       ELSE
-         CALL SETZERO(FA,FC,NA,NRA,NRC)
+         CALL SETZERO(FA,FC,NA,NRA,NRD)
       ENDIF
       CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
       IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D(1,NBC+1),
-     +     NA,NOV,NCB,NRC-NBC,S1,S2,ICF1,ICF2,IPR)
+     +     NA,NOV,NCB,NRC,S1,S2,ICF1,ICF2,IPR)
 C
       IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),NA,NOV,NCB,NRC-NBC,ICF1,ICF2,IPR)
+     +     FAA,FC(NBC+1),NA,NOV,NCB,NRC,ICF1,ICF2,IPR)
 C
       CALL DIMRGE(E,CC,CCBC,D,FC,IR,IC,IFST,
-     +     NA,NRC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
+     +     NA,NRD,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
       CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,
      +     SOL1,SOL2,SOL3,NA,NOV,NCB,ICF2)
@@ -685,12 +621,12 @@ C
       END
 C
 C     ---------- -------
-      SUBROUTINE SETZERO(FA,FC,NA,NRA,NRC)
+      SUBROUTINE SETZERO(FA,FC,NA,NRA,NRD)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NRA,NRC
+      INTEGER   NA,NRA,NRD
       DOUBLE PRECISION FA(NRA,*),FC(*)
 C
 C Local
@@ -702,7 +638,7 @@ C
         ENDDO
       ENDDO
 C
-      DO I=1,NRC
+      DO I=1,NRD
         FC(I)=0.D0
       ENDDO
 C
@@ -1365,14 +1301,14 @@ C
 C
 C     ---------- ------
       SUBROUTINE DIMRGE(E,CC,CCBC,D,FC,IR,IC,IFST,
-     +  NA,NRC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
+     +  NA,NRD,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
-      INTEGER   NA,NRC,NOV,NCB,IDB,NLLV
+      INTEGER   NA,NRD,NOV,NCB,IDB,NLLV
       INTEGER   IR(*),IC(*)
-      DIMENSION E(NOV+NRC,*),CC(NOV,NRC-NBC,*),CCBC(NOV,NBC,*),D(NCB,*)
+      DIMENSION E(NOV+NRD,*),CC(NOV,NRD-NBC,*),CCBC(NOV,NBC,*),D(NCB,*)
       DIMENSION P0(NOV,*),P1(NOV,*),S(NOV,NOV,*)
       DIMENSION FAA(NOV,*),A2(NOV,NOV,*),BB(NCB,NOV,*)
       DIMENSION FC(*),FCC(*)
@@ -1380,10 +1316,10 @@ C
 C Local
       INTEGER  I,J
       ALLOCATABLE XE(:)
-      ALLOCATE(XE(NOV+NRC))
+      ALLOCATE(XE(NOV+NRD))
 C
       NAP1    = NA+1
-      NCR     = NRC+NOV
+      NCR     = NRD+NOV
 C     
 C Copy
       DO I=1,NOV
@@ -1400,7 +1336,7 @@ C Copy
          ENDDO
       ENDDO
 C     
-      DO I=1,NRC
+      DO I=1,NRD
          NOVPI=NOV+I
          DO J=1,NOV
             NOVPJ          = NOV+J
@@ -1422,7 +1358,7 @@ C
          XE(I)=FAA(I,NA)
       ENDDO
 C
-      DO I=1,NRC
+      DO I=1,NRD
          NOVPI     = NOV+I
          XE(NOVPI) = FC(I)
       ENDDO
@@ -1474,7 +1410,7 @@ C
  102  FORMAT(/,1X,'Reduced Jacobian matrix:')
  103  FORMAT(/,1X,'Solution vector:')
 C     
-      DO I=1,NRC
+      DO I=1,NRD
          FC(I)=FCC(NOV+I)
       ENDDO
 C
@@ -1612,11 +1548,11 @@ C
       END
 C           
 C     ---------- ------
-      SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NRC,NBC,A,B,C,CCBC,D,FA,FC)
+      SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NRD,NBC,A,B,C,CCBC,D,FA,FC)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
+      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRD-NBC,*)
       DIMENSION CCBC(NCA-NRA,NBC,*),D(NCB,*),FA(NRA,*),FC(*)
 C
        WRITE(9,101)
@@ -1631,7 +1567,7 @@ C
        WRITE(9,104)
        DO I=1,NA
          WRITE(9,102)I
-         DO IR=1,NRC
+         DO IR=1,NRD
            IF(IR.GT.NBC)THEN
              WRITE(9,103)(C(IC,IR-NBC,I),IC=1,NCA)
            ELSEIF(I.EQ.1)THEN
@@ -1643,7 +1579,7 @@ C
        ENDDO
 C
        WRITE(9,105)
-       DO IR=1,NRC
+       DO IR=1,NRD
          WRITE(9,103)(D(IC,IR),IC=1,NCB),FC(IR)
        ENDDO
 C
