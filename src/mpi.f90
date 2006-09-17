@@ -333,15 +333,15 @@ contains
 
 end subroutine mpiwfi
 
-subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, &
-     irf, icf, comm_size)
+subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
+     comm_size)
   implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
 
-  integer :: nov, na, nra, nca, ncb, nrc, nint
+  integer :: na, nra, nca, ncb, nrc, nint
   integer :: icf(nca,*), irf(nra,*), comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
   double precision :: d(ncb,*),fa(nra,*),fc(*)
@@ -356,9 +356,6 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, &
   integer, allocatable :: fa_counts(:), fa_displacements(:)
   double precision, allocatable :: dtemp(:,:),fctemp(:)
   double precision :: dum
-
-  call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
-  if(comm_size<2)return
 
   allocate(a_counts(comm_size),a_displacements(comm_size))
   allocate(b_counts(comm_size),b_displacements(comm_size))
@@ -380,8 +377,8 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, &
   fa_displacements(1) = 0
 
   do i=2,comm_size
-     loop_start = ((i-2)*na)/(comm_size - 1)
-     loop_end = ((i-1)*na)/(comm_size - 1)
+     loop_start = ((i-1)*na)/comm_size
+     loop_end = (i*na)/comm_size
      a_counts(i) = nca*nra*(loop_end-loop_start)
      a_displacements(i) = nca*nra*loop_start
      b_counts(i) = ncb*nra*(loop_end-loop_start)
@@ -452,7 +449,7 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, &
 end subroutine mpicon
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
-     fa,fc,rldot,ups,uoldps,udotps,upoldp,dtm,thu,wi,wp,wt,comm_size)
+     rldot,ups,uoldps,udotps,upoldp,dtm,thu,wi,wp,wt,comm_size)
   implicit none
   integer NIAP,NRAP,NPARX,NBIFX
 
@@ -464,7 +461,7 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
 
   integer :: ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap(*),icp(*),comm_size
-  double precision :: rap(*),par(*),fa(nra,*),fc(*),rldot(*)
+  double precision :: rap(*),par(*),rldot(*)
   double precision :: ups(ndx,*),uoldps(ndx,*),udotps(ndx,*),upoldp(ndx,*)
   double precision :: dtm(*),thu(*),wi(*),wp(ncol+1,*),wt(ncol+1,*)
 
@@ -486,8 +483,8 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
     call MPI_Send(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,i-1,0, &
          MPI_COMM_WORLD,ierr)
 
-    loop_start = ((i-2)*na)/(comm_size - 1)
-    loop_end = ((i-1)*na)/(comm_size - 1)
+    loop_start = ((i-1)*na)/comm_size
+    loop_end = (i*na)/comm_size
     dtm_counts(i) = (loop_end-loop_start)
     dtm_displacements(i) = (loop_start)
 
