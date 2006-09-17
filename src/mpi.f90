@@ -16,7 +16,7 @@ subroutine mpiini()
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
+  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer ierr,myid,namelen
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
@@ -71,7 +71,7 @@ subroutine mpiiap(iap)
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
+  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer :: iap(*)
 
@@ -105,7 +105,7 @@ subroutine mpiwfi(autobv,funi,icni)
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
+  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   logical :: autobv
   external funi,icni
@@ -155,6 +155,7 @@ contains
 
     integer :: nov, nra, nca, ncb, nrc, ifst, nllv
     integer, allocatable :: irf(:,:), icf(:,:)
+    double precision, allocatable :: sol(:,:)
     double precision dum
 
     ! input scalars
@@ -182,6 +183,11 @@ contains
 
     call mpicon_comm(na, nra, nca, aa, ncb, bb, nrc, cc, dd, dum, fa, fc, &
          dum, irf, icf, ifst, 0)
+
+    deallocate(fc)
+    allocate(fc(nov+ncb),sol(nov,na+1))
+    call mpiinf(aa,bb,fa,sol,fc,na,nov,nra,nca,ncb,irf,icf,0)
+    deallocate(sol)
 
     deallocate(irf,icf,fa,fc)
   end subroutine mpi_conpar_worker
@@ -432,8 +438,10 @@ subroutine mpisbv_comm(na,nra,dtm,ups,uoldps,udotps,upoldp,comm_size)
     ups_counts(i) = nra*(loop_end-loop_start+1)
     ups_displacements(i) = nra*loop_start
   enddo
-  dtm_counts(1) = 0
-  ups_counts(1) = 0
+  if(comm_size>0)then
+     dtm_counts(1) = 0
+     ups_counts(1) = 0
+  endif
 
   call MPI_Scatterv(dtm,dtm_counts,dtm_displacements,MPI_DOUBLE_PRECISION, &
        dtm,na,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -460,7 +468,7 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
 
   integer, parameter :: NPARX2=2*NPARX
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
+  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer :: ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap(*),icp(*)
   integer :: ifst,nllv,comm_size
@@ -531,12 +539,59 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
 
 end subroutine mpisbv
 
+subroutine mpiinf(a,b,fa,sol,fc,na,nov,nra,nca,ncb,irf,icf,comm_size)
+  implicit none
+  include 'mpif.h'
+  
+  integer :: na,nov,nra,nca,ncb,irf(nra,*),icf(nca,*),comm_size
+  double precision :: a(nca,nra,*),b(ncb,nra,*),fa(nra,*),fc(*),sol(nov,*)
+
+  double precision, allocatable :: x(:)
+  integer, allocatable :: sol_counts(:), sol_displacements(:)
+  integer, allocatable :: fa_counts(:), fa_displacements(:)
+  integer i, ierr, n, loop_end, loop_start
+
+  allocate(sol_counts(comm_size),sol_displacements(comm_size))
+  allocate(fa_counts(comm_size),fa_displacements(comm_size))
+
+  do i=1,comm_size
+    loop_start = ((i-1)*na)/comm_size
+    loop_end = (i*na)/comm_size
+    sol_counts(i) = nov*(loop_end-loop_start+1)
+    sol_displacements(i) = nov*loop_start
+    fa_counts(i) = nra*(loop_end-loop_start)
+    fa_displacements(i) = nra*loop_start
+  enddo
+  if(comm_size>0)then
+     sol_counts(1) = 0
+     fa_counts(1) = 0
+  endif
+
+  call MPI_Bcast(fc,nov+ncb,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_Scatterv(sol,sol_counts,sol_displacements,MPI_DOUBLE_PRECISION, &
+       sol,nov*(na+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+  allocate(x(nra))
+  n = na
+  if(comm_size/=0)then
+     n = na/comm_size
+  endif
+  call infpar(a,b,fa,sol,fc,n,nov,nra,nca,ncb,irf,icf,x)
+  deallocate(x)
+
+  call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION, &
+       fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
+       0,MPI_COMM_WORLD,ierr)
+  deallocate(fa_counts,fa_displacements,sol_counts,sol_displacements)
+
+end subroutine mpiinf
+
 subroutine mpiend()
   implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
+  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer size,i,ierr
 

@@ -18,5 +18,8 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   comm_size = 1
 end subroutine mpisbv
 
+subroutine mpiinf(a,b,fa,sol,fc,na,nov,nra,nca,ncb,irf,icf,comm_size)
+end subroutine mpiinf
+
 subroutine mpiend()
 end subroutine mpiend
