@@ -535,7 +535,7 @@ C     Integral constraints :
                   UIP(I)=UPOLDP(I1,J1)
                ENDDO
                CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
-     *              FICD,2,DICD)
+     *              FICD,0,DICD)
                DO M=1,NINT
                   FC(M)=FC(M)-DTM(J)*WI(K)*FICD(M)
                ENDDO
@@ -583,23 +583,25 @@ C
       IF(IFST.EQ.1)THEN
          CALL CONPAR(NOV,NA/KWT,NRA,NCA,A,NCB,B,NRC,C,
      +        D(1,NBC+1),IRF,ICF)
-         IF(KWT.GT.1)THEN
-            CALL MPICON(NA,NRA,NCA,A,NCB,B,NRC,C,
-     +           D(1,NBC+1),FA,FC(NBC+1),IRF,ICF,IFST,KWT)
-         ENDIF
-         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
-         CALL CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF,ICF)
+         CALL CONRHS(NOV,NA/KWT,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF,ICF)
       ELSE
-         CALL SETZERO(FA,FC,NA,NRA,NRD)
+         CALL SETZERO(FA,FC,NA/KWT,NRA,NRD)
       ENDIF
-      CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
-      IF(IFST.EQ.1)
-     +     CALL REDUCE(A1,A2,BB,CC,D(1,NBC+1),
+      IF(KWT.GT.1)THEN
+         CALL MPICON(NA,NRA,NCA,A,NCB,B,NRC,C,
+     +        D(1,NBC+1),FA,FC(NBC+1),IRF,ICF,IFST,KWT)
+      ENDIF
+C
+      CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
+      IF(IFST.EQ.1)THEN
+         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
+         CALL REDUCE(A1,A2,BB,CC,D(1,NBC+1),
      +     NA,NOV,NCB,NRC,S1,S2,ICF1,ICF2,IPR)
+      ENDIF
 C
       IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,

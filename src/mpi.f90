@@ -110,7 +110,8 @@ subroutine mpiwfi(autobv,funi,icni)
   logical :: autobv
   external funi,icni
 
-  double precision, allocatable :: aa(:,:,:), bb(:,:,:), cc(:,:,:), dd(:,:)
+  double precision, allocatable, save :: aa(:,:,:), bb(:,:,:), cc(:,:,:), &
+       dd(:,:)
   double precision, allocatable :: fa(:,:), fc(:)
 
   integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na
@@ -152,7 +153,7 @@ contains
 
     integer :: na, params(*)
 
-    integer :: nov, nra, nca, ncb, nrc, nint, ifst
+    integer :: nov, nra, nca, ncb, nrc, ifst, nllv
     integer, allocatable :: irf(:,:), icf(:,:)
     double precision dum
 
@@ -163,20 +164,26 @@ contains
     ncb = params(4)
     nrc = params(5)
     ifst = params(8)
-    nint = nrc-1
+    nllv = params(9)
 
     !input/output arrays
 
     allocate(irf(nra,na),icf(nca,na))
 
-    call conpar(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
+    if(ifst==1)then
+       call conpar(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
+    endif
+
+    if(nllv==0)then
+       call conrhs(nov,na,nra,nca,aa,nrc,cc,fa,fc,irf,icf)
+    else
+       call setzero(fa,fc,na,nra,nrc)
+    endif
 
     call mpicon_comm(na, nra, nca, aa, ncb, bb, nrc, cc, dd, dum, fa, fc, &
          dum, irf, icf, ifst, 0)
 
-    deallocate(irf,icf)
-    deallocate(aa,bb,cc,dd,fa)
-    if(nint>0)deallocate(fc)
+    deallocate(irf,icf,fa,fc)
   end subroutine mpi_conpar_worker
 
   subroutine mpi_setubv_worker(funi,icni,na,params)
@@ -246,9 +253,13 @@ contains
 
     ! output arrays
 
-    allocate(aa(nca,nra,na),bb(ncb,nra,na),cc(nca,nrc,na),dd(ncb,nrc))
-    allocate(fa(nra,na))
-    if(nint>0) allocate(fc(nint))
+    if(ifst==1)then
+       if(allocated(aa))then
+          deallocate(aa,bb,cc,dd)
+       endif
+       allocate(aa(nca,nra,na),bb(ncb,nra,na),cc(nca,nrc,na),dd(ncb,nrc))
+    endif
+    allocate(fa(nra,na),fc(nrc))
 
     ! A little explanation of what is going on here
     ! is in order I believe.  This array is
@@ -262,6 +273,7 @@ contains
     ! zero pseudo-arclength part of array, rest is done in setubv()
 
     do i=nint+1,nrc
+       fc(i)=0.0d0
        do j=1,ncb
           dd(j,i)=0.0d0
        enddo
@@ -283,7 +295,7 @@ subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
   implicit none
   include 'mpif.h'
 
-  integer :: na, nra, nca, ncb, nrc, nint
+  integer :: na, nra, nca, ncb, nrc
   integer :: icf(nca,*), irf(nra,*), ifst, comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
   double precision :: d(ncb,*),drec(ncb,*),fa(nra,*),fc(*),fcrec(*)
@@ -308,11 +320,8 @@ subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
        fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
   deallocate(fa_counts,fa_displacements)
-  nint=nrc-1
-  if(nint>0)then
-     call MPI_Reduce(fc,fcrec,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-          MPI_COMM_WORLD,ierr)
-  endif
+  call MPI_Reduce(fc,fcrec,nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+       MPI_COMM_WORLD,ierr)
   if(ifst==0)return
 
   allocate(a_counts(comm_size),a_displacements(comm_size))
@@ -367,7 +376,7 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
   implicit none
   include 'mpif.h'
 
-  integer :: na, nra, nca, ncb, nrc, nint, ifst
+  integer :: na, nra, nca, ncb, nrc, ifst
   integer :: icf(nca,*), irf(nra,*), comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
   double precision :: d(ncb,*),fa(nra,*),fc(*)
@@ -380,9 +389,7 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
   ! I create a temporary receive buffer for the MPI_Reduce
   ! command.  This is because there isn't an
   ! asymmetric version (like MPI_Scatterv).
-  allocate(dtemp(ncb,nrc))
-  nint=nrc-1
-  if(nint>0)allocate(fctemp(nint))
+  allocate(dtemp(ncb,nrc),fctemp(nrc))
 
   call mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, dtemp, fa, fc, &
      fctemp, irf, icf, ifst, comm_size)
@@ -390,17 +397,14 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
   if(ifst==1)then
      do i=1,nrc
         do j=1,ncb
-           d(i,j)=dtemp(j,i)
+           d(j,i)=dtemp(j,i)
         enddo
      enddo
   endif
-  deallocate(dtemp)
-  if(nint>0)then
-     do i=1,nint
-        fc(i)=fctemp(i)
-     enddo
-     deallocate(fctemp)
-  endif
+  do i=1,nrc
+     fc(i)=fctemp(i)
+  enddo
+  deallocate(dtemp,fctemp)
 
 end subroutine mpicon
 
