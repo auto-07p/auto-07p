@@ -154,7 +154,7 @@ contains
 
     integer :: na, params(*)
 
-    integer :: nov, nra, nca, ncb, nrc, nint, ierr
+    integer :: nov, nra, nca, ncb, nrc, nint
     integer, allocatable :: irf(:,:), icf(:,:)
     double precision dum
 
@@ -172,29 +172,12 @@ contains
 
     call conpar(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
 
-    call mpi_reduce(dd, dum,ncb*nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-         MPI_COMM_WORLD,ierr)
-    call MPI_Gatherv(aa, nca*nra*na,MPI_DOUBLE_PRECISION,dum,dum,dum, &
-         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_Gatherv(bb, ncb*nra*na,MPI_DOUBLE_PRECISION,dum,dum,dum, &
-         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_Gatherv(cc, nca*nrc*na,MPI_DOUBLE_PRECISION,dum,dum,dum, &
-         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_Gatherv(irf,na*nra,    MPI_INTEGER,dum,dum,dum, &
-         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-    call MPI_Gatherv(icf,na*nca,    MPI_INTEGER,dum,dum,dum, &
-         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-
-    call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION,0,0,0, &
-         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    if(nint>0)then
-       call MPI_Reduce(fc,dum,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-            MPI_COMM_WORLD,ierr)
-       deallocate(fc)
-    endif
+    call mpicon_comm(na, nra, nca, aa, ncb, bb, nrc, cc, dd, dum, fa, fc, &
+         dum, irf, icf, 0)
 
     deallocate(irf,icf)
     deallocate(aa,bb,cc,dd,fa)
+    if(nint>0)deallocate(fc)
   end subroutine mpi_conpar_worker
 
   subroutine mpi_setubv_worker(funi,icni,na,loop_offset,params)
@@ -333,29 +316,23 @@ contains
 
 end subroutine mpiwfi
 
-subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
-     comm_size)
+subroutine mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, drec, fa, fc, &
+     fcrec, irf, icf, comm_size)
   implicit none
   include 'mpif.h'
-
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
 
   integer :: na, nra, nca, ncb, nrc, nint
   integer :: icf(nca,*), irf(nra,*), comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
-  double precision :: d(ncb,*),fa(nra,*),fc(*)
+  double precision :: d(ncb,*),drec(ncb,*),fa(nra,*),fc(*),fcrec(*)
 
-  integer loop_start,loop_end,loop_end_tmp
-  integer i,j,ierr
+  integer :: i,ierr,loop_start,loop_end
   integer, allocatable :: a_counts(:),a_displacements(:)
   integer, allocatable :: b_counts(:),b_displacements(:)
   integer, allocatable :: c_counts(:),c_displacements(:)
   integer, allocatable :: irf_counts(:),irf_displacements(:)
   integer, allocatable :: icf_counts(:),icf_displacements(:)
   integer, allocatable :: fa_counts(:), fa_displacements(:)
-  double precision, allocatable :: dtemp(:,:),fctemp(:)
-  double precision :: dum
 
   allocate(a_counts(comm_size),a_displacements(comm_size))
   allocate(b_counts(comm_size),b_displacements(comm_size))
@@ -363,22 +340,11 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
   allocate(irf_counts(comm_size),irf_displacements(comm_size))
   allocate(icf_counts(comm_size),icf_displacements(comm_size))
   allocate(fa_counts(comm_size),fa_displacements(comm_size))
-  a_counts(1) = 0
-  a_displacements(1) = 0
-  b_counts(1) = 0
-  b_displacements(1) = 0
-  c_counts(1) = 0
-  c_displacements(1) = 0
-  irf_counts(1) = 0
-  irf_displacements(1) = 0
-  icf_counts(1) = 0
-  icf_displacements(1) = 0
-  fa_counts(1) = 0
-  fa_displacements(1) = 0
 
-  do i=2,comm_size
+  do i=1,comm_size
      loop_start = ((i-1)*na)/comm_size
      loop_end = (i*na)/comm_size
+     if(i==1)loop_end = 0
      a_counts(i) = nca*nra*(loop_end-loop_start)
      a_displacements(i) = nca*nra*loop_start
      b_counts(i) = ncb*nra*(loop_end-loop_start)
@@ -391,60 +357,80 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
      icf_displacements(i) = nca*loop_start
      fa_counts(i) = nra*(loop_end-loop_start)
      fa_displacements(i) = nra*loop_start
-     loop_end_tmp = loop_end-loop_start
   enddo
 
-  ! Worker is running now
-
-  ! I create a temporary send buffer for the MPI_Reduce
-  ! command.  This is because there isn't an
-  ! asymmetric version (like MPI_Scatterv).
-  allocate(dtemp(ncb,nrc))
-  do i=1,nrc
-     do j=1,ncb
-        dtemp(j,i)=d(j,i)
-     enddo
-  enddo
-  call MPI_Reduce(dtemp,d,ncb*nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-       MPI_COMM_WORLD,ierr)
-  deallocate(dtemp)
-  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
+  call MPI_Gatherv(a, nca*nra*na,MPI_DOUBLE_PRECISION, &
        a,a_counts,a_displacements,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
-  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
+  call MPI_Gatherv(b, ncb*nra*na,MPI_DOUBLE_PRECISION, &
        b,b_counts,b_displacements,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
-  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
+  call MPI_Gatherv(c, nca*nrc*na,MPI_DOUBLE_PRECISION, &
        c,c_counts,c_displacements,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
-  call MPI_Gatherv(dum,0,MPI_INTEGER, &
+  call MPI_Gatherv(irf,na*nra,MPI_INTEGER, &
        irf,irf_counts,irf_displacements,MPI_INTEGER, &
        0,MPI_COMM_WORLD,ierr)
-  call MPI_Gatherv(dum,0,MPI_INTEGER, &
+  call MPI_Gatherv(icf,na*nca,MPI_INTEGER, &
        icf,icf_counts,icf_displacements,MPI_INTEGER, &
        0,MPI_COMM_WORLD,ierr)
 
-  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
+  call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION, &
        fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
-
-  ! I create a temporary send buffer for the MPI_Reduce
-  ! command.  This is because there isn't an
-  ! asymmetric version (like MPI_Scatterv)
-  nint=nrc-1
-  if(nint>0)then
-     allocate(fctemp(nint))
-     do i=1,nint
-        fctemp(i)=fc(i)
-     enddo
-     call MPI_Reduce(fctemp,fc,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-          MPI_COMM_WORLD,ierr)
-     deallocate(fctemp)
-  endif
 
   deallocate(a_counts,a_displacements,b_counts,b_displacements)
   deallocate(c_counts,c_displacements,irf_counts,irf_displacements)
   deallocate(icf_counts,icf_displacements,fa_counts,fa_displacements)
+
+  call MPI_Reduce(d,drec,ncb*nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+       MPI_COMM_WORLD,ierr)
+
+  nint=nrc-1
+  if(nint>0)then
+     call MPI_Reduce(fc,fcrec,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+          MPI_COMM_WORLD,ierr)
+  endif
+
+end subroutine mpicon_comm
+
+subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, irf, icf, &
+     comm_size)
+  implicit none
+  include 'mpif.h'
+
+  integer :: na, nra, nca, ncb, nrc, nint
+  integer :: icf(nca,*), irf(nra,*), comm_size
+  double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
+  double precision :: d(ncb,*),fa(nra,*),fc(*)
+
+  integer i,j
+  double precision, allocatable :: dtemp(:,:),fctemp(:)
+
+  ! Worker is running now
+
+  ! I create a temporary receive buffer for the MPI_Reduce
+  ! command.  This is because there isn't an
+  ! asymmetric version (like MPI_Scatterv).
+  allocate(dtemp(ncb,nrc))
+  nint=nrc-1
+  if(nint>0)allocate(fctemp(nint))
+
+  call mpicon_comm(na, nra, nca, a, ncb, b, nrc, c, d, dtemp, fa, fc, &
+     fctemp, irf, icf, comm_size)
+
+  do i=1,nrc
+     do j=1,ncb
+        d(i,j)=dtemp(j,i)
+     enddo
+  enddo
+  deallocate(dtemp)
+  if(nint>0)then
+     do i=1,nint
+        fc(i)=fctemp(i)
+     enddo
+     deallocate(fctemp)
+  endif
 
 end subroutine mpicon
 
