@@ -567,11 +567,10 @@ C Arguments
       INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)      
 C
 C Local
-      DOUBLE PRECISION SOL1,SOL2,SOL3,FCC,E,X
+      DOUBLE PRECISION SOL,FCC,E,X
       INTEGER IR,IC,NRC
-      ALLOCATABLE SOL1(:),SOL2(:),SOL3(:),FCC(:),E(:,:),IR(:),IC(:)
-      ALLOCATABLE X(:)
-      ALLOCATE(SOL1(NOV*(NA+1)),SOL2(NOV*(NA+1)),SOL3(NOV*(NA+1)))
+      ALLOCATABLE SOL(:,:),FCC(:),E(:,:),IR(:),IC(:),X(:)
+      ALLOCATE(SOL(NOV,NA+1))
       ALLOCATE(FCC(2*NOV+NRD+2*NOV*NOV+1),E(NOV+NRD,2*NOV+NRD))
       ALLOCATE(IR(2*NOV+NRD+2*NOV*NOV+1),IC(2*NOV+NRD+2*NOV*NOV+1))
 C
@@ -610,15 +609,13 @@ C
       CALL DIMRGE(E,CC,CCBC,D,FC,IR,IC,IFST,
      +     NA,NRD,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
-      CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,
-     +     SOL1,SOL2,SOL3,NA,NOV,NCB,ICF2)
+      CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,ICF2)
 C
       ALLOCATE(X(NRA))
-      CALL INFPAR(A,B,FA,SOL1,SOL2,FC,
-     *     NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      CALL INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
       DEALLOCATE(X)
 C
-      DEALLOCATE(SOL1,SOL2,SOL3,FCC,E,IR,IC)
+      DEALLOCATE(SOL,FCC,E,IR,IC)
       RETURN
       END
 C
@@ -1432,8 +1429,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,
-     +           SOL1,SOL2,SOL3,NA,NOV,NCB,ICF2)
+      SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,ICF2)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
@@ -1442,24 +1438,15 @@ C Arguments
       INTEGER   NA,NOV,NCB,ICF2(NOV,*)
       DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DIMENSION A2(NOV,NOV,*),BB(NCB,NOV,*)
-      DIMENSION SOL1(NOV,*),SOL2(NOV,*),SOL3(NOV,*)
-      DIMENSION FAA(NOV,*),FC(*),FCC(*)
+      DIMENSION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
 C
 C Local
       INTEGER I,K
       DOUBLE PRECISION SM
 C
       DO L=1,NOV
-         SOL1(L,NA) = FCC(L)
-         SOL2(L,NA) = FC(L)
+         SOL(L,NA+1) = FC(L)
       ENDDO
-C
-      IF(NA.GT.1)THEN
-         DO L=1,NOV
-            SOL1(L,NA-1)=SOL1(L,NA)
-            SOL3(L,NA-1)=SOL2(L,NA)
-         ENDDO
-      ENDIF
 C
 C Backsubstitution process; concurrently in each node.
       NAM1=NA-1
@@ -1467,34 +1454,30 @@ C Backsubstitution process; concurrently in each node.
          DO K=NOV,1,-1
             SM=0.0D0
             DO L=1,NOV
-               SM=SM+SOL1(L,I)*S1(L,K,I)
-               SM=SM+SOL3(L,I)*S2(L,K,I)
+               SM=SM+FCC(L)*S1(L,K,I)
+               SM=SM+SOL(L,I+2)*S2(L,K,I)
             ENDDO
             DO L=1,NCB
                SM=SM+FC(NOV+L)*BB(L,K,I)
             ENDDO
             DO L=K+1,NOV
                L1=ICF2(L,I)
-               SM=SM+SOL2(L1,I)*A2(L1,K,I)
+               SM=SM+SOL(L1,I+1)*A2(L1,K,I)
             ENDDO
             L2=ICF2(K,I)
-            SOL2(L2,I)=(FAA(K,I)-SM)/A2(L2,K,I)
-         ENDDO
-         DO L=1,NOV
-            SOL1(L,I+1)=SOL2(L,I)
-            IF(I.GT.1)THEN
-               SOL3(L,I-1)=SOL2(L,I)
-               SOL1(L,I-1)=SOL1(L,I)            
-            ENDIF
+            SOL(L2,I+1)=(FAA(K,I)-SM)/A2(L2,K,I)
          ENDDO
       ENDDO
 C
+      DO L=1,NOV
+         SOL(L,1)=FCC(L)
+      ENDDO
+
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE INFPAR(A,B,FA,SOL1,SOL2,FC,
-     +  NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      SUBROUTINE INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
@@ -1502,7 +1485,7 @@ C
 C  Arguments
       INTEGER   NA,NOV,NRA,NCA,NCB,IRF(NRA,*),ICF(NCA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
-      DIMENSION SOL1(NOV,*),SOL2(NOV,*),X(*)
+      DIMENSION SOL(NOV,*),X(*)
 C
 C Local
       DOUBLE PRECISION SM
@@ -1519,8 +1502,8 @@ C Backsubstitution in the condensation of parameters; no communication.
             IRFIR=IRF(IR,I)
             DO J=1,NOV
                NRAPJ=NRA+J
-               SM=SM+A(J,IRFIR,I)*SOL1(J,I)
-               SM=SM+A(NRAPJ,IRFIR,I)*SOL2(J,I)
+               SM=SM+A(J,IRFIR,I)*SOL(J,I)
+               SM=SM+A(NRAPJ,IRFIR,I)*SOL(J,I+1)
             ENDDO
             DO J=1,NCB
                NOVPJ=NOV+J
@@ -1536,9 +1519,9 @@ C Backsubstitution in the condensation of parameters; no communication.
             X(ICFNOVPIR)=(FA(IRFIR,I)-SM)/
      +           A(ICFNOVPIR,IRFIR,I)
          ENDDO    
-C        **Copy SOL1 and X into FA 
+C        **Copy SOL and X into FA 
          DO J=1,NOV
-            FA(J,I)=SOL1(J,I)
+            FA(J,I)=SOL(J,I)
          ENDDO
          DO J=NOV+1,NRA 
             FA(J,I)=X(J)
