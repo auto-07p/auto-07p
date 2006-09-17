@@ -90,7 +90,7 @@ subroutine mpiiap(iap)
 
   funi_icni_params(1)=iap(2)  ! ips
   funi_icni_params(2)=iap(3)  ! irs
-  funi_icni_params(3)=iap(10) ! isw;
+  funi_icni_params(3)=iap(10) ! isw
   funi_icni_params(4)=iap(27) ! itp
   funi_icni_params(5)=iap(29) ! nfpr
   do i=1,comm_size-1
@@ -111,6 +111,7 @@ subroutine mpiwfi(autobv,funi,icni)
   external funi,icni
 
   double precision, allocatable :: aa(:,:,:), bb(:,:,:), cc(:,:,:), dd(:,:)
+  double precision, allocatable :: fa(:,:), fc(:)
 
   integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na, loop_offset
   integer :: params(8)
@@ -153,7 +154,7 @@ contains
 
     integer :: na, params(*)
 
-    integer :: nov, nra, nca, ncb, nrc, ierr
+    integer :: nov, nra, nca, ncb, nrc, nint, ierr
     integer, allocatable :: irf(:,:), icf(:,:)
     double precision dum
 
@@ -163,12 +164,13 @@ contains
     nca = params(3)
     ncb = params(4)
     nrc = params(5)
+    nint = nrc-1
 
     !input/output arrays
 
     allocate(irf(nra,na),icf(nca,na))
 
-    call conpai(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
+    call conpar(nov,na,nra,nca,aa,ncb,bb,nrc,cc,dd,irf,icf)
 
     call mpi_reduce(dd, dum,ncb*nrc,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
          MPI_COMM_WORLD,ierr)
@@ -183,8 +185,16 @@ contains
     call MPI_Gatherv(icf,na*nca,    MPI_INTEGER,dum,dum,dum, &
          MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
+    call MPI_Gatherv(fa,nra*na,MPI_DOUBLE_PRECISION,0,0,0, &
+         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    if(nint>0)then
+       call MPI_Reduce(fc,dum,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+            MPI_COMM_WORLD,ierr)
+       deallocate(fc)
+    endif
+
     deallocate(irf,icf)
-    deallocate(aa,bb,cc,dd)
+    deallocate(aa,bb,cc,dd,fa)
   end subroutine mpi_conpar_worker
 
   subroutine mpi_setubv_worker(funi,icni,na,loop_offset,params)
@@ -203,7 +213,7 @@ contains
     double precision, allocatable :: rap(:), par(:), ups(:,:), uoldps(:,:)
     double precision, allocatable :: wp(:,:), wt(:,:), wi(:), udotps(:,:)
     double precision, allocatable :: upoldp(:,:), thu(:), rldot(:)
-    double precision, allocatable :: dtm(:), fa(:,:), fc(:)
+    double precision, allocatable :: dtm(:)
     double precision dum
 
     integer :: pos, bufsize, size_int, size_double
@@ -284,7 +294,7 @@ contains
     ! output arrays
 
     allocate(aa(nca,nra,na),bb(ncb,nra,na),cc(nca,nrc,na),dd(ncb,nrc))
-    allocate(fa(ndim*ncol,na))
+    allocate(fa(nra,na))
     if(nint>0) allocate(fc(nint))
 
     ! A little explanation of what is going on here
@@ -316,29 +326,25 @@ contains
          uoldps(1,loop_offset+1), udotps(1,loop_offset+1), &
          upoldp(1,loop_offset+1), dtm, thu, wi, wp, wt)
 
-    call MPI_Gatherv(fa,ndim*ncol*na,MPI_DOUBLE_PRECISION,0,0,0, &
-         MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_Reduce(fc,dum,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-         MPI_COMM_WORLD,ierr)
-
     ! free input arrays
     deallocate(iap,rap,par,icp,ups,uoldps,dtm,wp,wt,udotps,upoldp,wi,thu)
-    deallocate(rldot,fa)
-    if(nint>0) deallocate(fc)
+    deallocate(rldot)
   end subroutine mpi_setubv_worker
 
 end subroutine mpiwfi
 
-subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
+subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d, fa, fc, &
+     irf, icf, comm_size)
   implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_CONPAR_MESSAGE = 2, AUTO_MPI_INIT_MESSAGE = 3
 
-  integer :: nov, na, nra, nca, ncb, nrc, icf(nca,*), irf(nra,*), comm_size
+  integer :: nov, na, nra, nca, ncb, nrc, nint
+  integer :: icf(nca,*), irf(nra,*), comm_size
   double precision :: a(nca,nra,*),b(ncb,nra,*),c(nca,nrc,*)
-  double precision :: d(ncb,*)
+  double precision :: d(ncb,*),fa(nra,*),fc(*)
 
   integer loop_start,loop_end,loop_end_tmp
   integer i,j,ierr
@@ -347,7 +353,8 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
   integer, allocatable :: c_counts(:),c_displacements(:)
   integer, allocatable :: irf_counts(:),irf_displacements(:)
   integer, allocatable :: icf_counts(:),icf_displacements(:)
-  double precision, allocatable :: dtemp(:,:)
+  integer, allocatable :: fa_counts(:), fa_displacements(:)
+  double precision, allocatable :: dtemp(:,:),fctemp(:)
   double precision :: dum
 
   call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
@@ -358,16 +365,19 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
   allocate(c_counts(comm_size),c_displacements(comm_size))
   allocate(irf_counts(comm_size),irf_displacements(comm_size))
   allocate(icf_counts(comm_size),icf_displacements(comm_size))
-  a_counts(1) = 0;
-  a_displacements(1) = 0;
-  b_counts(1) = 0;
-  b_displacements(1) = 0;
-  c_counts(1) = 0;
-  c_displacements(1) = 0;
-  irf_counts(1) = 0;
-  irf_displacements(1) = 0;
-  icf_counts(1) = 0;
-  icf_displacements(1) = 0;
+  allocate(fa_counts(comm_size),fa_displacements(comm_size))
+  a_counts(1) = 0
+  a_displacements(1) = 0
+  b_counts(1) = 0
+  b_displacements(1) = 0
+  c_counts(1) = 0
+  c_displacements(1) = 0
+  irf_counts(1) = 0
+  irf_displacements(1) = 0
+  icf_counts(1) = 0
+  icf_displacements(1) = 0
+  fa_counts(1) = 0
+  fa_displacements(1) = 0
 
   do i=2,comm_size
      loop_start = ((i-2)*na)/(comm_size - 1)
@@ -382,6 +392,8 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
      irf_displacements(i) = nra*loop_start
      icf_counts(i) = nca*(loop_end-loop_start)
      icf_displacements(i) = nca*loop_start
+     fa_counts(i) = nra*(loop_end-loop_start)
+     fa_displacements(i) = nra*loop_start
      loop_end_tmp = loop_end-loop_start
   enddo
 
@@ -415,9 +427,27 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
        icf,icf_counts,icf_displacements,MPI_INTEGER, &
        0,MPI_COMM_WORLD,ierr)
 
+  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
+       fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
+       0,MPI_COMM_WORLD,ierr)
+
+  ! I create a temporary send buffer for the MPI_Reduce
+  ! command.  This is because there isn't an
+  ! asymmetric version (like MPI_Scatterv)
+  nint=nrc-1
+  if(nint>0)then
+     allocate(fctemp(nint))
+     do i=1,nint
+        fctemp(i)=fc(i)
+     enddo
+     call MPI_Reduce(fctemp,fc,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+          MPI_COMM_WORLD,ierr)
+     deallocate(fctemp)
+  endif
+
   deallocate(a_counts,a_displacements,b_counts,b_displacements)
   deallocate(c_counts,c_displacements,irf_counts,irf_displacements)
-  deallocate(icf_counts,icf_displacements)
+  deallocate(icf_counts,icf_displacements,fa_counts,fa_displacements)
 
 end subroutine mpicon
 
@@ -439,19 +469,14 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   double precision :: dtm(*),thu(*),wi(*),wp(ncol+1,*),wt(ncol+1,*)
 
   integer :: loop_start,loop_end,local_na,i,ierr,params(8)
-  integer, allocatable :: fa_counts(:), fa_displacements(:)
   integer, allocatable :: dtm_counts(:), dtm_displacements(:)
   integer, allocatable :: buffer(:)
   integer pos,bufsize,size_int,size_double
-  double precision, allocatable :: fctemp(:)
   double precision dum
 
   call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
   if(comm_size<2)return
-  allocate(fa_counts(comm_size),fa_displacements(comm_size))
   allocate(dtm_counts(comm_size),dtm_displacements(comm_size))
-  fa_counts(1) = 0
-  fa_displacements(1) = 0
   dtm_counts(1) = 0
   dtm_displacements(1) = 0
   
@@ -463,8 +488,6 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
 
     loop_start = ((i-2)*na)/(comm_size - 1)
     loop_end = ((i-1)*na)/(comm_size - 1)
-    fa_counts(i) = ndim*ncol*(loop_end-loop_start)
-    fa_displacements(i) = ndim*ncol*loop_start
     dtm_counts(i) = (loop_end-loop_start)
     dtm_displacements(i) = (loop_start)
 
@@ -538,21 +561,6 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
        0 ,MPI_COMM_WORLD,ierr)
 
   ! Worker runs here
-
-  call MPI_Gatherv(dum,0,MPI_DOUBLE_PRECISION, &
-       fa,fa_counts,fa_displacements,MPI_DOUBLE_PRECISION, &
-       0,MPI_COMM_WORLD,ierr)
-
-  ! I create a temporary send buffer for the MPI_Reduce
-  ! command.  This is because there isn't an
-  ! asymmetric version (like MPI_Scatterv)
-  allocate(fctemp(nint))
-  do i=1,nint
-     fctemp(i)=fc(i)
-  enddo
-  call MPI_Reduce(fctemp,fc,nint,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-       MPI_COMM_WORLD,ierr)
-  deallocate(fctemp)
 
 end subroutine mpisbv
 

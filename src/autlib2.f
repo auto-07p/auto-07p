@@ -631,7 +631,7 @@ C
 C
 C Arguments
       INTEGER   IFST,IDB,NLLV,NOV,NA,NBC,NRA
-      INTEGER   NCA,NCB,NRC
+      INTEGER   NCA,NCB,NRC,NT
       DOUBLE PRECISION DET
       DOUBLE PRECISION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
       DOUBLE PRECISION A1(*),A2(*),BB(*),CC(*),CCBC(*),FAA(*)
@@ -651,8 +651,12 @@ C
      +     CALL PRINT1(NA,NRA,NCA,NCB,NRC,NBC,A,B,C,CCBC,D,FA,FC)
 
       IF(IFST.EQ.1)THEN
-         CALL CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC-NBC,C,
-     +        D(1,NBC+1),IRF,ICF)
+         CALL MPICON(NOV,NA,NRA,NCA,A,NCB,B,NRC-NBC,C,
+     +        D(1,NBC+1),FA,FC(NBC+1),IRF,ICF,NT)
+         IF(NT.EQ.1)THEN
+            CALL CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC-NBC,C,
+     +           D(1,NBC+1),IRF,ICF)
+         ENDIF
          CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC-NBC,C,A1,A2,BB,CC,IRF)
       ENDIF
 C
@@ -858,7 +862,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE CONPAI(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
 C
 C$    USE OMP_LIB
       IMPLICIT NONE
@@ -876,6 +880,7 @@ C
 C Condensation of parameters (Elimination of local variables).
 C NA is the local NTST.
 C
+      IF(NCA.EQ.2*NOV)RETURN
       NT = 1
 C$    NT = OMP_GET_MAX_THREADS()
       IF(NT.GT.1)THEN
@@ -917,28 +922,6 @@ C
           ENDDO
         ENDDO
         DEALLOCATE(DD)
-      ENDIF
-C
-      RETURN
-      END
-C
-C     ---------- ------
-      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
-C
-      IMPLICIT NONE
-C
-C Arguments
-      INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*)
-      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DOUBLE PRECISION D(NCB,*)
-C Local
-      INTEGER NT
-      IF(NCA.EQ.2*NOV)RETURN
-C
-      CALL MPICON(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF,NT)
-      IF(NT.EQ.1)THEN
-         CALL CONPAI(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
       ENDIF
 C
       RETURN
