@@ -35,11 +35,9 @@ contains
     implicit none
     include 'mpif.h'
 
-    integer :: my_rank, message_type, ierr, stat(MPI_STATUS_SIZE)
+    integer :: message_type, ierr, stat(MPI_STATUS_SIZE)
     integer :: funi_icni_params(5), iap(38), icp, iuz
     double precision :: rap,par,thl,thu,vuz
-
-    call MPI_Comm_rank(MPI_COMM_WORLD,my_rank,ierr)
 
     call MPI_Recv(message_type,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
          MPI_COMM_WORLD,stat,ierr)
@@ -114,7 +112,8 @@ subroutine mpiwfi(autobv,funi,icni)
 
   double precision, allocatable :: aa(:,:,:), bb(:,:,:), cc(:,:,:), dd(:,:)
 
-  integer :: message_type, ierr, stat(MPI_STATUS_SIZE)
+  integer :: message_type, ierr, stat(MPI_STATUS_SIZE), na, loop_offset
+  integer :: params(8)
 
   if (.not.autobv) then
      print *,'Illegal problem type for MPI'
@@ -133,9 +132,14 @@ subroutine mpiwfi(autobv,funi,icni)
      case(AUTO_MPI_INIT_MESSAGE)
         return
      case(AUTO_MPI_SETUBV_MESSAGE) ! The setubv message
-        call mpi_setubv_worker(funi,icni)
-     case(AUTO_MPI_CONPAR_MESSAGE) ! The conpar message
-        call mpi_conpar_worker()
+        ! input scalars
+        call MPI_Recv(na,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
+             MPI_COMM_WORLD,stat,ierr)
+        call MPI_Recv(loop_offset,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
+             MPI_COMM_WORLD,stat,ierr)
+        call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        call mpi_setubv_worker(funi,icni,na,loop_offset,params)
+        call mpi_conpar_worker(na,params)
      case default
         print *,'Unknown message recieved: ', message_type
      end select
@@ -143,22 +147,17 @@ subroutine mpiwfi(autobv,funi,icni)
 
 contains
 
-  subroutine mpi_conpar_worker()
+  subroutine mpi_conpar_worker(na,params)
     implicit none
     include 'mpif.h'
 
-    integer :: my_rank, params(5), nov, nra, nca, ncb, nrc, na, ierr, j
-    integer :: stat(MPI_STATUS_SIZE)
+    integer :: na, params(*)
+
+    integer :: nov, nra, nca, ncb, nrc, ierr
     integer, allocatable :: irf(:,:), icf(:,:)
     double precision dum
 
-    ! find out which worker I am */
-    call MPI_Comm_rank(MPI_COMM_WORLD,my_rank,ierr)
     ! input scalars
-    call MPI_Recv(na,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD, &
-         stat,ierr)
-
-    call MPI_Bcast(params,5,MPI_INTEGER,0,MPI_COMM_WORLD,ierr);
     nov = params(1)
     nra = params(2)
     nca = params(3)
@@ -188,17 +187,17 @@ contains
     deallocate(aa,bb,cc,dd)
   end subroutine mpi_conpar_worker
 
-  subroutine mpi_setubv_worker(funi,icni)
+  subroutine mpi_setubv_worker(funi,icni,na,loop_offset,params)
     implicit none
     include 'mpif.h'
     integer NIAP,NRAP,NPARX,NBIFX
     include 'auto.h'
     integer, parameter :: NPARX2=2*NPARX
 
-    integer :: stat(MPI_STATUS_SIZE)
-    integer :: my_rank, comm_size, i, j, ierr
-    integer :: na, ndim, ncol, nint, ncb, nrc, nra, nca, ntst, loop_offset
-    integer :: params(8)
+    integer :: na, loop_offset, params(8)
+
+    integer :: ndim, ncol, nint, ncb, nrc, nra, nca, ntst
+    integer :: i, j, ierr
 
     integer, allocatable :: iap(:),icp(:)
     double precision, allocatable :: rap(:), par(:), ups(:,:), uoldps(:,:)
@@ -212,22 +211,13 @@ contains
 
     external funi, icni
 
-    call MPI_Comm_rank(MPI_COMM_WORLD,my_rank,ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
-    ! input scalars
-    call MPI_Recv(na,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD, &
-         stat,ierr)
-    call MPI_Recv(loop_offset,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
-         MPI_COMM_WORLD,stat,ierr)
-    call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-
     ndim=params(1)
-    ncol=params(2)
-    nint=params(3)
+    nra=params(2)
+    nca=params(3)
     ncb=params(4)
     nrc=params(5)
-    nra=params(6)
-    nca=params(7)
+    ncol=params(6)
+    nint=params(7)
     ntst=params(8)
 
     allocate(iap(NIAP),rap(NRAP),par(NPARX2),icp(NPARX))
@@ -351,7 +341,7 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
   double precision :: d(ncb,*)
 
   integer loop_start,loop_end,loop_end_tmp
-  integer i,j,ierr,message,params(5)
+  integer i,j,ierr
   integer, allocatable :: a_counts(:),a_displacements(:)
   integer, allocatable :: b_counts(:),b_displacements(:)
   integer, allocatable :: c_counts(:),c_displacements(:)
@@ -380,9 +370,6 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
   icf_displacements(1) = 0;
 
   do i=2,comm_size
-     ! Send message to get worker into conpar mode
-     message=AUTO_MPI_CONPAR_MESSAGE;
-     call MPI_Send(message,1,MPI_INTEGER,i-1,0,MPI_COMM_WORLD,ierr)
      loop_start = ((i-2)*na)/(comm_size - 1)
      loop_end = ((i-1)*na)/(comm_size - 1)
      a_counts(i) = nca*nra*(loop_end-loop_start)
@@ -396,16 +383,7 @@ subroutine mpicon(nov, na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
      icf_counts(i) = nca*(loop_end-loop_start)
      icf_displacements(i) = nca*loop_start
      loop_end_tmp = loop_end-loop_start
-     call MPI_Send(loop_end_tmp   ,1,MPI_INTEGER,i-1,0,MPI_COMM_WORLD,ierr)
   enddo
-
-  params(1)=nov
-  params(2)=nra
-  params(3)=nca
-  params(4)=ncb
-  params(5)=nrc
-
-  call MPI_Bcast(params,5,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
   ! Worker is running now
 
@@ -496,12 +474,12 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   enddo
 
   params(1)=ndim
-  params(2)=ncol
-  params(3)=nint
+  params(2)=nra
+  params(3)=nca
   params(4)=ncb
   params(5)=nrc
-  params(6)=nra
-  params(7)=nca
+  params(6)=ncol
+  params(7)=nint
   params(8)=na
   call MPI_Bcast(params,8,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
