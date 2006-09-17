@@ -13,7 +13,7 @@ subroutine mpicon(na, nra, nca, a, ncb, b, nrc, c, d,irf, icf, comm_size)
 end subroutine mpicon
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
-     rldot,ups,uoldps,udotps,upoldp,dtm,thu,wi,wp,wt,comm_size)
+     rldot,ups,uoldps,udotps,upoldp,dtm,thu,comm_size)
   integer comm_size
   comm_size = 1
 end subroutine mpisbv
