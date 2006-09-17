@@ -9,7 +9,7 @@ end subroutine mpiiap
 subroutine mpiwfi(autobv,funi,icni)
 end subroutine mpiwfi
 
-subroutine mpicon(na,nra,nca,a,ncb,b,nrc,c,d,fa,fc,irf,icf,ifst,comm_size)
+subroutine mpicon(a1,a2,bb,cc,d,faa,fc,na,nov,ncb,nrc,ifst,comm_size)
 end subroutine mpicon
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
