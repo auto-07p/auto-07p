@@ -18,10 +18,11 @@ subroutine mpiini()
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer ierr,myid,namelen
+  integer ierr,comm_size,myid,namelen
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
 
   call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD,myid,ierr)
   call MPI_Get_processor_name(processor_name,namelen,ierr)
 !  print *,'Process ',myid,' on ',processor_name
@@ -87,6 +88,7 @@ subroutine mpiiap(iap)
   integer funi_icni_params(5)
 
   call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
+  iap(39)=comm_size
 
   funi_icni_params(1)=iap(2)  ! ips
   funi_icni_params(2)=iap(3)  ! irs
@@ -493,9 +495,6 @@ subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
   integer, allocatable :: buffer(:)
   integer pos,bufsize,size_int,size_double
 
-  call MPI_Comm_size(MPI_COMM_WORLD,comm_size,ierr)
-  if(comm_size<2)return
-  
   do i=2,comm_size
     
     ! Send message to get worker into setubv mode

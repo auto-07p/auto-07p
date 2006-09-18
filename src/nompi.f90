@@ -4,6 +4,8 @@ subroutine mpiini()
 end subroutine mpiini
 
 subroutine mpiiap(iap)
+  integer iap(*)
+  iap(39) = 1 ! KWT
 end subroutine mpiiap
 
 subroutine mpiwfi(autobv,funi,icni)
@@ -14,8 +16,6 @@ end subroutine mpicon
 
 subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
      rldot,rlold,ups,uoldps,udotps,upoldp,dtm,thu,ifst,nllv,comm_size)
-  integer comm_size
-  comm_size = 1
 end subroutine mpisbv
 
 subroutine mpiinf(a,b,fa,sol,fc,na,nov,nra,nca,ncb,irf,icf,comm_size)
