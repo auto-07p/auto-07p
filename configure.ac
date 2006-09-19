@@ -92,7 +92,15 @@ AC_LINK_IFELSE([
     end
   ],FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="../lib/compat.o"])])
 AC_SUBST(COMPAT)
+# Use gfortran/g95 to link wrapper functions if possible.
+# It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
+# because of spaces in names such as 'Program Files'
+realcc=$CC
+if test x$ac_cv_fc_compiler_gnu = "xyes"; then
+  CC=$FC
+fi
 AC_FC_WRAPPERS
+CC=$realcc
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
   AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")
