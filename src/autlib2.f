@@ -21,7 +21,7 @@ C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
       ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:)
       ALLOCATABLE FAA(:,:)
-      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),ICF1(:,:),ICF2(:,:)
+      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),ICF1(:,:),ICF2(:,:),NP(:)
       SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,FAA,ICF,IRF,IPR,ICF1,ICF2
 C
 C Most of the required memory is allocated below
@@ -37,6 +37,9 @@ C 1 (since their entries will then be recreated in conpar
 C  and setubv).
 C
 C
+      IAM=IAP(38)
+      KWT=IAP(39)
+C
       NDIM=IAP(1)
       NTST=IAP(5)
       NCOL=IAP(6)
@@ -44,12 +47,25 @@ C
       NINT=IAP(13)
       IID=IAP(18)
       NFPR=IAP(29)
-      KWT=IAP(39)
       NRC=NINT+1
       NRD=NRC+NBC
       NROW=NDIM*NCOL
       NCLM=NROW+NDIM
-      NA=NTST/KWT
+C
+      ALLOCATE(NP(KWT))
+      IF(KWT.GT.NTST)THEN
+        PRINT*,'NTST is less than the number of nodes'
+        STOP
+      ELSE
+        CALL PARTITION(NTST,KWT,NP)
+      ENDIF
+C
+C     NTST is the global one, NA is the local one.
+C     The value of NTST may be different in different nodes.
+      NA=NP(IAM+1)
+C
+      NTSTNA=NA
+      IF(IAM.EQ.0)NTSTNA=NTST
       IF(IFST.EQ.1)THEN
          IF(ALLOCATED(A))THEN
 C           Free floating point arrays
@@ -60,33 +76,45 @@ C           Free integer arrays
 C
          ALLOCATE(A(NCLM,NROW,NA+1),B(NFPR,NROW,NA+1))
          ALLOCATE(C(NCLM,NRC,NA+1),D(NFPR,NRD))
-         ALLOCATE(A1(NDIM,NDIM,NTST+1),A2(NDIM,NDIM,NTST+1))
-         ALLOCATE(S1(NDIM,NDIM,NTST+1),S2(NDIM,NDIM,NTST+1))
-         ALLOCATE(BB(NFPR,NDIM,NTST+1),CC(NDIM,NRC,NTST+1))
-         ALLOCATE(CCBC(NDIM,NBC,2),FAA(NDIM,NTST+1))
+         ALLOCATE(A1(NDIM,NDIM,NTSTNA+1),A2(NDIM,NDIM,NTSTNA+1))
+         ALLOCATE(S1(NDIM,NDIM,NTSTNA+1),S2(NDIM,NDIM,NTSTNA+1))
+         ALLOCATE(BB(NFPR,NDIM,NTSTNA+1),CC(NDIM,NRC,NTSTNA+1))
+         ALLOCATE(CCBC(NDIM,NBC,2),FAA(NDIM,NTSTNA+1))
 C
-         ALLOCATE(ICF(NCLM,NA+1),IRF(NROW,NA+1),IPR(NDIM,NTST+1))
-         ALLOCATE(ICF1(NDIM,NTST+1),ICF2(NDIM,NTST+1))
+         ALLOCATE(ICF(NCLM,NA+1),IRF(NROW,NA+1),IPR(NDIM,NTSTNA+1))
+         ALLOCATE(ICF1(NDIM,NTSTNA+1),ICF2(NDIM,NTSTNA+1))
+      ENDIF
+      IF(IAM.EQ.0)THEN
+         CALL SUBVSR(NDIM,NTST,NBC,NFPR,NRD,NROW,BCNI,NDX,
+     +     IAP,RAP,PAR,ICP,RDS,CCBC,D,FC,RLCUR,RLOLD,
+     +     RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
+         IF(KWT.GT.1)THEN
+            CALL MPISBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UOLDPS,UDOTPS,
+     +           UPOLDP,DTM,THU,IFST,NLLV)
+         ENDIF
+      ELSE
+C     The matrix D and FC are set to zero for all nodes except the first.
+C     zero pseudo-arclength part of matrices, rest is done in setubv()
+         CALL SETFCDD(IFST,D(1,NRD),FC(NRD),NFPR,1)
       ENDIF
 C
-      CALL SUBVSR(NDIM,NTST,NBC,NFPR,NRD,NROW,BCNI,NDX,
-     +  IAP,RAP,PAR,ICP,RDS,CCBC,D,FC,RLCUR,RLOLD,
-     +  RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
-      IF(KWT.GT.1)THEN
-         CALL MPISBV(NDIM,NTST,NCOL,NINT,NFPR,NRC,NROW,NCLM,NDX,IAP,RAP,
-     +     PAR,ICP,RLDOT,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,NLLV,KWT)
-      ENDIF
-      CALL SETUBV(NDIM,NTST/KWT,NCOL,NINT,NFPR,NRC,NROW,NCLM,
+      CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
      +   FUNI,ICNI,NDX,IAP,RAP,PAR,ICP,A,B,C,D(1,NBC+1),FA,
      +   FC(NBC+1),UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST)
 C
       CALL BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
-     +  IID,NLLV,DET,NDIM,NTST,NBC,NROW,NCLM,
+     +  IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
      +  NFPR,NRD,A1,A2,BB,CC,CCBC,FAA,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,KWT)
+     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,IAM,KWT)
 C
-      RAP(14)=DET
+      IF(KWT.GT.1)THEN
+C        Global concatenation of the solution from each node.
+        CALL MPIGAT(FA,NDX,NTST)
+      ENDIF
 C
+      IF(IAM.EQ.0)RAP(14)=DET
+C
+      DEALLOCATE(NP)
       RETURN
       END
 C
@@ -104,6 +132,28 @@ C
         FC(I)=0.0D0
       ENDDO
 C
+      RETURN
+      END
+C
+C     ---------- ---------
+      SUBROUTINE PARTITION(N,KWT,M)
+C
+C     Linear distribution of NTST over all nodes
+      IMPLICIT NONE
+      INTEGER N,KWT,M(KWT)
+      INTEGER I,T,S
+C     
+        T = N / KWT
+        S = MOD(N,KWT)
+C     
+        DO I=1,KWT
+          M(I) = T
+        ENDDO
+C     
+        DO I=1,S
+          M(I) = M(I) + 1
+        ENDDO
+C     
       RETURN
       END
 C
@@ -555,71 +605,76 @@ C
 C
 C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
-     +  IDB,NLLV,DET,NOV,NA,NBC,NRA,NCA,
+     +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
      +  NCB,NRD,A1,A2,BB,CC,CCBC,FAA,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,KWT)
+     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,IAM,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   IFST,IDB,NLLV,NOV,NA,NBC,NRA
-      INTEGER   NCA,NCB,NRD,KWT
+      INTEGER   IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
+      INTEGER   NCA,NCB,NRD,IAM,KWT
       DOUBLE PRECISION DET
       DOUBLE PRECISION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
       DOUBLE PRECISION A1(*),A2(*),BB(*),CC(*),CCBC(*),FAA(*)
       DOUBLE PRECISION S1(*),S2(*)
-      INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)      
+      INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)
 C
 C Local
       DOUBLE PRECISION SOL,FCC,E,X
-      INTEGER IR,IC,NRC
+      INTEGER IR,IC,NRC,NTSTNA
       ALLOCATABLE SOL(:,:),FCC(:),E(:,:),IR(:),IC(:),X(:)
-      ALLOCATE(SOL(NOV,NA+1))
+C
+      NTSTNA=NA
+      IF(IAM.EQ.0)NTSTNA=NTST
+      ALLOCATE(SOL(NOV,NTSTNA+1))
       ALLOCATE(FCC(2*NOV+NRD+2*NOV*NOV+1),E(NOV+NRD,2*NOV+NRD))
       ALLOCATE(IR(2*NOV+NRD+2*NOV*NOV+1),IC(2*NOV+NRD+2*NOV*NOV+1))
 C
       NRC=NRD-NBC
 C
-      IF(IDB.GT.4)
+      IF(IDB.GT.4.and.IAM.EQ.0)
      +     CALL PRINT1(NA,NRA,NCA,NCB,NRD,NBC,A,B,C,CCBC,D,FA,FC)
-
+C
       IF(IFST.EQ.1)THEN
-         CALL CONPAR(NOV,NA/KWT,NRA,NCA,A,NCB,B,NRC,C,
+         CALL CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,
      +        D(1,NBC+1),IRF,ICF)
-         CALL COPYCP(NA/KWT,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
+         CALL COPYCP(NA,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
-         CALL CONRHS(NOV,NA/KWT,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF,ICF)
+         CALL CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF,ICF)
       ELSE
-         CALL SETZERO(FA,FC,NA/KWT,NRA,NRD)
+         CALL SETZERO(FA,FC,NA,NRA,NRD)
       ENDIF
-      CALL CPYRHS(NA/KWT,NOV,NRA,FAA,FA,IRF)
+      CALL CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
       IF(KWT.GT.1)
      +     CALL MPICON(A1,A2,BB,CC,D(1,NBC+1),FAA,FC(NBC+1),
-     +     NA,NOV,NCB,NRC,IFST,KWT)
+     +     NTST,NOV,NCB,NRC,IFST)
 C
-      IF(IFST.EQ.1)
+      IF(IAM.EQ.0)THEN
+         IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D(1,NBC+1),
-     +     NA,NOV,NCB,NRC,S1,S2,ICF1,ICF2,IPR)
+     +     NTST,NOV,NCB,NRC,S1,S2,ICF1,ICF2,IPR)
 C
-      IF(NLLV.EQ.0)
+         IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),NA,NOV,NCB,NRC,ICF1,ICF2,IPR)
+     +     FAA,FC(NBC+1),NTST,NOV,NCB,NRC,ICF1,ICF2,IPR)
 C
-      CALL DIMRGE(E,CC,CCBC,D,FC,IR,IC,IFST,
-     +     NA,NRD,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
+         CALL DIMRGE(E,CC,CCBC,D,FC,IR,IC,IFST,
+     +     NTST,NRD,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
-      CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,ICF2)
-C
-      IF(KWT.GT.1)THEN
-         CALL MPIINF(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,KWT)
-      ELSE
-         ALLOCATE(X(NRA))
-         CALL INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
-         DEALLOCATE(X)
+         CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NTST,NOV,NCB,ICF2)
       ENDIF
+      IF(KWT.GT.1)THEN
+         CALL MPIBCAST(FC,NOV+NCB)
+         CALL MPISCAT(SOL,NOV,NTST,1)
+      ENDIF
+C
+      ALLOCATE(X(NRA))
+      CALL INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      DEALLOCATE(X)
 C
       DEALLOCATE(SOL,FCC,E,IR,IC)
       RETURN

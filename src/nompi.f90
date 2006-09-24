@@ -9,17 +9,30 @@ subroutine mpiiap(iap)
 end subroutine mpiiap
 
 subroutine mpiwfi(autobv,funi,icni)
+  logical :: autobv
+  external funi,icni
 end subroutine mpiwfi
 
-subroutine mpicon(a1,a2,bb,cc,d,faa,fc,na,nov,ncb,nrc,ifst,comm_size)
+subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+  implicit double precision(a-h,o-z)
 end subroutine mpicon
 
-subroutine mpisbv(ndim,na,ncol,nint,ncb,nrc,nra,nca,ndx,iap,rap,par,icp, &
-     rldot,rlold,ups,uoldps,udotps,upoldp,dtm,thu,ifst,nllv,comm_size)
+subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
+     thu,ifst,nllv)
+  implicit double precision(a-h,o-z)
 end subroutine mpisbv
 
-subroutine mpiinf(a,b,fa,sol,fc,na,nov,nra,nca,ncb,irf,icf,comm_size)
-end subroutine mpiinf
+subroutine mpibcast(buf,len)
+  implicit double precision(a-h,o-z)
+end subroutine mpibcast
+
+subroutine mpiscat(buf,ndx,n,iadd)
+  implicit double precision(a-h,o-z)
+end subroutine mpiscat
+
+subroutine mpigat(buf,ndx,n)
+  implicit double precision(a-h,o-z)
+end subroutine mpigat
 
 subroutine mpiend()
 end subroutine mpiend
