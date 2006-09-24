@@ -43,12 +43,11 @@ contains
     include 'auto.h'
     include 'mpif.h'
 
-    integer :: message_type, ierr, stat(MPI_STATUS_SIZE)
+    integer :: message_type, ierr
     integer :: funi_icni_params(5), iap(NIAP), icp, iuz
     double precision :: rap,par,thl,thu,vuz
 
-    call MPI_Recv(message_type,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
-         MPI_COMM_WORLD,stat,ierr)
+    call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     if(message_type /= AUTO_MPI_INIT_MESSAGE)then
        print *,'Fatal: no init message, message received: ', message_type
        stop
@@ -91,7 +90,7 @@ subroutine mpiiap(iap)
   ! message passing parallel version, the workers need both versions, since
   ! they both need to select the appropriate functions (using the old values)
   ! and actually compute (using the new values).
-  integer kwt,i,ierr
+  integer kwt,ierr
   integer funi_icni_params(5)
 
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
@@ -103,10 +102,8 @@ subroutine mpiiap(iap)
   funi_icni_params(3)=iap(10) ! isw
   funi_icni_params(4)=iap(27) ! itp
   funi_icni_params(5)=iap(29) ! nfpr
-  do i=1,kwt-1
-     ! Send message to get worker into init mode
-     call MPI_Send(AUTO_MPI_INIT_MESSAGE,1,MPI_INTEGER,i,0,MPI_COMM_WORLD,ierr)
-  enddo
+  ! Send message to get worker into init mode
+  call MPI_Bcast(AUTO_MPI_INIT_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(funi_icni_params,5,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
 end subroutine mpiiap
@@ -121,7 +118,7 @@ subroutine mpiwfi(autobv,funi,icni)
   logical :: autobv
   external funi,icni
 
-  integer :: message_type, ierr, stat(MPI_STATUS_SIZE)
+  integer :: message_type, ierr
 
   if (.not.autobv) then
      print *,'Illegal problem type for MPI'
@@ -130,8 +127,7 @@ subroutine mpiwfi(autobv,funi,icni)
   endif
 
   do while(.true.)
-     call MPI_Recv(message_type,1,MPI_INTEGER,MPI_ANY_SOURCE,MPI_ANY_TAG, &
-          MPI_COMM_WORLD,stat,ierr)
+     call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
      select case(message_type)
      case(AUTO_MPI_KILL_MESSAGE) ! The kill message
@@ -274,18 +270,16 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
 
   external funi, icni
 
-  integer :: i,ierr,ntst,ndim,iam,kwt
+  integer :: ierr,ntst,ndim,iam,kwt
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
   iam=iap(38)
   kwt=iap(39)
   if(iam==0)then
-     do i=2,kwt
-        ! Send message to get worker into setubv mode
-        call MPI_Send(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,i-1,0, &
+     ! Send message to get worker into setubv mode
+     call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
              MPI_COMM_WORLD,ierr)
-     enddo
      call MPI_Bcast(iap,NIAP,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   endif
 
@@ -473,12 +467,9 @@ subroutine mpiend()
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer size,i,ierr
+  integer ierr
 
-  call MPI_Comm_size(MPI_COMM_WORLD,size,ierr)
-  do i=1,size-1
-     call MPI_Send(AUTO_MPI_KILL_MESSAGE,1,MPI_INTEGER,i,0,MPI_COMM_WORLD,ierr)
-  enddo
+  call MPI_Bcast(AUTO_MPI_KILL_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
   call MPI_Finalize(ierr)
 end subroutine mpiend
