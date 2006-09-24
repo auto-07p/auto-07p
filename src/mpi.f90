@@ -155,7 +155,7 @@ contains
     include 'auto.h'
     integer, parameter :: NPARX2=2*NPARX
 
-    integer :: ndim, nra, nrd, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
+    integer :: ndim, nra, nfc, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
     integer :: ierr
 
     integer :: iap(NIAP),icp(NPARX)
@@ -185,12 +185,12 @@ contains
     na=np(iam+1)
     deallocate(np)
     nra=ndim*ncol
-    nrd=nbc+nint+1
+    nfc=nbc+nint+1
 
     allocate(thu(ndim*8),dtm(na))
     allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
     ! output arrays
-    allocate(fa(nra,na),fc(nrd))
+    allocate(fa(nra,na),fc(nfc))
 
     call mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
