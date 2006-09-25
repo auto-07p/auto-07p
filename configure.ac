@@ -59,6 +59,9 @@ fi
 AC_SUBST(MPIFILE)
 
 AC_PROG_CC
+# adjust include path if gfortran is installed without MinGW on Windows
+AC_COMPILE_IFELSE([#include <stdio.h>],,
+  [CPPFLAGS="$CPPFLAGS -iwithprefix ../../../../include"])
 
 AC_PROG_INSTALL
 
@@ -122,6 +125,7 @@ AC_CHECK_LIB(Xm,XmCreateMainWindow,X_LIBS="$X_LIBS -lXm -lXt -lX11",
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_SUBST(FFLAGS)
+CFLAGS="$CPPFLAGS $CFLAGS"
 
 if test x$ENABLE_PLAUT = xyes; then
    PLAUT=plaut
