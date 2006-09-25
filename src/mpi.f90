@@ -231,14 +231,15 @@ subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   allocate(ccb(nov,nrc,kwt),np(kwt))
   call partition(ntst,kwt,np)
-  call MPI_Gather(cc(1,1,np(iam)+1),nov*nrc,MPI_DOUBLE_PRECISION, &
+  call MPI_Gather(cc(1,1,np(iam+1)+1),nov*nrc,MPI_DOUBLE_PRECISION, &
        ccb,nov*nrc,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
 
   if(iam==0)then
+     ii = 0
      do i=1,kwt
         !fix up boundaries between cc parts
-        ii = np(i)
+        ii = ii+np(i)
         do j=1,nrc
            do k=1,nov
               if(i==kwt)then
