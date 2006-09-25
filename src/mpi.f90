@@ -236,13 +236,16 @@ subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
        0,MPI_COMM_WORLD,ierr)
 
   if(iam==0)then
-     do i=1,kwt-1
+     do i=1,kwt
         !fix up boundaries between cc parts
         ii = np(i)
         do j=1,nrc
            do k=1,nov
-              cc(k,j,ii+1)=cc(k,j,ii+1)+cc(k,j,ii)
-              cc(k,j,ii)=cc(k,j,ii)+ccb(k,j,i)
+              if(i==kwt)then
+                 cc(k,j,ii+1)=ccb(k,j,i)
+              else
+                 cc(k,j,ii+1)=cc(k,j,ii+1)+ccb(k,j,i)
+              endif
            enddo
         enddo
      enddo
