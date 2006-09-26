@@ -21,8 +21,8 @@ C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
       ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:)
       ALLOCATABLE DDBC(:,:)
-      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),ICF1(:,:),ICF2(:,:),NP(:)
-      SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC,ICF,IRF,IPR,ICF1,ICF2
+      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:),NP(:)
+      SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC,ICF,IRF,IPR,IPC
 C
 C Most of the required memory is allocated below
 C
@@ -71,7 +71,7 @@ C
 C           Free floating point arrays
             DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC)
 C           Free integer arrays
-            DEALLOCATE(ICF,IRF,IPR,ICF1,ICF2)
+            DEALLOCATE(ICF,IRF,IPR,IPC)
          ENDIF
 C
          ALLOCATE(A(NCLM,NROW,NA+1),B(NFPR,NROW,NA+1))
@@ -81,8 +81,8 @@ C
          ALLOCATE(BB(NFPR,NDIM,NTSTNA+1),CC(NDIM,NRC,NTSTNA+1))
          ALLOCATE(CCBC(NDIM,NBC,2),DDBC(NFPR,NBC))
 C
-         ALLOCATE(ICF(NCLM,NA+1),IRF(NROW,NA+1),IPR(NDIM,NTSTNA+1))
-         ALLOCATE(ICF1(NDIM,NTSTNA+1),ICF2(NDIM,NTSTNA+1))
+         ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTSTNA-1))
+         ALLOCATE(IPC(NDIM,NTSTNA-1))
       ENDIF
       IF(IAM.EQ.0)THEN
 C
@@ -114,7 +114,7 @@ C
       CALL BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
      +  NFPR,NFC,A1,A2,BB,CC,CCBC,DDBC,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,IAM,KWT)
+     +  S1,S2,IPR,IPC,IRF,ICF,IAM,KWT)
 C
       IF(KWT.GT.1)THEN
 C        Global concatenation of the solution from each node.
@@ -627,7 +627,7 @@ C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,FA,FC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
      +  NCB,NFC,A1,A2,BB,CC,CCBC,DDBC,
-     +  S1,S2,IPR,ICF1,ICF2,IRF,ICF,IAM,KWT)
+     +  S1,S2,IPR,IPC,IRF,ICF,IAM,KWT)
 C
       IMPLICIT NONE
 C
@@ -638,7 +638,7 @@ C Arguments
       DOUBLE PRECISION A(*),B(*),C(*),D(NCB,*),FA(*),FC(*),P0(*),P1(*)
       DOUBLE PRECISION A1(*),A2(*),BB(*),CC(*),CCBC(*),DDBC(*)
       DOUBLE PRECISION S1(*),S2(*)
-      INTEGER   IPR(*),ICF1(*),ICF2(*),IRF(*),ICF(*)
+      INTEGER   IPR(*),IPC(*),IRF(*),ICF(*)
 C
 C Local
       DOUBLE PRECISION SOL,FCC,E,X,FAA
@@ -676,16 +676,16 @@ C
       IF(IAM.EQ.0)THEN
          IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D,
-     +     NTST,NOV,NCB,NRC,S1,S2,ICF1,ICF2,IPR)
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR)
 C
          IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),NTST,NOV,NRC,ICF1,ICF2,IPR)
+     +     FAA,FC(NBC+1),NTST,NOV,NRC,IPC,IPR)
 C
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
-         CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NTST,NOV,NCB,ICF2)
+         CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NTST,NOV,NCB,IPC)
       ENDIF
       DEALLOCATE(FAA)
       IF(KWT.GT.1)THEN
@@ -1080,14 +1080,13 @@ C
 C
 C
 C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,NA,NOV,NCB,NRC,S1,S2,ICF1,ICF2,
-     +  IPR)
+      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,NA,NOV,NCB,NRC,S1,S2,IPC,IPR)
 C
       IMPLICIT NONE
 C
 C Arguments
       INTEGER   NA,NOV,NCB,NRC
-      INTEGER   ICF1(NOV,*),ICF2(NOV,*),IPR(NOV,*)
+      INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*)
@@ -1103,7 +1102,6 @@ C
 C Initialization
 C
       DO IR=1,NOV
-         ICF1(IR,1)=IR
          DO IC=1,NOV
             S1(IC,IR,1)=A1(IC,IR,1)
          ENDDO
@@ -1116,13 +1114,11 @@ C The reduction process is done concurrently
          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
      +               S1(1,1,I2),A1(1,1,I2),A2(1,1,I2),BB(1,1,I2),
      +               CC(1,1,1 ),CC(1,1,I2),CC(1,1,I3),DD,
-     +        ICF1(1,I2),ICF2(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+     +        IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
       ENDDO
 C
 C Initialization
       DO IR=1,NOV
-         ICF2(IR,NA)=IR
-         IPR(IR,NA)=IR
          DO IC=1,NOV
             S2(IC,IR,NA)=0.0D0
          ENDDO
@@ -1137,12 +1133,11 @@ C      ---------- ------
        SUBROUTINE REDBLK(S11,A21,S21,BB1,
      +                   S12,A12,A22,BB2,
      +                   CC1,CC2,CC3,DD,
-     +     ICF12,ICF21,IPR,
-     +     IAMAX,NOV,NCB,NRC)
+     +     IPC,IPR,IAMAX,NOV,NCB,NRC)
 C
 C Arguments
        INTEGER   NOV,NCB,NRC
-       INTEGER   ICF12(NOV),ICF21(NOV),IPR(NOV),IAMAX(NOV*2)
+       INTEGER   IPC(NOV),IPR(NOV),IAMAX(NOV*2)
        DOUBLE PRECISION S11(NOV,NOV),A21(NOV,NOV),S21(NOV,NOV)
        DOUBLE PRECISION S12(NOV,NOV),A12(NOV,NOV),A22(NOV,NOV)
        DOUBLE PRECISION CC1(NOV,NRC),CC2(NOV,NRC),CC3(NOV,NRC)
@@ -1151,11 +1146,10 @@ C
 C Local
        INTEGER K1,K2,L,IC,ICP1,IPIV1,IPIV2,ITMP,JPIV,JPIV1,JPIV2
        INTEGER IDAMAX,IMAXCF
-       DOUBLE PRECISION PIV1,PIV2,TPIV,TMP,RM
+       DOUBLE PRECISION PIV1,PIV2,TPIV,RM
 C
          DO K1=1,NOV
-            ICF12(K1)     = K1
-            ICF21(K1)     = K1
+            IPC(K1)       = K1
             IPR(K1)       = K1
             DO K2=1,NOV
                S21(K2,K1) = 0.0D0
@@ -1177,7 +1171,7 @@ C Complete pivoting; rows are swapped physically, columns swap indices
             PIV1 = 0.d0
             IPIV1 = IC
             DO K1=IC,NOV
-               TPIV=DABS(A21(ICF21(IAMAX(K1)),K1))
+               TPIV=DABS(A21(IPC(IAMAX(K1)),K1))
                IF(PIV1.LT.TPIV)THEN
                   PIV1   = TPIV
                   IPIV1  = K1
@@ -1188,7 +1182,7 @@ C
             PIV2 = 0.d0
             IPIV2 = 1
             DO K1=1,NOV
-               TPIV=DABS(A12(ICF1(IAMAX(NOV+K1),I2),K1))
+               TPIV=DABS(A12(IPC(IAMAX(NOV+K1)),K1))
                IF(PIV2.LT.TPIV)THEN
                   PIV2   = TPIV
                   IPIV2  = K1
@@ -1199,76 +1193,33 @@ C
 C rows are swapped physically, columns swap indices
 C
             IF(PIV1.GE.PIV2)THEN
-               IAMAX(IPIV1) = IAMAX(IC)
-               JPIV         = JPIV1
-               IPR(IC)      = IPIV1
-               ITMP         = ICF21(IC)
-               ICF21(IC)    = ICF21(JPIV1)
-               ICF21(JPIV1) = ITMP
-               ITMP         = ICF12(IC)
-               ICF12(IC)    = ICF12(JPIV1)
-               ICF12(JPIV1) = ITMP
-C Swapping
-               DO L=1,NOV
-                  TMP          = S11(L,IC)
-                  S11(L,IC)    = S11(L,IPIV1)
-                  S11(L,IPIV1) = TMP
-                  IF(L.GE.IC)THEN
-                     TMP                 = A21(ICF21(L),IC)
-                     A21(ICF21(L),IC)    = A21(ICF21(L),IPIV1)
-                     A21(ICF21(L),IPIV1) = TMP
-                  ENDIF
-                  TMP          = S21(L,IC)
-                  S21(L,IC)    = S21(L,IPIV1)
-                  S21(L,IPIV1) = TMP
-               ENDDO
-C
-               DO L=1,NCB
-                  TMP          = BB1(L,IC)
-                  BB1(L,IC)    = BB1(L,IPIV1)
-                  BB1(L,IPIV1) = TMP
-               ENDDO
+               JPIV        = JPIV1
+               IPR(IC)     = IPIV1
+               CALL REDSWP(IC,NOV,NCB,IPC,
+     +              S11(1,IC),S11(1,IPIV1),A21(1,IC),A21(1,IPIV1),
+     +              S21(1,IC),S21(1,IPIV1),BB1(1,IC),BB1(1,IPIV1))
             ELSE
-               IAMAX(NOV+IPIV2) = IAMAX(IC)
-               JPIV             = JPIV2
-               IPR(IC)          = NOV+IPIV2
-               ITMP             = ICF21(IC)
-               ICF21(IC)        = ICF21(JPIV2)
-               ICF21(JPIV2)     = ITMP
-               ITMP             = ICF12(IC)
-               ICF12(IC)        = ICF12(JPIV2)
-               ICF12(JPIV2)     = ITMP
-C Swapping
-               DO L=1,NOV
-                  IF(L.GE.IC)THEN
-                     TMP                 = A21(ICF21(L),IC)
-                     A21(ICF21(L),IC)    = A12(ICF21(L),IPIV2)
-                     A12(ICF21(L),IPIV2) = TMP
-                  ENDIF
-                  TMP          = S21(L,IC)
-                  S21(L,IC)    = A22(L,IPIV2)
-                  A22(L,IPIV2) = TMP
-                  TMP          = S11(L,IC)
-                  S11(L,IC)    = S12(L,IPIV2)
-                  S12(L,IPIV2) = TMP                  
-               ENDDO
-               DO L=1,NCB
-                  TMP          = BB1(L,IC)
-                  BB1(L,IC)    = BB2(L,IPIV2)
-                  BB2(L,IPIV2) = TMP
-               ENDDO
+               JPIV        = JPIV2
+               IPR(IC)     = NOV+IPIV2
+               CALL REDSWP(IC,NOV,NCB,IPC,
+     +              S11(1,IC),S12(1,IPIV2),A21(1,IC),A12(1,IPIV2),
+     +              S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2))
             ENDIF
+            IAMAX(IPR(IC)) = IAMAX(IC)
+            ITMP           = IPC(IC)
+            IPC(IC)        = IPC(JPIV)
+            IPC(JPIV)      = ITMP
 C
 C End of pivoting; Elimination starts here
 C
             DO IR=ICP1,NOV
-               RM = A21(ICF21(IC),IR)/A21(ICF21(IC),IC)
-               A21(ICF21(IC),IR)   = RM
+               RM = A21(IPC(IC),IR)/A21(IPC(IC),IC)
+               A21(IPC(IC),IR)   = RM
 C
                IF(RM.NE.0.0)THEN
                DO L=ICP1,NOV
-                  A21(ICF21(L),IR) =
-     +                 A21(ICF21(L),IR)-RM*A21(ICF21(L),IC)
+                  A21(IPC(L),IR) =
+     +                 A21(IPC(L),IR)-RM*A21(IPC(L),IC)
                ENDDO
 C
                DO L=1,NOV
@@ -1282,19 +1233,19 @@ C
 	       ENDIF
                IF((RM.NE.0.0).OR.(IAMAX(IR).EQ.JPIV))THEN
 C     recalculate absolute maximum for current row
-                  IAMAX(IR) = IC+IMAXCF(NOV-IC,A21(1,IR),ICF21(ICP1))
+                  IAMAX(IR) = IC+IMAXCF(NOV-IC,A21(1,IR),IPC(ICP1))
                ELSEIF(IAMAX(IR).EQ.IC)THEN
                   IAMAX(IR) = JPIV
                ENDIF
             ENDDO
 C     
             DO IR=1,NOV
-               RM = A12(ICF12(IC),IR)/A21(ICF21(IC),IC)
-               A12(ICF1(IC,I2),IR)   = RM
+               RM = A12(IPC(IC),IR)/A21(IPC(IC),IC)
+               A12(IPC(IC),IR)   = RM
 C
 	       IF(RM.NE.0.0)THEN
                  DO L=ICP1,NOV
-                   A12(ICF12(L),IR)=A12(ICF12(L),IR)-RM*A21(ICF21(L),IC)
+                   A12(IPC(L),IR)=A12(IPC(L),IR)-RM*A21(IPC(L),IC)
                  ENDDO
                  DO L=1,NOV
                    S12(L,IR) = S12(L,IR)-RM*S11(L,IC)
@@ -1306,19 +1257,19 @@ C
 	       ENDIF
                IF((RM.NE.0.0).OR.(IAMAX(NOV+IR).EQ.JPIV))THEN
 C     recalculate absolute maximum for current row
-                 IAMAX(NOV+IR) = IC+IMAXCF(NOV-IC,A12(1,IR),ICF12(ICP1))
+                 IAMAX(NOV+IR) = IC+IMAXCF(NOV-IC,A12(1,IR),IPC(ICP1))
                ELSEIF(IAMAX(NOV+IR).EQ.IC)THEN
                  IAMAX(NOV+IR) = JPIV
                ENDIF
             ENDDO
 C     
             DO IR=1,NRC
-               RM = CC2(ICF21(IC),IR)/A21(ICF21(IC),IC)
-               CC2(ICF21(IC),IR)   = RM                  
+               RM = CC2(IPC(IC),IR)/A21(IPC(IC),IC)
+               CC2(IPC(IC),IR)   = RM                  
 C
                IF(RM.NE.0.0)THEN
                  DO L=ICP1,NOV
-                   CC2(ICF21(L),IR)=CC2(ICF21(L),IR)-RM*A21(ICF21(L),IC)
+                   CC2(IPC(L),IR)=CC2(IPC(L),IR)-RM*A21(IPC(L),IC)
                  ENDDO
                  DO L=1,NOV
                    CC1(L,IR)=CC1(L,IR)-RM*S11(L,IC)
@@ -1334,10 +1285,42 @@ C
 
        END SUBROUTINE REDBLK
 
+       SUBROUTINE REDSWP(IC,NOV,NCB,IPC,
+     +     S11,S12,A12,A21,S21,A22,BB1,BB2)
+C
+       IMPLICIT NONE
+C
+       INTEGER IC,NOV,NCB,IPC(*)
+       DOUBLE PRECISION S11(NOV),S12(NOV),A12(NOV),A21(NOV)
+       DOUBLE PRECISION S21(NOV),A22(NOV),BB1(NCB),BB2(NCB)
+C
+       INTEGER L
+       DOUBLE PRECISION TMP
+C Swapping
+       DO L=1,NOV
+          TMP    = S11(L)
+          S11(L) = S12(L)
+          S12(L) = TMP                  
+          IF(L.GE.IC)THEN
+             TMP         = A21(IPC(L))
+             A21(IPC(L)) = A12(IPC(L))
+             A12(IPC(L)) = TMP
+          ENDIF
+          TMP    = S21(L)
+          S21(L) = A22(L)
+          A22(L) = TMP
+       ENDDO
+       DO L=1,NCB
+          TMP    = BB1(L)
+          BB1(L) = BB2(L)
+          BB2(L) = TMP
+       ENDDO
+       END SUBROUTINE REDSWP
+
       END SUBROUTINE REDUCE
-C   
+C
 C     ---------- ------
-      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,NA,NOV,NRC,ICF1,ICF2,IPR)
+      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,NA,NOV,NRC,IPC,IPR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -1345,7 +1328,7 @@ C
 C
 C Arguments
       INTEGER   NA,NOV,NRC
-      INTEGER   ICF1(NOV,*),ICF2(NOV,*)
+      INTEGER   IPC(NOV,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DIMENSION CC(NOV,NRC,*)
       DIMENSION FAA(NOV,*),FC(*)
@@ -1374,17 +1357,17 @@ C Reduce concurrently in each node
                FAA(L1,I2) = TMP
             ENDIF
             DO IR=ICP1,NOV
-               L1=ICF2(IC,I1)
+               L1=IPC(IC,I1)
                RM=A2(L1,IR,I1)
                FAA(IR,I1)=FAA(IR,I1)-RM*FAA(IC,I1)
             ENDDO
             DO IR=1,NOV
-               L1=ICF1(IC,I2)
+               L1=IPC(IC,I1)
                RM=A1(L1,IR,I2)
                FAA(IR,I2) = FAA(IR,I2)-RM*FAA(IC,I1)
             ENDDO
             DO IR=1,NRC
-               L1=ICF2(IC,I1)
+               L1=IPC(IC,I1)
                RM=CC(L1,IR,I2)
                FC(IR)= FC(IR)-RM*FAA(IC,I1)
             ENDDO
@@ -1534,13 +1517,13 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,ICF2)
+      SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,IPC)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
 C
 C Arguments
-      INTEGER   NA,NOV,NCB,ICF2(NOV,*)
+      INTEGER   NA,NOV,NCB,IPC(NOV,*)
       DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DIMENSION A2(NOV,NOV,*),BB(NCB,NOV,*)
       DIMENSION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
@@ -1566,10 +1549,10 @@ C Backsubstitution process; concurrently in each node.
                SM=SM+FC(NOV+L)*BB(L,K,I)
             ENDDO
             DO L=K+1,NOV
-               L1=ICF2(L,I)
+               L1=IPC(L,I)
                SM=SM+SOL(L1,I+1)*A2(L1,K,I)
             ENDDO
-            L2=ICF2(K,I)
+            L2=IPC(K,I)
             SOL(L2,I+1)=(FAA(K,I)-SM)/A2(L2,K,I)
          ENDDO
       ENDDO
