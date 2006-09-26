@@ -1144,9 +1144,9 @@ C Arguments
        DOUBLE PRECISION BB1(NCB,NOV),BB2(NCB,NOV), DD(NCB,NRC)
 C
 C Local
-       INTEGER K1,K2,L,IC,ICP1,IPIV1,IPIV2,ITMP,JPIV,JPIV1,JPIV2
-       INTEGER IDAMAX,IMAXCF
-       DOUBLE PRECISION PIV1,PIV2,TPIV,RM
+       INTEGER K1,K2,IC,ICP1,IPIV1,IPIV2,ITMP,JPIV,JPIV1,JPIV2
+       INTEGER IDAMAX
+       DOUBLE PRECISION PIV1,PIV2,TPIV
 C
          DO K1=1,NOV
             IPC(K1)       = K1
@@ -1213,78 +1213,27 @@ C
 C End of pivoting; Elimination starts here
 C
             DO IR=ICP1,NOV
-               RM = A21(IPC(IC),IR)/A21(IPC(IC),IC)
-               A21(IPC(IC),IR)   = RM
-C
-               IF(RM.NE.0.0)THEN
-               DO L=ICP1,NOV
-                  A21(IPC(L),IR) =
-     +                 A21(IPC(L),IR)-RM*A21(IPC(L),IC)
-               ENDDO
-C
-               DO L=1,NOV
-                  S11(L,IR) = S11(L,IR)-RM*S11(L,IC)
-                  S21(L,IR) = S21(L,IR)-RM*S21(L,IC)
-               ENDDO
-C
-               DO L=1,NCB
-                  BB1(L,IR) = BB1(L,IR)-RM*BB1(L,IC)
-               ENDDO
-	       ENDIF
-               IF((RM.NE.0.0).OR.(IAMAX(IR).EQ.JPIV))THEN
-C     recalculate absolute maximum for current row
-                  IAMAX(IR) = IC+IMAXCF(NOV-IC,A21(1,IR),IPC(ICP1))
-               ELSEIF(IAMAX(IR).EQ.IC)THEN
-                  IAMAX(IR) = JPIV
-               ENDIF
+               CALL REDELIM(IC,NOV,NCB,IPC,IAMAX(IR),JPIV,
+     +              A21(1,IR),A21(1,IC),S11(1,IR),S11(1,IC),
+     +              S21(1,IR),S21(1,IC),BB1(1,IR),BB1(1,IC))
             ENDDO
 C     
             DO IR=1,NOV
-               RM = A12(IPC(IC),IR)/A21(IPC(IC),IC)
-               A12(IPC(IC),IR)   = RM
-C
-	       IF(RM.NE.0.0)THEN
-                 DO L=ICP1,NOV
-                   A12(IPC(L),IR)=A12(IPC(L),IR)-RM*A21(IPC(L),IC)
-                 ENDDO
-                 DO L=1,NOV
-                   S12(L,IR) = S12(L,IR)-RM*S11(L,IC)
-                   A22(L,IR) = A22(L,IR)-RM*S21(L,IC)
-                 ENDDO
-                 DO L=1,NCB
-                   BB2(L,IR) = BB2(L,IR)-RM*BB1(L,IC)
-                 ENDDO
-	       ENDIF
-               IF((RM.NE.0.0).OR.(IAMAX(NOV+IR).EQ.JPIV))THEN
-C     recalculate absolute maximum for current row
-                 IAMAX(NOV+IR) = IC+IMAXCF(NOV-IC,A12(1,IR),IPC(ICP1))
-               ELSEIF(IAMAX(NOV+IR).EQ.IC)THEN
-                 IAMAX(NOV+IR) = JPIV
-               ENDIF
+               CALL REDELIM(IC,NOV,NCB,IPC,IAMAX(NOV+IR),JPIV,
+     +              A12(1,IR),A21(1,IC),S12(1,IR),S11(1,IC),
+     +              A22(1,IR),S21(1,IC),BB2(1,IR),BB1(1,IC))
             ENDDO
 C     
             DO IR=1,NRC
-               RM = CC2(IPC(IC),IR)/A21(IPC(IC),IC)
-               CC2(IPC(IC),IR)   = RM                  
+               CALL REDELIM(IC,NOV,NCB,IPC,0,JPIV,
+     +              CC2(1,IR),A21(1,IC),CC1(1,IR),S11(1,IC),
+     +              CC3(1,IR),S21(1,IC),DD(1,IR),BB1(1,IC))
+            ENDDO
+         ENDDO
 C
-               IF(RM.NE.0.0)THEN
-                 DO L=ICP1,NOV
-                   CC2(IPC(L),IR)=CC2(IPC(L),IR)-RM*A21(IPC(L),IC)
-                 ENDDO
-                 DO L=1,NOV
-                   CC1(L,IR)=CC1(L,IR)-RM*S11(L,IC)
-                   CC3(L,IR)=CC3(L,IR)-RM*S21(L,IC)
-                 ENDDO
-                 DO L=1,NCB
-                    DD(L,IR)    = DD(L,IR)-RM*BB1(L,IC)
-                 ENDDO
-               ENDIF
-             ENDDO           
-C
-          ENDDO
-
        END SUBROUTINE REDBLK
 
+C      ---------- ------
        SUBROUTINE REDSWP(IC,NOV,NCB,IPC,
      +     S11,S12,A12,A21,S21,A22,BB1,BB2)
 C
@@ -1316,7 +1265,58 @@ C Swapping
           BB2(L) = TMP
        ENDDO
        END SUBROUTINE REDSWP
-
+C
+C      ---------- -------
+       SUBROUTINE REDELIM(IC,NOV,NCB,IPC,IAMAX,JPIV,
+     +     A12,A21,S12,S11,A22,S21,BB2,BB1)
+C
+       IMPLICIT NONE
+C
+       INTEGER IC,NOV,NCB,IPC(*),IAMAX,JPIV
+       DOUBLE PRECISION A12(NOV),A21(NOV),S12(NOV),S11(NOV)
+       DOUBLE PRECISION A22(NOV),S21(NOV),BB1(NOV),BB2(NOV)
+C
+       INTEGER L,IMAXCF
+       DOUBLE PRECISION RM,V,PPIV,TPIV
+C
+       RM = A12(IPC(IC))/A21(IPC(IC))
+       A12(IPC(IC)) = RM
+C
+       IF(RM.NE.0.0)THEN
+          IF(IAMAX.EQ.0)THEN
+             DO L=IC+1,NOV
+                A12(IPC(L))=A12(IPC(L))-RM*A21(IPC(L))
+             ENDDO
+          ELSE
+             PPIV=0d0
+             IAMAX=1
+             DO L=IC+1,NOV
+                V=A12(IPC(L))-RM*A21(IPC(L))
+C     Also recalculate absolute maximum for current row
+                A12(IPC(L))=V
+                TPIV=DABS(V)
+                IF(PPIV.LT.TPIV)THEN
+                   PPIV=TPIV
+                   IAMAX=L
+                ENDIF
+             ENDDO
+          ENDIF
+          DO L=1,NOV
+             S12(L) = S12(L)-RM*S11(L)
+             A22(L) = A22(L)-RM*S21(L)
+          ENDDO
+          DO L=1,NCB
+             BB2(L) = BB2(L)-RM*BB1(L)
+          ENDDO
+       ELSEIF(IAMAX.EQ.JPIV)THEN
+C     recalculate absolute maximum for current row
+          IAMAX = IC+IMAXCF(NOV-IC,A12,IPC(IC+1))
+       ELSEIF(IAMAX.EQ.IC)THEN
+          IAMAX = JPIV
+       ENDIF
+C
+       END SUBROUTINE REDELIM
+C
       END SUBROUTINE REDUCE
 C
 C     ---------- ------
