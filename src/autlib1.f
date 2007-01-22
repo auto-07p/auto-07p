@@ -1918,8 +1918,7 @@ C
        WRITE(9,102)IABS(IBR),NTOP+1,NINS
        IF(IPS.EQ.-1)THEN
           DO I=1,NDM
-             EVL=EV(I)
-             WRITE(9,103)IABS(IBR),NTOP+1,I,EXP(EVL)
+             WRITE(9,103)IABS(IBR),NTOP+1,I,EXP(EV(I))
           ENDDO
        ELSE
           DO I=1,NDM
