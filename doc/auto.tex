@@ -309,7 +309,11 @@ Linux, Mac OS X and Windows. \AUTO was also tested with the free
 compiler {\tt g95}, and there exist various, untested, commercial Fortran
 9x compilers as well.
 
-The {\cal AUTO} output files are now called 
+The {\cal AUTO} input files are now called 
+{\tt c.xxx} (the constants file),
+and
+{\tt h.xxx} (the {\cal HomCont} constants file, only used with {\cal HomCont});
+the output files are called
 {\tt b.xxx} (the bifurcation-diagram-file),
 {\tt s.xxx} (the solution-file),
 and
@@ -615,8 +619,8 @@ In GUI mode, this file can be directly loaded with the GUI-button
 \section{ The Constants-File {\tt c.xxx}} 
 {\cal AUTO}-constants for {\tt xxx.f} are normally expected 
 in a corresponding file {\tt c.xxx}.
-Specific examples include {\tt ab/r.ab}
-and {\tt exp/r.exp} in {\tt auto/07p/demos}.
+Specific examples include {\tt ab/c.ab}
+and {\tt exp/c.exp} in {\tt auto/07p/demos}.
 See Chapter~\ref{ch:AUTO_constants}
 for the significance of each constant.
 
@@ -1131,7 +1135,7 @@ or in any of its subdirectories.}
  \hline
    \commandf{ copydemo('ab')}  & copy the demo files to the work directory\\
    \commandf{ load(equation='ab')}  & load the filename \filef{ab.f} into memory\\
-   \commandf{ load(constants='ab.1')}  & load the contents of the file \filef{r.ab.1} into memory\\
+   \commandf{ load(constants='ab.1')}  & load the contents of the file \filef{c.ab.1} into memory\\
    \commandf{ run()}  & run \AUTO with the current set of files\\
  \hline
  %==============================================================================
