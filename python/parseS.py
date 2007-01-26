@@ -27,7 +27,11 @@ import copy
 import parseB
 
 # End of data exception definition
-PrematureEndofData = "Premature End of Data"
+class PrematureEndofData(Exception):
+    pass
+
+class IncorrectHeaderLength(Exception):
+    pass
 
 # This is the number of parameters.  Should be read from auto.h...
 # This is not required anymore in AUTO97, since the last entry in
@@ -105,7 +109,7 @@ class parseS:
                 try:
                     # Check length of line...
                     if len(data) != 12:
-                        raise "Incorrect header length"
+                        raise IncorrectHeaderLength
                     # and the fact they are all integers
                     map(atoi,data)
                     # If it passes both these tests we say it is a header line
