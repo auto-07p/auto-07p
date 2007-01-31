@@ -179,6 +179,10 @@ if test x$COIN3D = "xno"; then
 }
 else
 {
+	AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
+	if test x$HAVE_COIN_CONFIG = "xtrue"; then
+		DEPS_INCLUDES="`coin-config --cppflags`"
+	fi
 	DEPS_LIBS="$DEPS_LIBS -lCoin"
 	echo "configure: Coin3d OK. $DEPS_LIBS"; 
 
@@ -204,7 +208,7 @@ fi
 AC_SUBST(PLAUT04)
 
 AC_SUBST(DEPS_LIBS)
-dnl AC_SUBST(DEPS_LIBS)
+AC_SUBST(DEPS_INCLUDES)
 AC_OUTPUT(Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then

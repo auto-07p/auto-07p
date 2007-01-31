@@ -9,7 +9,7 @@ OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
-INCLUDES=-I$(INC) -Wno-deprecated
+INCLUDES=-I$(INC) @DEPS_INCLUDES@ -Wno-deprecated
 CFLAGS=@CFLAGS@
 DEPS_LIBS=@DEPS_LIBS@
 LIBS=$(DEPS_LIBS)
