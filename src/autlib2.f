@@ -886,7 +886,7 @@ C Arguments
 C Local
       INTEGER I,J,K,NB,NU,IAM,NT
       DOUBLE PRECISION, ALLOCATABLE :: DD(:,:,:)
-      INTEGER, ALLOCATABLE :: IAMAX(:)
+      INTEGER, ALLOCATABLE :: IAMAX(:,:)
 C
 C Condensation of parameters (Elimination of local variables).
 C NA is the local NTST.
@@ -894,18 +894,18 @@ C
       IF(NCA.EQ.2*NOV)RETURN
       NT = 1
 C$    NT = OMP_GET_MAX_THREADS()
+      ALLOCATE(IAMAX(NRA,NT))
       IF(NT.GT.1)THEN
         ALLOCATE(DD(NCB,NRC,NT-1))
       ENDIF
-C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,J,K,NB,NU,IAMAX)
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(IAM,J,K,NB,NU)
       IAM = 0
 C$    IAM = OMP_GET_THREAD_NUM()
       NU = (IAM+1)*NA/NT
-      ALLOCATE(IAMAX(NRA))
       IF(IAM.EQ.0)THEN
         DO J=1,NU
           CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
-     +          D,IRF(1,J),ICF(1,J),IAMAX)
+     +          D,IRF(1,J),ICF(1,J),IAMAX(1,IAM+1))
         ENDDO
       ELSE
         DO J=1,NRC
@@ -916,11 +916,11 @@ C$    IAM = OMP_GET_THREAD_NUM()
         NB = IAM*NA/NT+1
         DO J=NB,NU
           CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
-     +          DD(1,1,IAM),IRF(1,J),ICF(1,J),IAMAX)
+     +          DD(1,1,IAM),IRF(1,J),ICF(1,J),IAMAX(1,IAM+1))
         ENDDO
       ENDIF
-      DEALLOCATE(IAMAX)
 C$OMP END PARALLEL
+      DEALLOCATE(IAMAX)
 C
 C     This is were we sum into the global copy of the d array
 C
