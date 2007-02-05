@@ -1500,7 +1500,7 @@ C
 C
 C Equations for the continuation of traveling waves.
 C
-      DIMENSION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
+      DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
 C
 C Generate the function and Jacobian.
 C
@@ -1559,6 +1559,7 @@ C
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
+      DOUBLE PRECISION DUMDFP(1)
 C
       LOGICAL FOUND
 C

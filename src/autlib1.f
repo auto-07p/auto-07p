@@ -12,6 +12,16 @@ C
           DIMENSION IAP(*),RAP(*),THL(*),PAR(*),ICP(*)
           POINTER IUZ(:),VUZ(:),THU(:)
         END SUBROUTINE INIT
+
+        SUBROUTINE SETPAE(IAP,RAP)
+          IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+          DIMENSION IAP(*),RAP(*)
+        END SUBROUTINE SETPAE
+
+        SUBROUTINE SETPBV(IAP,RAP,DTM)
+          IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+          DIMENSION IAP(*),RAP(*),DTM(*)
+        END SUBROUTINE SETPBV
       END INTERFACE
 C
       LOGICAL FOUND,EOF
@@ -1599,7 +1609,8 @@ C DS is less than the user-supplied toler EPSS.
 C
       EXTERNAL FUNI,FNCS
 C
-      DIMENSION IAP(*),RAP(*)
+      DIMENSION IAP(*),RAP(*),RLCUR(*),RLOLD(*),RLDOT(*),PAR(*),ICP(*)
+      DIMENSION F(*),DFDU(*),DFDP(*),THL(*),THU(*)
       DIMENSION AA(M1AA,*),RHS(*),U(*),DU(*),UDOT(*),UOLD(*)
 C
       LOGICAL CHNG
@@ -2355,7 +2366,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE HEADNG(IAP,RAP,PAR,ICP,IUNIT,N1,N2)
+      SUBROUTINE HEADNG(IAP,PAR,ICP,IUNIT,N1,N2)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -2618,7 +2629,7 @@ C
        IF(IABS(IPS).EQ.1 .AND. IABS(ISW).NE.2 .AND. NTOT.GT.1)THEN
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
-       CALL WRLINE(IAP,RAP,PAR,ICP,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
+       CALL WRLINE(IAP,PAR,ICP,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
 C
 C Write restart information for multi-parameter analysis :
 C
@@ -2628,7 +2639,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE WRLINE(IAP,RAP,PAR,ICP,ICU,IBR,NTOT,LAB,VAXIS,U)
+      SUBROUTINE WRLINE(IAP,PAR,ICP,ICU,IBR,NTOT,LAB,VAXIS,U)
 C
       INCLUDE 'auto.h'
 C
@@ -2659,9 +2670,9 @@ C
 C
 C Write a heading above the first line.
 C
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,RAP,PAR,ICU,6,N1,N2)
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,RAP,PAR,ICU,7,N1,N2)
-       CALL HEADNG(IAP,RAP,PAR,ICU,9,N1,N2)
+       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,6,N1,N2)
+       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,7,N1,N2)
+       CALL HEADNG(IAP,PAR,ICU,9,N1,N2)
 C
        IF(MOD(ITP,10).EQ.1)THEN
          ATYPE='BP'
@@ -3110,7 +3121,7 @@ C Adapts the distribution of the mesh points so that the increase of the
 C monotone function EQDF becomes approximately equidistributed over the
 C intervals. The functions UPS and VPS are interpolated on new mesh.
 C
-      DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
+      DIMENSION IAP(*),RAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE TINT(:),UINT(:,:),TM2(:),ITM(:)
 C
@@ -3832,7 +3843,7 @@ C
 C Determine a suitable label when restarting.
 C
       LOGICAL EOF3
-      DIMENSION IAP(*)
+      DIMENSION IAP(*),RAP(*)
 C
        IPS=IAP(2)
        IRS=IAP(3)
@@ -3873,7 +3884,7 @@ C
 C
       LOGICAL FOUND,EOF3
 C
-      DIMENSION IAP(*)
+      DIMENSION IAP(*),RAP(*)
 C
 C Locates restart point with label IRS and determines type.
 C If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -4002,7 +4013,7 @@ C     ------ --------- -------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION THU(*)
+      DIMENSION THU(*),IAP(*),UPS(*),DTM(*)
 C
 C Finds the norm-squared of UPS (first NDIM1 components are included only).
 C
@@ -4194,7 +4205,7 @@ C Controls the computation of solution branches.
 C
       EXTERNAL FUNI,BCNI,ICNI,STPNT,FNLPBV,FNUZBV,PVLI,FNBPBV,FNSPBV
 C
-      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*)
+      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),THL(*),THU(*)
 C Local
       DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX) 
       COMPLEX*16 EV
@@ -4462,9 +4473,9 @@ C The stepsize used in the preceding step has been stored in DSOLD.
 
       EXTERNAL FUNI
 C
-      DIMENSION IAP(*),RAP(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),DTM(*)
-      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*)
+      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(*),DTM(*)
+      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -4549,7 +4560,7 @@ C
       EXTERNAL FUNI
 C
       DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),IAP(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE U(:),UOLD(:),F(:),DFDU(:),DFDP(:)
 C
@@ -4621,8 +4632,8 @@ C
       EXTERNAL FUNI,BCNI,ICNI,PVLI
 C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*),UDOTPS(NDX,*)
-      DIMENSION FA(NDX,*),FC(*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION UPOLDP(NDX,*),DUPS(NDX,*),FA(NDX,*),FC(*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
       LOGICAL DONE
 C
        NDIM=IAP(1)
@@ -4782,7 +4793,7 @@ C
 C
       COMPLEX*16 EV(*)
 C
-      DIMENSION IAP(*)
+      DIMENSION IAP(*),RAP(*)
       DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*),UDOTPS(NDX,*)
       DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 C
@@ -4986,7 +4997,7 @@ C This subroutine locates and retrieves the information required to
 C restart computation at the point with label IRS.
 C This information is expected on unit 3.
 C
-      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
       DIMENSION ICPRS(NPARX)
@@ -5142,7 +5153,7 @@ C
       EXTERNAL FUNI,BCNI,ICNI
 C
       DIMENSION IAP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 C
 C Generate the Jacobian matrix with zero direction vector.
 C (Then the last row of the Jacobian will be zero)
@@ -5252,7 +5263,9 @@ C
 C
       LOGICAL CHNG
 C
-      DIMENSION IAP(*),RAP(*),TM(*),DTM(*),RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),TM(*),DTM(*),FA(*),FC(*)
+      DIMENSION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),DUPS(*)
+      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 C
        IID=IAP(18)
        ITMX=IAP(19)
@@ -5355,8 +5368,8 @@ C
 C
       EXTERNAL FUNI,BCNI,ICNI
 C
-      DIMENSION IAP(*),RAP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*)
-      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),TM(*),DTM(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*)
+      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),TM(*),DTM(*),THL(*),THU(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -5429,6 +5442,7 @@ C
       DIMENSION IAP(*),RAP(*),P1(*)
 C Local
       ALLOCATABLE IR(:),IC(:),PP(:)
+      DOUBLE PRECISION U(1),F(1)
 C
        NDIM=IAP(1)
        IID=IAP(18)
@@ -5778,7 +5792,7 @@ C               the solution (see the user-supplied parameter IPLT).
 C  MAX U(*)   : The maxima of the first few solution components.
 C  PAR(ICP(*)): Further free parameters (if any).
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),TM(*),DTM(*),UPS(*),THU(*)
 C Local
       DIMENSION UMX(7)
 C
@@ -5878,7 +5892,7 @@ C
          NINS=IAP(33)
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
-       CALL WRLINE(IAP,RAP,PAR,ICP,ICP(NPARX+1),IBRS,NTOTS,LABW,AMP,UMX)
+       CALL WRLINE(IAP,PAR,ICP,ICP(NPARX+1),IBRS,NTOTS,LABW,AMP,UMX)
 C
 C Write plotting and restart data on unit 8.
 C
@@ -6032,7 +6046,7 @@ C
 C Writes additional output on unit 9.
 C
       DIMENSION IAP(*),RAP(*)
-      DIMENSION DTM(*),UPS(NDX,*),TM(*),PAR(*),ICP(*),RLCUR(*)
+      DIMENSION DTM(*),UPS(NDX,*),TM(*),PAR(*),ICP(*),RLCUR(*),THU(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
