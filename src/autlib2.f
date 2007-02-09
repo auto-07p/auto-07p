@@ -595,7 +595,7 @@ C     Generate FC :
 C
 C     Integral constraints :     
        IF(NINT.GT.0)THEN
-         DO J=1,NA
+         DO J=1,N
             JP1=J+1
             DO K=1,NCP1
                DO I=1,NDIM
