@@ -501,6 +501,7 @@ C
 C
 C Local
       INTEGER I,M
+      DOUBLE PRECISION PRM(NPARX)
 C
       IF(NINT.GT.0)THEN
          DO I=1,NDIM
@@ -509,7 +510,10 @@ C
             UID(I)=UDOTPS(I)
             UIP(I)=UPOLDP(I)
          ENDDO
-         CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
+         DO I=1,NPARX
+            PRM(I)=PAR(I)
+         ENDDO
+         CALL ICNI(IAP,RAP,NDIM,PRM,ICP,NINT,UIC,UIO,UID,UIP,
      +        FICD,2,DICD)
          DO M=1,NINT
             DO I=1,NDIM
@@ -608,7 +612,10 @@ C     Integral constraints :
                   UID(I)=UDOTPS(I1,J1)
                   UIP(I)=UPOLDP(I1,J1)
                ENDDO
-               CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
+               DO I=1,NPARX
+                  PRM(I)=PAR(I)
+               ENDDO
+               CALL ICNI(IAP,RAP,NDIM,PRM,ICP,NINT,UIC,UIO,UID,UIP,
      *              FICD,0,DICD)
                DO M=1,NINT
                   FC(M)=FC(M)-DTM(J)*WI(K)*FICD(M)
