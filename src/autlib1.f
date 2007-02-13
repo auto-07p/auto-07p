@@ -6291,6 +6291,7 @@ C
 C     ---------- ------
       SUBROUTINE AUTIM0(T)
 C
+C$    USE OMP_LIB
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
       REAL timaray(2)
@@ -6298,6 +6299,7 @@ C
 C Set initial time for measuring CPU time used.
 C
       T=etime(timaray)
+C$    T=omp_get_wtime()
 C
       RETURN
       END
@@ -6305,6 +6307,7 @@ C
 C     ---------- ------
       SUBROUTINE AUTIM1(T)
 C
+C$    USE OMP_LIB
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       REAL etime
       REAL timaray(2)
@@ -6312,6 +6315,7 @@ C
 C Set final time for measuring CPU time used.
 C
       T=etime(timaray)
+C$    T=omp_get_wtime()
 C
       RETURN
       END
