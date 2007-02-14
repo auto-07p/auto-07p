@@ -3,20 +3,27 @@
 # AUTO Demo spb
 #==============
 
-print "\n***Continuation in lambda***"
-ld(e='spb',c='spb.1')
+print "\n***Homotopy from lambda=0 to lambda=1***"
+ld(e='spb',c='spb.0')
+run()
+sv('0')
+
+print "\n***Letting epsilon become small***"
+ld(c='spb.1',s='0')
 run()
 sv('1')
+rl('1')
 
-print "\n***Continuation in epsilon***"
-ld(e='spb',s='1',c='spb.2')
+print "\n***Continuation in gamma: First 15 steps***"
+ld(c='spb.2',s='1')
 run()
 sv('2')
 
-print "\n***Continuation in gamma***"
-ld(e='spb',c='spb.3',s='2')
+print "\n***Continuation in gamma: Restart***"
+ld(c='spb.3',s='2')
 run()
-sv('3')
+ap('2')
+rl('2')
 
 print "\n***Clean the directory***"
 cl()
