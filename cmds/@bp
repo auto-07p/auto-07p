@@ -1,5 +1,5 @@
 if ( test $# -eq 1 ) then
-	grep "Bif. Function" d.$1
+	grep "BP" d.$1
 else
-	grep "Bif. Function" fort.9
+	grep "BP" fort.9
 fi

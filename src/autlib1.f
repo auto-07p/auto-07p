@@ -1760,7 +1760,7 @@ C
 C If requested write additional output on unit 9 :
 C
        IF(IID.GE.2)WRITE(9,101)IBR,NTOP+1,FNBPAE
- 101   FORMAT(I4,I6,9X,'Bif. Function:',1PE14.5)
+ 101   FORMAT(I4,I6,9X,'BP   Function:',1PE14.5)
 C
       RETURN
       END
