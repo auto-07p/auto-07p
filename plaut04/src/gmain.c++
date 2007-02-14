@@ -1400,7 +1400,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              clrMethodList,
         XmNcolumns,            5,
         XmNmarginHeight,       1,
-        XmNselectedPosition,   coloringMethod+specialColorItems,
+        XmNselectedPosition,   coloringMethod+specialColorItems-1,
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -1474,17 +1474,17 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 //    delete []numberPList;
 //----------------------------------------------------------------> Nov 06 End
 
-    Widget xLbl = XtVaCreateManagedWidget("X",xmLabelWidgetClass, listCarrier);
-    Widget yLbl = XtVaCreateManagedWidget("Y",xmLabelWidgetClass, listCarrier);
-    Widget zLbl = XtVaCreateManagedWidget("Z",xmLabelWidgetClass, listCarrier);
-    Widget lLbl = XtVaCreateManagedWidget("Label",xmLabelWidgetClass, listCarrier);
-    Widget colorLbl = XtVaCreateManagedWidget("Color",xmLabelWidgetClass, listCarrier);
-    Widget numPeriodLbl = XtVaCreateManagedWidget("Period",xmLabelWidgetClass, listCarrier);
+    Widget xLbl = XtVaCreateManagedWidget("X",xmLabelWidgetClass, listCarrier, NULL);
+    Widget yLbl = XtVaCreateManagedWidget("Y",xmLabelWidgetClass, listCarrier, NULL);
+    Widget zLbl = XtVaCreateManagedWidget("Z",xmLabelWidgetClass, listCarrier, NULL);
+    Widget lLbl = XtVaCreateManagedWidget("Label",xmLabelWidgetClass, listCarrier, NULL);
+    Widget colorLbl = XtVaCreateManagedWidget("Color",xmLabelWidgetClass, listCarrier, NULL);
+    Widget numPeriodLbl = XtVaCreateManagedWidget("Period",xmLabelWidgetClass, listCarrier, NULL);
 
-    Widget orbitSldLbl = XtVaCreateManagedWidget("Orbit",xmLabelWidgetClass, listCarrier);
-    Widget satSldLbl = XtVaCreateManagedWidget("Anim",xmLabelWidgetClass, listCarrier);
-    Widget spLbl   = XtVaCreateManagedWidget("   Line  ",xmLabelWidgetClass, listCarrier);
-    Widget spLbl2  = XtVaCreateManagedWidget("Thickness",xmLabelWidgetClass, listCarrier);
+    Widget orbitSldLbl = XtVaCreateManagedWidget("Orbit",xmLabelWidgetClass, listCarrier, NULL);
+    Widget satSldLbl = XtVaCreateManagedWidget("Anim",xmLabelWidgetClass, listCarrier, NULL);
+    Widget spLbl   = XtVaCreateManagedWidget("   Line  ",xmLabelWidgetClass, listCarrier, NULL);
+    Widget spLbl2  = XtVaCreateManagedWidget("Thickness",xmLabelWidgetClass, listCarrier, NULL);
 
     n = 0;
     XtSetArg(args[n], XmNminimum, MIN_SAT_SPEED); n++;
@@ -1873,8 +1873,8 @@ lineColorValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 
     if (sb->reason == XmCR_OK)
     {
-        XtVaGetValues (sb->widget,  XmNuserData, &which,   0);
-        XtVaGetValues (sb->widget,  XmNposition, &value,   0);
+        XtVaGetValues (sb->widget,  XmNuserData, &which,   NULL);
+        XtVaGetValues (sb->widget,  XmNposition, &value,   NULL);
         lineNumber = which / 3;
         columnNumber = which % 3;
         lineColorTemp[lineNumber][columnNumber] = value/10.0;
@@ -1897,7 +1897,7 @@ linePatternValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
     if (sb->reason == XmCR_OK)
     {
         XtVaGetValues (w, XmNposition, &position, NULL);
-        XtVaGetValues (w, XmNuserData, &which,   0);
+        XtVaGetValues (w, XmNuserData, &which,   NULL);
         linePatternTemp[which] = systemLinePatternValue[position];
     }
 }
