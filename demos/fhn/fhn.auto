@@ -1,0 +1,32 @@
+
+#==============
+# AUTO Demo fhn: The FitzHugh-Nagumo Equations
+#==============
+
+print "\n***Stationary solutions***"
+ld(e='fhn',c='fhn.1')
+run()
+sv('fhn')
+
+print "\n***Periodic solutions***"
+ld(c='fhn.2',s='fhn')
+run()
+ap('fhn')
+
+print "\n***Continue Hopf bifurcations in 2 parameters***"
+ld(c='fhn.3')
+run()
+sv('hb')
+
+print "\n***Continue Hopf bifurcations in 2 parameters***"
+ld(c='fhn.4')
+run()
+ap('hb')
+
+print "\n***Relabel the Hopf bifurcations files***"
+rl('hb')
+
+print "\n***Clean the directory***"
+cl()
+
+

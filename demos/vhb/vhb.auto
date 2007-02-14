@@ -1,0 +1,19 @@
+
+#==============
+# AUTO Demo vhb
+#==============
+
+print "\n***Compute the zero family***"
+ld(e='vhb',c='vhb.1')
+run()
+sv('vhb')
+
+print "\n***Compute the bifurcating vertical branch of periodic solutions***"
+ld(c='vhb.2',s='vhb')
+run()
+ap('vhb')
+
+print "\n***Clean the directory***"
+cl()
+
+
