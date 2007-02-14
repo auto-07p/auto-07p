@@ -13,7 +13,9 @@ OPT=@OPT_FLAG@
 OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o ../lib/mpi.o @COMPAT@
 RM=rm -f
 #
-all: lib compile ../bin/autlab ../bin/double ../bin/triple ../bin/kpbif \
+all: lib compile ../bin/autlab ../bin/double ../bin/triple \
+  ../bin/keeplp ../bin/keepbp ../bin/keepsp ../bin/keepuz \
+  ../bin/deletelp ../bin/deleteuz \
   ../bin/listlabels ../bin/reduce ../bin/relabel ../lib/libauto_c.a move
 #
 auto.h: ../include/auto.h
@@ -54,8 +56,23 @@ compile: $(OBJ)
 ../bin/triple: triple.f auto.h
 	$(FC) $(FFLAGS) $(OPT) triple.f -o $@
 #
-../bin/kpbif: kpbif.f auto.h
-	$(FC) $(FFLAGS) $(OPT) kpbif.f -o $@
+../bin/keepbp: keepbp.f
+	$(FC) $(FFLAGS) $(OPT) keepbp.f -o $@
+#
+../bin/keeplp: keeplp.f
+	$(FC) $(FFLAGS) $(OPT) keeplp.f -o $@
+#
+../bin/keepuz: keepuz.f
+	$(FC) $(FFLAGS) $(OPT) keepuz.f -o $@
+#
+../bin/keepsp: keepsp.f
+	$(FC) $(FFLAGS) $(OPT) keepsp.f -o $@
+#
+../bin/deletelp: deletelp.f
+	$(FC) $(FFLAGS) $(OPT) deletelp.f -o $@
+#
+../bin/deleteuz: deleteuz.f
+	$(FC) $(FFLAGS) $(OPT) deleteuz.f -o $@
 #
 ../bin/listlabels: listlabels.f auto.h
 	$(FC) $(FFLAGS) $(OPT) listlabels.f -o $@

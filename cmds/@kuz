@@ -1,0 +1,44 @@
+if ( test $# -eq 1 ) then
+	cp b.$1 fort.27
+	cp s.$1 fort.28
+	$AUTO_DIR/bin/keepuz
+	rm fort.27
+        rm fort.28
+        if (test -r fort.37) then
+		cp b.$1 b.$1~
+		mv fort.37 b.$1 
+        fi
+        if (test -r fort.38) then
+		cp s.$1 s.$1~
+		mv fort.38 s.$1 
+		echo " keepuz: Rewriting finished."
+        fi
+elif( test $# -eq 2 ) then
+	cp b.$1 fort.27
+	cp s.$1 fort.28
+	$AUTO_DIR/bin/keepuz
+	rm fort.27
+        rm fort.28
+        if (test -r fort.37) then
+		mv fort.37 b.$2 
+        fi
+        if (test -r fort.38) then
+		mv fort.38 s.$2 
+		echo " keepuz: Rewriting finished."
+        fi
+else
+	cp fort.7 fort.27
+        cp fort.8 fort.28
+	$AUTO_DIR/bin/keepuz
+	rm fort.27
+        rm fort.28
+        if (test -r fort.37) then
+		cp fort.7 fort.7~
+		mv fort.37 fort.7
+        fi
+        if (test -r fort.38) then
+		cp fort.8 fort.8~
+		mv fort.38 fort.8
+		echo " keepuz: Rewriting finished."
+        fi
+fi

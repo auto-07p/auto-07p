@@ -1,7 +1,7 @@
 if ( test $# -eq 1 ) then
 	cp b.$1 fort.27
 	cp s.$1 fort.28
-	$AUTO_DIR/bin/kpbif
+	$AUTO_DIR/bin/keepbp
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then
@@ -11,12 +11,12 @@ if ( test $# -eq 1 ) then
         if (test -r fort.38) then
 		cp s.$1 s.$1~
 		mv fort.38 s.$1 
-		echo " kb: Rewriting finished."
+		echo " keepbp: Rewriting finished."
         fi
 elif( test $# -eq 2 ) then
 	cp b.$1 fort.27
 	cp s.$1 fort.28
-	$AUTO_DIR/bin/kpbif
+	$AUTO_DIR/bin/keepbp
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then
@@ -24,12 +24,12 @@ elif( test $# -eq 2 ) then
         fi
         if (test -r fort.38) then
 		mv fort.38 s.$2 
-		echo " kb: Rewriting finished."
+		echo " keepbp: Rewriting finished."
         fi
 else
 	cp fort.7 fort.27
         cp fort.8 fort.28
-	$AUTO_DIR/bin/kpbif
+	$AUTO_DIR/bin/keepbp
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then
@@ -39,6 +39,6 @@ else
         if (test -r fort.38) then
 		cp fort.8 fort.8~
 		mv fort.38 fort.8
-		echo " kb: Rewriting finished."
+		echo " keepbp: Rewriting finished."
         fi
 fi

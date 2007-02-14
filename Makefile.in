@@ -37,7 +37,8 @@ superclean:  clean
 	cd ./plaut04;$(MAKE) superclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
-	  kpbif listlabels reduce relabel plaut04 r3bplaut04
+	  keeplp keepbp keepsp keepuz deletelp deleteuz \
+	  listlabels reduce relabel plaut04 r3bplaut04
 	cd ./src; $(MAKE) superclean
 	cd ./doc; $(MAKE) superclean
 	cd ./include; rm -f stamp-h1
