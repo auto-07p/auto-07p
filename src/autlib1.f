@@ -32,8 +32,7 @@ C Local
 C
 C Initialization :
 C
-      CALL MPIINI()
-      IAP(38)=0
+      CALL MPIINI(IAP)
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
@@ -41,7 +40,11 @@ C
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
        OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
 C
- 1     CALL AUTIM0(TIME0)
+ 1     IF(IAP(39).GT.1)THEN
+         CALL MPITIM(TIME0)
+       ELSE
+         CALL AUTIM0(TIME0)
+       ENDIF
        FOUND=.FALSE.
        CALL INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
        IF(EOF)THEN
@@ -67,7 +70,11 @@ C
        CALL AUTOI(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ)
 C-----------------------------------------------------------------------
 C
-      CALL AUTIM1(TIME1)
+      IF(IAP(39).GT.1)THEN
+        CALL MPITIM(TIME1)
+      ELSE
+        CALL AUTIM1(TIME1)
+      ENDIF
       TOTTIM=TIME1-TIME0
       CALL WRBAR("=",47)
       WRITE(9,301)TOTTIM

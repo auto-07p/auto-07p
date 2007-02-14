@@ -16,19 +16,20 @@
 ! mpisum: front-end to MPI_Reduce (summation)
 ! mpiend: master tells workers to stop
 
-subroutine mpiini()
+subroutine mpiini(iap)
   implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer ierr,kwt,iam,namelen
+  integer ierr,iam,namelen,iap(*)
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
 
   call MPI_Init(ierr)
-  call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD,iap(39),ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
+  iap(38) = iam
   call MPI_Get_processor_name(processor_name,namelen,ierr)
 !  print *,'Process ',iam,' on ',processor_name
   if(iam/=0)then
@@ -90,12 +91,8 @@ subroutine mpiiap(iap)
   ! message passing parallel version, the workers need both versions, since
   ! they both need to select the appropriate functions (using the old values)
   ! and actually compute (using the new values).
-  integer kwt,ierr
+  integer ierr
   integer funi_icni_params(5)
-
-  call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
-  iap(39)=kwt
-  call MPI_Comm_rank(MPI_COMM_WORLD,iap(38),ierr)
 
   funi_icni_params(1)=iap(2)  ! ips
   funi_icni_params(2)=iap(3)  ! irs
@@ -477,3 +474,11 @@ subroutine mpiend()
 
   call MPI_Finalize(ierr)
 end subroutine mpiend
+
+subroutine mpitim(tim)
+  implicit none
+  include 'mpif.h'
+
+  double precision tim
+  tim = MPI_Wtime()
+end subroutine mpitim  

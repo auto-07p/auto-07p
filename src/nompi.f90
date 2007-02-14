@@ -1,11 +1,12 @@
 ! dummy file, used in case MPI is not available.
 
-subroutine mpiini()
+subroutine mpiini(iap)
+  integer iap(*)
+  iap(38) = 0 ! IAM
+  iap(39) = 1 ! KWT
 end subroutine mpiini
 
 subroutine mpiiap(iap)
-  integer iap(*)
-  iap(39) = 1 ! KWT
 end subroutine mpiiap
 
 subroutine mpiwfi(autobv,funi,icni)
@@ -36,3 +37,7 @@ end subroutine mpigat
 
 subroutine mpiend()
 end subroutine mpiend
+
+subroutine mpitim(tim)
+  implicit double precision(a-h,o-z)
+end subroutine mpitim  
