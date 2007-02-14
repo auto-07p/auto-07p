@@ -647,6 +647,7 @@ PLAUT
 GUI
 TEK2PS
 HAVE_COIN_CONFIG
+HAVE_SOXT_CONFIG
 CXX
 CXXFLAGS
 ac_ct_CXX
@@ -6444,6 +6445,52 @@ fi
 
 
 PLAUT04_TEST=yes
+# Extract the first word of "coin-config", so it can be a program name with args.
+set dummy coin-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAVE_COIN_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAVE_COIN_CONFIG"; then
+  ac_cv_prog_HAVE_COIN_CONFIG="$HAVE_COIN_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAVE_COIN_CONFIG="true"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAVE_COIN_CONFIG" && ac_cv_prog_HAVE_COIN_CONFIG="false"
+fi
+fi
+HAVE_COIN_CONFIG=$ac_cv_prog_HAVE_COIN_CONFIG
+if test -n "$HAVE_COIN_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $HAVE_COIN_CONFIG" >&5
+echo "${ECHO_T}$HAVE_COIN_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+COIN_LDFLAGS=
+COIN_INCLUDES=
+if test x$HAVE_COIN_CONFIG = "xtrue"; then
+	COIN_LDFLAGS="`coin-config --libs` `coin-config --ldflags`"
+	COIN_INCLUDES="`coin-config --cppflags`"
+fi
+tmp_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS $DEPS_LIBS $COIN_LDFLAGS"
 { echo "$as_me:$LINENO: checking for main in -lCoin" >&5
 echo $ECHO_N "checking for main in -lCoin... $ECHO_C" >&6; }
 if test "${ac_cv_lib_Coin_main+set}" = set; then
@@ -6514,6 +6561,7 @@ else
 fi
 ac_cv_lib_Coin=ac_cv_lib_Coin_main
 
+LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed";
@@ -6679,15 +6727,16 @@ ac_cv_lib_InventorXt=ac_cv_lib_InventorXt_main
 }
 else
 {
-	# Extract the first word of "coin-config", so it can be a program name with args.
-set dummy coin-config; ac_word=$2
+	echo "configure: Coin3d OK.";
+	# Extract the first word of "soxt-config", so it can be a program name with args.
+set dummy soxt-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_HAVE_COIN_CONFIG+set}" = set; then
+if test "${ac_cv_prog_HAVE_SOXT_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$HAVE_COIN_CONFIG"; then
-  ac_cv_prog_HAVE_COIN_CONFIG="$HAVE_COIN_CONFIG" # Let the user override the test.
+  if test -n "$HAVE_SOXT_CONFIG"; then
+  ac_cv_prog_HAVE_SOXT_CONFIG="$HAVE_SOXT_CONFIG" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -6696,7 +6745,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_HAVE_COIN_CONFIG="true"
+    ac_cv_prog_HAVE_SOXT_CONFIG="true"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -6704,25 +6753,27 @@ done
 done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_HAVE_COIN_CONFIG" && ac_cv_prog_HAVE_COIN_CONFIG="false"
+  test -z "$ac_cv_prog_HAVE_SOXT_CONFIG" && ac_cv_prog_HAVE_SOXT_CONFIG="false"
 fi
 fi
-HAVE_COIN_CONFIG=$ac_cv_prog_HAVE_COIN_CONFIG
-if test -n "$HAVE_COIN_CONFIG"; then
-  { echo "$as_me:$LINENO: result: $HAVE_COIN_CONFIG" >&5
-echo "${ECHO_T}$HAVE_COIN_CONFIG" >&6; }
+HAVE_SOXT_CONFIG=$ac_cv_prog_HAVE_SOXT_CONFIG
+if test -n "$HAVE_SOXT_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $HAVE_SOXT_CONFIG" >&5
+echo "${ECHO_T}$HAVE_SOXT_CONFIG" >&6; }
 else
   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 fi
 
 
-	if test x$HAVE_COIN_CONFIG = "xtrue"; then
-		DEPS_INCLUDES="`coin-config --cppflags`"
+	SOXT_LDFLAGS=COIN_LDFLAGS
+	SOXT_INCLUDES=COIN_INCLUDES
+	if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
+		SOXT_INCLUDES="`soxt-config --cppflags`"
 	fi
-	DEPS_LIBS="$DEPS_LIBS -lCoin"
-	echo "configure: Coin3d OK. $DEPS_LIBS";
-
+	tmp_LDFLAGS=$LDFLAGS
+	LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
 	{ echo "$as_me:$LINENO: checking for main in -lSoXt" >&5
 echo $ECHO_N "checking for main in -lSoXt... $ECHO_C" >&6; }
 if test "${ac_cv_lib_SoXt_main+set}" = set; then
@@ -6793,12 +6844,20 @@ else
 fi
 ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 
+	LDFLAGS=$tmp_LDFLAGS
 	if test x$SOXTLIB = "xno"; then
 		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
-		DEPS_LIBS="$DEPS_LIBS -lSoXt"
-		echo "configure: Coin3d SoXt OK. $DEPS_LIBS";
+		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
+			SOXT_LDFLAGS="-lCoin -lSoXt"
+			if test x$HAVE_COIN_CONFIG = "xtrue"; then
+				SOXT_LDFLAGS="$COIN_LDFLAGS -lSoXt"
+			fi
+		fi
+		DEPS_LIBS="$DEPS_LIBS $SOXT_LDFLAGS"
+		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
+		echo "configure: Coin3d SoXt OK. $DEPS_INCLUDES $DEPS_LIBS";
 	}
 	fi
 }
@@ -7913,6 +7972,7 @@ PLAUT!$PLAUT$ac_delim
 GUI!$GUI$ac_delim
 TEK2PS!$TEK2PS$ac_delim
 HAVE_COIN_CONFIG!$HAVE_COIN_CONFIG$ac_delim
+HAVE_SOXT_CONFIG!$HAVE_SOXT_CONFIG$ac_delim
 CXX!$CXX$ac_delim
 CXXFLAGS!$CXXFLAGS$ac_delim
 ac_ct_CXX!$ac_ct_CXX$ac_delim
@@ -7923,7 +7983,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 78; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 79; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

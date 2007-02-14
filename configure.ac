@@ -151,7 +151,17 @@ AC_SUBST(TEK2PS)
 dnl AC_HAVE_LIBRARY([m])
 
 PLAUT04_TEST=yes
+AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
+COIN_LDFLAGS=
+COIN_INCLUDES=
+if test x$HAVE_COIN_CONFIG = "xtrue"; then
+	COIN_LDFLAGS="`coin-config --libs` `coin-config --ldflags`"
+	COIN_INCLUDES="`coin-config --cppflags`"
+fi
+tmp_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS $DEPS_LIBS $COIN_LDFLAGS"
 AC_HAVE_LIBRARY([Coin],COIN3D="yes",COIN3D="no")
+LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed"; 
@@ -179,20 +189,31 @@ if test x$COIN3D = "xno"; then
 }
 else
 {
-	AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
-	if test x$HAVE_COIN_CONFIG = "xtrue"; then
-		DEPS_INCLUDES="`coin-config --cppflags`"
+	echo "configure: Coin3d OK.";
+	AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
+	SOXT_LDFLAGS=COIN_LDFLAGS
+	SOXT_INCLUDES=COIN_INCLUDES
+	if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
+		SOXT_INCLUDES="`soxt-config --cppflags`"
 	fi
-	DEPS_LIBS="$DEPS_LIBS -lCoin"
-	echo "configure: Coin3d OK. $DEPS_LIBS"; 
-
+	tmp_LDFLAGS=$LDFLAGS
+	LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
 	AC_HAVE_LIBRARY([SoXt],SOXTLIB="yes",SOXTLIB="no")
+	LDFLAGS=$tmp_LDFLAGS
 	if test x$SOXTLIB = "xno"; then
 		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
-		DEPS_LIBS="$DEPS_LIBS -lSoXt"
-		echo "configure: Coin3d SoXt OK. $DEPS_LIBS";  
+		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
+			SOXT_LDFLAGS="-lCoin -lSoXt"
+			if test x$HAVE_COIN_CONFIG = "xtrue"; then
+				SOXT_LDFLAGS="$COIN_LDFLAGS -lSoXt"
+			fi
+		fi
+		DEPS_LIBS="$DEPS_LIBS $SOXT_LDFLAGS"
+		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
+		echo "configure: Coin3d SoXt OK. $DEPS_INCLUDES $DEPS_LIBS";
 	}
 	fi
 }
