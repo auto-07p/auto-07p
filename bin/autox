@@ -2,7 +2,7 @@
 PYTHONPATH=$AUTO_DIR/python:$AUTO_DIR/python/graphics:$DV/Python_interface/python_script:$AUTO_DIR/python/lib/Linux_OpenGL:$AUTO_DIR/python/lib/Linux_Mesa:.
 export PYTHONPATH
 
-if test "`uname`" == "Darwin"; then
+if test "`uname`" = "Darwin"; then
   if which pythonw > /dev/null; then
     exec pythonw $*;
   fi
