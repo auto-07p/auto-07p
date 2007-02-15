@@ -362,8 +362,9 @@ For example, to run the \AUTO executable \filef{ auto.exe}
 in serial mode you just type \commandf{ export OMP\_NUM\_THREADS=1}.
 To run the same command in parallel on 4 processors you type 
 \commandf{export OMP\_NUM\_THREADS=4}. Without any {\tt OMP\_NUM\_THREADS}
-set the number of processors that \AUTO will use is often equal to the
-actual number of processors on the system.
+set the number of processors that \AUTO will use can be equal to the
+actual number of processors on the system, or can be equal to one;
+this is system-dependent.
 
 The MPI message passing library is not used by default. You can enable it
 by typing  \commandf{ ./configure --with-mpi }. If OpenMP and MPI are
