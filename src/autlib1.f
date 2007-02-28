@@ -3945,7 +3945,11 @@ C
        READ(3,*)IBRR,NTOTR,ITPR,LABR,NFPRR,ISWR,NTPLRS,NAR,
      *          NSKIPR,N1,N2,NPARR
        NDIM=NAR-1
-       READ(3,*)T,(U(I),I=1,NDIM)
+       IF(NDIM.LE.IAP(1))THEN
+         READ(3,*)T,(U(I),I=1,NDIM)
+       ELSE
+         READ(3,*)T,(U(I),I=1,IAP(1)),(DUM,I=1,NDIM-IAP(1))
+       ENDIF
        IF(NPARR.GT.NPARX)THEN
          NPARR=NPARX
          WRITE(6,100)NPARR
