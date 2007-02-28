@@ -297,7 +297,7 @@ C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
             CALL PRJCTI(IAP,RAP,BOUND,XEQUIB2,ICP,PAR,1,2,1,NDM)
-            DO I=NDM-NUNSTAB+1,NDM
+            DO I=1,NUNSTAB
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
                     FB(JB)=FB(JB)+(U1(K)-XEQUIB2(K))*BOUND(I,K)
@@ -368,7 +368,7 @@ C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
             CALL PRJCTI(IAP,RAP,BOUND,XEQUIB1,ICP,PAR,1,1,2,NDM)
-            DO I=NDM-NUNSTAB+1,NDM
+            DO I=1,NUNSTAB
                DUM=0.0
                DO K=1,NDM
                   DUM=DUM+U0(NDM+K)*BOUND(I,K)
@@ -1911,7 +1911,7 @@ C
       DIMENSION BOUND(NDM,*),XEQUIB(*)
 C Local
       INTEGER TYPE,IFLAG(2,2)
-      ALLOCATABLE ER(:),EI(:),D(:,:),CNOW(:,:),CPREV(:,:,:,:)
+      ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
       ALLOCATABLE IR(:),IC(:),TYPE(:)
 C
@@ -1957,40 +1957,23 @@ C with the positive (negative) eigenvalues first if IMFD =-1 (=1)
         CALL HQR3LC(A,V,NDM,1,NDM,EPS,ER,EI,TYPE,NDM,NDM,IMFD)
         DEALLOCATE(TYPE,ER,EI)
 C
-C Put the basis in the appropriate part of the matrix CNOW
+C Determine basis of the appropriate part of the matrix V
         IF (IMFD.EQ.1) THEN
-           K1 = NDM-NUNSTAB+1
-           K2 = NDM
+           MCOND = NUNSTAB
         ELSE
-           K1 = 1
-           K2 = NSTAB
+           MCOND = NSTAB
         ENDIF
-        MCOND=K2-K1+1
-        M0=K1-1
-C
-        ALLOCATE(CNOW(NDM,NDM))
-        DO I=K1,K2   
-          DO J=1,NDM  
-           CNOW(I,J) = V(J,I-K1+1)
-          ENDDO
-        ENDDO
 C
 C Set previous matrix to be the present one if this is the first call
       IF (IFLAG(IS,ITRANS).NE.1234) THEN
          IF (.NOT.ALLOCATED(CPREV))ALLOCATE(CPREV(NDM,NDM,2,2))
-         DO I=1,NDM
+         DO I=1,MCOND
             DO J=1,NDM
-               CPREV(I,J,IS,ITRANS)=0.0D0
-            ENDDO
-         ENDDO
-         DO I=K1,K2
-            DO J=1,NDM
-               CPREV(I,J,IS,ITRANS)=CNOW(I,J)
-	       BOUND(I,J)=CNOW(I,J)
+               CPREV(I,J,IS,ITRANS)=V(J,I)
+	       BOUND(I,J)=V(J,I)
             ENDDO
          ENDDO
          IFLAG(IS,ITRANS)=1234
-         DEALLOCATE(CNOW)
 	 RETURN
       ENDIF
 C     
@@ -2001,10 +1984,10 @@ C Calculate the (transpose of the) BEYN matrix D and hence BOUND
           DUM1(I,J)=0.0D0
           DUM2(I,J)=0.0D0
           DO K=1,NDM
-             DUM1(I,J) = DUM1(I,J)+CPREV(I+M0,K,IS,ITRANS)*
-     +                   CNOW(J+M0,K)
-             DUM2(I,J) = DUM2(I,J)+CPREV(I+M0,K,IS,ITRANS)*
-     +                   CPREV(J+M0,K,IS,ITRANS)
+             DUM1(I,J) = DUM1(I,J)+CPREV(I,K,IS,ITRANS)*
+     +                   V(K,J)
+             DUM2(I,J) = DUM2(I,J)+CPREV(I,K,IS,ITRANS)*
+     +                   CPREV(J,K,IS,ITRANS)
           ENDDO
         ENDDO
       ENDDO
@@ -2017,14 +2000,14 @@ C
 C     
       DO I=1,MCOND
          DO J=1,NDM
-            BOUND(I+M0,J)=0.0
+            BOUND(I,J)=0.0
             DO K=1,MCOND
-               BOUND(I+M0,J)=BOUND(I+M0,J)+D(K,I)*CNOW(K+M0,J)
+               BOUND(I,J)=BOUND(I,J)+D(K,I)*V(J,K)
             ENDDO
          ENDDO
       ENDDO
 C     
-      DO I=K1,K2
+      DO I=1,MCOND
          DO J=1,NDM
             CPREV(I,J,IS,ITRANS)=BOUND(I,J)
          ENDDO
