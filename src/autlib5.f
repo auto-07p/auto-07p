@@ -156,12 +156,11 @@ C
 C Local
       ALLOCATABLE UU(:),FF1(:),FF2(:)
 C
-       NBC0=IAP(24)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-       CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F)
+       CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.TRUE.,U0,U1,F)
 C
        IF(IJAC.EQ.0)RETURN
        ALLOCATE(UU(NDIM),FF1(NBC),FF2(NBC))
@@ -178,9 +177,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U0(I)-EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU,U1,FF1)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF1)
          UU(I)=U0(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU,U1,FF2)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF2)
          UU(I)=U0(I)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -199,9 +198,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U1(I)-EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU,FF1)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF1)
          UU(I)=U1(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU,FF2)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF2)
          UU(I)=U1(I)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
@@ -210,7 +209,7 @@ C
 C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF2)
+         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
@@ -222,7 +221,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB)
+      SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
 C
       INCLUDE 'auto.h'
       PARAMETER(NPSIX=NPARX)
@@ -286,7 +285,7 @@ C     **Regular Continuation**
       IF(ISTART.NE.3) THEN
 C        *Projection boundary conditions for the homoclinic orbit
 C        *NSTAB boundary conditions at t=0
-	     CALL PRJCTI(IAP,RAP,BOUND,XEQUIB1,ICP,PAR,-1,1,1,NDM)
+	     CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
              DO I=1,NSTAB
                 DO K=1,NDM
                    FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(I,K)
@@ -296,7 +295,7 @@ C        *NSTAB boundary conditions at t=0
 C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
-            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB2,ICP,PAR,1,2,1,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=1,NUNSTAB
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
@@ -367,7 +366,7 @@ C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
 C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
-            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB1,ICP,PAR,1,1,2,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
             DO I=1,NUNSTAB
                DUM=0.0
                DO K=1,NDM
@@ -377,7 +376,7 @@ C           *-orthogonal to the unstable directions of A  at t=0
                JB = JB+1
             ENDDO
 C           *-orthogonal to the stable directions of A  at t=1
-            CALL PRJCTI(IAP,RAP,BOUND,XEQUIB2,ICP,PAR,-1,2,2,NDM)
+            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
             DO I=1,NSTAB
                DUM=0.0
                DO K=1,NDM
@@ -1869,24 +1868,27 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE PRJCTI(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM)
+      SUBROUTINE PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+     *                  IMFD,IS,ITRANS,NDM)
 C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      LOGICAL CSAVE
 C Local
       ALLOCATABLE A(:,:),V(:,:)
 C
       ALLOCATE(A(NDM,NDM),V(NDM,NDM))
-      CALL PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,A,V)
+      CALL PRJCTN(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+     *            IMFD,IS,ITRANS,NDM,A,V)
       DEALLOCATE(A,V)
 C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE PRJCTN(IAP,RAP,BOUND,XEQUIB,ICP,PAR,IMFD,IS,ITRANS,NDM,
-     *                  A,V)
+      SUBROUTINE PRJCTN(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+     *                  IMFD,IS,ITRANS,NDM,A,V)
 C
       INCLUDE 'auto.h'
 C
@@ -1909,6 +1911,7 @@ C
 C
       DIMENSION ICP(*),PAR(*),A(NDM,*),V(NDM,*)
       DIMENSION BOUND(NDM,*),XEQUIB(*)
+      LOGICAL CSAVE
 C Local
       INTEGER TYPE,IFLAG(2,2)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
@@ -2007,11 +2010,13 @@ C
          ENDDO
       ENDDO
 C     
-      DO I=1,MCOND
-         DO J=1,NDM
-            CPREV(I,J,IS,ITRANS)=BOUND(I,J)
+      IF(CSAVE)THEN
+         DO I=1,MCOND
+            DO J=1,NDM
+               CPREV(I,J,IS,ITRANS)=BOUND(I,J)
+            ENDDO
          ENDDO
-      ENDDO
+      ENDIF
 C     
       DEALLOCATE(D,DUM1,DUM2)
       RETURN
