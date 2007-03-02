@@ -52,9 +52,17 @@ C                      Demmel-Kahan svd routines
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
-      SUBROUTINE FLOWKM (NDIM, C0, C1, IID, RWORK, EV)
-C
+      MODULE FLOQUET
+
       IMPLICIT NONE
+
+      PRIVATE
+
+      PUBLIC :: FLOWKM
+
+      CONTAINS
+
+      SUBROUTINE FLOWKM (NDIM, C0, C1, IID, RWORK, EV)
 C
 C  Subroutine to compute Floquet multipliers via the "deflated circuit 
 C  pencil" method. This routine is called by the AUTO routine FNSPBV
@@ -312,7 +320,7 @@ C
      &     /,'        Infinite Floquet multiplier represented by ',
      &     /,'        CMPLX( 1.0D+30, 1.0D+30 )')
 C
-      END
+      END SUBROUTINE FLOWKM
 C
 C **************************
 C *  Householder routines  *
@@ -328,7 +336,6 @@ C  Ref: Golub and van Loan, Matrix Calcualtions,
 C       First Edition, Pages 38-43
 C
       SUBROUTINE DHHPR ( K, J, N, X, INCX, BETA, V )
-      IMPLICIT NONE
 C     .. Scalar Arguments ..
       INTEGER            J, K, N, INCX
       DOUBLE PRECISION   BETA
@@ -465,9 +472,8 @@ C
 C
 C     End of DHHPR.
 C
-      END
+      END SUBROUTINE DHHPR
       SUBROUTINE DHHAP ( K, J, N, Q, BETA, V, JOB, A, LDA )
-      IMPLICIT NONE
 C     .. Scalar Arguments ..
       INTEGER            J, K, N, Q, JOB, LDA
       DOUBLE PRECISION   BETA
@@ -606,6 +612,7 @@ C
 C
 C     End of DHHAP.
 C
-      END
+      END SUBROUTINE DHHAP
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
+      END MODULE FLOQUET

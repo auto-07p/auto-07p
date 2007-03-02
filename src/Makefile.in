@@ -26,7 +26,7 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f auto.h
+../lib/autlib1.o: autlib1.f ../lib/autlib4.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
 ../lib/autlib2.o: autlib2.f auto.h
@@ -108,6 +108,7 @@ move: $(OBJ)
 #
 superclean:
 	cd ../lib && rm -f *.o *.a
+	rm -f *.mod
 	rmdir ../lib 2> /dev/null; true
 #
 #  DO NOT ADD ANYTHING AFTER THIS LINE

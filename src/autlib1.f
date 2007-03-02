@@ -5498,6 +5498,7 @@ C     ------ --------- -------- ------
      * (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, RLCUR,RLOLD,RLDOT,
      * NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DUPS,TM,DTM,THL,THU,IUZ,VUZ)
 C
+      USE FLOQUET
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -5508,7 +5509,7 @@ C This function returns a quantity that changes sign when a complex
 C pair of eigenvalues of the linearized Poincare map moves in or out
 C of the unit circle or when a real eigenvalues passes through -1.
 
-      COMPLEX*16 EV(*),ZTMP
+      DOUBLE COMPLEX EV(*),ZTMP
       DIMENSION IAP(*),RAP(*),P0(*),P1(*)
 C Local
       ALLOCATABLE WRK(:)
