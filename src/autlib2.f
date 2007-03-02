@@ -4,6 +4,14 @@ C           Setting up of the Jacobian and right hand side
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
+      MODULE SOLVEBV
+
+      PRIVATE
+
+      PUBLIC ::SOLVBV
+
+      CONTAINS
+C
 C     ---------- ------
       SUBROUTINE SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,
      * NLLV,RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,DTM,
@@ -18,7 +26,8 @@ C
       EXTERNAL FUNI,BCNI,ICNI
       DIMENSION IAP(*),RAP(*),FC(*),PAR(*),ICP(*),RLOLD(*),RLCUR(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION FA(IAP(1)*IAP(6),*),DTM(*)
+      DIMENSION FA(IAP(1)*IAP(6),*),DTM(*),RLDOT(*),DUPS(NDX,*)
+      DOUBLE PRECISION P0(*),P1(*),THL(*),THU(*)
 C
 C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
@@ -144,7 +153,7 @@ C
 C
       DEALLOCATE(NP)
       RETURN
-      END
+      END SUBROUTINE SOLVBV
 C
 C     ---------- -------
       SUBROUTINE SETFCDD(IFST,DD,FC,NCB,NRC)
@@ -161,7 +170,7 @@ C
       ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE SETFCDD
 C
 C     ---------- ---------
       SUBROUTINE PARTITION(N,KWT,M)
@@ -183,7 +192,7 @@ C
         ENDDO
 C     
       RETURN
-      END
+      END SUBROUTINE PARTITION
 C
 C     ---------- ---------
       SUBROUTINE SUBVBC(NDIM,NTST,NBC,NCB,BCNI,NDX,
@@ -233,7 +242,7 @@ C
        ENDIF
        DEALLOCATE(UBC0,UBC1,FBC,DBC)
        RETURN
-       END
+       END SUBROUTINE SUBVBC
 C
 C     ---------- -------
       SUBROUTINE SUBVPSA(NDIM,NTST,NCB,NDX,IAP,ICP,RDS,DDPA,FCPA,
@@ -279,7 +288,7 @@ C
        FCPA=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
 C
        RETURN
-       END
+       END SUBROUTINE SUBVPSA
 C
 C     ---------- ------
       SUBROUTINE SETUBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
@@ -473,7 +482,7 @@ C     transpose DFDU for optimal access
             FA(I)=FA(I)-WPLOC(K)*UPS((K-1)*NDIM+I,1)
          ENDDO
       ENDDO
-      END SUBROUTINE
+      END SUBROUTINE SBVFUN
 C
 C     ---------- ------
       SUBROUTINE SBVICN(NDIM,NINT,NCB,NCA,ICNI,IAP,RAP,PAR,ICP,CC,DD,FC,
@@ -525,7 +534,7 @@ C
       DO I=1,NDIM
          CC(I,NINT+1)=DTM*THU(I)*WI*UDOTPS(I)
       ENDDO
-      END SUBROUTINE
+      END SUBROUTINE SBVICN
 C
 C     ---------- ------
       SUBROUTINE SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,
@@ -620,9 +629,9 @@ C     Integral constraints :
 C     
        DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD,UIC,UIO,UID,UIP)
        RETURN
-       END SUBROUTINE
+       END SUBROUTINE SETRHS
 C
-      END
+      END SUBROUTINE SETUBV
 C
 C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,DD,FA,FAA,FC,FCFC,P0,P1,IFST,
@@ -754,7 +763,7 @@ C
       DEALLOCATE(X)
 C
       RETURN
-      END
+      END SUBROUTINE BRBD
 C
 C     ---------- -------
       SUBROUTINE SETZERO(FA,FC,NA,NRA,NFC)
@@ -779,7 +788,7 @@ C
       ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE SETZERO
 C
 C     This is the per-CPU, per-element process function of CONPAR
 C     ---------- ------
@@ -905,7 +914,7 @@ C     Also recalculate absolute maximum for current row
       DO L=NCA-NOV+1,NCA
          A(L)=A(L)-RM*AP(L)
       ENDDO
-      END SUBROUTINE
+      END SUBROUTINE IMSBRA
 C
 C     ---------- ------
       SUBROUTINE SUBRAC(NOV,N,C,AP,ICF,RM)
@@ -923,9 +932,9 @@ C
       DO L=1,N
          C(ICF(L))=C(ICF(L))-RM*AP(ICF(L))
       ENDDO
-      END SUBROUTINE
+      END SUBROUTINE SUBRAC
 C
-      END
+      END SUBROUTINE CONPAP
 C
 C     ---------- ------
       SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
@@ -953,7 +962,7 @@ C
       DEALLOCATE(IAMAX)
 C
       RETURN
-      END
+      END SUBROUTINE CONPAR
 C
 C     ---------- ------
       SUBROUTINE CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC,IRF,ICF)
@@ -994,7 +1003,7 @@ C
       ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE CONRHS
 C
 C     ---------- ------
       SUBROUTINE COPYCP(NA,NOV,NRA,NCA,A,
@@ -1043,7 +1052,7 @@ C
       ENDDO
 C 
       RETURN
-      END
+      END SUBROUTINE COPYCP
 C
 C     ---------- ------
       SUBROUTINE CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
@@ -1068,7 +1077,7 @@ C     **Copy the RHS
       ENDDO
 C     
       RETURN
-      END
+      END SUBROUTINE CPYRHS
 C
 C     ------- -------- ------
       INTEGER FUNCTION IMAXCF(N,A,ICFI)
@@ -1090,7 +1099,7 @@ C
       ENDDO
 C
       RETURN
-      END
+      END FUNCTION IMAXCF
 C
 C
 C     ---------- ------
@@ -1290,7 +1299,7 @@ C
        DOUBLE PRECISION A12(NOV),A21(NOV),S12(NOV),S11(NOV)
        DOUBLE PRECISION A22(NOV),S21(NOV),BB1(NOV),BB2(NOV)
 C
-       INTEGER L,IMAXCF
+       INTEGER L
        DOUBLE PRECISION RM,V,PPIV,TPIV
 C
        RM = A12(IPC(IC))/A21(IPC(IC))
@@ -1389,7 +1398,7 @@ C Reduce concurrently in each node
       ENDDO            
 C
       RETURN
-      END
+      END SUBROUTINE REDRHS
 C
 C     ---------- ------
       SUBROUTINE DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
@@ -1528,7 +1537,7 @@ C
 C
       DEALLOCATE(XE)
       RETURN
-      END
+      END SUBROUTINE DIMRGE
 C
 C     ---------- ------
       SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,IPC)
@@ -1576,7 +1585,7 @@ C
       ENDDO
 
       RETURN
-      END
+      END SUBROUTINE BCKSUB
 C
 C     ---------- ------
       SUBROUTINE INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
@@ -1632,7 +1641,7 @@ C        **Copy SOL and X into FA
 C
 C     
       RETURN
-      END
+      END SUBROUTINE INFPAR
 C           
 C     ---------- ------
       SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,FA,
@@ -1697,6 +1706,6 @@ C
  105   FORMAT(' DD , FC')
 C
       RETURN
-      END
+      END SUBROUTINE PRINT1
 
-
+      END MODULE SOLVEBV

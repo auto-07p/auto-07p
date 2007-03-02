@@ -4637,6 +4637,7 @@ C     ---------- ------
      * RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,
      * TM,DTM,P0,P1,THL,THU)
 C
+      USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Controls the solution of the nonlinear equations (by Newton's method)
@@ -4647,6 +4648,7 @@ C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*),UDOTPS(NDX,*)
       DIMENSION UPOLDP(NDX,*),DUPS(NDX,*),FA(NDX,*),FC(*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      DIMENSION P0(*),P1(*)
       LOGICAL DONE
 C
        NDIM=IAP(1)
@@ -5159,6 +5161,7 @@ C     ---------- ------
      * RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,IPERP,
      * P0,P1,THL,THU)
 C
+      USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a direction vector (UDOTPS,RLDOT) that is needed to start
@@ -5166,8 +5169,10 @@ C the computation of a branch when no direction vector is given.
 C
       EXTERNAL FUNI,BCNI,ICNI
 C
-      DIMENSION IAP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*),DTM(*)
+      DIMENSION IAP(*),RAP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      DOUBLE PRECISION UPS(NDX,*),DUPS(NDX,*),UOLDPS(NDX,*)
+      DOUBLE PRECISION UPOLDP(NDX,*),P0(*),P1(*)
 C
 C Generate the Jacobian matrix with zero direction vector.
 C (Then the last row of the Jacobian will be zero)
@@ -5372,6 +5377,7 @@ C     ------ --------- -------- ------
      *(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV,RLCUR,RLOLD,RLDOT,
      * NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DUPS,TM,DTM,THL,THU,IUZ,VUZ)
 C
+      USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C RETURNS A QUANTITY THAT CHANGES SIGN AT A LIMIT POINT (BVP)
@@ -5382,8 +5388,11 @@ C
 C
       EXTERNAL FUNI,BCNI,ICNI
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*)
+      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),UDOTPS(NDX,*),FA(NDX,*)
+      DIMENSION FC(*)
       DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),TM(*),DTM(*),THL(*),THU(*)
+      DOUBLE PRECISION UPS(NDX,*),DUPS(NDX,*),UOLDPS(NDX,*)
+      DOUBLE PRECISION UPOLDP(NDX,*),P0(*),P1(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)

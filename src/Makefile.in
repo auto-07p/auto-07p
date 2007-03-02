@@ -26,7 +26,7 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f ../lib/autlib4.o ../lib/autlib5.o auto.h
+../lib/autlib1.o: autlib1.f ../lib/autlib2.o ../lib/autlib4.o ../lib/autlib5.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
 ../lib/autlib2.o: autlib2.f auto.h
