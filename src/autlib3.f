@@ -1,3 +1,31 @@
+      MODULE INTERFACES
+
+      PRIVATE
+
+      PUBLIC :: FNLP,STPNLP ! Folds (Algebraic Problems)
+      PUBLIC :: FNC1,STPNC1 ! Optimizations (Algebraic,NFPR=2)
+      PUBLIC :: FNC2,STPNC2 ! Optimizations (Algebraic,otherwise)
+      PUBLIC :: FNDS        ! Discrete systems
+      PUBLIC :: FNTI        ! Time integration
+      PUBLIC :: FNHD,STPNHD ! Hopf bifs (maps)
+      PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs)
+      PUBLIC :: FNHW,STPNHW ! Hopf bifs (waves)
+      PUBLIC :: FNPS,BCPS,ICPS,PDBLE,STPNPS ! Periodic solutions
+      PUBLIC :: STPNPB      ! Periodic solutions from Hopf
+      PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
+      PUBLIC :: FNWP,STPNWP ! Travelling waves (parabolic PDEs)
+      PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
+      PUBLIC :: FNPE,ICPE   ! Time evolution (parabolic PDEs)
+      PUBLIC :: FNPL,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
+      PUBLIC :: FNPD,BCPD,ICPD,STPNPD ! PD cont of periodic sol
+      PUBLIC :: FNTR,BCTR,ICTR,STPNTR ! Torus cont of periodic sol
+      PUBLIC :: FNPO,BCPO,ICPO,STPNPO ! Optimization of periodic sol
+      PUBLIC :: FNBL,BCBL,ICBL,STPNBL ! Fold cont of BVPs
+
+      PUBLIC :: FUNI,BCNI,ICNI ! Interface subroutines
+
+      CONTAINS
+
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C  Subroutines for the Continuation of Folds (Algebraic Problems)
@@ -15,6 +43,7 @@ C
 C Generates the equations for the 2-par continuation of folds.
 C
       DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:),FF1(:),FF2(:)
 C
@@ -69,7 +98,7 @@ C
        DEALLOCATE(FF1,DFU)
 C
       RETURN
-      END
+      END SUBROUTINE FNLP
 C
 C     ---------- ----
       SUBROUTINE FFLP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
@@ -77,6 +106,9 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION PAR(*),ICP(*),IAP(*),U(*),F(*),DFDU(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        IPS=IAP(2)
 C
@@ -101,7 +133,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFLP
 C
 C     ---------- ------
       SUBROUTINE STPNLP(IAP,RAP,PAR,ICP,U)
@@ -114,9 +146,10 @@ C
 C
 C Generates starting data for the continuation of folds.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),IR(:),IC(:),V(:),F(:)
+      DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -141,7 +174,7 @@ C
        U(NDIM)=PAR(ICP(2))
 C
       RETURN
-      END
+      END SUBROUTINE STPNLP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -161,6 +194,7 @@ C the optimization of algebraic systems (one parameter).
 C
       DIMENSION IAP(*)
       DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       DIMENSION DDP(NPARX)
       ALLOCATABLE DDU(:)
@@ -202,7 +236,7 @@ C
 C
       DEALLOCATE(DDU)
       RETURN
-      END
+      END SUBROUTINE FNC1
 C
 C     ---------- ------
       SUBROUTINE STPNC1(IAP,RAP,PAR,ICP,U)
@@ -213,8 +247,10 @@ C
 C
 C Generate starting data for optimization problems (one parameter).
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
-C 
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+C Local
+      DOUBLE PRECISION DUM(1)
+C
        NDIM=IAP(1)
        NDM=IAP(23)
 C
@@ -226,7 +262,7 @@ C
        U(NDIM)=PAR(ICP(2))
 C
       RETURN
-      END
+      END SUBROUTINE STPNC1
 C
 C     ---------- ----
       SUBROUTINE FNC2(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -239,7 +275,9 @@ C
 C Generate the equations for the continuation scheme used for the
 C optimization of algebraic systems (more than one parameter).
 C
-      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*)
+      DOUBLE PRECISION DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
@@ -288,7 +326,7 @@ C
        DFDP(NDIM,ICP(1))=1.d0
 C
       RETURN
-      END
+      END SUBROUTINE FNC2
 C
 C     ---------- ----
       SUBROUTINE FFC2(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
@@ -298,6 +336,7 @@ C
       INCLUDE 'auto.h'
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       DIMENSION DDP(NPARX)
       ALLOCATABLE DDU(:)
@@ -338,7 +377,7 @@ C
 C
       DEALLOCATE(DDU)
       RETURN
-      END
+      END SUBROUTINE FFC2
 C
 C     ---------- ------
       SUBROUTINE STPNC2(IAP,RAP,PAR,ICP,U)
@@ -352,10 +391,10 @@ C
 C Generates starting data for the continuation equations for
 C optimization of algebraic systems (More than one parameter).
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:),IR(:),IC(:)
-      DIMENSION DP(NPARX)
+      DIMENSION DP(NPARX),UOLD(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -396,7 +435,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE STPNC2
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -411,7 +450,8 @@ C
 C
 C Generate the equations for continuing fixed points.
 C
-      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DIMENSION U(*),IAP(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C
        CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
@@ -426,7 +466,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FNDS
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -441,7 +481,7 @@ C
 C
 C Generate the equations for continuing fixed points.
 C
-      DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),RAP(*)
+      DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),IAP(*),RAP(*)
       DIMENSION DFDU(NDIM,*),DFDP(NDIM,*)
 C
        CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -464,7 +504,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FNTI
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -483,7 +523,7 @@ C
 C Generates the equations for the 2-parameter continuation of Hopf
 C bifurcation points for maps.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
       DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
@@ -542,14 +582,17 @@ C
 C
        DEALLOCATE(FF1,DFU)
       RETURN
-      END
+      END SUBROUTINE FNHD
 C
 C     ---------- ----
       SUBROUTINE FFHD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*),DFDU(NDM,*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        NDM2=2*NDM
 C
@@ -585,7 +628,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFHD
 C
 C     ---------- ------
       SUBROUTINE STPNHD(IAP,RAP,PAR,ICP,U)
@@ -599,9 +642,10 @@ C
 C Generates starting data for the continuation of Hopf bifurcation
 C points for maps.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      DOUBLE PRECISION UOLD(1),DUMDFP(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -652,7 +696,7 @@ C
        DEALLOCATE(DFU,SMAT,F,V,IR,IC)
 C
       RETURN
-      END
+      END SUBROUTINE STPNHD
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -671,7 +715,7 @@ C
 C Generates the equations for the 2-parameter continuation of Hopf
 C bifurcation points in ODE.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
       DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
@@ -730,14 +774,17 @@ C
        DEALLOCATE(FF1,DFU)
 C
       RETURN
-      END
+      END SUBROUTINE FNHB
 C
 C     ---------- ----
       SUBROUTINE FFHB(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*),DFDU(NDM,*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        NDM2=2*NDM
 C
@@ -769,7 +816,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFHB
 C
 C     ---------- ------
       SUBROUTINE STPNHB(IAP,RAP,PAR,ICP,U)
@@ -783,9 +830,10 @@ C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE).
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      DOUBLE PRECISION UOLD(1),DFP(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -833,7 +881,7 @@ C
 C
        DEALLOCATE(DFU,F,V,SMAT,IR,IC)
       RETURN
-      END
+      END SUBROUTINE STPNHB
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -852,7 +900,7 @@ C
 C Generates the equations for the 2-parameter continuation of a
 C bifurcation to a traveling wave.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
       DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
@@ -911,14 +959,17 @@ C
 C
       DEALLOCATE(FF1,DFU)
       RETURN
-      END
+      END SUBROUTINE FNHW
 C
 C     ---------- ----
       SUBROUTINE FFHW(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
+      DIMENSION IAP(*),RAP(*)
       DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        NDM2=2*NDM
 C
@@ -950,7 +1001,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFHW
 C
 C     ---------- ------
       SUBROUTINE STPNHW(IAP,RAP,PAR,ICP,U)
@@ -964,9 +1015,10 @@ C
 C Generates starting data for the continuation of a bifurcation to a
 C traveling wave.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*)
-C Local (Can't use BLLOC here.)
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+C Local (Cannot use BLLOC here.)
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1015,7 +1067,7 @@ C
 C
        DEALLOCATE(DFU,F,V,SMAT,IR,IC)
       RETURN
-      END
+      END SUBROUTINE STPNHW
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1030,7 +1082,9 @@ C
 C
 C Generates the equations for the continuation of periodic orbits.
 C
-      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION UOLD(*)
 C
 C Generate the function.
 C
@@ -1070,7 +1124,7 @@ C          **Generate the Jacobian.
        ENDIF
 C
       RETURN
-      END
+      END SUBROUTINE FNPS
 C
 C     ---------- ----
       SUBROUTINE BCPS(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -1109,7 +1163,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE BCPS
 C
 C     ---------- ----
       SUBROUTINE ICPS(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -1139,7 +1193,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE ICPS
 C
 C     ---------- -----
       SUBROUTINE PDBLE(IAP,RAP,NDIM,NTST,NCOL,NDX,UPS,UDOTPS,TM,PAR)
@@ -1153,7 +1207,7 @@ C
 C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
-      DIMENSION TM(*),UPS(NDX,*),UDOTPS(NDX,*),PAR(*)
+      DIMENSION IAP(*),RAP(*),TM(*),UPS(NDX,*),UDOTPS(NDX,*),PAR(*)
 C
        PAR(11)=2.d0*PAR(11)
        IF(IRTN.NE.0)PAR(19)=2.d0*PAR(19)
@@ -1178,7 +1232,7 @@ C
        NTST=2*NTST
 C
       RETURN
-      END
+      END SUBROUTINE PDBLE
 C
 C     ---------- ------
       SUBROUTINE STPNPS(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -1191,10 +1245,11 @@ C
 C Generates starting data for the continuation of a branch of periodic
 C solutions from a Hopf bifurcation point.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
+      DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
       LOGICAL FOUND
 C
@@ -1287,7 +1342,7 @@ C
 C
        DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
       RETURN
-      END
+      END SUBROUTINE STPNPS
 C
 C     ---------- ------
       SUBROUTINE STPNPB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -1303,10 +1358,11 @@ C BCND, ICND, and period-scaled F in FUNC.
 C The difference with STPNPS is that the user period-scaling of F must
 C be taken into account.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
+      DOUBLE PRECISION UOLD(1),DUMDFP(1)
 C
       LOGICAL FOUND
 C
@@ -1400,7 +1456,7 @@ C
 C
        DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
       RETURN
-      END
+      END SUBROUTINE STPNPB
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C          Travelling Wave Solutions to Parabolic PDEs
@@ -1419,6 +1475,7 @@ C solutions to parabolic systems, for the purpose of finding
 C bifurcations to travelling wave solutions.
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:)
 C
@@ -1491,7 +1548,7 @@ C
 C
       DEALLOCATE(DFP)
       RETURN
-      END
+      END SUBROUTINE FNWS
 C
 C     ---------- ----
       SUBROUTINE FNWP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -1501,6 +1558,7 @@ C
 C Equations for the continuation of traveling waves.
 C
       DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C
 C Generate the function and Jacobian.
 C
@@ -1542,7 +1600,7 @@ C          **Fixed wave length
        ENDIF
 C
       RETURN
-      END
+      END SUBROUTINE FNWP
 C
 C     ---------- ------
       SUBROUTINE STPNWP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -1555,11 +1613,11 @@ C
 C Generates starting data for the continuation of a branch of periodic
 C solutions starting from a Hopf bifurcation point (Waves).
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
-      DOUBLE PRECISION DUMDFP(1)
+      DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
       LOGICAL FOUND
 C
@@ -1653,7 +1711,7 @@ C
 C
        DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
       RETURN
-      END
+      END SUBROUTINE STPNWP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1723,7 +1781,7 @@ C
 C
       DEALLOCATE(DFP)
       RETURN
-      END
+      END SUBROUTINE FNSP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1744,6 +1802,7 @@ C
       DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:,:)
+      DOUBLE PRECISION DUMDFP(1)
 C
        NDM=IAP(23)
 C
@@ -1792,7 +1851,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FNPE
 C
 C     ---------- ----
       SUBROUTINE ICPE(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -1801,7 +1860,7 @@ C
 C Dummy integral condition subroutine for parabolic systems.
 C
       RETURN
-      END
+      END SUBROUTINE ICPE
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1819,6 +1878,7 @@ C
 C
       DIMENSION IAP(*)
       DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
@@ -1876,7 +1936,7 @@ C
 C
       DEALLOCATE(DFU,DFP,FF1)
       RETURN
-      END
+      END SUBROUTINE FNPL
 C
 C     ---------- ----
       SUBROUTINE FFPL(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
@@ -1884,6 +1944,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C
        PERIOD=PAR(11)
        BETA=PAR(12)
@@ -1906,7 +1967,7 @@ C            ** Fixed period
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFPL
 C
 C     ---------- ----
       SUBROUTINE BCPL(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -1948,7 +2009,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE BCPL
 C
 C     ---------- ----
       SUBROUTINE ICPL(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -1994,7 +2055,7 @@ C
        DINT(3,NDIM+13)=-1.d0
 C
       RETURN
-      END
+      END SUBROUTINE ICPL
 C
 C     ---------- ------
       SUBROUTINE STPNPL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -2066,7 +2127,7 @@ C
        NODIR=0
 C
       RETURN
-      END
+      END SUBROUTINE STPNPL
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -2084,6 +2145,7 @@ C
 C
       DIMENSION IAP(*)
       DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
@@ -2141,14 +2203,17 @@ C
 C
       DEALLOCATE(FF1,DFU)
       RETURN
-      END
+      END SUBROUTINE FNPD
 C
 C     ---------- ----
       SUBROUTINE FFPD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        PERIOD=PAR(11)
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
@@ -2163,7 +2228,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFPD
 C
 C     ---------- ----
       SUBROUTINE BCPD(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -2212,7 +2277,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE BCPD
 C
 C     ---------- ----
       SUBROUTINE ICPD(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -2252,7 +2317,7 @@ C
        DINT(2,NDIM+13)=-1.d0
 C
       RETURN
-      END
+      END SUBROUTINE ICPD
 C
 C     ---------- ------
       SUBROUTINE STPNPD(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -2311,7 +2376,7 @@ C
        NODIR=0
 C
       RETURN
-      END
+      END SUBROUTINE STPNPD
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -2331,6 +2396,7 @@ C Generates the equations for the 2-parameter continuation of
 C torus bifurcations.
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
@@ -2388,14 +2454,17 @@ C
 C
       DEALLOCATE(FF1,DFU)
       RETURN
-      END
+      END SUBROUTINE FNTR
 C
 C     ---------- ----
       SUBROUTINE FFTR(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*),DFDU(NDM,*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 C
        PERIOD=PAR(11)
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
@@ -2414,7 +2483,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFTR
 C
 C     ---------- ----
       SUBROUTINE BCTR(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -2471,7 +2540,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE BCTR
 C
 C     ---------- ----
       SUBROUTINE ICTR(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -2517,7 +2586,7 @@ C
       DINT(3,NDIM+13)=-1
 C
       RETURN
-      END
+      END SUBROUTINE ICTR
 C
 C     ---------- ------
       SUBROUTINE STPNTR(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -2531,7 +2600,7 @@ C
 C Generates starting data for the 2-parameter continuation of torus
 C bifurcations.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
       DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
@@ -2587,7 +2656,7 @@ C
        NODIR=0
 C
       RETURN
-      END
+      END SUBROUTINE STPNTR
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -2605,7 +2674,7 @@ C
 C
 C Generates the equations for periodic optimization problems.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),ICP(*),PAR(*),F(*)
+      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*),F(*)
       DIMENSION DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:),FF1(:),FF2(:),UPOLD(:)
@@ -2671,7 +2740,7 @@ C
 C
       DEALLOCATE(UPOLD,DFU,FF1)
       RETURN
-      END
+      END SUBROUTINE FNPO
 C
 C     ---------- ----
       SUBROUTINE FFPO(IAP,RAP,NDIM,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU)
@@ -2680,8 +2749,10 @@ C
 C
       INCLUDE 'auto.h'
 C
-      DIMENSION IAP(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
       DIMENSION U(*),UOLD(*),UPOLD(*)
+C Local
+      DOUBLE PRECISION DUMDP(1)
 
        PERIOD=PAR(11)
        RKAPPA=PAR(13)
@@ -2702,7 +2773,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFPO
 C
 C     ---------- ----
       SUBROUTINE BCPO(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -2746,7 +2817,7 @@ C
       ENDDO
  
       RETURN
-      END
+      END SUBROUTINE BCPO
 C
 C     ---------- ----
       SUBROUTINE ICPO(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -2759,7 +2830,7 @@ C
 C
 C Generates integral conditions for periodic optimization problems.
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),F1(:),F2(:),DNT(:,:)
@@ -2815,7 +2886,7 @@ C
 C
        DEALLOCATE(DNT,F1,F2,DFU,DFP)
       RETURN
-      END
+      END SUBROUTINE ICPO
 C
 C     ---------- ----
       SUBROUTINE FIPO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,
@@ -2825,7 +2896,7 @@ C
 C
       INCLUDE 'auto.h'
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
 C
@@ -2877,7 +2948,7 @@ C
 C
       DEALLOCATE(DFU,F)
       RETURN
-      END
+      END SUBROUTINE FIPO
 C
 C     ---------- ------
       SUBROUTINE STPNPO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -2891,6 +2962,7 @@ C Generates starting data for optimization of periodic solutions.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DOUBLE PRECISION RAP(*)
 C Local
       DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
       ALLOCATABLE U(:)
@@ -2960,7 +3032,7 @@ C
        NODIR=1
 C
       RETURN
-      END
+      END SUBROUTINE STPNPO
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -2980,6 +3052,7 @@ C Generates the equations for the 2-parameter continuation
 C of folds (BVP).
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
@@ -3037,7 +3110,7 @@ C
 C
       DEALLOCATE(DFU,DFP,FF1)
       RETURN
-      END
+      END SUBROUTINE FNBL
 C
 C     ---------- ----
       SUBROUTINE FFBL(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
@@ -3045,6 +3118,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
 C
        NFPR=IAP(29)
 C
@@ -3065,7 +3139,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FFBL
 C
 C     ---------- ----
       SUBROUTINE BCBL(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -3156,7 +3230,7 @@ C
 C
       DEALLOCATE(DFU,FF2)
       RETURN
-      END
+      END SUBROUTINE BCBL
 C
 C     ---------- ----
       SUBROUTINE FBBL(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DBC)
@@ -3185,7 +3259,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FBBL
 C
 C     ---------- ----
       SUBROUTINE ICBL(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -3262,7 +3336,7 @@ C
 C
       DEALLOCATE(FF1,DFU)
       RETURN
-      END
+      END SUBROUTINE ICBL
 C
 C     --------------
       SUBROUTINE FIBL(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,
@@ -3306,7 +3380,7 @@ C Note that PAR(11+NFPR/2) is used to keep the norm of the null vector
        ENDIF
 C
       RETURN
-      END
+      END SUBROUTINE FIBL
 C
 C     ---------- ------
       SUBROUTINE STPNBL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
@@ -3372,7 +3446,7 @@ C
        NODIR=1
 C
       RETURN
-      END
+      END SUBROUTINE STPNBL
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -3450,7 +3524,7 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE FUNI
 C
 C     ---------- ----
       SUBROUTINE BCNI(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
@@ -3544,7 +3618,7 @@ C
 C
       DEALLOCATE(F1ZZ)
       RETURN
-      END
+      END SUBROUTINE BCNI
 C
 C     ---------- ----
       SUBROUTINE ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
@@ -3619,7 +3693,7 @@ C
 C
       DEALLOCATE(F1ZZ)
       RETURN
-      END
+      END SUBROUTINE ICNI
 C
 C     ---------- ----
       SUBROUTINE FOPI(IAP,RAP,NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -3631,7 +3705,7 @@ C
 C
 C Interface subroutine to user supplied FOPT.
 C
-      DIMENSION IAP(*),U(*),ICP(*),PAR(*),DFDU(*),DFDP(*)
+      DIMENSION IAP(*),RAP(*),U(*),ICP(*),PAR(*),DFDU(*),DFDP(*)
 C Local
       ALLOCATABLE U1ZZ(:),U2ZZ(:)
 C
@@ -3683,6 +3757,7 @@ C
        ENDDO
 C
        RETURN
-       END
+       END SUBROUTINE FOPI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
+      END MODULE INTERFACES

@@ -96,6 +96,7 @@ C
 C     ---------- ----
       SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
+      USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),ICP(*)
@@ -103,6 +104,7 @@ C
       DIMENSION DFDU(NDM,*)
 C
 C       Local
+      DOUBLE PRECISION DDUM1(1)
 C
       NDM=IAP(23)
 C
@@ -112,7 +114,7 @@ C           *Evaluate the R.-H. sides
             CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DUM1)
          ELSEIF(ITWIST.EQ.1)THEN
 C           *Adjoint variational equations for normal vector
-            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUM1)
+            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
 C           *Set F = - (Df)^T u
             DO J=1,NDM
                DUM1=0.0D0
@@ -1719,12 +1721,14 @@ C	           real parts (largest first)
 C	        VRET the rows of which are real parts of corresponding 
 C                  eigenvectors 
 C
+      USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NDM,*)
       DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
       DIMENSION IEIGC(2)
+      DOUBLE PRECISION DUM1(1)
       ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
       ALLOCATABLE VRPREV(:,:,:)
       SAVE IEIGC,VRPREV
@@ -1873,6 +1877,7 @@ C For the purposes of this routine the "previous point on the
 C branch" is at the values of PAR at which the routine was last
 C called with the same values of IS and ITRANS.
 C
+      USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)
@@ -1880,6 +1885,7 @@ C
       LOGICAL CSAVE
 C Local
       INTEGER TYPE,IFLAG(2,2)
+      DOUBLE PRECISION UDUM(1),DDUM(1)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
       ALLOCATABLE IR(:),IC(:),TYPE(:)

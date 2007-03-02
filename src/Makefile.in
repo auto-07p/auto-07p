@@ -26,7 +26,7 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f ../lib/autlib2.o ../lib/autlib4.o ../lib/autlib5.o auto.h
+../lib/autlib1.o: autlib1.f ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
 ../lib/autlib2.o: autlib2.f auto.h
@@ -38,7 +38,7 @@ compile: $(OBJ)
 ../lib/autlib4.o: autlib4.f auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib4.f -o $@
 #
-../lib/autlib5.o: autlib5.f auto.h
+../lib/autlib5.o: autlib5.f ../lib/autlib3.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib5.f -o $@
 #
 ../lib/libauto_c.a: user_c.c ../include/auto_f2c.h ../include/config.h
