@@ -6,10 +6,27 @@ C        B. E. Oldeman, E. J. Doedel)
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
+      MODULE HOMCONT
+
+      INCLUDE 'auto.h'
+
+      PRIVATE
+
+      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,PREHO
+
+C     This common block is also used by demos: don't remove it!!
+C
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+
+      PARAMETER(NPSIX=NPARX)
+      POINTER IREV(:)
+      INTEGER, SAVE :: IPSI(NPSIX),IFIXED(NPSIX),IREV
+      DOUBLE PRECISION, SAVE :: COMPZERO
+
+      CONTAINS
+
 C     ---------- ----
       SUBROUTINE FNHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -17,10 +34,9 @@ C
 C
 C Generates the equations for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),ICP(*)
-      DIMENSION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DIMENSION IAP(*),RAP(*),ICP(*)
+      DIMENSION U(*),UOLD(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       ALLOCATABLE DFU(:)
 C
        NDM=IAP(23)
@@ -75,12 +91,10 @@ C
 C
       IF(ALLOCATED(DFU))DEALLOCATE(DFU)
       RETURN
-      END
+      END SUBROUTINE FNHO
 C
 C     ---------- ----
       SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -89,8 +103,6 @@ C
       DIMENSION DFDU(NDM,*)
 C
 C       Local
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 C
       NDM=IAP(23)
 C
@@ -138,12 +150,10 @@ C
       ENDIF
 C	
       RETURN
-      END
+      END SUBROUTINE FFHO
 C
 C     ---------- ----
       SUBROUTINE BCHO(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -152,7 +162,7 @@ C
 C Generates the boundary conditions for homoclinic bifurcation analysis
 C
       DIMENSION IAP(*),ICP(*)
-      DIMENSION U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
+      DIMENSION RAP(*),U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
 C Local
       ALLOCATABLE UU(:),FF1(:),FF2(:)
 C
@@ -218,13 +228,10 @@ C
 C
       DEALLOCATE(FF1,FF2,UU)
       RETURN
-      END
+      END SUBROUTINE BCHO
 C
 C     ---------- ----
       SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
-C
-      INCLUDE 'auto.h'
-      PARAMETER(NPSIX=NPARX)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -232,14 +239,13 @@ C Generates the boundary conditions for homoclinic orbits.
 C
       DIMENSION ICP(*),IAP(*)
       DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*)
+      LOGICAL CSAVE
 C Local
       ALLOCATABLE VR(:,:,:),VT(:,:,:),UMAX(:)
       ALLOCATABLE BOUND(:,:),RR(:,:),RI(:,:),XEQUIB1(:),XEQUIB2(:)
       SAVE UMAX
 C
       POINTER NRTN(:),IREV(:)
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
       COMMON /BLRTN/ NRTN,IRTN
 C
       NDM=IAP(23)
@@ -486,19 +492,18 @@ C *user defined extra boundary conditions
 C
       DEALLOCATE(VR,VT,BOUND,RR,RI,XEQUIB1,XEQUIB2)
       RETURN
-      END
+      END SUBROUTINE FBHO
 C
 C     ---------- ----
       SUBROUTINE ICHO(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      INCLUDE 'auto.h'
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
        NNT0=IAP(25)
@@ -552,22 +557,18 @@ C
        ENDDO
 C
       RETURN
-      END
+      END SUBROUTINE ICHO
 C
 C     ---------- ----
       SUBROUTINE FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      * UPOLD,FI)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates the integral conditions for homoclinic orbits.
 C
       DIMENSION ICP(*),IAP(*)
-      DIMENSION RAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+      DIMENSION RAP(*),PAR(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
 C
       NDM=IAP(23)
       JB=0
@@ -601,25 +602,20 @@ C
       END IF
 C
       RETURN
-      END
+      END SUBROUTINE FIHO
 C
 C     ---------- ----
       SUBROUTINE INHO(IAP,ICP,PAR)
 C
-      INCLUDE 'auto.h'
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(HMACHHO=1.0d-13,NPSIX=NPARX)
+      PARAMETER(HMACHHO=1.0d-13)
       DIMENSION PAR(*),IAP(*),ICP(*)
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
-C Sets other constants in the following common blocks.
+C Sets other constants in the module common blocks.
 C
       POINTER IREV(:)
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
-      COMMON /BLHMA/ COMPZERO
 C
 C set various constants 
 C
@@ -719,13 +715,12 @@ C
       IAP(23)=NDM
 C
       RETURN
-      END
+      END SUBROUTINE INHO
 C
 C     ---------- ------
       SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,NDX,UPS,UDOTPS,T,DT,N,
      *     NDIM,J,J1)
 C
-      INCLUDE 'auto.h'
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION UPS(NDX,*), UDOTPS(NDX,*)
 C
@@ -762,7 +757,7 @@ C
 C
       DEALLOCATE(X,W)
       RETURN
-      END
+      END SUBROUTINE INTPHO
 C
 C     ---------- ------
       SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
@@ -782,14 +777,12 @@ C     t=1|maximum from equil.|maximum from equil.| end of hom. orbit  |
 C
 C     Called by PREHO
 C
-      INCLUDE 'auto.h'
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
       DIMENSION J2(3),A(3),B(3),T(3),TT(3)
       ALLOCATABLE TTM(:),UMAX(:)
 C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
       ALLOCATE(TTM(NTSR*2),UMAX(NDM))
@@ -982,14 +975,13 @@ C
       IF(IRTN.NE.0)PAR(19)=PAR(19)*(-ISTART)
       DEALLOCATE(TTM,UMAX)
       RETURN
-      END
+      END SUBROUTINE TRANHO
 C
 C     ---------- ------
       SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION UPS(NDX,*), UDOTPS(NDX,*), TM(*), PAR(*), DTM(*)
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 C
 C     Copy the homoclinic orbit back from the special representation 
 C     gotten from TRANHO to the usual representation.
@@ -1042,21 +1034,18 @@ C
       PAR(11)=TIME
       NAR=NDM
       RETURN
-      END
+      END SUBROUTINE CPBKHO
 C
 C     ---------- -----
       SUBROUTINE PREHO(IAP,RAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,
      *     TM,DTM)
-C
-      INCLUDE 'auto.h'
 C
 C     Special homoclinic orbit preprocessing.
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMA/ COMPZERO
+      DIMENSION RAP(*), ICP(*)
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -1297,13 +1286,11 @@ C
       ENDIF
 C
       RETURN
-      END
+      END SUBROUTINE PREHO
 C
 C     ---------- ------
       SUBROUTINE STPNHO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
      * NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -1316,12 +1303,10 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
       ALLOCATABLE U(:),RR(:),RI(:),VR(:,:),VT(:,:)
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -1401,25 +1386,18 @@ C
 C
       DEALLOCATE(RR,RI,VR,VT)
       RETURN
-      END
+      END SUBROUTINE STPNHO
 C
 C     ---------- ------
       SUBROUTINE PVLSHO(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C
-      INCLUDE 'auto.h'
-      PARAMETER(NPSIX=NPARX)
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
       DIMENSION P0(NDIM,*),P1(NDIM,*)
 C Local
       ALLOCATABLE PU0(:),PU1(:)
       ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
-C
-      POINTER IREV(:)
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMP/ IPSI(NPSIX),IFIXED(NPSIX),IREV
 C
       ALLOCATE(PU0(NDIM),PU1(NDIM))
       ALLOCATE(RR(NDIM,2),RI(NDIM,2),V(NDIM,NDIM,2),VT(NDIM,NDIM,2))
@@ -1496,12 +1474,10 @@ C
  103  FORMAT(1X,'orientable',' (',D20.10,')')      
  104  FORMAT(1X,'PSI(',I2,')=',D20.10)
 C
-      END
+      END SUBROUTINE PVLSHO
 C
 C     -------- ------- -------- -----
       DOUBLE PRECISION FUNCTION PSIHO(IAP,IS,RR,RI,V,VT,ICP,PAR,PU0,PU1)
-C
-      INCLUDE 'auto.h'
 C
 C The conditions for degenerate homoclinic orbits are given by PSI(IS)=0.
 C 
@@ -1517,9 +1493,6 @@ C
       DIMENSION V(IAP(23),IAP(23),*),VT(IAP(23),IAP(23),*),PU0(*),PU1(*)
 C Local
       ALLOCATABLE F0(:),F1(:)
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMA/ COMPZERO
 C
       NDM=IAP(23)
 C
@@ -1708,14 +1681,14 @@ C
       ENDDO 
       RETURN
 C
-      END
+      END FUNCTION PSIHO
 C     
 C     ---------- -----
       SUBROUTINE EIGHI(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
-      INCLUDE 'auto.h'
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),RR(*),RI(*),VRET(NDM,*),XEQUIB(*),PAR(*)
 C Local
       ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
 C
@@ -1725,13 +1698,11 @@ C
         DEALLOCATE(DFDU,DFDP,ZZ)
 C
       RETURN
-      END
+      END SUBROUTINE EIGHI
 C
 C     ---------- -----
       SUBROUTINE EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *                  DFDU,DFDP,ZZ)
-C
-      INCLUDE 'auto.h'
 C
 C Uses EISPACK routine RG to calculate the eigenvalues/eigenvectors
 C of the linearization matrix a (obtained from DFHO) and orders them
@@ -1757,9 +1728,6 @@ C Local
       ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
       ALLOCATABLE VRPREV(:,:,:)
       SAVE IEIGC,VRPREV
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-      COMMON /BLHMA/ COMPZERO
 C
       ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM),FV1(NDM),IV1(NDM))
       IFAIL=0
@@ -1865,16 +1833,16 @@ C
 C     
       DEALLOCATE(VI,VR,F,FV1,IV1)
       RETURN
-      END
+      END SUBROUTINE EIGHO
 C
 C     ---------- ------
       SUBROUTINE PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *                  IMFD,IS,ITRANS,NDM)
 C
-      INCLUDE 'auto.h'
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       LOGICAL CSAVE
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION RAP(*),BOUND(NDM,*),XEQUIB(*),PAR(*)
 C Local
       ALLOCATABLE A(:,:),V(:,:)
 C
@@ -1884,13 +1852,11 @@ C
       DEALLOCATE(A,V)
 C
       RETURN
-      END
+      END SUBROUTINE PRJCTI
 C
 C     ---------- ------
       SUBROUTINE PRJCTN(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *                  IMFD,IS,ITRANS,NDM,A,V)
-C
-      INCLUDE 'auto.h'
 C
 C Compute NUNSTAB (or NSTAB) projection boundary condition functions
 C onto to the UNSTABLE (or STABLE) manifold of the appropriate equilibrium
@@ -1909,7 +1875,7 @@ C called with the same values of IS and ITRANS.
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(*),PAR(*),A(NDM,*),V(NDM,*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)
       DIMENSION BOUND(NDM,*),XEQUIB(*)
       LOGICAL CSAVE
 C Local
@@ -1918,9 +1884,7 @@ C Local
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
       ALLOCATABLE IR(:),IC(:),TYPE(:)
 C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       SAVE CPREV,IFLAG
-      COMMON /BLHMA/ COMPZERO
 C
       ALLOCATE(FDUM(NDM))
       CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
@@ -2020,6 +1984,8 @@ C
 C     
       DEALLOCATE(D,DUM1,DUM2)
       RETURN
-      END
+      END SUBROUTINE PRJCTN
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
+      END MODULE HOMCONT
+
