@@ -247,7 +247,7 @@ C Local
       ALLOCATABLE BOUND(:,:),RR(:,:),RI(:,:),XEQUIB1(:),XEQUIB2(:)
       SAVE UMAX
 C
-      POINTER NRTN(:),IREV(:)
+      POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
       NDM=IAP(23)
@@ -616,8 +616,6 @@ C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
 C Sets other constants in the module common blocks.
-C
-      POINTER IREV(:)
 C
 C set various constants 
 C
