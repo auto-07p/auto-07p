@@ -5280,7 +5280,7 @@ C
 C
       DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),TM(*),DTM(*),FA(*),FC(*)
       DIMENSION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),DUPS(*)
-      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
 C
        IID=IAP(18)
        ITMX=IAP(19)
