@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long int integer;
+typedef int integer;
 typedef float real;
 typedef double doublereal;
 typedef struct { real r, i; } complex;
