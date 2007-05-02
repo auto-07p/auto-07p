@@ -1,11 +1,12 @@
 #
 #   Makefile		11/1996
 #
+.SUFFIXES: .fig .eps
 RM     = rm -f
 #
 all:  manual
 #
-manual: auto.ps
+manual: auto.ps ../plaut04/doc/userguide.pdf
 	gv auto.ps &
 #
 auto.ps:auto.tex
@@ -15,6 +16,22 @@ auto.ps:auto.tex
 	latex auto.tex
 	latex auto.tex
 	dvips auto -o auto.ps
+#
+
+PLAUT04_FIGS = include/2component.eps include/centerMenu.eps \
+include/clrLBMu0.eps include/clrTimeMu0.eps include/clrTyMu0.eps \
+include/drawCoordMenu.eps include/emL1Sol.eps include/exit.eps \
+include/floquet.eps include/helpMenu.eps include/menubar.eps \
+include/optionMenu.eps include/styleMenuNew.eps include/typeMenu.eps
+
+.fig.eps:
+	fig2dev -Leps $< $@
+
+../plaut04/doc/userguide.pdf: user_guide.tex $(PLAUT04_FIGS)
+	latex user_guide.tex
+	latex user_guide.tex
+	dvipdfm -o $@ user_guide.dvi
+	-rm -f $(PLAUT04_FIGS)
 #
 clean:
 	@echo "Cleaning auto.doc ..."

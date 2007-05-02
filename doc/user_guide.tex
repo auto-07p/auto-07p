@@ -1,0 +1,79 @@
+
+%\documentstyle [12pt,psfig] {report}
+\documentclass[12pt, openright, psfig]{article}
+\usepackage{graphicx}
+\usepackage {caption2}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage{subfigure}
+%\usepackage{float}
+\usepackage{lscape}
+%\usepackage{rotating}
+\usepackage{setspace}
+
+%\input{cuthesis.sty}
+%\begin{comment}
+\newenvironment{narrow}[2]{%
+%	\begin{list}{}{%
+%	\setlength{\topsep}{0pt}%
+	\setlength{\leftmargin}{#1}%
+	\setlength{\rightmargin}{#2}%
+%	\setlength{\listparindent}{\parindent}%
+%	\setlength{\itemindent}{\parindent}%
+%	\setlength{\parsep}{\parskip}%
+%\item[]} {\end{list}
+}
+%\end{comment}
+
+
+\newcommand{\LY} {\textrm{L1}}
+\newcommand{\LE} {\textrm{L2}}
+\newcommand{\LS} {\textrm{L3}}
+\newcommand{\LF} {\textrm{L4}}
+\newcommand{\LW} {\textrm{L5}}
+\newcommand{\PLAUT} {\textsc{Plaut04}}
+
+\newcommand{\LIB}[1] {\textrm{L{#1}}}
+
+\newcommand{\V}[1] {\ensuremath {\textbf V{{#1}}}}
+\newcommand{\LYAP}[1] {\ensuremath {\textbf L{{#1}}}}
+\newcommand{\W}[1] {\ensuremath {\textbf W{{#1}}}}
+\newcommand{\HALO}[1] {\ensuremath {\textbf  H{{#1}}}}
+\newcommand{\A}[1] {\ensuremath {\textbf  A{{#1}}}}
+\newcommand{\PLAN}[1] {\ensuremath {\textbf  P{{#1}}}}
+\newcommand{\LONG}[1] {\ensuremath {\textbf  L{{#1}}}}
+\newcommand{\B}[1] {\ensuremath {\textbf  B{{#1}}}}
+\newcommand{\D}[1] {\ensuremath {\textbf  D{{#1}}}}
+\newcommand{\X}[1] {\ensuremath {\textbf  X{{#1}}}}
+\newcommand{\C}[1] {\ensuremath {\textbf  C{{#1}}}}
+\newcommand{\SHORT}[1] {\ensuremath {\textbf  S{{#1}}}}
+\newcommand{\BP}[2] {\ensuremath {\textsl{#1} {{#2}}}}
+
+
+
+% font for the test cases items
+\newcommand{\TCF}[1] {\textsl{#1}}
+\newcommand{\ETC} {\textit{etc.}}
+\newcommand{\PURPOSE} {\subsubsection{Purpose}}
+\newcommand{\CMDFMT} {\subsubsection{Format}}
+\newcommand{\CMDEXP} {\subsubsection{Examples}}
+\newcommand{\DSCP} {\subsubsection{Description}}
+\newcommand{\SEEALSO} {\subsubsection{See also}}
+\newcommand{\ALIA} {\subsubsection{Aliases}}
+
+\begin{document}
+
+\pagenumbering{roman}
+%	\title{How to use AUTO to compute the periodic solutions for the CR3BP}
+	\title{\textsc{\PLAUT~User's Guide}}
+	\author{Chenghai Zhang} 
+
+%	\setcounter{page}{3}
+	\date{\today}
+	\maketitle
+\clearpage
+
+\input{plaut04_user_guide}
+
+
+\end{document}
