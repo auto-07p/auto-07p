@@ -3,13 +3,19 @@
 #
 .SUFFIXES: .fig .eps
 RM     = rm -f
+PLAUT04_FIGS = include/2component.eps include/centerMenu.eps \
+include/clrLBMu0.eps include/clrTimeMu0.eps include/clrTyMu0.eps \
+include/drawCoordMenu.eps include/emL1Sol.eps include/exit.eps \
+include/floquet.eps include/helpMenu.eps include/menubar.eps \
+include/optionMenu.eps include/styleMenuNew.eps include/typeMenu.eps
 #
 all:  manual
 #
 manual: auto.ps ../plaut04/doc/userguide.pdf
+	-rm -f $(PLAUT04_FIGS)
 	gv auto.ps &
 #
-auto.ps:auto.tex
+auto.ps:auto.tex $(PLAUT04_FIGS)
 	latex auto.tex
 	bibtex auto
 	latex auto.tex
@@ -18,12 +24,6 @@ auto.ps:auto.tex
 	dvips auto -o auto.ps
 #
 
-PLAUT04_FIGS = include/2component.eps include/centerMenu.eps \
-include/clrLBMu0.eps include/clrTimeMu0.eps include/clrTyMu0.eps \
-include/drawCoordMenu.eps include/emL1Sol.eps include/exit.eps \
-include/floquet.eps include/helpMenu.eps include/menubar.eps \
-include/optionMenu.eps include/styleMenuNew.eps include/typeMenu.eps
-
 .fig.eps:
 	fig2dev -Leps $< $@
 
@@ -31,7 +31,6 @@ include/optionMenu.eps include/styleMenuNew.eps include/typeMenu.eps
 	latex user_guide.tex
 	latex user_guide.tex
 	dvipdfm -o $@ user_guide.dvi
-	-rm -f $(PLAUT04_FIGS)
 #
 clean:
 	@echo "Cleaning auto.doc ..."

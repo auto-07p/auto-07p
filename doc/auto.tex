@@ -6,13 +6,10 @@
 \usepackage{include/harvard}
 \usepackage{alltt}
 \usepackage{longtable}
-\usepackage{float}
 \usepackage{moreverb}
 \usepackage{amsmath,amssymb}
 \usepackage{url}
-\floatstyle{plain}
-\restylefloat{table}
-\restylefloat{figure}
+\usepackage{subfigure}
 \pagestyle{plain}
 \topmargin=0pt
 \textwidth=6.75in
@@ -187,7 +184,18 @@ system. These libraries may be available as optional packages,
 though. Specifically, PLAUT04 requires at least either SGI Open
 Inventor 2.5.10 or Coin3D 2.2 with SoXt 1.1.0. It also needs the
 libraries simage 1.6 and (Open)Motif or LessTif 2.0. Any higher
-version numbers should also work. The configure script checks
+version numbers should also work.
+One can download SGI's implementation of the Open Inventor libraries from:
+\url{ftp://oss.sgi.com/projects/inventor/download/}
+Because SGI's implementation for Linux cannot show text correctly, 
+we recommend that Coin be used instead of SGI's implementation. 
+Coin3D can be downloaded from:
+\url{http://www.coin3d.org/download/}
+It is also available as a package for many Linux distributions.
+You will probably need to compile and install the SoXt and simage
+libraries from the source code available at the above web site.
+
+The configure script checks
 for these libraries and outputs a warning if any of these libraries
 cannot be found; if they are not available you can still compile
 all other components of \AUTO using \filef{make}.
@@ -2249,9 +2257,6 @@ or in any of its subdirectories.}
  fashion to \commandf{plot}. It does not use the options that
  are used for the two-dimensional plotting window.
 
- \floatstyle{plain}
- \restylefloat{figure}
-
  \section{ Quick Reference } \label{sec:clui quick reference}
 
  In this section we have created a table of all of the \AUTO CLUI
@@ -2883,6 +2888,12 @@ The full {\cal PLAUT} program has several other capabilities, for example,
 \chapter{ The Graphics Program PLAUT04.} \label{ch:PLAUT04}
 %==============================================================================
 %==============================================================================
+
+% This tex file is also used by the stand-alone user guide you get
+% when you ask for help in PLAUT04
+\newcommand{\PLAUT} {\textsc{Plaut04}}
+\newcommand{\ETC} {\textit{etc.}}
+\input{plaut04_user_guide.tex}
 
 %==============================================================================
 %==============================================================================
