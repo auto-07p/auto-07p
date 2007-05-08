@@ -1,13 +1,9 @@
 if ( test $# -eq 1 ) then
-	cp b.$1 fort.27
 	cp s.$1 fort.28
 	$AUTO_DIR/bin/listlabels
-	rm fort.27
         rm fort.28
 else
-	cp fort.7 fort.27
         cp fort.8 fort.28
 	$AUTO_DIR/bin/listlabels
-	rm fort.27
         rm fort.28
 fi
