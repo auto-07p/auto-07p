@@ -2146,6 +2146,7 @@ C
 C
 C Initialize and provide initial guess :
 C
+       ALLOCATE(IR(NDIM+1),IC(NDIM+1),U1(NDIM+1))
        RLOLD(1)=RLCUR(1)
        RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
        DO I=1,NDIM
@@ -2166,7 +2167,6 @@ C
      *   RLCUR(1),(U(I),I=1,NDMR)
 C
        RLM1=RLCUR(1)
-       ALLOCATE(IR(NDIM+1),IC(NDIM+1),U1(NDIM+1))
        DO I=1,NDIM
          U1(I)=U(I)
        ENDDO
