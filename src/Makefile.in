@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/eispack.o ../lib/mpi.o @COMPAT@
+OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/blas.o ../lib/eispack.o ../lib/mpi.o @COMPAT@
 RM=rm -f
 #
 all: lib compile ../bin/autlab ../bin/double ../bin/triple \
