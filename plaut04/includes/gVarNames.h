@@ -47,6 +47,8 @@
     char * blWidgetName[] =
     {
         "3D",
+        "3DBif",
+        "3DSol",
     };
 
 char * graphWidgetItems[]=

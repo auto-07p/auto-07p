@@ -118,7 +118,7 @@ char dFileName[256];
 
 Widget  topform;
 Widget  xAxisList, yAxisList, zAxisList, labelsList, colorMethodSeletionList;
-Widget satAniSpeedSlider, orbitAniSpeedSlider;
+Widget satAniSpeedSlider, orbitAniSpeedSlider, dimButton;
 
 solutionp solHead = NULL;
 long int animationLabel = 0;
@@ -476,12 +476,10 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
     {
         if( whichType != BIFURCATION )
         {
-            setShow3DBif = setShow3D;
             setShow3D = setShow3DSol;
         }
         else
         {
-            setShow3DSol = setShow3D;
             setShow3D = setShow3DBif;
         }
     }
@@ -489,6 +487,14 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
     whichTypeOld = whichType;
 
     setListValue();
+    XmString xString;
+    if (setShow3D)
+        xString = XmStringCreateLocalized("3D");
+    else
+        xString = XmStringCreateLocalized("2D");
+    XtVaSetValues (dimButton, XmNlabelString, xString, NULL);
+    XmStringFree(xString);
+
     XtVaSetValues(xAxisList, XmNselectedPosition, xCoordIndices[0], NULL);
     XtVaSetValues(yAxisList, XmNselectedPosition, yCoordIndices[0], NULL);
     XtVaSetValues(zAxisList, XmNselectedPosition, zCoordIndices[0], NULL);
@@ -1342,7 +1348,6 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
 ////////////////////////////////////////////////////////////////////////
 {
     static bool buttonState = setShow3D;
-    SoSeparator * scene = (SoSeparator *) client_data;
     buttonState = !buttonState;
     if(buttonState)
     {
@@ -1828,7 +1833,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XtSetSensitive (zAxisList, false);
     }
 
-    Widget dimButton =  XmCreatePushButton(renderArea->getAppPushButtonParent(), xString, NULL, 0);
+    dimButton =  XmCreatePushButton(renderArea->getAppPushButtonParent(), xString, NULL, 0);
     XtAddCallback(dimButton, XmNactivateCallback, dimensionToggledCB, sceneGraph);
     renderArea->addAppPushButton(dimButton);
 
@@ -7566,7 +7571,8 @@ readSolutionAndBifurcationData(bool blFirstRead)
         if(!tmp) printf(" Failed to read the solution file!\n");
         blOpenSolFile = tmp;
 
-        if(mySolNode.nar <= 3) setShow3D = false;
+        if(mySolNode.nar <= 3) setShow3DSol = false;
+        if(whichType != BIFURCATION) setShow3D = false;
 
     }
     else
@@ -8632,8 +8638,18 @@ readResourceParameters()
                         readAString(buffer, aString);
                         char* aNewString = strrighttrim(aString);
                         aNewString = strlefttrim(aString);
-                        setShow3D = (strcasecmp(aNewString,"Yes")==0) ? true : false;
-
+			switch(i) {
+			case 0:
+			    setShow3DSol = (strcasecmp(aNewString,"Yes")==0);
+			    setShow3DBif = setShow3DSol;
+			    break;
+			case 1:
+			    setShow3DBif = (strcasecmp(aNewString,"Yes")==0);
+			    break;
+			case 2:
+			    setShow3DSol = (strcasecmp(aNewString,"Yes")==0);
+			    break;
+			}
                         blDealt = true;
                         break;
                     }
@@ -8861,8 +8877,14 @@ readResourceParameters()
             }
         }
     }
-    setShow3DSol = setShow3D;
-    setShow3DBif = setShow3D;
+    if( whichType != BIFURCATION )
+    {
+        setShow3D = setShow3DSol;
+    }
+    else
+    {
+        setShow3D = setShow3DBif;
+    }
 
     fclose(inFile);
     return state;
@@ -9416,8 +9438,10 @@ writePreferValuesToFile()
     fprintf(outFile, " \n");
 
 // turn 3D/2D
-    fprintf(outFile,"\n# 3D - on/off\n");
-    setShow3D ? fprintf(outFile, "\n 3D = YES\n") : fprintf(outFile, "\n 3D = No\n");
+    fprintf(outFile,"\n# Choose 3D or 2D graph for the bifurcation diagram:\n"); 
+    setShow3DBif ? fprintf(outFile, "3DBif = YES\n") : fprintf(outFile, "3DBif = No\n");
+    fprintf(outFile,"\n# Choose 3D or 2D graph for the solution diagram:\n"); 
+    setShow3DSol ? fprintf(outFile, "3DSol = YES\n") : fprintf(outFile, "3DSol = No\n");
 
     fprintf(outFile,"\n# set X, Y, Z, and Label. 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"\n%s = ", axesNames[0]);
