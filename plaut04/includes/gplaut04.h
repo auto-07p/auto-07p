@@ -77,7 +77,6 @@
 
 #define SCREEN(w) XScreenNumberOfScreen(XtScreen(w))
 
-//#define DEBUG
 #define NDEBUG
 
 // ENABLE SOME SPECIAL FUNCTION FOR THE GRAPH.
@@ -114,8 +113,13 @@
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
 
+#ifdef R3B
+#define MAX_LIST  3000  // Max number for x-coor, y-coord, z-coord, coloringMethod,  lists.
+#define MAX_LABEL 50000  // maxinum number of labels in a solution file
+#else
 #define MAX_LIST  1000  // Max number for x-coor, y-coord, z-coord, coloringMethod,  lists.
 #define MAX_LABEL 10000  // maxinum number of labels in a solution file
+#endif
 
 #ifndef M_PI
     #define M_PI 3.1415926
@@ -125,21 +129,35 @@
     #define M_PI_2 1.5707963
 #endif
 
+#ifdef R3B
+#define MY_NONE -1
+#define MY_HALF -2
+#define MY_SPEC -3
+#else
 #define MY_NONE -3
 #define MY_SPEC -2
 #define MY_HALF -1
 #define MY_ALL  0
+#endif
 
 #define SOLUTION 0
 #define BIFURCATION 1
 
 // define constant for the coloringMethod
+#ifdef R3B
+#define CL_STABILITY     -5
+#define CL_POINT_NUMBER  -4
+#define CL_BRANCH_NUMBER -3
+#define CL_ORBIT_TYPE    -2 
+#define CL_LABELS -1
+#else
 #define CL_STABILITY     -6
 #define CL_POINT_NUMBER  -5
 #define CL_BRANCH_NUMBER -4
 #define CL_ORBIT_TYPE    -3 
 #define CL_LABELS        -2
 #define CL_COMPONENT     -1
+#endif
 
 #define LINE 0
 #define TUBE 1
@@ -148,11 +166,31 @@
 #define ALL_POINTS 4
 #define NURBS 5
 
+#ifdef R3B
+#define ROTATING_F  0  //CR3BP 0
+#define INERTIAL_B  1
+#define INERTIAL_S	2  // big primary centered, sun
+#define INERTIAL_E	3  // small primary centered, earth.
+
+#define OPT_DRAW_COORD 0
+
+#define OPT_REF_PLAN   0
+#define OPT_PRIMARY    1
+#define OPT_LIB_POINTS  2
+#define OPT_PERIOD_ANI  3
+#define OPT_SAT_ANI    4
+#define OPT_BACKGROUND   5
+#define OPT_LEGEND   6
+#define OPT_NORMALIZE_DATA  7
+#define OPT_EARTH_MOVE  8 
+#define OPT_ANIMATE_CALCULATION  9
+#else
 #define OPT_PERIOD_ANI  0
 #define OPT_SAT_ANI    1
 #define OPT_BACKGROUND   2
 #define OPT_LEGEND   3
 #define OPT_NORMALIZE_DATA  4
+#endif
 
 #define NO_COORD  0 
 #define COORDORIGIN    1
@@ -160,7 +198,6 @@
 #define LEFTAHEAD 3
 #define DRAW_TICKER 4
 #define GEOCENTER 5
-
 
 #define TYPE_BP_ALG   1
 #define TYPE_LP_ALG   2
@@ -190,6 +227,9 @@ typedef struct solution *solutionp;
 
 
 struct SolNode {
+#ifdef R3B
+    float mass[MAX_LABEL];
+#endif
     double *time; // this time is useless?
     float (*xyzCoords)[3];
     int32_t numVerticesEachBranch[MAX_BRANCH];  // index start from 0 
@@ -299,11 +339,27 @@ int readFM(const char *bFileName ,const int);
 
 void normalizeSolData();//SolNode);
 void normalizeBifData();//BifNode);
+#ifdef R3B
+void toInertialFrame(int , SolNode);
+#endif
 
 
 SoSeparator * createAxis(float red, float green, float blue);
 SoSeparator * drawCoords(int where, float pos[], SbVec3f colors[], float height); //in/SolNode& mySolNode);
-
+#ifdef R3B
+SoSeparator * createDisk(float where[], float scaler);
+ 
+/************************************************************************
+//
+//  The edit menu has radio buttons. Rather than use the radio
+//  buttons which Motif supplies, we handle things ourselves.
+//
+typedef struct EditMenuItems {
+    Widget *items;  // all the items in this menu
+    int       which;   // specifies which radio button is on
+} EditMenuItems;
+************************************************************************/
+#endif
 
 /* Prototype Callback */
 static void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
@@ -316,5 +372,13 @@ SoSeparator * createBifurcationScene();///in/SolNode& mySolNode)//float (*xyzCoo
 SoSeparator * createDisk();
 SoSeparator * renderSolution();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
 SoSeparator * renderBifurcation(); //BifNode &myBifNode)// float (*xyzCoords)[3])
+
+#ifdef R3B
+void smallPrimaryMovingOrbit(float R, float T, float t,
+                      float position[], float veloctiy[]);
+void satelliteMovingOrbit(int whichcenter, float xyzCoords[],
+                     float t, float mu, float R, float Ts, float T, float g,
+                     float r[], float v[]);
+#endif
 
 #endif 

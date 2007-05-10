@@ -9,7 +9,7 @@
 #include <Inventor/SbLinear.h>
 #include <Inventor/fields/SoField.h>
 
-#include "r3bplaut04.h"
+#include "gplaut04.h"
 
 #define FONT_SIZE 16 
 

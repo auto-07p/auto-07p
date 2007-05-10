@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "r3bplaut04.h"
+#include "gplaut04.h"
 
 #define MAX_LINE_LENGTH 256
 

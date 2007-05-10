@@ -1,6 +1,10 @@
 #include "axis.h"
 
-#define FONT_SIZE 10 
+#ifdef R3B
+#define FONT_SIZE 12
+#else
+#define FONT_SIZE 10
+#endif
 
 //////////////////////////////////////////////////////////////
 //
@@ -263,7 +267,11 @@ Axis::drawScale(float pos, float scale)
     SoTransform *tkXform = new SoTransform;
     if(which == -1)
     {
+#ifdef R3B
+        tkXform->translation.setValue(-0.25, -pos, 0.00);
+#else
         tkXform->translation.setValue(-0.35, -pos, 0.00);
+#endif
         tkXform->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI);
     }
     else if(which == 1)

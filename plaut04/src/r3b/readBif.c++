@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "r3bplaut04.h"
+#include "gplaut04.h"
 #define MAX_LINE 256
 
 extern BifNode myBifNode;

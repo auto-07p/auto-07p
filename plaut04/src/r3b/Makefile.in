@@ -10,11 +10,17 @@ OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
 INCLUDES=-I$(INC) @DEPS_INCLUDES@ -Wno-deprecated
-CFLAGS=@CFLAGS@
+CFLAGS=@CFLAGS@ -DR3B
 DEPS_LIBS=@DEPS_LIBS@
 LIBS=$(DEPS_LIBS)
 
 .c++.o:
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+axis.o: ../axis.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+readFM.o: ../readFM.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 @top_srcdir@/bin/r3bplaut04: $(OBJS)
@@ -25,13 +31,13 @@ clean:
 
 axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
-drawCoords.o: $(INC)/r3bplaut04.h
-gmain.o: $(INC)/r3bplaut04.h $(INC)/vNames.h $(INC)/tube.h
-normalizeBifData.o: $(INC)/r3bplaut04.h
-normalizeSolData.o: $(INC)/r3bplaut04.h
+drawCoords.o: $(INC)/gplaut04.h
+gmain.o: $(INC)/gplaut04.h $(INC)/vNames.h $(INC)/tube.h
+normalizeBifData.o: $(INC)/gplaut04.h
+normalizeSolData.o: $(INC)/gplaut04.h
 polygon3d.o: $(INC)/polygon3d.h
-readBif.o: $(INC)/r3bplaut04.h
-readFM.o: $(INC)/r3bplaut04.h
-readSol.o: $(INC)/r3bplaut04.h
-toInertialFrame.o: $(INC)/r3bplaut04.h
+readBif.o: $(INC)/gplaut04.h
+readFM.o: $(INC)/gplaut04.h
+readSol.o: $(INC)/gplaut04.h
+toInertialFrame.o: $(INC)/gplaut04.h
 tube.o: $(INC)/tube.h $(INC)/polygon3d.h
