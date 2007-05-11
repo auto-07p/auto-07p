@@ -4,8 +4,8 @@
 OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
         ../stringtrim.o \
-        printToPS.o tube.o ../polygon3d.o readFM.o createBoundingBox.o\
-        createCoords.o axis.o createLegend.o gmain.o ../rounding.o
+        printToPS.o tube.o ../polygon3d.o readFM.o ../createBoundingBox.o\
+        ../createCoords.o axis.o createLegend.o gmain.o ../rounding.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
@@ -17,14 +17,14 @@ LIBS=$(DEPS_LIBS)
 .c++.o:
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+@top_srcdir@/bin/r3bplaut04: $(OBJS)
+	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+
 axis.o: ../axis.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 readFM.o: ../readFM.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-@top_srcdir@/bin/r3bplaut04: $(OBJS)
-	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
 	rm -f *.o

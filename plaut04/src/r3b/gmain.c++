@@ -28,10 +28,10 @@ struct ViewerAndScene
     char               *filename;
     SoNode             *scene;
 } ;
+
 ViewerAndScene *vwrAndScene;
 
 float fmData[12];
-
 char autoDir[256];
 
 GC gc;
@@ -52,6 +52,7 @@ struct DefaultAxisItems
     int bifX[MAX_PAR], bifY[MAX_PAR], bifZ[MAX_PAR];
     int solX[MAX_PAR], solY[MAX_PAR], solZ[MAX_PAR];
 } dai;
+
 
 unsigned long linePattern[NUM_SP_POINTS];
 unsigned long linePatternTemp[NUM_SP_POINTS];
@@ -75,6 +76,7 @@ unsigned long systemLinePatternValue[] =
 bool blOpenSolFile = TRUE;
 bool blOpenBifFile = TRUE;
 bool blMassDependantOption = false;
+
 bool blDrawTicker = true;
 
 int whichType= 0 ;
@@ -174,7 +176,6 @@ EditMenuItems *typeMenuItems, *styleMenuItems, *coordSystemMenuItems, *coordMenu
 int fileMode = 0;
 Widget fileDialog = NULL;
 void createPreferDialog();
-char *copyenv(char *name);
 
 SoSeparator * drawAStrip(float stripSet[][3], int size);
 SoSeparator * drawATube(TubeNode cnode);
@@ -204,8 +205,8 @@ void lookForThePoint(float position[],long int &bIdx, long int &sIdx);
 
 SoSeparator * createStarryBackground(int total,float diameter);
 void updateScene();
-SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler);
 SoGroup * setLineAttributesByStability(int stability, float scaler);
+SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler);
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
@@ -214,8 +215,8 @@ SoGroup * setLineColorBlending(float * vertices, long int size, int stability, i
 SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
 SoSeparator * createLegend(SbVec3f pos, double val[5]);
 SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
-SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
 SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
+SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
 SoSeparator * addLegend();
 
 SoSeparator * createSolutionSceneWithWidgets();
@@ -372,16 +373,15 @@ lineWidthCB(Widget, XtPointer userData, XtPointer callData)
         XtVaSetValues (spin, XmNposition, position, NULL);
     }
 #endif
-
     lineWidthScaler = position/10.0;
-
     updateScene();
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //
-void cropScene(char* filename)
+void
+cropScene(char* filename)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -398,11 +398,11 @@ void cropScene(char* filename)
 //  This is called by Xt when a menu item is picked from the File menu.
 //
 static void
-fileMenuPick( Widget, void *userData, XtPointer *)
+fileMenuPick(Widget, void *userData, XtPointer *)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int    which = (int) userData;
+    int    which = (long) userData;
 
     switch (which)
     {
@@ -430,6 +430,7 @@ fileMenuPick( Widget, void *userData, XtPointer *)
 }
 
 
+#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This is called by Xt when a menu item is picked from the Edit menu.
@@ -439,7 +440,7 @@ editMenuPick( Widget w, void *userData, XmAnyCallbackStruct *cb)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) userData;
+    int which = (long) userData;
 
     Arg     args[1];
     EditMenuItems *menuItems;
@@ -451,6 +452,7 @@ editMenuPick( Widget w, void *userData, XmAnyCallbackStruct *cb)
 
     updateScene();
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -462,7 +464,7 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) userData;
+    int which = (long) userData;
 
     Arg     args[1];
     EditMenuItems *menuItems;
@@ -513,7 +515,7 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
 ////////////////////////////////////////////////////////////////////////
 {
     XmToggleButtonCallbackStruct *toggle = (XmToggleButtonCallbackStruct *)cb;
-    int which = (int) userData;
+    int which = (long) userData;
 
     if (toggle->set == XmSET)
     {
@@ -555,15 +557,17 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
 
 
 ///////////////////////////////////////////////////////////////////////////
+//
 void
 setListValue()
 //
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 {
     long nItems = (whichType != BIFURCATION) ?
         mySolNode.totalLabels+SP_LBL_ITEMS:
     myBifNode.totalLabels+SP_LBL_ITEMS;
     int count = XtNumber (labels);
+
     lblList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (int i = 0; i < count; i++)
         lblList[i] = XmStringCreateLocalized (labels[i]);
@@ -627,7 +631,6 @@ setListValue()
         strcpy(coloringMethodList[1],"PONT"); sp++;
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         specialColorItems = sp;
-
         for(int i=sp; i<myBifNode.nar+sp; ++i)
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
@@ -649,6 +652,7 @@ setListValue()
         zCoordIdxSize = 1;
         XtSetSensitive (zAxisList, false);
     }
+
 }
 
 
@@ -661,7 +665,7 @@ styleMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) userData;
+    int which = (long) userData;
 
     Arg     args[1];
     EditMenuItems *menuItems;
@@ -685,7 +689,7 @@ coordMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) userData;
+    int which = (long) userData;
 
     Arg     args[1];
     EditMenuItems *menuItems;
@@ -710,7 +714,8 @@ coordMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
 //
 //  This is called by Xt just before the TYPE menu is displayed.
 //
-static void typeMenuDisplay(Widget, void *userData, XtPointer)
+static void
+typeMenuDisplay(Widget, void *userData, XtPointer)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -737,12 +742,12 @@ static void typeMenuDisplay(Widget, void *userData, XtPointer)
 //
 //  This is called by Xt just before the STYLE menu is displayed.
 //
-static void styleMenuDisplay(Widget, void *userData, XtPointer)
+static void
+styleMenuDisplay(Widget, void *userData, XtPointer)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     EditMenuItems *menuItems = (EditMenuItems *) userData;
-
     TOGGLE_OFF(menuItems->items[LINE]);
     TOGGLE_OFF(menuItems->items[TUBE]);
     TOGGLE_OFF(menuItems->items[SURFACE]);
@@ -773,7 +778,8 @@ static void styleMenuDisplay(Widget, void *userData, XtPointer)
 //
 //  This is called by Xt just before the STYLE menu is displayed.
 //
-static void coordMenuDisplay(Widget, void *userData, XtPointer)
+static void
+coordMenuDisplay(Widget, void *userData, XtPointer)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -788,7 +794,6 @@ static void coordMenuDisplay(Widget, void *userData, XtPointer)
     }
     else
     {
-
         TOGGLE_OFF(menuItems->items[NO_COORD]);
         TOGGLE_OFF(menuItems->items[COORDORIGIN]);
         TOGGLE_OFF(menuItems->items[LEFTBACK]);
@@ -802,6 +807,7 @@ static void coordMenuDisplay(Widget, void *userData, XtPointer)
 }
 
 
+#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This is called by Xt just before the Edit menu is displayed.
@@ -836,6 +842,7 @@ centerMenuDisplay(Widget, void *userData, XtPointer)
     }
 
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1068,6 +1075,7 @@ buildOptionMenu(Widget menubar)
 }
 
 
+#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This creates the Edit menu and all its items.
@@ -1111,6 +1119,7 @@ buildCenterMenu(Widget menubar)
 
     return pulldown;
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -3846,6 +3855,7 @@ void setLegendValues(double* values)
 }
 
 
+#ifdef R3B
 ///////////////////////////////////////////////////////////////////////////
 //
 //   Using a red ball to simulate the movement of a sattelite and using
@@ -4128,6 +4138,7 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
     delete [] time;
     delete [] workArray;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -4518,7 +4529,7 @@ createSolutionInertialFrameScene(float dis)
     return solGroup;
 
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -5219,82 +5230,6 @@ renderSolutionSurface()
 
 
 ///////////////////////////////////////////////////////////////////////
-//           draw the solutions by lines
-SoGroup *
-renderSolutionLines()
-//
-//////////////////////////////////////////////////////////////////////////
-{
-    SoGroup       *solGroup  = new SoGroup;
-    SoCoordinate3 *solCoords = new SoCoordinate3;
-
-    if(animationLabel == 0)
-    {
-        long int si = 0, k = 0;
-        int iBranch = 0;
-        int curBranchID = mySolNode.branchID[iBranch];
-        int sumOrbit = mySolNode.numOrbitsInEachBranch[iBranch];
-
-        for(long int ka=0; ka<mySolNode.numOrbits; ka++)
-        {
-            if(ka >= sumOrbit)
-            {
-                curBranchID = mySolNode.branchID[++iBranch];
-                sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
-            }
-
-            k = k+1;
-            solGroup->addChild(drawAnOrbitUsingLines(iBranch,  k, si, lineWidthScaler,\
-                clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-            si += mySolNode.numVerticesEachPeriod[ka];
-        }
-    }
-    else if(animationLabel != MY_NONE)
-    {
-        for(int n=0; n<lblIdxSize; ++n)
-        {
-            animationLabel=myLabels[lblIndices[n]];
-            int si = 0, k = 0;
-            int iBranch = 0;
-            int curBranchID = mySolNode.branchID[iBranch];
-            int sumOrbit    = mySolNode.numOrbitsInEachBranch[iBranch];
-            for(int ka=0; ka<mySolNode.numOrbits; ka++)
-            {
-                if(ka >= sumOrbit)
-                {
-                    curBranchID = mySolNode.branchID[++iBranch];
-                    sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
-                }
-
-                k = k+1;
-                if(myLabels[ka+1]>=animationLabel) break;
-                si += mySolNode.numVerticesEachPeriod[ka];
-            }
-
-            if(options[OPT_SAT_ANI])
-            {
-                solGroup->addChild(animateOrbitWithTail(iBranch,  k, si));
-            }
-            else
-            {
-                solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,\
-                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-            }
-        }
-    }
-
-    if(options[OPT_PERIOD_ANI])
-    {
-        bool coloring;
-        coloring = (animationLabel == 0) ? false : true;
-        solGroup->addChild(animateSolutionUsingLines(coloring));
-    }
-
-    return solGroup;
-}
-
-
-///////////////////////////////////////////////////////////////////////
 //           draw the solutions by Points
 SoGroup *
 renderSolutionPoints(int style)
@@ -5371,7 +5306,85 @@ renderSolutionPoints(int style)
 
 
 ///////////////////////////////////////////////////////////////////////
+//           draw the solutions by lines
+SoGroup *
+renderSolutionLines()
+//
+//////////////////////////////////////////////////////////////////////////
+{
+    SoGroup       *solGroup  = new SoGroup;
+    SoCoordinate3 *solCoords = new SoCoordinate3;
+
+    if(animationLabel == 0)
+    {
+        long int si = 0, k = 0;
+        int iBranch = 0;
+        int curBranchID = mySolNode.branchID[iBranch];
+        int sumOrbit = mySolNode.numOrbitsInEachBranch[iBranch];
+
+        for(long int ka=0; ka<mySolNode.numOrbits; ka++)
+        {
+            if(ka >= sumOrbit)
+            {
+                curBranchID = mySolNode.branchID[++iBranch];
+                sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
+            }
+
+            k = k+1;
+            solGroup->addChild(drawAnOrbitUsingLines(iBranch,  k, si, lineWidthScaler,\
+                clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
+            si += mySolNode.numVerticesEachPeriod[ka];
+        }
+    }
+    else if(animationLabel != MY_NONE)
+    {
+        for(int n=0; n<lblIdxSize; ++n)
+        {
+            animationLabel=myLabels[lblIndices[n]];
+            int si = 0, k = 0;
+            int iBranch = 0;
+            int curBranchID = mySolNode.branchID[iBranch];
+            int sumOrbit    = mySolNode.numOrbitsInEachBranch[iBranch];
+            for(int ka=0; ka<mySolNode.numOrbits; ka++)
+            {
+                if(ka >= sumOrbit)
+                {
+                    curBranchID = mySolNode.branchID[++iBranch];
+                    sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
+                }
+
+                k = k+1;
+                if(myLabels[ka+1]>=animationLabel) break;
+                si += mySolNode.numVerticesEachPeriod[ka];
+            }
+
+            if(options[OPT_SAT_ANI])
+            {
+                solGroup->addChild(animateOrbitWithTail(iBranch,  k, si));
+            }
+            else
+            {
+                solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,\
+                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
+            }
+        }
+    }
+
+    if(options[OPT_PERIOD_ANI])
+    {
+        bool coloring;
+        coloring = (animationLabel == 0) ? false : true;
+        solGroup->addChild(animateSolutionUsingLines(coloring));
+    }
+
+    return solGroup;
+}
+
+
+///////////////////////////////////////////////////////////////////////
+//
 //           draw the solutions using NURBS CURVE lines
+//
 SoGroup *
 renderSolutionNurbsCurve()
 //
@@ -5586,6 +5599,7 @@ renderSolution(double mu)
 }
 
 
+#ifdef R3B
 ///////////////////////////////////////////////////////////////////////////
 //
 // calculate the current position of the primary at time t in the inertial frame
@@ -5759,12 +5773,12 @@ animateIner2(long int lblJ,long int si)
     satGroup->addChild(satBlker);
     return satGroup;
 }
+#endif
 
 
-//////////////////////////////////////////////////////////////////////
+//////////////////////////////// START \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 //
 // draw a strip by giving the stripset
-//
 SoSeparator *
 drawAStrip(float stripSet[][3], int size)
 //
@@ -5786,45 +5800,6 @@ drawAStrip(float stripSet[][3], int size)
     myStrip->addChild(solCoords);
     myStrip->addChild(solStrips);
     return myStrip;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-SoGroup *
-setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler)
-//
-//////////////////////////////////////////////////////////////////////////
-{
-    float (*colors)[3] = new float[size][3];
-    static float maxColor[3] = { 1.0, 0.0, 0.0 };
-    static float minColor[3] = { 0.0, 0.0, 1.0 };
-
-    for(int i=0; i<3; ++i)
-    {
-        maxColor[i] = envColors[6][i];
-        minColor[i] = envColors[7][i];
-    }
-
-    for(int i=0; i<size; ++i)
-    {
-        if(vertices[i]== 1 || vertices[i]== 3)
-            for(int j=0; j<3; ++j) colors[i][j] = maxColor[j];
-        else
-            for(int j=0; j<3; ++j) colors[i][j] = minColor[j];
-    }
-
-    SoGroup * result = new SoGroup ;
-
-    SoMaterial *myMaterials = new SoMaterial;
-    myMaterials->diffuseColor.setValues(0, size, colors);
-    result->addChild(myMaterials);
-
-    SoMaterialBinding *myMaterialBinding = new SoMaterialBinding;
-    myMaterialBinding->value = SoMaterialBinding::PER_VERTEX;
-    result->addChild(myMaterialBinding);
-    delete [] colors;
-    return result;
 }
 
 
@@ -5954,6 +5929,45 @@ setLineAttributesByBranch(int branchID, int stability, float scaler)
     lineAttributes->addChild(lineStyle);
     lineAttributes->addChild(lineMtl);
     return lineAttributes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+SoGroup *
+setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler)
+//
+//////////////////////////////////////////////////////////////////////////
+{
+    float (*colors)[3] = new float[size][3];
+    static float maxColor[3] = { 1.0, 0.0, 0.0 };
+    static float minColor[3] = { 0.0, 0.0, 1.0 };
+
+    for(int i=0; i<3; ++i)
+    {
+        maxColor[i] = envColors[6][i];
+        minColor[i] = envColors[7][i];
+    }
+
+    for(int i=0; i<size; ++i)
+    {
+        if(vertices[i]== 1 || vertices[i]== 3)
+            for(int j=0; j<3; ++j) colors[i][j] = maxColor[j];
+        else
+            for(int j=0; j<3; ++j) colors[i][j] = minColor[j];
+    }
+
+    SoGroup * result = new SoGroup ;
+
+    SoMaterial *myMaterials = new SoMaterial;
+    myMaterials->diffuseColor.setValues(0, size, colors);
+    result->addChild(myMaterials);
+
+    SoMaterialBinding *myMaterialBinding = new SoMaterialBinding;
+    myMaterialBinding->value = SoMaterialBinding::PER_VERTEX;
+    result->addChild(myMaterialBinding);
+    delete [] colors;
+    return result;
 }
 
 
@@ -6825,6 +6839,7 @@ long int si, float scaler, int stability, int type)
 }
 
 
+#ifdef R3B
 ///////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
@@ -6862,6 +6877,7 @@ drawEarthMovement(int k)
     eSep->addChild(eLine);
     return eSep;
 }
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -7000,6 +7016,7 @@ drawATube(TubeNode cnode)
 }
 
 
+#ifdef R3B
 ///////////////////////////////////////////////////////////////////////////
 //
 //   This routine animate the calculation steps, namely the density of the
@@ -7164,6 +7181,7 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
 
     return satGroup;
 }
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -7649,12 +7667,16 @@ copySolDataToWorkArray(int  varIndices[])
 
 ////////////////////////////////////////////////////////////////////////
 //
+//
+//
 void
 copyBifDataToWorkArray(int  varIndices[])
 //
 ////////////////////////////////////////////////////////////////////////
 {
+
     double mx, mi;
+
     for(int k=0; k<3; k++)
     {
         for(long int row=0; row<myBifNode.totalNumPoints; ++row)
@@ -7676,6 +7698,7 @@ copyBifDataToWorkArray(int  varIndices[])
                 myBifNode.min[k]=-1;
             }
         }
+
         mx = myBifNode.max[k];
         mi =myBifNode.min[k];
         rounding(mx, mi);
@@ -7685,6 +7708,8 @@ copyBifDataToWorkArray(int  varIndices[])
 }
 
 
+
+#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //      Set the initial values for the variables: animationLabel, orbitSpeed
@@ -7710,16 +7735,18 @@ initPara()
     orbitSpeed = 1.0;
     satSpeed   = 0.5;
 }
+#endif
+
 
 
 ////////////////////////////////////////////////////////////////////////
-//
 //
 void
 lookForThePoint(float position[],long int &bIdx, long int &sIdx)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+
     int varIndices[3];
     int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
     float minDis = 10000;
@@ -7772,7 +7799,6 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
                     distance = 0;
                     for(int k=0; k<3; ++k)
                         distance += (position[k]-p1[k])*(position[k]-p1[k]);
-
                     if(minDis > distance)
                     {
                         minDis = distance;
@@ -7881,7 +7907,8 @@ showAboutCB(Widget dialog, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data)
+void
+hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -9491,8 +9518,12 @@ writePreferValuesToFile()
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
 SoSeparator *
 createStarryBackground(int total, float diameter)
+//
+//////////////////////////////////////////////////////////////////////////
 {
     static bool starsCreated = false;
     static SoSeparator * myBg = new SoSeparator;
@@ -9522,17 +9553,6 @@ createStarryBackground(int total, float diameter)
 }
 
 
-////////////////////////////////////////////////////////////////////////
-//
-char *
-copyenv(char *name)
-//
-////////////////////////////////////////////////////////////////////////
-{
-    char *s1 = getenv(name);
-    char *s2 = s1 ? new char[strlen(s1) + 1] : NULL;
-    return (s2 ? strcpy(s2,s1) : NULL);
-}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -9551,7 +9571,12 @@ deleteScene()
 }
 
 
-bool parseFileName(char *filename,char * sFileName, char * bFileName, char * dFileName)
+////////////////////////////////////////////////////////////////////////
+//
+bool
+parseFileName(char *filename,char * sFileName, char * bFileName, char * dFileName)
+//
+////////////////////////////////////////////////////////////////////////
 {
     char * path;
     char * name;
@@ -9615,14 +9640,11 @@ readFile(char *filename)
 
     updateScene();
 
-    char widgetDir[256];
-    strcpy(widgetDir, autoDir);
-    strcat(widgetDir,"/widgets");
     return TRUE;
 }
 
 
-////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
 //
 static FILE *
 convertToInventor(const char *filename)
@@ -9687,9 +9709,9 @@ MyFileRead(const char *filename, SbString &errorMessage)
         return NULL;
     }
 
+
     if (! in.isValidFile() )
     {
-
         if ((ivDataPipe = convertToInventor(filename)) != NULL)
         {
             in.setFilePointer(ivDataPipe);
@@ -9708,6 +9730,7 @@ MyFileRead(const char *filename, SbString &errorMessage)
             return NULL;
         }
     }
+
 
     SoSeparator *sep = SoDB::readAll(&in);
 
