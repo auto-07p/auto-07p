@@ -26,6 +26,12 @@ axis.o: ../axis.c++
 readFM.o: ../readFM.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+normalizeBifData.o: ../normalizeBifData.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+normalizeSolData.o: ../normalizeSolData.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
 clean:
 	rm -f *.o
 
