@@ -50,7 +50,6 @@ XColor black, grey, red, white, green, blue, exact;
 
 #ifndef R3B
 static int iiii = 0;
-
 #endif
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
@@ -143,11 +142,10 @@ bool options[]=
     TRUE,   TRUE, FALSE, TRUE,  FALSE, FALSE, FALSE,
     FALSE, FALSE, FALSE, FALSE
 };
-#ifndef R3B
-bool optionsTemp[11], optionsOld[11], optBif[11], optSol[11];
-#else
 bool optionsTemp[11];
 bool optionsOld[11];
+#ifndef R3B
+bool optBif[11], optSol[11];
 #endif
 bool setShow3D, setShow3DSol, setShow3DBif;
 
@@ -235,22 +233,22 @@ typedef struct EditMenuItems
     int     which;
 } EditMenuItems;
 
-#ifndef R3B
 EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems;
-#else
-EditMenuItems *typeMenuItems, *styleMenuItems, *coordSystemMenuItems, *coordMenuItems;
-#endif
-
 #ifdef R3B
+EditMenuItems *coordSystemMenuItems;
 int fileMode = 0;
 #endif
+
 Widget fileDialog = NULL;
 
-#ifndef R3B
 static char xAxis[MAX_LIST][5];
 static char zAxis[MAX_LIST][5];
 static char yAxis[MAX_LIST][5];
+#ifndef R3B
 static char labels[MAX_LABEL][8];
+#else
+static char labels[MAX_LABEL+SP_LBL_ITEMS][8];
+#endif
 
 static char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
 int myLabels[MAX_LABEL+SP_LBL_ITEMS];
@@ -265,11 +263,7 @@ XmStringTable clrMethodList= (XmStringTable) 0 ;
 //
 //  Function prototypes
 //
-#endif
 void createPreferDialog();
-#ifndef R3B
-char *copyenv(char *name);
-#endif
 
 SoSeparator * drawAStrip(float stripSet[][3], int size);
 SoSeparator * drawATube(TubeNode cnode);
@@ -304,11 +298,7 @@ void lookForThePoint(float position[],long int &bIdx, long int &sIdx);
 SoSeparator * createStarryBackground(int total,float diameter);
 void updateScene();
 SoGroup * setLineAttributesByStability(int stability, float scaler);
-#ifndef R3B
 SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stab, float scaler);
-#else
-SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler);
-#endif
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
@@ -367,9 +357,6 @@ float bigPosition[], float smallPosition[], float velocity[]);
 
 SoSeparator * createAxis(float red, float green, float blue);
 SoMaterial  * setLabelMaterial(int lblType);
-#ifdef R3B
-extern SoSeparator * createBoundingBox();
-#endif
 SoSeparator * drawStarryBackground(char * bgFileName);
 
 #ifdef R3B
@@ -380,21 +367,12 @@ float distance, float sPrimPeriod, float  gravity);
 #endif
 int readResourceParameters();
 int writePreferValuesToFile();
-//void initLabelList();
-#ifdef R3B
-void initLabelList();
-#endif
 void copySolDataToWorkArray(int varIndices[]);
 #ifndef R3B
 void searchForMaxMin(int component, int  varIndices[]);
 #endif
 void copyBifDataToWorkArray(int varIndices[]);
 
-#ifdef R3B
-extern char * strrighttrim(char*);
-extern char * strlefttrim(char*);
-
-#endif
 static void processPrinting(char* filename );
 #ifdef R3B
 SbBool printToPostScript (SoNode *root, FILE *file,
@@ -403,37 +381,18 @@ SoXtExaminerViewer *viewer, int printerDPI);
 #endif
 void postDeals();
 
-#ifndef R3B
 extern SoSeparator * createBoundingBox();
 extern char * strrighttrim(char*);
 extern char * strlefttrim(char*);
-#else
-static char xAxis[MAX_LIST][5];
-static char zAxis[MAX_LIST][5];
-static char yAxis[MAX_LIST][5];
-static char labels[MAX_LABEL+SP_LBL_ITEMS][8];
-#endif
 
 //
 ////////////////////////////////////////////////////////////////////////
-#ifdef R3B
-static char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
-#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
 //  functions
 //
 ////////////////////////////////////////////////////////////////////////
-#ifdef R3B
-int myLabels[MAX_LABEL+SP_LBL_ITEMS];
-
-XmStringTable xList = (XmStringTable) 0 ;
-XmStringTable yList = (XmStringTable) 0 ;
-XmStringTable zList = (XmStringTable) 0 ;
-XmStringTable lblList = (XmStringTable) 0 ;
-XmStringTable clrMethodList= (XmStringTable) 0 ;
-#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -443,12 +402,7 @@ orbitSpeedCB(Widget, XtPointer userData, XtPointer callData)
 ////////////////////////////////////////////////////////////////////////
 {
     XmScaleCallbackStruct *data = (XmScaleCallbackStruct *) callData;
-#ifndef R3B
     orbitSpeed = data->value/50.0;                ///50.0;     ///75.0;
-#else
-    orbitSpeed = data->value/50.0;
-
-#endif
     updateScene();
 }
 
@@ -1337,13 +1291,8 @@ buildOptionMenu(Widget menubar)
     TOGGLE_ITEM(menuItems->items[mq], "Normalize Data",       OPT_NORMALIZE_DATA, optMenuPick); ++mq;
     XtManageChildren(menuItems->items, mq);
 
-#ifndef R3B
     Widget pushitem;
-#endif
     SEP_ITEM("separator");
-#ifdef R3B
-    Widget pushitem;
-#endif
     PUSH_ITEM(pushitem, "PREFERENCES", ITEM_ONE, createPreferDialog);
     XtManageChild(pushitem);
 
@@ -1825,9 +1774,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 4,
         NULL);
 #endif
+#endif
 
 // build the zAxis drop down list
-#endif
     count = XtNumber (zAxis);
     zList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (i = 0; i < count; i++)
@@ -1867,9 +1816,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 6,
         NULL);
 #endif
+#endif
 
 // build the LABELs drop down list
-#endif
     nItems = (whichType != BIFURCATION) ? 
 	               mySolNode.totalLabels+SP_LBL_ITEMS : 
 	               myBifNode.totalLabels+SP_LBL_ITEMS;
@@ -1885,11 +1834,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              lblList,
         XmNcolumns,            6,
         XmNmarginHeight,       1,
-#ifndef R3B
-        XmNselectedPosition,   lblChoice[0]+LBL_OFFSET-1,
-#else
         XmNselectedPosition,   lblChoice[0]+LBL_OFFSET-1, //lblIndices[0],
-#endif
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -2744,12 +2689,7 @@ Widget createColorAndLinePrefSheetHeader(Widget parent)
 //  This simply creates the default parts of the pref dialog.
 //
 void
-#ifndef R3B
 createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, char** name)
-#else
-createLineAttrPrefSheetParts(Widget widgetList[],
-int &num, Widget form, char** name)
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -5779,9 +5719,7 @@ drawSolUsingTubes()
                         tubeSep->addChild(setLineAttributesByType(stability, type, scaler));
                     else if(coloringMethod == CL_LABELS)
                     {
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
                         double bMin = 0;
                         for(int ib = 0; ib< iBranch; ++ib)
                             bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -5789,8 +5727,7 @@ drawSolUsingTubes()
                         tubeSep->addChild(setLineAttributesByParameterValue(
                             j, bMax, (bMax+bMin)/2.0, bMin,
                             stability, scaler));
-#ifndef R3B
-*/
+#else
                         tubeSep->addChild(setLineAttributesByParameterValue(
                             j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                             stability, scaler));
@@ -7310,9 +7247,7 @@ long int si, float scaler, int stability, int type, bool aniColoring)
                 anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
             else if(coloringMethod == CL_LABELS)
             {
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
                 double bMin = 0;
                 for(int ib = 0; ib< iBranch; ++ib)
                     bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -7320,8 +7255,7 @@ long int si, float scaler, int stability, int type, bool aniColoring)
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     l-1, bMax, (bMax+bMin)/2.0, bMin,
                     stability, scaler));
-#ifndef R3B
-*/
+#else
                 anOrbit->addChild(setLineAttributesByParameterValue(
                      l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                      stability, scaler));
@@ -7495,17 +7429,14 @@ float scaler, int stability, int type, bool aniColoring)
                     anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
                 else if(coloringMethod == CL_LABELS)
                 {
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
                     double bMin = 0;
                     for(int ib = 0; ib< iBranch; ++ib)
                         bMin +=  mySolNode.numOrbitsInEachBranch[ib];
                     double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
                     anOrbit->addChild(setLineAttributesByParameterValue(
                         l-1, bMax, (bMax+bMin)/2.0, bMin, stability, scaler));
-#ifndef R3B
-*/
+#else
                     anOrbit->addChild(setLineAttributesByParameterValue(
                          l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                          stability, scaler));
@@ -7783,10 +7714,8 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
         else if(coloringMethod == CL_LABELS)
         {
-#ifndef R3B
-/*
+#ifdef R3B
 //          always start from blue to red for different branches. 
-#endif
             double bMin = 0;
             for(int ib = 0; ib< iBranch; ++ib)
                 bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -7794,8 +7723,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             anOrbit->addChild(setLineAttributesByParameterValue(
                 l-1, bMax, (bMax+bMin)/2.0, bMin,
                 stability, scaler));
-#ifndef R3B
-*/
+#else
 //          always set the first label blue, the last red, namely look all
 //          branches as one.
             anOrbit->addChild(setLineAttributesByParameterValue(
@@ -8243,9 +8171,7 @@ animateSolutionUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
             else if(coloringMethod == CL_LABELS)
             {
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
                 double bMin = 0;
                 for(int ib = 0; ib< iBranch; ++ib)
                     bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -8253,8 +8179,7 @@ animateSolutionUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     j, bMax, (bMax+bMin)/2.0, bMin,
                     stability, lineWidthScaler));
-#ifndef R3B
-*/
+#else
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                     stability, lineWidthScaler));
@@ -8702,9 +8627,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
             satGroup->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
         else if(coloringMethod == CL_LABELS)
         {
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
             double bMin = 0;
             for(int ib = 0; ib< iBranch; ++ib)
                 bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -8712,8 +8635,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
             satGroup->addChild(setLineAttributesByParameterValue(
                 j-1, bMax, (bMax+bMin)/2.0, bMin,
                 stability, lineWidthScaler));
-#ifndef R3B
-*/
+#else
             satGroup->addChild(setLineAttributesByParameterValue(
                 j-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, lineWidthScaler));
@@ -9110,15 +9032,11 @@ copySolDataToWorkArray(int  varIndices[])
             {
                 float dummy = clientData.solData[row][varIndices[k]];
                 mySolNode.xyzCoords[row][k] = dummy;
-#ifndef R3B
-/*
-#endif
+#ifdef R3B
                 if(dummy>mySolNode.max[k] || row==0 )
                     mySolNode.max[k] = dummy;
                 if(dummy<mySolNode.min[k] || row==0 )
                     mySolNode.min[k] = dummy;
-#ifndef R3B
-*/
 #endif
             }
             else if(varIndices[k]<0)
@@ -9949,9 +9867,7 @@ initCoordAndLableListItems()
 
     int half = 2;
     int iLbl = 0;
-#ifndef R3B
     //tmp = strtok(manyChoice, ",");
-#endif
     if( lblChoice[0] == -3) // ALL
     {
         lblIndices[0] = 0;
@@ -11099,11 +11015,7 @@ writePreferValuesToFile()
                 break;
             case 1:
 //OK
-#ifndef R3B
                 fprintf(outFile, "\n# Initialize the default graph style:\n");
-#else
-                fprintf(outFile, "\n# initialize the default graph style\n");
-#endif
                 fprintf(outFile, "#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE \n");
 #ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
