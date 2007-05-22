@@ -12,14 +12,19 @@
 
 extern SolNode mySolNode;
 extern float *tv;
+#ifdef R3B
+extern int whichCoordSystem;
+#endif
 extern UserData clientData;
 
 ///////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //
 solutionp
 parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long int &totalNumPoints)
 //
 ///////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 {
     solutionp head = NULL;
     solutionp current = NULL;
@@ -29,6 +34,7 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
     int ibr,ntot,itp,lab,nfpr,isw,ntpl,nar,nrowpr,ntst,ncol,npar1;
     int maxColSize=0;
 
+// Open input file
     if((inFile=fopen(sFileName,"r"))==NULL)
     {
         printf(" Cannot open input file : %s ! \n", sFileName);
@@ -113,7 +119,11 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
     if((inFile = fopen(sFileName,"r")) == NULL)
     {
+#ifndef R3B
         printf(" Cannot open input file: %s\n", sFileName);
+#else
+        printf(" Cannot open input file named: %s\n", sFileName);
+#endif
         return false;
     }
 
@@ -186,6 +196,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     ++totalNumPointsInEachBranch;
                     for(j=0; j<nar; ++j)
                     {
+// read all the data set to the dynamic array.
                         fscanf(inFile,"%f",&dummy);
                         clientData.solData[row][j]=dummy;
                         if(row == 0) clientData.solMax[j] = dummy;
@@ -214,7 +225,12 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                         if(dummy != 0)
                         {
                             mySolNode.par[counter-1][nzoo*7+i] = dummy;
+#ifndef R3B
                             if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
+#else
+                            if( nzoo*7+i==1 ) mySolNode.mass[counter] = dummy;
+                            else if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
+#endif
                         }
                     }
                 }
@@ -246,8 +262,15 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
             endBranch = startBranch+mySolNode.numOrbitsInEachBranch[iBranch];
             for(int innerLoop = startBranch; innerLoop<endBranch; ++innerLoop)
             {
+#ifndef R3B
                 if(parMax <mySolNode.par[innerLoop][mySolNode.parID[jv]] ) parMax = mySolNode.par[innerLoop][mySolNode.parID[jv]];
                 if(parMin >mySolNode.par[innerLoop][mySolNode.parID[jv]] ) parMin = mySolNode.par[innerLoop][mySolNode.parID[jv]];
+#else
+                if(parMax <mySolNode.par[innerLoop][mySolNode.parID[jv]] )
+                    parMax = mySolNode.par[innerLoop][mySolNode.parID[jv]];
+                if(parMin >mySolNode.par[innerLoop][mySolNode.parID[jv]] )
+                    parMin = mySolNode.par[innerLoop][mySolNode.parID[jv]];
+#endif
             }
             mySolNode.parMax[iBranch][jv]=parMax;
             mySolNode.parMin[iBranch][jv]=parMin;
@@ -257,7 +280,26 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
     }
 
 
+#ifdef R3B
+    if(whichCoordSystem != ROTATING_F)
+    {
+        float r[3],v[3];
+        int center = 0;
+        if(whichCoordSystem == INERTIAL_B) center = 0;
+        if(whichCoordSystem == INERTIAL_S) center = 1;
+        if(whichCoordSystem == INERTIAL_E) center = 2;
+        for(int i=0; i<mySolNode.totalNumPoints; i++)
+        {
+            mySolNode.xyzCoords[i][0]=r[0];
+            mySolNode.xyzCoords[i][1]=r[1];
+            mySolNode.xyzCoords[i][2]=r[2];
+        }
+    }
+#endif
     fclose(inFile);
 //    cout<<" Read SOL OK\n";
+#ifdef R3B
+    cout<<" Read SOL OK\n";
+#endif
     return true;
 }

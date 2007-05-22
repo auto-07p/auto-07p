@@ -1,16 +1,26 @@
 #include "gplaut04.h"
+#ifndef R3B
 #include "gVarNames.h"
+#else
+#include "vNames.h"
+#endif
 #include "tube.h"
 
 #define NUM_SP_POINTS 13
 #define SP_LBL_ITEMS 4
+#ifndef R3B
 #define CL_SP_ITEMS  6
+#else
+#define CL_SP_ITEMS  5
+#endif
 #define LBL_OFFSET   4
 
+#ifndef R3B
 #define TIME_IS_OFF  0 
 #define TIME_ON_X    1
 #define TIME_ON_Y    2
 #define TIME_ON_Z    3
+#endif
 
 #ifdef LESSTIF_VERSION
 #include <Xm/ComboBoxP.h>
@@ -42,14 +52,24 @@ GC gc;
 Colormap colormap;
 XColor black, grey, red, white, green, blue, exact;
 
+#ifndef R3B
 static int iiii = 0;
 
+#endif
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
 SbColor lineColorOld[NUM_SP_POINTS];
+#ifndef R3B
 SbColor envColors[10];
+#else
+SbColor envColors[12];
+#endif
 
+#ifndef R3B
 int bifDefaultAxis[3], solDefaultAxis[3];
+#else
+extern float libPtMax[3], libPtMin[3];
+#endif
 
 struct DefaultAxisItems
 {
@@ -81,8 +101,15 @@ unsigned long systemLinePatternValue[] =
 
 bool blOpenSolFile = TRUE;
 bool blOpenBifFile = TRUE;
+#ifdef R3B
+bool blMassDependantOption = false;
+#endif
 
+#ifndef R3B
 bool blDrawTicker = false;
+#else
+bool blDrawTicker = true;
+#endif
 
 int whichType= 0 ;
 int whichTypeTemp= 0 ;
@@ -92,10 +119,20 @@ int whichStyle= 0 ;
 int whichStyleTemp= 0 ;
 int whichStyleOld = 0 ;
 
+#ifndef R3B
 int whichCoord = 0 ;
+#else
+int whichCoordSystem = 0 ;
+int whichCoordSystemTemp = 0 ;
+int whichCoordSystemOld = 0 ;
+
+int whichCoord = 3 ;
+#endif
 int whichCoordTemp = 0 ;
 int whichCoordOld = 0 ;
+#ifndef R3B
 int time_on = 0;
+#endif
 
 unsigned long graphWidgetToggleSet     = (unsigned long) 0 ;
 unsigned long graphWidgetToggleSetTemp = (unsigned long) 0 ;
@@ -110,9 +147,18 @@ bool options[]=
     TRUE,   TRUE, FALSE, TRUE,  FALSE, FALSE, FALSE,
     FALSE, FALSE, FALSE, FALSE
 };
+#ifndef R3B
 bool optionsTemp[11], optionsOld[11], optBif[11], optSol[11];
+#else
+bool optionsTemp[11];
+bool optionsOld[11];
+#endif
 bool setShow3D, setShow3DSol, setShow3DBif;
 
+#ifdef R3B
+double mass = 0.0;
+
+#endif
 char sFileName[256];
 char bFileName[256];
 char dFileName[256];
@@ -133,9 +179,17 @@ int yCoordIndices[MAX_LIST], yCoordIdxSize;
 int zCoordIndices[MAX_LIST], zCoordIdxSize;
 int lblIndices[MAX_LABEL], lblChoice[MAX_LABEL], lblIdxSize;
 
+#ifndef R3B
 int MAX_SAT_SPEED = 1000;
+#else
+int MAX_SAT_SPEED = 100;
+#endif
 int MIN_SAT_SPEED = 0;
+#ifndef R3B
 int MAX_ORBIT_SPEED = 1000;
+#else
+int MAX_ORBIT_SPEED = 100;
+#endif
 int MIN_ORBIT_SPEED = 0;
 
 float orbitSpeed = 1.0;
@@ -143,16 +197,40 @@ float satSpeed   = 0.5;
 float satRadius  = 1.0;
 float lineWidthScaler = 1.0;
 float aniLineScaler = 2.0;
+#ifdef R3B
+float libPtScaler = 1.0;
+float numPeriodAnimated = 1.0;
+#endif
 int   coloringMethod = -1;
+#ifdef R3B
+float smallPrimRadius=1.0;
+float largePrimRadius=1.0;
+int   numOfStars = 100;
+#endif
 float bgTransparency = 0;
+#ifndef R3B
 float numPeriodAnimated = 1.0;
 
+#else
+float diskTransparency = 0;
+bool diskFromFile = false;
+#endif
 long int numLabels;
 
+#ifdef R3B
+float distance = 1;
+float sPrimPeriod  = 31558118.4;
+float gravity = 9.18;
+
+#endif
 double legendScaleValues[2];
 
 SoSeparator *userScene;
+#ifndef R3B
 SoSeparator *root;
+#else
+SoSelection *root;
+#endif
 SoSeparator *starryBackground;
 
 typedef struct EditMenuItems
@@ -161,10 +239,18 @@ typedef struct EditMenuItems
     int     which;
 } EditMenuItems;
 
+#ifndef R3B
 EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems;
+#else
+EditMenuItems *typeMenuItems, *styleMenuItems, *coordSystemMenuItems, *coordMenuItems;
+#endif
 
+#ifdef R3B
+int fileMode = 0;
+#endif
 Widget fileDialog = NULL;
 
+#ifndef R3B
 static char xAxis[MAX_LIST][5];
 static char zAxis[MAX_LIST][5];
 static char yAxis[MAX_LIST][5];
@@ -183,8 +269,11 @@ XmStringTable clrMethodList= (XmStringTable) 0 ;
 //
 //  Function prototypes
 //
+#endif
 void createPreferDialog();
+#ifndef R3B
 char *copyenv(char *name);
+#endif
 
 SoSeparator * drawAStrip(float stripSet[][3], int size);
 SoSeparator * drawATube(TubeNode cnode);
@@ -198,7 +287,11 @@ SbBool readFile(char *filename);
 SoSeparator * MyFileRead(const char *filename, SbString &errorMessage);
 void deleteScene();
 void writeToFile();
+#ifndef R3B
 void getFileName(int fileMode);
+#else
+void getFileName();
+#endif
 void setListValue();
 void showHelpDialog();
 void showAboutDialog();
@@ -215,7 +308,11 @@ void lookForThePoint(float position[],long int &bIdx, long int &sIdx);
 SoSeparator * createStarryBackground(int total,float diameter);
 void updateScene();
 SoGroup * setLineAttributesByStability(int stability, float scaler);
+#ifndef R3B
 SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stab, float scaler);
+#else
+SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stability, float scaler);
+#endif
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
@@ -229,14 +326,29 @@ SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
 SoSeparator * addLegend();
 
 SoSeparator * createSolutionSceneWithWidgets();
+#ifdef R3B
+SoSeparator * createSolutionInertialFrameScene(float dis);
+#endif
 SoSeparator * createBifurcationScene();
+#ifndef R3B
 SoSeparator * renderSolution();
 SoSeparator * renderBifurcation();
+#else
+SoSeparator * renderSolution(double mu);
+SoSeparator * renderBifurcation(double mu);
+#endif
 SoSeparator * animateSolutionUsingTubes(bool aniColoring);
 SoSeparator * animateSolutionUsingLines(bool aniColoring);
 SoSeparator * animateSolutionUsingPoints(int style, bool aniColoring);
+#ifdef R3B
+SoSeparator * animateOrbitCalSteps(long int n,long int si);
+SoSeparator * animateIner2(long int j, long int si);
+#endif
 SoSeparator * animateOrbitMovement(long int n, long int si);
 SoSeparator * animateOrbitWithTail(int iBranch, long int j,long  int si);
+#ifdef R3B
+SoSeparator * animateOrbitWithNurbsCurveTail(long int j,long int si);
+#endif
 SoSeparator * drawAnOrbitUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type, bool coloring);
 SoSeparator * drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si, float scaler, int stability, int type, bool aniColoring);
 SoSeparator * drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, int stability, int type);
@@ -245,35 +357,87 @@ SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, flo
 SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler, int stability, int type);
 SoSeparator * drawABifLabelInterval(long int l, long int si, float scaler, int stability, int type);
 SoSeparator * drawABifLabelIntervalUsingNurbsCurve(long int l, long int si, float scaler, int stability, int type);
+#ifdef R3B
+SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
+SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
+SoSeparator * drawEarthMovement(int k);
+#endif
 SoSeparator * drawASphereWithColor(float color[], float position[], float size);
 SoSeparator * drawASolBranchUsingSurface(long obStart, long obEnd, long numVert);
+#ifdef R3B
+void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,
+float bigPosition[], float smallPosition[], float velocity[]);
+#endif
 
 SoSeparator * createAxis(float red, float green, float blue);
 SoMaterial  * setLabelMaterial(int lblType);
+#ifdef R3B
+extern SoSeparator * createBoundingBox();
+#endif
 SoSeparator * drawStarryBackground(char * bgFileName);
 
+#ifdef R3B
+SoSeparator * inertialSystemAnimation(int coordSys, SolNode mySolNode, \
+float numAnimatedPeriod, int kth, int idx, float mass, \
+float distance, float sPrimPeriod, float  gravity);
+
+#endif
 int readResourceParameters();
 int writePreferValuesToFile();
 //void initLabelList();
+#ifdef R3B
+void initLabelList();
+#endif
 void copySolDataToWorkArray(int varIndices[]);
+#ifndef R3B
 void searchForMaxMin(int component, int  varIndices[]);
+#endif
 void copyBifDataToWorkArray(int varIndices[]);
 
-static void processPrinting(char* filename );
-void postDeals();
-
-extern SoSeparator * createBoundingBox();
+#ifdef R3B
 extern char * strrighttrim(char*);
 extern char * strlefttrim(char*);
 
+#endif
+static void processPrinting(char* filename );
+#ifdef R3B
+SbBool printToPostScript (SoNode *root, FILE *file,
+SoXtExaminerViewer *viewer, int printerDPI);
+
+#endif
+void postDeals();
+
+#ifndef R3B
+extern SoSeparator * createBoundingBox();
+extern char * strrighttrim(char*);
+extern char * strlefttrim(char*);
+#else
+static char xAxis[MAX_LIST][5];
+static char zAxis[MAX_LIST][5];
+static char yAxis[MAX_LIST][5];
+static char labels[MAX_LABEL+SP_LBL_ITEMS][8];
+#endif
+
 //
 ////////////////////////////////////////////////////////////////////////
+#ifdef R3B
+static char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
 //  functions
 //
 ////////////////////////////////////////////////////////////////////////
+#ifdef R3B
+int myLabels[MAX_LABEL+SP_LBL_ITEMS];
+
+XmStringTable xList = (XmStringTable) 0 ;
+XmStringTable yList = (XmStringTable) 0 ;
+XmStringTable zList = (XmStringTable) 0 ;
+XmStringTable lblList = (XmStringTable) 0 ;
+XmStringTable clrMethodList= (XmStringTable) 0 ;
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -283,7 +447,12 @@ orbitSpeedCB(Widget, XtPointer userData, XtPointer callData)
 ////////////////////////////////////////////////////////////////////////
 {
     XmScaleCallbackStruct *data = (XmScaleCallbackStruct *) callData;
+#ifndef R3B
     orbitSpeed = data->value/50.0;                ///50.0;     ///75.0;
+#else
+    orbitSpeed = data->value/50.0;
+
+#endif
     updateScene();
 }
 
@@ -312,16 +481,20 @@ numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
     int i = 0;
 
+#ifndef R3B
     if ( strcmp(myChoice, "inf") == 0 )
     {
        numPeriodAnimated = -1; 
     } 
     else 
     {
+#endif
        numPeriodAnimated = atof(myChoice);
+#ifndef R3B
     }
 
 //cout <<" Num Period Animated "<<myChoice<<"   "<<numPeriodAnimated;
+#endif
 
     updateScene();
 }
@@ -340,12 +513,20 @@ colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
     int i = 0;
     int choice = (int) cbs->item_position;
 
+#ifndef R3B
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
     ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
+#else
+    coloringMethod = (strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
+#endif
     ((strcasecmp(myChoice,"BRAN")==0) ? CL_BRANCH_NUMBER:
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
+#ifndef R3B
     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
+#else
+    ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems))));
+#endif
 
     updateScene();
 }
@@ -403,18 +584,34 @@ fileMenuPick(Widget, void *userData, XtPointer *)
     switch (which)
     {
         case SAVE_ITEM:
+#ifndef R3B
             getFileName(SAVE_ITEM);
+#else
+            fileMode = SAVE_ITEM;
+            getFileName();
+#endif
             break;
 
         case QUIT_ITEM:
+#ifdef R3B
+            fileMode = QUIT_ITEM;
+#endif
             postDeals();
             exit(0);
             break;
         case PRINT_ITEM:
+#ifdef R3B
+            fileMode = PRINT_ITEM;
+#endif
             cropScene("myfile");
             break;
         case OPEN_ITEM:
+#ifndef R3B
             getFileName(OPEN_ITEM);
+#else
+            fileMode = OPEN_ITEM;
+            getFileName();
+#endif
             break;
         default:
             printf("UNKNOWN file menu item!!!\n"); break;
@@ -472,20 +669,24 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
         if( whichType != BIFURCATION )
         {
             setShow3D = setShow3DSol;
+#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optBif[i]  = options[i];
                 options[i] = optSol[i];
             }
+#endif
         }
         else
         {
             setShow3D = setShow3DBif;
+#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optSol[i]  = options[i];
                 options[i] = optBif[i];
             }
+#endif
         }
     }
 
@@ -537,9 +738,31 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
         XtVaSetValues (satAniSpeedSlider, XmNeditable, FALSE, NULL);
 
     if(options[OPT_PERIOD_ANI])
+#ifdef R3B
+    {
+#endif
         XtVaSetValues (orbitAniSpeedSlider, XmNeditable, TRUE, NULL);
+#ifdef R3B
+    }
+#endif
     else
+#ifdef R3B
+    {
+#endif
         XtVaSetValues (orbitAniSpeedSlider, XmNeditable, FALSE, NULL);
+#ifdef R3B
+    }
+
+    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+    {
+        options[OPT_PRIMARY] = false;
+        options[OPT_LIB_POINTS] = false;
+        options[OPT_REF_PLAN] = false;
+        graphWidgetToggleSet &= ~(1 << OPT_REF_PLAN);
+        graphWidgetToggleSet &= ~(1 << OPT_LIB_POINTS);
+        graphWidgetToggleSet &= ~(1 << OPT_PRIMARY);
+    }
+#endif
 
     updateScene();
 }
@@ -583,7 +806,9 @@ setListValue()
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
+#ifndef R3B
         strcpy(coloringMethodList[5],"COMP"); sp++;
+#endif
         specialColorItems = sp;
         for(int i=sp; i<mySolNode.nar+sp; ++i)
         {
@@ -598,8 +823,12 @@ setListValue()
         for (int i = 0; i < count; ++i)
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
+#ifndef R3B
         XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
 		               XmNitemCount, mySolNode.nar+mySolNode.npar+sp, NULL);
+#else
+        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, mySolNode.nar+mySolNode.npar+sp, NULL);
+#endif
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
     }
     else
@@ -747,11 +976,19 @@ styleMenuDisplay(Widget, void *userData, XtPointer)
     TOGGLE_OFF(menuItems->items[MESH_POINTS]);
     TOGGLE_OFF(menuItems->items[ALL_POINTS]);
 
+#ifndef R3B
     if( whichType == BIFURCATION)
+#else
+    if(whichCoordSystem != ROTATING_F || whichType == BIFURCATION)
+#endif
     {
         XtSetSensitive (menuItems->items[SURFACE], false);
         XtSetSensitive (menuItems->items[MESH_POINTS], false);
         XtSetSensitive (menuItems->items[ALL_POINTS], false);
+#ifdef R3B
+        if(menuItems->which == SURFACE || menuItems->which == MESH_POINTS || menuItems->which == ALL_POINTS)
+            menuItems->which = LINE;
+#endif
     }
     else
     {
@@ -789,8 +1026,15 @@ coordMenuDisplay(Widget, void *userData, XtPointer)
         TOGGLE_OFF(menuItems->items[COORDORIGIN]);
         TOGGLE_OFF(menuItems->items[LEFTBACK]);
         TOGGLE_OFF(menuItems->items[LEFTAHEAD]);
+#ifdef R3B
+        TOGGLE_OFF(menuItems->items[DRAW_TICKER]);
+#endif
 
         TOGGLE_ON(menuItems->items[menuItems->which]);
+#ifdef R3B
+        if(blDrawTicker)
+            XmToggleButtonSetState(menuItems->items[DRAW_TICKER], TRUE, FALSE);
+#endif
     }
 }
 
@@ -860,12 +1104,44 @@ optMenuDisplay(Widget, void *userData, XtPointer)
     }
 
     XmString xString = XmStringCreateLocalized("draw Label");
+#ifdef R3B
+    if(!blMassDependantOption)
+    {
+        XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
+        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
+    }
+    else
+    {
+        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], true);
+    }
+
+    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+    {
+        XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
+        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
+        XtSetSensitive (menuItems->items[OPT_REF_PLAN], false);
+        XmToggleButtonSetState(menuItems->items[OPT_PRIMARY], FALSE, FALSE);
+        XmToggleButtonSetState(menuItems->items[OPT_LIB_POINTS], FALSE, FALSE);
+        XmToggleButtonSetState(menuItems->items[OPT_REF_PLAN], FALSE, FALSE);
+    }
+    else
+    {
+        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+        XtSetSensitive (menuItems->items[OPT_REF_PLAN], true);
+    }
+#endif
 
     if(whichType == SOLUTION)
     {
         XtSetSensitive (menuItems->items[OPT_SAT_ANI], TRUE);
 
+#ifndef R3B
         XmString xString = XmStringCreateLocalized("Highlight Orbit");
+#else
+        XmString xString = XmStringCreateLocalized("Orbit Animation");
+#endif
         XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
         XmStringFree(xString);
     }
@@ -920,7 +1196,8 @@ buildFileMenu(Widget menubar)
 
     pulldown = XmCreatePulldownMenu(menubar, "fileMenu", popupargs, popupn);
 
-/*
+#ifdef R3B
+// Accelerators are keyboard shortcuts for the menu items
     char *openAccel  = "Alt <Key> o";
     char *saveAccel  = "Alt <Key> s";
     char *printAccel = "Alt <Key> p";
@@ -929,21 +1206,34 @@ buildFileMenu(Widget menubar)
     XmString saveAccelText  = XmStringCreate("Alt+s", XmSTRING_DEFAULT_CHARSET);
     XmString printAccelText = XmStringCreate("Alt+p", XmSTRING_DEFAULT_CHARSET);
     XmString quitAccelText  = XmStringCreate("Alt+q", XmSTRING_DEFAULT_CHARSET);
-*/
+#endif
     n = 0;
 //    XtSetArg(args[n], XmNaccelerator, openAccel); n++;
 //    XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
+#ifdef R3B
+    XtSetArg(args[n], XmNaccelerator, openAccel); n++;
+    XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
+#endif
     PUSH_ITEM(items[0], "Open...", OPEN_ITEM, fileMenuPick);
 
     n = 0;
 //    XtSetArg(args[n], XmNaccelerator, saveAccel); n++;
 //    XtSetArg(args[n], XmNacceleratorText, saveAccelText); n++;
+#ifdef R3B
+    XtSetArg(args[n], XmNaccelerator, saveAccel); n++;
+    XtSetArg(args[n], XmNacceleratorText, saveAccelText); n++;
+#endif
     PUSH_ITEM(items[1], "Export...", SAVE_ITEM, fileMenuPick);
 
     n = 0;
 //    XtSetArg(args[n], XmNaccelerator, printAccel); n++;
 //    XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
 //    PUSH_ITEM(items[2], "Print...", PRINT_ITEM, fileMenuPick);
+#ifdef R3B
+    XtSetArg(args[n], XmNaccelerator, printAccel); n++;
+    XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
+    PUSH_ITEM(items[2], "Print...", PRINT_ITEM, fileMenuPick);
+#endif
 
     SEP_ITEM("separator");
 
@@ -951,10 +1241,20 @@ buildFileMenu(Widget menubar)
 //    XtSetArg(args[n], XmNaccelerator, quitAccel); n++;
 //    XtSetArg(args[n], XmNacceleratorText, quitAccelText); n++;
 //    PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
+#ifndef R3B
     PUSH_ITEM(items[2], "Quit",    QUIT_ITEM, fileMenuPick);
+#else
+    XtSetArg(args[n], XmNaccelerator, quitAccel); n++;
+    XtSetArg(args[n], XmNacceleratorText, quitAccelText); n++;
+    PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
+#endif
 
 //    XtManageChildren(items, 4);
+#ifndef R3B
     XtManageChildren(items, 2);
+#else
+    XtManageChildren(items, 4);
+#endif
 
     return pulldown;
 }
@@ -974,6 +1274,7 @@ buildHelpMenu(Widget menubar)
     Arg     args[8];
     int     n;
 
+// Tell motif to create the menu in the popup plane
     Arg popupargs[2];
     int popupn = 0;
 
@@ -1006,8 +1307,13 @@ buildOptionMenu(Widget menubar)
     int        n;
 
     EditMenuItems *menuItems = new EditMenuItems;
+#ifndef R3B
     menuItems->items = new Widget[6];
+#else
+    menuItems->items = new Widget[13];
+#endif
 
+// Tell motif to create the menu in the popup plane
     Arg popupargs[13];
     int popupn = 0;
 
@@ -1019,15 +1325,29 @@ buildOptionMenu(Widget menubar)
     n = 0;
     int mq = 0;
     XtSetArg(args[n], XmNuserData, menuItems); n++;
+#ifndef R3B
     TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
+#else
+    TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
+    SEP_ITEM("separator");
+    TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
+#endif
     TOGGLE_ITEM(menuItems->items[mq], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Add Legend",           OPT_LEGEND, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Normalize Data",       OPT_NORMALIZE_DATA, optMenuPick); ++mq;
     XtManageChildren(menuItems->items, mq);
 
+#ifndef R3B
     Widget pushitem;
+#endif
     SEP_ITEM("separator");
+#ifdef R3B
+    Widget pushitem;
+#endif
     PUSH_ITEM(pushitem, "PREFERENCES", ITEM_ONE, createPreferDialog);
     XtManageChild(pushitem);
 
@@ -1099,7 +1419,12 @@ buildStyleMenu(Widget menubar)
     styleMenuItems->items = new Widget[5];   
     styleMenuItems->which = whichStyle;
 
+#ifndef R3B
     Arg popupargs[5];                         
+#else
+// Tell motif to create the menu in the popup plane
+    Arg popupargs[3];
+#endif
     int popupn = 0;
 
     pulldown = XmCreatePulldownMenu(menubar, "styleMenu", popupargs, popupn);
@@ -1151,7 +1476,11 @@ buildCoordMenu(Widget menubar)
     XtSetArg(args[n], XmNuserData, coordMenuItems); n++;
     XtSetArg(args[n], XmNindicatorType, XmONE_OF_MANY); n++;
     TOGGLE_ITEM(coordMenuItems->items[0], "NONE",   NO_COORD, coordMenuPick);
+#ifndef R3B
     TOGGLE_ITEM(coordMenuItems->items[1], "Coord Center",    COORDORIGIN, coordMenuPick);
+#else
+    TOGGLE_ITEM(coordMenuItems->items[1], "Coord Origin",    COORDORIGIN, coordMenuPick);
+#endif
     TOGGLE_ITEM(coordMenuItems->items[2], "Left and Back ",   LEFTBACK, coordMenuPick);
     TOGGLE_ITEM(coordMenuItems->items[3], "Left and Ahead",   LEFTAHEAD, coordMenuPick);
     SEP_ITEM("separator");
@@ -1180,6 +1509,7 @@ buildTypeMenu(Widget menubar)
     typeMenuItems->items = new Widget[2];
     typeMenuItems->which = whichType;
 
+// Tell motif to create the menu in the popup plane
     Arg popupargs[2];
     int popupn = 0;
 
@@ -1209,8 +1539,13 @@ buildMenu(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+#ifndef R3B
     Widget  menuButtons[6];
     Widget  pulldown1, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
+#else
+    Widget  menuButtons[7];
+    Widget  pulldown1, pulldown2, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
+#endif
     Arg     args[8];
     int        n, m;
 
@@ -1220,12 +1555,40 @@ buildMenu(Widget parent)
     XtVaSetValues (menubar, XmNshadowThickness, 1, NULL);
 #endif
     pulldown1 = buildFileMenu(menubar);
+#ifdef R3B
+    pulldown2 = buildCenterMenu(menubar);
+#endif
     pulldown3 = buildStyleMenu(menubar);
     pulldown4 = buildTypeMenu(menubar);
     pulldown7 = buildCoordMenu(menubar);
     pulldown5 = buildOptionMenu(menubar);
     pulldown6 = buildHelpMenu(menubar);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+// set the background color for the pull down menus.
+    XtVaSetValues (pulldown1, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (pulldown2, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (pulldown3, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (pulldown4, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (pulldown5, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (pulldown6, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+
+// the text in the menubar for these menus
+#endif
     n = 0; m=0;
     XtSetArg(args[n], XmNsubMenuId, pulldown1); n++;
     menuButtons[m] = XtCreateManagedWidget("File",
@@ -1255,6 +1618,15 @@ buildMenu(Widget parent)
     ++m;
 
     n = 0;
+#ifdef R3B
+    XtSetArg(args[n], XmNsubMenuId, pulldown2); n++;
+    menuButtons[m] = XtCreateManagedWidget("Center",
+        xmCascadeButtonGadgetClass,
+        menubar, args, n);
+    ++m;
+
+    n = 0;
+#endif
     XtSetArg(args[n], XmNsubMenuId, pulldown5); n++;
     menuButtons[m] = XtCreateManagedWidget("Options",
         xmCascadeButtonGadgetClass,
@@ -1269,6 +1641,7 @@ buildMenu(Widget parent)
         menubar, args, n);
     ++m;
 
+// manage the menu buttons
     XtManageChildren(menuButtons, m);
 
     return menubar;
@@ -1348,12 +1721,33 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     Arg  args[15];
     int  n,i;
 
+// build the toplevel widget
     topform = XtCreateWidget("topform", xmFormWidgetClass, parent,NULL, 0);
+// build menubar
     Widget menubar = buildMenu(topform);
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (topform, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (menubar, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+#endif
 
+// build carrier for the x, y, z, and label lists.
     Widget listCarrier= XtCreateWidget("ListCarrier",
         xmFormWidgetClass, topform, NULL, 0);
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (listCarrier, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 4,
+        NULL);
+#endif
+#endif
 
+//build the xAxis drop down list
     int nItems = (whichType != BIFURCATION) ? mySolNode.nar : myBifNode.nar;
     int count = XtNumber (xAxis);
     xList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
@@ -1384,10 +1778,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XmComboBoxUpdate(xAxisList);
 #endif
 
+// Add Callback function for the x-axis drop down list
     XtAddCallback (xAxisList, XmNselectionCallback,
         xListCallBack, NULL);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (xAxisList, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 4,
+        NULL);
+#endif
+#endif
 
+// build the yAxis drop down list
     count = XtNumber (yAxis);
     yList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (i = 0; i < count; i++)
@@ -1420,6 +1823,15 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtAddCallback (yAxisList, XmNselectionCallback,
         yListCallBack, NULL);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (yAxisList, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 4,
+        NULL);
+#endif
+
+// build the zAxis drop down list
+#endif
     count = XtNumber (zAxis);
     zList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (i = 0; i < count; i++)
@@ -1449,9 +1861,19 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XmComboBoxUpdate(zAxisList);
 #endif
 
+// Add Callback function for the z-axis drop down list
     XtAddCallback (zAxisList, XmNselectionCallback,
         zListCallBack, NULL);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (zAxisList, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+
+// build the LABELs drop down list
+#endif
     nItems = (whichType != BIFURCATION) ? 
 	               mySolNode.totalLabels+SP_LBL_ITEMS : 
 	               myBifNode.totalLabels+SP_LBL_ITEMS;
@@ -1467,7 +1889,11 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              lblList,
         XmNcolumns,            6,
         XmNmarginHeight,       1,
+#ifndef R3B
         XmNselectedPosition,   lblChoice[0]+LBL_OFFSET-1,
+#else
+        XmNselectedPosition,   lblChoice[0]+LBL_OFFSET-1, //lblIndices[0],
+#endif
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -1487,6 +1913,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     for (i = 0; i < count; i++)
         XmStringFree(lblList[i]);
 
+// Add Callback function for the LABELs drop down list
     XtAddCallback (labelsList, XmNselectionCallback,
         lblListCallBack, NULL);
 
@@ -1499,6 +1926,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         NULL);
 #endif
 
+#ifndef R3B
     nItems = (whichType != BIFURCATION) ? 
 	              mySolNode.nar+mySolNode.npar+specialColorItems : 
 				  myBifNode.nar+specialColorItems;
@@ -1536,6 +1964,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         colorMethodSelectionCB, NULL);
 
 //-----------------------------------------------------Nov 06
+#endif
 // build the numPeriodAnimated drop down list
     nItems = 7;
     count = nItems;
@@ -1543,18 +1972,30 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XmStringTable numPList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
 
     int iam = 1;
+#ifndef R3B
     sprintf(numberPList[0], "%i", 0);
     for (i = 0; i < count-2; ++i)
+#else
+    for (i = 0; i < count; ++i)
+#endif
     {
+#ifndef R3B
         sprintf(numberPList[i+1], "%i", iam);
+#else
+        sprintf(numberPList[i], "%i", iam);
+#endif
         iam *= 2;
     }
+#ifndef R3B
     sprintf(numberPList[count-1], "%s", "inf");
+#endif
 
     for (i = 0; i < count; ++i)
         numPList[i] = XmStringCreateLocalized (numberPList[i]);
 
+#ifndef R3B
     i = (numPeriodAnimated == 0) ? 0 : (int)((floor(numPeriodAnimated/2.0)))+1;
+#endif
     Widget numPeriodAnimatedList=XtVaCreateManagedWidget ("list",
         xmComboBoxWidgetClass, listCarrier,
         XmNcomboBoxType,       XmDROP_DOWN_COMBO_BOX,
@@ -1562,7 +2003,11 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              numPList,
         XmNcolumns,            3,
         XmNmarginHeight,       1,
+#ifndef R3B
         XmNselectedPosition,   i,
+#else
+        XmNselectedPosition,   (int)(log(numPeriodAnimated)/log(2)),
+#endif
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -1589,6 +2034,47 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 //    delete []numberPList;
 //----------------------------------------------------------------> Nov 06 End
 
+// build the COLORING Method drop down list
+#ifdef R3B
+    nItems = (whichType != BIFURCATION) ?
+        mySolNode.nar+mySolNode.npar+specialColorItems :
+    myBifNode.nar+specialColorItems ;
+    count = XtNumber (coloringMethodList);
+    clrMethodList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
+
+    for (i = 0; i < count; ++i)
+        clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
+
+    colorMethodSeletionList=XtVaCreateManagedWidget ("coloringMethodlist",
+        xmComboBoxWidgetClass, listCarrier,
+        XmNcomboBoxType,       XmDROP_DOWN_COMBO_BOX,
+        XmNitemCount,          nItems,
+        XmNitems,              clrMethodList,
+        XmNcolumns,            5,
+        XmNmarginHeight,       1,
+        XmNselectedPosition,   coloringMethod+specialColorItems-1,
+        XmNpositionMode,       XmZERO_BASED,
+        NULL);
+
+#ifdef LESSTIF_VERSION
+    list = CB_List(colorMethodSeletionList);
+    XmListDeleteAllItems(list);
+    for (i = 0; i < nItems; i++)
+        XmListAddItem(list,clrMethodList[i],0);
+    XtVaSetValues(colorMethodSeletionList,
+        XmNvisibleItemCount,   10,
+        XmNwidth,              80,
+        XmNcolumns,            5,
+        NULL);
+    XmComboBoxUpdate(colorMethodSeletionList);
+#endif
+
+// Add Callback function for the coloring method seletion drop down list
+    XtAddCallback (colorMethodSeletionList, XmNselectionCallback,
+        colorMethodSelectionCB, NULL);
+
+// create labels for the x, y, z, and labels drop down lists
+#endif
     Widget xLbl = XtVaCreateManagedWidget("X",xmLabelWidgetClass, listCarrier, NULL);
     Widget yLbl = XtVaCreateManagedWidget("Y",xmLabelWidgetClass, listCarrier, NULL);
     Widget zLbl = XtVaCreateManagedWidget("Z",xmLabelWidgetClass, listCarrier, NULL);
@@ -1597,14 +2083,41 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     Widget numPeriodLbl = XtVaCreateManagedWidget("Period",xmLabelWidgetClass, listCarrier, NULL);
 
     Widget orbitSldLbl = XtVaCreateManagedWidget("Orbit",xmLabelWidgetClass, listCarrier, NULL);
+#ifndef R3B
     Widget satSldLbl = XtVaCreateManagedWidget("Anim",xmLabelWidgetClass, listCarrier, NULL);
+#else
+    Widget satSldLbl = XtVaCreateManagedWidget("Sat ",xmLabelWidgetClass, listCarrier, NULL);
+#endif
     Widget spLbl   = XtVaCreateManagedWidget("   Line  ",xmLabelWidgetClass, listCarrier, NULL);
     Widget spLbl2  = XtVaCreateManagedWidget("Thickness",xmLabelWidgetClass, listCarrier, NULL);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+//set the background color for the labels
+    XtVaSetValues (xLbl, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (yLbl, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (zLbl, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+    XtVaSetValues (lLbl, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+
+// Create slider to control speed
+#endif
     n = 0;
     XtSetArg(args[n], XmNminimum, MIN_SAT_SPEED); n++;
     XtSetArg(args[n], XmNmaximum, MAX_SAT_SPEED); n++;
+#ifndef R3B
     XtSetArg(args[n], XmNvalue, satSpeed*100);    n++;
+#else
+    XtSetArg(args[n], XmNvalue, satSpeed*100);n++;//(MAX_SPEED-MIN_SPEED)/2.0); n++;
+#endif
     XtSetArg(args[n], XmNorientation, XmHORIZONTAL); n++;
     if(options[OPT_SAT_ANI])
     {
@@ -1619,6 +2132,15 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     satAniSpeedSlider =
         XtCreateWidget("Speed", xmScaleWidgetClass, listCarrier, args, n);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (satAniSpeedSlider, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+
+// Callbacks for the slider
+#endif
     XtAddCallback(satAniSpeedSlider, XmNvalueChangedCallback,
         satSpeedCB, NULL);
 
@@ -1638,16 +2160,32 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     orbitAniSpeedSlider =
         XtCreateWidget("Speed2", xmScaleWidgetClass, listCarrier, args, n);
 
+#ifdef R3B
+#ifdef USE_BK_COLOR
+    XtVaSetValues (orbitAniSpeedSlider, XtVaTypedArg,
+        XmNbackground, XmRString, "white", 6,
+        NULL);
+#endif
+
+// Callbacks for the slider2
+#endif
     XtAddCallback(orbitAniSpeedSlider, XmNvalueChangedCallback,
         orbitSpeedCB, NULL);
 
+// create spinbox for the line width control.
     n = 0;
     XtSetArg (args[n], XmNarrowSize, 12); n++;
     XtSetArg (args[n], XmNspinBoxChildType, XmNUMERIC); n++;
     XtSetArg (args[n], XmNminimumValue, 10); n++;
+#ifndef R3B
     XtSetArg (args[n], XmNdecimalPoints, 1); n++;
+#endif
     XtSetArg (args[n], XmNincrementValue, 1); n++;
+#ifndef R3B
     XtSetArg (args[n], XmNeditable, TRUE); n++;
+#else
+    XtSetArg (args[n], XmNdecimalPoints, 1); n++;
+#endif
     XtSetArg (args[n], XmNpositionType, XmPOSITION_VALUE); n++;
     XtSetArg (args[n], XmNposition, lineWidthScaler+10); n++;
     XtSetArg (args[n], XmNcolumns,  3); n++;
@@ -1664,10 +2202,12 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg (args[n], XmNmaximumValue, 100); n++;
     Widget spinBox = XmCreateSimpleSpinBox (listCarrier, "spinBox", args, n);
 
+// Callbacks for the spinebox
     XtAddCallback(spinBox, XmNvalueChangedCallback,
         lineWidthCB, (XtPointer)spinBox);
 #endif
 
+// create RENDER AREA FOR THE graphics.
 #ifdef USE_EXAM_VIEWER
     renderArea = new SoXtExaminerViewer(topform);
 #else
@@ -1676,6 +2216,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 
     renderArea->setSize(SbVec2s(winWidth, winHeight));
     renderArea->setBackgroundColor(envColors[0]);
+#ifdef R3B
+    renderArea->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
+#endif
 
 #ifdef USE_EXAM_VIEWER
     n = 0;
@@ -1699,12 +2242,14 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtAddCallback(dimButton, XmNactivateCallback, dimensionToggledCB, sceneGraph);
     renderArea->addAppPushButton(dimButton);
 
+// used for printing  scene to ps files
     vwrAndScene = new ViewerAndScene;
     vwrAndScene->scene  = renderArea->getSceneGraph();
     vwrAndScene->viewer = renderArea;
 #endif
 
 // layout
+//Positioning the x-label for the x-axis drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNtopOffset,         3            ); n++;
@@ -1715,6 +2260,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE); n++;
     XtSetValues(xLbl, args, n);
 
+//Positioning the x-axis' drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM  ); n++;
     XtSetArg(args[n], XmNtopOffset,         3              ); n++;
@@ -1726,6 +2272,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE  ); n++;
     XtSetValues(xAxisList, args, n);
 
+//Positioning the y-label for the y-axis drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xLbl                    ); n++;
@@ -1737,6 +2284,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(yLbl, args, n);
 
+//Positioning the y-axis' drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xAxisList               ); n++;
@@ -1748,6 +2296,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(yAxisList, args, n);
 
+//Positioning the z-label for the z-axis drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xLbl                    ); n++;
@@ -1759,6 +2308,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(zLbl, args, n);
 
+//Positioning the z-axis' drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xAxisList               ); n++;
@@ -1770,6 +2320,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(zAxisList, args, n);
 
+//Positioning the LABELs' drop down list label
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xLbl                    ); n++;
@@ -1781,6 +2332,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(lLbl, args, n);
 
+//Positioning the LABELs' drop down list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xAxisList               ); n++;
@@ -1792,6 +2344,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(labelsList, args, n);
 
+//Positioning the label for the Coloring method list
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xLbl                    ); n++;
@@ -1803,6 +2356,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(colorLbl, args, n);
 
+// layout the coloring method selection on the listCarrier.
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xAxisList               ); n++;
@@ -1834,12 +2388,14 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNbottomAttachment,  XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNbottomWidget,      xAxisList               ); n++;
     XtSetArg(args[n], XmNleftAttachment,    XmATTACH_WIDGET         ); n++;
+//labelsList              ); n++;
     XtSetArg(args[n], XmNleftWidget,        numPeriodLbl            ); n++;
     XtSetArg(args[n], XmNleftOffset,        0                       ); n++;
     XtSetValues(numPeriodAnimatedList,args,n);
     XtManageChild(numPeriodAnimatedList);
 
 //  spinbox labels and spinboxes
+// layout the spinBox label on the listCarrier.
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM           ); n++;
     XtSetArg(args[n], XmNleftAttachment,    XmATTACH_WIDGET         ); n++;
@@ -1854,10 +2410,12 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNbottomAttachment,  XmATTACH_FORM           ); n++;
     XtSetArg(args[n], XmNleftAttachment,    XmATTACH_WIDGET         ); n++;
 //    XtSetArg(args[n], XmNleftWidget,        colorMethodSeletionList ); n++;
+//    XtSetArg(args[n], XmNleftWidget,        labelsList); n++;
     XtSetArg(args[n], XmNleftWidget,        numPeriodAnimatedList   ); n++;
     XtSetArg(args[n], XmNleftOffset,        5                       ); n++;
     XtSetValues(spLbl2, args, n);
 
+// layout the spinBox on the listCarrier.
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNbottomAttachment,  XmATTACH_FORM           ); n++;
@@ -1866,6 +2424,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetValues(spinBox, args, n);
     XtManageChild(spinBox);
 
+//Positioning the label for the slider bars
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_OPPOSITE_WIDGET); n++;
     XtSetArg(args[n], XmNtopWidget,         xAxisList               ); n++;
@@ -1875,6 +2434,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE           ); n++;
     XtSetValues(satSldLbl, args, n);
 
+//Positioning the label for the slider bars
     n = 0;
     XtSetArg(args[n], XmNbottomAttachment,  XmATTACH_OPPOSITE_WIDGET ); n++;
     XtSetArg(args[n], XmNbottomWidget,      xAxisList                ); n++;
@@ -1884,6 +2444,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_NONE            ); n++;
     XtSetValues(orbitSldLbl, args, n);
 
+// Layout the slider bar on the listCarrier
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM           ); n++;
     XtSetArg(args[n], XmNleftAttachment,    XmATTACH_WIDGET         ); n++;
@@ -1902,6 +2463,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetValues(orbitAniSpeedSlider, args, n);
     XtManageChild(orbitAniSpeedSlider);
 
+// Positioning the menu bar.
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNleftAttachment,    XmATTACH_FORM); n++;
@@ -1909,6 +2471,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNbottomAttachment,  XmATTACH_NONE); n++;
     XtSetValues(menubar, args, n);
 
+// Positioning the listCarrier.
     n = 0;
 #ifdef LIST_UNDER_MENUBAR
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_WIDGET); n++;
@@ -1922,6 +2485,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_FORM); n++;
     XtSetValues(listCarrier, args, n);
 
+// Positioning the Render Area
     n = 0;
 #ifdef LIST_UNDER_MENUBAR
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_WIDGET); n++;
@@ -1937,10 +2501,15 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg(args[n], XmNrightAttachment,   XmATTACH_FORM  ); n++;
     XtSetValues(renderArea->getWidget(), args, n);
 
+// manage the children
     XtManageChild(menubar);
     XtManageChild(listCarrier);
 
+#ifndef R3B
     updateScene();
+#else
+// these two lines are the third method for showing in 2D/3D
+#endif
     renderArea->setSceneGraph(sceneGraph);
     renderArea->show();
 
@@ -2042,6 +2611,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     Widget spin = XmCreateSpinBox (form, "spin", NULL, 0);
     XtAddCallback (spin, XmNvalueChangedCallback, lineColorValueChangedCB, NULL);
 
+// Create the red field
     n = 0;
     XtSetArg (args[n], XmNspinBoxChildType, XmNUMERIC) ; n++;
     XtSetArg (args[n], XmNcolumns,          3        ) ; n++;
@@ -2056,6 +2626,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     widgetList[1]= XmCreateTextField (spin, "redText", args, n);
     XtManageChild (widgetList[1]);
 
+// Create the green field
     n = 0;
     XtSetArg (args[n], XmNspinBoxChildType,XmNUMERIC); n++;
     XtSetArg (args[n], XmNcolumns,         3        ); n++;
@@ -2070,6 +2641,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     widgetList[2]= XmCreateTextField (spin, "greenText", args, n);
     XtManageChild (widgetList[2]);
 
+// Create the blue field
     n = 0;
     XtSetArg (args[n], XmNspinBoxChildType,XmNUMERIC); n++;
     XtSetArg (args[n], XmNcolumns,         3        ); n++;
@@ -2084,6 +2656,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     widgetList[3]= XmCreateTextField (spin, "blueText", args, n);
     XtManageChild (widgetList[3]);
 
+// create the line pattern
     int lengthOfSysPatternArray = XtNumber( systemLinePatternLookAndFeel );
     XmStringTable strList = (XmStringTable) XtMalloc (
         (unsigned) lengthOfSysPatternArray * sizeof (XmString *));
@@ -2107,6 +2680,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
         XmStringFree (strList[i]);
     delete strList;
 
+// layout
     n = 0;
     XtSetArg(args[n], XmNtopAttachment, XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNtopOffset,     8            ); n++;
@@ -2136,18 +2710,24 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 Widget 
 createColorAndLinePrefSheetHeader(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
+#else
+Widget createColorAndLinePrefSheetHeader(Widget parent)
+#endif
 {
     Widget widget;
     Arg args[6];
     int n;
 
+// create a form to hold verything together
     Widget form = XtCreateWidget("", xmFormWidgetClass,
         parent, NULL, 0);
 
+// create the first line
     n=0;
     XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNtopOffset,         20           ); n++;
@@ -2168,7 +2748,12 @@ createColorAndLinePrefSheetHeader(Widget parent)
 //  This simply creates the default parts of the pref dialog.
 //
 void
+#ifndef R3B
 createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, char** name)
+#else
+createLineAttrPrefSheetParts(Widget widgetList[],
+int &num, Widget form, char** name)
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2203,6 +2788,7 @@ int num, Widget form)
     Arg args[12];
     int n;
 
+// layout
     n = 0;
     XtSetArg(args[n], XmNleftAttachment,        XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNtopAttachment,         XmATTACH_FORM); n++;
@@ -2336,6 +2922,7 @@ createPreferDefaultPageFrames(Widget parent, char *frameName)
     Arg args[12];
     Widget frame, label;
 
+// create frame for group color settings.
     n = 0;
     XtSetArg(args[n], XmNshadowType, XmSHADOW_ETCHED_IN); n++;
     frame = XmCreateFrame(parent, "frame", args, n);
@@ -2352,6 +2939,64 @@ createPreferDefaultPageFrames(Widget parent, char *frameName)
 ////////////////////////////////////////////////////////////////////////
 //
 void
+#ifdef R3B
+graphCoordinateSystemToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
+//
+////////////////////////////////////////////////////////////////////////
+{
+    int which = (int) client_data;
+    XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
+
+    if (state->set == XmSET)
+        whichCoordSystemTemp = which;
+    else
+        whichCoordSystemTemp = 0;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//
+void
+createGraphCoordinateSystemFrameGuts(Widget frame)
+//
+////////////////////////////////////////////////////////////////////////
+{
+    int n;
+    Arg args[12];
+    Widget label;
+    char *coordSysItems[]=
+    {
+        "Rotating Frame", "Barycenter " ,
+        "Large Primary Center", "Small Primary Center"
+    };
+
+// create default selections
+    n = 0;
+    XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
+    XtSetArg (args[n], XmNnumColumns, 4); ++n;
+    Widget toggleBox = XmCreateRadioBox(frame, "radio", args, n);
+
+    whichCoordSystemOld  = whichCoordSystem;
+    whichCoordSystemTemp = whichCoordSystem;
+
+    for (int i = 0; i < XtNumber (coordSysItems); i++)
+    {
+        n = 0;
+        if (whichCoordSystem == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
+        Widget w = XmCreateToggleButtonGadget (toggleBox, coordSysItems[i], args, n);
+        XtAddCallback (w, XmNvalueChangedCallback, graphCoordinateSystemToggledCB, (XtPointer) i);
+        XtManageChild (w);
+    }
+
+    XtManageChild (toggleBox);
+    XtManageChild (frame);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//
+void
+#endif
 graphStyleWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2376,11 +3021,16 @@ createGraphStyleFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
+#ifndef R3B
     char * graphStyleItems[]=
     {
         "Line Style", "Tube Style" , "Surface Style"
     };
+#else
+    char * graphStyleItems[]={ "Line Style", "Tube Style" , "Surface Style"};
+#endif
 
+// create default selections
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
@@ -2448,6 +3098,7 @@ createGraphTypeFrameGuts(Widget frame)
     Widget label;
     char * graphTypeItems[]={ "Solution Diagram" , "Bifurcation Diagram" };
 
+// create default selections
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 3); ++n;
@@ -2475,6 +3126,7 @@ createGraphTypeFrameGuts(Widget frame)
 ////////////////////////////////////////////////////////////////////////
 //
 // callback for all ToggleButtons.
+//
 void
 defaultGraphWidgetToggledCB( Widget widget, XtPointer client_data, XtPointer call_data)
 //
@@ -2501,6 +3153,7 @@ createOptionFrameGuts(Widget frame)
     Arg args[12];
     Widget label;
 
+// create default selections
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
@@ -2529,8 +3182,16 @@ layoutPreferDefaultPageFrames(Widget widgetList[], int num)
 ////////////////////////////////////////////////////////////////////////
 {
     Arg args[12];
+#ifndef R3B
     int n = 0;
+#else
+    int n;
+#endif
 
+// layout
+#ifdef R3B
+    n = 0;
+#endif
     XtSetArg(args[n], XmNleftAttachment,        XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNrightAttachment,       XmATTACH_FORM); n++;
 
@@ -2575,6 +3236,7 @@ createGraphCoordPartsFrameGuts(Widget frame)
         "At Left & Behind", "At Left & Ahead"  
     };
 
+// create default selections
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
@@ -2609,7 +3271,11 @@ createPreferDefaultPages(Widget parent)
     char * frmNames[]=
     {
         "Optional Widgets", "Graph Type", "Graph Style",
+#ifndef R3B
         "Coordinate Parts", "Others"
+#else
+        "Coordinate System", "Coordinate Parts", "Others"
+#endif
     };
 
     for(int i=0; i<XtNumber(frmNames); ++i)
@@ -2618,6 +3284,9 @@ createPreferDefaultPages(Widget parent)
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
     createGraphStyleFrameGuts(frameList[num++]);
+#ifdef R3B
+    createGraphCoordinateSystemFrameGuts(frameList[num++]);
+#endif
     createGraphCoordPartsFrameGuts(frameList[num++]);
     layoutPreferDefaultPageFrames(frameList, num);
 }
@@ -2669,6 +3338,7 @@ createPreferNotebookPages(Widget notebook)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+// create the preference sheet shell and form widget
     Widget pageForm[2], tab, form;
     int n=0;
     char         buffer[32];
@@ -2676,6 +3346,7 @@ createPreferNotebookPages(Widget notebook)
     Arg          args[14];
     char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
+// create the first page.
     n = 0;
     XtSetArg(args[n], XmNmarginHeight, 15); ++n;
     XtSetArg(args[n], XmNmarginWidth,  15); ++n;
@@ -2689,6 +3360,7 @@ createPreferNotebookPages(Widget notebook)
     createPreferDefaultPages(pageForm[0]);
     XtManageChild (tab);
 
+// create the second page.
     n = 0;
     XtSetArg(args[n], XmNmarginHeight, 15); ++n;
     XtSetArg(args[n], XmNmarginWidth,  15); ++n;
@@ -2715,6 +3387,7 @@ createPreferNotebookAndActionForm(Widget parentPane, Widget &notebook, Widget &a
     int n;
     Arg args[15];
 
+// create notebook to hold all the pages
     n = 0;
     XtSetArg(args[n], XmNmarginHeight, 15); ++n;
     XtSetArg(args[n], XmNmarginWidth, 10); ++n;
@@ -2747,6 +3420,7 @@ createPreferDialog()
 {
     static Widget shell;
 
+//    if(!shell)
     {
         Widget notebook, actionForm, tab, panedWin;
         createPreferShellAndPanedWindow(shell, panedWin);
@@ -2763,6 +3437,7 @@ createPreferDialog()
 
 
 ///////////////////////////////////////////////////////////////////
+//         CANCEL CALL BACK
 //
 void
 closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer call_data)
@@ -2789,10 +3464,17 @@ closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer
     whichStyleTemp = whichStyleOld;
     styleMenuItems->which            = whichStyleOld;
 
+#ifdef R3B
+    whichCoordSystem     = whichCoordSystemOld;
+    whichCoordSystemTemp = whichCoordSystemOld;
+    coordSystemMenuItems->which           = whichCoordSystemOld;
+
+#endif
     whichCoord     = whichCoordOld;
     whichCoordTemp = whichCoordOld;
     coordMenuItems->which           = whichCoordOld;
 
+// cancel the selections and recover the original values.
     graphWidgetToggleSetTemp = graphWidgetToggleSetOld;
     graphWidgetToggleSet     = graphWidgetToggleSetOld;
     for (int i = 0; i < XtNumber (graphWidgetItems); i++)
@@ -2820,6 +3502,7 @@ closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer
 
 
 ///////////////////////////////////////////////////////////////////
+//         OK & CLOSE CALL BACK
 //
 void
 closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data)
@@ -2846,6 +3529,12 @@ closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer 
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
+#ifdef R3B
+    whichCoordSystem    = whichCoordSystemTemp;
+    whichCoordSystemOld = whichCoordSystemTemp;
+    coordSystemMenuItems->which          = whichCoordSystemTemp;
+
+#endif
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -2878,6 +3567,7 @@ closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer 
 
 
 ///////////////////////////////////////////////////////////////////
+//         OK & SAVE CALL BACK
 //
 void
 savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data)
@@ -2904,6 +3594,12 @@ savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_da
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
+#ifdef R3B
+    whichCoordSystem    = whichCoordSystemTemp;
+    whichCoordSystemOld = whichCoordSystemTemp;
+    coordSystemMenuItems->which          = whichCoordSystemTemp;
+
+#endif
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -2937,6 +3633,7 @@ savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_da
 
 
 ///////////////////////////////////////////////////////////////////
+//         APPLY CALL BACK
 //
 void
 applyPreferDialogChangeAndUpdateScene(
@@ -2957,6 +3654,11 @@ Widget widget, XtPointer client_data, XtPointer call_data)
     whichStyle = whichStyleTemp;
     styleMenuItems->which        = whichStyleTemp;
 
+#ifdef R3B
+    whichCoordSystem = whichCoordSystemTemp;
+    coordSystemMenuItems->which       = whichCoordSystemTemp;
+
+#endif
     whichCoord = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
 
@@ -2986,6 +3688,8 @@ Widget widget, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
+// Write the graph to iv file.
+//
 void
 writeToFile(char * fileName)
 //
@@ -3005,10 +3709,15 @@ writeToFile(char * fileName)
 // standard file dialog.
 //
 void
+#ifndef R3B
 getFileName(int fileMode)
+#else
+getFileName()
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
+// use a motif file selection dialog
     if (fileDialog == NULL)
     {
         Arg args[5];
@@ -3016,13 +3725,21 @@ getFileName(int fileMode)
         XtSetArg(args[n], XmNautoUnmanage, TRUE); n++;
         if(topform== NULL)
         {
+#ifndef R3B
             printf("mainWindow is NULL!\n");
+#else
+            printf("maniWindow is NULL!\n");
+#endif
             return;
         }
         fileDialog = XmCreateFileSelectionDialog(
             XtParent(topform), "File Dialog", args, n);
         XtAddCallback(fileDialog, XmNokCallback,
+#ifndef R3B
             fileDialogCB, (XtPointer)fileMode);
+#else
+            fileDialogCB, (XtPointer)NULL);
+#endif
     }
     XtManageChild(fileDialog);
 }
@@ -3037,7 +3754,9 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+#ifndef R3B
     int fileMode = (int)client_data;
+#endif
     char *filename;
     XmFileSelectionBoxCallbackStruct *data =
         (XmFileSelectionBoxCallbackStruct *)call_data;
@@ -3047,6 +3766,12 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
     SbBool okFile = TRUE;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename);
+#ifdef R3B
+    else if(fileMode == PRINT_ITEM)
+    {
+        cropScene(filename);
+    }
+#endif
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();
@@ -3084,7 +3809,9 @@ processPrinting(char* filename )
 
 ////////////////////////////////////////////////////////////////////////
 //
+// Description:
 //        Brings up the "HELP INFORMATIO"
+//
 //
 void
 showHelpDialog()
@@ -3133,14 +3860,23 @@ showAboutDialog()
     void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
     char str[600];
+#ifndef R3B
     strcpy(str,"  AUTO plaut04\n\n");
+#else
+    strcpy(str,"  AUTO r3bplaut04\n\n");
+#endif
     strcat(str,"  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n ");
     strcat(str,"  Computer Science Department\n");
     strcat(str,"  Concordia University\n\n");
+#ifndef R3B
     strcat(str,"  Montreal, Quebec\n");
     strcat(str,"  CANADA\n\n");
     strcat(str,"  August, 2004 \n");
 
+#else
+    strcat(str,"  Montreal, CA\n\n");
+    strcat(str,"  June, 2004 \n");
+#endif
 
     if (!dialog)
     {
@@ -3167,11 +3903,19 @@ showAboutDialog()
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 static void 
 xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
+#else
+static
+void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
+#ifdef R3B
+    int varIndices[3];
+#endif
 
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     int choice = (int) cbs->item_position;
@@ -3200,11 +3944,18 @@ xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 static void 
 yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
+#else
+static void yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
+#endif
 {
+#ifdef R3B
+    int varIndices[3];
+#endif
 
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     int choice = (int) cbs->item_position;
@@ -3233,8 +3984,12 @@ yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 static void 
 zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
+#else
+static void zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3286,7 +4041,9 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
             lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? 0 : atoi(tmp)-myLabels[1]+1;
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LABEL);
+#ifndef R3B
         half = 2;
+#endif
     }
     else if(choice == 1) 
     {
@@ -3305,8 +4062,13 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
         int j = 1;
         do
         {
+#ifndef R3B
             if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG) // &&
             //    clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
+#else
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
+                clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
+#endif
                 lblIndices[i++] = j;
             j++;
         } while( j < numLabels-2 );
@@ -3330,8 +4092,12 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 void 
 updateScene()
+#else
+void updateScene()
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3342,6 +4108,7 @@ updateScene()
     int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
     maxComponent = mx;
 
+#ifndef R3B
     // look for the maximum/minum value in the x-axis, y-axis, z-axis
     if(whichType != BIFURCATION)
     {
@@ -3357,6 +4124,7 @@ updateScene()
  
     time_on = TIME_IS_OFF;
 
+#endif
     for(int i=0; i<mx; i++)
     {
         curComponent = i+1;
@@ -3364,13 +4132,19 @@ updateScene()
         varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
         varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
 
+#ifndef R3B
         if (varIndices[0] == 0) time_on = TIME_ON_X; 
         if (varIndices[1] == 0) time_on = TIME_ON_Y; 
         if (varIndices[2] == 0) time_on = TIME_ON_Z; 
 
+#else
+        animationLabel = myLabels[lblIndices[0]];
+#endif
         if(whichType != BIFURCATION)
         {
+#ifndef R3B
             animationLabel = myLabels[lblIndices[0]];
+#endif
             copySolDataToWorkArray(varIndices);
             newScene->addChild( createSolutionSceneWithWidgets() );
         }
@@ -3392,10 +4166,13 @@ updateScene()
         root->addChild(newScene);
         userScene = newScene;
     }
+#ifndef R3B
     iiii++;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
 // Routine to create a scene graph representing an auto solution
 //
@@ -3403,6 +4180,7 @@ SoSeparator *
 createSolutionSceneWithWidgets()
 //
 ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 {
     float dis = max(max((mySolNode.max[0]-mySolNode.min[0]),
         (mySolNode.max[1]-mySolNode.min[1])),
@@ -3415,20 +4193,61 @@ createSolutionSceneWithWidgets()
         normalizeSolData();
     }
 
+#ifdef R3B
+    if(whichCoordSystem != ROTATING_F)
+    {
+        if(options[OPT_REF_PLAN])
+        {
+            float position[3], radius =1;
+            position[0]=position[1]=position[2]=0;
+            if(whichCoordSystem == INERTIAL_B ) radius = 1-mass;
+            SoSeparator *diskSep = createDisk(position,radius);
+            result->addChild(diskSep);
+        }
+        result->addChild(createSolutionInertialFrameScene(dis));
+    }
+    else
+    {
+#endif
     char txtureFileName[256];
 
     strcpy(txtureFileName, autoDir);
     strcat(txtureFileName,"/widgets/large.rgb");
+#ifdef R3B
+        if(options[OPT_LIB_POINTS])
+        {
+            dis = max(max( dis                     , (libPtMax[0]-libPtMin[0])),
+                max((libPtMax[1]-libPtMin[1]), (libPtMax[2]-libPtMin[2])));
+            SoSeparator * libPtsSep = createLibrationPoint(mass, dis, libPtScaler, txtureFileName);
+            result->addChild(libPtsSep);
+        }
+#endif
 
     if(whichCoord != NO_COORD)
     {
+#ifndef R3B
         int type = 0;
+#else
+            int cdtype = 0;
+#endif
         if(whichCoord==LEFTBACK)
+#ifndef R3B
             type = 2;
+#else
+                cdtype = 2;
+#endif
         else if(whichCoord==LEFTAHEAD)
+#ifndef R3B
             type = 1;
+#else
+                cdtype = 1;
+#endif
         else if (whichCoord==COORDORIGIN)
+#ifndef R3B
             type = 0;
+#else
+                cdtype = 0;
+#endif
 
         SoSeparator * coordSep = new SoSeparator;
 
@@ -3449,14 +4268,20 @@ createSolutionSceneWithWidgets()
         float asMax[3], asMin[3];
         if(options[OPT_NORMALIZE_DATA])
         {
+#ifndef R3B
             asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1]; asMin[2]=mySolNode.min[2];
             if ( time_on != TIME_IS_OFF )
             {
                 asMax[0] = asMax[1] = asMax[2] = 1;
             } else {
+#endif
                 asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1]; asMax[2]=mySolNode.max[2];
+#ifndef R3B
             }
 
+#else
+                asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1];asMin[2]=mySolNode.min[2];
+#endif
         }
         else
         {
@@ -3464,12 +4289,51 @@ createSolutionSceneWithWidgets()
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
+#ifndef R3B
         coordSep->addChild(createCoordinates(setShow3D, type, asMax, asMin, tickers, whichCoord));
+#else
+            coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+
+#endif
         result->addChild(coordSep);
     }
 
+#ifndef R3B
     result->addChild(renderSolution());
+#else
+// create reference DISK
+        if(options[OPT_REF_PLAN])
+        {
+            float position[3];
+            position[0]=-mass;
+            position[1]=position[2]=0;
+            SoSeparator *diskSep = createDisk(position,1.0);
+            result->addChild(diskSep);
+        }
+#endif
 
+// create the primaries
+#ifdef R3B
+        if(options[OPT_PRIMARY])
+        {
+            double pos1 = 1-mass;
+            double pos2 = -mass;
+            strcpy(txtureFileName, autoDir);
+            strcat(txtureFileName,"/plaut04/widgets/large.rgb");
+            result->addChild(createPrimary(1-mass+1e-9, pos2, 0.25*largePrimRadius, txtureFileName));
+            strcpy(txtureFileName, autoDir);
+            strcat(txtureFileName,"/plaut04/widgets/small.rgb");
+            result->addChild(createPrimary(mass-1e-9, pos1, 0.25*smallPrimRadius, txtureFileName));
+        }
+
+//  create solution scene
+        result->addChild(renderSolution(mass));
+
+    }
+
+    static int iiii = 0;
+//  create starry background
+#endif
     if(iiii && options[OPT_BACKGROUND])
     {
         char bgFileName[256];
@@ -3478,18 +4342,38 @@ createSolutionSceneWithWidgets()
         result->addChild(drawStarryBackground(bgFileName));
     }
 
+#ifndef R3B
     static SoSeparator *leg = new SoSeparator;
+#else
+//  add legend
+#endif
     if(iiii && options[OPT_LEGEND])
     {
+#ifndef R3B
         leg = addLegend();
         result->addChild(leg);
+#else
+        result->addChild(addLegend());
+#endif
     }
+#ifdef R3B
+    iiii++;
+#endif
 
     return result;
 }
 
 
+#ifndef R3B
 SoSeparator * drawStarryBackground(char * bgFileName)
+#else
+////////////////////////////////////////////////////////////////////////
+//
+SoSeparator *
+drawStarryBackground(char * bgFileName)
+//
+////////////////////////////////////////////////////////////////////////
+#endif
 {
     SoSeparator *starryBg = new SoSeparator;
     SoTexture2 * bgTxture = new SoTexture2;
@@ -3519,7 +4403,16 @@ SoSeparator * drawStarryBackground(char * bgFileName)
 }
 
 
+#ifndef R3B
 SoSeparator * addLegend()
+#else
+////////////////////////////////////////////////////////////////////////
+//
+SoSeparator *
+addLegend()
+//
+////////////////////////////////////////////////////////////////////////
+#endif
 {
     SoSeparator * result = new SoSeparator;
     SoOrthographicCamera *legendCamera = new SoOrthographicCamera;
@@ -3535,7 +4428,11 @@ SoSeparator * addLegend()
     {
         SbColor color[2];
         color[0].setValue(1,0,0);
+#ifndef R3B
         color[1].setValue(0,0,1);
+#else
+        color[1].setValue(0,1,0);
+#endif
         result->addChild(createStabilityLegend(lgPos, color));
     }
     else if( coloringMethod == CL_ORBIT_TYPE)
@@ -3556,8 +4453,12 @@ SoSeparator * addLegend()
 
 ////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 void 
 setLegendValues(double* values)
+#else
+void setLegendValues(double* values)
+#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -4265,13 +5166,29 @@ createBifurcationScene()
 
     if(whichCoord != NO_COORD)
     {
+#ifndef R3B
         int type = 0;
+#else
+        int cdtype = 0;
+#endif
         if(whichCoord==LEFTBACK)
+#ifndef R3B
             type = 2;
+#else
+            cdtype = 2;
+#endif
         else if(whichCoord==LEFTAHEAD)
+#ifndef R3B
             type = 1;
+#else
+            cdtype = 1;
+#endif
         else if (whichCoord==COORDORIGIN)
+#ifndef R3B
             type = 0;
+#else
+            cdtype = 0;
+#endif
 
         SoSeparator * coordSep = new SoSeparator;
 
@@ -4292,8 +5209,13 @@ createBifurcationScene()
         float asMax[3], asMin[3];
         if(options[OPT_NORMALIZE_DATA])
         {
+#ifndef R3B
             asMax[0]=myBifNode.max[0]; asMax[1]=myBifNode.max[1];asMax[2]=myBifNode.max[2];
             asMin[0]=myBifNode.min[0]; asMin[1]=myBifNode.min[1];asMin[2]=myBifNode.min[2];
+#else
+            asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1];asMax[2]=mySolNode.max[2];
+            asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1];asMin[2]=mySolNode.min[2];
+#endif
         }
         else
         {
@@ -4301,14 +5223,55 @@ createBifurcationScene()
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
+#ifndef R3B
         coordSep->addChild(createCoordinates(setShow3D, type, asMax, asMin, tickers, whichCoord));
+#else
+        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+#endif
 
         result->addChild(coordSep);
     }
 
+#ifndef R3B
     SoSeparator * bifBranchSep = renderBifurcation();
+#else
+    if(options[OPT_REF_PLAN])
+    {
+        float position[3];
+        position[0]=position[1]=position[2]=0;
+        dis = 1.0;
+        SoSeparator *diskSep = createDisk(position, dis);
+        result->addChild(diskSep);
+    }
+
+// create the primaries
+    char txtureFileName[256];
+    strcpy(txtureFileName, autoDir);
+    strcat(txtureFileName,"/plaut04/widgets/large.rgb");
+    if(options[OPT_PRIMARY])
+    {
+        double pos1 = 1-mass;
+        double pos2 = -mass;
+        result->addChild(createPrimary(1-mass,pos2, 0.25*largePrimRadius, txtureFileName));
+        strcpy(txtureFileName, autoDir);
+        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
+        result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName));
+    }
+
+// create the libration points
+    if(options[OPT_LIB_POINTS])
+    {
+        strcpy(txtureFileName, autoDir);
+        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
+        result->addChild(createLibrationPoint(mass, dis, libPtScaler,  txtureFileName));
+    }
+
+// create bifurcation graph
+    SoSeparator * bifBranchSep = renderBifurcation(mass);
+#endif
     result->addChild(bifBranchSep);
 
+// create starry background
     static int iiii = 0;
     if(iiii && options[OPT_BACKGROUND])
     {
@@ -4318,6 +5281,7 @@ createBifurcationScene()
         result->addChild(drawStarryBackground(bgFileName));
     }
 
+// add legend
     if(iiii && options[OPT_LEGEND])
     {
         result->addChild(addLegend());
@@ -4346,17 +5310,26 @@ drawLabelPtsInBifurcationScene()
 
     if(lbl == 0)
     {
+#ifndef R3B
         for(int i=0; i<lblIdxSize; ++i)
         {
+#endif
             int k = 0;
+#ifndef R3B
             int idx = 0;
+#endif
             do
             {
                 SoMaterial *lblMtl;
+#ifndef R3B
                 idx = (k==0) ? myLabels[k] : myLabels[k]-1;
                 row = clientData.labelIndex[idx][1] - 1;
                 lbType = clientData.labelIndex[idx][2];
 //              lbType = clientData.labelIndex[k][2];
+#else
+            row = clientData.labelIndex[k][1];
+            lbType = clientData.labelIndex[k][2];
+#endif
     
                 lblMtl = setLabelMaterial(lbType);
                 result->addChild(lblMtl);
@@ -4365,10 +5338,18 @@ drawLabelPtsInBifurcationScene()
                 position[1] = myBifNode.xyzCoords[row][1];
                 position[2] = myBifNode.xyzCoords[row][2];
 
+#ifndef R3B
                 result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));;
+#else
+            result->addChild( drawASphere(position, dis*0.005));;
+#endif
                 ++k;
+#ifndef R3B
             } while( k < clientData.totalLabels);
         }
+#else
+        } while( k <= clientData.totalLabels);
+#endif
     }
     else if(lbl != MY_NONE)
     {
@@ -4376,8 +5357,13 @@ drawLabelPtsInBifurcationScene()
         {
             SoMaterial *lblMtl;
 
+#ifndef R3B
             row = clientData.labelIndex[lblIndices[i]-1][1] -1;
             lbType = clientData.labelIndex[lblIndices[i]-1][2];
+#else
+            row = clientData.labelIndex[lblIndices[i]][1];
+            lbType = clientData.labelIndex[lblIndices[i]][2];
+#endif
 
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
@@ -4386,7 +5372,11 @@ drawLabelPtsInBifurcationScene()
             position[1] = myBifNode.xyzCoords[row][1];
             position[2] = myBifNode.xyzCoords[row][2];
 
+#ifndef R3B
             result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));
+#else
+            result->addChild( drawASphere(position,dis*0.005));
+#endif
         }
     }
     return result;
@@ -4396,6 +5386,8 @@ drawLabelPtsInBifurcationScene()
 /////////////////////////////////////////////////////////////////
 //
 //                 Set Material for Labels
+//  This function sets the material(color) for each different
+//    type of labels.
 //
 SoMaterial *
 setLabelMaterial(int lblType)
@@ -4455,20 +5447,27 @@ SoSeparator *
 drawABifBranchUsingTubes(int iBranch, long int l,
 long int sumX, float scaler, int stability, int type)
 //
+//
 /////////////////////////////////////////////////////////////////
 {
     SoSeparator * tSep = new SoSeparator;
     long int upperlimit = myBifNode.numVerticesEachBranch[l-1];
 
+#ifndef R3B
     if(upperlimit <= 1)
     {
         return tSep;
     }
 
+#endif
     float (*path)[3] = new float[upperlimit][3];
     float *colorBase = new float[upperlimit*11];
     Tube tube;
 
+#ifdef R3B
+    if(upperlimit <= 1) return tSep;
+
+#endif
     for(long int i=0; i<upperlimit; i++)
     {
         long int idx = i+sumX;
@@ -4487,7 +5486,11 @@ long int sumX, float scaler, int stability, int type)
     }
 
     if(coloringMethod == CL_BRANCH_NUMBER)
+#ifndef R3B
         tSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+#else
+        tSep->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], stability, scaler));
+#endif
     else if(coloringMethod == CL_STABILITY)
         tSep->addChild(setLineColorBlendingByStability(colorBase, upperlimit*11, stability, scaler));
     else if(coloringMethod == CL_ORBIT_TYPE)
@@ -4509,12 +5512,20 @@ long int sumX, float scaler, int stability, int type)
 //                  create bifurcation scene
 //
 SoSeparator *
+#ifndef R3B
 renderBifurcation()
+#else
+renderBifurcation(double mass)
+#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
 //    SoDrawStyle *drawStyle = new SoDrawStyle;
 //    drawStyle->lineWidth = 1.0;
+#ifdef R3B
+    SoDrawStyle *drawStyle = new SoDrawStyle;
+    drawStyle->lineWidth = 1.0;
+#endif
 
     SoSeparator *bifSep = new SoSeparator;
     SoMaterial *bifMtl= new SoMaterial;
@@ -4529,6 +5540,10 @@ renderBifurcation()
 
 //    SoLineSet *bifLines = new SoLineSet;
 //    SoCoordinate3 *bifCoords = new SoCoordinate3;
+#ifdef R3B
+    SoLineSet *bifLines = new SoLineSet;
+    SoCoordinate3 *bifCoords = new SoCoordinate3;
+#endif
 
     if(whichStyle == TUBE )
     {
@@ -4580,6 +5595,7 @@ renderBifurcation()
 //////////////////////////////////////////////////////////////////////////
 //
 // Description: Draw the whole solution family using TUBES.
+// Draw the whole solution family using TUBES.
 //
 SoSeparator *
 drawSolUsingTubes()
@@ -4592,7 +5608,9 @@ drawSolUsingTubes()
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2;
 
+#ifndef R3B
     int32_t myint[10];
+#endif
     long int sumX = 0;
     int iBranch = 0;
     int curBranchID = mySolNode.branchID[iBranch];
@@ -4608,7 +5626,11 @@ drawSolUsingTubes()
         }
         long int upperlimit = mySolNode.numVerticesEachPeriod[j];
 
+#ifndef R3B
         if(upperlimit >0 )
+#else
+        if(upperlimit >= 1)
+#endif
         {
             if(upperlimit == 1)
             {
@@ -4627,6 +5649,7 @@ drawSolUsingTubes()
                     ptSep->addChild(setLineAttributesByStability(stability, scaler));
                 else if(coloringMethod == CL_ORBIT_TYPE)
                     ptSep->addChild(setLineAttributesByType(stability, type, scaler));
+#ifndef R3B
                 else if(coloringMethod == CL_LABELS)
                 {
                     ptSep->addChild(setLineAttributesByParameterValue(
@@ -4641,11 +5664,15 @@ drawSolUsingTubes()
                 }
                 else 
                 {
+#else
+                else {
+#endif
                     SoMaterial * ptMtl = new SoMaterial;
                     ptMtl->diffuseColor.setValue(1,0,0);
                     ptSep->addChild(ptMtl);
                 }
 
+#ifndef R3B
         
                 float ver[2][3];
         
@@ -4690,7 +5717,9 @@ drawSolUsingTubes()
                 }
                 else
                 {
+#endif
                     SoTransform * aTrans = new SoTransform;
+#ifndef R3B
                     aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
         		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
                     ptSep->addChild(aTrans);
@@ -4702,9 +5731,14 @@ drawSolUsingTubes()
 /*
                 aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 				            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#else
+                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#endif
                 ptSep->addChild(aTrans);
                 ptSep->addChild(aPoint);
+#ifndef R3B
 */
+#endif
                 tubeSep->addChild(ptSep);
             }
             else
@@ -4733,15 +5767,25 @@ drawSolUsingTubes()
 
 //                if(maxComponent == 1)
 //                {
+#ifdef R3B
+                if(maxComponent == 1)
+                {
+#endif
                     if(coloringMethod == CL_BRANCH_NUMBER)
+#ifndef R3B
                         tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+#else
+                        tubeSep->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
+#endif
                     else if(coloringMethod == CL_STABILITY)
                         tubeSep->addChild(setLineAttributesByStability(stability, scaler));
                     else if(coloringMethod == CL_ORBIT_TYPE)
                         tubeSep->addChild(setLineAttributesByType(stability, type, scaler));
                     else if(coloringMethod == CL_LABELS)
                     {
+#ifndef R3B
 /*
+#endif
                         double bMin = 0;
                         for(int ib = 0; ib< iBranch; ++ib)
                             bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -4749,15 +5793,19 @@ drawSolUsingTubes()
                         tubeSep->addChild(setLineAttributesByParameterValue(
                             j, bMax, (bMax+bMin)/2.0, bMin,
                             stability, scaler));
+#ifndef R3B
 */
                         tubeSep->addChild(setLineAttributesByParameterValue(
                             j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                             stability, scaler));
+#endif
                     }
+#ifndef R3B
                     else if(coloringMethod == CL_COMPONENT)
                         tubeSep->addChild(setLineAttributesByParameterValue(
                                 curComponent, maxComponent, maxComponent/2.0, 0,
                                 stability, scaler));
+#endif
                     else if(coloringMethod >= mySolNode.nar)
                         tubeSep->addChild(setLineAttributesByParameterValue(
                                 mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
@@ -4776,6 +5824,15 @@ drawSolUsingTubes()
 //                        stability, scaler));
 //                }
 
+#ifdef R3B
+                }
+                else
+                {
+                    tubeSep->addChild(setLineAttributesByParameterValue(
+                        curComponent, maxComponent, maxComponent/2.0, 0,
+                        stability, scaler));
+                }
+#endif
                 tube = Tube(upperlimit, path, lineWidthScaler*0.005, 10);
                 tubeSep->addChild(tube.createTube());
                 delete [] path;
@@ -4808,6 +5865,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
 
     strip = new float[2*npt][3];
 
+//write the strip set
     if((obEnd-obStart)>1)
     {
         if(npt>1)
@@ -4821,12 +5879,20 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
         }
         else
         {
+#ifndef R3B
             cout <<" Only one point in the period, no surface can be drawn!"<<endl;
+#else
+            printf("Only one point in the period, no surface can be drawn!\n");
+#endif
             long int idx = obStart;
             SoSeparator * ptSep = new SoSeparator;
             SoTransform * aTrans = new SoTransform;
+#ifndef R3B
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 			            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#else
+            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#endif
             ptSep->addChild(aTrans);
 
             SoSphere *aPoint = new SoSphere;
@@ -4837,7 +5903,11 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
         }
 
         sum += npt;
+#ifndef R3B
         for(int j=obStart; j<obEnd; ++j)
+#else
+        for(int j=obStart; j<obEnd; ++j)          //1; j<nd; j++)
+#endif
         {
             npt= mySolNode.numVerticesEachPeriod[j];
             if(npt>1)
@@ -4863,8 +5933,12 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
                 long int idx = sum;
                 SoSeparator * ptSep = new SoSeparator;
                 SoTransform * aTrans = new SoTransform;
+#ifndef R3B
                 aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 				           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#else
+                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#endif
                 ptSep->addChild(aTrans);
 
                 SoSphere *aPoint = new SoSphere;
@@ -4897,6 +5971,7 @@ renderSolutionTubes()
     SoGroup * solGroup = new SoGroup;
     SoCoordinate3 *solCoords = new SoCoordinate3;
 
+// draw every orbit by using giving tube thickness and color.
     if(animationLabel == 0)
         solGroup->addChild(drawSolUsingTubes());
     else if(animationLabel != MY_NONE)
@@ -4954,7 +6029,11 @@ renderSolutionSurface()
 {
     SoGroup *solGroup = new SoGroup;
     SoMaterial *solMtl = new SoMaterial;
+#ifndef R3B
     solMtl->diffuseColor.setValue(envColors[5]);
+#else
+    solMtl->diffuseColor.setValue(envColors[9]);
+#endif
     solGroup->addChild(solMtl);
     SoMaterialBinding *myMtlBinding = new SoMaterialBinding;
     myMtlBinding->value= SoMaterialBinding::PER_PART;
@@ -5008,6 +6087,7 @@ renderSolutionSurface()
 //
 //           draw the solutions by Mesh points
 //
+//           draw the solutions by Points
 SoGroup *
 renderSolutionPoints(int style)
 //
@@ -5346,7 +6426,11 @@ animateSolutionUsingNurbsCurve()
 /////////////////////////////////////////////////////////////////
 //                  create solution orbits scene
 SoSeparator *
+#ifndef R3B
 renderSolution()
+#else
+renderSolution(double mu)
+#endif
 //
 /////////////////////////////////////////////////////////////////
 {
@@ -5366,7 +6450,11 @@ renderSolution()
     {
         solGroup->addChild(renderSolutionNurbsCurve());
     }
+#ifndef R3B
     else if(whichStyle==ALL_POINTS || whichStyle == MESH_POINTS)
+#else
+    else if(whichStyle==MESH_POINTS || whichStyle== ALL_POINTS)
+#endif
     {
         solGroup->addChild(renderSolutionPoints(whichStyle));
     }
@@ -5586,9 +6674,17 @@ drawAStrip(float stripSet[][3], int size)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// set parMax Color == RED
+//     parMid Color == GREEN
+//     parMin Color == BLUE
+//
 SoGroup *
+#ifndef R3B
 setLineAttributesByParameterValue(double parValue, double parMax, 
            double parMid, double parMin, int stability, float scaler)
+#else
+setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler)
+#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -5596,21 +6692,33 @@ setLineAttributesByParameterValue(double parValue, double parMax,
     legendScaleValues[1] = parMax;
 
     SoDrawStyle * lineStyle = new SoDrawStyle;
+#ifndef R3B
     if(stability == 1 || stability == 3)
     {
+#endif
         lineStyle->style = SoDrawStyle::FILLED;
+#ifdef R3B
+    if(stability == 1 || stability == 3)
+#endif
         lineStyle->linePattern = stabilityLinePattern[0];
+#ifndef R3B
     }
+#endif
     else
+#ifndef R3B
     {
         lineStyle->style = SoDrawStyle::FILLED;
+#endif
         lineStyle->linePattern = stabilityLinePattern[1];
+#ifndef R3B
     }
+#endif
 
     SoMaterial * lineMtl = new SoMaterial;
     lineMtl->diffuseColor.setValue(1.0, 1.0, 1.0);
     lineMtl->transparency = 0.0;
 
+// calculating the color.
     double colFactor;
     if(parMax != parMin)
     {
@@ -5723,8 +6831,13 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
 //////////////////////////////////////////////////////////////////////////
 {
     float (*colors)[3] = new float[size][3];
+#ifndef R3B
     static float maxColor[3];
     static float minColor[3]; 
+#else
+    static float maxColor[3] = { 1.0, 0.0, 0.0 };
+    static float minColor[3] = { 0.0, 0.0, 1.0 };
+#endif
 
     for(int i=0; i<3; ++i)
     {
@@ -5742,6 +6855,7 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
 
     SoGroup * result = new SoGroup ;
 
+#ifndef R3B
     SoDrawStyle * lineStyle = new SoDrawStyle;
     if(stability == 1 || stability == 3)
     {
@@ -5757,6 +6871,7 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
     lineStyle->lineWidth = scaler;
     result->addChild(lineStyle);
 
+#endif
     SoMaterial *myMaterials = new SoMaterial;
     myMaterials->diffuseColor.setValues(0, size, colors);
     result->addChild(myMaterials);
@@ -5785,12 +6900,20 @@ setLineAttributesByStability(int stability, float scaler)
     if(stability == 1 || stability == 3)
     {
         lineStyle->linePattern = stabilityLinePattern[0];
+#ifndef R3B
         lineMtl->diffuseColor.setValue(envColors[6]);
+#else
+        lineMtl->diffuseColor.setValue(envColors[10]);
+#endif
     }
     else
     {
         lineStyle->linePattern = stabilityLinePattern[1];
+#ifndef R3B
         lineMtl->diffuseColor.setValue(envColors[7]);
+#else
+        lineMtl->diffuseColor.setValue(envColors[11]);
+#endif
     }
 
     lineStyle->lineWidth   = scaler;
@@ -5813,16 +6936,27 @@ setLineAttributesByType(int stability, int type, float scaler)
 //////////////////////////////////////////////////////////////////////////
 {
     SoDrawStyle * lineStyle = new SoDrawStyle;
+#ifndef R3B
     if(stability == 1 || stability == 3)
     {
+#endif
         lineStyle->style = SoDrawStyle::FILLED;
+#ifdef R3B
+    if(stability == 1 || stability == 3)
+#endif
         lineStyle->linePattern = stabilityLinePattern[0];
+#ifndef R3B
     }
+#endif
     else
+#ifndef R3B
     {
         lineStyle->style = SoDrawStyle::FILLED;
+#endif
         lineStyle->linePattern = stabilityLinePattern[1];
+#ifndef R3B
     }
+#endif
 
     SoMaterial * lineMtl = new SoMaterial;
     lineMtl->shininess = 0.9;
@@ -5890,15 +7024,27 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
 //////////////////////////////////////////////////////////////////////////
 {
     float (*colors)[3] = new float[size][3];
+#ifndef R3B
     static float maxColor[3] =                    //red
+#else
+    static float maxColor[3] =
+#endif
     {
         1.0, 0.0, 0.0
     };
+#ifndef R3B
     static float midColor[3] =                    //green
+#else
+    static float midColor[3] =
+#endif
     {
         0.0, 1.0, 0.0
     };
+#ifndef R3B
     static float minColor[3] =                    //blue
+#else
+    static float minColor[3] =
+#endif
     {
         0.0, 0.0, 1.0
     };
@@ -5926,6 +7072,7 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
     }
     midValue = (maxValue + minValue)/2.0;
 
+// interpolate the colors for each vertices.
     float dt = maxValue - minValue;
     float dtColor;
     for(int i=0; i<size; ++i)
@@ -5982,18 +7129,38 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
 
 ///////////////////////////////////////////////////////////////////////////
 //
+//         animate the solution by using lines. This version use less memory
+//         and much faster.
+//       ===============================================================
+//         +              +     UNSTABLE STEADY STATE           1
+//         +              -     STABLE STEADY STATE             2
+//         -              +     UNSTABLE PERIODIC               3
+//         -              -     STABLE PERIODIC                 4
+//      ===============================================================
+//
 //
 SoSeparator *
+#ifndef R3B
 drawAnOrbitUsingLines(int iBranch,  long int l, long int si, 
        float scaler, int stability, int type, bool aniColoring)
+#else
+drawAnOrbitUsingLines(int iBranch,  long int l,
+long int si, float scaler, int stability, int type, bool aniColoring)
+#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
     SoSeparator * anOrbit = new SoSeparator;
+#ifndef R3B
     int32_t  myint[10];
+#endif
 
+#ifndef R3B
     float dis = !options[OPT_NORMALIZE_DATA] ? 
 	               (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+#else
+    float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+#endif
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -6002,6 +7169,10 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     {
         long int idx = si;
         SoSeparator * ptSep = new SoSeparator;
+#ifdef R3B
+        SoTransform * aTrans = new SoTransform;
+
+#endif
 
         if(coloringMethod == CL_BRANCH_NUMBER)
             ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
@@ -6009,6 +7180,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
         else if(coloringMethod == CL_ORBIT_TYPE)
             ptSep->addChild(setLineAttributesByType(stability, type, scaler));
+#ifndef R3B
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
@@ -6023,12 +7195,16 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         }
         else 
         {
+#else
+        else {
+#endif
             SoMaterial * ptMtl = new SoMaterial;
             ptMtl->diffuseColor.setValue(1,0,0);
             ptSep->addChild(ptMtl);
         }
 
         
+#ifndef R3B
         float ver[2][3];
 
         if(time_on != TIME_IS_OFF)
@@ -6073,6 +7249,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         else
         {
             SoTransform * aTrans = new SoTransform;
+#endif
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
             ptSep->addChild(aTrans);
@@ -6080,10 +7257,15 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
             ptSep->addChild(aPoint);
             anOrbit->addChild(ptSep);
+#ifndef R3B
         }
+#endif
         return anOrbit;
     }
 
+#ifdef R3B
+    int32_t  myint[10];
+#endif
     float (*vertices)[3] = new float[numVertices][3];
     float *colorBase = new float[numVertices];
 
@@ -6101,25 +7283,40 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l-1], vertices);
     myint[0]=mySolNode.numVerticesEachPeriod[l-1];
 
+// define the solution line set
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.setValues(0,1,myint);
 //    if(maxComponent == 1)
 //    {
+#ifdef R3B
+    if(maxComponent == 1)
+    {
+#endif
         if(!aniColoring)
         {
             anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
         }
         else
         {
+#ifndef R3B
             if(coloringMethod == CL_BRANCH_NUMBER)
                 anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
             else if(coloringMethod == CL_STABILITY)
+#else
+            if(coloringMethod == CL_STABILITY)
+#endif
                 anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+#ifdef R3B
+            else if(coloringMethod == CL_BRANCH_NUMBER)
+                anOrbit->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
+#endif
             else if(coloringMethod == CL_ORBIT_TYPE)
                 anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
             else if(coloringMethod == CL_LABELS)
             {
+#ifndef R3B
 /*
+#endif
                 double bMin = 0;
                 for(int ib = 0; ib< iBranch; ++ib)
                     bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -6127,22 +7324,32 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     l-1, bMax, (bMax+bMin)/2.0, bMin,
                     stability, scaler));
+#ifndef R3B
 */
                 anOrbit->addChild(setLineAttributesByParameterValue(
                      l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                      stability, scaler));
+#endif
             }
+#ifndef R3B
             else if(coloringMethod == CL_COMPONENT)
                 anOrbit->addChild(setLineAttributesByParameterValue(
                         curComponent, maxComponent, maxComponent/2.0, 0,
                         stability, scaler));
+#endif
             else if(coloringMethod >= mySolNode.nar)
+#ifdef R3B
+            {
+#endif
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     mySolNode.par[l-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                     stability, scaler));
+#ifdef R3B
+            }
+#endif
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
                     mySolNode.numVerticesEachPeriod[l-1],stability, type, scaler));
@@ -6151,6 +7358,12 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 //    anOrbit->addChild(setLineAttributesByParameterValue(
 //           curComponent, maxComponent, maxComponent/2.0, 0,
 //          stability, scaler));
+#ifdef R3B
+    }else
+    anOrbit->addChild(setLineAttributesByParameterValue(
+            curComponent, maxComponent, maxComponent/2.0, 0,
+            stability, scaler));
+#endif
 
     anOrbit->addChild(myCoords);
     anOrbit->addChild(myLine);
@@ -6186,8 +7399,13 @@ drawAPoint(float x, float y, float z, float size, float scale)
 //////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
+#ifndef R3B
 drawAnOrbitUsingPoints(int style, int iBranch,  long int l, 
      long int si, float scaler, int stability, int type, bool aniColoring)
+#else
+drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si,
+float scaler, int stability, int type, bool aniColoring)
+#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -6210,6 +7428,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
         else if(coloringMethod == CL_ORBIT_TYPE)
             ptSep->addChild(setLineAttributesByType(stability, type, scaler));
+#ifndef R3B
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
@@ -6224,13 +7443,20 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         }
         else 
         {
+#else
+        else {
+#endif
             SoMaterial * ptMtl = new SoMaterial;
             ptMtl->diffuseColor.setValue(1,0,0);
             ptSep->addChild(ptMtl);
         }
 
+#ifndef R3B
         aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#else
+        aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#endif
         ptSep->addChild(aTrans);
 
         SoSphere *aPoint = new SoSphere;
@@ -6255,6 +7481,10 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
 
 //        if(maxComponent == 1)
 //        {
+#ifdef R3B
+        if(maxComponent == 1)
+        {
+#endif
             if(!aniColoring)
             {
                 anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
@@ -6269,22 +7499,28 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
                     anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
                 else if(coloringMethod == CL_LABELS)
                 {
+#ifndef R3B
 /*
+#endif
                     double bMin = 0;
                     for(int ib = 0; ib< iBranch; ++ib)
                         bMin +=  mySolNode.numOrbitsInEachBranch[ib];
                     double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
                     anOrbit->addChild(setLineAttributesByParameterValue(
                         l-1, bMax, (bMax+bMin)/2.0, bMin, stability, scaler));
+#ifndef R3B
 */
                     anOrbit->addChild(setLineAttributesByParameterValue(
                          l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                          stability, scaler));
+#endif
                 }
+#ifndef R3B
                 else if(coloringMethod == CL_COMPONENT)
                     anOrbit->addChild(setLineAttributesByParameterValue(
                         curComponent, maxComponent, maxComponent/2.0, 0,
                         stability, scaler));
+#endif
                 else if(coloringMethod >= mySolNode.nar)
                 {
                     anOrbit->addChild(setLineAttributesByParameterValue(
@@ -6302,15 +7538,29 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
 //        anOrbit->addChild(setLineAttributesByParameterValue(
 //                curComponent, maxComponent, maxComponent/2.0, 0,
 //                stability, scaler));
+#ifdef R3B
+        }else
+        anOrbit->addChild(setLineAttributesByParameterValue(
+                curComponent, maxComponent, maxComponent/2.0, 0,
+                stability, scaler));
+#endif
 
         if(style == MESH_POINTS)
         {
             if(m%mySolNode.ncol[l-1] == 0)
                 anOrbit->addChild(drawAPoint(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1],
+#ifndef R3B
                     mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
+#else
+                    mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.25));
+#endif
         }else
         anOrbit->addChild(drawAPoint(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1],
+#ifndef R3B
                 mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
+#else
+                mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.25));
+#endif
     }
 
 
@@ -6352,6 +7602,7 @@ drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, i
 
     if(coloringMethod == CL_BRANCH_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch,stability,scaler));
+#ifndef R3B
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));
     else if(coloringMethod == CL_LABELS)
@@ -6360,6 +7611,7 @@ drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, i
            l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
            stability, scaler));
     }
+#endif
     else
         anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
     anOrbit->addChild(myCoords);
@@ -6377,10 +7629,13 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //
 //////////////////////////////////////////////////////////////////////////
 {
+//int32_t  myint[10];
     float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0 ;
+#ifndef R3B
     int32_t  myint[10];
+#endif
 
     SoSeparator * anOrbit = new SoSeparator;
     long int sumX = 0;
@@ -6398,6 +7653,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
         else if(coloringMethod == CL_ORBIT_TYPE)
             ptSep->addChild(setLineAttributesByType(stability, type, scaler));
+#ifndef R3B
         else if(coloringMethod == CL_LABELS)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
@@ -6412,13 +7668,19 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         }
         else 
         {
+#else
+        else {
+#endif
             SoMaterial * ptMtl = new SoMaterial;
             ptMtl->diffuseColor.setValue(1,0,0);
             ptSep->addChild(ptMtl);
         }
 
+#ifndef R3B
         float ver[2][3];
+#endif
 
+#ifndef R3B
         if(time_on != TIME_IS_OFF)
         {
             if(time_on == TIME_ON_X)
@@ -6459,14 +7721,18 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         }
         else
         {
+#endif
             SoTransform * aTrans = new SoTransform;
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
             ptSep->addChild(aTrans);
+#ifndef R3B
             SoSphere *aPoint = new SoSphere;
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
+#endif
             ptSep->addChild(aPoint);
             anOrbit->addChild(ptSep);
+#ifndef R3B
         }
 /*
         SoTransform * aTrans = new SoTransform;
@@ -6476,6 +7742,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         ptSep->addChild(aPoint);
         anOrbit->addChild(ptSep);
 */
+#endif
         return anOrbit;
     }
     else if( numVertices < 1 )
@@ -6502,16 +7769,28 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 
 //    if(maxComponent == 1)
 //    {
+#ifndef R3B
         if(coloringMethod == CL_BRANCH_NUMBER)
             anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
         else if(coloringMethod == CL_STABILITY)
+#else
+    if(maxComponent == 1)
+    {
+        if(coloringMethod == CL_STABILITY)
+#endif
             anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+#ifdef R3B
+        else if(coloringMethod == CL_BRANCH_NUMBER)
+            anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+#endif
         else if(coloringMethod == CL_ORBIT_TYPE)
             anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
         else if(coloringMethod == CL_LABELS)
         {
+#ifndef R3B
 /*
 //          always start from blue to red for different branches. 
+#endif
             double bMin = 0;
             for(int ib = 0; ib< iBranch; ++ib)
                 bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -6519,6 +7798,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             anOrbit->addChild(setLineAttributesByParameterValue(
                 l-1, bMax, (bMax+bMin)/2.0, bMin,
                 stability, scaler));
+#ifndef R3B
 */
 //          always set the first label blue, the last red, namely look all
 //          branches as one.
@@ -6531,6 +7811,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             anOrbit->addChild(setLineAttributesByParameterValue(
                 curComponent, maxComponent, maxComponent/2.0, 0,
                 stability, scaler));
+#endif
         }
         else if(coloringMethod >= mySolNode.nar)
             anOrbit->addChild(setLineAttributesByParameterValue(
@@ -6549,6 +7830,15 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //            curComponent, maxComponent, maxComponent/2.0, 0,
 //            stability, scaler));
 //    }
+#ifdef R3B
+    }
+    else
+    {
+        anOrbit->addChild(setLineAttributesByParameterValue(
+            curComponent, maxComponent, maxComponent/2.0, 0,
+            stability, scaler));
+    }
+#endif
 
     anOrbit->addChild(tube.createTube());
 
@@ -6561,6 +7851,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //
 //         animate the solution by using lines. This version use less memory
 //         and much faster.
+//////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
 drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type)
@@ -6603,11 +7894,16 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
         myCoords->point.setValues(0, curSize, vertices);
         myint[0]= curSize;
 
+// define the solution line set
         SoLineSet *myLine= new SoLineSet;
         myLine->numVertices.setValues(0, 1, myint);
 
         if(coloringMethod == CL_BRANCH_NUMBER)
+#ifndef R3B
             aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
+#else
+            aBranch->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], lastStab, scaler));
+#endif
         else if(coloringMethod == CL_STABILITY)
             aBranch->addChild(setLineColorBlendingByStability(colorBase, curSize, lastStab, scaler));
         else if(coloringMethod == CL_ORBIT_TYPE)
@@ -6630,8 +7926,13 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
         else if(coloringMethod == CL_STABILITY)
             colorBase[curSize]  = myBifNode.ptStability[idx-1];
         curSize++;
+#ifndef R3B
     }while( m < size);
+#endif
 
+#ifdef R3B
+    }while( m < size);
+#endif
     delete [] vertices;
     delete [] colorBase;
     return aBranch;
@@ -6687,10 +7988,18 @@ long int si, float scaler, int stability, int type)
         cvGrp->addChild(myLine);
     }
 
+#ifndef R3B
     if(coloringMethod == CL_BRANCH_NUMBER)
         aBranch->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     else if(coloringMethod == CL_STABILITY)
+#else
+    if(coloringMethod == CL_STABILITY)
+#endif
         aBranch->addChild(setLineAttributesByStability(stability, scaler));
+#ifdef R3B
+    else if(coloringMethod == CL_BRANCH_NUMBER)
+        aBranch->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+#endif
     else if(coloringMethod == CL_ORBIT_TYPE)
         aBranch->addChild(setLineAttributesByType(stability, type, scaler));
     else
@@ -6739,7 +8048,13 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.setValues(0,1,myint);
 
+#ifndef R3B
     if(coloringMethod == CL_ORBIT_TYPE)
+#else
+    if(coloringMethod == CL_STABILITY)
+        anInterval->addChild(setLineAttributesByStability(stability, scaler));
+    else if(coloringMethod == CL_ORBIT_TYPE)
+#endif
         anInterval->addChild(setLineAttributesByType(stability, type, scaler));
     else
         anInterval->addChild(setLineColorBlending(colorBase, size,
@@ -6851,6 +8166,8 @@ drawEarthMovement(int k)
 ///////////////////////////////////////////////////////////////////////////
 //
 // animate solution by using tubes. 
+// animate solution by using tubes. This version use much memory and
+// much slower.
 //
 SoSeparator *
 animateSolutionUsingTubes(bool aniColoring)
@@ -6880,9 +8197,14 @@ animateSolutionUsingTubes(bool aniColoring)
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
 
             SoTransform * aTrans = new SoTransform;
+#ifndef R3B
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], \
                                          mySolNode.xyzCoords[idx][1], \
                                          mySolNode.xyzCoords[idx][2]);
+#else
+            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0],
+                mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
+#endif
             ptSep->addChild(aTrans);
             ptSep->addChild(aPoint);
             solGroup->addChild(ptSep);
@@ -6925,7 +8247,9 @@ animateSolutionUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
             else if(coloringMethod == CL_LABELS)
             {
+#ifndef R3B
 /*
+#endif
                 double bMin = 0;
                 for(int ib = 0; ib< iBranch; ++ib)
                     bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -6933,10 +8257,12 @@ animateSolutionUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     j, bMax, (bMax+bMin)/2.0, bMin,
                     stability, lineWidthScaler));
+#ifndef R3B
 */
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                     stability, lineWidthScaler));
+#endif
             }
             else if(coloringMethod >= mySolNode.nar)
                 anOrbit->addChild(setLineAttributesByParameterValue(
@@ -6945,12 +8271,14 @@ animateSolutionUsingTubes(bool aniColoring)
                         mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                         mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                         stability, lineWidthScaler));
+#ifndef R3B
             else if(coloringMethod == CL_COMPONENT)
             {
                  anOrbit->addChild(setLineAttributesByParameterValue(
                      curComponent, maxComponent, maxComponent/2.0, 0,
                      stability, lineWidthScaler));
             }
+#endif
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
                     upperlimit*11,stability, type, lineWidthScaler));
@@ -7164,14 +8492,18 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
 
 
 ///////////////////////////////////////////////////////////////////////////
+//   Using a red ball to simulate the movement of a sattelite and using
+//   white lines to simulate the trace of the sattelite.
 //
 SoSeparator *
 animateOrbitWithTail(int iBranch, long int j, long int si)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
+#ifndef R3B
    
     SoSeparator *aniSep = new SoSeparator;
+#endif
     SoSeparator *satGroup = new SoSeparator;
 
     float distance = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
@@ -7200,9 +8532,17 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 
     float maxV[3], minV[3];
     long int orbitSize =  upperlimit;
+#ifndef R3B
     long int arrSize = orbitSize;
+#else
+    long int arrSize = (numPeriodAnimated==0) ? orbitSize : (long int)ceil(numPeriodAnimated * orbitSize);
+#endif
 
+#ifndef R3B
     double *time = new double[upperlimit+1];
+#else
+    double *time = new double[upperlimit];
+#endif
     double dt = 1.0/upperlimit;
 
     maxV[0]=minV[0]=mySolNode.xyzCoords[idx+0][0];
@@ -7221,13 +8561,26 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         time[i] = i*dt;
     }
 
+#ifndef R3B
     float dis = distance;// fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
     float (*myVertices)[3]= new float[arrSize+1][3];
     float *myColorBase = new float [arrSize+1];
+#else
+    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float (*myVertices)[3]= new float[arrSize][3];
+    float *myColorBase = new float [arrSize];
+#endif
 
+#ifndef R3B
     myVertices[0][0] = myVertices[arrSize][0] = mySolNode.xyzCoords[idx][0];
     myVertices[0][1] = myVertices[arrSize][1] = mySolNode.xyzCoords[idx][1];
     myVertices[0][2] = myVertices[arrSize][2] = mySolNode.xyzCoords[idx][2];
+#else
+// animate the orbit in the proximately correct speed.
+    myVertices[0][0]=mySolNode.xyzCoords[idx][0];
+    myVertices[0][1]=mySolNode.xyzCoords[idx][1];
+    myVertices[0][2]=mySolNode.xyzCoords[idx][2];
+#endif
     if(coloringMethod>=0)myColorBase[0]  = clientData.solData[idx][coloringMethod];
     if(coloringMethod==CL_POINT_NUMBER)myColorBase[0]  = 0;
     for(long int i=1; i<upperlimit; i++)
@@ -7236,8 +8589,12 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         long int m = 0;
         while(tTemp > mySolNode.time[idx+m] && m < upperlimit) ++m;
 
+#ifndef R3B
         if( fabs(tTemp-mySolNode.time[idx+m]) <= 1.0e-9 || \
             fabs(mySolNode.time[idx+m]-mySolNode.time[idx+m-1]<=1.0e-8))
+#else
+        if( fabs(tTemp-mySolNode.time[idx+m]) <= 1.0e-9 || fabs(mySolNode.time[idx+m]-mySolNode.time[idx+m-1]<=1.0e-8))
+#endif
         {
             myVertices[i][0] = mySolNode.xyzCoords[idx+m][0];
             myVertices[i][1] = mySolNode.xyzCoords[idx+m][1];
@@ -7245,30 +8602,60 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         }
         else
         {
+#ifndef R3B
             myVertices[i][0] = (mySolNode.xyzCoords[idx+m][0] + \
                                 mySolNode.xyzCoords[idx+m-1][0])*0.5;
             myVertices[i][1] = (mySolNode.xyzCoords[idx+m][1] + \
                                 mySolNode.xyzCoords[idx+m-1][1])*0.5;
             myVertices[i][2] = (mySolNode.xyzCoords[idx+m][2] + \
                                 mySolNode.xyzCoords[idx+m-1][2])*0.5;
+#else
+            myVertices[i][0]= (mySolNode.xyzCoords[idx+m][0]+mySolNode.xyzCoords[idx+m-1][0])*0.5;
+            myVertices[i][1]= (mySolNode.xyzCoords[idx+m][1]+mySolNode.xyzCoords[idx+m-1][1])*0.5;
+            myVertices[i][2]= (mySolNode.xyzCoords[idx+m][2]+mySolNode.xyzCoords[idx+m-1][2])*0.5;
+#endif
         }
 
         if(coloringMethod>=0)myColorBase[i]  = clientData.solData[idx+m][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)myColorBase[i]  = i;
     }
 
+#ifdef R3B
+    if(numPeriodAnimated >1)
+    {
+        for(long int i=upperlimit; i<arrSize; i++)
+        {
+            myVertices[i][0]=myVertices[i%upperlimit][0];
+            myVertices[i][1]=myVertices[i%upperlimit][1];
+            myVertices[i][2]=myVertices[i%upperlimit][2];
+            myColorBase[i]  =myColorBase[i%upperlimit];
+        }
+    }
+
+#endif
     SoDrawStyle *satStyle = new SoDrawStyle;
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
 
     SoCoordinate3 *myCoords = new SoCoordinate3;
+#ifndef R3B
     myCoords->point.setValues(0, arrSize+1, myVertices);
+#else
+    myCoords->point.setValues(0, arrSize, myVertices);
+#endif
     satGroup->addChild(myCoords);
 
+#ifndef R3B
     
+#endif
     SoTimeCounter *myCounter = new SoTimeCounter;
+#ifndef R3B
     myCounter->max = arrSize+1;
+#else
+    myCounter->max = arrSize-1;
+#endif
     myCounter->min = 0;
+#ifndef R3B
    
     float freq, fduty; 
 
@@ -7297,12 +8684,19 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     for(iduty = 0; iduty <= arrSize+1; ++iduty)
          if(iduty == arrSize+1) myCounter->duty.set1Value(iduty, fduty) ;
          else myCounter->duty.set1Value(iduty, 1) ;
+#else
+    myCounter->frequency = (numPeriodAnimated !=0) ? 0.1*satSpeed/numPeriodAnimated : 0.1*satSpeed;
+#endif
 
 //------------------------------------------Begin-----------------------------------------
     float scaler = lineWidthScaler;
 
 //    if(maxComponent == 1)
 //    {
+#ifdef R3B
+    if(maxComponent == 1)
+    {
+#endif
 //------------------------------------------End-----------------------------------------
         if(coloringMethod == CL_BRANCH_NUMBER)
             satGroup->addChild(setLineAttributesByBranch(iBranch, stability, lineWidthScaler));
@@ -7312,7 +8706,9 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
             satGroup->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
         else if(coloringMethod == CL_LABELS)
         {
+#ifndef R3B
 /*
+#endif
             double bMin = 0;
             for(int ib = 0; ib< iBranch; ++ib)
                 bMin +=  mySolNode.numOrbitsInEachBranch[ib];
@@ -7320,15 +8716,19 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
             satGroup->addChild(setLineAttributesByParameterValue(
                 j-1, bMax, (bMax+bMin)/2.0, bMin,
                 stability, lineWidthScaler));
+#ifndef R3B
 */
             satGroup->addChild(setLineAttributesByParameterValue(
                 j-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, lineWidthScaler));
+#endif
         }
+#ifndef R3B
         else if(coloringMethod == CL_COMPONENT)
             satGroup->addChild(setLineAttributesByParameterValue(
                 curComponent, maxComponent, maxComponent/2.0, 0,
                 stability, scaler));
+#endif
         else if(coloringMethod >= mySolNode.nar)
         {
             satGroup->addChild(setLineAttributesByParameterValue(
@@ -7351,8 +8751,18 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 //            curComponent, maxComponent, maxComponent/2.0, 0,
 //            stability, scaler));
 //    }
+#ifdef R3B
+    }
+    else
+    {
+        satGroup->addChild(setLineAttributesByParameterValue(
+            curComponent, maxComponent, maxComponent/2.0, 0,
+            stability, scaler));
+    }
+#endif
 //------------------------------------------End-----------------------------------------
 
+// define the solution line set
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.connectFrom(&myCounter->output);
     satGroup->addChild(myLine);
@@ -7364,11 +8774,18 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 
     SoTranslation * satTrans = new SoTranslation;
 //    satMtl->diffuseColor.setValue(envColors[4]);
+#ifdef R3B
+    satMtl->diffuseColor.setValue(envColors[4]);
+#endif
 
 //    satGroup->addChild(satMtl);
+#ifdef R3B
+    satGroup->addChild(satMtl);
+#endif
     satGroup->addChild(satTrans);
     satGroup->addChild(mySat);
 
+#ifndef R3B
     SoTimeCounter *myCounter2 = new SoTimeCounter;
     myCounter2->max = arrSize;
     myCounter2->min = 0;
@@ -7379,8 +8796,13 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     for(iduty = 0; iduty < arrSize; ++iduty)
          myCounter2->duty.set1Value(iduty, 1) ;
 
+#endif
     SoSelectOne *mysel = new SoSelectOne(SoMFVec3f::getClassTypeId());
+#ifndef R3B
     mysel->index.connectFrom(&myCounter2->output);
+#else
+    mysel->index.connectFrom(&myCounter->output);
+#endif
     mysel->input->enableConnection(TRUE);
     mysel->input->connectFrom(&myCoords->point);
     satTrans->translation.connectFrom(mysel->output);
@@ -7393,6 +8815,8 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 
 
 ///////////////////////////////////////////////////////////////////////////
+//
+//   Using a red sphere to simulate the movement of a sattelite.
 //
 SoSeparator *
 animateOrbitMovement(long int j, long int si)
@@ -7436,6 +8860,7 @@ animateOrbitMovement(long int j, long int si)
     }
     float dis = max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2]));
 
+// animate the orbit
     ptb[0]=mySolNode.xyzCoords[idx][0];
     ptb[1]=mySolNode.xyzCoords[idx][1];
     ptb[2]=mySolNode.xyzCoords[idx][2];
@@ -7574,7 +8999,12 @@ readSolutionAndBifurcationData(bool blFirstRead)
         clientData.solData[ml]= new float [mySolNode.nar];
 
     blOpenBifFile = parseBifurcation(bFileName) ? true : false;
+#ifndef R3B
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
+#else
+    blOpenBifFile ? cout <<" Parse Bifurcation file. OK"<<flush<<endl
+        : cout <<" No bifurcation file found!\n";
+#endif
 
     if((!blOpenBifFile) && (!blOpenSolFile) && (!blFirstRead)) return false;
     else if((!blOpenBifFile) && (!blOpenSolFile))
@@ -7594,6 +9024,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
     clientData.multipliers = new float[myBifNode.totalNumPoints][6][2];
 
     int varIndices[3];
+#ifndef R3B
     if( blOpenBifFile)
     {
         bool tmp = false;
@@ -7605,6 +9036,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
         whichType = SOLUTION;
     }
 
+#endif
     if( blOpenSolFile )
     {
         bool tmp = false;
@@ -7620,17 +9052,44 @@ readSolutionAndBifurcationData(bool blFirstRead)
         whichType = BIFURCATION;
     }
 
+#ifndef R3B
     if((!blOpenBifFile) && (!blOpenSolFile))
+#else
+    if( blOpenBifFile)
+#endif
     {
 //        printf(" Target files do not exist!\n");
+#ifndef R3B
         exit(1);
+#else
+        bool tmp = false;
+        tmp = readBifurcation(bFileName, varIndices) ? true : false;
+        if(!tmp) printf(" Failed to read the bifurcation file!\n");
+    }
+    else
+    {
+        whichType = SOLUTION;
+#endif
     }
 
     int st = readFM(dFileName, myBifNode.totalNumPoints);
+#ifndef R3B
     if(st!=0)
 //        printf(" D file OK.\n");
 //    else
         printf(" Failed to read the diagnostic file.\n");
+#else
+    if(st==0)
+        cout <<" D file OK.\n"<<flush;
+    else
+        cout <<" Failed to read the D file.\n"<<flush;
+
+    if(!blOpenSolFile && !blOpenBifFile)
+    {
+        printf(" Target files do not exist!\n");
+        exit(1);
+    }
+#endif
 
     return TRUE;
 }
@@ -7655,18 +9114,23 @@ copySolDataToWorkArray(int  varIndices[])
             {
                 float dummy = clientData.solData[row][varIndices[k]];
                 mySolNode.xyzCoords[row][k] = dummy;
+#ifndef R3B
 /*
+#endif
                 if(dummy>mySolNode.max[k] || row==0 )
                     mySolNode.max[k] = dummy;
                 if(dummy<mySolNode.min[k] || row==0 )
                     mySolNode.min[k] = dummy;
+#ifndef R3B
 */
+#endif
             }
             else if(varIndices[k]<0)
             {
                 mySolNode.xyzCoords[row][k]=0.0;
 //                mySolNode.max[k]= 1;
 //                mySolNode.min[k]=-1;
+#ifndef R3B
             }
         }
 /*
@@ -7703,6 +9167,7 @@ searchForMaxMin(int component, int  varIndices[])
             }
             else if(varIndices[k]<0)
             {
+#endif
                 mySolNode.max[k]= 1;
                 mySolNode.min[k]=-1;
             }
@@ -8003,13 +9468,16 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 
     XSetForeground(cbs->event->xexpose.display, gc, blue.pixel);
 
+// draw Y
     XSetLineAttributes(cbs->event->xexpose.display, gc, 2, LineSolid, CapRound, JoinRound);
     XDrawLine(cbs->event->xexpose.display, cbs->window, gc, 200, 0, 200, 400);
 
+// draw X
     XSetForeground(cbs->event->xexpose.display, gc, red.pixel);
     XSetLineAttributes(cbs->event->xexpose.display, gc, 2, LineSolid, CapRound, JoinRound);
     XDrawLine(cbs->event->xexpose.display, cbs->window, gc, 0, 200, 400, 200);
 
+// draw grid
     XSetForeground(cbs->event->xexpose.display, gc, grey.pixel);
     XSetLineAttributes(cbs->event->xexpose.display, gc, 1, LineOnOffDash, CapButt, JoinRound);
     for(int i=0; i<9; ++i)
@@ -8018,6 +9486,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     for(int i=0; i<9; ++i)
         XDrawLine(cbs->event->xexpose.display, cbs->window, gc, i*50, 0, i*50, 400);
 
+// draw text
     XSetForeground(cbs->event->xexpose.display, gc, black.pixel);
     for(int i = 0; i < 9; ++i)
         XDrawText(cbs->event->xexpose.display,cbs-> window, gc, i*50-3 , 215, &myText[i], 1);
@@ -8026,6 +9495,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 
     XSetForeground(cbs->event->xexpose.display, gc, green.pixel);
 
+// draw a unit circle.
     XSetLineAttributes(cbs->event->xexpose.display, gc, 1, LineSolid, CapRound, JoinRound);
     XDrawArc(cbs->event->xexpose.display, cbs->window, gc, 150, 150, 100, 100, 360*64, 360*64);
 
@@ -8034,7 +9504,11 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     int x, y;
 
     XSetLineAttributes(cbs->event->xexpose.display, gc, 2, LineSolid, CapRound, JoinRound);
+#ifndef R3B
     for(int j = 0; j<clientData.numFM; ++j)
+#else
+    for(int j = 0; j<6; ++j)
+#endif
     {
         float tmp = fmData[2*j];
         if(fabs(tmp) <= 1.1)
@@ -8093,7 +9567,11 @@ popupFloquetMultiplierDialog(float data[], int size)
     tmpstr = new char[500];
     tmpstr[0]='\0';
     strcat(tmpstr,"Floquet multipliers:\n" );
+#ifndef R3B
     for(int j=0; j<clientData.numFM; ++j)
+#else
+    for(int j=0; j<6; ++j)
+#endif
     {
         strcat(tmpstr," [");
         sprintf(temp,"%2d",j);
@@ -8183,15 +9661,22 @@ popupFloquetMultiplierDialog(float data[], int size)
 ////////////////////////////////////////////////////////////////////
 //
 SbBool
+#ifndef R3B
 writePickedPath (SoNode *result, const SbViewportRegion &viewport, const SbVec2s &cursorPosition)
+#else
+writePickedPath (SoNode *result, const SbViewportRegion &viewport,
+const SbVec2s &cursorPosition)
+#endif
 //
 ////////////////////////////////////////////////////////////////////
 {
     SoRayPickAction myPickAction(viewport);
 
+// Set an 4-pixel wide region around the pixel
     myPickAction.setPoint(cursorPosition);
     myPickAction.setRadius(4.0);
 
+// Start a pick traversal
     myPickAction.apply(result);
     const SoPickedPoint *myPickedPoint =
         myPickAction.getPickedPoint();
@@ -8247,7 +9732,11 @@ writePickedPath (SoNode *result, const SbViewportRegion &viewport, const SbVec2s
         idix = bIdx;
     }
 
+#ifndef R3B
     for(int ms=0; ms<clientData.numFM; ++ms)
+#else
+    for(int ms=0; ms<6; ++ms)
+#endif
     {
         fmData[2*ms]   = clientData.multipliers[idix][ms][0];
         fmData[2*ms+1] = clientData.multipliers[idix][ms][1];
@@ -8262,6 +9751,7 @@ writePickedPath (SoNode *result, const SbViewportRegion &viewport, const SbVec2s
 ///////////////////////////////////////////////////////////////////
 //
 // This routine is called for every mouse button event.
+//
 void
 myMousePressCB(void *userData, SoEventCallback *eventCB)
 //
@@ -8278,6 +9768,11 @@ myMousePressCB(void *userData, SoEventCallback *eventCB)
             event->getPosition(myRegion));
         eventCB->setHandled();
     }
+#ifdef R3B
+    else
+    {
+    }
+#endif
 }
 
 
@@ -8308,7 +9803,9 @@ initCoordAndLableListItems()
     {
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
+#ifndef R3B
         strcpy(coloringMethodList[5],"COMP"); sp++; //OCT 7 added
+#endif
         for(i=0; i<MAX_LIST; i++)
                 sprintf(coloringMethodList[i+sp], "%d",i);
         for(i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
@@ -8326,15 +9823,45 @@ initCoordAndLableListItems()
 
     if(blOpenSolFile)
     {
+// the solution file does exist.
         numLabels = mySolNode.numOrbits;
         myLabels[0] = 0;
+#ifndef R3B
         for(int j=0; j<numLabels; j++) myLabels[j+1] = mySolNode.labels[j];
+#else
+        for(i=0; i<numLabels; i++) myLabels[i+1] = mySolNode.labels[i];
+
+// initial mass dependent options.
+        float lastMass = mySolNode.mass[1];
+        blMassDependantOption = true;
+        for(i=1; i<mySolNode.numOrbits; i++)
+        {
+            if(fabs(mySolNode.mass[i]-lastMass)/lastMass > 1.0e-3)
+            {
+                blMassDependantOption = false;
+                break;
+            }
+        }
+        if(blMassDependantOption) mass = lastMass;
+#endif
     }
     else
     {
         numLabels = myBifNode.totalLabels;
         myLabels[0] = 0;
+#ifndef R3B
         for(int j=0; j<numLabels; j++) myLabels[j+1] = myBifNode.labels[j];
+#else
+        for(i=0; i<numLabels; i++) myLabels[i+1] = myBifNode.labels[i];
+
+        blMassDependantOption = false;
+    }
+
+    if(!blMassDependantOption)
+    {
+        options[OPT_PRIMARY ]= false;
+        options[OPT_LIB_POINTS]= false;
+#endif
     }
 
     options[OPT_LEGEND] = false;
@@ -8348,7 +9875,11 @@ initCoordAndLableListItems()
     {
         int jmii = i + SP_LBL_ITEMS;
         sprintf(labels[jmii], "%d", myLabels[i+1]);
+#ifndef R3B
         switch (clientData.labelIndex[i][2])
+#else
+        switch (clientData.labelIndex[i+1][2])
+#endif
         {
             case 1 :  
                 strcat(labels[jmii]," BP");
@@ -8422,12 +9953,16 @@ initCoordAndLableListItems()
 
     int half = 2;
     int iLbl = 0;
+#ifndef R3B
     //tmp = strtok(manyChoice, ",");
+#endif
     if( lblChoice[0] == -3) // ALL
     {
         lblIndices[0] = 0;
         half = 2;
+#ifndef R3B
         iLbl = lblIdxSize;
+#endif
     }
     else if(lblChoice[0] == -2)  // HALF
     {
@@ -8446,8 +9981,13 @@ initCoordAndLableListItems()
         int j = 1;
         do
         {
+#ifndef R3B
             if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG )// &&
             //    clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
+#else
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
+                clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
+#endif
                 lblIndices[iLbl++] = j;
             j++;
         } while( j < numLabels-2 );
@@ -8467,6 +10007,7 @@ initCoordAndLableListItems()
     }
     lblIdxSize = iLbl;
 
+#ifndef R3B
     optSol[0] = options[0];
     for(int i=1; i<11; ++i)
     {
@@ -8475,6 +10016,7 @@ initCoordAndLableListItems()
     }
  
 
+#endif
 //----------------------- End ----------------------------
 
     if(!setShow3D)
@@ -8539,6 +10081,9 @@ readNData(char* buffer, float *data, int &size )
 
 ///////////////////////////////////////////////////////////////////
 //
+//       Read flex number of integer numbers.
+//       each call of this function, read one line
+//
 void
 readNIntData(char* buffer, int *data, int &size )
 //
@@ -8567,6 +10112,9 @@ readNIntData(char* buffer, int *data, int &size )
 
 ///////////////////////////////////////////////////////////////////
 //
+//       Read a string from the buffer. Used to parse those boolean
+//       variables or sigle value in a line of the resource file.
+//
 void
 readAString(char* buffer, char* aString)
 //
@@ -8592,6 +10140,10 @@ readAHexdecimal(char* buffer, unsigned long & aHexdecimal )
 
 ///////////////////////////////////////////////////////////////////
 //
+//    INITIALIZE all the variables
+//    If the resource file exists, read it and update the default values.
+//    If it does not exist, just return and use default values.
+//
 int
 readResourceParameters()
 //
@@ -8612,9 +10164,17 @@ readResourceParameters()
     FILE * inFile;
 
     strcpy(resource, autoDir);
+#ifndef R3B
     strcat(resource,"/plaut04/plaut04.rc");
+#else
+    strcat(resource,"/plaut04/r3bplaut04.rc");
+#endif
 
+#ifndef R3B
     inFile = fopen("plaut04.rc", "r");
+#else
+    inFile = fopen("r3bplaut04.rc", "r");
+#endif
     if (!inFile)
     {
         inFile = fopen(resource, "r");
@@ -8629,7 +10189,15 @@ readResourceParameters()
     char * next;
     while ( (next=fgets(buffer, sizeof(buffer),inFile)) != NULL )
     {
+#ifndef R3B
         if(buffer[0] != '#')
+#else
+        if(buffer[0] == '#')
+        {
+// this is a comment line, discard it. Nothing need to do here.
+        }
+        else
+#endif
         {
             strTemp = strtok(buffer,"=");
             strTemp = strrighttrim(strTemp);
@@ -8669,6 +10237,7 @@ readResourceParameters()
 
             if( !blDealt )
             {
+#ifndef R3B
                 if(strcasecmp(strTemp, "Draw Labels")==0)
                 {
                     readAString(buffer, aString);
@@ -8681,6 +10250,7 @@ readResourceParameters()
 
             if( !blDealt )
             {
+#endif
                 for(int i = 0; i<XtNumber(blWidgetName); ++i)
                 {
                     if(strcasecmp(strTemp, blWidgetName[i])==0)
@@ -8737,16 +10307,30 @@ readResourceParameters()
                                 whichStyle = atoi(aString);
                                 break;
                             case 2:
+#ifndef R3B
                                 winWidth  = atoi(aString);
+#else
+                                whichCoordSystem = atoi(aString);
+#endif
                                 break;
                             case 3:
+#ifndef R3B
                                 winHeight = atoi(aString);
+#else
+                                winWidth  = atoi(aString);
+#endif
                                 break;
                             case 4:
+#ifdef R3B
+                                winHeight = atoi(aString);
+                                break;
+                            case 5:
+#endif
 //---------------------- Begin ---------------------------OCT 7, 04
 // remove this and change the header file "gVarNames.h" also. Remove
 // "Labels" from the variable name list --- intVariableNames[] . 
 // the corresbonging case indices following this are also changed!
+//
 //                                lblIndices[--lblIdxSize]  = atoi(aString);
 //                                lblChoice[--lblIdxSize] = atoi(aString);
 //                                lblIdxSize             += 1;
@@ -8754,36 +10338,100 @@ readResourceParameters()
 //----------------------- End ---------------------------OCT 7, 04
                                 coloringMethod = atoi(aString);
                                 break;
+#ifndef R3B
                             case 5:
                                 lineWidthScaler = atof(aString);
                                 break;
+#endif
                             case 6:
+#ifndef R3B
                                 satRadius = atof(aString);
+#else
+                                numPeriodAnimated = atof(aString);
+#endif
                                 break;
                             case 7:
+#ifndef R3B
                                 aniLineScaler= atof(aString);
+#else
+                                lineWidthScaler = atof(aString);
+#endif
                                 break;
                             case 8:
+#ifndef R3B
                                 MAX_SAT_SPEED = atoi(aString);
+#else
+                                satRadius = atof(aString);
+#endif
                                 break;
                             case 9:
+#ifndef R3B
                                 MIN_SAT_SPEED = atoi(aString);
+#else
+                                largePrimRadius = atof(aString);
+#endif
                                 break;
                             case 10:
+#ifndef R3B
                                 MAX_ORBIT_SPEED = atoi(aString);
+#else
+                                smallPrimRadius = atof(aString);
+#endif
                                 break;
                             case 11:
+#ifndef R3B
                                 MIN_ORBIT_SPEED = atoi(aString);
+#else
+                                numOfStars = atoi(aString);
+#endif
                                 break;
                             case 12:
+#ifndef R3B
                                 whichCoord = atoi(aString);
+#else
+                                libPtScaler = atof(aString);
+#endif
                                 break;
                             case 13:
+#ifndef R3B
                                 bgTransparency = atof(aString);
+#else
+                                aniLineScaler= atof(aString);
+#endif
                                 break;
                             case 14:
+#ifndef R3B
                                 numPeriodAnimated = atof(aString);
+#else
+                                MAX_SAT_SPEED = atoi(aString);
+#endif
                                 break;
+#ifdef R3B
+                            case 15:
+                                MIN_SAT_SPEED = atoi(aString);
+                                break;
+                            case 16:
+                                whichCoord = atoi(aString);
+                                break;
+                            case 17:
+                                bgTransparency = atof(aString);
+                                break;
+                            case 18:
+                                diskTransparency = atof(aString);
+                                break;
+                            case 19:
+                                diskFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
+                                break;
+                            case 20:
+                                MAX_ORBIT_SPEED = atoi(aString);
+                                break;
+                            case 21:
+                                MIN_ORBIT_SPEED = atoi(aString);
+                                break;
+//---------------------- Begin ---------------------------OCT 7, 04
+//                            case 22:
+//----------------------- End ---------------------------OCT 7, 04
+#endif
                         }
 
                         blDealt = true;
@@ -8862,7 +10510,11 @@ readResourceParameters()
                         int size = -1;
                         int pars[MAX_PAR];
                         readNIntData(buffer, pars, size);
+#ifndef R3B
                         mySolNode.npar = size;
+#else
+//                        mySolNode.npar = size;
+#endif
                         blDealt = true;
                         switch ( i )
                         {
@@ -8917,6 +10569,9 @@ readResourceParameters()
 
 /////////////////////////////////////////////////////////////////////
 //
+//       Set initial values for those temp variables according to
+//     their correspondent variables.
+//
 void
 initTempVariables()
 //
@@ -8939,6 +10594,11 @@ initTempVariables()
     whichStyleTemp = whichStyle;
     whichStyleOld  = whichStyle;
 
+#ifdef R3B
+    whichCoordSystemTemp = whichCoordSystem;
+    whichCoordSystemOld  = whichCoordSystem ;
+
+#endif
     for(int i=0; i<NUM_SP_POINTS; ++i)
     {
         linePatternTemp[i] = linePattern[i];
@@ -8951,6 +10611,11 @@ initTempVariables()
 
 
 /////////////////////////////////////////////////////////////////////
+//
+//     Set default values for the base variables. These variable includes
+//     lineColor, line pattern for each solution, the coordinate system,
+//     the graph style, the graph type, orbit animation speed, sattelite
+//     animation speed.
 //
 void
 setVariableDefaultValues() 
@@ -8984,25 +10649,43 @@ setVariableDefaultValues()
     envColors[ 7][0] = 0.0;  envColors[ 7][1] = 0.0;  envColors[ 7][2] = 1.0;
     envColors[ 8][0] = 1.0;  envColors[ 8][1] = 0.0;  envColors[ 8][2] = 1.0;
     envColors[ 9][0] = 1.0;  envColors[ 9][1] = 0.0;  envColors[ 9][2] = 0.0;
+#ifdef R3B
+    envColors[10][0] = 1.0;  envColors[10][1] = 0.0;  envColors[10][2] = 0.0;
+    envColors[11][0] = 0.0;  envColors[11][1] = 0.0;  envColors[11][2] = 1.0;
+#endif
 
     for(int i=0; i<NUM_SP_POINTS; ++i)
         linePattern[i]   = 0xffff;
 
+#ifndef R3B
     stabilityLinePattern[0]   = 0x1111;
+#else
+    stabilityLinePattern[0]   = 0xffff;
+#endif
     stabilityLinePattern[1]   = 0xffff;
 
+// set options.
     for(int i = 0; i < sizeof(options); ++i)
         options[i] = false;
 
+#ifndef R3B
     options[OPT_NORMALIZE_DATA] = true;
 
+#else
+// set default graph type/style specification
+    whichCoordSystem = ROTATING_F;
+#endif
     whichStyle      = 0;  
+#ifdef R3B
+    whichCoord         = 3;
+#endif
     whichType       = SOLUTION; 
 
     lblIdxSize       = 1;
 
     lblIndices[0]    = 0;   
 
+#ifndef R3B
     dai.solXSize = 1;
     dai.solYSize = 1;
     dai.solZSize = 1;
@@ -9017,6 +10700,7 @@ setVariableDefaultValues()
     dai.bifY[0] = 1;
     dai.bifZ[0] = 2;
 
+#endif
     if(solHead != NULL)
     {
         solutionp cur = solHead;
@@ -9028,21 +10712,49 @@ setVariableDefaultValues()
         }
     }
 
+#ifndef R3B
     setShow3D         = false;
+#else
+    setShow3D         = true;
+#endif
     solHead           = NULL;
     animationLabel    = 0;
     orbitSpeed        = 1.0;
+#ifndef R3B
     satSpeed          = 0.5;
+#else
+    satSpeed          = 1.0;
+#endif
     lineWidthScaler   = 1.0;
+#ifndef R3B
     coloringMethod    = -1;
     satRadius         = 1.0;
+#endif
     numPeriodAnimated = 1.0;
 
+#ifdef R3B
+    coloringMethod    = -5;
+    satRadius         = 1.0;
+    largePrimRadius   = 1.0;
+    smallPrimRadius   = 1.0;
+    blMassDependantOption = false;
+//
+#endif
     mySolNode.npar= 1;
     mySolNode.parID[0] = 10;
+#ifdef R3B
+    dai.solXSize = 1; dai.solX[0] = 1;
+    dai.solYSize = 1; dai.solY[0] = 2;
+    dai.solZSize = 1; dai.solZ[0] = 3;
+    dai.bifXSize = 1; dai.bifX[0] = 4;
+    dai.bifYSize = 1; dai.bifY[0] = 5;
+    dai.bifZSize = 1; dai.bifZ[0] = 6;
+
+#endif
     setShow3DSol = setShow3D;
     setShow3DBif = setShow3D;
 
+//
     char * buf = new char[256];
     char * ad  = new char[256];
     strcpy(ad, "AUTO_DIR");
@@ -9166,16 +10878,29 @@ main(unsigned int argc, char *argv[])
     }
     else
     {
+#ifndef R3B
         printf(" usage: plaut04 [version] [path] [name]\n");
+#else
+        printf(" usage: r3bplaut04 [path] [name]\n");
+#endif
         printf(" For example:\n");
+#ifndef R3B
         printf("      plaut04            --- view the fort.7, fort.8 in the current directory \n");
         printf("      plaut04 H1         --- view s.H1, b.H1 in the current directory \n");
         printf("      plaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
         printf("      plaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
         printf("      plaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
+#else
+        printf("      r3bplaut04            --- view the fort.7, fort.8 in the current directory \n");
+        printf("      r3bplaut04 H1         --- view s.H1, b.H1 in the current directory \n");
+        printf("      r3bplaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
+        printf("      r3bplaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
+        printf("      r3bplaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
+#endif
         exit(1) ;
     }
 
+// Initialize Inventor and Xt.
     Widget  mainWindow;
     mainWindow = SoXt::init(argv[0]);
 
@@ -9190,17 +10915,41 @@ main(unsigned int argc, char *argv[])
 
     if (mainWindow != NULL)
     {
+#ifndef R3B
         root = new SoSeparator;
 
         SoSeparator * rootroot = new SoSeparator;
         rootroot->ref();
+#else
+        root = new SoSelection;
+        SoSeparator * myroot = new SoSeparator;
+        myroot->ref();
+#endif
 
+#ifndef R3B
         root->ref();
+#endif
         SoEventCallback *mouseEventCB = new SoEventCallback;
+#ifndef R3B
         rootroot->addChild(mouseEventCB);
         rootroot->addChild(root);
+#else
+        myroot->addChild(mouseEventCB);
+        myroot->addChild(root);
+#endif
 
+#ifndef R3B
         SoXtRenderArea *ra = buildMainWindow(mainWindow, rootroot);
+#else
+#ifdef USE_BK_COLOR
+        XtVaSetValues (mainWindow, XtVaTypedArg,
+            XmNbackground, XmRString, "white", 6, NULL);
+#endif
+
+        updateScene();
+
+        SoXtRenderArea *ra = buildMainWindow(mainWindow, myroot);
+#endif
 
         mouseEventCB->addEventCallback(
             SoMouseButtonEvent::getClassTypeId(),
@@ -9268,75 +11017,134 @@ writePreferValuesToFile()
 
     float data;
     FILE * outFile;
+#ifndef R3B
     outFile = fopen("plaut04.rc.out", "w");
+#else
+    outFile = fopen("r3bplaut04.rc.out", "w");
+#endif
 
     if (!outFile)
     {
+#ifndef R3B
         printf("Unable to open the  resource file. I will use the default values.\n");
+#else
+        printf("Unable to open the  resource file.\n");
+#endif
         state = 1;
         return state;
     }
 
+#ifndef R3B
     fprintf(outFile,"#version 0.0\n\n");
     fprintf(outFile,"# Line colors are represented by RGB values from 0 to 1.0.\n");
     fprintf(outFile,"# DEFAULT color is also used when animationLabel == 0, i.e.,\n");
     fprintf(outFile,"# when showing all solutions and highlighting the solutions.\n");
+#else
+// write header
+    fprintf(outFile,"#version 0.0\n");
+    fprintf(outFile,"#  Line colors are represented by RGB values, which are from 0 to 1.0;\n");
+#endif
     fprintf(outFile,"#  Type of point     RED  GREEN  BLUE\n");
 
+// write line color and pattern
     for(int i = 0; i<NUM_SP_POINTS; ++i)
     {
+#ifndef R3B
         fprintf(outFile,"%-15.15s    = %3.1f,   %3.1f,   %3.1f, 0x%x\n",typeTokenNames[i],
+#else
+        fprintf(outFile,"%s =  %f, %f, %f, 0x%x\n",typeTokenNames[i],
+#endif
             lineColor[i][0], lineColor[i][1],lineColor[i][2],linePattern[i]);
     }
 
+#ifndef R3B
     fprintf(outFile, "\n# Initialize the line pattern for showing stability:\n");
     for(int i = 0; i<2; ++i)
     {
         fprintf(outFile,"%-20.25s = 0x%x\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
     }
 
+#endif
     fprintf(outFile, "\n#  Initialize the default options\n");
+#ifdef R3B
+    fprintf(outFile, "#  1 --- Yes, 0 --- No\n");
+#endif
     for(int i = 0; i<XtNumber(graphWidgetItems); ++i)
     {
+#ifndef R3B
         fprintf(outFile, "%-15.15s = ",graphWidgetItems[i]);
+#else
+        fprintf(outFile, "%s = ",graphWidgetItems[i]);
+#endif
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
+#ifndef R3B
     fprintf(outFile, "Draw Labels     =");
     optBif[0] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
 
+#endif
 
     for(int i = 0; i < XtNumber(intVariableNames); ++i)
     {
         switch (i)
         {
             case 0:
+#ifndef R3B
                 // OK
                 fprintf(outFile, "\n# Initialize the default graph type: \n"); 
                 fprintf(outFile, "#  0 --- Solution (fort.8)\n");
                 fprintf(outFile, "#  1 --- Bifurcation (fort.7)\n");
                 fprintf(outFile, "%-25.25s  =  %i\n", intVariableNames[i],whichType);
+#else
+                fprintf(outFile, "\n#  Initialize the default graph type, \n");
+                fprintf(outFile, "#  0 --- Solution(fort.8)  1 --- Bifurcation(fort.7)\n");
+                fprintf(outFile, "%s  =  %i\n", intVariableNames[i],whichType);
+#endif
                 break;
             case 1:
 //OK
+#ifndef R3B
                 fprintf(outFile, "\n# Initialize the default graph style:\n");
+#else
+                fprintf(outFile, "\n# initialize the default graph style\n");
+#endif
                 fprintf(outFile, "#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE \n");
+#ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+#endif
                 fprintf(outFile, "%i\n",whichStyle);
                 break;
             case 2:
+#ifndef R3B
                 fprintf(outFile, "\n# Set the window width and height:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",winWidth);
+#else
+                fprintf(outFile, "\n# initialize the default coordinate system");
+                fprintf(outFile, "\n#  0 --- Rotating, 1 --- inertial Bary Centered,");
+                fprintf(outFile, "\n#  2 --- Big Primary Centered, 3 --- Small Primary Centered\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n",whichCoordSystem);
+#endif
                 break;
             case 3:
+#ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",winHeight);
                 break;
             case 20:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", lblIndices[0]);
+#else
+                fprintf(outFile, "\n#set the window width and height\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n",winWidth);
+#endif
                 break;
             case 4:
+#ifndef R3B
                 fprintf(outFile, "\n# Set coloring method.\n");
                 fprintf(outFile, "#   -6 --- STABILITY\n");
                 fprintf(outFile, "#   -5 --- POINT\n");
@@ -9348,44 +11156,88 @@ writePreferValuesToFile()
                 fprintf(outFile, "# It can only be set to an integer value.\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", coloringMethod);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n",winHeight);
+#endif
                 break;
             case 5:
+#ifndef R3B
                 fprintf(outFile, "\n# Line Width Scaler adjusts the thickness of curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", lineWidthScaler);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", lblIndices[0]);
+#endif
                 break;
             case 6:
+#ifndef R3B
                 fprintf(outFile, "\n# Set the radius of the animation object:\n");
                 fprintf(outFile, "# The normal size is 1.0.\n");
                 fprintf(outFile, "# For smaller radius, use 0.xxx\n");
                 fprintf(outFile, "# For bigger radius, use  X.XXX\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", satRadius);
+#else
+                fprintf(outFile, "\n# set coloring method.\n# When -1, coloring the lines by solution TYPE.\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", coloringMethod);
+#endif
                 break;
             case 7:
+#ifndef R3B
                 fprintf(outFile, "\n# The AniLine Thickness Scaler sets the thickness of animated solution curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", aniLineScaler);
+#else
+                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", numPeriodAnimated);
+#endif
                 break;
             case 8:
+#ifndef R3B
                 fprintf(outFile, "\n# Set the maximum and minimum animation speed:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_SAT_SPEED);
+#else
+                fprintf(outFile, "\n# Line Width Scaler adjusts the line thickness of an orbit\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", lineWidthScaler);
+#endif
                 break;
             case 9:
+#ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_SAT_SPEED);
+#else
+                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", satRadius);
+#endif
                 break;
             case 10:
+#ifndef R3B
                 fprintf(outFile, "\n# Set the maximum and minimum highlighting animation speed:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", largePrimRadius);
+#endif
                 break;
             case 11:
+#ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_ORBIT_SPEED);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", smallPrimRadius);
+#endif
                 break;
             case 12:
+#ifndef R3B
                 fprintf(outFile, "\n# Initialize the default coordinate axes:\n");
                 fprintf(outFile, "#  0 --- None,\n");
                 fprintf(outFile, "#  1 --- at geometry center or origin,\n");
@@ -9393,14 +11245,24 @@ writePreferValuesToFile()
                 fprintf(outFile, "#  3 --- at left and ahead. \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", whichCoord);
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", numOfStars);
+#endif
                 break;
             case 13:
+#ifndef R3B
                 fprintf(outFile, "\n# Backgournd pictures transparency");
                 fprintf(outFile, "\n# [0.0, 1.0] \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", bgTransparency );
+#else
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", libPtScaler);
+#endif
                 break;
             case 14:
+#ifndef R3B
                 fprintf(outFile, "\n# Set default number of periods animated\n");
                 fprintf(outFile, "\n# The value should be power of 2.\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
@@ -9413,34 +11275,97 @@ writePreferValuesToFile()
         switch ( i ){
             case 0 :
                 fprintf(outFile, "# Background color:\n");
+#else
+                fprintf(outFile, "\n# the AniLine Thickness Scaler adjusts the thickness of the orbit in animation\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", aniLineScaler);
+#endif
                 break;
+#ifndef R3B
             case 1 :
                 fprintf(outFile, "# X-Axis color:\n");
+#else
+            case 15:
+                fprintf(outFile, "\n# set the maximun and minimun animation speed, int\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", MAX_SAT_SPEED);
+#endif
                 break;
+#ifndef R3B
             case 2 :
                 fprintf(outFile, "# Y-Axis color:\n");
+#else
+            case 16:
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", MIN_SAT_SPEED);
+#endif
                 break;
+#ifndef R3B
             case 3 :
                 fprintf(outFile, "# Z-Axis color:\n");
+#else
+            case 17:
+                fprintf(outFile, "\n# initialize the default coordinate type to be drawn");
+                fprintf(outFile, "\n#  0 --- None, 1 --- at origin,");
+                fprintf(outFile, "\n#  2 --- at left and behind, 3 --- at left and ahead.\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", whichCoord);
+#endif
                 break;
+#ifndef R3B
             case 4 :
                 fprintf(outFile, "# Color of the animation object:\n"); 
+#else
+            case 18:
+                fprintf(outFile, "\n# Backgournd pictures transparency");
+                fprintf(outFile, "\n# [0, 1] \n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", bgTransparency );
+#endif
                 break;
+#ifndef R3B
             case 5 :
                 fprintf(outFile, "# Surface color:\n");
+#else
+            case 19:
+                fprintf(outFile, "\n# Disk Transparency [0, 1] \n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", diskTransparency );
+#endif
                 break;
+#ifndef R3B
             case 6 :
                 fprintf(outFile, "# Unstable solution Color:\n");
+#else
+            case 20:
+                fprintf(outFile, "\n# Read Disk From File \n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                (diskFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
+#endif
                 break;
+#ifndef R3B
             case 7 :
                 fprintf(outFile, "# Stable solution Color:\n");
+#else
+            case 21:
+                fprintf(outFile, "\n# set the maximun and minimun animation speed, int\n");
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
+                break;
+            case 22:
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", MIN_ORBIT_SPEED);
+#endif
                 break;
         }
 
+#ifndef R3B
         fprintf(outFile, "%-25.25s = %4.1f, %4.1f, %4.1f\n\n",nDataVarNames[i],envColors[i][0], envColors[i][1],envColors[i][2]);
+#endif
     }
 
 //----------Labels --- ?
+#ifndef R3B
     fprintf(outFile, "# Labeled solutions:\n");
     fprintf(outFile, "#   -3 = Show all labeled solutions\n");
     fprintf(outFile, "#   -2 = Show HALF labeled solutions\n");
@@ -9448,70 +11373,127 @@ writePreferValuesToFile()
     fprintf(outFile, "#   0 = Show NONE of the solutions\n");
     fprintf(outFile, "# Otherwise, show the specified solution(s)\n");
     for(int is=0; is<lblIdxSize; ++is)
+#else
+// deal with hexidecimal
+    fprintf(outFile, "\n# initialize the line pattern for showing stability\n");
+    for(int i = 0; i<2; ++i)
+#endif
     {
+#ifndef R3B
         fprintf(outFile, "Labels   = %i", lblChoice[is]); 
+#else
+        fprintf(outFile,"%s = 0x%x\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
+#endif
     }
+#ifndef R3B
     fprintf(outFile, "\n");
+#endif
 
 //----------
+// deal with N data
+#ifdef R3B
+    fprintf(outFile,"\n# Colors for widgets.  0-back ground, 1-x-axis, 2-yaxis, 3 - zaxis,");
+    fprintf(outFile,"\n# 4-sat, 5-large prim, 6- large prim line, 7,8-small prim.9 - surface color\n");
+    for(int i = 0; i<XtNumber(nDataVarNames); ++i)
+    {
+        fprintf(outFile, "%s = %f, %f, %f\n",nDataVarNames[i],envColors[i][0], envColors[i][1],envColors[i][2]);
+    }
+#endif
 
+#ifndef R3B
     fprintf(outFile,"\n# Draw Scale:\n");
     fprintf(outFile, "Draw Scale = ");
+#else
+    fprintf(outFile,"\n# Draw Scale at the Aixs");
+    fprintf(outFile, "\n Draw Scale = ");
+#endif
     (blDrawTicker) ? fprintf(outFile, " YES \n") : fprintf(outFile, " NO \n");
 
+#ifndef R3B
     fprintf(outFile,"\n# Set the active AUTO parameter indices:\n"); 
     fprintf(outFile, "parameter ID  = ");
+#else
+// deal with parameter IDs
+    fprintf(outFile,"\n# Parameter IDs\n");
+    fprintf(outFile, "\nparameter ID  = ");
+#endif
     for(int is=0; is<mySolNode.npar; ++is)
     {
         fprintf(outFile, " %i, ", mySolNode.parID[is]);
     }
     fprintf(outFile, " \n");
 
+// turn 3D/2D
     fprintf(outFile,"\n# Choose 3D or 2D graph for the bifurcation diagram:\n"); 
     setShow3DBif ? fprintf(outFile, "3DBif = YES\n") : fprintf(outFile, "3DBif = No\n");
     fprintf(outFile,"\n# Choose 3D or 2D graph for the solution diagram:\n"); 
     setShow3DSol ? fprintf(outFile, "3DSol = YES\n") : fprintf(outFile, "3DSol = No\n");
 
+#ifndef R3B
     fprintf(outFile,"\n# Set X, Y, Z axes for the solution diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[0]);
+#else
+    fprintf(outFile,"\n# set X, Y, Z, and Label. 0 is Time for X,Y,Z.\n");
+    fprintf(outFile,"\n%s = ", axesNames[0]);
+#endif
     for(int is=0; is<dai.solXSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solX[is]);
         (is != dai.solXSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
     }
 
+#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[1]);
+#else
+    fprintf(outFile,"%s = ", axesNames[1]);
+#endif
     for(int is=0; is<dai.solYSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solY[is]);
         (is != dai.solYSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
     }
 
+#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[2]);
+#else
+    fprintf(outFile,"%s = ", axesNames[2]);
+#endif
     for(int is=0; is<dai.solZSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solZ[is]);
         (is != dai.solZSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
     }
 
+#ifndef R3B
     fprintf(outFile,"\n# Set X, Y, Z axes for the bifurcation diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[3]);
+#else
+    fprintf(outFile,"%s = ", axesNames[3]);
+#endif
     for(int is=0; is<dai.bifXSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifX[is]);
         (is != dai.bifXSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
     }
 
+#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[4]);
+#else
+    fprintf(outFile,"%s = ", axesNames[4]);
+#endif
     for(int is=0; is<dai.bifYSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifY[is]);
         (is != dai.bifYSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
     }
 
+#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[5]);
+#else
+    fprintf(outFile,"%s = ", axesNames[5]);
+#endif
     for(int is=0; is<dai.bifZSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifZ[is]);
@@ -9569,6 +11551,10 @@ deleteScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
+#ifdef R3B
+    root->deselectAll();
+
+#endif
     for (int i = root->getNumChildren(); i>0; i--)
         root->removeChild(i-1);
 }
@@ -9628,6 +11614,9 @@ readFile(char *filename)
 
     postDeals();
     parseFileName(filename, sFileName, bFileName, dFileName);
+#ifdef R3B
+    readResourceParameters();
+#endif
     bool rs = readSolutionAndBifurcationData(0);
     if(!rs)
     {

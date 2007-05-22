@@ -11,6 +11,10 @@
 
 #include "gplaut04.h"
 
+#ifdef R3B
+#define FONT_SIZE 16 
+
+#endif
 extern SolNode mySolNode;
 extern BifNode myBifNode;
 
@@ -120,7 +124,11 @@ SoSeparator * createAxis(float red, float green, float blue, float height, char 
 // define font for the axis
     SoFont *axFont = new SoFont;
     axFont->name.setValue("Helvetica");
+#ifndef R3B
     axFont->size.setValue(24.0);
+#else
+    axFont->size.setValue(FONT_SIZE);
+#endif
     SoText2 *axName = new SoText2;
     axName->string.setValue(label);
     arrSep->addChild(axFont);

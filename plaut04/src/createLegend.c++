@@ -1,5 +1,9 @@
+#ifndef R3B
 #include <iostream.h>
 #include <fstream.h>
+#else
+
+#endif
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTransform.h>
@@ -15,14 +19,22 @@
 
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 
+#ifndef R3B
 #define FONT_SIZE 10 
+#else
+#define FONT_SIZE 12 
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 printScaleAt(SbVec3f position, double size, double value)
 //
 ////////////////////////////////////////////////////////////////////////////////
+#else
+SoSeparator * printScaleAt(SbVec3f position, double size, double value)
+#endif
 {
     SoSeparator * textSep = new SoSeparator;
 
@@ -49,10 +61,15 @@ printScaleAt(SbVec3f position, double size, double value)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 printScaleAt(SbVec3f position, double size, char* strScale)
 //
 ////////////////////////////////////////////////////////////////////////////////
+#else
+
+SoSeparator * printScaleAt(SbVec3f position, double size, char* strScale)
+#endif
 {
     SoSeparator * textSep = new SoSeparator;
 
@@ -77,18 +94,26 @@ printScaleAt(SbVec3f position, double size, char* strScale)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 createLegend(SbVec3f pos, double values[5])
 //
 ////////////////////////////////////////////////////////////////////////////////
+#else
+
+SoSeparator * createLegend(SbVec3f pos, double values[5])
+#endif
 {
     SoSeparator *legend= new SoSeparator;
     SoMaterial *legendMaterial = new SoMaterial;
     SoTransform *legendXform = new SoTransform;
 
+//   SoOrthographicCamera *legendCamera = new SoOrthographicCamera;
+//   legend->addChild(legendCamera);
 
     legendXform->translation.setValue(pos);
     legendXform->scaleFactor.setValue(0.2,0.5,1);
+//    legendXform->rotation.setValue(-1,0,0,M_PI_2);
     legend->addChild(legendXform);
 
     static float vertexPositions[6][3]=
@@ -147,6 +172,7 @@ createLegend(SbVec3f pos, double values[5])
     legend->addChild(legendHints);
 
     legendMaterial->diffuseColor.setValues(0, 6, colors);
+//legendMaterial->transparency = 0.8;
     legend->addChild(legendMaterial);
 
     SoMaterialBinding *legendMtlBinding = new SoMaterialBinding;
@@ -173,10 +199,14 @@ createLegend(SbVec3f pos, double values[5])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
 //
 ///////////////////////////////////////////////////////////////////////////////
+#else
+SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
+#endif
 {
     char tyNames[13][10]=
     {
@@ -196,10 +226,15 @@ createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13]; 
+#ifndef R3B
     static int32_t numVertices[13]= 
     {
         4,4,4,4,4,4,4,4,4,4,4,4,4
     };
+#else
+    static int32_t numVertices[13]={4,4,4,4,4,4,4,4,4,4,4,4,4};
+    float tcolor[3];
+#endif
 
     int j;
     for(int i = 0; i < 13; ++i)
@@ -221,7 +256,12 @@ createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
+#ifndef R3B
         colors[i].setValue(lineColors[i]);
+#else
+        lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
+        colors[i].setValue(tcolor);
+#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;
@@ -255,10 +295,14 @@ createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 createBranchLegend(SbVec3f pos, SbColor lineColors[13])
 //
 ///////////////////////////////////////////////////////////////////////////////
+#else
+SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
+#endif
 {
     char tyNames[13][10]=
     {
@@ -277,10 +321,15 @@ createBranchLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13];   
+#ifndef R3B
     static int32_t numVertices[13]=
     {
         4,4,4,4,4,4,4,4,4,4,4,4,4
     };
+#else
+    static int32_t numVertices[13]={4,4,4,4,4,4,4,4,4,4,4,4,4};
+    float tcolor[3];
+#endif
 
     int j;
     for(int i = 0; i < 13; ++i)
@@ -302,7 +351,12 @@ createBranchLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
+#ifndef R3B
         colors[i].setValue(lineColors[i]);
+#else
+        lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
+        colors[i].setValue(tcolor);
+#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;
@@ -335,10 +389,15 @@ createBranchLegend(SbVec3f pos, SbColor lineColors[13])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+#ifndef R3B
 SoSeparator * 
 createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
 //
 ///////////////////////////////////////////////////////////////////////////////
+#else
+
+SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
+#endif
 {
     char tyNames[][10]={"UNSTB","STB"};
     SoSeparator *legend= new SoSeparator;
@@ -354,28 +413,52 @@ createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
 
     static SbColor colors[2];
     static int32_t numVertices[2]={4,4};
+#ifdef R3B
+    float tcolor[3];
+#endif
 
     int j;
     for(int i = 0; i < 2; ++i)
     {
         j = i*4;
+#ifndef R3B
         vertexPositions[j][0]= 0.26;
+#else
+        vertexPositions[j][0]= 0.25;
+#endif
         vertexPositions[j][1]= -0.5 + i/2.0;
         vertexPositions[j][2]= 0;
 
+#ifndef R3B
         vertexPositions[j+1][0]= -0.24;
+#else
+        vertexPositions[j+1][0]= -0.25;
+#endif
         vertexPositions[j+1][1]= vertexPositions[j][1];
         vertexPositions[j+1][2]= 0;
 
+#ifndef R3B
         vertexPositions[j+2][0]= 0.26;
+#else
+        vertexPositions[j+2][0]= 0.25;
+#endif
         vertexPositions[j+2][1]= -0.5 + (i+1)/2.0;
         vertexPositions[j+2][2]= 0;
 
+#ifndef R3B
         vertexPositions[j+3][0]= -0.24;
+#else
+        vertexPositions[j+3][0]= -0.25;
+#endif
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
+#ifndef R3B
         colors[i].setValue(lineColors[i]);
+#else
+        lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
+        colors[i].setValue(tcolor);
+#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;

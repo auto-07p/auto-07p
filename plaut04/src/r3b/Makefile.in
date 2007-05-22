@@ -26,6 +26,24 @@ axis.o: ../axis.c++
 readFM.o: ../readFM.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+readBif.o: ../gReadBif.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+readSol.o: ../gReadSol.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+gmain.o: ../gmain.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+tube.o: ../tube.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+drawCoords.o: ../drawCoords.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+createLegend.o: ../createLegend.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
 normalizeBifData.o: ../normalizeBifData.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
