@@ -1,9 +1,3 @@
-#ifndef R3B
--- gVarNames.h	2007-05-09 15:57:05.880290000 -0400
-#else
-++ vNames.h	2007-05-09 15:52:43.519888000 -0400
-@ -1,71 +1,86 @@
-#endif
     char *typeTokenNames[] =
     {
         "DEFAULT","BP ALG", "LP ALG",

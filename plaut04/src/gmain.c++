@@ -1,9 +1,5 @@
 #include "gplaut04.h"
-#ifndef R3B
 #include "gVarNames.h"
-#else
-#include "vNames.h"
-#endif
 #include "tube.h"
 
 #define NUM_SP_POINTS 13
