@@ -149,10 +149,6 @@ bool optBif[11], optSol[11];
 #endif
 bool setShow3D, setShow3DSol, setShow3DBif;
 
-#ifdef R3B
-double mass = 0.0;
-
-#endif
 char sFileName[256];
 char bFileName[256];
 char dFileName[256];
@@ -191,32 +187,26 @@ float satSpeed   = 0.5;
 float satRadius  = 1.0;
 float lineWidthScaler = 1.0;
 float aniLineScaler = 2.0;
-#ifdef R3B
-float libPtScaler = 1.0;
-float numPeriodAnimated = 1.0;
-#endif
+
 int   coloringMethod = -1;
-#ifdef R3B
-float smallPrimRadius=1.0;
-float largePrimRadius=1.0;
-int   numOfStars = 100;
-#endif
 float bgTransparency = 0;
-#ifndef R3B
 float numPeriodAnimated = 1.0;
 
-#else
-float diskTransparency = 0;
-bool diskFromFile = false;
-#endif
 long int numLabels;
 
 #ifdef R3B
+float libPtScaler = 1.0;
+float smallPrimRadius=1.0;
+float largePrimRadius=1.0;
+int   numOfStars = 100;
+float diskTransparency = 0;
+bool diskFromFile = false;
 float distance = 1;
 float sPrimPeriod  = 31558118.4;
 float gravity = 9.18;
-
+double mass = 0.0;
 #endif
+
 double legendScaleValues[2];
 
 SoSeparator *userScene;
@@ -437,14 +427,12 @@ numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
        numPeriodAnimated = -1; 
     } 
     else 
-    {
 #endif
+    {
        numPeriodAnimated = atof(myChoice);
-#ifndef R3B
     }
 
 //cout <<" Num Period Animated "<<myChoice<<"   "<<numPeriodAnimated;
-#endif
 
     updateScene();
 }
@@ -688,21 +676,11 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
         XtVaSetValues (satAniSpeedSlider, XmNeditable, FALSE, NULL);
 
     if(options[OPT_PERIOD_ANI])
-#ifdef R3B
-    {
-#endif
         XtVaSetValues (orbitAniSpeedSlider, XmNeditable, TRUE, NULL);
-#ifdef R3B
-    }
-#endif
     else
-#ifdef R3B
-    {
-#endif
         XtVaSetValues (orbitAniSpeedSlider, XmNeditable, FALSE, NULL);
-#ifdef R3B
-    }
 
+#ifdef R3B
     if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
     {
         options[OPT_PRIMARY] = false;
@@ -1421,11 +1399,7 @@ buildCoordMenu(Widget menubar)
     XtSetArg(args[n], XmNuserData, coordMenuItems); n++;
     XtSetArg(args[n], XmNindicatorType, XmONE_OF_MANY); n++;
     TOGGLE_ITEM(coordMenuItems->items[0], "NONE",   NO_COORD, coordMenuPick);
-#ifndef R3B
     TOGGLE_ITEM(coordMenuItems->items[1], "Coord Center",    COORDORIGIN, coordMenuPick);
-#else
-    TOGGLE_ITEM(coordMenuItems->items[1], "Coord Origin",    COORDORIGIN, coordMenuPick);
-#endif
     TOGGLE_ITEM(coordMenuItems->items[2], "Left and Back ",   LEFTBACK, coordMenuPick);
     TOGGLE_ITEM(coordMenuItems->items[3], "Left and Ahead",   LEFTAHEAD, coordMenuPick);
     SEP_ITEM("separator");
@@ -1486,11 +1460,11 @@ buildMenu(Widget parent)
 {
 #ifndef R3B
     Widget  menuButtons[6];
-    Widget  pulldown1, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
 #else
     Widget  menuButtons[7];
-    Widget  pulldown1, pulldown2, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
+    Widget  pulldown2;
 #endif
+    Widget  pulldown1, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
     Arg     args[8];
     int        n, m;
 
@@ -2048,17 +2022,13 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 6,
         NULL);
 #endif
+#endif
 
 // Create slider to control speed
-#endif
     n = 0;
     XtSetArg(args[n], XmNminimum, MIN_SAT_SPEED); n++;
     XtSetArg(args[n], XmNmaximum, MAX_SAT_SPEED); n++;
-#ifndef R3B
-    XtSetArg(args[n], XmNvalue, satSpeed*100);    n++;
-#else
     XtSetArg(args[n], XmNvalue, satSpeed*100);n++;//(MAX_SPEED-MIN_SPEED)/2.0); n++;
-#endif
     XtSetArg(args[n], XmNorientation, XmHORIZONTAL); n++;
     if(options[OPT_SAT_ANI])
     {
@@ -2079,9 +2049,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 6,
         NULL);
 #endif
+#endif
 
 // Callbacks for the slider
-#endif
     XtAddCallback(satAniSpeedSlider, XmNvalueChangedCallback,
         satSpeedCB, NULL);
 
@@ -2107,9 +2077,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 6,
         NULL);
 #endif
+#endif
 
 // Callbacks for the slider2
-#endif
     XtAddCallback(orbitAniSpeedSlider, XmNvalueChangedCallback,
         orbitSpeedCB, NULL);
 
@@ -2448,9 +2418,8 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 
 #ifndef R3B
     updateScene();
-#else
-// these two lines are the third method for showing in 2D/3D
 #endif
+// these two lines are the third method for showing in 2D/3D
     renderArea->setSceneGraph(sceneGraph);
     renderArea->show();
 
@@ -2651,14 +2620,10 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 Widget 
 createColorAndLinePrefSheetHeader(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
-#else
-Widget createColorAndLinePrefSheetHeader(Widget parent)
-#endif
 {
     Widget widget;
     Arg args[6];
@@ -2872,10 +2837,10 @@ createPreferDefaultPageFrames(Widget parent, char *frameName)
 }
 
 
+#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 void
-#ifdef R3B
 graphCoordinateSystemToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2927,12 +2892,11 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     XtManageChild (toggleBox);
     XtManageChild (frame);
 }
-
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-#endif
 graphStyleWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2957,14 +2921,10 @@ createGraphStyleFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
-#ifndef R3B
     char * graphStyleItems[]=
     {
         "Line Style", "Tube Style" , "Surface Style"
     };
-#else
-    char * graphStyleItems[]={ "Line Style", "Tube Style" , "Surface Style"};
-#endif
 
 // create default selections
     n = 0;
@@ -3118,16 +3078,9 @@ layoutPreferDefaultPageFrames(Widget widgetList[], int num)
 ////////////////////////////////////////////////////////////////////////
 {
     Arg args[12];
-#ifndef R3B
     int n = 0;
-#else
-    int n;
-#endif
 
 // layout
-#ifdef R3B
-    n = 0;
-#endif
     XtSetArg(args[n], XmNleftAttachment,        XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNrightAttachment,       XmATTACH_FORM); n++;
 
@@ -3661,11 +3614,7 @@ getFileName()
         XtSetArg(args[n], XmNautoUnmanage, TRUE); n++;
         if(topform== NULL)
         {
-#ifndef R3B
             printf("mainWindow is NULL!\n");
-#else
-            printf("maniWindow is NULL!\n");
-#endif
             return;
         }
         fileDialog = XmCreateFileSelectionDialog(
@@ -3880,14 +3829,10 @@ void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 static void 
 yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
-#else
-static void yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
-#endif
 {
 #ifdef R3B
     int varIndices[3];
@@ -3920,12 +3865,8 @@ static void yListCallBack(Widget combo, XtPointer client_data, XtPointer call_da
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 static void 
 zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
-#else
-static void zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3998,11 +3939,12 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
         int j = 1;
         do
         {
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
 #ifndef R3B
-            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG) // &&
+            ) // &&
             //    clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
 #else
-            if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
+            &&
                 clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
 #endif
                 lblIndices[i++] = j;
@@ -4028,12 +3970,8 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 void 
 updateScene()
-#else
-void updateScene()
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -4300,16 +4238,12 @@ createSolutionSceneWithWidgets()
 }
 
 
-#ifndef R3B
-SoSeparator * drawStarryBackground(char * bgFileName)
-#else
 ////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
 drawStarryBackground(char * bgFileName)
 //
 ////////////////////////////////////////////////////////////////////////
-#endif
 {
     SoSeparator *starryBg = new SoSeparator;
     SoTexture2 * bgTxture = new SoTexture2;
@@ -4339,16 +4273,12 @@ drawStarryBackground(char * bgFileName)
 }
 
 
-#ifndef R3B
-SoSeparator * addLegend()
-#else
 ////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
 addLegend()
 //
 ////////////////////////////////////////////////////////////////////////
-#endif
 {
     SoSeparator * result = new SoSeparator;
     SoOrthographicCamera *legendCamera = new SoOrthographicCamera;
@@ -4389,12 +4319,8 @@ addLegend()
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 void 
 setLegendValues(double* values)
-#else
-void setLegendValues(double* values)
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -5562,11 +5488,7 @@ drawSolUsingTubes()
         }
         long int upperlimit = mySolNode.numVerticesEachPeriod[j];
 
-#ifndef R3B
         if(upperlimit >0 )
-#else
-        if(upperlimit >= 1)
-#endif
         {
             if(upperlimit == 1)
             {
@@ -5598,11 +5520,9 @@ drawSolUsingTubes()
                         curComponent, maxComponent, maxComponent/2.0, 0,
                         stability, scaler));
                 }
+#endif
                 else 
                 {
-#else
-                else {
-#endif
                     SoMaterial * ptMtl = new SoMaterial;
                     ptMtl->diffuseColor.setValue(1,0,0);
                     ptSep->addChild(ptMtl);
@@ -5664,16 +5584,11 @@ drawSolUsingTubes()
                     ptSep->addChild(aPoint);
                     tubeSep->addChild(ptSep);
                 }
-/*
-                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
-				            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
 #else
-                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#endif
+                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
+                                            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
                 ptSep->addChild(aTrans);
                 ptSep->addChild(aPoint);
-#ifndef R3B
-*/
 #endif
                 tubeSep->addChild(ptSep);
             }
@@ -5866,12 +5781,8 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
                 long int idx = sum;
                 SoSeparator * ptSep = new SoSeparator;
                 SoTransform * aTrans = new SoTransform;
-#ifndef R3B
                 aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 				           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#else
-                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#endif
                 ptSep->addChild(aTrans);
 
                 SoSphere *aPoint = new SoSphere;
@@ -6383,11 +6294,7 @@ renderSolution(double mu)
     {
         solGroup->addChild(renderSolutionNurbsCurve());
     }
-#ifndef R3B
-    else if(whichStyle==ALL_POINTS || whichStyle == MESH_POINTS)
-#else
     else if(whichStyle==MESH_POINTS || whichStyle== ALL_POINTS)
-#endif
     {
         solGroup->addChild(renderSolutionPoints(whichStyle));
     }
@@ -6612,12 +6519,8 @@ drawAStrip(float stripSet[][3], int size)
 //     parMin Color == BLUE
 //
 SoGroup *
-#ifndef R3B
 setLineAttributesByParameterValue(double parValue, double parMax, 
            double parMid, double parMin, int stability, float scaler)
-#else
-setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler)
-#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -6957,27 +6860,15 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
 //////////////////////////////////////////////////////////////////////////
 {
     float (*colors)[3] = new float[size][3];
-#ifndef R3B
     static float maxColor[3] =                    //red
-#else
-    static float maxColor[3] =
-#endif
     {
         1.0, 0.0, 0.0
     };
-#ifndef R3B
     static float midColor[3] =                    //green
-#else
-    static float midColor[3] =
-#endif
     {
         0.0, 1.0, 0.0
     };
-#ifndef R3B
     static float minColor[3] =                    //blue
-#else
-    static float minColor[3] =
-#endif
     {
         0.0, 0.0, 1.0
     };
@@ -7073,13 +6964,8 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
 //
 //
 SoSeparator *
-#ifndef R3B
 drawAnOrbitUsingLines(int iBranch,  long int l, long int si, 
        float scaler, int stability, int type, bool aniColoring)
-#else
-drawAnOrbitUsingLines(int iBranch,  long int l,
-long int si, float scaler, int stability, int type, bool aniColoring)
-#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -7088,12 +6974,8 @@ long int si, float scaler, int stability, int type, bool aniColoring)
     int32_t  myint[10];
 #endif
 
-#ifndef R3B
     float dis = !options[OPT_NORMALIZE_DATA] ? 
 	               (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
-#else
-    float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
-#endif
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -7126,11 +7008,9 @@ long int si, float scaler, int stability, int type, bool aniColoring)
                  curComponent, maxComponent, maxComponent/2.0, 0,
                  stability, scaler));
         }
+#endif
         else 
         {
-#else
-        else {
-#endif
             SoMaterial * ptMtl = new SoMaterial;
             ptMtl->diffuseColor.setValue(1,0,0);
             ptSep->addChild(ptMtl);
@@ -7268,18 +7148,12 @@ long int si, float scaler, int stability, int type, bool aniColoring)
                         stability, scaler));
 #endif
             else if(coloringMethod >= mySolNode.nar)
-#ifdef R3B
-            {
-#endif
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     mySolNode.par[l-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                     stability, scaler));
-#ifdef R3B
-            }
-#endif
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
                     mySolNode.numVerticesEachPeriod[l-1],stability, type, scaler));
@@ -7329,13 +7203,8 @@ drawAPoint(float x, float y, float z, float size, float scale)
 //////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
-#ifndef R3B
 drawAnOrbitUsingPoints(int style, int iBranch,  long int l, 
      long int si, float scaler, int stability, int type, bool aniColoring)
-#else
-drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si,
-float scaler, int stability, int type, bool aniColoring)
-#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -7381,12 +7250,8 @@ float scaler, int stability, int type, bool aniColoring)
             ptSep->addChild(ptMtl);
         }
 
-#ifndef R3B
         aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#else
-        aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#endif
         ptSep->addChild(aTrans);
 
         SoSphere *aPoint = new SoSphere;
@@ -7850,13 +7715,8 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
         else if(coloringMethod == CL_STABILITY)
             colorBase[curSize]  = myBifNode.ptStability[idx-1];
         curSize++;
-#ifndef R3B
     }while( m < size);
-#endif
 
-#ifdef R3B
-    }while( m < size);
-#endif
     delete [] vertices;
     delete [] colorBase;
     return aBranch;
@@ -8121,14 +7981,9 @@ animateSolutionUsingTubes(bool aniColoring)
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
 
             SoTransform * aTrans = new SoTransform;
-#ifndef R3B
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], \
                                          mySolNode.xyzCoords[idx][1], \
                                          mySolNode.xyzCoords[idx][2]);
-#else
-            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0],
-                mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#endif
             ptSep->addChild(aTrans);
             ptSep->addChild(aPoint);
             solGroup->addChild(ptSep);
@@ -8566,9 +8421,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 #endif
     satGroup->addChild(myCoords);
 
-#ifndef R3B
     
-#endif
     SoTimeCounter *myCounter = new SoTimeCounter;
 #ifndef R3B
     myCounter->max = arrSize+1;
