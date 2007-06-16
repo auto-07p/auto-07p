@@ -747,7 +747,7 @@ C
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
 C
-         CALL BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NTST,NOV,NCB,IPC)
+         CALL BCKSUB(S1,A2,S2,BB,FAA,FCC,SOL,FC,NTST,NOV,NCB,IPC)
          DEALLOCATE(FCC,E,IR,IC)
       ENDIF
       IF(KWT.GT.1)THEN
@@ -1142,7 +1142,7 @@ C Arguments
        DOUBLE PRECISION BB1(NCB,NOV),BB2(NCB,NOV), DD(NCB,NRC)
 C
 C Local
-       INTEGER K1,K2,IC,ICP1,IPIV1,IPIV2,ITMP,JPIV,JPIV1,JPIV2
+       INTEGER K1,K2,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2
        INTEGER IDAMAX
        DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
 C
@@ -1328,56 +1328,70 @@ C
 C
       END SUBROUTINE REDUCE
 C
+C     ---------- ---------
+      SUBROUTINE REDRHSBLK(A21,FAA1,A12,FAA2,CC,FC,NOV,NRC,IPR)
+C
+      IMPLICIT NONE
+C
+C Arguments
+      INTEGER   NA,NOV,NRC,IPR(NOV)
+      DOUBLE PRECISION A12(NOV,NOV),A21(NOV,NOV)
+      DOUBLE PRECISION CC(NOV,NRC)
+      DOUBLE PRECISION FAA1(NOV),FAA2(NOV),FC(*)
+C
+C Local
+      INTEGER IC,IR,IPIV1,L1
+      DOUBLE PRECISION TMP
+C
+C Reduce with the right hand side for one block
+      DO IC=1,NOV
+         IPIV1 = IPR(IC)
+         IF(IPIV1.LE.NOV)THEN
+            TMP         = FAA1(IC)
+            FAA1(IC)    = FAA1(IPIV1)
+            FAA1(IPIV1) = TMP
+         ELSE
+            L1       = IPIV1-NOV
+            TMP      = FAA1(IC)
+            FAA1(IC) = FAA2(L1)
+            FAA2(L1) = TMP
+         ENDIF
+         DO IR=IC+1,NOV
+            FAA1(IR) = FAA1(IR)-A21(IC,IR)*FAA1(IC)
+         ENDDO
+         DO IR=1,NOV
+            FAA2(IR) = FAA2(IR)-A12(IC,IR)*FAA1(IC)
+         ENDDO
+         DO IR=1,NRC
+            FC(IR)= FC(IR)-CC(IC,IR)*FAA1(IC)
+         ENDDO
+      ENDDO
+C
+      RETURN
+      END SUBROUTINE REDRHSBLK
+C
 C     ---------- ------
       SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,NA,NOV,NRC,IPR)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      INCLUDE 'auto.h'
+      IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NOV,NRC
-      DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DIMENSION CC(NOV,NRC,*)
-      DIMENSION FAA(NOV,*),FC(*)
-      DIMENSION IPR(NOV,*)
+      INTEGER   NA,NOV,NRC,IPR(NOV,*)
+      DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
+      DOUBLE PRECISION CC(NOV,NRC,*)
+      DOUBLE PRECISION FAA(NOV,*),FC(*)
 C
 C Local
+      INTEGER I1,I2
       DOUBLE PRECISION RM
 C
-      NAP1    = NA+1
-      NAM1    = NA-1
-C
 C Reduce concurrently in each node
-      DO I1=1,NAM1
+      DO I1=1,NA-1
          I2=I1+1
-         DO IC=1,NOV
-            ICP1  = IC+1
-            IPIV1 = IPR(IC,I1)
-            IF(IPIV1.LE.NOV)THEN
-               TMP           = FAA(IC,I1)
-               FAA(IC,I1)    = FAA(IPIV1,I1)
-               FAA(IPIV1,I1) = TMP
-            ELSE        
-               L1         = IPIV1-NOV
-               TMP        = FAA(IC,I1)
-               FAA(IC,I1) = FAA(L1,I2)
-               FAA(L1,I2) = TMP
-            ENDIF
-            DO IR=ICP1,NOV
-               RM=A2(IC,IR,I1)
-               FAA(IR,I1)=FAA(IR,I1)-RM*FAA(IC,I1)
-            ENDDO
-            DO IR=1,NOV
-               RM=A1(IC,IR,I2)
-               FAA(IR,I2) = FAA(IR,I2)-RM*FAA(IC,I1)
-            ENDDO
-            DO IR=1,NRC
-               RM=CC(IC,IR,I2)
-               FC(IR)= FC(IR)-RM*FAA(IC,I1)
-            ENDDO
-         ENDDO
-      ENDDO            
+         CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
+     +                  A1(1,1,I2),FAA(1,I2),
+     +                  CC(1,1,I2),FC,NOV,NRC,IPR(1,I1))
+      ENDDO
 C
       RETURN
       END SUBROUTINE REDRHS
@@ -1521,8 +1535,49 @@ C
       RETURN
       END SUBROUTINE DIMRGE
 C
+C     ---------- -------
+      SUBROUTINE BCKSUB1(S1,A2,S2,BB,FAA,FCC,SOL1,SOL2,FC,NOV,NCB,IPC)
+C
+      IMPLICIT NONE
+C
+C Arguments
+      INTEGER   NOV,NCB,IPC(NOV)
+      DOUBLE PRECISION S1(NOV,NOV),S2(NOV,NOV)
+      DOUBLE PRECISION A2(NOV,NOV),BB(NCB,NOV)
+      DOUBLE PRECISION SOL1(NOV),SOL2(NOV),FAA(NOV),FC(*),FCC(*)
+C
+C Local
+      INTEGER K,L
+      DOUBLE PRECISION SM,TMP
+C
+C
+C Backsubstitution process for 1 block row
+      DO K=NOV,1,-1
+         SM=FAA(K)
+         DO L=1,NOV
+            SM=SM-FCC(L)*S1(L,K)
+            SM=SM-SOL2(L)*S2(L,K)
+         ENDDO
+         DO L=1,NCB
+            SM=SM-FC(L)*BB(L,K)
+         ENDDO
+         DO L=K+1,NOV
+            SM=SM-SOL1(L)*A2(L,K)
+         ENDDO
+         SOL1(K)=SM/A2(K,K)
+      ENDDO
+C     Revert column pivoting on SOL1
+      DO K=NOV,1,-1
+         TMP=SOL1(K)
+         SOL1(K)=SOL1(IPC(K))
+         SOL1(IPC(K))=TMP
+      ENDDO
+C
+      RETURN
+      END SUBROUTINE BCKSUB1
+C
 C     ---------- ------
-      SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,IPC)
+      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,FCC,SOL,FC,NA,NOV,NCB,IPC)
 C
       IMPLICIT NONE
 C
@@ -1533,36 +1588,17 @@ C Arguments
       DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
 C
 C Local
-      INTEGER I,K,L
-      DOUBLE PRECISION SM,TMP,NAM1
+      INTEGER I,L
 C
       DO L=1,NOV
          SOL(L,NA+1) = FC(L)
       ENDDO
 C
 C Backsubstitution process; concurrently in each node.
-      NAM1=NA-1
-      DO I=NAM1,1,-1
-         DO K=NOV,1,-1
-            SM=0.0D0
-            DO L=1,NOV
-               SM=SM+FCC(L)*S1(L,K,I)
-               SM=SM+SOL(L,I+2)*S2(L,K,I)
-            ENDDO
-            DO L=1,NCB
-               SM=SM+FC(NOV+L)*BB(L,K,I)
-            ENDDO
-            DO L=K+1,NOV
-               SM=SM+SOL(L,I+1)*A2(L,K,I)
-            ENDDO
-            SOL(K,I+1)=(FAA(K,I)-SM)/A2(K,K,I)
-         ENDDO
-C     Revert column pivoting on SOL(*,I+1)
-         DO K=NOV,1,-1
-            TMP=SOL(K,I+1)
-            SOL(K,I+1)=SOL(IPC(K,I),I+1)
-            SOL(IPC(K,I),I+1)=TMP
-         ENDDO
+      DO I=NA-1,1,-1
+         CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),FAA(1,I),
+     +                FCC,     SOL(1,I+1),SOL(1,I+2),FC(NOV+1),
+     +                NOV,NCB,IPC(1,I))
       ENDDO
 C
       DO L=1,NOV
@@ -1594,23 +1630,22 @@ C Backsubstitution in the condensation of parameters; no communication.
       DO I=1,NA
          DO IR=NRAM,1,-1
             IRP1=IR+1
-            SM=0.D0
             IRFIR=IRF(IR,I)
+            SM=FA(IRFIR,I)
             DO J=1,NOV
                NRAPJ=NRA+J
-               SM=SM+A(J,IRFIR,I)*SOL(J,I)
-               SM=SM+A(NRAPJ,IRFIR,I)*SOL(J,I+1)
+               SM=SM-A(J,IRFIR,I)*SOL(J,I)
+               SM=SM-A(NRAPJ,IRFIR,I)*SOL(J,I+1)
             ENDDO
             DO J=1,NCB
-               NOVPJ=NOV+J
-               SM=SM+B(J,IRFIR,I)*FC(NOVPJ)
+               SM=SM-B(J,IRFIR,I)*FC(NOV+J)
             ENDDO
             DO J=IRP1,NRAM
                J1=J+NOV
-               SM=SM+A(J1,IRFIR,I)*X(J1)
+               SM=SM-A(J1,IRFIR,I)*X(J1)
             ENDDO
             NOVPIR=NOV+IR
-            X(NOVPIR)=(FA(IRFIR,I)-SM)/A(NOVPIR,IRFIR,I)
+            X(NOVPIR)=SM/A(NOVPIR,IRFIR,I)
          ENDDO    
 C        **Copy SOL into FA 
          DO J=1,NOV
