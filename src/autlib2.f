@@ -1153,7 +1153,6 @@ C Local
 C
          DO K1=1,NOV
             IPC(K1)       = K1
-            IPR(K1)       = K1
             DO K2=1,NOV
                S21(K2,K1) = 0.0D0
                S12(K2,K1) = 0.0D0
@@ -1198,7 +1197,8 @@ C
             IF(PIV1.GE.PIV2)THEN
                JPIV        = JPIV1
                IPR(IC)     = IPIV1
-               CALL REDSWP(IC,NOV,NCB,
+               IF(IC.NE.IPIV1)
+     +            CALL REDSWP(IC,NOV,NCB,
      +              S11(1,IC),S11(1,IPIV1),A21(1,IC),A21(1,IPIV1),
      +              S21(1,IC),S21(1,IPIV1),BB1(1,IC),BB1(1,IPIV1))
             ELSE
@@ -1209,17 +1209,19 @@ C
      +              S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2))
             ENDIF
             IAMAX(IPR(IC)) = IAMAX(IC)
-            ITMP            = IPC(IC)
-            IPC(IC)         = IPC(JPIV)
-            IPC(JPIV)       = ITMP
-            DO IR=1,NOV
-               TMP          = A12(IC,IR)
-               A12(IC,IR)   = A12(JPIV,IR)
-               A12(JPIV,IR) = TMP
-               TMP          = A21(IC,IR)
-               A21(IC,IR)   = A21(JPIV,IR)
-               A21(JPIV,IR) = TMP
-            ENDDO
+            IF(JPIV.NE.IC)THEN
+               ITMP            = IPC(IC)
+               IPC(IC)         = IPC(JPIV)
+               IPC(JPIV)       = ITMP
+               DO IR=1,NOV
+                  TMP          = A12(IC,IR)
+                  A12(IC,IR)   = A12(JPIV,IR)
+                  A12(JPIV,IR) = TMP
+                  TMP          = A21(IC,IR)
+                  A21(IC,IR)   = A21(JPIV,IR)
+                  A21(JPIV,IR) = TMP
+               ENDDO
+            ENDIF
 C
 C End of pivoting; Elimination starts here
 C
