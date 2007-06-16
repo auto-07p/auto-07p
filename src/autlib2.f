@@ -818,9 +818,6 @@ C
             IRF(J)=J
             IAMAX(J)=NOV+IDAMAX(NEX,A(NOV+1,J),1)
          ENDDO
-         DO J=1,NCA
-            ICF(J)=J
-         ENDDO
          DO IC=M1,M2
             IRP=IC-NOV
             IR1=IRP+1
@@ -839,10 +836,8 @@ C           **Search for pivot (Complete pivoting)
                ENDIF
             ENDDO
 C           **Move indices
+            ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
-               ITMP        = ICF(IC)
-               ICF(IC)     = ICF(JPIV)
-               ICF(JPIV)   = ITMP
 C              **Physically swap columns
                DO IR=1,NRA
                   TMP=A(JPIV,IR)
@@ -1152,7 +1147,6 @@ C Local
        DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
 C
          DO K1=1,NOV
-            IPC(K1)       = K1
             DO K2=1,NOV
                S21(K2,K1) = 0.0D0
                S12(K2,K1) = 0.0D0
@@ -1209,10 +1203,8 @@ C
      +              S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2))
             ENDIF
             IAMAX(IPR(IC)) = IAMAX(IC)
+            IPC(IC) = JPIV
             IF(JPIV.NE.IC)THEN
-               ITMP            = IPC(IC)
-               IPC(IC)         = IPC(JPIV)
-               IPC(JPIV)       = ITMP
                DO IR=1,NOV
                   TMP          = A12(IC,IR)
                   A12(IC,IR)   = A12(JPIV,IR)
@@ -1532,18 +1524,17 @@ C
 C     ---------- ------
       SUBROUTINE BCKSUB(S1,S2,A2,BB,FAA,FC,FCC,SOL,NA,NOV,NCB,IPC)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      INCLUDE 'auto.h'
+      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NA,NOV,NCB,IPC(NOV,*)
-      DIMENSION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DIMENSION A2(NOV,NOV,*),BB(NCB,NOV,*)
-      DIMENSION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
+      DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
+      DOUBLE PRECISION A2(NOV,NOV,*),BB(NCB,NOV,*)
+      DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
 C
 C Local
-      INTEGER I,K
-      DOUBLE PRECISION SM
+      INTEGER I,K,L
+      DOUBLE PRECISION SM,TMP,NAM1
 C
       DO L=1,NOV
          SOL(L,NA+1) = FC(L)
@@ -1562,11 +1553,15 @@ C Backsubstitution process; concurrently in each node.
                SM=SM+FC(NOV+L)*BB(L,K,I)
             ENDDO
             DO L=K+1,NOV
-               L1=IPC(L,I)
-               SM=SM+SOL(L1,I+1)*A2(L,K,I)
+               SM=SM+SOL(L,I+1)*A2(L,K,I)
             ENDDO
-            L2=IPC(K,I)
-            SOL(L2,I+1)=(FAA(K,I)-SM)/A2(K,K,I)
+            SOL(K,I+1)=(FAA(K,I)-SM)/A2(K,K,I)
+         ENDDO
+C     Revert column pivoting on SOL(*,I+1)
+         DO K=NOV,1,-1
+            TMP=SOL(K,I+1)
+            SOL(K,I+1)=SOL(IPC(K,I),I+1)
+            SOL(IPC(K,I),I+1)=TMP
          ENDDO
       ENDDO
 C
@@ -1617,12 +1612,18 @@ C Backsubstitution in the condensation of parameters; no communication.
             NOVPIR=NOV+IR
             X(NOVPIR)=(FA(IRFIR,I)-SM)/A(NOVPIR,IRFIR,I)
          ENDDO    
-C        **Copy SOL and X into FA 
+C        **Copy SOL into FA 
          DO J=1,NOV
             FA(J,I)=SOL(J,I)
          ENDDO
+C        **Undo pivots and copy X into FA
+         DO J=NRA,NOV+1,-1
+            TMP=X(ICF(J,I))
+            X(ICF(J,I))=X(J)
+            X(J)=TMP
+         ENDDO
          DO J=NOV+1,NRA
-            FA(ICF(J,I),I)=X(J)
+            FA(J,I)=X(J)
          ENDDO
       ENDDO
 C
