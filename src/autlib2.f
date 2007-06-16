@@ -966,13 +966,17 @@ C
 C     ---------- ------
       SUBROUTINE CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC,IRF)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NOV,NA,NRA,NCA
       INTEGER   NRC,IRF(NRA,*)
-      DIMENSION A(NCA,NRA,*),C(NCA,NRC,*)
-      DIMENSION FA(NRA,*),FC(*)
+      DOUBLE PRECISION A(NCA,NRA,*),C(NCA,NRC,*)
+      DOUBLE PRECISION FA(NRA,*),FC(*)
+C
+C Local
+      INTEGER   M1,M2,NEX,I,IC,IR1,IR,IRFIR
+      DOUBLE PRECISION RM
 C
       NEX=NCA-2*NOV
       IF(NEX.EQ.0)RETURN
@@ -985,18 +989,16 @@ C
       DO I=1,NA
          DO IC=M1,M2
             IR1=IC-NOV+1
-            IRP=IR1-1
-            IRFIRP = IRF(IRP,I)
-            DO IR=IR1,NRA
-               IRFIR=IRF(IR,I)
-               IF(A(IC,IRFIR,I).NE.0.0)
-     +            FA(IRFIR,I)=FA(IRFIR,I)-
-     +            A(IC,IRFIR,I)*FA(IRFIRP,I)
-            ENDDO
-            DO IR=1,NRC
-               IF(C(IC,IR,I).NE.0.0)
-     +            FC(IR)=FC(IR)-C(IC,IR,I)*FA(IRFIRP,I)
-            ENDDO
+            RM=FA(IRF(IR1-1,I),I)
+            IF(RM.NE.0.0)THEN
+               DO IR=IR1,NRA
+                  IRFIR=IRF(IR,I)
+                  FA(IRFIR,I)=FA(IRFIR,I)-RM*A(IC,IRFIR,I)
+               ENDDO
+               DO IR=1,NRC
+                  FC(IR)=FC(IR)-RM*C(IC,IR,I)
+               ENDDO
+            ENDIF
          ENDDO
       ENDDO
 C
@@ -1334,36 +1336,35 @@ C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NOV,NRC,IPR(NOV)
+      INTEGER   NOV,NRC,IPR(NOV)
       DOUBLE PRECISION A12(NOV,NOV),A21(NOV,NOV)
       DOUBLE PRECISION CC(NOV,NRC)
       DOUBLE PRECISION FAA1(NOV),FAA2(NOV),FC(*)
 C
 C Local
       INTEGER IC,IR,IPIV1,L1
-      DOUBLE PRECISION TMP
+      DOUBLE PRECISION RM
 C
 C Reduce with the right hand side for one block
       DO IC=1,NOV
          IPIV1 = IPR(IC)
          IF(IPIV1.LE.NOV)THEN
-            TMP         = FAA1(IC)
-            FAA1(IC)    = FAA1(IPIV1)
-            FAA1(IPIV1) = TMP
+            RM          = FAA1(IPIV1)
+            FAA1(IPIV1) = FAA1(IC)
          ELSE
             L1       = IPIV1-NOV
-            TMP      = FAA1(IC)
-            FAA1(IC) = FAA2(L1)
-            FAA2(L1) = TMP
+            RM       = FAA2(L1)
+            FAA2(L1) = FAA1(IC)
          ENDIF
+         FAA1(IC) = RM
          DO IR=IC+1,NOV
-            FAA1(IR) = FAA1(IR)-A21(IC,IR)*FAA1(IC)
+            FAA1(IR) = FAA1(IR)-A21(IC,IR)*RM
          ENDDO
          DO IR=1,NOV
-            FAA2(IR) = FAA2(IR)-A12(IC,IR)*FAA1(IC)
+            FAA2(IR) = FAA2(IR)-A12(IC,IR)*RM
          ENDDO
          DO IR=1,NRC
-            FC(IR)= FC(IR)-CC(IC,IR)*FAA1(IC)
+            FC(IR)= FC(IR)-CC(IC,IR)*RM
          ENDDO
       ENDDO
 C
@@ -1383,7 +1384,6 @@ C Arguments
 C
 C Local
       INTEGER I1,I2
-      DOUBLE PRECISION RM
 C
 C Reduce concurrently in each node
       DO I1=1,NA-1
