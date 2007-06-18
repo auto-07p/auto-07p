@@ -97,6 +97,9 @@ zero: $(AUTO_DIR)/src/zero.f
 ../lib/eispack.o: eispack.f
 	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
 #
+../lib/blas.o: blas.f
+	$(FC) $(FFLAGS) $(OPT) -c blas.f -o $@
+#
 ../lib/compat.o: compat.f90
 	$(FC) $(FFLAGS) $(OPT) -c compat.f90 -o $@
 #
