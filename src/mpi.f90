@@ -142,6 +142,8 @@ subroutine mpiwfi(autobv,funi,icni)
 contains
 
   subroutine mpi_setubv_worker(funi,icni)
+    use solvebv
+    use interfaces, only:bcni
     implicit none
     include 'mpif.h'
     integer NIAP,NRAP,NPARX,NBIFX
@@ -157,9 +159,9 @@ contains
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dtm(:),fa(:,:), fc(:)
     integer, allocatable :: np(:)
-    double precision :: dum
+    double precision :: dum,dum1(1)
 
-    external funi, icni, bcni
+    external funi, icni
 
     call MPI_Bcast(iap,NIAP,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     call MPI_Comm_size(MPI_COMM_WORLD,iap(39),ierr)
@@ -188,8 +190,8 @@ contains
     call mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
-         nllv,dum,dum,rldot,nra,ups,dum,uoldps,udotps,upoldp,dtm, &
-         fa,fc,dum,dum,dum,thu)
+         nllv,dum1,dum1,rldot,nra,ups,dum1,uoldps,udotps,upoldp,dtm, &
+         fa,fc,dum1,dum1,dum1,thu)
 
     ! free input arrays
     deallocate(ups,uoldps,dtm,udotps,upoldp,thu)
@@ -201,6 +203,7 @@ contains
 end subroutine mpiwfi
 
 subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+  use solvebv, only: partition
   implicit none
   include 'mpif.h'
 
@@ -357,6 +360,7 @@ subroutine mpibcast(buf,len)
 end subroutine mpibcast
 
 subroutine mpiscat(buf,ndx,n,add)
+  use solvebv, only: partition
   implicit none
   include 'mpif.h'
 
@@ -392,6 +396,7 @@ subroutine mpiscat(buf,ndx,n,add)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
+  use solvebv, only: partition
   implicit none
   include 'mpif.h'
 

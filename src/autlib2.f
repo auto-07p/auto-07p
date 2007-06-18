@@ -8,7 +8,7 @@ C
 
       PRIVATE
 
-      PUBLIC ::SOLVBV
+      PUBLIC ::SOLVBV,PARTITION
 
       CONTAINS
 C

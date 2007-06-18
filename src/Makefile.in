@@ -103,7 +103,7 @@ zero: $(AUTO_DIR)/src/zero.f
 ../lib/compat.o: compat.f90
 	$(FC) $(FFLAGS) $(OPT) -c compat.f90 -o $@
 #
-../lib/mpi.o: @MPIFILE@ auto.h
+../lib/mpi.o: @MPIFILE@ ../lib/autlib3.o ../lib/autlib2.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c @MPIFILE@ -o $@
 #
 move: $(OBJ)
