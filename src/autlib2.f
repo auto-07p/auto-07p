@@ -78,6 +78,9 @@ C     The value of NTST may be different in different nodes.
 C
       NTSTNA=NA
       IF(IAM.EQ.0)NTSTNA=NTST
+      NT = 1
+C$    NT = OMP_GET_MAX_THREADS()
+      IF(NT.GT.NA)NT=NA
       IF(IFST.EQ.1)THEN
          IF(ALLOCATED(A))THEN
 C           Free floating point arrays
@@ -119,9 +122,6 @@ C     zero pseudo-arclength part of matrices, rest is done in setubv()
          CALL SETFCDD(IFST,D(1,NRC),FC(NFC),NFPR,1)
       ENDIF
 C
-      NT = 1
-C$    NT = OMP_GET_MAX_THREADS()
-      IF(NT.GT.NA)NT=NA
       IF(NT.GT.1)ALLOCATE(DD(NFPR,NRC,NT-1),FCFC(NRC,NT-1))
       ALLOCATE(FAA(NDIM,NTSTNA+1),SOL(NDIM,NTSTNA+1))
 C
@@ -714,16 +714,17 @@ C
 C     Fix up boundaries between CC parts from COPYCP
 C
       IF(IFST.EQ.1)THEN
-         DO II=1,NT
+         DO II=1,NT-1
             III=II*NA/NT+1
             DO J=1,NRC
                DO K=1,NOV
-                  IF(II.EQ.NT)THEN
-                     CC(K,J,III)=C(NRA+K,J,III-1)
-                  ELSE
-                     CC(K,J,III)=CC(K,J,III)+C(NRA+K,J,III-1)
-                  ENDIF
+                  CC(K,J,III)=CC(K,J,III)+C(NRA+K,J,III-1)
                ENDDO
+            ENDDO
+         ENDDO
+         DO J=1,NRC
+            DO K=1,NOV
+               CC(K,J,NA+1)=C(NRA+K,J,NA)
             ENDDO
          ENDDO
       ENDIF
@@ -746,9 +747,12 @@ C
 C
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
+         DO II=1,NOV
+            SOL(II,1)=FCC(II)
+         ENDDO
 C
-         CALL BCKSUB(S1,A2,S2,BB,FAA,FCC,SOL,FC,NTST,NOV,NCB,IPC)
          DEALLOCATE(FCC,E,IR,IC)
+         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC)
       ENDIF
       IF(KWT.GT.1)THEN
          CALL MPIBCAST(FC,NOV+NCB)
@@ -1039,11 +1043,14 @@ C
          ENDDO
       ENDDO
 C
+      NAP1=NA+1
       DO I=1,NA
          DO IR=1,NRC
             DO IC=1,NOV
                IF(I.EQ.1)THEN
                   CC(IC,IR,I)=C(IC,IR,I)
+               ELSEIF(I.EQ.NAP1)THEN
+                  CC(IC,IR,I)=C(NRA+IC,IR,I-1)
                ELSE
                   CC(IC,IR,I)=C(IC,IR,I)+C(NRA+IC,IR,I-1)
                ENDIF
@@ -1080,12 +1087,12 @@ C
       END SUBROUTINE CPYRHS
 C
 C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,NA,NOV,NCB,NRC,S1,S2,IPC,IPR)
+      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,N,NOV,NCB,NRC,S1,S2,IPC,IPR)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NOV,NCB,NRC
+      INTEGER   N,NOV,NCB,NRC
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
@@ -1093,11 +1100,11 @@ C Arguments
       DOUBLE PRECISION DD(NCB,*)
 C
 C Local 
-      INTEGER IAMAX,IR,IC,I1,I2,I3,NAM1
+      INTEGER IAMAX,IR,IC,I1,I2,I3,NM1
       ALLOCATABLE IAMAX(:)
       ALLOCATE(IAMAX(2*NOV))
 C
-      NAM1    = NA-1
+      NM1    = N-1
 C
 C Initialization
 C
@@ -1108,7 +1115,7 @@ C
       ENDDO
 C
 C The reduction process is done concurrently
-      DO I1=1,NAM1
+      DO I1=1,NM1
          I2=I1+1
          I3=I2+1
          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
@@ -1120,7 +1127,7 @@ C
 C Initialization
       DO IR=1,NOV
          DO IC=1,NOV
-            S2(IC,IR,NA)=0.0D0
+            S2(IC,IR,N)=0.0D0
          ENDDO
       ENDDO
 C
@@ -1372,12 +1379,12 @@ C
       END SUBROUTINE REDRHSBLK
 C
 C     ---------- ------
-      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,NA,NOV,NRC,IPR)
+      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,N,NOV,NRC,IPR)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NOV,NRC,IPR(NOV,*)
+      INTEGER   N,NOV,NRC,IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION CC(NOV,NRC,*)
       DOUBLE PRECISION FAA(NOV,*),FC(*)
@@ -1386,7 +1393,7 @@ C Local
       INTEGER I1,I2
 C
 C Reduce concurrently in each node
-      DO I1=1,NA-1
+      DO I1=1,N-1
          I2=I1+1
          CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
      +                  A1(1,1,I2),FAA(1,I2),
@@ -1577,32 +1584,28 @@ C
       END SUBROUTINE BCKSUB1
 C
 C     ---------- ------
-      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,FCC,SOL,FC,NA,NOV,NCB,IPC)
+      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,N,NOV,NCB,IPC)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NA,NOV,NCB,IPC(NOV,*)
+      INTEGER   N,NOV,NCB,IPC(NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION A2(NOV,NOV,*),BB(NCB,NOV,*)
-      DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*),FCC(*)
+      DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*)
 C
 C Local
       INTEGER I,L
 C
       DO L=1,NOV
-         SOL(L,NA+1) = FC(L)
+         SOL(L,N+1) = FC(L)
       ENDDO
 C
 C Backsubstitution process; concurrently in each node.
-      DO I=NA-1,1,-1
+      DO I=N-1,1,-1
          CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),FAA(1,I),
-     +                FCC,     SOL(1,I+1),SOL(1,I+2),FC(NOV+1),
+     +                SOL(1,1),SOL(1,I+1),SOL(1,I+2),FC(NOV+1),
      +                NOV,NCB,IPC(1,I))
-      ENDDO
-C
-      DO L=1,NOV
-         SOL(L,1)=FCC(L)
       ENDDO
 
       RETURN
