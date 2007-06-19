@@ -739,11 +739,11 @@ C
 C
          IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D,
-     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR)
+     +     1,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR)
 C
          IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),NTST,NOV,NRC,IPR)
+     +     FAA,FC(NBC+1),1,NTST,NOV,NRC,IPR)
 C
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
@@ -752,7 +752,10 @@ C
          ENDDO
 C
          DEALLOCATE(FCC,E,IR,IC)
-         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC)
+         DO II=1,NOV
+            SOL(II,NTST+1) = FC(II)
+         ENDDO
+         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,1,NTST,NOV,NCB,IPC)
       ENDIF
       IF(KWT.GT.1)THEN
          CALL MPIBCAST(FC,NOV+NCB)
@@ -1086,13 +1089,14 @@ C
       RETURN
       END SUBROUTINE CPYRHS
 C
-C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,N,NOV,NCB,NRC,S1,S2,IPC,IPR)
+C     --------- ---------- ------
+      RECURSIVE SUBROUTINE REDUCE(A1,A2,BB,CC,DD,LO,HI,NOV,NCB,NRC,
+     +     S1,S2,IPC,IPR)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   N,NOV,NCB,NRC
+      INTEGER   LO,HI,NOV,NCB,NRC
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
@@ -1100,36 +1104,42 @@ C Arguments
       DOUBLE PRECISION DD(NCB,*)
 C
 C Local 
-      INTEGER IAMAX,IR,IC,I1,I2,I3,NM1
+      INTEGER IAMAX,IR,IC,I0,I1,I2,MID
       ALLOCATABLE IAMAX(:)
+C
+C Initialization
+C
+      DO IR=1,NOV
+         DO IC=1,NOV
+            S1(IC,IR,LO)=A1(IC,IR,LO)
+         ENDDO
+      ENDDO
+C
+C Use nested dissection for reduction; this is naturally a recursive
+C procedure.
+C
+      MID=(LO+HI-1)/2
+C
+      IF(LO.LT.MID)
+     +   CALL REDUCE(A1,A2,BB,CC,DD,LO,MID,NOV,NCB,NRC,S1,S2,IPC,IPR)
+C
+      I0=LO
+      I1=MID
+      I2=HI
+      IF(MID+1.LT.HI)THEN
+         CALL REDUCE(A1,A2,BB,CC,DD,MID+1,HI,NOV,NCB,NRC,S1,S2,IPC,IPR)
+         DO IR=1,NOV
+            DO IC=1,NOV
+               A1(IC,IR,I1+1)=S1(IC,IR,I2)
+            ENDDO
+         ENDDO
+      ENDIF
       ALLOCATE(IAMAX(2*NOV))
 C
-      NM1    = N-1
-C
-C Initialization
-C
-      DO IR=1,NOV
-         DO IC=1,NOV
-            S1(IC,IR,1)=A1(IC,IR,1)
-         ENDDO
-      ENDDO
-C
-C The reduction process is done concurrently
-      DO I1=1,NM1
-         I2=I1+1
-         I3=I2+1
-         CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
-     +               S1(1,1,I2),A1(1,1,I2),A2(1,1,I2),BB(1,1,I2),
-     +               CC(1,1,1 ),CC(1,1,I2),CC(1,1,I3),DD,
+      CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
+     +            S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
+     +            CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
      +        IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
-      ENDDO
-C
-C Initialization
-      DO IR=1,NOV
-         DO IC=1,NOV
-            S2(IC,IR,N)=0.0D0
-         ENDDO
-      ENDDO
 C
       DEALLOCATE(IAMAX)
       RETURN
@@ -1378,27 +1388,29 @@ C
       RETURN
       END SUBROUTINE REDRHSBLK
 C
-C     ---------- ------
-      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,N,NOV,NRC,IPR)
+C     --------- ---------- ------
+      RECURSIVE SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,LO,HI,NOV,NRC,IPR)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   N,NOV,NRC,IPR(NOV,*)
+      INTEGER   LO,HI,NOV,NRC,IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION CC(NOV,NRC,*)
       DOUBLE PRECISION FAA(NOV,*),FC(*)
 C
 C Local
-      INTEGER I1,I2
+      INTEGER MID,I1,I2
 C
-C Reduce concurrently in each node
-      DO I1=1,N-1
-         I2=I1+1
-         CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
-     +                  A1(1,1,I2),FAA(1,I2),
-     +                  CC(1,1,I2),FC,NOV,NRC,IPR(1,I1))
-      ENDDO
+      IF(LO.GE.HI)RETURN
+      MID=(LO+HI-1)/2
+      CALL REDRHS(A1,A2,CC,FAA,FC,LO,MID,NOV,NRC,IPR)
+      CALL REDRHS(A1,A2,CC,FAA,FC,MID+1,HI,NOV,NRC,IPR)
+      I1=MID
+      I2=HI
+      CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
+     +     A1(1,1,I1+1),FAA(1,I2),
+     +     CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
 C
       RETURN
       END SUBROUTINE REDRHS
@@ -1583,31 +1595,32 @@ C
       RETURN
       END SUBROUTINE BCKSUB1
 C
-C     ---------- ------
-      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,N,NOV,NCB,IPC)
+C     --------- ---------- ------
+      RECURSIVE SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,LO,HI,NOV,NCB,
+     +     IPC)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   N,NOV,NCB,IPC(NOV,*)
+      INTEGER   LO,HI,NOV,NCB,IPC(NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION A2(NOV,NOV,*),BB(NCB,NOV,*)
       DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*)
 C
 C Local
-      INTEGER I,L
+      INTEGER MID,I,I0,I1
 C
-      DO L=1,NOV
-         SOL(L,N+1) = FC(L)
-      ENDDO
+      IF(LO.GE.HI)RETURN
+      MID=(LO+HI-1)/2
+      I=MID
+      I0=LO
+      I1=HI
+      CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),
+     +     FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1),
+     +     NOV,NCB,IPC(1,I))
+      CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,MID+1,HI,NOV,NCB,IPC)
+      CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,LO,MID,NOV,NCB,IPC)
 C
-C Backsubstitution process; concurrently in each node.
-      DO I=N-1,1,-1
-         CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),FAA(1,I),
-     +                SOL(1,1),SOL(1,I+1),SOL(1,I+2),FC(NOV+1),
-     +                NOV,NCB,IPC(1,I))
-      ENDDO
-
       RETURN
       END SUBROUTINE BCKSUB
 C
