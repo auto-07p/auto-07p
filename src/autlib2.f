@@ -134,10 +134,10 @@ C$    IT = OMP_GET_THREAD_NUM()
      +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT)
 C
       I = IT*NA/NT+1
-      CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA(1,I),FC,
+      CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,
      +  FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
-     +  NFPR,NFC,A1(1,1,I),A2(1,1,I),BB(1,1,I),CC(1,1,I),CCBC,DDBC,
-     +  SOL(1,I),S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT)
+     +  NFPR,NFC,A1,A2,BB,CC,CCBC,DDBC,
+     +  SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT)
 C
 C$OMP END PARALLEL
 C
@@ -675,7 +675,8 @@ C
          ELSE
             CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),IRF,ICF)
          ENDIF
-         CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1,A2,BB,CC,IRF)
+         CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
+     +       BB(1,1,I),CC(1,1,I),IRF)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
@@ -691,14 +692,15 @@ C
             CALL SETZERO(FA,FCFC(1,IT),N,NRA,NRC)
          ENDIF
       ENDIF
-      CALL CPYRHS(N,NOV,NRA,FAA,FA,IRF)
+      CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA,IRF)
 C
 C$OMP BARRIER
 C$OMP MASTER
 C
 C     This is where we sum into the global copy of the d array
+C (here only applies to MPI)
 C
-      IF(NT.GT.1)THEN
+      IF(NT.GT.1.AND.IAM.GT.0)THEN
          DO II=1,NT-1
             DO J=1,NRC
                IF(IFST.EQ.1)THEN
@@ -733,17 +735,25 @@ C
      +     CALL MPICON(A1,A2,BB,CC,D,FAA,FC(NBC+1),
      +     NTST,NOV,NCB,NRC,IFST)
 C
-      IF(IAM.EQ.0)THEN
-         ALLOCATE(FCC(2*NOV+NFC+2*NOV*NOV+1),E(NOV+NFC,2*NOV+NFC))
-         ALLOCATE(IR(2*NOV+NFC+2*NOV*NOV+1),IC(2*NOV+NFC+2*NOV*NOV+1))
+C$OMP END MASTER
+C$OMP BARRIER
 C
+      IF(IAM.EQ.0)THEN
          IF(IFST.EQ.1)
      +     CALL REDUCE(A1,A2,BB,CC,D,
-     +     1,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR)
+     +     DD,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IT,NT)
 C
          IF(NLLV.EQ.0)
      +     CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),1,NTST,NOV,NRC,IPR)
+     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT)
+      ENDIF
+C
+C REDUCE and REDRHS already have barriers.
+C$OMP MASTER
+C
+      IF(IAM.EQ.0)THEN
+         ALLOCATE(FCC(2*NOV+NFC+2*NOV*NOV+1),E(NOV+NFC,2*NOV+NFC))
+         ALLOCATE(IR(2*NOV+NFC+2*NOV*NOV+1),IC(2*NOV+NFC+2*NOV*NOV+1))
 C
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
@@ -752,21 +762,24 @@ C
          ENDDO
 C
          DEALLOCATE(FCC,E,IR,IC)
-         DO II=1,NOV
-            SOL(II,NTST+1) = FC(II)
-         ENDDO
-         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,1,NTST,NOV,NCB,IPC)
-      ENDIF
-      IF(KWT.GT.1)THEN
-         CALL MPIBCAST(FC,NOV+NCB)
-         CALL MPISCAT(SOL,NOV,NTST,1)
       ENDIF
 C
 C$OMP END MASTER
+C
+      IF(IAM.EQ.0)THEN
+         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT)
+      ENDIF
+      IF(KWT.GT.1)THEN
 C$OMP BARRIER
+C$OMP MASTER
+         CALL MPIBCAST(FC,NOV+NCB)
+         CALL MPISCAT(SOL,NOV,NTST,1)
+C$OMP END MASTER
+C$OMP BARRIER
+      ENDIF
 C
       ALLOCATE(X(NRA))
-      CALL INFPAR(A,B,FA,SOL,FC,N,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,IRF,ICF,X)
       DEALLOCATE(X)
 C
       RETURN
@@ -1089,62 +1102,134 @@ C
       RETURN
       END SUBROUTINE CPYRHS
 C
-C     --------- ---------- ------
-      RECURSIVE SUBROUTINE REDUCE(A1,A2,BB,CC,DD,LO,HI,NOV,NCB,NRC,
-     +     S1,S2,IPC,IPR)
+C     ---------- ------
+      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,DDD,NTST,NOV,NCB,NRC,
+     +     S1,S2,IPC,IPR,IT,NT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   LO,HI,NOV,NCB,NRC
+      INTEGER   NTST,NOV,NCB,NRC,IT,NT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*)
-      DOUBLE PRECISION DD(NCB,*)
+      DOUBLE PRECISION DD(NCB,*),DDD(NCB,NRC,*)
 C
 C Local 
-      INTEGER IAMAX,IR,IC,I0,I1,I2,MID
+      INTEGER IAMAX,I,J,K,PLO,PHI
       ALLOCATABLE IAMAX(:)
+      DOUBLE PRECISION, ALLOCATABLE :: CCLO(:,:)
 C
-C Initialization
-C
-      DO IR=1,NOV
-         DO IC=1,NOV
-            S1(IC,IR,LO)=A1(IC,IR,LO)
-         ENDDO
-      ENDDO
-C
-C Use nested dissection for reduction; this is naturally a recursive
-C procedure.
-C
-      MID=(LO+HI-1)/2
-C
-      IF(LO.LT.MID)
-     +   CALL REDUCE(A1,A2,BB,CC,DD,LO,MID,NOV,NCB,NRC,S1,S2,IPC,IPR)
-C
-      I0=LO
-      I1=MID
-      I2=HI
-      IF(MID+1.LT.HI)THEN
-         CALL REDUCE(A1,A2,BB,CC,DD,MID+1,HI,NOV,NCB,NRC,S1,S2,IPC,IPR)
-         DO IR=1,NOV
-            DO IC=1,NOV
-               A1(IC,IR,I1+1)=S1(IC,IR,I2)
-            ENDDO
-         ENDDO
-      ENDIF
       ALLOCATE(IAMAX(2*NOV))
 C
-      CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
-     +            S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
-     +            CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
-     +        IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+      IF(IT.EQ.0)THEN
+         CALL REDUCER(1,NTST,1,NTST/NT,DD)
+      ELSE
+C
+C     Create a separate CC(:,:,PLO) to avoid write overlap between threads
+C
+         ALLOCATE(CCLO(NOV,NRC))
+         DO I=1,NRC
+            DO J=1,NOV
+               CCLO(J,I)=0
+            ENDDO
+         ENDDO
+         PLO = IT*NTST/NT+1
+         PHI = (IT+1)*NTST/NT
+C     Reduce non-overlapping pieces
+         CALL REDUCER(1,NTST,PLO,PHI,DDD(1,1,IT))
+         DO I=1,NRC
+            DO J=1,NOV
+               CC(J,I,PLO)=CC(J,I,PLO)+CCLO(J,I)
+            ENDDO
+         ENDDO
+         DEALLOCATE(CCLO)
+      ENDIF
+C
+C$OMP BARRIER
+C$OMP MASTER
+C
+C     Reduce overlapping pieces
+      CALL REDUCER(1,NTST,0,NTST,DD)
+C     This is where we sum into the global copy of the d array
+      DO I=1,NT-1
+         DO J=1,NRC
+            DO K=1,NCB
+               DD(K,J)=DD(K,J)+DDD(K,J,I)
+            ENDDO
+         ENDDO
+      ENDDO
+C$OMP END MASTER
 C
       DEALLOCATE(IAMAX)
       RETURN
 C
       CONTAINS
+C
+C      --------- ---------- -------
+       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,DD)
+C
+C Arguments
+       INTEGER   LO,HI,PLO,PHI
+       DOUBLE PRECISION DD(NCB,*)
+C
+C Local 
+       INTEGER IR,IC,I0,I1,I2,MID
+C
+       IF(HI.LT.PLO.OR.LO.GT.PHI)RETURN
+C This is a check for the master reduction so it will stop as soon
+C as there is no more overlap (already handled by workers).
+       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+C
+C Use nested dissection for reduction; this is naturally a recursive
+C procedure.
+C
+       MID=(LO+HI)/2
+C
+       IF(LO.LT.MID)
+     +    CALL REDUCER(LO,MID,PLO,PHI,DD)
+C
+       I0=LO
+       I1=MID
+       I2=HI
+       IF(MID+1.LT.HI)
+     +    CALL REDUCER(MID+1,HI,PLO,PHI,DD)
+C
+C Thread is not in the [PLO,PHI] range: return
+       IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
+C
+C Initialization
+C
+       IF(LO.EQ.MID)THEN
+          DO IR=1,NOV
+             DO IC=1,NOV
+                S1(IC,IR,I1)=A1(IC,IR,I1)
+             ENDDO
+          ENDDO
+       ENDIF
+       IF(MID+1.LT.HI)THEN
+          DO IR=1,NOV
+             DO IC=1,NOV
+                A1(IC,IR,I1+1)=S1(IC,IR,I2)
+             ENDDO
+          ENDDO
+       ENDIF
+C
+       IF(PLO.GT.1.AND.I0.EQ.PLO)THEN
+          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
+     +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
+     +                CCLO,      CC(1,1,I1+1),CC(1,1,I2+1),DD,
+     +                IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+       ELSE
+          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
+     +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
+     +                CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
+     +                IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+       ENDIF
+C
+       RETURN
+       END SUBROUTINE REDUCER
 C
 C      ---------- ------
        SUBROUTINE REDBLK(S11,A21,S21,BB1,
@@ -1161,7 +1246,7 @@ C Arguments
        DOUBLE PRECISION BB1(NCB,NOV),BB2(NCB,NOV), DD(NCB,NRC)
 C
 C Local
-       INTEGER K1,K2,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2
+       INTEGER K1,K2,IR,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2
        INTEGER IDAMAX
        DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
 C
@@ -1388,31 +1473,68 @@ C
       RETURN
       END SUBROUTINE REDRHSBLK
 C
-C     --------- ---------- ------
-      RECURSIVE SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,LO,HI,NOV,NRC,IPR)
+C     ---------- ------
+      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,FCFC,NTST,NOV,NRC,IPR,
+     +     IT,NT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   LO,HI,NOV,NRC,IPR(NOV,*)
+      INTEGER   NTST,NOV,NRC,IPR(NOV,*),IT,NT
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION CC(NOV,NRC,*)
-      DOUBLE PRECISION FAA(NOV,*),FC(*)
+      DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local
-      INTEGER MID,I1,I2
+      INTEGER   I,J
 C
-      IF(LO.GE.HI)RETURN
-      MID=(LO+HI-1)/2
-      CALL REDRHS(A1,A2,CC,FAA,FC,LO,MID,NOV,NRC,IPR)
-      CALL REDRHS(A1,A2,CC,FAA,FC,MID+1,HI,NOV,NRC,IPR)
-      I1=MID
-      I2=HI
-      CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
-     +     A1(1,1,I1+1),FAA(1,I2),
-     +     CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
+      IF(IT.EQ.0)THEN
+         CALL REDRHSR(1,NTST,1,NTST/NT,FC)
+      ELSE
+         CALL REDRHSR(1,NTST,IT*NTST/NT+1,(IT+1)*NTST/NT,FCFC(1,IT))
+      ENDIF
+C$OMP BARRIER
+C$OMP MASTER
+      CALL REDRHSR(1,NTST,0,NTST,FC)
 C
+C     This is where we sum into the global copy of the fc array
+C
+      DO I=1,NT-1
+         DO J=1,NRC
+            FC(J)=FC(J)+FCFC(J,I)
+         ENDDO
+      ENDDO
+
+C$OMP END MASTER
       RETURN
+C
+      CONTAINS
+C
+C      --------- ---------- -------
+       RECURSIVE SUBROUTINE REDRHSR(LO,HI,PLO,PHI,FC)
+C
+C Arguments
+       INTEGER   LO,HI,PLO,PHI
+       DOUBLE PRECISION FC(*)
+C
+C Local
+       INTEGER MID,I1,I2
+C
+       IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
+       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+       MID=(LO+HI)/2
+       CALL REDRHSR(LO,MID,PLO,PHI,FC)
+       CALL REDRHSR(MID+1,HI,PLO,PHI,FC)
+       IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
+       I1=MID
+       I2=HI
+       CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
+     +      A1(1,1,I1+1),FAA(1,I2),
+     +      CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
+C
+       RETURN
+       END SUBROUTINE REDRHSR
+C      
       END SUBROUTINE REDRHS
 C
 C     ---------- ------
@@ -1595,33 +1717,62 @@ C
       RETURN
       END SUBROUTINE BCKSUB1
 C
-C     --------- ---------- ------
-      RECURSIVE SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,LO,HI,NOV,NCB,
-     +     IPC)
+C     ---------- ------
+      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   LO,HI,NOV,NCB,IPC(NOV,*)
+      INTEGER   NTST,NOV,NCB,IPC(NOV,*),IT,NT
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION A2(NOV,NOV,*),BB(NCB,NOV,*)
       DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*)
 C
 C Local
-      INTEGER MID,I,I0,I1
+      INTEGER   I,PLO,PHI
 C
-      IF(LO.GE.HI)RETURN
-      MID=(LO+HI-1)/2
-      I=MID
-      I0=LO
-      I1=HI
-      CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),
-     +     FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1),
-     +     NOV,NCB,IPC(1,I))
-      CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,MID+1,HI,NOV,NCB,IPC)
-      CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,LO,MID,NOV,NCB,IPC)
+C$OMP MASTER
+C do global backsubsitution until there is no overlap left
+      DO I=1,NOV
+         SOL(I,NTST+1) = FC(I)
+      ENDDO
+      CALL BCKSUBR(1,NTST,0,NTST)
+C$OMP END MASTER
+C$OMP BARRIER
+      PLO=IT*NTST/NT+1
+      PHI=(IT+1)*NTST/NT
+      CALL BCKSUBR(1,NTST,PLO,PHI)
 C
       RETURN
+      CONTAINS
+
+C      Back substitution within the interval [PLO,PHI]; no overlap
+C      --------- ---------- -------
+       RECURSIVE SUBROUTINE BCKSUBR(LO,HI,PLO,PHI)
+C
+C Arguments
+       INTEGER   LO,HI,PLO,PHI
+C
+C Local
+       INTEGER MID,I,I0,I1
+C
+       IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
+       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+       MID=(LO+HI)/2
+       I=MID
+       I0=LO
+       I1=HI
+       IF(PLO.LE.LO.AND.HI.LE.PHI)THEN
+          CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),
+     +         FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1),
+     +         NOV,NCB,IPC(1,I))
+       ENDIF
+       CALL BCKSUBR(MID+1,HI,PLO,PHI)
+       CALL BCKSUBR(LO,MID,PLO,PHI)
+C     
+       RETURN
+       END SUBROUTINE BCKSUBR
+C
       END SUBROUTINE BCKSUB
 C
 C     ---------- ------
