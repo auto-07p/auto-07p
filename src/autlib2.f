@@ -676,7 +676,7 @@ C
             CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),IRF,ICF)
          ENDIF
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
-     +       BB(1,1,I),CC(1,1,I),IRF)
+     +       BB(1,1,I),CC(1,1,I),IRF,IT.EQ.NT-1)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
@@ -694,13 +694,14 @@ C
       ENDIF
       CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA,IRF)
 C
+      IF(KWT.GT.1)THEN
 C$OMP BARRIER
 C$OMP MASTER
 C
 C     This is where we sum into the global copy of the d array
 C (here only applies to MPI)
 C
-      IF(NT.GT.1.AND.IAM.GT.0)THEN
+       IF(NT.GT.1.AND.IAM.GT.0)THEN
          DO II=1,NT-1
             DO J=1,NRC
                IF(IFST.EQ.1)THEN
@@ -711,37 +712,32 @@ C
                FC(NBC+J)=FC(NBC+J)+FCFC(J,II)
             ENDDO
          ENDDO
-      ENDIF
 C
 C     Fix up boundaries between CC parts from COPYCP
 C
-      IF(IFST.EQ.1)THEN
-         DO II=1,NT-1
-            III=II*NA/NT+1
-            DO J=1,NRC
-               DO K=1,NOV
-                  CC(K,J,III)=CC(K,J,III)+C(NRA+K,J,III-1)
+         IF(IFST.EQ.1)THEN
+            DO II=1,NT-1
+               III=II*NA/NT+1
+               DO J=1,NRC
+                  DO K=1,NOV
+                     CC(K,J,III)=CC(K,J,III)+C(NRA+K,J,III-1)
+                  ENDDO
                ENDDO
             ENDDO
-         ENDDO
-         DO J=1,NRC
-            DO K=1,NOV
-               CC(K,J,NA+1)=C(NRA+K,J,NA)
-            ENDDO
-         ENDDO
-      ENDIF
+         ENDIF
+       ENDIF
 C
-      IF(KWT.GT.1)
-     +     CALL MPICON(A1,A2,BB,CC,D,FAA,FC(NBC+1),
+       CALL MPICON(A1,A2,BB,CC,D,FAA,FC(NBC+1),
      +     NTST,NOV,NCB,NRC,IFST)
 C
 C$OMP END MASTER
 C$OMP BARRIER
+      ENDIF
 C
       IF(IAM.EQ.0)THEN
          IF(IFST.EQ.1)THEN
-           CALL REDUCE(A1,A2,BB,CC,D,DD,
-     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT)
+           CALL REDUCE(A1,A2,BB,CC,C,NCA,D,DD,FAA,FC(NBC+1),FCFC,
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
          ELSEIF(NLLV.EQ.0)THEN
            CALL REDRHS(A1,A2,CC,
      +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT)
@@ -1027,13 +1023,14 @@ C
 C
 C     ---------- ------
       SUBROUTINE COPYCP(NA,NOV,NRA,NCA,A,
-     +  NCB,B,NRC,C,A1,A2,BB,CC,IRF)
+     +  NCB,B,NRC,C,A1,A2,BB,CC,IRF,LAST)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NOV,NRA,NCA
       INTEGER   NCB,NRC,IRF(NRA,*)
+      LOGICAL   LAST
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*)
@@ -1060,12 +1057,12 @@ C
       ENDDO
 C
       NAP1=NA+1
-      DO I=1,NA
+      DO I=1,NAP1
          DO IR=1,NRC
             DO IC=1,NOV
                IF(I.EQ.1)THEN
                   CC(IC,IR,I)=C(IC,IR,I)
-               ELSEIF(I.EQ.NAP1)THEN
+               ELSEIF(I.EQ.NAP1.AND.LAST)THEN
                   CC(IC,IR,I)=C(NRA+IC,IR,I-1)
                ELSE
                   CC(IC,IR,I)=C(IC,IR,I)+C(NRA+IC,IR,I-1)
@@ -1103,28 +1100,29 @@ C
       END SUBROUTINE CPYRHS
 C
 C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,DDD,FAA,FC,FCFC,NTST,NOV,NCB,NRC,
-     +     S1,S2,IPC,IPR,NLLV,IT,NT)
+      SUBROUTINE REDUCE(A1,A2,BB,CC,C,NCA,DD,DDD,FAA,FC,FCFC,
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT
+      INTEGER   NCA,NTST,NOV,NCB,NRC,NLLV,IT,NT,KWT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*)
+      DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*),C(NCA,NRC,*)
       DOUBLE PRECISION DD(NCB,*),DDD(NCB,NRC,*)
       DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local 
-      INTEGER IAMAX,I,J,K,PLO,PHI
+      INTEGER IAMAX,I,II,J,K,PLO,PHI
       ALLOCATABLE IAMAX(:)
       DOUBLE PRECISION, ALLOCATABLE :: CCLO(:,:)
 C
       ALLOCATE(IAMAX(2*NOV))
 C
       IF(IT.EQ.0)THEN
+C     Reduce non-overlapping 1st piece
          CALL REDUCER(1,NTST,1,NTST/NT,DD,FC)
       ELSE
 C
@@ -1150,6 +1148,19 @@ C     Reduce non-overlapping pieces
 C
 C$OMP BARRIER
 C$OMP MASTER
+C
+C     Fix up boundaries between CC parts from COPYCP
+C
+      IF(KWT.EQ.1)THEN
+         DO I=1,NT-1
+            II=I*NTST/NT+1
+            DO J=1,NRC
+               DO K=1,NOV
+                  CC(K,J,II)=CC(K,J,II)+C(NCA-NOV+K,J,II-1)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDIF
 C
 C     Reduce overlapping pieces
       CALL REDUCER(1,NTST,0,NTST,DD,FC)
