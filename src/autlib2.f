@@ -739,13 +739,13 @@ C$OMP END MASTER
 C$OMP BARRIER
 C
       IF(IAM.EQ.0)THEN
-         IF(IFST.EQ.1)
-     +     CALL REDUCE(A1,A2,BB,CC,D,
-     +     DD,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IT,NT)
-C
-         IF(NLLV.EQ.0)
-     +     CALL REDRHS(A1,A2,CC,
+         IF(IFST.EQ.1)THEN
+           CALL REDUCE(A1,A2,BB,CC,D,DD,
+     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT)
+         ELSEIF(NLLV.EQ.0)THEN
+           CALL REDRHS(A1,A2,CC,
      +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT)
+         ENDIF
       ENDIF
 C
 C REDUCE and REDRHS already have barriers.
@@ -1103,18 +1103,19 @@ C
       END SUBROUTINE CPYRHS
 C
 C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,DDD,NTST,NOV,NCB,NRC,
-     +     S1,S2,IPC,IPR,IT,NT)
+      SUBROUTINE REDUCE(A1,A2,BB,CC,DD,DDD,FAA,FC,FCFC,NTST,NOV,NCB,NRC,
+     +     S1,S2,IPC,IPR,NLLV,IT,NT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NCB,NRC,IT,NT
+      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*)
       DOUBLE PRECISION DD(NCB,*),DDD(NCB,NRC,*)
+      DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local 
       INTEGER IAMAX,I,J,K,PLO,PHI
@@ -1124,7 +1125,7 @@ C
       ALLOCATE(IAMAX(2*NOV))
 C
       IF(IT.EQ.0)THEN
-         CALL REDUCER(1,NTST,1,NTST/NT,DD)
+         CALL REDUCER(1,NTST,1,NTST/NT,DD,FC)
       ELSE
 C
 C     Create a separate CC(:,:,PLO) to avoid write overlap between threads
@@ -1138,7 +1139,7 @@ C
          PLO = IT*NTST/NT+1
          PHI = (IT+1)*NTST/NT
 C     Reduce non-overlapping pieces
-         CALL REDUCER(1,NTST,PLO,PHI,DDD(1,1,IT))
+         CALL REDUCER(1,NTST,PLO,PHI,DDD(1,1,IT),FCFC(1,IT))
          DO I=1,NRC
             DO J=1,NOV
                CC(J,I,PLO)=CC(J,I,PLO)+CCLO(J,I)
@@ -1151,13 +1152,16 @@ C$OMP BARRIER
 C$OMP MASTER
 C
 C     Reduce overlapping pieces
-      CALL REDUCER(1,NTST,0,NTST,DD)
+      CALL REDUCER(1,NTST,0,NTST,DD,FC)
 C     This is where we sum into the global copy of the d array
       DO I=1,NT-1
          DO J=1,NRC
             DO K=1,NCB
                DD(K,J)=DD(K,J)+DDD(K,J,I)
             ENDDO
+            IF(NLLV.EQ.0)THEN
+               FC(J)=FC(J)+FCFC(J,I)
+            ENDIF
          ENDDO
       ENDDO
 C$OMP END MASTER
@@ -1168,11 +1172,11 @@ C
       CONTAINS
 C
 C      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,DD)
+       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,DD,FC)
 C
 C Arguments
        INTEGER   LO,HI,PLO,PHI
-       DOUBLE PRECISION DD(NCB,*)
+       DOUBLE PRECISION DD(NCB,*),FC(*)
 C
 C Local 
        INTEGER IR,IC,I0,I1,I2,MID
@@ -1188,13 +1192,13 @@ C
        MID=(LO+HI)/2
 C
        IF(LO.LT.MID)
-     +    CALL REDUCER(LO,MID,PLO,PHI,DD)
+     +    CALL REDUCER(LO,MID,PLO,PHI,DD,FC)
 C
        I0=LO
        I1=MID
        I2=HI
        IF(MID+1.LT.HI)
-     +    CALL REDUCER(MID+1,HI,PLO,PHI,DD)
+     +    CALL REDUCER(MID+1,HI,PLO,PHI,DD,FC)
 C
 C Thread is not in the [PLO,PHI] range: return
        IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
@@ -1226,6 +1230,11 @@ C
      +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
      +                CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
      +                IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+       ENDIF
+       IF(NLLV.EQ.0)THEN
+          CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
+     +         A1(1,1,I1+1),FAA(1,I2),
+     +         CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
        ENDIF
 C
        RETURN
