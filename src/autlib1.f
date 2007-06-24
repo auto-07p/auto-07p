@@ -462,6 +462,9 @@ C
         DO I=1,NUZR
           READ(2,*)IUZ(I),VUZ(I)
         ENDDO
+      ELSE
+C       Avoid uninitialized pointers
+        ALLOCATE(IUZ(1),VUZ(1))
       ENDIF
 C
       IAP(1)=NDIM
