@@ -31,7 +31,8 @@ C
 C
 C Local
       ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
-      ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:)
+      ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:)
+      ALLOCATABLE CCLO(:,:,:),CCBC(:,:,:)
       ALLOCATABLE DDBC(:,:),DD(:,:,:),FCFC(:,:),FAA(:,:),SOL(:,:)
       ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:),NP(:)
       SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC,ICF,IRF,IPR,IPC
@@ -122,7 +123,10 @@ C     zero pseudo-arclength part of matrices, rest is done in setubv()
          CALL SETFCDD(IFST,D(1,NRC),FC(NFC),NFPR,1)
       ENDIF
 C
-      IF(NT.GT.1)ALLOCATE(DD(NFPR,NRC,NT-1),FCFC(NRC,NT-1))
+      IF(NT.GT.1)THEN
+C        CCLO avoids write overlap between threads
+         ALLOCATE(DD(NFPR,NRC,NT-1),FCFC(NRC,NT-1),CCLO(NDIM,NRC,NT-1))
+      ENDIF
       ALLOCATE(FAA(NDIM,NTSTNA+1),SOL(NDIM,NTSTNA+1))
 C
 C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT)
@@ -136,12 +140,12 @@ C
       I = IT*NA/NT+1
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,
      +  FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
-     +  NFPR,NFC,A1,A2,BB,CC,CCBC,DDBC,
+     +  NFPR,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
      +  SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT)
 C
 C$OMP END PARALLEL
 C
-      IF(NT.GT.1)DEALLOCATE(DD,FCFC)
+      IF(NT.GT.1)DEALLOCATE(DD,FCFC,CCLO)
       DEALLOCATE(FAA,SOL)
 C
       IF(KWT.GT.1)THEN
@@ -636,7 +640,7 @@ C
 C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,DD,FA,FAA,FC,FCFC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
-     +  NCB,NFC,A1,A2,BB,CC,CCBC,DDBC,
+     +  NCB,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
      +  SOL,S1,S2,IPR,IPC,IRF,ICF,IAM,KWT,IT,NT)
 C
       IMPLICIT NONE
@@ -650,6 +654,7 @@ C Arguments
       DOUBLE PRECISION FA(*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*),P0(*)
       DOUBLE PRECISION P1(*),A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NFC-NBC,*)
+      DOUBLE PRECISION CCLO(NOV,NFC-NBC,*)
       DOUBLE PRECISION CCBC(*),DDBC(*),SOL(NOV,*),S1(*),S2(*)
       INTEGER   IPR(*),IPC(*),IRF(*),ICF(*)
 C
@@ -676,7 +681,7 @@ C
             CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),IRF,ICF)
          ENDIF
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
-     +       BB(1,1,I),CC(1,1,I),IRF,IT.EQ.NT-1)
+     +       BB(1,1,I),CC(1,1,I),CCLO,IRF,IT)
       ENDIF
 C
       IF(NLLV.EQ.0)THEN
@@ -736,7 +741,7 @@ C$OMP BARRIER
 C
       IF(IAM.EQ.0)THEN
          IF(IFST.EQ.1)THEN
-           CALL REDUCE(A1,A2,BB,CC,C,NCA,D,DD,FAA,FC(NBC+1),FCFC,
+           CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
          ELSEIF(NLLV.EQ.0)THEN
            CALL REDRHS(A1,A2,CC,
@@ -1023,17 +1028,16 @@ C
 C
 C     ---------- ------
       SUBROUTINE COPYCP(NA,NOV,NRA,NCA,A,
-     +  NCB,B,NRC,C,A1,A2,BB,CC,IRF,LAST)
+     +  NCB,B,NRC,C,A1,A2,BB,CC,CCLO,IRF,IT)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NOV,NRA,NCA
-      INTEGER   NCB,NRC,IRF(NRA,*)
-      LOGICAL   LAST
+      INTEGER   NCB,NRC,IRF(NRA,*),IT
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*)
+      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*),CCLO(NOV,NRC,*)
 C
 C     DIMENSION FA(NRA,*),FAA(NOV,*)
 C
@@ -1061,9 +1065,13 @@ C
          DO IR=1,NRC
             DO IC=1,NOV
                IF(I.EQ.1)THEN
-                  CC(IC,IR,I)=C(IC,IR,I)
+                  IF(IT.EQ.0)THEN
+                     CC(IC,IR,I)=C(IC,IR,I)
+                  ELSE
+                     CCLO(IC,IR,IT)=C(IC,IR,I)
+                  ENDIF
                ELSEIF(I.EQ.NAP1)THEN
-                  IF(LAST)CC(IC,IR,I)=C(NRA+IC,IR,I-1)
+                  CC(IC,IR,I)=C(NRA+IC,IR,I-1)
                ELSE
                   CC(IC,IR,I)=C(IC,IR,I)+C(NRA+IC,IR,I-1)
                ENDIF
@@ -1100,50 +1108,35 @@ C
       END SUBROUTINE CPYRHS
 C
 C     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,C,NCA,DD,DDD,FAA,FC,FCFC,
+      SUBROUTINE REDUCE(A1,A2,BB,CC,CCLO,DD,DDD,FAA,FC,FCFC,
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NCA,NTST,NOV,NCB,NRC,NLLV,IT,NT,KWT
+      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT,KWT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
-      DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*),C(NCA,NRC,*)
+      DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*),CCLO(NOV,NRC,*)
       DOUBLE PRECISION DD(NCB,*),DDD(NCB,NRC,*)
       DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local 
       INTEGER IAMAX,I,II,J,K,PLO,PHI
       ALLOCATABLE IAMAX(:)
-      DOUBLE PRECISION, ALLOCATABLE :: CCLO(:,:)
 C
       ALLOCATE(IAMAX(2*NOV))
 C
       IF(IT.EQ.0)THEN
 C     Reduce non-overlapping 1st piece
-         CALL REDUCER(1,NTST,1,NTST/NT,DD,FC)
+         CALL REDUCER(1,NTST,1,NTST/NT,CC,DD,FC)
       ELSE
-C
-C     Create a separate CC(:,:,PLO) to avoid write overlap between threads
-C
-         ALLOCATE(CCLO(NOV,NRC))
-         DO I=1,NRC
-            DO J=1,NOV
-               CCLO(J,I)=0
-            ENDDO
-         ENDDO
          PLO = IT*NTST/NT+1
          PHI = (IT+1)*NTST/NT
 C     Reduce non-overlapping pieces
-         CALL REDUCER(1,NTST,PLO,PHI,DDD(1,1,IT),FCFC(1,IT))
-         DO I=1,NRC
-            DO J=1,NOV
-               CC(J,I,PLO)=CC(J,I,PLO)+CCLO(J,I)
-            ENDDO
-         ENDDO
-         DEALLOCATE(CCLO)
+         CALL REDUCER(1,NTST,PLO,PHI,
+     +        CCLO(1,1,IT),DDD(1,1,IT),FCFC(1,IT))
       ENDIF
 C
 C$OMP BARRIER
@@ -1156,14 +1149,14 @@ C
             II=I*NTST/NT+1
             DO J=1,NRC
                DO K=1,NOV
-                  CC(K,J,II)=CC(K,J,II)+C(NCA-NOV+K,J,II-1)
+                  CC(K,J,II)=CC(K,J,II)+CCLO(K,J,I)
                ENDDO
             ENDDO
          ENDDO
       ENDIF
 C
 C     Reduce overlapping pieces
-      CALL REDUCER(1,NTST,0,NTST,DD,FC)
+      CALL REDUCER(1,NTST,0,NTST,CC,DD,FC)
 C     This is where we sum into the global copy of the d array
       DO I=1,NT-1
          DO J=1,NRC
@@ -1183,11 +1176,11 @@ C
       CONTAINS
 C
 C      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,DD,FC)
+       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,CCLO,DD,FC)
 C
 C Arguments
        INTEGER   LO,HI,PLO,PHI
-       DOUBLE PRECISION DD(NCB,*),FC(*)
+       DOUBLE PRECISION CCLO(NOV,NRC),DD(NCB,*),FC(*)
 C
 C Local 
        INTEGER IR,IC,I0,I1,I2,MID
@@ -1203,13 +1196,13 @@ C
        MID=(LO+HI)/2
 C
        IF(LO.LT.MID)
-     +    CALL REDUCER(LO,MID,PLO,PHI,DD,FC)
+     +    CALL REDUCER(LO,MID,PLO,PHI,CCLO,DD,FC)
 C
        I0=LO
        I1=MID
        I2=HI
        IF(MID+1.LT.HI)
-     +    CALL REDUCER(MID+1,HI,PLO,PHI,DD,FC)
+     +    CALL REDUCER(MID+1,HI,PLO,PHI,CCLO,DD,FC)
 C
 C Thread is not in the [PLO,PHI] range: return
        IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
@@ -1231,7 +1224,7 @@ C
           ENDDO
        ENDIF
 C
-       IF(PLO.GT.1.AND.I0.EQ.PLO)THEN
+       IF(I0.EQ.PLO)THEN
           CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
      +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
      +                CCLO,      CC(1,1,I1+1),CC(1,1,I2+1),DD,
