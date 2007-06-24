@@ -225,7 +225,6 @@ subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call mpigat(a1,nov*nov,ntst)
   call mpigat(a2,nov*nov,ntst)
   call mpigat(bb,nov*ncb,ntst)
-  call mpigat(cc,nov*nrc,ntst)
 
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
@@ -234,6 +233,7 @@ subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call MPI_Gather(cc(1,1,np(iam+1)+1),nov*nrc,MPI_DOUBLE_PRECISION, &
        ccb,nov*nrc,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
+  call mpigat(cc,nov*nrc,ntst)
 
   if(iam==0)then
      ii = 0

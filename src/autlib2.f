@@ -1062,8 +1062,8 @@ C
             DO IC=1,NOV
                IF(I.EQ.1)THEN
                   CC(IC,IR,I)=C(IC,IR,I)
-               ELSEIF(I.EQ.NAP1.AND.LAST)THEN
-                  CC(IC,IR,I)=C(NRA+IC,IR,I-1)
+               ELSEIF(I.EQ.NAP1)THEN
+                  IF(LAST)CC(IC,IR,I)=C(NRA+IC,IR,I-1)
                ELSE
                   CC(IC,IR,I)=C(IC,IR,I)+C(NRA+IC,IR,I-1)
                ENDIF
