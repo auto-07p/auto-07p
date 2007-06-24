@@ -14,7 +14,7 @@ subroutine mpiwfi(autobv,funi,icni)
   external funi,icni
 end subroutine mpiwfi
 
-subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   implicit double precision(a-h,o-z)
 end subroutine mpicon
 

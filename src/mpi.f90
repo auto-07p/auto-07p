@@ -202,14 +202,14 @@ contains
 
 end subroutine mpiwfi
 
-subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   use solvebv, only: partition
   implicit none
   include 'mpif.h'
 
   integer :: ntst, nov, ncb, nrc, ifst
   double precision :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*),cc(nov,nrc,*)
-  double precision :: d(ncb,*),faa(nov,*),fc(*)
+  double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 
   double precision, allocatable :: ccb(:,:,:)
   integer,allocatable :: np(:)
@@ -222,6 +222,7 @@ subroutine mpicon(a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
 
   if(ifst==0)return
 
+  call mpigat(s1,nov*nov,ntst)
   call mpigat(a1,nov*nov,ntst)
   call mpigat(a2,nov*nov,ntst)
   call mpigat(bb,nov*ncb,ntst)

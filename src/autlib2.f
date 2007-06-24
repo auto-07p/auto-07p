@@ -182,17 +182,10 @@ C
 C     Linear distribution of NTST over all nodes
       IMPLICIT NONE
       INTEGER N,KWT,M(KWT)
-      INTEGER I,T,S
-C     
-        T = N / KWT
-        S = MOD(N,KWT)
+      INTEGER I
 C     
         DO I=1,KWT
-          M(I) = T
-        ENDDO
-C     
-        DO I=1,S
-          M(I) = M(I) + 1
+          M(I) = I*N/KWT - (I-1)*N/KWT
         ENDDO
 C     
       RETURN
@@ -660,7 +653,7 @@ C Arguments
 C
 C Local
       DOUBLE PRECISION FCC,E,X
-      INTEGER I,II,III,J,K,N,IR,IC,NRC,NTSTNA
+      INTEGER I,II,N,IR,IC,NRC,NTSTNA
       ALLOCATABLE FCC(:),E(:,:),IR(:),IC(:),X(:)
 C
       NTSTNA=NA
@@ -699,54 +692,12 @@ C
       ENDIF
       CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA,IRF)
 C
-      IF(KWT.GT.1)THEN
-C$OMP BARRIER
-C$OMP MASTER
-C
-C     This is where we sum into the global copy of the d array
-C (here only applies to MPI)
-C
-       IF(NT.GT.1.AND.IAM.GT.0)THEN
-         DO II=1,NT-1
-            DO J=1,NRC
-               IF(IFST.EQ.1)THEN
-                  DO K=1,NCB
-                     D(K,J)=D(K,J)+DD(K,J,II)
-                  ENDDO
-               ENDIF
-               FC(NBC+J)=FC(NBC+J)+FCFC(J,II)
-            ENDDO
-         ENDDO
-C
-C     Fix up boundaries between CC parts from COPYCP
-C
-         IF(IFST.EQ.1)THEN
-            DO II=1,NT-1
-               III=II*NA/NT+1
-               DO J=1,NRC
-                  DO K=1,NOV
-                     CC(K,J,III)=CC(K,J,III)+C(NRA+K,J,III-1)
-                  ENDDO
-               ENDDO
-            ENDDO
-         ENDIF
-       ENDIF
-C
-       CALL MPICON(A1,A2,BB,CC,D,FAA,FC(NBC+1),
-     +     NTST,NOV,NCB,NRC,IFST)
-C
-C$OMP END MASTER
-C$OMP BARRIER
-      ENDIF
-C
-      IF(IAM.EQ.0)THEN
-         IF(IFST.EQ.1)THEN
-           CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
-     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
-         ELSEIF(NLLV.EQ.0)THEN
-           CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT)
-         ENDIF
+      IF(IFST.EQ.1)THEN
+         CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,IAM,KWT)
+      ELSEIF(NLLV.EQ.0)THEN
+         CALL REDRHS(A1,A2,CC,
+     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT,IAM,KWT)
       ENDIF
 C
 C REDUCE and REDRHS already have barriers.
@@ -767,17 +718,7 @@ C
 C
 C$OMP END MASTER
 C
-      IF(IAM.EQ.0)THEN
-         CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT)
-      ENDIF
-      IF(KWT.GT.1)THEN
-C$OMP BARRIER
-C$OMP MASTER
-         CALL MPIBCAST(FC,NOV+NCB)
-         CALL MPISCAT(SOL,NOV,NTST,1)
-C$OMP END MASTER
-C$OMP BARRIER
-      ENDIF
+      CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT,IAM,KWT)
 C
       ALLOCATE(X(NRA))
       CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,IRF,ICF,X)
@@ -1109,12 +1050,12 @@ C
 C
 C     ---------- ------
       SUBROUTINE REDUCE(A1,A2,BB,CC,CCLO,DD,DDD,FAA,FC,FCFC,
-     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,KWT)
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,IAM,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT,KWT
+      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT,IAM,KWT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
@@ -1123,17 +1064,19 @@ C Arguments
       DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local 
-      INTEGER IAMAX,I,II,J,K,PLO,PHI
+      INTEGER IAMAX,I,II,J,K,PLO,PHI,BASE,NA
       ALLOCATABLE IAMAX(:)
 C
       ALLOCATE(IAMAX(2*NOV))
 C
+      BASE=IAM*NTST/KWT
+      NA=(IAM+1)*NTST/KWT-BASE
       IF(IT.EQ.0)THEN
 C     Reduce non-overlapping 1st piece
-         CALL REDUCER(1,NTST,1,NTST/NT,CC,DD,FC)
+         CALL REDUCER(1,NTST,BASE+1,BASE+NA/NT,CC,DD,FC)
       ELSE
-         PLO = IT*NTST/NT+1
-         PHI = (IT+1)*NTST/NT
+         PLO = BASE+IT*NA/NT+1
+         PHI = BASE+(IT+1)*NA/NT
 C     Reduce non-overlapping pieces
          CALL REDUCER(1,NTST,PLO,PHI,
      +        CCLO(1,1,IT),DDD(1,1,IT),FCFC(1,IT))
@@ -1144,19 +1087,19 @@ C$OMP MASTER
 C
 C     Fix up boundaries between CC parts from COPYCP
 C
-      IF(KWT.EQ.1)THEN
-         DO I=1,NT-1
-            II=I*NTST/NT+1
-            DO J=1,NRC
-               DO K=1,NOV
-                  CC(K,J,II)=CC(K,J,II)+CCLO(K,J,I)
-               ENDDO
+      DO I=1,NT-1
+         II=I*NA/NT+1
+         DO J=1,NRC
+            DO K=1,NOV
+               CC(K,J,II)=CC(K,J,II)+CCLO(K,J,I)
             ENDDO
          ENDDO
-      ENDIF
+      ENDDO
 C
 C     Reduce overlapping pieces
-      CALL REDUCER(1,NTST,0,NTST,CC,DD,FC)
+      IF(NT.GT.1)
+     +   CALL REDUCER(1,NTST,BASE+1,BASE+NA,CC,DD,FC)
+C
 C     This is where we sum into the global copy of the d array
       DO I=1,NT-1
          DO J=1,NRC
@@ -1168,6 +1111,12 @@ C     This is where we sum into the global copy of the d array
             ENDIF
          ENDDO
       ENDDO
+C
+      IF(KWT.GT.1)THEN
+         CALL MPICON(S1,A1,A2,BB,CC,DD,FAA,FC,NTST,NOV,NCB,NRC,1)
+         IF(IAM.EQ.0)
+     +        CALL REDUCER(1,NTST,0,NTST,CC,DD,FC)
+      ENDIF
 C$OMP END MASTER
 C
       DEALLOCATE(IAMAX)
@@ -1188,7 +1137,11 @@ C
        IF(HI.LT.PLO.OR.LO.GT.PHI)RETURN
 C This is a check for the master reduction so it will stop as soon
 C as there is no more overlap (already handled by workers).
-       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+       IF(PLO.EQ.0)THEN
+          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
+       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
+          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
+       ENDIF
 C
 C Use nested dissection for reduction; this is naturally a recursive
 C procedure.
@@ -1198,9 +1151,6 @@ C
        IF(LO.LT.MID)
      +    CALL REDUCER(LO,MID,PLO,PHI,CCLO,DD,FC)
 C
-       I0=LO
-       I1=MID
-       I2=HI
        IF(MID+1.LT.HI)
      +    CALL REDUCER(MID+1,HI,PLO,PHI,CCLO,DD,FC)
 C
@@ -1209,6 +1159,9 @@ C Thread is not in the [PLO,PHI] range: return
 C
 C Initialization
 C
+       I0=LO-BASE
+       I1=MID-BASE
+       I2=HI-BASE
        IF(LO.EQ.MID)THEN
           DO IR=1,NOV
              DO IC=1,NOV
@@ -1224,7 +1177,7 @@ C
           ENDDO
        ENDIF
 C
-       IF(I0.EQ.PLO)THEN
+       IF(LO.EQ.PLO)THEN
           CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
      +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
      +                CCLO,      CC(1,1,I1+1),CC(1,1,I2+1),DD,
@@ -1488,27 +1441,31 @@ C
 C
 C     ---------- ------
       SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,FCFC,NTST,NOV,NRC,IPR,
-     +     IT,NT)
+     +     IT,NT,IAM,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NRC,IPR(NOV,*),IT,NT
+      INTEGER   NTST,NOV,NRC,IPR(NOV,*),IT,NT,IAM,KWT
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION CC(NOV,NRC,*)
       DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
 C
 C Local
-      INTEGER   I,J
+      INTEGER   I,J,BASE,NA
 C
+      BASE=IAM*NTST/KWT
+      NA=(IAM+1)*NTST/KWT-BASE
       IF(IT.EQ.0)THEN
-         CALL REDRHSR(1,NTST,1,NTST/NT,FC)
+         CALL REDRHSR(1,NTST,BASE+1,BASE+NA/NT,FC)
       ELSE
-         CALL REDRHSR(1,NTST,IT*NTST/NT+1,(IT+1)*NTST/NT,FCFC(1,IT))
+         CALL REDRHSR(1,NTST,BASE+IT*NA/NT+1,BASE+(IT+1)*NA/NT,
+     +        FCFC(1,IT))
       ENDIF
 C$OMP BARRIER
 C$OMP MASTER
-      CALL REDRHSR(1,NTST,0,NTST,FC)
+      IF(NT.GT.1)
+     +   CALL REDRHSR(1,NTST,BASE+1,BASE+NA,FC)
 C
 C     This is where we sum into the global copy of the fc array
 C
@@ -1518,6 +1475,11 @@ C
          ENDDO
       ENDDO
 
+      IF(KWT.GT.1)THEN
+         CALL MPICON(A1,A1,A2,A2,CC,CC,FAA,FC,NTST,NOV,NOV,NRC,0)
+         IF(IAM.EQ.0)
+     +        CALL REDRHSR(1,NTST,0,NTST,FC)
+      ENDIF
 C$OMP END MASTER
       RETURN
 C
@@ -1534,13 +1496,17 @@ C Local
        INTEGER MID,I1,I2
 C
        IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
-       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+       IF(PLO.EQ.0)THEN
+          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
+       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
+          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
+       ENDIF
        MID=(LO+HI)/2
        CALL REDRHSR(LO,MID,PLO,PHI,FC)
        CALL REDRHSR(MID+1,HI,PLO,PHI,FC)
        IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
-       I1=MID
-       I2=HI
+       I1=MID-BASE
+       I2=HI-BASE
        CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
      +      A1(1,1,I1+1),FAA(1,I2),
      +      CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
@@ -1731,29 +1697,41 @@ C
       END SUBROUTINE BCKSUB1
 C
 C     ---------- ------
-      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT)
+      SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,
+     +     IT,NT,IAM,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NCB,IPC(NOV,*),IT,NT
+      INTEGER   NTST,NOV,NCB,IPC(NOV,*),IT,NT,IAM,KWT
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION A2(NOV,NOV,*),BB(NCB,NOV,*)
       DOUBLE PRECISION SOL(NOV,*),FAA(NOV,*),FC(*)
 C
 C Local
-      INTEGER   I,PLO,PHI
+      INTEGER   I,PLO,PHI,BASE,NA
 C
+      BASE=IAM*NTST/KWT
+      NA=(IAM+1)*NTST/KWT-BASE
 C$OMP MASTER
 C do global backsubsitution until there is no overlap left
-      DO I=1,NOV
-         SOL(I,NTST+1) = FC(I)
-      ENDDO
-      CALL BCKSUBR(1,NTST,0,NTST)
+      IF(IAM.EQ.0)THEN
+         DO I=1,NOV
+            SOL(I,NTST+1) = FC(I)
+         ENDDO
+      ENDIF
+      IF(KWT.GT.1)THEN
+         IF(IAM.EQ.0)
+     +        CALL BCKSUBR(1,NTST,0,NTST)
+         CALL MPIBCAST(FC,NOV+NCB)
+         CALL MPISCAT(SOL,NOV,NTST,1)
+      ENDIF
+      IF(NT.GT.1)
+     +     CALL BCKSUBR(1,NTST,BASE+1,BASE+NA)
 C$OMP END MASTER
 C$OMP BARRIER
-      PLO=IT*NTST/NT+1
-      PHI=(IT+1)*NTST/NT
+      PLO=BASE+IT*NA/NT+1
+      PHI=BASE+(IT+1)*NA/NT
       CALL BCKSUBR(1,NTST,PLO,PHI)
 C
       RETURN
@@ -1770,11 +1748,15 @@ C Local
        INTEGER MID,I,I0,I1
 C
        IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
-       IF(PLO.EQ.0.AND.(LO*NT-1)/NTST.EQ.(HI*NT-1)/NTST)RETURN
+       IF(PLO.EQ.0)THEN
+          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
+       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
+          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
+       ENDIF
        MID=(LO+HI)/2
-       I=MID
-       I0=LO
-       I1=HI
+       I=MID-BASE
+       I0=LO-BASE
+       I1=HI-BASE
        IF(PLO.LE.LO.AND.HI.LE.PHI)THEN
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),
      +         FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1),
