@@ -10519,11 +10519,8 @@ setVariableDefaultValues()
     setShow3DSol = setShow3D;
     setShow3DBif = setShow3D;
 
-//
-    char * buf = new char[256];
-    char * ad  = new char[256];
-    strcpy(ad, "AUTO_DIR");
-    if((buf=getenv(ad)) != NULL)
+    char * buf;
+    if((buf=getenv("AUTO_DIR")) != NULL)
     {
        for(int il = 0; il < strlen(buf); ++il)
           autoDir[il] = buf[il];
@@ -10533,9 +10530,6 @@ setVariableDefaultValues()
        autoDir[0]='.';
        autoDir[1]='\n';
     }
-//    delete buf;
-    delete ad;
-
 }
 
 
