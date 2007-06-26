@@ -9566,8 +9566,10 @@ initCoordAndLableListItems()
     strcpy(coloringMethodList[1],"PONT"); sp++;
     strcpy(coloringMethodList[2],"BRAN"); sp++;
 
+#if 0 // this only called at the beginning but SOLUTION/BIF can be flipped!
     if(whichType == SOLUTION)
     {
+#endif
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
 #ifndef R3B
@@ -9580,12 +9582,14 @@ initCoordAndLableListItems()
             char tmpchar[5];
             sprintf(coloringMethodList[i], "par[%d]", mySolNode.parID[i-(mySolNode.nar+sp)]);
         }
+#if 0 //see above #if 0
     }
     else
     {
         for(i=0; i<MAX_LIST; i++)
             sprintf(coloringMethodList[i+sp], "%d", i);
     }
+#endif
     specialColorItems = sp;
 
     if(blOpenSolFile)
