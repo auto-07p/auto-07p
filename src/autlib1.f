@@ -5493,7 +5493,7 @@ C
 C
 C Set the determinant of the normalized reduced system.
 C
-      IF(DET.NE.0.d0)THEN
+      IF(ABS(DET0)/HUGE(DET).LT.ABS(DET))THEN
         FNBPBV=DET0/DET
         CHNG=.TRUE.
       ELSE
