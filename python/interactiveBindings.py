@@ -53,6 +53,8 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+5:]) +"')"
             elif list[0][0]=="!":
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+1:]) +"')"
+            elif list[0][0]=="@":
+                return spaces.group()+"shell('" + string.strip(line[len(spaces.group()):]) +"')"
             elif list[0] in shortCommands:
                 if len(list) == 2:
                     command = spaces.group() + list[0] + "('%s')"%list[1]
