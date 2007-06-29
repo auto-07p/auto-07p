@@ -1368,7 +1368,7 @@ C
              ENDDO
           ELSE
              PPIV=0d0
-             IAMAX=1
+             IAMAX=IC+1
              DO L=IC+1,NOV
                 V=A12(L)-RM*A21(L)
 C     Also recalculate absolute maximum for current row
