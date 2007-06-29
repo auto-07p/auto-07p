@@ -226,7 +226,7 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13]; 
-#ifndef R3B
+#if 0//ndef R3B
     static int32_t numVertices[13]= 
     {
         4,4,4,4,4,4,4,4,4,4,4,4,4
@@ -256,7 +256,7 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#ifndef R3B
+#if 0 //ndef R3B
         colors[i].setValue(lineColors[i]);
 #else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
@@ -321,7 +321,7 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13];   
-#ifndef R3B
+#if 0 //ndef R3B
     static int32_t numVertices[13]=
     {
         4,4,4,4,4,4,4,4,4,4,4,4,4
@@ -351,7 +351,7 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#ifndef R3B
+#if 0 //ndef R3B
         colors[i].setValue(lineColors[i]);
 #else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
@@ -413,7 +413,7 @@ SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
 
     static SbColor colors[2];
     static int32_t numVertices[2]={4,4};
-#ifdef R3B
+#if 1 //def R3B
     float tcolor[3];
 #endif
 
@@ -453,7 +453,7 @@ SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#ifndef R3B
+#if 0 //ndef R3B
         colors[i].setValue(lineColors[i]);
 #else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
