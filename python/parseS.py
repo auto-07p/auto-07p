@@ -527,12 +527,11 @@ def AUTOatof(input_string):
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
                 value=atof(strip(input_string)[0:-1])
-            elif input_string[-4] == "-":
-		# there is a bug on the SGI which prints out numbers of the 
-		# for x.xxxxxxxx-323 and x.xxxxxx-324.  When I get these
-		# I reset to 0.
+            elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
-                value=0.0
+                #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
+                value=string.atof(strip(input_string)[0:-4]+'E'+
+                                  strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string

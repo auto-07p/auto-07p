@@ -2380,7 +2380,7 @@ C
 C Prints headings above columns on unit 6, 7, and 9.
 C
       DIMENSION PAR(*),ICP(*),IAP(*)
-      CHARACTER*14 COL(9),TMP
+      CHARACTER*19 COL(9),TMP
       CHARACTER*1 CNVRT
 C
        IPS=IAP(2)
@@ -2390,7 +2390,11 @@ C
        ITP=IAP(27)
 C
        DO I=1,9
-         COL(I)='              '
+         IF(IUNIT.EQ.7)THEN
+            COL(I)='                   '
+         ELSE
+            COL(I)='              '
+         ENDIF
        ENDDO
 C
        IF(IUNIT.EQ.6)WRITE(6,100)
@@ -2488,7 +2492,7 @@ C
  100   FORMAT(' ')
  101   FORMAT('   0')
  102   FORMAT('  BR    PT  TY  LAB ',8A14)
- 103   FORMAT('   0    PT  TY  LAB ',8A14)
+ 103   FORMAT('   0    PT  TY  LAB ',8A19)
 C
       CALL FLUSH(7)
       RETURN
@@ -2742,7 +2746,7 @@ C
        ENDIF
 C
  101   FORMAT(I4,I6,2X,A2,I5,1P8E14.5)
- 102   FORMAT(I4,I6,I4,I5,1P8E14.5)
+ 102   FORMAT(I4,I6,I4,I5,1P8E19.10)
 C
       CALL FLUSH(7)
       RETURN

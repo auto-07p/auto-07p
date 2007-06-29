@@ -171,7 +171,7 @@ class parseB:
                 output_line = "%4d%6d%4d%4d"%(line["BR"],line["PT"],
                                               line["TY number"],line["LAB"])
                 for data in line["data"]:
-                    output_line = output_line + "%14.6E"%data
+                    output_line = output_line + "%19.10E"%data
                 output.write(output_line+"\n")
 
     def writeFilename(self,filename):
@@ -238,9 +238,11 @@ def AUTOatof(input_string):
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
                 value=string.atof(strip(input_string)[0:-1])
-            elif input_string[-4] == "-":
+            elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
-                value=0.0
+                #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
+                value=string.atof(strip(input_string)[0:-4]+'E'+
+                                  strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string

@@ -79,7 +79,7 @@ C     ---------- -------
       SUBROUTINE WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 C
       DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-      CHARACTER*132 LINE
+      CHARACTER*172 LINE
       CHARACTER*4 CHR4,CLAB
       CHARACTER*1 CH1
 C
@@ -87,7 +87,7 @@ C
        LNUM=0
        REWIND 27
  1     CONTINUE
-         LINE(1:132)=' '
+         LINE(1:172)=' '
          READ(27,100,END=99)LINE
          LNUM=LNUM+1
          CLAB=LINE(16:19)
@@ -103,7 +103,7 @@ C
            ENDIF
            LINE(16:19)=CHR4(LNL(L))
          ENDIF
-         LEN=LENGTH(132,LINE)
+         LEN=LENGTH(172,LINE)
          WRITE(37,100)LINE(1:LEN)
          GOTO 1
 C
@@ -216,7 +216,7 @@ C
 C     ------- -------- ------
       INTEGER FUNCTION LENGTH(N,LINE)
 C
-      CHARACTER*132 LINE
+      CHARACTER*172 LINE
 C
        LENGTH=1
        DO 1 I=N,1,-1
