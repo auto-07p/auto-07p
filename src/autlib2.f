@@ -692,15 +692,12 @@ C
       ENDIF
       CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA,IRF)
 C
-      IF(IFST.EQ.1)THEN
+      IF(IFST.EQ.1.OR.NLLV.EQ.0)THEN
          CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
-     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,IAM,KWT)
-      ELSEIF(NLLV.EQ.0)THEN
-         CALL REDRHS(A1,A2,CC,
-     +     FAA,FC(NBC+1),FCFC,NTST,NOV,NRC,IPR,IT,NT,IAM,KWT)
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
       ENDIF
 C
-C REDUCE and REDRHS already have barriers.
+C REDUCE already has a barrier.
 C$OMP MASTER
 C
       IF(IAM.EQ.0)THEN
@@ -1050,12 +1047,12 @@ C
 C
 C     ---------- ------
       SUBROUTINE REDUCE(A1,A2,BB,CC,CCLO,DD,DDD,FAA,FC,FCFC,
-     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,NLLV,IT,NT,IAM,KWT)
+     +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NTST,NOV,NCB,NRC,NLLV,IT,NT,IAM,KWT
+      INTEGER   NTST,NOV,NCB,NRC,IFST,NLLV,IT,NT,IAM,KWT
       INTEGER   IPC(NOV,*),IPR(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION S1(NOV,NOV,*),S2(NOV,NOV,*)
@@ -1087,14 +1084,16 @@ C$OMP MASTER
 C
 C     Fix up boundaries between CC parts from COPYCP
 C
-      DO I=1,NT-1
-         II=I*NA/NT+1
-         DO J=1,NRC
-            DO K=1,NOV
-               CC(K,J,II)=CC(K,J,II)+CCLO(K,J,I)
+      IF(IFST.EQ.1)THEN
+         DO I=1,NT-1
+            II=I*NA/NT+1
+            DO J=1,NRC
+               DO K=1,NOV
+                  CC(K,J,II)=CC(K,J,II)+CCLO(K,J,I)
+               ENDDO
             ENDDO
          ENDDO
-      ENDDO
+      ENDIF
 C
 C     Reduce overlapping pieces
       IF(NT.GT.1)
@@ -1103,9 +1102,11 @@ C
 C     This is where we sum into the global copy of the d array
       DO I=1,NT-1
          DO J=1,NRC
-            DO K=1,NCB
-               DD(K,J)=DD(K,J)+DDD(K,J,I)
-            ENDDO
+            IF(IFST.EQ.1)THEN
+               DO K=1,NCB
+                  DD(K,J)=DD(K,J)+DDD(K,J,I)
+               ENDDO
+            ENDIF
             IF(NLLV.EQ.0)THEN
                FC(J)=FC(J)+FCFC(J,I)
             ENDIF
@@ -1113,7 +1114,7 @@ C     This is where we sum into the global copy of the d array
       ENDDO
 C
       IF(KWT.GT.1)THEN
-         CALL MPICON(S1,A1,A2,BB,CC,DD,FAA,FC,NTST,NOV,NCB,NRC,1)
+         CALL MPICON(S1,A1,A2,BB,CC,DD,FAA,FC,NTST,NOV,NCB,NRC,IFST)
          IF(IAM.EQ.0)
      +        CALL REDUCER(1,NTST,0,NTST,CC,DD,FC)
       ENDIF
@@ -1162,31 +1163,33 @@ C
        I0=LO-BASE
        I1=MID-BASE
        I2=HI-BASE
-       IF(LO.EQ.MID)THEN
-          DO IR=1,NOV
-             DO IC=1,NOV
-                S1(IC,IR,I1)=A1(IC,IR,I1)
+       IF(IFST.EQ.1)THEN
+          IF(LO.EQ.MID)THEN
+             DO IR=1,NOV
+                DO IC=1,NOV
+                   S1(IC,IR,I1)=A1(IC,IR,I1)
+                ENDDO
              ENDDO
-          ENDDO
-       ENDIF
-       IF(MID+1.LT.HI)THEN
-          DO IR=1,NOV
-             DO IC=1,NOV
-                A1(IC,IR,I1+1)=S1(IC,IR,I2)
+          ENDIF
+          IF(MID+1.LT.HI)THEN
+             DO IR=1,NOV
+                DO IC=1,NOV
+                   A1(IC,IR,I1+1)=S1(IC,IR,I2)
+                ENDDO
              ENDDO
-          ENDDO
-       ENDIF
+          ENDIF
 C
-       IF(LO.EQ.PLO)THEN
-          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
-     +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
-     +                CCLO,      CC(1,1,I1+1),CC(1,1,I2+1),DD,
-     +                IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
-       ELSE
-          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
-     +                S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
-     +                CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
-     +                IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+          IF(LO.EQ.PLO)THEN
+             CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
+     +                   S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
+     +                   CCLO,      CC(1,1,I1+1),CC(1,1,I2+1),DD,
+     +                   IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+          ELSE
+             CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),
+     +                   S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),
+     +                   CC(1,1,I0),CC(1,1,I1+1),CC(1,1,I2+1),DD,
+     +                   IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
+          ENDIF
        ENDIF
        IF(NLLV.EQ.0)THEN
           CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
@@ -1438,83 +1441,6 @@ C Reduce with the right hand side for one block
 C
       RETURN
       END SUBROUTINE REDRHSBLK
-C
-C     ---------- ------
-      SUBROUTINE REDRHS(A1,A2,CC,FAA,FC,FCFC,NTST,NOV,NRC,IPR,
-     +     IT,NT,IAM,KWT)
-C
-      IMPLICIT NONE
-C
-C Arguments
-      INTEGER   NTST,NOV,NRC,IPR(NOV,*),IT,NT,IAM,KWT
-      DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DOUBLE PRECISION CC(NOV,NRC,*)
-      DOUBLE PRECISION FAA(NOV,*),FC(*),FCFC(NRC,*)
-C
-C Local
-      INTEGER   I,J,BASE,NA
-C
-      BASE=IAM*NTST/KWT
-      NA=(IAM+1)*NTST/KWT-BASE
-      IF(IT.EQ.0)THEN
-         CALL REDRHSR(1,NTST,BASE+1,BASE+NA/NT,FC)
-      ELSE
-         CALL REDRHSR(1,NTST,BASE+IT*NA/NT+1,BASE+(IT+1)*NA/NT,
-     +        FCFC(1,IT))
-      ENDIF
-C$OMP BARRIER
-C$OMP MASTER
-      IF(NT.GT.1)
-     +   CALL REDRHSR(1,NTST,BASE+1,BASE+NA,FC)
-C
-C     This is where we sum into the global copy of the fc array
-C
-      DO I=1,NT-1
-         DO J=1,NRC
-            FC(J)=FC(J)+FCFC(J,I)
-         ENDDO
-      ENDDO
-
-      IF(KWT.GT.1)THEN
-         CALL MPICON(A1,A1,A2,A2,CC,CC,FAA,FC,NTST,NOV,NOV,NRC,0)
-         IF(IAM.EQ.0)
-     +        CALL REDRHSR(1,NTST,0,NTST,FC)
-      ENDIF
-C$OMP END MASTER
-      RETURN
-C
-      CONTAINS
-C
-C      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDRHSR(LO,HI,PLO,PHI,FC)
-C
-C Arguments
-       INTEGER   LO,HI,PLO,PHI
-       DOUBLE PRECISION FC(*)
-C
-C Local
-       INTEGER MID,I1,I2
-C
-       IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
-       IF(PLO.EQ.0)THEN
-          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
-       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
-          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
-       ENDIF
-       MID=(LO+HI)/2
-       CALL REDRHSR(LO,MID,PLO,PHI,FC)
-       CALL REDRHSR(MID+1,HI,PLO,PHI,FC)
-       IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
-       I1=MID-BASE
-       I2=HI-BASE
-       CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),
-     +      A1(1,1,I1+1),FAA(1,I2),
-     +      CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
-C
-       RETURN
-       END SUBROUTINE REDRHSR
-C      
-      END SUBROUTINE REDRHS
 C
 C     ---------- ------
       SUBROUTINE DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
