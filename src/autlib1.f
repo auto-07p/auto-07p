@@ -6,13 +6,6 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INTERFACE
-        SUBROUTINE INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
-          IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-          LOGICAL EOF
-          DIMENSION IAP(*),RAP(*),THL(*),PAR(*),ICP(*)
-          POINTER IUZ(:),VUZ(:),THU(:)
-        END SUBROUTINE INIT
-
         SUBROUTINE SETPAE(IAP,RAP)
           IMPLICIT DOUBLE PRECISION (A-H,O-Z)
           DIMENSION IAP(*),RAP(*)
@@ -27,8 +20,7 @@ C
       LOGICAL FOUND,EOF
 C Local
       DIMENSION IAP(NIAP),RAP(NRAP)
-      DIMENSION THL(NPARX),PAR(2*NPARX),ICP(2*NPARX)
-      POINTER IUZ(:),VUZ(:),THU(:)
+      DIMENSION PAR(2*NPARX)
 C
 C Initialization :
 C
@@ -46,7 +38,7 @@ C
          CALL AUTIM0(TIME0)
        ENDIF
        FOUND=.FALSE.
-       CALL INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
+       CALL INIT(IAP,RAP,PAR,EOF)
        IF(EOF)THEN
          CALL MPIEND()
          STOP
@@ -67,7 +59,7 @@ C
        ENDIF
 C
        CALL MPIIAP(IAP)
-       CALL AUTOI(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ)
+       CALL AUTOI(IAP,RAP,PAR)
 C-----------------------------------------------------------------------
 C
       IF(IAP(39).GT.1)THEN
@@ -89,10 +81,37 @@ C
       END
 C
 C
+      MODULE AUTO_CONSTANTS
+C
+      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+      INCLUDE 'auto.h'
+C
+      INTEGER NDIM,IPS,IRS,ILP
+      INTEGER NICP
+      INTEGER ICP(2*NPARX)
+      INTEGER NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+      INTEGER NMX
+      DOUBLE PRECISION RL0,RL1,A0,A1
+      INTEGER NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+      DOUBLE PRECISION EPSL,EPSU,EPSS
+      DOUBLE PRECISION DS,DSMIN,DSMAX
+      INTEGER IADS
+      INTEGER NTHL
+      DOUBLE PRECISION THL(NPARX)
+      INTEGER NTHU
+      DOUBLE PRECISION,ALLOCATABLE :: THU(:)
+      INTEGER NUZR
+      INTEGER, ALLOCATABLE :: IUZ(:)
+      DOUBLE PRECISION,ALLOCATABLE :: VUZ(:)
+C
+      END MODULE AUTO_CONSTANTS
+C
+C
 C     ---------- ----
-      SUBROUTINE AUTOI(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ)
+      SUBROUTINE AUTOI(IAP,RAP,PAR)
 C
       USE INTERFACES
+      USE AUTO_CONSTANTS
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -106,9 +125,6 @@ C-----------------------------------------------------------------------
 C  One-parameter continuations
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-       IPS=IAP(2)
-       IRS=IAP(3)
-       ISW=IAP(10)
        ITP=IAP(27)
        NFPR=IAP(29)
 C
@@ -395,17 +411,21 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,PAR,ICP,THL,THU,IUZ,VUZ,EOF)
+      SUBROUTINE INIT(IAP,RAP,PAR,EOF)
 C
-      INCLUDE 'auto.h'
+      USE AUTO_CONSTANTS
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Reads the file of continuation constants
 C
+      INTEGER IAP(*)
+      DOUBLE PRECISION RAP(*),PAR(*)
       LOGICAL EOF
-      DIMENSION IAP(*),RAP(*),THL(*),PAR(*),ICP(*)
-      POINTER IUZ(:),VUZ(:),THU(:)
+C
+      INTEGER IBR,I,IUZR,ITHL,ITHU,NBIF,NFPR,NDM,NNT0,NBC0
+      INTEGER NINS,NIT,LAB,NTOT,ITP,IPOS,ISTOP,ITPST
+      DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
 C
       DO I=1,NPARX
         ICP(I)=I

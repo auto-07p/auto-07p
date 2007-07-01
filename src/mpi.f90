@@ -45,8 +45,8 @@ contains
     include 'mpif.h'
 
     integer :: message_type, ierr
-    integer :: funi_icni_params(5), iap(NIAP), icp, iuz
-    double precision :: rap,par,thl,thu,vuz
+    integer :: funi_icni_params(5), iap(NIAP)
+    double precision :: rap,par
 
     call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     if(message_type /= AUTO_MPI_INIT_MESSAGE)then
@@ -67,7 +67,7 @@ contains
        iap(27) = funi_icni_params(4) ! itp
        iap(29) = funi_icni_params(5) ! nfpr
        iap(38) = 1                   ! iam
-       call autoi(iap,rap,par,icp,thl,thu,iuz,vuz)
+       call autoi(iap,rap,par)
        ! autoi will call mpiwfi; a return means another init message
     enddo
   end subroutine mpi_worker
