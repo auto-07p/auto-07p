@@ -1,3 +1,4 @@
+#!/bin/sh
 rm -r b.$1 
 rm -r s.$1 
 rm -r d.$1

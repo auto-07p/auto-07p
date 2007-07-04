@@ -1,3 +1,4 @@
+#!/bin/sh
 echo " "
 echo " Zeroing small numbers in s.$1 ... "
 make -f $AUTO_DIR/src/Makefile zero

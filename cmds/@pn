@@ -1,3 +1,4 @@
+#!/bin/sh
 if ( test $# -eq 1 ) then
         $AUTO_DIR/pendula/p2_0 s.$1
 else

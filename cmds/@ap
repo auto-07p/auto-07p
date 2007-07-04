@@ -1,3 +1,4 @@
+#!/bin/sh
 if ( test $# -eq 1 ) then
 	cat fort.7 >> b.$1
 	cat fort.8 >> s.$1

@@ -1,1 +1,2 @@
+#!/bin/sh
 cat $1 | $AUTO_DIR/tek2ps/tek2ps -i > $1.ps

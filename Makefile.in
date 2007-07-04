@@ -12,6 +12,7 @@ cmd: src @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)
+	chmod +x cmds/@*
 
 gui: .FORCE
 	cd ./gui;$(MAKE)

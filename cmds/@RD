@@ -1,3 +1,4 @@
+#!/bin/sh
 if ( test $# -eq 1 ) then
 	mv b.$1 fort.27
 	mv s.$1 fort.28

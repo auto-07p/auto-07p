@@ -1,3 +1,4 @@
+#!/bin/sh
 cat fort.7 > b.$1
 cat fort.8 > s.$1
 cat fort.9 > d.$1

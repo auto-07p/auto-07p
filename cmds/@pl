@@ -1,1 +1,2 @@
+#!/bin/sh
 $AUTO_DIR/bin/plaut04 $1 $2 &

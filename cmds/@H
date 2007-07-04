@@ -1,3 +1,4 @@
+#!/bin/sh
 if (test -r $1.dat) then
 cat $1.dat > fort.4
 fi

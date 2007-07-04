@@ -1,3 +1,4 @@
+#!/bin/sh
 echo " File recovery ... done."
 if ( test $# -eq 1 ) then
 	mv b.$1 b.tmp

@@ -1,3 +1,4 @@
+#!/bin/sh
 mv -f b.$1  b.$2
 mv -f s.$1  s.$2
 mv -f d.$1  d.$2

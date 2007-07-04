@@ -1,3 +1,4 @@
+#!/bin/sh
 if ( test $# -eq 1 ) then
 	cp s.$1 fort.28
 	$AUTO_DIR/bin/listlabels

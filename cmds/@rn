@@ -1,3 +1,4 @@
+#!/bin/sh
 rm fort.10 fort.11 fort.12 fort.13
 f77 $AUTO_DIR/cmds/rename.f -o rename.exe
 ls r.* > fort.10

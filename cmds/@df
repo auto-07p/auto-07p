@@ -1,2 +1,3 @@
+#!/bin/sh
 rm -f fort.*
 echo "Deleting fort.* ... done"

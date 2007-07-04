@@ -1,3 +1,4 @@
+#!/bin/sh
 if ( test $# -eq 1 ) then
 	cat c.$1 > fort.2
 	if (test -r s.$1) then

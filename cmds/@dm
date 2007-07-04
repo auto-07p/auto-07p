@@ -1,2 +1,3 @@
+#!/bin/sh
 cp $AUTO_DIR/demos/$1/* .
 echo "Copying demo $1 ... done"
