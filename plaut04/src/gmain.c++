@@ -8815,8 +8815,11 @@ readSolutionAndBifurcationData(bool blFirstRead)
         if(!tmp) printf(" Failed to read the solution file!\n");
         blOpenSolFile = tmp;
 
-        if(mySolNode.nar <= 3) setShow3DSol = false;
-	if(whichType != BIFURCATION) setShow3D = false;
+        if(mySolNode.nar <= 3)
+	{
+	    setShow3DSol = false;
+	    if(whichType != BIFURCATION) setShow3D = false;
+	}
     }
     else
     {
