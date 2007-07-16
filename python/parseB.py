@@ -241,8 +241,8 @@ def AUTOatof(input_string):
             elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=string.atof(strip(input_string)[0:-4]+'E'+
-                                  strip(input_string)[-4:])
+                value=atof(strip(input_string)[0:-4]+'E'+
+                           strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
