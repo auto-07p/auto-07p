@@ -2311,6 +2311,9 @@ C limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 C These are often convenient for an initial plot of the diagram.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),THL(*),THU(*)
+       CHARACTER (LEN=*), PARAMETER :: D3 = "('   0'3(A8,ES11.4))"
+       CHARACTER (LEN=*), PARAMETER :: I4 = "('   0'4(A8,I4))"
+       CHARACTER (LEN=*), PARAMETER :: I5 = "('   0'3(A8,I4),2(A7,I4))"
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -2347,47 +2350,30 @@ C
        EPSU=RAP(12)
        EPSS=RAP(13)
 C
-       WRITE(7,101)RL0,RL1,A0,A1
-       WRITE(7,102)EPSL,EPSU,EPSS
-       WRITE(7,103)DS,DSMIN,DSMAX
-       WRITE(7,104)NDIM,IPS,IRS,ILP
-       WRITE(7,105)NTST,NCOL,IAD,ISP
-       WRITE(7,106)ISW,IPLT,NBC,NINT
-       WRITE(7,107)NMX,NPR,MXBF,IID
-       WRITE(7,108)ITMX,ITNW,NWTN,JAC,NUZR
+       WRITE(7,"(I4,' ',4ES12.4)")0,RL0,RL1,A0,A1
+       WRITE(7,D3)'EPSL=',EPSL,'EPSU =',EPSU, 'EPSS =',EPSS
+       WRITE(7,D3)'DS  =',DS,  'DSMIN=',DSMIN,'DSMAX=',DSMAX
+       WRITE(7,I4)'NDIM=',NDIM,'IPS =',IPS, 'IRS =',IRS, 'ILP =',ILP
+       WRITE(7,I4)'NTST=',NTST,'NCOL=',NCOL,'IAD =',IAD, 'ISP =',ISP
+       WRITE(7,I4)'ISW =',ISW, 'IPLT=',IPLT,'NBC =',NBC, 'NINT=',NINT
+       WRITE(7,I4)'NMX= ',NMX, 'NPR =',NPR, 'MXBF=',MXBF,'IID =',IID
+       WRITE(7,I5)'ITMX=',ITMX,'ITNW=',ITNW,'NWTN=',NWTN,'JAC=',JAC,
+     *  '  NUZR=',NUZR
 C
+       WRITE(7,"('   0   User-specified parameter')",ADVANCE="NO")
        IF(NICP.EQ.1)THEN
-         WRITE(7,109)(ICP(NPARX+I),I=1,NICP)
+         WRITE(7,"(':       ',  I4)")(ICP(NPARX+I),I=1,NICP)
        ELSE
-         WRITE(7,110)(ICP(NPARX+I),I=1,NICP)
+         WRITE(7,"('s:      ',24I4)")(ICP(NPARX+I),I=1,NICP)
        ENDIF
 C
+       WRITE(7,"('   0   Active continuation parameter')",ADVANCE="NO")
        IF(NFPR.EQ.1)THEN
-         WRITE(7,111)(ICP(I),I=1,NFPR)
+         WRITE(7,"(':  ',  I4)")(ICP(I),I=1,NFPR)
        ELSE
-         WRITE(7,112)(ICP(I),I=1,NFPR)
+         WRITE(7,"('s: ',24I4)")(ICP(I),I=1,NFPR)
        ENDIF
        CALL FLUSH(7)
-C
- 101   FORMAT('   0 ',1P4E12.4)
- 102   FORMAT('   0   EPSL=',1PE11.4,'  EPSU =',1PE11.4,
-     *                               '  EPSS =',1PE11.4)
- 103   FORMAT('   0   DS  =',1PE11.4,'  DSMIN=',1PE11.4,
-     *                               '  DSMAX=',1PE11.4)
- 104   FORMAT('   0   NDIM=',I4,'   IPS =',I4,'   IRS =',I4,
-     *                                        '   ILP =',I4)
- 105   FORMAT('   0   NTST=',I4,'   NCOL=',I4,'   IAD =',I4,
-     *                                        '   ISP =',I4)
- 106   FORMAT('   0   ISW =',I4,'   IPLT=',I4,'   NBC =',I4,
-     *                                        '   NINT=',I4)
- 107   FORMAT('   0   NMX=', I5,'   NPR =',I4,'   MXBF=',I4,
-     *                                        '   IID =',I4)
- 108   FORMAT('   0   ITMX=',I4,'   ITNW=',I4,'   NWTN=',I4,
-     *        '   JAC=',I4,'  NUZR=',I4)
- 109   FORMAT('   0   User-specified parameter:       ',  I4)
- 110   FORMAT('   0   User-specified parameters:      ',24I4)
- 111   FORMAT('   0   Active continuation parameter:  ',  I4)
- 112   FORMAT('   0   Active continuation parameters: ',24I4)
 C
       RETURN
       END
