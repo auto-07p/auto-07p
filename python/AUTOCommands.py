@@ -810,7 +810,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         abbrev["s"]         = "solution"
         abbrev["solution"]  = "solution"
         abbrev["h"]         = "homcont"
-        abbrev["homcont"]  = "homcont"
+        abbrev["homcont"]   = "homcont"
         for key in kw.keys():
             if key in abbrev.keys():
                 # change the abbreviation to the long version
@@ -883,7 +883,7 @@ class commandRunnerLoadName(commandRunnerConfig):
             kw["equation"]   = name
             kw["constants"]  = name
             kw["solution"]   = name
-            kw["homcont"]   = name
+            kw["homcont"]    = name
         commandRunnerConfig.__init__(self,runner,templates,
                                      AUTOutil.cnfmerge((kw,cnf)))
 
@@ -964,11 +964,11 @@ class commandSetDirectory(commandWithRunner):
         self.runner.config(dir=self.directory)
         return valueString("Directory set to %s\n"%self.directory)
 
-class commandRun(command):
+class commandRun(commandWithRunner):
     """Run AUTO.
 
     Type FUNC([options]) to run AUTO with the given options.
-    There are four possible options:
+    There are four possible basic options:
     \\begin{verbatim}
     Long name   Short name    Description
     -------------------------------------------
@@ -982,23 +982,44 @@ class commandRun(command):
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
+    You can also specify an sv='xxx' option to save to b.xxx, and so on,
+    or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards)
+
     Type FUNC('name') load all files with base 'name'.
     This does the same thing as running
     FUNC(e='name',c='name,s='name',h='name').
+
+    FUNC('name','save') does the same thing as running
+    FUNC(e='name',c='name,s='name',h='name',sv='save').
     """
     type=SIMPLE
     shortName="run"
-    def __init__(self,name=None,runner=None,templates=None,**kw):
+    def __init__(self,name=None,sv=None,ap=None,runner=None,templates=None,**kw):
         self.name = name
         self.runner = runner
         self.templates = templates
         self.kw = kw
+        self.sv = sv
+        self.ap = ap
 
     def __call__(self):
-        func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
+        if not(self.name is None):
+            func=commandRunnerLoadName(self.name,self.runner,self.templates)
+            func()
+        func=commandRunnerLoadName(None,self.runner,self.templates,self.kw)
         func()
         func=commandRunMakefileWithSetup(self.runner)
-        return func()
+        ret=func()
+        if not(self.sv is None):
+            func=commandCopyFortFiles(self.sv)
+            rval=func()
+            ret.value = ret.value + rval.value
+        if not(self.ap is None):
+            func=commandAppend(self.ap)
+            rval=func()
+            ret.value = ret.value + rval.value
+        return ret
 
 class commandRunDemo(commandWithRunner):
     def __init__(self,demo,equation="all",runner=None):

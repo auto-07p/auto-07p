@@ -49,8 +49,17 @@ class runAUTO:
         for key in dict.keys():
             if self.options.has_key(key):
                 self.options[key] = dict[key]
+            elif self.options["constants"].has_key(key):
+                if key == "DS" and (dict[key] == '-' or dict[key] == '+'):
+                    if dict[key] == '-':
+                        self.options["constants"][key] = -self.options["constants"][key]
+                else:
+                    self.options["constants"][key] = dict[key]
+            elif self.options["homcont"].has_key(key):
+                self.options["homcont"][key] = dict[key]
             else:
                 raise "Unknown option: %s"%(key,)
+
     def __printLog(self,text):
         # Write out the log information to the appropriate place
         if not(self.options["log"] is None):
@@ -274,7 +283,7 @@ class runAUTO:
         return [self.internalLog,self.internalErr]
     def __runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
-        and trys to run it. """
+        and tries to run it. """
         global demo_killed,alarm_demo,demo_max_time
         if command is None:
             if not(self.options["command"] is None):
