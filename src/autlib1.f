@@ -2599,20 +2599,25 @@ C
 C     ---------- ------
       SUBROUTINE WRLINE(IAP,PAR,ICP,ICU,IBR,NTOT,LAB,VAXIS,U)
 C
-      INCLUDE 'auto.h'
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Write one line of output on unit 6 and 7.
 C
-      DIMENSION PAR(*),ICP(*),ICU(*),IAP(*),U(*)
+      INTEGER IAP(*),ICP(*),ICU(*),IBR,NTOT,LAB
+      DOUBLE PRECISION PAR(*),U(*),VAXIS
+C Local
       CHARACTER*2 ATYPE
+      CHARACTER*2, PARAMETER :: ATYPESP(9) =
+     *     (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
+      CHARACTER*2, PARAMETER :: ATYPESN(9) =
+     *     (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
+      CHARACTER(*), PARAMETER :: F69 = "(I4,I6,2X,A2,I5)"
+      CHARACTER(*), PARAMETER :: F7 = "(I4,I6,I4,I5)"
+      INTEGER AIBR,MTOT,AMTOT,NDM,ITP,NICP,N1,N2,I,J
+      DOUBLE PRECISION X
 C
-       IPS=IAP(2)
-       ISW=IAP(10)
        NDM=IAP(23)
        ITP=IAP(27)
-       NFPR=IAP(29)
        NICP=IAP(41)
 C
        N1=NICP
@@ -2631,70 +2636,49 @@ C
        IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,7,N1,N2)
        CALL HEADNG(IAP,PAR,ICU,9,N1,N2)
 C
-       IF(MOD(ITP,10).EQ.1)THEN
-         ATYPE='BP'
-       ELSE IF(MOD(ITP,10).EQ.2)THEN
-         ATYPE='LP'
-       ELSE IF(MOD(ITP,10).EQ.3)THEN
-         ATYPE='HB'
-       ELSE IF(MOD(ITP,10).EQ.4)THEN
-         ATYPE='  '
-       ELSE IF(MOD(ITP,10).EQ.-4)THEN
-         ATYPE='UZ'
-       ELSE IF(MOD(ITP,10).EQ.5)THEN
-         ATYPE='LP'
-       ELSE IF(MOD(ITP,10).EQ.6)THEN
-         ATYPE='BP'
-       ELSE IF(MOD(ITP,10).EQ.7)THEN
-         ATYPE='PD'
-       ELSE IF(MOD(ITP,10).EQ.8)THEN
-         ATYPE='TR'
-       ELSE IF(MOD(ITP,10).EQ.9)THEN
-         ATYPE='EP'
-       ELSE IF(MOD(ITP,10).EQ.-9)THEN
-         ATYPE='MX'
+       IF(MOD(ITP,10)>0)THEN
+         ATYPE=ATYPESP(MOD(ITP,10))
+       ELSEIF(MOD(ITP,10)<0)THEN
+         ATYPE=ATYPESN(-MOD(ITP,10))
        ELSE
          ATYPE='  '
        ENDIF
 C
        MTOT=MOD(NTOT-1,9999)+1
-       IF(N2.EQ.0)THEN
-         IF(MOD(ITP,10).NE.0)THEN
-           WRITE(6,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *           (PAR(ICU(I)),I=2,N1)
-           CALL FLUSH(6)
-         ENDIF
-         WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
-     *   (PAR(ICU(I)),I=2,N1)
-         WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *   (PAR(ICU(I)),I=2,N1)
-       ELSE
-         IF(N1.EQ.1)THEN
-           IF(MOD(ITP,10).NE.0)THEN
-             WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),
-     *             VAXIS,(U(I),I=1,N2)
-             CALL FLUSH(6)
-           ENDIF
-           WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,(U(I),I=1,N2)
-           WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *     (U(I),I=1,N2)
-         ELSE
-           IF(MOD(ITP,10).NE.0)THEN
-             WRITE(6,101)IABS(IBR),IABS(MTOT),ATYPE,LAB,PAR(ICU(1)),
-     *             VAXIS,(U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
-             CALL FLUSH(6)
-           ENDIF
-           WRITE(7,102)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
-     *     (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
-           WRITE(9,101)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
-     *     (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
-         ENDIF
+       AIBR=IBR
+       AMTOT=MTOT
+       IF(N2/=0)THEN
+          AIBR=ABS(IBR)
+          AMTOT=ABS(MTOT)
        ENDIF
-C
- 101   FORMAT(I4,I6,2X,A2,I5,1P8E14.5)
- 102   FORMAT(I4,I6,I4,I5,1P8E19.10)
-C
-      CALL FLUSH(7)
+       IF(MOD(ITP,10).NE.0)THEN
+          WRITE(6,F69,ADVANCE="NO")AIBR,AMTOT,ATYPE,LAB
+       ENDIF
+       WRITE(7,F7,ADVANCE="NO")IBR,MTOT,ITP,LAB
+       WRITE(9,F69,ADVANCE="NO")IBR,MTOT,ATYPE,LAB
+       DO J=1,N1+N2+1
+         IF(J==1.OR.J>N2+2)THEN
+           I=1
+           IF(J>1)I=J-N2-1
+           X=PAR(ICU(I))
+         ELSEIF(J==2)THEN
+           X=VAXIS
+         ELSE !J>2 with N2>0
+           X=U(J-2)
+         ENDIF
+         IF(MOD(ITP,10).NE.0)THEN
+           WRITE(6,"(ES14.6)",ADVANCE="NO")X
+         ENDIF
+         WRITE(7,"(ES19.10)",ADVANCE="NO")X
+         WRITE(9,"(ES14.6)",ADVANCE="NO")X
+       ENDDO
+       IF(MOD(ITP,10).NE.0)THEN
+         WRITE(6,"()")
+         CALL FLUSH(6)
+       ENDIF
+       WRITE(7,"()")
+       CALL FLUSH(7)
+       WRITE(9,"()")
       RETURN
       END
 C
