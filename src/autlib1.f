@@ -2611,10 +2611,9 @@ C Local
      *     (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
       CHARACTER*2, PARAMETER :: ATYPESN(9) =
      *     (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
-      CHARACTER(*), PARAMETER :: F69 = "(I4,I6,2X,A2,I5)"
-      CHARACTER(*), PARAMETER :: F7 = "(I4,I6,I4,I5)"
-      INTEGER AIBR,MTOT,AMTOT,NDM,ITP,NICP,N1,N2,I,J
-      DOUBLE PRECISION X
+      CHARACTER(33) :: F69 ! (I4,I6,2X,A2,I5,**********ES14.5)
+      CHARACTER(31) :: F7  ! (I4,I6,I4,I5,**********ES19.10)
+      INTEGER AIBR,MTOT,AMTOT,NDM,ITP,NICP,N1,N2,I
 C
        NDM=IAP(23)
        ITP=IAP(27)
@@ -2651,34 +2650,18 @@ C
           AIBR=ABS(IBR)
           AMTOT=ABS(MTOT)
        ENDIF
+       WRITE(F69,"(AI10A)") '(I4,I6,2X,A2,I5,',N1+N2+1,'ES14.5)'
+       WRITE(F7,"(AI10A)") '(I4,I6,I4,I5,',N1+N2+1,'ES19.10)'
        IF(MOD(ITP,10).NE.0)THEN
-          WRITE(6,F69,ADVANCE="NO")AIBR,AMTOT,ATYPE,LAB
+          WRITE(6,F69)AIBR,AMTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
+     *         (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
+          CALL FLUSH(6)
        ENDIF
-       WRITE(7,F7,ADVANCE="NO")IBR,MTOT,ITP,LAB
-       WRITE(9,F69,ADVANCE="NO")IBR,MTOT,ATYPE,LAB
-       DO J=1,N1+N2+1
-         IF(J==1.OR.J>N2+2)THEN
-           I=1
-           IF(J>1)I=J-N2-1
-           X=PAR(ICU(I))
-         ELSEIF(J==2)THEN
-           X=VAXIS
-         ELSE !J>2 with N2>0
-           X=U(J-2)
-         ENDIF
-         IF(MOD(ITP,10).NE.0)THEN
-           WRITE(6,"(ES14.6)",ADVANCE="NO")X
-         ENDIF
-         WRITE(7,"(ES19.10)",ADVANCE="NO")X
-         WRITE(9,"(ES14.6)",ADVANCE="NO")X
-       ENDDO
-       IF(MOD(ITP,10).NE.0)THEN
-         WRITE(6,"()")
-         CALL FLUSH(6)
-       ENDIF
-       WRITE(7,"()")
+       WRITE(7,F7)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
+     *      (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
        CALL FLUSH(7)
-       WRITE(9,"()")
+       WRITE(9,F69)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
+     *      (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
       RETURN
       END
 C
