@@ -2381,156 +2381,97 @@ C
 C     ---------- ------
       SUBROUTINE HEADNG(IAP,PAR,ICP,IUNIT,N1,N2)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Prints headings above columns on unit 6, 7, and 9.
+C N1 = number of parameters to print (maximum: 7 for screen output)
+C N2 = number of (max) variables to print (maximum: max(0,7-N1,7))
 C
-      DIMENSION PAR(*),ICP(*),IAP(*)
-      CHARACTER*19 COL(9),TMP
-      CHARACTER*1 CNVRT
+      INTEGER IAP(*),ICP(*),IUNIT,N1,N2
+      DOUBLE PRECISION PAR(*)
+C Local
+      INTEGER I,J,IPS,ISW,IPLT,NDM,ITP
 C
        IPS=IAP(2)
-       ISW=IAP(10)
        IPLT=IAP(11)
        NDM=IAP(23)
-       ITP=IAP(27)
 C
-       DO I=1,9
-         IF(IUNIT.EQ.7)THEN
-            COL(I)='                   '
-         ELSE
-            COL(I)='              '
-         ENDIF
-       ENDDO
-C
-       IF(IUNIT.EQ.6)WRITE(6,100)
-       IF(IUNIT.EQ.7)WRITE(7,101)
-       IF(IUNIT.EQ.9)WRITE(9,100)
-C
-       J=0
-       DO I=1,N1
-         J=J+1
-         IF(J.EQ.2.)J=J+1+N2
-         COL(J)(1:7)='   PAR('
-         IF(ICP(I).GT.9)THEN
-           COL(J)(8:8)=CNVRT(ICP(I)/10)
-           COL(J)(9:9)=CNVRT( MOD(ICP(I),10) )
-           COL(J)(10:14)=')    '
-         ELSE
-           COL(J)(8:8)=CNVRT(ICP(I))
-           COL(J)(9:14)=')    '
-         ENDIF
-       ENDDO
-C
-       IF(IPLT.GT.NDM.AND.IPLT.LE.2*NDM) THEN
-         COL(2)(1:12)=' INTEGRAL U('
-         COL(2)(13:13)=CNVRT(IPLT-NDM)
-         COL(2)(14:14)=')'
-       ELSE IF(IPLT.GT.2*NDM.AND.IPLT.LE.3*NDM) THEN
-         COL(2)(1:11)=' L2-NORM U('
-         COL(2)(12:12)=CNVRT(IPLT-2*NDM)
-         COL(2)(13:14)=') '
-       ELSE IF(IPLT.GT.0.AND.IPLT.LE.NDM) THEN
-         IF(IABS(IPS).LE.1.OR.IPS.EQ.5)
-     *   THEN
-           COL(2)(1:7)='     U('
-           COL(2)(8:8)=CNVRT(-IPLT)
-           COL(2)(9:14)=')     '
-         ELSE
-           COL(2)(1:9)='   MAX U('
-           COL(2)(10:10)=CNVRT(IPLT)
-           COL(2)(11:14)=')   '
-         ENDIF
-       ELSE IF(IPLT.LT.0.AND.IPLT.GE.-NDM) THEN
-         IF(IABS(IPS).LE.1.OR.IPS.EQ.5)
-     *   THEN
-           COL(2)(1:7)='     U('
-           COL(2)(8:8)=CNVRT(-IPLT)
-           COL(2)(9:14)=')     '
-         ELSE
-           COL(2)(1:9)='   MIN U('
-           COL(2)(10:10)=CNVRT(-IPLT)
-           COL(2)(11:14)=')   '
-         ENDIF
+       IF(IUNIT.EQ.7)THEN
+          WRITE(7,"(I4/I4,A)",ADVANCE="NO")0,0,'    PT  TY  LAB '
        ELSE
-         COL(2)='   L2-NORM    '
+          WRITE(IUNIT,"(X/A)",ADVANCE="NO")'  BR    PT  TY  LAB '
        ENDIF
 C
-       IF(N2.GT.0)THEN
-         DO I=1,N2
-           COL(2+I)(1:7)='     U('
-           ITMP=I
-           COL(2+I)(8:8)=CNVRT(ITMP)
-           COL(2+I)(9:14)=')     '
-         ENDDO
-         IF(  (IPS.GE.2.AND.IPS.LE.4) .OR. (IPS.GE.6.AND.IPS.LE.9)
-     *   .OR. (IPS.GE.12.AND.IPS.LE.17) )THEN
-           DO I=3,2+N2
-             TMP=COL(I)
-             COL(I)(3:14)=TMP(1:12)
-             COL(I)(4:6)='MAX'
-           ENDDO
-         ENDIF
-       ENDIF
+       DO J=1,N1+N2+1
+          IF(J==1.OR.J>N2+2)THEN
+             I=1
+             IF(J>1)I=J-N2-1
+             IF(ICP(I)==11.AND.IPS>0.AND.IPS/=4)THEN
+                CALL WRITECOL(5,'PERIOD')
+             ELSEIF(ICP(I)==10.AND.(IPS==5.OR.IPS==15))THEN
+                CALL WRITECOL(6,'FOPT')
+             ELSEIF(ICP(I)==14.AND.(IPS==14.OR.IPS==16))THEN
+                CALL WRITECOL(6,'TIME')
+             ELSE
+                CALL WRITECOL(4,'PAR',ICP(I))
+             ENDIF
+          ELSEIF(J==2)THEN
+             IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
+                CALL WRITECOL(2,'INTEGRAL U',IPLT-NDM)
+             ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
+                CALL WRITECOL(2,'L2-NORM U',IPLT-2*NDM)
+             ELSE IF(IPLT>0.AND.IPLT<=NDM) THEN
+                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                   CALL WRITECOL(6,'U',IPLT)
+                ELSE
+                   CALL WRITECOL(4,'MAX U',IPLT)
+                ENDIF
+             ELSE IF(IPLT<0.AND.IPLT>=-NDM) THEN
+                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                   CALL WRITECOL(6,'U',-IPLT)
+                ELSE
+                   CALL WRITECOL(4,'MIN U',-IPLT)
+                ENDIF
+             ELSE
+                CALL WRITECOL(4,'L2-NORM')
+             ENDIF
+          ELSE !J>2 with N2>0
+             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                CALL WRITECOL(6,'U',J-2)
+             ELSE
+                CALL WRITECOL(4,'MAX U',J-2)
+             ENDIF
+          ENDIF
 C
-       DO I=1,N1+N2+1
-         IF(COL(I).EQ.'   PAR(11)    '
-     *                              .AND.IPS.GT.0.AND.IPS.NE.4)THEN
-                      COL(I) =  '    PERIOD    '
-         ELSEIF(COL(I).EQ.'   PAR(10)    '
-     *                             .AND.(IPS.EQ.5.OR.IPS.EQ.15))THEN
-                      COL(I) =  '     FOPT     '
-         ELSEIF(COL(I).EQ.'   PAR(14)    '
-     *                            .AND.(IPS.EQ.14.OR.IPS.EQ.16))THEN
-                      COL(I) =  '     TIME     '
-         ENDIF
        ENDDO
 C
-       IF(IUNIT.EQ.6)THEN
-          WRITE(6,102)(COL(I),I=1,N1+N2+1)
-          CALL FLUSH(6)
-       ELSEIF(IUNIT.EQ.7)THEN
-          WRITE(7,103)(COL(I),I=1,N1+N2+1)
-       ELSEIF(IUNIT.EQ.9)THEN
-          WRITE(9,102)(COL(I),I=1,N1+N2+1)
-       ENDIF
-C
- 100   FORMAT(' ')
- 101   FORMAT('   0')
- 102   FORMAT('  BR    PT  TY  LAB ',8A14)
- 103   FORMAT('   0    PT  TY  LAB ',8A19)
-C
-      CALL FLUSH(7)
+       WRITE(IUNIT,"()")
+       CALL FLUSH(IUNIT)
       RETURN
-      END
-C
-C     ----------- -------- -----
-      CHARACTER*1 FUNCTION CNVRT(I)
-C
-       CNVRT=' '
-C
-       GOTO(1,2,3,4,5,6,7,8,9,10)I+1
- 1     CNVRT='0'
-      RETURN
- 2     CNVRT='1'
-      RETURN
- 3     CNVRT='2'
-      RETURN
- 4     CNVRT='3'
-      RETURN
- 5     CNVRT='4'
-      RETURN
- 6     CNVRT='5'
-      RETURN
- 7     CNVRT='6'
-      RETURN
- 8     CNVRT='7'
-      RETURN
- 9     CNVRT='8'
-      RETURN
- 10    CNVRT='9'
-      RETURN
-      END
+      CONTAINS
+
+      SUBROUTINE WRITECOL(I,S,N)
+      INTEGER, INTENT(IN) :: I
+      CHARACTER(*), INTENT(IN) :: S
+      INTEGER, INTENT(IN), OPTIONAL :: N
+C Local
+      CHARACTER(10) SN
+      CHARACTER(19) COL
+      COL=' '
+      IF(PRESENT(N))THEN
+         WRITE(SN,"(I10)")N
+         WRITE(COL(I:),"(AAAA)") S,'(',TRIM(ADJUSTL(SN)),')'
+      ELSE
+         WRITE(COL(I:),"(A)") S
+      ENDIF
+      IF(IUNIT.EQ.7)THEN
+         WRITE(IUNIT,"(A19)",ADVANCE="NO")COL
+      ELSE
+         WRITE(IUNIT,"(A14)",ADVANCE="NO")COL
+      ENDIF
+      END SUBROUTINE WRITECOL
+
+      END SUBROUTINE HEADNG
 C
 C     ---------- ------
       SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
@@ -2676,12 +2617,11 @@ C
 C
        N1=NICP
        N2=NDM
-       NT=N1+N2
 C
        IF(N1.GT.7)THEN
          N1=7
          N2=0
-       ELSEIF(NT.GT.7)THEN
+       ELSEIF(N1+N2.GT.7)THEN
          N2=7-N1
        ENDIF
 C
