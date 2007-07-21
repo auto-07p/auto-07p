@@ -89,44 +89,49 @@ C     ---------- -------
       SUBROUTINE WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 C
       DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-      CHARACTER*172 LINE
+      CHARACTER*132 LINE
       CHARACTER*4 CHR4,CLAB
       CHARACTER*1 CH1
+      INTEGER LEN
+      LOGICAL EOL
 C
        L=0
        LNUM=0
        REWIND 27
- 1     CONTINUE
-         LINE(1:172)=' '
-         READ(27,100,END=99)LINE
+       DO
+         EOL=.TRUE.
+         READ(27,"(A)",ADVANCE='NO',EOR=97,END=99,SIZE=LEN)LINE
+         EOL=.FALSE.
+ 97      CONTINUE
          LNUM=LNUM+1
          CLAB=LINE(16:19)
          IF(LINE(1:4).NE.'   0' .AND. CLAB.NE.'   0')THEN
            L=L+1
            IF(CLAB.NE.CHR4(LLB(L)))THEN
-             WRITE(6,101)CLAB,LNUM,CHR4(LLB(L))
-             READ(5,102)CH1
-             IF(CH1.NE.'y'.AND.CH1.NE.'Y')THEN
-               WRITE(6,103)
+             WRITE(6,"(A/A,A4,A,I5/A,A4/A/A)", ADVANCE="NO")
+     *        ' WARNING : The two files have incompatible labels :',
+     *        '  b-file label ',CLAB,' at line ',LNUM,
+     *        '  s-file label ',CHR4(LLB(L)),
+     *        ' New labels may be assigned incorrectly.',
+     *        ' Continue ? : '
+             READ(5,"(A1)")CH1
+             IF(CH1/='y'.AND.CH1/='Y')THEN
+               WRITE(6,"(A)")
+     *               'Rewrite discontinued. Recover original files'
                RETURN
              ENDIF
            ENDIF
            LINE(16:19)=CHR4(LNL(L))
          ENDIF
-         LEN=LENGTH(172,LINE)
-         WRITE(37,100)LINE(1:LEN)
-         GOTO 1
-C
- 100   FORMAT(A)
- 101   FORMAT(' WARNING : The two files have incompatible labels :',
-     *      /,'  p-file label ',A4,' at line ',I5,
-     *      /,'  q-file label ',A4,
-     *      /,' New labels may be assigned incorrectly.',
-     *      /,' Continue ? : ',$)
- 102   FORMAT(A1)
-     *
- 103   FORMAT(' Rewrite discontinued. Recover original files')
-C
+         IF(.NOT.EOL)THEN
+           DO
+             WRITE(37,"(A)",ADVANCE='NO')LINE(1:LEN)
+             READ(27,"(A)",ADVANCE='NO',EOR=98,SIZE=LEN)LINE
+           ENDDO
+ 98        CONTINUE
+         ENDIF
+         WRITE(37,"(A)")LINE(1:LEN)
+       ENDDO
  99   RETURN
       END SUBROUTINE WRFILE7
 C
@@ -222,22 +227,6 @@ C
         EOF=.TRUE.
       RETURN
       END SUBROUTINE SKIP
-C
-C     ------- -------- ------
-      INTEGER FUNCTION LENGTH(N,LINE)
-C
-      CHARACTER*172 LINE
-C
-       LENGTH=1
-       DO 1 I=N,1,-1
-         IF(LINE(I:I).NE.' ')THEN
-           LENGTH=I
-           RETURN
-         ENDIF
- 1     CONTINUE
-C
-      RETURN
-      END FUNCTION LENGTH
 C
 C     ----------- -------- ----
       CHARACTER*4 FUNCTION CHR4(N)
