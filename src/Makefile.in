@@ -47,17 +47,17 @@ compile: $(OBJ)
 	ar cr $@ user_c.o
 	rm -f user_c.o
 #
-../bin/autlab: autlab.f auto.h
-	$(FC) $(FFLAGS) $(OPT) autlab.f -o $@
+utility.o: utility.f
+	$(FC) $(FFLAGS) $(OPT) -c utility.f -o $@
+#
+../bin/autlab: autlab.f utility.o
+	$(FC) $(FFLAGS) $(OPT) autlab.f utility.o -o $@
 #
 ../bin/double: double.f auto.h
 	$(FC) $(FFLAGS) $(OPT) double.f -o $@
 #
 ../bin/triple: triple.f auto.h
 	$(FC) $(FFLAGS) $(OPT) triple.f -o $@
-#
-utility.o: utility.f
-	$(FC) $(FFLAGS) $(OPT) -c utility.f -o $@
 #
 ../bin/keepbp: keepbp.f utility.o
 	$(FC) $(FFLAGS) $(OPT) keepbp.f utility.o -o $@
@@ -74,14 +74,14 @@ utility.o: utility.f
 ../bin/deletelp: deletelp.f utility.o
 	$(FC) $(FFLAGS) $(OPT) deletelp.f utility.o -o $@
 #
-../bin/listlabels: listlabels.f auto.h
-	$(FC) $(FFLAGS) $(OPT) listlabels.f -o $@
+../bin/listlabels: listlabels.f utility.o
+	$(FC) $(FFLAGS) $(OPT) listlabels.f utility.o -o $@
 #
 ../bin/reduce: reduce.f utility.o
 	$(FC) $(FFLAGS) $(OPT) reduce.f utility.o -o $@
 #
-../bin/relabel: relabel.f auto.h
-	$(FC) $(FFLAGS) $(OPT) relabel.f -o $@
+../bin/relabel: relabel.f utility.o
+	$(FC) $(FFLAGS) $(OPT) relabel.f utility.o -o $@
 #
 fcon: $(AUTO_DIR)/src/fcon.f
 	@if [ -f $(EQUATION_NAME).f ]; then \
