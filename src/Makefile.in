@@ -56,29 +56,29 @@ compile: $(OBJ)
 ../bin/triple: triple.f auto.h
 	$(FC) $(FFLAGS) $(OPT) triple.f -o $@
 #
-../bin/keepbp: keepbp.f
-	$(FC) $(FFLAGS) $(OPT) keepbp.f -o $@
+utility.o: utility.f
+	$(FC) $(FFLAGS) $(OPT) -c utility.f -o $@
 #
-../bin/keeplp: keeplp.f
-	$(FC) $(FFLAGS) $(OPT) keeplp.f -o $@
+../bin/keepbp: keepbp.f utility.o
+	$(FC) $(FFLAGS) $(OPT) keepbp.f utility.o -o $@
 #
-../bin/keepuz: keepuz.f
-	$(FC) $(FFLAGS) $(OPT) keepuz.f -o $@
+../bin/keeplp: keeplp.f utility.o
+	$(FC) $(FFLAGS) $(OPT) keeplp.f utility.o -o $@
 #
-../bin/keepsp: keepsp.f
-	$(FC) $(FFLAGS) $(OPT) keepsp.f -o $@
+../bin/keepuz: keepuz.f utility.o
+	$(FC) $(FFLAGS) $(OPT) keepuz.f utility.o -o $@
 #
-../bin/deletelp: deletelp.f
-	$(FC) $(FFLAGS) $(OPT) deletelp.f -o $@
+../bin/keepsp: keepsp.f utility.o
+	$(FC) $(FFLAGS) $(OPT) keepsp.f utility.o -o $@
 #
-../bin/deleteuz: deleteuz.f
-	$(FC) $(FFLAGS) $(OPT) deleteuz.f -o $@
+../bin/deletelp: deletelp.f utility.o
+	$(FC) $(FFLAGS) $(OPT) deletelp.f utility.o -o $@
 #
 ../bin/listlabels: listlabels.f auto.h
 	$(FC) $(FFLAGS) $(OPT) listlabels.f -o $@
 #
-../bin/reduce: reduce.f auto.h
-	$(FC) $(FFLAGS) $(OPT) reduce.f -o $@
+../bin/reduce: reduce.f utility.o
+	$(FC) $(FFLAGS) $(OPT) reduce.f utility.o -o $@
 #
 ../bin/relabel: relabel.f auto.h
 	$(FC) $(FFLAGS) $(OPT) relabel.f -o $@
@@ -111,7 +111,7 @@ move: $(OBJ)
 #
 superclean:
 	cd ../lib && rm -f *.o *.a
-	rm -f *.mod
+	rm -f *.mod *.o
 	rmdir ../lib 2> /dev/null; true
 #
 #  DO NOT ADD ANYTHING AFTER THIS LINE
