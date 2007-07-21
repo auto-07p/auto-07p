@@ -2632,7 +2632,7 @@ C
 C Write a heading above the first line.
 C
        IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,6,N1,N2)
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,7,N1,N2)
+       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,7,NICP,N2)
        CALL HEADNG(IAP,PAR,ICU,9,N1,N2)
 C
        IF(MOD(ITP,10)>0)THEN
@@ -2651,14 +2651,14 @@ C
           AMTOT=ABS(MTOT)
        ENDIF
        WRITE(F69,"(AI10A)") '(I4,I6,2X,A2,I5,',N1+N2+1,'ES14.5)'
-       WRITE(F7,"(AI10A)") '(I4,I6,I4,I5,',N1+N2+1,'ES19.10)'
+       WRITE(F7,"(AI10A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10)'
        IF(MOD(ITP,10).NE.0)THEN
           WRITE(6,F69)AIBR,AMTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *         (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
           CALL FLUSH(6)
        ENDIF
        WRITE(7,F7)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS,
-     *      (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
+     *      (U(I),I=1,N2),(PAR(ICU(I)),I=2,NICP)
        CALL FLUSH(7)
        WRITE(9,F69)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *      (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
