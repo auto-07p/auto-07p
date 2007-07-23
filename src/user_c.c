@@ -58,6 +58,7 @@ int FC_FUNC(pvls,PVLS)(integer *ndim, const void *u, doublereal *par)
 doublereal getp(char *code, integer ic, doublereal *u)
 #undef getp
 {
+  extern doublereal FC_FUNC(getp,GETP)(char *, integer *, doublereal *u);
   char ncode[4];
   memcpy(ncode, code, 3);
   ncode[3] = 0;
