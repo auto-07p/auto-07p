@@ -75,13 +75,15 @@ typedef struct {
 } user_function_list;
 extern const user_function_list user;
 
+extern doublereal FC_FUNC(getp,GETP)(const char *code, integer *ic, 
+				     const doublereal *u);
 /* C wrapper for getp; call it getp_ if we have name clashes */
 #define name 1
 #if FC_FUNC(name,NAME) == 1
 #define getp getp_
 #endif
 #undef name
-extern doublereal getp(char *code, integer ic, doublereal *u);
+extern doublereal getp(const char *code, integer ic, const doublereal *u);
 
 #ifndef WRAPPER
 /* user functions */
