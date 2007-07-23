@@ -191,8 +191,8 @@ else
 {
 	echo "configure: Coin3d OK.";
 	AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
-	SOXT_LDFLAGS=COIN_LDFLAGS
-	SOXT_INCLUDES=COIN_INCLUDES
+	SOXT_LDFLAGS=$COIN_LDFLAGS
+	SOXT_INCLUDES=$COIN_INCLUDES
 	if test x$HAVE_SOXT_CONFIG = "xtrue"; then
 		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
 		SOXT_INCLUDES="`soxt-config --cppflags`"
