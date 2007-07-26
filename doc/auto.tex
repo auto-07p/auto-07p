@@ -8228,7 +8228,7 @@ Consider the system \cite{Sa:95b}
 \beta \, (x^2 \, (1-x) - y^2)
 
 \end{array} \end{equation}
-as given in the file {\tt san.f}.
+as given in the file \filef{ san.f}.
 Choosing the constants appearing
 in (\ref{bs1}) appropriately allows for computing inclination and
 orbit flips as well as non-orientable resonant bifurcations, see
@@ -8240,19 +8240,19 @@ $$
 \left( 1 - \left(\frac{1-e^t}{1+e^t}\right)^2 , 4 \, e^t \,
 \frac{1-e^t}{(1+e^t)^3} , 0 \right). 
 $$
-This solution is specified in the routine {\tt STPNT}.
+This solution is specified in the routine \funcf{ STPNT}.
 
 \section{Inclination Flip.}
 We start by copying the demo to the current work directory 
 and running the first step
 \begin{center}
-\it @dm san \\
-make first
+\commandf{ @dm san }\\
+\commandf{ make first }
 \end{center}
 This computation starts from the analytic solution above with 
 $a=0$, $b=1$, $c=-2$, $\alpha=0$, $\beta=1$ and 
 $\gamma = \mu=\ti \mu =0$. The homoclinic solution is followed in the
-parameters $(a,\ti \mu)$ {\tt =(PAR(1), PAR(8))} up to $a=0.25$. 
+parameters $(a,\ti \mu)$ \parf{ =(PAR(1), PAR(8))} up to $a=0.25$. 
 The output is summarised on the screen as
 \begin{verbatim}
    BR  PT  TY LAB    PAR(1)        L2-NORM           PAR(8)     
@@ -8260,44 +8260,44 @@ The output is summarised on the screen as
     1   5  UZ   2  2.500000E-01  4.030545E-01 ... -3.620329E-11
     1  10  EP   3  7.384434E-01  4.339575E-01 ... -9.038826E-09
 \end{verbatim}
-and saved in more detail as {\tt b.1}, {\tt s.1} and {\tt d.1}.
+and saved in more detail as \filef{ b.1}, \filef{ s.1} and \filef{ d.1}.
 
 Next we want to add a solution to the adjoint equation to the
 solution obtained at $a=0.25$. This is
-achieved by making the change {\tt ITWIST = 1} saved in {\tt s.san.2},
-and {\tt IRS = 2},  {\tt NMX = 2} and {\tt ICP(1) = 9} saved in 
-{\tt c.san.2}. We also disable any
-user-defined functions {\tt NUZR=0}. The computation so-defined 
-is a single step in a trivial parameter {\tt PAR(9)} (namely a parameter
+achieved by making the change \parf{ ITWIST = 1} saved in \filef{ h.san.2},
+and \parf{ IRS = 2},  \parf{ NMX = 2} and \parf{ ICP(1) = 9} saved in 
+\filef{ c.san.2}. We also disable any
+user-defined functions \parf{ NUZR=0}. The computation so-defined 
+is a single step in a trivial parameter \parf{ PAR(9)} (namely a parameter
 that does not appear in the problem). The effect is to perform a Newton
-step to enable {\cal AUTO} to converge to a solution of the adjoint equation.
+step to enable \AUTO to converge to a solution of the adjoint equation.
 \begin{center}
-{\it make second}
+\commandf{ make second}
 \end{center} 
-The output is stored in {\tt b.2}, {\tt s.2}  and {\tt d.2}.
+The output is stored in \filef{ b.2}, \filef{ s.2}  and \filef{ d.2}.
 
 We can now continue the homoclinic plus
-adjoint in $(\alpha,\ti \mu)$ {\tt =(PAR(4), PAR(8))} by
-changing the constants (stored in {\tt c.san.3}) to read
-{\tt IRS = 4}, {\tt NMX = 50} and {\tt ICP(1) = 4}.
-We also add {\tt PAR(10)} to the list of continuation parameters
-{\tt NICP,(ICP(I),I=1 NICP)}. Here {\tt PAR(10)} is a dummy parameter used in
+adjoint in $(\alpha,\ti \mu)$ \parf{ =(PAR(4), PAR(8))} by
+changing the constants (stored in \filef{ c.san.3}) to read
+\parf{ IRS = 4}, \parf{ NMX = 50} and \parf{ ICP(1) = 4}.
+We also add \parf{ PAR(10)} to the list of continuation parameters
+\parf{ NICP,(ICP(I),I=1 NICP)}. Here \parf{ PAR(10)} is a dummy parameter used in
 order to make the continuation of the adjoint well posed. Theoretically,
 it should be zero if the computation of the adjoint is successful
 \cite{Sa:95b}.
 The test functions for detecting resonant bifurcations 
-({\tt ISPI(1)=1}) and inclination flips ({\tt ISPI(1)=13}) are
+(\parf{ ISPI(1)=1}) and inclination flips (\parf{ ISPI(1)=13}) are
 also activated. Recall that this should be specified in
-three ways. First we add {\tt PAR(21)} and {\tt PAR(33)}
-to the list of continuation parameters in {\tt c.san.3}, second we set up user defined
-output at zeros of these parameters in the same file, and finally we set {\tt NPSI=2}
-{\tt (IPSI(1),IPSI(2))=1,13} in {\tt s.san.3}. We also add to {\tt c.san.3} another user zero
-for detecting when {\tt PAR(4)=1.0}.
+three ways. First we add \parf{ PAR(21)} and \parf{ PAR(33)}
+to the list of continuation parameters in \filef{ c.san.3}, second we set up user defined
+output at zeros of these parameters in the same file, and finally we set \parf{ NPSI=2}
+\parf{ (IPSI(1),IPSI(2))=1,13} in \filef{ h.san.3}. We also add to \filef{ c.san.3} another user zero
+for detecting when \parf{ PAR(4)=1.0}.
 Running 
 \begin{center}
-{\it make third }\\
+\commandf{ make third }\\
 \end{center}
-reads starting data from {\tt s.2} and outputs to the screen
+reads starting data from \filef{ s.2} and outputs to the screen
 \begin{verbatim}
  BR  PT  TY LAB    PAR(4)     ...    PAR(8)        PAR(10)    ...    PAR(33)    
   1  20       5  7.847219E-01 ... -3.001440E-11 -4.268884E-09 ... -1.441124E+01
@@ -8306,67 +8306,67 @@ reads starting data from {\tt s.2} and outputs to the screen
   1  40       8  1.383969E+00 ... -8.133899E-11 -4.671817E-09 ...  1.348810E+00
   1  50  EP   9  1.695209E+00 ... -1.386324E-10 -5.098460E-09 ...  5.311065E-01
 \end{verbatim}
-Full output is stored in {\tt b.3}, {\tt s.3} and {\tt d.3}. 
+Full output is stored in \filef{ b.3}, \filef{ s.3} and \filef{ d.3}. 
 \begin{figure}[b]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/san1.ps}}
 \caption{Second versus third component of the solution to the adjoint
-equation at labels {\tt 5, 7} and {\tt 9}}
+equation at labels 5, 7 and 9}
 \label{Ftest1}
 \end{figure}
-Note that the artificial parameter $\epsilon=${\tt PAR(10)} is zero within
-the allowed tolerance. At label {\tt 7}, a zero of test function $\psi_{13}$ has
+Note that the artificial parameter $\epsilon=$\parf{ PAR(10)} is zero within
+the allowed tolerance. At label \parf{ 7}, a zero of test function $\psi_{13}$ has
 been detected which corresponds to an inclination flip with respect to
 the stable manifold. That the orientation of the homoclinic loop
 changes as the family passes through this point can be read from
-the information in {\tt d.3}.
-However in {\tt d.3}, the line 
+the information in \filef{ d.3}.
+However in \filef{ d.3}, the line 
 \begin{verbatim} 
 ORIENTABLE (    0.2982090775D-03)
 \end{verbatim}
-at {\tt PT=35} would seems to contradict the 
+at \parf{ PT=35} would seems to contradict the 
 detection of the inclination flip at this point. Nonetheless, the
 important fact is the zero of the test function; and note that 
 the value of the variable indicating the orientation is 
 small compared to its value at the other regular points. 
-Data for the adjoint equation at {\tt LAB= 5, 7} and {\tt 9} at
+Data for the adjoint equation at \parf{ LAB= 5, 7} and \parf{ 9} at
 and on either side of the inclination flip are presented in 
 Fig.\ \ref{Ftest1}. The switching of the solution between components
 of the leading unstable left eigenvector is apparent.
 Finally, we remark that the Newton step in the dummy 
-parameter {\tt PAR(20)} performed above is crucial
+parameter \parf{ PAR(20)} performed above is crucial
 to obtain convergence. Indeed, if instead we try to continue the
 homoclinic orbit and the solution of the adjoint equation directly by
 setting
 \begin{verbatim}
   ITWIST = 1   IRS = 2   NMX = 50   ICP(1) = 4   NPUSZR = 0
 \end{verbatim}
-(as saved in {\tt c.san.4}) and running
+(as saved in \filef{ c.san.4}) and running
 \begin{center}
-{\it make fourth}
+\commandf{ make fourth}
 \end{center}
 we obtain a no convergence error.
 
 \section{Non-orientable Resonant Eigenvalues.}
 Inspecting the output saved in the third run,
 we observe the existence of a non-orientable homoclinic orbit at label 
-{\tt 7} corresponding to {\tt N=40}. We restart at this label, with
-the first continuation parameter being once again $a=${\tt PAR(1)}, 
-by changing constants and storing them in {\tt c.san.5} according to 
+\parf{ 7} corresponding to \parf{ N=40}. We restart at this label, with
+the first continuation parameter being once again $a=$\parf{ PAR(1)}, 
+by changing constants and storing them in \filef{ c.san.5} according to 
 \begin{verbatim}
    IRS = 7     DS = -0.05D0    NMX = 20    ICP(1) = 1
 \end{verbatim}
 Running, 
  \begin{center}
-{\it make fifth}\\
+\commandf{ make fifth}\\
 \end{center}
-the output at label {\tt 10}
+the output at label \parf{ 10}
 \begin{verbatim}
   BR    PT  TY LAB    PAR(1)           PAR(8)        PAR(10)       PAR(21)       
   1     8  UZ  10 -1.304570E-07  ... 3.874816E-12 -1.468457E-09 -2.609139E-07 
 \end{verbatim}
-indicates that {\cal AUTO} has detected a zero of
-{\tt PAR(21)}, implying that a non-orientable resonant bifurcation occurred at that
+indicates that \AUTO has detected a zero of
+\parf{ PAR(21)}, implying that a non-orientable resonant bifurcation occurred at that
 point.
 
 \section{Orbit Flip.}
@@ -8386,19 +8386,19 @@ make ninth\\
 make tenth\\
 \end{center}
 with appropriate continuation parameters and user output values
-set in the corresponding files {\tt c.san.xx}. 
-All the output is saved to {\tt s.6}.
+set in the corresponding files \filef{ c.san.xx}. 
+All the output is saved to \filef{ s.6}.
 
-The final saved point {\tt LAB=10} contains a homoclinic solution at
+The final saved point \parf{ LAB=10} contains a homoclinic solution at
 the desired parameter values. From here we perform continuation in
-the negative direction of $(\mu,\ti \mu)=$ ({\tt PAR(7),PAR(8)}) with
+the negative direction of $(\mu,\ti \mu)=$ (\parf{ PAR(7),PAR(8)}) with
 the test function $\psi_{11}$ for orbit flips with respect to the
 stable manifold activated.
 \begin{center}
 \it make eleventh
 \end{center}
-The output detects an inclination flip (by a zero of {\tt PAR(31)}) 
-at {\tt PAR(7)=0} 
+The output detects an inclination flip (by a zero of \parf{ PAR(31)}) 
+at \parf{ PAR(7)=0} 
 \begin{verbatim}
   BR    PT  TY LAB    PAR(7)      ...    PAR(8)        PAR(31)    
   1     5  UZ  12  2.394737E-07   ...  6.434492E-08 -4.133994E-06
@@ -8406,7 +8406,6 @@ at {\tt PAR(7)=0}
 at which parameter value the homoclinic orbit is contained in the $(x,y)$-plane
 (see Fig.\ \ref{Ftest2}).
 
-%------------------------------------------------------
 \begin{figure}[t]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/san2.ps}}
@@ -8414,10 +8413,9 @@ at which parameter value the homoclinic orbit is contained in the $(x,y)$-plane
 orbit is contained in the $(x,y)$-plane}
 \label{Ftest2}
 \end{figure}
-%------------------------------------------------------
 
 Finally, we demonstrate that the orbit flip can be continued as 
-three parameters ({\tt PAR(6), PAR(7), PAR(8)}) are varied. 
+three parameters (\parf{ PAR(6), PAR(7), PAR(8)}) are varied. 
 \begin{center}
 \it make twelfth
 \end{center}
@@ -8429,55 +8427,45 @@ three parameters ({\tt PAR(6), PAR(7), PAR(8)}) are varied.
    1    20  EP  17 -5.792940E-19  ... -3.075527E-10 -1.825000E+00
 \end{verbatim}
 The orbit flip continues to be defined by a planar homoclinic orbit
-at {\tt PAR(7)=PAR(8)=0}.
+at \parf{ PAR(7)=PAR(8)=0}.
 
 \newpage
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir san} & create an empty work directory \\ 
-  {\it cd san} & change directory \\
-  {\it @dm san} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir san} & create an empty work directory \\ 
+  \commandf{ cd san} & change directory \\
+  \commandf{ demo('san')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.san.1 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.1 s.san} & get the HomCont constants-file \\ 
-  {\it @h san} &  continuation in {\tt PAR(1)} \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='san.1',h='san.1') } &  continuation in \parf{ PAR(1)} \\ 
+  \commandf{ sv('1') } & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.2 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.2 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 1} & generate adjoint variables; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='san.2',h='san.2',s='1') } & generate adjoint variables; restart from \filef{ s.1} \\ 
+  \commandf{ sv('2') } & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %=============================================================================
-  {\it cp c.san.3 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.3 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 2} & continue homoclinic orbit and adjoint; restart from {\tt s.2} \\ 
-  {\it @sv 3} & save output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='san.3',h='san.3',s='2') } & continue homoclinic orbit and adjoint; restart from \filef{ s.2} \\ 
+  \commandf{ sv('3') } & save output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.4 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.4 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 1} & no convergence without dummy step; restart from {\tt s.1} \\ 
-  {\it @sv 4} &  save output-files as {\tt b.4, s.4, d.4} \\ 
+  \commandf{ run(c='san.4',h='san.4',s='1') } & no convergence without dummy step; restart from \filef{ s.1} \\ 
+  \commandf{ sv('4') } &  save output-files as \filef{ b.4, s.4, d.4} \\ 
 \hline
 %=============================================================================
-  {\it cp c.san.5 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.5 s.san} & get the HomCont constants-file \\
-  {\it @h san 3} & continue non-orientable orbit; restart from {\tt s.3} \\
-  {\it @sv 5} & save output-files as {\tt b.5, s.5, d.5} \\ 
+  \commandf{ run(c='san.5',h='san.5',s='3') } & continue non-orientable orbit; restart from \filef{ s.3} \\
+  \commandf{ sv('5') } & save output-files as \filef{ b.5, s.5, d.5} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt san}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ san}.}
 \label{tbl:demo_san_1}
 \end{center}
 \end{table}
@@ -8487,52 +8475,38 @@ at {\tt PAR(7)=PAR(8)=0}.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it cp c.san.6 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.6 s.san} & get the HomCont constants-file \\ 
-  {\it @h san} & restart and homotopy to {\tt PAR(4)}=1.0 \\ 
-  {\it @sv 6} & save output-files as {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='san.6',h='san.6',s='san') } & restart and homotopy to \parf{ PAR(4)}=1.0 \\ 
+  \commandf{ sv('6') } & save output-files as \filef{ b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.7 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.7 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 6} & homotopy to {\tt PAR(5)}=0.0; restart from {\tt s.6} \\ 
-  {\it @ap 6} & append output-files to {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='san.7',h='san.7',s='6') } & homotopy to \parf{ PAR(5)}=0.0; restart from \filef{ s.6} \\ 
+  \commandf{ ap('6') } & append output-files to \filef{ b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.8 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.8 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 6} & homotopy to {\tt PAR(1)}=0.5; restart from {\tt s.6} \\ 
-  {\it @ap 6} & append output-files to {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='san.8',h='san.8',s='6') } & homotopy to \parf{ PAR(1)}=0.5; restart from \filef{ s.6} \\ 
+  \commandf{ ap('6') } & append output-files to \filef{ b.6, s.6, d.6} \\ 
 \hline
-  {\it cp c.san.9 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.9 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 6} & homotopy to {\tt PAR(2)}=3.0; restart from {\tt s.6} \\ 
-  {\it @ap 6} & append output-files to {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='san.9',h='san.9',s='6') } & homotopy to \parf{ PAR(2)}=3.0; restart from \filef{ s.6} \\ 
+  \commandf{ ap('6') } & append output-files to \filef{ b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.10 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.10 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 6} & homotopy to {\tt PAR(7)}=0.25; restart from {\tt s.6} \\ 
-  {\it @ap 6} & append output-files to {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='san.10',h='san.10',s='6') } & homotopy to \parf{ PAR(7)}=0.25; restart from \filef{ s.6} \\ 
+  \commandf{ ap('6') } & append output-files to \filef{ b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.11 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.11 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 6} & continue in {\tt PAR(7)} to detect orbit flip; restart from {\tt s.6} \\ 
-  {\it @sv 11} & save output-files as {\tt b.11, s.11, d.11} \\ 
+  \commandf{ run(c='san.11',h='san.11',s='6') } & continue in \parf{ PAR(7)} to detect orbit flip; restart from \filef{ s.6} \\ 
+  \commandf{ sv('11') } & save output-files as \filef{ b.11, s.11, d.11} \\ 
 \hline
 %==============================================================================
-  {\it cp c.san.12 c.san} & get the AUTO constants-file \\ 
-  {\it cp s.san.12 s.san} & get the HomCont constants-file \\ 
-  {\it @h san 11} & three-parameter continuation of orbit flip; restart from {\tt s.11} \\ 
-  {\it @sv 12} & save output-files as {\tt b.12, s.12, d.12} \\ 
+  \commandf{ run(c='san.12',h='san.12',s='11') } & three-parameter continuation of orbit flip; restart from \filef{ s.11} \\ 
+  \commandf{ sv('12') } & save output-files as \filef{ b.12, s.12, d.12} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt san}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{san}.}
 \label{tbl:demo_san_2}
 \end{center}
 \end{table}
@@ -8552,19 +8526,17 @@ at {\tt PAR(7)=PAR(8)=0}.
 \section{ A Predator-Prey Model with Immigration.}
 Consider the following system of two equations \cite{Sc:95}
 \begin{equation} \label{sn.1} \begin{array}{rcl}
-\dot{X} & = & RX\left(1-{\frac{X}{K}}\right) - 
-{\frac{A_1XY}{B_1+X}} + D_0K \\
-\dot{Y} & = & E_1 { \frac{A_1XY}{B_1+X}} - D_1Y - 
-{\frac{A_2ZY^2}{B_2^2+Y^2}}.
+\dot{X} & = & RX\left(1-{\ds \frac{X}{K}}\right) - 
+{\ds \frac{A_1XY}{B_1+X}} + D_0K \\
+\dot{Y} & = & E_1 {\ds \frac{A_1XY}{B_1+X}} - D_1Y - 
+{\ds\frac{A_2ZY^2}{B_2^2+Y^2}}.
 \end{array} \end{equation}
-%------------------------------------------------------
 \begin{figure}[b]
 \epsfysize 10.0cm
 \centerline{\epsffile{include/mtn1.ps}}
 \caption{Parametric portrait of the predator-prey system }
 \label{SNF.1}
 \end{figure}
-%------------------------------------------------------
 The values of all parameters except $(K,Z)$ are set as follows~:
 $$
 R=0.5,\ A_1=0.4,\ B_1=0.6,\ D_0=0.01,\ E_1=0.6,\ A_2=1.0,\ B_2=0.5,\ D_1=0.15.
@@ -8618,10 +8590,10 @@ made the choices
 $$
 {\tt IEQUIB = 2 \quad NUNSTAB =0 \quad NSTAB = 1   }
 $$
-in {\tt s.mtn.1}. The two test-functions, $\psi_{15}$ and $\psi_{16}$, 
+in {\tt h.mtn.1}. The two test-functions, $\psi_{15}$ and $\psi_{16}$, 
 to detect non-central saddle-node homoclinic
 orbits are also activated, which must be specified in three ways. 
-Firstly, in {\tt s.mtn.1}, {\tt NPSI} is
+Firstly, in {\tt h.mtn.1}, {\tt NPSI} is
 set to 2 and the active test functions {\tt IPSI(I),I=1,2}
 are chosen as 15 and 16. This sets up the monitoring of these
 test functions. Secondly, in {\tt c.mtn.1} user-defined functions
@@ -8675,7 +8647,7 @@ starts from $D_1$. Note that now
 {\tt 
 NUNSTAB = 1 \quad IEQUIB = 1}  
 \end{center}
-has been specified in {\tt s.mtn.3}. Also, test functions $\psi_9$
+has been specified in {\tt h.mtn.3}. Also, test functions $\psi_9$
 and $\psi_{10}$ have been activated in order
 to monitor for non-hyperbolic equilibria along the homoclinic locus. 
 We get the following output
@@ -8725,7 +8697,7 @@ This gives the lower family of $P$ approaching the BT point
    1    40  EP  18  1.101819E+01 ... 2.809825E-01 -3.482651E-02  2.104384E-02
 \end{verbatim}
 The data are appended to the stored results in {\tt b.1}, {\tt s.1} and
-{\tt d.1}. One could now display all data using the {\cal AUTO}
+{\tt d.1}. One could now display all data using the \AUTO
 command {\it @p 1} to reproduce the curve $P$ shown in Figure
 \ref{SNF.1}.
 \par
@@ -8749,7 +8721,7 @@ three-parameter curve of non-central  saddle-node homoclinic orbit}
 %
 It is worthwhile to compare the homoclinic curves computed above with
 a curve $T_0=const$ along which the system has a limit cycle of constant large
-period $T_0=1046.178$, which can easily be computed using {\cal AUTO} or
+period $T_0=1046.178$, which can easily be computed using \AUTO or
 {\cal locbif}. Such a curve is plotted in Figure \ref{SNF.2}. 
 It obviously approximates well the saddle homoclinic loci of $P$, but 
 demonstrates much bigger
@@ -8767,12 +8739,12 @@ corresponding to the codim 2 point $D_1$. We return to continuation of
 saddle-node homoclinics, {\tt NUNSTAB=0},{\tt IEQUIB=2}, but append the
 defining equation $\psi_{15}=0$ to the continuation problem
 (via {\tt NFIXED=1}, {\tt IFIXED(1)=15}). The new
-continuation problem is specified in {\tt c.mtn.6} and {\tt s.mtn.6}.
+continuation problem is specified in {\tt c.mtn.6} and {\tt h.mtn.6}.
 \begin{center}
 {\it make sixth}
 \end{center}
 Notice that we set {\tt ILP=1} and choose {\tt PAR(3)} as the first 
-continuation parameter so that {\cal AUTO} can detect limit points 
+continuation parameter so that \AUTO can detect limit points 
 with respect to this parameter. We also make a user-defined function
 ({\tt NUZR=1})
 to detect intersections with the plane $D_0=0.01$.
@@ -8792,58 +8764,46 @@ computation and a similar one starting from $D_1$ in the opposite direction
 %
 
 \newpage
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir mtn} & create an empty work directory \\ 
+  {\it ! mkdir mtn} & create an empty work directory \\ 
   {\it cd mtn} & change directory \\
-  {\it @dm mtn} & copy the demo files to the work directory \\
+  {\it demo('mtn')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.mtn.1 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.1 s.mtn} & get the HomCont constants-file \\ 
-  {\it @fc mtn} & use the starting data in {\tt mtn.dat} to create {\tt s.dat} \\ 
-  {\it @h mtn dat} &  continue saddle-node homoclinic orbit\\
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  {\it us('mtn')} & use the starting data in {\tt mtn.dat} to create {\tt s.dat} \\ 
+  {\it run(c='mtn.1',h='mtn.1',s='dat')} &  continue saddle-node homoclinic orbit\\
+  {\it sv('1') } & save output-files as {\tt b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.mtn.2 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.2 s.mtn} & get the HomCont constants-file \\ 
-  {\it @h mtn 1} & continue in opposite direction; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append output-files to {\tt b.1, s.1, d.1} \\ 
+  {\it run(c='mtn.2',h='mtn.2',s='1')} & continue in opposite direction; restart from {\tt s.1} \\ 
+  {\it ap('1') } & append output-files to {\tt b.1, s.1, d.1} \\ 
 \hline
 %=============================================================================
-  {\it cp c.mtn.3 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.3 s.mtn} & get the HomCont constants-file \\ 
-  {\it @h mtn 1} & switch to saddle homoclinic orbit  ; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append output-files to {\tt b.1, s.1, d.1} \\ 
+  {\it run(c='mtn.3',h='mtn.3',s='1')} & switch to saddle homoclinic orbit  ; restart from {\tt s.1} \\ 
+  {\it ap('1') } & append output-files to {\tt b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.mtn.4 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.4 s.mtn} & get the HomCont constants-file \\ 
-  {\it @h mtn 1} & continue in reverse direction; restart from {\tt s.1} \\ 
-  {\it @sv 4} & save output-files as {\tt b.4, s.4, d.4} \\ 
+  {\it run(c='mtn.4',h='mtn.4',s='1')} & continue in reverse direction; restart from {\tt s.1} \\ 
+  {\it sv('4') } & save output-files as {\tt b.4, s.4, d.4} \\ 
 \hline
 %=============================================================================
-  {\it cp c.mtn.5 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.5 s.mtn} & get the HomCont constants-file \\
-  {\it @h mtn 1} & other saddle homoclinic orbit family; restart from {\tt s.1} \\
-  {\it @ap 1} & append output-files to {\tt b., s.1, d.1} \\ 
+  {\it run(c='mtn.5',h='mtn.5',s='1')} & other saddle homoclinic orbit family; restart from {\tt s.1} \\
+  {\it ap('1') } & append output-files to {\tt b., s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.mtn.6 c.mtn} & get the AUTO constants-file \\ 
-  {\it cp s.mtn.6 s.mtn} & get the HomCont constants-file \\ 
-  {\it @h mtn 1} & 3-parameter non-central saddle-node homoclinic. \\ 
-  {\it @sv 6} & save output-files as {\tt b.6, s.6, d.6} \\ 
+  {\it run(c='mtn.6',h='mtn.6',s='1')} & 3-parameter non-central saddle-node homoclinic. \\ 
+  {\it sv('6') } & save output-files as {\tt b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt mtn}.}
+\caption{Detailed \AUTO-Commands for running demo {\tt mtn}.}
 \label{tbl:demo_mtn_1}
 \end{center}
 \end{table}
@@ -8861,7 +8821,7 @@ computation and a similar one starting from $D_1$ in the opposite direction
 %==============================================================================
 \section{ Koper's Extended Van der Pol Model.}
 %
-The equation-file {\tt kpr.f} contains the equations
+The equation-file \filef{ kpr.f} contains the equations
 \begin{equation} \label{ko} \begin{array}{rcl}
 \dot{x} & = & \eps_1^{-1}\:(k\: y - x^3 +3\:x - \lambda) \\
 \dot{y} & = & x - 2\: y + z \\
@@ -8869,24 +8829,24 @@ The equation-file {\tt kpr.f} contains the equations
 \end{array} \end{equation}
 with $\eps_1 =0.1$ and $\eps_2=1$ \cite{Ko:95}.
 
-To copy across the demo {\tt kpr} and compile we type
+To copy across the demo \filef{ kpr} and compile we type
 \begin{center}
-{\it @dm kpr} \\
+\commandf{ @dm kpr} \\
 \end{center}
 
-\section{The Primary family of Homoclinics.}
+\section{The Primary Branch of Homoclinics.}
 First, we locate a homoclinic orbit using 
-the homotopy method. The file {\tt kpr.f} 
+the homotopy method. The file \filef{ kpr.f} 
 already contains 
 approximate parameter values for a homoclinic orbit, 
-namely $\lambda=${\tt PAR(1)=-1.851185}, $k=${\tt PAR(2)=-0.15}. 
-The files {\tt c.kpr.1} and {\tt s.kpr.1} specify the appropriate
-constants for continuation in $2T${\tt =PAR(11)} (also referred
-to as {\tt PERIOD}) and the dummy parameter $\omega_1$={\tt PAR(17)}
+namely $\lambda=$\parf{ PAR(1)=-1.851185}, $k=$\parf{ PAR(2)=-0.15}. 
+The files \filef{ c.kpr.1} and \filef{ h.kpr.1} specify the appropriate
+constants for continuation in $2T$\parf{ =PAR(11)} (also referred
+to as \parf{ PERIOD}) and the dummy parameter $\omega_1$=\parf{ PAR(17)}
 starting
 from a small solution in the local unstable manifold; 
 \begin{center}
-{\it make first}
+\commandf{ make first}
 \end{center}
 Among the output there is the line
 \begin{verbatim}
@@ -8896,15 +8856,15 @@ Among the output there is the line
 which indicates that a zero of the artificial parameter $\omega_1$
 has been located. This means that the right-hand end point of the solution
 belongs to the plane that is tangent to the stable manifold at the saddle. 
-The output is stored in files {\tt b.1, s.1, d.1}. 
-Upon plotting the data at label {\tt 2} (see Figure \ref{kf.1a})
+The output is stored in files \filef{ b.1, s.1, d.1}. 
+Upon plotting the data at label \parf{ 2} (see Figure \ref{kf.1a})
 it can be noted that although the right-hand projection boundary
 condition is satisfied, the solution is still quite away from the
 equilibrium. 
 
 The right-hand endpoint can be made to approach the
 equilibrium by performing a further continuation in $T$ with the
-right-hand projection condition satisfied ({\tt PAR(17)} fixed) but
+right-hand projection condition satisfied (\parf{ PAR(17)} fixed) but
 with $\lambda$ allowed to vary. 
 %
 \begin{figure}[p]
@@ -8924,9 +8884,9 @@ boundary value problem with $2T = 60.0$.}
 \end{figure}
 %
 \begin{center}
-{\it make second}
+\commandf{ make second}
 \end{center}
-the output at label {\tt 4}, stored in {\tt kpr.2},
+the output at label \parf{ 4}, stored in \filef{ kpr.2},
 \begin{verbatim}
    BR   PT TY   LAB    PERIOD       L2-NORM     ...    PAR(1)     ...
    1    35  UZ   4  6.000000E+01  1.672806E+00  ... -1.851185E+00 ...
@@ -8937,37 +8897,37 @@ provides a good approximation to a homoclinic solution (see Figure
 The second stage to obtain a starting solution 
 is to add a solution to the modified adjoint
 variational equation. This is achieved by setting both 
-{\tt ITWIST} and {\tt ISTART} to 1 (in {\tt s.kpr.3}), which generates
+\parf{ ITWIST} and \parf{ ISTART} to 1 (in \filef{ h.kpr.3}), which generates
 a trivial guess for the adjoint equations. Because the adjoint
 equations are linear, only a single
 Newton step (by continuation in a trivial parameter) 
 is required to provide a solution.
 Rather than choose a parameter that might be used internally
-by {\cal AUTO}, in {\tt c.kpr.3} we take the continuation parameter
-to be {\tt PAR(11)}, which is not quite a trivial parameter
+by \AUTO, in \filef{ c.kpr.3} we take the continuation parameter
+to be \parf{ PAR(11)}, which is not quite a trivial parameter
 but whose affect upon the solution is mild.
 \begin{center}
-{\it make third}
+\commandf{ make third}
 \end{center}
-The output at the second point (label {\tt 6}) 
+The output at the second point (label \parf{ 6}) 
 contains the converged homoclinic
-solution (variables ({\tt U(1), U(2), U(3)}) and the adjoint ({\tt
+solution (variables (\parf{ U(1), U(2), U(3)}) and the adjoint (\parf{
 U(4), U(5), U(6)})). We now have a starting solution 
 and are ready to perform two-parameter continuation.
 
 The fourth run
 \begin{center}
-{\it make fourth}
+\commandf{ make fourth}
 \end{center}
-continues the homoclinic orbit in {\tt PAR(1)} and {\tt PAR(2)}. 
+continues the homoclinic orbit in \parf{ PAR(1)} and \parf{ PAR(2)}. 
 %
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/kpr4.ps}}
 \caption{Projection on the $(x,y)$-plane of solutions $\phi(t)$
-at {\tt 1} ($\lambda=-1.825470, k=-0.1760749$) and
-{\tt 2} ($\lambda=-1.686154, k=-0.3183548$).}
+at \parf{ 1} ($\lambda=-1.825470, k=-0.1760749$) and
+\parf{ 2} ($\lambda=-1.686154, k=-0.3183548$).}
 \label{kf.2a}
 \end{figure}
 %------------------------------------------------------
@@ -8977,26 +8937,26 @@ at {\tt 1} ($\lambda=-1.825470, k=-0.1760749$) and
 \centerline{\epsffile{include/kpr5.ps}}
 \caption{Three-dimensional blow-up of the solution curves
  $\phi(t)$ 
-at labels {\tt 1} (dotted) and {\tt 2} (solid line) from Figure 3.8.}
+at labels \parf{ 1} (dotted) and \parf{ 2} (solid line) from Figure 3.8.}
 \label{kf.2b}
 \end{figure}
 %------------------------------------------------------
 %
 Note that several other parameters appear in
-the output. {\tt PAR(10)} is a dummy parameter
+the output. \parf{ PAR(10)} is a dummy parameter
 that should be zero when the adjoint is being computed correctly;
-{\tt PAR(29)}, {\tt PAR(30)}, {\tt PAR(33)} correspond to the
+\parf{ PAR(29)}, \parf{ PAR(30)}, \parf{ PAR(33)} correspond to the
 test functions $\psi_9$,$\psi_{10}$ and $\psi_{13}$. 
 That these test functions were activated is specified
-in three places in {\tt c.kpr.4} and {\tt s.kpr.4} 
+in three places in \filef{ c.kpr.4} and \filef{ h.kpr.4} 
 as described in Section~\ref{sec:HomCont_Test_functions}.  
 
 Note that at the end-point of
-the family (reached when after {\tt NMX=50} steps) {\tt PAR(29)} is
+the family (reached when after \parf{ NMX=50} steps) \parf{ PAR(29)} is
 approximately zero which corresponds to a zero of $\psi_9$, a 
 non-central saddle-node homoclinic orbit. We shall return to the computation of
 this codimension-two point later. Before reaching this point,
-among the output we find two zeroes of {\tt PAR(33)}
+among the output we find two zeroes of \parf{ PAR(33)}
 (test function $\psi_{13}$) which gives the accurate
 location of two inclination-flip bifurcations,
 \begin{verbatim}
@@ -9005,25 +8965,25 @@ location of two inclination-flip bifurcations,
   1  12  UZ  11 -1.568756E+00 ... -4.395468E-01 -2.156353E-07 ...  4.514073E-07
 \end{verbatim}
 That the test function really does have a regular zero at this point can
-be checked from the data saved in {\tt b.3}, plotting {\tt PAR(33)} as
-a function of {\tt PAR(1)} or {\tt PAR(2)}. 
+be checked from the data saved in \filef{ b.3}, plotting \parf{ PAR(33)} as
+a function of \parf{ PAR(1)} or \parf{ PAR(2)}. 
 Figure \ref{kf.2a} presents solutions $\phi(t)$ of the modified adjoint 
 variational equation (for details see \citeasnoun{ChKuSa:95})
 at parameter values on the homoclinic 
 family before and after the first detected inclination flip. 
 Note that these solutions were obtained by choosing a smaller
-step {\tt DS} and more output (smaller {\tt NPR}) in
-{\tt c.kpr.4}.
+step \parf{ DS} and more output (smaller \parf{ NPR}) in
+\filef{ c.kpr.4}.
 A blow-up of the region close to the origin of this 
 figure is shown in Figure \ref{kf.2b}.
 It illustrates the flip of the solutions of the adjoint equation while
 moving through the bifurcation point. Note that the data in this
 figure were plotted after first performing an additional
-continuation of the solutions with respect to {\tt PAR(11)}. 
+continuation of the solutions with respect to \parf{ PAR(11)}. 
 
 Continuing in the other direction 
 \begin{center}
-{\it make fifth}
+\commandf{ make fifth}
 \end{center}
 we approach a Bogdanov-Takens point
 \begin{verbatim}  
@@ -9039,14 +8999,14 @@ we approach a Bogdanov-Takens point
 \end{figure}
 %------------------------------------------------------
 Note that the numerical approximation has ceased to become reliable, since 
-{\tt PAR(10)} has now become large. 
+\parf{ PAR(10)} has now become large. 
 Phase portraits of homoclinic orbits between the BT point and the first
 inclination flip 
 are depicted in Figure \ref{kp.6}. Note how the computed homoclinic orbits
 approaching the BT point have their endpoints well away from the equilibrium.
 To follow the homoclinic orbit to 
 the BT point with more precision, we would need to first perform continuation 
-in $T$ ({\tt PAR(11)}) to obtain a more accurate homoclinic solution.
+in $T$ (\parf{ PAR(11)}) to obtain a more accurate homoclinic solution.
 
 
 \section{More Accuracy and Saddle-Node Homoclinic Orbits.}
@@ -9056,15 +9016,15 @@ longer interval is necessary for parameter values near a non-hyperbolic
 equilibrium (either a saddle-node or BT) where the convergence
 to the equilibrium is slower. 
 First, we start from the original homoclinic orbit computed
-via the homotopy method, label {\tt 4}, which is well away from
+via the homotopy method, label \parf{ 4}, which is well away from
 the non-hyperbolic equilibrium.
 Also, we shall no longer be interested in
-in inclination flips so we set {\tt ITWIST=0} in {\tt c.kpr.6},
-and in order to compute up to {\tt PAR(11)=1000}, we set up a
-user-defined function for this. Running {\cal AUTO} with {\tt PAR(11)} and 
-{\tt PAR(2)} as free parameters
+in inclination flips so we set \parf{ ITWIST=0} in \filef{ c.kpr.6},
+and in order to compute up to \parf{ PAR(11)=1000}, we set up a
+user-defined function for this. Running \AUTO with \parf{ PAR(11)} and 
+\parf{ PAR(2)} as free parameters
 \begin{center}
-{\it make sixth}
+\commandf{ make sixth}
 \end{center}
 we obtain among the output
 \begin{verbatim}
@@ -9073,19 +9033,19 @@ we obtain among the output
 \end{verbatim}
 
 We can now repeat the computation of the family of saddle homoclinic
-orbits in {\tt PAR(1)} and {\tt PAR(2)} from this point with
+orbits in \parf{ PAR(1)} and \parf{ PAR(2)} from this point with
 the test functions $\psi_9$ and $\psi_{10}$ for non-central
 saddle-node homoclinic orbits activated 
 \begin{center}
-{\it make seventh}
+\commandf{ make seventh}
 \end{center}
 The saddle-node point is now detected at 
 \begin{verbatim} 
   BR    PT  TY LAB    PAR(1)     ...    PAR(2)        PAR(29)       PAR(30)
    1    30  UZ   8  1.765003E-01 ... -2.405345E+00  2.743361E-06  2.309317E+01
 \end{verbatim}
-which is stored in {\tt s.7}.
-That {\tt PAR(29)} ($\psi_9$) is zeroed shows that this
+which is stored in \filef{ s.7}.
+That \parf{ PAR(29)} ($\psi_9$) is zeroed shows that this
 is a non-central saddle-node connecting the centre manifold to the strong stable
 manifold. Note that all output beyond this point, although a well-posed
 solution to the boundary-value problem, is spurious in that it no longer
@@ -9093,14 +9053,14 @@ represents a homoclinic orbit to a saddle equilibrium (see
 \citeasnoun{ChKuSa:95}). If we had chosen
 to, we could continue in the other direction in order to
 approach the BT point more accurately by reversing the sign of
-{\tt DS} in {\tt c.kpr.7}.
+\parf{ DS} in \filef{ c.kpr.7}.
  
-The files {\tt c.kpr.9} and {\tt s.kpr.9} contain the constants necessary 
+The files \filef{ c.kpr.9} and \filef{ h.kpr.9} contain the constants necessary 
 for switching to continuation of the central saddle-node homoclinic curve 
 in two parameters starting from the non-central saddle-node homoclinic orbit
-stored as label {\tt 8} in {\tt s.7}.
+stored as label \parf{ 8} in \filef{ s.7}.
 \begin{center}
-{\it make eighth}
+\commandf{ make eighth}
 \end{center}
 In this run we have activated the test functions for saddle to saddle-node
 transition points along curves of saddle homoclinic orbits ($\psi_{15}$ and 
@@ -9113,8 +9073,8 @@ $\psi_{16}$). Among the output we find
 \begin{figure}[p]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/kpr7.ps}}
-\caption{Two non-central saddle-node homoclinic orbits, {\tt 1} and {\tt 3};
-and, {\tt 2}, a central saddle-node homoclinic orbit between
+\caption{Two non-central saddle-node homoclinic orbits, \parf{ 1} and \parf{ 3};
+and, \parf{ 2}, a central saddle-node homoclinic orbit between
 these two points \label{kf.7}}
 \end{figure}
 %------------------------------------------------------
@@ -9132,7 +9092,7 @@ the locus of saddle-nodes in a second non-central saddle-node
 homoclinic bifurcation (a zero of $\psi_{16}$). 
 
 Note that the parameter values do not vary much between the
-two codimension-two non-central saddle-node points (labels {\tt 8} and {\tt 13}).
+two codimension-two non-central saddle-node points (labels \parf{ 8} and \parf{ 13}).
 However, Figure \ref{kf.7} shows clearly that between the two
 codimension-two points 
 the homoclinic orbit
@@ -9143,13 +9103,13 @@ nearby ``small'' saddle homoclinic orbit to a ``big'' saddle
 homoclinic orbit (i.e.\ with two extra turning points in phase space).  
 
 Finally, we can switch to continuation of the big saddle homoclinic orbit 
-from the new codim 2 point at label {\tt 13}. 
+from the new codim 2 point at label \parf{ 13}. 
 \begin{center}
-{\it make ninth}
+\commandf{ make ninth}
 \end{center}
-Note that {\cal AUTO} takes a large number of steps near the line  
-{\tt PAR(1)=0}, while {\tt PAR(2)} approaches $-2.189\ldots$  
-(which is why we chose such a large value {\tt NMX=500} in {\tt c.kpr.9}). This
+Note that \AUTO takes a large number of steps near the line  
+\parf{ PAR(1)=0}, while \parf{ PAR(2)} approaches $-2.189\ldots$  
+(which is why we chose such a large value \parf{ NMX=500} in \filef{ c.kpr.9}). This
 particular computation ends at 
 \begin{verbatim}  
   BR    PT  TY LAB    PAR(1)        L2-NORM    ...    PAR(2)   
@@ -9158,22 +9118,22 @@ particular computation ends at
 By plotting phase portraits of orbits approaching this end point (see Figure
 \ref{kp.8}) we see a ``canard-like'' like transformation of the big homoclinic
 orbit to a pair of homoclinic orbits in a figure-of-eight configuration.
-That we get a figure-of-eight is not a surprise because {\tt PAR(1)=0}
+That we get a figure-of-eight is not a surprise because \parf{ PAR(1)=0}
 corresponds to a symmetry in the differential equations \cite{Ko:94};
-note also that the equilibrium, stored as ({\tt PAR(12), PAR(13), PAR(14)}) in
-{\tt d.9}, approaches the origin as we approach the figure-of-eight homoclinic.
+note also that the equilibrium, stored as (\parf{ PAR(12), PAR(13), PAR(14)}) in
+\filef{ d.9}, approaches the origin as we approach the figure-of-eight homoclinic.
 
 \section{Three-Parameter Continuation.}
 We now consider curves in three parameters of each of
 the codimension-two points encountered in this model, by
-freeing the parameter $\eps=$ {\tt PAR(3)}.
+freeing the parameter $\eps=$ \parf{ PAR(3)}.
 First we continue the first inclination flip stored at label
-{\tt 7} in {\tt s.3}
+\parf{ 7} in \filef{ s.3}
 \begin{center}
 \it make tenth
 \end{center}
-Note that {\tt ITWIST=1} in {\tt s.kpr.10}, so that the adjoint is also
-continued, and there is one fixed condition {\tt IFIXED(1)=13} so that
+Note that \parf{ ITWIST=1} in \filef{ h.kpr.10}, so that the adjoint is also
+continued, and there is one fixed condition \parf{ IFIXED(1)=13} so that
 test function $\psi_{13}$ has been frozen.
 Among the output there is a codimension-three point (zero of $\psi_9$)
 where the neutrally twisted homoclinic orbit collides with the saddle-node
@@ -9182,7 +9142,7 @@ curve
  BR  PT  TY LAB    PAR(1)     ...   PAR(2)        PAR(3)        PAR(29)    ...     
   1  28  UZ  14  1.282702E-01 ... -2.519325E+00 5.744770E-01 -4.347113E-09 ...
 \end{verbatim}
-The other detected inclination flip (at label {\tt 8} in {\tt s.3}) is continued
+The other detected inclination flip (at label \parf{ 8} in \filef{ s.3}) is continued
 similarly
 \begin{center}
 \it make eleventh
@@ -9193,32 +9153,32 @@ giving among its output another codim 3 saddle-node inclination-flip point
   1  27  UZ  14  1.535420E-01 ... -2.458100E+00 1.171705E+00 -1.933188E-07 ... 
 \end{verbatim}
 Output beyond both of these codim 3 points is spurious and both computations end in
-an {\tt MX} point (no convergence).
+an \parf{ MX} point (no convergence).
 
 To continue the non-central saddle-node homoclinic orbits it is
 necessary to work on the data without the solution $\phi(t)$. We
-restart from the data saved at {\tt LAB=8} and {\tt LAB=13} in
-{\tt s.7} and {\tt s.8} respectively. We could continue these codim 2 points in two
+restart from the data saved at \parf{ LAB=8} and \parf{ LAB=13} in
+\filef{ s.7} and \filef{ s.8} respectively. We could continue these codim 2 points in two
 ways, either by appending the defining condition $\psi_{16} =0$ to
-the continuation of saddle-node homoclinic orbits (with {\tt IEQUIB=2},
+the continuation of saddle-node homoclinic orbits (with \parf{ IEQUIB=2},
 etc.), or by appending $\psi_{9} =0$ to the continuation 
-of a saddle homoclinic orbit (with {\tt IEQUIB=1}. 
-The first approach is used in the example {\tt mtn},  
+of a saddle homoclinic orbit (with \parf{ IEQUIB=1}. 
+The first approach is used in the example \filef{ mtn},  
 for contrast we shall adopt the second approach here.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/kpr10.ps}}
-\caption{Projection onto the {\tt (PAR(3),PAR(2))}-plane of the non-central
-saddle-node homoclinic orbit curves (labeled {\tt 1} and {\tt 2}) and the 
-inclination-flip curves (labeled {\tt 3} and {\tt 4})}.
+\caption{Projection onto the \parf{ (PAR(3),PAR(2))}-plane of the non-central
+saddle-node homoclinic orbit curves (labeled \parf{ 1} and \parf{ 2}) and the 
+inclination-flip curves (labeled \parf{ 3} and \parf{ 4})}.
 \label{kp.10}
 \end{figure}
 %------------------------------------------------------
 %
 \begin{center}
-{\it make twelfth}\\
-{\it make thirteenth}
+\commandf{ make twelfth}\\
+\commandf{ make thirteenth}
 \end{center}
 The projection onto the $(\eps,k)$-plane of all four of these
 codimension-two curves is given in Figure \ref{kp.10}. 
@@ -9227,57 +9187,45 @@ non-central saddle-node homoclinic lines is apparent. Note that the two
 non-central saddle-node homoclinic orbit curves are almost overlaid, but
 that as in Figure \ref{kf.7} the orbits look quite distinct in phase space.
 
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir kpr} & create an empty work directory \\ 
-  {\it cd kpr} & change directory \\
-  {\it @dm kpr} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir kpr} & create an empty work directory \\ 
+  \commandf{ cd kpr} & change directory \\
+  \commandf{ demo('kpr')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.kpr.1 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.1 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr} &  continuation in the time-length parameter {\tt PAR(11)} \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='kpr.1',h='kpr.1')} &  continuation in the time-length parameter \parf{ PAR(11)} \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.2 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.2 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 1} & locate the homoclinic orbit; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='kpr.2',h='kpr.2',s='1')} & locate the homoclinic orbit; restart from \filef{ s.1} \\ 
+  \commandf{ sv('2')} & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %=============================================================================
-  {\it cp c.kpr.3 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.3 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 2} & generate adjoint variables  ; restart from {\tt s.2} \\ 
-  {\it @sv 3} & save output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='kpr.3',h='kpr.3',s='2')} & generate adjoint variables  ; restart from \filef{ s.2} \\ 
+  \commandf{ sv('3')} & save output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.4 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.4 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 3} & continue the homoclinic orbit; restart from {\tt s.3} \\ 
-  {\it @ap 3} & append output-files to {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='kpr.4',h='kpr.4',s='3')} & continue the homoclinic orbit; restart from \filef{ s.3} \\ 
+  \commandf{ ap('3')} & append output-files to \filef{ b.3, s.3, d.3} \\ 
 \hline
 %=============================================================================
-  {\it cp c.kpr.5 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.5 s.kpr} & get the HomCont constants-file \\
-  {\it @h kpr 3} & continue in reverse direction; restart from {\tt s.3} \\
-  {\it @ap 3} & append output-files to {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='kpr.5',h='kpr.5',s='3')} & continue in reverse direction; restart from \filef{ s.3} \\
+  \commandf{ ap('3')} & append output-files to \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.6 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.6 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 2} & increase the period; restart from {\tt s.2} \\ 
-  {\it @sv 6} & save output-files as {\tt b.6, s.6, d.6} \\ 
+  \commandf{ run(c='kpr.6',h='kpr.6',s='2')} & increase the period; restart from \filef{ s.2} \\ 
+  \commandf{ sv('6')} & save output-files as \filef{ b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt kpr}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ kpr}.}
 \label{tbl:demo_kpr_1}
 \end{center}
 \end{table}
@@ -9287,57 +9235,42 @@ that as in Figure \ref{kf.7} the orbits look quite distinct in phase space.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it cp c.kpr.7 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.7 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 6} & recompute the family of homoclinic orbits; restart from {\tt s.6} \\ 
-  {\it @sv 7} & save output-files as {\tt b.7, s.7, d.7} \\ 
+  \commandf{ run(c='kpr.7',h='kpr.7',s='6')} & recompute the family of homoclinic orbits; restart from \filef{ s.6} \\ 
+  \commandf{ sv('7')} & save output-files as \filef{ b.7, s.7, d.7} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.8 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.8 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 7} & continue central saddle-node homoclinics; restart from {\tt s.7} \\ 
-  {\it @sv 8} & save output-files as {\tt b.8, s.8, d.8} \\ 
+  \commandf{ run(c='kpr.8',h='kpr.8',s='7')} & continue central saddle-node homoclinics; restart from \filef{ s.7} \\ 
+  \commandf{ sv('8')} & save output-files as \filef{ b.8, s.8, d.8} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.9 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.9 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 8} & continue homoclinics from codim-2 point; restart from {\tt s.8} \\ 
-  {\it @sv 9} & save output-files as {\tt b.9, s.9, d.9} \\ 
+  \commandf{ run(c='kpr.9',h='kpr.9',s='8')} & continue homoclinics from codim-2 point; restart from \filef{ s.8} \\ 
+  \commandf{ sv('9')} & save output-files as \filef{ b.9, s.9, d.9} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.10 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.10 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 3} & 3-parameter curve of inclination-flips; restart from {\tt s.3} \\ 
-  {\it @sv 10} & save output-files as {\tt b.10, s.10, d.10} \\ 
+  \commandf{ run(c='kpr.10',h='kpr.10',s='3')} & 3-parameter curve of inclination-flips; restart from \filef{ s.3} \\ 
+  \commandf{ sv('10')} & save output-files as \filef{ b.10, s.10, d.10} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.11 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.11 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 3} & another curve of inclination-flips; restart from {\tt s.3} \\ 
-  {\it @sv 11} & save output-files as {\tt b.11, s.11, d.11} \\ 
+  \commandf{ run(c='kpr.11',h='kpr.11',s='3')} & another curve of inclination-flips; restart from \filef{ s.3} \\ 
+  \commandf{ sv('11')} & save output-files as \filef{ b.11, s.11, d.11} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.12 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.12 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 7} & continue non-central saddle-node homoclinics; restart from {\tt s.7} \\ 
-  {\it @sv 12} & save output-files as {\tt b.12, s.12, d.12} \\ 
+  \commandf{ run(c='kpr.12',h='kpr.12',s='7')} & continue non-central saddle-node homoclinics; restart from \filef{ s.7} \\ 
+  \commandf{ sv('12')} & save output-files as \filef{ b.12, s.12, d.12} \\ 
 \hline
 %==============================================================================
-  {\it cp c.kpr.13 c.kpr} & get the AUTO constants-file \\ 
-  {\it cp s.kpr.13 s.kpr} & get the HomCont constants-file \\ 
-  {\it @h kpr 8} & continue non-central saddle-node homoclinics; restart from {\tt s.8} \\ 
-  {\it @ap 12} & append output-files to {\tt b.12, s.12, d.12} \\ 
+  \commandf{ run(c='kpr.13',h='kpr.13',s='8')} & continue non-central saddle-node homoclinics; restart from \filef{ s.8} \\ 
+  \commandf{ ap('12')} & append output-files to \filef{ b.12, s.12, d.12} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt kpr}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ kpr}.}
 \label{tbl:demo_kpr_2}
 \end{center}
 \end{table}
-
 
 
 %==============================================================================
@@ -9363,25 +9296,25 @@ Consider the following model of a three-variable electronic circuit
 \right.  
 \label{5.fr1}
 \end{equation}
-These autonomous equations are also considered in the {\cal AUTO} demo {\tt tor}.
+These autonomous equations are also considered in the \AUTO demo \filef{ tor}.
 
 First, we copy the demo into a new directory and compile
 \begin{center}
-{\it @dm cir} \\
+\commandf{ @dm cir} \\
 \end{center}
 The system is contained in 
-the equation-file {\tt cir.f} and the initial run-time constants
-are stored in {\tt c.cir.1} and {\tt s.cir.1}. We begin by starting from
-the data from {\tt cir.dat} for a saddle-focus homoclinic orbit 
+the equation-file \filef{ cir.f} and the initial run-time constants
+are stored in \filef{ c.cir.1} and \filef{ h.cir.1}. We begin by starting from
+the data from \filef{ cir.dat} for a saddle-focus homoclinic orbit 
 at 
 $\nu=-0.721309$, $\beta=0.6$, $\gamma=0$, $r=0.6$, $A_3=0.328578$ 
 and $B_3=0.933578$, which was obtained by shooting over 
-the time interval $2T=${\tt PAR(11)}$=36.13$.
+the time interval $2T=$\parf{ PAR(11)}$=36.13$.
 We wish to follow the family in the $(\beta,\nu)$-plane, but 
 first we perform continuation in $(T,\nu)$ to obtain a better 
 approximation to a homoclinic orbit.
 \begin{center}
-{\it make first}
+\commandf{ make first}
 \end{center} 
 yields the output
 \begin{verbatim}
@@ -9390,27 +9323,27 @@ yields the output
   1  42  UZ   3  2.000000E+02  9.097899E-02 ... -7.213093E-01
   1  50  EP   4  2.400000E+02  8.305208E-02 ... -7.213093E-01
 \end{verbatim}
-Note that $\nu=${\tt PAR(1)} remains constant during the continuation
+Note that $\nu=$\parf{ PAR(1)} remains constant during the continuation
 as the parameter values do not change, only the the length of
 the interval over which the approximate homoclinic solution is computed.
-Note from the eigenvalues, stored in {\tt d.1} that this is a homoclinic
+Note from the eigenvalues, stored in \filef{ d.1} that this is a homoclinic
 orbit to a saddle-focus with a one-dimensional unstable manifold.
 
-We now restart at {\tt LAB=3}, corresponding to a time interval $2T=200$,
+We now restart at \parf{ LAB=3}, corresponding to a time interval $2T=200$,
 and change the principal continuation parameters to be $(\nu,\beta)$.
-The new constants defining the continuation are given in {\tt c.cir.2}
-and {\tt s.cir.2}.
+The new constants defining the continuation are given in \filef{ c.cir.2}
+and \filef{ h.cir.2}.
 We also activate the test functions pertinent to codimension-two
 singularities which may be encountered along a family of saddle-focus
 homoclinic orbits, viz.\ $\psi_2$, $\psi_4$, $\psi_5$, $\psi_9$ and $\psi_{10}$.
-This must be specified in three ways: by choosing {\tt NPSI=5} and appropriate
-{\tt IPSI(I)} in {\tt s.cir.2}, by adding the corresponding parameter labels
-to the list of continuation parameters {\tt ICP(I)} in {\tt c.cir.2}
+This must be specified in three ways: by choosing \parf{ NPSI=5} and appropriate
+\parf{ IPSI(I)} in \filef{ h.cir.2}, by adding the corresponding parameter labels
+to the list of continuation parameters \parf{ ICP(I)} in \filef{ c.cir.2}
 (recall that these parameter indices are 20 more than the corresponding
 $\psi$ indices), and finally adding USZR functions defining zeros of
-these parameters in {\tt c.cir.2}. Running 
+these parameters in \filef{ c.cir.2}. Running 
 \begin{center}  
-{\it make second}
+\commandf{ make second}
 \end{center} 
 results in
 \begin{verbatim}
@@ -9421,7 +9354,7 @@ BR  PT  TY LAB    PAR(1)     ...    PAR(2)     ...    PAR(25)       PAR(29)
 1   81  UZ   8 -1.038012E+00 ... -1.000144E-02 ...  1.756690E+00  4.964621E-03  
 1  100  EP   9 -1.164160E+00 ... -1.087732E-01 ...  2.230329E+00  5.042736E-02
 \end{verbatim}
-with results saved in {\tt b.2, s.2, d.2}.
+with results saved in \filef{ b.2, s.2, d.2}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
@@ -9440,25 +9373,25 @@ on the family, showing the saddle-focus to saddle transition}
 \label{Fcircuit2}
 \end{figure}
 %------------------------------------------------------
-Upon inspection of the output, note that label 5, where {\tt PAR(25)}$\approx 0$, 
+Upon inspection of the output, note that label 5, where \parf{ PAR(25)}$\approx 0$, 
 corresponds to a neutrally-divergent saddle-focus, $\psi_5=0$. 
-Label 7, where {\tt PAR(29)}$\approx 0$ corresponds to a local bifurcation, $\psi_9=0$, 
-which we note from the eigenvalues stored in {\tt d.2} corresponds to a {\it
-Shil'nikov-Hopf} bifurcation. Note that {\tt PAR(2)} is also approximately zero
+Label 7, where \parf{ PAR(29)}$\approx 0$ corresponds to a local bifurcation, $\psi_9=0$, 
+which we note from the eigenvalues stored in \filef{ d.2} corresponds to a \emp{
+Shil'nikov-Hopf} bifurcation. Note that \parf{ PAR(2)} is also approximately zero
 at label 7, which accords with the analytical observation that the origin of
 (\ref{5.fr1}) undergoes a Hopf bifurcation when $\beta=0$.
 Labels 6 and 8 are the user-defined output
 points, the solutions at which are plotted in Fig.\ \ref{Fcircuit1}.
 Note that solutions beyond label 7 (e.g., the plotted solution
 at label 8) do not correspond to homoclinic orbits, but to 
-{\it point-to-cycle} heteroclinic orbits (c.f.\ Section~2.2.1 of
+\emp{ point-to-cycle} heteroclinic orbits (c.f.\ Section~2.2.1 of
 \citeasnoun{ChKuSa:95}).
 
 We now continue in the other direction along the family. It turns out
 that starting from the initial point in the other direction results in
 missing a codim 2 point which is close to the starting point. Instead we
 start from the first saved point from the previous computation
-(label 5 in {\tt s.2}):
+(label 5 in \filef{ s.2}):
 \begin{center}
 \it make third
 \end{center}
@@ -9470,56 +9403,48 @@ The output
   1  26  UZ  12 -7.746686E-01 ...  7.746147E-01  5.833163E-01  1.637611E-07
   1  28  EP  13 -7.746628E-01 ...  7.746453E-01  5.908902E-01  1.426214E-04
 \end{verbatim}
-contains a neutral saddle-focus (a {\it Belyakov} transition) 
-at {\tt LAB=10} ($\psi_4=0$), a double real leading eigenvalue 
-(saddle-focus to saddle transition) at {\tt LAB =11} ($\psi_2=0$) 
-and a neutral saddle at {\tt LAB=12} ($\psi_4=0$). Data at several
+contains a neutral saddle-focus (a \emp{ Belyakov} transition) 
+at \parf{ LAB=10} ($\psi_4=0$), a double real leading eigenvalue 
+(saddle-focus to saddle transition) at \parf{ LAB =11} ($\psi_2=0$) 
+and a neutral saddle at \parf{ LAB=12} ($\psi_4=0$). Data at several
 points on the complete family are plotted in Fig.\ \ref{Fcircuit2}.
-If we had continued further (by increasing {\tt NMX}), 
-the computation would end at a no convergence error {\tt TY=MX} owing 
+If we had continued further (by increasing \parf{ NMX}), 
+the computation would end at a no convergence error \parf{ TY=MX} owing 
 to the homoclinic family approaching a Bogdanov-Takens singularity 
 at small amplitude. To compute further towards the BT point 
-we would first need to continue to a higher value of {\tt PAR(11)}.
+we would first need to continue to a higher value of \parf{ PAR(11)}.
 
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir cir} & create an empty work directory \\ 
-  {\it cd cir} & change directory \\
-  {\it @dm cir} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir cir} & create an empty work directory \\ 
+  \commandf{ cd cir} & change directory \\
+  \commandf{ demo('cir')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.cir.1 c.cir} & get the AUTO constants-file \\ 
-  {\it cp s.cir.1 s.cir} & get the HomCont constants-file \\ 
-  {\it @fc cir} & use the starting data in {\tt cir.dat} to create {\tt s.dat} \\ 
-  {\it @h cir dat} &  increase the truncation interval; restart from {\tt s.dat}\\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ us('cir')} & use the starting data in \filef{ cir.dat} to create \filef{ s.dat} \\ 
+  \commandf{ run(c='cir.1',h='cir.1',s='dat')} &  increase the truncation interval; restart from \filef{ s.dat}\\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.cir.2 c.cir} & get the AUTO constants-file \\ 
-  {\it cp s.cir.2 s.cir} & get the HomCont constants-file \\ 
-  {\it @h cir 1} &  continue saddle-focus homoclinic orbit; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='cir.2',h='cir.2',s='1')} &  continue saddle-focus homoclinic orbit; restart from \filef{ s.1} \\ 
+  \commandf{ sv('2')} & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %=============================================================================
-  {\it cp c.cir.3 c.cir} & get the AUTO constants-file \\ 
-  {\it cp s.cir.3 s.cir} & get the HomCont constants-file \\ 
-  {\it @h cir 2} & generate adjoint variables  ; restart from {\tt s.2} \\ 
-  {\it @ap 2} & append output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='cir.3',h='cir.3',s='2')} & generate adjoint variables  ; restart from \filef{ s.2} \\ 
+  \commandf{ ap('2')} & append output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt cir}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ cir}.}
 \label{tbl:demo_cir_1}
 \end{center}
 \end{table}
-
-
 
 
 
@@ -9550,18 +9475,18 @@ Here we shall reproduce a single curve in the $(\sigma,\mu)$-plane
 of codimension-one heteroclinic orbits connecting a non-trivial 
 equilibrium to the origin for $Q=0$ and $\zeta=4$. The defining
 problem is contained in equation-file 
-{\tt she.f}\footnote{The last parameter used to store the equilibria ({\tt PAR(21)}) is
+\filef{ she.f}\footnote{The last parameter used to store the equilibria (\parf{ PAR(21)}) is
 overlaped here with the first test-function. In this example, it is harmless since the test functions are 
 irrelevant for heteroclinic continuation.}, and starting data for the orbit at 
-$(\sigma,\mu)=(0.5,0.163875)$ are stored in {\tt she.dat},
-with a truncation interval of {\tt PAR(11)=85.07}.
+$(\sigma,\mu)=(0.5,0.163875)$ are stored in \filef{ she.dat},
+with a truncation interval of \parf{ PAR(11)=85.07}.
 
-We begin by computing towards $\mu=0$ with the option {\tt IEQUIB=-2}
+We begin by computing towards $\mu=0$ with the option \parf{ IEQUIB=-2}
 which means that both equilibria are solved for as part of
 the continuation process.
 \begin{center}
-{\it @dm she} \\
-{\it make first}
+\commandf{ @dm she} \\
+\commandf{ make first}
 \end{center} 
 This yields the output
 \begin{verbatim}
@@ -9574,8 +9499,8 @@ This yields the output
    1    30  EP   7  1.581633E-01  1.512340E-01 ...  1.292975E-02
 \end{verbatim}
 Alternatively, for this problem there exists an analytic expression for
-the two equilibria. This is specified in the routine {\tt PVLS} of
-{\tt she.f}. Re-running with {\tt IEQUIB=-1}
+the two equilibria. This is specified in the subroutine \funcf{PVLS} of
+\filef{ she.f}. Re-running with \parf{ IEQUIB=-1}
 \begin{center}
 \it make second
 \end{center} 
@@ -9590,11 +9515,11 @@ we obtain the output
    1    30  EP   7  8.107462E-02  9.143108E-02 ...  2.386616E-03
 \end{verbatim}
 This output is similar to that above, but note that it is obtained slightly
-more efficiently because the extra parameters {\tt PAR(12-21)} representing the
+more efficiently because the extra parameters \parf{ PAR(12-21)} representing the
 coordinates of the equilibria are no longer
-part of the continuation problem. Also note that {\cal AUTO} has chosen to take
+part of the continuation problem. Also note that \AUTO has chosen to take
 slightly larger steps along the family. Finally, we can continue in the opposite
-direction along the family from the original starting point (again with {\tt IEQUIB=-1}).
+direction along the family from the original starting point (again with \parf{ IEQUIB=-1}).
 \begin{center}
 \it make third
 \end{center}
@@ -9621,43 +9546,37 @@ orbits.}
 \end{verbatim}
 The results of both computations are presented in Figure \ref{Fshear}, 
 from which we see that the orbit shrinks to zero as
-{\tt PAR(1)=}$\mu \to 0$.
+\parf{ PAR(1)=}$\mu \to 0$.
 
 \newpage   
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir she} & create an empty work directory \\ 
-  {\it cd she} & change directory \\
-  {\it @dm she} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir she} & create an empty work directory \\ 
+  \commandf{ cd she} & change directory \\
+  \commandf{ demo('she')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.she.1 c.she} & get the AUTO constants-file \\ 
-  {\it cp s.she.1 s.she} & get the HomCont constants-file \\ 
-  {\it @fc she} & use the starting data in {\tt she.dat} to create {\tt s.dat} \\ 
-  {\it @h she dat} &  continue heteroclinic orbit; restart from {\tt s.dat}\\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ us('she')} & use the starting data in \filef{ she.dat} to create \filef{ s.dat} \\ 
+  \commandf{ run(c='she.1',h='she.1',s='dat')} &  continue heteroclinic orbit; restart from \filef{ s.dat}\\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.she.2 c.she} & get the AUTO constants-file \\ 
-  {\it cp s.she.2 s.she} & get the HomCont constants-file \\ 
-  {\it @h she dat} &  repeat with IEQUIB=-1 \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='she.2',h='she.2',s='dat')} &  repeat with \parf{IEQUIB=-1} \\ 
+  \commandf{ sv('2')} & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %=============================================================================
-  {\it cp c.she.3 c.she} & get the AUTO constants-file \\ 
-  {\it cp s.she.3 s.she} &  get the HomCont constants-file \\ 
-  {\it @h she 2} & continue in reverse direction ; restart from {\tt s.2} \\ 
-  {\it @ap 2} & append output-files to {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='she.3',h='she.3',s='2')} & continue in reverse direction ; restart from \filef{ s.2} \\ 
+  \commandf{ ap('2')} & append output-files to \filef{ b.2, s.2, d.2} \\ 
 \hline
 %=============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt she}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ she}.}
 \label{tbl:demo_she_1}
 \end{center}
 \end{table}
@@ -9708,17 +9627,17 @@ R_2: (u_1,u_2,u_3,u_4,t) \mapsto (-u_1,u_2,-u_3,u_4,-t)
 \end{equation}
 First, we copy the demo into a new directory 
 \begin{center}
-{\it @dm rev }
+\commandf{ @dm rev }
 \end{center}
 For this example, we shall make two separate starts
-from data stored in equation and data files {\tt rev.f.1,
-rev.dat.1} and {\tt rev.f.3, rev.dat.3} respectively. The first
+from data stored in equation and data files \filef{ rev.c.1,
+rev.dat.1} and \filef{ rev.c.3, rev.dat.3} respectively. The first
 of these contains initial data for a solution that is reversible
 under $R_1$ and the second for data that is reversible under $R_2$. 
 %
-%Note that {\it make} or {\it make all} will only run the
+%Note that \commandf{ make} or \commandf{ make all} will only run the
 %first of these. To make the output starting from the
-%$R_2$-reversible solution we need to {\it make run2}. As before,
+%$R_2$-reversible solution we need to \commandf{ make run2}. As before,
 %though we illustrate here the step by step approach.
 
 
@@ -9729,14 +9648,14 @@ The first run
 \it make first
 \end{center}
 starts by 
-copying the files {\tt rev.f.1} and {\tt rev.dat.1} to 
-{\tt rev.f} and {\tt rev.dat}. The orbit contained in
+copying the files \filef{ rev.c.1} and \filef{ rev.dat.1} to 
+\filef{ rev.f} and \filef{ rev.dat}. The orbit contained in
 the data file is a ``primary'' homoclinic solution for $P=1.6$, with
-truncation (half-)interval {\tt PAR(11) = 39.0448429}.
+truncation (half-)interval \parf{ PAR(11) = 39.0448429}.
 which is reversible under $R_1$. Note that this reversibility is
-specified in {\tt s.rev.1} via {\tt NREV=1}, 
-{\tt (IREV(I), I=1,NDIM)} {\tt = 0 1 0 1}. Note also, from
-{\tt c.rev.1} that we only have one free parameter {\tt PAR(1)}
+specified in \filef{ h.rev.1} via \parf{ NREV=1}, 
+\parf{ (IREV(I), I=1,NDIM)} \parf{ = 0 1 0 1}. Note also, from
+\filef{ c.rev.1} that we only have one free parameter \parf{ PAR(1)}
 because symmetric homoclinic orbits in reversible systems are
 generic rather than of codimension one.
 The first run  results in the output
@@ -9749,7 +9668,7 @@ The first run  results in the output
 \end{verbatim}
 which is consistent with the theoretical result that the solution
 tends uniformly to zero as $P\to 0$. Note, by plotting the data
-saved in {\tt s.1} that only ``half'' of the 
+saved in \filef{ s.1} that only ``half'' of the 
 homoclinic orbit is computed up to its point of symmetry. See Figure
 \ref{Frev1}.
 
@@ -9759,7 +9678,7 @@ homoclinic orbit is computed up to its point of symmetry. See Figure
 \centerline{\epsffile{include/rev1.ps}}
 \caption{$R_1$-Reversible homoclinic solutions on the half-interval
 $x/T \in [0,1]$ where $T=39.0448429$ for $P$ approaching $2$ (solutions
-with labels {\tt 1-5} respectively have decreasing amplitude)}
+with labels \parf{ 1-5} respectively have decreasing amplitude)}
 \label{Frev1}
 \end{figure}
 %------------------------------------------------------
@@ -9768,13 +9687,13 @@ with labels {\tt 1-5} respectively have decreasing amplitude)}
 \epsfysize 9.0cm
 \centerline{\epsffile{include/rev2.ps}}
 \caption{$R_1$-reversible homoclinic orbits with oscillatory decay 
-as $x \to -\infty$ (corresponding to label {\tt 6}) and monotone decay 
-(at label {\tt 10})}
+as $x \to -\infty$ (corresponding to label \parf{ 6}) and monotone decay 
+(at label \parf{ 10})}
 \label{Frev2}
 \end{figure}
 %------------------------------------------------------
 
-The second run continues in the other direction of {\tt PAR(1)}, with
+The second run continues in the other direction of \parf{ PAR(1)}, with
 the test function $\psi_2$ activated 
 for the detection of saddle to saddle-focus transition points
 \begin{center}
@@ -9790,24 +9709,24 @@ The output
   1  55  EP  10 -3.099341E+00  3.020172E-01 -2.749454E-11 ...  1.099341E+00
 \end{verbatim}
 shows a saddle to saddle-focus transition 
-(indicated by a zero of {\tt PAR(22)}) at {\tt PAR(1)=-2}. Beyond
+(indicated by a zero of \parf{ PAR(22)}) at \parf{ PAR(1)=-2}. Beyond
 that label the first component of the solution is negative and (up to the
 point of symmetry) monotone decreasing. See Figure \ref{Frev2}.
 
 \section{An $R_2$-Reversible Homoclinic Solution.}
 
 \begin{center}
-{\it make third}
+\commandf{ make third}
 \end{center}
-Copies the files {\tt rev.f.3} and {\tt rev.dat.3} to 
-{\tt rev.f} and {\tt rev.dat}, and runs them with the
-constants stored in {\tt c.rev.3} and {\tt s.rev.3}. 
+Copies the files \filef{ rev.c.3} and \filef{ rev.dat.3} to 
+\filef{ rev.f} and \filef{ rev.dat}, and runs them with the
+constants stored in \filef{ c.rev.3} and \filef{ h.rev.3}. 
 The orbit contained in
 the data file is a ``multi-pulse'' homoclinic solution for $P=1.6$, with
-truncation (half-)interval {\tt PAR(11) = 47.4464189}.
+truncation (half-)interval \parf{ PAR(11) = 47.4464189}.
 which is reversible under $R_2$. This reversibility is
-specified in {\tt s.rev.1} via {\tt NREV=1}, 
-{\tt (IREV(I), I=1,NDIM)} {\tt = 1 0 1 0}. The output 
+specified in \filef{ h.rev.1} via \parf{ NREV=1}, 
+\parf{ (IREV(I), I=1,NDIM)} \parf{ = 1 0 1 0}. The output 
 \begin{verbatim}
   BR    PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)   ...
    1    15  UZ   2  1.700000E+00  3.836401E-01  4.890015E-01  
@@ -9816,8 +9735,8 @@ specified in {\tt s.rev.1} via {\tt NREV=1},
    1    31  UZ   5  1.000000E+00  4.808488E-01  1.083298E+00  
    1    86  UZ   6 -9.664802E-10  5.158463E-01  1.258650E+00  
 \end{verbatim}
-contains the label of a limit point ({\tt ILP} was set to {\tt 1} in
-{\tt c.rev.3}, which corresponds to a ``coalescence'' of two reversible
+contains the label of a limit point (\parf{ ILP} was set to \parf{ 1} in
+\filef{ c.rev.3}, which corresponds to a ``coalescence'' of two reversible
 homoclinic orbits. The two solutions on either side of this limit point are
 displayed in Figure \ref{Frev3}. The computation ends in a no-convergence
 point. The solution here is depicted in Figure \ref{Frev4}. The lack of
@@ -9829,7 +9748,7 @@ moving to the left as $P \to -2$ (cf. \citeasnoun{ChSp:93}).
 \epsfysize 9.0cm
 \centerline{\epsffile{include/rev3.ps}}
 \caption{Two $R_2$-reversible homoclinic orbits at $P=1.6$ 
-corresponding to labels {\tt 1} (smaller amplitude) and {\tt 5} (larger amplitude)}
+corresponding to labels \parf{ 1} (smaller amplitude) and \parf{ 5} (larger amplitude)}
 \label{Frev3}
 \end{figure}
 %------------------------------------------------------
@@ -9837,7 +9756,7 @@ corresponding to labels {\tt 1} (smaller amplitude) and {\tt 5} (larger amplitud
 \begin{figure}[p]
 \epsfysize 9.0cm
 \centerline{\epsffile{include/rev4.ps}}
-\caption{An $R_2$-reversible homoclinic orbit at label {\tt 8}}
+\caption{An $R_2$-reversible homoclinic orbit at label \parf{ 8}}
 \label{Frev4}
 \end{figure}
 %------------------------------------------------------
@@ -9859,51 +9778,43 @@ which again ends at a no convergence error for similar reasons.
 
 
 \newpage
-\section{ Detailed {\cal AUTO}-Commands.}
+\section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir rev} & create an empty work directory \\ 
-  {\it cd rev} & change directory \\
-  {\it @dm rev} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir rev} & create an empty work directory \\ 
+  \commandf{ cd rev} & change directory \\
+  \commandf{ demo('rev')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp rev.f.1 rev.f} &  get equations file to {\tt rev.f}\\
-  {\it cp rev.dat.1 rev.dat} & get the starting data to {\tt rev.dat} \\ 
-  {\it cp c.rev.1 c.rev} & get the AUTO constants-file \\ 
-  {\it cp s.rev.1 s.rev} & get the HomCont constants-file \\ 
-  {\it @fc rev} & use the starting data in {\tt rev.dat} to create {\tt s.dat} \\ 
-  {\it @h rev dat} &  increase {\tt PAR(1)} \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ ! cp rev.c.1 rev.c} &  get equations file to \filef{ rev.c}\\
+  \commandf{ ! cp rev.dat.1 rev.dat} & get the starting data to \filef{ rev.dat} \\ 
+  \commandf{ us('rev')} & use the starting data in \filef{ rev.dat} to create \filef{ s.dat} \\ 
+  \commandf{ run(c='rev.1',h='rev.1',s='dat')} &  increase \parf{ PAR(1)} \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.rev.2 c.rev} & get the AUTO constants-file \\ 
-  {\it cp s.rev.2 s.rev} & get the HomCont constants-file \\ 
-  {\it @h rev 1} &  continue in reverse direction; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='rev.2',h='rev.2',s='1')} &  continue in reverse direction; restart from \filef{ s.1} \\ 
+  \commandf{ ap('1')} & append output-files to \filef{ b.1, s.1, d.1} \\ 
 \hline
 %=============================================================================
-  {\it cp rev.f.3 rev.f} & get equations file with new value of {\tt PAR(11)}\\
-  {\it cp rev.dat.3 rev.dat} & get starting data with different reversibility\\
-  {\it cp c.rev.3 c.rev} & get the AUTO constants-file \\ 
-  {\it cp s.rev.3 s.rev} & get the HomCont constants-file \\ 
-  {\it @fc rev} & use the starting data in {\tt rev.dat} to create {\tt s.dat} \\ 
-  {\it @h rev dat} & restart with different reversibility \\ 
-  {\it @sv 3} & save output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ ! cp rev.c.3 rev.c} & get equations file with new value of \parf{ PAR(11)}\\
+  \commandf{ ! cp rev.dat.3 rev.dat} & get starting data with different reversibility\\
+  \commandf{ us('rev')} & use the starting data in \filef{ rev.dat} to create \filef{ s.dat} \\ 
+  \commandf{ run(c='rev.3',h='rev.3',s='dat')} & restart with different reversibility \\ 
+  \commandf{ sv('3')} & save output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  {\it cp c.rev.4 c.rev} & get the AUTO constants-file \\ 
-  {\it cp s.rev.4 s.rev} & get the HomCont constants-file \\ 
-  {\it @h rev 3} & continue in reverse direction; restart from {\tt s.3} \\ 
-  {\it @ap 3} & append output-files to {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='rev.4',h='rev.4',s='3')} & continue in reverse direction; restart from \filef{ s.3} \\ 
+  \commandf{ ap('3')} & append output-files to \filef{ b.3, s.3, d.3} \\ 
 \hline
 %=============================================================================
 \end{tabular}
-\caption{Detailed {\cal AUTO}-Commands for running demo {\tt rev}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{ rev}.}
 \label{tbl:demo_rev_1}
 \end{center}
 \end{table}
