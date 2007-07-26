@@ -113,7 +113,7 @@ W.-J. Beyn, Universit\"{a}t Bielefeld,
 M.~J. Friedman, University of Alabama,
 A. Rucklidge, University of Cambridge, 
 M. Koper, University of Utrecht and 
-C.~J. Budd, University of Bristol. 
+C.~J. Budd, University of Bath.
 Financial support for this collaboration was also received from the U.K.
 Engineering and Physical Science Research Council and the Nuffield Foundation.
 
@@ -6035,7 +6035,7 @@ here $(u_1,u_2)$.
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : BVP.} \label{ch:Demos_BVP}
+\chapter{ \AUTO Demos : BVP.} \label{ch:Demos_BVP}
 %==============================================================================
 %==============================================================================
 
@@ -6058,24 +6058,24 @@ This equation is also considered in
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir exp} & create an empty work directory \\ 
-  {\it cd exp} & change directory \\
-  {\it @dm exp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir exp} & create an empty work directory \\ 
+  \commandf{ cd exp} & change directory \\
+  \commandf{ demo('exp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it @R exp 1} & 1st run; compute solution family containing fold \\ 
-  {\it @sv exp} & save output-files as {\tt b.exp, s.exp, d.exp} \\ 
+  \commandf{ run(c='exp.1')} & 1st run; compute solution family containing fold \\ 
+  \commandf{ sv('exp')} & save output-files as \filef{ b.exp, s.exp, d.exp} \\ 
 \hline
 %==============================================================================
-  {\it @r exp 2} & 2nd run; restart at a labeled solution, using increased accuracy \\ 
-  {\it @ap exp} & append output-files to {\tt b.exp, s.exp, d.exp} \\ 
+  \commandf{ run(c='exp.2',s='exp')} & \parbox[t]{3in}{2nd run; restart at a labeled solution, using increased accuracy.  Constants changed : \parf{ IRS, NTST, A1, DSMAX} vspace{0.2cm}}\\ 
+  \commandf{ ap('exp')} & append output-files to \filef{ b.exp, s.exp, d.exp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt exp}.}
+\caption{Commands for running demo \filef{ exp}.}
 \label{tbl:demo_exp}
 \end{center}
 \end{table}
@@ -6101,32 +6101,29 @@ continued in two equation parameters.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir int} & create an empty work directory \\ 
-  {\it cd int} & change directory \\
-  {\it @dm int} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir int} & create an empty work directory \\ 
+  \commandf{ cd int} & change directory \\
+  \commandf{ demo('int')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.int.1 c.int} & get the first constants-file \\ 
-  {\it @r int} & 1st run; detection of a fold \\ 
-  {\it @sv int} & save output-files as {\tt b.int, s.int, d.int} \\ 
+  \commandf{ run(c='int.1')} & 1st run; detection of a fold \\ 
+  \commandf{ sv('int')} & save output-files as \filef{ b.int, s.int, d.int} \\ 
 \hline
 %==============================================================================
-  {\it cp c.int.2 c.int} & constants changed : {\tt IRS, ISW }\\ 
-  {\it @r int} & 2nd run; generate starting data for a curve of folds \\ 
-  {\it @sv t} & save the output-files as {\tt b.t, s.t, d.t} \\ 
+  \commandf{ run(c='int.2',s='int')} & 2nd run; generate starting data for a curve of folds.  \parbox[t]{3in}{Constants changed : \parf{ IRS, ISW } vspace{0.2cm}}\\ 
+  \commandf{ sv('t')} & save the output-files as \filef{ b.t, s.t, d.t} \\ 
 \hline
 %==============================================================================
 
-  {\it cp c.int.3 c.int} & constants changed : {\tt IRS} \\ 
-  {\it @r int t} & 2nd run; compute a curve of folds; restart from {\tt s.t} \\ 
-  {\it @sv lp} & save the output-files as {\tt b.lp, s.lp, d.lp} \\ 
+  \commandf{ run(c='int.3',s='t')} & \parbox[t]{3in}{3rd run; compute a curve of folds; restart from \filef{ s.t}.  Constants changed : \parf{ IRS} vspace{0.2cm}}\\ 
+  \commandf{ sv('lp')} & save the output-files as \filef{ b.lp, s.lp, d.lp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt int}.}
+\caption{Commands for running demo \filef{ int}.}
 \label{tbl:demo_int}
 \end{center}
 \end{table}
@@ -6150,31 +6147,28 @@ with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$~~~
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir bvp} & create an empty work directory \\ 
-  {\it cd bvp} & change directory \\
-  {\it @dm bvp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir bvp} & create an empty work directory \\ 
+  \commandf{ cd bvp} & change directory \\
+  \commandf{ demo('bvp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.bvp.1 c.bvp} & get the first constants-file \\ 
-  {\it @r bvp} &  compute the trivial solution family and locate eigenvalues \\ 
-  {\it @sv bvp} & save output-files as {\tt b.bvp, s.bvp, d.bvp} \\ 
+  \commandf{ run(c='bvp.1')} &  compute the trivial solution family and locate eigenvalues \\ 
+  \commandf{ sv('bvp')} & save output-files as \filef{ b.bvp, s.bvp, d.bvp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.bvp.2 c.bvp} & constants changed : {\tt IRS, ISW, NPR, DSMAX} \\ 
-  {\it @r bvp} &  compute the first bifurcating family \\ 
-  {\it @ap bvp} & append output-files to {\tt b.bvp, s.bvp, d.bvp} \\ 
+  \commandf{ run(c='bvp.2',s='bvp')} &  \parbox[t]{3in}{compute the first bifurcating family.  Constants changed : \parf{ IRS, ISW, NPR, DSMAX} \vspace{0.2cm}}\\ 
+  \commandf{ ap('bvp')} & append output-files to \filef{ b.bvp, s.bvp, d.bvp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.bvp.3 c.bvp} & constants changed : {\tt DS} \\ 
-  {\it @r bvp} &  compute the first bifurcating family in opposite direction \\ 
-  {\it @ap bvp} & append output-files to {\tt b.bvp, s.bvp, d.bvp} \\ 
+  \commandf{ run(c='bvp.3',s='bvp')} &  \parbox[t]{3in}{compute the first bifurcating family in opposite direction.  Constants changed : \parf{ DS} \vspace{0.2cm}}\\ 
+  \commandf{ ap('bvp')} & append output-files to \filef{ b.bvp, s.bvp, d.bvp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt bvp}.}
+\caption{Commands for running demo \filef{ bvp}.}
 \label{tbl:demo_bvp}
 \end{center}
 \end{table}
@@ -6206,31 +6200,28 @@ In the third run  $p_3$ is fixed, while $p_1$ and $p_2$ are free.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir lin} & create an empty work directory \\ 
-  {\it cd lin} & change directory \\
-  {\it @dm lin} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir lin} & create an empty work directory \\ 
+  \commandf{ cd lin} & change directory \\
+  \commandf{ demo('lin')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.lin.1 c.lin} & get the first constants-file \\ 
-  {\it @r lin} & 1st run; compute the trivial solution family and locate eigenvalues \\ 
-  {\it @sv lin} & save output-files as {\tt b.lin, s.lin, d.lin} \\ 
+  \commandf{ run(c='lin.1')} & 1st run; compute the trivial solution family and locate eigenvalues \\ 
+  \commandf{ sv('lin')} & save output-files as \filef{ b.lin, s.lin, d.lin} \\ 
 \hline
 %==============================================================================
-  {\it cp c.lin.2 c.lin} & constants changed : {\tt IRS, ISW, DSMAX} \\ 
-  {\it @r lin} & 2nd run; compute a few steps along the bifurcating family \\ 
-  {\it @ap lin} & append output-files to {\tt b.lin, s.lin, d.lin} \\ 
+  \commandf{ run(c='lin.2',s='lin')} & \parbox[t]{3in}{2nd run; compute a few steps along the bifurcating family.  Constants changed : \parf{ IRS, ISW, DSMAX} \vspace{0.2cm}}\\ 
+  \commandf{ ap('lin')} & append output-files to \filef{ b.lin, s.lin, d.lin} \\ 
 \hline
 %==============================================================================
-  {\it cp c.lin.3 c.lin} & constants changed : {\tt IRS, ISW, ICP(2)} \\ 
-  {\it @r lin} & 3rd run; compute a two-parameter curve of eigenvalues \\ 
-  {\it @sv 2p} & save the output-files as {\tt b.2p, s.2p, d.2p} \\ 
+  \commandf{ run(c='lin.3',s='lin')} & \parbox[t]{3in}{3rd run; compute a two-parameter curve of eigenvalues. Constants changed : \parf{ IRS, ISW, ICP(2)} \vspace{0.2cm}} \\ 
+  \commandf{ sv('2p')} & save the output-files as \filef{ b.2p, s.2p, d.2p} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt lin}.}
+\caption{Commands for running demo \filef{ lin}.}
 \label{tbl:demo_lin}
 \end{center}
 \end{table}
@@ -6256,28 +6247,27 @@ autonomous system~:
   u_3 ' &= 1 ,  \\
 \end{array} \end{equation}
  with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0, \quad u_3(0)=0.$
-(For a periodically forced system see demo {\tt frc}).
+(For a periodically forced system see demo \filef{ frc}).
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir non} & create an empty work directory \\ 
-  {\it cd non} & change directory \\
-  {\it @dm non} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir non} & create an empty work directory \\ 
+  \commandf{ cd non} & change directory \\
+  \commandf{ demo('non')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
 
-  {\it cp c.non.1 c.non} & get the constants-file \\ 
-  {\it @r non} & compute the solution family \\ 
-  {\it @sv non} & save output-files as {\tt b.non, s.non, d.non} \\ 
+  \commandf{ run(c='non.1')} & compute the solution family \\ 
+  \commandf{ sv('non')} & save output-files as \filef{ b.non, s.non, d.non} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt non}.}
+\caption{Commands for running demo \filef{ non}.}
 \label{tbl:demo_non}
 \end{center}
 \end{table}
@@ -6303,17 +6293,17 @@ $$ u_1(0)=0, \qquad u_2(0)=0, \qquad u_4(0)=1-\gamma, $$
 and (asymptotic) right boundary conditions
 \begin{equation} \begin{array}{cl}
   & \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~ u_2(1) + u_3(1)
-  - \gamma ~ \frac{ u_4(1) }{ a(f_\infty,\gamma) } = 0,  \\
-  & a(f_\infty,\gamma)~ \frac{ b^2(f_\infty,\gamma) }{ \gamma } ~u_2(1)
+  - \gamma ~ { u_4(1) \over a(f_\infty,\gamma) } = 0,  \\
+  & a(f_\infty,\gamma)~ { b^2(f_\infty,\gamma) \over \gamma } ~u_2(1)
   + \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~u_4(1) 
   + u_5(1) = 0, \\
  & u_1(1) = f_\infty,
  \end{array} \end{equation}
 where
 \begin{equation} \begin{array}{cl}
- & a(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
+ & a(f_\infty,\gamma) = {1 \over \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} + f_\infty^2 \bigr]^{1/2}, \\
- & b(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
+ & b(f_\infty,\gamma) = {1 \over \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} - f_\infty^2 \bigr]^{1/2}.  \\
 \end{array} \end{equation}
 Note that there are five differential equations and six boundary conditions.
@@ -6327,21 +6317,20 @@ at $\gamma=1$, $f_\infty=0$.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir kar} & create an empty work directory \\ 
-  {\it cd kar} & change directory \\
-  {\it @dm kar} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir kar} & create an empty work directory \\ 
+  \commandf{ cd kar} & change directory \\
+  \commandf{ demo('kar')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.kar.1 c.kar} & get the constants-file \\ 
-  {\it @r kar} & computation of the solution family \\ 
-  {\it @sv kar} & save output-files as {\tt b.kar, s.kar, d.kar} \\ 
+  \commandf{ run(c='kar.1')} & computation of the solution family \\ 
+  \commandf{ sv('kar')} & save output-files as \filef{ b.kar, s.kar, d.kar} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt kar}.}
+\caption{Commands for running demo \filef{ kar}.}
 \label{tbl:demo_kar}
 \end{center}
 \end{table}
@@ -6355,7 +6344,7 @@ This demo illustrates the use of continuation to compute
 solutions to the singularly perturbed boundary value problem
 \begin{equation} \begin{array}{cl}
   u_1 ' &= u_2  ,  \\
-  u_2 ' &= \frac{\lambda }{ \eps} \bigl(
+  u_2 ' &= {\lambda \over \eps} \bigl(
   u_1 u_2 (u_1^2 - 1) + u_1
   \bigr)  , \\ \end{array} \end{equation}
 with boundary conditions $u_1(0)=3/2$,  $u_1(1)=\gamma.$
@@ -6372,31 +6361,28 @@ For a detailed analysis of the solution behavior see
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir spb} & create an empty work directory \\ 
-  {\it cd spb} & change directory \\
-  {\it @dm spb} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir spb} & create an empty work directory \\ 
+  \commandf{ cd spb} & change directory \\
+  \commandf{ demo('spb')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.spb.1 c.spb} & get the first constants-file \\ 
-  {\it @r spb} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='spb.1')} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.spb.2 c.spb} & constants changed : {\tt IRS, ICP(1), NTST, DS} \\ 
-  {\it @r spb 1} & 2nd run; let $\eps$ tend to zero; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save the output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='spb.2',s='1')} & \parbox[t]{3in}{2nd run; let $\eps$ tend to zero; restart from \filef{ s.1}.  constants changed : \parf{ IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  {\it cp c.spb.3 c.spb} & constants changed : {\tt IRS, ICP(1), RL0, ITNW, EPSL, EPSU, NUZR} \\ 
-  {\it @r spb 2} & 3rd run; continuation in $\gamma$; $\eps=0.001$; restart from {\tt s.2} \\ 
-  {\it @sv 3} & save the output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(1), RL0, ITNW, EPSL, EPSU, NUZR} \vspace{0.2cm}} \\ 
+  \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt spb}.}
+\caption{Commands for running demo \filef{ spb}.}
 \label{tbl:demo_spb}
 \end{center}
 \end{table}
@@ -6417,7 +6403,7 @@ with boundary conditions $ u_1(0)=0 , ~u_1(1)=0.$
 Here $u_1$ and $u_2$ are allowed to be complex, 
 while the parameter $p_1$ can only take real values.
 In the real case, this is Bratu's equation, whose solution family 
-contains a fold; see the demo {\tt exp}.
+contains a fold; see the demo \filef{ exp}.
 It is known 
 (\citename{HeKe:90} \citeyear{HeKe:90}) that a simple quadratic fold gives rise to a pitch fork
 bifurcation in the complex equation.
@@ -6433,31 +6419,28 @@ imaginary part.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir ezp} & create an empty work directory \\ 
-  {\it cd ezp} & change directory \\
-  {\it @dm ezp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir ezp} & create an empty work directory \\ 
+  \commandf{ cd ezp} & change directory \\
+  \commandf{ demo('ezp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.ezp.1 c.ezp} & get the first constants-file \\ 
-  {\it @r ezp} & 1st run; compute solution family containing fold \\ 
-  {\it @sv ezp} & save output-files as {\tt b.ezp, s.ezp, d.ezp} \\ 
+  \commandf{ run(c='ezp.1')} & 1st run; compute solution family containing fold \\ 
+  \commandf{ sv('ezp')} & save output-files as \filef{ p.ezp, s.ezp, d.ezp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ezp.2 c.ezp} & constants changed : {\tt IRS, ISW} \\ 
-  {\it @r ezp} & 2nd run; compute bifurcating complex solution family \\ 
-  {\it @ap ezp} & append output-files to {\tt b.ezp, s.ezp, d.ezp} \\ 
+  \commandf{ run(c='ezp.2',s='ezp')} & \parbox[t]{3in}{2nd run; compute bifurcating complex solution family.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ezp.3 c.ezp} & constant changed : {\tt DS} \\ 
-  {\it @r ezp} & 3rd run; compute 2nd leg of bifurcating family \\ 
-  {\it @ap ezp} & append output-files to {\tt b.ezp, s.ezp, d.ezp} \\
+  \commandf{ run(c='ezp.3',s='ezp')} & \parbox[t]{3in}{3rd run; compute 2nd leg of bifurcating family.  constant changed : \parf{ DS} \vspace{0.2cm}}\\ 
+  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt ezp}.}
+\caption{Commands for running demo \filef{ ezp}.}
 \label{tbl:demo_ezp}
 \end{center}
 \end{table}
@@ -6692,15 +6675,15 @@ be taken to recognize spurious solutions and bifurcations.
   \commandf{ demo('brc')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ run(c='brc.1') } & compute the stationary solution branch with Hopf bifurcations \\ 
+  \commandf{ run(c='brc.1') } & compute the stationary solution family with Hopf bifurcations \\ 
   \commandf{ sv('brc') } & save output-files as \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='brc.2',s='brc') } & \parbox[t]{3in}{compute a branch of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='brc.2',s='brc') } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS} \vspace{0.2cm}}\\ 
   \commandf{ ap('brc') } & append the output-files to \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='brc.3',s='brc') } & \parbox[t]{3in}{compute a solution branch from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='brc.3',s='brc') } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
   \commandf{ ap('brc') } & append the output-files to \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
@@ -6753,15 +6736,15 @@ be taken to recognize spurious solutions and bifurcations.
   \commandf{ demo('brf') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ run(c='brf.1') } & compute the stationary solution branch with Hopf bifurcations \\ 
+  \commandf{ run(c='brf.1') } & compute the stationary solution family with Hopf bifurcations \\ 
   \commandf{ sv('brf') } & save output-files as \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='brf.2',s='brf') } & \parbox[t]{3in}{compute a branch of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS}  \vspace{0.2cm}}\\ 
+  \commandf{ run(c='brf.2',s='brf') } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS}  \vspace{0.2cm}}\\ 
   \commandf{ ap('brf') } & append the output-files to \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='brf.3',s='brf') } & \parbox[t]{3in}{compute a solution branch from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='brf.3',s='brf') } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
   \commandf{ ap('brf') } & append the output-files to \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
@@ -6833,7 +6816,7 @@ integrator is advisable.
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Optimization.} \label{ch:Demos_Opt}
+\chapter{ \AUTO Demos : Optimization.} \label{ch:Demos_Opt}
 %==============================================================================
 %==============================================================================
 
@@ -6858,36 +6841,32 @@ see  \citename{DoKeKe:91a} \citeyear{DoKeKe:91a},
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir opt} & create an empty work directory \\ 
-  {\it cd opt} & change directory \\
-  {\it @dm opt} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir opt} & create an empty work directory \\ 
+  \commandf{ cd opt} & change directory \\
+  \commandf{ demo('opt')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.opt.1 c.opt} & get the first constants-file \\ 
-  {\it @r opt} & one free equation parameter \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='opt.1')} & one free equation parameter \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.opt.2 c.opt} & constants changed : {\tt IRS} \\ 
-  {\it @r opt 1} & two free equation parameters; read restart data from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='opt.2',s='1')} & \parbox[t]{3in}{two free equation parameters; read restart data from \filef{ s.1}.  Constants changed : \parf{ IRS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('2')} & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %============================================================================== 
-  {\it cp c.opt.3 c.opt} & constants changed : {\tt IRS} \\ 
-  {\it @r opt 2} & three free equation parameters; read restart data from {\tt s.2} \\ 
-  {\it @sv 3} & save output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='opt.3',s='2')} & \parbox[t]{3in}{three free equation parameters; read restart data from \filef{ s.2}.  Constants changed : \parf{ IRS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('3')} & save output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  {\it cp c.opt.4 c.opt} & constants changed : {\tt IRS} \\ 
-  {\it @r opt 3} & four free equation parameters; read restart data from {\tt s.3} \\ 
-  {\it @sv 4} & save output-files as {\tt b.4, s.4, d.4} \\ 
+  \commandf{ run(c='opt.4',s='3')} & \parbox[t]{3in}{four free equation parameters; read restart data from \filef{ s.3}.  Constants changed : \parf{ IRS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('4')} & save output-files as \filef{ b.4, s.4, d.4} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt opt}.}
+\caption{Commands for running demo \filef{ opt}.}
 \label{tbl:demo_opt}
 \end{center}
 \end{table}
@@ -6921,7 +6900,7 @@ can be addressed.
 
 For the case of periodic solutions, the extended optimality system
 can be generated automatically, i.e., one need only define the vector field 
-and the objective functional, as in done in the file {\tt ops.f}.
+and the objective functional, as in done in the file \filef{ ops.f}.
 For reference purpose it is convenient here to write down
 the full extended system in its general form~:
 
@@ -6958,18 +6937,18 @@ Above  $u_0$ is a reference solution, namely, the previous solution along
 a solution family.  
 
 \newpage
-In the computations below, the two preliminary runs, with {\tt IPS}=1 and {\tt IPS}=2,
+In the computations below, the two preliminary runs, with \parf{ IPS}=1 and \parf{ IPS}=2,
 respectively, locate periodic solutions. 
-The subsequent runs are with {\tt IPS}=15 and hence use the automatically
+The subsequent runs are with \parf{ IPS}=15 and hence use the automatically
  generated extended system.
 
 \begin{itemize}
 \item[-] 
-  {\it Run 1.}~ Locate a Hopf bifurcation. 
+  \commandf{ Run 1.}~ Locate a Hopf bifurcation. 
   The free system parameter is $\lambda_3$. 
-\item[-]{\it Run 2.}~ 
+\item[-]\commandf{ Run 2.}~ 
   Compute a family of periodic solutions from the Hopf bifurcation.
-\item[-]{\it Run 3.}~ 
+\item[-]\commandf{ Run 3.}~ 
   This run retraces part of the periodic solution family, 
   using the full optimality system,
   but with all adjoint variables, $w(\cdot), \kappa, \gamma$, 
@@ -6980,7 +6959,7 @@ The subsequent runs are with {\tt IPS}=15 and hence use the automatically
   Such a point corresponds to a branch point of the extended system. 
   Given the choice of objective functional in this demo, 
   this extremum is also a fold with respect to $\lambda_3$.
-\item[-]{\it Run 4.}~
+\item[-]\commandf{ Run 4.}~
   Branch switching at the above-found branch point yields nonzero
   values of the adjoint variables.
   Any point on the bifurcating family away from the branch point
@@ -6989,7 +6968,7 @@ The subsequent runs are with {\tt IPS}=15 and hence use the automatically
   a nonzero eigenvector in an eigenvalue-eigenvector relation.
   Apart from the adjoint variables, all other variables remain
   unchanged along the bifurcating family.
-\item[-]{\it Run 5.}~ 
+\item[-]\commandf{ Run 5.}~ 
   The above-found starting solution is continued in two system parameters, 
   here $\lambda_3$ and $\lambda_2$; i.e., a two-parameter family 
   of extrema with respect to $\lambda_3$ is computed.
@@ -7002,7 +6981,7 @@ The subsequent runs are with {\tt IPS}=15 and hence use the automatically
   Note that, in general, $\tau_i$ is the value of the
   functional that vanishes at an extremum with respect to the system
   parameter $\lambda_i$.
-\item[-]{\it Run 6.}~ 
+\item[-]\commandf{ Run 6.}~ 
   In the final run, the above-found two-parameter extremum is continued
   in three system parameters, here $\lambda_1$, $\lambda_2$, 
   and $\lambda_3$, toward $\lambda_1=0$.
@@ -7013,11 +6992,11 @@ The subsequent runs are with {\tt IPS}=15 and hence use the automatically
 \end{itemize}
 
 Although not illustrated here, one can restart an ordinary
-continuation of periodic solutions, using {\tt IPS}=2 or {\tt IPS}=3,
-from a labeled solution point on a family computed with {\tt IPS}=15.
+continuation of periodic solutions, using \parf{ IPS}=2 or \parf{ IPS}=3,
+from a labeled solution point on a family computed with \parf{ IPS}=15.
 
 \newpage
-The free scalar variables specified in the {\cal AUTO} constants-files
+The free scalar variables specified in the \AUTO constants-files
 for Run~3 and Run~4 are shown in  Table~\ref{tbl:demo_ops_1}.
 
 \begin{table}[htbp]
@@ -7030,7 +7009,7 @@ for Run~3 and Run~4 are shown in  Table~\ref{tbl:demo_ops_1}.
   & $[\lambda_2]$ & $[\lambda_3]$ & $[T]$ \\
 \hline
 \end{tabular}
-\caption{{\it Runs 3 and 4}~ (files {\tt c.ops.3} and {\tt c.ops.4}).}
+\caption{\commandf{ Runs 3 and 4}~ (files \filef{ c.ops.3} and \filef{ c.ops.4}).}
 \label{tbl:demo_ops_1}
 \end{center}
 \end{table}
@@ -7041,7 +7020,7 @@ The negative indices (-22, -23, and -31) set the active optimality
 functionals, namely for $\lambda_2$, $\lambda_3$, and $T$, respectively,
 with corresponding variables $\tau_2$, $\tau_3$, and $\tau_0$,
 respectively.
-These should be set in the first run with {\tt IPS}=15 and remain unchanged
+These should be set in the first run with \parf{ IPS}=15 and remain unchanged
 in all subsequent runs.
 
 
@@ -7055,7 +7034,7 @@ in all subsequent runs.
   & $[\lambda_2]$ & $[\lambda_3]$ & $[T]$ \\
 \hline
 \end{tabular}
-\caption{{\it Run 5}~ (file {\tt c.ops.5}).}
+\caption{\commandf{ Run 5}~ (file \filef{ c.ops.5}).}
 \label{tbl:demo_ops_2}
 \end{center}
 \end{table}
@@ -7078,7 +7057,7 @@ with respect to $\lambda_2$.
   & $[\lambda_2]$ & $[\lambda_3]$ & $[T]$ \\
 \hline
 \end{tabular}
-\caption{{\it Run 6}~ (file {\tt c.ops.6}).}
+\caption{\commandf{ Run 6}~ (file \filef{ c.ops.6}).}
 \label{tbl:demo_ops_3}
 \end{center}
 \end{table}
@@ -7091,7 +7070,7 @@ Note that $\tau_0$ and $\tau_3$ are not used as variables in any
 of the runs; in fact, their values remain zero throughout.
 Also note that the optimality functionals corresponding to 
 $\tau_0$ and $\tau_3$ (or, equivalently, to $T$ and $\lambda_3$) 
-{\it are} active in all runs.
+\emp{ are} active in all runs.
 This set-up allows the detection of the extremum of the objective functional,
 with $T$ and $\lambda_3$ as scalar equation parameters,
 as a bifurcation in the third run.
@@ -7107,46 +7086,40 @@ optimality variable $\tau_1$ is never used.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir ops} & create an empty work directory \\ 
-  {\it cd ops} & change directory \\
-  {\it @dm ops} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir ops} & create an empty work directory \\ 
+  \commandf{ cd ops} & change directory \\
+  \commandf{ demo('ops')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.ops.1 c.ops} & get the first constants-file \\ 
-  {\it @r ops} & locate a Hopf bifurcation \\ 
-  {\it @sv 0} & save output-files as {\tt b.0, s.0, d.0} \\ 
+  \commandf{ run(c='ops.1')} & locate a Hopf bifurcation \\ 
+  \commandf{ sv('0')} & save output-files as \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ops.2 c.ops} & constants changed : {\tt IPS, IRS, NMX, NUZR} \\ 
-  {\it @r ops  0} & compute a family of periodic solutions;  restart from {\tt s.0} \\ 
-  {\it @ap 0} & append the output-files to {\tt b.0, s.0, d.0} \\ 
+  \commandf{ run(c='ops.2',s='0')} & \parbox[t]{3in}{compute a family of periodic solutions;  restart from \filef{ s.0}. Constants changed : \parf{ IPS, IRS, NMX, NUZR}  \vspace{0.2cm}}\\ 
+  \commandf{ ap('0')} & append the output-files to \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ops.3 c.ops} & constants changed : {\tt IPS, IRS, ICP}, $\cdots$ \\ 
-  {\it @r ops 0} & locate a 1-parameter extremum as a bifurcation; restart from {\tt s.0} \\ 
-  {\it @sv 1} & save the output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='ops.3',s='0')} & \parbox[t]{3in}{locate a 1-parameter extremum as a bifurcation; restart from \filef{ s.0}.  Constants changed : \parf{ IPS, IRS, ICP}, $\cdots$ \vspace{0.2cm}}\\ 
+  \commandf{ sv('1')} & save the output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ops.4 c.ops} & constants changed : {\tt IRS, ISP, ISW, NMX} \\ 
-  {\it @r ops 1} & switch branches to generate optimality starting data; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append the output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='ops.4',s='1')} & \parbox[t]{3in}{switch branches to generate optimality starting data; restart from \filef{ s.1}.  Constants changed : \parf{ IRS, ISP, ISW, NMX} \vspace{0.2cm}}\\ 
+  \commandf{ ap('1')} & append the output-files to \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ops.5 c.ops} & constants changed : {\tt IRS, ISW, ICP, ISW}, $\cdots$ \\ 
-  {\it @r ops 1} & compute 2-parameter family of 1-parameter extrema; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save the output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='ops.5',s='1')} & \parbox[t]{3in}{compute 2-parameter family of 1-parameter extrema; restart from \filef{ s.1}.  Constants changed : \parf{ IRS, ISW, ICP, ISW}, $\cdots$\vspace{0.2cm}}\\ 
+  \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ops.6 c.ops} & constants changed : {\tt IRS, ICP, EPSL, EPSU, NUZR} \\ 
-  {\it @r ops 2} & compute 3-parameter family of 2-parameter extrema; restart from {\tt s.2} \\ 
-  {\it @sv 3} & save the output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='ops.6',s='2')} & \parbox[t]{3in}{compute 3-parameter family of 2-parameter extrema; restart from \filef{ s.2}.   Constants changed : \parf{ IRS, ICP, EPSL, EPSU, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt ops}.}
+\caption{Commands for running demo \filef{ ops}.}
 \label{tbl:demo_ops_4}
 \end{center}
 \end{table}
@@ -7162,9 +7135,9 @@ A detailed description of the basic method, as well as a discussion
 of the specific application considered here, is given in 
 \citename{DoKeKe:91b} \citeyear{DoKeKe:91b}.
 The required extended system is fully programmed here in the user-supplied
-routines in {\tt obv.f}.
+routines in \filef{ obv.f}.
 For the case of periodic solutions the optimality system can be generated
-automatically; see the demo {\tt ops}.
+automatically; see the demo \filef{ ops}.
 
 Consider the system
 \begin{equation} \begin{array}{cl}
@@ -7182,7 +7155,7 @@ with boundary conditions
 \end{array} \end{equation}
 The objective functional is
 $$ \omega = \int_0^{1} (u_1(t)-1)^{2}~ dt
-  +  \frac{1}{10} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
+  +  {1\over{10}} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
 The  successive continuation equations are given by
 \begin{equation} \begin{array}{cl}
   u_1'(t) &= u_2(t), \\
@@ -7195,7 +7168,7 @@ The  successive continuation equations are given by
 \end{array} \end{equation}
 where
 $$ p_{u_1} \equiv
-  \frac{{\partial p} }{ {\partial u_1}} =
+  \frac{\partial p}{\partial u_1} =
   1 + 2\lambda_2 u_1 + 4\lambda_3 u_1^{3},$$
 with 
 \begin{equation} \begin{array}{cl}
@@ -7241,36 +7214,32 @@ where a three-parameter extremum is located.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir obv} & create an empty work directory \\ 
-  {\it cd obv} & change directory \\
-  {\it @dm obv} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir obv} & create an empty work directory \\ 
+  \commandf{ cd obv} & change directory \\
+  \commandf{ demo('obv')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.obv.1 c.obv} & get the first constants-file \\ 
-  {\it @r obv} & locate 1-parameter extrema as branch points \\ 
-  {\it @sv obv} & save output-files as {\tt b.obv, s.obv, d.obv} \\ 
+  \commandf{ run(c='obv.1')} & locate 1-parameter extrema as branch points \\ 
+  \commandf{ sv('obv')} & save output-files as \filef{ b.obv, s.obv, d.obv} \\ 
 \hline
 %==============================================================================
-  {\it cp c.obv.2 c.obv} & constants changed : {\tt IRS, ISW, NMX} \\ 
-  {\it @r obv} & compute a few step on the first bifurcating family \\ 
-  {\it @sv 1} & save the output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='obv.2',s='obv')} & \parbox[t]{3in}{compute a few step on the first bifurcating family.  Constants changed : \parf{ IRS, ISW, NMX} \vspace{0.2cm}}\\ 
+  \commandf{ sv('1')} & save the output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.obv.3 c.obv} & constants changed : {\tt IRS, ISW, NMX, ICP(3)} \\ 
-  {\it @r obv  1} & locate 2-parameter extremum; restart from {\tt s.1} \\ 
-  {\it @sv 2} & save the output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='obv.3',s='1')} & \parbox[t]{3in}{locate 2-parameter extremum; restart from \filef{ s.1}.  Constants changed : \parf{ IRS, ISW, NMX, ICP(3)} \vspace{0.2cm}}\\ 
+  \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  {\it cp c.obv.4 c.obv} & constants changed : {\tt IRS, ICP(4)} \\ 
-  {\it @r obv  2} & locate 3-parameter extremum; restart from {\tt s.2} \\ 
-  {\it @sv 3} & save the output-files as {\tt b.3, s.3, d.3} \\ 
+  \commandf{ run(c='obv.4',s='2')} & \parbox[t]{3in}{locate 3-parameter extremum; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(4)} \vspace{0.2cm}}\\ 
+  \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt obv}.}
+\caption{Commands for running demo \filef{ obv}.}
 \label{tbl:demo_obv}
 \end{center}
 \end{table}
