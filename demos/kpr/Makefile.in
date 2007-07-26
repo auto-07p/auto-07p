@@ -1,0 +1,201 @@
+#
+#   Makefile		3/1994		Xianjun WANG
+#
+PGM    = kpr
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
+SRC    = $(PGM).f
+EXE    = $(PGM).exe
+LIBS   = $(AUTO_DIR)/lib/*.o
+RM     = rm -f
+LP     = lp
+HB     = hb
+HOM    = hom
+#
+all: clean $(EXE) run
+#
+$(EXE): $(SRC:.f=.o)
+	$(FC) $(FFLAGS) $(SRC:.f=.o) -o $@ $(LIBS)
+#
+run: first second third fourth fifth sixth seventh eighth ninth tenth eleventh twelfth thirteenth
+#
+first:	$(EXE)
+	@echo " "
+	@echo "Demo $(PGM) is started"
+	@echo " "
+	@echo "$(PGM) : first run : continuation in the period T"
+	@cp c.$(PGM).1 fort.2
+	@cp h.$(PGM).1 fort.12
+	@touch fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cp fort.7 b.1
+	@cp fort.8 s.1
+	@cp fort.9 d.1
+	@echo " Saved as *.1"
+	@$(RM) fort.*
+#
+second:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : second run : locate the homoclinic orbit"
+	@cp c.$(PGM).2 fort.2
+	@cp h.$(PGM).2 fort.12
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cp fort.7 b.2
+	@cp fort.8 s.2
+	@cp fort.9 d.2
+	@echo " Saved as *.2"
+	@$(RM) fort.*
+#
+third:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : third run : generate adjoint variables"
+	@cp c.$(PGM).3 fort.2
+	@cp h.$(PGM).3 fort.12
+	@cp s.2   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cp fort.7 b.3
+	@cp fort.8 s.3
+	@cp fort.9 d.3
+	@echo " Saved as *.3"
+	@$(RM) fort.*
+#
+fourth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fourth run : continue the homoclinic orbit"
+	@cp c.$(PGM).4 fort.2
+	@cp h.$(PGM).4 fort.12
+	@cp s.3   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7  > b.3
+	@cat fort.8 >> s.3
+	@cat fort.9  > d.3
+	@echo " Appended to *.3"
+	@$(RM) fort.*
+#
+fifth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fifth run : continue in reverse direction"
+	@cp c.$(PGM).5 fort.2
+	@cp h.$(PGM).5 fort.12
+	@cp s.3   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.3
+	@cat fort.8 >> s.3
+	@cat fort.9 >> d.3
+	@echo " Appended to *.3"
+	@$(RM) fort.*
+#
+sixth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : sixth run : increase the period"
+	@cp c.$(PGM).6 fort.2
+	@cp h.$(PGM).6 fort.12
+	@cp s.2   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.6
+	@cat fort.8 > s.6
+	@cat fort.9 > d.6
+	@echo " Saved as *.6"
+	@$(RM) fort.*
+#
+seventh:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : seventh run : recompute the branch of homoclinic orbits"
+	@cp c.$(PGM).7 fort.2
+	@cp h.$(PGM).7 fort.12
+	@cp s.6   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.7
+	@cat fort.8 > s.7
+	@cat fort.9 > d.7
+	@echo " Saved as *.7"
+	@$(RM) fort.*
+#
+eighth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : eighth run : continue central saddle-node homoclinics"
+	@cp c.$(PGM).8 fort.2
+	@cp h.$(PGM).8 fort.12
+	@cp s.7   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.8
+	@cat fort.8 > s.8
+	@cat fort.9 > d.8
+	@echo " Saved as *.8"
+	@$(RM) fort.*
+#
+ninth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : ninth run : continue homoclinics from codim-2 point"
+	@cp c.$(PGM).9 fort.2
+	@cp h.$(PGM).9 fort.12
+	@cp s.8   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.9
+	@cat fort.8 > s.9
+	@cat fort.9 > d.9
+	@echo " Saved as *.9"
+	@$(RM) fort.*
+#
+tenth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : tenth run : 3-parameter curve of inclination-flips"
+	@cp c.$(PGM).10 fort.2
+	@cp h.$(PGM).10 fort.12
+	@cp s.3   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.10
+	@cat fort.8 > s.10
+	@cat fort.9 > d.10
+	@echo " Saved as *.10"
+	@$(RM) fort.*
+#
+eleventh:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : eleventh run : another curve of inclination-flips"
+	@cp c.$(PGM).11 fort.2
+	@cp h.$(PGM).11 fort.12
+	@cp s.3   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.11
+	@cat fort.8 > s.11
+	@cat fort.9 > d.11
+	@echo " Saved as *.11"
+	@$(RM) fort.*
+#
+twelfth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : twelfth run : non-central saddle-node homoclinics"
+	@cp c.$(PGM).12 fort.2
+	@cp h.$(PGM).12 fort.12
+	@cp s.7   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.12
+	@cat fort.8 > s.12
+	@cat fort.9 > d.12
+	@echo " Saved as *.12"
+	@$(RM) fort.*
+#
+thirteenth:
+	@echo " "
+	@echo "$(PGM) : thirteenth run : non-central saddle-node homoclinics"
+	@cp c.$(PGM).13 fort.2
+	@cp h.$(PGM).13 fort.12
+	@cp s.8   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.12
+	@cat fort.8 >> s.12
+	@cat fort.9 >> d.12
+	@echo " Appended to *.12"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+#
+clean:
+	@echo "Cleaning $(PGM) ..."
+	@cp $(SRC) $(EXE)
+	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
+	@echo "Cleaning ... done"
+ 

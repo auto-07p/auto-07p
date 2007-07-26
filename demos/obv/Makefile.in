@@ -1,0 +1,76 @@
+#
+#   Makefile		3/1994		Xianjun WANG
+#
+PGM    = obv
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
+SRC    = $(PGM).f
+EXE    = $(PGM).exe
+LIBS   = $(AUTO_DIR)/lib/*.o
+RM     = rm -f
+#
+all: clean $(EXE) run
+#
+$(EXE): $(SRC:.f=.o)
+	$(FC) $(FFLAGS) $(SRC:.f=.o) -o $@ $(LIBS)
+#
+run: first second third fourth
+#
+first:	$(EXE)
+	@echo " "
+	@echo "Demo $(PGM) is started"
+	@echo " "
+	@echo "$(PGM) : first run : locate 1-parameter extrema as bifurcation points"
+	@cp c.$(PGM).1 fort.2
+	@touch fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cp fort.7 b.$(PGM)
+	@cp fort.8 s.$(PGM)
+	@cp fort.9 d.$(PGM)
+	@echo " Saved as *.$(PGM)"
+	@$(RM) fort.*
+#
+second:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : second run : compute a few step on the first bifurcating branch"
+	@cp c.$(PGM).2 fort.2
+	@cp s.$(PGM)   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.1
+	@cat fort.8 > s.1
+	@cat fort.9 > d.1
+	@echo " Saved as *.1"
+	@$(RM) fort.*
+#
+third:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : third run : locate 2-parameter extremum"
+	@cp c.$(PGM).3 fort.2
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.2
+	@cat fort.8 > s.2
+	@cat fort.9 > d.2
+	@echo " Saved as *.2"
+	@$(RM) fort.*
+#
+fourth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fourth run : locate 3-parameter extremum"
+	@cp c.$(PGM).4 fort.2
+	@cp s.2   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.3
+	@cat fort.8 > s.3
+	@echo " Saved as *.3"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+#
+clean:
+	@echo "Cleaning $(PGM) ..."
+	@cp $(SRC) $(EXE)
+	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
+	@echo "Cleaning ... done"
+ 

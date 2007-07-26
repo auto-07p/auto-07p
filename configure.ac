@@ -230,7 +230,8 @@ AC_SUBST(PLAUT04)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_OUTPUT(Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile)
+AC_OUTPUT(Makefile src/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile
+demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/bvp/Makefile demos/chu/Makefile demos/cir/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/lor/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pen/Makefile demos/pla/Makefile demos/plp/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/she/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"

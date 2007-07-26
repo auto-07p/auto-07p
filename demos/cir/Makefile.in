@@ -1,0 +1,123 @@
+#
+#   Makefile		3/1994		Xianjun WANG
+#
+PGM    = cir
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
+SRC    = $(PGM).f
+EXE    = $(PGM).exe
+LIBS   = $(AUTO_DIR)/lib/*.o
+RM     = rm -f
+LP     = lp
+HB     = hb
+HOM    = hom
+#
+all: clean $(EXE) run
+#
+$(EXE): $(SRC:.f=.o)
+	$(FC) $(FFLAGS) $(SRC:.f=.o) -o $@ $(LIBS)
+#
+run: first second third
+#
+first:	$(EXE)
+	@echo " "
+	@echo "Demo $(PGM) is started"
+	@echo "Restarting from data from cir.dat"
+	@echo "Starting conversion of $(PGM).dat : "
+	@echo "(Required files : $(PGM).f, c.$(PGM), $(PGM).dat)"
+	@$(FC) $(FFLAGS) $(AUTO_DIR)/src/fcon.f $(PGM).f -o fcon
+	@cp c.$(PGM).1   fort.2
+	@cp $(PGM).dat fort.3
+	@./fcon
+	@mv fort.8 s.dat
+	@rm fcon* fort.2 fort.3
+	@echo "Conversion done : converted file saved as s.dat"
+	@echo " "
+	@echo "$(PGM) : first run : increase the truncation interval"
+	@cp s.dat fort.3
+	@cp c.$(PGM).1 fort.2
+	@cp h.$(PGM).1 fort.12
+	@touch fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.1
+	@cat fort.8 > s.1
+	@cat fort.9 > d.1
+	@echo " Saved as *.1"
+	@$(RM) fort.*
+#
+second:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : second run : continue saddle-focus homoclinic orbit"
+	@cp c.$(PGM).2 fort.2
+	@cp h.$(PGM).2 fort.12
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.2
+	@cat fort.8 > s.2
+	@cat fort.9 > d.2
+	@echo " Saved as *.2"
+	@$(RM) fort.*
+#
+third:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : third run : continue in reverse direction"
+	@cp c.$(PGM).3 fort.2
+	@cp h.$(PGM).3 fort.12
+	@cp s.2   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.2
+	@cat fort.8 >> s.2
+	@cat fort.9 >> d.2
+	@echo " Appended to *.2"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+#
+fourth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fourth run : continue in reverse direction"
+	@cp c.$(PGM).4 fort.2
+	@cp h.$(PGM).4 fort.12
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.4
+	@cat fort.8 > s.4
+	@cat fort.9 > d.4
+	@echo " Saved as *.4"
+	@$(RM) fort.*
+#
+fifth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fifth run : other saddle homoclinic orbit branch"
+	@cp c.$(PGM).5 fort.2
+	@cp h.$(PGM).5 fort.12
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7  >> b.1
+	@cat fort.8  >> s.1
+	@cat fort.9  >> d.1
+	@echo " Appended to *.1"
+	@$(RM) fort.*
+#
+sixth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : sixth run : 3-parameter continuation of non-central saddle-node homoclinic"
+	@cp c.$(PGM).6 fort.2
+	@cp h.$(PGM).6 fort.12
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.6
+	@cat fort.8 > s.6
+	@cat fort.9 > d.6
+	@echo " Saved as *.6"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+#
+clean:
+	@echo "Cleaning $(PGM) ..."
+	@cp $(SRC) $(EXE)
+	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
+	@echo "Cleaning ... done"
+ 

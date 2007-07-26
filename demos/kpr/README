@@ -1,0 +1,5 @@
+Type "make" to run the complete demo.
+Type "make clean" to clean (back to original state).
+Type "make first" to run first computation only
+Type "make second" to run second computation
+etc.  

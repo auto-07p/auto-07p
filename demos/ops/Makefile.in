@@ -1,0 +1,102 @@
+#
+#   Makefile		3/1994		Xianjun WANG
+#
+PGM    =ops
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
+SRC    = $(PGM).f
+EXE    = $(PGM).exe
+LIBS   = $(AUTO_DIR)/lib/*.o
+RM     = rm -f
+#
+all: clean $(EXE) run
+#
+$(EXE): $(SRC:.f=.o)
+	$(FC) $(FFLAGS) $(SRC:.f=.o) -o $@ $(LIBS)
+#
+run: first second third fourth fifth sixth
+#
+first:	$(EXE)
+	@echo " "
+	@echo "Demo $(PGM) is started"
+	@echo " "
+	@echo "$(PGM) : first run : locate a Hopf bifurcation"
+	@cp c.$(PGM).1 fort.2
+	@touch fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cp fort.7 b.0
+	@cp fort.8 s.0
+	@cp fort.9 d.0
+	@echo " Saved as *.0"
+	@$(RM) fort.*
+#
+second:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : second run : compute a branch of periodic solutions"
+	@cp c.$(PGM).2 fort.2
+	@cp s.0   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.0
+	@cat fort.8 >> s.0
+	@cat fort.9 >> d.0
+	@echo " Appended to *.0"
+	@$(RM) fort.*
+#
+third:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : third run : locate a 1-parameter extremum as a bifurcation"
+	@cp c.$(PGM).3 fort.2
+	@cp s.0   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.1
+	@cat fort.8 > s.1
+	@cat fort.9 > d.1
+	@echo " Saved as *.1"
+	@$(RM) fort.*
+#
+fourth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fourth run : switch branches to generate adjoint variables"
+	@cp c.$(PGM).4 fort.2
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.1
+	@cat fort.8 >> s.1
+	@cat fort.9 >> d.1
+	@echo " Appended to *.1"
+	@$(RM) fort.*
+#
+fifth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fifth run : a 2-parameter branch of 1-parameter extrema"
+	@cp c.$(PGM).5 fort.2
+	@cp s.1   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.2
+	@cat fort.8 > s.2
+	@cat fort.9 > d.2
+	@echo " Saved as *.2"
+	@$(RM) fort.*
+#
+sixth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : sixth run : a 3-parameter branch of 2-parameter extrema"
+	@cp c.$(PGM).6 fort.2
+	@cp s.2   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.3
+	@cat fort.8 > s.3
+	@cat fort.9 > d.3
+	@echo " Saved as *.3"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+ 
+#
+clean:
+	@echo "Cleaning $(PGM) ..."
+	@cp $(SRC) $(EXE)
+	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
+	@echo "Cleaning ... done"
+ 

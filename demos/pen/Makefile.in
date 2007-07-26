@@ -1,0 +1,116 @@
+#
+#   Makefile		3/1994		Xianjun WANG
+#
+PGM    =pen
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
+SRC    = $(PGM).f
+EXE    = $(PGM).exe
+LIBS   = $(AUTO_DIR)/lib/*.o
+RM     = rm -f
+#
+all: clean $(EXE) run
+#
+$(EXE): $(SRC:.f=.o)
+	$(FC) $(FFLAGS) $(SRC:.f=.o) -o $@ $(LIBS)
+#
+ 
+run: first second third fourth fifth sixth
+#
+first:	$(EXE)
+	@echo " "
+	@echo "Demo $(PGM) is started"
+	@echo " "
+	@echo "Starting conversion of $(PGM).dat : "
+	@echo "(Required files : $(PGM).f, c.$(PGM), $(PGM).dat)"
+	@$(FC) $(FFLAGS) $(AUTO_DIR)/src/fcon.f $(PGM).f -o fcon
+	@cp c.$(PGM).1   fort.2
+	@cp $(PGM).dat fort.3
+	@./fcon
+	@mv fort.8 s.dat
+	@rm fcon* fort.2 fort.3
+	@echo "Conversion done : converted file saved as s.dat"
+	@echo " "
+	@echo " "
+	@echo "$(PGM) : first run : locate a period doubling bifurcation"
+	@echo " "
+	@echo "copying starting data in pen.dat to fort.4"
+	@cp s.dat fort.3
+	@cp c.$(PGM).1 fort.2
+	@touch fort.3
+	@cp $(PGM).dat fort.4
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.$(PGM)
+	@cat fort.8 > s.$(PGM)
+	@cat fort.9 > d.$(PGM)
+	@echo " Saved as *.$(PGM)"
+	@$(RM) fort.*
+#
+second:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : second run : a bifurcating branch of out-of-phase rotations"
+	@cp c.$(PGM).2 fort.2
+	@cp s.$(PGM)   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.$(PGM)
+	@cat fort.8 >> s.$(PGM)
+	@cat fort.9 >> d.$(PGM)
+	@echo " Appended to *.$(PGM)"
+	@$(RM) fort.*
+#
+third:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : third run : a secondary bifurcating branch (without bifurcation detection)"
+	@cp c.$(PGM).3 fort.2
+	@cp s.$(PGM)   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.$(PGM)
+	@cat fort.8 >> s.$(PGM)
+	@cat fort.9 >> d.$(PGM)
+	@echo " Appended to *.$(PGM)"
+	@$(RM) fort.*
+#
+fourth:	$(EXE)
+	@echo " "
+	@echo "$(PGM) : fourth run : another secondary bifurcating branch (without bifurcation detection)"
+	@cp c.$(PGM).4 fort.2
+	@cp s.$(PGM)   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 >> b.$(PGM)
+	@cat fort.8 >> s.$(PGM)
+	@cat fort.9 >> d.$(PGM)
+	@echo " Appended to *.$(PGM)"
+	@$(RM) fort.*
+fifth:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : fifth run : generate starting data for period doubling continuation"
+	@cp c.$(PGM).5 fort.2
+	@cp s.$(PGM)   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.t
+	@cat fort.8 > s.t
+	@cat fort.9 > d.t
+	@echo " Saved as *.t"
+	@$(RM) fort.*
+	@echo " "
+sixth:	$(EXE)
+	@echo " "	
+	@echo "$(PGM) : sixth run : compute a locus of period doubling bifurcations; restart from s.t"
+	@cp c.$(PGM).6 fort.2
+	@cp s.t   fort.3
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
+	@cat fort.7 > b.pd
+	@cat fort.8 > s.pd
+	@cat fort.9 > d.pd
+	@echo " Saved as *.pd"
+	@$(RM) fort.*
+	@echo " "
+	@echo "Demo $(PGM) is done"
+ 
+ 
+clean:
+	@echo "Cleaning $(PGM) ..."
+	@cp $(SRC) $(EXE)
+	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
+	@echo "Cleaning ... done"

@@ -2,8 +2,9 @@
 #   Makefile		3/1994		Xianjun WANG
 #
 PGM    = wav
-FC     = f77
-FFLAGS = -O
+FC     = @FC@
+OPT    = @OPT_FLAG@
+FFLAGS = @FFLAGS@ $(OPT)
 SRC    = $(PGM).f
 EXE    = $(PGM).exe
 LIBS   = $(AUTO_DIR)/lib/*.o
@@ -24,7 +25,7 @@ first:	$(EXE)
 	@echo "$(PGM) : first run : stationary solutions of the ODE"
 	@cp c.$(PGM).1 fort.2
 	@touch fort.3
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@echo " Saved as *.ode"
 	@cp fort.7 b.ode
 	@cp fort.8 s.ode
@@ -35,7 +36,7 @@ second:	$(EXE)
 	@echo " "
 	@echo "$(PGM) : second run : stationary solutions of the reduced PDE"
 	@cp c.$(PGM).2 fort.2
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@cat fort.7 > b.$(PGM)
 	@cat fort.8 > s.$(PGM)
 	@cat fort.9 > d.$(PGM)
@@ -47,7 +48,7 @@ third:	$(EXE)
 	@echo "$(PGM) : third run : wave train solutions of fixed wave speed"
 	@cp c.$(PGM).3 fort.2
 	@cp s.$(PGM)   fort.3
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@cat fort.7 >> b.$(PGM)
 	@cat fort.8 >> s.$(PGM)
 	@cat fort.9 >> d.$(PGM)
@@ -59,7 +60,7 @@ fourth:	$(EXE)
 	@echo "$(PGM) : fourth run : fixed wave length waves on a ring"
 	@cp c.$(PGM).4 fort.2
 	@cp s.$(PGM)   fort.3
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@cat fort.7 > b.rng
 	@cat fort.8 > s.rng
 	@cat fort.9 > d.rng
@@ -71,7 +72,7 @@ fifth:	$(EXE)
 	@echo "$(PGM) : fifth run : time evolution computation"
 	@cp c.$(PGM).5 fort.2
 	@cp s.$(PGM)   fort.3
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@cat fort.7 > b.tim
 	@cat fort.8 > s.tim
 	@cat fort.9 > d.tim
@@ -85,7 +86,7 @@ sixth:	$(EXE)
 	@echo "$(PGM) : sixth run : stationary wave continuation"
 	@cp c.$(PGM).6 fort.2
 	@cp s.$(PGM)   fort.3
-	@$(EXE)
+	@$(AUTO_COMMAND_PREFIX) ./$(EXE)
 	@cat fort.7 >> b.$(PGM)
 	@cat fort.8 >> s.$(PGM)
 	@cat fort.9 >> d.$(PGM)
@@ -97,6 +98,5 @@ clean:
 	@echo "Cleaning $(PGM) ..."
 	@cp $(SRC) $(EXE)
 	@$(RM) *.exe *.o b.* s.* d.* fort.* *~ core
-	@cp c.$(PGM).1 c.$(PGM)
 	@echo "Cleaning ... done"
  
