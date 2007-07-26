@@ -6293,17 +6293,17 @@ $$ u_1(0)=0, \qquad u_2(0)=0, \qquad u_4(0)=1-\gamma, $$
 and (asymptotic) right boundary conditions
 \begin{equation} \begin{array}{cl}
   & \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~ u_2(1) + u_3(1)
-  - \gamma ~ { u_4(1) \over a(f_\infty,\gamma) } = 0,  \\
-  & a(f_\infty,\gamma)~ { b^2(f_\infty,\gamma) \over \gamma } ~u_2(1)
+  - \gamma ~ \frac{ u_4(1) }{ a(f_\infty,\gamma) } = 0,  \\
+  & a(f_\infty,\gamma)~ \frac{ b^2(f_\infty,\gamma) }{ \gamma } ~u_2(1)
   + \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~u_4(1) 
   + u_5(1) = 0, \\
  & u_1(1) = f_\infty,
  \end{array} \end{equation}
 where
 \begin{equation} \begin{array}{cl}
- & a(f_\infty,\gamma) = {1 \over \sqrt{2} }
+ & a(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} + f_\infty^2 \bigr]^{1/2}, \\
- & b(f_\infty,\gamma) = {1 \over \sqrt{2} }
+ & b(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
   \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} - f_\infty^2 \bigr]^{1/2}.  \\
 \end{array} \end{equation}
 Note that there are five differential equations and six boundary conditions.
@@ -6344,7 +6344,7 @@ This demo illustrates the use of continuation to compute
 solutions to the singularly perturbed boundary value problem
 \begin{equation} \begin{array}{cl}
   u_1 ' &= u_2  ,  \\
-  u_2 ' &= {\lambda \over \eps} \bigl(
+  u_2 ' &= \frac{\lambda }{ \eps} \bigl(
   u_1 u_2 (u_1^2 - 1) + u_1
   \bigr)  , \\ \end{array} \end{equation}
 with boundary conditions $u_1(0)=3/2$,  $u_1(1)=\gamma.$
@@ -7155,7 +7155,7 @@ with boundary conditions
 \end{array} \end{equation}
 The objective functional is
 $$ \omega = \int_0^{1} (u_1(t)-1)^{2}~ dt
-  +  {1\over{10}} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
+  +  \frac{1}{10} \sum_{k=1}^{3} \lambda_{k}^{2}.  $$
 The  successive continuation equations are given by
 \begin{equation} \begin{array}{cl}
   u_1'(t) &= u_2(t), \\
@@ -7168,7 +7168,7 @@ The  successive continuation equations are given by
 \end{array} \end{equation}
 where
 $$ p_{u_1} \equiv
-  \frac{\partial p}{\partial u_1} =
+  \frac{{\partial p} }{ {\partial u_1}} =
   1 + 2\lambda_2 u_1 + 4\lambda_3 u_1^{3},$$
 with 
 \begin{equation} \begin{array}{cl}
@@ -7246,7 +7246,7 @@ where a three-parameter extremum is located.
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Connecting orbits.} \label{ch:Demos_Heteroclinics}
+\chapter{ \AUTO Demos : Connecting orbits.} \label{ch:Demos_Heteroclinics}
 %==============================================================================
 %==============================================================================
 
@@ -7279,8 +7279,8 @@ Here we take this parameter to be the wave speed $c$.
 
 In the first run a starting connecting orbit is computed 
 by continuation in the period $T$.
-This procedure can be used generally for time integration of an ODE with {\cal AUTO}.
-Starting data in {\tt STPNT} correspond to a point on the approximate stable manifold
+This procedure can be used generally for time integration of an ODE with \AUTO.
+Starting data in \funcf{STPNT} correspond to a point on the approximate stable manifold
 of $(1,0)$, with $T$ small.
 In this demo the ``free'' end point of the orbit necessary approaches the
 unstable fixed point $(0,0)$.
@@ -7296,26 +7296,24 @@ and both $c$ and $T$ remain free.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir fsh} & create an empty work directory \\ 
-  {\it cd fsh} & change directory \\
-  {\it @dm fsh} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir fsh} & create an empty work directory \\ 
+  \commandf{ cd fsh} & change directory \\
+  \commandf{ demo('fsh')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.fsh.1 c.fsh} & get the first constants-file \\ 
-  {\it @r fsh} & continuation in the period $T$, with $c$ fixed; no phase condition \\ 
-  {\it @sv 0} & save output-files as {\tt b.0, s.0, d.0} \\ 
+  \commandf{ run(c='fsh.1')} & continuation in the period $T$, with $c$ fixed; no phase condition \\ 
+  \commandf{ sv('0')} & save output-files as \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  {\it cp c.fsh.2 c.fsh} & constants changed : {\tt IRS, ICP, NINT, DS} \\ 
-  {\it @r fsh 0} & continuation in $c$ and $T$, with active phase condition \\ 
-  {\it @sv fsh} & save output-files as {\tt b.fsh, s.fsh, d.fsh} \\ 
+  \commandf{ run(c='fsh.2',s='0')} & \parbox[t]{3in}{continuation in $c$ and $T$, with active phase condition. Constants changed : \parf{ IRS, ICP, NINT, DS} \vspace{0.2cm}} \\ 
+  \commandf{ sv('fsh')} & save output-files as \filef{ b.fsh, s.fsh, d.fsh} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt fsh}.}
+\caption{Commands for running demo \filef{ fsh}.}
 \label{tbl:demo_fsh}
 \end{center}
 \end{table}
@@ -7355,7 +7353,7 @@ $u_1$-axis.
 In fact, the two connections together constitute a heteroclinic cycle.
 One of the exact solutions is used below as starting orbit.
 To start from the second exact solution, change SIGN=-1 in the  
-routine {\tt STPNT} in {\tt nag.f} and repeat the computations below;
+routine \funcf{STPNT} in \filef{ nag.f} and repeat the computations below;
 see also
 \citename{FrDo:91} \citeyear{FrDo:91}.
 
@@ -7363,26 +7361,24 @@ see also
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir nag} & create an empty work directory \\ 
-  {\it cd nag} & change directory \\
-  {\it @dm nag} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir nag} & create an empty work directory \\ 
+  \commandf{ cd nag} & change directory \\
+  \commandf{ demo('nag')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.nag.1 c.nag} & get the first constants-file \\ 
-  {\it @r nag} & compute part of first family of heteroclinic orbits \\ 
-  {\it @sv nag} & save output-files as {\tt b.nag, s.nag, d.nag} \\ 
+  \commandf{ run(c='nag.1')} & compute part of first family of heteroclinic orbits \\ 
+  \commandf{ sv('nag')} & save output-files as \filef{ b.nag, s.nag, d.nag} \\ 
 \hline
 %==============================================================================
-  {\it cp c.nag.2 c.nag} & constants changed : {\tt DS} \\ 
-  {\it @r nag} & compute first family in opposite direction \\ 
-  {\it @ap nag} & append output-files to {\tt b.nag, s.nag, d.nag} \\ 
+  \commandf{ run(c='nag.2',s='nag')} & \parbox[t]{3in}{compute first family in opposite direction.  Constants changed : \parf{ DS}  \vspace{0.2cm}}\\ 
+  \commandf{ ap('nag')} & append output-files to \filef{ b.nag, s.nag, d.nag} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt nag}.}
+\caption{Commands for running demo \filef{ nag}.}
 \label{tbl:demo_nag}
 \end{center}
 \end{table}
@@ -7400,7 +7396,7 @@ $A(w) = a_1 w + a_2 w^{2}$,
 $B(w) = b_0 + b_1 w + b_2 w^{2}$,
 and
 $C(w) = c_0 + c_1 w + c_2 w^{2}$.
-Such equations can have {\it sharp traveling wave fronts} as solutions, i.e., solutions of the form
+Such equations can have \commandf{ sharp traveling wave fronts} as solutions, i.e., solutions of the form
 $w(x,t)=u(x+ct)$ for which there is a $z_0$ such that
 $u(z)=0$ for $z \ge z_0$,
 $u(z) \not= 0$ for $z < z_0$, and
@@ -7429,7 +7425,7 @@ Case (1) &  2    &   0   &   2   &  0   &  0   &  0   &  1   &  -1 \\
 Case (2) &  2    &   1   &   0   &  1   &  0   &  0   &  1   &  -1 \\
 \hline
 \end{tabular}
-\caption{Problem coefficients in demo {\tt stw}.}
+\caption{Problem coefficients in demo \filef{ stw}.}
 \label{tbl:demo_stw_1}
 \end{center}
 \end{table}
@@ -7461,7 +7457,7 @@ becomes
   & u_2'(\xi) = T \bigl[ c u_2 - B(u_1) u_2^{2} - C(u_1)\bigr]. \\
 \end{array} \end{equation}
 For Case~1 this equation has a known exact solution, namely,
-$$ u(\xi) = \frac{ 1 }{ 1 + exp(T\xi) }, \qquad
+$$ u(\xi) = \frac{1 }{ 1 + exp(T\xi) }, \qquad
   v(\xi) = \frac{ -\frac{1 }{ 2}  }{ 1 + exp(-T\xi) }. $$
 This solution has wave speed $c=1$.
 In the limit as $T \rightarrow \infty$ its phase plane trajectory
@@ -7482,21 +7478,20 @@ vary continously from the values for Case~1
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir stw} & create an empty work directory \\ 
-  {\it cd stw} & change directory \\
-  {\it @dm stw} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir stw} & create an empty work directory \\ 
+  \commandf{ cd stw} & change directory \\
+  \commandf{ demo('stw')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.stw.1 c.stw} & get the constants-file \\ 
-  {\it @r stw} & continuation of the sharp traveling wave \\ 
-  {\it @sv stw} & save output-files as {\tt b.stw, s.stw, d.stw} \\ 
+  \commandf{ run(c='stw.1')} & continuation of the sharp traveling wave \\ 
+  \commandf{ sv('stw')} & save output-files as \filef{ b.stw, s.stw, d.stw} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt stw}.}
+\caption{Commands for running demo \filef{ stw}.}
 \label{tbl:demo_stw_2}
 \end{center}
 \end{table}
@@ -7504,7 +7499,7 @@ vary continously from the values for Case~1
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Miscellaneous.} \label{ch:Demos_Misc}
+\chapter{ \AUTO Demos : Miscellaneous.} \label{ch:Demos_Misc}
 %==============================================================================
 %==============================================================================
 
@@ -7512,7 +7507,7 @@ vary continously from the values for Case~1
 %==============================================================================
 %DEMO=pvl======================================================================
 %==============================================================================
-\section{ pvl : Use of the Routine {\tt PVLS}.} \label{sec:Demos_pvl}
+\section{ pvl : Use of the Routine \funcf{ PVLS}.} \label{sec:Demos_pvl}
 
 Consider Bratu's equation
 \begin{equation} \begin{array}{cl}
@@ -7520,11 +7515,11 @@ Consider Bratu's equation
   u_2 ' &= -p_1  e^{u_1} , \\ 
 \end{array} \end{equation}
 with boundary conditions $ u_1(0)=0$, $u_1(1)=0.$
-As in demo {\tt exp}, a solution curve requires one free parameter;
+As in demo \filef{ exp}, a solution curve requires one free parameter;
 here $p_1$.
 
-Note that additional parameters are specified in the user-supplied routine 
-{\tt PVLS} in file {\tt pvls.f}, namely,
+Note that additional parameters are specified in the user-supplied subroutine 
+\funcf{ PVLS} in file \filef{ pvls.f}, namely,
 $p_2$ (the $L_2$-norm of $u_1$),
 $p_3$ (the minimum of $u_2$ on the space-interval $[0,1]$~),
 $p_4$ (the boundary value $u_2(0)$~).
@@ -7532,23 +7527,23 @@ These additional parameters should be considered as ``solution measures''
 for output purposes; they should not be treated as true
 continuation parameters.
 
-Note also that four free parameters are specified in the {\cal AUTO}-constants file 
-{\tt c.pvl.1}, namely, $p_1$, $p_2$, $p_3$, and $p_4$.
+Note also that four free parameters are specified in the \AUTO-constants file 
+\filef{ c.pvl.1}, namely, $p_1$, $p_2$, $p_3$, and $p_4$.
 The first one in this list, $p_1$, is the true continuation parameter. 
-The parameters $p_2$, $p_3$, and $p_4$ are {\it overspecified}
+The parameters $p_2$, $p_3$, and $p_4$ are \emp{ overspecified}
 so that their values will appear in the output.
 However, 
-{\it it is essential that the true continuation parameter appear first.}
+\emp{ it is essential that the true continuation parameter appear first.}
 For example, it would be an error to specify the parameters
 in the following order~: $p_2$, $p_1$, $p_3$, $p_4$.
 
 In general, true continuation parameters must appear first in the
-parameter-specification in the {\cal AUTO} constants-file.
+parameter-specification in the \AUTO constants-file.
 Overspecified parameters will be printed, and can be
-defined in {\tt PVLS}, but they are not part of the intrinsic continuation
+defined in \funcf{ PVLS}, but they are not part of the intrinsic continuation
 procedure.
 
-As this demo also illustrates (see the {\tt UZR} values in {\tt c.pvl.1}),
+As this demo also illustrates (see the \parf{ UZR} values in \filef{ c.pvl.1}),
 labeled solutions can also be output at selected values 
 of the overspecified parameters.
 
@@ -7556,21 +7551,20 @@ of the overspecified parameters.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pvl} & create an empty work directory \\ 
-  {\it cd pvl} & change directory \\
-  {\it @dm pvl} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir pvl} & create an empty work directory \\ 
+  \commandf{ cd pvl} & change directory \\
+  \commandf{ demo('pvl')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.pvl.1 c.pvl} & get the constants-file \\ 
-  {\it @r pvl} & compute a solution family \\ 
-  {\it @sv pvl} & save output-files as {\tt b.pvl, s.pvl, d.pvl} \\ 
+  \commandf{ run(c='pvl.1')} & compute a solution family \\ 
+  \commandf{ sv('pvl')} & save output-files as \filef{ b.pvl, s.pvl, d.pvl} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt pvl}.}
+\caption{Commands for running demo \filef{ pvl}.}
 \label{tbl:demo_pvl}
 \end{center}
 \end{table}
@@ -7579,7 +7573,7 @@ of the overspecified parameters.
 %==============================================================================
 %DEMO=ext======================================================================
 %==============================================================================
-\section{ ext : Spurious Solutions to BVP.} \label{sec:Demos_ext}
+\section{ ext : Spurious Solutions to BVB.} \label{sec:Demos_ext}
 
 This demo illustrates the computation of spurious solutions
 to the boundary value problem
@@ -7591,7 +7585,7 @@ to the boundary value problem
 \end{array} \end{equation}
 Here the differential equation is discretized using a fixed uniform mesh.
 This results in spurious solutions that disappear when an adaptive mesh is used.
-See the {\cal AUTO}-constant {\tt IAD} in Section~\ref{sec:Discretization_constants}.
+See the \AUTO-constant \parf{ IAD} in Section~\ref{sec:Discretization_constants}.
 This example is also considered in
 \citename{BeDo:81} \citeyear{BeDo:81}
 and
@@ -7601,26 +7595,24 @@ and
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir ext} & create an empty work directory \\ 
-  {\it cd ext} & change directory \\
-  {\it @dm ext} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir ext} & create an empty work directory \\ 
+  \commandf{ cd ext} & change directory \\
+  \commandf{ demo('ext')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.ext.1 c.ext} & get the first constants-file \\ 
-  {\it @r ext} & detect bifurcations from the trivial solution family \\ 
-  {\it @sv ext} & save output-files as {\tt b.ext, s.ext, d.ext} \\ 
+  \commandf{ run(c='ext.1')} & detect bifurcations from the trivial solution family \\ 
+  \commandf{ sv('ext')} & save output-files as \filef{ b.ext, s.ext, d.ext} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ext.2 c.ext} & constants changed : {\tt IRS, ISW, NUZR} \\ 
-  {\it @r ext} & compute a bifurcating family containing spurious bifurcations \\ 
-  {\it @ap ext} & append output-files to {\tt b.ext, s.ext, d.ext} \\ 
+  \commandf{ run(c='ext.2',s='ext')} & \parbox[t]{3in}{compute a bifurcating family containing spurious bifurcations.  Constants changed : \parf{ IRS, ISW, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ ap('ext')} & append output-files to \filef{ b.ext, s.ext, d.ext} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt ext}.}
+\caption{Commands for running demo \filef{ ext}.}
 \label{tbl:demo_ext}
 \end{center}
 \end{table}
@@ -7629,16 +7621,16 @@ and
 %==============================================================================
 %DEMO=tim======================================================================
 %==============================================================================
-\section{ tim : A Test Problem for Timing {\cal AUTO}.} \label{sec:Demos_tim}
-This demo is a boundary value problem with variable dimension {\tt NDIM}. 
-It can be used to time the performance of {\cal AUTO} 
-for various choices of {\tt NDIM} (which must be even), {\tt NTST}, and {\tt NCOL}.
+\section{ tim : A Test Problem for Timing \AUTO.} \label{sec:Demos_tim}
+This demo is a boundary value problem with variable dimension \parf{ NDIM}. 
+It can be used to time the performance of \AUTO 
+for various choices of \parf{ NDIM} (which must be even), \parf{ NTST}, and \parf{ NCOL}.
 The equations are
 \begin{equation} \begin{array}{cl}
   u_i ' &= u_i  ,  \\
   v_i ' &= -p_1 ~  e(u_i) , \\
 \end{array} \end{equation}
-$i=1,\cdots$,{\tt NDIM}/2,
+$i=1,\cdots$,\parf{ NDIM}/2,
 with boundary conditions $ u_i(0)=0$, $u_i(1)=0.$
 Here 
 $$ e(u) = \sum_{k=0}^{n} ~ \frac{u^k }{ k!} ~ , $$
@@ -7646,28 +7638,27 @@ with $n=25$.
 The computation requires 10 full $LU$-decompositions of the linearized system
 that arises from Newton's method for solving the collocation equations.
 The commands for running the timing problem for a particular choice 
-of {\tt NDIM}, {\tt NTST}, and {\tt NCOL} are given below.
-(Note that if {\tt NDIM} is changed then {\tt NBC} must be changed accordingly.)
+of \parf{ NDIM}, \parf{ NTST}, and \parf{ NCOL} are given below.
+(Note that if \parf{ NDIM} is changed then \parf{ NBC} must be changed accordingly.)
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir tim} & create an empty work directory \\ 
-  {\it cd tim} & change directory \\
-  {\it @dm tim} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir tim} & create an empty work directory \\ 
+  \commandf{ cd tim} & change directory \\
+  \commandf{ demo('tim')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.tim.1 c.tim} & get the first constants-file \\ 
-  {\it @r tim} & Timing run \\ 
-  {\it @sv tim} & save output-files as {\tt b.tim, s.tim, d.tim} \\ 
+  \commandf{ run(c='tim.1')} & Timing run \\ 
+  \commandf{ sv('tim')} & save output-files as \filef{ b.tim, s.tim, d.tim} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt tim}.}
+\caption{Commands for running demo \filef{ tim}.}
 \label{tbl:demo_tim}
 \end{center}
 \end{table}
