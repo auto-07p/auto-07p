@@ -7,6 +7,7 @@
 #   EQUATION_NAME      :     AUTO-Equation name
 #
 .IGNORE:
+.SUFFIXES: .f90
 #
 CC    	   = @CC@
 FC    	   = @FC@
@@ -26,7 +27,7 @@ run: $(EXE)
 	@echo "$(EQUATION_NAME) ... done"
 #
 $(EXE): $(OBJ) $(LIBS)
-	@if [ -f $(EQUATION_NAME).f ]; then \
+	@if [ -f $(EQUATION_NAME).f90 -o -f $(EQUATION_NAME).f ]; then \
 	  echo $(FC) $(FFLAGS) $(OPT) $(OBJ) -o $@ '$(LIBS)'; \
 	  $(FC) $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS); \
 	elif [ -f $(EQUATION_NAME).c ]; then \
@@ -39,8 +40,11 @@ $(EXE): $(OBJ) $(LIBS)
 .f.o:
 	$(FC) $(FFLAGS) $(OPT) -c $< -o $@
 #
+.f90.o:
+	$(FC) $(FFLAGS) $(OPT) -c $< -o $@
+#
 .c.o:
-	@if [ -f $(EQUATION_NAME).f ]; then \
+	@if [ -f $(EQUATION_NAME).f90 -o -f $(EQUATION_NAME).f ]; then \
 	  echo $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f -o $@; \
 	  $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f -o $@; \
 	else \

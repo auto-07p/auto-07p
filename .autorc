@@ -91,6 +91,7 @@ sp		=commandQuerySecondaryPeriod
 ss		=commandQueryStepsize
 df		=commandDeleteFortFiles
 q               =commandQuit
+splabs          =commandSpecialPointLabels
 
 
 [AUTO_plotter]

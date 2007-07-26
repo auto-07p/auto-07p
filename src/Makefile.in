@@ -84,7 +84,9 @@ utility.o: utility.f
 	$(FC) $(FFLAGS) $(OPT) relabel.f utility.o -o $@
 #
 fcon: $(AUTO_DIR)/src/fcon.f
-	@if [ -f $(EQUATION_NAME).f ]; then \
+	@if [ -f $(EQUATION_NAME).f90 ]; then \
+	  $(FC) $(FFLAGS) $(OPT) $(EQUATION_NAME).f90 $(AUTO_DIR)/src/fcon.f -o fcon; \
+	elif [ -f $(EQUATION_NAME).f ]; then \
 	  $(FC) $(FFLAGS) $(OPT) $(EQUATION_NAME).f $(AUTO_DIR)/src/fcon.f -o fcon; \
 	elif [ -f $(EQUATION_NAME).c ]; then \
 	  $(CC) -I$(AUTO_DIR)/include $(CFLAGS) $(OPT) -c $(EQUATION_NAME).c -o fcone.o; \

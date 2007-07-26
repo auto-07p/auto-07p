@@ -150,10 +150,13 @@ class commandUserData(command):
 	rval=valueSystem()
         rval.info("NOTE: This command does not use filename templates\n")
         rval.info("Starting conversion of %s.dat : \n"%(self.data[0],))
-        if glob.glob("%s.f"%(self.data[0],)) == []:
-            equation_file="%s.c"%(self.data[0],)
+        if glob.glob("%s.f90"%(self.data[0],)) == []:
+            if glob.glob("%s.f"%(self.data[0],)) == []:
+                equation_file="%s.c"%(self.data[0],)
+            else:
+                equation_file="%s.f"%(self.data[0],)
         else:
-            equation_file="%s.f"%(self.data[0],)
+            equation_file="%s.f90"%(self.data[0],)
         rval.info("(Required files : %s, c.%s, %s.dat)\n"%(equation_file,
                                                            self.data[0],
                                                            self.data[0]))
@@ -930,13 +933,21 @@ class commandRunnerConfigFort2(commandWithRunner):
 
     type=SIMPLE
     shortName="changeConstants"
-    def __init__(self,entry,value,runner=None):
-        self.entry = entry
-        self.value = value
-        commandWithRunner.__init__(self,runner)
+    def __init__(self,entry=None,value=None,runner=None,**kw):
+        self.entry = None
+        if not(entry is None):
+            self.entry = entry
+        if not(value is None):
+            self.value = value
+        commandWithRunner.__init__(self,runner)            
+        self.kw = kw
     def __call__(self):
-        self.runner.options["constants"][self.entry] = self.value
-        return valueString("%s changed to %s\n"%(self.entry,self.value))
+        if not(self.entry is None):
+            self.runner.options["constants"][self.entry] = self.value
+            return valueString("%s changed to %s\n"%(self.entry,self.value))
+        func=commandRunnerLoadName(None,None,None,self.kw)
+        func()
+        return valueString(str(self.kw)+'\n')
 
 class commandRunnerConfigFort12(commandWithRunner):
     """Modify continuation constants.
@@ -947,13 +958,21 @@ class commandRunnerConfigFort12(commandWithRunner):
 
     type=SIMPLE
     shortName="changeConstantsHomCont"
-    def __init__(self,entry,value,runner=None):
-        self.entry = entry
-        self.value = value
-        commandWithRunner.__init__(self,runner)
+    def __init__(self,entry=None,value=None,runner=None,**kw):
+        self.entry = None
+        if not(entry is None):
+            self.entry = entry
+        if not(value is None):
+            self.value = value
+        commandWithRunner.__init__(self,runner)            
+        self.kw = kw
     def __call__(self):
-        self.runner.options["homcont"][self.entry] = self.value
-        return valueString("%s changed to %s\n"%(self.entry,self.value))
+        if not(self.entry is None):
+            self.runner.options["homcont"][self.entry] = self.value
+            return valueString("%s changed to %s\n"%(self.entry,self.value))
+        func=commandRunnerLoadName(None,None,None,self.kw)
+        func()
+        return valueString(str(self.kw)+'\n')
 
     
 class commandSetDirectory(commandWithRunner):
@@ -1428,6 +1447,33 @@ class commandCreateGUI(command):
 ##          third = commandRunMakefile(self.runner,"EQUATION_NAME=%s"%(eq_name))
 ##          return commandMacro((first,second,third))
         
+############################################
+#  High level functions
+############################################
+class commandSpecialPointLabels(command):
+    """Return special labels
+
+    Type FUNC('xxx',typename) to get a list of labels with the specified
+    typename, where typename can be one of
+    'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+
+    Or use FUNC(s,typename) where s is a parsed solution from sl().
+    """
+    def __init__(self,s,typename):
+        self.s = s
+        self.typename = typename
+    def __call__(self):
+        labels = []
+        func = commandParseSolutionFile(self.s)
+        try:
+            s = func().data
+        except:
+            s = self.s
+        for solution in s:
+            if solution['Type name'] == self.typename:
+                labels.append(solution['Label'])
+        return valueStringAndData("", labels)
+
 ############################################
 #  Return values
 ############################################
