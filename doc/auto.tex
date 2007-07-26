@@ -52,7 +52,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{April 2006}
+\date{July 2007}
 \maketitle
 \tableofcontents
 %
@@ -4784,7 +4784,7 @@ Table~\ref{tbl:demo_ab_17}.
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Fixed points.} \label{ch:Demos_Fixed_points}
+\chapter{ \AUTO Demos : Fixed points.} \label{ch:Demos_Fixed_points}
 %==============================================================================
 %==============================================================================
 
@@ -4810,20 +4810,20 @@ This equation is also considered in
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir enz} & create an empty work directory \\ 
-  {\it cd enz} & change directory \\
-  {\it @dm enz} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir enz} & create an empty work directory \\ 
+  \commandf{ cd enz} & change directory \\
+  \commandf{ demo('enz')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.enz.1 c.enz} & get the constants-file \\ 
-  {\it @r enz} & compute stationary solution families \\ 
-  {\it @sv enz} & save output-files as {\tt b.enz, s.enz, d.enz} \\ 
+  \commandf{ ld('enz')} & load the problem definition \\
+  \commandf{ run(c='enz.1')} & compute stationary solution families \\ 
+  \commandf{ sv('enz')} & save output-files as \filef{ b.enz, s.enz, d.enz} \\ 
 \hline
 \end{tabular}
-\caption{Commands for running demo {\tt enz}.}
+\caption{Commands for running demo \filef{ enz}.}
 \label{tbl:demo_enz}
 \end{center}
 \end{table}
@@ -4851,26 +4851,25 @@ The remaining equation parameter, $p_3$, is fixed in both runs.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal AUTO}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir dd2} & create an empty work directory \\ 
-  {\it cd dd2} & change directory \\
-  {\it @dm dd2} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir dd2 } & create an empty work directory \\ 
+  \commandf{ cd dd2 } & change directory \\
+  \commandf{ demo('dd2') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
  
-  {\it cp c.dd2.1 c.dd2} & get the first constants-file \\ 
-  {\it @r dd2} & 1st run; fixed point solution families \\ 
-  {\it @sv dd2} & save output-files as {\tt b.dd2, s.dd2, d.dd2} \\ 
+  \commandf{ ld('dd2')} & load the problem definition \\ 
+  \commandf{ run(c='dd2.1')} & 1st run; fixed point solution branches \\ 
+  \commandf{ sv('dd2')} & save output-files as \filef{ b.dd2, s.dd2, d.dd2} \\ 
 \hline
 %==============================================================================
-  {\it cp c.dd2.2 c.dd2} & constants changed : {\tt IRS, ISW} \\ 
-  {\it @r dd2} & 2nd run; a locus of Naimark-Sacker bifurcations \\ 
-  {\it @sv ns} & save output-files as {\tt b.ns, s.ns, d.ns} \\ 
+  \commandf{ run(c='dd2.2',s='dd2')} & \parbox[t]{3in}{2nd run; a locus of Naimark-Sacker bifurcations.  Constants changed : {\tt IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ sv('ns')} & save output-files as \filef{ b.ns, s.ns, d.ns} \\ 
 \hline
 \end{tabular}
-\caption{Commands for running demo {\tt dd2}.}
+\caption{Commands for running demo \filef{ dd2}.}
 \label{tbl:demo_dd2}
 \end{center}
 \end{table}
@@ -4900,31 +4899,29 @@ on the two periodic solution families.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
 
-  {\it mkdir lrz} & create an empty work directory \\ 
-  {\it cd lrz} & change directory \\
-  {\it @dm lrz} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir lrz} & create an empty work directory \\ 
+  \commandf{ cd lrz} & change directory \\
+  \commandf{ demo('lrz')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.lrz.1 c.lrz} & get the first constants-file \\ 
-  {\it @r lrz} & compute stationary solutions \\ 
-  {\it @sv lrz} & save output-files as {\tt b.lrz, s.lrz, d.lrz} \\ 
+  \commandf{ ld('lrz')} & load the problem definition \\ 
+  \commandf{ run(c='lrz.1')} & compute stationary solutions \\ 
+  \commandf{ sv('lrz')} & save output-files as \filef{ b.lrz, s.lrz, d.lrz} \\ 
 \hline
 %==============================================================================
-  {\it cp c.lrz.2 c.lrz} & constants changed : {\tt IPS, IRS, NICP, ICP, NMX, NPR, DS} \\ 
-  {\it @r lrz} & compute periodic solutions; the final orbit is near-homoclinic \\ 
-  {\it @ap lrz} & append the output-files to {\tt b.lrz, s.lrz, d.lrz} \\ 
+  \commandf{ run(c='lrz.2',s='lrz')} & \parbox[t]{3in}{ compute periodic solutions; the final orbit is near-homoclinic.  Constants changed : {\tt IPS, IRS, NICP, ICP, NMX, NPR, DS} \vspace{0.2cm}} \\ 
+  \commandf{ ap('lrz')} & append the output-files to \filef{ b.lrz, s.lrz, d.lrz} \\ 
 \hline
 %==============================================================================
-  {\it cp c.lrz.3 c.lrz} & constants changed : {\tt IRS} \\ 
-  {\it @r lrz} & compute the symmetric periodic solution family \\ 
-  {\it @ap lrz} & append the output-files to {\tt b.lrz, s.lrz, d.lrz} \\ 
+  \commandf{ run(c='lrz.3',s='lrz')} & \parbox[t]{3in}{ compute the symmetric periodic solution family.  Constants changed : {\tt IRS} \vspace{0.2cm}} \\ 
+  \commandf{ ap('lrz')} & append the output-files to \filef{ b.lrz, s.lrz, d.lrz} \\ 
 \hline
 \end{tabular}
-\caption{Commands for running demo {\tt lrz}.}
+\caption{Commands for running demo \filef{ lrz}.}
 \label{tbl:demo_lrz}
 \end{center}
 \end{table}
@@ -5127,30 +5124,30 @@ of demo {\tt abc}.}
   COMMAND  & ACTION \\ 
 \hline
 %==============================================================================
-  {\it mkdir abc} & create an empty work directory \\ 
-  {\it cd abc} & change directory \\
-  {\it @dm abc} & copy the demo files to the work directory \\
+  \commandf{ mkdir abc} & create an empty work directory \\ 
+  \commandf{ cd abc} & change directory \\
+  \commandf{ @dm abc} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it @R abc 1} & compute the stationary solution family 
+  \commandf{ @R abc 1} & compute the stationary solution family 
 						with four Hopf bifurcations \\ 
-  {\it @sv abc} & save output-files as {\tt b.abc, s.abc, d.abc} \\ 
+  \commandf{ @sv abc} & save output-files as {\tt b.abc, s.abc, d.abc} \\ 
 \hline
 %==============================================================================
-  {\it @R abc 2} & compute a family of periodic solutions from the first Hopf point \\ 
-  {\it @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
+  \commandf{ @R abc 2} & compute a family of periodic solutions from the first Hopf point \\ 
+  \commandf{ @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
 \hline
 %==============================================================================
-  {\it @R abc 3} & compute a family of periodic solutions from the second Hopf point \\ 
-  {\it @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
+  \commandf{ @R abc 3} & compute a family of periodic solutions from the second Hopf point \\ 
+  \commandf{ @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
 \hline
 %==============================================================================
-  {\it @R abc 4} & compute a family of periodic solutions from the third Hopf point \\ 
-  {\it @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
+  \commandf{ @R abc 4} & compute a family of periodic solutions from the third Hopf point \\ 
+  \commandf{ @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
 \hline
 %==============================================================================
-  {\it @R abc 5} & compute a family of periodic solutions from the fourth Hopf point \\ 
-  {\it @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
+  \commandf{ @R abc 5} & compute a family of periodic solutions from the fourth Hopf point \\ 
+  \commandf{ @ap abc} & append the output-files to {\tt b.abc, s.abc, d.abc} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5239,17 +5236,17 @@ in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pp2} & create an empty work directory \\ 
-  {\it cd pp2} & change directory \\ 
-  {\it @dm pp2} & copy the demo files to the work directory \\ 
+  \commandf{ mkdir pp2} & create an empty work directory \\ 
+  \commandf{ cd pp2} & change directory \\ 
+  \commandf{ @dm pp2} & copy the demo files to the work directory \\ 
 \hline
 %============================================================================== 
-  {\it @R pp2 1} & 1st run, using constants-file {\tt c.pp2.1}; stationary solutions \\ 
-  {\it @sv pp2} & save output-files as {\tt b.pp2, s.pp2, d.pp2} \\ 
+  \commandf{ @R pp2 1} & 1st run, using constants-file {\tt c.pp2.1}; stationary solutions \\ 
+  \commandf{ @sv pp2} & save output-files as {\tt b.pp2, s.pp2, d.pp2} \\ 
 \hline
 %============================================================================== 
-  {\it @R pp2 2} & 2nd run, using constants-file {\tt c.pp2.2}; periodic solutions \\ 
-  {\it @ap pp2} & append output-files to {\tt b.pp2, s.pp2, d.pp2} \\ 
+  \commandf{ @R pp2 2} & 2nd run, using constants-file {\tt c.pp2.2}; periodic solutions \\ 
+  \commandf{ @ap pp2} & append output-files to {\tt b.pp2, s.pp2, d.pp2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5265,36 +5262,36 @@ in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  {\it @p pp2} & run {\cal PLAUT} to graph the contents of {\tt b.pp2} and {\tt s.pp2}; \\ 
+  \commandf{ @p pp2} & run {\cal PLAUT} to graph the contents of {\tt b.pp2} and {\tt s.pp2}; \\ 
 \hline
   {\cal PLAUT}-COMMAND  & ACTION \\
 \hline
-  {\it d2}  & set convenient defaults\\ 
-  {\it ax}  & select axes \\ 
-  {\it 1 3}  & select real columns 1 and 3 in {\tt b.pp2} \\ 
-  {\it bd0}  & plot the bifurcation diagram; $max~u_1$ versus $p_1$ \\
+  \commandf{ d2}  & set convenient defaults\\ 
+  \commandf{ ax}  & select axes \\ 
+  \commandf{ 1 3}  & select real columns 1 and 3 in {\tt b.pp2} \\ 
+  \commandf{ bd0}  & plot the bifurcation diagram; $max~u_1$ versus $p_1$ \\
 \hline
-  {\it d1}  & choose other default settings \\ 
-  {\it bd}  & get blow-up of current bifurcation diagram \\ 
-  {\it 0~ 1 ~-0.25~ 1} & enter diagram limits  \\
-  {\it sav}  & save plot (see Figure~\ref{fig:pp2_1})\\
-  {\it fig.1}  & upon prompt, enter a new file name, e.g., {\tt fig.1} \\
-  {\it cl}  & clear the screen  \\
+  \commandf{ d1}  & choose other default settings \\ 
+  \commandf{ bd}  & get blow-up of current bifurcation diagram \\ 
+  \commandf{ 0~ 1 ~-0.25~ 1} & enter diagram limits  \\
+  \commandf{ sav}  & save plot (see Figure~\ref{fig:pp2_1})\\
+  \commandf{ fig.1}  & upon prompt, enter a new file name, e.g., {\tt fig.1} \\
+  \commandf{ cl}  & clear the screen  \\
 \hline
-  {\it 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  {\it 11 15 19 23}  & select these labeled orbits in {\tt s.pp2}\\ 
-  {\it d}  & default orbit display; $u_1$ versus time\\
+  \commandf{ 2d}  & enter 2D mode, for plotting labeled solutions\\ 
+  \commandf{ 11 15 19 23}  & select these labeled orbits in {\tt s.pp2}\\ 
+  \commandf{ d}  & default orbit display; $u_1$ versus time\\
 \hline
-  {\it 1 3}  & select columns 1 and 3 in {\tt s.pp2} \\
-  {\it d}  & display the orbits; $u_2$ versus time\\
+  \commandf{ 1 3}  & select columns 1 and 3 in {\tt s.pp2} \\
+  \commandf{ d}  & display the orbits; $u_2$ versus time\\
 \hline
-  {\it 2 3}  & select columns 2 and 3 in {\tt s.pp2} \\
-  {\it d}  & phase plane display; $u_2$ versus $u_1$\\
-  {\it sav}  & save plot  (see Figure~\ref{fig:pp2_2})\\
-  {\it fig.2}  & upon prompt, enter a new file name \\
-  {\it ex}  & exit from 2D mode  \\
+  \commandf{ 2 3}  & select columns 2 and 3 in {\tt s.pp2} \\
+  \commandf{ d}  & phase plane display; $u_2$ versus $u_1$\\
+  \commandf{ sav}  & save plot  (see Figure~\ref{fig:pp2_2})\\
+  \commandf{ fig.2}  & upon prompt, enter a new file name \\
+  \commandf{ ex}  & exit from 2D mode  \\
 \hline
-  {\it end}  & exit from {\cal PLAUT} \\
+  \commandf{ end}  & exit from {\cal PLAUT} \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -5338,48 +5335,47 @@ As an illustrative application we consider the Lorenz equations
 Numerical simulations with a simple initial value solver show the
 existence of a stable periodic orbit when $p_1=280$, $p_2=8/3$, $p_3=10$.
 Numerical data representing one complete periodic oscillation are
-contained in the file {\tt lor.dat}. 
-Each row in {\tt lor.dat} contains four real numbers, namely,
+contained in the file \filef{ lor.dat}. 
+Each row in \filef{ lor.dat} contains four real numbers, namely,
 the time variable $t$, $u_1$, $u_2$ and $u_3$.
-The correponding parameter values are defined in the user-supplied routine
-{\tt STPNT}.
-The {\cal AUTO}-command {\it @fc lor} then converts the data in {\tt lor.dat}
+The correponding parameter values are defined in the user-supplied subroutine
+\filef{ stpnt}.
+The \AUTO-command \commandf{us('lor')} then converts the data in \filef{ lor.dat}
 to a labeled
-{\cal AUTO} solution (with label~1) in a new file {\tt s.dat}.
+\AUTO solution (with label~1) in a new file \filef{ s.dat}.
 The mesh will be suitably adapted to the solution, using the number of
-mesh intervals {\tt NTST} and the number of collocation point per mesh
-interval {\tt NCOL} specified in the constants-file {\tt c.lor}.
-(Note that the file {\tt s.dat} should be used for restart only.
-Do not append new output-files to {\tt s.dat}, as the command {\it @fc lor}
-only creates {\tt s.dat}, with no corresponding {\tt b.dat}.)
+mesh intervals \parf{ NTST} and the number of collocation point per mesh
+interval \parf{ NCOL} specified in the constants-file \filef{ c.lor}.
+(Note that the file \filef{ s.dat} should be used for restart only.
+Do not append new output-files to \filef{ s.dat}, as the command \commandf{us('lor')}
+only creates \filef{ s.dat}, with no corresponding \filef{ b.dat}.)
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir lor} & create an empty work directory \\ 
-  {\it cd lor} & change directory \\
-  {\it @dm lor} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir lor} & create an empty work directory \\ 
+  \commandf{ cd lor} & change directory \\
+  \commandf{ demo('lor')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.lor.1 c.lor} & get the first constants-file \\ 
-  {\it @fc lor} & convert {\tt lor.dat} to {\cal AUTO} format in {\tt s.dat} \\ 
+  \commandf{ ld('lor')} & load the problem definition \\ 
+  \commandf{ us('lor')} & convert \filef{ lor.dat} to \AUTO format in \filef{ s.dat} \\ 
 \hline
 %==============================================================================
-  {\it @r lor dat} & compute a solution family, restart from {\tt s.dat} \\ 
-  {\it @sv lor} & save output-files as {\tt b.lor, s.lor, d.lor} \\ 
+  \commandf{ run(c='lor.1',s='dat')} & compute a solution family, restart from \filef{ s.dat} \\ 
+  \commandf{ sv('lor')} & save output-files as \filef{ b.lor, s.lor, d.lor} \\ 
 \hline
 %==============================================================================
-  {\it cp c.lor.2 c.lor} & constants changed : {\tt IRS, ISW, NTST} \\ 
-  {\it @r lor} & switch branches at a period-doubling detected in the first run \\ 
-  {\it @ap lor} & append the output-files to {\tt b.lor, s.lor, d.lor} \\ 
+  \commandf{ run(c='lor.2',s='lor')} & \parbox[t]{3in}{ switch branches at a period-doubling detected in the first run.  Constants changed : {\tt IRS, ISW, NTST} \vspace{0.2cm}} \\ 
+  \commandf{ ap('lor')} & append the output-files to \filef{ b.lor, s.lor, d.lor} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt lor}.}
+\caption{Commands for running demo \filef{ lor}.}
 \label{tbl:demo_lor}
 \end{center}
 \end{table}
@@ -5391,7 +5387,7 @@ only creates {\tt s.dat}, with no corresponding {\tt b.dat}.)
 \section{ frc : A Periodically Forced System.} \label{sec:Demos_frc}
 This demo illustrates the computation of periodic solutions
 to a periodically forced system.
-In {\cal AUTO} this can be done by adding a nonlinear oscillator with
+In \AUTO this can be done by adding a nonlinear oscillator with
 the desired periodic forcing as one of the solution components.
 An example of such an oscillator is
 \begin{equation} \begin{array}{cl}
@@ -5418,26 +5414,25 @@ For detailed results see
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir frc} & create an empty work directory \\ 
-  {\it cd frc} & change directory \\
-  {\it @dm frc} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir frc} & create an empty work directory \\ 
+  \commandf{ cd frc} & change directory \\
+  \commandf{ demo('frc')} & copy the demo files to the work directory \\
 \hline
 %============================================================================== 
-  {\it cp c.frc.1 c.frc} & get the first constants-file \\ 
-  {\it @r frc} & homotopy to $r=0.2$ \\ 
-  {\it @sv 0} & save output-files as {\tt b.0, s.0, d.0} \\ 
+  \commandf{ ld('frc')} & load the problem definition \\ 
+  \commandf{ run(c='frc.1')} & homotopy to $r=0.2$ \\ 
+  \commandf{ sv('0')} & save output-files as \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  {\it cp c.frc.2 c.frc} & constants changed : {\tt IRS, ICP(1), NTST, NMX, DS, DSMAX} \\ 
-  {\it @r frc 0} & compute solution family; restart from {\tt s.0} \\ 
-  {\it @sv frc} & save output-files as {\tt b.frc, s.frc, d.frc} \\ 
+  \commandf{ run(c='frc.2',s='0')} & \parbox[t]{3in}{ compute solution family; restart from \filef{ s.0}.  Constants changed : {\tt IRS, ICP(1), NTST, NMX, DS, DSMAX} \vspace{0.2cm}} \\ 
+  \commandf{ sv('frc')} & save output-files as \filef{ b.frc, s.frc, d.frc} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt frc}.}
+\caption{Commands for running demo \filef{ frc}.}
 \label{tbl:demo_frc}
 \end{center}
 \end{table}
@@ -5467,32 +5462,30 @@ is also free.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir ppp} & create an empty work directory \\ 
-  {\it cd ppp} & change directory \\
-  {\it @dm ppp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir ppp} & create an empty work directory \\ 
+  \commandf{ cd ppp} & change directory \\
+  \commandf{ demo('ppp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.ppp.1 c.ppp} & get the first constants-file \\ 
-  {\it @r ppp} & compute stationary solutions; detect Hopf bifurcations \\ 
-  {\it @sv ppp} & save output-files as {\tt b.ppp, s.ppp, d.ppp} \\ 
+  \commandf{ ld('ppp')} & load the problem definition \\ 
+  \commandf{ run(c='ppp.1')} & compute stationary solutions; detect Hopf bifurcations \\ 
+  \commandf{ sv('ppp')} & save output-files as \filef{ b.ppp, s.ppp, d.ppp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.ppp.2 c.ppp} & constants changed : {\tt IPS, IRS, ICP}, etc.  \\ 
-  {\it @r ppp} & compute a family of periodic solutions \\ 
-  {\it @ap ppp} & append the output-files to {\tt b.ppp, s.ppp, d.ppp} \\ 
+  \commandf{ run(c='ppp.2',s='ppp')} & \parbox[t]{3in}{ compute a family of periodic solutions.  Constants changed : {\tt IPS, IRS, ICP} \vspace{0.2cm}} \\ 
+  \commandf{ ap('ppp')} & append the output-files to \filef{ b.ppp, s.ppp, d.ppp} \\ 
 \hline
 %==============================================================================
 
-  {\it cp c.ppp.3 c.ppp} & constants changed : \\ 
-  {\it @r ppp} & compute Hopf bifurcation curves \\ 
-  {\it @sv hb} & save the output-files as {\tt b.hb, s.hb, d.hb} \\ 
+  \commandf{ run(c='ppp.3',s='ppp')} & compute Hopf bifurcation curves \\ 
+  \commandf{ sv('hb')} & save the output-files as \filef{ b.hb, s.hb, d.hb} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt ppp}.}
+\caption{Commands for running demo \filef{ ppp}.}
 \label{tbl:demo_ppp_1}
 \end{center}
 \end{table}
@@ -5524,46 +5517,41 @@ In the fold continuation $s_0$ is also free.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir plp} & create an empty work directory \\ 
-  {\it cd plp} & change directory \\
-  {\it @dm plp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir plp} & create an empty work directory \\ 
+  \commandf{ cd plp} & change directory \\
+  \commandf{ demo('plp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.plp.1 c.plp} & get the first constants-file \\ 
-  {\it @r plp} & 1st run; compute a stationary solution family and locate HBs \\ 
-  {\it @sv plp} & save output-files as {\tt b.plp, s.plp, d.plp} \\ 
+  \commandf{ ld('plp')} & load the problem definition \\ 
+  \commandf{ run(c='plp.1')} & 1st run; compute a stationary solution family and locate HBs \\ 
+  \commandf{ sv('plp')} & save output-files as \filef{ b.plp, s.plp, d.plp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.plp.2 c.plp} & constants changed : {\tt IPS, IRS, NMX} \\ 
-  {\it @r plp} & compute a family of periodic solutions and locate a fold \\ 
-  {\it @ap plp} & append output-files to {\tt b.plp, s.plp, d.plp} \\ 
+  \commandf{ run(c='plp.2',s='plp')} & \parbox[t]{3in}{ compute a family of periodic solutions and locate a fold.  Constants changed : \parf{ IPS, IRS, NMX} \vspace{0.2cm}} \\ 
+  \commandf{ ap('plp')} & append output-files to \filef{ b.plp, s.plp, d.plp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.plp.3 c.plp} & constants changed : {\tt IPS, ICP, ISW, NMX, RL1} \\ 
-  {\it @r plp} & Compute a locus of Hopf bifurcation points \\ 
-  {\it @sv 2p} & save output-files as {\tt b.2p, s.2p, d.2p} \\ 
+  \commandf{ run(c='plp.3',s='plp')} & \parbox[t]{3in}{ Compute a locus of Hopf bifurcation points.  Constants changed : \parf{ IPS, ICP, ISW, NMX, RL1} \vspace{0.2cm}} \\ 
+  \commandf{ sv('2p')} & save output-files as \filef{ b.2p, s.2p, d.2p} \\ 
 \hline
 %==============================================================================
-  {\it cp c.plp.4 c.plp} & constants changed : {\tt IPS, IRS, ICP, NMX} \\ 
-  {\it @r plp} & generate starting data for the fold continuation \\ 
-  {\it @sv tmp} & save output-files as {\tt b.tmp, s.tmp, d.tmp} \\ 
+  \commandf{ run(c='plp.4',s='plp')} & \parbox[t]{3in}{ generate starting data for the fold continuation.  Constants changed : \parf{ IPS, IRS, ICP, NMX} \vspace{0.2cm}} \\ 
+  \commandf{ sv('tmp')} & save output-files as \filef{ b.tmp, s.tmp, d.tmp} \\ 
 \hline
 %==============================================================================
-  {\it cp c.plp.5 c.plp} & constants changed : {\tt IRS, NUZR} \\ 
-  {\it @r plp tmp} &  fold continuation; restart data from {\tt s.tmp} \\ 
-  {\it @ap 2p} & append output-files to {\tt b.2p, s.2p, d.2p} \\ 
+  \commandf{ run(c='plp.5',s='tmp')} & \parbox[t]{3in}{  fold continuation; restart data from \filef{ s.tmp}.  Constants changed : \parf{ IRS, NUZR} \vspace{0.2cm}} \\ 
+  \commandf{ ap('2p')} & append output-files to \filef{ b.2p, s.2p, d.2p} \\ 
 \hline
 %==============================================================================
-  {\it cp c.plp.6 c.plp} & constants changed : {\tt IRS, ISW, NMX, NUZR }\\ 
-  {\it @r plp 2p} & compute an isola of periodic solutions; restart data from {\tt s.2p} \\ 
-  {\it @sv iso} & save output-files as {\tt b.iso, s.iso, d.iso} \\ 
+  \commandf{ run(c='plp.6',s='2p')} & \parbox[t]{3in}{ compute an isola of periodic solutions; restart data from \filef{ s.2p}.  Constants changed : \parf{ IRS, ISW, NMX, NUZR } \vspace{0.2cm}} \\ 
+  \commandf{ sv('iso')} & save output-files as \filef{ b.iso, s.iso, d.iso} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt plp}.}
+\caption{Commands for running demo \filef{ plp}.}
 \label{tbl:demo_plp}
 \end{center}
 \end{table}
@@ -5599,26 +5587,26 @@ However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pp3} & create an empty work directory \\ 
-  {\it cd pp3} & change directory \\
-  {\it @dm pp3} & copy the demo files to the work directory \\
+  \commandf{ mkdir pp3} & create an empty work directory \\ 
+  \commandf{ cd pp3} & change directory \\
+  \commandf{ @dm pp3} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it @R pp3 1} & 1st run; stationary solutions with 4 Hopf bifurcations \\ 
-  {\it @sv pp3} & save output-files as {\tt b.pp3, s.pp3, d.pp3} \\ 
+  \commandf{ @R pp3 1} & 1st run; stationary solutions with 4 Hopf bifurcations \\ 
+  \commandf{ @sv pp3} & save output-files as {\tt b.pp3, s.pp3, d.pp3} \\ 
 \hline
 %==============================================================================
-  {\it @R pp3 2} & compute a family of periodic solutions \\ 
-  {\it @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
+  \commandf{ @R pp3 2} & compute a family of periodic solutions \\ 
+  \commandf{ @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
 \hline
 %==============================================================================
-  {\it @R pp3 3} & compute another family of periodic solutions \\ 
-  {\it @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
+  \commandf{ @R pp3 3} & compute another family of periodic solutions \\ 
+  \commandf{ @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
 \hline
 %==============================================================================
-  {\it @R pp3 4} & compute loci of Hopf points \\ 
-  {\it @rl} & relabel the labeled solutions from this run \\ 
-  {\it @sv hb} & save the output-files as {\tt b.hb, s.hb, d.pp3} \\ 
+  \commandf{ @R pp3 4} & compute loci of Hopf points \\ 
+  \commandf{ @rl} & relabel the labeled solutions from this run \\ 
+  \commandf{ @sv hb} & save the output-files as {\tt b.hb, s.hb, d.pp3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5633,42 +5621,42 @@ However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  {\it @p pp3} & run {\cal PLAUT} to graph the contents of {\tt b.pp3} and {\tt s.pp3}; \\ 
+  \commandf{ @p pp3} & run {\cal PLAUT} to graph the contents of {\tt b.pp3} and {\tt s.pp3}; \\ 
 \hline
   {\cal PLAUT}-COMMAND  & ACTION \\
 \hline
-  {\it d2}  & set convenient defaults\\ 
-  {\it ax}  & select axes \\ 
-  {\it 1 3}  & select real columns 1 and 3 in {\tt b.pp3} \\ 
-  {\it bd0}  & plot the bifurcation diagram; $max~u_1$ versus $p_1$ \\
+  \commandf{ d2}  & set convenient defaults\\ 
+  \commandf{ ax}  & select axes \\ 
+  \commandf{ 1 3}  & select real columns 1 and 3 in {\tt b.pp3} \\ 
+  \commandf{ bd0}  & plot the bifurcation diagram; $max~u_1$ versus $p_1$ \\
 \hline
-  {\it bd}  & get blow-up of current bifurcation diagram \\ 
-  {\it 0~ 0.6 ~0~ 1.2} & enter diagram limits  \\
+  \commandf{ bd}  & get blow-up of current bifurcation diagram \\ 
+  \commandf{ 0~ 0.6 ~0~ 1.2} & enter diagram limits  \\
 \hline
-  {\it d1}  & choose other default settings (with labels) \\ 
-  {\it bd}  & another blow-up of the bifurcation diagram \\ 
-  {\it 0~ 0.6 ~0~ 0.75} & enter diagram limits  \\
+  \commandf{ d1}  & choose other default settings (with labels) \\ 
+  \commandf{ bd}  & another blow-up of the bifurcation diagram \\ 
+  \commandf{ 0~ 0.6 ~0~ 0.75} & enter diagram limits  \\
 \hline
-  {\it d2}  & set defaults\\ 
-  {\it 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  {\it 13 15 17 19 21 23 25 27}  & select these orbits from {\tt s.pp3}\\ 
-  {\it d}  & default orbit display; $u_1$ versus time\\
+  \commandf{ d2}  & set defaults\\ 
+  \commandf{ 2d}  & enter 2D mode, for plotting labeled solutions\\ 
+  \commandf{ 13 15 17 19 21 23 25 27}  & select these orbits from {\tt s.pp3}\\ 
+  \commandf{ d}  & default orbit display; $u_1$ versus time\\
 \hline
-  {\it 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
-  {\it d}  & display the orbits; $u_2$ versus $u_1$\\
+  \commandf{ 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
+  \commandf{ d}  & display the orbits; $u_2$ versus $u_1$\\
 \hline
-  {\it 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  {\it 28 30 32 34 36 38 40 42 44}  & select these orbits\\ 
-  {\it d}  & default orbit display; $u_1$ versus time\\
+  \commandf{ 2d}  & enter 2D mode, for plotting labeled solutions\\ 
+  \commandf{ 28 30 32 34 36 38 40 42 44}  & select these orbits\\ 
+  \commandf{ d}  & default orbit display; $u_1$ versus time\\
 \hline
-  {\it 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
-  {\it d}  & phase plane display; $u_2$ versus $u_1$\\
+  \commandf{ 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
+  \commandf{ d}  & phase plane display; $u_2$ versus $u_1$\\
 \hline
-  {\it 2 4}  & select columns 2 and 4 in {\tt s.pp3} \\
-  {\it d}  & phase plane display; $u_3$ versus $u_1$\\
-  {\it ex}  & exit from 2D mode  \\
+  \commandf{ 2 4}  & select columns 2 and 4 in {\tt s.pp3} \\
+  \commandf{ d}  & phase plane display; $u_3$ versus $u_1$\\
+  \commandf{ ex}  & exit from 2D mode  \\
 \hline
-  {\it end}  & exit from {\cal PLAUT} \\
+  \commandf{ end}  & exit from {\cal PLAUT} \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -5683,16 +5671,16 @@ However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  {\it @p hb} & run {\cal PLAUT} to graph the contents of {\tt b.hb} and {\tt s.hb}; \\ 
+  \commandf{ @p hb} & run {\cal PLAUT} to graph the contents of {\tt b.hb} and {\tt s.hb}; \\ 
 \hline
   {\cal PLAUT}-COMMAND  & ACTION \\
 \hline
-  {\it d0}  & set defaults\\ 
-  {\it ax}  & select axes \\ 
-  {\it 1 6}  & select real columns 1 and 6 in {\tt b.hb} \\ 
-  {\it bd0}  & plot the bifurcation diagram; $p_4$ versus $p_1$ \\
+  \commandf{ d0}  & set defaults\\ 
+  \commandf{ ax}  & select axes \\ 
+  \commandf{ 1 6}  & select real columns 1 and 6 in {\tt b.hb} \\ 
+  \commandf{ bd0}  & plot the bifurcation diagram; $p_4$ versus $p_1$ \\
 \hline
-  {\it end}  & exit from {\cal PLAUT} \\
+  \commandf{ end}  & exit from {\cal PLAUT} \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -5715,7 +5703,7 @@ with double Floquet multiplier at $z=1$.
 The computational results also include folds, homoclinic orbits,
 and period-doubling bifurcations.
 Their continuation is not illustrated here;
-see instead the demos {\tt plp}, {\tt pp2}, and {\tt pp3}, respectively.  
+see instead the demos \filef{ plp}, \filef{ pp2}, and \filef{ pp3}, respectively.  
 The equations are
 \begin{equation} \begin{array}{cl}
   x'(t) & = \bigr[ -(\beta+\nu)x + \beta y - a_3 x^3 + b_3 (y-x)^3 \bigr] / r,\\
@@ -5728,31 +5716,29 @@ Initially $\nu=-0.9$ and $\beta=0.5$.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir tor} & create an empty work directory \\ 
-  {\it cd tor} & change directory \\
-  {\it @dm tor} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir tor} & create an empty work directory \\ 
+  \commandf{ cd tor} & change directory \\
+  \commandf{ demo('tor')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.tor.1 c.tor} & get the first constants-file \\ 
-  {\it @r tor} & 1st run; compute a stationary solution family with Hopf bifurcation \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ ld('tor')} & load the problem definition \\ 
+  \commandf{ run(c='tor.1')} & 1st run; compute a stationary solution family with Hopf bifurcation \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.tor.2 c.tor} & constants changed : {\tt IPS, IRS }\\ 
-  {\it @r tor 1} & compute a family of periodic solutions; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='tor.2',s='1')} & \parbox[t]{3in}{ compute a family of periodic solutions; restart from \filef{ s.1}.   Constants changed : \parf{ IPS, IRS } \vspace{0.2cm}} \\ 
+  \commandf{ ap('1')} & append output-files to \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.tor.3 c.tor} & constants changed : {\tt IRS, ISW, NMX} \\ 
-  {\it @r tor 1} & compute a bifurcating family of periodic solutions; restart from {\tt s.1} \\ 
-  {\it @ap 1} & append output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='tor.3',s='1')} & \parbox[t]{3in}{ compute a bifurcating family of periodic solutions; restart from \filef{ s.1}.  Constants changed : \parf{ IRS, ISW, NMX} \vspace{0.2cm}} \\ 
+  \commandf{ ap('1')} & append output-files to \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt tor}.}
+\caption{Commands for running demo \filef{ tor}.}
 \label{tbl:demo_tor}
 \end{center}
 \end{table}
@@ -5764,7 +5750,7 @@ Initially $\nu=-0.9$ and $\beta=0.5$.
 \section{ pen : Rotations of Coupled Pendula.} \label{sec:Demos_pen}
 This demo illustrates the computation of rotations, i.e., solutions that
 are periodic, modulo a phase gain of an even multiple of $\pi$.
-{\cal AUTO} checks the starting data for components with such a phase gain
+\AUTO checks the starting data for components with such a phase gain
 and, if present, it will automatically adjust the computations accordingly.
 The model equations, a system of two coupled  pendula, 
 (\citename{DoArOt:91} \citeyear{DoArOt:91}),
@@ -5785,29 +5771,29 @@ or, in equivalent first order form,
 Throughout $\gamma=0.175$. Initially, $\eps=0.1$ and $I=0.4$.
 
 Numerical data representing one complete rotation are
-contained in the file {\tt pen.dat}. 
-Each row in {\tt pen.dat} contains five real numbers, namely,
+contained in the file \filef{ pen.dat}. 
+Each row in \filef{ pen.dat} contains five real numbers, namely,
 the time variable $t$, $\phi_1$, $\phi_2$, $\psi_1$ and $\psi_2$.
-The correponding parameter values are defined in the user-supplied routine
-{\tt STPNT}.
+The correponding parameter values are defined in the user-supplied subroutine
+\funcf{ STPNT}.
 
-Actually, in this example, a scaled time variable $t$ is given in {\tt pen.dat}. 
-For this reason the period ({\tt PAR(11)}) is also set in {\tt STPNT}.
-Normally {\cal AUTO} would automatically set the period according to
-the data in {\tt pen.dat}.
+Actually, in this example, a scaled time variable $t$ is given in \filef{ pen.dat}. 
+For this reason the period (\parf{ PAR(11)}) is also set in \funcf{ STPNT}.
+Normally \AUTO would automatically set the period according to
+the data in \filef{ pen.dat}.
 
-The {\cal AUTO}-command {\it @fc pen} converts the data in {\tt pen.dat}
+The \AUTO-command \commandf{us('pen')} converts the data in \filef{ pen.dat}
 to a labeled
-{\cal AUTO} solution (with label~1) in a new file {\tt s.dat}.
+\AUTO solution (with label~1) in a new file \filef{ s.dat}.
 The mesh will be suitably adapted to the solution, using the number of
-mesh intervals {\tt NTST} and the number of collocation point per mesh
-interval {\tt NCOL} specified in the constants-file {\tt c.pen}.
-(Note that the file {\tt s.dat} should be used for restart only.
-Do not append new output-files to {\tt s.dat}, as the command {\it @fc pen}
-only creates {\tt s.dat}, with no corresponding {\tt b.dat}.)
+mesh intervals \parf{ NTST} and the number of collocation point per mesh
+interval \parf{ NCOL} specified in the constants-file \filef{ c.pen}.
+(Note that the file \filef{ s.dat} should be used for restart only.
+Do not append new output-files to \filef{ s.dat}, as the command \commandf{us('pen')}
+only creates \filef{ s.dat}, with no corresponding \filef{ b.dat}.)
 
 The first run, with $I$ as free problem parameter,
-starts from the converted solution with label~1 in {\tt pen.dat}.
+starts from the converted solution with label~1 in \filef{ pen.dat}.
 A period-doubling bifurcation is located, and the period-doubled family
 is computed in the second run.
 Two branch points are located, and the bifurcating
@@ -5821,54 +5807,49 @@ as free problem parameters.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pen} & create an empty work directory \\ 
-  {\it cd pen} & change directory \\
-  {\it @dm pen} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir pen} & create an empty work directory \\ 
+  \commandf{ cd pen} & change directory \\
+  \commandf{ demo('pen')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.pen.1 c.pen} & get the first constants-file \\ 
-  {\it @fc pen} & convert {\tt pen.dat} to {\cal AUTO} format in {\tt s.dat} \\ 
+  \commandf{ ld('pen')} & load the problem definition \\ 
+  \commandf{ us('pen')} & convert \filef{ pen.dat} to \AUTO format in \filef{ s.dat} \\ 
 \hline
 %==============================================================================
-  {\it @r pen dat} & locate a period doubling bifurcation; restart from {\tt s.dat} \\ 
-  {\it @sv pen} & save output-files as {\tt b.pen, s.pen, d.pen} \\ 
+  \commandf{ run(c='pen.1',s='dat')} & locate a period doubling bifurcation; restart from \filef{ s.dat} \\ 
+  \commandf{ sv('pen')} & save output-files as \filef{ b.pen, s.pen, d.pen} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pen.2 c.pen} & constants changed : {\tt IPS, NTST, ISW, NMX} \\ 
-  {\it @r pen} & a family of  period-doubled (and out-of-phase) rotations \\ 
-  {\it @ap pen} & append output-files tp {\tt b.pen, s.pen, d.pen} \\ 
+  \commandf{ run(c='pen.2',s='pen')} & \parbox[t]{3in}{ a family of  period-doubled (and out-of-phase) rotations.   Constants changed : \parf{ IPS, NTST, ISW, NMX} \vspace{0.2cm}} \\ 
+  \commandf{ ap('pen')} & append output-files tp \filef{ b.pen, s.pen, d.pen} \\ 
 \hline
 %============================================================================== 
-  {\it cp c.pen.3 c.pen} & constants changed : {\tt IRS, ISP} \\ 
-  {\it @r pen} &  a secondary bifurcating family (without bifurcation detection) \\ 
-  {\it @ap pen} & append output-files to {\tt b.pen, s.pen, d.pen} \\ 
+  \commandf{ run(c='pen.3',s='pen')} & \parbox[t]{3in}{  a secondary bifurcating family (without bifurcation detection).  Constants changed : \parf{ IRS, ISP} \vspace{0.2cm}} \\ 
+  \commandf{ ap('pen')} & append output-files to \filef{ b.pen, s.pen, d.pen} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pen.4 c.pen} & constants changed : {\tt IRS} \\ 
-  {\it @r pen} &  another secondary bifurcating family (without bifurcation detection) \\ 
-  {\it @ap pen} & append output-files to {\tt b.pen, s.pen, d.pen} \\ 
+  \commandf{ run(c='pen.4',s='pen')} & \parbox[t]{3in}{  another secondary bifurcating family (without bifurcation detection).  Constants changed : \parf{ IRS} \vspace{0.2cm}} \\ 
+  \commandf{ ap('pen')} & append output-files to \filef{ b.pen, s.pen, d.pen} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pen.5 c.pen} & constants changed : {\tt IRS, ICP, ICP, ISW, NMX} \\ 
-  {\it @r pen} &  generate starting data for period doubling continuation \\ 
-  {\it @sv t} & save output-files as {\tt b.t, s.t, d.t} \\ 
+  \commandf{ run(c='pen.5',s='pen')} & \parbox[t]{3in}{  generate starting data for period doubling continuation.  Constants changed : \parf{ IRS, ICP, ICP, ISW, NMX} \vspace{0.2cm}} \\ 
+  \commandf{ sv('t')} & save output-files as \filef{ b.t, s.t, d.t} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pen.6 c.pen} & constants changed : {\tt IRS} \\ 
-  {\it @r pen t} &  compute a locus of period doubling bifurcations; restart from {\tt s.t} \\ 
-  {\it @sv pd} & save output-files as {\tt b.pd, s.pd, d.pd} \\ 
-\hline
+  \commandf{ run(c='pen.6',s='t')} & \parbox[t]{3in}{  compute a locus of period doubling bifurcations; restart from \filef{ s.t}.  Constants changed : \parf{ IRS} \vspace{0.2cm}} \\ 
+  \commandf{ sv('pd')} & save output-files as \filef{ b.pd, s.pd, d.pd} \\ 
+%\hline
 %==============================================================================
-  {\it @pn pen} & run an animation program to view the solutions in {\tt s.pen} \\ 
-  & (on SGI machines only; see also the file {\tt auto/07p/pendula/README}).
-  \\ 
+%%  \commandf{ @pn pen} & run an animation program to view the solutions in \filef{ s.pen} \\ 
+%%  & (on SGI machines only; see also the file \filef{ auto/07p/pendula/README}).
+%  \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt pen}.}
+\caption{Commands for running demo \filef{ pen}.}
 \label{tbl:demo_pen}
 \end{center}
 \end{table}
@@ -5901,7 +5882,7 @@ it is necessary that the solution be sufficiently smooth.
 Moreover, the adaptive mesh selection strategy will fail
 if the solution or one of its lower order derivatives has discontinuities.
 For these reasons  we use the smooth approximation
-$$ \abs{x} ~\approx~ \frac{2 x}{\pi} ~ {\rm arctan}(Kx),$$
+$$ \abs{x} ~\approx~ \frac{2 x}{\pi } ~ {\rm arctan}(Kx),$$
 which get better as $K$ increases.
 In the numerical calculations below we use $K = 10$.
 The free parameter is $\alpha$.
@@ -5911,26 +5892,25 @@ The free parameter is $\alpha$.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir chu} & create an empty work directory \\ 
-  {\it cd chu} & change directory \\
-  {\it @dm chu} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir chu} & create an empty work directory \\ 
+  \commandf{ cd chu} & change directory \\
+  \commandf{ demo('chu')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.chu.1 c.chu} & get the first constants-file \\ 
-  {\it @r chu} & 1st run; stationary solutions \\ 
-  {\it @sv chu} & save output-files as {\tt b.chu, s.chu, d.chu} \\ 
+  \commandf{ ld('chu')} & load the problem definition \\ 
+  \commandf{ run(c='chu.1')} & 1st run; stationary solutions \\ 
+  \commandf{ sv('chu')} & save output-files as \filef{ b.chu, s.chu, d.chu} \\ 
 \hline
 %==============================================================================
-  {\it cp c.chu.2 c.chu} & constants changed : {\tt IPS, IRS, ICP, ICP} \\ 
-  {\it @r chu} & 2nd run; periodic solutions, with detection of period-doubling \\ 
-  {\it @ap chu} & append the output-files to {\tt b.chu, s.chu, d.chu} \\ 
+  \commandf{ run(c='chu.2',s='chu')} & \parbox[t]{3in}{ 2nd run; periodic solutions, with detection of period-doubling.  constants changed : \parf{ IPS, IRS, ICP, ICP} \vspace{0.2cm}} \\ 
+  \commandf{ ap('chu')} & append the output-files to \filef{ b.chu, s.chu, d.chu} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt chu}.}
+\caption{Commands for running demo \filef{ chu}.}
 \label{tbl:demo_chu}
 \end{center}
 \end{table}
@@ -5961,26 +5941,25 @@ in the solution in the same location.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir phs} & create an empty work directory \\ 
-  {\it cd phs} & change directory \\
-  {\it @dm phs} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir phs} & create an empty work directory \\ 
+  \commandf{ cd phs} & change directory \\
+  \commandf{ demo('phs')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.phs.1 c.phs} & get the first constants-file \\ 
-  {\it @r phs} & detect Hopf bifurcation \\ 
-  {\it @sv phs} & save output-files as {\tt b.phs, s.phs, d.phs} \\ 
+  \commandf{ ld('phs')} & load the problem definition \\ 
+  \commandf{ run(c='phs.1')} & detect Hopf bifurcation \\ 
+  \commandf{ sv('phs')} & save output-files as \filef{ b.phs, s.phs, d.phs} \\ 
 \hline
 %==============================================================================
-  {\it cp c.phs.2 c.phs} & constants changed : {\tt IRS, IPS, NPR} \\ 
-  {\it @r phs} & compute periodic solutions \\ 
-  {\it @ap phs} & append output-files to {\tt b.phs, s.phs, d.phs} \\ 
+  \commandf{ run(c='phs.2',s='phs')} & \parbox[t]{3in}{ compute periodic solutions. Constants changed : \parf{ IRS, IPS, NPR} \vspace{0.2cm}} \\ 
+  \commandf{ ap('phs')} & append output-files to \filef{ b.phs, s.phs, d.phs} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt phs}.}
+\caption{Commands for running demo \filef{ phs}.}
 \label{tbl:demo_phs}
 \end{center}
 \end{table}
@@ -5997,41 +5976,40 @@ following predator-prey system with harvesting~:
   u_1 ' &= p_2 u_1 (1 - u_1 ) - u_1 u_2 - p_1 (1-e^{-p_3 u_1}) ,\\
   u_2 ' &= -u_2  + p_4 u_1 u_2  ,\\\end{array} \end{equation}
 where all problem parameters have a fixed value.
-The equations are the same as those in demo {\tt pp2}.
-The continuation parameter is the independent time variable, namely {\tt PAR(14)}.
+The equations are the same as those in demo \filef{ pp2}.
+The continuation parameter is the independent time variable, namely \parf{ PAR(14)}.
 
 Note that Euler time integration is only first order accurate, so that
 the time step must be sufficiently small to ensure correct results.
 Indeed, this option has been added only as a convenience, and should 
 generally be used only to locate stationary states.
-Note that the {\cal AUTO}-constants {\tt DS}, {\tt DSMIN}, and {\tt DSMAX}
+Note that the \AUTO-constants \parf{ DS}, \parf{ DSMIN}, and \parf{ DSMAX}
 control the step size
-in the space consisting of time, here {\tt PAR(14)}, and the state vector,
+in the space consisting of time, here \parf{ PAR(14)}, and the state vector,
 here $(u_1,u_2)$.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir ivp} & create an empty work directory \\ 
-  {\it cd ivp} & change directory \\
-  {\it @dm ivp} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir ivp} & create an empty work directory \\ 
+  \commandf{ cd ivp} & change directory \\
+  \commandf{ demo('ivp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.ivp.1 c.ivp} & get the constants-file \\ 
-  {\it @r ivp} & time integration \\ 
-  {\it @sv ivp} & save output-files as {\tt b.ivp, s.ivp, d.ivp} \\ 
+  \commandf{ ld('ivp')} & load the problem definition \\ 
+  \commandf{ run(c='ivp.1')} & time integration \\ 
+  \commandf{ sv('ivp')} & save output-files as \filef{ b.ivp, s.ivp, d.ivp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt ivp}.}
+\caption{Commands for running demo \filef{ ivp}.}
 \label{tbl:demo_ivp}
 \end{center}
 \end{table}
-
 
 %==============================================================================
 %==============================================================================
