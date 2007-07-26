@@ -165,7 +165,7 @@ using a \commandf{sh} compatible shell, such as \commandf{sh},
 \commandf{ source~ {\rm \$}HOME/auto/07p/cmds/auto.env.sh}.  On the
 other hand, if you are using a \commandf{csh} compatible shell, such
 as \commandf{csh} or \commandf{tcsh}, enter the command \commandf{
-source~ {\rm \$}HOME/auto/2000/cmds/auto.env}.
+source~ {\rm \$}HOME/auto/07p/cmds/auto.env}.
 
 The Graphical User Interface (GUI) requires the {\cal X-Window} system
 and {\cal Motif} or {\cal LessTif}.
@@ -1016,7 +1016,7 @@ or in any of its subdirectories.}
 
  To use the CLUI for a new equation, change to an empty directory.
  For an existing equations-file, change to its directory.
- (\emp{Do not activate the CLUI in the directory \filef{auto/2000} 
+ (\emp{Do not activate the CLUI in the directory \filef{auto/07p} 
  or in any of its subdirectories.})
  Then type 
 
@@ -1046,10 +1046,10 @@ or in any of its subdirectories.}
 
  In addition to the examples in the following sections there are
  several example scripts which can be found in
- \filef{auto/2000/demos/python} and are listed in
+ \filef{auto/07p/demos/python} and are listed in
  Table~\ref{tbl:demo_scripts}.  These scripts are fully annotated and
  provide good examples of how \AUTO CLUI scripts are written.  The
- scripts in \filef{auto/2000/demos/python/n-body} are espcially lucid
+ scripts in \filef{auto/07p/demos/python/n-body} are especially lucid
  examples and preform various related parts of a calculation involving
  the gravitional N-body problem.  
  Scripts which end in the
@@ -1203,7 +1203,7 @@ or in any of its subdirectories.}
  Next, \commandf{load(equation='ab')} 
  (Section~\ref{sec:clui_ref_commandRunnerLoadName} in the reference)
  informs the \AUTO CLUI that the name of
- the user defined function file is \filef{ab.c}.  The command
+ the user defined function file is \filef{ab.f}.  The command
  \commandf{load} is one of the most commonly used commands in the
  \AUTO CLUI, since it reads and parses the user files which are
  manipulated by other commands.  The \AUTO CLUI stores this setting
@@ -1315,7 +1315,7 @@ or in any of its subdirectories.}
  have the same base name \commandf{load('ab')} performs the same 
  action as \commandf{load(e='ab',c='ab',s='ab',h='ab')}.  Note, 
  for the command \commandf{load('ab')} it is only required that 
- \filef{ab.c} and \filef{c.ab} exist;  \filef{s.ab} and
+ \filef{ab.f} and \filef{c.ab} exist;  \filef{s.ab} and
  \filef{h.ab} are optional, and if they do not exist,
  no error message will be given.  
 
@@ -1632,7 +1632,7 @@ or in any of its subdirectories.}
  can be imported back into the interactive
  mode to create a new command
  for the \AUTO CLUI.  Several examples of such
- ``expert'' scripts can be found in \filef{auto/2000/demos/python/n-body}.
+ ``expert'' scripts can be found in \filef{auto/07p/demos/python/n-body}.
 
  Just as loops and conditionals can be used in \python~,
  one can also define functions.  For example,
@@ -1736,7 +1736,7 @@ or in any of its subdirectories.}
  > ls
  userScript.py
  > cat userScript.py
- # This is an example script for the AUTO2000 command line user
+ # This is an example script for the AUTO07p command line user
  # interface.  See the "Command Line User Interface" chapter in the
  # manual for more details.
  from AUTOclui import *
@@ -2105,7 +2105,7 @@ or in any of its subdirectories.}
  be set from within the CLUI.  For example,
  the set of commands in Figure~\ref{exa:plotter_example} shows how to
  create a plotter and change its background color to black.  The
- demo script \filef{auto/2000/demo/python/plotter.py} contains several
+ demo script \filef{auto/07p/demo/python/plotter.py} contains several
  examples of changing options in plotters.
 
  Pressing the right mouse button in the plotting window brings
@@ -2343,7 +2343,7 @@ Clean the current directory.\section*{Description}
 clean cl \medskip\hrule\end{minipage}\subsection{commandCopyAndLoadDemo} \label{sec:clui_ref_commandCopyAndLoadDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Copy a demo into the current directory and load it.\section*{Description}
 
-    Type commandCopyAndLoadDemo('xxx') to copy all files from auto/2000/demos/xxx to the
+    Type commandCopyAndLoadDemo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  Note that the 'dm' command also copies a Makefile to the
     current user directory. To avoid the overwriting of existing
@@ -2361,7 +2361,7 @@ Copy data files.\section*{Description}
 copy cp \medskip\hrule\end{minipage}\subsection{commandCopyDemo} \label{sec:clui_ref_commandCopyDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Copy a demo into the current directory.\section*{Description}
 
-    Type commandCopyDemo('xxx') to copy all files from auto/2000/demos/xxx to the
+    Type commandCopyDemo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  Note that the 'dm' command also copies a Makefile to the
     current user directory. To avoid the overwriting of existing
@@ -6465,7 +6465,7 @@ imaginary part.
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Parabolic PDEs.} \label{ch:Demos_PDE}
+\chapter{ \AUTO Demos : Parabolic PDEs.} \label{ch:Demos_PDE}
 %==============================================================================
 %==============================================================================
 
@@ -6484,13 +6484,13 @@ as is the diffusion constant $D=$~{\tt PAR(15)}~$=0.1$.
 The boundary conditions are $u(0) = u(L) = 0$ for all time.
 
 In the first run the continuation parameter is the independent time variable,
-namely {\tt PAR(14)}, while $p_1=1$ is fixed.
-The {\cal AUTO}-constants {\tt DS}, {\tt DSMIN}, and {\tt DSMAX} then control the step size
-in space-time, here consisting of {\tt PAR(14)} and  $u(x)$.
+namely \parf{ PAR(14)}, while $p_1=1$ is fixed.
+The \AUTO-constants \parf{ DS}, \parf{ DSMIN}, and \parf{ DSMAX} then control the step size
+in space-time, here consisting of \parf{ PAR(14)} and  $u(x)$.
 Initial data are $u(x)=\sin(\pi x/L)$ at time zero.
-Note that in the routine {\tt STPNT} the initial data must be scaled to 
+Note that in the subroutine \funcf{ STPNT} the initial data must be scaled to 
 the unit interval, and that the scaled derivative must also be provided; 
-see the equations-file {\tt pv1.f}.
+see the equations-file \filef{ pv1.f}.
 In the second run the continuation parameter is $p_1$.
 
 Euler time integration is only first order accurate, so that
@@ -6502,26 +6502,24 @@ generally be used only to locate stationary states.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pd1} & create an empty work directory \\ 
-  {\it cd pd1} & change directory \\
-  {\it @dm pd1} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir pd1} & create an empty work directory \\ 
+  \commandf{ cd pd1} & change directory \\
+  \commandf{ demo('pd1') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.pd1.1 c.pd1} & get the first constants-file \\ 
-  {\it @r pd1} & time integration towards stationary state \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='pd1.1') } & time integration towards stationary state \\ 
+  \commandf{ sv('1') } & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pd1.2 c.pd1} & constants changed : {\tt IPS, IRS, ICP}, etc.  \\ 
-  {\it @r pd1 1} & continuation of stationary states; read restart data from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='pd1.2',s='1')} & \parbox[t]{3in}{continuation of stationary states; read restart data from \filef{ s.1}. constants changed : \parf{ IPS, IRS, ICP}, etc.\vspace{0.2cm}} \\ 
+  \commandf{ sv('2') } & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt pd1}.}
+\caption{Commands for running demo \filef{ pd1}.}
 \label{tbl:demo_pd1}
 \end{center}
 \end{table}
@@ -6540,19 +6538,19 @@ state in a free problem parameter. The equations are
   {\partial u_2 / \partial t} 
   &= D_2~{\partial^2 u_2 / \partial x^2} ~-~ u_2 ~+~ u_1 u_2 , \\
 \end{array} \end{equation}
-on the space interval $[0,L]$, where $L=$~{\tt PAR(11)}~$=1$ is fixed throughout,
-as are the diffusion constants $D_1=$~{\tt PAR(15)}~$=1$ and $D_2=$~{\tt PAR(16)}~$=1$.
+on the space interval $[0,L]$, where $L=$~\parf{ PAR(11)}~$=1$ is fixed throughout,
+as are the diffusion constants $D_1=$~\parf{ PAR(15)}~$=1$ and $D_2=$~\parf{ PAR(16)}~$=1$.
 The boundary conditions are $u_1(0) = u_1(L) = 0$ and $u_2(0) = u_2(L) = 1$,
 for all time.
 
 In the first run the continuation parameter is the independent time variable,
-namely {\tt PAR(14)}, while $p_1=12$ is fixed.
-The {\cal AUTO}-constants {\tt DS}, {\tt DSMIN}, and {\tt DSMAX} then control the step size
-in space-time, here consisting of {\tt PAR(14)} and $(u_1(x),u_2(x))$.
+namely \parf{ PAR(14)}, while $p_1=12$ is fixed.
+The \AUTO-constants \parf{ DS}, \parf{ DSMIN}, and \parf{ DSMAX} then control the step size
+in space-time, here consisting of \parf{ PAR(14)} and $(u_1(x),u_2(x))$.
 Initial data at time zero are $u_1(x)=\sin(\pi x/L)$ and $u_2(x)=1$.
-Note that in the routine {\tt STPNT} the initial data must be scaled to 
+Note that in the subroutine \funcf{ STPNT} the initial data must be scaled to 
 the unit interval, and that the scaled derivatives must also be provided; 
-see the equations-file {\tt pv2.f}.
+see the equations-file \filef{ pv2.f}.
 In the second run the continuation parameter is $p_1$.
 A branch point is located during this run.
 
@@ -6566,26 +6564,24 @@ generally be used only to locate stationary states.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir pd2} & create an empty work directory \\ 
-  {\it cd pd2} & change directory \\
-  {\it @dm pd2} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir pd2} & create an empty work directory \\ 
+  \commandf{ cd pd2} & change directory \\
+  \commandf{ demo('pd2') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.pd2.1 c.pd2} & get the first constants-file \\ 
-  {\it @r pd2} & time integration towards stationary state \\ 
-  {\it @sv 1} & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{ run(c='pd2.1') } & time integration towards stationary state \\ 
+  \commandf{ sv('1') } & save output-files as \filef{ b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it cp c.pd2.2 c.pd2} & constants changed : {\tt IPS, IRS, ICP}, etc.  \\ 
-  {\it @r pd2 1} & continuation of stationary states; read restart data from {\tt s.1} \\ 
-  {\it @sv 2} & save output-files as {\tt b.2, s.2, d.2} \\ 
+  \commandf{ run(c='pd2.2',s='1')} & \parbox[t]{3in}{continuation of stationary states; read restart data from \filef{ s.1}.  constants changed : \parf{ IPS, IRS, ICP}, etc. \vspace{0.2cm}}\\ 
+  \commandf{ sv('2') } & save output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt pd2}.}
+\caption{Commands for running demo \filef{ pd2}.}
 \label{tbl:demo_pd2}
 \end{center}
 \end{table}
@@ -6616,41 +6612,37 @@ All equation parameters, except $p_3$, are fixed throughout.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir wav} & create an empty work directory \\ 
-  {\it cd wav} & change directory \\
-  {\it @dm wav} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir wav} & create an empty work directory \\ 
+  \commandf{ cd wav} & change directory \\
+  \commandf{ demo('wav')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.wav.1 c.wav} & get the first constants-file \\ 
-  {\it @r wav} & 1st run; stationary solutions of the system without diffusion \\ 
-  {\it @sv ode} & save output-files as {\tt b.ode, s.ode, d.ode} \\ 
+  \commandf{ run(c='wav.1') } & 1st run; stationary solutions of the system without diffusion \\ 
+  \commandf{ sv('ode') } & save output-files as \filef{ b.ode, s.ode, d.ode} \\ 
 \hline
 %==============================================================================
-  {\it cp c.wav.2 c.wav} & constants changed : {\tt IPS} \\ 
-  {\it @r wav} & 2nd run; detect bifurcations to wave train solutions \\ 
-  {\it @sv wav} & save output-files as {\tt b.wav, s.wav, d.wav} \\ 
+  \commandf{ cp c.wav.2 c.wav} & constants changed : \parf{ IPS} \\ 
+  \commandf{ run(c='wav.2',s='wav') } & \parbox[t]{3in}{2nd run; detect bifurcations to wave train solutions.  Constants changed : \parf{ IPS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('wav') } & save output-files as \filef{ b.wav, s.wav, d.wav} \\ 
 \hline
 %==============================================================================
-  {\it cp c.wav.3 c.wav} & constants changed : {\tt IRS, IPS, NUZR, ILP} \\ 
-  {\it @r wav} & 3rd run; wave train solutions of fixed wave speed \\ 
-  {\it @ap wav} & append output-files to {\tt b.wav, s.wav, d.wav} \\ 
+  \commandf{ run(c='wav.3',s='wav') } & \parbox[t]{3in}{3rd run; wave train solutions of fixed wave speed.  Constants changed : \parf{ IRS, IPS, NUZR, ILP} \vspace{0.2cm}}\\ 
+  \commandf{ ap('wav') } & append output-files to \filef{ b.wav, s.wav, d.wav} \\ 
 \hline
 %==============================================================================
-  {\it cp c.wav.4 c.wav} & constants changed : {\tt IRS, IPS, NMX, ICP, NUZR} \\ 
-  {\it @r wav} & 4th run; wave train solutions of fixed wave length \\ 
-  {\it @sv rng} & save output-files as {\tt b.rng, s.rng, d.rng} \\ 
+  \commandf{ run(c='wav.4',s='wav') } & \parbox[t]{3in}{4th run; wave train solutions of fixed wave length.  Constants changed : \parf{ IRS, IPS, NMX, ICP, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ sv('rng') } & save output-files as \filef{ b.rng, s.rng, d.rng} \\ 
 \hline
 %==============================================================================
-  {\it cp c.wav.5 c.wav} & constants changed : {\tt IPS, NMX, NPR, ICP} \\ 
-  {\it @r wav} & 5th run; time evolution computation \\ 
-  {\it @sv tim} & save output-files as {\tt b.tim, s.tim, d.tim} \\ 
+  \commandf{ run(c='wav.5',s='wav') } & \parbox[t]{3in}{5th run; time evolution computation.  Constants changed : \parf{ IPS, NMX, NPR, ICP} \vspace{0.2cm}}\\ 
+  \commandf{ sv('tim') } & save output-files as \filef{ b.tim, s.tim, d.tim} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt wav}.}
+\caption{Commands for running demo \filef{ wav}.}
 \label{tbl:demo_wav}
 \end{center}
 \end{table}
@@ -6672,7 +6664,7 @@ interpolating coefficients with respect to points
 $\bigl\{ x_k \bigr\}_{k=0}^{n+1}$, where $x_0=0$ and $x_{n+1}=1$.
 The number of Chebyshev points in $[0,1]$,
 as well as the number of equations in the PDE system,
-can be set by the user in the file {\tt brc.inc}.
+can be set by the user in the file \filef{ brc.inc}.
 
 As an illustrative application we consider the Brusselator
 (\citename{HoKnKu:87} \citeyear{HoKnKu:87})
@@ -6692,32 +6684,28 @@ be taken to recognize spurious solutions and bifurcations.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir brc} & create an empty work directory \\ 
-  {\it cd brc} & change directory \\
-  {\it @dm brc} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir brc} & create an empty work directory \\ 
+  \commandf{ cd brc} & change directory \\
+  \commandf{ demo('brc')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.brc.1 c.brc} & get the first constants-file \\ 
-  {\it @r brc} & compute the stationary solution family with Hopf bifurcations \\ 
-  {\it @sv brc} & save output-files as {\tt b.brc, s.brc, d.brc} \\ 
+  \commandf{ run(c='brc.1') } & compute the stationary solution branch with Hopf bifurcations \\ 
+  \commandf{ sv('brc') } & save output-files as \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
-  {\it cp c.brc.2 c.brc} & constants changed : {\tt IRS, IPS} \\ 
-  {\it @r brc} & compute a family of periodic solutions from the first Hopf point \\ 
-  {\it @ap brc} & append the output-files to {\tt b.brc, s.brc, d.brc} \\ 
+  \commandf{ run(c='brc.2',s='brc') } & \parbox[t]{3in}{compute a branch of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS} \vspace{0.2cm}}\\ 
+  \commandf{ ap('brc') } & append the output-files to \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
-  {\it cp c.brc.3 c.brc} & constants changed : {\tt IRS, ISW}
-  \\ 
-  {\it @r brc} & compute a solution family from a secondary periodic bifurcation \\ 
-  {\it @ap brc} & append the output-files to {\tt b.brc, s.brc, d.brc} \\ 
+  \commandf{ run(c='brc.3',s='brc') } & \parbox[t]{3in}{compute a solution branch from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ ap('brc') } & append the output-files to \filef{ b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt brc}.}
+\caption{Commands for running demo \filef{ brc}.}
 \label{tbl:demo_brc}
 \end{center}
 \end{table}
@@ -6733,10 +6721,10 @@ solutions to systems of parabolic PDEs in one space variable.
 A fourth order accurate finite difference approximation is used to
 approximate the second order space derivatives. 
 This reduces the PDE to an autonomous ODE of fixed dimension
-which {\cal AUTO} is capable of treating.
+which \AUTO is capable of treating.
 The spatial mesh is uniform; the number of mesh intervals,
 as well as the number of equations in the PDE system,
-can be set by the user in the file {\tt brf.inc}.
+can be set by the user in the file \filef{ brf.inc}.
 
 As an illustrative application we consider the Brusselator
 (\citename{HoKnKu:87} \citeyear{HoKnKu:87})
@@ -6757,31 +6745,28 @@ be taken to recognize spurious solutions and bifurcations.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir brf} & create an empty work directory \\ 
-  {\it cd brf} & change directory \\
-  {\it @dm brf} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir brf} & create an empty work directory \\ 
+  \commandf{ cd brf} & change directory \\
+  \commandf{ demo('brf') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.brf.1 c.brf} & get the first constants-file \\ 
-  {\it @r brf} & compute the stationary solution family with Hopf bifurcations \\ 
-  {\it @sv brf} & save output-files as {\tt b.brf, s.brf, d.brf} \\ 
+  \commandf{ run(c='brf.1') } & compute the stationary solution branch with Hopf bifurcations \\ 
+  \commandf{ sv('brf') } & save output-files as \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
-  {\it cp c.brf.2 c.brf} & constants changed : {\tt IRS, IPS} \\ 
-  {\it @r brf} & compute a family of periodic solutions from the first Hopf point \\ 
-  {\it @ap brf} & append the output-files to {\tt b.brf, s.brf, d.brf} \\ 
+  \commandf{ run(c='brf.2',s='brf') } & \parbox[t]{3in}{compute a branch of periodic solutions from the first Hopf point.  Constants changed : \parf{ IRS, IPS}  \vspace{0.2cm}}\\ 
+  \commandf{ ap('brf') } & append the output-files to \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
-  {\it cp c.brf.3 c.brf} & constants changed : {\tt IRS, ISW} \\ 
-  {\it @r brf} & compute a solution family from a secondary periodic bifurcation \\ 
-  {\it @ap brf} & append the output-files to {\tt b.brf, s.brf, d.brf} \\ 
+  \commandf{ run(c='brf.3',s='brf') } & \parbox[t]{3in}{compute a solution branch from a secondary periodic bifurcation.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ ap('brf') } & append the output-files to \filef{ b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt brf}.}
+\caption{Commands for running demo \filef{ brf}.}
 \label{tbl:demo_brf}
 \end{center}
 \end{table}
@@ -6804,16 +6789,16 @@ and $v(0,t)=v(1,t)=B/A$. All parameters are given fixed values
 for which a stable periodic solution is known to exist.
 
 The continuation parameter is the independent time variable,
-namely {\tt PAR(14)}.
-The {\cal AUTO}-constants {\tt DS}, {\tt DSMIN}, and {\tt DSMAX}
+namely \parf{ PAR(14)}.
+The \AUTO-constants \parf{ DS}, \parf{ DSMIN}, and \parf{ DSMAX}
 then control the step size
-in space-time, here consisting of {\tt PAR(14)} and $(u(x),v(x))$.
+in space-time, here consisting of \parf{ PAR(14)} and $(u(x),v(x))$.
 Initial data at time zero are 
 $u(x)=A - 0.5 \sin(\pi x)$ and 
 $v(x)=B/A + 0.7 \sin(\pi x)$.
-Note that in the routine {\tt STPNT} the space derivatives of $u$ and $v$
+Note that in the subroutine \funcf{ STPNT} the space derivatives of $u$ and $v$
 must also be provided; 
-see the equations-file {\tt bru.f}.
+see the equations-file \filef{ bru.f}.
 
 Euler time integration is only first order accurate, so that
 the time step must be sufficiently small to ensure correct results.
@@ -6828,21 +6813,20 @@ integrator is advisable.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir bru} & create an empty work directory \\ 
-  {\it cd bru} & change directory \\
-  {\it @dm bru} & copy the demo files to the work directory \\
+  \commandf{ ! mkdir bru} & create an empty work directory \\ 
+  \commandf{ cd bru} & change directory \\
+  \commandf{ demo('bru') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it cp c.bru.1 c.bru} & get the constants-file \\ 
-  {\it @r bru} & time integration \\ 
-  {\it @sv bru} & save output-files as {\tt b.bru, s.bru, d.bru} \\ 
+  \commandf{ run(c='bru.1') } & time integration \\ 
+  \commandf{ sv('bru') } & save output-files as \filef{ b.bru, s.bru, d.bru} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for running demo {\tt bru}.}
+\caption{Commands for running demo \filef{ bru}.}
 \label{tbl:demo_bru}
 \end{center}
 \end{table}
