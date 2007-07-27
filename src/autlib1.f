@@ -2613,7 +2613,7 @@ C Local
      *     (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
       CHARACTER(33) :: F69 ! (I4,I6,2X,A2,I5,**********ES14.5)
       CHARACTER(31) :: F7  ! (I4,I6,I4,I5,**********ES19.10)
-      INTEGER AIBR,MTOT,AMTOT,NDM,ITP,NICP,N1,N2,I
+      INTEGER MTOT,NDM,ITP,NICP,N1,N2,I
 C
        NDM=IAP(23)
        ITP=IAP(27)
@@ -2644,16 +2644,10 @@ C
        ENDIF
 C
        MTOT=MOD(NTOT-1,9999)+1
-       AIBR=IBR
-       AMTOT=MTOT
-       IF(N2/=0)THEN
-          AIBR=ABS(IBR)
-          AMTOT=ABS(MTOT)
-       ENDIF
        WRITE(F69,"(AI10A)") '(I4,I6,2X,A2,I5,',N1+N2+1,'ES14.5)'
        WRITE(F7,"(AI10A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10)'
        IF(MOD(ITP,10).NE.0)THEN
-          WRITE(6,F69)AIBR,AMTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS,
+          WRITE(6,F69)ABS(IBR),ABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *         (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
           CALL FLUSH(6)
        ENDIF
@@ -3778,12 +3772,16 @@ C
        MBR=0
        MLAB=0
 C
- 1     READ(3,*,END=2)IBRS,NTOTRS,ITPRS,LABRS,NFPRS,ISWRS,NTPLRS,
-     *   NARS,NSKIP
-         IF(IBRS.GT.MBR)MBR=IBRS
-         IF(LABRS.GT.MLAB)MLAB=LABRS
-         CALL SKIP3(NSKIP,EOF3)
-       IF(.NOT. EOF3)GOTO 1
+       IF(IRS>0)THEN
+          DO
+             READ(3,*,END=2)IBRS,NTOTRS,ITPRS,LABRS,NFPRS,ISWRS,NTPLRS,
+     *            NARS,NSKIP
+             IF(IBRS>MBR)MBR=IBRS
+             IF(LABRS>MLAB)MLAB=LABRS
+             CALL SKIP3(NSKIP,EOF3)
+             IF(EOF3)EXIT
+          ENDDO
+       ENDIF
 C
  2     LAB=MLAB
        IAP(37)=LAB
