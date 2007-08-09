@@ -190,7 +190,7 @@ readBifurcation(const char *bFileName, int varIndices[])
             // --- end 
 
             // change branch
-            if( abs(abs(lbType)-9)<1.0e-10 ) 
+            if( (abs(lbType) % 10) == 9 )
 #else
         else if(last != 0)
 #endif
