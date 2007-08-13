@@ -7,12 +7,14 @@
 SHELL=/bin/sh
 @SET_MAKE@
 #
-all: src @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
-cmd: src @PLAUT@
+all: src util @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+cmd: src util @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)
-	chmod +x cmds/@*
+
+util: .FORCE
+	cd ./util;$(MAKE)
 
 gui: .FORCE
 	cd ./gui;$(MAKE)
@@ -41,6 +43,7 @@ superclean:  clean
 	  keeplp keepbp keepsp keepuz deletelp deleteuz \
 	  listlabels reduce relabel plaut04 r3bplaut04
 	cd ./src; $(MAKE) superclean
+	cd ./util; $(MAKE) superclean
 	cd ./doc; $(MAKE) superclean
 	cd ./include; rm -f stamp-h1
 	rm -f python/*.pyc python/graphics/*.pyc

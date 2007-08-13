@@ -1,10 +1,10 @@
 #!/bin/sh
 echo " "
 echo " Zeroing small numbers in s.$1 ... "
-make -f $AUTO_DIR/src/Makefile zero
+make -f $AUTO_DIR/util/Makefile zero
 cp s.$1 fort.28
 mv s.$1 s.$1~
-zero
+./zero
 mv fort.38 s.$1
 rm fort.28
 rm zero

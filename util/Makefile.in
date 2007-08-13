@@ -1,0 +1,61 @@
+# ===> Makefile
+#
+#   Makefile            Xianjun WANG            3/1994
+#
+#   used to compile AUTO utilities
+#
+#
+FC=@FC@
+FFLAGS=@FFLAGS@
+OPT=@OPT_FLAG@
+RM=rm -f
+#
+all: ../bin/autlab ../bin/double ../bin/triple \
+  ../bin/keeplp ../bin/keepbp ../bin/keepsp ../bin/keepuz \
+  ../bin/deletelp ../bin/deleteuz \
+  ../bin/listlabels ../bin/reduce ../bin/relabel
+#
+utility.o: utility.f90
+	$(FC) $(FFLAGS) $(OPT) -c utility.f90 -o $@
+#
+../bin/autlab: autlab.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) autlab.f90 utility.o -o $@
+#
+../bin/double: double.f90
+	$(FC) $(FFLAGS) $(OPT) double.f90 -o $@
+#
+../bin/triple: triple.f90
+	$(FC) $(FFLAGS) $(OPT) triple.f90 -o $@
+#
+../bin/keepbp: keepbp.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) keepbp.f90 utility.o -o $@
+#
+../bin/keeplp: keeplp.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) keeplp.f90 utility.o -o $@
+#
+../bin/keepuz: keepuz.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) keepuz.f90 utility.o -o $@
+#
+../bin/keepsp: keepsp.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) keepsp.f90 utility.o -o $@
+#
+../bin/deletelp: deletelp.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) deletelp.f90 utility.o -o $@
+#
+../bin/listlabels: listlabels.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) listlabels.f90 utility.o -o $@
+#
+../bin/reduce: reduce.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) reduce.f90 utility.o -o $@
+#
+../bin/relabel: relabel.f90 utility.o
+	$(FC) $(FFLAGS) $(OPT) relabel.f90 utility.o -o $@
+#
+zero: $(AUTO_DIR)/util/zero.f90
+	$(FC) $(FFLAGS) $(OPT) $(AUTO_DIR)/util/zero.f90 -o zero
+#
+superclean:
+	rm -f *.mod *.o
+#
+#  DO NOT ADD ANYTHING AFTER THIS LINE
+#
