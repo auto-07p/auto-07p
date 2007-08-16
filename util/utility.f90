@@ -7,6 +7,7 @@
 !
 MODULE UTILITY
 
+  IMPLICIT NONE
   PRIVATE
   PUBLIC KEEPMAIN,RDFILE,LISTLB,INLIST,WRFILE7,WRFILE8,RELABEL
 
@@ -14,12 +15,12 @@ CONTAINS
 
 ! ---------- --------
   SUBROUTINE KEEPMAIN(DELETEFN)
-    PARAMETER (MXLB=10000)
-    CHARACTER*1 CMD
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-    DIMENSION LFR(MXLB),LTO(MXLB)
-    LOGICAL CHCKLB
     LOGICAL, EXTERNAL :: DELETEFN
+
+    INTEGER, PARAMETER :: MXLB=10000
+    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER LFR(MXLB),LTO(MXLB)
+    INTEGER NLB,I
 
     OPEN(27,FILE='fort.27',STATUS='old',ACCESS='sequential')
     OPEN(28,FILE='fort.28',STATUS='old',ACCESS='sequential')
@@ -27,72 +28,60 @@ CONTAINS
     OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
 
     CALL RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
-    CALL KEEP(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,0,LFR,LTO,DELETEFN)
+    DO I=1,NLB
+       IF(DELETEFN(I,LTY(I)))THEN
+          LNL(I)=0
+       ENDIF
+    ENDDO
     CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
     CALL WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 
   END SUBROUTINE KEEPMAIN
 
-! ---------- ----
-  SUBROUTINE KEEP(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,DELETEFN)
-
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-    DIMENSION LFR(MXLB),LTO(MXLB)
-    LOGICAL, EXTERNAL :: DELETEFN
-
-    IF(NLB.NE.0)THEN
-       DO I=1,NLB
-          IF(DELETEFN(I,LTY(I)))THEN
-             LNL(I)=0
-          ENDIF
-       ENDDO
-    ENDIF
-
-    RETURN
-  END SUBROUTINE KEEP
-
 ! ---------- ------
   SUBROUTINE RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER MXLB,NLB
+    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
     LOGICAL EOF
+    INTEGER IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NSKIP
 
     REWIND 28
     NLB=0
-1   CONTINUE
-    READ(28,*,END=2)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NSKIP
-    IF(NLB.GE.MXLB)THEN
-       WRITE(6,101)MXLB
-       STOP
-    ENDIF
-    NLB=NLB+1
-    LBR(NLB)=IABS(IBR)
-    LPT(NLB)=IABS(NTOT)
-    IF(ITP.LT.0)THEN
-       LTY(NLB)=-MOD(IABS(ITP),10)
-    ELSE
-       LTY(NLB)= MOD(ITP,10)
-    ENDIF
-    LLB(NLB)=LAB
-    LNL(NLB)=LAB
-    CALL SKIP(28,NSKIP,EOF)
-    IF(EOF)GOTO 2
-    GOTO 1
-
-101 FORMAT(' ERROR : Maximum number of labels (',I6,') exceeded.', &
-         /,' Increase MXLB in auto/07p/src/utility.f and recompile.')
-
+    DO
+       READ(28,*,END=2)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NSKIP
+       IF(NLB>=MXLB)THEN
+          WRITE(6,"(A,I6,A,/,A)") &
+               ' ERROR : Maximum number of labels (',MXLB,') exceeded.', &
+               ' Increase MXLB in auto/07p/src/utility.f and recompile.'
+          STOP
+       ENDIF
+       NLB=NLB+1
+       LBR(NLB)=IABS(IBR)
+       LPT(NLB)=IABS(NTOT)
+       IF(ITP<0)THEN
+          LTY(NLB)=-MOD(-ITP,10)
+       ELSE
+          LTY(NLB)= MOD(ITP,10)
+       ENDIF
+       LLB(NLB)=LAB
+       LNL(NLB)=LAB
+       CALL SKIP(28,NSKIP,EOF)
+       IF(EOF)RETURN
+    ENDDO
 2   RETURN
+
   END SUBROUTINE RDFILE
 
 ! ---------- -------
   SUBROUTINE WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER MXLB,NLB
+    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
     CHARACTER*132 LINE
     CHARACTER*4 CHR4,CLAB
     CHARACTER*1 CH1
-    INTEGER LEN
+    INTEGER L,LNUM,LEN
     LOGICAL EOL
 
     L=0
@@ -106,12 +95,13 @@ CONTAINS
        LNUM=LNUM+1
        CLAB=LINE(16:19)
        IF(LINE(1:4).NE.'   0' .AND. CLAB.NE.'   0')THEN
+          WRITE(CHR4,'(I4)')LLB(L)
           L=L+1
-          IF(CLAB.NE.CHR4(LLB(L)))THEN
+          IF(CLAB.NE.CHR4)THEN
              WRITE(6,"(A/A,A4,A,I5/A,A4/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
                   '  b-file label ',CLAB,' at line ',LNUM, &
-                  '  s-file label ',CHR4(LLB(L)), &
+                  '  s-file label ',CHR4, &
                   ' New labels may be assigned incorrectly.', &
                   ' Continue ? : '
              READ(5,"(A1)")CH1
@@ -121,7 +111,7 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          LINE(16:19)=CHR4(LNL(L))
+          WRITE(LINE(16:19),'(I4)')LNL(L)
        ENDIF
        IF(.NOT.EOL)THEN
           DO
@@ -138,9 +128,11 @@ CONTAINS
 ! ---------- -------
   SUBROUTINE WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER MXLB,NLB
+    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
     DOUBLE PRECISION U,RLDOT,PAR
-    INTEGER ICP
+    INTEGER ICP,IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR1,NPAR2
+    INTEGER N1,N2,I,J,L
     ALLOCATABLE U(:),RLDOT(:),PAR(:),ICP(:)
 !
     L=0
@@ -203,7 +195,8 @@ CONTAINS
 ! ------- -------- ------
   LOGICAL FUNCTION INLIST(MXLB,LAB,NL,LFR,LTO)
 
-    DIMENSION LFR(MXLB),LTO(MXLB)      
+    INTEGER MXLB,LAB,NL,LFR(MXLB),LTO(MXLB)
+    INTEGER I
 
     INLIST=.FALSE.
     DO I=1,NL
@@ -213,7 +206,6 @@ CONTAINS
        ENDIF
     ENDDO
 
-    RETURN
   END FUNCTION INLIST
 !
 ! ---------- ----
@@ -221,62 +213,18 @@ CONTAINS
 !
 ! Skips the specified number of lines on fort.IUNIT.
 !
+    INTEGER IUNIT,NSKIP
     LOGICAL EOF
+    INTEGER I
 !
-    EOF=.FALSE.
+    EOF=.TRUE.
     DO I=1,NSKIP
        READ(IUNIT,*,END=2)
     ENDDO
-    RETURN
+    EOF=.FALSE.
+2   RETURN
 
-2   CONTINUE
-    EOF=.TRUE.
-    RETURN
   END SUBROUTINE SKIP
-
-! ----------- -------- ----
-  CHARACTER*4 FUNCTION CHR4(N)
-
-    CHARACTER*1 INT2CHR
-
-    M=N
-    CHR4(1:4)='    '
-    DO I=4,1,-1
-       CHR4(I:I)=INT2CHR(MOD(M,10))
-       M=M/10
-       IF(M.EQ.0)RETURN
-    ENDDO
-    !
-    RETURN
-  END FUNCTION CHR4
-
-! ----------- -------- -------
-  CHARACTER*1 FUNCTION INT2CHR(N)
-!
-    IF(N.EQ.0)THEN
-       INT2CHR='0'
-    ELSEIF(N.EQ.1)THEN
-       INT2CHR='1'
-    ELSEIF(N.EQ.2)THEN
-       INT2CHR='2'
-    ELSEIF(N.EQ.3)THEN
-       INT2CHR='3'
-    ELSEIF(N.EQ.4)THEN
-       INT2CHR='4'
-    ELSEIF(N.EQ.5)THEN
-       INT2CHR='5'
-    ELSEIF(N.EQ.6)THEN
-       INT2CHR='6'
-    ELSEIF(N.EQ.7)THEN
-       INT2CHR='7'
-    ELSEIF(N.EQ.8)THEN
-       INT2CHR='8'
-    ELSEIF(N.EQ.9)THEN
-       INT2CHR='9'
-    ENDIF
-
-    RETURN
-  END FUNCTION INT2CHR
 !
 ! LISTLB, TYPE and RELABEL are used by listlabels.f, autlab.f, or relabel.f
 !
@@ -284,106 +232,84 @@ CONTAINS
   SUBROUTINE LISTLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,NEW)
 !
     LOGICAL NEW
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-    DIMENSION LFR(MXLB),LTO(MXLB)
-    CHARACTER*2 TYPE
+    INTEGER MXLB,NLB,LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER NL,LFR(MXLB),LTO(MXLB)
     LOGICAL FIRST
+    INTEGER I
 !
     IF(NLB.EQ.0)THEN
-       WRITE(6,101)
-    ELSE
-       FIRST=.TRUE.
-       DO I=1,NLB
-          IF(NL.EQ.0 .OR. INLIST(MXLB,LLB(I),NL,LFR,LTO))THEN
-             IF(FIRST)THEN
-                IF(NEW)THEN
-                   WRITE(6,105)
-                ELSE
-                   WRITE(6,102)
-                ENDIF
-                FIRST=.FALSE.
-             ENDIF
-             IF(.NOT.NEW)THEN
-                WRITE(6,103)LBR(I),LPT(I),TYPE(LTY(I)),LLB(I)
-             ELSEIF(LLB(I).EQ.LNL(I))THEN
-                WRITE(6,103)LBR(I),LPT(I),TYPE(LTY(I)),LLB(I),LNL(I)
-             ELSEIF(LNL(I).EQ.0)THEN
-                WRITE(6,104)LBR(I),LPT(I),TYPE(LTY(I)),LLB(I)
+       WRITE(6,"(/,' Empty solutions file')")
+       RETURN
+    ENDIF
+
+    FIRST=.TRUE.
+    DO I=1,NLB
+       IF(NL==0 .OR. INLIST(MXLB,LLB(I),NL,LFR,LTO))THEN
+          IF(FIRST)THEN
+             IF(NEW)THEN
+                WRITE(6,"(/,'  BR    PT  TY LAB  NEW')")
              ELSE
-                WRITE(6,103)LBR(I),LPT(I),TYPE(LTY(I)),LLB(I),LNL(I)
+                WRITE(6,"(/,'  BR    PT  TY LAB')")
              ENDIF
+             FIRST=.FALSE.
           ENDIF
-       ENDDO
-    ENDIF
+          WRITE(6,"(I4,I6,2X,A2,I4)",ADVANCE="no"),LBR(I),LPT(I), &
+               TYPE(LTY(I)),LLB(I)
+          IF(.NOT.NEW)THEN
+             WRITE(6,"()")
+          ELSEIF(LLB(I)==LNL(I).OR.LNL(I)/=0)THEN
+             WRITE(6,"(I5)")LNL(I)
+          ELSE
+             WRITE(6,"('        DELETED')")
+          ENDIF
+       ENDIF
+    ENDDO
 
-101 FORMAT(/,' Empty solutions file')
-102 FORMAT(/,'  BR    PT  TY LAB')
-103 FORMAT(I4,I6,2X,A2,I4,I5)
-104 FORMAT(I4,I6,2X,A2,I4,'        DELETED')
-105 FORMAT(/,'  BR    PT  TY LAB  NEW')
+  CONTAINS
+  ! ----------- -------- ----
+    CHARACTER*2 FUNCTION TYPE(ITP)
+      INTEGER ITP
+      CHARACTER*2, PARAMETER :: TYPESP(9) = &
+           (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
+      CHARACTER*2, PARAMETER :: TYPESN(9) = &
+           (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
+      IF(ITP>0)THEN
+         TYPE=TYPESP(MOD(ITP,10))
+      ELSEIF(ITP<0)THEN
+         TYPE=TYPESN(MOD(-ITP,10))
+      ELSE
+         TYPE='  '
+      ENDIF
+    END FUNCTION TYPE
 
-    RETURN
   END SUBROUTINE LISTLB
-!
-! ----------- -------- ----
-  CHARACTER*2 FUNCTION TYPE(ITP)
-!
-    IF(MOD(ITP,10).EQ.1)THEN
-       TYPE='BP'
-    ELSE IF(MOD(ITP,10).EQ.2)THEN
-       TYPE='LP'
-    ELSE IF(MOD(ITP,10).EQ.3)THEN
-       TYPE='HB'
-    ELSE IF(MOD(ITP,10).EQ.4)THEN
-       TYPE='  '
-    ELSE IF(MOD(ITP,10).EQ.-4)THEN
-       TYPE='UZ'
-    ELSE IF(MOD(ITP,10).EQ.5)THEN
-       TYPE='LP'
-    ELSE IF(MOD(ITP,10).EQ.6)THEN
-       TYPE='BP'
-    ELSE IF(MOD(ITP,10).EQ.7)THEN
-       TYPE='PD'
-    ELSE IF(MOD(ITP,10).EQ.8)THEN
-       TYPE='TR'
-    ELSE IF(MOD(ITP,10).EQ.9)THEN
-       TYPE='EP'
-    ELSE IF(MOD(ITP,10).EQ.-9)THEN
-       TYPE='MX'
-    ELSE
-       TYPE='  '
-    ENDIF
-
-    RETURN
-  END FUNCTION TYPE
 
 ! ---------- -------
   SUBROUTINE RELABEL(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
 
-    DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-    DIMENSION LFR(MXLB),LTO(MXLB)
+    INTEGER MXLB,NLB,NL
+    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER LFR(MXLB),LTO(MXLB)
+    INTEGER NN,I
 
-    IF(NL.EQ.0)THEN
+    IF(NL==0)THEN
        NN=0
        DO I=1,NLB
-          IF(LNL(I).GT.0)THEN
+          IF(LNL(I)>0)THEN
              NN=NN+1
              LNL(I)=NN
           ENDIF
        ENDDO
     ELSE
        DO I=1,NLB
-          IF(NL.EQ.0 .OR. &
-               (LNL(I).GT.0 .AND. INLIST(MXLB,LLB(I),NL,LFR,LTO)) )THEN
-             WRITE(6,101)LLB(I)
+          IF(NL==0 .OR. &
+               (LNL(I)>0 .AND. INLIST(MXLB,LLB(I),NL,LFR,LTO)) )THEN
+             WRITE(6,"(' Old label ',I4,';  Enter new label : ')", &
+                  ADVANCE="no")LLB(I)
              READ(5,*)LNL(I)
           ENDIF
        ENDDO
     ENDIF
-
-101 FORMAT(' Old label ',I4,';  Enter new label : ',$)
-
-    RETURN
   END SUBROUTINE RELABEL
 !======================================================================
 !======================================================================

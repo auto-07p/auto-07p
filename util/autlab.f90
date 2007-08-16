@@ -16,43 +16,35 @@ PROGRAM AUTLAB
 
   OPEN(27,FILE='fort.27',STATUS='old',ACCESS='sequential')
   OPEN(28,FILE='fort.28',STATUS='old',ACCESS='sequential')
-  OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
-  OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
 
   CALL RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
   CALL SYSTEM('clear')
-1 CALL RDCMD(MXLB,CMD,NL,LFR,LTO)
-  IF(CMD.EQ.'H')THEN
-     CALL SYSTEM('clear')
-     CALL HELP
-     GOTO 1
-  ELSEIF(CMD.EQ.'L')THEN
-     CALL LISTLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,.TRUE.)
-     GOTO 1
-  ELSEIF(CMD.EQ.'D')THEN
-     CALL DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
-     GOTO 1
-  ELSEIF(CMD.EQ.'R')THEN
-     CALL RELABEL(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
-     GOTO 1
-  ELSEIF(CMD.EQ.'W')THEN
-     IF(CHCKLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL))THEN
-        WRITE(6,101)
-        CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
-        CALL WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
+  DO
+     CALL RDCMD(MXLB,CMD,NL,LFR,LTO)
+     SELECT CASE(CMD)
+     CASE('H')
+        CALL SYSTEM('clear')
+        CALL HELP
+     CASE('L')
+        CALL LISTLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,.TRUE.)
+     CASE('D')
+        CALL DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
+     CASE('R')
+        CALL RELABEL(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
+     CASE('W')
+        IF(CHCKLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL))THEN
+           WRITE(6,"(/,' Rewriting files ... ')")
+           OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
+           OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
+           CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
+           CALL WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
+           STOP
+        ENDIF
+     CASE('Q')
+        WRITE(6,"(' Relabeling discontinued. Recover original files')")
         STOP
-     ELSE
-        GOTO 1
-     ENDIF
-  ELSEIF(CMD.EQ.'Q')THEN
-     WRITE(6,102)
-     STOP
-  ENDIF
-
-101 FORMAT(/,' Rewriting files ... ')
-102 FORMAT(' Relabeling discontinued. Recover original files')
-
-  STOP
+     END SELECT
+  ENDDO
 END PROGRAM AUTLAB
 
 !--------- -----
@@ -201,30 +193,26 @@ END FUNCTION ISDIGIT
 !--------- ----
 SUBROUTINE HELP
 
-  WRITE(6,101)
-  WRITE(6,102)
-  WRITE(6,103)
+  WRITE(6,"(/A//A/A/A/A/A/A)") &
+       ' Available commands : ', &
+       '   l  :  list labels', &
+       '   d  :  delete labels', &
+       '   r  :  relabel', &
+       '   w  :  rewrite files', &
+       '   q  :  quit ', &
+       '   h  :  help '
+  WRITE(6,"(//A/A//A/A/A)") &
+       ' The l, d, and r commands can be followed on the ', &
+       ' same line by a list of labels, for example, ', &
+       ' l 13        (list label 13)', &
+       ' d 7 13      (delete labels 7 and 13)', &
+       ' r 1 13 6-9  (relabel 1, 13, and 6 to 9)'
+  WRITE(6,"(//A//A/A/A/)") &
+       ' If a list is not specified then the actions are', &
+       ' l           (list all labels)', &
+       ' d           (delete/confirm all labels)', &
+       ' r           (automatic relabeling)'
 
-101 FORMAT(/,' Available commands : ',//, &
-         '   l  :  list labels',/, &
-         '   d  :  delete labels',/, &
-         '   r  :  relabel',/, &
-         '   w  :  rewrite files',/, &
-         '   q  :  quit ',/, &
-         '   h  :  help ')
-102 FORMAT(//, &
-         ' The l, d, and r commands can be followed on the ',/, &
-         ' same line by a list of labels, for example, ',//, &
-         ' l 13        (list label 13)',/, &
-         ' d 7 13      (delete labels 7 and 13)',/, &
-         ' r 1 13 6-9  (relabel 1, 13, and 6 to 9)')
-103 FORMAT(//, &
-         ' If a list is not specified then the actions are ',//, &
-         ' l           (list all labels)',/,  &
-         ' d           (delete/confirm all labels)',/, &
-         ' r           (automatic relabeling)',/)
-
-  RETURN
 END SUBROUTINE HELP
 
 !--------- ------
