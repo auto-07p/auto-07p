@@ -50,67 +50,54 @@ END PROGRAM AUTLAB
 !--------- -----
 SUBROUTINE RDCMD(MXLB,CMD,NL,LFR,LTO)
 
-  COMMON /CBRDCMD/ IFIRST
-  CHARACTER*1 CMD,GETCHR,CHR
+  IMPLICIT NONE
+  INTEGER MXLB,NL
+  INTEGER LFR(MXLB),LTO(MXLB)
+  CHARACTER*1 CMD
+
+  INTEGER, SAVE :: IFIRST
+  CHARACTER*1 GETCHR,CHR
   CHARACTER*80 LINE
-  DIMENSION LFR(MXLB),LTO(MXLB)
-  INTEGER GETNUM
-  LOGICAL ISDIGIT
+  INTEGER GETNUM,IP,N,i
 
-1 IF(IFIRST.NE.1)THEN
-     WRITE(6,101)
-     IFIRST=1
-  ELSE
-     WRITE(6,102)
-  ENDIF
+  DO
+     IF(IFIRST.NE.1)THEN
+        WRITE(6,'(/A)',ADVANCE="no")' Enter Command ( h for Help) : '
+        IFIRST=1
+     ELSE
+        WRITE(6,'(/A)',ADVANCE="no")' Enter Command : '
+     ENDIF
 
-  DO I=1,80
-     LINE(I:I)=' '
-  ENDDO
-  READ(5,100)LINE
-  IP=1
-  CMD=GETCHR(LINE,IP)
-  IF(CMD.EQ.'h')THEN
-     CMD='H'
-  ELSEIF(CMD.EQ.'l')THEN
-     CMD='L'
-  ELSEIF(CMD.EQ.'d')THEN
-     CMD='D'
-  ELSEIF(CMD.EQ.'r')THEN
-     CMD='R'
-  ELSEIF(CMD.EQ.'w')THEN
-     CMD='W'
-  ELSEIF(CMD.EQ.'q')THEN
-     CMD='Q'
-  ELSE 
-     WRITE(6,103)
+     LINE=' '
+     READ(5,'(A80)')LINE
+     IP=1
+     CMD=GETCHR(LINE,IP)
+     i=INDEX('hldrwq',CMD)
+     IF(i>=1)THEN
+        CMD='HLDRWQ'(i:i)
+        EXIT
+     ENDIF
+     WRITE(6,'(/A)',ADVANCE="no")' Invalid Command '
      IFIRST=0
-     GOTO 1
-  ENDIF
-  IF(CMD.EQ.'L'.OR.CMD.EQ.'D'.OR.CMD.EQ.'R')THEN
+  ENDDO
+  IF(CMD=='L'.OR.CMD=='D'.OR.CMD=='R')THEN
      NL=0
-3    CHR=GETCHR(LINE,IP)
-     IF(ISDIGIT(CHR,N))THEN
+     DO
+        CHR=GETCHR(LINE,IP)
+        IF(INDEX('0123456789',CHR)==0)EXIT
         IP=IP-1
         NL=NL+1
         LFR(NL)=GETNUM(LINE,IP)
         CHR=GETCHR(LINE,IP)
-        IF(CHR.EQ.'-')THEN
+        IF(CHR=='-')THEN
            LTO(NL)=GETNUM(LINE,IP)
         ELSE
            IP=IP-1
            LTO(NL)=LFR(NL)
         ENDIF
-        GOTO 3
-     ENDIF
+     ENDDO
   ENDIF
 
-100  FORMAT(A80)
-101  FORMAT(/,' Enter Command ( h for Help) : ',$)
-102  FORMAT(/,' Enter Command : ',$)
-103  FORMAT(/,' Invalid Command ',$)
-
-  RETURN
 END SUBROUTINE RDCMD
 
 !---------- -------- ------
@@ -120,75 +107,35 @@ CHARACTER*1 FUNCTION GETCHR(LINE,IP)
   !
   CHARACTER*80 LINE
   CHARACTER*1 CHR
-  !
-  GETCHR=' '
-1 CHR=LINE(IP:IP)
-  IF(CHR.NE.' '.AND.CHR.NE.',')THEN
-     GETCHR=CHR
-     IP=IP+1
-     RETURN
+
+  I=VERIFY(LINE(IP:),' ,')
+  IF(I>0)THEN
+     IP=IP+I
+     GETCHR=LINE(IP-1:IP-1)
   ELSE
-     IP=IP+1
-     IF(IP.LE.80)GOTO 1
+     IP=81
+     GETCHR=' '
   ENDIF
-  !
-  RETURN
+
 END FUNCTION GETCHR
 
 !------ -------- ------
 INTEGER FUNCTION GETNUM(LINE,IP)
-  !
+
   CHARACTER*80 LINE
   CHARACTER*1 CHR, GETCHR
-  LOGICAL ISDIGIT
-  !
-  GETNUM=0
-  CHR=GETCHR(LINE,IP)
-1 IF(ISDIGIT(CHR,N))THEN
-     GETNUM=10*GETNUM+N
-     CHR=LINE(IP:IP)
-     IP=IP+1
-     GOTO 1
-  ELSE
-     IP=IP-1
-     RETURN
-  ENDIF
-  !
-END FUNCTION GETNUM
 
-!------ -------- -------
-LOGICAL FUNCTION ISDIGIT(CHR,N)
-  !
-  CHARACTER*1 CHR
-  !
-  ISDIGIT=.TRUE.
-  IF(CHR.EQ.'0')THEN
-     N=0
-  ELSEIF(CHR.EQ.'1')THEN
-     N=1
-  ELSEIF(CHR.EQ.'2')THEN
-     N=2
-  ELSEIF(CHR.EQ.'3')THEN
-     N=3
-  ELSEIF(CHR.EQ.'4')THEN
-     N=4
-  ELSEIF(CHR.EQ.'5')THEN
-     N=5
-  ELSEIF(CHR.EQ.'6')THEN
-     N=6
-  ELSEIF(CHR.EQ.'7')THEN
-     N=7
-  ELSEIF(CHR.EQ.'8')THEN
-     N=8
-  ELSEIF(CHR.EQ.'9')THEN
-     N=9
+  GETNUM=0
+  I=SCAN(LINE(IP+1:),'-, ')
+  IF(I>1)THEN
+     READ(LINE(IP:IP+I-1),*)GETNUM
+     IP=IP+I
   ELSE
-     ISDIGIT=.FALSE.
-     N=0
+     READ(LINE(IP:),*)GETNUM
+     IP=81
   ENDIF
-  !
-  RETURN
-END FUNCTION ISDIGIT
+
+END FUNCTION GETNUM
 
 !--------- ----
 SUBROUTINE HELP
@@ -226,8 +173,9 @@ SUBROUTINE DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
   IF(NL.EQ.0)THEN
      DO I=1,NLB
         IF(LNL(I).GT.0)THEN
-           WRITE(6,101)LLB(I)
-           READ(5,102)CH1
+           WRITE(6,"(A,I4,A)",ADVANCE="no") &
+                ' Delete (old) label ',LLB(I),' ? : '
+           READ(5,'(A1)')CH1
            IF(CH1.EQ.'y'.OR.CH1.EQ.'Y')THEN
               LNL(I)=0
            ENDIF
@@ -241,10 +189,6 @@ SUBROUTINE DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
      ENDDO
   ENDIF
 
-101 FORMAT(' Delete (old) label ',I4,' ? : ',$)
-102 FORMAT(A1)
-
-  RETURN
 END SUBROUTINE DELETE
 
 !------ -------- ------
