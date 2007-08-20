@@ -3,10 +3,13 @@ if ( test $# -eq 1 ) then
 	cp b.$1 fort.17
 	cp s.$1 fort.18
 	echo "Plotting b.$1 and s.$1 ..."
-	xterm -bg black -fg white -t -e $AUTO_DIR/bin/plaut &
 else
 	cp fort.7 fort.17
 	cp fort.8 fort.18
 	echo "Plotting fort.7 and fort.8 ..."
+fi
+if [ -x $AUTO_DIR/bin/xterm-tek ]; then
+	$AUTO_DIR/bin/xterm-tek -bg black -fg white -t -e $AUTO_DIR/bin/plaut &
+else
 	xterm -bg black -fg white -t -e $AUTO_DIR/bin/plaut &
 fi
