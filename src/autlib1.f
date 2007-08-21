@@ -4768,8 +4768,9 @@ C completed and the orbit's representation has to be
 C changed.
 C
        IF(IPS.EQ.9.AND.NDIM3.GT.(NDM*2).AND.NDIM3.GT.NDIM)THEN
-         NDXLOC=(NTSTU+1)*(NDIM3/NDM)
+         NTSTCU=(NTSTU+1)*(NDIM3/NDM)
          NDIMU=NDIM3
+         NDXLOC=NDIMU*NCOLU
          IAP(1)=NDIMU
        ENDIF
        ALLOCATE(UPSN(NDXLOC,NTSTCU),UPOLDN(NDXLOC,NTSTCU))
