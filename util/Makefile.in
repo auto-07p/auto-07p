@@ -12,8 +12,7 @@ RM=rm -f
 #
 all: ../bin/autlab ../bin/double ../bin/triple \
   ../bin/keeplp ../bin/keepbp ../bin/keepsp ../bin/keepuz \
-  ../bin/deletelp ../bin/deleteuz \
-  ../bin/listlabels ../bin/reduce ../bin/relabel
+  ../bin/deletelp ../bin/listlabels ../bin/reduce ../bin/relabel
 #
 utility.o: utility.f90
 	$(FC) $(FFLAGS) $(OPT) -c utility.f90 -o $@
