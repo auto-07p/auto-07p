@@ -56,11 +56,10 @@ SUBROUTINE STPNT(NDIM,U,PAR)
   DOUBLE PRECISION, INTENT(OUT) :: U(NDIM), PAR(*)
 
 ! Initialize the equation parameters
-  PAR(1)= 1.0D0
-  PAR(2)= 0.0D0
-    
+  PAR(1:2) = (/ 1.0d0, 0.0d0 /)
+
 ! Initialize the solution
-  U(1)= 0.0D0
+  U(1) = 0.0d0
    
 END SUBROUTINE STPNT
 
