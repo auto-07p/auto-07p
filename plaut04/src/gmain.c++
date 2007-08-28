@@ -2440,7 +2440,7 @@ linePatternToggledCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct*) call_data;
     int value;
-    int which = (int)client_data;
+    int which = (long)client_data;
     int lineNumber=0, columnNumber =0;
 
 #ifdef LESSTIF_VERSION
@@ -2845,7 +2845,7 @@ graphCoordinateSystemToggledCB(Widget widget, XtPointer client_data, XtPointer c
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) client_data;
+    int which = (long) client_data;
     XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
 
     if (state->set == XmSET)
@@ -2901,7 +2901,7 @@ graphStyleWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_d
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) client_data;
+    int which = (long) client_data;
     XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
 
     if (state->set == XmSET)
@@ -2955,7 +2955,7 @@ graphTypeWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_da
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) client_data;
+    int which = (long) client_data;
     XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
 
     if (state->set == XmSET)
@@ -2972,7 +2972,7 @@ graphCoordWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_d
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int which = (int) client_data;
+    int which = (long) client_data;
     XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
 
     if (state->set == XmSET)
@@ -3028,7 +3028,7 @@ defaultGraphWidgetToggledCB( Widget widget, XtPointer client_data, XtPointer cal
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int bit = (int) client_data;
+    int bit = (long) client_data;
     XmToggleButtonCallbackStruct *toggle_data = (XmToggleButtonCallbackStruct *) call_data;
 
     if (toggle_data->set == XmSET)
@@ -3640,7 +3640,7 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
 ////////////////////////////////////////////////////////////////////////
 {
 #ifndef R3B
-    int fileMode = (int)client_data;
+    int fileMode = (long)client_data;
 #endif
     char *filename;
     XmFileSelectionBoxCallbackStruct *data =
