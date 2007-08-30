@@ -3224,23 +3224,22 @@ if the equations-file is {\tt xxx.f}
 then the constants that define the computation 
 are normally expected in the file  {\tt c.xxx}.
 The general format of this file is the same for all {\cal AUTO} runs.
-For example, the file {\tt c.ab} 
-in directory {\tt auto/07p/demos/ab} is listed below.
-(The tutorial demo {\tt ab} is described in detail in 
+For example, the file {\tt c.cusp} 
+in directory {\tt auto/07p/demos/cusp} is listed below.
+(The tutorial demo {\tt cusp} is described in detail in 
 Chapter~\ref{ch:Demos:_Tutorial}.)  
 
 \begin{verbatim}
-2 1 0 1               NDIM,IPS,IRS,ILP
-1   1                 NICP,(ICP(I),I=1,NICP)
-50 4 3 1 1 0 0 0      NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-100 0. 0.15 0. 100.   NMX,RL0,RL1,A0,A1
-100 10 2 8 5 3 0      NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-1.e-6 1.e-6 0.0001    EPSL,EPSU,EPSS
-0.01 0.005 0.05 1     DS,DSMIN,DSMAX,IADS
-1                     NTHL,((I,THL(I)),I=1,NTHL)
-11 0.
-0                     NTHU,((I,THU(I)),I=1,NTHU)
-0                     NUZR,((I,UZR(I)),I=1,NUZR)
+1 1 0 1                 NDIM,IPS,IRS,ILP
+2 2 1                   NICP,(ICP(I),I=1,NICP)
+5 4 3 2 1 0 0 0         NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+200 -2. 2. 0 100        NMX,RL0,RL1,A0,A1
+20 0  2 8 5 3 0         NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+1.e-6 1.e-6 0.0001      EPSL,EPSU,EPSS
+0.01 0.005 0.1 1        DS,DSMIN,DSMAX,IADS
+0                       NTHL,((I,THL(I)),I=1,NTHL)
+0                       NTHU,((I,THU(I)),I=1,NTHU)
+0                       NUZR,((I,UZR(I)),I=1,NUZR)
 \end{verbatim}
 
 The significance of the {\cal AUTO}-constants, grouped by function, is 
@@ -4148,7 +4147,7 @@ ${\tt NTST}\times({\tt NDIM}\times({\tt NCOL}+1)+{\tt NBC})\times
 
 %==============================================================================
 %==============================================================================
-\chapter{ {\cal AUTO} Demos : Tutorial.} \label{ch:Demos:_Tutorial}
+\chapter{ \AUTO Demos : Tutorial.} \label{ch:Demos:_Tutorial}
 %==============================================================================
 %==============================================================================
 \newpage
@@ -4157,35 +4156,29 @@ The directory {\tt auto/07p/demos} has a large number of subdirectories,
 for example {\tt ab}, {\tt pp2}, {\tt exp}, etc.,
 each containing all necessary files for certain illustrative calculations.
 Each subdirectory, say {\tt xxx}, corresponds to a particular equation
-and contains one equations-file {\tt xxx.f}
+and contains one equations-file {\tt xxx.\{f90,f,c\}}
 and one or more constants-files {\tt c.xxx.i}, 
 one for each successive run of the demo.
 To see how the equations have been programmed, inspect the equations-file. 
 To understand in detail how {\cal AUTO} is instructed to carry out a 
 particular task, inspect the appropriate constants-file.
-In this chapter we describe the tutorial demo {\tt ab} in detail.
+In this chapter we describe the tutorial demo {\tt cusp} in detail.
 A brief description of other demos is given in later chapters.
 
 
-\section{ ab : A Tutorial Demo.} \label{sec:Demos_ab}
-%==============================================================================
-%DEMO=ab=======================================================================
-%==============================================================================
+\section{ cusp : A Tutorial Demo.} \label{sec:Demos_cusp}
 This demo illustrates the computation of 
-stationary solutions,
-Hopf bifurcations 
-and 
-periodic solutions,
-and the computation loci of folds and Hopf bifurcation points.
-The equations, that model an A $\to$ B  reaction, are those from
-\citename{URP:74} \citeyear{URP:74}, namely
-\begin{equation} \begin{array}{cl}
-  u_1 ' &=  -u_1 + p_1 (1-u_1) e^{u_2}, \\
-  u_2 ' &=  -u_2 +  p_1 p_2 ( 1-u_1) e^{u_2} - p_3 u_2.\\
-\end{array} \end{equation}
+stationary solutions, locating saddle-node bifurcations of these
+solutions, and the continuation of a saddle-node bifurcation in two
+parameters.
+
+The cusp equation is given by
+\begin{equation}
+  \dot x = \mu + \lambda x - x^3.
+\end{equation}
 
 \section{ Copying the Demo Files.}  \label{sec:Tutorial_copying}
-The commands listed in Table~\ref{tbl:demo_ab_1}
+The commands listed in Table~\ref{tbl:demo_cusp_1}
 will copy the demo files to your work directory.
 
 \begin{table}[htbp]
@@ -4195,599 +4188,352 @@ will copy the demo files to your work directory.
   {\cal Unix}-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it cd}  & go to your main directory (or other directory)\\ 
-  {\it mkdir ab}  & create an empty work directory\\ 
-  {\it cd ab}  & change to the work directory\\
+  \commandf{ auto}  & start the AUTO-07p Command Line User Interface\\ 
 \hline
-  {\cal AUTO}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
-  {\it @dm ab}  & copy the demo files to the work directory\\
+  \commandf{ cd } & go to main directory (or other directory).\\
+  \commandf{ ! mkdir cusp}  & \parbox[t]{3in}{create an empty work directory.  
+                            Note:  the '!' is used to signify a command 
+                            which is sent to the shell.\vspace{0.2cm}}\\ 
+  \commandf{ cd cusp}  & change to the work directory.\\
+
+  \commandf{ demo('cusp')}  & copy the demo files to the work directory.\\
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Copying the demo {\tt ab} files.}
-\label{tbl:demo_ab_1}
+\caption{Copying the demo \filef{ cusp} files.}
+\label{tbl:demo_cusp_1}
 \end{center}
 \end{table}
 
-At this point you may want to see what files have been copied
-to the work directory. 
-In particular, you may want to edit the equations-file {\tt ab.f}
-to see how the equations have been entered (in routine {\tt FUNC})
-and how the starting solution has been set (in routine {\tt STPNT}).
-Note that, initially, $p_1=0$ $p_2=14$, and $p_3=2$, for which
-$u_1=u_2=0$ is a stationary solution.
- 
+Typing \commandf{ ls } reveals the existence of 5 files:
+\begin{enumerate}
+\item
+\commandf{ cusp.f90 }: This file contains the differential equations
+and the initial values. If you inspect it, you will see that only two
+routines are used: {\tt FUNC} for the actual differential equation,
+and {\tt STPNT} for the initial values of $\lambda$ and $\mu$, which
+are $1.0$ and $0.0$, and the initial value of $x$, which is $0$.
+For your own models you would generally copy another equation file
+and then only change the pieces that actually define the equation.
+
+\item
+\commandf{ c.cusp }: The initial computational constants are stored
+in this file. Most importantly, you see that the dimension of the
+problem ({\tt NDIM}) is set to 1, and the problem type {\tt IPS}
+is set to 1 to specify continuation of a stationary solution.
+The parameter we would like to continue in are specified in via
+{\tt ICP}. In this case these are 2 for $\mu$ and 1 for $\lambda$.
+Since initially we only really continue in one parameter, the
+parameter $\lambda$ is \emph{overspecified}.
+Another important constant is the initial step size {\tt DS}: as it is
+positive, we will initally continue in the positive $\mu$ direction.
+
+\item
+\commandf{ c.cusp.1 }: A copy of c.cusp, for convenience.
+
+\item
+\commandf{ cusp.auto }: A script with Python CLUI commands that steer
+the calculation.
+
+\item
+\commandf{ plaut04.rc }: A file that contains default settings for
+the 3-dimensional plotting tool PLAUT04.
+
+\end{enumerate}
+
 \section{ Executing all Runs Automatically.} \label{sec:Tutorial_all_runs}
-To execute all prepared runs of demo {\tt ab},
-simply type the command given in Table~\ref{tbl:demo_ab_2}.
+To execute all prepared runs of demo \filef{ cusp},
+simply type the command given in Table~\ref{tbl:demo_cusp_2}.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal Unix}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it make}  & execute all runs of demo {\tt ab} \\ 
+  \commandf{demofile('cusp.auto')}  & \parbox[t]{3in}{execute all runs of demo \filef{ ab} interactively\vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Executing all runs of demo {\tt ab}.}
-\label{tbl:demo_ab_2}
+\caption{Executing all runs of demo \filef{ cusp}.}
+\label{tbl:demo_cusp_2}
 \end{center}
 \end{table}
 
-The resulting screen output is given below
+The command in Table~\ref{tbl:demo_cusp_2} begins
+a tutorial which will proceed one step each time
+the user presses a key.  Each step consists of a
+single \AUTO command preceded by instructions as
+to what action the command performs.
+The tutorial script \filef{cusp.auto} performs the
+demo by reading in a single \AUTO constants file
+and then interactively modifying it to perform
+each of the demo.
+
+Note that there are four separate runs.
+In the first run, a branch of stationary solutions is traced out.
+Along it, one fold (LP) (limit point, or in this case, a saddle-node
+bifurcation) is located. The free parameter is $\mu$.
+The other parameter $\lambda$ remains fixed in this run.
+Note also that only special, labeled solution points are printed on the screen.
+More detailed results are saved 
+in the data-files \filef{ b.mu}, \filef{ s.mu}, and \filef{ d.mu}.
+
+The second run does the same thing but now in the negative direction
+of $\mu$, i.e., backwards instead of forwards. The backwards
+continuation is appended to the forwards continuation in the
+data-files. Afterwards we perform a relabelling to make sure that we have
+unique labels for each special solution.
+
+The results are then plotted on the screen. Pressing the enter key
+at the command line causes an automatic $\mu$ vs. $x$ display that
+shows the two fold points at labels 2 and 7.
+
+In the third run, the fold detected in the first run is followed in
+the two parameters $\mu$ and $\lambda$. The commands that accomplish
+this must change a few constants of the constant file: the first
+constant is {\tt ISW}, that must be set to 2 to cause a two-parameter
+continuation.
+
+The second constant is the starting label for the file
+\filef{s.mu} that we are starting from. We know that 2 is a good label.
+However, we did not know this number in advance, and moreover,
+in sensitive cases, it can be different on different computer types.
+Another way to specify the starting label is to use the {\tt
+  splabs} Python function: in this case {\tt splabs('mu','LP')}
+returns the list of 'LP' labels for \filef{b.mu}, and \filef{s.mu},
+and so the first one, {\tt splabs('mu','LP')[0]} denotes label 2.
+
+The fourth run continues this branch in opposite direction.
+The detailed results of these continuations are accumulated
+in the data-files \filef{ b.cusp}, \filef{ s.cusp}, and \filef{
+  d.cusp}. Finally, a plot of the cusp is produced.
+
+The numerical results are given below
 in somewhat abbreviated form.
 Some differences in output are to be expected on different machines.
 This does not mean that the results have different accuracy, but simply
 that arithmetic differences have accumulated from step to step, possibly
 leading to different step size decisions.
 
-Note that there are five separate runs.
-In the first run, a family of stationary solutions is traced out.
-Along it, two folds (LP) and one Hopf bifurcation (HB) are located.
-The free parameter is $p_1$. The other parameters remain fixed in this run.
-Note also that only special, labeled solution points are printed on the screen.
-More detailed results are saved 
-in the data-files {\tt b.ab}, {\tt s.ab}, and {\tt d.ab}.
-
-The second run traces out the family of periodic solutions that emanates
-from the Hopf bifurcation. The free parameters are $p_1$ and the period.
-The detailed results are appended to the existing data-files 
-{\tt b.ab}, {\tt s.ab},
-and {\tt d.ab}.
-
-In the third run, one of the folds detected in the first run is followed in
-the two parameters $p_1$ and $p_3$, while $p_2$ remains fixed.
-The fourth run continues this family in opposite direction.
-Similarly, in the fifth run, the Hopf bifurcation located in the first run 
-is followed in the two parameters $p_1$ and $p_3$.
-(In this example this is done in one direction only.)
-The detailed results of these continuations are accumulated
-in the data-files {\tt b.2p}, {\tt s.2p}, and {\tt d.2p}.
-
-One could now use {\cal PLAUT} to graphically inspect the contents of the
-data-files, but we shall do this later.
-However, it may be useful to edit these files to view their contents.
-
 Next, reset the work directory, by typing the command given
-in Table~\ref{tbl:demo_ab_3}.
+in Table~\ref{tbl:demo_cusp_3}.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal Unix}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it make clean}  & remove data-files and temporary files of demo {\tt ab} \\ 
+  \commandf{ cl()}  & remove temporary files of demo \filef{ cusp} \\ 
+  \commandf{ dl('mu')}  & remove 'mu' data-files of demo \filef{ cusp} \\ 
+  \commandf{ dl('cusp')}  & remove 'cusp' data-files of demo \filef{ cusp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Cleaning the demo {\tt ab} work directory.}
-\label{tbl:demo_ab_3}
+\caption{Cleaning the demo \filef{ cusp} work directory.}
+\label{tbl:demo_cusp_3}
 \end{center}
 \end{table}
 
-\newpage
 \begin{center}
+\vspace{-0.2in}
 \begin{verbatim}
-ab : first run : stationary solutions
+# Run forwards
  
-BR    PT  TY LAB   PAR(1)       L2-NORM        U(1)         U(2)     
- 1     1  EP   1  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
- 1    33  LP   2  1.05739E-01  1.48439E+00  3.11023E-01  1.45144E+00
- 1    70  LP   3  8.89318E-02  3.28824E+00  6.88982E-01  3.21525E+00
- 1    90  HB   4  1.30899E-01  4.27186E+00  8.95080E-01  4.17704E+00
- 1    92  EP   5  1.51241E-01  4.36974E+00  9.15589E-01  4.27275E+00
- Saved as *.ab
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+   1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   1.00000E+00
+   1    14  LP    2   3.84900E-01   5.77360E-01  -5.77360E-01   1.00000E+00
+   1    20        3   1.26582E-01   9.29410E-01  -9.29410E-01   1.00000E+00
+   1    40        4  -1.38347E+00   1.40803E+00  -1.40803E+00   1.00000E+00
+   1    47  EP    5  -2.07212E+00   1.53340E+00  -1.53340E+00   1.00000E+00
+
+# Run backwards
  
-ab : second run : periodic solutions
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+   1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   1.00000E+00
+   1    14  LP    2  -3.84900E-01   5.77360E-01   5.77360E-01   1.00000E+00
+   1    20        3  -1.26582E-01   9.29410E-01   9.29410E-01   1.00000E+00
+   1    40        4   1.38347E+00   1.40803E+00   1.40803E+00   1.00000E+00
+   1    47  EP    5   2.07212E+00   1.53340E+00   1.53340E+00   1.00000E+00
+
+# Forward continuation of the first fold in two parameters
  
-BR    PT  TY LAB   PAR(1)       L2-NORM      MAX U(1)     MAX U(2)     PERIOD    
- 4    30       6  1.19881E-01  3.98712E+00  9.91911E-01  7.02034E+00  2.721E+00
- 4    60       7  1.15303E-01  3.14630E+00  9.99577E-01  9.95764E+00  6.147E+00
- 4    90       8  1.05650E-01  2.21917E+00  9.99166E-01  9.36609E+00  1.399E+01
- 4   120       9  1.05507E-01  1.69684E+00  9.99086E-01  9.29629E+00  9.956E+01
- 4   150  EP  10  1.05507E-01  1.60388E+00  9.99789E-01  9.28146E+00  1.867E+03
- Appended to *.ab
- 
-ab : third run : a 2-parameter locus of folds
- 
-BR    PT  TY LAB   PAR(1)       L2-NORM        U(1)         U(2)       PAR(3)     
- 2    27  LP  11  1.35335E-01  2.06012E+00  4.99653E-01  1.99861E+00  2.499E+00
- 2   100  EP  12  1.09381E-08  2.13650E+01  9.53147E-01  2.13437E+01 -3.748E-01
- Saved as *.2p
- 
-ab : fourth run : the locus of folds in reverse direction
- 
-BR    PT  TY LAB   PAR(1)       L2-NORM        U(1)         U(2)       PAR(3)     
- 2    35  EP  11 -1.31939E-03  9.96432E-01 -3.58651E-03  9.96426E-01 -1.050E+00
- Appended to *.2p
- 
-ab : fifth run : a 2-parameter locus of Hopf points
- 
-BR    PT  TY LAB   PAR(1)       L2-NORM        U(1)         U(2)       PAR(3)     
- 4   100  EP  11  8.80940E-05  1.17440E+01  9.14609E-01  1.17083E+01  9.362E-02
- Appended to *.2p
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+   2    20       11   5.42543E-02   3.00470E-01  -3.00470E-01   2.70847E-01
+   2    40       12  -9.99228E-02   3.68308E-01   3.68308E-01   4.06953E-01
+   2    60       13  -5.89228E-01   6.65403E-01   6.65403E-01   1.32828E+00
+   2    80       14  -1.71622E+00   9.50271E-01   9.50271E-01   2.70904E+00
+   2    85  EP   15  -2.06374E+00   1.01051E+00   1.01051E+00   3.06341E+00
+
+# Backward continuation of the fold in two parameters
+
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+   2    20       11   1.09209E+00   8.17354E-01  -8.17354E-01   2.00420E+00
+   2    34  EP   12   2.02776E+00   1.00461E+00  -1.00461E+00   3.02770E+00
 \end{verbatim}
 \end{center}
 
-\newpage
-
-\section{ Executing Selected Runs Automatically.} \label{sec:Tutorial_selected_runs}
-As illustrated by the commands in Table~\ref{tbl:demo_ab_4}, 
-one can also execute selected runs of demo {\tt ab}.
-In general, this cannot be done in arbitrary order, as any given
-run may need restart data from a previous run.
-Run~3 only requires the results of Run~1, so that the displayed 
-command sequence is indeed appropriate.
-The screen output of these runs will be identical to that of
-the corresponding earlier runs, except for a change in solution labels in Run~3.
+The CLUI was used to generate the constants
+file at runtime.  In the example below, the constant file \filef{c.cusp}
+will be read in, and the CLUI will be used to make the appropriate
+changes to perform the calculation.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal Unix}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it make first}  & execute the first run of demo {\tt ab} \\ 
-  {\it make third}  & execute the third run of demo {\tt ab} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Selected runs of demo {\tt ab}.}
-\label{tbl:demo_ab_4}
-\end{center}
-\end{table}
-
-Of course, in real use, one must prepare a constants-file for each run.
-In the illustrative runs above, the constants-files 
-were carefully prepared in advance.
-For example, the file {\tt c.ab.1} contains the {\cal AUTO}-constants for Run~1,
-{\tt c.ab.3} contains the {\cal AUTO}-constants for Run~3, etc.
-
-\section{ Using {\cal AUTO}-Commands.} \label{sec:Tutorial_AUTO_commands}
-Next, with the commands in Table~\ref{tbl:demo_ab_5},
-we execute the first two runs of demo {\tt ab} again, but now using the
-commands that one would normally use in an actual application.
-We still use the demo constants-files that were prepared in advance.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  {\it make clean}  & reset the work directory \\ 
-\hline
-%==============================================================================
-  {\it cp c.ab.1 c.ab} & get the first constants-file \\ 
-  {\it @r ab} & compute a stationary solution family with folds and Hopf bifurcation \\ 
-  {\it @sv ab} & save output-files as {\tt b.ab, s.ab, d.ab} \\ 
-\hline
-%==============================================================================
-  {\it cp c.ab.2 c.ab} &  get the second constants-file \\ 
-  {\it @r ab} & compute a family of periodic solutions from the Hopf point \\ 
-  {\it @ap ab} & append the output-files to {\tt b.ab, s.ab, d.ab} \\ 
+  \commandf{ ld('cusp')}  & load the problem definition  \filef{ cusp} \\ 
+  \commandf{ r(sv='mu')}  & execute the run and save the results\\
+                          & in the files \filef{b.mu}, \filef{s.mu}, and \filef{d.mu}\\ 
+  \commandf{ r(DS='-',ap='mu')}  & execute the run backwards and \\
+    & append the results to the above files\\ 
+  \commandf{ rl('mu') } & relabel solutions in b.mu and s.mu \\
+  \commandf{ ld(s='mu',ISW=2,IRS=splabs('mu','LP')[0]) } & use s.mu as
+  the solution file to start from,\\
+  & change ISW to 2,\\
+  & and change IRS to select the first fold in b.mu. \\
+  \commandf{ r(sv='cusp') } & execute the third run of demo \filef{ cusp} \\ 
+  \commandf{ r(DS='-',ap='cusp') } & execute the fourth run of demo \filef{ cusp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Commands for Run~1 and Run~2 of demo {\tt ab}.}
-\label{tbl:demo_ab_5}
-\end{center}
-\end{table}
- 
-It is instructive to look at the constants-files
-{\tt c.ab.1} and {\tt c.ab.2} used in the two runs above.
-The significance of each {\cal AUTO}-constant set in these files
-can be found in Chapter~\ref{ch:AUTO_constants}.
-Note in particular the {\cal AUTO}-constants that were changed 
-between the two runs; see Table~\ref{tbl:demo_ab_6}.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | r | r | l |}
-\hline
-  Constant &  Run~1  &  Run~2 & Reason for Change \\
-\hline
-%==============================================================================
-  {\tt IPS}  & 1  & 2  &  To compute periodic solutions in Run~2 \\  
-\hline
-  {\tt IRS}  & 0  & 4  &  To specify the Hopf bifurcation restart label \\  
-\hline
-  {\tt NICP}  & 1  & 2  &  The second run has two free parameters\\  
-\hline
-  {\tt ICP}  & 1  &1,~11  &  To use and print {\tt PAR(1)} and {\tt PAR(11)} in Run~2\\  
-\hline
-  {\tt NMX}  & 100 &150  &  To allow more continuation steps in Run~2 \\  
-\hline
-  {\tt NPR}  & 100 & 30  &  To print output every 30 steps in Run~2 \\  
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Differences in {\cal AUTO}-constants between {\tt c.ab.1} and {\tt c.ab.2}.}
-\label{tbl:demo_ab_6}
+\caption{Selected runs of demo \filef{ ab}.}
+\label{tbl:demo_cusp_4a}
 \end{center}
 \end{table}
 
-Actually, for periodic solutions, {\cal AUTO} automatically adds {\tt PAR(11)}
-(the period) as second parameter.
-However, for the period to be printed, one must specify the index 11
-in the {\tt ICP} list, as shown in Table~\ref{tbl:demo_ab_6}.
-
-\section{ Plotting the Results with {\cal PLAUT}.} \label{sec:Tutorial_PLAUT}
+\section{ Plotting the Results with \AUTO.} \label{sec:Tutorial_plotting}
 The bifurcation diagram computed in the runs above
-is stored in the file {\tt b.ab},
-while each labeled solution is fully stored in {\tt s.ab}.
-To use {\cal PLAUT} to graphically inspect these data-files,
-type the {\cal AUTO}-command given in Table~\ref{tbl:demo_ab_7}.
-The {\cal PLAUT} window (a Tektronix window) will appear, in which one can enter
-the {\cal PLAUT}-commands given in Table~\ref{tbl:demo_ab_8}.
-The saved plots are shown in Figure~\ref{fig:ab_1}
-and  in Figure~\ref{fig:ab_2}.
+was stored in the files \filef{ b.mu} and \filef{ b.cusp},
+while each labeled solution is fully stored in \filef{ s.mu} and
+\filef{ s.cusp}.
+To use \AUTO to graphically inspect these data-files.
+type the \AUTO-command given in Table~\ref{tbl:demo_cusp_7}.
+The saved plots are shown in Figure~\ref{fig:cusp_1}
+and in Figure~\ref{fig:cusp_2}.
+
+Figure~\ref{fig:cusp_1} shows the bifurcation diagrams for the first
+run, and Figure~\ref{fig:cusp_2} for the second run.
+
+The plotting window consists of a menubar at the top, a plotting area,
+and a control panel with four control widgets at the bottom.  By
+default the first two columns in the bifurcation diagram output
+are plotted against each other. To obtain a $\mu$ versus $x$
+bifurcation diagram you need to plot column 0 versus column 1.
+You can do that by changing the ``Y'' box to say ``[2]'', either by
+typing it there, by using the menu obtained by clicking the
+downwards facing triangle or by using a scripted command as used
+in \filef{cusp.auto}.
+You can also change the mode of
+the plotting tool from ``bifurcation'' to ``solution''.  This is
+accomplished by clicking on the widget marked ``Type'' on the bottom
+control panel and setting it from ``bifurcation'' to ``solution''.  In
+the plotting window will appear a plot of the first labeled solution,
+in this case just a point. You can plot all points by changing
+the ``Label'' to ``[1,2,3,4,5,6,7,8,9,10]''.
+
+The plotting tool can also be used to create Postscript files from
+plots by selecting the ``File'' on the menubar and then selecting the
+``Save Postscript...'' from the drop down menu.  This will bring up
+a dialog into which the user can enter the filename of the postscript
+file to save the plot in.  
+Further information on the plotting tool can be found in
+Section~\ref{clui:2d plotting}.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal AUTO}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it @p ab} & run {\cal PLAUT} to graph the contents of {\tt b.ab} and {\tt s.ab}; \\  
+  \commandf{ plot("mu")} & run \AUTO to graph the contents of \filef{ b.mu} and \filef{ s.mu}; \\  
 %==============================================================================
 \hline
 \end{tabular}
-\caption{Command for plotting the files {\tt b.ab} and {\tt s.ab}.}
-\label{tbl:demo_ab_7}
+\caption{Command for plotting the files \filef{ b.ab} and \filef{ s.ab}.}
+\label{tbl:demo_cusp_7}
 \end{center}
 \end{table}
 
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  {\cal PLAUT}-COMMAND  & ACTION \\
-\hline
-  {\it d1}  & choose one of the default settings\\ 
-  {\it bd0}  & plot the default bifurcation diagram; $L_2$-norm versus $p_1$ \\ 
-\hline
-  {\it bd}  & make a blow-up of current bifurcation diagram \\ 
-  {\it .08~ .14 ~.5~ 4.5} & enter diagram limits  \\
-\hline
-  {\it sav}  & save the current plot \\
-  {\it fig.1}  & upon prompt, enter a new file name, e.g., {\tt fig.1} \\
-\hline
-  {\it 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  {\it 6 7 10}  & select labeled orbits 6, 7, and 10 in {\tt s.ab}\\ 
-  {\it d}  & default orbit display; $u_1$ versus scaled time\\
-\hline
-  {\it 1 3}  & select columns 1 and 3 in {\tt s.ab} \\
-  {\it d}  & display the orbits; $u_2$ versus scaled time\\
-\hline
-  {\it 2 3}  & select columns 2 and 3 in {\tt s.ab} \\
-  {\it d}  & phase plane display; $u_2$ versus $u_1$\\
-\hline
-  {\it sav}  & save the current plot \\
-  {\it fig.2}  & upon prompt, enter a new file name \\
-\hline
-  {\it ex}  & exit from 2D mode  \\
-  {\it end}  & exit from {\cal PLAUT} \\
-\hline
-\end{tabular}
-\caption{Commands to be typed in the {\cal PLAUT} window.}
-\label{tbl:demo_ab_8}
-\end{center}
-\end{table}
-
-%------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/ab1.ps}}
-\caption{The bifurcation diagram of demo {\tt ab}.}
-\label{fig:ab_1}
+\centerline{\epsffile{include/cusp1.ps}}
+\caption{The first bifurcation diagram of demo \filef{ cusp}.}
+\label{fig:cusp_1}
 \end{figure}
-%------------------------------------------------------
-
-%------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/ab2.ps}}
-\caption{The phase plot of solutions 6, 7, and 10 in demo {\tt ab}.}
-\label{fig:ab_2}
-\end{figure}
-%------------------------------------------------------
-
-
-\section{ Following Folds and Hopf Bifurcations.} \label{sec:Tutorial_2_par}
-The commands in Table~\ref{tbl:demo_ab_9} will execute the remaining
-runs of demo {\tt ab}.
-Here, as in later demos, some of the {\cal AUTO}-constants that have been changed
-between runs are indicated in the Table.
-%==============================================================================
-%==============================================================================
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-   COMMAND  & ACTION \\
-\hline
-  {\it cp c.ab.3 c.ab} & changes (from {\tt c.ab.1}) : IRS, NICP, ICP, ISW, DSMAX \\ 
-  {\it @r ab} &  compute a locus of folds \\ 
-  {\it @sv 2p} & save output-files as {\tt b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-  {\it cp c.ab.4 c.ab} & changes (from {\tt c.ab.3}) : DS (sign) \\ 
-  {\it @r ab} &  compute the  locus of folds in reverse direction \\ 
-  {\it @ap 2p} &  append the output-files to {\tt b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-  {\it cp c.ab.5 c.ab} & changes (from {\tt c.ab.4}) : IRS \\ 
-  {\it @r ab} &  compute a locus of Hopf points \\ 
-  {\it @ap 2p} & append the output-files to {\tt b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for Runs~3, 4, and 5 of demo {\tt ab}.}
-\label{tbl:demo_ab_9}
-\end{center}
-\end{table}
-
-\section{ Relabeling Solutions in the Data-Files.} \label{sec:Tutorial_relabeling}
-Next we want to plot the two-parameter diagram computed in the last three runs.
-However, the solution labels in these runs are not distinct.
-This is due to the fact that in each of these three runs
-the restart solution was read from {\tt s.ab}, while the
-computed solutions were stored in {\tt s.2p}.
-Consequently, these runs were unaware of each other's results, 
-which led to non-unique labels.
-For relabeling purpose, and more generally for file maintenance,
-there is a utility program that can be invoked as indicated in 
-Table~\ref{tbl:demo_ab_10}.
-Its use is illustrated in Table~\ref{tbl:demo_ab_11}.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  {\cal AUTO}-COMMAND  & ACTION \\
-\hline
-  {\it @lb 2p} & run the relabeling  program on {\tt b.2p} and {\tt s.2p} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Command to run the relabeling program on {\tt b.2p} and {\tt s.2p}.}
-\label{tbl:demo_ab_10}
-\end{center}
-\end{table}
-
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| c | l |}
-\hline
-  RELABELING COMMAND  & ACTION \\
-\hline
-  l & list the labeled solutions in {\tt s.2p} \\
-  r & relabel the solutions  \\  
-  l & list the new solution labeling  \\
-  w & rewrite {\tt b.2p} and {\tt s.2p}  \\
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Relabeling commands for the files {\tt b.2p} and {\tt s.2p}.}
-\label{tbl:demo_ab_11}
-\end{center}
-\end{table}
-\section{ Plotting the 2-Parameter Diagram.} \label{sec:Tutorial_plotting_2p}
-To run {\cal PLAUT} on the files  {\tt b.2p} and {\tt s.2p},
-enter the command listed in Table~\ref{tbl:demo_ab_12}.
-The {\cal PLAUT}-commands for plotting the two-parameter diagram are then as given
-in Table~\ref{tbl:demo_ab_13}.
-The saved plot is shown in Figure~\ref{fig:ab_3}.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  {\cal AUTO}-COMMAND  & ACTION \\
-\hline
-  {\it @p 2p} & run {\cal PLAUT} to graph the contents of {\tt b.2p} and {\tt s.2p}; \\ 
-\hline
-\end{tabular}
-\caption{Command to run {\cal PLAUT} for files {\tt b.2p} and {\tt s.2p}.}
-\label{tbl:demo_ab_12}
-\end{center}
-\end{table}
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  {\cal PLAUT}-COMMAND  & ACTION \\
-\hline
-  {\it d0}  & set default option\\ 
-  {\it ax}  & select axes \\ 
-  {\it 1 5}  & select real columns 1 ($p_1$) and 5 ($p_3$) in {\tt b.2p} \\ 
-  {\it bd0}  & plot the 2-parameter diagram; $p_3$ versus $p_1$ \\
-  {\it cl}  & clear the screen  \\
-\hline
-  {\it d2}  & set other default option\\ 
-  {\it bd0}  & plot the 2-parameter diagram; $p_3$ versus $p_1$ \\
-\hline
-  {\it bd}  & make a blow-up of the current diagram \\ 
-  {\it 0 ~.15~ 0~ 2.5} & enter diagram limits  \\
-  {\it sav}  & save plot \\
-  {\it fig.3}  & upon prompt, enter a new file name, e.g., {\tt fig.3} \\
-\hline
-  {\it end}  & exit from {\cal PLAUT} \\
-\hline
-%==============================================================================
-\end{tabular}
-\caption{ {\cal PLAUT}-commands for files {\tt b.2p} and {\tt s.2p}.}
-\label{tbl:demo_ab_13}
-\end{center}
-\end{table}
-
-\begin{figure}[t]
-\epsfysize 9.0cm
-\centerline{\epsffile{include/ab3.ps}}
-\caption{Loci of folds and Hopf bifurcations for demo {\tt ab}.}
-\label{fig:ab_3}
+\centerline{\epsffile{include/cusp2.ps}}
+\caption{The second bifurcation diagram of demo \filef{ cusp}.}
+\label{fig:cusp_2}
 \end{figure}
 
+\section{ Plotting the Results with \AUTO in 3D.}
+Whilst not very useful for this simple example, you can also plot
+your results in 3D, using the \commandf{plot3} command (PLAUT04), for example
+\commandf{plot3('mu')}. Unlike the 2D tool, this shows the stable and
+unstable parts: blue is stable, and red is unstable. You can also
+spin the bifurcation diagram around and zoom in using the mouse.
 
+\section{ Exporting the Results for different plotters.}
+It is often useful to use other plotting programs or general-purpose
+tools to work with AUTO's data. The ``writeRawFilename'' method (see
+also the CLUI chapter) can be used for this. In this tutorial we can for
+instance export the bifurcation diagram using\\
+\commandf{ dg('cusp').writeRawFilename('cusp.dat') }, and then use
+the command \commandf{ plot 'cusp.dat' using 1:4 wi li } to plot
+the bifurcation diagram in GNUPlot.
 
-\section{ Converting Saved {\cal PLAUT} Files to PostScript.} \label{sec:Tutorial_plot_conversion}
-Plots are saved in compact Tektronix {\cal PLOT10} format.
-In Table~\ref{tbl:demo_ab_14} it is shown how such files can be converted to 
-PostScript format. Note that the latter files are much bigger.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  {\cal AUTO}-COMMAND  & ACTION \\
-\hline
+\section{ ab : A Programmed Demo.} \label{sec:Demos_ab}
 %==============================================================================
-  {\it @ps fig.1} & convert file {\tt fig.1} into {\cal PostScript} file {\tt fig.1.ps} \\ 
-  {\it lpr fig.1.ps} & system dependent : print {\tt fig.1.ps} on your printer \\ 
-\hline
+%DEMO=ab=======================================================================
 %==============================================================================
-  {\it @ps fig.2} & convert file {\tt fig.2} into {\cal PostScript} file {\tt fig.2.ps} \\ 
-  {\it lpr fig.2.ps} & system dependent : print {\tt fig.2.ps} on your printer \\ 
-\hline
-%==============================================================================
-  {\it @ps fig.3} & convert file {\tt fig.3} into {\cal PostScript} file {\tt fig.3.ps} \\ 
-  {\it lpr fig.3.ps} & system dependent : print {\tt fig.3.ps} on your printer \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Printing commands for the saved Figures in demo {\tt ab}.}
-\label{tbl:demo_ab_14}
-\end{center}
-\end{table}
-
-\newpage
-\section{ Using the GUI.} \label{sec:Tutorial_GUI}
-Demos can also be run using the GUI. See Table~\ref{tbl:CM_GUI}
-for the correspondence between Command Mode and GUI actions.
-To activate the GUI, type the command in Table~\ref{tbl:demo_ab_15}.
-The GUI actions to execute the first two runs of demo {\tt ab}
-are given in Table~\ref{tbl:demo_ab_16}.
-In GUI Mode one can copy demo files to the user work directory
-using the {\it Equations/Demo}-button.
-To load a selected constants-file, use the {\it Previous}-button
-in the {\it LoadConsts} area of the GUI window.
-Press the {\it Filter}-button in the pop-up window
-to update the displayed list of files, and then select
-the appropriate constants-file.
-
+This demo illustrates the computation of 
+stationary solutions,
+Hopf bifurcations 
+and 
+periodic solutions.
+The equations, that model an A $\to$ B  reaction, are those from
+\citename{URP:74} \citeyear{URP:74}, namely
+\begin{equation} \begin{array}{cl}
+  u_1 ' &=  -u_1 + p_1 (1-u_1) e^{u_2}, \\
+  u_2 ' &=  -u_2 +  p_1 p_2 ( 1-u_1) e^{u_2} - p_3 u_2.\\
+\end{array} \end{equation}
+This demo is full scripted, see Table~\ref{tbl:demo_ab}.
 
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-  {\cal AUTO}-COMMAND  & ACTION \\
+  \AUTO-COMMAND  & ACTION \\
 \hline
-{\it @auto} & Activate the Graphical User Interface \\
+%==============================================================================
+  \commandf{ ! mkdir ab} & create an empty work directory \\ 
+  \commandf{ cd ab} & change directory \\
+  \commandf{ demo('ab')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ execfile('ab.auto')} & run the demo \\
 \hline
 \end{tabular}
-\caption{Command to activate the GUI.}
-\label{tbl:demo_ab_15}
+\caption{Commands for running demo \filef{ ab}.}
+\label{tbl:demo_ab}
 \end{center}
 \end{table}
 
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  GUI-button  & ACTION \\
-\hline
-{\it Equations/Demo} & Select demo {\tt ab}, then press {\it OK} \\
-\hline
-{\it Previous}       & Push {\it Filter}, select file {\tt c.ab.1}, then press {\it OK} \\
-\hline
-{\it Run}            & This will execute Run~1 of demo {\tt ab} \\ 
-\hline
-{\it Save/Save}      & Save the output files as {\tt b.ab}, {\tt s.ab}, {\tt d.ab} \\ 
-\hline
-{\it Previous}       & Select file {\tt c.ab.2}, then press {\it OK} \\
-\hline
-{\it Run}            & This will execute Run~2  of demo {\tt ab}\\ 
-\hline
-{\it Append/Append}  & Append the output-files to {\tt b.ab}, {\tt s.ab}, {\tt d.ab} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{GUI actions for Run~1 and Run~2 of demo {\tt ab}.}
-\label{tbl:demo_ab_16}
-\end{center}
-\end{table}
-
-
-
-To execute all runs of a selected demo with the GUI,
-click {\it Demos/Select}, select a demo,
-and click the {\it Run}-button in the pop-up window.
-This will actually run the demo in the corresponding subdirectory
-of {\tt auto/07p/demos}, which is only possible if you have write access
-to this directory. 
-Make sure to click the {\it Demos/Reset}-button afterwards.
-Do not otherwise run {\cal AUTO} in the directory {\tt auto/07p} 
-or in any of its subdirectories.
-
-
-\section{ Abbreviated {\cal AUTO}-Commands.} \label{sec:Abbreviated_AUTO_commands}
-The {\cal AUTO}-commands given in, for example, Table~\ref{tbl:demo_ab_5} 
-can be simplified by using the {\it @R} command.
-For Table~\ref{tbl:demo_ab_5} the equivalent command sequence is given in 
-Table~\ref{tbl:demo_ab_17}.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-   COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  {\it make clean}  & reset the work directory \\ 
-\hline
-%==============================================================================
-  {\it @R ab 1} &  (reads {\cal AUTO}-constants from {\tt c.ab.1}) \\ 
-  {\it @sv ab} & save output-files as {\tt b.ab, s.ab, d.ab} \\ 
-\hline
-%==============================================================================
-  {\it @R ab 2} &  (reads {\cal AUTO}-constants from {\tt c.ab.2})\\ 
-  {\it @ap ab} & append the output-files to {\tt b.ab, s.ab, d.ab} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Abbreviated {\cal AUTO}-commands.}
-\label{tbl:demo_ab_17}
-\end{center}
-\end{table}
+If you look at the file \filef{ab.auto } you see that the script
+computes a stationary solution family for certain values of $p_2$,
+and that a periodic orbit family is computed for each Hopf bifurcation
+that was found in the stationary solution families.
 
 %==============================================================================
 %==============================================================================
