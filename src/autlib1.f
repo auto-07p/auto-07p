@@ -304,16 +304,27 @@ C  Two-Parameter Continuation.
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
- 2     IF(IPS.LE.1 .AND. IABS(ISW).EQ.2 .AND. (ITP.EQ.1.OR.ITP.EQ.2) )
+ 2     IF(IPS.LE.1 .AND. IABS(ISW).EQ.2 .AND. (ITP.EQ.2) )
      * THEN
 C        ** Fold continuation (algebraic problems).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNLP,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. IABS(ISW).EQ.2 
-     *         .AND. ( (IABS(ITP)/10).EQ.1 .OR. (IABS(ITP)/10).EQ.2 ) )
+     *         .AND. ( (IABS(ITP)/10).EQ.2 ) )
      * THEN
 C        ** Fold continuation (algebraic problems, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNAE,THL,THU,IUZ,VUZ)
+C
+       ELSE IF(IPS.LE.1 .AND. IABS(ISW).GE.2 .AND. (ITP.EQ.1) )
+     * THEN
+C        ** BP cont (algebraic problems) (by F. Dercole).
+         CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNBP,THL,THU,IUZ,VUZ)
+C
+       ELSE IF(IPS.LE.1 .AND. IABS(ISW).GE.2 
+     *         .AND. ( (IABS(ITP)/10).EQ.1 ) )
+     * THEN
+C        ** BP cont (algebraic problems, restart).
+         CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.IABS(ISW).EQ.2.AND.ITP.EQ.3 )
      * THEN
@@ -836,12 +847,17 @@ C
        ELSE IF(IRS.GT.0 .AND. IABS(ISW).GE.2 )THEN
 C        ** Continuation of singular points
 C
-         IF( ( ITP.EQ.1.OR.(IABS(ITP)/10).EQ.1 .OR.
-     *         ITP.EQ.2.OR.(IABS(ITP)/10).EQ.2 )
+         IF( ( ITP.EQ.2.OR.(IABS(ITP)/10).EQ.2 )
      *        .AND. IABS(IPS).LE.1)THEN
 C          ** Fold continuation (Algebraic Problems)
            NDIM=2*NDIM+1
            NFPR=2
+C
+         ELSE IF( ( ITP.EQ.1.OR.(IABS(ITP)/10).EQ.1 )
+     *        .AND. IABS(IPS).LE.1)THEN
+C          ** BP cont (Algebraic Problems) (by F. Dercole)
+           NDIM=2*NDIM+2
+           NFPR=3
 C
          ELSE IF((ITP.EQ.3.OR.(IABS(ITP)/10).EQ.3)
      *               .AND. IABS(IPS).LE.1 )THEN

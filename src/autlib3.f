@@ -3,6 +3,7 @@
       PRIVATE
 
       PUBLIC :: FNLP,STPNLP ! Folds (Algebraic Problems)
+      PUBLIC :: FNBP,STPNBP ! BP (Algebraic Problems)
       PUBLIC :: FNC1,STPNC1 ! Optimizations (Algebraic,NFPR=2)
       PUBLIC :: FNC2,STPNC2 ! Optimizations (Algebraic,otherwise)
       PUBLIC :: FNDS        ! Discrete systems
@@ -175,6 +176,196 @@ C
 C
       RETURN
       END SUBROUTINE STPNLP
+C
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C   Subroutines for BP cont (Algebraic Problems) (by F. Dercole)
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C
+C     ---------- ----
+      SUBROUTINE FNBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+C Generates the equations for the 2-par continuation of folds.
+C
+      DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      ALLOCATABLE DFU(:),DFP(:),FF1(:),FF2(:)
+C
+       NDM=IAP(23)
+C
+C Generate the function.
+C
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       CALL FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+C
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DFU,DFP)
+         RETURN
+       ENDIF
+       ALLOCATE(FF1(NDIM),FF2(NDIM))
+C
+C Generate the Jacobian.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+       ENDDO
+C
+       EP=HMACH*(1+UMX)
+C
+       DO I=1,NDIM
+         UU=U(I)
+         U(I)=UU-EP
+         CALL FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         U(I)=UU+EP
+         CALL FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         U(I)=UU
+         DO J=1,NDIM
+           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(FF2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF1,DFU,DFP)
+         RETURN
+       ENDIF
+       PAR(ICP(1))=PAR(ICP(1))+EP
+C
+       CALL FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+C
+       DO J=1,NDIM
+         DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
+       ENDDO
+C
+       PAR(ICP(1))=PAR(ICP(1))-EP
+       DEALLOCATE(FF1,DFU,DFP)
+C
+      RETURN
+      END SUBROUTINE FNBP
+C
+C     ---------- ----
+      SUBROUTINE FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      DIMENSION PAR(*),ICP(*),IAP(*),U(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C
+       IPS=IAP(2)
+       ISW=IAP(10)
+C
+       IF(ISW.EQ.3) THEN
+C        ** Generic case
+         PAR(ICP(3))=U(NDIM)
+       ENDIF
+       PAR(ICP(2))=U(NDIM-1)
+C
+       IF(IPS.EQ.-1) THEN
+         CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       ELSE
+         CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       ENDIF
+C
+       IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         DO I=1,NDM
+           F(I)=F(I)+U(NDIM)*U(NDM+I)
+         ENDDO
+       ENDIF
+C
+       DO I=1,NDM
+         F(NDM+I)=0.d0
+         DO J=1,NDM
+           F(NDM+I)=F(NDM+I)+DFDU(J,I)*U(NDM+J)
+         ENDDO
+       ENDDO
+C
+       F(NDIM-1)=0.d0
+       DO I=1,NDM
+         F(NDIM-1)=F(NDIM-1)+DFDP(I,ICP(1))*U(NDM+I)
+       ENDDO
+C
+       F(NDIM)=-1
+       DO I=1,NDM
+         F(NDIM)=F(NDIM)+U(NDM+I)*U(NDM+I)
+       ENDDO
+C
+      RETURN
+      END SUBROUTINE FFBP
+C
+C     ---------- ------
+      SUBROUTINE STPNBP(IAP,RAP,PAR,ICP,U)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      LOGICAL FOUND
+C
+C Generates starting data for the continuation of folds.
+C
+      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+C Local
+      ALLOCATABLE DFU(:),DFP(:),A(:,:),IR(:),IC(:),V(:),F(:)
+      DOUBLE PRECISION UOLD(1)
+C
+       NDIM=IAP(1)
+       IPS=IAP(2)
+       IRS=IAP(3)
+       ISW=IAP(10)
+       NDM=IAP(23)
+C
+       CALL FINDLB(IAP,RAP,IRS,NFPR1,FOUND)
+       CALL READLB(IAP,RAP,U,PAR)
+C
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),A(NDM+1,NDM+1))
+       ALLOCATE(IR(NDM+1),IC(NDM+1),V(NDM+1),F(NDM))
+       IF(IPS.EQ.-1)THEN
+         CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       ELSE
+         CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       ENDIF
+       DO I=1,NDM
+         DO J=1,NDM
+           A(I,J)=DFU((J-1)*NDM+I)
+         ENDDO
+         A(I,NDM+1)=DFP((ICP(1)-1)*NDM+I)
+         A(NDM+1,I)=0.d0
+       ENDDO
+       CALL NLVC(NDM+1,NDM+1,2,A,V,IR,IC)
+       DO I=1,NDM
+         DO J=1,NDM
+           A(I,J)=DFU((I-1)*NDM+J)
+         ENDDO
+         A(I,NDM+1)=V(I)
+         A(NDM+1,I)=DFP((ICP(1)-1)*NDM+I)
+       ENDDO
+       A(NDM+1,NDM+1)=V(NDM+1)
+       CALL NLVC(NDM+1,NDM+1,1,A,V,IR,IC)
+       CALL NRMLZ(NDM,V)
+       DO I=1,NDM
+         U(NDM+I)=V(I)
+       ENDDO
+       DEALLOCATE(DFU,DFP,A,IR,IC,V,F)
+       U(NDIM-1)=PAR(ICP(2))
+       IF(ISW.EQ.3) THEN
+C        ** Generic case
+         U(NDIM)=PAR(ICP(3))
+       ELSE
+C        ** Non-generic case
+         U(NDIM)=0.d0
+       ENDIF
+C
+      RETURN
+      END SUBROUTINE STPNBP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1457,6 +1648,7 @@ C
        DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
       RETURN
       END SUBROUTINE STPNPB
+C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C          Travelling Wave Solutions to Parabolic PDEs
