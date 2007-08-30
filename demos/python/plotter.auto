@@ -1,0 +1,96 @@
+# This script is a demonstration of some of the plotting
+# capabilities of AUTO 2000
+
+# We begin by going into a temporary directory
+cd /tmp
+# We create a sub directory
+! mkdir test
+# and go into it
+cd test
+# We clean it up (in case it happen to exist previously)
+! rm -f *
+# and copy the 'ab' into the current directory.  This command
+# also loads the c.ab and ab.c files into the AUTO command
+# line user interface.
+dm("ab")
+# We now run the demo using the constants file 'c.ab.1'
+run(c="ab.1")
+# and save the resulting bifurcation diagram in the file 'b.ab',
+# the resulting solution in the file 's.ab', and the resulting
+# diagnostic file in 'd.ab'.
+sv("ab")
+# We run AUTO again, this time using the 'c.ab.2' constants file
+# and the previously saved solution file 's.ab' as starting data.
+run(c="ab.2",s="ab")
+# This command plots the bifurcation diagram and solution contained
+# in the files 'b.ab' and 's.ab'
+plot1=pl("ab")
+# This command plots the bifurcation diagram and solution contained
+# in the files 'fort.7' and 'fort.8'
+plot2=pl()
+# Wait for the user to hit a key before proceeding.
+wait()
+# We change the background color of plot1 to black and the
+# foreground color to white.  'color_list" is the list of
+# colors used for the actual plot.
+plot1.config(bg="black",fg="white",color_list="white")
+# We plot solution with label number 6 instead of the bifurcation diagram
+# in plot2.
+plot2.config(type="solution",label=[6])
+wait()
+# These two commands put explicit bounds on the plotting
+# bounds, instead of having them computed automatically
+# from the data.
+plot1.config(miny=1.5,maxy=3.4)
+plot2.config(minx=0.8,maxx=0.9)
+wait()
+# This command plots column 0 vs column 3 in plot1
+# instead of the default column 0 vs column 1
+plot1.config(bifurcation_x=(0,),bifurcation_y=(3,))
+# This command plots the value of the independent
+# variable 't' vs column 0 in plot2
+plot2.config(solution_x=("t",),solution_y=(0,))
+wait()
+# This command changes the row and column labels
+plot1.config(xlabel="Randy is cool",ylabel="Sebius is cool")
+plot2.config(index=[4])
+wait()
+# This command goes back to the default plot of  column 0 vs column 1 in plot1
+plot1.config(bifurcation_x=(0,),bifurcation_y=(1,))
+# This command creates two plots in plot2.
+# The first is the independent variable 't' vs column 0 and the second
+# is the independent variable 't' vs column 1
+plot2.config(solution_x=("t","t"),solution_y=(0,1))
+wait()
+# This command places a marker at all the places where
+# the independent variable 't' have value 0.1.
+plot2.config(mark_t=0.1)
+wait()
+# We now try to use the three dimensional plotting capabilities
+# AUTO2000.  NOTE:  These commands will only work if
+# three dimensional plotting has been enabled, and this
+# is NOT done by default.
+##plot1=p3("ab")
+##plot2=p3()
+##wait()
+##plot1.config()
+##plot2.config(type="solution",label=[6])
+##wait()
+# This command is different from the two dimensional case in that
+# Z and color components can also be chosen.
+##plot1.config(bifurcation_x=[0],bifurcation_y=[1],bifurcation_z=[2],bifurcation_color=[3])
+##plot2.config(solution_x=["t"],solution_y=[0])
+##wait()
+##plot2.config(index=[4])
+##wait()
+# Similarity to the previous command, these commands differ
+# from the two dimensional case in that
+# Z and color components can also be chosen.
+##plot1.config(bifurcation_x=(0,2),bifurcation_y=(1,3),bifurcation_z=(3,3),bifurcation_color=(0,0))
+##plot2.config(solution_x=("t","t"),solution_y=(0,1),solution_z=(0,1),solution_color=(0,1))
+##wait()
+##plot2.config(mark_t=0.1)
+##wait()
+
+
+

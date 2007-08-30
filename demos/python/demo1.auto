@@ -1,0 +1,4 @@
+copydemo('ab')
+load(equation='ab')
+load(constants='ab.1')
+run()

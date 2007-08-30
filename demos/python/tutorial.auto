@@ -1,0 +1,82 @@
+# This script shows how the tutorial from the AUTO2000 manual
+# can be implemented in the new command line user interface.
+# In fact it shows two ways.  The first uses the standard
+# Makefile which comes with the tutorial, and the second
+# uses only the problem definition file 'ab.c'
+# and the constant files 'c.ab.1', 'c.ab.2', 'c.ab.3', 'c.ab.4',
+# and 'c.ab.5'.
+
+# This is here so the log gets kept.  Basically, if verbose="yes" (or
+# is not set) all results get printed to stdout, if verbose="no" the
+# results get sent to a log as well.  This command is NOT needed in
+# general, and only appears in this file since this script is
+# used as one of the AUTO regression tests.
+ld(verbose="no")
+
+# Use the non-python syntax to change directories to /tmp
+cd /tmp
+# The next two commands are sent to the shell
+! rm -rf test
+! mkdir test
+# Go into the newly created test directory
+cd test
+# Copy the ab demo into the current directory.  This command
+# also loads in the problem definition file ab.c and the
+# constants file c.ab.  Basically, the 'dm' command is
+# the concatenation of the 'copyDemo' command and the
+# 'ld' command
+dm("ab")
+# The next five command are sent to the shell and run
+# various pieces of the tutorial.  NOTE:  other AUTO2000
+# commands can certainly be used between these commands
+# to perform whatever additional actions the user
+# wishes.
+! make clean
+! make all
+! make first
+! make third
+! make clean
+# Now, we show how the tutorial can be run without
+# using the Makefile.  See the manual for specifics.
+
+# Load the files ab.c, c.ab, s.ab, and h.ab into the AUTO
+# command interpretor.   If either the s.ab or the h.ab file
+# does not exist it is silently ignored, since they are not
+# necessarily required to run AUTO.  NOTE:  in this case this
+# command is not needed since its functionality is included
+# in the 'dm' command.  It is put here for clarity.
+ld("ab")
+# Run AUTO 2000 using the constants file c.ab.1
+rn(c="ab.1")
+# Save the bifurcation diagram in b.ab, the solution in s.ab,
+# and the diagnostics in d.ab
+sv("ab")
+# Run AUTO 2000 using the constants file c.ab.2 and
+# the file s.ab as starting data.
+rn(c="ab.2",solution="ab")
+# Append the current solution onto the files b.ab, s.ab, and d.ab
+# as appropriate.
+ap("ab")
+# Run AUTO 2000 using the constants file c.ab.3 and
+# the file s.ab as starting data.
+rn(constants="ab.3",s="ab")
+# Save the bifurcation diagram in b.2p, the solution in s.2p,
+# and the diagnostics in d.2p
+sv("2p")
+# Run AUTO 2000 using the constants file c.ab.4 and
+# the file s.ab as starting data.  Even though s="ab"
+# isn't specified, the command uses the last solution
+# file specified as the default.
+rn(c="ab.4")
+# Append the current solution onto the files b.ab, s.ab, and d.ab
+# as appropriate.
+ap("2p")
+# Run AUTO 2000 using the constants file c.ab.5 and
+# the file s.ab as starting data.
+rn(constants="ab.5")
+# Append the current solution onto the files b.ab, s.ab, and d.ab
+# as appropriate.
+ap("2p")
+
+
+

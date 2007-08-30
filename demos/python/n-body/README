@@ -1,0 +1,96 @@
+This directory contains example scripts for computing period
+solutions to the N-body problem.  
+
+3d.c:  This file contains the equations for the circular restricted
+       3-body problem in a rotating frame.   
+
+c.3d:  This is the basic AUTO constants file which is read in
+       and modified by all of the scripts.
+
+There are two "basic" AUTO command line user interface scripts.
+Basic AUTO CLUI script are run by typing:
+
+auto scriptname
+
+Basic AUTO CLUI scripts always end with the suffix ".auto",
+and they provide access to most, but not all, Python
+syntax.  The also allow the use of non-standard 
+Python syntax such as 'cd /tmp'.
+
+
+In addition, there are two "expert" AUTO CLUI scripts.  Expert AUTO
+CLUI script are run by typing:
+
+autox scriptname
+
+Expert AUTO CLUI scripts always end with the suffix ".autox".
+Expert AUTO CLUI scripts provide access to the full capabilities of
+the Python language, at the expense of a slightly more cumbersome
+syntax.  For example, the non-standard Python syntax 'cd /tmp'
+is not allowed, and must be replaced with 'cd ('/tmp')'.  Also,
+the AUTO CLUI libraries must be explicitly included 
+using the command 'from AUTOclui import *'.
+
+------------------------------------------------------------
+
+compute_lagrange_points_family.auto:
+
+	This is a basic script which computes and plots all of the
+	lagrange points as a function of the ratio of the masses of
+	the two planets.
+
+compute_lagrange_points_0.5.auto:
+
+	This is a basic script which computes all of the lagrange
+	points for the case where the masses of the two planets are
+	equal, and saves the data.  This script is used to compute
+	starting data for the compute_periodic_family.xauto script.
+
+compute_periodic_family.xauto:
+
+	NOTE: This script depends on the results of the 
+	compute_lagrange_points_0.5.auto script, so that
+	script must be run before this script is used.
+
+	This is an expert script which starts at a lagrange
+	point computed by compute_lagrange_points_0.5.auto
+	and continues in the ratio of the masses until
+	a specified mass ratio is reached.  It then computes
+	a family of periodic orbits for each pair of
+	purely complex eigenvalues.  Finally, for each bifurcation
+	point detected on the primary branch a bifurcating
+	branch is also computed.  E.g. the command
+	
+	autox compute_periodic_family.xauto l1 0.0123
+
+	computes families of periodic orbits emanating from l1
+	for mass ratio 0.0123.
+
+        To run the same problem with branch switching do:
+
+        autox -- compute_periodic_family.xauto -b l1 0.0123
+
+to_matlab.xauto: 
+
+	This script takes a set of AUTO data files and creates
+	a set of files formatted for importing into Matlab
+	for either plotting or further calculations.
+	E.g. the command
+
+	autox to_matlab.xauto foo bar
+
+	will take the solution file 's.foo' and bifurcation diagram
+	file 'b.foo' and create the following files:
+
+	'bar_bifur'       :  This files contains the bifurcation diagram
+			     from 'b.foo'
+
+	'bar_solution_??' :  These files each contain one solution from
+			     the file 's.foo'.  The '??' is replaced
+			     with the solution label number.
+
+
+
+
+
+

@@ -1,0 +1,22 @@
+copydemo('bvp')
+
+ld('bvp')
+run()
+sv('bvp')
+ld(s='bvp')
+data = sl('bvp')
+ch("NTST",50)
+for solution in data:
+    if solution["Type name"] == "BP":
+        ch("IRS", solution["Label"])
+        ch("ISW", -1)
+        # Compute forward
+        run()
+        ap('bvp')
+        # Compute back
+        ch("DS",-pr("DS"))
+        run()
+        ap('bvp')
+
+plot('bvp')
+wait()

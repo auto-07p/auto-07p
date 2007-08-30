@@ -1,0 +1,28 @@
+from AUTOclui import *
+
+def myRun(demo):
+
+    copydemo(demo)
+
+    ld(demo)
+    run()
+    sv(demo)
+    ld(s=demo)
+    data = sl(demo)
+    ch("NTST",50)
+    for solution in data:
+        if solution["Type name"] == "BP":
+            ch("IRS", solution["Label"])
+            ch("ISW", -1)
+            # Compute forward
+            run()
+            ap(demo)
+            # Compute back
+            ch("DS",-pr("DS"))
+            run()
+            ap(demo)
+
+    plot(demo)
+    wait()
+
+myRun('bvp')

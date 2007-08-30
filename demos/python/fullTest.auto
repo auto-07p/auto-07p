@@ -1,0 +1,155 @@
+# This is a sample AUTO2000 script file.  This file uses the
+# entire AUTO2000 command set, except for the plotting commands.
+# Accordingly, some of the command sequences are not optimal
+# (i.e. some of the same functionality can be accomplished
+# with fewer commands).
+
+# This is here so the log gets kept.  Basically, if verbose="yes" (or
+# is not set) all results get printed to stdout, if verbose="no" the
+# results get sent to a log as well.  This command is NOT needed in
+# general, and only appears in this file since this script is
+# used as one of the AUTO regression tests.
+ld(verbose="no")
+
+# Use the non-python syntax to change directories to /tmp
+cd /tmp
+# The next two commands are sent to the shell
+! rm -rf test
+! mkdir test
+# Go into the newly created test directory
+cd test
+# Copy the pp2 demo into the current directory.  This command
+# also loads in the problem definition file pp2.c and the
+# constants file c.pp2.  Basically, the 'dm' command is
+# the concatenation of the 'copyDemo' command and the
+# 'ld' command
+dm("pp2")
+# Check what files are in the current directory
+ls
+# Print out the short online help for all the commands
+help
+# Print out the long online help for the 'run' command
+help run
+# Print out the contents of the c.pp2.1 file
+cat c.pp2.1
+# Load the files pp2.c, c.pp2, s.pp2, and h.pp2 into the AUTO
+# command interpretor.   If either the s.pp2 or the h.pp2 file
+# does not exist it is silently ignored, since they are not
+# necessarily required to run AUTO.  NOTE:  in this case this
+# command is not needed since its functionality is included
+# in the 'dm' command.  It is put here for clarity.
+ld("pp2")
+# This loop runs the AUTO using each of the constants files
+# c.pp2.1, c.pp2.2, c.pp2.3, c.pp2.4, and c.pp2.5.  The
+# results of each computation are appended to the file s.pp2,
+# which is read back in to provide starting data for the
+# next calculation.  Note the Python syntax 'c="pp2.%d"%i', which
+# use to generate the constants file names.
+for i in range(1,5):
+  rn(c="pp2.%d"%i,s="pp2")
+  ap("pp2")
+# Remove all files from the current directory.
+! rm -f *
+# We set a Python variable to contain the name of the next
+# demo we want to run.
+cir = "cir"
+# We copy and load the demo files.
+dm(cir)
+# The 'cir' demo is somewhat non-standard in that it uses
+# a tabulated file of values for initial data.  This command
+# takes that file and creates a AUTO input file from it.
+us(cir)
+# Again, this command is strictly redundant, but is here to
+# show the different ways that files may be loaded into
+# the interface.  First you may use a 'ld' command with a single
+# argument to load in the standard files cir.c, c.cir, s.cir, and h.cir.
+ld(cir)
+# Or, you may load in the files are part of the 'run' command
+# itself.  In this case we have used the extended form, in which
+# each filename is given individually.  This command loads in
+# the files c.cir1, s.dat, and h.cir.1 and then runs AUTO.
+rn(c="cir.1",s="dat",h="cir.1")
+# Or, you may run without defining any files, and this will
+# use whatever files were loaded last.
+run()
+# We save the data in s.cir
+sv(cir)
+# These commands print out various values associated with
+# solutions to the problem.
+
+# The pseudo arclength step-size.
+st(cir)
+# The 'secondary periodic' function
+sc(cir)
+# Any notes that AUTO entered in the diagnostic file
+nt(cir)
+# The 'limit point' function
+lm(cir)
+# The number of iterations required for convergence
+it(cir)
+# The 'Hopf bifurcation' function
+hp(cir)
+# The Floquet multipliers
+fl(cir)
+# The eigenvalues of the Jacobian (for algebraic problems)
+eg(cir)
+# The 'branch point' function
+br(cir)
+# Clean the directory by removing fort.*, o.*, and *.exe
+cl()
+# Now remove everything else
+! rm -f *
+# Set a new variable with the name of a third demo.
+demo = "ab"
+# Copy and load the demo.
+dm(demo)
+# Delete all d.*, b.*, and s.* files
+dl(demo)
+# Load just the constants file c.ab.1 and leave the rest of the loaded files
+# the same.
+ld(constants="ab.1")
+# Run the demo
+run()
+# Change the constant RL1 to have the value 0.4
+ch("RL1",0.4)
+# And run the demo again.
+run() 
+# Save the results into d.ab, s.ab, and b.ab (since demo='ab')
+sv(demo)
+# Append another copy of the data into the same files
+ap(demo)
+# Run the demo, but changing the constants file to c.ab.2 and the
+# solution file to s.ab
+run(constants="ab.2",solution="ab")
+# Copy the files d.ab, s.ab, and b.ab to d.double, s.double, and b.double
+cp(demo,"double")
+# 'Double' the solutions in d.double, s.double, and b.double.  This
+# is used to compute period doubling bifurcations.
+db("double")
+# Move the files d.double, s.double, and b.double to
+# d.triple, s.triple, and b.triple
+mv("double","triple")
+# 'Triple' the solutions in d.triple, s.triple, and b.triple.  This
+# is used to compute period tripling bifurcations.
+tr("triple")
+# Parse the data in fort.8 and return a Python object containing
+# the data
+data=sl()
+# Parse the data in fort.7 and return a Python object containing
+# the data
+data=dg()
+# Parse the data in fort.7 and fort.8 and return a Python object containing
+# the data
+data=bt()
+# Clean the directory
+! rm -f *
+# Go up one directory level
+cd ..
+# Remove the test directory
+! rmdir test
+
+
+
+
+
+

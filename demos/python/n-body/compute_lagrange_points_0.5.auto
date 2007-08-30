@@ -1,0 +1,70 @@
+# This script computes the initial circle of solutions for mu=0
+# as well as the bifurcating branches which give us the
+# Lagrange points.
+
+# Load 3d.c and c.3d into the AUTO CLUI
+load('3d')
+
+# Add a stopping condition so we only compute the loop once
+
+# We tell AUTO to stop when parameter 16 is 0.991, parameter 1 is -0.1,
+# or parameter 1 is 1.1.  If parameter1 is 0.5 we just report
+# a point.
+cc('UZR',[[-16,0.991],
+          [-1,-0.1],
+          [1,0.5],
+          [-1,1.1]])
+
+# We also want to compute branches for the first 3 bifurcation
+# points.
+cc('MXBF',-3)
+
+# IPS=0 tells AUTO to compute a family of equilibria.
+cc('IPS',0)
+
+# Compute the circle.
+run()
+
+# Extract the 5 Lagrange points for each of the branches
+# which we will use in later calculations.
+
+# This command parses the solution file fort.8 and returns
+# a Python object which contains all of the data in the
+# file in an easy to use format.
+data=sl()
+i=0
+
+# For every solution in the fort.8 file...
+for x in data:
+    # If the solution is a user defined point...
+    if x["Type name"] == "UZ":
+        # We look at the value of one of the components
+        # to determine which Lagrange point it is.
+
+        # The solution is a Python dictionary.  One of the
+        # elements of the dictionary is an array called "data"
+        # which contains the values of the solution.  For example,
+        # x["data"][0]["t"] is the 't' value of the first point
+        # of the solution. x["data"][0]["u"] is an array of which
+        # contains the value of the solution at t=0.
+        if x["data"][0]["u"][1] > 0.01:
+            # When we determine which Lagrange point we have we save it.
+            x.writeFilename("s.l4")
+        elif x["data"][0]["u"][1] < -0.01:
+            x.writeFilename("s.l5")
+        elif x["data"][0]["u"][0] > 0.01:
+            x.writeFilename("s.l2")
+        elif x["data"][0]["u"][0] < -0.01:
+            x.writeFilename("s.l3")
+        else:
+            x.writeFilename("s.l1")
+            
+            
+
+
+
+
+
+
+
+

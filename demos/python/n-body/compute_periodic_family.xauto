@@ -1,0 +1,218 @@
+# This is an example of an 'expert' AUTO CLUI script.
+# This scripts takes the Lagrange points computed
+# by the compute_lagrange_points_0.5.auto and
+# computes the periodic orbits emanating from them.
+
+# In expert scripts we need to explicitly import the
+# AUTOclui library
+from AUTOclui import *
+# There isn't a AUTO CLUI command for diagnostic
+# file parsing yet, but in a script such as
+# this we can just as easily import the parsing
+# class directly.
+import parseD
+
+# We also import a few general Python utility
+# libraries.
+import sys
+import string
+import math
+
+# We have divided the functionality if this
+# script into two functions, so that the
+# same ideas may be more easily used in
+# other contexts.
+def compute_periodic_family(starting_point,mu,compute_bifur_flag="no",npr=20):
+    # We load the 3d.c, the starting point file, and
+    # c.3d into the AUTO CLUI
+    load(c='3d',s=starting_point,e='3d')
+    # And we parse the starting solution.  This
+    # is mainly to determine what label the
+    # file contains.
+    starting_solution=sl(starting_point)
+    
+    # We setup the calculation by setting the
+    # starting solution to be the appropriate label.
+    cc('IRS',starting_solution[0]["Label"])
+    # And setting the problem type.  In this case
+    # we want to compute a family of equilibria.
+    cc('IPS',1)
+
+    # Our initial calculation it to go from 0.5
+    # to the desired mu value, so we put in a
+    # stopping condition for the mu value we want.
+    cc('UZR',[[-1,mu]])
+    # Since we are starting at mu=0.5 we want to
+    # go down if the desired value is less, and
+    # go up if the desired value is more.
+    if mu < 0.5:
+        cc('DS',-pr('DS'))
+    run()
+
+    # We save this solution
+    sv('hopf_bifurcation')
+    # And get a parsed version as well.
+    hopf_bifurcation = sl('hopf_bifurcation')
+
+    # This will eventually become an AUTO2000 internal
+    # NOTE:  the interface to the parseD object is
+    # under development and may change significantly
+    # in the final version
+    parseD_object=parseD.parseD('fort.9')
+
+    # We print out the eigenvalues of the Jacobian.
+    print parseD_object[-1]["Eigenvalues"]
+
+    # In this loop we look for all eigenvalues
+    # with "zero" (i.e. sufficiently small) real part.
+    # We begin by defining an array in which the periods
+    # of the Hopf bifurcations will be stored.
+    periods = []
+    # The parseD_object is basically a Python list,
+    # so we use standard Python syntax to iterate
+    # over it.
+    for eigenvalue in parseD_object[-1]["Eigenvalues"]:
+        if math.fabs(eigenvalue[0]) < 1e-8:
+            # If the real part in sufficiently small
+            # we get the imaginary part
+            imag = math.fabs(eigenvalue[1])
+            print "imaginary part: ",imag
+            print "period        : ",2*math.pi/imag
+            # and compute the period.  If is is not in our
+            # list of periods (i.e. it is not a complex conjugate
+            # to one we have already computed) we add it.
+            if 2*math.pi/imag not in periods:
+                periods.append(2*math.pi/imag)
+
+    # Now we have an array which contains the initial periods of all of the
+    # periodic orbits emanating from the Hopf bifurcation.
+    # We iterate over them and calculate each family.
+    for period in periods:
+        # Since we have a parsed version of the initial solution
+        # it is easy to modify it to include the period
+        # we want.  In AUTO, the 11th parameter is always
+        # the period.
+        hopf_bifurcation[-1]["p"][11] = period
+        # Now, when this point was computed we had Hopf
+        # bifurcation detection turned off (since all
+        # points were Hopf bifurcations).  So, we manually
+        # mark the point as a Hopf bifurcation.
+        hopf_bifurcation[-1]["Type number"] = 3
+        hopf_bifurcation[-1]["Type name"] = "HB"
+        
+        # We load in the above modified solution and the constants file.
+        # NOTE:  There are several ways to set the solution file.
+        # It can be a filename, an open file descriptor, or a
+        # Python object of the parseS class.
+        load(c='3d',s=hopf_bifurcation)
+        # We set the problem type, in this case we want to
+        # compute a family of periodic orbits.
+        cc('IPS',2)
+        # We turn off torus bifurcation detection, since there are
+        # lots of torus bifurcations.
+        cc('ISP',3)
+        # We want additional solutions to be saved, so we set NPR to
+        # a smaller value.
+        cc('NPR',npr)
+        # We want the period, the y value at t=0, and the Jacobi constant to
+        # be printed out, we we add the appropriate parameters,
+        cc('ICP',[2,11,15,16])
+        # We the IRS to be the label of the desired starting point.
+        cc('IRS',hopf_bifurcation[-1]["Label"])
+
+        # And we run the calculation.
+        run()
+        # Finally, we save the solution.
+        sv('%s_mu_%f_period_%f'%(starting_point,mu,period))
+
+        # Now, if there were any bifurcation points detected we want
+        # to compute the branches emanating from them as well.
+        # Since this is a very common task, we have put that functionality
+        # into a subroutine.
+        if compute_bifur_flag == "yes":
+            compute_bifur('3d','%s_mu_%f_period_%f'%(starting_point,mu,period),npr)
+
+# This subroutine takes a problem name and a solution file, and for
+# every bifurcation point in the solution file it attempts to
+# compute a bifurcating branch.
+def compute_bifur(problem,solution_file,npr=20):
+    # Load the problem file and constants file
+    ld(problem)
+    # and the solution file.
+    ld(s=solution_file)
+    # Set the problem type
+    cc('IPS',2)
+    # Turn off torus bifurcation detection
+    cc('ISP',3)
+    # Increase the amount of data output
+    cc('NPR',npr)
+    # We want the period, the y value at t=0, and the Jacobi constant to
+    # be printed out, we we add the appropriate parameters,
+    cc('ICP',[2,11,15,16])
+
+    # We parse the solution file to get the labels of the
+    # solutions.
+    data = sl(solution_file)
+    
+    # The solution object is basically a Python list,
+    # so we use standard Python syntax to iterate
+    # over it.
+    for solution in data:
+        # For every solution we test to see if it is a bifurcation point
+        if solution["Type name"] == "BP":
+            # And if it is we use it as a starting point for a new calculation
+            ch("IRS", solution["Label"])
+            # This is the syntax for telling AUTO to switch branches at the bifurcation
+            ch("ISW", -1)
+            # Compute forward
+            run()
+            # Save the branch
+            sv(solution_file+"_+_"+`solution["Label"]`)
+            # Compute backward by making the initial step-size negative
+            ch("DS",-pr("DS"))
+            run()
+            # Save the branch
+            sv(solution_file+"_-_"+`solution["Label"]`)
+
+
+# This is the Python syntax for making a script runable    
+if __name__ == '__main__':
+    # We want to have the option of computing the bifurcating
+    # branches or not, so we use the Python getopt
+    # routines to process command line options.
+    import getopt
+    # This line process the command line options and
+    # looks for a -b option
+    opts_list,args=getopt.getopt(sys.argv[1:],"bn:")
+    # We take the list of options generated by
+    # getopt command and turn it into a dictionary.
+    # This is not strictly necessary, but it makes
+    # it easier to use.
+    opts={}
+    for x in opts_list:
+        opts[x[0]]=x[1]
+
+    # If you use the -b option then we want to compute the bifurcating
+    # branches.
+    if opts.has_key("-b"):
+        compute_bifur_flag="yes"
+    else:
+        compute_bifur_flag="no"
+
+    npr = 20
+    if opts.has_key("-n"):
+        npr = string.atoi(opts["-n"])
+
+    # The first argument is the name of the file in
+    # which you find the starting point
+    starting_point = args[0]
+    # The second argument is the desired mu value.
+    mu = string.atof(args[1])
+    compute_periodic_family(starting_point,mu,compute_bifur_flag,npr)
+
+
+
+
+
+
+
