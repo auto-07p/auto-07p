@@ -128,7 +128,7 @@ C-----------------------------------------------------------------------
        ITP=IAP(27)
        NFPR=IAP(29)
 C
-       IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. IABS(ISW).NE.2 ) THEN
+       IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. IABS(ISW).LE.1 ) THEN
 C        ** Algebraic systems.
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNUS,THL,THU,IUZ,VUZ)
@@ -136,7 +136,7 @@ C        ** Algebraic systems.
            CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.11 .AND. IABS(ISW).NE.2 ) THEN
+       ELSE IF(IPS.EQ.11 .AND. IABS(ISW).LE.1 ) THEN
 C        ** Waves : Spatially homogeneous solutions,
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNUS,THL,THU,IUZ,VUZ)
@@ -144,7 +144,7 @@ C        ** Waves : Spatially homogeneous solutions,
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF((IPS.EQ.-1) .AND. IABS(ISW).NE.2 ) THEN
+       ELSE IF((IPS.EQ.-1) .AND. IABS(ISW).LE.1 ) THEN
 C        ** Discrete dynamical systems : fixed points.
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNDS,STPNUS,THL,THU,IUZ,VUZ)
@@ -160,7 +160,7 @@ C        ** Time integration.
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNTI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).NE.2 ) THEN
+       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).LE.1 ) THEN
 C        ** Periodic solutions
          IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0)THEN
@@ -175,7 +175,7 @@ C        ** Periodic solutions
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.12 .AND. IABS(ISW).NE.2 ) THEN
+       ELSE IF(IPS.EQ.12 .AND. IABS(ISW).LE.1 ) THEN
 C        ** Wave train solutions to parabolic systems.
          IF(ITP.NE.3) THEN
            IF(IRS.GT.0)THEN
@@ -190,7 +190,7 @@ C        ** Wave train solutions to parabolic systems.
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).NE.2) THEN
+       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).LE.1) THEN
 C        ** Boundary value problems.
          IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0) THEN
@@ -205,7 +205,7 @@ C        ** Boundary value problems.
      *        PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.7 .AND. IABS(ISW).NE.2) THEN
+       ELSE IF(IPS.EQ.7 .AND. IABS(ISW).LE.1) THEN
 C        ** Boundary value problems with Floquet multipliers.
          IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0) THEN
@@ -220,7 +220,7 @@ C        ** Boundary value problems with Floquet multipliers.
      *        PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 
-       ELSE IF(IPS.EQ.9 .AND. IABS(ISW).NE.2) THEN
+       ELSE IF(IPS.EQ.9 .AND. IABS(ISW).LE.1) THEN
 C        ** Homoclinic bifurcation analysis.
          IF(IRS.GT.0) THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,FNHO,BCHO,ICHO,STPNBV,
@@ -320,7 +320,7 @@ C
 C        ** Hopf bifurcation continuation (ODE).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IABS(IPS).EQ.1.AND.IABS(ISW).EQ.2.AND.
+       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.IABS(ISW).EQ.2.AND.
      * (IABS(ITP)/10).EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (ODE, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNAE,THL,THU,IUZ,VUZ)
@@ -381,13 +381,13 @@ C        ** Continuation of torus bifurcations (restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).EQ.2 .AND.
+       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. IABS(ISW).EQ.2 .AND.
      *          (ITP.EQ.5.OR.ITP.EQ.6) ) THEN
 C        ** Continuation of folds (BVP, start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).EQ.2 .AND. 
+       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. IABS(ISW).EQ.2 .AND. 
      *         ( (IABS(ITP)/10).EQ.5 .OR. (IABS(ITP)/10).EQ.6 ) ) THEN
 C        ** Continuation of folds (BVP, restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBV,
@@ -833,7 +833,7 @@ C        ** Algebraic optimization Problems
            ICP(1)=10
          ENDIF
 C
-       ELSE IF(IRS.GT.0 .AND. IABS(ISW).EQ.2 )THEN
+       ELSE IF(IRS.GT.0 .AND. IABS(ISW).GE.2 )THEN
 C        ** Continuation of singular points
 C
          IF( ( ITP.EQ.1.OR.(IABS(ITP)/10).EQ.1 .OR.
@@ -878,7 +878,7 @@ C          ** Fold continuation (Periodic solutions); restart
            NBC=NDIM
            NINT=3
            NFPR=NBC+NINT-NDIM+1
-           IF(NICP.EQ.2)THEN
+           IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
 C            ** Variable period
              ICP(3)=11
            ENDIF
@@ -939,7 +939,8 @@ C          ** Continuation of torus bifurcations; restart
            ICP(3)=11
            ICP(4)=12
 C
-         ELSE IF( (ITP.EQ.5.OR.ITP.EQ.6) .AND. IPS.EQ.4 )THEN
+         ELSE IF( (ITP.EQ.5.OR.ITP.EQ.6) .AND. (IPS.EQ.4.OR.IPS.EQ.7) )
+     *   THEN
 C          ** Continuation of folds (BVP; start)
            NDIM=2*NDIM
            NBC=2*NBC
@@ -958,8 +959,8 @@ C          ** Continuation of folds (BVP; start)
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( ( (IABS(ITP)/10).EQ.5 .OR. (IABS(ITP)/10).EQ.5 )
-     *           .AND. IPS.EQ.4)THEN
+         ELSE IF( ( (IABS(ITP)/10).EQ.5 .OR. IABS(ITP)/10.EQ.6)
+     *           .AND. (IPS.EQ.4.OR.IPS.EQ.7))THEN
 C          ** Continuation of folds (BVP; restart)
            NDIM=2*NDIM
            NBC=2*NBC
@@ -1921,7 +1922,7 @@ C
              AREV=AR
              REV=DREAL(EV(I))
              RIMHB=DABS(DIMAG(EV(I)))
-             IF(RIMHB.NE.0.d0.AND.IABS(ISW).NE.2)PAR(11)=PI(2.d0)/RIMHB
+             IF(RIMHB.NE.0.d0.AND.IABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
            ENDIF
          ENDIF
        ENDDO
@@ -2584,7 +2585,7 @@ C Determine stability and print output on units 6 and 7.
 C
        NTOTS=NTOT
        NINS=IAP(33)
-       IF(IABS(IPS).EQ.1 .AND. IABS(ISW).NE.2 .AND. NTOT.GT.1)THEN
+       IF(IABS(IPS).EQ.1 .AND. IABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
        CALL WRLINE(IAP,PAR,ICP,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
@@ -3061,7 +3062,7 @@ C
 C
 C For periodic boundary conditions extrapolate by periodicity.
 C
-       IF(IPS.EQ.2 .AND. IABS(ISW).NE.2) THEN
+       IF(IPS.EQ.2 .AND. IABS(ISW).LE.1) THEN
          IPER=1
        ELSE
          IPER=0
@@ -5827,7 +5828,7 @@ C
 C Determine stability, and write output on units 7 and 8.
 C
        NTOTS=NTOT
-       IF(IABS(ISW).NE.2 .AND. (IPS.EQ.2.OR.IPS.EQ.7))THEN
+       IF(IABS(ISW).LE.1 .AND. (IPS.EQ.2.OR.IPS.EQ.7))THEN
          NINS=IAP(33)
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF

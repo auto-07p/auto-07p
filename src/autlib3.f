@@ -3155,10 +3155,11 @@ C
       DIMENSION IAP(*),U0(*),U1(*),F(NBC),ICP(*),PAR(*),DBC(NBC,*)
 C Local
       ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
-      ALLOCATE(DFU(NBC,2*NDIM+NPARX))
 C
+       NDM=IAP(23)
        NBC0=IAP(24)
        NFPR=IAP(29)
+       ALLOCATE(DFU(NBC0,2*NDM+NPARX))
 C
 C Generate the function.
 C
@@ -3197,7 +3198,7 @@ C
        UMX=0.d0
        DO I=1,NDIM
          IF(DABS(U1(I)).GT.UMX)UMX=DABS(U1(I))
-      ENDDO
+       ENDDO
        EP=HMACH*(1+UMX)
        DO I=1,NDIM
          DO J=1,NDIM
@@ -3273,14 +3274,15 @@ C
 C Generates integral conditions for the 2-parameter continuation of
 C folds (BVP).
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
       ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
-      ALLOCATE(DFU(NDIM,NDIM+NPARX))
 C
+       NDM=IAP(23)
        NNT0=IAP(25)
        NFPR=IAP(29)
+       ALLOCATE(DFU(NNT0,NDM+NPARX))
 C
 C Generate the function.
 C
@@ -3338,13 +3340,13 @@ C
       RETURN
       END SUBROUTINE ICBL
 C
-C     --------------
+C     ---------- ----
       SUBROUTINE FIBL(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,
      * U,UOLD,UDOT,UPOLD,F,DINT)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NNT0,*)
 C
        NDM=IAP(23)
@@ -3417,33 +3419,37 @@ C
 C
        DO J=1,NTSR
          DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=I*NDIM-NDM
+           K1=(I-1)*NDIM+NDM+1
+           K2=I*NDIM
            DO K=K1,K2
-             UPS(K+NDM,J)=UDOTPS(K,J)
+             UPS(K,J)=0.d0
              UDOTPS(K,J)=0.d0
            ENDDO
          ENDDO
        ENDDO
-       DO K=1,NDIM-NDM
-         UPS(K+NDM,NTSR)=UDOTPS(K,NTSR)
-         UDOTPS(K,NTSR)=0.d0
+       K1=NDM+1
+       NRSP1=NTSR+1
+       DO K=K1,NDIM
+         UPS(K,NRSP1)=0.d0
+         UDOTPS(K,NRSP1)=0.d0
        ENDDO
 C
        NFPX=NFPR/2-1
        IF(NFPX.GT.0) THEN
          DO I=1,NFPX
-           PAR(ICP(NFPR0+1+I))=RLDOT(I+1)
+           PAR(ICP(NFPR0+1+I))=0.d0
+           RLDOT(NFPR0+I+1)=0.d0
          ENDDO
        ENDIF
 C Initialize the norm of the null vector
        PAR(11+NFPR/2)=0.
+       RLDOT(NFPR0+1)=0.d0
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
        ENDDO
 C
-       NODIR=1
+       NODIR=0
 C
       RETURN
       END SUBROUTINE STPNBL
@@ -3631,7 +3637,7 @@ C
 C
 C Interface subroutine to user supplied ICND.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*)
+      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*)
       DIMENSION F(*),DINT(NINT,*),ICP(*),PAR(*)
 C Local
       ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
