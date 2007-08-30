@@ -1,0 +1,23 @@
+#===============
+# AUTO demo apnf
+# BPCONT for algebraic equations
+#===============
+
+print "\n***apnf: run 1: solution continuation***"
+ld('apnf')
+rn(sv='1')
+
+print "\n***apnf: run 2: BP cont non-generic (fw)***"
+ld(s='1',IRS=splabs('1','BP')[0],ICP=[1,2],ISW=2)
+rn(sv='2')
+
+print "\n***apnf: run 2: BP cont non-generic (bw)***"
+rn(ap='2',DS='-')
+
+print "\n***apnf: run 3: BP cont generic (fw)***"
+rn(ICP=[1,2,3],ISW=3,DS='-',sv='3')
+
+print "\n***apnf: run 3: BP cont generic (bw)***"
+rn(ap='3',DS='-')
+
+cl()
