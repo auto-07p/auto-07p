@@ -609,8 +609,8 @@ The user must prepare the two files described below.
 This can be done with the GUI described in Chapter~\ref{ch:GUI}, 
 or independently.
 
-\section{ The Equations-File {\tt xxx.f}} 
-A source file {\tt xxx.f} containing the Fortran routines
+\section{ The Equations-File {\tt xxx.f90}, or {\tt xxx.f}, or {\tt xxx.c}} 
+A source file {\tt xxx.f90} containing the Fortran routines
 {\tt FUNC}, {\tt STPNT}, {\tt BCND}, {\tt ICND}, {\tt FOPT}, and {\tt PVLS}.
 Here {\tt xxx} stands for a user-selected name. 
 If any of these routines is irrelevant 
@@ -620,13 +620,16 @@ the file {\tt ab/ab.f} defines a two-dimensional dynamical system,
 and the file {\tt exp/exp.f} defines a boundary value problem.
 The simplest way to create a new equations-file is to copy 
 an appropriate demo file.
-For a fully documented equations-file see {\tt auto/07p/gui/aut.f}.
+For a fully documented equations-file see
+{\tt auto/07p/demos/cusp/cusp.f90} or {\tt auto/07p/gui/aut.f}.
 In GUI mode, this file can be directly loaded with the GUI-button 
 {\it Equations/New}; see Section~\ref{sec:GUI_Menu_bar}.
  
+The equations-file can either be written in fixed-form (old-style)
+Fortran (.f), free-from Fortran (.f90) or in C (.c).
 
 \section{ The Constants-File {\tt c.xxx}} 
-{\cal AUTO}-constants for {\tt xxx.f} are normally expected 
+{\cal AUTO}-constants for {\tt xxx.\{f,f90,c\}} are normally expected 
 in a corresponding file {\tt c.xxx}.
 Specific examples include {\tt ab/c.ab}
 and {\tt exp/c.exp} in {\tt auto/07p/demos}.
@@ -636,7 +639,7 @@ for the significance of each constant.
 \newpage
 \section{ User-Supplied Routines.} \label{sec: User_supplied_routines}
 The purpose of each of the user-supplied routines in
-the file {\tt xxx.f} is described below.
+the file {\tt xxx.{f90,f}} is described below.
   
 \begin{itemize}
 \item[-] {\tt FUNC}~:~
@@ -661,6 +664,9 @@ the file {\tt xxx.f} is described below.
   A routine {\tt PVLS} for defining ``solution measures''. \\
   (Demo {\tt pvl}.)
 \end{itemize}
+
+In a C language equation file, these routines are written using
+lowercase letters; with Fortran you can use any case.
  
 \section{ User-Supplied Derivatives.} \label{sec:derivatives}
 If {\cal AUTO}-constant {\tt JAC} equals 0 
@@ -672,300 +678,6 @@ problems, and is recommended for computations in which {\cal AUTO}
 generates an extended system.
 Examples of user-supplied derivatives can be found in
 demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
-
-%==============================================================================
-%==============================================================================
-\chapter{ Running {\cal AUTO} using Unix Commands.} \label{sec:command_mode}
-%==============================================================================
-%==============================================================================
-{\cal AUTO} can be run with the GUI described in Chapter~\ref{ch:GUI} 
-or with the commands described below.
-The {\cal AUTO} aliases must have been activated; see Section~\ref{sec:Installation}; 
-and an equations-file {\tt xxx.f} 
-and a corresponding constants-file {\tt c.xxx} 
-(see Section~\ref{ch:User_supplied_files})
-must be in the current user directory.
-\\
-{\it Do not run {\cal AUTO} in the directory {\tt auto/07p} 
-or in any of its subdirectories.}
-
-\section{ Basic commands.} 
-
-\begin{itemize}
-\item[\tt @r]:
-  Type {\it @r xxx} to run {\cal AUTO}.
-  Restart data, if needed, are expected in {\tt s.xxx},
-  and {\cal AUTO}-constants in {\tt c.xxx}.
-  This is the simplest way to run {\cal AUTO}.
-\item[-]
-  Type {\it @r xxx yyy} to run {\cal AUTO}
-  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
-  {\cal AUTO}-constants must be in {\tt c.xxx}.
-\item[-]
-  Type {\it @r xxx yyy zzz} to run {\cal AUTO}
-  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
-  and constants-file {\tt c.zzz}.
-
-\item[\tt @R]~:
-  The command {\it @R xxx} is equivalent to the command {\it @r xxx} above.
-\item[-]
-  Type {\it @R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f},
-  constants-file {\tt c.xxx.i}
-  and, if needed, restart data-file {\tt s.xxx}. 
-\item[-]
-  Type {\it @R xxx i yyy} to run {\cal AUTO}
-  with equations-file {\tt xxx.f}, 
-  constants-file {\tt c.xxx.i}
-  and restart data-file {\tt s.yyy}.
-
-\item[\tt @sv]~:
-  Type {\it @sv xxx} to save the output-files 
-  {\tt fort.7}, {\tt fort.8}, {\tt fort.9},
-  as {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, respectively.
-  Existing files by these names will be deleted.
-
-\item[\tt @ap]~:
-  Type {\it @ap xxx} to append the output-files 
-  {\tt fort.7}, {\tt fort.8}, {\tt fort.9}, 
-  to existing data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, resp.
-\item[-]
-  Type {\it @ap xxx yyy} 
-  to append 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, to
-  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, resp.
-\end{itemize}
-
-\section{ Plotting commands.} 
-
-\begin{itemize}
-
-\item[\tt @p]~:
-  Type {\it @p xxx} to run the graphics program {\cal PLAUT}
-  (See Chapter~\ref{ch:PLAUT})
-  for the graphical inspection of the data-files 
-  {\tt b.xxx} and {\tt s.xxx}. 
-\item[-]
-  Type {\it @p} to run the graphics program {\cal PLAUT}
-  for the graphical inspection of the output-files 
-  {\tt fort.7} and {\tt fort.8}.
-
-\item[\tt @ps]~:
-  Type {\it @ps fig.x} to convert a saved {\cal PLAUT} figure {\tt fig.x}
-  from compact {\cal PLOT10} format to {\cal PostScript} format.
-  The converted file is called {\tt fig.x.ps}. 
-  The original file is left unchanged.
-
-\end{itemize}
-
-\section{ File-manipulation.} 
-
-\begin{itemize}
-
-\item[\tt @cp]~:
-  Type {\it @cp xxx yyy} 
-  to copy the data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx} to
-  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
-
-\item[\tt @mv]~:
-  Type {\it @mv xxx yyy} 
-  to move the data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx}, to
-  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
-
-\item[\tt @df]~:
-  Type {\it @df} 
-  to delete the output-files 
-  {\tt fort.7}, {\tt fort.8}, {\tt fort.9}.
-
-\item[\tt @cl]~:
-  Type {\it @cl} 
-  to clean the current directory.
-  This command will delete  all files of the form
-  {\tt fort.*}, {\tt *.o}, and {\tt *.exe}.
-
-\item[\tt @dl]~:
-  Type {\it @dl xxx} 
- to delete the data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}.
-\end{itemize}
-
-\section{ Diagnostics.} 
-
-\begin{itemize}
-\item[\tt @lp]~:
-  Type {\it @lp} to list the value of the ``limit point function'' 
-  in the output-file {\tt fort.9}. This function
-  vanishes at a limit point (fold).
-  \item[-]
-  Type {\it @lp xxx} to list the value of the ``limit point function'' 
-  in the data-file {\tt d.xxx}. This function
-  vanishes at a limit point (fold).
-\item[\tt @bp]~:
-  Type {\it @bp} to list the value of the ``branch-point function'' 
-  in the output-file {\tt fort.9}. This function
-  vanishes at a branch point.
-  \item[-]
-  Type {\it @bp xxx} to list the value of the ``branch-point function''
-  in the data-file {\tt d.xxx}. This function
-  vanishes at a branch point.
-\item[\tt @hb]~:
-  Type {\it @hb} to list the value of the ``Hopf function'' 
-  in the output-file {\tt fort.9}. This function
-  vanishes at a Hopf bifurcation point.
-  \item[-]
-  Type {\it @hb xxx} to list the value of the ``Hopf function''
-  in the data-file {\tt d.xxx}. This function
-  vanishes at a  Hopf bifurcation point.
-\item[\tt @sp]~:
-  Type {\it @sp} to list the value of the 
-  ``secondary-periodic bifurcation function'' 
-  in the output-file {\tt fort.9}. This function
-  vanishes at period-doubling and torus bifurcations.
-  \item[-]
-  Type {\it @sp xxx} to list the value of the
-   ``secondary-periodic bifurcation function''
-  in the data-file {\tt d.xxx}. This function
-  vanishes at period-doubling and torus bifurcations.
-\item[\tt @it]~:
-  Type {\it @it} to list the number of Newton iterations per
-  continuation step in {\tt fort.9}. 
-  \item[-]
-   Type {\it @it xxx} to list the number of Newton iterations per
-  continuation step in {\tt d.xxx}. 
-\item[\tt @st]~:
-  Type {\it @st} to list the number of stable eigenvalues or stable
-  Floquet multipliers per continuation step in  {\tt fort.9}. 
-\item[\tt @ss]~:
-  Type {\it @st} to list the continuation step size for each
-  continuation step in  {\tt fort.9}. 
-  \item[-]
-   Type {\it @st xxx} to list the continuation step size for each
-  continuation step in {\tt d.xxx}. 
-\item[\tt @ev]~:
-  Type {\it @ev} to list the eigenvalues of the Jacobian 
-  in {\tt fort.9}. 
-  (Algebraic problems.)
-  \item[-]
-   Type {\it @ev xxx} to list the eigenvalues of the Jacobian 
-  in {\tt d.xxx}. 
-  (Algebraic problems.)
-\item[\tt @fl]~:
-  Type {\it @fl} to list the Floquet multipliers
-  in the output-file {\tt fort.9}. 
-  (Differential equations.)
-  \item[-]
-   Type {\it @fl xxx} to list the Floquet multipliers 
-  in the data-file {\tt d.xxx}. 
-  (Differential equations.)
-\end{itemize}
-
-\section{ File-editing.} 
-
-\begin{itemize}
-
-\item[\tt @e7]~:
-  To use the vi editor to edit the output-file {\tt fort.7}.
-\item[\tt @e8]~:
-  To use the vi editor to edit the output-file {\tt fort.8}.
-\item[\tt @e9]~:
-  To use the vi editor to edit the output-file {\tt fort.9}.
-\item[\tt @j7]~:
-  To use the SGI jot editor to edit the output-file {\tt fort.7}.
-\item[\tt @j8]~:
-  To use the SGI jot editor to edit the output-file {\tt fort.8}.
-\item[\tt @j9]~:
-  To use the SGI jot editor to edit the output-file {\tt fort.9}.
-  
-\end{itemize}
-
-\section{ File-maintenance.} 
-
-\begin{itemize}
-\item[\tt @lb]~:
-  Type {\it @lb} to run an interactive utility program
-  for listing, deleting and relabeling solutions 
-  in the output-files {\tt fort.7} and {\tt fort.8}.
-  The original files are backed up as
-{\tt $\sim$fort.7} and {\tt $\sim$fort.8}. 
-  \item[-]
-  Type {\it @lb xxx} to list, delete and relabel solutions
-  in the data-files {\tt b.xxx} and {\tt s.xxx}.
-  The original files are backed up as {\tt $\sim$b.xxx} and {\tt $\sim$s.xxx}. 
-\item[-]
-  Type {\it @lb xxx yyy} to list, delete and relabel solutions
-  in the data-files {\tt b.xxx} and {\tt s.xxx}.
-  The modified files are written as {\tt b.yyy} and {\tt s.yyy}. 
-
-\item[\tt @fc]~:
-  Type {\it @fc xxx} to convert a user-supplied data file {\tt xxx.dat}
-  to {\cal AUTO} format. The converted file is called {\tt s.dat}.
-  The original file is left unchanged.
-  {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
-  Other parameter values must be set in {\tt STPNT}. (When necessary,
-  PAR(11) may also be redefined there.) 
-  The constants-file file {\tt c.xxx} must be present, as the 
-  {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
-  (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
-  For examples of using the {\it @fc} command see demos {\tt lor} and {\tt pen}.
-
-\end{itemize}
-
-\section{ HomCont commands.} 
-
-\begin{itemize}
-\item[\tt @h]~:
-  Use {\tt @h} instead of {\tt @r} when using {\cal HomCont}, i.e., when {\tt IPS}=9
-  (see Chapter~\ref{ch:HomCont}).
-  Type {\it @h xxx} to run {\cal AUTO}/{\cal HomCont}.
-  Restart data, if needed, are expected in {\tt s.xxx},
-  {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
-\item[-]
-  Type {\it @h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
-  {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
-\item[-]
-  Type {\it @h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
-  and constants-files {\tt c.zzz} and {\tt s.zzz}.
-
-\item[\tt @H]~:
-  The command {\it @H xxx} is equivalent to the command {\it @h xxx} above.
-\item[-]
-  Type {\it @H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
-  and constants-files {\tt c.xxx.i} and {\tt s.xxx.i}
-  and, if needed, restart data-file {\tt s.xxx}. 
-\item[-]
-  Type {\it @H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f}, 
-  constants-files {\tt c.xxx.i} and {\tt s.xxx.i},
-  and restart data-file {\tt s.yyy}.
-\end{itemize}
-
-\section{ Copying a demo.} 
-
-\begin{itemize}
-
-\item[\tt @dm]~:
-  Type {\it @dm xxx} 
-  to copy all files 
-  from {\tt auto/07p/demos/xxx}
-  to the current user directory.
-  Here {\tt xxx} denotes a demo name; e.g., {\tt abc}.
-  Note that the {\it @dm} command also copies a {\it Makefile}
-  to the current user directory. To avoid the overwriting of
-  existing files, always run demos in a clean work directory.
-\end{itemize}
-
-\section{ Viewing the manual.} 
-
-\begin{itemize}
-
-\item[\tt @mn]~: Use {\cal gv} to view the PostScript version of this manual.
-\end{itemize}
-
-\newpage
 
 %==============================================================================
 %==============================================================================
@@ -2660,6 +2372,301 @@ Wait for the user to enter a key.\section*{Description}
     \section*{Aliases}
 wait \medskip\hrule\end{minipage}
 
+%==============================================================================
+%==============================================================================
+\chapter{ Running {\cal AUTO} using Unix Commands.} \label{sec:command_mode}
+%==============================================================================
+%==============================================================================
+Apart from the Python commands described in the previous chapter,
+{\cal AUTO} can also be run with the GUI described in Chapter~\ref{ch:GUI},
+or using the Unix commands described below. These Unix commands run both
+directly in the shell and at the {\tt AUTO} Python prompt.
+The {\cal AUTO} aliases must have been activated; see Section~\ref{sec:Installation}; 
+and an equations-file {\tt xxx.f} 
+and a corresponding constants-file {\tt c.xxx} 
+(see Section~\ref{ch:User_supplied_files})
+must be in the current user directory.
+\\
+{\it Do not run {\cal AUTO} in the directory {\tt auto/07p} 
+or in any of its subdirectories.}
+
+\section{ Basic commands.} 
+
+\begin{itemize}
+\item[\tt @r]:
+  Type {\it @r xxx} to run {\cal AUTO}.
+  Restart data, if needed, are expected in {\tt s.xxx},
+  and {\cal AUTO}-constants in {\tt c.xxx}.
+  This is the simplest way to run {\cal AUTO}.
+\item[-]
+  Type {\it @r xxx yyy} to run {\cal AUTO}
+  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
+  {\cal AUTO}-constants must be in {\tt c.xxx}.
+\item[-]
+  Type {\it @r xxx yyy zzz} to run {\cal AUTO}
+  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
+  and constants-file {\tt c.zzz}.
+
+\item[\tt @R]~:
+  The command {\it @R xxx} is equivalent to the command {\it @r xxx} above.
+\item[-]
+  Type {\it @R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f},
+  constants-file {\tt c.xxx.i}
+  and, if needed, restart data-file {\tt s.xxx}. 
+\item[-]
+  Type {\it @R xxx i yyy} to run {\cal AUTO}
+  with equations-file {\tt xxx.f}, 
+  constants-file {\tt c.xxx.i}
+  and restart data-file {\tt s.yyy}.
+
+\item[\tt @sv]~:
+  Type {\it @sv xxx} to save the output-files 
+  {\tt fort.7}, {\tt fort.8}, {\tt fort.9},
+  as {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, respectively.
+  Existing files by these names will be deleted.
+
+\item[\tt @ap]~:
+  Type {\it @ap xxx} to append the output-files 
+  {\tt fort.7}, {\tt fort.8}, {\tt fort.9}, 
+  to existing data-files 
+  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, resp.
+\item[-]
+  Type {\it @ap xxx yyy} 
+  to append 
+  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, to
+  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, resp.
+\end{itemize}
+
+\section{ Plotting commands.} 
+
+\begin{itemize}
+
+\item[\tt @p]~:
+  Type {\it @p xxx} to run the graphics program {\cal PLAUT}
+  (See Chapter~\ref{ch:PLAUT})
+  for the graphical inspection of the data-files 
+  {\tt b.xxx} and {\tt s.xxx}. 
+\item[-]
+  Type {\it @p} to run the graphics program {\cal PLAUT}
+  for the graphical inspection of the output-files 
+  {\tt fort.7} and {\tt fort.8}.
+
+\item[\tt @ps]~:
+  Type {\it @ps fig.x} to convert a saved {\cal PLAUT} figure {\tt fig.x}
+  from compact {\cal PLOT10} format to {\cal PostScript} format.
+  The converted file is called {\tt fig.x.ps}. 
+  The original file is left unchanged.
+
+\end{itemize}
+
+\section{ File-manipulation.} 
+
+\begin{itemize}
+
+\item[\tt @cp]~:
+  Type {\it @cp xxx yyy} 
+  to copy the data-files 
+  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx} to
+  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
+
+\item[\tt @mv]~:
+  Type {\it @mv xxx yyy} 
+  to move the data-files 
+  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx}, to
+  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
+
+\item[\tt @df]~:
+  Type {\it @df} 
+  to delete the output-files 
+  {\tt fort.7}, {\tt fort.8}, {\tt fort.9}.
+
+\item[\tt @cl]~:
+  Type {\it @cl} 
+  to clean the current directory.
+  This command will delete  all files of the form
+  {\tt fort.*}, {\tt *.o}, and {\tt *.exe}.
+
+\item[\tt @dl]~:
+  Type {\it @dl xxx} 
+ to delete the data-files 
+  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}.
+\end{itemize}
+
+\section{ Diagnostics.} 
+
+\begin{itemize}
+\item[\tt @lp]~:
+  Type {\it @lp} to list the value of the ``limit point function'' 
+  in the output-file {\tt fort.9}. This function
+  vanishes at a limit point (fold).
+  \item[-]
+  Type {\it @lp xxx} to list the value of the ``limit point function'' 
+  in the data-file {\tt d.xxx}. This function
+  vanishes at a limit point (fold).
+\item[\tt @bp]~:
+  Type {\it @bp} to list the value of the ``branch-point function'' 
+  in the output-file {\tt fort.9}. This function
+  vanishes at a branch point.
+  \item[-]
+  Type {\it @bp xxx} to list the value of the ``branch-point function''
+  in the data-file {\tt d.xxx}. This function
+  vanishes at a branch point.
+\item[\tt @hb]~:
+  Type {\it @hb} to list the value of the ``Hopf function'' 
+  in the output-file {\tt fort.9}. This function
+  vanishes at a Hopf bifurcation point.
+  \item[-]
+  Type {\it @hb xxx} to list the value of the ``Hopf function''
+  in the data-file {\tt d.xxx}. This function
+  vanishes at a  Hopf bifurcation point.
+\item[\tt @sp]~:
+  Type {\it @sp} to list the value of the 
+  ``secondary-periodic bifurcation function'' 
+  in the output-file {\tt fort.9}. This function
+  vanishes at period-doubling and torus bifurcations.
+  \item[-]
+  Type {\it @sp xxx} to list the value of the
+   ``secondary-periodic bifurcation function''
+  in the data-file {\tt d.xxx}. This function
+  vanishes at period-doubling and torus bifurcations.
+\item[\tt @it]~:
+  Type {\it @it} to list the number of Newton iterations per
+  continuation step in {\tt fort.9}. 
+  \item[-]
+   Type {\it @it xxx} to list the number of Newton iterations per
+  continuation step in {\tt d.xxx}. 
+\item[\tt @st]~:
+  Type {\it @st} to list the number of stable eigenvalues or stable
+  Floquet multipliers per continuation step in  {\tt fort.9}. 
+\item[\tt @ss]~:
+  Type {\it @st} to list the continuation step size for each
+  continuation step in  {\tt fort.9}. 
+  \item[-]
+   Type {\it @st xxx} to list the continuation step size for each
+  continuation step in {\tt d.xxx}. 
+\item[\tt @ev]~:
+  Type {\it @ev} to list the eigenvalues of the Jacobian 
+  in {\tt fort.9}. 
+  (Algebraic problems.)
+  \item[-]
+   Type {\it @ev xxx} to list the eigenvalues of the Jacobian 
+  in {\tt d.xxx}. 
+  (Algebraic problems.)
+\item[\tt @fl]~:
+  Type {\it @fl} to list the Floquet multipliers
+  in the output-file {\tt fort.9}. 
+  (Differential equations.)
+  \item[-]
+   Type {\it @fl xxx} to list the Floquet multipliers 
+  in the data-file {\tt d.xxx}. 
+  (Differential equations.)
+\end{itemize}
+
+\section{ File-editing.} 
+
+\begin{itemize}
+
+\item[\tt @e7]~:
+  To use the vi editor to edit the output-file {\tt fort.7}.
+\item[\tt @e8]~:
+  To use the vi editor to edit the output-file {\tt fort.8}.
+\item[\tt @e9]~:
+  To use the vi editor to edit the output-file {\tt fort.9}.
+\item[\tt @j7]~:
+  To use the SGI jot editor to edit the output-file {\tt fort.7}.
+\item[\tt @j8]~:
+  To use the SGI jot editor to edit the output-file {\tt fort.8}.
+\item[\tt @j9]~:
+  To use the SGI jot editor to edit the output-file {\tt fort.9}.
+  
+\end{itemize}
+
+\section{ File-maintenance.} 
+
+\begin{itemize}
+\item[\tt @lb]~:
+  Type {\it @lb} to run an interactive utility program
+  for listing, deleting and relabeling solutions 
+  in the output-files {\tt fort.7} and {\tt fort.8}.
+  The original files are backed up as
+{\tt $\sim$fort.7} and {\tt $\sim$fort.8}. 
+  \item[-]
+  Type {\it @lb xxx} to list, delete and relabel solutions
+  in the data-files {\tt b.xxx} and {\tt s.xxx}.
+  The original files are backed up as {\tt $\sim$b.xxx} and {\tt $\sim$s.xxx}. 
+\item[-]
+  Type {\it @lb xxx yyy} to list, delete and relabel solutions
+  in the data-files {\tt b.xxx} and {\tt s.xxx}.
+  The modified files are written as {\tt b.yyy} and {\tt s.yyy}. 
+
+\item[\tt @fc]~:
+  Type {\it @fc xxx} to convert a user-supplied data file {\tt xxx.dat}
+  to {\cal AUTO} format. The converted file is called {\tt s.dat}.
+  The original file is left unchanged.
+  {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
+  Other parameter values must be set in {\tt STPNT}. (When necessary,
+  PAR(11) may also be redefined there.) 
+  The constants-file file {\tt c.xxx} must be present, as the 
+  {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
+  (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
+  For examples of using the {\it @fc} command see demos {\tt lor} and {\tt pen}.
+
+\end{itemize}
+
+\section{ HomCont commands.} 
+
+\begin{itemize}
+\item[\tt @h]~:
+  Use {\tt @h} instead of {\tt @r} when using {\cal HomCont}, i.e., when {\tt IPS}=9
+  (see Chapter~\ref{ch:HomCont}).
+  Type {\it @h xxx} to run {\cal AUTO}/{\cal HomCont}.
+  Restart data, if needed, are expected in {\tt s.xxx},
+  {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
+\item[-]
+  Type {\it @h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
+  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
+  {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
+\item[-]
+  Type {\it @h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
+  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
+  and constants-files {\tt c.zzz} and {\tt s.zzz}.
+
+\item[\tt @H]~:
+  The command {\it @H xxx} is equivalent to the command {\it @h xxx} above.
+\item[-]
+  Type {\it @H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
+  and constants-files {\tt c.xxx.i} and {\tt s.xxx.i}
+  and, if needed, restart data-file {\tt s.xxx}. 
+\item[-]
+  Type {\it @H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
+  with equations-file {\tt xxx.f}, 
+  constants-files {\tt c.xxx.i} and {\tt s.xxx.i},
+  and restart data-file {\tt s.yyy}.
+\end{itemize}
+
+\section{ Copying a demo.} 
+
+\begin{itemize}
+
+\item[\tt @dm]~:
+  Type {\it @dm xxx} 
+  to copy all files 
+  from {\tt auto/07p/demos/xxx}
+  to the current user directory.
+  Here {\tt xxx} denotes a demo name; e.g., {\tt abc}.
+  Note that the {\it @dm} command also copies a {\it Makefile}
+  to the current user directory. To avoid the overwriting of
+  existing files, always run demos in a clean work directory.
+\end{itemize}
+
+\section{ Viewing the manual.} 
+
+\begin{itemize}
+
+\item[\tt @mn]~: Use {\cal gv} to view the PostScript version of this manual.
+\end{itemize}
+
+\newpage
 
 %==============================================================================
 %==============================================================================
