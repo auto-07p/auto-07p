@@ -95,8 +95,8 @@ CONTAINS
        LNUM=LNUM+1
        CLAB=LINE(16:19)
        IF(LINE(1:4).NE.'   0' .AND. CLAB.NE.'   0')THEN
-          WRITE(CHR4,'(I4)')LLB(L)
           L=L+1
+          WRITE(CHR4,'(I4)')LLB(L)
           IF(CLAB.NE.CHR4)THEN
              WRITE(6,"(A/A,A4,A,I5/A,A4/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
