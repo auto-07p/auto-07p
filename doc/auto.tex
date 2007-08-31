@@ -52,7 +52,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{July 2007}
+\date{August 2007}
 \maketitle
 \tableofcontents
 %
@@ -123,7 +123,7 @@ Engineering and Physical Science Research Council and the Nuffield Foundation.
 ~
 \subsection*{License}
 {\cal AUTO} is available under the terms of the BSD license:\\
-{\small
+\begin{footnotesize}
 ~\\
 Copyright \copyright~1979--2007, E.~J.~Doedel, California Institute of
 Technology, and Concordia University.  All rights reserved.\\
@@ -155,7 +155,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT  
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-}
+\end{footnotesize}
 
 %==============================================================================
 %==============================================================================
@@ -165,16 +165,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \section{ Installation.} \label{sec:Installation}
 %The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
-%directory {\filef pub/doedel/auto} at \webf{ftp.cs.concordia.ca}.
-The {\cal AUTO} file \filef{auto07p-0.2.tar.gz} is
-available via \webf{http://indy.cs.concordia.ca/auto}.
+%directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
+The {\cal AUTO} file \filef{auto07p-0.4.tar.gz} is
+available via \url{http://indy.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
 Below it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
-and that the file \filef{auto07p-0.2.tar.gz} is in your main directory.
+and that the file \filef{auto07p-0.4.tar.gz} is in your main directory.
 
 While in your main directory, enter the commands
-\commandf{gunzip auto07p-0.1.tar.gz},
-followed by \commandf{tar xvfo auto07p-0.1.tar}.
+\commandf{gunzip auto07p-0.4.tar.gz},
+followed by \commandf{tar xvfo auto07p-0.4.tar}.
 This will result in a directory \filef{auto}, 
 with one subdirectory, \filef{auto/07p}. 
 Type \commandf{cd auto/07p}
@@ -228,12 +228,15 @@ version numbers should also work.
 One can download SGI's implementation of the Open Inventor libraries from:
 \url{ftp://oss.sgi.com/projects/inventor/download/}
 Because SGI's implementation for Linux cannot show text correctly, 
-we recommend that Coin be used instead of SGI's implementation. 
+we recommend that Coin is used instead of SGI's implementation. 
 Coin3D can be downloaded from:
 \url{http://www.coin3d.org/download/}
 It is also available as a package for many Linux distributions.
 You will probably need to compile and install the SoXt and simage
 libraries from the source code available at the above web site.
+If, after that, PLAUT04 still does not work then you might need to
+adjust the environment variable {\tt LD\_LIBRARY\_PATH} to include
+the location of these libraries, for instance {\tt /usr/local/lib}.
 
 The configure script checks
 for these libraries and outputs a warning if any of these libraries
@@ -272,20 +275,27 @@ installed. You do not need to start an X server to run AUTO. To be able
 to plot in the Python CLUI, \AUTO uses \filef{pythonw} instead of
 \filef{python}. This should happen automatically.
 
+The old plotting tool {\cal PLAUT} may not display fonts. To solve
+this issue you would need to obtain a different version of xterm; see
+\url{http://iparrizar.mnstate.edu/~juan/urania/2007/07/19/xterm-tektronix-emulation-broken-on-macos}
+or 
+\url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
+Apple is aware of this problem.
+
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
-to use GFortran, MSYS (see \webf{http://www.mingw.org}),
+to use GFortran, MSYS (see \url{http://www.mingw.org}),
 combined with a native Win32 version of Python,
-obtained at \webf{http://www.python.org}. To install this setup:
+obtained at \url{http://www.python.org}. To install this setup:
 \begin{itemize}
 \item
-Install Python from \webf{http://www.python.org}.
+Install Python from \url{http://www.python.org}.
 \item
 Install the minimal Unix-like environment MSYS from
-\webf{http://www.mingw.org}. You do not need to install MinGW
+\url{http://www.mingw.org}. You do not need to install MinGW
 itself.
 \item
-Install GFortran from \webf{http://gcc.gnu.org/wiki/GFortran}.
+Install GFortran from \url{http://gcc.gnu.org/wiki/GFortran}.
 \item
 Open a CMD.EXE window (click Start, Run, type {\tt cmd}
 in the input box and press the Enter key), and run {\tt sh} in the
@@ -310,7 +320,7 @@ shown above.
 \end{itemize}
 
 Alternatively, \AUTO runs on Windows as above using the Unix-like
-environment Cygwin (see \webf{http://www.cygwin.com}). You should have
+environment Cygwin (see \url{http://www.cygwin.com}). You should have
 at least the default installation, \filef{gcc}, \filef{gfortran},
 \filef{make}, and \filef{python} installed. The 2D-plot command
 is not as reponsive in Cygwin Python as in the above native setup, however.
@@ -352,7 +362,7 @@ Unlike earlier versions, \AUTO can no longer be compiled using a pure
 Fortran 77 compiler, but you need at least a Fortran 90 compiler.
 A free Fortran 95 compiler, GFortran, is shipped with most recent
 Linux distributions, or can be obtained at
-\webf{http://gcc.gnu.org/wiki/GFortran}, which contains binaries for
+\url{http://gcc.gnu.org/wiki/GFortran}, which contains binaries for
 Linux, Mac OS X and Windows. \AUTO was also tested with the free
 compiler {\tt g95}, and there exist various, untested, commercial Fortran
 9x compilers as well.
@@ -474,8 +484,9 @@ Specifically, for (\ref{1}) {\cal AUTO} can~:~
 \item[-]
   Compute solution families.\\  (Demo {\tt ab}; Run~1.) 
 \item[-]
-  Locate branch points and automatically compute
-  bifurcating families. \\ (Demo {\tt pp2}; Run~1.)
+  Locate branch points, continue these in two parameters,
+  and automatically compute
+  bifurcating families. \\ (Demos {\tt pp2}; Run~1 and {\tt apnf}.)
 \item[-]
   Locate Hopf bifurcation points and continue these in two
   parameters. \\ (Demo {\tt ab}; Runs~1 and 5.)
@@ -666,7 +677,7 @@ In GUI mode, this file can be directly loaded with the GUI-button
 {\it Equations/New}; see Section~\ref{sec:GUI_Menu_bar}.
  
 The equations-file can either be written in fixed-form (old-style)
-Fortran (.f), free-from Fortran (.f90) or in C (.c).
+Fortran (.f), free-form Fortran (.f90) or in C (.c).
 
 \section{ The Constants-File {\tt c.xxx}} 
 {\cal AUTO}-constants for {\tt xxx.\{f,f90,c\}} are normally expected 
@@ -762,9 +773,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  for more extensive documentation on the \python~ language,
  including tutorials and pointers to further documentation,
  please see \citename{Lut:96} \citeyear{Lut:96} or the
- web page \webf{http://www.python.org} which contains
+ web page \url{http://www.python.org} which contains
  an excellent tutorial at 
- \webf{http://www.python.org/doc/current/tut/tut.html}.
+ \url{http://www.python.org/doc/current/tut/tut.html}.
 
  To use the CLUI for a new equation, change to an empty directory.
  For an existing equations-file, change to its directory.
@@ -1157,7 +1168,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  the \python~ language, but only 
  the very basics.  For more extensive documentation we refer the
  reader to \citename{Lut:96} \citeyear{Lut:96} or the
- web page \webf{http://www.python.org}.
+ web page \url{http://www.python.org}.
  In this section we will describe each line of the script
  in detail, and the full text of the script is in
  Figure~\ref{exa:clui_complex_script}.
@@ -1370,6 +1381,46 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  to wait for input.  You may now exit the \AUTO CLUI
  by pressing any key in the window in which you started
  the \AUTO CLUI.
+
+ For convenience, some of these commands have shorter forms.
+ For instance, you can directly specify a change of NTST in
+ the \commandf{ld} and \commandf{run} commands, by giving
+ {\tt NTST=xxx} as an extra parameter, as well as the special
+ {\tt DS='-'} notation to quickly revert the direction (the sign
+ of {\tt DS}). The command \commandf{run}
+ also accepts the files to save or append to using
+ {\tt sv=} and {\tt ap=}, respectively.
+ Another helpful function
+ is \commandf{splabs}, that return a list of labels for a given
+ solution file. A shorter version of the complex \AUTO
+  CLUI script is given in Figure~\ref{exa:clui_complex_fourth}.
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ copydemo('bvp')
+
+ #run bvp.f with c.bvp (first parameter), save in {b,s}.bvp (second parameter)
+ r('bvp','bvp')
+ ld(s='bvp',NTST=50)
+ for solution in splabs('bvp','BP'):
+     # Compute forward
+     r(IRS=solution,ISW=-1,ap='bvp')
+     # Compute back
+     r(DS='-',ap='bvp')
+
+ pl('bvp')
+ wait()
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[A complex example of a \AUTO CLUI script.]
+ {This Figure shows a shorter version of the more complex \AUTO CLUI
+   script given above.
+ The source for this script can be found in \filef{\$AUTO\_DIR/demos/python/demo3.auto}.
+ }
+ \label{exa:clui_complex_fourth}
+ \end{figure}
+
 
  \section{ Extending the \AUTO CLUI } \label{sec:clui_extending}
 
@@ -1978,6 +2029,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  type  & The type of the plot, either ``solution'' or ``bifurcation''. \\  
  \hline
+ use\_labels &   Whether or not to display label numbers in the graph. \\ 
+ \hline
  user\_point\_symbol  &   The symbol to use for user defined output points. \\ 
  \hline
  xlabel  & The label for the x-axis. \\
@@ -2051,11 +2104,12 @@ commandQuerySecondaryPeriod & sc secondaryperiod sp  & Print value of ``secondar
 commandQueryStepsize & ss stepsize st  & Print continuation step sizes.\\ \hline 
 commandRun & r run rn  & Run AUTO.\\ \hline 
 commandRunnerConfigFort2 & changeconstant cc ch  & Modify continuation constants.\\ \hline 
-commandRunnerConfigFort12 & hch  & Modify HomCOnt continuation constants.\\ \hline 
+commandRunnerConfigFort12 & hch  & Modify HomCont continuation constants.\\ \hline 
 commandRunnerLoadName & ld load  & Load files into the AUTO runner.\\ \hline 
 commandRunnerPrintFort2 & pc pr printconstant  & Print continuation parameters.\\ \hline 
 commandRunnerPrintFort12 & hpr & Print HomCont continuation parameters.\\ \hline 
 commandShell & shell  & Run a shell command.\\ \hline 
+commandSpecialPointLabels & splabs & Return special labels.\\ \hline
 commandTriple & tr triple  & Triple a solution.\\ \hline 
 commandUserData & us userdata  & Covert user-supplied data files.\\ \hline 
 commandWait & wait  & Wait for the user to enter a key.\\ \hline 
@@ -2327,9 +2381,16 @@ Run AUTO.\section*{Description}
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
+    You can also specify an sv='xxx' option to save to b.xxx, and so on,
+    or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards).
+
     Type commandRun('name') load all files with base 'name'.
     This does the same thing as running
     commandRun(e='name',c='name,s='name',h='name').
+
+    run('name','save') does the same thing as running
+    run(e='name',c='name,s='name',h='name',sv='save').
     \section*{Aliases}
 r run rn \medskip\hrule\end{minipage}\subsection{commandRunnerConfigFort2} \label{sec:clui_ref_commandRunnerConfigFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Modify continuation constants.\section*{Description}
@@ -2364,7 +2425,10 @@ Load files into the AUTO runner.\section*{Description}
     Type commandRunnerLoadName('name') load all files with base 'name'.
     This does the same thing as running
     commandRunnerLoadName(e='name',c='name,s='name',h='name').
-    \section*{Aliases}
+ 
+    You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards).
+   \section*{Aliases}
 ld load \medskip\hrule\end{minipage}\subsection{commandRunnerPrintFort2} \label{sec:clui_ref_commandRunnerPrintFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Print continuation parameters.\section*{Description}
 
@@ -2383,7 +2447,17 @@ Run a shell command.\section*{Description}
     Type 'shell xxx' to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     \section*{Aliases}
-shell \medskip\hrule\end{minipage}\subsection{commandTriple} \label{sec:clui_ref_commandTriple}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+shell \medskip\hrule\end{minipage}\subsection{commandSpecialPointLabels} \label{sec:clui_ref_commandShell}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+Return special labels.\section*{Description}
+        
+    Type splabs('xxx',typename) to get a list of labels with the specified
+    typename, where typename can be one of
+    'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+
+    Or use splabs(s,typename) where s is a parsed solution from sl().
+    
+    \section*{Aliases}
+splabs \medskip\hrule\end{minipage}\subsection{commandTriple} \label{sec:clui_ref_commandTriple}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Triple a solution.\section*{Description}
 
     Type commandTriple() to triple the solution in 'fort.7' and 'fort.8'.
@@ -2703,7 +2777,7 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 
-\item[\tt @mn]~: Use {\cal gv} to view the PostScript version of this manual.
+\item[\tt @mn]~: Use {\cal gv} to view the PDF version of this manual.
 \end{itemize}
 
 \newpage
@@ -4063,6 +4137,60 @@ overspecified parameters. For an example see demo {\tt pvl}.
 For details on overspecified parameters see 
 Section~\ref{sec:Parameter_over_specification}.
 %=====================================================================
+
+\section{Quick reference}
+
+\begin{tabular}{|l|l|}
+\hline
+{\tt NDIM} & Problem dimension \\
+{\tt IPS}  & Problem type; 0=AE, 1=FP(ODEs), -1=FP(maps), 2=PO,
+           -2=IVP,\\
+           & 4=BVP, 7=BVP with Floquet multipliers, 5=algebraic
+           optimization \\
+ 	   & problem, 15=optimization of periodic solutions \\
+{\tt IRS}  & Start solution label \\
+{\tt ILP}  & Fold detection; 1=on, 0=off \\
+\hline
+{\tt NICP} & Continuation parameters \\
+\hline
+{\tt NTST} & \# mesh intervals \\
+{\tt NCOL} & \# collocation points \\
+{\tt IAD} & Mesh adaption every IAD steps; 0=off \\
+{\tt ISP} & Bifurcation detection; 0=off, 1=BP(FP), 3=BP(PO,BVP), 2=all \\
+{\tt ISW} & Branch switching; 1=normal, -1=switch branch (BP, HB, PD),\\
+          & 2=switch to two-parameter continuation (LP, HB, TR) \\
+{\tt IPLT} & Select principal solution measure \\
+{\tt NBC} & \# boundary conditions \\
+{\tt NINT} & \# integral conditions \\
+\hline
+{\tt NMX} & Maximum number of steps \\
+{\tt RL0, RL1} & Parameter interval $ RL0 \leq \lambda \leq RL1$ \\
+{\tt A0, A1} & Interval of principal solution measure $ A0 \leq
+\Vert\cdot\Vert \leq A1$ \\
+\hline
+{\tt NPR} & Print and save restart data every NPR steps \\
+{\tt MXBF} & Automatic branch switching for the first MXBF bifurcation \\
+ 	  & points if IPS=0, 1 	 \\
+{\tt IID} & Control diagnostic output; 1=little, 2=normal, 4=extensive \\
+{\tt ITMX} & Maximum \# of iterations for locating special solutions/points \\
+{\tt ITNW} & Maximum \# of correction steps \\
+{\tt NWTN} & Corrector uses full newton for NWTN steps \\
+{\tt JAC}  & User defines derivatives; 0=no, 1=yes \\
+\hline
+{\tt EPSL} & Convergence criterion for equation parameters \\
+{\tt EPSU} & Convergence criterion for solution components \\
+{\tt EPSS} & Convergence criterion for special solutions/points \\
+\hline
+{\tt DS}  & Start step size \\
+{\tt DSMIN, DSMAX} & Step size interval $ DSMIN \leq h \leq DSMAX$ \\
+{\tt IADS} & Step size adaption every IADS steps; 0=off \\
+\hline
+{\tt NTHL, NTHU} & list of parameter and solution weights \\
+\hline
+{\tt NUZR} & list of values for user defined output\\
+\hline
+\end{tabular}
+
  
 
 %==============================================================================
@@ -4210,9 +4338,8 @@ A brief description of other demos is given in later chapters.
 This demo illustrates the computation of 
 stationary solutions, locating saddle-node bifurcations of these
 solutions, and the continuation of a saddle-node bifurcation in two
-parameters.
-
-The cusp equation is given by
+parameters.\\
+The cusp normal form equation is given by
 \begin{equation}
   \dot x = \mu + \lambda x - x^3.
 \end{equation}
@@ -4252,8 +4379,10 @@ Typing \commandf{ ls } reveals the existence of 5 files:
 \item
 \commandf{ cusp.f90 }: This file contains the differential equations
 and the initial values. If you inspect it, you will see that only two
-routines are used: {\tt FUNC} for the actual differential equation,
-and {\tt STPNT} for the initial values of $\lambda$ and $\mu$, which
+routines are used. The subroutine {\tt FUNC} specifies the actual
+differential equation. The routine {\tt STPNT} gives {\cal AUTO}
+the initial values of {\tt PAR(1)}$=\lambda$ and
+{\tt PAR(2)}$=\mu$, which
 are $1.0$ and $0.0$, and the initial value of $x$, which is $0$.
 For your own models you would generally copy another equation file
 and then only change the pieces that actually define the equation.
@@ -4263,12 +4392,13 @@ and then only change the pieces that actually define the equation.
 in this file. Most importantly, you see that the dimension of the
 problem ({\tt NDIM}) is set to 1, and the problem type {\tt IPS}
 is set to 1 to specify continuation of a stationary solution.
-The parameter we would like to continue in are specified in via
-{\tt ICP}. In this case these are 2 for $\mu$ and 1 for $\lambda$.
-Since initially we only really continue in one parameter, the
-parameter $\lambda$ is \emph{overspecified}.
+The constants given by {\tt ICP} specify the parameters that are
+used for the continuation. In this case these are 2 for $\mu$ and
+1 for $\lambda$.
+Since initially we only really continue in one parameter ($\mu$),
+the second parameter $\lambda$ is \emph{overspecified}.
 Another important constant is the initial step size {\tt DS}: as it is
-positive, we will initally continue in the positive $\mu$ direction.
+positive, we initally continue in the positive $\mu$ direction.
 
 \item
 \commandf{ c.cusp.1 }: A copy of c.cusp, for convenience.
@@ -4311,9 +4441,11 @@ to what action the command performs.
 The tutorial script \filef{cusp.auto} performs the
 demo by reading in a single \AUTO constants file
 and then interactively modifying it to perform
-each of the demo.
+each of the demo. The essential commands in \filef{cusp.auto}
+are given in Table~\ref{tbl:demo_cusp_4a}.
 
-Note that there are four separate runs.
+Note that there are four separate runs, where each \commandf{run}
+command (\commandf{r} is an abbreviation) performs a run.
 In the first run, a branch of stationary solutions is traced out.
 Along it, one fold (LP) (limit point, or in this case, a saddle-node
 bifurcation) is located. The free parameter is $\mu$.
@@ -4533,6 +4665,7 @@ instance export the bifurcation diagram using\\
 the command \commandf{ plot 'cusp.dat' using 1:4 wi li } to plot
 the bifurcation diagram in GNUPlot.
 
+\newpage
 \section{ ab : A Programmed Demo.} \label{sec:Demos_ab}
 %==============================================================================
 %DEMO=ab=======================================================================

@@ -11,17 +11,18 @@ include/optionMenu.eps include/styleMenuNew.eps include/typeMenu.eps
 #
 all:  manual
 #
-manual: auto.ps ../plaut04/doc/userguide.pdf
+manual: auto.pdf ../plaut04/doc/userguide.pdf
 	-rm -f $(PLAUT04_FIGS)
-	gv auto.ps &
+	gv auto.pdf &
 #
-auto.ps:auto.tex $(PLAUT04_FIGS)
+auto.pdf:auto.tex $(PLAUT04_FIGS)
 	latex auto.tex
 	bibtex auto
 	latex auto.tex
 	latex auto.tex
 	latex auto.tex
-	dvips auto -o auto.ps
+	dvips -Ppdf -G0 -o auto.ps auto.dvi
+	ps2pdf auto.ps auto.pdf
 #
 
 .fig.eps:
@@ -38,6 +39,7 @@ clean:
 	@echo "Cleaning ... done"
 #
 superclean: clean
-	@$(RM) auto.ps
+	@$(RM) auto.pdf auto.ps
+
 #
-manualclean: auto.ps clean
+manualclean: auto.pdf clean

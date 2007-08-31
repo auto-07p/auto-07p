@@ -878,6 +878,9 @@ class commandRunnerLoadName(commandRunnerConfig):
     Type FUNC('name') load all files with base 'name'.
     This does the same thing as running
     FUNC(e='name',c='name,s='name',h='name').
+
+    You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards).
     """
     type="simple"
     shortName="loadName"
@@ -1003,7 +1006,7 @@ class commandRun(commandWithRunner):
 
     You can also specify an sv='xxx' option to save to b.xxx, and so on,
     or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
-    Special values for DS are '+' (forwards) and '-' (backwards)
+    Special values for DS are '+' (forwards) and '-' (backwards).
 
     Type FUNC('name') load all files with base 'name'.
     This does the same thing as running

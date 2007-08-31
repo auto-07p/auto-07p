@@ -1,2 +1,2 @@
 #!/bin/sh
-gv  $AUTO_DIR/doc/auto.ps &
+gv  $AUTO_DIR/doc/auto.pdf &
