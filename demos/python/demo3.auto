@@ -1,0 +1,12 @@
+copydemo('bvp')
+
+r('bvp','bvp')
+ld(s='bvp',NTST=50)
+for solution in splabs('bvp','BP'):
+    # Compute forward
+    r(IRS=solution,ISW=-1,ap='bvp')
+    # Compute back
+    r(DS='-',ap='bvp')
+
+pl('bvp')
+wait()
