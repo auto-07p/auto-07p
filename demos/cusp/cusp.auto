@@ -4,21 +4,21 @@
 
 # Load the files cusp.f90 and c.cusp into the AUTO
 # command interpreter.
-ld('cusp')
+load('cusp')
 # Run and save to b.mu and s.mu
-r(sv='mu')
+run(sv='mu')
 # Run backwards, and append to b.mu and s.mu
-r(DS='-',ap='mu')
+run(DS='-',ap='mu')
 # Relabel solutions in b.mu and s.mu
 rl('mu')
 # Plot bifurcation diagram
 p=plot('mu')
 p.config(bifurcation_y=[2])
 # Set the new start label to the first LP label in b.mu and s.mu
-ld(s='mu',ISW=2,IRS=splabs('mu','LP')[0])
+load(s='mu',ISW=2,IRS=splabs('mu','LP')[0])
 # Continue from this label in two parameters
-r(sv='cusp')
-r(DS='-',ap='cusp')
+run(sv='cusp')
+run(DS='-',ap='cusp')
 # Plot the cusp
 p=plot('cusp')
 p.config(bifurcation_y=[3])
