@@ -253,7 +253,7 @@ CONTAINS
              ENDIF
              FIRST=.FALSE.
           ENDIF
-          WRITE(6,"(I4,I6,2X,A2,I4)",ADVANCE="no"),LBR(I),LPT(I), &
+          WRITE(6,"(I4,I6,2X,A2,I4)",ADVANCE="no")LBR(I),LPT(I), &
                TYPE(LTY(I)),LLB(I)
           IF(.NOT.NEW)THEN
              WRITE(6,"()")
