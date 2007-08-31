@@ -102,6 +102,7 @@ realcc=$CC
 if test x$ac_cv_fc_compiler_gnu = "xyes"; then
   CC=$FC
 fi
+AC_FC_DUMMY_MAIN(,[echo "Warning: can't link C with Fortran"])
 AC_FC_WRAPPERS
 CC=$realcc
 if test x$openmp = "xyes"; then
