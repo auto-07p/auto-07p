@@ -17,6 +17,8 @@ With respect to the previous sub-version 0.3:
 * A new splabs() Python CLUI function directly obtains
   special labels from a solution file (e.g., all Hopf
   bifurcation labels).
+* You can now run the @ command (@dm, @R, etc.) directly in
+  the Python CLUI without having to escape them with a !.
 * The number of parameters printed in the bifurcation
   diagram files is now given by NICP; the parameters beyond
   the 7th are displayed as well.
