@@ -2416,7 +2416,7 @@ C
        IF(IUNIT.EQ.7)THEN
           WRITE(7,"(I4/I4,A)",ADVANCE="NO")0,0,'    PT  TY  LAB '
        ELSE
-          WRITE(IUNIT,"(X/A)",ADVANCE="NO")'  BR    PT  TY  LAB '
+          WRITE(IUNIT,"(1X/A)",ADVANCE="NO")'  BR    PT  TY  LAB '
        ENDIF
 C
        DO J=1,N1+N2+1
@@ -2477,7 +2477,7 @@ C Local
       COL=' '
       IF(PRESENT(N))THEN
          WRITE(SN,"(I10)")N
-         WRITE(COL(I:),"(AAAA)") S,'(',TRIM(ADJUSTL(SN)),')'
+         WRITE(COL(I:),"(A,A,A,A)") S,'(',TRIM(ADJUSTL(SN)),')'
       ELSE
          WRITE(COL(I:),"(A)") S
       ENDIF
@@ -2661,8 +2661,8 @@ C
        ENDIF
 C
        MTOT=MOD(NTOT-1,9999)+1
-       WRITE(F69,"(AI10A)") '(I4,I6,2X,A2,I5,',N1+N2+1,'ES14.5)'
-       WRITE(F7,"(AI10A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10)'
+       WRITE(F69,"(A,I10,A)") '(I4,I6,2X,A2,I5,',N1+N2+1,'ES14.5)'
+       WRITE(F7,"(A,I10,A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10)'
        IF(MOD(ITP,10).NE.0)THEN
           WRITE(6,F69)ABS(IBR),ABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS,
      *         (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
