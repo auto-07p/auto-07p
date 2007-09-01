@@ -79,9 +79,12 @@ C     The value of NTST may be different in different nodes.
 C
       NTSTNA=NA
       IF(IAM.EQ.0)NTSTNA=NTST
-      NT = 1
-C$    NT = OMP_GET_MAX_THREADS()
-      IF(NT.GT.NA)NT=NA
+      MNT = 1
+C$    MNT = OMP_GET_MAX_THREADS()
+      IF(MNT.GT.NA)THEN
+         MNT=NA
+C$       CALL OMP_SET_NUM_THREADS(NA)
+      ENDIF
       IF(IFST.EQ.1)THEN
          IF(ALLOCATED(A))THEN
 C           Free floating point arrays
@@ -123,16 +126,19 @@ C     zero pseudo-arclength part of matrices, rest is done in setubv()
          CALL SETFCDD(IFST,D(1,NRC),FC(NFC),NFPR,1)
       ENDIF
 C
-      IF(NT.GT.1)THEN
+      IF(MNT.GT.1)THEN
 C        CCLO avoids write overlap between threads
-         ALLOCATE(DD(NFPR,NRC,NT-1),FCFC(NRC,NT-1),CCLO(NDIM,NRC,NT-1))
+         ALLOCATE(DD(NFPR,NRC,MNT-1),FCFC(NRC,MNT-1),
+     +        CCLO(NDIM,NRC,MNT-1))
       ENDIF
       ALLOCATE(FAA(NDIM,NTSTNA+1),SOL(NDIM,NTSTNA+1))
 C
-C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT)
+C$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
 C
       IT = 0
 C$    IT = OMP_GET_THREAD_NUM()
+      NT = 1
+C$    NT = OMP_GET_NUM_THREADS()
       CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
      +   FUNI,ICNI,NDX,IAP,RAP,PAR,ICP,A,B,C,D,DD,FA,
      +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT)
@@ -145,7 +151,7 @@ C
 C
 C$OMP END PARALLEL
 C
-      IF(NT.GT.1)DEALLOCATE(DD,FCFC,CCLO)
+      IF(MNT.GT.1)DEALLOCATE(DD,FCFC,CCLO)
       DEALLOCATE(FAA,SOL)
 C
       IF(KWT.GT.1)THEN
