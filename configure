@@ -6859,7 +6859,7 @@ ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 }
 fi
 
-if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
+if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'

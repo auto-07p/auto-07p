@@ -220,7 +220,7 @@ else
 }
 fi
 
-if test x$no_x != xyes && test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
+if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     AC_PROG_CXX
     AC_LANG_CPLUSPLUS
