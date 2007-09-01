@@ -220,12 +220,14 @@ else
 }
 fi
 
-if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
+if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$no_x != xyes) && \
+   test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     AC_PROG_CXX
     AC_LANG_CPLUSPLUS
 else
     PLAUT04=""
+    PLAUT04_TEST="no"
 fi
 AC_SUBST(PLAUT04)
 
