@@ -10,7 +10,7 @@ del PmwBlt
 
 ### Loader functions:
 
-_VERSION = '1.2'
+_VERSION = '1.3'
 
 def setversion(version):
     if version != _VERSION:
@@ -1811,7 +1811,7 @@ def _reporterror(func, args):
     if type(exc_type) == types.ClassType:
 	# Handle python 1.5 class exceptions.
 	exc_type = exc_type.__name__
-    msg = exc_type + ' Exception in Tk callback\n'
+    msg = str(exc_type) + ' Exception in Tk callback\n'
     msg = msg + '  Function: %s (type: %s)\n' % (repr(func), type(func))
     msg = msg + '  Args: %s\n' % str(args)
 
