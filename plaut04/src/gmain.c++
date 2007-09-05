@@ -5728,7 +5728,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
         else
         {
 #ifndef R3B
-            cout <<" Only one point in the period, no surface can be drawn!"<<endl;
+	    printf(" Only one point in the period, no surface can be drawn!\n");
 #else
             printf("Only one point in the period, no surface can be drawn!\n");
 #endif
@@ -5777,7 +5777,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
             }
             else
             {
-                cout <<" Only one point in the period, no surface can be drawn!"<<endl;
+                printf(" Only one point in the period, no surface can be drawn!\n");
                 long int idx = sum;
                 SoSeparator * ptSep = new SoSeparator;
                 SoTransform * aTrans = new SoTransform;
@@ -5796,8 +5796,8 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
     }
     else
     {
-        cout <<" Only one solution! No surface is able to be drawn!"<<endl;
-        cout <<" Choose LINE/TUBE to view it."<<endl;
+        printf(" Only one solution! No surface is able to be drawn!\n");
+        printf(" Choose LINE/TUBE to view it.\n");
         return NULL;
     }
     delete [] strip;
@@ -8773,8 +8773,10 @@ readSolutionAndBifurcationData(bool blFirstRead)
 #ifndef R3B
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
 #else
-    blOpenBifFile ? cout <<" Parse Bifurcation file. OK"<<flush<<endl
-        : cout <<" No bifurcation file found!\n";
+    if(blOpenBifFile)
+      printf(" Parse Bifurcation file. OK\n");
+    else
+      printf(" No bifurcation file found!\n");
 #endif
 
     if((!blOpenBifFile) && (!blOpenSolFile) && (!blFirstRead)) return false;
@@ -8854,9 +8856,9 @@ readSolutionAndBifurcationData(bool blFirstRead)
         printf(" Failed to read the diagnostic file.\n");
 #else
     if(st==0)
-        cout <<" D file OK.\n"<<flush;
+        printf(" D file OK.\n");
     else
-        cout <<" Failed to read the D file.\n"<<flush;
+        printf(" Failed to read the D file.\n");
 
     if(!blOpenSolFile && !blOpenBifFile)
     {

@@ -1,5 +1,3 @@
-#include <fstream.h>
-#include <iostream.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -299,7 +297,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
     fclose(inFile);
 //    cout<<" Read SOL OK\n";
 #ifdef R3B
-    cout<<" Read SOL OK\n";
+    printf(" Read SOL OK\n");
 #endif
     return true;
 }
