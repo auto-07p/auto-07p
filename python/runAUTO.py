@@ -102,7 +102,7 @@ class runAUTO:
         for pid in pids:
             self.options["verbose_print"]('Killing: '+str(pid))
             pid = string.split(pid)
-            pid = string.atoi(pid[0])
+            pid = int(pid[0])
             command = "/bin/kill -KILL %d"%(pid,)
             self.options["verbose_print"](command)
             os.system(command)
@@ -335,7 +335,7 @@ class runAUTO:
                 if tokens[0] == "real" and len(tokens)==2:
                     pass
                 elif tokens[0] == "user" and len(tokens)==2:
-                    #user_time = string.atof(tokens[1])
+                    #user_time = float(tokens[1])
                     user_time=1.0
                     pass
                 elif tokens[0] == "sys" and len(tokens)==2:

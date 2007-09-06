@@ -5,7 +5,6 @@ import Pmw
 import AUTOutil
 import plotter
 import types
-import string
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
@@ -116,7 +115,7 @@ class WindowPlotter(Pmw.MegaToplevel):
     def __labelFunction(self,list):
         # The return value of a ScrolledListBox is a list of strings, so we change them
         # to integers here
-        list=map(string.atoi,list)
+        list=map(int,list)
         # but the _modifyOption method expects a string, so we change the whole thing to a string here
         self._modifyOption("label",str(list))
 

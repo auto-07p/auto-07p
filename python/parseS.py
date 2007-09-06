@@ -111,7 +111,7 @@ class parseS:
                     if len(data) != 12:
                         raise IncorrectHeaderLength
                     # and the fact they are all integers
-                    map(string.atoi,data)
+                    map(int,data)
                     # If it passes both these tests we say it is a header line
                     # and we update the offsets
                     offsets.append(start_of_current_solution+guess_at_size)
@@ -342,21 +342,21 @@ class AUTOSolution(UserDict.UserDict):
 	if not line: raise PrematureEndofData
 	data = string.split(line)
         try:
-            self["Branch number"] = string.atoi(data[0])
-            self["Point number"] = string.atoi(data[1])
-            self["Type number"] = string.atoi(data[2])
+            self["Branch number"] = int(data[0])
+            self["Point number"] = int(data[1])
+            self["Type number"] = int(data[2])
             self["Type name"] = parseB.type_translation(self["Type number"])["short name"]
-            self["Label"] = string.atoi(data[3])
-            self.__numChangingParameters = string.atoi(data[4])
-            self["ISW"] = string.atoi(data[5])
-            self.__numSValues = string.atoi(data[6])
-            self.__numEntriesPerBlock = string.atoi(data[7])
-            self.__numLinesPerEntry = string.atoi(data[8])
-            self["NTST"] = string.atoi(data[9])
-            self["NCOL"] = string.atoi(data[10])
+            self["Label"] = int(data[3])
+            self.__numChangingParameters = int(data[4])
+            self["ISW"] = int(data[5])
+            self.__numSValues = int(data[6])
+            self.__numEntriesPerBlock = int(data[7])
+            self.__numLinesPerEntry = int(data[8])
+            self["NTST"] = int(data[9])
+            self["NCOL"] = int(data[10])
             if len(data)==12:
                 # This is the case for AUTO97 and beyond
-                self.__numFreeParameters = string.atoi(data[11])
+                self.__numFreeParameters = int(data[11])
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
@@ -393,7 +393,7 @@ class AUTOSolution(UserDict.UserDict):
 	    self["Free Parameters"] = []
 	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
-            self["Free Parameters"].extend(map(string.atoi, string.split(line)))
+            self["Free Parameters"].extend(map(int, string.split(line)))
 	    self["Parameter NULL vector"] = []
             while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
                 line = inputfile.readline()
@@ -521,17 +521,17 @@ def AUTOatof(input_string):
     #instead of x.xxxxxxxE+xx.  Here we assume the exponent
     #is 0 and make it into a real real number :-)
     try:
-        value=string.atof(input_string)
+        value=float(input_string)
     except (ValueError):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                value=string.atof(string.strip(input_string)[0:-1])
+                value=float(string.strip(input_string)[0:-1])
             elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=string.atof(string.strip(input_string)[0:-4]+'E'+
-                                  string.strip(input_string)[-4:])
+                value=float(string.strip(input_string)[0:-4]+'E'+
+                            string.strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string

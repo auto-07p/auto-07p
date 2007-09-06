@@ -48,8 +48,8 @@ class parseD(UserList.UserList):
             result = re.findall("Eigenvalue\s.*",solution)
             for eigenvalue_string in result:
                 eigenvalue_string = string.split(eigenvalue_string)
-                real_part = string.atof(eigenvalue_string[2])
-                imag_part = string.atof(eigenvalue_string[3])
+                real_part = float(eigenvalue_string[2])
+                imag_part = float(eigenvalue_string[3])
                 self.__data[-1]["Eigenvalues"].append([real_part,imag_part])
 
     def readFilename(self,filename):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         opts[x[0]]=x[1]
 
     foo = parseD(args[0])
-    foo.printMatrix(string.atoi(opts["-i"]),sys.stdout)
+    foo.printMatrix(int(opts["-i"]),sys.stdout)
 
     
 

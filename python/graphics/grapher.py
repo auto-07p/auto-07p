@@ -541,9 +541,9 @@ class InteractiveGrapher(LabeledGrapher):
             for tag in point_tags:
                 tag=string.split(tag,":")
                 if tag[0] == "data_point":
-                    point=string.atoi(tag[1])
+                    point=int(tag[1])
                 if tag[0] == "curve":
-                    curve=string.atoi(tag[1])
+                    curve=int(tag[1])
         if not((point is None) or (curve is None)):
             label = tkSimpleDialog.askstring("Label","Enter here")
             self.addLabel(curve,point,label)
@@ -651,9 +651,9 @@ class GUIGrapher(InteractiveGrapher):
     def __modifyOption(self):
         key = self.optionList.getcurselection()[0]
         if type(self.cget(key)) == types.IntType:
-            self[key] = string.atoi(self.valueEntry.get())
+            self[key] = int(self.valueEntry.get())
         elif type(self.cget(key)) == types.FloatType:
-            self[key] = string.atof(self.valueEntry.get())
+            self[key] = float(self.valueEntry.get())
         elif type(self.cget(key)) == types.StringType:
             self[key] = self.valueEntry.get()
         self.valueLabel.setentry(self.cget(key))

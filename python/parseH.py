@@ -72,42 +72,42 @@ class parseH(UserDict.UserDict):
 #        self.dataString = inputfile.read()
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NUNSTAB"] = string.atoi(data[0])
-	self["NSTAB"] = string.atoi(data[1])
-	self["IEQUIB"] = string.atoi(data[2])
-	self["ITWIST"] = string.atoi(data[3])
-	self["ISTART"] = string.atoi(data[4])
+	self["NUNSTAB"] = int(data[0])
+	self["NSTAB"] = int(data[1])
+	self["IEQUIB"] = int(data[2])
+	self["ITWIST"] = int(data[3])
+	self["ISTART"] = int(data[4])
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NREV"] = string.atoi(data[0])
+	self["NREV"] = int(data[0])
 	self["IREV"] = []
         data = []
 	if self["NREV"] > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
 	for i in data:
-	    self["IREV"].append(string.atoi(i))
+	    self["IREV"].append(int(i))
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NFIXED"] = string.atoi(data[0])
+	self["NFIXED"] = int(data[0])
 	self["IFIXED"] = []
 	if self["NFIXED"] > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
 	for i in range(self["NFIXED"]):
-	    self["IFIXED"].append(string.atoi(data[i]))
+	    self["IFIXED"].append(int(data[i]))
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NPSI"] = string.atoi(data[0])
+	self["NPSI"] = int(data[0])
 	self["IPSI"] = []
 	if self["NPSI"] > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
 	for i in range(self["NPSI"]):
-	    self["IPSI"].append(string.atoi(data[i]))
+	    self["IPSI"].append(int(data[i]))
 
 
     def write(self,output):

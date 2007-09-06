@@ -186,13 +186,13 @@ class parseB:
         self.data=[]
         for input_line in data:
             line = string.split(input_line)
-            if len(line) > 0 and string.atoi(line[0]) != 0:
+            if len(line) > 0 and int(line[0]) != 0:
                 item = {}
-                item["BR"] = string.atoi(line[0])
-                item["PT"] = string.atoi(line[1])
-                item["TY number"] = string.atoi(line[2])
+                item["BR"] = int(line[0])
+                item["PT"] = int(line[1])
+                item["TY number"] = int(line[2])
                 item["TY name"] = type_translation(item["TY number"])["short name"]
-                item["LAB"] = string.atoi(line[3])
+                item["LAB"] = int(line[3])
                 # A section is defined as a part of a fort.7
                 # file between "headers", i.e. those parts
                 # of the fort.7 file which start with a 0
@@ -232,17 +232,17 @@ def AUTOatof(input_string):
     #instead of x.xxxxxxxE+xx.  Here we assume the exponent
     #is 0 and make it into a real real number :-)
     try:
-        value=string.atof(input_string)
+        value=float(input_string)
     except (ValueError):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                value=string.atof(string.strip(input_string)[0:-1])
+                value=float(string.strip(input_string)[0:-1])
             elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=string.atof(string.strip(input_string)[0:-4]+'E'+
-                                  string.strip(input_string)[-4:])
+                value=float(string.strip(input_string)[0:-4]+'E'+
+                            string.strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
