@@ -4,7 +4,7 @@ import signal, os, time
 import cStringIO
 import re
 import types
-from AUTOExceptions import *
+import AUTOExceptions
 
 # A few global variables for the signal handler
 alarm_demo=""
@@ -95,7 +95,7 @@ class runAUTO:
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
-        cout,cin = popen2.popen2("ps ww | grep %s.exe | grep -v grep"%(d,))
+        cout,cin = popen2.popen2("ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
         pids = cout.read()
         pids = string.split(pids,"\n")
         pids = pids[:-1]
@@ -143,7 +143,7 @@ class runAUTO:
             if os.environ.has_key("AUTO_DIR"):
                 self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
-                raise AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
+                raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
         else:
             os.environ["AUTO_DIR"]=self.options["auto_dir"]
 
@@ -186,7 +186,7 @@ class runAUTO:
         or runCommand)"""
         os.system("rm -f fort.2")
         if (self.options["constants"] is None):
-            raise AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
+            raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
         else:
             self.options["constants"].writeFilename("fort.2")
 
@@ -223,7 +223,7 @@ class runAUTO:
             if not(self.options["equation"] is None):
                 equation = self.options["equation"]
             else:
-                raise AUTORuntimeError("No equation set")
+                raise AUTOExceptions.AUTORuntimeError("No equation set")
         else:
             self.options["equation"] = equation
 
@@ -231,7 +231,7 @@ class runAUTO:
             if os.environ.has_key("AUTO_DIR"):
                 self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
-                raise AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
+                raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
         else:
             os.environ["AUTO_DIR"]=self.options["auto_dir"]
 
@@ -263,7 +263,7 @@ class runAUTO:
             if not(self.options["executable"] is None):
                 executable = self.options["executable"]
             else:
-                raise AUTORuntimeError("No executable set")
+                raise AUTOExceptions.AUTORuntimeError("No executable set")
         else:
             self.options["executable"] = executable
 
@@ -289,7 +289,7 @@ class runAUTO:
             if not(self.options["command"] is None):
                 command = self.options["command"]
             else:
-                raise AUTORuntimeError("No command set")
+                raise AUTOExceptions.AUTORuntimeError("No command set")
         else:
             self.options["command"] = command
         # The command runs here.

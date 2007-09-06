@@ -10,6 +10,7 @@ import UserList
 import string
 import getopt
 import math
+import AUTOExceptions
 
 class parseD(UserList.UserList):
     def __init__(self,filename):
@@ -55,14 +56,14 @@ class parseD(UserList.UserList):
         self.read(open(filename,"r"))
         
     def write(self,output):
-        AUTORuntimeError("parseD does not have a write routine")
+        raise AUTOExceptions.AUTORuntimeError("parseD does not have a write routine")
 
     def writeFilename(self,filename):
         self.write(open(filename,"w"))
 
 
 def test():
-    AUTORuntimeError("No regression test")
+    raise AUTOExceptions.AUTORuntimeError("parseD does not have a write routine")
 
 if __name__ == "__main__":
     #Parse command line arguements

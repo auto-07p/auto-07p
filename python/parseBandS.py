@@ -18,11 +18,12 @@
 #    MA 02111-1307, USA
 import parseB
 import parseS
+import AUTOExceptions
 
 class parseBandS:
     def __init__(self,fort7_filename=None,fort8_filename=None):
         if (fort8_filename is None) and not(fort8_filename is None):
-            raise AUTORuntimeError("Must set both both filenames")
+            raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
         self.diagram = parseB.parseB()
         self.solution = parseS.parseS()
         self.dg = self.diagram
@@ -67,19 +68,19 @@ class parseBandS:
 
 def pointtest7(a,b):
     if not(a.has_key("TY name")):
-        raise AUTORegressionError("No TY name label")
+        raise AUTOExceptions.AUTORegressionError("No TY name label")
     if not(a.has_key("TY number")):
-        raise AUTORegressionError("No TY number label")
+        raise AUTOExceptions.AUTORegressionError("No TY number label")
     if not(a.has_key("BR")):
-        raise AUTORegressionError("No BR label")
+        raise AUTOExceptions.AUTORegressionError("No BR label")
     if not(a.has_key("data")):
-        raise AUTORegressionError("No data label")
+        raise AUTOExceptions.AUTORegressionError("No data label")
     if not(a.has_key("PT")):
-        raise AUTORegressionError("No PT label")
+        raise AUTOExceptions.AUTORegressionError("No PT label")
     if not(a.has_key("LAB")):
-        raise AUTORegressionError("No LAB label")
+        raise AUTOExceptions.AUTORegressionError("No LAB label")
     if not(len(a["data"]) == len(b["data"])):
-        raise AUTORegressionError("Data sections have different lengths")
+        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
    
     
 def pointtest8(a,b):
@@ -90,29 +91,29 @@ def pointtest8(a,b):
 
     for key in keys:
         if not(a.has_key(key)):
-            raise AUTORegressionError("No %s label"%(key,))
+            raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
     if not(len(a["data"]) == len(b["data"])):
-        raise AUTORegressionError("Data sections have different lengths")
+        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 
 def test():
     foo = parseBandS()
     foo.readFilename("test_data/fort.7","test_data/fort.8")
     if len(foo.diagram) != 150:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest7(foo.diagram.getIndex(0),foo.diagram.getIndex(57))
     if len(foo.solution) != 5:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest8(foo.solution.getIndex(0),foo.solution.getIndex(3))
 
     if len(foo.getLabels()) != 5:
-        raise AUTORegressionError("Incorrect number of labels")
+        raise AUTOExceptions.AUTORegressionError("Incorrect number of labels")
 
     print "Deleting labels"
     foo.deleteLabel(range(6,9))
     
     if len(foo.getLabels()) != 2:
-        raise AUTORegressionError("Incorrect number of labels")
+        raise AUTOExceptions.AUTORegressionError("Incorrect number of labels")
 
     print "Relabeling"
     foo.relabel(9,57)
@@ -120,10 +121,10 @@ def test():
     for i in range(len(foo.diagram)):
         if foo.diagram.getIndex(0)["TY number"] != 0:
             if foo.diagram.getIndex(0)["LAB"] != 57:
-                raise AUTORegressionError("Incorrect label")
+                raise AUTOExceptions.AUTORegressionError("Incorrect label")
             break
     if foo.solution.getIndex(0)["Label"] != 57:
-        raise AUTORegressionError("Incorrect label")
+        raise AUTOExceptions.AUTORegressionError("Incorrect label")
 
     print "Making labels unique"
     foo.uniquelyLabel()
@@ -131,10 +132,10 @@ def test():
     for i in range(len(foo.diagram)):
         if foo.diagram.getIndex(0)["TY number"] != 0:
             if foo.diagram.getIndex(0)["LAB"] != 1:
-                raise AUTORegressionError("Incorrect label")
+                raise AUTOExceptions.AUTORegressionError("Incorrect label")
             break
     if foo.solution.getIndex(0)["Label"] != 1:
-        raise AUTORegressionError("Incorrect label")
+        raise AUTOExceptions.AUTORegressionError("Incorrect label")
 
     print "parseBandS passed all tests"
 

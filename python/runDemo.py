@@ -22,11 +22,11 @@ def test():
     #commands.getstatusoutput
     status,output=commands.getstatusoutput("diff --ignore-matching-lines='.*Total Time.*' log test_data/runDemo.log")
     if status != 0:
-        raise AUTORegressionError("Log files differ")
+        raise AUTOExceptions.AUTORegressionError("Log files differ")
 
     status,output=commands.getstatusoutput("diff --ignore-matching-lines='.*Total Time.*' err test_data/runDemo.err")
     if status != 0:
-        raise AUTORegressionError("Error files differ")
+        raise AUTOExceptions.AUTORegressionError("Error files differ")
     
     os.remove("log")
     os.remove("err")

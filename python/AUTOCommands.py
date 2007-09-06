@@ -19,7 +19,7 @@ SIMPLE=0
 EXPERT=1
 
 
-from AUTOExceptions import *
+import AUTOExceptions
 
 # Initialize a default runAUTO for those commands that use runAUTO object
 _runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make")
@@ -109,10 +109,10 @@ class commandCopyAndLoadDemo(commandMacro):
     """
     
     def __init__(self,name1,runner=None):
-        list=[]
-        list.append(commandCopyDemo(name1))
-        list.append(commandRunnerLoadName(name1,runner))
-        commandMacro.__init__(self,list)
+        lst=[]
+        lst.append(commandCopyDemo(name1))
+        lst.append(commandRunnerLoadName(name1,runner))
+        commandMacro.__init__(self,lst)
 
 class commandDeleteFortFiles(command):
     """Clear the current directory of fort files.
@@ -1096,7 +1096,7 @@ class commandRunMakefile(command):
             return valueRun(log,err)
 
 class commandRunExecutableWithSetup(command):
-    def __init__(self,executabl=None,fort2=None,fort3=None,runner=None):
+    def __init__(self,executable=None,fort2=None,fort3=None,runner=None):
         commandWithRunner.__init__(self,runner)
         self.executable = executable
         self.fort2 = fort2
@@ -1118,7 +1118,7 @@ class commandRunExecutableWithSetup(command):
             return valueRun(log,err)
 
 class commandRunExecutable(command):
-    def __init__(self,executable=None,runner=None):
+    def __init__(self,executable=None,fort2=None,fort3=None,runner=None):
         commandWithRunner.__init__(self,runner)
         self.executable = executable
         self.fort2 = fort2

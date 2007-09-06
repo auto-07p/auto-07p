@@ -7,6 +7,7 @@ import string
 import AUTOclui
 import getopt
 import re
+import AUTOExceptions
 
 class AUTOInteractiveConsole(code.InteractiveConsole):
     def __init__(self,locals,filename=None):
@@ -42,27 +43,27 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         """    Given a line of python input check to see if it is
         a AUTO shorthand command, if so, change it to
         its real python equivalent. """
-        list = string.split(line)
+        lst = string.split(line)
         spaces = re.match(" *",line)
 
         shortCommands = ["ls","cd","help","cat","man"]
         shortCommandsNoArgument = ["q","quit"]
             
-        if len(list) > 0:
-            if list[0]=="shell":
+        if len(lst) > 0:
+            if lst[0]=="shell":
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+5:]) +"')"
-            elif list[0][0]=="!":
+            elif lst[0][0]=="!":
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+1:]) +"')"
-            elif list[0][0]=="@":
+            elif lst[0][0]=="@":
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group()):]) +"')"
-            elif list[0] in shortCommands:
-                if len(list) == 2:
-                    command = spaces.group() + list[0] + "('%s')"%list[1]
+            elif lst[0] in shortCommands:
+                if len(lst) == 2:
+                    command = spaces.group() + lst[0] + "('%s')"%lst[1]
                 else:
-                    command = spaces.group() + list[0] + "('')"
+                    command = spaces.group() + lst[0] + "('')"
                 return command
-            elif list[0] in shortCommandsNoArgument:
-                command = spaces.group() + list[0] + "()"
+            elif lst[0] in shortCommandsNoArgument:
+                command = spaces.group() + lst[0] + "()"
                 return command
             else:
                 return line
@@ -71,7 +72,6 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
 def test():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
-    import os
     if os.environ.has_key("DISPLAY"):
         _testFilename("../demos/python/plotter.auto","test_data/plotter.log")
 
@@ -79,17 +79,16 @@ def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     
 def _testFilename(inputname,outputname):
-    import commands,os
+    import commands
     old_path = os.getcwd()
     log = open("log","w")
-    import AUTOclui
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
     runner.execfile(inputname)
     log.close()
     os.chdir(old_path)
     status,output = commands.getstatusoutput("diff --ignore-matching-lines='gcc.*' --ignore-matching-lines='.*Total Time.*' log %s"%outputname)
     if status != 0:
-        raise AUTORegressionError("Error: log files differ")
+        raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")
     
 
@@ -113,7 +112,6 @@ if __name__ == "__main__":
     elif opts.has_key("-d"):
         demo_mode = 'yes'
         
-    import AUTOclui
     try:
         import readline
     except:

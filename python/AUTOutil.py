@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from types import *
+import types
 
 # This file contains code from the Python distribution.  As
 # per the Python License we include the following:
@@ -38,16 +38,16 @@ from types import *
 def _flatten(tuple):
         res = ()
         for item in tuple:
-                if type(item) in (TupleType, ListType):
+                if type(item) in (types.TupleType, types.ListType):
                         res = res + _flatten(item)
                 elif item is not None:
                         res = res + (item,)
         return res
 
 def cnfmerge(cnfs):
-        if type(cnfs) is DictionaryType:
+        if type(cnfs) is types.DictionaryType:
                 return cnfs
-        elif type(cnfs) in (NoneType, StringType):
+        elif type(cnfs) in (types.NoneType, types.StringType):
                 return cnfs
         else:
                 cnf = {}

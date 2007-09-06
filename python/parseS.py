@@ -17,11 +17,11 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-from string import *
+import string
 import os
 import sys
 import UserDict
-from AUTOExceptions import *
+import AUTOExceptions
 import types
 import copy
 import parseB
@@ -98,7 +98,7 @@ class parseS:
             # See if the guess for the solution size is correct
             file.seek(start_of_current_solution+guess_at_size+1,0)
             data = file.readline()
-            data = split(data)
+            data = string.split(data)
             # This is where we detect the end of the file
             if len(data) == 0:
                 data = file.read(1)
@@ -111,7 +111,7 @@ class parseS:
                     if len(data) != 12:
                         raise IncorrectHeaderLength
                     # and the fact they are all integers
-                    map(atoi,data)
+                    map(string.atoi,data)
                     # If it passes both these tests we say it is a header line
                     # and we update the offsets
                     offsets.append(start_of_current_solution+guess_at_size)
@@ -154,15 +154,15 @@ class parseS:
     # This will be used to check a file to see if it has a new point
     # and it will ignore a partially created solution.
     # Basically it for an VBM kind of program.
-    def tryNextPointRead(self,input):
-	current_position = input.tell()
+    def tryNextPointRead(self,inputfile):
+	current_position = inputfile.tell()
 	try:
-	    self.data.append(AUTOSolution(input))
+	    self.data.append(AUTOSolution(inputfile))
 	except PrematureEndofData:
-	    input.seek(current_position)
+	    inputfile.seek(current_position)
 
-    def read(self,input):
-        self.__setFile(input)
+    def read(self,inputfile):
+        self.__setFile(inputfile)
 
     def write(self,output):
         for x in self.data:
@@ -170,8 +170,8 @@ class parseS:
         output.flush()
 
     def readFilename(self,filename):
-	input = open(filename,"rb")
-        self.__setFile(input)
+	inputfile = open(filename,"rb")
+        self.__setFile(inputfile)
 
     def writeFilename(self,filename):
 	output = open(filename,"w")
@@ -276,14 +276,14 @@ class AUTOSolution(UserDict.UserDict):
 	return parseB.type_translation(self["Type number"])["long name"]
 
     def readAllFilename(self,filename):
-	input = open(filename,"rb")
-	self.readAll(input)
-	input.close()
+	inputfile = open(filename,"rb")
+	self.readAll(inputfile)
+	inputfile.close()
 
     def readFilename(self,filename):
-	input = open(filename,"rb")
-	self.read(input)
-	input.close()
+	inputfile = open(filename,"rb")
+	self.read(inputfile)
+	inputfile.close()
 
     def writeFilename(self,filename):
 	output = open(filename,"w")
@@ -336,27 +336,27 @@ class AUTOSolution(UserDict.UserDict):
         self.__readAll()
 
     def __readHeader(self):
-        input = self.__input
-        input.seek(self.__start_of_header)
-	line = input.readline()
+        inputfile = self.__input
+        inputfile.seek(self.__start_of_header)
+	line = inputfile.readline()
 	if not line: raise PrematureEndofData
-	data = split(line)
+	data = string.split(line)
         try:
-            self["Branch number"] = atoi(data[0])
-            self["Point number"] = atoi(data[1])
-            self["Type number"] = atoi(data[2])
+            self["Branch number"] = string.atoi(data[0])
+            self["Point number"] = string.atoi(data[1])
+            self["Type number"] = string.atoi(data[2])
             self["Type name"] = parseB.type_translation(self["Type number"])["short name"]
-            self["Label"] = atoi(data[3])
-            self.__numChangingParameters = atoi(data[4])
-            self["ISW"] = atoi(data[5])
-            self.__numSValues = atoi(data[6])
-            self.__numEntriesPerBlock = atoi(data[7])
-            self.__numLinesPerEntry = atoi(data[8])
-            self["NTST"] = atoi(data[9])
-            self["NCOL"] = atoi(data[10])
+            self["Label"] = string.atoi(data[3])
+            self.__numChangingParameters = string.atoi(data[4])
+            self["ISW"] = string.atoi(data[5])
+            self.__numSValues = string.atoi(data[6])
+            self.__numEntriesPerBlock = string.atoi(data[7])
+            self.__numLinesPerEntry = string.atoi(data[8])
+            self["NTST"] = string.atoi(data[9])
+            self["NCOL"] = string.atoi(data[10])
             if len(data)==12:
                 # This is the case for AUTO97 and beyond
-                self.__numFreeParameters = atoi(data[11])
+                self.__numFreeParameters = string.atoi(data[11])
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
@@ -366,16 +366,16 @@ class AUTOSolution(UserDict.UserDict):
         
     def __readAll(self):
         self.__fullyParsed = 1
-        input = self.__input
-        input.seek(self.__start_of_data)
+        inputfile = self.__input
+        inputfile.seek(self.__start_of_data)
 	self["data"] = []
         solution = self["data"]
 	for i in range(self.__numSValues):
 	    solution.append({})
             point = solution[i]
-	    line = input.readline()
+	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
-	    data = split(line)
+	    data = string.split(line)
             pointu = point["u"] = []
             if len(data) > 0:
                 point["t"] = AUTOatof(data[0])
@@ -383,22 +383,22 @@ class AUTOSolution(UserDict.UserDict):
             j = 0
 	    while len(pointu) < self.__numEntriesPerBlock - 1:
                 if pointu != []:
-                    line = input.readline()
+                    line = inputfile.readline()
 		    if not line: raise PrematureEndofData
-		    data = split(line)
+		    data = string.split(line)
                 pointu.extend(map(AUTOatof, data))
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
 	    self["Free Parameters"] = []
-	    line = input.readline()
+	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
-            self["Free Parameters"].extend(map(atoi, split(line)))
+            self["Free Parameters"].extend(map(string.atoi, string.split(line)))
 	    self["Parameter NULL vector"] = []
             while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
-                line = input.readline()
+                line = inputfile.readline()
                 if not line: raise PrematureEndofData
-                self["Parameter NULL vector"].extend(map(AUTOatof, split(line)))
+                self["Parameter NULL vector"].extend(map(AUTOatof, string.split(line)))
 
 	    if len(self["Parameter NULL vector"]) != len(self["Free Parameters"]):
 		print "BEWARE!! size of parameter NULL vector and number of changing"
@@ -410,18 +410,18 @@ class AUTOSolution(UserDict.UserDict):
                 udot = self["data"][i]["u dot"] = []
 		j = 0
 		while len(udot) < self.__numEntriesPerBlock-1:
-		    line = input.readline()
+		    line = inputfile.readline()
 		    if not line: raise PrematureEndofData
-		    data = split(line)
+		    data = string.split(line)
                     udot.extend(map(AUTOatof, data))
 
 	parameters = self["Parameters"] = []
 	while len(parameters) < self.__numFreeParameters:
-	    line = input.readline()
+	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
-            parameters.extend(map(AUTOatof, split(line)))
+            parameters.extend(map(AUTOatof, string.split(line)))
 	    
-        self.__end = input.tell()
+        self.__end = inputfile.tell()
         self["parameters"] = self["Parameters"]
         self["p"] = self["Parameters"]
 
@@ -521,17 +521,17 @@ def AUTOatof(input_string):
     #instead of x.xxxxxxxE+xx.  Here we assume the exponent
     #is 0 and make it into a real real number :-)
     try:
-        value=atof(input_string)
+        value=string.atof(input_string)
     except (ValueError):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                value=atof(strip(input_string)[0:-1])
+                value=string.atof(string.strip(input_string)[0:-1])
             elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=atof(strip(input_string)[0:-4]+'E'+
-                           strip(input_string)[-4:])
+                value=string.atof(string.strip(input_string)[0:-4]+'E'+
+                                  string.strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
@@ -554,9 +554,9 @@ def pointtest(a,b):
 
     for key in keys:
         if not(a.has_key(key)):
-            raise AUTORegressionError("No %s label"%(key,))
+            raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
     if not(len(a["data"]) == len(b["data"])):
-        raise AUTORegressionError("Data sections have different lengths")
+        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 
 def test():
@@ -564,7 +564,7 @@ def test():
     foo = parseS()
     foo.readFilename("test_data/fort.8")    
     if len(foo) != 5:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(3))
 
     print "Testing reading from a stream"
@@ -572,7 +572,7 @@ def test():
     fp = open("test_data/fort.8","rb")
     foo.read(fp)    
     if len(foo) != 5:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(3))
 
     

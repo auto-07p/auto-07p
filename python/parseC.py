@@ -17,11 +17,12 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-from string import *
+import string
 import os
 import sys
-from UserDict import *
+import UserDict
 import cStringIO
+import AUTOExceptions
 
 line1_comment="NDIM,IPS,IRS,ILP"
 line2_comment="NICP,(ICP(I),I=1 NICP)"
@@ -50,9 +51,9 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 
 
-class parseC(UserDict):
+class parseC(UserDict.UserDict):
     def __init__(self,filename=None):
-	UserDict.__init__(self)
+	UserDict.UserDict.__init__(self)
 	if filename:
 	    self.readFilename(filename)
 
@@ -76,104 +77,104 @@ class parseC(UserDict):
             self.data[key] = item
             
     def readFilename(self,filename):
-	input = open(filename,"r")
-	self.read(input)
-	input.close()
+	inputfile = open(filename,"r")
+	self.read(inputfile)
+	inputfile.close()
 
     def writeFilename(self,filename):
 	output = open(filename,"w")
 	self.write(output)
 	output.close()
 
-    def read(self,input):
-	line = input.readline()
-	data = split(line)
-	self["NDIM"] = atoi(data[0])
-	self["IPS"] = atoi(data[1])
-	self["IRS"] = atoi(data[2])
-	self["ILP"] = atoi(data[3])
+    def read(self,inputfile):
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NDIM"] = string.atoi(data[0])
+	self["IPS"] = string.atoi(data[1])
+	self["IRS"] = string.atoi(data[2])
+	self["ILP"] = string.atoi(data[3])
 
-	line = input.readline()
-	data = split(line)
-	self.data["__NICP"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self.data["__NICP"] = string.atoi(data[0])
 	self.data["ICP"] = []
 	for i in range(self["__NICP"]):
-	    self.data["ICP"].append(atoi(data[i+1]))
+	    self.data["ICP"].append(string.atoi(data[i+1]))
 
-	line = input.readline()
-	data = split(line)
-	self["NTST"] = atoi(data[0])
-	self["NCOL"] = atoi(data[1])
-	self["IAD"] = atoi(data[2])
-	self["ISP"] = atoi(data[3])
-	self["ISW"] = atoi(data[4])
-	self["IPLT"] = atoi(data[5])
-	self["NBC"] = atoi(data[6])
-	self["NINT"] = atoi(data[7])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NTST"] = string.atoi(data[0])
+	self["NCOL"] = string.atoi(data[1])
+	self["IAD"] = string.atoi(data[2])
+	self["ISP"] = string.atoi(data[3])
+	self["ISW"] = string.atoi(data[4])
+	self["IPLT"] = string.atoi(data[5])
+	self["NBC"] = string.atoi(data[6])
+	self["NINT"] = string.atoi(data[7])
 
-	line = input.readline()
-	data = split(line)
-	self["NMX"] = atoi(data[0])
-	self["RL0"] = atof(data[1])
-	self["RL1"] = atof(data[2])
-	self["A0"] = atof(data[3])
-	self["A1"] = atof(data[4])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NMX"] = string.atoi(data[0])
+	self["RL0"] = string.atof(data[1])
+	self["RL1"] = string.atof(data[2])
+	self["A0"] = string.atof(data[3])
+	self["A1"] = string.atof(data[4])
 	
-	line = input.readline()
-	data = split(line)
-	self["NPR"] = atoi(data[0])
-	self["MXBF"] = atoi(data[1])
-	self["IID"] = atoi(data[2])
-	self["ITMX"] = atoi(data[3])
-	self["ITNW"] = atoi(data[4])
-	self["NWTN"] = atoi(data[5])
-	self["JAC"] = atoi(data[6])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NPR"] = string.atoi(data[0])
+	self["MXBF"] = string.atoi(data[1])
+	self["IID"] = string.atoi(data[2])
+	self["ITMX"] = string.atoi(data[3])
+	self["ITNW"] = string.atoi(data[4])
+	self["NWTN"] = string.atoi(data[5])
+	self["JAC"] = string.atoi(data[6])
 	
-	line = input.readline()
-	data = split(line)
-	self["EPSL"] = atof(data[0])
-	self["EPSU"] = atof(data[1])
-	self["EPSS"] = atof(data[2])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["EPSL"] = string.atof(data[0])
+	self["EPSU"] = string.atof(data[1])
+	self["EPSS"] = string.atof(data[2])
 
-	line = input.readline()
-	data = split(line)
-	self["DS"] = atof(data[0])
-	self["DSMIN"] = atof(data[1])
-	self["DSMAX"] = atof(data[2])
-	self["IADS"] = atoi(data[3])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["DS"] = string.atof(data[0])
+	self["DSMIN"] = string.atof(data[1])
+	self["DSMAX"] = string.atof(data[2])
+	self["IADS"] = string.atoi(data[3])
 	
-	line = input.readline()
-	data = split(line)
-	self.data["__NTHL"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self.data["__NTHL"] = string.atoi(data[0])
 	self.data["THL"] = []
 	for i in range(self["__NTHL"]):
 	    self.data["THL"].append({})
-	    line = input.readline()
-	    data = split(line)
-	    self.data["THL"][i]["PAR index"] = atoi(data[0])
-	    self.data["THL"][i]["PAR value"] = atof(data[1])
+	    line = inputfile.readline()
+	    data = string.split(line)
+	    self.data["THL"][i]["PAR index"] = string.atoi(data[0])
+	    self.data["THL"][i]["PAR value"] = string.atof(data[1])
 
-	line = input.readline()
-	data = split(line)
-	self.data["__NTHU"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self.data["__NTHU"] = string.atoi(data[0])
 	self.data["THU"] = []
 	for i in range(self["__NTHU"]):
 	    self.data["THU"].append({})
-	    line = input.readline()
-	    data = split(line)
-	    self.data["THU"][i]["PAR index"] = atoi(data[0])
-	    self.data["THU"][i]["PAR value"] = atof(data[1])
+	    line = inputfile.readline()
+	    data = string.split(line)
+	    self.data["THU"][i]["PAR index"] = string.atoi(data[0])
+	    self.data["THU"][i]["PAR value"] = string.atof(data[1])
 
-	line = input.readline()
-	data = split(line)
-	self.data["__NUZR"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self.data["__NUZR"] = string.atoi(data[0])
 	self.data["UZR"] = []
 	for i in range(self["__NUZR"]):
 	    self.data["UZR"].append({})
-	    line = input.readline()
-	    data = split(line)
-	    self.data["UZR"][i]["PAR index"] = atoi(data[0])
-	    self.data["UZR"][i]["PAR value"] = atof(data[1])
+	    line = inputfile.readline()
+	    data = string.split(line)
+	    self.data["UZR"][i]["PAR index"] = string.atoi(data[0])
+	    self.data["UZR"][i]["PAR value"] = string.atof(data[1])
 
     def write(self,output):
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
@@ -237,7 +238,7 @@ def pointtest(a):
             'DSMAX', 'ISW', 'IRS', 'THU', 'IAD', 'JAC', '__NUZR', 'NDIM']
     for key in keys:
         if not(a.has_key(key)):
-            raise AUTORegressionError("No %s label"%(key,))
+            raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
 
 def test():
     print "Testing reading from a filename"

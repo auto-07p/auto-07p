@@ -20,7 +20,7 @@
 import string
 import os
 import sys
-from AUTOExceptions import *
+import AUTOExceptions
 import types
 
 # A little dictionary to transform types to human readable strings
@@ -76,7 +76,7 @@ class parseB:
                 
         return rep
 
-    def __getitem__(self,*index):
+    def __getitem__(self,index):
         return apply(self.getIndex,index)
 
     def __call__(self,*label):
@@ -179,8 +179,8 @@ class parseB:
 	self.write(output)
 	output.close()
 
-    def read(self,input):
-        data=input.readlines()
+    def read(self,inputfile):
+        data=inputfile.readlines()
         section = 0
         self.with_header=[]
         self.data=[]
@@ -222,9 +222,9 @@ class parseB:
                 item["header"] = input_line
                 self.with_header.append(item)
     def readFilename(self,filename):
-	input = open(filename,"r")
-	self.read(input)
-	input.close()
+	inputfile = open(filename,"r")
+	self.read(inputfile)
+	inputfile.close()
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an
@@ -237,12 +237,12 @@ def AUTOatof(input_string):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                value=string.atof(strip(input_string)[0:-1])
+                value=string.atof(string.strip(input_string)[0:-1])
             elif input_string[-4] == "-" or input_string[-4] == "+":
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=atof(strip(input_string)[0:-4]+'E'+
-                           strip(input_string)[-4:])
+                value=string.atof(string.strip(input_string)[0:-4]+'E'+
+                                  string.strip(input_string)[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
@@ -259,26 +259,26 @@ def AUTOatof(input_string):
 
 def pointtest(a,b):
     if not(a.has_key("TY name")):
-        raise AUTORegressionError("No TY label")
+        raise AUTOExceptions.AUTORegressionError("No TY label")
     if not(a.has_key("TY number")):
-        raise AUTORegressionError("No TY label")
+        raise AUTOExceptions.AUTORegressionError("No TY label")
     if not(a.has_key("BR")):
-        raise AUTORegressionError("No BR label")
+        raise AUTOExceptions.AUTORegressionError("No BR label")
     if not(a.has_key("data")):
-        raise AUTORegressionError("No data label")
+        raise AUTOExceptions.AUTORegressionError("No data label")
     if not(a.has_key("PT")):
-        raise AUTORegressionError("No PT label")
+        raise AUTOExceptions.AUTORegressionError("No PT label")
     if not(a.has_key("LAB")):
-        raise AUTORegressionError("No LAB label")
+        raise AUTOExceptions.AUTORegressionError("No LAB label")
     if not(len(a["data"]) == len(b["data"])):
-        raise AUTORegressionError("Data sections have different lengths")
+        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 def test():
     print "Testing reading from a filename"
     foo = parseB()
     foo.readFilename("test_data/fort.7")    
     if len(foo) != 150:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(57))
 
     print "Testing reading from a stream"
@@ -286,7 +286,7 @@ def test():
     fp = open("test_data/fort.7","r")
     foo.read(fp)
     if len(foo) != 150:
-        raise AUTORegressionError("File length incorrect")
+        raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(57))
 
 
@@ -295,11 +295,11 @@ def test():
     foo.relabel(labels[0],57)
     labels = foo.getLabels()
     if labels[0] != 57:
-        raise AUTORegressionError("Error in either relabel or getLabel")
+        raise AUTOExceptions.AUTORegressionError("Error in either relabel or getLabel")
     foo.deleteLabel(labels[1])
     new_labels = foo.getLabels()
     if len(labels) != len(new_labels) + 1:
-        raise AUTORegressionError("Error in label deletion")
+        raise AUTOExceptions.AUTORegressionError("Error in label deletion")
         
     
     print "parseB passed all tests"

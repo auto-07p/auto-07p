@@ -17,11 +17,12 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-from string import *
+import string
 import os
 import sys
-from UserDict import *
+import UserDict
 import cStringIO
+import AUTOExceptions
 
 line1_comment="NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART"
 line2_comment="NREV,/,IREV(I),I=1,NDIM)"
@@ -44,10 +45,10 @@ line4_comment="NPSI,(/,I,IPSI(I)),I=1,NPSI)"
 
 
 
-class parseH(UserDict):
+class parseH(UserDict.UserDict):
 
     def __init__(self,filename=None):
-	UserDict.__init__(self)
+	UserDict.UserDict.__init__(self)
 	if filename:
 	    self.readFilename(filename)
 #        self.dataString=""
@@ -58,55 +59,55 @@ class parseH(UserDict):
         return string.getvalue()
         
     def readFilename(self,filename):
-	input = open(filename,"r")
-	self.read(input)
-	input.close()
+	inputfile = open(filename,"r")
+	self.read(inputfile)
+	inputfile.close()
 
     def writeFilename(self,filename):
 	output = open(filename,"w")
 	self.write(output)
 	output.close()
 
-    def read(self,input):
-#        self.dataString = input.read()
-	line = input.readline()
-	data = split(line)
-	self["NUNSTAB"] = atoi(data[0])
-	self["NSTAB"] = atoi(data[1])
-	self["IEQUIB"] = atoi(data[2])
-	self["ITWIST"] = atoi(data[3])
-	self["ISTART"] = atoi(data[4])
+    def read(self,inputfile):
+#        self.dataString = inputfile.read()
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NUNSTAB"] = string.atoi(data[0])
+	self["NSTAB"] = string.atoi(data[1])
+	self["IEQUIB"] = string.atoi(data[2])
+	self["ITWIST"] = string.atoi(data[3])
+	self["ISTART"] = string.atoi(data[4])
 
-	line = input.readline()
-	data = split(line)
-	self["NREV"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NREV"] = string.atoi(data[0])
 	self["IREV"] = []
         data = []
 	if self["NREV"] > 0:
-	    line = input.readline()
-	    data = split(line)
+	    line = inputfile.readline()
+	    data = string.split(line)
 	for i in data:
-	    self["IREV"].append(atoi(i))
+	    self["IREV"].append(string.atoi(i))
 
-	line = input.readline()
-	data = split(line)
-	self["NFIXED"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NFIXED"] = string.atoi(data[0])
 	self["IFIXED"] = []
 	if self["NFIXED"] > 0:
-	    line = input.readline()
-	    data = split(line)
+	    line = inputfile.readline()
+	    data = string.split(line)
 	for i in range(self["NFIXED"]):
-	    self["IFIXED"].append(atoi(data[i]))
+	    self["IFIXED"].append(string.atoi(data[i]))
 
-	line = input.readline()
-	data = split(line)
-	self["NPSI"] = atoi(data[0])
+	line = inputfile.readline()
+	data = string.split(line)
+	self["NPSI"] = string.atoi(data[0])
 	self["IPSI"] = []
 	if self["NPSI"] > 0:
-	    line = input.readline()
-	    data = split(line)
+	    line = inputfile.readline()
+	    data = string.split(line)
 	for i in range(self["NPSI"]):
-	    self["IPSI"].append(atoi(data[i]))
+	    self["IPSI"].append(string.atoi(data[i]))
 
 
     def write(self,output):
@@ -144,7 +145,7 @@ def pointtest(a):
             'NREV', 'IREV', 'NFIXED', 'IFIXED', 'NPSI', 'IPSI']		
     for key in keys:
         if not(a.has_key(key)):
-            raise AUTORegressionError("No %s label"%(key,))
+            raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
 
 def test():
     print "Testing reading from a filename"
