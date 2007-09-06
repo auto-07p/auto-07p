@@ -77,10 +77,10 @@ class parseB:
         return rep
 
     def __getitem__(self,index):
-        return apply(self.getIndex,index)
+        return self.getIndex(index)
 
-    def __call__(self,*label):
-        return apply(self.getLabel,label)
+    def __call__(self,label):
+        return self.getLabel(label)
 
     def __len__(self):
         return len(self.data)
