@@ -1,9 +1,3 @@
-#ifndef R3B
-#include <iostream.h>
-#include <fstream.h>
-#else
-
-#endif
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTransform.h>

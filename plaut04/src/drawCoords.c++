@@ -96,7 +96,6 @@ SoSeparator * createAxis(float red, float green, float blue, float height, char 
 {
     SoSeparator *axisSep = new SoSeparator;
     SoMaterial  *axisMtl = new SoMaterial;
-    SoTransform *axisXform = new SoTransform;
 
 //define materil
     axisMtl->ambientColor.setValue(1.0,1.0,1.0);

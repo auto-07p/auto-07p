@@ -13,7 +13,8 @@ normalizeSolData()//SolNode mySolNode)
     cout <<" Max sol 1 :" <<mySolNode.max[1]<<" Min "<<mySolNode.min[1]<<endl;
     cout <<" Max sol 2 :" <<mySolNode.max[2]<<" Min "<<mySolNode.min[2]<<endl;
 #endif
-    double avg[3], div[3], con[3];
+    double div[3], con[3];
+    con[0] = con[1] = con[2] = 0.0;
     div[0] = (mySolNode.max[0]-mySolNode.min[0])/2.0;
     div[1] = (mySolNode.max[1]-mySolNode.min[1])/2.0;
     div[2] = (mySolNode.max[2]-mySolNode.min[2])/2.0;

@@ -14,7 +14,7 @@ readBifurcation(const char *bFileName, int varIndices[])
 ////////////////////////////////////////////////////////////////////////////////
 {
     char line[MAX_LINE];
-    int  branch, sn, type;
+    int  branch;
     float dummy;
 
     FILE * inFile;
@@ -33,13 +33,10 @@ readBifurcation(const char *bFileName, int varIndices[])
     long int totalPoints   = 0;
 #ifndef R3B
     long int numPtsInThisBranch = 0;
+    long int curPt  = 0;
 #else
     long int numPtInBranch = 0;
-#endif
     long int last   = 0;
-#ifndef R3B
-    long int curPt  = 0;
-
 #endif
     int maxColSize  = 0;
     int lb          = 0;
@@ -286,8 +283,7 @@ parseBifurcation(const char *bFileName)
 ////////////////////////////////////////////////////////////////////
 {
     char line[MAX_LINE];
-    int  branch, sn, type;
-    float dummy;
+    int  branch;
 
     FILE * inFile;
     inFile = fopen(bFileName, "r");

@@ -3788,13 +3788,8 @@ showAboutDialog()
 
 ////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 static void 
 xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
-#else
-static
-void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3803,7 +3798,6 @@ void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 #endif
 
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
-    int choice = (int) cbs->item_position;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
@@ -3839,7 +3833,6 @@ yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 #endif
 
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
-    int choice = (int) cbs->item_position;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
@@ -3871,7 +3864,6 @@ zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 ////////////////////////////////////////////////////////////////////////
 {
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
-    int choice = (int) cbs->item_position;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
@@ -10818,9 +10810,9 @@ writePreferValuesToFile()
     for(int i = 0; i<NUM_SP_POINTS; ++i)
     {
 #ifndef R3B
-        fprintf(outFile,"%-15.15s    = %3.1f,   %3.1f,   %3.1f, 0x%x\n",typeTokenNames[i],
+        fprintf(outFile,"%-15.15s    = %3.1f,   %3.1f,   %3.1f, 0x%lx\n",typeTokenNames[i],
 #else
-        fprintf(outFile,"%s =  %f, %f, %f, 0x%x\n",typeTokenNames[i],
+        fprintf(outFile,"%s =  %f, %f, %f, 0x%lx\n",typeTokenNames[i],
 #endif
             lineColor[i][0], lineColor[i][1],lineColor[i][2],linePattern[i]);
     }
@@ -10829,7 +10821,7 @@ writePreferValuesToFile()
     fprintf(outFile, "\n# Initialize the line pattern for showing stability:\n");
     for(int i = 0; i<2; ++i)
     {
-        fprintf(outFile,"%-20.25s = 0x%x\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
+        fprintf(outFile,"%-20.25s = 0x%lx\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
     }
 
 #endif

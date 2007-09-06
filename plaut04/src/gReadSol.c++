@@ -109,9 +109,8 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
 {
     FILE * inFile;
-    FILE *fout;
     int ibr,ntot,itp,lab,nfpr,isw,ntpl,nar,nrowpr,ntst,ncol,npar1;
-    long int i, j, k;
+    long int i, j;
     float dummy;
     char line[MAX_LINE_LENGTH];
 

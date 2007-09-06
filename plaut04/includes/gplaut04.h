@@ -359,12 +359,6 @@ typedef struct EditMenuItems {
 ************************************************************************/
 #endif
 
-/* Prototype Callback */
-static void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
-static void yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
-static void zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
-static void lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
-
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
 SoSeparator * createBifurcationScene();///in/SolNode& mySolNode)//float (*xyzCoords)[3])
 SoSeparator * createDisk();

@@ -16,7 +16,6 @@ readFM(const char* dFileName, const int size)
     char buffer[256];
     char dummy[20];
     int branch, point, myid;
-    float floqueMultipliers[1000][6][2];
 
     float fl1, fl2;
     FILE * inFile;
@@ -31,7 +30,7 @@ readFM(const char* dFileName, const int size)
 
     char * next;
 
-    long icounter = 2, lCounter = 1;
+    long icounter = 2;
     int rowi = 0;
 
     while ( (next = fgets(buffer, sizeof(buffer), inFile)) != NULL
