@@ -5,7 +5,7 @@ OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o tube.o ../polygon3d.o readFM.o ../createBoundingBox.o\
-        ../createCoords.o axis.o createLegend.o gmain.o ../rounding.o
+        ../createCoords.o axis.o createLegend.o gmain.o gmainxt.o ../rounding.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
@@ -35,6 +35,9 @@ readSol.o: ../gReadSol.c++
 gmain.o: ../gmain.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+gmainxt.o: ../gmainxt.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
 tube.o: ../tube.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
@@ -57,6 +60,7 @@ axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
+gmainxt.o: $(INC)/gplaut04.h
 normalizeBifData.o: $(INC)/gplaut04.h
 normalizeSolData.o: $(INC)/gplaut04.h
 polygon3d.o: $(INC)/polygon3d.h

@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <math.h>
-#include <iostream.h>
 #include "gplaut04.h"
 
 extern UserData clientData;

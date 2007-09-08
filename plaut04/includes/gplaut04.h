@@ -11,45 +11,10 @@
 #include <string.h>
 #include <unistd.h> // for access()
 
-#include <X11/Intrinsic.h>
-#include <Xm/Xm.h>
-#include <Xm/CascadeB.h>
-#include <Xm/CascadeBG.h>
-#include <Xm/ComboBox.h>
-#include <Xm/DrawingA.h>
-#include <Xm/DrawnB.h>
-#include <Xm/DialogS.h>
-#include <Xm/Form.h>
-#include <Xm/Frame.h>
-#include <Xm/FileSB.h>
-#include <Xm/PushB.h>
-#include <Xm/Label.h>
-#include <Xm/LabelG.h>
-#include <Xm/List.h>
-#include <Xm/MessageB.h>
-#include <Xm/Notebook.h>
-#include <Xm/PanedW.h>
-#include <Xm/PushB.h>
-#include <Xm/PushBG.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Scale.h>
-#include <Xm/Separator.h>
-#include <Xm/SeparatoG.h>
-#include <Xm/SpinB.h>
-#include <Xm/SSpinB.h>
-#include <Xm/TextF.h>
-#include <Xm/ToggleB.h>
-#include <Xm/ToggleBG.h>
-#include <Xm/Text.h>
-
-
 #include <Inventor/So.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/SbLinear.h>
-#include <Inventor/Xt/SoXt.h>
-#include <Inventor/Xt/viewers/SoXtExaminerViewer.h>
-#include <Inventor/Xt/SoXtMaterialEditor.h>
 #include <Inventor/SoPickedPoint.h>
 #include <Inventor/actions/SoRayPickAction.h>
 #include <Inventor/actions/SoWriteAction.h>
@@ -365,7 +330,76 @@ SoSeparator * createDisk();
 SoSeparator * renderSolution();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
 SoSeparator * renderBifurcation(); //BifNode &myBifNode)// float (*xyzCoords)[3])
 
-#ifdef R3B
+struct DefaultAxisItems
+{
+    int solXSize, solYSize, solZSize;
+    int bifXSize, bifYSize, bifZSize;
+    int bifX[MAX_PAR], bifY[MAX_PAR], bifZ[MAX_PAR];
+    int solX[MAX_PAR], solY[MAX_PAR], solZ[MAX_PAR];
+};
+
+#ifndef R3B
+#define CL_SP_ITEMS  6
+#else
+#define CL_SP_ITEMS  5
+#endif
+#define LBL_OFFSET   4
+#define SP_LBL_ITEMS 4
+#define NUM_SP_POINTS 13
+void popupFloquetMultiplierDialog(float data[], int size);
+void soxtmain(char *argv[]);
+void updateScene();
+void postDeals();
+void cropScene(char* filename);
+void setListValue();
+void showHelpDialog();
+int writePreferValuesToFile();
+void writeToFile(char * fileName);
+void deleteScene();
+SbBool readFile(char *filename);
+void myMousePressCB(void *userData, SoEventCallback *eventCB);
+extern float orbitSpeed, satSpeed, numPeriodAnimated, lineWidthScaler;
+extern float fmData[12];
+extern int xCoordIndices[MAX_LIST], xCoordIdxSize;
+extern int yCoordIndices[MAX_LIST], yCoordIdxSize;
+extern int zCoordIndices[MAX_LIST], zCoordIdxSize;
+extern int coloringMethod, specialColorItems;
+extern int lblIndices[], lblChoice[], lblIdxSize;
+extern bool options[];
+extern long int numLabels;
+extern bool setShow3D, setShow3DSol, setShow3DBif;
+extern int whichType, whichTypeOld, whichTypeTemp;
+extern int whichStyle, whichStyleOld, whichStyleTemp;
+extern int whichCoord, whichCoordOld, whichCoordTemp;
+extern int winWidth, winHeight;
+extern unsigned long linePattern[], linePatternTemp[], linePatternOld[];
+extern SbColor lineColor[], lineColorTemp[], lineColorOld[];
+extern SbColor envColors[];
+extern unsigned long graphWidgetToggleSet, graphWidgetToggleSetTemp,
+  graphWidgetToggleSetOld;
+extern SolNode mySolNode;
+extern BifNode myBifNode;
+extern UserData clientData;
+extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;
+extern int MIN_SAT_SPEED, MAX_SAT_SPEED;
+extern bool blOpenSolFile, blOpenBifFile, blDrawTicker;
+extern struct DefaultAxisItems dai;
+extern char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
+extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
+extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
+#ifndef R3B
+extern char * graphWidgetItems[5];
+extern char labels[MAX_LABEL][8];
+extern SoSeparator *root;
+extern bool optBif[11], optSol[11];
+#else
+extern char * graphWidgetItems[8];
+extern char labels[MAX_LABEL+SP_LBL_ITEMS][8];
+extern SoSelection *root;
+extern int fileMode;
+extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
+extern bool blMassDependantOption;
+
 void smallPrimaryMovingOrbit(float R, float T, float t,
                       float position[], float veloctiy[]);
 void satelliteMovingOrbit(int whichcenter, float xyzCoords[],

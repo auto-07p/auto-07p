@@ -4,7 +4,7 @@
 OBJS = gReadBif.o gReadSol.o drawCoords.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
-        createCoords.o axis.o createLegend.o gmain.o \
+        createCoords.o axis.o createLegend.o gmain.o gmainxt.o \
         rounding.o
 
 CXX=@CXX@
@@ -27,6 +27,7 @@ axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
+gmainxt.o: $(INC)/gplaut04.h
 gReadBif.o: $(INC)/gplaut04.h
 gReadSol.o: $(INC)/gplaut04.h
 normalizeBifData.o: $(INC)/gplaut04.h
