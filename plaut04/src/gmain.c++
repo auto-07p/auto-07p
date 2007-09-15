@@ -287,7 +287,7 @@ extern char * strlefttrim(char*);
 ////////////////////////////////////////////////////////////////////////
 //
 void 
-cropScene(char* filename)
+cropScene(const char* filename)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -304,7 +304,7 @@ cropScene(char* filename)
 // Write the graph to iv file.
 //
 void
-writeToFile(char * fileName)
+writeToFile(const char * fileName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -6711,7 +6711,7 @@ setVariableDefaultValues()
 //  display this window, and loop forever...
 //
 int
-main(unsigned int argc, char *argv[])
+main(int argc, char *argv[])
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -7441,12 +7441,13 @@ deleteScene()
 ////////////////////////////////////////////////////////////////////////
 //
 bool 
-parseFileName(char *filename,char * sFileName, char * bFileName, char * dFileName)
+parseFileName(const char *fname,char * sFileName, char * bFileName, char * dFileName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     char * path;
     char * name;
+    char * filename = strdup(fname);
     char myName[256];
     char myPath[256];
 
@@ -7470,6 +7471,7 @@ parseFileName(char *filename,char * sFileName, char * bFileName, char * dFileNam
     bFileName[j-i]='b'; bFileName[j-i+1]='.';
     dFileName[j-i]='d'; dFileName[j-i+1]='.';
 
+    free(filename);
     return true;
 }
 
@@ -7481,7 +7483,7 @@ parseFileName(char *filename,char * sFileName, char * bFileName, char * dFileNam
 //  automatically called.
 //
 SbBool
-readFile(char *filename)
+readFile(const char *filename)
 //
 ////////////////////////////////////////////////////////////////////////
 {
