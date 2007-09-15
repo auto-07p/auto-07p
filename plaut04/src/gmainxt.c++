@@ -47,11 +47,8 @@
 #define XmFONTLIST_DEFAULT_TAG NULL
 #endif
 
-#ifdef R3B
 SbBool printToPostScript (SoNode *root, FILE *file,
 SoXtExaminerViewer *viewer, int printerDPI);
-
-#endif
 
 struct ViewerAndScene
 {
@@ -90,9 +87,7 @@ typedef struct EditMenuItems
 
 EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems;
 
-#ifdef R3B
 EditMenuItems *coordSystemMenuItems;
-#endif
 Widget fileDialog = NULL;
 
 XmStringTable xList = (XmStringTable) 0 ;
@@ -111,11 +106,7 @@ void applyPreferDialogChangeAndUpdateScene(Widget widget, XtPointer client_data,
 void closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
 void closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer call_data);
 void savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
-#ifndef R3B
 static void getFileName(int fileMode);
-#else
-static void getFileName();
-#endif
 static void showAboutDialog();
 static void createPreferDialog();
 extern SoSeparator * createBoundingBox();
@@ -163,13 +154,11 @@ numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
     int i = 0;
 
-#ifndef R3B
     if ( strcmp(myChoice, "inf") == 0 )
     {
        numPeriodAnimated = -1; 
     } 
     else 
-#endif
     {
        numPeriodAnimated = atof(myChoice);
     }
@@ -193,20 +182,13 @@ colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
     int i = 0;
     int choice = (int) cbs->item_position;
 
-#ifndef R3B
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
     ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
-#else
     coloringMethod = (strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
-#endif
     ((strcasecmp(myChoice,"BRAN")==0) ? CL_BRANCH_NUMBER:
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
-#ifndef R3B
     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
-#else
-    ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems))));
-#endif
 
     updateScene();
 }
@@ -249,34 +231,18 @@ fileMenuPick(Widget, void *userData, XtPointer *)
     switch (which)
     {
         case SAVE_ITEM:
-#ifndef R3B
             getFileName(SAVE_ITEM);
-#else
-            fileMode = SAVE_ITEM;
-            getFileName();
-#endif
             break;
 
         case QUIT_ITEM:
-#ifdef R3B
-            fileMode = QUIT_ITEM;
-#endif
             postDeals();
             exit(0);
             break;
         case PRINT_ITEM:
-#ifdef R3B
-            fileMode = PRINT_ITEM;
-#endif
             cropScene("myfile");
             break;
         case OPEN_ITEM:
-#ifndef R3B
             getFileName(OPEN_ITEM);
-#else
-            fileMode = OPEN_ITEM;
-            getFileName();
-#endif
             break;
         default:
             printf("UNKNOWN file menu item!!!\n"); break;
@@ -334,25 +300,23 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
         if( whichType != BIFURCATION )
         {
             setShow3D = setShow3DSol;
-#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optBif[i]  = options[i];
                 options[i] = optSol[i];
             }
-#endif
         }
         else
         {
             setShow3D = setShow3DBif;
-#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optSol[i]  = options[i];
                 options[i] = optBif[i];
             }
-#endif
         }
+        graphWidgetToggleSet &= ~1;
+        graphWidgetToggleSet |= options[0];
     }
 
     whichTypeOld = whichType;
@@ -461,9 +425,7 @@ setListValue()
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
-#ifndef R3B
         strcpy(coloringMethodList[5],"COMP"); sp++;
-#endif
         specialColorItems = sp;
         for(int i=sp; i<mySolNode.nar+sp; ++i)
         {
@@ -478,12 +440,8 @@ setListValue()
         for (int i = 0; i < count; ++i)
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
-#ifndef R3B
         XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
 		               XmNitemCount, mySolNode.nar+mySolNode.npar+sp, NULL);
-#else
-        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, mySolNode.nar+mySolNode.npar+sp, NULL);
-#endif
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
     }
     else
@@ -681,15 +639,11 @@ coordMenuDisplay(Widget, void *userData, XtPointer)
         TOGGLE_OFF(menuItems->items[COORDORIGIN]);
         TOGGLE_OFF(menuItems->items[LEFTBACK]);
         TOGGLE_OFF(menuItems->items[LEFTAHEAD]);
-#ifdef R3B
         TOGGLE_OFF(menuItems->items[DRAW_TICKER]);
-#endif
 
         TOGGLE_ON(menuItems->items[menuItems->which]);
-#ifdef R3B
         if(blDrawTicker)
             XmToggleButtonSetState(menuItems->items[DRAW_TICKER], TRUE, FALSE);
-#endif
     }
 }
 
@@ -851,7 +805,6 @@ buildFileMenu(Widget menubar)
 
     pulldown = XmCreatePulldownMenu(menubar, "fileMenu", popupargs, popupn);
 
-#ifdef R3B
 // Accelerators are keyboard shortcuts for the menu items
     char *openAccel  = "Alt <Key> o";
     char *saveAccel  = "Alt <Key> s";
@@ -859,31 +812,21 @@ buildFileMenu(Widget menubar)
     char *quitAccel  = "Alt <Key> q";
     XmString openAccelText  = XmStringCreate("Alt+o", XmSTRING_DEFAULT_CHARSET);
     XmString saveAccelText  = XmStringCreate("Alt+s", XmSTRING_DEFAULT_CHARSET);
-    XmString printAccelText = XmStringCreate("Alt+p", XmSTRING_DEFAULT_CHARSET);
-    XmString quitAccelText  = XmStringCreate("Alt+q", XmSTRING_DEFAULT_CHARSET);
-#endif
-    n = 0;
-//    XtSetArg(args[n], XmNaccelerator, openAccel); n++;
-//    XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
 #ifdef R3B
+    XmString printAccelText = XmStringCreate("Alt+p", XmSTRING_DEFAULT_CHARSET);
+#endif
+    XmString quitAccelText  = XmStringCreate("Alt+q", XmSTRING_DEFAULT_CHARSET);
+    n = 0;
     XtSetArg(args[n], XmNaccelerator, openAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
-#endif
     PUSH_ITEM(items[0], "Open...", OPEN_ITEM, fileMenuPick);
 
     n = 0;
-//    XtSetArg(args[n], XmNaccelerator, saveAccel); n++;
-//    XtSetArg(args[n], XmNacceleratorText, saveAccelText); n++;
-#ifdef R3B
     XtSetArg(args[n], XmNaccelerator, saveAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, saveAccelText); n++;
-#endif
     PUSH_ITEM(items[1], "Export...", SAVE_ITEM, fileMenuPick);
 
     n = 0;
-//    XtSetArg(args[n], XmNaccelerator, printAccel); n++;
-//    XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
-//    PUSH_ITEM(items[2], "Print...", PRINT_ITEM, fileMenuPick);
 #ifdef R3B
     XtSetArg(args[n], XmNaccelerator, printAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
@@ -1614,30 +1557,24 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XmStringTable numPList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
 
     int iam = 1;
-#ifndef R3B
     sprintf(numberPList[0], "%i", 0);
     for (i = 0; i < count-2; ++i)
-#else
-    for (i = 0; i < count; ++i)
-#endif
     {
-#ifndef R3B
         sprintf(numberPList[i+1], "%i", iam);
-#else
-        sprintf(numberPList[i], "%i", iam);
-#endif
         iam *= 2;
     }
-#ifndef R3B
     sprintf(numberPList[count-1], "%s", "inf");
-#endif
 
     for (i = 0; i < count; ++i)
         numPList[i] = XmStringCreateLocalized (numberPList[i]);
 
-#ifndef R3B
-    i = (numPeriodAnimated == 0) ? 0 : (int)((floor(numPeriodAnimated/2.0)))+1;
-#endif
+    if (numPeriodAnimated > 0)
+        i = ((int)(log(numPeriodAnimated)/log(2))) + 1;
+    else if (numPeriodAnimated == 0)
+        i = 0;
+    else
+        i = count - 1;
+
     Widget numPeriodAnimatedList=XtVaCreateManagedWidget ("list",
         xmComboBoxWidgetClass, listCarrier,
         XmNcomboBoxType,       XmDROP_DOWN_COMBO_BOX,
@@ -1645,11 +1582,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              numPList,
         XmNcolumns,            3,
         XmNmarginHeight,       1,
-#ifndef R3B
         XmNselectedPosition,   i,
-#else
-        XmNselectedPosition,   (int)(log(numPeriodAnimated)/log(2)),
-#endif
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -1815,15 +1748,9 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtSetArg (args[n], XmNarrowSize, 12); n++;
     XtSetArg (args[n], XmNspinBoxChildType, XmNUMERIC); n++;
     XtSetArg (args[n], XmNminimumValue, 10); n++;
-#ifndef R3B
     XtSetArg (args[n], XmNdecimalPoints, 1); n++;
-#endif
     XtSetArg (args[n], XmNincrementValue, 1); n++;
-#ifndef R3B
     XtSetArg (args[n], XmNeditable, TRUE); n++;
-#else
-    XtSetArg (args[n], XmNdecimalPoints, 1); n++;
-#endif
     XtSetArg (args[n], XmNpositionType, XmPOSITION_VALUE); n++;
     XtSetArg (args[n], XmNposition, lineWidthScaler+10); n++;
     XtSetArg (args[n], XmNcolumns,  3); n++;
@@ -3308,11 +3235,7 @@ Widget widget, XtPointer client_data, XtPointer call_data)
 // standard file dialog.
 //
 void
-#ifndef R3B
 getFileName(int fileMode)
-#else
-getFileName()
-#endif
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3330,11 +3253,7 @@ getFileName()
         fileDialog = XmCreateFileSelectionDialog(
             XtParent(topform), "File Dialog", args, n);
         XtAddCallback(fileDialog, XmNokCallback,
-#ifndef R3B
             fileDialogCB, (XtPointer)fileMode);
-#else
-            fileDialogCB, (XtPointer)NULL);
-#endif
     }
     XtManageChild(fileDialog);
 }
@@ -3349,9 +3268,7 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifndef R3B
     int fileMode = (long)client_data;
-#endif
     char *filename;
     XmFileSelectionBoxCallbackStruct *data =
         (XmFileSelectionBoxCallbackStruct *)call_data;
@@ -3439,10 +3356,6 @@ xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
-    int varIndices[3];
-#endif
-
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
@@ -3474,10 +3387,6 @@ yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
-    int varIndices[3];
-#endif
-
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
@@ -3701,11 +3610,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     int x, y;
 
     XSetLineAttributes(cbs->event->xexpose.display, gc, 2, LineSolid, CapRound, JoinRound);
-#ifndef R3B
     for(int j = 0; j<clientData.numFM; ++j)
-#else
-    for(int j = 0; j<6; ++j)
-#endif
     {
         float tmp = fmData[2*j];
         if(fabs(tmp) <= 1.1)
@@ -3764,11 +3669,7 @@ popupFloquetMultiplierDialog(float data[], int size)
     tmpstr = new char[500];
     tmpstr[0]='\0';
     strcat(tmpstr,"Floquet multipliers:\n" );
-#ifndef R3B
     for(int j=0; j<clientData.numFM; ++j)
-#else
-    for(int j=0; j<6; ++j)
-#endif
     {
         strcat(tmpstr," [");
         sprintf(temp,"%2d",j);

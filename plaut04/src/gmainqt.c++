@@ -27,10 +27,8 @@
 
 #define LBL_OFFSET   4
 
-#ifdef R3B
 SbBool printToPostScript (SoNode *root, FILE *file,
 SoQtExaminerViewer *viewer, int printerDPI);
-#endif
 
 struct ViewerAndScene
 {
@@ -69,17 +67,10 @@ typedef struct EditMenuItems
 } EditMenuItems;
 
 EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
-  *optMenuItems;
-#ifdef R3B
-EditMenuItems *coordSystemMenuItems;
-#endif
+  *optMenuItems, *coordSystemMenuItems;
 SoSeparator *rootroot;
 
-#ifndef R3B
 static void getFileName(int fileMode);
-#else
-static void getFileName();
-#endif
 extern SoSeparator * createBoundingBox();
 
 ////////////////////////////////////////////////////////////////////////
@@ -135,13 +126,11 @@ Actions::numPeriodAnimatedCB(const QString &myChoice)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifndef R3B
     if ( strcmp(myChoice, "inf") == 0 )
     {
        numPeriodAnimated = -1; 
     } 
     else 
-#endif
     {
        numPeriodAnimated = atof(myChoice);
     }
@@ -161,20 +150,12 @@ Actions::colorMethodSelectionCB(const QString &myChoice)
 {
     int choice = colorMethodSeletionList->currentItem();
 
-#ifndef R3B
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
     ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
-#else
-    coloringMethod = (strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
-#endif
     ((strcasecmp(myChoice,"BRAN")==0) ? CL_BRANCH_NUMBER:
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
-#ifndef R3B
     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
-#else
-    ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems))));
-#endif
 
     updateScene();
 }
@@ -204,34 +185,18 @@ Actions::fileMenuPick(int which)
     switch (which)
     {
         case SAVE_ITEM:
-#ifndef R3B
             getFileName(SAVE_ITEM);
-#else
-            fileMode = SAVE_ITEM;
-            getFileName();
-#endif
             break;
 
         case QUIT_ITEM:
-#ifdef R3B
-            fileMode = QUIT_ITEM;
-#endif
             postDeals();
             exit(0);
             break;
         case PRINT_ITEM:
-#ifdef R3B
-            fileMode = PRINT_ITEM;
-#endif
             cropScene("myfile");
             break;
         case OPEN_ITEM:
-#ifndef R3B
             getFileName(OPEN_ITEM);
-#else
-            fileMode = OPEN_ITEM;
-            getFileName();
-#endif
             break;
         default:
             printf("UNKNOWN file menu item!!!\n"); break;
@@ -281,25 +246,23 @@ Actions::typeMenuPick(int which)
         if( whichType != BIFURCATION )
         {
             setShow3D = setShow3DSol;
-#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optBif[i]  = options[i];
                 options[i] = optSol[i];
             }
-#endif
         }
         else
         {
             setShow3D = setShow3DBif;
-#ifndef R3B
             for(int i=0; i<11; ++i)
             {
                 optSol[i]  = options[i];
                 options[i] = optBif[i];
             }
-#endif
         }
+        graphWidgetToggleSet &= ~1;
+        graphWidgetToggleSet |= options[0];
     }
 
     whichTypeOld = whichType;
@@ -385,9 +348,7 @@ setListValue()
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
-#ifndef R3B
         strcpy(coloringMethodList[5],"COMP"); sp++;
-#endif
         specialColorItems = sp;
         for(int i=sp; i<mySolNode.nar+sp; ++i)
         {
@@ -588,9 +549,7 @@ Actions::coordMenuDisplay()
         menuItems->items->setItemChecked(COORDORIGIN, false);
         menuItems->items->setItemChecked(LEFTBACK, false);
         menuItems->items->setItemChecked(LEFTAHEAD, false);
-#ifdef R3B
         menuItems->items->setItemChecked(DRAW_TICKER, blDrawTicker);
-#endif
         menuItems->items->setItemChecked(menuItems->which, true);
     }
 }
@@ -1135,33 +1094,24 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     char (*numberPList)[5] = new char [count][5];
 
     int iam = 1;
-#ifndef R3B
     sprintf(numberPList[0], "%i", 0);
     for (i = 0; i < count-2; ++i)
-#else
-    for (i = 0; i < count; ++i)
-#endif
     {
-#ifndef R3B
         sprintf(numberPList[i+1], "%i", iam);
-#else
-        sprintf(numberPList[i], "%i", iam);
-#endif
         iam *= 2;
     }
-#ifndef R3B
     sprintf(numberPList[count-1], "%s", "inf");
-#endif
 
-#ifndef R3B
-    i = (numPeriodAnimated == 0) ? 0 : (int)((floor(numPeriodAnimated/2.0)))+1;
-#else
-    i = (int)(log(numPeriodAnimated)/log(2));
-#endif
+    if (numPeriodAnimated > 0)
+        i = ((int)(log(numPeriodAnimated)/log(2))) + 1;
+    else if (numPeriodAnimated == 0)
+        i = 0;
+    else
+        i = count - 1;
 
     QComboBox *numPeriodAnimatedList = new QComboBox(true, listCarrier, "list");
-    for ( int i = 0; i < nItems; i++ )
-        numPeriodAnimatedList->insertItem(numberPList[i]);
+    for ( int j = 0; j < nItems; j++ )
+        numPeriodAnimatedList->insertItem(numberPList[j]);
     numPeriodAnimatedList->setCurrentItem(i);
 
 // Add Callback function for the numberPeriodAnimated drop down list
@@ -1950,12 +1900,7 @@ Actions::applyPreferDialogChangeAndUpdateScene()
 //        This routine is called to get a file name using the
 // standard file dialog.
 //
-void
-#ifndef R3B
-getFileName(int fileMode)
-#else
-getFileName()
-#endif
+void getFileName(int fileMode)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2225,11 +2170,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 
     int x, y;
 
-#ifndef R3B
     for(int j = 0; j<clientData.numFM; ++j)
-#else
-    for(int j = 0; j<6; ++j)
-#endif
     {
         float tmp = fmData[2*j];
         if(fabs(tmp) <= 1.1)
@@ -2284,11 +2225,7 @@ popupFloquetMultiplierDialog(float data[], int size)
     tmpstr = new char[500];
     tmpstr[0]='\0';
     strcat(tmpstr,"Floquet multipliers:\n" );
-#ifndef R3B
     for(int j=0; j<clientData.numFM; ++j)
-#else
-    for(int j=0; j<6; ++j)
-#endif
     {
         strcat(tmpstr," [");
         sprintf(temp,"%2d",j);

@@ -96,9 +96,7 @@ bool options[]=
 };
 bool optionsTemp[11];
 bool optionsOld[11];
-#ifndef R3B
 bool optBif[11], optSol[11];
-#endif
 bool setShow3D, setShow3DSol, setShow3DBif;
 
 char sFileName[256];
@@ -165,18 +163,10 @@ SoSelection *root;
 #endif
 SoSeparator *starryBackground;
 
-#ifdef R3B
-int fileMode = 0;
-#endif
-
 char xAxis[MAX_LIST][5];
 char zAxis[MAX_LIST][5];
 char yAxis[MAX_LIST][5];
-#ifndef R3B
 char labels[MAX_LABEL][8];
-#else
-char labels[MAX_LABEL+SP_LBL_ITEMS][8];
-#endif
 
 char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
 int myLabels[MAX_LABEL+SP_LBL_ITEMS];
@@ -5944,7 +5934,6 @@ initCoordAndLableListItems()
     }
     lblIdxSize = iLbl;
 
-#ifndef R3B
     optSol[0] = options[0];
     for(int i=1; i<11; ++i)
     {
@@ -5953,7 +5942,6 @@ initCoordAndLableListItems()
     }
  
 
-#endif
 //----------------------- End ----------------------------
 
     if(!setShow3D)
@@ -6174,7 +6162,6 @@ readResourceParameters()
 
             if( !blDealt )
             {
-#ifndef R3B
                 if(strcasecmp(strTemp, "Draw Labels")==0)
                 {
                     readAString(buffer, aString);
@@ -6187,7 +6174,6 @@ readResourceParameters()
 
             if( !blDealt )
             {
-#endif
                 for(int i = 0; i<XtNumber(blWidgetName); ++i)
                 {
                     if(strcasecmp(strTemp, blWidgetName[i])==0)
@@ -6960,11 +6946,8 @@ writePreferValuesToFile()
 #endif
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
-#ifndef R3B
     fprintf(outFile, "Draw Labels     =");
     optBif[0] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
-
-#endif
 
     for(int i = 0; i < XtNumber(intVariableNames); ++i)
     {

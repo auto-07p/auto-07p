@@ -107,20 +107,12 @@
 #define BIFURCATION 1
 
 // define constant for the coloringMethod
-#ifdef R3B
-#define CL_STABILITY     -5
-#define CL_POINT_NUMBER  -4
-#define CL_BRANCH_NUMBER -3
-#define CL_ORBIT_TYPE    -2 
-#define CL_LABELS -1
-#else
 #define CL_STABILITY     -6
 #define CL_POINT_NUMBER  -5
 #define CL_BRANCH_NUMBER -4
 #define CL_ORBIT_TYPE    -3 
 #define CL_LABELS        -2
 #define CL_COMPONENT     -1
-#endif
 
 #define LINE 0
 #define TUBE 1
@@ -338,11 +330,7 @@ struct DefaultAxisItems
     int solX[MAX_PAR], solY[MAX_PAR], solZ[MAX_PAR];
 };
 
-#ifndef R3B
 #define CL_SP_ITEMS  6
-#else
-#define CL_SP_ITEMS  5
-#endif
 #define LBL_OFFSET   4
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13
@@ -387,16 +375,14 @@ extern struct DefaultAxisItems dai;
 extern char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
 extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
 extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
+extern bool optBif[11], optSol[11];
+extern char labels[MAX_LABEL][8];
 #ifndef R3B
 extern char * graphWidgetItems[5];
-extern char labels[MAX_LABEL][8];
 extern SoSeparator *root;
-extern bool optBif[11], optSol[11];
 #else
 extern char * graphWidgetItems[8];
-extern char labels[MAX_LABEL+SP_LBL_ITEMS][8];
 extern SoSelection *root;
-extern int fileMode;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern bool blMassDependantOption;
 
