@@ -4,14 +4,15 @@
 OBJS = gReadBif.o gReadSol.o drawCoords.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
-        createCoords.o axis.o createLegend.o gmain.o gmainxt.o \
+        createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
         rounding.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
 INCLUDES=-I$(INC) @DEPS_INCLUDES@
 CFLAGS=@CFLAGS@ @X_CFLAGS@
-DEPS_LIBS=@X_PRE_LIBS@ @DEPS_LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
+DEPS_LIBS=@DEPS_LIBS@
+MOC=@MOC@
 LIBS=$(DEPS_LIBS)
 
 .c++.o:
@@ -20,14 +21,18 @@ LIBS=$(DEPS_LIBS)
 @top_srcdir@/bin/plaut04: $(OBJS)
 	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
+gmainqt.moc.c++: gmainqt.h
+	$(MOC) $< -o $@
+
 clean:
-	rm -f *.o
+	rm -f *.o gmainqt.moc.c++
 
 axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
 gmainxt.o: $(INC)/gplaut04.h
+gmainqt.o: $(INC)/gplaut04.h
 gReadBif.o: $(INC)/gplaut04.h
 gReadSol.o: $(INC)/gplaut04.h
 normalizeBifData.o: $(INC)/gplaut04.h

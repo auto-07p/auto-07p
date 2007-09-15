@@ -647,11 +647,15 @@ PLAUT
 GUI
 TEK2PS
 HAVE_COIN_CONFIG
+HAVE_SOQT_CONFIG
 HAVE_SOXT_CONFIG
 CXX
 CXXFLAGS
 ac_ct_CXX
+MOC
 PLAUT04
+SOXT_OBJS
+SOXT_OBJS_R3B
 DEPS_LIBS
 DEPS_INCLUDES
 LIBOBJS
@@ -1247,6 +1251,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-plaut          Compile the Plaut plotting package (default: yes)
   --enable-plaut04        Compile the Plaut04 plotting package (default: yes)
+  --enable-plaut04-qt     Try to use QT instead of Motif/LessTif for Plaut04 (default: yes)
   --enable-gui            Compile the Motif based GUI package (default: no)
   --enable-tek2ps         Compile the Tek2ps conversion utility (default: yes)
 
@@ -1743,6 +1748,14 @@ if test "${enable_plaut04+set}" = set; then
   enableval=$enable_plaut04; ENABLE_PLAUT04=$enableval
 else
   ENABLE_PLAUT04=yes
+fi
+
+
+# Check whether --enable-plaut04-qt was given.
+if test "${enable_plaut04_qt+set}" = set; then
+  enableval=$enable_plaut04_qt; ENABLE_PLAUT04_QT=$enableval
+else
+  ENABLE_PLAUT04_QT=yes
 fi
 
 
@@ -6724,7 +6737,128 @@ ac_cv_lib_InventorXt=ac_cv_lib_InventorXt_main
 else
 {
 	echo "configure: Coin3d OK.";
-	# Extract the first word of "soxt-config", so it can be a program name with args.
+	SOXT_LDFLAGS=$COIN_LDFLAGS
+	SOXT_INCLUDES=$COIN_INCLUDES
+	SOXTLIB="no"
+	if test x$ENABLE_PLAUT04_QT = xyes; then
+	    # Extract the first word of "soqt-config", so it can be a program name with args.
+set dummy soqt-config; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAVE_SOQT_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAVE_SOQT_CONFIG"; then
+  ac_cv_prog_HAVE_SOQT_CONFIG="$HAVE_SOQT_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAVE_SOQT_CONFIG="true"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAVE_SOQT_CONFIG" && ac_cv_prog_HAVE_SOQT_CONFIG="false"
+fi
+fi
+HAVE_SOQT_CONFIG=$ac_cv_prog_HAVE_SOQT_CONFIG
+if test -n "$HAVE_SOQT_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $HAVE_SOQT_CONFIG" >&5
+echo "${ECHO_T}$HAVE_SOQT_CONFIG" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+	    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
+		SOXT_LDFLAGS="`soqt-config --libs` `soqt-config --ldflags`"
+		SOXT_INCLUDES="`soqt-config --cppflags`"
+	    fi
+	    tmp_LDFLAGS=$LDFLAGS
+	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    { echo "$as_me:$LINENO: checking for main in -lSoQt" >&5
+echo $ECHO_N "checking for main in -lSoQt... $ECHO_C" >&6; }
+if test "${ac_cv_lib_SoQt_main+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lSoQt  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_SoQt_main=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_SoQt_main=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_SoQt_main" >&5
+echo "${ECHO_T}$ac_cv_lib_SoQt_main" >&6; }
+if test $ac_cv_lib_SoQt_main = yes; then
+  SOXTLIB="SoQt"
+else
+  SOXTLIB="no"
+fi
+ac_cv_lib_SoQt=ac_cv_lib_SoQt_main
+
+	    LDFLAGS=$tmp_LDFLAGS
+	fi
+	if test x$SOXTLIB = xno; then
+	    # Extract the first word of "soxt-config", so it can be a program name with args.
 set dummy soxt-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -6762,15 +6896,13 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-	SOXT_LDFLAGS=$COIN_LDFLAGS
-	SOXT_INCLUDES=$COIN_INCLUDES
-	if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+	    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
 		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
 		SOXT_INCLUDES="`soxt-config --cppflags`"
-	fi
-	tmp_LDFLAGS=$LDFLAGS
-	LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	{ echo "$as_me:$LINENO: checking for main in -lSoXt" >&5
+	    fi
+	    tmp_LDFLAGS=$LDFLAGS
+	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    { echo "$as_me:$LINENO: checking for main in -lSoXt" >&5
 echo $ECHO_N "checking for main in -lSoXt... $ECHO_C" >&6; }
 if test "${ac_cv_lib_SoXt_main+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -6834,32 +6966,34 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_lib_SoXt_main" >&5
 echo "${ECHO_T}$ac_cv_lib_SoXt_main" >&6; }
 if test $ac_cv_lib_SoXt_main = yes; then
-  SOXTLIB="yes"
+  SOXTLIB="SoXt"
 else
   SOXTLIB="no"
 fi
 ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 
-	LDFLAGS=$tmp_LDFLAGS
+	    LDFLAGS=$tmp_LDFLAGS
+	fi
 	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
+		{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
 		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
-			SOXT_LDFLAGS="-lCoin -lSoXt"
+			SOXT_LDFLAGS="-lCoin -l$SOXTLIB"
 			if test x$HAVE_COIN_CONFIG = "xtrue"; then
-				SOXT_LDFLAGS="$COIN_LDFLAGS -lSoXt"
+				SOXT_LDFLAGS="$COIN_LDFLAGS -l$SOXTLIB"
 			fi
 		fi
 		DEPS_LIBS="$DEPS_LIBS $SOXT_LDFLAGS"
 		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
-		echo "configure: Coin3d SoXt OK. $DEPS_INCLUDES $DEPS_LIBS";
+		echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
 	}
 	fi
 }
 fi
 
-if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$no_x != xyes) && \
+if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
+    test x$no_x != xyes) && \
    test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     ac_ext=cpp
@@ -7264,10 +7398,65 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
+    if test x$SOXTLIB = "xSoXt"; then
+	DEPS_LIBS="$X_PRE_LIBS $DEPS_LIBS $X_LIBS $X_EXTRA_LIBS"
+	SOXT_OBJS=gmainxt.o
+	SOXT_OBJS_R3B=gmainxt.o
+    else
+	# Extract the first word of "moc", so it can be a program name with args.
+set dummy moc; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_MOC+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $MOC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MOC="$MOC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$QTDIR/bin:/usr/lib/qt2/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/qt/bin:/usr/local/qt/bin:$PATH
+	"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MOC="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_MOC" && ac_cv_path_MOC="$QTDIR/bin/moc"
+  ;;
+esac
+fi
+MOC=$ac_cv_path_MOC
+if test -n "$MOC"; then
+  { echo "$as_me:$LINENO: result: $MOC" >&5
+echo "${ECHO_T}$MOC" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
+	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+    fi
 else
     PLAUT04=""
     PLAUT04_TEST="no"
 fi
+
+
+
 
 
 
@@ -8008,18 +8197,22 @@ PLAUT!$PLAUT$ac_delim
 GUI!$GUI$ac_delim
 TEK2PS!$TEK2PS$ac_delim
 HAVE_COIN_CONFIG!$HAVE_COIN_CONFIG$ac_delim
+HAVE_SOQT_CONFIG!$HAVE_SOQT_CONFIG$ac_delim
 HAVE_SOXT_CONFIG!$HAVE_SOXT_CONFIG$ac_delim
 CXX!$CXX$ac_delim
 CXXFLAGS!$CXXFLAGS$ac_delim
 ac_ct_CXX!$ac_ct_CXX$ac_delim
+MOC!$MOC$ac_delim
 PLAUT04!$PLAUT04$ac_delim
+SOXT_OBJS!$SOXT_OBJS$ac_delim
+SOXT_OBJS_R3B!$SOXT_OBJS_R3B$ac_delim
 DEPS_LIBS!$DEPS_LIBS$ac_delim
 DEPS_INCLUDES!$DEPS_INCLUDES$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 79; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 83; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

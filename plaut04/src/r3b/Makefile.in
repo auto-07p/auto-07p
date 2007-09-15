@@ -5,13 +5,14 @@ OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o tube.o ../polygon3d.o readFM.o ../createBoundingBox.o\
-        ../createCoords.o axis.o createLegend.o gmain.o gmainxt.o ../rounding.o
+        ../createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS_R3B@ \
+	../rounding.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
 INCLUDES=-I$(INC) @DEPS_INCLUDES@
 CFLAGS=@CFLAGS@ @X_CFLAGS@ -DR3B
-DEPS_LIBS=@X_PRE_LIBS@ @DEPS_LIBS@ @X_LIBS@ @X_EXTRA_LIBS@
+DEPS_LIBS=@DEPS_LIBS@
 LIBS=$(DEPS_LIBS)
 
 .c++.o:
@@ -38,6 +39,9 @@ gmain.o: ../gmain.c++
 gmainxt.o: ../gmainxt.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+gmainqt.o: ../gmainqt.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
 tube.o: ../tube.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
@@ -59,11 +63,12 @@ clean:
 axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
-gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
+gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h Makefile
 gmainxt.o: $(INC)/gplaut04.h
 normalizeBifData.o: $(INC)/gplaut04.h
 normalizeSolData.o: $(INC)/gplaut04.h
 polygon3d.o: $(INC)/polygon3d.h
+printToPS.o: Makefile
 readBif.o: $(INC)/gplaut04.h
 readFM.o: $(INC)/gplaut04.h
 readSol.o: $(INC)/gplaut04.h

@@ -1,10 +1,18 @@
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/SoOffscreenRenderer.h>
+#ifdef USE_SOQT
+#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
+#else
 #include <Inventor/Xt/viewers/SoXtExaminerViewer.h>
+#endif
 
 SbBool
 printToPostScript (SoNode *root, FILE *file,
+#ifdef USE_SOQT
+SoQtExaminerViewer *viewer, int printerDPI)
+#else
 SoXtExaminerViewer *viewer, int printerDPI)
+#endif
 {
     const SbViewportRegion &vp  = viewer->getViewportRegion();
     const SbVec2s &imagePixSize = vp.getViewportSizePixels();

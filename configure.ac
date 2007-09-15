@@ -25,6 +25,10 @@ AC_ARG_ENABLE(plaut04,
 [  --enable-plaut04        Compile the Plaut04 plotting package (default: yes)],
 [ENABLE_PLAUT04=$enableval],ENABLE_PLAUT04=yes)
 
+AC_ARG_ENABLE(plaut04-qt,
+[  --enable-plaut04-qt     Try to use QT instead of Motif/LessTif for Plaut04 (default: yes)],
+[ENABLE_PLAUT04_QT=$enableval],ENABLE_PLAUT04_QT=yes)
+
 AC_ARG_ENABLE(gui,
 [  --enable-gui            Compile the Motif based GUI package (default: no)],
 [ENABLE_GUI=$enableval],ENABLE_GUI=no)
@@ -191,45 +195,78 @@ if test x$COIN3D = "xno"; then
 else
 {
 	echo "configure: Coin3d OK.";
-	AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
 	SOXT_LDFLAGS=$COIN_LDFLAGS
 	SOXT_INCLUDES=$COIN_INCLUDES
-	if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+	SOXTLIB="no"
+	if test x$ENABLE_PLAUT04_QT = xyes; then
+	    AC_CHECK_PROG(HAVE_SOQT_CONFIG, soqt-config, true, false)
+	    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
+		SOXT_LDFLAGS="`soqt-config --libs` `soqt-config --ldflags`"
+		SOXT_INCLUDES="`soqt-config --cppflags`"
+	    fi
+	    tmp_LDFLAGS=$LDFLAGS
+	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    AC_HAVE_LIBRARY([SoQt],SOXTLIB="SoQt",SOXTLIB="no")
+	    LDFLAGS=$tmp_LDFLAGS
+	fi
+	if test x$SOXTLIB = xno; then
+	    AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
+	    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
 		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
 		SOXT_INCLUDES="`soxt-config --cppflags`"
+	    fi
+	    tmp_LDFLAGS=$LDFLAGS
+	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    AC_HAVE_LIBRARY([SoXt],SOXTLIB="SoXt",SOXTLIB="no")
+	    LDFLAGS=$tmp_LDFLAGS
 	fi
-	tmp_LDFLAGS=$LDFLAGS
-	LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	AC_HAVE_LIBRARY([SoXt],SOXTLIB="yes",SOXTLIB="no")
-	LDFLAGS=$tmp_LDFLAGS
 	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoXt Library is not installed"; PLAUT04_TEST=no; }
+		{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
 	else
 	{
 		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
-			SOXT_LDFLAGS="-lCoin -lSoXt"
+			SOXT_LDFLAGS="-lCoin -l$SOXTLIB"
 			if test x$HAVE_COIN_CONFIG = "xtrue"; then
-				SOXT_LDFLAGS="$COIN_LDFLAGS -lSoXt"
+				SOXT_LDFLAGS="$COIN_LDFLAGS -l$SOXTLIB"
 			fi
 		fi
 		DEPS_LIBS="$DEPS_LIBS $SOXT_LDFLAGS"
 		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
-		echo "configure: Coin3d SoXt OK. $DEPS_INCLUDES $DEPS_LIBS";
+		echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
 	}
 	fi
 }
 fi
 
-if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$no_x != xyes) && \
+if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
+    test x$no_x != xyes) && \
    test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     AC_PROG_CXX
     AC_LANG_CPLUSPLUS
+    if test x$SOXTLIB = "xSoXt"; then
+	DEPS_LIBS="$X_PRE_LIBS $DEPS_LIBS $X_LIBS $X_EXTRA_LIBS"
+	SOXT_OBJS=gmainxt.o
+	SOXT_OBJS_R3B=gmainxt.o
+    else
+	AC_PATH_PROG(
+	  MOC,
+	  moc,
+	  $QTDIR/bin/moc,
+	  $QTDIR/bin:/usr/lib/qt2/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/qt/bin:/usr/local/qt/bin:$PATH
+	)
+	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
+	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+    fi
 else
     PLAUT04=""
     PLAUT04_TEST="no"
 fi
 AC_SUBST(PLAUT04)
+AC_SUBST(MOC)
+AC_SUBST(SOXT_OBJS)
+AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
