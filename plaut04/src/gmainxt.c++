@@ -297,6 +297,7 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
 
     if ( whichType != whichTypeOld )
     {
+        graphWidgetToggleSet = 0;
         if( whichType != BIFURCATION )
         {
             setShow3D = setShow3DSol;
@@ -304,6 +305,7 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
             {
                 optBif[i]  = options[i];
                 options[i] = optSol[i];
+                graphWidgetToggleSet |= options[i] << i;
             }
         }
         else
@@ -313,10 +315,9 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
             {
                 optSol[i]  = options[i];
                 options[i] = optBif[i];
+                graphWidgetToggleSet |= options[i] << i;
             }
         }
-        graphWidgetToggleSet &= ~1;
-        graphWidgetToggleSet |= options[0];
     }
 
     whichTypeOld = whichType;
@@ -1528,7 +1529,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              clrMethodList,
         XmNcolumns,            5,
         XmNmarginHeight,       1,
-        XmNselectedPosition,   coloringMethod+specialColorItems-1,
+        XmNselectedPosition,   coloringMethod+specialColorItems,
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 
@@ -1627,7 +1628,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              clrMethodList,
         XmNcolumns,            5,
         XmNmarginHeight,       1,
-        XmNselectedPosition,   coloringMethod+specialColorItems-1,
+        XmNselectedPosition,   coloringMethod+specialColorItems,
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 

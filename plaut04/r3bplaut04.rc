@@ -71,14 +71,15 @@ Z Axis Bifurcation              = 6
 Labels              = 0
 
 #Set coloring method:
-# -5 --- STABILITY
-# -4 --- POINT
-# -3 --- BRANCH
-# -2 --- TYPE
-# -1 --- LABEL
+# -6 --- STABILITY
+# -5 --- POINT
+# -4 --- BRANCH
+# -3 --- TYPE 
+# -2 --- LABEL 
+# -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method           = -2
+Coloring Method           = -3
 Number of Period Animated = 1
 
 # Line Width Scaler adjusts the thickness of curves:

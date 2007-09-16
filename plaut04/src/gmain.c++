@@ -1574,43 +1574,32 @@ drawLabelPtsInBifurcationScene()
 
     if(lbl == 0)
     {
-#ifndef R3B
-        for(int i=0; i<lblIdxSize; ++i)
+        int k = 0;
+        do
         {
-#endif
-            int k = 0;
+            SoMaterial *lblMtl;
 #ifndef R3B
-            int idx = 0;
-#endif
-            do
-            {
-                SoMaterial *lblMtl;
-#ifndef R3B
-                idx = (k==0) ? myLabels[k] : myLabels[k]-1;
-                row = clientData.labelIndex[idx][1] - 1;
-                lbType = clientData.labelIndex[idx][2];
-//              lbType = clientData.labelIndex[k][2];
+            row = clientData.labelIndex[k][1] - 1;
 #else
             row = clientData.labelIndex[k][1];
-            lbType = clientData.labelIndex[k][2];
 #endif
+            lbType = clientData.labelIndex[k][2];
     
-                lblMtl = setLabelMaterial(lbType);
-                result->addChild(lblMtl);
+            lblMtl = setLabelMaterial(lbType);
+            result->addChild(lblMtl);
     
-                position[0] = myBifNode.xyzCoords[row][0];
-                position[1] = myBifNode.xyzCoords[row][1];
-                position[2] = myBifNode.xyzCoords[row][2];
+            position[0] = myBifNode.xyzCoords[row][0];
+            position[1] = myBifNode.xyzCoords[row][1];
+            position[2] = myBifNode.xyzCoords[row][2];
 
 #ifndef R3B
-                result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));;
+            result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));;
 #else
             result->addChild( drawASphere(position, dis*0.005));;
 #endif
-                ++k;
+            ++k;
 #ifndef R3B
-            } while( k < clientData.totalLabels);
-        }
+        } while( k < clientData.totalLabels);
 #else
         } while( k <= clientData.totalLabels);
 #endif
@@ -5730,9 +5719,7 @@ initCoordAndLableListItems()
 #endif
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
-#ifndef R3B
         strcpy(coloringMethodList[5],"COMP"); sp++; //OCT 7 added
-#endif
         for(i=0; i<MAX_LIST; i++)
                 sprintf(coloringMethodList[i+sp], "%d",i);
         for(i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
@@ -5934,11 +5921,10 @@ initCoordAndLableListItems()
     }
     lblIdxSize = iLbl;
 
-    optSol[0] = options[0];
-    for(int i=1; i<11; ++i)
+    for(int i=0; i<11; ++i)
     {
         optSol[i] = options[i];
-        optBif[i] = options[i];
+        if(i != OPT_PERIOD_ANI) optBif[i] = options[i];
     }
  
 
@@ -6167,7 +6153,7 @@ readResourceParameters()
                     readAString(buffer, aString);
                     char* aNewString = strrighttrim(aString);
                     aNewString = strlefttrim(aString);
-                    optBif[0] = (strcasecmp(aNewString,"Yes")==0) ? true : false;
+                    optBif[OPT_PERIOD_ANI] = (strcasecmp(aNewString,"Yes")==0) ? true : false;
                     blDealt = true;
                 }
             }
@@ -6947,7 +6933,7 @@ writePreferValuesToFile()
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
     fprintf(outFile, "Draw Labels     =");
-    optBif[0] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
+    optBif[OPT_PERIOD_ANI] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
 
     for(int i = 0; i < XtNumber(intVariableNames); ++i)
     {

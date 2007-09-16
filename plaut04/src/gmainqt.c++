@@ -243,6 +243,7 @@ Actions::typeMenuPick(int which)
 
     if ( whichType != whichTypeOld )
     {
+        graphWidgetToggleSet = 0;
         if( whichType != BIFURCATION )
         {
             setShow3D = setShow3DSol;
@@ -250,6 +251,7 @@ Actions::typeMenuPick(int which)
             {
                 optBif[i]  = options[i];
                 options[i] = optSol[i];
+                graphWidgetToggleSet |= options[i] << i;
             }
         }
         else
@@ -259,10 +261,9 @@ Actions::typeMenuPick(int which)
             {
                 optSol[i]  = options[i];
                 options[i] = optBif[i];
+                graphWidgetToggleSet |= options[i] << i;
             }
         }
-        graphWidgetToggleSet &= ~1;
-        graphWidgetToggleSet |= options[0];
     }
 
     whichTypeOld = whichType;
@@ -402,6 +403,8 @@ setListValue()
         for (int i = 0; i < nItems; i++) 
             labelsList->insertItem(labels[i]);
     }
+    labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
+    colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
 
     if(setShow3D)
         zAxisList->setEnabled(true);
@@ -1078,7 +1081,7 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
                                             "coloringMethodlist");
     for ( i = 0; i < nItems; i++ )
         colorMethodSeletionList->insertItem(coloringMethodList[i]);
-    colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems-1);
+    colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
 
 // Add Callback function for the coloring method seletion drop down list
     QWidget::connect(colorMethodSeletionList,
