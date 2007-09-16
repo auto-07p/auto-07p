@@ -1,6 +1,13 @@
 #include <qwidget.h>
 #include <qspinbox.h>
 #include <qcombobox.h>
+#include <qmainwindow.h>
+#include <qgrid.h>
+#include <qvbox.h>
+#include <qbuttongroup.h>
+#include <qtabwidget.h>
+#include <qslider.h>
+#include <qpushbutton.h>
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -45,9 +52,19 @@ private:
     int which;
 };
 
-class Actions : public QWidget
+typedef struct EditMenuItems
+{
+    QPopupMenu *items;
+    int     which;
+} EditMenuItems;
+
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
+public:
+    MainWindow();
+    void setListValue();
 
 public slots:
     void fileMenuPick(int which);
@@ -63,7 +80,7 @@ public slots:
     void centerMenuDisplay();
     void showAboutDialog();
     void showHelp();
-    void createPreferDialog(void);
+    void createPreferDialog();
     void xListCallBack(const QString &);
     void yListCallBack(const QString &);
     void zListCallBack(const QString &);
@@ -86,4 +103,39 @@ public slots:
     void closePreferDialogAndUpdateScene();
     void savePreferAndUpdateScene();
     void applyPreferDialogChangeAndUpdateScene();
+
+private:
+    void buildMenu();
+    QPopupMenu *buildFileMenu();
+    QPopupMenu *buildTypeMenu();
+    QPopupMenu *buildHelpMenu();
+    QPopupMenu *buildOptionMenu();
+    QPopupMenu *buildStyleMenu();
+    QPopupMenu *buildCoordMenu();
+    QPopupMenu *buildCenterMenu();
+
+    void createPreferActionFormControls(QWidget *parent);
+    void createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id);
+    void createColorAndLinePrefSheetHeader(QGrid *parent);
+    void createLineAttrPrefSheetParts(QGrid *form, char** name);
+    void createGraphCoordinateSystemFrameGuts(QButtonGroup *frame);
+    void createGraphStyleFrameGuts(QButtonGroup *frame);
+    void createGraphTypeFrameGuts(QButtonGroup *frame);
+    void createOptionFrameGuts(QButtonGroup *frame);
+    void createGraphCoordPartsFrameGuts(QButtonGroup *frame);
+    void createPreferNotebookPages(QTabWidget *notebook);
+    void createPreferDefaultPages(QVBox *parent);
+    void createLineAttPages(QGrid *parent);
+
+    void getFileName(int);
+
+    QComboBox *xAxisList, *yAxisList, *zAxisList, *labelsList,
+              *colorMethodSeletionList;
+    QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
+    QPushButton *dimButton;
+    QDialog *preferDialog;
+
+    EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
+            *optMenuItems, *coordSystemMenuItems;
+    SoSeparator *sceneGraph;
 };

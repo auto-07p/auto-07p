@@ -27,51 +27,11 @@
 
 #define LBL_OFFSET   4
 
-SbBool printToPostScript (SoNode *root, FILE *file,
+extern SbBool printToPostScript (SoNode *root, FILE *file,
 SoQtExaminerViewer *viewer, int printerDPI);
-
-struct ViewerAndScene
-{
-    SoQtExaminerViewer *viewer;
-    char               *filename;
-    SoNode             *scene;
-} ;
-
-ViewerAndScene *vwrAndScene;
-
-static unsigned long systemLinePatternValue[] =
-{
-    0xffff, 0x7777,  0x3333,  0xfafa, 0xeaea, 0xffcc, 0xffdc,0xff9c,0
-};
-
-static char *systemLinePatternLookAndFeel[] =
-{
-    "SOLID LINE",   "--------",   ". . . . . ",    "_ . _ . _ .",
-    "_ . . _ . .",  "_ . . . _",  "___ _ ___ _", "____ __ ____",
-    "NULL "
-};
-
-static QMainWindow *topform;
-static Actions *actions;
-
-static QComboBox *xAxisList, *yAxisList, *zAxisList, *labelsList,
-  *colorMethodSeletionList;
-static QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
-static QPushButton *dimButton;
-static QDialog *preferDialog;
-
-typedef struct EditMenuItems
-{
-    QPopupMenu *items;
-    int     which;
-} EditMenuItems;
-
-EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
-  *optMenuItems, *coordSystemMenuItems;
-SoSeparator *rootroot;
-
-static void getFileName(int fileMode);
 extern SoSeparator * createBoundingBox();
+
+static MainWindow *mainWindow;
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -98,7 +58,7 @@ DecSpinBox::mapTextToValue( bool* ok ) {
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::orbitSpeedCB(int value)
+MainWindow::orbitSpeedCB(int value)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -110,7 +70,7 @@ Actions::orbitSpeedCB(int value)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::satSpeedCB(int value)
+MainWindow::satSpeedCB(int value)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -122,7 +82,7 @@ Actions::satSpeedCB(int value)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::numPeriodAnimatedCB(const QString &myChoice)
+MainWindow::numPeriodAnimatedCB(const QString &myChoice)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -144,7 +104,7 @@ Actions::numPeriodAnimatedCB(const QString &myChoice)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::colorMethodSelectionCB(const QString &myChoice)
+MainWindow::colorMethodSelectionCB(const QString &myChoice)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -164,7 +124,7 @@ Actions::colorMethodSelectionCB(const QString &myChoice)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::lineWidthCB(int position)
+MainWindow::lineWidthCB(int position)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -178,7 +138,7 @@ Actions::lineWidthCB(int position)
 //  This is called by Qt when a menu item is picked from the File menu.
 //
 void
-Actions::fileMenuPick(int which)
+MainWindow::fileMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -209,7 +169,7 @@ Actions::fileMenuPick(int which)
 //  This is called by Qt when a menu item is picked from the Edit menu.
 //
 void
-Actions::editMenuPick(int which)
+MainWindow::editMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -230,7 +190,7 @@ Actions::editMenuPick(int which)
 //  This is called by Qt when a menu item is picked from the TYPE menu.
 //
 void
-Actions::typeMenuPick(int which)
+MainWindow::typeMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -283,7 +243,7 @@ Actions::typeMenuPick(int which)
 //       This is called by Qt when a menu item is picked from the Option menu.
 //
 void
-Actions::optMenuPick(int which)  
+MainWindow::optMenuPick(int which)  
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -311,11 +271,20 @@ Actions::optMenuPick(int which)
     updateScene();
 }
 
-
 ///////////////////////////////////////////////////////////////////////////
 //
 void
 setListValue()
+//
+///////////////////////////////////////////////////////////////////////////
+{
+    mainWindow->setListValue();
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+void
+MainWindow::setListValue()
 //
 ///////////////////////////////////////////////////////////////////////////
 {
@@ -423,7 +392,7 @@ setListValue()
 //  This is called by Qt when a menu item is picked from the STYLE menu.
 //
 void
-Actions::styleMenuPick(int which)
+MainWindow::styleMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -443,7 +412,7 @@ Actions::styleMenuPick(int which)
 //  This is called by Qt when a menu item is picked from the STYLE menu.
 //
 void
-Actions::coordMenuPick(int which)
+MainWindow::coordMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -468,7 +437,7 @@ Actions::coordMenuPick(int which)
 //
 //  This is called by Qt just before the TYPE menu is displayed.
 //
-void Actions::typeMenuDisplay()
+void MainWindow::typeMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -495,7 +464,7 @@ void Actions::typeMenuDisplay()
 //  This is called by Qt just before the STYLE menu is displayed.
 //
 void 
-Actions::styleMenuDisplay()
+MainWindow::styleMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -536,7 +505,7 @@ Actions::styleMenuDisplay()
 //  This is called by Qt just before the STYLE menu is displayed.
 //
 void 
-Actions::coordMenuDisplay()
+MainWindow::coordMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -563,7 +532,7 @@ Actions::coordMenuDisplay()
 //  This is called by Qt just before the Edit menu is displayed.
 //
 void
-Actions::centerMenuDisplay()
+MainWindow::centerMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -590,7 +559,7 @@ Actions::centerMenuDisplay()
 //  This is called by Qt just before the TYPE menu is displayed.
 //
 void 
-Actions::optMenuDisplay()
+MainWindow::optMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -644,24 +613,24 @@ Actions::optMenuDisplay()
 //  This creates the File menu and all its items.
 //
 QPopupMenu *
-buildFileMenu(QMenuBar *menubar)
+MainWindow::buildFileMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(menubar, "fileMenu");
-    pulldown->insertItem("&Open...", actions, SLOT(fileMenuPick(int)),
-                         QMenuBar::CTRL+QMenuBar::Key_O, OPEN_ITEM);
-    pulldown->insertItem("&Export...", actions, SLOT(fileMenuPick(int)),
-                         QMenuBar::CTRL+QMenuBar::Key_S, SAVE_ITEM);
+    pulldown = new QPopupMenu(this, "fileMenu");
+    pulldown->insertItem("&Open...", this, SLOT(fileMenuPick(int)),
+                         CTRL+Key_O, OPEN_ITEM);
+    pulldown->insertItem("&Export...", this, SLOT(fileMenuPick(int)),
+                         CTRL+Key_S, SAVE_ITEM);
 #ifdef R3B
-    pulldown->insertItem("&Print...", actions, SLOT(fileMenuPick(int)),
-                         QMenuBar::CTRL+QMenuBar::Key_P, PRINT_ITEM);
+    pulldown->insertItem("&Print...", this, SLOT(fileMenuPick(int)),
+                         CTRL+Key_P, PRINT_ITEM);
 #endif
     pulldown->insertSeparator();
-    pulldown->insertItem("&Quit", actions, SLOT(fileMenuPick(int)),
-                         QMenuBar::CTRL+QMenuBar::Key_Q, QUIT_ITEM);
+    pulldown->insertItem("&Quit", this, SLOT(fileMenuPick(int)),
+                         CTRL+Key_Q, QUIT_ITEM);
     return pulldown;
 }
 
@@ -671,14 +640,14 @@ buildFileMenu(QMenuBar *menubar)
 //  This creates the Help menu and all its items.
 //
 QPopupMenu *
-buildHelpMenu(QMenuBar *menubar)
+MainWindow::buildHelpMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QPopupMenu *pulldown = new QPopupMenu(menubar, "helpMenu");
-    pulldown->insertItem("&About", actions, SLOT(showAboutDialog()));
+    QPopupMenu *pulldown = new QPopupMenu(this, "helpMenu");
+    pulldown->insertItem("&About", this, SLOT(showAboutDialog()));
     pulldown->insertSeparator();
-    pulldown->insertItem("&HELP", actions, SLOT(showHelp()));
+    pulldown->insertItem("&HELP", this, SLOT(showHelp()));
     return pulldown;
 }
 
@@ -688,46 +657,45 @@ buildHelpMenu(QMenuBar *menubar)
 //  This creates the Option menu and all its items.
 //
 QPopupMenu *
-buildOptionMenu(QMenuBar *menubar)
+MainWindow::buildOptionMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(menubar, "optionMenu");
+    pulldown = new QPopupMenu(this, "optionMenu");
     pulldown->setCheckable(true);
 
-    QObject::connect( pulldown, SIGNAL( aboutToShow() ),
-                      actions, SLOT( optMenuDisplay() ) );
+    connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(optMenuDisplay()));
 
     EditMenuItems *menuItems = new EditMenuItems;
     menuItems->items = pulldown;
     optMenuItems = menuItems;
 #ifndef R3B
-    pulldown->insertItem("&Highlight Orbit", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
-    pulldown->insertItem("&Orbit Animation", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
 #else
-    pulldown->insertItem("Draw &Reference Plane", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Reference Plane", this, SLOT(optMenuPick(int)),
                          0, OPT_REF_PLAN);
-    pulldown->insertItem("Draw &Primaries", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
                          0, OPT_PRIMARY);
-    pulldown->insertItem("Draw &Libraration Pts", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Libraration Pts", this, SLOT(optMenuPick(int)),
                          0, OPT_LIB_POINTS);
     pulldown->insertSeparator();
-    pulldown->insertItem("&Orbit Animation", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
-    pulldown->insertItem("&Satellite Animation", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
 #endif
-    pulldown->insertItem("Draw &Background", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Background", this, SLOT(optMenuPick(int)),
                          0, OPT_BACKGROUND);
-    pulldown->insertItem("&Add Legend", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Add Legend", this, SLOT(optMenuPick(int)),
                          0, OPT_LEGEND);
-    pulldown->insertItem("&Normalize Data", actions, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Normalize Data", this, SLOT(optMenuPick(int)),
                          0, OPT_NORMALIZE_DATA);
     pulldown->insertSeparator();
-    pulldown->insertItem("&PREFERENCES", actions, SLOT(createPreferDialog()));
+    pulldown->insertItem("&PREFERENCES", this, SLOT(createPreferDialog()));
 
     return pulldown;
 }
@@ -739,29 +707,28 @@ buildOptionMenu(QMenuBar *menubar)
 //  This creates the Edit menu and all its items.
 //
 QPopupMenu *
-buildCenterMenu(QMenuBar *menubar)
+MainWindow::buildCenterMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(menubar, "editMenu");
+    pulldown = new QPopupMenu(this, "editMenu");
     pulldown->setCheckable(true);
 
-    QObject::connect( pulldown, SIGNAL( aboutToShow() ),
-                      actions, SLOT( centerMenuDisplay() ) );
+    connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(centerMenuDisplay()));
 
     coordSystemMenuItems = new EditMenuItems;
     coordSystemMenuItems->items = pulldown;
     coordSystemMenuItems->which = whichCoordSystem;
 
-    pulldown->insertItem("&Rotating Frame", actions,
+    pulldown->insertItem("&Rotating Frame", this,
                          SLOT(editMenuPick(int)), 0, ROTATING_F);
     pulldown->insertSeparator();
-    pulldown->insertItem("Bary &Centered", actions,
+    pulldown->insertItem("Bary &Centered", this,
                          SLOT(editMenuPick(int)), 0, INERTIAL_B);
-    pulldown->insertItem("&Big Primary Centered", actions,
+    pulldown->insertItem("&Big Primary Centered", this,
                          SLOT(editMenuPick(int)), 0, INERTIAL_S);
-    pulldown->insertItem("&Small Primary Centered", actions,
+    pulldown->insertItem("&Small Primary Centered", this,
                          SLOT(editMenuPick(int)), 0, INERTIAL_E);
     return pulldown;
 }
@@ -773,29 +740,26 @@ buildCenterMenu(QMenuBar *menubar)
 //  This creates the STYLE menu and all its items.
 //
 QPopupMenu *
-buildStyleMenu(QMenuBar *menubar)
+MainWindow::buildStyleMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(menubar, "styleMenu");
+    pulldown = new QPopupMenu(this, "styleMenu");
 
     styleMenuItems = new EditMenuItems;
     styleMenuItems->items = pulldown;   
     styleMenuItems->which = whichStyle;
-    QObject::connect( pulldown, SIGNAL( aboutToShow() ),
-                      actions, SLOT( styleMenuDisplay() ) );
+    connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(styleMenuDisplay()));
 
     pulldown->setCheckable(true);
-    pulldown->insertItem("&Line", actions, SLOT(styleMenuPick(int)),
-                         0, LINE);
-    pulldown->insertItem("&Tube", actions, SLOT(styleMenuPick(int)),
-                         0, TUBE);
-    pulldown->insertItem("&Surface", actions, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&Line", this, SLOT(styleMenuPick(int)), 0, LINE);
+    pulldown->insertItem("&Tube", this, SLOT(styleMenuPick(int)), 0, TUBE);
+    pulldown->insertItem("&Surface", this, SLOT(styleMenuPick(int)),
                          0, SURFACE);
-    pulldown->insertItem("&Mesh Points", actions, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&Mesh Points", this, SLOT(styleMenuPick(int)),
                          0, MESH_POINTS);
-    pulldown->insertItem("&All Points", actions, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&All Points", this, SLOT(styleMenuPick(int)),
                          0, ALL_POINTS);
     return pulldown;
 }
@@ -806,31 +770,29 @@ buildStyleMenu(QMenuBar *menubar)
 //  This creates the Coordinates menu and all its items.
 //
 QPopupMenu *
-buildCoordMenu(QMenuBar *menubar)
+MainWindow::buildCoordMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(menubar, "coordMenu");
+    pulldown = new QPopupMenu(this, "coordMenu");
     coordMenuItems = new EditMenuItems;
     coordMenuItems->items = pulldown;
     coordMenuItems->which = whichCoord;
 
-    QObject::connect( pulldown, SIGNAL( aboutToShow() ),
-                      actions, SLOT( coordMenuDisplay() ) );
+    connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(coordMenuDisplay()));
 
     pulldown->setCheckable(true);
-    pulldown->insertItem("&NONE", actions, SLOT(coordMenuPick(int)),
-                         0, NO_COORD);
-    pulldown->insertItem("&Coord Center", actions, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("&NONE", this, SLOT(coordMenuPick(int)), 0, NO_COORD);
+    pulldown->insertItem("&Coord Center", this, SLOT(coordMenuPick(int)),
                          0, COORDORIGIN);
-    pulldown->insertItem("Left and &Back", actions, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("Left and &Back", this, SLOT(coordMenuPick(int)),
                          0, LEFTBACK);
-    pulldown->insertItem("Left and &Ahead", actions, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("Left and &Ahead", this, SLOT(coordMenuPick(int)),
                          0, LEFTAHEAD);
     pulldown->insertSeparator();
-    pulldown->insertItem("&Draw Scale", actions, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("&Draw Scale", this, SLOT(coordMenuPick(int)),
                          0, DRAW_TICKER);
     return pulldown;
 }
@@ -841,25 +803,24 @@ buildCoordMenu(QMenuBar *menubar)
 //  This creates the TYPE menu and all its items.
 //
 QPopupMenu *
-buildTypeMenu(QMenuBar *menubar)
+MainWindow::buildTypeMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(menubar, "typeMenu");
+    pulldown = new QPopupMenu(this, "typeMenu");
     typeMenuItems = new EditMenuItems;
     typeMenuItems->items = pulldown;
     typeMenuItems->which = whichType;
 
     pulldown->setCheckable(true);
 
-    QObject::connect( pulldown, SIGNAL( aboutToShow() ),
-                      actions, SLOT( typeMenuDisplay() ) );
+    connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(typeMenuDisplay()));
 
-    pulldown->insertItem("&Solution", actions, SLOT(typeMenuPick(int)),
+    pulldown->insertItem("&Solution", this, SLOT(typeMenuPick(int)),
                          0, SOLUTION);
-    pulldown->insertItem("&Bifurcation", actions, SLOT(typeMenuPick(int)),
+    pulldown->insertItem("&Bifurcation", this, SLOT(typeMenuPick(int)),
                          0, BIFURCATION);
 
     return pulldown;
@@ -870,8 +831,8 @@ buildTypeMenu(QMenuBar *menubar)
 //
 //  This creates the pulldown menu bar and its menus.
 //
-QMenuBar *
-buildMenu(QMainWindow *parent)
+void
+MainWindow::buildMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -880,30 +841,29 @@ buildMenu(QMainWindow *parent)
 #endif
     QPopupMenu *pulldown1, *pulldown3, *pulldown4, *pulldown5, *pulldown6, *pulldown7;
 // menu bar
-    actions = new Actions;
-    QMenuBar *menubar = parent->menuBar();
-    pulldown1 = buildFileMenu(menubar);
+    pulldown1 = buildFileMenu();
 #ifdef R3B
-    pulldown2 = buildCenterMenu(menubar);
+    pulldown2 = buildCenterMenu();
 #endif
-    pulldown3 = buildStyleMenu(menubar);
-    pulldown4 = buildTypeMenu(menubar);
-    pulldown7 = buildCoordMenu(menubar);
-    pulldown5 = buildOptionMenu(menubar);
-    pulldown6 = buildHelpMenu(menubar);
+    pulldown3 = buildStyleMenu();
+    pulldown4 = buildTypeMenu();
+    pulldown7 = buildCoordMenu();
+    pulldown5 = buildOptionMenu();
+    pulldown6 = buildHelpMenu();
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
 // set the background color for the pull down menus.
     pulldown1->setPaletteBackgroundColor("white");
+#ifdef R3B
     pulldown2->setPaletteBackgroundColor("white");
+#endif
     pulldown3->setPaletteBackgroundColor("white");
     pulldown4->setPaletteBackgroundColor("white");
     pulldown5->setPaletteBackgroundColor("white");
     pulldown6->setPaletteBackgroundColor("white");
 #endif
-#endif
 // the text in the menubar for these menus
+    QMenuBar *menubar = menuBar();
     menubar->insertItem("&File", pulldown1);
     menubar->insertItem("&Type", pulldown4);
     menubar->insertItem("&Style", pulldown3);
@@ -913,14 +873,13 @@ buildMenu(QMainWindow *parent)
 #endif
     menubar->insertItem("&Options", pulldown5);
     menubar->insertItem("&Help", pulldown6);
-    return menubar;
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //
 void 
-Actions::dimensionToggledCB()
+MainWindow::dimensionToggledCB()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -949,12 +908,12 @@ Actions::dimensionToggledCB()
 ////////////////////////////////////////////////////////////////////////
 //
 void 
-Actions::createBdBoxCB()
+MainWindow::createBdBoxCB()
 //
 ////////////////////////////////////////////////////////////////////////
 {
     static bool btnState = false;
-    SoSeparator * scene = rootroot;
+    SoSeparator * scene = sceneGraph;
     btnState = !btnState;
     if(btnState)
         scene->addChild(createBoundingBox());
@@ -972,33 +931,40 @@ Actions::createBdBoxCB()
 //  menubar at the top of the window, and a render area filling out
 //  the remainder. These widgets are layed out with a QMainWindow widget.
 //
-SoQtRenderArea *
-buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
+MainWindow::MainWindow() : QMainWindow()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef USE_EXAM_VIEWER
-    SoQtExaminerViewer *renderArea;
-#else
-    SoQtRenderArea *renderArea;
-#endif
+    struct ViewerAndScene
+    {
+        SoQtExaminerViewer *viewer;
+        char               *filename;
+        SoNode             *scene;
+    } ;
 
     int  i;
 
-    // build the toplevel widget
-    topform = parent;
-    // build menubar
-    buildMenu(topform);
+    sceneGraph = new SoSeparator;
+    sceneGraph->ref();
 
-    // build carrier for the x, y, z, and label lists.
-    QToolBar *listCarrier = new QToolBar( topform );
+    SoEventCallback *mouseEventCB = new SoEventCallback;
+    sceneGraph->addChild(mouseEventCB);
+    sceneGraph->addChild(root);
 
 #ifdef R3B
-#ifdef USE_BK_COLOR
-    topform->setPaletteBackgroundColor("white");
-    menuBar->setPaletteBackgroundColor("white");
-    listCarrier->setPaletteBackgroundColor("white");
+    updateScene();
 #endif
+
+    // build menubar
+    buildMenu();
+
+    // build carrier for the x, y, z, and label lists.
+    QToolBar *listCarrier = new QToolBar( this );
+
+#ifdef USE_BK_COLOR
+    setPaletteBackgroundColor("white");
+    menuBar()->setPaletteBackgroundColor("white");
+    listCarrier->setPaletteBackgroundColor("white");
 #endif
 
 // build the xAxis drop down list
@@ -1010,13 +976,11 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
         xAxisList->insertItem( xAxis[i] );
     xAxisList->setCurrentItem(xCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
-    QWidget::connect( xAxisList, SIGNAL( activated(const QString &) ),
-                      actions, SLOT( xListCallBack(const QString &) ) );
+    connect(xAxisList, SIGNAL(activated(const QString &)),
+            this, SLOT(xListCallBack(const QString &)));
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     xAxisList->setPaletteBackgroundColor("white");
-#endif
 #endif
 
 // build the yAxis drop down list
@@ -1027,13 +991,11 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
         yAxisList->insertItem( yAxis[i] );
     yAxisList->setCurrentItem(yCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
-    QWidget::connect( yAxisList, SIGNAL( activated( const QString & ) ),
-                      actions, SLOT( yListCallBack( const QString & ) ) );
+    connect(yAxisList, SIGNAL(activated(const QString &)),
+            this, SLOT(yListCallBack(const QString & )));
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     yAxisList->setPaletteBackgroundColor("white");
-#endif
 #endif
 
     //build the zAxis drop down list
@@ -1044,13 +1006,11 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
         zAxisList->insertItem( zAxis[i] );
     zAxisList->setCurrentItem(zCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
-    QWidget::connect(zAxisList, SIGNAL(activated(const QString &)),
-                     actions, SLOT(zListCallBack(const QString &)));
+    connect(zAxisList, SIGNAL(activated(const QString &)),
+            this, SLOT(zListCallBack(const QString &)));
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     zAxisList->setPaletteBackgroundColor("white");
-#endif
 #endif
 
 // build the LABELs drop down list
@@ -1064,8 +1024,8 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
 
 // Add Callback function for the LABELs drop down list
-    QWidget::connect(labelsList, SIGNAL(activated(const QString &)),
-                     actions, SLOT(lblListCallBack(const QString &)));
+    connect(labelsList, SIGNAL(activated(const QString &)),
+            this, SLOT(lblListCallBack(const QString &)));
 
 #ifdef USE_BK_COLOR
     labelsList->setPaletteBackgroundColor("white");
@@ -1084,9 +1044,8 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
 
 // Add Callback function for the coloring method seletion drop down list
-    QWidget::connect(colorMethodSeletionList,
-                     SIGNAL(activated(const QString &)),
-                     actions, SLOT(colorMethodSelectionCB(const QString &)));
+    connect(colorMethodSeletionList, SIGNAL(activated(const QString &)),
+            this, SLOT(colorMethodSelectionCB(const QString &)));
 
 //-----------------------------------------------------Nov 06
 
@@ -1118,20 +1077,18 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     numPeriodAnimatedList->setCurrentItem(i);
 
 // Add Callback function for the numberPeriodAnimated drop down list
-    QWidget::connect(numPeriodAnimatedList, SIGNAL(activated(const QString &)),
-                     actions, SLOT(numPeriodAnimatedCB(const QString &)));
+    connect(numPeriodAnimatedList, SIGNAL(activated(const QString &)),
+            this, SLOT(numPeriodAnimatedCB(const QString &)));
 
 //    delete []numberPList;
 //----------------------------------------------------------------> Nov 06 End
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
 //set the background color for the labels
     xLbl->setPaletteBackgroundColor("white");
     yLbl->setPaletteBackgroundColor("white");
     zLbl->setPaletteBackgroundColor("white");
     lLbl->setPaletteBackgroundColor("white");
-#endif
 #endif
 
 // Create slider to control speed
@@ -1141,33 +1098,29 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     QLabel *satSldLbl = new QLabel("  Sat ", listCarrier);
 #endif
     satAniSpeedSlider = new QSlider(MIN_SAT_SPEED, MAX_SAT_SPEED, 1,
-        (int)(satSpeed*100), Qt::Horizontal, listCarrier, "Speed");
+        (int)(satSpeed*100), Horizontal, listCarrier, "Speed");
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     satAniSpeedSlider->setPaletteBackgroundColor("white");
 #endif
-#endif
 
 // Callbacks for the slider
-    QWidget::connect( satAniSpeedSlider, SIGNAL( valueChanged(int) ),
-                      actions, SLOT( satSpeedCB(int) ) );
+    connect(satAniSpeedSlider, SIGNAL(valueChanged(int)),
+            this, SLOT(satSpeedCB(int)));
 
     QLabel *orbitSldLbl = new QLabel("  Orbit", listCarrier);
     orbitAniSpeedSlider = new QSlider(MIN_ORBIT_SPEED, MAX_ORBIT_SPEED, 1,
-       (int)(orbitSpeed*50), Qt::Horizontal, listCarrier, "Speed2");
+       (int)(orbitSpeed*50), Horizontal, listCarrier, "Speed2");
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     orbitAniSpeedSlider->setPaletteBackgroundColor("white");
 #endif
-#endif
 
 // Callbacks for the slider2
-    QWidget::connect( orbitAniSpeedSlider, SIGNAL( valueChanged(int) ),
-                      actions, SLOT( orbitSpeedCB(int) ) );
+    connect(orbitAniSpeedSlider, SIGNAL(valueChanged(int)),
+            this, SLOT(orbitSpeedCB(int)));
 
 // create spinbox for the line width control.
     QLabel *spLbl = new QLabel("  Line Thickness", listCarrier);
@@ -1175,15 +1128,14 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     spinBox->setValue(10);
 
 // Callbacks for the spinebox
-    QWidget::connect( spinBox, SIGNAL( valueChanged(int) ),
-                      actions, SLOT( lineWidthCB(int) ) );
+    connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(lineWidthCB(int)));
 
-    QWidget *widget = new QWidget(topform);
+    QWidget *widget = new QWidget(this);
 // create RENDER AREA FOR THE graphics.
 #ifdef USE_EXAM_VIEWER
-    renderArea = new SoQtExaminerViewer(widget);
+    SoQtExaminerViewer *renderArea = new SoQtExaminerViewer(widget);
 #else
-    renderArea = new SoQtRenderArea(widget);
+    SoQtRenderArea *renderArea = new SoQtRenderArea(widget);
 #endif
 
     renderArea->setSize(SbVec2s(winWidth, winHeight));
@@ -1198,8 +1150,7 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     newButton->setFont(f);
     newButton->setFixedSize(27,27);
 
-    QWidget::connect( newButton, SIGNAL( clicked() ),
-                      actions, SLOT( createBdBoxCB() ) );
+    connect(newButton, SIGNAL(clicked()), this, SLOT(createBdBoxCB()));
     renderArea->addAppPushButton(newButton);
 #endif
 
@@ -1210,13 +1161,12 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
     dimButton = new QPushButton(xString, renderArea->getAppPushButtonParent());
     dimButton->setFont(f);
     dimButton->setFixedSize(27,27);
-    QWidget::connect( dimButton, SIGNAL( clicked() ),
-                      actions, SLOT( dimensionToggledCB() ) );
+    connect(dimButton, SIGNAL(clicked()), this, SLOT(dimensionToggledCB()));
     renderArea->addAppPushButton(dimButton);
-    topform->setCentralWidget(widget);
+    setCentralWidget(widget);
 
 // used for printing  scene to ps files
-    vwrAndScene = new ViewerAndScene;
+    ViewerAndScene *vwrAndScene = new ViewerAndScene;
     vwrAndScene->scene  = renderArea->getSceneGraph();
     vwrAndScene->viewer = renderArea;
 
@@ -1225,8 +1175,15 @@ buildMainWindow(QMainWindow *parent, SoSeparator *sceneGraph)
 #endif
     renderArea->setSceneGraph(sceneGraph);
 
-    parent->resize(winWidth,winHeight);
-    return renderArea;
+    resize(winWidth,winHeight);
+
+    mouseEventCB->addEventCallback(
+        SoMouseButtonEvent::getClassTypeId(),
+        myMousePressCB,
+	renderArea->getSceneManager()->getSceneGraph());
+
+    // Set termination condition.
+    connect(qApp, SIGNAL(lastWindowClosed()), qApp, SLOT(quit()));
 }
 
 
@@ -1268,12 +1225,18 @@ LinePatternComboBox::LinePatternComboBox(bool rw, QWidget * parent,
 //
 ////////////////////////////////////////////////////////////////////////
 {
+    static const char *systemLinePatternLookAndFeel[] =
+    {
+        "SOLID LINE",   "--------",   ". . . . . ",    "_ . _ . _ .",
+        "_ . . _ . .",  "_ . . . _",  "___ _ ___ _", "____ __ ____",
+        "NULL "
+    };
+
     which = id;
     int lengthOfSysPatternArray = LENGTH( systemLinePatternLookAndFeel );
     for (int i = 0; i < lengthOfSysPatternArray; i++)
         insertItem(systemLinePatternLookAndFeel[i]);
-    connect(this, SIGNAL(activated(int)),
-            this, SLOT(valueChangedCB(int)));
+    connect(this, SIGNAL(activated(int)), this, SLOT(valueChangedCB(int)));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1285,6 +1248,11 @@ LinePatternComboBox::valueChangedCB(int position)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+    static const unsigned long systemLinePatternValue[] =
+    {
+        0xffff, 0x7777,  0x3333,  0xfafa, 0xeaea, 0xffcc, 0xffdc,0xff9c,0
+    };
+
     linePatternTemp[which] = systemLinePatternValue[position];
 }
 
@@ -1293,8 +1261,8 @@ LinePatternComboBox::valueChangedCB(int position)
 //
 //  This creates the COLOR and LINE preference sheet stuff.
 //
-static void
-createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id)
+void
+MainWindow::createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1322,8 +1290,8 @@ createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id)
 
 ////////////////////////////////////////////////////////////////////////
 //
-static void
-createColorAndLinePrefSheetHeader(QGrid *parent)
+void
+MainWindow::createColorAndLinePrefSheetHeader(QGrid *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1338,8 +1306,8 @@ createColorAndLinePrefSheetHeader(QGrid *parent)
 //
 //  This simply creates the default parts of the pref dialog.
 //
-static void
-createLineAttrPrefSheetParts(QGrid *form, char** name)
+void
+MainWindow::createLineAttrPrefSheetParts(QGrid *form, char** name)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1362,7 +1330,7 @@ createLineAttrPrefSheetParts(QGrid *form, char** name)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createPreferActionFormControls(QWidget *parent)
+MainWindow::createPreferActionFormControls(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1370,31 +1338,31 @@ createPreferActionFormControls(QWidget *parent)
     QHBoxLayout *form = new QHBoxLayout(parent, 5, -1, "control form");
 
     saveBtn = new QPushButton(" &Save ", parent);
-    QWidget::connect(saveBtn, SIGNAL(clicked()),
-                     actions, SLOT(savePreferAndUpdateScene()));
+    connect(saveBtn, SIGNAL(clicked()),
+                     this, SLOT(savePreferAndUpdateScene()));
     form->addWidget(saveBtn);
 
     closeBtn = new QPushButton(" &Update ", parent);
     form->addWidget(closeBtn);
-    QWidget::connect(closeBtn, SIGNAL(clicked()),
-                     actions, SLOT(closePreferDialogAndUpdateScene()));
+    connect(closeBtn, SIGNAL(clicked()),
+                     this, SLOT(closePreferDialogAndUpdateScene()));
 
     applyBtn = new QPushButton(" &Apply ", parent);
     form->addWidget(applyBtn);
-    QWidget::connect(applyBtn, SIGNAL(clicked()),
-                     actions, SLOT(applyPreferDialogChangeAndUpdateScene()));
+    connect(applyBtn, SIGNAL(clicked()),
+                     this, SLOT(applyPreferDialogChangeAndUpdateScene()));
 
     cancelBtn = new QPushButton(" &Cancel ", parent);
     form->addWidget(cancelBtn);
-    QWidget::connect(cancelBtn, SIGNAL(clicked()),
-                     actions, SLOT(closePreferDialogAndGiveUpChange()));
+    connect(cancelBtn, SIGNAL(clicked()),
+                     this, SLOT(closePreferDialogAndGiveUpChange()));
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::graphCoordinateSystemToggledCB(int which)
+MainWindow::graphCoordinateSystemToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1408,7 +1376,7 @@ Actions::graphCoordinateSystemToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1422,8 +1390,8 @@ createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
     whichCoordSystemOld  = whichCoordSystem;
     whichCoordSystemTemp = whichCoordSystem;
 
-    QWidget::connect(frame, SIGNAL(clicked(int)),
-                     actions, SLOT(graphCoordinateSystemToggledCB(int)));
+    connect(frame, SIGNAL(clicked(int)),
+                     this, SLOT(graphCoordinateSystemToggledCB(int)));
     for (int i = 0; i < LENGTH (coordSysItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordSysItems[i], frame);
@@ -1436,7 +1404,7 @@ createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::graphStyleWidgetToggledCB(int which)
+MainWindow::graphStyleWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1447,7 +1415,7 @@ Actions::graphStyleWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createGraphStyleFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphStyleFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1460,8 +1428,8 @@ createGraphStyleFrameGuts(QButtonGroup *frame)
     whichStyleOld  = whichStyle;
     whichStyleTemp = whichStyle;
 
-    QWidget::connect(frame, SIGNAL(clicked(int)),
-                     actions, SLOT(graphStyleWidgetToggledCB(int)));
+    connect(frame, SIGNAL(clicked(int)),
+                     this, SLOT(graphStyleWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphStyleItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphStyleItems[i], frame);
@@ -1473,7 +1441,7 @@ createGraphStyleFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::graphTypeWidgetToggledCB(int which)
+MainWindow::graphTypeWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1484,7 +1452,7 @@ Actions::graphTypeWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::graphCoordWidgetToggledCB(int which)
+MainWindow::graphCoordWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1495,7 +1463,7 @@ Actions::graphCoordWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createGraphTypeFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphTypeFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1504,8 +1472,8 @@ createGraphTypeFrameGuts(QButtonGroup *frame)
     whichTypeOld  = whichType;
     whichTypeTemp = whichType;
 
-    QWidget::connect(frame, SIGNAL(clicked(int)),
-                     actions, SLOT(graphTypeWidgetToggledCB(int)));
+    connect(frame, SIGNAL(clicked(int)),
+                     this, SLOT(graphTypeWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphTypeItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphTypeItems[i], frame);
@@ -1519,7 +1487,7 @@ createGraphTypeFrameGuts(QButtonGroup *frame)
 // callback for all ToggleButtons.
 //
 void
-Actions::defaultGraphWidgetToggledCB(int bit)
+MainWindow::defaultGraphWidgetToggledCB(int bit)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1530,14 +1498,14 @@ Actions::defaultGraphWidgetToggledCB(int bit)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createOptionFrameGuts(QButtonGroup *frame)
+MainWindow::createOptionFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
 // create default selections
 
-    QWidget::connect(frame, SIGNAL(clicked(int)),
-                     actions, SLOT(defaultGraphWidgetToggledCB(int)));
+    connect(frame, SIGNAL(clicked(int)),
+                     this, SLOT(defaultGraphWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         graphWidgetToggleSetOld = graphWidgetToggleSet;
@@ -1551,7 +1519,7 @@ createOptionFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createGraphCoordPartsFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphCoordPartsFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1566,8 +1534,8 @@ createGraphCoordPartsFrameGuts(QButtonGroup *frame)
     whichCoordOld  = whichCoord;
     whichCoordTemp = whichCoord;
 
-    QWidget::connect(frame, SIGNAL(clicked(int)),
-                     actions, SLOT(graphCoordWidgetToggledCB(int)));
+    connect(frame, SIGNAL(clicked(int)),
+                     this, SLOT(graphCoordWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (coordItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordItems[i], frame);
@@ -1579,7 +1547,7 @@ createGraphCoordPartsFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createPreferDefaultPages(QVBox *parent)
+MainWindow::createPreferDefaultPages(QVBox *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1600,7 +1568,7 @@ createPreferDefaultPages(QVBox *parent)
 #endif
 
     for(int i=0; i<LENGTH(frmNames); ++i)
-        frameList[i] = new QButtonGroup(rows[i], Qt::Vertical, frmNames[i], parent);
+        frameList[i] = new QButtonGroup(rows[i], Vertical, frmNames[i], parent);
     num = 0;
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
@@ -1615,7 +1583,7 @@ createPreferDefaultPages(QVBox *parent)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-createLineAttPages(QGrid *parent)
+MainWindow::createLineAttPages(QGrid *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1649,7 +1617,7 @@ createLineAttPages(QGrid *parent)
 ///////////////////////////////////////////////////////////////////////
 //
 void
-createPreferNotebookPages(QTabWidget *notebook)
+MainWindow::createPreferNotebookPages(QTabWidget *notebook)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1662,7 +1630,7 @@ createPreferNotebookPages(QTabWidget *notebook)
     notebook->addTab(pageForm0, tabName[0]);
 
 // create the second page.
-    QGrid *pageForm1 = new QGrid(2, Qt::Horizontal);
+    QGrid *pageForm1 = new QGrid(2, Horizontal);
     createLineAttPages(pageForm1);
     notebook->addTab(pageForm1, tabName[1]);
 }
@@ -1674,7 +1642,7 @@ createPreferNotebookPages(QTabWidget *notebook)
 //  calls other routines to create the actual content of the sheet.
 //
 void
-Actions::createPreferDialog()
+MainWindow::createPreferDialog()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1682,7 +1650,7 @@ Actions::createPreferDialog()
 
 //    if(!shell)
     {
-        shell = new QDialog(topform, "Preference Dialog");
+        shell = new QDialog(this, "Preference Dialog");
         preferDialog = shell;
         shell->setCaption("Preference Dialog");
 
@@ -1705,7 +1673,7 @@ Actions::createPreferDialog()
 //         CANCEL CALL BACK
 //
 void
-Actions::closePreferDialogAndGiveUpChange()
+MainWindow::closePreferDialogAndGiveUpChange()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1757,7 +1725,7 @@ Actions::closePreferDialogAndGiveUpChange()
 //         OK & CLOSE CALL BACK
 //
 void
-Actions::closePreferDialogAndUpdateScene()
+MainWindow::closePreferDialogAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1808,7 +1776,7 @@ Actions::closePreferDialogAndUpdateScene()
 //         OK & SAVE CALL BACK
 //
 void
-Actions::savePreferAndUpdateScene()
+MainWindow::savePreferAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1861,7 +1829,7 @@ Actions::savePreferAndUpdateScene()
 //         APPLY CALL BACK
 //
 void
-Actions::applyPreferDialogChangeAndUpdateScene()
+MainWindow::applyPreferDialogChangeAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1903,13 +1871,14 @@ Actions::applyPreferDialogChangeAndUpdateScene()
 //        This routine is called to get a file name using the
 // standard file dialog.
 //
-void getFileName(int fileMode)
+void
+MainWindow::getFileName(int fileMode)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     QString filename = QFileDialog::getOpenFileName( QString::null,
                                                      QString::null,
-                                                     topform );
+                                                     this );
     SbBool okFile = TRUE;
     if(!filename)
         return;
@@ -1934,7 +1903,7 @@ void getFileName(int fileMode)
 //        Brings up the "ABOUT" dialog
 //
 void
-Actions::showAboutDialog()
+MainWindow::showAboutDialog()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1956,11 +1925,11 @@ Actions::showAboutDialog()
     str += "  June, 2004 \n";
 #endif
 
-    QMessageBox::about(topform, "About_popup", str);
+    QMessageBox::about(this, "About_popup", str);
 }
 
 void
-Actions::showHelp()
+MainWindow::showHelp()
 {
     showHelpDialog();
 }
@@ -1968,7 +1937,7 @@ Actions::showHelp()
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::xListCallBack(const QString &str)
+MainWindow::xListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1994,7 +1963,7 @@ Actions::xListCallBack(const QString &str)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::yListCallBack(const QString &str)
+MainWindow::yListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2021,7 +1990,7 @@ Actions::yListCallBack(const QString &str)
 ////////////////////////////////////////////////////////////////////////
 //
 void 
-Actions::zListCallBack(const QString &str)
+MainWindow::zListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2048,7 +2017,7 @@ Actions::zListCallBack(const QString &str)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-Actions::lblListCallBack(const QString &str)
+MainWindow::lblListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2198,8 +2167,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
-popupFloquetMultiplierDialog(float data[], int size)
+void popupFloquetMultiplierDialog(float data[], int size)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2246,7 +2214,7 @@ popupFloquetMultiplierDialog(float data[], int size)
     {
         FmDrawingArea *fmDrawingArea;
 
-        dialog_shell = new QDialog(topform, "Dialog", false);
+        dialog_shell = new QDialog(mainWindow, "Dialog", false);
         dialog_shell->setCaption("Dialog");
 
         pane = new QVBoxLayout(dialog_shell, 5, -1, "pane");
@@ -2263,8 +2231,8 @@ popupFloquetMultiplierDialog(float data[], int size)
         pane->addWidget(form);
 
         QPushButton *pushButton= new QPushButton("OK", dialog_shell);
-        QWidget::connect(pushButton, SIGNAL(clicked()),
-                         dialog_shell, SLOT(accept()));
+        pushButton->connect(pushButton, SIGNAL(clicked()),
+                            dialog_shell, SLOT(accept()));
         pane->addWidget(pushButton);
         dialog_shell->show();
     }
@@ -2276,45 +2244,18 @@ popupFloquetMultiplierDialog(float data[], int size)
 void soxtmain(char *argv[])
 {
 // Initialize Inventor and Qt.
-    QMainWindow *mainWindow;
     SoQt::init(argv[0]);
 
-    mainWindow = new QMainWindow();
-    if (mainWindow != NULL)
-    {
 #ifndef R3B
-        root = new SoSeparator;
+    root = new SoSeparator;
 #else
-        root = new SoSelection;
+    root = new SoSelection;
 #endif
-        rootroot = new SoSeparator;
-        rootroot->ref();
-
 #ifndef R3B
-        root->ref();
+    root->ref();
 #endif
-        SoEventCallback *mouseEventCB = new SoEventCallback;
-        rootroot->addChild(mouseEventCB);
-        rootroot->addChild(root);
+    mainWindow = new MainWindow;
 
-#ifdef R3B
-#ifdef USE_BK_COLOR
-        mainWindow->setPaletteBackgroundColor("white");
-#endif
-
-        updateScene();
-#endif
-        SoQtRenderArea *ra = buildMainWindow(mainWindow, rootroot);
-
-        mouseEventCB->addEventCallback(
-            SoMouseButtonEvent::getClassTypeId(),
-            myMousePressCB,
-            ra->getSceneManager()->getSceneGraph());
-
-        // Set termination condition.
-        QObject::connect(qApp, SIGNAL(lastWindowClosed()), qApp, SLOT(quit()));
-
-        SoQt::show(mainWindow);
-        SoQt::mainLoop();
-    }
+    SoQt::show(mainWindow);
+    SoQt::mainLoop();
 }
