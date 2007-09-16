@@ -434,7 +434,7 @@ setListValue()
         }
         for(int i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
         {
-            sprintf(coloringMethodList[i],"par[%d]",mySolNode.parID[i-(mySolNode.nar+sp)]);
+            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode.parID[i-(mySolNode.nar+sp)]+1);
         }
 
         int count = XtNumber (coloringMethodList);

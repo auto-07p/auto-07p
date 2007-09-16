@@ -21,14 +21,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
 printScaleAt(SbVec3f position, double size, double value)
 //
 ////////////////////////////////////////////////////////////////////////////////
-#else
-SoSeparator * printScaleAt(SbVec3f position, double size, double value)
-#endif
 {
     SoSeparator * textSep = new SoSeparator;
 
@@ -55,15 +51,10 @@ SoSeparator * printScaleAt(SbVec3f position, double size, double value)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
-printScaleAt(SbVec3f position, double size, char* strScale)
+printScaleAt(SbVec3f position, double size, const char* strScale)
 //
 ////////////////////////////////////////////////////////////////////////////////
-#else
-
-SoSeparator * printScaleAt(SbVec3f position, double size, char* strScale)
-#endif
 {
     SoSeparator * textSep = new SoSeparator;
 
@@ -88,15 +79,10 @@ SoSeparator * printScaleAt(SbVec3f position, double size, char* strScale)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
 createLegend(SbVec3f pos, double values[5])
 //
 ////////////////////////////////////////////////////////////////////////////////
-#else
-
-SoSeparator * createLegend(SbVec3f pos, double values[5])
-#endif
 {
     SoSeparator *legend= new SoSeparator;
     SoMaterial *legendMaterial = new SoMaterial;
@@ -193,16 +179,11 @@ SoSeparator * createLegend(SbVec3f pos, double values[5])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
 createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
-//
 ///////////////////////////////////////////////////////////////////////////////
-#else
-SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
-#endif
 {
-    char tyNames[13][10]=
+    const char *tyNames[13]=
     {
         "None","BP Alg", "Fold Alg", "Hopf Bif",
         "Reg UZ","UZ Par","Fold Dif", "BP Dif",
@@ -220,15 +201,8 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13]; 
-#if 0//ndef R3B
-    static int32_t numVertices[13]= 
-    {
-        4,4,4,4,4,4,4,4,4,4,4,4,4
-    };
-#else
     static int32_t numVertices[13]={4,4,4,4,4,4,4,4,4,4,4,4,4};
     float tcolor[3];
-#endif
 
     int j;
     for(int i = 0; i < 13; ++i)
@@ -250,12 +224,8 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#if 0 //ndef R3B
-        colors[i].setValue(lineColors[i]);
-#else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
         colors[i].setValue(tcolor);
-#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;
@@ -289,14 +259,10 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
 createBranchLegend(SbVec3f pos, SbColor lineColors[13])
 //
 ///////////////////////////////////////////////////////////////////////////////
-#else
-SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
-#endif
 {
     char tyNames[13][10]=
     {
@@ -315,15 +281,8 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
     static float vertexPositions[13*4][3];
 
     static SbColor colors[13];   
-#if 0 //ndef R3B
-    static int32_t numVertices[13]=
-    {
-        4,4,4,4,4,4,4,4,4,4,4,4,4
-    };
-#else
     static int32_t numVertices[13]={4,4,4,4,4,4,4,4,4,4,4,4,4};
     float tcolor[3];
-#endif
 
     int j;
     for(int i = 0; i < 13; ++i)
@@ -345,12 +304,8 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#if 0 //ndef R3B
-        colors[i].setValue(lineColors[i]);
-#else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
         colors[i].setValue(tcolor);
-#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;
@@ -383,15 +338,10 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13])
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-#ifndef R3B
 SoSeparator * 
 createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
 //
 ///////////////////////////////////////////////////////////////////////////////
-#else
-
-SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
-#endif
 {
     char tyNames[][10]={"UNSTB","STB"};
     SoSeparator *legend= new SoSeparator;
@@ -407,9 +357,7 @@ SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
 
     static SbColor colors[2];
     static int32_t numVertices[2]={4,4};
-#if 1 //def R3B
     float tcolor[3];
-#endif
 
     int j;
     for(int i = 0; i < 2; ++i)
@@ -447,12 +395,8 @@ SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 
-#if 0 //ndef R3B
-        colors[i].setValue(lineColors[i]);
-#else
         lineColors[i].getValue(tcolor[0],tcolor[1], tcolor[2]);
         colors[i].setValue(tcolor);
-#endif
     }
 
     SoShapeHints * legendHints = new SoShapeHints;
