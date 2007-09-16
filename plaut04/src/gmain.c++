@@ -5656,7 +5656,7 @@ initCoordAndLableListItems()
         for(i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
         {
             char tmpchar[5];
-            sprintf(coloringMethodList[i], "par[%d]", mySolNode.parID[i-(mySolNode.nar+sp)]);
+            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode.parID[i-(mySolNode.nar+sp)]+1);
         }
 #if 0 //see above #if 0
     }
