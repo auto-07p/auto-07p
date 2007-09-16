@@ -1090,6 +1090,14 @@ MainWindow::MainWindow() : QMainWindow()
     lLbl->setPaletteBackgroundColor("white");
 #endif
 
+// create spinbox for the line width control.
+    QLabel *spLbl = new QLabel("  Line Thickness", listCarrier);
+    DecSpinBox *spinBox = new DecSpinBox(10, 100, 1, listCarrier, "spinBox");
+    spinBox->setValue(10);
+
+// Callbacks for the spinebox
+    connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(lineWidthCB(int)));
+
 // Create slider to control speed
 #ifndef R3B
     QLabel *satSldLbl = new QLabel("  Anim", listCarrier);
@@ -1120,14 +1128,6 @@ MainWindow::MainWindow() : QMainWindow()
 // Callbacks for the slider2
     connect(orbitAniSpeedSlider, SIGNAL(valueChanged(int)),
             this, SLOT(orbitSpeedCB(int)));
-
-// create spinbox for the line width control.
-    QLabel *spLbl = new QLabel("  Line Thickness", listCarrier);
-    DecSpinBox *spinBox = new DecSpinBox(10, 100, 1, listCarrier, "spinBox");
-    spinBox->setValue(10);
-
-// Callbacks for the spinebox
-    connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(lineWidthCB(int)));
 
     QWidget *widget = new QWidget(this);
 // create RENDER AREA FOR THE graphics.
