@@ -229,10 +229,6 @@ MainWindow::typeMenuPick(int which)
     whichTypeOld = whichType;
 
     setListValue();
-    dimButton->setText(setShow3D ? "3D" : "2D");
-    xAxisList->setCurrentItem(xCoordIndices[0]);
-    yAxisList->setCurrentItem(yCoordIndices[0]);
-    zAxisList->setCurrentItem(zCoordIndices[0]);
 
     updateScene();
 }
@@ -372,8 +368,12 @@ MainWindow::setListValue()
         for (int i = 0; i < nItems; i++) 
             labelsList->insertItem(labels[i]);
     }
+    xAxisList->setCurrentItem(xCoordIndices[0]);
+    yAxisList->setCurrentItem(yCoordIndices[0]);
+    zAxisList->setCurrentItem(zCoordIndices[0]);
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
     colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
+    dimButton->setText(setShow3D ? "3D" : "2D");
 
     if(setShow3D)
         zAxisList->setEnabled(true);
@@ -890,7 +890,6 @@ MainWindow::dimensionToggledCB()
         setShow3D = true;
         zAxisList->setEnabled(true);
         setListValue();
-        dimButton->setText("3D");
     }
     else
     {
@@ -1876,9 +1875,19 @@ MainWindow::getFileName(int fileMode)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QString filename = QFileDialog::getOpenFileName( QString::null,
-                                                     QString::null,
-                                                     this );
+    QString filename; 
+
+    if(fileMode == SAVE_ITEM)
+        filename = QFileDialog::getSaveFileName(QString::null,
+                          "Inventor files (*.iv);;Any files (*)", this );
+#ifdef R3B
+    else if(fileMode == PRINT_ITEM)
+        filename = QFileDialog::getSaveFileName(QString::null, QString::null,
+                     this, "print file dialog", "Choose a file to print to" );
+#endif
+    else
+        filename = QFileDialog::getOpenFileName(QString::null,
+                          "AUTO files (b.* s.* d.*);;Any files (*)", this);
     SbBool okFile = TRUE;
     if(!filename)
         return;
