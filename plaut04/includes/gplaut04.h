@@ -378,10 +378,10 @@ extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
 extern char labels[MAX_LABEL][8];
 #ifndef R3B
-extern char * graphWidgetItems[5];
+extern const char * graphWidgetItems[5];
 extern SoSeparator *root;
 #else
-extern char * graphWidgetItems[8];
+extern const char * graphWidgetItems[8];
 extern SoSelection *root;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern bool blMassDependantOption;

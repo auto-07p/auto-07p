@@ -39,7 +39,7 @@ Axis::~Axis()
 //////////////////////////////////////////////////////////////
 //
 Axis::Axis(bool s3D, int ty, double mxValue, double miValue, 
-         int numTickers, char* aName, int wh, SbColor clr)
+         int numTickers, const char* aName, int wh, SbColor clr)
 //
 //////////////////////////////////////////////////////////////
 {
@@ -51,7 +51,7 @@ Axis::Axis(bool s3D, int ty, double mxValue, double miValue,
 //////////////////////////////////////////////////////////////
 //
 Axis::Axis(int ty, double mxValue, double miValue, int numTickers, 
-         char* aName, int wh, SbColor clr)
+         const char* aName, int wh, SbColor clr)
 //
 //////////////////////////////////////////////////////////////
 {
@@ -63,7 +63,7 @@ Axis::Axis(int ty, double mxValue, double miValue, int numTickers,
 //
 void 
 Axis::set(int ty, double mxValue, double mnValue, int numTickers, 
-          char* aName, int wh, SbColor clr)
+          const char* aName, int wh, SbColor clr)
 //
 //////////////////////////////////////////////////////////////
 {

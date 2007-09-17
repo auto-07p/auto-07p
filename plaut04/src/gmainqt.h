@@ -115,9 +115,9 @@ private:
     QPopupMenu *buildCenterMenu();
 
     void createPreferActionFormControls(QWidget *parent);
-    void createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id);
+    void createLineColorAndPatternPrefSheetGuts(QGrid *parent, const char *name, int id);
     void createColorAndLinePrefSheetHeader(QGrid *parent);
-    void createLineAttrPrefSheetParts(QGrid *form, char** name);
+    void createLineAttrPrefSheetParts(QGrid *form, const char** name);
     void createGraphCoordinateSystemFrameGuts(QButtonGroup *frame);
     void createGraphStyleFrameGuts(QButtonGroup *frame);
     void createGraphTypeFrameGuts(QButtonGroup *frame);

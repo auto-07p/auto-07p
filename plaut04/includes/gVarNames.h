@@ -1,4 +1,4 @@
-    char *typeTokenNames[] =
+    const char *typeTokenNames[] =
     {
         "DEFAULT","BP ALG", "LP ALG",
         "HB", "UZ4", "UZ-4",
@@ -7,7 +7,7 @@
         "OTHERS"
     };
 
-   char *intVariableNames[] =
+   const char *intVariableNames[] =
     {
         "Graph Type",
         "Graph Style",
@@ -53,13 +53,13 @@
 #endif
     };
 
-    char * hexdecimalVarNames[] =
+    const char * hexdecimalVarNames[] =
     {
         "UNSTABLE LINE PATTERN",
         "STABLE LINE PATTERN"
     };
 
-   char * nDataVarNames[] =
+   const char * nDataVarNames[] =
     {
         "Background Color",
         "X Axis Color",
@@ -84,14 +84,14 @@
 #endif
     };
 
-    char * blWidgetName[] =
+    const char * blWidgetName[] =
     {
         "3D",
         "3DBif",
         "3DSol",
     };
 
-char * graphWidgetItems[]=
+const char * graphWidgetItems[]=
 {
 #ifndef R3B
     "Highlight Orbit",
@@ -109,7 +109,7 @@ char * graphWidgetItems[]=
     "Normalize Data"
 };
 
-char * axesNames[] =
+const char * axesNames[] =
 {
         "X Axis Solution",
         "Y Axis Solution",

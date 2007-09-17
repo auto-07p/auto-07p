@@ -19,7 +19,7 @@ extern SolNode mySolNode;
 extern BifNode myBifNode;
 
 SoSeparator * drawTicker(float pos,float height);
-SoSeparator * createAxis(float red, float green, float blue, float height, char *);
+SoSeparator * createAxis(float red, float green, float blue, float height, const char *);
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -92,7 +92,7 @@ drawCoords(int where, float pos[], SbVec3f axisColors[],  float height)
 }
 
 
-SoSeparator * createAxis(float red, float green, float blue, float height, char * label)
+SoSeparator * createAxis(float red, float green, float blue, float height, const char * label)
 {
     SoSeparator *axisSep = new SoSeparator;
     SoMaterial  *axisMtl = new SoMaterial;

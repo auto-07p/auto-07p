@@ -59,12 +59,12 @@ struct ViewerAndScene
 
 ViewerAndScene *vwrAndScene;
 
-static unsigned long systemLinePatternValue[] =
+static const unsigned long systemLinePatternValue[] =
 {
     0xfffff, 0x7777,  0x3333,  0xfafa, 0xeaea, 0xffcc, 0xffdc,0xff9c,0
 };
 
-static char *systemLinePatternLookAndFeel[] =
+static const char *systemLinePatternLookAndFeel[] =
 {
     "SOLID LINE",   "--------",   ". . . . . ",    "_ . _ . _ .",
     "_ . . _ . .",  "_ . . . _",  "___ _ ___ _", "____ __ ____",
@@ -2226,7 +2226,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     XmStringTable strList = (XmStringTable) XtMalloc (
         (unsigned) lengthOfSysPatternArray * sizeof (XmString *));
     for (int i = 0; i < lengthOfSysPatternArray; i++)
-        strList[i] = XmStringCreateLocalized (systemLinePatternLookAndFeel[i]);
+      strList[i] = XmStringCreateLocalized ((char *)systemLinePatternLookAndFeel[i]);
 
     n = 0;
     XtSetArg (args[n], XmNspinBoxChildType,  XmSTRING); n++;
@@ -2309,7 +2309,7 @@ createColorAndLinePrefSheetHeader(Widget parent)
 //  This simply creates the default parts of the pref dialog.
 //
 void
-createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, char** name)
+createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, const char** name)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2325,7 +2325,7 @@ createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, char** 
     }
 
     for(int i=0; i<NUM_SP_POINTS; ++i)
-        widgetList[num++] = createLineColorAndPatternPrefSheetGuts(form, name[i], i);
+        widgetList[num++] = createLineColorAndPatternPrefSheetGuts(form, (char *)name[i], i);
 }
 
 
@@ -2470,7 +2470,7 @@ createPreferActionFormControls(Widget &parent)
 ////////////////////////////////////////////////////////////////////////
 //
 Widget
-createPreferDefaultPageFrames(Widget parent, char *frameName)
+createPreferDefaultPageFrames(Widget parent, const char *frameName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2486,7 +2486,7 @@ createPreferDefaultPageFrames(Widget parent, char *frameName)
     n = 0;
     XtSetArg(args[n], XmNframeChildType, XmFRAME_TITLE_CHILD); n++;
     XtSetArg(args[n], XmNchildVerticalAlignment, XmALIGNMENT_CENTER); n++;
-    label = XmCreateLabelGadget (frame, frameName, args, n);
+    label = XmCreateLabelGadget (frame, (char *)frameName, args, n);
     XtManageChild (label);
     return frame;
 }
@@ -2520,7 +2520,7 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
-    char *coordSysItems[]=
+    const char *coordSysItems[]=
     {
         "Rotating Frame", "Barycenter " ,
         "Large Primary Center", "Small Primary Center"
@@ -2539,7 +2539,7 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     {
         n = 0;
         if (whichCoordSystem == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
-        Widget w = XmCreateToggleButtonGadget (toggleBox, coordSysItems[i], args, n);
+        Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)coordSysItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphCoordinateSystemToggledCB, (XtPointer) i);
         XtManageChild (w);
     }
@@ -2576,7 +2576,7 @@ createGraphStyleFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
-    char * graphStyleItems[]=
+    const char * graphStyleItems[]=
     {
         "Line Style", "Tube Style" , "Surface Style"
     };
@@ -2593,7 +2593,7 @@ createGraphStyleFrameGuts(Widget frame)
     {
         n = 0;
         if (whichStyle == i) XtSetArg(args[n++], XmNset, XmSET);
-        Widget w = XmCreateToggleButtonGadget (toggleBox, graphStyleItems[i], args, n);
+        Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)graphStyleItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphStyleWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
     }
@@ -2647,7 +2647,7 @@ createGraphTypeFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
-    char * graphTypeItems[]={ "Solution Diagram" , "Bifurcation Diagram" };
+    const char * graphTypeItems[]={"Solution Diagram", "Bifurcation Diagram" };
 
 // create default selections
     n = 0;
@@ -2664,7 +2664,7 @@ createGraphTypeFrameGuts(Widget frame)
     {
         n = 0;
         if (whichType == i) XtSetArg(args[n++], XmNset, XmSET);
-        Widget w = XmCreateToggleButtonGadget (toggleBox, graphTypeItems[i], args, n);
+        Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)graphTypeItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphTypeWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
     }
@@ -2716,7 +2716,7 @@ createOptionFrameGuts(Widget frame)
         graphWidgetToggleSetTemp= graphWidgetToggleSet;
         n = 0;
         if (graphWidgetToggleSet & (1<<i)) XtSetArg(args[n++], XmNset, XmSET);
-        Widget w = XmCreateToggleButtonGadget (toggleBox, graphWidgetItems[i], args, n);
+        Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)graphWidgetItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, defaultGraphWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
     }
@@ -2774,7 +2774,7 @@ createGraphCoordPartsFrameGuts(Widget frame)
     int n;
     Arg args[12];
     Widget label;
-    char *coordItems[]=
+    const char *coordItems[]=
     {
         "No Coordinate", "At Origin" ,
         "At Left & Behind", "At Left & Ahead"  
@@ -2793,7 +2793,7 @@ createGraphCoordPartsFrameGuts(Widget frame)
     {
         n = 0;
         if (whichCoord == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
-        Widget w = XmCreateToggleButtonGadget (toggleBox1, coordItems[i], args, n);
+        Widget w = XmCreateToggleButtonGadget (toggleBox1, (char *)coordItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphCoordWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
     }
@@ -2812,7 +2812,7 @@ createPreferDefaultPages(Widget parent)
 {
     Widget frameList[6];
     int num;
-    char * frmNames[]=
+    const char * frmNames[]=
     {
         "Optional Widgets", "Graph Type", "Graph Style",
 #ifndef R3B
@@ -2843,8 +2843,8 @@ createLineAttPages(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *tabName[] = { "Line Attributes", "Other Preferences" };
-    char *names[] =
+    const char *tabName[] = { "Line Attributes", "Other Preferences" };
+    const char *names[] =
     {
         "DEFAULTS", "BP (ALG)", "LP (ALG)",
         "HB      ", "UZ     4", "UZ    -4",
@@ -2852,7 +2852,7 @@ createLineAttPages(Widget parent)
         "TR TORUS", "EP (NOR)", "MX (ABN)",
         "OTHERS  "
     };
-    char *names2[] =
+    const char *names2[] =
     {
         "Color 1", "Color 2", "Color 3",
         "Color 4", "Color 5", "Color 6",
@@ -2888,7 +2888,7 @@ createPreferNotebookPages(Widget notebook)
     char         buffer[32];
     XmString     xms;
     Arg          args[14];
-    char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
+    const char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
 // create the first page.
     n = 0;

@@ -37,8 +37,8 @@ private:
 
 public:
 	Axis();
-	Axis(int type, double maxValue, double minValue, int numOfTickers, char* name, int wh, SbColor color);
-	Axis(bool td, int type, double maxValue, double minValue, int numOfTickers, char* name, int wh, SbColor color);
+	Axis(int type, double maxValue, double minValue, int numOfTickers, const char* name, int wh, SbColor color);
+	Axis(bool td, int type, double maxValue, double minValue, int numOfTickers, const char* name, int wh, SbColor color);
 	~Axis();
 
 	SoSeparator *createAxis();	
@@ -46,8 +46,8 @@ public:
 	void setMaxValue(double mx){ maxValue = mx; }
 	void setMinValue(double mi){ minValue = mi; }
 	void setNumOfTicker(int it){ numOfTickers = it; }
-	void setName(char* anName){ strcpy(name, anName); }
-	void set(int type, double maxValue, double minValue, int numOfTickers, char * name, int wh, SbColor color);
+	void setName(const char* anName){ strcpy(name, anName); }
+	void set(int type, double maxValue, double minValue, int numOfTickers, const char * name, int wh, SbColor color);
 
 };
 

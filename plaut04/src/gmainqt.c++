@@ -1261,7 +1261,7 @@ LinePatternComboBox::valueChangedCB(int position)
 //  This creates the COLOR and LINE preference sheet stuff.
 //
 void
-MainWindow::createLineColorAndPatternPrefSheetGuts(QGrid *parent, char *name, int id)
+MainWindow::createLineColorAndPatternPrefSheetGuts(QGrid *parent, const char *name, int id)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1306,7 +1306,7 @@ MainWindow::createColorAndLinePrefSheetHeader(QGrid *parent)
 //  This simply creates the default parts of the pref dialog.
 //
 void
-MainWindow::createLineAttrPrefSheetParts(QGrid *form, char** name)
+MainWindow::createLineAttrPrefSheetParts(QGrid *form, const char** name)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1379,7 +1379,7 @@ MainWindow::createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *coordSysItems[]=
+    const char *coordSysItems[]=
     {
         "Rotating Frame", "Barycenter " ,
         "Large Primary Center", "Small Primary Center"
@@ -1418,7 +1418,7 @@ MainWindow::createGraphStyleFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char * graphStyleItems[]=
+    const char * graphStyleItems[]=
     {
         "Line Style", "Tube Style" , "Surface Style"
     };
@@ -1466,7 +1466,7 @@ MainWindow::createGraphTypeFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char * graphTypeItems[]={ "Solution Diagram" , "Bifurcation Diagram" };
+    const char *graphTypeItems[]={ "Solution Diagram" , "Bifurcation Diagram" };
 
     whichTypeOld  = whichType;
     whichTypeTemp = whichType;
@@ -1522,7 +1522,7 @@ MainWindow::createGraphCoordPartsFrameGuts(QButtonGroup *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *coordItems[]=
+    const char *coordItems[]=
     {
         "No Coordinate", "At Origin" ,
         "At Left && Behind", "At Left && Ahead"  
@@ -1586,8 +1586,8 @@ MainWindow::createLineAttPages(QGrid *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *tabName[] = { "Line Attributes", "Other Preferences" };
-    char *names[] =
+    const char *tabName[] = { "Line Attributes", "Other Preferences" };
+    const char *names[] =
     {
         "DEFAULTS", "BP (ALG)", "LP (ALG)",
         "HB      ", "UZ     4", "UZ    -4",
@@ -1595,7 +1595,7 @@ MainWindow::createLineAttPages(QGrid *parent)
         "TR TORUS", "EP (NOR)", "MX (ABN)",
         "OTHERS  "
     };
-    char *names2[] =
+    const char *names2[] =
     {
         "Color 1", "Color 2", "Color 3",
         "Color 4", "Color 5", "Color 6",
@@ -1621,7 +1621,7 @@ MainWindow::createPreferNotebookPages(QTabWidget *notebook)
 ////////////////////////////////////////////////////////////////////////
 {
 // create the preference sheet shell and form widget
-    char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
+    const char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
 // create the first page.
     QVBox *pageForm0 = new QVBox;
@@ -2118,7 +2118,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 {
     QPainter p( this );
 
-    static char *myText[9] =
+    static const char *myText[9] =
     {
       "-inf", "-100", "-10", "-1", "0", "1", "10", "100", "+inf"
     };
