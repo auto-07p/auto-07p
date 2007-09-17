@@ -155,6 +155,8 @@ AC_SUBST(TEK2PS)
 
 dnl AC_HAVE_LIBRARY([m])
 
+AC_PROG_CXX
+AC_LANG_CPLUSPLUS
 PLAUT04_TEST=yes
 AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
 COIN_LDFLAGS=
@@ -206,7 +208,12 @@ else
 	    fi
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	    AC_HAVE_LIBRARY([SoQt],SOXTLIB="SoQt",SOXTLIB="no")
+	    AC_LINK_IFELSE([int main() {return 0;}], [SOXTLIB="SoQt"],
+              # -lXi is a workaround for Fedora Core 5
+	      [LDFLAGS="$LDFLAGS -lXi"
+	       SOXT_LDFLAGS="$SOXT_LDFLAGS -lXi"
+	       AC_LINK_IFELSE([int main() {return 0;}],
+               [SOXTLIB="SoQt"], [SOXTLIB="no"])])
 	    LDFLAGS=$tmp_LDFLAGS
 	fi
 	if test x$SOXTLIB = xno; then
@@ -242,8 +249,6 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
     test x$no_x != xyes) && \
    test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
-    AC_PROG_CXX
-    AC_LANG_CPLUSPLUS
     if test x$SOXTLIB = "xSoXt"; then
 	DEPS_LIBS="$X_PRE_LIBS $DEPS_LIBS $X_LIBS $X_EXTRA_LIBS"
 	SOXT_OBJS=gmainxt.o
