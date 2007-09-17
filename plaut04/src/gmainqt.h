@@ -1,13 +1,27 @@
 #include <qwidget.h>
 #include <qspinbox.h>
 #include <qcombobox.h>
-#include <qmainwindow.h>
-#include <qgrid.h>
-#include <qvbox.h>
-#include <qbuttongroup.h>
 #include <qtabwidget.h>
 #include <qslider.h>
 #include <qpushbutton.h>
+#if QT_VERSION >= 0x40000
+#include <q3grid.h>
+#include <q3vbox.h>
+#include <q3popupmenu.h>
+#include <q3mainwindow.h>
+#include <q3buttongroup.h>
+#define QGrid Q3Grid
+#define QVBox Q3VBox
+#define QPopupMenu Q3PopupMenu
+#define QMainWindow Q3MainWindow
+#define QButtonGroup Q3ButtonGroup
+#else
+#include <qgrid.h>
+#include <qvbox.h>
+#include <qpopupmenu.h>
+#include <qmainwindow.h>
+#include <qbuttongroup.h>
+#endif
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>

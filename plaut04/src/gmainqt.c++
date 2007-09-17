@@ -8,20 +8,25 @@
 #include <qmenubar.h>
 #include <qfiledialog.h>
 #include <qcombobox.h>
-#include <qtoolbar.h>
 #include <qlabel.h>
-#include <qmainwindow.h>
 #include <qmessagebox.h>
 #include <qtabwidget.h>
-#include <qbuttongroup.h>
 #include <qradiobutton.h>
 #include <qcheckbox.h>
-#include <qvbox.h>
-#include <qgrid.h>
 #include <qlayout.h>
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qspinbox.h>
+#if QT_VERSION >= 0x40000
+#include <q3hbox.h>
+#include <q3toolbar.h>
+#define QHBox Q3HBox
+#define QToolBar Q3ToolBar
+#else
+#include <qhbox.h>
+#include <qtoolbar.h>
+#endif
+
 #include "gplaut04.h"
 #include "gmainqt.h"
 
@@ -621,16 +626,16 @@ MainWindow::buildFileMenu()
 
     pulldown = new QPopupMenu(this, "fileMenu");
     pulldown->insertItem("&Open...", this, SLOT(fileMenuPick(int)),
-                         CTRL+Key_O, OPEN_ITEM);
+                         Qt::CTRL+Qt::Key_O, OPEN_ITEM);
     pulldown->insertItem("&Export...", this, SLOT(fileMenuPick(int)),
-                         CTRL+Key_S, SAVE_ITEM);
+                         Qt::CTRL+Qt::Key_S, SAVE_ITEM);
 #ifdef R3B
     pulldown->insertItem("&Print...", this, SLOT(fileMenuPick(int)),
-                         CTRL+Key_P, PRINT_ITEM);
+                         Qt::CTRL+Qt::Key_P, PRINT_ITEM);
 #endif
     pulldown->insertSeparator();
     pulldown->insertItem("&Quit", this, SLOT(fileMenuPick(int)),
-                         CTRL+Key_Q, QUIT_ITEM);
+                         Qt::CTRL+Qt::Key_Q, QUIT_ITEM);
     return pulldown;
 }
 
@@ -1105,7 +1110,7 @@ MainWindow::MainWindow() : QMainWindow()
     QLabel *satSldLbl = new QLabel("  Sat ", listCarrier);
 #endif
     satAniSpeedSlider = new QSlider(MIN_SAT_SPEED, MAX_SAT_SPEED, 1,
-        (int)(satSpeed*100), Horizontal, listCarrier, "Speed");
+        (int)(satSpeed*100), Qt::Horizontal, listCarrier, "Speed");
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
 
 #ifdef USE_BK_COLOR
@@ -1118,7 +1123,7 @@ MainWindow::MainWindow() : QMainWindow()
 
     QLabel *orbitSldLbl = new QLabel("  Orbit", listCarrier);
     orbitAniSpeedSlider = new QSlider(MIN_ORBIT_SPEED, MAX_ORBIT_SPEED, 1,
-       (int)(orbitSpeed*50), Horizontal, listCarrier, "Speed2");
+        (int)(orbitSpeed*50), Qt::Horizontal, listCarrier, "Speed2");
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
 
 #ifdef USE_BK_COLOR
@@ -1567,7 +1572,7 @@ MainWindow::createPreferDefaultPages(QVBox *parent)
 #endif
 
     for(int i=0; i<LENGTH(frmNames); ++i)
-        frameList[i] = new QButtonGroup(rows[i], Vertical, frmNames[i], parent);
+        frameList[i] = new QButtonGroup(rows[i], Qt::Vertical, frmNames[i], parent);
     num = 0;
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
@@ -1629,7 +1634,7 @@ MainWindow::createPreferNotebookPages(QTabWidget *notebook)
     notebook->addTab(pageForm0, tabName[0]);
 
 // create the second page.
-    QGrid *pageForm1 = new QGrid(2, Horizontal);
+    QGrid *pageForm1 = new QGrid(2, Qt::Horizontal);
     createLineAttPages(pageForm1);
     notebook->addTab(pageForm1, tabName[1]);
 }
@@ -1889,7 +1894,7 @@ MainWindow::getFileName(int fileMode)
         filename = QFileDialog::getOpenFileName(QString::null,
                           "AUTO files (b.* s.* d.*);;Any files (*)", this);
     SbBool okFile = TRUE;
-    if(!filename)
+    if(filename == QString::null)
         return;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename);
@@ -2124,32 +2129,32 @@ FmDrawingArea::paintEvent( QPaintEvent * )
     };
 
 // draw Y
-    p.setPen(QPen(blue, 2, SolidLine));
+    p.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
     p.drawLine(200, 0, 200, 400);
 
 // draw X
-    p.setPen(QPen(red, 2, SolidLine));
+    p.setPen(QPen(Qt::red, 2, Qt::SolidLine));
     p.drawLine(0, 200, 400, 200);
 
 // draw grid
-    p.setPen(QPen(gray, 1, DotLine));
+    p.setPen(QPen(Qt::gray, 1, Qt::DotLine));
     for(int i=0; i<9; ++i)
         p.drawLine(0, 50*i, 400, 50*i);
     for(int i=0; i<9; ++i)
         p.drawLine(i*50, 0, i*50, 400);
 
 // draw text
-    p.setPen(black);
+    p.setPen(Qt::black);
     for(int i = 0; i < 9; ++i)
         p.drawText(i*50+1 , 215, myText[i]);
     for(int i = 0; i < 9; ++i)
         p.drawText(210 , 413-i*50, myText[i]);
 
 // draw a unit circle.
-    p.setPen(QPen(green, 1, SolidLine));
+    p.setPen(QPen(Qt::green, 1, Qt::SolidLine));
     p.drawArc(150, 150, 100, 100, 0, 360*16);
 
-    p.setPen(QPen(black, 2, SolidLine));
+    p.setPen(QPen(Qt::black, 2, Qt::SolidLine));
 
     int x, y;
 

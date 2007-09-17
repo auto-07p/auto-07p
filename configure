@@ -7398,8 +7398,14 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	SOXT_OBJS=gmainxt.o
 	SOXT_OBJS_R3B=gmainxt.o
     else
-	# Extract the first word of "moc", so it can be a program name with args.
-set dummy moc; ac_word=$2
+        MOCNAMES="moc-qt3 moc"
+        if ( echo $SOXT_LDFLAGS | grep QtGui > /dev/null ); then
+            MOCNAMES="moc-qt4 moc"
+        fi
+	for ac_prog in $MOCNAMES
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_path_MOC+set}" = set; then
@@ -7427,7 +7433,6 @@ done
 done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_MOC" && ac_cv_path_MOC="$QTDIR/bin/moc"
   ;;
 esac
 fi
@@ -7441,9 +7446,13 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
+  test -n "$MOC" && break
+done
+test -n "$MOC" || MOC="$QTDIR/bin/moc"
+
 	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
 	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
-	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT -DQT3_SUPPORT"
     fi
 else
     PLAUT04=""

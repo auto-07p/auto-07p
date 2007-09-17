@@ -254,15 +254,19 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	SOXT_OBJS=gmainxt.o
 	SOXT_OBJS_R3B=gmainxt.o
     else
-	AC_PATH_PROG(
+        MOCNAMES="moc-qt3 moc"
+        if ( echo $SOXT_LDFLAGS | grep QtGui > /dev/null ); then
+            MOCNAMES="moc-qt4 moc"
+        fi
+	AC_PATH_PROGS(
 	  MOC,
-	  moc,
+	  [$MOCNAMES],
 	  $QTDIR/bin/moc,
 	  $QTDIR/bin:/usr/lib/qt2/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/qt/bin:/usr/local/qt/bin:$PATH
 	)
 	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
 	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
-	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT -DQT3_SUPPORT"
     fi
 else
     PLAUT04=""
