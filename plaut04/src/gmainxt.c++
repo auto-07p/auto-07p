@@ -3466,16 +3466,18 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
             lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? 0 : atoi(tmp)-myLabels[1]+1;
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LABEL);
-#ifndef R3B
         half = 2;
-#endif
     }
     else if(choice == 1) 
     {
         int j = 1;
         do
         {
-            if(clientData.labelIndex[j][2]!= 4 || j%half == 0)
+#ifdef R3B
+            if(abs(clientData.labelIndex[j][2])!= 4 || j%half == 0)
+#else
+            if(abs(clientData.labelIndex[j-1][2])!= 4 || j%half == 0)
+#endif
                 lblIndices[i++] = j;
             j++;
         } while( j < numLabels-2 );
@@ -3487,11 +3489,12 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
         int j = 1;
         do
         {
-            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
 #ifndef R3B
+            if(clientData.labelIndex[j-1][2] !=  TYPE_UZ  && clientData.labelIndex[j-1][2] != TYPE_RG
             ) // &&
-            //    clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
+            // clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
 #else
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
             &&
                 clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
 #endif
