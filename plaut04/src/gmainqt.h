@@ -9,17 +9,13 @@
 #include <qpushbutton.h>
 #include <qlabel.h>
 #include <qlayout.h>
+#include <qmainwindow.h>
+#include <qgroupbox.h>
 #if QT_VERSION >= 0x40000
-#include <q3popupmenu.h>
-#include <q3mainwindow.h>
-#include <q3buttongroup.h>
-#define QPopupMenu Q3PopupMenu
-#define QMainWindow Q3MainWindow
-#define QButtonGroup Q3ButtonGroup
+#include <qmenu.h>
+#define QPopupMenu QMenu
 #else
 #include <qpopupmenu.h>
-#include <qmainwindow.h>
-#include <qbuttongroup.h>
 #endif
 
 #include <Inventor/Qt/SoQt.h>
@@ -136,11 +132,11 @@ private:
     void createLineColorAndPatternPrefSheetGuts(QWidget *parent, QGridLayout *layout, const char *name, int id);
     void createColorAndLinePrefSheetHeader(QWidget *parent, QGridLayout *form, int column);
     void createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form, const char** name);
-    void createGraphCoordinateSystemFrameGuts(QButtonGroup *frame);
-    void createGraphStyleFrameGuts(QButtonGroup *frame);
-    void createGraphTypeFrameGuts(QButtonGroup *frame);
-    void createOptionFrameGuts(QButtonGroup *frame);
-    void createGraphCoordPartsFrameGuts(QButtonGroup *frame);
+    void createGraphCoordinateSystemFrameGuts(QGroupBox *frame);
+    void createGraphStyleFrameGuts(QGroupBox *frame);
+    void createGraphTypeFrameGuts(QGroupBox *frame);
+    void createOptionFrameGuts(QGroupBox *frame);
+    void createGraphCoordPartsFrameGuts(QGroupBox *frame);
     void createPreferNotebookPages(QTabWidget *notebook);
     void createPreferDefaultPages(QWidget *parent);
     void createLineAttPages(QWidget *parent);

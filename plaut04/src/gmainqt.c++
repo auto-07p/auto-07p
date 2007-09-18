@@ -18,11 +18,10 @@
 #include <qpushbutton.h>
 #include <qslider.h>
 #include <qspinbox.h>
-#if QT_VERSION >= 0x40000
-#include <q3toolbar.h>
-#define QToolBar Q3ToolBar
-#else
 #include <qtoolbar.h>
+#include <qbuttongroup.h>
+#if QT_VERSION < 0x40000
+#define addButton insert
 #endif
 
 #include "gplaut04.h"
@@ -634,7 +633,7 @@ MainWindow::buildFileMenu()
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(this, "fileMenu");
+    pulldown = new QPopupMenu(this);
     pulldown->insertItem("&Open...", this, SLOT(fileMenuPick(int)),
                          Qt::CTRL+Qt::Key_O, OPEN_ITEM);
     pulldown->insertItem("&Export...", this, SLOT(fileMenuPick(int)),
@@ -659,7 +658,7 @@ MainWindow::buildHelpMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QPopupMenu *pulldown = new QPopupMenu(this, "helpMenu");
+    QPopupMenu *pulldown = new QPopupMenu(this);
     pulldown->insertItem("&About", this, SLOT(showAboutDialog()));
     pulldown->insertSeparator();
     pulldown->insertItem("&HELP", this, SLOT(showHelp()));
@@ -677,7 +676,7 @@ MainWindow::buildOptionMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(this, "optionMenu");
+    pulldown = new QPopupMenu(this);
     pulldown->setCheckable(true);
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(optMenuDisplay()));
@@ -727,7 +726,7 @@ MainWindow::buildCenterMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(this, "editMenu");
+    pulldown = new QPopupMenu(this);
     pulldown->setCheckable(true);
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(centerMenuDisplay()));
@@ -760,7 +759,7 @@ MainWindow::buildStyleMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
-    pulldown = new QPopupMenu(this, "styleMenu");
+    pulldown = new QPopupMenu(this);
 
     styleMenuItems = new EditMenuItems;
     styleMenuItems->items = pulldown;   
@@ -791,7 +790,7 @@ MainWindow::buildCoordMenu()
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(this, "coordMenu");
+    pulldown = new QPopupMenu(this);
     coordMenuItems = new EditMenuItems;
     coordMenuItems->items = pulldown;
     coordMenuItems->which = whichCoord;
@@ -824,7 +823,7 @@ MainWindow::buildTypeMenu()
 {
     QPopupMenu *pulldown;
 
-    pulldown = new QPopupMenu(this, "typeMenu");
+    pulldown = new QPopupMenu(this);
     typeMenuItems = new EditMenuItems;
     typeMenuItems->items = pulldown;
     typeMenuItems->which = whichType;
@@ -938,7 +937,6 @@ MainWindow::createBdBoxCB()
     }
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 //
 //  This creates the main window contents. In this case, we have a
@@ -973,7 +971,13 @@ MainWindow::MainWindow() : QMainWindow()
     buildMenu();
 
     // build carrier for the x, y, z, and label lists.
+#if QT_VERSION >= 0x40000
+    QToolBar *listCarrier = addToolBar("ToolBar");
+    #define ADD_LISTCARRIER_WIDGET(x) listCarrier->addWidget(x)
+#else
     QToolBar *listCarrier = new QToolBar( this );
+    #define ADD_LISTCARRIER_WIDGET(x)
+#endif
 
 #ifdef USE_BK_COLOR
     setPaletteBackgroundColor("white");
@@ -983,8 +987,10 @@ MainWindow::MainWindow() : QMainWindow()
 
 // build the xAxis drop down list
     QLabel *xLbl = new QLabel( "  X", listCarrier );
+    ADD_LISTCARRIER_WIDGET(xLbl);
     // Create an editable Combobox
     xAxisList = new QComboBox(true, listCarrier, "xAxis");
+    ADD_LISTCARRIER_WIDGET(xAxisList);
     int nItems = (whichType != BIFURCATION) ? mySolNode.nar : myBifNode.nar;
     for ( i = 0; i < nItems; i++ )
         xAxisList->insertItem( xAxis[i] );
@@ -1000,7 +1006,9 @@ MainWindow::MainWindow() : QMainWindow()
 // build the yAxis drop down list
     // Create a editable Combobox
     QLabel *yLbl = new QLabel("  Y", listCarrier);
+    ADD_LISTCARRIER_WIDGET(yLbl);
     yAxisList = new QComboBox(true, listCarrier, "yAxis");
+    ADD_LISTCARRIER_WIDGET(yAxisList);
     for ( i = 0; i < nItems; i++ )
         yAxisList->insertItem( yAxis[i] );
     yAxisList->setCurrentItem(yCoordIndices[0]);
@@ -1015,7 +1023,9 @@ MainWindow::MainWindow() : QMainWindow()
     //build the zAxis drop down list
     // Create a editable Combobox
     QLabel *zLbl = new QLabel("  Z", listCarrier);
+    ADD_LISTCARRIER_WIDGET(zLbl);
     zAxisList = new QComboBox(true, listCarrier, "zAxis");
+    ADD_LISTCARRIER_WIDGET(zAxisList);
     for ( i = 0; i < nItems; i++ )
         zAxisList->insertItem( zAxis[i] );
     zAxisList->setCurrentItem(zCoordIndices[0]);
@@ -1029,10 +1039,12 @@ MainWindow::MainWindow() : QMainWindow()
 
 // build the LABELs drop down list
     QLabel *lLbl = new QLabel("  Label", listCarrier);
+    ADD_LISTCARRIER_WIDGET(lLbl);
     nItems = (whichType != BIFURCATION) ? 
                        mySolNode.totalLabels+SP_LBL_ITEMS : 
                        myBifNode.totalLabels+SP_LBL_ITEMS;
     labelsList = new QComboBox(true, listCarrier, "Labels");
+    ADD_LISTCARRIER_WIDGET(labelsList);
     for ( i = 0; i < nItems; i++ )
         labelsList->insertItem( labels[i] );
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
@@ -1048,11 +1060,13 @@ MainWindow::MainWindow() : QMainWindow()
 
 // build the COLORING Method drop down list
     QLabel *colorLbl = new QLabel("  Color", listCarrier);
+    ADD_LISTCARRIER_WIDGET(colorLbl);
     nItems = (whichType != BIFURCATION) ? 
                       mySolNode.nar+mySolNode.npar+specialColorItems : 
                                   myBifNode.nar+specialColorItems;
     colorMethodSeletionList = new QComboBox(true, listCarrier,
                                             "coloringMethodlist");
+    ADD_LISTCARRIER_WIDGET(colorMethodSeletionList);
     for ( i = 0; i < nItems; i++ )
         colorMethodSeletionList->insertItem(coloringMethodList[i]);
     colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
@@ -1065,6 +1079,7 @@ MainWindow::MainWindow() : QMainWindow()
 
 // build the numPeriodAnimated drop down list
     QLabel *numPeriodLbl = new QLabel("  Period", listCarrier);
+    ADD_LISTCARRIER_WIDGET(numPeriodLbl);
     nItems = 7;
     int count = nItems;
     char (*numberPList)[5] = new char [count][5];
@@ -1086,6 +1101,7 @@ MainWindow::MainWindow() : QMainWindow()
         i = count - 1;
 
     QComboBox *numPeriodAnimatedList = new QComboBox(true, listCarrier, "list");
+    ADD_LISTCARRIER_WIDGET(numPeriodAnimatedList);
     for ( int j = 0; j < nItems; j++ )
         numPeriodAnimatedList->insertItem(numberPList[j]);
     numPeriodAnimatedList->setCurrentItem(i);
@@ -1107,7 +1123,9 @@ MainWindow::MainWindow() : QMainWindow()
 
 // create spinbox for the line width control.
     QLabel *spLbl = new QLabel("  Line Thickness", listCarrier);
+    ADD_LISTCARRIER_WIDGET(spLbl);
     DecSpinBox *spinBox = new DecSpinBox(10, 100, 1, listCarrier, "spinBox");
+    ADD_LISTCARRIER_WIDGET(spinBox);
     spinBox->setValue(10);
 
 // Callbacks for the spinebox
@@ -1119,8 +1137,10 @@ MainWindow::MainWindow() : QMainWindow()
 #else
     QLabel *satSldLbl = new QLabel("  Sat ", listCarrier);
 #endif
+    ADD_LISTCARRIER_WIDGET(satSldLbl);
     satAniSpeedSlider = new QSlider(MIN_SAT_SPEED, MAX_SAT_SPEED, 1,
         (int)(satSpeed*100), Qt::Horizontal, listCarrier, "Speed");
+    ADD_LISTCARRIER_WIDGET(satAniSpeedSlider);
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
 
 #ifdef USE_BK_COLOR
@@ -1132,8 +1152,10 @@ MainWindow::MainWindow() : QMainWindow()
             this, SLOT(satSpeedCB(int)));
 
     QLabel *orbitSldLbl = new QLabel("  Orbit", listCarrier);
+    ADD_LISTCARRIER_WIDGET(orbitSldLbl);
     orbitAniSpeedSlider = new QSlider(MIN_ORBIT_SPEED, MAX_ORBIT_SPEED, 1,
         (int)(orbitSpeed*50), Qt::Horizontal, listCarrier, "Speed2");
+    ADD_LISTCARRIER_WIDGET(orbitAniSpeedSlider);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
 
 #ifdef USE_BK_COLOR
@@ -1404,7 +1426,7 @@ MainWindow::graphCoordinateSystemToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1418,11 +1440,24 @@ MainWindow::createGraphCoordinateSystemFrameGuts(QButtonGroup *frame)
     whichCoordSystemOld  = whichCoordSystem;
     whichCoordSystemTemp = whichCoordSystem;
 
-    connect(frame, SIGNAL(clicked(int)),
+#if QT_VERSION >= 0x40000
+    QHBoxLayout *layout = new QHBoxLayout(frame);
+#endif
+    QButtonGroup *group = new QButtonGroup(frame);
+    connect(group, 
+#if QT_VERSION >= 0x40000
+        SIGNAL(buttonClicked(int)),
+#else
+        SIGNAL(clicked(int)),
+#endif
                      this, SLOT(graphCoordinateSystemToggledCB(int)));
     for (int i = 0; i < LENGTH (coordSysItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordSysItems[i], frame);
+        group->addButton(w, i);
+#if QT_VERSION >= 0x40000
+        layout->addWidget(w);
+#endif
         if (whichCoordSystem == i) w->setChecked(true);
     }
 }
@@ -1443,7 +1478,7 @@ MainWindow::graphStyleWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphStyleFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphStyleFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1456,11 +1491,24 @@ MainWindow::createGraphStyleFrameGuts(QButtonGroup *frame)
     whichStyleOld  = whichStyle;
     whichStyleTemp = whichStyle;
 
-    connect(frame, SIGNAL(clicked(int)),
+#if QT_VERSION >= 0x40000
+    QHBoxLayout *layout = new QHBoxLayout(frame);
+#endif
+    QButtonGroup *group = new QButtonGroup;
+    connect(group, 
+#if QT_VERSION >= 0x40000
+        SIGNAL(buttonClicked(int)),
+#else
+        SIGNAL(clicked(int)),
+#endif
                      this, SLOT(graphStyleWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphStyleItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphStyleItems[i], frame);
+        group->addButton(w, i);
+#if QT_VERSION >= 0x40000
+        layout->addWidget(w);
+#endif
         if (whichStyle == i) w->setChecked(true);
     }
 }
@@ -1491,7 +1539,7 @@ MainWindow::graphCoordWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphTypeFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphTypeFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1500,11 +1548,24 @@ MainWindow::createGraphTypeFrameGuts(QButtonGroup *frame)
     whichTypeOld  = whichType;
     whichTypeTemp = whichType;
 
-    connect(frame, SIGNAL(clicked(int)),
+#if QT_VERSION >= 0x40000
+    QHBoxLayout *layout = new QHBoxLayout(frame);
+#endif
+    QButtonGroup *group = new QButtonGroup;
+    connect(group, 
+#if QT_VERSION >= 0x40000
+        SIGNAL(buttonClicked(int)),
+#else
+        SIGNAL(clicked(int)),
+#endif
                      this, SLOT(graphTypeWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphTypeItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphTypeItems[i], frame);
+        group->addButton(w, i);
+#if QT_VERSION >= 0x40000
+        layout->addWidget(w);
+#endif
         if (whichType == i) w->setChecked(true);
     }
 }
@@ -1526,19 +1587,32 @@ MainWindow::defaultGraphWidgetToggledCB(int bit)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createOptionFrameGuts(QButtonGroup *frame)
+MainWindow::createOptionFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
 // create default selections
 
-    connect(frame, SIGNAL(clicked(int)),
+#if QT_VERSION >= 0x40000
+    QGridLayout *layout = new QGridLayout(frame, 3, 2);
+#endif
+    QButtonGroup *group = new QButtonGroup;
+    connect(group,
+#if QT_VERSION >= 0x40000
+        SIGNAL(buttonClicked(int)),
+#else
+        SIGNAL(clicked(int)),
+#endif
                      this, SLOT(defaultGraphWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         graphWidgetToggleSetOld = graphWidgetToggleSet;
         graphWidgetToggleSetTemp= graphWidgetToggleSet;
         QCheckBox *w = new QCheckBox(graphWidgetItems[i], frame);
+        group->addButton(w, i);
+#if QT_VERSION >= 0x40000
+        layout->addWidget(w, i%2, i/2);
+#endif
         if (graphWidgetToggleSet & (1<<i)) w->setChecked(true);
     }
 }
@@ -1547,7 +1621,7 @@ MainWindow::createOptionFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphCoordPartsFrameGuts(QButtonGroup *frame)
+MainWindow::createGraphCoordPartsFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1562,11 +1636,24 @@ MainWindow::createGraphCoordPartsFrameGuts(QButtonGroup *frame)
     whichCoordOld  = whichCoord;
     whichCoordTemp = whichCoord;
 
-    connect(frame, SIGNAL(clicked(int)),
+#if QT_VERSION >= 0x40000
+    QHBoxLayout *layout = new QHBoxLayout(frame);
+#endif
+    QButtonGroup *group = new QButtonGroup;
+    connect(group,
+#if QT_VERSION >= 0x40000
+        SIGNAL(buttonClicked(int)),
+#else
+        SIGNAL(clicked(int)),
+#endif
                      this, SLOT(graphCoordWidgetToggledCB(int)));
     for (int i = 0; i < LENGTH (coordItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordItems[i], frame);
+        group->addButton(w, i);
+#if QT_VERSION >= 0x40000
+        layout->addWidget(w);
+#endif
         if (whichCoord == (unsigned long)i) w->setChecked(true);
     }
 }
@@ -1579,7 +1666,7 @@ MainWindow::createPreferDefaultPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QButtonGroup *frameList[5];
+    QGroupBox *frameList[5];
     int num;
     const char * frmNames[]=
     {
@@ -1589,15 +1676,19 @@ MainWindow::createPreferDefaultPages(QWidget *parent)
 #endif
         "Coordinate Parts"
     };
-#ifdef R3B
-    int rows[] = {2, 1, 1, 1, 1};
-#else
-    int rows[] = {2, 1, 1, 1};
-#endif
 
     QVBoxLayout *layout = new QVBoxLayout(parent);
     for(int i=0; i<LENGTH(frmNames); ++i) {
-        frameList[i] = new QButtonGroup(rows[i], Qt::Vertical, frmNames[i], parent);
+#if QT_VERSION >= 0x40000
+        frameList[i] = new QGroupBox(frmNames[i], parent);
+#else
+#ifdef R3B
+        int rows[] = {2, 1, 1, 1, 1};
+#else
+        int rows[] = {2, 1, 1, 1};
+#endif
+	frameList[i] = new QGroupBox(rows[i], Qt::Vertical, frmNames[i], parent);
+#endif
         layout->addWidget(frameList[i]);
     }
     num = 0;
