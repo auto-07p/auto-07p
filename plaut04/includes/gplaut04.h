@@ -255,7 +255,8 @@ struct UserData{
     float **bifData;
 
     float solPeriod[MAX_LABEL];        // from the solution file par[10];
-    float (*multipliers)[6][2];   // from the diagonstic file.
+    float (*multipliers)[6][2];   // from the diagnostic file.
+    bool *eigenvalues;                 // eigenvalues or multipliers?
     long int labelIndex[MAX_LABEL][4]; // [0] --- saves the start row number in the solData, 
 	                              // [1] --- saves the row number in the bifData.
 	                              // [2] --- saves the type of the label.
@@ -334,7 +335,7 @@ struct DefaultAxisItems
 #define LBL_OFFSET   4
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13
-void popupFloquetMultiplierDialog(float data[], int size);
+void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue);
 void soxtmain(char *argv[]);
 void updateScene();
 void postDeals();

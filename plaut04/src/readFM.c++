@@ -14,8 +14,7 @@ readFM(const char* dFileName, const int size)
     int state = 0;
 
     char buffer[256];
-    char dummy[20];
-    int branch, point, myid;
+    int branch, point, prevpoint, myid;
 
     float fl1, fl2;
     FILE * inFile;
@@ -32,24 +31,42 @@ readFM(const char* dFileName, const int size)
 
     long icounter = 2;
     int rowi = 0;
+    prevpoint = -1;
 
     while ( (next = fgets(buffer, sizeof(buffer), inFile)) != NULL
-        && icounter < size-2)
+        && icounter <= size)
     {
-        if(strstr(buffer, "Multipliers:") != NULL ||
-           strstr(buffer, "Eigenvalues:") != NULL )
+        clientData.eigenvalues[icounter-1] =
+            strstr(buffer, "Eigenvalue") != NULL;
+        if(strstr(buffer, "Multiplier") != NULL ||
+           clientData.eigenvalues[icounter-1])
         {
             rowi = 0;
-            while( fgets(buffer, sizeof(buffer), inFile) &&
-                     (strstr(buffer, "Multiplier") != NULL ||
-                      strstr(buffer, "Eigenvalue") != NULL) )
+            do
             {
-                sscanf(buffer, "%d%d%s%d%e%e",&branch, &point, dummy, &myid, &fl1, &fl2);
+                int ret;
+                if(clientData.eigenvalues[icounter-1])
+                    ret = sscanf(buffer, "%d%d Eigenvalue %d: %e%e",
+                           &branch, &point, &myid, &fl1, &fl2);
+                else
+                    ret = sscanf(buffer, "%d%d Multiplier %d%e%e",
+                           &branch, &point, &myid, &fl1, &fl2);
+                if(ret != 5) { 
+                    if (rowi == 0)
+                        --icounter;
+                    break;
+                }
+                if (point == prevpoint && rowi == 0)
+                    --icounter;
+                prevpoint = point;
                 clientData.multipliers[icounter-1][rowi][0] = fl1;
                 clientData.multipliers[icounter-1][rowi][1] = fl2;
                 rowi++;
                 clientData.numFM = (rowi>clientData.numFM ) ? rowi : clientData.numFM;
             }                 //end inner while
+            while( fgets(buffer, sizeof(buffer), inFile) &&
+                     (strstr(buffer, "Multiplier") != NULL ||
+                      strstr(buffer, "Eigenvalue") != NULL) );
             ++icounter;
         }
     }                         // end outter while

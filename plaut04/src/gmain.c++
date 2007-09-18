@@ -5184,6 +5184,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
 
 
     clientData.multipliers = new float[myBifNode.totalNumPoints][6][2];
+    clientData.eigenvalues = new bool[myBifNode.totalNumPoints];
 
     int varIndices[3];
 #ifndef R3B
@@ -5578,12 +5579,8 @@ pointsToAxisAngle(float * a, float * b, TubeNode &value)
 ////////////////////////////////////////////////////////////////////
 //
 SbBool
-#ifndef R3B
-writePickedPath (SoNode *result, const SbViewportRegion &viewport, const SbVec2s &cursorPosition)
-#else
 writePickedPath (SoNode *result, const SbViewportRegion &viewport,
 const SbVec2s &cursorPosition)
-#endif
 //
 ////////////////////////////////////////////////////////////////////
 {
@@ -5649,17 +5646,13 @@ const SbVec2s &cursorPosition)
         idix = bIdx;
     }
 
-#ifndef R3B
     for(int ms=0; ms<clientData.numFM; ++ms)
-#else
-    for(int ms=0; ms<6; ++ms)
-#endif
     {
         fmData[2*ms]   = clientData.multipliers[idix][ms][0];
         fmData[2*ms+1] = clientData.multipliers[idix][ms][1];
     }
 
-    popupFloquetMultiplierDialog(data, size);
+    popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[idix]);
     delete [] data;
     return TRUE;
 }
@@ -5745,11 +5738,8 @@ initCoordAndLableListItems()
 // the solution file does exist.
         numLabels = mySolNode.numOrbits;
         myLabels[0] = 0;
-#ifndef R3B
         for(int j=0; j<numLabels; j++) myLabels[j+1] = mySolNode.labels[j];
-#else
-        for(i=0; i<numLabels; i++) myLabels[i+1] = mySolNode.labels[i];
-
+#ifdef R3B
 // initial mass dependent options.
         float lastMass = mySolNode.mass[1];
         blMassDependantOption = true;
@@ -5768,20 +5758,19 @@ initCoordAndLableListItems()
     {
         numLabels = myBifNode.totalLabels;
         myLabels[0] = 0;
-#ifndef R3B
         for(int j=0; j<numLabels; j++) myLabels[j+1] = myBifNode.labels[j];
-#else
-        for(i=0; i<numLabels; i++) myLabels[i+1] = myBifNode.labels[i];
-
+#ifdef R3B
         blMassDependantOption = false;
+#endif
     }
 
+#ifdef R3B
     if(!blMassDependantOption)
     {
         options[OPT_PRIMARY ]= false;
         options[OPT_LIB_POINTS]= false;
-#endif
     }
+#endif
 
     options[OPT_LEGEND] = false;
     options[OPT_BACKGROUND] = false;

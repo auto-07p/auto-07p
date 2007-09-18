@@ -325,9 +325,9 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
     setListValue();
     XmString xString;
     if (setShow3D)
-        xString = XmStringCreateLocalized("3D");
+        xString = XmStringCreateLocalized((char *)"3D");
     else
-        xString = XmStringCreateLocalized("2D");
+        xString = XmStringCreateLocalized((char *)"2D");
     XtVaSetValues (dimButton, XmNlabelString, xString, NULL);
     XmStringFree(xString);
 
@@ -713,7 +713,7 @@ optMenuDisplay(Widget, void *userData, XtPointer)
         }
     }
 
-    XmString xString = XmStringCreateLocalized("draw Label");
+    XmString xString = XmStringCreateLocalized((char *)"draw Label");
 #ifdef R3B
     if(!blMassDependantOption)
     {
@@ -748,9 +748,9 @@ optMenuDisplay(Widget, void *userData, XtPointer)
         XtSetSensitive (menuItems->items[OPT_SAT_ANI], TRUE);
 
 #ifndef R3B
-        XmString xString = XmStringCreateLocalized("Highlight Orbit");
+        XmString xString = XmStringCreateLocalized((char *)"Highlight Orbit");
 #else
-        XmString xString = XmStringCreateLocalized("Orbit Animation");
+        XmString xString = XmStringCreateLocalized((char *)"Orbit Animation");
 #endif
         XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
         XmStringFree(xString);
@@ -759,7 +759,7 @@ optMenuDisplay(Widget, void *userData, XtPointer)
     {
         XtSetSensitive (menuItems->items[OPT_SAT_ANI], FALSE);
 
-        XmString xString = XmStringCreateLocalized("Draw Labels");
+        XmString xString = XmStringCreateLocalized((char *)"Draw Labels");
         XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
         XmStringFree(xString);
     }
@@ -804,19 +804,19 @@ buildFileMenu(Widget menubar)
     Arg popupargs[2];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "fileMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"fileMenu", popupargs, popupn);
 
 // Accelerators are keyboard shortcuts for the menu items
-    char *openAccel  = "Alt <Key> o";
-    char *saveAccel  = "Alt <Key> s";
-    char *printAccel = "Alt <Key> p";
-    char *quitAccel  = "Alt <Key> q";
-    XmString openAccelText  = XmStringCreate("Alt+o", XmSTRING_DEFAULT_CHARSET);
-    XmString saveAccelText  = XmStringCreate("Alt+s", XmSTRING_DEFAULT_CHARSET);
+    const char *openAccel  = "Alt <Key> o";
+    const char *saveAccel  = "Alt <Key> s";
+    const char *printAccel = "Alt <Key> p";
+    const char *quitAccel  = "Alt <Key> q";
+    XmString openAccelText  = XmStringCreate((char *)"Alt+o", XmSTRING_DEFAULT_CHARSET);
+    XmString saveAccelText  = XmStringCreate((char *)"Alt+s", XmSTRING_DEFAULT_CHARSET);
 #ifdef R3B
-    XmString printAccelText = XmStringCreate("Alt+p", XmSTRING_DEFAULT_CHARSET);
+    XmString printAccelText = XmStringCreate((char *)"Alt+p", XmSTRING_DEFAULT_CHARSET);
 #endif
-    XmString quitAccelText  = XmStringCreate("Alt+q", XmSTRING_DEFAULT_CHARSET);
+    XmString quitAccelText  = XmStringCreate((char *)"Alt+q", XmSTRING_DEFAULT_CHARSET);
     n = 0;
     XtSetArg(args[n], XmNaccelerator, openAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
@@ -877,7 +877,7 @@ buildHelpMenu(Widget menubar)
     Arg popupargs[2];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "helpMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"helpMenu", popupargs, popupn);
 
     n = 0;
     PUSH_ITEM(items[0], "About", ITEM_ONE, showAboutDialog);
@@ -916,7 +916,7 @@ buildOptionMenu(Widget menubar)
     Arg popupargs[13];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "optionMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"optionMenu", popupargs, popupn);
 
     XtAddCallback(pulldown, XmNmapCallback,
         (XtCallbackProc) optMenuDisplay, (XtPointer) menuItems);
@@ -971,7 +971,7 @@ buildCenterMenu(Widget menubar)
     Arg popupargs[4];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "editMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"editMenu", popupargs, popupn);
 
     XtAddCallback(pulldown, XmNmapCallback,
         (XtCallbackProc)centerMenuDisplay, (XtPointer) coordSystemMenuItems);
@@ -1021,7 +1021,7 @@ buildStyleMenu(Widget menubar)
 #endif
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "styleMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"styleMenu", popupargs, popupn);
 
     XtAddCallback(pulldown, XmNmapCallback,
         (XtCallbackProc) styleMenuDisplay, (XtPointer) styleMenuItems);
@@ -1061,7 +1061,7 @@ buildCoordMenu(Widget menubar)
     Arg popupargs[3];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "coordMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"coordMenu", popupargs, popupn);
 
     XtAddCallback(pulldown, XmNmapCallback,
         (XtCallbackProc) coordMenuDisplay, (XtPointer) coordMenuItems);
@@ -1103,7 +1103,7 @@ buildTypeMenu(Widget menubar)
     Arg popupargs[2];
     int popupn = 0;
 
-    pulldown = XmCreatePulldownMenu(menubar, "typeMenu", popupargs, popupn);
+    pulldown = XmCreatePulldownMenu(menubar, (char *)"typeMenu", popupargs, popupn);
 
     XtAddCallback(pulldown, XmNmapCallback,
         (XtCallbackProc) typeMenuDisplay, (XtPointer) typeMenuItems);
@@ -1140,7 +1140,7 @@ buildMenu(Widget parent)
     int        n, m;
 
 // menu bar
-    Widget menubar = XmCreateMenuBar(parent, "menuBar", NULL, 0);
+    Widget menubar = XmCreateMenuBar(parent, (char *)"menuBar", NULL, 0);
 #ifndef LESSTIF_VERSION
     XtVaSetValues (menubar, XmNshadowThickness, 1, NULL);
 #endif
@@ -1252,7 +1252,7 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
         setShow3D = true;
         XtSetSensitive (zAxisList, true);
         setListValue();
-        XmString xString = XmStringCreateLocalized("3D");
+        XmString xString = XmStringCreateLocalized((char *)"3D");
         XtVaSetValues (w, XmNlabelString, xString, NULL);
         XmStringFree(xString);
     }
@@ -1263,7 +1263,7 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
             zCoordIndices[i] = -1;
         zCoordIdxSize = 1;
         XtSetSensitive (zAxisList, false);
-        XmString xString = XmStringCreateLocalized("2D");
+        XmString xString = XmStringCreateLocalized((char *)"2D");
         XtVaSetValues (w, XmNlabelString, xString, NULL);
         XmStringFree(xString);
     }
@@ -1766,7 +1766,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         lineWidthCB, (XtPointer)tf);
 #else
     XtSetArg (args[n], XmNmaximumValue, 100); n++;
-    Widget spinBox = XmCreateSimpleSpinBox (listCarrier, "spinBox", args, n);
+    Widget spinBox = XmCreateSimpleSpinBox (listCarrier, (char *)"spinBox", args, n);
 
 // Callbacks for the spinebox
     XtAddCallback(spinBox, XmNvalueChangedCallback,
@@ -1788,7 +1788,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
 
 #ifdef USE_EXAM_VIEWER
     n = 0;
-    Widget newButton =  XmCreatePushButton(renderArea->getAppPushButtonParent(), "BOX", NULL, 0);
+    Widget newButton =  XmCreatePushButton(renderArea->getAppPushButtonParent(), (char *)"BOX", NULL, 0);
     XtAddCallback(newButton, XmNactivateCallback, createBdBoxCB, sceneGraph);
     renderArea->addAppPushButton(newButton);
 
@@ -2173,7 +2173,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
         xmLabelGadgetClass, form, args, n);
     XtManageChild (widgetList[0]);
 
-    Widget spin = XmCreateSpinBox (form, "spin", NULL, 0);
+    Widget spin = XmCreateSpinBox (form, (char *)"spin", NULL, 0);
     XtAddCallback (spin, XmNvalueChangedCallback, lineColorValueChangedCB, NULL);
 
 // Create the red field
@@ -2188,7 +2188,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     XtSetArg (args[n], XmNwrap,             TRUE     ) ; n++;
     XtSetArg (args[n], XmNuserData,         id*3     ) ; n++;
 
-    widgetList[1]= XmCreateTextField (spin, "redText", args, n);
+    widgetList[1]= XmCreateTextField (spin, (char *)"redText", args, n);
     XtManageChild (widgetList[1]);
 
 // Create the green field
@@ -2203,7 +2203,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     XtSetArg (args[n], XmNposition, lineColor[id][1]*10); n++;
     XtSetArg (args[n], XmNuserData,        id*3+1  ); n++;
 
-    widgetList[2]= XmCreateTextField (spin, "greenText", args, n);
+    widgetList[2]= XmCreateTextField (spin, (char *)"greenText", args, n);
     XtManageChild (widgetList[2]);
 
 // Create the blue field
@@ -2218,7 +2218,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     XtSetArg (args[n], XmNposition, lineColor[id][2]*10); n++;
     XtSetArg (args[n], XmNuserData,        id*3+2   ); n++;
 
-    widgetList[3]= XmCreateTextField (spin, "blueText", args, n);
+    widgetList[3]= XmCreateTextField (spin, (char *)"blueText", args, n);
     XtManageChild (widgetList[3]);
 
 // create the line pattern
@@ -2238,7 +2238,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
     XtSetArg (args[n], XmNshadowThickness, 0); n++;
     XtSetArg (args[n], XmNuserData,        id   ); n++;
 
-    Widget lpSpinBox = XmCreateSimpleSpinBox (form, "lpsimple", args, n);
+    Widget lpSpinBox = XmCreateSimpleSpinBox (form, (char *)"lpsimple", args, n);
     XtAddCallback (lpSpinBox, XmNvalueChangedCallback, linePatternValueChangedCB, NULL);
 
     for (int i = 0; i < lengthOfSysPatternArray; i++)
@@ -2395,14 +2395,14 @@ createPreferShellAndPanedWindow(Widget &dialog_shell, Widget &panedWin)
     XtSetArg(args[n], XmNdialogStyle, modality); ++n;
     XtSetArg(args[n], XmNresizePolicy, XmRESIZE_NONE); ++n;
     XtSetArg(args[n], XmNnoResize, TRUE); ++n; 
-    dialog_shell = XmCreateDialogShell(topform, "Preference Dialog", args, n);
+    dialog_shell = XmCreateDialogShell(topform, (char *)"Preference Dialog", args, n);
 
     n=0;
     XtSetArg(args[n], XmNsashWidth, 2); ++n;
     XtSetArg(args[n], XmNsashHeight, 2); ++n;
     XtSetArg(args[n], XmNmarginHeight, 12); ++n;
     XtSetArg(args[n], XmNmarginWidth, 12); ++n;
-    panedWin = XmCreatePanedWindow(dialog_shell, "pane",args,n);
+    panedWin = XmCreatePanedWindow(dialog_shell, (char *)"pane",args,n);
 
 }
 
@@ -2420,14 +2420,14 @@ createPreferActionFormControls(Widget &parent)
     Widget saveBtn, closeBtn, applyBtn, cancelBtn;
 
     n=0;
-    Widget form = XmCreateForm(parent, "control form", args, n);
+    Widget form = XmCreateForm(parent, (char *)"control form", args, n);
 
     n=0;
     XtSetArg(args[n], XmNtopAttachment, XmATTACH_FORM); ++n;
     XtSetArg(args[n], XmNbottomAttachment, XmATTACH_FORM); ++n;
     XtSetArg(args[n], XmNleftAttachment, XmATTACH_FORM); ++n;
     XtSetArg(args[n], XmNleftOffset, 100); ++n;
-    saveBtn = XmCreatePushButton(form, " Save ", args, n);
+    saveBtn = XmCreatePushButton(form, (char *)" Save ", args, n);
     XtManageChild (saveBtn);
     XtAddCallback (saveBtn, XmNactivateCallback, savePreferAndUpdateScene, parent );
 
@@ -2436,7 +2436,7 @@ createPreferActionFormControls(Widget &parent)
     XtSetArg(args[n], XmNbottomAttachment, XmATTACH_FORM); ++n;
     XtSetArg(args[n], XmNrightAttachment, XmATTACH_FORM); ++n;
     XtSetArg(args[n], XmNrightOffset, 50); ++n;
-    cancelBtn = XmCreatePushButton(form, " Cancel ", args, n);
+    cancelBtn = XmCreatePushButton(form, (char *)" Cancel ", args, n);
     XtManageChild (cancelBtn);
     XtAddCallback (cancelBtn, XmNactivateCallback, closePreferDialogAndGiveUpChange, parent);
 
@@ -2446,7 +2446,7 @@ createPreferActionFormControls(Widget &parent)
     XtSetArg(args[n], XmNleftAttachment, XmATTACH_WIDGET); ++n;
     XtSetArg(args[n], XmNleftWidget, saveBtn); ++n;
     XtSetArg(args[n], XmNleftOffset, 50); ++n;
-    closeBtn = XmCreatePushButton(form, " Update ", args, n);
+    closeBtn = XmCreatePushButton(form, (char *)" Update ", args, n);
     XtManageChild (closeBtn);
     XtAddCallback (closeBtn, XmNactivateCallback, closePreferDialogAndUpdateScene, parent );
 
@@ -2459,7 +2459,7 @@ createPreferActionFormControls(Widget &parent)
     XtSetArg(args[n], XmNrightAttachment, XmATTACH_WIDGET); ++n;
     XtSetArg(args[n], XmNrightWidget, cancelBtn); ++n;
     XtSetArg(args[n], XmNrightOffset, 50); ++n;
-    applyBtn = XmCreatePushButton(form, " Apply ", args, n);
+    applyBtn = XmCreatePushButton(form, (char *)" Apply ", args, n);
     XtManageChild (applyBtn);
     XtAddCallback (applyBtn, XmNactivateCallback, applyPreferDialogChangeAndUpdateScene, parent );
 
@@ -2481,7 +2481,7 @@ createPreferDefaultPageFrames(Widget parent, const char *frameName)
 // create frame for group color settings.
     n = 0;
     XtSetArg(args[n], XmNshadowType, XmSHADOW_ETCHED_IN); n++;
-    frame = XmCreateFrame(parent, "frame", args, n);
+    frame = XmCreateFrame(parent, (char *)"frame", args, n);
 
     n = 0;
     XtSetArg(args[n], XmNframeChildType, XmFRAME_TITLE_CHILD); n++;
@@ -2530,7 +2530,7 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
-    Widget toggleBox = XmCreateRadioBox(frame, "radio", args, n);
+    Widget toggleBox = XmCreateRadioBox(frame, (char *)"radio", args, n);
 
     whichCoordSystemOld  = whichCoordSystem;
     whichCoordSystemTemp = whichCoordSystem;
@@ -2585,7 +2585,7 @@ createGraphStyleFrameGuts(Widget frame)
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
-    Widget toggleBox = XmCreateRadioBox(frame, "togglebox", args, n);
+    Widget toggleBox = XmCreateRadioBox(frame, (char *)"togglebox", args, n);
     whichStyleOld  = whichStyle;
     whichStyleTemp = whichStyle;
 
@@ -2655,7 +2655,7 @@ createGraphTypeFrameGuts(Widget frame)
     XtSetArg (args[n], XmNnumColumns, 3); ++n;
     XtSetArg (args[n], XmNindicatorType, XmONE_OF_MANY_ROUND); ++n;
     XtSetArg (args[n], XmNindicatorOn, XmINDICATOR_CHECK); ++n;
-    Widget toggleBox = XmCreateRadioBox(frame, "radiobox", args, n);
+    Widget toggleBox = XmCreateRadioBox(frame, (char *)"radiobox", args, n);
 
     whichTypeOld  = whichType;
     whichTypeTemp = whichType;
@@ -2708,7 +2708,7 @@ createOptionFrameGuts(Widget frame)
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
-    Widget toggleBox = XmCreateRowColumn (frame, "togglebox", args, n);
+    Widget toggleBox = XmCreateRowColumn (frame, (char *)"togglebox", args, n);
 
     for (int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
@@ -2784,7 +2784,7 @@ createGraphCoordPartsFrameGuts(Widget frame)
     n = 0;
     XtSetArg (args[n], XmNpacking, XmPACK_COLUMN); ++n;
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
-    Widget toggleBox1 = XmCreateRadioBox(frame, "radio", args, n);
+    Widget toggleBox1 = XmCreateRadioBox(frame, (char *)"radio", args, n);
 
     whichCoordOld  = whichCoord;
     whichCoordTemp = whichCoord;
@@ -2894,7 +2894,7 @@ createPreferNotebookPages(Widget notebook)
     n = 0;
     XtSetArg(args[n], XmNmarginHeight, 15); ++n;
     XtSetArg(args[n], XmNmarginWidth,  15); ++n;
-    pageForm[0] = XmCreateForm(notebook, "page", args, n);
+    pageForm[0] = XmCreateForm(notebook, (char *)"page", args, n);
 
     n = 0;
     XtSetArg (args[n], XmNnotebookChildType, XmMINOR_TAB); n++;
@@ -2908,7 +2908,7 @@ createPreferNotebookPages(Widget notebook)
     n = 0;
     XtSetArg(args[n], XmNmarginHeight, 15); ++n;
     XtSetArg(args[n], XmNmarginWidth,  15); ++n;
-    pageForm[1] = XmCreateForm(notebook, "page", args, n);
+    pageForm[1] = XmCreateForm(notebook, (char *)"page", args, n);
 
     n=0;
     XtSetArg (args[n], XmNnotebookChildType, XmMINOR_TAB); n++;
@@ -2941,14 +2941,14 @@ createPreferNotebookAndActionForm(Widget parentPane, Widget &notebook, Widget &a
     XtSetArg (args[n], XmNbackPagePlacement, XmTOP_RIGHT); n++;
     XtSetArg (args[n], XmNorientation,      XmHORIZONTAL); n++;
     XtSetArg (args[n], XmNresizePolicy,    XmRESIZE_NONE); n++;
-    notebook = XmCreateNotebook (parentPane, "Options", args, n);
+    notebook = XmCreateNotebook (parentPane, (char *)"Options", args, n);
 
     n=0;
     XtSetArg (args[n], XmNpaneMinimum, 25); n++;
     XtSetArg (args[n], XmNpaneMaximum, 35); n++;
     XtSetArg (args[n], XmNresizePolicy,    XmRESIZE_NONE); n++;
 
-    actionForm = XmCreateForm(parentPane, "action form", args, n);
+    actionForm = XmCreateForm(parentPane, (char *)"action form", args, n);
 }
 
 
@@ -3252,7 +3252,7 @@ getFileName(int fileMode)
             return;
         }
         fileDialog = XmCreateFileSelectionDialog(
-            XtParent(topform), "File Dialog", args, n);
+            XtParent(topform), (char *)"File Dialog", args, n);
         XtAddCallback(fileDialog, XmNokCallback,
             fileDialogCB, (XtPointer)fileMode);
     }
@@ -3331,10 +3331,10 @@ showAboutDialog()
     {
         Arg args[5];
         int n = 0;
-        XmString ok = XmStringCreateLocalized ("OK");
+        XmString ok = XmStringCreateLocalized ((char *)"OK");
         XtSetArg(args[n], XmNautoUnmanage, False); n++;
         XtSetArg(args[n], XmNcancelLabelString, ok); n++;
-        dialog = XmCreateInformationDialog (topform, "About", args, n);
+        dialog = XmCreateInformationDialog (topform, (char *)"About", args, n);
         Widget remove;
         remove = XmMessageBoxGetChild(dialog, XmDIALOG_HELP_BUTTON);
         XtUnmanageChild(remove);
@@ -3549,6 +3549,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 ////////////////////////////////////////////////////////////////////////
 {
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
+    bool eigenvalue = (bool)(long)client_data;
 
     XPoint points[8]={ 0,0, 100, 0, 0,100, 100,100};
 
@@ -3561,19 +3562,19 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 
     static XTextItem myText[9] =
     {
-        { "-inf", 4, 0, None }
+      { (char *)"-inf", 4, 0, None }
         ,
-        { "-100", 4, 0, None }
+        { (char *)"-100", 4, 0, None }
         ,
-        { "-10", 3, 0, None },
-        {"-1", 2, 0, None},
-        { "0", 1, 0, None }
+        { (char *)"-10", 3, 0, None },
+        { (char *)"-1", 2, 0, None},
+        { (char *)"0", 1, 0, None }
         ,
-        { "1", 1, 0, None },
-        {"10", 2, 0, None},
-        { "100", 3, 0, None }
+        { (char *)"1", 1, 0, None },
+        { (char *)"10", 2, 0, None},
+        { (char *)"100", 3, 0, None }
         ,
-        { "+inf", 4, 0, None }
+        { (char *)"+inf", 4, 0, None }
     };
 
     XSetForeground(cbs->event->xexpose.display, gc, blue.pixel);
@@ -3606,8 +3607,10 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     XSetForeground(cbs->event->xexpose.display, gc, green.pixel);
 
 // draw a unit circle.
-    XSetLineAttributes(cbs->event->xexpose.display, gc, 1, LineSolid, CapRound, JoinRound);
-    XDrawArc(cbs->event->xexpose.display, cbs->window, gc, 150, 150, 100, 100, 360*64, 360*64);
+    if (!eigenvalue) {
+        XSetLineAttributes(cbs->event->xexpose.display, gc, 1, LineSolid, CapRound, JoinRound);
+        XDrawArc(cbs->event->xexpose.display, cbs->window, gc, 150, 150, 100, 100, 360*64, 360*64);
+    }
 
     XSetForeground(cbs->event->xexpose.display, gc, black.pixel);
 
@@ -3641,7 +3644,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-popupFloquetMultiplierDialog(float data[], int size)
+popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3672,7 +3675,10 @@ popupFloquetMultiplierDialog(float data[], int size)
     char *tmpstr, tempchar[500];
     tmpstr = new char[500];
     tmpstr[0]='\0';
-    strcat(tmpstr,"Floquet multipliers:\n" );
+    if (eigenvalue)
+        strcat(tmpstr,"Eigenvalues:\n" );
+    else
+        strcat(tmpstr,"Floquet multipliers:\n" );
     for(int j=0; j<clientData.numFM; ++j)
     {
         strcat(tmpstr," [");
@@ -3681,10 +3687,12 @@ popupFloquetMultiplierDialog(float data[], int size)
         strcat(tmpstr,"] : ");
         sprintf(temp,"%E",fmData[j*2]);
         strcat(tmpstr,temp);
-        strcat(tmpstr," , ");
-        sprintf(temp,"%E",fmData[j*2+1]);
-        strcat(tmpstr,temp);
-        strcat(tmpstr,"\n");
+        if(fmData[j*2+1] != 0) {
+            strcat(tmpstr,fmData[j*2+1] < 0 ? " - " : " + ");
+            sprintf(temp,"%E",abs(fmData[j*2+1]));
+            strcat(tmpstr,temp);
+            strcat(tmpstr,"i\n");
+        }
     }
 
     if (!pane)
@@ -3694,21 +3702,21 @@ popupFloquetMultiplierDialog(float data[], int size)
         Pixel fg,bg;
         int n=0;
         XtSetArg(args[n], XmNdeleteResponse,XmDESTROY); ++n;
-        dialog_shell = XmCreateDialogShell(topform, "Dialog", args, n);
+        dialog_shell = XmCreateDialogShell(topform, (char *)"Dialog", args, n);
 
         n=0;
         XtSetArg(args[n], XmNsashWidth, 1); ++n;
         XtSetArg(args[n], XmNsashHeight, 2); ++n;
-        pane = XmCreatePanedWindow(dialog_shell, "pane",args,n);
+        pane = XmCreatePanedWindow(dialog_shell, (char *)"pane",args,n);
 
         n = 0;
         XtSetArg (args[n], XmNunitType, Xm1000TH_INCHES); n++;
         XtSetArg (args[n], XmNwidth,  5500); n++;
         XtSetArg (args[n], XmNheight, 5500); n++;
         XtSetArg (args[n], XmNresizePolicy, XmRESIZE_NONE); n++;
-        fmDrawingArea = XmCreateDrawingArea (pane, "fmDrawingArea", args, n);
+        fmDrawingArea = XmCreateDrawingArea (pane, (char *)"fmDrawingArea", args, n);
 
-        XtAddCallback (fmDrawingArea, XmNexposeCallback, redrawFloqueMultipliers, NULL);
+        XtAddCallback (fmDrawingArea, XmNexposeCallback, redrawFloqueMultipliers, (XtPointer)eigenvalue);
 
         XtVaSetValues (fmDrawingArea, XmNunitType, XmPIXELS, NULL);
 
@@ -3721,7 +3729,7 @@ popupFloquetMultiplierDialog(float data[], int size)
         XSetForeground (XtDisplay (fmDrawingArea), gc,
             BlackPixelOfScreen (XtScreen (fmDrawingArea)));
 
-        Widget form = XmCreateForm(pane, "form", NULL,0);
+        Widget form = XmCreateForm(pane, (char *)"form", NULL,0);
         str1 = XmStringCreateLocalized(str);
 
         n = 0;
@@ -3729,7 +3737,7 @@ popupFloquetMultiplierDialog(float data[], int size)
         XtSetArg(args[n], XmNtopAttachment,     XmATTACH_FORM); n++;
         XtSetArg(args[n], XmNleftAttachment,    XmATTACH_FORM); n++;
         XtSetArg(args[n], XmNleftOffset,        5            ); n++;
-        Widget label3 = XmCreateLabelGadget (form, "label", args, n);
+        Widget label3 = XmCreateLabelGadget (form, (char *)"label", args, n);
         XtManageChild (label3);
 
         str1 = XmStringCreateLocalized(tmpstr);
@@ -3740,12 +3748,12 @@ popupFloquetMultiplierDialog(float data[], int size)
         XtSetArg(args[n], XmNleftWidget,    label3); n++;
         XtSetArg(args[n], XmNleftOffset,        5            ); n++;
         XtSetArg(args[n], XmNrightAttachment,   XmATTACH_FORM); n++;
-        Widget label2 = XmCreateLabelGadget (form, "label", args, n);
+        Widget label2 = XmCreateLabelGadget (form, (char *)"label", args, n);
         XtManageChild (label2);
 
         XtManageChild (form);
 
-        Widget pushButton = XmCreatePushButtonGadget (pane, "OK", NULL, 0);
+        Widget pushButton = XmCreatePushButtonGadget (pane, (char *)"OK", NULL, 0);
         XtAddCallback (pushButton, XmNactivateCallback, hidenDialogShell, dialog_shell);
 
         XtManageChild (pushButton);

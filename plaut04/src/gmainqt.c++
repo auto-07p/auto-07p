@@ -2135,11 +2135,13 @@ MainWindow::lblListCallBack(const QString &str)
 class FmDrawingArea : public QWidget
 {
 public:
-    FmDrawingArea( QWidget *parent=0, const char *name=0 )
-        : QWidget( parent, name ) {}
+    FmDrawingArea( QWidget *parent, const char *name, bool ev )
+        : QWidget( parent, name ) { eigenvalue = ev; }
 
 protected:
     void paintEvent( QPaintEvent * );
+private:
+    bool eigenvalue;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -2179,8 +2181,10 @@ FmDrawingArea::paintEvent( QPaintEvent * )
         p.drawText(210 , 413-i*50, myText[i]);
 
 // draw a unit circle.
-    p.setPen(QPen(Qt::green, 1, Qt::SolidLine));
-    p.drawArc(150, 150, 100, 100, 0, 360*16);
+    if (!eigenvalue) {
+        p.setPen(QPen(Qt::green, 1, Qt::SolidLine));
+        p.drawArc(150, 150, 100, 100, 0, 360*16);
+    }
 
     p.setPen(QPen(Qt::black, 2, Qt::SolidLine));
 
@@ -2211,47 +2215,35 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 
 ////////////////////////////////////////////////////////////////////////
 //
-void popupFloquetMultiplierDialog(float data[], int size)
+void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     static QDialog *dialog_shell = (QDialog *) 0;
     QVBoxLayout *pane = (QVBoxLayout *) 0;
     
-    char *str, temp[200];
-
-    str = new char[size*50];
-    str[0]='\0';
+    QString str = "";
 
     for(int i=0; i<size; ++i)
     {
-        strcat(str," Col[");
-        sprintf(temp,"%2d",i+1);
-        strcat(str,temp);
-        strcat(str," ] = ");
-
-        sprintf(temp,"%+E",data[i]);
-        strcat(str,temp);
-        if(size<20 || (size>=20 && (i+1)%2==0)) strcat(str,"\n");
-        else strcat(str," | ");
+        QString temp;
+        temp.sprintf("Col[%2d ] = %+E", i+1, data[i]);
+        str += temp;
+        if(size<20 || (size>=20 && (i+1)%2==0)) str += "\n";
+        else str += " | ";
     }
 
-    char *tmpstr, tempchar[500];
-    tmpstr = new char[500];
-    tmpstr[0]='\0';
-    strcat(tmpstr,"Floquet multipliers:\n" );
+    QString tmpstr = eigenvalue ? "Eigenvalues:\n" : "Floquet multipliers:\n";
     for(int j=0; j<clientData.numFM; ++j)
     {
-        strcat(tmpstr," [");
-        sprintf(temp,"%2d",j);
-        strcat(tmpstr,temp);
-        strcat(tmpstr,"] : ");
-        sprintf(temp,"%E",fmData[j*2]);
-        strcat(tmpstr,temp);
-        strcat(tmpstr," , ");
-        sprintf(temp,"%E",fmData[j*2+1]);
-        strcat(tmpstr,temp);
-        strcat(tmpstr,"\n");
+        QString temp;
+        if (fmData[j*2+1] < 0)
+            temp.sprintf(" [%2d] : %E - %Ei\n", j, fmData[j*2], -fmData[j*2+1]);
+        else if (fmData[j*2+1] > 0)
+            temp.sprintf(" [%2d] : %E + %Ei\n", j, fmData[j*2], fmData[j*2+1]);
+        else
+            temp.sprintf(" [%2d] : %E\n", j, fmData[j*2]);
+        tmpstr += temp;
     }
 
     if (!pane)
@@ -2263,7 +2255,8 @@ void popupFloquetMultiplierDialog(float data[], int size)
 
         pane = new QVBoxLayout(dialog_shell, 5, -1, "pane");
 
-        fmDrawingArea = new FmDrawingArea(dialog_shell, "fmDrawingArea");
+        fmDrawingArea = new FmDrawingArea(dialog_shell, "fmDrawingArea",
+                                          eigenvalue);
         fmDrawingArea->setMinimumSize(450,450);
         pane->addWidget(fmDrawingArea);
 
@@ -2272,7 +2265,7 @@ void popupFloquetMultiplierDialog(float data[], int size)
         layout->setSpacing(5);
         QLabel *label3 = new QLabel(str, form, "label");
         QLabel *label2 = new QLabel(tmpstr, form, "label");
-        label2->setAlignment(Qt::AlignHCenter);
+        label2->setAlignment(Qt::AlignLeft);
         layout->addWidget(label3);
         layout->addWidget(label2);
         pane->addWidget(form);
@@ -2283,8 +2276,6 @@ void popupFloquetMultiplierDialog(float data[], int size)
         pane->addWidget(pushButton);
         dialog_shell->show();
     }
-    delete [] str;
-    delete [] tmpstr;
 }
 
 
