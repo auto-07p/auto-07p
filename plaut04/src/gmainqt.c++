@@ -1,3 +1,4 @@
+#define QT3_SUPPORT
 #define LENGTH(arr) ((sizeof(arr) / sizeof(arr[0])))
 
 #include <Inventor/Qt/SoQt.h>
@@ -18,12 +19,9 @@
 #include <qslider.h>
 #include <qspinbox.h>
 #if QT_VERSION >= 0x40000
-#include <q3hbox.h>
 #include <q3toolbar.h>
-#define QHBox Q3HBox
 #define QToolBar Q3ToolBar
 #else
-#include <qhbox.h>
 #include <qtoolbar.h>
 #endif
 
@@ -50,6 +48,17 @@ DecSpinBox::DecSpinBox(int minValue, int maxValue, int step, QWidget * parent,
 {
 }
 
+#if QT_VERSION >= 0x40000
+QString
+DecSpinBox::textFromValue( int value ) const {
+    return QString("%1.%2").arg(value/10).arg(abs(value%10));
+}
+
+int
+DecSpinBox::valueFromText( QString text ) const {
+    return int(text.toFloat()*10);
+}
+#else
 QString
 DecSpinBox::mapValueToText( int value ) {
     return QString("%1.%2").arg(value/10).arg(abs(value%10));
@@ -59,6 +68,7 @@ int
 DecSpinBox::mapTextToValue( bool* ok ) {
     return int(text().toFloat()*10);
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -1266,43 +1276,55 @@ LinePatternComboBox::valueChangedCB(int position)
 //  This creates the COLOR and LINE preference sheet stuff.
 //
 void
-MainWindow::createLineColorAndPatternPrefSheetGuts(QGrid *parent, const char *name, int id)
+MainWindow::createLineColorAndPatternPrefSheetGuts(QWidget *form, QGridLayout *layout, const char *name, int id)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QHBox *form = new QHBox(parent,"");
     QLabel *label = new QLabel(name, form);
-    form->setStretchFactor(label, 1);
+    int column = (id%2) * 9;
+    int row = 1 + id/2;
+
+    layout->addWidget(label, row, column+1);
 
 // Create the red field
     LineColorSpinBox *spinred =
       new LineColorSpinBox(0, 10, 1, form, "redText", id*3);
+    layout->addWidget(spinred, row, column+3);
 
 // Create the green field
     LineColorSpinBox *spingreen =
       new LineColorSpinBox(0, 10, 1, form, "greenText", id*3+1);
+    layout->addWidget(spingreen, row, column+4);
 
 // Create the blue field
     LineColorSpinBox *spinblue =
       new LineColorSpinBox(0, 10, 1, form, "blueText", id*3+2);
+    layout->addWidget(spinblue, row, column+5);
 
 // create the line pattern
     LinePatternComboBox *lpComboBox =
       new LinePatternComboBox(false, form, "lpSimple", id);
+    layout->addWidget(lpComboBox, row, column+7);
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createColorAndLinePrefSheetHeader(QGrid *parent)
+MainWindow::createColorAndLinePrefSheetHeader(QWidget *parent, 
+        QGridLayout *layout, int column)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     // create the first line
-    QLabel *widget = 
-        new QLabel("|  PT TYPE  | RED  GREEN BLUE  | LINE PATTERN  |",
-        parent);
+    //"|  PT TYPE  | RED  GREEN BLUE  | LINE PATTERN  |"
+    const char *names[] = { "|", "PT TYPE", "|", "RED", "GREEN", "BLUE", "|",
+                            "LINE PATTERN", "|" };
+    for (int i = 0; i < 9; i++) {
+        QLabel *label = new QLabel(names[i], parent);
+        label->setAlignment(Qt::AlignHCenter);
+        layout->addWidget(label, 0, column + i);
+    }
 }
 
 
@@ -1311,8 +1333,8 @@ MainWindow::createColorAndLinePrefSheetHeader(QGrid *parent)
 //  This simply creates the default parts of the pref dialog.
 //
 void
-MainWindow::createLineAttrPrefSheetParts(QGrid *form, const char** name)
-//
+MainWindow::createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form,
+   const char** name)
 ////////////////////////////////////////////////////////////////////////
 {
     for(int i=0; i<NUM_SP_POINTS; ++i)
@@ -1327,7 +1349,9 @@ MainWindow::createLineAttrPrefSheetParts(QGrid *form, const char** name)
     }
 
     for(int i=0; i<NUM_SP_POINTS; ++i)
-        createLineColorAndPatternPrefSheetGuts(form, name[i], i);
+        createLineColorAndPatternPrefSheetGuts(parent, form, name[i], i);
+    for(int i=1; i<(NUM_SP_POINTS+1)/2; ++i)
+        form->setRowStretch(i, 1);
 }
 
 
@@ -1551,7 +1575,7 @@ MainWindow::createGraphCoordPartsFrameGuts(QButtonGroup *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createPreferDefaultPages(QVBox *parent)
+MainWindow::createPreferDefaultPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1571,8 +1595,11 @@ MainWindow::createPreferDefaultPages(QVBox *parent)
     int rows[] = {2, 1, 1, 1};
 #endif
 
-    for(int i=0; i<LENGTH(frmNames); ++i)
+    QVBoxLayout *layout = new QVBoxLayout(parent);
+    for(int i=0; i<LENGTH(frmNames); ++i) {
         frameList[i] = new QButtonGroup(rows[i], Qt::Vertical, frmNames[i], parent);
+        layout->addWidget(frameList[i]);
+    }
     num = 0;
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
@@ -1587,7 +1614,7 @@ MainWindow::createPreferDefaultPages(QVBox *parent)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createLineAttPages(QGrid *parent)
+MainWindow::createLineAttPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1609,12 +1636,13 @@ MainWindow::createLineAttPages(QGrid *parent)
         "Color 13"
     };
 
-    createColorAndLinePrefSheetHeader(parent);
-    createColorAndLinePrefSheetHeader(parent);
+    QGridLayout *layout = new QGridLayout(parent, 8, 18);
+    createColorAndLinePrefSheetHeader(parent, layout, 0);
+    createColorAndLinePrefSheetHeader(parent, layout, 9);
     if(coloringMethod == CL_BRANCH_NUMBER)
-        createLineAttrPrefSheetParts(parent, names2);
+        createLineAttrPrefSheetParts(parent, layout, names2);
     else
-        createLineAttrPrefSheetParts(parent, names);
+        createLineAttrPrefSheetParts(parent, layout, names);
 }
 
 
@@ -1629,12 +1657,12 @@ MainWindow::createPreferNotebookPages(QTabWidget *notebook)
     const char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
 // create the first page.
-    QVBox *pageForm0 = new QVBox;
+    QWidget *pageForm0 = new QWidget(notebook, "pageForm0");
     createPreferDefaultPages(pageForm0);
     notebook->addTab(pageForm0, tabName[0]);
 
 // create the second page.
-    QGrid *pageForm1 = new QGrid(2, Qt::Horizontal);
+    QWidget *pageForm1 = new QWidget(notebook, "pageForm1");
     createLineAttPages(pageForm1);
     notebook->addTab(pageForm1, tabName[1]);
 }
@@ -2239,11 +2267,14 @@ void popupFloquetMultiplierDialog(float data[], int size)
         fmDrawingArea->setMinimumSize(450,450);
         pane->addWidget(fmDrawingArea);
 
-        QHBox *form = new QHBox(dialog_shell, "form");
-        form->setSpacing(5);
+        QWidget *form = new QWidget(dialog_shell, "form");
+        QHBoxLayout *layout = new QHBoxLayout(form);
+        layout->setSpacing(5);
         QLabel *label3 = new QLabel(str, form, "label");
         QLabel *label2 = new QLabel(tmpstr, form, "label");
         label2->setAlignment(Qt::AlignHCenter);
+        layout->addWidget(label3);
+        layout->addWidget(label2);
         pane->addWidget(form);
 
         QPushButton *pushButton= new QPushButton("OK", dialog_shell);

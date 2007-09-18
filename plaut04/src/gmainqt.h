@@ -1,23 +1,22 @@
+#ifndef QT3_SUPPORT
+#define QT3_SUPPORT
+#endif
 #include <qwidget.h>
 #include <qspinbox.h>
 #include <qcombobox.h>
 #include <qtabwidget.h>
 #include <qslider.h>
 #include <qpushbutton.h>
+#include <qlabel.h>
+#include <qlayout.h>
 #if QT_VERSION >= 0x40000
-#include <q3grid.h>
-#include <q3vbox.h>
 #include <q3popupmenu.h>
 #include <q3mainwindow.h>
 #include <q3buttongroup.h>
-#define QGrid Q3Grid
-#define QVBox Q3VBox
 #define QPopupMenu Q3PopupMenu
 #define QMainWindow Q3MainWindow
 #define QButtonGroup Q3ButtonGroup
 #else
-#include <qgrid.h>
-#include <qvbox.h>
 #include <qpopupmenu.h>
 #include <qmainwindow.h>
 #include <qbuttongroup.h>
@@ -33,8 +32,13 @@ class DecSpinBox : public QSpinBox
 public:
     DecSpinBox(int minValue, int maxValue, int step, QWidget * parent,
 	       const char *name);
+#if QT_VERSION >= 0x40000
+    QString  textFromValue(int value) const;
+    int valueFromText(QString text) const;
+#else
     QString  mapValueToText(int value);
     int mapTextToValue(bool* ok);
+#endif
 };
 
 class LineColorSpinBox : public DecSpinBox
@@ -129,17 +133,17 @@ private:
     QPopupMenu *buildCenterMenu();
 
     void createPreferActionFormControls(QWidget *parent);
-    void createLineColorAndPatternPrefSheetGuts(QGrid *parent, const char *name, int id);
-    void createColorAndLinePrefSheetHeader(QGrid *parent);
-    void createLineAttrPrefSheetParts(QGrid *form, const char** name);
+    void createLineColorAndPatternPrefSheetGuts(QWidget *parent, QGridLayout *layout, const char *name, int id);
+    void createColorAndLinePrefSheetHeader(QWidget *parent, QGridLayout *form, int column);
+    void createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form, const char** name);
     void createGraphCoordinateSystemFrameGuts(QButtonGroup *frame);
     void createGraphStyleFrameGuts(QButtonGroup *frame);
     void createGraphTypeFrameGuts(QButtonGroup *frame);
     void createOptionFrameGuts(QButtonGroup *frame);
     void createGraphCoordPartsFrameGuts(QButtonGroup *frame);
     void createPreferNotebookPages(QTabWidget *notebook);
-    void createPreferDefaultPages(QVBox *parent);
-    void createLineAttPages(QGrid *parent);
+    void createPreferDefaultPages(QWidget *parent);
+    void createLineAttPages(QWidget *parent);
 
     void getFileName(int);
 

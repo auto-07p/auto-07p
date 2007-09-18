@@ -266,7 +266,7 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	)
 	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
 	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
-	X_CFLAGS="$X_CFLAGS -DUSE_SOQT -DQT3_SUPPORT"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
     fi
 else
     PLAUT04=""

@@ -7452,7 +7452,7 @@ test -n "$MOC" || MOC="$QTDIR/bin/moc"
 
 	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
 	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
-	X_CFLAGS="$X_CFLAGS -DUSE_SOQT -DQT3_SUPPORT"
+	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
     fi
 else
     PLAUT04=""
