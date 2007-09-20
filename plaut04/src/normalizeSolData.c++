@@ -14,25 +14,16 @@ normalizeSolData()//SolNode mySolNode)
     cout <<" Max sol 2 :" <<mySolNode.max[2]<<" Min "<<mySolNode.min[2]<<endl;
 #endif
     double div[3], con[3];
-    con[0] = con[1] = con[2] = 0.0;
-    div[0] = (mySolNode.max[0]-mySolNode.min[0])/2.0;
-    div[1] = (mySolNode.max[1]-mySolNode.min[1])/2.0;
-    div[2] = (mySolNode.max[2]-mySolNode.min[2])/2.0;
+    for(int k=0; k<3; k++)
+    {
+        con[k] = 0.0;
+        div[k] = (mySolNode.max[k]-mySolNode.min[k])/2.0;
 
-    if(div[0]/mySolNode.max[0]>1.0e-10) 
-    {
-        div[0] = 1.0/div[0];
-        con[0] = div[0]*mySolNode.min[0];
-    }
-    if(div[1]/mySolNode.max[1]>1.0e-10) 
-    {
-        div[1] = 1.0/div[1];
-        con[1] = div[1]*mySolNode.min[1];
-    }
-    if(div[2]/mySolNode.max[2]>1.0e-10) 
-    {
-        div[2] = 1.0/div[2];
-        con[2] = div[2]*mySolNode.min[2];
+        if(div[k]/mySolNode.max[k]>1.0e-10) 
+        {
+            div[k] = 1.0/div[k];
+            con[k] = div[k]*mySolNode.min[k];
+        }
     }
 
     long int sump = 0;
@@ -41,35 +32,19 @@ normalizeSolData()//SolNode mySolNode)
         long int nt = mySolNode.numVerticesEachPeriod[i];
         for(int j=0; j<nt; j++)
         {
-            if(div[0]/mySolNode.max[0]>1.0e-10)
-            mySolNode.xyzCoords[sump+j][0]=mySolNode.xyzCoords[sump+j][0]*div[0]-con[0]-1.0;
-            if(div[1]/mySolNode.max[1]>1.0e-10)
-            mySolNode.xyzCoords[sump+j][1]=mySolNode.xyzCoords[sump+j][1]*div[1]-con[1]-1.0;
-            if(div[2]/mySolNode.max[2]>1.0e-10)
-            mySolNode.xyzCoords[sump+j][2]=mySolNode.xyzCoords[sump+j][2]*div[2]-con[2]-1.0;
+            for(int k=0; k<3; k++)
+            {
+                if(div[k]/mySolNode.max[k]>1.0e-10)
+                mySolNode.xyzCoords[sump+j][k]=
+                    mySolNode.xyzCoords[sump+j][k]*div[k]-con[k]-1.0;
+            }
         /**
-            if( !((mySolNode.max[0]<=1.0  && mySolNode.max[0]>0.5 &&
-                 mySolNode.min[0]>=-1.0 && mySolNode.min[0]<-0.5 )||
-                (div[0]<0.00000001)))
+            if( !((mySolNode.max[k]<=1.0  && mySolNode.max[k]>0.5 &&
+                 mySolNode.min[k]>=-1.0 && mySolNode.min[k]<-0.5 )||
+                (div[k]<0.00000001)))
             {
-                mySolNode.xyzCoords[sump+j][0]=
-                       (mySolNode.xyzCoords[sump+j][0]-avg[0])/div[0];
-            }
-                                                                                                               
-            if( !((mySolNode.max[1]<=1.0  && mySolNode.max[1]>0.5 &&
-                 mySolNode.min[1]>=-1.0 && mySolNode.min[1]<-0.5 )||
-                (div[0]<0.00000001)))
-            {
-                mySolNode.xyzCoords[sump+j][1]=
-                    (mySolNode.xyzCoords[sump+j][1]-avg[1])/div[1];
-            }
-                                                                                                               
-            if( !((mySolNode.max[2]<=1.0  && mySolNode.max[2]>0.5 &&
-                 mySolNode.min[2]>=-1.0 && mySolNode.min[2]<0.1 )||
-                (div[2]<0.00000001)))
-            {
-                mySolNode.xyzCoords[sump+j][2]=
-                    (mySolNode.xyzCoords[sump+j][2]-avg[2])/div[2];
+                mySolNode.xyzCoords[sump+j][k]=
+                       (mySolNode.xyzCoords[sump+j][k]-avg[k])/div[k];
             }
         **/
         }

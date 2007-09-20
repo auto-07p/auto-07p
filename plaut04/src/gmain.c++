@@ -5609,6 +5609,32 @@ const SbVec2s &cursorPosition)
     myPosition.getValue(x, y, z);
     position[0]=x; position[1]=y; position[2]=z;
 
+    if (options[OPT_NORMALIZE_DATA]) for(int k=0; k<3; k++) {
+        if(whichType != BIFURCATION)
+        {
+            float con = 0.0;
+            float div = (mySolNode.max[k]-mySolNode.min[k])/2.0;
+            if(div/mySolNode.max[k]>1.0e-10) 
+            {
+                div = 1.0/div;
+                con = div*mySolNode.min[k];
+            }
+            if(div/mySolNode.max[k]>1.0e-10)
+	         position[k] = (position[k]+con+1.0)/div;
+        }
+        else
+        {
+            float div = (myBifNode.max[k]-myBifNode.min[k])/2.0;
+            if( !((myBifNode.max[k]<=1.0  && myBifNode.max[k]>0.5 &&
+                myBifNode.min[k]>=-1.0 && myBifNode.min[k]<-0.5 )||
+                (div<0.00000001)))
+            {
+                float avg = (myBifNode.max[k]+myBifNode.min[k])/2.0;
+                position[k] = position[k]*div+avg;
+            }
+        }
+    }
+
     lookForThePoint(position, bIdx, sIdx);
     int idix = 0;
 

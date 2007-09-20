@@ -386,7 +386,8 @@ MainWindow::setListValue()
     yAxisList->setCurrentItem(yCoordIndices[0]);
     zAxisList->setCurrentItem(zCoordIndices[0]);
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
-    colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
+    colorMethodSeletionList->setCurrentItem(coloringMethod < 0 ?
+       coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems);
     dimButton->setText(setShow3D ? "3D" : "2D");
 
     if(setShow3D)
