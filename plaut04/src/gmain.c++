@@ -1527,6 +1527,47 @@ createBifurcationScene()
     return result;
 }
 
+///////////////////////////////////////////////////////////////////////////
+//
+static SoSeparator *
+drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
+//
+///////////////////////////////////////////////////////////////////////////
+{
+    SoSeparator *result = new SoSeparator;
+    SoTranslation *labelTranslate = new SoTranslation;
+    SoText2 *labelMsg = new SoText2;
+    float x, y, z;
+
+    x = myBifNode.xyzCoords[row][0];
+    y = myBifNode.xyzCoords[row][1];
+    z = myBifNode.xyzCoords[row][2];
+
+    //pick a good direction for the label
+    int first = row;
+    int second = row + 1;
+    if (second >= myBifNode.totalNumPoints)
+    {
+        first--;
+        second--;
+    }
+    if (first < 0) first = 0;
+    float yoffset = xoffset;
+    if ((xyzCoords[second][1] - xyzCoords[first][1]) *
+        (xyzCoords[second][0] - xyzCoords[first][0]) >= 0)
+    {
+        xoffset = -xoffset;
+        labelMsg->justification = SoText2::RIGHT;
+    }
+    labelTranslate->translation.setValue(x + xoffset, y + yoffset, z);
+    char a[30];
+    sprintf(a, "%d", label);
+    labelMsg->string.setValue(a);
+    result->addChild(labelTranslate);
+    result->addChild(labelMsg);
+    return result;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1564,11 +1605,15 @@ drawLabelPtsInBifurcationScene()
             position[1] = myBifNode.xyzCoords[row][1];
             position[2] = myBifNode.xyzCoords[row][2];
 
+            float size = dis*0.005;
 #ifndef R3B
-            result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));;
-#else
-            result->addChild( drawASphere(position, dis*0.005));;
+            size *= lineWidthScaler;
 #endif
+            result->addChild( drawASphere(position, size));
+            if(options[OPT_LABEL_NUMBERS])
+                result->addChild( drawALabel(myBifNode.xyzCoords, row, size,
+                                             myBifNode.labels[k]));
+
             ++k;
 #ifndef R3B
         } while( k < clientData.totalLabels);
@@ -1583,12 +1628,13 @@ drawLabelPtsInBifurcationScene()
             SoMaterial *lblMtl;
 
 #ifndef R3B
-            row = clientData.labelIndex[lblIndices[i]-1][1] -1;
-            lbType = clientData.labelIndex[lblIndices[i]-1][2];
+            int k = lblIndices[i]-1;
+            row = clientData.labelIndex[k][1] -1;
 #else
-            row = clientData.labelIndex[lblIndices[i]][1];
-            lbType = clientData.labelIndex[lblIndices[i]][2];
+            int k = lblIndices[i];
+            row = clientData.labelIndex[k][1];
 #endif
+            lbType = clientData.labelIndex[k][2];
 
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
@@ -1597,11 +1643,14 @@ drawLabelPtsInBifurcationScene()
             position[1] = myBifNode.xyzCoords[row][1];
             position[2] = myBifNode.xyzCoords[row][2];
 
+	    float size = dis*0.005;
 #ifndef R3B
-            result->addChild( drawASphere(position, dis*lineWidthScaler*0.005));
-#else
-            result->addChild( drawASphere(position,dis*0.005));
+            size *= lineWidthScaler;
 #endif
+            result->addChild( drawASphere(position, size));
+            if(options[OPT_LABEL_NUMBERS])
+                result->addChild( drawALabel(myBifNode.xyzCoords, row, size,
+                                             myBifNode.labels[k]));
         }
     }
     return result;
@@ -2440,7 +2489,6 @@ renderSolutionLines()
     }
     else if(animationLabel != MY_NONE)
     {
-	printf("lblIdxSize=%d\n", lblIdxSize);
         for(int n=0; n<lblIdxSize; ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
@@ -6947,14 +6995,10 @@ writePreferValuesToFile()
 #endif
     for(int i = 0; i<XtNumber(graphWidgetItems); ++i)
     {
-#ifndef R3B
-        fprintf(outFile, "%-15.15s = ",graphWidgetItems[i]);
-#else
-        fprintf(outFile, "%s = ",graphWidgetItems[i]);
-#endif
+        fprintf(outFile, "%-18.18s = ",graphWidgetItems[i]);
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
-    fprintf(outFile, "Draw Labels     =");
+    fprintf(outFile, "%-18.18s = ","Draw Labels");
     optBif[OPT_PERIOD_ANI] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
 
     for(int i = 0; i < XtNumber(intVariableNames); ++i)

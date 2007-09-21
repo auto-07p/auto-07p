@@ -619,6 +619,8 @@ MainWindow::optMenuDisplay()
     {
         menuItems->items->setItemEnabled(OPT_SAT_ANI, false);
         menuItems->items->changeItem(OPT_PERIOD_ANI, "&Draw Labels");
+        menuItems->items->setItemEnabled(OPT_LABEL_NUMBERS,
+            (graphWidgetToggleSet & (1<<OPT_PERIOD_ANI)) != 0);
     }
 }
 
@@ -688,6 +690,8 @@ MainWindow::buildOptionMenu()
 #ifndef R3B
     pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
+    pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
+                         0, OPT_LABEL_NUMBERS);
     pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
 #else
@@ -702,6 +706,8 @@ MainWindow::buildOptionMenu()
                          0, OPT_PERIOD_ANI);
     pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
+    pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
+                         0, OPT_LABEL_NUMBERS);
 #endif
     pulldown->insertItem("Draw &Background", this, SLOT(optMenuPick(int)),
                          0, OPT_BACKGROUND);

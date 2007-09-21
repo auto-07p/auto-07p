@@ -762,6 +762,8 @@ optMenuDisplay(Widget, void *userData, XtPointer)
         XmString xString = XmStringCreateLocalized((char *)"Draw Labels");
         XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
         XmStringFree(xString);
+        XtSetSensitive (menuItems->items[OPT_LABEL_NUMBERS],
+            (graphWidgetToggleSet & (1<<OPT_PERIOD_ANI)) != 0);
     }
 }
 
@@ -926,6 +928,7 @@ buildOptionMenu(Widget menubar)
     XtSetArg(args[n], XmNuserData, menuItems); n++;
 #ifndef R3B
     TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
 #else
     TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
@@ -934,6 +937,7 @@ buildOptionMenu(Widget menubar)
     SEP_ITEM("separator");
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
 #endif
     TOGGLE_ITEM(menuItems->items[mq], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Add Legend",           OPT_LEGEND, optMenuPick); ++mq;

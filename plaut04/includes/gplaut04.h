@@ -137,14 +137,14 @@
 #define OPT_BACKGROUND   5
 #define OPT_LEGEND   6
 #define OPT_NORMALIZE_DATA  7
-#define OPT_EARTH_MOVE  8 
-#define OPT_ANIMATE_CALCULATION  9
+#define OPT_LABEL_NUMBERS 8
 #else
 #define OPT_PERIOD_ANI  0
 #define OPT_SAT_ANI    1
 #define OPT_BACKGROUND   2
 #define OPT_LEGEND   3
 #define OPT_NORMALIZE_DATA  4
+#define OPT_LABEL_NUMBERS 5
 #endif
 
 #define NO_COORD  0 
@@ -379,10 +379,10 @@ extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
 extern char labels[MAX_LABEL][8];
 #ifndef R3B
-extern const char * graphWidgetItems[5];
+extern const char * graphWidgetItems[6];
 extern SoSeparator *root;
 #else
-extern const char * graphWidgetItems[8];
+extern const char * graphWidgetItems[9];
 extern SoSelection *root;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern bool blMassDependantOption;

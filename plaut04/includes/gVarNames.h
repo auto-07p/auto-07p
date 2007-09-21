@@ -106,7 +106,8 @@ const char * graphWidgetItems[]=
 #endif
     "Draw Background", 
     "Draw Legend", 
-    "Normalize Data"
+    "Normalize Data",
+    "Show Label Numbers",
 };
 
 const char * axesNames[] =
