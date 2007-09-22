@@ -10,11 +10,9 @@ Tube::Tube(const int num_pts, float xyz_path[][3],
            const float r, const int num_edges)
 {
   path = xyz_path;
-#ifndef R3B
   // This is for checking the data validity. 
   // if distance betwee two points are too colse, the next
   // point will be skipped.
-#endif
   // Added by ZCH. Mar 30, 2004
   float distance = 0;
   float pt[3];
@@ -49,12 +47,8 @@ Tube::Tube(const int num_pts, float xyz_path[][3],
      i++;
   } while(i < num_pts ); 
 
-#ifndef R3B
   path_pts = i-skip;//num_pts;
  // path_pts = num_pts;
-#else
-    path_pts = i-skip;
-#endif
   // ZCH's modification end here. 
   radius = r;
   n_edges = num_edges;
@@ -63,9 +57,7 @@ Tube::Tube(const int num_pts, float xyz_path[][3],
   mesh_pts = (n_edges + 1) * path_pts;
   open_path = (SbVec3f(path[0]) == SbVec3f(path[n_segments])) == 0;
 
-#ifndef R3B
   // printf("Estimated number of mesh points: %d\n", mesh_pts);
-#endif
 }
 
 
@@ -97,22 +89,12 @@ SoSeparator* Tube::createTube()
 
    // define the QuadMesh
    SoQuadMesh *myQuadMesh = new SoQuadMesh;
-#ifndef R3B
    myQuadMesh->verticesPerRow = n_edges + 1; // # of points around the tube
    myQuadMesh->verticesPerColumn = path_pts; // # of points along the tube
-#else
-    myQuadMesh->verticesPerRow = n_edges + 1;
-    myQuadMesh->verticesPerColumn = path_pts;
-#endif
    result->addChild(myQuadMesh);
 
    // if path is not closed, plug a solid polygon at each end of the tube
-#ifndef R3B
    if ( open_path ) {
-#else
-    if ( open_path )
-    {
-#endif
 
      // for the start of the path, use the first n_edges points of mesh[]
      // to define a polygon
@@ -120,12 +102,7 @@ SoSeparator* Tube::createTube()
      // for the end of the path, use the last n_edges points from mesh[]
      // with order reversed to get the correct orientation of the polygon
 
-#ifndef R3B
      for (int i=0; i<n_edges; i++) {
-#else
-        for (int i=0; i<n_edges; i++)
-        {
-#endif
        COPY3(mesh[n_edges+i], mesh[mesh_pts-i-1]);
      }
 
@@ -165,31 +142,16 @@ void Tube::createMesh()
   Polygon3D poly = Polygon3D(SbVec3f(path[0]), 
     SbVec3f(path[0]) - SbVec3f(path[1]), radius, n_edges);
 
-#ifndef R3B
   if ( open_path ) {
-#else
-    if ( open_path )
-    {
-#endif
     // if the path is open, simply store the polygon vertices as mesh points
-#ifndef R3B
     for (i=0; i<n_edges; i++) {
-#else
-        for (i=0; i<n_edges; i++)
-        {
-#endif
       poly[i].getValue(mesh[mp][0], mesh[mp][1], mesh[mp][2]);
       mp++;
     }
     poly[0].getValue(mesh[mp][0], mesh[mp][1], mesh[mp][2]);
     mp++;
   } 
-#ifndef R3B
   else {
-#else
-    else
-    {
-#endif
     // if the path is closed:
 
     // define a plane through the first point that bisects the angle between 
@@ -208,12 +170,7 @@ void Tube::createMesh()
     poly.project(plane, pj);
 
     // store the result as mesh points defining the first cross-section
-#ifndef R3B
     for (i=0; i<n_edges; i++) {
-#else
-        for (i=0; i<n_edges; i++)
-        {
-#endif
       COPY3(mesh[mp], pj[i]);
       mp++;
     }
@@ -242,7 +199,6 @@ void Tube::createMesh()
     v2.normalize();
 
 //////////////////////////////////////////////////////////////////////////////
-#ifndef R3B
 	// in case v1 and v2 are equal but in opposite direction?
 	// added by zch	
 	/*
@@ -263,20 +219,15 @@ void Tube::createMesh()
 	// BUT the above method still does not work in some case.
 	// Actually the simplest way to solve this is:
 	// NOTE: v1 doesn't work either.
-#endif
     plane = SbPlane(v2, SbVec3f(path[j+1]));
 	
 //////////////////////////////////////////////////////////////////////////////
-#ifndef R3B
   /*
     // Alternative code that only approximates bisection:
     v1.setValue(path[j]); v2.setValue(path[j+2]);
     plane = SbPlane(v1-v2, SbVec3f(path[j+1]));
   */
 
-
-
-#endif
     // project (along the (j+1,j+2) segment) the vertices of the polygon 
     // onto the plane ...
     poly.project(plane, pj);
@@ -298,31 +249,16 @@ void Tube::createMesh()
   // and orient it perpendicular to the last segment
   poly.rotate(SbVec3f(path[n_segments-1]) - SbVec3f(path[n_segments]));
 
-#ifndef R3B
   if (  open_path ) {
-#else
-    if (  open_path )
-    {
-#endif
     // if the path is open, simply store the polygon vertices as mesh points
-#ifndef R3B
     for (i=0; i<n_edges; i++) {
-#else
-        for (i=0; i<n_edges; i++)
-        {
-#endif
       poly[i].getValue(mesh[mp][0], mesh[mp][1], mesh[mp][2]);
       mp++;
     }
     poly[0].getValue(mesh[mp][0], mesh[mp][1], mesh[mp][2]);
     mp++;
   } 
-#ifndef R3B
   else {
-#else
-    else
-    {
-#endif
     // if the path is closed:
 
     // define a plane through the last point that bisects the angle between 
@@ -341,18 +277,12 @@ void Tube::createMesh()
     poly.project(plane, pj);
 
     // store the result as mesh points defining the last cross-section
-#ifndef R3B
     for (i=0; i<n_edges; i++) {
-#else
-        for (i=0; i<n_edges; i++)
-        {
-#endif
       COPY3(mesh[mp], pj[i]);
       mp++;
     }
     COPY3(mesh[mp], pj[0]);
     mp++;
-#ifndef R3B
 /*
     for (i=0; i<n_edges; i++) {
       COPY3(mesh[mp], mesh[i]);
@@ -361,7 +291,6 @@ void Tube::createMesh()
     COPY3(mesh[mp], mesh[0]);
     mp++;
 */  
-#endif
   } 
   
 //  printf("Mesh points generated: %d\n", mp);

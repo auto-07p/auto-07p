@@ -1537,6 +1537,10 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     SoSeparator *result = new SoSeparator;
     SoTranslation *labelTranslate = new SoTranslation;
     SoText2 *labelMsg = new SoText2;
+    SoFont *labelFont = new SoFont;
+    labelFont->name.setValue("Helvetica");
+    labelFont->size.setValue(12);
+
     float x, y, z;
 
     x = myBifNode.xyzCoords[row][0];
@@ -1564,6 +1568,7 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     sprintf(a, "%d", label);
     labelMsg->string.setValue(a);
     result->addChild(labelTranslate);
+    result->addChild(labelFont);
     result->addChild(labelMsg);
     return result;
 }
@@ -6958,47 +6963,33 @@ writePreferValuesToFile()
         return state;
     }
 
-#ifndef R3B
+// write header
     fprintf(outFile,"#version 0.0\n\n");
     fprintf(outFile,"# Line colors are represented by RGB values from 0 to 1.0.\n");
     fprintf(outFile,"# DEFAULT color is also used when animationLabel == 0, i.e.,\n");
-    fprintf(outFile,"# when showing all solutions and highlighting the solutions.\n");
-#else
-// write header
-    fprintf(outFile,"#version 0.0\n");
-    fprintf(outFile,"#  Line colors are represented by RGB values, which are from 0 to 1.0;\n");
-#endif
-    fprintf(outFile,"#  Type of point     RED  GREEN  BLUE\n");
+    fprintf(outFile,"# when showing all solutions and highlighting the solutions changes.\n");
+    fprintf(outFile,"# Point Type         RED  GREEN  BLUE\n");
 
 // write line color and pattern
     for(int i = 0; i<NUM_SP_POINTS; ++i)
     {
-#ifndef R3B
         fprintf(outFile,"%-15.15s    = %3.1f,   %3.1f,   %3.1f, 0x%lx\n",typeTokenNames[i],
-#else
-        fprintf(outFile,"%s =  %f, %f, %f, 0x%lx\n",typeTokenNames[i],
-#endif
             lineColor[i][0], lineColor[i][1],lineColor[i][2],linePattern[i]);
     }
 
-#ifndef R3B
     fprintf(outFile, "\n# Initialize the line pattern for showing stability:\n");
     for(int i = 0; i<2; ++i)
     {
-        fprintf(outFile,"%-20.25s = 0x%lx\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
+        fprintf(outFile,"%-21.21s = 0x%lx\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
     }
 
-#endif
     fprintf(outFile, "\n#  Initialize the default options\n");
-#ifdef R3B
-    fprintf(outFile, "#  1 --- Yes, 0 --- No\n");
-#endif
     for(int i = 0; i<XtNumber(graphWidgetItems); ++i)
     {
-        fprintf(outFile, "%-18.18s = ",graphWidgetItems[i]);
+        fprintf(outFile, "%-21.21s = ",graphWidgetItems[i]);
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
-    fprintf(outFile, "%-18.18s = ","Draw Labels");
+    fprintf(outFile, "%-21.21s = ","Draw Labels");
     optBif[OPT_PERIOD_ANI] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
 
     for(int i = 0; i < XtNumber(intVariableNames); ++i)
@@ -7006,58 +6997,46 @@ writePreferValuesToFile()
         switch (i)
         {
             case 0:
-#ifndef R3B
                 // OK
                 fprintf(outFile, "\n# Initialize the default graph type: \n"); 
                 fprintf(outFile, "#  0 --- Solution (fort.8)\n");
                 fprintf(outFile, "#  1 --- Bifurcation (fort.7)\n");
-                fprintf(outFile, "%-25.25s  =  %i\n", intVariableNames[i],whichType);
-#else
-                fprintf(outFile, "\n#  Initialize the default graph type, \n");
-                fprintf(outFile, "#  0 --- Solution(fort.8)  1 --- Bifurcation(fort.7)\n");
-                fprintf(outFile, "%s  =  %i\n", intVariableNames[i],whichType);
-#endif
+                fprintf(outFile, "%-25.25s =  %i\n", intVariableNames[i],whichType);
                 break;
             case 1:
 //OK
                 fprintf(outFile, "\n# Initialize the default graph style:\n");
                 fprintf(outFile, "#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE \n");
-#ifndef R3B
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-#endif
                 fprintf(outFile, "%i\n",whichStyle);
                 break;
             case 2:
-#ifndef R3B
-                fprintf(outFile, "\n# Set the window width and height:\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n",winWidth);
-#else
+#ifdef R3B
                 fprintf(outFile, "\n# initialize the default coordinate system");
                 fprintf(outFile, "\n#  0 --- Rotating, 1 --- inertial Bary Centered,");
                 fprintf(outFile, "\n#  2 --- Big Primary Centered, 3 --- Small Primary Centered\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",whichCoordSystem);
-#endif
                 break;
             case 3:
-#ifndef R3B
+#endif
+                fprintf(outFile, "\n# Set the window width and height:\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n",winWidth);
+                break;
+#ifdef R3B
+            case 4:
+#else
+            case 3:
+#endif
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",winHeight);
                 break;
-            case 20:
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", lblIndices[0]);
+#ifdef R3B
+            case 5:
 #else
-                fprintf(outFile, "\n#set the window width and height\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n",winWidth);
-#endif
-                break;
             case 4:
-#ifndef R3B
+#endif
                 fprintf(outFile, "\n# Set coloring method.\n");
                 fprintf(outFile, "#   -6 --- STABILITY\n");
                 fprintf(outFile, "#   -5 --- POINT\n");
@@ -7069,88 +7048,102 @@ writePreferValuesToFile()
                 fprintf(outFile, "# It can only be set to an integer value.\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", coloringMethod);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n",winHeight);
-#endif
                 break;
+            case 30:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n", lblIndices[0]);
+                break;
+#ifdef R3B
+            case 6:
+                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", numPeriodAnimated);
+                break;
+            case 7:
+#else
             case 5:
-#ifndef R3B
+#endif
                 fprintf(outFile, "\n# Line Width Scaler adjusts the thickness of curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", lineWidthScaler);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", lblIndices[0]);
-#endif
                 break;
-            case 6:
 #ifndef R3B
+            case 6:
                 fprintf(outFile, "\n# Set the radius of the animation object:\n");
                 fprintf(outFile, "# The normal size is 1.0.\n");
                 fprintf(outFile, "# For smaller radius, use 0.xxx\n");
                 fprintf(outFile, "# For bigger radius, use  X.XXX\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", satRadius);
-#else
-                fprintf(outFile, "\n# set coloring method.\n# When -1, coloring the lines by solution TYPE.\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", coloringMethod);
-#endif
                 break;
             case 7:
-#ifndef R3B
+#else
+            case 8:
+                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", satRadius);
+                break;
+            case 9:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", largePrimRadius);
+                break;
+            case 10:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", smallPrimRadius);
+                break;
+            case 11:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", numOfStars);
+                break;
+            case 12:
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", libPtScaler);
+                break;
+            case 13:
+#endif
                 fprintf(outFile, "\n# The AniLine Thickness Scaler sets the thickness of animated solution curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", aniLineScaler);
-#else
-                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", numPeriodAnimated);
-#endif
                 break;
+#ifdef R3B
+            case 14:
+#else
             case 8:
-#ifndef R3B
+#endif
                 fprintf(outFile, "\n# Set the maximum and minimum animation speed:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_SAT_SPEED);
-#else
-                fprintf(outFile, "\n# Line Width Scaler adjusts the line thickness of an orbit\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", lineWidthScaler);
-#endif
                 break;
+#ifdef R3B
+            case 15:
+#else
             case 9:
-#ifndef R3B
+#endif
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_SAT_SPEED);
-#else
-                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", satRadius);
-#endif
                 break;
-            case 10:
 #ifndef R3B
+            case 10:
+#else
+            case 20:
+#endif
                 fprintf(outFile, "\n# Set the maximum and minimum highlighting animation speed:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", largePrimRadius);
-#endif
                 break;
-            case 11:
 #ifndef R3B
+            case 11:
+#else
+            case 21:
+#endif
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_ORBIT_SPEED);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", smallPrimRadius);
-#endif
                 break;
+#ifdef R3B
+            case 16:
+#else
             case 12:
-#ifndef R3B
+#endif
                 fprintf(outFile, "\n# Initialize the default coordinate axes:\n");
                 fprintf(outFile, "#  0 --- None,\n");
                 fprintf(outFile, "#  1 --- at geometry center or origin,\n");
@@ -7158,28 +7151,36 @@ writePreferValuesToFile()
                 fprintf(outFile, "#  3 --- at left and ahead. \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", whichCoord);
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", numOfStars);
-#endif
                 break;
+#ifdef R3B
+            case 17:
+#else
             case 13:
-#ifndef R3B
-                fprintf(outFile, "\n# Backgournd pictures transparency");
+#endif
+                fprintf(outFile, "\n# Background pictures transparency");
                 fprintf(outFile, "\n# [0.0, 1.0] \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", bgTransparency );
-#else
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", libPtScaler);
-#endif
                 break;
-            case 14:
 #ifndef R3B
+            case 14:
                 fprintf(outFile, "\n# Set default number of periods animated\n");
                 fprintf(outFile, "\n# The value should be power of 2.\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n\n", numPeriodAnimated);
+                break;
+#else
+            case 18:
+                fprintf(outFile, "\n# Disk Transparency [0, 1] \n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", diskTransparency );
+                break;
+            case 19:
+                fprintf(outFile, "\n# Read Disk From File \n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                (diskFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
+                break;
+#endif
         }
     }
 
@@ -7187,149 +7188,73 @@ writePreferValuesToFile()
     {
         switch ( i ){
             case 0 :
-                fprintf(outFile, "# Background color:\n");
-#else
-                fprintf(outFile, "\n# the AniLine Thickness Scaler adjusts the thickness of the orbit in animation\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", aniLineScaler);
-#endif
+                fprintf(outFile, "\n# Background color:\n");
                 break;
-#ifndef R3B
             case 1 :
                 fprintf(outFile, "# X-Axis color:\n");
-#else
-            case 15:
-                fprintf(outFile, "\n# set the maximun and minimun animation speed, int\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", MAX_SAT_SPEED);
-#endif
                 break;
-#ifndef R3B
             case 2 :
                 fprintf(outFile, "# Y-Axis color:\n");
-#else
-            case 16:
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", MIN_SAT_SPEED);
-#endif
                 break;
-#ifndef R3B
             case 3 :
                 fprintf(outFile, "# Z-Axis color:\n");
-#else
-            case 17:
-                fprintf(outFile, "\n# initialize the default coordinate type to be drawn");
-                fprintf(outFile, "\n#  0 --- None, 1 --- at origin,");
-                fprintf(outFile, "\n#  2 --- at left and behind, 3 --- at left and ahead.\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", whichCoord);
-#endif
                 break;
-#ifndef R3B
             case 4 :
-                fprintf(outFile, "# Color of the animation object:\n"); 
-#else
-            case 18:
-                fprintf(outFile, "\n# Backgournd pictures transparency");
-                fprintf(outFile, "\n# [0, 1] \n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", bgTransparency );
-#endif
-                break;
-#ifndef R3B
+#ifdef R3B
+                fprintf(outFile,"\n# sat, large prim, large prim line, small prim, small prim line\n");
+                /* fall though */
             case 5 :
-                fprintf(outFile, "# Surface color:\n");
-#else
-            case 19:
-                fprintf(outFile, "\n# Disk Transparency [0, 1] \n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", diskTransparency );
-#endif
-                break;
-#ifndef R3B
             case 6 :
-                fprintf(outFile, "# Unstable solution Color:\n");
-#else
-            case 20:
-                fprintf(outFile, "\n# Read Disk From File \n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                (diskFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
-#endif
-                break;
-#ifndef R3B
             case 7 :
-                fprintf(outFile, "# Stable solution Color:\n");
-#else
-            case 21:
-                fprintf(outFile, "\n# set the maximun and minimun animation speed, int\n");
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
+            case 8 :
                 break;
-            case 22:
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", MIN_ORBIT_SPEED);
+            case 9 :
+#else
+                fprintf(outFile, "# Color of the animation object:\n"); 
+                break;
+            case 5 :
 #endif
+                fprintf(outFile, "# Surface color:\n");
+                break;
+#ifdef R3B
+            case 10 :
+#else
+            case 6 :
+#endif
+                fprintf(outFile, "# Unstable solution Color:\n");
+                break;
+#ifdef R3B
+            case 11 :
+#else
+            case 7 :
+#endif
+                fprintf(outFile, "# Stable solution Color:\n");
                 break;
         }
 
-#ifndef R3B
         fprintf(outFile, "%-25.25s = %4.1f, %4.1f, %4.1f\n\n",nDataVarNames[i],envColors[i][0], envColors[i][1],envColors[i][2]);
-#endif
     }
 
 //----------Labels --- ?
-#ifndef R3B
     fprintf(outFile, "# Labeled solutions:\n");
     fprintf(outFile, "#   -3 = Show all labeled solutions\n");
     fprintf(outFile, "#   -2 = Show HALF labeled solutions\n");
     fprintf(outFile, "#   -1 = Show SPEC labeled solutions\n");
     fprintf(outFile, "#   0 = Show NONE of the solutions\n");
     fprintf(outFile, "# Otherwise, show the specified solution(s)\n");
-    for(int is=0; is<lblIdxSize; ++is)
-#else
-// deal with hexidecimal
-    fprintf(outFile, "\n# initialize the line pattern for showing stability\n");
-    for(int i = 0; i<2; ++i)
-#endif
+    for(int is=0; is < (lblChoice[is] <= 0 ? 1 : lblIdxSize); ++is)
     {
-#ifndef R3B
         fprintf(outFile, "Labels   = %i", lblChoice[is]); 
-#else
-        fprintf(outFile,"%s = 0x%x\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
-#endif
     }
-#ifndef R3B
     fprintf(outFile, "\n");
-#endif
 
-//----------
-// deal with N data
-#ifdef R3B
-    fprintf(outFile,"\n# Colors for widgets.  0-back ground, 1-x-axis, 2-yaxis, 3 - zaxis,");
-    fprintf(outFile,"\n# 4-sat, 5-large prim, 6- large prim line, 7,8-small prim.9 - surface color\n");
-    for(int i = 0; i<XtNumber(nDataVarNames); ++i)
-    {
-        fprintf(outFile, "%s = %f, %f, %f\n",nDataVarNames[i],envColors[i][0], envColors[i][1],envColors[i][2]);
-    }
-#endif
-
-#ifndef R3B
     fprintf(outFile,"\n# Draw Scale:\n");
     fprintf(outFile, "Draw Scale = ");
-#else
-    fprintf(outFile,"\n# Draw Scale at the Aixs");
-    fprintf(outFile, "\n Draw Scale = ");
-#endif
     (blDrawTicker) ? fprintf(outFile, " YES \n") : fprintf(outFile, " NO \n");
 
-#ifndef R3B
+// deal with parameter IDs
     fprintf(outFile,"\n# Set the active AUTO parameter indices:\n"); 
     fprintf(outFile, "parameter ID  = ");
-#else
-// deal with parameter IDs
-    fprintf(outFile,"\n# Parameter IDs\n");
-    fprintf(outFile, "\nparameter ID  = ");
-#endif
     for(int is=0; is<mySolNode.npar; ++is)
     {
         fprintf(outFile, " %i, ", mySolNode.parID[is]);
@@ -7338,79 +7263,54 @@ writePreferValuesToFile()
 
 // turn 3D/2D
     fprintf(outFile,"\n# Choose 3D or 2D graph for the bifurcation diagram:\n"); 
-    setShow3DBif ? fprintf(outFile, "3DBif = YES\n") : fprintf(outFile, "3DBif = No\n");
+    fprintf(outFile, "3DBif = %s\n", setShow3DBif ? "YES" : "No");
     fprintf(outFile,"\n# Choose 3D or 2D graph for the solution diagram:\n"); 
-    setShow3DSol ? fprintf(outFile, "3DSol = YES\n") : fprintf(outFile, "3DSol = No\n");
+    fprintf(outFile, "3DSol = %s\n", setShow3DSol ? "YES" : "No");
 
-#ifndef R3B
     fprintf(outFile,"\n# Set X, Y, Z axes for the solution diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[0]);
-#else
-    fprintf(outFile,"\n# set X, Y, Z, and Label. 0 is Time for X,Y,Z.\n");
-    fprintf(outFile,"\n%s = ", axesNames[0]);
-#endif
     for(int is=0; is<dai.solXSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solX[is]);
-        (is != dai.solXSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.solXSize-1) ? "," : "\n");
     }
 
-#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[1]);
-#else
-    fprintf(outFile,"%s = ", axesNames[1]);
-#endif
     for(int is=0; is<dai.solYSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solY[is]);
-        (is != dai.solYSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.solYSize-1) ? "," : "\n");
     }
 
-#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[2]);
-#else
-    fprintf(outFile,"%s = ", axesNames[2]);
-#endif
     for(int is=0; is<dai.solZSize; ++is)
     {
         fprintf(outFile, " %i ", dai.solZ[is]);
-        (is != dai.solZSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.solZSize-1) ? "," : "\n");
     }
 
-#ifndef R3B
     fprintf(outFile,"\n# Set X, Y, Z axes for the bifurcation diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[3]);
-#else
-    fprintf(outFile,"%s = ", axesNames[3]);
-#endif
     for(int is=0; is<dai.bifXSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifX[is]);
-        (is != dai.bifXSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.bifXSize-1) ? "," : "\n");
     }
 
-#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[4]);
-#else
-    fprintf(outFile,"%s = ", axesNames[4]);
-#endif
     for(int is=0; is<dai.bifYSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifY[is]);
-        (is != dai.bifYSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.bifYSize-1) ? "," : "\n");
     }
 
-#ifndef R3B
     fprintf(outFile,"%-25.25s = ", axesNames[5]);
-#else
-    fprintf(outFile,"%s = ", axesNames[5]);
-#endif
     for(int is=0; is<dai.bifZSize; ++is)
     {
         fprintf(outFile, " %i ", dai.bifZ[is]);
-        (is != dai.bifZSize-1) ? fprintf(outFile, ",") : fprintf(outFile, "\n");
+        fprintf(outFile, (is != dai.bifZSize-1) ? "," : "\n");
     }
 
     fclose(outFile);

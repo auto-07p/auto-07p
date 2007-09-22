@@ -4,8 +4,8 @@
 OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
         ../stringtrim.o \
-        printToPS.o tube.o ../polygon3d.o readFM.o ../createBoundingBox.o\
-        ../createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS_R3B@ \
+        printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
+        ../createCoords.o ../axis.o createLegend.o gmain.o @SOXT_OBJS_R3B@ \
 	../rounding.o
 
 CXX=@CXX@
@@ -21,12 +21,6 @@ LIBS=$(DEPS_LIBS)
 @top_srcdir@/bin/r3bplaut04: $(OBJS)
 	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-axis.o: ../axis.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-readFM.o: ../readFM.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
 readBif.o: ../gReadBif.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
@@ -40,9 +34,6 @@ gmainxt.o: ../gmainxt.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 gmainqt.o: ../gmainqt.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-tube.o: ../tube.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 drawCoords.o: ../drawCoords.c++
@@ -60,7 +51,6 @@ normalizeSolData.o: ../normalizeSolData.c++
 clean:
 	rm -f *.o
 
-axis.o: $(INC)/axis.h
 createCoords.o: $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h Makefile
@@ -73,4 +63,3 @@ readBif.o: $(INC)/gplaut04.h
 readFM.o: $(INC)/gplaut04.h
 readSol.o: $(INC)/gplaut04.h
 toInertialFrame.o: $(INC)/gplaut04.h
-tube.o: $(INC)/tube.h $(INC)/polygon3d.h

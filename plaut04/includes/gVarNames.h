@@ -67,21 +67,16 @@
         "Z Axis Color",
 #ifndef R3B
         "Object Color",
-        "Surface Color",
 #else
         "satellite Color",
         "large primary Color",
         "large primary tail Color",
         "small primary Color",
         "small primary tail Color",
-        "surface Color",
 #endif
+        "Surface Color",
         "Unstable Solution Color",
-#ifndef R3B
         "Stable Solution Color",
-#else
-        "Stable Solution Color"
-#endif
     };
 
     const char * blWidgetName[] =

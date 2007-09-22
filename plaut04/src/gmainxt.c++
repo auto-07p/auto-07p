@@ -1271,6 +1271,12 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
         XtVaSetValues (w, XmNlabelString, xString, NULL);
         XmStringFree(xString);
     }
+
+    if(whichType != BIFURCATION)
+        setShow3DSol = setShow3D;
+    else
+        setShow3DBif = setShow3D;
+
     updateScene();
 }
 
@@ -3380,6 +3386,16 @@ xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LIST); 
         xCoordIdxSize = i;
+        if(whichType != BIFURCATION)
+        {
+            dai.solXSize = xCoordIdxSize;
+            for(int i = 0; i<xCoordIdxSize; ++i)
+                dai.solX[i] = xCoordIndices[i];
+        } else {
+            dai.bifXSize = xCoordIdxSize;
+            for(int i = 0; i<xCoordIdxSize; ++i)
+                dai.bifX[i] = xCoordIndices[i];
+        }
         updateScene();
     }
 }
@@ -3411,6 +3427,16 @@ yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LIST);
         yCoordIdxSize = i;
+        if(whichType != BIFURCATION)
+        {
+            dai.solYSize = yCoordIdxSize;
+            for(int i = 0; i<yCoordIdxSize; ++i)
+                dai.solY[i] = yCoordIndices[i];
+        } else {
+            dai.bifYSize = yCoordIdxSize;
+            for(int i = 0; i<yCoordIdxSize; ++i)
+                dai.bifY[i] = yCoordIndices[i];
+        }
         updateScene();
     }
 }
@@ -3442,6 +3468,16 @@ zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LIST);
         zCoordIdxSize = i;
+        if(whichType != BIFURCATION)
+        {
+            dai.solZSize = zCoordIdxSize;
+            for(int i = 0; i<zCoordIdxSize; ++i)
+                dai.solZ[i] = zCoordIndices[i];
+        } else {
+            dai.bifZSize = zCoordIdxSize;
+            for(int i = 0; i<zCoordIdxSize; ++i)
+                dai.bifZ[i] = zCoordIndices[i];
+        }
         updateScene();
     }
 }
@@ -3518,6 +3554,11 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
         half = 2;
     }
     lblIdxSize = i;
+
+    if(choice < 4)
+        lblChoice[0] = choice - 3;
+    else for (int i = 0; i < lblIdxSize; i++)
+        lblChoice[i] = lblIndices[i];
 
     updateScene();
 }

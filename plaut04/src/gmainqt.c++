@@ -921,6 +921,12 @@ MainWindow::dimensionToggledCB()
         zAxisList->setEnabled(false);
         dimButton->setText("2D");
     }
+
+    if(whichType != BIFURCATION)
+        setShow3DSol = setShow3D;
+    else
+        setShow3DBif = setShow3D;
+
     updateScene();
 }
 
@@ -1450,7 +1456,7 @@ MainWindow::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 #if QT_VERSION >= 0x40000
     QHBoxLayout *layout = new QHBoxLayout(frame);
 #endif
-    QButtonGroup *group = new QButtonGroup(frame);
+    QButtonGroup *group = new QButtonGroup;
     connect(group, 
 #if QT_VERSION >= 0x40000
         SIGNAL(buttonClicked(int)),
@@ -1601,7 +1607,8 @@ MainWindow::createOptionFrameGuts(QGroupBox *frame)
 // create default selections
 
 #if QT_VERSION >= 0x40000
-    QGridLayout *layout = new QGridLayout(frame, 3, 2);
+    QGridLayout *layout = new QGridLayout(frame,
+                                          (LENGTH(graphWidgetItems)+1)/2, 2);
 #endif
     QButtonGroup *group = new QButtonGroup;
     connect(group,
@@ -2095,6 +2102,16 @@ MainWindow::xListCallBack(const QString &str)
         tmp = strtok(NULL,",");
     }while(tmp != NULL && i < MAX_LIST); 
     xCoordIdxSize = i;
+    if(whichType != BIFURCATION)
+    {
+        dai.solXSize = xCoordIdxSize;
+        for(int i = 0; i<xCoordIdxSize; ++i)
+            dai.solX[i] = xCoordIndices[i];
+    } else {
+        dai.bifXSize = xCoordIdxSize;
+        for(int i = 0; i<xCoordIdxSize; ++i)
+            dai.bifX[i] = xCoordIndices[i];
+    }
     updateScene();
     free(manyChoice);
 }
@@ -2122,6 +2139,16 @@ MainWindow::yListCallBack(const QString &str)
         tmp = strtok(NULL,",");
     }while(tmp != NULL && i < MAX_LIST);
     yCoordIdxSize = i;
+    if(whichType != BIFURCATION)
+    {
+        dai.solYSize = yCoordIdxSize;
+        for(int i = 0; i<yCoordIdxSize; ++i)
+            dai.solY[i] = yCoordIndices[i];
+    } else {
+        dai.bifYSize = yCoordIdxSize;
+        for(int i = 0; i<yCoordIdxSize; ++i)
+            dai.bifY[i] = yCoordIndices[i];
+    }
     updateScene();
     free(manyChoice);
 }
@@ -2149,6 +2176,16 @@ MainWindow::zListCallBack(const QString &str)
         tmp = strtok(NULL,",");
     }while(tmp != NULL && i < MAX_LIST);
     zCoordIdxSize = i;
+    if(whichType != BIFURCATION)
+    {
+        dai.solZSize = zCoordIdxSize;
+        for(int i = 0; i<zCoordIdxSize; ++i)
+            dai.solZ[i] = zCoordIndices[i];
+    } else {
+        dai.bifZSize = zCoordIdxSize;
+        for(int i = 0; i<zCoordIdxSize; ++i)
+            dai.bifZ[i] = zCoordIndices[i];
+    }
     updateScene();
     free(manyChoice);
 }
@@ -2224,6 +2261,11 @@ MainWindow::lblListCallBack(const QString &str)
         half = 2;
     }
     lblIdxSize = i;
+
+    if(choice < 4)
+        lblChoice[0] = choice - 3;
+    else for (int i = 0; i < lblIdxSize; i++)
+        lblChoice[i] = lblIndices[i];
 
     updateScene();
     free(manyChoice);
