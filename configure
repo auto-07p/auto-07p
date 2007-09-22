@@ -7188,8 +7188,11 @@ fi
 	    fi
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    tmp_CPPFLAGS=$CPPFLAGS
+	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
 	    cat >conftest.$ac_ext <<_ACEOF
-int main() {return 0;}
+#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
 if { (ac_try="$ac_link"
@@ -7218,7 +7221,8 @@ sed 's/^/| /' conftest.$ac_ext >&5
 	      LDFLAGS="$LDFLAGS -lXi"
 	       SOXT_LDFLAGS="$SOXT_LDFLAGS -lXi"
 	       cat >conftest.$ac_ext <<_ACEOF
-int main() {return 0;}
+#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
 if { (ac_try="$ac_link"
@@ -7253,6 +7257,7 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 	    LDFLAGS=$tmp_LDFLAGS
+	    CPPFLAGS=$tmp_CPPFLAGS
 	fi
 	if test x$SOXTLIB = xno; then
 	    # Extract the first word of "soxt-config", so it can be a program name with args.

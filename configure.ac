@@ -208,13 +208,19 @@ else
 	    fi
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	    AC_LINK_IFELSE([int main() {return 0;}], [SOXTLIB="SoQt"],
+	    tmp_CPPFLAGS=$CPPFLAGS
+	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
+	    AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}],
+                    [SOXTLIB="SoQt"],
               # -lXi is a workaround for Fedora Core 5
 	      [LDFLAGS="$LDFLAGS -lXi"
 	       SOXT_LDFLAGS="$SOXT_LDFLAGS -lXi"
-	       AC_LINK_IFELSE([int main() {return 0;}],
+	       AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}],
                [SOXTLIB="SoQt"], [SOXTLIB="no"])])
 	    LDFLAGS=$tmp_LDFLAGS
+	    CPPFLAGS=$tmp_CPPFLAGS
 	fi
 	if test x$SOXTLIB = xno; then
 	    AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
