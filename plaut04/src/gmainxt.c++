@@ -3734,7 +3734,7 @@ popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
         strcat(tmpstr,temp);
         if(fmData[j*2+1] != 0) {
             strcat(tmpstr,fmData[j*2+1] < 0 ? " - " : " + ");
-            sprintf(temp,"%E",abs(fmData[j*2+1]));
+            sprintf(temp,"%E",fabs(fmData[j*2+1]));
             strcat(tmpstr,temp);
             strcat(tmpstr,"i\n");
         }

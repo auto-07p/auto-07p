@@ -134,17 +134,17 @@
 #define OPT_LIB_POINTS  2
 #define OPT_PERIOD_ANI  3
 #define OPT_SAT_ANI    4
-#define OPT_BACKGROUND   5
-#define OPT_LEGEND   6
-#define OPT_NORMALIZE_DATA  7
-#define OPT_LABEL_NUMBERS 8
+#define OPT_LABEL_NUMBERS 5
+#define OPT_BACKGROUND   6
+#define OPT_LEGEND   7
+#define OPT_NORMALIZE_DATA  8
 #else
 #define OPT_PERIOD_ANI  0
-#define OPT_SAT_ANI    1
-#define OPT_BACKGROUND   2
-#define OPT_LEGEND   3
-#define OPT_NORMALIZE_DATA  4
-#define OPT_LABEL_NUMBERS 5
+#define OPT_LABEL_NUMBERS 1
+#define OPT_SAT_ANI    2
+#define OPT_BACKGROUND   3
+#define OPT_LEGEND   4
+#define OPT_NORMALIZE_DATA  5
 #endif
 
 #define NO_COORD  0 
