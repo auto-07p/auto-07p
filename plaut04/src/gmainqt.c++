@@ -130,6 +130,7 @@ MainWindow::colorMethodSelectionCB(const QString &myChoice)
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
+    coloringMethodType[whichType] = coloringMethod;
 
     updateScene();
 }
@@ -238,6 +239,7 @@ MainWindow::typeMenuPick(int which)
                 graphWidgetToggleSet |= options[i] << i;
             }
         }
+        coloringMethod = coloringMethodType[whichType];
     }
 
     whichTypeOld = whichType;
@@ -606,21 +608,14 @@ MainWindow::optMenuDisplay()
     }
 #endif
 
-    if(whichType == SOLUTION)
+    menuItems->items->setItemVisible(OPT_PERIOD_ANI, whichType == SOLUTION);
+    menuItems->items->setItemVisible(OPT_SAT_ANI, whichType == SOLUTION);
+    menuItems->items->setItemVisible(OPT_DRAW_LABELS, whichType != SOLUTION);
+    menuItems->items->setItemVisible(OPT_LABEL_NUMBERS, whichType != SOLUTION);
+    if(whichType == BIFURCATION)
     {
-        menuItems->items->setItemEnabled(OPT_SAT_ANI, true);
-#ifndef R3B
-        menuItems->items->changeItem(OPT_PERIOD_ANI, "&Highlight Orbit");
-#else
-        menuItems->items->changeItem(OPT_PERIOD_ANI, "&Orbit Animation");
-#endif
-    }
-    else
-    {
-        menuItems->items->setItemEnabled(OPT_SAT_ANI, false);
-        menuItems->items->changeItem(OPT_PERIOD_ANI, "&Draw Labels");
         menuItems->items->setItemEnabled(OPT_LABEL_NUMBERS,
-            (graphWidgetToggleSet & (1<<OPT_PERIOD_ANI)) != 0);
+            (graphWidgetToggleSet & (1<<OPT_DRAW_LABELS)) != 0);
     }
 }
 
@@ -690,8 +685,6 @@ MainWindow::buildOptionMenu()
 #ifndef R3B
     pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
-    pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
-                         0, OPT_LABEL_NUMBERS);
     pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
 #else
@@ -706,9 +699,11 @@ MainWindow::buildOptionMenu()
                          0, OPT_PERIOD_ANI);
     pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
+#endif
+    pulldown->insertItem("&Draw Labels", this, SLOT(optMenuPick(int)),
+                         0, OPT_DRAW_LABELS);
     pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
                          0, OPT_LABEL_NUMBERS);
-#endif
     pulldown->insertItem("Draw &Background", this, SLOT(optMenuPick(int)),
                          0, OPT_BACKGROUND);
     pulldown->insertItem("&Add Legend", this, SLOT(optMenuPick(int)),
@@ -1082,7 +1077,8 @@ MainWindow::MainWindow() : QMainWindow()
     ADD_LISTCARRIER_WIDGET(colorMethodSeletionList);
     for ( i = 0; i < nItems; i++ )
         colorMethodSeletionList->insertItem(coloringMethodList[i]);
-    colorMethodSeletionList->setCurrentItem(coloringMethod+specialColorItems);
+    colorMethodSeletionList->setCurrentItem(coloringMethod < 0 ?
+       coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems);
 
 // Add Callback function for the coloring method seletion drop down list
     connect(colorMethodSeletionList, SIGNAL(activated(const QString &)),

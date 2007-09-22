@@ -18,10 +18,13 @@
         "Window Height",
 //        "Labels",
         "Coloring Method",
+        "Coloring Method Solution",
+        "Coloring Method Bifurcation",
 #ifdef R3B
         "Number of Period Animated",
 #endif
         "Line Width Scaler",
+        "Label Sphere Radius",
 #ifndef R3B
         "Object Radius",
 #else
@@ -102,6 +105,7 @@ const char * graphWidgetItems[]=
     "Draw Background", 
     "Draw Legend", 
     "Normalize Data",
+    "Draw Labels",
     "Show Label Numbers",
 };
 

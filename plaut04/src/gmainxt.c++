@@ -189,6 +189,7 @@ colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
+    coloringMethodType[whichType] = coloringMethod;
 
     updateScene();
 }
@@ -318,6 +319,7 @@ typeMenuPick(Widget w, void *userData, XmAnyCallbackStruct *cb)
                 graphWidgetToggleSet |= options[i] << i;
             }
         }
+        coloringMethodType[whichType] = coloringMethod;
     }
 
     whichTypeOld = whichType;
@@ -743,27 +745,21 @@ optMenuDisplay(Widget, void *userData, XtPointer)
     }
 #endif
 
-    if(whichType == SOLUTION)
+    if(whichType == BIFURCATION)
     {
-        XtSetSensitive (menuItems->items[OPT_SAT_ANI], TRUE);
-
-#ifndef R3B
-        XmString xString = XmStringCreateLocalized((char *)"Highlight Orbit");
-#else
-        XmString xString = XmStringCreateLocalized((char *)"Orbit Animation");
-#endif
-        XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
-        XmStringFree(xString);
+        XtUnmanageChild(menuItems->items[OPT_PERIOD_ANI]);
+        XtUnmanageChild(menuItems->items[OPT_SAT_ANI]);
+        XtManageChild(menuItems->items[OPT_DRAW_LABELS]);
+        XtManageChild(menuItems->items[OPT_LABEL_NUMBERS]);
+        XtSetSensitive (menuItems->items[OPT_LABEL_NUMBERS],
+            (graphWidgetToggleSet & (1<<OPT_DRAW_LABELS)) != 0);
     }
     else
     {
-        XtSetSensitive (menuItems->items[OPT_SAT_ANI], FALSE);
-
-        XmString xString = XmStringCreateLocalized((char *)"Draw Labels");
-        XtVaSetValues (menuItems->items[OPT_PERIOD_ANI], XmNlabelString, xString, NULL);
-        XmStringFree(xString);
-        XtSetSensitive (menuItems->items[OPT_LABEL_NUMBERS],
-            (graphWidgetToggleSet & (1<<OPT_PERIOD_ANI)) != 0);
+        XtUnmanageChild(menuItems->items[OPT_DRAW_LABELS]);
+        XtUnmanageChild(menuItems->items[OPT_LABEL_NUMBERS]);
+        XtManageChild(menuItems->items[OPT_PERIOD_ANI]);
+        XtManageChild(menuItems->items[OPT_SAT_ANI]);
     }
 }
 
@@ -850,9 +846,8 @@ buildFileMenu(Widget menubar)
     PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
 #endif
 
-//    XtManageChildren(items, 4);
 #ifndef R3B
-    XtManageChildren(items, 2);
+    XtManageChildren(items, 3);
 #else
     XtManageChildren(items, 4);
 #endif
@@ -909,7 +904,7 @@ buildOptionMenu(Widget menubar)
 
     EditMenuItems *menuItems = new EditMenuItems;
 #ifndef R3B
-    menuItems->items = new Widget[6];
+    menuItems->items = new Widget[8];
 #else
     menuItems->items = new Widget[13];
 #endif
@@ -928,7 +923,6 @@ buildOptionMenu(Widget menubar)
     XtSetArg(args[n], XmNuserData, menuItems); n++;
 #ifndef R3B
     TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
 #else
     TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
@@ -937,8 +931,9 @@ buildOptionMenu(Widget menubar)
     SEP_ITEM("separator");
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
 #endif
+    TOGGLE_ITEM(menuItems->items[mq], "Draw Labels",          OPT_DRAW_LABELS, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Add Legend",           OPT_LEGEND, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Normalize Data",       OPT_NORMALIZE_DATA, optMenuPick); ++mq;
@@ -1539,7 +1534,8 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNitems,              clrMethodList,
         XmNcolumns,            5,
         XmNmarginHeight,       1,
-        XmNselectedPosition,   coloringMethod+specialColorItems,
+        XmNselectedPosition,   (coloringMethod < 0 ?
+                coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems),
         XmNpositionMode,       XmZERO_BASED,
         NULL);
 

@@ -76,13 +76,8 @@
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
 
-#ifdef R3B
 #define MAX_LIST  3000  // Max number for x-coor, y-coord, z-coord, coloringMethod,  lists.
-#define MAX_LABEL 50000  // maxinum number of labels in a solution file
-#else
-#define MAX_LIST  1000  // Max number for x-coor, y-coord, z-coord, coloringMethod,  lists.
-#define MAX_LABEL 10000  // maxinum number of labels in a solution file
-#endif
+#define MAX_LABEL 50000  // maximum number of labels in a solution file
 
 #ifndef M_PI
     #define M_PI 3.1415926
@@ -134,17 +129,19 @@
 #define OPT_LIB_POINTS  2
 #define OPT_PERIOD_ANI  3
 #define OPT_SAT_ANI    4
-#define OPT_LABEL_NUMBERS 5
-#define OPT_BACKGROUND   6
-#define OPT_LEGEND   7
-#define OPT_NORMALIZE_DATA  8
+#define OPT_DRAW_LABELS  5
+#define OPT_LABEL_NUMBERS  6
+#define OPT_BACKGROUND   7
+#define OPT_LEGEND   8
+#define OPT_NORMALIZE_DATA  9
 #else
 #define OPT_PERIOD_ANI  0
-#define OPT_LABEL_NUMBERS 1
-#define OPT_SAT_ANI    2
-#define OPT_BACKGROUND   3
-#define OPT_LEGEND   4
-#define OPT_NORMALIZE_DATA  5
+#define OPT_SAT_ANI    1
+#define OPT_DRAW_LABELS  2
+#define OPT_LABEL_NUMBERS  3
+#define OPT_BACKGROUND   4
+#define OPT_LEGEND   5
+#define OPT_NORMALIZE_DATA  6
 #endif
 
 #define NO_COORD  0 
@@ -352,7 +349,7 @@ extern float fmData[12];
 extern int xCoordIndices[MAX_LIST], xCoordIdxSize;
 extern int yCoordIndices[MAX_LIST], yCoordIdxSize;
 extern int zCoordIndices[MAX_LIST], zCoordIdxSize;
-extern int coloringMethod, specialColorItems;
+extern int coloringMethod, specialColorItems, coloringMethodType[2];
 extern int lblIndices[], lblChoice[], lblIdxSize;
 extern bool options[];
 extern long int numLabels;
@@ -379,10 +376,10 @@ extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
 extern char labels[MAX_LABEL][8];
 #ifndef R3B
-extern const char * graphWidgetItems[6];
+extern const char * graphWidgetItems[7];
 extern SoSeparator *root;
 #else
-extern const char * graphWidgetItems[9];
+extern const char * graphWidgetItems[10];
 extern SoSelection *root;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern bool blMassDependantOption;
