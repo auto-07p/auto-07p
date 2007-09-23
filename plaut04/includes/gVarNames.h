@@ -102,11 +102,11 @@ const char * graphWidgetItems[]=
 #ifdef R3B
     "Satellite Animation",
 #endif
+    "Draw Labels",
+    "Show Label Numbers",
     "Draw Background", 
     "Draw Legend", 
     "Normalize Data",
-    "Draw Labels",
-    "Show Label Numbers",
 };
 
 const char * axesNames[] =

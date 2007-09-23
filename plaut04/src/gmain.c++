@@ -2175,12 +2175,8 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
             long int idx = obStart;
             SoSeparator * ptSep = new SoSeparator;
             SoTransform * aTrans = new SoTransform;
-#ifndef R3B
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 			            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#else
-            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-#endif
             ptSep->addChild(aTrans);
 
             SoSphere *aPoint = new SoSphere;
@@ -2191,11 +2187,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
         }
 
         sum += npt;
-#ifndef R3B
         for(int j=obStart; j<obEnd; ++j)
-#else
-        for(int j=obStart; j<obEnd; ++j)          //1; j<nd; j++)
-#endif
         {
             npt= mySolNode.numVerticesEachPeriod[j];
             if(npt>1)
@@ -3019,27 +3011,11 @@ setLineAttributesByParameterValue(double parValue, double parMax,
     legendScaleValues[1] = parMax;
 
     SoDrawStyle * lineStyle = new SoDrawStyle;
-#ifndef R3B
+    lineStyle->style = SoDrawStyle::FILLED;
     if(stability == 1 || stability == 3)
-    {
-#endif
-        lineStyle->style = SoDrawStyle::FILLED;
-#ifdef R3B
-    if(stability == 1 || stability == 3)
-#endif
         lineStyle->linePattern = stabilityLinePattern[0];
-#ifndef R3B
-    }
-#endif
     else
-#ifndef R3B
-    {
-        lineStyle->style = SoDrawStyle::FILLED;
-#endif
         lineStyle->linePattern = stabilityLinePattern[1];
-#ifndef R3B
-    }
-#endif
 
     SoMaterial * lineMtl = new SoMaterial;
     lineMtl->diffuseColor.setValue(1.0, 1.0, 1.0);
