@@ -489,9 +489,9 @@ setListValue()
         XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, myBifNode.nar, NULL);
         XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, myBifNode.nar, NULL);
         XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, myBifNode.nar, NULL);
-        lessTifFixupComboBox(xAxisList, xList, mySolNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(yAxisList, yList, mySolNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(zAxisList, zList, mySolNode.nar, 10, 60, 2);
+        lessTifFixupComboBox(xAxisList, xList, myBifNode.nar, 10, 60, 2);
+        lessTifFixupComboBox(yAxisList, yList, myBifNode.nar, 10, 60, 2);
+        lessTifFixupComboBox(zAxisList, zList, myBifNode.nar, 10, 60, 2);
 
         int sp = 0;
         strcpy(coloringMethodList[0],"STAB"); sp++;
