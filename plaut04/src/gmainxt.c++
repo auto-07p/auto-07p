@@ -805,16 +805,16 @@ buildFileMenu(Widget menubar)
     pulldown = XmCreatePulldownMenu(menubar, (char *)"fileMenu", popupargs, popupn);
 
 // Accelerators are keyboard shortcuts for the menu items
-    const char *openAccel  = "Alt <Key> o";
-    const char *saveAccel  = "Alt <Key> s";
-    const char *printAccel = "Alt <Key> p";
-    const char *quitAccel  = "Alt <Key> q";
-    XmString openAccelText  = XmStringCreate((char *)"Alt+o", XmSTRING_DEFAULT_CHARSET);
-    XmString saveAccelText  = XmStringCreate((char *)"Alt+s", XmSTRING_DEFAULT_CHARSET);
+    const char *openAccel  = "Ctrl<Key>o";
+    const char *saveAccel  = "Ctrl<Key>s";
+    const char *printAccel = "Ctrl<Key>p";
+    const char *quitAccel  = "Ctrl<Key>q";
+    XmString openAccelText  = XmStringCreate((char *)"Ctrl+o", XmSTRING_DEFAULT_CHARSET);
+    XmString saveAccelText  = XmStringCreate((char *)"Ctrl+s", XmSTRING_DEFAULT_CHARSET);
 #ifdef R3B
-    XmString printAccelText = XmStringCreate((char *)"Alt+p", XmSTRING_DEFAULT_CHARSET);
+    XmString printAccelText = XmStringCreate((char *)"Ctrl+p", XmSTRING_DEFAULT_CHARSET);
 #endif
-    XmString quitAccelText  = XmStringCreate((char *)"Alt+q", XmSTRING_DEFAULT_CHARSET);
+    XmString quitAccelText  = XmStringCreate((char *)"Ctrl+q", XmSTRING_DEFAULT_CHARSET);
     n = 0;
     XtSetArg(args[n], XmNaccelerator, openAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
@@ -835,20 +835,13 @@ buildFileMenu(Widget menubar)
     SEP_ITEM("separator");
 
     n = 0;
-//    XtSetArg(args[n], XmNaccelerator, quitAccel); n++;
-//    XtSetArg(args[n], XmNacceleratorText, quitAccelText); n++;
-//    PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
-#ifndef R3B
-    PUSH_ITEM(items[2], "Quit",    QUIT_ITEM, fileMenuPick);
-#else
     XtSetArg(args[n], XmNaccelerator, quitAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, quitAccelText); n++;
-    PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
-#endif
-
 #ifndef R3B
+    PUSH_ITEM(items[2], "Quit",    QUIT_ITEM, fileMenuPick);
     XtManageChildren(items, 3);
 #else
+    PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
     XtManageChildren(items, 4);
 #endif
 
