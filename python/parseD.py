@@ -36,15 +36,33 @@ class parseD(UserList.UserList):
     def read(self,input):
         data=input.read()
         data=string.split(data,"--------------------------------------------------------------------------------------------")
-        #The first two parts are header, perhaps later we will keep
-        #it, but for now we just discard it
-        data = data[2:-1]
+        if len(data) == 1:
+            data=string.split(data[0],"===============================================\n")
         self.__data=[]
         for solution in data:
             self.__data.append({})
             self.__data[-1]["Text"] = solution
-            self.__data[-1]["Label"] = string.split(solution)[4]
+            lines = string.split(solution,'\n')
+            self.__data[-1]["Branch number"] = 0
+            self.__data[-1]["Point number"] = 0
+            self.__data[-1]["Label"] = 0
             self.__data[-1]["Eigenvalues"] = []
+            if len(lines) < 3:
+                continue
+            sp = string.split(lines[2])
+            if len(sp) < 2:
+                continue
+            self.__data[-1]["Branch number"] = int(sp[0])
+            self.__data[-1]["Point number"] = int(sp[1])
+            labline = False
+            for line in lines:
+                sp = string.split(line)
+                if labline:
+                    if sp[2] != '0':
+                        self.__data[-1]["Label"] = int(sp[3])
+                    break
+                if sp[0:4] == ['BR', 'PT', 'TY', 'LAB']:
+                    labline = True
             result = re.findall("Eigenvalue\s.*",solution)
             for eigenvalue_string in result:
                 eigenvalue_string = string.split(eigenvalue_string)
