@@ -197,9 +197,7 @@ class runAUTO:
             self.options["solution"].writeFilename("fort.3")
 
         os.system("rm -f fort.12")
-        if (self.options["homcont"] is None):
-            os.system("touch fort.12")
-        else:
+        if not (self.options["homcont"] is None):
             self.options["homcont"].writeFilename("fort.12")
 
     def runMakefileWithSetup(self,equation=None):
