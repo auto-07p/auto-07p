@@ -221,26 +221,38 @@ The new graphic tool for \AUTO data visualization, PLAUT04, is
 compiled by default, but depends on a few libraries that may not be
 in a standard installation of a typical Unix-like
 system. These libraries may be available as optional packages,
-though. Specifically, PLAUT04 requires at least either SGI Open
-Inventor 2.5.10 or Coin3D 2.2 with SoXt 1.1.0. It also needs the
-libraries simage 1.6 and (Open)Motif or LessTif 2.0. Any higher
-version numbers should also work.
-One can download SGI's implementation of the Open Inventor libraries from:
+though. The packages Coin3D (version 2.2 or higher), SoQt
+(1.1.0 or higher), and simage (1.6 or higher) are recommended.
+Many Linux distributions provide packages for some or all
+these libraries, using names such as Coin2-Devel, SoQt-Devel (Fedora)
+and libcoin40-dev, libsoqt-dev, and libsimage-dev (Debian and Ubuntu).
+For Mac OS X there exist Fink packages.
+The libraries can also be downloaded from
+\url{http://www.coin3d.org/download/} and compiled from source.
+
+Instead of SoQt it is possible to use the SoXt library, which
+interfaces with (Open)Motif or LessTif (version 2.0 or higher)
+instead of Qt. The user interface has a few problems with LessTif
+though, in particular it is likely to crash on 64-bit machines, so the
+Qt version or (Open)Motif is recommended.
+
+As a third alternative, one can download SGI's implementation of the
+Open Inventor libraries from:
 \url{ftp://oss.sgi.com/projects/inventor/download/}
 Because SGI's implementation for Linux cannot show text correctly, 
 we recommend that Coin is used instead of SGI's implementation. 
-Coin3D can be downloaded from:
-\url{http://www.coin3d.org/download/}
-It is also available as a package for many Linux distributions.
-You will probably need to compile and install the SoXt and simage
-libraries from the source code available at the above web site.
-If, after that, PLAUT04 still does not work then you might need to
+
+If you need to compile and install one of the libraries
+from the source code available at the above web site, and you
+find that, after that, PLAUT04 still does not work then you might need to
 adjust the environment variable {\tt LD\_LIBRARY\_PATH} to include
 the location of these libraries, for instance {\tt /usr/local/lib}.
 
-The configure script checks
+The \filef{configure} script checks
 for these libraries and outputs a warning if any of these libraries
-cannot be found; if they are not available you can still compile
+cannot be found. It first checks for SoQt, and then for SoXt, unless
+you pass {\tt --disable-plaut04-qt} as an option to \filef{configure}.
+If the libraries are not available you can still compile
 all other components of \AUTO using \filef{make}.
 
 For timing purposes, the file \filef{auto/07p/src/autlib1.f}
@@ -326,7 +338,8 @@ at least the default installation, \filef{gcc}, \filef{gfortran},
 is not as reponsive in Cygwin Python as in the above native setup, however.
 
 In both cases, an X server is not necessary, unless you wish to try to run
-PLAUT, PLAUT04, or the GUI.
+PLAUT or the GUI. With some effort it may be possible to use PLAUT04
+on Windows (without an X server) using Coin, SoQt, and Qt.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
 There are size restrictions in the file {\tt auto/07p/include/auto.h}
