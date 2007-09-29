@@ -427,18 +427,29 @@ class AUTOSolution(UserDict.UserDict):
 
 
     def write(self,output):
-	line = "%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d" % (self["Branch number"],
+        ndim = len(self[0]['u'])
+        npar = len(self["Parameters"])
+        if self["NTST"] != 0:
+            nfpr = len(self["Free Parameters"])
+            nrd = 2 + ndim/7 + (ndim-1)/7
+            nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
+                      (nfpr-1)/7+1 + (npar-1)/7+1 + (nfpr-1)/20+1)
+        else:
+            nfpr = self.__numChangingParameters
+            nrowpr = ndim/7+1 + (npar-1)/7+1
+            
+	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["Branch number"],
                                                          self["Point number"],
                                                          self["Type number"],
                                                          self["Label"],
-                                                         self.__numChangingParameters,
+                                                         nfpr,
                                                          self["ISW"],
-                                                         self.__numSValues,
-                                                         self.__numEntriesPerBlock,
-                                                         self.__numLinesPerEntry,
+                                                         len(self["data"]),
+                                                         ndim+1,
+                                                         nrowpr,
                                                          self["NTST"],
                                                          self["NCOL"],
-                                                         self.__numFreeParameters
+                                                         npar
                                                          )
 	output.write(line+"\n")
         # If the file isn't already parsed, and we happen to know the position of
@@ -451,67 +462,64 @@ class AUTOSolution(UserDict.UserDict):
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
-            for i in range(self.__numSValues):
-                num = "%.10E" % (self["data"][i]["t"])
-                if AUTOatof(num) < 0:
-                    line = "     "+num
-                else:
-                    line = "      "+num
-                for j in range(len(self["data"][i]["u"])):
-                    num = "%.10E" % (self["data"][i]["u"][j])
-                    if AUTOatof(num) < 0:
-                        line = line + " " + num
-                    else:
-                        line = line + "  " + num
-                    if (j+2)%7==0:
+            for point in self["data"]:
+                num = "%19.10E" % (point["t"])
+                line = "    "+num
+                j = 1
+                for n in point["u"]:
+                    num = "%19.10E" % (n)
+                    line = line + num
+                    j = j + 1
+                    if j%7==0:
                         output.write(line+"\n")
                         line = "    "
-                if (j+2)%7!=0:
+                if j%7!=0:
                     output.write(line+"\n")
             # I am using the value of NTST to test to see if it is an algebraic or
             # ODE problem.
             if self["NTST"] != 0:
-                for i in range(len(self["Free Parameters"])):
-                    line = "%5d" % (self["Free Parameters"][i])
-                    output.write(line)
-                output.write("\n")
+                j = 0
+                for parameter in self["Free Parameters"]:
+                    output.write("%5d" % (parameter))
+                    j = j + 1
+                    if j%20==0:
+                        output.write("\n")
+                if j%20!=0:
+                    output.write("\n")
 
                 line = "    "
-                for i in range(len(self["Parameter NULL vector"])):
-                    num = "%.10E" % (self["Parameter NULL vector"][i])
+                i = 0
+                for vi in self["Parameter NULL vector"]:
+                    num = "%19.10E" % (vi)
                     if i != 0 and i%7==0:
                         line = line + "\n    "
-                    if AUTOatof(num) < 0:
-                        line = line + " " + num
-                    else:
-                        line = line + "  " + num
+                    line = line + num
+                    i = i + 1
                 output.write(line+"\n")
 
-                for i in range(self.__numSValues):
+                for point in self["data"]:
                     line = "    "
-                    for j in range(len(self["data"][i]["u dot"])):
-                        num = "%.10E" % (self["data"][i]["u dot"][j])
-                        if AUTOatof(num) < 0:
-                            line = line + " " + num
-                        else:
-                            line = line + "  " + num
-                        if (j+1)%7==0:
+                    j = 0
+                    for n in point["u dot"]:
+                        num = "%19.10E" % (n)
+                        line = line + num
+                        j = j + 1
+                        if j%7==0:
                             output.write(line+"\n")
                             line = "    "
-                    if (j+1)%7!=0:
+                    if j%7!=0:
                         output.write(line+"\n")
 
             line = "    "
-            for j in range(self.__numFreeParameters):
-                num = "%.10E" % (self["Parameters"][j])
-                if AUTOatof(num) < 0:
-                    line = line + " " + num 
-                else:
-                    line = line + "  " + num 
-                if (j+1)%7==0:
+            j = 0
+            for parameter in self["Parameters"]:
+                num = "%19.10E" % (parameter)
+                line = line + num 
+                j = j + 1
+                if j%7==0:
                     output.write(line+"\n")
                     line = "    "
-            if (j+1)%7!=0:
+            if j%7!=0:
                 output.write(line+"\n")
             output.flush()
 
