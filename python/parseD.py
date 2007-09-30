@@ -47,9 +47,18 @@ class parseD(UserList.UserList):
             self.__data[-1]["Point number"] = 0
             self.__data[-1]["Label"] = 0
             self.__data[-1]["Eigenvalues"] = []
+            self.__data[-1]["Multipliers"] = []
             if len(lines) < 3:
                 continue
-            sp = string.split(lines[2])
+            i = 0
+            for line in lines:
+                sp = string.split(line)
+                if len(sp) > 0 and sp[0] == 'BR':
+                    break
+                i = i + 1
+            if i + 1 >= len(lines):
+                continue
+            sp = string.split(lines[i+1])
             if len(sp) < 2:
                 continue
             self.__data[-1]["Branch number"] = int(sp[0])
@@ -59,7 +68,10 @@ class parseD(UserList.UserList):
                 sp = string.split(line)
                 if labline:
                     if sp[2] != '0':
-                        self.__data[-1]["Label"] = int(sp[3])
+                        try:
+                            self.__data[-1]["Label"] = int(sp[2])
+                        except:
+                            self.__data[-1]["Label"] = int(sp[3])
                     break
                 if sp[0:4] == ['BR', 'PT', 'TY', 'LAB']:
                     labline = True
@@ -69,6 +81,12 @@ class parseD(UserList.UserList):
                 real_part = float(eigenvalue_string[2])
                 imag_part = float(eigenvalue_string[3])
                 self.__data[-1]["Eigenvalues"].append([real_part,imag_part])
+            result = re.findall("Multiplier\s.*",solution)
+            for multiplier_string in result:
+                multiplier_string = string.split(multiplier_string)
+                real_part = float(multiplier_string[2])
+                imag_part = float(multiplier_string[3])
+                self.__data[-1]["Multipliers"].append([real_part,imag_part])
 
     def readFilename(self,filename):
         self.read(open(filename,"r"))
