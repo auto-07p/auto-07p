@@ -109,15 +109,15 @@ class plotter(grapher.GUIGrapher):
         elif key == "label":
             labels = self.cget("solution").getLabels()
             options["index"] =[]
-            for i in range(len(value)):
+            for v in value:
                 for j in range(len(labels)):
-                    if labels[j] == value[i]:
+                    if labels[j] == v:
                         options["index"].append(j)
         elif key == "index":
             options["label"] =[]
-            for i in range(len(value)):
+            for v in value:
                 labels = self.cget("solution").getLabels()
-                options["label"].append(labels[value[i]])
+                options["label"].append(labels[v])
         # We only recreate the data if one of the above options gets set
         # We can't just recreate the data for any option since:
         #   1)  It is inefficient

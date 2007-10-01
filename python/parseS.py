@@ -63,8 +63,8 @@ class parseS:
         rep = rep + "Number of solutions :" + str(len(self)) + "\n"
         labels = self.getLabels()
         rep = rep + "Labels: "
-        for i in range(len(labels)):
-            rep = rep + str(labels[i]) + " "
+        for label in labels:
+            rep = rep + str(label) + " "
         rep = rep + "\n"
         return rep
 
@@ -181,15 +181,15 @@ class parseS:
     # Removes the first solution with the given label
     def deleteLabel(self,label):
         if type(label)  == types.IntType:
-            for i in range(len(self)):
-                if self.data[i]["Label"] == label:
-                    del self.data[i]
+            for x in self.data[:]:
+                if x["Label"] == label:
+                    self.data.remove(x)
                     break
         else:
-            for j in range(len(label)):
-                for i in range(len(self)):
-                    if self.data[i]["Label"] == label[j]:
-                        del self.data[i]
+            for l in label:
+                for x in self.data[:]:
+                    if x["Label"] == l:
+                        self.data.remove(x)
                         break
             
     # Relabels the first solution with the given label
@@ -211,9 +211,9 @@ class parseS:
 
     # Given a label, return the correct solution
     def getLabel(self,label):
-        for i in range(len(self)):
-            if self.data[i]["Label"] == label:
-                return self.data[i]
+        for d in self.data:
+            if d["Label"] == label:
+                return d
 
     def getIndex(self,index):
         return self.data[index]
@@ -378,7 +378,7 @@ class AUTOSolution(UserDict.UserDict):
 	    data = string.split(line)
             pointu = point["u"] = []
             if len(data) > 0:
-                point["t"] = AUTOatof(data[0])
+                point["t"] = parseB.AUTOatof(data[0])
                 data = data[1:]
             j = 0
 	    while len(pointu) < self.__numEntriesPerBlock - 1:
@@ -386,7 +386,7 @@ class AUTOSolution(UserDict.UserDict):
                     line = inputfile.readline()
 		    if not line: raise PrematureEndofData
 		    data = string.split(line)
-                pointu.extend(map(AUTOatof, data))
+                pointu.extend(map(parseB.AUTOatof, data))
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
@@ -398,7 +398,7 @@ class AUTOSolution(UserDict.UserDict):
             while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
                 line = inputfile.readline()
                 if not line: raise PrematureEndofData
-                self["Parameter NULL vector"].extend(map(AUTOatof, string.split(line)))
+                self["Parameter NULL vector"].extend(map(parseB.AUTOatof, string.split(line)))
 
 	    if len(self["Parameter NULL vector"]) != len(self["Free Parameters"]):
 		print "BEWARE!! size of parameter NULL vector and number of changing"
@@ -413,13 +413,13 @@ class AUTOSolution(UserDict.UserDict):
 		    line = inputfile.readline()
 		    if not line: raise PrematureEndofData
 		    data = string.split(line)
-                    udot.extend(map(AUTOatof, data))
+                    udot.extend(map(parseB.AUTOatof, data))
 
 	parameters = self["Parameters"] = []
 	while len(parameters) < self.__numFreeParameters:
 	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
-            parameters.extend(map(AUTOatof, string.split(line)))
+            parameters.extend(map(parseB.AUTOatof, string.split(line)))
 	    
         self.__end = inputfile.tell()
         self["parameters"] = self["Parameters"]
@@ -522,37 +522,6 @@ class AUTOSolution(UserDict.UserDict):
             if j%7!=0:
                 output.write(line+"\n")
             output.flush()
-
-def AUTOatof(input_string):
-    #Sometimes AUTO messes up the out.  I.e. it gives an
-    #invalid floating point number of the form x.xxxxxxxE
-    #instead of x.xxxxxxxE+xx.  Here we assume the exponent
-    #is 0 and make it into a real real number :-)
-    try:
-        value=float(input_string)
-    except (ValueError):
-        try:
-            if input_string[-1] == "E":
-                #  This is the case where you have 0.0000000E
-                value=float(string.strip(input_string)[0:-1])
-            elif input_string[-4] == "-" or input_string[-4] == "+":
-                #  This is the case where you have x.xxxxxxxxx-yyy
-                #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=float(string.strip(input_string)[0:-4]+'E'+
-                            string.strip(input_string)[-4:])
-            else:
-                print "Encountered value I don't understand"
-                print input_string
-                print "Setting to 0"
-                value=0.0
-        except:
-            print "Encountered value which raises an exception while processing!!!"
-            print input_string
-            print "Setting to 0"
-            value=0.0
-            
-            
-    return value
 
 def pointtest(a,b):
     keys = ['Type number', 'Type name', 'Parameter NULL vector',

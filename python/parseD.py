@@ -11,6 +11,7 @@ import string
 import getopt
 import math
 import AUTOExceptions
+import parseB
 
 class parseD(UserList.UserList):
     def __init__(self,filename):
@@ -63,7 +64,7 @@ class parseD(UserList.UserList):
                 continue
             self.__data[-1]["Branch number"] = int(sp[0])
             self.__data[-1]["Point number"] = int(sp[1])
-            labline = False
+            labline = 0
             for line in lines:
                 sp = string.split(line)
                 if labline:
@@ -74,18 +75,18 @@ class parseD(UserList.UserList):
                             self.__data[-1]["Label"] = int(sp[3])
                     break
                 if sp[0:4] == ['BR', 'PT', 'TY', 'LAB']:
-                    labline = True
+                    labline = 1
             result = re.findall("Eigenvalue\s.*",solution)
             for eigenvalue_string in result:
                 eigenvalue_string = string.split(eigenvalue_string)
-                real_part = float(eigenvalue_string[2])
-                imag_part = float(eigenvalue_string[3])
+                real_part = parseB.AUTOatof(eigenvalue_string[2])
+                imag_part = parseB.AUTOatof(eigenvalue_string[3])
                 self.__data[-1]["Eigenvalues"].append([real_part,imag_part])
             result = re.findall("Multiplier\s.*",solution)
             for multiplier_string in result:
                 multiplier_string = string.split(multiplier_string)
-                real_part = float(multiplier_string[2])
-                imag_part = float(multiplier_string[3])
+                real_part = parseB.AUTOatof(multiplier_string[2])
+                imag_part = parseB.AUTOatof(multiplier_string[3])
                 self.__data[-1]["Multipliers"].append([real_part,imag_part])
 
     def readFilename(self,filename):
