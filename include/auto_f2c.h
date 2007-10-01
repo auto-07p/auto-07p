@@ -89,12 +89,12 @@ extern doublereal getp(const char *code, integer ic, const doublereal *u);
 
 #ifndef WRAPPER
 /* user functions */
-static user_func_t func;
-static user_stpnt_t stpnt;
-static user_bcnd_t bcnd;
-static user_icnd_t icnd;
-static user_fopt_t fopt;
-static user_pvls_t pvls;
+static int func();
+static int stpnt();
+static int bcnd();
+static int icnd();
+static int fopt();
+static int pvls();
 const user_function_list user = { func, stpnt, bcnd, icnd, fopt, pvls };
 #endif
 
