@@ -47,6 +47,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         spaces = re.match(" *",line)
 
         shortCommands = ["ls","cd","help","cat","man"]
+        shortUnixCommands = ["clear","less","mkdir","rmdir","cp","mv","rm"]
         shortCommandsNoArgument = ["q","quit"]
             
         if len(lst) > 0:
@@ -54,7 +55,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+5:]) +"')"
             elif lst[0][0]=="!":
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+1:]) +"')"
-            elif lst[0][0]=="@":
+            elif lst[0][0]=="@" or lst[0] in shortUnixCommands:
                 return spaces.group()+"shell('" + string.strip(line[len(spaces.group()):]) +"')"
             elif lst[0] in shortCommands:
                 if len(lst) == 2:
