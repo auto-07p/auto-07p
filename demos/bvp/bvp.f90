@@ -14,7 +14,7 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
 
   DOUBLE PRECISION pi
 
-  pi = 4*ATAN(1.d0)
+  pi = 4.d0*ATAN(1.d0)
 
   F(1) = U(2)
   F(2) = -( PAR(1)*pi )**2 * U(1) + U(1)**2
@@ -29,9 +29,9 @@ SUBROUTINE STPNT(NDIM,U,PAR,T)
   DOUBLE PRECISION, INTENT(IN) :: T
   DOUBLE PRECISION, INTENT(OUT) :: U(NDIM), PAR(*)
 
-  PAR(1:2) = (/ 0.0d0, 0.0d0 /)
+  PAR(1:2) = 0.0d0
 
-  U = (/ 0.0d0, 0.0d0 /)
+  U = 0.0d0
 
 END SUBROUTINE STPNT
 
