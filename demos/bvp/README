@@ -1,2 +1,2 @@
-Type "make" to run the complete demo.
-Type "make clean" to clean (back to original state).
+Type "auto bvp.auto" to run the complete demo.
+Type "auto clean.auto" to clean (back to original state).

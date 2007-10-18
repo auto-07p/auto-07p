@@ -1,0 +1,29 @@
+
+#=============
+# AUTO Demo bvp
+#=============
+
+print "\n***Compute the zero solution branch***"
+run(e='bvp',c='bvp',sv='bvp')
+
+print "\n***Compute bifurcating branches***"
+data=sl('bvp')
+ld(s=data,ISW=-1,DSMAX=10,UZR=[
+[-1, 0.0],
+[-1, 5.5],
+[ 2,-3.0],
+[ 2,-6.0],
+[-2,-9.0],
+[ 2, 3.0],
+[ 2, 6.0],
+[-2, 9.0]])
+for label in splabs(data, "BP"):
+    print "\n***Branch " , label , "***"
+    run(IRS=label,ap='bvp')
+    run(DS='-',ap='bvp')
+
+print "\n***Relabel the output files***"
+rl('bvp')
+
+print "\n***Clean the directory***"
+cl()
