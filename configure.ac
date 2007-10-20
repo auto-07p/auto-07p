@@ -167,12 +167,12 @@ if test x$HAVE_COIN_CONFIG = "xtrue"; then
 fi
 tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $DEPS_LIBS $COIN_LDFLAGS"
-AC_HAVE_LIBRARY([Coin],COIN3D="yes",COIN3D="no")
+AC_CHECK_LIB([Coin],abort,COIN3D="yes",COIN3D="no")
 LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed"; 
-	AC_HAVE_LIBRARY([Inventor], OI="yes", OI="no")
+	AC_CHECK_LIB([Inventor], abort, OI="yes", OI="no")
 	if test x$OI = "xno"; then
 	{
 		echo "configure: error: OI is not installed"; 
@@ -182,7 +182,7 @@ if test x$COIN3D = "xno"; then
 	{
 		DEPS_LIBS="$DEPS_LIBS -lInventor"
 		echo "configure: SGI Open Inventor OK. $DEPS_LIBS"; 
-		AC_HAVE_LIBRARY([InventorXt],OIXTLIB="yes",OIXTLIB="no")
+		AC_CHECK_LIB([InventorXt],abort,OIXTLIB="yes",OIXTLIB="no")
 		if test x$OIXTLIB = "xno"; then
 			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; PLAUT04_TEST=no; }
 		else
@@ -230,7 +230,7 @@ else
 	    fi
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	    AC_HAVE_LIBRARY([SoXt],SOXTLIB="SoXt",SOXTLIB="no")
+	    AC_CHECK_LIB([SoXt],abort,SOXTLIB="SoXt",SOXTLIB="no")
 	    LDFLAGS=$tmp_LDFLAGS
 	fi
 	if test x$SOXTLIB = "xno"; then

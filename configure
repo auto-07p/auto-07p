@@ -6903,9 +6903,9 @@ fi
 tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $DEPS_LIBS $COIN_LDFLAGS"
 
-{ echo "$as_me:$LINENO: checking for main in -lCoin" >&5
-echo $ECHO_N "checking for main in -lCoin... $ECHO_C" >&6; }
-if test "${ac_cv_lib_Coin_main+set}" = set; then
+{ echo "$as_me:$LINENO: checking for abort in -lCoin" >&5
+echo $ECHO_N "checking for abort in -lCoin... $ECHO_C" >&6; }
+if test "${ac_cv_lib_Coin_abort+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -6917,7 +6917,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char abort ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -6929,7 +6935,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
-return main ();
+return abort ();
   ;
   return 0;
 }
@@ -6952,34 +6958,33 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_Coin_main=yes
+  ac_cv_lib_Coin_abort=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_Coin_main=no
+	ac_cv_lib_Coin_abort=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_Coin_main" >&5
-echo "${ECHO_T}$ac_cv_lib_Coin_main" >&6; }
-if test $ac_cv_lib_Coin_main = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Coin_abort" >&5
+echo "${ECHO_T}$ac_cv_lib_Coin_abort" >&6; }
+if test $ac_cv_lib_Coin_abort = yes; then
   COIN3D="yes"
 else
   COIN3D="no"
 fi
-ac_cv_lib_Coin=ac_cv_lib_Coin_main
 
 LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed";
-	{ echo "$as_me:$LINENO: checking for main in -lInventor" >&5
-echo $ECHO_N "checking for main in -lInventor... $ECHO_C" >&6; }
-if test "${ac_cv_lib_Inventor_main+set}" = set; then
+	{ echo "$as_me:$LINENO: checking for abort in -lInventor" >&5
+echo $ECHO_N "checking for abort in -lInventor... $ECHO_C" >&6; }
+if test "${ac_cv_lib_Inventor_abort+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -6991,7 +6996,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char abort ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -7003,7 +7014,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
-return main ();
+return abort ();
   ;
   return 0;
 }
@@ -7026,26 +7037,25 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_Inventor_main=yes
+  ac_cv_lib_Inventor_abort=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_Inventor_main=no
+	ac_cv_lib_Inventor_abort=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_Inventor_main" >&5
-echo "${ECHO_T}$ac_cv_lib_Inventor_main" >&6; }
-if test $ac_cv_lib_Inventor_main = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_Inventor_abort" >&5
+echo "${ECHO_T}$ac_cv_lib_Inventor_abort" >&6; }
+if test $ac_cv_lib_Inventor_abort = yes; then
   OI="yes"
 else
   OI="no"
 fi
-ac_cv_lib_Inventor=ac_cv_lib_Inventor_main
 
 	if test x$OI = "xno"; then
 	{
@@ -7056,9 +7066,9 @@ ac_cv_lib_Inventor=ac_cv_lib_Inventor_main
 	{
 		DEPS_LIBS="$DEPS_LIBS -lInventor"
 		echo "configure: SGI Open Inventor OK. $DEPS_LIBS";
-		{ echo "$as_me:$LINENO: checking for main in -lInventorXt" >&5
-echo $ECHO_N "checking for main in -lInventorXt... $ECHO_C" >&6; }
-if test "${ac_cv_lib_InventorXt_main+set}" = set; then
+		{ echo "$as_me:$LINENO: checking for abort in -lInventorXt" >&5
+echo $ECHO_N "checking for abort in -lInventorXt... $ECHO_C" >&6; }
+if test "${ac_cv_lib_InventorXt_abort+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -7070,7 +7080,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char abort ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -7082,7 +7098,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
-return main ();
+return abort ();
   ;
   return 0;
 }
@@ -7105,26 +7121,25 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_InventorXt_main=yes
+  ac_cv_lib_InventorXt_abort=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_InventorXt_main=no
+	ac_cv_lib_InventorXt_abort=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_InventorXt_main" >&5
-echo "${ECHO_T}$ac_cv_lib_InventorXt_main" >&6; }
-if test $ac_cv_lib_InventorXt_main = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_InventorXt_abort" >&5
+echo "${ECHO_T}$ac_cv_lib_InventorXt_abort" >&6; }
+if test $ac_cv_lib_InventorXt_abort = yes; then
   OIXTLIB="yes"
 else
   OIXTLIB="no"
 fi
-ac_cv_lib_InventorXt=ac_cv_lib_InventorXt_main
 
 		if test x$OIXTLIB = "xno"; then
 			{ echo "configure: error: SGI Open Inventor Xt Library is not installed"; PLAUT04_TEST=no; }
@@ -7304,9 +7319,9 @@ fi
 	    fi
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
-	    { echo "$as_me:$LINENO: checking for main in -lSoXt" >&5
-echo $ECHO_N "checking for main in -lSoXt... $ECHO_C" >&6; }
-if test "${ac_cv_lib_SoXt_main+set}" = set; then
+	    { echo "$as_me:$LINENO: checking for abort in -lSoXt" >&5
+echo $ECHO_N "checking for abort in -lSoXt... $ECHO_C" >&6; }
+if test "${ac_cv_lib_SoXt_abort+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -7318,7 +7333,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char abort ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -7330,7 +7351,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
-return main ();
+return abort ();
   ;
   return 0;
 }
@@ -7353,26 +7374,25 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_SoXt_main=yes
+  ac_cv_lib_SoXt_abort=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_SoXt_main=no
+	ac_cv_lib_SoXt_abort=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_SoXt_main" >&5
-echo "${ECHO_T}$ac_cv_lib_SoXt_main" >&6; }
-if test $ac_cv_lib_SoXt_main = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_SoXt_abort" >&5
+echo "${ECHO_T}$ac_cv_lib_SoXt_abort" >&6; }
+if test $ac_cv_lib_SoXt_abort = yes; then
   SOXTLIB="SoXt"
 else
   SOXTLIB="no"
 fi
-ac_cv_lib_SoXt=ac_cv_lib_SoXt_main
 
 	    LDFLAGS=$tmp_LDFLAGS
 	fi
