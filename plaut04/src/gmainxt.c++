@@ -1548,7 +1548,7 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         numPList[i] = XmStringCreateLocalized (numberPList[i]);
 
     if (numPeriodAnimated > 0)
-        i = ((int)(log(numPeriodAnimated)/log(2))) + 1;
+        i = ((int)(log(numPeriodAnimated)/log(2.0))) + 1;
     else if (numPeriodAnimated == 0)
         i = 0;
     else
