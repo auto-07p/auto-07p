@@ -4790,12 +4790,8 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         long int m = 0;
         while(tTemp > mySolNode.time[idx+m] && m < upperlimit) ++m;
 
-#ifndef R3B
-        if( fabs(tTemp-mySolNode.time[idx+m]) <= 1.0e-9 || \
-            fabs(mySolNode.time[idx+m]-mySolNode.time[idx+m-1]<=1.0e-8))
-#else
-        if( fabs(tTemp-mySolNode.time[idx+m]) <= 1.0e-9 || fabs(mySolNode.time[idx+m]-mySolNode.time[idx+m-1]<=1.0e-8))
-#endif
+        if( fabs(tTemp-mySolNode.time[idx+m]) <= 1.0e-9 ||
+            fabs(mySolNode.time[idx+m]-mySolNode.time[idx+m-1])<=1.0e-8)
         {
             myVertices[i][0] = mySolNode.xyzCoords[idx+m][0];
             myVertices[i][1] = mySolNode.xyzCoords[idx+m][1];
@@ -4803,18 +4799,12 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         }
         else
         {
-#ifndef R3B
-            myVertices[i][0] = (mySolNode.xyzCoords[idx+m][0] + \
+            myVertices[i][0] = (mySolNode.xyzCoords[idx+m][0] +
                                 mySolNode.xyzCoords[idx+m-1][0])*0.5;
-            myVertices[i][1] = (mySolNode.xyzCoords[idx+m][1] + \
+            myVertices[i][1] = (mySolNode.xyzCoords[idx+m][1] +
                                 mySolNode.xyzCoords[idx+m-1][1])*0.5;
-            myVertices[i][2] = (mySolNode.xyzCoords[idx+m][2] + \
+            myVertices[i][2] = (mySolNode.xyzCoords[idx+m][2] +
                                 mySolNode.xyzCoords[idx+m-1][2])*0.5;
-#else
-            myVertices[i][0]= (mySolNode.xyzCoords[idx+m][0]+mySolNode.xyzCoords[idx+m-1][0])*0.5;
-            myVertices[i][1]= (mySolNode.xyzCoords[idx+m][1]+mySolNode.xyzCoords[idx+m-1][1])*0.5;
-            myVertices[i][2]= (mySolNode.xyzCoords[idx+m][2]+mySolNode.xyzCoords[idx+m-1][2])*0.5;
-#endif
         }
 
         if(coloringMethod>=0)myColorBase[i]  = clientData.solData[idx+m][coloringMethod];
