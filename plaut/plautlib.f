@@ -112,15 +112,15 @@ C---
        IF (BIGNUM.LT.10) THEN
          INTSD = 0
        ELSE
-         INTSD = AINT(LOG10(ABS(BIGNUM)) * 1.00001) + 1
+         INTSD = INT(LOG10(ABS(BIGNUM)) * 1.00001) + 1
        END IF
        XINV = 1 / XINCR
        IF (XINV.GT.1) THEN
-         I1 = AINT(LOG10(ABS(XINV)))
+         I1 = INT(LOG10(ABS(XINV)))
          IF (I1.GT.0) THEN
-           I2 = AINT(XINV / (I1 * 10))
+           I2 = INT(XINV / (I1 * 10))
          ELSE
-           I2 = AINT(XINV)
+           I2 = INT(XINV)
          END IF
          IF (I2.EQ.4) THEN
            FRACT = I1 + 2
@@ -169,7 +169,7 @@ C---
        IX    = XTEMP - COVTX(C+40)
        IY    = MINSY - COVTY(C+35)
 C---                                    *WRITE FIRST GRID LABEL
-       NGRIDS = AINT(((XMAX - XMIN)/XINCR) + 0.00001)
+       NGRIDS = INT(((XMAX - XMIN)/XINCR) + 0.00001)
        SPACE  = (MAXSX - MINSX) / NGRIDS
        INDX   = NINT(SPACE / COVTX(C+17))
        WHOLE=WHOLE+1
@@ -258,7 +258,7 @@ C---
        CALL PLCMDS(21)
        CALL PLCTNM(23)
        CALL PLCMDS(20)
-       NGRIDS = AINT(((YMAX - YMIN)/YINCR) + 0.00001)
+       NGRIDS = INT(((YMAX - YMIN)/YINCR) + 0.00001)
        SPACE  = (MAXSY - MINSY) / NGRIDS
 1      YTEMP  = YTEMP + SPACE
        IX     = MINSX - COVTX(C+149)
@@ -319,9 +319,9 @@ C-----------------------------------------------------------------------
        INDXCH = WHOLE
        NEG = .FALSE.
        F   = LOG10(ABS(XYNUM) + 0.00001)
-       KF  = F
+       KF  = INT(F)
        IF (KF.LT.0) KF = KF + 1
-       NUM = 10 ** (FRACT + F - KF)
+       NUM = INT(10 ** (FRACT + F - KF))
        IF (KF.LT.0) NEG = .TRUE.
        KF = ABS(KF)
        INDEX = WHOLE - 1
@@ -370,7 +370,7 @@ C-----------------------------------------------------------------------
        INDXCH = WHOLE
        NEG = .FALSE.
        IF (XYNUM.LT.0) NEG = .TRUE.
-       NUM = ABS((1.0+1.0E-5)*XYNUM)
+       NUM = INT(ABS((1.0+1.0E-5)*XYNUM))
        CHFIF(WHOLE:WHOLE) = '.'
        INDX = WHOLE - 1
        IF (NUM.EQ.0) THEN
@@ -1448,7 +1448,7 @@ C-----------------------------------------------------------------------
        LOGICAL TOP,BOTTOM,SAVE,SYMBOL,FIRST,LNKDSH,IBD2
        LOGICAL SOLID,DSH,DSHS,LHCIR,LSYBL,LDSH,LDOT
        INTEGER GRNUM,SPLPT,SPTNM,ERROR
-       INTEGER PTNUM,PREVGN,PINDX,PRESGN,PNTCNT,NVX(2),SYMBL(10)
+       INTEGER PTNUM,PINDX,PRESGN,PNTCNT,NVX(2),SYMBL(10)
        INTEGER ICDS(4),ITP(10),XAXIS,YAXIS,ICD(4)
 C---
        COMMON /UOPTS/DFT,USR,BRNCH,
@@ -1475,7 +1475,6 @@ C---
        PINDX  = 0
        PNTCNT = 0
        PRESGN = 0
-       PREVGN = 0
        ID     = 0
        IDS    = 0
        XAXIS  = NVX(1)
@@ -1664,8 +1663,6 @@ C---
          CALL PLCHDW(2)
        END IF
 2      FORMAT(A80)
-3      FORMAT(I5)
-4      FORMAT(A1)
        RETURN
        END
 C-----------------------------------------------------------------------
@@ -2106,7 +2103,7 @@ C---                                    *GRID LINES ?
           OSTR = ' GRID LINES ?  (Y OR N)'
          END IF
          WRITE(IWRITE,1)OSTR
- 10      CALL READ1(CHAR)
+         CALL READ1(CHAR)
          IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
            GRIDS = .TRUE.
          ELSE
@@ -2118,7 +2115,7 @@ C---                                    *SHORT TITLE AND AXES ?
          OSTR  = ' T - C'
          WRITE(IWRITE,1)OSTR
          CALL READ2(CHAR,CHAR1)
- 401    IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+         IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
            TIT = .TRUE.
            TOP = .TRUE.
            BOTTOM = .TRUE.
@@ -2131,7 +2128,7 @@ C---                                    *SHORT TITLE AND AXES ?
          OSTR  = ' A - C'
          WRITE(IWRITE,1)OSTR
          CALL READ2(CHAR,CHAR1)
- 402    IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+         IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
            AXLB = .TRUE.
            IF ((CHAR1.EQ.'Y').OR.(CHAR1.EQ.'y')) THEN
              RAXLB = .TRUE.
@@ -2142,7 +2139,7 @@ C---                                    *LONG TITLE AND AXES ?
          OSTR = ' TITLE ?  (Y OR N)'
          WRITE(IWRITE,1)OSTR
          CALL READ1(CHAR)
- 302    IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+         IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
            TIT = .TRUE.
            TOP = .TRUE.
            BOTTOM = .TRUE.
@@ -2155,7 +2152,7 @@ C---                                    *LONG TITLE AND AXES ?
            OSTR =  ' CHANGE TITLES ?  (Y OR N)'
            WRITE(IWRITE,1)OSTR
            CALL READ1(CHAR)
- 303        IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+           IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
                RTIT   = .TRUE.
                TOP    = .TRUE.
                BOTTOM = .TRUE.
@@ -2165,7 +2162,7 @@ C---                                    *LONG TITLE AND AXES ?
          OSTR = ' AXES LABELS ?  (Y OR N)'
          WRITE(IWRITE,1)OSTR
          CALL READ1(CHAR)
- 304    IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+         IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
            AXLB = .TRUE.
             IF(ICL.EQ.0) THEN
                ICL    = 1
@@ -2174,7 +2171,7 @@ C---                                    *LONG TITLE AND AXES ?
            OSTR = ' CHANGE AXES LABELS ?  (Y OR N)'
            WRITE(IWRITE,1) OSTR
            CALL READ1(CHAR)
- 305      IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+           IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
              RAXLB = .TRUE.
            END IF
           END IF
@@ -2190,14 +2187,14 @@ C---                                    *READ X AXIS LABEL
          WRITE(IWRITE,1)OSTR
          CALL READS8(XLAB)
 C---                                    *READ Y AXIS LABEL
- 233     IF (.NOT.USR) THEN
+         IF (.NOT.USR) THEN
            OSTR = ' ENTER Y AXIS LABEL BETWEEN THE QUOTES'
            WRITE(IWRITE,1)OSTR
          END IF
          OSTR = ' "                              "'
          WRITE(IWRITE,1)OSTR
          CALL READS8(YLAB)
- 234   END IF
+       END IF
        IF (RTIT) THEN
 C---                                    *READ TOP AND BOTTOM TI
          IF (TOP) THEN
@@ -2207,7 +2204,7 @@ C---                                    *READ TOP AND BOTTOM TI
            END IF
          WRITE(IWRITE,15)
          CALL READS8(TTITLE)
- 235    END IF
+         END IF
          IF (BOTTOM) THEN
            IF (.NOT.USR) THEN
              OSTR = ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
@@ -2215,11 +2212,9 @@ C---                                    *READ TOP AND BOTTOM TI
            END IF
          WRITE(IWRITE,15)
          CALL READS8(BTITLE)
- 236    END IF
+        END IF
        END IF
 1      FORMAT(A80)
-3      FORMAT(1X,A30)
-4      FORMAT(1X,A60)
 15     FORMAT(1X,'"                              '
      +   ,'                              "')
        RETURN
@@ -2282,21 +2277,17 @@ C-----------------------------------------------------------------------
        SUBROUTINE RLABL
        LOGICAL BRNCH,POINT,USR,DFT,TIT,AXLB,QLBS,GRIDS,PLTR,DP
        LOGICAL TOP,BOTTOM
-       CHARACTER*1 OSTR*80,CHAR,ZERO,ONE,TWO,THREE
+       CHARACTER*1 OSTR*80,CHAR
        COMMON /UOPTS/DFT,USR,BRNCH,
      + ICL,ICT,TOP,BOTTOM,TIT,AXLB,QLBS,GRIDS,DP
        COMMON /IO/ IWRITE,ITERM,ISAVE
        COMMON /PLOTT/ PLTR,POINT
 C---
 C---
-       ZERO  = '0'
-       ONE   = '1'
-       TWO   = '2'
-       THREE = '3'
        POINT = .FALSE.
        BRNCH = .FALSE.
 C---                                    *SHORT QUESTION*
- 1     IF (USR) THEN
+       IF (USR) THEN
          OSTR = ' LAB'
          WRITE(IWRITE,2)OSTR
        ELSE
@@ -2306,7 +2297,7 @@ C---                                    *LONG QUESTION*
        END IF
        CALL READ1(CHAR)
 C---
- 304   IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
+       IF ((CHAR.EQ.'Y').OR.(CHAR.EQ.'y')) THEN
 C---                                    *SET POINT LABELLING FLAG
          POINT = .TRUE.
        END IF
@@ -2414,7 +2405,7 @@ C---
 C---
        X1 = PNTS(II,1)
        Y1 = PNTS(II,2)
-       NUM = ABS(PNTS(II,3))
+       NUM = INT(ABS(PNTS(II,3)))
        CALL DICHR(NUM)
 C---                                    *X1, Y1 ARE SCREEN COORDINATES
        XI = (X1 - SP1) / SP2 + 1
@@ -2434,8 +2425,8 @@ C---
        RINC   = RD * 360.0 / REAL(NPOINT)
 C---
        DO 2 I=1,NPOINT
-         XD = RADIUS * COS(ST) + XI
-         YD = RADIUS * SIN(ST) + YI
+         XD = INT(RADIUS * COS(ST) + XI)
+         YD = INT(RADIUS * SIN(ST) + YI)
          CALL EMPTSP(XD,YD,MP,ANS)
          IF (ANS.EQ.'Y') THEN
            R1 = (RADIUS + 3) * SP2
@@ -3515,7 +3506,7 @@ C---
          CALL DXY(RADIUS,ANGLE,TX,TY,X1(I),Y1(I))
          ANGLE = ANGLE + RINC
  1     CONTINUE
-       IX1 = (X1(1) - X1(2)) / 2.0 + X1(2)
+       IX1 = INT((X1(1) - X1(2)) / 2.0 + X1(2))
        IX  = X1(1)
        IY  = Y1(1)
        CALL PLCMDS(2)
@@ -4000,7 +3991,7 @@ C---                                    *IF NOT ENTERED
         END IF
 C---                                    *GET LABELS FOR <3D>
         IF (QSCOM) THEN
-          CALL GTLB3D(ISTR,II,VIEW,ERROR)
+          CALL GTLB3D(ISTR,II,ERROR)
           IF (ERROR.NE.0) RETURN
           CALL GETNAX(SLAB,NLAB,ENLAB,NUMLB,NAX,NAXIS)
           GO TO 1
@@ -4022,7 +4013,7 @@ C---                                    *GET LABELS FOR <2D>
 C---                                    *<3D>
         IF (COM.EQ.'3D'.OR.COM.EQ.'3d') THEN
           QSCOM = .TRUE.
-          CALL GETDIM(MIMA,VIEW)
+          CALL GETDIM(MIMA)
           CALL ENT3DC(MIMA,VIEW,COM)
 C---                                    *<2D>
           QSCOM = .FALSE.
@@ -4338,7 +4329,7 @@ C---                                    *DUPLICATE LABELS
 C-----------------------------------------------------------------------
 C       GETS USER LABELS FOR THE <3D> COMMAND
 C-----------------------------------------------------------------------
-        SUBROUTINE GTLB3D(ISTR,II,VIEW,ERROR)
+        SUBROUTINE GTLB3D(ISTR,II,ERROR)
         CHARACTER*80 ISTR
         INTEGER SLAB(1999),PARRY(1999),ENLAB(1999),ERROR
         LOGICAL VALID
@@ -4444,7 +4435,7 @@ C-----------------------------------------------------------------------
 C        GETS THREE DIMENSIONS OF THE LABELS,
 C        MIN, MAX, AVERAGE AND VIEW POINT
 C-----------------------------------------------------------------------
-        SUBROUTINE GETDIM(MIMA,VIEW)
+        SUBROUTINE GETDIM(MIMA)
         INTEGER ENLAB(1999),SLAB(1999),XAXIS,YAXIS,ZAXIS,ERROR
         INTEGER PARRY(1999)
         REAL MINA(1999,251),MAXA(1999,251),AVERA(1999,251),MIMA(3,2)
@@ -4899,7 +4890,6 @@ C---
         CIR    = .TRUE.
         PLTR   = .FALSE.
         CHRAD  = ACOS(-1.0) / 180.0
-        C      = 0
         DAINT  = 50.0
         DOINT  = 125.0
         PSIX   = 0.6
@@ -4929,7 +4919,6 @@ C---
         END IF
  1      WRITE(IWRITE,10) OST1
  3      CALL READS1(COMAND)
- 2      FORMAT(A10)
  50     CONTINUE
 C---                                    *D1
         IF (COMAND.EQ.'D1'.OR.COMAND.EQ.'d1') THEN
@@ -5181,11 +5170,11 @@ C---                                    *GET NEW LABELS FROM USER
             DO 101 I=1,NUMLB
               CLAB(I) = ENLAB(I)
 101         CONTINUE
-            CALL GTLB3D(ISTR,II,CVIEW,CERROR)
+            CALL GTLB3D(ISTR,II,CERROR)
             IF (CERROR.EQ.0) THEN
               CALL GETNAX(SLAB,NLAB,ENLAB,NUMLB,NAX,NAXIS)
               CAXIS = .TRUE.
-              CALL GETDIM(CMIMA,CVIEW)
+              CALL GETDIM(CMIMA)
               DO 103 I =1,3
                 VIEW(I)   = CVIEW(I)
                 MIMA(I,1) = CMIMA(I,1)
@@ -5295,7 +5284,7 @@ C---                                    *CHANGE COORDINATES
           WRITE(IWRITE,44) XAXIS,YAXIS,ZAXIS
           IF (.NOT.B3DC) THEN
             CAXIS = .TRUE.
-            CALL GETDIM(MIMA,VIEW)
+            CALL GETDIM(MIMA)
           ELSE
             CALL GAXB3D(MIMA,ERROR)
             IF (ERROR.NE.0) GO TO 1
@@ -6738,10 +6727,10 @@ C---
         CALL AXYZ(X2,CRY,CRZ,X,Y,Z,PA)
         CALL PLCMDS(7)
         TE(1) = 1
-        IX1   = MIN(TX,XC(1,2))
-        IX2   = MAX(TX,XC(1,2))
-        IY1   = MIN(TY,YC(1,2))
-        IY2   = MAX(TY,YC(1,2))
+        IX1   = INT(MIN(TX,XC(1,2)))
+        IX2   = INT(MAX(TX,XC(1,2)))
+        IY1   = INT(MIN(TY,YC(1,2)))
+        IY2   = INT(MAX(TY,YC(1,2)))
 C---                                    *CHECK LENGTH OF X AXIS
         IF (IX.LT.IX1.OR.IX.GT.IX2) GO TO 1
         IF (IY.LT.IY1.OR.IY.GT.IY2) GO TO 1
@@ -6753,10 +6742,10 @@ C---                                    *CHECK LENGTH OF X AXIS
         CALL AXYZ(CRX,Y2,CRZ,X,Y,Z,PA)
         CALL PLCMDS(7)
         TE(2) = 1
-        IX1   = MIN(TX,XC(2,2))
-        IX2   = MAX(TX,XC(2,2))
-        IY1   = MIN(TY,YC(2,2))
-        IY2   = MAX(TY,YC(2,2))
+        IX1   = INT(MIN(TX,XC(2,2)))
+        IX2   = INT(MAX(TX,XC(2,2)))
+        IY1   = INT(MIN(TY,YC(2,2)))
+        IY2   = INT(MAX(TY,YC(2,2)))
 C---                                    *CHECK LENGTH OF Y AXIS
         IF (IX.LT.IX1.OR.IX.GT.IX2) GO TO 2
         IF (IY.LT.IY1.OR.IY.GT.IY2) GO TO 2
@@ -6769,10 +6758,10 @@ C---                                    *CHECK LENGTH OF Y AXIS
         CALL PLCMDS(7)
         TE(3) = 1
 C---
-        IX1   = MIN(TX,XC(3,2))
-        IX2   = MAX(TX,XC(3,2))
-        IY1   = MIN(TY,YC(3,2))
-        IY2   = MAX(TY,YC(3,2))
+        IX1   = INT(MIN(TX,XC(3,2)))
+        IX2   = INT(MAX(TX,XC(3,2)))
+        IY1   = INT(MIN(TY,YC(3,2)))
+        IY2   = INT(MAX(TY,YC(3,2)))
 C---                                    *CHECK LENGTH OF Z AXIS
         IF (IX.LT.IX1.OR.IX.GT.IX2) GO TO 3
         IF (IY.LT.IY1.OR.IY.GT.IY2) GO TO 3
@@ -7750,7 +7739,7 @@ C---
 C---
 C---
         ERROR = 0
- 1      OSTR = ' ENTER THE NEW THREE AXES FOR (X,Y,Z) <B3D>'
+        OSTR = ' ENTER THE NEW THREE AXES FOR (X,Y,Z) <B3D>'
  2      WRITE(ITERM,3) OSTR
         CALL READS8(ISTR)
         I = 1
@@ -7931,7 +7920,6 @@ C-----------------------------------------------------------------------
         SUBROUTINE DPB3D(TRAN,PARA,MP,PNTS)
         INTEGER XAXIS,YAXIS,ZAXIS,TECI(3),NVX(2)
         INTEGER GRNUM,PTNUM,SPLPT,SPTNM,PNTCNT,PRESGN
-        INTEGER PREVGN
         REAL TRAN(4,4),PARA(4,4),HOLD(10),IX,IY,MINSX,MAXSX,MINSY,MAXSY
         REAL MINQX,MINQY,MINQZ,MAXQX,MAXQY,MAXQZ,INFCI(3,2),PNTS(1999,4)
         CHARACTER*1 MP(81,251)
@@ -7958,12 +7946,10 @@ C---
         COMMON /SPNUM/ SP1,SP2,SP3,SP4
 C---
 C---
-        LBPT  = 0
         NUMCI = 0
         INDX = 0
         PNTCNT = 0
         PRESGN = 0
-        PREVGN = 0
         NMX    = MAX(XAXIS,YAXIS,ZAXIS)
         CALL DISTLN(MAXQX,MAXQY,MAXQZ,MINQX,MINQY,MINQZ)
         TOOCLS = DIS / RIDIS
@@ -8226,7 +8212,7 @@ C-----------------------------------------------------------------------
          COMMON /SPNUM/ SP1,SP2,SP3,SP4
          DX = (XNEW - XOLD) / SP2
          DY = (YNEW - YOLD) / SP4
-         INDEX = MAX(ABS(DX),ABS(DY)) + 1
+         INDEX = INT(MAX(ABS(DX),ABS(DY))) + 1
          X1 = XOLD
          Y1 = YOLD
          DO 1 I=1,INDEX
@@ -8234,8 +8220,8 @@ C-----------------------------------------------------------------------
              X1 = XNEW
              Y1 = YNEW
            END IF
-           IX = (X1 - SP1) / SP2 + 1
-           IY = (Y1 - SP3) / SP4 + 1
+           IX = INT((X1 - SP1) / SP2) + 1
+           IY = INT((Y1 - SP3) / SP4) + 1
            X1 = X1 + DX
            Y1 = Y1 + DY
            IF (IX.GE.1.AND.IX.LE.81.AND.IY.GE.1.AND.IY.LE.251) THEN
@@ -8252,7 +8238,7 @@ C-----------------------------------------------------------------------
          REAL IX,IY,MINSX,MINSY,MAXSX,MAXSY,HOLD(251)
          INTEGER GRNUM,PTNUM,SPNUM,BLKSZE,XAXIS,YAXIS,ZAXIS
          INTEGER SPLPT,NVX(2),DOUBLE(1999),MPJ(1999)
-         LOGICAL PJXZ,PJYZ,PJXY,P1,P2,P3,PSL,FOUND,FIRST
+         LOGICAL PJXZ,PJYZ,PJXY,P1,P2,P3,PSL,FOUND
 C---
 C---
          COMMON /PLVARS/ IX,IY,X,Y,XMIN,XMAX,YMIN,YMAX,MINSX,MAXSX,
@@ -8294,7 +8280,6 @@ C---                                    *IF NOT FOUND SKIP
            IF (.NOT.FOUND) GO TO 8
            NOLAB = NOLAB - 1
            RSKIP = DISD
-           FIRST = .TRUE.
 C---                                    *GET EACH AXIS FOR DISPLAY
            DO 5 J =1,NUMPTS
              READ(18,*) (HOLD(L),L=1,NAXIS)

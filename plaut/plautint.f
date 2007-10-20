@@ -104,7 +104,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
-       INTEGER ATNO,ADDO,EO,CRO,ATNOF,ADDOF,EOF,CROF,IESC(12),ESC(1)
+       INTEGER ATNO,ADDO,EO,CRO,ATNOF,ADDOF,EOF,CROF,IESC(12)
        COMMON /IO/ IWRITE,ITERM,ISAVE
        DATA ATNO,ADDO,EO,CRO /27,65,69,13/
        DATA ATNOF,ADDOF,EOF,CROF /27,65,70,13/
@@ -122,8 +122,7 @@ C                                     *TURN OFF PLOTTER
   2     WRITE(ITERM,4) ATNOF,ADDOF,EOF,CROF
         RETURN
 C                                     *CLEAR ALFA MODE
-  3     ESC(1) = 24
-        N      = 1
+  3     CONTINUE
 C      
   4     FORMAT(1X,4A1)
 C

@@ -4,7 +4,7 @@
 .SUFFIXES: .f .o
 #
 FC     = @FC@
-FFLAGS = @FFLAGS@ -c 
+FFLAGS = @OPT_FLAG@ -c 
 SRC    = plautdev.f plautint.f plautlib.f plautmain.f
 PGM    = ../bin/plaut
 RM     = rm -f
