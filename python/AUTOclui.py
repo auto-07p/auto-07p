@@ -11,6 +11,11 @@ def %s(self,*args,**kw):
     return self._queueCommand(%s.%s,args,kw)
 """
 
+_functionTemplateAlias="""
+def %s(self,*args,**kw):
+    return apply(%s,args,kw)
+"""
+
 class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
         # Initialize the output recorder (if any)
@@ -33,8 +38,10 @@ class AUTOSimpleFunctions:
         self._addCommands([AUTOCommands])
 
         # Now I resolve the aliases
-        for key in self._aliases.keys():
-            self.__dict__[key] = getattr(self,self._aliases[key])
+        for key, alias in self._aliases.items():
+            AUTOSimpleFunctions.__dict__[key] = getattr(self, alias)
+            exec _functionTemplateAlias%(key,alias)
+            AUTOSimpleFunctions.__dict__[key] = locals()[key]
 
     def _addCommands(self,moduleList):
         for module in [AUTOCommands]:
@@ -66,15 +73,20 @@ class AUTOSimpleFunctions:
 # don't work are help, shell, !, ls, cd, and any changes
 # to the aliases
 _AUTOSimpleFunctionsGlobalInstance = AUTOSimpleFunctions()
-for name in _AUTOSimpleFunctionsGlobalInstance.__dict__.keys():
-    globals()[name] = getattr(_AUTOSimpleFunctionsGlobalInstance, name)
+for name in AUTOSimpleFunctions.__dict__.keys():
+    if name[0] != '_':
+        globals()[name] = getattr(_AUTOSimpleFunctionsGlobalInstance, name)
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
 def exportFunctions(log=None):
     AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(log)
-    return AUTOSimpleFunctionsInstance.__dict__
-        
+    dict = {}
+    for name in AUTOSimpleFunctions.__dict__.keys():
+        if name[0] != '_':
+            dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
+    return dict
+
 def test():
     import interactiveBindings
     interactiveBindings._testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
