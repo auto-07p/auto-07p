@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo pp3
+#==============
+
+print "\n***Clean the directory***"
+dl('pp3')
+dl('hb')
+cl()

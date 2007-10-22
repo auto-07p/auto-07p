@@ -4,27 +4,31 @@
 #==============
 
 print "\n***Compute stationary solution families***"
-ld(e='pp3',c='pp3.1')
-run()
-sv('pp3')
+run(e='pp3',c='pp3',sv='pp3')
 
-print "\n***Compute a periodic solution family***"
-ld(c='pp3.2',s='pp3')
-run()
-ap('pp3')
-
-print "\n***Compute another periodic solution family***"
-ld(c='pp3.3')
-run()
-ap('pp3')
+print "\n***Compute periodic solution families***"
+data = sl('pp3')
+ld(s=data,IPS=2,ICP=[1,11],UZR=[
+[-1,1],
+[-1,0],
+[ 1,0.15],
+[ 1,0.20],
+[ 1,0.25],
+[-1,0.30],
+[ 1,0.35],
+[ 1,0.40],
+[-9,1.20]])
+for label in splabs(data, "HB"):
+    print "Computing a periodic solution family from label", label
+    run(IRS=label, ap='pp3')
 
 print "\n***Relabel the output files***"
 rl('pp3')
 
-print "\n***Compute a locus of Hopf bifurcations***"
-ld(c='pp3.4',s='pp3')
-run()
-sv('hb')
+# get the second Hopf bifurcation from the first run
+label=splabs(data, "HB")[1]
+print "\n***Compute a locus of Hopf bifurcations from label ", label, "***"
+run(IPS=1,IRS=label,ICP=[1,4],ISW=2,UZR=[[-4,4]],sv='hb')
 
 print "\n***Relabel the output files***"
 rl('hb')
