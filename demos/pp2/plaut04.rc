@@ -80,7 +80,8 @@ Labels              = -3
 # -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method           = -4 
+Coloring Method Solution    = -2
+Coloring Method Bifurcation = -6
 
 # Line Width Scaler adjusts the thickness of curves:
 Line Width Scaler         = 1.0

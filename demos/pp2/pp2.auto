@@ -4,15 +4,16 @@
 #==============
 
 print "\n***Compute stationary solution families***"
-ld(e='pp2',c='pp2.1')
-run()
-sv('pp2')
+run(e='pp2',c='pp2',sv='pp2')
 
-print "\n***Compute a periodic solution family***"
-ld(c='pp2.2',s='pp2')
-run()
-ap('pp2')
-
+print "\n***Compute periodic solution families***"
+data = sl('pp2')
+ld(s=data,IPS=2,ICP=[1,11],NPR=2,UZR=[
+[-1,0],
+[-1,1],
+[-11,36]])
+for label in splabs(data, "HB"):
+    run(IRS=label, sv='ps', ap='pp2')
+    
 print "\n***Clean the directory***"
 cl()
-
