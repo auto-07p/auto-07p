@@ -130,7 +130,7 @@ class commandDeleteFortFiles(command):
         return rval
 
 class commandUserData(command):
-    """Covert user-supplied data files.
+    """Convert user-supplied data files.
 
     Type FUNC('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
@@ -1336,7 +1336,7 @@ class commandHelp(command):
                     if self._aliases[key] == command_list[i]:
                         aliases = aliases + key + " "
                         return_value[command_list[i]]["aliases"].append(key)
-                doc = eval("AUTOCommands.%s.__doc__"%command_list[i])
+                doc = getattr(AUTOCommands,command_list[i]).__doc__
                 if not(doc is None):
                     self.__print(" %-25s"%aliases)
                     doc = string.split(doc,"\n")
@@ -1354,10 +1354,10 @@ class commandHelp(command):
             #   "aliases"  a list of all of the aliases of the command
             #   "description" a long description of the command
             try:
-                doc = eval("AUTOCommands.%s.__doc__"%self.command_string)
+                doc = getattr(AUTOCommands,self.command_string).__doc__
                 return_value["name"] = self.command_string
             except:
-                doc = eval("AUTOCommands.%s.__doc__"%self._aliases[self.command_string])
+                doc = getattr(AUTOCommands,self._aliases[self.command_string]).__doc__
                 return_value["name"] = self._aliases[self.command_string]
             doc = re.sub("FUNC",self.command_string,doc)
             return_value["short description"] = string.split(doc,"\n")[0]

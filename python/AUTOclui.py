@@ -9,7 +9,6 @@ import AUTOCommands
 _functionTemplate="""
 def %s(self,*args,**kw):
     return self._queueCommand(%s.%s,args,kw)
-AUTOSimpleFunctions.__dict__["%s"] = %s
 """
 
 class AUTOSimpleFunctions:
@@ -35,7 +34,7 @@ class AUTOSimpleFunctions:
 
         # Now I resolve the aliases
         for key in self._aliases.keys():
-            exec "self.%s = self.%s"%(key,self._aliases[key])
+            self.__dict__[key] = getattr(self,self._aliases[key])
 
     def _addCommands(self,moduleList):
         for module in [AUTOCommands]:
@@ -43,7 +42,8 @@ class AUTOSimpleFunctions:
             for key in module.__dict__.keys():
                 # Check to see if it is a descendent of AUTOCommands.command
                 if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
-                    exec _functionTemplate%(key,module.__name__,key,key,key)
+                    exec _functionTemplate%(key,module.__name__,key)
+                    AUTOSimpleFunctions.__dict__[key] = locals()[key]
 
     def _queueCommand(self,commandType,args=[],kw={}):
         # Put back in the arguments
@@ -67,7 +67,7 @@ class AUTOSimpleFunctions:
 # to the aliases
 _AUTOSimpleFunctionsGlobalInstance = AUTOSimpleFunctions()
 for name in _AUTOSimpleFunctionsGlobalInstance.__dict__.keys():
-    exec "%s = _AUTOSimpleFunctionsGlobalInstance.%s"%(name,name) 
+    globals()[name] = getattr(_AUTOSimpleFunctionsGlobalInstance, name)
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
