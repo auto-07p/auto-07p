@@ -1,13 +1,9 @@
 #! /usr/bin/env python
 import grapher
-import Tkinter
 import parseB
 import parseS
 import AUTOutil
 import types
-import copy
-import string
-import Pmw
 import ConfigParser
 import os
 

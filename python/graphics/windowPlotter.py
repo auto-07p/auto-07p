@@ -57,7 +57,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         topbox.pack(side=Tkinter.BOTTOM)
         box = Tkinter.Frame(topbox)
 
-        self.grapher.pack(expand=True,fill=Tkinter.BOTH)
+        self.grapher.pack(expand=1,fill=Tkinter.BOTH)
         if self.grapher.cget("type") == "bifurcation":
             labelEntry = self.createcomponent('labelEntry',
                                               (), None,

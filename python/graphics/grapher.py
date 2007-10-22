@@ -6,7 +6,6 @@ import tkFileDialog
 import string
 import types
 import AUTOutil
-import copy
 import optionHandler
 import math
 
