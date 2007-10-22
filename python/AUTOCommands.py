@@ -1318,6 +1318,9 @@ class commandHelp(command):
                 command_list.append(key)
 
         return_value = {}
+        if type(self.command_string) != types.StringType:
+            self.__print(self.command_string.__doc__)
+            return valueStringAndData(self.__outputString,return_value)
         if len(self.command_string) == 0:
             # If we were created with the empty string return a formatted
             # quick reference of all commands as the string and a
@@ -1368,26 +1371,18 @@ class commandHelp(command):
             doc = string.replace(doc,"\\end{verbatim}","")
             doc = doc + "\n"
 
+            command_string = self.command_string
+            if not self.command_string in command_list:
+                # This means help was asked for an alias
+                command_string = self._aliases[command_string]
+                doc = doc + "Command name: "+command_string+"\n"
             return_value["aliases"] = []
-            # This means help was asked for a true command
-            if self.command_string in command_list:
-                aliases = "Aliases: "
-                for key in self._aliases.keys():
-                    if self._aliases[key] == self.command_string:
-                        aliases = aliases + key + " "
-                        return_value["aliases"].append(key)
-                aliases = aliases + "\n"
-                self.__print(doc+aliases)
-            # Otherwise help was asked for an alias
-            else:
-                name = "Commmand name: "+self._aliases[self.command_string]+"\n"
-                aliases = "Aliases: "
-                for key in self._aliases.keys():
-                    if self._aliases[key] == self._aliases[self.command_string]:
-                        aliases = aliases + key + " "
-                        return_value["aliases"].append(key)
-                aliases = aliases + "\n"
-                self.__print(doc+name+aliases)
+            doc = doc + "Aliases: "
+            for key in self._aliases.keys():
+                if self._aliases[key] == command_string:
+                    doc = doc + key + " "
+                    return_value["aliases"].append(key)
+            self.__print(doc+"\n")
         return valueStringAndData(self.__outputString,return_value)
 
 # This is just a little wrapper around commandHelp which discards the

@@ -42,6 +42,31 @@ class AUTOSimpleFunctions:
             AUTOSimpleFunctions.__dict__[key] = getattr(self, alias)
             exec _functionTemplateAlias%(key,alias)
             AUTOSimpleFunctions.__dict__[key] = locals()[key]
+            doc = getattr(AUTOCommands,alias).__doc__
+            doc = self._adjustdoc(doc, key, alias)
+            AUTOSimpleFunctions.__dict__[key].__doc__ = doc
+
+    def _adjustdoc(self, doc, commandname, truecommandname = None):
+        # If we were created with the nonempty string return a formatted
+        # reference for the given command as the string
+        if doc == None:
+            return doc
+        # Get rid of the LaTeX stuff from the string that gets returned.
+        doc = string.replace(doc,"\\begin{verbatim}","")
+        doc = string.replace(doc,"\\end{verbatim}","")
+        doc = doc + "\n"
+
+        doc = string.replace(doc, "FUNC", commandname)
+        # This means help was asked for an alias
+        if not truecommandname is None:
+            commandname = truecommandname
+            doc = doc + "Command name: "+commandname+"\n"
+        doc = doc + "Aliases: "
+        for key in self._aliases.keys():
+            if self._aliases[key] == commandname:
+                doc = doc + key + " "
+        doc = doc + "\n"
+        return doc
 
     def _addCommands(self,moduleList):
         for module in [AUTOCommands]:
@@ -51,6 +76,9 @@ class AUTOSimpleFunctions:
                 if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
                     exec _functionTemplate%(key,module.__name__,key)
                     AUTOSimpleFunctions.__dict__[key] = locals()[key]
+                    doc = module.__dict__[key].__doc__
+                    doc = self._adjustdoc(doc, key)
+                    AUTOSimpleFunctions.__dict__[key].__doc__ = doc
 
     def _queueCommand(self,commandType,args=[],kw={}):
         # Put back in the arguments
