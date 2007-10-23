@@ -1037,7 +1037,7 @@ C
       END SUBROUTINE CPBKHO
 C
 C     ---------- -----
-      SUBROUTINE PREHO(IAP,RAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,
+      SUBROUTINE PREHO(IAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,
      *     TM,DTM)
 C
 C     Special homoclinic orbit preprocessing.
@@ -1045,7 +1045,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
-      DIMENSION RAP(*), ICP(*)
+      DIMENSION ICP(*)
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -1306,7 +1306,7 @@ C
       DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
       DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C Local
-      ALLOCATABLE U(:),RR(:),RI(:),VR(:,:),VT(:,:)
+      ALLOCATABLE RR(:),RI(:),VR(:,:),VT(:,:)
 C
        NDIM=IAP(1)
        NTST=IAP(5)

@@ -38,7 +38,7 @@ C
        NFPR=IAP(29)
 C
        IF(IRS.GT.0) THEN
-         CALL FINDLB(IAP,RAP,IRS,NFPR,FOUND)
+         CALL FINDLB(IAP,IRS,NFPR,FOUND)
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
            WRITE(6,400)IRS
@@ -1089,11 +1089,11 @@ C
 C
 C Determine a suitable starting label and branch number
 C
-       CALL NEWLAB(IAP,RAP)
+       CALL NEWLAB(IAP)
 C
 C Write constants
 C
-       CALL STHD(IAP,RAP,PAR,ICP,THL,THU)
+       CALL STHD(IAP,RAP,ICP)
 C
 C Write plotting data for the starting point
 C
@@ -1123,7 +1123,7 @@ C
 C Initialize computation of the next bifurcating branch.
 C
  2     CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIFX,STUD,STU,STLA,STLD,
-     *  RLCUR,RLOLD,RLDOT,U,UDOT)
+     *  RLCUR,RLDOT,U,UDOT)
 C
        IPOS=IAP(36)
        IF(IPOS.EQ.1)THEN
@@ -1251,8 +1251,8 @@ C
                IAP(27)=ITP
                NBIF=NBIF+1
                IAP(35)=NBIF
-               CALL STBIF(IAP,RAP,PAR,ICP,NDIM+1,AA,NBIFX,STUD,STU,STLA,
-     *          STLD,RLCUR,RLOLD,RLDOT,U,DU,UDOT,DFDU,DFDP,THL,THU)
+               CALL STBIF(IAP,ICP,NDIM+1,AA,NBIFX,STUD,STU,STLA,
+     *          STLD,RLCUR,RLDOT,U,DU,UDOT,DFDU,DFDP,THL,THU)
                RLP=0.d0
                RBP=0.d0
                REV=0.d0
@@ -1334,8 +1334,8 @@ C
       DIMENSION IAP(*)
 C
        IRS=IAP(3)
-       CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
-       CALL READLB(IAP,RAP,U,PAR)
+       CALL FINDLB(IAP,IRS,NFPRS,FOUND)
+       CALL READLB(IAP,U,PAR)
 C
       RETURN
       END
@@ -1381,7 +1381,7 @@ C
        RHS(NDIM+1)=0.d0
        AA(NDIM+1,NDIM+1)=0.d0
 C
-       IF(IID.GE.3)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
+       IF(IID.GE.3)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
        ALLOCATE(IR(NDIM+1),IC(NDIM+1))
        CALL NLVC(NDIM+1,M1AA,1,AA,DU,IR,IC)
        DEALLOCATE(IR,IC)
@@ -1487,6 +1487,7 @@ C
        EPSL=RAP(11)
        EPSU=RAP(12)
 C
+       DELREF=0
  1     DSOLD=RDS
        RAP(5)=DSOLD
        DDS=1.d0/RDS
@@ -1507,7 +1508,7 @@ C
 C Call user-supplied FUNC to evaluate the right hand side of the
 C differential equation and its derivatives :
 C
-       DO 2 NIT1=1,ITNW
+       DO NIT1=1,ITNW
 C
          NIT=NIT1
          IAP(31)=NIT
@@ -1535,7 +1536,7 @@ C
 C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
-         IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
+         IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
          ALLOCATE(IR(NDIM+1),IC(NDIM+1))
          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,
      *           RHS,IR,IC,DET)
@@ -1577,14 +1578,14 @@ C
            DELREF=20*DMAX1(RDRLM,RDUMX)
          ELSE
            DELMAX=DMAX1(RDRLM,RDUMX)
-           IF(DELMAX.GT.DELREF)GOTO 3
+           IF(DELMAX.GT.DELREF)EXIT
          ENDIF
 C
- 2     CONTINUE
+       ENDDO
 C
 C Maximum number of iterations has been reached
 C
-3      IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
+       IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
  102   FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
        IF(IADS.EQ.0)GOTO 5
 C
@@ -1900,6 +1901,7 @@ C Order the eigenvalues by real part.
 C
        DO I=1,NDM-1
          RMAX=-RLARGE
+         LOC=I
          DO J=I,NDM
            RP=DREAL(EV(J))
            IF(RP.GE.RMAX)THEN
@@ -2010,8 +2012,8 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE STBIF(IAP,RAP,PAR,ICP,M1AA,AA,M1SB,STUD,STU,STLA,
-     * STLD,RLCUR,RLOLD,RLDOT,U,DU,UDOT,DFDU,DFDP,THL,THU)
+      SUBROUTINE STBIF(IAP,ICP,M1AA,AA,M1SB,STUD,STU,STLA,
+     * STLD,RLCUR,RLDOT,U,DU,UDOT,DFDU,DFDP,THL,THU)
 C
       INCLUDE 'auto.h'
 C
@@ -2028,7 +2030,7 @@ C known branch at this point.
 C
       DIMENSION IAP(*),AA(M1AA,*),U(*),DU(*),UDOT(*),DFDU(*),DFDP(*)
       DIMENSION STUD(M1SB,*),STU(M1SB,*),STLA(*),STLD(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      DIMENSION ICP(*),RLCUR(*),RLDOT(*),THL(*),THU(*)
       ALLOCATABLE IR(:),IC(:)
 C
        NDIM=IAP(1)
@@ -2088,7 +2090,7 @@ C
 C
 C     ---------- -----
       SUBROUTINE SWPNT(IAP,RAP,PAR,ICP,RDS,M1SB,STUD,STU,STLA,STLD,
-     * RLCUR,RLOLD,RLDOT,U,UDOT)
+     * RLCUR,RLDOT,U,UDOT)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -2099,7 +2101,7 @@ C  the stepsize ( DS ) along the branch is reversed.
 C
       DIMENSION IAP(*),RAP(*)
       DIMENSION U(*),UDOT(*),STUD(M1SB,*),STU(M1SB,*),STLA(*),STLD(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
 C
        NDIM=IAP(1)
        ISW=IAP(10)
@@ -2224,7 +2226,7 @@ C
 C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
-         IF(IID.GE.5)CALL WRJAC(IAP,NDIM+1,M1AA,AA,RHS)
+         IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
          RAP(14)=DET
          DRLM=DU(NDIM+1)
@@ -2303,7 +2305,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE STHD(IAP,RAP,PAR,ICP,THL,THU)
+      SUBROUTINE STHD(IAP,RAP,ICP)
 C
       INCLUDE 'auto.h'
 C
@@ -2315,7 +2317,7 @@ C The first line in the file contains the (generally) user-supplied
 C limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 C These are often convenient for an initial plot of the diagram.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),THL(*),THU(*)
+      DIMENSION ICP(*),IAP(*),RAP(*)
        CHARACTER (LEN=*), PARAMETER :: D3 = "('   0'3(A8,ES11.4))"
        CHARACTER (LEN=*), PARAMETER :: I4 = "('   0'4(A8,I4))"
        CHARACTER (LEN=*), PARAMETER :: I5 = "('   0'3(A8,I4),2(A7,I4))"
@@ -2384,7 +2386,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE HEADNG(IAP,PAR,ICP,IUNIT,N1,N2)
+      SUBROUTINE HEADNG(IAP,ICP,IUNIT,N1,N2)
 C
       IMPLICIT NONE
 C
@@ -2393,9 +2395,8 @@ C N1 = number of parameters to print (maximum: 7 for screen output)
 C N2 = number of (max) variables to print (maximum: max(0,7-N1,7))
 C
       INTEGER IAP(*),ICP(*),IUNIT,N1,N2
-      DOUBLE PRECISION PAR(*)
 C Local
-      INTEGER I,J,IPS,ISW,IPLT,NDM,ITP
+      INTEGER I,J,IPS,IPLT,NDM
 C
        IPS=IAP(2)
        IPLT=IAP(11)
@@ -2592,7 +2593,7 @@ C
        IF(IABS(IPS).EQ.1 .AND. IABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
-       CALL WRLINE(IAP,PAR,ICP,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
+       CALL WRLINE(IAP,PAR,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
 C
 C Write restart information for multi-parameter analysis :
 C
@@ -2602,13 +2603,13 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE WRLINE(IAP,PAR,ICP,ICU,IBR,NTOT,LAB,VAXIS,U)
+      SUBROUTINE WRLINE(IAP,PAR,ICU,IBR,NTOT,LAB,VAXIS,U)
 C
       IMPLICIT NONE
 C
 C Write one line of output on unit 6 and 7.
 C
-      INTEGER IAP(*),ICP(*),ICU(*),IBR,NTOT,LAB
+      INTEGER IAP(*),ICU(*),IBR,NTOT,LAB
       DOUBLE PRECISION PAR(*),U(*),VAXIS
 C Local
       CHARACTER*2 ATYPE
@@ -2636,9 +2637,9 @@ C
 C
 C Write a heading above the first line.
 C
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,6,N1,N2)
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,PAR,ICU,7,NICP,N2)
-       CALL HEADNG(IAP,PAR,ICU,9,N1,N2)
+       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,6,N1,N2)
+       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,7,NICP,N2)
+       CALL HEADNG(IAP,ICU,9,N1,N2)
 C
        IF(MOD(ITP,10)>0)THEN
          ATYPE=ATYPESP(MOD(ITP,10))
@@ -2713,11 +2714,11 @@ C
        END
 C
 C     ---------- ------
-      SUBROUTINE WRJAC(IAP,N,M1AA,AA,RHS)
+      SUBROUTINE WRJAC(N,M1AA,AA,RHS)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION AA(M1AA,*),RHS(*),IAP(*)
+      DIMENSION AA(M1AA,*),RHS(*)
 C
        WRITE(9,101)
        WRITE(9,100)(RHS(I),I=1,N)
@@ -2740,15 +2741,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ---
-      SUBROUTINE MSH(IAP,RAP,TM)
+      SUBROUTINE MSH(NTST,TM)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a uniform mesh on [0,1].
 C
-      DIMENSION IAP(*),TM(*)
-C
-       NTST=IAP(5)
+      DIMENSION TM(*)
 C
        TM(1)=0.d0
        DT=1.d0/NTST
@@ -3034,7 +3033,7 @@ C
       END
 C
 C     ---------- -----
-      SUBROUTINE ADAPT(IAP,RAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
+      SUBROUTINE ADAPT(IAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
 C
       INCLUDE 'auto.h'
 C
@@ -3044,7 +3043,7 @@ C Adapts the distribution of the mesh points so that the increase of the
 C monotone function EQDF becomes approximately equidistributed over the
 C intervals. The functions UPS and VPS are interpolated on new mesh.
 C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
+      DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE TINT(:),UINT(:,:),TM2(:),ITM(:)
 C
@@ -3074,11 +3073,11 @@ C
 C
 C Generate the new mesh :
 C
-       CALL NEWMSH(IAP,RAP,NDX,UPS,NOLD,NCOLD,TM,DTM,NNEW,TINT,IPER)
+       CALL NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TM,DTM,NNEW,TINT,IPER)
 C
 C Replace UPS by its interpolant on the new mesh :
 C
-       CALL INTERP(IAP,RAP,NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW,
+       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW,
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
@@ -3088,7 +3087,7 @@ C
 C
 C Replace VPS by its interpolant on the new mesh :
 C
-       CALL INTERP(IAP,RAP,NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW,
+       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW,
      *  TINT,UINT,TM2,ITM)
        DO J=1,NNEWP1
          DO I=1,NRWNEW
@@ -3109,7 +3108,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE INTERP(IAP,RAP,NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,
+      SUBROUTINE INTERP(NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,
      * TM2,ITM1)
 C
       INCLUDE 'auto.h'
@@ -3131,7 +3130,7 @@ C
          DO J1=1,N1M1
            TM2(J1)=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
          ENDDO
-         CALL ORDR(IAP,RAP,N,TM,N1M1,TM2,ITM1)
+         CALL ORDR(N,TM,N1M1,TM2,ITM1)
          DO J1=1,N1M1
            J=ITM1(J1)
            Z=TM2(J1)
@@ -3159,7 +3158,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE NEWMSH(IAP,RAP,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,
+      SUBROUTINE NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,
      * NNEW,TMNEW,IPER)
 C
       INCLUDE 'auto.h'
@@ -3168,16 +3167,14 @@ C
 C
 C Redistributes the mesh according to the function EQDF.
 C
-      DIMENSION IAP(*),TMOLD(*),DTMOLD(*),TMNEW(*)
+      DIMENSION TMOLD(*),DTMOLD(*),TMNEW(*)
 C Local
       ALLOCATABLE EQF(:),UNEQ(:),IAL(:)
       ALLOCATE(EQF(NOLD+1),UNEQ(NNEW+1),IAL(NNEW+1))
 C
-       NDIM=IAP(1)
-C
 C Put the values of the monotonely increasing function EQDF in EQF.
 C
-       CALL EQDF(IAP,RAP,NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
+       CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
 C
 C Uniformly divide the range of EQDF :
 C
@@ -3188,7 +3185,7 @@ C
          UNEQ(J)=(J-1)*DAL
        ENDDO
 C
-       CALL ORDR(IAP,RAP,NOLDP1,EQF,NNEWP1,UNEQ,IAL)
+       CALL ORDR(NOLDP1,EQF,NNEWP1,UNEQ,IAL)
 C
 C Generate the new mesh in TMNEW :
 C
@@ -3208,7 +3205,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE ORDR(IAP,RAP,N,TM,N1,TM1,ITM1)
+      SUBROUTINE ORDR(N,TM,N1,TM1,ITM1)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3257,7 +3254,7 @@ C
       END
 C
 C     ---------- ----
-      SUBROUTINE EQDF(IAP,RAP,NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
+      SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
 C
       INCLUDE 'auto.h'
 C
@@ -3265,7 +3262,7 @@ C
 C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),EQF(*),DTM(*)
+      DIMENSION UPS(NDX,*),EQF(*),DTM(*)
       LOGICAL SMALL
 C Local
       DIMENSION WH(NCOL+1)
@@ -3759,14 +3756,14 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE NEWLAB(IAP,RAP)
+      SUBROUTINE NEWLAB(IAP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Determine a suitable label when restarting.
 C
       LOGICAL EOF3
-      DIMENSION IAP(*),RAP(*)
+      DIMENSION IAP(*)
 C
        IPS=IAP(2)
        IRS=IAP(3)
@@ -3805,13 +3802,13 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE FINDLB(IAP,RAP,IRS,NFPR,FOUND)
+      SUBROUTINE FINDLB(IAP,IRS,NFPR,FOUND)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       LOGICAL FOUND,EOF3
 C
-      DIMENSION IAP(*),RAP(*)
+      DIMENSION IAP(*)
 C
 C Locates restart point with label IRS and determines type.
 C If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -3852,7 +3849,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE READLB(IAP,RAP,U,PAR)
+      SUBROUTINE READLB(IAP,U,PAR)
 C
       INCLUDE 'auto.h'
 C
@@ -4210,8 +4207,8 @@ C
        ENDDO
 C
       NODIR=0
-       CALL RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RDS,RLCUR,RLOLD,RLDOT,
-     *  NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,TM,DTM,EV,NODIR,THL,THU)
+       CALL RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT,
+     *  NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
        CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C      
 C     don't set global rotations here for homoclinics, but in autlib5.c
@@ -4227,7 +4224,7 @@ C
 C
 C Store plotting data for restart point :
 C
-       CALL STHD(IAP,RAP,PAR,ICP,THL,THU)
+       CALL STHD(IAP,RAP,ICP)
        IF(IRS.EQ.0) THEN
          ITP=9+10*ITPST
        ELSE
@@ -4241,7 +4238,7 @@ C
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)RETURN
 C
-       CALL EXTRBV(IAP,RAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,
+       CALL EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,
      *  UDOTPS)
 C
        ITP=0
@@ -4256,7 +4253,7 @@ C Adapt the mesh to the solution.
 C
        IF(IAD.NE.0)THEN
          IF(MOD(NTOT,IAD).EQ.0)
-     *   CALL ADAPT(IAP,RAP,NTST,NCOL,NTST,NCOL,TM,DTM,NDX,UPS,UOLDPS)
+     *   CALL ADAPT(IAP,NTST,NCOL,NTST,NCOL,TM,DTM,NDX,UPS,UOLDPS)
        ENDIF
 C
 C Adapt the stepsize along the branch.
@@ -4364,7 +4361,7 @@ C
          IF(ITP.EQ.-1)THEN
            IF(ISP.GT.0)THEN
 C            **Secondary periodic bifurcation: determine type
-             CALL TPSPBV(IAP,RAP,PAR,ICP,EV)
+             CALL TPSPBV(IAP,RAP,PAR,EV)
              RLP=0.d0
              BP1=0.d0
              SP1=0.d0
@@ -4432,19 +4429,19 @@ C        Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
 C
 C Extrapolate to get initial approximation to next solution point.
 C
-       CALL EXTRBV(IAP,RAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,
+       CALL EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,
      *  UDOTPS)
 C
 C Store time-derivative.
 C
-       CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT,NDX,UPS,
+       CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDX,UPS,
      *  UOLDPS,UPOLDP)
 C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE EXTRBV(IAP,RAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,
+      SUBROUTINE EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,
      * NDX,UPS,UOLDPS,UDOTPS)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -4479,7 +4476,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT,
+      SUBROUTINE STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,
      * NDX,UPS,UOLDPS,UPOLDP)
 C
       INCLUDE 'auto.h'
@@ -4491,7 +4488,7 @@ C
       EXTERNAL FUNI
 C
       DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),IAP(*),RAP(*)
+      DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE U(:),UOLD(:),F(:),DFDU(:),DFDP(:)
 C
@@ -4572,6 +4569,7 @@ C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
+       NROW=NDIM*NCOL
        IADS=IAP(8)
        IID=IAP(18)
        ITNW=IAP(20)
@@ -4585,6 +4583,7 @@ C
        EPSL=RAP(11)
        EPSU=RAP(12)
 C
+       DELREF=0
  1     DSOLD=RDS
        RAP(5)=DSOLD
        NITPS=0
@@ -4592,11 +4591,11 @@ C
 C
 C Write additional output on unit 9 if requested.
 C
-       CALL WRTBV9(IAP,RAP,PAR,ICP,RLCUR,NDX,UPS,TM,DTM,THL,THU)
+       CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU)
 C
 C Generate the Jacobian matrix and the right hand side.
 C
-       DO 2 NIT1=1,ITNW
+       DO NIT1=1,ITNW
 C
          NITPS=NIT1
          IAP(31)=NITPS
@@ -4621,7 +4620,6 @@ C
 C
          DUMX=0.d0
          UMX=0.d0
-         NROW=NDIM*NCOL
          DO J=1,NTST
            DO I=1,NROW
              ADU=DABS(FA(I,J))
@@ -4632,7 +4630,7 @@ C
            ENDDO
          ENDDO
 C
-         CALL WRTBV9(IAP,RAP,PAR,ICP,RLCUR,NDX,UPS,TM,DTM,THL,THU)
+         CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU)
 C
 C Check whether user-supplied error tolerances have been met :
 C
@@ -4654,14 +4652,14 @@ C
            DELREF=20*DMAX1(RDRL,RDUMX)
          ELSE
            DELMAX=DMAX1(RDRL,RDUMX)
-           IF(DELMAX.GT.DELREF)GOTO 3
+           IF(DELMAX.GT.DELREF)EXIT
          ENDIF
 C
- 2     CONTINUE
+       ENDDO
 C
 C Maximum number of iterations reached.
 C
- 3     IF(IADS.EQ.0)WRITE(9,101)IBR,NTOP
+       IF(IADS.EQ.0)WRITE(9,101)IBR,NTOP
        IF(IADS.EQ.0)GOTO 13
 C
 C Reduce stepsize and try again.
@@ -4710,8 +4708,8 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ------
-      SUBROUTINE RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RDS,RLCUR,RLOLD,
-     * RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DUPS,TM,DTM,EV,NODIR,THL,THU)
+      SUBROUTINE RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,
+     * RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -4723,8 +4721,6 @@ C If IRS=0 then the starting point must be provided analytically in the
 C user-supplied subroutine STPNT.
 C
       EXTERNAL FUNI, STPNT
-C
-      COMPLEX*16 EV(*)
 C
       DIMENSION IAP(*),RAP(*)
       DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*),UDOTPS(NDX,*)
@@ -4749,7 +4745,7 @@ C     ncol are different then the values found in
 C     the parameter file fort.2.
 C
        IF(IRS.GT.0)THEN
-         CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
+         CALL FINDLB(IAP,IRS,NFPRS,FOUND)
          READ(3,*)IBR,NTOTRS,ITPRS,LAB,NFPRS,ISWRS,NTPLRS,NARS,NSKIP,
      *        NTSRS,NCOLRS,NPARR
          NTST3=NTSRS
@@ -4795,7 +4791,7 @@ C
 C
 C Determine a suitable starting label and branch number.
 C
-       CALL NEWLAB(IAP,RAP)
+       CALL NEWLAB(IAP)
 C
        DO J=1,NTSRS
          DTMN(J)=TMN(J+1)-TMN(J)
@@ -4804,7 +4800,7 @@ C
 C Adapt mesh if necessary :
 C
        IF( NTST.NE.NTSRS .OR. NCOL.NE.NCOLRS)THEN
-         CALL ADAPT(IAP,RAP,NTSRS,NCOLRS,NTST,NCOL,TMN,DTMN,NDXLOC,
+         CALL ADAPT(IAP,NTSRS,NCOLRS,NTST,NCOL,TMN,DTMN,NDXLOC,
      *   UPSN,UDOTPN)
        ENDIF
 C Copy from the temporary large arrays into the normal arrays.
@@ -4841,7 +4837,7 @@ C        ** Restart from a Hopf bifurcation.
          ISW=1
        ELSE
 C        ** Restart from orbit.
-          CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT,
+          CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,
      *    NDX,UPS,UOLDPS,UPOLDP)
         ENDIF
 C
@@ -4849,7 +4845,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
+      SUBROUTINE READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOTRS,UPS,
      *      UDOTPS,TM,ITPRS,NDX)
 C
       INCLUDE 'auto.h'
@@ -4938,7 +4934,7 @@ C
 C Local
       DIMENSION ICPRS(NPARX)
 C
-      LOGICAL FOUND,EOF3
+      LOGICAL FOUND
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -4946,7 +4942,7 @@ C
        ISW=IAP(10)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,RAP,IRS,NFPRS,FOUND)
+       CALL FINDLB(IAP,IRS,NFPRS,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS,
      *      UDOTPS,TM,ITPRS,NDX)
 C
@@ -4958,14 +4954,14 @@ C Special case : Preprocess restart data in case of homoclinic
 C continuation
 C
        IF(IPS.EQ.9)THEN
-         CALL PREHO(IAP,RAP,PAR,ICP,NDX,NTSRS,NDIMRD,NCOLRS,UPS,
+         CALL PREHO(IAP,PAR,ICP,NDX,NTSRS,NDIMRD,NCOLRS,UPS,
      *         UDOTPS,TM,DTM)
 C
 C Special case : Preprocess restart data in case of branch switching
 C at a period doubling bifurcation.
 C
        ELSE IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITPRS.EQ.7) THEN
-         CALL PDBLE(IAP,RAP,NDIM,NTSRS,NCOLRS,NDX,UPS,UDOTPS,TM,PAR)
+         CALL PDBLE(NDIM,NTSRS,NCOLRS,NDX,UPS,UDOTPS,TM,PAR)
          RETURN
        ENDIF
 C
@@ -5012,7 +5008,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL MSH(IAP,RAP,TM)
+       CALL MSH(NTST,TM)
        DT=1.d0/(NTST*NCOL)
 C
        DO J=1,NTST+1
@@ -5477,6 +5473,7 @@ C
 C Find the multiplier closest to z=1.
 C
        AMIN=RLARGE
+       LOC=1
        DO J=1,NDIM
          AZM1= ABS( EV(J) - 1.d0 )
          IF(AZM1.LE.AMIN)THEN
@@ -5550,12 +5547,12 @@ C Set tolerance for deciding if a multiplier is outside |z=1|.
 C Use, for example, tol=1d-3 for conservative systems.
        tol=1.d-5
 C
+       NINS1=1
        IF(NDIM.EQ.1) THEN
          D=0.d0
          FNSPBV=D
          RAP(19)=FNSPBV
        ELSE
-         NINS1=1
          DO I=2,NDIM
            IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
          ENDDO
@@ -5632,7 +5629,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE TPSPBV(IAP,RAP,PAR,ICP,EV)
+      SUBROUTINE TPSPBV(IAP,RAP,PAR,EV)
 C
 C Determines type of secondary periodic bifurcation.
 C
@@ -5642,7 +5639,7 @@ C
 C
       COMPLEX*16 EV(*)
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION PAR(*),IAP(*),RAP(*)
 C
        NDIM=IAP(1)
 C
@@ -5836,18 +5833,18 @@ C
          NINS=IAP(33)
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
-       CALL WRLINE(IAP,PAR,ICP,ICP(NPARX+1),IBRS,NTOTS,LABW,AMP,UMX)
+       CALL WRLINE(IAP,PAR,ICP(NPARX+1),IBRS,NTOTS,LABW,AMP,UMX)
 C
 C Write plotting and restart data on unit 8.
 C
        IF(MOD(ITP,10).NE.0)
-     * CALL WRTBV8(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
+     * CALL WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
 C
       RETURN
       END
 C
 C     ---------- ------
-      SUBROUTINE WRTBV8(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
+      SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
 C
       INCLUDE 'auto.h'
 C
@@ -5983,14 +5980,14 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE WRTBV9(IAP,RAP,PAR,ICP,RLCUR,NDX,UPS,TM,DTM,THL,THU)
+      SUBROUTINE WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Writes additional output on unit 9.
 C
       DIMENSION IAP(*),RAP(*)
-      DIMENSION DTM(*),UPS(NDX,*),TM(*),PAR(*),ICP(*),RLCUR(*),THU(*)
+      DIMENSION DTM(*),UPS(NDX,*),TM(*),RLCUR(*),THU(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -6185,6 +6182,7 @@ C
 C
         IPS=IAV(2)
         NX=IAV(1)*IAV(6)
+        GETP=0
 C
         IF( IABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
           IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
