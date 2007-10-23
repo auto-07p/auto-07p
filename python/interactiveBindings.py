@@ -15,6 +15,8 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
                                      r'([\?\w\.]+\w*\s*)'
                                      r'(\(?.*$)')
+        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
+                                          '|^is |^not |^in |^and |^or ')
 
     def raw_input(self, prompt=None):
         line = raw_input(prompt)
@@ -133,7 +135,11 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                 else:
                     command = spaces.group() + lst[0] + "()"
                 return command
-            elif cmd in self.locals.keys():
+            elif (not(theRest and theRest[0] in '!=()') and
+                  cmd in self.locals.keys() and
+                  callable(self.locals[cmd]) and
+                  (pre == ',' or pre == ';' or pre == '/' or
+                  not self.re_exclude_auto.match(theRest))):
                 return self.handle_auto(pre,cmd,theRest)
             else:
                 return line
