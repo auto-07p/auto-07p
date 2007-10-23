@@ -21,6 +21,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
     def demofile(self,name):
         lines = open(name,"r")
         lines = lines.readlines()
+        runline = ''
         for line in lines:
             # we only wait if the current line is not a comment
             if len(string.strip(line)) >0 and string.strip(line)[0] != "#":
@@ -28,7 +29,9 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                 raw_input()
             else:
                 sys.stdout.write(line)
-            self.runsource(runner.processShorthand(line[:-1]))
+            runline = runline + runner.processShorthand(line[:-1]) + "\n"
+            if not self.runsource(runline):
+                runline = ''
 
     def execfile(self,name):
         lines = open(name,"r")
