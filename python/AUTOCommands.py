@@ -715,9 +715,9 @@ class commandQuit(command):
         pass
     def __call__(self):
         try:
-            sys.exit()
-        except:
             quit()
+        except:
+            sys.exit()
         return valueString("")
 
 class commandShell(command):
