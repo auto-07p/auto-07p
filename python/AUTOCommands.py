@@ -78,7 +78,7 @@ class commandClean(command):
 class commandCopyDemo(command):
     """Copy a demo into the current directory.
 
-    Type FUNC('xxx') to copy all files from auto/2000/demos/xxx to the
+    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  Note that the 'dm' command also copies a Makefile to the
     current user directory. To avoid the overwriting of existing
@@ -92,14 +92,15 @@ class commandCopyDemo(command):
     def __call__(self):
 	rval=valueSystem()
         rval.system("cp $AUTO_DIR/demos/%s/* ."%self.demo)
-        rval.system("cp c.%s.1 c.%s"%(self.demo,self.demo))
+        if os.path.exists("c.%s.1"%(self.demo)):
+            rval.system("cp c.%s.1 c.%s"%(self.demo,self.demo))
         rval.info("Copying demo %s ... done\n"%self.demo)
         return rval
 
 class commandCopyAndLoadDemo(commandMacro):
     """Copy a demo into the current directory and load it.
 
-    Type FUNC('xxx') to copy all files from auto/2000/demos/xxx to the
+    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  Note that the 'dm' command also copies a Makefile to the
     current user directory. To avoid the overwriting of existing
@@ -1284,7 +1285,7 @@ except:
     class commandPlotter(commandWithFilenameTemplate):
         """2D plotting of data.
 
-        Plotting of data has been disabled in the AUTO2000 CLUI.
+        Plotting of data has been disabled in the AUTO-07P CLUI.
         This is probably because the Python interpretor cannot
         load the Tkinter module.
         """

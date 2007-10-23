@@ -40,7 +40,11 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         for line in lines:
             source = source + self.processShorthand(line[:-1]) +"\n"
         self.runsource(source,name,"exec")
-        
+
+    def help(self,*args,**kwds):
+        if len(args) == 0 and len(kwds) == 0:
+            print 'Type "quit" and then "man" for help about the AUTO Python CLUI.'
+        apply(runner.oldhelp,args,kwds)
 
     def processShorthand(self,line):
         """    Given a line of python input check to see if it is
@@ -64,7 +68,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                 if len(lst) == 2:
                     command = spaces.group() + lst[0] + "('%s')"%lst[1]
                 else:
-                    command = spaces.group() + lst[0] + "('')"
+                    command = spaces.group() + lst[0] + "()"
                 return command
             elif lst[0] in shortCommandsNoArgument:
                 command = spaces.group() + lst[0] + "()"
@@ -94,7 +98,7 @@ def _testFilename(inputname,outputname):
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")
-    
+
 def autoipython():
     # Use IPython in combination with AUTO
     # First import the embeddable shell class
@@ -117,7 +121,7 @@ def autoipython():
             '-noconfirm_exit',
             '-autocall','2']
 
-    over = { "alias" : [] }
+    over = { "alias" : [], "execute" : ["del help"] }
     for atalias in os.listdir(os.environ["AUTO_DIR"]+"/cmds"):
         if atalias[0]=='@' and atalias[-1]!='~':
             over["alias"].append(atalias+" "+atalias)
@@ -153,6 +157,7 @@ if __name__ == "__main__":
         opts[x[0]]=x[1]
     demo_mode = 'no'
 
+    use_ipython = 0
     if opts.has_key("-t"):
         test()
         sys.exit()
@@ -160,9 +165,7 @@ if __name__ == "__main__":
         _quicktest()
         sys.exit()
     elif opts.has_key("-i"):
-        from AUTOclui import *
-        autoipython()
-        sys.exit()
+        use_ipython = 1
     elif opts.has_key("-T"):
         _testFilename(opts["-T"],opts["-L"])
         sys.exit()
@@ -177,6 +180,8 @@ if __name__ == "__main__":
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions())
     __builtins__.execfile = runner.execfile
     __builtins__.demofile = runner.demofile
+    runner.oldhelp = __builtins__.help
+    __builtins__.help = runner.help
 
     if len(args) > 0:
         for arg in args:
@@ -187,10 +192,9 @@ if __name__ == "__main__":
                            (sys.version, sys.platform, sys.copyright,
                             runner.__class__.__name__))
                 runner.demofile(arg)
+    elif use_ipython:
+        from AUTOclui import *
+        del cat, cd, ls
+        autoipython()
     else:
         runner.interact()
- 
-
-
-
-    

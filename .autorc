@@ -12,7 +12,6 @@ gui		=commandCreateGUI
 branchPoint	=commandQueryBranchPoint
 eigenvalue	=commandQueryEigenvalue
 floquet		=commandQueryFloquet
-help		=commandInteractiveHelp
 hopf		=commandQueryHopf
 iterations	=commandQueryIterations
 limitpoint	=commandQueryLimitpoint
@@ -66,7 +65,6 @@ dg		=commandParseDiagramFile
 db		=commandDouble
 dm		=commandCopyAndLoadDemo
 ld		=commandRunnerLoadName
-mv		=commandMoveFiles
 pl		=commandPlotter
 #FIXME:  This doesn't match the rule we use for all other commands
 p3	        =commandPlotter3D
