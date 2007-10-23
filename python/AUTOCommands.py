@@ -700,17 +700,23 @@ class commandLs(command):
     command will accept whatever arguments are accepted by the Unix command
     'ls'.
     """
-    def __init__(self,dir):
+    def __init__(self,dir=None):
         self.dir = dir
     def __call__(self):
-        os.system("ls %s"%(self.dir,)) 
+        if self.dir is None:
+            os.system("ls")
+        else:
+            os.system("ls %s"%(self.dir,))
         return valueString("")
         
 class commandQuit(command):
     def __init__(self):
         pass
     def __call__(self):
-        sys.exit()
+        try:
+            sys.exit()
+        except:
+            quit()
         return valueString("")
 
 class commandShell(command):
@@ -745,8 +751,10 @@ class commandCat(commandShell):
     Unix function 'cat' for reading the file.  
     """
     
-    def __init__(self,command):
-        self.command = "cat "+command
+    def __init__(self,command=None):
+        self.command = "cat"
+        if not command is None:
+            self.command = self.command + command
 
 
 ############################################
@@ -766,10 +774,12 @@ class commandCd(commandWithRunner):
     Type 'FUNC xxx' to change to the directory 'xxx'.  This command
     understands both shell variables and home directory expansion.
     """
-    def __init__(self,dir,runner=None):
+    def __init__(self,dir=None,runner=None):
         self.dir = dir
         commandWithRunner.__init__(self,runner)
     def __call__(self):
+        if self.dir is None or self.dir == '':
+            self.dir = os.environ["HOME"]
         try:
             self.dir = os.path.expanduser(self.dir)
             self.dir = os.path.expandvars(self.dir)
@@ -1319,7 +1329,7 @@ class commandHelp(command):
 
         return_value = {}
         if type(self.command_string) != types.StringType:
-            self.__print(self.command_string.__doc__)
+            self.__print(self.command_string.__doc__+'\n')
             return valueStringAndData(self.__outputString,return_value)
         if len(self.command_string) == 0:
             # If we were created with the empty string return a formatted
@@ -1391,8 +1401,8 @@ class commandHelp(command):
 class commandInteractiveHelp(commandHelp):
     """Get help on the AUTO commands.
     
-    Type 'help' to list all commands with a online help.
-    Type 'help xxx' to get help for command 'xxx'.
+    Type 'FUNC' to list all commands with a online help.
+    Type 'FUNC xxx' to get help for command 'xxx'.
     """
     
     def __init__(self,command_string=""):

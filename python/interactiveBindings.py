@@ -92,10 +92,59 @@ def _testFilename(inputname,outputname):
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")
     
+def autoipython():
+    # Use IPython in combination with AUTO
+    # First import the embeddable shell class
+    try:
+        import IPython.Shell
+    except:
+        print "Sorry, ipython is not available on this system."
+        return
+
+    import IPython
+
+    # Now create an instance of the embeddable shell. The first argument is a
+    # string with options exactly as you would type them if you were starting
+    # IPython at the system command line. Any parameters you want to define for
+    # configuration can thus be specified here.
+
+    args = ['-pi1','AUTO In [\\#]: ',
+            '-pi2','AUTO    .\\D.: ',
+            '-po','Out[\#]: ',
+            '-noconfirm_exit',
+            '-autocall','2']
+
+    over = { "alias" : [] }
+    for atalias in os.listdir(os.environ["AUTO_DIR"]+"/cmds"):
+        if atalias[0]=='@' and atalias[-1]!='~':
+            over["alias"].append(atalias+" "+atalias)
+
+    banner = ['Python %s\n'
+              'Type "copyright", "credits" or "license" '
+              'for more information.\n'
+              % (sys.version.split('\n')[0],),
+              "IPython %s -- An enhanced Interactive Python."
+              % (IPython.Release.version,),
+              """?       -> Introduction to IPython's features.
+%magic  -> Information about IPython's 'magic' % functions.
+help    -> Python's own help system.
+object? -> Details about 'object'. ?object also works, ?? prints more.
+
+Welcome to the AUTO IPython CLUI
+man     -> List of AUTO CLUI commands"""]
+
+    ipshell = IPython.Shell.IPShellEmbed(args,
+                           banner = '\n'.join(banner),
+                           exit_msg = '',
+                           rc_override = over)
+
+    # You can then call ipshell() anywhere you need it (with an optional
+    # message):
+    ipshell()
 
 if __name__ == "__main__":
     sys.ps1="AUTO> "    
-    opts_list,args=getopt.getopt(sys.argv[1:],"dqtT:L:")
+    opts_list,args=getopt.getopt(sys.argv[1:],"diqtT:L:")
     opts={}
     for x in opts_list:
         opts[x[0]]=x[1]
@@ -106,6 +155,10 @@ if __name__ == "__main__":
         sys.exit()
     elif opts.has_key("-q"):
         _quicktest()
+        sys.exit()
+    elif opts.has_key("-i"):
+        from AUTOclui import *
+        autoipython()
         sys.exit()
     elif opts.has_key("-T"):
         _testFilename(opts["-T"],opts["-L"])

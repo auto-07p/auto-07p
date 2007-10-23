@@ -65,7 +65,6 @@ class AUTOSimpleFunctions:
         for key in self._aliases.keys():
             if self._aliases[key] == commandname:
                 doc = doc + key + " "
-        doc = doc + "\n"
         return doc
 
     def _addCommands(self,moduleList):
