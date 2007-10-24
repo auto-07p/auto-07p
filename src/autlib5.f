@@ -620,7 +620,6 @@ C
 C set various constants 
 C
       NDIM=IAP(1)
-      IRS=IAP(3)
       ISW=IAP(10)
       NBC=IAP(12)
       NINT=IAP(13)
@@ -1312,7 +1311,6 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
        NDM=IAP(23)
-       NFPR=IAP(29)
 C
 C Generate the (initially uniform) mesh.
 C

@@ -1035,10 +1035,8 @@ C
        ILP=IAP(4)
        IADS=IAP(8)
        ISP=IAP(9)
-       ISW=IAP(10)
        NUZR=IAP(15)
        MXBF=IAP(17)
-       NDM=IAP(23)
        ITPST=IAP(28)
        IBR=IAP(30)
 C
@@ -1483,7 +1481,6 @@ C
        IBR=IAP(30)
 C
        DSMIN=RAP(2)
-       DSMAX=RAP(3)
        EPSL=RAP(11)
        EPSU=RAP(12)
 C
@@ -1664,7 +1661,6 @@ C
      *  RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,RHS,DFDU,DFDP,IUZ,VUZ)
        PQ=Q0*Q1
        NTOT=IAP(32)
-       NTOP=MOD(NTOT-1,9999)+1
        IF(PQ.GE.0.d0 .OR. (.NOT. CHNG))THEN
          Q=Q1
          RETURN
@@ -2170,7 +2166,6 @@ C
        NTOP=MOD(NTOT-1,9999)+1
 C
        DSMIN=RAP(2)
-       DSMAX=RAP(3)
        EPSL=RAP(11)
        EPSU=RAP(12)
 C
@@ -2997,7 +2992,6 @@ C
       DIMENSION IAP(*),RAP(*)
 C
        DSMAX=RAP(3)
-       IID=IAP(18)
        ITNW=IAP(20)
        IBR=IAP(30)
        NIT=IAP(31)
@@ -3817,7 +3811,8 @@ C
        REWIND 3
        ISW=IAP(10)
 C
- 1       READ(3,*,END=2)IBR,NTOTRS,ITP,LABRS,NFPR,ISWRS,NTPLRS,
+       DO
+         READ(3,*,END=2)IBR,NTOTRS,ITP,LABRS,NFPR,ISWRS,NTPLRS,
      *   NARS,NSKIP
          IAP(27)=ITP
          IAP(30)=IBR
@@ -3841,9 +3836,9 @@ C
            CALL SKIP3(NSKIP,EOF3)
            IF(EOF3)GOTO 2
          ENDIF
-       GOTO 1
+       ENDDO
 C
- 2    I=1
+ 2    CONTINUE
 C
       RETURN
       END
@@ -4734,7 +4729,6 @@ C
        IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
-       ISW=IAP(10)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
@@ -5313,7 +5307,6 @@ C
        NDIM=IAP(1)
        NTST=IAP(5)
        NCOL=IAP(6)
-       ISP=IAP(9)
        IID=IAP(18)
        NFPR=IAP(29)
        IBR=IAP(30)
@@ -5739,7 +5732,6 @@ C Local
 C
        NDIM=IAP(1)
        IPS=IAP(2)
-       IRS=IAP(3)
        ISW=IAP(10)
        IPLT=IAP(11)
        NMX=IAP(14)
@@ -5995,11 +5987,9 @@ C
        IPLT=IAP(11)
        IID=IAP(18)
        NDM=IAP(23)
-       NFPR=IAP(29)
        IBR=IAP(30)
        NITPS=IAP(31)
        NTOT=IAP(32)
-       DS=RAP(1)
 C
        IAB=IABS(IPLT)
        IF(IAB.EQ.0.OR.IAB.GT.NDIM)
@@ -6008,11 +5998,6 @@ C
        IF(IPLT.LT.0.AND.IAB.LE.NDIM)AMP=RMNUPS(IAP,NDX,IAB,UPS)
        RAP(10)=AMP
        IF(IID.GE.2)THEN
-         IF(NFPR.LE.5)THEN
-           NFPRP=NFPR
-         ELSE
-           NFPRP=5
-         ENDIF
          IF(NITPS.EQ.0)CALL WRBAR("=",47)
          IF(NITPS.EQ.0 .OR. IID.GE.3)THEN
             WRITE(9,102)

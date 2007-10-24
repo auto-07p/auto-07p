@@ -641,8 +641,9 @@ C
 C
 C Generate the equations for continuing fixed points.
 C
-      DIMENSION U(*),IAP(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DIMENSION U(*),IAP(*),ICP(*),PAR(*)
       DOUBLE PRECISION RAP(*),UOLD(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C
        CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
@@ -1666,8 +1667,9 @@ C Sets up equations for the continuation of spatially homogeneous
 C solutions to parabolic systems, for the purpose of finding
 C bifurcations to travelling wave solutions.
 C
-      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DIMENSION IAP(*),U(*),ICP(*),PAR(*)
       DOUBLE PRECISION RAP(*),UOLD(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:)
 C
@@ -2142,7 +2144,6 @@ C
        BETA=PAR(12)
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 C
-       IPS=IAP(2)
        DO I=1,NDM
          F(NDM+I)=0.d0
          DO J=1,NDM
@@ -2268,11 +2269,9 @@ C
       LOGICAL FOUND
 C
        NDIM=IAP(1)
-       IPS=IAP(2)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
-       IBR=IAP(30)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
@@ -2533,7 +2532,6 @@ C
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
-       IBR=IAP(30)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
@@ -2803,7 +2801,6 @@ C
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
-       IBR=IAP(30)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
@@ -3165,7 +3162,6 @@ C
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
-       IBR=IAP(30)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
@@ -3598,7 +3594,6 @@ C
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
-       IBR=IAP(30)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
@@ -3664,8 +3659,8 @@ C
 C Interface subroutine to user supplied FUNC.
 C
       INTEGER IAP(*),ICP(*),NDIM,IJAC
-      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*)
-      DOUBLE PRECISION DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C
       INTEGER JAC,I,J,NFPR,IJC
       DOUBLE PRECISION UMX,EP,UU
@@ -3903,7 +3898,8 @@ C
 C
 C Interface subroutine to user supplied FOPT.
 C
-      DIMENSION IAP(*),RAP(*),U(*),ICP(*),PAR(*),DFDU(*),DFDP(*)
+      DIMENSION IAP(*),RAP(*),U(*),ICP(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F,DFDU(*),DFDP(*)
 C Local
       ALLOCATABLE U1ZZ(:),U2ZZ(:)
 C
