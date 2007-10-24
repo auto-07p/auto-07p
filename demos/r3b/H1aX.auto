@@ -1,0 +1,14 @@
+
+#============================================
+# AUTO Demo r3b: Computing unstable manifolds
+#============================================
+
+execfile('H1a.auto')
+
+print "\n*** Locate a connecting orbit on the unstable manifold***"
+run(c='man.H1a.2',s='startH1a',sv='hetH1a')
+rl('hetH1a')
+
+print "\n***Clean the directory***"
+cl()
+

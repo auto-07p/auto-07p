@@ -1,0 +1,14 @@
+
+#============================================
+# AUTO Demo r3b: Computing unstable manifolds
+#============================================
+
+execfile('L1a.auto')
+
+print "\n*** 'Wind up' an orbit on the unstable manifold***"
+run(c='man.L1a.2',s='startL1a',sv='L1a2')
+rl('L1a2')
+
+print "\n***Clean the directory***"
+cl()
+

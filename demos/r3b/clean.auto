@@ -1,0 +1,16 @@
+
+#==========================================
+# Remove data files that can be regenerated
+#==========================================
+
+print "\n***Clean the directory***"
+for f in ['L1', 'H1', 'V1',
+   'H1a', 'H1b', 'H1c', 'V1a', 'V1b', 'L1a', 'L1a2',
+   'startH1a', 'startH1b', 'startH1c',
+   'startV1a', 'startV1b', 'startL1a',
+   'ext', 'flq', 'start',
+   'hetH1a', 'het1H1b', 'het2H1a', 'het2H1b', 'hetV1b']:
+   dl(f)
+
+! rm -f man.dat *.pyc
+cl()
