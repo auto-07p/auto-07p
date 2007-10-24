@@ -2484,8 +2484,8 @@ Covert user-supplied data files.\section*{Description}
     Type commandUserData('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
-    PAR(10).  Other parameter values must be set in 'stpnt'. (When
-    necessary, PAR(10) may also be redefined there.)  The
+    PAR(11).  Other parameter values must be set in 'stpnt'. (When
+    necessary, PAR(11) may also be redefined there.)  The
     constants-file file 'c.xxx' must be present, as the AUTO-constants
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
     of using the 'userData' command see demos 'lor' and 'pen' (where
@@ -6362,6 +6362,665 @@ imaginary part.
 \end{center}
 \end{table}
 %==============================================================================
+
+
+\newpage
+%==============================================================================
+%DEMO=r3b======================================================================
+%==============================================================================
+\section{ r3b : The Circular Restricted 3-Body Problem (CR3BP).} \label{sec:Demo_r3b}
+
+This demo computes periodic solutions and two-dimensional unstable
+manifolds of those periodic solutions in the restricted three body
+problem:
+\begin{align*}
+\dot x &= x_p\\
+\dot y &= y_p\\
+\dot z &= z_p\\
+\dot x_p&= 2y_p+x-(1-\mu)\frac{x+\mu}{{d_E}^3}-\mu\frac{x-1+\mu}{{d_M}^3}+lx_p\\
+\dot y_p &= -2x_p +y - (1-\mu)\frac{y}{{d_E}^3} - \mu\frac{y}{{d_M}^3} + l y_p\\
+\dot z_p &= -(1-\mu)\frac{z}{{d_E}^3} - \mu\frac{z}{{d_M}^3} + l z_p
+\end{align*}
+where $d_E=\sqrt{(x+\mu)^2+y^2+z^2}$ and $d_M=\sqrt{(x-1+\mu)^2+y^2+z^2}$.
+Here $l\ne 0$ breaks the conservativeness of the system. In general,
+continuations involve $l$ as a parameter, and $l$ will then
+approximately stay at zero.
+
+\subsection{Computation of Periodic Solutions of the CR3BP}
+
+Running the Python script \filef{r3b.auto} will generate the families of periodic 
+solutions L1, H1, and V1, for the case of the mass-ratio $\mu=0.063$:
+\begin{center}
+\begin{tabular}{l | l }
+\commandf{auto r3b.auto} & \commandf{execfile('r3b.auto')} \\
+\end{tabular}
+\end{center}
+where, as in the following examples, the left hand side command can be used
+at the shell prompt, and the right hand side command at the Python CLUI
+prompt. Note that the commands starting with @ work in both interfaces,
+but cannot be used in the expert scripts with a .py suffix.
+
+For example, the data generated for the Lyapunov family L1 will
+consist of
+\begin{center}
+\begin{tabular}{l l}
+\filef{b.L1} & the bifurcation diagram data \\
+\filef{s.L1} & a selection of periodic orbits \\
+\filef{d.L1} & diagnostic data, including Floquet multipliers \\
+\end{tabular}
+\end{center}
+The necessary labeled starting solutions are first computed and stored
+in the file \filef{s.start}.
+Each starting solution is an equilibrium (``libration
+point''), and its data also contains the period of a bifurcating family of
+periodic orbits.
+
+The Table below shows the label of each of the starting solutions in 
+s.start, indicating which libration point it corresponds to, and which 
+family of periodic orbits it will generate:
+\begin{center}
+\begin{tabular}{| l | l | l |}
+\hline
+		Label&	Libration Pt.	&Family \\
+\hline
+		  1 &	    L1	&	  L1 \\
+	  	  2 &       L1	&	  V1 \\
+	  	  3 &       L2	&	  L2 \\
+	  	  4 &       L2	&	  V2 \\
+	  	  5 &       L3	&         L3 \\
+	  	  6 &       L3	&	  V3 \\
+	  	  7 &       L4	&	  V4 \\
+	  	  8 &       L5	&	  V5 \\
+\hline
+\end{tabular}
+\end{center}
+Note (by looking at the constant-files \filef{c.r3b.*}) that actually only the 
+starting solutions labeled 1 and 2 are used in the current calculations, 
+as executed by the Python script.
+
+Starting solution for other values of $\mu$ can be generated using the script
+\filef{compute\_lps.py}, for instance by running
+\begin{center}
+\begin{tabular}{l | l}
+\commandf{autox compute\_lps.py 0.05}	& \commandf{import compute\_lps} \\
+					& \commandf{compute\_lps.compute(0.05)} \\
+\end{tabular}
+\end{center}
+After that, it is necessary to run \filef{r3b.auto} again to regenerate the
+families.
+
+The demos L1a, H1a, H1b, H1c, V1a, V1b can be run subsequent to the r3b
+demo to compute 2D unstable manifolds of selected periodic orbits that
+belong to the L1, V1, and H1 families.
+
+\subsection{Computing Unstable Manifolds of Periodic Orbits in the CR3BP}
+
+Instructions for computing 2-d unstable manifolds of periodic orbits 
+in the Circular Restricted 3-Body Problem (CR3BP) using AUTO-07p. 
+
+\subsubsection{The instructions below are for the Halo family L1 in AUTO demo L1a.}
+
+Instructions for computing 2-d unstable manifolds of other periodic 
+orbits in the CR3BP are similar (Demos H1a, H1b, H1c, V1a, V1b), and
+are given after these instructions.
+
+Select a labeled solution which has exactly one Floquet multiplier with
+absolute value greater than 1. (Floquet multipliers can be found in the file
+\filef{d.L1} generated by demo r3b.) Enter the label of the periodic solution
+in the file \filef{L1a.auto} at {\tt label=} in \filef{L1a.auto}. Also enter
+the size of the
+initial step into the direction of the unstable manifold there at {\tt step=}.
+Note that representative values of these three quantities have already
+been entered there.\\
+Now run the Python script \filef{L1a.auto}:
+\begin{center}
+\begin{tabular}{ l | l }
+\commandf{auto L1a.auto} & \commandf{execfile('L1a.auto')}
+\end{tabular}
+\end{center}
+This will run \filef{r3b.auto} as above if this was not already done.
+
+Through various computational steps the execution of the Python script
+will result in AUTO files \filef{b.L1a}, \filef{s.L1a}, and
+\filef{d.L1a}, where the orbits in 
+\filef{s.L1a} constitute the manifold, which can be viewed with the graphics 
+program \commandf{plaut04} or \commandf{r3bplaut04}:
+\begin{center}
+\commandf{@pl L1a} or \commandf{@r3b L1a}
+\end{center}
+The various steps executed by the Python commands in the script file
+\filef{L1a.auto} are explained below in Tables~\ref{tbl:demo_l1a1} and
+\ref{tbl:demo_l1a2}, which also show
+the equivalent Unix shell versions of these AUTO commands.
+
+The Python script \filef{L1aX.auto} does the same as
+\filef{L1a.auto}, but with
+additional calculations that generate additional AUTO data files, e.g., 
+to detect heteroclinic connections. Some of these additional runs take 
+quite a bit of CPU time and generate big data files.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{mkdir r3b}	& \commandf{mkdir r3b} \\
+\commandf{cd r3b}	& \commandf{cd r3b} \\
+\commandf{@dm r3b}	& \commandf{demo('r3b')} \\
+\multicolumn{2}{|l|}{Copy the r3b demo to the local directory r3b.}\\
+\hline
+
+\commandf{auto r3b.auto} & \commandf{execfile('r3b.auto')} \\
+\multicolumn{2}{|l|}{Generate the CR3BP AUTO data files.} \\
+\hline
+
+\commandf{autox ext.py L1 3 -1e-5} & \commandf{import ext} \\
+			& \commandf{ext.make\_s('L1',3,-1e-5)} \\
+\multicolumn{2}{|p{7in}|}{
+                Convert the data for a selected labeled solution from
+                \filef{s.L1}, 
+		adding a zero adjoint variable. The solution label is 3,
+                and the initial step size into the unstable manifold
+                is $-10^{-5}$.
+		The ext.py script looks for the relevant Floquet multiplier in
+		\filef{d.L1}. The converted solution will be written in the
+                file \filef{s.ext}.}\\
+\hline
+
+\commandf{@r flq ext}	& \commandf{run(e='flq',c='flq',s='ext')} \\
+\multicolumn{2}{|p{7in}|}{
+		Compute the Floquet eigenfunction. Free scalar variables in
+		this run (see \filef{c.flq}) are: 
+                \begin{tabular}{l@{=}l}
+		\parf{PAR(1)} & unfolding parameter \\
+		\parf{PAR(4)} & multiplier\\
+		\parf{PAR(5)} & norm of eigenfunction\\
+                \end{tabular}
+		If this run is successful then \filef{PAR(5)}
+                should become nonzero,
+		in fact, \filef{PAR(5)} should reach the value 1. 
+                If the run is not successful then see REMARK 1 below.}\\
+\hline
+
+\commandf{@sv flq} & \commandf{sv('flq')} \\
+\multicolumn{2}{|l|}{
+		Save the results in \filef{b.flq}, \filef{s.flq}, and
+                \filef{d.flq}.}\\
+\hline
+
+\commandf{autox data.py} & \commandf{import data} \\
+			& \commandf{data.create()} \\
+\multicolumn{2}{|p{7in}|}{
+		Extract data for a selected orbit from \filef{s.flq}.
+                These data 
+		are for both the orbit and its Floquet eigenfunction. It 
+		is assumed that \filef{s.flq}
+                contains only one labeled solution, 
+		with label 2. If you did the ``optional'' computation (see 
+		Remark 2) then you may need to change the label of the 
+		restart solution:}\\
+\commandf{autox data.py flq n} & \commandf{data.create(label=n)}\\
+\multicolumn{2}{|p{7in}|}{
+		where $n$ is the different label number.
+                The extracted data will be saved in a file called
+                \filef{man.dat},
+                which contains, in order, the mass-ratio parameter mu, the
+                energy, the initial step size, epsilon, into the direction
+                of the unstable manifold, the orbit coordinates at
+                ``time zero'', and the Floquet eigenfunction
+                coordinates at ``time zero''.}\\
+\hline
+
+\commandf{@R man L1a.0}	& \commandf{run(e='man',c='man.L1a.0')} \\
+\multicolumn{2}{|p{7in}|}{
+                This step does a time integration using continuation in the
+                ``period'' $T$, i.e., \parf{PAR(11)}, which here is
+                the
+                ``integration time''.
+                The labeled solutions from this run all correspond
+                to the same orbit, except that the orbit gets longer and
+                longer. The starting point of the orbit is the point on the
+                periodic orbit at ``time zero'' plus a small distance
+                ($\varepsilon$)
+                into the direction of the unstable manifold. In AUTO,
+                $\varepsilon$
+                corresponds to
+                \parf{PAR(6)}. This parameter $\varepsilon$ is initialized
+                in the file \filef{flq.dat}.
+                (The sign of $\varepsilon$ is significant!)
+                The parameters in this run (see \filef{c.man.L1a.0}) are:
+                \begin{tabular}{l@{=}lll@{=}l}
+                  \parf{PAR(3)}  & energy & &
+                  \parf{PAR(21)} & $x$-coordinate at end point\\
+                  \parf{PAR(11)} & integration time & &
+                  \parf{PAR(22)} & $y$-coordinate at end point\\
+                  \parf{PAR(12)} & length of the orbit & &
+                  \parf{PAR(23)} & $z$-coordinate at end point
+                \end{tabular}
+              }\\
+\hline
+
+\commandf{@sv startL1a}		& \commandf{sv('startL1a')} \\
+\multicolumn{2}{|l|}{
+Save the results in \filef{b.startL1a}, \filef{s.startL1a}, 
+and \filef{d.startL1a}.
+}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the L1a demo
+  (part 1).}
+\label{tbl:demo_l1a1}
+\end{table}
+
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R man L1a.1 startL1a} & \commandf{run(e='man',c='man.L1a.1',s='startL1a')} \\
+\multicolumn{2}{|p{7in}|}{
+		Look at c.man.L1a.1 to see from which label in s.startL1a this
+		run starts. In this run the y-coordinate of the end point 
+		(\parf{PAR(22)}) is kept fixed,
+                while the ``period'' (\parf{PAR(11)}), 
+		i.e., the total integration time, is allowed to vary, as 
+		is the value of epsilon, i.e., \parf{PAR(6)}.
+                Note that if \parf{PAR(6)}
+		becomes ``large'' then the manifold may no longer be accurate.
+		The free parameters in this run are:
+                \begin{tabular}{l@{=}lll@{=}l}
+                  \parf{PAR(3)}  & energy & &
+                  \parf{PAR(12)} & length of the orbit \\
+                  \parf{PAR(6)}  & ``starting distance'' & &
+                  \parf{PAR(21)} & $x$-coordinate at end point \\
+                  \parf{PAR(11)} & integration time & &
+                  \parf{PAR(23)} & $z$-coordinate at end point
+                \end{tabular}
+}\\
+\hline
+
+\commandf{@sv L1a}			& \commandf{sv('L1a')} \\
+
+\multicolumn{2}{|l|}{
+Save the results in \filef{b.L1a}, \filef{s.L1a}, and \filef{d.L1a}.
+}\\
+\hline
+
+\commandf{@R man L1a.2 startL1a} &
+\commandf{run(e='man',c='man.L1a.2',s='startL1a')} \\
+\multicolumn{2}{|p{7in}|}{
+		Another run, starting from a longer initial orbit, which 
+		computes part of the manifold. The free parameters are the 
+		same as in the preceding run. This computation results in 
+		the orbit winding around the selected periodic L1
+                orbit.
+}\\
+\hline
+\commandf{@sv L1a2} & \commandf{sv('L1a2')} \\
+
+\multicolumn{2}{|l|}{
+		Save the results in \filef{b.L1a2}, \filef{s.L1a2},
+                and
+                \filef{d.L1a2} .}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the L1a demo
+  (part 2).}
+\label{tbl:demo_l1a2}
+\end{table}
+
+\noindent Use
+\begin{center}
+\begin{tabular}{ l | l }
+\commandf{auto clean.auto} & \commandf{execfile('clean.auto')}\\
+\end{tabular}
+\end{center}
+to remove all generated files.
+
+\noindent\textbf{REMARK 1}\\
+If the run to compute the Floquet eigenfunction is not successful, i.e., if 
+\parf{PAR(5)} does not become nonzero,
+then try to compute the Floquet eigenfunction
+in more stages, as in Table~\ref{tbl:demo_r3b_remark1}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{2}{|p{7in}|}{
+		Give the label of the selected solution, and a value that 
+		is smaller than the associated Floquet multiplier (magnitude
+		greater than 1) .}\\
+\commandf{autox ext.py L1 3 -1e-5 2000} & \commandf{import ext} \\
+			& \commandf{ext.make\_s('L1',3,-1e-5,2000)} \\
+\hline
+\commandf{@R flq 2 ext}	& \commandf{run(e='flq',c='flq.2',s='ext')} \\
+
+\multicolumn{2}{|p{7in}|}{
+		Continue the approximate multiplier; If all goes well then 
+		the actual multiplier will be detected as a branch point 
+		(BP) with Label 2. Free scalar variables in this run are: 
+                \begin{tabular}{l@{=}l}
+		\parf{PAR(1)} & unfolding parameter \\
+		\parf{PAR(4)} & multiplier\\
+		\parf{PAR(5)} & norm of eigenfunction
+              \end{tabular}}\\
+\hline
+
+\commandf{@sv flq} & \commandf{sv('flq')} \\
+\hline
+\commandf{@R flq 3} & \commandf{run(e='flq',c='flq.3',s='flq')} \\
+
+\multicolumn{2}{|p{7in}|}{
+		Switch branches at the BP, thereby generating the nonzero 
+		Floquet eigenfunction. The free scalar variables are : 
+                \begin{tabular}{l@{=}l}
+		\parf{PAR(1)} & unfolding parameter \\
+		\parf{PAR(4)} & multiplier\\
+		\parf{PAR(5)} & norm of eigenfunction
+                \end{tabular}
+		If all goes well then \parf{PAR(5)} should become
+                nonzero, and the
+		corresponding solution should have Label 4.
+}\\
+\hline
+\commandf{@sv flq} & \commandf{sv('flq')}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for Remark 1.}
+\label{tbl:demo_r3b_remark1}
+\end{table}
+
+\noindent\textbf{REMARK 2}\\
+One can also follow the orbit, its multiplier and eigenfunction, as in
+Table~\ref{tbl:demo_r3b_remark2}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R flq 4} & \commandf{run(e='flq',c='flq.4',s='flq')}\\
+\multicolumn{2}{|p{7in}|}{
+		Free scalar variables in this run are
+
+                \begin{tabular}{l@{=}l}
+		\parf{PAR(1)}  & unfolding parameter \\
+		\parf{PAR(4)}  & multiplier \\
+		\parf{PAR(11)} & period \\
+                \end{tabular}
+
+		The norm, \parf{PAR(5)}, of the eigenfunction is fixed in
+                this run.
+}\\
+\hline
+\commandf{@sv flq} & \commandf{sv('flq')}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for Remark 2.}
+\label{tbl:demo_r3b_remark2}
+\end{table}
+
+\subsubsection{The instructions below are for the Halo family H1 in AUTO demo H1a.}
+
+Follow the instructions for L1a above, where you replace L by H throughout,
+for instance you can run everything in one go using
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto H1a.auto} & \commandf{execfile('H1a.auto')} \\
+\end{tabular}
+\end{center}
+or with the extra calculations:
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto H1aX.auto} & \commandf{execfile('H1aX.auto')} \\
+\end{tabular}
+\end{center}
+The Floquet eigenfunction is now computed from label 7 with step size
+$-10^{-3}$.
+The detailed commands are likewise, except for the manifold calculations
+in Table~\ref{tbl:demo_l1a2}, and those are given in
+Table~\ref{tbl:demo_h1a}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R man H1a.1 startH1a} &
+\commandf{run(e='man',c='man.H1a.1',s='startH1a')}\\
+\multicolumn{2}{|p{7in}|}{
+		Look at c.man.H1a.1 to see from which label in s.startH1a this
+		run starts. In this run the x-coordinate of the end point 
+		(\parf{PAR(21)}) is kept fixed, while the ``period''
+                (\parf{PAR(11)}), 
+		i.e., the total integration time, is allowed to vary, as 
+		is the value of $\varepsilon$, i.e.,
+                \parf{PAR(6)}. Note that if \parf{PAR(6)}
+		becomes ``large'' then the manifold may no longer be accurate.
+		The free parameters in this run are:
+                \begin{tabular}{l@{=}lll@{=}l}
+                  \parf{PAR(3)}  & energy & &
+                  \parf{PAR(12)} & length of the orbit \\
+                  \parf{PAR(6)}  & ``starting distance'' & &
+                  \parf{PAR(22)} & $y$-coordinate at end point \\
+                  \parf{PAR(11)} & integration time & &
+                  \parf{PAR(23)} & $z$-coordinate at end point
+                \end{tabular}}\\
+\hline
+\commandf{@sv H1a} &\commandf{sv('H1a')}\\
+
+\multicolumn{2}{|l|}{
+Save the results in \filef{b.H1a}, \filef{s.H1a}, and \filef{d.H1a}.}\\
+\hline
+
+\commandf{@R man H1a.2 startH1a} &
+\commandf{run(e='man',c='man.H1a.2',s='startH1a')}\\
+
+\multicolumn{2}{|p{7in}|}{
+  Another run, starting from a longer initial orbit, which 
+  computes part of the manifold. The free parameters are the 
+  same as in the preceding run. This computation results in 
+  the detection of a connecting orbit.
+}\\
+\hline
+\commandf{@sv hetH1a} &\commandf{sv('hetH1a')}\\
+\multicolumn{2}{|l|}{
+Save the results in \filef{b.hetH1a}, \filef{s.hetH1a}, and \filef{d.hetH1a}.}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the H1a demo.}
+\label{tbl:demo_h1a}
+\end{table}
+
+\subsubsection{The instructions below are for the Halo family H1 in AUTO demo H1b.}
+
+Follow the instructions for L1a above, where you replace L by H, and a by b
+throughout; for instance you can run everything in one go using
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto H1b.auto} & \commandf{execfile('H1b.auto')} \\
+\end{tabular}
+\end{center}
+or with the extra calculations:
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto H1bX.auto} & \commandf{execfile('H1bX.auto')} \\
+\end{tabular}
+\end{center}
+The Floquet eigenfunction is now computed from label 3 with step size
+$-10^{-5}$.
+The detailed commands follow the ones for H1a above, except that there
+is one extra run; see Table~\ref{tbl:demo_h1b}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R man H1b.3 startH1b} &
+\commandf{run(e='man',c='man.H1b.3',s='startH1b')}\\
+\multicolumn{2}{|p{7in}|}{
+		Another run, starting from a longer initial orbit, which 
+		computes part of the manifold. The free parameters are the 
+		same as in the preceding run. This computation results in 
+		the detection of another connecting orbit.
+}\\
+\hline
+\commandf{@sv het2H1b} & \commandf{sv('het2H1b')}\\
+\multicolumn{2}{|l|}{
+Save the results in \filef{b.het2H1b}, \filef{s.het2H1b}, and
+                \filef{d.het2H1b}.}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the H1b demo.}
+\label{tbl:demo_h1b}
+\end{table}
+
+\subsubsection{The instructions below are for the Halo family H1 in AUTO demo H1c.}
+
+Follow the instructions for L1a above, where you replace L by H, and a by c
+throughout; for instance you can run everything in one go using
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto H1c.auto} & \commandf{execfile('H1c.auto')} \\
+\end{tabular}
+\end{center}
+The Floquet eigenfunction is now computed from label 68 with step size
+$-10^{-2}$.
+
+The detailed commands follow the ones for H1a above, except that the last
+run is left out, and so the \filef{H1cX.auto} script is not necessary.
+
+\subsubsection{The instructions below are for the Halo family V1 in AUTO demo V1a.}
+
+Follow the instructions for L1a above, where you replace L by V throughout,
+for instance you can run everything in one go using
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto V1a.auto} & \commandf{execfile('V1a.auto')} \\
+\end{tabular}
+\end{center}
+The Floquet eigenfunction is now computed from label 8 with step size
+$-10^{-5}$.
+The detailed commands are likewise, except for the manifold calculations
+in Table~\ref{tbl:demo_l1a2}, and those are given in
+Table~\ref{tbl:demo_v1a}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R man V1a.1 startV1a} &
+\commandf{run(e='man',c='man.V1a.1',s='startV1a')}\\
+
+\multicolumn{2}{|p{7in}|}{
+		Look at \filef{c.man.V1a.1} to see from which label in
+                \filef{s.startV1a} this
+		run starts. In this run the $z$-coordinate of the end point 
+		(\parf{PAR(23)})
+                is kept fixed, while the ``period'' (\parf{PAR(11)}), 
+		i.e., the total integration time, is allowed to vary, as 
+		is the value of $\varepsilon$, i.e., \parf{PAR(6)}.
+                Note that if \parf{PAR(6)}
+		becomes ``large'' then the manifold may no longer be accurate.
+		The free parameters in this run are:
+                \begin{tabular}{l@{=}lll@{=}l}
+                  \parf{PAR(3)}  & energy & &
+                  \parf{PAR(12)} & length of the orbit \\
+                  \parf{PAR(6)}  & ``starting distance'' & &
+                  \parf{PAR(21)} & $x$-coordinate at end point \\
+                  \parf{PAR(11)} & integration time & &
+                  \parf{PAR(22)} & $y$-coordinate at end point
+                \end{tabular}
+}\\
+\hline
+\commandf{@sv V1a} & \commandf{ sv('V1a')}\\
+\multicolumn{2}{|l|}{
+		Save the results in \filef{b.V1a}, \filef{s.V1a}, and
+                \filef{d.V1a}.}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the V1a demo.}
+\label{tbl:demo_v1a}
+\end{table}
+
+\subsubsection{The instructions below are for the Halo family V1 in AUTO demo V1b.}
+
+Follow the instructions for L1a above, where you replace L by V, and a by b
+throughout; for instance you can run everything in one go using
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto V1b.auto} & \commandf{execfile('V1b.auto')} \\
+\end{tabular}
+\end{center}
+or with the extra calculations:
+\begin{center}
+\begin{tabular}{l|l}
+	\commandf{auto V1bX.auto} & \commandf{execfile('V1bX.auto')} \\
+\end{tabular}
+\end{center}
+The Floquet eigenfunction is now computed from label 12 with step size
+$10^{-5}$.
+
+The detailed commands are likewise, except for the manifold calculations
+in Table~\ref{tbl:demo_l1a2}, and those are given in
+Table~\ref{tbl:demo_v1b}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\commandf{@R man V1b.1 startV1b} &
+\commandf{run(e='man',c='man.V1b.1',s='startV1b')}\\
+\multicolumn{2}{|p{7in}|}{
+		Look at \filef{c.man.V1b.1}
+                to see from which label in \filef{s.startV1b} this
+		run starts. In this run the $x$-coordinate of the end point 
+		(\parf{PAR(21)}) is kept fixed, while the ``period''
+                (\parf{PAR(11)}), 
+		i.e., the total integration time, is allowed to vary, as 
+		is the value of $\varepsilon$, i.e., \parf{PAR(6)}.
+                Note that if \parf{PAR(6)}
+		becomes ``large'' then the manifold may no longer be accurate.
+		The free parameters in this run are:
+                \begin{tabular}{l@{=}lll@{=}l}
+                  \parf{PAR(3)}  & energy & &
+                  \parf{PAR(12)} & length of the orbit \\
+                  \parf{PAR(6)}  & ``starting distance'' & &
+                  \parf{PAR(22)} & $y$-coordinate at end point \\
+                  \parf{PAR(11)} & integration time & &
+                  \parf{PAR(23)} & $z$-coordinate at end point
+                \end{tabular}}\\
+\hline
+\commandf{@sv V1b}			& \commandf{sv('V1b')}\\
+\multicolumn{2}{|l|}{
+		Save the results in \filef{b.V1b}, \filef{s.V1b}, and
+                \filef{d.V1b} .}\\
+\hline
+\commandf{@R man V1b.2 startV1b} &
+\commandf{run(e='man',c='man.V1b.2',s='startV1b')} \\
+\multicolumn{2}{|p{7in}|}{
+		Another run, starting from a longer initial orbit, which 
+		computes part of the manifold. The free parameters are the 
+		same as in the preceding run. This computation results in 
+		the detection of a connecting orbit.}\\
+\hline
+
+\commandf{@sv hetV1b} & \commandf{sv('hetV1b')}\\
+\multicolumn{2}{|l|}{
+		Save the results in \filef{b.hetV1b},
+                \filef{s.hetV1b}, and \filef{d.hetV1b} .
+}\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detailed AUTO shell and Python commands for the V1b demo.}
+\label{tbl:demo_v1b}
+\end{table}
 
 %==============================================================================
 %==============================================================================
