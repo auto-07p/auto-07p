@@ -531,7 +531,7 @@ C
 C Local
       DIMENSION DDP(NPARX)
       ALLOCATABLE DDU(:)
-      ALLOCATE(DDU(NDIM))
+      ALLOCATE(DDU(NDM))
 C
        NFPR=IAP(29)
 C
@@ -1492,7 +1492,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL MSH(IAP,RAP,TM)
+       CALL MSH(NTST,TM)
        DT=1.d0/NTST
 C
        DO J=1,NTST+1
@@ -1606,7 +1606,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL MSH(IAP,RAP,TM)
+       CALL MSH(NTST,TM)
        DT=1.d0/NTST
 C
        DO J=1,NTST+1
@@ -1862,7 +1862,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL MSH(IAP,RAP,TM)
+       CALL MSH(NTST,TM)
        DT=1.d0/NTST
 C
        DO J=1,NTST+1
