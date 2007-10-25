@@ -159,15 +159,20 @@ AC_PROG_CXX
 AC_LANG_CPLUSPLUS
 PLAUT04_TEST=yes
 AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
+COIN_LIBS=
 COIN_LDFLAGS=
 COIN_INCLUDES=
 if test x$HAVE_COIN_CONFIG = "xtrue"; then
-	COIN_LDFLAGS="`coin-config --libs` `coin-config --ldflags`"
+	COIN_LIBS="`coin-config --libs`"
+	COIN_LDFLAGS="`coin-config --ldflags`"
 	COIN_INCLUDES="`coin-config --cppflags`"
 fi
+tmp_LIBS=$LIBS
+LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
 tmp_LDFLAGS=$LDFLAGS
-LDFLAGS="$LDFLAGS $DEPS_LIBS $COIN_LDFLAGS"
+LDFLAGS="$LDFLAGS $COIN_LDFLAGS"
 AC_CHECK_LIB([Coin],abort,COIN3D="yes",COIN3D="no")
+LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
 {
@@ -198,39 +203,48 @@ else
 {
 	echo "configure: Coin3d OK.";
 	SOXT_LDFLAGS=$COIN_LDFLAGS
+	SOXT_LIBS=$COIN_LIBS
 	SOXT_INCLUDES=$COIN_INCLUDES
 	SOXTLIB="no"
 	if test x$ENABLE_PLAUT04_QT = xyes; then
 	    AC_CHECK_PROG(HAVE_SOQT_CONFIG, soqt-config, true, false)
 	    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
-		SOXT_LDFLAGS="`soqt-config --libs` `soqt-config --ldflags`"
-		SOXT_INCLUDES="`soqt-config --cppflags`"
+		SOXT_LIBS="`soqt-config --libs`"
+		SOXT_LDFLAGS="`soqt-config --ldflags`"
+		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
 	    fi
+	    tmp_LIBS=$LIBS
+	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
 	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
 	    tmp_CPPFLAGS=$CPPFLAGS
 	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
 	    AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}],
                     [SOXTLIB="SoQt"],
               # -lXi is a workaround for Fedora Core 5
-	      [LDFLAGS="$LDFLAGS -lXi"
-	       SOXT_LDFLAGS="$SOXT_LDFLAGS -lXi"
+	      [LIBS="$LIBS -lXi"
+	       SOXT_LIBS="$SOXT_LIBS -lXi"
 	       AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}],
                [SOXTLIB="SoQt"], [SOXTLIB="no"])])
+	    LIBS=$tmp_LIBS
 	    LDFLAGS=$tmp_LDFLAGS
 	    CPPFLAGS=$tmp_CPPFLAGS
 	fi
 	if test x$SOXTLIB = xno; then
 	    AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
 	    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
-		SOXT_LDFLAGS="`soxt-config --libs` `soxt-config --ldflags`"
+		SOXT_LIBS="`soxt-config --libs`"
+		SOXT_LDFLAGS="`soxt-config --ldflags`"
 		SOXT_INCLUDES="`soxt-config --cppflags`"
 	    fi
+	    tmp_LIBS=$LIBS
+	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
 	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $DEPS_LIBS $SOXT_LDFLAGS"
+	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
 	    AC_CHECK_LIB([SoXt],abort,SOXTLIB="SoXt",SOXTLIB="no")
+	    LIBS=$tmp_LIBS
 	    LDFLAGS=$tmp_LDFLAGS
 	fi
 	if test x$SOXTLIB = "xno"; then
@@ -238,12 +252,13 @@ else
 	else
 	{
 		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
-			SOXT_LDFLAGS="-lCoin -l$SOXTLIB"
+			SOXT_LIBS="-lCoin -l$SOXTLIB"
 			if test x$HAVE_COIN_CONFIG = "xtrue"; then
-				SOXT_LDFLAGS="$COIN_LDFLAGS -l$SOXTLIB"
+				SOXT_LIBS="$COIN_LIBS -l$SOXTLIB"
+				SOXT_LDFLAGS=$COIN_LDFLAGS
 			fi
 		fi
-		DEPS_LIBS="$DEPS_LIBS $SOXT_LDFLAGS"
+		DEPS_LIBS="$SOXT_LDFLAGS $DEPS_LIBS $SOXT_LIBS"
 		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
 		echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
 	}

@@ -1,7 +1,11 @@
 #include <Inventor/So.h>
 #include <Inventor/SbLinear.h>
 
+#ifdef USE_SOQT
+#include <Inventor/Qt/editors/SoQtMaterialEditor.h>
+#else
 #include <Inventor/Xt/SoXtMaterialEditor.h>
+#endif
 
 extern char autoDir[256];
 extern float diskTransparency;
@@ -67,7 +71,11 @@ createDisk(float where[], float scaler)
     }
 
 #ifdef ENABLE_MTL_EDITOR
+#ifdef USE_SOQT
+    SoQtMaterialEditor *mtlEditor = new SoQtMaterialEditor;
+#else
     SoXtMaterialEditor *mtlEditor = new SoXtMaterialEditor;
+#endif
     mtlEditor->attach(diskMtl);
     mtlEditor->show();
 #endif
