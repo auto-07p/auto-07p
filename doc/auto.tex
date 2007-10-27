@@ -6521,7 +6521,8 @@ quite a bit of CPU time and generate big data files.
 		adding a zero adjoint variable. The solution label is 3,
                 and the initial step size into the unstable manifold
                 is $-10^{-5}$.
-		The ext.py script looks for the relevant Floquet multiplier in
+		The \filef{ext.py} script looks for the relevant
+                Floquet multiplier in
 		\filef{d.L1}. The converted solution will be written in the
                 file \filef{s.ext}.}\\
 \hline
@@ -6535,6 +6536,7 @@ quite a bit of CPU time and generate big data files.
 		\parf{PAR(4)} & multiplier\\
 		\parf{PAR(5)} & norm of eigenfunction\\
                 \end{tabular}
+
 		If this run is successful then \filef{PAR(5)}
                 should become nonzero,
 		in fact, \filef{PAR(5)} should reach the value 1. 
@@ -6556,7 +6558,7 @@ quite a bit of CPU time and generate big data files.
 		is assumed that \filef{s.flq}
                 contains only one labeled solution, 
 		with label 2. If you did the ``optional'' computation (see 
-		Remark 2) then you may need to change the label of the 
+		Remark 2) you may need to change the label of the 
 		restart solution:}\\
 \commandf{autox data.py flq n} & \commandf{data.create(label=n)}\\
 \multicolumn{2}{|p{7in}|}{
@@ -6720,6 +6722,7 @@ in more stages, as in Table~\ref{tbl:demo_r3b_remark1}.
 		\parf{PAR(4)} & multiplier\\
 		\parf{PAR(5)} & norm of eigenfunction
                 \end{tabular}
+
 		If all goes well then \parf{PAR(5)} should become
                 nonzero, and the
 		corresponding solution should have Label 4.
