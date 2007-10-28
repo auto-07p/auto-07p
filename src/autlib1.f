@@ -116,7 +116,7 @@ C-----------------------------------------------------------------------
        ITP=IAP(27)
        NFPR=IAP(29)
 C
-       IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. IABS(ISW).LE.1 ) THEN
+       IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Algebraic systems.
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNUS,THL,THU,IUZ,VUZ)
@@ -124,7 +124,7 @@ C        ** Algebraic systems.
            CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.11 .AND. IABS(ISW).LE.1 ) THEN
+       ELSE IF(IPS.EQ.11 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Waves : Spatially homogeneous solutions,
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNUS,THL,THU,IUZ,VUZ)
@@ -132,7 +132,7 @@ C        ** Waves : Spatially homogeneous solutions,
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF((IPS.EQ.-1) .AND. IABS(ISW).LE.1 ) THEN
+       ELSE IF((IPS.EQ.-1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Discrete dynamical systems : fixed points.
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNDS,STPNUS,THL,THU,IUZ,VUZ)
@@ -148,9 +148,9 @@ C        ** Time integration.
            CALL AUTOAE(IAP,RAP,PAR,ICP,FNTI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).LE.1 ) THEN
+       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Periodic solutions
-         IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
+         IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0)THEN
              CALL AUTOBV(IAP,RAP,PAR,ICP,FNPS,BCPS,ICPS,STPNBV,
      *        PVLSBV,THL,THU,IUZ,VUZ)
@@ -163,7 +163,7 @@ C        ** Periodic solutions
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.12 .AND. IABS(ISW).LE.1 ) THEN
+       ELSE IF(IPS.EQ.12 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Wave train solutions to parabolic systems.
          IF(ITP.NE.3) THEN
            IF(IRS.GT.0)THEN
@@ -178,9 +178,9 @@ C        ** Wave train solutions to parabolic systems.
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).LE.1) THEN
+       ELSE IF(IPS.EQ.4 .AND. ABS(ISW).LE.1) THEN
 C        ** Boundary value problems.
-         IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
+         IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0) THEN
              CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNBV,
      *        PVLSBV,THL,THU,IUZ,VUZ)
@@ -193,9 +193,9 @@ C        ** Boundary value problems.
      *        PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.7 .AND. IABS(ISW).LE.1) THEN
+       ELSE IF(IPS.EQ.7 .AND. ABS(ISW).LE.1) THEN
 C        ** Boundary value problems with Floquet multipliers.
-         IF(ITP.NE.3 .AND. IABS(ITP/10).NE.3) THEN
+         IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0) THEN
              CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNBV,
      *        PVLSBV,THL,THU,IUZ,VUZ)
@@ -208,7 +208,7 @@ C        ** Boundary value problems with Floquet multipliers.
      *        PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 
-       ELSE IF(IPS.EQ.9 .AND. IABS(ISW).LE.1) THEN
+       ELSE IF(IPS.EQ.9 .AND. ABS(ISW).LE.1) THEN
 C        ** Homoclinic bifurcation analysis.
          IF(IRS.GT.0) THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,FNHO,BCHO,ICHO,STPNBV,
@@ -229,7 +229,7 @@ C           (Periodic boundary conditions.)
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.15.AND.IABS(ISW).EQ.1) THEN
+       ELSE IF(IPS.EQ.15.AND.ABS(ISW).EQ.1) THEN
 C        ** Optimization of periodic solutions.
          IF(NFPR.LT.6)THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,FNPO,BCPO,ICPO,STPNPO,
@@ -292,102 +292,102 @@ C  Two-Parameter Continuation.
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
- 2     IF(IPS.LE.1 .AND. IABS(ISW).EQ.2 .AND. (ITP.EQ.2) )
+ 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2) )
      * THEN
 C        ** Fold continuation (algebraic problems).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNLP,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.LE.1 .AND. IABS(ISW).EQ.2 
-     *         .AND. ( (IABS(ITP)/10).EQ.2 ) )
+       ELSE IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 
+     *         .AND. ( (ABS(ITP)/10).EQ.2 ) )
      * THEN
 C        ** Fold continuation (algebraic problems, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.LE.1 .AND. IABS(ISW).GE.2 .AND. (ITP.EQ.1) )
+       ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND. (ITP.EQ.1) )
      * THEN
 C        ** BP cont (algebraic problems) (by F. Dercole).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNBP,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.LE.1 .AND. IABS(ISW).GE.2 
-     *         .AND. ( (IABS(ITP)/10).EQ.1 ) )
+       ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 
+     *         .AND. ( (ABS(ITP)/10).EQ.1 ) )
      * THEN
 C        ** BP cont (algebraic problems, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.IABS(ISW).EQ.2.AND.ITP.EQ.3 )
+       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
      * THEN
 C        ** Hopf bifurcation continuation (ODE).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.IABS(ISW).EQ.2.AND.
-     * (IABS(ITP)/10).EQ.3 ) THEN
+       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.
+     * (ABS(ITP)/10).EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (ODE, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.11.AND.IABS(ISW).EQ.2.AND.ITP.EQ.3 )
+       ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
      * THEN
 C        ** Hopf bifurcation continuation (Waves).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHW,STPNHW,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.11.AND.IABS(ISW).EQ.2.AND.
-     * (IABS(ITP)/10).EQ.3 ) THEN
+       ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.
+     * (ABS(ITP)/10).EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (Waves, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHW,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.-1 .AND. IABS(ISW).EQ.2 .AND. ITP.EQ.3 ) THEN
+       ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (Maps).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHD,STPNHD,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.-1 .AND. IABS(ISW).EQ.2 .AND.(IABS(ITP)/10).EQ.3)
+       ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND.(ABS(ITP)/10).EQ.3)
      * THEN
 C        ** Hopf bifurcation continuation (Maps).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHD,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).EQ.2 .AND. 
+       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. 
      *         (ITP.EQ.5.OR.ITP.EQ.6) ) THEN 
 C        ** Fold continuation (Periodic solutions, start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNPL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-      ELSE IF(IPS.EQ.2 .AND. IABS(ISW).EQ.2 .AND. 
-     *        ( (IABS(ITP)/10).EQ.5 .OR. (IABS(ITP)/10).EQ.6 ) )
+      ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. 
+     *        ( (ABS(ITP)/10).EQ.5 .OR. (ABS(ITP)/10).EQ.6 ) )
      * THEN
 C        ** Fold continuation (Periodic solutions, restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNBV,
      *   PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.2 .OR. IPS.EQ.7)
-     *      .AND. IABS(ISW).EQ.2 .AND. ITP.EQ.7 ) THEN
+     *      .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.7 ) THEN
 C        ** Continuation of period doubling bifurcations (start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPD,BCPD,ICPD,STPNPD,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.2 .OR. IPS .EQ.7)
-     *      .AND. IABS(ISW).EQ.2 .AND. (IABS(ITP)/10).EQ.7)
+     *      .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.7)
      * THEN
 C        ** Continuation of period doubling bifurcations (restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPD,BCPD,ICPD,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).EQ.2 .AND. ITP.EQ.8 ) THEN
+       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.8 ) THEN
 C        ** Continuation of torus bifurcations (start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNTR,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).EQ.2 .AND. (IABS(ITP)/10).EQ.8)
+       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.8)
      * THEN
 C        ** Continuation of torus bifurcations (restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. IABS(ISW).EQ.2 .AND.
+       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. ABS(ISW).EQ.2 .AND.
      *          (ITP.EQ.5.OR.ITP.EQ.6) ) THEN
 C        ** Continuation of folds (BVP, start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. IABS(ISW).EQ.2 .AND. 
-     *         ( (IABS(ITP)/10).EQ.5 .OR. (IABS(ITP)/10).EQ.6 ) ) THEN
+       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. ABS(ISW).EQ.2 .AND. 
+     *         ( (ABS(ITP)/10).EQ.5 .OR. (ABS(ITP)/10).EQ.6 ) ) THEN
 C        ** Continuation of folds (BVP, restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
@@ -461,8 +461,8 @@ C
       READ(2,*) NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
       READ(2,*) EPSL,EPSU,EPSS
       READ(2,*) DS,DSMIN,DSMAX,IADS
-      DSMIN=DABS(DSMIN)
-      DSMAX=DABS(DSMAX)
+      DSMIN=ABS(DSMIN)
+      DSMAX=ABS(DSMAX)
       READ(2,*) NTHL
       IF(NTHL.GT.0)THEN
         DO I=1,NTHL
@@ -706,7 +706,7 @@ C Check and perturb pseudo arclength stepsize and steplimits.
 C (Perturbed to avoid exact computation of certain singular points).
 C
        IF(DS.EQ.0.d0)DS=0.1
-       IF(DSMIN.EQ.0.d0)DSMIN=1.0D-4*DABS(DS)
+       IF(DSMIN.EQ.0.d0)DSMIN=1.0D-4*ABS(DS)
        FC=1.d0+HMACH
        DS=FC*DS
        DSMIN=DSMIN/FC
@@ -729,7 +729,7 @@ C Redefinition for waves
 C
 C General Redefinition.
 C
-       IF(IABS(IPS).LE.1 .AND. ISW.EQ.1 )THEN
+       IF(ABS(IPS).LE.1 .AND. ISW.EQ.1 )THEN
 C        ** Algebraic Systems
          NFPR=1
 C
@@ -740,27 +740,27 @@ C        ** Time integration
          ILP=0
          ICP(1)=14
 C 
-       ELSE IF(IPS.EQ.2 .AND. IABS(ISW).EQ.1 )THEN
+       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.1 )THEN
 C        ** Periodic Solutions
          NBC=NDIM
          NINT=1
          NFPR=NBC+NINT-NDIM+1
 C        **ISW=1 when starting from a HB
-         IF(ITP.EQ.3.OR.(IABS(ITP)/10).EQ.3)ISW=1
+         IF(ITP.EQ.3.OR.(ABS(ITP)/10).EQ.3)ISW=1
          IF(NICP.EQ.1)THEN
 C          **Variable period
            ICP(2)=11
          ENDIF
 C
-       ELSE IF(IPS.EQ.4 .AND. IABS(ISW).EQ.1  ) THEN
+       ELSE IF(IPS.EQ.4 .AND. ABS(ISW).EQ.1  ) THEN
 C        ** Boundary value problems
          NFPR=NBC+NINT-NDIM+1
 C
-       ELSE IF(IPS.EQ.7 .AND. IABS(ISW).EQ.1  ) THEN
+       ELSE IF(IPS.EQ.7 .AND. ABS(ISW).EQ.1  ) THEN
 C        ** Boundary value problems
          NFPR=NBC+NINT-NDIM+1
 C
-       ELSE IF( IPS.EQ.9 .AND. IABS(ISW).EQ.1  ) THEN
+       ELSE IF( IPS.EQ.9 .AND. ABS(ISW).EQ.1  ) THEN
 C        ** Homoclinic bifurcation analysis
 C        Redefine AUTO constants for homoclinic orbits
          CALL INHO(IAP,ICP,PAR)
@@ -810,7 +810,7 @@ C overload to define optimality integrals
            NNEG=0
            DO I=1,NICP
              IC=ICT(I)
-             JC=IABS(IC)-20        
+             JC=ABS(IC)-20        
              IF(IC.LT.0.AND.JC.GT.0.AND.JC.LE.11)THEN
                NNEG=NNEG+1
                ICP(NFPR+NNEG)=JC
@@ -832,23 +832,23 @@ C        ** Algebraic optimization Problems
            ICP(1)=10
          ENDIF
 C
-       ELSE IF(IRS.GT.0 .AND. IABS(ISW).GE.2 )THEN
+       ELSE IF(IRS.GT.0 .AND. ABS(ISW).GE.2 )THEN
 C        ** Continuation of singular points
 C
-         IF( ( ITP.EQ.2.OR.(IABS(ITP)/10).EQ.2 )
-     *        .AND. IABS(IPS).LE.1)THEN
+         IF( ( ITP.EQ.2.OR.(ABS(ITP)/10).EQ.2 )
+     *        .AND. ABS(IPS).LE.1)THEN
 C          ** Fold continuation (Algebraic Problems)
            NDIM=2*NDIM+1
            NFPR=2
 C
-         ELSE IF( ( ITP.EQ.1.OR.(IABS(ITP)/10).EQ.1 )
-     *        .AND. IABS(IPS).LE.1)THEN
+         ELSE IF( ( ITP.EQ.1.OR.(ABS(ITP)/10).EQ.1 )
+     *        .AND. ABS(IPS).LE.1)THEN
 C          ** BP cont (Algebraic Problems) (by F. Dercole)
            NDIM=2*NDIM+2
            NFPR=3
 C
-         ELSE IF((ITP.EQ.3.OR.(IABS(ITP)/10).EQ.3)
-     *               .AND. IABS(IPS).LE.1 )THEN
+         ELSE IF((ITP.EQ.3.OR.(ABS(ITP)/10).EQ.3)
+     *               .AND. ABS(IPS).LE.1 )THEN
 C          ** Hopf bifurcation continuation (Maps, ODE, Waves)
            NDIM=3*NDIM+2
            NFPR=2
@@ -875,7 +875,7 @@ C            ** Fixed period
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( (IABS(ITP)/10.EQ.5 .OR. IABS(ITP)/10.EQ.6) 
+         ELSE IF( (ABS(ITP)/10.EQ.5 .OR. ABS(ITP)/10.EQ.6) 
      *           .AND. IPS.EQ.2)THEN
 C          ** Fold continuation (Periodic solutions); restart
            NDIM=2*NDIM
@@ -908,7 +908,7 @@ C            ** Fixed period
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF(IABS(ITP)/10.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
+         ELSE IF(ABS(ITP)/10.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
 C          ** Continuation of period doubling bifurcations; restart
            NDIM=2*NDIM
            NBC=NDIM
@@ -934,7 +934,7 @@ C          ** Continuation of torus bifurcations; start
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF(IABS(ITP)/10.EQ.8 .AND. IPS.EQ.2)THEN
+         ELSE IF(ABS(ITP)/10.EQ.8 .AND. IPS.EQ.2)THEN
 C          ** Continuation of torus bifurcations; restart
            NDIM=3*NDIM
            NBC=NDIM
@@ -963,7 +963,7 @@ C          ** Continuation of folds (BVP; start)
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( ( (IABS(ITP)/10).EQ.5 .OR. IABS(ITP)/10.EQ.6)
+         ELSE IF( ( (ABS(ITP)/10).EQ.5 .OR. ABS(ITP)/10.EQ.6)
      *           .AND. (IPS.EQ.4.OR.IPS.EQ.7))THEN
 C          ** Continuation of folds (BVP; restart)
            NDIM=2*NDIM
@@ -1215,7 +1215,7 @@ C NOTE: Fix (February 2005)
 C
 C Check for fold
 C
-         IF(IABS(ILP).GT.0)THEN
+         IF(ABS(ILP).GT.0)THEN
            CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RLP,THL,THU,IUZ,VUZ)
            ITP=IAP(27)
@@ -1237,7 +1237,7 @@ C            *Stop at the first found fold
 C
 C Check for branch point, and if so store data :
 C
-         IF(IABS(ISP).GT.0)THEN
+         IF(ABS(ISP).GT.0)THEN
            CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RBP,THL,THU,IUZ,VUZ)
            ISTOP=IAP(34)
@@ -1265,7 +1265,7 @@ C            *Stop at the first found BP
 C
 C Check for Hopf bifurcation
 C
-         IF(IABS(IPS).EQ.1)THEN
+         IF(ABS(IPS).EQ.1)THEN
            CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,NDIM+1,AA,RHS,RLCUR,
      *      RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,REV,THL,THU,IUZ,VUZ)
            ISTOP=IAP(34)
@@ -1297,7 +1297,7 @@ C
        IF(ISTOP.EQ.0)GOTO 3
 C
        NBIF=IAP(35)
-       IF(NBIF.NE.0 .AND. NBFC.LT.IABS(MXBF))GOTO 2
+       IF(NBIF.NE.0 .AND. NBFC.LT.ABS(MXBF))GOTO 2
 C
       DEALLOCATE(AA,RHS,U,DU,UDOT,UOLD,STUD,STU,STLA,STLD,F,DFDU,DFDP)
       DEALLOCATE(UZR)
@@ -1500,7 +1500,7 @@ C
           WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
        ENDIF
  100   FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
- 101   FORMAT(I4,I6,I4,5X,1P2E14.5)
+ 101   FORMAT(I4,I6,I4,5X,2ES14.5)
 C
 C Call user-supplied FUNC to evaluate the right hand side of the
 C differential equation and its derivatives :
@@ -1550,8 +1550,8 @@ C
          DUMX=0.d0
          UMX=0.d0
          DO I=1,NDIM
-           ADU=DABS(DU(I))
-           AU=DABS(U(I))
+           ADU=ABS(DU(I))
+           AU=ABS(U(I))
            IF(AU.GT.UMX)UMX=AU
            IF(ADU.GT.DUMX)DUMX=ADU
          ENDDO
@@ -1591,7 +1591,7 @@ C
        MXT=ITNW
        IAP(31)=MXT
        CALL ADPTDS(IAP,RAP,RDS)
-       IF(DABS(RDS).LT.DSMIN)GOTO 4
+       IF(ABS(RDS).LT.DSMIN)GOTO 4
        RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
        DO I=1,NDIM
          U(I)=UOLD(I)+RDS*UDOT(I)
@@ -1678,7 +1678,7 @@ C
 C
 C Return if relative tolerance has been met :
 C
-       RRDS=DABS(RDS)/(1+DSQRT(DABS(DS*DSMAX)))
+       RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS)THEN
          ITP=-1
          IAP(27)=ITP
@@ -1716,9 +1716,9 @@ C        Use Mueller's method with bracketing for subsequent steps
        ENDIF
 C
  101   FORMAT(' ==> Location of special point :  Iteration ',I3,
-     *  '  Step size = ',1PE13.5)
+     *  '  Step size = ',ES13.5)
  102   FORMAT(' ==> Location of special point : ',
-     *        ' Convergence.   Step size = ',1PE13.5)
+     *        ' Convergence.   Step size = ',ES13.5)
  103   FORMAT(I4,I6,' NOTE:Possible special point')
       END
 C
@@ -1736,7 +1736,7 @@ C
         D=H0*H1*(H1-H0)
         A=( H1**2*(Q0-Q) - H0**2*(Q1-Q) ) / D
         B=(-H1*(Q0-Q)    + H0*(Q1-Q)    ) / D
-        IF(DABS(B).LE.RSMALL)THEN
+        IF(ABS(B).LE.RSMALL)THEN
           RDS=-Q/A
         ELSE
           C=A/(2*B)
@@ -1782,7 +1782,7 @@ C
 C If requested write additional output on unit 9 :
 C
        IF(IID.GE.2)WRITE(9,101)IBR,NTOP+1,FNBPAE
- 101   FORMAT(I4,I6,9X,'BP   Function:',1PE14.5)
+ 101   FORMAT(I4,I6,9X,'BP   Function:',ES14.5)
 C
       RETURN
       END
@@ -1838,8 +1838,8 @@ C
 C
 C If requested write additional output on unit 9 :
 C
-       IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNLPAE
- 101   FORMAT(I4,I6,9X,'Fold Function:',1PE14.5)
+       IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNLPAE
+ 101   FORMAT(I4,I6,9X,'Fold Function:',ES14.5)
 C
       RETURN
       END
@@ -1860,7 +1860,7 @@ C
       DIMENSION AA(M1AA,*),RHS(*),U(*),UOLD(*),UDOT(*)
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      COMPLEX*16 EV, ZTMP
+      COMPLEX(KIND(1.0D0)) EV, ZTMP
       ALLOCATABLE EV(:)
       LOGICAL CHNG
 C
@@ -1884,11 +1884,11 @@ C
        CALL EIG(IAP,NDM,NDIM,DFDU,EV,IER)
        IF(IPS.EQ.-1)THEN
          DO I=1,NDM
-           IF(DREAL(EV(I)).NE.-1.d0 .OR.
-     *        DIMAG(EV(I)).NE. 0.d0)THEN
+           IF(REAL(EV(I)).NE.-1.d0 .OR.
+     *        AIMAG(EV(I)).NE. 0.d0)THEN
              EV(I)=LOG(1.d0+EV(I))
            ELSE
-             EV(I)= DCMPLX(-RLARGE,0.d0)
+             EV(I)= CMPLX(-RLARGE,0.d0,KIND(1.0D0))
            ENDIF
          ENDDO
        ENDIF
@@ -1899,7 +1899,7 @@ C
          RMAX=-RLARGE
          LOC=I
          DO J=I,NDM
-           RP=DREAL(EV(J))
+           RP=REAL(EV(J))
            IF(RP.GE.RMAX)THEN
              RMAX=RP
              LOC=J
@@ -1918,13 +1918,13 @@ C
        AREV=RLARGE
        REV=0.d0
        DO I=1,NDM
-         IF(DIMAG(EV(I)).NE.0.d0)THEN
-           AR=DABS(DREAL(EV(I)))
+         IF(AIMAG(EV(I)).NE.0.d0)THEN
+           AR=ABS(REAL(EV(I)))
            IF(AR.LE.AREV)THEN
              AREV=AR
-             REV=DREAL(EV(I))
-             RIMHB=DABS(DIMAG(EV(I)))
-             IF(RIMHB.NE.0.d0.AND.IABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
+             REV=REAL(EV(I))
+             RIMHB=ABS(AIMAG(EV(I)))
+             IF(RIMHB.NE.0.d0.AND.ABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
            ENDIF
          ENDIF
        ENDDO
@@ -1937,7 +1937,7 @@ C
        tol=1.d-5
        NINS1=0
        DO I=1,NDM
-         IF(DREAL(EV(I)).LE.tol)NINS1=NINS1+1
+         IF(REAL(EV(I)).LE.tol)NINS1=NINS1+1
        ENDDO
 C
        IF(ISW.EQ.2 .OR. ISP.EQ.0 .OR. ISP.EQ.3)THEN
@@ -1953,23 +1953,23 @@ C
 C
        NTOT=IAP(32)
        NTOTP1=NTOT+1
-       IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNHBAE
+       IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
        IF(NINS1.EQ.NDM)NTOTP1=-NTOTP1
 C
-       WRITE(9,102)IABS(IBR),NTOP+1,NINS
+       WRITE(9,102)ABS(IBR),NTOP+1,NINS
        IF(IPS.EQ.-1)THEN
           DO I=1,NDM
-             WRITE(9,103)IABS(IBR),NTOP+1,I,EXP(EV(I))
+             WRITE(9,103)ABS(IBR),NTOP+1,I,EXP(EV(I))
           ENDDO
        ELSE
           DO I=1,NDM
-             WRITE(9,103)IABS(IBR),NTOP+1,I,EV(I)
+             WRITE(9,103)ABS(IBR),NTOP+1,I,EV(I)
           ENDDO
        ENDIF
 C
- 101   FORMAT(I4,I6,9X,'Hopf Function:',1PE14.5)
+ 101   FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
  102   FORMAT(/,I4,I6,9X,'Eigenvalues  :   Stable:',I4)
- 103   FORMAT(I4,I6,9X,'Eigenvalue',I3,":",1P2E14.5)
+ 103   FORMAT(I4,I6,9X,'Eigenvalue',I3,":",2ES14.5)
 C
       DEALLOCATE(EV)
       RETURN
@@ -1992,11 +1992,11 @@ C
        NTOT=IAP(32)
        NTOP=MOD(NTOT-1,9999)+1
 C
-       FNUZAE=PAR(IABS(IUZ(IUZR)))-VUZ(IUZR)
+       FNUZAE=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
        CHNG=.TRUE.
 C
-       IF(IID.GE.3)WRITE(9,101)IABS(IBR),NTOP+1,IUZR,FNUZAE
- 101   FORMAT(I4,I6,9X,'User Func.',I3,1X,1PE14.5)
+       IF(IID.GE.3)WRITE(9,101)ABS(IBR),NTOP+1,IUZR,FNUZAE
+ 101   FORMAT(I4,I6,9X,'User Func.',I3,1X,ES14.5)
 C
       RETURN
       END
@@ -2116,7 +2116,7 @@ C
          U(I)=STU(1,I)
          UDOT(I)=STUD(1,I)
        ENDDO
-       IF(IABS(ISW).EQ.2)PAR(ICP(2))=U(NDIM)
+       IF(ABS(ISW).EQ.2)PAR(ICP(2))=U(NDIM)
 C
        IF(MXBF.GE.0)THEN
          IPOS=1-IPOS
@@ -2235,9 +2235,9 @@ C
          DUMX=0.d0
          UMX=0.d0
          DO I=1,NDIM
-           ADU=DABS(DU(I))
+           ADU=ABS(DU(I))
            IF(ADU.GT.DUMX)DUMX=ADU
-           AU=DABS(U(I))
+           AU=ABS(U(I))
            IF(AU.GT.UMX)UMX=AU
          ENDDO
 C
@@ -2247,7 +2247,7 @@ C
 C
 C Check whether relative error has reached user-supplied tolerance :
 C
-         RDRLM=DABS(DRLM)/(1.d0+DABS(RLCUR(1)))
+         RDRLM=ABS(DRLM)/(1.d0+ABS(RLCUR(1)))
          RDUMX=DUMX/(1.d0+UMX)
          IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
            DEALLOCATE(IR,IC,U1)
@@ -2263,7 +2263,7 @@ C
        MXT=ITNW
        IAP(31)=MXT
        CALL ADPTDS(IAP,RAP,RDS)
-       IF(DABS(RDS).LT.DSMIN)GOTO 4
+       IF(ABS(RDS).LT.DSMIN)GOTO 4
        RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
        DO I=1,NDIM
          U(I)=UOLD(I)+RDS*UDOT(I)
@@ -2285,7 +2285,7 @@ C
        DEALLOCATE(IR,IC,U1)
       RETURN
  101   FORMAT(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=',
-     * 1PE11.3,1X,'U=',1P7E11.3)
+     * ES11.3,1X,'U=',7ES11.3)
  102   FORMAT(I4,I6,' NOTE:No convergence when switching branches',
      *        ' with fixed step size')
  103   FORMAT(I4,I6,' NOTE:Retrying step')
@@ -2313,9 +2313,9 @@ C limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 C These are often convenient for an initial plot of the diagram.
 C
       DIMENSION ICP(*),IAP(*),RAP(*)
-       CHARACTER (LEN=*), PARAMETER :: D3 = "('   0'3(A8,ES11.4))"
-       CHARACTER (LEN=*), PARAMETER :: I4 = "('   0'4(A8,I4))"
-       CHARACTER (LEN=*), PARAMETER :: I5 = "('   0'3(A8,I4),2(A7,I4))"
+       CHARACTER (LEN=*), PARAMETER :: D3 = "('   0',3(A8,ES11.4))"
+       CHARACTER (LEN=*), PARAMETER :: I4 = "('   0',4(A8,I4))"
+       CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',3(A8,I4),2(A7,I4))"
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -2540,7 +2540,7 @@ C
 C
 C CHECK WHETHER LIMITS OF THE BIFURCATION DIAGRAM HAVE BEEN REACHED :
 C
-       IAB=IABS(IPLT)
+       IAB=ABS(IPLT)
 C
        IF(IAB.LE.NDIM .AND. IAB.GT.0)THEN
          AMP=U(IAB)
@@ -2585,7 +2585,7 @@ C Determine stability and print output on units 6 and 7.
 C
        NTOTS=NTOT
        NINS=IAP(33)
-       IF(IABS(IPS).EQ.1 .AND. IABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
+       IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
        CALL WRLINE(IAP,PAR,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
@@ -2632,8 +2632,8 @@ C
 C
 C Write a heading above the first line.
 C
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,6,N1,N2)
-       IF(IABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,7,NICP,N2)
+       IF(ABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,6,N1,N2)
+       IF(ABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,7,NICP,N2)
        CALL HEADNG(IAP,ICU,9,N1,N2)
 C
        IF(MOD(ITP,10)>0)THEN
@@ -2702,7 +2702,7 @@ C
        WRITE(8,102)(PAR(I),I=1,NPARX)
 C
  101   FORMAT(6I6,I8,I6,I8,3I5)
- 102   FORMAT(4X,1P7E19.10)
+ 102   FORMAT(4X,7ES19.10)
 C
        CALL FLUSH(8)
        RETURN
@@ -3018,10 +3018,10 @@ C
        ARDS= ABS(RDS)
        IF(ARDS.GT.DSMAX)RDS=RDS*DSMAX/ARDS
 C
-       WRITE(9,101)IABS(IBR),NTOP,NIT
-       WRITE(9,102)IABS(IBR),NTOP,RDS
+       WRITE(9,101)ABS(IBR),NTOP,NIT
+       WRITE(9,102)ABS(IBR),NTOP,RDS
  101   FORMAT(/,I4,I6,8X,' Iterations   : ',I3)
- 102   FORMAT(I4,I6,8X,' Next Step    : ',1PE13.5)
+ 102   FORMAT(I4,I6,8X,' Next Step    : ',ES13.5)
 C
       RETURN
       END
@@ -3059,7 +3059,7 @@ C
 C
 C For periodic boundary conditions extrapolate by periodicity.
 C
-       IF(IPS.EQ.2 .AND. IABS(ISW).LE.1) THEN
+       IF(IPS.EQ.2 .AND. ABS(ISW).LE.1) THEN
          IPER=1
        ELSE
          IPER=0
@@ -3277,7 +3277,7 @@ C
              HD(I,J)=HD(I,J)+WH(K)*UPS(K1,J)
            ENDDO
            HD(I,J)=SC*HD(I,J)
-           IF(DABS(HD(I,J)).GT.HMACH)SMALL=.FALSE.
+           IF(ABS(HD(I,J)).GT.HMACH)SMALL=.FALSE.
          ENDDO
        ENDDO
 C
@@ -3323,7 +3323,7 @@ C
        DO J=1,NTST
          E=0.d0
          DO I=1,NDIM
-           E=E+DABS( HD(I,J) )**PWR
+           E=E+ABS( HD(I,J) )**PWR
          ENDDO
          EQF(J+1)=EQF(J)+DTM(J)*E
        ENDDO
@@ -3354,7 +3354,7 @@ C The eigenvalues are to be returned in the complex vector EV.
 C
       DIMENSION A(M1A,*),IAP(*)
 C
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C Local
       ALLOCATABLE WR(:),WI(:),Z(:),FV1(:),IV1(:)
       ALLOCATE(WR(NDIM),WI(NDIM),Z(M1A*NDIM),FV1(NDIM),IV1(NDIM))
@@ -3387,14 +3387,14 @@ C
        ENDIF
 C
        DO I=1,NDIM
-          EV(I) = DCMPLX(WR(I),WI(I))
+          EV(I) = CMPLX(WR(I),WI(I),KIND(1.0D0))
        ENDDO
 C
 
  101   FORMAT(I4,I6,' NOTE:Error return from EISPACK routine RG')
  102   FORMAT(/,' Eigenvalues:')
  103   FORMAT(/,' Eigenvectors (by row):')
- 104   FORMAT(4X,1P7E19.10)
+ 104   FORMAT(4X,7ES19.10)
 C
       DEALLOCATE(WR,WI,Z,FV1,IV1)
       RETURN
@@ -3437,7 +3437,7 @@ C
          PIV=0.d0
          DO I=JJ,N
            DO J=JJ,N
-             P=DABS(A(IR(I),IC(J)))
+             P=ABS(A(IR(I),IC(J)))
              IF(P.GT.PIV)THEN
                PIV=P
                IPIV=I
@@ -3580,7 +3580,7 @@ C
          PIV=0.d0
          DO I=JJ,N
            DO J=JJ,N
-             P=DABS(A(IR(I),IC(J)))
+             P=ABS(A(IR(I),IC(J)))
              IF(P.GT.PIV)THEN
                PIV=P
                IPIV=I
@@ -3685,7 +3685,7 @@ C
          PIV=0.d0
          DO I=JJ,N
            DO J=JJ,N
-             P=DABS(A(IR(I),IC(J)))
+             P=ABS(A(IR(I),IC(J)))
              IF(P.GT.PIV)THEN
                PIV=P
                IPIV=I
@@ -3784,9 +3784,9 @@ C
        IF(ISW.LT.0.OR.IRS.EQ.0)THEN
          IBR=MBR+1
          IAP(30)=IBR
-       ELSEIF( (IABS(ITP).LT.10.AND.IABS(ISW).EQ.2)
+       ELSEIF( (ABS(ITP).LT.10.AND.ABS(ISW).EQ.2)
      *    .OR. (IPS.EQ.2.AND.ITP.EQ.3)
-     *    .OR. (IPS.EQ.4.AND.ISW.EQ.2.AND.IABS(ITP).LT.10)
+     *    .OR. (IPS.EQ.4.AND.ISW.EQ.2.AND.ABS(ITP).LT.10)
      *    .OR. (IPS.EQ.5.AND.MOD(ITP,10).EQ.2) )THEN
          IBR=IRS
          IAP(30)=IBR
@@ -3818,12 +3818,12 @@ C
          IAP(30)=IBR
          IF(LABRS.EQ.IRS)THEN
            FOUND=.TRUE.
-           IF(IABS(ISW).EQ.2)THEN
-             IF(IABS(ITP).LT.10)THEN
-               ITPST=IABS(ITP)
+           IF(ABS(ISW).EQ.2)THEN
+             IF(ABS(ITP).LT.10)THEN
+               ITPST=ABS(ITP)
                IAP(28)=ITPST
              ELSE
-               ITPST=IABS(ITP/10)
+               ITPST=ABS(ITP/10)
                IAP(28)=ITPST
              ENDIF
            ELSE
@@ -4131,7 +4131,7 @@ C
       DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),THL(*),THU(*)
 C Local
       DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX) 
-      COMPLEX*16 EV
+      COMPLEX(KIND(1.0D0)) EV
       ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
       ALLOCATABLE DUPS(:,:),UDOTPS(:,:),FA(:,:),FC(:),TM(:),DTM(:)
       ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
@@ -4295,7 +4295,7 @@ C
 C
 C Check for fold.
 C
-       IF(IABS(ILP).GT.0)THEN
+       IF(ABS(ILP).GT.0)THEN
          CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP,
      *    RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,
      *    FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ)
@@ -4320,7 +4320,7 @@ C            *Stop at the first found fold
 C
 C Check for branch point.
 C
-       IF(IABS(ISP).GE.2)THEN
+       IF(ABS(ISP).GE.2)THEN
          CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1,
      *    RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,
      *    FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ)
@@ -4345,7 +4345,7 @@ C            *Stop at the first found BP
 C
 C Check for period-doubling and torus bifurcation.
 C
-       IF(IABS(ISP).GT.0 .AND.
+       IF(ABS(ISP).GT.0 .AND.
      *     (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
          CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1,
      *   RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,
@@ -4617,9 +4617,9 @@ C
          UMX=0.d0
          DO J=1,NTST
            DO I=1,NROW
-             ADU=DABS(FA(I,J))
+             ADU=ABS(FA(I,J))
              IF(ADU.GT.DUMX)DUMX=ADU
-             AU=DABS(UPS(I,J))
+             AU=ABS(UPS(I,J))
              IF(AU.GT.UMX)UMX=AU
              UPS(I,J)=UPS(I,J)+FA(I,J)
            ENDDO
@@ -4632,7 +4632,7 @@ C
          DONE=.TRUE.
          RDRL=0.d0
          DO I=1,NFPR
-           ADRL=DABS(FC(NDIM+I))/(1.d0+DABS(RLCUR(I)))
+           ADRL=ABS(FC(NDIM+I))/(1.d0+ABS(RLCUR(I)))
            IF(ADRL.GT.EPSL)DONE=.FALSE.
            IF(ADRL.GT.RDRL)RDRL=ADRL
          ENDDO
@@ -4662,7 +4662,7 @@ C
        MXT=ITNW
        IAP(31)=MXT
        CALL ADPTDS(IAP,RAP,RDS)
-       IF(DABS(RDS).LT.DSMIN)GOTO 12
+       IF(ABS(RDS).LT.DSMIN)GOTO 12
        DO I=1,NFPR
          RLCUR(I)=RLOLD(I)+RDS*RLDOT(I)
        ENDDO
@@ -5188,7 +5188,7 @@ C of branches of solutions to general boundary value problems.
 C
       EXTERNAL FNCS,FUNI,BCNI,ICNI,PVLI
 C
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
       LOGICAL CHNG
 C
@@ -5232,7 +5232,7 @@ C
 C
 C Return if tolerance has been met :
 C
-       RRDS=DABS(RDS)/(1+DSQRT(DABS(DS*DSMAX)))
+       RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS) THEN
          ITP=-1
          IAP(27)=ITP
@@ -5274,9 +5274,9 @@ C
        WRITE(9,103)IBR,NTOP+1
        Q=0.d0
  101   FORMAT(' ==> Location of special point :  Iteration ',I3,
-     *  '  Step size = ',1PE13.5)
+     *  '  Step size = ',ES13.5)
  102   FORMAT(' ==> Location of special point : ',
-     *        ' Convergence.   Step size = ',1PE13.5)
+     *        ' Convergence.   Step size = ',ES13.5)
  103    FORMAT(I4,I6,' NOTE:Possible special point')
 C
       RETURN
@@ -5292,7 +5292,7 @@ C
 C
 C RETURNS A QUANTITY THAT CHANGES SIGN AT A LIMIT POINT (BVP)
 C
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
       LOGICAL CHNG
 C
@@ -5342,7 +5342,7 @@ C Scale the direction vector.
 C
          CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
          IF(IID.GE.2)THEN
-           WRITE(9,101)IABS(IBR),NTOP+1,RLDOT(1)
+           WRITE(9,101)ABS(IBR),NTOP+1,RLDOT(1)
          ENDIF
 C
 C Set the quantity to be returned.
@@ -5351,7 +5351,7 @@ C
          CHNG=.TRUE.
          RAP(16)=FNLPBV
 C
- 101     FORMAT(I4,I6,9X,'Fold Function ',1PE14.5)
+ 101     FORMAT(I4,I6,9X,'Fold Function ',ES14.5)
 C
       RETURN
       END
@@ -5365,7 +5365,7 @@ C
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
       LOGICAL CHNG
 C
@@ -5408,8 +5408,8 @@ C
       ENDIF
       RAP(18)=FNBPBV
 C
-      IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1,FNBPBV
- 101  FORMAT(I4,I6,9X,'BP   Function ',1PE14.5)
+      IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNBPBV
+ 101  FORMAT(I4,I6,9X,'BP   Function ',ES14.5)
 C
       RETURN
       END
@@ -5430,7 +5430,7 @@ C This function returns a quantity that changes sign when a complex
 C pair of eigenvalues of the linearized Poincare map moves in or out
 C of the unit circle or when a real eigenvalues passes through -1.
 
-      DOUBLE COMPLEX EV(*),ZTMP
+      COMPLEX(KIND(1.0D0)) EV(*),ZTMP
       DIMENSION IAP(*),RAP(*),P0(*),P1(*)
 C Local
       ALLOCATABLE WRK(:)
@@ -5487,7 +5487,7 @@ C
            AMIN=RLARGE
            DO J=I,NDIM
              AZM1= ABS(EV(J)) - 1.d0 
-             AZM1=DABS(AZM1)
+             AZM1=ABS(AZM1)
              IF(AZM1.LE.AMIN)THEN
                AMIN=AZM1
                LOC=J
@@ -5506,13 +5506,13 @@ C (ISP is set to negative and detection of bifurations is discontinued)
 C
        AMIN= ABS( EV(1) - 1.d0 )
        IF(AMIN.GT.5.0E-2 .AND. ISP.EQ.2) THEN
-         IF(IID.GE.2)WRITE(9,101)IABS(IBR),NTOP+1
+         IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
          DO I=1,NDIM
-            WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
+            WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
          ENDDO
          NINS=0
          IAP(33)=NINS
-         WRITE(9,104)IABS(IBR),NTOP+1,NINS
+         WRITE(9,104)ABS(IBR),NTOP+1,NINS
          ISP=-ISP
          IAP(9)=ISP
          RETURN
@@ -5523,12 +5523,12 @@ C sufficiently accurate again.
 C
        IF(ISP.LT.0)THEN
          IF(AMIN.LT.1.0E-2)THEN
-           WRITE(9,102)IABS(IBR),NTOP+1
+           WRITE(9,102)ABS(IBR),NTOP+1
            ISP=-ISP
            IAP(9)=ISP
          ELSE
            DO I=1,NDIM
-              WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I)
+              WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
            ENDDO
            RETURN
          ENDIF
@@ -5550,7 +5550,7 @@ C
            IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
          ENDDO
          IF(ISP.EQ.2) THEN
-           IF(DIMAG(EV(2)).EQ.0.d0 .AND. DREAL(EV(2)).GT.0.d0)THEN
+           IF(AIMAG(EV(2)).EQ.0.d0 .AND. REAL(EV(2)).GT.0.d0)THEN
 C            *Ignore if second multiplier is real positive
              D=0.d0
            ELSE
@@ -5570,23 +5570,23 @@ C
        NINS=NINS1
        IAP(33)=NINS
        IF( IID.GE.2 .AND. (ISP.EQ.1 .OR. ISP.EQ.2))THEN
-          WRITE(9,103)IABS(IBR),NTOP+1,D
+          WRITE(9,103)ABS(IBR),NTOP+1,D
        ENDIF
 C
 C Print the Floquet multipliers.
 C
        NINS=IAP(33)
-       WRITE(9,104)IABS(IBR),NTOP+1,NINS
+       WRITE(9,104)ABS(IBR),NTOP+1,NINS
        DO I=1,NDIM
-          WRITE(9,105)IABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
+          WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
        ENDDO
 C
  101   FORMAT(I4,I6,' NOTE:Multiplier inaccurate')
  102   FORMAT(I4,I6,' NOTE:Multiplier accurate again')
- 103   FORMAT(I4,I6,9X,'SPB  Function ',1PE14.5)
+ 103   FORMAT(I4,I6,9X,'SPB  Function ',ES14.5)
  104   FORMAT(I4,I6,9X,'Multipliers:     Stable:',I4)
- 105   FORMAT(I4,I6,9X,'Multiplier',I3,1X,1P2E14.5,
-     *                 '  Abs. Val.',1P1E14.5)
+ 105   FORMAT(I4,I6,9X,'Multiplier',I3,1X,2ES14.5,
+     *                 '  Abs. Val.',ES14.5)
 C
       RETURN
       END
@@ -5598,7 +5598,7 @@ C     ------ --------- -------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
       LOGICAL CHNG
 C
@@ -5612,11 +5612,11 @@ C
        NTOT=IAP(32)
        NTOP=MOD(NTOT-1,9999)+1
 C
-       FNUZBV=PAR(IABS(IUZ(IUZR)))-VUZ(IUZR)
+       FNUZBV=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
        CHNG=.TRUE.
 C
-       IF(IID.GE.3)WRITE(9,101)IABS(IBR),NTOP+1,IUZR,FNUZBV
- 101   FORMAT(I4,I6,9X,'User Func.',I3,1X,1PE14.5)
+       IF(IID.GE.3)WRITE(9,101)ABS(IBR),NTOP+1,IUZR,FNUZBV
+ 101   FORMAT(I4,I6,9X,'User Func.',I3,1X,ES14.5)
 C
       RETURN
       END
@@ -5630,7 +5630,7 @@ C
 C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
-      COMPLEX*16 EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
       DIMENSION PAR(*),IAP(*),RAP(*)
 C
@@ -5659,7 +5659,7 @@ C
        DO I=1,NDIM
          IF(I.NE.LOC)THEN
            D= ABS(EV(I)) - 1.d0
-           AD=DABS(D)
+           AD=ABS(D)
            IF(AD.LE.AMIN)THEN
              AMIN=AD
              LOC1=I
@@ -5667,12 +5667,12 @@ C
          ENDIF
        ENDDO
 C
-      IF(DABS(DIMAG(EV(LOC1))).GT.DSQRT(EPSS))THEN
+      IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 C       ** torus bifurcation
         ITP=8+10*ITPST
         IAP(27)=ITP
-        PAR(12)=DASIN(DIMAG(EV(LOC1)))
-      ELSE IF(DREAL(EV(LOC1)).LT.-.5d0)THEN
+        PAR(12)=ASIN(AIMAG(EV(LOC1)))
+      ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 C       ** period doubling
         ITP=7+10*ITPST
         IAP(27)=ITP
@@ -5760,7 +5760,7 @@ C
 C
 C Check whether limits of the bifurcation diagram have been reached :
 C
-       IAB=IABS(IPLT)
+       IAB=ABS(IPLT)
        IF(IAB.EQ.0.OR.IAB.GT.3*NDM)
      *                 AMP=DSQRT(RNRMSQ(IAP,NDM,NDX,UPS,DTM,THU))
        IF(IPLT.GT.0.AND.IAB.LE.NDM)AMP=RMXUPS(IAP,NDX,IAB,UPS)
@@ -5821,7 +5821,7 @@ C
 C Determine stability, and write output on units 7 and 8.
 C
        NTOTS=NTOT
-       IF(IABS(ISW).LE.1 .AND. (IPS.EQ.2.OR.IPS.EQ.7))THEN
+       IF(ABS(ISW).LE.1 .AND. (IPS.EQ.2.OR.IPS.EQ.7))THEN
          NINS=IAP(33)
          IF(NINS.EQ.NDIM)NTOTS=-NTOT
        ENDIF
@@ -5939,7 +5939,7 @@ Cxxx====================================================================
 Cxxx Test problem
 C Write global error and mesh error
 Cxxx       write(10,100)ncol,ntst,eg,em
-Cxxx 100   FORMAT(4X,I2,I4,1P7D11.3)
+Cxxx 100   FORMAT(4X,I2,I4,7ES11.3)
 Cxxx====================================================================
        WRITE(8,102)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
 C
@@ -5964,7 +5964,7 @@ C
        WRITE(8,102)(PAR(I),I=1,NPARX)
 C
  101   FORMAT(6I6,I8,I6,I8,3I5)
- 102   FORMAT(4X,1P7E19.10)
+ 102   FORMAT(4X,7ES19.10)
  103   FORMAT(20I5)
 C
       CALL FLUSH(8)
@@ -5991,7 +5991,7 @@ C
        NITPS=IAP(31)
        NTOT=IAP(32)
 C
-       IAB=IABS(IPLT)
+       IAB=ABS(IPLT)
        IF(IAB.EQ.0.OR.IAB.GT.NDIM)
      * AMP=DSQRT(RNRMSQ(IAP,NDM,NDX,UPS,DTM,THU))
        IF(IPLT.GT.0.AND.IAB.LE.NDIM)AMP=RMXUPS(IAP,NDX,IAB,UPS)
@@ -6021,9 +6021,9 @@ C
        ENDIF
 C
  102   FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
- 103   FORMAT(I4,I6,I4,5X,1P6E14.5)
+ 103   FORMAT(I4,I6,I4,5X,6ES14.5)
  104   FORMAT(' UPS :')
- 105   FORMAT(1X,1P7E14.5)
+ 105   FORMAT(1X,7ES14.5)
 C
       RETURN
       END
@@ -6112,10 +6112,10 @@ C
  100    FORMAT(" Multipliers + eigenvectors obtained from - P0^-1 P1 :")
 cxx
         write(9,112)WR(1)*WR(2)
-112     format(" Product = ",1PE16.7)       
+112     format(" Product = ",ES16.7)       
 cxx
  101    FORMAT(" ")
- 102    FORMAT(1P2E14.5," | ",1P8E14.5)
+ 102    FORMAT(2ES14.5," | ",8ES14.5)
 C
       DEALLOCATE(Q0,Q1,P,Z,WR,WI,IR,IC,IV1,FV1)
       RETURN
@@ -6169,7 +6169,7 @@ C
         NX=IAV(1)*IAV(6)
         GETP=0
 C
-        IF( IABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
+        IF( ABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
           IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
             GETP=ABS(UPS(IC,1))    
           ELSEIF(CODE.EQ.'INT'.OR.CODE.EQ.'int')THEN

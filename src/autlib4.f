@@ -71,7 +71,7 @@ C  Parameter declarations:
 C
       INTEGER           NDIM, IID
       DOUBLE PRECISION  C0(NDIM, *), C1(NDIM, *), RWORK(NDIM, *)
-      DOUBLE COMPLEX    EV(*)
+      COMPLEX(KIND(1.0D0)) EV(*)
 C
 C  Local declarations:
 C
@@ -127,9 +127,7 @@ C
 C
 C  builtin F77 functions
 C
-      DOUBLE PRECISION  DMAX1, DABS
-cxx   DOUBLE COMPLEX    DCMPLX
-      INTRINSIC         DMAX1, DABS, DCMPLX
+      INTRINSIC         MAX, ABS, CMPLX
 C
       ALLOCATE(SVDE(NDIM),SVDS(NDIM+1),SVDV(NDIM,NDIM),V(NDIM),X(NDIM))
       ALLOCATE(QZALFI(NDIM),QZBETA(NDIM),QZALFR(NDIM),SVDWRK(NDIM))
@@ -217,7 +215,7 @@ C
 C
 C  Rescale so that (H2^T)*C0*(H1)(1,NDIM) ~= (H2^T)*C1*(H1)(1,NDIM) ~= 1.0
 C
-      CONST = DMAX1(DABS(C0(1,NDIM)), DABS(C1(1,NDIM)))
+      CONST = MAX(ABS(C0(1,NDIM)), ABS(C1(1,NDIM)))
       DO J = 1, NDIM
           DO I = 1, NDIM
               C0(I,J) = C0(I,J) / CONST
@@ -283,14 +281,14 @@ C
 C
 C  Pack the eigenvalues into complex form.
 C
-      EV(1) = DCMPLX( C0(1,NDIM) / C1(1,NDIM), 0.0D0 )
+      EV(1) = CMPLX( C0(1,NDIM) / C1(1,NDIM), 0.0D0, KIND(1.0D0) )
       INFEV = .FALSE.
       DO J = 1, NDIMM1
           IF (QZBETA(J) .NE. 0.0D0) THEN
-	      EV(J+1) = DCMPLX( QZALFR(J)/QZBETA(J), 
-     &                          QZALFI(J)/QZBETA(J) )
+	      EV(J+1) = CMPLX( QZALFR(J)/QZBETA(J), 
+     &                         QZALFI(J)/QZBETA(J), KIND(1.0D0) )
 	  ELSE
-	      EV(J+1) = DCMPLX( 1.0D+30, 1.0D+30 )
+	      EV(J+1) = ( 1.0D+30, 1.0D+30 )
               INFEV = .TRUE.
           END IF
       ENDDO
