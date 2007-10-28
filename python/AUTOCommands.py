@@ -1082,7 +1082,7 @@ class commandRunMakefileWithSetup(commandWithRunner):
         if not(self.fort3 is None):
             self.runner.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exeception.
+        # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runMakefileWithSetup(self.equation)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
@@ -1118,7 +1118,7 @@ class commandRunExecutableWithSetup(command):
         if not(self.fort3 is None):
             self.runner.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exeception.
+        # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runExecutableWithSetup(self.executable)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
@@ -1156,7 +1156,7 @@ class commandRunCommandWithSetup(command):
         if not(self.fort3 is None):
             self.runner.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exeception.
+        # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runCommandWithSetup(self.command)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
@@ -1342,21 +1342,35 @@ class commandHelp(command):
             #   "description" a one line description of the command
             command_list.sort()
             self.__print(" ALIASES    DESCRIPTION\n") 
-            for i in range(len(command_list)):
-                return_value[command_list[i]] = {}
-                return_value[command_list[i]]["aliases"] = []
+            for cmd in command_list:
+                return_value[cmd] = {}
+                return_value[cmd]["aliases"] = []
                 aliases = ""
                 for key in self._aliases.keys():
-                    if self._aliases[key] == command_list[i]:
+                    if self._aliases[key] == cmd:
                         aliases = aliases + key + " "
-                        return_value[command_list[i]]["aliases"].append(key)
-                doc = getattr(AUTOCommands,command_list[i]).__doc__
+                        return_value[cmd]["aliases"].append(key)
+                doc = getattr(AUTOCommands,cmd).__doc__
                 if not(doc is None):
                     self.__print(" %-25s"%aliases)
                     doc = string.split(doc,"\n")
-                    return_value[command_list[i]]["description"] = doc[0]
+                    return_value[cmd]["description"] = doc[0]
                     self.__print(doc[0])
                     self.__print("\n")
+
+            execlist = [{'name' : 'execfile', 'alias' : 'ex', 'fn' : execfile},
+                        {'name' : 'demofile', 'alias' : 'dmf', 'fn' : demofile}]
+            for cmdprop in execlist:
+                cmd = cmdprop['name']
+                return_value[cmd] = {}
+                return_value[cmd]["aliases"] = [cmd,cmdprop['alias']]
+                aliases = cmd + " " + cmdprop['alias']
+                doc = cmdprop["fn"].__doc__
+                self.__print(" %-25s"%aliases)
+                doc = string.split(doc,"\n")
+                return_value[cmd]["description"] = doc[0]
+                self.__print(doc[0])
+                self.__print("\n")
                 
             self.__print("\n")
         else:
@@ -1562,13 +1576,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-
-
-
-
-
-
-
-
-
-

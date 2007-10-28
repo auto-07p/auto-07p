@@ -24,6 +24,12 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         return line
 
     def demofile(self,name):
+        """Execute an AUTO CLUI script, line by line (demo mode).
+
+    Type demofile('xxx.auto') to step through the script xxx.auto, which
+    will proceed each time you press Enter.
+
+Aliases: demofile dmf"""
         lines = open(name,"r")
         lines = lines.readlines()
         runline = ''
@@ -38,13 +44,35 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
             if not self.runsource(runline):
                 runline = ''
 
+    def dmf(self,name):
+        """Execute an AUTO CLUI script, line by line (demo mode).
+
+    Type dmf('xxx.auto') to step through the script xxx.auto, which
+    will proceed each time you press Enter.
+
+Aliases: demofile dmf"""
+        self.demofile(name)
+
     def execfile(self,name):
+        """Execute an AUTO CLUI script.
+
+    Type execfile('xxx.auto') to run the script xxx.auto.
+
+Aliases: execfile ex"""
         lines = open(name,"r")
         lines = lines.readlines()
         source = ""
         for line in lines:
             source = source + self.processShorthand(line[:-1]) +"\n"
         self.runsource(source,name,"exec")
+
+    def ex(self,name):
+        """Execute an AUTO CLUI script.
+
+    Type ex('xxx.auto') to run the script xxx.auto.
+
+Aliases: execfile ex"""
+        self.execfile(name)
 
     def help(self,*args,**kwds):
         if "oldhelp" in self.__dict__.keys():
@@ -81,9 +109,51 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
             
         return pre,string.strip(iFun),theRest
 
+    def _ofind(self, oname):
+        """Find an object in the available namespaces.
+
+        self._ofind(oname) -> obj
+        """
+        #shamelessly stolen from IPython        
+        oname = string.strip(oname)
+        # initialize results to 'null'
+        found = 0; obj = None;
+
+        # Look for the given name by splitting it in parts.  If the head is
+        # found, then we look for all the remaining parts as members, and only
+        # declare success if we can find them all.
+        oname_parts = string.split(oname,'.')
+        oname_head, oname_rest = oname_parts[0],oname_parts[1:]
+        # Namespaces to search in:
+        for ns in [ self.locals, __builtins__.__dict__ ]:
+            try:
+                obj = ns[oname_head]
+            except KeyError:
+                continue
+            else:
+                for part in oname_rest:
+                    try:
+                        obj = getattr(obj,part)
+                    except:
+                        # Blanket except b/c some badly implemented objects
+                        # allow __getattr__ to raise exceptions other than
+                        # AttributeError, which then crashes IPython.
+                        break
+                else:
+                    # If we finish the for loop (no break), we got all members
+                    found = 1
+                    break  # namespace loop
+
+        # Last try: special-case some literals like '', [], {}, etc:
+        if not found and oname_head in ["''",'""','[]','{}','()']:
+            obj = eval(oname_head)
+            
+        return obj
+    
+
     def handle_auto(self, pre, iFun, theRest):
         """Handle lines which can be auto-executed, quoting if requested."""
-        #shamelessly stolen from IPython
+        #shamelessly stolen from IPython, too
         if pre == ',':
             # Auto-quote splitting on whitespace
             newcmd = '%s("%s")' % (iFun,string.join(string.split(theRest),'", "'))
@@ -118,7 +188,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         lst = string.split(line)
         spaces = re.match(" *",line)
 
-        shortCommands = ["ls","cd","help","cat","man"]
+        shortCommands = ["ls","cd","cat"]
         shortUnixCommands = ["clear","less","mkdir","rmdir","cp","mv","rm"]
 
         if len(lst) > 0:
@@ -136,13 +206,12 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
                     command = spaces.group() + lst[0] + "()"
                 return command
             elif (not(theRest and theRest[0] in '!=()') and
-                  cmd in self.locals.keys() and
-                  callable(self.locals[cmd]) and
                   (pre == ',' or pre == ';' or pre == '/' or
                   not self.re_exclude_auto.match(theRest))):
-                return self.handle_auto(pre,cmd,theRest)
-            else:
-                return line
+                obj = self._ofind(cmd)
+                if not obj is None and callable(obj):
+                    return self.handle_auto(pre,cmd,theRest)
+            return line
         return line
 
 def test():
@@ -247,7 +316,9 @@ if __name__ == "__main__":
 
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions())
     __builtins__.execfile = runner.execfile
+    __builtins__.ex = runner.ex
     __builtins__.demofile = runner.demofile
+    __builtins__.dmf = runner.dmf
     try:
         runner.oldhelp = __builtins__.help
     except:
