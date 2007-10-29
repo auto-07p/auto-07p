@@ -2181,8 +2181,17 @@ commandSpecialPointLabels & splabs & Return special labels.\\ \hline
 commandTriple & tr triple  & Triple a solution.\\ \hline 
 commandUserData & us userdata  & Covert user-supplied data files.\\ \hline 
 commandWait & wait  & Wait for the user to enter a key.\\ \hline 
+execfile & ex  & Execute an AUTO CLUI script.\\ \hline
+demofile & dmf & Execute an AUTO CLUI script, line by line (demo
+mode). \\ \hline
 \end{longtable}
-
+For convenience, you can use ``!'' to run a shell command. Moreover
+the common shell commands \commandf{clear}, \commandf{less},
+\commandf{mkdir}, \commandf{rmdir},
+\commandf{cp}, \commandf{mv}, \commandf{rm}, \commandf{ls},
+\commandf{cd}, and \commandf{cat}, and all AUTO Unix commands that are described
+in Chapter~\ref{sec:command_mode} and start with an ``@''-sign can be
+entered directly, without the ``!''.
 \pagebreak
 \section{ Reference }  \label{sec:clui reference}
 \subsection{commandAppend} \label{sec:clui_ref_commandAppend}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
