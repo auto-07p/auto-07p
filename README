@@ -4,30 +4,9 @@ in particular need more work.
 Please have a look at the manual, doc/auto.pdf,
 in particular Chapter 1, for information about
 requirements and differences with earlier versions
-of AUTO.
+of AUTO. See the file CHANGELOG for changes between
+sub-versions of AUTO-07p.
 
-With respect to the previous sub-version 0.3:
-* AUTO-07p can now continue branch points in two parameters
-  (Fabio Dercole)
-* Includes all demos that are documented in the manual.
-* The manual documents a new tutorial demo ('cusp').
-* The run() and load() commands in the Python CLUI have
-  been extended to directly specify AUTO constants, save
-  and append files as parameters.
-* A new splabs() Python CLUI function directly obtains
-  special labels from a solution file (e.g., all Hopf
-  bifurcation labels).
-* You can now run the @ command (@dm, @R, etc.) directly in
-  the Python CLUI without having to escape them with a !.
-* The number of parameters printed in the bifurcation
-  diagram files is now given by NICP; the parameters beyond
-  the 7th are displayed as well.
-* A higher precision for numbers is used in the bifurcation
-  diagram files. This helps when plotting small sections
-  of bifurcation diagrams.
-* AUTO now allows free-form Fortran for equation files
-  (.f90 extension).
-* Parallelisation has improved.
 ---------
 For installation instructions see the AUTO manual.  
 The LaTeX source file of the manual is in doc/auto.tex. 

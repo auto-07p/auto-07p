@@ -1,0 +1,79 @@
+0.5:
+* PLAUT04 can now also use the SoQt and Qt libraries. That
+  makes it easier to compile on various Linux distributions,
+  and makes it portable to native Windows and MacOS X without
+  an X server. Using SoQt also avoids some issues with LessTif,
+  in particular on 64-bit systems where LessTif is unstable.
+* PLAUT04 can now show label numbers in bifurcation diagrams.
+  plaut04.rc option: "Show Label Numbers"
+* The coloring method options in plaut04.rc can now be set
+  seperately for solution displays and bifurcation diagrams:
+  "Coloring Method Solution" and "Coloring Method Bifurcation".
+* You can also set the "Label Sphere Radius" in plaut04.rc.
+* The r3b (now with extensive manifold calculations), pp2, pp3,
+  lor and bvp demos were updated.
+* Some issues with g95 and Sun's Fortran compiler were solved.
+* Likewise for the configure script.
+* Repaired MPI regression in 0.4.
+* Add support for ipython (auto -i) and also auto-quotes
+  and auto-parentheses in the normal auto Python CLUI.
+* Added some often used shell commands to the Python CLUI:
+  "clear","less","mkdir","rmdir","cp","mv","rm".
+* Added ex and dmf aliases for execfile and demofile to the
+  Python CLUI.
+
+0.4:
+* AUTO-07p can now continue branch points in two parameters
+  (Fabio Dercole)
+* Includes all demos that are documented in the manual.
+* The manual documents a new tutorial demo ('cusp').
+* The run() and load() commands in the Python CLUI have
+  been extended to directly specify AUTO constants, save
+  and append files as parameters.
+* A new splabs() Python CLUI function directly obtains
+  special labels from a solution file (e.g., all Hopf
+  bifurcation labels).
+* You can now run the @ command (@dm, @R, etc.) directly in
+  the Python CLUI without having to escape them with a !.
+* The number of parameters printed in the bifurcation
+  diagram files is now given by NICP; the parameters beyond
+  the 7th are displayed as well.
+* A higher precision for numbers is used in the bifurcation
+  diagram files. This helps when plotting small sections
+  of bifurcation diagrams.
+* AUTO now allows free-form Fortran for equation files
+  (.f90 extension).
+* Parallelisation has improved.
+
+0.3:
+* The configure script is fixed for certain GNU Fortran
+  configurations on Windows and has improved detection
+  for the Coin and SoXt libraries for PLAUT04.
+* Some PLAUT04 crashes were fixed.
+* The MPI parallellization was improved so that most of
+  the big data arrays that form the Jacobian matrix are
+  split between machines.
+  The distribution of memory enables AUTO to work with
+  much larger systems.
+* Both OpenMP and MPI parallellizations were improved
+  so that the setting up the RHS, copying to a smaller
+  system and inflation of parameter routines are done
+  in parallel.
+* An OpenMP parallellization issue with integral conditions,
+  and several other small bugs were fixed.
+* A few new demos and helper utilities were added.
+* The 'total time' reported by AUTO is now the total wall
+  clock time for both OpenMP and MPI.
+
+0.2:
+* The configure script is fixed if PLAUT04 dependencies
+  are not available and is more robust.
+* MPI support is ported from AUTO2000.
+* A bug is fixed involving the continuation of folds with
+  more than two parameters.
+* Automake is no longer used for PLAUT04, using just autoconf
+  and Makefile.in files for the whole project instead.
+* Various performance improvements have been made.
+
+0.1:
+* This is a preliminary version of AUTO-07p.
