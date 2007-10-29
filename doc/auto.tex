@@ -827,6 +827,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{exa:clui_starting}
  \end{figure}
 
+ If you have IPython installed (\url{http://ipython.scipy.org}), then
+ you can get a friendlier interface using the command
+ \commandf{auto -i}, enabling TAB completion, persistent command-line
+ history and other features.
+
  In addition to the examples in the following sections there are
  several example scripts which can be found in
  \filef{auto/07p/demos/python} and are listed in
@@ -1441,6 +1446,48 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  }
  \label{exa:clui_complex_fourth}
  \end{figure}
+
+ Even shorter forms are possible to save you typing using features
+ borrowed from ipython, both in \commandf{auto -i} and in plain
+ \commandf{auto}. Those forms use auto-parentheses and auto-quotes:
+ for a command that does not assign to a variable you can skip the
+ parentheses, and by using a ``,'' on the first character of a line
+ you force all parameters to be quoted. For example, you can just
+ type \commandf{pl} to plot the last computation.
+ Beware that these extra short forms are only possible in
+ normal auto scripts and at the AUTO CLUI prompt, and only if they
+ start in the first column, but not in the
+ ``expert'' scripts described in the next section.
+ The even shorter version of the complex \AUTO
+ CLUI script is given in Figure~\ref{exa:clui_complex_fifth}.
+ It should be clear that these super-short forms save you typing
+ at the command prompt but do not help readability in scripts.
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ ,copydemo bvp
+
+ #run bvp.f with c.bvp (first parameter), save in {b,s}.bvp (second parameter)
+ ,r bvp bvp
+ ld s='bvp', NTST=50
+ for l in splabs('bvp','BP'):
+     # Compute forward
+     r(IRS=l,ISW=-1,ap='bvp')
+     # Compute back
+     r(DS='-',ap='bvp')
+
+ ,pl bvp
+ wait
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Another complex example of a \AUTO CLUI script.]
+ {This Figure shows an even shorter version of the more complex \AUTO CLUI
+   script given above.
+ The source for this script can be found in \filef{\$AUTO\_DIR/demos/python/demo4.auto}.
+ }
+ \label{exa:clui_complex_fifth}
+ \end{figure}
+
 
 
  \section{ Extending the \AUTO CLUI } \label{sec:clui_extending}
