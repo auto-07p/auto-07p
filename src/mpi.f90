@@ -39,9 +39,8 @@ subroutine mpiini(iap)
 contains
 
   subroutine mpi_worker()
+    use auto_constants
     implicit none
-    integer NIAP,NRAP,NPARX,NBIFX
-    include 'auto.h'
     include 'mpif.h'
 
     integer :: message_type, ierr
@@ -61,9 +60,12 @@ contains
        ! don't know how to pass function pointers
        ! through MPI in a possibly heterogeneous 
        ! environment :-)
-       iap(2)  = funi_icni_params(1) ! ips
-       iap(3)  = funi_icni_params(2) ! irs
-       iap(10) = funi_icni_params(3) ! isw
+       ips     = funi_icni_params(1)
+       iap(2)  = ips
+       irs     = funi_icni_params(2)
+       iap(3)  = irs
+       isw     = funi_icni_params(3)
+       iap(10) = isw
        iap(27) = funi_icni_params(4) ! itp
        iap(29) = funi_icni_params(5) ! nfpr
        iap(38) = 1                   ! iam
