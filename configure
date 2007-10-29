@@ -1264,7 +1264,7 @@ Optional Packages:
   --with-x                use the X Window System
 
 Some influential environment variables:
-  FC          Choose a Fortran (>=90) compiler other then the default
+  FC          Choose a Fortran (>=90) compiler other than the default
   MPIFC       Command to use to compile MPI programs (default: mpif90)
   CC          C compiler command
   CFLAGS      C compiler flags
@@ -7208,8 +7208,8 @@ fi
 		SOXT_LDFLAGS="`soqt-config --ldflags`"
 		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
 	    fi
-            tmp_LIBS=$LIBS
-            LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
+	    tmp_LIBS=$LIBS
+	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
 	    tmp_LDFLAGS=$LDFLAGS
 	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
 	    tmp_CPPFLAGS=$CPPFLAGS

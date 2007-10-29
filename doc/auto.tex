@@ -52,7 +52,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{August 2007}
+\date{October 2007}
 \maketitle
 \tableofcontents
 %
@@ -157,6 +157,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 \end{footnotesize}
 
+Note that the three-dimensional plotting tool PLAUT04 optionally
+depends on libraries that are covered by the GNU General Public
+License (GPL), in particular, Coin, SoQt and Qt. In that case the
+PLAUT04 binaries are also covered by the GPL.
+
 %==============================================================================
 %==============================================================================
 \chapter{Installing {\cal AUTO}.} \label{ch:Installing_AUTO}
@@ -166,15 +171,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
 %directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
-The {\cal AUTO} file \filef{auto07p-0.4.tar.gz} is
+The {\cal AUTO} file \filef{auto07p-0.5.tar.gz} is
 available via \url{http://indy.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
 Below it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
-and that the file \filef{auto07p-0.4.tar.gz} is in your main directory.
+and that the file \filef{auto07p-0.5.tar.gz} is in your main directory.
 
 While in your main directory, enter the commands
-\commandf{gunzip auto07p-0.4.tar.gz},
-followed by \commandf{tar xvfo auto07p-0.4.tar}.
+\commandf{gunzip auto07p-0.5.tar.gz},
+followed by \commandf{tar xvfo auto07p-0.5.tar}.
 This will result in a directory \filef{auto}, 
 with one subdirectory, \filef{auto/07p}. 
 Type \commandf{cd auto/07p}
@@ -323,7 +328,7 @@ The {\tt sh} command put you in a home directory, where you can unpack
 Make sure that the {\tt gfortran} and {\tt python} binaries
 are in your {\tt PATH}, and that their directories are at the front of it.
 You can do this, for instance, using the shell command
-\commandf{export PATH="/c/Python24:/c/Program Files/gfortran/bin:\$PATH" }.
+\commandf{export PATH="/c/Python25:/bin:/c/Program Files/gfortran/bin:\$PATH" }.
 You can also inspect, edit and then source the file
 \filef{auto/07p/cmds/auto.env.sh} to achieve this.
 \item
@@ -338,8 +343,10 @@ at least the default installation, \filef{gcc}, \filef{gfortran},
 is not as reponsive in Cygwin Python as in the above native setup, however.
 
 In both cases, an X server is not necessary, unless you wish to try to run
-PLAUT or the GUI. With some effort it may be possible to use PLAUT04
-on Windows (without an X server) using Coin, SoQt, and Qt.
+PLAUT or the GUI. With some effort it is possible to compile PLAUT04
+on Windows (without an X server) using Coin, SoQt, and Qt. You can
+also find precompiled PLAUT04 binaries at
+\url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
 There are size restrictions in the file {\tt auto/07p/include/auto.h}
@@ -377,7 +384,7 @@ A free Fortran 95 compiler, GFortran, is shipped with most recent
 Linux distributions, or can be obtained at
 \url{http://gcc.gnu.org/wiki/GFortran}, which contains binaries for
 Linux, Mac OS X and Windows. \AUTO was also tested with the free
-compiler {\tt g95}, and there exist various, untested, commercial Fortran
+compiler {\tt g95}, and there exist various commercial Fortran
 9x compilers as well.
 
 The {\cal AUTO} input files are now called 
@@ -1144,18 +1151,19 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Copying demo ab ... done
  Runner configured
  Runner configured
- gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c ab.c
- gcc -O ab.o -o ab.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread 
- -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
+ gfortran -fopenmp -O -c ab.f -o ab.o
+ gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
  Starting ab ...
 
-    1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
-    1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
-    1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
-    1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
-    1    92  EP   5  1.512417E-01  4.369748E+00  9.155894E-01  4.272750E+00
+   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
+    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+    1    31  UZ    2   1.40000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    36  UZ    3   1.50000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    41  UZ    4   1.60000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    51  EP    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
-  Total Time    8.740E-02
+  Total Time    0.771E-01
  ab ... done
  > 
  \end{boxedverbatim}

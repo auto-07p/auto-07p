@@ -2,7 +2,7 @@ AC_INIT(plaut04/src/gmain.c++)
 
 AC_CONFIG_HEADERS(include/config.h)
 
-AC_ARG_VAR(FC, [Choose a Fortran (>=90) compiler other then the default])
+AC_ARG_VAR(FC, [Choose a Fortran (>=90) compiler other than the default])
 AC_ARG_VAR(MPIFC, [Command to use to compile MPI programs (default:  mpif90)])
 
 AC_ARG_WITH(optimization-flags,
