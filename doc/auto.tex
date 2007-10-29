@@ -1839,7 +1839,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  label \commandf{57} may be accessed using the command \commandf{data(57)}.
 
  \section{Exporting output data for use by Python or external
-   visualization tools.}
+   visualization tools.} \label{sec:clui_exporting}
 
  The bifurcation and solution file classes have two methods that are 
  particularily useful for creating data which can be used in other
@@ -4598,7 +4598,7 @@ changes to perform the calculation.
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Selected runs of demo \filef{ ab}.}
+\caption{Selected runs of demo \filef{ cusp}.}
 \label{tbl:demo_cusp_4a}
 \end{center}
 \end{table}
@@ -4680,7 +4680,8 @@ spin the bifurcation diagram around and zoom in using the mouse.
 \section{ Exporting the Results for different plotters.}
 It is often useful to use other plotting programs or general-purpose
 tools to work with AUTO's data. The ``writeRawFilename'' method (see
-also the CLUI chapter) can be used for this. In this tutorial we can for
+also Section~\ref{sec:clui_exporting}) can be used for this.
+In this tutorial we can for
 instance export the bifurcation diagram using\\
 \commandf{ dg('cusp').writeRawFilename('cusp.dat') }, and then use
 the command \commandf{ plot 'cusp.dat' using 1:4 wi li } to plot
@@ -5164,9 +5165,13 @@ for solution in data:
 This demo illustrates the computation of families of stationary
 solutions, including bifurcating stationary families, as well as
 the detection of a Hopf bifurcation.
-In the second run the family of periodic solutions that emanates
-from the Hopf bifurcation is computed. This family terminates in
-a heteroclinic orbit.
+The first run computes the families of stationary solutions, bounded
+by $0\le p_1\le 1$ and $u_1 \ge -0.25$. Then the script \filef{pp2.auto}
+scans the first run for Hopf bifurcations, finds one, and computes
+the family of periodic solutions that emanates
+from the Hopf bifurcation. This family terminates in
+a heteroclinic orbit. The continuation is configured to stop if the period
+\parf{PAR(11)}$=36$, when the heteroclinic orbit is very close.
 
 The equations, which model a predator-prey system with harvesting, are
 \begin{equation} \begin{array}{cl}
@@ -5176,6 +5181,8 @@ Here $p_1$ is the principal continuation parameter,
 while $p_2=p_4=3$ and $p_3=5$, are fixed
 The use of {\cal PLAUT} is also illustrated. The saved plots are shown
 in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
+You can obtain similar figures using the Python CLUI's plot
+command and using PLAUT04.
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
@@ -5188,12 +5195,8 @@ in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
   \commandf{ @dm pp2} & copy the demo files to the work directory \\ 
 \hline
 %============================================================================== 
-  \commandf{ @R pp2 1} & 1st run, using constants-file {\tt c.pp2.1}; stationary solutions \\ 
-  \commandf{ @sv pp2} & save output-files as {\tt b.pp2, s.pp2, d.pp2} \\ 
-\hline
-%============================================================================== 
-  \commandf{ @R pp2 2} & 2nd run, using constants-file {\tt c.pp2.2}; periodic solutions \\ 
-  \commandf{ @ap pp2} & append output-files to {\tt b.pp2, s.pp2, d.pp2} \\ 
+  \commandf{ auto pp2.auto } or & Run the script pp2.auto\\
+  \commandf{ execfile('pp2.auto') } & \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -5201,7 +5204,6 @@ in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
 \label{tbl:demo_pp2_1}
 \end{center}
 \end{table}
-
 
 \begin{table}[htbp]
 \begin{center}
@@ -5527,6 +5529,12 @@ The free parameter is $p_1$, while the other parameters are fixed,
 namely $p_2=0.25$, $p_3=0.5$, $p_4=4$, $p_5=3$, and $p_6=5$.
 However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points.
 
+The script in \filef{pp3.auto} first computes the bifurcation diagram
+involving the stationary solutions. It finds four Hopf bifurcations.
+A periodic orbit family is computed from each of these four Hopf
+bifurcations. Then the second Hopf bifurcation from the first run
+is continued in two parameters, also producing the other locus.
+
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
@@ -5535,25 +5543,13 @@ However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points
 \hline
 %==============================================================================
   \commandf{ mkdir pp3} & create an empty work directory \\ 
-  \commandf{ cd pp3} & change directory \\
-  \commandf{ @dm pp3} & copy the demo files to the work directory \\
+  \commandf{ cd pp3} & change directory \\ 
+  \commandf{ @dm pp3} & copy the demo files to the work directory \\ 
 \hline
+%============================================================================== 
+  \commandf{ auto pp3.auto } or & Run the script pp3.auto\\
+  \commandf{ execfile('pp3.auto') } & \\
 %==============================================================================
-  \commandf{ @R pp3 1} & 1st run; stationary solutions with 4 Hopf bifurcations \\ 
-  \commandf{ @sv pp3} & save output-files as {\tt b.pp3, s.pp3, d.pp3} \\ 
-\hline
-%==============================================================================
-  \commandf{ @R pp3 2} & compute a family of periodic solutions \\ 
-  \commandf{ @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
-\hline
-%==============================================================================
-  \commandf{ @R pp3 3} & compute another family of periodic solutions \\ 
-  \commandf{ @ap pp3} & append output-files to {\tt b.pp3, s.pp3, d.pp3} \\ 
-\hline
-%==============================================================================
-  \commandf{ @R pp3 4} & compute loci of Hopf points \\ 
-  \commandf{ @rl} & relabel the labeled solutions from this run \\ 
-  \commandf{ @sv hb} & save the output-files as {\tt b.hb, s.hb, d.pp3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5586,14 +5582,14 @@ However, both $p_1$ and $p_4$ are free in the computation of loci of Hopf points
 \hline
   \commandf{ d2}  & set defaults\\ 
   \commandf{ 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  \commandf{ 13 15 17 19 21 23 25 27}  & select these orbits from {\tt s.pp3}\\ 
+  \commandf{ 13 14 15 }  & select these orbits from {\tt s.pp3}\\ 
   \commandf{ d}  & default orbit display; $u_1$ versus time\\
 \hline
   \commandf{ 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
   \commandf{ d}  & display the orbits; $u_2$ versus $u_1$\\
 \hline
   \commandf{ 2d}  & enter 2D mode, for plotting labeled solutions\\ 
-  \commandf{ 28 30 32 34 36 38 40 42 44}  & select these orbits\\ 
+  \commandf{ 16 17 18 19}  & select these orbits\\ 
   \commandf{ d}  & default orbit display; $u_1$ versus time\\
 \hline
   \commandf{ 2 3}  & select columns 2 and 3 in {\tt s.pp3} \\
@@ -6060,14 +6056,24 @@ continued in two equation parameters.
 \section{ bvp : A Nonlinear ODE Eigenvalue Problem.} \label{sec:Demos_bvp}
 This demo illustrates the location of eigenvalues of a nonlinear ODE
 boundary value problem as bifurcations from the trivial solution family.
-The family of solutions that bifurcates at the first eigenvalue
-is computed in both directions.
+The families of solutions that bifurcate at all five computed
+eigenvalues, that is, the eigenfunctions, are computed in both directions.
 The equations are
 \begin{equation} \begin{array}{cl}
  u_1 ' &= u_2  ,  \\
   u_2 ' &=-(p_1 \pi)^{2}u_1 + u_1^{2} ,\end{array} \end{equation}
 with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$~~~
-
+We add the integral constraint
+ $$ \int_0^{1} u_1(t) dt - p_2 = 0. $$
+Then $p_2$ is simply the average of the first solution component.
+The integral constaint gives a measure: the exact same continuations
+could be done without any integral conditions in just the
+one parameter $p_1$,
+however $p_2$ gives us extra possibilities to plot and stop at
+desirable solutions.
+The values that \filef{bvp.auto} sets in \parf{UZR} make sure that
+solutions are given for $p_2=\pm 3,\pm 6,\pm 9$, and the continuation
+stops at $p_2=\pm 9$, and also makes sure that $0 \le p_1 \le 5.5$.
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
@@ -6075,21 +6081,13 @@ with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$~~~
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{ ! mkdir bvp} & create an empty work directory \\ 
+  \commandf{ mkdir bvp} & create an empty work directory \\ 
   \commandf{ cd bvp} & change directory \\
-  \commandf{ demo('bvp')} & copy the demo files to the work directory \\
+  \commandf{ @dm bvp } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ run(c='bvp.1')} &  compute the trivial solution family and locate eigenvalues \\ 
-  \commandf{ sv('bvp')} & save output-files as \filef{ b.bvp, s.bvp, d.bvp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='bvp.2',s='bvp')} &  \parbox[t]{3in}{compute the first bifurcating family.  Constants changed : \parf{ IRS, ISW, NPR, DSMAX} \vspace{0.2cm}}\\ 
-  \commandf{ ap('bvp')} & append output-files to \filef{ b.bvp, s.bvp, d.bvp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='bvp.3',s='bvp')} &  \parbox[t]{3in}{compute the first bifurcating family in opposite direction.  Constants changed : \parf{ DS} \vspace{0.2cm}}\\ 
-  \commandf{ ap('bvp')} & append output-files to \filef{ b.bvp, s.bvp, d.bvp} \\ 
+  \commandf{ auto bvp.auto } or & Run the script bvp.auto\\
+  \commandf{ execfile('bvp.auto') } & \\
 \hline
 %==============================================================================
 \end{tabular}
