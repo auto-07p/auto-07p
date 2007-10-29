@@ -4847,7 +4847,7 @@ C-----------------------------------------------------------------------
         INTEGER XAXIS,YAXIS,ZAXIS,ENLAB(1999),CODE,ERROR,SLAB(1999)
         INTEGER CLAB(1999),CNUM,CERROR,NVX(2),SPLPT
         INTEGER PARRY(1999),NAX(1999),DAX(1999),CTIT3C(3)
-        REAL TRAN(4,4),MIMA(3,2),VIEW(3),VIEWW(3),ROWIND(4,4)
+        REAL TRAN(4,4),MIMA(3,2),VIEW(3),ROWIND(4,4)
         REAL MINQX,MINQY,MINQZ,MAXQX,MAXQY,MAXQZ
         REAL CMIMA(3,2),CVIEW(3),INFO(13,3)
         REAL IX,IY,MINSX,MAXSX,MINSY,MAXSY
@@ -5289,7 +5289,7 @@ C---                                    *CHANGE COORDINATES
             CALL GAXB3D(MIMA,ERROR)
             IF (ERROR.NE.0) GO TO 1
           END IF
-          CALL ININFO(INFO,VIEWW,MIMA)
+          CALL ININFO(INFO,VIEW,MIMA)
           CALL DFCOOR(TRAN,INFO,VIEW)
           CALL IDENTI(ROWIND)
           DAINT = 50.0
