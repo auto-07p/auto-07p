@@ -62,7 +62,7 @@ C
 
       CONTAINS
 
-      SUBROUTINE FLOWKM (NDIM, C0, C1, IID, RWORK, EV)
+      SUBROUTINE FLOWKM (NDIM, P0, P1, IID, EV)
 C
 C  Subroutine to compute Floquet multipliers via the "deflated circuit 
 C  pencil" method. This routine is called by the AUTO routine FNSPBV
@@ -70,7 +70,7 @@ C
 C  Parameter declarations:
 C
       INTEGER           NDIM, IID
-      DOUBLE PRECISION  C0(NDIM, *), C1(NDIM, *), RWORK(NDIM, *)
+      DOUBLE PRECISION  P0(NDIM, NDIM), P1(NDIM, NDIM)
       COMPLEX(KIND(1.0D0)) EV(*)
 C
 C  Local declarations:
@@ -83,7 +83,7 @@ C
       PARAMETER         (LEFT = 1, RIGHT = 2)
 C
       INTEGER           I, J, NDIMM1
-      DOUBLE PRECISION  X(:),BETA,V(:),
+      DOUBLE PRECISION  X(:),BETA,V(:),C0(:,:),C1(:,:),RWORK(:,:),
      &                  NRMC0X, NRMC1X, CONST
       LOGICAL           INFEV
 C
@@ -92,7 +92,7 @@ C
       INTEGER           SVDJOB, SVDINF
       DOUBLE PRECISION  SVDS(:), SVDE(:), SVDWRK(:),
      &                  SVDU(1,1), SVDV(:,:), SVDTOL
-      ALLOCATABLE       X,V,SVDS,SVDE,SVDWRK,SVDV
+      ALLOCATABLE       C0,C1,RWORK,X,V,SVDS,SVDE,SVDWRK,SVDV
 C  compute right singular vectors only
       PARAMETER         (SVDTOL = 1.0D-16)
       PARAMETER         (SVDJOB = 1)
@@ -129,16 +129,14 @@ C  builtin F77 functions
 C
       INTRINSIC         MAX, ABS, CMPLX
 C
+      ALLOCATE(C0(NDIM,NDIM),C1(NDIM,NDIM),RWORK(NDIM,NDIM))
       ALLOCATE(SVDE(NDIM),SVDS(NDIM+1),SVDV(NDIM,NDIM),V(NDIM),X(NDIM))
       ALLOCATE(QZALFI(NDIM),QZBETA(NDIM),QZALFR(NDIM),SVDWRK(NDIM))
 C
 C Change sign of P1 so that we get the sign of the multipliers right.
 C
-      DO J = 1, NDIM
-        DO I = 1, NDIM
-          C1(I,J) = - C1(I,J)
-        ENDDO
-      ENDDO
+      C0=P0
+      C1=-P1
 C
 C  Print the undeflated circuit pencil (C0, C1).
 C
@@ -179,11 +177,7 @@ C  which the Householder routine would give.  This will permute the deflated
 C  circuit pencil, so that the part to be deflated is in the last column,
 C  not it the first column, as was shown in the paper.
 C
-      DO J = 1, NDIM
-          DO I = 1, NDIM
-              RWORK(I,J) = C0(I,J) - C1(I,J) 
-          ENDDO
-      ENDDO
+      RWORK = C0 - C1
 C
       CALL EZSVD ( RWORK, NDIM, NDIM, NDIM, SVDS, SVDE, SVDU, 1,
      &             SVDV, NDIM, SVDWRK, SVDJOB, SVDINF, SVDTOL )
@@ -296,7 +290,8 @@ C
 C
 C  Done!
 C
-      DEALLOCATE(X,V,SVDS,SVDE,SVDWRK,SVDV,QZALFR,QZALFI,QZBETA)
+      DEALLOCATE(C0,C1,RWORK,X,V,SVDS,SVDE,SVDWRK,SVDV,
+     *     QZALFR,QZALFI,QZBETA)
       RETURN
 C
 C  Format statements

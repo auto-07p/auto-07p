@@ -178,23 +178,9 @@ C        ** Wave train solutions to parabolic systems.
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
-       ELSE IF(IPS.EQ.4 .AND. ABS(ISW).LE.1) THEN
-C        ** Boundary value problems.
-         IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
-           IF(IRS.GT.0) THEN
-             CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNBV,
-     *        PVLSBV,THL,THU,IUZ,VUZ)
-           ELSE
-             CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNUB,
-     *        PVLSBV,THL,THU,IUZ,VUZ)
-           ENDIF
-         ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNPB,
-     *        PVLSBV,THL,THU,IUZ,VUZ)
-         ENDIF
-C
-       ELSE IF(IPS.EQ.7 .AND. ABS(ISW).LE.1) THEN
-C        ** Boundary value problems with Floquet multipliers.
+       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)<=1) THEN
+C        ** Boundary value problems. (4)
+C        ** Boundary value problems with Floquet multipliers. (7)
          IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
            IF(IRS.GT.0) THEN
              CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNBV,
@@ -752,11 +738,7 @@ C          **Variable period
            ICP(2)=11
          ENDIF
 C
-       ELSE IF(IPS.EQ.4 .AND. ABS(ISW).EQ.1  ) THEN
-C        ** Boundary value problems
-         NFPR=NBC+NINT-NDIM+1
-C
-       ELSE IF(IPS.EQ.7 .AND. ABS(ISW).EQ.1  ) THEN
+       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==1  ) THEN
 C        ** Boundary value problems
          NFPR=NBC+NINT-NDIM+1
 C
@@ -2407,7 +2389,7 @@ C
           IF(J==1.OR.J>N2+2)THEN
              I=1
              IF(J>1)I=J-N2-1
-             IF(ICP(I)==11.AND.IPS>0.AND.IPS/=4)THEN
+             IF(ICP(I)==11.AND.IPS>0.AND.IPS/=4.AND.IPS/=7)THEN
                 CALL WRITECOL(5,'PERIOD')
              ELSEIF(ICP(I)==10.AND.(IPS==5.OR.IPS==15))THEN
                 CALL WRITECOL(6,'FOPT')
@@ -5433,8 +5415,6 @@ C of the unit circle or when a real eigenvalues passes through -1.
       COMPLEX(KIND(1.0D0)) EV(*),ZTMP
       DIMENSION IAP(*),RAP(*),P0(*),P1(*)
 C Local
-      ALLOCATABLE WRK(:)
-C
       LOGICAL CHNG
 C
       EXTERNAL FUNI,BCNI,ICNI
@@ -5459,9 +5439,7 @@ C
        ENDIF
 C
 C  Compute the Floquet multipliers
-      ALLOCATE(WRK(NDIM**2))
-      CALL FLOWKM(NDIM, P0, P1, IID, WRK, EV)
-      DEALLOCATE(WRK)
+      CALL FLOWKM(NDIM, P0, P1, IID, EV)
 C
 C Find the multiplier closest to z=1.
 C
@@ -6061,14 +6039,15 @@ C
       DIMENSION P0(NDIM,*),P1(NDIM,*)
 C
       INTERFACE
-        SUBROUTINE SETPBV(IAP,RAP,DTM)
+        SUBROUTINE SETPBV(IAP,RAP,DTM,NDIM,P0,P1)
           INCLUDE 'auto.h'
           IMPLICIT DOUBLE PRECISION (A-H,O-Z)
           TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5)+1)
+          TARGET P0(NDIM,NDIM),P1(NDIM,NDIM)
         END SUBROUTINE SETPBV
       END INTERFACE
 C
-        CALL SETPBV(IAP,RAP,DTM)
+        CALL SETPBV(IAP,RAP,DTM,NDIM,P0,P1)
         NDM=IAP(23)
         CALL PVLS(NDM,UPS,PAR)
 C
@@ -6127,8 +6106,8 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      POINTER DTV(:),RAV(:),IAV(:)
-      COMMON /BLPV/ DTV,RAV,IAV
+      POINTER DTV(:),RAV(:),IAV(:),P0V(:,:),P1V(:,:)
+      COMMON /BLPV/ DTV,RAV,IAV,P0V,P1V
       TARGET IAP(NIAP),RAP(NRAP)
 C
       IAV=>IAP
@@ -6138,18 +6117,21 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE SETPBV(IAP,RAP,DTM)
+      SUBROUTINE SETPBV(IAP,RAP,DTM,NDIM,P0,P1)
 C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      POINTER DTV(:),RAV(:),IAV(:)
-      COMMON /BLPV/ DTV,RAV,IAV
+      POINTER DTV(:),RAV(:),IAV(:),P0V(:,:),P1V(:,:)
+      COMMON /BLPV/ DTV,RAV,IAV,P0V,P1V
       TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5)+1)
+      TARGET P0(NDIM,NDIM),P1(NDIM,NDIM)
 C
       IAV=>IAP
       RAV=>RAP
       DTV=>DTM
+      P0V=>P0
+      P1V=>P1
 C
       RETURN
       END
@@ -6160,8 +6142,8 @@ C
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      POINTER DTV(:),RAV(:),IAV(:)
-      COMMON /BLPV/ DTV,RAV,IAV
+      POINTER DTV(:),RAV(:),IAV(:),P0V(:,:),P1V(:,:)
+      COMMON /BLPV/ DTV,RAV,IAV,P0V,P1V
       DIMENSION UPS(IAV(1)*IAV(6),*)
       CHARACTER*3 CODE
 C
@@ -6224,6 +6206,34 @@ C
         ENDIF
 C
       RETURN
+      END
+C
+C     ---------- -------
+      SUBROUTINE GETMDMX(NDIM1,P0,P1,NMM)
+      IMPLICIT NONE
+
+      DOUBLE PRECISION, INTENT(OUT) :: P0(NDIM1,NDIM1),P1(NDIM1,NDIM1)
+      INTEGER, INTENT(IN) :: NDIM1
+      LOGICAL, INTENT(OUT) :: NMM
+
+      DOUBLE PRECISION, POINTER :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
+      INTEGER, POINTER :: IAV(:)
+      COMMON /BLPV/ DTV,RAV,IAV,P0V,P1V
+
+      INTEGER NDIM,IPS,ISP,NTOT
+
+        NDIM=IAV(1)
+        IPS=IAV(2)
+        ISP=IAV(9)
+        NTOT=IAV(32)
+        NMM=.FALSE.
+        IF(NDIM==NDIM1.AND.NTOT>0.AND.ABS(ISP)>0.AND.
+     *       (IPS==2.OR.IPS==7.OR.IPS==12))THEN
+          P0=P0V
+          P1=P1V
+          NMM=.TRUE.
+        ENDIF
+
       END
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------

@@ -21,6 +21,8 @@
   "clear","less","mkdir","rmdir","cp","mv","rm".
 * Added ex and dmf aliases for execfile and demofile to the
   Python CLUI.
+* Added a GETMDMX(NDIM,P0,P1,NMM) routine to obtain the monodromy
+  matrix factorization in PVLS (adapted from Kazuyuki Yagasaki).
 
 0.4:
 * AUTO-07p can now continue branch points in two parameters
