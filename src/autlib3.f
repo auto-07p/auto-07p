@@ -18,10 +18,12 @@
       PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
       PUBLIC :: FNPE,ICPE   ! Time evolution (parabolic PDEs)
       PUBLIC :: FNPL,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
+      PUBLIC :: FNPBP,BCPBP,ICPBP,STPNPBP ! BP cont of periodic sol
       PUBLIC :: FNPD,BCPD,ICPD,STPNPD ! PD cont of periodic sol
       PUBLIC :: FNTR,BCTR,ICTR,STPNTR ! Torus cont of periodic sol
       PUBLIC :: FNPO,BCPO,ICPO,STPNPO ! Optimization of periodic sol
       PUBLIC :: FNBL,BCBL,ICBL,STPNBL ! Fold cont of BVPs
+      PUBLIC :: FNBBP,BCBBP,ICBBP,STPNBBP ! BP cont of BVPs
 
       PUBLIC :: FUNI,BCNI,ICNI ! Interface subroutines
 
@@ -191,7 +193,7 @@ C
       INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
-C Generates the equations for the 2-par continuation of folds.
+C Generates the equations for the 2-par continuation of BP.
 C
       DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
       DOUBLE PRECISION RAP(*),UOLD(*)
@@ -310,7 +312,7 @@ C
 C
       LOGICAL FOUND
 C
-C Generates starting data for the continuation of folds.
+C Generates starting data for the continuation of BP.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
@@ -2322,6 +2324,613 @@ C
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
+C   Subroutines for BP cont (Periodic Solutions) (by F. Dercole)
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C
+C     ---------- -----
+      SUBROUTINE FNPBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+      DIMENSION IAP(*)
+      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
+C
+       NDM=IAP(23)
+       NFPR=IAP(29)
+C
+C Generate the function.
+C
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       CALL FFPBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+C
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DFU,DFP)
+         RETURN
+       ENDIF
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
+C
+C Generate the Jacobian.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+       ENDDO
+C
+       EP=HMACH*(1+UMX)
+C
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U(J)
+           UU2(J)=U(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FFPBP(IAP,RAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFPBP(IAP,RAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         DO J=1,NDIM
+           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF (IJAC.EQ.1)THEN
+         DEALLOCATE(DFU,DFP,FF1)
+         RETURN
+       ENDIF
+C
+       DO I=1,NFPR
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FFPBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         DO J=1,NDIM
+           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
+         ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
+      ENDDO
+C
+      DEALLOCATE(DFU,DFP,FF1)
+      RETURN
+      END SUBROUTINE FNPBP
+C
+C     ---------- -----
+      SUBROUTINE FFPBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      DOUBLE PRECISION DUM(1),UPOLD(NDM)
+C
+       PERIOD=PAR(11)
+       ISW=IAP(10)
+C
+       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(IAP,RAP,NDM,UOLD,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+C
+       IF(ISW.GT.0) THEN
+C        ** restart 1 or 2
+         DO I=1,NDM
+           F(NDM+I)=0.d0
+           DO J=1,NDM
+             F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
+           ENDDO
+           F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(16))
+         ENDDO
+       ELSE
+C        ** start
+         DO I=1,NDM
+           F(NDM+I)=0.d0
+           F(2*NDM+I)=0.d0
+           F(3*NDM+I)=0.d0
+           DO J=1,NDM
+             F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
+             F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
+             F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
+           ENDDO
+           F(NDM+I)=PERIOD*(F(NDM+I)+DFDP(I,ICP(1))*PAR(12))
+           F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(14))
+           F(3*NDM+I)=PERIOD*(F(3*NDM+I)+UPOLD(I)*PAR(16))+
+     *       PAR(20)*U(NDM+I)+PAR(21)*U(2*NDM+I)
+           IF(ICP(4).EQ.11)THEN
+C            ** Variable period
+             F(NDM+I)=F(NDM+I)+F(I)*PAR(13)
+             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(15)
+           ELSE
+C            ** Fixed period
+             F(NDM+I)=F(NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(13)
+             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(15)
+           ENDIF
+         ENDDO
+       ENDIF
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NDM
+           F(I)=PERIOD*F(I)-PAR(18)*U(NDIM-NDM+I)
+         ENDDO
+       ELSE
+C        ** generic and restart
+         DO I=1,NDM
+           F(I)=PERIOD*F(I)
+         ENDDO
+       ENDIF
+C
+      RETURN
+      END SUBROUTINE FFPBP
+C
+C     ---------- -----
+      SUBROUTINE BCPBP(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
+C
+C Boundary conditions for continuing BP (Periodic solutions)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      POINTER NRTN(:)
+      COMMON /BLRTN/ NRTN,IRTN
+C
+      DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),FB(*),DBC(NBC,*)
+C
+       ISW=IAP(10)
+       NDM=IAP(23)
+C
+       DO I=1,NDIM
+         FB(I)=U0(I)-U1(I)
+       ENDDO
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NDM
+           FB(I)=FB(I)+PAR(18)*U0(NDIM-NDM+I)
+         ENDDO
+       ENDIF
+C
+C Rotations
+       IF(IRTN.NE.0)THEN
+         DO I=1,NDM
+           IF(NRTN(I).NE.0)FB(I)=FB(I)+PAR(19)*NRTN(I)
+         ENDDO
+       ENDIF
+C
+       IF(IJAC.EQ.0)RETURN
+C
+       NN=2*NDIM+NPARX
+       DO I=1,NBC
+         DO J=1,NN
+           DBC(I,J)=0.d0
+         ENDDO
+       ENDDO
+C
+       DO I=1,NDIM
+         DBC(I,I)=1
+         DBC(I,NDIM+I)=-1
+       ENDDO
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NDM
+           DBC(I,NDIM-NDM+I)=PAR(18)
+         ENDDO
+       ENDIF
+C
+       IF(IJAC.EQ.1)RETURN
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NDM
+           DBC(I,2*NDIM+18)=U0(NDIM-NDM+I)
+         ENDDO
+       ENDIF
+C
+      RETURN
+      END SUBROUTINE BCPBP
+C
+C     ---------- -----
+      SUBROUTINE ICPBP(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+     *  F,IJAC,DINT)
+C
+C Integral conditions for continuing BP (Periodic solutions)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
+      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
+C
+C Local
+      ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:)
+C
+       NFPR=IAP(29)
+C
+C Generate the function.
+C
+       CALL FIPBP(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
+C
+       IF(IJAC.EQ.0)RETURN
+C
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NINT),FF2(NINT))
+C
+C Generate the Jacobian.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+       ENDDO
+C
+       EP=HMACH*(1+UMX)
+C
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U(J)
+           UU2(J)=U(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FIPBP(IAP,RAP,NDIM,PAR,ICP,NINT,UU1,UOLD,UDOT,UPOLD,FF1)
+         CALL FIPBP(IAP,RAP,NDIM,PAR,ICP,NINT,UU2,UOLD,UDOT,UPOLD,FF2)
+         DO J=1,NINT
+           DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF1)
+         RETURN
+       ENDIF
+C
+       DO I=1,NFPR
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FIPBP(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
+         DO J=1,NINT
+           DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
+         ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
+       ENDDO
+C
+       DEALLOCATE(FF1)
+C
+      RETURN
+      END SUBROUTINE ICPBP
+C
+C     ---------- -----
+      SUBROUTINE FIPBP(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
+      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
+C
+C Local
+      ALLOCATABLE F(:),DFU(:,:),DFP(:,:)
+C
+       PERIOD=PAR(11)
+       ISW=IAP(10)
+       NDM=IAP(23)
+C
+       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPARX))
+       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+C
+       FI(1)=0.d0
+       FI(NINT)=PAR(16)**2-PAR(17)
+       DO I=1,NDM
+         FI(1)=FI(1)+(U(I)-UOLD(I))*UPOLD(I)
+         FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
+       ENDDO
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         FI(1)=FI(1)+PAR(18)*PAR(16)
+       ENDIF
+C
+       IF(ISW.GT.0) THEN
+C        ** restart 1 or 2
+         FI(2)=0.d0
+         FI(3)=0.d0
+         DO I=1,NDM
+           FI(2)=FI(2)-PERIOD*DFP(I,ICP(1))*U(NDM+I)
+           IF(ICP(4).EQ.11)THEN
+C            ** Variable period
+             FI(3)=FI(3)-F(I)*U(NDM+I)
+           ELSE
+C            ** Fixed period
+             FI(3)=FI(3)-PERIOD*DFP(I,ICP(2))*U(NDM+I)
+           ENDIF
+         ENDDO
+       ELSE
+C        ** start
+         FI(2)=0.d0
+         FI(3)=0.d0
+         FI(4)=PAR(12)**2+PAR(13)**2-1.d0
+         FI(5)=PAR(14)**2+PAR(15)**2-1.d0
+         FI(6)=PAR(12)*PAR(14)+PAR(13)*PAR(15)
+         FI(7)=FI(6)
+         FI(8)=PAR(20)*PAR(12)+PAR(21)*PAR(14)
+         FI(9)=PAR(20)*PAR(13)+PAR(21)*PAR(15)
+         DO I=1,NDM
+           FI(2)=FI(2)+U(NDM+I)*UPOLD(I)
+           FI(3)=FI(3)+U(2*NDM+I)*UPOLD(I)
+           FI(4)=FI(4)+U(NDM+I)*UOLD(NDM+I)
+           FI(5)=FI(5)+U(2*NDM+I)*UOLD(2*NDM+I)
+           FI(6)=FI(6)+U(NDM+I)*UOLD(2*NDM+I)
+           FI(7)=FI(7)+U(2*NDM+I)*UOLD(NDM+I)
+           FI(8)=FI(8)-PERIOD*DFP(I,ICP(1))*U(3*NDM+I)
+           IF(ICP(4).EQ.11)THEN
+C            ** Variable period
+             FI(9)=FI(9)-F(I)*U(3*NDM+I)
+           ELSE
+C            ** Fixed period
+             FI(9)=FI(9)-PERIOD*DFP(I,ICP(2))*U(3*NDM+I)
+           ENDIF
+         ENDDO
+       ENDIF
+C
+       DEALLOCATE(F,DFU,DFP)
+C
+      RETURN
+      END SUBROUTINE FIPBP
+C
+C     ---------- -------
+      SUBROUTINE STPNPBP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
+     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+C
+      USE SOLVEBV
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+C Generates starting data for the 2-parameter continuation of BP
+C on a branch of periodic solutions.
+C
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
+      DIMENSION TM(*),DTM(*),THL(*),THU(*)
+C Local
+      ALLOCATABLE DUPS(:,:),VPS(:,:),VDOTPS(:,:),RVDOT(:)
+      ALLOCATABLE THU1(:),THL1(:)
+      ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
+      ALLOCATABLE U(:),UPOLD(:)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      DOUBLE PRECISION DUM(1)
+C
+      LOGICAL FOUND
+C
+       NDIM=IAP(1)
+       IRS=IAP(3)
+       ISW=IAP(10)
+       NDM=IAP(23)
+       NFPR=IAP(29)
+C
+       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       READ(3,*)IBR,NTOTRS,ITPRS,IRS,NFPR1,ISWRS,NTPLRS,NARS
+       BACKSPACE 3
+       NDIM3=NARS-1
+C
+       IF(NDIM.EQ.NDIM3) THEN
+C        ** restart 2
+         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
+     *     NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+         RETURN
+       ENDIF
+C
+       NRSP1=NTSR+1
+C
+       IF(ISW.LT.0) THEN
+C
+C Start
+C
+C        ** allocation
+         ALLOCATE(DUPS(NDX,NRSP1),VDOTPS(NDX,NRSP1),RVDOT(2))
+         ALLOCATE(THU1(NDM),THL1(NPARX))
+         ALLOCATE(FA(NDM*NCOLRS,NRSP1),FC(NDM+2))
+         ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
+         ALLOCATE(U(NDM),UPOLD(NDM))
+C
+C        ** redefine IAP(1)
+         IAP(1)=NDM
+C
+C        ** read the std branch
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
+     *     UDOTPS,TM,ITPRS,NDX)
+C
+         DO I=1,NTSR
+           DTM(I)=TM(I+1)-TM(I)
+         ENDDO
+C
+         RLCUR(1)=PAR(ICPRS(1))
+         RLCUR(2)=PAR(ICPRS(2))
+C
+C Compute the second null vector
+C
+C        ** redefine IAP, RAP
+         NTST=IAP(5)
+         NCOL=IAP(6)
+         IAP(5)=NTSR
+         IAP(6)=NCOLRS
+         NBC=IAP(12)
+         NINT=IAP(13)
+         IAP(12)=NDM
+         IAP(13)=1
+         IAP(29)=2
+         DET=RAP(14)
+C
+C        ** compute UPOLDP
+         DO J=1,NTSR
+           DO I=1,NCOLRS
+             DO K=1,NDM
+               U(K)=UPS((I-1)*NDM+K,J)
+             ENDDO
+             CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
+             DO K=1,NDM
+               UPOLDP((I-1)*NDM+K,J)=PAR(11)*UPOLD(K)
+             ENDDO
+           ENDDO
+         ENDDO
+         DO I=1,NDM
+           U(I)=UPS(I,NRSP1)
+         ENDDO
+         CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
+         DO I=1,NDM
+           UPOLDP(I,NRSP1)=PAR(11)*UPOLD(I)
+         ENDDO
+C
+C        ** unit weights
+         DO I=1,NPARX
+           THL1(I)=1.d0
+         ENDDO
+         DO I=1,NDM
+           THU1(I)=1.d0
+         ENDDO
+C
+C        ** call SOLVBV
+         RDSZ=0.d0
+         NLLV=1
+         IFST=1
+         CALL SOLVBV(IFST,IAP,RAP,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV,
+     *     RLCUR,RLCUR,RLDOTRS,NDX,UPS,DUPS,UPS,UDOTPS,UPOLDP,DTM,
+     *     FA,FC,P0,P1,THL1,THU1)
+C
+         DO I=1,NDM
+           VDOTPS(I,NRSP1)=FC(I)
+         ENDDO
+         RVDOT(1)=FC(NDM+1)
+         RVDOT(2)=FC(NDM+2)
+C
+         DO J=1,NTSR
+           DO I=1,NCOLRS
+             DO K=1,NDM
+               VDOTPS((I-1)*NDM+K,J)=FA((I-1)*NDM+K,J)
+             ENDDO
+           ENDDO
+         ENDDO
+C
+C        ** normalization
+         CALL SCALEBP(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEBP(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
+C
+C        ** restore IAP, RAP
+         IAP(1)=NDIM
+         IAP(5)=NTST
+         IAP(6)=NCOL
+         IAP(12)=NBC
+         IAP(13)=NINT
+         IAP(29)=NFPR
+         RAP(14)=DET
+C
+C        ** init UPS,PAR
+         DO J=1,NTSR
+           DO I=NCOLRS,1,-1
+             DO K=1,NDM
+               UPS((I-1)*NDIM+K,J)=UPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+NDM+K,J)=UDOTPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+2*NDM+K,J)=VDOTPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+3*NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+2*NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+3*NDM+K,J)=0.d0
+             ENDDO
+           ENDDO
+         ENDDO
+         DO K=1,NDM
+           UPS(K+NDM,NRSP1)=UDOTPS(K,NRSP1)
+           UPS(K+2*NDM,NRSP1)=VDOTPS(K,NRSP1)
+           UPS(K+3*NDM,NRSP1)=0.d0
+           UDOTPS(K,NRSP1)=0.d0
+           UDOTPS(K+NDM,NRSP1)=0.d0
+           UDOTPS(K+2*NDM,NRSP1)=0.d0
+           UDOTPS(K+3*NDM,NRSP1)=0.d0
+         ENDDO
+C
+C        ** init q,r,psi^*3,a,b,c1,c1
+         PAR(12)=RLDOTRS(1)
+         PAR(13)=RLDOTRS(2)
+         PAR(14)=RVDOT(1)
+         PAR(15)=RVDOT(2)
+         PAR(16)=0.d0
+         PAR(17)=0.d0
+         PAR(18)=0.d0
+         PAR(20)=0.d0
+         PAR(21)=0.d0
+         RLDOT(1)=0.d0
+         RLDOT(2)=0.d0
+         IF(ICP(4).EQ.11)THEN
+C          ** Variable period
+           RLDOT(3)=1.d0
+           RLDOT(4)=0.d0
+         ELSE
+C          ** Fixed period
+           RLDOT(3)=0.d0
+           RLDOT(4)=1.d0
+         ENDIF
+         RLDOT(5)=0.d0
+         RLDOT(6)=0.d0
+         RLDOT(7)=0.d0
+         RLDOT(8)=0.d0
+         RLDOT(9)=0.d0
+         RLDOT(10)=0.d0
+         RLDOT(11)=0.d0
+C
+         DEALLOCATE(DUPS,VDOTPS,RVDOT)
+         DEALLOCATE(THU1,THL1)
+         DEALLOCATE(FA,FC)
+         DEALLOCATE(P0,P1)
+         DEALLOCATE(U,UPOLD)
+C
+         NODIR=0
+C
+       ELSE
+C
+C Restart 1
+C
+         ALLOCATE(VPS(2*NDX,NRSP1),VDOTPS(2*NDX,NRSP1))
+C
+C        ** read the std branch
+         IAP(1)=2*NDIM
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
+     *     VDOTPS,TM,ITPRS,2*NDX)
+         IAP(1)=NDIM
+C
+         DO J=1,NTSR
+           DO I=1,NCOLRS
+             DO K=1,NDM
+               UPS((I-1)*NDIM+K,J)=VPS((I-1)*2*NDIM+K,J)
+               UPS((I-1)*NDIM+K+NDM,J)=VPS((I-1)*2*NDIM+K+3*NDM,J)
+             ENDDO
+           ENDDO
+         ENDDO
+         DO K=1,NDM
+           UPS(K,NRSP1)=VPS(K,NRSP1)
+           UPS(K+NDM,NRSP1)=VPS(K+3*NDM,NRSP1)
+         ENDDO
+C
+         DEALLOCATE(VPS,VDOTPS)
+C
+         NODIR=1
+C
+       ENDIF
+C
+       DO I=1,NFPR
+         RLCUR(I)=PAR(ICP(I))
+       ENDDO
+C
+      RETURN
+      END SUBROUTINE STPNPBP
+C
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
 C   Subroutines for the Continuation of Period Doubling Bifurcations
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -3640,6 +4249,879 @@ C
 C
       RETURN
       END SUBROUTINE STPNBL
+C
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C   Subroutines for BP cont (BVPs) (by F. Dercole)
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C
+C     ---------- -----
+      SUBROUTINE FNBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+C Generates the equations for the 2-parameter continuation
+C of BP (BVP).
+C
+      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
+C
+       NDM=IAP(23)
+       NFPR=IAP(29)
+C
+C Generate the function.
+C
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       CALL FFBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+C
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DFU,DFP)
+         RETURN
+       ENDIF
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
+C
+C Generate the Jacobian.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+       ENDDO
+C
+       EP=HMACH*(1+UMX)
+C
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U(J)
+           UU2(J)=U(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FFBBP(IAP,RAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFBBP(IAP,RAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         DO J=1,NDIM
+           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF (IJAC.EQ.1)THEN
+         DEALLOCATE(DFU,DFP,FF1)
+         RETURN
+       ENDIF
+C
+       DO I=1,NFPR
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FFBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         DO J=1,NDIM
+           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
+         ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
+       ENDDO
+C
+       DEALLOCATE(DFU,DFP,FF1)
+C
+      RETURN
+      END SUBROUTINE FNBBP
+C
+C     ---------- -----
+      SUBROUTINE FFBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+C
+      INCLUDE 'auto.h'
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
+      DOUBLE PRECISION RAP(*),UOLD(*)
+C Local
+      ALLOCATABLE FI(:),DINT(:,:)
+      DOUBLE PRECISION DUM(1),UPOLD(NDM)
+C
+       ISW=IAP(10)
+       NBC=IAP(12)
+       NINT=IAP(13)
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NBC0=(4*NBC-NINT-5*NDM+2)/15
+         NNT0=(-NBC+4*NINT+5*NDM-23)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ELSE
+C        ** generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ENDIF
+       NFPX=NBC0+NNT0-NDM+1
+C
+       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       IF(NNT0.GT.0) THEN
+         ALLOCATE(FI(NNT0),DINT(NNT0,NDM))
+         CALL FUNI(IAP,RAP,NDM,UOLD,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+         CALL ICNI(IAP,RAP,NDM,PAR,ICP,NNT0,U,UOLD,DUM,UPOLD,FI,1,DINT)
+       ENDIF
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NDM
+           F(I)=F(I)-PAR(11+3*NFPX+NDM+1)*U(NDIM-NDM+I)
+         ENDDO
+       ENDIF
+C
+       IF(ISW.GT.0) THEN
+C        ** restart 1 or 2
+         DO I=1,NDM
+           F(NDM+I)=0.d0
+           DO J=1,NDM
+             F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
+           ENDDO
+           DO J=1,NNT0
+             F(NDM+I)=F(NDM+I)+DINT(J,I)*PAR(11+2*NFPX+NBC0+J)
+           ENDDO
+         ENDDO
+       ELSE
+C        ** start
+         DO I=1,NDM
+           F(NDM+I)=0.d0
+           F(2*NDM+I)=0.d0
+           F(3*NDM+I)=PAR(11+3*NFPX+NDM+2)*U(NDM+I)+
+     *       PAR(11+3*NFPX+NDM+3)*U(2*NDM+I)
+           DO J=1,NDM
+             F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
+             F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
+             F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
+           ENDDO
+           DO J=1,NFPX
+             F(NDM+I)=F(NDM+I)+DFDP(I,ICP(J))*PAR(11+J)
+             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(11+NFPX+J)
+           ENDDO
+           DO J=1,NNT0
+             F(3*NDM+I)=F(3*NDM+I)+DINT(J,I)*PAR(11+2*NFPX+NBC0+J)
+           ENDDO
+         ENDDO
+       ENDIF
+       IF(NNT0.GT.0) THEN
+         DEALLOCATE(FI,DINT)
+       ENDIF
+C
+      RETURN
+      END SUBROUTINE FFBBP
+C
+C     ---------- -----
+      SUBROUTINE BCBBP(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+C Generates the boundary conditions for the 2-parameter continuation
+C of BP (BVP).
+C
+      DIMENSION IAP(*),U0(*),U1(*),F(NBC),ICP(*),PAR(*),DBC(NBC,*)
+C Local
+      ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
+C
+       ISW=IAP(10)
+       NINT=IAP(13)
+       NDM=IAP(23)
+C      NBC0=IAP(24)
+C      NNT0=IAP(25)
+       NFPR=IAP(29)
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NBC0=(4*NBC-NINT-5*NDM+2)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+       ELSE
+C        ** generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+       ENDIF
+C
+C Generate the function.
+C
+       ALLOCATE(DFU(NBC0,2*NDM+NPARX))
+       CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
+C
+       IF(IJAC.EQ.0)THEN
+          DEALLOCATE(DFU)
+          RETURN
+       ENDIF
+C
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NBC),FF2(NBC))
+C
+C Derivatives with respect to U0.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U0(I)).GT.UMX)UMX=DABS(U0(I))
+       ENDDO
+       EP=HMACH*(1+UMX)
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U0(J)
+           UU2(J)=U0(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU1,U1,FF1,DFU)
+         CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,UU2,U1,FF2,DFU)
+         DO J=1,NBC
+           DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+C Derivatives with respect to U1.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U1(I)).GT.UMX)UMX=DABS(U1(I))
+       ENDDO
+       EP=HMACH*(1+UMX)
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U1(J)
+           UU2(J)=U1(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU1,FF1,DFU)
+         CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU2,FF2,DFU)
+         DO J=1,NBC
+           DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF1,DFU)
+         RETURN
+       ENDIF
+C
+       DO I=1,NFPR
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF1,DFU)
+         DO J=1,NBC
+           DBC(J,2*NDIM+ICP(I))=(FF1(J)-F(J))/EP
+         ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
+       ENDDO
+C
+       DEALLOCATE(FF1,DFU)
+C
+      RETURN
+      END SUBROUTINE BCBBP
+C
+C     ---------- -----
+      SUBROUTINE FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB,DBC)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),FB(*),DBC(NBC0,*)
+C
+       ISW=IAP(10)
+       NINT=IAP(13)
+       NDM=IAP(23)
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NNT0=(-NBC+4*NINT+5*NDM-23)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ELSE
+C        ** generic case
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ENDIF
+       NFPX=NBC0+NNT0-NDM+1
+C
+       CALL BCNI(IAP,RAP,NDM,PAR,ICP,NBC0,U0,U1,FB,2,DBC)
+C
+       IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C        ** Non-generic and/or start
+         DO I=1,NBC0
+           FB(I)=FB(I)+PAR(11+3*NFPX+NDM+1)*PAR(11+2*NFPX+I)
+         ENDDO
+       ENDIF
+C
+       IF(ISW.GT.0) THEN
+C        ** restart 1 or 2
+         DO I=1,NDM
+           FB(NBC0+I)=-U0(NDM+I)
+           FB(NBC0+NDM+I)=U1(NDM+I)
+           DO J=1,NBC0
+             FB(NBC0+I)=FB(NBC0+I)+DBC(J,I)*PAR(11+2*NFPX+J)
+             FB(NBC0+NDM+I)=FB(NBC0+NDM+I)+DBC(J,NDM+I)*PAR(11+2*NFPX+J)
+           ENDDO
+         ENDDO
+         DO I=1,NFPX
+           FB(NBC0+2*NDM+I)=PAR(11+3*NFPX+NDM+3+I)
+           DO J=1,NBC0
+             FB(NBC0+2*NDM+I)=FB(NBC0+2*NDM+I)+
+     *         DBC(J,2*NDM+ICP(I))*PAR(11+2*NFPX+J)
+           ENDDO
+         ENDDO
+       ELSE
+C        ** start
+         DO I=1,NBC0
+           FB(NBC0+I)=0.d0
+           FB(2*NBC0+I)=0.d0
+           DO J=1,NDM
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,J)*U0(NDM+J)
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,NDM+J)*U1(NDM+J)
+             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,J)*U0(2*NDM+J)
+             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,NDM+J)*U1(2*NDM+J)
+           ENDDO
+           DO J=1,NFPX
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,2*NDM+ICP(J))*PAR(11+J)
+             FB(2*NBC0+I)=FB(2*NBC0+I)+
+     *         DBC(I,2*NDM+ICP(J))*PAR(11+NFPX+J)
+           ENDDO
+         ENDDO
+         DO I=1,NDM
+           FB(3*NBC0+I)=-U0(3*NDM+I)
+           FB(3*NBC0+NDM+I)=U1(3*NDM+I)
+           DO J=1,NBC0
+             FB(3*NBC0+I)=FB(3*NBC0+I)+DBC(J,I)*PAR(11+2*NFPX+J)
+             FB(3*NBC0+NDM+I)=FB(3*NBC0+NDM+I)+
+     *         DBC(J,NDM+I)*PAR(11+2*NFPX+J)
+           ENDDO
+         ENDDO
+         DO I=1,NFPX
+           FB(3*NBC0+2*NDM+I)=PAR(11+3*NFPX+NDM+3+I)
+           DO J=1,NBC0
+             FB(3*NBC0+2*NDM+I)=FB(3*NBC0+2*NDM+I)+
+     *         DBC(J,2*NDM+ICP(I))*PAR(11+2*NFPX+J)
+           ENDDO
+         ENDDO
+       ENDIF
+C
+      RETURN
+      END SUBROUTINE FBBBP
+C
+C     ---------- -----
+      SUBROUTINE ICBBP(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+     * F,IJAC,DINT)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+C
+C Generates integral conditions for the 2-parameter continuation
+C of BP (BVP).
+C
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
+      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
+C Local
+      ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:)
+C
+       ISW=IAP(10)
+       NBC=IAP(12)
+       NDM=IAP(23)
+       NFPR=IAP(29)
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NNT0=(-NBC+4*NINT+5*NDM-23)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ELSE
+C        ** generic case
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ENDIF
+C
+C Generate the function.
+C
+       IF(NNT0.GT.0) THEN
+         ALLOCATE(DFU(NNT0*(NDM+NPARX)))
+       ELSE
+         ALLOCATE(DFU(1))
+       ENDIF
+       CALL FIBBP(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+     *   UPOLD,F,DFU)
+C
+       IF(IJAC.EQ.0)THEN
+         DEALLOCATE(DFU)
+         RETURN
+       ENDIF
+C
+       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NINT),FF2(NINT))
+C
+C Generate the Jacobian.
+C
+       UMX=0.d0
+       DO I=1,NDIM
+         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+       ENDDO
+C
+       EP=HMACH*(1+UMX)
+C
+       DO I=1,NDIM
+         DO J=1,NDIM
+           UU1(J)=U(J)
+           UU2(J)=U(J)
+         ENDDO
+         UU1(I)=UU1(I)-EP
+         UU2(I)=UU2(I)+EP
+         CALL FIBBP(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
+     *    UPOLD,FF1,DFU)
+         CALL FIBBP(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
+     *    UPOLD,FF2,DFU)
+         DO J=1,NINT
+           DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
+         ENDDO
+       ENDDO
+C
+       DEALLOCATE(UU1,UU2,FF2)
+       IF(IJAC.EQ.1)THEN
+         DEALLOCATE(FF1,DFU)
+         RETURN
+       ENDIF
+C
+       DO I=1,NFPR
+         PAR(ICP(I))=PAR(ICP(I))+EP
+         CALL FIBBP(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+     *    UPOLD,FF1,DFU)
+         DO J=1,NINT
+           DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
+         ENDDO
+         PAR(ICP(I))=PAR(ICP(I))-EP
+       ENDDO
+C
+       DEALLOCATE(FF1,DFU)
+C
+      RETURN
+      END SUBROUTINE ICBBP
+C
+C     ---------- -----
+      SUBROUTINE FIBBP(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,
+     * U,UOLD,UDOT,UPOLD,FI,DINT)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
+      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
+C
+C Local
+      ALLOCATABLE F(:),DFU(:,:),DFP(:,:)
+C
+       ISW=IAP(10)
+       NBC=IAP(12)
+       NDM=IAP(23)
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NBC0=(4*NBC-NINT-5*NDM+2)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+       ELSE
+C        ** generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+       ENDIF
+       NFPX=NBC0+NNT0-NDM+1
+C
+       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPARX))
+       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       IF(NNT0.GT.0) THEN
+         CALL ICNI(IAP,RAP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,FI,2,DINT)
+C
+         IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
+C          ** Non-generic and/or start
+           DO I=1,NNT0
+             FI(I)=FI(I)+PAR(11+3*NFPX+NDM+1)*PAR(11+2*NFPX+NBC0+I)
+           ENDDO
+         ENDIF
+       ENDIF
+C
+       IF(ISW.GT.0) THEN
+C        ** restart 1 or 2
+         DO I=1,NFPX
+           FI(NNT0+I)=-PAR(11+3*NFPX+NDM+3+I)
+           DO J=1,NDM
+             FI(NNT0+I)=FI(NNT0+I)-DFP(J,ICP(I))*U(NDM+J)
+           ENDDO
+           DO J=1,NNT0
+             FI(NNT0+I)=FI(NNT0+I)+
+     *         DINT(J,NDM+ICP(I))*PAR(11+2*NFPX+NBC0+J)
+           ENDDO
+         ENDDO
+       ELSE
+C        ** start
+         DO I=1,NNT0
+           FI(NNT0+I)=0.d0
+           FI(2*NNT0+I)=0.d0
+           DO J=1,NDM
+             FI(NNT0+I)=FI(NNT0+I)+DINT(I,J)*U(NDM+J)
+             FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,J)*U(2*NDM+J)
+           ENDDO
+           DO J=1,NFPX
+             FI(NNT0+I)=FI(NNT0+I)+DINT(I,NDM+ICP(J))*PAR(11+J)
+             FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,NDM+ICP(J))*PAR(11+NFPX+J)
+           ENDDO
+         ENDDO
+         FI(3*NNT0+1)=-1.d0
+         FI(3*NNT0+2)=-1.d0
+         FI(3*NNT0+3)=0.d0
+         FI(3*NNT0+4)=0.d0
+         DO I=1,NDM
+           FI(3*NNT0+1)=FI(3*NNT0+1)+U(NDM+I)*UOLD(NDM+I)
+           FI(3*NNT0+2)=FI(3*NNT0+2)+U(2*NDM+I)*UOLD(2*NDM+I)
+           FI(3*NNT0+3)=FI(3*NNT0+3)+U(NDM+I)*UOLD(2*NDM+I)
+           FI(3*NNT0+4)=FI(3*NNT0+4)+U(2*NDM+I)*UOLD(NDM+I)
+         ENDDO
+         DO I=1,NFPX
+           FI(3*NNT0+1)=FI(3*NNT0+1)+PAR(11+I)**2
+           FI(3*NNT0+2)=FI(3*NNT0+2)+PAR(11+NFPX+I)**2
+           FI(3*NNT0+3)=FI(3*NNT0+3)+PAR(11+I)*PAR(11+NFPX+I)
+           FI(3*NNT0+4)=FI(3*NNT0+4)+PAR(11+I)*PAR(11+NFPX+I)
+           FI(3*NNT0+4+I)=-PAR(11+3*NFPX+NDM+3+I)+
+     *       PAR(11+3*NFPX+NDM+2)*PAR(11+I)+
+     *       PAR(11+3*NFPX+NDM+3)*PAR(11+NFPX+I)
+           DO J=1,NDM
+             FI(3*NNT0+4+I)=FI(3*NNT0+4+I)-DFP(J,ICP(I))*U(3*NDM+J)
+           ENDDO
+           DO J=1,NNT0
+             FI(3*NNT0+4+I)=FI(3*NNT0+4+I)+DINT(J,NDM+ICP(I))*
+     *         PAR(11+2*NFPX+NBC0+J)
+           ENDDO
+         ENDDO
+       ENDIF
+       DEALLOCATE(F,DFU,DFP)
+C
+       FI(NINT)=-PAR(11+3*NFPX+NDM)
+       DO I=1,NDM
+         FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
+       ENDDO
+       DO I=1,NBC0+NNT0
+         FI(NINT)=FI(NINT)+PAR(11+2*NFPX+I)**2
+       ENDDO
+C
+      RETURN
+      END SUBROUTINE FIBBP
+C
+C     ---------- -------
+      SUBROUTINE STPNBBP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
+     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+C
+      USE SOLVEBV
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+      INCLUDE 'auto.h'
+C
+C Generates starting data for the 2-parameter continuation
+C of BP (BVP).
+C
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
+      DIMENSION TM(*),DTM(*),THL(*),THU(*)
+C Local
+      ALLOCATABLE DUPS(:,:),VPS(:,:),VDOTPS(:,:),RVDOT(:)
+      ALLOCATABLE THU1(:),THL1(:)
+      ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
+      ALLOCATABLE U(:),UPOLD(:)
+      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      DOUBLE PRECISION DUM(1)
+C
+      LOGICAL FOUND
+C
+       NDIM=IAP(1)
+       IRS=IAP(3)
+       ISW=IAP(10)
+       NBC=IAP(12)
+       NINT=IAP(13)
+       NDM=IAP(23)
+       NFPR=IAP(29)
+C
+       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       READ(3,*)IBR,NTOTRS,ITPRS,IRS,NFPR1,ISWRS,NTPLRS,NARS
+       BACKSPACE 3
+       NDIM3=NARS-1
+C
+       IF(NDIM.EQ.NDIM3) THEN
+C        ** restart 2
+         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
+     *     NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+         RETURN
+       ENDIF
+C
+       IF(ISW.LT.0) THEN
+C        ** start
+         NBC0=(4*NBC-NINT-5*NDM+2)/15
+         NNT0=(-NBC+4*NINT+5*NDM-23)/15
+       ELSE IF(ISW.EQ.2) THEN
+C        ** Non-generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ELSE
+C        ** generic case
+         NBC0=(2*NBC-NINT-3*NDM)/3
+         NNT0=(-NBC+2*NINT+3*NDM-3)/3
+       ENDIF
+       NFPX=NBC0+NNT0-NDM+1
+       NRSP1=NTSR+1
+C
+       IF(ISW.LT.0) THEN
+C
+C Start
+C
+C        ** allocation
+         ALLOCATE(DUPS(NDX,NRSP1),VDOTPS(NDX,NRSP1),RVDOT(NFPX))
+         ALLOCATE(THU1(NDM),THL1(NPARX))
+         ALLOCATE(FA(NDM*NCOLRS,NRSP1),FC(NBC0+NNT0+1))
+         ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
+         ALLOCATE(U(NDM),UPOLD(NDM))
+C
+C        ** redefine IAP(1)
+         IAP(1)=NDM
+C
+C        ** read the std branch
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
+     *     UDOTPS,TM,ITPRS,NDX)
+C
+         DO I=1,NTSR
+           DTM(I)=TM(I+1)-TM(I)
+         ENDDO
+C
+         DO I=1,NFPX
+           RLCUR(I)=PAR(ICPRS(I))
+         ENDDO
+C
+C Compute the second null vector
+C
+C        ** redefine IAP, RAP
+         NTST=IAP(5)
+         NCOL=IAP(6)
+         IAP(5)=NTSR
+         IAP(6)=NCOLRS
+         IAP(12)=NBC0
+         IAP(13)=NNT0
+         IAP(29)=NFPX
+         DET=RAP(14)
+C
+C        ** compute UPOLDP
+         IF(NNT0.GT.0) THEN
+           DO J=1,NTSR
+             DO I=1,NCOLRS
+               DO K=1,NDM
+                 U(K)=UPS((I-1)*NDIM+K,J)
+               ENDDO
+               CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
+               DO K=1,NDM
+                 UPOLDP((I-1)*NDIM+K,J)=UPOLD(K)
+               ENDDO
+             ENDDO
+           ENDDO
+           DO I=1,NDM
+             U(I)=UPS(I,NRSP1)
+           ENDDO
+           CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
+           DO I=1,NDM
+             UPOLDP(I,NRSP1)=UPOLD(I)
+           ENDDO
+         ENDIF
+C
+C        ** unit weights
+         DO I=1,NPARX
+           THL1(I)=1.d0
+         ENDDO
+         DO I=1,NDM
+           THU1(I)=1.d0
+         ENDDO
+C
+C        ** call SOLVBV
+         RDSZ=0.d0
+         NLLV=1
+         IFST=1
+         CALL SOLVBV(IFST,IAP,RAP,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV,
+     *     RLCUR,RLCUR,RLDOTRS,NDX,UPS,DUPS,UPS,UDOTPS,UPOLDP,DTM,FA,FC,
+     *     P0,P1,THL1,THU1)
+C
+         DO I=1,NDM
+           VDOTPS(I,NRSP1)=FC(I)
+         ENDDO
+         DO I=1,NFPX
+           RVDOT(I)=FC(NDM+I)
+         ENDDO
+C
+         DO J=1,NTSR
+           DO I=1,NCOLRS
+             DO K=1,NDM
+               VDOTPS((I-1)*NDM+K,J)=FA((I-1)*NDM+K,J)
+             ENDDO
+           ENDDO
+         ENDDO
+C
+C        ** normalization
+         CALL SCALEBP(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEBP(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
+C
+C        ** restore IAP, RAP
+         IAP(1)=NDIM
+         IAP(5)=NTST
+         IAP(6)=NCOL
+         IAP(12)=NBC
+         IAP(13)=NINT
+         IAP(29)=NFPR
+         RAP(14)=DET
+
+C        ** init UPS,PAR
+         DO J=1,NTSR
+           DO I=NCOLRS,1,-1
+             DO K=1,NDM
+               UPS((I-1)*NDIM+K,J)=UPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+NDM+K,J)=UDOTPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+2*NDM+K,J)=VDOTPS((I-1)*NDM+K,J)
+               UPS((I-1)*NDIM+3*NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+2*NDM+K,J)=0.d0
+               UDOTPS((I-1)*NDIM+3*NDM+K,J)=0.d0
+             ENDDO
+           ENDDO
+         ENDDO
+         DO K=1,NDM
+           UPS(K+NDM,NRSP1)=UDOTPS(K,NRSP1)
+           UPS(K+2*NDM,NRSP1)=VDOTPS(K,NRSP1)
+           UPS(K+3*NDM,NRSP1)=0.d0
+           UDOTPS(K,NRSP1)=0.d0
+           UDOTPS(K+NDM,NRSP1)=0.d0
+           UDOTPS(K+2*NDM,NRSP1)=0.d0
+           UDOTPS(K+3*NDM,NRSP1)=0.d0
+         ENDDO
+C
+         DO I=1,NFPX
+           PAR(11+I)=RLDOTRS(I)
+           PAR(11+NFPX+I)=RVDOT(I)
+           RLDOT(I)=0.d0
+           RLDOT(NFPX+I+2)=0.d0
+           RLDOT(2*NFPX+I+2)=0.d0
+         ENDDO
+C
+C        ** init psi^*2,psi^*3
+         DO I=1,NBC0+NNT0
+           PAR(11+2*NFPX+I)=0.d0
+           RLDOT(3*NFPX+I+2)=0.d0
+         ENDDO
+C
+C        ** init a,b,c1,c1,d
+         PAR(11+3*NFPX+NDM)=0.d0
+         PAR(11+3*NFPX+NDM+1)=0.d0
+         PAR(11+3*NFPX+NDM+2)=0.d0
+         PAR(11+3*NFPX+NDM+3)=0.d0
+         RLDOT(NFPX+1)=0.d0
+         RLDOT(NFPX+2)=1.d0
+         RLDOT(4*NFPX+NDM+2)=0.d0
+         RLDOT(4*NFPX+NDM+3)=0.d0
+         DO I=1,NFPX
+           PAR(11+3*NFPX+NDM+3+I)=0.d0
+           RLDOT(4*NFPX+NDM+I+3)=0.d0
+         ENDDO
+C
+         DEALLOCATE(DUPS,VDOTPS,RVDOT)
+         DEALLOCATE(THU1,THL1)
+         DEALLOCATE(FA,FC)
+         DEALLOCATE(P0,P1)
+         DEALLOCATE(U,UPOLD)
+C
+         NODIR=0
+C
+       ELSE
+C
+C Restart 1
+C
+         ALLOCATE(VPS(2*NDX,NRSP1),VDOTPS(2*NDX,NRSP1))
+C
+C        ** read the std branch
+         IAP(1)=2*NDIM
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
+     *     VDOTPS,TM,ITPRS,2*NDX)
+         IAP(1)=NDIM
+C
+         DO J=1,NTSR
+           DO I=1,NCOLRS
+             DO K=1,NDM
+               UPS((I-1)*NDIM+K,J)=VPS((I-1)*2*NDIM+K,J)
+               UPS((I-1)*NDIM+K+NDM,J)=VPS((I-1)*2*NDIM+K+3*NDM,J)
+             ENDDO
+           ENDDO
+         ENDDO
+         DO K=1,NDM
+           UPS(K,NRSP1)=VPS(K,NRSP1)
+           UPS(K+NDM,NRSP1)=VPS(K+3*NDM,NRSP1)
+         ENDDO
+C
+         DEALLOCATE(VPS,VDOTPS)
+C
+         NODIR=1
+C
+       ENDIF
+C
+       DO I=1,NFPR
+         RLCUR(I)=PAR(ICP(I))
+       ENDDO
+C
+      RETURN
+      END SUBROUTINE STPNBBP
+C
+C     ---------- ------
+      SUBROUTINE SCALEBP(IAP,ICP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
+C
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+C Scales the vector (DVPS,RLD) so its norm becomes 1.
+C
+      DIMENSION IAP(*),ICP(*),DVPS(NDX,*),DTM(*),RLD(*),THL(*),THU(*)
+C
+       NDIM=IAP(1)
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       NFPR=IAP(29)
+C
+       SS=RNRMSQ(IAP,NDIM1,NDX,DVPS,DTM,THU)
+C
+       DO I=1,NFPR
+         SS=SS+THL(ICP(I))*RLD(I)**2
+       ENDDO
+C
+       SC=1.d0/DSQRT(SS)
+C
+       DO J=1,NTST
+         DO I=1,NCOL
+           K1=(I-1)*NDIM+1
+           K2=(I-1)*NDIM+NDIM1
+           DO K=K1,K2
+             DVPS(K,J)=DVPS(K,J)*SC
+           ENDDO
+         ENDDO
+       ENDDO
+C
+       DO I=1,NDIM1
+         DVPS(I,NTST+1)=DVPS(I,NTST+1)*SC
+       ENDDO
+C
+       DO I=1,NFPR
+         RLD(I)=SC*RLD(I)
+       ENDDO
+C
+      RETURN
+      END SUBROUTINE SCALEBP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------

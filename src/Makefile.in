@@ -29,7 +29,7 @@ compile: $(OBJ)
 ../lib/autlib2.o: autlib2.f auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
 #
-../lib/autlib3.o: autlib3.f auto.h
+../lib/autlib3.o: autlib3.f ../lib/autlib2.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
 #
 ../lib/autlib4.o: autlib4.f auto.h

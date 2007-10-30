@@ -329,18 +329,22 @@ C
 C        ** Hopf bifurcation continuation (Maps).
          CALL AUTOAE(IAP,RAP,PAR,ICP,FNHD,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. 
-     *         (ITP.EQ.5.OR.ITP.EQ.6) ) THEN 
+       ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN 
 C        ** Fold continuation (Periodic solutions, start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNPL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-      ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. 
-     *        ( (ABS(ITP)/10).EQ.5 .OR. (ABS(ITP)/10).EQ.6 ) )
+       ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. (ABS(ITP)/10)==5 )
      * THEN
 C        ** Fold continuation (Periodic solutions, restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNBV,
      *   PVLSBV,THL,THU,IUZ,VUZ)
+C
+       ELSE IF(IPS==2 .AND. ABS(ISW)>=2 .AND. 
+     *         (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
+C        ** BP cont (Periodic sol., start and restart) (by F. Dercole).
+         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPBP,BCPBP,ICPBP,STPNPBP,
+     *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.2 .OR. IPS.EQ.7)
      *      .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.7 ) THEN
@@ -366,16 +370,20 @@ C        ** Continuation of torus bifurcations (restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. ABS(ISW).EQ.2 .AND.
-     *          (ITP.EQ.5.OR.ITP.EQ.6) ) THEN
+       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN
 C        ** Continuation of folds (BVP, start).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.4.OR.IPS.EQ.7) .AND. ABS(ISW).EQ.2 .AND. 
-     *         ( (ABS(ITP)/10).EQ.5 .OR. (ABS(ITP)/10).EQ.6 ) ) THEN
+       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==2 .AND. 
+     *         (ABS(ITP)/10)==5 ) THEN
 C        ** Continuation of folds (BVP, restart).
          CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBV,
+     *      PVLSBV,THL,THU,IUZ,VUZ)
+       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)>=2 .AND.
+     *          (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
+C        ** BP cont (BVP, start and restart) (by F. Dercole).
+         CALL AUTOBV(IAP,RAP,PAR,ICP,FNBBP,BCBBP,ICBBP,STPNBBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE
@@ -835,7 +843,7 @@ C          ** Hopf bifurcation continuation (Maps, ODE, Waves)
            NDIM=3*NDIM+2
            NFPR=2
 C
-         ELSE IF( (ITP.EQ.5.OR.ITP.EQ.6) .AND. IPS.EQ.2)THEN
+         ELSE IF( ITP==5 .AND. IPS==2 )THEN
 C          ** Fold continuation (Periodic solutions); start
            NDIM=2*NDIM
            NBC=NDIM
@@ -857,8 +865,7 @@ C            ** Fixed period
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( (ABS(ITP)/10.EQ.5 .OR. ABS(ITP)/10.EQ.6) 
-     *           .AND. IPS.EQ.2)THEN
+         ELSE IF( (ABS(ITP)/10)==5 .AND. IPS==2 )THEN
 C          ** Fold continuation (Periodic solutions); restart
            NDIM=2*NDIM
            NBC=NDIM
@@ -869,6 +876,62 @@ C            ** Variable period
              ICP(3)=11
            ENDIF
            ICP(4)=12
+C
+         ELSE IF( (ITP==6) .AND. IPS==2)THEN
+C          ** BP cont (Periodic solutions); start (by F. Dercole)
+           NDIM=4*NDIM
+           NBC=NDIM
+           NINT=10
+           NFPR=NBC+NINT-NDIM+1
+           IF(((ABS(ISW)==2).AND.(ICP(3)==11 .OR. NICP==2)).OR.
+     *        ((ABS(ISW)==3).AND.(ICP(4)==11 .OR. NICP==3)))THEN
+C            ** Variable period
+             ICP(2)=17 ! a
+             ICP(3)=18 ! b
+             ICP(4)=11 ! T
+           ELSE
+C            ** Fixed period
+             ICP(3)=17 ! a
+             ICP(4)=18 ! b
+           ENDIF
+           ICP(5)=12   ! q1
+           ICP(6)=13   ! q2/beta1
+           ICP(7)=14   ! r1
+           ICP(8)=15   ! r2/beta2
+           ICP(9)=16   ! psi^*_3
+           ICP(10)=20  ! c1
+           ICP(11)=21  ! c2
+C
+           ILP=0
+           ISW=-ABS(ISW)
+           ISP=0
+           NMX=5
+           WRITE(6,101)
+C
+         ELSE IF( (ABS(ITP)/10==6) .AND. IPS==2)THEN
+C          ** BP cont (Periodic solutions); restart 1 or 2
+           NDIM=2*NDIM
+           NBC=NDIM
+           NINT=4
+           NFPR=NBC+NINT-NDIM+1
+           IF(ABS(ISW)==2)THEN
+C            ** Non-generic case
+             IF(ICP(3)==11 .OR. NICP==2)THEN
+C              ** Variable period
+               ICP(3)=18 ! b
+               ICP(4)=11 ! T
+             ELSE
+C              ** Fixed period
+               ICP(4)=18 ! b
+             ENDIF
+           ELSE
+C            ** Generic case
+             IF(ICP(4)==11 .OR. NICP==3)THEN
+C              ** Variable period
+               ICP(4)=11 ! T
+             ENDIF
+           ENDIF
+           ICP(5)=16     ! psi^*_3
 C
          ELSE IF(ITP.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
 C          ** Continuation of period doubling bifurcations; start
@@ -925,7 +988,7 @@ C          ** Continuation of torus bifurcations; restart
            ICP(3)=11
            ICP(4)=12
 C
-         ELSE IF( (ITP.EQ.5.OR.ITP.EQ.6) .AND. (IPS.EQ.4.OR.IPS.EQ.7) )
+         ELSE IF( (ITP==5) .AND. (IPS==4.OR.IPS==7) )
      *   THEN
 C          ** Continuation of folds (BVP; start)
            NDIM=2*NDIM
@@ -945,8 +1008,7 @@ C          ** Continuation of folds (BVP; start)
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( ( (ABS(ITP)/10).EQ.5 .OR. ABS(ITP)/10.EQ.6)
-     *           .AND. (IPS.EQ.4.OR.IPS.EQ.7))THEN
+         ELSE IF( (ABS(ITP)/10)==5 .AND. (IPS==4.OR.IPS==7))THEN
 C          ** Continuation of folds (BVP; restart)
            NDIM=2*NDIM
            NBC=2*NBC
@@ -958,6 +1020,50 @@ C          ** Continuation of folds (BVP; restart)
                ICP(NFPR/2+I+1)=11+I
              ENDDO
            ENDIF
+C
+         ELSE IF( ITP==6 .AND. (IPS==4.OR.IPS==7) )THEN
+C          ** BP cont (BVP; start) (by F. Dercole)
+           NXP=NBC+NINT-NDIM+1
+           NDIM=4*NDIM
+           NBC=3*NBC+NDIM/2+NXP
+           NINT=3*NINT+NXP+5
+           NFPR=NBC+NINT-NDIM+1
+           ICP(NXP+1)=11+3*NXP+NDIM/4   ! a
+           ICP(NXP+2)=11+3*NXP+NDIM/4+1 ! b
+           DO I=1,NXP
+             ICP(NXP+I+2)=11+I          ! q
+             ICP(2*NXP+I+2)=11+NXP+I    ! r
+             ICP(4*NXP+NDIM/4+I+3)=11+3*NXP+NDIM/4+3+I ! d
+           ENDDO
+           DO I=1,NXP+NDIM/4-1
+             ICP(3*NXP+I+2)=11+2*NXP+I  ! psi^*_2,psi^*_3
+           ENDDO
+           ICP(4*NXP+NDIM/4+2)=11+3*NXP+NDIM/4+2 ! c1
+           ICP(4*NXP+NDIM/4+3)=11+3*NXP+NDIM/4+3 ! c2
+C
+           ILP=0
+           ISW=-ABS(ISW)
+           ISP=0
+           NMX=5
+           WRITE(6,101)
+C
+         ELSE IF( (ABS(ITP)/10)==6 .AND. (IPS==4.OR.IPS==7))THEN
+C          ** BP cont (BVP; restart 1 or 2)
+           NXP=NBC+NINT-NDIM+1
+           NDIM=2*NDIM
+           NBC=NBC+NDIM+NXP
+           NINT=NINT+NXP+1
+           NFPR=NBC+NINT-NDIM+1
+           IF(ABS(ISW)==2)THEN
+C            ** Non-generic case
+             ICP(NXP+2)=11+3*NXP+NDIM/2+1 ! b
+           ENDIF
+           DO I=1,NXP+NDIM/2-1
+             ICP(NXP+I+2)=11+2*NXP+I      ! psi^*_2,psi^*_3
+           ENDDO
+           DO I=1,NXP
+             ICP(2*NXP+NDIM/2+I+1)=11+3*NXP+NDIM/2+3+I ! d
+           ENDDO
 C
          ENDIF
 C
@@ -3800,7 +3906,7 @@ C
          IAP(30)=IBR
          IF(LABRS.EQ.IRS)THEN
            FOUND=.TRUE.
-           IF(ABS(ISW).EQ.2)THEN
+           IF(ABS(ISW).GE.2)THEN
              IF(ABS(ITP).LT.10)THEN
                ITPST=ABS(ITP)
                IAP(28)=ITPST
