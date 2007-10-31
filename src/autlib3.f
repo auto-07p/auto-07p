@@ -1530,7 +1530,7 @@ C
          DTM(I)=DT
        ENDDO
 C
-       CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
        NODIR=-1
 C
@@ -1644,7 +1644,7 @@ C
          DTM(I)=DT
        ENDDO
 C
-       CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
        NODIR=-1
 C
@@ -1901,7 +1901,7 @@ C
          DTM(I)=DT
        ENDDO
 C
-       CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
        NODIR=-1
 C
@@ -2817,8 +2817,8 @@ C
          ENDDO
 C
 C        ** normalization
-         CALL SCALEBP(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
-         CALL SCALEBP(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
+         CALL SCALEB(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEB(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP, RAP
          IAP(1)=NDIM
@@ -4969,8 +4969,8 @@ C
          ENDDO
 C
 C        ** normalization
-         CALL SCALEBP(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
-         CALL SCALEBP(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
+         CALL SCALEB(IAP,ICPRS,NDM,NDX,UDOTPS,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEB(IAP,ICPRS,NDM,NDX,VDOTPS,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP, RAP
          IAP(1)=NDIM
@@ -5079,49 +5079,6 @@ C
 C
       RETURN
       END SUBROUTINE STPNBBP
-C
-C     ---------- ------
-      SUBROUTINE SCALEBP(IAP,ICP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C Scales the vector (DVPS,RLD) so its norm becomes 1.
-C
-      DIMENSION IAP(*),ICP(*),DVPS(NDX,*),DTM(*),RLD(*),THL(*),THU(*)
-C
-       NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NFPR=IAP(29)
-C
-       SS=RNRMSQ(IAP,NDIM1,NDX,DVPS,DTM,THU)
-C
-       DO I=1,NFPR
-         SS=SS+THL(ICP(I))*RLD(I)**2
-       ENDDO
-C
-       SC=1.d0/DSQRT(SS)
-C
-       DO J=1,NTST
-         DO I=1,NCOL
-           K1=(I-1)*NDIM+1
-           K2=(I-1)*NDIM+NDIM1
-           DO K=K1,K2
-             DVPS(K,J)=DVPS(K,J)*SC
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDIM1
-         DVPS(I,NTST+1)=DVPS(I,NTST+1)*SC
-       ENDDO
-C
-       DO I=1,NFPR
-         RLD(I)=SC*RLD(I)
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE SCALEBP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------

@@ -4160,7 +4160,7 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE SCALEB(IAP,ICP,NDX,DVPS,RLD,DTM,THL,THU)
+      SUBROUTINE SCALEB(IAP,ICP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -4173,7 +4173,7 @@ C
        NCOL=IAP(6)
        NFPR=IAP(29)
 C
-       SS=RNRMSQ(IAP,NDIM,NDX,DVPS,DTM,THU)
+       SS=RNRMSQ(IAP,NDIM1,NDX,DVPS,DTM,THU)
 C
        DO I=1,NFPR
          SS=SS+THL(ICP(I))*RLD(I)**2
@@ -4181,14 +4181,16 @@ C
 C
        SC=1.d0/DSQRT(SS)
 C
-       NROW=NDIM*NCOL
        DO J=1,NTST
-         DO I=1,NROW
-           DVPS(I,J)=DVPS(I,J)*SC
+         DO I=1,NCOL
+           K1=(I-1)*NDIM
+           DO K=K1+1,K1+NDIM1
+             DVPS(K,J)=DVPS(K,J)*SC
+           ENDDO
          ENDDO
        ENDDO
 C
-       DO I=1,NDIM
+       DO I=1,NDIM1
          DVPS(I,NTST+1)=DVPS(I,NTST+1)*SC
        ENDDO
 C
@@ -4508,7 +4510,7 @@ C
          RLDOT(I)=(RLCUR(I)-RLOLD(I))*DDS
        ENDDO
 C        Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
-       CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
 C Extrapolate to get initial approximation to next solution point.
 C
@@ -5219,7 +5221,7 @@ C
 C
 C Scale the starting direction.
 C
-         CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+         CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
 C Make sure that RLDOT(1) is positive (unless zero).
 C
@@ -5428,7 +5430,7 @@ C
 C
 C Scale the direction vector.
 C
-         CALL SCALEB(IAP,ICP,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+         CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
          IF(IID.GE.2)THEN
            WRITE(9,101)ABS(IBR),NTOP+1,RLDOT(1)
          ENDIF
