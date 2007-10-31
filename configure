@@ -8697,9 +8697,9 @@ if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xno; then
   echo "***************************************************"
   echo "It was requested that the plotting utility PLAUT04 "
   echo "be compiled but the proper libraries (Coin3D and   "
-  echo "SoXt or Open Inventor and Open Inventor Xt) and    "
-  echo "Motif libraries (libXm) could not be found.  The   "
-  echo "compilation of PLAUT04 has been disabled.          "
+  echo "SoQt or SoXt or Open Inventor and Open Inventor Xt)"
+  echo "and perhaps Motif libraries (libXm) could not be   "
+  echo "found. The compilation of PLAUT04 is disabled.     "
   echo "***************************************************"
 fi
 if test x$openmp = "xyes" && test x$MPI != "xyes"; then
