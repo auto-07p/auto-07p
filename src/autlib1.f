@@ -85,7 +85,8 @@ C
       DOUBLE PRECISION DS,DSMIN,DSMAX
       INTEGER IADS
       INTEGER NTHL
-      DOUBLE PRECISION THL(NPARX)
+      INTEGER,ALLOCATABLE :: ITHL(:)
+      DOUBLE PRECISION,ALLOCATABLE :: THL(:),VTHL(:)
       INTEGER NTHU
       DOUBLE PRECISION,ALLOCATABLE :: THU(:)
       INTEGER NUZR
@@ -108,13 +109,19 @@ C
 C
       INTEGER IAP(*)
 C
+      ITP=IAP(27)
+      NFPR=IAP(29)
+C
+      IF(IAP(38)==0)THEN
+        CALL INIT1(IAP,RAP,ICP,PAR)
+        CALL CHDIM(IAP)
+      ENDIF
+C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C  One-parameter continuations
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-       ITP=IAP(27)
-       NFPR=IAP(29)
 C
        IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Algebraic systems.
@@ -250,7 +257,6 @@ C
        ELSE IF(IPS.EQ.5) THEN
 C        ** Algebraic optimization problems.
          IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
-         IAP(29)=NFPR
          IF(NFPR.EQ.2) THEN
            IF(IRS.GT.0) THEN
              CALL AUTOAE(IAP,RAP,PAR,ICP,FNC1,STPNAE,THL,THU,IUZ,VUZ)
@@ -416,7 +422,7 @@ C
       DOUBLE PRECISION RAP(*),PAR(*)
       LOGICAL EOF
 C
-      INTEGER IBR,I,IUZR,ITHL,ITHU,NBIF,NFPR,NDM,NNT0,NBC0
+      INTEGER IBR,I,IUZR,ITHU,NBIF,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,NIT,LAB,NTOT,ITP,IPOS,ISTOP,ITPST
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
 C
@@ -425,12 +431,11 @@ C
         ICP(NPARX+I)=0
         PAR(I)=0.d0
         PAR(NPARX+I)=0.d0
-        THL(ICP(I))=1.d0
       ENDDO
 C
       READ(2,*,END=5) NDIM,IPS,IRS,ILP
 C
-C     we allocate THU (a pointer to the THU arrau in the
+C     we allocate THU (a pointer to the THU array in the
 C     main program) here since this is the place where we 
 C     know the size.  It is 8 times bigger then ndim since
 C     INIT can modify THU based on the problem type,
@@ -459,8 +464,9 @@ C
       DSMAX=ABS(DSMAX)
       READ(2,*) NTHL
       IF(NTHL.GT.0)THEN
+        ALLOCATE(ITHL(NTHL),VTHL(NTHL))
         DO I=1,NTHL
-          READ(2,*)ITHL,THL(ITHL)
+          READ(2,*)ITHL(I),VTHL(I)
         ENDDO
       ENDIF
       READ(2,*) NTHU
@@ -624,8 +630,6 @@ C
          CALL MPIWFI(.FALSE.,FUNI,STPNT)
          RETURN
        ENDIF
-       CALL INIT1(IAP,RAP,ICP,PAR)
-       CALL CHDIM(IAP)
        CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
 C
       RETURN
@@ -649,8 +653,6 @@ C        are.
          CALL MPIWFI(.TRUE.,FUNI,ICNI)
          RETURN
        ENDIF
-       CALL INIT1(IAP,RAP,ICP,PAR)
-       CALL CHDIM(IAP)
        CALL CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT,
      *  PVLI,THL,THU,IUZ,VUZ)
 C
@@ -661,6 +663,7 @@ C     ---------- -----
       SUBROUTINE INIT1(IAP,RAP,ICP,PAR)
 C
       USE HOMCONT, ONLY:INHO
+      USE AUTO_CONSTANTS, ONLY:ITHL,VTHL,THL,NTHL
       INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -814,6 +817,7 @@ C Set indices of output parameters
 C
        ELSE IF(IPS.EQ.5)THEN
 C        ** Algebraic optimization Problems
+         IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
          IF(NFPR.EQ.2)THEN
            NDIM=NDIM+1
            ICP(1)=10
@@ -1067,6 +1071,20 @@ C            ** Non-generic case
 C
          ENDIF
 C
+       ENDIF
+
+C     redefine nthl to be nfpr sized and indexed
+       ALLOCATE(THL(NFPR))
+       DO I=1,NFPR
+         THL(I)=1.0D0
+         DO J=1,NTHL
+           IF(ICP(I)==ITHL(J))THEN
+             THL(I)=VTHL(J)
+           ENDIF
+         ENDDO
+       ENDDO
+       IF(NTHL>0)THEN
+         DEALLOCATE(ITHL,VTHL)
        ENDIF
 C
        IAP(1)=NDIM
@@ -1478,7 +1496,7 @@ C
        DO I=1,NDIM
          SS=SS+THU(I)*DU(I)**2
        ENDDO
-       SS=SS+THL(ICP(1))*DU(NDIM+1)**2
+       SS=SS+THL(1)*DU(NDIM+1)**2
 C
        SIGN=1.d0
        IF(DU(NDIM+1).LT.0.d0)SIGN=-1.d0
@@ -1612,12 +1630,12 @@ C
          DO K=1,NDIM
            AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))*DDS
          ENDDO
-         AA(NDIM+1,NDIM+1)=2.d0*THL(ICP(1))*(RLCUR(1)-RLOLD(1))*DDS
+         AA(NDIM+1,NDIM+1)=2.d0*THL(1)*(RLCUR(1)-RLOLD(1))*DDS
          SS=0.d0
          DO I=1,NDIM
            SS=SS+THU(I)*(U(I)-UOLD(I))**2
          ENDDO
-         RHS(NDIM+1)=RDS-DDS*SS-THL(ICP(1))*DDS*(RLCUR(1)-RLOLD(1))**2
+         RHS(NDIM+1)=RDS-DDS*SS-THL(1)*DDS*(RLCUR(1)-RLOLD(1))**2
 C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
@@ -2153,7 +2171,7 @@ C
        DO I=1,NDIM
          SS=SS+THU(I)*DU(I)**2
        ENDDO
-       SS=SS+THL(ICP(1))*DU(ND1)**2
+       SS=SS+THL(1)*DU(ND1)**2
        SC=1.d0/DSQRT(SS)
 C
        DO I=1,ND1
@@ -2300,12 +2318,12 @@ C
          DO K=1,NDIM
            AA(NDIM+1,K)=THU(K)*UDOT(K)
          ENDDO
-         AA(NDIM+1,NDIM+1)=THL(ICP(1))*RLDOT(1)
+         AA(NDIM+1,NDIM+1)=THL(1)*RLDOT(1)
          SS=0.d0
          DO I=1,NDIM
            SS=SS+THU(I)*(U(I)-U1(I))*UDOT(I)
          ENDDO
-         RHS(NDIM+1)=-SS-THL(ICP(1))*(RLCUR(1)-RLM1)*RLDOT(1)
+         RHS(NDIM+1)=-SS-THL(1)*(RLCUR(1)-RLM1)*RLDOT(1)
 C
 C Use Gauss elimination with pivoting to solve the linearized system :
 C
@@ -4160,13 +4178,13 @@ C
       END
 C
 C     ---------- ------
-      SUBROUTINE SCALEB(IAP,ICP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
+      SUBROUTINE SCALEB(IAP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Scales the vector (DVPS,RLD) so its norm becomes 1.
 C
-      DIMENSION IAP(*),ICP(*),DVPS(NDX,*),DTM(*),RLD(*),THL(*),THU(*)
+      DIMENSION IAP(*),DVPS(NDX,*),DTM(*),RLD(*),THL(*),THU(*)
 C
        NDIM=IAP(1)
        NTST=IAP(5)
@@ -4176,7 +4194,7 @@ C
        SS=RNRMSQ(IAP,NDIM1,NDX,DVPS,DTM,THU)
 C
        DO I=1,NFPR
-         SS=SS+THL(ICP(I))*RLD(I)**2
+         SS=SS+THL(I)*RLD(I)**2
        ENDDO
 C
        SC=1.d0/DSQRT(SS)
@@ -4510,7 +4528,7 @@ C
          RLDOT(I)=(RLCUR(I)-RLOLD(I))*DDS
        ENDDO
 C        Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
-       CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(IAP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
 C Extrapolate to get initial approximation to next solution point.
 C
@@ -5221,7 +5239,7 @@ C
 C
 C Scale the starting direction.
 C
-         CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+         CALL SCALEB(IAP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
 C
 C Make sure that RLDOT(1) is positive (unless zero).
 C
@@ -5430,7 +5448,7 @@ C
 C
 C Scale the direction vector.
 C
-         CALL SCALEB(IAP,ICP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
+         CALL SCALEB(IAP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
          IF(IID.GE.2)THEN
            WRITE(9,101)ABS(IBR),NTOP+1,RLDOT(1)
          ENDIF
