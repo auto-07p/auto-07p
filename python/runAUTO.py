@@ -46,9 +46,13 @@ class runAUTO:
         self.__parseOptions(cnf)
             
     def __parseOptions(self,dict):
+        # first the normal parameters, then IRS=... style parameters
         for key in dict.keys():
             if self.options.has_key(key):
                 self.options[key] = dict[key]
+        for key in dict.keys():
+            if self.options.has_key(key):
+                pass
             elif self.options["constants"].has_key(key):
                 if key == "DS" and (dict[key] == '-' or dict[key] == '+'):
                     if dict[key] == '-':
