@@ -755,7 +755,7 @@ class commandCat(commandShell):
     def __init__(self,command=None):
         self.command = "cat"
         if not command is None:
-            self.command = self.command + command
+            self.command = self.command + " " + command
 
 
 ############################################
