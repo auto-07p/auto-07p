@@ -40,6 +40,10 @@ def type_translation(type):
     type_translation_dict[9]  = {"long name" : "Normal begin or end","short name" : "EP"}
     type_translation_dict[-9] = {"long name" : "Abnormal termination","short name" : "MX"}
 
+    if type>=0:
+        type=type%10
+    else:
+        type=-((-type)%10)
     if type in type_translation_dict.keys():
         return type_translation_dict[type]
     else:
