@@ -1,0 +1,41 @@
+
+#===============
+# AUTO Demo lcnf
+#===============
+
+print "\nlcnf: run 1: trivial solution"
+run(e='lcnf',c='lcnf',sv='lcnf.1')
+
+print "\nlcnf: run 1: branch switch"
+s1=sl('lcnf.1')
+run(IRS=splabs(s1,'BP')[0],ISW=-1,NMX=5,NPR=1,s=s1,sv='lcnf.1.sw')
+
+cc(ICP=[1,2,11])
+
+for isw in [2,3]:
+
+   if isw==2:
+      msg="\nlcnf: run 2: BP cont non-generic "
+      cc(ICP=[1,2,11])
+   else:
+      msg="\nlcnf: run 3: BP continuation "
+      cc(ICP=[1,2,3,11])
+   solprefix='lcnf.'+str(isw)+'.'
+   cc(IRS=splabs(s1,'BP')[0])
+
+   print msg+"(sw)"
+   cc(ISW=isw,NMX=20,NPR=10,DS=1.e-4)
+   run(s='lcnf.1',sv=solprefix+'sw')
+
+   print msg+"(fw)"
+   sw=sl(solprefix+'sw')
+   run(IRS=splabs(sw,'EP')[0],DS=0.01,NMX=50,s=sw,sv=solprefix+'fw')
+
+   print msg+"(bw)"
+   run(DS='-',s=sw,sv=solprefix+'bw')
+
+   print msg+"(restart)"
+   run(DS='-',IRS=pr('IRS')+2,s=solprefix+'fw',sv=solprefix+'rs')
+
+print "\n***Clean the directory***"
+cl()

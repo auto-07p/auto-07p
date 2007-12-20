@@ -1,0 +1,17 @@
+
+#===============
+# AUTO Demo lcnf
+#===============
+
+print "\n***Clean the directory***"
+dl('lcnf.1')
+dl('lcnf.1.sw')
+dl('lcnf.2.sw')
+dl('lcnf.2.bw')
+dl('lcnf.2.fw')
+dl('lcnf.2.rs')
+dl('lcnf.3.sw')
+dl('lcnf.3.bw')
+dl('lcnf.3.fw')
+dl('lcnf.3.rs')
+cl()
