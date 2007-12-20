@@ -1,0 +1,13 @@
+
+#===============
+# AUTO Demo sspg
+#===============
+
+print "\n***Clean the directory***"
+dl('sspg.1')
+dl('sspg.1.sw')
+dl('sspg.2.sw')
+dl('sspg.2.bw')
+dl('sspg.2.fw')
+dl('sspg.2.rs')
+cl()

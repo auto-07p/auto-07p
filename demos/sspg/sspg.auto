@@ -1,0 +1,30 @@
+
+#===============
+# AUTO Demo sspg
+#===============
+
+print "\nsspg1: run 1: trivial solution"
+run(e='sspg',c='sspg',sv='sspg.1')
+
+print "\nsspg1: run 1: branch switch"
+s1=sl('sspg.1')
+run(IRS=splabs(s1,'BP')[0],ISW=-1,NMX=5,NPR=1,s=s1,sv='sspg.1.sw')
+
+print "\nsspg1: run 2: BP continuation (sw)"
+cc(ICP=[1,2])
+cc(ISW=2,NMX=50,NPR=10)
+run(s='sspg.1',sv='sspg.2.sw')
+
+print "\nsspg1: run 2: BP continuation (fw)"
+sw=sl('sspg.2.sw')
+run(IRS=splabs(sw,'EP')[0],s=sw,sv='sspg.2.fw')
+
+print "\nsspg1: run 2: BP continuation (bw)"
+run(DS='-',s=sw,sv='sspg.2.bw')
+
+print "\nsspg1: run 2: BP continuation (restart)"
+run(DS='-',IRS=pr('IRS')+2,s='sspg.2.fw',sv='sspg.2.rs')
+
+print "\n***Clean the directory***"
+cl()
+
