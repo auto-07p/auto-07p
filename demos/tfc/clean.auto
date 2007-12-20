@@ -1,0 +1,20 @@
+
+#==============
+# AUTO Demo tfc
+#==============
+
+print "\n***Clean the directory***"
+dl('tfc.1')
+dl('tfc.1')
+dl('tfc.2')
+dl('tfc.3')
+dl('tfc.4.sw')
+dl('tfc.4.bw')
+dl('tfc.4.fw')
+dl('tfc.4.rs')
+dl('tfc.5')
+dl('tfc.6.sw')
+dl('tfc.6.bw')
+dl('tfc.6.fw')
+dl('tfc.6.rs')
+cl()

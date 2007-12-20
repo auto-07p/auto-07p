@@ -1,0 +1,62 @@
+
+#==============
+# AUTO Demo tfc
+#==============
+
+print "\ntfc: run 1: equilibrium continuation"
+run(e='tfc',c='tfc',sv='tfc.1')
+
+print "\ntfc: run 2: cycle continuation"
+s1=sl('tfc.1')
+cc(ICP=[3,11,7,8])
+cc(UZR=[[3,0.75]])
+cc(IPS=2,IPLT=1,EPSL=1.e-10,EPSU=1.e-10,EPSS=1.e-8)
+run(IRS=splabs(s1,'HB')[0],s=s1,sv='tfc.2')
+
+print "\ntfc: run 3: cycle continuation"
+s2=sl('tfc.2')
+cc(ICP=[6,11,7,8])
+cc(UZR=[[6,0.013]])
+cc(DS=0.001,DSMAX=0.01)
+run(IRS=splabs(s2,'UZ')[0],s=s2,sv='tfc.3')
+
+print "\ntfc: run 4: BP continuation (sw)"
+s3=sl('tfc.3')
+cc(ICP=[6,3,11,7,8])
+cc(ISW=2,DS=0.01,DSMAX=0.1)
+cc(UZR=[])
+run(IRS=splabs(s3,'BP')[0],s=s3,sv='tfc.4.sw')
+
+print "\ntfc: run 4: BP continuation (fw)"
+sw=sl('tfc.4.sw')
+run(IRS=splabs(sw,'EP')[0],s=sw,sv='tfc.4.fw')
+
+print "\ntfc: run 4: BP continuation (bw)"
+run(NMX=300,NPR=50,DSMAX=10.0,DS='-',sv='tfc.4.bw')
+
+print "\ntfc: run 4: BP continuation (restart)"
+run(NMX=50,NPR=10,DSMAX=0.1,DS='-',IRS=pr('IRS')+1,s='tfc.4.fw',sv='tfc.4.rs')
+
+print "\ntfc: run 5: iso-periodic cycle continuation"
+cc(ICP=[3,1])
+cc(ISW=1,NMX=100,NPR=20,THL=[],DS=-0.01)
+run(IRS=splabs(s3,'UZ')[0],s=s3,sv='tfc.5')
+
+print "\ntfc: run 6: iso-periodic BP continuation (sw)"
+s5=sl('tfc.5')
+cc(ICP=[3,1,6])
+cc(ISW=2,DS=0.01,DSMAX=0.1,NMX=50,NPR=10)
+run(IRS=splabs(s5,'BP')[1],s=s5,sv='tfc.6.sw')
+
+print "\ntfc: run 6: iso-periodic BP continuation (fw)"
+sw=sl('tfc.6.sw')
+run(IRS=splabs(sw,'EP')[0],s=sw,sv='tfc.6.fw')
+
+print "\ntfc: run 6: iso-periodic BP continuation (bw)"
+run(DS='-',sv='tfc.6.bw')
+
+print "\ntfc: run 6: iso-periodic BP continuation (restart)"
+run(DS='-',IRS=pr('IRS')+2,s='tfc.6.fw',sv='tfc.6.rs')
+
+print "\n***Clean the directory***"
+cl()
