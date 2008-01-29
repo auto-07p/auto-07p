@@ -3361,7 +3361,7 @@ C
 C
        DO I=1,NDM
          F(1)=F(1)+(U(I)-UOLD(I))*UPOLD(I)
-         F(2)=F(2)+U(NDM+I)*U(NDM2+I)-U(NDM2+I)*U(NDM+I)
+         F(2)=F(2)+U(NDM+I)*UOLD(NDM2+I)-U(NDM2+I)*UOLD(NDM+I)
          F(3)=F(3)+U(NDM+I)*U(NDM+I) +U(NDM2+I)*U(NDM2+I)
        ENDDO
 C
@@ -3376,8 +3376,8 @@ C
 C
       DO I=1,NDM
         DINT(1,I)=UPOLD(I)
-        DINT(2,NDM+I)=U(NDM2+I)
-        DINT(2,NDM2+I)=-U(NDM+I)
+        DINT(2,NDM+I)=UOLD(NDM2+I)
+        DINT(2,NDM2+I)=-UOLD(NDM+I)
         DINT(3,NDM+I)=2*U(NDM+I)
         DINT(3,NDM2+I)=2*U(NDM2+I)
       ENDDO
@@ -3428,8 +3428,8 @@ C
            K3=K2+NDM
            T=TM(J)+(I-1)*(TM(J+1)-TM(J))/NCOLRS
            DO K=K2P1,K3
-             UPS(K,J)    =0.0001*DSIN(T)
-             UPS(K+NDM,J)=0.0001*DCOS(T)
+             UPS(K,J)    =0.0001d0*SIN(T)
+             UPS(K+NDM,J)=0.0001d0*COS(T)
              UDOTPS(K,J)=0.d0
              UDOTPS(K+NDM,J)=0.d0
            ENDDO
