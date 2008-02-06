@@ -59,6 +59,7 @@ C
       CALL WRBAR("=",47)
       WRITE(9,301)TOTTIM
       WRITE(6,301)TOTTIM
+      CALL CLEANUP()
       GOTO 1
 C
  301  FORMAT(/,' Total Time ',E12.3)
@@ -583,6 +584,18 @@ C
       RETURN
  5    EOF=.TRUE.
       RETURN
+      END
+C
+C     ---------- -------
+      SUBROUTINE CLEANUP()
+C
+C     Deallocate some globally allocated arrays.
+C
+      USE AUTO_CONSTANTS
+
+      IMPLICIT NONE
+
+      DEALLOCATE(THU,IUZ,VUZ,THL)
       END
 C
 C     ---------- -----
