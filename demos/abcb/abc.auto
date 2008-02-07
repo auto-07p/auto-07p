@@ -1,0 +1,42 @@
+print "\nabc: run 1: equilibrium continuation"
+run(e='abc',c='abc',sv='abc.1')
+
+print "\nabc: run 2: cycle continuation"
+s1=sl('abc.1')
+run(IPS=2,IRS=splabs(s1,'HB')[0],ICP=[1,11],IPLT=1,s=s1,sv='abc.2')
+
+print "\nabc: run 3: switch to LP continuation"
+s2=sl('abc.2')
+run(IRS=splabs(s2,'LP')[0],ICP=[1,2,11],ISW=2,IPLT=0,NPR=10,s=s2,sv='abc.3.sw')
+print " Saved as *.abc.3.sw"
+
+print "\nabc: run 3: LP continuation (fw)"
+sw3=sl('abc.3.sw')
+run(IRS=splabs(sw3,'EP')[0],ICP=[2,1,11],NMX=50,RL1=10.0,s=sw3,sv='abc.3.fw')
+
+print "\nabc: run 3: LP continuation (bw)"
+run(DS='-',s=sw3,sv='abc.3.bw')
+
+print "\nabc: run 4: cycle continuation (bw)"
+sb3=sl('abc.3.bw')
+run(IRS=splabs(sb3,'LP')[0],ICP=[1,11],ISW=1,NMX=10,NPR=2,s=sb3,sv='abc.4.bw')
+
+print "\nabc: run 4: cycle continuation (fw)"
+sb4=sl('abc.4.bw')
+run(IRS=splabs(sb4,'EP')[0],ITMX=10,DS='-',s=sb4,sv='abc.4.fw')
+
+print "\nabc: run 5: BP continuation (sw)"
+sf4=sl('abc.4.fw')
+run(IRS=splabs(sf4,'BP')[0],ICP=[1,2,3,11],ISW=3,NMX=50,NPR=10,
+    s=sf4,sv='abc.5.sw')
+
+print "\nabc: run 5: BP continuation (fw)"
+sw5=sl('abc.5.sw')
+run(IRS=splabs(sw5,'EP')[0],s=sw5,sv='abc.5.fw')
+
+print "\nabc: run 5: BP continuation (bw)"
+run(DS='-',s=sw5,sv='abc.5.bw')
+
+print "\nabc: run 5: BP continuation (restart)"
+sf5=sl('abc.5.fw')
+run(IRS=sf5[1]["Label"],DS='-',s=sf5,sv='abc.5.rs')

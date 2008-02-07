@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo abc
+#==============
+
+print "\n***Clean the directory***"
+dl('abc.1')
+dl('abc.2')
+dl('abc.3.sw')
+dl('abc.3.fw')
+dl('abc.3.bw')
+dl('abc.4.fw')
+dl('abc.4.bw')
+dl('abc.5.sw')
+dl('abc.5.fw')
+dl('abc.5.bw')
+dl('abc.5.rs')
+cl()

@@ -1,0 +1,11 @@
+3 1 0 1                      NDIM,IPS,IRS,ILP
+1 1                          NICP,(ICP(I),I=1,NICP)
+50 4 3 2 1 0 0 0             NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+100 0 1.0 0 100              NMX,RL0,RL1,A0,A1
+20 0 2 8 7 5 1               NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+1.e-8 1.e-8 1.e-6            EPSL,EPSU,EPSS
+0.01 1.e-10 0.1 1            DS,DSMIN,DSMAX,IADS
+1                            NTHL,((I,THL(I)),I=1,NTHL)
+11 0.0
+0                            NTHU,((I,THU(I)),I=1,NTHU)
+0                            NUZR,((I,UZR(I)),I=1,NUZR)
