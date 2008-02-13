@@ -84,26 +84,24 @@ class parseS:
         file.seek(0,0)
         # Read in the first solution
         solution = AUTOSolution()
-        solution.readAll(file)
+        solution.read(file)
         self.data.append(solution)
-        # So we can get figure out how many bytes the first solution takes.
-        # We will use this as a guess for the rest
-        offsets.append(0) 
-        guess_at_size = file.tell()
+        offsets.append(0)
 
         # We now go through the file and compute the rest of
         # the offsets.
         while 1:
-            start_of_current_solution = offsets[-1]
-            # See if the guess for the solution size is correct
-            file.seek(start_of_current_solution+guess_at_size+1,0)
+            file.seek(offsets[-1],0)
+            for i in range(solution._getNumLinesPerEntry()+1):
+                file.readline()
+            start_of_current_solution = file.tell()
             data = file.readline()
             data = string.split(data)
             # This is where we detect the end of the file
             if len(data) == 0:
                 data = file.read(1)
             if len(data) == 0:
-                self.data[-1]._setEnd(start_of_current_solution+guess_at_size+1)
+                self.data[-1]._setEnd(start_of_current_solution+1)
                 break
             else:
                 try:
@@ -114,13 +112,13 @@ class parseS:
                     map(int,data)
                     # If it passes both these tests we say it is a header line
                     # and we update the offsets
-                    offsets.append(start_of_current_solution+guess_at_size)
-                    self.data[-1]._setEnd(start_of_current_solution+guess_at_size)
+                    offsets.append(start_of_current_solution)
+                    self.data[-1]._setEnd(start_of_current_solution)
                     solution = AUTOSolution()
-                    solution.read(file,start_of_current_solution+guess_at_size+1)
+                    solution.read(file,start_of_current_solution+1)
                     self.data.append(solution)
                 except:
-                    # Ok, the guess for the size of the solution was wrong...
+                    # Ok, the number of lines for the solution was wrong...
                     # So, we just read it in and get the size from that.
                     # The assumption is that this does not happen very often.
 
@@ -143,7 +141,6 @@ class parseS:
                     except PrematureEndofData:
                         return
                     offsets.append(end)
-                    guess_at_size = end - start_of_current_solution
                         
                     self.data.append(solution)
 
@@ -228,7 +225,7 @@ class parseS:
 # The AUTOsolution class parses an AUTO fort.8 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:
-# read and write take as an arguement either and input or output
+# read and write take as an argument either and input or output
 #    stream (basically any object with has the method "readline"
 #    for reading and "write" for writing)
 #    
@@ -331,6 +328,9 @@ class AUTOSolution(UserDict.UserDict):
 
     def _getEnd(self):
         return self.__end
+
+    def _getNumLinesPerEntry(self):
+        return self.__numLinesPerEntry
 
     def _forceParse(self):
         self.__readAll()
