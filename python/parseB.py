@@ -178,6 +178,46 @@ class parseB:
                     output_line = output_line + "%19.10E"%data
                 output.write(output_line+"\n")
 
+    def writeShort(self):
+        for line in self.with_header:
+            if line.has_key("header"):
+                l = string.split(line["header"])
+                if len(l) > 1 and l[1]=='PT':
+                    output_line = "  BR    PT  TY  LAB "
+                    l=line["header"]
+                    n=20
+                    while n+14 <= len(l):
+                        output_line = output_line + "%14s"%l[n:n+14]
+                        n=n+19
+                    sys.stdout.write(output_line+"\n\n")
+                else:
+                    sys.stdout.write(line["header"])
+            else:
+                output_line = "%4d%6d%4d%4d"%(line["BR"],line["PT"],
+                                              line["TY number"],line["LAB"])
+                for data in line["data"]:
+                    output_line = output_line + "%14.5E"%data
+                sys.stdout.write(output_line+"\n")
+
+    def writeScreen(self):
+        for line in self.with_header:
+            if line.has_key("header"):
+                l = string.split(line["header"])
+                if len(l) > 1 and l[1]=='PT':
+                    output_line = "  BR    PT  TY  LAB "
+                    l=line["header"]
+                    n=20
+                    while n+14 <= len(l):
+                        output_line = output_line + "%14s"%l[n:n+14]
+                        n=n+19
+                    sys.stdout.write(output_line+"\n")
+            elif line["TY name"]!="No Label":
+                output_line = "%4d%6d%4s%5d"%(line["BR"],abs(line["PT"]),
+                                              line["TY name"],line["LAB"])
+                for data in line["data"]:
+                    output_line = output_line + "%14.5E"%data
+                sys.stdout.write(output_line+"\n")
+
     def writeFilename(self,filename):
 	output = open(filename,"w")
 	self.write(output)

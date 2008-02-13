@@ -1,0 +1,11 @@
+#! /usr/bin/env autox
+
+from AUTOclui import *
+
+# This is the Python syntax for making a script runable    
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        dg(sys.argv[1]).writeShort()
+    else:
+        dg().writeShort()
+
