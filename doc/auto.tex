@@ -41,6 +41,7 @@
 with major contributions by\\
 \\
 Alan R. Champneys (Bristol),
+Fabio Dercole (Milano),
 Thomas Fairgrieve (Toronto),
 \\
 Yuri Kuznetsov (Utrecht),
@@ -52,7 +53,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{October 2007}
+\date{February 2008}
 \maketitle
 \tableofcontents
 %
@@ -113,8 +114,7 @@ W.-J. Beyn, Universit\"{a}t Bielefeld,
 M.~J. Friedman, University of Alabama,
 A. Rucklidge, University of Cambridge, 
 M. Koper, University of Utrecht,
-C.~J. Budd, University of Bath,
-Fabio Dercole, Politecnico di Milano, and
+C.~J. Budd, University of Bath, and
 Frank Schilder, University of Surrey,
 Financial support for this collaboration was also received from the U.K.
 Engineering and Physical Science Research Council and the Nuffield Foundation.
@@ -218,7 +218,7 @@ Note that the GUI is not strictly necessary, since {\cal AUTO} can be
 run very effectively using the Unix Command Language User Interface (CLUI).
 Moreover, long or complicated sequences of {\cal AUTO} calculations can
 be programmed using the alternative Python CLUI. 
-THe GUI is not compiled by default. To compile
+The GUI is not compiled by default. To compile
 \AUTO with the GUI, type \commandf{./configure --enable-gui}
 and then \commandf{make} in the directory \filef{auto/07p}.
 
@@ -504,7 +504,7 @@ Specifically, for (\ref{1}) {\cal AUTO} can~:~
 \item[-]
   Compute solution families.\\  (Demo {\tt ab}; Run~1.) 
 \item[-]
-  Locate branch points, continue these in two parameters,
+  Locate branch points, continue these in two or three parameters,
   and automatically compute
   bifurcating families. \\ (Demos {\tt pp2}; Run~1 and {\tt apnf}.)
 \item[-]
@@ -542,12 +542,15 @@ For the ODE (\ref{2}) the program can~:~
   Branch switching is possible at branch points and at period 
   doubling bifurcations.  \\
   (Demos {\tt tor}, {\tt lor}.)
-\item[-]  Continue folds and period-doubling bifurcations, 
-  in two parameters. \\ (Demos {\tt plp}, {\tt pp3}.)
+\item[-]  Continue folds, branch points, period-doubling bifurcations,
+  and bifurcations to tori, in two parameters. \\ (Demos {\tt plp},
+  {\tt sspg}, {\tt pp3}, {\tt tor}.)
   The continuation of orbits of fixed period is also
   possible. This is the simplest way to compute curves of
   homoclinic orbits, if the period is sufficiently large.
   \\ (Demo {\tt pp2}.)
+  Generically, in non-symmetric problems, branch points are continued
+  in three parameters.\\ (Demo {\tt abcb}.)
 \item[-]  Do each of the above for {\it rotations}, i.e., when some of the
   solution components are periodic modulo a phase gain of a
   multiple of $2 \pi$. \\
@@ -3926,8 +3929,14 @@ period-doubling bifurcations, and torus bifurcations.
   where branch switching is done at a transcritical branch point.
 \item[-] {\tt ISW=2}~:
   If {\tt IRS} is the label of a fold, a Hopf bifurcation point, 
-  or a period-doubling or torus bifurcation then a locus of such points will be
+  a period-doubling, a torus bifurcation, or, in a non-generic
+  (symmetric) system, a branch point then a locus of such points will be
   computed. An additional free parameter must be specified for such 
+  continuations; see also Section~\ref{sec:Free_parameters}.
+\item[-] {\tt ISW=3}~:
+  If {\tt IRS} is the label of a branch point in a generic
+  (non-symmetric) system then a locus of such points will be
+  computed. Two additional free parameters must be specified for such 
   continuations; see also Section~\ref{sec:Free_parameters}.
 \end{itemize}
 
@@ -4235,7 +4244,8 @@ Section~\ref{sec:Parameter_over_specification}.
 {\tt IAD} & Mesh adaption every IAD steps; 0=off \\
 {\tt ISP} & Bifurcation detection; 0=off, 1=BP(FP), 3=BP(PO,BVP), 2=all \\
 {\tt ISW} & Branch switching; 1=normal, -1=switch branch (BP, HB, PD),\\
-          & 2=switch to two-parameter continuation (LP, HB, TR) \\
+          & 2=switch to two-parameter continuation (LP, BP, HB, TR) \\
+          & 3=switch to three-parameter continuation (BP) \\
 {\tt IPLT} & Select principal solution measure \\
 {\tt NBC} & \# boundary conditions \\
 {\tt NINT} & \# integral conditions \\
@@ -4958,6 +4968,9 @@ as shown in  Table~\ref{tbl:demo_abcE2}.
 (The equations-file {\tt abc.f} also contains the skeletons
 of some other routines, which must be supplied, but which 
 are not used in this application.)
+
+A more advanced version, that continues branch points in three
+parameters is provided by the demo {\tt abcb}.
 
 In the constants-file ({\tt c.abc.1}) for the first run, as shown in 
 Table~\ref{tbl:demo_abcC1}, we note the following:
