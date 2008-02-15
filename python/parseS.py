@@ -86,22 +86,25 @@ class parseS:
         solution = AUTOSolution()
         solution.read(file)
         self.data.append(solution)
-        offsets.append(0)
+        # So we can get figure out how many bytes the first solution takes.
+        # We will use this as a guess for the rest
+        offsets.append(0) 
+        solution._skipEntry()
+        guess_at_size = solution._getEnd()
 
         # We now go through the file and compute the rest of
         # the offsets.
         while 1:
-            file.seek(offsets[-1],0)
-            for i in range(solution._getNumLinesPerEntry()+1):
-                file.readline()
-            start_of_current_solution = file.tell()
+            start_of_current_solution = offsets[-1]
+            # See if the guess for the solution size is correct
+            file.seek(start_of_current_solution+guess_at_size+1,0)
             data = file.readline()
             data = string.split(data)
             # This is where we detect the end of the file
             if len(data) == 0:
                 data = file.read(1)
             if len(data) == 0:
-                self.data[-1]._setEnd(start_of_current_solution+1)
+                self.data[-1]._setEnd(start_of_current_solution+guess_at_size+1)
                 break
             else:
                 try:
@@ -112,18 +115,18 @@ class parseS:
                     map(int,data)
                     # If it passes both these tests we say it is a header line
                     # and we update the offsets
-                    offsets.append(start_of_current_solution)
-                    self.data[-1]._setEnd(start_of_current_solution)
+                    end = start_of_current_solution+guess_at_size
+                    self.data[-1]._setEnd(end)
                     solution = AUTOSolution()
-                    solution.read(file,start_of_current_solution+1)
-                    self.data.append(solution)
+                    solution.read(file,end+1)
                 except:
-                    # Ok, the number of lines for the solution was wrong...
+                    # Ok, the guess for the size of the solution was wrong...
                     # So, we just read it in and get the size from that.
                     # The assumption is that this does not happen very often.
 
-                    # We access the data to get the object to parse everthing
-                    self.data[-1]._forceParse()
+                    # We skip the correct number of lines in the entry to
+                    # determine its end.
+                    self.data[-1]._skipEntry()
                     # Something wierd is going on here, that I don't
                     # quite understand.  self.data[-1]._getEnd() is getting
                     # messed up my the solution.read(file,end) and I am
@@ -140,9 +143,15 @@ class parseS:
                         solution.read(file,end)
                     except PrematureEndofData:
                         return
-                    offsets.append(end)
+                    guess_at_size = end - start_of_current_solution
                         
-                    self.data.append(solution)
+                offsets.append(end)
+                self.data.append(solution)
+                # Redetermine the size guess if the dimensions of the solution
+                # change
+                if not solution._equalSize(self.data[-2]):
+                    solution._skipEntry()
+                    guess_at_size = solution._getEnd() - end
 
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
@@ -329,11 +338,19 @@ class AUTOSolution(UserDict.UserDict):
     def _getEnd(self):
         return self.__end
 
-    def _getNumLinesPerEntry(self):
-        return self.__numLinesPerEntry
+    def _equalSize(self,other):
+        return (
+            self.__numEntriesPerBlock == other.__numEntriesPerBlock and
+            self.__numFreeParameters == other.__numFreeParameters and
+            self.__numChangingParameters == other.__numChangingParameters and
+            self.__numSValues == other.__numSValues)
 
-    def _forceParse(self):
-        self.__readAll()
+    def _skipEntry(self):
+        inputfile = self.__input
+        inputfile.seek(self.__start_of_data)
+        for i in range(self.__numLinesPerEntry):
+            inputfile.readline()
+        self.__end = inputfile.tell()
 
     def __readHeader(self):
         inputfile = self.__input
