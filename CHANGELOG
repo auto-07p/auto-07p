@@ -23,6 +23,13 @@
   Python CLUI.
 * Added a GETMDMX(NDIM,P0,P1,NMM) routine to obtain the monodromy
   matrix factorization in PVLS (adapted from Kazuyuki Yagasaki).
+* Corrected integral conditions for torus bifurcation continuations
+  (bug well-spotted by Huguette Croisier).
+* Added BPCont: code for BP continuation of periodic solutions and BVPs
+  (Fabio Dercole).
+* Added BPCont demos: sspg, lcnf, tfc, and abcb.
+* Added @lbf, @ls commands, and the writeShort() and writeScreen() Python
+  methods for displaying the bifurcation diagram file in a compact way.
 
 0.4:
 * AUTO-07p can now continue branch points in two parameters
