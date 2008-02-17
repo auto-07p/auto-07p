@@ -151,7 +151,7 @@ Aliases: execfile ex"""
         return obj
     
 
-    def handle_auto(self, pre, iFun, theRest):
+    def handle_auto(self, pre, iFun, theRest, obj):
         """Handle lines which can be auto-executed, quoting if requested."""
         #shamelessly stolen from IPython, too
         if pre == ',':
@@ -210,7 +210,7 @@ Aliases: execfile ex"""
                   not self.re_exclude_auto.match(theRest))):
                 obj = self._ofind(cmd)
                 if not obj is None and callable(obj):
-                    return self.handle_auto(pre,cmd,theRest)
+                    return self.handle_auto(pre,cmd,theRest,obj)
             return line
         return line
 
