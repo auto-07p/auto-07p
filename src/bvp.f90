@@ -242,7 +242,7 @@ CONTAINS
 
 ! Check for branch point.
 
-    IF(ABS(ISP).GE.2)THEN
+    IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
        CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
             RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP, &
             FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ)
@@ -1402,7 +1402,7 @@ CONTAINS
 ! (ISP is set to negative and detection of bifurations is discontinued)
 
     AMIN= ABS( EV(1) - 1.d0 )
-    IF(AMIN.GT.5.0E-2 .AND. ISP.EQ.2) THEN
+    IF(AMIN>5.0E-2 .AND. (ISP==2 .OR. ISP==4)) THEN
        IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
        DO I=1,NDIM
           WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
@@ -1446,7 +1446,7 @@ CONTAINS
        DO I=2,NDIM
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
        ENDDO
-       IF(ISP.EQ.2) THEN
+       IF(ISP==2.OR.ISP==4) THEN
           IF(AIMAG(EV(2)).EQ.0.d0 .AND. REAL(EV(2)).GT.0.d0)THEN
 !            *Ignore if second multiplier is real positive
              D=0.d0
@@ -1466,7 +1466,7 @@ CONTAINS
 
     NINS=NINS1
     IAP(33)=NINS
-    IF( IID.GE.2 .AND. (ISP.EQ.1 .OR. ISP.EQ.2))THEN
+    IF( IID>=2 .AND. (ISP==1 .OR. ISP==2 .OR. ISP==4))THEN
        WRITE(9,103)ABS(IBR),NTOP+1,D
     ENDIF
 
