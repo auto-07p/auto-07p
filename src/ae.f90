@@ -41,7 +41,7 @@ CONTAINS
 
 ! Controls the bifurcation analysis of algebraic problems
 
-    EXTERNAL FUNI,STPNT,FNLPAE,FNHBAE,FNBPAE,FNUZAE
+    EXTERNAL FUNI,STPNT
 
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),VUZ(*),THL(*),THU(*)
 ! Local
@@ -645,7 +645,7 @@ CONTAINS
 ! accuracy if the ratio between RDS and the user supplied value of
 ! DS is less than the user-supplied toler EPSS.
 
-    EXTERNAL FUNI,FNCS
+    EXTERNAL FUNI
 
     DIMENSION IAP(*),RAP(*),RLCUR(*),RLOLD(*),RLDOT(*),PAR(*),ICP(*)
     DIMENSION F(*),DFDU(*),DFDP(*),THL(*),THU(*),IUZ(*),VUZ(*)

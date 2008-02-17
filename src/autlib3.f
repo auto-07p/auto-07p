@@ -11,7 +11,7 @@
       PUBLIC :: FNHD,STPNHD ! Hopf bifs (maps)
       PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs)
       PUBLIC :: FNHW,STPNHW ! Hopf bifs (waves)
-      PUBLIC :: FNPS,BCPS,ICPS,PDBLE,STPNPS ! Periodic solutions
+      PUBLIC :: FNPS,BCPS,ICPS,STPNPS ! Periodic solutions
       PUBLIC :: STPNPB      ! Periodic solutions from Hopf
       PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
       PUBLIC :: FNWP,STPNWP ! Travelling waves (parabolic PDEs)
@@ -1432,14 +1432,19 @@ C     ---------- ------
       SUBROUTINE STPNPS(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
 C
 C Generates starting data for the continuation of a branch of periodic
-C solutions from a Hopf bifurcation point.
+C solutions.
+C If IPS is not equal to 2 then the user must have supplied
+C BCND, ICND, and period-scaled F in FUNC, and the user period-scaling of F
+C must be taken into account.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
+      DIMENSION THL(*),THU(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
@@ -1448,10 +1453,34 @@ C
       LOGICAL FOUND
 C
        NDIM=IAP(1)
+       IPS=IAP(2)
        IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
+       ISW=IAP(10)
+       ITP=IAP(27)
        NFPR=IAP(29)
+C
+       IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
+          IF(IRS.GT.0)THEN
+             CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,
+     *            RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+             IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
+C
+C Special case : Preprocess restart data in case of branch switching
+C at a period doubling bifurcation.
+C
+                CALL PDBLE(NDIM,NTSR,NCOLRS,NDX,UPS,UDOTPS,TM,PAR)
+             ENDIF
+          ELSE
+             CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,
+     *            RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+          ENDIF
+          RETURN
+       ENDIF
+
+C from a Hopf bifurcation point:
+
        ALLOCATE(DFU(NDIM*NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
        ALLOCATE(SMAT(2*NDIM,2*NDIM))
 C
@@ -1486,120 +1515,11 @@ C
          DO J=1,NDIM
            SMAT(I,NDIM+J)=DFU((J-1)*NDIM+I)
            SMAT(NDIM+I,J)=DFU((J-1)*NDIM+I)
-         ENDDO
-       ENDDO
-C
-       ALLOCATE(IR(2*NDIM),IC(2*NDIM))
-       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV,IR,IC)
-       CALL NRMLZ(NDIM2,RNLLV)
-C
-C Generate the (initially uniform) mesh.
-C
-       CALL MSH(NTST,TM)
-       DT=1.d0/NTST
-C
-       DO J=1,NTST+1
-         T=TM(J)
-         S=DSIN(TPI*T)
-         C=DCOS(TPI*T)
-         DO K=1,NDIM
-           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(K,J)=U(K)
-         ENDDO
-       ENDDO
-C
-       DO I=1,NCOL-1
-         DO J=1,NTST
-           T=TM(J)+I*( TM(J+1)-TM(J) )/NCOL
-           S=DSIN(TPI*T)
-           C=DCOS(TPI*T)
-           DO  K=1,NDIM
-             K1=I*NDIM+K
-             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(K1,J)=U(K)
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       RLDOT(1)=0.d0
-       RLDOT(2)=0.d0
-C
-       DO I=1,NTST
-         DTM(I)=DT
-       ENDDO
-C
-       CALL SCALEB(IAP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
-C
-       NODIR=-1
-C
-       DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
-      RETURN
-      END SUBROUTINE STPNPS
-C
-C     ---------- ------
-      SUBROUTINE STPNPB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      INCLUDE 'auto.h'
-C
-C Generates starting data for the continuation of a branch of periodic
-C solutions from a Hopf bifurcation point, when the user has supplied
-C BCND, ICND, and period-scaled F in FUNC.
-C The difference with STPNPS is that the user period-scaling of F must
-C be taken into account.
-C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
-C Local
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
-      DOUBLE PRECISION UOLD(1),DUMDFP(1)
-C
-      LOGICAL FOUND
-C
-       NDIM=IAP(1)
-       IRS=IAP(3)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NFPR=IAP(29)
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
-       ALLOCATE(SMAT(2*NDIM,2*NDIM))
-C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
-       PERIOD=PAR(11)
-       TPI=PI(2.d0)
-       RIMHB=TPI/PERIOD
-       NTSR=NTST
-       NCOLRS=NCOL
-C
-       NDIM2=2*NDIM
-       DO I=1,NDIM2
-         DO J=1,NDIM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDIM
-         SMAT(I,I)=-RIMHB
-         SMAT(NDIM+I,NDIM+I)=RIMHB
-       ENDDO
-C
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
+           IF(IPS/=2)THEN
 C Note that the user period-scaling in FUNC is taken into account:
-           SMAT(I,NDIM+J)=DFU((J-1)*NDIM+I)/PAR(11)
-           SMAT(NDIM+I,J)=DFU((J-1)*NDIM+I)/PAR(11)
+              SMAT(I,NDIM+J)=SMAT(I,NDIM+J)/PAR(11)
+              SMAT(NDIM+I,J)=SMAT(NDIM+I,J)/PAR(11)
+           ENDIF
          ENDDO
        ENDDO
 C
@@ -1650,7 +1570,7 @@ C
 C
        DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
       RETURN
-      END SUBROUTINE STPNPB
+      END SUBROUTINE STPNPS
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -2256,6 +2176,7 @@ C     ---------- ------
       SUBROUTINE STPNPL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -2686,6 +2607,7 @@ C     ---------- -------
       SUBROUTINE STPNPBP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3123,6 +3045,7 @@ C     ---------- ------
       SUBROUTINE STPNPD(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -3391,6 +3314,7 @@ C     ---------- ------
       SUBROUTINE STPNTR(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -3752,6 +3676,7 @@ C     ---------- ------
       SUBROUTINE STPNPO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -4185,6 +4110,7 @@ C     ---------- ------
       SUBROUTINE STPNBL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -4821,6 +4747,7 @@ C     ---------- -------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE SOLVEBV
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'

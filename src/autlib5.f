@@ -12,7 +12,7 @@ C
 
       PRIVATE
 
-      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,PREHO
+      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO
 
 C     This common block is also used by demos: don't remove it!!
 C
@@ -1041,6 +1041,7 @@ C     ---------- -----
 C
 C     Special homoclinic orbit preprocessing.
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
@@ -1291,6 +1292,7 @@ C     ---------- ------
       SUBROUTINE STPNHO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
      * NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a starting point for the continuation of a branch of
@@ -1302,15 +1304,29 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
+      DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
+      DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLDOT(*)
+      DIMENSION THL(*),THU(*)
 C Local
       ALLOCATABLE RR(:),RI(:),VR(:,:),VT(:,:)
 C
        NDIM=IAP(1)
+       IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
        NDM=IAP(23)
+C
+       IF(IRS.GT.0)THEN
+C
+C Special case : Preprocess restart data in case of homoclinic
+C continuation
+C
+          CALL STPNBV1(IAP,RAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,RLCUR,RLDOT,
+     *         NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+          CALL PREHO(IAP,PAR,ICP,NDX,NTSR,NDIMRD,NCOLRS,UPS,
+     *         UDOTPS,TM,DTM)
+          RETURN
+       ENDIF
 C
 C Generate the (initially uniform) mesh.
 C
@@ -1389,6 +1405,7 @@ C
 C     ---------- ------
       SUBROUTINE PVLSHO(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 C
+      USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),RAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)

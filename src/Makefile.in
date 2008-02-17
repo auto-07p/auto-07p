@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/blas.o ../lib/eispack.o ../lib/mpi.o @COMPAT@
+OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/eispack.o ../lib/mpi.o @COMPAT@
 RM=rm -f
 #
 all: lib compile ../lib/libauto_c.a move
@@ -23,13 +23,13 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f ../lib/autlib2.o ../lib/autlib3.o ../lib/autlib4.o ../lib/autlib5.o ../lib/ae.o auto.h
+../lib/autlib1.o: autlib1.f ../lib/ae.o ../lib/autlib5.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
 ../lib/autlib2.o: autlib2.f auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
 #
-../lib/autlib3.o: autlib3.f ../lib/autlib2.o auto.h
+../lib/autlib3.o: autlib3.f ../lib/bvp.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
 #
 ../lib/autlib4.o: autlib4.f auto.h
@@ -40,6 +40,9 @@ compile: $(OBJ)
 #
 ../lib/ae.o: ae.f90 auto.h
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
+#
+../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/autlib4.o auto.h
+	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
 ../lib/libauto_c.a: user_c.c ../include/auto_f2c.h ../include/config.h
 	rm -f $@
