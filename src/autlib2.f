@@ -251,13 +251,12 @@ C     ---------- -------
       SUBROUTINE SUBVPSA(NDIM,NTST,NCB,NDX,IAP,RDS,DDPA,FCPA,
      + RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
 C
+      USE MESH
       IMPLICIT NONE
 C
 C     This subroutine handles a non-parallel part of SETUBV, that is,
 C     * creating the pseudo-arclength parts of FC and D: (the bottom
 C       element FCPA and row DDPA)
-C
-      DOUBLE PRECISION RINPR
 C
       INTEGER NDIM,NTST,NCB,NDX,IAP(*),IFST
       DOUBLE PRECISION RDS,DDPA(*),FCPA,DTM(*),UPS(NDX,*),DUPS(NDX,*)
@@ -296,6 +295,7 @@ C     ---------- ------
      + ICNI,NDX,IAP,RAP,PAR,ICP,AA,BB,CC,DD,DDD,FA,FC,FCFC,
      + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT)
 C
+      USE MESH
       IMPLICIT NONE
       INTEGER NPARX,NBIFX,NIAP,NRAP
       INCLUDE 'auto.h'
@@ -1445,6 +1445,7 @@ C     ---------- ------
       SUBROUTINE DIMRGE(E,CC,CCBC,D,DDBC,FC,IR,IC,
      +  NA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
 C
+      USE SUPPORT
       IMPLICIT NONE
 C
 C Arguments

@@ -235,6 +235,7 @@ C
 C     ---------- ----
       SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
 C
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates the boundary conditions for homoclinic orbits.
@@ -720,6 +721,7 @@ C     ---------- ------
       SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,NDX,UPS,UDOTPS,T,DT,N,
      *     NDIM,J,J1)
 C
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION UPS(NDX,*), UDOTPS(NDX,*)
 C
@@ -1042,6 +1044,7 @@ C
 C     Special homoclinic orbit preprocessing.
 C
       USE BVP
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
@@ -1891,6 +1894,7 @@ C branch" is at the values of PAR at which the routine was last
 C called with the same values of IS and ITRANS.
 C
       USE INTERFACES, ONLY:FUNI
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)

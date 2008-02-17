@@ -26,23 +26,32 @@ compile: $(OBJ)
 ../lib/autlib1.o: autlib1.f ../lib/ae.o ../lib/autlib5.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
-../lib/autlib2.o: autlib2.f auto.h
+../lib/autlib2.o: autlib2.f ../lib/support.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
 #
 ../lib/autlib3.o: autlib3.f ../lib/bvp.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
 #
-../lib/autlib4.o: autlib4.f auto.h
+../lib/autlib4.o: autlib4.f
 	$(FC) $(FFLAGS) $(OPT) -c autlib4.f -o $@
 #
 ../lib/autlib5.o: autlib5.f ../lib/autlib3.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c autlib5.f -o $@
 #
-../lib/ae.o: ae.f90 auto.h
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
-../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/autlib4.o auto.h
+../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/autlib4.o ../lib/io.o auto.h
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
+#
+../lib/support.o: support.f90 ../lib/mesh.o
+	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
+#
+../lib/io.o: io.f90 auto.h
+	$(FC) $(FFLAGS) $(OPT) -c io.f90 -o $@
+#
+../lib/mesh.o: mesh.f90
+	$(FC) $(FFLAGS) $(OPT) -c mesh.f90 -o $@
 #
 ../lib/libauto_c.a: user_c.c ../include/auto_f2c.h ../include/config.h
 	rm -f $@

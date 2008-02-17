@@ -141,6 +141,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNLP(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -306,6 +308,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNBP(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -575,6 +579,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNC2(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -827,6 +833,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNHD(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -973,6 +981,7 @@ C
 C     ---------- ----
       SUBROUTINE FFHB(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INTEGER IAP(*),ICP(*)
@@ -1015,6 +1024,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNHB(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -1200,6 +1211,8 @@ C
 C     ---------- ------
       SUBROUTINE STPNHW(IAP,RAP,PAR,ICP,U)
 C
+      USE IO
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -1432,7 +1445,10 @@ C     ---------- ------
       SUBROUTINE STPNPS(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE IO
       USE BVP
+      USE MESH
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -1722,15 +1738,17 @@ C     ---------- ------
       SUBROUTINE STPNWP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
+      USE IO
+      USE MESH
+      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      INCLUDE 'auto.h'
 C
 C Generates starting data for the continuation of a branch of periodic
 C solutions starting from a Hopf bifurcation point (Waves).
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DIMENSION THL(*),THU(*)
 C Local
       ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
@@ -2177,6 +2195,7 @@ C     ---------- ------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -2608,6 +2627,8 @@ C     ---------- -------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
+      USE MESH
       USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -3046,6 +3067,7 @@ C     ---------- ------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -3315,6 +3337,7 @@ C     ---------- ------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -3677,6 +3700,8 @@ C     ---------- ------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -4111,6 +4136,7 @@ C     ---------- ------
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
       USE BVP
+      USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
@@ -4748,6 +4774,8 @@ C     ---------- -------
 C
       USE SOLVEBV
       USE BVP
+      USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INCLUDE 'auto.h'
