@@ -31,6 +31,7 @@ CONTAINS
     DO I=1,NLB
        IF(DELETEFN(I,LTY(I)))THEN
           LNL(I)=0
+          LTY(I)=0
        ENDIF
     ENDDO
     CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
@@ -111,7 +112,8 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          WRITE(LINE(16:19),'(I4)')LNL(L)
+          WRITE(LINE(11:14),'(I4)')LTY(L)
+          WRITE(LINE(15:19),'(I5)')LNL(L)
        ENDIF
        IF(.NOT.EOL)THEN
           DO
