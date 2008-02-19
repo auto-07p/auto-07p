@@ -77,7 +77,7 @@ Aliases: execfile ex"""
     def help(self,*args,**kwds):
         if "oldhelp" in self.__dict__.keys():
             if len(args) == 0 and len(kwds) == 0:
-                print 'Type "quit" and then "man" for help about the AUTO Python CLUI.'
+                print 'Press ENTER and then type "man" for help about the AUTO Python CLUI.'
             apply(runner.oldhelp,args,kwds)
         else:
             apply(self.locals['man'],args,kwds)
