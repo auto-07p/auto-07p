@@ -7,13 +7,12 @@ from AUTOclui import *
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        codes=['BP','LP','HB','PD','TR','EP','MX','UZ','RG']
         code=sys.argv[1]
         if code[0] == '-':
-            codes.remove(string.upper(code[1:3]))
+            codes=[string.upper(code[1:3])]
             n=1
         else:
-            codes=['UZ','RG']
+            codes=['BP','LP','HB','PD','TR','EP','MX']
             n=0
     if len(sys.argv) == n+3:
         changedb='b.'+sys.argv[n+2]
