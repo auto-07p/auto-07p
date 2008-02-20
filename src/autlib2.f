@@ -8,7 +8,7 @@ C
 
       PRIVATE
 
-      PUBLIC ::SOLVBV,PARTITION
+      PUBLIC ::SOLVBV
 
       CONTAINS
 C
@@ -18,6 +18,7 @@ C     ---------- ------
      * FA,FC,P0,P1,THL,THU)
 C
 C$    USE OMP_LIB
+      USE AUTOMPI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INCLUDE 'auto.h'
 C
@@ -181,21 +182,6 @@ C
 C
       RETURN
       END SUBROUTINE SETFCDD
-C
-C     ---------- ---------
-      SUBROUTINE PARTITION(N,KWT,M)
-C
-C     Linear distribution of NTST over all nodes
-      IMPLICIT NONE
-      INTEGER N,KWT,M(KWT)
-      INTEGER I
-C     
-        DO I=1,KWT
-          M(I) = I*N/KWT - (I-1)*N/KWT
-        ENDDO
-C     
-      RETURN
-      END SUBROUTINE PARTITION
 C
 C     ---------- ---------
       SUBROUTINE SUBVBC(NDIM,NTST,NBC,NCB,BCNI,NDX,
@@ -1022,6 +1008,7 @@ C
 C     ---------- ------
       SUBROUTINE CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
 C
+      USE AUTOMPI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
@@ -1048,6 +1035,7 @@ C     ---------- ------
       SUBROUTINE REDUCE(A1,A2,BB,CC,CCLO,DD,DDD,FAA,FC,FCFC,
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 C
+      USE AUTOMPI
       IMPLICIT NONE
 C
 C Arguments
@@ -1627,6 +1615,7 @@ C     ---------- ------
       SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,
      +     IT,NT,IAM,KWT)
 C
+      USE AUTOMPI
       IMPLICIT NONE
 C
 C Arguments

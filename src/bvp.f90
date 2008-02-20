@@ -18,6 +18,7 @@ CONTAINS
   SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &
        PVLI,THL,THU,IUZ,VUZ)
 
+    USE AUTOMPI
     IMPLICIT NONE
 
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
@@ -30,13 +31,74 @@ CONTAINS
     IF(IAP(38).GT.0)THEN
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
-       CALL MPIWFI(.TRUE.,FUNI,ICNI)
+       DO WHILE(MPIWFI(.TRUE.))
+          CALL mpi_setubv_worker(IAP,RAP,PAR,ICP,FUNI,ICNI,BCNI)
+       ENDDO
        RETURN
     ENDIF
     CALL CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &
          PVLI,THL,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOBV
+
+! ---------- -----------------
+  subroutine mpi_setubv_worker(iap,rap,par,icp,funi,icni,bcni)
+    use autompi
+    use solvebv
+    implicit none
+    integer NIAP,NRAP,NPARX,NBIFX
+    include 'auto.h'
+
+    integer :: iap(*), icp(*)
+    double precision :: rap(*), par(*)
+    external funi,icni,bcni
+
+    integer :: ndim, nra, nfc, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
+    integer :: ierr
+
+    double precision :: rldot(NPARX)
+    double precision, allocatable :: ups(:,:), uoldps(:,:)
+    double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
+    double precision, allocatable :: dtm(:),fa(:,:), fc(:)
+    integer, allocatable :: np(:)
+    double precision :: dum,dum1(1)
+
+    iam=iap(38)
+    kwt=iap(39)
+    call mpibcasti(iap,NIAP)
+    iap(38)=iam
+    iap(39)=kwt
+
+    ndim=iap(1)
+    ntst=iap(5)
+    ncol=iap(6)
+    nbc=iap(12)
+    nint=iap(13)
+
+    allocate(np(kwt))
+    call partition(ntst,kwt,np)
+    na=np(iam+1)
+    deallocate(np)
+    nra=ndim*ncol
+    nfc=nbc+nint+1
+
+    allocate(thu(ndim*8),dtm(na))
+    allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
+    ! output arrays
+    allocate(fa(nra,na),fc(nfc))
+
+    call mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp, &
+         dtm,thu,ifst,nllv)
+    call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
+         nllv,dum1,dum1,rldot,nra,ups,dum1,uoldps,udotps,upoldp,dtm, &
+         fa,fc,dum1,dum1,dum1,thu)
+
+    ! free input arrays
+    deallocate(ups,uoldps,dtm,udotps,upoldp,thu)
+
+    deallocate(fa,fc)
+
+  end subroutine mpi_setubv_worker
 
 ! ---------- ------
   SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &

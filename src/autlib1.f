@@ -1,9 +1,37 @@
+C     ------ --------------
+      MODULE AUTO_CONSTANTS
+C
+      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+      INCLUDE 'auto.h'
+C
+      INTEGER NDIM,IPS,IRS,ILP
+      INTEGER NICP
+      INTEGER ICP(2*NPARX)
+      INTEGER NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+      INTEGER NMX
+      DOUBLE PRECISION RL0,RL1,A0,A1
+      INTEGER NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+      DOUBLE PRECISION EPSL,EPSU,EPSS
+      DOUBLE PRECISION DS,DSMIN,DSMAX
+      INTEGER IADS
+      INTEGER NTHL
+      INTEGER,ALLOCATABLE :: ITHL(:)
+      DOUBLE PRECISION,ALLOCATABLE :: THL(:),VTHL(:)
+      INTEGER NTHU
+      DOUBLE PRECISION,ALLOCATABLE :: THU(:)
+      INTEGER NUZR
+      INTEGER, ALLOCATABLE :: IUZ(:)
+      DOUBLE PRECISION,ALLOCATABLE :: VUZ(:)
+C
+      END MODULE AUTO_CONSTANTS
+C
 C     ------- ----
       PROGRAM AUTO
 C
+      USE AUTOMPI
       USE IO
       USE SUPPORT
-      INCLUDE 'auto.h'
+      USE AUTO_CONSTANTS
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -11,10 +39,33 @@ C
 C Local
       DIMENSION IAP(NIAP),RAP(NRAP)
       DIMENSION PAR(2*NPARX)
+      INTEGER FUNI_ICNI_PARAMS(5)
 C
 C Initialization :
 C
-      CALL MPIINI(IAP)
+       CALL MPIINI(IAP)
+       IAM=IAP(38)
+       IF(IAM/=0)THEN
+         DO WHILE(.TRUE.)
+            CALL MPIBCASTI(FUNI_ICNI_PARAMS,5)
+            ! figure out what funi and icni are from
+            ! the iap array. We do it here, since I
+            ! don't know how to pass function pointers
+            ! through MPI in a possibly heterogeneous 
+            ! environment :-)
+            IPS     = FUNI_ICNI_PARAMS(1)
+            IAP(2)  = IPS
+            IRS     = FUNI_ICNI_PARAMS(2)
+            IAP(3)  = IRS
+            ISW     = FUNI_ICNI_PARAMS(3)
+            IAP(10) = ISW
+            IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
+            IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
+            CALL AUTOI(IAP,RAP,PAR)
+            ! autoi calls autobv which eventually calls solvbv;
+            ! a return means another init message
+         ENDDO
+       ENDIF
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
@@ -69,35 +120,7 @@ C
 C Error Message.
  400  FORMAT(' Restart label ',I4,' not found')
 C
-      END
-C
-C
-      MODULE AUTO_CONSTANTS
-C
-      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      INCLUDE 'auto.h'
-C
-      INTEGER NDIM,IPS,IRS,ILP
-      INTEGER NICP
-      INTEGER ICP(2*NPARX)
-      INTEGER NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-      INTEGER NMX
-      DOUBLE PRECISION RL0,RL1,A0,A1
-      INTEGER NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-      DOUBLE PRECISION EPSL,EPSU,EPSS
-      DOUBLE PRECISION DS,DSMIN,DSMAX
-      INTEGER IADS
-      INTEGER NTHL
-      INTEGER,ALLOCATABLE :: ITHL(:)
-      DOUBLE PRECISION,ALLOCATABLE :: THL(:),VTHL(:)
-      INTEGER NTHU
-      DOUBLE PRECISION,ALLOCATABLE :: THU(:)
-      INTEGER NUZR
-      INTEGER, ALLOCATABLE :: IUZ(:)
-      DOUBLE PRECISION,ALLOCATABLE :: VUZ(:)
-C
-      END MODULE AUTO_CONSTANTS
-C
+      CONTAINS
 C
 C     ---------- ----
       SUBROUTINE AUTOI(IAP,RAP,PAR)
@@ -380,7 +403,7 @@ C
 C Error Message.
  500  FORMAT(' Initialization Error')
 C
-      END
+      END SUBROUTINE AUTOI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C                    Initialization
@@ -561,7 +584,7 @@ C
       RETURN
  5    EOF=.TRUE.
       RETURN
-      END
+      END SUBROUTINE INIT
 C
 C     ---------- -------
       SUBROUTINE CLEANUP()
@@ -573,7 +596,7 @@ C
       IMPLICIT NONE
 
       DEALLOCATE(THU,IUZ,VUZ,THL)
-      END
+      END SUBROUTINE CLEANUP
 C
 C     ---------- -----
       SUBROUTINE CHDIM(IAP)
@@ -597,7 +620,7 @@ C
      *        ' (Increase NPARX in auto.h and recompile AUTO)')
 C
       RETURN
-      END
+      END SUBROUTINE CHDIM
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1056,6 +1079,8 @@ C
      *          ' Restart at EP label below :')
 
       RETURN
-      END
+      END SUBROUTINE INIT1
+
+      END PROGRAM AUTO
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------

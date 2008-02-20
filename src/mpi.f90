@@ -16,8 +16,17 @@
 ! mpisum: front-end to MPI_Reduce (summation)
 ! mpiend: master tells workers to stop
 
+module autompi
+
+implicit none
+private
+
+public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti, mpiscat
+public :: mpigat, mpiend, mpitim, partition
+
+contains
+
 subroutine mpiini(iap)
-  implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
@@ -25,6 +34,7 @@ subroutine mpiini(iap)
 
   integer ierr,iam,namelen,iap(*)
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
+  integer :: message_type
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD,iap(39),ierr)
@@ -33,51 +43,16 @@ subroutine mpiini(iap)
   call MPI_Get_processor_name(processor_name,namelen,ierr)
 !  print *,'Process ',iam,' on ',processor_name
   if(iam/=0)then
-     call mpi_worker()
-  endif
-
-contains
-
-  subroutine mpi_worker()
-    use auto_constants
-    implicit none
-    include 'mpif.h'
-
-    integer :: message_type, ierr
-    integer :: funi_icni_params(5), iap(NIAP)
-    double precision :: rap,par
-
     call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     if(message_type /= AUTO_MPI_INIT_MESSAGE)then
        print *,'Fatal: no init message, message received: ', message_type
        stop
     endif
-    do while(.true.)
-       call MPI_Bcast(funi_icni_params,5,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-       ! figure out what funi and icni are from
-       ! the iap array.  This is originally done 
-       ! in autlib1.f.  We do it here, since I
-       ! don't know how to pass function pointers
-       ! through MPI in a possibly heterogeneous 
-       ! environment :-)
-       ips     = funi_icni_params(1)
-       iap(2)  = ips
-       irs     = funi_icni_params(2)
-       iap(3)  = irs
-       isw     = funi_icni_params(3)
-       iap(10) = isw
-       iap(27) = funi_icni_params(4) ! itp
-       iap(29) = funi_icni_params(5) ! nfpr
-       iap(38) = 1                   ! iam
-       call autoi(iap,rap,par)
-       ! autoi will call mpiwfi; a return means another init message
-    enddo
-  end subroutine mpi_worker
+ endif
 
 end subroutine mpiini
 
 subroutine mpiiap(iap)
-  implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
@@ -103,19 +78,17 @@ subroutine mpiiap(iap)
   funi_icni_params(5)=iap(29) ! nfpr
   ! Send message to get worker into init mode
   call MPI_Bcast(AUTO_MPI_INIT_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-  call MPI_Bcast(funi_icni_params,5,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call mpibcasti(funi_icni_params,5)
 
 end subroutine mpiiap
 
-subroutine mpiwfi(autobv,funi,icni)
-  implicit none
+logical function mpiwfi(autobv)
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   logical :: autobv
-  external funi,icni
 
   integer :: message_type, ierr
 
@@ -125,88 +98,34 @@ subroutine mpiwfi(autobv,funi,icni)
      stop
   endif
 
-  do while(.true.)
-     call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
-     select case(message_type)
-     case(AUTO_MPI_KILL_MESSAGE) ! The kill message
-        call MPI_Finalize(ierr)
-        stop
-     case(AUTO_MPI_INIT_MESSAGE)
-        return
-     case(AUTO_MPI_SETUBV_MESSAGE) ! The setubv message
-        call mpi_setubv_worker(funi,icni)
-     case default
-        print *,'Unknown message recieved: ', message_type
-     end select
+  select case(message_type)
+  case(AUTO_MPI_KILL_MESSAGE) ! The kill message
+     call MPI_Finalize(ierr)
+     stop
+  case(AUTO_MPI_INIT_MESSAGE)
+     mpiwfi = .false.
+  case(AUTO_MPI_SETUBV_MESSAGE) ! The setubv message
+     mpiwfi = .true.
+  case default
+     print *,'Unknown message recieved: ', message_type
+     mpiwfi = .false.
+  end select
+end function mpiwfi
+
+!--------- ---------
+subroutine partition(n,kwt,m)
+!
+! Linear distribution of NTST over all nodes
+  integer n,kwt,m(kwt)
+  integer i
+  do i=1,kwt
+     m(i) = i*n/kwt - (i-1)*n/kwt
   enddo
-
-contains
-
-  subroutine mpi_setubv_worker(funi,icni)
-    use solvebv
-    use interfaces, only:bcni
-    implicit none
-    include 'mpif.h'
-    integer NIAP,NRAP,NPARX,NBIFX
-    include 'auto.h'
-    integer, parameter :: NPARX2=2*NPARX
-
-    integer :: ndim, nra, nfc, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
-    integer :: ierr
-
-    integer :: iap(NIAP),icp(NPARX)
-    double precision :: rap(NRAP),par(NPARX2),rldot(NPARX)
-    double precision, allocatable :: ups(:,:), uoldps(:,:)
-    double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dtm(:),fa(:,:), fc(:)
-    integer, allocatable :: np(:)
-    double precision :: dum,dum1(1)
-
-    external funi, icni
-
-    call MPI_Bcast(iap,NIAP,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD,iap(39),ierr)
-    call MPI_Comm_rank(MPI_COMM_WORLD,iap(38),ierr)
-
-    ndim=iap(1)
-    ntst=iap(5)
-    ncol=iap(6)
-    nbc=iap(12)
-    nint=iap(13)
-    iam=iap(38)
-    kwt=iap(39)
-
-    allocate(np(kwt))
-    call partition(ntst,kwt,np)
-    na=np(iam+1)
-    deallocate(np)
-    nra=ndim*ncol
-    nfc=nbc+nint+1
-
-    allocate(thu(ndim*8),dtm(na))
-    allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
-    ! output arrays
-    allocate(fa(nra,na),fc(nfc))
-
-    call mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp, &
-         dtm,thu,ifst,nllv)
-    call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
-         nllv,dum1,dum1,rldot,nra,ups,dum1,uoldps,udotps,upoldp,dtm, &
-         fa,fc,dum1,dum1,dum1,thu)
-
-    ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu)
-
-    deallocate(fa,fc)
-
-  end subroutine mpi_setubv_worker
-
-end subroutine mpiwfi
+end subroutine partition
 
 subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
-  use solvebv, only: partition
-  implicit none
   include 'mpif.h'
 
   integer :: ntst, nov, ncb, nrc, ifst
@@ -261,7 +180,6 @@ end subroutine mpicon
 
 subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
-  implicit none
   integer NIAP,NRAP,NPARX,NBIFX
 
   include 'mpif.h'
@@ -287,7 +205,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      ! Send message to get worker into setubv mode
      call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
              MPI_COMM_WORLD,ierr)
-     call MPI_Bcast(iap,NIAP,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+     call mpibcasti(iap,NIAP)
   endif
 
   ndim=iap(1)
@@ -351,7 +269,6 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
-  implicit none
   include 'mpif.h'
 
   integer :: len
@@ -362,9 +279,17 @@ subroutine mpibcast(buf,len)
   call MPI_Bcast(buf,len,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 end subroutine mpibcast
 
+subroutine mpibcasti(buf,len)
+  include 'mpif.h'
+
+  integer :: len, buf(len)
+
+  integer :: ierr
+
+  call MPI_Bcast(buf,len,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+end subroutine mpibcasti
+
 subroutine mpiscat(buf,ndx,n,add)
-  use solvebv, only: partition
-  implicit none
   include 'mpif.h'
 
   integer ndx,n,add
@@ -399,8 +324,6 @@ subroutine mpiscat(buf,ndx,n,add)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
-  use solvebv, only: partition
-  implicit none
   include 'mpif.h'
 
   integer ndx,n
@@ -436,7 +359,6 @@ subroutine mpigat(buf,ndx,n)
 end subroutine mpigat
 
 subroutine mpisum(buf,len)
-  implicit none
   include 'mpif.h'
 
   integer :: len
@@ -470,7 +392,6 @@ subroutine mpisum(buf,len)
 end subroutine mpisum
 
 subroutine mpiend()
-  implicit none
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
@@ -484,9 +405,10 @@ subroutine mpiend()
 end subroutine mpiend
 
 subroutine mpitim(tim)
-  implicit none
   include 'mpif.h'
 
   double precision tim
   tim = MPI_Wtime()
 end subroutine mpitim  
+
+end module autompi

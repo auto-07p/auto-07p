@@ -19,6 +19,7 @@ CONTAINS
 
 ! This is the entry subroutine for algebraic systems.
 
+    USE AUTOMPI
     IMPLICIT NONE
 
     INTEGER IAP(*),ICP(*),IUZ(*)
@@ -27,8 +28,9 @@ CONTAINS
     EXTERNAL FUNI,STPNT
 
     IF(IAP(38)>0)THEN
-       CALL MPIWFI(.FALSE.,FUNI,STPNT)
-       RETURN
+       IF(MPIWFI(.FALSE.))THEN
+          RETURN
+       ENDIF
     ENDIF
     CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
 
