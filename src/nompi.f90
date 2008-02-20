@@ -66,6 +66,7 @@ end subroutine mpitim
 
 subroutine partition(n,kwt,m)
   integer n,kwt,m(kwt)
+  m(1) = n
 end subroutine partition
 
 end module autompi
