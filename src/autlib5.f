@@ -993,7 +993,7 @@ C
       NCOPY=NAR/NDM
       J=1
       TIME=PAR(10)+PAR(11)
-      DO K=1,NCOPY-1
+      DO K=1,NCOPY-2
          TIME=TIME+PAR(19+2*K)
       ENDDO
       TBASE=TIME-PAR(11)
