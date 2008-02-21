@@ -31,40 +31,22 @@ C
       USE AUTOMPI
       USE IO
       USE SUPPORT
-      USE AUTO_CONSTANTS
+      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      LOGICAL FOUND,EOF
+      LOGICAL EOF
 C Local
       DIMENSION IAP(NIAP),RAP(NRAP)
       DIMENSION PAR(2*NPARX)
-      INTEGER FUNI_ICNI_PARAMS(5)
 C
 C Initialization :
 C
        CALL MPIINI(IAP)
        IAM=IAP(38)
        IF(IAM/=0)THEN
-         DO WHILE(.TRUE.)
-            CALL MPIBCASTI(FUNI_ICNI_PARAMS,5)
-            ! figure out what funi and icni are from
-            ! the iap array. We do it here, since I
-            ! don't know how to pass function pointers
-            ! through MPI in a possibly heterogeneous 
-            ! environment :-)
-            IPS     = FUNI_ICNI_PARAMS(1)
-            IAP(2)  = IPS
-            IRS     = FUNI_ICNI_PARAMS(2)
-            IAP(3)  = IRS
-            ISW     = FUNI_ICNI_PARAMS(3)
-            IAP(10) = ISW
-            IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
-            IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
-            CALL AUTOI(IAP,RAP,PAR)
-            ! autoi calls autobv which eventually calls solvbv;
-            ! a return means another init message
-         ENDDO
+         CALL MPIWORKER(IAP,RAP,PAR)
+         STOP
        ENDIF
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
@@ -78,27 +60,12 @@ C
        ELSE
          CALL AUTIM0(TIME0)
        ENDIF
-       FOUND=.FALSE.
        CALL INIT(IAP,RAP,PAR,EOF)
        IF(EOF)THEN
          CALL MPIEND()
          STOP
        ENDIF
-C
-C Find restart label and determine type of restart point.
-C
-       IRS=IAP(3)
-       NFPR=IAP(29)
-C
-       IF(IRS.GT.0) THEN
-         CALL FINDLB(IAP,IRS,NFPR,FOUND)
-         IAP(29)=NFPR
-         IF(.NOT.FOUND) THEN
-           WRITE(6,400)IRS
-           STOP
-         ENDIF
-       ENDIF
-C
+       CALL FINDLB_OR_STOP(IAP)
        CALL MPIIAP(IAP)
        CALL AUTOI(IAP,RAP,PAR)
 C-----------------------------------------------------------------------
@@ -117,12 +84,68 @@ C
 C
  301  FORMAT(/,' Total Time ',E12.3)
 C
-C Error Message.
- 400  FORMAT(' Restart label ',I4,' not found')
-C
       CONTAINS
 C
-C     ---------- ----
+C     ---------- ---------
+      SUBROUTINE MPIWORKER(IAP,RAP,PAR)
+      
+      USE AUTO_CONSTANTS
+      USE AUTOMPI
+      IMPLICIT NONE
+
+      INTEGER IAP(*)
+      DOUBLE PRECISION RAP(*),PAR(*)
+
+      INTEGER FUNI_ICNI_PARAMS(5)
+
+      DO WHILE(.TRUE.)
+         CALL MPIBCASTI(FUNI_ICNI_PARAMS,5)
+         ! figure out what funi and icni are from
+         ! the iap array. We do it here, since I
+         ! don't know how to pass function pointers
+         ! through MPI in a possibly heterogeneous 
+         ! environment :-)
+         IPS     = FUNI_ICNI_PARAMS(1)
+         IAP(2)  = IPS
+         IRS     = FUNI_ICNI_PARAMS(2)
+         IAP(3)  = IRS
+         ISW     = FUNI_ICNI_PARAMS(3)
+         IAP(10) = ISW
+         IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
+         IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
+         CALL AUTOI(IAP,RAP,PAR)
+         ! autoi calls autobv which eventually calls solvbv;
+         ! a return means another init message
+      ENDDO
+      END SUBROUTINE MPIWORKER
+C
+C     ---------- --------------
+      SUBROUTINE FINDLB_OR_STOP(IAP)
+C
+C Find restart label and determine type of restart point.
+C or stop otherwise
+C
+      IMPLICIT NONE
+      INTEGER IAP(*)
+
+      INTEGER IRS,NFPR
+      LOGICAL FOUND
+
+      IRS=IAP(3)
+      NFPR=IAP(29)
+
+      FOUND=.FALSE.
+      IF(IRS.GT.0) THEN
+         CALL FINDLB(IAP,IRS,NFPR,FOUND)
+         IAP(29)=NFPR
+         IF(.NOT.FOUND) THEN
+            WRITE(6,"(' Restart label ',I4,' not found')")IRS
+            STOP
+         ENDIF
+      ENDIF
+      END SUBROUTINE FINDLB_OR_STOP
+C
+C     ---------- -----
       SUBROUTINE AUTOI(IAP,RAP,PAR)
 C
       USE INTERFACES
@@ -601,8 +624,6 @@ C
 C     ---------- -----
       SUBROUTINE CHDIM(IAP)
 C
-      INCLUDE 'auto.h'
-C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Check dimensions.
@@ -633,7 +654,6 @@ C     ---------- -----
 C
       USE HOMCONT, ONLY:INHO
       USE AUTO_CONSTANTS, ONLY:ITHL,VTHL,THL,NTHL
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
