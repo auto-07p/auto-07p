@@ -45,4 +45,4 @@ if __name__ == '__main__':
     for type in codes:
         bs.deleteLabel(splabs(bs.solution,type))
     bs.writeFilename(changedb,changeds)
-    print " deletelp: Rewriting finished."
+    print " @ksp: Rewriting finished."
