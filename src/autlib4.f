@@ -331,7 +331,7 @@ C
       SUBROUTINE DHHPR ( K, J, N, X, INCX, BETA, V )
 C     .. Scalar Arguments ..
       INTEGER            J, K, N, INCX
-      DOUBLE PRECISION   BETA
+      DOUBLE PRECISION, INTENT(OUT) :: BETA
 C     .. Array Arguments ..
       DOUBLE PRECISION   X( * ), V( * )
 C     ..

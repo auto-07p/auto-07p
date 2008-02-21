@@ -61,6 +61,7 @@ CONTAINS
 ! The eigenvalues are to be returned in the complex vector EV.
 
     DIMENSION A(M1A,*),IAP(*)
+    INTEGER, INTENT(OUT) :: IER
 
     COMPLEX(KIND(1.0D0)) EV(*)
 ! Local
@@ -356,7 +357,7 @@ CONTAINS
   SUBROUTINE AUTIM0(T)
 
 !$  USE OMP_LIB
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DOUBLE PRECISION, INTENT(OUT) :: T
     REAL etime
     REAL timaray(2)
 
@@ -371,7 +372,7 @@ CONTAINS
   SUBROUTINE AUTIM1(T)
 
 !$  USE OMP_LIB
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DOUBLE PRECISION, INTENT(OUT) :: T
     REAL etime
     REAL timaray(2)
 

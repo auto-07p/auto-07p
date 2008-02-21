@@ -92,6 +92,7 @@ logical function mpiwfi(autobv)
 
   integer :: message_type, ierr
 
+  mpiwfi = .false.
   if (.not.autobv) then
      print *,'Illegal problem type for MPI'
      call MPI_Finalize(ierr)
@@ -105,12 +106,11 @@ logical function mpiwfi(autobv)
      call MPI_Finalize(ierr)
      stop
   case(AUTO_MPI_INIT_MESSAGE)
-     mpiwfi = .false.
+     ! do nothing
   case(AUTO_MPI_SETUBV_MESSAGE) ! The setubv message
      mpiwfi = .true.
   case default
      print *,'Unknown message recieved: ', message_type
-     mpiwfi = .false.
   end select
 end function mpiwfi
 
@@ -195,12 +195,11 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
 
   external funi, icni
 
-  integer :: ierr,ntst,ndim,iam,kwt
+  integer :: ierr,ntst,ndim,iam
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
   iam=iap(38)
-  kwt=iap(39)
   if(iam==0)then
      ! Send message to get worker into setubv mode
      call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &

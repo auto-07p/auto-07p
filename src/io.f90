@@ -302,11 +302,15 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE FINDLB(IAP,IRS,NFPR,FOUND)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
-    LOGICAL FOUND,EOF3
+    INTEGER, INTENT(INOUT) :: IAP(*)
+    INTEGER, INTENT(IN) :: IRS
+    INTEGER, INTENT(OUT) :: NFPR
+    LOGICAL, INTENT(OUT) :: FOUND
 
-    DIMENSION IAP(*)
+    LOGICAL EOF3
+    INTEGER ISW,IBR,NTOTRS,ITP,LABRS,ISWRS,NTPLRS,NARS,NSKIP,ITPST
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -376,11 +380,14 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE SKIP3(NSKIP,EOF3)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Skips the specified number of lines on unit 3.
 
-    LOGICAL EOF3
+    INTEGER, INTENT(IN) :: NSKIP
+    LOGICAL, INTENT(OUT) :: EOF3
+
+    INTEGER I
 
     EOF3=.FALSE.
     DO I=1,NSKIP

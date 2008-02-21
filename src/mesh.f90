@@ -33,7 +33,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE GENWTS(NCOL,N1,WT,WP)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Generates weights of the collocation method. The user selected
 ! number of collocation points (ncol) must be one of { 2,...,7 }.
@@ -43,9 +43,11 @@ CONTAINS
 !         WT : for the function value,
 !         WP : for the first derivative,
 
-    DIMENSION WT(N1,*),WP(N1,*)   
+    INTEGER, INTENT(IN) :: NCOL, N1
+    DOUBLE PRECISION, INTENT(OUT) :: WT(N1,*),WP(N1,*)   
 ! Local
-    DIMENSION ZM(NCOL),XM(NCOL+1)
+    INTEGER NCP1,I,IB,IC,K,L
+    DOUBLE PRECISION ZM(NCOL),XM(NCOL+1),D,DENOM,P,SUM
 
 ! Generate the collocation points :
     CALL CPNTS(NCOL,ZM)
@@ -89,11 +91,14 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE CPNTS(NCOL,ZM)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Generates the collocation points with respect to [0,1].
 
-    DIMENSION ZM(*)
+    INTEGER, INTENT(IN) :: NCOL
+    DOUBLE PRECISION, INTENT(OUT) :: ZM(NCOL)
+
+    DOUBLE PRECISION C, C1, C2, C3, R
 
     GOTO (2,3,4,5,6,7)NCOL-1
 
@@ -154,14 +159,17 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE CNTDIF(N,D)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Generates the coefficients of the central difference formula for
 ! Nth derivative at uniformly spaced points
 !              0 = x  < x  < ... < x  = 1.
 !                   0    1          N
+    INTEGER, INTENT(IN) :: N
+    DOUBLE PRECISION, INTENT(OUT) :: D(N+1)
 
-    DIMENSION D(*)
+    INTEGER I,K,K1
+    DOUBLE PRECISION SC
 
     D(1)=1.d0
     IF(N.EQ.0)RETURN
@@ -178,8 +186,7 @@ CONTAINS
 ! Scale to [0,1]  :
 
     SC=N**N
-    NP1=N+1
-    DO I=1,NP1
+    DO I=1,N+1
        D(I)=SC*D(I)
     ENDDO
 
@@ -188,12 +195,15 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE WINT(N,WI)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Generates the weights for the integration formula based on polynomial
 ! interpolation at N equally spaced points in [0,1].
 
-    DIMENSION WI(*)
+    INTEGER, INTENT(IN) :: N
+    DOUBLE PRECISION, INTENT(OUT) :: WI(N)
+
+    DOUBLE PRECISION C
 
     GOTO (3,4,5,6,7,8)N-2
 
@@ -483,11 +493,16 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE INTWTS(N,Z,X,WTS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Generates weights for Lagrange interpolation.
 
-    DIMENSION X(*),WTS(*)
+    INTEGER, INTENT(IN) :: N
+    DOUBLE PRECISION, INTENT(IN) :: Z, X(N)
+    DOUBLE PRECISION, INTENT(OUT) :: WTS(N)
+
+    INTEGER IB,K
+    DOUBLE PRECISION P,DENOM
 
     DO IB=1,N
        P=1.d0
