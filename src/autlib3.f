@@ -1285,52 +1285,40 @@ C
 C     ---------- ----
       SUBROUTINE FNPS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Generates the equations for the continuation of periodic orbits.
 C
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION RAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER IAP(*),ICP(*),NDIM,IJAC
+      DOUBLE PRECISION RAP(*),U(*),PAR(*),F(NDIM)
+      DOUBLE PRECISION DFDU(NDIM,NDIM),DFDP(NDIM,*)
       DOUBLE PRECISION UOLD(*)
+C Local
+      INTEGER J,NFPX
+      DOUBLE PRECISION PERIOD
 C
 C Generate the function.
 C
-       IF(ICP(2).EQ.11)THEN
+       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+       PERIOD=PAR(11)
+       IF(ICP(2).EQ.11.AND.IJAC.EQ.2)THEN
 C          **Variable period continuation
-           CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-           PERIOD=PAR(11)
-           DO I=1,NDIM
-             DFDP(I,11)=F(I)
-             F(I)=PERIOD*DFDP(I,11)
-           ENDDO
-           IF(IJAC.EQ.0)RETURN
-C          **Generate the Jacobian.
-           DO I=1,NDIM
-             DO J=1,NDIM
-               DFDU(I,J)=PERIOD*DFDU(I,J)
-             ENDDO
-             DFDP(I,ICP(1))=PERIOD*DFDP(I,ICP(1))
-           ENDDO
-       ELSE
-C          **Fixed period continuation
-           PERIOD=PAR(11)
-           CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-           DO I=1,NDIM
-             F(I)=PERIOD*F(I)
-           ENDDO
-           IF(IJAC.EQ.0)RETURN
-C          **Generate the Jacobian.
-           DO I=1,NDIM
-             DO J=1,NDIM
-               DFDU(I,J)=PERIOD*DFDU(I,J)
-             ENDDO
-             DO J=1,2
-               DFDP(I,ICP(J))=PERIOD*DFDP(I,ICP(J))
-             ENDDO
-           ENDDO
+           DFDP(:,11)=F(:)
        ENDIF
+       F(:)=PERIOD*F(:)
+       IF(IJAC.EQ.0)RETURN
+C      **Generate the Jacobian.
+       DFDU(:,:)=PERIOD*DFDU(:,:)
+       IF(IJAC.EQ.1)RETURN
+       NFPX=1
+       IF(ICP(2).NE.11)THEN
+C          **Fixed period continuation
+           NFPX=2
+       ENDIF
+       DO J=1,NFPX
+           DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
+       ENDDO
 C
-      RETURN
       END SUBROUTINE FNPS
 C
 C     ---------- ----
