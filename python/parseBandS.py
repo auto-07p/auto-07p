@@ -51,8 +51,8 @@ class parseBandS:
         self.diagram.writeFilename(fort7_filename)
         self.solution.writeFilename(fort8_filename)
 
-    def deleteLabel(self,label):
-        self.diagram.deleteLabel(label)
+    def deleteLabel(self,label,keepTY=0):
+        self.diagram.deleteLabel(label,keepTY)
         self.solution.deleteLabel(label)
 
     def relabel(self,old_label,new_label):
