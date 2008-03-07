@@ -212,8 +212,11 @@ class parseB:
                         n=n+19
                     sys.stdout.write(output_line+"\n")
             elif line["TY name"]!="No Label":
+                ty_name = line["TY name"]
+                if ty_name=='RG':
+                    ty_name = '  '
                 output_line = "%4d%6d%4s%5d"%(abs(line["BR"]),abs(line["PT"]),
-                                              line["TY name"],line["LAB"])
+                                              ty_name,line["LAB"])
                 for data in line["data"]:
                     output_line = output_line + "%14.5E"%data
                 sys.stdout.write(output_line+"\n")

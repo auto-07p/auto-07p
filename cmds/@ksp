@@ -3,6 +3,7 @@
 import os
 import string
 from AUTOclui import *
+import parseBandS
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
