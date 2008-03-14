@@ -179,9 +179,7 @@ typedef struct solution *solutionp;
 
 
 struct SolNode {
-#ifdef R3B
     float mass[MAX_LABEL];
-#endif
     double *time; // this time is useless?
     float (*xyzCoords)[3];
     int32_t numVerticesEachBranch[MAX_BRANCH];  // index start from 0 

@@ -2,7 +2,7 @@
 .SUFFIXES: .c++ .o
 
 OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
-        createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
+        createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
         ../createCoords.o ../axis.o ../createLegend.o gmain.o @SOXT_OBJS_R3B@ \
@@ -37,12 +37,6 @@ gmainqt.o: ../gmainqt.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 drawCoords.o: ../drawCoords.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-normalizeBifData.o: ../normalizeBifData.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-normalizeSolData.o: ../normalizeSolData.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 clean:
