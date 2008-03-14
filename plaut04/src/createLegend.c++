@@ -13,11 +13,7 @@
 
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 
-#ifndef R3B
-#define FONT_SIZE 10 
-#else
 #define FONT_SIZE 12 
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -363,35 +359,19 @@ createStabilityLegend(SbVec3f pos, SbColor lineColors[2])
     for(int i = 0; i < 2; ++i)
     {
         j = i*4;
-#ifndef R3B
         vertexPositions[j][0]= 0.26;
-#else
-        vertexPositions[j][0]= 0.25;
-#endif
         vertexPositions[j][1]= -0.5 + i/2.0;
         vertexPositions[j][2]= 0;
 
-#ifndef R3B
         vertexPositions[j+1][0]= -0.24;
-#else
-        vertexPositions[j+1][0]= -0.25;
-#endif
         vertexPositions[j+1][1]= vertexPositions[j][1];
         vertexPositions[j+1][2]= 0;
 
-#ifndef R3B
         vertexPositions[j+2][0]= 0.26;
-#else
-        vertexPositions[j+2][0]= 0.25;
-#endif
         vertexPositions[j+2][1]= -0.5 + (i+1)/2.0;
         vertexPositions[j+2][2]= 0;
 
-#ifndef R3B
         vertexPositions[j+3][0]= -0.24;
-#else
-        vertexPositions[j+3][0]= -0.25;
-#endif
         vertexPositions[j+3][1]= vertexPositions[j+2][1];
         vertexPositions[j+3][2]= 0;
 

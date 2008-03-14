@@ -5,7 +5,7 @@ OBJS = readBif.o readSol.o drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o normalizeSolData.o normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
-        ../createCoords.o ../axis.o createLegend.o gmain.o @SOXT_OBJS_R3B@ \
+        ../createCoords.o ../axis.o ../createLegend.o gmain.o @SOXT_OBJS_R3B@ \
 	../rounding.o
 
 CXX=@CXX@
@@ -37,9 +37,6 @@ gmainqt.o: ../gmainqt.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 drawCoords.o: ../drawCoords.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
-createLegend.o: ../createLegend.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 normalizeBifData.o: ../normalizeBifData.c++

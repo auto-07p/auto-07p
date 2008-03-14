@@ -26,7 +26,7 @@ SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
 SbColor lineColorOld[NUM_SP_POINTS];
 #ifndef R3B
-SbColor envColors[10];
+SbColor envColors[8];
 #else
 SbColor envColors[12];
 #endif
@@ -670,11 +670,7 @@ addLegend()
     {
         SbColor color[2];
         color[0].setValue(1,0,0);
-#ifndef R3B
         color[1].setValue(0,0,1);
-#else
-        color[1].setValue(0,1,0);
-#endif
         result->addChild(createStabilityLegend(lgPos, color));
     }
     else if( coloringMethod == CL_ORBIT_TYPE)
@@ -801,7 +797,7 @@ float scaler, int stability, int type)
     mySat->radius = dis*0.005*satRadius;
 
     SoTranslation * satTrans = new SoTranslation;
-    satMtl->diffuseColor.setValue(envColors[4]);
+    satMtl->diffuseColor.setValue(envColors[7]);
     satGroup->addChild(satMtl);
     satGroup->addChild(satTrans);
     satGroup->addChild(mySat);
@@ -823,7 +819,7 @@ float scaler, int stability, int type)
     SoLineSet *smallPrimLine= new SoLineSet;
     smallPrimLine->numVertices.connectFrom(&myCounter->output);
     SoMaterial * smallPrimLineMtl = new SoMaterial;
-    smallPrimLineMtl->diffuseColor.setValue(envColors[8]);
+    smallPrimLineMtl->diffuseColor.setValue(envColors[11]);
     smallPrimLineSep->addChild(smallPrimLineMtl);
     smallPrimLineSep->addChild(smallPrimLine);
 
@@ -846,7 +842,7 @@ float scaler, int stability, int type)
     SoLineSet *largePrimLine= new SoLineSet;
     largePrimLine->numVertices.connectFrom(&myCounter->output);
     SoMaterial * largePrimLineMtl = new SoMaterial;
-    largePrimLineMtl->diffuseColor.setValue(envColors[6]);
+    largePrimLineMtl->diffuseColor.setValue(envColors[9]);
     largePrimLineSep->addChild(largePrimLineMtl);
     largePrimLineSep->addChild(largePrimLine);
 
@@ -2308,11 +2304,7 @@ renderSolutionSurface()
 {
     SoGroup *solGroup = new SoGroup;
     SoMaterial *solMtl = new SoMaterial;
-#ifndef R3B
-    solMtl->diffuseColor.setValue(envColors[5]);
-#else
-    solMtl->diffuseColor.setValue(envColors[9]);
-#endif
+    solMtl->diffuseColor.setValue(envColors[4]);
     solGroup->addChild(solMtl);
     SoMaterialBinding *myMtlBinding = new SoMaterialBinding;
     myMtlBinding->value= SoMaterialBinding::PER_PART;
@@ -2851,7 +2843,7 @@ animateIner2(long int lblJ,long int si)
     float mu = 0.01215;
     SoSeparator *satGroup = new SoSeparator;
     SoMaterial *satMtl = new SoMaterial;
-    satMtl->diffuseColor.setValue(envColors[4]);
+    satMtl->diffuseColor.setValue(envColors[7]);
     satMtl->transparency = 0.0;
 
     SoDrawStyle *satStyle = new SoDrawStyle;
@@ -3134,18 +3126,13 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
 //////////////////////////////////////////////////////////////////////////
 {
     float (*colors)[3] = new float[size][3];
-#ifndef R3B
     static float maxColor[3];
     static float minColor[3]; 
-#else
-    static float maxColor[3] = { 1.0, 0.0, 0.0 };
-    static float minColor[3] = { 0.0, 0.0, 1.0 };
-#endif
 
     for(int i=0; i<3; ++i)
     {
-        maxColor[i] = envColors[6][i];
-        minColor[i] = envColors[7][i];
+        maxColor[i] = envColors[5][i];
+        minColor[i] = envColors[6][i];
     }
 
     for(int i=0; i<size; ++i)
@@ -3158,7 +3145,6 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
 
     SoGroup * result = new SoGroup ;
 
-#ifndef R3B
     SoDrawStyle * lineStyle = new SoDrawStyle;
     if(stability == 1 || stability == 3)
     {
@@ -3174,7 +3160,6 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
     lineStyle->lineWidth = scaler;
     result->addChild(lineStyle);
 
-#endif
     SoMaterial *myMaterials = new SoMaterial;
     myMaterials->diffuseColor.setValues(0, size, colors);
     result->addChild(myMaterials);
@@ -3203,20 +3188,12 @@ setLineAttributesByStability(int stability, float scaler)
     if(stability == 1 || stability == 3)
     {
         lineStyle->linePattern = stabilityLinePattern[0];
-#ifndef R3B
-        lineMtl->diffuseColor.setValue(envColors[6]);
-#else
-        lineMtl->diffuseColor.setValue(envColors[10]);
-#endif
+        lineMtl->diffuseColor.setValue(envColors[5]);
     }
     else
     {
         lineStyle->linePattern = stabilityLinePattern[1];
-#ifndef R3B
-        lineMtl->diffuseColor.setValue(envColors[7]);
-#else
-        lineMtl->diffuseColor.setValue(envColors[11]);
-#endif
+        lineMtl->diffuseColor.setValue(envColors[6]);
     }
 
     lineStyle->lineWidth   = scaler;
@@ -4533,7 +4510,7 @@ animateOrbitCalSteps(long int snOrbit, long int si)
     float ptb[3], pts[4][3];
     SoSeparator *satGroup = new SoSeparator;
     SoMaterial *satMtl = new SoMaterial;
-    satMtl->diffuseColor.setValue(envColors[4]);
+    satMtl->diffuseColor.setValue(envColors[7]);
     satMtl->transparency = 0.0;
 
     SoDrawStyle *satStyle = new SoDrawStyle;
@@ -4668,7 +4645,7 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
     mySat->radius = dis*0.005*satRadius;
 
     SoTranslation * satTrans = new SoTranslation;
-    satMtl->diffuseColor.setValue(envColors[4]);
+    satMtl->diffuseColor.setValue(envColors[7]);
     satGroup->addChild(satMtl);
     satGroup->addChild(satTrans);
     satGroup->addChild(mySat);
@@ -4957,9 +4934,9 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 
 
     SoTranslation * satTrans = new SoTranslation;
-//    satMtl->diffuseColor.setValue(envColors[4]);
+//    satMtl->diffuseColor.setValue(envColors[7]);
 #ifdef R3B
-    satMtl->diffuseColor.setValue(envColors[4]);
+    satMtl->diffuseColor.setValue(envColors[7]);
 #endif
 
 //    satGroup->addChild(satMtl);
@@ -6529,25 +6506,21 @@ setVariableDefaultValues()
     envColors[ 1][0] = 1.0;  envColors[ 1][1] = 0.0;  envColors[ 1][2] = 0.0;
     envColors[ 2][0] = 0.0;  envColors[ 2][1] = 1.0;  envColors[ 2][2] = 0.0;
     envColors[ 3][0] = 0.0;  envColors[ 3][1] = 0.0;  envColors[ 3][2] = 1.0;
-    envColors[ 4][0] = 1.0;  envColors[ 4][1] = 0.0;  envColors[ 4][2] = 0.0;
-    envColors[ 5][0] = 0.0;  envColors[ 5][1] = 1.0;  envColors[ 5][2] = 0.0;
-    envColors[ 6][0] = 1.0;  envColors[ 6][1] = 0.0;  envColors[ 6][2] = 0.0;
-    envColors[ 7][0] = 0.0;  envColors[ 7][1] = 0.0;  envColors[ 7][2] = 1.0;
-    envColors[ 8][0] = 1.0;  envColors[ 8][1] = 0.0;  envColors[ 8][2] = 1.0;
-    envColors[ 9][0] = 1.0;  envColors[ 9][1] = 0.0;  envColors[ 9][2] = 0.0;
+    envColors[ 4][0] = 0.0;  envColors[ 4][1] = 1.0;  envColors[ 4][2] = 0.0;
+    envColors[ 5][0] = 1.0;  envColors[ 5][1] = 0.0;  envColors[ 5][2] = 0.0;
+    envColors[ 6][0] = 0.0;  envColors[ 6][1] = 0.0;  envColors[ 6][2] = 1.0;
+    envColors[ 7][0] = 1.0;  envColors[ 7][1] = 0.0;  envColors[ 7][2] = 0.0;
 #ifdef R3B
-    envColors[10][0] = 1.0;  envColors[10][1] = 0.0;  envColors[10][2] = 0.0;
-    envColors[11][0] = 0.0;  envColors[11][1] = 0.0;  envColors[11][2] = 1.0;
+    envColors[ 8][0] = 0.0;  envColors[ 8][1] = 1.0;  envColors[ 8][2] = 0.0;
+    envColors[ 9][0] = 1.0;  envColors[ 9][1] = 0.0;  envColors[ 9][2] = 0.0;
+    envColors[10][0] = 0.0;  envColors[10][1] = 0.0;  envColors[10][2] = 1.0;
+    envColors[11][0] = 1.0;  envColors[11][1] = 0.0;  envColors[11][2] = 1.0;
 #endif
 
     for(int i=0; i<NUM_SP_POINTS; ++i)
         linePattern[i]   = 0xffff;
 
-#ifndef R3B
     stabilityLinePattern[0]   = 0x1111;
-#else
-    stabilityLinePattern[0]   = 0xffff;
-#endif
     stabilityLinePattern[1]   = 0xffff;
 
 // set options.
@@ -7067,35 +7040,25 @@ writePreferValuesToFile()
                 fprintf(outFile, "# Z-Axis color:\n");
                 break;
             case 4 :
+                fprintf(outFile, "# Surface color:\n");
+                break;
+            case 5 :
+                fprintf(outFile, "# Unstable solution Color:\n");
+                break;
+            case 6 :
+                fprintf(outFile, "# Stable solution Color:\n");
+                break;
+            case 7 :
 #ifdef R3B
                 fprintf(outFile,"\n# sat, large prim, large prim line, small prim, small prim line\n");
                 /* fall though */
-            case 5 :
-            case 6 :
-            case 7 :
             case 8 :
-                break;
             case 9 :
-#else
-                fprintf(outFile, "# Color of the animation object:\n"); 
-                break;
-            case 5 :
-#endif
-                fprintf(outFile, "# Surface color:\n");
-                break;
-#ifdef R3B
             case 10 :
-#else
-            case 6 :
-#endif
-                fprintf(outFile, "# Unstable solution Color:\n");
-                break;
-#ifdef R3B
             case 11 :
 #else
-            case 7 :
+                fprintf(outFile, "# Color of the animation object:\n"); 
 #endif
-                fprintf(outFile, "# Stable solution Color:\n");
                 break;
         }
 
