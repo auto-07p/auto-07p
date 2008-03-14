@@ -6246,134 +6246,63 @@ readResourceParameters()
                                 whichStyle = atoi(aString);
                                 break;
                             case 2:
-#ifndef R3B
                                 winWidth  = atoi(aString);
-#else
-                                whichCoordSystem = atoi(aString);
-#endif
                                 break;
                             case 3:
-#ifndef R3B
                                 winHeight = atoi(aString);
-#else
-                                winWidth  = atoi(aString);
-#endif
                                 break;
                             case 4:
-#ifdef R3B
-                                winHeight = atoi(aString);
-                                break;
-                            case 5:
-#endif
-//---------------------- Begin ---------------------------OCT 7, 04
-// remove this and change the header file "gVarNames.h" also. Remove
-// "Labels" from the variable name list --- intVariableNames[] . 
-// the corresbonging case indices following this are also changed!
-//
-//                                lblIndices[--lblIdxSize]  = atoi(aString);
-//                                lblChoice[--lblIdxSize] = atoi(aString);
-//                                lblIdxSize             += 1;
-//                                break;
-//----------------------- End ---------------------------OCT 7, 04
                                 coloringMethodType[SOLUTION] =
                                 coloringMethodType[BIFURCATION] = atoi(aString);
                                 break;
-#ifdef R3B
-                            case 6:
-#else
                             case 5:
-#endif
                                 coloringMethodType[SOLUTION] = atoi(aString);
                                 break;
-#ifdef R3B
-                            case 7:
-#else
                             case 6:
-#endif
                                 coloringMethodType[BIFURCATION] = atoi(aString);
                                 break;
-
-#ifndef R3B
                             case 7:
                                 lineWidthScaler = atof(aString);
                                 break;
                             case 8:
-                                sphereRadius = atof(aString);
-                                break;
-                            case 9:
-                                satRadius = atof(aString);
-                                break;
-                            case 10:
                                 aniLineScaler= atof(aString);
-#else
-                            case 8:
-                                numPeriodAnimated = atof(aString);
                                 break;
                             case 9:
-                                lineWidthScaler = atof(aString);
+                                MAX_SAT_SPEED = atoi(aString);
                                 break;
                             case 10:
-                                sphereRadius = atof(aString);
-#endif
+                                MIN_SAT_SPEED = atoi(aString);
                                 break;
                             case 11:
-#ifndef R3B
-                                MAX_SAT_SPEED = atoi(aString);
-#else
-                                satRadius = atof(aString);
-#endif
+                                MAX_ORBIT_SPEED = atoi(aString);
                                 break;
                             case 12:
-#ifndef R3B
-                                MIN_SAT_SPEED = atoi(aString);
-#else
-                                largePrimRadius = atof(aString);
-#endif
+                                MIN_ORBIT_SPEED = atoi(aString);
                                 break;
                             case 13:
-#ifndef R3B
-                                MAX_ORBIT_SPEED = atoi(aString);
-#else
-                                smallPrimRadius = atof(aString);
-#endif
+                                whichCoord = atoi(aString);
                                 break;
                             case 14:
-#ifndef R3B
-                                MIN_ORBIT_SPEED = atoi(aString);
-#else
-                                numOfStars = atoi(aString);
-#endif
+                                bgTransparency = atof(aString);
                                 break;
                             case 15:
-#ifndef R3B
-                                whichCoord = atoi(aString);
-#else
-                                libPtScaler = atof(aString);
-#endif
+                                numPeriodAnimated = atof(aString);
                                 break;
                             case 16:
-#ifndef R3B
-                                bgTransparency = atof(aString);
-#else
-                                aniLineScaler= atof(aString);
-#endif
+                                sphereRadius = atof(aString);
                                 break;
                             case 17:
-#ifndef R3B
-                                numPeriodAnimated = atof(aString);
-#else
-                                MAX_SAT_SPEED = atoi(aString);
-#endif
+                                satRadius = atof(aString);
                                 break;
 #ifdef R3B
                             case 18:
-                                MIN_SAT_SPEED = atoi(aString);
+                                largePrimRadius = atof(aString);
                                 break;
                             case 19:
-                                whichCoord = atoi(aString);
+                                smallPrimRadius = atof(aString);
                                 break;
                             case 20:
-                                bgTransparency = atof(aString);
+                                libPtScaler = atof(aString);
                                 break;
                             case 21:
                                 diskTransparency = atof(aString);
@@ -6382,10 +6311,10 @@ readResourceParameters()
                                 diskFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
                                 break;
                             case 23:
-                                MAX_ORBIT_SPEED = atoi(aString);
+                                whichCoordSystem = atoi(aString);
                                 break;
                             case 24:
-                                MIN_ORBIT_SPEED = atoi(aString);
+                                numOfStars = atoi(aString);
                                 break;
 #endif
                         }
@@ -6985,32 +6914,15 @@ writePreferValuesToFile()
                 fprintf(outFile, "%i\n",whichStyle);
                 break;
             case 2:
-#ifdef R3B
-                fprintf(outFile, "\n# initialize the default coordinate system");
-                fprintf(outFile, "\n#  0 --- Rotating, 1 --- inertial Bary Centered,");
-                fprintf(outFile, "\n#  2 --- Big Primary Centered, 3 --- Small Primary Centered\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n",whichCoordSystem);
-                break;
-            case 3:
-#endif
                 fprintf(outFile, "\n# Set the window width and height:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",winWidth);
                 break;
-#ifdef R3B
-            case 4:
-#else
             case 3:
-#endif
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",winHeight);
                 break;
-#ifdef R3B
-            case 5:
-#else
             case 4:
-#endif
                 fprintf(outFile, "\n# Set coloring method.\n");
                 fprintf(outFile, "#   -6 --- STABILITY\n");
                 fprintf(outFile, "#   -5 --- POINT\n");
@@ -7021,128 +6933,45 @@ writePreferValuesToFile()
                 fprintf(outFile, "# Otherwise, according to the data in the ith column of the solution file.\n");
                 fprintf(outFile, "# It can only be set to an integer value.\n");
                 break;
-#ifdef R3B
-            case 6:
-#else
             case 5:
-#endif
                 fprintf(outFile, "# For the solution diagram:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", coloringMethodType[SOLUTION]);
                 break;
-#ifdef R3B
-            case 7:
-#else
             case 6:
-#endif
                 fprintf(outFile, "# For the bifurcation diagram:\n");
                 fprintf(outFile, "%-27.27s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", coloringMethodType[BIFURCATION]);
                 break;
-            case 30:
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", lblIndices[0]);
-                break;
-#ifdef R3B
-            case 8:
-                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", numPeriodAnimated);
-                break;
-            case 9:
-#else
             case 7:
-#endif
                 fprintf(outFile, "\n# Line Width Scaler adjusts the thickness of curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", lineWidthScaler);
                 break;
-#ifdef R3B
-            case 10:
-#else
             case 8:
-#endif
-                fprintf(outFile, "\n# Set the radius of the spheres used for labels:\n");
-                fprintf(outFile, "# The normal size is 1.0.\n");
-                fprintf(outFile, "# For smaller radius, use 0.xxx\n");
-                fprintf(outFile, "# For bigger radius, use  X.XXX\n"); 
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", sphereRadius);
-                break;
-#ifndef R3B
-            case 9:
-                fprintf(outFile, "\n# Set the radius of the animation object:\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", satRadius);
-                break;
-            case 10:
-#else
-            case 11:
-                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", satRadius);
-                break;
-            case 12:
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", largePrimRadius);
-                break;
-            case 13:
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", smallPrimRadius);
-                break;
-            case 14:
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", numOfStars);
-                break;
-            case 15:
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", libPtScaler);
-                break;
-            case 16:
-#endif
                 fprintf(outFile, "\n# The AniLine Thickness Scaler sets the thickness of animated solution curves:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", aniLineScaler);
                 break;
-#ifdef R3B
-            case 17:
-#else
-            case 11:
-#endif
+            case 9:
                 fprintf(outFile, "\n# Set the maximum and minimum animation speed:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_SAT_SPEED);
                 break;
-#ifdef R3B
-            case 18:
-#else
-            case 12:
-#endif
+            case 10:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_SAT_SPEED);
                 break;
-#ifndef R3B
-            case 13:
-#else
-            case 23:
-#endif
+            case 11:
                 fprintf(outFile, "\n# Set the maximum and minimum highlighting animation speed:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
                 break;
-#ifndef R3B
-            case 14:
-#else
-            case 24:
-#endif
+            case 12:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MIN_ORBIT_SPEED);
                 break;
-#ifdef R3B
-            case 19:
-#else
-            case 15:
-#endif
+            case 13:
                 fprintf(outFile, "\n# Initialize the default coordinate axes:\n");
                 fprintf(outFile, "#  0 --- None,\n");
                 fprintf(outFile, "#  1 --- at geometry center or origin,\n");
@@ -7151,24 +6980,52 @@ writePreferValuesToFile()
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", whichCoord);
                 break;
-#ifdef R3B
-            case 20:
-#else
-            case 16:
-#endif
+            case 14:
                 fprintf(outFile, "\n# Background pictures transparency");
                 fprintf(outFile, "\n# [0.0, 1.0] \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", bgTransparency );
                 break;
-#ifndef R3B
-            case 17:
+            case 15:
+#ifdef R3B
                 fprintf(outFile, "\n# Set default number of periods animated\n");
                 fprintf(outFile, "\n# The value should be power of 2.\n");
-                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n\n", numPeriodAnimated);
-                break;
 #else
+                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
+#endif
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", numPeriodAnimated);
+                break;
+            case 16:
+                fprintf(outFile, "\n# Set the radius of the spheres used for labels:\n");
+                fprintf(outFile, "# The normal size is 1.0.\n");
+                fprintf(outFile, "# For smaller radius, use 0.xxx\n");
+                fprintf(outFile, "# For bigger radius, use  X.XXX\n"); 
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", sphereRadius);
+                break;
+            case 17:
+#ifdef R3B
+                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
+#else
+                fprintf(outFile, "\n# Set the radius of the animation object:\n");
+#endif
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", satRadius);
+                break;
+#ifdef R3B
+            case 18:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", largePrimRadius);
+                break;
+            case 19:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", smallPrimRadius);
+                break;
+            case 20:
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", libPtScaler);
+                break;
             case 21:
                 fprintf(outFile, "\n# Disk Transparency [0, 1] \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
@@ -7178,6 +7035,17 @@ writePreferValuesToFile()
                 fprintf(outFile, "\n# Read Disk From File \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 (diskFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
+                break;
+            case 23:
+                fprintf(outFile, "\n# initialize the default coordinate system");
+                fprintf(outFile, "\n#  0 --- Rotating, 1 --- inertial Bary Centered,");
+                fprintf(outFile, "\n#  2 --- Big Primary Centered, 3 --- Small Primary Centered\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%i\n",whichCoordSystem);
+                break;
+            case 24:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", numOfStars);
                 break;
 #endif
         }

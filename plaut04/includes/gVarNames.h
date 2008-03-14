@@ -11,19 +11,26 @@
     {
         "Graph Type",
         "Graph Style",
-#ifdef R3B
-        "Coordinate system",
-#endif
         "Window Width",
         "Window Height",
 //        "Labels",
         "Coloring Method",
         "Coloring Method Solution",
         "Coloring Method Bifurcation",
-#ifdef R3B
-        "Number of Period Animated",
-#endif
         "Line Width Scaler",
+        "AniLine Thickness Scaler",
+#ifndef R3B
+        "Object Max Animation Speed",
+        "Object Min Animation Speed",
+#else
+        "Sat Max Animation Speed",
+        "Sat Min Animation Speed",
+#endif
+        "Orbit Max Animation Speed",
+        "Orbit Min Animation Speed",
+        "Coordinate Type",
+        "Background Transparency",
+        "Number of Period Animated",
         "Label Sphere Radius",
 #ifndef R3B
         "Object Radius",
@@ -31,28 +38,11 @@
         "Satellite Radius",
         "Large Primary Radius",
         "Small Primary Radius",
-        "Number of Stars",
         "Libration Point Size",
-#endif
-        "AniLine Thickness Scaler",
-#ifndef R3B
-        "Object Max Animation Speed",
-        "Object Min Animation Speed",
-        "Orbit Max Animation Speed",
-        "Orbit Min Animation Speed",
-#else
-        "Sat Max Animation Speed",
-        "Sat Min Animation Speed",
-#endif
-        "Coordinate Type",
-        "Background Transparency",
-#ifndef R3B
-        "Number of Period Animated",
-#else
 	"Disk Transparency",
 	"Disk From File",
-        "Orbit Max Animation Speed",
-        "Orbit Min Animation Speed",
+        "Coordinate system",
+        "Number of Stars",
 #endif
     };
 
