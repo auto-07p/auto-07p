@@ -69,14 +69,13 @@ int whichStyleOld = 0 ;
 #ifndef R3B
 int whichCoord = 0 ;
 #else
-int whichCoordSystem = 0 ;
-int whichCoordSystemTemp = 0 ;
-int whichCoordSystemOld = 0 ;
-
 int whichCoord = 3 ;
 #endif
 int whichCoordTemp = 0 ;
 int whichCoordOld = 0 ;
+int whichCoordSystem = 0 ;
+int whichCoordSystemTemp = 0 ;
+int whichCoordSystemOld = 0 ;
 #ifndef R3B
 int time_on = 0;
 #endif
@@ -5126,14 +5125,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
         clientData.solData[ml]= new float [mySolNode.nar];
 
     blOpenBifFile = parseBifurcation(bFileName) ? true : false;
-#ifndef R3B
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
-#else
-    if(blOpenBifFile)
-      printf(" Parse Bifurcation file. OK\n");
-    else
-      printf(" No bifurcation file found!\n");
-#endif
 
     if((!blOpenBifFile) && (!blOpenSolFile) && (!blFirstRead)) return false;
     else if((!blOpenBifFile) && (!blOpenSolFile))
@@ -5154,7 +5146,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
     clientData.eigenvalues = new bool[myBifNode.totalNumPoints];
 
     int varIndices[3];
-#ifndef R3B
+
     if( blOpenBifFile)
     {
         bool tmp = false;
@@ -5167,7 +5159,6 @@ readSolutionAndBifurcationData(bool blFirstRead)
         whichType = SOLUTION;
     }
 
-#endif
     if( blOpenSolFile )
     {
         bool tmp = false;
@@ -5186,44 +5177,14 @@ readSolutionAndBifurcationData(bool blFirstRead)
         whichType = BIFURCATION;
     }
 
-#ifndef R3B
     if((!blOpenBifFile) && (!blOpenSolFile))
-#else
-    if( blOpenBifFile)
-#endif
     {
-//        printf(" Target files do not exist!\n");
-#ifndef R3B
         exit(1);
-#else
-        bool tmp = false;
-        tmp = readBifurcation(bFileName, varIndices) ? true : false;
-        if(!tmp) printf(" Failed to read the bifurcation file!\n");
-    }
-    else
-    {
-        whichType = SOLUTION;
-#endif
     }
 
     int st = readFM(dFileName, myBifNode.totalNumPoints);
-#ifndef R3B
     if(st!=0)
-//        printf(" D file OK.\n");
-//    else
         printf(" Failed to read the diagnostic file.\n");
-#else
-    if(st==0)
-        printf(" D file OK.\n");
-    else
-        printf(" Failed to read the D file.\n");
-
-    if(!blOpenSolFile && !blOpenBifFile)
-    {
-        printf(" Target files do not exist!\n");
-        exit(1);
-    }
-#endif
 
     return TRUE;
 }
@@ -6411,11 +6372,9 @@ initTempVariables()
     whichStyleTemp = whichStyle;
     whichStyleOld  = whichStyle;
 
-#ifdef R3B
     whichCoordSystemTemp = whichCoordSystem;
     whichCoordSystemOld  = whichCoordSystem ;
 
-#endif
     for(int i=0; i<NUM_SP_POINTS; ++i)
     {
         linePatternTemp[i] = linePattern[i];
@@ -6486,8 +6445,8 @@ setVariableDefaultValues()
 
 #else
 // set default graph type/style specification
-    whichCoordSystem = ROTATING_F;
 #endif
+    whichCoordSystem = ROTATING_F;
     whichStyle      = 0;  
 #ifdef R3B
     whichCoord         = 3;

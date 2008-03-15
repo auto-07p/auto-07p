@@ -116,12 +116,12 @@
 #define ALL_POINTS 4
 #define NURBS 5
 
-#ifdef R3B
 #define ROTATING_F  0  //CR3BP 0
 #define INERTIAL_B  1
 #define INERTIAL_S	2  // big primary centered, sun
 #define INERTIAL_E	3  // small primary centered, earth.
 
+#ifdef R3B
 #define OPT_DRAW_COORD 0
 
 #define OPT_REF_PLAN   0
@@ -373,13 +373,13 @@ extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
 extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
 extern char labels[MAX_LABEL][8];
+extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 #ifndef R3B
 extern const char * graphWidgetItems[7];
 extern SoSeparator *root;
 #else
 extern const char * graphWidgetItems[10];
 extern SoSelection *root;
-extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern bool blMassDependantOption;
 
 void smallPrimaryMovingOrbit(float R, float T, float t,

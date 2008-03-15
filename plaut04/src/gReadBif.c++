@@ -182,11 +182,7 @@ parseBifurcation(const char *bFileName)
     inFile = fopen(bFileName, "r");
     if(!inFile)
     {
-#ifndef R3B
         printf(" Cannot open input file: %s\n", bFileName);
-#else
-        printf(" Cannot open input file named: %s\n", bFileName);
-#endif
         return false;
     }
 

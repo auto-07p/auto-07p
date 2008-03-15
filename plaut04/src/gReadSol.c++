@@ -10,9 +10,7 @@
 
 extern SolNode mySolNode;
 extern float *tv;
-#ifdef R3B
 extern int whichCoordSystem;
-#endif
 extern UserData clientData;
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -116,11 +114,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
     if((inFile = fopen(sFileName,"r")) == NULL)
     {
-#ifndef R3B
         printf(" Cannot open input file: %s\n", sFileName);
-#else
-        printf(" Cannot open input file named: %s\n", sFileName);
-#endif
         return false;
     }
 
@@ -222,12 +216,8 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                         if(dummy != 0)
                         {
                             mySolNode.par[counter-1][nzoo*7+i] = dummy;
-#ifndef R3B
-                            if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
-#else
                             if( nzoo*7+i==1 ) mySolNode.mass[counter] = dummy;
                             else if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
-#endif
                         }
                     }
                 }
@@ -259,15 +249,10 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
             endBranch = startBranch+mySolNode.numOrbitsInEachBranch[iBranch];
             for(int innerLoop = startBranch; innerLoop<endBranch; ++innerLoop)
             {
-#ifndef R3B
-                if(parMax <mySolNode.par[innerLoop][mySolNode.parID[jv]] ) parMax = mySolNode.par[innerLoop][mySolNode.parID[jv]];
-                if(parMin >mySolNode.par[innerLoop][mySolNode.parID[jv]] ) parMin = mySolNode.par[innerLoop][mySolNode.parID[jv]];
-#else
                 if(parMax <mySolNode.par[innerLoop][mySolNode.parID[jv]] )
                     parMax = mySolNode.par[innerLoop][mySolNode.parID[jv]];
                 if(parMin >mySolNode.par[innerLoop][mySolNode.parID[jv]] )
                     parMin = mySolNode.par[innerLoop][mySolNode.parID[jv]];
-#endif
             }
             mySolNode.parMax[iBranch][jv]=parMax;
             mySolNode.parMin[iBranch][jv]=parMin;
@@ -277,7 +262,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
     }
 
 
-#ifdef R3B
     if(whichCoordSystem != ROTATING_F)
     {
         float r[3],v[3];
@@ -292,11 +276,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
             mySolNode.xyzCoords[i][2]=r[2];
         }
     }
-#endif
     fclose(inFile);
-//    cout<<" Read SOL OK\n";
-#ifdef R3B
-    printf(" Read SOL OK\n");
-#endif
     return true;
 }
