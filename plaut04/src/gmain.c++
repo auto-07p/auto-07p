@@ -206,13 +206,8 @@ SoSeparator * createSolutionSceneWithWidgets();
 SoSeparator * createSolutionInertialFrameScene(float dis);
 #endif
 SoSeparator * createBifurcationScene();
-#ifndef R3B
 SoSeparator * renderSolution();
 SoSeparator * renderBifurcation();
-#else
-SoSeparator * renderSolution(double mu);
-SoSeparator * renderBifurcation(double mu);
-#endif
 SoSeparator * animateSolutionUsingTubes(bool aniColoring);
 SoSeparator * animateSolutionUsingLines(bool aniColoring);
 SoSeparator * animateSolutionUsingPoints(int style, bool aniColoring);
@@ -560,10 +555,8 @@ createSolutionSceneWithWidgets()
             SoSeparator *diskSep = createDisk(position,1.0);
             result->addChild(diskSep);
         }
-#endif
 
 // create the primaries
-#ifdef R3B
         if(options[OPT_PRIMARY])
         {
             double pos1 = 1-mass;
@@ -577,7 +570,7 @@ createSolutionSceneWithWidgets()
         }
 
 //  create solution scene
-        result->addChild(renderSolution(mass));
+        result->addChild(renderSolution());
 
     }
 
@@ -594,9 +587,8 @@ createSolutionSceneWithWidgets()
 
 #ifndef R3B
     static SoSeparator *leg = new SoSeparator;
-#else
-//  add legend
 #endif
+//  add legend
     if(iiii && options[OPT_LEGEND])
     {
 #ifndef R3B
@@ -1501,7 +1493,7 @@ createBifurcationScene()
     }
 
 // create bifurcation graph
-    SoSeparator * bifBranchSep = renderBifurcation(mass);
+    SoSeparator * bifBranchSep = renderBifurcation();
 #endif
     result->addChild(bifBranchSep);
 
@@ -1792,21 +1784,10 @@ long int sumX, float scaler, int stability, int type)
 //                  create bifurcation scene
 //
 SoSeparator *
-#ifndef R3B
 renderBifurcation()
-#else
-renderBifurcation(double mass)
-#endif
 //
 //////////////////////////////////////////////////////////////////////////
 {
-//    SoDrawStyle *drawStyle = new SoDrawStyle;
-//    drawStyle->lineWidth = 1.0;
-#ifdef R3B
-    SoDrawStyle *drawStyle = new SoDrawStyle;
-    drawStyle->lineWidth = 1.0;
-#endif
-
     SoSeparator *bifSep = new SoSeparator;
     SoMaterial *bifMtl= new SoMaterial;
 
@@ -1817,13 +1798,6 @@ renderBifurcation(double mass)
     bifMtl->transparency = 0.0;
 
     SoGroup *bifGroup = new SoGroup;
-
-//    SoLineSet *bifLines = new SoLineSet;
-//    SoCoordinate3 *bifCoords = new SoCoordinate3;
-#ifdef R3B
-    SoLineSet *bifLines = new SoLineSet;
-    SoCoordinate3 *bifCoords = new SoCoordinate3;
-#endif
 
     if(whichStyle == TUBE )
     {
@@ -2163,11 +2137,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
         }
         else
         {
-#ifndef R3B
 	    printf(" Only one point in the period, no surface can be drawn!\n");
-#else
-            printf("Only one point in the period, no surface can be drawn!\n");
-#endif
             long int idx = obStart;
             SoSeparator * ptSep = new SoSeparator;
             SoTransform * aTrans = new SoTransform;
@@ -2745,11 +2715,7 @@ animateSolutionUsingNurbsCurve()
 /////////////////////////////////////////////////////////////////
 //                  create solution orbits scene
 SoSeparator *
-#ifndef R3B
 renderSolution()
-#else
-renderSolution(double mu)
-#endif
 //
 /////////////////////////////////////////////////////////////////
 {
@@ -5705,11 +5671,6 @@ myMousePressCB(void *userData, SoEventCallback *eventCB)
             event->getPosition(myRegion));
         eventCB->setHandled();
     }
-#ifdef R3B
-    else
-    {
-    }
-#endif
 }
 
 
@@ -6119,15 +6080,8 @@ readResourceParameters()
     char * next;
     while ( (next=fgets(buffer, sizeof(buffer),inFile)) != NULL )
     {
-#ifndef R3B
         if(buffer[0] != '#')
-#else
-        if(buffer[0] == '#')
-        {
-// this is a comment line, discard it. Nothing need to do here.
-        }
-        else
-#endif
+// else it is a comment line, discard it. Nothing need to do here.
         {
             strTemp = strtok(buffer,"=");
             strTemp = strrighttrim(strTemp);
