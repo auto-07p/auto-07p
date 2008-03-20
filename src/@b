@@ -1,2 +1,2 @@
- cp *.f ../SAV
+ cp *.f *.f90 ../SAV
 

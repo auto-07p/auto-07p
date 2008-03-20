@@ -1,4 +1,0 @@
-cp ../include/auto.h .
-make ../lib/autlib$1.o
-rm auto.h
-
