@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = readBif.o ../readSol.o ../drawCoords.o toInertialFrame.o createDisk.o \
+OBJS = readBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
