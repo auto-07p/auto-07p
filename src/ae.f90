@@ -41,6 +41,7 @@ CONTAINS
 
     USE IO
     USE MESH
+    USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Controls the bifurcation analysis of algebraic problems
@@ -108,6 +109,7 @@ CONTAINS
 
     CALL STPNT(IAP,RAP,PAR,ICP,U)
     CALL PVLSAE(IAP,RAP,U,PAR)
+    ALLOCATE(EVV(NDIM))
 
 ! Determine a suitable starting label and branch number
 
@@ -323,6 +325,7 @@ CONTAINS
     NBIF=IAP(35)
     IF(NBIF.NE.0 .AND. NBFC.LT.ABS(MXBF))GOTO 2
 
+    DEALLOCATE(EVV)
     DEALLOCATE(AA,RHS,U,DU,UDOT,UOLD,STUD,STU,STLA,STLD,F,DFDU,DFDP)
     DEALLOCATE(UZR)
   END SUBROUTINE CNRLAE
@@ -932,6 +935,7 @@ CONTAINS
     IF(NINS1.NE.NINS)CHNG=.TRUE.
     NINS=NINS1
     IAP(33)=NINS
+    EVV(:)=EV(:)
 
     NTOT=IAP(32)
     NTOTP1=NTOT+1
