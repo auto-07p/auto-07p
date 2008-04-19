@@ -247,14 +247,14 @@ CONTAINS
   END FUNCTION PI
 
 ! ---------- ----
-  SUBROUTINE GESC(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
+  SUBROUTINE GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
     PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 
 ! Solves the linear system  A U = F by Gauss elimination
-! with complete pivoting. Returns a scaled determinant.
+! with complete pivoting. Optionally returns a scaled determinant.
 !
 ! Parameters :
 !
@@ -272,6 +272,7 @@ CONTAINS
 ! The input matrix A is overwritten.
 
     DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
+    LOGICAL SCALE
 
     DO I=1,N
        IC(I)=I
@@ -298,8 +299,12 @@ CONTAINS
           ENDDO
        ENDDO
 
-       AP=A(IR(IPIV),IC(JPIV)) 
-       DET=DET*LOG10(10+ABS(AP)) * atan(AP)
+       AP=A(IR(IPIV),IC(JPIV))
+       IF(SCALE)THEN
+          DET=DET*LOG10(10+ABS(AP)) * atan(AP)
+       ELSE
+          DET=DET*AP
+       ENDIF
        IF(IPIV.NE.JJ)DET=-DET
        IF(JPIV.NE.JJ)DET=-DET
 
@@ -328,8 +333,12 @@ CONTAINS
           ENDIF
        ENDDO
     ENDDO
-    AP=A(IR(N),IC(N)) 
-    DET=DET*LOG10(10+ABS(AP)) * atan(AP)
+    AP=A(IR(N),IC(N))
+    IF(SCALE)THEN
+       DET=DET*LOG10(10+ABS(AP)) * atan(AP)
+    ELSE
+       DET=DET*AP
+    ENDIF
 
     IF(NRHS.EQ.0)RETURN
 
@@ -350,6 +359,13 @@ CONTAINS
 
 101 FORMAT(8x,' NOTE:Pivot ',I3,' < ',D10.3,' in GE')
 
+  END SUBROUTINE GELI
+
+! ---------- ----
+  SUBROUTINE GESC(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
+    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
+    CALL GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.TRUE.)
   END SUBROUTINE GESC
 
 !-----------------------------------------------------------------------
@@ -395,106 +411,10 @@ END MODULE SUPPORT
 
 ! ---------- --
   SUBROUTINE GE(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
-
+    USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-
-! Solves the linear system  A U = F by Gauss elimination
-! with complete pivoting.
-!
-! Parameters :
-!
-!   N   : number of equations,
-!   M1A : first dimension of A from DIMENSION statement,
-!   A   : N * N matrix of coefficients,
-!   NRHS: 0   if no right hand sides (determinant only),
-!         >0   if there are NRHS right hand sides,
-!   NDX : first dimension of U from DIMENSION statement,
-!   U   : on exit U contains the solution vector(s),
-!   M1F : first dimension of F from DIMENSION statement,
-!   F   : right hand side vector(s),
-!  IR,IC: integer vectors of dimension at least N.
-!
-! The input matrix A is overwritten.
-!
     DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-
-    DO I=1,N
-       IC(I)=I
-       IR(I)=I
-    ENDDO
-
-!   Elimination.
-
-    DET=1.d0
-    NM1=N-1
-
-    DO JJ=1,NM1
-       IPIV=JJ
-       JPIV=JJ
-       PIV=0.d0
-       DO I=JJ,N
-          DO J=JJ,N
-             P=ABS(A(IR(I),IC(J)))
-             IF(P.GT.PIV)THEN
-                PIV=P
-                IPIV=I
-                JPIV=J
-             ENDIF
-          ENDDO
-       ENDDO
-
-       DET=DET*A(IR(IPIV),IC(JPIV))
-       IF(IPIV.NE.JJ)DET=-DET
-       IF(JPIV.NE.JJ)DET=-DET
-
-       IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
-
-       K=IR(JJ)
-       IR(JJ)=IR(IPIV)
-       IR(IPIV)=K
-
-       K=IC(JJ)
-       IC(JJ)=IC(JPIV)
-       IC(JPIV)=K
-
-       JJP1=JJ+1
-       DO L=JJP1,N
-          RM=A(IR(L),IC(JJ))/A(IR(JJ),IC(JJ))
-          IF(RM.NE.0.d0)THEN
-             DO I=JJP1,N
-                A(IR(L),IC(I))=A(IR(L),IC(I))-RM*A(IR(JJ),IC(I))
-             ENDDO
-             IF(NRHS.NE.0)THEN
-                DO IRH=1,NRHS
-                   F(IR(L),IRH)=F(IR(L),IRH)-RM*F(IR(JJ),IRH)
-                ENDDO
-             ENDIF
-          ENDIF
-       ENDDO
-    ENDDO
-    DET=DET*A(IR(N),IC(N))
-
-    IF(NRHS.EQ.0)RETURN
-
-!   Backsubstitution :
-
-    DO IRH=1,NRHS
-       U(IC(N),IRH)=F(IR(N),IRH)/A(IR(N),IC(N))
-       DO I1=1,NM1
-          I=N-I1
-          SM=0.d0
-          IP1=I+1
-          DO J=IP1,N
-             SM=SM+A(IR(I),IC(J))*U(IC(J),IRH)
-          ENDDO
-          U(IC(I),IRH)=(F(IR(I),IRH)-SM)/A(IR(I),IC(I))
-       ENDDO
-    ENDDO
-
-101 FORMAT(8x,' NOTE:Pivot ',I3,' < ',D10.3,' in GE')
-
+    CALL GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.FALSE.)
   END SUBROUTINE GE
 
 ! ------ --------- -------- ----
