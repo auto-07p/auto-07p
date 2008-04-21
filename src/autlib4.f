@@ -396,8 +396,7 @@ C     .. External Functions from BLAS ..
 C     .. External Subroutines from BLAS ..
       EXTERNAL           DSCAL
 C     .. Intrinsic Functions ..
-      DOUBLE PRECISION   DABS, DSIGN
-      INTRINSIC          DABS, DSIGN
+      INTRINSIC          ABS, SIGN
 C
 C     .. Executable Statements ..
 C
@@ -422,7 +421,7 @@ C
 C
 C  Find M := max{ |x_k|, ... , |x_j| }
 C
-      M = DABS( X( IDAMAX( JMKP1, X(K), INCX ) ) )
+      M = ABS( X( IDAMAX( JMKP1, X(K), INCX ) ) )
 C
 C  alpha := 0
 C  For i = k to j
@@ -453,11 +452,11 @@ C
 C
 C  beta := 1/(alpha(alpha + |V_k|))
 C
-      BETA = 1.0D0 / (ALPHA*(ALPHA+DABS(V(K))))
+      BETA = 1.0D0 / (ALPHA*(ALPHA+ABS(V(K))))
 C
 C  v_k := v_k + sign(v_k)*alpha
 C
-      V(K) = V(K) + DSIGN(1.0D0,V(K))*ALPHA
+      V(K) = V(K) + SIGN(1.0D0,V(K))*ALPHA
 C
 C  Done !
 C
