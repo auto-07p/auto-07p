@@ -568,7 +568,6 @@ C
       IAP(28)=ITPST
       IAP(29)=NFPR
       IAP(30)=IBR
-      IAP(31)=NIT
       IAP(32)=NTOT
       IAP(33)=NINS
       IAP(34)=ISTOP

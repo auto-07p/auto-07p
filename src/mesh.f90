@@ -263,46 +263,36 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE ADPTDS(IAP,RAP,RDS)
+  SUBROUTINE ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: NIT,ITNW,IBR,NTOP
+    DOUBLE PRECISION, INTENT(IN) :: DSMAX
+    DOUBLE PRECISION, INTENT(INOUT) :: RDS
+! Local
+    DOUBLE PRECISION ARDS
 
 ! The stepsize along the branch of solutions is adapted depending on the
 ! number of Newton iterations in the previous step (called if IADS > 0).
 
-    DIMENSION IAP(*),RAP(*)
-
-    DSMAX=RAP(3)
-    ITNW=IAP(20)
-    IBR=IAP(30)
-    NIT=IAP(31)
-    NTOT=IAP(32)
-    NTOP=MOD(NTOT-1,9999)+1
-
-    IF(ITNW.LE.3) THEN
-       ITNW=3
-       N1=2
-    ELSE
-       N1=ITNW/2
-    ENDIF
-
-    IF(NIT.LE.1) THEN
+    SELECT CASE(NIT)
+    CASE(0:1)
        RDS= 2.d0*RDS
-    ELSE IF(NIT.EQ.2) THEN
+    CASE(2)
        RDS= 1.5*RDS
-    ELSE IF(NIT.GT.2 .AND. NIT.LE.N1) THEN
-       RDS= 1.1*RDS
-    ELSE IF(NIT.GE.ITNW) THEN
-       RDS=.5d0*RDS
-    ENDIF
+    CASE(3:)
+       IF(NIT<=ITNW/2)THEN
+          RDS= 1.1*RDS
+       ELSE IF(NIT>=ITNW)THEN
+          RDS=.5d0*RDS
+       ENDIF
+    END SELECT
 
     ARDS= ABS(RDS)
-    IF(ARDS.GT.DSMAX)RDS=RDS*DSMAX/ARDS
+    IF(ARDS>DSMAX)RDS=RDS*DSMAX/ARDS
 
-    WRITE(9,101)ABS(IBR),NTOP,NIT
-    WRITE(9,102)ABS(IBR),NTOP,RDS
-101 FORMAT(/,I4,I6,8X,' Iterations   : ',I3)
-102 FORMAT(I4,I6,8X,' Next Step    : ',ES13.5)
+    WRITE(9,"(/,I4,I6,8X,A,I3)")ABS(IBR),NTOP,' Iterations   : ',NIT
+    WRITE(9,"(I4,I6,8X,A,ES13.5)")ABS(IBR),NTOP,' Next Step    : ',RDS
 
   END SUBROUTINE ADPTDS
 

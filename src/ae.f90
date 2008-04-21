@@ -86,7 +86,6 @@ CONTAINS
     DSOLD=DS
     RAP(5)=DSOLD
     NIT=0
-    IAP(31)=NIT
     NBIF=0
     IAP(35)=NBIF
     NBFC=0
@@ -136,7 +135,7 @@ CONTAINS
 ! Starting procedure  (to get second point on first branch) :
 
     CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,NDIM+1,AA,RHS, &
-         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
     ITP=0
@@ -173,7 +172,6 @@ CONTAINS
     ITP=0
     IAP(27)=ITP
     NIT=0
-    IAP(31)=NIT
     DSOLD=RDS
     RAP(5)=DSOLD
 
@@ -186,7 +184,7 @@ CONTAINS
 ! Determine the second point on the bifurcating branch
 
     CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,NDIM+1,AA,RHS,RLCUR,RLOLD,RLDOT, &
-         U,DU,UOLD,UDOT,F,DFDU,DFDP,RDS,THL,THU)
+         U,DU,UOLD,UDOT,F,DFDU,DFDP,RDS,THL,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
 
@@ -206,7 +204,7 @@ CONTAINS
 ! Find the next solution point on the branch
 
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,NDIM+1,AA,RHS, &
-         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
 
@@ -217,7 +215,7 @@ CONTAINS
           IAP(26)=IUZR
           CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,NDIM+1,AA,RHS,RLCUR, &
                RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,UZR(IUZR),THL,THU, &
-               IUZ,VUZ)
+               IUZ,VUZ,NIT)
           ISTOP=IAP(34)
           IF(ISTOP.EQ.1)GOTO 5
           ITP=IAP(27)
@@ -242,7 +240,7 @@ CONTAINS
 
     IF(ABS(ILP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,NDIM+1,AA,RHS,RLCUR, &
-            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RLP,THL,THU,IUZ,VUZ)
+            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RLP,THL,THU,IUZ,VUZ,NIT)
        ITP=IAP(27)
        IF(ITP.EQ.-1) THEN
           IF(ILP.GT.0)THEN
@@ -264,7 +262,7 @@ CONTAINS
 !
     IF(ABS(ISP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,NDIM+1,AA,RHS,RLCUR, &
-            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RBP,THL,THU,IUZ,VUZ)
+            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RBP,THL,THU,IUZ,VUZ,NIT)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
@@ -292,7 +290,7 @@ CONTAINS
 
     IF(ABS(IPS).EQ.1)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,NDIM+1,AA,RHS,RLCUR, &
-            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,REV,THL,THU,IUZ,VUZ)
+            RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,REV,THL,THU,IUZ,VUZ,NIT)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
@@ -313,7 +311,10 @@ CONTAINS
     NTOT=IAP(32)
     IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
          .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
-       CALL ADPTDS(IAP,RAP,RDS)
+       ITNW=IAP(20)
+       NTOP=MOD(NTOT-1,9999)+1
+       DSMAX=RAP(3)
+       CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
     ENDIF
 
 6   ITP=0
@@ -365,7 +366,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS, &
-     RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+     RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -437,7 +438,7 @@ CONTAINS
     RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
 
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS, &
-         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
 
   END SUBROUTINE STPRAE
 
@@ -474,9 +475,9 @@ CONTAINS
 
   END SUBROUTINE CONTAE
 
-! ---------- -----
+! ---------- ------
   SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS, &
-       RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+       RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
 
     USE IO
     USE MESH
@@ -496,6 +497,7 @@ CONTAINS
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 ! Local
     ALLOCATABLE IR(:),IC(:)
+    CHARACTER (LEN=7) FIXEDMINIMUM
 
     NDIM=IAP(1)
     IADS=IAP(8)
@@ -509,125 +511,128 @@ CONTAINS
     EPSU=RAP(12)
 
     DELREF=0
-1   DSOLD=RDS
-    RAP(5)=DSOLD
-    DDS=1.d0/RDS
-    NIT=0
-    IAP(31)=NIT
-    NTOT=IAP(32)
-    NTOP=MOD(NTOT-1,9999)+1
-    IF(IID.GE.2)THEN
-       IF(NIT.EQ.0)THEN
-          CALL WRBAR("=",47)
-          WRITE(9,100)
+
+    DO
+       DSOLD=RDS
+       RAP(5)=DSOLD
+       DDS=1.d0/RDS
+       NIT=0
+       NTOT=IAP(32)
+       NTOP=MOD(NTOT-1,9999)+1
+       IF(IID.GE.2)THEN
+          IF(NIT.EQ.0)THEN
+             CALL WRBAR("=",47)
+             WRITE(9,100)
+          ENDIF
+          WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
        ENDIF
-       WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
-    ENDIF
-100 FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
-101 FORMAT(I4,I6,I4,5X,2ES14.5)
+100    FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
+101    FORMAT(I4,I6,I4,5X,2ES14.5)
+
 
 ! Call user-supplied FUNC to evaluate the right hand side of the
 ! differential equation and its derivatives :
 
-    DO NIT1=1,ITNW
+       DO NIT1=1,ITNW
 
-       NIT=NIT1
-       IAP(31)=NIT
-       PAR(ICP(1))=RLCUR(1)
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+          NIT=NIT1
+          PAR(ICP(1))=RLCUR(1)
+          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
 ! Set up the Jacobian matrix and the right hand side :
 
-       DO I=1,NDIM
-          AA(I,NDIM+1)=DFDP((ICP(1)-1)*NDIM+I)
-          RHS(I)=-F(I)
-          DO K=1,NDIM
-             AA(I,K)=DFDU((K-1)*NDIM+I)
+          DO I=1,NDIM
+             AA(I,NDIM+1)=DFDP((ICP(1)-1)*NDIM+I)
+             RHS(I)=-F(I)
+             DO K=1,NDIM
+                AA(I,K)=DFDU((K-1)*NDIM+I)
+             ENDDO
           ENDDO
-       ENDDO
-       DO K=1,NDIM
-          AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))*DDS
-       ENDDO
-       AA(NDIM+1,NDIM+1)=2.d0*THL(1)*(RLCUR(1)-RLOLD(1))*DDS
-       SS=0.d0
-       DO I=1,NDIM
-          SS=SS+THU(I)*(U(I)-UOLD(I))**2
-       ENDDO
-       RHS(NDIM+1)=RDS-DDS*SS-THL(1)*DDS*(RLCUR(1)-RLOLD(1))**2
+          DO K=1,NDIM
+             AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))*DDS
+          ENDDO
+          AA(NDIM+1,NDIM+1)=2.d0*THL(1)*(RLCUR(1)-RLOLD(1))*DDS
+          SS=0.d0
+          DO I=1,NDIM
+             SS=SS+THU(I)*(U(I)-UOLD(I))**2
+          ENDDO
+          RHS(NDIM+1)=RDS-DDS*SS-THL(1)*DDS*(RLCUR(1)-RLOLD(1))**2
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
-       IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
-       ALLOCATE(IR(NDIM+1),IC(NDIM+1))
-       CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1, &
-            RHS,IR,IC,DET)
-       DEALLOCATE(IR,IC)
-       RAP(14)=DET
-       DRLM=DU(NDIM+1)
+          IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
+          ALLOCATE(IR(NDIM+1),IC(NDIM+1))
+          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1, &
+               RHS,IR,IC,DET)
+          DEALLOCATE(IR,IC)
+          RAP(14)=DET
+          DRLM=DU(NDIM+1)
 
 ! Add the Newton increments :
 
-       DO I=1,NDIM
-          U(I)=U(I)+DU(I)
-       ENDDO
-       RLCUR(1)=RLCUR(1)+DRLM
-       DUMX=0.d0
-       UMX=0.d0
-       DO I=1,NDIM
-          ADU=ABS(DU(I))
-          AU=ABS(U(I))
-          IF(AU.GT.UMX)UMX=AU
-          IF(ADU.GT.DUMX)DUMX=ADU
-       ENDDO
+          DO I=1,NDIM
+             U(I)=U(I)+DU(I)
+          ENDDO
+          RLCUR(1)=RLCUR(1)+DRLM
+          DUMX=0.d0
+          UMX=0.d0
+          DO I=1,NDIM
+             ADU=ABS(DU(I))
+             AU=ABS(U(I))
+             IF(AU>UMX)UMX=AU
+             IF(ADU>DUMX)DUMX=ADU
+          ENDDO
 
-       IF(IID.GE.2)THEN
-          WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
-       ENDIF
+          IF(IID.GE.2)THEN
+             WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
+          ENDIF
 
-       RDRLM= ABS(DRLM)/(1.d0+ ABS(RLCUR(1)))
-       RDUMX=DUMX/(1.d0+UMX)
-       IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
-          CALL PVLSAE(IAP,RAP,U,PAR)
-          IF(IID.GE.2)WRITE(9,*)
-          RETURN
-       ENDIF
+          RDRLM= ABS(DRLM)/(1.d0+ ABS(RLCUR(1)))
+          RDUMX=DUMX/(1.d0+UMX)
+          IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
+             CALL PVLSAE(IAP,RAP,U,PAR)
+             IF(IID.GE.2)WRITE(9,*)
+             RETURN
+          ENDIF
 
 ! Check whether relative error has reached user-supplied tolerance :
 
-       IF(NIT.EQ.1)THEN
-          DELREF=20*DMAX1(RDRLM,RDUMX)
-       ELSE
-          DELMAX=DMAX1(RDRLM,RDUMX)
-          IF(DELMAX.GT.DELREF)EXIT
-       ENDIF
+          IF(NIT.EQ.1)THEN
+             DELREF=20*DMAX1(RDRLM,RDUMX)
+          ELSE
+             DELMAX=DMAX1(RDRLM,RDUMX)
+             IF(DELMAX.GT.DELREF)RETURN
+          ENDIF
 
-    ENDDO
+       ENDDO
 
 ! Maximum number of iterations has been reached
 
-    IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
-102 FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
-    IF(IADS.EQ.0)GOTO 5
+       IF(IADS.EQ.0)EXIT
 
 ! Reduce stepsize and try again
 
-    MXT=ITNW
-    IAP(31)=MXT
-    CALL ADPTDS(IAP,RAP,RDS)
-    IF(ABS(RDS).LT.DSMIN)GOTO 4
-    RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
-    DO I=1,NDIM
-       U(I)=UOLD(I)+RDS*UDOT(I)
+       DSMAX=RAP(3)
+       NIT=ITNW
+       CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+       IF(ABS(RDS).LT.DSMIN)EXIT
+       RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
+       DO I=1,NDIM
+          U(I)=UOLD(I)+RDS*UDOT(I)
+       ENDDO
+       IF(IID.GE.2)WRITE(9,"(I4,I6,' NOTE:Retrying step')")
     ENDDO
-    IF(IID.GE.2)WRITE(9,103)
-103 FORMAT(I4,I6,' NOTE:Retrying step')
-    GOTO 1
 
 ! Minimum stepsize reached
 
-4   WRITE(9,104)IBR,NTOP
-104 FORMAT(I4,I6,' NOTE:No convergence using minimum step size')
-5   RLCUR(1)=RLOLD(1)
+    IF(IADS==0)THEN
+       FIXEDMINIMUM='fixed'
+    ELSE
+       FIXEDMINIMUM='minimum'
+    ENDIF
+    WRITE(9,"('I4,I6,A,A,A')")&
+         IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
+    RLCUR(1)=RLOLD(1)
     PAR(ICP(1))=RLCUR(1)
     DO I=1,NDIM
        U(I)=UOLD(I)
@@ -644,7 +649,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(IAP,RAP,PAR,ICP,FNCS,FUNI,M1AA,AA,RHS,RLCUR, &
-       RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,Q,THL,THU,IUZ,VUZ)
+       RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,Q,THL,THU,IUZ,VUZ,NIT)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -718,7 +723,7 @@ CONTAINS
 
     CALL CONTAE(IAP,RAP,RDS,RLCUR,RLOLD,RLDOT,U,UOLD,UDOT)
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,M1AA,AA,RHS, &
-         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU)
+         RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,THL,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)THEN
        Q=0.d0
@@ -1118,7 +1123,7 @@ CONTAINS
 
 ! ---------- -----
   SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,M1AA,AA,RHS, &
-       RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RDS,THL,THU)
+       RLCUR,RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RDS,THL,THU,NIT)
 
     USE MESH
     USE SUPPORT
@@ -1136,6 +1141,10 @@ CONTAINS
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 ! Local
     ALLOCATABLE IR(:),IC(:),U1(:)
+    CHARACTER (LEN=*), PARAMETER :: O9 = & 
+     "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
+        &ES11.3,1X,'U=',7ES11.3)"
+    CHARACTER (LEN=7) FIXEDMINIMUM
 
     NDIM=IAP(1)
     IADS=IAP(8)
@@ -1153,108 +1162,113 @@ CONTAINS
 
     ALLOCATE(IR(NDIM+1),IC(NDIM+1),U1(NDIM+1))
     RLOLD(1)=RLCUR(1)
-    RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
     DO I=1,NDIM
        UOLD(I)=U(I)
-       U(I)=UOLD(I)+RDS*UDOT(I)
     ENDDO
 
-2   DSOLD=RDS
-    RAP(5)=DSOLD
-    NIT=0
-    IAP(31)=NIT
+    DO
+       RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
+       DO I=1,NDIM
+          U(I)=UOLD(I)+RDS*UDOT(I)
+       ENDDO
+
+       DSOLD=RDS
+       RAP(5)=DSOLD
+       NIT=0
 
 ! Write additional output on unit 9 if requested :
 
-    NDMR=NDIM
-    IF(NDMR.GT.6)NDMR=6
-    IF(IID.GE.2)WRITE(9,101)IBR,NTOP,NIT,ICP(1), &
-         RLCUR(1),(U(I),I=1,NDMR)
+       NDMR=NDIM
+       IF(NDMR.GT.6)NDMR=6
+       IF(IID.GE.2)WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
+            RLCUR(1),(U(I),I=1,NDMR)
 
-    RLM1=RLCUR(1)
-    DO I=1,NDIM
-       U1(I)=U(I)
-    ENDDO
-
-    DO NIT1=1,ITNW
-
-       NIT=NIT1
-       IAP(31)=NIT
-       PAR(ICP(1))=RLCUR(1)
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       RLM1=RLCUR(1)
        DO I=1,NDIM
-          AA(I,NDIM+1)=DFDP((ICP(1)-1)*NDIM+I)
-          RHS(I)=-F(I)
-          DO K=1,NDIM
-             AA(I,K)=DFDU((K-1)*NDIM+I)
+          U1(I)=U(I)
+       ENDDO
+
+       DO NIT1=1,ITNW
+
+          NIT=NIT1
+          PAR(ICP(1))=RLCUR(1)
+          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+          DO I=1,NDIM
+             AA(I,NDIM+1)=DFDP((ICP(1)-1)*NDIM+I)
+             RHS(I)=-F(I)
+             DO K=1,NDIM
+                AA(I,K)=DFDU((K-1)*NDIM+I)
+             ENDDO
           ENDDO
-       ENDDO
-       DO K=1,NDIM
-          AA(NDIM+1,K)=THU(K)*UDOT(K)
-       ENDDO
-       AA(NDIM+1,NDIM+1)=THL(1)*RLDOT(1)
-       SS=0.d0
-       DO I=1,NDIM
-          SS=SS+THU(I)*(U(I)-U1(I))*UDOT(I)
-       ENDDO
-       RHS(NDIM+1)=-SS-THL(1)*(RLCUR(1)-RLM1)*RLDOT(1)
+          DO K=1,NDIM
+             AA(NDIM+1,K)=THU(K)*UDOT(K)
+          ENDDO
+          AA(NDIM+1,NDIM+1)=THL(1)*RLDOT(1)
+          SS=0.d0
+          DO I=1,NDIM
+             SS=SS+THU(I)*(U(I)-U1(I))*UDOT(I)
+          ENDDO
+          RHS(NDIM+1)=-SS-THL(1)*(RLCUR(1)-RLM1)*RLDOT(1)
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
-       IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
-       CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
-       RAP(14)=DET
-       DRLM=DU(NDIM+1)
+          IF(IID.GE.5)CALL WRJAC(NDIM+1,M1AA,AA,RHS)
+          CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
+          RAP(14)=DET
+          DRLM=DU(NDIM+1)
 
 ! Add the Newton increments :
 
-       DO I=1,NDIM
-          U(I)=U(I)+DU(I)
-       ENDDO
-       RLCUR(1)=RLCUR(1)+DRLM
-       DUMX=0.d0
-       UMX=0.d0
-       DO I=1,NDIM
-          ADU=ABS(DU(I))
-          IF(ADU.GT.DUMX)DUMX=ADU
-          AU=ABS(U(I))
-          IF(AU.GT.UMX)UMX=AU
-       ENDDO
+          DO I=1,NDIM
+             U(I)=U(I)+DU(I)
+          ENDDO
+          RLCUR(1)=RLCUR(1)+DRLM
+          DUMX=0.d0
+          UMX=0.d0
+          DO I=1,NDIM
+             ADU=ABS(DU(I))
+             IF(ADU>DUMX)DUMX=ADU
+             AU=ABS(U(I))
+             IF(AU>UMX)UMX=AU
+          ENDDO
 
-       IF(IID.GE.2)THEN
-          WRITE(9,101)IBR,NTOP,NIT,ICP(1),RLCUR(1),(U(I),I=1,NDMR)
-       ENDIF
+          IF(IID.GE.2)THEN
+             WRITE(9,O9)IBR,NTOP,NIT,ICP(1),RLCUR(1),(U(I),I=1,NDMR)
+          ENDIF
 
 ! Check whether relative error has reached user-supplied tolerance :
 
-       RDRLM=ABS(DRLM)/(1.d0+ABS(RLCUR(1)))
-       RDUMX=DUMX/(1.d0+UMX)
-       IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
-          DEALLOCATE(IR,IC,U1)
-          RETURN
-       ENDIF
-    ENDDO
+          RDRLM=ABS(DRLM)/(1.d0+ABS(RLCUR(1)))
+          RDUMX=DUMX/(1.d0+UMX)
+          IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
+             DEALLOCATE(IR,IC,U1)
+             RETURN
+          ENDIF
+       ENDDO
 
 ! Maximum number of iterations reached. Reduce stepsize and try again.
 
-    IF(IADS.EQ.0)WRITE(9,102)IBR,NTOP
-    IF(IADS.EQ.0)GOTO 5
-
-    MXT=ITNW
-    IAP(31)=MXT
-    CALL ADPTDS(IAP,RAP,RDS)
-    IF(ABS(RDS).LT.DSMIN)GOTO 4
-    RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
-    DO I=1,NDIM
-       U(I)=UOLD(I)+RDS*UDOT(I)
+       IF(IADS.EQ.0)EXIT
+       DSMAX=RAP(3)
+       NIT=ITNW
+       CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+       IF(ABS(RDS).LT.DSMIN)EXIT
+       IF(IID.GE.2)THEN
+          WRITE(9,"('I4,I6,A')")IBR,NTOP,' NOTE:Retrying step'
+       ENDIF
     ENDDO
-    IF(IID.GE.2)WRITE(9,103)IBR,NTOP
-    GOTO 2
 
 ! Minimum stepsize reached.
 
-4   WRITE(9,104)IBR,NTOP
-5   RLCUR(1)=RLOLD(1)
+    IF(IADS==0)THEN
+       FIXEDMINIMUM='fixed'
+    ELSE
+       FIXEDMINIMUM='minimum'
+    ENDIF
+    WRITE(9,"('I4,I6,A,A,A')")&
+         IBR,NTOP,' NOTE:No convergence when switching branches with ',&
+         FIXEDMINIMUM,' step size'
+    RLCUR(1)=RLOLD(1)
     PAR(ICP(1))=RLCUR(1)
     DO I=1,NDIM
        U(I)=UOLD(I)
@@ -1264,13 +1278,6 @@ CONTAINS
 
     DEALLOCATE(IR,IC,U1)
 
-101 FORMAT(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
-         ES11.3,1X,'U=',7ES11.3)
-102 FORMAT(I4,I6,' NOTE:No convergence when switching branches', &
-         ' with fixed step size')
-103 FORMAT(I4,I6,' NOTE:Retrying step')
-104 FORMAT(I4,I6,' NOTE:No convergence when switching branches', &
-         ' with minimum step size')
   END SUBROUTINE SWPRC
   
 ! ---------- ------
