@@ -601,7 +601,7 @@ CONTAINS
              DELREF=20*DMAX1(RDRLM,RDUMX)
           ELSE
              DELMAX=DMAX1(RDRLM,RDUMX)
-             IF(DELMAX.GT.DELREF)RETURN
+             IF(DELMAX.GT.DELREF)EXIT
           ENDIF
 
        ENDDO
