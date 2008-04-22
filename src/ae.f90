@@ -61,6 +61,7 @@ CONTAINS
     ILP=IAP(4)
     IADS=IAP(8)
     ISP=IAP(9)
+    ISW=IAP(10)
     NUZR=IAP(15)
     MXBF=IAP(17)
     NBIFS=ABS(MXBF)
@@ -137,6 +138,7 @@ CONTAINS
     IF(ISTOP.EQ.1)GOTO 5
     ITP=0
     IAP(27)=ITP
+    IF(ISW==-1)GOTO 22
     GOTO 3
 
 ! Initialize computation of the next bifurcating branch.
@@ -178,7 +180,7 @@ CONTAINS
 
 ! Determine the second point on the bifurcating branch
 
-    CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
+22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
          U,UOLD,UDOT,RDS,THL,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
@@ -372,6 +374,7 @@ CONTAINS
     ALLOCATABLE IR(:),IC(:),AA(:,:),RHS(:),DU(:),F(:),DFDU(:,:),DFDP(:,:)
 
     NDIM=IAP(1)
+    ISW=IAP(10)
     IID=IAP(18)
 
     ALLOCATE(AA(NDIM+1,NDIM+1),RHS(NDIM+1),DU(NDIM+1),F(NDIM), &
@@ -416,6 +419,32 @@ CONTAINS
        DU(I)=SC*DU(I)
     ENDDO
 
+    IF(ISW==-1)THEN
+       DO I=1,NDIM
+          AA(I,NDIM+1)=DFDP(I,ICP(1))
+          DO K=1,NDIM
+             AA(I,K)=DFDU(I,K)
+          ENDDO
+       ENDDO
+       DO K=1,NDIM+1
+          AA(NDIM+1,K)=DU(K)
+       ENDDO
+       ALLOCATE(IR(NDIM+1),IC(NDIM+1))
+       CALL NLVC(NDIM+1,NDIM+1,1,AA,DU,IR,IC)
+       DEALLOCATE(IR,IC)
+
+       SS=0.d0
+       DO I=1,NDIM
+          SS=SS+THU(I)*DU(I)**2
+       ENDDO
+       SS=SS+THL(1)*DU(NDIM+1)**2
+       SC=1.d0/DSQRT(SS)
+
+       DO I=1,NDIM+1
+          DU(I)=SC*DU(I)
+       ENDDO
+    ENDIF
+
     DO I=1,NDIM
        UDOT(I)=DU(I)
     ENDDO
@@ -423,6 +452,7 @@ CONTAINS
 
 ! Set initial approximations to the second point on the branch
 
+    IF(ISW==-1)RETURN
     DO I=1,NDIM
        U(I)=UOLD(I)+RDS*UDOT(I)
     ENDDO
