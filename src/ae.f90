@@ -630,7 +630,7 @@ CONTAINS
     ELSE
        FIXEDMINIMUM='minimum'
     ENDIF
-    WRITE(9,"('I4,I6,A,A,A')")&
+    WRITE(9,"(I4,I6,A,A,A)")&
          IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
     RLCUR(1)=RLOLD(1)
     PAR(ICP(1))=RLCUR(1)
@@ -1254,7 +1254,7 @@ CONTAINS
        CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
        IF(ABS(RDS).LT.DSMIN)EXIT
        IF(IID.GE.2)THEN
-          WRITE(9,"('I4,I6,A')")IBR,NTOP,' NOTE:Retrying step'
+          WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
        ENDIF
     ENDDO
 
@@ -1265,7 +1265,7 @@ CONTAINS
     ELSE
        FIXEDMINIMUM='minimum'
     ENDIF
-    WRITE(9,"('I4,I6,A,A,A')")&
+    WRITE(9,"(I4,I6,A,A,A)")&
          IBR,NTOP,' NOTE:No convergence when switching branches with ',&
          FIXEDMINIMUM,' step size'
     RLCUR(1)=RLOLD(1)
