@@ -229,7 +229,6 @@ CONTAINS
              ELSE
                 ISTOP=-1
                 IAP(34)=ISTOP
-                ! NOTE: Fix (February 2005)
                 GOTO 5
              ENDIF
           ENDIF
@@ -241,6 +240,8 @@ CONTAINS
     IF(ABS(ILP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,NDIM+1,AA,RHS,RLCUR, &
             RLOLD,RLDOT,U,DU,UOLD,UDOT,F,DFDU,DFDP,RLP,THL,THU,IUZ,VUZ,NIT)
+       ISTOP=IAP(34)
+       IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1) THEN
           IF(ILP.GT.0)THEN
@@ -590,6 +591,9 @@ CONTAINS
           RDRLM= ABS(DRLM)/(1.d0+ ABS(RLCUR(1)))
           RDUMX=DUMX/(1.d0+UMX)
           IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
+! Recompute Jacobian for test functions
+             PAR(ICP(1))=RLCUR(1)
+             CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
              CALL PVLSAE(IAP,RAP,U,PAR)
              IF(IID.GE.2)WRITE(9,*)
              RETURN
@@ -620,7 +624,7 @@ CONTAINS
        DO I=1,NDIM
           U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
-       IF(IID.GE.2)WRITE(9,"(I4,I6,' NOTE:Retrying step')")
+       IF(IID.GE.2)WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
     ENDDO
 
 ! Minimum stepsize reached
@@ -801,8 +805,6 @@ CONTAINS
     NTOT=IAP(32)
     NTOP=MOD(NTOT-1,9999)+1
 
-    PAR(ICP(1))=RLCUR(1)
-    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
     DO I=1,NDIM
        AA(I,NDIM+1)=DFDP((ICP(1)-1)*NDIM+I)
        DO K=1,NDIM
@@ -818,7 +820,9 @@ CONTAINS
 
     ALLOCATE(UD(NDIM+1),IR(NDIM+1),IC(NDIM+1))
     CALL GE(0,NDIM+1,M1AA,AA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
-    RAP(14)=DET
+!   don't store DET here: it is for a different matrix than
+!   used with pseudo arclength continuation and sometimes has
+!   a  different sign
     CALL NRMLZ(NDIM+1,UD)
     FNLPAE=UD(NDIM+1)
     DEALLOCATE(UD,IR,IC)
