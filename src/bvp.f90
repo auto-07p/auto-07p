@@ -9,7 +9,7 @@ MODULE BVP
 
   PRIVATE
   PUBLIC :: AUTOBV,STPNUB,STPNBV,STPNBV1,PVLSBV,READBV,SETRTN
-  INTEGER NPARX,NBIFX,NIAP,NRAP
+  INTEGER NPARX,NIAP,NRAP
   INCLUDE 'auto.h'
 
 CONTAINS
@@ -46,7 +46,7 @@ CONTAINS
     use autompi
     use solvebv
     implicit none
-    integer NIAP,NRAP,NPARX,NBIFX
+    integer NIAP,NRAP,NPARX
     include 'auto.h'
 
     integer :: iap(*), icp(*)

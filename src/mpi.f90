@@ -180,7 +180,7 @@ end subroutine mpicon
 
 subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
-  integer NIAP,NRAP,NPARX,NBIFX
+  integer NIAP,NRAP,NPARX
 
   include 'mpif.h'
   include 'auto.h'

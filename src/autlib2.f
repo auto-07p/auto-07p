@@ -188,7 +188,7 @@ C     ---------- ---------
      + IAP,RAP,PAR,ICP,CCBC,DDBC,FC,UPS,IFST)
 C
       IMPLICIT NONE
-      INTEGER NPARX,NBIFX,NIAP,NRAP
+      INTEGER NPARX,NIAP,NRAP
       include 'auto.h'
 C
 C     This subroutine handles a non-parallel part of SETUBV, that is,
@@ -283,7 +283,7 @@ C     ---------- ------
 C
       USE MESH
       IMPLICIT NONE
-      INTEGER NPARX,NBIFX,NIAP,NRAP
+      INTEGER NPARX,NIAP,NRAP
       INCLUDE 'auto.h'
 C
       INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,NDX,IFST,IAM,NT
