@@ -153,7 +153,7 @@ C Generates starting data for the continuation of folds.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),IR(:),IC(:),V(:),F(:)
+      ALLOCATABLE DFU(:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
        NDIM=IAP(1)
@@ -164,18 +164,18 @@ C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READLB(IAP,U,PAR)
 C
-       ALLOCATE(DFU(NDM*NDM),IR(NDM),IC(NDM),V(NDM),F(NDM))
+       ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
        IF(IPS.EQ.-1)THEN
          CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
        ELSE
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
        ENDIF
-       CALL NLVC(NDM,NDM,1,DFU,V,IR,IC)
+       CALL NLVC(NDM,1,DFU,V)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,IR,IC,V,F)
+       DEALLOCATE(DFU,V,F)
        U(NDIM)=PAR(ICP(2))
 C
       RETURN
@@ -320,7 +320,7 @@ C Generates starting data for the continuation of BP.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),A(:,:),IR(:),IC(:),V(:),F(:)
+      ALLOCATABLE DFU(:),DFP(:),A(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1)
 C
        NDIM=IAP(1)
@@ -333,7 +333,7 @@ C
        CALL READLB(IAP,U,PAR)
 C
        ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),A(NDM+1,NDM+1))
-       ALLOCATE(IR(NDM+1),IC(NDM+1),V(NDM+1),F(NDM))
+       ALLOCATE(V(NDM+1),F(NDM))
        IF(IPS.EQ.-1)THEN
          CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
        ELSE
@@ -346,7 +346,7 @@ C
          A(I,NDM+1)=DFP((ICP(1)-1)*NDM+I)
          A(NDM+1,I)=0.d0
        ENDDO
-       CALL NLVC(NDM+1,NDM+1,2,A,V,IR,IC)
+       CALL NLVC(NDM+1,2,A,V)
        DO I=1,NDM
          DO J=1,NDM
            A(I,J)=DFU((I-1)*NDM+J)
@@ -355,12 +355,12 @@ C
          A(NDM+1,I)=DFP((ICP(1)-1)*NDM+I)
        ENDDO
        A(NDM+1,NDM+1)=V(NDM+1)
-       CALL NLVC(NDM+1,NDM+1,1,A,V,IR,IC)
+       CALL NLVC(NDM+1,1,A,V)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,DFP,A,IR,IC,V,F)
+       DEALLOCATE(DFU,DFP,A,V,F)
        U(NDIM-1)=PAR(ICP(2))
        IF(ISW.EQ.3) THEN
 C        ** Generic case
@@ -592,7 +592,7 @@ C optimization of algebraic systems (More than one parameter).
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:),IR(:),IC(:)
+      ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:)
       DIMENSION DP(NPARX),UOLD(1)
 C
        NDIM=IAP(1)
@@ -606,7 +606,7 @@ C
 C
        IF(NFPR.EQ.3)THEN
          ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),F(NDM),V(NDM+1))
-         ALLOCATE(DD(NDM+1,NDM+1),DU(NDM),IR(NDM+1),IC(NDM+1))
+         ALLOCATE(DD(NDM+1,NDM+1),DU(NDM))
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
          CALL FOPI(IAP,RAP,NDM,U,ICP,PAR,2,FOP,DU,DP)
 C       TRANSPOSE
@@ -620,13 +620,13 @@ C       TRANSPOSE
            DD(NDM+1,I)=DFP((ICP(2)-1)*NDM+I)
          ENDDO
          DD(NDM+1,NDM+1)=DP(ICP(2))
-         CALL NLVC(NDM+1,NDM+1,1,DD,V,IR,IC)
+         CALL NLVC(NDM+1,1,DD,V)
          CALL NRMLZ(NDM+1,V)
          DO I=1,NDM+1
            U(NDM+I)=V(I)
          ENDDO
          PAR(ICP(1))=FOP
-         DEALLOCATE(DFU,DFP,F,V,DD,DU,IR,IC)
+         DEALLOCATE(DFU,DFP,F,V,DD,DU)
        ENDIF
 C
        DO I=1,NFPR-1
@@ -846,13 +846,13 @@ C points for maps.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DUMDFP(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),V(NDIM),SMAT(2*NDIM,2*NDIM))
+       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READLB(IAP,U,PAR)
@@ -879,14 +879,13 @@ C
 C
        DO I=1,NDM
          DO J=1,NDM
-           SMAT(I,J)=DFU((J-1)*NDM+I)
-           SMAT(NDM+I,NDM+J)=DFU((J-1)*NDM+I)
+           SMAT(I,J)=DFU(I,J)
+           SMAT(NDM+I,NDM+J)=DFU(I,J)
          ENDDO
          SMAT(I,I)=SMAT(I,I)-C1
          SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
        ENDDO
-       ALLOCATE(IR(2*NDIM),IC(2*NDIM+1))
-       CALL NLVC(NDM2,2*NDIM,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -895,7 +894,7 @@ C
 C
        U(NDIM-1)=THTA
        U(NDIM)=PAR(ICP(2))
-       DEALLOCATE(DFU,SMAT,F,V,IR,IC)
+       DEALLOCATE(DFU,SMAT,F,V)
 C
       RETURN
       END SUBROUTINE STPNHD
@@ -1037,13 +1036,13 @@ C Hopf bifurcation point (ODE).
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DFP(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),V(NDIM),SMAT(2*NDIM,2*NDIM))
+       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READLB(IAP,U,PAR)
@@ -1069,12 +1068,11 @@ C
 C
        DO I=1,NDM
          DO J=1,NDM
-           SMAT(I,J)=ROM*DFU((J-1)*NDM+I)
-           SMAT(NDM+I,NDM+J)=ROM*DFU((J-1)*NDM+I)
+           SMAT(I,J)=ROM*DFU(I,J)
+           SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
          ENDDO
        ENDDO
-       ALLOCATE(IR(2*NDIM),IC(2*NDIM))
-       CALL NLVC(NDM2,2*NDIM,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1084,7 +1082,7 @@ C
        U(NDIM-1)=ROM
        U(NDIM)=PAR(ICP(2))
 C
-       DEALLOCATE(DFU,F,V,SMAT,IR,IC)
+       DEALLOCATE(DFU,F,V,SMAT)
       RETURN
       END SUBROUTINE STPNHB
 C
@@ -1224,13 +1222,13 @@ C traveling wave.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local (Cannot use BLLOC here.)
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),V(:),F(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),V(NDIM),SMAT(2*NDIM,2*NDIM))
+       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READLB(IAP,U,PAR)
@@ -1257,12 +1255,11 @@ C
 C
        DO I=1,NDM
          DO J=1,NDM
-           SMAT(I,J)=ROM*DFU((J-1)*NDM+I)
-           SMAT(NDM+I,NDM+J)=ROM*DFU((J-1)*NDM+I)
+           SMAT(I,J)=ROM*DFU(I,J)
+           SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
          ENDDO
        ENDDO
-       ALLOCATE(IR(2*NDIM),IC(2*NDIM))
-       CALL NLVC(NDM2,2*NDIM,2,SMAT,V,IR,IC)
+       CALL NLVC(NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1272,7 +1269,7 @@ C
        U(NDIM-1)=ROM
        U(NDIM)=PAR(ICP(2))
 C
-       DEALLOCATE(DFU,F,V,SMAT,IR,IC)
+       DEALLOCATE(DFU,F,V,SMAT)
       RETURN
       END SUBROUTINE STPNHW
 C
@@ -1451,7 +1448,7 @@ C
       DIMENSION THL(*),THU(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
       LOGICAL FOUND
@@ -1485,7 +1482,7 @@ C
 
 C from a Hopf bifurcation point:
 
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
+       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
        ALLOCATE(SMAT(2*NDIM,2*NDIM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
@@ -1517,8 +1514,8 @@ C
 C
        DO I=1,NDIM
          DO J=1,NDIM
-           SMAT(I,NDIM+J)=DFU((J-1)*NDIM+I)
-           SMAT(NDIM+I,J)=DFU((J-1)*NDIM+I)
+           SMAT(I,NDIM+J)=DFU(I,J)
+           SMAT(NDIM+I,J)=DFU(I,J)
            IF(IPS/=2)THEN
 C Note that the user period-scaling in FUNC is taken into account:
               SMAT(I,NDIM+J)=SMAT(I,NDIM+J)/PAR(11)
@@ -1527,8 +1524,7 @@ C Note that the user period-scaling in FUNC is taken into account:
          ENDDO
        ENDDO
 C
-       ALLOCATE(IR(NDIM2),IC(NDIM2))
-       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV,IR,IC)
+       CALL NLVC(NDIM2,2,SMAT,RNLLV)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
@@ -1572,7 +1568,7 @@ C
 C
        NODIR=-1
 C
-       DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
+       DEALLOCATE(DFU,F,U,RNLLV,SMAT)
       RETURN
       END SUBROUTINE STPNPS
 C
@@ -1738,7 +1734,7 @@ C
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
       DIMENSION THL(*),THU(*)
 C Local
-      ALLOCATABLE DFU(:),SMAT(:,:),IR(:),IC(:),RNLLV(:),F(:),U(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
 C
       LOGICAL FOUND
@@ -1748,7 +1744,7 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
        NFPR=IAP(29)
-       ALLOCATE(DFU(NDIM*NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
+       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
        ALLOCATE(SMAT(2*NDIM,2*NDIM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
@@ -1781,13 +1777,12 @@ C
 C
        DO I=1,NDIM
          DO J=1,NDIM
-           SMAT(I,NDIM+J)=DFU((J-1)*NDIM+I)
-           SMAT(NDIM+I,J)=DFU((J-1)*NDIM+I)
+           SMAT(I,NDIM+J)=DFU(I,J)
+           SMAT(NDIM+I,J)=DFU(I,J)
          ENDDO
        ENDDO
 C
-       ALLOCATE(IR(NDIM2),IC(NDIM2))
-       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV,IR,IC)
+       CALL NLVC(NDIM2,2,SMAT,RNLLV)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
@@ -1831,7 +1826,7 @@ C
 C
        NODIR=-1
 C
-       DEALLOCATE(DFU,F,U,RNLLV,SMAT,IR,IC)
+       DEALLOCATE(DFU,F,U,RNLLV,SMAT)
       RETURN
       END SUBROUTINE STPNWP
 C

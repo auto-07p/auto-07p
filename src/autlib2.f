@@ -1520,7 +1520,7 @@ C Solve for FCC
       IF(NLLV.EQ.0)THEN
          CALL GE(0,NCR,NCR,E,1,NCR,FCC,NCR,XE,IR,IC,DET)
       ELSEIF(NLLV.GT.0)THEN
-         CALL NLVC(NCR,NCR,NLLV,E,FCC,IR,IC)
+         CALL NLVC(NCR,NLLV,E,FCC)
       ELSE
          DO I=1,NCR-1
             XE(I)=0.D0

@@ -54,7 +54,6 @@ CONTAINS
     external funi,icni,bcni
 
     integer :: ndim, nra, nfc, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
-    integer :: ierr
 
     double precision :: rldot(NPARX)
     double precision, allocatable :: ups(:,:), uoldps(:,:)

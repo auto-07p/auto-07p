@@ -113,67 +113,79 @@ CONTAINS
     DEALLOCATE(WR,WI,Z,FV1,IV1)
   END SUBROUTINE EIG
 
-! ---------- ----
-  SUBROUTINE NLVC(N,M,K,A,U,IR,IC)
+! ---------- ------
+  SUBROUTINE NULLVC(n,k,A,u,ic)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
 
 ! Finds a null-vector of a singular matrix A.
 ! The null space of A is assumed to be K-dimensional.
 !
 ! Parameters :
 !
-!     N : number of equations,
-!     M : first dimension of A from DIMENSION statement,
-!     K : dimension of nullspace,
+!     n : number of equations,
+!     k : dimension of nullspace,
 !     A : N * N matrix of coefficients,
-!     U : on exit U contains the null vector,
-! IR,IC : integer arrays of dimension at least N.
+!     u : on exit U contains the null vector,
+!    ic : integer array of dimension at least N.
 !
 
-    DIMENSION IR(*),IC(*),A(M,*),U(*)
+    INTEGER, INTENT(IN) :: n,k
+    DOUBLE PRECISION, INTENT(INOUT) :: A(n,n)
+    INTEGER, INTENT(OUT) :: ic(n)
+    DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
-    DO I=1,N
-       IC(I)=I
-       IR(I)=I
+    INTEGER i,j,jj,kk,l,ipiv,jpiv
+    DOUBLE PRECISION p,piv,rm,sm,tmp
+
+    DO i=1,n
+       ic(i)=i
     ENDDO
 
 !   Elimination.
 
-    NMK=N-K
-
-    DO JJ=1,NMK
+    DO JJ=1,N-K
        IPIV=JJ
        JPIV=JJ
        PIV=0.d0
-       DO I=JJ,N
-          DO J=JJ,N
-             P=ABS(A(IR(I),IC(J)))
-             IF(P.GT.PIV)THEN
-                PIV=P
-                IPIV=I
-                JPIV=J
+       DO i=jj,n
+          DO j=jj,n
+             p=ABS(A(i,ic(j)))
+             IF(p>piv)THEN
+                piv=p
+                ipiv=i
+                jpiv=j
              ENDIF
           ENDDO
        ENDDO
-       IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
+       IF(piv.LT.RSMALL)THEN
+          WRITE(9,"(8x,A,I3,A,E10.3,A/A)") &
+                       ' NOTE:Pivot ',jj,' < ',RSMALL,' in NLVC : ',&
+               '        A null space may be multi-dimensional'
+       ENDIF
 
-       KK=IR(JJ)
-       IR(JJ)=IR(IPIV)
-       IR(IPIV)=KK
+       IF(jj/=ipiv)THEN
+          DO i=1,n
+             tmp=A(jj,i)
+             A(jj,i)=A(ipiv,i)
+             A(ipiv,i)=tmp
+          ENDDO
+       ENDIF
 
-       KK=IC(JJ)
-       IC(JJ)=IC(JPIV)
-       IC(JPIV)=KK
+       IF(jj/=jpiv)THEN
+          kk=ic(jj)
+          ic(jj)=ic(jpiv)
+          ic(jpiv)=kk
+       ENDIF
 
-       JJP1=JJ+1
-       DO L=JJP1,N
-          RM=A(IR(L),IC(JJ))/A(IR(JJ),IC(JJ))
-          IF(RM.NE.0.d0)THEN
-             DO I=JJP1,N
-                A(IR(L),IC(I))=A(IR(L),IC(I))-RM*A(IR(JJ),IC(I))
+       piv=A(jj,ic(jj))
+       DO l=jj+1,n
+          rm=A(l,ic(jj))/piv
+          IF(rm/=0.d0)THEN
+             DO i=jj+1,n
+                A(l,ic(i))=A(l,ic(i))-rm*A(jj,ic(i))
              ENDDO
           ENDIF
        ENDDO
@@ -181,22 +193,44 @@ CONTAINS
 
 !   Backsubstitution :
 
-    DO I=1,K
-       U(IC(N+1-I))=1.d0
+    DO i=n,n-k+1,-1
+       u(ic(i))=1.d0
     ENDDO
 
-    DO I1=1,NMK
-       I=NMK+1-I1
-       SM=0.d0
-       IP1=I+1
-       DO J=IP1,N
-          SM=SM+A(IR(I),IC(J))*U(IC(J))
+    DO i=n-k,1,-1
+       sm=0.d0
+       DO j=i+1,n
+          sm=sm+A(i,ic(j))*u(ic(j))
        ENDDO
-       U(IC(I))=-SM/A(IR(I),IC(I))
+       u(ic(i))=-sm/A(i,ic(i))
     ENDDO
 
-101 FORMAT(8x,' NOTE:Pivot ',I3,' < ',E10.3,' in NLVC : ', &
-         /,'        A null space may be multi-dimensional')
+  END SUBROUTINE NULLVC
+
+! ---------- ----
+  SUBROUTINE NLVC(n,k,A,U)
+
+    IMPLICIT NONE
+
+! Finds a null-vector of a singular matrix A.
+! The null space of A is assumed to be k-dimensional.
+!
+! Parameters :
+!
+!     N : number of equations,
+!     K : dimension of nullspace,
+!     A : N * N matrix of coefficients,
+!     U : on exit U contains the null vector,
+!
+    INTEGER, INTENT(IN) :: n,k
+    DOUBLE PRECISION, INTENT(INOUT) :: A(n,n)
+    DOUBLE PRECISION, INTENT(OUT) :: U(n)
+
+    INTEGER, ALLOCATABLE :: ic(:)
+
+    ALLOCATE(ic(n))
+    CALL NULLVC(n,k,A,U,ic)
+    DEALLOCATE(ic)
 
   END SUBROUTINE NLVC
 
