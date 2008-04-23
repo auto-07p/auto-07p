@@ -513,7 +513,7 @@ CONTAINS
     DIMENSION AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*) 
     DIMENSION THL(*),THU(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 ! Local
-    ALLOCATABLE IR(:),IC(:),RHS(:),DU(:),F(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE RHS(:),DU(:),F(:),DFDU(:,:),DFDP(:,:)
     CHARACTER (LEN=7) FIXEDMINIMUM
 
     NDIM=IAP(1)
@@ -580,10 +580,7 @@ CONTAINS
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
           IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
-          ALLOCATE(IR(NDIM+1),IC(NDIM+1))
-          CALL GE(0,NDIM+1,NDIM+1,AA,1,NDIM+1,DU,NDIM+1, &
-               RHS,IR,IC,DET)
-          DEALLOCATE(IR,IC)
+          CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
           DRLM=DU(NDIM+1)
 
@@ -817,7 +814,7 @@ CONTAINS
 
     DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,IAP(1)+1)
 ! Local
-    ALLOCATABLE UD(:),IR(:),IC(:),AAA(:,:),RHS(:)
+    ALLOCATABLE UD(:),AAA(:,:),RHS(:)
 
     LOGICAL CHNG
 
@@ -832,14 +829,14 @@ CONTAINS
     RHS(1:NDIM)=0.d0
     RHS(NDIM+1)=1.d0
 
-    ALLOCATE(UD(NDIM+1),IR(NDIM+1),IC(NDIM+1))
-    CALL GE(0,NDIM+1,NDIM+1,AAA,1,NDIM+1,UD,NDIM+1,RHS,IR,IC,DET)
+    ALLOCATE(UD(NDIM+1))
+    CALL GEL(NDIM+1,AAA,1,UD,RHS,DET)
 !   don't store DET here: it is for a different matrix than
 !   used with pseudo arclength continuation and sometimes has
 !   a  different sign
     CALL NRMLZ(NDIM+1,UD)
     FNLPAE=UD(NDIM+1)
-    DEALLOCATE(UD,IR,IC,AAA,RHS)
+    DEALLOCATE(UD,AAA,RHS)
     RAP(16)=FNLPAE
     CHNG=.TRUE.
 
@@ -1125,7 +1122,7 @@ CONTAINS
     DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),RAP(*),THL(*),THU(*)
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
 ! Local
-    ALLOCATABLE IR(:),IC(:),U1(:),AA(:,:),RHS(:),DU(:)
+    ALLOCATABLE U1(:),AA(:,:),RHS(:),DU(:)
     ALLOCATABLE F(:),DFDU(:,:),DFDP(:,:)
     CHARACTER (LEN=*), PARAMETER :: O9 = & 
      "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
@@ -1146,7 +1143,7 @@ CONTAINS
 
 ! Initialize and provide initial guess :
 
-    ALLOCATE(IR(NDIM+1),IC(NDIM+1),U1(NDIM+1),AA(NDIM+1,NDIM+1),RHS(NDIM+1),&
+    ALLOCATE(U1(NDIM+1),AA(NDIM+1,NDIM+1),RHS(NDIM+1),&
          DU(NDIM+1),F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
     RLOLD(1)=RLCUR(1)
     DO I=1,NDIM
@@ -1200,7 +1197,7 @@ CONTAINS
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
           IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
-          CALL GE(0,NDIM+1,NDIM+1,AA,1,NDIM+1,DU,NDIM+1,RHS,IR,IC,DET)
+          CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
           DRLM=DU(NDIM+1)
 
@@ -1228,7 +1225,7 @@ CONTAINS
           RDRLM=ABS(DRLM)/(1.d0+ABS(RLCUR(1)))
           RDUMX=DUMX/(1.d0+UMX)
           IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
-             DEALLOCATE(IR,IC,U1,AA,RHS,DU,F,DFDU,DFDP)
+             DEALLOCATE(U1,AA,RHS,DU,F,DFDU,DFDP)
              RETURN
           ENDIF
        ENDDO
@@ -1263,7 +1260,7 @@ CONTAINS
     ISTOP=1
     IAP(34)=ISTOP
 
-    DEALLOCATE(IR,IC,U1,AA,RHS,DU,F,DFDU,DFDP)
+    DEALLOCATE(U1,AA,RHS,DU,F,DFDU,DFDP)
 
   END SUBROUTINE SWPRC
   

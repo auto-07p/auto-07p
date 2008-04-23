@@ -1905,7 +1905,7 @@ C Local
       DOUBLE PRECISION UDUM(1),DDUM(1)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
-      ALLOCATABLE IR(:),IC(:),TYPE(:)
+      ALLOCATABLE TYPE(:)
 C
       SAVE CPREV,IFLAG
 C
@@ -1968,7 +1968,7 @@ C Set previous matrix to be the present one if this is the first call
       ENDIF
 C     
 C Calculate the (transpose of the) BEYN matrix D and hence BOUND 
-      ALLOCATE(D(NDM,NDM),DUM1(NDM,NDM),DUM2(NDM,NDM))
+      ALLOCATE(D(MCOND,MCOND),DUM1(MCOND,MCOND),DUM2(MCOND,MCOND))
       DO I=1,MCOND
         DO J=1,MCOND
           DUM1(I,J)=0.0D0
@@ -1983,9 +1983,7 @@ C Calculate the (transpose of the) BEYN matrix D and hence BOUND
       ENDDO
 C     
       IF(MCOND.GT.0)THEN
-        ALLOCATE(IR(NDM),IC(NDM))
-        CALL GE(0,MCOND,NDM,DUM1,MCOND,NDM,D,NDM,DUM2,IR,IC,DET)
-        DEALLOCATE(IR,IC)
+        CALL GEL(MCOND,DUM1,MCOND,D,DUM2,DET)
       ENDIF
 C     
       DO I=1,MCOND

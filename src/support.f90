@@ -8,7 +8,7 @@
 MODULE SUPPORT
 
 PRIVATE
-PUBLIC :: MUELLER, EIG, PI, GESC, GELI, NLVC, NRMLZ, RNRMV, AUTIM0, AUTIM1
+PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV, AUTIM0, AUTIM1
 PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
@@ -281,11 +281,11 @@ CONTAINS
   END FUNCTION PI
 
 ! ---------- ----
-  SUBROUTINE GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
+  SUBROUTINE GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
 
 ! Solves the linear system  A U = F by Gauss elimination
 ! with complete pivoting. Optionally returns a scaled determinant.
@@ -305,8 +305,14 @@ CONTAINS
 !
 ! The input matrix A is overwritten.
 
-    DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-    LOGICAL SCALE
+    INTEGER, INTENT(IN) :: N,M1A,NRHS,NDX,M1F
+    DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,N),F(M1F,NRHS)
+    DOUBLE PRECISION, INTENT(OUT) :: U(NDX,NRHS),DET
+    INTEGER, INTENT(OUT) :: IR(N),IC(N)
+    LOGICAL, INTENT(IN) :: SCALE
+
+    INTEGER I,J,K,L,JJ,IRH,IPIV,JPIV
+    DOUBLE PRECISION P,PIV,AP,RM,SM
 
     DO I=1,N
        IC(I)=I
@@ -316,9 +322,8 @@ CONTAINS
 !   Elimination.
 
     DET=1.d0
-    NM1=N-1
 
-    DO JJ=1,NM1
+    DO JJ=1,N-1
        IPIV=JJ
        JPIV=JJ
        PIV=0.d0
@@ -342,8 +347,8 @@ CONTAINS
        IF(IPIV.NE.JJ)DET=-DET
        IF(JPIV.NE.JJ)DET=-DET
 
-       IF(PIV.LT.RSMALL)WRITE(9,101)JJ,RSMALL
-
+       IF(PIV.LT.RSMALL)WRITE(9,"(8x,A,I3,A,D10.3,A)")&
+            ' NOTE:Pivot ',JJ,' < ',RSMALL,' in GE'
        K=IR(JJ)
        IR(JJ)=IR(IPIV)
        IR(IPIV)=K
@@ -352,18 +357,15 @@ CONTAINS
        IC(JJ)=IC(JPIV)
        IC(JPIV)=K
 
-       JJP1=JJ+1
-       DO L=JJP1,N
+       DO L=JJ+1,N
           RM=A(IR(L),IC(JJ))/A(IR(JJ),IC(JJ))
           IF(RM.NE.0.d0)THEN
-             DO I=JJP1,N
+             DO I=JJ+1,N
                 A(IR(L),IC(I))=A(IR(L),IC(I))-RM*A(IR(JJ),IC(I))
              ENDDO
-             IF(NRHS.NE.0)THEN
-                DO IRH=1,NRHS
-                   F(IR(L),IRH)=F(IR(L),IRH)-RM*F(IR(JJ),IRH)
-                ENDDO
-             ENDIF
+             DO IRH=1,NRHS
+                F(IR(L),IRH)=F(IR(L),IRH)-RM*F(IR(JJ),IRH)
+             ENDDO
           ENDIF
        ENDDO
     ENDDO
@@ -374,32 +376,43 @@ CONTAINS
        DET=DET*AP
     ENDIF
 
-    IF(NRHS.EQ.0)RETURN
-
 !   Backsubstitution :
 
     DO IRH=1,NRHS
        U(IC(N),IRH)=F(IR(N),IRH)/A(IR(N),IC(N))
-       DO I1=1,NM1
-          I=N-I1
+       DO I=N-1,1,-1
           SM=0.d0
-          IP1=I+1
-          DO J=IP1,N
+          DO J=I+1,N
              SM=SM+A(IR(I),IC(J))*U(IC(J),IRH)
           ENDDO
           U(IC(I),IRH)=(F(IR(I),IRH)-SM)/A(IR(I),IC(I))
        ENDDO
     ENDDO
 
-101 FORMAT(8x,' NOTE:Pivot ',I3,' < ',D10.3,' in GE')
-
   END SUBROUTINE GELI
 
+! ---------- ---
+  SUBROUTINE GEL(N,A,NRHS,U,F,DET)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N,NRHS
+    DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
+    DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
+    INTEGER, ALLOCATABLE :: IR(:),IC(:)
+    ALLOCATE(IR(N),IC(N))
+    CALL GELI(N,N,A,NRHS,N,U,N,F,IR,IC,DET,.FALSE.)
+    DEALLOCATE(IR,IC)
+  END SUBROUTINE GEL
+
 ! ---------- ----
-  SUBROUTINE GESC(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-    CALL GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.TRUE.)
+  SUBROUTINE GESC(N,A,NRHS,U,F,DET)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N,NRHS
+    DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
+    DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
+    INTEGER, ALLOCATABLE :: IR(:),IC(:)
+    ALLOCATE(IR(N),IC(N))
+    CALL GELI(N,N,A,NRHS,N,U,N,F,IR,IC,DET,.TRUE.)
+    DEALLOCATE(IR,IC)
   END SUBROUTINE GESC
 
 !-----------------------------------------------------------------------
@@ -448,7 +461,7 @@ END MODULE SUPPORT
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
     DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
-    CALL GELI(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.FALSE.)
+    CALL GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.FALSE.)
   END SUBROUTINE GE
 
 ! ------ --------- -------- ----
