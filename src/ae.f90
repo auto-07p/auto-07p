@@ -32,12 +32,13 @@ CONTAINS
           RETURN
        ENDIF
     ENDIF
-    CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
+    THU(IAP(1)+1)=THL(1)
+    CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOAE
 
 ! ---------- ------
-  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
+  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THU,IUZ,VUZ)
 
     USE IO
     USE MESH
@@ -48,11 +49,9 @@ CONTAINS
 
     EXTERNAL FUNI,STPNT
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),VUZ(*),THL(*),THU(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),VUZ(*),THU(*)
 ! Local
-    DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX)
-    ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:)
-    ALLOCATABLE STU(:,:),STLA(:),STLD(:),UZR(:)
+    ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS
 
     NDIM=IAP(1)
@@ -70,9 +69,8 @@ CONTAINS
 
     DS=RAP(1)
 
-    ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM),UDOT(NDIM),UOLD(NDIM))
-    ALLOCATE(STUD(NBIFS,NDIM),STU(NBIFS,NDIM),STLA(NBIFS),STLD(NBIFS))
-    ALLOCATE(UZR(NUZR),EVV(NDIM))
+    ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1),UOLD(NDIM+1))
+    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR),EVV(NDIM))
 
     NINS=0
     IAP(33)=NINS
@@ -125,15 +123,14 @@ CONTAINS
        ITP=0
     ENDIF
     IAP(27)=ITP
-    RLCUR(1)=PAR(ICP(1))
-    CALL STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
+    U(NDIM+1)=PAR(ICP(1))
+    CALL STPLAE(IAP,RAP,PAR,ICP,U)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Starting procedure  (to get second point on first branch) :
 
-    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS, &
-         RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
     ITP=0
@@ -143,8 +140,7 @@ CONTAINS
 
 ! Initialize computation of the next bifurcating branch.
 
- 2  CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,STLA,STLD,RLCUR,RLDOT,&
-         U,UDOT,IPOS)
+ 2  CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
     IF(IPOS)THEN
        NBIF=NBIF-1
@@ -174,20 +170,19 @@ CONTAINS
 
 ! Store plotting data for first point on the bifurcating branch
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
+    CALL STPLAE(IAP,RAP,PAR,ICP,U)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Determine the second point on the bifurcating branch
 
-22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
-         U,UOLD,UDOT,RDS,THL,THU,NIT)
+22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
 
 ! Store plotting data for second point :
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
+    CALL STPLAE(IAP,RAP,PAR,ICP,U)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 6
     RBP=0.d0
@@ -196,12 +191,11 @@ CONTAINS
 
 ! Provide initial approximation to the next point on the branch
 
-3   CALL CONTAE(IAP,RAP,RDS,RLCUR,RLOLD,RLDOT,U,UOLD,UDOT)
+3   CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
 
 ! Find the next solution point on the branch
 
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA, &
-         RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)GOTO 5
 
@@ -210,8 +204,8 @@ CONTAINS
     IF(NUZR.GT.0)THEN
        DO IUZR=1,NUZR
           IAP(26)=IUZR
-          CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,RLCUR, &
-               RLOLD,RLDOT,U,UOLD,UDOT,UZR(IUZR),THL,THU,IUZ,VUZ,NIT)
+          CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
+               U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT)
           ISTOP=IAP(34)
           IF(ISTOP.EQ.1)GOTO 5
           ITP=IAP(27)
@@ -234,8 +228,8 @@ CONTAINS
 ! Check for fold
 
     IF(ABS(ILP).GT.0)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,RLCUR, &
-            RLOLD,RLDOT,U,UOLD,UDOT,RLP,THL,THU,IUZ,VUZ,NIT)
+       CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
+            U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
@@ -258,8 +252,8 @@ CONTAINS
 ! Check for branch point, and if so store data :
 !
     IF(ABS(ISP).GT.0)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA,RLCUR, &
-            RLOLD,RLDOT,U,UOLD,UDOT,RBP,THL,THU,IUZ,VUZ,NIT)
+       CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
+            U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
@@ -267,7 +261,7 @@ CONTAINS
           IF(ISP.GT.0)THEN
              ITP=1+10*ITPST
              IAP(27)=ITP
-             CALL STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,STLA,STLD,RLCUR,U,THL,THU)
+             CALL STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,U,THU)
              RLP=0.d0
              RBP=0.d0
              REV=0.d0
@@ -283,8 +277,8 @@ CONTAINS
 ! Check for Hopf bifurcation
 
     IF(ABS(IPS).EQ.1)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA,RLCUR, &
-            RLOLD,RLDOT,U,UOLD,UDOT,REV,THL,THU,IUZ,VUZ,NIT)
+       CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
+            U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT)
        ISTOP=IAP(34)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
@@ -297,7 +291,7 @@ CONTAINS
 
 ! Store plotting data on unit 7 :
 
-5   CALL STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
+5   CALL STPLAE(IAP,RAP,PAR,ICP,U)
 
 ! Adapt the stepsize along the branch
 
@@ -318,7 +312,7 @@ CONTAINS
 
     IF(NBIF.NE.0 .AND. NBFC.LT.ABS(MXBF))GOTO 2
 
-    DEALLOCATE(EVV,AA,U,UDOT,UOLD,STUD,STU,STLA,STLD,UZR)
+    DEALLOCATE(EVV,AA,U,UDOT,UOLD,STUD,STU,UZR)
   END SUBROUTINE CNRLAE
 
 ! ---------- ------
@@ -356,8 +350,7 @@ CONTAINS
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS, &
-     RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -366,9 +359,7 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(*)
-    DIMENSION THL(*),THU(*),PAR(*),ICP(*)
-    DOUBLE PRECISION, INTENT(OUT) :: RLCUR(*),RLOLD(*),RLDOT(*)
+    DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*),ICP(*)
 
 ! Local
     ALLOCATABLE AA(:,:),RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
@@ -380,7 +371,7 @@ CONTAINS
     ALLOCATE(AA(NDIM+1,NDIM+1),RHS(NDIM+1),DU(NDIM+1), &
          DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
 
-    RLOLD(1)=PAR(ICP(1))
+    UOLD(NDIM+1)=PAR(ICP(1))
     DO I=1,NDIM
        UOLD(I)=U(I)
     ENDDO
@@ -404,10 +395,9 @@ CONTAINS
 ! Scale and make sure that the PAR(ICP(1))-dot is positive.
 
     SS=0.d0
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        SS=SS+THU(I)*DU(I)**2
     ENDDO
-    SS=SS+THL(1)*DU(NDIM+1)**2
 
     SIGN=1.d0
     IF(DU(NDIM+1).LT.0.d0)SIGN=-1.d0
@@ -429,10 +419,9 @@ CONTAINS
        CALL NLVC(NDIM+1,1,AA,DU)
 
        SS=0.d0
-       DO I=1,NDIM
+       DO I=1,NDIM+1
           SS=SS+THU(I)*DU(I)**2
        ENDDO
-       SS=SS+THL(1)*DU(NDIM+1)**2
        SC=1.d0/DSQRT(SS)
 
        DO I=1,NDIM+1
@@ -440,28 +429,25 @@ CONTAINS
        ENDDO
     ENDIF
 
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        UDOT(I)=DU(I)
     ENDDO
-    RLDOT(1)=DU(NDIM+1)
 
 ! Set initial approximations to the second point on the branch
 
     IF(ISW==-1)RETURN
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        U(I)=UOLD(I)+RDS*UDOT(I)
     ENDDO
-    RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
 
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA, &
-         RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
 
     DEALLOCATE(AA,RHS,DU,DFDU,DFDP)
 
   END SUBROUTINE STPRAE
 
 ! ---------- ------
-  SUBROUTINE CONTAE(IAP,RAP,RDS,RLCUR,RLOLD,RLDOT,U,UOLD,UDOT)
+  SUBROUTINE CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -470,32 +456,27 @@ CONTAINS
 ! The step used in the preceding step has been stored in DSOLD.
 
     DIMENSION IAP(*),RAP(*),UOLD(*),U(*),UDOT(*)
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(*)
 
     NDIM=IAP(1)
     IPS=IAP(2)
 
     DSOLD=RAP(5)
 
-    RLDOT(1)=(RLCUR(1)-RLOLD(1))/DSOLD
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        UDOT(I)=(U(I)-UOLD(I))/DSOLD
     ENDDO
 
-    RLOLD(1)=RLCUR(1)
-    RLCUR(1)=RLCUR(1)+RDS*RLDOT(1)
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        UOLD(I)=U(I)
        U(I)=U(I)+UDOT(I)*RDS
     ENDDO
 !      Save old time for time integration
-    IF(IPS.EQ.-2)RAP(15)=RLOLD(1)
+    IF(IPS.EQ.-2)RAP(15)=UOLD(NDIM+1)
 
   END SUBROUTINE CONTAE
 
 ! ---------- ------
-  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA, &
-       RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
 
     USE IO
     USE MESH
@@ -510,8 +491,7 @@ CONTAINS
     EXTERNAL FUNI
 
     DIMENSION IAP(*),RAP(*)
-    DIMENSION AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*) 
-    DIMENSION THL(*),THU(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DIMENSION AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*),ICP(*)
 ! Local
     ALLOCATABLE RHS(:),DU(:),F(:),DFDU(:,:),DFDP(:,:)
     CHARACTER (LEN=7) FIXEDMINIMUM
@@ -534,7 +514,6 @@ CONTAINS
     DO
        DSOLD=RDS
        RAP(5)=DSOLD
-       DDS=1.d0/RDS
        NIT=0
        NTOT=IAP(32)
        NTOP=MOD(NTOT-1,9999)+1
@@ -543,7 +522,7 @@ CONTAINS
              CALL WRBAR("=",47)
              WRITE(9,100)
           ENDIF
-          WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
+          WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
        ENDIF
 100    FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
 101    FORMAT(I4,I6,I4,5X,2ES14.5)
@@ -555,7 +534,7 @@ CONTAINS
        DO NIT1=1,ITNW
 
           NIT=NIT1
-          PAR(ICP(1))=RLCUR(1)
+          PAR(ICP(1))=U(NDIM+1)
           CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
 ! Set up the Jacobian matrix and the right hand side :
@@ -567,29 +546,24 @@ CONTAINS
                 AA(I,K)=DFDU(I,K)
              ENDDO
           ENDDO
-          DO K=1,NDIM
-             AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))*DDS
-          ENDDO
-          AA(NDIM+1,NDIM+1)=2.d0*THL(1)*(RLCUR(1)-RLOLD(1))*DDS
           SS=0.d0
-          DO I=1,NDIM
-             SS=SS+THU(I)*(U(I)-UOLD(I))**2
+          DO K=1,NDIM+1
+             AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))/RDS
+             SS=SS+THU(K)*(U(K)-UOLD(K))**2
           ENDDO
-          RHS(NDIM+1)=RDS-DDS*SS-THL(1)*DDS*(RLCUR(1)-RLOLD(1))**2
+          RHS(NDIM+1)=RDS-SS/RDS
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
           IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
           CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
-          DRLM=DU(NDIM+1)
 
 ! Add the Newton increments :
 
-          DO I=1,NDIM
+          DO I=1,NDIM+1
              U(I)=U(I)+DU(I)
           ENDDO
-          RLCUR(1)=RLCUR(1)+DRLM
           DUMX=0.d0
           UMX=0.d0
           DO I=1,NDIM
@@ -600,14 +574,14 @@ CONTAINS
           ENDDO
 
           IF(IID.GE.2)THEN
-             WRITE(9,101)IBR,NTOP+1,NIT,RLCUR(1),RNRMV(NDM,U)
+             WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
           ENDIF
 
-          RDRLM= ABS(DRLM)/(1.d0+ ABS(RLCUR(1)))
+          RDRLM= ABS(DU(NDIM+1))/(1.d0+ ABS(U(NDIM+1)))
           RDUMX=DUMX/(1.d0+UMX)
           IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
 ! Recompute Jacobian for test functions
-             PAR(ICP(1))=RLCUR(1)
+             PAR(ICP(1))=U(NDIM+1)
              CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
              DO I=1,NDIM
                 AA(I,NDIM+1)=DFDP(I,ICP(1))
@@ -615,10 +589,9 @@ CONTAINS
                    AA(I,K)=DFDU(I,K)
                 ENDDO
              ENDDO
-             DO K=1,NDIM
+             DO K=1,NDIM+1
                 AA(NDIM+1,K)=UDOT(K)
              ENDDO
-             AA(NDIM+1,NDIM+1)=RLDOT(1)
              CALL PVLSAE(IAP,RAP,U,PAR)
              IF(IID.GE.2)WRITE(9,*)
              DEALLOCATE(RHS,DU,F,DFDU,DFDP)
@@ -628,10 +601,9 @@ CONTAINS
 ! Check whether relative error has reached user-supplied tolerance :
 
           IF(NIT.EQ.1)THEN
-             DELREF=20*DMAX1(RDRLM,RDUMX)
+             DELREF=20*MAX(RDRLM,RDUMX)
           ELSE
-             DELMAX=DMAX1(RDRLM,RDUMX)
-             IF(DELMAX.GT.DELREF)EXIT
+             IF(MAX(RDRLM,RDUMX).GT.DELREF)EXIT
           ENDIF
 
        ENDDO
@@ -646,8 +618,7 @@ CONTAINS
        NIT=ITNW
        CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
        IF(ABS(RDS).LT.DSMIN)EXIT
-       RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
-       DO I=1,NDIM
+       DO I=1,NDIM+1
           U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
        IF(IID.GE.2)WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
@@ -662,11 +633,10 @@ CONTAINS
     ENDIF
     WRITE(9,"(I4,I6,A,A,A)")&
          IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
-    RLCUR(1)=RLOLD(1)
-    PAR(ICP(1))=RLCUR(1)
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        U(I)=UOLD(I)
     ENDDO
+    PAR(ICP(1))=U(NDIM+1)
     ISTOP=1
     IAP(34)=ISTOP
     DEALLOCATE(RHS,DU,F,DFDU,DFDP)
@@ -679,8 +649,8 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(IAP,RAP,PAR,ICP,FNCS,FUNI,AA,RLCUR, &
-       RLOLD,RLDOT,U,UOLD,UDOT,Q,THL,THU,IUZ,VUZ,NIT)
+  SUBROUTINE LCSPAE(IAP,RAP,PAR,ICP,FNCS,FUNI,AA, &
+       U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -698,8 +668,7 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),RLCUR(*),RLOLD(*),RLDOT(*),PAR(*),ICP(*)
-    DIMENSION THL(*),THU(*),IUZ(*),VUZ(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),THU(*),IUZ(*),VUZ(*)
     DIMENSION AA(IAP(1)+1,*),U(*),UDOT(*),UOLD(*)
 
     LOGICAL CHNG
@@ -751,9 +720,8 @@ CONTAINS
        WRITE(9,101)ITLCSP,RDS
     ENDIF
 
-    CALL CONTAE(IAP,RAP,RDS,RLCUR,RLOLD,RLDOT,U,UOLD,UDOT)
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA, &
-         RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,THL,THU,NIT)
+    CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
     ISTOP=IAP(34)
     IF(ISTOP.EQ.1)THEN
        Q=0.d0
@@ -1003,22 +971,20 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- -----
-  SUBROUTINE STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,STLA,STLD,RLCUR,U,THL,THU)
+  SUBROUTINE STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,U,THU)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Stores branching data in the following arrays :
-!        STU    ( the solution vector U )
-!        STUD   ( U-dot )
-!        STLA   ( PAR(ICP(1)) )
-!        STLD  ( PAR(ICP(1))-dot )
-! Here the vector ( PAR(ICP(1))-dot , U-dot ) lies in the 2-d nullspace
+!        STU    ( the solution vector U | PAR(ICP(1)) )
+!        STUD   ( U-dot | PAR(ICP(1))-dot )
+! Here the vector ( U-dot, PAR(ICP(1))-dot ) lies in the 2-d nullspace
 ! at branch point and is perpendicular to the direction vector of
 ! known branch at this point.
 
     DIMENSION IAP(*),AA(IAP(1)+1,*),U(*)
-    DIMENSION STUD(NBIFS,*),STU(NBIFS,*),STLA(*),STLD(*),RLCUR(*),THL(*),THU(*)
+    DIMENSION STUD(NBIFS,*),STU(NBIFS,*),THU(*)
     ALLOCATABLE DU(:)
 
     NDIM=IAP(1)
@@ -1035,29 +1001,25 @@ CONTAINS
     CALL NLVC(NDIM+1,1,AA,DU)
 
     SS=0.d0
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        SS=SS+THU(I)*DU(I)**2
     ENDDO
-    SS=SS+THL(1)*DU(NDIM+1)**2
     SC=1.d0/DSQRT(SS)
 
     DO I=1,NDIM+1
        DU(I)=SC*DU(I)
     ENDDO
 
-    STLD(NBIF)=DU(NDIM+1)
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        STU(NBIF,I)=U(I)
        STUD(NBIF,I)=DU(I)
     ENDDO
-    STLA(NBIF)=RLCUR(1)
     DEALLOCATE(DU)
 
   END SUBROUTINE STBIF
 
 ! ---------- -----
-  SUBROUTINE SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,STLA,STLD, &
-       RLCUR,RLDOT,U,UDOT,IPOS)
+  SUBROUTINE SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -1066,9 +1028,8 @@ CONTAINS
 ! of the bifurcating branch in opposite direction, then only the sign of
 !  the stepsize ( DS ) along the branch is reversed.
 
-    DIMENSION IAP(*),RAP(*)
-    DIMENSION U(*),UDOT(*),STUD(NBIFS,*),STU(NBIFS,*),STLA(*),STLD(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*)
+    DIMENSION IAP(*),RAP(*),U(*),UDOT(*),STUD(NBIFS,*),STU(NBIFS,*)
+    DIMENSION PAR(*),ICP(*)
     LOGICAL IPOS
 
     NDIM=IAP(1)
@@ -1079,13 +1040,11 @@ CONTAINS
 
     RDS=DS
     IF(.NOT.IPOS)RDS=-DS
-    RLCUR(1)=STLA(1)
-    PAR(ICP(1))=RLCUR(1)
-    RLDOT(1)=STLD(1)
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        U(I)=STU(1,I)
        UDOT(I)=STUD(1,I)
     ENDDO
+    PAR(ICP(1))=U(NDIM+1)
     IF(ABS(ISW).EQ.2)PAR(ICP(2))=U(NDIM)
 
     IF(MXBF.GE.0)THEN
@@ -1094,9 +1053,7 @@ CONTAINS
     IF(.NOT.IPOS)RETURN
 
     DO I=1,NBIF
-       STLA(I)=STLA(I+1)
-       STLD(I)=STLD(I+1)
-       DO I1=1,NDIM
+       DO I1=1,NDIM+1
           STU(I,I1)=STU(I+1,I1)
           STUD(I,I1)=STUD(I+1,I1)
        ENDDO
@@ -1105,8 +1062,7 @@ CONTAINS
   END SUBROUTINE SWPNT
 
 ! ---------- -----
-  SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,&
-       RLCUR,RLOLD,RLDOT,U,UOLD,UDOT,RDS,THL,THU,NIT)
+  SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT)
 
     USE MESH
     USE SUPPORT
@@ -1119,11 +1075,9 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),RAP(*),THL(*),THU(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),RAP(*),THU(*),PAR(*),ICP(*)
 ! Local
-    ALLOCATABLE U1(:),AA(:,:),RHS(:),DU(:)
-    ALLOCATABLE F(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE U1(:),AA(:,:),RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
     CHARACTER (LEN=*), PARAMETER :: O9 = & 
      "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
         &ES11.3,1X,'U=',7ES11.3)"
@@ -1144,15 +1098,13 @@ CONTAINS
 ! Initialize and provide initial guess :
 
     ALLOCATE(U1(NDIM+1),AA(NDIM+1,NDIM+1),RHS(NDIM+1),&
-         DU(NDIM+1),F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
-    RLOLD(1)=RLCUR(1)
-    DO I=1,NDIM
+         DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
+    DO I=1,NDIM+1
        UOLD(I)=U(I)
     ENDDO
 
     DO
-       RLCUR(1)=RLOLD(1)+RDS*RLDOT(1)
-       DO I=1,NDIM
+       DO I=1,NDIM+1
           U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
 
@@ -1162,51 +1114,43 @@ CONTAINS
 
 ! Write additional output on unit 9 if requested :
 
-       NDMR=NDIM
-       IF(NDMR.GT.6)NDMR=6
        IF(IID.GE.2)WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
-            RLCUR(1),(U(I),I=1,NDMR)
+            U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
 
-       RLM1=RLCUR(1)
-       DO I=1,NDIM
+       DO I=1,NDIM+1
           U1(I)=U(I)
        ENDDO
 
        DO NIT1=1,ITNW
 
           NIT=NIT1
-          PAR(ICP(1))=RLCUR(1)
-          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+          PAR(ICP(1))=U(NDIM+1)
+          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
           DO I=1,NDIM
              AA(I,NDIM+1)=DFDP(I,ICP(1))
-             RHS(I)=-F(I)
+             RHS(I)=-RHS(I)
              DO K=1,NDIM
                 AA(I,K)=DFDU(I,K)
              ENDDO
           ENDDO
-          DO K=1,NDIM
-             AA(NDIM+1,K)=THU(K)*UDOT(K)
-          ENDDO
-          AA(NDIM+1,NDIM+1)=THL(1)*RLDOT(1)
           SS=0.d0
-          DO I=1,NDIM
-             SS=SS+THU(I)*(U(I)-U1(I))*UDOT(I)
+          DO K=1,NDIM+1
+             AA(NDIM+1,K)=THU(K)*UDOT(K)
+             SS=SS+THU(K)*(U(K)-U1(K))*UDOT(K)
           ENDDO
-          RHS(NDIM+1)=-SS-THL(1)*(RLCUR(1)-RLM1)*RLDOT(1)
+          RHS(NDIM+1)=-SS
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
           IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
           CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
-          DRLM=DU(NDIM+1)
 
 ! Add the Newton increments :
 
-          DO I=1,NDIM
+          DO I=1,NDIM+1
              U(I)=U(I)+DU(I)
           ENDDO
-          RLCUR(1)=RLCUR(1)+DRLM
           DUMX=0.d0
           UMX=0.d0
           DO I=1,NDIM
@@ -1217,15 +1161,15 @@ CONTAINS
           ENDDO
 
           IF(IID.GE.2)THEN
-             WRITE(9,O9)IBR,NTOP,NIT,ICP(1),RLCUR(1),(U(I),I=1,NDMR)
+             WRITE(9,O9)IBR,NTOP,NIT,ICP(1),U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
           ENDIF
 
 ! Check whether relative error has reached user-supplied tolerance :
 
-          RDRLM=ABS(DRLM)/(1.d0+ABS(RLCUR(1)))
+          RDRLM=ABS(DU(NDIM+1))/(1.d0+ABS(U(NDIM+1)))
           RDUMX=DUMX/(1.d0+UMX)
           IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
-             DEALLOCATE(U1,AA,RHS,DU,F,DFDU,DFDP)
+             DEALLOCATE(U1,AA,RHS,DU,DFDU,DFDP)
              RETURN
           ENDIF
        ENDDO
@@ -1252,20 +1196,19 @@ CONTAINS
     WRITE(9,"(I4,I6,A,A,A)")&
          IBR,NTOP,' NOTE:No convergence when switching branches with ',&
          FIXEDMINIMUM,' step size'
-    RLCUR(1)=RLOLD(1)
-    PAR(ICP(1))=RLCUR(1)
-    DO I=1,NDIM
+    DO I=1,NDIM+1
        U(I)=UOLD(I)
     ENDDO
+    PAR(ICP(1))=U(NDIM+1)
     ISTOP=1
     IAP(34)=ISTOP
 
-    DEALLOCATE(U1,AA,RHS,DU,F,DFDU,DFDP)
+    DEALLOCATE(U1,AA,RHS,DU,DFDU,DFDP)
 
   END SUBROUTINE SWPRC
   
 ! ---------- ------
-  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,RLCUR,U)
+  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,U)
 
     USE IO
     USE SUPPORT
@@ -1296,7 +1239,7 @@ CONTAINS
 !  U          : The first few components of the solution vector.
 !  PAR(ICP(*)): Further free parameters (if any).
 !
-    DIMENSION IAP(*),ICP(*),RAP(*),PAR(*),RLCUR(*),U(*)
+    DIMENSION IAP(*),ICP(*),RAP(*),PAR(*),U(*)
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -1353,7 +1296,7 @@ CONTAINS
        ITP=9+10*ITPST
        IAP(27)=ITP
     ELSE
-       IF(RLCUR(1).LT.RL0.OR.RLCUR(1).GT.RL1 &
+       IF(U(NDIM+1).LT.RL0.OR.U(NDIM+1).GT.RL1 &
             .OR. AMP.LT.A0.OR.AMP.GT.A1 &
             .OR. NTOT.EQ.NMX) THEN
           ISTOP=1
@@ -1382,19 +1325,19 @@ CONTAINS
 
 ! Write restart information for multi-parameter analysis :
 
-    IF(LABW.NE.0)CALL WRTSP8(IAP,RAP,PAR,ICP,LABW,RLCUR,U)
+    IF(LABW.NE.0)CALL WRTSP8(IAP,RAP,PAR,ICP,LABW,U)
 !
   END SUBROUTINE STPLAE
 
 ! ---------- ------
-  SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,RLCUR,U)
+  SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,U)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Write restart information on singular points, plotting points, etc.,
 ! on unit 8.
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),RLCUR(*),U(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),U(*)
 
     NDIM=IAP(1)
     ISW=IAP(10)
@@ -1406,7 +1349,7 @@ CONTAINS
     NTPL=1
     NAR=NDIM+1
     NROWPR=NDIM/7+1 + (NPARX-1)/7+1
-    PAR(ICP(1))=RLCUR(1)
+    PAR(ICP(1))=U(NDIM+1)
     T=0.d0
     AMP=0.d0
     RAP(10)=AMP

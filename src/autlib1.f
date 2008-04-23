@@ -468,8 +468,8 @@ C     know the size.  It is 8 times bigger then ndim since
 C     INIT can modify THU based on the problem type,
 C     but only up to making it 8 times larger.
 C
-      ALLOCATE(THU(8*NDIM))
-      DO I=1,NDIM*8
+      ALLOCATE(THU(8*NDIM+1))
+      DO I=1,NDIM*8+1
         THU(I)=1.d0
       ENDDO
 C
