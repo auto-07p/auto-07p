@@ -320,7 +320,7 @@ C Generates starting data for the continuation of BP.
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),A(:,:),V(:),F(:)
+      ALLOCATABLE DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1)
 C
        NDIM=IAP(1)
@@ -332,7 +332,7 @@ C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
        CALL READLB(IAP,U,PAR)
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),A(NDM+1,NDM+1))
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX),A(NDM+1,NDM+1))
        ALLOCATE(V(NDM+1),F(NDM))
        IF(IPS.EQ.-1)THEN
          CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
@@ -341,20 +341,23 @@ C
        ENDIF
        DO I=1,NDM
          DO J=1,NDM
-           A(I,J)=DFU((J-1)*NDM+I)
+           A(I,J)=DFU(I,J)
          ENDDO
-         A(I,NDM+1)=DFP((ICP(1)-1)*NDM+I)
-         A(NDM+1,I)=0.d0
+         A(I,NDM+1)=DFP(I,ICP(1))
+       ENDDO
+       DO I=1,NDM+1
+          A(NDM+1,I)=0.d0
        ENDDO
        CALL NLVC(NDM+1,2,A,V)
        DO I=1,NDM
          DO J=1,NDM
-           A(I,J)=DFU((I-1)*NDM+J)
+           A(I,J)=DFU(J,I)
          ENDDO
-         A(I,NDM+1)=V(I)
-         A(NDM+1,I)=DFP((ICP(1)-1)*NDM+I)
+         A(NDM+1,I)=DFP(I,ICP(1))
        ENDDO
-       A(NDM+1,NDM+1)=V(NDM+1)
+       DO I=1,NDM+1
+          A(I,NDM+1)=V(I)
+       ENDDO
        CALL NLVC(NDM+1,1,A,V)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
