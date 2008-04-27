@@ -6,17 +6,16 @@
 
 MODULE IO
 
+  IMPLICIT NONE
   PRIVATE
   PUBLIC :: SKIP3, FINDLB, READLB, WRLINE, WRBAR, STHD, NEWLAB
+  INTEGER NPARX,NIAP,NRAP
+  INCLUDE 'auto.h'
 
 CONTAINS
 
 ! ---------- ----
   SUBROUTINE STHD(IAP,RAP,ICP)
-
-    INCLUDE 'auto.h'
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -24,10 +23,14 @@ CONTAINS
 ! limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 ! These are often convenient for an initial plot of the diagram.
 
-    DIMENSION ICP(*),IAP(*),RAP(*)
+    INTEGER, INTENT(IN) :: ICP(*),IAP(*)
+    DOUBLE PRECISION, INTENT(IN) :: RAP(*)
     CHARACTER (LEN=*), PARAMETER :: D3 = "('   0',3(A8,ES11.4))"
     CHARACTER (LEN=*), PARAMETER :: I4 = "('   0',4(A8,I4))"
     CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',3(A8,I4),2(A7,I4))"
+    INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT,NMX
+    INTEGER NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,NICP,I
+    DOUBLE PRECISION DS,DSMIN,DSMAX,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -93,13 +96,11 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE HEADNG(IAP,ICP,IUNIT,N1,N2)
 
-    IMPLICIT NONE
-
 ! Prints headings above columns on unit 6, 7, and 9.
 ! N1 = number of parameters to print (maximum: 7 for screen output)
 ! N2 = number of (max) variables to print (maximum: max(0,7-N1,7))
 
-    INTEGER IAP(*),ICP(*),IUNIT,N1,N2
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*),IUNIT,N1,N2
 ! Local
     INTEGER I,J,IPS,IPLT,NDM
 
@@ -187,12 +188,10 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE WRLINE(IAP,PAR,ICU,IBR,NTOT,LAB,VAXIS,U)
 
-    IMPLICIT NONE
-!
 ! Write one line of output on unit 6 and 7.
-!
-    INTEGER IAP(*),ICU(*),IBR,NTOT,LAB
-    DOUBLE PRECISION PAR(*),U(*),VAXIS
+
+    INTEGER, INTENT(IN) :: IAP(*),ICU(*),IBR,NTOT,LAB
+    DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*),VAXIS
 ! Local
     CHARACTER*2 ATYPE
     CHARACTER*2, PARAMETER :: ATYPESP(9) = &
@@ -249,7 +248,10 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE WRBAR(C,N)
 
-    CHARACTER*1 C
+    CHARACTER*1, INTENT(IN) :: C
+    INTEGER, INTENT(IN) :: N
+    INTEGER I
+
     WRITE(9,101)(C,I=1,N)
 101 FORMAT(80A1)
   END SUBROUTINE WRBAR
@@ -257,12 +259,13 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE NEWLAB(IAP)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! Determine a suitable label when restarting.
 
+    INTEGER, INTENT(INOUT) :: IAP(*)
     LOGICAL EOF3
-    DIMENSION IAP(*)
+
+    INTEGER IBRS,LABRS,NSKIP
+    INTEGER IPS,IRS,ISW,ITP,MBR,LAB,MLAB,IBR,I
 
     IPS=IAP(2)
     IRS=IAP(3)
@@ -275,8 +278,7 @@ CONTAINS
 
     IF(IRS>0)THEN
        DO
-          READ(3,*,END=2)IBRS,NTOTRS,ITPRS,LABRS,NFPRS,ISWRS,NTPLRS, &
-                      NARS,NSKIP
+          READ(3,*,END=2)IBRS,(LABRS,I=1,3),(NSKIP,I=1,5)
           IF(IBRS>MBR)MBR=IBRS
           IF(LABRS>MLAB)MLAB=LABRS
           CALL SKIP3(NSKIP,EOF3)
@@ -302,15 +304,13 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE FINDLB(IAP,IRS,NFPR,FOUND)
 
-    IMPLICIT NONE
-
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(IN) :: IRS
     INTEGER, INTENT(OUT) :: NFPR
     LOGICAL, INTENT(OUT) :: FOUND
 
     LOGICAL EOF3
-    INTEGER ISW,IBR,NTOTRS,ITP,LABRS,ISWRS,NTPLRS,NARS,NSKIP,ITPST
+    INTEGER ISW,IBR,ITP,LABRS,NSKIP,ITPST,I
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -320,7 +320,7 @@ CONTAINS
     ISW=IAP(10)
 
     DO
-       READ(3,*,END=2)IBR,NTOTRS,ITP,LABRS,NFPR,ISWRS,NTPLRS,NARS,NSKIP
+       READ(3,*,END=2)IBR,ITP,ITP,LABRS,NFPR,(NSKIP,I=1,4)
        IAP(27)=ITP
        IAP(30)=IBR
        IF(LABRS.EQ.IRS)THEN
@@ -341,7 +341,7 @@ CONTAINS
           RETURN
        ELSE
           CALL SKIP3(NSKIP,EOF3)
-          IF(EOF3)GOTO 2
+          IF(EOF3)RETURN
        ENDIF
     ENDDO
 
@@ -352,20 +352,18 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE READLB(IAP,U,PAR)
 
-    INCLUDE 'auto.h'
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    DIMENSION IAP(*),U(*),PAR(*)
+    INTEGER, INTENT(IN) :: IAP(*)
+    DOUBLE PRECISION, INTENT(OUT) :: U(*),PAR(*)
+    INTEGER NAR,NPARR,NDIM,I
 
 ! Reads the restart data for algebraic problems.
 
-    READ(3,*)IBRR,NTOTR,ITPR,LABR,NFPRR,ISWR,NTPLRS,NAR,NSKIPR,N1,N2,NPARR
+    READ(3,*)(NAR,I=1,8),(NPARR,I=1,4)
     NDIM=NAR-1
     IF(NDIM.LE.IAP(1))THEN
-       READ(3,*)T,(U(I),I=1,NDIM)
+       READ(3,*)U(1),U(1:NDIM)
     ELSE
-       READ(3,*)T,(U(I),I=1,IAP(1)),(DUM,I=1,NDIM-IAP(1))
+       READ(3,*)U(1),U(1:IAP(1))
     ENDIF
     IF(NPARR.GT.NPARX)THEN
        NPARR=NPARX
@@ -373,14 +371,12 @@ CONTAINS
 100    FORMAT(' Warning : NPARX too small for restart data :', &
             ' restart PAR(i) skipped for i > ',I3)
     ENDIF
-    READ(3,*)(PAR(I),I=1,NPARR)
+    READ(3,*)PAR(1:NPARR)
 
   END SUBROUTINE READLB
 
 ! ---------- -----
   SUBROUTINE SKIP3(NSKIP,EOF3)
-
-    IMPLICIT NONE
 
 ! Skips the specified number of lines on unit 3.
 

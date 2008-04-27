@@ -481,7 +481,7 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! This is the subroutine for computing solution branches. It solves
 ! the equations for finding the next point on the branch at distance DS
@@ -490,11 +490,15 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*)
-    DIMENSION AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*),ICP(*)
+    INTEGER IAP(*),ICP(*),NIT
+    DOUBLE PRECISION RAP(*),AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*)
+    DOUBLE PRECISION RDS
 ! Local
-    ALLOCATABLE RHS(:),DU(:),F(:),DFDU(:,:),DFDP(:,:)
+    DOUBLE PRECISION, ALLOCATABLE :: RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
     CHARACTER (LEN=7) FIXEDMINIMUM
+    INTEGER NDIM,IADS,IID,ITNW,NDM,IBR,ISTOP,I,K,NTOP,NTOT,NIT1
+    DOUBLE PRECISION DSMIN,DSMAX,DSOLD,DET,DELREF,EPSL,EPSU,SS
+    DOUBLE PRECISION DUMX,UMX,RDUMX,ADU,AU,RDRLM
 
     NDIM=IAP(1)
     IADS=IAP(8)
@@ -509,7 +513,7 @@ CONTAINS
 
     DELREF=0
 
-    ALLOCATE(RHS(NDIM+1),DU(NDIM+1),F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
+    ALLOCATE(RHS(NDIM+1),DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
 
     DO
        DSOLD=RDS
@@ -535,13 +539,13 @@ CONTAINS
 
           NIT=NIT1
           PAR(ICP(1))=U(NDIM+1)
-          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
 
 ! Set up the Jacobian matrix and the right hand side :
 
           DO I=1,NDIM
              AA(I,NDIM+1)=DFDP(I,ICP(1))
-             RHS(I)=-F(I)
+             RHS(I)=-RHS(I)
              DO K=1,NDIM
                 AA(I,K)=DFDU(I,K)
              ENDDO
@@ -594,7 +598,7 @@ CONTAINS
              ENDDO
              CALL PVLSAE(IAP,RAP,U,PAR)
              IF(IID.GE.2)WRITE(9,*)
-             DEALLOCATE(RHS,DU,F,DFDU,DFDP)
+             DEALLOCATE(RHS,DU,DFDU,DFDP)
              RETURN
           ENDIF
 
@@ -639,7 +643,7 @@ CONTAINS
     PAR(ICP(1))=U(NDIM+1)
     ISTOP=1
     IAP(34)=ISTOP
-    DEALLOCATE(RHS,DU,F,DFDU,DFDP)
+    DEALLOCATE(RHS,DU,DFDU,DFDP)
   END SUBROUTINE SOLVAE
 !
 !-----------------------------------------------------------------------
@@ -988,9 +992,6 @@ CONTAINS
     ALLOCATABLE DU(:)
 
     NDIM=IAP(1)
-    IBR=IAP(30)
-    NTOT=IAP(32)
-    NTOP=MOD(NTOT-1,9999)+1
 
 ! Keep track of the number of branch points stored.
 
