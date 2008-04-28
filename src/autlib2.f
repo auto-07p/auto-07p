@@ -1518,7 +1518,7 @@ C Solve for FCC
       IF(NLLV.EQ.0)THEN
          CALL GEL(NCR,E,1,FCC,XE,DET)
       ELSEIF(NLLV.GT.0)THEN
-         CALL NLVC(NCR,NLLV,E,FCC)
+         CALL NLVC(NCR,NCR,NLLV,E,FCC)
       ELSE
          DO I=1,NCR-1
             XE(I)=0.D0

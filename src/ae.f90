@@ -346,13 +346,13 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*),ICP(*)
 
 ! Local
-    ALLOCATABLE AA(:,:),RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE AA(:,:),F(:),DU(:),DFDU(:,:),DFDP(:,:)
 
     NDIM=IAP(1)
     ISW=IAP(10)
     IID=IAP(18)
 
-    ALLOCATE(AA(NDIM+1,NDIM+1),RHS(NDIM+1),DU(NDIM+1), &
+    ALLOCATE(AA(NDIM,NDIM+1),F(NDIM),DU(NDIM+1), &
          DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
 
     UOLD(NDIM+1)=PAR(ICP(1))
@@ -362,19 +362,14 @@ CONTAINS
 
 ! Determine the direction of the branch at the starting point
 
-    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
-    DO I=1,NDIM
-       AA(I,NDIM+1)=DFDP(I,ICP(1))
-       AA(NDIM+1,I)=0.d0
-       DO K=1,NDIM
-          AA(I,K)=DFDU(I,K)
-       ENDDO
-    ENDDO
-    AA(NDIM+1,NDIM+1)=0.d0
-    RHS(NDIM+1)=0.d0
+    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+    AA(:,1:NDIM)=DFDU(:,:)
+    AA(:,NDIM+1)=DFDP(:,ICP(1))
 
-    IF(IID.GE.3)CALL WRJAC(NDIM+1,AA,RHS)
-    CALL NLVC(NDIM+1,1,AA,DU)
+    IF(IID.GE.3)CALL WRJAC(NDIM,NDIM+1,AA,F)
+    CALL NLVC(NDIM,NDIM+1,1,AA,DU)
+    DEALLOCATE(AA)
+    ALLOCATE(AA(NDIM+1,NDIM+1))
 
 ! Scale and make sure that the PAR(ICP(1))-dot is positive.
 
@@ -400,7 +395,7 @@ CONTAINS
        DO K=1,NDIM+1
           AA(NDIM+1,K)=DU(K)
        ENDDO
-       CALL NLVC(NDIM+1,1,AA,DU)
+       CALL NLVC(NDIM+1,NDIM+1,1,AA,DU)
 
        SS=0.d0
        DO I=1,NDIM+1
@@ -426,7 +421,7 @@ CONTAINS
 
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
 
-    DEALLOCATE(AA,RHS,DU,DFDU,DFDP)
+    DEALLOCATE(AA,F,DU,DFDU,DFDP)
 
   END SUBROUTINE STPRAE
 
@@ -543,7 +538,7 @@ CONTAINS
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
-          IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
+          IF(IID.GE.5)CALL WRJAC(NDIM+1,NDIM+1,AA,RHS)
           CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
 
@@ -981,7 +976,7 @@ CONTAINS
     NBIF=NBIF+1
 
     ALLOCATE(DU(NDIM+1))
-    CALL NLVC(NDIM+1,1,AA,DU)
+    CALL NLVC(NDIM+1,NDIM+1,1,AA,DU)
 
     SS=0.d0
     DO I=1,NDIM+1
@@ -1134,7 +1129,7 @@ CONTAINS
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
-          IF(IID.GE.5)CALL WRJAC(NDIM+1,AA,RHS)
+          IF(IID.GE.5)CALL WRJAC(NDIM+1,NDIM+1,AA,RHS)
           CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
           RAP(14)=DET
 
@@ -1363,21 +1358,17 @@ CONTAINS
   END SUBROUTINE WRTSP8
 
 ! ---------- ------
-  SUBROUTINE WRJAC(N,AA,RHS)
+  SUBROUTINE WRJAC(M,N,AA,RHS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
+    
+    INTEGER, INTENT(IN) :: M,N
+    DOUBLE PRECISION, INTENT(IN) :: AA(M,N),RHS(M)
+    INTEGER I,J
 
-    DIMENSION AA(N,N),RHS(*)
-
-    WRITE(9,101)
-    WRITE(9,100)(RHS(I),I=1,N)
-    WRITE(9,102)
-    DO I=1,N
-       WRITE(9,100)(AA(I,J),J=1,N)
-    ENDDO
-100 FORMAT(1X,12E10.3)
-101 FORMAT(/,' Residual vector :')
-102 FORMAT(/,' Jacobian matrix :')
+    WRITE(9,"(A/1X,12E10.3)")' Residual vector :',RHS(:),(0d0,I=M+1,N)
+    WRITE(9,"(A/1X,12E10.3)")' Jacobian matrix :',&
+         (AA(I,:),I=1,M),((0d0,J=1,N),I=M+1,N)
 
   END SUBROUTINE WRJAC
 

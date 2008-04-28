@@ -170,7 +170,7 @@ C
        ELSE
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
        ENDIF
-       CALL NLVC(NDM,1,DFU,V)
+       CALL NLVC(NDM,NDM,1,DFU,V)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
          U(NDM+I)=V(I)
@@ -339,16 +339,11 @@ C
        ELSE
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
        ENDIF
-       DO I=1,NDM
-         DO J=1,NDM
-           A(I,J)=DFU(I,J)
-         ENDDO
-         A(I,NDM+1)=DFP(I,ICP(1))
-       ENDDO
-       DO I=1,NDM+1
-          A(NDM+1,I)=0.d0
-       ENDDO
-       CALL NLVC(NDM+1,2,A,V)
+       A(:,1:NDM)=DFU(:,:)
+       A(:,NDM+1)=DFP(:,ICP(1))
+       CALL NLVC(NDM,NDM+1,2,A,V)
+       DEALLOCATE(A)
+       ALLOCATE(A(NDM,NDM))
        DO I=1,NDM
          DO J=1,NDM
            A(I,J)=DFU(J,I)
@@ -358,7 +353,7 @@ C
        DO I=1,NDM+1
           A(I,NDM+1)=V(I)
        ENDDO
-       CALL NLVC(NDM+1,1,A,V)
+       CALL NLVC(NDM+1,NDM+1,1,A,V)
        CALL NRMLZ(NDM,V)
        DO I=1,NDM
          U(NDM+I)=V(I)
@@ -623,7 +618,7 @@ C       TRANSPOSE
            DD(NDM+1,I)=DFP((ICP(2)-1)*NDM+I)
          ENDDO
          DD(NDM+1,NDM+1)=DP(ICP(2))
-         CALL NLVC(NDM+1,1,DD,V)
+         CALL NLVC(NDM+1,NDM+1,1,DD,V)
          CALL NRMLZ(NDM+1,V)
          DO I=1,NDM+1
            U(NDM+I)=V(I)
@@ -888,7 +883,7 @@ C
          SMAT(I,I)=SMAT(I,I)-C1
          SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
        ENDDO
-       CALL NLVC(NDM2,2,SMAT,V)
+       CALL NLVC(NDM2,NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1075,7 +1070,7 @@ C
            SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
          ENDDO
        ENDDO
-       CALL NLVC(NDM2,2,SMAT,V)
+       CALL NLVC(NDM2,NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1262,7 +1257,7 @@ C
            SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
          ENDDO
        ENDDO
-       CALL NLVC(NDM2,2,SMAT,V)
+       CALL NLVC(NDM2,NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
 C
        DO I=1,NDM2
@@ -1527,7 +1522,7 @@ C Note that the user period-scaling in FUNC is taken into account:
          ENDDO
        ENDDO
 C
-       CALL NLVC(NDIM2,2,SMAT,RNLLV)
+       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.
@@ -1785,7 +1780,7 @@ C
          ENDDO
        ENDDO
 C
-       CALL NLVC(NDIM2,2,SMAT,RNLLV)
+       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV)
        CALL NRMLZ(NDIM2,RNLLV)
 C
 C Generate the (initially uniform) mesh.

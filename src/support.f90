@@ -114,7 +114,7 @@ CONTAINS
   END SUBROUTINE EIG
 
 ! ---------- ------
-  SUBROUTINE NULLVC(n,k,A,u,ic)
+  SUBROUTINE NULLVC(m,n,k,A,u,ic)
 
     IMPLICIT NONE
 
@@ -125,15 +125,15 @@ CONTAINS
 !
 ! Parameters :
 !
-!     n : number of equations,
+!     m : number of equations,
 !     k : dimension of nullspace,
-!     A : N * N matrix of coefficients,
+!     A : m * n matrix of coefficients,
 !     u : on exit U contains the null vector,
 !    ic : integer array of dimension at least N.
 !
 
-    INTEGER, INTENT(IN) :: n,k
-    DOUBLE PRECISION, INTENT(INOUT) :: A(n,n)
+    INTEGER, INTENT(IN) :: m,n,k
+    DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
     INTEGER, INTENT(OUT) :: ic(n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
@@ -150,7 +150,7 @@ CONTAINS
        IPIV=JJ
        JPIV=JJ
        PIV=0.d0
-       DO i=jj,n
+       DO i=jj,m
           DO j=jj,n
              p=ABS(A(i,ic(j)))
              IF(p>piv)THEN
@@ -181,7 +181,7 @@ CONTAINS
        ENDIF
 
        piv=A(jj,ic(jj))
-       DO l=jj+1,n
+       DO l=jj+1,m
           rm=A(l,ic(jj))/piv
           IF(rm/=0.d0)THEN
              DO i=jj+1,n
@@ -208,7 +208,7 @@ CONTAINS
   END SUBROUTINE NULLVC
 
 ! ---------- ----
-  SUBROUTINE NLVC(n,k,A,U)
+  SUBROUTINE NLVC(m,n,k,A,U)
 
     IMPLICIT NONE
 
@@ -217,19 +217,19 @@ CONTAINS
 !
 ! Parameters :
 !
-!     N : number of equations,
+!     M : number of equations,
 !     K : dimension of nullspace,
-!     A : N * N matrix of coefficients,
+!     A : M * N matrix of coefficients,
 !     U : on exit U contains the null vector,
 !
-    INTEGER, INTENT(IN) :: n,k
-    DOUBLE PRECISION, INTENT(INOUT) :: A(n,n)
+    INTEGER, INTENT(IN) :: m,n,k
+    DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
     INTEGER, ALLOCATABLE :: ic(:)
 
     ALLOCATE(ic(n))
-    CALL NULLVC(n,k,A,U,ic)
+    CALL NULLVC(m,n,k,A,U,ic)
     DEALLOCATE(ic)
 
   END SUBROUTINE NLVC
