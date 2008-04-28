@@ -40,7 +40,7 @@ C
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),PAR(2*NPARX),TIME0,TIME1,TOTTIM
-      INTEGER IAM
+      INTEGER IAM,LINE
 C
 C Initialization :
 C
@@ -57,12 +57,13 @@ C
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
        OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
 C
+       LINE=1
  1     IF(IAP(39).GT.1)THEN
          CALL MPITIM(TIME0)
        ELSE
          CALL AUTIM0(TIME0)
        ENDIF
-       CALL INIT(IAP,RAP,PAR,EOF)
+       CALL INIT(IAP,RAP,PAR,EOF,LINE)
        IF(EOF)THEN
          CALL MPIEND()
          STOP
@@ -437,7 +438,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,PAR,EOF)
+      SUBROUTINE INIT(IAP,RAP,PAR,EOF,LINE)
 C
       USE AUTO_CONSTANTS
 C
@@ -448,6 +449,7 @@ C
       INTEGER, INTENT(OUT) :: IAP(*)
       DOUBLE PRECISION, INTENT(OUT) :: RAP(*),PAR(*)
       LOGICAL, INTENT(OUT) :: EOF
+      INTEGER, INTENT(INOUT) :: LINE
 C
       INTEGER IBR,I,IUZR,ITHU,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,LAB,NTOT,ITP,ITPST
@@ -460,7 +462,9 @@ C
         PAR(NPARX+I)=0.d0
       ENDDO
 C
-      READ(2,*,END=5) NDIM,IPS,IRS,ILP
+      EOF=.TRUE.
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=5) NDIM,IPS,IRS,ILP
 C
 C     we allocate THU (a pointer to the THU array in the
 C     main program) here since this is the place where we 
@@ -473,7 +477,8 @@ C
         THU(I)=1.d0
       ENDDO
 C
-      READ(2,*) NICP,(ICP(NPARX+I),I=1,NICP)
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NICP,(ICP(NPARX+I),I=1,NICP)
       IF(NICP.GT.0)THEN
         DO I=1,NICP
           ICP(I)=ICP(NPARX+I)
@@ -482,31 +487,42 @@ C
         NICP=1
         ICP(NPARX+1)=ICP(1)
       ENDIF
-      READ(2,*) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-      READ(2,*) NMX,RL0,RL1,A0,A1
-      READ(2,*) NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-      READ(2,*) EPSL,EPSU,EPSS
-      READ(2,*) DS,DSMIN,DSMAX,IADS
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NMX,RL0,RL1,A0,A1
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) EPSL,EPSU,EPSS
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) DS,DSMIN,DSMAX,IADS
       DSMIN=ABS(DSMIN)
       DSMAX=ABS(DSMAX)
-      READ(2,*) NTHL
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NTHL
       IF(NTHL.GT.0)THEN
         ALLOCATE(ITHL(NTHL),VTHL(NTHL))
         DO I=1,NTHL
-          READ(2,*)ITHL(I),VTHL(I)
+          LINE=LINE+1
+          READ(2,*,ERR=3,END=4)ITHL(I),VTHL(I)
         ENDDO
       ENDIF
-      READ(2,*) NTHU
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NTHU
       IF(NTHU.GT.0)THEN
         DO I=1,NTHU
-          READ(2,*)ITHU,THU(ITHU)
+          LINE=LINE+1
+          READ(2,*,ERR=3,END=4)ITHU,THU(ITHU)
         ENDDO
       ENDIF
-      READ(2,*)NUZR
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4)NUZR
       IF(NUZR.GT.0)THEN
         ALLOCATE(IUZ(NUZR),VUZ(NUZR))
         DO I=1,NUZR
-          READ(2,*)IUZ(I),VUZ(I)
+          LINE=LINE+1
+          READ(2,*,ERR=3,END=4)IUZ(I),VUZ(I)
         ENDDO
       ELSE
 C       Avoid uninitialized pointers
@@ -600,8 +616,14 @@ C
 C
       EOF=.FALSE.
       RETURN
- 5    EOF=.TRUE.
+ 3    WRITE(6,"(A,I2,A)")
+     *     " Error in fort.2 or c. file: bad integer on line ",
+     *     LINE,"."
       RETURN
+ 4    WRITE(6,"(A)")
+     *     " Error in fort.2 or c. file: ends prematurely on line ",
+     *     LINE,"."
+ 5    RETURN
       END SUBROUTINE INIT
 C
 C     ---------- -------

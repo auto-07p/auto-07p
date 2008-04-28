@@ -629,19 +629,32 @@ C
       COMPZERO=HMACHHO
 C
       OPEN(UNIT=12,FILE='fort.12',STATUS='OLD',ACCESS='sequential')
-      READ(12,*)NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
+      LINE=1
+      READ(12,*,ERR=1,END=2)NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
 C
 C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
       ALLOCATE(IREV(NDM))
-      READ(12,*)NREV
-      IF(NREV.GT.0)READ(12,*)(IREV(I),I=1,NDM)
+      LINE=LINE+1
+      READ(12,*,ERR=1,END=2)NREV
+      IF(NREV>0)THEN
+         LINE=LINE+1
+         READ(12,*,ERR=1,END=2)(IREV(I),I=1,NDM)
+      ENDIF
 C
-      READ(12,*)NFIXED
-      IF (NFIXED.GT.0)READ(12,*)(IFIXED(I),I=1,NFIXED)
-      READ(12,*)NPSI
-      IF (NPSI.GT.0)READ(12,*)(IPSI(I),I=1,NPSI)
+      LINE=LINE+1
+      READ(12,*,ERR=1,END=2)NFIXED
+      IF (NFIXED>0)THEN
+         LINE=LINE+1
+         READ(12,*,ERR=1,END=2)(IFIXED(I),I=1,NFIXED)
+      ENDIF
+      LINE=LINE+1
+      READ(12,*,ERR=1,END=2)NPSI
+      IF (NPSI>0)THEN
+         LINE=LINE+1
+         READ(12,*,ERR=1,END=2)(IPSI(I),I=1,NPSI)
+      ENDIF
       CLOSE(UNIT=12,STATUS='KEEP')
       NFREE=2+NFIXED-NREV+NINT+NBC
       IF (ISTART.LT.0) THEN
@@ -715,6 +728,17 @@ C
       IAP(23)=NDM
 C
       RETURN
+
+ 1    WRITE(6,"(A,I2,A)")
+     *     " Error in fort.12 or h. file: bad integer on line ",
+     *     LINE,"."
+      GOTO 3
+ 2    WRITE(6,"(A)")
+     *     " Error in fort.12 or h. file: ends prematurely on line ",
+     *     LINE,"."
+ 3    CLOSE(UNIT=12,STATUS='KEEP')
+      STOP
+
       END SUBROUTINE INHO
 C
 C     ---------- ------
