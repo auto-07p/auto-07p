@@ -116,7 +116,6 @@ CONTAINS
 ! Write plotting data for the starting point
 
     ISTOP=0
-    IAP(34)=ISTOP
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE
@@ -124,14 +123,12 @@ CONTAINS
     ENDIF
     IAP(27)=ITP
     U(NDIM+1)=PAR(ICP(1))
-    CALL STPLAE(IAP,RAP,PAR,ICP,U)
-    ISTOP=IAP(34)
+    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Starting procedure  (to get second point on first branch) :
 
-    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT)
-    ISTOP=IAP(34)
+    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 5
     ITP=0
     IAP(27)=ITP
@@ -161,7 +158,6 @@ CONTAINS
     NTOT=0
     IAP(32)=NTOT
     ISTOP=0
-    IAP(34)=ISTOP
     ITP=0
     IAP(27)=ITP
     NIT=0
@@ -170,20 +166,17 @@ CONTAINS
 
 ! Store plotting data for first point on the bifurcating branch
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,U)
-    ISTOP=IAP(34)
+    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Determine the second point on the bifurcating branch
 
-22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT)
-    ISTOP=IAP(34)
+22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 5
 
 ! Store plotting data for second point :
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,U)
-    ISTOP=IAP(34)
+    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
     RBP=0.d0
     REV=0.d0
@@ -195,8 +188,7 @@ CONTAINS
 
 ! Find the next solution point on the branch
 
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
-    ISTOP=IAP(34)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 5
 
 ! Check for user supplied parameter output parameter-values.
@@ -205,8 +197,7 @@ CONTAINS
        DO IUZR=1,NUZR
           IAP(26)=IUZR
           CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
-               U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT)
-          ISTOP=IAP(34)
+               U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
           IF(ISTOP.EQ.1)GOTO 5
           ITP=IAP(27)
           IF(ITP.EQ.-1)THEN
@@ -218,7 +209,6 @@ CONTAINS
                 ENDDO
              ELSE
                 ISTOP=-1
-                IAP(34)=ISTOP
                 GOTO 5
              ENDIF
           ENDIF
@@ -229,8 +219,7 @@ CONTAINS
 
     IF(ABS(ILP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
-            U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT)
-       ISTOP=IAP(34)
+            U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1) THEN
@@ -243,7 +232,6 @@ CONTAINS
           ELSE
 !            *Stop at the first found fold
              ISTOP=-1
-             IAP(34)=ISTOP
              GOTO 5
           ENDIF
        ENDIF
@@ -253,8 +241,7 @@ CONTAINS
 !
     IF(ABS(ISP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
-            U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT)
-       ISTOP=IAP(34)
+            U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
@@ -268,7 +255,6 @@ CONTAINS
           ELSE
 !            *Stop at the first found BP
              ISTOP=-1
-             IAP(34)=ISTOP
              GOTO 5
           ENDIF
        ENDIF
@@ -278,8 +264,7 @@ CONTAINS
 
     IF(ABS(IPS).EQ.1)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
-            U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT)
-       ISTOP=IAP(34)
+            U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
@@ -291,7 +276,7 @@ CONTAINS
 
 ! Store plotting data on unit 7 :
 
-5   CALL STPLAE(IAP,RAP,PAR,ICP,U)
+5   CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
 
 ! Adapt the stepsize along the branch
 
@@ -307,7 +292,6 @@ CONTAINS
 
 6   ITP=0
     IAP(27)=ITP
-    ISTOP=IAP(34)
     IF(ISTOP.EQ.0)GOTO 3
 
     IF(NBIF.NE.0 .AND. NBFC.LT.ABS(MXBF))GOTO 2
@@ -350,7 +334,7 @@ CONTAINS
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT)
+  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT,ISTOP)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -440,7 +424,7 @@ CONTAINS
        U(I)=UOLD(I)+RDS*UDOT(I)
     ENDDO
 
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
 
     DEALLOCATE(AA,RHS,DU,DFDU,DFDP)
 
@@ -476,7 +460,7 @@ CONTAINS
   END SUBROUTINE CONTAE
 
 ! ---------- ------
-  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
+  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
 
     USE IO
     USE MESH
@@ -642,7 +626,6 @@ CONTAINS
     ENDDO
     PAR(ICP(1))=U(NDIM+1)
     ISTOP=1
-    IAP(34)=ISTOP
     DEALLOCATE(RHS,DU,DFDU,DFDP)
   END SUBROUTINE SOLVAE
 !
@@ -654,7 +637,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(IAP,RAP,PAR,ICP,FNCS,FUNI,AA, &
-       U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT)
+       U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -725,8 +708,7 @@ CONTAINS
     ENDIF
 
     CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT)
-    ISTOP=IAP(34)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
     IF(ISTOP.EQ.1)THEN
        Q=0.d0
        RETURN
@@ -1063,11 +1045,11 @@ CONTAINS
   END SUBROUTINE SWPNT
 
 ! ---------- -----
-  SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT)
+  SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT,ISTOP)
 
     USE MESH
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Controls the computation of the second point on a bifurcating branch.
 ! This point is required to lie in a hyper-plane at distance DS from the
@@ -1076,9 +1058,18 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),RAP(*),THU(*),PAR(*),ICP(*)
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    INTEGER, INTENT(OUT) :: NIT
+    INTEGER, INTENT(INOUT) :: ISTOP
+    DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
+    DOUBLE PRECISION, INTENT(OUT) :: UOLD(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
 ! Local
-    ALLOCATABLE U1(:),AA(:,:),RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
+    INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,I,K
+    DOUBLE PRECISION, ALLOCATABLE :: U1(:),AA(:,:),RHS(:),DU(:), &
+         DFDU(:,:),DFDP(:,:)
+    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET,DSOLD
+    DOUBLE PRECISION AU,ADU
     CHARACTER (LEN=*), PARAMETER :: O9 = & 
      "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
         &ES11.3,1X,'U=',7ES11.3)"
@@ -1202,18 +1193,17 @@ CONTAINS
     ENDDO
     PAR(ICP(1))=U(NDIM+1)
     ISTOP=1
-    IAP(34)=ISTOP
 
     DEALLOCATE(U1,AA,RHS,DU,DFDU,DFDP)
 
   END SUBROUTINE SWPRC
   
 ! ---------- ------
-  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,U)
+  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
 
     USE IO
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Stores the bifurcation diagram on unit 7 (Algebraic Problems).
 ! Every line written contains, in order, the following:
@@ -1240,7 +1230,15 @@ CONTAINS
 !  U          : The first few components of the solution vector.
 !  PAR(ICP(*)): Further free parameters (if any).
 !
-    DIMENSION IAP(*),ICP(*),RAP(*),PAR(*),U(*)
+    INTEGER, INTENT(INOUT) :: IAP(*)
+    INTEGER, INTENT(IN) :: ICP(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
+    DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*)
+    INTEGER, INTENT(INOUT) :: ISTOP
+
+    INTEGER NDIM,IPS,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR
+    INTEGER NTOT,NTOTS,IAB,LAB,LABW,NINS
+    DOUBLE PRECISION RL0,RL1,A0,A1,AMP
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -1287,7 +1285,6 @@ CONTAINS
     ENDIF
     RAP(10)=AMP
 
-    ISTOP=IAP(34)
     IF(ISTOP.EQ.1)THEN
 !        Maximum number of iterations reached somewhere.
        ITP=-9-10*ITPST
@@ -1301,7 +1298,6 @@ CONTAINS
             .OR. AMP.LT.A0.OR.AMP.GT.A1 &
             .OR. NTOT.EQ.NMX) THEN
           ISTOP=1
-          IAP(34)=ISTOP
           ITP=9+10*ITPST
           IAP(27)=ITP
        ENDIF
