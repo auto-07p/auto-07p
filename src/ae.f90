@@ -15,14 +15,14 @@ MODULE AE
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THL,THU,IUZ,VUZ)
 
 ! This is the entry subroutine for algebraic systems.
 
     USE AUTOMPI
     IMPLICIT NONE
 
-    INTEGER IAP(*),ICP(*),IUZ(*)
+    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
 
     EXTERNAL FUNI,STPNT
@@ -33,12 +33,12 @@ CONTAINS
        ENDIF
     ENDIF
     THU(IAP(1)+1)=THL(1)
-    CALL CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THU,IUZ,VUZ)
+    CALL CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOAE
 
 ! ---------- ------
-  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,FUNI,STPNT,THU,IUZ,VUZ)
+  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THU,IUZ,VUZ)
 
     USE IO
     USE MESH
@@ -49,7 +49,7 @@ CONTAINS
 
     EXTERNAL FUNI,STPNT
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),VUZ(*),THU(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS
@@ -111,7 +111,7 @@ CONTAINS
 
 ! Write constants
 
-    CALL STHD(IAP,RAP,ICP)
+    CALL STHD(IAP,RAP,ICP,ICU)
 
 ! Write plotting data for the starting point
 
@@ -123,7 +123,7 @@ CONTAINS
     ENDIF
     IAP(27)=ITP
     U(NDIM+1)=PAR(ICP(1))
-    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Starting procedure  (to get second point on first branch) :
@@ -166,7 +166,7 @@ CONTAINS
 
 ! Store plotting data for first point on the bifurcating branch
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Determine the second point on the bifurcating branch
@@ -176,7 +176,7 @@ CONTAINS
 
 ! Store plotting data for second point :
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
     RBP=0.d0
     REV=0.d0
@@ -276,7 +276,7 @@ CONTAINS
 
 ! Store plotting data on unit 7 :
 
-5   CALL STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
+5   CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
 
 ! Adapt the stepsize along the branch
 
@@ -1194,7 +1194,7 @@ CONTAINS
   END SUBROUTINE SWPRC
   
 ! ---------- ------
-  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,U,ISTOP)
+  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
 
     USE IO
     USE SUPPORT
@@ -1226,7 +1226,7 @@ CONTAINS
 !  PAR(ICP(*)): Further free parameters (if any).
 !
     INTEGER, INTENT(INOUT) :: IAP(*)
-    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(IN) :: ICP(*),ICU(*)
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
     DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*)
     INTEGER, INTENT(INOUT) :: ISTOP
@@ -1313,7 +1313,7 @@ CONTAINS
     IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
-    CALL WRLINE(IAP,PAR,ICP(NPARX+1),IBR,NTOTS,LABW,AMP,U)
+    CALL WRLINE(IAP,PAR,ICU,IBR,NTOTS,LABW,AMP,U)
 
 ! Write restart information for multi-parameter analysis :
 

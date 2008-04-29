@@ -195,7 +195,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
 
   external funi, icni
 
-  integer :: ierr,ntst,ndim,iam
+  integer :: ierr,ntst,ndim,iam,nint,nfpr
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
@@ -208,8 +208,10 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
   endif
 
   ndim=iap(1)
-  call MPI_Pack_size(2+NPARX,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
-  call MPI_Pack_size(NRAP+NPARX2+ndim*8+NPARX, &
+  nint=iap(13)
+  nfpr=iap(29)
+  call MPI_Pack_size(2+nfpr+nint,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
+  call MPI_Pack_size(NRAP+NPARX2+ndim*8+nfpr, &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
   bufsize = size_int + size_double
   allocate(buffer(bufsize))
@@ -224,12 +226,12 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      !**********************************************
      call MPI_Pack(par    ,NPARX2,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
-     call MPI_Pack(icp    ,NPARX,MPI_INTEGER,buffer,bufsize,pos, &
+     call MPI_Pack(icp    ,nfpr+nint,MPI_INTEGER,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
 
      call MPI_Pack(thu    ,ndim*8,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
-     call MPI_Pack(rldot  ,NPARX,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
+     call MPI_Pack(rldot  ,nfpr,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
   endif
 
@@ -245,12 +247,11 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      ! /***********************************/
      call MPI_Unpack(buffer,bufsize,pos,par   ,NPARX2, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,icp   ,NPARX, &
+     call MPI_Unpack(buffer,bufsize,pos,icp   ,nfpr+nint, &
           MPI_INTEGER,MPI_COMM_WORLD,ierr)
-     ndim=iap(1)
      call MPI_Unpack(buffer,bufsize,pos,thu   ,ndim*8, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,rldot ,NPARX, &
+     call MPI_Unpack(buffer,bufsize,pos,rldot ,nfpr, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
   endif
 

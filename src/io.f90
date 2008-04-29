@@ -15,7 +15,7 @@ MODULE IO
 CONTAINS
 
 ! ---------- ----
-  SUBROUTINE STHD(IAP,RAP,ICP)
+  SUBROUTINE STHD(IAP,RAP,ICP,ICU)
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -23,7 +23,7 @@ CONTAINS
 ! limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 ! These are often convenient for an initial plot of the diagram.
 
-    INTEGER, INTENT(IN) :: ICP(*),IAP(*)
+    INTEGER, INTENT(IN) :: ICP(*),ICU(*),IAP(*)
     DOUBLE PRECISION, INTENT(IN) :: RAP(*)
     CHARACTER (LEN=*), PARAMETER :: D3 = "('   0',3(A8,ES11.4))"
     CHARACTER (LEN=*), PARAMETER :: I4 = "('   0',4(A8,I4))"
@@ -78,9 +78,9 @@ CONTAINS
 
     WRITE(7,"('   0   User-specified parameter')",ADVANCE="NO")
     IF(NICP.EQ.1)THEN
-       WRITE(7,"(':       ',  I4)")(ICP(NPARX+I),I=1,NICP)
+       WRITE(7,"(':       ',  I4)")(ICU(I),I=1,NICP)
     ELSE
-       WRITE(7,"('s:      ',24I4)")(ICP(NPARX+I),I=1,NICP)
+       WRITE(7,"('s:      ',24I4)")(ICU(I),I=1,NICP)
     ENDIF
 
     WRITE(7,"('   0   Active continuation parameter')",ADVANCE="NO")

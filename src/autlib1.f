@@ -7,7 +7,7 @@ C
 C
       INTEGER NDIM,IPS,IRS,ILP
       INTEGER NICP
-      INTEGER ICP(2*NPARX)
+      INTEGER,ALLOCATABLE :: ICU(:)
       INTEGER NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
       INTEGER NMX
       DOUBLE PRECISION RL0,RL1,A0,A1
@@ -47,7 +47,7 @@ C
        CALL MPIINI(IAP)
        IAM=IAP(38)
        IF(IAM/=0)THEN
-         CALL MPIWORKER(IAP,RAP,PAR)
+         CALL MPIWORKER(IAP)
          STOP
        ENDIF
 C
@@ -90,14 +90,14 @@ C
       CONTAINS
 C
 C     ---------- ---------
-      SUBROUTINE MPIWORKER(IAP,RAP,PAR)
+      SUBROUTINE MPIWORKER(IAP)
       
       USE AUTO_CONSTANTS
       USE AUTOMPI
       IMPLICIT NONE
 
       INTEGER IAP(*)
-      DOUBLE PRECISION RAP(*),PAR(*)
+      DOUBLE PRECISION RAP(1),PAR(1)
 
       INTEGER FUNI_ICNI_PARAMS(5)
 
@@ -160,12 +160,17 @@ C
       INTEGER IAP(*)
       DOUBLE PRECISION RAP(*),PAR(*)
 
-      INTEGER ITP,NFPR
+      INTEGER ITP,NFPR,NNICP
+      INTEGER, ALLOCATABLE :: ICP(:)
 
       ITP=IAP(27)
       NFPR=IAP(29)
 C
       IF(IAP(38)==0)THEN
+        NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*NICP+NDIM+3)
+        ALLOCATE(ICP(NNICP))
+        ICP(1:NICP)=ICU(1:NICP)
+        ICP(NICP+1:NNICP)=0
         CALL INIT1(IAP,RAP,ICP,PAR)
         CALL CHDIM(IAP)
       ENDIF
@@ -179,84 +184,84 @@ C
        IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Algebraic systems.
          IF(IRS.EQ.0) THEN
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNUS,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNUS,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FUNI,STPNAE,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.11 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Waves : Spatially homogeneous solutions,
          IF(IRS.EQ.0) THEN
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNUS,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNWS,STPNUS,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNWS,STPNAE,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNWS,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF((IPS.EQ.-1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Discrete dynamical systems : fixed points.
          IF(IRS.EQ.0) THEN
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNDS,STPNUS,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNDS,STPNUS,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNDS,STPNAE,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNDS,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.-2) THEN
 C        ** Time integration.
          IF(IRS.EQ.0) THEN
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNTI,STPNUS,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNTI,STPNUS,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOAE(IAP,RAP,PAR,ICP,FNTI,STPNAE,THL,THU,IUZ,VUZ)
+           CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNTI,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.2 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Periodic solutions
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPS,BCPS,ICPS,STPNPS,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPS,BCPS,ICPS,STPNPS,
      *     PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.12 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Wave train solutions to parabolic systems.
          IF(ITP.NE.3) THEN
            IF(IRS.GT.0)THEN
-             CALL AUTOBV(IAP,RAP,PAR,ICP,FNWP,BCPS,ICPS,STPNBV,
+             CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNBV,
      *        PVLSBV,THL,THU,IUZ,VUZ)
            ELSE
-             CALL AUTOBV(IAP,RAP,PAR,ICP,FNWP,BCPS,ICPS,STPNUB,
+             CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNUB,
      *        PVLSBV,THL,THU,IUZ,VUZ)
            ENDIF
          ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNWP,BCPS,ICPS,STPNWP,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNWP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)<=1) THEN
 C        ** Boundary value problems. (4)
 C        ** Boundary value problems with Floquet multipliers. (7)
-          CALL AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNPS,
+          CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNPS,
      *         PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.9 .AND. ABS(ISW).LE.1) THEN
 C        ** Homoclinic bifurcation analysis.
-          CALL AUTOBV(IAP,RAP,PAR,ICP,FNHO,BCHO,ICHO,STPNHO,
+          CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNHO,BCHO,ICHO,STPNHO,
      *         PVLSHO,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.14) THEN
 C        ** Evolution calculations for parabolic systems.
 C           (Periodic boundary conditions.)
          IF(IRS.GT.0) THEN
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPE,BCPS,ICPE,STPNBV,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPE,BCPS,ICPE,STPNUB,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNUB,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.15.AND.ABS(ISW).EQ.1) THEN
 C        ** Optimization of periodic solutions.
          IF(NFPR.LT.6)THEN
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPO,BCPO,ICPO,STPNPO,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPO,BCPO,ICPO,STPNPO,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPO,BCPO,ICPO,STPNBV,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPO,BCPO,ICPO,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
@@ -264,10 +269,10 @@ C
 C        ** Evolution calculations for parabolic systems.
 C           (User supplied boundary conditions.)
          IF(IRS.GT.0) THEN
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPE,BCNI,ICPE,STPNBV,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNPE,BCNI,ICPE,STPNUB,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNUB,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
@@ -275,10 +280,10 @@ C
 C        ** Continuation of stationary states of parabolic systems.
 C           (User supplied boundary conditions.)
          IF(IRS.GT.0) THEN
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNSP,BCNI,ICPE,STPNBV,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,FNSP,BCNI,ICPE,STPNUB,
+           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNUB,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
@@ -287,15 +292,15 @@ C        ** Algebraic optimization problems.
          IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
          IF(NFPR.EQ.2) THEN
            IF(IRS.GT.0) THEN
-             CALL AUTOAE(IAP,RAP,PAR,ICP,FNC1,STPNAE,THL,THU,IUZ,VUZ)
+            CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNC1,STPNAE,THL,THU,IUZ,VUZ)
            ELSE
-             CALL AUTOAE(IAP,RAP,PAR,ICP,FNC1,STPNC1,THL,THU,IUZ,VUZ)
+            CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNC1,STPNC1,THL,THU,IUZ,VUZ)
            ENDIF
          ELSE
            IF(MOD(ITP,10).NE.2) THEN
-             CALL AUTOAE(IAP,RAP,PAR,ICP,FNC2,STPNAE,THL,THU,IUZ,VUZ)
+            CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNC2,STPNAE,THL,THU,IUZ,VUZ)
            ELSE
-             CALL AUTOAE(IAP,RAP,PAR,ICP,FNC2,STPNC2,THL,THU,IUZ,VUZ)
+            CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNC2,STPNC2,THL,THU,IUZ,VUZ)
            ENDIF
          ENDIF
 C
@@ -315,109 +320,109 @@ C
  2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2) )
      * THEN
 C        ** Fold continuation (algebraic problems).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNLP,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNLP,STPNLP,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 
      *         .AND. ( (ABS(ITP)/10).EQ.2 ) )
      * THEN
 C        ** Fold continuation (algebraic problems, restart).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNLP,STPNAE,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNLP,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND. (ITP.EQ.1) )
      * THEN
 C        ** BP cont (algebraic problems) (by F. Dercole).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNBP,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNBP,STPNBP,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 
      *         .AND. ( (ABS(ITP)/10).EQ.1 ) )
      * THEN
 C        ** BP cont (algebraic problems, restart).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNBP,STPNAE,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
      * THEN
 C        ** Hopf bifurcation continuation (ODE).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNHB,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.
      * (ABS(ITP)/10).EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (ODE, restart).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHB,STPNAE,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHB,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
      * THEN
 C        ** Hopf bifurcation continuation (Waves).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHW,STPNHW,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHW,STPNHW,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.
      * (ABS(ITP)/10).EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (Waves, restart).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHW,STPNAE,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHW,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.3 ) THEN
 C        ** Hopf bifurcation continuation (Maps).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHD,STPNHD,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHD,STPNHD,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND.(ABS(ITP)/10).EQ.3)
      * THEN
 C        ** Hopf bifurcation continuation (Maps).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,FNHD,STPNAE,THL,THU,IUZ,VUZ)
+         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHD,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN 
 C        ** Fold continuation (Periodic solutions, start).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNPL,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNPL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. (ABS(ITP)/10)==5 )
      * THEN
 C        ** Fold continuation (Periodic solutions, restart).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPL,BCPL,ICPL,STPNBV,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNBV,
      *   PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS==2 .AND. ABS(ISW)>=2 .AND. 
      *         (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
 C        ** BP cont (Periodic sol., start and restart) (by F. Dercole).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPBP,BCPBP,ICPBP,STPNPBP,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.2 .OR. IPS.EQ.7)
      *      .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.7 ) THEN
 C        ** Continuation of period doubling bifurcations (start).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPD,BCPD,ICPD,STPNPD,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNPD,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS.EQ.2 .OR. IPS .EQ.7)
      *      .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.7)
      * THEN
 C        ** Continuation of period doubling bifurcations (restart).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNPD,BCPD,ICPD,STPNBV,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.8 ) THEN
 C        ** Continuation of torus bifurcations (start).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNTR,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNTR,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.8)
      * THEN
 C        ** Continuation of torus bifurcations (restart).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNTR,BCTR,ICTR,STPNBV,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN
 C        ** Continuation of folds (BVP, start).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBL,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==2 .AND. 
      *         (ABS(ITP)/10)==5 ) THEN
 C        ** Continuation of folds (BVP, restart).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNBL,BCBL,ICBL,STPNBV,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)>=2 .AND.
      *          (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
 C        ** BP cont (BVP, start and restart) (by F. Dercole).
-         CALL AUTOBV(IAP,RAP,PAR,ICP,FNBBP,BCBBP,ICBBP,STPNBBP,
+         CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
        ELSE
@@ -430,6 +435,10 @@ C
 C Error Message.
  500  FORMAT(' Initialization Error')
 C
+      IF(IAP(38)==0)THEN
+         DEALLOCATE(ICP)
+      ENDIF
+
       END SUBROUTINE AUTOI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -456,8 +465,6 @@ C
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
 C
       DO I=1,NPARX
-        ICP(I)=I
-        ICP(NPARX+I)=0
         PAR(I)=0.d0
         PAR(NPARX+I)=0.d0
       ENDDO
@@ -478,14 +485,15 @@ C
       ENDDO
 C
       LINE=LINE+1
-      READ(2,*,ERR=3,END=4) NICP,(ICP(NPARX+I),I=1,NICP)
+      READ(2,*,ERR=3,END=4) NICP
       IF(NICP.GT.0)THEN
-        DO I=1,NICP
-          ICP(I)=ICP(NPARX+I)
-        ENDDO
+        ALLOCATE(ICU(NICP))
+        BACKSPACE 2
+        READ(2,*,ERR=3,END=4) NICP,(ICU(I),I=1,NICP)
       ELSE
+        ALLOCATE(ICU(1))
         NICP=1
-        ICP(NPARX+1)=ICP(1)
+        ICU(1)=1
       ENDIF
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
@@ -635,7 +643,7 @@ C
 
       IMPLICIT NONE
 
-      DEALLOCATE(THU,IUZ,VUZ,THL)
+      DEALLOCATE(THU,IUZ,VUZ,THL,ICU)
       END SUBROUTINE CLEANUP
 C
 C     ---------- -----
@@ -670,7 +678,7 @@ C     ---------- -----
       SUBROUTINE INIT1(IAP,RAP,ICP,PAR)
 C
       USE HOMCONT, ONLY:INHO
-      USE AUTO_CONSTANTS, ONLY:ITHL,VTHL,THL,NTHL
+      USE AUTO_CONSTANTS, ONLY:ICU,ITHL,VTHL,THL,NTHL
 C
       DOUBLE PRECISION, PARAMETER ::
      *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
@@ -681,7 +689,7 @@ C
       DOUBLE PRECISION RAP(*),PAR(*)
 C
 C Local
-      INTEGER ICT(NPARX),NDIM,IPS,IRS,ILP,NCOL,ISP,ISW,NBC,NINT,NMX,NUZR
+      INTEGER NDIM,IPS,IRS,ILP,NCOL,ISP,ISW,NBC,NINT,NMX,NUZR
       INTEGER JAC,ITP,NFPR,NICP,NDM,NXP,I,J,NNEG,IC,JC
       DOUBLE PRECISION DS,DSMIN,DSMAX,FC
 C
@@ -790,14 +798,11 @@ C        **Stationary calculations for Parabolic Systems
 C
          ELSE IF(IPS.EQ.15)THEN
 C          ** Optimization of periodic solutions 
-           DO I=1,NICP
-             ICT(I)=ICP(I)
-           ENDDO
            NFPR=0
            DO I=1,NICP
-             IF(ICT(I).GT.0)THEN
+             IF(ICU(I).GT.0)THEN
                NFPR=NFPR+1
-               ICP(NFPR)=ICT(I)
+               ICP(NFPR)=ICU(I)
              ENDIF
            ENDDO
            ICP(NFPR+1)=10
@@ -810,7 +815,7 @@ C          ** Optimization of periodic solutions
 C overload to define optimality integrals
            NNEG=0
            DO I=1,NICP
-             IC=ICT(I)
+             IC=ICU(I)
              JC=ABS(IC)-20        
              IF(IC.LT.0.AND.JC.GT.0.AND.JC.LE.11)THEN
                NNEG=NNEG+1
@@ -820,7 +825,7 @@ C overload to define optimality integrals
 C Set indices of output parameters
            NICP=NFPR-3
            DO I=1,NICP
-             ICP(NPARX+I)=ICP(I)
+             ICU(I)=ICP(I)
            ENDDO
 C
        ELSE IF(IPS.EQ.5)THEN

@@ -15,7 +15,7 @@ MODULE BVP
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &
+  SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE AUTOMPI
@@ -23,7 +23,7 @@ CONTAINS
 
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 
-    INTEGER IAP(*),ICP(*),IUZ(*)
+    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
 
     EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
@@ -32,38 +32,36 @@ CONTAINS
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
        DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(IAP,RAP,PAR,ICP,FUNI,ICNI,BCNI)
+          CALL mpi_setubv_worker(IAP(38),IAP(39),FUNI,ICNI,BCNI)
        ENDDO
        RETURN
     ENDIF
-    CALL CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &
+    CALL CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
          PVLI,THL,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(iap,rap,par,icp,funi,icni,bcni)
+  subroutine mpi_setubv_worker(iam,kwt,funi,icni,bcni)
     use autompi
     use solvebv
     implicit none
     integer NIAP,NRAP,NPARX
     include 'auto.h'
 
-    integer :: iap(*), icp(*)
-    double precision :: rap(*), par(*)
+    integer iam,kwt
     external funi,icni,bcni
 
-    integer :: ndim, nra, nfc, ifst, nllv, na, iam, kwt, nbc, ncol, nint, ntst
+    integer :: ndim, nra, nfc, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
+    integer :: iap(NIAP)
+    double precision :: rap(NRAP),par(NPARX*2)
 
-    double precision :: rldot(NPARX)
-    double precision, allocatable :: ups(:,:), uoldps(:,:)
+    double precision, allocatable :: rldot(:),ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dtm(:),fa(:,:), fc(:)
-    integer, allocatable :: np(:)
+    integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1)
 
-    iam=iap(38)
-    kwt=iap(39)
     call mpibcasti(iap,NIAP)
     iap(38)=iam
     iap(39)=kwt
@@ -73,6 +71,7 @@ CONTAINS
     ncol=iap(6)
     nbc=iap(12)
     nint=iap(13)
+    nfpr=iap(29)
 
     allocate(np(kwt))
     call partition(ntst,kwt,np)
@@ -81,7 +80,7 @@ CONTAINS
     nra=ndim*ncol
     nfc=nbc+nint+1
 
-    allocate(thu(ndim*8),dtm(na))
+    allocate(icp(nfpr+nint),rldot(nfpr),thu(ndim*8),dtm(na))
     allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
     ! output arrays
     allocate(fa(nra,na),fc(nfc))
@@ -93,14 +92,14 @@ CONTAINS
          fa,fc,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu)
+    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,rldot,icp)
 
     deallocate(fa,fc)
 
   end subroutine mpi_setubv_worker
 
 ! ---------- ------
-  SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,STPNT, &
+  SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE IO
@@ -111,10 +110,10 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),IUZ(*),VUZ(*),THL(*),THU(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THL(*),THU(*)
 ! Local
-    DIMENSION RLCUR(NPARX),RLOLD(NPARX),RLDOT(NPARX) 
     COMPLEX(KIND(1.0D0)) EV
+    ALLOCATABLE RLCUR(:),RLOLD(:),RLDOT(:)
     ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     ALLOCATABLE DUPS(:,:),UDOTPS(:,:),FA(:,:),FC(:),TM(:),DTM(:)
     ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
@@ -135,8 +134,10 @@ CONTAINS
     NINT=IAP(13)
     NUZR=IAP(15)
     ITPST=IAP(28)
+    NFPR=IAP(29)
     NDX=NDIM*NCOL
 
+    ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
     ALLOCATE(UPS(NDX,NTST+1),UOLDPS(NDX,NTST+1))
     ALLOCATE(UPOLDP(NDX,NTST+1),DUPS(NDX,NTST+1))
     ALLOCATE(UDOTPS(NDX,NTST+1),FA(NDX,NTST+1))
@@ -166,7 +167,7 @@ CONTAINS
     IAP(32)=NTOT
     ISTOP=0
 
-    DO I=1,NPARX
+    DO I=1,NFPR
        RLCUR(I)=0.d0
        RLOLD(I)=0.d0
        RLDOT(I)=0.d0
@@ -201,7 +202,7 @@ CONTAINS
 
 ! Store plotting data for restart point :
 
-    CALL STHD(IAP,RAP,ICP)
+    CALL STHD(IAP,RAP,ICP,ICU)
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE
@@ -209,7 +210,7 @@ CONTAINS
     ENDIF
     IAP(27)=ITP
     CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-    CALL STPLBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
     IF(ISTOP.EQ.1)RETURN
 
     CALL EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS)
@@ -348,13 +349,13 @@ CONTAINS
 ! Store plotting data.
 
 3   CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-    CALL STPLBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
 
     IF(ISTOP.EQ.0)THEN
        GOTO 1
     ENDIF
     DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,DUPS,UDOTPS,FA,FC,TM,DTM,P0,P1)
-    DEALLOCATE(UZR)
+    DEALLOCATE(UZR,RLCUR,RLOLD,RLDOT)
 
   END SUBROUTINE CNRLBV
 
@@ -818,11 +819,12 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*)
 ! Local
     INTEGER NDIM,NARS,NSKIP1,NSKIP2,I,J
-    INTEGER IBR,LAB,NFPR,NPARR
+    INTEGER IBR,LAB,NFPR,NFPRS,NPARR
     LOGICAL EOF3
 
     NDIM=IAP(1)
-    READ(3,*)IBR,ITPRS,ITPRS,LAB,NFPR,(NARS,I=1,3),NTSRS,NTSRS,NCOLRS,NPARR
+    NFPR=IAP(29)
+    READ(3,*)IBR,ITPRS,ITPRS,LAB,NFPRS,(NARS,I=1,3),NTSRS,NTSRS,NCOLRS,NPARR
     IAP(30)=IBR
     IAP(37)=LAB
 
@@ -840,8 +842,8 @@ CONTAINS
     READ(3,*)TM(NTSRS+1),UPS(1:NDIMRD,NTSRS+1)
     IF(NSKIP1>0)CALL SKIP3(NSKIP1,EOF3)
 
-    READ(3,*)ICPRS(1:NFPR)
-    READ(3,*)RLDOTRS(1:NFPR)
+    READ(3,*)ICPRS(1:MIN(NFPR,NFPRS))
+    READ(3,*)RLDOTRS(1:MIN(NFPR,NFPRS))
 
 ! Read U-dot (derivative with respect to arclength).
 
@@ -1632,7 +1634,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE STPLBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+  SUBROUTINE STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
 
     USE IO
     USE MESH
@@ -1665,7 +1667,7 @@ CONTAINS
 !  MAX U(*)   : The maxima of the first few solution components.
 !  PAR(ICP(*)): Further free parameters (if any).
 
-    DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),TM(*),DTM(*),UPS(*),THL(*),THU(*)
+    DIMENSION PAR(*),ICP(*),ICU(*),IAP(*),RAP(*),TM(*),DTM(*),UPS(*),THL(*),THU(*)
     DIMENSION RLDOT(*),UDOTPS(*)
 ! Local
     DIMENSION UMX(7)
@@ -1763,7 +1765,7 @@ CONTAINS
        NINS=IAP(33)
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
-    CALL WRLINE(IAP,PAR,ICP(NPARX+1),IBRS,NTOTS,LABW,AMP,UMX)
+    CALL WRLINE(IAP,PAR,ICU,IBRS,NTOTS,LABW,AMP,UMX)
 
 ! Write plotting and restart data on unit 8.
 
