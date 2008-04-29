@@ -408,9 +408,6 @@ class AUTOSolution(UserDict.UserDict):
 	# ODE problem.
 	if self["NTST"] != 0:
 	    self["Free Parameters"] = []
-	    line = inputfile.readline()
-	    if not line: raise PrematureEndofData
-            self["Free Parameters"].extend(map(int, string.split(line)))
             while len(self["Free Parameters"]) < self.__numChangingParameters:
                 line = inputfile.readline()
                 if not line: raise PrematureEndofData
