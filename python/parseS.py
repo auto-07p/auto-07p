@@ -411,6 +411,10 @@ class AUTOSolution(UserDict.UserDict):
 	    line = inputfile.readline()
 	    if not line: raise PrematureEndofData
             self["Free Parameters"].extend(map(int, string.split(line)))
+            while len(self["Free Parameters"]) < self.__numChangingParameters:
+                line = inputfile.readline()
+                if not line: raise PrematureEndofData
+                self["Free Parameters"].extend(map(int, string.split(line)))
 	    self["Parameter NULL vector"] = []
             while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
                 line = inputfile.readline()
