@@ -1986,55 +1986,65 @@ C
 C     ---------- ----
       SUBROUTINE FNPL(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
+      INTEGER NPARX,NIAP,NRAP
       INCLUDE 'auto.h'
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+      DOUBLE PRECISION, PARAMETER ::
+     *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 C
-      DIMENSION IAP(*)
-      DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER IAP(*),ICP(*),NDIM,IJAC
+      DOUBLE PRECISION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
+      DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:),FF1(:),FF2(:)
+      INTEGER NDM,NFPR,I,J
+      DOUBLE PRECISION UMX,UU,EP
 C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
        CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
          RETURN
        ENDIF
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
 C
 C Generate the Jacobian.
 C
+       DO I=1,NDM
+          DFDU(1:NDM,I)=PAR(11)*DFU(:,I)
+          DFDU(1:NDM,I+NDM)=0d0
+       ENDDO
+       DO I=1,NDM
+          DFDU(NDM+1:NDM+NDM,I+NDM)=PAR(11)*DFU(:,I)
+       ENDDO
+C
        UMX=0.d0
        DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+         IF(ABS(U(I))>UMX)UMX=ABS(U(I))
        ENDDO
 C
        EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FFPL(IAP,RAP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-         CALL FFPL(IAP,RAP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
-         DO J=1,NDIM
+       ALLOCATE(FF1(NDIM),FF2(NDIM))
+       DO I=1,NDM
+         UU=U(I)
+         U(I)=UU-EP
+         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         U(I)=UU+EP
+         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         U(I)=UU
+         DO J=NDM+1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
        ENDDO
 C
-       DEALLOCATE(UU1,UU2,FF2)
+       DEALLOCATE(FF2)
        IF (IJAC.EQ.1)THEN
          DEALLOCATE(DFU,DFP,FF1)
          RETURN
@@ -2050,7 +2060,6 @@ C
       ENDDO
 C
       DEALLOCATE(DFU,DFP,FF1)
-      RETURN
       END SUBROUTINE FNPL
 C
 C     ---------- ----
