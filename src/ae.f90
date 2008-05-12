@@ -637,7 +637,7 @@ CONTAINS
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    PARAMETER (HMACH=1.0d-7)
 
 ! This subroutine uses the secant method to accurately locate special
 ! points (branch points, folds, Hopf bifurcations, user zeroes).
@@ -803,7 +803,7 @@ CONTAINS
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    PARAMETER (HMACH=1.0d-7,RLARGE=1.0d+30)
 
     DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,*)
 ! Local
@@ -826,6 +826,30 @@ CONTAINS
 
     CHNG=.FALSE.
 
+! Try to guess whether the system is probably conservative or definitely not:
+! the dimension is even and the trace 0 if it is conservative.
+! In that case we use a tolerance to avoid detecting spurious
+! Hopf bifurcations.
+
+    tol=0.d0
+    IF(MOD(NDM,2)==0)THEN
+       trace=0.d0
+       DO I=1,NDM
+          trace=trace+AA(i,i)
+       ENDDO
+       a=0.d0
+       DO i=1,NDM
+          DO j=1,NDM
+             IF(ABS(AA(i,j))>a)THEN
+                a=ABS(AA(i,j))
+             ENDIF
+          ENDDO
+       ENDDO
+       IF(ABS(trace)<HMACH*a)THEN
+          tol=1.d-5
+       ENDIF
+    ENDIF
+
 ! Compute the eigenvalues of the Jacobian
 
     CALL EIG(IAP,NDM,NDIM+1,AA,EV,IER)
@@ -843,7 +867,7 @@ CONTAINS
 ! Order the eigenvalues by real part.
 
     DO I=1,NDM-1
-       RMAX=-RLARGE
+       RMAX=-HUGE(RMAX)
        LOC=I
        DO J=I,NDM
           RP=REAL(EV(J))
@@ -862,7 +886,7 @@ CONTAINS
 ! Compute the smallest real part.
 
     RIMHB=0.d0
-    AREV=RLARGE
+    AREV=HUGE(AREV)
     REV=0.d0
     DO I=1,NDM
        IF(AIMAG(EV(I)).NE.0.d0)THEN
