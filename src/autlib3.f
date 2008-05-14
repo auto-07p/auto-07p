@@ -12,7 +12,6 @@
       PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs)
       PUBLIC :: FNHW,STPNHW ! Hopf bifs (waves)
       PUBLIC :: FNPS,BCPS,ICPS,STPNPS ! Periodic solutions
-      PUBLIC :: STPNPB      ! Periodic solutions from Hopf
       PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
       PUBLIC :: FNWP,STPNWP ! Travelling waves (parabolic PDEs)
       PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
@@ -66,7 +65,7 @@ C
 C Generate the Jacobian.
 C
        UMX=0.d0
-       DO I=1,NDIM
+       DO I=1,NDM
          IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
        ENDDO
 C
@@ -2066,7 +2065,7 @@ C
        ENDIF
 C
        UMX=0.d0
-       DO I=1,NDIM
+       DO I=1,NDM
          IF(ABS(U(I))>UMX)UMX=ABS(U(I))
        ENDDO
 C
@@ -3836,24 +3835,37 @@ C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
+      ALLOCATABLE DFU(:,:),DFP(:,:),FF1(:),FF2(:)
 C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-      ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+      ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
       CALL FFBL(IAP,RAP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
       IF(IJAC.EQ.0)THEN
         DEALLOCATE(DFU,DFP)
         RETURN
       ENDIF
-      ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
 C
 C Generate the Jacobian.
 C
+      DFDU(1:NDM,1:NDM)=DFU(:,:)
+      DFDU(1:NDM,NDM+1:NDIM)=0d0
+      DFDU(NDM+1:NDIM,NDM+1:NDIM)=DFU(:,:)
+      IF(IJAC==2)THEN
+         NFPX=NFPR/2-1
+         DO I=1,NFPR-NFPX
+            DFDP(1:NDM,ICP(I))=DFP(:,ICP(I))
+         ENDDO
+         DO I=1,NFPX
+            DFDP(1:NDM,ICP(NFPR-NFPX+I))=0d0
+            DFDP(NDM+1:NDIM,ICP(NFPR-NFPX+I))=DFP(:,ICP(I+1))
+         ENDDO
+      ENDIF
+
       UMX=0.d0
       DO I=1,NDIM
         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
@@ -3861,27 +3873,27 @@ C
 C
       EP=HMACH*(1+UMX)
 C
-      DO I=1,NDIM
-        DO J=1,NDIM
-          UU1(J)=U(J)
-          UU2(J)=U(J)
-        ENDDO
-        UU1(I)=UU1(I)-EP
-        UU2(I)=UU2(I)+EP
-        CALL FFBL(IAP,RAP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-        CALL FFBL(IAP,RAP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
-        DO J=1,NDIM
+      ALLOCATE(FF1(NDIM),FF2(NDIM))
+      DO I=1,NDM
+        UU=U(I)
+        U(I)=UU-EP
+        CALL FFBL(IAP,RAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+        U(I)=UU+EP
+        CALL FFBL(IAP,RAP,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+        U(I)=UU
+        DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
         ENDDO
       ENDDO
 C
-      DEALLOCATE(UU1,UU2,FF2)
+      DEALLOCATE(FF2)
       IF (IJAC.EQ.1)THEN
         DEALLOCATE(DFU,DFP,FF1)
         RETURN
       ENDIF
 C
-      DO I=1,NFPR
+      NFPX=NFPR/2-1
+      DO I=1,NFPR-NFPX
         PAR(ICP(I))=PAR(ICP(I))+EP
         CALL FFBL(IAP,RAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
         DO J=1,NDIM
@@ -3912,12 +3924,10 @@ C
          DO J=1,NDM
            F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
          ENDDO
-         IF(NFPX.GT.0)THEN
-           DO J=1,NFPX
-             F(NDM+I)=F(NDM+I)
-     *      + DFDP(I,ICP(1+J))*PAR(ICP(NFPR-NFPX+J))
-           ENDDO
-         ENDIF
+         DO J=1,NFPX
+            F(NDM+I)=F(NDM+I)
+     *           + DFDP(I,ICP(1+J))*PAR(ICP(NFPR-NFPX+J))
+         ENDDO
        ENDDO
 C
       RETURN
