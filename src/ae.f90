@@ -103,7 +103,7 @@ CONTAINS
 ! Generate the starting point
 
     NODIR=1
-    CALL STPNT(IAP,RAP,PAR,ICP,U)
+    CALL STPNT(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
     CALL PVLSAE(IAP,RAP,U,PAR)
 
 ! Determine a suitable starting label and branch number
@@ -112,8 +112,13 @@ CONTAINS
 
 ! Starting procedure  (to get direction vector) :
 
-    IF(NODIR==1)THEN
+    IF(NODIR==1.AND.ISW>=0)THEN
        CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0)
+    ELSEIF(IRS/=0.AND.ISW<0)THEN
+       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
+    ELSEIF(UDOT(NDIM+1)<0.d0)THEN
+! Make sure that the PAR(ICP(1))-dot is positive.
+       UDOT(:)=-UDOT(:)
     ENDIF
 
 ! Write constants
@@ -130,12 +135,12 @@ CONTAINS
     ENDIF
     IAP(27)=ITP
     U(NDIM+1)=PAR(ICP(1))
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Set initial approximations to the second point on the branch
 
-    IF(ISW==-1)GOTO 22
+    IF(ISW<0)GOTO 22
     UOLD(:)=U(:)
     U(:)=UOLD(:)+RDS*UDOT(:)
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
@@ -176,7 +181,7 @@ CONTAINS
 
 ! Store plotting data for first point on the bifurcating branch
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
 ! Determine the second point on the bifurcating branch
@@ -186,7 +191,7 @@ CONTAINS
 
 ! Store plotting data for second point :
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
+    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
     RBP=0.d0
     REV=0.d0
@@ -286,7 +291,7 @@ CONTAINS
 
 ! Store plotting data on unit 7 :
 
-5   CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
+5   CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
 ! Adapt the stepsize along the branch
 
@@ -310,7 +315,7 @@ CONTAINS
   END SUBROUTINE CNRLAE
 
 ! ---------- ------
-  SUBROUTINE STPNUS(IAP,RAP,PAR,ICP,U)
+  SUBROUTINE STPNUS(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -325,7 +330,7 @@ CONTAINS
   END SUBROUTINE STPNUS
 
 ! ---------- ------
-  SUBROUTINE STPNAE(IAP,RAP,PAR,ICP,U)
+  SUBROUTINE STPNAE(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 
     USE IO
     IMPLICIT NONE
@@ -333,13 +338,29 @@ CONTAINS
     LOGICAL FOUND
 
 ! Gets the starting data from unit 3
-    INTEGER IAP(*),ICP(*)
-    DOUBLE PRECISION RAP(*),PAR(*),U(*)
-    INTEGER IRS,NFPRS
+    INTEGER IAP(*),ICP(*),NODIR
+    DOUBLE PRECISION RAP(*),PAR(*),U(*),UDOT(*)
+    INTEGER IRS,NFPR,NFPRS,I,ICPRS(NPARX)
 
     IRS=IAP(3)
     CALL FINDLB(IAP,IRS,NFPRS,FOUND)
-    CALL READLB(IAP,U,PAR)
+    CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+  
+! Take care of the case where the free parameters have been changed at
+! the restart point.
+
+    NODIR=0
+    NFPR=IAP(29)
+    IF(NFPRS/=NFPR)THEN
+       NODIR=1
+       RETURN
+    ENDIF
+    DO I=1,NFPR
+       IF(ICPRS(I)/=ICP(I)) THEN
+          NODIR=1
+          RETURN
+       ENDIF
+    ENDDO
 
   END SUBROUTINE STPNAE
 
@@ -359,7 +380,6 @@ CONTAINS
     ALLOCATABLE AA(:,:),F(:),DFDU(:,:),DFDP(:,:)
 
     NDIM=IAP(1)
-    ISW=IAP(10)
     IID=IAP(18)
 
     ALLOCATE(F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
@@ -401,27 +421,6 @@ CONTAINS
     SIGN=1.d0
     IF(UDOT(NDIM+1)<0.d0.AND.IPERP==0)SIGN=-1.d0
     UDOT(:)=SIGN/DSQRT(SS)*UDOT(:)
-
-    IF(ISW==-1.AND.IPERP==0)THEN
-       DO I=1,NDIM
-          AA(I,NDIM+1)=DFDP(I,ICP(1))
-          DO K=1,NDIM
-             AA(I,K)=DFDU(I,K)
-          ENDDO
-       ENDDO
-       DO K=1,NDIM+1
-          AA(NDIM+1,K)=UDOT(K)
-       ENDDO
-       CALL NLVC(NDIM+1,NDIM+1,1,AA,UDOT)
-
-       SS=0.d0
-       DO I=1,NDIM+1
-          SS=SS+THU(I)*UDOT(I)**2
-       ENDDO
-       SC=1.d0/DSQRT(SS)
-
-       UDOT(:)=SC*UDOT(:)
-    ENDIF
 
     DEALLOCATE(AA,F,DFDU,DFDP)
 
@@ -1202,7 +1201,7 @@ CONTAINS
   END SUBROUTINE SWPRC
   
 ! ---------- ------
-  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
+  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
     USE IO
     USE SUPPORT
@@ -1236,7 +1235,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
-    DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*)
+    DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*),UDOT(*)
     INTEGER, INTENT(INOUT) :: ISTOP
 
     INTEGER NDIM,IPS,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR
@@ -1325,19 +1324,19 @@ CONTAINS
 
 ! Write restart information for multi-parameter analysis :
 
-    IF(LABW.NE.0)CALL WRTSP8(IAP,RAP,PAR,ICP,LABW,U)
+    IF(LABW.NE.0)CALL WRTSP8(IAP,RAP,PAR,ICP,LABW,U,UDOT)
 !
   END SUBROUTINE STPLAE
 
 ! ---------- ------
-  SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,U)
+  SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,U,UDOT)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Write restart information on singular points, plotting points, etc.,
 ! on unit 8.
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),U(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),U(*),UDOT(*)
 
     NDIM=IAP(1)
     ISW=IAP(10)
@@ -1348,19 +1347,27 @@ CONTAINS
 
     NTPL=1
     NAR=NDIM+1
-    NROWPR=NDIM/7+1 + (NPARX-1)/7+1
+
+    NROWPR=2+NDIM/7+(NDIM-1)/7 + (NFPR-1)/7+1 + (NPARX-1)/7+1 + (NFPR-1)/20+1
     PAR(ICP(1))=U(NDIM+1)
     T=0.d0
     AMP=0.d0
     RAP(10)=AMP
 
     MTOT=MOD(NTOT-1,9999)+1
-    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,0,0,NPARX
+    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,1,0,NPARX
     WRITE(8,102)T,(U(I),I=1,NDIM)
+! Write the free parameter indices:
+    WRITE(8,103)(ICP(I),I=1,NFPR)
+! Write the direction of the branch:
+    WRITE(8,102)UDOT(NDIM+1),(UDOT(NDIM-NFPR+I),I=2,NFPR)
+    WRITE(8,102)(UDOT(K),K=1,NDIM)
+! Write the parameter values.
     WRITE(8,102)(PAR(I),I=1,NPARX)
 
 101 FORMAT(6I6,I8,I6,I8,3I5)
 102 FORMAT(4X,7ES19.10)
+103 FORMAT(20I5)
 
     CALL FLUSH(8)
   END SUBROUTINE WRTSP8

@@ -139,7 +139,7 @@ C
       END SUBROUTINE FFLP
 C
 C     ---------- ------
-      SUBROUTINE STPNLP(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNLP(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -151,10 +151,11 @@ C
 C
 C Generates starting data for the continuation of folds.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -162,7 +163,7 @@ C
        NDM=IAP(23)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
        IF(IPS.EQ.-1)THEN
@@ -306,7 +307,7 @@ C
       END SUBROUTINE FFBP
 C
 C     ---------- ------
-      SUBROUTINE STPNBP(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNBP(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -318,10 +319,11 @@ C
 C
 C Generates starting data for the continuation of BP.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -330,7 +332,7 @@ C
        NDM=IAP(23)
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX),A(NDM+1,NDM+1))
        ALLOCATE(V(NDM+1),F(NDM))
@@ -434,7 +436,7 @@ C
       END SUBROUTINE FNC1
 C
 C     ---------- ------
-      SUBROUTINE STPNC1(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNC1(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -445,6 +447,7 @@ C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       DOUBLE PRECISION DUM(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        NDM=IAP(23)
@@ -575,7 +578,7 @@ C
       END SUBROUTINE FFC2
 C
 C     ---------- ------
-      SUBROUTINE STPNC2(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNC2(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -588,10 +591,11 @@ C
 C Generates starting data for the continuation equations for
 C optimization of algebraic systems (More than one parameter).
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:)
       DIMENSION DP(NPARX),UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -600,7 +604,7 @@ C
        CALL FINDLB(IAP,IRS,NFPR,FOUND)
        NFPR=NFPR+1
        IAP(29)=NFPR
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        IF(NFPR.EQ.3)THEN
          ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),F(NDM),V(NDM+1))
@@ -829,7 +833,7 @@ C
       END SUBROUTINE FFHD
 C
 C     ---------- ------
-      SUBROUTINE STPNHD(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNHD(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -842,10 +846,11 @@ C
 C Generates starting data for the continuation of Hopf bifurcation
 C points for maps.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DUMDFP(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -853,7 +858,7 @@ C
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        THTA=PI(2.d0)/PAR(11)
        S1=DSIN(THTA)
@@ -1019,7 +1024,7 @@ C
       END SUBROUTINE FFHB
 C
 C     ---------- ------
-      SUBROUTINE STPNHB(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNHB(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -1032,10 +1037,11 @@ C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE).
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DFP(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1043,7 +1049,7 @@ C
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        PERIOD=PAR(11)
        ROM=PERIOD/PI(2.d0)
@@ -1205,7 +1211,7 @@ C
       END SUBROUTINE FFHW
 C
 C     ---------- ------
-      SUBROUTINE STPNHW(IAP,RAP,PAR,ICP,U)
+      SUBROUTINE STPNHW(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -1218,10 +1224,11 @@ C
 C Generates starting data for the continuation of a bifurcation to a
 C traveling wave.
 C
-      DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
+      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local (Cannot use BLLOC here.)
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1229,7 +1236,7 @@ C
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        IJAC=1
        PERIOD=PAR(11)
@@ -1446,8 +1453,9 @@ C
       DIMENSION THL(*),THU(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -1480,11 +1488,11 @@ C
 
 C from a Hopf bifurcation point:
 
-       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
-       ALLOCATE(SMAT(2*NDIM,2*NDIM))
+       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
+       ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -1566,7 +1574,7 @@ C
 C
        NODIR=-1
 C
-       DEALLOCATE(DFU,F,U,RNLLV,SMAT)
+       DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT)
       RETURN
       END SUBROUTINE STPNPS
 C
@@ -1724,6 +1732,7 @@ C
       USE MESH
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      include 'auto.h'
 C
 C Generates starting data for the continuation of a branch of periodic
 C solutions starting from a Hopf bifurcation point (Waves).
@@ -1732,8 +1741,9 @@ C
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
       DIMENSION THL(*),THU(*)
 C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:)
+      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
+      INTEGER ICPRS(NPARX)
 C
       LOGICAL FOUND
 C
@@ -1742,11 +1752,11 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
        NFPR=IAP(29)
-       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),RNLLV(2*NDIM))
-       ALLOCATE(SMAT(2*NDIM,2*NDIM))
+       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
+       ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 C
        CALL FINDLB(IAP,IRS,NFPR1,FOUND)
-       CALL READLB(IAP,U,PAR)
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -1824,7 +1834,7 @@ C
 C
        NODIR=-1
 C
-       DEALLOCATE(DFU,F,U,RNLLV,SMAT)
+       DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT)
       RETURN
       END SUBROUTINE STPNWP
 C
