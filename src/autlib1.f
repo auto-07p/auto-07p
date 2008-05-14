@@ -868,14 +868,10 @@ C          ** Fold continuation (Periodic solutions); start
            NFPR=NBC+NINT-NDIM+1
            IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
 C            ** Variable period
-             ICP(2)=13
-             ICP(3)=11
-             ICP(4)=12
-           ELSE
-C            ** Fixed period
-             ICP(3)=13
-             ICP(4)=12
+             ICP(2)=11
            ENDIF
+           ICP(3)=13
+           ICP(4)=12
            ILP=0
            ISW=-2
            ISP=0
@@ -890,7 +886,8 @@ C          ** Fold continuation (Periodic solutions); restart
            NFPR=NBC+NINT-NDIM+1
            IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
 C            ** Variable period
-             ICP(3)=11
+             ICP(3)=ICP(2)
+             ICP(2)=11
            ENDIF
            ICP(4)=12
 C

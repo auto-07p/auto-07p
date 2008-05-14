@@ -1313,9 +1313,9 @@ C Local
 C
 C Generate the function.
 C
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,ABS(IJAC),F,DFDU,DFDP)
        PERIOD=PAR(11)
-       IF(ICP(2).EQ.11.AND.IJAC.EQ.2)THEN
+       IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
 C          **Variable period continuation
            DFDP(:,11)=F(:)
        ENDIF
@@ -1323,7 +1323,7 @@ C          **Variable period continuation
        IF(IJAC.EQ.0)RETURN
 C      **Generate the Jacobian.
        DFDU(:,:)=PERIOD*DFDU(:,:)
-       IF(IJAC.EQ.1)RETURN
+       IF(ABS(IJAC).EQ.1)RETURN
        NFPX=1
        IF(ICP(2).NE.11)THEN
 C          **Fixed period continuation
@@ -2038,30 +2038,24 @@ C
 C
 C Generate the Jacobian.
 C
-       DO I=1,NDM
-          DFDU(1:NDM,I)=PAR(11)*DFU(:,I)
-          DFDU(1:NDM,I+NDM)=0d0
-       ENDDO
-       DO I=1,NDM
-          DFDU(NDM+1:NDM+NDM,I+NDM)=PAR(11)*DFU(:,I)
-       ENDDO
+       DFDU(1:NDM,1:NDM)=DFU(:,:)
+       DFDU(1:NDM,NDM+1:NDIM)=0d0
+       DFDU(NDM+1:NDIM,NDM+1:NDIM)=DFU(:,:)
        IF(IJAC==2)THEN
-          DO I=1,NFPR
-             IF(ICP(I)==11)THEN
-                DFDP(1:NDM,11)=F(1:NDM)/PAR(11)
-                DFDP(NDM+1:NDIM,11)=
-     *               (F(NDM+1:NDIM)-PAR(12)/PAR(11)*F(1:NDM))/PAR(11)
-             ELSEIF(ICP(I)==12)THEN
-                DFDP(1:NDM,12)=0d0
-                IF(ICP(3)==11)THEN
-                   DFDP(NDM+1:NDIM,12)=F(1:NDM)/PAR(11)
-                ELSE
-                   DFDP(NDM+1:NDIM,12)=DFP(:,ICP(2))
-                ENDIF
-             ELSE
-                DFDP(1:NDM,ICP(I))=PAR(11)*DFP(:,ICP(I))
-             ENDIF
+          DO I=1,NFPR-2
+             DFDP(1:NDM,ICP(I))=DFP(:,ICP(I))
           ENDDO
+          IF(ICP(2)==11)THEN
+             DFDP(NDM+1:NDIM,11)=
+     *            (F(NDM+1:NDIM)-PAR(12)/PAR(11)*F(1:NDM))/PAR(11)
+          ENDIF
+          DFDP(1:NDM,12)=0d0
+          DFDP(NDM+1:NDIM,12)=DFP(:,ICP(2))/PAR(11)
+          IF(ICP(3)==13)THEN
+             DFDP(1:NDM,13)=0d0
+          ELSE
+             DFDP(1:NDM,ICP(3))=PAR(11)*DFP(:,ICP(3))
+          ENDIF
        ENDIF
 C
        UMX=0.d0
@@ -2090,8 +2084,8 @@ C
          RETURN
        ENDIF
 C
-       DO I=1,NFPR
-         IF(ICP(I)==11.OR.ICP(I)==12)CYCLE
+       DO I=1,NFPR-1
+         IF(ICP(I)==11)CYCLE
          PAR(ICP(I))=PAR(ICP(I))+EP
          CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          DO J=NDM+1,NDIM
@@ -2111,26 +2105,17 @@ C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C
-       PERIOD=PAR(11)
-       BETA=PAR(12)
        IJC=IJAC
-       IF(IJC==0)IJC=1
-       IF(ICP(3)/=11)IJC=2
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       IF(IJC==0)IJC=-1
+       IF(ICP(2)/=11)IJC=2
+       CALL FNPS(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
        DO I=1,NDM
          F(NDM+I)=0.d0
          DO J=1,NDM
            F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
          ENDDO
-           IF(ICP(3).EQ.11)THEN
-C            ** Variable period
-           F(NDM+I)=PERIOD*F(NDM+I)+BETA*F(I)
-         ELSE
-C            ** Fixed period
-           F(NDM+I)=PERIOD*F(NDM+I)+BETA*DFDP(I,ICP(2))
-         ENDIF
-         F(I)=PERIOD*F(I)
+         F(NDM+I)=F(NDM+I)+PAR(12)/PAR(11)*DFDP(I,ICP(2))
        ENDDO
 C
       RETURN
