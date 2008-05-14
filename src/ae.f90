@@ -102,12 +102,19 @@ CONTAINS
 
 ! Generate the starting point
 
+    NODIR=1
     CALL STPNT(IAP,RAP,PAR,ICP,U)
     CALL PVLSAE(IAP,RAP,U,PAR)
 
 ! Determine a suitable starting label and branch number
 
     CALL NEWLAB(IAP)
+
+! Starting procedure  (to get direction vector) :
+
+    IF(NODIR==1)THEN
+       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0)
+    ENDIF
 
 ! Write constants
 
@@ -126,18 +133,21 @@ CONTAINS
     CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,ISTOP)
     IF(ISTOP.EQ.1)GOTO 6
 
-! Starting procedure  (to get second point on first branch) :
+! Set initial approximations to the second point on the branch
 
-    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT,ISTOP)
+    IF(ISW==-1)GOTO 22
+    UOLD(:)=U(:)
+    U(:)=UOLD(:)+RDS*UDOT(:)
+    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
     IF(ISTOP.EQ.1)GOTO 5
     ITP=0
     IAP(27)=ITP
-    IF(ISW==-1)GOTO 22
     GOTO 3
 
 ! Initialize computation of the next bifurcating branch.
 
  2  CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
+    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
 
     IF(IPOS)THEN
        NBIF=NBIF-1
@@ -248,7 +258,7 @@ CONTAINS
           IF(ISP.GT.0)THEN
              ITP=1+10*ITPST
              IAP(27)=ITP
-             CALL STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,U,THU)
+             CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
              RLP=0.d0
              RBP=0.d0
              REV=0.d0
@@ -334,7 +344,7 @@ CONTAINS
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,RDS,U,UOLD,UDOT,THU,NIT,ISTOP)
+  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -343,17 +353,16 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*),ICP(*)
+    DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*),ICP(*)
 
 ! Local
-    ALLOCATABLE AA(:,:),F(:),DU(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE AA(:,:),F(:),DFDU(:,:),DFDP(:,:)
 
     NDIM=IAP(1)
     ISW=IAP(10)
     IID=IAP(18)
 
-    ALLOCATE(AA(NDIM,NDIM+1),F(NDIM),DU(NDIM+1), &
-         DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
+    ALLOCATE(F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPARX))
 
     UOLD(NDIM+1)=PAR(ICP(1))
     DO I=1,NDIM
@@ -363,29 +372,37 @@ CONTAINS
 ! Determine the direction of the branch at the starting point
 
     CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+    IF(IPERP==1)THEN
+       ALLOCATE(AA(NDIM+1,NDIM+1))
+    ELSE
+       ALLOCATE(AA(NDIM,NDIM+1))
+    ENDIF
     AA(:,1:NDIM)=DFDU(:,:)
     AA(:,NDIM+1)=DFDP(:,ICP(1))
 
-    IF(IID.GE.3)CALL WRJAC(NDIM,NDIM+1,AA,F)
-    CALL NLVC(NDIM,NDIM+1,1,AA,DU)
-    DEALLOCATE(AA)
-    ALLOCATE(AA(NDIM+1,NDIM+1))
+    IF(IPERP==1)THEN
+       AA(NDIM+1,:)=UDOT(:)
+       IF(IID.GE.3)CALL WRJAC(NDIM+1,NDIM+1,AA,F)
+       CALL NLVC(NDIM+1,NDIM+1,1,AA,UDOT)
+    ELSE
+       IF(IID.GE.3)CALL WRJAC(NDIM,NDIM+1,AA,F)
+       CALL NLVC(NDIM,NDIM+1,1,AA,UDOT)
+       DEALLOCATE(AA)
+       ALLOCATE(AA(NDIM+1,NDIM+1))
+    ENDIF
 
 ! Scale and make sure that the PAR(ICP(1))-dot is positive.
 
     SS=0.d0
     DO I=1,NDIM+1
-       SS=SS+THU(I)*DU(I)**2
+       SS=SS+THU(I)*UDOT(I)**2
     ENDDO
 
     SIGN=1.d0
-    IF(DU(NDIM+1).LT.0.d0)SIGN=-1.d0
-    SC=SIGN/DSQRT(SS)
-    DO I=1,NDIM+1
-       DU(I)=SC*DU(I)
-    ENDDO
+    IF(UDOT(NDIM+1)<0.d0.AND.IPERP==0)SIGN=-1.d0
+    UDOT(:)=SIGN/DSQRT(SS)*UDOT(:)
 
-    IF(ISW==-1)THEN
+    IF(ISW==-1.AND.IPERP==0)THEN
        DO I=1,NDIM
           AA(I,NDIM+1)=DFDP(I,ICP(1))
           DO K=1,NDIM
@@ -393,35 +410,20 @@ CONTAINS
           ENDDO
        ENDDO
        DO K=1,NDIM+1
-          AA(NDIM+1,K)=DU(K)
+          AA(NDIM+1,K)=UDOT(K)
        ENDDO
-       CALL NLVC(NDIM+1,NDIM+1,1,AA,DU)
+       CALL NLVC(NDIM+1,NDIM+1,1,AA,UDOT)
 
        SS=0.d0
        DO I=1,NDIM+1
-          SS=SS+THU(I)*DU(I)**2
+          SS=SS+THU(I)*UDOT(I)**2
        ENDDO
        SC=1.d0/DSQRT(SS)
 
-       DO I=1,NDIM+1
-          DU(I)=SC*DU(I)
-       ENDDO
+       UDOT(:)=SC*UDOT(:)
     ENDIF
 
-    DO I=1,NDIM+1
-       UDOT(I)=DU(I)
-    ENDDO
-
-! Set initial approximations to the second point on the branch
-
-    IF(ISW==-1)RETURN
-    DO I=1,NDIM+1
-       U(I)=UOLD(I)+RDS*UDOT(I)
-    ENDDO
-
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
-
-    DEALLOCATE(AA,F,DU,DFDU,DFDP)
+    DEALLOCATE(AA,F,DFDU,DFDP)
 
   END SUBROUTINE STPRAE
 
@@ -976,47 +978,29 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- -----
-  SUBROUTINE STBIF(IAP,AA,NBIF,NBIFS,STUD,STU,U,THU)
+  SUBROUTINE STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Stores branching data in the following arrays :
 !        STU    ( the solution vector U | PAR(ICP(1)) )
 !        STUD   ( U-dot | PAR(ICP(1))-dot )
-! Here the vector ( U-dot, PAR(ICP(1))-dot ) lies in the 2-d nullspace
-! at branch point and is perpendicular to the direction vector of
+! Here the vector ( U-dot, PAR(ICP(1))-dot ) is the direction vector of
 ! known branch at this point.
 
-    DIMENSION IAP(*),AA(IAP(1)+1,*),U(*)
-    DIMENSION STUD(NBIFS,*),STU(NBIFS,*),THU(*)
-    ALLOCATABLE DU(:)
-
-    NDIM=IAP(1)
+    INTEGER, INTENT(IN) :: NDIM,NBIFS
+    INTEGER, INTENT(INOUT) :: NBIF
+    DOUBLE PRECISION, INTENT(OUT) :: STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1)
+    DOUBLE PRECISION, INTENT(IN) :: U(NDIM+1),UDOT(NDIM+1)
 
 ! Keep track of the number of branch points stored.
 
     IF(NBIF==NBIFS)RETURN
     NBIF=NBIF+1
 
-    ALLOCATE(DU(NDIM+1))
-    CALL NLVC(NDIM+1,NDIM+1,1,AA,DU)
-
-    SS=0.d0
-    DO I=1,NDIM+1
-       SS=SS+THU(I)*DU(I)**2
-    ENDDO
-    SC=1.d0/DSQRT(SS)
-
-    DO I=1,NDIM+1
-       DU(I)=SC*DU(I)
-    ENDDO
-
-    DO I=1,NDIM+1
-       STU(NBIF,I)=U(I)
-       STUD(NBIF,I)=DU(I)
-    ENDDO
-    DEALLOCATE(DU)
+    STU(NBIF,:)=U(:)
+    STUD(NBIF,:)=UDOT(:)
 
   END SUBROUTINE STBIF
 
