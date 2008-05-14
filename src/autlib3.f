@@ -2030,7 +2030,7 @@ C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
-       CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+       CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -2046,6 +2046,24 @@ C
        DO I=1,NDM
           DFDU(NDM+1:NDM+NDM,I+NDM)=PAR(11)*DFU(:,I)
        ENDDO
+       IF(IJAC==2)THEN
+          DO I=1,NFPR
+             IF(ICP(I)==11)THEN
+                DFDP(1:NDM,11)=F(1:NDM)/PAR(11)
+                DFDP(NDM+1:NDIM,11)=
+     *               (F(NDM+1:NDIM)-PAR(12)/PAR(11)*F(1:NDM))/PAR(11)
+             ELSEIF(ICP(I)==12)THEN
+                DFDP(1:NDM,12)=0d0
+                IF(ICP(3)==11)THEN
+                   DFDP(NDM+1:NDIM,12)=F(1:NDM)/PAR(11)
+                ELSE
+                   DFDP(NDM+1:NDIM,12)=DFP(:,ICP(2))
+                ENDIF
+             ELSE
+                DFDP(1:NDM,ICP(I))=PAR(11)*DFP(:,ICP(I))
+             ENDIF
+          ENDDO
+       ENDIF
 C
        UMX=0.d0
        DO I=1,NDIM
@@ -2058,9 +2076,9 @@ C
        DO I=1,NDM
          UU=U(I)
          U(I)=UU-EP
-         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
          U(I)=UU
          DO J=NDM+1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -2074,9 +2092,10 @@ C
        ENDIF
 C
        DO I=1,NFPR
+         IF(ICP(I)==11.OR.ICP(I)==12)CYCLE
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-         DO J=1,NDIM
+         CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+         DO J=NDM+1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
          PAR(ICP(I))=PAR(ICP(I))-EP
@@ -2086,7 +2105,7 @@ C
       END SUBROUTINE FNPL
 C
 C     ---------- ----
-      SUBROUTINE FFPL(IAP,RAP,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFPL(IAP,RAP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -2095,7 +2114,10 @@ C
 C
        PERIOD=PAR(11)
        BETA=PAR(12)
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       IJC=IJAC
+       IF(IJC==0)IJC=1
+       IF(ICP(3)/=11)IJC=2
+       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
        DO I=1,NDM
          F(NDM+I)=0.d0
