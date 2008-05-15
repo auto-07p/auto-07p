@@ -25,20 +25,19 @@ import types
 
 # A little dictionary to transform types to human readable strings
 def type_translation(type):
-    type_translation_dict = {}
-
-    type_translation_dict[0]  = {"long name" : "No Label","short name" : "No Label"}
-    type_translation_dict[1]  = {"long name" : "Branch point (algebraic problem)","short name" : "BP"}
-    type_translation_dict[2]  = {"long name" : "Fold (algebraic problem)","short name" : "LP"}
-    type_translation_dict[3]  = {"long name" : "Hopf bifurcation (algebraic problem)","short name" : "HB"}
-    type_translation_dict[4]  = {"long name" : "Regular point (every NPR steps)","short name" : "RG"}
-    type_translation_dict[-4] = {"long name" : "User requested point","short name" : "UZ"}
-    type_translation_dict[5]  = {"long name" : "Fold (ODE)","short name" : "LP"}
-    type_translation_dict[6]  = {"long name" : "Bifurcation point (ODE)","short name" : "BP"}
-    type_translation_dict[7]  = {"long name" : "Period doubling bifurcation (ODE)","short name" : "PD"}
-    type_translation_dict[8]  = {"long name" : "Bifurcation to invarient torus (ODE)","short name" : "TR"}
-    type_translation_dict[9]  = {"long name" : "Normal begin or end","short name" : "EP"}
-    type_translation_dict[-9] = {"long name" : "Abnormal termination","short name" : "MX"}
+    type_translation_dict = {
+       0: {"long name" : "No Label","short name" : "No Label"},
+       1: {"long name" : "Branch point (algebraic problem)","short name" : "BP"},
+       2: {"long name" : "Fold (algebraic problem)","short name" : "LP"},
+       3: {"long name" : "Hopf bifurcation (algebraic problem)","short name" : "HB"},
+       4: {"long name" : "Regular point (every NPR steps)","short name" : "RG"},
+      -4: {"long name" : "User requested point","short name" : "UZ"},
+       5: {"long name" : "Fold (ODE)","short name" : "LP"},
+       6: {"long name" : "Bifurcation point (ODE)","short name" : "BP"},
+       7: {"long name" : "Period doubling bifurcation (ODE)","short name" : "PD"},
+       8: {"long name" : "Bifurcation to invarient torus (ODE)","short name" : "TR"},
+       9: {"long name" : "Normal begin or end","short name" : "EP"},
+      -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
     if type>=0:
         type=type%10
@@ -259,9 +258,11 @@ class parseB:
                 if item["PT"] == 1:
                     section = section + 1
                 item["section"] = section
-                item["data"]=[]
                 item["index"] = len(self.data)
-                item["data"].extend(map(AUTOatof, line[4:]))
+                try:
+                    item["data"] = map(float, line[4:])
+                except:
+                    item["data"] = map(AUTOatof, line[4:])
                 # We keep two lists of references to the
                 # data, one is just the data in the file
                 # and the other includes the header.

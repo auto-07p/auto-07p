@@ -1,11 +1,13 @@
 #! /usr/bin/env autox
 
-from AUTOclui import *
+import sys
+import parseB
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        dg(sys.argv[1]).writeScreen()
+        diagram=parseB.parseB('b.'+sys.argv[1])
     else:
-        dg().writeScreen()
+        diagram=parseB.parseB('fort.7')
+    diagram.writeScreen()
 
