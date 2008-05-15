@@ -23,9 +23,7 @@ import sys
 import AUTOExceptions
 import types
 
-# A little dictionary to transform types to human readable strings
-def type_translation(type):
-    type_translation_dict = {
+type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
        1: {"long name" : "Branch point (algebraic problem)","short name" : "BP"},
        2: {"long name" : "Fold (algebraic problem)","short name" : "LP"},
@@ -39,6 +37,8 @@ def type_translation(type):
        9: {"long name" : "Normal begin or end","short name" : "EP"},
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
+# A little dictionary to transform types to human readable strings
+def type_translation(type):
     if type>=0:
         type=type%10
     else:
@@ -64,10 +64,10 @@ def type_translation(type):
 # in the fort.7 file.
 
 class parseB:
-    def __init__(self,filename=None):
+    def __init__(self,filename=None,screen_lines=0):
         self.data=[]
 	if filename:
-	    self.readFilename(filename)
+	    self.readFilename(filename,screen_lines)
 
     def __str__(self):
         rep=""
@@ -228,7 +228,7 @@ class parseB:
 	self.write(output)
 	output.close()
 
-    def read(self,inputfile):
+    def read(self,inputfile,screen_lines=0):
         data=inputfile.readlines()
         section = 0
         self.with_header=[]
@@ -236,12 +236,6 @@ class parseB:
         for input_line in data:
             line = string.split(input_line)
             if len(line) > 0 and int(line[0]) != 0:
-                item = {}
-                item["BR"] = int(line[0])
-                item["PT"] = int(line[1])
-                item["TY number"] = int(line[2])
-                item["TY name"] = type_translation(item["TY number"])["short name"]
-                item["LAB"] = int(line[3])
                 # A section is defined as a part of a fort.7
                 # file between "headers", i.e. those parts
                 # of the fort.7 file which start with a 0
@@ -255,26 +249,34 @@ class parseB:
                 # the fort.7 file will not match the fort.8 file.
                 # Another way for a section to start is with a point number
                 # equal to 1.
-                if item["PT"] == 1:
+                tynumber = int(line[2])
+                if tynumber == 0 and screen_lines:
+                    continue
+                pt = int(line[1])
+                if pt == 1:
                     section = section + 1
-                item["section"] = section
-                item["index"] = len(self.data)
                 try:
-                    item["data"] = map(float, line[4:])
+                    fdata = map(float, line[4:])
                 except:
-                    item["data"] = map(AUTOatof, line[4:])
+                    fdata = map(AUTOatof, line[4:])
+                item = {"BR": int(line[0]),
+                        "PT": pt,
+                        "TY number": tynumber,
+                        "TY name": type_translation(tynumber)["short name"],
+                        "LAB": int(line[3]),
+                        "data": fdata,
+                        "section": section,
+                        "index": len(self.data) }
                 # We keep two lists of references to the
                 # data, one is just the data in the file
                 # and the other includes the header.
                 self.data.append(item)
                 self.with_header.append(item)
             else:
-                item = {}
-                item["header"] = input_line
-                self.with_header.append(item)
-    def readFilename(self,filename):
+                self.with_header.append({ "header": input_line })
+    def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")
-	self.read(inputfile)
+	self.read(inputfile,screen_lines)
 	inputfile.close()
 
 def AUTOatof(input_string):
