@@ -185,13 +185,13 @@ class parseB:
             if line.has_key("header"):
                 l = string.split(line["header"])
                 if len(l) > 1 and l[1]=='PT':
-                    output_line = "  BR    PT  TY  LAB "
+                    output_line = "   0    PT  TY  LAB "
                     l=line["header"]
                     n=20
                     while n+14 <= len(l):
                         output_line = output_line + "%14s"%l[n:n+14]
                         n=n+19
-                    sys.stdout.write(output_line+"\n\n")
+                    sys.stdout.write(output_line+"\n")
                 else:
                     sys.stdout.write(line["header"])
             else:
