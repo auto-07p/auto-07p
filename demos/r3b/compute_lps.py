@@ -5,21 +5,14 @@
 from AUTOclui import *
 import parseD,math,sys
 
-def write_lagrange(m, x, i, output):
+def write_lagrange(x, i, output):
     # When we determine which Lagrange point we have we save it.
     periods = []
     x["Type number"] = 3 #HB
     print "L"+str(i)+":"
-    d = parseD.parseD('fort.9')
-    routh = 0.5*(1-math.sqrt(69)/9)
-    for evalue in d(x["Label"])["Eigenvalues"]:
-        # If the real part in sufficiently small
-        # we get the imaginary part
-        if evalue[1] > 0 and (i <= 3 or evalue[0] == 0 or m < routh):
-            # and compute the period.  If is is not in our
-            # list of periods (i.e. it is not a complex conjugate
-            # to one we have already computed) we add it.
-	    periods.append(2*math.pi/evalue[1])
+    for imagv in [x["p"][4], x["p"][5], x["p"][6]]:
+        if imagv != 0:
+            periods.append(2*math.pi/imagv)
     periods.sort()
     for j in range(len(periods)):
         period = periods[j]
@@ -27,7 +20,7 @@ def write_lagrange(m, x, i, output):
         # above Routh's ratio we have one period for L4/L5, otherwise 3.
         if i == 5:
             label = label - 2 + len(periods)
-        print "Label: %d; imaginary part: %7s; period: %10s"%(label,
+        print "Label: %d; imaginary part: %13s; period: %10s"%(label,
 	    2*math.pi/period, period)
         x["Label"] = label
         x["Branch number"] = i*10+j+1
@@ -86,7 +79,7 @@ def compute(m=0.063):
 
     output = open("s.start","w")
     for i in range(1,6):
-        write_lagrange(m, uzpoints[lp.index(i)], i, output)
+        write_lagrange(uzpoints[lp.index(i)], i, output)
     output.close()
     print "Written to s.start"
 

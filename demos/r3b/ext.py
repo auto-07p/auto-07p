@@ -1,26 +1,11 @@
 from AUTOclui import *
-import sys,parseD
+import sys
 
 def make_s(sfile,label,step,floquet=None):
-    solution = sl(sfile)
+    solution = sl(sfile)(label)
     if floquet is None:
-        #first figure out the Floquet multiplier
-        diag = parseD.parseD('d.'+str(sfile))
-        for d in diag:
-            if d["Label"] != 0: break
-        addend = d["Label"] - solution[0]["Label"]
-        floquet = 1.0 + 1e-3
-        for mplier in diag(label+addend)["Multipliers"]:
-            if abs(mplier[0]) > abs(floquet):
-                if abs(floquet) > 1.0 + 1e-3 + 1e-10:
-                    print "Warning: more than one multiplier > 1"
-                floquet = mplier[0]
+        floquet = solution['Parameters'][3]
     print "Floquet multiplier: ", floquet
-    solution = solution(label)
-    for point in solution['data']:
-        for i in range(len(point['u'])):
-            point['u'].append(0)
-            point['u dot'].append(0)
     solution['Label'] = 1
     solution['Free Parameters'] = [2, 3, 4]
     solution["Parameter NULL vector"] = [0, 1, 0]

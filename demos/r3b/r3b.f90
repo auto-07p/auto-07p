@@ -66,7 +66,9 @@
    DOUBLE PRECISION, INTENT(IN) :: U(NDIM)
    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
-   DOUBLE PRECISION GETP,rmu,x,y,z,xp,yp,zp,d1,d2,EU,E
+   DOUBLE PRECISION GETP,rmu,x,y,z,xp,yp,zp,d1,d2,EU,E,realfm,imagfm,ncmplx
+   DOUBLE PRECISION routh
+   INTEGER i,j
 
    rmu = PAR(2)
 
@@ -84,6 +86,52 @@
    E  = (xp**2 + yp**2 + zp**2)/2 - EU - rmu*(1-rmu)/2
    PAR(3) = E
    PAR(16)=y
+
+! Maximum real Floquet multiplier: PAR(4)
+! If there are two real multipliers with absolute value > 1
+! then PAR(4)=0.
+
+   PAR(4) = 0
+   ncmplx = 0
+   DO i=1,NDIM
+      imagfm = GETP('EIG',I*2,U)
+      IF (imagfm == 0) THEN
+         realfm = GETP('EIG',I*2-1,U)
+         IF (ABS(realfm) > ABS(PAR(4))) THEN
+            PAR(4) = realfm
+         ENDIF
+      ELSE
+         ncmplx = ncmplx + 1
+      ENDIF
+   ENDDO
+   IF (ncmplx == 0) THEN
+      ! no complex multipliers mean 6 real multipliers: 1,1, two with
+      ! absolute value greater than 1 and two less than one
+      PAR(4) = 0
+   ELSEIF (ncmplx == 4) THEN
+      ! all non-trivial multipliers complex: must be 1 without rounding
+      ! errors
+      PAR(4) = 1
+   ENDIF
+!
+!  Put purely imaginary eigenvalues in PAR(5), PAR(6) and PAR(7)
+!
+   j=1
+   PAR(5) = 0
+   PAR(6) = 0
+   PAR(7) = 0
+   DO i=1,NDIM
+      imagfm = GETP('EIG',I*2,U)
+      IF (imagfm > 0) THEN
+         realfm = GETP('EIG',I*2-1,U)
+         routh = 0.5d0*(1d0-sqrt(69d0)/9d0)
+         ! above Routh's ratio we have one period for L4/L5, otherwise 3.
+         IF (realfm == 0 .OR. rmu < routh .OR. ABS(y) < 0.1) THEN
+            PAR(4+j) = imagfm
+            j=j+1
+         ENDIF
+      ENDIF
+   ENDDO
 
  END SUBROUTINE PVLS
 !---------------------------------------------------------------------- 
