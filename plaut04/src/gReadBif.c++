@@ -45,7 +45,7 @@ readBifurcation(const char *bFileName, int varIndices[])
             char * word = strtok(line," ");
             while(word != NULL)
             {
-                data[ic]=atof(word);
+                data[ic]=fortranatof(word);
                 ++ic;
                 word=strtok(NULL," ");
             }
@@ -227,7 +227,7 @@ parseBifurcation(const char *bFileName)
             char * word = strtok(line," ");
             while(word != NULL)
             {
-                data[ic]=atof(word);
+                data[ic]=fortranatof(word);
                 ++ic;
                 word=strtok(NULL," ");
             }

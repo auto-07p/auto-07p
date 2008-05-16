@@ -188,7 +188,10 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     for(j=0; j<nar; ++j)
                     {
 // read all the data set to the dynamic array.
-                        fscanf(inFile,"%f",&dummy);
+                        char dummystr[25];
+                        fscanf(inFile,"%*^[0123456789.EeDd+-]");
+                        fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
+                        dummy=fortranatof(dummystr);
                         clientData.solData[row][j]=dummy;
                         if(row == 0) clientData.solMax[j] = dummy;
                         else
@@ -212,7 +215,11 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     int xCol = (npar1 - nzoo*7) > 7 ? 7 : npar1 - nzoo*7;
                     for(i=0; i<xCol; ++i)
                     {
+                        char dummystr[25];
                         fscanf(inFile,"%f",&dummy);
+                        fscanf(inFile,"%*^[0123456789.EeDd+-]");
+                        fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
+                        dummy=fortranatof(dummystr);
                         if(dummy != 0)
                         {
                             mySolNode.par[counter-1][nzoo*7+i] = dummy;

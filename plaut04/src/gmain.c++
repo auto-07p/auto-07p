@@ -5992,6 +5992,25 @@ readAHexdecimal(char* buffer, unsigned long & aHexdecimal )
 
 ///////////////////////////////////////////////////////////////////
 //
+double
+fortranatof(char* word)
+//
+///////////////////////////////////////////////////////////////////
+{
+    // check for numbers such as 2.8430486351-315
+    char *p;
+    size_t len = strlen(word);
+    double d = strtod(word, &p);
+    if (len >= 6 && p == word+len-4 && *p == '-') {
+        p[-2] = '1';
+        p[-1] = 'E';
+        d*=atof(p-2);
+    }
+    return d;
+}
+
+///////////////////////////////////////////////////////////////////
+//
 //    INITIALIZE all the variables
 //    If the resource file exists, read it and update the default values.
 //    If it does not exist, just return and use default values.

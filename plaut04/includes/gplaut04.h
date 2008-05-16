@@ -287,6 +287,7 @@ bool readSolution(/*in*/ solutionp current,
 bool parseBifurcation(const char *bFileName);
 bool readBifurcation(const char *bFileName, int varIndices[]);
 int readFM(const char *bFileName ,const int);
+double fortranatof(char* word);
 
 void normalizeSolData();//SolNode);
 void normalizeBifData();//BifNode);
