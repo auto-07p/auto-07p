@@ -185,7 +185,6 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
   include 'mpif.h'
   include 'auto.h'
 
-  integer, parameter :: NPARX2=2*NPARX
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
@@ -211,7 +210,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
   nint=iap(13)
   nfpr=iap(29)
   call MPI_Pack_size(2+nfpr+nint,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
-  call MPI_Pack_size(NRAP+NPARX2+ndim*8+nfpr, &
+  call MPI_Pack_size(NRAP+NPARX+ndim*8+nfpr, &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
   bufsize = size_int + size_double
   allocate(buffer(bufsize))
@@ -224,7 +223,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      call MPI_Pack(rap,NRAP,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
      !**********************************************
-     call MPI_Pack(par    ,NPARX2,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
+     call MPI_Pack(par    ,NPARX,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
      call MPI_Pack(icp    ,nfpr+nint,MPI_INTEGER,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
@@ -245,7 +244,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      call MPI_Unpack(buffer,bufsize,pos,rap   ,NRAP, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
      ! /***********************************/
-     call MPI_Unpack(buffer,bufsize,pos,par   ,NPARX2, &
+     call MPI_Unpack(buffer,bufsize,pos,par   ,NPARX, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
      call MPI_Unpack(buffer,bufsize,pos,icp   ,nfpr+nint, &
           MPI_INTEGER,MPI_COMM_WORLD,ierr)

@@ -54,7 +54,7 @@ CONTAINS
 
     integer :: ndim, nra, nfc, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
     integer :: iap(NIAP)
-    double precision :: rap(NRAP),par(NPARX*2)
+    double precision :: rap(NRAP),par(NPARX)
 
     double precision, allocatable :: rldot(:),ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
