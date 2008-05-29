@@ -55,8 +55,6 @@ CONTAINS
 ! ---------- ---
   SUBROUTINE EIG(IAP,NDIM,M1A,A,EV,IER)
 
-    INCLUDE 'auto.h'
-
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! This subroutine uses the EISPACK subroutine RG to compute the

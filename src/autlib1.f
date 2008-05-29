@@ -39,7 +39,7 @@ C
       LOGICAL EOF
 C Local
       INTEGER IAP(NIAP)
-      DOUBLE PRECISION RAP(NRAP),PAR(NPARX),TIME0,TIME1,TOTTIM
+      DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
       INTEGER IAM,LINE
 C
 C Initialization :
@@ -63,14 +63,14 @@ C
        ELSE
          CALL AUTIM0(TIME0)
        ENDIF
-       CALL INIT(IAP,RAP,PAR,EOF,LINE)
+       CALL INIT(IAP,RAP,EOF,LINE)
        IF(EOF)THEN
          CALL MPIEND()
          STOP
        ENDIF
        CALL FINDLB_OR_STOP(IAP)
        CALL MPIIAP(IAP)
-       CALL AUTOI(IAP,RAP,PAR)
+       CALL AUTOI(IAP,RAP)
 C-----------------------------------------------------------------------
 C
       IF(IAP(39).GT.1)THEN
@@ -97,7 +97,7 @@ C     ---------- ---------
       IMPLICIT NONE
 
       INTEGER IAP(*)
-      DOUBLE PRECISION RAP(1),PAR(1)
+      DOUBLE PRECISION RAP(1)
 
       INTEGER FUNI_ICNI_PARAMS(5)
 
@@ -116,7 +116,7 @@ C     ---------- ---------
          IAP(10) = ISW
          IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
          IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
-         CALL AUTOI(IAP,RAP,PAR)
+         CALL AUTOI(IAP,RAP)
          ! autoi calls autobv which eventually calls solvbv;
          ! a return means another init message
       ENDDO
@@ -128,28 +128,29 @@ C
 C Find restart label and determine type of restart point.
 C or stop otherwise
 C
+      USE AUTO_CONSTANTS
       IMPLICIT NONE
       INTEGER IAP(*)
 
-      INTEGER IRS,NFPR
+      INTEGER NFPR,NPARR
       LOGICAL FOUND
 
-      IRS=IAP(3)
       NFPR=IAP(29)
 
       FOUND=.FALSE.
       IF(IRS.GT.0) THEN
-         CALL FINDLB(IAP,IRS,NFPR,FOUND)
+         CALL FINDLB(IAP,IRS,NFPR,NPARR,FOUND)
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
             WRITE(6,"(' Restart label ',I4,' not found')")IRS
             STOP
          ENDIF
+         IAP(31)=MAX(NPARR,IAP(31))
       ENDIF
       END SUBROUTINE FINDLB_OR_STOP
 C
 C     ---------- -----
-      SUBROUTINE AUTOI(IAP,RAP,PAR)
+      SUBROUTINE AUTOI(IAP,RAP)
 C
       USE INTERFACES
       USE AUTO_CONSTANTS
@@ -158,21 +159,24 @@ C
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO
 C
       INTEGER IAP(*)
-      DOUBLE PRECISION RAP(*),PAR(*)
+      DOUBLE PRECISION RAP(*)
 
-      INTEGER ITP,NFPR,NNICP
+      INTEGER ITP,NFPR,NNICP,NPAR
       INTEGER, ALLOCATABLE :: ICP(:)
+      DOUBLE PRECISION, ALLOCATABLE :: PAR(:)
 
       ITP=IAP(27)
       NFPR=IAP(29)
 C
       IF(IAP(38)==0)THEN
+        NPAR=IAP(31)
         NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*NICP+NDIM+3)
         ALLOCATE(ICP(NNICP))
         ICP(1:NICP)=ICU(1:NICP)
         ICP(NICP+1:NNICP)=0
+        ALLOCATE(PAR(NPAR))
+        PAR(:)=0.d0
         CALL INIT1(IAP,RAP,ICP,PAR)
-        CALL CHDIM(IAP)
       ENDIF
 C
 C-----------------------------------------------------------------------
@@ -436,7 +440,7 @@ C Error Message.
  500  FORMAT(' Initialization Error')
 C
       IF(IAP(38)==0)THEN
-         DEALLOCATE(ICP)
+         DEALLOCATE(ICP,PAR)
       ENDIF
 
       END SUBROUTINE AUTOI
@@ -447,7 +451,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,PAR,EOF,LINE)
+      SUBROUTINE INIT(IAP,RAP,EOF,LINE)
 C
       USE AUTO_CONSTANTS
 C
@@ -456,20 +460,25 @@ C
 C Reads the file of continuation constants
 C
       INTEGER, INTENT(OUT) :: IAP(*)
-      DOUBLE PRECISION, INTENT(OUT) :: RAP(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: RAP(*)
       LOGICAL, INTENT(OUT) :: EOF
       INTEGER, INTENT(INOUT) :: LINE
 C
       INTEGER IBR,I,IUZR,ITHU,NFPR,NDM,NNT0,NBC0
-      INTEGER NINS,LAB,NTOT,ITP,ITPST
+      INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
-C
-      DO I=1,NPARX
-        PAR(I)=0.d0
-      ENDDO
+      CHARACTER(LEN=20) :: STR
 C
       EOF=.TRUE.
       LINE=LINE+1
+      READ(2,'(A)',END=5) STR
+      STR=ADJUSTL(STR)
+      IF (STR(1:4)=='NPAR') THEN
+         READ(STR(SCAN(STR,'=')+1:),*)NPAR
+      ELSE
+         NPAR=NPARX
+         BACKSPACE 2
+      ENDIF
       READ(2,*,ERR=3,END=5) NDIM,IPS,IRS,ILP
 C
 C     we allocate THU (a pointer to the THU array in the
@@ -587,6 +596,7 @@ C
       IAP(28)=ITPST
       IAP(29)=NFPR
       IAP(30)=IBR
+      IAP(31)=NPAR
       IAP(32)=NTOT
       IAP(33)=NINS
       IAP(37)=LAB
@@ -644,28 +654,6 @@ C
 
       DEALLOCATE(THU,IUZ,VUZ,THL,ICU)
       END SUBROUTINE CLEANUP
-C
-C     ---------- -----
-      SUBROUTINE CHDIM(IAP)
-C
-C Check dimensions.
-C
-      INTEGER IAP(*)
-
-      INTEGER NPAR
-
-       NPAR=IAP(29)
-C
-       IF(NPAR.GT.NPARX)THEN
-         WRITE(6,101)NPAR,NPARX
-         STOP
-       ENDIF
-C
- 101   FORMAT(' Dimension exceeded : NPAR=',I5,'  maximum=',I5,/,
-     *        ' (Increase NPARX in auto.h and recompile AUTO)')
-C
-      RETURN
-      END SUBROUTINE CHDIM
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------

@@ -7,20 +7,16 @@ C
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION ICP(1),PAR(NPARX),RLDOT(1)
-      ALLOCATABLE U(:),TM(:),DTM(:),UPS(:,:),VPS(:,:)
+      DIMENSION ICP(1),RLDOT(1)
+      ALLOCATABLE U(:),TM(:),DTM(:),UPS(:,:),VPS(:,:),PAR(:)
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
 C
-        DO I=1,NPARX
-          PAR(I)=0.d0
-          ICP(I)=I
-        ENDDO
-C
-        CALL INIT(NDIM,IPS,NTST,NCOL,IAD,ISP,ISW)
-        ALLOCATE(U(NDIM))
+        CALL INIT(NDIM,IPS,NTST,NCOL,ISW,NPAR)
+        ALLOCATE(U(NDIM),PAR(NPAR))
+        PAR(:)=0d0
 C
         NOLD=0
         DO
@@ -54,7 +50,7 @@ C
         PAR(11)=PERIOD
         CALL STPNT(NDIM,U,PAR,T)
         CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,NDX,UPS,VPS,
-     *       TM,DTM,NPARX)
+     *       TM,DTM,NPAR)
 C
         DEALLOCATE(U,TM,DTM,UPS,VPS)
 C
@@ -62,15 +58,24 @@ C
       CONTAINS
 C
 C     ---------- ----
-      SUBROUTINE INIT(NDIM,IPS,NTST,NCOL,IAD,ISP,ISW)
+      SUBROUTINE INIT(NDIM,IPS,NTST,NCOL,ISW,NPAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      CHARACTER(LEN=20) STR
 C
 C Reads the file of continuation constants
 C
+      READ(2,'(A)') STR
+      STR=ADJUSTL(STR)
+      IF (STR(1:4)=='NPAR') THEN
+         READ(STR(SCAN(STR,'=')+1:),*)NPAR
+      ELSE
+         NPAR=NPARX
+         BACKSPACE 2
+      ENDIF
       READ(2,*,END=1) NDIM,IPS
       READ(2,*,END=1) 
-      READ(2,*,END=1) NTST,NCOL,IAD,ISP,ISW
+      READ(2,*,END=1) NTST,NCOL,ISW,ISW,ISW
 C
       RETURN
 C
@@ -394,7 +399,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,
-     *  TM,DTM,NPARX)
+     *  TM,DTM,NPAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -412,12 +417,12 @@ C
        NTPL=NCOL*NTST+1
        NAR=NDIM+1
        NRD=2+NDIM/7+(NDIM-1)/7
-       NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPARX-1)/7+1
+       NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPAR-1)/7+1
      *                          + (NFPR-1)/20+1
 C
        MTOT=MOD(NTOT,10000)
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,
-     *             NTST,NCOL,NPARX
+     *             NTST,NCOL,NPAR
 C
 C Write the entire solution on unit 8 :
 C
@@ -450,7 +455,7 @@ C
 C
 C Write the parameter values.
 C
-       WRITE(8,102)(PAR(I),I=1,NPARX)
+       WRITE(8,102)(PAR(I),I=1,NPAR)
 C
  101   FORMAT(6I6,I8,I6,I8,3I5)
  102   FORMAT(4X,1P7E19.10)

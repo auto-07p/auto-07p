@@ -39,7 +39,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-par continuation of folds.
@@ -50,10 +49,11 @@ C Local
       ALLOCATABLE DFU(:,:),DFP(:,:),FF1(:),FF2(:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
        CALL FFLP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -157,8 +157,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the continuation of folds.
@@ -167,14 +165,15 @@ C
 C Local
       ALLOCATABLE DFU(:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
        NDM=IAP(23)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
@@ -188,7 +187,7 @@ C
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,V,F)
+       DEALLOCATE(DFU,V,F,ICPRS)
        U(NDIM)=PAR(ICP(2))
 C
       RETURN
@@ -205,7 +204,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-par continuation of BP.
@@ -216,10 +214,11 @@ C Local
       ALLOCATABLE DFU(:),DFP(:),FF1(:),FF2(:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
        CALL FFBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -325,8 +324,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the continuation of BP.
@@ -335,18 +332,20 @@ C
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
        ISW=IAP(10)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
-       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX),A(NDM+1,NDM+1))
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR),A(NDM+1,NDM+1))
        ALLOCATE(V(NDM+1),F(NDM))
        IF(IPS.EQ.-1)THEN
          CALL FNDS(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
@@ -372,7 +371,7 @@ C
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,DFP,A,V,F)
+       DEALLOCATE(DFU,DFP,A,V,F,ICPRS)
        U(NDIM-1)=PAR(ICP(2))
        IF(ISW.EQ.3) THEN
 C        ** Generic case
@@ -396,8 +395,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generate the equations for the continuation scheme used for
 C the optimization of algebraic systems (one parameter).
 C
@@ -405,11 +402,11 @@ C
       DIMENSION U(*),ICP(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
-      DIMENSION DDP(NPARX)
-      ALLOCATABLE DDU(:)
-      ALLOCATE(DDU(NDIM))
+      ALLOCATABLE DDU(:),DDP(:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
+       ALLOCATE(DDU(NDIM),DDP(NPAR))
 C
        PAR(ICP(2))=U(NDIM)
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -423,7 +420,7 @@ C
            ENDDO
          ENDDO
 C
-         DO J=NPARX,1,-1
+         DO J=NPAR,1,-1
            DO I=NDM,1,-1
              DFDP(I,J)=DFDP( (J-1)*NDM+I , 1 )
            ENDDO
@@ -443,7 +440,7 @@ C
          DFDP(NDIM,ICP(1))=1
        ENDIF
 C
-      DEALLOCATE(DDU)
+      DEALLOCATE(DDU,DDP)
       RETURN
       END SUBROUTINE FNC1
 C
@@ -452,14 +449,11 @@ C     ---------- ------
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generate starting data for optimization problems (one parameter).
 C
       DIMENSION U(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       DOUBLE PRECISION DUM(1)
-      INTEGER ICPRS(NPARX)
 C
        NDIM=IAP(1)
        NDM=IAP(23)
@@ -479,7 +473,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generate the equations for the continuation scheme used for the
@@ -492,10 +485,11 @@ C Local
       ALLOCATABLE DFU(:),DFP(:),UU1(:),UU2(:),FF1(:),FF2(:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
        CALL FFC2(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -543,16 +537,14 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),U(*),ICP(*),PAR(*),F(*),DFDU(NDM,*),DFDP(NDM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
-      DIMENSION DDP(NPARX)
-      ALLOCATABLE DDU(:)
-      ALLOCATE(DDU(NDM))
+      ALLOCATABLE DDU(:),DDP(:)
 C
        NFPR=IAP(29)
+       NPAR=IAP(31)
+       ALLOCATE(DDU(NDM),DDP(NPAR))
 C
        DO I=2,NFPR
          PAR(ICP(I))=U(2*NDM+I)
@@ -585,7 +577,7 @@ C
        ENDDO
        F(NDIM)=PAR(ICP(1))-FOP
 C
-      DEALLOCATE(DDU)
+      DEALLOCATE(DDU,DDP)
       RETURN
       END SUBROUTINE FFC2
 C
@@ -596,8 +588,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the continuation equations for
@@ -605,22 +595,25 @@ C optimization of algebraic systems (More than one parameter).
 C
       DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:)
-      DIMENSION DP(NPARX),UOLD(1)
-      INTEGER ICPRS(NPARX)
+      ALLOCATABLE DFU(:),DFP(:),DD(:,:),DU(:),V(:),F(:),DP(:)
+      DIMENSION UOLD(1)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR,NPAR1,FOUND)
        NFPR=NFPR+1
        IAP(29)=NFPR
+       ALLOCATE(ICPRS(NFPR))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        IF(NFPR.EQ.3)THEN
-         ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX),F(NDM),V(NDM+1))
-         ALLOCATE(DD(NDM+1,NDM+1),DU(NDM))
+         ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR),F(NDM),V(NDM+1))
+         ALLOCATE(DD(NDM+1,NDM+1),DU(NDM),DP(NPAR))
          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
          CALL FOPI(IAP,RAP,NDM,U,ICP,PAR,2,FOP,DU,DP)
 C       TRANSPOSE
@@ -640,7 +633,7 @@ C       TRANSPOSE
            U(NDM+I)=V(I)
          ENDDO
          PAR(ICP(1))=FOP
-         DEALLOCATE(DFU,DFP,F,V,DD,DU)
+         DEALLOCATE(DFU,DFP,F,V,DD,DU,DP)
        ENDIF
 C
        DO I=1,NFPR-1
@@ -731,7 +724,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation of Hopf
@@ -851,8 +843,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the continuation of Hopf bifurcation
@@ -862,15 +852,17 @@ C
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DUMDFP(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        THTA=PI(2.d0)/PAR(11)
        S1=DSIN(THTA)
@@ -925,7 +917,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation of Hopf
@@ -1042,8 +1033,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the 2-parameter continuation of
@@ -1053,15 +1042,17 @@ C
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DFP(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        PERIOD=PAR(11)
        ROM=PERIOD/PI(2.d0)
@@ -1113,7 +1104,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation of a
@@ -1229,8 +1219,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       LOGICAL FOUND
 C
 C Generates starting data for the continuation of a bifurcation to a
@@ -1240,15 +1228,17 @@ C
 C Local (Cannot use BLLOC here.)
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        IJAC=1
        PERIOD=PAR(11)
@@ -1340,11 +1330,10 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
-      DIMENSION PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
+      DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
 C
        DO I=1,NDIM
          F(I)=U0(I)-U1(I)
@@ -1359,7 +1348,8 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=2*NDIM+NPARX
+       NPAR=IAP(31)
+       NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
            DBC(I,J)=0.d0
@@ -1380,10 +1370,8 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
-      DIMENSION ICP(*),PAR(*)
+      DIMENSION IAP(*),ICP(*),PAR(*)
 C
        F(1)=0.d0
        DO I=1,NDIM
@@ -1392,7 +1380,8 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=NDIM+NPARX
+       NPAR=IAP(31)
+       NN=NDIM+NPAR
        DO I=1,NN
          DINT(1,I)=0.d0
        ENDDO
@@ -1411,8 +1400,6 @@ C
 C
 C Preprocesses restart data for switching branches at a period doubling
 C
-C
-      INCLUDE 'auto.h'
 C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
@@ -1453,8 +1440,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for the continuation of a branch of periodic
 C solutions.
 C If IPS is not equal to 2 then the user must have supplied
@@ -1467,7 +1452,7 @@ C
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
       LOGICAL FOUND
 C
@@ -1503,8 +1488,10 @@ C from a Hopf bifurcation point:
        ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
        ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -1601,8 +1588,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Sets up equations for the continuation of spatially homogeneous
 C solutions to parabolic systems, for the purpose of finding
 C bifurcations to travelling wave solutions.
@@ -1614,6 +1599,7 @@ C Local
       ALLOCATABLE DFU(:,:),DFP(:,:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
@@ -1622,7 +1608,7 @@ C
        IF(IJAC.NE.0)THEN
          ALLOCATE(DFU(NDM,NDM))
          IF(IJAC.NE.1)THEN
-           ALLOCATE(DFP(NDM,NPARX))
+           ALLOCATE(DFP(NDM,NPAR))
          ENDIF
        ENDIF
 C
@@ -1744,7 +1730,6 @@ C
       USE MESH
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      include 'auto.h'
 C
 C Generates starting data for the continuation of a branch of periodic
 C solutions starting from a Hopf bifurcation point (Waves).
@@ -1755,7 +1740,7 @@ C
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER ICPRS(NPARX)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
       LOGICAL FOUND
 C
@@ -1767,8 +1752,10 @@ C
        ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
        ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       DEALLOCATE(ICPRS)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -1861,8 +1848,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates the equations for taking one time step (Implicit Euler).
 C
       DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
@@ -1871,13 +1856,14 @@ C Local
       ALLOCATABLE DFU(:,:),DFP(:,:)
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
 C Generate the function and Jacobian.
 C
        IF(IJAC.NE.0)THEN
          ALLOCATE(DFU(NDM,NDM))
          IF(IJAC.NE.1)THEN
-           ALLOCATE(DFP(NDM,NPARX))
+           ALLOCATE(DFP(NDM,NPAR))
          ENDIF
        ENDIF
 C
@@ -1930,8 +1916,6 @@ C     ---------- ----
       SUBROUTINE FNPE(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      INCLUDE 'auto.h'
 C
 C Generates the equations for taking one time step (Implicit Euler).
 C
@@ -2010,12 +1994,10 @@ C     ---------- ----
 C
       IMPLICIT NONE
 C
-      INTEGER NPARX,NIAP,NRAP
-      INCLUDE 'auto.h'
       DOUBLE PRECISION, PARAMETER ::
      *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 C
-      INTEGER IAP(*),ICP(*),NDIM,IJAC
+      INTEGER IAP(*),ICP(*),NDIM,NPAR,IJAC
       DOUBLE PRECISION U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION RAP(*),UOLD(*)
 C Local
@@ -2025,10 +2007,11 @@ C Local
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
        CALL FFPL(IAP,RAP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -2128,7 +2111,6 @@ C Boundary conditions for continuing folds (Periodic solutions)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -2148,7 +2130,8 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=2*NDIM+NPARX
+       NPAR=IAP(31)
+       NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
            DBC(I,J)=0.d0
@@ -2171,8 +2154,6 @@ C Integral conditions for continuing folds (Periodic solutions)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -2190,7 +2171,8 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=NDIM+NPARX
+       NPAR=IAP(31)
+       NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
            DINT(I,J)=0.d0
@@ -2217,15 +2199,13 @@ C
       USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for the 2-parameter continuation of folds
 C on a branch of periodic solutions.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
 C
       LOGICAL FOUND
 C
@@ -2234,7 +2214,8 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -2277,6 +2258,7 @@ C
        ENDDO
 C
        NODIR=0
+       DEALLOCATE(ICPRS,RLDOTRS)
 C
       RETURN
       END SUBROUTINE STPNPL
@@ -2292,8 +2274,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
       DIMENSION IAP(*)
@@ -2304,10 +2284,11 @@ C Local
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
        CALL FFPBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -2432,8 +2413,6 @@ C Boundary conditions for continuing BP (Periodic solutions)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -2462,7 +2441,8 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=2*NDIM+NPARX
+       NPAR=IAP(31)
+       NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
            DBC(I,J)=0.d0
@@ -2567,8 +2547,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
 C
@@ -2578,8 +2556,9 @@ C
        PERIOD=PAR(11)
        ISW=IAP(10)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
-       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPARX))
+       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 C
        FI(1)=0.d0
@@ -2651,8 +2630,6 @@ C
       USE SOLVEBV
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for the 2-parameter continuation of BP
 C on a branch of periodic solutions.
 C
@@ -2664,7 +2641,7 @@ C Local
       ALLOCATABLE THU1(:),THL1(:)
       ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
       ALLOCATABLE U(:),UPOLD(:)
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
       DOUBLE PRECISION DUM(1)
 C
       LOGICAL FOUND
@@ -2675,7 +2652,8 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        READ(3,*)(NARS,I=1,8)
        BACKSPACE 3
        NDIM3=NARS-1
@@ -2884,6 +2862,7 @@ C
 C
        ENDIF
 C
+       DEALLOCATE(ICPRS,RLDOTRS)
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
        ENDDO
@@ -2902,7 +2881,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
       DIMENSION IAP(*)
@@ -2997,7 +2975,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -3022,7 +2999,8 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=2*NDIM+NPARX
+       NPAR=IAP(31)
+       NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
            DBC(I,J)=0.d0
@@ -3047,8 +3025,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
@@ -3064,7 +3040,8 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=NDIM+NPARX
+       NPAR=IAP(31)
+       NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
            DINT(I,J)=0.d0
@@ -3089,15 +3066,13 @@ C
       USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for the 2-parameter continuation of
 C period-doubling bifurcations on a branch of periodic solutions.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
 C
       LOGICAL FOUND
 C
@@ -3106,11 +3081,13 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
        RLDOT(1)=RLDOTRS(1)
        RLDOT(2)=RLDOTRS(2)
+       DEALLOCATE(RLDOTRS,ICPRS)
 C
 C Complement starting data 
          PAR(13)=0.d0
@@ -3152,7 +3129,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation of
@@ -3253,7 +3229,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
@@ -3282,7 +3257,8 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=2*NDIM+NPARX
+       NPAR=IAP(31)
+       NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
            DBC(I,J)=0.d0
@@ -3311,8 +3287,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
       DIMENSION ICP(*),PAR(*)
 C
@@ -3331,7 +3305,8 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NN=NDIM+NPARX
+       NPAR=IAP(31)
+       NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
            DINT(I,J)=0.d0
@@ -3359,7 +3334,6 @@ C
       USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates starting data for the 2-parameter continuation of torus
@@ -3368,7 +3342,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
 C
       LOGICAL FOUND
 C
@@ -3377,7 +3351,8 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -3385,6 +3360,7 @@ C
        RLDOT(2)=RLDOTRS(2)
        RLDOT(3)=0.d0
        RLDOT(4)=0.d0
+       DEALLOCATE(ICPRS,RLDOTRS)
 C
        DO J=1,NTSR
          DO I=1,NCOLRS
@@ -3433,7 +3409,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for periodic optimization problems.
@@ -3511,8 +3486,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
       DIMENSION U(*),UOLD(*),UPOLD(*)
 C Local
@@ -3544,7 +3517,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
@@ -3589,7 +3561,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for periodic optimization problems.
@@ -3598,7 +3569,8 @@ C
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
       ALLOCATABLE DFU(:),DFP(:),F1(:),F2(:),DNT(:,:)
-      ALLOCATE(DNT(NINT,NDIM+NPARX),DFU(NDIM*NDIM),DFP(NDIM*NPARX))
+      NPAR=IAP(31)
+      ALLOCATE(DNT(NINT,NDIM+NPAR),DFU(NDIM*NDIM),DFP(NDIM*NPAR))
 C
        NDM=IAP(23)
        NNT0=IAP(25)
@@ -3658,28 +3630,27 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
 C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
 C
 C Local
-      DIMENSION DFP(NPARX)
-      ALLOCATABLE DFU(:),F(:)
+      ALLOCATABLE DFU(:),DFP(:),F(:)
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        FI(1)=0.d0
        DO I=1,NDM
          FI(1)=FI(1)+(U(I)-UOLD(I))*UPOLD(I)
        ENDDO
 C
-       DO I=1,NPARX
+       ALLOCATE(DFU(NDM),F(NDM),DFP(NPAR))
+       DO I=1,NPAR
         DFP(I)=0.d0
        ENDDO
-       ALLOCATE(DFU(NDM),F(NDM))
        CALL FOPI(IAP,RAP,NDM,U,ICP,PAR,2,FOP,DFU,DFP)
        FI(2)=PAR(10)-FOP
 C
@@ -3689,7 +3660,7 @@ C
        ENDDO
 C
        DO I=1,NDM
-         DO J=1,NPARX
+         DO J=1,NPAR
            DFDP(I,J)=0.d0
          ENDDO
        ENDDO
@@ -3710,7 +3681,7 @@ C
          ENDIF
        ENDDO
 C
-      DEALLOCATE(DFU,F)
+      DEALLOCATE(DFU,DFP,F)
       RETURN
       END SUBROUTINE FIPO
 C
@@ -3723,15 +3694,13 @@ C
       USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for optimization of periodic solutions.
 C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
       DOUBLE PRECISION RAP(*)
 C Local
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
       ALLOCATABLE U(:)
 C
       LOGICAL FOUND
@@ -3740,10 +3709,13 @@ C
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
+       DEALLOCATE(ICPRS,RLDOTRS)
        DO J=1,NTSR
          DTM(J)=TM(J+1)-TM(J)
        ENDDO
@@ -3773,7 +3745,7 @@ C (using UPOLDP for temporary storage)
 C
 C Complement starting data
 C
-       DO I=12,NPARX
+       DO I=12,NPAR
          PAR(I)=0.d0
        ENDDO
 C
@@ -3811,7 +3783,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation
@@ -3824,10 +3795,11 @@ C Local
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-      ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPARX))
+      ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
       CALL FFBL(IAP,RAP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
       IF(IJAC.EQ.0)THEN
@@ -3923,7 +3895,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the boundary conditions for the 2-parameter continuation
@@ -3936,7 +3907,8 @@ C
        NDM=IAP(23)
        NBC0=IAP(24)
        NFPR=IAP(29)
-       ALLOCATE(DFU(NBC0,2*NDM+NPARX))
+       NPAR=IAP(31)
+       ALLOCATE(DFU(NBC0,2*NDM+NPAR))
 C
 C Generate the function.
 C
@@ -4045,7 +4017,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for the 2-parameter continuation of
@@ -4059,7 +4030,8 @@ C
        NDM=IAP(23)
        NNT0=IAP(25)
        NFPR=IAP(29)
-       ALLOCATE(DFU(NNT0,NDM+NPARX))
+       NPAR=IAP(31)
+       ALLOCATE(DFU(NNT0,NDM+NPAR))
 C
 C Generate the function.
 C
@@ -4169,7 +4141,6 @@ C
       USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
 C
 C Generates starting data for the 2-parameter continuation of folds.
 C (BVP).
@@ -4177,7 +4148,7 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE ICPRS(:),RLDOTRS(:)
 C
       LOGICAL FOUND
 C
@@ -4186,7 +4157,8 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -4194,6 +4166,7 @@ C
        DO I=1,NFPR0
          RLDOT(I)=RLDOTRS(I)
        ENDDO
+       DEALLOCATE(ICPRS,RLDOTRS)
 C
        DO J=1,NTSR
          DO I=1,NCOLRS
@@ -4243,8 +4216,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation
@@ -4257,10 +4228,11 @@ C Local
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPARX))
+       ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
        CALL FFBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
@@ -4314,8 +4286,6 @@ C
 C
 C     ---------- -----
       SUBROUTINE FFBBP(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
-C
-      INCLUDE 'auto.h'
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -4402,8 +4372,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the boundary conditions for the 2-parameter continuation
@@ -4419,6 +4387,7 @@ C
 C      NBC0=IAP(24)
 C      NNT0=IAP(25)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4433,7 +4402,7 @@ C        ** generic case
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NBC0,2*NDM+NPARX))
+       ALLOCATE(DFU(NBC0,2*NDM+NPAR))
        CALL FBBBP(IAP,RAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
 C
        IF(IJAC.EQ.0)THEN
@@ -4598,8 +4567,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates integral conditions for the 2-parameter continuation
@@ -4614,6 +4581,7 @@ C
        NBC=IAP(12)
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4629,7 +4597,7 @@ C
 C Generate the function.
 C
        IF(NNT0.GT.0) THEN
-         ALLOCATE(DFU(NNT0*(NDM+NPARX)))
+         ALLOCATE(DFU(NNT0*(NDM+NPAR)))
        ELSE
          ALLOCATE(DFU(1))
        ENDIF
@@ -4695,8 +4663,6 @@ C     ---------- -----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
       DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
 C
@@ -4706,6 +4672,7 @@ C
        ISW=IAP(10)
        NBC=IAP(12)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4719,7 +4686,7 @@ C        ** generic case
        ENDIF
        NFPX=NBC0+NNT0-NDM+1
 C
-       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPARX))
+       ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
        CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
        IF(NNT0.GT.0) THEN
          CALL ICNI(IAP,RAP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,FI,2,DINT)
@@ -4808,8 +4775,6 @@ C
       USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
-C
 C Generates starting data for the 2-parameter continuation
 C of BP (BVP).
 C
@@ -4820,8 +4785,7 @@ C Local
       ALLOCATABLE DUPS(:,:),VPS(:,:),VDOTPS(:,:),RVDOT(:)
       ALLOCATABLE THU1(:),THL1(:)
       ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
-      ALLOCATABLE U(:),UPOLD(:)
-      DIMENSION ICPRS(NPARX),RLDOTRS(NPARX)
+      ALLOCATABLE U(:),UPOLD(:),ICPRS(:),RLDOTRS(:)
       DOUBLE PRECISION DUM(1)
 C
       LOGICAL FOUND
@@ -4834,7 +4798,7 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,FOUND)
+       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
        READ(3,*)(NARS,I=1,8)
        BACKSPACE 3
        NDIM3=NARS-1
@@ -4862,6 +4826,7 @@ C        ** generic case
        NFPX=NBC0+NNT0-NDM+1
        NRSP1=NTSR+1
 C
+       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        IF(ISW.LT.0) THEN
 C
 C Start
@@ -5057,6 +5022,7 @@ C
          NODIR=1
 C
        ENDIF
+       DEALLOCATE(ICPRS,RLDOTRS)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -5148,7 +5114,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Interface subroutine to the user supplied BCND.
@@ -5243,7 +5208,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Interface subroutine to user supplied ICND.
@@ -5317,7 +5281,6 @@ C     ---------- ----
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INCLUDE 'auto.h'
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Interface subroutine to user supplied FOPT.

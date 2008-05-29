@@ -8,8 +8,6 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      INCLUDE 'auto.h'
-
       PRIVATE
 
       PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO
@@ -18,9 +16,7 @@ C     This common block is also used by demos: don't remove it!!
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 
-      PARAMETER(NPSIX=NPARX)
-      POINTER IREV(:)
-      INTEGER, SAVE :: IPSI(NPSIX),IFIXED(NPSIX),IREV
+      INTEGER, ALLOCATABLE, SAVE :: IREV(:),IPSI(:),IFIXED(:)
       DOUBLE PRECISION, SAVE :: COMPZERO
 
       CONTAINS
@@ -252,6 +248,7 @@ C
       COMMON /BLRTN/ NRTN,IRTN
 C
       NDM=IAP(23)
+      NPAR=IAP(31)
       ALLOCATE(VR(NDM,NDM,2),VT(NDM,NDM,2),BOUND(NDM,NDM))
       ALLOCATE(RR(NDM,2),RI(NDM,2),XEQUIB1(NDM),XEQUIB2(NDM))
 C
@@ -402,15 +399,15 @@ C         More boundary conditions: continuity+gaps
                   FB(JB)=U0(NDM*(K+1)+I)-U1(NDM*K+I)
                   IF (ITWIST.EQ.1) THEN 
 C     Lin(-Sandstede): PAR(20,22,...) contain the gap sizes,
-C     PAR(NPARX-2*NDM+1...NPARX-NDM) contains the adjoint unit
+C     PAR(NPAR-2*NDM+1...NPAR-NDM) contains the adjoint unit
 C     vector at the gaps.
-                     FB(JB)=FB(JB)-PAR(20+2*K)*PAR(NPARX-2*NDM+I)
+                     FB(JB)=FB(JB)-PAR(20+2*K)*PAR(NPAR-2*NDM+I)
                   ENDIF
                   JB = JB+1
                ENDDO
             ENDDO
 C     Poincare sections: <x-x_0,\dot x_0>=0
-C     PAR(NPARX-NDM+1...NPARX) contains the derivatives of the
+C     PAR(NPAR-NDM+1...NPAR) contains the derivatives of the
 C     point x_0 in the original
 C     homoclinic orbit that is furthest from the equilibrium.
 C     x_0=umax is initialized at each run to an end point, and so
@@ -424,7 +421,7 @@ C     is always in the Poincare section
             DO K=0,NDIM/NDM-2
                DO I=1,NDM
                   FB(JB)=FB(JB)+
-     *                 (U1(K*NDM+I)-UMAX(K*NDM+I))*PAR(NPARX-NDM+I)
+     *                 (U1(K*NDM+I)-UMAX(K*NDM+I))*PAR(NPAR-NDM+I)
                ENDDO
                JB = JB + 1
             ENDDO
@@ -635,6 +632,7 @@ C
 C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
+      IF(ALLOCATED(IREV))DEALLOCATE(IREV)
       ALLOCATE(IREV(NDM))
       LINE=LINE+1
       READ(12,*,ERR=1,END=2)NREV
@@ -645,12 +643,16 @@ C
 C
       LINE=LINE+1
       READ(12,*,ERR=1,END=2)NFIXED
+      IF(ALLOCATED(IFIXED))DEALLOCATE(IFIXED)
+      ALLOCATE(IFIXED(NFIXED))
       IF (NFIXED>0)THEN
          LINE=LINE+1
          READ(12,*,ERR=1,END=2)(IFIXED(I),I=1,NFIXED)
       ENDIF
       LINE=LINE+1
       READ(12,*,ERR=1,END=2)NPSI
+      IF(ALLOCATED(IPSI))DEALLOCATE(IPSI)
+      ALLOCATE(IPSI(NPSI))
       IF (NPSI>0)THEN
          LINE=LINE+1
          READ(12,*,ERR=1,END=2)(IPSI(I),I=1,NPSI)
@@ -786,7 +788,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
-     *     UDOTPS,PAR)
+     *     UDOTPS,PAR,NPAR)
 C
 C     Transform the data representation of the homoclinic orbit into
 C     an object suitable for homoclinic branch switching:
@@ -847,9 +849,9 @@ C Just use the point in the middle
       DO I=1,NDM
          UMAX(I) = UPS(I,JMAX)
       ENDDO
-      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPARX-NDM+1),DUM1,DUM2)
+      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPAR-NDM+1),DUM1,DUM2)
 C     
-C     PAR(NPARX-NDM+1...NPARX) contains the point furthest from
+C     PAR(NPAR-NDM+1...NPAR) contains the point furthest from
 C     the equilibrium.
 C     PAR(10)=the time for the unstable manifold tail.
 C     PAR(11)=the time for the stable manifold tail.
@@ -865,18 +867,18 @@ C
       PAR(11)=PAR(11)*(1D0-TMMAX)
 C 
 C     Remember adjoint at maximum for applying Lin's method
-C     PAR(NPARX-2*NDM+1...NPARX-NDM) will contain the adjoint unit
+C     PAR(NPAR-2*NDM+1...NPAR-NDM) will contain the adjoint unit
 C     vector at the gaps.
 C
       IF (ITWIST.EQ.1) THEN
          DNORM=0.D0
          DO I=1,NDM
-            PAR(NPARX-2*NDM+I)=UPS(NDM+I,JMAX)
+            PAR(NPAR-2*NDM+I)=UPS(NDM+I,JMAX)
             DNORM=DNORM+UPS(NDM+I,JMAX)*UPS(NDM+I,JMAX)
          ENDDO
          DNORM=DSQRT(DNORM)
          DO I=1,NDM
-            PAR(NPARX-2*NDM+I)=PAR(NPARX-2*NDM+I)/DNORM
+            PAR(NPAR-2*NDM+I)=PAR(NPAR-2*NDM+I)/DNORM
          ENDDO
       ENDIF
 C     
@@ -1082,6 +1084,7 @@ C
 C
       NDIM=IAP(1)
       NDM=IAP(23)
+      NPAR=IAP(31)
 C
       IF (ISTART.GE.0.AND.NAR.GT.2*NDM) THEN
 C        Use the usual representation again for normal continuation.
@@ -1274,7 +1277,7 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-         CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,UDOTPS,PAR,NPAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
@@ -1291,7 +1294,7 @@ C Copy forelast part
             PAR(15+2*(NAR/NDM+I))=PAR(15+2*NAR/NDM)
          ENDDO
          PAR(16+2*NAR/NDM)=(UPS(NAR-NDM+1,1)-
-     *            UPS(NAR-2*NDM+1,NTSR+1))/ PAR(NPARX-2*NDM+1)
+     *            UPS(NAR-2*NDM+1,NTSR+1))/ PAR(NPAR-2*NDM+1)
       ENDIF
 C       
 C Preprocesses (perturbs) restart data to enable 
@@ -1734,7 +1737,8 @@ C
 C Local
       ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
 C
-        ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPARX),ZZ(NDM,NDM))
+        NPAR=IAP(31)
+        ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM))
         CALL EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *             DFDU,DFDP,ZZ)
         DEALLOCATE(DFDU,DFDP,ZZ)

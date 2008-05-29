@@ -53,12 +53,12 @@ CONTAINS
     external funi,icni,bcni
 
     integer :: ndim, nra, nfc, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
-    integer :: iap(NIAP)
-    double precision :: rap(NRAP),par(NPARX)
+    integer :: npar, iap(NIAP)
+    double precision :: rap(NRAP)
 
     double precision, allocatable :: rldot(:),ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dtm(:),fa(:,:), fc(:)
+    double precision, allocatable :: dtm(:),fa(:,:),fc(:),par(:)
     integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1)
 
@@ -72,6 +72,7 @@ CONTAINS
     nbc=iap(12)
     nint=iap(13)
     nfpr=iap(29)
+    npar=iap(31)
 
     allocate(np(kwt))
     call partition(ntst,kwt,np)
@@ -80,7 +81,7 @@ CONTAINS
     nra=ndim*ncol
     nfc=nbc+nint+1
 
-    allocate(icp(nfpr+nint),rldot(nfpr),thu(ndim*8),dtm(na))
+    allocate(icp(nfpr+nint),rldot(nfpr),thu(ndim*8),dtm(na),par(npar))
     allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
     ! output arrays
     allocate(fa(nra,na),fc(nfc))
@@ -92,7 +93,7 @@ CONTAINS
          fa,fc,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,rldot,icp)
+    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,rldot,icp,par)
 
     deallocate(fa,fc)
 
@@ -462,13 +463,14 @@ CONTAINS
     NTST=IAP(5)
     NCOL=IAP(6)
     NFPR=IAP(29)
+    NPAR=IAP(31)
 
     DO I=1,NFPR
        PAR(ICP(I))=RLOLD(I)
     ENDDO
 
     ALLOCATE(U(NDIM),UOLD(NDIM),F(NDIM))
-    ALLOCATE(DFDU(NDIM**2),DFDP(NDIM*NPARX))
+    ALLOCATE(DFDU(NDIM**2),DFDP(NDIM*NPAR))
 
     DO J=1,NTST+1
        DO I=1,NDIM
@@ -708,7 +710,7 @@ CONTAINS
 !     the parameter file fort.2.
 !
     IF(IRS.GT.0)THEN
-       CALL FINDLB(IAP,IRS,NFPRS,FOUND)
+       CALL FINDLB(IAP,IRS,NFPRS,NPARS,FOUND)
        READ(3,*)(NARS,I=1,8),NTSRS,NTSRS,NCOLRS
        NTST3=NTSRS
        NCOL3=NCOLRS
@@ -859,12 +861,6 @@ CONTAINS
 
 ! Read the parameter values.
 
-    IF(NPARR>NPARX)THEN
-       NPARR=NPARX
-       WRITE(6,100)NPARR
-100    FORMAT(' Warning : NPARX too small for restart data : ',/, &
-            ' PAR(i) set to zero, for i > ',I3)
-    ENDIF
     READ(3,*)PAR(1:NPARR)
 
   END SUBROUTINE READBV
@@ -901,14 +897,16 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: UPOLDP(NDX,*),DTM(*),THL(*),THU(*)
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLCUR(*),RLDOT(*)
 ! Local
-    INTEGER ICPRS(NPARX),IRS,NFPR,NFPRS,ITPRS,I
+    INTEGER IRS,NFPR,NFPRS,ITPRS,I,NPARS
+    INTEGER, ALLOCATABLE :: ICPRS(:)
 
     LOGICAL FOUND
 
     IRS=IAP(3)
     NFPR=IAP(29)
 
-    CALL FINDLB(IAP,IRS,NFPRS,FOUND)
+    CALL FINDLB(IAP,IRS,NFPRS,NPARS,FOUND)
+    ALLOCATE(ICPRS(NFPRS))
     CALL READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS, &
          UDOTPS,TM,ITPRS,NDX)
 
@@ -922,14 +920,15 @@ CONTAINS
     NODIR=0
     IF(NFPRS.NE.NFPR)THEN
        NODIR=1
-       RETURN
+    ELSE
+       DO I=1,NFPR
+          IF(ICPRS(I).NE.ICP(I)) THEN
+             NODIR=1
+             EXIT
+          ENDIF
+       ENDDO
     ENDIF
-    DO I=1,NFPR
-       IF(ICPRS(I).NE.ICP(I)) THEN
-          NODIR=1
-          RETURN
-       ENDIF
-    ENDDO
+    DEALLOCATE(ICPRS)
 
   END SUBROUTINE STPNBV1
 
@@ -1802,7 +1801,7 @@ CONTAINS
 !          (Used for quickly skipping a data set when searching).
 !  NTST  : The number of time intervals used in the discretization.
 !  NCOL  : The number of collocation points used.
-!  NPARX : The dimension of the array PAR.
+!  NPAR  : The dimension of the array PAR.
 !
 !  Following the above described identifying line there are NTPL lines
 ! containing :
@@ -1818,7 +1817,7 @@ CONTAINS
 ! and following this are NTPL lines each containing
 !    U-dot-1(T), U-dot-2(T), ... , U-dot-NDIM(T).
 !
-! Finally the parameter values PAR(i) , i=1,NPARX, are written.
+! Finally the parameter values PAR(i) , i=1,NPAR, are written.
 !
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
@@ -1836,6 +1835,7 @@ CONTAINS
     ITP=IAP(27)
     NFPR=IAP(29)
     IBR=IAP(30)
+    NPAR=IAP(31)
     NTOT=IAP(32)
     LAB=IAP(37)
 
@@ -1844,11 +1844,11 @@ CONTAINS
     NTPL=NCOL*NTST+1
     NAR=NDIM+1
     NRD=2+NDIM/7+(NDIM-1)/7
-    NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPARX-1)/7+1 &
+    NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPAR-1)/7+1 &
                              + (NFPR-1)/20+1
 
     MTOT=MOD(NTOT-1,9999)+1
-    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPARX
+    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
 
 ! Write the entire solution on unit 8 :
 
@@ -1898,7 +1898,7 @@ CONTAINS
 
 ! Write the parameter values.
 
-    WRITE(8,102)(PAR(I),I=1,NPARX)
+    WRITE(8,102)(PAR(I),I=1,NPAR)
 
 101 FORMAT(6I6,I8,I6,I8,3I5)
 102 FORMAT(4X,7ES19.10)
