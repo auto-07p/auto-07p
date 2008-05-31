@@ -260,6 +260,8 @@ class AUTOSolution(UserDict.UserDict):
 	    self.read(input,offset)
 
     def __str__(self):
+        if not(self.__fullyParsed):
+            self.__readAll()
         keys = self.keys()
         keys.sort()
         rep=""

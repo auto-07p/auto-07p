@@ -54,6 +54,15 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 class parseC(UserDict.UserDict):
     def __init__(self,filename=None):
 	UserDict.UserDict.__init__(self)
+        self.__new = 1
+        for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
+            'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
+            'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
+            'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
+            'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR']:
+            self[key] = None
+        for key in ["THL","THU","UZR","ICP"]:
+            self[key] = []
 	if filename:
 	    self.readFilename(filename)
 
@@ -89,6 +98,48 @@ class parseC(UserDict.UserDict):
     def read(self,inputfile):
 	line = inputfile.readline()
 	data = string.split(line)
+        while not data[0][0] in string.digits:
+            line = string.strip(line)
+            if line[0] in ['#','!','_']:
+                line = inputfile.readline()
+                continue
+            pos = string.find(line, '=')
+            key = string.strip(line[:pos])
+            pos2 = len(line)
+            for i in range(pos+1,pos2):
+                if line[i] in ['#!_'] or line[i] in string.ascii_uppercase:
+                    pos2 = i
+                    break
+            value = string.strip(line[pos+1:pos2])
+            line = string.strip(line[pos2:])
+            if key == 'ICP':
+                self[key]=map(int,string.split(value[1:-1],','))
+            elif key in ['THU','THL','UZR']:
+                value = string.strip(string.replace(value[1:-1],']',' '))
+                value = string.replace(value,',',' ')
+                value = string.split(value[1:],'[')
+                list = []
+                for valuei in value:
+                    valuei = string.split(valuei)
+                    list.append([int(valuei[0]),float(valuei[1])])
+                self[key]=list
+            elif key in self.keys():
+                if key[0] in ['I','J','K','L','M','N']:
+                    self[key]=int(value)
+                else:
+                    self[key]=float(value)
+            if line == '':
+                line = inputfile.readline()
+            while line != '' and line[0] == '\n':
+                line = inputfile.readline()
+            if line == '':
+                break
+            data = string.split(line)
+                
+        if line == '':
+            return
+        
+        self.__new = 0
 	self["NDIM"] = int(data[0])
 	self["IPS"] = int(data[1])
 	self["IRS"] = int(data[2])
@@ -177,6 +228,21 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"][i]["PAR value"] = float(data[1])
 
     def write(self,output):
+        if self.__new:
+            for key,value in self.items():
+                if key == "ICP":
+                    if value != []:
+                        output.write(key+"="+str(value)+"\n")
+                elif key in ["THL","THU","UZR"]:
+                    if value != []:
+                        s=key+"=["
+                        for item in value:
+                            s=s+str([item["PAR index"],item["PAR value"]])+','
+                        output.write(s[:-1]+"]\n")
+                elif key[0] != '_' and value != None:
+                    output.write(key+"="+str(value)+"\n")
+            return
+            
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
 	output.write("          "+line1_comment+"\n")

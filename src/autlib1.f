@@ -467,41 +467,149 @@ C
       INTEGER IBR,I,IUZR,ITHU,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
-      CHARACTER(LEN=20) :: STR
+      CHARACTER(LEN=256) :: STR
+      INTEGER KEYEND,POS
+      CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
+     * "NDIM", "IPS", "IRS", "ILP", "NTST", "NCOL", "IAD", "IADS",
+     * "ISP", "ISW", "IPLT", "NBC", "NINT", "NMX", "", "NPR",
+     * "MXBF", "IID", "ITMX", "ITNW", "NWTN", "JAC", "NPAR" /)
+      INTEGER, PARAMETER :: IDEFAULTS(23) = (/
+     * 1, 1, 0, 1, 20, 4, 3, 1,
+     * 2, 1, 0, 0, 0, 99999, 0, 9999,
+     * 0, 2, 8, 5, 3, 0, NPARX /)
+      CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/
+     * "DS", "DSMIN", "DSMAX", "", "", "RL0", "RL1", "A0", "A1",
+     * "", "EPSL", "EPSU", "EPSS" /)
+      DOUBLE PRECISION, PARAMETER :: RDEFAULTS(13) = (/
+     * 0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,
+     * 0d0, 1d-7, 1d-7, 1d-5 /)
+      INTEGER, ALLOCATABLE :: ITH(:)
+      DOUBLE PRECISION, ALLOCATABLE :: VTHU(:)
 C
+      IAP(1:23)=IDEFAULTS(:)
+      RAP(1:13)=RDEFAULTS(:)
+      RAP(6)=-HUGE(1d0)
+      RAP(7)=HUGE(1d0)
+      RAP(8)=-HUGE(1d0)
+      RAP(9)=HUGE(1d0)
+      NICP=1
+      ALLOCATE(ICU(NICP))
+      ALLOCATE(IUZ(1),VUZ(1))
+      ICU(1)=1
+      NTHU=0
+      NTHL=0
+      NUZR=0
+
       EOF=.TRUE.
-      LINE=LINE+1
-      READ(2,'(A)',END=5) STR
-      STR=ADJUSTL(STR)
-      IF (STR(1:4)=='NPAR') THEN
-         READ(STR(SCAN(STR,'=')+1:),*)NPAR
-      ELSE
-         NPAR=NPARX
-         BACKSPACE 2
-      ENDIF
+      POS=0
+      scanloop: DO
+         IF(POS>0)THEN
+            DO I=POS,LEN(STR)
+               IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
+                  POS=0
+                  EXIT
+               ENDIF
+               IF(LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z'))THEN
+                  STR=STR(I:)
+                  EXIT
+               ENDIF
+               IF(I==LEN(STR))POS=0
+            ENDDO
+         ENDIF
+         IF(POS==0)THEN
+            LINE=LINE+1
+            READ(2,'(A)',END=1) STR
+         ENDIF
+         EOF=.FALSE.
+         STR=ADJUSTL(STR)
+         ! comment line
+         IF(STR(1:1)=='#'.OR.STR(1:1)=='!')CYCLE
+         KEYEND=SCAN(STR,'= ')-1
+         IF(KEYEND==-1.OR.LLT(STR(1:1),'A').OR.LGT(STR(1:1),'Z'))THEN
+            NPAR=NPARX
+            LINE=LINE-1
+            EXIT
+         ENDIF
+         POS=SCAN(STR,'=')+1
+         DO I=1,23
+            IF(STR(1:KEYEND)==ICONSTANTS(I))THEN
+               READ(STR(POS:),*)IAP(I)
+               CYCLE scanloop
+            ENDIF
+         ENDDO
+         DO I=1,13
+            IF(STR(1:KEYEND)==RCONSTANTS(I))THEN
+               READ(STR(POS:),*)RAP(I)
+               CYCLE scanloop
+            ENDIF
+         ENDDO
+         IF(STR(1:KEYEND)=='ICP')THEN
+            NICP=LISTLEN(STR(POS:))
+            DEALLOCATE(ICU)
+            ALLOCATE(ICU(NICP))
+            READ(STR(POS:),*)ICU            
+         ELSEIF(STR(1:KEYEND)=='UZR')THEN
+            NUZR=LISTLEN(STR(POS:))
+            DEALLOCATE(IUZ,VUZ)
+            ALLOCATE(IUZ(NUZR),VUZ(NUZR))
+            READ(STR(POS:),*)(IUZ(I),VUZ(I),I=1,NUZR)
+         ELSEIF(STR(1:KEYEND)=='THL')THEN
+            NTHL=LISTLEN(STR(POS:))
+            ALLOCATE(ITHL(NTHL),VTHL(NTHL))
+            READ(STR(POS:),*)(ITHL(I),VTHL(I),I=1,NTHL)
+         ELSEIF(STR(1:KEYEND)=='THU')THEN
+            NTHU=LISTLEN(STR(POS:))
+            ALLOCATE(ITH(NTHU),VTHU(NTHU))
+            READ(STR(POS:),*)(ITH(I),VTHU(I),I=1,NTHU)
+         ELSE
+            WRITE(6,'(A,I2)')"Unknown AUTO constant on line ",LINE
+         ENDIF
+      ENDDO scanloop
+
+ 1    IF(EOF)GOTO 5
+      BACKSPACE 2
+      NDIM=IAP(1)
+      IPS=IAP(2)
+      IRS=IAP(3)
+      ILP=IAP(4)
+      NTST=IAP(5)
+      NCOL=IAP(6)
+      IAD=IAP(7)
+      IADS=IAP(8)
+      ISP=IAP(9)
+      ISW=IAP(10)
+      IPLT=IAP(11)
+      NBC=IAP(12)
+      NINT=IAP(13)
+      NMX=IAP(14)
+      NPR=IAP(16)
+      MXBF=IAP(17)
+      IID=IAP(18)
+      ITMX=IAP(19)
+      ITNW=IAP(20)
+      NWTN=IAP(21)
+      JAC=IAP(22)
+      NPAR=IAP(23)
+C
+      DS=RAP(1)
+      DSMIN=RAP(2)
+      DSMAX=RAP(3)
+      RL0=RAP(6)
+      RL1=RAP(7)
+      A0=RAP(8)
+      A1=RAP(9)
+      EPSL=RAP(11)
+      EPSU=RAP(12)
+      EPSS=RAP(13)
+
       READ(2,*,ERR=3,END=5) NDIM,IPS,IRS,ILP
-C
-C     we allocate THU (a pointer to the THU array in the
-C     main program) here since this is the place where we 
-C     know the size.  It is 8 times bigger then ndim since
-C     INIT can modify THU based on the problem type,
-C     but only up to making it 8 times larger.
-C
-      ALLOCATE(THU(8*NDIM+1))
-      DO I=1,NDIM*8+1
-        THU(I)=1.d0
-      ENDDO
-C
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NICP
       IF(NICP.GT.0)THEN
+        DEALLOCATE(ICU)
         ALLOCATE(ICU(NICP))
         BACKSPACE 2
         READ(2,*,ERR=3,END=4) NICP,(ICU(I),I=1,NICP)
-      ELSE
-        ALLOCATE(ICU(1))
-        NICP=1
-        ICU(1)=1
       ENDIF
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
@@ -527,22 +635,38 @@ C
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTHU
       IF(NTHU.GT.0)THEN
+        ALLOCATE(ITH(NTHU),VTHU(NTHU))
         DO I=1,NTHU
           LINE=LINE+1
-          READ(2,*,ERR=3,END=4)ITHU,THU(ITHU)
+          READ(2,*,ERR=3,END=4)ITH(I),VTHU(I)
         ENDDO
       ENDIF
       LINE=LINE+1
       READ(2,*,ERR=3,END=4)NUZR
       IF(NUZR.GT.0)THEN
+        DEALLOCATE(IUZ,VUZ)
         ALLOCATE(IUZ(NUZR),VUZ(NUZR))
         DO I=1,NUZR
           LINE=LINE+1
           READ(2,*,ERR=3,END=4)IUZ(I),VUZ(I)
         ENDDO
-      ELSE
-C       Avoid uninitialized pointers
-        ALLOCATE(IUZ(1),VUZ(1))
+      ENDIF
+C
+C     we allocate THU (a pointer to the THU array in the
+C     main program) here since this is the place where we 
+C     know the size.  It is 8 times bigger then ndim since
+C     INIT can modify THU based on the problem type,
+C     but only up to making it 8 times larger.
+C
+ 2    ALLOCATE(THU(8*NDIM+1))
+      DO I=1,NDIM*8+1
+        THU(I)=1.d0
+      ENDDO
+      IF(NTHU.GT.0)THEN
+        DO I=1,NTHU
+          THU(ITH(I))=VTHU(I)
+        ENDDO
+        DEALLOCATE(ITH,VTHU)
       ENDIF
 C
       IAP(1)=NDIM
@@ -637,12 +761,36 @@ C
      *     " Error in fort.2 or c. file: bad integer on line ",
      *     LINE,"."
       RETURN
- 4    WRITE(6,"(A)")
+ 4    WRITE(6,"(A,I2,A)")
      *     " Error in fort.2 or c. file: ends prematurely on line ",
      *     LINE,"."
- 5    RETURN
+ 5    BACKSPACE 2
+      IF(.NOT.EOF)GOTO 2
+      RETURN
       END SUBROUTINE INIT
-C
+
+C     -------- -------
+      FUNCTION LISTLEN(STR)
+      IMPLICIT NONE
+      CHARACTER(*) STR
+      INTEGER I,LEVEL,LISTLEN
+      LISTLEN=0
+      LEVEL=0
+      DO I=1,LEN(STR)
+         IF(STR(I:I)=='[')THEN
+            STR(I:I)=' '
+            IF(LEVEL==0)LISTLEN=1
+            LEVEL=LEVEL+1
+         ELSEIF(STR(I:I)==',')THEN
+            IF(LEVEL==1)LISTLEN=LISTLEN+1
+         ELSEIF(STR(I:I)==']')THEN
+            STR(I:I)=' '
+            LEVEL=LEVEL-1
+            IF(LEVEL==0)EXIT
+         ENDIF
+      ENDDO
+      END FUNCTION LISTLEN
+
 C     ---------- -------
       SUBROUTINE CLEANUP()
 C

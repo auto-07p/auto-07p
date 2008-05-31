@@ -4,7 +4,7 @@ import signal, os, time
 import cStringIO
 import re
 import types
-import AUTOExceptions
+import AUTOExceptions,parseC,parseH
 
 # A few global variables for the signal handler
 alarm_demo=""
@@ -34,7 +34,7 @@ class runAUTO:
         self.options["executable"] = None
         self.options["command"] = None
         self.options["makefile"] = None
-        self.options["constants"] = None
+        self.options["constants"] = parseC.parseC()
         self.options["solution"] = None
         self.options["homcont"] = None
         self.options["copy setup"] = None
