@@ -232,35 +232,37 @@ class commandRelabel(commandWithFilenameTemplate):
     def __call__(self):
 	rval=valueSystem()
         if self.name2["bifurcationDiagram"] is None:
-            rval.system("cp %s fort.27"%self.name1["bifurcationDiagram"])
-            rval.system("cp %s fort.28"%self.name1["solution"])
-
-            # Save backups
-            rval.system("cp %s %s~"%(self.name1["bifurcationDiagram"],
-                                     self.name1["bifurcationDiagram"]))
-            rval.system("cp %s %s~"%(self.name1["solution"],self.name1["solution"]))
-
-            command = os.path.join(os.environ["AUTO_DIR"],"bin/relabel")
+            command = os.path.join(os.environ["AUTO_DIR"],
+                                   "bin/relabel %s %s %s~~ %s~~"%(
+                                   self.name1["bifurcationDiagram"],
+                                   self.name1["solution"],
+                                   self.name1["bifurcationDiagram"],
+                                   self.name1["solution"]))
             rval.interact("%s"%command)
 
-            if os.access("fort.37",os.F_OK):
-                rval.system("mv fort.37 %s"%self.name1["bifurcationDiagram"])
-                rval.system("cp -p fort.38 %s"%self.name1["solution"])
-                rval.system("rm fort.38")
+            if os.access("%s~~"%self.name1["bifurcationDiagram"],os.F_OK):
+                # Save backups
+                rval.system("mv %s %s~"%(self.name1["bifurcationDiagram"],
+                                         self.name1["bifurcationDiagram"]))
+                rval.system("mv %s %s~"%(self.name1["solution"],
+                                         self.name1["solution"]))
+                rval.system("mv %s~~ %s"%(self.name1["bifurcationDiagram"],
+                                         self.name1["bifurcationDiagram"]))
+                rval.system("mv %s~~ %s"%(self.name1["solution"],
+                                         self.name1["solution"]))
                 rval.info("Relabeling succeeded\n")
             
             rval.info("Relabeling done\n")
         else:
-            rval.system("cp %s fort.27"%self.name1["bifurcationDiagram"])
-            rval.system("cp %s fort.28"%self.name1["solution"])
-
-            command = os.path.join(os.environ["AUTO_DIR"],"bin/relabel")
+            command = os.path.join(os.environ["AUTO_DIR"],
+                                   "bin/relabel %s %s %s %s"%(
+                                   self.name1["bifurcationDiagram"],
+                                   self.name1["solution"],
+                                   self.name2["bifurcationDiagram"],
+                                   self.name2["solution"]))
             rval.interact("%s"%command)
 
-            if os.access("fort.37",os.F_OK):
-                rval.system("mv fort.37 %s"%self.name2["bifurcationDiagram"])
-                rval.system("cp -p fort.38 %s"%self.name2["solution"])
-                rval.system("rm fort.38")
+            if os.access("%s"%self.name2["bifurcationDiagram"],os.F_OK):
                 rval.system("cp %s  %s"%(self.name1["diagnostics"],self.name2["diagnostics"]))
                 rval.info("Relabeling succeeded\n")
             

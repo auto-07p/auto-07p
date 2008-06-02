@@ -37,7 +37,7 @@ PROGRAM AUTLAB
            OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
            OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
            CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
-           CALL WRFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
+           CALL WRFILE8(LNL)
            STOP
         ENDIF
      CASE('Q')
