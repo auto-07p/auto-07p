@@ -16,7 +16,7 @@ C  USER OPTIONS CAN BE SEPARATE FROM OR PREFIXED TO THE BASIC COMMAND
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C---
-       CHARACTER*80 ISTR,OSTR,PART2*2
+       CHARACTER*80 ISTR,OSTR,PART2*2,INB,INS
        CHARACTER*4 TTITLE*80,BTITLE*80
      * ,XLAB*80,YLAB*80
        CHARACTER*1 CH,NOTC*10
@@ -51,8 +51,15 @@ C---
        COMMON /CB3D/ B3DC
        COMMON /SPNUM/ SP1,SP2,SP3,SP4
 C---
-       OPEN(17,FILE='fort.17',STATUS='unknown',ACCESS='sequential')
-       OPEN(18,FILE='fort.18',STATUS='unknown',ACCESS='sequential')
+       IF(COMMAND_ARGUMENT_COUNT()==2)THEN
+         CALL GET_COMMAND_ARGUMENT(1,INB)
+         CALL GET_COMMAND_ARGUMENT(2,INS)
+       ELSE
+         INB='fort.17'
+         INS='fort.18'
+       ENDIF
+       OPEN(17,FILE=INB,STATUS='unknown',ACCESS='sequential')
+       OPEN(18,FILE=INS,STATUS='unknown',ACCESS='sequential')
 C
        IWRITE = 6
        ITERM  = 6
