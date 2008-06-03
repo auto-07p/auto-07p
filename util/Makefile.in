@@ -7,6 +7,7 @@
 #
 FC=@FC@
 FFLAGS=@FFLAGS@
+CFLAGS=@CFLAGS@
 OPT=@OPT_FLAG@
 RM=rm -f
 #
@@ -47,8 +48,8 @@ utility.o: utility.f90
 ../bin/reduce: reduce.f90 utility.o
 	$(FC) $(FFLAGS) $(OPT) reduce.f90 utility.o -o $@
 #
-../bin/relabel: relabel.f90
-	$(FC) $(FFLAGS) $(OPT) relabel.f90 -o $@
+../bin/relabel: relabel.c
+	$(CC) $(CFLAGS) relabel.c -o $@
 #
 zero: $(AUTO_DIR)/util/zero.f90
 	$(FC) $(FFLAGS) $(OPT) $(AUTO_DIR)/util/zero.f90 -o zero
