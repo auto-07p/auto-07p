@@ -504,7 +504,7 @@ C
       POS=0
       scanloop: DO
          IF(POS>0)THEN
-            DO I=POS,LEN(STR)
+            DO I=POS,LEN_TRIM(STR)
                IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
                   POS=0
                   EXIT
@@ -513,13 +513,14 @@ C
                   STR=STR(I:)
                   EXIT
                ENDIF
-               IF(I==LEN(STR))POS=0
+               IF(I==LEN_TRIM(STR))POS=0
             ENDDO
          ENDIF
          IF(POS==0)THEN
             LINE=LINE+1
             READ(2,'(A)',END=1) STR
          ENDIF
+         IF(LEN_TRIM(STR)==0)CYCLE
          EOF=.FALSE.
          STR=ADJUSTL(STR)
          ! comment line
