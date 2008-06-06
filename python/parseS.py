@@ -184,19 +184,17 @@ class parseS:
         self.write(output)
 	output.close()
 
-    # Removes the first solution with the given label
-    def deleteLabel(self,label):
-        if type(label)  == types.IntType:
-            for x in self.data[:]:
-                if x["Label"] == label:
-                    self.data.remove(x)
-                    break
-        else:
-            for l in label:
-                for x in self.data[:]:
-                    if x["Label"] == l:
-                        self.data.remove(x)
-                        break
+    # Removes solutions with the given labels or type name
+    def deleteLabel(self,label=None,keep=0):
+        if label == None:
+            label=['BP','LP','HB','PD','TR','EP','MX']
+        if type(label) != types.ListType:
+            label = [label]
+        for x in self.data[:]:
+            if ((not keep and (x["Label"] in label or x["Type name"] in label)
+                 or (keep and not x["Label"] in label and 
+                              not x["Type name"] in label))):
+                self.data.remove(x)
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):

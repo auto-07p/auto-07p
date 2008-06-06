@@ -88,23 +88,20 @@ class parseB:
     def __len__(self):
         return len(self.data)
 
-    # Removes the first solution with the given label
-    def deleteLabel(self,label,keepTY=0):
-        if type(label)  == types.IntType:
-            for i in range(len(self.data)):
-                if self.data[i]["LAB"] == label:
-                    self.data[i]["LAB"] = 0
-                    if not keepTY:
-                        self.data[i]["TY number"]  = 0
-                        self.data[i]["TY name"]    = type_translation(0)["short name"]
-        else:
-            for j in range(len(label)):
-                for i in range(len(self.data)):
-                    if self.data[i]["LAB"] == label[j]:
-                        self.data[i]["LAB"] = 0
-                        if not keepTY:
-                            self.data[i]["TY number"]  = 0
-                            self.data[i]["TY name"]    = type_translation(0)["short name"]
+    # Removes solutions with the given labels or type names
+    def deleteLabel(self,label=None,keepTY=0,keep=0):
+        if label == None:
+            label=['BP','LP','HB','PD','TR','EP','MX']
+        if type(label) != types.ListType:
+            label = [label]
+        for i in range(len(self.data)):
+            d = self.data[i]
+            if ((not keep and (d["LAB"] in label or d["TY name"] in label)) or
+               (keep and not d["LAB"] in label and not d["TY name"] in label)):
+                self.data[i]["LAB"] = 0
+                if not keepTY:
+                    self.data[i]["TY number"]  = 0
+                    self.data[i]["TY name"]    = type_translation(0)["short name"]
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):

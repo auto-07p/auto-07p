@@ -391,6 +391,106 @@ class commandDeleteDataFiles(commandWithFilenameTemplate):
         rval.info("Deleting %s ... done\n"%self.name1["diagnostics"])
         return rval
 
+class commandDeleteLabel(commandWithFilenameTemplate):
+    def __init__(self,name1,typenames=None,templates=None,keepTY=0,keep=0):
+        commandWithFilenameTemplate.__init__(self,name1,None,templates)
+        self.typenames=typenames
+        self.keepTY=keepTY
+        self.keep=keep
+        
+    def __call__(self):
+        codes=self.typenames
+        if self.name1["solution"] is None:
+            changedb='fort.7'
+            changeds='fort.8'
+        else:
+            changedb=self.name1["bifurcationDiagram"]
+            changeds=self.name1["solution"]
+        bs=parseBandS.parseBandS(changedb,changeds)
+        bs.deleteLabel(codes,keepTY=self.keepTY,keep=self.keep)
+        origb=changedb+'~'
+        origs=changeds+'~'
+        try:
+            os.remove(origb)
+        except:
+            pass
+        try:
+            os.remove(origs)
+        except:
+            pass
+        os.rename(changedb,origb)
+        os.rename(changeds,origs)
+        bs.writeFilename(changedb,changeds)
+        return valueString("")
+
+class commandDeleteSpecialPoints(commandDeleteLabel):
+    """Delete special points.
+
+    Type FUNC(list,'xxx') to delete the special points in list from
+    the data-files b.xxx, and s.xxx.
+    (if you are using the default filename templates).
+    Type FUNC(list) to delete the special points in list from
+    the data-files fort.7 and fort.8.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
+    """
+    
+    def __init__(self,typenames=None,name1=None,templates=None):
+        commandDeleteLabel.__init__(self,typenames,name1,templates)
+        
+class commandKeepSpecialPoints(commandDeleteLabel):
+    """Keep special points.
+
+    Type FUNC(list,'xxx') to only keep the special points in list from
+    the data-files b.xxx, and s.xxx.
+    (if you are using the default filename templates).
+    Type FUNC(list) to only keep the special points in list from
+    the data-files fort.7 and fort.8.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
+    regular points.
+    """
+    
+    def __init__(self,typenames=None,name1=None,templates=None):
+        commandDeleteLabel.__init__(self,typenames,name1,templates,keep=1)
+
+class commandDeleteLabels(commandDeleteLabel):
+    """Delete special labels.
+
+    Type FUNC(list,'xxx') to delete the special points in list from
+    the data-files b.xxx, and s.xxx.
+    (if you are using the default filename templates).
+    Type FUNC(list) to delete the special points in list from
+    the data-files fort.7 and fort.8.
+    Type information in kept in the bifurcation diagram file for plotting.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
+    """
+    
+    def __init__(self,typenames=None,name1=None,templates=None):
+        commandDeleteLabel.__init__(self,typenames,name1,templates,keepTY=1)
+        
+class commandKeepLabels(commandDeleteLabel):
+    """Keep special labels.
+
+    Type FUNC(list,'xxx') to only keep the special points in list from
+    the data-files b.xxx, and s.xxx.
+    (if you are using the default filename templates).
+    Type FUNC(list) to only keep the special points in list from
+    the data-files fort.7 and fort.8.
+    Type information in kept in the bifurcation diagram file for plotting.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
+    regular points.
+    """
+    
+    def __init__(self,typenames=None,name1=None,templates=None):
+        commandDeleteLabel.__init__(self,typenames,name1,templates,keepTY=1,keep=1)
+
 class commandExpandData(commandWithFilenameTemplate):
     def __init__(self,name1=None,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)

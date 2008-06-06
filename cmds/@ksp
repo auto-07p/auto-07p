@@ -8,13 +8,12 @@ import parseBandS
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        codes=['BP','LP','HB','PD','TR','EP','MX','UZ','RG']
         code=sys.argv[1]
         if code[0] == '-':
-            codes.remove(string.upper(code[1:3]))
+            codes=[string.upper(code[1:3])]
             n=1
         else:
-            codes=['UZ','RG']
+            codes=None
             n=0
     if len(sys.argv) == n+3:
         changedb='b.'+sys.argv[n+2]
@@ -43,7 +42,6 @@ if __name__ == '__main__':
             bs=bt(sys.argv[n+1]+'~')
         else:
             bs=parseBandS.parseBandS('fort.7~','fort.8~')
-    for type in codes:
-        bs.deleteLabel(splabs(bs.solution,type))
+    bs.deleteLabel(codes,keep=1)
     bs.writeFilename(changedb,changeds)
     print " @ksp: Rewriting finished."

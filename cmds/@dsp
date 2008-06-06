@@ -13,7 +13,7 @@ if __name__ == '__main__':
             codes=[string.upper(code[1:3])]
             n=1
         else:
-            codes=['BP','LP','HB','PD','TR','EP','MX']
+            codes=None
             n=0
     if len(sys.argv) == n+3:
         changedb='b.'+sys.argv[n+2]
@@ -42,7 +42,6 @@ if __name__ == '__main__':
             bs=bt(sys.argv[n+1]+'~')
         else:
             bs=parseBandS.parseBandS('fort.7~','fort.8~')
-    for type in codes:
-        bs.deleteLabel(splabs(bs.solution,type))
+    bs.deleteLabel(codes)
     bs.writeFilename(changedb,changeds)
     print " @dsp: Rewriting finished."
