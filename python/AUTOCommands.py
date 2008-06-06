@@ -392,7 +392,7 @@ class commandDeleteDataFiles(commandWithFilenameTemplate):
         return rval
 
 class commandDeleteLabel(commandWithFilenameTemplate):
-    def __init__(self,name1,typenames=None,templates=None,keepTY=0,keep=0):
+    def __init__(self,typenames=None,name1=None,templates=None,keepTY=0,keep=0):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
         self.typenames=typenames
         self.keepTY=keepTY
