@@ -216,9 +216,9 @@ CONTAINS
           IF(ISTOP.EQ.1)GOTO 5
           ITP=IAP(27)
           IF(ITP.EQ.-1)THEN
+             ITP=-4-10*ITPST
+             IAP(27)=ITP
              IF(IUZ(IUZR).GT.0)THEN
-                ITP=-4-10*ITPST
-                IAP(27)=ITP
                 DO K=1,NUZR
                    UZR(K)=0.d0
                 ENDDO
@@ -238,9 +238,9 @@ CONTAINS
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1) THEN
+          ITP=2+10*ITPST
+          IAP(27)=ITP
           IF(ILP.GT.0)THEN
-             ITP=2+10*ITPST
-             IAP(27)=ITP
              RLP=0.d0
              RBP=0.d0
              REV=0.d0
@@ -260,9 +260,9 @@ CONTAINS
        IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
+          ITP=1+10*ITPST
+          IAP(27)=ITP
           IF(ISP.GT.0)THEN
-             ITP=1+10*ITPST
-             IAP(27)=ITP
              CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
              RLP=0.d0
              RBP=0.d0
@@ -280,11 +280,11 @@ CONTAINS
     IF(ABS(IPS).EQ.1)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
             U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
           ITP=3+10*ITPST
           IAP(27)=ITP
+          IF(ISTOP.EQ.1)GOTO 5
           REV=0.d0
        ENDIF
     ENDIF
@@ -1296,10 +1296,6 @@ CONTAINS
     IF(ISTOP.EQ.1)THEN
 !        Maximum number of iterations reached somewhere.
        ITP=-9-10*ITPST
-       IAP(27)=ITP
-    ELSEIF(ISTOP.EQ.-1)THEN
-!        ** UZR endpoint
-       ITP=9+10*ITPST
        IAP(27)=ITP
     ELSE
        IF(U(NDIM+1).LT.RL0.OR.U(NDIM+1).GT.RL1 &

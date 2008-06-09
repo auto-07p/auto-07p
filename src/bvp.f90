@@ -264,9 +264,9 @@ CONTAINS
           IF(ISTOP.EQ.1)GOTO 3
           ITP=IAP(27)
           IF(ITP.EQ.-1)THEN
+             ITP=-4-10*ITPST
+             IAP(27)=ITP
              IF(IUZ(IUZR).GT.0)THEN
-                ITP=-4-10*ITPST
-                IAP(27)=ITP
                 DO K=1,NUZR
                    UZR(K)=0.d0
                 ENDDO
@@ -286,9 +286,9 @@ CONTAINS
        IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
+          ITP=5+10*ITPST
+          IAP(27)=ITP
           IF(ILP.GT.0)THEN
-             ITP=5+10*ITPST
-             IAP(27)=ITP
              RLP=0.d0
              BP1=0.d0
              SP1=0.d0
@@ -309,9 +309,9 @@ CONTAINS
        IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
+          ITP=6+10*ITPST
+          IAP(27)=ITP
           IF(ISP.GT.0)THEN
-             ITP=6+10*ITPST
-             IAP(27)=ITP
              RLP=0.d0
              BP1=0.d0
              SP1=0.d0
@@ -333,9 +333,9 @@ CONTAINS
        IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
-          IF(ISP.GT.0)THEN
 !            **Secondary periodic bifurcation: determine type
-             CALL TPSPBV(IAP,RAP,PAR,EV)
+          CALL TPSPBV(IAP,RAP,PAR,EV)
+          IF(ISP.GT.0)THEN
              RLP=0.d0
              BP1=0.d0
              SP1=0.d0
@@ -1721,10 +1721,6 @@ CONTAINS
     IF(ISTOP.EQ.1)THEN
 !      ** Maximum number of iterations reached somewhere.
        ITP=-9-10*ITPST
-       IAP(27)=ITP
-    ELSEIF(ISTOP.EQ.-1)THEN
-!      ** UZR endpoint
-       ITP=9+10*ITPST
        IAP(27)=ITP
     ELSE
        IF(PAR(ICP(1)).LT.RL0.OR.PAR(ICP(1)).GT.RL1 &
