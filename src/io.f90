@@ -327,15 +327,13 @@ CONTAINS
           IF(ABS(ISW).GE.2)THEN
              IF(ABS(ITP).LT.10)THEN
                 ITPST=ABS(ITP)
-                IAP(28)=ITPST
              ELSE
                 ITPST=ABS(ITP/10)
-                IAP(28)=ITPST
              ENDIF
           ELSE
              ITPST=0
-             IAP(28)=ITPST
           ENDIF
+          IAP(28)=ITPST
           BACKSPACE 3
           RETURN
        ELSE

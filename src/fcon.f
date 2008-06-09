@@ -416,9 +416,9 @@ C Write information identifying the solution :
 C
        NTPL=NCOL*NTST+1
        NAR=NDIM+1
-       NRD=2+NDIM/7+(NDIM-1)/7
-       NROWPR=NRD*(NCOL*NTST+1) + (NFPR-1)/7+1 + (NPAR-1)/7+1
-     *                          + (NFPR-1)/20+1
+       NRD=(NDIM+7)/7+(NDIM+6)/7
+       NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7
+     *                          + (NFPR+19)/20
 C
        MTOT=MOD(NTOT,10000)
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,

@@ -1355,7 +1355,7 @@ CONTAINS
     NTPL=1
     NAR=NDIM+1
 
-    NROWPR=2+NDIM/7+(NDIM-1)/7 + (NFPR-1)/7+1 + (NPAR-1)/7+1 + (NFPR-1)/20+1
+    NROWPR=(NDIM+7)/7+(NDIM+6)/7 + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
     PAR(ICP(1))=U(NDIM+1)
     T=0.d0
     AMP=0.d0
