@@ -474,9 +474,9 @@ C
      * "ISP", "ISW", "IPLT", "NBC", "NINT", "NMX", "", "NPR",
      * "MXBF", "IID", "ITMX", "ITNW", "NWTN", "JAC", "NPAR" /)
       INTEGER, PARAMETER :: IDEFAULTS(23) = (/
-     * 1, 1, 0, 1, 20, 4, 3, 1,
+     * 2, 1, 0, 1, 20, 4, 3, 1,
      * 2, 1, 0, 0, 0, 99999, 0, 9999,
-     * 0, 2, 8, 5, 3, 0, NPARX /)
+     * 10, 2, 9, 5, 3, 0, NPARX /)
       CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/
      * "DS", "DSMIN", "DSMAX", "", "", "RL0", "RL1", "A0", "A1",
      * "", "EPSL", "EPSU", "EPSS" /)
