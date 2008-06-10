@@ -57,7 +57,7 @@ C
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
        OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
 C
-       LINE=1
+       LINE=0
  1     IF(IAP(39).GT.1)THEN
          CALL MPITIM(TIME0)
        ELSE
@@ -468,7 +468,7 @@ C
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
       CHARACTER(LEN=256) :: STR
-      INTEGER KEYEND,POS
+      INTEGER KEYEND,POS,LISTLEN,NPOS
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
      * "NDIM", "IPS", "IRS", "ILP", "NTST", "NCOL", "IAD", "IADS",
      * "ISP", "ISW", "IPLT", "NBC", "NINT", "NMX", "", "NPR",
@@ -493,77 +493,90 @@ C
       RAP(8)=-HUGE(1d0)
       RAP(9)=HUGE(1d0)
       NICP=1
-      ALLOCATE(ICU(NICP))
-      ALLOCATE(IUZ(1),VUZ(1))
+      ALLOCATE(ICU(1),IUZ(1),VUZ(1),ITH(1),VTHU(1),ITHL(1),VTHL(1))
       ICU(1)=1
       NTHU=0
-      NTHL=0
+      NTHL=1
+      ITHL(1)=11
+      VTHL(1)=0d0
       NUZR=0
 
       EOF=.TRUE.
-      POS=0
+      NPOS=1
       scanloop: DO
-         IF(POS>0)THEN
-            DO I=POS,LEN_TRIM(STR)
-               IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
-                  POS=0
-                  EXIT
-               ENDIF
-               IF(LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z'))THEN
-                  STR=STR(I:)
-                  EXIT
-               ENDIF
-               IF(I==LEN_TRIM(STR))POS=0
-            ENDDO
-         ENDIF
-         IF(POS==0)THEN
+         IF(NPOS==1)THEN
             LINE=LINE+1
             READ(2,'(A)',END=1) STR
+         ELSE
+            STR=STR(NPOS:)
          ENDIF
-         IF(LEN_TRIM(STR)==0)CYCLE
-         EOF=.FALSE.
          STR=ADJUSTL(STR)
-         ! comment line
-         IF(STR(1:1)=='#'.OR.STR(1:1)=='!')CYCLE
+         IF(LEN_TRIM(STR)==0)CYCLE
+         DO I=1,LEN_TRIM(STR)
+            ! comment on line
+            IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
+               NPOS=1
+               CYCLE scanloop
+            ENDIF
+            ! keyword detected
+            IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR.
+     &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
+               STR=STR(I:)
+               EXIT
+            ELSE
+               EXIT scanloop
+            ENDIF
+            IF(I==LEN_TRIM(STR))THEN
+               NPOS=1
+               CYCLE scanloop
+            ENDIF
+         ENDDO
+         EOF=.FALSE.
+         ! look for = after keyword
          KEYEND=SCAN(STR,'= ')-1
-         IF(KEYEND==-1.OR.LLT(STR(1:1),'A').OR.LGT(STR(1:1),'Z'))THEN
-            NPAR=NPARX
+         IF(KEYEND==-1)THEN
             LINE=LINE-1
-            EXIT
+            EXIT scanloop
          ENDIF
          POS=SCAN(STR,'=')+1
+         CALL SCANVALUE(STR,POS,NPOS,LISTLEN)
+         PRINT *,STR(1:KEYEND),' !! ',TRIM(STR(POS:)),' !! ',
+     *        STR(POS:NPOS-1)
          DO I=1,23
             IF(STR(1:KEYEND)==ICONSTANTS(I))THEN
-               READ(STR(POS:),*)IAP(I)
+               READ(STR(POS:),*,ERR=3)IAP(I)
                CYCLE scanloop
             ENDIF
          ENDDO
          DO I=1,13
             IF(STR(1:KEYEND)==RCONSTANTS(I))THEN
-               READ(STR(POS:),*)RAP(I)
+               READ(STR(POS:),*,ERR=3)RAP(I)
                CYCLE scanloop
             ENDIF
          ENDDO
          IF(STR(1:KEYEND)=='ICP')THEN
-            NICP=LISTLEN(STR(POS:))
+            NICP=LISTLEN
             DEALLOCATE(ICU)
             ALLOCATE(ICU(NICP))
-            READ(STR(POS:),*)ICU            
+            READ(STR(POS:),*,ERR=3)ICU            
          ELSEIF(STR(1:KEYEND)=='UZR')THEN
-            NUZR=LISTLEN(STR(POS:))
+            NUZR=LISTLEN
             DEALLOCATE(IUZ,VUZ)
             ALLOCATE(IUZ(NUZR),VUZ(NUZR))
-            READ(STR(POS:),*)(IUZ(I),VUZ(I),I=1,NUZR)
+            READ(STR(POS:),*,ERR=3)(IUZ(I),VUZ(I),I=1,NUZR)
          ELSEIF(STR(1:KEYEND)=='THL')THEN
-            NTHL=LISTLEN(STR(POS:))
+            NTHL=LISTLEN
+            DEALLOCATE(ITHL,VTHL)
             ALLOCATE(ITHL(NTHL),VTHL(NTHL))
-            READ(STR(POS:),*)(ITHL(I),VTHL(I),I=1,NTHL)
+            READ(STR(POS:),*,ERR=3)(ITHL(I),VTHL(I),I=1,NTHL)
          ELSEIF(STR(1:KEYEND)=='THU')THEN
-            NTHU=LISTLEN(STR(POS:))
+            NTHU=LISTLEN
+            DEALLOCATE(ITH,VTHU)
             ALLOCATE(ITH(NTHU),VTHU(NTHU))
-            READ(STR(POS:),*)(ITH(I),VTHU(I),I=1,NTHU)
+            READ(STR(POS:),*,ERR=3)(ITH(I),VTHU(I),I=1,NTHU)
          ELSE
-            WRITE(6,'(A,I2)')"Unknown AUTO constant on line ",LINE
+            WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ",STR(1:KEYEND),
+     &           " on line ",LINE
          ENDIF
       ENDDO scanloop
 
@@ -627,6 +640,7 @@ C
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTHL
       IF(NTHL.GT.0)THEN
+        DEALLOCATE(ITHL,VTHL)
         ALLOCATE(ITHL(NTHL),VTHL(NTHL))
         DO I=1,NTHL
           LINE=LINE+1
@@ -636,6 +650,7 @@ C
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTHU
       IF(NTHU.GT.0)THEN
+        DEALLOCATE(ITH,VTHU)
         ALLOCATE(ITH(NTHU),VTHU(NTHU))
         DO I=1,NTHU
           LINE=LINE+1
@@ -759,9 +774,9 @@ C
       EOF=.FALSE.
       RETURN
  3    WRITE(6,"(A,I2,A)")
-     *     " Error in fort.2 or c. file: bad integer on line ",
+     *     " Error in fort.2 or c. file: bad value on line ",
      *     LINE,"."
-      RETURN
+      STOP
  4    WRITE(6,"(A,I2,A)")
      *     " Error in fort.2 or c. file: ends prematurely on line ",
      *     LINE,"."
@@ -770,27 +785,59 @@ C
       RETURN
       END SUBROUTINE INIT
 
-C     -------- -------
-      FUNCTION LISTLEN(STR)
+C     ---------- ---------
+      SUBROUTINE SCANVALUE(STR,POS,NPOS,LISTLEN)
       IMPLICIT NONE
-      CHARACTER(*) STR
-      INTEGER I,LEVEL,LISTLEN
-      LISTLEN=0
+C
+C     Scans STR(POS:) for a value
+
+      CHARACTER(*), INTENT(INOUT) :: STR
+      INTEGER, INTENT(IN) :: POS
+      INTEGER, INTENT(OUT) :: NPOS,LISTLEN
+
+      INTEGER I,LEVEL
+      CHARACTER(1) C,PREV,QUOTE
+      LOGICAL QUOTEESC
+      LISTLEN=1
       LEVEL=0
-      DO I=1,LEN(STR)
-         IF(STR(I:I)=='[')THEN
-            STR(I:I)=' '
-            IF(LEVEL==0)LISTLEN=1
-            LEVEL=LEVEL+1
-         ELSEIF(STR(I:I)==',')THEN
-            IF(LEVEL==1)LISTLEN=LISTLEN+1
-         ELSEIF(STR(I:I)==']')THEN
-            STR(I:I)=' '
-            LEVEL=LEVEL-1
-            IF(LEVEL==0)EXIT
+      QUOTE=' '
+      QUOTEESC=.FALSE.
+      PREV=' '
+
+      NPOS=POS
+      DO I=POS,LEN_TRIM(STR)
+         NPOS=I
+         C=STR(I:I)
+         IF(QUOTE==' ')THEN
+            SELECT CASE(C)
+            CASE('"',"'")
+               QUOTE=C
+            CASE('[')
+               STR(I:I)=' '
+               LEVEL=LEVEL+1
+            CASE(',',' ')
+               IF(LEVEL==0)EXIT
+            CASE(']')
+               STR(I:I)=' '
+               LEVEL=LEVEL-1
+            CASE DEFAULT
+               IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
+                  LISTLEN=LISTLEN+1
+               ENDIF
+            END SELECT
+         ELSEIF(C==QUOTE)THEN
+            ! ignore "" and ''
+            IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+               QUOTEESC=.NOT.QUOTEESC
+            ELSE
+               QUOTE=' '
+            ENDIF
          ENDIF
+         PREV=C
       ENDDO
-      END FUNCTION LISTLEN
+      NPOS=NPOS+VERIFY(STR(NPOS:)," ,")-1
+      IF(NPOS>=LEN_TRIM(STR))NPOS=1
+      END SUBROUTINE SCANVALUE
 
 C     ---------- -------
       SUBROUTINE CLEANUP()
