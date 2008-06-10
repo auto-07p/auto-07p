@@ -539,9 +539,8 @@ C
             EXIT scanloop
          ENDIF
          POS=SCAN(STR,'=')+1
+         STR(POS:)=ADJUSTL(STR(POS:))
          CALL SCANVALUE(STR,POS,NPOS,LISTLEN)
-         PRINT *,STR(1:KEYEND),' !! ',TRIM(STR(POS:)),' !! ',
-     *        STR(POS:NPOS-1)
          DO I=1,23
             IF(STR(1:KEYEND)==ICONSTANTS(I))THEN
                READ(STR(POS:),*,ERR=3)IAP(I)
@@ -790,7 +789,11 @@ C     ---------- ---------
       IMPLICIT NONE
 C
 C     Scans STR(POS:) for a value
-
+C     NPOS points to the next keyword on the same line,
+C       or is set to 1 if there is none
+C     LISTLEN gives the number of items in lists delimited by []
+C     [] characters are removed
+C
       CHARACTER(*), INTENT(INOUT) :: STR
       INTEGER, INTENT(IN) :: POS
       INTEGER, INTENT(OUT) :: NPOS,LISTLEN
