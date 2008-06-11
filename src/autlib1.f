@@ -501,12 +501,13 @@ C
       VTHL(1)=0d0
       NUZR=0
 
-      EOF=.TRUE.
       NPOS=1
       scanloop: DO
          IF(NPOS==1)THEN
             LINE=LINE+1
+            EOF=.TRUE.
             READ(2,'(A)',END=1) STR
+            EOF=.FALSE.
          ELSE
             STR=STR(NPOS:)
          ENDIF
