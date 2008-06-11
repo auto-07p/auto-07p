@@ -470,16 +470,16 @@ C
       CHARACTER(LEN=256) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
-     * "NDIM", "IPS", "IRS", "ILP", "NTST", "NCOL", "IAD", "IADS",
-     * "ISP", "ISW", "IPLT", "NBC", "NINT", "NMX", "", "NPR",
-     * "MXBF", "IID", "ITMX", "ITNW", "NWTN", "JAC", "NPAR" /)
+     * "NDIM", "IPS ", "IRS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
+     * "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",
+     * "MXBF", "IID ", "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
       INTEGER, PARAMETER :: IDEFAULTS(23) = (/
      * 2, 1, 0, 1, 20, 4, 3, 1,
      * 2, 1, 0, 0, 0, 99999, 0, 9999,
      * 10, 2, 9, 5, 3, 0, NPARX /)
       CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/
-     * "DS", "DSMIN", "DSMAX", "", "", "RL0", "RL1", "A0", "A1",
-     * "", "EPSL", "EPSU", "EPSS" /)
+     * "DS   ", "DSMIN", "DSMAX", "     ", "     ", "RL0  ", "RL1  ",
+     * "A0   ", "A1   ", "     ", "EPSL ", "EPSU ", "EPSS " /)
       DOUBLE PRECISION, PARAMETER :: RDEFAULTS(13) = (/
      * 0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,
      * 0d0, 1d-7, 1d-7, 1d-5 /)
@@ -542,13 +542,13 @@ C
          STR(POS:)=ADJUSTL(STR(POS:))
          CALL SCANVALUE(STR,POS,NPOS,LISTLEN)
          DO I=1,23
-            IF(STR(1:KEYEND)==ICONSTANTS(I))THEN
+            IF(STR(1:KEYEND)==TRIM(ICONSTANTS(I)))THEN
                READ(STR(POS:),*,ERR=3)IAP(I)
                CYCLE scanloop
             ENDIF
          ENDDO
          DO I=1,13
-            IF(STR(1:KEYEND)==RCONSTANTS(I))THEN
+            IF(STR(1:KEYEND)==TRIM(RCONSTANTS(I)))THEN
                READ(STR(POS:),*,ERR=3)RAP(I)
                CYCLE scanloop
             ENDIF
