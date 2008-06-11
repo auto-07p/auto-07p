@@ -4,9 +4,7 @@ if ( test $# -eq 1 ) then
 else
 	file=fort.8
 fi
-if which python > /dev/null; then
-    autox - <<EOF
-import sys
+if autox - 2> /dev/null <<EOF
 import parseS
 
 solutions=parseS.parseS("$file")
@@ -17,8 +15,9 @@ for sol in solutions:
         typename = ''
     print "%4s%6s%4s%4s"%(sol["Branch number"], sol["Point number"],
         typename,sol["Label"])
-quit
 EOF
+then
+    :
 else
     $AUTO_DIR/bin/listlabels < $file
 fi
