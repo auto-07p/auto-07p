@@ -445,15 +445,23 @@ class AUTOSolution(UserDict.UserDict):
 
 
     def write(self,output):
-        ndim = len(self[0]['u'])
-        npar = len(self["Parameters"])
+        nfpr = self.__numChangingParameters
+        ndim = self.__numEntriesPerBlock-1
+        npar = self.__numFreeParameters
+        ntpl = self.__numSValues
+
+        if self.__fullyParsed:
+            ndim = len(self[0]['u'])
+            npar = len(self["Parameters"])
+            ntpl = len(self["data"])
+
         if self["NTST"] != 0:
-            nfpr = len(self["Free Parameters"])
+            if self.__fullyParsed:
+                nfpr = len(self["Free Parameters"])
             nrd = 2 + ndim/7 + (ndim-1)/7
             nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
                       (nfpr-1)/7+1 + (npar-1)/7+1 + (nfpr-1)/20+1)
         else:
-            nfpr = self.__numChangingParameters
             nrowpr = ndim/7+1 + (npar-1)/7+1
             
 	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["Branch number"],
@@ -462,7 +470,7 @@ class AUTOSolution(UserDict.UserDict):
                                                          self["Label"],
                                                          nfpr,
                                                          self["ISW"],
-                                                         len(self["data"]),
+                                                         ntpl,
                                                          ndim+1,
                                                          nrowpr,
                                                          self["NTST"],
