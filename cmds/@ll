@@ -1,6 +1,24 @@
 #!/bin/sh
 if ( test $# -eq 1 ) then
-	$AUTO_DIR/bin/listlabels < s.$1
+	file=s.$1
 else
-	$AUTO_DIR/bin/listlabels < fort.8
+	file=fort.8
+fi
+if which python > /dev/null; then
+    autox - <<EOF
+import sys
+import parseS
+
+solutions=parseS.parseS("$file")
+print "\n  BR    PT  TY LAB"
+for sol in solutions:
+    typename = sol["Type name"]
+    if typename == 'RG':
+        typename = ''
+    print "%4s%6s%4s%4s"%(sol["Branch number"], sol["Point number"],
+        typename,sol["Label"])
+quit
+EOF
+else
+    $AUTO_DIR/bin/listlabels < $file
 fi
