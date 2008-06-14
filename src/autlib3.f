@@ -1434,10 +1434,7 @@ C     ---------- ------
       SUBROUTINE STPNPS(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
-      USE IO
       USE BVP
-      USE MESH
-      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates starting data for the continuation of a branch of periodic
@@ -1449,21 +1446,12 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION THL(*),THU(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
-C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
-      DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
-C
-      LOGICAL FOUND
 C
        NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
-       NTST=IAP(5)
-       NCOL=IAP(6)
        ISW=IAP(10)
        ITP=IAP(27)
-       NFPR=IAP(29)
 C
        IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
           IF(IRS.GT.0)THEN
@@ -1480,10 +1468,43 @@ C
              CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,
      *            RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
           ENDIF
-          RETURN
-       ENDIF
+       ELSE
 
 C from a Hopf bifurcation point:
+
+          CALL STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
+     *         NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNI)
+       ENDIF
+
+      END SUBROUTINE STPNPS
+C
+C     ---------- ------
+      SUBROUTINE STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
+     *     RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNI)
+C
+      USE IO
+      USE MESH
+      USE SUPPORT
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+C
+C     Generates starting data for a periodic orbit from a Hopf
+C     bifurcation point (for waves or periodic orbits)
+
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*),THU(*)
+      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+C Local
+      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
+      DOUBLE PRECISION DUMDFP(1),UOLD(1)
+      INTEGER, ALLOCATABLE :: ICPRS(:)
+      LOGICAL FOUND
+      DOUBLE PRECISION THL(2)
+
+       NDIM=IAP(1)
+       IPS=IAP(2)
+       IRS=IAP(3)
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       NFPR=IAP(29)
 
        ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
        ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
@@ -1521,7 +1542,7 @@ C
          DO J=1,NDIM
            SMAT(I,NDIM+J)=DFU(I,J)
            SMAT(NDIM+I,J)=DFU(I,J)
-           IF(IPS/=2)THEN
+           IF(IPS/=2.AND.IPS/=12)THEN
 C Note that the user period-scaling in FUNC is taken into account:
               SMAT(I,NDIM+J)=SMAT(I,NDIM+J)/PAR(11)
               SMAT(NDIM+I,J)=SMAT(NDIM+I,J)/PAR(11)
@@ -1537,22 +1558,11 @@ C
        CALL MSH(NTST,TM)
        DT=1.d0/NTST
 C
-       DO J=1,NTST+1
-         T=TM(J)
-         S=DSIN(TPI*T)
-         C=DCOS(TPI*T)
-         DO K=1,NDIM
-           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(K,J)=U(K)
-         ENDDO
-       ENDDO
-C
-       DO I=1,NCOL-1
-         DO J=1,NTST
+       DO J=1,NTST
+         DO I=0,NCOL-1
            T=TM(J)+I*( TM(J+1)-TM(J) )/NCOL
-           S=DSIN(TPI*T)
-           C=DCOS(TPI*T)
+           S=SIN(TPI*T)
+           C=COS(TPI*T)
            DO  K=1,NDIM
              K1=I*NDIM+K
              UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
@@ -1562,8 +1572,16 @@ C
          ENDDO
        ENDDO
 C
+       DO K=1,NDIM
+         UDOTPS(K,NTST+1)=RNLLV(NDIM+K)
+         UPOLDP(K,NTST+1)=RNLLV(K)
+         UPS(K,NTST+1)=U(K)
+       ENDDO
+C
        RLDOT(1)=0.d0
        RLDOT(2)=0.d0
+       THL(1)=0.d0
+       THL(2)=0.d0
 C
        DO I=1,NTST
          DTM(I)=DT
@@ -1574,8 +1592,7 @@ C
        NODIR=-1
 C
        DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT)
-      RETURN
-      END SUBROUTINE STPNPS
+      END SUBROUTINE STHOPF
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1726,9 +1743,6 @@ C     ---------- ------
       SUBROUTINE STPNWP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
      * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
 C
-      USE IO
-      USE MESH
-      USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates starting data for the continuation of a branch of periodic
@@ -1737,104 +1751,10 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
       DIMENSION THL(*),THU(*)
-C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
-      DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
 C
-      LOGICAL FOUND
-C
-       NDIM=IAP(1)
-       IRS=IAP(3)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NFPR=IAP(29)
-       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
-       ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
-C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-       DEALLOCATE(ICPRS)
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
-       PERIOD=PAR(11)
-       TPI=PI(2.d0)
-       RIMHB=TPI/PERIOD
-       NTSR=NTST
-       NCOLRS=NCOL
-C
-       NDIM2=2*NDIM
-       DO I=1,NDIM2
-         DO J=1,NDIM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDIM
-         SMAT(I,I)=-RIMHB
-         SMAT(NDIM+I,NDIM+I)=RIMHB
-       ENDDO
-C
-       IJAC=1
-       CALL FNWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFU,DUMDFP)
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           SMAT(I,NDIM+J)=DFU(I,J)
-           SMAT(NDIM+I,J)=DFU(I,J)
-         ENDDO
-       ENDDO
-C
-       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV)
-       CALL NRMLZ(NDIM2,RNLLV)
-C
-C Generate the (initially uniform) mesh.
-C
-       CALL MSH(NTST,TM)
-       DT=1.d0/NTST
-C
-       DO J=1,NTST+1
-         T=TM(J)
-         S=DSIN(TPI*T)
-         C=DCOS(TPI*T)
-         DO K=1,NDIM
-           UDOTPS(K,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-           UPOLDP(K,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-           UPS(K,J)=U(K)
-         ENDDO
-       ENDDO
-C
-       DO I=1,NCOL-1
-         DO J=1,NTST
-           T=TM(J)+I*( TM(J+1)-TM(J) )/NCOL
-           S=DSIN(TPI*T)
-           C=DCOS(TPI*T)
-           DO K=1,NDIM
-             K1=I*NDIM+K
-             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(K1,J)=U(K)
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       RLDOT(1)=0.d0
-       RLDOT(2)=0.d0
-C
-       DO I=1,NTST
-         DTM(I)=DT
-       ENDDO
-C
-       CALL SCALEB(IAP,NDIM,NDX,UDOTPS,RLDOT,DTM,THL,THU)
-C
-       NODIR=-1
-C
-       DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT)
-      RETURN
+      CALL STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
+     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FNWS)
+
       END SUBROUTINE STPNWP
 C
 C-----------------------------------------------------------------------
