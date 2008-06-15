@@ -682,8 +682,8 @@ C
         DO I=1,NTHU
           THU(ITH(I))=VTHU(I)
         ENDDO
-        DEALLOCATE(ITH,VTHU)
       ENDIF
+      DEALLOCATE(ITH,VTHU)
 C
       IAP(1)=NDIM
       IAP(2)=IPS
@@ -1280,9 +1280,7 @@ C     redefine nthl to be nfpr sized and indexed
            ENDIF
          ENDDO
        ENDDO
-       IF(NTHL>0)THEN
-         DEALLOCATE(ITHL,VTHL)
-       ENDIF
+       DEALLOCATE(ITHL,VTHL)
 C
        IAP(1)=NDIM
        IAP(2)=IPS
