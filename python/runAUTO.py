@@ -25,6 +25,7 @@ class runAUTO:
         self.options["log"] = None
         self.options["err"] = None
         self.options["auto_dir"] = None
+        self.options["demos_dir"] = None
         self.options["time_flag"] = "-p"
         self.options["equation"] = "all"
         self.options["verbose"] = "no"
@@ -151,8 +152,11 @@ class runAUTO:
         else:
             os.environ["AUTO_DIR"]=self.options["auto_dir"]
 
-        
-        self.options["dir"] = os.path.join(self.options["auto_dir"],"demos",d)
+
+        if self.options["demos_dir"] is None:
+            self.options["demos_dir"] = os.path.join(self.options["auto_dir"],
+                                                     "demos")
+        self.options["dir"] = os.path.join(self.options["demos_dir"],d)
 
         self.__printErr("===%s start===\n"%(d,))
         stdout,stdin,stderr = popen2.popen3("cd %s; rm -f %s.exe;make -e %s.exe;"%
