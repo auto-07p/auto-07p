@@ -555,6 +555,9 @@ def pointtest(a,b):
             'data', 'NCOL', 'Label', 'ISW', 'NTST',
             'Point number', 'Parameters']
 
+    # make sure the solutions are fully parsed...
+    scratch=a['Parameters']
+    scratch=b['Parameters']
     for key in keys:
         if not(a.has_key(key)):
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
