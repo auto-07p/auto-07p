@@ -115,8 +115,8 @@ C     ** Time evolution computations (parabolic systems)
          IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
          CALL SUBVBC(NDIM,NTST,NBC,NFPR,BCNI,NDX,
      +        IAP,RAP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
-         CALL SUBVPSA(NDIM,NTST,NFPR,NDX,NCOL,RDS,D(1,NRC),FC(NFC),
-     +        RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DTM,THL,THU,IFST)
+         CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),
+     +        RLCUR,RLOLD,RLDOT,THL,IFST)
          IF(KWT.GT.1)THEN
             CALL MPISBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UOLDPS,UDOTPS,
      +           UPOLDP,DTM,THU,IFST,NLLV)
@@ -232,25 +232,22 @@ C
        END SUBROUTINE SUBVBC
 C
 C     ---------- -------
-      SUBROUTINE SUBVPSA(NDIM,NTST,NCB,NDX,NCOL,RDS,DDPA,FCPA,
-     + RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DTM,THL,THU,IFST)
+      SUBROUTINE SUBVPSA(NCB,RDS,DDPA,FCPA,RLCUR,RLOLD,RLDOT,THL,IFST)
 C
       USE MESH
       IMPLICIT NONE
 C
 C     This subroutine handles a non-parallel part of SETUBV, that is,
-C     * creating the pseudo-arclength parts of FC and D: (the bottom
-C       element FCPA and row DDPA)
+C     * creating the parameter dependent pseudo-arclength parts of FC and D:
+C       (the bottom element FCPA and row DDPA)
 C
-      INTEGER NDIM,NTST,NCOL,NCB,NDX,IFST
-      DOUBLE PRECISION RDS,DDPA(*),FCPA,DTM(*),UPS(NDX,*)
-      DOUBLE PRECISION UOLDPS(NDX,*),UDOTPS(NDX,*)
-      DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+      INTEGER NCB,IFST
+      DOUBLE PRECISION RDS,DDPA(*),FCPA
+      DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*)
 C
 C Local
-      INTEGER I,J,K,K1
-      DOUBLE PRECISION RLSUM,S,SJ
-      DOUBLE PRECISION WI(NCOL+1)
+      INTEGER I
+      DOUBLE PRECISION RLSUM
 C
 C     Pseudo-arclength equation :
 C
@@ -261,25 +258,7 @@ C
           ENDIF
           RLSUM=RLSUM+THL(I)*(RLCUR(I)-RLOLD(I))*RLDOT(I)
        ENDDO
-C
-! Weights for the integration formulae :
-       CALL WINT(NCOL+1,WI)
-
-       S=0.d0
-       DO J=1,NTST
-          SJ=0.d0
-          DO I=1,NDIM
-             DO K=1,NCOL
-                K1=(K-1)*NDIM+I
-                SJ=SJ+WI(K)*THU(I)*UDOTPS(K1,J)*(UPS(K1,J)-UOLDPS(K1,J))
-             ENDDO
-             SJ=SJ+WI(NCOL+1)*THU(I)*UDOTPS(I,J+1)*
-     *            (UPS(I,J+1)-UOLDPS(I,J+1))
-          ENDDO
-          S=S+DTM(J)*SJ
-       ENDDO
-
-       FCPA=RDS-S-RLSUM
+       FCPA=RDS-RLSUM
 
        END SUBROUTINE SUBVPSA
 C
@@ -524,6 +503,7 @@ C     Pseudo-arclength equation :
 C     
       DO I=1,NDIM
          CC(I,NINT+1)=DTM*THU(I)*WI*UDOTPS(I)
+         FC(NINT+1)=FC(NINT+1)-CC(I,NINT+1)*(UPS(I)-UOLDPS(I))
       ENDDO
       END SUBROUTINE SBVICN
 C
@@ -594,20 +574,20 @@ C
 C     Generate FC :
 C
 C     Integral constraints :     
-       IF(NINT.GT.0)THEN
-         DO J=1,N
-            JP1=J+1
-            DO K=1,NCP1
-               DO I=1,NDIM
-                  I1=(K-1)*NDIM+I
-                  J1=J
-                  IF(K.EQ.NCP1)I1=I
-                  IF(K.EQ.NCP1)J1=JP1
-                  UIC(I)=UPS(I1,J1)
-                  UIO(I)=UOLDPS(I1,J1)
-                  UID(I)=UDOTPS(I1,J1)
-                  UIP(I)=UPOLDP(I1,J1)
-               ENDDO
+       DO J=1,N
+         JP1=J+1
+         DO K=1,NCP1
+            DO I=1,NDIM
+               I1=(K-1)*NDIM+I
+               J1=J
+               IF(K.EQ.NCP1)I1=I
+               IF(K.EQ.NCP1)J1=JP1
+               UIC(I)=UPS(I1,J1)
+               UIO(I)=UOLDPS(I1,J1)
+               UID(I)=UDOTPS(I1,J1)
+               UIP(I)=UPOLDP(I1,J1)
+            ENDDO
+            IF(NINT.GT.0)THEN
                DO I=1,NPAR
                   PRM(I)=PAR(I)
                ENDDO
@@ -616,9 +596,12 @@ C     Integral constraints :
                DO M=1,NINT
                   FC(M)=FC(M)-DTM(J)*WI(K)*FICD(M)
                ENDDO
-            ENDDO
+            ENDIF
+C     Pseudo-arclength
+            FC(NINT+1)=FC(NINT+1)-DTM(J)*WI(K)*THU(I)*UID(I)*
+     *           (UIC(I)-UIO(I))
          ENDDO
-       ENDIF
+       ENDDO
 C     
        DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD,UIC,UIO,UID,UIP,PRM)
        RETURN
