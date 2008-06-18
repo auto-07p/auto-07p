@@ -610,8 +610,10 @@ C     Integral constraints :
                ENDDO
             ENDIF
 C     Pseudo-arclength
-            FC(NINT+1)=FC(NINT+1)-DTM(J)*WI(K)*THU(I)*UID(I)*
+            DO I=1,NDIM
+               FC(NINT+1)=FC(NINT+1)-DTM(J)*WI(K)*THU(I)*UID(I)*
      *           (UIC(I)-UIO(I))
+            ENDDO
          ENDDO
        ENDDO
 C     
