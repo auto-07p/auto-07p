@@ -14,7 +14,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,
-     * NLLV,RLCUR,RLOLD,RLDOT,NDX,UPS,DUPS,UOLDPS,UDOTPS,UPOLDP,DTM,
+     * NLLV,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,
      * FA,FC,P0,P1,THL,THU)
 C
 C$    USE OMP_LIB
@@ -26,7 +26,7 @@ C
       EXTERNAL FUNI,BCNI,ICNI
       DIMENSION IAP(*),RAP(*),FC(*),PAR(*),ICP(*),RLOLD(*),RLCUR(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION FA(IAP(1)*IAP(6),*),DTM(*),RLDOT(*),DUPS(NDX,*)
+      DIMENSION FA(IAP(1)*IAP(6),*),DTM(*),RLDOT(*)
       DOUBLE PRECISION P0(*),P1(*),THL(*),THU(*)
 C
 C Local
@@ -115,8 +115,8 @@ C     ** Time evolution computations (parabolic systems)
          IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
          CALL SUBVBC(NDIM,NTST,NBC,NFPR,BCNI,NDX,
      +        IAP,RAP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
-         CALL SUBVPSA(NDIM,NTST,NFPR,NDX,IAP,RDS,D(1,NRC),FC(NFC),
-     +        RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
+         CALL SUBVPSA(NDIM,NTST,NFPR,NDX,NCOL,RDS,D(1,NRC),FC(NFC),
+     +        RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DTM,THL,THU,IFST)
          IF(KWT.GT.1)THEN
             CALL MPISBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UOLDPS,UDOTPS,
      +           UPOLDP,DTM,THU,IFST,NLLV)
@@ -232,8 +232,8 @@ C
        END SUBROUTINE SUBVBC
 C
 C     ---------- -------
-      SUBROUTINE SUBVPSA(NDIM,NTST,NCB,NDX,IAP,RDS,DDPA,FCPA,
-     + RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DUPS,DTM,THL,THU,IFST)
+      SUBROUTINE SUBVPSA(NDIM,NTST,NCB,NDX,NCOL,RDS,DDPA,FCPA,
+     + RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS,DTM,THL,THU,IFST)
 C
       USE MESH
       IMPLICIT NONE
@@ -242,22 +242,15 @@ C     This subroutine handles a non-parallel part of SETUBV, that is,
 C     * creating the pseudo-arclength parts of FC and D: (the bottom
 C       element FCPA and row DDPA)
 C
-      INTEGER NDIM,NTST,NCB,NDX,IAP(*),IFST
-      DOUBLE PRECISION RDS,DDPA(*),FCPA,DTM(*),UPS(NDX,*),DUPS(NDX,*)
+      INTEGER NDIM,NTST,NCOL,NCB,NDX,IFST
+      DOUBLE PRECISION RDS,DDPA(*),FCPA,DTM(*),UPS(NDX,*)
       DOUBLE PRECISION UOLDPS(NDX,*),UDOTPS(NDX,*)
       DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 C
 C Local
-      INTEGER I,J
-      DOUBLE PRECISION RLSUM
-C
-C       Save difference :
-C
-       DO J=1,NTST+1
-         DO I=1,NDX
-            DUPS(I,J)=UPS(I,J)-UOLDPS(I,J)
-          ENDDO
-       ENDDO
+      INTEGER I,J,K,K1
+      DOUBLE PRECISION RLSUM,S,SJ
+      DOUBLE PRECISION WI(NCOL+1)
 C
 C     Pseudo-arclength equation :
 C
@@ -269,9 +262,25 @@ C
           RLSUM=RLSUM+THL(I)*(RLCUR(I)-RLOLD(I))*RLDOT(I)
        ENDDO
 C
-       FCPA=RDS-RINPR(IAP,NDIM,NDX,UDOTPS,DUPS,DTM,THU)-RLSUM
-C
-       RETURN
+! Weights for the integration formulae :
+       CALL WINT(NCOL+1,WI)
+
+       S=0.d0
+       DO J=1,NTST
+          SJ=0.d0
+          DO I=1,NDIM
+             DO K=1,NCOL
+                K1=(K-1)*NDIM+I
+                SJ=SJ+WI(K)*THU(I)*UDOTPS(K1,J)*(UPS(K1,J)-UOLDPS(K1,J))
+             ENDDO
+             SJ=SJ+WI(NCOL+1)*THU(I)*UDOTPS(I,J+1)*
+     *            (UPS(I,J+1)-UOLDPS(I,J+1))
+          ENDDO
+          S=S+DTM(J)*SJ
+       ENDDO
+
+       FCPA=RDS-S-RLSUM
+
        END SUBROUTINE SUBVPSA
 C
 C     ---------- ------
