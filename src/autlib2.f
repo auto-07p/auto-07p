@@ -142,7 +142,8 @@ C$    IT = OMP_GET_THREAD_NUM()
 C$    NT = OMP_GET_NUM_THREADS()
       CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
      +   FUNI,ICNI,NDX,IAP,RAP,PAR,NPAR,ICP,A,B,C,D,DD,FA,
-     +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT)
+     +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT,
+     +   IRF,ICF,NLLV)
 C
       I = IT*NA/NT+1
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,
@@ -265,13 +266,13 @@ C
 C     ---------- ------
       SUBROUTINE SETUBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
      + ICNI,NDX,IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,DDD,FA,FC,FCFC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT,IRF,ICF,NLLV)
 C
       USE MESH
       IMPLICIT NONE
 C
       INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,NDX,IFST,IAM,NT,NPAR
-      INTEGER IAP(*),ICP(*)
+      INTEGER IAP(*),ICP(*),IRF(NRA,*),ICF(NCA,*),NLLV
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
       DOUBLE PRECISION DD(NCB,*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*)
       DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
@@ -294,13 +295,14 @@ C
          IF(IAM.EQ.0)THEN
             CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
      +           IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,
-     +           UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+     +           UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,NLLV)
          ELSE
             CALL SETFCDD(IFST,DDD(1,NRC,IAM),FCFC(NRC,IAM),NCB,1)
             CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
      +           IAP,RAP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),
      +           DDD(1,1,IAM),FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
-     +           UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT)
+     +           UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT,
+     +           IRF(1,I),ICF(1,I),NLLV)
          ENDIF
       ELSE
          IF (IAM.EQ.0)THEN
@@ -320,7 +322,7 @@ C
 C     ---------- ---------
       SUBROUTINE SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
      + ICNI,NDX,IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,NLLV)
 C
 C     This is the per-CPU parallelized part of SETUBV
 C
@@ -332,33 +334,19 @@ C
       DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION WI(*),WP(NCOL+1,*),WT(NCOL+1,*)
+      INTEGER IRF(NRA,*),ICF(NCA,*),NLLV
+      INTEGER IDAMAX
 C
 C Local
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U,
      +  F,FICD,DICD,UIC,UIO,UID,UIP,PRM
       INTEGER I,J,K,IC,IC1,NCP1,I1,J1,JP1,K1
+      INTEGER, ALLOCATABLE :: IAMAX(:)
 C
       ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPAR),UOLD(NDIM),U(NDIM))
       ALLOCATE(F(NDIM),FICD(NINT))
       ALLOCATE(DICD(NINT*(NDIM+NPAR)),UIC(NDIM),UIO(NDIM))
-      ALLOCATE(UID(NDIM),UIP(NDIM),PRM(NPAR))
-C
-C Generate AA , BB and FA :
-C
-       DO J=1,N
-          DO IC=1,NCOL
-             IC1=(IC-1)*NDIM+1
-             DO I=1,NPAR
-                PRM(I)=PAR(I)
-             ENDDO
-             CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,NDX,IAP,RAP,PRM,ICP,
-     +            AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,J),
-     +            UOLDPS(1,J),DTM(J),WP(1,IC),WT(1,IC),DFDU,DFDP,
-     +            U,UOLD,F)
-          ENDDO
-       ENDDO
-C     
-C     Generate CC, DD and FC :
+      ALLOCATE(UID(NDIM),UIP(NDIM),PRM(NPAR),IAMAX(NRA))
 C
 C Initialize to zero.
 C
@@ -368,9 +356,29 @@ C
            DD(K,I)=0.d0
          ENDDO
        ENDDO
-C
+
        NCP1=NCOL+1
+
        DO J=1,N
+C
+C Generate AA , BB and FA :
+C
+          DO IC=1,NCOL
+             IC1=(IC-1)*NDIM+1
+             DO I=1,NPAR
+                PRM(I)=PAR(I)
+             ENDDO
+             CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,NDX,IAP,RAP,PRM,ICP,
+     +            AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,J),
+     +            UOLDPS(1,J),DTM(J),WP(1,IC),WT(1,IC),DFDU,DFDP,
+     +            U,UOLD,F)
+             DO K=0,NDIM-1
+                IAMAX(IC1+K)=NDIM+IDAMAX(NRA-NDIM,AA(NDIM+1,IC1+K,J),1)
+             ENDDO
+          ENDDO
+C     
+C     Generate CC, DD and FC :
+C
          JP1=J+1
          DO K=1,NCP1
             J1=J
@@ -390,11 +398,15 @@ C
      +           CC(K1,1,J),DD,FC,UPS(I1,J1),UOLDPS(I1,J1),
      +           UDOTPS(I1,J1),UPOLDP(I1,J1),DTM(J),THU,WI(K),FICD,DICD,
      +           UIC,UIO,UID,UIP)
-          ENDDO
+         ENDDO
+C
+C      Condensation of parameters:
+         CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,CC(1,1,J)
+     +        ,DD,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
        ENDDO
 C     
        DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD)
-       DEALLOCATE(UIC,UIO,UID,UIP,PRM)
+       DEALLOCATE(UIC,UIO,UID,UIP,PRM,IAMAX)
        RETURN
       END SUBROUTINE SUBVPA
 C
@@ -644,13 +656,6 @@ C
       I = IT*NA/NT+1
       N = (IT+1)*NA/NT+1-I
       IF(IFST.EQ.1)THEN
-         IF(IT.EQ.0)THEN
-            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,D,
-     +           FA,FC(NBC+1),IRF,ICF,NLLV)
-         ELSE
-            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),
-     +           FA,FCFC(1,IT),IRF,ICF,NLLV)
-         ENDIF
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
      +       BB(1,1,I),CC(1,1,I),CCLO,IT)
       ELSE
@@ -723,9 +728,8 @@ C
       RETURN
       END SUBROUTINE SETZERO
 C
-C     This is the per-CPU, per-element process function of CONPAR
 C     ---------- ------
-      SUBROUTINE CONPAP(NOV,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,IAMAX,
+      SUBROUTINE CONPAR(NOV,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,IAMAX,
      +     NLLV)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -740,6 +744,7 @@ C is delayed until REDUCE, in order to merge it with other communications.
 C
       NEX=NCA-2*NOV
 C
+C This is a per-CPU, per-element process function for
 C Condensation of parameters (Elimination of local variables).
 C
       M1    = NOV+1
@@ -747,9 +752,6 @@ C
 C     
       ZERO = 0.D0
 C
-         DO J=1,NRA
-            IAMAX(J)=NOV+IDAMAX(NEX,A(NOV+1,J),1)
-         ENDDO
          DO IC=M1,M2
             IRP=IC-NOV
             IR1=IRP+1
@@ -883,35 +885,6 @@ C
       ENDDO
       END SUBROUTINE SUBRAC
 C
-      END SUBROUTINE CONPAP
-C
-C     ---------- ------
-      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,
-     +     NLLV)
-C
-      IMPLICIT NONE
-C
-C Arguments
-      INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*),NLLV
-      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DOUBLE PRECISION D(NCB,*),FA(NRA,*),FC(*)
-C Local
-      INTEGER J
-      INTEGER, ALLOCATABLE :: IAMAX(:)
-C
-C Condensation of parameters (Elimination of local variables).
-C NA is the local NTST.
-C
-      IF(NCA.EQ.2*NOV)RETURN
-      ALLOCATE(IAMAX(NRA))
-      DO J=1,NA
-         CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
-     +        D,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
-      ENDDO
-      DEALLOCATE(IAMAX)
-C
-      RETURN
       END SUBROUTINE CONPAR
 C
 C     ---------- ------
