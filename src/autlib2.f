@@ -645,21 +645,22 @@ C
       N = (IT+1)*NA/NT+1-I
       IF(IFST.EQ.1)THEN
          IF(IT.EQ.0)THEN
-            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,D,
+     +           FA,FC(NBC+1),IRF,ICF,NLLV)
          ELSE
-            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),IRF,ICF)
+            CALL CONPAR(NOV,N,NRA,NCA,A,NCB,B,NRC,C,DD(1,1,IT),
+     +           FA,FCFC(1,IT),IRF,ICF,NLLV)
          ENDIF
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
      +       BB(1,1,I),CC(1,1,I),CCLO,IRF,IT)
-      ENDIF
-C
-      IF(NLLV.EQ.0)THEN
+      ELSE
          IF(IT.EQ.0)THEN
             CALL CONRHS(NOV,N,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF)
          ELSE
             CALL CONRHS(NOV,N,NRA,NCA,A,NRC,C,FA,FCFC(1,IT),IRF)
          ENDIF
-      ELSE
+      ENDIF
+      IF(NLLV.NE.0)THEN
          IF(IT.EQ.0)THEN
             CALL SETZERO(FA,FC,N,NRA,NFC)
          ELSE
@@ -724,14 +725,15 @@ C
 C
 C     This is the per-CPU, per-element process function of CONPAR
 C     ---------- ------
-      SUBROUTINE CONPAP(NOV,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF,IAMAX)
+      SUBROUTINE CONPAP(NOV,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,IAMAX,
+     +     NLLV)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NOV,NRA,NCA
       INTEGER   NCB,NRC,ICF(*),IRF(*)
-      DIMENSION A(NCA,*),B(NCB,*),C(NCA,*),D(NCB,*),IAMAX(*)
+      DIMENSION A(NCA,*),B(NCB,*),C(NCA,*),D(NCB,*),FA(*),FC(*),IAMAX(*)
 C
 C Note that the summation of the adjacent overlapped part of C
 C is delayed until REDUCE, in order to merge it with other communications.
@@ -791,6 +793,9 @@ C           **End of pivoting; elimination starts here
                   DO L=1,NCB
                      B(L,IRFIR)=B(L,IRFIR)-RM*B(L,IRFIRP)
                   ENDDO
+                  IF(NLLV.EQ.0)THEN
+                     FA(IRFIR)=FA(IRFIR)-RM*FA(IRFIRP)
+                  ENDIF
                ELSEIF(IAMAX(IRFIR).EQ.JPIV)THEN
                   IAMAX(IRFIR)=IC+IDAMAX(NRA-IC,A(ICP1,IRFIR),1)
                ELSEIF(IAMAX(IRFIR).EQ.IC)THEN
@@ -807,6 +812,9 @@ C              **Swap columns of C physically
                   DO L=1,NCB
                      D(L,IR)=D(L,IR)-RM*B(L,IRFIRP)
                   ENDDO
+                  IF(NLLV.EQ.0)THEN
+                     FC(IR)=FC(IR)-RM*FA(IRFIRP)
+                  ENDIF
                ENDIF
             ENDDO
          ENDDO
@@ -867,15 +875,16 @@ C
       END SUBROUTINE CONPAP
 C
 C     ---------- ------
-      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,IRF,ICF)
+      SUBROUTINE CONPAR(NOV,NA,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,
+     +     NLLV)
 C
       IMPLICIT NONE
 C
 C Arguments
       INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*)
+      INTEGER   NCB,NRC,ICF(NCA,*),IRF(NRA,*),NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DOUBLE PRECISION D(NCB,*)
+      DOUBLE PRECISION D(NCB,*),FA(NRA,*),FC(*)
 C Local
       INTEGER J
       INTEGER, ALLOCATABLE :: IAMAX(:)
@@ -887,7 +896,7 @@ C
       ALLOCATE(IAMAX(NRA))
       DO J=1,NA
          CALL CONPAP(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,C(1,1,J),
-     +        D,IRF(1,J),ICF(1,J),IAMAX)
+     +        D,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
       ENDDO
       DEALLOCATE(IAMAX)
 C
