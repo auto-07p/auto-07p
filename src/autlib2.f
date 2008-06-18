@@ -652,7 +652,7 @@ C
      +           FA,FCFC(1,IT),IRF,ICF,NLLV)
          ENDIF
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
-     +       BB(1,1,I),CC(1,1,I),CCLO,IRF,IT)
+     +       BB(1,1,I),CC(1,1,I),CCLO,IT)
       ELSE
          IF(IT.EQ.0)THEN
             CALL CONRHS(NOV,N,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF)
@@ -667,7 +667,7 @@ C
             CALL SETZERO(FA,FCFC(1,IT),N,NRA,NRC)
          ENDIF
       ENDIF
-      CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA,IRF)
+      CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA)
 C
       CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
@@ -692,7 +692,7 @@ C
       CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT,IAM,KWT)
 C
       ALLOCATE(X(NRA))
-      CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,ICF,X)
       DEALLOCATE(X)
 C
       RETURN
@@ -748,7 +748,6 @@ C
       ZERO = 0.D0
 C
          DO J=1,NRA
-            IRF(J)=J
             IAMAX(J)=NOV+IDAMAX(NEX,A(NOV+1,J),1)
          ENDDO
          DO IC=M1,M2
@@ -760,15 +759,31 @@ C           **Search for pivot (Complete pivoting)
             IPIV = IRP
             JPIV = IC
             DO K1=IRP,NRA
-               IROW=IRF(K1)
-               TPIV = DABS(A(IAMAX(IROW),IROW))
+               TPIV = DABS(A(IAMAX(K1),K1))
                IF(PIV.LT.TPIV)THEN
                   PIV = TPIV
                   IPIV = K1
-                  JPIV = IAMAX(IROW)
+                  JPIV = IAMAX(K1)
                ENDIF
             ENDDO
 C           **Move indices
+            IRF(IRP)=IPIV
+            IF(IRP.NE.IPIV)THEN
+C              **Physically swap rows
+               DO L=1,NCA
+                  TMP=A(L,IPIV)
+                  A(L,IPIV)=A(L,IRP)
+                  A(L,IRP)=TMP
+               ENDDO
+               DO L=1,NCB
+                  TMP=B(L,IPIV)
+                  B(L,IPIV)=B(L,IRP)
+                  B(L,IRP)=TMP
+               ENDDO
+               TMP=FA(IPIV)
+               FA(IPIV)=FA(IRP)
+               FA(IRP)=TMP
+            ENDIF
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
 C              **Physically swap columns
@@ -778,28 +793,24 @@ C              **Physically swap columns
                   A(IC,IR)=TMP
                ENDDO
             ENDIF
-            IRFIRP      = IRF(IPIV)
-            IRF(IPIV)   = IRF(IRP)
-            IRF(IRP)    = IRFIRP
 C           **End of pivoting; elimination starts here
-            PIV=A(IC,IRFIRP)
+            PIV=A(IC,IRP)
             DO IR=IR1,NRA
-               IRFIR=IRF(IR)
-               RM=A(IC,IRFIR)/PIV
-               A(IC,IRFIR)=RM
+               RM=A(IC,IR)/PIV
+               A(IC,IR)=RM
                IF(RM.NE.0.0)THEN
-                  CALL IMSBRA(NOV,NCA,NRA,A(1,IRFIR),A(1,IRFIRP),
-     +                 ICP1,IAMAX(IRFIR),RM)
+                  CALL IMSBRA(NOV,NCA,NRA,A(1,IR),A(1,IRP),
+     +                 ICP1,IAMAX(IR),RM)
                   DO L=1,NCB
-                     B(L,IRFIR)=B(L,IRFIR)-RM*B(L,IRFIRP)
+                     B(L,IR)=B(L,IR)-RM*B(L,IRP)
                   ENDDO
                   IF(NLLV.EQ.0)THEN
-                     FA(IRFIR)=FA(IRFIR)-RM*FA(IRFIRP)
+                     FA(IR)=FA(IR)-RM*FA(IRP)
                   ENDIF
-               ELSEIF(IAMAX(IRFIR).EQ.JPIV)THEN
-                  IAMAX(IRFIR)=IC+IDAMAX(NRA-IC,A(ICP1,IRFIR),1)
-               ELSEIF(IAMAX(IRFIR).EQ.IC)THEN
-                  IAMAX(IRFIR)=JPIV
+               ELSEIF(IAMAX(IR).EQ.JPIV)THEN
+                  IAMAX(IR)=IC+IDAMAX(NRA-IC,A(ICP1,IR),1)
+               ELSEIF(IAMAX(IR).EQ.IC)THEN
+                  IAMAX(IR)=JPIV
                ENDIF
             ENDDO
             DO IR=1,NRC
@@ -808,12 +819,12 @@ C              **Swap columns of C physically
                C(JPIV,IR)=C(IC,IR)
                C(IC,IR)=RM
                IF(RM.NE.0.0)THEN
-                  CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRFIRP),ICP1,RM)
+                  CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRP),ICP1,RM)
                   DO L=1,NCB
-                     D(L,IR)=D(L,IR)-RM*B(L,IRFIRP)
+                     D(L,IR)=D(L,IR)-RM*B(L,IRP)
                   ENDDO
                   IF(NLLV.EQ.0)THEN
-                     FC(IR)=FC(IR)-RM*FA(IRFIRP)
+                     FC(IR)=FC(IR)-RM*FA(IRP)
                   ENDIF
                ENDIF
             ENDDO
@@ -915,8 +926,8 @@ C Arguments
       DOUBLE PRECISION FA(NRA,*),FC(*)
 C
 C Local
-      INTEGER   M1,M2,NEX,I,IC,IR1,IR,IRFIR
-      DOUBLE PRECISION RM
+      INTEGER   M1,M2,NEX,I,IC,IR,IPIV,IRP
+      DOUBLE PRECISION RM,TMP
 C
       NEX=NCA-2*NOV
       IF(NEX.EQ.0)RETURN
@@ -927,13 +938,21 @@ C
       M2    = NOV+NEX
 C
       DO I=1,NA
+         DO IR=1,NEX
+            IPIV=IRF(IR,I)
+            IF(IR.NE.IPIV)THEN
+C             **Physically swap rows
+               TMP=FA(IPIV,I)
+               FA(IPIV,I)=FA(IR,I)
+               FA(IR,I)=TMP
+            ENDIF
+         ENDDO
          DO IC=M1,M2
-            IR1=IC-NOV+1
-            RM=FA(IRF(IR1-1,I),I)
+            IRP=IC-NOV
+            RM=FA(IRP,I)
             IF(RM.NE.0.0)THEN
-               DO IR=IR1,NRA
-                  IRFIR=IRF(IR,I)
-                  FA(IRFIR,I)=FA(IRFIR,I)-RM*A(IC,IRFIR,I)
+               DO IR=IRP+1,NRA
+                  FA(IR,I)=FA(IR,I)-RM*A(IC,IR,I)
                ENDDO
                DO IR=1,NRC
                   FC(IR)=FC(IR)-RM*C(IC,IR,I)
@@ -947,13 +966,13 @@ C
 C
 C     ---------- ------
       SUBROUTINE COPYCP(NA,NOV,NRA,NCA,A,
-     +  NCB,B,NRC,C,A1,A2,BB,CC,CCLO,IRF,IT)
+     +  NCB,B,NRC,C,A1,A2,BB,CC,CCLO,IT)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NOV,NRA,NCA
-      INTEGER   NCB,NRC,IRF(NRA,*),IT
+      INTEGER   NCB,NRC,IT
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
       DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*),CCLO(NOV,NRC,*)
@@ -967,14 +986,14 @@ C Copies the condensed sytem generated by CONPAR into workspace.
 C
       DO I=1,NA
          DO IR=1,NOV
-            IRFIR=IRF(NRA-NOV+IR,I)
+            IR1=NRA-NOV+IR
             DO IC=1,NOV
                IC1=NCA-NOV+IC
-               A1(IC,IR,I)=A(IC,IRFIR,I)
-               A2(IC,IR,I)=A(IC1,IRFIR,I)
+               A1(IC,IR,I)=A(IC,IR1,I)
+               A2(IC,IR,I)=A(IC1,IR1,I)
             ENDDO     
             DO IC=1,NCB
-               BB(IC,IR,I)=B(IC,IRFIR,I)
+               BB(IC,IR,I)=B(IC,IR1,I)
             ENDDO
          ENDDO
       ENDDO
@@ -1002,14 +1021,13 @@ C
       END SUBROUTINE COPYCP
 C
 C     ---------- ------
-      SUBROUTINE CPYRHS(NA,NOV,NRA,FAA,FA,IRF)
+      SUBROUTINE CPYRHS(NA,NOV,NRA,FAA,FA)
 C
       USE AUTOMPI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NOV,NRA
-      INTEGER   IRF(NRA,*)
 
       DIMENSION FA(NRA,*),FAA(NOV,*)
 C
@@ -1019,8 +1037,7 @@ C
 C     **Copy the RHS
       DO I=1,NA
          DO IR=1,NOV
-            IRFIR=IRF(NRA-NOV+IR,I)
-            FAA(IR,I)=FA(IRFIR,I)
+            FAA(IR,I)=FA(NRA-NOV+IR,I)
          ENDDO         
       ENDDO
 C     
@@ -1682,12 +1699,12 @@ C
       END SUBROUTINE BCKSUB
 C
 C     ---------- ------
-      SUBROUTINE INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,IRF,ICF,X)
+      SUBROUTINE INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,ICF,X)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C  Arguments
-      INTEGER   NA,NOV,NRA,NCA,NCB,IRF(NRA,*),ICF(NCA,*)
+      INTEGER   NA,NOV,NRA,NCA,NCB,ICF(NCA,*)
       DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
       DIMENSION SOL(NOV,*),X(*)
 C
@@ -1702,22 +1719,21 @@ C Backsubstitution in the condensation of parameters; no communication.
       DO I=1,NA
          DO IR=NRAM,1,-1
             IRP1=IR+1
-            IRFIR=IRF(IR,I)
-            SM=FA(IRFIR,I)
+            SM=FA(IR,I)
             DO J=1,NOV
                NRAPJ=NRA+J
-               SM=SM-A(J,IRFIR,I)*SOL(J,I)
-               SM=SM-A(NRAPJ,IRFIR,I)*SOL(J,I+1)
+               SM=SM-A(J,IR,I)*SOL(J,I)
+               SM=SM-A(NRAPJ,IR,I)*SOL(J,I+1)
             ENDDO
             DO J=1,NCB
-               SM=SM-B(J,IRFIR,I)*FC(NOV+J)
+               SM=SM-B(J,IR,I)*FC(NOV+J)
             ENDDO
             DO J=IRP1,NRAM
                J1=J+NOV
-               SM=SM-A(J1,IRFIR,I)*X(J1)
+               SM=SM-A(J1,IR,I)*X(J1)
             ENDDO
             NOVPIR=NOV+IR
-            X(NOVPIR)=SM/A(NOVPIR,IRFIR,I)
+            X(NOVPIR)=SM/A(NOVPIR,IR,I)
          ENDDO    
 C        **Copy SOL into FA 
          DO J=1,NOV
