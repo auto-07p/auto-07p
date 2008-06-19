@@ -149,7 +149,7 @@ C
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,
      +  FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
      +  NFPR,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
-     +  SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT)
+     +  SOL,S1,S2,IPR,IPC,ICF(1,I),IAM,KWT,IT,NT)
 C
 C$OMP END PARALLEL
 C
@@ -291,30 +291,17 @@ C
 C
       I = IAM*NA/NT+1
       N = (IAM+1)*NA/NT+1-I
-      IF(IFST.EQ.1)THEN
-         IF(IAM.EQ.0)THEN
-            CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +           IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,
-     +           UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,NLLV)
-         ELSE
-            CALL SETFCDD(IFST,DDD(1,NRC,IAM),FCFC(NRC,IAM),NCB,1)
-            CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
-     +           IAP,RAP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),
-     +           DDD(1,1,IAM),FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
-     +           UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT,
-     +           IRF(1,I),ICF(1,I),NLLV)
-         ENDIF
+      IF(IAM.EQ.0)THEN
+         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +        IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,UPS,
+     +        UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,IFST,NLLV)
       ELSE
-         IF (IAM.EQ.0)THEN
-            CALL SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,NDX,IAP,
-     +           RAP,PAR,NPAR,ICP,FA,FC,UPS,UOLDPS,
-     +           UDOTPS,UPOLDP,DTM,WI,WP,WT)
-         ELSE
-            CALL SETFCDD(IFST,DDD(1,NRC,IAM),FCFC(NRC,IAM),NCB,1)
-            CALL SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,NDX,IAP,
-     +           RAP,PAR,NPAR,ICP,FA(1,I),FCFC(1,IAM),UPS(1,I),
-     +           UOLDPS(1,I),UDOTPS(1,I),UPOLDP(1,I),DTM(I),WI,WP,WT)
-         ENDIF
+         CALL SETFCDD(IFST,DDD(1,NRC,IAM),FCFC(NRC,IAM),NCB,1)
+         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,NDX,
+     +        IAP,RAP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),
+     +        DDD(1,1,IAM),FA(1,I),FCFC(1,IAM),UPS(1,I),UOLDPS(1,I),
+     +        UDOTPS(1,I),UPOLDP(1,I),DTM(I),THU,WI,WP,WT,
+     +        IRF(1,I),ICF(1,I),IFST,NLLV)
       ENDIF
 C
       CONTAINS
@@ -322,7 +309,7 @@ C
 C     ---------- ---------
       SUBROUTINE SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
      + ICNI,NDX,IAP,RAP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,NLLV)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,IFST,NLLV)
 C
 C     This is the per-CPU parallelized part of SETUBV
 C
@@ -334,7 +321,7 @@ C
       DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION WI(*),WP(NCOL+1,*),WT(NCOL+1,*)
-      INTEGER IRF(NRA,*),ICF(NCA,*),NLLV
+      INTEGER IRF(NRA,*),ICF(NCA,*),IFST,NLLV
       INTEGER IDAMAX
 C
 C Local
@@ -352,9 +339,11 @@ C Initialize to zero.
 C
        DO I=1,NINT
          FC(I)=0.d0
-         DO K=1,NCB
-           DD(K,I)=0.d0
-         ENDDO
+         IF(IFST.EQ.1)THEN
+            DO K=1,NCB
+               DD(K,I)=0.d0
+            ENDDO
+         ENDIF
        ENDDO
 
        NCP1=NCOL+1
@@ -371,10 +360,13 @@ C
              CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,NDX,IAP,RAP,PRM,ICP,
      +            AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,J),
      +            UOLDPS(1,J),DTM(J),WP(1,IC),WT(1,IC),DFDU,DFDP,
-     +            U,UOLD,F)
-             DO K=0,NDIM-1
-                IAMAX(IC1+K)=NDIM+IDAMAX(NRA-NDIM,AA(NDIM+1,IC1+K,J),1)
-             ENDDO
+     +            U,UOLD,F,IFST,NLLV)
+             IF(IFST.EQ.1)THEN
+                DO K=0,NDIM-1
+                   IAMAX(IC1+K)=
+     +                  NDIM+IDAMAX(NRA-NDIM,AA(NDIM+1,IC1+K,J),1)
+                ENDDO
+             ENDIF
           ENDDO
 C     
 C     Generate CC, DD and FC :
@@ -397,12 +389,17 @@ C
             CALL SBVICN(NDIM,NINT,NCB,NCA,ICNI,IAP,RAP,PRM,ICP,
      +           CC(K1,1,J),DD,FC,UPS(I1,J1),UOLDPS(I1,J1),
      +           UDOTPS(I1,J1),UPOLDP(I1,J1),DTM(J),THU,WI(K),FICD,DICD,
-     +           UIC,UIO,UID,UIP)
+     +           UIC,UIO,UID,UIP,IFST,NLLV)
          ENDDO
 C
 C      Condensation of parameters:
-         CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,CC(1,1,J)
-     +        ,DD,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
+         IF(IFST.EQ.1)THEN
+            CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,
+     +           CC(1,1,J),DD,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
+         ELSE
+            CALL CONRHS(NDIM,NRA,NCA,AA(1,1,J),NRC,
+     +           CC(1,1,J),FA(1,J),FC,IRF(1,J))
+         ENDIF
        ENDDO
 C     
        DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD)
@@ -412,13 +409,14 @@ C
 C
 C     ---------- ---------
       SUBROUTINE SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,NDX,IAP,RAP,PAR,ICP,
-     + AA,BB,FA,UPS,UOLDPS,DTM,WP,WT,DFDU,DFDP,U,UOLD,F)
+     + AA,BB,FA,UPS,UOLDPS,DTM,WP,WT,DFDU,DFDP,U,UOLD,F,IFST,NLLV)
 C
 C     Does one call to FUNI and stores the result in AA, BB, and FA.
 C
       EXTERNAL FUNI
 C
       INTEGER, INTENT(IN) :: NDIM,NCOL,NCB,NCA,NDX,IAP(*),ICP(*)
+      INTEGER, INTENT(IN) :: IFST,NLLV
       DOUBLE PRECISION, INTENT(IN) :: DTM,PAR(*),WT(*),WP(*)
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,*),UOLDPS(NDX,*)
       DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,*),BB(NCB,*),FA(*),U(*)
@@ -439,40 +437,49 @@ C
             UOLD(K) =UOLD(K) +WT(L)*UOLDPS(L1,1)
          ENDDO
       ENDDO
-      CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-C     transpose DFDU for optimal access
-      DO II=1,NDIM
-         DO JJ=1,II-1
-            TMP=DFDU(II,JJ)
-            DFDU(II,JJ)=DFDU(JJ,II)
-            DFDU(JJ,II)=TMP
-         ENDDO
-      ENDDO
+      CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IFST*2,F,DFDU,DFDP)
       DO IB=1,NCP1
          WPLOC(IB)=WP(IB)/DTM
       ENDDO
-      DO I=1,NDIM
-         DO IB=1,NCP1
-            WTTMP=-WT(IB)
-            IB1=(IB-1)*NDIM
-            DO K=1,NDIM
-               AA(IB1+K,I)=WTTMP*DFDU(K,I)
+      IF(IFST.EQ.1)THEN
+C     transpose DFDU for optimal access
+         DO II=1,NDIM
+            DO JJ=1,II-1
+               TMP=DFDU(II,JJ)
+               DFDU(II,JJ)=DFDU(JJ,II)
+               DFDU(JJ,II)=TMP
             ENDDO
-            AA(IB1+I,I)=AA(IB1+I,I)+WPLOC(IB)
          ENDDO
-         DO K=1,NCB
-            BB(K,I)=-DFDP(I,ICP(K))
+         DO I=1,NDIM
+            DO IB=1,NCP1
+               WTTMP=-WT(IB)
+               IB1=(IB-1)*NDIM
+               DO K=1,NDIM
+                  AA(IB1+K,I)=WTTMP*DFDU(K,I)
+               ENDDO
+               AA(IB1+I,I)=AA(IB1+I,I)+WPLOC(IB)
+            ENDDO
          ENDDO
-         FA(I)=F(I)-WPLOC(NCP1)*UPS(I,2)
-         DO K=1,NCOL
-            FA(I)=FA(I)-WPLOC(K)*UPS((K-1)*NDIM+I,1)
+         DO I=1,NDIM
+            DO K=1,NCB
+               BB(K,I)=-DFDP(I,ICP(K))
+            ENDDO
          ENDDO
-      ENDDO
+      ENDIF
+      IF(NLLV.EQ.0)THEN
+         DO I=1,NDIM
+            FA(I)=F(I)-WPLOC(NCP1)*UPS(I,2)
+            DO K=1,NCOL
+               FA(I)=FA(I)-WPLOC(K)*UPS((K-1)*NDIM+I,1)
+            ENDDO
+         ENDDO
+      ENDIF
       END SUBROUTINE SBVFUN
 C
 C     ---------- ------
       SUBROUTINE SBVICN(NDIM,NINT,NCB,NCA,ICNI,IAP,RAP,PAR,ICP,CC,DD,FC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,FICD,DICD,UIC,UIO,UID,UIP)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,FICD,DICD,UIC,UIO,UID,UIP,
+     + IFST,NLLV)
 C
       IMPLICIT NONE
 C
@@ -481,7 +488,7 @@ C     result in CC, DD and FC; and stores the pseudo-arclength
 C     result too.
 C
       EXTERNAL ICNI
-      INTEGER, INTENT(IN) :: NDIM,NINT,NCB,NCA,IAP(*),ICP(*)
+      INTEGER, INTENT(IN) :: NDIM,NINT,NCB,NCA,IAP(*),ICP(*),IFST,NLLV
       DOUBLE PRECISION, INTENT(IN) :: RAP(*),PAR(*),UPS(*),UDOTPS(*)
       DOUBLE PRECISION, INTENT(IN) :: UOLDPS(*),UPOLDP(*),DTM,WI,THU(*)
       DOUBLE PRECISION, INTENT(OUT) :: CC(NCA,*),FICD(*),DICD(NINT,*)
@@ -490,6 +497,7 @@ C
 C
 C Local
       INTEGER I,M
+      DOUBLE PRECISION DFCDU
 C
       IF(NINT.GT.0)THEN
          DO I=1,NDIM
@@ -499,127 +507,34 @@ C
             UIP(I)=UPOLDP(I)
          ENDDO
          CALL ICNI(IAP,RAP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,
-     +        FICD,2,DICD)
+     +        FICD,IFST*2,DICD)
          DO M=1,NINT
-            DO I=1,NDIM
-               CC(I,M)=DTM*WI*DICD(M,I)
-            ENDDO
-            DO I=1,NCB
-               DD(I,M)=DD(I,M)+DTM*WI*DICD(M,NDIM+ICP(I))
-            ENDDO
-            FC(M)=FC(M)-DTM*WI*FICD(M)
+            IF(IFST.EQ.1)THEN
+               DO I=1,NDIM
+                  CC(I,M)=DTM*WI*DICD(M,I)
+               ENDDO
+               DO I=1,NCB
+                  DD(I,M)=DD(I,M)+DTM*WI*DICD(M,NDIM+ICP(I))
+               ENDDO
+            ENDIF
+            IF(NLLV.EQ.0)THEN
+               FC(M)=FC(M)-DTM*WI*FICD(M)
+            ENDIF
          ENDDO
       ENDIF
 C     
 C     Pseudo-arclength equation :
 C     
       DO I=1,NDIM
-         CC(I,NINT+1)=DTM*THU(I)*WI*UDOTPS(I)
-         FC(NINT+1)=FC(NINT+1)-CC(I,NINT+1)*(UPS(I)-UOLDPS(I))
+         DFCDU=DTM*THU(I)*WI*UDOTPS(I)
+         IF(IFST.EQ.1)THEN
+            CC(I,NINT+1)=DFCDU
+         ENDIF
+         IF(NLLV.EQ.0)THEN
+            FC(NINT+1)=FC(NINT+1)-DFCDU*(UPS(I)-UOLDPS(I))
+         ENDIF
       ENDDO
       END SUBROUTINE SBVICN
-C
-C     ---------- ------
-      SUBROUTINE SETRHS(NDIM,N,NCOL,NINT,NRA,FUNI,ICNI,NDX,
-     + IAP,RAP,PAR,NPAR,ICP,FA,FC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,WI,WP,WT)
-C
-      EXTERNAL FUNI,ICNI
-C
-      INTEGER NDIM,N,NCOL,NINT,NRA,IAP(*),ICP(*),NDX,NPAR
-      DOUBLE PRECISION RAP(*),UPS(NDX,*),UOLDPS(NDX,*)
-      DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
-      DOUBLE PRECISION DTM(*),PAR(*),WI(*),WP(NCOL+1,*),WT(NCOL+1,*)
-C
-C Local
-      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U,
-     +  F,FICD,DICD,UIC,UIO,UID,UIP
-      INTEGER I,J,K,L,M,IB,IC,IC1,NCP1,I1,J1,JP1,K1,L1
-      DOUBLE PRECISION WPLOC(NCOL+1,NCOL),DDT
-      DOUBLE PRECISION, ALLOCATABLE :: PRM(:)
-C
-      ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPAR),UOLD(NDIM),U(NDIM))
-      ALLOCATE(F(NDIM),FICD(NINT),DICD(NINT*(NDIM+NPAR)))
-      ALLOCATE(UIC(NDIM),UIO(NDIM),UID(NDIM),UIP(NDIM))
-      ALLOCATE(PRM(NPAR))
-C
-C Initialize to zero.
-       DO I=1,NINT
-         FC(I)=0.d0
-       ENDDO
-       NCP1=NCOL+1
-C
-C Generate FA :
-C
-       DO J=1,N
-          JP1=J+1
-          DDT=1.d0/DTM(J)
-          DO IC=1,NCOL
-             DO IB=1,NCP1
-                WPLOC(IB,IC)=DDT*WP(IB,IC)
-             ENDDO
-          ENDDO
-          DO IC=1,NCOL
-             DO K=1,NDIM
-                U(K)   =WT(NCP1,IC)*UPS(K,JP1)
-                UOLD(K)=WT(NCP1,IC)*UOLDPS(K,JP1)
-                DO L=1,NCOL
-                   L1=(L-1)*NDIM+K
-                   U(K)   =U(K)   +WT(L,IC)*UPS(L1,J)
-                   UOLD(K)=UOLD(K)+WT(L,IC)*UOLDPS(L1,J)
-                ENDDO
-             ENDDO
-             DO I=1,NPAR
-                PRM(I)=PAR(I)
-             ENDDO
-             CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PRM,0,F,DFDU,DFDP)
-             IC1=(IC-1)*NDIM
-             DO I=1,NDIM
-                FA(IC1+I,J)=F(I)-WPLOC(NCP1,IC)*UPS(I,JP1)
-                DO K=1,NCOL
-                   K1=(K-1)*NDIM+I
-                   FA(IC1+I,J)=FA(IC1+I,J)-WPLOC(K,IC)*UPS(K1,J)
-                ENDDO
-             ENDDO
-          ENDDO
-       ENDDO
-C     
-C     Generate FC :
-C
-C     Integral constraints :     
-       DO J=1,N
-         JP1=J+1
-         DO K=1,NCP1
-            DO I=1,NDIM
-               I1=(K-1)*NDIM+I
-               J1=J
-               IF(K.EQ.NCP1)I1=I
-               IF(K.EQ.NCP1)J1=JP1
-               UIC(I)=UPS(I1,J1)
-               UIO(I)=UOLDPS(I1,J1)
-               UID(I)=UDOTPS(I1,J1)
-               UIP(I)=UPOLDP(I1,J1)
-            ENDDO
-            IF(NINT.GT.0)THEN
-               DO I=1,NPAR
-                  PRM(I)=PAR(I)
-               ENDDO
-               CALL ICNI(IAP,RAP,NDIM,PRM,ICP,NINT,UIC,UIO,UID,UIP,
-     *              FICD,0,DICD)
-               DO M=1,NINT
-                  FC(M)=FC(M)-DTM(J)*WI(K)*FICD(M)
-               ENDDO
-            ENDIF
-C     Pseudo-arclength
-            DO I=1,NDIM
-               FC(NINT+1)=FC(NINT+1)-DTM(J)*WI(K)*THU(I)*UID(I)*
-     *           (UIC(I)-UIO(I))
-            ENDDO
-         ENDDO
-       ENDDO
-C     
-       DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD,UIC,UIO,UID,UIP,PRM)
-       RETURN
-       END SUBROUTINE SETRHS
 C
       END SUBROUTINE SETUBV
 C
@@ -627,7 +542,7 @@ C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,DD,FA,FAA,FC,FCFC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
      +  NCB,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
-     +  SOL,S1,S2,IPR,IPC,IRF,ICF,IAM,KWT,IT,NT)
+     +  SOL,S1,S2,IPR,IPC,ICF,IAM,KWT,IT,NT)
 C
       IMPLICIT NONE
 C
@@ -642,7 +557,7 @@ C Arguments
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NFC-NBC,*)
       DOUBLE PRECISION CCLO(NOV,NFC-NBC,*)
       DOUBLE PRECISION CCBC(*),DDBC(*),SOL(NOV,*),S1(*),S2(*)
-      INTEGER   IPR(*),IPC(*),IRF(*),ICF(*)
+      INTEGER   IPR(*),IPC(*),ICF(*)
 C
 C Local
       DOUBLE PRECISION FCC,E,X
@@ -660,12 +575,6 @@ C
       IF(IFST.EQ.1)THEN
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
      +       BB(1,1,I),CC(1,1,I),CCLO,IT)
-      ELSE
-         IF(IT.EQ.0)THEN
-            CALL CONRHS(NOV,N,NRA,NCA,A,NRC,C,FA,FC(NBC+1),IRF)
-         ELSE
-            CALL CONRHS(NOV,N,NRA,NCA,A,NRC,C,FA,FCFC(1,IT),IRF)
-         ENDIF
       ENDIF
       IF(NLLV.NE.0)THEN
          IF(IT.EQ.0)THEN
@@ -890,50 +799,42 @@ C
       END SUBROUTINE CONPAR
 C
 C     ---------- ------
-      SUBROUTINE CONRHS(NOV,NA,NRA,NCA,A,NRC,C,FA,FC,IRF)
+      SUBROUTINE CONRHS(NOV,NRA,NCA,A,NRC,C,FA,FC,IRF)
 C
       IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NOV,NA,NRA,NCA
-      INTEGER   NRC,IRF(NRA,*)
-      DOUBLE PRECISION A(NCA,NRA,*),C(NCA,NRC,*)
-      DOUBLE PRECISION FA(NRA,*),FC(*)
+      INTEGER   NOV,NRA,NCA
+      INTEGER   NRC,IRF(NRA)
+      DOUBLE PRECISION A(NCA,NRA),C(NCA,NRC)
+      DOUBLE PRECISION FA(NRA),FC(*)
 C
 C Local
-      INTEGER   M1,M2,NEX,I,IC,IR,IPIV,IRP
+      INTEGER   IC,IR,IPIV,IRP
       DOUBLE PRECISION RM,TMP
 C
-      NEX=NCA-2*NOV
-      IF(NEX.EQ.0)RETURN
+C Condensation of right hand side (one element).
 C
-C Condensation of right hand side.
-C
-      M1    = NOV+1
-      M2    = NOV+NEX
-C
-      DO I=1,NA
-         DO IR=1,NEX
-            IPIV=IRF(IR,I)
-            IF(IR.NE.IPIV)THEN
-C             **Physically swap rows
-               TMP=FA(IPIV,I)
-               FA(IPIV,I)=FA(IR,I)
-               FA(IR,I)=TMP
-            ENDIF
-         ENDDO
-         DO IC=M1,M2
-            IRP=IC-NOV
-            RM=FA(IRP,I)
-            IF(RM.NE.0.0)THEN
-               DO IR=IRP+1,NRA
-                  FA(IR,I)=FA(IR,I)-RM*A(IC,IR,I)
-               ENDDO
-               DO IR=1,NRC
-                  FC(IR)=FC(IR)-RM*C(IC,IR,I)
-               ENDDO
-            ENDIF
-         ENDDO
+      DO IR=1,NRA-NOV
+         IPIV=IRF(IR)
+         IF(IR.NE.IPIV)THEN
+C     **Physically swap rows
+            TMP=FA(IPIV)
+            FA(IPIV)=FA(IR)
+            FA(IR)=TMP
+         ENDIF
+      ENDDO
+      DO IC=NOV+1,NCA-NOV
+         IRP=IC-NOV
+         RM=FA(IRP)
+         IF(RM.NE.0.0)THEN
+            DO IR=IRP+1,NRA
+               FA(IR)=FA(IR)-RM*A(IC,IR)
+            ENDDO
+            DO IR=1,NRC
+               FC(IR)=FC(IR)-RM*C(IC,IR)
+            ENDDO
+         ENDIF
       ENDDO
 C
       RETURN
