@@ -320,14 +320,14 @@ C
       DOUBLE PRECISION DD(NCB,*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*)
       DOUBLE PRECISION UDOTPS(NDX,*),UPOLDP(NDX,*),FA(NRA,*),FC(*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
-      DOUBLE PRECISION WI(*),WP(NCOL+1,*),WT(NCOL+1,*)
+      DOUBLE PRECISION WI(0:*),WP(NCOL+1,*),WT(NCOL+1,*)
       INTEGER IRF(NRA,*),ICF(NCA,*),IFST,NLLV
       INTEGER IDAMAX
 C
 C Local
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U,
      +  F,FICD,DICD,UIC,UIO,UID,UIP,PRM
-      INTEGER I,J,K,IC,IC1,NCP1,I1,J1,JP1,K1
+      INTEGER I,J,K,IC,IC1,I1,J1,JP1,K1
       INTEGER, ALLOCATABLE :: IAMAX(:)
 C
       ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPAR),UOLD(NDIM),U(NDIM))
@@ -345,8 +345,6 @@ C
             ENDDO
          ENDIF
        ENDDO
-
-       NCP1=NCOL+1
 
        DO J=1,N
 C
@@ -372,11 +370,11 @@ C
 C     Generate CC, DD and FC :
 C
          JP1=J+1
-         DO K=1,NCP1
+         DO K=0,NCOL
             J1=J
-            K1=(K-1)*NDIM+1
+            K1=K*NDIM+1
             I1=K1
-            IF(K.EQ.NCP1)THEN
+            IF(K.EQ.NCOL)THEN
                J1=JP1
                I1=1
             ENDIF
@@ -417,43 +415,40 @@ C
 C
       INTEGER, INTENT(IN) :: NDIM,NCOL,NCB,NCA,NDX,IAP(*),ICP(*)
       INTEGER, INTENT(IN) :: IFST,NLLV
-      DOUBLE PRECISION, INTENT(IN) :: DTM,PAR(*),WT(*),WP(*)
+      DOUBLE PRECISION, INTENT(IN) :: DTM,PAR(*),WT(0:*),WP(0:*)
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,*),UOLDPS(NDX,*)
       DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,*),BB(NCB,*),FA(*),U(*)
       DOUBLE PRECISION, INTENT(OUT) :: UOLD(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION, INTENT(OUT) :: F(*),RAP(*)
 C
 C Local
-      DOUBLE PRECISION WPLOC(NCOL+1),WTTMP,TMP
-      INTEGER I,IB,IB1,II,JJ,K,L,L1,NCP1
+      DOUBLE PRECISION WPLOC(0:NCOL),WTTMP,TMP
+      INTEGER I,IB,IB1,J,K,L,L1
 C
-      NCP1=NCOL+1
       DO K=1,NDIM
-         U(K)=   WT(NCP1)*   UPS(K,2)
-         UOLD(K)=WT(NCP1)*UOLDPS(K,2)
-         DO L=1,NCOL
-            L1=(L-1)*NDIM+K
+         U(K)=   WT(NCOL)*   UPS(K,2)
+         UOLD(K)=WT(NCOL)*UOLDPS(K,2)
+         DO L=0,NCOL-1
+            L1=L*NDIM+K
             U(K)=U(K)        +WT(L)*   UPS(L1,1)
             UOLD(K) =UOLD(K) +WT(L)*UOLDPS(L1,1)
          ENDDO
       ENDDO
       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IFST*2,F,DFDU,DFDP)
-      DO IB=1,NCP1
+      DO IB=0,NCOL
          WPLOC(IB)=WP(IB)/DTM
       ENDDO
       IF(IFST.EQ.1)THEN
-C     transpose DFDU for optimal access
-         DO II=1,NDIM
-            DO JJ=1,II-1
-               TMP=DFDU(II,JJ)
-               DFDU(II,JJ)=DFDU(JJ,II)
-               DFDU(JJ,II)=TMP
-            ENDDO
-         ENDDO
          DO I=1,NDIM
-            DO IB=1,NCP1
+C     transpose DFDU for optimal access
+            DO J=I+1,NDIM
+               TMP=DFDU(I,J)
+               DFDU(I,J)=DFDU(J,I)
+               DFDU(J,I)=TMP
+            ENDDO
+            DO IB=0,NCOL
                WTTMP=-WT(IB)
-               IB1=(IB-1)*NDIM
+               IB1=IB*NDIM
                DO K=1,NDIM
                   AA(IB1+K,I)=WTTMP*DFDU(K,I)
                ENDDO
@@ -468,9 +463,9 @@ C     transpose DFDU for optimal access
       ENDIF
       IF(NLLV.EQ.0)THEN
          DO I=1,NDIM
-            FA(I)=F(I)-WPLOC(NCP1)*UPS(I,2)
-            DO K=1,NCOL
-               FA(I)=FA(I)-WPLOC(K)*UPS((K-1)*NDIM+I,1)
+            FA(I)=F(I)-WPLOC(NCOL)*UPS(I,2)
+            DO K=0,NCOL-1
+               FA(I)=FA(I)-WPLOC(K)*UPS(K*NDIM+I,1)
             ENDDO
          ENDDO
       ENDIF
