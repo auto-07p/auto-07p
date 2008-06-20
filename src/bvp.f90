@@ -56,7 +56,7 @@ CONTAINS
     integer :: npar, iap(NIAP)
     double precision :: rap(NRAP)
 
-    double precision, allocatable :: rldot(:),ups(:,:), uoldps(:,:)
+    double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dtm(:),fa(:,:),fc(:),par(:)
     integer, allocatable :: np(:),icp(:)
@@ -81,19 +81,19 @@ CONTAINS
     nra=ndim*ncol
     nfc=nbc+nint+1
 
-    allocate(icp(nfpr+nint),rldot(nfpr),thu(ndim*8),dtm(na),par(npar))
+    allocate(icp(nfpr+nint),thu(ndim*8),dtm(na),par(npar))
     allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
     ! output arrays
     allocate(fa(nra,na),fc(nfc))
 
-    call mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp, &
+    call mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
-         nllv,dum1,dum1,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
+         nllv,dum1,dum1,dum1,nra,ups,uoldps,udotps,upoldp,dtm, &
          fa,fc,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,rldot,icp,par)
+    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,icp,par)
 
     deallocate(fa,fc)
 

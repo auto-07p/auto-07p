@@ -178,7 +178,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call mpisum(d,ncb*nrc)
 end subroutine mpicon
 
-subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   integer NIAP,NRAP,NPARX
 
@@ -189,7 +189,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer :: nra,iap(*),icp(*),ifst,nllv
-  double precision :: rap(*),par(*),rldot(*),dtm(*),thu(*)
+  double precision :: rap(*),par(*),dtm(*),thu(*)
   double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
 
   external funi, icni
@@ -211,7 +211,7 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
   nfpr=iap(29)
   npar=iap(31)
   call MPI_Pack_size(2+nfpr+nint,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
-  call MPI_Pack_size(NRAP+npar+ndim*8+nfpr, &
+  call MPI_Pack_size(NRAP+npar+ndim*8, &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
   bufsize = size_int + size_double
   allocate(buffer(bufsize))
@@ -231,8 +231,6 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
 
      call MPI_Pack(thu    ,ndim*8,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
           MPI_COMM_WORLD,ierr)
-     call MPI_Pack(rldot  ,nfpr,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
   endif
 
   call MPI_Bcast(buffer,bufsize,MPI_PACKED,0,MPI_COMM_WORLD,ierr)
@@ -250,8 +248,6 @@ subroutine mpisbv(iap,rap,par,icp,rldot,nra,ups,uoldps,udotps,upoldp,dtm, &
      call MPI_Unpack(buffer,bufsize,pos,icp   ,nfpr+nint, &
           MPI_INTEGER,MPI_COMM_WORLD,ierr)
      call MPI_Unpack(buffer,bufsize,pos,thu   ,ndim*8, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,rldot ,nfpr, &
           MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
   endif
 

@@ -118,7 +118,7 @@ C     ** Time evolution computations (parabolic systems)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),
      +        RLCUR,RLOLD,RLDOT,THL,IFST)
          IF(KWT.GT.1)THEN
-            CALL MPISBV(IAP,RAP,PAR,ICP,RLDOT,NDX,UPS,UOLDPS,UDOTPS,
+            CALL MPISBV(IAP,RAP,PAR,ICP,NDX,UPS,UOLDPS,UDOTPS,
      +           UPOLDP,DTM,THU,IFST,NLLV)
          ENDIF
       ELSE
