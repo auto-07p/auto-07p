@@ -691,6 +691,7 @@ C              **Physically swap rows
                TMP=FA(IPIV)
                FA(IPIV)=FA(IRP)
                FA(IRP)=TMP
+               IAMAX(IPIV)=IAMAX(IRP)
             ENDIF
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
