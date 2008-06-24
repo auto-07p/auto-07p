@@ -10,6 +10,13 @@ C
 
       PUBLIC ::SOLVBV
 
+      INTERFACE
+         INTEGER FUNCTION IDAMAX(N,DX,INCX)
+            INTEGER, INTENT(IN) :: N,INCX
+            DOUBLE PRECISION, INTENT(IN) :: DX(*)
+         END FUNCTION IDAMAX
+      END INTERFACE
+
       CONTAINS
 C
 C     ---------- ------
@@ -322,7 +329,6 @@ C
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION WI(0:*),WP(NCOL+1,*),WT(NCOL+1,*)
       INTEGER IRF(NRA,*),ICF(NCA,*),IFST,NLLV
-      INTEGER IDAMAX
 C
 C Local
       DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U,
@@ -638,44 +644,40 @@ C     ---------- ------
       SUBROUTINE CONPAR(NOV,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,IAMAX,
      +     NLLV)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
 C Arguments
-      INTEGER   NOV,NRA,NCA
-      INTEGER   NCB,NRC,ICF(*),IRF(*)
-      DIMENSION A(NCA,*),B(NCB,*),C(NCA,*),D(NCB,*),FA(*),FC(*),IAMAX(*)
+      INTEGER, INTENT(IN) :: NOV,NRA,NCA,NCB,NRC,NLLV
+      INTEGER, INTENT(OUT) :: ICF(NCA),IRF(NRA)
+      DOUBLE PRECISION, INTENT(INOUT) :: A(NCA,NRA),B(NCB,NRA)
+      DOUBLE PRECISION, INTENT(INOUT) :: C(NCA,NRC),D(NCB,NRC)
+      DOUBLE PRECISION, INTENT(INOUT) :: FA(NRA),FC(NRC)
+      INTEGER, INTENT(INOUT) :: IAMAX(NRA)
+C Local
+      INTEGER IC,IRP,IR,IPIV,JPIV,L
+      DOUBLE PRECISION PIV,TPIV,RM,TMP
 C
 C Note that the summation of the adjacent overlapped part of C
 C is delayed until REDUCE, in order to merge it with other communications.
 C
-      NEX=NCA-2*NOV
-C
 C This is a per-CPU, per-element process function for
 C Condensation of parameters (Elimination of local variables).
 C
-      M1    = NOV+1
-      M2    = NOV+NEX
-C     
-      ZERO = 0.D0
-C
-         DO IC=M1,M2
+         DO IC=NOV+1,NCA-NOV
             IRP=IC-NOV
-            IR1=IRP+1
-            ICP1=IC+1
 C           **Search for pivot (Complete pivoting)
-            PIV = ZERO
+            PIV = ABS(A(IAMAX(IRP),IRP))
             IPIV = IRP
-            JPIV = IC
-            DO K1=IRP,NRA
-               TPIV = DABS(A(IAMAX(K1),K1))
+            DO IR=IRP+1,NRA
+               TPIV = ABS(A(IAMAX(IR),IR))
                IF(PIV.LT.TPIV)THEN
                   PIV = TPIV
-                  IPIV = K1
-                  JPIV = IAMAX(K1)
+                  IPIV = IR
                ENDIF
             ENDDO
 C           **Move indices
             IRF(IRP)=IPIV
+            JPIV=IAMAX(IPIV)
             IF(IRP.NE.IPIV)THEN
 C              **Physically swap rows
                DO L=1,NCA
@@ -696,20 +698,24 @@ C              **Physically swap rows
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
 C              **Physically swap columns
-               DO IR=1,NRA
+               DO IR=1,IRP-1
                   TMP=A(JPIV,IR)
                   A(JPIV,IR)=A(IC,IR)
                   A(IC,IR)=TMP
                ENDDO
             ENDIF
 C           **End of pivoting; elimination starts here
-            PIV=A(IC,IRP)
-            DO IR=IR1,NRA
-               RM=A(IC,IR)/PIV
+            PIV=A(JPIV,IRP)
+            A(JPIV,IRP)=A(IC,IRP)
+            A(IC,IRP)=PIV
+            DO IR=IRP+1,NRA
+C              **Swap columns of A physically
+               RM=A(JPIV,IR)/PIV
+               A(JPIV,IR)=A(IC,IR)
                A(IC,IR)=RM
                IF(RM.NE.0.0)THEN
                   CALL IMSBRA(NOV,NCA,NRA,A(1,IR),A(1,IRP),
-     +                 ICP1,IAMAX(IR),RM)
+     +                 IC+1,IAMAX(IR),RM)
                   DO L=1,NCB
                      B(L,IR)=B(L,IR)-RM*B(L,IRP)
                   ENDDO
@@ -717,7 +723,7 @@ C           **End of pivoting; elimination starts here
                      FA(IR)=FA(IR)-RM*FA(IRP)
                   ENDIF
                ELSEIF(IAMAX(IR).EQ.JPIV)THEN
-                  IAMAX(IR)=IC+IDAMAX(NRA-IC,A(ICP1,IR),1)
+                  IAMAX(IR)=IC+IDAMAX(NRA-IC,A(IC+1,IR),1)
                ELSEIF(IAMAX(IR).EQ.IC)THEN
                   IAMAX(IR)=JPIV
                ENDIF
@@ -728,7 +734,7 @@ C              **Swap columns of C physically
                C(JPIV,IR)=C(IC,IR)
                C(IC,IR)=RM
                IF(RM.NE.0.0)THEN
-                  CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRP),ICP1,RM)
+                  CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRP),IC+1,RM)
                   DO L=1,NCB
                      D(L,IR)=D(L,IR)-RM*B(L,IRP)
                   ENDDO
@@ -1088,7 +1094,6 @@ C Arguments
 C
 C Local
        INTEGER K1,K2,IR,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2
-       INTEGER IDAMAX
        DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
 C
          DO K1=1,NOV
@@ -1229,7 +1234,6 @@ C
        DOUBLE PRECISION A12(NOV),A21(NOV),S12(NOV),S11(NOV)
        DOUBLE PRECISION A22(NOV),S21(NOV),BB1(NOV),BB2(NOV)
 C
-       INTEGER IDAMAX
        INTEGER L
        DOUBLE PRECISION RM,V,PPIV,TPIV
 C
