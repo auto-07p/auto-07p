@@ -276,7 +276,7 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	SOXT_OBJS_R3B=gmainxt.o
     else
         MOCNAMES="moc-qt3 moc"
-        if ( echo $SOXT_LDFLAGS | grep QtGui > /dev/null ); then
+        if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
         fi
 	AC_PATH_PROGS(
