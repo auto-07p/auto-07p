@@ -1384,9 +1384,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: AA(M,N),RHS(M)
     INTEGER I,J
 
-    WRITE(9,"(A/1X,12E10.3)")' Residual vector :',RHS(:),(0d0,I=M+1,N)
-    WRITE(9,"(A/1X,12E10.3)")' Jacobian matrix :',&
-         (AA(I,:),I=1,M),((0d0,J=1,N),I=M+1,N)
+    WRITE(9,"(A)")' Residual vector :'
+    WRITE(9,"(1X,12E10.3)")RHS(:),(0d0,I=M+1,N)
+    WRITE(9,"(A)")' Jacobian matrix :'
+    WRITE(9,"(1X,12E10.3)")(AA(I,:),I=1,M),((0d0,J=1,N),I=M+1,N)
 
   END SUBROUTINE WRJAC
 
