@@ -1387,7 +1387,12 @@ CONTAINS
     WRITE(9,"(A)")' Residual vector :'
     WRITE(9,"(1X,12E10.3)")RHS(:),(0d0,I=M+1,N)
     WRITE(9,"(A)")' Jacobian matrix :'
-    WRITE(9,"(1X,12E10.3)")(AA(I,:),I=1,M),((0d0,J=1,N),I=M+1,N)
+    DO I=1,M
+       WRITE(9,"(1X,12E10.3)")(AA(I,J),J=1,N)
+    ENDDO
+    DO I=M+1,N
+       WRITE(9,"(1X,12E10.3)")(0d0,J=1,N)
+    ENDDO
 
   END SUBROUTINE WRJAC
 
