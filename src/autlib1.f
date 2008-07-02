@@ -343,34 +343,15 @@ C
 C        ** BP cont (algebraic problems, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
+       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.ITP==3 )
      * THEN
-C        ** Hopf bifurcation continuation (ODE).
+C        ** Hopf bifurcation continuation (ODE/waves/maps).
          CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1).AND.ABS(ISW).EQ.2.AND.
-     * (ABS(ITP)/10).EQ.3 ) THEN
-C        ** Hopf bifurcation continuation (ODE, restart).
+       ELSE IF((ABS(IPS)<=1.OR.IPS==11)
+     *        .AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==3 ) THEN
+C        ** Hopf bifurcation continuation (ODE/waves/maps, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHB,STPNAE,THL,THU,IUZ,VUZ)
-C
-       ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.ITP.EQ.3 )
-     * THEN
-C        ** Hopf bifurcation continuation (Waves).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHW,STPNHW,THL,THU,IUZ,VUZ)
-C
-       ELSE IF(IPS.EQ.11.AND.ABS(ISW).EQ.2.AND.
-     * (ABS(ITP)/10).EQ.3 ) THEN
-C        ** Hopf bifurcation continuation (Waves, restart).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHW,STPNAE,THL,THU,IUZ,VUZ)
-C
-       ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.3 ) THEN
-C        ** Hopf bifurcation continuation (Maps).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHD,STPNHD,THL,THU,IUZ,VUZ)
-C
-       ELSE IF(IPS.EQ.-1 .AND. ABS(ISW).EQ.2 .AND.(ABS(ITP)/10).EQ.3)
-     * THEN
-C        ** Hopf bifurcation continuation (Maps).
-         CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHD,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN 
 C        ** Fold continuation (Periodic solutions, start).

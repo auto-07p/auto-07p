@@ -8,9 +8,7 @@
       PUBLIC :: FNC2,STPNC2 ! Optimizations (Algebraic,otherwise)
       PUBLIC :: FNDS        ! Discrete systems
       PUBLIC :: FNTI        ! Time integration
-      PUBLIC :: FNHD,STPNHD ! Hopf bifs (maps)
-      PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs)
-      PUBLIC :: FNHW,STPNHW ! Hopf bifs (waves)
+      PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs,waves,maps)
       PUBLIC :: FNPS,BCPS,ICPS,STPNPS ! Periodic solutions
       PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
       PUBLIC :: FNWP,STPNWP ! Travelling waves (parabolic PDEs)
@@ -715,200 +713,7 @@ C
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-C     Subroutines for the Continuation of Hopf Bifurcation Points (Maps)
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C
-C     ---------- ----
-      SUBROUTINE FNHD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
-C Generates the equations for the 2-parameter continuation of Hopf
-C bifurcation points for maps.
-C
-      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
-      DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
-C Local
-      ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
-C
-       NDM=IAP(23)
-C
-C Generate the function.
-C
-       ALLOCATE(DFU(NDIM*NDIM))
-       CALL FFHD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
-C
-       IF(IJAC.EQ.0)THEN
-         DEALLOCATE(DFU)
-         RETURN
-       ENDIF
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
-C
-C Generate the Jacobian.
-C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-       ENDDO
-C
-       EP=HMACH*(1+UMX)
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FFHD(IAP,RAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFHD(IAP,RAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
-         DO J=1,NDIM
-           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
-         ENDDO
-       ENDDO
-C
-       DEALLOCATE(UU1,UU2,FF2)
-       IF(IJAC.EQ.1)THEN
-         DEALLOCATE(FF1,DFU)
-         RETURN
-       ENDIF
-C
-       PAR(ICP(1))=PAR(ICP(1))+EP
-C
-       CALL FFHD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU)
-C
-       DO J=1,NDIM
-         DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
-       ENDDO
-C
-       PAR(ICP(1))=PAR(ICP(1))-EP
-C
-       DEALLOCATE(FF1,DFU)
-      RETURN
-      END SUBROUTINE FNHD
-C
-C     ---------- ----
-      SUBROUTINE FFHD(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION RAP(*),U(*),UOLD(*),PAR(*),F(*),DFDU(NDM,*)
-C Local
-      DOUBLE PRECISION DUMDP(1)
-C
-       NDM2=2*NDM
-C
-       THTA=U(NDIM-1)
-       S1=DSIN(THTA)
-       C1=DCOS(THTA)
-       PAR(ICP(2))=U(NDIM)
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
-       DO I=1,NDM
-         F(I)=F(I)-U(I)
-         DFDU(I,I)=DFDU(I,I)-C1
-       ENDDO
-C
-       DO I=1,NDM
-         F(NDM+I)=S1*U(NDM2+I)
-         F(NDM2+I)=-S1*U(NDM+I)
-         DO J=1,NDM
-           F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
-           F(NDM2+I)=F(NDM2+I)+DFDU(I,J)*U(NDM2+J)
-         ENDDO
-       ENDDO
-C
-       F(NDIM-1)=-1
-C
-       DO I=1,NDM
-         F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)+U(NDM2+I)*U(NDM2+I)
-       ENDDO
-C
-       F(NDIM)=0.d0
-C
-       DO I=1,NDM
-         F(NDIM)=F(NDIM)+UOLD(NDM2+I)*U(NDM+I)-UOLD(NDM+I)*U(NDM2+I)
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE FFHD
-C
-C     ---------- ------
-      SUBROUTINE STPNHD(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
-C
-      USE IO
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      LOGICAL FOUND
-C
-C Generates starting data for the continuation of Hopf bifurcation
-C points for maps.
-C
-      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
-C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
-      DOUBLE PRECISION UOLD(1),DUMDFP(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
-C
-       NDIM=IAP(1)
-       IRS=IAP(3)
-       NDM=IAP(23)
-       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
-C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-       DEALLOCATE(ICPRS)
-C
-       THTA=PI(2.d0)/PAR(11)
-       S1=DSIN(THTA)
-       C1=DCOS(THTA)
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
-C
-       NDM2=2*NDM
-       DO I=1,NDM2
-         DO J=1,NDM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(I,NDM+I)=S1
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(NDM+I,I)=-S1
-       ENDDO
-C
-       DO I=1,NDM
-         DO J=1,NDM
-           SMAT(I,J)=DFU(I,J)
-           SMAT(NDM+I,NDM+J)=DFU(I,J)
-         ENDDO
-         SMAT(I,I)=SMAT(I,I)-C1
-         SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
-       ENDDO
-       CALL NLVC(NDM2,NDM2,2,SMAT,V)
-       CALL NRMLZ(NDM2,V)
-C
-       DO I=1,NDM2
-         U(NDM+I)=V(I)
-       ENDDO
-C
-       U(NDIM-1)=THTA
-       U(NDIM)=PAR(ICP(2))
-       DEALLOCATE(DFU,SMAT,F,V)
-C
-      RETURN
-      END SUBROUTINE STPNHD
-C
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C     Subroutines for the Continuation of Hopf Bifurcation Points (ODE)
+C     Subroutines for the Continuation of Hopf Bifurcation Points
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
@@ -920,7 +725,7 @@ C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Generates the equations for the 2-parameter continuation of Hopf
-C bifurcation points in ODE.
+C bifurcation points in ODE/wave/map.
 C
       DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
       DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
@@ -994,36 +799,65 @@ C
 C Local
       DOUBLE PRECISION DUMDP(1)
 C
+       IPS=IAP(2)
        NDM2=2*NDM
 C
-       ROM=U(NDIM-1)
-       PAR(11)=ROM*PI(2.d0)
        PAR(ICP(2))=U(NDIM)
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       IF(IPS==-1)THEN
+          THTA=U(NDIM-1)
+          S1=SIN(THTA)
+          C1=COS(THTA)
+          ROM=1.d0
+       ELSE
+          ROM=U(NDIM-1)
+          IF(IPS==11)THEN
+             PAR(ICP(2))=U(NDIM)
+          ELSE
+             PAR(11)=ROM*PI(2.d0)
+          ENDIF
+          S1=1.d0
+          C1=0.d0
+       ENDIF
+       IF(IPS==11)THEN 
+          CALL FNWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       ELSE
+          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       ENDIF
 C
+       IF(IPS==-1)THEN
+          DO I=1,NDM
+             F(I)=F(I)-U(I)
+             DFDU(I,I)=DFDU(I,I)-C1
+          ENDDO
+       ENDIF
        DO I=1,NDM
-         F(NDM+I)=U(NDM2+I)
-         F(NDM2+I)=-U(NDM+I)
-         DO J=1,NDM
-           F(NDM+I)=F(NDM+I)+ROM*DFDU(I,J)*U(NDM+J)
-           F(NDM2+I)=F(NDM2+I)+ROM*DFDU(I,J)*U(NDM2+J)
-         ENDDO
+          F(NDM+I)=S1*U(NDM2+I)
+          F(NDM2+I)=-S1*U(NDM+I)
+          DO J=1,NDM
+             F(NDM+I)=F(NDM+I)+ROM*DFDU(I,J)*U(NDM+J)
+             F(NDM2+I)=F(NDM2+I)+ROM*DFDU(I,J)*U(NDM2+J)
+          ENDDO
        ENDDO
 C
        F(NDIM-1)=-1
 C
        DO I=1,NDM
-         F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)+U(NDM2+I)*U(NDM2+I)
+          F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)+U(NDM2+I)*U(NDM2+I)
        ENDDO
 C
        F(NDIM)=0.d0
 C
-       DO I=1,NDM
-         F(NDIM)=F(NDIM)+UOLD(NDM2+I)*(U(NDM+I)-UOLD(NDM+I)) -
-     *  UOLD(NDM+I)*(U(NDM2+I)-UOLD(NDM2+I))
-       ENDDO
+       IF(IPS==-1)THEN
+          DO I=1,NDM
+             F(NDIM)=F(NDIM)+UOLD(NDM2+I)*U(NDM+I)-UOLD(NDM+I)*U(NDM2+I)
+          ENDDO
+       ELSE
+          DO I=1,NDM
+             F(NDIM)=F(NDIM)+UOLD(NDM2+I)*(U(NDM+I)-UOLD(NDM+I)) -
+     *            UOLD(NDM+I)*(U(NDM2+I)-UOLD(NDM2+I))
+          ENDDO
+       ENDIF
 C
-      RETURN
       END SUBROUTINE FFHB
 C
 C     ---------- ------
@@ -1036,7 +870,7 @@ C
       LOGICAL FOUND
 C
 C Generates starting data for the 2-parameter continuation of
-C Hopf bifurcation point (ODE).
+C Hopf bifurcation point (ODE/wave/map).
 C
       DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
@@ -1045,6 +879,7 @@ C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
+       IPS=IAP(2)
        IRS=IAP(3)
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
@@ -1054,9 +889,24 @@ C
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
        DEALLOCATE(ICPRS)
 C
-       PERIOD=PAR(11)
-       ROM=PERIOD/PI(2.d0)
-       CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DFP)
+       IF(IPS==-1)THEN
+          THTA=PI(2.d0)/PAR(11)
+          S1=DSIN(THTA)
+          C1=DCOS(THTA)
+          ROM=1d0
+          U(NDIM-1)=THTA
+       ELSE
+          PERIOD=PAR(11)
+          ROM=PERIOD/PI(2.d0)
+          S1=1d0
+          C1=0d0
+          U(NDIM-1)=ROM
+       ENDIF
+       IF(IPS==11)THEN 
+          CALL FNWS(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DFP)
+       ELSE
+          CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DFP)
+       ENDIF
 C
        NDM2=2*NDM
        DO I=1,NDM2
@@ -1066,18 +916,20 @@ C
        ENDDO
 C
        DO I=1,NDM
-         SMAT(I,NDM+I)=1
+         SMAT(I,NDM+I)=S1
        ENDDO
 C
        DO I=1,NDM
-         SMAT(NDM+I,I)=-1
+         SMAT(NDM+I,I)=-S1
        ENDDO
 C
-       DO I=1,NDM
+       DO I=1,NDM 
          DO J=1,NDM
            SMAT(I,J)=ROM*DFU(I,J)
            SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
          ENDDO
+         SMAT(I,I)=SMAT(I,I)-C1
+         SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
        ENDDO
        CALL NLVC(NDM2,NDM2,2,SMAT,V)
        CALL NRMLZ(NDM2,V)
@@ -1086,199 +938,10 @@ C
          U(NDM+I)=V(I)
        ENDDO
 C
-       U(NDIM-1)=ROM
        U(NDIM)=PAR(ICP(2))
 C
        DEALLOCATE(DFU,F,V,SMAT)
-      RETURN
       END SUBROUTINE STPNHB
-C
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C   Subroutines for the Continuation of Hopf Bifurcation Points (Waves)
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C
-C     ---------- ----
-      SUBROUTINE FNHW(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
-C Generates the equations for the 2-parameter continuation of a
-C bifurcation to a traveling wave.
-C
-      DIMENSION IAP(*),RAP(*),U(*),UOLD(*),ICP(*),PAR(*)
-      DIMENSION F(*),DFDU(NDIM,*),DFDP(NDIM,*)
-C Local
-      ALLOCATABLE DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
-C
-       NDM=IAP(23)
-C
-C Generate the function.
-C
-       ALLOCATE(DFU(NDIM*NDIM))
-       CALL FFHW(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
-C
-       IF(IJAC.EQ.0)THEN
-         DEALLOCATE(DFU)
-         RETURN
-       ENDIF
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
-C
-C Generate the Jacobian.
-C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-       ENDDO
-C
-       EP=HMACH*(1+UMX)
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FFHW(IAP,RAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFHW(IAP,RAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
-         DO J=1,NDIM
-           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
-         ENDDO
-       ENDDO
-C
-       DEALLOCATE(UU1,UU2,FF2)
-       IF(IJAC.EQ.1)THEN
-         DEALLOCATE(FF1,DFU)
-         RETURN
-       ENDIF
-C
-       PAR(ICP(1))=PAR(ICP(1))+EP
-C
-       CALL FFHW(IAP,RAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU)
-C
-       DO J=1,NDIM
-         DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
-       ENDDO
-C
-       PAR(ICP(1))=PAR(ICP(1))-EP
-C
-      DEALLOCATE(FF1,DFU)
-      RETURN
-      END SUBROUTINE FNHW
-C
-C     ---------- ----
-      SUBROUTINE FFHW(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      DIMENSION IAP(*),RAP(*)
-      DIMENSION U(*),UOLD(*),ICP(*),PAR(*),F(*),DFDU(NDM,*)
-C Local
-      DOUBLE PRECISION DUMDP(1)
-C
-       NDM2=2*NDM
-C
-       ROM=U(NDIM-1)
-       PAR(ICP(2))=U(NDIM)
-       IJAC=1
-       CALL FNWS(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DUMDP)
-C
-       DO I=1,NDM
-         F(NDM+I)=U(NDM2+I)
-         F(NDM2+I)=-U(NDM+I)
-         DO J=1,NDM
-           F(NDM+I)=F(NDM+I)+ROM*DFDU(I,J)*U(NDM+J)
-           F(NDM2+I)=F(NDM2+I)+ROM*DFDU(I,J)*U(NDM2+J)
-         ENDDO
-       ENDDO
-C
-       F(NDIM-1)=-1
-C
-       DO I=1,NDM
-         F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)+U(NDM2+I)*U(NDM2+I)
-       ENDDO
-C
-       F(NDIM)=0.d0
-C
-       DO I=1,NDM
-         F(NDIM)=F(NDIM)+UOLD(NDM2+I)*(U(NDM+I)-UOLD(NDM+I)) -
-     *   UOLD(NDM+I)*(U(NDM2+I)-UOLD(NDM2+I))
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE FFHW
-C
-C     ---------- ------
-      SUBROUTINE STPNHW(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
-C
-      USE IO
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      LOGICAL FOUND
-C
-C Generates starting data for the continuation of a bifurcation to a
-C traveling wave.
-C
-      DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
-C Local (Cannot use BLLOC here.)
-      ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
-      DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
-C
-       NDIM=IAP(1)
-       IRS=IAP(3)
-       NDM=IAP(23)
-       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
-C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-       DEALLOCATE(ICPRS)
-C
-       IJAC=1
-       PERIOD=PAR(11)
-       ROM=PERIOD/PI(2.d0)
-       CALL FNWS(IAP,RAP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DUMDFP)
-C
-       NDM2=2*NDM
-       DO I=1,NDM2
-         DO J=1,NDM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(I,NDM+I)=1
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(NDM+I,I)=-1
-       ENDDO
-C
-       DO I=1,NDM
-         DO J=1,NDM
-           SMAT(I,J)=ROM*DFU(I,J)
-           SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
-         ENDDO
-       ENDDO
-       CALL NLVC(NDM2,NDM2,2,SMAT,V)
-       CALL NRMLZ(NDM2,V)
-C
-       DO I=1,NDM2
-         U(NDM+I)=V(I)
-       ENDDO
-C
-       U(NDIM-1)=ROM
-       U(NDIM)=PAR(ICP(2))
-C
-       DEALLOCATE(DFU,F,V,SMAT)
-      RETURN
-      END SUBROUTINE STPNHW
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
