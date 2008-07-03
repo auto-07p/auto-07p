@@ -395,15 +395,23 @@ class AUTOSolution(UserDict.UserDict):
 	    data = string.split(line)
             pointu = point["u"] = []
             if len(data) > 0:
-                point["t"] = parseB.AUTOatof(data[0])
-                data = data[1:]
+                try:
+                    fdata = map(float, data)
+                except:
+                    fdata = map(parseB.AUTOatof, data)
+                point["t"] = fdata[0]
+                fdata = fdata[1:]
             j = 0
 	    while len(pointu) < self.__numEntriesPerBlock - 1:
                 if pointu != []:
                     line = inputfile.readline()
 		    if not line: raise PrematureEndofData
 		    data = string.split(line)
-                pointu.extend(map(parseB.AUTOatof, data))
+                    try:
+                        fdata = map(float, data)
+                    except:
+                        fdata = map(parseB.AUTOatof, data)
+                pointu.extend(fdata)
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
@@ -431,7 +439,11 @@ class AUTOSolution(UserDict.UserDict):
 		    line = inputfile.readline()
 		    if not line: raise PrematureEndofData
 		    data = string.split(line)
-                    udot.extend(map(parseB.AUTOatof, data))
+                    try:
+                        fdata = map(float, data)
+                    except:
+                        fdata = map(parseB.AUTOatof, data)
+                    udot.extend(fdata)
 
 	parameters = self["Parameters"] = []
 	while len(parameters) < self.__numFreeParameters:
