@@ -140,14 +140,15 @@ class plotter(grapher.GUIGrapher):
         ycolumns = self.cget("bifurcation_y")
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
-        if len(xcolumns) == len(ycolumns):
+        if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
                 x = []
                 y = []
                 labels = []
                 current_index = 0
-                for i in range(len(solution)):
-                    if i > 0 and (solution.getIndex(i-1)["section"] != solution.getIndex(i)["section"]):
+                prevsol = solution[0]
+                for sol in solution:
+                    if prevsol["section"] != sol["section"]:
                         if len(x) > 0:
                             self.addArrayNoDraw((x,y))
                         for label in labels:
@@ -156,17 +157,17 @@ class plotter(grapher.GUIGrapher):
                         y = []
                         labels = []
                         current_index = 0
-                    x.append(solution.getIndex(i)["data"][xcolumns[j]]) 
-                    y.append(solution.getIndex(i)["data"][ycolumns[j]])
+                    x.append(sol["data"][xcolumns[j]]) 
+                    y.append(sol["data"][ycolumns[j]])
                     
-                    if solution.getIndex(i)["LAB"] != 0:
+                    if sol["LAB"] != 0:
                         labels.append({})
                         labels[-1]["index"] = current_index
                         if self.cget("use_labels") == 1:
-                            labels[-1]["text"] = "%d"%solution.getIndex(i)["LAB"]
+                            text = "%d"%sol["LAB"]
                         else:
-                            labels[-1]["text"] = ""
-                        TYnumber = solution.getIndex(i)["TY number"]
+                            text = ""
+                        TYnumber = sol["TY number"]
                         if TYnumber == 4 or TYnumber == 9:
                             symbol = None
                         elif TYnumber == 1 or TYnumber == 6: 
@@ -183,8 +184,9 @@ class plotter(grapher.GUIGrapher):
                             symbol = self.cget("user_point_symbol")
                         else:
                             symbol = self.cget("error_symbol")
-                        labels[-1]["symbol"] = symbol
+                        labels[-1] = {"index": current_index, "text": text, "symbol": symbol}
                     current_index = current_index + 1
+                    prevsol = sol
                 if len(x) > 0:
                     self.addArrayNoDraw((x,y))
                 for label in labels:
@@ -224,9 +226,7 @@ class plotter(grapher.GUIGrapher):
                         for i in r:
                             if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:
                                 labels.append({})
-                                labels[-1]["index"] = i
-                                labels[-1]["text"] = ""
-                                labels[-1]["symbol"] = "fillcircle"
+                                labels[-1] = {"index": i, "text": "", "symbol": "fillcircle"}
                     # Call the base class config
                     if len(x) > 0:
                         self.addArrayNoDraw((x,y))
