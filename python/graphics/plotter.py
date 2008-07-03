@@ -166,22 +166,24 @@ class plotter(grapher.GUIGrapher):
                             labels[-1]["text"] = "%d"%solution.getIndex(i)["LAB"]
                         else:
                             labels[-1]["text"] = ""
-                        if solution.getIndex(i)["TY number"] == 4 or solution.getIndex(i)["TY number"] == 9:
-                            labels[-1]["symbol"] = None
-                        elif solution.getIndex(i)["TY number"] == 1 or solution.getIndex(i)["TY number"] == 6: 
-                            labels[-1]["symbol"] = self.cget("bifurcation_symbol")
-                        elif solution.getIndex(i)["TY number"] == 2 or solution.getIndex(i)["TY number"] == 5: 
-                            labels[-1]["symbol"] = self.cget("limit_point_symbol")
-                        elif solution.getIndex(i)["TY number"] == 3: 
-                            labels[-1]["symbol"] = self.cget("hopf_symbol")
-                        elif solution.getIndex(i)["TY number"] == 7: 
-                            labels[-1]["symbol"] = self.cget("period_doubling_symbol")
-                        elif solution.getIndex(i)["TY number"] == 8: 
-                            labels[-1]["symbol"] = self.cget("torus_symbol")
-                        elif solution.getIndex(i)["TY number"] == -4: 
-                            labels[-1]["symbol"] = self.cget("user_point_symbol")
+                        TYnumber = solution.getIndex(i)["TY number"]
+                        if TYnumber == 4 or TYnumber == 9:
+                            symbol = None
+                        elif TYnumber == 1 or TYnumber == 6: 
+                            symbol = self.cget("bifurcation_symbol")
+                        elif TYnumber == 2 or TYnumber == 5: 
+                            symbol = self.cget("limit_point_symbol")
+                        elif TYnumber == 3: 
+                            symbol = self.cget("hopf_symbol")
+                        elif TYnumber == 7: 
+                            symbol = self.cget("period_doubling_symbol")
+                        elif TYnumber == 8: 
+                            symbol = self.cget("torus_symbol")
+                        elif TYnumber == -4: 
+                            symbol = self.cget("user_point_symbol")
                         else:
-                            labels[-1]["symbol"] = self.cget("error_symbol")
+                            symbol = self.cget("error_symbol")
+                        labels[-1]["symbol"] = symbol
                     current_index = current_index + 1
                 if len(x) > 0:
                     self.addArrayNoDraw((x,y))
@@ -203,7 +205,6 @@ class plotter(grapher.GUIGrapher):
             ynames="Error"
             for index in self.cget("index"):
                 solution = self.cget("solution").getIndex(index)["data"]
-                r = range(len(solution))
                 xnames = ""
                 ynames = ""
                 for j in range(len(xcolumns)):
@@ -211,13 +212,13 @@ class plotter(grapher.GUIGrapher):
                     xc = xcolumns[j]
                     yc = ycolumns[j]
                     if xc == "t":
-                        x = map(lambda i, s=solution: s[i]["t"], r)
+                        x = map(lambda s: s["t"], solution)
                     else:
-                        x = map(lambda i, s=solution, c = xc: s[i]["u"][c], r)
+                        x = map(lambda s, c = xc: s["u"][c], solution)
                     if yc == "t":
-                        y = map(lambda i, s=solution: s[i]["t"], r)
+                        y = map(lambda s: s["t"], solution)
                     else:
-                        y = map(lambda i, s=solution, c = yc: s[i]["u"][c], r)
+                        y = map(lambda s, c = yc: s["u"][c], solution)
 
                     if not(self.cget("mark_t") is None):
                         for i in r:
