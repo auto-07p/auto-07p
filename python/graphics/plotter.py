@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 try:
-    import grapher_mpl
+    import grapher_mpl as grapher
 except:
     import grapher
 import parseB
