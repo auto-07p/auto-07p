@@ -1,5 +1,8 @@
 #! /usr/bin/env python
-import grapher
+try:
+    import grapher_mpl
+except:
+    import grapher
 import parseB
 import parseS
 import AUTOutil

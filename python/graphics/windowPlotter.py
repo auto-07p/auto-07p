@@ -30,6 +30,9 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.menuBar.addmenu("Help","View help on the plotting widget",side="right")
         self.menuBar.pack(fill=Tkinter.X)
 
+        topbox = Tkinter.Frame(interior,relief="raised",borderwidth=2)
+        topbox.pack(side=Tkinter.BOTTOM)
+
         self.grapher = self.createcomponent('grapher',
                                             (), None,
                                             grapherClass,interior)
@@ -53,8 +56,6 @@ class WindowPlotter(Pmw.MegaToplevel):
                                  )
 
 
-        topbox = Tkinter.Frame(interior,relief="raised",borderwidth=2)
-        topbox.pack(side=Tkinter.BOTTOM)
         box = Tkinter.Frame(topbox)
 
         self.grapher.pack(expand=1,fill=Tkinter.BOTH)
