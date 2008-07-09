@@ -364,6 +364,9 @@ class BasicGrapher(optionHandler.OptionHandler):
     def __setitem__(self,key,value):
         apply(self.configure, (), {key: value})
 
+    def __getitem__(self,key):
+        return self.cget(key)
+
 class LabeledGrapher(BasicGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
@@ -454,7 +457,7 @@ class LabeledGrapher(BasicGrapher):
                     if not(label["symbol"] is None):
                         symbols.append({})
                         symbols[-1]["x"] = x1
-                        symbols[-1]["y"] = y2
+                        symbols[-1]["y"] = y1
                         symbols[-1]["symbol"] = label["symbol"]
 
         BasicGrapher.plotdata(self)

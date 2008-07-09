@@ -87,11 +87,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         default_labels = self.grapher.cget("solution").getLabels()
         for i in range(len(default_labels)):
             labels.append("[%d]"%default_labels[i])
-        all = "["
-        for i in range(len(default_labels)):
-            all = all + str(default_labels[i]) + ","
-        all = all[:-1]+"]"
-        labels.append(all)
+        labels.append(self._shortstr(default_labels))
         typeEntry = self.createcomponent('typeEntry',
                                          (), None,
                                          Pmw.ComboBox,box,
@@ -146,6 +142,13 @@ class WindowPlotter(Pmw.MegaToplevel):
         if button == "Cancel":
             self.optionSelctionDialog.destroy()
 
+    def _shortstr(self,list):
+        s = "["
+        for x in list:
+            s = s + str(x) + ','
+        s = s[:-1] + "]"
+        return s
+        
     def setOptionDialog(self,key):
         self.diag = Pmw.Dialog(self.interior(),
                           buttons=("Ok","Cancel"))
@@ -210,6 +213,15 @@ class WindowPlotter(Pmw.MegaToplevel):
 
     configure = config
 
+    def cget(self,option):
+        return self.grapher.cget(option)
+
+    def __getitem__(self,key):
+        try:
+            return self.grapher[key]
+        except:
+            return Pmw.MegaToplevel.__getitem__(self,key)
+
 class WindowPlotter2D(WindowPlotter):
     def __init__(self,parent=None,cnf={},**kw):
         WindowPlotter.__init__(self,plotter.plotter,parent,AUTOutil.cnfmerge((cnf,kw)))
@@ -233,44 +245,35 @@ class WindowPlotter2D(WindowPlotter):
 
     def typeUpdateCallback(self):
         if self.grapher.cget("type") == "bifurcation":
-            self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_x",entry))
-            self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("bifurcation_y",entry))
-
-            list = []
-            if not(self.grapher.cget("bifurcation_column_defaults") is None):
-                for x in self.grapher.cget("bifurcation_column_defaults"):
-                    list.append(str(x))
-            if len(self.grapher.cget("bifurcation_diagram")) > 0:
-                for i in range(len(self.grapher.cget("bifurcation_diagram")[0]["data"])):
-                    list.append("[%d]"%i)
-            self.xEntry.setlist(list)
-            self.yEntry.setlist(list)
-
-            self.xEntry.setentry(self.grapher.cget("bifurcation_x"))
-            self.yEntry.setentry(self.grapher.cget("bifurcation_y"))
-            self.typeEntry.setentry(self.grapher.cget("label"))
+            ox = "bifurcation_x"
+            oy = "bifurcation_y"
+            ocd = "bifurcation_column_defaults"
+            o = "bifurcation_diagram"
         else:
-            self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_x",entry))
-            self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_y",entry))
+            ox = "solution_x"
+            oy = "solution_y"
+            ocd = "solution_column_defaults"
+            o = "solution"
+        self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption(ox,entry))
+        self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption(oy,entry))
 
-            list = []
-            if not(self.grapher.cget("solution_column_defaults") is None):
-                for x in self.grapher.cget("solution_column_defaults"):
-                    list.append(str(x))
-            list.append("['t']")
-            if len(self.grapher.cget("solution")) > 0:
-                for i in range(len(self.grapher.cget("solution").getIndex(0)["data"][0]["u"])):
+        list = []
+        if not(self.grapher.cget(ocd) is None):
+            for x in self.grapher.cget(ocd):
+                list.append(str(x))
+        if self.grapher.cget("type") == "bifurcation":
+            if len(self.grapher.cget(o)) > 0:
+                for i in range(len(self.grapher.cget(o)[0]["data"])):
                     list.append("[%d]"%i)
-            self.xEntry.setlist(list)
-            self.yEntry.setlist(list)
-
-            self.xEntry.setentry(self.grapher.cget("solution_x"))
-            self.yEntry.setentry(self.grapher.cget("solution_y"))
-            self.typeEntry.setentry(self.grapher.cget("label"))
-
-
-
-
+        else:
+            list.append("['t']")
+            for i in range(len(self.grapher.cget(o).getIndex(0)["data"][0]["u"])):
+                list.append("[%d]"%i)
+        self.xEntry.setlist(list)
+        self.yEntry.setlist(list)
+        self.xEntry.setentry(self._shortstr(self.grapher.cget(ox)))
+        self.yEntry.setentry(self._shortstr(self.grapher.cget(oy)))
+        self.typeEntry.setentry(self._shortstr(self.grapher.cget("label")))
 
 
 
