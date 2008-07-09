@@ -1367,15 +1367,15 @@ try:
             if self.name1["bifurcationDiagram"] is None:
                 self.handle = windowPlotter.WindowPlotter2D(root,self.options,grapher_bifurcation_diagram_filename="fort.7",
                                                             grapher_solution_filename="fort.8",
-                                                            grapher_width=520,grapher_height=480)
+                                                            grapher_width=600,grapher_height=480)
                 self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle.grapher)
+                return valueStringAndData("Created plotter\n",self.handle)
             else:
                 self.handle = windowPlotter.WindowPlotter2D(root,self.options,grapher_bifurcation_diagram_filename="%s"%self.name1["bifurcationDiagram"],
                                                             grapher_solution_filename="%s"%self.name1["solution"],
-                                                            grapher_width=520,grapher_height=480)
+                                                            grapher_width=600,grapher_height=480)
                 self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle.grapher)
+                return valueStringAndData("Created plotter\n",self.handle)
 
 except:
     print

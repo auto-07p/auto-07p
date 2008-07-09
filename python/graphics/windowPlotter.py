@@ -76,6 +76,7 @@ class WindowPlotter(Pmw.MegaToplevel):
             
         labelEntry.grid(row=0,column=0)
         labelEntry.configure(command = lambda value,obj=self:obj._modifyOption("type",value))
+        self.labelEntry = labelEntry
 
         #FIXME:  This being here is a bug.  It needs to be part of the configure stuff,
         #        otherwise you can't change solution files.
@@ -101,6 +102,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         typeEntry.setentry(labels[0])
         typeEntry.setlist(labels)
         typeEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("label",entry))
+        self.typeEntry = typeEntry
         box.grid(row=0)
 
         box = Tkinter.Frame(topbox)
@@ -191,6 +193,23 @@ class WindowPlotter(Pmw.MegaToplevel):
     def typeUpdateCallback(self):
         pass
 
+    def config(self,cnf=None,**kw):
+        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+            return self.grapher.config(cnf)
+        dict = AUTOutil.cnfmerge((cnf,kw))
+        self.grapher.config(AUTOutil.cnfmerge((cnf,kw)))
+        for key,value in dict.items():
+            if key == "type":
+                self.labelEntry.setvalue(value)
+            if key in ["type","label",
+                       "bifurcation_column_defaults",
+                       "bifurcation_diagram","bifurcation_x","bifurcation_y",
+                       "solution_column_defaults",
+                       "solution","solution_x","solution_y"]:
+                self.typeUpdateCallback()
+
+    configure = config
+
 class WindowPlotter2D(WindowPlotter):
     def __init__(self,parent=None,cnf={},**kw):
         WindowPlotter.__init__(self,plotter.plotter,parent,AUTOutil.cnfmerge((cnf,kw)))
@@ -229,6 +248,7 @@ class WindowPlotter2D(WindowPlotter):
 
             self.xEntry.setentry(self.grapher.cget("bifurcation_x"))
             self.yEntry.setentry(self.grapher.cget("bifurcation_y"))
+            self.typeEntry.setentry(self.grapher.cget("label"))
         else:
             self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_x",entry))
             self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("solution_y",entry))
@@ -246,6 +266,7 @@ class WindowPlotter2D(WindowPlotter):
 
             self.xEntry.setentry(self.grapher.cget("solution_x"))
             self.yEntry.setentry(self.grapher.cget("solution_y"))
+            self.typeEntry.setentry(self.grapher.cget("label"))
 
 
 

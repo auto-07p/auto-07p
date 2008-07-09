@@ -2,6 +2,7 @@
 
 import types
 import AUTOutil
+import AUTOExceptions
 
 class OptionHandler:
     def __init__(self,baseClass=None):
@@ -67,7 +68,7 @@ class OptionHandler:
                         self.__options[cnf])
             else:
                 if self.__baseClass is None:
-                    raise AUTORuntimeError("Option %s not found"%cnf)
+                    raise AUTOExceptions.AUTORuntimeError("Option %s not found"%cnf)
                 else:
                     return self.__baseClass.config(self,cnf)
         else:
@@ -83,7 +84,7 @@ class OptionHandler:
             return self.__options[newkey]
         else:
             if self.__baseClass is None:
-                raise AUTORuntimeError("Option %s not found"%key)
+                raise AUTOExceptions.AUTORuntimeError("Option %s not found"%key)
             else:
                 return self.__baseClass.cget(self,key)
     __getitem__ = cget
