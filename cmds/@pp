@@ -1,0 +1,2 @@
+#!/bin/sh
+exec $AUTO_DIR/python/graphics/pyplaut.py $1
