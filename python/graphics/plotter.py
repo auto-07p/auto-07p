@@ -68,7 +68,10 @@ class plotter(grapher.GUIGrapher):
 
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)
-        plotter.config(self,dict)
+        plotter._configNoDraw(self,dict)
+        self._plotNoDraw()
+        self.computeXRange()
+        self.computeYRange()
 
     def config(self,cnf=None,**kw):
         if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):

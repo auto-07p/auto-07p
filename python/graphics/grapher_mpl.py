@@ -36,16 +36,17 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         ax = self.grapher.ax
         [minx,maxx] = ax.get_xlim()
         [miny,maxy] = ax.get_ylim()
-        fig = ax.get_figure() 
-        dpi = fig.get_dpi()
-        self.grapher._configNoDraw(
-            realwidth=fig.get_figwidth()*dpi,
-            realheight=fig.get_figheight()*dpi,
-            minx=minx,maxx=maxx,miny=miny,maxy=maxy)
+        self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
         self.grapher.clear()
         self.grapher.draw()
 
-    show = draw
+    def show(self):
+        fig = self.grapher.ax.get_figure() 
+        dpi = fig.get_dpi()
+        self.grapher._configNoDraw(
+            realwidth=fig.get_figwidth()*dpi,
+            realheight=fig.get_figheight()*dpi)
+        self.draw()
 
 class BasicGrapher(optionHandler.OptionHandler):
     """Documentation string for Basic Grapher
@@ -113,7 +114,6 @@ class BasicGrapher(optionHandler.OptionHandler):
 
     def pack(self,**kw):
         self.canvas.get_tk_widget().pack(kw)
-        self.draw()
 
     def update(self):
         self.canvas.get_tk_widget().update()
@@ -153,15 +153,9 @@ class BasicGrapher(optionHandler.OptionHandler):
                 elif k == "width":
                     self.canvas.get_tk_widget()[k] = v
                     self.canvas.get_tk_widget().update()
-                    dpi = self.ax.get_figure().get_dpi()
-                    self._configNoDraw(
-                        realwidth=self.ax.get_figure().get_figwidth()*dpi)
                 elif k == "height":
                     self.canvas.get_tk_widget()[k] = v
                     self.canvas.get_tk_widget().update()
-                    dpi = self.ax.get_figure().get_dpi()
-                    self._configNoDraw(
-                        realheight=self.ax.get_figure().get_figheight()*dpi)
                 elif k == "realwidth":
                     lm = self.cget("left_margin")
                     rm = self.cget("right_margin")
@@ -623,7 +617,7 @@ def test():
     grapher.addArray((data,map(math.cos,data)))
     grapher.addLabel(0,10,"hello")
     grapher.addLabel(0,30,"world")
-    grapher.pack()
+    grapher.draw()
 
     button = Tkinter.Button(text="Quit",command=grapher.quit)
     button.pack()
