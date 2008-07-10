@@ -36,8 +36,13 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         [minx,maxx] = ax.get_xlim()
         [miny,maxy] = ax.get_ylim()
         self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
-        self.grapher.clear()
-        self.grapher.draw()
+        self.grapher._configNoDraw(xticks=None,yticks=None)
+        # recalculate label positions
+        li = self.grapher.label_indices
+        del ax.lines[li[0][0]:li[1][0]]
+        del ax.texts[li[0][1]:li[1][1]]
+        self.grapher.plotlabels()
+        FigureCanvasTkAgg.draw(self)
 
     def show(self):
         fig = self.grapher.ax.get_figure() 
@@ -406,8 +411,8 @@ class LabeledGrapher(BasicGrapher):
         self.labels.append([])
         BasicGrapher._addData(self,data)
 
-    def plotdata(self):
-        symbols = []
+    def plotlabels(self):
+        self.label_indices = [[len(self.ax.lines),len(self.ax.texts)]]
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 j = label["j"]
@@ -474,33 +479,32 @@ class LabeledGrapher(BasicGrapher):
                                      color=self.cget("foreground"))
                         self.ax.text(x2,y2,label["text"],ha=ha,va=va,
                                      color=self.cget("foreground"))
+        self.label_indices.append([len(self.ax.lines),len(self.ax.texts)])
 
-                    if not(label["symbol"] is None):
-                        symbols.append({})
-                        symbols[-1]["x"] = x1
-                        symbols[-1]["y"] = y1
-                        symbols[-1]["symbol"] = label["symbol"]
-
+    def plotdata(self):
+        self.plotlabels()
         BasicGrapher.plotdata(self)
 
-        for symbol in symbols:
-            x=symbol["x"]
-            y=symbol["y"]
-            c=self.cget("symbol_color")
-            if len(symbol["symbol"]) == 1:
-                #font=self.cget("symbol_font"),
-                self.ax.text(x,y,symbol["symbol"],
-                             ha="center",va="center",color=c)
-            elif symbol["symbol"] == "fillcircle":
-                self.ax.plot([x],[y],'o'+c[0])
-            elif symbol["symbol"] == "circle":
-                self.ax.plot([x],[y],'o'+c[0])
-            elif symbol["symbol"]  == "square":
-                self.ax.plot([x],[y],'s'+c[0])
-            elif symbol["symbol"]  == "crosssquare":
-                self.ax.plot([x],[y],'x'+c[0])
-            elif symbol["symbol"]  == "fillsquare":
-                self.ax.plot([x],[y],'s'+c[0])
+        for i in range(len(self.labels)):
+            for label in self.labels[i]:
+                [x,y] = self.getData(i,label["j"])
+                l = label["symbol"]
+                if l is None:
+                    continue
+                c=self.cget("symbol_color")
+                if len(l) == 1:
+                    #font=self.cget("symbol_font"),
+                    self.ax.text(x,y,l,ha="center",va="center",color=c)
+                elif l == "fillcircle":
+                    self.ax.plot([x],[y],'o'+c[0])
+                elif l == "circle":
+                    self.ax.plot([x],[y],'o'+c[0])
+                elif l == "square":
+                    self.ax.plot([x],[y],'s'+c[0])
+                elif l == "crosssquare":
+                    self.ax.plot([x],[y],'x'+c[0])
+                elif l == "fillsquare":
+                    self.ax.plot([x],[y],'s'+c[0])
         
 
 # FIXME:  No regression tester
@@ -641,6 +645,7 @@ def test():
     grapher.addArray((data,map(math.cos,data)))
     grapher.addLabel(0,10,"hello")
     grapher.addLabel(0,30,"world")
+    grapher.pack()
     grapher.draw()
 
     button = Tkinter.Button(text="Quit",command=grapher.quit)
