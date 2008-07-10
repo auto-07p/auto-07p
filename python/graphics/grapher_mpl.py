@@ -68,8 +68,8 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["top_margin"] = (40,None)
         optionDefaults["bottom_margin"] = (40,None)
         optionDefaults["decorations"] = (1,None)
-        optionDefaults["xlabel"] = ("",None)
-        optionDefaults["ylabel"] = ("",None)
+        optionDefaults["xlabel"] = (None,None)
+        optionDefaults["ylabel"] = (None,None)
         optionDefaults["xticks"] = (5,None)
         optionDefaults["yticks"] = (5,None)
         optionDefaults["grid"] = ("yes",None)
@@ -404,8 +404,11 @@ class LabeledGrapher(BasicGrapher):
                     second = j+1
                 else:
                     first = j-1
-                    second = j                
-                data = self.ax.transData.xy_tup(self.getData(i,j))
+                    second = j
+                if 'transform' in dir(self.ax.transData):
+                    data = self.ax.transData.transform([self.getData(i,j)])[0]
+                else:
+                    data = self.ax.transData.xy_tup(self.getData(i,j))
                 if not(data is None):
                     x = data[0]
                     y = data[1]
@@ -447,8 +450,12 @@ class LabeledGrapher(BasicGrapher):
                     y = realheight - y
                     [x1,y1] = self.getData(i,j)
                     if len(label["text"]) > 0:
-                        [x2,y2] = self.ax.transData.inverse_xy_tup((x+xoffset,
-                                                                    y-yoffset))
+                        if 'transform' in dir(self.ax.transData):
+                            [x2,y2] = self.ax.transData.inverted().transform(
+                                (x+xoffset,y-yoffset))
+                        else:
+                            [x2,y2] = self.ax.transData.inverse_xy_tup(
+                                (x+xoffset,y-yoffset))
                         self.ax.plot([x1,x2],[y1,y2],
                                      color=self.cget("foreground"))
                         self.ax.text(x2,y2,label["text"],ha=ha,va=va,

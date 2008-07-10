@@ -199,9 +199,13 @@ class plotter(grapher.GUIGrapher):
                     self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
         
         # Call the base class config
-        grapher.GUIGrapher._configNoDraw(self,
-                                         xlabel="Column %d"%xcolumns[0],
-                                         ylabel="Column %d"%ycolumns[0])
+        xlabel = self["xlabel"]
+        if self.config("xlabel")[3] is None:
+            xlabel = "Column %d"%xcolumns[0]
+        ylabel = self["ylabel"]
+        if self.config("ylabel")[3] is None:
+            ylabel = "Column %d"%ycolumns[0]
+        grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
     def __plot8(self):
         self.delAllData()
@@ -241,9 +245,14 @@ class plotter(grapher.GUIGrapher):
 
                     xnames = xnames + " " + str(xcolumns[j])
                     ynames = ynames + " " + str(ycolumns[j])
-                grapher.GUIGrapher._configNoDraw(self,
-                                                 xlabel="Columns %s"%xnames,
-                                                 ylabel="Columns %s"%ynames)
+                xlabel = self["xlabel"]
+                if self.config("xlabel")[3] is None:
+                    xlabel = "Columns %s"%xnames
+                ylabel = self["ylabel"]
+                if self.config("ylabel")[3] is None:
+                    ylabel = "Columns %s"%ynames
+                grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,
+                                                 ylabel=ylabel)
 
 
 def test():
