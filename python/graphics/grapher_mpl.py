@@ -27,7 +27,6 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         tkwidget = self.get_tk_widget()
 
         toolbar = NavigationToolbar2TkAgg( self, parent )
-        toolbar.update()
         toolbar.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=0)
 
         self.grapher = grapher
@@ -152,10 +151,8 @@ class BasicGrapher(optionHandler.OptionHandler):
                     self.ax.grid(v == "yes")
                 elif k == "width":
                     self.canvas.get_tk_widget()[k] = v
-                    self.canvas.get_tk_widget().update()
                 elif k == "height":
                     self.canvas.get_tk_widget()[k] = v
-                    self.canvas.get_tk_widget().update()
                 elif k == "realwidth":
                     lm = self.cget("left_margin")
                     rm = self.cget("right_margin")
@@ -177,6 +174,23 @@ class BasicGrapher(optionHandler.OptionHandler):
                     self.ax.set_xlabel(v,color=self.cget("foreground"))
                 elif k == "ylabel":
                     self.ax.set_ylabel(v,color=self.cget("foreground"))
+                elif k == "xticks" or k == "yticks":
+                    if not v is None:
+                        ticks = []
+                        min = self.cget("min"+k[0])
+                        max = self.cget("max"+k[0])
+                        for i in range(v):
+                            ticks.append(min + ((max - min) * i) / (v-1))
+                    if k == "xticks":
+                        if v is None:
+                            self.ax.set_xscale('linear')
+                        else:
+                            self.ax.set_xticks(ticks)
+                    else:
+                        if v is None:
+                            self.ax.set_yscale('linear')
+                        else:
+                            self.ax.set_yticks(ticks)
 
             optionHandler.OptionHandler.config(self,cnf)
     _configureNoDraw = _configNoDraw
@@ -255,11 +269,9 @@ class BasicGrapher(optionHandler.OptionHandler):
         # in minimized
         range = maximum - minimum 
         inc = math.pow(10,math.ceil(math.log10(range) - 1.0))
-        if range / inc >= 7.5:
-            inc = inc * 2
-        if range / inc <= 0.5:
-            inc = inc / 2
-        if range / inc <= 0.5:
+        if range / inc <= 2:
+            inc = inc / 4
+        elif range / inc <= 4:
             inc = inc / 2
         minimumr = self._round(minimum,inc)
         if minimumr > minimum:
@@ -271,7 +283,7 @@ class BasicGrapher(optionHandler.OptionHandler):
             maximum = maximumr + inc
         else:
             maximum = maximumr ;
-        num = ( maximum - minimum ) / inc 
+        num = int(round(( maximum - minimum ) / inc))
         returnVal["min"] = minimum
         returnVal["max"] = maximum
         returnVal["divisions"] = num + 1
@@ -300,6 +312,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         elif guess_maximum != None:
             self._configNoDraw(minx=guess_minimum-1)
             self._configNoDraw(maxx=guess_maximum+1)
+            self._configNoDraw(xticks=None)
             
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
         if guess_minimum is None:
@@ -324,6 +337,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         elif guess_minimum != None:
             self._configNoDraw(miny=guess_minimum-1)
             self._configNoDraw(maxy=guess_maximum+1)
+            self._configNoDraw(yticks=None)
 
 
     def getXRange(self):

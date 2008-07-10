@@ -158,11 +158,9 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         # in minimized
         range = maximum - minimum 
         inc = math.pow(10,math.ceil(math.log10(range) - 1.0))
-        if range / inc >= 7.5:
-            inc = inc * 2
-        if range / inc <= 0.5:
-            inc = inc / 2
-        if range / inc <= 0.5:
+        if range / inc <= 2:
+            inc = inc / 4
+        elif range / inc <= 4:
             inc = inc / 2
         minimumr = self._round(minimum,inc)
         if minimumr > minimum:
@@ -174,7 +172,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             maximum = maximumr + inc
         else:
             maximum = maximumr ;
-        num = ( maximum - minimum ) / inc 
+        num = int(round(( maximum - minimum ) / inc))
         returnVal["min"] = minimum
         returnVal["max"] = maximum
         returnVal["divisions"] = num + 1
