@@ -387,10 +387,17 @@ CONTAINS
     INTEGER, INTENT(IN) :: NSKIP
     LOGICAL, INTENT(OUT) :: EOF3
     CHARACTER(12) FMT
-!
-    WRITE(FMT,'(AI9A)')'(',NSKIP-1,'/)'
+    INTEGER I
+
     EOF3=.TRUE.
-    READ(3,FMT,END=2)
+    IF(NSKIP<=1)THEN
+       DO I=1,NSKIP
+         READ(3,'(A)',END=2)
+       ENDDO
+    ELSE
+       WRITE(FMT,'(AI9A)')'(',NSKIP-1,'/)'
+       READ(3,FMT,END=2)
+    ENDIF
     EOF3=.FALSE.
 2   RETURN
 
