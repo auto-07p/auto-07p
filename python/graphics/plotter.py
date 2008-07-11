@@ -49,6 +49,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["error_symbol"]           = ("X",self.__optionCallback)
 
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
+        optionDefaults["stability"]              = (0,self.__optionCallback)
 
         parser = ConfigParser.ConfigParser()
         parser.add_section("AUTO_plotter")
@@ -150,6 +151,7 @@ class plotter(grapher.GUIGrapher):
         ycolumns = self.cget("bifurcation_y")
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
+        dp = self.cget("stability")
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
                 x = []
@@ -158,15 +160,27 @@ class plotter(grapher.GUIGrapher):
                 current_index = 0
                 prevsol = solution[0]
                 for sol in solution:
-                    if prevsol["section"] != sol["section"]:
+                    newsect = prevsol["section"] != sol["section"]
+                    if (newsect or
+                        (dp and current_index > 1 and
+                         (prevsol['PT'] > 0) != (sol['PT'] > 0))):
                         if len(x) > 0:
-                            self.addArrayNoDraw((x,y))
+                            if dp:
+                                self.addArrayNoDraw((x,y),newsect,
+                                                    stable=prevsol['PT'] < 0)
+                            else:
+                                self.addArrayNoDraw((x,y),newsect)
                         for label in labels:
                             self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
-                        x = []
-                        y = []
+                        if newsect:
+                            current_index = 0
+                            x = []
+                            y = []
+                        else:
+                            current_index = 1
+                            x = [prevsol["data"][xcolumns[j]]]
+                            y = [prevsol["data"][ycolumns[j]]]
                         labels = []
-                        current_index = 0
                     x.append(sol["data"][xcolumns[j]]) 
                     y.append(sol["data"][ycolumns[j]])
                     

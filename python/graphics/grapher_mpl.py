@@ -223,13 +223,15 @@ class BasicGrapher(optionHandler.OptionHandler):
         else:
             return [self.data[i]["x"][j],self.data[i]["y"][j]]
 
-    def _addData(self,data):
+    def _addData(self,data,newsect=None,stable=None):
         for array in data:
             if len(array[0]) != len(array[1]):
                 raise GrapherError,"Array lengths must match"
             new_array={}
             new_array["x"]=array[0]
             new_array["y"]=array[1]
+            new_array["stable"]=stable
+            new_array["newsect"]=newsect
             if len(array[0]) > 0:
                 new_array["minx"]=min(array[0])
                 new_array["maxx"]=max(array[0])
@@ -253,8 +255,8 @@ class BasicGrapher(optionHandler.OptionHandler):
     def addDataNoDraw(self,data):        
         self._addData(data)
 
-    def addArrayNoDraw(self,array):        
-        self._addData((array,))
+    def addArrayNoDraw(self,array,newsect=None,stable=None):
+        self._addData((array,),newsect,stable)
 
     def _delAllData(self):
         self.data=[]
@@ -381,19 +383,25 @@ class BasicGrapher(optionHandler.OptionHandler):
             
         # data
         line_width=self.cget("line_width")
-        for i in range(len(self.data)):
+        i=0
+        for d in self.data:
             curve="curve:%d"%(i,)
             fill=color_list[i%len(color_list)]
-            if len(self.getData(i,"x")) == 1:
+            if len(d["x"]) == 1:
                 # If we only have one point we draw a small circle
-                [x,y]=self.getData(i,0)
-                self.ax.plot([x],[y],'o'+fill[0])
+                self.ax.plot(d["x"],d["y"],'o'+fill[0])
                 #tags=("data_point:%d"%(0,),curve,"data")
             else:
-                xs = self.data[i]["x"]
-                ys = self.data[i]["y"]
+                xs = d["x"]
+                ys = d["y"]
+                stable = d["stable"]
                 #tags=(curve,"data")
-                self.ax.plot(xs,ys,color=fill,lw=line_width)
+                if stable is None or stable:
+                    self.ax.plot(xs,ys,color=fill,lw=line_width)
+                else:
+                    self.ax.plot(xs,ys,color=fill,ls='--',lw=line_width)
+            if d["newsect"] is None or d["newsect"]:
+                i = i+1
             
     def __setitem__(self,key,value):
         apply(self.configure, (), {key: value})
@@ -422,9 +430,9 @@ class LabeledGrapher(BasicGrapher):
         self.labels=[]
         BasicGrapher._delAllData(self)
 
-    def _addData(self,data):
+    def _addData(self,data,newsect=None,stable=None):
         self.labels.append([])
-        BasicGrapher._addData(self,data)
+        BasicGrapher._addData(self,data,newsect,stable)
 
     def plotlabels(self):
         self.label_indices = [[len(self.ax.lines),len(self.ax.texts)]]

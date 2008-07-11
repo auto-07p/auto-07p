@@ -102,6 +102,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self["use_symbols"] = 1            
             its = 1
         if "dp" in opts:
+            self["stability"] = 1
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "ax" in opts:
             its = 1
@@ -115,32 +117,38 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if "d0" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1)
-            #do not show stability
+            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1,
+                               stability = 0)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "d1" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1)
-            #show stability
+            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1,
+                               stability = 1)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "d2" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1)
+            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1,
+                               stability = 1)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             #show stability
             its = 1
         if "d3" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "yes", use_labels = 1, use_symbols = 1)
-            #show stability
+            self.handle.config(grid = "yes", use_labels = 1, use_symbols = 1,
+                               stability = 1)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "d4" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "yes", use_labels = 0, use_symbols = 1)
-            #show stability
+            self.handle.config(grid = "yes", use_labels = 0, use_symbols = 1,
+                               stability = 1)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "nu" in opts:
             its = 1
@@ -151,7 +159,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.xlabel = ""
             self.ylabel = ""
             self.title = ""
-            self["use_symbols"] = 0
+            self.handle.config(use_symbols = 0, stability = 0)
+            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
         if "xp" in opts:
             its = 1
             self.expert = 1

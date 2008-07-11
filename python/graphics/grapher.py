@@ -94,13 +94,15 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         else:
             return [self.data[i]["x"][j],self.data[i]["y"][j]]
 
-    def _addData(self,data):
+    def _addData(self,data,newsect=None,stable=None):
         for array in data:
             if len(array[0]) != len(array[1]):
                 raise GrapherError,"Array lengths must match"
             new_array={}
             new_array["x"]=array[0]
             new_array["y"]=array[1]
+            new_array["stable"]=stable
+            new_array["newsect"]=newsect
             if len(array[0]) > 0:
                 new_array["minx"]=min(array[0])
                 new_array["maxx"]=max(array[0])
@@ -109,7 +111,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 new_array["maxy"]=max(array[1])
             self.data.append(new_array)
         
-    def addData(self,data):        
+    def addData(self,data):
         self._addData(data)
         self.computeXRange()
         self.computeYRange()
@@ -124,8 +126,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     def addDataNoDraw(self,data):        
         self._addData(data)
 
-    def addArrayNoDraw(self,array):        
-        self._addData((array,))
+    def addArrayNoDraw(self,array,newsect=None,stable=None):
+        self._addData((array,),newsect,stable)
 
     def _delAllData(self):
         self.data=[]
@@ -264,25 +266,33 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         adjheight = height - (top_margin + bottom_margin)
         xscale = (float(maxx) - minx) / adjwidth
         yscale = (float(maxy) - miny) / adjheight
-        for i in range(len(self.data)):
+        i=0
+        for d in self.data:
             fill=color_list[i%len(color_list)]
             curve="curve:%d"%(i,)
-            n=len(self.getData(i,"x"))
-            [x,y]=self.__valueToCanvasFast(self.getData(i,0),minx,maxx,miny,maxy,
+            n=len(d["x"])
+            [x,y]=self.__valueToCanvasFast([d["x"][0],d["y"][0]],minx,maxx,miny,maxy,
                                             width,height,left_margin,right_margin,top_margin,bottom_margin)
             # If we only have one point we draw a small circle
-            if len(self.getData(i,"x")) == 1:
+            if d["x"] == 1:
                 self.create_oval(x-3,y-3,x+3,y+3,
                                  tags=("data_point:%d"%(0,),"curve:%d"%(i,),"data"),
                                  fill=color_list[i%len(color_list)])
             else:
                 line = [x, y]
-                xs = self.data[i]["x"]
-                ys = self.data[i]["y"]
+                xs = d["x"]
+                ys = d["y"]
+                stable = d["stable"]
                 for j in range(1, n):
                     line.append((xs[j]-minx) / xscale + left_margin)
                     line.append((adjheight - (ys[j]-miny) / yscale + top_margin))
-                self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill)
+                if stable is None or stable:
+                    self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill)
+                else:
+                    self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill,dash=(10,10))
+            if d["newsect"] is None or d["newsect"]:
+                i = i+1
+
             
         if self.cget("decorations"):
             # clip stuff outside box
@@ -421,9 +431,9 @@ class LabeledGrapher(BasicGrapher):
         self.labels=[]
         BasicGrapher._delAllData(self)
 
-    def _addData(self,data):
+    def _addData(self,data,newsect=None,stable=None):
         self.labels.append([])
-        BasicGrapher._addData(self,data)
+        BasicGrapher._addData(self,data,newsect,stable)
 
     def draw(self):
         symbols = []
