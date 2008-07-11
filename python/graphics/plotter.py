@@ -61,7 +61,11 @@ class plotter(grapher.GUIGrapher):
             parser.read("./.autorc")
 
         for option in parser.options("AUTO_plotter"):
-            optionDefaults[option] = (eval(parser.get("AUTO_plotter",option)),self.__optionCallback)
+            v = eval(parser.get("AUTO_plotter",option))
+            if option in optionDefaults.keys():
+                optionDefaults[option] = (v,self.__optionCallback)
+            else:
+                optionDefaults[option] = (v,None)
 
         self.__needsPlot = None
         apply(grapher.GUIGrapher.__init__,(self,parent))

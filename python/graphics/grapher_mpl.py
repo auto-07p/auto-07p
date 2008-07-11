@@ -180,8 +180,12 @@ class BasicGrapher(optionHandler.OptionHandler):
                     else:
                         self.ax.set_axis_off()
                 elif k == "xlabel":
+                    if v is None:
+                        v = ""
                     self.ax.set_xlabel(v,color=self.cget("foreground"))
                 elif k == "ylabel":
+                    if v is None:
+                        v = ""
                     self.ax.set_ylabel(v,color=self.cget("foreground"))
                 elif k == "xticks" or k == "yticks":
                     if not v is None:

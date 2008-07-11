@@ -24,8 +24,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.xaxis = 1
         self.yaxis = 2
         self.expert = None
-        self.xlabel = ""
-        self.ylabel = ""
 
         root=Tkinter.Tk()
         root.withdraw()
@@ -33,7 +31,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             {},grapher_bifurcation_diagram=b,
             grapher_solution=s,
             grapher_width=600,grapher_height=480)
-        self.handle.config(xlabel="",ylabel="")
+        self.xlabel = self.handle.config("xlabel")[3]
+        if self.xlabel is None:
+            self.xlabel = ""
+        self.ylabel = self.handle.config("ylabel")[3]
+        if self.ylabel is None:
+            self.ylabel = ""
+        self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
         self.handle.update()
 
     def raw_input(self, prompt=None):
