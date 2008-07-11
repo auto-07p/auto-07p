@@ -20,10 +20,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                                      r'(\(?.*$)')
         self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
                                           '|^is |^not |^in |^and |^or ')
-        self.state = ''
         self.xaxis = 1
         self.yaxis = 2
-        self.expert = None
+        self.expert = 0
+        self.dset = 0
+        self.ict = 0
+        self.icl = 0
+        self.title = ""
 
         root=Tkinter.Tk()
         root.withdraw()
@@ -96,43 +99,56 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self["bifurcation_x"] = [self.xaxis-1]
             self["bifurcation_y"] = [self.yaxis-1]
         if "st" in opts:
-            self.settitles()
+            self.settitles(1,1,1,1)
             its = 1
         if "d0" in opts:
+            self.dset = 1
             self["grid"] = "no"
             self["use_labels"] = 1
             #do not show stability
             its = 1
         if "d1" in opts:
+            self.dset = 1
             self["grid"] = "no"
             self["use_labels"] = 1
             #show stability
             its = 1
         if "d2" in opts:
+            self.dset = 1
             self["grid"] = "no"
             self["use_labels"] = 0
             #show stability
             its = 1
         if "d3" in opts:
+            self.dset = 1
             self["grid"] = "yes"
             self["use_labels"] = 1
             #show stability
             its = 1
         if "d4" in opts:
+            self.dset = 1
             self["grid"] = "yes"
             self["use_labels"] = 0
             #show stability
             its = 1
         if "nu" in opts:
             its = 1
+            self.expert = 0
+            self.dset = 0
+            self.icl = 0
+            self.ict = 0
+            self.xlabel = ""
+            self.ylabel = ""
+            self.title = ""
         if "xp" in opts:
             its = 1
+            self.expert = 1
         if "bd" in opts:
-            its = 1
-            self.plotbif(b)
-            return ""
-        elif "bd0" in opts:
-            its = 1
+            index = opts.index("bd")
+            if 2*index + 2 < len(line):
+                if line[2*index+2] == "0":
+                    self.plotbif(b,0)
+                    return ""
             self.plotbif(b)
             return ""
         elif line[:2] == "2d":
@@ -168,29 +184,42 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             print ' ILLEGAL COMMAND - REENTER'
         return ""
 
-    def settitles(self):
-        if not self.expert:
-            print ' ENTER X AXIS LABEL BETWEEN THE QUOTES'
-        print ' "                              "'
-        self.xlabel = raw_input().strip()
-        self["xlabel"] = self.xlabel
+    def settitles(self,tit,rtit,axlb,raxlb):
+        if raxlb:
+            if not self.expert:
+                print ' ENTER X AXIS LABEL BETWEEN THE QUOTES'
+            print ' "                              "'
+            self.xlabel = string.strip(raw_input())
+        if axlb:
+            self["xlabel"] = self.xlabel
+        else:
+            self["xlabel"] = ""
 
-        if not self.expert:
-            print ' ENTER Y AXIS LABEL BETWEEN THE QUOTES'
-        print ' "                              "'
-        self.ylabel = raw_input().strip()
-        self["ylabel"] = self.ylabel
+        if raxlb:
+            if not self.expert:
+                print ' ENTER Y AXIS LABEL BETWEEN THE QUOTES'
+            print ' "                              "'
+            self.ylabel = string.strip(raw_input())
+        if axlb:
+            self["ylabel"] = self.ylabel
+        else:
+            self["xlabel"] = ""
 
+        if rtit:
+            if not self.expert:
+                print ' ENTER TOP TITLE BETWEEN THE QUOTES'
+            print ' "                                                            "'
+            self.title = string.strip(raw_input())
+
+            #if not self.expert:
+            #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
+            #print ' "                                                            "'
         ax = self.handle.grapher.ax
-        if not self.expert:
-            print ' ENTER TOP TITLE BETWEEN THE QUOTES'
-        print ' "                                                            "'
-        ax.set_title(raw_input().strip())
+        if tit:
+            ax.set_title(self.title)
+        else:
+            ax.set_title("")
         self.handle.grapher.update()
-
-        #if not self.expert:
-        #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
-        #print ' "                                                            "'
         #ax.text(0.5,0,raw_input().strip(),transform=ax.transAxes)
         #self.handle.grapher.canvas.show()
 
@@ -208,6 +237,66 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if len(str) > 22:
             print str
 
+    def getopts(self):
+        if self.expert:
+            print ' LAB'
+        else:
+            print ' SOLUTION LABELS ?  ( <Y> OR <N> ) '
+        line = string.strip(raw_input())
+        self["use_labels"] = string.lower(line[0]) == 'y'
+        if self.expert:
+            print ' GL'
+        else:
+            print ' GRID LINES ?  (Y OR N)'
+        line = string.strip(raw_input())
+        if string.lower(line[0]) == 'y':
+            self["grid"] = "yes"
+        else:
+            self["grid"] = "no"
+        tit = 0
+        rtit = 0
+        axlb = 0
+        raxlb = 0
+        if self.expert:
+            print ' T - C'
+            line = string.strip(raw_input())
+            if len(line) > 0 and string.lower(line[0]) == 'y':
+                tit = 1
+                if len(line) > 1 and string.lower(line[1]) == 'y':
+                    rtit   = 1
+            print ' A - C'
+            line = string.strip(raw_input())
+            if len(line) > 0 and string.lower(line[0]) == 'y':
+                axlb = 1
+                if len(line) > 1 and string.lower(line[1]) == 'y':
+                    raxlb = 1
+        else:
+            print ' TITLE ?  (Y OR N)'
+            line = string.strip(raw_input())
+            if len(line) > 0 and string.lower(line[0]) == 'y':
+                tit = 1
+                if not self.ict:
+                    self.ict = 1
+                    rtit = 1
+                else:
+                    print  ' CHANGE TITLES ?  (Y OR N)'
+                    line = string.strip(raw_input())
+                    if len(line) > 0 and string.lower(line[0]) == 'y':
+                        rtit = 1
+            print ' AXES LABELS ?  (Y OR N)'
+            line = string.strip(raw_input())
+            if len(line) > 0 and string.lower(line[0]) == 'y':
+                axlb = 1
+                if not self.icl:
+                    self.icl = 1
+                    raxlb  = 1
+                else:
+                    print ' CHANGE AXES LABELS ?  (Y OR N)'
+                    line = string.strip(raw_input())
+                    if len(line) > 0 and string.lower(line[0]) == 'y':
+                        raxlb = 1
+        self.settitles(tit,rtit,axlb,raxlb)
+        
     def plotsol(self,name):
         self["type"] = "solution"
         self.listlabels()
@@ -235,10 +324,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             print ('  ENTER AXES  (DEFAULT %3d%3d),'\
                    ' <D> (DISPLAY), OR <EX> (EXIT)'%(self.xaxs,self.yaxs))
             line = raw_input()
-            if line == 'ex':
+            if line in ['end','ex','e']:
                 return
             elif line == 'd':
-                pass
+                if not self.dset:
+                    self.getopts()
             else:
                 try:
                     [self.xaxs,self.yaxs] = map(int,string.split(line))
@@ -255,9 +345,34 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 except:
                     pass
 
-    def plotbif(self,name):
-        self.handle.config(type = "bifurcation",
-                           xlabel = self.xlabel, ylabel = self.ylabel)
+    def plotbif(self,name,opt=None):
+        if opt is None:
+            while 1:
+                if self.expert:
+                    print ' LIMITS'
+                else:
+                    print '  ENTER XMIN,XMAX,YMIN,YMAX'
+                line = raw_input()
+                try:
+                    [xmin,xmax,ymin,ymax] = map(float,string.split(line))
+                    break
+                except:
+                    try:
+                        [xmin,xmax,ymin,ymax] = map(float,
+                                                    string.split(line,","))
+                        break
+                    except:
+                        pass
+            self.handle.config(type = "bifurcation")
+            self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel,
+                               xticks = None, yticks = None,
+                               minx = xmin, maxx = xmax,
+                               miny = ymin, maxy = ymax)
+        else:
+            self.handle.config(type = "bifurcation")
+            self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel)
+        if not self.dset:
+            self.getopts()
         
     def __setitem__(self,key,value):
         self.handle[key] = value

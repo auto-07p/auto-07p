@@ -49,6 +49,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["line_width"] = (2,None)
         optionDefaults["realwidth"] = (1,None)
         optionDefaults["realheight"] = (1,None)
+        optionDefaults["use_labels"] = (1,None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -466,7 +467,7 @@ class LabeledGrapher(BasicGrapher):
                     #self.dtag("overlaps")
                     #print "---------------------------------------------"    
 
-                    if len(label["text"]) > 0:
+                    if self.cget("use_labels") and len(label["text"]) > 0:
                         self.create_line(x,y,x+xoffset,y+yoffset,fill=self.cget("foreground"))
                         self.create_text(x+xoffset,y+yoffset,text=label["text"],anchor=anchor,fill=self.cget("foreground"))
 

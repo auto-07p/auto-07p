@@ -93,6 +93,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["line_width"] = (2,None)
         optionDefaults["realwidth"] = (1,None)
         optionDefaults["realheight"] = (1,None)
+        optionDefaults["use_labels"] = (1,None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -476,7 +477,7 @@ class LabeledGrapher(BasicGrapher):
 
                     y = realheight - y
                     [x1,y1] = self.getData(i,j)
-                    if len(label["text"]) > 0:
+                    if self.cget("use_labels") and len(label["text"]) > 0:
                         if 'transform' in dir(self.ax.transData):
                             [x2,y2] = self.ax.transData.inverted().transform(
                                 (x+xoffset,y-yoffset))

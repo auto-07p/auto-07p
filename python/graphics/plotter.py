@@ -47,7 +47,6 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
         optionDefaults["error_symbol"]           = ("X",self.__optionCallback)
-        optionDefaults["use_labels"]             = (1,self.__optionCallback)
 
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
 
@@ -174,10 +173,7 @@ class plotter(grapher.GUIGrapher):
                     if sol["LAB"] != 0:
                         labels.append({})
                         labels[-1]["index"] = current_index
-                        if self.cget("use_labels") == 1:
-                            text = "%d"%sol["LAB"]
-                        else:
-                            text = ""
+                        text = "%d"%sol["LAB"]
                         TYnumber = sol["TY number"]
                         if TYnumber == 4 or TYnumber == 9:
                             symbol = None
