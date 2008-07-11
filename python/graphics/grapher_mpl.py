@@ -39,9 +39,12 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         self.grapher._configNoDraw(xticks=None,yticks=None)
         # recalculate label positions
         li = self.grapher.label_indices
-        del ax.lines[li[0][0]:li[1][0]]
-        del ax.texts[li[0][1]:li[1][1]]
-        self.grapher.plotlabels()
+        if li is None:
+            self.grapher.draw()
+        else:
+            del ax.lines[li[0][0]:li[1][0]]
+            del ax.texts[li[0][1]:li[1][1]]
+            self.grapher.plotlabels()
         FigureCanvasTkAgg.draw(self)
 
     def show(self):
@@ -109,6 +112,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
+        self.label_indices = None
         BasicGrapher._configNoDraw(self,dict)
         BasicGrapher._configNoDraw(self,grid=self.cget("grid"),
                                    decorations=self.cget("decorations"),

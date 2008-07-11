@@ -200,7 +200,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
             return self.grapher.config(cnf)
         dict = AUTOutil.cnfmerge((cnf,kw))
-        self.grapher.config(AUTOutil.cnfmerge((cnf,kw)))
+        self.grapher.config(dict)
         for key,value in dict.items():
             if key == "type":
                 self.labelEntry.setvalue(value)

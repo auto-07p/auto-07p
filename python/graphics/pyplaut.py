@@ -23,7 +23,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.state = ''
         self.xaxis = 1
         self.yaxis = 2
-        self.options = {'xtitle':'', 'ytitle':''}
+        self.expert = None
+        self.xlabel = ""
+        self.ylabel = ""
 
         root=Tkinter.Tk()
         root.withdraw()
@@ -31,12 +33,18 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             {},grapher_bifurcation_diagram=b,
             grapher_solution=s,
             grapher_width=600,grapher_height=480)
-        self.handle.grapher.config(self.options)
+        self.handle.config(xlabel="",ylabel="")
         self.handle.update()
 
     def raw_input(self, prompt=None):
-        print " ENTER COMMAND\n"
-        line = raw_input(prompt)
+        line = ""
+        while 1:
+            if line == "":
+                print " ENTER COMMAND\n"
+                line = raw_input(prompt)
+            line = self.process_input(line)
+
+    def process_input(self, line):
         lower = 0
         upper = 0
         its = 0
@@ -50,21 +58,24 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if line in ["stop","exit","quit","end"]:
             sys.exit()
         elif line in ["scr","screen"]:
-            sys.exit()
+            return ""
         elif line in ["ss","set sym"]:
-            sys.exit()
+            return ""
         elif line == "sd":
-            sys.exit()
+            return ""
         elif line in ["lab","label"]:
-            sys.exit()
+            self.listlabels()
+            return ""
         elif line in ["c","cl","clr","clear"]:
-            sys.exit()
+            self.handle.grapher.clear()
+            self.handle.grapher.update()
+            return ""
         elif line in ["save","sav","sa","s"]:
-            sys.exit()
+            return ""
         elif line == "help":
-            return "help()"
+            return self.help()
         elif line in ["sy","sym","symbol"]:
-            sys.exit()
+            return ""
         opts = []
         for j in range(6):
             if len(line) < j*2+2:
@@ -72,56 +83,46 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             opts.append(line[j*2:j*2+2])
         if "sy" in opts:
             its = 1
-            sys.exit()
         if "dp" in opts:
             its = 1
-            sys.exit()
         if "ax" in opts:
             its = 1
             print ' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :'
             [self.xaxis,self.yaxis] = map(int,string.split(raw_input()))
             self["bifurcation_x"] = [self.xaxis-1]
             self["bifurcation_y"] = [self.yaxis-1]
-            return ""
         if "st" in opts:
+            self.settitles()
             its = 1
-            sys.exit()
         if "d0" in opts:
             self["grid"] = "no"
             self["use_labels"] = 1
             #do not show stability
             its = 1
-            return ""
         if "d1" in opts:
             self["grid"] = "no"
             self["use_labels"] = 1
             #show stability
             its = 1
-            return ""
         if "d2" in opts:
             self["grid"] = "no"
             self["use_labels"] = 0
             #show stability
             its = 1
-            return ""
         if "d3" in opts:
             self["grid"] = "yes"
             self["use_labels"] = 1
             #show stability
             its = 1
-            return ""
         if "d4" in opts:
             self["grid"] = "yes"
             self["use_labels"] = 0
             #show stability
             its = 1
-            return ""
         if "nu" in opts:
             its = 1
-            sys.exit()
         if "xp" in opts:
             its = 1
-            sys.exit()            
         if "bd" in opts:
             its = 1
             self.plotbif(b)
@@ -130,47 +131,66 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
             self.plotbif(b)
             return ""
-        elif line == "b3d":
-            sys.exit()
-        elif line in ["help3d","h3d"]:
-            sys.exit()
-        elif line[:2] == "3d":
-            sys.exit()
         elif line[:2] == "2d":
             self.plotsol(s)
             return ""
         elif line == "sda":
-            sys.exit()
+            return ""
         elif line == "sdo":
-            sys.exit()
+            return ""
         elif line == "sci":
-            sys.exit()
+            return ""
         elif line == "ssy":
-            sys.exit()
+            return ""
         elif line == "pa":
-            sys.exit()
+            return ""
         elif line == "sdd":
-            sys.exit()
+            return ""
         elif line == "sls":
-            sys.exit()
+            return ""
         elif line == "lda":
-            sys.exit()
+            return ""
         elif line == "us":
-            sys.exit()
+            return ""
         elif line == "lls":
-            sys.exit()
+            return ""
         elif line == "rss":
-            sys.exit()
+            return ""
         elif line == "rcs":
-            sys.exit()
+            return ""
         elif line == "res":
-            sys.exit()
+            return ""
         if its == 0:
             print ' ILLEGAL COMMAND - REENTER'
         return ""
 
-    def plotsol(self,name):
-        self["type"] = "solution"
+    def settitles(self):
+        if not self.expert:
+            print ' ENTER X AXIS LABEL BETWEEN THE QUOTES'
+        print ' "                              "'
+        self.xlabel = raw_input().strip()
+        self["xlabel"] = self.xlabel
+
+        if not self.expert:
+            print ' ENTER Y AXIS LABEL BETWEEN THE QUOTES'
+        print ' "                              "'
+        self.ylabel = raw_input().strip()
+        self["ylabel"] = self.ylabel
+
+        ax = self.handle.grapher.ax
+        if not self.expert:
+            print ' ENTER TOP TITLE BETWEEN THE QUOTES'
+        print ' "                                                            "'
+        ax.set_title(raw_input().strip())
+        self.handle.grapher.update()
+
+        #if not self.expert:
+        #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
+        #print ' "                                                            "'
+        #ax.text(0.5,0,raw_input().strip(),transform=ax.transAxes)
+        #self.handle.grapher.canvas.show()
+
+    def listlabels(self):
         s = self["solution"]
         i = 0
         str='\n  THE LABELS ARE :    '
@@ -183,6 +203,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 i=0
         if len(str) > 22:
             print str
+
+    def plotsol(self,name):
+        self["type"] = "solution"
+        self.listlabels()
         print '\n ENTER LABELS, OR <A> (ALL)\n'
         line = string.lower(raw_input())
         if line[0] == 'a':
@@ -228,7 +252,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     pass
 
     def plotbif(self,name):
-        self["type"] = "bifurcation"
+        self.handle.config(type = "bifurcation",
+                           xlabel = self.xlabel, ylabel = self.ylabel)
         
     def __setitem__(self,key,value):
         self.handle[key] = value
@@ -238,68 +263,39 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 
     def help(self):
         print """
-
          Principal PLAUT Commands :
 
-
   <BD0>   Bifurcation diagram with default limits
-
   <BD>    Bifurcation diagram with user-limits
-
   <AX>    To select bifurcation diagram axes
-
   <2D>    2D plot of labeled solutions
-
   <SAV>   To save the current plot in a file
-
   <CL>    To clear the graphics window
-
   <LAB>   List all labeled solutions in Unit 8
-
   <END>   To End PLAUT
 
+        PLAUT Default Options :
 
-  Press RETURN for more or Enter Command ...'
+  <D0>    Use solid curves, labels, symbols
+  <D1>    As <D0>, showing stability
+  <D2>    As <D1>, without labels
+  <D3>    As <D1>, with grid lines
+  <D4>    AS <D2>, with grid lines
+
+        Individual Options :
+
+  <SY>    Use symbols for special points
+  <DP>    Differential Plot (show stability)
+  <ST>    Set up titles and axes labels
+  <NU>    Normal usage (Reset special options)
+
+  Press RETURN for more or Enter Command ...
   """
-        line = sys.stdin.readline()
-        if line != "\n":
-            return
-        print """
-
-        PLAUT Default Options :'
-
-
-  <D0>    Use solid curves, labels, symbols'
-
-  <D1>    As <D0>, showing stability' 
-
-  <D2>    As <D1>, without labels'
-
-  <D3>    As <D1>, with grid lines'
-
-  <D4>    AS <D2>, with grid lines'
-
-
-        Individual Options :'
-
-
-  <SY>    Use symbols for special points'
-
-  <DP>    Differential Plot (show stability)'
-
-  <ST>    Set up titles and axes labels'
-
-  <NU>    Normal usage (Reset special options)'
-
-
-  Press RETURN for more or Enter Command ...'
-  """
-        line = sys.stdin.readline()
-        if line != "\n":
-            return
+        line = raw_input()
+        if line != "":
+            return line
         print """
         Additional PLAUT Commands :
-
 
   <SCR>   To change the plot size
   <SS>    To define symbols
@@ -319,14 +315,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
   <PA>    Set plotting accuracy
   <RES>   Reset curves and symbols
 
-
-  <3D>    3D plot of labeled solutions
-  <B3D>   3D bifurcation diagram
-  <H3D>   For list of <3D> and <B3D> commands
-
-
          --- End of Help ---
   """
+        return ""
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
@@ -340,6 +331,11 @@ def exportFunctions(log=None):
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
+    try:
+        import readline
+    except:
+        pass
+
     sys.ps1=""
     if len(sys.argv) < 2:
         b='fort.7'

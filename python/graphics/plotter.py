@@ -70,6 +70,7 @@ class plotter(grapher.GUIGrapher):
         self.addOptions(optionDefaults)
         plotter._configNoDraw(self,dict)
         self._plotNoDraw()
+        self.__needsPlot = None
         self.computeXRange()
         self.computeYRange()
 
