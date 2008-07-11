@@ -33,7 +33,15 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.handle = windowPlotter.WindowPlotter2D(root,
             {},grapher_bifurcation_diagram=b,
             grapher_solution=s,
-            grapher_width=600,grapher_height=480)
+            grapher_width=600,grapher_height=480,
+            grapher_use_symbols=0,
+            grapher_bifurcation_symbol="square",
+            grapher_limit_point_symbol=None,
+            grapher_hopf_symbol="fillsquare",
+            grapher_period_doubling_symbol="doubletriangle",
+            grapher_torus_symbol="filldiamond",
+            grapher_user_point_symbol=None,
+            grapher_error_symbol=None)
         self.xlabel = self.handle.config("xlabel")[3]
         if self.xlabel is None:
             self.xlabel = ""
@@ -83,6 +91,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         elif line == "help":
             return self.help()
         elif line in ["sy","sym","symbol"]:
+            self["use_symbols"] = 1            
             return ""
         opts = []
         for j in range(6):
@@ -90,6 +99,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 break
             opts.append(line[j*2:j*2+2])
         if "sy" in opts:
+            self["use_symbols"] = 1            
             its = 1
         if "dp" in opts:
             its = 1
@@ -104,43 +114,44 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
         if "d0" in opts:
             self.dset = 1
-            self["grid"] = "no"
-            self["use_labels"] = 1
+            self.expert = 0
+            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1)
             #do not show stability
             its = 1
         if "d1" in opts:
             self.dset = 1
-            self["grid"] = "no"
-            self["use_labels"] = 1
+            self.expert = 0
+            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1)
             #show stability
             its = 1
         if "d2" in opts:
             self.dset = 1
-            self["grid"] = "no"
-            self["use_labels"] = 0
+            self.expert = 0
+            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1)
             #show stability
             its = 1
         if "d3" in opts:
             self.dset = 1
-            self["grid"] = "yes"
-            self["use_labels"] = 1
+            self.expert = 0
+            self.handle.config(grid = "yes", use_labels = 1, use_symbols = 1)
             #show stability
             its = 1
         if "d4" in opts:
             self.dset = 1
-            self["grid"] = "yes"
-            self["use_labels"] = 0
+            self.expert = 0
+            self.handle.config(grid = "yes", use_labels = 0, use_symbols = 1)
             #show stability
             its = 1
         if "nu" in opts:
             its = 1
-            self.expert = 0
             self.dset = 0
+            self.expert = 0
             self.icl = 0
             self.ict = 0
             self.xlabel = ""
             self.ylabel = ""
             self.title = ""
+            self["use_symbols"] = 0
         if "xp" in opts:
             its = 1
             self.expert = 1

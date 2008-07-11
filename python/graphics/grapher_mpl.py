@@ -99,6 +99,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["realwidth"] = (1,None)
         optionDefaults["realheight"] = (1,None)
         optionDefaults["use_labels"] = (1,None)
+        optionDefaults["use_symbols"] = (1,None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -499,6 +500,8 @@ class LabeledGrapher(BasicGrapher):
         self.plotlabels()
         BasicGrapher.plotdata(self)
 
+        if not self.cget("use_symbols"):
+            return
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 [x,y] = self.getData(i,label["j"])
@@ -506,19 +509,28 @@ class LabeledGrapher(BasicGrapher):
                 if l is None:
                     continue
                 c=self.cget("symbol_color")
+                mfc=self.ax.get_axis_bgcolor()
                 if len(l) == 1:
                     #font=self.cget("symbol_font"),
                     self.ax.text(x,y,l,ha="center",va="center",color=c)
                 elif l == "fillcircle":
                     self.ax.plot([x],[y],'o'+c[0])
                 elif l == "circle":
-                    self.ax.plot([x],[y],'o'+c[0])
+                    self.ax.plot([x],[y],'o'+c[0],mfc=mfc)
                 elif l == "square":
-                    self.ax.plot([x],[y],'s'+c[0])
+                    self.ax.plot([x],[y],'s'+c[0],mfc=mfc)
                 elif l == "crosssquare":
                     self.ax.plot([x],[y],'x'+c[0])
                 elif l == "fillsquare":
                     self.ax.plot([x],[y],'s'+c[0])
+                elif l == "diamond":
+                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc)
+                elif l == "filldiamond":
+                    self.ax.plot([x],[y],'D'+c[0])
+                elif l == "triangle":
+                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc)
+                elif l == "doubletriangle":
+                    self.ax.plot([x],[y],'^'+c[0])
         
 
 # FIXME:  No regression tester

@@ -50,6 +50,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["realwidth"] = (1,None)
         optionDefaults["realheight"] = (1,None)
         optionDefaults["use_labels"] = (1,None)
+        optionDefaults["use_symbols"] = (1,None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -479,6 +480,8 @@ class LabeledGrapher(BasicGrapher):
 
         BasicGrapher.draw(self)
 
+        if not self.cget("use_symbols"):
+            return
         for symbol in symbols:
             if len(symbol["symbol"]) == 1:
                 self.create_text(symbol["x"],symbol["y"],
