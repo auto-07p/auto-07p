@@ -78,6 +78,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.handle.grapher.update()
             return ""
         elif line in ["save","sav","sa","s"]:
+            self.savefile()
             return ""
         elif line == "help":
             return self.help()
@@ -184,6 +185,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             print ' ILLEGAL COMMAND - REENTER'
         return ""
 
+    def savefile(self):
+        print ' ENTER FILE NAME:'
+        flname = string.strip(raw_input())
+        if flname == '':
+            flname = 'fig.1'
+        self.handle.grapher.canvas.print_figure(flname)
+    
     def settitles(self,tit,rtit,axlb,raxlb):
         if raxlb:
             if not self.expert:

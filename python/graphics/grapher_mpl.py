@@ -27,17 +27,14 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         tkwidget = self.get_tk_widget()
 
         toolbar = NavigationToolbar2TkAgg( self, parent )
+        toolbar.zoom(self)
         toolbar.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=0)
 
         self.grapher = grapher
 
-    def draw(self):
-        ax = self.grapher.ax
-        [minx,maxx] = ax.get_xlim()
-        [miny,maxy] = ax.get_ylim()
-        self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
-        self.grapher._configNoDraw(xticks=None,yticks=None)
+    def redraw(self):
         # recalculate label positions
+        ax = self.grapher.ax
         li = self.grapher.label_indices
         if li is None:
             self.grapher.draw()
@@ -46,6 +43,14 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
             del ax.texts[li[0][1]:li[1][1]]
             self.grapher.plotlabels()
         FigureCanvasTkAgg.draw(self)
+        
+    def draw(self):
+        ax = self.grapher.ax
+        [minx,maxx] = ax.get_xlim()
+        [miny,maxy] = ax.get_ylim()
+        self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
+        self.grapher._configNoDraw(xticks=None,yticks=None)
+        self.redraw()
 
     def show(self):
         fig = self.grapher.ax.get_figure() 
@@ -53,7 +58,7 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         self.grapher._configNoDraw(
             realwidth=fig.get_figwidth()*dpi,
             realheight=fig.get_figheight()*dpi)
-        self.draw()
+        self.redraw()
 
 class BasicGrapher(optionHandler.OptionHandler):
     """Documentation string for Basic Grapher
@@ -106,7 +111,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         self.quit = tk_widget.quit
         self.bind = tk_widget.bind
         self.unbind = tk_widget.unbind
-        self.postscript = tk_widget.postscript
+        self.postscript = self.canvas.print_figure
         self.winfo_rootx = tk_widget.winfo_rootx
         self.winfo_rooty = tk_widget.winfo_rooty
 
@@ -562,7 +567,7 @@ class GUIGrapher(InteractiveGrapher):
         #self.menu.add_radiobutton(label="zoom",command=self.zoomBindings)
         #self.menu.invoke('zoom')
         self.menu.add_command(label="Unzoom",command=self.unzoom)
-        self.menu.add_command(label="Postscript",command=self.generatePostscript)
+        self.menu.add_command(label="Save",command=self.generatePostscript)
         self.menu.add_command(label="Configure...",command=self.__interactiveConfigureDialog)
 
     def __interactiveConfigureDialog(self):
@@ -625,9 +630,10 @@ class GUIGrapher(InteractiveGrapher):
         if pscolormode is None:
             pscolormode=self.cget("ps_colormode")
         if filename is None:
-            filename = tkFileDialog.asksaveasfilename(defaultextension=".eps",title="Save as Postscript File")
+            filename = tkFileDialog.asksaveasfilename(defaultextension=".eps",title="Save the figure")
         self.update()
-        self.postscript(file=filename,colormode=pscolormode)
+        #self.postscript(filename,colormode=pscolormode)
+        self.postscript(filename)
 
     def printTagBindings(self):
         self.bind("<ButtonPress-1>",self.printTagWrapper)
