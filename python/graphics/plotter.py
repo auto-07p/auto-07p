@@ -77,6 +77,7 @@ class plotter(grapher.GUIGrapher):
         self.__needsPlot = None
         self.computeXRange()
         self.computeYRange()
+        grapher.GUIGrapher.plot(self)
 
     def config(self,cnf=None,**kw):
         if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
@@ -89,6 +90,7 @@ class plotter(grapher.GUIGrapher):
             self.clear()
             self.computeXRange()
             self.computeYRange()
+            grapher.GUIGrapher.plot(self)
         else:
             self.clear()
         self.draw()
@@ -144,6 +146,7 @@ class plotter(grapher.GUIGrapher):
         self.clear()
         self.computeXRange()
         self.computeYRange()
+        grapher.GUIGrapher.plot(self)
         self.draw()
 
     def __plot7(self):
@@ -260,14 +263,13 @@ class plotter(grapher.GUIGrapher):
 
                     xnames = xnames + " " + str(xcolumns[j])
                     ynames = ynames + " " + str(ycolumns[j])
-                xlabel = self["xlabel"]
-                if self.config("xlabel")[3] is None:
-                    xlabel = "Columns %s"%xnames
-                ylabel = self["ylabel"]
-                if self.config("ylabel")[3] is None:
-                    ylabel = "Columns %s"%ynames
-                grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,
-                                                 ylabel=ylabel)
+            xlabel = self["xlabel"]
+            if self.config("xlabel")[3] is None:
+                xlabel = "Columns %s"%xnames
+            ylabel = self["ylabel"]
+            if self.config("ylabel")[3] is None:
+                ylabel = "Columns %s"%ynames
+            grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
 
 def test():

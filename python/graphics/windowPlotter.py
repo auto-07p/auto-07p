@@ -222,6 +222,10 @@ class WindowPlotter(Pmw.MegaToplevel):
         except:
             return Pmw.MegaToplevel.__getitem__(self,key)
 
+    def update(self):
+        self.grapher.update()
+        Pmw.MegaToplevel.update(self)        
+
 class WindowPlotter2D(WindowPlotter):
     def __init__(self,parent=None,cnf={},**kw):
         WindowPlotter.__init__(self,plotter.plotter,parent,AUTOutil.cnfmerge((cnf,kw)))

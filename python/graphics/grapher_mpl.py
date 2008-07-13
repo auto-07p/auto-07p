@@ -28,20 +28,13 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
 
         toolbar = NavigationToolbar2TkAgg( self, parent )
         toolbar.zoom(self)
-        toolbar.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=0)
 
         self.grapher = grapher
 
     def redraw(self):
         # recalculate label positions
         ax = self.grapher.ax
-        li = self.grapher.label_indices
-        if li is None:
-            self.grapher.draw()
-        else:
-            del ax.lines[li[0][0]:li[1][0]]
-            del ax.texts[li[0][1]:li[1][1]]
-            self.grapher.plotlabels()
+        self.grapher.plotlabels()
         FigureCanvasTkAgg.draw(self)
         
     def draw(self):
@@ -71,35 +64,37 @@ class BasicGrapher(optionHandler.OptionHandler):
         #Get the data from the arguements and then erase the
         #ones which are not used by canvas
         optionDefaults={}
-        optionDefaults["minx"] = (0,None)
-        optionDefaults["maxx"] = (0,None)
-        optionDefaults["miny"] = (0,None)
-        optionDefaults["maxy"] = (0,None)
-        optionDefaults["left_margin"] = (80,None)
-        optionDefaults["right_margin"] = (40,None)
-        optionDefaults["top_margin"] = (40,None)
-        optionDefaults["bottom_margin"] = (40,None)
-        optionDefaults["decorations"] = (1,None)
-        optionDefaults["xlabel"] = (None,None)
-        optionDefaults["ylabel"] = (None,None)
-        optionDefaults["xticks"] = (5,None)
-        optionDefaults["yticks"] = (5,None)
-        optionDefaults["grid"] = ("yes",None)
-        optionDefaults["tick_label_template"] = ("%.2e",None)
-        optionDefaults["tick_length"] = (0.2,None)
-        optionDefaults["odd_tick_length"] = (0.4,None)
-        optionDefaults["even_tick_length"] = (0.2,None)
-        # background is handled by the Canvas widget
-        optionDefaults["foreground"] = ("black",None)
-        optionDefaults["color_list"] = ("black red green blue",None)
-        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",None)
-        optionDefaults["symbol_color"] = ("red",None)
-        optionDefaults["smart_label"] = (0,None)
-        optionDefaults["line_width"] = (2,None)
-        optionDefaults["realwidth"] = (1,None)
-        optionDefaults["realheight"] = (1,None)
-        optionDefaults["use_labels"] = (1,None)
-        optionDefaults["use_symbols"] = (1,None)
+        optionDefaults["minx"] = (0,self.__optionCallback)
+        optionDefaults["maxx"] = (0,self.__optionCallback)
+        optionDefaults["miny"] = (0,self.__optionCallback)
+        optionDefaults["maxy"] = (0,self.__optionCallback)
+        optionDefaults["left_margin"] = (80,self.__optionCallback)
+        optionDefaults["right_margin"] = (40,self.__optionCallback)
+        optionDefaults["top_margin"] = (40,self.__optionCallback)
+        optionDefaults["bottom_margin"] = (40,self.__optionCallback)
+        optionDefaults["decorations"] = (1,self.__optionCallback)
+        optionDefaults["xlabel"] = (None,self.__optionCallback)
+        optionDefaults["ylabel"] = (None,self.__optionCallback)
+        optionDefaults["xticks"] = (None,self.__optionCallback)
+        optionDefaults["yticks"] = (None,self.__optionCallback)
+        optionDefaults["grid"] = ("yes",self.__optionCallback)
+        optionDefaults["tick_label_template"] = ("%.2e",self.__optionCallback)
+        optionDefaults["tick_length"] = (0.2,self.__optionCallback)
+        optionDefaults["odd_tick_length"] = (0.4,self.__optionCallback)
+        optionDefaults["even_tick_length"] = (0.2,self.__optionCallback)
+        optionDefaults["background"] = ("white",self.__optionCallback)
+        optionDefaults["foreground"] = ("black",self.__optionCallback)
+        optionDefaults["color_list"] = ("black red green blue",self.__optionCallback)
+        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",self.__optionCallback)
+        optionDefaults["symbol_color"] = ("red",self.__optionCallback)
+        optionDefaults["smart_label"] = (0,self.__optionCallback)
+        optionDefaults["line_width"] = (2,self.__optionCallback)
+        optionDefaults["realwidth"] = (1,self.__optionCallback)
+        optionDefaults["realheight"] = (1,self.__optionCallback)
+        optionDefaults["use_labels"] = (1,self.__optionCallback)
+        optionDefaults["use_symbols"] = (1,self.__optionCallback)
+        optionDefaults["width"] = (1,self.__optionCallback)
+        optionDefaults["height"] = (1,self.__optionCallback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -119,12 +114,9 @@ class BasicGrapher(optionHandler.OptionHandler):
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
-        self.label_indices = None
         BasicGrapher._configNoDraw(self,dict)
-        BasicGrapher._configNoDraw(self,grid=self.cget("grid"),
-                                   decorations=self.cget("decorations"),
-                                   xlabel=self.cget("xlabel"),
-                                   ylabel=self.cget("ylabel"))
+        for key in ["grid","decorations","xlabel","ylabel"]:
+            self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
 
     def pack(self,**kw):
@@ -146,6 +138,68 @@ class BasicGrapher(optionHandler.OptionHandler):
             self.draw()
     configure=config
 
+    def __optionCallback(self,key,value,options):
+        if key == "minx":
+            self.ax.set_xlim(xmin=value)
+        elif key == "maxx":
+            self.ax.set_xlim(xmax=value)
+        elif key == "miny":
+            self.ax.set_ylim(ymin=value)
+        elif key == "maxy":
+            self.ax.set_ylim(ymax=value)
+        elif key == "grid":
+            self.ax.grid(value == "yes")
+        elif key == "width":
+            self.canvas.get_tk_widget()[key] = value
+        elif key == "height":
+            self.canvas.get_tk_widget()[key] = value
+        elif key == "realwidth":
+            lm = self.cget("left_margin")
+            rm = self.cget("right_margin")
+            self.ax.get_figure().subplots_adjust(left=lm/value,
+                                                 right=1-rm/value)
+        elif key == "realheight":
+            tm = self.cget("top_margin")
+            bm = self.cget("bottom_margin")
+            self.ax.get_figure().subplots_adjust(top=1-tm/value,
+                                                 bottom=bm/value)
+        elif key == "background":
+            self.ax.set_axis_bgcolor(value)
+        elif key == "decorations":
+            if value:
+                self.ax.set_axis_on()
+            else:
+                self.ax.set_axis_off()
+        elif key == "use_symbols":
+            self.plotsymbols()
+        elif key == "use_labels":
+            self.plotlabels()
+        elif key == "xlabel":
+            if value is None:
+                value = ""
+            self.ax.set_xlabel(value,color=self.cget("foreground"))
+        elif key == "ylabel":
+            if value is None:
+                value = ""
+            self.ax.set_ylabel(value,color=self.cget("foreground"))
+        elif key in ["xticks","yticks"]:
+            if value is None:
+                if key == "xticks":
+                    self.ax.set_xscale('linear')
+                else:
+                    self.ax.set_yscale('linear')
+            else:
+                ticks = []
+                min = self.cget("min"+key[0])
+                max = self.cget("max"+key[0])
+                for i in range(value):
+                    ticks.append(min + ((max - min) * i) / (value-1))
+                if key == "xticks":
+                    self.ax.set_xticks(ticks)
+                else:
+                    self.ax.set_yticks(ticks)
+
+
     # This version can be used to increase efficiency
     # for example, if you want to config, but know you
     # will need to redraw later.
@@ -154,64 +208,6 @@ class BasicGrapher(optionHandler.OptionHandler):
             return optionHandler.OptionHandler.config(self,cnf)
         else:
             cnf = AUTOutil.cnfmerge((cnf,kw))
-            for k, v in cnf.items():
-                if k == "minx":
-                    self.ax.set_xlim(xmin=v)
-                elif k == "maxx":
-                    self.ax.set_xlim(xmax=v)
-                elif k == "miny":
-                    self.ax.set_ylim(ymin=v)
-                elif k == "maxy":
-                    self.ax.set_ylim(ymax=v)
-                elif k == "grid":
-                    self.ax.grid(v == "yes")
-                elif k == "width":
-                    self.canvas.get_tk_widget()[k] = v
-                elif k == "height":
-                    self.canvas.get_tk_widget()[k] = v
-                elif k == "realwidth":
-                    lm = self.cget("left_margin")
-                    rm = self.cget("right_margin")
-                    self.ax.get_figure().subplots_adjust(left=lm/v,
-                                                         right=1-rm/v)
-                elif k == "realheight":
-                    tm = self.cget("top_margin")
-                    bm = self.cget("bottom_margin")
-                    self.ax.get_figure().subplots_adjust(top=1-tm/v,
-                                                         bottom=bm/v)
-                elif k == "background":
-                    self.ax.set_axis_bgcolor(v)
-                elif k == "decorations":
-                    if v:
-                        self.ax.set_axis_on()
-                    else:
-                        self.ax.set_axis_off()
-                elif k == "xlabel":
-                    if v is None:
-                        v = ""
-                    self.ax.set_xlabel(v,color=self.cget("foreground"))
-                elif k == "ylabel":
-                    if v is None:
-                        v = ""
-                    self.ax.set_ylabel(v,color=self.cget("foreground"))
-                elif k == "xticks" or k == "yticks":
-                    if not v is None:
-                        ticks = []
-                        min = self.cget("min"+k[0])
-                        max = self.cget("max"+k[0])
-                        for i in range(v):
-                            ticks.append(min + ((max - min) * i) / (v-1))
-                    if k == "xticks":
-                        if v is None:
-                            self.ax.set_xscale('linear')
-                        else:
-                            self.ax.set_xticks(ticks)
-                    else:
-                        if v is None:
-                            self.ax.set_yscale('linear')
-                        else:
-                            self.ax.set_yticks(ticks)
-
             optionHandler.OptionHandler.config(self,cnf)
     _configureNoDraw = _configNoDraw
 
@@ -259,6 +255,9 @@ class BasicGrapher(optionHandler.OptionHandler):
         self._addData((array,),newsect,stable)
 
     def _delAllData(self):
+        self._configNoDraw(xticks=None,yticks=None)
+        for d in self.data:
+            self.ax.lines.remove(d["mpline"])
         self.data=[]
 
     def delAllData(self):
@@ -266,6 +265,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         self.clear()
 
     def _delData(self,index):
+        self.ax.lines.remove(data[index]["mpline"])
         del self.data[index]
 
     def delData(self,index):
@@ -369,16 +369,13 @@ class BasicGrapher(optionHandler.OptionHandler):
         return [self.cget("miny"),self.cget("maxy")]
 
     def clear(self):
-        self.ax.lines = []
-        self.ax.texts = []
         self.ax.get_figure().axes = []
 
     def draw(self):
         self.ax.get_figure().axes = [self.ax]
-        self.plotdata()
         FigureCanvasTkAgg.draw(self.canvas)
 
-    def plotdata(self):
+    def plot(self):
         color_list = string.split(self.cget("color_list"))
             
         # data
@@ -400,6 +397,7 @@ class BasicGrapher(optionHandler.OptionHandler):
                     self.ax.plot(xs,ys,color=fill,lw=line_width)
                 else:
                     self.ax.plot(xs,ys,color=fill,ls='--',lw=line_width)
+            d["mpline"] = self.ax.lines[-1]
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
             
@@ -420,6 +418,9 @@ class LabeledGrapher(BasicGrapher):
         new_label["j"]=j
         new_label["text"]=input_text
         new_label["symbol"]=symbol
+        new_label["mpline"]=None
+        new_label["mptext"]=None
+        new_label["mpsymline"]=None
         self.labels[i].append(new_label)
 
     def _delData(self,i):
@@ -427,6 +428,12 @@ class LabeledGrapher(BasicGrapher):
         BasicGrapher._delData(self,i)
 
     def _delAllData(self):
+        for l in self.labels:
+            for label in l:
+                if label["mpline"]:
+                    self.ax.lines.remove(label["mpline"])
+                if label["mptext"]:
+                    self.ax.texts.remove(label["mptext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
 
@@ -435,7 +442,6 @@ class LabeledGrapher(BasicGrapher):
         BasicGrapher._addData(self,data,newsect,stable)
 
     def plotlabels(self):
-        self.label_indices = [[len(self.ax.lines),len(self.ax.texts)]]
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 j = label["j"]
@@ -491,6 +497,12 @@ class LabeledGrapher(BasicGrapher):
 
                     y = realheight - y
                     [x1,y1] = self.getData(i,j)
+                    if label["mpline"]:
+                        self.ax.lines.remove(label["mpline"])
+                    label["mpline"] = None
+                    if label["mptext"]:
+                        self.ax.texts.remove(label["mptext"])
+                    label["mptext"] = None
                     if self.cget("use_labels") and len(label["text"]) > 0:
                         if 'transform' in dir(self.ax.transData):
                             [x2,y2] = self.ax.transData.inverted().transform(
@@ -502,14 +514,17 @@ class LabeledGrapher(BasicGrapher):
                                      color=self.cget("foreground"))
                         self.ax.text(x2,y2,label["text"],ha=ha,va=va,
                                      color=self.cget("foreground"))
-        self.label_indices.append([len(self.ax.lines),len(self.ax.texts)])
+                        label["mpline"] = self.ax.lines[-1]
+                        label["mptext"] = self.ax.texts[-1]
 
-    def plotdata(self):
+    def plot(self):
         self.plotlabels()
-        BasicGrapher.plotdata(self)
+        BasicGrapher.plot(self)
+        self.plotsymbols()
 
-        if not self.cget("use_symbols"):
-            return
+    def plotsymbols(self,use_symbols=None):
+        if use_symbols == None:
+            use_symbols = self.cget("use_symbols")
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 [x,y] = self.getData(i,label["j"])
@@ -518,7 +533,12 @@ class LabeledGrapher(BasicGrapher):
                     continue
                 c=self.cget("symbol_color")
                 mfc=self.ax.get_axis_bgcolor()
-                if len(l) == 1:
+                if label["mpsymline"]:
+                    self.ax.lines.remove(label["mpsymline"])
+                label["mpsymline"] = None
+                if not use_symbols:
+                    continue
+                elif len(l) == 1:
                     #font=self.cget("symbol_font"),
                     self.ax.text(x,y,l,ha="center",va="center",color=c)
                 elif l == "fillcircle":
@@ -539,8 +559,10 @@ class LabeledGrapher(BasicGrapher):
                     self.ax.plot([x],[y],'^'+c[0],mfc=mfc)
                 elif l == "doubletriangle":
                     self.ax.plot([x],[y],'^'+c[0])
+                else:
+                    continue
+                label["mpsymline"] = self.ax.lines[-1]
         
-
 # FIXME:  No regression tester
 class InteractiveGrapher(LabeledGrapher):
     def __init__(self,parent=None,cnf={},**kw):
@@ -681,7 +703,7 @@ def test():
     grapher.addLabel(0,10,"hello")
     grapher.addLabel(0,30,"world")
     grapher.pack()
-    grapher.draw()
+    grapher.plot()
 
     button = Tkinter.Button(text="Quit",command=grapher.quit)
     button.pack()
@@ -691,6 +713,7 @@ def test():
 
     grapher.delAllData()
     grapher.addArray((data,map(math.cos,data)))
+    grapher.plot()
     print "Press <return> to continue"
     raw_input()
 

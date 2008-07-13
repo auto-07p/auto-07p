@@ -241,6 +241,9 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         for x in self.find_all():
             self.delete(x)
 
+    def plot(self):
+        pass
+
     def draw(self):
         color_list = string.split(self.cget("color_list"))
         minx=self.cget("minx")

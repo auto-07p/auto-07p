@@ -22,9 +22,10 @@ class OptionHandler:
         for key in dict.keys():
             newkey = self.__applyOptionAliases(key)
             if newkey in self.__options.keys():
-                self.__options[newkey] = dict[key]
-                if not(self.__optionCallbacks[newkey] is None):
-                    self.__optionCallbacks[newkey](key,dict[key],self.__options)
+                if self.__options[newkey] != dict[key]:
+                    self.__options[newkey] = dict[key]
+                    if not(self.__optionCallbacks[newkey] is None):
+                        self.__optionCallbacks[newkey](key,dict[key],self.__options)
                 del dict[key]
                     
                 

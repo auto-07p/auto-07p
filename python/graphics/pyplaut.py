@@ -108,9 +108,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if "ax" in opts:
             its = 1
             print ' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :'
-            [self.xaxis,self.yaxis] = map(int,string.split(raw_input()))
-            self["bifurcation_x"] = [self.xaxis-1]
-            self["bifurcation_y"] = [self.yaxis-1]
+            try:
+                [self.xaxis,self.yaxis] = map(int,string.split(raw_input()))
+                self["bifurcation_x"] = [self.xaxis-1]
+                self["bifurcation_y"] = [self.yaxis-1]
+            except:
+                pass
         if "st" in opts:
             self.settitles(1,1,1,1)
             its = 1
