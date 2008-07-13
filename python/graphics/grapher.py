@@ -277,7 +277,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             [x,y]=self.__valueToCanvasFast([d["x"][0],d["y"][0]],minx,maxx,miny,maxy,
                                             width,height,left_margin,right_margin,top_margin,bottom_margin)
             # If we only have one point we draw a small circle
-            if d["x"] == 1:
+            if n == 1:
                 self.create_oval(x-3,y-3,x+3,y+3,
                                  tags=("data_point:%d"%(0,),"curve:%d"%(i,),"data"),
                                  fill=color_list[i%len(color_list)])
