@@ -400,6 +400,7 @@ class BasicGrapher(optionHandler.OptionHandler):
             d["mpline"] = self.ax.lines[-1]
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
+        self.ax.get_figure().axes = [self.ax]
             
     def __setitem__(self,key,value):
         apply(self.configure, (), {key: value})
@@ -421,6 +422,7 @@ class LabeledGrapher(BasicGrapher):
         new_label["mpline"]=None
         new_label["mptext"]=None
         new_label["mpsymline"]=None
+        new_label["mpsymtext"]=None
         self.labels[i].append(new_label)
 
     def _delData(self,i):
@@ -434,6 +436,10 @@ class LabeledGrapher(BasicGrapher):
                     self.ax.lines.remove(label["mpline"])
                 if label["mptext"]:
                     self.ax.texts.remove(label["mptext"])
+                if label["mpsymline"]:
+                    self.ax.lines.remove(label["mpsymline"])
+                if label["mpsymtext"]:
+                    self.ax.texts.remove(label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
 
@@ -522,9 +528,7 @@ class LabeledGrapher(BasicGrapher):
         BasicGrapher.plot(self)
         self.plotsymbols()
 
-    def plotsymbols(self,use_symbols=None):
-        if use_symbols == None:
-            use_symbols = self.cget("use_symbols")
+    def plotsymbols(self):
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 [x,y] = self.getData(i,label["j"])
@@ -536,11 +540,16 @@ class LabeledGrapher(BasicGrapher):
                 if label["mpsymline"]:
                     self.ax.lines.remove(label["mpsymline"])
                 label["mpsymline"] = None
-                if not use_symbols:
+                if label["mpsymtext"]:
+                    self.ax.texts.remove(label["mpsymtext"])
+                label["mpsymtext"] = None
+                if not self.cget("use_symbols"):
                     continue
                 elif len(l) == 1:
                     #font=self.cget("symbol_font"),
                     self.ax.text(x,y,l,ha="center",va="center",color=c)
+                    label["mpsymtext"] = self.ax.texts[-1]
+                    continue
                 elif l == "fillcircle":
                     self.ax.plot([x],[y],'o'+c[0])
                 elif l == "circle":

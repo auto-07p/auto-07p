@@ -145,7 +145,10 @@ class WindowPlotter(Pmw.MegaToplevel):
     def _shortstr(self,list):
         s = "["
         for x in list:
-            s = s + str(x) + ','
+            strx = str(x)
+            if type(x) == type('t'):
+                strx = "'" + strx + "'"
+            s = s + strx + ','
         s = s[:-1] + "]"
         return s
         

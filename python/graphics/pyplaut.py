@@ -336,7 +336,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if line[0] == 'a':
             self["label"] = s.getLabels()
         else:
-            self["label"] = map(int,string.split(line))
+            try:
+                self["label"] = map(int,string.split(line))
+            except:
+                return
         self.ndim=len(s[0]["data"][0]['u'])+1
         self.xaxs = 1
         self.yaxs = 2
@@ -363,16 +366,16 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             else:
                 try:
                     [self.xaxs,self.yaxs] = map(int,string.split(line))
-                    if self.xaxs == '1':
-                        self.xaxs = 't'
+                    if self.xaxs == 1:
+                        xaxs = "t"
                     else:
-                        self.xaxs = self.xaxs - 2
-                    if self.yaxs == '1':
-                        self.yaxs = 't'
+                        xaxs = self.xaxs - 2
+                    if self.yaxs == 1:
+                        yaxs = "t"
                     else:
-                        self.yaxs = self.yaxs - 2
-                    self["solution_x"] = [self.xaxs]
-                    self["solution_y"] = [self.yaxs]
+                        yaxs = self.yaxs - 2
+                    self["solution_x"] = [xaxs]
+                    self["solution_y"] = [yaxs]
                 except:
                     pass
 

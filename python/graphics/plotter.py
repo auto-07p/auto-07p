@@ -233,8 +233,11 @@ class plotter(grapher.GUIGrapher):
         if len(xcolumns) == len(ycolumns):
             xnames="Error"
             ynames="Error"
-            for index in self.cget("index"):
-                solution = self.cget("solution").getIndex(index)["data"]
+            index = 9
+            for ind in self.cget("index"):
+                sol = self.cget("solution").getIndex(ind)
+                solution = sol["data"]
+                label = sol["Label"]
                 xnames = ""
                 ynames = ""
                 for j in range(len(xcolumns)):
@@ -251,10 +254,16 @@ class plotter(grapher.GUIGrapher):
                         y = map(lambda s, c = yc: s["u"][c], solution)
 
                     if not(self.cget("mark_t") is None):
-                        for i in r:
+                        for i in range(len(solution)):
                             if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:
-                                labels.append({})
-                                labels[-1] = {"index": i, "text": "", "symbol": "fillcircle"}
+                                labels.append({"index": i,
+                                               "text": "",
+                                               "symbol": "fillcircle"})
+                    if len(solution) <= 15:
+                        index = 1
+                        if len(solution) <= 1:
+                            index = 0
+                    labels.append({"index": index, "text": str(label), "symbol": ""})
                     # Call the base class config
                     if len(x) > 0:
                         self.addArrayNoDraw((x,y))
@@ -263,6 +272,9 @@ class plotter(grapher.GUIGrapher):
 
                     xnames = xnames + " " + str(xcolumns[j])
                     ynames = ynames + " " + str(ycolumns[j])
+                index = index + 10
+                if index > len(solution):
+                    index = 14
             xlabel = self["xlabel"]
             if self.config("xlabel")[3] is None:
                 xlabel = "Columns %s"%xnames
