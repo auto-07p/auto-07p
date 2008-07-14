@@ -94,7 +94,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["use_symbols"] = (1,self.__optionCallback)
         optionDefaults["width"] = (1,self.__optionCallback)
         optionDefaults["height"] = (1,self.__optionCallback)
-        optionDefaults["title"] = ("",self.__optionCallback)
+        optionDefaults["top_title"] = ("",self.__optionCallback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -166,7 +166,7 @@ class BasicGrapher(optionHandler.OptionHandler):
             self.canvas.get_tk_widget()[key] = value
         elif key == "height":
             self.canvas.get_tk_widget()[key] = value
-        elif key == "title":
+        elif key == "top_title":
             self.ax.set_title(value)
         elif key == "background":
             self.ax.set_axis_bgcolor(value)

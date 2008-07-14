@@ -171,12 +171,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             index = opts.index("bd")
             if 2*index + 2 < len(line):
                 if line[2*index+2] == "0":
-                    self.plotbif(b,0)
+                    self.plotbif(0)
                     return ""
-            self.plotbif(b)
+            self.plotbif()
             return ""
         elif line[:2] == "2d":
-            self.plotsol(s)
+            self.plotsol()
             return ""
         elif line == "sda":
             return ""
@@ -246,9 +246,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
             #print ' "                                                            "'
         if tit:
-            self["title"] = self.title
+            self["top_title"] = self.title
         else:
-            self["title"] = ""
+            self["top_title"] = ""
         self.handle.grapher.update()
         #ax.text(0.5,0,raw_input().strip(),transform=ax.transAxes)
         #self.handle.grapher.canvas.show()
@@ -327,31 +327,47 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                         raxlb = 1
         self.settitles(tit,rtit,axlb,raxlb)
         
-    def enterlabels(self,name):
+    def enterlabels(self):
         self.listlabels()
         print '\n ENTER LABELS, OR <A> (ALL)\n'
         line = string.lower(raw_input())
+        s = self["solution"]
         if line[0] == 'a':
             self["label"] = s.getLabels()
         else:
-            try:
-                self["label"] = map(int,string.split(line))
-            except:
-                print "    INVALID COMMAND,  REENTER"
+            line=string.replace(line,',',' ')
+            line=string.replace(line,':','-')
+            lablist = string.split(string.replace(line,',',' '))
+            label = []
+            for lab in lablist:
+                try:
+                    lrange = map(int,string.split(lab,'-'))
+                except:
+                    print "    INVALID COMMAND,  REENTER"
+                    return 0
+                if len(lrange) == 2:
+                    lrange = range(lrange[0],lrange[1]+1)
+                label = label + lrange
+            self["label"] = label
         return 1
         
-    def plotsol(self,name):
+    def plotsol(self):
         self.xaxs = 1
         self.yaxs = 2
         
         self["type"] = "solution"
         if not self.enterlabels():
             return
+        s = self["solution"]
         self.ndim=len(s[0]["data"][0]['u'])+1
 	while 1:
+            its = 0
+            print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
+            print ('  ENTER AXES  (DEFAULT %3d%3d),'\
+                   ' <D> (DISPLAY), OR <EX> (EXIT)'%(self.xaxs,self.yaxs))
+            line = raw_input()
 	    lower = 0
             upper = 0
-            its = 0
             for c in line:
                 if c in string.lowercase:
                     lower = 1
@@ -359,17 +375,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     upper = 1
             if upper and not lower:
                 line=string.lower(line)
-            print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
-            print ('  ENTER AXES  (DEFAULT %3d%3d),'\
-                   ' <D> (DISPLAY), OR <EX> (EXIT)'%(self.xaxs,self.yaxs))
-            line = raw_input()
             if line in ['end','ex','e']:
                 return
             elif line == 'd':
                 if not self.dset:
                     self.getopts()
             elif line == '2d':
-                self.enterlabels():
+                self.enterlabels()
             else:
                 try:
                     [self.xaxs,self.yaxs] = map(int,string.split(line))
@@ -387,7 +399,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     print "    INVALID COMMAND,  REENTER"
                 
 
-    def plotbif(self,name,opt=None):
+    def plotbif(self,opt=None):
         if opt is None:
             while 1:
                 if self.expert:
