@@ -33,7 +33,6 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
 
     def redraw(self):
         # recalculate label positions
-        ax = self.grapher.ax
         self.grapher.plotlabels()
         FigureCanvasTkAgg.draw(self)
         
@@ -111,6 +110,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         self.postscript = self.canvas.print_figure
         self.winfo_rootx = tk_widget.winfo_rootx
         self.winfo_rooty = tk_widget.winfo_rooty
+        self.redrawlabels = 0
 
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)
@@ -140,14 +140,26 @@ class BasicGrapher(optionHandler.OptionHandler):
     configure=config
 
     def __optionCallback(self,key,value,options):
-        if key == "minx":
-            self.ax.set_xlim(xmin=value)
-        elif key == "maxx":
-            self.ax.set_xlim(xmax=value)
-        elif key == "miny":
-            self.ax.set_ylim(ymin=value)
-        elif key == "maxy":
-            self.ax.set_ylim(ymax=value)
+        if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
+            self.redrawlabels = 1
+            if key == "minx":
+                self.ax.set_xlim(xmin=value)
+            elif key == "maxx":
+                self.ax.set_xlim(xmax=value)
+            elif key == "miny":
+                self.ax.set_ylim(ymin=value)
+            elif key == "maxy":
+                self.ax.set_ylim(ymax=value)
+            elif key == "realwidth":
+                lm = self.cget("left_margin")
+                rm = self.cget("right_margin")
+                self.ax.get_figure().subplots_adjust(left=lm/value,
+                                                     right=1-rm/value)
+            elif key == "realheight":
+                tm = self.cget("top_margin")
+                bm = self.cget("bottom_margin")
+                self.ax.get_figure().subplots_adjust(top=1-tm/value,
+                                                     bottom=bm/value)
         elif key == "grid":
             self.ax.grid(value == "yes")
         elif key == "width":
@@ -156,16 +168,6 @@ class BasicGrapher(optionHandler.OptionHandler):
             self.canvas.get_tk_widget()[key] = value
         elif key == "title":
             self.ax.set_title(value)
-        elif key == "realwidth":
-            lm = self.cget("left_margin")
-            rm = self.cget("right_margin")
-            self.ax.get_figure().subplots_adjust(left=lm/value,
-                                                 right=1-rm/value)
-        elif key == "realheight":
-            tm = self.cget("top_margin")
-            bm = self.cget("bottom_margin")
-            self.ax.get_figure().subplots_adjust(top=1-tm/value,
-                                                 bottom=bm/value)
         elif key == "background":
             self.ax.set_axis_bgcolor(value)
         elif key == "decorations":
@@ -331,12 +333,10 @@ class BasicGrapher(optionHandler.OptionHandler):
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(minx=dict["min"])
-            self._configNoDraw(maxx=dict["max"])
+            self._configNoDraw(minx=dict["min"],maxx=dict["max"])
             self._configNoDraw(xticks=dict["divisions"])
         elif guess_maximum != None:
-            self._configNoDraw(minx=guess_minimum-1)
-            self._configNoDraw(maxx=guess_maximum+1)
+            self._configNoDraw(minx=guess_minimum-1,maxx=guess_maximum+1)
             self._configNoDraw(xticks=None)
             
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
@@ -356,12 +356,10 @@ class BasicGrapher(optionHandler.OptionHandler):
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(miny=dict["min"])
-            self._configNoDraw(maxy=dict["max"])
+            self._configNoDraw(miny=dict["min"],maxy=dict["max"])
             self._configNoDraw(yticks=dict["divisions"])
         elif guess_minimum != None:
-            self._configNoDraw(miny=guess_minimum-1)
-            self._configNoDraw(maxy=guess_maximum+1)
+            self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
             self._configNoDraw(yticks=None)
 
 
@@ -375,6 +373,8 @@ class BasicGrapher(optionHandler.OptionHandler):
         self.ax.get_figure().axes = []
 
     def draw(self):
+        if self.redrawlabels:
+            self.plotlabels()
         self.ax.get_figure().axes = [self.ax]
         FigureCanvasTkAgg.draw(self.canvas)
 
@@ -451,6 +451,7 @@ class LabeledGrapher(BasicGrapher):
         BasicGrapher._addData(self,data,newsect,stable)
 
     def plotlabels(self):
+        self.redrawlabels = 0
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 j = label["j"]

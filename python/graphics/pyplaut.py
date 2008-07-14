@@ -120,7 +120,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if "d0" in opts:
             self.dset = 1
             self.expert = 0
-            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1,
+            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1,
                                stability = 0)
             self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
@@ -327,8 +327,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                         raxlb = 1
         self.settitles(tit,rtit,axlb,raxlb)
         
-    def plotsol(self,name):
-        self["type"] = "solution"
+    def enterlabels(self,name):
         self.listlabels()
         print '\n ENTER LABELS, OR <A> (ALL)\n'
         line = string.lower(raw_input())
@@ -338,10 +337,17 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             try:
                 self["label"] = map(int,string.split(line))
             except:
-                return
-        self.ndim=len(s[0]["data"][0]['u'])+1
+                print "    INVALID COMMAND,  REENTER"
+        return 1
+        
+    def plotsol(self,name):
         self.xaxs = 1
         self.yaxs = 2
+        
+        self["type"] = "solution"
+        if not self.enterlabels():
+            return
+        self.ndim=len(s[0]["data"][0]['u'])+1
 	while 1:
 	    lower = 0
             upper = 0
@@ -362,6 +368,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             elif line == 'd':
                 if not self.dset:
                     self.getopts()
+            elif line == '2d':
+                self.enterlabels():
             else:
                 try:
                     [self.xaxs,self.yaxs] = map(int,string.split(line))
@@ -376,7 +384,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     self["solution_x"] = [xaxs]
                     self["solution_y"] = [yaxs]
                 except:
-                    pass
+                    print "    INVALID COMMAND,  REENTER"
+                
 
     def plotbif(self,name,opt=None):
         if opt is None:
