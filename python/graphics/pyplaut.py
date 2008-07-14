@@ -213,7 +213,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         flname = string.strip(raw_input())
         if flname == '':
             flname = 'fig.1'
-        self.handle.grapher.canvas.print_figure(flname)
+        self.handle.grapher.postscript(flname)
     
     def settitles(self,tit,rtit,axlb,raxlb):
         if raxlb:
@@ -245,11 +245,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             #if not self.expert:
             #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
             #print ' "                                                            "'
-        ax = self.handle.grapher.ax
         if tit:
-            ax.set_title(self.title)
+            self["title"] = self.title
         else:
-            ax.set_title("")
+            self["title"] = ""
         self.handle.grapher.update()
         #ax.text(0.5,0,raw_input().strip(),transform=ax.transAxes)
         #self.handle.grapher.canvas.show()

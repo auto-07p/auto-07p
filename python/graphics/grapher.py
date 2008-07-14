@@ -51,6 +51,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["realheight"] = (1,None)
         optionDefaults["use_labels"] = (1,None)
         optionDefaults["use_symbols"] = (1,None)
+        optionDefaults["title"] = ("",None)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -362,6 +363,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                              text=self.cget("ylabel"),anchor="nw",fill=self.cget("foreground"))
             self.create_text(int(width)-left_margin*0.3,int(height)-bottom_margin*0.1,
                              text=self.cget("xlabel"),anchor="se",fill=self.cget("foreground"))
+            # Title
+            self.create_text((left_margin-right_margin+int(width))/2,
+                             top_margin*0.1,text=self.cget("title"),anchor="n",
+                             fill=self.cget("foreground"))
 
         
     def valueToCanvas(self,val):
