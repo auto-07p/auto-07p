@@ -78,16 +78,6 @@ class WindowPlotter(Pmw.MegaToplevel):
         labelEntry.configure(command = lambda value,obj=self:obj._modifyOption("type",value))
         self.labelEntry = labelEntry
 
-        #FIXME:  This being here is a bug.  It needs to be part of the configure stuff,
-        #        otherwise you can't change solution files.
-        labels = []
-        if not(self.grapher.cget("label_defaults") is None):
-            for x in self.grapher.cget("label_defaults"):
-                labels.append(str(x))
-        default_labels = self.grapher.cget("solution").getLabels()
-        for i in range(len(default_labels)):
-            labels.append("[%d]"%default_labels[i])
-        labels.append(self._shortstr(default_labels))
         typeEntry = self.createcomponent('typeEntry',
                                          (), None,
                                          Pmw.ComboBox,box,
@@ -95,8 +85,6 @@ class WindowPlotter(Pmw.MegaToplevel):
                                          label_text="Label")
         
         typeEntry.grid(row=0,column=1)
-        typeEntry.setentry(labels[0])
-        typeEntry.setlist(labels)
         typeEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("label",entry))
         self.typeEntry = typeEntry
         box.grid(row=0)
@@ -208,6 +196,8 @@ class WindowPlotter(Pmw.MegaToplevel):
             if key == "type":
                 self.labelEntry.setvalue(value)
             if key in ["type","label",
+                       "bifurcation_diagram_filename",
+                       "solution_filename",
                        "bifurcation_column_defaults",
                        "bifurcation_diagram","bifurcation_x","bifurcation_y",
                        "solution_column_defaults",
@@ -280,7 +270,19 @@ class WindowPlotter2D(WindowPlotter):
         self.yEntry.setlist(list)
         self.xEntry.setentry(self._shortstr(self.grapher.cget(ox)))
         self.yEntry.setentry(self._shortstr(self.grapher.cget(oy)))
-        self.typeEntry.setentry(self._shortstr(self.grapher.cget("label")))
+        labels = []
+        if not(self.grapher.cget("label_defaults") is None):
+            for x in self.grapher.cget("label_defaults"):
+                labels.append(str(x))
+        default_labels = self.grapher.cget("solution").getLabels()
+        for i in range(len(default_labels)):
+            labels.append("[%d]"%default_labels[i])
+        labels.append(self._shortstr(default_labels))
+        if self.grapher.cget("label") == [0]:
+            self.typeEntry.setentry(labels[0])
+        else:
+            self.typeEntry.setentry(self._shortstr(self.grapher.cget("label")))
+        self.typeEntry.setlist(labels)
 
 
 

@@ -115,7 +115,8 @@ class plotter(grapher.GUIGrapher):
         elif key == "solution_filename":
             if os.path.exists(value):
                 self.cget("solution").readFilename(value)
-            self.__optionCallback("label",self.cget("label"),options)
+            if self.cget("label") != [0]:
+                self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":
             labels = self.cget("solution").getLabels()
             options["index"] =[]
