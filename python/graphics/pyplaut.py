@@ -20,34 +20,50 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                                      r'(\(?.*$)')
         self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
                                           '|^is |^not |^in |^and |^or ')
-        self.xaxis = 1
-        self.yaxis = 2
         self.expert = 0
         self.dset = 0
         self.ict = 0
         self.icl = 0
-        self.title = ""
 
         root=Tkinter.Tk()
         root.withdraw()
-        self.handle = windowPlotter.WindowPlotter2D(root,
-            {},grapher_bifurcation_diagram=b,
-            grapher_solution=s,
-            grapher_width=600,grapher_height=480,
-            grapher_use_symbols=0,
-            grapher_bifurcation_symbol="square",
-            grapher_limit_point_symbol=None,
-            grapher_hopf_symbol="fillsquare",
-            grapher_period_doubling_symbol="doubletriangle",
-            grapher_torus_symbol="filldiamond",
-            grapher_user_point_symbol=None,
-            grapher_error_symbol=None)
-        self.xlabel = self.handle.config("xlabel")[3]
-        if self.xlabel is None:
-            self.xlabel = ""
-        self.ylabel = self.handle.config("ylabel")[3]
-        if self.ylabel is None:
-            self.ylabel = ""
+        self.handle = windowPlotter.WindowPlotter2D(root,{})
+        dict = {
+            "bifurcation_diagram_filename": b,
+            "solution_filename": s,
+            "width": 600, "height": 480,
+            "use_symbols": 0,
+            "bifurcation_symbol": "square",
+            "limit_point_symbol": None,
+            "hopf_symbol": "fillsquare",
+            "period_doubling_symbol": "doubletriangle",
+            "torus_symbol": "filldiamond",
+            "user_point_symbol": None,
+            "error_symbol": None,
+            "xlabel": "", "ylabel": "" }
+        self.xlabel = ""
+        self.ylabel = ""
+        for key in dict.keys():
+            # check if key was set in .autorc
+            config = self.handle.config(key)
+            if len(config) > 5 and config[5]:
+                if key == "xlabel":
+                    self.xlabel = config[3]
+                if key == "ylabel":
+                    self.ylabel = config[3]
+                del dict[key]
+        self.handle.config(dict)
+        self.xaxis = self["solution_x"][0]
+        if self.xaxis == 't':
+            self.xaxis = 1
+        else:
+            self.xaxis = self.xaxis + 2
+        self.yaxis = self["solution_y"][0]
+        if self.yaxis == 't':
+            self.yaxis = 1
+        else:
+            self.yaxis = self.yaxis + 2
+        self.title = self["top_title"]
         self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
 
     def raw_input(self, prompt=None):
@@ -161,7 +177,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.xlabel = ""
             self.ylabel = ""
             self.title = ""
-            self.handle.config(use_symbols = 0, stability = 0)
+            self.handle.config(use_symbols = 0, stability = 0, top_title = "")
             self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
         if "xp" in opts:
             its = 1
@@ -354,7 +370,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.xaxs = 1
         self.yaxs = 2
         
-        self["type"] = "solution"
+        self.handle.config(type = "solution")
+        self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel)
         if not self.enterlabels():
             return
         s = self["solution"]
@@ -515,7 +532,5 @@ if __name__ == '__main__':
     else:
         b='b.'+sys.argv[1]
         s='s.'+sys.argv[1]
-    b = parseB.parseB(b)
-    s = parseS.parseS(s)
     runner = PyPlautInteractiveConsole(exportFunctions(), b, s)
     runner.interact(" ENTER <HELP> IN CASE OF DIFFICULTY\n")

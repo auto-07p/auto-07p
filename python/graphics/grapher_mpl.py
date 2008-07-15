@@ -113,6 +113,9 @@ class BasicGrapher(optionHandler.OptionHandler):
         self.redrawlabels = 0
 
         dict = AUTOutil.cnfmerge((cnf,kw))
+        for key in dict.keys():
+            if not key in optionDefaults.keys():
+                del dict[key]
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
         BasicGrapher._configNoDraw(self,dict)

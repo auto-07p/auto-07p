@@ -10,6 +10,7 @@ class OptionHandler:
         self.__optionDefaults = {}
         self.__optionAliases = {}
         self.__optionCallbacks = {}
+        self.__optionRC = {}
         self.__baseClass = baseClass
 
     def __applyOptionAliases(self,key):
@@ -35,12 +36,15 @@ class OptionHandler:
         for key in dict.keys():
             self.__optionDefaults[key] = dict[key][0]
             self.__options[key] = dict[key][0]
-            if not key in self.__optionCallbacks.keys():
-                self.__optionCallbacks[key] = None
-            elif not self.__optionCallbacks[key] is None:
-                self.__optionCallbacks[key](key,dict[key][0],self.__options)
-            if not dict[key][1] is None:
-                self.__optionCallbacks[key] = dict[key][1]
+            self.__optionCallbacks[key] = dict[key][1]
+            self.__optionRC[key] = 0
+
+    def addRCOptions(self,dict,**kw):
+        dict = AUTOutil.cnfmerge((dict,kw))
+        for key in dict.keys():
+            self.__optionDefaults[key] = dict[key]
+            self.__options[key] = dict[key]
+            self.__optionRC[key] = 1
 
     # Aliases are of the form fg=foreground
     def addAliases(self,dict,**kw):
@@ -71,7 +75,8 @@ class OptionHandler:
             if self.__options.has_key(cnf):
                 return (cnf,cnf,cnf,
                         self.__optionDefaults[cnf],
-                        self.__options[cnf])
+                        self.__options[cnf],
+                        self.__optionRC[cnf])
             else:
                 if self.__baseClass is None:
                     raise AUTOExceptions.AUTORuntimeError("Option %s not found"%cnf)

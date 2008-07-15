@@ -60,18 +60,18 @@ class plotter(grapher.GUIGrapher):
         if(os.path.exists("./.autorc")):
             parser.read("./.autorc")
 
+        optionDefaultsRC = {}
         for option in parser.options("AUTO_plotter"):
             v = eval(parser.get("AUTO_plotter",option))
-            if option in optionDefaults.keys():
-                optionDefaults[option] = (v,self.__optionCallback)
-            else:
-                optionDefaults[option] = (v,None)
+            optionDefaultsRC[option] = v
 
         self.__needsPlot = None
-        apply(grapher.GUIGrapher.__init__,(self,parent))
+        apply(grapher.GUIGrapher.__init__,(self,parent,optionDefaultsRC))
 
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)
+        self.addRCOptions(optionDefaultsRC)
+        plotter._configNoDraw(self,optionDefaultsRC)
         plotter._configNoDraw(self,dict)
         self._plotNoDraw()
         self.__needsPlot = None
@@ -115,6 +115,7 @@ class plotter(grapher.GUIGrapher):
         elif key == "solution_filename":
             if os.path.exists(value):
                 self.cget("solution").readFilename(value)
+            self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":
             labels = self.cget("solution").getLabels()
             options["index"] =[]
