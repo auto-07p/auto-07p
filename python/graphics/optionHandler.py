@@ -35,7 +35,12 @@ class OptionHandler:
         for key in dict.keys():
             self.__optionDefaults[key] = dict[key][0]
             self.__options[key] = dict[key][0]
-            self.__optionCallbacks[key] = dict[key][1]
+            if not key in self.__optionCallbacks.keys():
+                self.__optionCallbacks[key] = None
+            elif not self.__optionCallbacks[key] is None:
+                self.__optionCallbacks[key](key,dict[key][0],self.__options)
+            if not dict[key][1] is None:
+                self.__optionCallbacks[key] = dict[key][1]
 
     # Aliases are of the form fg=foreground
     def addAliases(self,dict,**kw):

@@ -49,7 +49,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if self.ylabel is None:
             self.ylabel = ""
         self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-        self.handle.update()
 
     def raw_input(self, prompt=None):
         line = ""
