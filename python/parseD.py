@@ -14,10 +14,10 @@ import AUTOExceptions
 import parseB
 
 class parseD(UserList.UserList):
-    def __init__(self,filename):
+    def __init__(self,filename=None):
         UserList.UserList.__init__(self)
         self.__data=[]
-        if filename:
+        if not (filename is None):
             self.readFilename(filename)
 
     def __getitem__(self,index):
@@ -25,6 +25,9 @@ class parseD(UserList.UserList):
 
     def __call__(self,label):
         return self.getLabel(label)
+
+    def __str__(self):
+        return self.__alldata
 
     def getIndex(self,index):
         return self.__data[index]
@@ -34,8 +37,15 @@ class parseD(UserList.UserList):
             if x["Label"] == label:
                 return x
 
+    def __add__(self,x):
+        add = parseD()
+        add.__alldata = x.__alldata + self.__alldata
+        add.__data = self.__data + x.__data
+        return add
+
     def read(self,input):
-        data=input.read()
+        data = input.read()
+        self.__alldata = data
         data=string.split(data,"--------------------------------------------------------------------------------------------")
         if len(data) == 1:
             data=string.split(data[0],"===============================================\n")
@@ -93,10 +103,12 @@ class parseD(UserList.UserList):
         self.read(open(filename,"r"))
         
     def write(self,output):
-        raise AUTOExceptions.AUTORuntimeError("parseD does not have a write routine")
+        output.write(self.__alldata)
 
     def writeFilename(self,filename):
-        self.write(open(filename,"w"))
+        output = open(filename,"w")
+        self.write(output)
+        output.close()
 
 
 def test():

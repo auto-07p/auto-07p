@@ -201,7 +201,7 @@ class commandWithFilenameTemplate(command):
     def _applyTemplate(self,text,template):
         if text is None:
             return None
-        else:
+        elif type(text) == types.StringType:
             exec "rval = '%s'%%text"%self.templates[template]
             tmp = glob.glob(rval)
             if len(tmp) > 0:
@@ -210,6 +210,8 @@ class commandWithFilenameTemplate(command):
                    rval = rval + x + " "
             rval = string.strip(rval)
             return rval
+        else:
+            return text
 
 
 
@@ -354,7 +356,10 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
     
     type=SIMPLE
     shortName="save"
-    def __init__(self,name1,templates=None):
+    def __init__(self,name1,name2,templates=None):
+        if not name2 is None:
+            self.parsed = name1
+            name1 = name2
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
 	rval=valueSystem()
@@ -364,6 +369,17 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             rval.system("cp %s %s~"%(self.name1["solution"],self.name1["solution"]))
         if os.path.exists(self.name1["diagnostics"]):
             rval.system("cp %s %s~"%(self.name1["diagnostics"],self.name1["diagnostics"]))
+        if not self.parsed is None:
+            self.parsed.writeFilename(
+                self.name1["bifurcationDiagram"],
+                self.name1["solution"],
+                self.name1["diagnostics"])
+            rval.info("Saving to %s, %s and %s\n"%
+                      (self.name1["bifurcationDiagram"],
+                       self.name1["solution"],
+                       self.name1["diagnostics"]))
+            return rval
+            
         rval.system("cat fort.7 > %s"%self.name1["bifurcationDiagram"])
         rval.system("cat fort.8 > %s"%self.name1["solution"])
         rval.system("cat fort.9 > %s"%self.name1["diagnostics"])
@@ -1189,10 +1205,11 @@ class commandRunMakefileWithSetup(commandWithRunner):
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
+        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
         if self.runner.options["verbose"] == "yes":
-            return valueRun(err)
+            return valueRun(err,data=data)
         else:
-            return valueRun(log,err)
+            return valueRun(log,err,data=data)
 
 class commandRunMakefile(command):
     def __init__(self,equation=None,runner=None):
@@ -1222,13 +1239,14 @@ class commandRunExecutableWithSetup(command):
         # Before this is called runner needs to have the fort2 and fort3
         # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runExecutableWithSetup(self.executable)
+        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
         if self.runner.options["verbose"] == "yes":
-            return valueRun(err)
+            return valueRun(err,data=data)
         else:
-            return valueRun(log,err)
+            return valueRun(log,err,data=data)
 
 class commandRunExecutable(command):
     def __init__(self,executable=None,fort2=None,fort3=None,runner=None):
@@ -1260,13 +1278,14 @@ class commandRunCommandWithSetup(command):
         # Before this is called runner needs to have the fort2 and fort3
         # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runCommandWithSetup(self.command)
+        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
         if self.runner.options["verbose"] == "yes":
-            return valueRun(err)
+            return valueRun(err,data=data)
         else:
-            return valueRun(log,err)
+            return valueRun(log,err,data=data)
 
 class commandRunCommand(command):
     def __init__(self,command=None,runner=None):
@@ -1617,12 +1636,14 @@ class valueString:
         return self.text
 
 class valueRun:
-    def __init__(self,stream1=None,stream2=None):
+    def __init__(self,stream1=None,stream2=None,data=None):
         self.value = ""
         if not (stream1 is None):
             self.value = self.value + stream1.read()
         if not (stream2 is None):
             self.value = self.value + stream2.read()
+        if not (data is None):
+            self.data = data
     def __str__(self):
          return self.value
 

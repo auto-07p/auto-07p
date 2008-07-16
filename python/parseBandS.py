@@ -18,44 +18,85 @@
 #    MA 02111-1307, USA
 import parseB
 import parseS
+import parseD
+import types
 import AUTOExceptions
 
 class parseBandS:
-    def __init__(self,fort7_filename=None,fort8_filename=None):
+    def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None):
         if (fort8_filename is None) and not(fort8_filename is None):
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
         self.diagram = parseB.parseB()
         self.solution = parseS.parseS()
+        self.diagnostics = parseD.parseD()
         self.dg = self.diagram
         self.sl = self.solution
         if not(fort7_filename is None):
-            self.diagram.readFilename(fort7_filename)
-            self.solution.readFilename(fort8_filename)
+            self.readFilename(fort7_filename,fort8_filename,fort9_filename)
 
     def __str__(self):
-        return self.diagram.__str__() + self.solution.__str__()
+        return self.diagram.summary()
         
-    def read(self,fort7_input,fort8_input):
+    def __getitem__(self,index):
+        return self.solution.getIndex(index)
+
+    def __call__(self,label):
+        if type(label) == types.IntType:
+            return self.solution(label)
+        items = parseBandS()
+        items.diagram = self.diagram(label)
+        items.solution = self.solution(label)
+        items.diagnostics = self.diagnostics
+        return items
+
+    def __add__(self,x):
+        add = parseBandS()
+        add.diagram = self.diagram + x.diagram
+        add.solution = self.solution + x.solution
+        if not self.diagnostics is None and not x.diagnostics is None:
+            add.diagnostics = self.diagnostics + x.diagnostics
+        add.uniquelyLabel()
+        return add
+
+    def read(self,fort7_input,fort8_input,fort9_input=None):
         self.diagram.read(fort7_input)
         self.solution.read(fort8_input)
+        if not fort9_input is None:
+            self.diagnostics.read(fort9_input)
 
-    def write(self,fort7_output,fort8_output):
+    def write(self,fort7_output,fort8_output,fort9_output=None):
         self.diagram.write(fort7_output)
         self.solution.write(fort8_output)
+        if not fort9_output is None:
+            self.diagnostics.write(fort9_output)
 
-    def readFilename(self,fort7_filename,fort8_filename):
+    def save(self,output_filename):
+        self.writeFilename('b.'+output_filename,
+                           's.'+output_filename,
+                           'd.'+output_filename)
+        return self
+
+    def readFilename(self,fort7_filename,fort8_filename,fort9_filename=None):
         self.diagram.readFilename(fort7_filename)
         self.solution.readFilename(fort8_filename)
+        if not fort9_filename is None:
+            self.diagnostics.readFilename(fort9_filename)
 
-    def writeFilename(self,fort7_filename,fort8_filename):
+    def writeFilename(self,fort7_filename,fort8_filename,fort9_filename=None):
         self.diagram.writeFilename(fort7_filename)
         self.solution.writeFilename(fort8_filename)
+        if not fort9_filename is None:
+            self.diagnostics.writeFilename(fort9_filename)
 
     def deleteLabel(self,label=None,keepTY=0,keep=0):
         self.diagram.deleteLabel(label,keepTY,keep)
         self.solution.deleteLabel(label,keep)
 
-    def relabel(self,old_label,new_label):
+    def relabel(self,old_label=None,new_label=None):
+        if old_label is None and new_label is None:
+            self.diagram.uniquelyLabel()
+            self.solution.uniquelyLabel()
+            return self
         self.diagram.relabel(old_label,new_label)
         self.solution.relabel(old_label,new_label)
     

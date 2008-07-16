@@ -88,6 +88,12 @@ class parseB:
     def __len__(self):
         return len(self.data)
 
+    def __add__(self,x):
+        add = parseB()
+        add.data = self.data + x.data
+        add.with_header = self.with_header + x.with_header
+        return add
+
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
         if label == None:
@@ -125,9 +131,28 @@ class parseB:
             
     # Given a label, return the correct solution
     def getLabel(self,label):
-        for i in range(len(self)):
-            if self.data[i]["LAB"] == label:
-                return self.data[i]
+        if type(label) == types.IntType:
+            for i in range(len(self)):
+                if self.data[i]["LAB"] == label:
+                    return self.data[i]
+            return
+        items = parseB()
+        items.data = []
+        items.with_header = []
+        if type(label) != types.ListType:
+            label = [label]
+        for i in range(len(self.with_header)):
+            d = self.with_header[i]                
+            if not d.has_key("header"):
+                if (d["LAB"] != 0 and not d["LAB"] in label and
+                    not d["TY name"] in label):
+                    d = d.copy()
+                    d["LAB"] = 0
+                    d["TY number"] = 0
+                    d["TY name"]   = type_translation(0)["short name"]
+                items.data.append(d)
+            items.with_header.append(d)
+        return items
 
     # Given an index, return the correct solution
     def getIndex(self,index):
@@ -197,7 +222,8 @@ class parseB:
                     output_line = output_line + "%14.5E"%data
                 sys.stdout.write(output_line+"\n")
 
-    def writeScreen(self):
+    def summary(self):
+        s = ""
         for line in self.with_header:
             if line.has_key("header"):
                 l = string.split(line["header"])
@@ -208,7 +234,7 @@ class parseB:
                     while n+14 <= len(l):
                         output_line = output_line + "%14s"%l[n:n+14]
                         n=n+19
-                    sys.stdout.write(output_line+"\n")
+                    s = s + output_line + "\n"
             elif line["TY name"]!="No Label":
                 ty_name = line["TY name"]
                 if ty_name=='RG':
@@ -217,8 +243,11 @@ class parseB:
                                               ty_name,line["LAB"])
                 for data in line["data"]:
                     output_line = output_line + "%14.5E"%data
-                sys.stdout.write(output_line+"\n")
-        sys.stdout.write("\n")
+                s = s + output_line+"\n"
+        return s + "\n"
+
+    def writeScreen(self):
+        sys.stdout.write(self.summary())
 
     def writeFilename(self,filename):
 	output = open(filename,"w")

@@ -69,13 +69,20 @@ class parseS:
         return rep
 
     def __getitem__(self,index):
-        return self.getIndex(index)
+        if type(index) == types.IntType:
+            return self.getIndex(index)
+        return items
 
     def __call__(self,label):
         return self.getLabel(label)
 
     def __len__(self):
         return len(self.data)
+
+    def __add__(self,x):
+        add = parseS()
+        add.data = self.data + x.data
+        return add
 
     def __setFile(self,file):
         # Remember the offsets we compute
@@ -215,9 +222,18 @@ class parseS:
 
     # Given a label, return the correct solution
     def getLabel(self,label):
+        if type(label) == types.IntType:
+            for d in self.data:
+                if d["Label"] == label:
+                    return d
+            return
+        items = parseS()
+        if type(label) != types.ListType:
+            label = [label]        
         for d in self.data:
-            if d["Label"] == label:
-                return d
+            if d["Label"] in label or d["Type name"] in label:
+                items.data.append(d)
+        return items
 
     def getIndex(self,index):
         return self.data[index]
