@@ -1,10 +1,6 @@
 #!/usr/bin/env autox
 import windowPlotter
-import parseB
-import parseS
-import matplotlib
 import code
-import re
 import sys
 import string
 import Tkinter
@@ -15,11 +11,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if locals is None:
             return
         
-        self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
-                                     r'([\?\w\.]+\w*\s*)'
-                                     r'(\(?.*$)')
-        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
-                                          '|^is |^not |^in |^and |^or ')
         self.expert = 0
         self.dset = 0
         self.ict = 0
