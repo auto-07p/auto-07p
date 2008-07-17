@@ -400,74 +400,41 @@ class AUTOSolution(UserDict.UserDict):
     def __readAll(self):
         self.__fullyParsed = 1
         inputfile = self.__input
+        if self.__end is None:
+            self._skipEntry()
         inputfile.seek(self.__start_of_data)
-	self["data"] = []
-        solution = self["data"]
-	for i in range(self.__numSValues):
-	    solution.append({})
-            point = solution[i]
-	    line = inputfile.readline()
-	    if not line: raise PrematureEndofData
-	    data = string.split(line)
-            pointu = point["u"] = []
-            if len(data) > 0:
-                try:
-                    fdata = map(float, data)
-                except:
-                    fdata = map(parseB.AUTOatof, data)
-                point["t"] = fdata[0]
-                fdata = fdata[1:]
-            j = 0
-	    while len(pointu) < self.__numEntriesPerBlock - 1:
-                if pointu != []:
-                    line = inputfile.readline()
-		    if not line: raise PrematureEndofData
-		    data = string.split(line)
-                    try:
-                        fdata = map(float, data)
-                    except:
-                        fdata = map(parseB.AUTOatof, data)
-                pointu.extend(fdata)
+        data = string.split(inputfile.read(self.__end-self.__start_of_data))
+        try:
+            fdata = map(float, data)
+        except:
+            fdata = map(parseB.AUTOatof, data)
+        n = self.__numEntriesPerBlock
+        total = n * self.__numSValues + self.__numFreeParameters
+        if self["NTST"] != 0:
+            total = (total + 2 * self.__numChangingParameters +
+                     (n-1) * self.__numSValues)
+        if total != len(fdata):
+            raise PrematureEndofData
+        solution = []
+        j = 0
+        for i in range(self.__numSValues):
+            solution.append({"t": fdata[j],"u": fdata[j+1:j+n]})
+            j = j + n
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
-	    self["Free Parameters"] = []
-            while len(self["Free Parameters"]) < self.__numChangingParameters:
-                line = inputfile.readline()
-                if not line: raise PrematureEndofData
-                self["Free Parameters"].extend(map(int, string.split(line)))
-	    self["Parameter NULL vector"] = []
-            while len(self["Parameter NULL vector"]) < len(self["Free Parameters"]):
-                line = inputfile.readline()
-                if not line: raise PrematureEndofData
-                self["Parameter NULL vector"].extend(map(parseB.AUTOatof, string.split(line)))
+            nfpr = self.__numChangingParameters
+            self["Free Parameters"] = map(int,fdata[j:j+nfpr])
+            j = j + nfpr
+            self["Parameter NULL vector"] = fdata[j:j+nfpr]
+            j = j + nfpr
+            n = n - 1
+            for i in range(self.__numSValues):
+                solution[i]["u dot"] = fdata[j:j+n]
+                j = j + n
 
-	    if len(self["Parameter NULL vector"]) != len(self["Free Parameters"]):
-		print "BEWARE!! size of parameter NULL vector and number of changing"
-		print "parameters are not equal.  This is probably because of these"
-		print "arrays being on multiple lines in the fort.8 file"
-		exit(1)
-
-	    for i in range(self.__numSValues):
-                udot = self["data"][i]["u dot"] = []
-		j = 0
-		while len(udot) < self.__numEntriesPerBlock-1:
-		    line = inputfile.readline()
-		    if not line: raise PrematureEndofData
-		    data = string.split(line)
-                    try:
-                        fdata = map(float, data)
-                    except:
-                        fdata = map(parseB.AUTOatof, data)
-                    udot.extend(fdata)
-
-	parameters = self["Parameters"] = []
-	while len(parameters) < self.__numFreeParameters:
-	    line = inputfile.readline()
-	    if not line: raise PrematureEndofData
-            parameters.extend(map(parseB.AUTOatof, string.split(line)))
-	    
-        self.__end = inputfile.tell()
+        self["data"] = solution
+        self["Parameters"] = fdata[j:j+self.__numFreeParameters]
         self["parameters"] = self["Parameters"]
         self["p"] = self["Parameters"]
 
