@@ -357,6 +357,7 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
     type=SIMPLE
     shortName="save"
     def __init__(self,name1,name2=None,templates=None):
+        self.parsed = None
         if not name2 is None:
             self.parsed = name1
             name1 = name2
