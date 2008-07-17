@@ -40,9 +40,15 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         ax = self.grapher.ax
         [minx,maxx] = ax.get_xlim()
         [miny,maxy] = ax.get_ylim()
-        self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
-        self.grapher._configNoDraw(xticks=None,yticks=None)
-        self.redraw()
+        if (minx != self.grapher.cget("minx") or
+            maxx != self.grapher.cget("maxx") or
+            miny != self.grapher.cget("miny") or
+            maxy != self.grapher.cget("maxy")):
+            self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
+            self.grapher._configNoDraw(xticks=None,yticks=None)
+            self.redraw()
+        else:
+            FigureCanvasTkAgg.draw(self)
 
     def show(self):
         fig = self.grapher.ax.get_figure() 
@@ -618,7 +624,7 @@ class GUIGrapher(InteractiveGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         apply(InteractiveGrapher.__init__,(self,parent),kw)
-        self.bind("<ButtonPress-3>",self.popupMenuWrapper)
+        #self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()
 #        self.menu.add_radiobutton(label="print tag",command=self.printTagBindings)
 #        self.menu.add_radiobutton(label="label point",command=self.labelPointBindings)
