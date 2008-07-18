@@ -21,6 +21,7 @@ import string
 import os
 import sys
 import UserDict
+import UserList
 import AUTOExceptions
 import types
 import copy
@@ -52,11 +53,13 @@ NPAR = 20
 # Once the data is read in the class provides a list all the points
 # in the fort.8 file.
 
-class parseS:
+class parseS(UserList.UserList):
     def __init__(self,filename=None):
-        self.data=[]
-        if not (filename is None):
+        if type(filename) == types.StringType:
+            UserList.UserList.__init__(self)
             self.__setFile(open(filename,"rb"))
+        else:
+            UserList.UserList.__init__(self,filename)
 
     def __str__(self):
         rep = ""
@@ -68,21 +71,8 @@ class parseS:
         rep = rep + "\n"
         return rep
 
-    def __getitem__(self,index):
-        if type(index) == types.IntType:
-            return self.getIndex(index)
-        return items
-
     def __call__(self,label):
         return self.getLabel(label)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __add__(self,x):
-        add = parseS()
-        add.data = self.data + x.data
-        return add
 
     def __setFile(self,file):
         # Remember the offsets we compute
@@ -227,13 +217,13 @@ class parseS:
                 if d["Label"] == label:
                     return d
             return
-        items = parseS()
         if type(label) != types.ListType:
             label = [label]        
+        data = []
         for d in self.data:
             if d["Label"] in label or d["Type name"] in label:
-                items.data.append(d)
-        return items
+                data.append(d)
+        return self.__class__(data)
 
     def getIndex(self,index):
         return self.data[index]

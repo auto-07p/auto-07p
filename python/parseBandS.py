@@ -22,41 +22,50 @@ import parseD
 import types
 import AUTOExceptions
 
-class parseBandS:
+class parseBandS(parseS.parseS):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None):
-        if (fort8_filename is None) and not(fort8_filename is None):
+        self.diagnostics = None
+        if type(fort7_filename) == types.ListType:
+            self.diagram = None
+            self.solution = parseS.parseS(fort7_filename)
+        elif (fort8_filename is None) and not(fort7_filename is None):
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
-        self.diagram = parseB.parseB()
-        self.solution = parseS.parseS()
-        self.diagnostics = parseD.parseD()
+        elif type(fort7_filename) == types.StringType or fort7_filename is None:
+            self.diagram = parseB.parseB(fort7_filename)
+            self.solution = parseS.parseS(fort8_filename)
+            if not fort9_filename is None:
+                self.diagnostics = parseD.parseD(fort9_filename)
+        else:
+            self.diagram = fort7_filename
+            self.solution = fort8_filename
+            self.diagnostics = fort9_filename
+        if self.diagnostics is None:
+            self.diagnostics = []
+        self.data = self.solution.data
         self.dg = self.diagram
         self.sl = self.solution
-        if not(fort7_filename is None):
-            self.readFilename(fort7_filename,fort8_filename,fort9_filename)
 
     def __str__(self):
         return self.diagram.summary()
         
-    def __getitem__(self,index):
-        return self.solution.getIndex(index)
-
-    def __call__(self,label):
+    def getLabel(self,label):
         if type(label) == types.IntType:
             return self.solution(label)
-        items = parseBandS()
-        items.diagram = self.diagram(label)
-        items.solution = self.solution(label)
-        items.diagnostics = self.diagnostics
-        return items
+        return parseBandS(self.diagram(label),self.solution(label),
+                          self.diagnostics)
 
     def __add__(self,x):
-        add = parseBandS()
-        add.diagram = self.diagram + x.diagram
-        add.solution = self.solution + x.solution
-        if not self.diagnostics is None and not x.diagnostics is None:
-            add.diagnostics = self.diagnostics + x.diagnostics
+        if x == []:
+            x = parseBandS()
+        add = parseBandS(self.diagram + x.diagram,
+                         self.solution + x.solution,
+                         self.diagnostics + x.diagnostics)
         add.uniquelyLabel()
         return add
+
+    def __radd__(self,x):
+        if x == []:
+            return self.__add__(x)
 
     def read(self,fort7_input,fort8_input,fort9_input=None):
         self.diagram.read(fort7_input)
@@ -103,9 +112,6 @@ class parseBandS:
     def uniquelyLabel(self):
         self.diagram.uniquelyLabel()
         self.solution.uniquelyLabel()
-
-    def getLabels(self):
-        return self.diagram.getLabels()
 
 def pointtest7(a,b):
     if not(a.has_key("TY name")):

@@ -12,54 +12,51 @@ import getopt
 import math
 import AUTOExceptions
 import parseB
+import types
 
 class parseD(UserList.UserList):
     def __init__(self,filename=None):
-        UserList.UserList.__init__(self)
-        self.__data=[]
-        if not (filename is None):
+        if type(filename) == types.StringType:
+            UserList.UserList.__init__(self)
             self.readFilename(filename)
-
-    def __getitem__(self,index):
-        return self.getIndex(index)
+        else:
+            UserList.UserList.__init__(self,filename)
 
     def __call__(self,label):
         return self.getLabel(label)
 
     def __str__(self):
-        return self.__alldata
+        s = ""
+        for d in self.data:
+            s = s + d["Text"]
+        return s
 
     def getIndex(self,index):
-        return self.__data[index]
+        return self.data[index]
 
     def getLabel(self,label):
-        for x in self.__data:
+        for x in self.data:
             if x["Label"] == label:
                 return x
 
-    def __add__(self,x):
-        add = parseD()
-        add.__alldata = x.__alldata + self.__alldata
-        add.__data = self.__data + x.__data
-        return add
-
     def read(self,input):
         data = input.read()
-        self.__alldata = data
-        data=string.split(data,"--------------------------------------------------------------------------------------------")
+        divstr = "--------------------------------------------------------------------------------------------\n"
+        data=string.split(data,divstr)
         if len(data) == 1:
-            data=string.split(data[0],"===============================================\n")
-        self.__data=[]
+            divstr = "===============================================\n"
+            data=string.split(data[0],divstr)
+        self.data=[]
         for solution in data:
-            self.__data.append({})
-            self.__data[-1]["Text"] = solution
+            item = {"Text": solution + divstr,
+                    "Branch number": 0,
+                    "Point number": 0,
+                    "Label": 0,
+                    "Eigenvalues": [],
+                    "Multipliers": []}
             lines = string.split(solution,'\n')
-            self.__data[-1]["Branch number"] = 0
-            self.__data[-1]["Point number"] = 0
-            self.__data[-1]["Label"] = 0
-            self.__data[-1]["Eigenvalues"] = []
-            self.__data[-1]["Multipliers"] = []
             if len(lines) < 3:
+                self.data.append(item)
                 continue
             i = 0
             for line in lines:
@@ -68,21 +65,23 @@ class parseD(UserList.UserList):
                     break
                 i = i + 1
             if i + 1 >= len(lines):
+                self.data.append(item)
                 continue
             sp = string.split(lines[i+1])
             if len(sp) < 2:
+                self.data.append(item)
                 continue
-            self.__data[-1]["Branch number"] = int(sp[0])
-            self.__data[-1]["Point number"] = int(sp[1])
+            item["Branch number"] = int(sp[0])
+            item["Point number"] = int(sp[1])
             labline = 0
             for line in lines:
                 sp = string.split(line)
                 if labline:
                     if sp[2] != '0':
                         try:
-                            self.__data[-1]["Label"] = int(sp[2])
+                            item["Label"] = int(sp[2])
                         except:
-                            self.__data[-1]["Label"] = int(sp[3])
+                            item["Label"] = int(sp[3])
                     break
                 if sp[0:4] == ['BR', 'PT', 'TY', 'LAB']:
                     labline = 1
@@ -91,19 +90,21 @@ class parseD(UserList.UserList):
                 eigenvalue_string = string.split(eigenvalue_string)
                 real_part = parseB.AUTOatof(eigenvalue_string[2])
                 imag_part = parseB.AUTOatof(eigenvalue_string[3])
-                self.__data[-1]["Eigenvalues"].append([real_part,imag_part])
+                item["Eigenvalues"].append([real_part,imag_part])
             result = re.findall("Multiplier\s.*",solution)
             for multiplier_string in result:
                 multiplier_string = string.split(multiplier_string)
                 real_part = parseB.AUTOatof(multiplier_string[2])
                 imag_part = parseB.AUTOatof(multiplier_string[3])
-                self.__data[-1]["Multipliers"].append([real_part,imag_part])
+                item["Multipliers"].append([real_part,imag_part])
+            self.data.append(item)
+        self.data[-1]["Text"] = self.data[-1]["Text"][:-len(divstr)]
 
     def readFilename(self,filename):
         self.read(open(filename,"r"))
         
     def write(self,output):
-        output.write(self.__alldata)
+        output.write(self.__str__())
 
     def writeFilename(self,filename):
         output = open(filename,"w")
@@ -112,7 +113,7 @@ class parseD(UserList.UserList):
 
 
 def test():
-    raise AUTOExceptions.AUTORuntimeError("parseD does not have a write routine")
+    pass
 
 if __name__ == "__main__":
     #Parse command line arguements

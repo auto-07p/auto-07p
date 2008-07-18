@@ -66,6 +66,7 @@ def type_translation(type):
 class parseB:
     def __init__(self,filename=None,screen_lines=0):
         self.data=[]
+        self.with_header=[]
 	if filename:
 	    self.readFilename(filename,screen_lines)
 
@@ -89,10 +90,16 @@ class parseB:
         return len(self.data)
 
     def __add__(self,x):
+        if x == []:
+            x = parseB()
         add = parseB()
         add.data = self.data + x.data
         add.with_header = self.with_header + x.with_header
         return add
+
+    def __radd__(self,x):
+        if x == []:
+            return self.__add__(x)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
@@ -317,11 +324,10 @@ def AUTOatof(input_string):
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
                 value=float(string.strip(input_string)[0:-1])
-            elif input_string[-4] == "-" or input_string[-4] == "+":
+            elif input_string[-4] in ["-","+"]:
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=float(string.strip(input_string)[0:-4]+'E'+
-                            string.strip(input_string)[-4:])
+                value=float(input_string[:-4]+'E'+input_string[-4:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
