@@ -48,6 +48,9 @@ class parseBandS(parseS.parseS):
     def __str__(self):
         return self.diagram.summary()
         
+    def __repr__(self):
+        return ""
+        
     def getLabel(self,label):
         if type(label) == types.IntType:
             return self.solution(label)
