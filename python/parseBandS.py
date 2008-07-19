@@ -91,8 +91,12 @@ class parseBandS(parseS.parseS):
         if not fort9_filename is None:
             self.diagnostics.readFilename(fort9_filename)
 
-    def writeFilename(self,fort7_filename,fort8_filename,fort9_filename=None):
-        self.diagram.writeFilename(fort7_filename)
+    def writeFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
+        #if only one filename is given, then just save the solutions file
+        if fort8_filename is None:
+            fort8_filename = fort7_filename
+        else:
+            self.diagram.writeFilename(fort7_filename)
         self.solution.writeFilename(fort8_filename)
         if not fort9_filename is None:
             self.diagnostics.writeFilename(fort9_filename)

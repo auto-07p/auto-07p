@@ -57,7 +57,7 @@ class parseS(UserList.UserList):
     def __init__(self,filename=None):
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
-            self.__setFile(open(filename,"rb"))
+            self.readFilename(filename)
         else:
             UserList.UserList.__init__(self,filename)
 
@@ -74,82 +74,6 @@ class parseS(UserList.UserList):
     def __call__(self,label):
         return self.getLabel(label)
 
-    def __setFile(self,file):
-        # Remember the offsets we compute
-        offsets = []
-        # Go to the beginning...
-        file.seek(0,0)
-        # Read in the first solution
-        solution = AUTOSolution()
-        solution.read(file)
-        self.data.append(solution)
-        # So we can get figure out how many bytes the first solution takes.
-        # We will use this as a guess for the rest
-        offsets.append(0) 
-        solution._skipEntry()
-        guess_at_size = solution._getEnd()
-
-        # We now go through the file and compute the rest of
-        # the offsets.
-        while 1:
-            start_of_current_solution = offsets[-1]
-            # See if the guess for the solution size is correct
-            file.seek(start_of_current_solution+guess_at_size+1,0)
-            data = file.readline()
-            data = string.split(data)
-            # This is where we detect the end of the file
-            if len(data) == 0:
-                data = file.read(1)
-            if len(data) == 0:
-                self.data[-1]._setEnd(start_of_current_solution+guess_at_size+1)
-                break
-            else:
-                try:
-                    # Check length of line...
-                    if len(data) != 12:
-                        raise IncorrectHeaderLength
-                    # and the fact they are all integers
-                    map(int,data)
-                    # If it passes both these tests we say it is a header line
-                    # and we update the offsets
-                    end = start_of_current_solution+guess_at_size
-                    self.data[-1]._setEnd(end)
-                    solution = AUTOSolution()
-                    solution.read(file,end+1)
-                except:
-                    # Ok, the guess for the size of the solution was wrong...
-                    # So, we just read it in and get the size from that.
-                    # The assumption is that this does not happen very often.
-
-                    # We skip the correct number of lines in the entry to
-                    # determine its end.
-                    self.data[-1]._skipEntry()
-                    # Something wierd is going on here, that I don't
-                    # quite understand.  self.data[-1]._getEnd() is getting
-                    # messed up my the solution.read(file,end) and I am
-                    # not sure why.  I need to record the good value here
-                    # to fix it.
-                    end = self.data[-1]._getEnd()
-                    # If this read ends up in an exception we are in the case
-                    # where the LAST solution is the one which has a
-                    # different size and it is LONGER then the previous
-                    # solutions.  In this case, "data" points into the
-                    # middle of the solution.
-                    solution = AUTOSolution()
-                    try:
-                        solution.read(file,end)
-                    except PrematureEndofData:
-                        return
-                    guess_at_size = end - start_of_current_solution
-                        
-                offsets.append(end)
-                self.data.append(solution)
-                # Redetermine the size guess if the dimensions of the solution
-                # change
-                if not solution._equalSize(self.data[-2]):
-                    solution._skipEntry()
-                    guess_at_size = solution._getEnd() - end
-
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
     # it cannot (because the file ends prematurely) is sets the
@@ -165,7 +89,15 @@ class parseS(UserList.UserList):
 	    inputfile.seek(current_position)
 
     def read(self,inputfile):
-        self.__setFile(inputfile)
+        # We now go through the file and read the solutions.
+        prev = None
+        while 1:
+            solution = AUTOSolution()            
+            solution.read(inputfile,prev)
+            self.data.append(solution)
+            if inputfile.read(1) == "":
+                break
+            prev = solution
 
     def write(self,output):
         for x in self.data:
@@ -174,7 +106,8 @@ class parseS(UserList.UserList):
 
     def readFilename(self,filename):
 	inputfile = open(filename,"rb")
-        self.__setFile(inputfile)
+        self.read(inputfile)
+        inputfile.close()
 
     def writeFilename(self,filename):
 	output = open(filename,"w")
@@ -258,7 +191,6 @@ class AUTOSolution(UserDict.UserDict):
         self.__start_of_header = None
         self.__start_of_data   = None
         self.__end              = None
-        self.__input           = None
         self.__fullyParsed     = 0
 	if input:
 	    self.read(input,offset)
@@ -325,14 +257,47 @@ class AUTOSolution(UserDict.UserDict):
                 output.write(str(point)+" ")
             output.write("\n")
             
-    def read(self,input,start=None,end=None):
-        self.__input = input
-        if not(start is None):
-            self.__start_of_header = start
-        else:
+    def read(self,input,prev=None):
+        if prev is None:
             self.__start_of_header = 0
+        else:
+            self.__start_of_header = prev._getEnd()
+        self.__readHeader(input)
+        end = None
+        if not prev is None and self.__equalSize(prev):
+            # guess the end from the previous solution
+            end = input.tell() + prev._getEnd() - prev._getStartOfData()
+            # See if the guess for the solution end is correct
+            input.seek(end,0)
+            data = input.readline()
+            data = string.split(data)
+            # This is where we detect the end of the file
+            if len(data) == 0:
+                data = input.read(1)
+            if len(data) != 0:
+                try:
+                    # Check length of line...
+                    if len(data) != 12:
+                        raise IncorrectHeaderLength
+                    # and the fact they are all integers
+                    map(int,data)
+                    # If it passes both these tests we say it is a header line
+                    # and we can read quickly
+                except:
+                    # otherwise the guessed end is not valid
+                    end = None
+        if end is None:
+            # We skip the correct number of lines in the entry to
+            # determine its end.
+            input.seek(self.__start_of_data)
+            self.__data = ""
+            for i in range(self.__numLinesPerEntry):
+                self.__data = self.__data + input.readline()
+            end = input.tell()
+        else:
+            input.seek(self.__start_of_data)
+            self.__data = input.read(end - self.__start_of_data)
         self.__end = end
-        self.__readHeader()
     
     def readAll(self,input,start=None,end=None):
         self.read(input,start,end)
@@ -344,22 +309,17 @@ class AUTOSolution(UserDict.UserDict):
     def _getEnd(self):
         return self.__end
 
-    def _equalSize(self,other):
+    def _getStartOfData(self):
+        return self.__start_of_data
+
+    def __equalSize(self,other):
         return (
             self.__numEntriesPerBlock == other.__numEntriesPerBlock and
             self.__numFreeParameters == other.__numFreeParameters and
             self.__numChangingParameters == other.__numChangingParameters and
             self.__numSValues == other.__numSValues)
 
-    def _skipEntry(self):
-        inputfile = self.__input
-        inputfile.seek(self.__start_of_data)
-        for i in range(self.__numLinesPerEntry):
-            inputfile.readline()
-        self.__end = inputfile.tell()
-
-    def __readHeader(self):
-        inputfile = self.__input
+    def __readHeader(self,inputfile):
         inputfile.seek(self.__start_of_header)
 	line = inputfile.readline()
 	if not line: raise PrematureEndofData
@@ -385,15 +345,11 @@ class AUTOSolution(UserDict.UserDict):
                 self.__numFreeParameters = NPAR
         except IndexError:
             raise PrematureEndofData
-        self.__start_of_data = self.__input.tell()
+        self.__start_of_data = inputfile.tell()
         
     def __readAll(self):
         self.__fullyParsed = 1
-        inputfile = self.__input
-        if self.__end is None:
-            self._skipEntry()
-        inputfile.seek(self.__start_of_data)
-        data = string.split(inputfile.read(self.__end-self.__start_of_data))
+        data = string.split(self.__data)
         try:
             fdata = map(float, data)
         except:
@@ -464,11 +420,10 @@ class AUTOSolution(UserDict.UserDict):
                                                          )
 	output.write(line+"\n")
         # If the file isn't already parsed, and we happen to know the position of
-        # the end of the solution we can just copy from the input file into the
-        # output file.
+        # the end of the solution we can just copy from the raw data from the
+        # input file into the output file.
         if not(self.__fullyParsed) and not(self.__end is None):
-            self.__input.seek(self.__start_of_data)
-            output.write(self.__input.read(self.__end - self.__start_of_data))
+            output.write(self.__data)
             output.flush()
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
