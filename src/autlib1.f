@@ -450,6 +450,7 @@ C
       DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
       CHARACTER(LEN=256) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS
+      LOGICAL KEYS
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
      * "NDIM", "IPS ", "IRS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
      * "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",
@@ -483,6 +484,7 @@ C
       NUZR=0
 
       NPOS=1
+      KEYS=.FALSE.
       scanloop: DO
          IF(NPOS==1)THEN
             LINE=LINE+1
@@ -504,6 +506,7 @@ C
             IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR.
      &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
                STR=STR(I:)
+               KEYS=.TRUE.
                EXIT
             ELSE
                EXIT scanloop
@@ -561,7 +564,7 @@ C
          ENDIF
       ENDDO scanloop
 
- 1    IF(EOF)GOTO 5
+ 1    IF(EOF.AND..NOT.KEYS)GOTO 5
       BACKSPACE 2
       NDIM=IAP(1)
       IPS=IAP(2)
@@ -762,7 +765,7 @@ C
      *     " Error in fort.2 or c. file: ends prematurely on line ",
      *     LINE,"."
  5    BACKSPACE 2
-      IF(.NOT.EOF)GOTO 2
+      IF(.NOT.EOF.OR.KEYS)GOTO 2
       RETURN
       END SUBROUTINE INIT
 
@@ -797,9 +800,6 @@ C
             SELECT CASE(C)
             CASE('"',"'")
                QUOTE=C
-            CASE('[')
-               STR(I:I)=' '
-               LEVEL=LEVEL+1
             CASE(',',' ')
                IF(LEVEL==0)EXIT
             CASE(']')
@@ -808,6 +808,10 @@ C
             CASE DEFAULT
                IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
                   LISTLEN=LISTLEN+1
+               ENDIF
+               IF(C=='[')THEN
+                  STR(I:I)=' '
+                  LEVEL=LEVEL+1
                ENDIF
             END SELECT
          ELSEIF(C==QUOTE)THEN
