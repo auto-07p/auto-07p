@@ -94,6 +94,9 @@ class parseD(UserList.UserList):
             result = re.findall("Multiplier\s.*",solution)
             for multiplier_string in result:
                 multiplier_string = string.split(multiplier_string)
+                # "inaccurate" or "accurate"
+                if multiplier_string[1][-1] == "e":
+                    continue
                 real_part = parseB.AUTOatof(multiplier_string[2])
                 imag_part = parseB.AUTOatof(multiplier_string[3])
                 item["Multipliers"].append([real_part,imag_part])

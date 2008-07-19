@@ -65,7 +65,23 @@ class parseBandS(parseS.parseS):
 
     def __radd__(self,x):
         if x == []:
-            return self.__add__(x)
+            x = parseBandS()
+        add = parseBandS(x.diagram + self.diagram,
+                         x.solution + self.solution,
+                         x.diagnostics + self.diagnostics)
+        add.uniquelyLabel()
+        return add
+
+    def __iadd__(self,x):
+        if x != []:
+            self.diagram.__iadd__(x.diagram)
+            self.solution.__iadd__(x.solution)
+            self.diagnostics.__iadd__(x.diagnostics)
+        self.uniquelyLabel()
+        return self
+
+    def extend(self,x):
+        self.__iadd__(x)
 
     def read(self,fort7_input,fort8_input,fort9_input=None):
         self.diagram.read(fort7_input)

@@ -22,6 +22,7 @@ import os
 import sys
 import AUTOExceptions
 import types
+import UserList
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -63,12 +64,13 @@ def type_translation(type):
 # Once the data is read in the class provides a list all the points
 # in the fort.7 file.
 
-class parseB:
+class parseB(UserList.UserList):
     def __init__(self,filename=None,screen_lines=0):
-        self.data=[]
-        self.with_header=[]
-	if filename:
-	    self.readFilename(filename,screen_lines)
+        if type(filename) == types.StringType:
+            UserList.UserList.__init__(self)
+            self.readFilename(filename,screen_lines)
+        else:
+            UserList.UserList.__init__(self,filename)
 
     def __str__(self):
         rep=""
@@ -80,26 +82,8 @@ class parseB:
                 
         return rep
 
-    def __getitem__(self,index):
-        return self.getIndex(index)
-
     def __call__(self,label):
         return self.getLabel(label)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __add__(self,x):
-        if x == []:
-            x = parseB()
-        add = parseB()
-        add.data = self.data + x.data
-        add.with_header = self.with_header + x.with_header
-        return add
-
-    def __radd__(self,x):
-        if x == []:
-            return self.__add__(x)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
@@ -145,20 +129,17 @@ class parseB:
             return
         items = parseB()
         items.data = []
-        items.with_header = []
         if type(label) != types.ListType:
             label = [label]
-        for i in range(len(self.with_header)):
-            d = self.with_header[i]                
-            if not d.has_key("header"):
-                if (d["LAB"] != 0 and not d["LAB"] in label and
-                    not d["TY name"] in label):
-                    d = d.copy()
-                    d["LAB"] = 0
-                    d["TY number"] = 0
-                    d["TY name"]   = type_translation(0)["short name"]
-                items.data.append(d)
-            items.with_header.append(d)
+        for i in range(len(self.data)):
+            d = self.data[i]                
+            if (d["LAB"] != 0 and not d["LAB"] in label and
+                not d["TY name"] in label):
+                d = d.copy()
+                d["LAB"] = 0
+                d["TY number"] = 0
+                d["TY name"]   = type_translation(0)["short name"]
+            items.data.append(d)
         return items
 
     # Given an index, return the correct solution
@@ -168,9 +149,9 @@ class parseB:
     # Get all the labels from the solution
     def getLabels(self):
         labels = []
-        for i in range(len(self.data)):
-            if self.data[i]["LAB"] != 0:
-                labels.append(self.data[i]["LAB"])
+        for x in self.data:
+            if x["LAB"] != 0:
+                labels.append(x["LAB"])
         return labels
 
     def writeRawFilename(self,filename):
@@ -198,18 +179,17 @@ class parseB:
             output.write("\n")
                 
     def write(self,output):
-        for line in self.with_header:
+        for line in self.data:
             if line.has_key("header"):
                 output.write(line["header"])
-            else:
-                output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
-                                              line["TY number"],line["LAB"])
-                for data in line["data"]:
-                    output_line = output_line + "%19.10E"%data
-                output.write(output_line+"\n")
+            output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
+                                          line["TY number"],line["LAB"])
+            for data in line["data"]:
+                output_line = output_line + "%19.10E"%data
+            output.write(output_line+"\n")
 
     def writeShort(self):
-        for line in self.with_header:
+        for line in self.data:
             if line.has_key("header"):
                 l = string.split(line["header"])
                 if len(l) > 1 and l[1]=='PT':
@@ -222,27 +202,26 @@ class parseB:
                     sys.stdout.write(output_line+"\n")
                 else:
                     sys.stdout.write(line["header"])
-            else:
-                output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
-                                              line["TY number"],line["LAB"])
-                for data in line["data"]:
-                    output_line = output_line + "%14.5E"%data
-                sys.stdout.write(output_line+"\n")
+            output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
+                                          line["TY number"],line["LAB"])
+            for data in line["data"]:
+                output_line = output_line + "%14.5E"%data
+            sys.stdout.write(output_line+"\n")
 
     def summary(self):
         s = ""
-        for line in self.with_header:
+        for line in self.data:
             if line.has_key("header"):
-                l = string.split(line["header"])
-                if len(l) > 1 and l[1]=='PT':
+                l = line["header"]
+                n = string.find(l," PT ")
+                if n > -1:
                     output_line = "\n  BR    PT  TY  LAB "
-                    l=line["header"]
-                    n=20
+                    n = n + 13
                     while n+14 <= len(l):
                         output_line = output_line + "%14s"%l[n:n+14]
-                        n=n+19
+                        n = n+19
                     s = s + output_line + "\n"
-            elif line["TY name"]!="No Label":
+            if line["TY name"]!="No Label":
                 ty_name = line["TY name"]
                 if ty_name=='RG':
                     ty_name = '  '
@@ -251,7 +230,7 @@ class parseB:
                 for data in line["data"]:
                     output_line = output_line + "%14.5E"%data
                 s = s + output_line+"\n"
-        return s + "\n"
+        return s
 
     def writeScreen(self):
         sys.stdout.write(self.summary())
@@ -263,8 +242,8 @@ class parseB:
 
     def read(self,inputfile,screen_lines=0):
         data=inputfile.readlines()
+        header = ""
         section = 0
-        self.with_header=[]
         self.data=[]
         for input_line in data:
             line = string.split(input_line)
@@ -300,13 +279,12 @@ class parseB:
                         "data": fdata,
                         "section": section,
                         "index": len(self.data) }
-                # We keep two lists of references to the
-                # data, one is just the data in the file
-                # and the other includes the header.
+                if header != "":
+                    item["header"] = header
+                    header = ""
                 self.data.append(item)
-                self.with_header.append(item)
             else:
-                self.with_header.append({ "header": input_line })
+                header = header + input_line
     def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")
 	self.read(inputfile,screen_lines)
