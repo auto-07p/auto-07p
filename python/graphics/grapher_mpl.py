@@ -79,7 +79,9 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["bottom_margin"] = (40,self.__optionCallback)
         optionDefaults["decorations"] = (1,self.__optionCallback)
         optionDefaults["xlabel"] = (None,self.__optionCallback)
+        optionDefaults["xlabel_fontsize"] = (None,self.__optionCallback)
         optionDefaults["ylabel"] = (None,self.__optionCallback)
+        optionDefaults["ylabel_fontsize"] = (None,self.__optionCallback)
         optionDefaults["xticks"] = (None,self.__optionCallback)
         optionDefaults["yticks"] = (None,self.__optionCallback)
         optionDefaults["grid"] = ("yes",self.__optionCallback)
@@ -101,6 +103,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["width"] = (1,self.__optionCallback)
         optionDefaults["height"] = (1,self.__optionCallback)
         optionDefaults["top_title"] = ("",self.__optionCallback)
+        optionDefaults["top_title_fontsize"] = (None,self.__optionCallback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -176,7 +179,11 @@ class BasicGrapher(optionHandler.OptionHandler):
         elif key == "height":
             self.canvas.get_tk_widget()[key] = value
         elif key == "top_title":
-            self.ax.set_title(value)
+            fontsize = self.cget("top_title_fontsize")
+            if fontsize is None:
+                self.ax.set_title(value)
+            else:
+                self.ax.set_title(value,fontsize=fontsize)
         elif key == "background":
             self.ax.set_axis_bgcolor(value)
         elif key == "decorations":
@@ -191,11 +198,21 @@ class BasicGrapher(optionHandler.OptionHandler):
         elif key == "xlabel":
             if value is None:
                 value = ""
-            self.ax.set_xlabel(value,color=self.cget("foreground"))
+            fontsize = self.cget("xlabel_fontsize")
+            if fontsize is None:
+                self.ax.set_xlabel(value,color=self.cget("foreground"))
+            else:
+                self.ax.set_xlabel(value,color=self.cget("foreground"),
+                                   fontsize=fontsize)
         elif key == "ylabel":
             if value is None:
                 value = ""
-            self.ax.set_ylabel(value,color=self.cget("foreground"))
+            fontsize = self.cget("ylabel_fontsize")
+            if fontsize is None:
+                self.ax.set_ylabel(value,color=self.cget("foreground"))
+            else:
+                self.ax.set_ylabel(value,color=self.cget("foreground"),
+                                   fontsize=fontsize)
         elif key in ["xticks","yticks"]:
             if value is None:
                 if key == "xticks":
