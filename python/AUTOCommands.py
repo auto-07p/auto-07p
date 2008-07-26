@@ -1196,18 +1196,19 @@ class commandRunMakefileWithSetup(commandWithRunner):
         self.fort2 = fort2
         self.fort3 = fort3
     def __call__(self):
+        r = self.runner
         if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
+            r.config(fort2=self.fort2)
         if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
+            r.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
         # options set.  Otherwise this will raise an exception.
         log,err = self.runner.runMakefileWithSetup(self.equation)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
-        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
-        if self.runner.options["verbose"] == "yes":
+        data = parseBandS.parseBandS(r.outputFort7,r.outputFort8,r.outputFort9)
+        if r.options["verbose"] == "yes":
             return valueRun(err,data=data)
         else:
             return valueRun(log,err,data=data)
@@ -1233,18 +1234,19 @@ class commandRunExecutableWithSetup(command):
         self.fort2 = fort2
         self.fort3 = fort3
     def __call__(self):
+        r = self.runner
         if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
+            r.config(fort2=self.fort2)
         if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
+            r.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
         # options set.  Otherwise this will raise an exception.
-        log,err = self.runner.runExecutableWithSetup(self.executable)
-        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
+        log,err = r.runExecutableWithSetup(self.executable)
+        data = parseBandS.parseBandS(r.outputFort7,r.outputFort8,r.outputFort9)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
+        if r.options["verbose"] == "yes":
             return valueRun(err,data=data)
         else:
             return valueRun(log,err,data=data)
@@ -1272,18 +1274,19 @@ class commandRunCommandWithSetup(command):
         self.fort2 = fort2
         self.fort3 = fort3
     def __call__(self):
+        r = self.runner
         if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
+            r.config(fort2=self.fort2)
         if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
+            r.config(fort3=self.fort3)
         # Before this is called runner needs to have the fort2 and fort3
         # options set.  Otherwise this will raise an exception.
-        log,err = self.runner.runCommandWithSetup(self.command)
-        data = parseBandS.parseBandS("fort.7","fort.8","fort.9")        
+        log,err = r.runCommandWithSetup(self.command)
+        data = parseBandS.parseBandS(r.outputFort7,r.outputFort8,r.outputFort9)
         # Only return the log if the runner is not verbose
         # since when the runner is verbose it prints to
         # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
+        if r.options["verbose"] == "yes":
             return valueRun(err,data=data)
         else:
             return valueRun(log,err,data=data)

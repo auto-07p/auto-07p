@@ -26,7 +26,6 @@ class runAUTO:
         self.options["err"] = None
         self.options["auto_dir"] = None
         self.options["demos_dir"] = None
-        self.options["time_flag"] = "-p"
         self.options["equation"] = "all"
         self.options["verbose"] = "no"
         self.options["verbose_print"] = sys.stdout
@@ -76,12 +75,14 @@ class runAUTO:
         if len(value):
             # return as the output data the last filename which was
             # either saved or appended to
-            self.fort7_path = os.path.join(self.options["dir"],"p.%s"%(value[-1][1]))
-            self.fort8_path = os.path.join(self.options["dir"],"q.%s"%(value[-1][1]))
+            self.fort7_path = os.path.join(self.options["dir"],"b.%s"%(value[-1][1]))
+            self.fort8_path = os.path.join(self.options["dir"],"s.%s"%(value[-1][1]))
+            self.fort9_path = os.path.join(self.options["dir"],"d.%s"%(value[-1][1]))
         else:
             # Otherwise we assume it is fort.7 and fort.8
             self.fort7_path = os.path.join(self.options["dir"],"fort.7")
             self.fort8_path = os.path.join(self.options["dir"],"fort.8")
+            self.fort9_path = os.path.join(self.options["dir"],"fort.9")
 
     def __printErr(self,text):
         if not(self.options["err"] is None):
@@ -243,9 +244,9 @@ class runAUTO:
 
 
         if self.options["makefile"] is None:
-            executable = "make -e %s;"%self.options["equation"]
+            executable = "make -e %s"%self.options["equation"]
         else:
-            executable = "make -f %s -e %s;"%(self.options["makefile"],self.options["equation"])
+            executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
         self.__runExecutable(executable)
 
     def runExecutableWithSetup(self,executable=None):
@@ -273,8 +274,10 @@ class runAUTO:
         else:
             self.options["executable"] = executable
 
-        command = "(cd %s;time %s %s)"%(self.options["dir"],self.options["time_flag"],executable)
-        self.__runCommand(command)
+        curdir = os.getcwd()
+        os.chdir(self.options["dir"])
+        self.__runCommand(executable)
+        os.chdir(curdir)
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
@@ -302,6 +305,10 @@ class runAUTO:
         # This is done as the object version so I can use the "poll" method
         # later on to see if it is still running.
         try:
+            user_time = os.times()[2]
+        except:
+            pass
+        try:
             demo_object = popen2.Popen3(command,1,1)
             stdout = demo_object.fromchild
             stdin = demo_object.tochild
@@ -317,7 +324,6 @@ class runAUTO:
                         self.options["verbose_print"].write(line)
                         self.options["verbose_print"].flush()
                     tmp_out.write(line)
-                    time.sleep(0.1)
                 except:
                     demo_killed = 1
         except:
@@ -335,23 +341,15 @@ class runAUTO:
         # Rewind the tmp_out so I can read from it now
         tmp_out.seek(0,0)
         self.__printLog(tmp_out.read())
-        for line in stderr.readlines():
-            tokens = string.split(line)
-            if len(tokens) > 0:
-                if tokens[0] == "real" and len(tokens)==2:
-                    pass
-                elif tokens[0] == "user" and len(tokens)==2:
-                    #user_time = float(tokens[1])
-                    user_time=1.0
-                    pass
-                elif tokens[0] == "sys" and len(tokens)==2:
-                    pass
-                else:
-                    self.__printErr(line)
+        self.__printErr(stderr.read())
         try:
             signal.alarm(0)
         except:
             pass
+        try:
+            user_time = os.times()[2] - user_time
+        except:
+            user_time = 1.0
 
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
@@ -363,6 +361,10 @@ class runAUTO:
             self.outputFort8 = open(self.fort8_path,"r")
         else:
             self.outputFort8 = None
+        if os.path.isfile(self.fort9_path):
+            self.outputFort9 = open(self.fort9_path,"r")
+        else:
+            self.outputFort9 = None
         
 
 def test():

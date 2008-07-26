@@ -12,8 +12,7 @@ def test():
     log=open("log","w")
     err=open("err","w")
     runDemo("ab",log=log,err=err,
-            auto_dir="%s/src/auto/2000"%(os.environ["HOME"],),
-            time_flag="-p",
+            auto_dir="%s/src/auto/07p"%(os.environ["HOME"],),
             verbose="yes",
             clean="yes")
     log.close()
