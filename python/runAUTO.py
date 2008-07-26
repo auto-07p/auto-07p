@@ -4,7 +4,7 @@ import signal, os, time
 import cStringIO
 import re
 import types
-import AUTOExceptions,parseC,parseH
+import AUTOExceptions,parseC,parseH,parseBandS
 
 # A few global variables for the signal handler
 alarm_demo=""
@@ -138,7 +138,7 @@ class runAUTO:
         self.__resetInternalLogs()
         self.__runDemo(d)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
 
     def __runDemo(self,d):
         """     This function compiles the demo, then calls the runMakefile
@@ -214,12 +214,12 @@ class runAUTO:
         self.__setup()
         self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def runMakefile(self,equation=None):
         self.__resetInternalLogs()
         self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def __runMakefile(self,equation=None):        
         """     This function expects self.options["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
@@ -254,12 +254,12 @@ class runAUTO:
         self.__setup()
         self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def runExecutable(self,executable=None):
         self.__resetInternalLogs()
         self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def __runExecutable(self,executable=None):
         """     This function expects self.options["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
@@ -283,13 +283,13 @@ class runAUTO:
         self.__resetInternalLogs()
         self.__runCommand(command)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
         self.__runCommand(command)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,self.data]
     def __runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
@@ -361,21 +361,21 @@ class runAUTO:
             self.outputFort8 = open(self.fort8_path,"r")
         else:
             self.outputFort8 = None
-        if os.path.isfile(self.fort9_path):
-            self.outputFort9 = open(self.fort9_path,"r")
-        else:
-            self.outputFort9 = None
-        
+        self.data = None
+        if (self.outputFort7 and self.outputFort8 and 
+            os.path.isfile(self.fort9_path)):
+            self.data = parseBandS.parseBandS(self.fort7_path,self.fort8_path,
+                                              self.fort9_path)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
-    [log,err]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("ab")
     print log.read()
     runner.config(equation="clean",verbose="no")
-    [log,err]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("ab")
     print log.read()
     runner.config(equation="first")
-    [log,err]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("ab")
     print log.read()
     
 
