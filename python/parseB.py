@@ -265,7 +265,7 @@ class parseB(UserList.UserList):
                 if tynumber == 0 and screen_lines:
                     continue
                 pt = int(line[1])
-                if pt == 1:
+                if abs(pt) == 1:
                     section = section + 1
                 try:
                     fdata = map(float, line[4:])
