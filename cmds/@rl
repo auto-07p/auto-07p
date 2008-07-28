@@ -1,7 +1,5 @@
 #!/bin/sh
 if ( test $# -eq 1 ) then
-	cp b.$1 fort.27
-	cp s.$1 fort.28
 	$AUTO_DIR/bin/relabel b.$1 s.$1 b.$1~~ s.$1~~
         if (test -r b.$1~~) then
 		mv b.$1 b.$1~
