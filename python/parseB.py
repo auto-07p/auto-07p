@@ -23,6 +23,7 @@ import sys
 import AUTOExceptions
 import types
 import UserList
+import parseC
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -73,14 +74,7 @@ class parseB(UserList.UserList):
             UserList.UserList.__init__(self,filename)
 
     def __str__(self):
-        rep=""
-        for x in self.data:
-            if x["TY number"] != 0:
-                rep=rep+"TY:  "+type_translation(x["TY number"])["long name"]+" "
-                rep=rep+"LAB: "+str(x["LAB"])+"\n"
-                rep=rep+str(x["data"])+"\n"
-                
-        return rep
+        return self.summary()
 
     def __call__(self,label):
         return self.getLabel(label)
@@ -281,14 +275,106 @@ class parseB(UserList.UserList):
                         "index": len(self.data) }
                 if header != "":
                     item["header"] = header
+                    c = self.parseHeader(header)
+                    if not c is None:
+                        constants = c
+                    item["constants"] = constants
                     header = ""
                 self.data.append(item)
             else:
                 header = header + input_line
+
     def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")
 	self.read(inputfile,screen_lines)
 	inputfile.close()
+
+    def parseHeader(self,header):
+        header = string.split(header,'\n')
+        dict = parseC.parseC()
+        i = 0
+        words = string.split(header[0])
+        if len(words) < 5:
+            return
+        for key in ["RL0","RL1","A0","A1"]:
+            i = i + 1
+            dict[key] = AUTOatof(words[i])
+        key = ""
+        for line in header[1:]:
+            line = string.replace(line,"="," ")
+            line = string.replace(line,"s:",":")
+            words = string.split(line)
+            if len(words) == 1:
+                break
+            if words[1] in ["User-specified", "Active"]:
+                index = words.index("parameter:") + 1
+                if words[1][0] == "U":
+                    key = "ICP"
+                else:
+                    key = "Active ICP"
+                dict[key] = map(int,words[index:])
+                continue
+            i = 1
+            while i < len(words):
+                key = words[i]
+                v = words[i+1]
+                i = i+2
+                if key[0] in ["E","D"]:
+                    v = AUTOatof(v)
+                else:
+                    try:
+                        v = int(v)
+                    except:
+                        v = 9999
+                dict[key] = v
+        return dict
+
+# a parseB class organized by branch instead of line
+class parseBR(UserList.UserList):
+    def __init__(self,filename=None,screen_lines=0):
+        if type(filename) == types.StringType:
+            UserList.UserList.__init__(self)
+            data = parseB(filename,screen_lines)
+            self.data = self.__getbranches(data)
+        else:
+            UserList.UserList.__init__(self,filename)
+
+    def __str__(self):
+        s = ""
+        for d in self.data:
+            s = s + d.summary()
+        return s
+
+    def __getbranches(self,data):
+        branches = []
+        l = 0
+        while l < len(data):
+            branch = AUTObranch(data[l:])
+            l = l + len(branch)
+            branches.append(branch)
+        return branches
+
+# a branch within the parseBR class
+class AUTObranch(parseB):
+    def __init__(self,data):
+        if type(data) == types.InstanceType:
+            parseB.__init__(self)
+            section = data[0]["section"]
+            for d in data:
+                if d["section"] != section:
+                    break
+                self.data.append(d)
+        else:
+            parseB.__init__(self,data)
+
+    def __getitem__(self,index):
+        if index == "section":
+            return self.data[0]["section"]
+        if index == "constants":
+            return self.data[0]["constants"]
+        if index == "BR":
+            return abs(self.data[0]["BR"])
+        return parseB.__getitem__(self,index)
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an
@@ -353,7 +439,7 @@ def test():
     pointtest(foo.getIndex(0),foo.getIndex(57))
 
 
-    print "Testing label maninpulation"
+    print "Testing label manipulation"
     labels = foo.getLabels()
     foo.relabel(labels[0],57)
     labels = foo.getLabels()
