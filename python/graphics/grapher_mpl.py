@@ -94,7 +94,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["color_list"] = ("black red green blue",self.__optionCallback)
         optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",self.__optionCallback)
         optionDefaults["symbol_color"] = ("red",self.__optionCallback)
-        optionDefaults["smart_label"] = (0,self.__optionCallback)
+        optionDefaults["smart_label"] = (1,self.__optionCallback)
         optionDefaults["line_width"] = (2,self.__optionCallback)
         optionDefaults["realwidth"] = (1,self.__optionCallback)
         optionDefaults["realheight"] = (1,self.__optionCallback)
@@ -477,81 +477,233 @@ class LabeledGrapher(BasicGrapher):
         BasicGrapher._addData(self,data,newsect,stable)
 
     def plotlabels(self):
+        if self.cget("realwidth") == 1 or self.cget("realheight") == 1:
+            return
         self.redrawlabels = 0
+
         for i in range(len(self.labels)):
             for label in self.labels[i]:
+                if label["mpline"]:
+                    self.ax.lines.remove(label["mpline"])
+                label["mpline"] = None
+                if label["mptext"]:
+                    self.ax.texts.remove(label["mptext"])
+                label["mptext"] = None
+
+        if not self.cget("use_labels"):
+            return
+
+        if 'transform' in dir(self.ax.transData):
+            trans = self.ax.transData.transform
+            inv_trans = self.ax.transData.inverted().transform
+        else:
+            trans = self.ax.transData.xy_tup
+            inv_trans = self.ax.transData.inverse_xy_tup
+        if self.cget("smart_label"):
+            mp = self.inarrs()
+            for i in range(len(self.data)):
+                for j in range(len(self.data[i]["x"])):
+                    [x,y] = self.getData(i,j)
+                    data = trans((x,y))
+                    if j > 0:
+                        self.map_curve(mp,data[0],data[1],olddata[0],olddata[1])
+                    olddata = data
+        for i in range(len(self.labels)):
+            for label in self.labels[i]:
+                if len(label["text"]) == 0:
+                    continue
                 j = label["j"]
-
-                #Find a neighbor so I cam compute the "slope"
-                if j < len(self.getData(i,"x"))-1:
-                    first = j
-                    second = j+1
-                else:
-                    first = j-1
-                    second = j
-                if 'transform' in dir(self.ax.transData):
-                    data = self.ax.transData.transform([self.getData(i,j)])[0]
-                else:
-                    data = self.ax.transData.xy_tup(self.getData(i,j))
+                [x,y] = self.getData(i,j)
+                if (x < self["minx"] or x > self["maxx"] or
+                    y < self["miny"] or y > self["maxy"]):
+                    continue
+                data = trans((x,y))
                 if not(data is None):
-                    x = data[0]
-                    y = data[1]
-                    realwidth=self.cget("realwidth")
-                    realheight=self.cget("realheight")
-                    left_margin=self.cget("left_margin")
-                    top_margin=self.cget("top_margin")
-                    y = realheight - y
-                    #pick a good direction for the label
-                    if (self.getData(i,"y")[second] - self.getData(i,"y")[first]) > 0:
-                        if (x < int(self.cget("realwidth"))-(20+self.cget("left_margin"))) and (y > (20+self.cget("top_margin"))):
-                            xoffset = 10
-                            yoffset = -10
-                            va = "bottom"
-                            ha = "left"
-                        else:
-                            xoffset = -10
-                            yoffset = 10
-                            va = "top"
-                            ha = "right"
+                    [x,y] = data
+                    if self.cget("smart_label"):
+                        [xoffd1,yoffd1,xoffd2,yoffd2,
+                         xofft,yofft,ha,va] = self.findsp(x,y,mp)
                     else:
-                        if (x > 20+self.cget("left_margin")) and (y > 20+self.cget("top_margin")):
-                            xoffset = -10
-                            yoffset = -10
-                            va = "bottom"
-                            ha = "right"
-                        else:
-                            xoffset = 10
-                            yoffset = 10
-                            va = "top"
-                            ha = "left"
+                        [xoffd1,yoffd1,xoffd2,yoffd2,
+                         xofft,yofft,ha,va] = self.dumblabel(i,j,x,y)
+                    [xd1,yd1] = inv_trans((x+xoffd1,y+yoffd1))
+                    [xd2,yd2] = inv_trans((x+xoffd2,y+yoffd2))
+                    [xt,yt] = inv_trans((x+xofft,y+yofft))
+                    self.ax.plot([xd1,xd2],[yd1,yd2],
+                                 color=self.cget("foreground"))
+                    self.ax.text(xt,yt,label["text"],ha=ha,va=va,
+                                 color=self.cget("foreground"))
+                    label["mpline"] = self.ax.lines[-1]
+                    label["mptext"] = self.ax.texts[-1]
 
-                    #self.addtag_overlapping("overlaps",x+xoffset-3,y+yoffset-3,x+xoffset+3,y+yoffset+3)
-                    #if len(self.gettags("overlaps")) != 0:
-                    #    print self.gettags("overlaps")
-                    #self.dtag("overlaps")
-                    #print "---------------------------------------------"    
+    # not-so-smart way of plotting labels
+    def dumblabel(self,i,j,x,y):
+        #Find a neighbor so I can compute the "slope"
+        if j < len(self.getData(i,"x"))-1:
+            first = j
+            second = j+1
+        else:
+            first = j-1
+            second = j
+        realwidth=self.cget("realwidth")
+        realheight=self.cget("realheight")
+        left_margin=self.cget("left_margin")
+        top_margin=self.cget("top_margin")
+        #pick a good direction for the label
+        if self.getData(i,"y")[second] > self.getData(i,"y")[first]:
+            if (x < int(realwidth)-(20+left_margin) and
+                y < int(realheight)-(20+top_margin)):
+                xoffset = 10
+                yoffset = 10
+                va = "bottom"
+                ha = "left"
+            else:
+                xoffset = -10
+                yoffset = -10
+                va = "top"
+                ha = "right"
+        else:
+            if x > 20+left_margin and y < int(realheight)-(20+top_margin):
+                xoffset = -10
+                yoffset = 10
+                va = "bottom"
+                ha = "right"
+            else:
+                xoffset = 10
+                yoffset = -10
+                va = "top"
+                ha = "left"
 
-                    y = realheight - y
-                    [x1,y1] = self.getData(i,j)
-                    if label["mpline"]:
-                        self.ax.lines.remove(label["mpline"])
-                    label["mpline"] = None
-                    if label["mptext"]:
-                        self.ax.texts.remove(label["mptext"])
-                    label["mptext"] = None
-                    if self.cget("use_labels") and len(label["text"]) > 0:
-                        if 'transform' in dir(self.ax.transData):
-                            [x2,y2] = self.ax.transData.inverted().transform(
-                                (x+xoffset,y-yoffset))
-                        else:
-                            [x2,y2] = self.ax.transData.inverse_xy_tup(
-                                (x+xoffset,y-yoffset))
-                        self.ax.plot([x1,x2],[y1,y2],
-                                     color=self.cget("foreground"))
-                        self.ax.text(x2,y2,label["text"],ha=ha,va=va,
-                                     color=self.cget("foreground"))
-                        label["mpline"] = self.ax.lines[-1]
-                        label["mptext"] = self.ax.texts[-1]
+        #self.addtag_overlapping("overlaps",x+xoffset-3,
+        #        y+yoffset-3,x+xoffset+3,y+yoffset+3)
+        #if len(self.gettags("overlaps")) != 0:
+        #    print self.gettags("overlaps")
+        #self.dtag("overlaps")
+        #print "---------------------------------------------"    
+        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,ha,va]
+
+    # smarter way to plot labels: ported from old PLAUT
+    #-------------------------------------------------------------------
+    #   Tries to find an empty space to put the
+    #   point or branch label from pnts in by searching for three
+    #   unchanged entries in mp.  The search is outward from the
+    #   point to be labelled.  If space can't be found the label
+    #   will be written out anyway.
+    #-------------------------------------------------------------------
+    def findsp(self,x1,y1,mp):
+        sp1 = self.cget("left_margin")
+        minsx = sp1
+        maxsx = self.cget("realwidth") - self.cget("right_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        minsy = sp3
+        maxsy = self.cget("realheight") - self.cget("top_margin")
+        sp4 = 5
+        #C---     *x1, y1 ARE SCREEN COORDINATES
+        xi = (x1 - sp1) / sp2
+        yi = (y1 - sp3) / sp4
+        rd = math.pi / 180.0
+        start = rd * 30.0
+        radius = 2
+        npoint = 16
+
+        found = 0
+        while radius < 70:
+            radius = radius + 1
+            npoint = npoint + 8
+            st     = start
+            rinc   = rd * 360.0 / float(npoint)
+
+            for i in range(npoint):
+                xd = int(xi + radius * math.cos(st))
+                yd = int(yi + radius * math.sin(st))
+                if self.emptsp(xd,yd,mp):
+                    r1 = (radius + 3) * sp2
+                    ix = x1 + r1 * math.cos(st)
+                    iy = y1 + r1 * math.sin(st)
+                    if (ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy):
+                        found = 1
+                        break
+                st = st + rinc
+            if found:
+                break
+
+        if radius >= 70:
+            return [1,1,10,10,11,11,"right","top"] #if no empty space
+
+        for i1 in range(xd-2,xd+3):
+            for i2 in range(yd-1,yd+2):
+                mp[i1][i2] = 1
+
+        pos = int((st/rd - 22.5) / 45)
+        has = [  "left", "center", "right", "right", "right", "center",
+                 "left", "left", "left" ]
+        vas = [  "bottom","bottom","bottom","center", "top", "top",
+                 "top", "center", "bottom" ]
+        ha = has[pos]
+        va = vas[pos]
+        radius = radius * sp2
+        cosst = math.cos(st)
+        sinst = math.sin(st)
+        xoffd1 = 3 * cosst
+        yoffd1 = 3 * sinst
+        xoffd2 = radius * cosst
+        yoffd2 = radius * sinst
+        xofft = (radius + 2) * cosst
+        yofft = (radius + 2) * sinst
+        return [xoffd1,yoffd1,xoffd2,yoffd2,xofft,yofft,ha,va]
+
+    #-----------------------------------------------------------------------
+    #   Organizes the search along two sides of
+    #   a square of size 2(xd) with pnt xi, yi in its center.
+    #-----------------------------------------------------------------------
+    def emptsp(self,ix,iy,mp):
+       if ix > len(mp) - 5 or ix < 3:
+           return 0
+       if iy > len(mp[0]) - 5 or iy < 3:
+           return 0
+       for i in range(ix-2,ix+3):
+           for j in range(iy-2,iy+3):
+               if mp[i][j]:
+                   return 0
+       return 1
+
+    #-----------------------------------------------------------------------
+    #    Initializes the map array that is
+    #    used to label the plotted curves.
+    #-----------------------------------------------------------------------
+    def inarrs(self):
+        sp1 = self.cget("left_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        sp4 = 5
+        nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))/sp2
+        ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))/sp4
+        r = ny*[0]
+        mp = []
+        for i in range(nx):
+            mp.append(r[:])
+        return mp
+
+    #-----------------------------------------------------------------------
+    #        Maps the curves in mp array
+    #-----------------------------------------------------------------------
+    def map_curve(self,mp,xnew,ynew,xold,yold):
+        sp1 = self.cget("left_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        sp4 = 5
+        dx = (xnew - xold) / sp2
+        dy = (ynew - yold) / sp4
+        index = int(max(abs(dx),abs(dy))) + 1
+        x1 = (xold - sp1) / sp2
+        y1 = (yold - sp3) / sp4
+        for i in range(index):
+            f = float(i)/index
+            ix = int(x1 + f * dx)
+            iy = int(y1 + f * dy)
+            if ix >= 0 and ix < len(mp) and iy >= 0 and iy < len(mp[0]):
+                mp[ix][iy] = 1
 
     def plot(self):
         self.plotlabels()
