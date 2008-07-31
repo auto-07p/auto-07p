@@ -189,10 +189,11 @@ class plotter(grapher.GUIGrapher):
                     x.append(sol["data"][xcolumns[j]]) 
                     y.append(sol["data"][ycolumns[j]])
                     
-                    if sol["LAB"] != 0:
-                        labels.append({})
-                        labels[-1]["index"] = current_index
-                        text = "%d"%sol["LAB"]
+                    if sol["TY number"] != 0:
+                        if sol["LAB"] != 0:
+                            text = str(sol["LAB"])
+                        else:
+                            text = ""
                         TYnumber = sol["TY number"]
                         if TYnumber == 4 or TYnumber == 9:
                             symbol = None
@@ -210,7 +211,8 @@ class plotter(grapher.GUIGrapher):
                             symbol = self.cget("user_point_symbol")
                         else:
                             symbol = self.cget("error_symbol")
-                        labels[-1] = {"index": current_index, "text": text, "symbol": symbol}
+                        labels.append({"index": current_index, "text": text,
+                                       "symbol": symbol})
                     current_index = current_index + 1
                     prevsol = sol
                 if len(x) > 0:
