@@ -8213,21 +8213,16 @@ C-----------------------------------------------------------------------
          DX = (XNEW - XOLD) / SP2
          DY = (YNEW - YOLD) / SP4
          INDEX = INT(MAX(ABS(DX),ABS(DY))) + 1
-         X1 = XOLD
-         Y1 = YOLD
-         DO 1 I=1,INDEX
-           IF (I.EQ.INDEX) THEN
-             X1 = XNEW
-             Y1 = YNEW
-           END IF
-           IX = INT((X1 - SP1) / SP2) + 1
-           IY = INT((Y1 - SP3) / SP4) + 1
-           X1 = X1 + DX
-           Y1 = Y1 + DY
+         X1 = (XOLD - SP1) / SP2 + 1
+         Y1 = (YOLD - SP3) / SP4 + 1
+         DO I=0,INDEX-1
+           F = REAL(I)/INDEX
+           IX = INT(X1 + F * DX)
+           IY = INT(Y1 + F * DY)
            IF (IX.GE.1.AND.IX.LE.81.AND.IY.GE.1.AND.IY.LE.251) THEN
              MP(IX,IY) = 'X'
            END IF
- 1       CONTINUE
+         ENDDO
          RETURN
          END
 C-----------------------------------------------------------------------
