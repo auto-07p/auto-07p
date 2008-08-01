@@ -304,7 +304,7 @@ class parseB(UserList.UserList):
             line = string.replace(line,"="," ")
             line = string.replace(line,"s:",":")
             words = string.split(line)
-            if len(words) == 1:
+            if len(words) < 2:
                 break
             if words[1] in ["User-specified", "Active"]:
                 index = words.index("parameter:") + 1

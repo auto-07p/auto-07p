@@ -524,7 +524,7 @@ class LabeledGrapher(BasicGrapher):
                     [xd1,yd1] = inv_trans((x+xoffd1,y+yoffd1))
                     [xd2,yd2] = inv_trans((x+xoffd2,y+yoffd2))
                     [xt,yt] = inv_trans((x+xofft,y+yofft))
-                    self.ax.plot([xd1,xd2],[yd1,yd2],
+                    self.ax.plot([xd1,xd2],[yd1,yd2],linewidth=0.5,
                                  color=self.cget("foreground"))
                     self.ax.text(xt,yt,label["text"],ha=ha,va=va,
                                  color=self.cget("foreground"))
@@ -767,13 +767,13 @@ class LabeledGrapher(BasicGrapher):
                 elif l == "fillsquare":
                     self.ax.plot([x],[y],'s'+c[0])
                 elif l == "diamond":
-                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc)
+                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc,ms=2)
                 elif l == "filldiamond":
-                    self.ax.plot([x],[y],'D'+c[0])
+                    self.ax.plot([x],[y],'D'+c[0],ms=2)
                 elif l == "triangle":
-                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc)
+                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc,ms=2)
                 elif l == "doubletriangle":
-                    self.ax.plot([x],[y],'^'+c[0])
+                    self.ax.plot([x],[y],'^'+c[0],ms=2)
                 else:
                     continue
                 label["mpsymline"] = self.ax.lines[-1]

@@ -27,7 +27,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "bifurcation_symbol": "square",
             "limit_point_symbol": None,
             "hopf_symbol": "fillsquare",
-            "period_doubling_symbol": "doubletriangle",
+            "period_doubling_symbol": "diamond",
             "torus_symbol": "filldiamond",
             "user_point_symbol": None,
             "error_symbol": None,
