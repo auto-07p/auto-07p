@@ -189,12 +189,13 @@ class plotter(grapher.GUIGrapher):
                     x.append(sol["data"][xcolumns[j]]) 
                     y.append(sol["data"][ycolumns[j]])
                     
-                    if sol["TY number"] != 0:
-                        if sol["LAB"] != 0:
-                            text = str(sol["LAB"])
+                    TYnumber = sol["TY number"]
+                    lab = sol["LAB"]
+                    if TYnumber != 0 or lab != 0:
+                        if lab != 0:
+                            text = str(lab)
                         else:
                             text = ""
-                        TYnumber = sol["TY number"]
                         if TYnumber == 4 or TYnumber == 9:
                             symbol = None
                         elif TYnumber == 1 or TYnumber == 6: 
@@ -209,14 +210,17 @@ class plotter(grapher.GUIGrapher):
                             symbol = self.cget("torus_symbol")
                         elif TYnumber == -4: 
                             symbol = self.cget("user_point_symbol")
-                        else:
+                        elif TYnumber != 0:
                             symbol = self.cget("error_symbol")
                         labels.append({"index": current_index, "text": text,
                                        "symbol": symbol})
                     current_index = current_index + 1
                     prevsol = sol
                 if len(x) > 0:
-                    self.addArrayNoDraw((x,y))
+                    if dp:
+                        self.addArrayNoDraw((x,y),stable=prevsol['PT'] < 0)
+                    else:
+                        self.addArrayNoDraw((x,y))
                 for label in labels:
                     self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
         
