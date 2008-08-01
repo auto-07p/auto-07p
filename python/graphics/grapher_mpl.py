@@ -502,12 +502,7 @@ class LabeledGrapher(BasicGrapher):
         if self.cget("smart_label"):
             mp = self.inarrs()
             for i in range(len(self.data)):
-                for j in range(len(self.data[i]["x"])):
-                    [x,y] = self.getData(i,j)
-                    data = trans((x,y))
-                    if j > 0:
-                        self.map_curve(mp,data[0],data[1],olddata[0],olddata[1])
-                    olddata = data
+                self.map_curve(mp,self.data[i]["x"],self.data[i]["y"],trans)
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
@@ -645,8 +640,9 @@ class LabeledGrapher(BasicGrapher):
         radius = radius * sp2
         cosst = math.cos(st)
         sinst = math.sin(st)
-        xoffd1 = 3 * cosst
-        yoffd1 = 3 * sinst
+        d1dist = self.cget("line_width") + 1
+        xoffd1 = d1dist * cosst
+        yoffd1 = d1dist * sinst
         xoffd2 = radius * cosst
         yoffd2 = radius * sinst
         xofft = (radius + 2) * cosst
@@ -688,22 +684,50 @@ class LabeledGrapher(BasicGrapher):
     #-----------------------------------------------------------------------
     #        Maps the curves in mp array
     #-----------------------------------------------------------------------
-    def map_curve(self,mp,xnew,ynew,xold,yold):
+    def map_curve(self,mp,xs,ys,trans):
         sp1 = self.cget("left_margin")
         sp2 = 5 #fontsize
         sp3 = self.cget("bottom_margin")
         sp4 = 5
-        dx = (xnew - xold) / sp2
-        dy = (ynew - yold) / sp4
-        index = int(max(abs(dx),abs(dy))) + 1
-        x1 = (xold - sp1) / sp2
-        y1 = (yold - sp3) / sp4
-        for i in range(index):
-            f = float(i)/index
-            ix = int(x1 + f * dx)
-            iy = int(y1 + f * dy)
-            if ix >= 0 and ix < len(mp) and iy >= 0 and iy < len(mp[0]):
-                mp[ix][iy] = 1
+        ixmax = len(mp)
+        iymax = len(mp[0])
+        minx = self["minx"]
+        maxx = self["maxx"]
+        miny = self["miny"]
+        maxy = self["maxy"]
+        x,y = xs[0],ys[0]
+        for i in range(1,len(xs)):
+            oldx,oldy = x,y
+            x,y = xs[i],ys[i]
+            # if we are sure that the line is outside the graph limits we
+            # should skip and save a lot of time
+            if ((oldx < minx and x < minx) or
+                (oldy < miny and y < miny) or
+                (oldx > maxx and x > maxx) or
+                (oldy > maxy and y > maxy)):
+                continue
+            xold,yold = trans((oldx,oldy))
+            x1 = (xold - sp1) / sp2
+            y1 = (yold - sp3) / sp4
+            xnew,ynew = trans((x,y))
+            dx = (xnew - xold) / sp2
+            dy = (ynew - yold) / sp4
+            index = int(max(abs(dx),abs(dy))) + 1
+            ilow = 0
+            ihigh = index
+            if dx != 0 and dy != 0:
+                xlim1 = int(-x1*index/dx)
+                xlim2 = int((ixmax-x1)*index/dx)+1
+                ylim1 = int(-y1*index/dy)
+                ylim2 = int((iymax-y1)*index/dy)+1
+                ilow  = max(min(xlim1,xlim2),min(ylim1,ylim2),0)
+                ihigh = min(max(xlim1,xlim2),max(ylim1,ylim2),index)
+            for i in range(ilow,ihigh):
+                f = float(i)/index
+                ix = int(x1 + f * dx)
+                iy = int(y1 + f * dy)
+                if ix >= 0 and ix < ixmax and iy >= 0 and iy < iymax:
+                    mp[ix][iy] = 1
 
     def plot(self):
         self.plotlabels()
