@@ -425,10 +425,10 @@ class BasicGrapher(optionHandler.OptionHandler):
                 stable = d["stable"]
                 #tags=(curve,"data")
                 if stable is None or stable:
-                    self.ax.plot(xs,ys,color=fill,lw=line_width,dashes=dashes)
+                    self.ax.plot(xs,ys,color=fill,lw=line_width)
                 else:
-                    l=self.ax.plot(xs,ys,color=fill,ls='--',
-                                   dashes=dashes,lw=line_width)
+                    self.ax.plot(xs,ys,color=fill,ls='--',
+                                 dashes=dashes,lw=line_width)
             d["mpline"] = self.ax.lines[-1]
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
