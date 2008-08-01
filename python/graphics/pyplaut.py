@@ -12,7 +12,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             return
         
         self.expert = 0
-        self.dset = 0
+        self.dset = 1
         self.ict = 0
         self.icl = 0
 
@@ -23,7 +23,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "bifurcation_diagram_filename": b,
             "solution_filename": s,
             "width": 600, "height": 480,
-            "use_symbols": 0,
+            "stability": 1, "grid": "no",
             "bifurcation_symbol": "square",
             "limit_point_symbol": None,
             "hopf_symbol": "fillsquare",
