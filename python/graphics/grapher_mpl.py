@@ -104,6 +104,7 @@ class BasicGrapher(optionHandler.OptionHandler):
         optionDefaults["height"] = (1,self.__optionCallback)
         optionDefaults["top_title"] = ("",self.__optionCallback)
         optionDefaults["top_title_fontsize"] = (None,self.__optionCallback)
+        optionDefaults["dashes"] = ((6.0,6.0),self.__optionCallback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -409,6 +410,7 @@ class BasicGrapher(optionHandler.OptionHandler):
             
         # data
         line_width=self.cget("line_width")
+        dashes=self.cget("dashes")
         i=0
         for d in self.data:
             curve="curve:%d"%(i,)
@@ -423,9 +425,10 @@ class BasicGrapher(optionHandler.OptionHandler):
                 stable = d["stable"]
                 #tags=(curve,"data")
                 if stable is None or stable:
-                    self.ax.plot(xs,ys,color=fill,lw=line_width)
+                    self.ax.plot(xs,ys,color=fill,lw=line_width,dashes=dashes)
                 else:
-                    self.ax.plot(xs,ys,color=fill,ls='--',lw=line_width)
+                    l=self.ax.plot(xs,ys,color=fill,ls='--',
+                                   dashes=dashes,lw=line_width)
             d["mpline"] = self.ax.lines[-1]
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
@@ -767,13 +770,13 @@ class LabeledGrapher(BasicGrapher):
                 elif l == "fillsquare":
                     self.ax.plot([x],[y],'s'+c[0])
                 elif l == "diamond":
-                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc,ms=2)
+                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc,ms=8)
                 elif l == "filldiamond":
-                    self.ax.plot([x],[y],'D'+c[0],ms=2)
+                    self.ax.plot([x],[y],'D'+c[0],ms=8)
                 elif l == "triangle":
-                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc,ms=2)
+                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc,ms=8)
                 elif l == "doubletriangle":
-                    self.ax.plot([x],[y],'^'+c[0],ms=2)
+                    self.ax.plot([x],[y],'^'+c[0],ms=8)
                 else:
                     continue
                 label["mpsymline"] = self.ax.lines[-1]
