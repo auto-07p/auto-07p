@@ -6001,7 +6001,8 @@ fortranatof(char* word)
     char *p;
     size_t len = strlen(word);
     double d = strtod(word, &p);
-    if (len >= 6 && p == word+len-4 && *p == '-') {
+    if (len >= 6 && p == word+len-4 &&
+	(*p == '-' || *p == '+' || *p++ == 'D')) {
         p[-2] = '1';
         p[-1] = 'E';
         d*=atof(p-2);

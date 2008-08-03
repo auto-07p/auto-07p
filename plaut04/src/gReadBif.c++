@@ -42,12 +42,12 @@ readBifurcation(const char *bFileName, int varIndices[])
         float data[MAX_LIST];
         if(branch != 0)
         {
-            char * word = strtok(line," ");
+            char * word = strtok(line," \n");
             while(word != NULL)
             {
                 data[ic]=fortranatof(word);
                 ++ic;
-                word=strtok(NULL," ");
+                word=strtok(NULL," \n");
             }
 
             if(abs((int)data[1]) == 1)
@@ -224,12 +224,12 @@ parseBifurcation(const char *bFileName)
             }
 #endif
 
-            char * word = strtok(line," ");
+            char * word = strtok(line," \n");
             while(word != NULL)
             {
                 data[ic]=fortranatof(word);
                 ++ic;
-                word=strtok(NULL," ");
+                word=strtok(NULL," \n");
             }
 
             maxColSize=(maxColSize>ic) ? maxColSize : ic;
