@@ -238,6 +238,7 @@ class parseB(UserList.UserList):
         data=inputfile.readlines()
         header = ""
         section = 0
+        constants = None
         self.data=[]
         for input_line in data:
             line = string.split(input_line)
@@ -392,6 +393,10 @@ def AUTOatof(input_string):
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
                 value=float(input_string[:-4]+'E'+input_string[-4:])
+            elif input_string[-4] == "D":
+                #  This is the case where you have x.xxxxxxxxxD+yy
+                #  or x.xxxxxxxxxD-yy (standard Fortran but not C)
+                value=float(input_string[:-4]+'E'+input_string[-3:])
             else:
                 print "Encountered value I don't understand"
                 print input_string
