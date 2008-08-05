@@ -264,8 +264,9 @@ class WindowPlotter2D(WindowPlotter):
                     list.append("[%d]"%i)
         else:
             list.append("['t']")
-            for i in range(len(self.grapher.cget(o).getIndex(0)["data"][0]["u"])):
-                list.append("[%d]"%i)
+            if len(self.grapher.cget(o)) > 0:
+                for i in range(len(self.grapher.cget(o).getIndex(0)["data"][0]["u"])):
+                    list.append("[%d]"%i)
         self.xEntry.setlist(list)
         self.yEntry.setlist(list)
         self.xEntry.setentry(self._shortstr(self.grapher.cget(ox)))
