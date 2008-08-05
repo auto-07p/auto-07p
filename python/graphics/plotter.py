@@ -275,8 +275,8 @@ class plotter(grapher.GUIGrapher):
                     # Call the base class config
                     if len(x) > 0:
                         self.addArrayNoDraw((x,y))
-                    for label in labels:
-                        self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
+                    for lab in labels:
+                        self.addLabel(len(self)-1,lab["index"],lab["text"],lab["symbol"])
 
                     xnames = xnames + " " + str(xcolumns[j])
                     ynames = ynames + " " + str(ycolumns[j])
