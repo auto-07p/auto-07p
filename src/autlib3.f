@@ -155,23 +155,19 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      LOGICAL FOUND
-C
 C Generates starting data for the continuation of folds.
 C
       DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
+      INTEGER ICPRS(2)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
        NDM=IAP(23)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
@@ -185,7 +181,7 @@ C
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,V,F,ICPRS)
+       DEALLOCATE(DFU,V,F)
        U(NDIM)=PAR(ICP(2))
 C
       RETURN
@@ -322,15 +318,13 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      LOGICAL FOUND
-C
 C Generates starting data for the continuation of BP.
 C
       DIMENSION U(*),UDOT(*),PAR(*),ICP(*),IAP(*),RAP(*)
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
+      INTEGER :: ICPRS(3)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -339,8 +333,6 @@ C
        NDM=IAP(23)
        NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR),A(NDM+1,NDM+1))
@@ -369,7 +361,7 @@ C
        DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
-       DEALLOCATE(DFU,DFP,A,V,F,ICPRS)
+       DEALLOCATE(DFU,DFP,A,V,F)
        U(NDIM-1)=PAR(ICP(2))
        IF(ISW.EQ.3) THEN
 C        ** Generic case
@@ -586,8 +578,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      LOGICAL FOUND
-C
 C Generates starting data for the continuation equations for
 C optimization of algebraic systems (More than one parameter).
 C
@@ -600,11 +590,9 @@ C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
+       NFPR=IAP(29)
        NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR,NPAR1,FOUND)
-       NFPR=NFPR+1
-       IAP(29)=NFPR
        ALLOCATE(ICPRS(NFPR))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
        DEALLOCATE(ICPRS)
@@ -867,8 +855,6 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      LOGICAL FOUND
-C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE/wave/map).
 C
@@ -876,7 +862,7 @@ C
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),V(:),F(:)
       DOUBLE PRECISION UOLD(1),DFP(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
+      INTEGER :: ICPRS(2)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -884,10 +870,7 @@ C
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-       DEALLOCATE(ICPRS)
 C
        IF(IPS==-1)THEN
           THTA=PI(2.d0)/PAR(11)
@@ -1158,8 +1141,7 @@ C     bifurcation point (for waves or periodic orbits)
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER, ALLOCATABLE :: ICPRS(:)
-      LOGICAL FOUND
+      INTEGER :: ICPRS(2)
       DOUBLE PRECISION THL(2)
 
        NDIM=IAP(1)
@@ -1172,10 +1154,7 @@ C Local
        ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
        ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1))
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-       DEALLOCATE(ICPRS)
 C
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
@@ -1788,17 +1767,14 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      ALLOCATABLE ICPRS(:),RLDOTRS(:)
-C
-      LOGICAL FOUND
+      DOUBLE PRECISION RLDOTRS(4)
+      INTEGER ICPRS(4)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -1841,7 +1817,6 @@ C
        ENDDO
 C
        NODIR=0
-       DEALLOCATE(ICPRS,RLDOTRS)
 C
       RETURN
       END SUBROUTINE STPNPL
@@ -2224,10 +2199,8 @@ C Local
       ALLOCATABLE THU1(:),THL1(:)
       ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
       ALLOCATABLE U(:),UPOLD(:)
-      ALLOCATABLE ICPRS(:),RLDOTRS(:)
-      DOUBLE PRECISION DUM(1)
-C
-      LOGICAL FOUND
+      INTEGER ICPRS(11)
+      DOUBLE PRECISION DUM(1),RLDOTRS(11)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -2235,11 +2208,7 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
-       READ(3,*)(NARS,I=1,8)
-       BACKSPACE 3
-       NDIM3=NARS-1
+       NDIM3=GETNDIM3()
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
@@ -2445,7 +2414,6 @@ C
 C
        ENDIF
 C
-       DEALLOCATE(ICPRS,RLDOTRS)
        DO I=1,NFPR
          RLCUR(I)=PAR(ICP(I))
        ENDDO
@@ -2655,22 +2623,18 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
 C Local
-      ALLOCATABLE ICPRS(:),RLDOTRS(:)
-C
-      LOGICAL FOUND
+      DOUBLE PRECISION RLDOTRS(4)
+      INTEGER ICPRS(4)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
        RLDOT(1)=RLDOTRS(1)
        RLDOT(2)=RLDOTRS(2)
-       DEALLOCATE(RLDOTRS,ICPRS)
 C
 C Complement starting data 
          PAR(13)=0.d0
@@ -2925,17 +2889,14 @@ C
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
 C Local
-      ALLOCATABLE ICPRS(:),RLDOTRS(:)
-C
-      LOGICAL FOUND
+      DOUBLE PRECISION RLDOTRS(4)
+      INTEGER ICPRS(4)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -2943,7 +2904,6 @@ C
        RLDOT(2)=RLDOTRS(2)
        RLDOT(3)=0.d0
        RLDOT(4)=0.d0
-       DEALLOCATE(ICPRS,RLDOTRS)
 C
        DO J=1,NTSR
          DO I=1,NCOLRS
@@ -3286,16 +3246,13 @@ C Local
       ALLOCATABLE ICPRS(:),RLDOTRS(:)
       ALLOCATABLE U(:)
 C
-      LOGICAL FOUND
-C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
        NPAR=IAP(31)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
+       ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
        DEALLOCATE(ICPRS,RLDOTRS)
@@ -3733,15 +3690,12 @@ C
 C Local
       ALLOCATABLE ICPRS(:),RLDOTRS(:)
 C
-      LOGICAL FOUND
-C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
+       ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
      *      TM,ITPRS,NDX)
 C
@@ -4371,8 +4325,6 @@ C Local
       ALLOCATABLE U(:),UPOLD(:),ICPRS(:),RLDOTRS(:)
       DOUBLE PRECISION DUM(1)
 C
-      LOGICAL FOUND
-C
        NDIM=IAP(1)
        IRS=IAP(3)
        ISW=IAP(10)
@@ -4381,10 +4333,7 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL FINDLB(IAP,IRS,NFPR1,NPAR1,FOUND)
-       READ(3,*)(NARS,I=1,8)
-       BACKSPACE 3
-       NDIM3=NARS-1
+       NDIM3=GETNDIM3()
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
@@ -4409,7 +4358,7 @@ C        ** generic case
        NFPX=NBC0+NNT0-NDM+1
        NRSP1=NTSR+1
 C
-       ALLOCATE(ICPRS(NFPR1),RLDOTRS(NFPR1))
+       ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        IF(ISW.LT.0) THEN
 C
 C Start

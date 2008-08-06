@@ -52,7 +52,6 @@ C
        ENDIF
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
-       OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
        OPEN(7,FILE='fort.7',STATUS='unknown',ACCESS='sequential')
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
        OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
@@ -139,7 +138,7 @@ C
 
       FOUND=.FALSE.
       IF(IRS.GT.0) THEN
-         CALL FINDLB(IAP,IRS,NFPR,NPARR,FOUND)
+         CALL FINDLB('fort.3',IAP,IRS,NFPR,NPARR,FOUND)
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
             WRITE(6,"(' Restart label ',I4,' not found')")IRS
