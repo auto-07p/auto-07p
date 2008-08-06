@@ -346,7 +346,7 @@ C
        A(:,NDM+1)=DFP(:,ICP(1))
        CALL NLVC(NDM,NDM+1,2,A,V)
        DEALLOCATE(A)
-       ALLOCATE(A(NDM,NDM))
+       ALLOCATE(A(NDM+1,NDM+1))
        DO I=1,NDM
          DO J=1,NDM
            A(I,J)=DFU(J,I)
