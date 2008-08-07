@@ -3796,8 +3796,9 @@ readSolutionAndBifurcationData(bool blFirstRead)
     clientData.solMin = new float [mySolNode.nar+1];
 
     clientData.solData = new float*[mySolNode.totalNumPoints];
-    for(int ml=0; ml<mySolNode.totalNumPoints; ++ml)
-        clientData.solData[ml]= new float [mySolNode.nar];
+    clientData.solData[0] = new float[mySolNode.totalNumPoints*mySolNode.nar];
+    for(int ml=1; ml<mySolNode.totalNumPoints; ++ml)
+        clientData.solData[ml] = &clientData.solData[0][ml*mySolNode.nar];
 
     blOpenBifFile = parseBifurcation(bFileName) ? true : false;
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
@@ -3813,8 +3814,9 @@ readSolutionAndBifurcationData(bool blFirstRead)
     myBifNode.ptStability = new int[myBifNode.totalNumPoints];
 
     clientData.bifData = new float*[myBifNode.totalNumPoints];
-    for(int ml=0; ml<myBifNode.totalNumPoints; ++ml)
-        clientData.bifData[ml]= new float [myBifNode.nar];
+    clientData.bifData[0] = new float[myBifNode.totalNumPoints*myBifNode.nar];
+    for(int ml=1; ml<myBifNode.totalNumPoints; ++ml)
+        clientData.bifData[ml] = &clientData.bifData[0][ml*myBifNode.nar];
 
 
     int varIndices[3];
@@ -5351,12 +5353,10 @@ postDeals()
     delete [] clientData.solMax;
     delete [] clientData.solMin;
 
-    for(int i=0; i<mySolNode.totalNumPoints; ++i)
-        delete [] clientData.solData[i];
+    delete [] clientData.solData[0];
     mySolNode.totalNumPoints  = 0;
     delete [] clientData.solData;
-    for(int i=0; i<myBifNode.totalNumPoints; ++i)
-        delete [] clientData.bifData[i];
+    delete [] clientData.bifData[0];
     myBifNode.totalNumPoints = 0;
     delete [] clientData.bifData;
 
