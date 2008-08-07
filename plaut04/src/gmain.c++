@@ -212,6 +212,8 @@ SoSeparator * animateSolutionUsingLines(bool aniColoring);
 SoSeparator * animateSolutionUsingPoints(int style, bool aniColoring);
 #ifdef R3B
 SoSeparator * animateOrbitCalSteps(long int n,long int si);
+#endif
+#if 0
 SoSeparator * animateIner2(long int j, long int si);
 #endif
 SoSeparator * animateOrbitMovement(long int n, long int si);
@@ -225,8 +227,10 @@ SoSeparator * drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, f
 SoSeparator * drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int stability, int type);
 SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type);
 SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler, int stability, int type);
+#if 0
 SoSeparator * drawABifLabelInterval(long int l, long int si, float scaler, int stability, int type);
 SoSeparator * drawABifLabelIntervalUsingNurbsCurve(long int l, long int si, float scaler, int stability, int type);
+#endif
 #ifdef R3B
 SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
 SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
@@ -767,12 +771,12 @@ float scaler, int stability, int type)
                 bMin +=  mySolNode.numOrbitsInEachBranch[ib];
             double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
             satGroup->addChild(setLineAttributesByParameterValue(
-                iOrbit-1, bMax, (bMax+bMin)/2.0, bMin,
+                iOrbit, bMax, (bMax+bMin)/2.0, bMin,
                 stability, scaler));
         }
         else if(coloringMethod >= mySolNode.nar)
             satGroup->addChild(setLineAttributesByParameterValue(
-                    mySolNode.par[iOrbit-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                    mySolNode.par[iOrbit][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -881,12 +885,12 @@ long int arrSize, float scaler, int stability, int type)
             bMin +=  mySolNode.numOrbitsInEachBranch[ib];
         double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
         anOrbit->addChild(setLineAttributesByParameterValue(
-            iOrbit-1, bMax, (bMax+bMin)/2.0, bMin,
+            iOrbit, bMax, (bMax+bMin)/2.0, bMin,
             stability, scaler));
     }
     else if(coloringMethod >= mySolNode.nar)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                mySolNode.par[iOrbit-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                mySolNode.par[iOrbit][mySolNode.parID[coloringMethod-mySolNode.nar]],
                 mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -1004,12 +1008,12 @@ const float tubeRadiusScaler, const int stability, const int type)
             bMin +=  mySolNode.numOrbitsInEachBranch[ib];
         double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
         anOrbit->addChild(setLineAttributesByParameterValue(
-            iOrbit-1, bMax, (bMax+bMin)/2.0, bMin,
+            iOrbit, bMax, (bMax+bMin)/2.0, bMin,
             stability,  tubeRadiusScaler));
     }
     else if(coloringMethod >= mySolNode.nar)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                mySolNode.par[iOrbit-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                mySolNode.par[iOrbit][mySolNode.parID[coloringMethod-mySolNode.nar]],
                 mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -1062,12 +1066,12 @@ const float scaler, const int stability, const int type)
             bMin +=  mySolNode.numOrbitsInEachBranch[ib];
         double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
         anOrbit->addChild(setLineAttributesByParameterValue(
-            iOrbit-1, bMax, (bMax+bMin)/2.0, bMin,
+            iOrbit, bMax, (bMax+bMin)/2.0, bMin,
             stability, scaler));
     }
     else if(coloringMethod >= mySolNode.nar)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                mySolNode.par[iOrbit-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                mySolNode.par[iOrbit][mySolNode.parID[coloringMethod-mySolNode.nar]],
                 mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -1119,7 +1123,7 @@ createSolutionInertialFrameScene(float dis)
             myColorBase= new float [arrSize*11];
             time  = new float [arrSize];
 
-            convertDataToInertialSystem(myVertices, time, myColorBase, arrSize, orbitSize, k+1, si);
+            convertDataToInertialSystem(myVertices, time, myColorBase, arrSize, orbitSize, k, si);
             stability = clientData.labelIndex[k][3];
             type = clientData.labelIndex[k][2];
 
@@ -1163,9 +1167,9 @@ createSolutionInertialFrameScene(float dis)
             int iBranch = 0;
             int curBranchID = mySolNode.branchID[iBranch];
             int sumOrbit    = mySolNode.numOrbitsInEachBranch[iBranch];
-            while(kno<mySolNode.numOrbits && myLabels[++kno]<animationLabel)
+            while(kno<mySolNode.numOrbits && myLabels[kno]<animationLabel)
             {
-                si += mySolNode.numVerticesEachPeriod[kno-1];
+                si += mySolNode.numVerticesEachPeriod[kno];
                 if(kno >= sumOrbit)
                 {
                     curBranchID = mySolNode.branchID[++iBranch];
@@ -1173,8 +1177,8 @@ createSolutionInertialFrameScene(float dis)
                 }
             }
 
-            satPeriod = clientData.solPeriod[kno-1];
-            long int orbitSize = mySolNode.numVerticesEachPeriod[kno-1];
+            satPeriod = clientData.solPeriod[kno];
+            long int orbitSize = mySolNode.numVerticesEachPeriod[kno];
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
 
             float (*myVertices)[3] = new float [arrSize][3];
@@ -1193,8 +1197,8 @@ createSolutionInertialFrameScene(float dis)
                     largePrimPos[i], smallPrimPos[i], vpp);
             }
 
-            stability = clientData.labelIndex[kno-1][3];
-            type = clientData.labelIndex[kno-1][2];
+            stability = clientData.labelIndex[kno][3];
+            type = clientData.labelIndex[kno][2];
             if(options[OPT_SAT_ANI])
             {
                 solGroup->addChild(animateOrbitInertialSysUsingLine(
@@ -1351,7 +1355,7 @@ createSolutionInertialFrameScene(float dis)
             float *myColorBase = new float [arrSize*11];
             float *time   = new float [arrSize];
 
-            convertDataToInertialSystem(myVertices, time, myColorBase, arrSize, orbitSize, k+1, si);
+            convertDataToInertialSystem(myVertices, time, myColorBase, arrSize, orbitSize, k, si);
 
             solBlinker->addChild(drawAnSolOrbitInertialSysUsingLines(
                 iBranch,  k, myVertices, myColorBase, arrSize, aniLineScaler*lineWidthScaler,
@@ -1391,29 +1395,13 @@ createBifurcationScene()
 
     if(whichCoord != NO_COORD)
     {
-#ifndef R3B
-        int type = 0;
-#else
         int cdtype = 0;
-#endif
         if(whichCoord==LEFTBACK)
-#ifndef R3B
-            type = 2;
-#else
             cdtype = 2;
-#endif
         else if(whichCoord==LEFTAHEAD)
-#ifndef R3B
-            type = 1;
-#else
             cdtype = 1;
-#endif
         else if (whichCoord==COORDORIGIN)
-#ifndef R3B
-            type = 0;
-#else
             cdtype = 0;
-#endif
 
         SoSeparator * coordSep = new SoSeparator;
 
@@ -1448,18 +1436,12 @@ createBifurcationScene()
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
-#ifndef R3B
-        coordSep->addChild(createCoordinates(setShow3D, type, asMax, asMin, tickers, whichCoord));
-#else
         coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
-#endif
 
         result->addChild(coordSep);
     }
 
-#ifndef R3B
-    SoSeparator * bifBranchSep = renderBifurcation();
-#else
+#ifdef R3B
     if(options[OPT_REF_PLAN])
     {
         float position[3];
@@ -1491,9 +1473,10 @@ createBifurcationScene()
         result->addChild(createLibrationPoint(mass, dis, libPtScaler,  txtureFileName));
     }
 
+#endif
+
 // create bifurcation graph
     SoSeparator * bifBranchSep = renderBifurcation();
-#endif
     result->addChild(bifBranchSep);
 
 // create starry background
@@ -1706,7 +1689,7 @@ long int sumX, float scaler, int stability, int type)
 /////////////////////////////////////////////////////////////////
 {
     SoSeparator * tSep = new SoSeparator;
-    long int upperlimit = myBifNode.numVerticesEachBranch[l-1];
+    long int upperlimit = myBifNode.numVerticesEachBranch[l];
 
 #ifndef R3B
     if(upperlimit <= 1)
@@ -1787,7 +1770,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingTubes(ka, k+1, si, 1*lineWidthScaler,
+            bifGroup->addChild(drawABifBranchUsingTubes(ka, k, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
@@ -1798,7 +1781,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k+1, si, 1*lineWidthScaler,
+            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
@@ -1810,7 +1793,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingLines(ka, k+1, si, 1*lineWidthScaler,
+            bifGroup->addChild(drawABifBranchUsingLines(ka, k, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
@@ -2195,8 +2178,8 @@ renderSolutionTubes()
                     curBranchID = mySolNode.branchID[++iBranch];
                     sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
                 }
-                k = k+1;
                 if(myLabels[ka+1]>=animationLabel) break;
+                k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
 
@@ -2207,7 +2190,7 @@ renderSolutionTubes()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingTubes(iBranch, k, si, 1*lineWidthScaler,
-                 clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
+                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             }
         }
     }
@@ -2267,8 +2250,8 @@ renderSolutionSurface()
             curBranchID = mySolNode.branchID[++iBranch];
             sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
         }
-        k = k+1;
         if(myLabels[ka+1]>=animationLabel) break;
+        k = k+1;
         si += mySolNode.numVerticesEachPeriod[ka];
     }
 
@@ -2276,7 +2259,7 @@ renderSolutionSurface()
         solGroup->addChild(animateOrbitWithTail(iBranch, k, si));
     else
         solGroup->addChild(drawAnOrbitUsingTubes(iBranch, k, si, 1*lineWidthScaler,
-            clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
+            clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
     return solGroup;
 }
 
@@ -2309,7 +2292,7 @@ renderSolutionPoints(int style)
                 sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
             }
 
-            solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k+1, si, lineWidthScaler,
+            solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             k = k+1;
             si += mySolNode.numVerticesEachPeriod[ka];
@@ -2332,8 +2315,8 @@ renderSolutionPoints(int style)
                     sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
                 }
 
-                k = k+1;
                 if(myLabels[ka+1]>=animationLabel) break;
+                k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
             if(options[OPT_SAT_ANI])
@@ -2343,7 +2326,7 @@ renderSolutionPoints(int style)
             else
             {
                 solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, k, si, lineWidthScaler,
-                    clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
+                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             }
         }
     }
@@ -2386,7 +2369,7 @@ renderSolutionLines()
                 sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
             }
 
-            solGroup->addChild(drawAnOrbitUsingLines(iBranch, k+1, si, lineWidthScaler,
+            solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             k = k+1;
             si += mySolNode.numVerticesEachPeriod[ka];
@@ -2409,8 +2392,8 @@ renderSolutionLines()
                     sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
                 }
 
-                k = k+1;
                 if(myLabels[ka+1]>=animationLabel) break;
+                k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
 
@@ -2421,7 +2404,7 @@ renderSolutionLines()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
-                    clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
+                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             }
         }
     }
@@ -2485,8 +2468,8 @@ renderSolutionNurbsCurve()
                     curBranchID = mySolNode.branchID[++iBranch];
                     sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
                 }
-                k = k+1;
                 if(myLabels[ka+1]>=animationLabel) break;
+                k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
 
@@ -2497,7 +2480,7 @@ renderSolutionNurbsCurve()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k, si, lineWidthScaler,
-                    clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
+                    clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             }
         }
     }
@@ -2537,10 +2520,10 @@ animateSolutionUsingPoints(int style, bool aniColoring)
         }
 
         if(numVertices == 1)
-            solStand->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l+1, si, aniLineScaler*lineWidthScaler,
+            solStand->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
         else
-            solBlinker->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l+1, si, aniLineScaler*lineWidthScaler,
+            solBlinker->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
         si+=mySolNode.numVerticesEachPeriod[l];
     }
@@ -2577,10 +2560,10 @@ animateSolutionUsingLines(bool aniColoring)
         }
 
         if(numVertices == 1)
-            solStand->addChild(drawAnOrbitUsingLines(iBranch, l+1, si, aniLineScaler*lineWidthScaler,
+            solStand->addChild(drawAnOrbitUsingLines(iBranch, l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
         else
-            solBlinker->addChild(drawAnOrbitUsingLines(iBranch, l+1, si, aniLineScaler*lineWidthScaler,
+            solBlinker->addChild(drawAnOrbitUsingLines(iBranch, l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
         si+=mySolNode.numVerticesEachPeriod[l];
     }
@@ -2612,7 +2595,7 @@ animateSolutionUsingNurbsCurve()
             curBranchID = mySolNode.branchID[++iBranch];
             sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
         }
-        solBlinker->addChild(drawAnOrbitUsingNurbsCurve(iBranch, l+1, si, lineWidthScaler,
+        solBlinker->addChild(drawAnOrbitUsingNurbsCurve(iBranch, l, si, lineWidthScaler,
             clientData.labelIndex[l][3], clientData.labelIndex[l][2]));
         si+=mySolNode.numVerticesEachPeriod[l];
     }
@@ -2703,8 +2686,10 @@ calSatPos(int center, float mu, float t, float primPos[], float satPos[])
     satPos[0] = b0*a0-b1*a1;
     satPos[1] = b1*a0+b0*a1;
 }
+#endif
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2728,7 +2713,7 @@ animateIner2(long int lblJ,long int si)
     SoSeparator * satSep = new SoSeparator;
     SoBlinker *satBlker = new SoBlinker;
 
-    int upperlimit = mySolNode.numVerticesEachPeriod[lblJ-1];
+    int upperlimit = mySolNode.numVerticesEachPeriod[lblJ];
     int idx = si;
     satBlker->speed = 0.5;
 
@@ -3283,7 +3268,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
-    long numVertices = mySolNode.numVerticesEachPeriod[l-1];
+    long numVertices = mySolNode.numVerticesEachPeriod[l];
     if(numVertices == 1 )
     {
         long int idx = si;
@@ -3395,8 +3380,8 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     }
 
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l-1], vertices);
-    myint[0]=mySolNode.numVerticesEachPeriod[l-1];
+    myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l], vertices);
+    myint[0]=mySolNode.numVerticesEachPeriod[l];
 
 // define the solution line set
     SoLineSet *myLine= new SoLineSet;
@@ -3449,14 +3434,14 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
                         stability, scaler));
             else if(coloringMethod >= mySolNode.nar)
                 anOrbit->addChild(setLineAttributesByParameterValue(
-                    mySolNode.par[l-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                    mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                     stability, scaler));
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
-                    mySolNode.numVerticesEachPeriod[l-1],stability, type, scaler));
+                    mySolNode.numVerticesEachPeriod[l],stability, type, scaler));
         }
 //    }else
 //    anOrbit->addChild(setLineAttributesByParameterValue(
@@ -3514,7 +3499,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
-    long numVertices = mySolNode.numVerticesEachPeriod[l-1];
+    long numVertices = mySolNode.numVerticesEachPeriod[l];
     if(numVertices == 1)
     {
         long int idx = si;
@@ -3610,7 +3595,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
                 else if(coloringMethod >= mySolNode.nar)
                 {
                     anOrbit->addChild(setLineAttributesByParameterValue(
-                        mySolNode.par[l-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                        mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
                         mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                         mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                         mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -3618,7 +3603,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
                 }
                 else
                     anOrbit->addChild(setLineColorBlending(colorBase,
-                        mySolNode.numVerticesEachPeriod[l-1],stability, type, scaler));
+                        mySolNode.numVerticesEachPeriod[l],stability, type, scaler));
             }
 //        }else
 //        anOrbit->addChild(setLineAttributesByParameterValue(
@@ -3633,7 +3618,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
 
         if(style == MESH_POINTS)
         {
-            if(m%mySolNode.ncol[l-1] == 0)
+            if(m%mySolNode.ncol[l] == 0)
                 anOrbit->addChild(drawAPoint(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1],
 #ifndef R3B
                     mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
@@ -3667,23 +3652,23 @@ drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, i
     int32_t  myint[10];
     SoSeparator * anOrbit = new SoSeparator;
     float (*vertices)[3];
-    vertices = new float[mySolNode.numVerticesEachPeriod[l-1]][3];
-    for(int m=0; m<mySolNode.numVerticesEachPeriod[l-1]; m++)
+    vertices = new float[mySolNode.numVerticesEachPeriod[l]][3];
+    for(int m=0; m<mySolNode.numVerticesEachPeriod[l]; m++)
     {
         vertices[m][0]=mySolNode.xyzCoords[si+m][0];
         vertices[m][1]=mySolNode.xyzCoords[si+m][1];
         vertices[m][2]=mySolNode.xyzCoords[si+m][2];
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l-1], vertices);
-    myint[0]=mySolNode.numVerticesEachPeriod[l-1];
+    myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l], vertices);
+    myint[0]=mySolNode.numVerticesEachPeriod[l];
 
-    int number = mySolNode.numVerticesEachPeriod[l-1];
+    int number = mySolNode.numVerticesEachPeriod[l];
     float * knots = new float[number+4];
     for (int i=0; i<4; ++i) knots[i]=0, knots[i+number]=number-3;
     for(int i=4; i<number; ++i) knots[i]=i-3;
     SoNurbsCurve *myCurve = new SoNurbsCurve;
-    myCurve->numControlPoints = mySolNode.numVerticesEachPeriod[l-1];
+    myCurve->numControlPoints = mySolNode.numVerticesEachPeriod[l];
     myCurve->knotVector.setValues(0, number+4, knots);
 
     if(coloringMethod == CL_BRANCH_NUMBER)
@@ -3721,7 +3706,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 
     SoSeparator * anOrbit = new SoSeparator;
     long int sumX = 0;
-    long int numVertices = mySolNode.numVerticesEachPeriod[l-1];
+    long int numVertices = mySolNode.numVerticesEachPeriod[l];
     if(numVertices == 1)
     {
         int idx = si;
@@ -3826,10 +3811,10 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         return anOrbit;
     }
 
-    float (*vertices)[3] = new float[mySolNode.numVerticesEachPeriod[l-1]][3];
-    float *colorBase = new float[mySolNode.numVerticesEachPeriod[l-1]*11];
+    float (*vertices)[3] = new float[mySolNode.numVerticesEachPeriod[l]][3];
+    float *colorBase = new float[mySolNode.numVerticesEachPeriod[l]*11];
     Tube tube;
-    for(int m=0; m<mySolNode.numVerticesEachPeriod[l-1]; m++)
+    for(int m=0; m<mySolNode.numVerticesEachPeriod[l]; m++)
     {
         vertices[m][0]=mySolNode.xyzCoords[si+m][0];
         vertices[m][1]=mySolNode.xyzCoords[si+m][1];
@@ -3841,7 +3826,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             for(int j=0; j<11; ++j)
                 colorBase[m*11+j]  = m;
     }
-    tube = Tube(mySolNode.numVerticesEachPeriod[l-1], vertices, lineWidthScaler*0.005, 10);
+    tube = Tube(mySolNode.numVerticesEachPeriod[l], vertices, lineWidthScaler*0.005, 10);
 
 #ifdef R3B
     if(maxComponent == 1)
@@ -3885,14 +3870,14 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         }
         else if(coloringMethod >= mySolNode.nar)
             anOrbit->addChild(setLineAttributesByParameterValue(
-                    mySolNode.par[l-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                    mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                     stability, scaler));
         else
             anOrbit->addChild(setLineColorBlending(colorBase,
-                mySolNode.numVerticesEachPeriod[l-1]*11,stability, type, scaler));
+                mySolNode.numVerticesEachPeriod[l]*11,stability, type, scaler));
 //    }
 //    else
 //    {
@@ -3931,7 +3916,7 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
     int32_t  myint[10];
 
     SoSeparator * aBranch = new SoSeparator;
-    long int size         = myBifNode.numVerticesEachBranch[l-1];
+    long int size         = myBifNode.numVerticesEachBranch[l];
     float *colorBase      = new float[size];
     float (*vertices)[3]  = new float[size][3];
 
@@ -4016,7 +4001,7 @@ long int si, float scaler, int stability, int type)
     int32_t  myint[10];
 
     SoSeparator * aBranch = new SoSeparator;
-    long int size = myBifNode.numVerticesEachBranch[l-1];
+    long int size = myBifNode.numVerticesEachBranch[l];
     float (*vertices)[3] = new float[size][3];
     float *colorBase = new float[size];
     for(long int m=0; m<size; ++m) 
@@ -4071,7 +4056,7 @@ long int si, float scaler, int stability, int type)
     return aBranch;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////////
 //
 //          Draw a label interval
@@ -4084,7 +4069,7 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
     int32_t  myint[10];
 
     SoSeparator * anInterval = new SoSeparator;
-    long int size = myBifNode.numVerticesEachLabelInterval[l-1];
+    long int size = myBifNode.numVerticesEachLabelInterval[l];
     float *colorBase = new float[size];
     float (*vertices)[3] = new float[size][3];
     for(int m=0; m<size; m++)
@@ -4134,20 +4119,20 @@ drawABifLabelIntervalUsingNurbsCurve(long int l,
 
     SoSeparator * anInterval = new SoSeparator;
     float (*vertices)[3];
-    vertices = new float[myBifNode.numVerticesEachLabelInterval[l-1]][3];
-    for(int m=0; m<myBifNode.numVerticesEachLabelInterval[l-1]; m++)
+    vertices = new float[myBifNode.numVerticesEachLabelInterval[l]][3];
+    for(int m=0; m<myBifNode.numVerticesEachLabelInterval[l]; m++)
     {
         vertices[m][0]=myBifNode.xyzCoords[si+m][0];
         vertices[m][1]=myBifNode.xyzCoords[si+m][1];
         vertices[m][2]=myBifNode.xyzCoords[si+m][2];
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, myBifNode.numVerticesEachLabelInterval[l-1], vertices);
-    myint[0]=myBifNode.numVerticesEachLabelInterval[l-1];
+    myCoords->point.setValues(0, myBifNode.numVerticesEachLabelInterval[l], vertices);
+    myint[0]=myBifNode.numVerticesEachLabelInterval[l];
 
     SoGroup *cvGrp = new SoGroup;
 
-    int number = myBifNode.numVerticesEachLabelInterval[l-1];
+    int number = myBifNode.numVerticesEachLabelInterval[l];
     float * knots = new float[number+4];
     if(number > 4)
     {
@@ -4173,7 +4158,7 @@ drawABifLabelIntervalUsingNurbsCurve(long int l,
     delete [] knots;
     return anInterval;
 }
-
+#endif
 
 #ifdef R3B
 ///////////////////////////////////////////////////////////////////////////
@@ -4448,7 +4433,7 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
 
     SoSeparator * satSep = new SoSeparator;
 
-    int upperlimit = mySolNode.numVerticesEachPeriod[j-1];
+    int upperlimit = mySolNode.numVerticesEachPeriod[j];
     int idx = si;
 
     float maxV[3], minV[3];
@@ -4552,10 +4537,10 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     float distance = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
-    int stability = clientData.labelIndex[j-1][3];
-    int type = clientData.labelIndex[j-1][2];
+    int stability = clientData.labelIndex[j][3];
+    int type = clientData.labelIndex[j][2];
 
-    long int upperlimit = mySolNode.numVerticesEachPeriod[j-1];
+    long int upperlimit = mySolNode.numVerticesEachPeriod[j];
     long int idx = si; 
     if(upperlimit == 1)
     {
@@ -4758,7 +4743,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         else if(coloringMethod >= mySolNode.nar)
         {
             satGroup->addChild(setLineAttributesByParameterValue(
-                mySolNode.par[j-1][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
                 mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
@@ -4863,7 +4848,7 @@ animateOrbitMovement(long int j, long int si)
     SoSeparator * satSep = new SoSeparator;
     SoBlinker *satBlker = new SoBlinker;
 
-    int upperlimit = mySolNode.numVerticesEachPeriod[j-1];
+    int upperlimit = mySolNode.numVerticesEachPeriod[j];
     int idx = si;             
     satBlker->speed = satSpeed;
 

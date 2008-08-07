@@ -174,7 +174,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
             mySolNode.labels[counter] = lab;
             mySolNode.ntst[counter] = ntst;
             mySolNode.ncol[counter] = ncol;
-            counter++;
             orbitCounter++;
         }
 
@@ -222,7 +221,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                         dummy=fortranatof(dummystr);
                         if(dummy != 0)
                         {
-                            mySolNode.par[counter-1][nzoo*7+i] = dummy;
+                            mySolNode.par[counter][nzoo*7+i] = dummy;
                             if( nzoo*7+i==1 ) mySolNode.mass[counter] = dummy;
                             else if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
                         }
@@ -231,6 +230,8 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
             }
         }
         current = current->next;
+        if( ntpl != 0) 
+            counter++;
     }
     mySolNode.numVerticesEachBranch[branchCounter]=totalNumPointsInEachBranch;
     mySolNode.numOrbitsInEachBranch[branchCounter]=orbitCounter;
