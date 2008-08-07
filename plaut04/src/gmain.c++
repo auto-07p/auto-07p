@@ -483,12 +483,12 @@ createSolutionSceneWithWidgets()
         result->addChild(createSolutionInertialFrameScene(dis));
     }
     else
-    {
 #endif
-    char txtureFileName[256];
+    {
+        char txtureFileName[256];
 
-    strcpy(txtureFileName, autoDir);
-    strcat(txtureFileName,"/widgets/large.rgb");
+        strcpy(txtureFileName, autoDir);
+        strcat(txtureFileName,"/widgets/large.rgb");
 #ifdef R3B
         if(options[OPT_LIB_POINTS])
         {
@@ -499,56 +499,54 @@ createSolutionSceneWithWidgets()
         }
 #endif
 
-    if(whichCoord != NO_COORD)
-    {
-        int cdtype = 0;
-        if(whichCoord==LEFTBACK)
-            cdtype = 2;
-        else if(whichCoord==LEFTAHEAD)
-            cdtype = 1;
-        else if (whichCoord==COORDORIGIN)
-            cdtype = 0;
-
-        SoSeparator * coordSep = new SoSeparator;
-
-        SoTransform * coordXform = new SoTransform;
-        coordXform->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI_2);
-
-        coordSep->addChild(coordXform);
-        static int tickers[3];
-        if(blDrawTicker)
+        if(whichCoord != NO_COORD)
         {
-            tickers[0]=tickers[1]=tickers[2]=5;
-        }
-        else
-        {
-            tickers[0]=tickers[1]=tickers[2]=-1;
-        }
+            int cdtype = 0;
+            if(whichCoord==LEFTBACK)
+                cdtype = 2;
+            else if(whichCoord==LEFTAHEAD)
+                cdtype = 1;
+            else if (whichCoord==COORDORIGIN)
+                cdtype = 0;
 
-        float asMax[3], asMin[3];
-        if(options[OPT_NORMALIZE_DATA])
-        {
-            asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1]; asMin[2]=mySolNode.min[2];
-            asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1]; asMax[2]=mySolNode.max[2];
+            SoSeparator * coordSep = new SoSeparator;
+
+            SoTransform * coordXform = new SoTransform;
+            coordXform->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI_2);
+
+            coordSep->addChild(coordXform);
+            static int tickers[3];
+            if(blDrawTicker)
+            {
+                tickers[0]=tickers[1]=tickers[2]=5;
+            }
+            else
+            {
+                tickers[0]=tickers[1]=tickers[2]=-1;
+            }
+
+            float asMax[3], asMin[3];
+            if(options[OPT_NORMALIZE_DATA])
+            {
+                asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1]; asMin[2]=mySolNode.min[2];
+                asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1]; asMax[2]=mySolNode.max[2];
 #ifndef R3B
-            if (time_on == TIME_ON_X) asMax[0] = 1;
-            else if (time_on == TIME_ON_Y) asMax[1] = 1;
-            else if (time_on == TIME_ON_Z) asMax[2] = 1;
+                if (time_on == TIME_ON_X) asMax[0] = 1;
+                else if (time_on == TIME_ON_Y) asMax[1] = 1;
+                else if (time_on == TIME_ON_Z) asMax[2] = 1;
 #endif
-        }
-        else
-        {
-            asMax[0] = asMax[1] = asMax[2] = 1;
-            asMin[0] = asMin[1] = asMin[2] = -1;
+            }
+            else
+            {
+                asMax[0] = asMax[1] = asMax[2] = 1;
+                asMin[0] = asMin[1] = asMin[2] = -1;
+            }
+
+            coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+            result->addChild(coordSep);
         }
 
-        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
-        result->addChild(coordSep);
-    }
-
-#ifndef R3B
-    result->addChild(renderSolution());
-#else
+#ifdef R3B
 // create reference DISK
         if(options[OPT_REF_PLAN])
         {
@@ -571,15 +569,17 @@ createSolutionSceneWithWidgets()
             strcat(txtureFileName,"/plaut04/widgets/small.rgb");
             result->addChild(createPrimary(mass-1e-9, pos1, 0.25*smallPrimRadius, txtureFileName));
         }
+#endif
 
 //  create solution scene
         result->addChild(renderSolution());
 
     }
 
+#ifdef R3B
     static int iiii = 0;
-//  create starry background
 #endif
+//  create starry background
     if(iiii && options[OPT_BACKGROUND])
     {
         char bgFileName[256];
@@ -588,18 +588,10 @@ createSolutionSceneWithWidgets()
         result->addChild(drawStarryBackground(bgFileName));
     }
 
-#ifndef R3B
-    static SoSeparator *leg = new SoSeparator;
-#endif
 //  add legend
     if(iiii && options[OPT_LEGEND])
     {
-#ifndef R3B
-        leg = addLegend();
-        result->addChild(leg);
-#else
         result->addChild(addLegend());
-#endif
     }
 #ifdef R3B
     iiii++;
@@ -1099,7 +1091,7 @@ createSolutionInertialFrameScene(float dis)
     float satPeriod = 1;
     long int  arrSize;
 
-    if(animationLabel == 0)
+    if(animationLabel == MY_ALL)
     {
         long int si = 0;
         long int orbitSize;
@@ -1562,7 +1554,7 @@ drawLabelPtsInBifurcationScene()
     float position[3];
     int lbType;
 
-    if(lbl == 0)
+    if(lbl == MY_ALL)
     {
         int k = 0;
         do
@@ -2158,7 +2150,7 @@ renderSolutionTubes()
     SoCoordinate3 *solCoords = new SoCoordinate3;
 
 // draw every orbit by using giving tube thickness and color.
-    if(animationLabel == 0)
+    if(animationLabel == MY_ALL)
         solGroup->addChild(drawSolUsingTubes());
     else if(animationLabel != MY_NONE)
     {
@@ -2178,7 +2170,7 @@ renderSolutionTubes()
                     curBranchID = mySolNode.branchID[++iBranch];
                     sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
                 }
-                if(myLabels[ka+1]>=animationLabel) break;
+                if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
@@ -2250,7 +2242,7 @@ renderSolutionSurface()
             curBranchID = mySolNode.branchID[++iBranch];
             sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
         }
-        if(myLabels[ka+1]>=animationLabel) break;
+        if(myLabels[ka]>=animationLabel) break;
         k = k+1;
         si += mySolNode.numVerticesEachPeriod[ka];
     }
@@ -2277,7 +2269,7 @@ renderSolutionPoints(int style)
     SoGroup       *solGroup  = new SoGroup;
     SoCoordinate3 *solCoords = new SoCoordinate3;
 
-    if(animationLabel == 0)
+    if(animationLabel == MY_ALL)
     {
         long int si = 0, k = 0;
         int iBranch = 0;
@@ -2315,7 +2307,7 @@ renderSolutionPoints(int style)
                     sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
                 }
 
-                if(myLabels[ka+1]>=animationLabel) break;
+                if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
@@ -2354,7 +2346,7 @@ renderSolutionLines()
     SoGroup       *solGroup  = new SoGroup;
     SoCoordinate3 *solCoords = new SoCoordinate3;
 
-    if(animationLabel == 0)
+    if(animationLabel == MY_ALL)
     {
         long int si = 0, k = 0;
         int iBranch = 0;
@@ -2392,7 +2384,7 @@ renderSolutionLines()
                     sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
                 }
 
-                if(myLabels[ka+1]>=animationLabel) break;
+                if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
@@ -2433,7 +2425,7 @@ renderSolutionNurbsCurve()
 
     SoCoordinate3 *solCoords = new SoCoordinate3;
 
-    if(animationLabel == 0)
+    if(animationLabel == MY_ALL)
     {
         long int si = 0, k = 0;
         int iBranch = 0;
@@ -2468,7 +2460,7 @@ renderSolutionNurbsCurve()
                     curBranchID = mySolNode.branchID[++iBranch];
                     sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
                 }
-                if(myLabels[ka+1]>=animationLabel) break;
+                if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
                 si += mySolNode.numVerticesEachPeriod[ka];
             }
@@ -5563,8 +5555,7 @@ initCoordAndLableListItems()
     {
 // the solution file does exist.
         numLabels = mySolNode.numOrbits;
-        myLabels[0] = 0;
-        for(int j=0; j<numLabels; j++) myLabels[j+1] = mySolNode.labels[j];
+        for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode.labels[j];
 #ifdef R3B
 // initial mass dependent options.
         float lastMass = mySolNode.mass[1];
@@ -5583,8 +5574,7 @@ initCoordAndLableListItems()
     else
     {
         numLabels = myBifNode.totalLabels;
-        myLabels[0] = 0;
-        for(int j=0; j<numLabels; j++) myLabels[j+1] = myBifNode.labels[j];
+        for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode.labels[j];
 #ifdef R3B
         blMassDependantOption = false;
 #endif
@@ -5602,13 +5592,14 @@ initCoordAndLableListItems()
     options[OPT_BACKGROUND] = false;
 
     numLabels += SP_LBL_ITEMS;
-    myLabels[numLabels-1] = MY_NONE;
-    myLabels[numLabels-2] = MY_SPEC;
-    myLabels[numLabels-3] = MY_HALF;
+    myLabels[numLabels + MY_NONE] = MY_NONE; // -1
+    myLabels[numLabels + MY_SPEC] = MY_SPEC; // -2
+    myLabels[numLabels + MY_HALF] = MY_HALF; // -3
+    myLabels[numLabels + MY_ALL] = MY_ALL; // -4
     for( i=0; i<numLabels; ++i)
     {
         int jmii = i + SP_LBL_ITEMS;
-        sprintf(labels[jmii], "%d", myLabels[i+1]);
+        sprintf(labels[jmii], "%d", myLabels[i]);
         switch (clientData.labelIndex[i][2])
         {
             case 1 :  
@@ -5652,7 +5643,6 @@ initCoordAndLableListItems()
     strcpy(labels[1],"HALF");
     strcpy(labels[2],"SPEC");
     strcpy(labels[3],"NONE");
-    numLabels--;
 
     if(whichType == SOLUTION)
     {
@@ -5684,41 +5674,37 @@ initCoordAndLableListItems()
     int half = 2;
     int iLbl = 0;
     //tmp = strtok(manyChoice, ",");
-    if( lblChoice[0] == -3) // ALL
+    if( lblChoice[0] == MY_ALL) // -4
     {
-        lblIndices[0] = 0;
+        lblIndices[0] = numLabels + MY_ALL;
         half = 2;
 #ifndef R3B
         iLbl = lblIdxSize;
 #endif
     }
-    else if(lblChoice[0] == -2)  // HALF
+    else if(lblChoice[0] == MY_HALF)  // -3
     {
-        int j = 1;
-        do
+        for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
         {
-            if(abs(clientData.labelIndex[j-1][2])!= 4 || j%half == 0)
+            if(abs(clientData.labelIndex[j][2])!= 4 || (j+1)%half == 0)
                 lblIndices[iLbl++] = j;
-            j++;
-        } while( j < numLabels-2 );
+        }
 
         half *= 2;
     }
-    else if(lblChoice[0] == -1) // SPEC
+    else if(lblChoice[0] == MY_SPEC) // -2
     {
-        int j = 1;
-        do
+        for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
         {
-            if(clientData.labelIndex[j-1][2] !=  TYPE_UZ    && clientData.labelIndex[j-1][2] != TYPE_RG &&
-                clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
+               clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
                 lblIndices[iLbl++] = j;
-            j++;
-        } while( j < numLabels-2 );
+        }
         half = 2;
     }
-    else if(lblChoice[0] == 0)  // NONE
+    else if(lblChoice[0] == MY_NONE)  // -1
     {
-        lblIndices[iLbl++] = numLabels;
+        lblIndices[iLbl++] = numLabels + MY_NONE;
         half = 2;
     }
     else // Specified labels
@@ -6160,7 +6146,7 @@ readResourceParameters()
                 blDealt = true;
                 for(int is=0; is<size; ++is)
                 {
-                    lblChoice[is] = lblIdx[is];
+                    lblChoice[is] = lblIdx[is] - 1;
                 }
             }
 
@@ -6873,9 +6859,9 @@ writePreferValuesToFile()
     fprintf(outFile, "#   -1 = Show SPEC labeled solutions\n");
     fprintf(outFile, "#   0 = Show NONE of the solutions\n");
     fprintf(outFile, "# Otherwise, show the specified solution(s)\n");
-    for(int is=0; is < (lblChoice[is] <= 0 ? 1 : lblIdxSize); ++is)
+    for(int is=0; is < (lblChoice[is] < 0 ? 1 : lblIdxSize); ++is)
     {
-        fprintf(outFile, "Labels   = %i", lblChoice[is]); 
+        fprintf(outFile, "Labels   = %i", lblChoice[is]+1);
     }
     fprintf(outFile, "\n");
 

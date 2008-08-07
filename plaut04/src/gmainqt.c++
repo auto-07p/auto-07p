@@ -387,7 +387,7 @@ MainWindow::setListValue()
     xAxisList->setCurrentItem(xCoordIndices[0]);
     yAxisList->setCurrentItem(yCoordIndices[0]);
     zAxisList->setCurrentItem(zCoordIndices[0]);
-    labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
+    labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET); //lblIndices[0]
     colorMethodSeletionList->setCurrentItem(coloringMethod < 0 ?
        coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems);
     dimButton->setText(setShow3D ? "3D" : "2D");
@@ -1055,7 +1055,7 @@ MainWindow::MainWindow() : QMainWindow()
     ADD_LISTCARRIER_WIDGET(labelsList);
     for ( i = 0; i < nItems; i++ )
         labelsList->insertItem( labels[i] );
-    labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET-1); //lblIndices[0]
+    labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET); //lblIndices[0]
 
 // Add Callback function for the LABELs drop down list
     connect(labelsList, SIGNAL(activated(const QString &)),
@@ -2197,58 +2197,50 @@ MainWindow::lblListCallBack(const QString &str)
     char *manyChoice = strdup(str);
     int choice = labelsList->currentItem();
     int i = 0;
-    int nItems = (whichType != BIFURCATION) ? 
-                       mySolNode.totalLabels+SP_LBL_ITEMS : 
-                       myBifNode.totalLabels+SP_LBL_ITEMS;
+    int nItems = (whichType != BIFURCATION) ? mySolNode.totalLabels : myBifNode.totalLabels;
     char * tmp;
     static int half = 2;
     tmp = strtok(manyChoice, ",");
-    if(choice < 1 || choice >= nItems)
+    choice -= SP_LBL_ITEMS;
+    if(choice <= MY_ALL || choice >= nItems)
     {
         do
         {
-            lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? 0 : atoi(tmp)-myLabels[1]+1;
+            lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? numLabels + MY_ALL : 
+	      atoi(tmp)-myLabels[0];
             tmp = strtok(NULL,",");
         }while(tmp != NULL && i < MAX_LABEL);
         half = 2;
     }
-    else if(choice == 1) 
+    else if(choice == MY_HALF) // -3 
     {
-        int j = 1;
-        do
-        {
-            if(abs(clientData.labelIndex[j-1][2])!= 4 || j%half == 0)
+        for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
+            if(abs(clientData.labelIndex[j][2])!= 4 || (j+1)%half == 0)
                 lblIndices[i++] = j;
-            j++;
-        } while( j < numLabels-2 );
         half *= 2;
     }
-    else if(choice == 2)
+    else if(choice == MY_SPEC) // -2
     {
-        int j = 1;
-        do
-        {
-            if(clientData.labelIndex[j-1][2] !=  TYPE_UZ  && clientData.labelIndex[j-1][2] != TYPE_RG
-            && clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
+        for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
+            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
+            && clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
                 lblIndices[i++] = j;
-            j++;
-        } while( j < numLabels-2 );
         half = 2;
     }
-    else if(choice == 3)
+    else if(choice == MY_NONE) // -1
     {
-        lblIndices[i++] = numLabels;
+        lblIndices[i++] = numLabels + MY_NONE;
         half = 2;
     }
     else
     {
-        lblIndices[i++] = choice-3;
+        lblIndices[i++] = choice;
         half = 2;
     }
     lblIdxSize = i;
 
-    if(choice < 4)
-        lblChoice[0] = choice - 3;
+    if(choice < 0)
+        lblChoice[0] = choice;
     else for (int i = 0; i < lblIdxSize; i++)
         lblChoice[i] = lblIndices[i];
 

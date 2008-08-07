@@ -87,16 +87,10 @@
     #define M_PI_2 1.5707963
 #endif
 
-#ifdef R3B
 #define MY_NONE -1
-#define MY_HALF -2
-#define MY_SPEC -3
-#else
-#define MY_NONE -3
 #define MY_SPEC -2
-#define MY_HALF -1
-#define MY_ALL  0
-#endif
+#define MY_HALF -3
+#define MY_ALL -4
 
 #define SOLUTION 0
 #define BIFURCATION 1
