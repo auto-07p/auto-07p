@@ -582,7 +582,7 @@ MainWindow::optMenuDisplay()
 {
     EditMenuItems *menuItems = optMenuItems;
 
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         menuItems->items->setItemChecked(i, (graphWidgetToggleSet & (1<<i)) != 0);
     }
@@ -1511,14 +1511,14 @@ MainWindow::createGraphStyleFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphStyleWidgetToggledCB(int)));
-    for (int i = 0; i < LENGTH (graphStyleItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphStyleItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphStyleItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichStyle == i) w->setChecked(true);
+        if (whichStyle == (int)i) w->setChecked(true);
     }
 }
 
@@ -1568,14 +1568,14 @@ MainWindow::createGraphTypeFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphTypeWidgetToggledCB(int)));
-    for (int i = 0; i < LENGTH (graphTypeItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphTypeItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphTypeItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichType == i) w->setChecked(true);
+        if (whichType == (int)i) w->setChecked(true);
     }
 }
 
@@ -1614,7 +1614,7 @@ MainWindow::createOptionFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(defaultGraphWidgetToggledCB(int)));
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         graphWidgetToggleSetOld = graphWidgetToggleSet;
         graphWidgetToggleSetTemp= graphWidgetToggleSet;
@@ -1657,14 +1657,14 @@ MainWindow::createGraphCoordPartsFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphCoordWidgetToggledCB(int)));
-    for (int i = 0; i < LENGTH (coordItems); i++)
+    for (unsigned i = 0; i < LENGTH (coordItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichCoord == (unsigned long)i) w->setChecked(true);
+        if (whichCoord == (int)i) w->setChecked(true);
     }
 }
 
@@ -1688,7 +1688,7 @@ MainWindow::createPreferDefaultPages(QWidget *parent)
     };
 
     QVBoxLayout *layout = new QVBoxLayout(parent);
-    for(int i=0; i<LENGTH(frmNames); ++i) {
+    for(unsigned i=0; i<LENGTH(frmNames); ++i) {
 #if QT_VERSION >= 0x40000
         frameList[i] = new QGroupBox(frmNames[i], parent);
 #else
@@ -1719,7 +1719,7 @@ MainWindow::createLineAttPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    const char *tabName[] = { "Line Attributes", "Other Preferences" };
+    //const char *tabName[] = { "Line Attributes", "Other Preferences" };
     const char *names[] =
     {
         "DEFAULTS", "BP (ALG)", "LP (ALG)",
@@ -1842,7 +1842,7 @@ MainWindow::closePreferDialogAndGiveUpChange()
 // cancel the selections and recover the original values.
     graphWidgetToggleSetTemp = graphWidgetToggleSetOld;
     graphWidgetToggleSet     = graphWidgetToggleSetOld;
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetOld & (1<<i)) ? true : false;
     }
@@ -1893,7 +1893,7 @@ MainWindow::closePreferDialogAndUpdateScene()
 
     graphWidgetToggleSet    = graphWidgetToggleSetTemp;
     graphWidgetToggleSetOld = graphWidgetToggleSetTemp;
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }
@@ -1944,7 +1944,7 @@ MainWindow::savePreferAndUpdateScene()
 
     graphWidgetToggleSet    = graphWidgetToggleSetTemp;
     graphWidgetToggleSetOld = graphWidgetToggleSetTemp;
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }
@@ -1988,7 +1988,7 @@ MainWindow::applyPreferDialogChangeAndUpdateScene()
     coordMenuItems->which        = whichCoordTemp;
 
     graphWidgetToggleSet = graphWidgetToggleSetTemp;
-    for (int i = 0; i < LENGTH (graphWidgetItems); i++)
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }

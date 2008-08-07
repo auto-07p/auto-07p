@@ -103,7 +103,7 @@ char bFileName[256];
 char dFileName[256];
 
 solutionp solHead = NULL;
-long int animationLabel = 0;
+long int animationLabel = MY_ALL;
 int maxComponent = 1;
 int curComponent = 1;
 
@@ -177,90 +177,86 @@ int myLabels[MAX_LABEL+SP_LBL_ITEMS];
 //  Function prototypes
 //
 
-SoSeparator * drawAStrip(float stripSet[][3], int size);
-SoSeparator * drawATube(TubeNode cnode);
-SoSeparator * drawASphere(float ptb[], float size);
-SoSeparator * MyFileRead(const char *filename, SbString &errorMessage);
-void setLegendValues(double* values);
-
-void lookForThePoint(float position[],long int &bIdx, long int &sIdx);
-
-SoSeparator * createStarryBackground(int total,float diameter);
-SoGroup * setLineAttributesByStability(int stability, float scaler);
-SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stab, float scaler);
-SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
-SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
-SoGroup * setLineAttributesByType(int stability, int type, float scaler);
-SoGroup * setLineColorBlending(float * vertices, long int size, int stability, int type, float scaler);
-
-SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
-SoSeparator * createLegend(SbVec3f pos, double val[5]);
-SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
-SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
-SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
-SoSeparator * addLegend();
-
-SoSeparator * createSolutionSceneWithWidgets();
-#ifdef R3B
-SoSeparator * createSolutionInertialFrameScene(float dis);
+static SoSeparator * drawAStrip(float stripSet[][3], int size);
+static SoSeparator * drawASphere(float ptb[], float size);
+#if 0
+static SoSeparator * drawATube(TubeNode cnode);
+static SoSeparator * MyFileRead(const char *filename, SbString &errorMessage);
 #endif
-SoSeparator * createBifurcationScene();
-SoSeparator * renderSolution();
-SoSeparator * renderBifurcation();
-SoSeparator * animateSolutionUsingTubes(bool aniColoring);
-SoSeparator * animateSolutionUsingLines(bool aniColoring);
-SoSeparator * animateSolutionUsingPoints(int style, bool aniColoring);
+static void setLegendValues(double* values);
+
+static void lookForThePoint(float position[],long int &bIdx, long int &sIdx);
+
+#if 0
+static SoSeparator * createStarryBackground(int total,float diameter);
+#endif
+static SoGroup * setLineAttributesByStability(int stability, float scaler);
+static SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stab, float scaler);
+static SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
+static SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
+static SoGroup * setLineAttributesByType(int stability, int type, float scaler);
+static SoGroup * setLineColorBlending(float * vertices, long int size, int stability, int type, float scaler);
+
+static SoSeparator * addLegend();
+
+static SoSeparator * createSolutionSceneWithWidgets();
 #ifdef R3B
-SoSeparator * animateOrbitCalSteps(long int n,long int si);
+static SoSeparator * createSolutionInertialFrameScene(float dis);
+#endif
+static SoSeparator * createBifurcationScene();
+static SoSeparator * renderSolution();
+static SoSeparator * renderBifurcation();
+static SoSeparator * animateSolutionUsingTubes(bool aniColoring);
+static SoSeparator * animateSolutionUsingLines(bool aniColoring);
+static SoSeparator * animateSolutionUsingPoints(int style, bool aniColoring);
+#ifdef R3B
+static SoSeparator * animateOrbitCalSteps(long int n,long int si);
 #endif
 #if 0
-SoSeparator * animateIner2(long int j, long int si);
+static SoSeparator * animateIner2(long int j, long int si);
+static SoSeparator * animateOrbitMovement(long int n, long int si);
 #endif
-SoSeparator * animateOrbitMovement(long int n, long int si);
-SoSeparator * animateOrbitWithTail(int iBranch, long int j,long  int si);
+static SoSeparator * animateOrbitWithTail(int iBranch, long int j,long  int si);
 #ifdef R3B
-SoSeparator * animateOrbitWithNurbsCurveTail(long int j,long int si);
+static SoSeparator * animateOrbitWithNurbsCurveTail(long int j,long int si);
 #endif
-SoSeparator * drawAnOrbitUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type, bool coloring);
-SoSeparator * drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si, float scaler, int stability, int type, bool aniColoring);
-SoSeparator * drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, int stability, int type);
-SoSeparator * drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int stability, int type);
-SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type);
-SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawAnOrbitUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type, bool coloring);
+static SoSeparator * drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si, float scaler, int stability, int type, bool aniColoring);
+static SoSeparator * drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler, int stability, int type);
 #if 0
-SoSeparator * drawABifLabelInterval(long int l, long int si, float scaler, int stability, int type);
-SoSeparator * drawABifLabelIntervalUsingNurbsCurve(long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawABifLabelInterval(long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawABifLabelIntervalUsingNurbsCurve(long int l, long int si, float scaler, int stability, int type);
 #endif
 #ifdef R3B
-SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
-SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
-SoSeparator * drawEarthMovement(int k);
+static SoSeparator * drawEarthMovement(int k);
 #endif
-SoSeparator * drawASphereWithColor(float color[], float position[], float size);
-SoSeparator * drawASolBranchUsingSurface(long obStart, long obEnd, long numVert);
-#ifdef R3B
-void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,
-float bigPosition[], float smallPosition[], float velocity[]);
+#if 0
+static SoSeparator * drawASphereWithColor(float color[], float position[], float size);
 #endif
+static SoSeparator * drawASolBranchUsingSurface(long obStart, long obEnd, long numVert);
 
-SoSeparator * createAxis(float red, float green, float blue);
-SoMaterial  * setLabelMaterial(int lblType);
-SoSeparator * drawStarryBackground(char * bgFileName);
+static SoMaterial  * setLabelMaterial(int lblType);
+static SoSeparator * drawStarryBackground(char * bgFileName);
 
 #ifdef R3B
-SoSeparator * inertialSystemAnimation(int coordSys, SolNode mySolNode, \
+static SoSeparator * inertialSystemAnimation(int coordSys, SolNode mySolNode, \
 float numAnimatedPeriod, int kth, int idx, float mass, \
 float distance, float sPrimPeriod, float  gravity);
 
 #endif
 int readResourceParameters();
-void copySolDataToWorkArray(int varIndices[]);
+static void copySolDataToWorkArray(int varIndices[]);
 #ifndef R3B
-void searchForMaxMin(int component, int  varIndices[]);
+static void searchForMaxMin(int component, int  varIndices[]);
 #endif
-void copyBifDataToWorkArray(int varIndices[]);
+static void copyBifDataToWorkArray(int varIndices[]);
 
+#if 0
 static void processPrinting(char* filename );
+#endif
 
 extern char * strrighttrim(char*);
 extern char * strlefttrim(char*);
@@ -281,7 +277,6 @@ cropScene(const char* filename)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char command[100];
     system("import my_temp.gif");
     system("convert -crop 1024x768 my_temp.gif my_temp_cropped.gif");
     system("convert my_temp_cropped.gif my_temp.eps");
@@ -306,6 +301,7 @@ writeToFile(const char * fileName)
 }
 
 
+#if 0
 ////////////////////////////////////////////////////////////////////////
 //
 static void
@@ -329,6 +325,7 @@ processPrinting(char* filename )
     printf("  ...done printing.\n");
     fflush(stdout);
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -458,10 +455,6 @@ createSolutionSceneWithWidgets()
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 {
-    float dis = max(max((mySolNode.max[0]-mySolNode.min[0]),
-        (mySolNode.max[1]-mySolNode.min[1])),
-        (mySolNode.max[2]-mySolNode.min[2]));
-
     SoSeparator *result = new SoSeparator;
 
     if(options[OPT_NORMALIZE_DATA])
@@ -470,6 +463,9 @@ createSolutionSceneWithWidgets()
     }
 
 #ifdef R3B
+    float dis = max(max((mySolNode.max[0]-mySolNode.min[0]),
+                        (mySolNode.max[1]-mySolNode.min[1])),
+                    (mySolNode.max[2]-mySolNode.min[2]));
     if(whichCoordSystem != ROTATING_F)
     {
         if(options[OPT_REF_PLAN])
@@ -1373,10 +1369,6 @@ createBifurcationScene()
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    float dis = fabs(max(max((myBifNode.max[0]-myBifNode.min[0]),
-        (myBifNode.max[1]-myBifNode.min[1])),
-        (myBifNode.max[2]-myBifNode.min[2])));
-
     SoSeparator *result = new SoSeparator;
     result->ref();
 
@@ -1434,6 +1426,9 @@ createBifurcationScene()
     }
 
 #ifdef R3B
+    float dis = fabs(max(max((myBifNode.max[0]-myBifNode.min[0]),
+                             (myBifNode.max[1]-myBifNode.min[1])),
+                         (myBifNode.max[2]-myBifNode.min[2])));
     if(options[OPT_REF_PLAN])
     {
         float position[3];
@@ -1529,7 +1524,7 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     }
     labelTranslate->translation.setValue(x + xoffset, y + yoffset, z);
     char a[30];
-    sprintf(a, "%d", label);
+    sprintf(a, "%ld", label);
     labelMsg->string.setValue(a);
     result->addChild(labelTranslate);
     result->addChild(labelFont);
@@ -1825,7 +1820,6 @@ drawSolUsingTubes()
     int iBranch = 0;
     int curBranchID = mySolNode.branchID[iBranch];
     int sumOrbit    = mySolNode.numOrbitsInEachBranch[iBranch];
-    float scaler = 0.1;
 
     for(long int j=0; j<mySolNode.numOrbits; ++j)
     {
@@ -2147,7 +2141,6 @@ renderSolutionTubes()
 //////////////////////////////////////////////////////////////////////////
 {
     SoGroup * solGroup = new SoGroup;
-    SoCoordinate3 *solCoords = new SoCoordinate3;
 
 // draw every orbit by using giving tube thickness and color.
     if(animationLabel == MY_ALL)
@@ -2190,7 +2183,7 @@ renderSolutionTubes()
     if(options[OPT_PERIOD_ANI])
     {
         bool aniColoring;
-        aniColoring = (animationLabel == 0) ? false : true;
+        aniColoring = (animationLabel == MY_ALL) ? false : true;
         solGroup->addChild(animateSolutionUsingTubes(aniColoring));
     }
     return solGroup;
@@ -2267,7 +2260,6 @@ renderSolutionPoints(int style)
 //////////////////////////////////////////////////////////////////////////
 {
     SoGroup       *solGroup  = new SoGroup;
-    SoCoordinate3 *solCoords = new SoCoordinate3;
 
     if(animationLabel == MY_ALL)
     {
@@ -2326,7 +2318,7 @@ renderSolutionPoints(int style)
     if(options[OPT_PERIOD_ANI])
     {
         bool coloring;
-        coloring = (animationLabel == 0) ? false : true;
+        coloring = (animationLabel == MY_ALL) ? false : true;
         solGroup->addChild(animateSolutionUsingPoints(style, coloring));
     }
 
@@ -2344,7 +2336,6 @@ renderSolutionLines()
 //////////////////////////////////////////////////////////////////////////
 {
     SoGroup       *solGroup  = new SoGroup;
-    SoCoordinate3 *solCoords = new SoCoordinate3;
 
     if(animationLabel == MY_ALL)
     {
@@ -2404,7 +2395,7 @@ renderSolutionLines()
     if(options[OPT_PERIOD_ANI])
     {
         bool coloring;
-        coloring = (animationLabel == 0) ? false : true;
+        coloring = (animationLabel == MY_ALL) ? false : true;
         solGroup->addChild(animateSolutionUsingLines(coloring));
     }
 
@@ -2422,8 +2413,6 @@ renderSolutionNurbsCurve()
 //////////////////////////////////////////////////////////////////////////
 {
     SoGroup * solGroup = new SoGroup;
-
-    SoCoordinate3 *solCoords = new SoCoordinate3;
 
     if(animationLabel == MY_ALL)
     {
@@ -2479,7 +2468,7 @@ renderSolutionNurbsCurve()
 
     if(options[OPT_PERIOD_ANI])
     {
-        bool coloring = (animationLabel == 0) ? true : false;
+        bool coloring = (animationLabel == MY_ALL) ? true : false;
         solGroup->addChild(animateSolutionUsingLines(coloring));
     }
     return solGroup;
@@ -2606,7 +2595,6 @@ renderSolution()
     SoSeparator *solSep = new SoSeparator;
     SoGroup *solGroup = new SoGroup;
 
-    SoCoordinate3 *solCoords = new SoCoordinate3;
     if(whichStyle==TUBE)
     {
         solGroup->addChild(renderSolutionTubes());
@@ -2811,8 +2799,7 @@ animateIner2(long int lblJ,long int si)
 }
 #endif
 
-
-//////////////////////////////// START \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ 
+//////////////////////////////// START ///////////////////////////////
 //
 // draw a strip by giving the stripset
 SoSeparator *
@@ -3165,7 +3152,8 @@ setLineColorBlending(float * vertices, long int size, int stability, int type, f
     }
 
     if( whichType == SOLUTION &&
-        (coloringMethod != CL_POINT_NUMBER && animationLabel == 0 || options[OPT_PERIOD_ANI] ))
+        (coloringMethod != CL_POINT_NUMBER && 
+         (animationLabel == MY_ALL || options[OPT_PERIOD_ANI]) ))
     {
         legendScaleValues[0]= minValue = clientData.solMin[coloringMethod];
         legendScaleValues[1]= maxValue = clientData.solMax[coloringMethod];
@@ -3534,7 +3522,6 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         return anOrbit;
     }
 
-    int32_t  myint[10];
     float (*vertices)[3] = new float[numVertices][3];
     float *colorBase = new float[numVertices];
 
@@ -3690,14 +3677,12 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //
 //////////////////////////////////////////////////////////////////////////
 {
-//int32_t  myint[10];
     float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0 ;
     int32_t  myint[10];
 
     SoSeparator * anOrbit = new SoSeparator;
-    long int sumX = 0;
     long int numVertices = mySolNode.numVerticesEachPeriod[l];
     if(numVertices == 1)
     {
@@ -4227,8 +4212,8 @@ animateSolutionUsingTubes(bool aniColoring)
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
 
             SoTransform * aTrans = new SoTransform;
-            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], \
-                                         mySolNode.xyzCoords[idx][1], \
+            aTrans->translation.setValue(mySolNode.xyzCoords[idx][0],
+                                         mySolNode.xyzCoords[idx][1],
                                          mySolNode.xyzCoords[idx][2]);
             ptSep->addChild(aTrans);
             ptSep->addChild(aPoint);
@@ -4316,6 +4301,7 @@ animateSolutionUsingTubes(bool aniColoring)
 }
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
@@ -4325,12 +4311,12 @@ drawATube(TubeNode cnode)
 {
     SoSeparator *tSep = new SoSeparator;
     SoTransform *tXform = new SoTransform;
-    tXform->translation.setValue(cnode.translation.x,\
-        cnode.translation.y,\
+    tXform->translation.setValue(cnode.translation.x,
+        cnode.translation.y,
         cnode.translation.z);
-    tXform->rotation.setValue(SbVec3f(cnode.axis.x,\
-        cnode.axis.y,\
-        cnode.axis.z),\
+    tXform->rotation.setValue(SbVec3f(cnode.axis.x,
+        cnode.axis.y,
+        cnode.axis.z),
         cnode.angle);
     SoCylinder *tCyl = new SoCylinder;
     tCyl->radius = 0.005;
@@ -4341,6 +4327,7 @@ drawATube(TubeNode cnode)
     tSep->addChild(tCyl);
     return tSep;
 }
+#endif
 
 
 #ifdef R3B
@@ -4520,10 +4507,6 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
-#ifndef R3B
-   
-    SoSeparator *aniSep = new SoSeparator;
-#endif
     SoSeparator *satGroup = new SoSeparator;
 
     float distance = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
@@ -4770,13 +4753,14 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     myLine->numVertices.connectFrom(&myCounter->output);
     satGroup->addChild(myLine);
 
+#ifdef R3B
     SoMaterial * satMtl = new SoMaterial;
+#endif
     SoSphere * mySat = new SoSphere;
     mySat->radius = satRadius*dis*0.005;
 
 
     SoTranslation * satTrans = new SoTranslation;
-//    satMtl->diffuseColor.setValue(envColors[7]);
 #ifdef R3B
     satMtl->diffuseColor.setValue(envColors[7]);
 #endif
@@ -4817,6 +4801,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 }
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 //   Using a red sphere to simulate the movement of a sattelite.
@@ -4826,7 +4811,7 @@ animateOrbitMovement(long int j, long int si)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
-    float ptb[3], pts[4][3];
+    float ptb[3];
     SoSeparator *satGroup = new SoSeparator;
 
     SoMaterial *satMtl = new SoMaterial;
@@ -4837,7 +4822,6 @@ animateOrbitMovement(long int j, long int si)
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
 
-    SoSeparator * satSep = new SoSeparator;
     SoBlinker *satBlker = new SoBlinker;
 
     int upperlimit = mySolNode.numVerticesEachPeriod[j];
@@ -4894,6 +4878,7 @@ animateOrbitMovement(long int j, long int si)
     satGroup->addChild(satBlker);
     return satGroup;
 }
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -4949,6 +4934,7 @@ drawASphere(float position[], float size)
 }
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
@@ -4973,6 +4959,7 @@ drawASphereWithColor(float color[], float position[], float size)
 
     return satSep;
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -5076,7 +5063,6 @@ copySolDataToWorkArray(int  varIndices[])
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    double mx, mi;
     for(int k=0; k<3; k++)
     {
         for(long int row=0; row<mySolNode.totalNumPoints; ++row)
@@ -5096,11 +5082,16 @@ copySolDataToWorkArray(int  varIndices[])
             else if(varIndices[k]<0)
             {
                 mySolNode.xyzCoords[row][k]=0.0;
+#ifndef R3B
 //                mySolNode.max[k]= 1;
 //                mySolNode.min[k]=-1;
-#ifndef R3B
+#else
+                mySolNode.max[k]= 1;
+                mySolNode.min[k]=-1;
+#endif
             }
         }
+#ifndef R3B
 /*
         mx = mySolNode.max[k];
         mi = mySolNode.min[k];
@@ -5108,9 +5099,17 @@ copySolDataToWorkArray(int  varIndices[])
         mySolNode.max[k] = mx;
         mySolNode.min[k] = mi;
 */
+#else
+        double mx = mySolNode.max[k];
+        double mi = mySolNode.min[k];
+        rounding(mx, mi);
+        mySolNode.max[k] = mx;
+        mySolNode.min[k] = mi;
+#endif
     }
 }
 
+#ifndef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //
@@ -5135,7 +5134,6 @@ searchForMaxMin(int component, int  varIndices[])
             }
             else if(varIndices[k]<0)
             {
-#endif
                 mySolNode.max[k]= 1;
                 mySolNode.min[k]=-1;
             }
@@ -5147,6 +5145,7 @@ searchForMaxMin(int component, int  varIndices[])
         mySolNode.min[k] = mi;
     }
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -5214,7 +5213,7 @@ initPara()
         }
     }
     solHead = NULL;
-    animationLabel = 0;
+    animationLabel = MY_ALL;
     orbitSpeed = 1.0;
     satSpeed   = 0.5;
 }
@@ -5236,6 +5235,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
     long int index = 0;
     long int ib = 0;
     float distance;
+    sIdx = bIdx = 0;
     for(int i=0; i<mx; i++)
     {
         varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
@@ -5245,7 +5245,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         long int lblidx = lblIndices[0];
         if(whichType != BIFURCATION)
         {
-            if(animationLabel == 0 || lblIdxSize >1)
+            if(animationLabel == MY_ALL || lblIdxSize >1)
             {
                 float p1[3];
                 for(long int j=0; j<mySolNode.totalNumPoints; ++j)
@@ -5540,7 +5540,6 @@ initCoordAndLableListItems()
                 sprintf(coloringMethodList[i+sp], "%d",i);
         for(i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
         {
-            char tmpchar[5];
             sprintf(coloringMethodList[i], "PAR(%d)", mySolNode.parID[i-(mySolNode.nar+sp)]+1);
         }
     }
@@ -5878,15 +5877,11 @@ readResourceParameters()
     int state = 0;
 
     char buffer[256];
-    float lineColors[13][3];
     float aVector[3];
-    unsigned long linePatterns[13];
-    unsigned long stability;
     unsigned long aHex;
     char aString[256], *strTemp;
     char resource[256];
 
-    float data;
     FILE * inFile;
 
     strcpy(resource, autoDir);
@@ -5940,7 +5935,7 @@ readResourceParameters()
 
             if( !blDealt )
             {
-                for(int i = 0; i<XtNumber(graphWidgetItems); ++i)
+                for(unsigned i = 0; i<XtNumber(graphWidgetItems); ++i)
                 {
                     if(strcasecmp(strTemp, graphWidgetItems[i])==0)
                     {
@@ -5956,7 +5951,7 @@ readResourceParameters()
 
             if( !blDealt )
             {
-                for(int i = 0; i<XtNumber(blWidgetName); ++i)
+                for(unsigned i = 0; i<XtNumber(blWidgetName); ++i)
                 {
                     if(strcasecmp(strTemp, blWidgetName[i])==0)
                     {
@@ -5996,7 +5991,7 @@ readResourceParameters()
 
             if( !blDealt )
             {
-                for(int i = 0; i < XtNumber(intVariableNames) && (!blDealt); ++i)
+                for(unsigned i = 0; i < XtNumber(intVariableNames) && (!blDealt); ++i)
                 {
                     if(strcasecmp(strTemp, intVariableNames[i])==0)
                     {
@@ -6110,7 +6105,7 @@ readResourceParameters()
             {
                 int size = 3;
                 float colors[3];
-                for(int i = 0; i<XtNumber(nDataVarNames); ++i)
+                for(unsigned i = 0; i<XtNumber(nDataVarNames); ++i)
                 {
                     if(strcasecmp(strTemp, nDataVarNames[i])==0)
                     {
@@ -6154,7 +6149,7 @@ readResourceParameters()
 
             if(!blDealt)
             {
-                for(int i = 0; i < XtNumber(axesNames) && (!blDealt); ++i)
+                for(unsigned i = 0; i < XtNumber(axesNames) && (!blDealt); ++i)
                 {
                     if(strcasecmp(strTemp, axesNames[i]) == 0)
                     {
@@ -6230,7 +6225,7 @@ initTempVariables()
 /////////////////////////////////////////////////////////////////////
 {
     graphWidgetToggleSet = 0;
-    for(int i = 0; i<XtNumber (graphWidgetItems); ++i)
+    for(unsigned i = 0; i<XtNumber (graphWidgetItems); ++i)
     {
         if(options[i]) graphWidgetToggleSet |= (1 << i);
         optionsOld[i] = options[i];
@@ -6311,7 +6306,7 @@ setVariableDefaultValues()
     stabilityLinePattern[1]   = 0xffff;
 
 // set options.
-    for(int i = 0; i < sizeof(options); ++i)
+    for(unsigned i = 0; i < sizeof(options); ++i)
         options[i] = false;
 
 #ifndef R3B
@@ -6364,7 +6359,7 @@ setVariableDefaultValues()
     setShow3D         = true;
 #endif
     solHead           = NULL;
-    animationLabel    = 0;
+    animationLabel    = MY_ALL;
     orbitSpeed        = 1.0;
 #ifndef R3B
     satSpeed          = 0.5;
@@ -6406,7 +6401,7 @@ setVariableDefaultValues()
     char * buf;
     if((buf=getenv("AUTO_DIR")) != NULL)
     {
-       for(int il = 0; il < strlen(buf); ++il)
+       for(unsigned il = 0; il < strlen(buf); ++il)
           autoDir[il] = buf[il];
     }
     else
@@ -6438,9 +6433,6 @@ main(int argc, char *argv[])
 // not as accurate as the one read from the s.xxx file
 // so the mu read from command line is not important in general. It can be used
 // only if the s.xxx file does not exist or the system fails to read it.
-
-    FILE *inFile;
-    int  total, rows;
 
     strcpy(sFileName,"fort.8");
     strcpy(bFileName,"fort.7");
@@ -6601,15 +6593,6 @@ writePreferValuesToFile()
 {
     int state = 0;
 
-    char buffer[256];
-    float lineColors[13][3];
-    float aVector[3];
-    unsigned long linePatterns[13];
-    unsigned long stability;
-    unsigned long aHex;
-    char aString[256], *strTemp;
-
-    float data;
     FILE * outFile;
 #ifndef R3B
     outFile = fopen("plaut04.rc.out", "w");
@@ -6631,7 +6614,7 @@ writePreferValuesToFile()
 // write header
     fprintf(outFile,"#version 0.0\n\n");
     fprintf(outFile,"# Line colors are represented by RGB values from 0 to 1.0.\n");
-    fprintf(outFile,"# DEFAULT color is also used when animationLabel == 0, i.e.,\n");
+    fprintf(outFile,"# DEFAULT color is also used when animationLabel == MY_ALL, i.e.,\n");
     fprintf(outFile,"# when showing all solutions and highlighting the solutions changes.\n");
     fprintf(outFile,"# Point Type         RED  GREEN  BLUE\n");
 
@@ -6649,13 +6632,13 @@ writePreferValuesToFile()
     }
 
     fprintf(outFile, "\n#  Initialize the default options\n");
-    for(int i = 0; i<XtNumber(graphWidgetItems); ++i)
+    for(unsigned i = 0; i<XtNumber(graphWidgetItems); ++i)
     {
         fprintf(outFile, "%-21.21s = ",graphWidgetItems[i]);
         options[i] ? fprintf(outFile, " Yes\n") : fprintf(outFile, " No\n");
     }
 
-    for(int i = 0; i < XtNumber(intVariableNames); ++i)
+    for(unsigned i = 0; i < XtNumber(intVariableNames); ++i)
     {
         switch (i)
         {
@@ -6811,7 +6794,7 @@ writePreferValuesToFile()
         }
     }
 
-    for(int i = 0; i<XtNumber(nDataVarNames); ++i)
+    for(unsigned i = 0; i<XtNumber(nDataVarNames); ++i)
     {
         switch ( i ){
             case 0 :
@@ -6934,7 +6917,7 @@ writePreferValuesToFile()
     return state;
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
@@ -6948,7 +6931,6 @@ createStarryBackground(int total, float diameter)
     {
         starsCreated = true;
         srand(time(NULL));
-        float div = floor(diameter);
         SoSphere * star = new SoSphere;
         star->radius = 0.002*(rand()%5+1);
         float x, y, z;
@@ -6968,7 +6950,7 @@ createStarryBackground(int total, float diameter)
     myBg->unrefNoDelete();
     return myBg;
 }
-
+#endif
 
 
 
@@ -6998,7 +6980,6 @@ parseFileName(const char *fname,char * sFileName, char * bFileName, char * dFile
 ////////////////////////////////////////////////////////////////////////
 {
     char * path;
-    char * name;
     char * filename = strdup(fname);
     char myName[256];
     char myPath[256];
@@ -7039,10 +7020,7 @@ readFile(const char *filename)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    SbBool hadNoChildren = (root->getNumChildren() == 0);
-
     SbString errorMessage;
-    SoSeparator *sep ;
 
     postDeals();
     parseFileName(filename, sFileName, bFileName, dFileName);
@@ -7067,6 +7045,7 @@ readFile(const char *filename)
 }
 
 
+#if 0
 /////////////////////////////////////////////////////////////////////////////////
 //
 static FILE *
@@ -7109,8 +7088,7 @@ MyFileRead(const char *filename, SbString &errorMessage)
 /////////////////////////////////////////////////////////////////////////////
 {
     SoInput in;
-    SbBool needToClosePipe = FALSE;
-    FILE *ivDataPipe;
+    FILE *ivDataPipe = NULL;
 
     if (0 != access(filename, R_OK))
     {
@@ -7138,7 +7116,6 @@ MyFileRead(const char *filename, SbString &errorMessage)
         if ((ivDataPipe = convertToInventor(filename)) != NULL)
         {
             in.setFilePointer(ivDataPipe);
-            needToClosePipe = TRUE;
         }
         else
         {
@@ -7167,9 +7144,11 @@ MyFileRead(const char *filename, SbString &errorMessage)
     }
 
     in.closeFile();
-    if (TRUE == needToClosePipe)
+    if (ivDataPipe != NULL)
     {
         fclose(ivDataPipe);
     }
     return sep;
 }
+#endif
+

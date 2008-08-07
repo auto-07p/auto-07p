@@ -292,8 +292,17 @@ void toInertialFrame(int , SolNode);
 
 SoSeparator * createAxis(float red, float green, float blue);
 SoSeparator * drawCoords(int where, float pos[], SbVec3f colors[], float height); //in/SolNode& mySolNode);
+SoSeparator * createLegend(SbVec3f pos, double val[5]);
+SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
+SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
+SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
+SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
 #ifdef R3B
+SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
+SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
 SoSeparator * createDisk(float where[], float scaler);
+void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,
+float bigPosition[], float smallPosition[], float velocity[]);
  
 /************************************************************************
 //
@@ -308,10 +317,7 @@ typedef struct EditMenuItems {
 #endif
 
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
-SoSeparator * createBifurcationScene();///in/SolNode& mySolNode)//float (*xyzCoords)[3])
 SoSeparator * createDisk();
-SoSeparator * renderSolution();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
-SoSeparator * renderBifurcation(); //BifNode &myBifNode)// float (*xyzCoords)[3])
 
 struct DefaultAxisItems
 {

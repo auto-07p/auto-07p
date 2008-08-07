@@ -188,7 +188,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     {
 // read all the data set to the dynamic array.
                         char dummystr[25];
-                        fscanf(inFile,"%*^[0123456789.EeDd+-]");
                         fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
                         dummy=fortranatof(dummystr);
                         clientData.solData[row][j]=dummy;
@@ -216,7 +215,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     {
                         char dummystr[25];
                         fscanf(inFile,"%f",&dummy);
-                        fscanf(inFile,"%*^[0123456789.EeDd+-]");
                         fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
                         dummy=fortranatof(dummystr);
                         if(dummy != 0)
@@ -272,7 +270,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
     if(whichCoordSystem != ROTATING_F)
     {
-        float r[3],v[3];
+        float r[3] = {0.0,0.0,0.0};
         int center = 0;
         if(whichCoordSystem == INERTIAL_B) center = 0;
         if(whichCoordSystem == INERTIAL_S) center = 1;
