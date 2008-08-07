@@ -6,7 +6,7 @@ OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o createDisk.
         ../stringtrim.o \
         printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
         ../createCoords.o ../axis.o ../createLegend.o gmain.o @SOXT_OBJS_R3B@ \
-	../rounding.o
+	../rounding.o gmainr3b.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
@@ -36,5 +36,6 @@ clean:
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h Makefile
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
+gmainr3b.o: $(INC)/gplaut04.h
 printToPS.o: Makefile
 toInertialFrame.o: $(INC)/gplaut04.h

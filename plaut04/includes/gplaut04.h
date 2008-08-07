@@ -289,7 +289,11 @@ void normalizeBifData();//BifNode);
 void toInertialFrame(int , SolNode);
 #endif
 
-
+SoGroup * setLineAttributesByStability(int stability, float scaler);
+SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
+SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
+SoGroup * setLineAttributesByType(int stability, int type, float scaler);
+SoGroup * setLineColorBlending(float * vertices, long int size, int stability, int type, float scaler);
 SoSeparator * createAxis(float red, float green, float blue);
 SoSeparator * drawCoords(int where, float pos[], SbVec3f colors[], float height); //in/SolNode& mySolNode);
 SoSeparator * createLegend(SbVec3f pos, double val[5]);
@@ -297,13 +301,21 @@ SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
 SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
+SoSeparator * drawASphere(float ptb[], float size);
 #ifdef R3B
+SoSeparator * createSolutionInertialFrameScene(float dis);
 SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
 SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
 SoSeparator * createDisk(float where[], float scaler);
 void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,
 float bigPosition[], float smallPosition[], float velocity[]);
  
+extern float libPtMax[3], libPtMin[3];
+extern float libPtScaler, smallPrimRadius, largePrimRadius, diskTransparency;
+extern double mass;
+extern int numOfStars;
+extern bool diskFromFile;
+
 /************************************************************************
 //
 //  The edit menu has radio buttons. Rather than use the radio
@@ -373,7 +385,11 @@ extern char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
 extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
 extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
+extern float satRadius, aniLineScaler;
+extern solutionp solHead;
 extern char labels[MAX_LABEL][8];
+extern long int animationLabel;
+extern char autoDir[256];
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 #ifndef R3B
 extern const char * graphWidgetItems[7];
