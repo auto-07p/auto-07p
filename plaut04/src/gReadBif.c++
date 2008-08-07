@@ -65,9 +65,6 @@ readBifurcation(const char *bFileName, int varIndices[])
                 numPtsInThisBranch = 0;
             }
             ++numPtsInThisBranch;
-#ifndef R3B
-            ++totalPoints;
-#endif
 
             // set the stability of the point
             lbType = (int)data[2];
@@ -97,19 +94,11 @@ readBifurcation(const char *bFileName, int varIndices[])
             for(int i=0; i<ic-4; i++)
             {
                 dummy = data[i+4];
-#ifndef R3B
-                clientData.bifData[totalPoints-1][i] = dummy;
-#else
                 clientData.bifData[totalPoints][i] = dummy;
-#endif
             }
 
-#ifdef R3B
             myBifNode.ptStability[totalPoints] = lbStability;
             ++totalPoints;
-#else
-            myBifNode.ptStability[totalPoints-1] = lbStability;
-#endif
         }
     }
 

@@ -1554,9 +1554,6 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     }
     labelTranslate->translation.setValue(x + xoffset, y + yoffset, z);
     char a[30];
-#ifdef R3B
-    label--;
-#endif
     sprintf(a, "%d", label);
     labelMsg->string.setValue(a);
     result->addChild(labelTranslate);
@@ -1588,11 +1585,7 @@ drawLabelPtsInBifurcationScene()
         do
         {
             SoMaterial *lblMtl;
-#ifndef R3B
-            row = clientData.labelIndex[k][1] - 1;
-#else
             row = clientData.labelIndex[k][1];
-#endif
             lbType = clientData.labelIndex[k][2];
     
             lblMtl = setLabelMaterial(lbType);
@@ -1621,11 +1614,7 @@ drawLabelPtsInBifurcationScene()
             SoMaterial *lblMtl;
 
             int k = lblIndices[i]-1;
-#ifndef R3B
-            row = clientData.labelIndex[k][1] -1;
-#else
             row = clientData.labelIndex[k][1];
-#endif
             lbType = clientData.labelIndex[k][2];
 
             lblMtl = setLabelMaterial(lbType);

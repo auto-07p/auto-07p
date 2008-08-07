@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = readBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o createDisk.o \
+OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o createDisk.o \
         createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
         ../stringtrim.o \
         printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
@@ -21,9 +21,6 @@ LIBS=$(DEPS_LIBS)
 @top_srcdir@/bin/r3bplaut04: $(OBJS)
 	$(CXX) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-readBif.o: ../gReadBif.c++
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
-
 gmain.o: ../gmain.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
@@ -40,5 +37,4 @@ gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h Makefile
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
 printToPS.o: Makefile
-readBif.o: $(INC)/gplaut04.h
 toInertialFrame.o: $(INC)/gplaut04.h

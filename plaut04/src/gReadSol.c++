@@ -166,7 +166,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
              lbStability = ((ntot>0) ? 3 : 4);
         }
 
-        clientData.labelIndex[counter+1][3] = lbStability;
+        clientData.labelIndex[counter][3] = lbStability;
 
         if( ntpl != 0) 
         {
