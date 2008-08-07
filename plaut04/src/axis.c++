@@ -51,6 +51,7 @@ Axis::Axis(int ty, double mxValue, double miValue, int numTickers,
 //
 //////////////////////////////////////////////////////////////
 {
+    show3D = false;
     set(ty, mxValue, miValue, numTickers, aName, wh, clr);
 }
 
