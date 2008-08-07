@@ -358,8 +358,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         return 1
         
     def plotsol(self):
-        self.xaxs = 1
-        self.yaxs = 2
+        self.xaxs = [1]
+        self.yaxs = [2]
         
         self.handle.config(type = "solution")
         self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel)
@@ -370,8 +370,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 	while 1:
             its = 0
             print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
-            print ('  ENTER AXES  (DEFAULT %3d%3d),'\
-                   ' <D> (DISPLAY), OR <EX> (EXIT)'%(self.xaxs,self.yaxs))
+            axisstr = "%s %s"%(self.xaxs,self.yaxs)
+            axisstr = string.replace(axisstr,"[","")
+            axisstr = string.replace(axisstr,"]","")
+            axisstr = string.replace(axisstr,", ",",")
+            print ('  ENTER AXES  (DEFAULT %s),'\
+                   ' <D> (DISPLAY), OR <EX> (EXIT)'%axisstr)
             line = raw_input()
 	    lower = 0
             upper = 0
@@ -391,17 +395,24 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 self.enterlabels()
             else:
                 try:
-                    [self.xaxs,self.yaxs] = map(int,string.split(line))
-                    if self.xaxs == 1:
-                        xaxs = "t"
-                    else:
-                        xaxs = self.xaxs - 2
-                    if self.yaxs == 1:
-                        yaxs = "t"
-                    else:
-                        yaxs = self.yaxs - 2
-                    self["solution_x"] = [xaxs]
-                    self["solution_y"] = [yaxs]
+                    axislist = map(int,string.split(string.replace(line,
+                                                                   ","," ")))
+                    self.xaxs = axislist[:len(axislist)/2]
+                    self.yaxs = axislist[len(axislist)/2:]
+                    xaxs = []
+                    for x in self.xaxs:
+                        if x == 1:
+                            xaxs.append("t")
+                        else:
+                            xaxs.append(x-2)
+                    yaxs = []
+                    for y in self.yaxs:
+                        if y == 1:
+                            yaxs.append("t")
+                        else:
+                            yaxs.append(y-2)
+                    self["solution_x"] = xaxs
+                    self["solution_y"] = yaxs
                 except:
                     print "    INVALID COMMAND,  REENTER"
                 
