@@ -5006,9 +5006,6 @@ readSolutionAndBifurcationData(bool blFirstRead)
         clientData.bifData[ml]= new float [myBifNode.nar];
 
 
-    clientData.multipliers = new float[myBifNode.totalNumPoints][6][2];
-    clientData.eigenvalues = new bool[myBifNode.totalNumPoints];
-
     int varIndices[3];
 
     if( blOpenBifFile)
@@ -5479,7 +5476,10 @@ const SbVec2s &cursorPosition)
         fmData[2*ms+1] = clientData.multipliers[idix][ms][1];
     }
 
-    popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[idix]);
+    if (clientData.numFM > 0)
+        popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[idix]);
+    else
+        popupFloquetMultiplierDialog(data, size, false);
     delete [] data;
     return TRUE;
 }

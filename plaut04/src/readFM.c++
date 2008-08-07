@@ -27,25 +27,28 @@ readFM(const char* dFileName, const int size)
         return state;
     }
 
+    clientData.multipliers = new float[myBifNode.totalNumPoints][6][2];
+    clientData.eigenvalues = new bool[myBifNode.totalNumPoints];
+
     char * next;
 
-    long icounter = 2;
+    long icounter = 1;
     int rowi = 0;
     prevpoint = -1;
 
     while ( (next = fgets(buffer, sizeof(buffer), inFile)) != NULL
-        && icounter <= size)
+        && icounter < size)
     {
-        clientData.eigenvalues[icounter-1] =
+        clientData.eigenvalues[icounter] =
             strstr(buffer, "Eigenvalue") != NULL;
         if(strstr(buffer, "Multiplier") != NULL ||
-           clientData.eigenvalues[icounter-1])
+           clientData.eigenvalues[icounter])
         {
             rowi = 0;
             do
             {
                 int ret;
-                if(clientData.eigenvalues[icounter-1])
+                if(clientData.eigenvalues[icounter])
                     ret = sscanf(buffer, "%d%d Eigenvalue %d: %e%e",
                            &branch, &point, &myid, &fl1, &fl2);
                 else
@@ -59,8 +62,8 @@ readFM(const char* dFileName, const int size)
                 if (point == prevpoint && rowi == 0)
                     --icounter;
                 prevpoint = point;
-                clientData.multipliers[icounter-1][rowi][0] = fl1;
-                clientData.multipliers[icounter-1][rowi][1] = fl2;
+                clientData.multipliers[icounter][rowi][0] = fl1;
+                clientData.multipliers[icounter][rowi][1] = fl2;
                 rowi++;
                 clientData.numFM = (rowi>clientData.numFM ) ? rowi : clientData.numFM;
             }                 //end inner while
