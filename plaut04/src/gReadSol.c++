@@ -138,7 +138,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
     while(current != NULL)
     {
-        rewind(inFile);
         fseek(inFile,current->position,SEEK_SET);
 
         fscanf(inFile,"%d %d %d %d %d %d %d %d %d %d %d %d",\
@@ -188,7 +187,8 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     {
 // read all the data set to the dynamic array.
                         char dummystr[25];
-                        fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
+                        fscanf(inFile,"%*[ \t\n]");
+                        fscanf(inFile,"%24[^ \t\n]",dummystr);
                         dummy=fortranatof(dummystr);
                         clientData.solData[row][j]=dummy;
                         if(row == 0) clientData.solMax[j] = dummy;
@@ -201,7 +201,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     ++row;
                 }
 
-                if(ntst != 0 && ncol !=0 )
+		if(ntst != 0)
                 {
                     for(i=0; i<ntpl+2; ++i) fgets(line, sizeof(line), inFile);
                 }
@@ -214,8 +214,8 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     for(i=0; i<xCol; ++i)
                     {
                         char dummystr[25];
-                        fscanf(inFile,"%f",&dummy);
-                        fscanf(inFile,"%24[0123456789.EeDd+-]",dummystr);
+                        fscanf(inFile,"%*[ \t\n]");
+                        fscanf(inFile,"%24[^ \t\n]",dummystr);
                         dummy=fortranatof(dummystr);
                         if(dummy != 0)
                         {
