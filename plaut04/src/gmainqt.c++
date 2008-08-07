@@ -2217,11 +2217,7 @@ MainWindow::lblListCallBack(const QString &str)
         int j = 1;
         do
         {
-#ifdef R3B
-            if(abs(clientData.labelIndex[j][2])!= 4 || j%half == 0)
-#else
             if(abs(clientData.labelIndex[j-1][2])!= 4 || j%half == 0)
-#endif
                 lblIndices[i++] = j;
             j++;
         } while( j < numLabels-2 );
@@ -2232,15 +2228,8 @@ MainWindow::lblListCallBack(const QString &str)
         int j = 1;
         do
         {
-#ifndef R3B
             if(clientData.labelIndex[j-1][2] !=  TYPE_UZ  && clientData.labelIndex[j-1][2] != TYPE_RG
-            ) // &&
-            // clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
-#else
-            if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
-            &&
-                clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-#endif
+            && clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
                 lblIndices[i++] = j;
             j++;
         } while( j < numLabels-2 );

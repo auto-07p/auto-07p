@@ -1,3 +1,7 @@
+/* Allows reading in very large files */
+#define _LARGEFILE_SOURCE
+#define _FILE_OFFSET_BITS 64
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -82,16 +86,11 @@ readBifurcation(const char *bFileName, int varIndices[])
             {
                 myBifNode.numVerticesEachLabelInterval[totalLabels] = numPtInCurrentInterval;
                 numPtInCurrentInterval = 0;
-#ifdef R3B
-                totalLabels++;
-#endif
                 myBifNode.labels[totalLabels] = lb;
                 clientData.labelIndex[totalLabels][1] = totalPoints;
                 clientData.labelIndex[totalLabels][2] = lbType;
                 clientData.labelIndex[totalLabels][3] = lbStability;
-#ifndef R3B
                 totalLabels++;
-#endif
             }
 
             maxColSize=(maxColSize>ic) ? maxColSize : ic;
@@ -154,13 +153,6 @@ readBifurcation(const char *bFileName, int varIndices[])
     cout <<"======================================"<<endl;
 #endif
 
-#ifdef R3B
-    myBifNode.nar = maxColSize-4;
-    myBifNode.totalNumPoints = totalPoints;
-                                                  //-1;
-    myBifNode.numVerticesEachBranch[numBranches-1]=numPtsInThisBranch;
-#endif
-
     fclose(inFile);
     return true;
 }
@@ -176,7 +168,6 @@ parseBifurcation(const char *bFileName)
 ////////////////////////////////////////////////////////////////////
 {
     char line[MAX_LINE];
-    int  branch;
 
     FILE * inFile;
     inFile = fopen(bFileName, "r");
@@ -186,78 +177,30 @@ parseBifurcation(const char *bFileName)
         return false;
     }
 
-#ifdef R3B
-    int numBranches = 0;
-#endif
     long int totalPoints = 0;
-#ifdef R3B
-    long int numPtsInThisBranch = 0;
-    long int last = 0;
-#endif
     int maxColSize = 0;
 
     while(fgets(line, sizeof(line), inFile) !=NULL)
     {
-        sscanf(line,"%d", &branch);
-        int ic = 0;
-        float data[100];
-        if(branch != 0)
+        char *word = line;
+        word = strpbrk(word, "-0123456789");
+        int ic = 1;
+        if(word[0] != '0')
         {
-
-#ifndef R3B
-            ++totalPoints;
-#else
-            if(last == 0)
-            {
-                numBranches++;
-                numPtsInThisBranch++;
-            }
-            else if (last == branch)
-            {
-                numPtsInThisBranch++;
-            }
-            else
-            {
-                myBifNode.numVerticesEachBranch[numBranches]=numPtsInThisBranch;
-                numBranches ++;
-                numPtsInThisBranch = 0;
-            }
-#endif
-
-            char * word = strtok(line," \n");
+            word = strpbrk(word, " \t\n");
             while(word != NULL)
             {
-                data[ic]=fortranatof(word);
+                word = strpbrk(word, "-0123456789");
+                if (word == NULL) break;
                 ++ic;
-                word=strtok(NULL," \n");
+                word = strpbrk(word, " \t\n");
             }
-
-            maxColSize=(maxColSize>ic) ? maxColSize : ic;
-#ifdef R3B
-            totalPoints++;
-#endif
+            if (ic > maxColSize) maxColSize = ic;
+            ++totalPoints;
         }
-#ifdef R3B
-        else if(last !=0)
-        {
-            myBifNode.numVerticesEachBranch[numBranches-1]=numPtsInThisBranch;
-            numPtsInThisBranch = 0;
-        }
-        else
-        {
-// Do nothing here is just OK.
-        }
-        last = branch;
-#endif
     }
     myBifNode.nar = maxColSize-4;
-#ifdef R3B
-    myBifNode.numBranches = numBranches;
-#endif
     myBifNode.totalNumPoints = totalPoints;
-#ifdef R3B
-    myBifNode.numVerticesEachBranch[numBranches-1]=numPtsInThisBranch;
-#endif
 
     fclose(inFile);
     return true;

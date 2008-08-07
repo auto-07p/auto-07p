@@ -1173,7 +1173,7 @@ createSolutionInertialFrameScene(float dis)
                 }
             }
 
-            satPeriod = clientData.solPeriod[kno];
+            satPeriod = clientData.solPeriod[kno-1];
             long int orbitSize = mySolNode.numVerticesEachPeriod[kno-1];
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
 
@@ -1193,8 +1193,8 @@ createSolutionInertialFrameScene(float dis)
                     largePrimPos[i], smallPrimPos[i], vpp);
             }
 
-            stability = clientData.labelIndex[kno][3];
-            type = clientData.labelIndex[kno][2];
+            stability = clientData.labelIndex[kno-1][3];
+            type = clientData.labelIndex[kno-1][2];
             if(options[OPT_SAT_ANI])
             {
                 solGroup->addChild(animateOrbitInertialSysUsingLine(
@@ -1612,11 +1612,7 @@ drawLabelPtsInBifurcationScene()
                                              myBifNode.labels[k]));
 
             ++k;
-#ifndef R3B
         } while( k < clientData.totalLabels);
-#else
-        } while( k <= clientData.totalLabels);
-#endif
     }
     else if(lbl != MY_NONE)
     {
@@ -1624,11 +1620,10 @@ drawLabelPtsInBifurcationScene()
         {
             SoMaterial *lblMtl;
 
-#ifndef R3B
             int k = lblIndices[i]-1;
+#ifndef R3B
             row = clientData.labelIndex[k][1] -1;
 #else
-            int k = lblIndices[i];
             row = clientData.labelIndex[k][1];
 #endif
             lbType = clientData.labelIndex[k][2];
@@ -1803,13 +1798,9 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            k = k+1;
-            bifGroup->addChild(drawABifBranchUsingTubes(ka, k, si, 1*lineWidthScaler,
-#ifdef R3B
+            bifGroup->addChild(drawABifBranchUsingTubes(ka, k+1, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
+            k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
     }
@@ -1818,13 +1809,9 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            k = k+1;
-            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k, si, 1*lineWidthScaler,
-#ifdef R3B
+            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k+1, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
+            k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
 
@@ -1834,13 +1821,9 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            k = k+1;
-            bifGroup->addChild(drawABifBranchUsingLines(ka, k, si, 1*lineWidthScaler,
-#ifdef R3B
+            bifGroup->addChild(drawABifBranchUsingLines(ka, k+1, si, 1*lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
+            k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
     }
@@ -1898,13 +1881,8 @@ drawSolUsingTubes()
                 SoSphere * aPoint = new SoSphere;
                 aPoint->radius = dis*STATIONARY_POINT_RADIUS;
 
-#ifdef R3B
-                int stability=clientData.labelIndex[j+1][3];
-                int type =clientData.labelIndex[j+1][2];
-#else
                 int stability=clientData.labelIndex[j][3];
                 int type =clientData.labelIndex[j][2];
-#endif
                 float scaler = lineWidthScaler;
 
                 if(coloringMethod == CL_BRANCH_NUMBER)
@@ -2016,13 +1994,8 @@ drawSolUsingTubes()
                             colorBase[i*11+k]  = i;
 
                 }
-#ifdef R3B
-                int stability=clientData.labelIndex[j+1][3];
-                int type =clientData.labelIndex[j+1][2];
-#else
                 int stability=clientData.labelIndex[j][3];
                 int type =clientData.labelIndex[j][2];
-#endif
                 float scaler = lineWidthScaler;
 
 //                if(maxComponent == 1)
@@ -2245,11 +2218,7 @@ renderSolutionTubes()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingTubes(iBranch, k, si, 1*lineWidthScaler,
-#ifdef R3B
-                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
                  clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
             }
         }
     }
@@ -2318,11 +2287,7 @@ renderSolutionSurface()
         solGroup->addChild(animateOrbitWithTail(iBranch, k, si));
     else
         solGroup->addChild(drawAnOrbitUsingTubes(iBranch, k, si, 1*lineWidthScaler,
-#ifdef R3B
-            clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
             clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
     return solGroup;
 }
 
@@ -2355,13 +2320,9 @@ renderSolutionPoints(int style)
                 sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
             }
 
-            k = k+1;
-            solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k, si, lineWidthScaler,
-#ifdef R3B
+            solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k+1, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
-#endif
+            k = k+1;
             si += mySolNode.numVerticesEachPeriod[ka];
         }
     }
@@ -2393,11 +2354,7 @@ renderSolutionPoints(int style)
             else
             {
                 solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, k, si, lineWidthScaler,
-#ifdef R3B
-                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-#else
                     clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
-#endif
             }
         }
     }
@@ -2440,13 +2397,9 @@ renderSolutionLines()
                 sumOrbit+= mySolNode.numOrbitsInEachBranch[iBranch];
             }
 
-            k = k+1;
-            solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
-#ifdef R3B
+            solGroup->addChild(drawAnOrbitUsingLines(iBranch, k+1, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
-#endif
+            k = k+1;
             si += mySolNode.numVerticesEachPeriod[ka];
         }
     }
@@ -2479,11 +2432,7 @@ renderSolutionLines()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
-#ifdef R3B
-                    clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
-#else
                     clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2], true));
-#endif
             }
         }
     }
@@ -2525,13 +2474,9 @@ renderSolutionNurbsCurve()
                 curBranchID = mySolNode.branchID[++iBranch];
                 sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
             }
-            k = k+1;
-            solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k, si, lineWidthScaler,
-#ifdef R3B
+            solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k+1, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
-                clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
+            k = k+1;
             si += mySolNode.numVerticesEachPeriod[ka];
         }
     }
@@ -2563,11 +2508,7 @@ renderSolutionNurbsCurve()
             else
             {
                 solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k, si, lineWidthScaler,
-#ifdef R3B
-                    clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
-#else
                     clientData.labelIndex[k-1][3], clientData.labelIndex[k-1][2]));
-#endif
             }
         }
     }
@@ -2608,18 +2549,10 @@ animateSolutionUsingPoints(int style, bool aniColoring)
 
         if(numVertices == 1)
             solStand->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l+1, si, aniLineScaler*lineWidthScaler,
-#ifdef R3B
-                clientData.labelIndex[l+1][3], clientData.labelIndex[l+1][2], aniColoring));
-#else
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-#endif
         else
             solBlinker->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l+1, si, aniLineScaler*lineWidthScaler,
-#ifdef R3B
-                clientData.labelIndex[l+1][3], clientData.labelIndex[l+1][2], aniColoring));
-#else
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-#endif
         si+=mySolNode.numVerticesEachPeriod[l];
     }
     solGroup->addChild(solStand);
@@ -2656,18 +2589,10 @@ animateSolutionUsingLines(bool aniColoring)
 
         if(numVertices == 1)
             solStand->addChild(drawAnOrbitUsingLines(iBranch, l+1, si, aniLineScaler*lineWidthScaler,
-#ifdef R3B
-                clientData.labelIndex[l+1][3], clientData.labelIndex[l+1][2], aniColoring));
-#else
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-#endif
         else
             solBlinker->addChild(drawAnOrbitUsingLines(iBranch, l+1, si, aniLineScaler*lineWidthScaler,
-#ifdef R3B
-                clientData.labelIndex[l+1][3], clientData.labelIndex[l+1][2], aniColoring));
-#else
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-#endif
         si+=mySolNode.numVerticesEachPeriod[l];
     }
     solGroup->addChild(solStand);
@@ -2699,11 +2624,7 @@ animateSolutionUsingNurbsCurve()
             sumOrbit   += mySolNode.numOrbitsInEachBranch[iBranch];
         }
         solBlinker->addChild(drawAnOrbitUsingNurbsCurve(iBranch, l+1, si, lineWidthScaler,
-#ifdef R3B
-            clientData.labelIndex[l+1][3], clientData.labelIndex[l+1][2]));
-#else
             clientData.labelIndex[l][3], clientData.labelIndex[l][2]));
-#endif
         si+=mySolNode.numVerticesEachPeriod[l];
     }
     solGroup->addChild(solBlinker);
@@ -4351,13 +4272,8 @@ animateSolutionUsingTubes(bool aniColoring)
         {
             float (*path)[3] = new float[upperlimit][3];
             float *colorBase = new float[upperlimit*11];
-#ifdef R3B
-            int stability = clientData.labelIndex[j+1][3];
-            int type = clientData.labelIndex[j+1][2];
-#else
             int stability=clientData.labelIndex[j][3];
             int type =clientData.labelIndex[j][2];
-#endif
             SoSeparator *anOrbit = new SoSeparator;
             Tube tube;
             if(j >= sumOrbit)
@@ -4647,13 +4563,8 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     float distance = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
-#ifdef R3B
-    int stability = clientData.labelIndex[j][3];
-    int type = clientData.labelIndex[j][2];
-#else
     int stability = clientData.labelIndex[j-1][3];
     int type = clientData.labelIndex[j-1][2];
-#endif
 
     long int upperlimit = mySolNode.numVerticesEachPeriod[j-1];
     long int idx = si; 
@@ -5414,11 +5325,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
                 ib = lblidx;  
             }
             sIdx = index;
-#ifdef R3B
-            bIdx = clientData.labelIndex[ib][1];
-#else
             bIdx = clientData.labelIndex[ib-1][1];
-#endif
         }
         else
         {
@@ -5728,11 +5635,7 @@ initCoordAndLableListItems()
     {
         int jmii = i + SP_LBL_ITEMS;
         sprintf(labels[jmii], "%d", myLabels[i+1]);
-#ifndef R3B
         switch (clientData.labelIndex[i][2])
-#else
-        switch (clientData.labelIndex[i+1][2])
-#endif
         {
             case 1 :  
                 strcat(labels[jmii]," BP");
@@ -5820,11 +5723,7 @@ initCoordAndLableListItems()
         int j = 1;
         do
         {
-#ifdef R3B
-            if(abs(clientData.labelIndex[j][2])!= 4 || j%half == 0)
-#else
             if(abs(clientData.labelIndex[j-1][2])!= 4 || j%half == 0)
-#endif
                 lblIndices[iLbl++] = j;
             j++;
         } while( j < numLabels-2 );
@@ -5836,13 +5735,8 @@ initCoordAndLableListItems()
         int j = 1;
         do
         {
-#ifndef R3B
-            if(clientData.labelIndex[j-1][2] !=  TYPE_UZ    && clientData.labelIndex[j-1][2] != TYPE_RG )// &&
-            //    clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-#else
-            if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
-                clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-#endif
+            if(clientData.labelIndex[j-1][2] !=  TYPE_UZ    && clientData.labelIndex[j-1][2] != TYPE_RG &&
+                clientData.labelIndex[j-1][2] != TYPE_EP_ODE && clientData.labelIndex[j-1][2] != TYPE_MX)
                 lblIndices[iLbl++] = j;
             j++;
         } while( j < numLabels-2 );
