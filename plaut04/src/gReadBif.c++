@@ -94,7 +94,7 @@ readBifurcation(const char *bFileName, int varIndices[])
             for(int i=0; i<ic-4; i++)
             {
                 dummy = data[i+4];
-                clientData.bifData[totalPoints][i] = dummy;
+                clientData.bifData[totalPoints*myBifNode.nar+i] = dummy;
             }
 
             myBifNode.ptStability[totalPoints] = lbStability;

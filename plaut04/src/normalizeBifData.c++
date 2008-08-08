@@ -1,38 +1,30 @@
 #include "gplaut04.h"
 
-extern BifNode myBifNode;
-
 /////////////////////////////////////////////////////////////////////////////////
 //
 void
-normalizeBifData()
+normalizeBifData(long int idx, float xyzCoords[3])
 //
 /////////////////////////////////////////////////////////////////////////////////
 {
-    int np = myBifNode.numBranches;
-    float avg[3], div[3];
     for(int k=0; k<3; k++)
     {
-        avg[k] = (myBifNode.max[k]+myBifNode.min[k])/2.0;
-        div[k] = (myBifNode.max[k]-myBifNode.min[k])/2.0;
+        if (myBifNode.varIndices[k] == -1)
+	    xyzCoords[k] = 0.0;
+	else
+	    xyzCoords[k] = clientData.bifData[idx*myBifNode.nar + 
+                                              myBifNode.varIndices[k]];
     }
-    long int sump = 0;
-    for(int i=0; i<np; i++)
+    if(!options[OPT_NORMALIZE_DATA]) return;
+    for(int k=0; k<3; k++)
     {
-        long int nt = myBifNode.numVerticesEachBranch[i];
-        for(int j=0; j<nt; j++)
+        float avg = (myBifNode.max[k]+myBifNode.min[k])/2.0;
+        float div = (myBifNode.max[k]-myBifNode.min[k])/2.0;
+        if( !((myBifNode.max[k]<=1.0  && myBifNode.max[k]>0.5 &&
+	   myBifNode.min[k]>=-1.0 && myBifNode.min[k]<-0.5 )||
+	  (div<0.00000001)))
         {
-            for(int k=0; k<3; k++)
-            {
-                if( !((myBifNode.max[k]<=1.0  && myBifNode.max[k]>0.5 &&
-                    myBifNode.min[k]>=-1.0 && myBifNode.min[k]<-0.5 )||
-                    (div[k]<0.00000001)))
-                {
-                    myBifNode.xyzCoords[sump+j][k]=
-                        (myBifNode.xyzCoords[sump+j][k]-avg[k])/div[k];
-                }
-            }
+            xyzCoords[k]=(xyzCoords[k]-avg)/div;
         }
-        sump += nt;
     }
 }

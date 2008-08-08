@@ -208,7 +208,7 @@ struct SolNode {
 
 
 struct BifNode {
-    float (*xyzCoords)[3];
+    int varIndices[3];
     int32_t *numVerticesEachBranch;
     int32_t numVerticesEachLabelInterval[MAX_LABEL]; 
     int *xAxisItems;
@@ -216,7 +216,7 @@ struct BifNode {
     int *zAxisItems;
     int nar;
 
-	int * ptStability;       // start from 0...totalLines-1
+    unsigned char *ptStability;       // start from 0...totalLines-1
     long int totalNumPoints; // like 10012.
     long int numBranches;    // like 4.
     long int *branchID; // branch ID of each branch.
@@ -240,7 +240,7 @@ struct UserData{
     int numFM;
 
     float **solData;
-    float **bifData;
+    float *bifData;
 
     float solPeriod[MAX_LABEL];        // from the solution file par[10];
     float (*multipliers)[6][2];   // from the diagnostic file.
@@ -283,7 +283,7 @@ int readFM(const char *bFileName ,const int);
 double fortranatof(char* word);
 
 void normalizeSolData();//SolNode);
-void normalizeBifData();//BifNode);
+void normalizeBifData(long int idx, float xyzCoords[3]);//BifNode);
 #ifdef R3B
 void toInertialFrame(int , SolNode);
 #endif

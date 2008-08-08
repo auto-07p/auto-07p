@@ -650,11 +650,6 @@ createBifurcationScene()
     SoSeparator *result = new SoSeparator;
     result->ref();
 
-    if(options[OPT_NORMALIZE_DATA])
-    {
-        normalizeBifData();
-    }
-
     if(whichCoord != NO_COORD)
     {
         int cdtype = 0;
@@ -767,7 +762,7 @@ createBifurcationScene()
 ///////////////////////////////////////////////////////////////////////////
 //
 static SoSeparator *
-drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
+drawALabel(int row, float xoffset, long int label)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
@@ -778,11 +773,8 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     labelFont->name.setValue("Helvetica");
     labelFont->size.setValue(12);
 
-    float x, y, z;
-
-    x = myBifNode.xyzCoords[row][0];
-    y = myBifNode.xyzCoords[row][1];
-    z = myBifNode.xyzCoords[row][2];
+    float xyz[3], firstxyz[3], secondxyz[3];
+    normalizeBifData(row, xyz);
 
     //pick a good direction for the label
     int first = row;
@@ -794,13 +786,15 @@ drawALabel(float (*xyzCoords)[3], int row, float xoffset, long int label)
     }
     if (first < 0) first = 0;
     float yoffset = xoffset;
-    if ((xyzCoords[second][1] - xyzCoords[first][1]) *
-        (xyzCoords[second][0] - xyzCoords[first][0]) >= 0)
+    normalizeBifData(first, firstxyz);
+    normalizeBifData(second, secondxyz);
+    if ((secondxyz[1] - firstxyz[1]) * (secondxyz[0] - firstxyz[0]) >= 0)
     {
         xoffset = -xoffset;
         labelMsg->justification = SoText2::RIGHT;
     }
-    labelTranslate->translation.setValue(x + xoffset, y + yoffset, z);
+    labelTranslate->translation.setValue(xyz[0] + xoffset, xyz[1] + yoffset,
+                                         xyz[2]);
     char a[30];
     sprintf(a, "%ld", label);
     labelMsg->string.setValue(a);
@@ -838,10 +832,7 @@ drawLabelPtsInBifurcationScene()
     
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
-    
-            position[0] = myBifNode.xyzCoords[row][0];
-            position[1] = myBifNode.xyzCoords[row][1];
-            position[2] = myBifNode.xyzCoords[row][2];
+            normalizeBifData(row, position);
 
             float size = dis*0.005*sphereRadius;
 #ifndef R3B
@@ -849,8 +840,7 @@ drawLabelPtsInBifurcationScene()
 #endif
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(myBifNode.xyzCoords, row, size,
-                                             myBifNode.labels[k]));
+                result->addChild( drawALabel(row, size, myBifNode.labels[k]));
 
             ++k;
         } while( k < clientData.totalLabels);
@@ -868,9 +858,7 @@ drawLabelPtsInBifurcationScene()
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
 
-            position[0] = myBifNode.xyzCoords[row][0];
-            position[1] = myBifNode.xyzCoords[row][1];
-            position[2] = myBifNode.xyzCoords[row][2];
+            normalizeBifData(row, position);
 
 	    float size = dis*0.005*sphereRadius;
 #ifndef R3B
@@ -878,8 +866,7 @@ drawLabelPtsInBifurcationScene()
 #endif
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(myBifNode.xyzCoords, row, size,
-                                             myBifNode.labels[k]));
+                result->addChild( drawALabel(row, size, myBifNode.labels[k]));
         }
     }
     return result;
@@ -974,12 +961,11 @@ long int sumX, float scaler, int stability, int type)
     for(long int i=0; i<upperlimit; i++)
     {
         long int idx = i+sumX;
-        path[i][0]=myBifNode.xyzCoords[idx][0];
-        path[i][1]=myBifNode.xyzCoords[idx][1];
-        path[i][2]=myBifNode.xyzCoords[idx][2];
+        normalizeBifData(idx, path[i]);
         if(coloringMethod>=0)
             for(int k=0; k<11; ++k)
-                colorBase[i*11+k]  = clientData.bifData[idx][coloringMethod];
+                colorBase[i*11+k]  = clientData.bifData[idx*myBifNode.nar +
+							coloringMethod];
         else if(coloringMethod==CL_POINT_NUMBER)
             for(int k=0; k<11; ++k)
                 colorBase[i*11+k]  = i;
@@ -3005,11 +2991,10 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
     do
     {
         lastStab = curStab;
-        vertices[curSize][0] = myBifNode.xyzCoords[idx][0];
-        vertices[curSize][1] = myBifNode.xyzCoords[idx][1];
-        vertices[curSize][2] = myBifNode.xyzCoords[idx][2];
+        normalizeBifData(idx, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = clientData.bifData[idx][coloringMethod];
+            colorBase[curSize]  = clientData.bifData[idx * myBifNode.nar +
+						     coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m;
         else if(coloringMethod == CL_STABILITY)
@@ -3047,11 +3032,10 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
         aBranch->addChild(myLine);
 
         curSize = 0;
-        vertices[curSize][0] = myBifNode.xyzCoords[idx-1][0];
-        vertices[curSize][1] = myBifNode.xyzCoords[idx-1][1];
-        vertices[curSize][2] = myBifNode.xyzCoords[idx-1][2];
+        normalizeBifData(idx-1, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = clientData.bifData[idx-1][coloringMethod];
+            colorBase[curSize]  = clientData.bifData[(idx-1) * myBifNode.nar +
+						     coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m-1;
         else if(coloringMethod == CL_STABILITY)
@@ -3083,11 +3067,10 @@ long int si, float scaler, int stability, int type)
     for(long int m=0; m<size; ++m) 
     {
         long idx = si+m;
-        vertices[m][0]=myBifNode.xyzCoords[si+m][0];
-        vertices[m][1]=myBifNode.xyzCoords[si+m][1];
-        vertices[m][2]=myBifNode.xyzCoords[si+m][2];
+        normalizeBifData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =clientData.bifData[idx][coloringMethod];
+            colorBase[m]  =clientData.bifData[idx * myBifNode.nar + 
+					      coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -3151,11 +3134,10 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
     for(int m=0; m<size; m++)
     {
         long int idx = si+m;
-        vertices[m][0]=myBifNode.xyzCoords[idx][0];
-        vertices[m][1]=myBifNode.xyzCoords[idx][1];
-        vertices[m][2]=myBifNode.xyzCoords[idx][2];
+        normalizeBifData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =clientData.bifData[idx][coloringMethod];
+            colorBase[m]  =clientData.bifData[idx * myBifNode.nar +
+					      coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -3818,18 +3800,11 @@ readSolutionAndBifurcationData(bool blFirstRead)
         exit(1);
     }
 
-    myBifNode.xyzCoords = new float[myBifNode.totalNumPoints][3];
-    myBifNode.ptStability = new int[myBifNode.totalNumPoints];
+    myBifNode.ptStability = new unsigned char[myBifNode.totalNumPoints];
     myBifNode.numVerticesEachBranch = new int32_t[myBifNode.numBranches];
     myBifNode.branchID = new long[myBifNode.numBranches];
 
-    clientData.bifData = new float*[myBifNode.totalNumPoints];
-    if (myBifNode.totalNumPoints > 0) {
-        clientData.bifData[0] = new float[myBifNode.totalNumPoints*myBifNode.nar];
-        for(int ml=1; ml<myBifNode.totalNumPoints; ++ml)
-            clientData.bifData[ml] = &clientData.bifData[0][ml*myBifNode.nar];
-    }
-
+    clientData.bifData = new float[myBifNode.totalNumPoints*myBifNode.nar];
 
     int varIndices[3];
 
@@ -3983,13 +3958,14 @@ copyBifDataToWorkArray(int  varIndices[])
 
     for(int k=0; k<3; k++)
     {
+        myBifNode.varIndices[k] = varIndices[k];
         for(long int row=0; row<myBifNode.totalNumPoints; ++row)
         {
             if(varIndices[k]>=0)
             {
-                float dummy = clientData.bifData[row][varIndices[k]];
+                float dummy = clientData.bifData[row*myBifNode.nar + 
+						 varIndices[k]];
 
-                myBifNode.xyzCoords[row][k] = dummy;
                 if(dummy>myBifNode.max[k] || row==0 )
                     myBifNode.max[k] = dummy;
                 if(dummy<myBifNode.min[k] || row==0 )
@@ -3997,7 +3973,6 @@ copyBifDataToWorkArray(int  varIndices[])
             }
             else if(varIndices[k]<0)
             {
-                myBifNode.xyzCoords[row][k]=0.0;
                 myBifNode.max[k]= 1;
                 myBifNode.min[k]=-1;
             }
@@ -4091,7 +4066,8 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
                 for(int j=0; j<myBifNode.totalNumPoints; ++j)
                 {
                     for(int k=0; k<3; ++k)
-                        p1[k] = clientData.bifData[j][varIndices[k]];
+                        p1[k] = clientData.bifData[j*myBifNode.nar +
+						   varIndices[k]];
                     distance = 0;
                     for(int k=0; k<3; ++k)
                         distance += (position[k]-p1[k])*(position[k]-p1[k]);
@@ -4260,7 +4236,7 @@ const SbVec2s &cursorPosition)
         }
         size = myBifNode.nar;
         for(int ms=0; ms<myBifNode.nar; ++ms)
-            data[ms]=clientData.bifData[bIdx][ms];
+            data[ms]=clientData.bifData[bIdx * myBifNode.nar + ms];
         idix = bIdx;
     }
 
@@ -5357,9 +5333,16 @@ postDeals()
     delete [] mySolNode.xAxisItems;
     delete [] mySolNode.yAxisItems;
     delete [] mySolNode.zAxisItems;
+    delete [] mySolNode.numVerticesEachBranch;
+    delete [] mySolNode.numOrbitsInEachBranch;
+    delete [] mySolNode.branchID;
+    delete [] mySolNode.parMax;
+    delete [] mySolNode.parMin;
+    delete [] mySolNode.parMid;
 
-    delete [] myBifNode.xyzCoords;
     delete [] myBifNode.ptStability;
+    delete [] myBifNode.numVerticesEachBranch;
+    delete [] myBifNode.branchID;
 
     delete [] clientData.multipliers;
     delete [] clientData.solMax;
@@ -5368,8 +5351,6 @@ postDeals()
     delete [] clientData.solData[0];
     mySolNode.totalNumPoints  = 0;
     delete [] clientData.solData;
-    delete [] clientData.bifData[0];
-    myBifNode.totalNumPoints = 0;
     delete [] clientData.bifData;
 
     delete solHead;
