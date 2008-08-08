@@ -109,7 +109,7 @@ float scaler, int stability, int type)
                     stability, scaler));
         else
             satGroup->addChild(setLineColorBlending(myColorBase, size,
-                stability, type, scaler));
+                stability, scaler));
         satGroup->addChild(myLine);
     }
 
@@ -223,7 +223,7 @@ long int arrSize, float scaler, int stability, int type)
                 stability, scaler));
     else
         anOrbit->addChild(setLineColorBlending(myColorBase, arrSize,
-            stability, type, scaler));
+            stability, scaler));
     anOrbit->addChild(myCoords);
     anOrbit->addChild(myLine);
 
@@ -346,7 +346,7 @@ const float tubeRadiusScaler, const int stability, const int type)
                 stability, tubeRadiusScaler));
     else
         anOrbit->addChild(setLineColorBlending(myColorBase, arrSize*11,
-            stability, type, tubeRadiusScaler));
+            stability, tubeRadiusScaler));
 
     tube = Tube(arrSize, myVertices, tubeRadiusScaler*0.005, 10);
     anOrbit->addChild(tube.createTube());

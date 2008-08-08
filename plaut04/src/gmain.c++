@@ -187,8 +187,8 @@ static SoSeparator * drawAnOrbitUsingLines(int iBranch, long int l, long int si,
 static SoSeparator * drawAnOrbitUsingPoints(int style, int iBranch,  long int l, long int si, float scaler, int stability, int type, bool aniColoring);
 static SoSeparator * drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, int stability, int type);
 static SoSeparator * drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int stability, int type);
-static SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type);
-static SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler, int stability, int type);
+static SoSeparator * drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler);
+static SoSeparator * drawABifBranchUsingNurbsCurve(int iBranch,long int l, long int si, float scaler);
 #if 0
 static SoSeparator * drawABifLabelInterval(long int l, long int si, float scaler, int stability, int type);
 static SoSeparator * drawABifLabelIntervalUsingNurbsCurve(long int l, long int si, float scaler, int stability, int type);
@@ -935,7 +935,7 @@ setLabelMaterial(int lblType)
 //
 SoSeparator *
 drawABifBranchUsingTubes(int iBranch, long int l,
-long int sumX, float scaler, int stability, int type)
+long int sumX, float scaler)
 //
 //
 /////////////////////////////////////////////////////////////////
@@ -943,21 +943,15 @@ long int sumX, float scaler, int stability, int type)
     SoSeparator * tSep = new SoSeparator;
     long int upperlimit = myBifNode.numVerticesEachBranch[l];
 
-#ifndef R3B
     if(upperlimit <= 1)
     {
         return tSep;
     }
 
-#endif
     float (*path)[3] = new float[upperlimit][3];
     float *colorBase = new float[upperlimit*11];
     Tube tube;
 
-#ifdef R3B
-    if(upperlimit <= 1) return tSep;
-
-#endif
     for(long int i=0; i<upperlimit; i++)
     {
         long int idx = i+sumX;
@@ -976,17 +970,15 @@ long int sumX, float scaler, int stability, int type)
 
     if(coloringMethod == CL_BRANCH_NUMBER)
 #ifndef R3B
-        tSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+        tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
 #else
-        tSep->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], stability, scaler));
+        tSep->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], 0, scaler));
 #endif
     else if(coloringMethod == CL_STABILITY)
-        tSep->addChild(setLineColorBlendingByStability(colorBase, upperlimit*11, stability, scaler));
-    else if(coloringMethod == CL_ORBIT_TYPE)
-        tSep->addChild(setLineAttributesByType(stability, type, scaler));
-    else
+        tSep->addChild(setLineColorBlendingByStability(colorBase, upperlimit*11, 0, scaler));
+    else /* CL_POINT_NUMBER or >= 0 */
         tSep->addChild(setLineColorBlending(colorBase,
-            upperlimit*11, stability, type, scaler));
+            upperlimit*11, 0, scaler));
 
     tube = Tube(upperlimit, path, lineWidthScaler*0.005, 10);
     tSep->addChild(tube.createTube());
@@ -1021,8 +1013,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingTubes(ka, k, si, 1*lineWidthScaler,
-                clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
+            bifGroup->addChild(drawABifBranchUsingTubes(ka, k, si, 1*lineWidthScaler));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
@@ -1032,8 +1023,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k, si, 1*lineWidthScaler,
-                clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
+            bifGroup->addChild(drawABifBranchUsingNurbsCurve(ka, k, si, 1*lineWidthScaler));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
@@ -1044,8 +1034,7 @@ renderBifurcation()
         long int si = 0, k = 0;
         for(int ka=0; ka<myBifNode.numBranches; ka++)
         {
-            bifGroup->addChild(drawABifBranchUsingLines(ka, k, si, 1*lineWidthScaler,
-                clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
+            bifGroup->addChild(drawABifBranchUsingLines(ka, k, si, 1*lineWidthScaler));
             k = k+1;
             si += myBifNode.numVerticesEachBranch[ka];
         }
@@ -1267,7 +1256,7 @@ drawSolUsingTubes()
                                 stability, scaler));
                     else
                         tubeSep->addChild(setLineColorBlending(colorBase,
-                            upperlimit*11,stability, type, scaler));
+                            upperlimit*11,stability, scaler));
 //                }
 //                else
 //                {
@@ -2208,7 +2197,7 @@ setLineAttributesByType(int stability, int type, float scaler)
 //////////////////////////////////////////////////////////////////////////
 //
 SoGroup *
-setLineColorBlending(float * vertices, long int size, int stability, int type, float scaler)
+setLineColorBlending(float * vertices, long int size, int stability, float scaler)
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -2506,7 +2495,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
                     stability, scaler));
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
-                    mySolNode.numVerticesEachPeriod[l],stability, type, scaler));
+                    mySolNode.numVerticesEachPeriod[l],stability, scaler));
         }
 //    }else
 //    anOrbit->addChild(setLineAttributesByParameterValue(
@@ -2667,7 +2656,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
                 }
                 else
                     anOrbit->addChild(setLineColorBlending(colorBase,
-                        mySolNode.numVerticesEachPeriod[l],stability, type, scaler));
+                        mySolNode.numVerticesEachPeriod[l],stability, scaler));
             }
 //        }else
 //        anOrbit->addChild(setLineAttributesByParameterValue(
@@ -2939,7 +2928,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
                     stability, scaler));
         else
             anOrbit->addChild(setLineColorBlending(colorBase,
-                mySolNode.numVerticesEachPeriod[l]*11,stability, type, scaler));
+                mySolNode.numVerticesEachPeriod[l]*11,stability, scaler));
 //    }
 //    else
 //    {
@@ -2971,7 +2960,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
-drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int stability, int type)
+drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler)
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -3022,11 +3011,9 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
 #endif
         else if(coloringMethod == CL_STABILITY)
             aBranch->addChild(setLineColorBlendingByStability(colorBase, curSize, lastStab, scaler));
-        else if(coloringMethod == CL_ORBIT_TYPE)
-            aBranch->addChild(setLineAttributesByType(lastStab, type, scaler));
-        else
+        else /* CL_POINT_NUMBER or >= 0 */
             aBranch->addChild(setLineColorBlending(colorBase, curSize,
-                lastStab, type, scaler));
+                lastStab, scaler));
 
         aBranch->addChild(myCoords);
         aBranch->addChild(myLine);
@@ -3054,7 +3041,7 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler, int
 //
 SoSeparator *
 drawABifBranchUsingNurbsCurve(int iBranch, long int l,
-long int si, float scaler, int stability, int type)
+long int si, float scaler)
 //
 //////////////////////////////////////////////////////////////////////////
 {
@@ -3098,14 +3085,12 @@ long int si, float scaler, int stability, int type)
     }
 
     if(coloringMethod == CL_BRANCH_NUMBER)
-        aBranch->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+        aBranch->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
     else if(coloringMethod == CL_STABILITY)
-        aBranch->addChild(setLineAttributesByStability(stability, scaler));
-    else if(coloringMethod == CL_ORBIT_TYPE)
-        aBranch->addChild(setLineAttributesByType(stability, type, scaler));
-    else
+        aBranch->addChild(setLineAttributesByStability(0, scaler));
+    else /* CL_POINT_NUMBER or >= 0 */
         aBranch->addChild(setLineColorBlending(colorBase, size,
-            stability, type, scaler));
+            0, scaler));
     aBranch->addChild(myCoords);
     aBranch->addChild(cvGrp);
 
@@ -3154,7 +3139,7 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
         anInterval->addChild(setLineAttributesByType(stability, type, scaler));
     else
         anInterval->addChild(setLineColorBlending(colorBase, size,
-            stability, type, scaler));
+            stability, scaler));
 
     anInterval->addChild(myCoords);
     anInterval->addChild(myLine);
@@ -3327,7 +3312,7 @@ animateSolutionUsingTubes(bool aniColoring)
             }
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
-                    upperlimit*11,stability, type, lineWidthScaler));
+                    upperlimit*11,stability, lineWidthScaler));
 
             tube = Tube(upperlimit, path, lineWidthScaler*0.0075, 10);
             anOrbit->addChild(tube.createTube());
@@ -3600,7 +3585,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         else
         {
             satGroup->addChild(setLineColorBlending(myColorBase, arrSize,
-                stability, type, lineWidthScaler));
+                stability, lineWidthScaler));
         }
 //------------------------------------------Begin-----------------------------------------
 //    }

@@ -292,7 +292,7 @@ SoGroup * setLineAttributesByStability(int stability, float scaler);
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
-SoGroup * setLineColorBlending(float * vertices, long int size, int stability, int type, float scaler);
+SoGroup * setLineColorBlending(float * vertices, long int size, int stability, float scaler);
 SoSeparator * createAxis(float red, float green, float blue);
 SoSeparator * drawCoords(int where, float pos[], SbVec3f colors[], float height); //in/SolNode& mySolNode);
 SoSeparator * createLegend(SbVec3f pos, double val[5]);
