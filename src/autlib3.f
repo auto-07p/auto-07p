@@ -1126,7 +1126,7 @@ C from a Hopf bifurcation point:
 C
 C     ---------- ------
       SUBROUTINE STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     *     RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNI)
+     *     RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNIWS)
 C
       USE IO
       USE MESH
@@ -1138,6 +1138,7 @@ C     bifurcation point (for waves or periodic orbits)
 
       DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*),THU(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      EXTERNAL FUNIWS
 C Local
       ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
       DOUBLE PRECISION DUMDFP(1),UOLD(1)
@@ -1178,7 +1179,7 @@ C
          SMAT(NDIM+I,NDIM+I)=RIMHB
        ENDDO
 C
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
+       CALL FUNIWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
 C
        DO I=1,NDIM
          DO J=1,NDIM
