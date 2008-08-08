@@ -71,7 +71,6 @@
 #define min(a,b) (a<b?a:b)
 #define MAX_BUF  256   // length of a line
 #define MAX_PAR  100    // Max Number of parameters in AUTO 
-#define MAX_BRANCH 100    // Max Number of branches in AUTO DATA
 
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
@@ -176,9 +175,9 @@ struct SolNode {
     float mass[MAX_LABEL];
     double *time; // this time is useless?
     float (*xyzCoords)[3];
-    int32_t numVerticesEachBranch[MAX_BRANCH];  // index start from 0 
+    int32_t *numVerticesEachBranch;  // index start from 0 
     int32_t numVerticesEachPeriod[MAX_LABEL];  // index start from 0
-    int32_t numOrbitsInEachBranch[MAX_BRANCH];  // index start from 0
+    int32_t *numOrbitsInEachBranch;  // index start from 0
     int *xAxisItems;
     int *yAxisItems;
     int *zAxisItems;
@@ -187,7 +186,7 @@ struct SolNode {
 
     long int totalNumPoints; // like 10012.
     long int numBranches;    // like 4.
-    long int branchID[MAX_BRANCH]; // for each label/solution
+    long int *branchID; // for each label/solution
     long int numOrbits;      // like 43 == UserData.totalLabels == BifNode.totalLabels == totalLabels.
 	long int labels[MAX_LABEL];   // this real lenght should equal to numOrbits; 
 							// labels[0]==0, HERE, we make an assumption that no label equal to 0.
@@ -197,9 +196,9 @@ struct SolNode {
     int      numAxis;        // number of groups of axis. 3 is a group.
 	int      totalLabels;
 	double par[MAX_LABEL][MAX_PAR];     // keep the parameter values for each orbit.
-	double parMax[MAX_BRANCH][MAX_PAR];     // keep the max parameter values in each branch.
-	double parMin[MAX_BRANCH][MAX_PAR];     // keep the min parameter values.
-	double parMid[MAX_BRANCH][MAX_PAR];     // keep the mid parameter values.
+	double (*parMax)[MAX_PAR];     // keep the max parameter values in each branch.
+	double (*parMin)[MAX_PAR];     // keep the min parameter values.
+	double (*parMid)[MAX_PAR];     // keep the mid parameter values.
 	int      parID[MAX_PAR];    // keep the id for the par, namely the x for par(x)
 
     // max saves the maximum value of the coordinate.
@@ -210,7 +209,7 @@ struct SolNode {
 
 struct BifNode {
     float (*xyzCoords)[3];
-    int32_t numVerticesEachBranch[MAX_BRANCH]; 
+    int32_t *numVerticesEachBranch;
     int32_t numVerticesEachLabelInterval[MAX_LABEL]; 
     int *xAxisItems;
     int *yAxisItems;
@@ -220,7 +219,7 @@ struct BifNode {
 	int * ptStability;       // start from 0...totalLines-1
     long int totalNumPoints; // like 10012.
     long int numBranches;    // like 4.
-    long int branchID[MAX_BRANCH]; // branch ID of each branch.
+    long int *branchID; // branch ID of each branch.
 	long int labels[MAX_LABEL];   // this real lenght should equal to totalLabels;
     int      numAxis;        // number of groups of axis. 3 is a group.
 	int totalLabels;

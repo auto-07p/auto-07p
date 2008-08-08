@@ -117,8 +117,6 @@ readBifurcation(const char *bFileName, int varIndices[])
 // if no s file, program should still work, so set totalLabels here again.
     if(clientData.totalLabels == 0) clientData.totalLabels = totalLabels;
 
-    myBifNode.numBranches = numBranches;
-
 #ifdef DEBUG
     cout <<"======================================"<<endl;
     cout <<" myBifNode.nar :         "<<myBifNode.nar<<endl;
@@ -167,6 +165,7 @@ parseBifurcation(const char *bFileName)
     }
 
     long int totalPoints = 0;
+    long int numBranches = 0;
     int maxColSize = 0;
 
     while(fgets(line, sizeof(line), inFile) !=NULL)
@@ -182,6 +181,10 @@ parseBifurcation(const char *bFileName)
                 word = strpbrk(word, "-0123456789");
                 if (word == NULL) break;
                 ++ic;
+		if (ic == 2 &&
+		    ((word[0] == '1' && word[1] == ' ') ||
+		     (word[0] == '-' && word[1] == '1' && word[2] == ' ')))
+		      numBranches++; 
                 word = strpbrk(word, " \t\n");
             }
             if (ic > maxColSize) maxColSize = ic;
@@ -190,6 +193,7 @@ parseBifurcation(const char *bFileName)
     }
     myBifNode.nar = maxColSize-4;
     myBifNode.totalNumPoints = totalPoints;
+    myBifNode.numBranches = numBranches;
 
     fclose(inFile);
     return true;

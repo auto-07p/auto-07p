@@ -3790,15 +3790,23 @@ readSolutionAndBifurcationData(bool blFirstRead)
 
     mySolNode.time = new double[mySolNode.totalNumPoints];
     mySolNode.xyzCoords = new float[mySolNode.totalNumPoints][3];
+    mySolNode.numVerticesEachBranch = new int32_t[mySolNode.numBranches];
+    mySolNode.numOrbitsInEachBranch = new int32_t[mySolNode.numBranches];
+    mySolNode.branchID = new long[mySolNode.numBranches];
+    mySolNode.parMax = new double[mySolNode.numBranches][MAX_PAR];
+    mySolNode.parMin = new double[mySolNode.numBranches][MAX_PAR];
+    mySolNode.parMid = new double[mySolNode.numBranches][MAX_PAR];
     mySolNode.numAxis   = 3;
 
     clientData.solMax = new float [mySolNode.nar+1];
     clientData.solMin = new float [mySolNode.nar+1];
 
     clientData.solData = new float*[mySolNode.totalNumPoints];
-    clientData.solData[0] = new float[mySolNode.totalNumPoints*mySolNode.nar];
-    for(int ml=1; ml<mySolNode.totalNumPoints; ++ml)
-        clientData.solData[ml] = &clientData.solData[0][ml*mySolNode.nar];
+    if (mySolNode.totalNumPoints > 0) {
+        clientData.solData[0] = new float[mySolNode.totalNumPoints*mySolNode.nar];
+	for(int ml=1; ml<mySolNode.totalNumPoints; ++ml)
+	    clientData.solData[ml] = &clientData.solData[0][ml*mySolNode.nar];
+    }
 
     blOpenBifFile = parseBifurcation(bFileName) ? true : false;
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
@@ -3812,11 +3820,15 @@ readSolutionAndBifurcationData(bool blFirstRead)
 
     myBifNode.xyzCoords = new float[myBifNode.totalNumPoints][3];
     myBifNode.ptStability = new int[myBifNode.totalNumPoints];
+    myBifNode.numVerticesEachBranch = new int32_t[myBifNode.numBranches];
+    myBifNode.branchID = new long[myBifNode.numBranches];
 
     clientData.bifData = new float*[myBifNode.totalNumPoints];
-    clientData.bifData[0] = new float[myBifNode.totalNumPoints*myBifNode.nar];
-    for(int ml=1; ml<myBifNode.totalNumPoints; ++ml)
-        clientData.bifData[ml] = &clientData.bifData[0][ml*myBifNode.nar];
+    if (myBifNode.totalNumPoints > 0) {
+        clientData.bifData[0] = new float[myBifNode.totalNumPoints*myBifNode.nar];
+        for(int ml=1; ml<myBifNode.totalNumPoints; ++ml)
+            clientData.bifData[ml] = &clientData.bifData[0][ml*myBifNode.nar];
+    }
 
 
     int varIndices[3];

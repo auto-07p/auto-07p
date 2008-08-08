@@ -29,6 +29,8 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
     long int position, i;
     int ibr,ntot,itp,lab,nfpr,isw,ntpl,nar,nrowpr,ntst,ncol,npar1;
     int maxColSize=0;
+    long int branchCounter = 0;
+    long int lastBranchID  = -999;
 
 // Open input file
     if((inFile=fopen(sFileName,"r"))==NULL)
@@ -52,6 +54,10 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
     total = 0;
     while(!feof(inFile))
     {
+        if(lastBranchID == -999) lastBranchID = ibr;
+        if(lastBranchID != ibr && lastBranchID != -999)
+            branchCounter++;
+
         totalNumPoints += (ntpl != 1) ? ntpl : 2;
         current = new solution;
 
@@ -91,6 +97,7 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
 
     mySolNode.numOrbits = total;
     mySolNode.totalNumPoints = totalNumPoints;
+    mySolNode.numBranches = ++branchCounter;
     mySolNode.nar = maxColSize;
     return head;
 }
@@ -234,7 +241,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
     mySolNode.numVerticesEachBranch[branchCounter]=totalNumPointsInEachBranch;
     mySolNode.numOrbitsInEachBranch[branchCounter]=orbitCounter;
     mySolNode.branchID[branchCounter]=ibr;
-    mySolNode.numBranches = ++branchCounter;
 
     clientData.totalLabels = counter;
     mySolNode.totalLabels = counter;
