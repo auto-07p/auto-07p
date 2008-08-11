@@ -113,7 +113,7 @@ int lblIndices[MAX_LABEL], lblChoice[MAX_LABEL], lblIdxSize;
 int MAX_SAT_SPEED = 100;
 int MIN_SAT_SPEED = 0;
 int MAX_ORBIT_SPEED = 100;
-int MIN_ORBIT_SPEED = 1;
+int MIN_ORBIT_SPEED = 0;
 
 float orbitSpeed = 1.0;
 float satSpeed   = 0.5;
@@ -4733,7 +4733,6 @@ readResourceParameters()
                                 break;
                             case 12:
                                 MIN_ORBIT_SPEED = atoi(aString);
-                                if (MIN_ORBIT_SPEED < 1) MIN_ORBIT_SPEED = 1;
                                 break;
                             case 13:
                                 whichCoord = atoi(aString);

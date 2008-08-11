@@ -126,6 +126,7 @@ orbitSpeedCB(Widget, XtPointer userData, XtPointer callData)
 {
     XmScaleCallbackStruct *data = (XmScaleCallbackStruct *) callData;
     orbitSpeed = data->value/50.0;                ///50.0;     ///75.0;
+    if(orbitSpeed == 0.0) orbitSpeed = 0.0001;
     updateScene();
 }
 
