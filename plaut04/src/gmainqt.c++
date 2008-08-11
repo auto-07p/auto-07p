@@ -152,6 +152,7 @@ void
 MainWindow::quit()
 {
     postDeals();
+    delete renderArea;
     qApp->exit(0);
 }
 
@@ -1092,36 +1093,39 @@ MainWindow::MainWindow() : QMainWindow()
     QLabel *numPeriodLbl = new QLabel("  Period", listCarrier);
     ADD_LISTCARRIER_WIDGET(numPeriodLbl);
     nItems = 7;
-    int count = nItems;
-    char (*numberPList)[5] = new char [count][5];
-
     int iam = 1;
-    sprintf(numberPList[0], "%i", 0);
-    for (i = 0; i < count-2; ++i)
-    {
-        sprintf(numberPList[i+1], "%i", iam);
-        iam *= 2;
+
+    QComboBox *numPeriodAnimatedList = new QComboBox(true, listCarrier, "list");
+    ADD_LISTCARRIER_WIDGET(numPeriodAnimatedList);
+    for ( int j = 0; j < nItems; j++ ) {
+        QString numberP;
+
+	if (j == 0)
+	{
+            numberP = "0";
+	}
+        else if (j < nItems - 1)
+	{
+	    numberP.sprintf("%i", iam);
+	    iam *= 2;
+	}
+	else
+	    numberP = "inf";
+	numPeriodAnimatedList->insertItem(numberP);
     }
-    sprintf(numberPList[count-1], "%s", "inf");
 
     if (numPeriodAnimated > 0)
         i = ((int)(log(numPeriodAnimated)/log(2.0))) + 1;
     else if (numPeriodAnimated == 0)
         i = 0;
     else
-        i = count - 1;
-
-    QComboBox *numPeriodAnimatedList = new QComboBox(true, listCarrier, "list");
-    ADD_LISTCARRIER_WIDGET(numPeriodAnimatedList);
-    for ( int j = 0; j < nItems; j++ )
-        numPeriodAnimatedList->insertItem(numberPList[j]);
+        i = nItems - 1;
     numPeriodAnimatedList->setCurrentItem(i);
 
 // Add Callback function for the numberPeriodAnimated drop down list
     connect(numPeriodAnimatedList, SIGNAL(activated(const QString &)),
             this, SLOT(numPeriodAnimatedCB(const QString &)));
 
-//    delete []numberPList;
 //----------------------------------------------------------------> Nov 06 End
 
 #ifdef USE_BK_COLOR
@@ -1179,12 +1183,7 @@ MainWindow::MainWindow() : QMainWindow()
 
     QWidget *widget = new QWidget(this);
 // create RENDER AREA FOR THE graphics.
-#ifdef USE_EXAM_VIEWER
-    SoQtExaminerViewer *renderArea = new SoQtExaminerViewer(widget);
-#else
-    SoQtRenderArea *renderArea = new SoQtRenderArea(widget);
-#endif
-
+    renderArea = new SoQtExaminerViewer(widget);
     renderArea->setSize(SbVec2s(winWidth, winHeight));
     renderArea->setBackgroundColor(envColors[0]);
 #ifdef R3B
@@ -1213,9 +1212,11 @@ MainWindow::MainWindow() : QMainWindow()
     setCentralWidget(widget);
 
 // used for printing  scene to ps files
+#if 0
     ViewerAndScene *vwrAndScene = new ViewerAndScene;
     vwrAndScene->scene  = renderArea->getSceneGraph();
     vwrAndScene->viewer = renderArea;
+#endif
 
     updateScene();
     renderArea->setSceneGraph(sceneGraph);

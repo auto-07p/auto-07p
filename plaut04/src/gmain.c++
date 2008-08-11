@@ -1062,9 +1062,6 @@ drawSolUsingTubes()
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2;
 
-#ifndef R3B
-    int32_t myint[10];
-#endif
     long int sumX = 0;
     int iBranch = 0;
     int curBranchID = mySolNode.branchID[iBranch];
@@ -1085,8 +1082,6 @@ drawSolUsingTubes()
             {
                 int idx = sumX;
                 SoSeparator * ptSep = new SoSeparator;
-                SoSphere * aPoint = new SoSphere;
-                aPoint->radius = dis*STATIONARY_POINT_RADIUS;
 
                 int stability=clientData.labelIndex[j][3];
                 int type =clientData.labelIndex[j][2];
@@ -1118,14 +1113,15 @@ drawSolUsingTubes()
                 }
 
 #ifndef R3B
-        
                 float ver[2][3];
         
                 if(time_on != TIME_IS_OFF)
                 {
+		    int32_t myint[10];
                     if(time_on == TIME_ON_X)
                     {
-                        ver[0][0] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[0]-mySolNode.min[0]) : 0;
+                        ver[0][0] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0;
+			//-(mySolNode.max[0]-mySolNode.min[0]) : 0;
                         ver[0][1] = mySolNode.xyzCoords[idx][1];
                         ver[0][2] = 0;
                         ver[1][0] = (mySolNode.max[0] <= 1.0) ? 1.0 : mySolNode.max[0];
@@ -1135,7 +1131,8 @@ drawSolUsingTubes()
                     else if(time_on == TIME_ON_Y)
                     {
                         ver[0][0] = mySolNode.xyzCoords[idx][0];
-                        ver[0][1] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[1]-mySolNode.min[1]) : 0;
+                        ver[0][1] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0;
+			//-(mySolNode.max[1]-mySolNode.min[1]) : 0;
                         ver[0][2] = 0;
                         ver[1][0] = mySolNode.xyzCoords[idx][0]; 
                         ver[1][1] = ( mySolNode.max[1] <= 1.0 ) ? 1.0 : mySolNode.max[1];
@@ -1145,7 +1142,8 @@ drawSolUsingTubes()
                     {
                         ver[0][0] = mySolNode.xyzCoords[idx][0];
                         ver[0][1] = 0; 
-                        ver[0][2] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[2]-mySolNode.min[2]) : 0; 
+                        ver[0][2] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; 
+			//-(mySolNode.max[2]-mySolNode.min[2]) : 0;
                         ver[1][0] = mySolNode.xyzCoords[idx][0];
                         ver[1][1] = 0; 
                         ver[1][2] = ( mySolNode.max[2] <= 1.0 ) ? 1.0 : mySolNode.max[2]; 
@@ -1158,27 +1156,18 @@ drawSolUsingTubes()
                     myL->numVertices.setValues(0, 1, myint);
                     ptSep->addChild(myC);
                     ptSep->addChild(myL);
-                    tubeSep->addChild(ptSep);
                 }
                 else
-                {
 #endif
+                {
                     SoTransform * aTrans = new SoTransform;
-#ifndef R3B
                     aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
         		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
                     ptSep->addChild(aTrans);
                     SoSphere *aPoint = new SoSphere;
                     aPoint->radius = dis * STATIONARY_POINT_RADIUS;
                     ptSep->addChild(aPoint);
-                    tubeSep->addChild(ptSep);
                 }
-#else
-                aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
-                                            mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-                ptSep->addChild(aTrans);
-                ptSep->addChild(aPoint);
-#endif
                 tubeSep->addChild(ptSep);
             }
             else
@@ -2066,7 +2055,6 @@ setLineColorBlendingByStability(float * vertices, long int size, int stability, 
         lineStyle->linePattern = stabilityLinePattern[1];
     }
     lineStyle->lineWidth = scaler;
-    lineStyle->lineWidth = scaler;
     result->addChild(lineStyle);
 
     SoMaterial *myMaterials = new SoMaterial;
@@ -2309,9 +2297,6 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 //////////////////////////////////////////////////////////////////////////
 {
     SoSeparator * anOrbit = new SoSeparator;
-#ifndef R3B
-    int32_t  myint[10];
-#endif
 
     float dis = !options[OPT_NORMALIZE_DATA] ? 
 	               (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
@@ -2359,9 +2344,11 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 
         if(time_on != TIME_IS_OFF)
         {
+	    int32_t myint[10];
             if(time_on == TIME_ON_X)
             {
-                ver[0][0] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[0]-mySolNode.min[0]) : 0;
+                ver[0][0] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0;
+		//-(mySolNode.max[0]-mySolNode.min[0]) : 0;
                 ver[0][1] = mySolNode.xyzCoords[idx][1];
                 ver[0][2] = 0;
                 ver[1][0] = (mySolNode.max[0] <= 1.0) ? 1.0 : mySolNode.max[0];
@@ -2371,7 +2358,8 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
             else if(time_on == TIME_ON_Y)
             {
                 ver[0][0] = mySolNode.xyzCoords[idx][0];
-                ver[0][1] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[1]-mySolNode.min[1]) : 0;
+                ver[0][1] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0;
+		//-(mySolNode.max[1]-mySolNode.min[1]) : 0;
                 ver[0][2] = 0;
                 ver[1][0] = mySolNode.xyzCoords[idx][0]; 
                 ver[1][1] = ( mySolNode.max[1] <= 1.0 ) ? 1.0 : mySolNode.max[1];
@@ -2381,7 +2369,8 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
             {
                 ver[0][0] = mySolNode.xyzCoords[idx][0];
                 ver[0][1] = 0; 
-                ver[0][2] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0; //-(mySolNode.max[2]-mySolNode.min[2]) : 0; 
+                ver[0][2] = (options[OPT_NORMALIZE_DATA]) ? -1 : 0;
+		//-(mySolNode.max[2]-mySolNode.min[2]) : 0; 
                 ver[1][0] = mySolNode.xyzCoords[idx][0];
                 ver[1][1] = 0; 
                 ver[1][2] = ( mySolNode.max[2] <= 1.0 ) ? 1.0 : mySolNode.max[2]; 
@@ -2413,9 +2402,6 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         return anOrbit;
     }
 
-#ifdef R3B
-    int32_t  myint[10];
-#endif
     float (*vertices)[3] = new float[numVertices][3];
     float *colorBase = new float[numVertices];
 
@@ -2431,6 +2417,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 
     SoCoordinate3 *myCoords = new SoCoordinate3;
     myCoords->point.setValues(0, mySolNode.numVerticesEachPeriod[l], vertices);
+    int32_t  myint[10];
     myint[0]=mySolNode.numVerticesEachPeriod[l];
 
 // define the solution line set
@@ -5093,15 +5080,9 @@ setVariableDefaultValues()
     dai.bifZ[0] = 2;
 
 #endif
-    if(solHead != NULL)
-    {
-        solutionp cur = solHead;
-        while(cur)
-        {
-            cur=cur->next;
-            delete solHead;
-            solHead = cur;
-        }
+    for(solutionp cur = solHead; solHead != NULL; cur = solHead) {
+        solHead = cur->next;
+        delete cur;
     }
 
 #ifndef R3B
@@ -5334,7 +5315,10 @@ postDeals()
     delete [] clientData.solData;
     delete [] clientData.bifData;
 
-    delete solHead;
+    for(solutionp cur = solHead; solHead != NULL; cur = solHead) {
+        solHead = cur->next;
+        delete cur;
+    }
 }
 
 

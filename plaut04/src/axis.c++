@@ -126,6 +126,7 @@ Axis::createAxis()
         for(int i = 0; i <= numOfTickers; ++i)
             axis->addChild(drawScale(-1.0+i*2.0/numOfTickers, tickers[i]));
 
+    axis->unrefNoDelete();
     return axis;
 
 }

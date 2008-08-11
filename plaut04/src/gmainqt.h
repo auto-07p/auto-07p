@@ -153,4 +153,9 @@ private:
     EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
             *optMenuItems, *coordSystemMenuItems;
     SoSeparator *sceneGraph;
+#ifdef USE_EXAM_VIEWER
+    SoQtExaminerViewer *renderArea;
+#else
+    SoQtRenderArea *renderArea;
+#endif
 };
