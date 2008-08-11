@@ -120,7 +120,7 @@ Object Min Animation Speed = 0
 
 # Set the maximum and minimum highlighting animation speed:
 Orbit Max Animation Speed = 100
-Orbit Min Animation Speed = 0
+Orbit Min Animation Speed = 1
 
 # Set the active AUTO parameter indices:
 parameter ID = 10
