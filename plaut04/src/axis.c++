@@ -13,7 +13,7 @@ Axis::Axis()
     numOfTickers = 10;
     color.setValue(1,0,0);
 
-    strcpy(name,"Y");
+    name = "Y";
 
     double delta = (maxValue-minValue)/numOfTickers;
     for(int i = 0; i <= numOfTickers; ++i)
@@ -70,7 +70,7 @@ Axis::set(int ty, double mxValue, double mnValue, int numTickers,
     numOfTickers = (numTickers<11) ? numTickers : 10;
     which = wh;
     color = clr;
-    strcpy(name, aName);
+    name = aName;
 
     double delta = (maxValue-minValue)/numOfTickers;
     for(int i = 0; i <= numOfTickers; ++i)

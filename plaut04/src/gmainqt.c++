@@ -147,6 +147,13 @@ MainWindow::lineWidthCB(int position)
     updateScene();
 }
 
+// Common quit function
+void
+MainWindow::quit()
+{
+    postDeals();
+    qApp->exit(0);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -164,8 +171,7 @@ MainWindow::fileMenuPick(int which)
             break;
 
         case QUIT_ITEM:
-            postDeals();
-            exit(0);
+            quit();
             break;
         case PRINT_ITEM:
             cropScene("myfile");
@@ -971,10 +977,6 @@ MainWindow::MainWindow() : QMainWindow()
     sceneGraph->addChild(mouseEventCB);
     sceneGraph->addChild(root);
 
-#ifdef R3B
-    updateScene();
-#endif
-
     // build menubar
     buildMenu();
 
@@ -1215,9 +1217,7 @@ MainWindow::MainWindow() : QMainWindow()
     vwrAndScene->scene  = renderArea->getSceneGraph();
     vwrAndScene->viewer = renderArea;
 
-#ifndef R3B
     updateScene();
-#endif
     renderArea->setSceneGraph(sceneGraph);
 
     resize(winWidth,winHeight);
@@ -1228,7 +1228,7 @@ MainWindow::MainWindow() : QMainWindow()
 	renderArea->getSceneManager()->getSceneGraph());
 
     // Set termination condition.
-    connect(qApp, SIGNAL(lastWindowClosed()), qApp, SLOT(quit()));
+    connect(qApp, SIGNAL(lastWindowClosed()), this, SLOT(quit()));
 }
 
 
@@ -2401,16 +2401,11 @@ void soxtmain(char *argv[])
 // Initialize Inventor and Qt.
     SoQt::init(argv[0]);
 
-#ifndef R3B
     root = new SoSeparator;
-#else
-    root = new SoSelection;
-#endif
-#ifndef R3B
     root->ref();
-#endif
     mainWindow = new MainWindow;
 
     SoQt::show(mainWindow);
     SoQt::mainLoop();
+    root->unref();
 }

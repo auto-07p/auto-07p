@@ -81,6 +81,7 @@ public:
     void setListValue();
 
 public slots:
+    void quit();
     void fileMenuPick(int which);
     void typeMenuPick(int which);
     void typeMenuDisplay();

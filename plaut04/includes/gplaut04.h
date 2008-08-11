@@ -390,12 +390,11 @@ extern char labels[MAX_LABEL][8];
 extern long int animationLabel;
 extern char autoDir[256];
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
+extern SoSeparator *root;
 #ifndef R3B
 extern const char * graphWidgetItems[7];
-extern SoSeparator *root;
 #else
 extern const char * graphWidgetItems[10];
-extern SoSelection *root;
 extern bool blMassDependantOption;
 
 void smallPrimaryMovingOrbit(float R, float T, float t,

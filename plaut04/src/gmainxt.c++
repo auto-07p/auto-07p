@@ -1329,8 +1329,8 @@ createBdBoxCB(Widget w, XtPointer client_data, XtPointer cbs)
 //  menubar at the top of the window, and a render area filling out
 //  the remainder. These widgets are layed out with a Motif form widget.
 //
-SoXtRenderArea *
-buildMainWindow(Widget parent, SoSeparator *sceneGraph)
+void
+buildMainWindow(Widget parent, SoSeparator *root)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1343,11 +1343,17 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     Arg  args[15];
     int  n,i;
 
+    SoSeparator *sceneGraph = new SoSeparator;
+    sceneGraph->ref();
+
+    SoEventCallback *mouseEventCB = new SoEventCallback;
+    sceneGraph->addChild(mouseEventCB);
+    sceneGraph->addChild(root);
+
 // build the toplevel widget
     topform = XtCreateWidget("topform", xmFormWidgetClass, parent,NULL, 0);
 // build menubar
     Widget menubar = buildMenu(topform);
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (topform, XtVaTypedArg,
         XmNbackground, XmRString, "white", 6,
@@ -1356,17 +1362,14 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
         XmNbackground, XmRString, "white", 6,
         NULL);
 #endif
-#endif
 
 // build carrier for the x, y, z, and label lists.
     Widget listCarrier= XtCreateWidget("ListCarrier",
         xmFormWidgetClass, topform, NULL, 0);
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (listCarrier, XtVaTypedArg,
         XmNbackground, XmRString, "white", 4,
         NULL);
-#endif
 #endif
 
 //build the xAxis drop down list
@@ -1393,12 +1396,10 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtAddCallback (xAxisList, XmNselectionCallback,
         xListCallBack, NULL);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (xAxisList, XtVaTypedArg,
         XmNbackground, XmRString, "white", 4,
         NULL);
-#endif
 #endif
 
 // build the yAxis drop down list
@@ -1423,12 +1424,10 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtAddCallback (yAxisList, XmNselectionCallback,
         yListCallBack, NULL);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (yAxisList, XtVaTypedArg,
         XmNbackground, XmRString, "white", 4,
         NULL);
-#endif
 #endif
 
 // build the zAxis drop down list
@@ -1454,12 +1453,10 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtAddCallback (zAxisList, XmNselectionCallback,
         zListCallBack, NULL);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (zAxisList, XtVaTypedArg,
         XmNbackground, XmRString, "white", 6,
         NULL);
-#endif
 #endif
 
 // build the LABELs drop down list
@@ -1623,7 +1620,6 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     Widget spLbl   = XtVaCreateManagedWidget("   Line  ",xmLabelWidgetClass, listCarrier, NULL);
     Widget spLbl2  = XtVaCreateManagedWidget("Thickness",xmLabelWidgetClass, listCarrier, NULL);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
 //set the background color for the labels
     XtVaSetValues (xLbl, XtVaTypedArg,
@@ -1638,7 +1634,6 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtVaSetValues (lLbl, XtVaTypedArg,
         XmNbackground, XmRString, "white", 6,
         NULL);
-#endif
 #endif
 
 // Create slider to control speed
@@ -1660,12 +1655,10 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     satAniSpeedSlider =
         XtCreateWidget("Speed", xmScaleWidgetClass, listCarrier, args, n);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (satAniSpeedSlider, XtVaTypedArg,
         XmNbackground, XmRString, "white", 6,
         NULL);
-#endif
 #endif
 
 // Callbacks for the slider
@@ -1688,12 +1681,10 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     orbitAniSpeedSlider =
         XtCreateWidget("Speed2", xmScaleWidgetClass, listCarrier, args, n);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
     XtVaSetValues (orbitAniSpeedSlider, XtVaTypedArg,
         XmNbackground, XmRString, "white", 6,
         NULL);
-#endif
 #endif
 
 // Callbacks for the slider2
@@ -2027,16 +2018,22 @@ buildMainWindow(Widget parent, SoSeparator *sceneGraph)
     XtManageChild(menubar);
     XtManageChild(listCarrier);
 
-#ifndef R3B
     updateScene();
-#endif
 // these two lines are the third method for showing in 2D/3D
     renderArea->setSceneGraph(sceneGraph);
     renderArea->show();
 
     XtManageChild(topform);
 
-    return renderArea;
+#ifdef USE_BK_COLOR
+    XtVaSetValues (mainWindow, XtVaTypedArg,
+		   XmNbackground, XmRString, "white", 6, NULL);
+#endif
+
+    mouseEventCB->addEventCallback(
+	    SoMouseButtonEvent::getClassTypeId(),
+	    myMousePressCB,
+            renderArea->getSceneManager()->getSceneGraph());
 }
 
 
@@ -3446,6 +3443,7 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 {
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     int choice = (int) cbs->item_position;
+    int nItems = (whichType != BIFURCATION) ? mySolNode.totalLabels : myBifNode.totalLabels;
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
@@ -3755,50 +3753,13 @@ void soxtmain(char *argv[])
     Widget  mainWindow;
     mainWindow = SoXt::init(argv[0]);
 
-    if (mainWindow != NULL)
-    {
-#ifndef R3B
-        root = new SoSeparator;
+    if (mainWindow == NULL) return;
 
-        SoSeparator * rootroot = new SoSeparator;
-        rootroot->ref();
-#else
-        root = new SoSelection;
-        SoSeparator * myroot = new SoSeparator;
-        myroot->ref();
-#endif
+    root = new SoSeparator;
+    root->ref();
+    buildMainWindow(mainWindow, root);
 
-#ifndef R3B
-        root->ref();
-#endif
-        SoEventCallback *mouseEventCB = new SoEventCallback;
-#ifndef R3B
-        rootroot->addChild(mouseEventCB);
-        rootroot->addChild(root);
-#else
-        myroot->addChild(mouseEventCB);
-        myroot->addChild(root);
-#endif
-
-#ifndef R3B
-        SoXtRenderArea *ra = buildMainWindow(mainWindow, rootroot);
-#else
-#ifdef USE_BK_COLOR
-        XtVaSetValues (mainWindow, XtVaTypedArg,
-            XmNbackground, XmRString, "white", 6, NULL);
-#endif
-
-        updateScene();
-
-        SoXtRenderArea *ra = buildMainWindow(mainWindow, myroot);
-#endif
-
-        mouseEventCB->addEventCallback(
-            SoMouseButtonEvent::getClassTypeId(),
-            myMousePressCB,
-            ra->getSceneManager()->getSceneGraph());
-
-        SoXt::show(mainWindow);
-        SoXt::mainLoop();
-    }
+    SoXt::show(mainWindow);
+    SoXt::mainLoop();
+    root->unref();
 }

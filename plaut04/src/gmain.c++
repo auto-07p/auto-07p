@@ -139,11 +139,7 @@ long int numLabels;
 double legendScaleValues[2];
 
 SoSeparator *userScene;
-#ifndef R3B
 SoSeparator *root;
-#else
-SoSelection *root;
-#endif
 SoSeparator *starryBackground;
 
 char xAxis[MAX_LIST][5];
@@ -5684,10 +5680,6 @@ deleteScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
-    root->deselectAll();
-
-#endif
     for (int i = root->getNumChildren(); i>0; i--)
         root->removeChild(i-1);
 }

@@ -22,7 +22,7 @@ private:
 	double maxValue ;
 	double minValue ;
 	int numOfTickers ;
-	char name[128];
+	const char *name;
 	double tickers[11];
 	SbColor color;
 	bool show3D;
@@ -46,7 +46,7 @@ public:
 	void setMaxValue(double mx){ maxValue = mx; }
 	void setMinValue(double mi){ minValue = mi; }
 	void setNumOfTicker(int it){ numOfTickers = it; }
-	void setName(const char* anName){ strcpy(name, anName); }
+	void setName(const char* anName){ name = anName; }
 	void set(int type, double maxValue, double minValue, int numOfTickers, const char * name, int wh, SbColor color);
 
 };
