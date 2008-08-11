@@ -27,18 +27,26 @@ readFM(const char* dFileName, const int size)
         return state;
     }
 
-    clientData.multipliers = new float[myBifNode.totalNumPoints][6][2];
-    clientData.eigenvalues = new bool[myBifNode.totalNumPoints];
+    clientData.multipliers = new float[size][6][2];
+    clientData.eigenvalues = new bool[size];
 
     char * next;
 
-    long icounter = 1;
+    long icounter = 1, branchcounter = 0;
     int rowi = 0;
     prevpoint = -1;
+    int branchi = 0;
 
     while ( (next = fgets(buffer, sizeof(buffer), inFile)) != NULL
         && icounter < size)
     {
+        if (strstr(buffer, "Total Time") != NULL)
+	{
+            /* New branch */
+	    branchcounter += myBifNode.numVerticesEachBranch[branchi++];
+	    icounter = branchcounter + 1;
+	}
+
         clientData.eigenvalues[icounter] =
             strstr(buffer, "Eigenvalue") != NULL;
         if(strstr(buffer, "Multiplier") != NULL ||

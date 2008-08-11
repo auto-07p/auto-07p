@@ -3,6 +3,7 @@
 #include "gplaut04.h"
 #include "gVarNames.h"
 #include "tube.h"
+#include <float.h>
 
 #ifndef R3B
 #define TIME_IS_OFF  0 
@@ -2737,7 +2738,6 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
     float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0 ;
-    int32_t  myint[10];
 
     SoSeparator * anOrbit = new SoSeparator;
     long int numVertices = mySolNode.numVerticesEachPeriod[l];
@@ -2807,6 +2807,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             }
             SoCoordinate3 *myC = new SoCoordinate3;
             myC->point.setValues(0, 2, ver);
+            int32_t  myint[10];
             myint[0]=2;
             SoLineSet *myL = new SoLineSet;
             myL->numVertices.setValues(0, 1, myint);
@@ -3965,10 +3966,11 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
 
     int varIndices[3];
     int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
-    float minDis = 10000;
+    float minDis = FLT_MAX;
     long int index = 0;
     long int ib = 0;
     float distance;
+    float *data;
     sIdx = bIdx = 0;
     for(int i=0; i<mx; i++)
     {
@@ -3977,75 +3979,59 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
         animationLabel = myLabels[lblIndices[0]];
         long int lblidx = lblIndices[0];
+        long int maxp, sumup = 0;
+        if(whichType == BIFURCATION)
+        {
+            maxp = myBifNode.totalNumPoints;
+        }
+        else 
+        {
+            if(animationLabel == MY_ALL || lblIdxSize >1)
+                maxp = mySolNode.totalNumPoints;
+            else
+            {
+                for(int j=0; j<lblidx; ++j)
+                    sumup += mySolNode.numVerticesEachPeriod[j];
+                maxp = mySolNode.numVerticesEachPeriod[lblidx];
+            }
+        }
+        for(long int j=0; j<maxp; ++j)
+	{
+            if(whichType == BIFURCATION)
+                data = &clientData.bifData[j*myBifNode.nar];
+            else
+                data = clientData.solData[sumup+j];
+            distance = 0;
+            for(int k=0; k<3; ++k)
+            {
+                float diff = position[k]-data[varIndices[k]];
+                distance += diff * diff;
+            }
+            if(minDis > distance)
+            {
+                minDis = distance;
+                index  = j+sumup;
+            }
+        }
         if(whichType != BIFURCATION)
         {
             if(animationLabel == MY_ALL || lblIdxSize >1)
             {
-                float p1[3];
-                for(long int j=0; j<mySolNode.totalNumPoints; ++j)
+                for (ib = 0; ib < clientData.totalLabels; ib++)
                 {
-                    for(int k=0; k<3; ++k)
-                        p1[k] = clientData.solData[j][varIndices[k]];
-                    distance = 0;
-                    for(int k=0; k<3; ++k)
-                        distance += (position[k]-p1[k])*(position[k]-p1[k]);
-                    if(minDis > distance)
-                    {
-                        minDis = distance;
-                        index  = j;
-                    }
+                    sumup += mySolNode.numVerticesEachPeriod[ib];
+                    if (sumup > index) break;
                 }
-
-                long int sumup = 0;
-                ib = 0;
-                while (sumup <index && ib<clientData.totalLabels)
-                    sumup += mySolNode.numVerticesEachPeriod[ib++];
             }
             else
             {
-                long int sumup = 0;
-                float p1[3];
-                for(int j=1; j<lblidx; ++j)
-                {
-                    sumup += mySolNode.numVerticesEachPeriod[j-1];
-                }
-                for(long int j=0; j<mySolNode.numVerticesEachPeriod[lblidx-1]; ++j)
-                {
-                    for(int k=0; k<3; ++k)
-                        p1[k] = clientData.solData[sumup+j][varIndices[k]];
-                    distance = 0;
-                    for(int k=0; k<3; ++k)
-                        distance += (position[k]-p1[k])*(position[k]-p1[k]);
-                    if(minDis > distance)
-                    {
-                        minDis = distance;
-                        index  = j+sumup;
-                    }
-                }
                 ib = lblidx;  
             }
             sIdx = index;
-            bIdx = clientData.labelIndex[ib-1][1];
+            bIdx = clientData.labelIndex[ib][1];
         }
         else
         {
-            {
-                float p1[3];
-                for(int j=0; j<myBifNode.totalNumPoints; ++j)
-                {
-                    for(int k=0; k<3; ++k)
-                        p1[k] = clientData.bifData[j*myBifNode.nar +
-						   varIndices[k]];
-                    distance = 0;
-                    for(int k=0; k<3; ++k)
-                        distance += (position[k]-p1[k])*(position[k]-p1[k]);
-                    if(minDis > distance)
-                    {
-                        minDis = distance;
-                        index  = j;
-                    }
-                }
-            }
             bIdx = index;
         }
     }
@@ -4138,7 +4124,6 @@ const SbVec2s &cursorPosition)
     SbVec3f myPosition;
     myPosition = myPickedPoint->getPoint();
     float position[3], x, y, z;
-    float * data;
     long int sIdx, bIdx;
     int size;
 
@@ -4172,53 +4157,32 @@ const SbVec2s &cursorPosition)
     }
 
     lookForThePoint(position, bIdx, sIdx);
-    int idix = 0;
 
-    if(whichType != BIFURCATION &&
-        (sIdx > mySolNode.totalNumPoints || sIdx < 0))
-        return false;
-    else if(whichType!=BIFURCATION)
+    float *data;
+    if(whichType != BIFURCATION)
     {
-        data = new float[mySolNode.nar];
-        if(data == NULL)
-        {
-            printf(" memory allocation failed!\n");
-            exit(0);
-        }
+        if(sIdx > mySolNode.totalNumPoints || sIdx < 0)
+            return false;
         size = mySolNode.nar;
-        for(int ms=0; ms<mySolNode.nar; ++ms)
-            data[ms]=clientData.solData[sIdx][ms];
-        idix = bIdx;
+        data = clientData.solData[sIdx];
     }
-
-    if(whichType == BIFURCATION &&
-        (bIdx > myBifNode.totalNumPoints || bIdx < 0))
-        return false;
-    else if(whichType == BIFURCATION)
-    {
-        data = new float[myBifNode.nar];
-        if(data == NULL)
-        {
-            printf(" memory allocation failed!\n");
-            exit(0);
-        }
+    else {
+        if (bIdx > myBifNode.totalNumPoints || bIdx < 0)
+            return false;
         size = myBifNode.nar;
-        for(int ms=0; ms<myBifNode.nar; ++ms)
-            data[ms]=clientData.bifData[bIdx * myBifNode.nar + ms];
-        idix = bIdx;
+        data = &clientData.bifData[bIdx * myBifNode.nar];
     }
 
     for(int ms=0; ms<clientData.numFM; ++ms)
     {
-        fmData[2*ms]   = clientData.multipliers[idix][ms][0];
-        fmData[2*ms+1] = clientData.multipliers[idix][ms][1];
+        fmData[2*ms]   = clientData.multipliers[bIdx][ms][0];
+        fmData[2*ms+1] = clientData.multipliers[bIdx][ms][1];
     }
 
     if (clientData.numFM > 0)
-        popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[idix]);
+        popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[bIdx]);
     else
         popupFloquetMultiplierDialog(data, size, false);
-    delete [] data;
     return TRUE;
 }
 
@@ -5526,7 +5490,7 @@ writePreferValuesToFile()
                 break;
             case 24:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", numOfStars);
+                fprintf(outFile, "%d\n", numOfStars);
                 break;
 #endif
         }
