@@ -52,7 +52,7 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
-    LOGICAL IPOS
+    LOGICAL IPOS,CHNG
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -204,18 +204,16 @@ CONTAINS
 ! Find the next solution point on the branch
 
     CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 5
 
 ! Check for user supplied parameter output parameter-values.
 
-    IF(NUZR.GT.0)THEN
+    IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
        DO IUZR=1,NUZR
           IAP(26)=IUZR
           CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
                U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
-          IF(ISTOP.EQ.1)GOTO 5
           ITP=IAP(27)
-          IF(ITP.EQ.-1)THEN
+          IF(ITP.EQ.-1.AND.ISTOP.EQ.0)THEN
              ITP=-4-10*ITPST
              IAP(27)=ITP
              IF(IUZ(IUZR).GT.0)THEN
@@ -224,7 +222,6 @@ CONTAINS
                 ENDDO
              ELSE
                 ISTOP=-1
-                GOTO 5
              ENDIF
           ENDIF
        ENDDO
@@ -232,12 +229,11 @@ CONTAINS
 
 ! Check for fold
 
-    IF(ABS(ILP).GT.0)THEN
+    IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
             U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
-       IF(ITP.EQ.-1) THEN
+       IF(ISTOP.EQ.0.AND.ITP.EQ.-1) THEN
           ITP=2+10*ITPST
           IAP(27)=ITP
           IF(ILP.GT.0)THEN
@@ -247,19 +243,17 @@ CONTAINS
           ELSE
 !            *Stop at the first found fold
              ISTOP=-1
-             GOTO 5
           ENDIF
        ENDIF
     ENDIF
 !
 ! Check for branch point, and if so store data :
 !
-    IF(ABS(ISP).GT.0)THEN
+    IF(ISTOP.EQ.0.AND.ABS(ISP).GT.0)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
             U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 5
        ITP=IAP(27)
-       IF(ITP.EQ.-1)THEN
+       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
           ITP=1+10*ITPST
           IAP(27)=ITP
           IF(ISP.GT.0)THEN
@@ -270,23 +264,26 @@ CONTAINS
           ELSE
 !            *Stop at the first found BP
              ISTOP=-1
-             GOTO 5
           ENDIF
        ENDIF
     ENDIF
 
 ! Check for Hopf bifurcation
 
-    IF(ABS(IPS).EQ.1)THEN
+    IF(ISTOP.EQ.0.AND.ABS(IPS).EQ.1)THEN
        CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
             U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
        ITP=IAP(27)
        IF(ITP.EQ.-1)THEN
           ITP=3+10*ITPST
           IAP(27)=ITP
-          IF(ISTOP.EQ.1)GOTO 5
+          RLP=0.d0
+          RBP=0.d0
           REV=0.d0
        ENDIF
+    ELSEIF(ABS(IPS).EQ.1)THEN
+! Still determine eigenvalue information and stability
+       REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
     ENDIF
 
 ! Store plotting data on unit 7 :
@@ -809,7 +806,7 @@ CONTAINS
 
     PARAMETER (HMACH=1.0d-7,RLARGE=1.0d+30)
 
-    DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,*)
+    DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,*),IUZ(*),VUZ(*)
 ! Local
     COMPLEX(KIND(1.0D0)) EV, ZTMP
     ALLOCATABLE EV(:)

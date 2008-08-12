@@ -118,6 +118,7 @@ CONTAINS
     ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     ALLOCATABLE UDOTPS(:,:),FA(:,:),FC(:),TM(:),DTM(:)
     ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
+    LOGICAL CHNG
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -250,19 +251,17 @@ CONTAINS
 2   CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
          RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
          TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 3
 
 ! Check for user supplied parameter output parameter-values.
 
-    IF(NUZR.GT.0)THEN
+    IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
        DO IUZR=1,NUZR
           IAP(26)=IUZR 
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
                UZR(IUZR),RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS, &
                UDOTPS,UPOLDP,FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-          IF(ISTOP.EQ.1)GOTO 3
           ITP=IAP(27)
-          IF(ITP.EQ.-1)THEN
+          IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
              ITP=-4-10*ITPST
              IAP(27)=ITP
              IF(IUZ(IUZR).GT.0)THEN
@@ -278,13 +277,12 @@ CONTAINS
 
 ! Check for fold.
 
-    IF(ABS(ILP).GT.0)THEN
+    IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
        CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
             RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
             FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
-       IF(ITP.EQ.-1)THEN
+       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
           ITP=5+10*ITPST
           IAP(27)=ITP
           IF(ILP.GT.0)THEN
@@ -294,7 +292,6 @@ CONTAINS
           ELSE
 !            *Stop at the first found fold
              ISTOP=-1
-             GOTO 3
           ENDIF
        ENDIF
     ENDIF
@@ -305,9 +302,8 @@ CONTAINS
        CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
             RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
             FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
-       IF(ITP.EQ.-1)THEN
+       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
           ITP=6+10*ITPST
           IAP(27)=ITP
           IF(ISP.GT.0)THEN
@@ -317,21 +313,19 @@ CONTAINS
           ELSE
 !            *Stop at the first found BP
              ISTOP=-1
-             GOTO 3
           ENDIF
        ENDIF
     ENDIF
 
 ! Check for period-doubling and torus bifurcation.
 
-    IF(ABS(ISP).GT.0 .AND. &
+    IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
          (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
        CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
             RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
             FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       IF(ISTOP.EQ.1)GOTO 3
        ITP=IAP(27)
-       IF(ITP.EQ.-1)THEN
+       IF(ISTOP.EQ.0 .AND. ITP.EQ.-1)THEN
 !            **Secondary periodic bifurcation: determine type
           CALL TPSPBV(IAP,RAP,PAR,EV)
           IF(ISP.GT.0)THEN
@@ -341,14 +335,19 @@ CONTAINS
           ELSE
 !            *Stop at the first found SPB
              ISTOP=-1
-             GOTO 3
           ENDIF
        ENDIF
+    ELSEIF(ABS(ISP).GT.0 .AND. &
+         (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+! Still determine and print Floquet multipliers
+       SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
+            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+            DTM,THL,THU,IUZ,VUZ)
     ENDIF
 
 ! Store plotting data.
 
-3   CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+    CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
     CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
 
     IF(ISTOP.EQ.0)THEN
@@ -1319,7 +1318,11 @@ CONTAINS
 ! of the unit circle or when a real eigenvalues passes through -1.
 
     COMPLEX(KIND(1.0D0)) EV(*),ZTMP
-    DIMENSION IAP(*),RAP(*),P0(*),P1(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),P0(*),P1(*)
+    DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*)
+    DOUBLE PRECISION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
+    DOUBLE PRECISION FA(NDX,*),FC(*),TM(*),DTM(*),THL(*),THU(*),VUZ(*)
+    INTEGER IUZ(*)
 ! Local
     LOGICAL CHNG
 
@@ -1389,7 +1392,7 @@ CONTAINS
 ! (ISP is set to negative and detection of bifurations is discontinued)
 
     AMIN= ABS( EV(1) - 1.d0 )
-    IF(AMIN>5.0E-2 .AND. (ISP==2 .OR. ISP==4)) THEN
+    IF(AMIN>5.0D-2 .AND. (ISP==2 .OR. ISP==4)) THEN
        IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
        DO I=1,NDIM
           WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
