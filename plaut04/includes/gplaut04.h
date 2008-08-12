@@ -69,7 +69,6 @@
 
 #define max(a,b) (a>b?a:b)
 #define min(a,b) (a<b?a:b)
-#define MAX_BUF  256   // length of a line
 #define MAX_PAR  100    // Max Number of parameters in AUTO 
 
 #define WIN_WIDTH  1000
@@ -215,6 +214,7 @@ struct BifNode {
     int *yAxisItems;
     int *zAxisItems;
     int nar;
+    int maxndim;
 
     unsigned char *ptStability;       // start from 0...totalLines-1
     long int totalNumPoints; // like 10012.
@@ -237,14 +237,14 @@ struct UserData{
     long int maxRowSize;
     int maxColSize;
     int totalLabels;
-    int numFM;
 
     float **solData;
     float *bifData;
 
     float solPeriod[MAX_LABEL];        // from the solution file par[10];
-    float (*multipliers)[6][2];   // from the diagnostic file.
-    bool *eigenvalues;                 // eigenvalues or multipliers?
+    float (*multipliers)[2];           // from the diagnostic file.
+    int maxndim;
+    int *numFM;                        // #multipliers (+) or #eigenvalues (-)?
     long int labelIndex[MAX_LABEL][4]; // [0] --- saves the start row number in the solData, 
 	                              // [1] --- saves the row number in the bifData.
 	                              // [2] --- saves the type of the label.
@@ -342,7 +342,7 @@ struct DefaultAxisItems
 #define LBL_OFFSET   4
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13
-void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue);
+void popupFloquetMultiplierDialog(float data[], int size, int numFM);
 void soxtmain(char *argv[]);
 void updateScene();
 void postDeals();

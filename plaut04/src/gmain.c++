@@ -3995,10 +3995,11 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
                 data = clientData.solData[sumup+j];
             distance = 0;
             for(int k=0; k<3; ++k)
-            {
-                float diff = position[k]-data[varIndices[k]];
-                distance += diff * diff;
-            }
+                if(varIndices[k] != -1) 
+                {
+                    float diff = position[k]-data[varIndices[k]];
+                    distance += diff * diff;
+                }
             if(minDis > distance)
             {
                 minDis = distance;
@@ -4165,16 +4166,13 @@ const SbVec2s &cursorPosition)
         data = &clientData.bifData[bIdx * myBifNode.nar];
     }
 
-    for(int ms=0; ms<clientData.numFM; ++ms)
+    for(int ms=0; ms<abs(clientData.numFM[bIdx]); ++ms)
     {
-        fmData[2*ms]   = clientData.multipliers[bIdx][ms][0];
-        fmData[2*ms+1] = clientData.multipliers[bIdx][ms][1];
+        fmData[2*ms]   = clientData.multipliers[bIdx*clientData.maxndim+ms][0];
+        fmData[2*ms+1] = clientData.multipliers[bIdx*clientData.maxndim+ms][1];
     }
 
-    if (clientData.numFM > 0)
-        popupFloquetMultiplierDialog(data, size, clientData.eigenvalues[bIdx]);
-    else
-        popupFloquetMultiplierDialog(data, size, false);
+    popupFloquetMultiplierDialog(data, size, clientData.numFM[bIdx]);
     return TRUE;
 }
 

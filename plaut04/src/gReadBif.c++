@@ -6,10 +6,20 @@
 #include <stdio.h>
 
 #include "gplaut04.h"
-#define MAX_LINE 1024
 
 extern BifNode myBifNode;
 extern UserData clientData;
+
+/*go to the end of the line*/
+static void go_to_eol(FILE *f)
+{
+    int i;
+    do 
+    {
+        i = fgetc(f);
+    } while (i != '\n' && i != EOF );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 bool
@@ -17,12 +27,9 @@ readBifurcation(const char *bFileName, int varIndices[])
 //
 ////////////////////////////////////////////////////////////////////////////////
 {
-    char line[MAX_LINE];
     int  branch;
-    float dummy;
-
     FILE * inFile;
-    inFile = fopen(bFileName, "r");
+    inFile = fopen(bFileName, "rt");
     if(!inFile)
     {
         printf(" Cannot open input file: %s\n", bFileName);
@@ -33,28 +40,33 @@ readBifurcation(const char *bFileName, int varIndices[])
     long int totalPoints   = 0;
     long int numPtsInThisBranch = 0;
     int maxColSize  = 0;
-    int lb          = 0;
-    int lbType      = 0;
-    int lbStability = 0;
+    int lb, lbType, lbStability;
     int totalLabels = 0;
     int numPtInCurrentInterval = 0;
+    int ndim;
+    long int pt;
 
-    while(fgets(line, sizeof(line), inFile) !=NULL)
+    while(fscanf(inFile, "%d", &branch) == 1)
     {
-        sscanf(line,"%d", &branch);
         int ic = 0;
-        float data[MAX_LIST];
-        if(branch != 0)
+        if(branch == 0) {
+            if(fscanf(inFile, " NDIM=%d", &ndim) == 1 &&
+	       ndim > myBifNode.maxndim)
+	        myBifNode.maxndim = ndim;
+            go_to_eol(inFile);
+	}
+	else
         {
-            char * word = strtok(line," \n");
-            while(word != NULL)
-            {
-                data[ic]=fortranatof(word);
-                ++ic;
-                word=strtok(NULL," \n");
+            fscanf(inFile, "%ld %d %d", &pt, &lbType, &lb);
+            int i = 0;
+	    char dummystr[25], c;
+            while (fscanf(inFile,"%24s%c", dummystr, &c) == 2) {
+                clientData.bifData[totalPoints*myBifNode.nar+(i++)] =
+		    fortranatof(dummystr);
+		if(c=='\n')break;
             }
 
-            if(abs((int)data[1]) == 1)
+            if(abs(pt) == 1)
             {
                 myBifNode.branchID[numBranches] = branch;
                 if(numBranches>0) {
@@ -67,15 +79,13 @@ readBifurcation(const char *bFileName, int varIndices[])
             ++numPtsInThisBranch;
 
             // set the stability of the point
-            lbType = (int)data[2];
-            lb     = (int)data[3]; 
-            if((int)data[0] > 0)
+            if(branch > 0)
             {
-                lbStability = (((int)data[1]>0) ? 1 : 2);
+                lbStability = (pt>0 ? 1 : 2);
             }
             else
             {
-                lbStability = (((int)data[1]>0) ? 3 : 4);
+                lbStability = (pt>0 ? 3 : 4);
             }
 
             ++numPtInCurrentInterval;
@@ -91,12 +101,6 @@ readBifurcation(const char *bFileName, int varIndices[])
             }
 
             maxColSize=(maxColSize>ic) ? maxColSize : ic;
-            for(int i=0; i<ic-4; i++)
-            {
-                dummy = data[i+4];
-                clientData.bifData[totalPoints*myBifNode.nar+i] = dummy;
-            }
-
             myBifNode.ptStability[totalPoints] = lbStability;
             ++totalPoints;
         }
@@ -154,10 +158,8 @@ parseBifurcation(const char *bFileName)
 //
 ////////////////////////////////////////////////////////////////////
 {
-    char line[MAX_LINE];
-
     FILE * inFile;
-    inFile = fopen(bFileName, "r");
+    inFile = fopen(bFileName, "rt");
     if(!inFile)
     {
         printf(" Cannot open input file: %s\n", bFileName);
@@ -167,31 +169,27 @@ parseBifurcation(const char *bFileName)
     long int totalPoints = 0;
     long int numBranches = 0;
     int maxColSize = 0;
+    int branch;
 
-    while(fgets(line, sizeof(line), inFile) !=NULL)
+    while(fscanf(inFile, "%d", &branch) == 1)
     {
-        char *word = line;
-        word = strpbrk(word, "-0123456789");
-        int ic = 1;
-        if(word[0] != '0')
+        if(branch != 0)
         {
-            word = strpbrk(word, " \t\n");
-            while(word != NULL)
-            {
-                word = strpbrk(word, "-0123456789");
-                if (word == NULL) break;
-                ++ic;
-		if (ic == 2 &&
-		    ((word[0] == '1' && word[1] == ' ') ||
-		     (word[0] == '-' && word[1] == '1' && word[2] == ' ')))
-		      numBranches++; 
-                word = strpbrk(word, " \t\n");
-            }
+            long int pt;
+            fscanf(inFile, "%ld", &pt);
+            if (abs(pt) == 1) numBranches++;
+	    char c;
+            int ic = -1;
+            while (fscanf(inFile,"%*s%c", &c) == 1 && c !='\n') ic++;
             if (ic > maxColSize) maxColSize = ic;
             ++totalPoints;
         }
+        else
+	{
+            go_to_eol(inFile);
+        }
     }
-    myBifNode.nar = maxColSize-4;
+    myBifNode.nar = maxColSize;
     myBifNode.totalNumPoints = totalPoints;
     myBifNode.numBranches = numBranches;
 

@@ -194,8 +194,7 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                     {
 // read all the data set to the dynamic array.
                         char dummystr[25];
-                        fscanf(inFile,"%*[ \t\n]");
-                        fscanf(inFile,"%24[^ \t\n]",dummystr);
+                        fscanf(inFile,"%24s",dummystr);
                         dummy=fortranatof(dummystr);
                         clientData.solData[row][j]=dummy;
                         if(row == 0) clientData.solMax[j] = dummy;

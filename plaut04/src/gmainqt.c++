@@ -2254,13 +2254,13 @@ MainWindow::lblListCallBack(const QString &str)
 class FmDrawingArea : public QWidget
 {
 public:
-    FmDrawingArea( QWidget *parent, const char *name, bool ev )
-        : QWidget( parent, name ) { eigenvalue = ev; }
+    FmDrawingArea( QWidget *parent, const char *name, int nFM )
+        : QWidget( parent, name ) { numFM = nFM; }
 
 protected:
     void paintEvent( QPaintEvent * );
 private:
-    bool eigenvalue;
+    int numFM;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -2300,7 +2300,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
         p.drawText(210 , 413-i*50, myText[i]);
 
 // draw a unit circle.
-    if (!eigenvalue) {
+    if (numFM > 0) {
         p.setPen(QPen(Qt::green, 1, Qt::SolidLine));
         p.drawArc(150, 150, 100, 100, 0, 360*16);
     }
@@ -2309,7 +2309,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 
     int x, y;
 
-    for(int j = 0; j<clientData.numFM; ++j)
+    for(int j = 0; j < abs(numFM); ++j)
     {
         float tmp = fmData[2*j];
         if(fabs(tmp) <= 1.1)
@@ -2334,7 +2334,7 @@ FmDrawingArea::paintEvent( QPaintEvent * )
 
 ////////////////////////////////////////////////////////////////////////
 //
-void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
+void popupFloquetMultiplierDialog(float data[], int size, int numFM)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -2352,8 +2352,8 @@ void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
         else str += " | ";
     }
 
-    QString tmpstr = eigenvalue ? "Eigenvalues:\n" : "Floquet multipliers:\n";
-    for(int j=0; j<clientData.numFM; ++j)
+    QString tmpstr = numFM < 0 ? "Eigenvalues:\n" : "Floquet multipliers:\n";
+    for(int j=0; j<abs(numFM); ++j)
     {
         QString temp;
         if (fmData[j*2+1] < 0)
@@ -2375,7 +2375,7 @@ void popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
         pane = new QVBoxLayout(dialog_shell, 5, -1, "pane");
 
         fmDrawingArea = new FmDrawingArea(dialog_shell, "fmDrawingArea",
-                                          eigenvalue);
+                                          numFM);
         fmDrawingArea->setMinimumSize(450,450);
         pane->addWidget(fmDrawingArea);
 

@@ -15,6 +15,9 @@ readFM(const char* dFileName, const int size)
 
     char buffer[256];
     int branch, point, prevpoint, myid;
+    int maxndim = max(myBifNode.maxndim,mySolNode.nar-1);
+    clientData.maxndim = maxndim;
+    bool eigenvalues;
 
     float fl1, fl2;
     FILE * inFile;
@@ -26,9 +29,6 @@ readFM(const char* dFileName, const int size)
         state = 1;
         return state;
     }
-
-    clientData.multipliers = new float[size][6][2];
-    clientData.eigenvalues = new bool[size];
 
     char * next;
 
@@ -47,16 +47,19 @@ readFM(const char* dFileName, const int size)
 	    icounter = branchcounter + 1;
 	}
 
-        clientData.eigenvalues[icounter] =
-            strstr(buffer, "Eigenvalue") != NULL;
-        if(strstr(buffer, "Multiplier") != NULL ||
-           clientData.eigenvalues[icounter])
+	eigenvalues = strstr(buffer, "Eigenvalue") != NULL;
+        if(eigenvalues || strstr(buffer, "Multiplier") != NULL)
         {
+            if(clientData.multipliers == NULL) {
+                clientData.multipliers = new float[size*maxndim][2];
+                clientData.numFM = new int[size];
+	    }
+            clientData.numFM[icounter] = 0;
             rowi = 0;
             do
             {
                 int ret;
-                if(clientData.eigenvalues[icounter])
+                if(eigenvalues)
                     ret = sscanf(buffer, "%d%d Eigenvalue %d: %e%e",
                            &branch, &point, &myid, &fl1, &fl2);
                 else
@@ -70,14 +73,15 @@ readFM(const char* dFileName, const int size)
                 if (point == prevpoint && rowi == 0)
                     --icounter;
                 prevpoint = point;
-                clientData.multipliers[icounter][rowi][0] = fl1;
-                clientData.multipliers[icounter][rowi][1] = fl2;
+                clientData.multipliers[icounter*maxndim+rowi][0] = fl1;
+                clientData.multipliers[icounter*maxndim+rowi][1] = fl2;
                 rowi++;
-                clientData.numFM = (rowi>clientData.numFM ) ? rowi : clientData.numFM;
             }                 //end inner while
             while( fgets(buffer, sizeof(buffer), inFile) &&
                      (strstr(buffer, "Multiplier") != NULL ||
                       strstr(buffer, "Eigenvalue") != NULL) );
+            if(rowi !=0)
+                clientData.numFM[icounter] = eigenvalues ? -rowi : rowi;
             ++icounter;
         }
     }                         // end outter while

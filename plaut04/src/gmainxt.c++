@@ -3529,7 +3529,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 ////////////////////////////////////////////////////////////////////////
 {
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
-    bool eigenvalue = (bool)(long)client_data;
+    int numFM = (int)(long)client_data;
 
     XPoint points[8]={ 0,0, 100, 0, 0,100, 100,100};
 
@@ -3587,7 +3587,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     XSetForeground(cbs->event->xexpose.display, gc, green.pixel);
 
 // draw a unit circle.
-    if (!eigenvalue) {
+    if (numFM > 0) {
         XSetLineAttributes(cbs->event->xexpose.display, gc, 1, LineSolid, CapRound, JoinRound);
         XDrawArc(cbs->event->xexpose.display, cbs->window, gc, 150, 150, 100, 100, 360*64, 360*64);
     }
@@ -3597,7 +3597,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     int x, y;
 
     XSetLineAttributes(cbs->event->xexpose.display, gc, 2, LineSolid, CapRound, JoinRound);
-    for(int j = 0; j<clientData.numFM; ++j)
+    for(int j = 0; j<abs(numFM); ++j)
     {
         float tmp = fmData[2*j];
         if(fabs(tmp) <= 1.1)
@@ -3624,7 +3624,7 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
+popupFloquetMultiplierDialog(float data[], int size, int numFM)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -3655,11 +3655,11 @@ popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
     char *tmpstr, tempchar[500];
     tmpstr = new char[500];
     tmpstr[0]='\0';
-    if (eigenvalue)
+    if (numFM <= 0)
         strcat(tmpstr,"Eigenvalues:\n" );
     else
         strcat(tmpstr,"Floquet multipliers:\n" );
-    for(int j=0; j<clientData.numFM; ++j)
+    for(int j=0; j<abs(numFM); ++j)
     {
         strcat(tmpstr," [");
         sprintf(temp,"%2d",j);
@@ -3696,7 +3696,7 @@ popupFloquetMultiplierDialog(float data[], int size, bool eigenvalue)
         XtSetArg (args[n], XmNresizePolicy, XmRESIZE_NONE); n++;
         fmDrawingArea = XmCreateDrawingArea (pane, (char *)"fmDrawingArea", args, n);
 
-        XtAddCallback (fmDrawingArea, XmNexposeCallback, redrawFloqueMultipliers, (XtPointer)eigenvalue);
+        XtAddCallback (fmDrawingArea, XmNexposeCallback, redrawFloqueMultipliers, (XtPointer)numFM);
 
         XtVaSetValues (fmDrawingArea, XmNunitType, XmPIXELS, NULL);
 
