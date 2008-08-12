@@ -476,10 +476,10 @@ void MainWindow::typeMenuDisplay()
     menuItems->items->setItemEnabled(BIFURCATION, true);
     menuItems->items->setItemEnabled(SOLUTION, true);
 
-    if(!blOpenSolFile)
+    if(mySolNode.numOrbits == 0)
         menuItems->items->setItemEnabled(SOLUTION, false);
 
-    if(!blOpenBifFile)
+    if(myBifNode.totalNumPoints == 0)
         menuItems->items->setItemEnabled(BIFURCATION, false);
 }
 

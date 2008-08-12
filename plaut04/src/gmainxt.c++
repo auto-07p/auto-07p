@@ -602,10 +602,10 @@ typeMenuDisplay(Widget, void *userData, XtPointer)
     XtSetSensitive (menuItems->items[SOLUTION], TRUE);
     XtSetSensitive (menuItems->items[BIFURCATION], TRUE);
 
-    if(!blOpenSolFile)
+    if(mySolNode.numOrbits == 0)
         XtSetSensitive (menuItems->items[SOLUTION], FALSE);
 
-    if(!blOpenBifFile)
+    if(myBifNode.totalNumPoints == 0)
         XtSetSensitive (menuItems->items[BIFURCATION], FALSE);
 
 }

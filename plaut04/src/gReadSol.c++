@@ -46,14 +46,13 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
 
     totalNumPoints= 0;   
     position = ftell(inFile);
-    fscanf(inFile,"%d %d %d %d %d %d %d %d %d %d %d %d",
-        &ibr,&ntot,&itp,&lab,&nfpr,&isw,&ntpl,&nar,
-        &nrowpr,&ntst,&ncol,&npar1);
-    maxColSize = nar;
 
     total = 0;
-    while(!feof(inFile))
+    while(fscanf(inFile,"%d %d %d %d %d %d %d %d %d %d %d %d",
+		 &ibr,&ntot,&itp,&lab,&nfpr,&isw,&ntpl,&nar,
+		 &nrowpr,&ntst,&ncol,&npar1) == 12)
     {
+        if(maxColSize < nar) maxColSize = nar;
         if(lastBranchID == -999) lastBranchID = ibr;
         if(lastBranchID != ibr && lastBranchID != -999)
             branchCounter++;
@@ -87,10 +86,6 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
         }
 
         position = ftell(inFile);
-        fscanf(inFile,"%d %d %d %d %d %d %d %d %d %d %d %d",
-            &ibr,&ntot,&itp,&lab,&nfpr,&isw,&ntpl,&nar,
-            &nrowpr,&ntst,&ncol,&npar1);
-        if(maxColSize < nar) maxColSize = nar;
     }
 
     fclose(inFile);

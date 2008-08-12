@@ -186,8 +186,17 @@ class plotter(grapher.GUIGrapher):
                             x = [prevsol["data"][xcolumns[j]]]
                             y = [prevsol["data"][ycolumns[j]]]
                         labels = []
-                    x.append(sol["data"][xcolumns[j]]) 
-                    y.append(sol["data"][ycolumns[j]])
+                    try:
+                        x.append(sol["data"][xcolumns[j]])
+                    except:
+                        print "The x-coordinate (set to column %d) is out of range"%xcolumns[j]
+                        break
+                    try:
+                        y.append(sol["data"][ycolumns[j]])
+                    except:
+                        print "The y-coordinate (set to column %d) is out of range"%ycolumns[j]
+                        del x[-1]
+                        break
                     
                     TYnumber = sol["TY number"]
                     lab = sol["LAB"]

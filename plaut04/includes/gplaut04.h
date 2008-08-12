@@ -378,7 +378,7 @@ extern BifNode myBifNode;
 extern UserData clientData;
 extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;
 extern int MIN_SAT_SPEED, MAX_SAT_SPEED;
-extern bool blOpenSolFile, blOpenBifFile, blDrawTicker;
+extern bool blDrawTicker;
 extern struct DefaultAxisItems dai;
 extern char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
 extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];

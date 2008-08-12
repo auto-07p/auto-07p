@@ -45,9 +45,6 @@ unsigned long linePatternOld[NUM_SP_POINTS];
 unsigned long stabilityLinePattern[2];
 unsigned long stabilityLinePatternTemp[2];
 
-bool blOpenSolFile = TRUE;
-bool blOpenBifFile = TRUE;
-
 #ifndef R3B
 bool blDrawTicker = false;
 #else
@@ -3726,6 +3723,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
 ///////////////////////////////////////////////////////////////////////
 {
     long int  total=0, rows=0;
+    bool blOpenSolFile, blOpenBifFile;
 
     solHead = parseSolution(sFileName, blOpenSolFile, total, rows);
     if(!blOpenSolFile)
@@ -3781,7 +3779,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
         whichType = SOLUTION;
     }
 
-    if( blOpenSolFile )
+    if( mySolNode.numOrbits > 0 )
     {
         bool tmp = false;
         tmp = readSolution(solHead, sFileName, varIndices) ? true : false;
@@ -4242,7 +4240,7 @@ initCoordAndLableListItems()
     }
     specialColorItems = sp;
 
-    if(blOpenSolFile)
+    if(mySolNode.numOrbits > 0)
     {
 // the solution file does exist.
         numLabels = mySolNode.numOrbits;
@@ -5261,12 +5259,14 @@ postDeals()
     delete [] myBifNode.branchID;
 
     delete [] clientData.multipliers;
+    delete [] clientData.numFM;
     delete [] clientData.solMax;
     delete [] clientData.solMin;
 
-    delete [] clientData.solData[0];
-    mySolNode.totalNumPoints  = 0;
+    if (mySolNode.totalNumPoints > 0)
+        delete [] clientData.solData[0];
     delete [] clientData.solData;
+    mySolNode.totalNumPoints  = 0;
     delete [] clientData.bifData;
 
     for(solutionp cur = solHead; solHead != NULL; cur = solHead) {

@@ -91,12 +91,9 @@ class parseS(UserList.UserList):
     def read(self,inputfile):
         # We now go through the file and read the solutions.
         prev = None
-        while 1:
-            solution = AUTOSolution()            
-            solution.read(inputfile,prev)
+        while inputfile.read(1) != "":
+            solution = AUTOSolution(inputfile,prev)
             self.data.append(solution)
-            if inputfile.read(1) == "":
-                break
             prev = solution
 
     def write(self,output):
