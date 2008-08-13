@@ -5,12 +5,10 @@
 #include "tube.h"
 #include <float.h>
 
-#ifndef R3B
 #define TIME_IS_OFF  0 
 #define TIME_ON_X    1
 #define TIME_ON_Y    2
 #define TIME_ON_Z    3
-#endif
 
 float STATIONARY_POINT_RADIUS = 0.01;
 int specialColorItems = CL_SP_ITEMS;
@@ -20,9 +18,6 @@ extern void  rounding(double &, double &);
 float fmData[12];
 char autoDir[256];
 
-#ifndef R3B
-static int iiii = 0;
-#endif
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
 SbColor lineColorOld[NUM_SP_POINTS];
@@ -30,10 +25,6 @@ SbColor lineColorOld[NUM_SP_POINTS];
 SbColor envColors[8];
 #else
 SbColor envColors[12];
-#endif
-
-#ifndef R3B
-int bifDefaultAxis[3], solDefaultAxis[3];
 #endif
 
 struct DefaultAxisItems dai;
@@ -69,9 +60,7 @@ int whichCoordOld = 0 ;
 int whichCoordSystem = 0 ;
 int whichCoordSystemTemp = 0 ;
 int whichCoordSystemOld = 0 ;
-#ifndef R3B
 int time_on = 0;
-#endif
 
 unsigned long graphWidgetToggleSet     = (unsigned long) 0 ;
 unsigned long graphWidgetToggleSetTemp = (unsigned long) 0 ;
@@ -189,9 +178,7 @@ static SoSeparator * drawStarryBackground(char * bgFileName);
 
 static int readResourceParameters();
 static void copySolDataToWorkArray(int varIndices[]);
-#ifndef R3B
 static void searchForMaxMin(int component, int  varIndices[]);
-#endif
 static void copyBifDataToWorkArray(int varIndices[]);
 
 #if 0
@@ -321,7 +308,6 @@ updateScene()
     int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
     maxComponent = mx;
 
-#ifndef R3B
     // look for the maximum/minum value in the x-axis, y-axis, z-axis
     if(whichType != BIFURCATION)
     {
@@ -337,7 +323,6 @@ updateScene()
  
     time_on = TIME_IS_OFF;
 
-#endif
     for(int i=0; i<mx; i++)
     {
         curComponent = i+1;
@@ -345,19 +330,13 @@ updateScene()
         varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
         varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
 
-#ifndef R3B
         if (varIndices[0] == 0) time_on = TIME_ON_X; 
         if (varIndices[1] == 0) time_on = TIME_ON_Y; 
         if (varIndices[2] == 0) time_on = TIME_ON_Z; 
 
-#else
-        animationLabel = myLabels[lblIndices[0]];
-#endif
         if(whichType != BIFURCATION)
         {
-#ifndef R3B
             animationLabel = myLabels[lblIndices[0]];
-#endif
             copySolDataToWorkArray(varIndices);
             newScene->addChild( createSolutionSceneWithWidgets() );
         }
@@ -379,9 +358,6 @@ updateScene()
         root->addChild(newScene);
         userScene = newScene;
     }
-#ifndef R3B
-    iiii++;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -466,11 +442,9 @@ createSolutionSceneWithWidgets()
             {
                 asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1]; asMin[2]=mySolNode.min[2];
                 asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1]; asMax[2]=mySolNode.max[2];
-#ifndef R3B
                 if (time_on == TIME_ON_X) asMax[0] = 1;
                 else if (time_on == TIME_ON_Y) asMax[1] = 1;
                 else if (time_on == TIME_ON_Z) asMax[2] = 1;
-#endif
             }
             else
             {
@@ -512,11 +486,8 @@ createSolutionSceneWithWidgets()
 
     }
 
-#ifdef R3B
-    static int iiii = 0;
-#endif
 //  create starry background
-    if(iiii && options[OPT_BACKGROUND])
+    if(options[OPT_BACKGROUND])
     {
         char bgFileName[256];
         strcpy(bgFileName, autoDir);
@@ -525,13 +496,10 @@ createSolutionSceneWithWidgets()
     }
 
 //  add legend
-    if(iiii && options[OPT_LEGEND])
+    if(options[OPT_LEGEND])
     {
         result->addChild(addLegend());
     }
-#ifdef R3B
-    iiii++;
-#endif
 
     return result;
 }
@@ -665,13 +633,8 @@ createBifurcationScene()
         float asMax[3], asMin[3];
         if(options[OPT_NORMALIZE_DATA])
         {
-#ifndef R3B
             asMax[0]=myBifNode.max[0]; asMax[1]=myBifNode.max[1];asMax[2]=myBifNode.max[2];
             asMin[0]=myBifNode.min[0]; asMin[1]=myBifNode.min[1];asMin[2]=myBifNode.min[2];
-#else
-            asMax[0]=mySolNode.max[0]; asMax[1]=mySolNode.max[1];asMax[2]=mySolNode.max[2];
-            asMin[0]=mySolNode.min[0]; asMin[1]=mySolNode.min[1];asMin[2]=mySolNode.min[2];
-#endif
         }
         else
         {
@@ -726,8 +689,7 @@ createBifurcationScene()
     result->addChild(bifBranchSep);
 
 // create starry background
-    static int iiii = 0;
-    if(iiii && options[OPT_BACKGROUND])
+    if(options[OPT_BACKGROUND])
     {
         char bgFileName[256];
         strcpy(bgFileName, autoDir);
@@ -736,11 +698,10 @@ createBifurcationScene()
     }
 
 // add legend
-    if(iiii && options[OPT_LEGEND])
+    if(options[OPT_LEGEND])
     {
         result->addChild(addLegend());
     }
-    iiii++;
 
     return result;
 }
@@ -821,9 +782,7 @@ drawLabelPtsInBifurcationScene()
             normalizeBifData(row, position);
 
             float size = dis*0.005*sphereRadius;
-#ifndef R3B
             size *= lineWidthScaler;
-#endif
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
                 result->addChild( drawALabel(row, size, myBifNode.labels[k]));
@@ -847,9 +806,7 @@ drawLabelPtsInBifurcationScene()
             normalizeBifData(row, position);
 
 	    float size = dis*0.005*sphereRadius;
-#ifndef R3B
             size *= lineWidthScaler;
-#endif
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
                 result->addChild( drawALabel(row, size, myBifNode.labels[k]));
@@ -955,11 +912,12 @@ long int sumX, float scaler)
     }
 
     if(coloringMethod == CL_BRANCH_NUMBER)
-#ifndef R3B
-        tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
-#else
-        tSep->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], 0, scaler));
+    {
+#ifdef R3B
+        iBranch = myBifNode.branchID[iBranch];
 #endif
+        tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
+    }
     else if(coloringMethod == CL_STABILITY)
         tSep->addChild(setLineColorBlendingByStability(colorBase, upperlimit*11, 0, scaler));
     else /* CL_POINT_NUMBER or >= 0 */
@@ -1102,7 +1060,6 @@ drawSolUsingTubes()
                     ptSep->addChild(ptMtl);
                 }
 
-#ifndef R3B
                 float ver[2][3];
         
                 if(time_on != TIME_IS_OFF)
@@ -1148,7 +1105,6 @@ drawSolUsingTubes()
                     ptSep->addChild(myL);
                 }
                 else
-#endif
                 {
                     SoTransform * aTrans = new SoTransform;
                     aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
@@ -1184,71 +1140,37 @@ drawSolUsingTubes()
                 int type =clientData.labelIndex[j][2];
                 float scaler = lineWidthScaler;
 
-//                if(maxComponent == 1)
-//                {
-#ifdef R3B
-                if(maxComponent == 1)
+		if(coloringMethod == CL_BRANCH_NUMBER)
                 {
-#endif
-                    if(coloringMethod == CL_BRANCH_NUMBER)
-#ifndef R3B
-                        tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-#else
-                        tubeSep->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
-#endif
-                    else if(coloringMethod == CL_STABILITY)
-                        tubeSep->addChild(setLineAttributesByStability(stability, scaler));
-                    else if(coloringMethod == CL_ORBIT_TYPE)
-                        tubeSep->addChild(setLineAttributesByType(stability, type, scaler));
-                    else if(coloringMethod == CL_LABELS)
-                    {
 #ifdef R3B
-                        double bMin = 0;
-                        for(int ib = 0; ib< iBranch; ++ib)
-                            bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-                        double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-                        tubeSep->addChild(setLineAttributesByParameterValue(
-                            j, bMax, (bMax+bMin)/2.0, bMin,
-                            stability, scaler));
+                    tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
 #else
-                        tubeSep->addChild(setLineAttributesByParameterValue(
+                    tubeSep->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
+#endif
+                }
+                else if(coloringMethod == CL_STABILITY)
+                    tubeSep->addChild(setLineAttributesByStability(stability, scaler));
+                else if(coloringMethod == CL_ORBIT_TYPE)
+                    tubeSep->addChild(setLineAttributesByType(stability, type, scaler));
+                else if(coloringMethod == CL_LABELS)
+                    tubeSep->addChild(setLineAttributesByParameterValue(
                             j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                             stability, scaler));
-#endif
-                    }
-#ifndef R3B
-                    else if(coloringMethod == CL_COMPONENT)
-                        tubeSep->addChild(setLineAttributesByParameterValue(
-                                curComponent, maxComponent, maxComponent/2.0, 0,
-                                stability, scaler));
-#endif
-                    else if(coloringMethod >= mySolNode.nar)
-                        tubeSep->addChild(setLineAttributesByParameterValue(
-                                mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
-                                mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
-                                mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
-                                mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
-                                stability, scaler));
-                    else
-                        tubeSep->addChild(setLineColorBlending(colorBase,
-                            upperlimit*11,stability, scaler));
-//                }
-//                else
-//                {
-//                    tubeSep->addChild(setLineAttributesByParameterValue(
-//                        curComponent, maxComponent, maxComponent/2.0, 0,
-//                        stability, scaler));
-//                }
-
-#ifdef R3B
-                }
-                else
-                {
+                else if(coloringMethod == CL_COMPONENT)
                     tubeSep->addChild(setLineAttributesByParameterValue(
-                        curComponent, maxComponent, maxComponent/2.0, 0,
-                        stability, scaler));
-                }
-#endif
+                            curComponent, maxComponent, maxComponent/2.0, 0,
+                            stability, scaler));
+                else if(coloringMethod >= mySolNode.nar)
+                    tubeSep->addChild(setLineAttributesByParameterValue(
+                          mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                          mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
+                          mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
+                          mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
+                          stability, scaler));
+                else
+                    tubeSep->addChild(setLineColorBlending(colorBase,
+                        upperlimit*11,stability, scaler));
+
                 tube = Tube(upperlimit, path, lineWidthScaler*0.005, 10);
                 tubeSep->addChild(tube.createTube());
                 delete [] path;
@@ -2298,10 +2220,6 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     {
         long int idx = si;
         SoSeparator * ptSep = new SoSeparator;
-#ifdef R3B
-        SoTransform * aTrans = new SoTransform;
-
-#endif
 
         if(coloringMethod == CL_BRANCH_NUMBER)
             ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
@@ -2329,7 +2247,6 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         }
 
         
-#ifndef R3B
         float ver[2][3];
 
         if(time_on != TIME_IS_OFF)
@@ -2378,7 +2295,6 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         else
         {
             SoTransform * aTrans = new SoTransform;
-#endif
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
             ptSep->addChild(aTrans);
@@ -2386,9 +2302,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
             ptSep->addChild(aPoint);
             anOrbit->addChild(ptSep);
-#ifndef R3B
         }
-#endif
         return anOrbit;
     }
 
@@ -2413,73 +2327,41 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 // define the solution line set
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.setValues(0,1,myint);
-//    if(maxComponent == 1)
-//    {
-#ifdef R3B
-    if(maxComponent == 1)
+    if(!aniColoring)
     {
-#endif
-        if(!aniColoring)
-        {
-            anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
-        }
-        else
-        {
-#ifndef R3B
-            if(coloringMethod == CL_BRANCH_NUMBER)
-                anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-            else if(coloringMethod == CL_STABILITY)
-#else
-            if(coloringMethod == CL_STABILITY)
-#endif
-                anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+        anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
+    }
+    else if(coloringMethod == CL_BRANCH_NUMBER)
+    {
 #ifdef R3B
-            else if(coloringMethod == CL_BRANCH_NUMBER)
-                anOrbit->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
+        iBranch = mySolNode.branchID[iBranch];
 #endif
-            else if(coloringMethod == CL_ORBIT_TYPE)
-                anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
-            else if(coloringMethod == CL_LABELS)
-            {
-#ifdef R3B
-                double bMin = 0;
-                for(int ib = 0; ib< iBranch; ++ib)
-                    bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-                double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-                anOrbit->addChild(setLineAttributesByParameterValue(
-                    l-1, bMax, (bMax+bMin)/2.0, bMin,
-                    stability, scaler));
-#else
-                anOrbit->addChild(setLineAttributesByParameterValue(
-                     l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
-                     stability, scaler));
-#endif
-            }
-            else if(coloringMethod == CL_COMPONENT)
-                anOrbit->addChild(setLineAttributesByParameterValue(
-                        curComponent, maxComponent, maxComponent/2.0, 0,
-                        stability, scaler));
-            else if(coloringMethod >= mySolNode.nar)
-                anOrbit->addChild(setLineAttributesByParameterValue(
-                    mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
-                    mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
-                    mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
-                    mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
-                    stability, scaler));
-            else
-                anOrbit->addChild(setLineColorBlending(colorBase,
-                    mySolNode.numVerticesEachPeriod[l],stability, scaler));
-        }
-//    }else
-//    anOrbit->addChild(setLineAttributesByParameterValue(
-//           curComponent, maxComponent, maxComponent/2.0, 0,
-//          stability, scaler));
-#ifdef R3B
-    }else
-    anOrbit->addChild(setLineAttributesByParameterValue(
-            curComponent, maxComponent, maxComponent/2.0, 0,
-            stability, scaler));
-#endif
+        anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+    }
+    else if(coloringMethod == CL_STABILITY)
+        anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+    else if(coloringMethod == CL_ORBIT_TYPE)
+        anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
+    else if(coloringMethod == CL_LABELS)
+    {
+        anOrbit->addChild(setLineAttributesByParameterValue(
+                          l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                          stability, scaler));
+    }
+    else if(coloringMethod == CL_COMPONENT)
+        anOrbit->addChild(setLineAttributesByParameterValue(
+                          curComponent, maxComponent, maxComponent/2.0, 0,
+                          stability, scaler));
+    else if(coloringMethod >= mySolNode.nar)
+        anOrbit->addChild(setLineAttributesByParameterValue(
+                          mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                          mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
+                          mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
+                          mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
+                          stability, scaler));
+    else
+        anOrbit->addChild(setLineColorBlending(colorBase,
+                          mySolNode.numVerticesEachPeriod[l],stability, scaler));
 
     anOrbit->addChild(myCoords);
     anOrbit->addChild(myLine);
@@ -2581,83 +2463,47 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         if(coloringMethod>=0)colorBase[m]  = clientData.solData[idx][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)colorBase[m]  = m;
 
-//        if(maxComponent == 1)
-//        {
-#ifdef R3B
-        if(maxComponent == 1)
+        if(!aniColoring)
         {
-#endif
-            if(!aniColoring)
-            {
-                anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
-            }
-            else
-            {
-                if(coloringMethod == CL_BRANCH_NUMBER)
-                    anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-                else if(coloringMethod == CL_STABILITY)
-                    anOrbit->addChild(setLineAttributesByStability(stability, scaler));
-                else if(coloringMethod == CL_ORBIT_TYPE)
-                    anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
-                else if(coloringMethod == CL_LABELS)
-                {
-#ifdef R3B
-                    double bMin = 0;
-                    for(int ib = 0; ib< iBranch; ++ib)
-                        bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-                    double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-                    anOrbit->addChild(setLineAttributesByParameterValue(
-                        l-1, bMax, (bMax+bMin)/2.0, bMin, stability, scaler));
-#else
-                    anOrbit->addChild(setLineAttributesByParameterValue(
-                         l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
-                         stability, scaler));
-#endif
-                }
-                else if(coloringMethod == CL_COMPONENT)
-                    anOrbit->addChild(setLineAttributesByParameterValue(
-                        curComponent, maxComponent, maxComponent/2.0, 0,
-                        stability, scaler));
-                else if(coloringMethod >= mySolNode.nar)
-                {
-                    anOrbit->addChild(setLineAttributesByParameterValue(
-                        mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
-                        mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
-                        mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
-                        mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
-                        stability, scaler));
-                }
-                else
-                    anOrbit->addChild(setLineColorBlending(colorBase,
-                        mySolNode.numVerticesEachPeriod[l],stability, scaler));
-            }
-//        }else
-//        anOrbit->addChild(setLineAttributesByParameterValue(
-//                curComponent, maxComponent, maxComponent/2.0, 0,
-//                stability, scaler));
-#ifdef R3B
-        }else
-        anOrbit->addChild(setLineAttributesByParameterValue(
-                curComponent, maxComponent, maxComponent/2.0, 0,
-                stability, scaler));
-#endif
+            anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
+        }
+        else if(coloringMethod == CL_BRANCH_NUMBER)
+            anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+        else if(coloringMethod == CL_STABILITY)
+            anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+        else if(coloringMethod == CL_ORBIT_TYPE)
+            anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
+        else if(coloringMethod == CL_LABELS)
+        {
+            anOrbit->addChild(setLineAttributesByParameterValue(
+                              l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                              stability, scaler));
+        }
+        else if(coloringMethod == CL_COMPONENT)
+            anOrbit->addChild(setLineAttributesByParameterValue(
+                              curComponent, maxComponent, maxComponent/2.0, 0,
+                              stability, scaler));
+        else if(coloringMethod >= mySolNode.nar)
+        {
+            anOrbit->addChild(setLineAttributesByParameterValue(
+                              mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
+                              mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
+                              mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
+                              mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
+                              stability, scaler));
+        }
+        else
+            anOrbit->addChild(setLineColorBlending(colorBase,
+                              mySolNode.numVerticesEachPeriod[l],stability, scaler));
 
         if(style == MESH_POINTS)
         {
             if(m%mySolNode.ncol[l] == 0)
                 anOrbit->addChild(drawAPoint(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1],
-#ifndef R3B
                     mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
-#else
-                    mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.25));
-#endif
         }else
         anOrbit->addChild(drawAPoint(mySolNode.xyzCoords[idx][0], mySolNode.xyzCoords[idx][1],
-#ifndef R3B
                 mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
-#else
-                mySolNode.xyzCoords[idx][2], dis, STATIONARY_POINT_RADIUS*0.25));
-#endif
     }
 
 
@@ -2762,7 +2608,6 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
             ptSep->addChild(ptMtl);
         }
 
-#ifndef R3B
         float ver[2][3];
 
         if(time_on != TIME_IS_OFF)
@@ -2806,28 +2651,15 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         }
         else
         {
-#endif
             SoTransform * aTrans = new SoTransform;
             aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
 		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
             ptSep->addChild(aTrans);
-#ifndef R3B
             SoSphere *aPoint = new SoSphere;
             aPoint->radius = dis * STATIONARY_POINT_RADIUS;
-#endif
             ptSep->addChild(aPoint);
             anOrbit->addChild(ptSep);
-#ifndef R3B
         }
-/*
-        SoTransform * aTrans = new SoTransform;
-        aTrans->translation.setValue(mySolNode.xyzCoords[idx][0], 
-		           mySolNode.xyzCoords[idx][1], mySolNode.xyzCoords[idx][2]);
-        ptSep->addChild(aTrans);
-        ptSep->addChild(aPoint);
-        anOrbit->addChild(ptSep);
-*/
-#endif
         return anOrbit;
     }
     else if( numVertices < 1 )
@@ -2852,72 +2684,34 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
     }
     tube = Tube(mySolNode.numVerticesEachPeriod[l], vertices, lineWidthScaler*0.005, 10);
 
-#ifdef R3B
-    if(maxComponent == 1)
-    {
-#else
-//    if(maxComponent == 1)
-//    {
-#endif
-        if(coloringMethod == CL_BRANCH_NUMBER)
-            anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-        else if(coloringMethod == CL_STABILITY)
-            anOrbit->addChild(setLineAttributesByStability(stability, scaler));
-        else if(coloringMethod == CL_BRANCH_NUMBER)
-            anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-        else if(coloringMethod == CL_ORBIT_TYPE)
-            anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
-        else if(coloringMethod == CL_LABELS)
-        {
-#ifdef R3B
-//          always start from blue to red for different branches. 
-            double bMin = 0;
-            for(int ib = 0; ib< iBranch; ++ib)
-                bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-            double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-            anOrbit->addChild(setLineAttributesByParameterValue(
-                l-1, bMax, (bMax+bMin)/2.0, bMin,
-                stability, scaler));
-#else
+    if(coloringMethod == CL_BRANCH_NUMBER)
+        anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+    else if(coloringMethod == CL_STABILITY)
+        anOrbit->addChild(setLineAttributesByStability(stability, scaler));
+    else if(coloringMethod == CL_BRANCH_NUMBER)
+        anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+    else if(coloringMethod == CL_ORBIT_TYPE)
+        anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
+    else if(coloringMethod == CL_LABELS)
 //          always set the first label blue, the last red, namely look all
 //          branches as one.
-            anOrbit->addChild(setLineAttributesByParameterValue(
-                l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
-                stability, scaler));
-#endif
-        }
-        else if(coloringMethod == CL_COMPONENT)
-        {
-            anOrbit->addChild(setLineAttributesByParameterValue(
+        anOrbit->addChild(setLineAttributesByParameterValue(
+                 l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                 stability, scaler));
+    else if(coloringMethod == CL_COMPONENT)
+        anOrbit->addChild(setLineAttributesByParameterValue(
                 curComponent, maxComponent, maxComponent/2.0, 0,
                 stability, scaler));
-        }
-        else if(coloringMethod >= mySolNode.nar)
-            anOrbit->addChild(setLineAttributesByParameterValue(
+    else if(coloringMethod >= mySolNode.nar)
+        anOrbit->addChild(setLineAttributesByParameterValue(
                     mySolNode.par[l][mySolNode.parID[coloringMethod-mySolNode.nar]],
                     mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                     mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                     stability, scaler));
-        else
-            anOrbit->addChild(setLineColorBlending(colorBase,
-                mySolNode.numVerticesEachPeriod[l]*11,stability, scaler));
-//    }
-//    else
-//    {
-//        anOrbit->addChild(setLineAttributesByParameterValue(
-//            curComponent, maxComponent, maxComponent/2.0, 0,
-//            stability, scaler));
-//    }
-#ifdef R3B
-    }
     else
-    {
-        anOrbit->addChild(setLineAttributesByParameterValue(
-            curComponent, maxComponent, maxComponent/2.0, 0,
-            stability, scaler));
-    }
-#endif
+        anOrbit->addChild(setLineColorBlending(colorBase,
+                mySolNode.numVerticesEachPeriod[l]*11,stability, scaler));
 
     anOrbit->addChild(tube.createTube());
 
@@ -2977,11 +2771,12 @@ drawABifBranchUsingLines(int iBranch, long int l, long int si, float scaler)
         myLine->numVertices.setValues(0, 1, myint);
 
         if(coloringMethod == CL_BRANCH_NUMBER)
-#ifndef R3B
-            aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
-#else
-            aBranch->addChild(setLineAttributesByBranch(myBifNode.branchID[iBranch], lastStab, scaler));
+        {
+#ifdef R3B
+            iBranch = myBifNode.branchID[iBranch];
 #endif
+            aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
+        }
         else if(coloringMethod == CL_STABILITY)
             aBranch->addChild(setLineColorBlendingByStability(colorBase, curSize, lastStab, scaler));
         else /* CL_POINT_NUMBER or >= 0 */
@@ -3255,21 +3050,9 @@ animateSolutionUsingTubes(bool aniColoring)
             else if(coloringMethod == CL_ORBIT_TYPE)
                 anOrbit->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
             else if(coloringMethod == CL_LABELS)
-            {
-#ifdef R3B
-                double bMin = 0;
-                for(int ib = 0; ib< iBranch; ++ib)
-                    bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-                double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-                anOrbit->addChild(setLineAttributesByParameterValue(
-                    j, bMax, (bMax+bMin)/2.0, bMin,
-                    stability, lineWidthScaler));
-#else
                 anOrbit->addChild(setLineAttributesByParameterValue(
                     j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                     stability, lineWidthScaler));
-#endif
-            }
             else if(coloringMethod >= mySolNode.nar)
                 anOrbit->addChild(setLineAttributesByParameterValue(
                         mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
@@ -3278,11 +3061,9 @@ animateSolutionUsingTubes(bool aniColoring)
                         mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                         stability, lineWidthScaler));
             else if(coloringMethod == CL_COMPONENT)
-            {
                  anOrbit->addChild(setLineAttributesByParameterValue(
                      curComponent, maxComponent, maxComponent/2.0, 0,
                      stability, lineWidthScaler));
-            }
             else
                 anOrbit->addChild(setLineColorBlending(colorBase,
                     upperlimit*11,stability, lineWidthScaler));
@@ -3366,17 +3147,9 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 
     float maxV[3], minV[3];
     long int orbitSize =  upperlimit;
-#ifndef R3B
     long int arrSize = orbitSize;
-#else
-    long int arrSize = (numPeriodAnimated==0) ? orbitSize : (long int)ceil(numPeriodAnimated * orbitSize);
-#endif
 
-#ifndef R3B
     double *time = new double[upperlimit+1];
-#else
-    double *time = new double[upperlimit];
-#endif
     double dt = 1.0/upperlimit;
 
     maxV[0]=minV[0]=mySolNode.xyzCoords[idx+0][0];
@@ -3395,26 +3168,13 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         time[i] = i*dt;
     }
 
-#ifndef R3B
     float dis = distance;// fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
     float (*myVertices)[3]= new float[arrSize+1][3];
     float *myColorBase = new float [arrSize+1];
-#else
-    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
-    float (*myVertices)[3]= new float[arrSize][3];
-    float *myColorBase = new float [arrSize];
-#endif
 
-#ifndef R3B
     myVertices[0][0] = myVertices[arrSize][0] = mySolNode.xyzCoords[idx][0];
     myVertices[0][1] = myVertices[arrSize][1] = mySolNode.xyzCoords[idx][1];
     myVertices[0][2] = myVertices[arrSize][2] = mySolNode.xyzCoords[idx][2];
-#else
-// animate the orbit in the proximately correct speed.
-    myVertices[0][0]=mySolNode.xyzCoords[idx][0];
-    myVertices[0][1]=mySolNode.xyzCoords[idx][1];
-    myVertices[0][2]=mySolNode.xyzCoords[idx][2];
-#endif
     if(coloringMethod>=0)myColorBase[0]  = clientData.solData[idx][coloringMethod];
     if(coloringMethod==CL_POINT_NUMBER)myColorBase[0]  = 0;
     for(long int i=1; i<upperlimit; i++)
@@ -3444,40 +3204,18 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         if(coloringMethod==CL_POINT_NUMBER)myColorBase[i]  = i;
     }
 
-#ifdef R3B
-    if(numPeriodAnimated >1)
-    {
-        for(long int i=upperlimit; i<arrSize; i++)
-        {
-            myVertices[i][0]=myVertices[i%upperlimit][0];
-            myVertices[i][1]=myVertices[i%upperlimit][1];
-            myVertices[i][2]=myVertices[i%upperlimit][2];
-            myColorBase[i]  =myColorBase[i%upperlimit];
-        }
-    }
-
-#endif
     SoDrawStyle *satStyle = new SoDrawStyle;
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
 
     SoCoordinate3 *myCoords = new SoCoordinate3;
-#ifndef R3B
     myCoords->point.setValues(0, arrSize+1, myVertices);
-#else
-    myCoords->point.setValues(0, arrSize, myVertices);
-#endif
     satGroup->addChild(myCoords);
 
     
     SoTimeCounter *myCounter = new SoTimeCounter;
-#ifndef R3B
     myCounter->max = arrSize+1;
-#else
-    myCounter->max = arrSize-1;
-#endif
     myCounter->min = 0;
-#ifndef R3B
    
     float freq, fduty; 
 
@@ -3506,104 +3244,52 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     for(iduty = 0; iduty <= arrSize+1; ++iduty)
          if(iduty == arrSize+1) myCounter->duty.set1Value(iduty, fduty) ;
          else myCounter->duty.set1Value(iduty, 1) ;
-#else
-    myCounter->frequency = (numPeriodAnimated !=0) ? 0.1*satSpeed/numPeriodAnimated : 0.1*satSpeed;
-#endif
 
 //------------------------------------------Begin-----------------------------------------
     float scaler = lineWidthScaler;
 
-//    if(maxComponent == 1)
-//    {
-#ifdef R3B
-    if(maxComponent == 1)
-    {
-#endif
 //------------------------------------------End-----------------------------------------
-        if(coloringMethod == CL_BRANCH_NUMBER)
-            satGroup->addChild(setLineAttributesByBranch(iBranch, stability, lineWidthScaler));
-        else if(coloringMethod == CL_STABILITY)
-            satGroup->addChild(setLineAttributesByStability(stability, lineWidthScaler));
-        else if(coloringMethod == CL_ORBIT_TYPE)
-            satGroup->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
-        else if(coloringMethod == CL_LABELS)
-        {
-#ifdef R3B
-            double bMin = 0;
-            for(int ib = 0; ib< iBranch; ++ib)
-                bMin +=  mySolNode.numOrbitsInEachBranch[ib];
-            double bMax = bMin+mySolNode.numOrbitsInEachBranch[iBranch]-1;
-            satGroup->addChild(setLineAttributesByParameterValue(
-                j-1, bMax, (bMax+bMin)/2.0, bMin,
-                stability, lineWidthScaler));
-#else
-            satGroup->addChild(setLineAttributesByParameterValue(
+    if(coloringMethod == CL_BRANCH_NUMBER)
+        satGroup->addChild(setLineAttributesByBranch(iBranch, stability, lineWidthScaler));
+    else if(coloringMethod == CL_STABILITY)
+        satGroup->addChild(setLineAttributesByStability(stability, lineWidthScaler));
+    else if(coloringMethod == CL_ORBIT_TYPE)
+        satGroup->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
+    else if(coloringMethod == CL_LABELS)
+        satGroup->addChild(setLineAttributesByParameterValue(
                 j-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, lineWidthScaler));
-#endif
-        }
-        else if(coloringMethod == CL_COMPONENT)
-            satGroup->addChild(setLineAttributesByParameterValue(
+    else if(coloringMethod == CL_COMPONENT)
+        satGroup->addChild(setLineAttributesByParameterValue(
                 curComponent, maxComponent, maxComponent/2.0, 0,
                 stability, scaler));
-        else if(coloringMethod >= mySolNode.nar)
-        {
-            satGroup->addChild(setLineAttributesByParameterValue(
+    else if(coloringMethod >= mySolNode.nar)
+        satGroup->addChild(setLineAttributesByParameterValue(
                 mySolNode.par[j][mySolNode.parID[coloringMethod-mySolNode.nar]],
                 mySolNode.parMax[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMid[iBranch][coloringMethod-mySolNode.nar],
                 mySolNode.parMin[iBranch][coloringMethod-mySolNode.nar],
                 stability, lineWidthScaler));
-        }
-        else
-        {
-            satGroup->addChild(setLineColorBlending(myColorBase, arrSize,
-                stability, lineWidthScaler));
-        }
-//------------------------------------------Begin-----------------------------------------
-//    }
-//    else
-//    {
-//        satGroup->addChild(setLineAttributesByParameterValue(
-//            curComponent, maxComponent, maxComponent/2.0, 0,
-//            stability, scaler));
-//    }
-#ifdef R3B
-    }
     else
-    {
-        satGroup->addChild(setLineAttributesByParameterValue(
-            curComponent, maxComponent, maxComponent/2.0, 0,
-            stability, scaler));
-    }
-#endif
-//------------------------------------------End-----------------------------------------
+        satGroup->addChild(setLineColorBlending(myColorBase, arrSize,
+                                                stability, lineWidthScaler));
 
 // define the solution line set
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.connectFrom(&myCounter->output);
     satGroup->addChild(myLine);
 
-#ifdef R3B
-    SoMaterial * satMtl = new SoMaterial;
-#endif
     SoSphere * mySat = new SoSphere;
     mySat->radius = satRadius*dis*0.005;
 
 
     SoTranslation * satTrans = new SoTranslation;
-#ifdef R3B
+    SoMaterial * satMtl = new SoMaterial;
     satMtl->diffuseColor.setValue(envColors[7]);
-#endif
-
-//    satGroup->addChild(satMtl);
-#ifdef R3B
     satGroup->addChild(satMtl);
-#endif
     satGroup->addChild(satTrans);
     satGroup->addChild(mySat);
 
-#ifndef R3B
     SoTimeCounter *myCounter2 = new SoTimeCounter;
     myCounter2->max = arrSize;
     myCounter2->min = 0;
@@ -3614,13 +3300,8 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
     for(iduty = 0; iduty < arrSize; ++iduty)
          myCounter2->duty.set1Value(iduty, 1) ;
 
-#endif
     SoSelectOne *mysel = new SoSelectOne(SoMFVec3f::getClassTypeId());
-#ifndef R3B
     mysel->index.connectFrom(&myCounter2->output);
-#else
-    mysel->index.connectFrom(&myCounter->output);
-#endif
     mysel->input->enableConnection(TRUE);
     mysel->input->connectFrom(&myCoords->point);
     satTrans->translation.connectFrom(mysel->output);
@@ -3828,44 +3509,15 @@ copySolDataToWorkArray(int  varIndices[])
             {
                 float dummy = clientData.solData[row][varIndices[k]];
                 mySolNode.xyzCoords[row][k] = dummy;
-#ifdef R3B
-                if(dummy>mySolNode.max[k] || row==0 )
-                    mySolNode.max[k] = dummy;
-                if(dummy<mySolNode.min[k] || row==0 )
-                    mySolNode.min[k] = dummy;
-#endif
             }
             else if(varIndices[k]<0)
             {
                 mySolNode.xyzCoords[row][k]=0.0;
-#ifndef R3B
-//                mySolNode.max[k]= 1;
-//                mySolNode.min[k]=-1;
-#else
-                mySolNode.max[k]= 1;
-                mySolNode.min[k]=-1;
-#endif
             }
         }
-#ifndef R3B
-/*
-        mx = mySolNode.max[k];
-        mi = mySolNode.min[k];
-        rounding(mx, mi);
-        mySolNode.max[k] = mx;
-        mySolNode.min[k] = mi;
-*/
-#else
-        double mx = mySolNode.max[k];
-        double mi = mySolNode.min[k];
-        rounding(mx, mi);
-        mySolNode.max[k] = mx;
-        mySolNode.min[k] = mi;
-#endif
     }
 }
 
-#ifndef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //
@@ -3901,7 +3553,6 @@ searchForMaxMin(int component, int  varIndices[])
         mySolNode.min[k] = mi;
     }
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -3967,7 +3618,6 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
         varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
         varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
-        animationLabel = myLabels[lblIndices[0]];
         long int lblidx = lblIndices[0];
         long int maxp, sumup = 0;
         if(whichType == BIFURCATION)
@@ -3976,6 +3626,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         }
         else 
         {
+	    animationLabel = myLabels[lblIndices[0]];
             if(animationLabel == MY_ALL || lblIdxSize >1)
                 maxp = mySolNode.totalNumPoints;
             else
@@ -4367,9 +4018,7 @@ initCoordAndLableListItems()
     {
         lblIndices[0] = numLabels + MY_ALL;
         half = 2;
-#ifndef R3B
         iLbl = lblIdxSize;
-#endif
     }
     else if(lblChoice[0] == MY_HALF)  // -3
     {
@@ -4577,15 +4226,12 @@ readResourceParameters()
     strcpy(resource, autoDir);
 #ifndef R3B
     strcat(resource,"/plaut04/plaut04.rc");
-#else
-    strcat(resource,"/plaut04/r3bplaut04.rc");
-#endif
-
-#ifndef R3B
     inFile = fopen("plaut04.rc", "r");
 #else
+    strcat(resource,"/plaut04/r3bplaut04.rc");
     inFile = fopen("r3bplaut04.rc", "r");
 #endif
+
     if (!inFile)
     {
         inFile = fopen(resource, "r");
@@ -4846,11 +4492,7 @@ readResourceParameters()
                         int size = -1;
                         int pars[MAX_PAR];
                         readNIntData(buffer, pars, size);
-#ifndef R3B
                         mySolNode.npar = size;
-#else
-//                        mySolNode.npar = size;
-#endif
                         blDealt = true;
                         switch ( i )
                         {
@@ -5001,10 +4643,9 @@ setVariableDefaultValues()
 
 #ifndef R3B
     options[OPT_NORMALIZE_DATA] = true;
-
-#else
-// set default graph type/style specification
 #endif
+
+// set default graph type/style specification
     whichCoordSystem = ROTATING_F;
     whichStyle      = 0;  
 #ifdef R3B
@@ -5016,7 +4657,14 @@ setVariableDefaultValues()
 
     lblIndices[0]    = 0;   
 
-#ifndef R3B
+#ifdef R3B
+    dai.solXSize = 1; dai.solX[0] = 1;
+    dai.solYSize = 1; dai.solY[0] = 2;
+    dai.solZSize = 1; dai.solZ[0] = 3;
+    dai.bifXSize = 1; dai.bifX[0] = 4;
+    dai.bifYSize = 1; dai.bifY[0] = 5;
+    dai.bifZSize = 1; dai.bifZ[0] = 6;
+#else
     dai.solXSize = 1;
     dai.solYSize = 1;
     dai.solZSize = 1;
@@ -5030,8 +4678,8 @@ setVariableDefaultValues()
     dai.bifX[0] = 0;
     dai.bifY[0] = 1;
     dai.bifZ[0] = 2;
-
 #endif
+
     for(solutionp cur = solHead; solHead != NULL; cur = solHead) {
         solHead = cur->next;
         delete cur;
@@ -5051,32 +4699,22 @@ setVariableDefaultValues()
     satSpeed          = 1.0;
 #endif
     lineWidthScaler   = 1.0;
-#ifndef R3B
-    coloringMethod    = -1;
-    satRadius         = 1.0;
-#endif
     sphereRadius      = 1.0;
     numPeriodAnimated = 1.0;
 
 #ifdef R3B
     coloringMethod    = -5;
-    satRadius         = 1.0;
     largePrimRadius   = 1.0;
     smallPrimRadius   = 1.0;
     blMassDependantOption = false;
-//
+#else
+    coloringMethod    = -1;
 #endif
+    satRadius         = 1.0;
+
     mySolNode.npar= 1;
     mySolNode.parID[0] = 10;
-#ifdef R3B
-    dai.solXSize = 1; dai.solX[0] = 1;
-    dai.solYSize = 1; dai.solY[0] = 2;
-    dai.solZSize = 1; dai.solZ[0] = 3;
-    dai.bifXSize = 1; dai.bifX[0] = 4;
-    dai.bifYSize = 1; dai.bifY[0] = 5;
-    dai.bifZSize = 1; dai.bifZ[0] = 6;
 
-#endif
     setShow3DSol = setShow3D;
     setShow3DBif = setShow3D;
     coloringMethodType[SOLUTION] = coloringMethodType[BIFURCATION] =
@@ -5312,7 +4950,7 @@ writePreferValuesToFile()
 
 // write line color and pattern
     for(int i = 0; i<NUM_SP_POINTS; ++i)
-    {
+        {
         fprintf(outFile,"%-15.15s    = %3.1f,   %3.1f,   %3.1f, 0x%lx\n",typeTokenNames[i],
             lineColor[i][0], lineColor[i][1],lineColor[i][2],linePattern[i]);
     }
@@ -5675,9 +5313,6 @@ readFile(const char *filename)
 
     postDeals();
     parseFileName(filename, sFileName, bFileName, dFileName);
-#ifdef R3B
-    readResourceParameters();
-#endif
     bool rs = readSolutionAndBifurcationData(0);
     if(!rs)
     {

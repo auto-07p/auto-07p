@@ -1,15 +1,15 @@
 #include "gplaut04.h"
 #include "tube.h"
 
+#if 0
 static SoSeparator * animateOrbitCalSteps(long int n,long int si);
 static SoSeparator * animateOrbitWithNurbsCurveTail(long int j,long int si);
-#if 0
 static SoSeparator * animateIner2(long int j, long int si);
 static SoSeparator * animateOrbitMovement(long int n, long int si);
-#endif
 static SoSeparator * inertialSystemAnimation(int coordSys, SolNode mySolNode, \
 float numAnimatedPeriod, int kth, int idx, float mass, \
 float distance, float sPrimPeriod, float  gravity);
+#endif
 
 float libPtScaler = 1.0;
 float smallPrimRadius=1.0;
@@ -42,8 +42,6 @@ float scaler, int stability, int type)
     SoDrawStyle *satStyle = new SoDrawStyle;
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
-
-    SoSeparator * satSep = new SoSeparator;
 
     float maxV[3], minV[3];
     maxV[0]=minV[0]=vertices[0][0];
@@ -420,10 +418,9 @@ createSolutionInertialFrameScene(float dis)
 //////////////////////////////////////////////////////////////////////////
 {
     SoSeparator * solGroup = new SoSeparator;
-    SoCoordinate3 *solCoords = new SoCoordinate3;
     int stability, type;
     float satPeriod = 1;
-    long int  arrSize;
+    long int  arrSize = 0;
 
     if(animationLabel == MY_ALL)
     {
@@ -992,6 +989,7 @@ drawEarthMovement(int k)
 }
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 //   This routine animate the calculation steps, namely the density of the
@@ -1002,7 +1000,7 @@ animateOrbitCalSteps(long int snOrbit, long int si)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
-    float ptb[3], pts[4][3];
+    float ptb[3];
     SoSeparator *satGroup = new SoSeparator;
     SoMaterial *satMtl = new SoMaterial;
     satMtl->diffuseColor.setValue(envColors[7]);
@@ -1012,7 +1010,6 @@ animateOrbitCalSteps(long int snOrbit, long int si)
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
 
-    SoSeparator * satSep = new SoSeparator;
     SoBlinker *satBlker = new SoBlinker;
 
     int upperlimit = mySolNode.numVerticesEachPeriod[snOrbit-1];
@@ -1061,7 +1058,6 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
-    float ptb[3], pts[4][3];
     SoSeparator *satGroup = new SoSeparator;
     SoMaterial *tailMtl = new SoMaterial;
     tailMtl->diffuseColor.setValue(1.0,1.0,1.0);
@@ -1070,8 +1066,6 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
     SoDrawStyle *satStyle = new SoDrawStyle;
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
-
-    SoSeparator * satSep = new SoSeparator;
 
     int upperlimit = mySolNode.numVerticesEachPeriod[j];
     int idx = si;
@@ -1156,6 +1150,7 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
 
     return satGroup;
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////

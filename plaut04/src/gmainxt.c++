@@ -1181,7 +1181,6 @@ buildMenu(Widget parent)
     pulldown5 = buildOptionMenu(menubar);
     pulldown6 = buildHelpMenu(menubar);
 
-#ifdef R3B
 #ifdef USE_BK_COLOR
 // set the background color for the pull down menus.
     XtVaSetValues (pulldown1, XtVaTypedArg,
@@ -1205,7 +1204,6 @@ buildMenu(Widget parent)
 #endif
 
 // the text in the menubar for these menus
-#endif
     n = 0; m=0;
     XtSetArg(args[n], XmNsubMenuId, pulldown1); n++;
     menuButtons[m] = XtCreateManagedWidget("File",
@@ -1234,16 +1232,16 @@ buildMenu(Widget parent)
         menubar, args, n);
     ++m;
 
-    n = 0;
 #ifdef R3B
+    n = 0;
     XtSetArg(args[n], XmNsubMenuId, pulldown2); n++;
     menuButtons[m] = XtCreateManagedWidget("Center",
         xmCascadeButtonGadgetClass,
         menubar, args, n);
     ++m;
+#endif
 
     n = 0;
-#endif
     XtSetArg(args[n], XmNsubMenuId, pulldown5); n++;
     menuButtons[m] = XtCreateManagedWidget("Options",
         xmCascadeButtonGadgetClass,
@@ -1498,7 +1496,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
         NULL);
 #endif
 
-#ifndef R3B
+// build the COLORING Method drop down list
     nItems = (whichType != BIFURCATION) ? 
 	              mySolNode.nar+mySolNode.npar+specialColorItems : 
 				  myBifNode.nar+specialColorItems;
@@ -1525,8 +1523,6 @@ buildMainWindow(Widget parent, SoSeparator *root)
     XtAddCallback (colorMethodSeletionList, XmNselectionCallback,
         colorMethodSelectionCB, NULL);
 
-//-----------------------------------------------------Nov 06
-#endif
 // build the numPeriodAnimated drop down list
     nItems = 7;
     count = nItems;
@@ -1575,36 +1571,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
 //    delete []numberPList;
 //----------------------------------------------------------------> Nov 06 End
 
-// build the COLORING Method drop down list
-#ifdef R3B
-    nItems = (whichType != BIFURCATION) ?
-        mySolNode.nar+mySolNode.npar+specialColorItems :
-    myBifNode.nar+specialColorItems ;
-    count = XtNumber (coloringMethodList);
-    clrMethodList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
-
-    for (i = 0; i < count; ++i)
-        clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
-
-    colorMethodSeletionList=XtVaCreateManagedWidget ("coloringMethodlist",
-        xmComboBoxWidgetClass, listCarrier,
-        XmNcomboBoxType,       XmDROP_DOWN_COMBO_BOX,
-        XmNitemCount,          nItems,
-        XmNitems,              clrMethodList,
-        XmNcolumns,            5,
-        XmNmarginHeight,       1,
-        XmNselectedPosition,   coloringMethod+specialColorItems,
-        XmNpositionMode,       XmZERO_BASED,
-        NULL);
-
-    lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, nItems, 10, 80, 5);
-
-// Add Callback function for the coloring method seletion drop down list
-    XtAddCallback (colorMethodSeletionList, XmNselectionCallback,
-        colorMethodSelectionCB, NULL);
-
 // create labels for the x, y, z, and labels drop down lists
-#endif
     Widget xLbl = XtVaCreateManagedWidget("X",xmLabelWidgetClass, listCarrier, NULL);
     Widget yLbl = XtVaCreateManagedWidget("Y",xmLabelWidgetClass, listCarrier, NULL);
     Widget zLbl = XtVaCreateManagedWidget("Z",xmLabelWidgetClass, listCarrier, NULL);
@@ -3270,23 +3237,20 @@ showAboutDialog()
     XmString      t;
     void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
-    char str[600];
 #ifndef R3B
-    strcpy(str,"  AUTO plaut04\n\n");
+    str = "  AUTO plaut04\n\n"
 #else
-    strcpy(str,"  AUTO r3bplaut04\n\n");
+    str = "  AUTO r3bplaut04\n\n"
 #endif
-    strcat(str,"  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n ");
-    strcat(str,"  Computer Science Department\n");
-    strcat(str,"  Concordia University\n\n");
+    "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
+    "  Computer Science Department\n"
+    "  Concordia University\n\n"
+    "  Montreal, Quebec\n"
+    "  CANADA\n\n"
 #ifndef R3B
-    strcat(str,"  Montreal, Quebec\n");
-    strcat(str,"  CANADA\n\n");
-    strcat(str,"  August, 2004 \n");
-
+    "  August, 2004 \n";
 #else
-    strcat(str,"  Montreal, CA\n\n");
-    strcat(str,"  June, 2004 \n");
+    "  June, 2004 \n";
 #endif
 
     if (!dialog)

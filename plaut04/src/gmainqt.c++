@@ -988,7 +988,7 @@ MainWindow::MainWindow() : QMainWindow()
     #define ADD_LISTCARRIER_WIDGET(x) listCarrier->addWidget(x)
 #else
     QToolBar *listCarrier = new QToolBar( this );
-    #define ADD_LISTCARRIER_WIDGET(x)
+    #define ADD_LISTCARRIER_WIDGET(x) (void)x
 #endif
 
 #ifdef USE_BK_COLOR
@@ -2054,20 +2054,19 @@ MainWindow::showAboutDialog()
 {
     QString str;
 #ifndef R3B
-    str  = "  AUTO plaut04\n\n";
+    str = "  AUTO plaut04\n\n"
 #else
-    str  = "  AUTO r3bplaut04\n\n";
+    str = "  AUTO r3bplaut04\n\n"
 #endif
-    str += "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n ";
-    str += "  Computer Science Department\n";
-    str += "  Concordia University\n\n";
+    "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
+    "  Computer Science Department\n"
+    "  Concordia University\n\n"
+    "  Montreal, Quebec\n"
+    "  CANADA\n\n"
 #ifndef R3B
-    str += "  Montreal, Quebec\n";
-    str += "  CANADA\n\n";
-    str += "  August, 2004 \n";
+    "  August, 2004 \n";
 #else
-    str += "  Montreal, CA\n\n";
-    str += "  June, 2004 \n";
+    "  June, 2004 \n";
 #endif
 
     QMessageBox::about(this, "About_popup", str);
