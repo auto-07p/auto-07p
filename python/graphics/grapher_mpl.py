@@ -416,8 +416,11 @@ class BasicGrapher(optionHandler.OptionHandler):
             curve="curve:%d"%(i,)
             fill=color_list[i%len(color_list)]
             if len(d["x"]) == 1:
-                # If we only have one point we draw a small circle
-                self.ax.plot(d["x"],d["y"],'o'+fill[0])
+                # If we only have one point we draw a small circle or a pixel
+                if self.cget("type") == "solution":
+                    self.ax.plot(d["x"],d["y"],'o'+fill[0])
+                else:
+                    self.ax.plot(d["x"],d["y"],','+fill[0])
                 #tags=("data_point:%d"%(0,),curve,"data")
             else:
                 xs = d["x"]

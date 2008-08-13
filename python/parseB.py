@@ -237,12 +237,15 @@ class parseB(UserList.UserList):
     def read(self,inputfile,screen_lines=0):
         data=inputfile.readlines()
         header = ""
-        section = 0
         constants = None
         self.data=[]
         for input_line in data:
             line = string.split(input_line)
-            if len(line) > 0 and int(line[0]) != 0:
+            if len(line) > 0:
+                br = int(line[0])
+                if br == 0:
+                    header = header + input_line
+                    continue
                 # A section is defined as a part of a fort.7
                 # file between "headers", i.e. those parts
                 # of the fort.7 file which start with a 0
@@ -259,21 +262,14 @@ class parseB(UserList.UserList):
                 tynumber = int(line[2])
                 if tynumber == 0 and screen_lines:
                     continue
-                pt = int(line[1])
-                if abs(pt) == 1:
-                    section = section + 1
-                try:
-                    fdata = map(float, line[4:])
-                except:
-                    fdata = map(AUTOatof, line[4:])
-                item = {"BR": int(line[0]),
-                        "PT": pt,
+                item = {"BR": br,
+                        "PT": int(line[1]),
                         "TY number": tynumber,
-                        "TY name": type_translation(tynumber)["short name"],
-                        "LAB": int(line[3]),
-                        "data": fdata,
-                        "section": section,
-                        "index": len(self.data) }
+                        "LAB": int(line[3]) }
+                try:
+                    item["data"] = map(float, line[4:])
+                except:
+                    item["data"] = map(AUTOatof, line[4:])
                 if header != "":
                     item["header"] = header
                     c = self.parseHeader(header)
@@ -282,8 +278,18 @@ class parseB(UserList.UserList):
                     item["constants"] = constants
                     header = ""
                 self.data.append(item)
-            else:
-                header = header + input_line
+        shortnames = [0]*199
+        for type in range(-99,100):
+            shortnames[type] = type_translation(type)["short name"]
+        section = 0
+        j = 0
+        for item in self.data:
+            if abs(item["PT"]) == 1:
+                section = section + 1
+            item["section"] = section
+            item["TY name"] = shortnames[item["TY number"]]
+            item["index"] = j
+            j = j + 1
 
     def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")

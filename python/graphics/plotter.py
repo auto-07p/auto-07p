@@ -163,16 +163,23 @@ class plotter(grapher.GUIGrapher):
                 y = []
                 labels = []
                 current_index = 0
-                prevsol = solution[0]
+                sol = solution[0]
+                prevdata = sol["data"]
+                prevsect = sol["section"]
+                prevstab = sol["PT"] < 0
+                xcol = xcolumns[j]
+                ycol = ycolumns[j]
                 for sol in solution:
-                    newsect = prevsol["section"] != sol["section"]
-                    if (newsect or
-                        (dp and current_index > 1 and
-                         (prevsol['PT'] > 0) != (sol['PT'] > 0))):
+                    sect = sol["section"]
+                    stab = sol["PT"] < 0
+                    data = sol["data"]
+                    if (prevsect != sect or
+                        (dp and current_index > 1 and prevstab != stab)):
+                        newsect = prevsect != sect
                         if len(x) > 0:
                             if dp:
                                 self.addArrayNoDraw((x,y),newsect,
-                                                    stable=prevsol['PT'] < 0)
+                                                    stable=prevstab)
                             else:
                                 self.addArrayNoDraw((x,y),newsect)
                         for label in labels:
@@ -183,18 +190,18 @@ class plotter(grapher.GUIGrapher):
                             y = []
                         else:
                             current_index = 1
-                            x = [prevsol["data"][xcolumns[j]]]
-                            y = [prevsol["data"][ycolumns[j]]]
+                            x = [prevdata[xcol]]
+                            y = [prevdata[ycol]]
                         labels = []
                     try:
-                        x.append(sol["data"][xcolumns[j]])
+                        x.append(data[xcol])
                     except:
-                        print "The x-coordinate (set to column %d) is out of range"%xcolumns[j]
+                        print "The x-coordinate (set to column %d) is out of range"%xcol
                         break
                     try:
-                        y.append(sol["data"][ycolumns[j]])
+                        y.append(data[ycol])
                     except:
-                        print "The y-coordinate (set to column %d) is out of range"%ycolumns[j]
+                        print "The y-coordinate (set to column %d) is out of range"%ycol
                         del x[-1]
                         break
                     
@@ -224,10 +231,12 @@ class plotter(grapher.GUIGrapher):
                         labels.append({"index": current_index, "text": text,
                                        "symbol": symbol})
                     current_index = current_index + 1
-                    prevsol = sol
+                    prevdata = data
+                    prevsect = sect
+                    prevstab = stab
                 if len(x) > 0:
                     if dp:
-                        self.addArrayNoDraw((x,y),stable=prevsol['PT'] < 0)
+                        self.addArrayNoDraw((x,y),stable=prevstab)
                     else:
                         self.addArrayNoDraw((x,y))
                 for label in labels:
