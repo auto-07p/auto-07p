@@ -381,6 +381,10 @@ class AUTOSolution(UserDict.UserDict):
         self["parameters"] = self["Parameters"]
         self["p"] = self["Parameters"]
 
+    # just a simple way to get PAR(x) -- could be extended later to not
+    # be read-only
+    def PAR(self,index):
+        return self["Parameters"][index-1]
 
     def write(self,output):
         nfpr = self.__numChangingParameters
