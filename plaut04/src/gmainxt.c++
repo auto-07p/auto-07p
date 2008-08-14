@@ -3238,9 +3238,9 @@ showAboutDialog()
     void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
 #ifndef R3B
-    str = "  AUTO plaut04\n\n"
+    char *str = "  AUTO plaut04\n\n"
 #else
-    str = "  AUTO r3bplaut04\n\n"
+    char *str = "  AUTO r3bplaut04\n\n"
 #endif
     "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
     "  Computer Science Department\n"
