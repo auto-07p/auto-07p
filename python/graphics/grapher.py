@@ -16,48 +16,48 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
     A simple graphing widget
     By Randy P."""
-    def __init__(self,parent=None,cnf={},**kw):
+    def __init__(self,parent=None,callback=None,cnf={},**kw):
         self.data = []
 
         #Get the data from the arguements and then erase the
         #ones which are not used by canvas
         optionDefaults={}
-        optionDefaults["minx"] = (0,None)
-        optionDefaults["maxx"] = (0,None)
-        optionDefaults["miny"] = (0,None)
-        optionDefaults["maxy"] = (0,None)
-        optionDefaults["left_margin"] = (80,None)
-        optionDefaults["right_margin"] = (40,None)
-        optionDefaults["top_margin"] = (40,None)
-        optionDefaults["bottom_margin"] = (40,None)
-        optionDefaults["decorations"] = (1,None)
-        optionDefaults["xlabel"] = (None,None)
-        optionDefaults["ylabel"] = (None,None)
-        optionDefaults["xticks"] = (5,None)
-        optionDefaults["yticks"] = (5,None)
-        optionDefaults["grid"] = ("yes",None)
-        optionDefaults["tick_label_template"] = ("%.2e",None)
-        optionDefaults["tick_length"] = (0.2,None)
-        optionDefaults["odd_tick_length"] = (0.4,None)
-        optionDefaults["even_tick_length"] = (0.2,None)
+        optionDefaults["minx"] = (0,callback)
+        optionDefaults["maxx"] = (0,callback)
+        optionDefaults["miny"] = (0,callback)
+        optionDefaults["maxy"] = (0,callback)
+        optionDefaults["left_margin"] = (80,callback)
+        optionDefaults["right_margin"] = (40,callback)
+        optionDefaults["top_margin"] = (40,callback)
+        optionDefaults["bottom_margin"] = (40,callback)
+        optionDefaults["decorations"] = (1,callback)
+        optionDefaults["xlabel"] = (None,callback)
+        optionDefaults["ylabel"] = (None,callback)
+        optionDefaults["xticks"] = (5,callback)
+        optionDefaults["yticks"] = (5,callback)
+        optionDefaults["grid"] = ("yes",callback)
+        optionDefaults["tick_label_template"] = ("%.2e",callback)
+        optionDefaults["tick_length"] = (0.2,callback)
+        optionDefaults["odd_tick_length"] = (0.4,callback)
+        optionDefaults["even_tick_length"] = (0.2,callback)
         # background is handled by the Canvas widget
-        optionDefaults["foreground"] = ("black",None)
-        optionDefaults["color_list"] = ("black red green blue",None)
-        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",None)
-        optionDefaults["symbol_color"] = ("red",None)
-        optionDefaults["smart_label"] = (0,None)
-        optionDefaults["line_width"] = (2,None)
-        optionDefaults["realwidth"] = (1,None)
-        optionDefaults["realheight"] = (1,None)
-        optionDefaults["use_labels"] = (1,None)
-        optionDefaults["use_symbols"] = (1,None)
-        optionDefaults["top_title"] = ("",None)
+        optionDefaults["foreground"] = ("black",callback)
+        optionDefaults["color_list"] = ("black red green blue",callback)
+        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",callback)
+        optionDefaults["symbol_color"] = ("red",callback)
+        optionDefaults["smart_label"] = (1,callback)
+        optionDefaults["line_width"] = (2,callback)
+        optionDefaults["realwidth"] = (1,callback)
+        optionDefaults["realheight"] = (1,callback)
+        optionDefaults["use_labels"] = (1,callback)
+        optionDefaults["use_symbols"] = (1,callback)
+        optionDefaults["top_title"] = ("",callback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
         # __parseOptions uses functions from the Canvas
         # widget, so we need to initialize it first
-        apply(Tkinter.Canvas.__init__,(self,parent))
+        Tkinter.Canvas.__init__(self,parent)
         optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
 
         dict = AUTOutil.cnfmerge((cnf,kw))
@@ -203,12 +203,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(minx=dict["min"])
-            self._configNoDraw(maxx=dict["max"])
+            self._configNoDraw(minx=dict["min"],maxx=dict["max"])
             self._configNoDraw(xticks=dict["divisions"])
         elif guess_maximum != None:
-            self._configNoDraw(minx=guess_minimum-1)
-            self._configNoDraw(maxx=guess_maximum+1)
+            self._configNoDraw(minx=guess_minimum-1,maxx=guess_maximum+1)
             
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
         if guess_minimum is None:
@@ -227,12 +225,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
         if guess_minimum != guess_maximum:
             dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(miny=dict["min"])
-            self._configNoDraw(maxy=dict["max"])
+            self._configNoDraw(miny=dict["min"],maxy=dict["max"])
             self._configNoDraw(yticks=dict["divisions"])
         elif guess_minimum != None:
-            self._configNoDraw(miny=guess_minimum-1)
-            self._configNoDraw(maxy=guess_maximum+1)
+            self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
 
 
     def getXRange(self):
@@ -332,8 +328,12 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             tick_length=self.cget("tick_length")
             odd_tick_length=self.cget("odd_tick_length")
             even_tick_length=self.cget("even_tick_length")
-            
-            xticks=int(self.cget("xticks"))
+
+            xticks = self.cget("xticks")
+            if xticks is None:
+                xticks = self.config("xticks")[3]
+            else:
+                xticks=int(xticks)
             tick_start_y=yw+bottom_margin
             for i in range(xticks):
                 # The odd tick marks should be longer
@@ -349,7 +349,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 if i != 0 and i != xticks - 1 and self.cget("grid") == "yes":
                     self.create_line(tick_x,tick_start_y,tick_x,tick_start_y-yw,
                                      fill=self.cget("foreground"),stipple="gray50")
-            yticks=int(self.cget("yticks"))
+            yticks = self.cget("yticks")
+            if yticks is None:
+                yticks = self.config("yticks")[3]
+            else:
+                yticks=int(yticks)
             tick_start_x=left_margin
             tick_end_x=left_margin*(1-tick_length)
             for i in range(yticks):
@@ -398,6 +402,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         return [((x-minx)/(maxx-minx))*width + left_margin,
                 height - ((y-miny)/(maxy-miny))*height + top_margin]
         
+    def transform(self,val):
+        [x,y] = self.valueToCanvas(val)
+        return [x,self.cget("realheight") - y]
+
     def canvasToValue(self,val):
         if len(val) != 2:
             raise GrapherError,"Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements."
@@ -446,98 +454,264 @@ class LabeledGrapher(BasicGrapher):
         self.labels.append([])
         BasicGrapher._addData(self,data,newsect,stable)
 
-    def draw(self):
-        symbols = []
+    def plotlabels(self):
+        if self.cget("realwidth") == 1 or self.cget("realheight") == 1:
+            return
+
+        if not self.cget("use_labels"):
+            return
+
+        trans = self.transform
+        if self.cget("smart_label"):
+            mp = self.inarrs()
+            for i in range(len(self.data)):
+                self.map_curve(mp,self.data[i]["x"],self.data[i]["y"],trans)
         for i in range(len(self.labels)):
             for label in self.labels[i]:
+                if len(label["text"]) == 0:
+                    continue
                 j = label["j"]
-
-                #Find a neighbor so I cam compute the "slope"
-                if j < len(self.getData(i,"x"))-1:
-                    first = j
-                    second = j+1
-                else:
-                    first = j-1
-                    second = j                
-                data = self.valueToCanvas(self.getData(i,j))
+                data = self.transform(self.getData(i,j))
                 if not(data is None):
-                    x = data[0]
-                    y = data[1]
-                    #pick a good direction for the label
-                    if (self.getData(i,"y")[second] - self.getData(i,"y")[first]) > 0:
-                        if (x < int(self.cget("realwidth"))-(20+self.cget("left_margin"))) and (y > (20+self.cget("top_margin"))):
-                            xoffset = 10
-                            yoffset = -10
-                            anchor="sw"
-                        else:
-                            xoffset = -10
-                            yoffset = 10
-                            anchor="ne"
+                    [x,y] = data
+                    if self.cget("smart_label"):
+                        [xoffd1,yoffd1,xoffd2,yoffd2,
+                         xofft,yofft,pos] = self.findsp(x,y,mp)
+                        anchor = self.getpos(pos)
                     else:
-                        if (x > 20+self.cget("left_margin")) and (y > 20+self.cget("top_margin")):
-                            xoffset = -10
-                            yoffset = -10
-                            anchor="se"
-                        else:
-                            xoffset = 10
-                            yoffset = 10
-                            anchor="nw"
+                        [xoffd1,yoffd1,xoffd2,yoffd2,
+                         xofft,yofft,anchor] = self.dumblabel(i,j,x,y)
+                    y = self.cget("realheight") - y
+                    self.create_line(x+xoffd1,y-yoffd1,x+xoffd2,y-yoffd2,
+                                     fill=self.cget("foreground"))
+                    self.create_text(x+xofft,y-yofft,text=label["text"],
+                                     anchor=anchor,fill=self.cget("foreground"))
 
-                    #self.addtag_overlapping("overlaps",x+xoffset-3,y+yoffset-3,x+xoffset+3,y+yoffset+3)
-                    #if len(self.gettags("overlaps")) != 0:
-                    #    print self.gettags("overlaps")
-                    #self.dtag("overlaps")
-                    #print "---------------------------------------------"    
+    # not-so-smart way of plotting labels
+    def dumblabel(self,i,j,x,y):
+        #Find a neighbor so I can compute the "slope"
+        if j < len(self.getData(i,"x"))-1:
+            first = j
+            second = j+1
+        else:
+            first = j-1
+            second = j
+        realwidth=self.cget("realwidth")
+        left_margin=self.cget("left_margin")
+        top_margin=self.cget("top_margin")
+        #pick a good direction for the label
+        if self.getData(i,"y")[second] > self.getData(i,"y")[first]:
+            if (x < int(realwidth)-(20+left_margin)) and (y > (20+top_margin)):
+                xoffset = 10
+                yoffset = -10
+                anchor="sw"
+            else:
+                xoffset = -10
+                yoffset = 10
+                anchor="ne"
+        else:
+            if (x > 20+left_margin) and (y > 20+top_margin):
+                xoffset = -10
+                yoffset = -10
+                anchor="se"
+            else:
+                xoffset = 10
+                yoffset = 10
+                anchor="nw"
 
-                    if self.cget("use_labels") and len(label["text"]) > 0:
-                        self.create_line(x,y,x+xoffset,y+yoffset,fill=self.cget("foreground"))
-                        self.create_text(x+xoffset,y+yoffset,text=label["text"],anchor=anchor,fill=self.cget("foreground"))
+        #self.addtag_overlapping("overlaps",x+xoffset-3,
+        #        y+yoffset-3,x+xoffset+3,y+yoffset+3)
+        #if len(self.gettags("overlaps")) != 0:
+        #    print self.gettags("overlaps")
+        #self.dtag("overlaps")
+        #print "---------------------------------------------"    
+        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,anchor]
 
-                    if not(label["symbol"] is None):
-                        symbols.append({})
-                        symbols[-1]["x"] = x
-                        symbols[-1]["y"] = y
-                        symbols[-1]["symbol"] = label["symbol"]
+    # smarter way to plot labels: ported from old PLAUT
+    #-------------------------------------------------------------------
+    #   Tries to find an empty space to put the
+    #   point or branch label from pnts in by searching for three
+    #   unchanged entries in mp.  The search is outward from the
+    #   point to be labelled.  If space can't be found the label
+    #   will be written out anyway.
+    #-------------------------------------------------------------------
+    def findsp(self,x1,y1,mp):
+        sp1 = self.cget("left_margin")
+        minsx = sp1
+        maxsx = self.cget("realwidth") - self.cget("right_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        minsy = sp3
+        maxsy = self.cget("realheight") - self.cget("top_margin")
+        sp4 = 5
+        #C---     *x1, y1 ARE SCREEN COORDINATES
+        xi = (x1 - sp1) / sp2
+        yi = (y1 - sp3) / sp4
+        rd = math.pi / 180.0
+        start = rd * 30.0
+        radius = 2
+        npoint = 16
 
+        found = 0
+        while radius < 70:
+            radius = radius + 1
+            npoint = npoint + 8
+            st     = start
+            rinc   = rd * 360.0 / float(npoint)
+
+            for i in range(npoint):
+                xd = int(xi + radius * math.cos(st))
+                yd = int(yi + radius * math.sin(st))
+                if self.emptsp(xd,yd,mp):
+                    r1 = (radius + 3) * sp2
+                    ix = x1 + r1 * math.cos(st)
+                    iy = y1 + r1 * math.sin(st)
+                    if (ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy):
+                        found = 1
+                        break
+                st = st + rinc
+            if found:
+                break
+
+        if radius >= 70:
+            return [1,1,10,10,11,11,4] #if no empty space
+
+        for i1 in range(xd-2,xd+3):
+            for i2 in range(yd-1,yd+2):
+                mp[i1][i2] = 1
+
+        pos = int((st/rd - 22.5) / 45)
+        radius = radius * sp2
+        cosst = math.cos(st)
+        sinst = math.sin(st)
+        d1dist = self.cget("line_width") + 1
+        xoffd1 = d1dist * cosst
+        yoffd1 = d1dist * sinst
+        xoffd2 = radius * cosst
+        yoffd2 = radius * sinst
+        xofft = (radius + 2) * cosst
+        yofft = (radius + 2) * sinst
+        return [xoffd1,yoffd1,xoffd2,yoffd2,xofft,yofft,pos]
+
+    def getpos(self,pos):
+        anchor = [ "sw", "s", "se", "e", "ne", "n", "nw", "w", "sw" ]
+        return anchor[pos]
+
+    #-----------------------------------------------------------------------
+    #   Organizes the search along two sides of
+    #   a square of size 2(xd) with pnt xi, yi in its center.
+    #-----------------------------------------------------------------------
+    def emptsp(self,ix,iy,mp):
+       if ix > len(mp) - 5 or ix < 3:
+           return 0
+       if iy > len(mp[0]) - 5 or iy < 3:
+           return 0
+       for i in range(ix-2,ix+3):
+           for j in range(iy-2,iy+3):
+               if mp[i][j]:
+                   return 0
+       return 1
+
+    #-----------------------------------------------------------------------
+    #    Initializes the map array that is
+    #    used to label the plotted curves.
+    #-----------------------------------------------------------------------
+    def inarrs(self):
+        sp1 = self.cget("left_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        sp4 = 5
+        nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))/sp2
+        ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))/sp4
+        r = ny*[0]
+        mp = []
+        for i in range(nx):
+            mp.append(r[:])
+        return mp
+
+    #-----------------------------------------------------------------------
+    #        Maps the curves in mp array
+    #-----------------------------------------------------------------------
+    def map_curve(self,mp,xs,ys,trans):
+        sp1 = self.cget("left_margin")
+        sp2 = 5 #fontsize
+        sp3 = self.cget("bottom_margin")
+        sp4 = 5
+        ixmax = len(mp)
+        iymax = len(mp[0])
+        minx = self["minx"]
+        maxx = self["maxx"]
+        miny = self["miny"]
+        maxy = self["maxy"]
+        x,y = xs[0],ys[0]
+        for i in range(1,len(xs)):
+            oldx,oldy = x,y
+            x,y = xs[i],ys[i]
+            # if we are sure that the line is outside the graph limits we
+            # should skip and save a lot of time
+            if ((oldx < minx and x < minx) or
+                (oldy < miny and y < miny) or
+                (oldx > maxx and x > maxx) or
+                (oldy > maxy and y > maxy)):
+                continue
+            xold,yold = trans((oldx,oldy))
+            x1 = (xold - sp1) / sp2
+            y1 = (yold - sp3) / sp4
+            xnew,ynew = trans((x,y))
+            dx = (xnew - xold) / sp2
+            dy = (ynew - yold) / sp4
+            index = int(max(abs(dx),abs(dy))) + 1
+            ilow = 0
+            ihigh = index
+            if dx != 0 and dy != 0:
+                xlim1 = int(-x1*index/dx)
+                xlim2 = int((ixmax-x1)*index/dx)+1
+                ylim1 = int(-y1*index/dy)
+                ylim2 = int((iymax-y1)*index/dy)+1
+                ilow  = max(min(xlim1,xlim2),min(ylim1,ylim2),0)
+                ihigh = min(max(xlim1,xlim2),max(ylim1,ylim2),index)
+            for i in range(ilow,ihigh):
+                f = float(i)/index
+                ix = int(x1 + f * dx)
+                iy = int(y1 + f * dy)
+                if ix >= 0 and ix < ixmax and iy >= 0 and iy < iymax:
+                    mp[ix][iy] = 1        
+
+    def draw(self):
+        self.plotlabels()
         BasicGrapher.draw(self)
+        self.plotsymbols()
 
+    def plotsymbols(self):
         if not self.cget("use_symbols"):
             return
-        for symbol in symbols:
-            if len(symbol["symbol"]) == 1:
-                self.create_text(symbol["x"],symbol["y"],
-                                 font=self.cget("symbol_font"),
-                                 fill=self.cget("symbol_color"),
-                                 text=symbol["symbol"])
-            elif symbol["symbol"] == "fillcircle":
-                self.create_oval(symbol["x"]-3,symbol["y"]-3,
-                                 symbol["x"]+3,symbol["y"]+3,
-                                 fill=self.cget("symbol_color"),
-                                 outline=self.cget("symbol_color"))
-            elif symbol["symbol"] == "circle":
-                self.create_oval(symbol["x"]-3,symbol["y"]-3,
-                                 symbol["x"]+3,symbol["y"]+3,
-                                 outline=self.cget("symbol_color"))
-            elif symbol["symbol"]  == "square":
-                self.create_rectangle(symbol["x"]-3,symbol["y"]-3,
-                                      symbol["x"]+3,symbol["y"]+3,
-                                      outline=self.cget("symbol_color"))
-            elif symbol["symbol"]  == "crosssquare":
-                self.create_rectangle(symbol["x"]-3,symbol["y"]-3,
-                                      symbol["x"]+3,symbol["y"]+3,
-                                      outline=self.cget("symbol_color"))
-                self.create_line(symbol["x"]-3,symbol["y"]-3,
-                                symbol["x"]+3,symbol["y"]+3,
-                                fill=self.cget("symbol_color"))
-                self.create_line(symbol["x"]-3,symbol["y"]+3,
-                                symbol["x"]+3,symbol["y"]-3,
-                                fill=self.cget("symbol_color"))
-            elif symbol["symbol"]  == "fillsquare":
-                self.create_rectangle(symbol["x"]-3,symbol["y"]-3,
-                                      symbol["x"]+3,symbol["y"]+3,
-                                      fill=self.cget("symbol_color"),
-                                      outline=self.cget("symbol_color"))
-        
+
+        for i in range(len(self.labels)):
+            for label in self.labels[i]:
+                l = label["symbol"]
+                if l is None:
+                    continue
+                j = label["j"]
+                data = self.valueToCanvas(self.getData(i,j))
+                if data is None:
+                    continue
+                [x,y] = data
+                c = self.cget("symbol_color")
+                if len(l) == 1:
+                    self.create_text(x,y,font=self.cget("symbol_font"),
+                                     fill=c,text=l)
+                elif l == "fillcircle":
+                    self.create_oval(x-3,y-3,x+3,y+3,fill=c,outline=c)
+                elif l == "circle":
+                    self.create_oval(x-3,y-3,x+3,y+3,outline=c)
+                elif l == "square":
+                    self.create_rectangle(x-3,y-3,x+3,y+3,outline=c)
+                elif l == "crosssquare":
+                    self.create_rectangle(x-3,y-3,x+3,y+3,outline=c)
+                    self.create_line(x-3,y-3,x+3,y+3,fill=c)
+                    self.create_line(x-3,y+3,x+3,y-3,fill=c)
+                elif l == "fillsquare":
+                    self.create_rectangle(x-3,y-3,x+3,y+3,fill=c,outline=c)
 
 # FIXME:  No regression tester
 class InteractiveGrapher(LabeledGrapher):

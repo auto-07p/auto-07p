@@ -14,6 +14,7 @@ import types
 import AUTOutil
 import optionHandler
 import math
+import grapher
 
 GrapherError="GrapherError"
 
@@ -58,53 +59,54 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
             realheight=fig.get_figheight()*dpi)
         self.redraw()
 
-class BasicGrapher(optionHandler.OptionHandler):
+class BasicGrapher(grapher.BasicGrapher):
     """Documentation string for Basic Grapher
 
     A simple graphing widget
     By Randy P."""
-    def __init__(self,parent=None,cnf={},**kw):
+    def __init__(self,parent=None,callback=None,cnf={},**kw):
         self.data = []
 
         #Get the data from the arguements and then erase the
         #ones which are not used by canvas
         optionDefaults={}
-        optionDefaults["minx"] = (0,self.__optionCallback)
-        optionDefaults["maxx"] = (0,self.__optionCallback)
-        optionDefaults["miny"] = (0,self.__optionCallback)
-        optionDefaults["maxy"] = (0,self.__optionCallback)
-        optionDefaults["left_margin"] = (80,self.__optionCallback)
-        optionDefaults["right_margin"] = (40,self.__optionCallback)
-        optionDefaults["top_margin"] = (40,self.__optionCallback)
-        optionDefaults["bottom_margin"] = (40,self.__optionCallback)
-        optionDefaults["decorations"] = (1,self.__optionCallback)
-        optionDefaults["xlabel"] = (None,self.__optionCallback)
-        optionDefaults["xlabel_fontsize"] = (None,self.__optionCallback)
-        optionDefaults["ylabel"] = (None,self.__optionCallback)
-        optionDefaults["ylabel_fontsize"] = (None,self.__optionCallback)
-        optionDefaults["xticks"] = (None,self.__optionCallback)
-        optionDefaults["yticks"] = (None,self.__optionCallback)
-        optionDefaults["grid"] = ("yes",self.__optionCallback)
-        optionDefaults["tick_label_template"] = ("%.2e",self.__optionCallback)
-        optionDefaults["tick_length"] = (0.2,self.__optionCallback)
-        optionDefaults["odd_tick_length"] = (0.4,self.__optionCallback)
-        optionDefaults["even_tick_length"] = (0.2,self.__optionCallback)
-        optionDefaults["background"] = ("white",self.__optionCallback)
-        optionDefaults["foreground"] = ("black",self.__optionCallback)
-        optionDefaults["color_list"] = ("black red green blue",self.__optionCallback)
-        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",self.__optionCallback)
-        optionDefaults["symbol_color"] = ("red",self.__optionCallback)
-        optionDefaults["smart_label"] = (1,self.__optionCallback)
-        optionDefaults["line_width"] = (2,self.__optionCallback)
-        optionDefaults["realwidth"] = (1,self.__optionCallback)
-        optionDefaults["realheight"] = (1,self.__optionCallback)
-        optionDefaults["use_labels"] = (1,self.__optionCallback)
-        optionDefaults["use_symbols"] = (1,self.__optionCallback)
-        optionDefaults["width"] = (1,self.__optionCallback)
-        optionDefaults["height"] = (1,self.__optionCallback)
-        optionDefaults["top_title"] = ("",self.__optionCallback)
-        optionDefaults["top_title_fontsize"] = (None,self.__optionCallback)
-        optionDefaults["dashes"] = ((6.0,6.0),self.__optionCallback)
+        callback = self.__optionCallback
+        optionDefaults["minx"] = (0,callback)
+        optionDefaults["maxx"] = (0,callback)
+        optionDefaults["miny"] = (0,callback)
+        optionDefaults["maxy"] = (0,callback)
+        optionDefaults["left_margin"] = (80,callback)
+        optionDefaults["right_margin"] = (40,callback)
+        optionDefaults["top_margin"] = (40,callback)
+        optionDefaults["bottom_margin"] = (40,callback)
+        optionDefaults["decorations"] = (1,callback)
+        optionDefaults["xlabel"] = (None,callback)
+        optionDefaults["xlabel_fontsize"] = (None,callback)
+        optionDefaults["ylabel"] = (None,callback)
+        optionDefaults["ylabel_fontsize"] = (None,callback)
+        optionDefaults["xticks"] = (None,callback)
+        optionDefaults["yticks"] = (None,callback)
+        optionDefaults["grid"] = ("yes",callback)
+        optionDefaults["tick_label_template"] = ("%.2e",callback)
+        optionDefaults["tick_length"] = (0.2,callback)
+        optionDefaults["odd_tick_length"] = (0.4,callback)
+        optionDefaults["even_tick_length"] = (0.2,callback)
+        optionDefaults["background"] = ("white",callback)
+        optionDefaults["foreground"] = ("black",callback)
+        optionDefaults["color_list"] = ("black red green blue",callback)
+        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",callback)
+        optionDefaults["symbol_color"] = ("red",callback)
+        optionDefaults["smart_label"] = (1,callback)
+        optionDefaults["line_width"] = (2,callback)
+        optionDefaults["realwidth"] = (1,callback)
+        optionDefaults["realheight"] = (1,callback)
+        optionDefaults["use_labels"] = (1,callback)
+        optionDefaults["use_symbols"] = (1,callback)
+        optionDefaults["width"] = (1,callback)
+        optionDefaults["height"] = (1,callback)
+        optionDefaults["top_title"] = ("",callback)
+        optionDefaults["top_title_fontsize"] = (None,callback)
+        optionDefaults["dashes"] = ((6.0,6.0),callback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -139,18 +141,6 @@ class BasicGrapher(optionHandler.OptionHandler):
     def update(self):
         self.canvas.get_tk_widget().update()
         FigureCanvasTkAgg.draw(self.canvas)
-
-    def __len__(self):
-        return len(self.data)
-
-    def config(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
-            return self._configNoDraw(cnf)
-        else:
-            self._configNoDraw(AUTOutil.cnfmerge((cnf,kw)))
-            self.clear()
-            self.draw()
-    configure=config
 
     def __optionCallback(self,key,value,options):
         if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
@@ -232,116 +222,9 @@ class BasicGrapher(optionHandler.OptionHandler):
                     self.ax.set_yticks(ticks)
 
 
-    # This version can be used to increase efficiency
-    # for example, if you want to config, but know you
-    # will need to redraw later.
-    def _configNoDraw(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
-            return optionHandler.OptionHandler.config(self,cnf)
-        else:
-            cnf = AUTOutil.cnfmerge((cnf,kw))
-            optionHandler.OptionHandler.config(self,cnf)
-    _configureNoDraw = _configNoDraw
-
-    def getData(self,i,j):
-        if j=="x":
-            return self.data[i]["x"]
-        elif j=="y":
-            return self.data[i]["y"]
-        else:
-            return [self.data[i]["x"][j],self.data[i]["y"][j]]
-
-    def _addData(self,data,newsect=None,stable=None):
-        for array in data:
-            if len(array[0]) != len(array[1]):
-                raise GrapherError,"Array lengths must match"
-            new_array={}
-            new_array["x"]=array[0]
-            new_array["y"]=array[1]
-            new_array["stable"]=stable
-            new_array["newsect"]=newsect
-            if len(array[0]) > 0:
-                new_array["minx"]=min(array[0])
-                new_array["maxx"]=max(array[0])
-            if len(array[1]) > 0:
-                new_array["miny"]=min(array[1])
-                new_array["maxy"]=max(array[1])
-            self.data.append(new_array)
-        
-    def addData(self,data):        
-        self._addData(data)
-        self.computeXRange()
-        self.computeYRange()
-        self.draw()
-
-    def addArray(self,array):        
-        self._addData((array,))
-        self.computeXRange()
-        self.computeYRange()
-        self.draw()
-
-    def addDataNoDraw(self,data):        
-        self._addData(data)
-
-    def addArrayNoDraw(self,array,newsect=None,stable=None):
-        self._addData((array,),newsect,stable)
-
-    def _delAllData(self):
-        self._configNoDraw(xticks=None,yticks=None)
-        for d in self.data:
-            self.ax.lines.remove(d["mpline"])
-        self.data=[]
-
-    def delAllData(self):
-        self._delAllData()
-        self.clear()
-
     def _delData(self,index):
         self.ax.lines.remove(data[index]["mpline"])
         del self.data[index]
-
-    def delData(self,index):
-        self._delData(index)
-        self.clear()
-        self.draw()
-
-    def _round(self,val,increment):
-        "This function returns the closest integer multiple to increment"
-        quotient = val/increment
-        remainder = quotient-math.floor(quotient)
-        if remainder < 0.5:
-            return math.floor(quotient)*increment
-        else:
-            return (math.floor(quotient)+1)*increment
-        
-    def _computeNiceRanges(self,minimum,maximum):
-        returnVal = {}
-        # This bit of code computes "nice" range values.  Given a
-        # minimum and manximum it computes a new minimum, maximum,
-        # and number of divisions so that the number of digits in
-        # the the numbers in the value at each tick mark
-        # in minimized
-        range = maximum - minimum 
-        inc = math.pow(10,math.ceil(math.log10(range) - 1.0))
-        if range / inc <= 2:
-            inc = inc / 4
-        elif range / inc <= 4:
-            inc = inc / 2
-        minimumr = self._round(minimum,inc)
-        if minimumr > minimum:
-            minimum = minimumr - inc
-        else:
-            minimum = minimumr
-        maximumr = self._round(maximum,inc)
-        if maximumr < maximum:
-            maximum = maximumr + inc
-        else:
-            maximum = maximumr ;
-        num = int(round(( maximum - minimum ) / inc))
-        returnVal["min"] = minimum
-        returnVal["max"] = maximum
-        returnVal["divisions"] = num + 1
-        return returnVal
 
     def computeXRange(self,guess_minimum=None,guess_maximum=None):
         if guess_minimum is None:
@@ -388,13 +271,6 @@ class BasicGrapher(optionHandler.OptionHandler):
         elif guess_minimum != None:
             self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
             self._configNoDraw(yticks=None)
-
-
-    def getXRange(self):
-        return [self.cget("minx"),self.cget("maxx")]
-
-    def getYRange(self):
-        return [self.cget("miny"),self.cget("maxy")]
 
     def clear(self):
         self.ax.get_figure().axes = []
@@ -443,7 +319,7 @@ class BasicGrapher(optionHandler.OptionHandler):
     def __getitem__(self,key):
         return self.cget(key)
 
-class LabeledGrapher(BasicGrapher):
+class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         self.labels=[]
@@ -523,7 +399,8 @@ class LabeledGrapher(BasicGrapher):
                     [x,y] = data
                     if self.cget("smart_label"):
                         [xoffd1,yoffd1,xoffd2,yoffd2,
-                         xofft,yofft,ha,va] = self.findsp(x,y,mp)
+                         xofft,yofft,pos] = self.findsp(x,y,mp)
+                        [ha,va] = self.getpos(pos)
                     else:
                         [xoffd1,yoffd1,xoffd2,yoffd2,
                          xofft,yofft,ha,va] = self.dumblabel(i,j,x,y)
@@ -583,157 +460,14 @@ class LabeledGrapher(BasicGrapher):
         #print "---------------------------------------------"    
         return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,ha,va]
 
-    # smarter way to plot labels: ported from old PLAUT
-    #-------------------------------------------------------------------
-    #   Tries to find an empty space to put the
-    #   point or branch label from pnts in by searching for three
-    #   unchanged entries in mp.  The search is outward from the
-    #   point to be labelled.  If space can't be found the label
-    #   will be written out anyway.
-    #-------------------------------------------------------------------
-    def findsp(self,x1,y1,mp):
-        sp1 = self.cget("left_margin")
-        minsx = sp1
-        maxsx = self.cget("realwidth") - self.cget("right_margin")
-        sp2 = 5 #fontsize
-        sp3 = self.cget("bottom_margin")
-        minsy = sp3
-        maxsy = self.cget("realheight") - self.cget("top_margin")
-        sp4 = 5
-        #C---     *x1, y1 ARE SCREEN COORDINATES
-        xi = (x1 - sp1) / sp2
-        yi = (y1 - sp3) / sp4
-        rd = math.pi / 180.0
-        start = rd * 30.0
-        radius = 2
-        npoint = 16
-
-        found = 0
-        while radius < 70:
-            radius = radius + 1
-            npoint = npoint + 8
-            st     = start
-            rinc   = rd * 360.0 / float(npoint)
-
-            for i in range(npoint):
-                xd = int(xi + radius * math.cos(st))
-                yd = int(yi + radius * math.sin(st))
-                if self.emptsp(xd,yd,mp):
-                    r1 = (radius + 3) * sp2
-                    ix = x1 + r1 * math.cos(st)
-                    iy = y1 + r1 * math.sin(st)
-                    if (ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy):
-                        found = 1
-                        break
-                st = st + rinc
-            if found:
-                break
-
-        if radius >= 70:
-            return [1,1,10,10,11,11,"right","top"] #if no empty space
-
-        for i1 in range(xd-2,xd+3):
-            for i2 in range(yd-1,yd+2):
-                mp[i1][i2] = 1
-
-        pos = int((st/rd - 22.5) / 45)
+    def getpos(self,pos):
         has = [  "left", "center", "right", "right", "right", "center",
                  "left", "left", "left" ]
         vas = [  "bottom","bottom","bottom","center", "top", "top",
                  "top", "center", "bottom" ]
         ha = has[pos]
         va = vas[pos]
-        radius = radius * sp2
-        cosst = math.cos(st)
-        sinst = math.sin(st)
-        d1dist = self.cget("line_width") + 1
-        xoffd1 = d1dist * cosst
-        yoffd1 = d1dist * sinst
-        xoffd2 = radius * cosst
-        yoffd2 = radius * sinst
-        xofft = (radius + 2) * cosst
-        yofft = (radius + 2) * sinst
-        return [xoffd1,yoffd1,xoffd2,yoffd2,xofft,yofft,ha,va]
-
-    #-----------------------------------------------------------------------
-    #   Organizes the search along two sides of
-    #   a square of size 2(xd) with pnt xi, yi in its center.
-    #-----------------------------------------------------------------------
-    def emptsp(self,ix,iy,mp):
-       if ix > len(mp) - 5 or ix < 3:
-           return 0
-       if iy > len(mp[0]) - 5 or iy < 3:
-           return 0
-       for i in range(ix-2,ix+3):
-           for j in range(iy-2,iy+3):
-               if mp[i][j]:
-                   return 0
-       return 1
-
-    #-----------------------------------------------------------------------
-    #    Initializes the map array that is
-    #    used to label the plotted curves.
-    #-----------------------------------------------------------------------
-    def inarrs(self):
-        sp1 = self.cget("left_margin")
-        sp2 = 5 #fontsize
-        sp3 = self.cget("bottom_margin")
-        sp4 = 5
-        nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))/sp2
-        ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))/sp4
-        r = ny*[0]
-        mp = []
-        for i in range(nx):
-            mp.append(r[:])
-        return mp
-
-    #-----------------------------------------------------------------------
-    #        Maps the curves in mp array
-    #-----------------------------------------------------------------------
-    def map_curve(self,mp,xs,ys,trans):
-        sp1 = self.cget("left_margin")
-        sp2 = 5 #fontsize
-        sp3 = self.cget("bottom_margin")
-        sp4 = 5
-        ixmax = len(mp)
-        iymax = len(mp[0])
-        minx = self["minx"]
-        maxx = self["maxx"]
-        miny = self["miny"]
-        maxy = self["maxy"]
-        x,y = xs[0],ys[0]
-        for i in range(1,len(xs)):
-            oldx,oldy = x,y
-            x,y = xs[i],ys[i]
-            # if we are sure that the line is outside the graph limits we
-            # should skip and save a lot of time
-            if ((oldx < minx and x < minx) or
-                (oldy < miny and y < miny) or
-                (oldx > maxx and x > maxx) or
-                (oldy > maxy and y > maxy)):
-                continue
-            xold,yold = trans((oldx,oldy))
-            x1 = (xold - sp1) / sp2
-            y1 = (yold - sp3) / sp4
-            xnew,ynew = trans((x,y))
-            dx = (xnew - xold) / sp2
-            dy = (ynew - yold) / sp4
-            index = int(max(abs(dx),abs(dy))) + 1
-            ilow = 0
-            ihigh = index
-            if dx != 0 and dy != 0:
-                xlim1 = int(-x1*index/dx)
-                xlim2 = int((ixmax-x1)*index/dx)+1
-                ylim1 = int(-y1*index/dy)
-                ylim2 = int((iymax-y1)*index/dy)+1
-                ilow  = max(min(xlim1,xlim2),min(ylim1,ylim2),0)
-                ihigh = min(max(xlim1,xlim2),max(ylim1,ylim2),index)
-            for i in range(ilow,ihigh):
-                f = float(i)/index
-                ix = int(x1 + f * dx)
-                iy = int(y1 + f * dy)
-                if ix >= 0 and ix < ixmax and iy >= 0 and iy < iymax:
-                    mp[ix][iy] = 1
+        return [ha,va]
 
     def plot(self):
         self.plotlabels()
@@ -783,43 +517,14 @@ class LabeledGrapher(BasicGrapher):
                 else:
                     continue
                 label["mpsymline"] = self.ax.lines[-1]
-        
+
 # FIXME:  No regression tester
-class InteractiveGrapher(LabeledGrapher):
+class InteractiveGrapher(LabeledGrapher,grapher.InteractiveGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         apply(LabeledGrapher.__init__,(self,parent),kw)    
 
-    def unzoom(self):
-        self.computeXRange()
-        self.computeYRange()
-        self.clear()
-        self.draw()
-        
-    def labelPointWrapper(self,e):
-        #find all objects near the mouse pointer
-        points = self.find_closest(e.x,e.y)
-        #find the first one that has a data_point?? tag
-        point=None
-        curve=None
-        for point in points:
-            #tags associated with the point
-            point_tags = self.gettags(point)
-            for tag in point_tags:
-                tag=string.split(tag,":")
-                if tag[0] == "data_point":
-                    point=int(tag[1])
-                if tag[0] == "curve":
-                    curve=int(tag[1])
-        if not((point is None) or (curve is None)):
-            label = tkSimpleDialog.askstring("Label","Enter here")
-            self.addLabel(curve,point,label)
-
-    def printTagWrapper(self,e):
-        id=self.find("closest",e.x,e.y)
-        print self.gettags(id[0])
-        
-class GUIGrapher(InteractiveGrapher):
+class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         apply(InteractiveGrapher.__init__,(self,parent),kw)
@@ -867,28 +572,6 @@ class GUIGrapher(InteractiveGrapher):
                                          command=self.__modifyOption)
         self.valueEntry.pack(side="top")
         
-    def __modifyOption(self):
-        key = self.optionList.getcurselection()[0]
-        if type(self.cget(key)) == types.IntType:
-            self[key] = int(self.valueEntry.get())
-        elif type(self.cget(key)) == types.FloatType:
-            self[key] = float(self.valueEntry.get())
-        elif type(self.cget(key)) == types.StringType:
-            self[key] = self.valueEntry.get()
-        self.valueLabel.setentry(self.cget(key))
-
-    def __updateInteractiveConfigureDialog(self):
-        key = self.optionList.getcurselection()[0]
-        self.optionLabel.setentry(key)
-        self.valueLabel.setentry(self.cget(key))
-        self.valueEntry.clear()
-        if type(self.cget(key)) == types.IntType:
-            self.valueEntry.configure(validate={"validator":"integer"})
-        elif type(self.cget(key)) == types.FloatType:
-            self.valueEntry.configure(validate={"validator":"real"})
-        elif type(self.cget(key)) == types.StringType:
-            self.valueEntry.configure(validate={"validator":"alphanumeric"})
-        
     def generatePostscript(self,filename=None,pscolormode=None):
         if pscolormode is None:
             pscolormode=self.cget("ps_colormode")
@@ -897,20 +580,6 @@ class GUIGrapher(InteractiveGrapher):
         self.update()
         #self.postscript(filename,colormode=pscolormode)
         self.postscript(filename)
-
-    def printTagBindings(self):
-        self.bind("<ButtonPress-1>",self.printTagWrapper)
-        self.unbind("<B1-Motion>")
-        self.unbind("<ButtonRelease-1>")
-        
-    def labelPointBindings(self):
-        self.bind("<ButtonPress-1>",self.labelPointWrapper)
-        self.unbind("<B1-Motion>")
-        self.unbind("<ButtonRelease-1>")
-        
-    def popupMenuWrapper(self,e):
-        self.menu.tk_popup(e.x+self.winfo_rootx(),e.y+self.winfo_rooty())
-
 
 def test():
     import math
