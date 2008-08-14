@@ -7,10 +7,8 @@ from matplotlib.figure import Figure
 
 import Tkinter
 import Pmw
-import tkSimpleDialog
 import tkFileDialog
 import string
-import types
 import AUTOutil
 import optionHandler
 import math
@@ -63,55 +61,8 @@ class BasicGrapher(grapher.BasicGrapher):
     """Documentation string for Basic Grapher
 
     A simple graphing widget
-    By Randy P."""
-    def __init__(self,parent=None,callback=None,cnf={},**kw):
-        self.data = []
-
-        #Get the data from the arguements and then erase the
-        #ones which are not used by canvas
-        optionDefaults={}
-        callback = self.__optionCallback
-        optionDefaults["minx"] = (0,callback)
-        optionDefaults["maxx"] = (0,callback)
-        optionDefaults["miny"] = (0,callback)
-        optionDefaults["maxy"] = (0,callback)
-        optionDefaults["left_margin"] = (80,callback)
-        optionDefaults["right_margin"] = (40,callback)
-        optionDefaults["top_margin"] = (40,callback)
-        optionDefaults["bottom_margin"] = (40,callback)
-        optionDefaults["decorations"] = (1,callback)
-        optionDefaults["xlabel"] = (None,callback)
-        optionDefaults["xlabel_fontsize"] = (None,callback)
-        optionDefaults["ylabel"] = (None,callback)
-        optionDefaults["ylabel_fontsize"] = (None,callback)
-        optionDefaults["xticks"] = (None,callback)
-        optionDefaults["yticks"] = (None,callback)
-        optionDefaults["grid"] = ("yes",callback)
-        optionDefaults["tick_label_template"] = ("%.2e",callback)
-        optionDefaults["tick_length"] = (0.2,callback)
-        optionDefaults["odd_tick_length"] = (0.4,callback)
-        optionDefaults["even_tick_length"] = (0.2,callback)
-        optionDefaults["background"] = ("white",callback)
-        optionDefaults["foreground"] = ("black",callback)
-        optionDefaults["color_list"] = ("black red green blue",callback)
-        optionDefaults["symbol_font"] = ("-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*",callback)
-        optionDefaults["symbol_color"] = ("red",callback)
-        optionDefaults["smart_label"] = (1,callback)
-        optionDefaults["line_width"] = (2,callback)
-        optionDefaults["realwidth"] = (1,callback)
-        optionDefaults["realheight"] = (1,callback)
-        optionDefaults["use_labels"] = (1,callback)
-        optionDefaults["use_symbols"] = (1,callback)
-        optionDefaults["width"] = (1,callback)
-        optionDefaults["height"] = (1,callback)
-        optionDefaults["top_title"] = ("",callback)
-        optionDefaults["top_title_fontsize"] = (None,callback)
-        optionDefaults["dashes"] = ((6.0,6.0),callback)
-
-        optionAliases = {}
-        optionAliases["fg"] = "foreground"
-        optionHandler.OptionHandler.__init__(self)
-
+    By Randy P. and Bart O."""
+    def __init__(self,parent=None,cnf={},**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
         self.ax.set_autoscale_on(0)
         self.canvas = FigureCanvasTkAggRedraw(self,parent)
@@ -124,13 +75,16 @@ class BasicGrapher(grapher.BasicGrapher):
         self.winfo_rooty = tk_widget.winfo_rooty
         self.redrawlabels = 0
 
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        for key in dict.keys():
-            if not key in optionDefaults.keys():
-                del dict[key]
+        callback = self.__optionCallback
+        apply(grapher.BasicGrapher.__init__,(self,parent,callback,cnf),kw)
+        optionDefaults={}
+        optionDefaults["xticks"] = (None,callback)
+        optionDefaults["yticks"] = (None,callback)
+        optionDefaults["background"] = ("white",callback)
+        optionDefaults["width"] = (1,callback)
+        optionDefaults["height"] = (1,callback)
+
         self.addOptions(optionDefaults)
-        self.addAliases(optionAliases)
-        BasicGrapher._configNoDraw(self,dict)
         for key in ["grid","decorations","xlabel","ylabel"]:
             self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
@@ -226,52 +180,6 @@ class BasicGrapher(grapher.BasicGrapher):
         self.ax.lines.remove(data[index]["mpline"])
         del self.data[index]
 
-    def computeXRange(self,guess_minimum=None,guess_maximum=None):
-        if guess_minimum is None:
-            minimums=[]
-            for entry in self.data:
-                minimums.append(entry["minx"])
-            if minimums != []:
-                guess_minimum = min(minimums)
-
-        if guess_maximum is None:
-            maximums=[]
-            for entry in self.data:
-                maximums.append(entry["maxx"])
-            if maximums != []:
-                guess_maximum = max(maximums)
-
-        if guess_minimum != guess_maximum:
-            dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(minx=dict["min"],maxx=dict["max"])
-            self._configNoDraw(xticks=dict["divisions"])
-        elif guess_maximum != None:
-            self._configNoDraw(minx=guess_minimum-1,maxx=guess_maximum+1)
-            self._configNoDraw(xticks=None)
-            
-    def computeYRange(self,guess_minimum=None,guess_maximum=None):
-        if guess_minimum is None:
-            minimums=[]
-            for entry in self.data:
-                minimums.append(entry["miny"])
-            if minimums != []:
-                guess_minimum = min(minimums)
-
-        if guess_maximum is None:
-            maximums=[]
-            for entry in self.data:
-                maximums.append(entry["maxy"])
-            if maximums != []:
-                guess_maximum = max(maximums)
-
-        if guess_minimum != guess_maximum:
-            dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(miny=dict["min"],maxy=dict["max"])
-            self._configNoDraw(yticks=dict["divisions"])
-        elif guess_minimum != None:
-            self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
-            self._configNoDraw(yticks=None)
-
     def clear(self):
         self.ax.get_figure().axes = []
 
@@ -325,17 +233,6 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         self.labels=[]
         apply(BasicGrapher.__init__,(self,parent),kw)
 
-    def addLabel(self,i,j,input_text,symbol=None):
-        new_label={}
-        new_label["j"]=j
-        new_label["text"]=input_text
-        new_label["symbol"]=symbol
-        new_label["mpline"]=None
-        new_label["mptext"]=None
-        new_label["mpsymline"]=None
-        new_label["mpsymtext"]=None
-        self.labels[i].append(new_label)
-
     def _delData(self,i):
         del self.labels[i]
         BasicGrapher._delData(self,i)
@@ -343,13 +240,13 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def _delAllData(self):
         for l in self.labels:
             for label in l:
-                if label["mpline"]:
+                if label.has_key("mpline"):
                     self.ax.lines.remove(label["mpline"])
-                if label["mptext"]:
+                if label.has_key("mptext"):
                     self.ax.texts.remove(label["mptext"])
-                if label["mpsymline"]:
+                if label.has_key("mpsymline"):
                     self.ax.lines.remove(label["mpsymline"])
-                if label["mpsymtext"]:
+                if label.has_key("mpsymtext"):
                     self.ax.texts.remove(label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
@@ -365,12 +262,12 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
 
         for i in range(len(self.labels)):
             for label in self.labels[i]:
-                if label["mpline"]:
+                if label.has_key("mpline"):
                     self.ax.lines.remove(label["mpline"])
-                label["mpline"] = None
-                if label["mptext"]:
+                    del label["mpline"]
+                if label.has_key("mptext"):
                     self.ax.texts.remove(label["mptext"])
-                label["mptext"] = None
+                    del label["mptext"]
 
         if not self.cget("use_labels"):
             return
@@ -400,10 +297,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     if self.cget("smart_label"):
                         [xoffd1,yoffd1,xoffd2,yoffd2,
                          xofft,yofft,pos] = self.findsp(x,y,mp)
-                        [ha,va] = self.getpos(pos)
                     else:
                         [xoffd1,yoffd1,xoffd2,yoffd2,
-                         xofft,yofft,ha,va] = self.dumblabel(i,j,x,y)
+                         xofft,yofft,pos] = self.dumblabel(i,j,x,y)
+                    [ha,va] = self.getpos(pos)
                     [xd1,yd1] = inv_trans((x+xoffd1,y+yoffd1))
                     [xd2,yd2] = inv_trans((x+xoffd2,y+yoffd2))
                     [xt,yt] = inv_trans((x+xofft,y+yofft))
@@ -413,52 +310,6 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                                  color=self.cget("foreground"))
                     label["mpline"] = self.ax.lines[-1]
                     label["mptext"] = self.ax.texts[-1]
-
-    # not-so-smart way of plotting labels
-    def dumblabel(self,i,j,x,y):
-        #Find a neighbor so I can compute the "slope"
-        if j < len(self.getData(i,"x"))-1:
-            first = j
-            second = j+1
-        else:
-            first = j-1
-            second = j
-        realwidth=self.cget("realwidth")
-        realheight=self.cget("realheight")
-        left_margin=self.cget("left_margin")
-        top_margin=self.cget("top_margin")
-        #pick a good direction for the label
-        if self.getData(i,"y")[second] > self.getData(i,"y")[first]:
-            if (x < int(realwidth)-(20+left_margin) and
-                y < int(realheight)-(20+top_margin)):
-                xoffset = 10
-                yoffset = 10
-                va = "bottom"
-                ha = "left"
-            else:
-                xoffset = -10
-                yoffset = -10
-                va = "top"
-                ha = "right"
-        else:
-            if x > 20+left_margin and y < int(realheight)-(20+top_margin):
-                xoffset = -10
-                yoffset = 10
-                va = "bottom"
-                ha = "right"
-            else:
-                xoffset = 10
-                yoffset = -10
-                va = "top"
-                ha = "left"
-
-        #self.addtag_overlapping("overlaps",x+xoffset-3,
-        #        y+yoffset-3,x+xoffset+3,y+yoffset+3)
-        #if len(self.gettags("overlaps")) != 0:
-        #    print self.gettags("overlaps")
-        #self.dtag("overlaps")
-        #print "---------------------------------------------"    
-        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,ha,va]
 
     def getpos(self,pos):
         has = [  "left", "center", "right", "right", "right", "center",
@@ -483,12 +334,12 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     continue
                 c=self.cget("symbol_color")
                 mfc=self.ax.get_axis_bgcolor()
-                if label["mpsymline"]:
+                if label.has_key("mpsymline"):
                     self.ax.lines.remove(label["mpsymline"])
-                label["mpsymline"] = None
-                if label["mpsymtext"]:
+                    del label["mpsymline"]
+                if label.has_key("mpsymtext"):
                     self.ax.texts.remove(label["mpsymtext"])
-                label["mpsymtext"] = None
+                    del label["mpsymtext"]
                 if not self.cget("use_symbols"):
                     continue
                 elif len(l) == 1:
@@ -581,34 +432,8 @@ class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
         #self.postscript(filename,colormode=pscolormode)
         self.postscript(filename)
 
-def test():
-    import math
-    data=[]
-    for i in range(62):
-        data.append(float(i)*0.1)
-
-    grapher = GUIGrapher()
-    grapher.addArray((data,map(math.sin,data)))
-    grapher.addArray((data,map(math.cos,data)))
-    grapher.addLabel(0,10,"hello")
-    grapher.addLabel(0,30,"world")
-    grapher.pack()
-    grapher.plot()
-
-    button = Tkinter.Button(text="Quit",command=grapher.quit)
-    button.pack()
-    button.update()
-    print "Press <return> to continue"
-    raw_input()
-
-    grapher.delAllData()
-    grapher.addArray((data,map(math.cos,data)))
-    grapher.plot()
-    print "Press <return> to continue"
-    raw_input()
-
 if __name__=='__main__':
-    test()
+    grapher.test(GUIGrapher())
 
 
 

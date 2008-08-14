@@ -18,9 +18,9 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     By Randy P."""
     def __init__(self,parent=None,callback=None,cnf={},**kw):
         self.data = []
-
-        #Get the data from the arguements and then erase the
+        #Get the data from the arguments and then erase the
         #ones which are not used by canvas
+
         optionDefaults={}
         optionDefaults["minx"] = (0,callback)
         optionDefaults["maxx"] = (0,callback)
@@ -32,7 +32,9 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["bottom_margin"] = (40,callback)
         optionDefaults["decorations"] = (1,callback)
         optionDefaults["xlabel"] = (None,callback)
+        optionDefaults["xlabel_fontsize"] = (None,callback)
         optionDefaults["ylabel"] = (None,callback)
+        optionDefaults["ylabel_fontsize"] = (None,callback)
         optionDefaults["xticks"] = (5,callback)
         optionDefaults["yticks"] = (5,callback)
         optionDefaults["grid"] = ("yes",callback)
@@ -52,6 +54,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["use_labels"] = (1,callback)
         optionDefaults["use_symbols"] = (1,callback)
         optionDefaults["top_title"] = ("",callback)
+        optionDefaults["top_title_fontsize"] = (None,callback)
+        optionDefaults["dashes"] = ((6.0,6.0),callback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"
@@ -66,7 +70,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 del dict[key]
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
-        BasicGrapher.config(self,dict)
+        BasicGrapher._configNoDraw(self,dict)
 
     def __len__(self):
         return len(self.data)
@@ -207,6 +211,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             self._configNoDraw(xticks=dict["divisions"])
         elif guess_maximum != None:
             self._configNoDraw(minx=guess_minimum-1,maxx=guess_maximum+1)
+            self._configNoDraw(xticks=None)
             
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
         if guess_minimum is None:
@@ -229,7 +234,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             self._configNoDraw(yticks=dict["divisions"])
         elif guess_minimum != None:
             self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
-
+            self._configNoDraw(yticks=None)
 
     def getXRange(self):
         return [self.cget("minx"),self.cget("maxx")]
@@ -471,16 +476,20 @@ class LabeledGrapher(BasicGrapher):
                 if len(label["text"]) == 0:
                     continue
                 j = label["j"]
-                data = self.transform(self.getData(i,j))
+                [x,y] = self.getData(i,j)
+                if (x < self["minx"] or x > self["maxx"] or
+                    y < self["miny"] or y > self["maxy"]):
+                    continue
+                data = self.transform([x,y])
                 if not(data is None):
                     [x,y] = data
                     if self.cget("smart_label"):
                         [xoffd1,yoffd1,xoffd2,yoffd2,
                          xofft,yofft,pos] = self.findsp(x,y,mp)
-                        anchor = self.getpos(pos)
                     else:
                         [xoffd1,yoffd1,xoffd2,yoffd2,
-                         xofft,yofft,anchor] = self.dumblabel(i,j,x,y)
+                         xofft,yofft,pos] = self.dumblabel(i,j,x,y)
+                    anchor = self.getpos(pos)
                     y = self.cget("realheight") - y
                     self.create_line(x+xoffd1,y-yoffd1,x+xoffd2,y-yoffd2,
                                      fill=self.cget("foreground"))
@@ -497,27 +506,29 @@ class LabeledGrapher(BasicGrapher):
             first = j-1
             second = j
         realwidth=self.cget("realwidth")
+        realheight=self.cget("realheight")
         left_margin=self.cget("left_margin")
         top_margin=self.cget("top_margin")
         #pick a good direction for the label
         if self.getData(i,"y")[second] > self.getData(i,"y")[first]:
-            if (x < int(realwidth)-(20+left_margin)) and (y > (20+top_margin)):
+            if (x < int(realwidth)-(20+left_margin) and
+                y < int(realheight)-(20+top_margin)):
                 xoffset = 10
-                yoffset = -10
-                anchor="sw"
+                yoffset = 10
+                pos=0
             else:
                 xoffset = -10
-                yoffset = 10
-                anchor="ne"
+                yoffset = -10
+                pos=4
         else:
-            if (x > 20+left_margin) and (y > 20+top_margin):
+            if x > 20+left_margin and y < int(realheight)-(20+top_margin):
                 xoffset = -10
-                yoffset = -10
-                anchor="se"
+                yoffset = 10
+                pos=2
             else:
                 xoffset = 10
-                yoffset = 10
-                anchor="nw"
+                yoffset = -10
+                pos=6
 
         #self.addtag_overlapping("overlaps",x+xoffset-3,
         #        y+yoffset-3,x+xoffset+3,y+yoffset+3)
@@ -525,7 +536,7 @@ class LabeledGrapher(BasicGrapher):
         #    print self.gettags("overlaps")
         #self.dtag("overlaps")
         #print "---------------------------------------------"    
-        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,anchor]
+        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,pos]
 
     # smarter way to plot labels: ported from old PLAUT
     #-------------------------------------------------------------------
@@ -691,8 +702,7 @@ class LabeledGrapher(BasicGrapher):
                 l = label["symbol"]
                 if l is None:
                     continue
-                j = label["j"]
-                data = self.valueToCanvas(self.getData(i,j))
+                data = self.valueToCanvas(self.getData(i,label["j"]))
                 if data is None:
                     continue
                 [x,y] = data
@@ -898,18 +908,18 @@ class GUIGrapher(InteractiveGrapher):
         self.menu.tk_popup(e.x+self.winfo_rootx(),e.y+self.winfo_rooty())
 
 
-def test():
+def test(grapher):
     import math
     data=[]
     for i in range(62):
         data.append(float(i)*0.1)
 
-    grapher = GUIGrapher()
     grapher.addArray((data,map(math.sin,data)))
     grapher.addArray((data,map(math.cos,data)))
     grapher.addLabel(0,10,"hello")
     grapher.addLabel(0,30,"world")
     grapher.pack()
+    grapher.plot()
 
     button = Tkinter.Button(text="Quit",command=grapher.quit)
     button.pack()
@@ -919,11 +929,12 @@ def test():
 
     grapher.delAllData()
     grapher.addArray((data,map(math.cos,data)))
+    grapher.plot()
     print "Press <return> to continue"
     raw_input()
 
 if __name__=='__main__':
-    test()
+    test(GUIGrapher())
 
 
 
