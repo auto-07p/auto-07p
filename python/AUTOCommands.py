@@ -13,6 +13,7 @@ import string
 import glob
 import runAUTO
 import re
+import shutil
 
 SIMPLE=0
 EXPERT=1
@@ -232,42 +233,35 @@ class commandRelabel(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
         if self.name2["bifurcationDiagram"] is None:
-            command = os.path.join(os.environ["AUTO_DIR"],
-                                   "bin/relabel %s %s %s~~ %s~~"%(
-                                   self.name1["bifurcationDiagram"],
-                                   self.name1["solution"],
-                                   self.name1["bifurcationDiagram"],
-                                   self.name1["solution"]))
-            rval.interact("%s"%command)
-
-            if os.access("%s~~"%self.name1["bifurcationDiagram"],os.F_OK):
-                # Save backups
-                rval.system("mv %s %s~"%(self.name1["bifurcationDiagram"],
-                                         self.name1["bifurcationDiagram"]))
-                rval.system("mv %s %s~"%(self.name1["solution"],
-                                         self.name1["solution"]))
-                rval.system("mv %s~~ %s"%(self.name1["bifurcationDiagram"],
-                                         self.name1["bifurcationDiagram"]))
-                rval.system("mv %s~~ %s"%(self.name1["solution"],
-                                         self.name1["solution"]))
-                rval.info("Relabeling succeeded\n")
-            
-            rval.info("Relabeling done\n")
+            n2b = n1b+'~~'
+            n2s = n1s+'~~'
         else:
-            command = os.path.join(os.environ["AUTO_DIR"],
-                                   "bin/relabel %s %s %s %s"%(
-                                   self.name1["bifurcationDiagram"],
-                                   self.name1["solution"],
-                                   self.name2["bifurcationDiagram"],
-                                   self.name2["solution"]))
-            rval.interact("%s"%command)
+            n2b = self.name2["bifurcationDiagram"]
+            n2s = self.name2["solution"]
+        command = os.path.join(os.environ["AUTO_DIR"],
+                               "bin/relabel %s %s %s %s"%(n1b,n1s,n2b,n2s))
+        rval.interact(command)
+        if os.access(n2b,os.F_OK):
+            if self.name2["bifurcationDiagram"] is None:
+                # Save backups
+                if os.access(n1b+'~',os.F_OK):
+                    os.remove(n1b+'~')
+                os.rename(n1b,n1b+'~')
+                os.rename(n2b,n1b)
+                if os.access(n1s+'~',os.F_OK):
+                    os.remove(n1s+'~')
+                os.rename(n1s,n1s+'~')
+                os.rename(n2s,n1s)
+                rval.info("Relabeling succeeded\n")            
+            else:
+                shutil.copy(self.name1["diagnostics"],
+                            self.name2["diagnostics"])
+        rval.info("Relabeling succeeded\n")
 
-            if os.access("%s"%self.name2["bifurcationDiagram"],os.F_OK):
-                rval.system("cp %s  %s"%(self.name1["diagnostics"],self.name2["diagnostics"]))
-                rval.info("Relabeling succeeded\n")
-            
-            rval.info("Relabeling done\n")
+        rval.info("Relabeling done\n")
 
         return rval
 
@@ -1653,7 +1647,8 @@ class valueSystem:
             self.value = self.value + text
     def interact(self,command):
         import os
-        os.system(command)
+        if os.system(command) != 0:
+            raise AUTOExceptions.AUTORuntimeError("Error running %s"%command)
         self.value = self.value + "Finished running: " + command + "\n"
     def info(self,text):
         self.value = self.value + text

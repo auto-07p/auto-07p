@@ -272,7 +272,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         if not self.cget("use_labels"):
             return
 
-        if 'transform' in dir(self.ax.transData):
+        if hasattr(self.ax.transData,'transform'):
             trans = self.ax.transData.transform
             inv_trans = self.ax.transData.inverted().transform
         else:

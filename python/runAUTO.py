@@ -14,10 +14,8 @@ demo_max_time=-1
 class runAUTO:
     def __init__(self,cnf={},**kw):
         # Set the signal handler
-        try:
+        if hasattr(signal,'SIGALRM'):
             signal.signal(signal.SIGALRM, self.__handler)
-        except:
-            pass
         self.internalLog = None
         self.internalErr = None
         
@@ -59,7 +57,8 @@ class runAUTO:
                         self.options["constants"][key] = -self.options["constants"][key]
                 else:
                     self.options["constants"][key] = dict[key]
-            elif self.options["homcont"].has_key(key):
+            elif (not self.options["homcont"] is None and
+                  self.options["homcont"].has_key(key)):
                 self.options["homcont"][key] = dict[key]
             else:
                 raise "Unknown option: %s"%(key,)
@@ -114,10 +113,8 @@ class runAUTO:
             os.system(command)
         # Restart the alarm to make sure everything gets killed
         self.options["verbose_print"].flush()
-        try:
+        if hasattr(signal,"alarm"):
             signal.alarm(20)
-        except:
-            pass
 
     def __resetInternalLogs(self):
         if self.internalLog is None:
@@ -304,11 +301,9 @@ class runAUTO:
         # The command runs here.
         # This is done as the object version so I can use the "poll" method
         # later on to see if it is still running.
-        try:
+        if hasattr(os,"times"):
             user_time = os.times()[2]
-        except:
-            pass
-        try:
+        if hasattr(popen2,"Popen3"):
             demo_object = popen2.Popen3(command,1,1)
             stdout = demo_object.fromchild
             stdin = demo_object.tochild
@@ -317,7 +312,8 @@ class runAUTO:
             if(demo_max_time > 0):
                 signal.alarm(demo_max_time)
             tmp_out = cStringIO.StringIO()
-            while (demo_object.poll() == -1):
+            status = demo_object.poll()
+            while (status == -1):
                 try:
                     line = stdout.readline()
                     if self.options["verbose"] == "yes":
@@ -326,7 +322,10 @@ class runAUTO:
                     tmp_out.write(line)
                 except:
                     demo_killed = 1
-        except:
+                status = demo_object.poll()
+            if status != 0:
+                raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
+        else:
             command = "sh -c '%s'"%(command)
             stdout, stdin, stderr = popen2.popen3(command)
             tmp_out = cStringIO.StringIO()
@@ -342,13 +341,14 @@ class runAUTO:
         tmp_out.seek(0,0)
         self.__printLog(tmp_out.read())
         self.__printErr(stderr.read())
-        try:
+        stdin.close()
+        stdout.close()
+        stderr.close()
+        if hasattr(signal,"alarm"):
             signal.alarm(0)
-        except:
-            pass
-        try:
-            user_time = os.times()[2] - user_time
-        except:
+        if hasattr(os,"times"):
+            user_time = os.times()[2]
+        else:
             user_time = 1.0
 
         # Check to see if output files were created.
