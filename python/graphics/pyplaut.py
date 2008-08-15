@@ -19,11 +19,28 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         root=Tkinter.Tk()
         root.withdraw()
         self.handle = windowPlotter.WindowPlotter2D(root,{})
+
+        #handle default options
+        config = self.handle.configure()
+        doptions = {"grid":       ["no", "no", "no", "yes", "yes"],
+                    "use_labels": [   0,    1,    0,     1,     0],
+                    "use_symbols":[   1,    1,    1,     1,     1],
+                    "stability":  [   0,    1,    1,     1,     1]}
+        dict = {}
+        for i in range(5):
+            if not config.has_key("d"+str(i)):
+                di = {}
+                for k,v in doptions.items():
+                    di[k] = v[i]
+                dict["d"+str(i)] = (di,None)
+        if not config.has_key("default_option"):
+            dict["default_option"] = ("d1",None)
+        self.handle.grapher.addOptions(dict)
+
         dict = {
             "bifurcation_diagram_filename": b,
             "solution_filename": s,
             "width": 600, "height": 480,
-            "stability": 1, "grid": "no",
             "bifurcation_symbol": "square",
             "limit_point_symbol": None,
             "hopf_symbol": "fillsquare",
@@ -32,6 +49,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "user_point_symbol": None,
             "error_symbol": None,
             "xlabel": "", "ylabel": "" }
+        for k,v in self[self["default_option"]].items():
+            dict[k] = v
         self.xlabel = ""
         self.ylabel = ""
         for key in dict.keys():
@@ -123,42 +142,14 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if "st" in opts:
             self.settitles(1,1,1,1)
             its = 1
-        if "d0" in opts:
-            self.dset = 1
-            self.expert = 0
-            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1,
-                               stability = 0)
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-            its = 1
-        if "d1" in opts:
-            self.dset = 1
-            self.expert = 0
-            self.handle.config(grid = "no", use_labels = 1, use_symbols = 1,
-                               stability = 1)
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-            its = 1
-        if "d2" in opts:
-            self.dset = 1
-            self.expert = 0
-            self.handle.config(grid = "no", use_labels = 0, use_symbols = 1,
-                               stability = 1)
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-            #show stability
-            its = 1
-        if "d3" in opts:
-            self.dset = 1
-            self.expert = 0
-            self.handle.config(grid = "yes", use_labels = 1, use_symbols = 1,
-                               stability = 1)
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-            its = 1
-        if "d4" in opts:
-            self.dset = 1
-            self.expert = 0
-            self.handle.config(grid = "yes", use_labels = 0, use_symbols = 1,
-                               stability = 1)
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
-            its = 1
+        for i in range(5):
+            dopt = "d"+str(i)
+            if dopt in opts:
+                self.dset = 1
+                self.expert = 0
+                self.handle.config(self[dopt])
+                self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
+                its = 1
         if "nu" in opts:
             its = 1
             self.dset = 0

@@ -7,7 +7,6 @@ import parseB
 import parseS
 import AUTOutil
 import types
-import ConfigParser
 import os
 
 class plotter(grapher.GUIGrapher):
@@ -51,15 +50,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
         optionDefaults["stability"]              = (0,self.__optionCallback)
 
-        parser = ConfigParser.ConfigParser()
-        parser.add_section("AUTO_plotter")
-        if(os.path.exists(os.path.expandvars("$AUTO_DIR/.autorc"))):
-            parser.read(os.path.expandvars("$AUTO_DIR/.autorc"))
-        if(os.path.exists(os.path.expandvars("$HOME/.autorc"))):
-            parser.read(os.path.expandvars("$HOME/.autorc"))
-        if(os.path.exists("./.autorc")):
-            parser.read("./.autorc")
-
+        parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
         for option in parser.options("AUTO_plotter"):
             v = eval(parser.get("AUTO_plotter",option))

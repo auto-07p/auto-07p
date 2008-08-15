@@ -12,7 +12,6 @@ import types
 import string
 import glob
 import runAUTO
-import ConfigParser
 import re
 
 SIMPLE=0
@@ -1423,15 +1422,7 @@ class commandHelp(command):
         self.__outputString = ""
         # Read in the aliases.
         self._aliases = {}
-        parser = ConfigParser.ConfigParser()
-        parser.add_section("AUTO_command_aliases")
-        if(os.path.exists(os.path.expandvars("$AUTO_DIR/.autorc"))):
-            parser.read(os.path.expandvars("$AUTO_DIR/.autorc"))
-        if(os.path.exists(os.path.expandvars("$HOME/.autorc"))):
-            parser.read(os.path.expandvars("$HOME/.autorc"))
-        if(os.path.exists("./.autorc")):
-            parser.read("./.autorc")
-
+        parser = AUTOutil.getAUTORC("AUTO_command_aliases")
         for option in parser.options("AUTO_command_aliases"):
             self._aliases[option] = parser.get("AUTO_command_aliases",option)
 

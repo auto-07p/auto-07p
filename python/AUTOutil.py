@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 import types
+import ConfigParser
+import os
 
 # This file contains code from the Python distribution.  As
 # per the Python License we include the following:
@@ -73,6 +75,19 @@ def findBaseClass(inputClass,baseClass):
 	# Sometimes inputClass isn't really a class, if so we just return false
 	except AttributeError:
 		return 0
+
+def getAUTORC(section):
+    parser = ConfigParser.ConfigParser()
+    parser.add_section(section)
+    if(os.path.exists(os.path.expandvars("$AUTO_DIR/.autorc"))):
+        parser.read(os.path.expandvars("$AUTO_DIR/.autorc"))
+    if(os.path.exists(os.path.expandvars("$HOME/.autorc"))):
+        parser.read(os.path.expandvars("$HOME/.autorc"))
+    if(os.path.exists("./autorc")):
+        parser.read("./autorc")
+    elif(os.path.exists("./.autorc")):
+        parser.read("./.autorc")
+    return parser
 
 def test():
     a={}
