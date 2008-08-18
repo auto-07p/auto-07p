@@ -175,6 +175,11 @@ class BasicGrapher(grapher.BasicGrapher):
                 else:
                     self.ax.set_yticks(ticks)
 
+    def _delAllData(self):
+        self._configNoDraw(xticks=None,yticks=None)
+        for d in self.data:
+            self.ax.lines.remove(d["mpline"])
+        self.data=[]
 
     def _delData(self,index):
         self.ax.lines.remove(data[index]["mpline"])
