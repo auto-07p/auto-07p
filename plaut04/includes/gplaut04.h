@@ -1,6 +1,6 @@
 
-#ifndef AGE_H
-#define AGE_H
+#ifndef PLAUT04_H
+#define PLAUT04_H
 
 #include <ctype.h>
 #include <time.h>
@@ -114,19 +114,9 @@
 #define INERTIAL_E	3  // small primary centered, earth.
 
 #ifdef R3B
-#define OPT_DRAW_COORD 0
-
-#define OPT_REF_PLAN   0
-#define OPT_PRIMARY    1
-#define OPT_LIB_POINTS  2
-#define OPT_PERIOD_ANI  3
-#define OPT_SAT_ANI    4
-#define OPT_DRAW_LABELS  5
-#define OPT_LABEL_NUMBERS  6
-#define OPT_BACKGROUND   7
-#define OPT_LEGEND   8
-#define OPT_NORMALIZE_DATA  9
+#include "r3bplaut04.h"
 #else
+#define GRAPH_WIDGET_ITEMS 7
 #define OPT_PERIOD_ANI  0
 #define OPT_SAT_ANI    1
 #define OPT_DRAW_LABELS  2
@@ -284,9 +274,6 @@ double fortranatof(char* word);
 
 void normalizeSolData();//SolNode);
 void normalizeBifData(long int idx, float xyzCoords[3]);//BifNode);
-#ifdef R3B
-void toInertialFrame(int , SolNode);
-#endif
 
 SoGroup * setLineAttributesByStability(int stability, float scaler);
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
@@ -301,31 +288,6 @@ SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
 SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
 SoSeparator * drawASphere(float ptb[], float size);
-#ifdef R3B
-SoSeparator * createSolutionInertialFrameScene(float dis);
-SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
-SoSeparator * createLibrationPoint(float mu, float dis, float scale, char *txtureFileName);
-SoSeparator * createDisk(float where[], float scaler);
-void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,
-float bigPosition[], float smallPosition[], float velocity[]);
- 
-extern float libPtMax[3], libPtMin[3];
-extern float libPtScaler, smallPrimRadius, largePrimRadius, diskTransparency;
-extern double mass;
-extern int numOfStars;
-extern bool diskFromFile;
-
-/************************************************************************
-//
-//  The edit menu has radio buttons. Rather than use the radio
-//  buttons which Motif supplies, we handle things ourselves.
-//
-typedef struct EditMenuItems {
-    Widget *items;  // all the items in this menu
-    int       which;   // specifies which radio button is on
-} EditMenuItems;
-************************************************************************/
-#endif
 
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
 SoSeparator * createDisk();
@@ -388,20 +350,9 @@ extern float satRadius, aniLineScaler;
 extern solutionp solHead;
 extern char labels[MAX_LABEL][8];
 extern long int animationLabel;
-extern char autoDir[256];
+extern char *autoDir;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern SoSeparator *root;
-#ifndef R3B
-extern const char * graphWidgetItems[7];
-#else
-extern const char * graphWidgetItems[10];
-extern bool blMassDependantOption;
-
-void smallPrimaryMovingOrbit(float R, float T, float t,
-                      float position[], float veloctiy[]);
-void satelliteMovingOrbit(int whichcenter, float xyzCoords[],
-                     float t, float mu, float R, float Ts, float T, float g,
-                     float r[], float v[]);
-#endif
+extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];
 
 #endif 

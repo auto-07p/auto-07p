@@ -16,7 +16,7 @@ int specialColorItems = CL_SP_ITEMS;
 extern void  rounding(double &, double &);
 
 float fmData[12];
-char autoDir[256];
+char *autoDir;
 
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
@@ -266,10 +266,8 @@ showHelpDialog()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-
-    char command[256];
-    strcpy(command, autoDir);
-    strcat(command,"/plaut04/doc/userguide.pdf");
+    char *command = new char [strlen(autoDir) + 50];
+    sprintf(command, "%s%s", autoDir, "/plaut04/doc/userguide.pdf");
     if (access(command, R_OK) != 0)
     {
         system("xmessage 'Sorry, could not find "
@@ -277,9 +275,7 @@ showHelpDialog()
         return;
     }
 
-    sprintf(command, "which xpdf> /dev/null");
-
-    int err = system(command);
+    int err = system("which xpdf> /dev/null");
     if (err)
     {
         system("xmessage 'You must install xpdf"
@@ -287,10 +283,9 @@ showHelpDialog()
         return;
     }
 
-    strcpy(command, "xpdf  ");
-    strcat(command, autoDir);
-    strcat(command, "/plaut04/doc/userguide.pdf & ");
+    sprintf(command, "%s%s%s", "xpdf ",autoDir,"/plaut04/doc/userguide.pdf &");
     system(command);
+    delete [] command;
 }
 
 
@@ -379,38 +374,10 @@ createSolutionSceneWithWidgets()
     }
 
 #ifdef R3B
-    float dis = max(max((mySolNode.max[0]-mySolNode.min[0]),
-                        (mySolNode.max[1]-mySolNode.min[1])),
-                    (mySolNode.max[2]-mySolNode.min[2]));
-    if(whichCoordSystem != ROTATING_F)
-    {
-        if(options[OPT_REF_PLAN])
-        {
-            float position[3], radius =1;
-            position[0]=position[1]=position[2]=0;
-            if(whichCoordSystem == INERTIAL_B ) radius = 1-mass;
-            SoSeparator *diskSep = createDisk(position,radius);
-            result->addChild(diskSep);
-        }
-        result->addChild(createSolutionInertialFrameScene(dis));
-    }
-    else
+    result->addChild(createR3BPoints(mySolNode.min, mySolNode.max));
+    if(whichCoordSystem == ROTATING_F)
 #endif
     {
-        char txtureFileName[256];
-
-        strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/widgets/large.rgb");
-#ifdef R3B
-        if(options[OPT_LIB_POINTS])
-        {
-            dis = max(max( dis                     , (libPtMax[0]-libPtMin[0])),
-                max((libPtMax[1]-libPtMin[1]), (libPtMax[2]-libPtMin[2])));
-            SoSeparator * libPtsSep = createLibrationPoint(mass, dis, libPtScaler, txtureFileName);
-            result->addChild(libPtsSep);
-        }
-#endif
-
         if(whichCoord != NO_COORD)
         {
             int cdtype = 0;
@@ -456,31 +423,6 @@ createSolutionSceneWithWidgets()
             result->addChild(coordSep);
         }
 
-#ifdef R3B
-// create reference DISK
-        if(options[OPT_REF_PLAN])
-        {
-            float position[3];
-            position[0]=-mass;
-            position[1]=position[2]=0;
-            SoSeparator *diskSep = createDisk(position,1.0);
-            result->addChild(diskSep);
-        }
-
-// create the primaries
-        if(options[OPT_PRIMARY])
-        {
-            double pos1 = 1-mass;
-            double pos2 = -mass;
-            strcpy(txtureFileName, autoDir);
-            strcat(txtureFileName,"/plaut04/widgets/large.rgb");
-            result->addChild(createPrimary(1-mass+1e-9, pos2, 0.25*largePrimRadius, txtureFileName));
-            strcpy(txtureFileName, autoDir);
-            strcat(txtureFileName,"/plaut04/widgets/small.rgb");
-            result->addChild(createPrimary(mass-1e-9, pos1, 0.25*smallPrimRadius, txtureFileName));
-        }
-#endif
-
 //  create solution scene
         result->addChild(renderSolution());
 
@@ -489,10 +431,10 @@ createSolutionSceneWithWidgets()
 //  create starry background
     if(options[OPT_BACKGROUND])
     {
-        char bgFileName[256];
-        strcpy(bgFileName, autoDir);
-        strcat(bgFileName, "/plaut04/widgets/background.rgb");
+        char *bgFileName = new char [strlen(autoDir) + 34];
+        sprintf(bgFileName, "%s%s",autoDir, "/plaut04/widgets/background.rgb");
         result->addChild(drawStarryBackground(bgFileName));
+        delete [] bgFileName;
     }
 
 //  add legend
@@ -648,40 +590,7 @@ createBifurcationScene()
     }
 
 #ifdef R3B
-    float dis = fabs(max(max((myBifNode.max[0]-myBifNode.min[0]),
-                             (myBifNode.max[1]-myBifNode.min[1])),
-                         (myBifNode.max[2]-myBifNode.min[2])));
-    if(options[OPT_REF_PLAN])
-    {
-        float position[3];
-        position[0]=position[1]=position[2]=0;
-        dis = 1.0;
-        SoSeparator *diskSep = createDisk(position, dis);
-        result->addChild(diskSep);
-    }
-
-// create the primaries
-    char txtureFileName[256];
-    strcpy(txtureFileName, autoDir);
-    strcat(txtureFileName,"/plaut04/widgets/large.rgb");
-    if(options[OPT_PRIMARY])
-    {
-        double pos1 = 1-mass;
-        double pos2 = -mass;
-        result->addChild(createPrimary(1-mass,pos2, 0.25*largePrimRadius, txtureFileName));
-        strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
-        result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName));
-    }
-
-// create the libration points
-    if(options[OPT_LIB_POINTS])
-    {
-        strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
-        result->addChild(createLibrationPoint(mass, dis, libPtScaler,  txtureFileName));
-    }
-
+    result->addChild(createR3BPoints(myBifNode.min, myBifNode.max));
 #endif
 
 // create bifurcation graph
@@ -691,10 +600,10 @@ createBifurcationScene()
 // create starry background
     if(options[OPT_BACKGROUND])
     {
-        char bgFileName[256];
-        strcpy(bgFileName, autoDir);
-        strcat(bgFileName, "/plaut04/widgets/background.rgb");
+        char *bgFileName = new char [strlen(autoDir) + 34];
+        sprintf(bgFileName, "%s%s",autoDir, "/plaut04/widgets/background.rgb");
         result->addChild(drawStarryBackground(bgFileName));
+        delete [] bgFileName;
     }
 
 // add legend
@@ -4720,17 +4629,8 @@ setVariableDefaultValues()
     coloringMethodType[SOLUTION] = coloringMethodType[BIFURCATION] =
         coloringMethod;
 
-    char * buf;
-    if((buf=getenv("AUTO_DIR")) != NULL)
-    {
-       for(unsigned il = 0; il < strlen(buf); ++il)
-          autoDir[il] = buf[il];
-    }
-    else
-    {
-       autoDir[0]='.';
-       autoDir[1]='\n';
-    }
+    if((autoDir=getenv("AUTO_DIR")) == NULL)
+       autoDir=".";
 }
 
 

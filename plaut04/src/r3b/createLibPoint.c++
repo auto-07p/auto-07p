@@ -11,10 +11,7 @@
 #define max(a,b) (a>b?a:b)
 #endif
 
-extern int whichCoordSystem;
-float libPtMax[3], libPtMin[3];
-
-void
+static void
 lagpoint (double mu, double LP [7][2], double eps)
 {
 /**************************************************************************************
@@ -157,7 +154,7 @@ lagpoint (double mu, double LP [7][2], double eps)
 //  By Chenghai Zhang
 //
 SoSeparator *
-createLibrationPoint(float mu, float dis, float scale, char *txtureFileName)
+createLibrationPoint(float mu, float dis, float scale, int whichCoordSystem)
 //
 ///////////////////////////////////////////////////////////////////////////
 {
@@ -217,6 +214,7 @@ createLibrationPoint(float mu, float dis, float scale, char *txtureFileName)
     eps = 1.e-5;
     lagpoint (mu, lp, eps);
 
+    float libPtMax[3], libPtMin[3];
     libPtMax[0]=libPtMax[1]=libPtMax[2]=libPtMin[0]=libPtMin[1]=libPtMin[2]=0;
 
 // decide the size of the libpoints

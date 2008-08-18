@@ -700,7 +700,7 @@ MainWindow::buildOptionMenu()
                          0, OPT_REF_PLAN);
     pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
                          0, OPT_PRIMARY);
-    pulldown->insertItem("Draw &Libraration Pts", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuPick(int)),
                          0, OPT_LIB_POINTS);
     pulldown->insertSeparator();
     pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
@@ -1462,14 +1462,14 @@ MainWindow::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphCoordinateSystemToggledCB(int)));
-    for (int i = 0; i < LENGTH (coordSysItems); i++)
+    for (unsigned int i = 0; i < LENGTH (coordSysItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordSysItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichCoordSystem == i) w->setChecked(true);
+        if ((unsigned)whichCoordSystem == i) w->setChecked(true);
     }
 }
 #endif

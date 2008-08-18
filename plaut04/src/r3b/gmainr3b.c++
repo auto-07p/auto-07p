@@ -10,6 +10,7 @@ static SoSeparator * inertialSystemAnimation(int coordSys, SolNode mySolNode, \
 float numAnimatedPeriod, int kth, int idx, float mass, \
 float distance, float sPrimPeriod, float  gravity);
 #endif
+static SoSeparator * createSolutionInertialFrameScene(float dis);
 
 float libPtScaler = 1.0;
 float smallPrimRadius=1.0;
@@ -23,12 +24,72 @@ static float gravity = 9.18;
 double mass = 0.0;
 bool blMassDependantOption = false;
 
+SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
+{
+    SoSeparator *result = new SoSeparator;
+    float dis = max(max((nodemax[0]-nodemin[0]),(nodemax[1]-nodemin[1])),
+                    (nodemax[2]-nodemin[2]));
+
+    if(whichType == SOLUTION && whichCoordSystem != ROTATING_F)
+    {
+        if(options[OPT_REF_PLAN])
+        {
+            float position[3], radius =1;
+            position[0]=position[1]=position[2]=0;
+            if(whichCoordSystem == INERTIAL_B ) radius = 1-mass;
+            SoSeparator *diskSep = createDisk(position,radius);
+            result->addChild(diskSep);
+        }
+        result->addChild(createSolutionInertialFrameScene(dis));
+        return result;
+    }
+
+    if(whichType == BIFURCATION) dis = 1.0;
+    if(options[OPT_LIB_POINTS])
+    {
+        SoSeparator * libPtsSep = createLibrationPoint(mass, dis, libPtScaler,
+                                                       whichCoordSystem);
+        result->addChild(libPtsSep);
+    }
+
+// create reference DISK
+    if(options[OPT_REF_PLAN])
+    {
+        float position[3];
+        if(whichType == BIFURCATION)
+        {
+            position[0]=position[1]=position[2]=0;
+        }
+        else
+        {
+            position[0]=-mass;
+            position[1]=position[2]=0;
+        }
+        SoSeparator *diskSep = createDisk(position,1.0);
+        result->addChild(diskSep);
+    }
+
+// create the primaries
+    if(options[OPT_PRIMARY])
+    {
+        double pos1 = 1-mass;
+        double pos2 = -mass;
+        char *txtureFileName = new char [strlen(autoDir) + 30];
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/large.rgb");
+        result->addChild(createPrimary(1-mass, pos2, 0.25*largePrimRadius, txtureFileName));
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/small.rgb");
+        result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName));
+        delete [] txtureFileName;
+    }
+    return result;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 //
 //   Using a red ball to simulate the movement of a sattelite and using
 //   white lines to simulate the trace of the sattelite.
 //
-SoSeparator *
+static SoSeparator *
 animateOrbitInertialSysUsingLine(int iBranch,  int iOrbit,
 float (*vertices)[3], float (*largePrimPos)[3], float (*smallPrimPos)[3],
 float * myColorBase, float period, int size,
@@ -580,8 +641,6 @@ createSolutionInertialFrameScene(float dis)
     aRotation->angle.connectFrom(&aCalc->oa);
     aSep->addChild(aRotation);
 
-    static char txtureFileName[256];
-
 // create the primaries
     if(options[OPT_PRIMARY])
     {
@@ -593,24 +652,23 @@ createSolutionInertialFrameScene(float dis)
             pos1 = 0, pos2= 1;
         else if(whichCoordSystem == INERTIAL_E )
             pos1 = -1, pos2= 0;
-        strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/plaut04/widgets/large.rgb");
-        aSep->addChild(createPrimary(1-mass+1e-9, pos1, 0.25*largePrimRadius, txtureFileName));
-        strcpy(txtureFileName, autoDir);
-        strcat(txtureFileName,"/plaut04/widgets/small.rgb");
-        aSep->addChild(createPrimary(mass-1e-9, pos2, 0.25*smallPrimRadius, txtureFileName));
+        char *txtureFileName = new char [strlen(autoDir) + 30];
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/large.rgb");
+        aSep->addChild(createPrimary(1-mass, pos1, 0.25*largePrimRadius, txtureFileName));
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/small.rgb");
+        aSep->addChild(createPrimary(mass, pos2, 0.25*smallPrimRadius, txtureFileName));
+        delete [] txtureFileName;
     }
 
 // create the libration points
-    SoSeparator * libPtsSep = createLibrationPoint(mass, dis, libPtScaler, txtureFileName);
+    SoSeparator * libPtsSep = createLibrationPoint(mass, dis, libPtScaler,
+                                                   whichCoordSystem);
     if(options[OPT_LIB_POINTS])
     {
         aSep->addChild(libPtsSep);
     }
 
 // create solution coordinate axis
-    dis = fabs(max(max(dis,(libPtMax[0]-libPtMin[0])),
-        max((libPtMax[1]-libPtMin[1]), (libPtMax[2]-libPtMin[2]))));
     if(whichCoord != NO_COORD)
     {
         int cdtype = 0;
