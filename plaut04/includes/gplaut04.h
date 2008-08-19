@@ -350,7 +350,7 @@ extern float satRadius, aniLineScaler;
 extern solutionp solHead;
 extern char labels[MAX_LABEL][8];
 extern long int animationLabel;
-extern char *autoDir;
+extern const char *autoDir;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern SoSeparator *root;
 extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];

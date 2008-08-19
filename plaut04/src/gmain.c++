@@ -16,7 +16,7 @@ int specialColorItems = CL_SP_ITEMS;
 extern void  rounding(double &, double &);
 
 float fmData[12];
-char *autoDir;
+const char *autoDir;
 
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
@@ -4630,7 +4630,7 @@ setVariableDefaultValues()
         coloringMethod;
 
     if((autoDir=getenv("AUTO_DIR")) == NULL)
-       autoDir=".";
+        autoDir=(char *)".";
 }
 
 

@@ -153,7 +153,6 @@ numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)callData;
     char *myChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
-    int i = 0;
 
     if ( strcmp(myChoice, "inf") == 0 )
     {
@@ -180,12 +179,10 @@ colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)callData;
     char *myChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
-    int i = 0;
     int choice = (int) cbs->item_position;
 
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
-    ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
-    coloringMethod = (strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
+    ((strcasecmp(myChoice,"TYPE")==0) ? CL_ORBIT_TYPE :
     ((strcasecmp(myChoice,"BRAN")==0) ? CL_BRANCH_NUMBER:
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
@@ -733,11 +730,10 @@ optMenuDisplay(Widget, void *userData, XtPointer)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    Arg args[3];
     int n = 0;
     EditMenuItems *menuItems = (EditMenuItems *) userData;
 
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         n = 0;
         if (graphWidgetToggleSet & (1<<i))
@@ -750,7 +746,6 @@ optMenuDisplay(Widget, void *userData, XtPointer)
         }
     }
 
-    XmString xString = XmStringCreateLocalized((char *)"draw Label");
 #ifdef R3B
     if(!blMassDependantOption)
     {
@@ -842,7 +837,6 @@ buildFileMenu(Widget menubar)
 // Accelerators are keyboard shortcuts for the menu items
     const char *openAccel  = "Ctrl<Key>o";
     const char *saveAccel  = "Ctrl<Key>s";
-    const char *printAccel = "Ctrl<Key>p";
     const char *quitAccel  = "Ctrl<Key>q";
     XmString openAccelText  = XmStringCreate((char *)"Ctrl+o", XmSTRING_DEFAULT_CHARSET);
     XmString saveAccelText  = XmStringCreate((char *)"Ctrl+s", XmSTRING_DEFAULT_CHARSET);
@@ -862,6 +856,7 @@ buildFileMenu(Widget menubar)
 
     n = 0;
 #ifdef R3B
+    const char *printAccel = "Ctrl<Key>p";
     XtSetArg(args[n], XmNaccelerator, printAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
     PUSH_ITEM(items[2], "Print...", PRINT_ITEM, fileMenuPick);
@@ -2010,28 +2005,6 @@ buildMainWindow(Widget parent, SoSeparator *root)
 //     When the line color changed, this function will be raised.
 //
 void
-linePatternToggledCB(Widget w, XtPointer client_data, XtPointer call_data)
-//
-////////////////////////////////////////////////////////////////////////
-{
-    XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct*) call_data;
-    int value;
-    int which = (long)client_data;
-    int lineNumber=0, columnNumber =0;
-
-#ifdef LESSTIF_VERSION
-    cbs->set == XmSET ? "on" : cbs->set==0 ? "off" : "interminate";
-#else
-    cbs->set == XmSET ? "on" : cbs->set==XmOFF ? "off" : "interminate";
-#endif
-}
-
-
-////////////////////////////////////////////////////////////////////////
-//
-//     When the line color changed, this function will be raised.
-//
-void
 lineColorValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2448,7 +2421,6 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
 {
     int n;
     Arg args[12];
-    Widget label;
     const char *coordSysItems[]=
     {
         "Rotating Frame", "Barycenter " ,
@@ -2464,10 +2436,10 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     whichCoordSystemOld  = whichCoordSystem;
     whichCoordSystemTemp = whichCoordSystem;
 
-    for (int i = 0; i < XtNumber (coordSysItems); i++)
+    for (unsigned int i = 0; i < XtNumber (coordSysItems); i++)
     {
         n = 0;
-        if (whichCoordSystem == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
+        if ((unsigned long)whichCoordSystem == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
         Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)coordSysItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphCoordinateSystemToggledCB, (XtPointer) i);
         XtManageChild (w);
@@ -2504,7 +2476,6 @@ createGraphStyleFrameGuts(Widget frame)
 {
     int n;
     Arg args[12];
-    Widget label;
     const char * graphStyleItems[]=
     {
         "Line Style", "Tube Style" , "Surface Style"
@@ -2518,10 +2489,10 @@ createGraphStyleFrameGuts(Widget frame)
     whichStyleOld  = whichStyle;
     whichStyleTemp = whichStyle;
 
-    for (int i = 0; i < XtNumber (graphStyleItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphStyleItems); i++)
     {
         n = 0;
-        if (whichStyle == i) XtSetArg(args[n++], XmNset, XmSET);
+        if ((unsigned int)whichStyle == i) XtSetArg(args[n++], XmNset, XmSET);
         Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)graphStyleItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphStyleWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
@@ -2575,7 +2546,6 @@ createGraphTypeFrameGuts(Widget frame)
 {
     int n;
     Arg args[12];
-    Widget label;
     const char * graphTypeItems[]={"Solution Diagram", "Bifurcation Diagram" };
 
 // create default selections
@@ -2589,10 +2559,10 @@ createGraphTypeFrameGuts(Widget frame)
     whichTypeOld  = whichType;
     whichTypeTemp = whichType;
 
-    for (int i = 0; i < XtNumber (graphTypeItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphTypeItems); i++)
     {
         n = 0;
-        if (whichType == i) XtSetArg(args[n++], XmNset, XmSET);
+        if ((unsigned int)whichType == i) XtSetArg(args[n++], XmNset, XmSET);
         Widget w = XmCreateToggleButtonGadget (toggleBox, (char *)graphTypeItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphTypeWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
@@ -2631,7 +2601,6 @@ createOptionFrameGuts(Widget frame)
 {
     int n;
     Arg args[12];
-    Widget label;
 
 // create default selections
     n = 0;
@@ -2639,7 +2608,7 @@ createOptionFrameGuts(Widget frame)
     XtSetArg (args[n], XmNnumColumns, 4); ++n;
     Widget toggleBox = XmCreateRowColumn (frame, (char *)"togglebox", args, n);
 
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         graphWidgetToggleSetOld = graphWidgetToggleSet;
         graphWidgetToggleSetTemp= graphWidgetToggleSet;
@@ -2702,7 +2671,6 @@ createGraphCoordPartsFrameGuts(Widget frame)
 {
     int n;
     Arg args[12];
-    Widget label;
     const char *coordItems[]=
     {
         "No Coordinate", "At Origin" ,
@@ -2718,10 +2686,10 @@ createGraphCoordPartsFrameGuts(Widget frame)
     whichCoordOld  = whichCoord;
     whichCoordTemp = whichCoord;
 
-    for (int i = 0; i < XtNumber (coordItems); i++)
+    for (unsigned int i = 0; i < XtNumber (coordItems); i++)
     {
         n = 0;
-        if (whichCoord == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
+        if ((unsigned long)whichCoord == (unsigned long)i) XtSetArg(args[n++], XmNset, XmSET);
         Widget w = XmCreateToggleButtonGadget (toggleBox1, (char *)coordItems[i], args, n);
         XtAddCallback (w, XmNvalueChangedCallback, graphCoordWidgetToggledCB, (XtPointer) i);
         XtManageChild (w);
@@ -2751,7 +2719,7 @@ createPreferDefaultPages(Widget parent)
 #endif
     };
 
-    for(int i=0; i<XtNumber(frmNames); ++i)
+    for(unsigned int i=0; i<XtNumber(frmNames); ++i)
         frameList[i] = createPreferDefaultPageFrames(parent, frmNames[i]);
     num = 0;
     createOptionFrameGuts(frameList[num++]);
@@ -2772,7 +2740,6 @@ createLineAttPages(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    const char *tabName[] = { "Line Attributes", "Other Preferences" };
     const char *names[] =
     {
         "DEFAULTS", "BP (ALG)", "LP (ALG)",
@@ -2812,10 +2779,8 @@ createPreferNotebookPages(Widget notebook)
 ////////////////////////////////////////////////////////////////////////
 {
 // create the preference sheet shell and form widget
-    Widget pageForm[2], tab, form;
+    Widget pageForm[2], tab;
     int n=0;
-    char         buffer[32];
-    XmString     xms;
     Arg          args[14];
     const char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
@@ -2827,8 +2792,7 @@ createPreferNotebookPages(Widget notebook)
 
     n = 0;
     XtSetArg (args[n], XmNnotebookChildType, XmMINOR_TAB); n++;
-    sprintf (buffer, "%s", tabName[0] );
-    tab = XmCreatePushButton (notebook, buffer, args, n);
+    tab = XmCreatePushButton (notebook, (char *)tabName[0], args, n);
 
     createPreferDefaultPages(pageForm[0]);
     XtManageChild (tab);
@@ -2841,8 +2805,7 @@ createPreferNotebookPages(Widget notebook)
 
     n=0;
     XtSetArg (args[n], XmNnotebookChildType, XmMINOR_TAB); n++;
-    sprintf (buffer, "%s", tabName[1] );
-    tab = XmCreatePushButton (notebook, buffer, args, n);
+    tab = XmCreatePushButton (notebook, (char *)tabName[1], args, n);
     createLineAttPages(pageForm[1]);
     XtManageChild (tab);
 
@@ -2895,7 +2858,7 @@ createPreferDialog()
 
 //    if(!shell)
     {
-        Widget notebook, actionForm, tab, panedWin;
+        Widget notebook, actionForm, panedWin;
         createPreferShellAndPanedWindow(shell, panedWin);
         createPreferNotebookAndActionForm(panedWin, notebook, actionForm);
         createPreferNotebookPages(notebook);
@@ -2950,7 +2913,7 @@ closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer
 // cancel the selections and recover the original values.
     graphWidgetToggleSetTemp = graphWidgetToggleSetOld;
     graphWidgetToggleSet     = graphWidgetToggleSetOld;
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetOld & (1<<i)) ? true : false;
     }
@@ -3014,7 +2977,7 @@ closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer 
 
     graphWidgetToggleSet    = graphWidgetToggleSetTemp;
     graphWidgetToggleSetOld = graphWidgetToggleSetTemp;
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }
@@ -3079,7 +3042,7 @@ savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_da
 
     graphWidgetToggleSet    = graphWidgetToggleSetTemp;
     graphWidgetToggleSetOld = graphWidgetToggleSetTemp;
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }
@@ -3136,7 +3099,7 @@ Widget widget, XtPointer client_data, XtPointer call_data)
     coordMenuItems->which        = whichCoordTemp;
 
     graphWidgetToggleSet = graphWidgetToggleSetTemp;
-    for (int i = 0; i < XtNumber (graphWidgetItems); i++)
+    for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
         options[i] = (graphWidgetToggleSetTemp & (1<<i)) ? true : false;
     }
@@ -3238,9 +3201,9 @@ showAboutDialog()
     void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
 #ifndef R3B
-    char *str = "  AUTO plaut04\n\n"
+    const char *str = "  AUTO plaut04\n\n"
 #else
-    char *str = "  AUTO r3bplaut04\n\n"
+    const char *str = "  AUTO r3bplaut04\n\n"
 #endif
     "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
     "  Computer Science Department\n"
@@ -3269,7 +3232,7 @@ showAboutDialog()
     }
 
 
-    t = XmStringCreateLocalized (str);
+    t = XmStringCreateLocalized ((char *)str);
     XtVaSetValues (dialog, XmNmessageString, t, XmNdialogStyle, modality, NULL);
     XmStringFree (t);
     XtManageChild (dialog);
@@ -3495,8 +3458,6 @@ redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer 
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
     int numFM = (int)(long)client_data;
 
-    XPoint points[8]={ 0,0, 100, 0, 0,100, 100,100};
-
     XAllocNamedColor(cbs->event->xexpose.display, colormap, "blue", &blue, &exact);
     XAllocNamedColor(cbs->event->xexpose.display, colormap, "green", &green, &exact);
     XAllocNamedColor(cbs->event->xexpose.display, colormap, "white", &white, &exact);
@@ -3597,7 +3558,6 @@ popupFloquetMultiplierDialog(float data[], int size, int numFM)
     Widget pane = (Widget) 0 ;              
     XmString      str1;
     void          showAboutCB(Widget, XtPointer, XtPointer);
-    unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
     char *str, temp[200];
 
     str = new char[size*50];
@@ -3616,7 +3576,7 @@ popupFloquetMultiplierDialog(float data[], int size, int numFM)
         else strcat(str," | ");
     }
 
-    char *tmpstr, tempchar[500];
+    char *tmpstr;
     tmpstr = new char[500];
     tmpstr[0]='\0';
     if (numFM <= 0)
@@ -3643,7 +3603,6 @@ popupFloquetMultiplierDialog(float data[], int size, int numFM)
     {
         Widget fmDrawingArea;
         Arg args[5];
-        Pixel fg,bg;
         int n=0;
         XtSetArg(args[n], XmNdeleteResponse,XmDESTROY); ++n;
         dialog_shell = XmCreateDialogShell(topform, (char *)"Dialog", args, n);
