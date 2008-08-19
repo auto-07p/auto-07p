@@ -291,8 +291,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
                     continue
-                j = label["j"]
-                [x,y] = self.getData(i,j)
+                [x,y] = label["xy"]
                 if (x < self["minx"] or x > self["maxx"] or
                     y < self["miny"] or y > self["maxy"]):
                     continue
@@ -333,7 +332,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def plotsymbols(self):
         for i in range(len(self.labels)):
             for label in self.labels[i]:
-                [x,y] = self.getData(i,label["j"])
+                [x,y] = label["xy"]
                 l = label["symbol"]
                 if l is None:
                     continue

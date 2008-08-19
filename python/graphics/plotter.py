@@ -32,7 +32,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["label"]    = ([0],self.__optionCallback)
 
         # Already parsed data structures
-        optionDefaults["bifurcation_diagram"]          = (parseB.parseB(),self.__optionCallback)
+        optionDefaults["bifurcation_diagram"]          = (parseB.parseBR(),self.__optionCallback)
         optionDefaults["solution"]          = (parseS.parseS(),self.__optionCallback)
         optionDefaults["bifurcation_diagram_filename"] = ("",self.__optionCallback)
         optionDefaults["solution_filename"] = ("",self.__optionCallback)
@@ -150,55 +150,43 @@ class plotter(grapher.GUIGrapher):
         dp = self.cget("stability")
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
-                x = []
-                y = []
-                labels = []
-                current_index = 0
-                sol = solution[0]
-                prevdata = sol["data"]
-                prevsect = sol["section"]
-                prevstab = sol["PT"] < 0
-                xcol = xcolumns[j]
-                ycol = ycolumns[j]
-                for sol in solution:
-                    sect = sol["section"]
-                    stab = sol["PT"] < 0
-                    data = sol["data"]
-                    if (prevsect != sect or
-                        (dp and current_index > 1 and prevstab != stab)):
-                        newsect = prevsect != sect
-                        if len(x) > 0:
-                            if dp:
-                                self.addArrayNoDraw((x,y),newsect,
-                                                    stable=prevstab)
-                            else:
-                                self.addArrayNoDraw((x,y),newsect)
-                        for label in labels:
-                            self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
-                        if newsect:
-                            current_index = 0
-                            x = []
-                            y = []
-                        else:
-                            current_index = 1
-                            x = [prevdata[xcol]]
-                            y = [prevdata[ycol]]
-                        labels = []
-                    try:
-                        x.append(data[xcol])
-                    except:
+                for branch in solution:
+                    xcol = xcolumns[j]
+                    if xcol >= len(branch["data"]):
                         print "The x-coordinate (set to column %d) is out of range"%xcol
                         break
-                    try:
-                        y.append(data[ycol])
-                    except:
-                        print "The y-coordinate (set to column %d) is out of range"%ycol
-                        del x[-1]
+                    ycol = ycolumns[j]
+                    if ycol >= len(branch["data"]):
+                        print "The y-coordinate (set to column %d) is out of range"%xcol
                         break
-                    
-                    TYnumber = sol["TY number"]
-                    lab = sol["LAB"]
-                    if TYnumber != 0 or lab != 0:
+                    if not dp or len(branch["stab"]) == 0:
+                        self.addArrayNoDraw((branch["data"][xcol],
+                                             branch["data"][ycol]),1)
+                        continue
+                    # else look at stability:
+                    preve = 1
+                    newsect = 1
+                    for [b,e] in branch["stab"]:
+                        if b > preve:
+                            self.addArrayNoDraw((branch["data"][xcol,preve-1:b],
+                                                 branch["data"][ycol,preve-1:b]),
+                                                newsect,stable=0)
+                            newsect = 0
+                        if b > 0:
+                            b = b - 1
+                        self.addArrayNoDraw((branch["data"][xcol,b:e],
+                                             branch["data"][ycol,b:e]),
+                                            newsect,stable=1)
+                        newsect = 0
+                        preve = e
+                    l = len(branch["data"][0])
+                    if preve < l:
+                        self.addArrayNoDraw((branch["data"][xcol,preve-1:l],
+                                             branch["data"][ycol,preve-1:l]),
+                                            0,stable=0)
+                    for label in branch["Labels"]:
+                        lab = label["LAB"]
+                        TYnumber = label["TY number"]
                         if lab != 0:
                             text = str(lab)
                         else:
@@ -219,19 +207,9 @@ class plotter(grapher.GUIGrapher):
                             symbol = self.cget("user_point_symbol")
                         elif TYnumber != 0:
                             symbol = self.cget("error_symbol")
-                        labels.append({"index": current_index, "text": text,
-                                       "symbol": symbol})
-                    current_index = current_index + 1
-                    prevdata = data
-                    prevsect = sect
-                    prevstab = stab
-                if len(x) > 0:
-                    if dp:
-                        self.addArrayNoDraw((x,y),stable=prevstab)
-                    else:
-                        self.addArrayNoDraw((x,y))
-                for label in labels:
-                    self.addLabel(len(self)-1,label["index"],label["text"],label["symbol"])
+                        i = label["index"]
+                        [x,y] = [branch["data"][xcol,i],branch["data"][ycol,i]]
+                        self.addLabel(len(self)-1,[x,y],text,symbol)
         
         # Call the base class config
         xlabel = self["xlabel"]
@@ -285,7 +263,9 @@ class plotter(grapher.GUIGrapher):
                     if len(x) > 0:
                         self.addArrayNoDraw((x,y))
                     for lab in labels:
-                        self.addLabel(len(self)-1,lab["index"],lab["text"],lab["symbol"])
+                        self.addLabel(len(self)-1,
+                                      [x[lab["index"]],y[lab["index"]]],
+                                      lab["text"],lab["symbol"])
 
                     xnames = xnames + " " + str(xcolumns[j])
                     ynames = ynames + " " + str(ycolumns[j])

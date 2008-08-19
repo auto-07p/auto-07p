@@ -23,7 +23,15 @@ import sys
 import AUTOExceptions
 import types
 import UserList
+import UserDict
 import parseC
+try:
+    import matplotlib.numerix as N
+except ImportError:
+    try:
+        import numpy as N
+    except ImportError:
+        import Numeric as N
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -341,8 +349,7 @@ class parseBR(UserList.UserList):
     def __init__(self,filename=None,screen_lines=0):
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
-            data = parseB(filename,screen_lines)
-            self.data = self.__getbranches(data)
+            self.readFilename(filename,screen_lines)
         else:
             UserList.UserList.__init__(self,filename)
 
@@ -352,36 +359,99 @@ class parseBR(UserList.UserList):
             s = s + d.summary()
         return s
 
-    def __getbranches(self,data):
-        branches = []
-        l = 0
-        while l < len(data):
-            branch = AUTObranch(data[l:])
-            l = l + len(branch)
-            branches.append(branch)
-        return branches
+    def readFilename(self,filename,screen_lines=0):
+	inputfile = open(filename,"r")
+	self.read(inputfile,screen_lines)
+	inputfile.close()
+
+    def read(self,inputfile,screen_lines=0):
+        # We now go through the file and read the branches.
+        while inputfile.read(1) != "":
+            branch = AUTOBranch(inputfile,screen_lines)
+            self.data.append(branch)
 
 # a branch within the parseBR class
-class AUTObranch(parseB):
-    def __init__(self,data):
-        if type(data) == types.InstanceType:
-            parseB.__init__(self)
-            section = data[0]["section"]
-            for d in data:
-                if d["section"] != section:
-                    break
-                self.data.append(d)
-        else:
-            parseB.__init__(self,data)
+class AUTOBranch(UserDict.UserDict,parseB):
+    def __init__(self,input,screen_lines=0):
+	UserDict.UserDict.__init__(self)
+	if input:
+            self.read(input,screen_lines)
 
-    def __getitem__(self,index):
-        if index == "section":
-            return self.data[0]["section"]
-        if index == "constants":
-            return self.data[0]["constants"]
-        if index == "BR":
-            return abs(self.data[0]["BR"])
-        return parseB.__getitem__(self,index)
+    def read(self,inputfile,screen_lines=0):
+        i = 0
+        # read the branch header
+        # A section is defined as a part of a fort.7
+        # file between "headers", i.e. those parts
+        # of the fort.7 file which start with a 0
+        # and contain information about the branch
+        # FIXME:  I am not sure of this is the correct
+        # fix to having multiple sections of a fort.7
+        # file with the same branch number.  What it comes
+        # dowm to is keeping the fort.7 and fort.8 files
+        # in sync.  I.e. I could make sure that
+        # this branch numbers are unique here, but then
+        # the fort.7 file will not match the fort.8 file.
+        # Another way for a section to start is with a point number
+        # equal to 1.
+        header = ""
+        while 1:
+            header_line = inputfile.readline()
+            if len(header_line) == 0:
+                break
+            br = int(string.split(header_line)[0])
+            if br != 0:
+                break
+            header = header + header_line
+        self["header"] = header
+        if header != "":
+            self["constants"] = parseB.parseHeader(self,header)
+        headerpos = inputfile.tell()
+        l = 1
+        while 1:
+            input_line = inputfile.readline()
+            if len(input_line) == 0:
+                break
+            line = string.split(input_line)
+            if int(line[0]) == 0 or abs(int(line[1])) == 1:
+                break
+            l = l + 1
+        n = len(string.split(header_line)) 
+        self["data"] = N.zeros((n-4,l),'d')
+        self["BR"] = int(string.split(header_line)[0])
+        self["stab"] = []
+        self["Labels"] = []
+        inputfile.seek(headerpos)
+        ldata = header_line + inputfile.read(len(header_line) * (l-1))
+        line = string.split(ldata)
+        j = 0
+        try:
+            line = map(float, line)
+        except:
+            line = map(AUTOatof, line)
+        prevstab = float(string.split(header_line)[1])
+        begstab = 0
+        for i in range(l):
+            tynumber = line[j+2]
+            if tynumber == 0 and screen_lines:
+                continue
+            if prevstab * line[j+1] < 0:
+                if line[j+1] < 0:
+                    begstab = i
+                    if begstab == 1:
+                        begstab = 0
+                else:
+                    self["stab"].append([begstab,i])
+                    begstab = -1
+                prevstab = line[j+1]
+            label = line[j+3]
+            if label != 0 or tynumber != 0:
+                self["Labels"].append({"index":i,
+                                       "LAB":int(label),
+                                       "TY number":int(tynumber)})
+            self["data"][:,i] = line[j+4:j+n]
+            j = j+n
+        if begstab >= 0:
+            self["stab"].append([begstab,l])
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

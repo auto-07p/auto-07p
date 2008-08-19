@@ -440,9 +440,9 @@ class LabeledGrapher(BasicGrapher):
         self.labels=[]
         apply(BasicGrapher.__init__,(self,parent),kw)
 
-    def addLabel(self,i,j,input_text,symbol=None):
+    def addLabel(self,i,xy,input_text,symbol=None):
         new_label={}
-        new_label["j"]=j
+        new_label["xy"]=xy
         new_label["text"]=input_text
         new_label["symbol"]=symbol
         self.labels[i].append(new_label)
@@ -463,7 +463,7 @@ class LabeledGrapher(BasicGrapher):
         if self.cget("realwidth") == 1 or self.cget("realheight") == 1:
             return
 
-        if not self.cget("use_labels"):
+        if not self.cget("use_labels") or len(self.labels) == 0:
             return
 
         trans = self.transform
@@ -475,8 +475,7 @@ class LabeledGrapher(BasicGrapher):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
                     continue
-                j = label["j"]
-                [x,y] = self.getData(i,j)
+                [x,y] = label["xy"]
                 if (x < self["minx"] or x > self["maxx"] or
                     y < self["miny"] or y > self["maxy"]):
                     continue
@@ -702,7 +701,7 @@ class LabeledGrapher(BasicGrapher):
                 l = label["symbol"]
                 if l is None:
                     continue
-                data = self.valueToCanvas(self.getData(i,label["j"]))
+                data = self.valueToCanvas(label["xy"])
                 if data is None:
                     continue
                 [x,y] = data
