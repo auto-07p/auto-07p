@@ -256,7 +256,7 @@ class commandRelabel(commandWithFilenameTemplate):
                 os.rename(n1s,n1s+'~')
                 os.rename(n2s,n1s)
                 rval.info("Relabeling succeeded\n")            
-            else:
+            elif os.path.exists(self.name1["diagnostics"]):
                 shutil.copy(self.name1["diagnostics"],
                             self.name2["diagnostics"])
         rval.info("Relabeling succeeded\n")
@@ -321,22 +321,26 @@ class commandCopyDataFiles(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
-        rval.system("cp %s %s"%(self.name1["bifurcationDiagram"],
-                                self.name2["bifurcationDiagram"]))
-        rval.system("cp %s %s"%(self.name1["solution"],
-                                self.name2["solution"]))
-        rval.system("cp %s %s"%(self.name1["diagnostics"],
-                                self.name2["diagnostics"]))
-        rval.system("cp %s %s"%(self.name1["constants"],
-                                self.name2["constants"]))
-        rval.info("Copying %s to %s ... done\n"%(self.name1["bifurcationDiagram"],
-                                                 self.name2["bifurcationDiagram"]))
-        rval.info("Copying %s to %s ... done\n"%(self.name1["solution"],
-                                                 self.name2["solution"]))
-        rval.info("Copying %s to %s ... done\n"%(self.name1["diagnostics"],
-                                                 self.name2["diagnostics"]))
-        rval.info("Copying %s to %s ... done\n"%(self.name1["constants"],
-                                                 self.name2["constants"]))
+        n1b = self.name1["bifurcationDiagram"]
+        n2b = self.name2["bifurcationDiagram"]
+        if os.path.exists(n1b):
+            shutil.copy(n1b,n2b)
+            rval.info("Copying %s to %s ... done\n"%(n1b,n2b))
+        n1s = self.name1["solution"]
+        n2s = self.name2["solution"]
+        if os.path.exists(n1s):
+            shutil.copy(n1s,n2s)
+            rval.info("Copying %s to %s ... done\n"%(n1s,n2s))
+        n1d = self.name1["diagnostics"]
+        n2d = self.name2["diagnostics"]
+        if os.path.exists(n1d):
+            shutil.copy(n1d,n2d)
+            rval.info("Copying %s to %s ... done\n"%(n1d,n2d))
+        n1c = self.name1["constants"]
+        n2c = self.name2["constants"]
+        if os.path.exists(n1c):
+            shutil.copy(n1c,n2c)
+            rval.info("Copying %s to %s ... done\n"%(n1c,n2c))
         return rval
     
 class commandCopyFortFiles(commandWithFilenameTemplate):
@@ -357,29 +361,26 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
 	rval=valueSystem()
-        if os.path.exists(self.name1["bifurcationDiagram"]):
-            rval.system("cp %s %s~"%(self.name1["bifurcationDiagram"],self.name1["bifurcationDiagram"]))
-        if os.path.exists(self.name1["solution"]):
-            rval.system("cp %s %s~"%(self.name1["solution"],self.name1["solution"]))
-        if os.path.exists(self.name1["diagnostics"]):
-            rval.system("cp %s %s~"%(self.name1["diagnostics"],self.name1["diagnostics"]))
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        n1d = self.name1["diagnostics"]
+        if os.path.exists(n1b):
+            shutil.copy(n1b,n1b+'~')
+        if os.path.exists(n1s):
+            shutil.copy(n1s,n1s+'~')
+        if os.path.exists(n1d):
+            shutil.copy(n1d,n1d+'~')
         if not self.parsed is None:
-            self.parsed.writeFilename(
-                self.name1["bifurcationDiagram"],
-                self.name1["solution"],
-                self.name1["diagnostics"])
-            rval.info("Saving to %s, %s and %s\n"%
-                      (self.name1["bifurcationDiagram"],
-                       self.name1["solution"],
-                       self.name1["diagnostics"]))
+            self.parsed.writeFilename(n1b,n1s,n1d)
+            rval.info("Saving to %s, %s and %s\n"%(n1b,n1s,n1d))
             return rval
             
-        rval.system("cat fort.7 > %s"%self.name1["bifurcationDiagram"])
-        rval.system("cat fort.8 > %s"%self.name1["solution"])
-        rval.system("cat fort.9 > %s"%self.name1["diagnostics"])
-        rval.info("Saving fort.7 as %s ... done\n"%self.name1["bifurcationDiagram"])
-        rval.info("Saving fort.8 as %s ... done\n"%self.name1["solution"])
-        rval.info("Saving fort.9 as %s ... done\n"%self.name1["diagnostics"])
+        rval.system("cat fort.7 > %s"%n1b)
+        rval.system("cat fort.8 > %s"%n1s)
+        rval.system("cat fort.9 > %s"%n1d)
+        rval.info("Saving fort.7 as %s ... done\n"%n1b)
+        rval.info("Saving fort.8 as %s ... done\n"%n1s)
+        rval.info("Saving fort.9 as %s ... done\n"%n1d)
         return rval
         
 class commandDeleteDataFiles(commandWithFilenameTemplate):
@@ -393,12 +394,18 @@ class commandDeleteDataFiles(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
 	rval=valueSystem()
-        rval.system("rm -f %s"%self.name1["bifurcationDiagram"])
-        rval.system("rm -f %s"%self.name1["solution"])
-        rval.system("rm -f %s"%self.name1["diagnostics"])
-        rval.info("Deleting %s ... done\n"%self.name1["bifurcationDiagram"])
-        rval.info("Deleting %s ... done\n"%self.name1["solution"])
-        rval.info("Deleting %s ... done\n"%self.name1["diagnostics"])
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        n1d = self.name1["diagnostics"]
+        if os.path.exists(n1b):
+            os.remove(n1b)
+            rval.info("Deleting %s ... done\n"%n1b)
+        if os.path.exists(n1s):
+            os.remove(n1s)
+            rval.info("Deleting %s ... done\n"%n1s)
+        if os.path.exists(n1d):
+            os.remove(n1d)
+            rval.info("Deleting %s ... done\n"%n1d)
         return rval
 
 class commandDeleteLabel(commandWithFilenameTemplate):
@@ -506,20 +513,22 @@ class commandExpandData(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
 	rval=valueSystem()
-        if self.name1["solution"] is None:
-            rval.system("cp fort.8 fort.28")
-            rval.system("cp fort.7 fort.7~")
-            rval.system("mv fort.8 fort.8~")
-            rval.system("$AUTO_DIR/bin/%s"%self.command)
-            rval.system("mv fort.38 fort.8")
-            rval.system("rm fort.28")
-        else:
-            rval.system("cp %s fort.28"%self.name1["solution"])
-            rval.system("cp %s %s~"%(self.name1["bifurcationDiagram"],self.name1["bifurcationDiagram"]))
-            rval.system("mv %s %s~"%(self.name1["solution"],self.name1["solution"]))
-            rval.system("$AUTO_DIR/bin/%s"%self.command)
-            rval.system("mv fort.38 %s"%self.name1["solution"])
-            rval.system("rm fort.28")
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        if n1s is None:
+            n1s = "fort.8"
+            n1b = "fort.7"
+        if os.path.exists(n1b):
+            shutil.copy(n1b,n1b+'~')
+        if os.path.exists(n1s):
+            shutil.copy(n1s,"fort.28")
+            if os.path.exists(n1s+'~'):
+                os.remove(n1s+'~')
+            os.rename(n1s,n1s+'~')
+        rval.system("$AUTO_DIR/bin/%s"%self.command)
+        os.rename("fort.38",n1s)
+        if os.path.exists("fort.28"):
+            os.remove("fort.28")
         rval.info("Solution doubling done.\n")
         return rval
 
@@ -547,22 +556,34 @@ class commandMoveFiles(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
-        rval.system("mv -f %s  %s"%(self.name1["bifurcationDiagram"],
-                                    self.name2["bifurcationDiagram"]))
-        rval.system("mv -f %s  %s"%(self.name1["solution"],
-                                    self.name2["solution"]))
-        rval.system("mv -f %s  %s"%(self.name1["diagnostics"],
-                                    self.name2["diagnostics"]))
-        rval.system("mv -f %s  %s"%(self.name1["constants"],
-                                    self.name2["constants"]))
-        rval.info("Renaming %s as %s ... done\n"%(self.name1["bifurcationDiagram"],
-                                                  self.name2["bifurcationDiagram"]))
-        rval.info("Renaming %s as %s ... done\n"%(self.name1["solution"],
-                                                  self.name2["solution"]))
-        rval.info("Renaming %s as %s ... done\n"%(self.name1["diagnostics"],
-                                                  self.name2["diagnostics"]))
-        rval.info("Renaming %s as %s ... done\n"%(self.name1["constants"],
-                                                  self.name2["constants"]))
+        n1b = self.name1["bifurcationDiagram"]
+        n2b = self.name2["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        n2s = self.name2["solution"]
+        n1d = self.name1["diagnostics"]
+        n2d = self.name2["diagnostics"]
+        n1c = self.name1["constants"]
+        n2c = self.name2["constants"]
+        if os.path.exists(n1b):
+            if os.path.exists(n2b):
+                os.remove(n2b)
+            os.rename(n1b,n2b)
+            rval.info("Renaming %s as %s ... done\n"%(n1b,n2b))
+        if os.path.exists(n1s):
+            if os.path.exists(n2s):
+                os.remove(n2s)
+            os.rename(n1s,n2s)
+            rval.info("Renaming %s as %s ... done\n"%(n1s,n2s))
+        if os.path.exists(n1d):
+            if os.path.exists(n2d):
+                os.remove(n2d)
+            os.rename(n1d,n2d)
+            rval.info("Renaming %s as %s ... done\n"%(n1d,n2d))
+        if os.path.exists(n1c):
+            if os.path.exists(n2c):
+                os.remove(n2c)
+            os.rename(n1c,n2c)
+            rval.info("Renaming %s as %s ... done\n"%(n1c,n2c))
         return rval
 
 class commandParseConstantsFile(commandWithFilenameTemplate):
@@ -603,14 +624,11 @@ class commandParseSolutionFile(commandWithFilenameTemplate):
     def __init__(self,name1=None,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-        if self.name1["solution"] is None:
-            data = parseS.parseS("fort.8")
-            output_name = "fort.8"
-        else:
-            data = parseS.parseS(self.name1["solution"])
-            output_name = self.name1["solution"]
-        return valueStringAndData("Parsed file: %s\n"%output_name,
-                                  data)
+        n1s = self.name1["solution"]
+        if n1s is None:
+            n1s = "fort.8"
+        data = parseS.parseS(n1s)
+        return valueStringAndData("Parsed file: %s\n"%n1s,data)
         
 class commandParseDiagramFile(commandWithFilenameTemplate):
     """Parse a bifurcation diagram.
@@ -622,14 +640,11 @@ class commandParseDiagramFile(commandWithFilenameTemplate):
     def __init__(self,name1=None,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-        if self.name1["bifurcationDiagram"] is None:
-            data = parseB.parseB("fort.7")
-            output_name = "fort.7"
-        else:
-            data = parseB.parseB(self.name1["bifurcationDiagram"])
-            output_name = self.name1["bifurcationDiagram"] 
-        return valueStringAndData("Parsed file: %s\n"%output_name,
-                                  data)
+        n1b = self.name1["bifurcationDiagram"]
+        if n1b is None:
+            n1b = "fort.7"
+        data = parseB.parseB(n1b)
+        return valueStringAndData("Parsed file: %s\n"%n1b,data)
 
 class commandParseDiagramAndSolutionFile(commandWithFilenameTemplate):
     """Parse both bifurcation diagram and solution.
@@ -642,13 +657,13 @@ class commandParseDiagramAndSolutionFile(commandWithFilenameTemplate):
     def __init__(self,name1=None,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-        if self.name1["bifurcationDiagram"] is None:
-            data = parseBandS.parseBandS("fort.7","fort.8")
-            output_names = "fort.7 and fort.8"
-        else:
-            data = parseBandS.parseBandS(self.name1["bifurcationDiagram"],
-                                         self.name1["solution"])
-            output_names = self.name1["bifurcationDiagram"] + " and " + self.name1["solution"]
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        if n1b is None:
+            n1b = "fort.7"
+            n1s = "fort.8"
+        data = parseBandS.parseBandS(n1b,n1s)
+        output_names = n1b + " and " + n1s
         return valueStringAndData("Parsed files: %s\n"%output_names,data)
 
 
@@ -658,10 +673,11 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
 	rval=valueSystem()
-        if self.name1["diagnostics"] is None:
+        n1d = self.name1["diagnostics"]
+        if n1d is None:
             rval.system("grep %s fort.9"%(self.diagnostic,))
         else:
-            rval.system("grep %s %s"%(self.diagnostic,self.name1["diagnostics"]))
+            rval.system("grep %s %s"%(self.diagnostic,n1d))
         rval.info("\n")
         return rval
 
@@ -1374,18 +1390,17 @@ try:
                     _root=root
                 except:
                     pass
-            if self.name1["bifurcationDiagram"] is None:
-                self.handle = windowPlotter.WindowPlotter2D(root,self.options,grapher_bifurcation_diagram_filename="fort.7",
-                                                            grapher_solution_filename="fort.8",
-                                                            grapher_width=600,grapher_height=480)
-                self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle)
-            else:
-                self.handle = windowPlotter.WindowPlotter2D(root,self.options,grapher_bifurcation_diagram_filename="%s"%self.name1["bifurcationDiagram"],
-                                                            grapher_solution_filename="%s"%self.name1["solution"],
-                                                            grapher_width=600,grapher_height=480)
-                self.handle.update()
-                return valueStringAndData("Created plotter\n",self.handle)
+            n1b = self.name1["bifurcationDiagram"]
+            n1s = self.name1["solution"]
+            if n1b is None:
+                n1b = "fort.7"
+                n1s = "fort.8"
+            self.handle = windowPlotter.WindowPlotter2D(root,self.options,
+                          grapher_bifurcation_diagram_filename=n1b,
+                          grapher_solution_filename=n1s,
+                          grapher_width=600,grapher_height=480)
+            self.handle.update()
+            return valueStringAndData("Created plotter\n",self.handle)
 
 except:
     print
