@@ -416,42 +416,28 @@ class AUTOBranch(UserDict.UserDict,parseB):
                 break
             l = l + 1
         n = len(string.split(header_line)) 
-        self["data"] = N.zeros((n-4,l),'d')
         self["BR"] = int(string.split(header_line)[0])
-        self["stab"] = []
-        self["Labels"] = []
         inputfile.seek(headerpos)
         ldata = header_line + inputfile.read(len(header_line) * (l-1))
         line = string.split(ldata)
-        j = 0
         try:
-            line = map(float, line)
+            line = N.array(map(float, line),'d')
         except:
-            line = map(AUTOatof, line)
-        prevstab = float(string.split(header_line)[1])
-        begstab = 0
-        for i in range(l):
-            tynumber = line[j+2]
-            if tynumber == 0 and screen_lines:
-                continue
-            if prevstab * line[j+1] < 0:
-                if line[j+1] < 0:
-                    begstab = i
-                    if begstab == 1:
-                        begstab = 0
-                else:
-                    self["stab"].append([begstab,i])
-                    begstab = -1
-                prevstab = line[j+1]
-            label = line[j+3]
-            if label != 0 or tynumber != 0:
-                self["Labels"].append({"index":i,
-                                       "LAB":int(label),
-                                       "TY number":int(tynumber)})
-            self["data"][:,i] = line[j+4:j+n]
-            j = j+n
-        if begstab >= 0:
-            self["stab"].append([begstab,l])
+            line = N.array(map(AUTOatof, line),'d')
+        line.shape = (l,n)
+        self["data"] = N.transpose(line[:,4:])
+        labels = N.nonzero(N.fabs(line[:,2])+line[:,3])
+        self["Labels"] = []
+        for i in labels:
+            self["Labels"].append({"index":i,
+                                   "LAB":int(line[i,3]),
+                                   "TY number":int(line[i,2])})
+        stab = N.zeros(l+1,'d')
+        stab[0] = 1
+        stab[1:] = line[:,1]
+        stab = N.less(stab[:-1]*stab[1:],0)
+        stab = N.nonzero(stab)
+        self["stab"] = stab
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

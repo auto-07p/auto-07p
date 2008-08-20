@@ -151,39 +151,36 @@ class plotter(grapher.GUIGrapher):
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
                 for branch in solution:
+                    data = branch["data"]
                     xcol = xcolumns[j]
-                    if xcol >= len(branch["data"]):
+                    if xcol >= len(data):
                         print "The x-coordinate (set to column %d) is out of range"%xcol
                         break
                     ycol = ycolumns[j]
-                    if ycol >= len(branch["data"]):
+                    if ycol >= len(data):
                         print "The y-coordinate (set to column %d) is out of range"%xcol
                         break
                     if not dp or len(branch["stab"]) == 0:
-                        self.addArrayNoDraw((branch["data"][xcol],
-                                             branch["data"][ycol]),1)
-                        continue
+                        self.addArrayNoDraw((data[xcol],
+                                             data[ycol]),1)
+                    else:
                     # else look at stability:
-                    preve = 1
-                    newsect = 1
-                    for [b,e] in branch["stab"]:
-                        if b > preve:
-                            self.addArrayNoDraw((branch["data"][xcol,preve-1:b],
-                                                 branch["data"][ycol,preve-1:b]),
-                                                newsect,stable=0)
-                            newsect = 0
-                        if b > 0:
-                            b = b - 1
-                        self.addArrayNoDraw((branch["data"][xcol,b:e],
-                                             branch["data"][ycol,b:e]),
-                                            newsect,stable=1)
-                        newsect = 0
-                        preve = e
-                    l = len(branch["data"][0])
-                    if preve < l:
-                        self.addArrayNoDraw((branch["data"][xcol,preve-1:l],
-                                             branch["data"][ycol,preve-1:l]),
-                                            0,stable=0)
+                        newsect = 1
+                        stable = 0
+                        old = 0
+                        for ichange in branch["stab"]:
+                            if old < ichange - 1:
+                                self.addArrayNoDraw((data[xcol,old:ichange],
+                                                     data[ycol,old:ichange]),
+                                                    newsect,stable=stable)
+                                old = ichange - 1
+                                newsect = 0
+                            stable = not stable
+                        l = len(data[0])
+                        if old < l:
+                            self.addArrayNoDraw((data[xcol,old:l],
+                                                 data[ycol,old:l]),
+                                                newsect,stable=stable)
                     for label in branch["Labels"]:
                         lab = label["LAB"]
                         TYnumber = label["TY number"]
@@ -208,7 +205,7 @@ class plotter(grapher.GUIGrapher):
                         elif TYnumber != 0:
                             symbol = self.cget("error_symbol")
                         i = label["index"]
-                        [x,y] = [branch["data"][xcol,i],branch["data"][ycol,i]]
+                        [x,y] = [data[xcol,i],data[ycol,i]]
                         self.addLabel(len(self)-1,[x,y],text,symbol)
         
         # Call the base class config
