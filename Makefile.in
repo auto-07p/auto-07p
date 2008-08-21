@@ -7,11 +7,19 @@
 SHELL=/bin/sh
 @SET_MAKE@
 #
-all: src util @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
-cmd: src util @PLAUT@
+all: src cmds util @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+cmd: src cmds util @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)
+
+cmds: .FORCE
+	# work around case insensitive filesystems
+	cd ./cmds; for cmd in @H @LB @R @RD @RL; do \
+	    if (! test -r $$cmd); then \
+		cp -p @$$cmd $$cmd; \
+	    fi \
+	done
 
 util: .FORCE
 	cd ./util;$(MAKE)
@@ -30,6 +38,7 @@ tek2ps: .FORCE
 
 #
 clean:
+	cd ./cmds; if diff @R @RR > /dev/null; then rm @H @LB @R @RD @RL; fi
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
 	cd ./plaut04;$(MAKE) clean
