@@ -425,7 +425,7 @@ class AUTOBranch(UserDict.UserDict,parseB):
         except:
             line = N.array(map(AUTOatof, line),'d')
         line.shape = (l,n)
-        self["data"] = N.transpose(line[:,4:])
+        self["data"] = N.transpose(line[:,4:]).copy()
         labels = N.nonzero(N.fabs(line[:,2])+line[:,3])
         self["Labels"] = []
         for i in labels:
