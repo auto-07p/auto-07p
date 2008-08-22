@@ -353,10 +353,14 @@ class runAUTO:
 
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
+        if not self.outputFort7 is None:
+            self.outputFort7.close()
         if os.path.isfile(self.fort7_path):
             self.outputFort7 = open(self.fort7_path,"r")
         else:
             self.outputFort7 = None
+        if not self.outputFort8 is None:
+            self.outputFort8.close()
         if os.path.isfile(self.fort8_path):
             self.outputFort8 = open(self.fort8_path,"r")
         else:

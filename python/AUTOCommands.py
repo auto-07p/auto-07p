@@ -71,7 +71,14 @@ class commandClean(command):
         pass
     def __call__(self):
 	rval=valueSystem()
-        rval.system("rm -f fort.* *.o *.exe *.*~")
+        if not _runner.outputFort7 is None:
+            _runner.outputFort7.close()
+        if not _runner.outputFort8 is None:
+            _runner.outputFort8.close()
+        toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
+                   glob.glob("*.*~"))
+        for f in toclean:
+            os.remove(f)
         rval.info("Deleting fort.* *.o *.exe *.*~ ... done\n")
         return rval
 
@@ -91,9 +98,12 @@ class commandCopyDemo(command):
         self.demo = name1
     def __call__(self):
 	rval=valueSystem()
-        rval.system("cp $AUTO_DIR/demos/%s/* ."%self.demo)
+        demofiles = glob.glob(os.path.expandvars(
+                "$AUTO_DIR/demos/%s/*"%self.demo))
+        for f in demofiles:
+            shutil.copy(f, ".")
         if os.path.exists("c.%s.1"%(self.demo)):
-            rval.system("cp c.%s.1 c.%s"%(self.demo,self.demo))
+            shutil.copy("c.%s.1"%(self.demo),"c.%s"%(self.demo))
         rval.info("Copying demo %s ... done\n"%self.demo)
         return rval
 
@@ -126,7 +136,13 @@ class commandDeleteFortFiles(command):
         pass
     def __call__(self):
 	rval=valueSystem()
-        rval.system("rm -f fort.*")
+        if not _runner.outputFort7 is None:
+            _runner.outputFort7.close()
+        if not _runner.outputFort8 is None:
+            _runner.outputFort8.close()
+        toclean = glob.glob("fort.*")
+        for f in toclean:
+            os.remove(f)
         rval.info("Deleting fort.* ... done\n")
         return rval
 
@@ -158,16 +174,26 @@ class commandUserData(command):
                 equation_file="%s.f"%(self.data[0],)
         else:
             equation_file="%s.f90"%(self.data[0],)
-        rval.info("(Required files : %s, c.%s, %s.dat)\n"%(equation_file,
-                                                           self.data[0],
-                                                           self.data[0]))
+        cfile = "c.%s"%(self.data[0])
+        datfile = "%s.dat"%(self.data[0])
+        rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
+                                                     datfile))
         rval.system("make -f $AUTO_DIR/src/Makefile EQUATION_NAME=%s fcon"%(self.data[0],))
-        rval.system("cp c.%s   fort.2"%(self.data[0],))
-        rval.system("cp %s.dat fort.3"%(self.data[0],))
-        rval.system("./fcon")
-        rval.system("mv fort.8 s.dat")
-        rval.system("rm fcon* fort.2 fort.3")
-        rval.info("Conversion done : converted file saved as s.dat\n")
+        if os.path.exists(cfile):
+            shutil.copy(cfile,"fort.2")
+        if os.path.exists(datfile):
+            shutil.copy(datfile,"fort.3")
+        if not _runner.outputFort8 is None:
+            _runner.outputFort8.close()
+        rval.interact("./fcon")
+        if os.path.exists("fort.8"):
+            if os.path.exists("s.dat"):
+                os.remove("s.dat")
+            os.rename("fort.8","s.dat")
+            rval.info("Conversion done : converted file saved as s.dat\n")
+        files = glob.glob("fcon*") + ["fort.2", "fort.3"]
+        for f in files:
+            os.remove(f)
         return rval
     
 ##############################################
@@ -241,9 +267,8 @@ class commandRelabel(commandWithFilenameTemplate):
         else:
             n2b = self.name2["bifurcationDiagram"]
             n2s = self.name2["solution"]
-        command = os.path.join(os.environ["AUTO_DIR"],
-                               "bin/relabel %s %s %s %s"%(n1b,n1s,n2b,n2s))
-        rval.interact(command)
+        command = os.path.expandvars("$AUTO_DIR/bin/relabel")
+        rval.interact(command,n1b,n1s,n2b,n2s)
         if os.access(n2b,os.F_OK):
             if self.name2["bifurcationDiagram"] is None:
                 # Save backups
@@ -510,7 +535,7 @@ class commandExpandData(commandWithFilenameTemplate):
             if os.path.exists(n1s+'~'):
                 os.remove(n1s+'~')
             os.rename(n1s,n1s+'~')
-        rval.system("$AUTO_DIR/bin/%s"%self.command)
+        rval.interact(os.path.expandvars("$AUTO_DIR/bin/%s"%self.command))
         os.rename("fort.38",n1s)
         if os.path.exists("fort.28"):
             os.remove("fort.28")
@@ -541,34 +566,14 @@ class commandMoveFiles(commandWithFilenameTemplate):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
-        n1b = self.name1["bifurcationDiagram"]
-        n2b = self.name2["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        n2s = self.name2["solution"]
-        n1d = self.name1["diagnostics"]
-        n2d = self.name2["diagnostics"]
-        n1c = self.name1["constants"]
-        n2c = self.name2["constants"]
-        if os.path.exists(n1b):
-            if os.path.exists(n2b):
-                os.remove(n2b)
-            os.rename(n1b,n2b)
-            rval.info("Renaming %s as %s ... done\n"%(n1b,n2b))
-        if os.path.exists(n1s):
-            if os.path.exists(n2s):
-                os.remove(n2s)
-            os.rename(n1s,n2s)
-            rval.info("Renaming %s as %s ... done\n"%(n1s,n2s))
-        if os.path.exists(n1d):
-            if os.path.exists(n2d):
-                os.remove(n2d)
-            os.rename(n1d,n2d)
-            rval.info("Renaming %s as %s ... done\n"%(n1d,n2d))
-        if os.path.exists(n1c):
-            if os.path.exists(n2c):
-                os.remove(n2c)
-            os.rename(n1c,n2c)
-            rval.info("Renaming %s as %s ... done\n"%(n1c,n2c))
+        for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
+            n1 = self.name1[s]
+            n2 = self.name2[s]
+            if os.path.exists(n1):
+                if os.path.exists(n2):
+                    os.remove(n2)
+                os.rename(n1,n2)
+                rval.info("Renaming %s as %s ... done\n"%(n1,n2))
         return rval
 
 class commandParseConstantsFile(commandWithFilenameTemplate):
@@ -660,9 +665,20 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
 	rval=valueSystem()
         n1d = self.name1["diagnostics"]
         if n1d is None:
-            rval.system("grep %s fort.9"%(self.diagnostic,))
-        else:
-            rval.system("grep %s %s"%(self.diagnostic,n1d))
+            n1d = "fort.9"
+        f = open(n1d)
+        try:
+            for s in f:
+                if self.diagnostic in s:
+                    sys.stdout.write(s)
+        except:
+            while 1:
+                s = f.readline()
+                if s == "":
+                    break
+                if string.find(s,self.diagnostic) != -1:
+                    sys.stdout.write(s)
+        f.close()
         rval.info("\n")
         return rval
 
@@ -1636,7 +1652,6 @@ class valueSystem:
     def __str__(self):
         return self.value
     def system(self,command):
-        import os
         if os.name == "posix":
             import commands
             self.value = self.value + commands.getoutput(command)
@@ -1645,11 +1660,21 @@ class valueSystem:
             text = pipe.read()
             if text[-1:] == '\n': text = text[:-1]
             self.value = self.value + text
-    def interact(self,command):
-        import os
-        if os.system(command) != 0:
-            raise AUTOExceptions.AUTORuntimeError("Error running %s"%command)
-        self.value = self.value + "Finished running: " + command + "\n"
+    def interact(self,command,*args):
+        if hasattr(os,"spawnv"):
+            def syscmd(command,args):
+                if not os.path.exists(command):
+                    command = command + '.exe'
+                return os.spawnv(os.P_WAIT,command,
+                                 (os.path.basename(command),) + args)
+        else:
+            def syscmd(command,args):
+                fullcmd = string.join([command]+list(args)," ")
+                return os.system(fullcmd)
+        fullcmd = string.join([command]+list(args)," ")
+        if syscmd(command,args) != 0:
+            raise AUTOExceptions.AUTORuntimeError("Error running %s"%fullcmd)
+        self.value = self.value + "Finished running: " + fullcmd + "\n"
     def info(self,text):
         self.value = self.value + text
 
