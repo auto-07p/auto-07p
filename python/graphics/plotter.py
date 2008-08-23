@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 try:
-    import grapher_mpl as grapher
-except:
+    import grapher_mpl 
+    grapher = grapher_mpl
+except ImportError:
     import grapher
 import parseB
 import parseS
@@ -143,6 +144,12 @@ class plotter(grapher.GUIGrapher):
         self.draw()
 
     def __plot7(self):
+        symbollist = [
+            [[1,6], "bifurcation_symbol"],
+            [[2,5], "limit_point_symbol"],
+            [[3],   "hopf_symbol"],
+            [[8],   "torus_symbol"],
+            [[-4],  "user_point_symbol"]]
         xcolumns = self.cget("bifurcation_x")
         ycolumns = self.cget("bifurcation_y")
         self.delAllData()
@@ -152,61 +159,43 @@ class plotter(grapher.GUIGrapher):
             for j in range(len(xcolumns)):
                 for branch in solution:
                     data = branch["data"]
-                    xcol = xcolumns[j]
-                    if xcol >= len(data):
-                        print "The x-coordinate (set to column %d) is out of range"%xcol
+                    try:
+                        x = data[xcolumns[j]]
+                    except IndexError:
+                        print "The x-coordinate (set to column %d) is out of range"%xcolumns[j]
                         break
-                    ycol = ycolumns[j]
-                    if ycol >= len(data):
-                        print "The y-coordinate (set to column %d) is out of range"%xcol
+                    try:
+                        y = data[ycolumns[j]]
+                    except IndexError:
+                        print "The y-coordinate (set to column %d) is out of range"%ycolumns[j]
                         break
-                    if not dp or len(branch["stab"]) == 0:
-                        self.addArrayNoDraw((data[xcol],
-                                             data[ycol]),1)
-                    else:
-                    # else look at stability:
+                    if dp:
+                        #look at stability:
                         newsect = 1
-                        stable = 0
                         old = 0
-                        for ichange in branch["stab"]:
-                            if old < ichange - 1:
-                                self.addArrayNoDraw((data[xcol,old:ichange],
-                                                     data[ycol,old:ichange]),
-                                                    newsect,stable=stable)
-                                old = ichange - 1
+                        for pt in branch["stability"]:
+                            abspt = abs(pt)
+                            if old < abspt - 1 and abspt > 2:
+                                self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
+                                                    newsect,stable=pt<0)
+                                old = abspt - 1
                                 newsect = 0
-                            stable = not stable
-                        l = len(data[0])
-                        if old < l:
-                            self.addArrayNoDraw((data[xcol,old:l],
-                                                 data[ycol,old:l]),
-                                                newsect,stable=stable)
+                    else:
+                        self.addArrayNoDraw((x,y),1)
                     for label in branch["Labels"]:
                         lab = label["LAB"]
                         TYnumber = label["TY number"]
+                        text = ""
                         if lab != 0:
                             text = str(lab)
-                        else:
-                            text = ""
-                        if TYnumber == 4 or TYnumber == 9:
-                            symbol = None
-                        elif TYnumber == 1 or TYnumber == 6: 
-                            symbol = self.cget("bifurcation_symbol")
-                        elif TYnumber == 2 or TYnumber == 5: 
-                            symbol = self.cget("limit_point_symbol")
-                        elif TYnumber == 3: 
-                            symbol = self.cget("hopf_symbol")
-                        elif TYnumber == 7: 
-                            symbol = self.cget("period_doubling_symbol")
-                        elif TYnumber == 8: 
-                            symbol = self.cget("torus_symbol")
-                        elif TYnumber == -4: 
-                            symbol = self.cget("user_point_symbol")
-                        elif TYnumber != 0:
+                        symbol = None
+                        for item in symbollist:
+                            if TYnumber in item[0]:
+                                symbol = self.cget(item[1])
+                        if not symbol and TYnumber not in [0,4,9]:
                             symbol = self.cget("error_symbol")
                         i = label["index"]
-                        [x,y] = [data[xcol,i],data[ycol,i]]
-                        self.addLabel(len(self)-1,[x,y],text,symbol)
+                        self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
         
         # Call the base class config
         xlabel = self["xlabel"]

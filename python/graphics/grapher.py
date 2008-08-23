@@ -274,8 +274,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         adjheight = height - (top_margin + bottom_margin)
         xscale = (float(maxx) - minx) / adjwidth
         yscale = (float(maxy) - miny) / adjheight
-        i=0
+        i=-1
         for d in self.data:
+            if d["newsect"] is None or d["newsect"]:
+                i = i+1
             fill=color_list[i%len(color_list)]
             curve="curve:%d"%(i,)
             n=len(d["x"])
@@ -298,8 +300,6 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                     self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill)
                 else:
                     self.create_line(line,width=line_width,tags=(curve,"data"),fill=fill,dash=(10,10))
-            if d["newsect"] is None or d["newsect"]:
-                i = i+1
 
             
         if self.cget("decorations"):
@@ -674,13 +674,13 @@ class LabeledGrapher(BasicGrapher):
             ilow = 0
             ihigh = index
             if dx != 0 and dy != 0:
-                xlim1 = int(-x1*index/dx)
-                xlim2 = int((ixmax-x1)*index/dx)+1
-                ylim1 = int(-y1*index/dy)
-                ylim2 = int((iymax-y1)*index/dy)+1
+                xlim1 = -x1*index/dx
+                xlim2 = (ixmax-x1)*index/dx+1
+                ylim1 = -y1*index/dy
+                ylim2 = (iymax-y1)*index/dy+1
                 ilow  = max(min(xlim1,xlim2),min(ylim1,ylim2),0)
                 ihigh = min(max(xlim1,xlim2),max(ylim1,ylim2),index)
-            for i in range(ilow,ihigh):
+            for i in range(int(ilow),int(ihigh)):
                 f = float(i)/index
                 ix = int(x1 + f * dx)
                 iy = int(y1 + f * dy)

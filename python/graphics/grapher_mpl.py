@@ -200,8 +200,10 @@ class BasicGrapher(grapher.BasicGrapher):
         # data
         line_width=self.cget("line_width")
         dashes=self.cget("dashes")
-        i=0
+        i=-1
         for d in self.data:
+            if d["newsect"] is None or d["newsect"]:
+                i = i+1
             curve="curve:%d"%(i,)
             fill=color_list[i%len(color_list)]
             if len(d["x"]) == 1:
@@ -222,8 +224,6 @@ class BasicGrapher(grapher.BasicGrapher):
                     self.ax.plot(xs,ys,color=fill,ls='--',
                                  dashes=dashes,lw=line_width)
             d["mpline"] = self.ax.lines[-1]
-            if d["newsect"] is None or d["newsect"]:
-                i = i+1
         self.ax.get_figure().axes = [self.ax]
             
     def __setitem__(self,key,value):

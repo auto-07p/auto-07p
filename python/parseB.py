@@ -26,12 +26,19 @@ import UserList
 import UserDict
 import parseC
 try:
-    import matplotlib.numerix as N
+    import matplotlib.numerix
+    N = matplotlib.numerix
 except ImportError:
     try:
-        import numpy as N
+        import numpy
+        N = numpy
     except ImportError:
-        import Numeric as N
+        try:
+            import Numeric
+            N = Numeric
+        except ImportError:
+            import array
+            N = array
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -366,19 +373,12 @@ class parseBR(UserList.UserList):
 
     def read(self,inputfile,screen_lines=0):
         # We now go through the file and read the branches.
-        while inputfile.read(1) != "":
-            branch = AUTOBranch(inputfile,screen_lines)
-            self.data.append(branch)
-
-# a branch within the parseBR class
-class AUTOBranch(UserDict.UserDict,parseB):
-    def __init__(self,input,screen_lines=0):
-	UserDict.UserDict.__init__(self)
-	if input:
-            self.read(input,screen_lines)
-
-    def read(self,inputfile,screen_lines=0):
-        i = 0
+        datalist = []
+        headerlist = []
+        ncolumns = 0
+        lines = inputfile
+        if not hasattr(inputfile,"next"):
+            lines = inputfile.readlines()
         # read the branch header
         # A section is defined as a part of a fort.7
         # file between "headers", i.e. those parts
@@ -393,51 +393,103 @@ class AUTOBranch(UserDict.UserDict,parseB):
         # the fort.7 file will not match the fort.8 file.
         # Another way for a section to start is with a point number
         # equal to 1.
-        header = ""
-        while 1:
-            header_line = inputfile.readline()
-            if len(header_line) == 0:
-                break
-            br = int(string.split(header_line)[0])
-            if br != 0:
-                break
-            header = header + header_line
+        if screen_lines:
+            for line in lines:
+                columns = string.split(line)
+                if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                    if datalist != []:
+                        self.data.append(AUTOBranch(headerlist,ncolumns,
+                                                    datalist))
+                        headerlist = []
+                        datalist = []
+                    if ls[0] == '0':
+                        headerlist.append(line)
+                    else:
+                        if columns[2] != '0':
+                            datalist = columns
+                        ncolumns = len(columns)
+                elif columns[2] != '0':
+                    datalist.extend(columns)
+            self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
+            return
+        for line in lines:
+            columns = string.split(line)
+            if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                if datalist != []:
+                    self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
+                    headerlist = []
+                    datalist = []
+                if columns[0] == '0':
+                    headerlist.append(line)
+                else:
+                    datalist = columns
+                    ncolumns = len(columns)
+            else:
+                datalist.extend(columns)
+        self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
+
+# a branch within the parseBR class
+class AUTOBranch(UserDict.UserDict,parseB):
+    def __init__(self,headerlist,ncolumns,datalist):
+	UserDict.UserDict.__init__(self)
+	if not headerlist:
+            return
+        header = string.join(headerlist,"")
         self["header"] = header
         if header != "":
             self["constants"] = parseB.parseHeader(self,header)
-        headerpos = inputfile.tell()
-        l = 1
-        while 1:
-            input_line = inputfile.readline()
-            if len(input_line) == 0:
-                break
-            line = string.split(input_line)
-            if int(line[0]) == 0 or abs(int(line[1])) == 1:
-                break
-            l = l + 1
-        n = len(string.split(header_line)) 
-        self["BR"] = int(string.split(header_line)[0])
-        inputfile.seek(headerpos)
-        ldata = header_line + inputfile.read(len(header_line) * (l-1))
-        line = string.split(ldata)
+        if not hasattr(N,"transpose"):
+            self.__parsearray(ncolumns,datalist)
+            return
         try:
-            line = N.array(map(float, line),'d')
+            data = N.array(map(float, datalist),'d')
         except:
-            line = N.array(map(AUTOatof, line),'d')
-        line.shape = (l,n)
-        self["data"] = N.transpose(line[:,4:]).copy()
-        labels = N.nonzero(N.fabs(line[:,2])+line[:,3])
+            data = N.array(map(AUTOatof, datalist),'d')
+        self["BR"] = int(data[0])
+        data.shape = (-1,ncolumns)
+        self["data"] = N.transpose(data[:,4:]).copy()
         self["Labels"] = []
-        for i in labels:
+        for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
             self["Labels"].append({"index":i,
-                                   "LAB":int(line[i,3]),
-                                   "TY number":int(line[i,2])})
-        stab = N.zeros(l+1,'d')
-        stab[0] = 1
-        stab[1:] = line[:,1]
-        stab = N.less(stab[:-1]*stab[1:],0)
-        stab = N.nonzero(stab)
-        self["stab"] = stab
+                                   "LAB":int(data[i,3]),
+                                   "TY number":int(data[i,2])})
+        points = data[:,1]
+        # self["stability"] gives a list of point numbers where the stability
+        # changes: the end point of each part is stored
+        self["stability"] = N.concatenate((N.compress(
+                    N.less(points[:-1]*points[1:],0),
+                    points[:-1]),points[-1:])).astype('i')
+
+    def __parsearray(self,ncolumns,datalist):
+        # for those without numpy...
+        try:
+            data = map(float, datalist)
+        except:
+            data = map(AUTOatof, datalist)
+        self["BR"] = int(data[0])
+        columns = []
+        try:
+            for i in range(4,ncolumns):
+                columns.append(N.array('d',data[i::ncolumns]))
+        except TypeError:
+            for i in range(4,ncolumns):
+                columns.append(N.array('d',
+                                       map(lambda j, d=data: 
+                                           d[j], xrange(i,len(data),ncolumns))))
+        self["data"] = columns
+        self["Labels"] = []
+        self["stability"] = []
+        prevpt = data[1]
+        stab = []
+        for j in xrange(0,len(data),ncolumns):
+            [pt,ty,lab] = map(int,data[j+1:j+4])
+            if lab != 0 or ty != 0:
+                self["Labels"].append({"index":j/ncolumns,
+                                       "LAB":lab,"TY number":ty})
+            if pt * prevpt < 0:
+                self["stability"].append(prevpt)
+            prevpt = pt
+        self["stability"].append(pt)
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

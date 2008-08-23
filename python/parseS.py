@@ -283,16 +283,16 @@ class AUTOSolution(UserDict.UserDict):
                 except:
                     # otherwise the guessed end is not valid
                     end = None
+        input.seek(self.__start_of_data)
         if end is None:
             # We skip the correct number of lines in the entry to
             # determine its end.
-            input.seek(self.__start_of_data)
-            self.__data = ""
+            slist = []
             for i in range(self.__numLinesPerEntry):
-                self.__data = self.__data + input.readline()
+                slist.append(input.readline())
+            self.__data = string.join(slist,"")
             end = input.tell()
         else:
-            input.seek(self.__start_of_data)
             self.__data = input.read(end - self.__start_of_data)
         self.__end = end
     

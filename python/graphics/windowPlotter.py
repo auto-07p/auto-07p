@@ -251,8 +251,10 @@ class WindowPlotter2D(WindowPlotter):
             oy = "solution_y"
             ocd = "solution_column_defaults"
             o = "solution"
-        self.xEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption(ox,entry))
-        self.yEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption(oy,entry))
+        self.xEntry.configure(selectioncommand = lambda entry,
+                              obj=self,oa=ox:obj._modifyOption(oa,entry))
+        self.yEntry.configure(selectioncommand = lambda entry,
+                              obj=self,oa=oy:obj._modifyOption(oa,entry))
 
         list = []
         if not(self.grapher.cget(ocd) is None):
