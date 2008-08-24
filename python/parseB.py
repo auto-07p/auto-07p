@@ -254,8 +254,11 @@ class parseB(UserList.UserList):
         header = ""
         constants = None
         self.data=[]
+        split = string.split
+        if hasattr(str,"split"):
+            split = str.split
         for input_line in data:
-            line = string.split(input_line)
+            line = split(input_line)
             if len(line) > 0:
                 br = int(line[0])
                 if br == 0:
@@ -312,10 +315,13 @@ class parseB(UserList.UserList):
 	inputfile.close()
 
     def parseHeader(self,header):
-        header = string.split(header,'\n')
+        split = string.split
+        if hasattr(str,"split"):
+            split = str.split
+        header = split(header,'\n')
         dict = parseC.parseC()
         i = 0
-        words = string.split(header[0])
+        words = split(header[0])
         if len(words) < 5:
             return
         for key in ["RL0","RL1","A0","A1"]:
@@ -325,7 +331,7 @@ class parseB(UserList.UserList):
         for line in header[1:]:
             line = string.replace(line,"="," ")
             line = string.replace(line,"s:",":")
-            words = string.split(line)
+            words = split(line)
             if len(words) < 2:
                 break
             if words[1] in ["User-specified", "Active"]:
@@ -393,9 +399,12 @@ class parseBR(UserList.UserList):
         # the fort.7 file will not match the fort.8 file.
         # Another way for a section to start is with a point number
         # equal to 1.
+        split = string.split
+        if hasattr(str,"split"):
+            split = str.split
         if screen_lines:
             for line in lines:
-                columns = string.split(line)
+                columns = split(line)
                 if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
                     if datalist != []:
                         self.data.append(AUTOBranch(headerlist,ncolumns,
@@ -413,7 +422,7 @@ class parseBR(UserList.UserList):
             self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
             return
         for line in lines:
-            columns = string.split(line)
+            columns = split(line)
             if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
                 if datalist != []:
                     self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
