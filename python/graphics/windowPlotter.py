@@ -262,7 +262,7 @@ class WindowPlotter2D(WindowPlotter):
                 list.append(str(x))
         if self.grapher.cget("type") == "bifurcation":
             if len(self.grapher.cget(o)) > 0:
-                for i in range(len(self.grapher.cget(o)[0]["data"])):
+                for i in range(len(self.grapher.cget(o).branches[0].coordarray)):
                     list.append("[%d]"%i)
         else:
             list.append("['t']")

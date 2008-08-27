@@ -22,8 +22,6 @@ import os
 import sys
 import AUTOExceptions
 import types
-import UserList
-import UserDict
 import parseC
 try:
     import matplotlib.numerix
@@ -32,6 +30,7 @@ except ImportError:
     try:
         import numpy
         N = numpy
+        N.nonzero = N.flatnonzero
     except ImportError:
         try:
             import Numeric
@@ -66,7 +65,7 @@ def type_translation(type):
         return {"long name" : "Unknown type",
                 "short name" : "Unknown type"}
     
-# The parseB class parses an AUTO fort.7 file
+# The parseB and AUTOBranch classes parse an AUTO fort.7 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:
 # read and write take as an arguement either and input or output
@@ -80,19 +79,93 @@ def type_translation(type):
 # Once the data is read in the class provides a list all the points
 # in the fort.7 file.
 
-class parseB(UserList.UserList):
-    def __init__(self,filename=None,screen_lines=0):
-        if type(filename) == types.StringType:
-            UserList.UserList.__init__(self)
-            self.readFilename(filename,screen_lines)
-        else:
-            UserList.UserList.__init__(self,filename)
+# a branch within the parseB class
+class AUTOBranch:
+    def __init__(self,input=None,screen_lines=0,prevline=None):
+        if input is not None:
+            self.read(input,screen_lines,prevline)
+
+    def __parse(self,headerlist=None,ncolumns=None,linelen=None,
+                datalist=None):
+	if not headerlist:
+            return
+        header = string.join(headerlist,"")
+        self.header = header
+        if header != "":
+            self.constants = self.parseHeader(header)
+        line = headerlist[-1]
+        if string.find(line, " PT ") != -1:
+            columnlen = (linelen - 19) / (ncolumns - 4)
+            n = linelen - columnlen * (ncolumns - 4)
+            self.coordnames = []
+            for i in range(ncolumns-4):
+                self.coordnames.append(string.rstrip(line[n:n+columnlen]))
+                n = n + columnlen
+        if not hasattr(N,"transpose"):
+            self.__parsearray(ncolumns,datalist)
+            return
+        try:
+            data = N.array(map(float, datalist),'d')
+        except:
+            data = N.array(map(AUTOatof, datalist),'d')
+        self.BR = int(data[0])
+        data.shape = (-1,ncolumns)
+        self.coordarray = N.transpose(data[:,4:]).copy()
+        self.labels = {}
+        for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
+            self.labels[i] = {"LAB":int(data[i,3]),
+                              "PT":int(data[i,1]),
+                              "TY number":int(data[i,2])}
+        points = data[:,1]
+        # self.stability gives a list of point numbers where the stability
+        # changes: the end point of each part is stored
+        self.stability = N.concatenate((N.compress(
+                    N.less(points[:-1]*points[1:],0),
+                    points[:-1]),points[-1:])).astype('i')
+
+    def __parsearray(self,ncolumns,datalist):
+        # for those without numpy...
+        try:
+            data = map(float, datalist)
+        except:
+            data = map(AUTOatof, datalist)
+        self.BR = int(data[0])
+        columns = []
+        try:
+            for i in range(4,ncolumns):
+                columns.append(N.array('d',data[i::ncolumns]))
+        except TypeError:
+            for i in range(4,ncolumns):
+                columns.append(N.array('d',
+                                       map(lambda j, d=data: 
+                                           d[j], xrange(i,len(data),ncolumns))))
+        self.coordarray = columns
+        self.labels = {}
+        self.stability = []
+        prevpt = data[1]
+        stab = []
+        for j in xrange(0,len(data),ncolumns):
+            [pt,ty,lab] = map(int,data[j+1:j+4])
+            if lab != 0 or ty != 0:
+                self.labels[j/ncolumns] = {"LAB":lab,"TY number":ty,"PT":pt}
+            if pt * prevpt < 0:
+                self.stability.append(prevpt)
+            prevpt = pt
+        self.stability.append(pt)
 
     def __str__(self):
         return self.summary()
 
-    def __call__(self,label):
-        return self.getLabel(label)
+    def __getitem__(self,index):
+        return self.getIndex(index)
+
+    def __call__(self,label=None):
+        if label:
+            return self.getLabel(label)
+        return self
+
+    def __len__(self):
+        return len(self.coordarray[0])
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
@@ -100,65 +173,102 @@ class parseB(UserList.UserList):
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
             label = [label]
-        for i in range(len(self.data)):
-            d = self.data[i]
-            if ((not keep and (d["LAB"] in label or d["TY name"] in label)) or
-               (keep and not d["LAB"] in label and not d["TY name"] in label)):
-                self.data[i]["LAB"] = 0
+        labels = self.labels
+        for k,v in labels.items():
+            ty_name = type_translation(v["TY number"])["short name"]
+            if ((not keep and (v["LAB"] in label or ty_name in label)) or
+               (keep and not v["LAB"] in label and not ty_name in label)):
+                v["LAB"] = 0
                 if not keepTY:
-                    self.data[i]["TY number"]  = 0
-                    self.data[i]["TY name"]    = type_translation(0)["short name"]
+                    v["TY number"] = 0
+                if v["TY number"] == 0:
+                    del labels[k]
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
+        labels = self.labels
         if type(old_label)  == types.IntType:
-            for i in range(len(self.data)):
-                if self.data[i]["LAB"] == old_label:
-                    self.data[i]["LAB"] = new_label
+            for v in labels.values():
+                if v["LAB"] == old_label:
+                    v["LAB"] = new_label
         else:
             for j in range(len(old_label)):
-                for i in range(len(self.data)):
-                    if self.data[i]["LAB"] == old_label[j]:
-                        self.data[i]["LAB"] = new_label[j]
+                for v in labels.values():
+                    if v["LAB"] == old_label[j]:
+                        v["LAB"] = new_label[j]
 
     # Make all labels in the file unique and sequential
-    def uniquelyLabel(self):
-        label = 1
-        for i in range(len(self)):
-            if self.data[i]["TY number"] != 0:
-                self.data[i]["LAB"] = label
+    def uniquelyLabel(self,label=1):
+        keys = self.labels.keys()
+        keys.sort()
+        for index in keys:
+            v = self.labels[index]
+            if v["LAB"] != 0:
+                v["LAB"] = label
                 label = label + 1
-            
+
     # Given a label, return the correct solution
     def getLabel(self,label):
         if type(label) == types.IntType:
-            for i in range(len(self)):
-                if self.data[i]["LAB"] == label:
-                    return self.data[i]
+            for k,v in self.labels.items():
+                if v["LAB"] == label:
+                    return self.getIndex(k)
             return
-        items = parseB()
-        items.data = []
         if type(label) != types.ListType:
-            label = [label]
-        for i in range(len(self.data)):
-            d = self.data[i]                
-            if (d["LAB"] != 0 and not d["LAB"] in label and
-                not d["TY name"] in label):
-                d = d.copy()
-                d["LAB"] = 0
-                d["TY number"] = 0
-                d["TY name"]   = type_translation(0)["short name"]
-            items.data.append(d)
-        return items
+            label = [label]        
+        labels = {}
+        for k,v in self.labels.items():
+            ty_name = type_translation(v["TY number"])["short name"]
+            if v["LAB"] in label or ty_name in label:
+                labels[k] = v
+        if labels == {}:
+            return
+        new = self.__class__()
+        new.BR = self.BR
+        new.header = self.header
+        new.coordnames = self.coordnames
+        new.coordarray = self.coordarray
+        new.labels = labels
+        new.stability = self.stability
+        return new
 
-    # Given an index, return the correct solution
+    # Return a parseB style line item
     def getIndex(self,index):
-        return self.data[index]
+        label = None
+        if index in self.labels.keys():
+            label = self.labels[index]
+        if label:
+            pt = label["PT"]
+            tynumber = label["TY number"]
+            lab = label["LAB"]
+        else:
+            pt = index+1
+            for p in self.stability:
+                if abs(p) >= pt:
+                    if p < 0:
+                        pt = -pt
+                    break
+            tynumber = 0
+            lab = 0
+        data = []
+        for j in range(len(self.coordarray)):
+            data.append(self.coordarray[j][index])
+        return {"BR": self.BR,
+                "PT": pt,
+                "TY number": tynumber,
+                "TY name": type_translation(tynumber)["short name"],
+                "LAB": lab,
+                "data": data,
+                "section": 0,
+                "index": index}
 
     # Get all the labels from the solution
     def getLabels(self):
         labels = []
-        for x in self.data:
+        keys = self.labels.keys()
+        keys.sort()
+        for index in keys:
+            x = self.labels[index]
             if x["LAB"] != 0:
                 labels.append(x["LAB"])
         return labels
@@ -171,75 +281,82 @@ class parseB(UserList.UserList):
         
     def toArray(self):
         array = []
-        for vector in self:
-            array.append([])
-            for point in vector["data"]:
-                array[-1].append(point)
+        data = self.coordarray
+        for i in range(len(data[0])):
+            row = []
+            for j in range(len(data)):
+                row.append(data[j][i])
+            array.append(row)
         return array
 
     def writeRaw(self,output):
-        first = 1
-        for vector in self:
-            if vector["PT"] == 1 and first == 0:
-                output.write("\n")
-            first = 0
-            for point in vector["data"]:
-                output.write(str(point)+" ")
+        data = self.coordarray
+        for i in range(len(data[0])):
+            for j in range(len(data)):
+                output.write(str(data[j][i])+" ")
             output.write("\n")
                 
-    def write(self,output):
-        for line in self.data:
-            if line.has_key("header"):
-                output.write(line["header"])
-            output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
-                                          line["TY number"],line["LAB"])
-            for data in line["data"]:
-                output_line = output_line + "%19.10E"%data
+    def write(self,output,columnlen=19):
+        format = "%"+str(-columnlen)+"s"
+        if self.header != "":
+            for l in string.split(self.header,"\n"):
+                if string.find(l," PT ") == -1 and l != "":
+                    output.write(l+"\n")
+        if self.coordnames != []:
+            output_line = ["   0    PT  TY  LAB "]
+            for name in self.coordnames:
+                output_line.append(format%name)
+            output.write(string.join(output_line,"")+'\n')
+        br = self.BR
+        data = self.coordarray
+        istab = 0
+        format = "%"+str(columnlen)+"."+str(columnlen-9)+"E"
+        for i in range(len(data[0])):
+            if self.labels.has_key(i):
+                label = self.labels[i]
+                pt = label["PT"]
+                tynumber = label["TY number"]
+                lab = label["LAB"]
+            else:
+                pt = i+1
+                if self.stability[istab] < 0:
+                    pt = -pt
+                tynumber = 0
+                lab = 0
+            if pt == self.stability[istab]:
+                istab = istab + 1
+            output_line = "%4d%6d%4d%5d"%(br,pt,tynumber,lab)
+            for j in range(len(data)):
+                output_line = output_line + format%data[j][i]
             output.write(output_line+"\n")
 
     def writeShort(self):
-        for line in self.data:
-            if line.has_key("header"):
-                l = string.split(line["header"])
-                if len(l) > 1 and l[1]=='PT':
-                    output_line = "   0    PT  TY  LAB "
-                    l=line["header"]
-                    n=20
-                    while n+14 <= len(l):
-                        output_line = output_line + "%14s"%l[n:n+14]
-                        n=n+19
-                    sys.stdout.write(output_line+"\n")
-                else:
-                    sys.stdout.write(line["header"])
-            output_line = "%4d%6d%4d%5d"%(line["BR"],line["PT"],
-                                          line["TY number"],line["LAB"])
-            for data in line["data"]:
-                output_line = output_line + "%14.5E"%data
-            sys.stdout.write(output_line+"\n")
+        self.write(sys.stdout,columnlen=14)
 
     def summary(self):
-        s = ""
-        for line in self.data:
-            if line.has_key("header"):
-                l = line["header"]
-                n = string.find(l," PT ")
-                if n > -1:
-                    output_line = "\n  BR    PT  TY  LAB "
-                    n = n + 13
-                    while n+14 <= len(l):
-                        output_line = output_line + "%14s"%l[n:n+14]
-                        n = n+19
-                    s = s + output_line + "\n"
-            if line["TY name"]!="No Label":
-                ty_name = line["TY name"]
-                if ty_name=='RG':
-                    ty_name = '  '
-                output_line = "%4d%6d%4s%5d"%(abs(line["BR"]),abs(line["PT"]),
-                                              ty_name,line["LAB"])
-                for data in line["data"]:
-                    output_line = output_line + "%14.5E"%data
-                s = s + output_line+"\n"
-        return s
+        slist = []
+        data = self.coordarray
+        if self.coordnames != []:
+            output_line = ["\n  BR    PT  TY  LAB "]
+            for name in self.coordnames:
+                output_line.append("%-14s"%name)
+            slist.append(string.join(output_line,""))
+        keys = self.labels.keys()
+        keys.sort()
+        for index in keys:
+            label = self.labels[index]
+            ty_number = label["TY number"]
+            if ty_number == 0:
+                continue
+            ty_name = type_translation(ty_number)["short name"]
+            if ty_name=='RG':
+                ty_name = '  '
+            output_line = "%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
+                                          ty_name,label["LAB"])
+            for i in range(len(data)):
+                output_line = output_line + "%14.5E"%data[i][index]
+            slist.append(output_line)
+        return string.join(slist,"\n")
 
     def writeScreen(self):
         sys.stdout.write(self.summary())
@@ -249,65 +366,72 @@ class parseB(UserList.UserList):
 	self.write(output)
 	output.close()
 
-    def read(self,inputfile,screen_lines=0):
-        data=inputfile.readlines()
-        header = ""
-        constants = None
-        self.data=[]
+    def read(self,inputfile,screen_lines=0,prevline=None):
+        # We now go through the file and read the branches.
+        # read the branch header
+        # A section is defined as a part of a fort.7
+        # file between "headers", i.e. those parts
+        # of the fort.7 file which start with a 0
+        # and contain information about the branch
+        # FIXME:  I am not sure of this is the correct
+        # fix to having multiple sections of a fort.7
+        # file with the same branch number.  What it comes
+        # dowm to is keeping the fort.7 and fort.8 files
+        # in sync.  I.e. I could make sure that
+        # this branch numbers are unique here, but then
+        # the fort.7 file will not match the fort.8 file.
+        # Another way for a section to start is with a point number
+        # equal to 1.
+        self._lastline = None
         split = string.split
         if hasattr(str,"split"):
             split = str.split
-        for input_line in data:
-            line = split(input_line)
-            if len(line) > 0:
-                br = int(line[0])
-                if br == 0:
-                    header = header + input_line
-                    continue
-                # A section is defined as a part of a fort.7
-                # file between "headers", i.e. those parts
-                # of the fort.7 file which start with a 0
-                # and contain information about the branch
-                # FIXME:  I am not sure of this is the correct
-                # fix to having multiple sections of a fort.7
-                # file with the same branch number.  What it comes
-                # dowm to is keeping the fort.7 and fort.8 files
-                # in sync.  I.e. I could make sure that
-                # this branch numbers are unique here, but then
-                # the fort.7 file will not match the fort.8 file.
-                # Another way for a section to start is with a point number
-                # equal to 1.
-                tynumber = int(line[2])
-                if tynumber == 0 and screen_lines:
-                    continue
-                item = {"BR": br,
-                        "PT": int(line[1]),
-                        "TY number": tynumber,
-                        "LAB": int(line[3]) }
-                try:
-                    item["data"] = map(float, line[4:])
-                except:
-                    item["data"] = map(AUTOatof, line[4:])
-                if header != "":
-                    item["header"] = header
-                    c = self.parseHeader(header)
-                    if not c is None:
-                        constants = c
-                    item["constants"] = constants
-                    header = ""
-                self.data.append(item)
-        shortnames = [0]*199
-        for type in range(-99,100):
-            shortnames[type] = type_translation(type)["short name"]
-        section = 0
-        j = 0
-        for item in self.data:
-            if abs(item["PT"]) == 1:
-                section = section + 1
-            item["section"] = section
-            item["TY name"] = shortnames[item["TY number"]]
-            item["index"] = j
-            j = j + 1
+        if prevline:
+            line = prevline
+        elif hasattr(inputfile,"next"):
+            line = inputfile.next()
+        else:
+            if type(inputfile) != type([]):
+                inputfile = inputfile.readlines()
+            line = inputfile.pop(0)
+        headerlist = []
+        columns = split(line)
+        if columns[0] == '0':
+            headerlist.append(line)
+            for line in inputfile:
+                columns = split(line)
+                if columns[0] != '0':
+                    break
+                headerlist.append(line)
+        if type(inputfile) == type([]):
+            del inputfile[:len(headerlist)]
+        ncolumns = len(columns)
+        linelen = len(line)
+        datalist = []
+        if columns[0] != '0':
+            if screen_lines:
+                if columns[2] != 0:
+                    datalist = columns
+                n = 1
+                for line in inputfile:
+                    columns = split(line)
+                    if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                        break
+                    if columns[2] != 0:
+                        datalist.extend(columns)
+                    n = n + 1
+            else:
+                datalist = columns
+                for line in inputfile:
+                    columns = split(line)
+                    if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                        break
+                    datalist.extend(columns)
+            if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                self._lastline = line
+        self.__parse(headerlist,ncolumns,linelen,datalist)
+        if type(inputfile) == type([]):
+            del inputfile[:len(self.coordarray[0])]
 
     def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")
@@ -357,148 +481,113 @@ class parseB(UserList.UserList):
                 dict[key] = v
         return dict
 
-# a parseB class organized by branch instead of line
-class parseBR(UserList.UserList):
+class parseB(AUTOBranch):
     def __init__(self,filename=None,screen_lines=0):
+        self.branches = []
         if type(filename) == types.StringType:
-            UserList.UserList.__init__(self)
             self.readFilename(filename,screen_lines)
-        else:
-            UserList.UserList.__init__(self,filename)
 
-    def __str__(self):
-        s = ""
-        for d in self.data:
-            s = s + d.summary()
-        return s
+    def __len__(self):
+        l = 0
+        for d in self.branches:
+            l = l + len(d)
+        return l
 
-    def readFilename(self,filename,screen_lines=0):
-	inputfile = open(filename,"r")
-	self.read(inputfile,screen_lines)
-	inputfile.close()
+    # Removes solutions with the given labels or type names
+    def deleteLabel(self,label=None,keepTY=0,keep=0):
+        for d in self.branches:
+            d.deleteLabel(label,keepTY,keep)
+            
+    # Relabels the first solution with the given label
+    def relabel(self,old_label,new_label):
+        for d in self.branches:
+            d.relabel(old_label,new_label)
+
+    # Make all labels in the file unique and sequential
+    def uniquelyLabel(self):
+        label = 1
+        for d in self.branches:
+            d.uniquelyLabel(label)
+            for v in d.labels.values():
+                if v["TY number"] != 0:
+                    label = v["LAB"]
+            label = label + 1
+            
+    # Given a label, return the correct solution
+    def getLabel(self,label):
+        if type(label) == types.IntType:
+            for d in self.branches:
+                item = d.getLabel(label)
+                if item:
+                    return item
+            return
+        new = self.__class__()
+        new.branches = []
+        for d in self.branches:
+            newbranch = d.getLabel(label)
+            if newbranch:
+                new.branches.append(newbranch)
+        return new
+
+    # Given an index, return the correct solution
+    # Return a parseB style line item
+    def getIndex(self,index):
+        section = 0
+        i = index
+        for d in self.branches:
+            l = len(d.coordarray[0])
+            if i < l:
+                item = d.getIndex(i)
+                item["section"] = section
+                item["index"] = index
+                return item
+            i = i - l
+            section = section + 1
+        raise IndexError
+
+    # Get all the labels from the solution
+    def getLabels(self):
+        labels = []
+        for d in self.branches:
+            labels.extend(d.getLabels())
+        return labels
+
+    def toArray(self):
+        array = []
+        for d in self.branches:
+            array.extend(d.toArray())
+        return array
+
+    def writeRaw(self,output):
+        for d in self.branches:
+            d.writeRaw(output)
+            output.write("\n")
+                
+    def write(self,output):
+        for d in self.branches:
+            d.write(output)
+
+    def writeShort(self):
+        for d in self.branches:
+            d.writeShort()
+
+    def summary(self):
+        slist = []
+        for branch in self.branches:
+            slist.append(branch.__str__())
+        return string.join(slist,"\n")+"\n"
 
     def read(self,inputfile,screen_lines=0):
         # We now go through the file and read the branches.
-        datalist = []
-        headerlist = []
-        ncolumns = 0
-        lines = inputfile
+        prevline = None
         if not hasattr(inputfile,"next"):
-            lines = inputfile.readlines()
-        # read the branch header
-        # A section is defined as a part of a fort.7
-        # file between "headers", i.e. those parts
-        # of the fort.7 file which start with a 0
-        # and contain information about the branch
-        # FIXME:  I am not sure of this is the correct
-        # fix to having multiple sections of a fort.7
-        # file with the same branch number.  What it comes
-        # dowm to is keeping the fort.7 and fort.8 files
-        # in sync.  I.e. I could make sure that
-        # this branch numbers are unique here, but then
-        # the fort.7 file will not match the fort.8 file.
-        # Another way for a section to start is with a point number
-        # equal to 1.
-        split = string.split
-        if hasattr(str,"split"):
-            split = str.split
-        if screen_lines:
-            for line in lines:
-                columns = split(line)
-                if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
-                    if datalist != []:
-                        self.data.append(AUTOBranch(headerlist,ncolumns,
-                                                    datalist))
-                        headerlist = []
-                        datalist = []
-                    if ls[0] == '0':
-                        headerlist.append(line)
-                    else:
-                        if columns[2] != '0':
-                            datalist = columns
-                        ncolumns = len(columns)
-                elif columns[2] != '0':
-                    datalist.extend(columns)
-            self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
-            return
-        for line in lines:
-            columns = split(line)
-            if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
-                if datalist != []:
-                    self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
-                    headerlist = []
-                    datalist = []
-                if columns[0] == '0':
-                    headerlist.append(line)
-                else:
-                    datalist = columns
-                    ncolumns = len(columns)
-            else:
-                datalist.extend(columns)
-        self.data.append(AUTOBranch(headerlist,ncolumns,datalist))
-
-# a branch within the parseBR class
-class AUTOBranch(UserDict.UserDict,parseB):
-    def __init__(self,headerlist,ncolumns,datalist):
-	UserDict.UserDict.__init__(self)
-	if not headerlist:
-            return
-        header = string.join(headerlist,"")
-        self["header"] = header
-        if header != "":
-            self["constants"] = parseB.parseHeader(self,header)
-        if not hasattr(N,"transpose"):
-            self.__parsearray(ncolumns,datalist)
-            return
-        try:
-            data = N.array(map(float, datalist),'d')
-        except:
-            data = N.array(map(AUTOatof, datalist),'d')
-        self["BR"] = int(data[0])
-        data.shape = (-1,ncolumns)
-        self["data"] = N.transpose(data[:,4:]).copy()
-        self["Labels"] = []
-        for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
-            self["Labels"].append({"index":i,
-                                   "LAB":int(data[i,3]),
-                                   "TY number":int(data[i,2])})
-        points = data[:,1]
-        # self["stability"] gives a list of point numbers where the stability
-        # changes: the end point of each part is stored
-        self["stability"] = N.concatenate((N.compress(
-                    N.less(points[:-1]*points[1:],0),
-                    points[:-1]),points[-1:])).astype('i')
-
-    def __parsearray(self,ncolumns,datalist):
-        # for those without numpy...
-        try:
-            data = map(float, datalist)
-        except:
-            data = map(AUTOatof, datalist)
-        self["BR"] = int(data[0])
-        columns = []
-        try:
-            for i in range(4,ncolumns):
-                columns.append(N.array('d',data[i::ncolumns]))
-        except TypeError:
-            for i in range(4,ncolumns):
-                columns.append(N.array('d',
-                                       map(lambda j, d=data: 
-                                           d[j], xrange(i,len(data),ncolumns))))
-        self["data"] = columns
-        self["Labels"] = []
-        self["stability"] = []
-        prevpt = data[1]
-        stab = []
-        for j in xrange(0,len(data),ncolumns):
-            [pt,ty,lab] = map(int,data[j+1:j+4])
-            if lab != 0 or ty != 0:
-                self["Labels"].append({"index":j/ncolumns,
-                                       "LAB":lab,"TY number":ty})
-            if pt * prevpt < 0:
-                self["stability"].append(prevpt)
-            prevpt = pt
-        self["stability"].append(pt)
+            inputfile = inputfile.readlines()
+        while 1:
+            branch = AUTOBranch(inputfile,screen_lines,prevline)
+            prevline = branch._lastline
+            self.branches.append(branch)
+            if prevline is None:
+                break
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

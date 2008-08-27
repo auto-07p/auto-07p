@@ -33,7 +33,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["label"]    = ([0],self.__optionCallback)
 
         # Already parsed data structures
-        optionDefaults["bifurcation_diagram"]          = (parseB.parseBR(),self.__optionCallback)
+        optionDefaults["bifurcation_diagram"]          = (parseB.parseB(),self.__optionCallback)
         optionDefaults["solution"]          = (parseS.parseS(),self.__optionCallback)
         optionDefaults["bifurcation_diagram_filename"] = ("",self.__optionCallback)
         optionDefaults["solution_filename"] = ("",self.__optionCallback)
@@ -157,8 +157,8 @@ class plotter(grapher.GUIGrapher):
         dp = self.cget("stability")
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
-                for branch in solution:
-                    data = branch["data"]
+                for branch in solution.branches:
+                    data = branch.coordarray
                     try:
                         x = data[xcolumns[j]]
                     except IndexError:
@@ -173,7 +173,7 @@ class plotter(grapher.GUIGrapher):
                         #look at stability:
                         newsect = 1
                         old = 0
-                        for pt in branch["stability"]:
+                        for pt in branch.stability:
                             abspt = abs(pt)
                             if old < abspt - 1 and abspt > 2:
                                 self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
@@ -182,7 +182,7 @@ class plotter(grapher.GUIGrapher):
                                 newsect = 0
                     else:
                         self.addArrayNoDraw((x,y),1)
-                    for label in branch["Labels"]:
+                    for i,label in branch.labels.items():
                         lab = label["LAB"]
                         TYnumber = label["TY number"]
                         text = ""
@@ -194,7 +194,6 @@ class plotter(grapher.GUIGrapher):
                                 symbol = self.cget(item[1])
                         if not symbol and TYnumber not in [0,4,9]:
                             symbol = self.cget("error_symbol")
-                        i = label["index"]
                         self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
         
         # Call the base class config
