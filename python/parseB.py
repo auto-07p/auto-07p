@@ -232,8 +232,15 @@ class AUTOBranch:
         new.stability = self.stability
         return new
 
-    # Return a parseB style line item
+    # Return a parseB style line item; if given a string, return the
+    # relevant column
     def getIndex(self,index):
+        if type(index) == type(""):
+            index = string.strip(index)
+            for i in range(len(self.coordnames)):
+                if string.strip(self.coordnames[i]) == index:
+                    return self.coordarray[i]
+            raise IndexError
         label = None
         if index in self.labels.keys():
             label = self.labels[index]
@@ -532,6 +539,8 @@ class parseB(AUTOBranch):
     # Given an index, return the correct solution
     # Return a parseB style line item
     def getIndex(self,index):
+        if type(index) == type(""):
+            return self.branches[0].getIndex(index)
         section = 0
         i = index
         for d in self.branches:

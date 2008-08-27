@@ -5,6 +5,7 @@ import Pmw
 import AUTOutil
 import plotter
 import types
+import string
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
@@ -262,8 +263,8 @@ class WindowPlotter2D(WindowPlotter):
                 list.append(str(x))
         if self.grapher.cget("type") == "bifurcation":
             if len(self.grapher.cget(o)) > 0:
-                for i in range(len(self.grapher.cget(o).branches[0].coordarray)):
-                    list.append("[%d]"%i)
+                for s in self.grapher.cget(o).branches[0].coordnames:
+                    list.append("['%s']"%string.strip(s))
         else:
             list.append("['t']")
             if len(self.grapher.cget(o)) > 0:
@@ -271,8 +272,18 @@ class WindowPlotter2D(WindowPlotter):
                     list.append("[%d]"%i)
         self.xEntry.setlist(list)
         self.yEntry.setlist(list)
-        self.xEntry.setentry(self._shortstr(self.grapher.cget(ox)))
-        self.yEntry.setentry(self._shortstr(self.grapher.cget(oy)))
+        xlist = self.grapher.cget(ox)
+        ylist = self.grapher.cget(oy)
+        if (self.grapher.cget("type") == "bifurcation" and
+            len(self.grapher.cget(o)) > 0):
+            for i in range(len(xlist)):
+                xlist[i] = string.strip(
+                        self.grapher.cget(o).branches[0].coordnames[xlist[i]])
+            for i in range(len(ylist)):
+                ylist[i] = string.strip(
+                        self.grapher.cget(o).branches[0].coordnames[ylist[i]])
+        self.xEntry.setentry(self._shortstr(xlist))
+        self.yEntry.setentry(self._shortstr(ylist))
         labels = []
         if not(self.grapher.cget("label_defaults") is None):
             for x in self.grapher.cget("label_defaults"):

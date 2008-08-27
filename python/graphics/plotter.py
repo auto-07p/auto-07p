@@ -158,16 +158,21 @@ class plotter(grapher.GUIGrapher):
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
                 for branch in solution.branches:
-                    data = branch.coordarray
+                    xcol = xcolumns[j]
+                    if type(xcol) == type(1):
+                        xcol = branch.coordnames[xcol]
                     try:
-                        x = data[xcolumns[j]]
+                        x = branch[xcol]
                     except IndexError:
-                        print "The x-coordinate (set to column %d) is out of range"%xcolumns[j]
+                        print "The x-coordinate (set to column %s) is out of range"%xcol
                         break
+                    ycol = ycolumns[j]
+                    if type(ycol) == type(1):
+                        ycol = branch.coordnames[ycol]
                     try:
-                        y = data[ycolumns[j]]
+                        y = branch[ycol]
                     except IndexError:
-                        print "The y-coordinate (set to column %d) is out of range"%ycolumns[j]
+                        print "The y-coordinate (set to column %s) is out of range"%ycol
                         break
                     if dp:
                         #look at stability:
@@ -198,11 +203,17 @@ class plotter(grapher.GUIGrapher):
         
         # Call the base class config
         xlabel = self["xlabel"]
+        xcol = xcolumns[0]
+        if type(xcol) == type(1):
+            xcol = solution.branches[0].coordnames[xcol]
         if self.config("xlabel")[3] is None:
-            xlabel = "Column %d"%xcolumns[0]
+            xlabel = "%s"%xcol
         ylabel = self["ylabel"]
+        ycol = ycolumns[0]
+        if type(ycol) == type(1):
+            ycol = solution.branches[0].coordnames[ycol]
         if self.config("ylabel")[3] is None:
-            ylabel = "Column %d"%ycolumns[0]
+            ylabel = "%s"%ycol
         grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
     def __plot8(self):
