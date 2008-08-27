@@ -277,10 +277,12 @@ class WindowPlotter2D(WindowPlotter):
         if (self.grapher.cget("type") == "bifurcation" and
             len(self.grapher.cget(o)) > 0):
             for i in range(len(xlist)):
-                xlist[i] = string.strip(
+                if type(xlist[i]) == type(1):
+                    xlist[i] = string.strip(
                         self.grapher.cget(o).branches[0].coordnames[xlist[i]])
             for i in range(len(ylist)):
-                ylist[i] = string.strip(
+                if type(ylist[i]) == type(1):
+                    ylist[i] = string.strip(
                         self.grapher.cget(o).branches[0].coordnames[ylist[i]])
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
