@@ -132,14 +132,7 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.optionSelctionDialog.destroy()
 
     def _shortstr(self,list):
-        s = "["
-        for x in list:
-            strx = str(x)
-            if type(x) == type('t'):
-                strx = "'" + strx + "'"
-            s = s + strx + ','
-        s = s[:-1] + "]"
-        return s
+        return "[" + string.join(map(str,list),",") + "]"
         
     def setOptionDialog(self,key):
         self.diag = Pmw.Dialog(self.interior(),
@@ -181,7 +174,16 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.diag.destroy()
         
     def _modifyOption(self,key,entry):
-        self.grapher[key] = eval(entry)
+        try:
+            self.grapher[key] = eval(entry,{},{})
+        except NameError:
+            entry = string.strip(entry)
+            entry = string.replace(entry,"[","['")
+            entry = string.replace(entry,"]","']")
+            entry = string.replace(entry,",","','")
+            if entry[0] != '[':
+                entry = "'" + entry + "'"
+            self.grapher[key] = eval(entry,{},{})
         if key == "type":
             self.typeUpdateCallback()
 
@@ -261,29 +263,21 @@ class WindowPlotter2D(WindowPlotter):
         if not(self.grapher.cget(ocd) is None):
             for x in self.grapher.cget(ocd):
                 list.append(str(x))
-        if self.grapher.cget("type") == "bifurcation":
-            if len(self.grapher.cget(o)) > 0:
-                for s in self.grapher.cget(o).branches[0].coordnames:
-                    list.append("['%s']"%string.strip(s))
-        else:
-            list.append("['t']")
-            if len(self.grapher.cget(o)) > 0:
-                for i in range(len(self.grapher.cget(o).getIndex(0)["data"][0]["u"])):
-                    list.append("[%d]"%i)
+        sol = self.grapher.cget(o)                
+        if hasattr(sol,"coordnames"):
+            for s in sol.coordnames:
+                list.append("[%s]"%string.strip(s))
         self.xEntry.setlist(list)
         self.yEntry.setlist(list)
         xlist = self.grapher.cget(ox)
         ylist = self.grapher.cget(oy)
-        if (self.grapher.cget("type") == "bifurcation" and
-            len(self.grapher.cget(o)) > 0):
-            for i in range(len(xlist)):
-                if type(xlist[i]) == type(1):
-                    xlist[i] = string.strip(
-                        self.grapher.cget(o).branches[0].coordnames[xlist[i]])
-            for i in range(len(ylist)):
-                if type(ylist[i]) == type(1):
-                    ylist[i] = string.strip(
-                        self.grapher.cget(o).branches[0].coordnames[ylist[i]])
+        if len(sol) > 0:
+            for xylist in [xlist,ylist]:
+                for i in range(len(xylist)):
+                    if type(xylist[i]) == type(1):
+                        if self.grapher.cget("type") == "solution":
+                            xylist[i] = xylist[i] + 1
+                        xylist[i] = string.strip(sol.coordnames[xylist[i]])
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []

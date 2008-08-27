@@ -94,13 +94,15 @@ class AUTOBranch:
         if header != "":
             self.constants = self.parseHeader(header)
         line = headerlist[-1]
+        self.coordnames = []
         if string.find(line, " PT ") != -1:
             columnlen = (linelen - 19) / (ncolumns - 4)
             n = linelen - columnlen * (ncolumns - 4)
-            self.coordnames = []
             for i in range(ncolumns-4):
                 self.coordnames.append(string.rstrip(line[n:n+columnlen]))
                 n = n + columnlen
+        if self.coordnames == []:
+            self.coordnames = map(str,range(ncolumns-4))            
         if not hasattr(N,"transpose"):
             self.__parsearray(ncolumns,datalist)
             return
@@ -597,6 +599,8 @@ class parseB(AUTOBranch):
             self.branches.append(branch)
             if prevline is None:
                 break
+        if len(self.branches) > 0:
+            self.coordnames = self.branches[0].coordnames
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

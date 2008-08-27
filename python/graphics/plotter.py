@@ -9,6 +9,7 @@ import parseS
 import AUTOutil
 import types
 import os
+import string
 
 class plotter(grapher.GUIGrapher):
     def __init__(self,parent=None,cnf={},**kw):
@@ -121,6 +122,10 @@ class plotter(grapher.GUIGrapher):
             for v in value:
                 labels = self.cget("solution").getLabels()
                 options["label"].append(labels[v])
+        elif key in ["bifurcation_x","bifurcation_y",
+                     "solution_x","solution_y"]:
+            if type(value) != type([]):
+                value = [value]
         # We only recreate the data if one of the above options gets set
         # We can't just recreate the data for any option since:
         #   1)  It is inefficient
@@ -157,20 +162,27 @@ class plotter(grapher.GUIGrapher):
         dp = self.cget("stability")
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
+                cols = []
+                for col in [xcolumns[j],ycolumns[j]]:
+                    if type(col) != type(1):
+                        col = string.strip(col)
+                        for i in range(len(solution.coordnames)):
+                            if string.strip(solution.coordnames[i]) == col:
+                                col = i
+                                break
+                    if type(col) != type(1):
+                        print "Unknown column name: %s"%(col)
+                        col = 0
+                    cols.append(col)
+                [xcol,ycol] = cols
                 for branch in solution.branches:
-                    xcol = xcolumns[j]
-                    if type(xcol) == type(1):
-                        xcol = branch.coordnames[xcol]
                     try:
-                        x = branch[xcol]
+                        x = branch[branch.coordnames[xcol]]
                     except IndexError:
                         print "The x-coordinate (set to column %s) is out of range"%xcol
                         break
-                    ycol = ycolumns[j]
-                    if type(ycol) == type(1):
-                        ycol = branch.coordnames[ycol]
                     try:
-                        y = branch[ycol]
+                        y = branch[branch.coordnames[ycol]]
                     except IndexError:
                         print "The y-coordinate (set to column %s) is out of range"%ycol
                         break
@@ -205,15 +217,15 @@ class plotter(grapher.GUIGrapher):
         xlabel = self["xlabel"]
         xcol = xcolumns[0]
         if type(xcol) == type(1):
-            xcol = solution.branches[0].coordnames[xcol]
+            xcol = solution.coordnames[xcol]
         if self.config("xlabel")[3] is None:
-            xlabel = "%s"%xcol
+            xlabel = xcol
         ylabel = self["ylabel"]
         ycol = ycolumns[0]
         if type(ycol) == type(1):
-            ycol = solution.branches[0].coordnames[ycol]
+            ycol = solution.coordnames[ycol]
         if self.config("ylabel")[3] is None:
-            ylabel = "%s"%ycol
+            ylabel = ycol
         grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
     def __plot8(self):
@@ -233,17 +245,25 @@ class plotter(grapher.GUIGrapher):
                 ynames = ""
                 for j in range(len(xcolumns)):
                     labels = []
-                    xc = xcolumns[j]
-                    yc = ycolumns[j]
-                    if xc == "t":
-                        x = map(lambda s: s["t"], solution)
-                    else:
-                        x = map(lambda s, c = xc: s["u"][c], solution)
-                    if yc == "t":
-                        y = map(lambda s: s["t"], solution)
-                    else:
-                        y = map(lambda s, c = yc: s["u"][c], solution)
-
+                    cols = []
+                    xycols = []
+                    for col in [xcolumns[j],ycolumns[j]]:
+                        if type(col) != type(1):
+                            col = string.strip(col)
+                            for i in range(len(sol.coordnames)):
+                                if string.strip(sol.coordnames[i]) == col:
+                                    col = i - 1
+                                    break
+                        if type(col) != type(1):
+                            print "Unknown column name: %s"%(col)
+                            col = -1
+                        if col == -1:
+                            xy = map(lambda s: s["t"], solution)
+                        else:
+                            xy = map(lambda s, c = col: s["u"][c], solution)
+                        cols.append(col)
+                        xycols.append(xy)
+                    [x,y] = xycols
                     if not(self.cget("mark_t") is None):
                         for i in range(len(solution)):
                             if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:
@@ -263,17 +283,17 @@ class plotter(grapher.GUIGrapher):
                                       [x[lab["index"]],y[lab["index"]]],
                                       lab["text"],lab["symbol"])
 
-                    xnames = xnames + " " + str(xcolumns[j])
-                    ynames = ynames + " " + str(ycolumns[j])
+                    xnames = xnames + ", " + sol.coordnames[cols[0]+1]
+                    ynames = ynames + ", " + sol.coordnames[cols[1]+1]
                 index = index + 10
                 if index > len(solution):
                     index = 14
             xlabel = self["xlabel"]
             if self.config("xlabel")[3] is None:
-                xlabel = "Columns %s"%xnames
+                xlabel = xnames[2:]
             ylabel = self["ylabel"]
             if self.config("ylabel")[3] is None:
-                ylabel = "Columns %s"%ynames
+                ylabel = ynames[2:]
             grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
 

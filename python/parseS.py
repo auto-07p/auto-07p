@@ -95,6 +95,8 @@ class parseS(UserList.UserList):
             solution = AUTOSolution(inputfile,prev)
             self.data.append(solution)
             prev = solution
+        if len(self.data) > 0:
+            self.coordnames = self.data[0].coordnames
 
     def write(self,output):
         for x in self.data:
@@ -340,6 +342,9 @@ class AUTOSolution(UserDict.UserDict):
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
+            self.coordnames = ['t']
+            for i in range(self.__numEntriesPerBlock-1):
+                self.coordnames.append("U("+str(i+1)+")")
         except IndexError:
             raise PrematureEndofData
         self.__start_of_data = inputfile.tell()

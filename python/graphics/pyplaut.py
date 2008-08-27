@@ -47,20 +47,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "period_doubling_symbol": "diamond",
             "torus_symbol": "filldiamond",
             "user_point_symbol": None,
-            "error_symbol": None,
-            "xlabel": "", "ylabel": "" }
+            "error_symbol": None }
         for k,v in self[self["default_option"]].items():
             dict[k] = v
-        self.xlabel = ""
-        self.ylabel = ""
         for key in dict.keys():
             # check if key was set in .autorc
             config = self.handle.config(key)
             if len(config) > 5 and config[5]:
-                if key == "xlabel":
-                    self.xlabel = config[3]
-                if key == "ylabel":
-                    self.ylabel = config[3]
                 del dict[key]
         self.handle.config(dict)
         self.xaxis = self["solution_x"][0]
@@ -74,6 +67,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         else:
             self.yaxis = self.yaxis + 2
         self.title = self["top_title"]
+        self.xlabel = self["xlabel"]
+        self.ylabel = self["ylabel"]
         self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
 
     def raw_input(self, prompt=None):
