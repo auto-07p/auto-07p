@@ -129,6 +129,10 @@ class BasicGrapher(grapher.BasicGrapher):
                 self.ax.set_title(value)
             else:
                 self.ax.set_title(value,fontsize=fontsize)
+        elif key == "top_title_fontsize":
+            title = self.cget("top_title")
+            if title is not None:
+                self.ax.set_title(title,fontsize=value)
         elif key == "background":
             self.ax.set_axis_bgcolor(value)
         elif key == "decorations":
