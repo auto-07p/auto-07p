@@ -176,7 +176,7 @@ class WindowPlotter(Pmw.MegaToplevel):
     def _modifyOption(self,key,entry):
         try:
             self.grapher[key] = eval(entry,{},{})
-        except NameError:
+        except (NameError,SyntaxError):
             entry = string.strip(entry)
             entry = string.replace(entry,"[","['")
             entry = string.replace(entry,"]","']")
@@ -263,10 +263,14 @@ class WindowPlotter2D(WindowPlotter):
         if not(self.grapher.cget(ocd) is None):
             for x in self.grapher.cget(ocd):
                 list.append(str(x))
-        sol = self.grapher.cget(o)                
+        sol = self.grapher.cget(o)
+        coordnames = []
         if hasattr(sol,"coordnames"):
-            for s in sol.coordnames:
-                list.append("[%s]"%string.strip(s))
+            coordnames = sol.coordnames
+        if self.grapher.cget(ox[:-1]+"coordnames"):
+            coordnames = self.grapher.cget(ox[:-1]+"coordnames")
+        for s in coordnames:
+            list.append("[%s]"%string.strip(s))
         self.xEntry.setlist(list)
         self.yEntry.setlist(list)
         xlist = self.grapher.cget(ox)
@@ -277,7 +281,7 @@ class WindowPlotter2D(WindowPlotter):
                     if type(xylist[i]) == type(1):
                         if self.grapher.cget("type") == "solution":
                             xylist[i] = xylist[i] + 1
-                        xylist[i] = string.strip(sol.coordnames[xylist[i]])
+                        xylist[i] = string.strip(coordnames[xylist[i]])
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []

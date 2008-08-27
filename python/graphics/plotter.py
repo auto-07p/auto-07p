@@ -23,6 +23,9 @@ class plotter(grapher.GUIGrapher):
         # The Y column
         optionDefaults["bifurcation_y"] = ([1],self.__optionCallback)
         optionDefaults["solution_y"]    = ([0],self.__optionCallback)
+        # The coordinate names
+        optionDefaults["bifurcation_coordnames"] = (None,self.__optionCallback)
+        optionDefaults["solution_coordnames"]    = (None,self.__optionCallback)
         # Sets of labels that the user is likely to want to use
         optionDefaults["label_defaults"]   = (None,self.__optionCallback)
         # Sets of columns that the user is likely to want to use
@@ -159,6 +162,9 @@ class plotter(grapher.GUIGrapher):
         ycolumns = self.cget("bifurcation_y")
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
+        coordnames = solution.coordnames
+        if self.cget("bifurcation_coordnames"):
+            coordnames = self.cget("bifurcation_coordnames")
         dp = self.cget("stability")
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
             for j in range(len(xcolumns)):
@@ -166,8 +172,8 @@ class plotter(grapher.GUIGrapher):
                 for col in [xcolumns[j],ycolumns[j]]:
                     if type(col) != type(1):
                         col = string.strip(col)
-                        for i in range(len(solution.coordnames)):
-                            if string.strip(solution.coordnames[i]) == col:
+                        for i in range(len(coordnames)):
+                            if string.strip(coordnames[i]) == col:
                                 col = i
                                 break
                     if type(col) != type(1):
@@ -217,13 +223,13 @@ class plotter(grapher.GUIGrapher):
         xlabel = self["xlabel"]
         xcol = xcolumns[0]
         if type(xcol) == type(1):
-            xcol = solution.coordnames[xcol]
+            xcol = coordnames[xcol]
         if self.config("xlabel")[3] is None:
             xlabel = xcol
         ylabel = self["ylabel"]
         ycol = ycolumns[0]
         if type(ycol) == type(1):
-            ycol = solution.coordnames[ycol]
+            ycol = coordnames[ycol]
         if self.config("ylabel")[3] is None:
             ylabel = ycol
         grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
@@ -232,6 +238,9 @@ class plotter(grapher.GUIGrapher):
         self.delAllData()
         xcolumns = self.cget("solution_x")
         ycolumns = self.cget("solution_y")
+        coordnames = self.cget("solution").coordnames
+        if self.cget("solution_coordnames"):
+            coordnames = self.cget("solution_coordnames")
 
         if len(xcolumns) == len(ycolumns):
             xnames="Error"
@@ -250,8 +259,8 @@ class plotter(grapher.GUIGrapher):
                     for col in [xcolumns[j],ycolumns[j]]:
                         if type(col) != type(1):
                             col = string.strip(col)
-                            for i in range(len(sol.coordnames)):
-                                if string.strip(sol.coordnames[i]) == col:
+                            for i in range(len(coordnames)):
+                                if string.strip(coordnames[i]) == col:
                                     col = i - 1
                                     break
                         if type(col) != type(1):
@@ -283,8 +292,8 @@ class plotter(grapher.GUIGrapher):
                                       [x[lab["index"]],y[lab["index"]]],
                                       lab["text"],lab["symbol"])
 
-                    xnames = xnames + ", " + sol.coordnames[cols[0]+1]
-                    ynames = ynames + ", " + sol.coordnames[cols[1]+1]
+                    xnames = xnames + ", " + coordnames[cols[0]+1]
+                    ynames = ynames + ", " + coordnames[cols[1]+1]
                 index = index + 10
                 if index > len(solution):
                     index = 14
