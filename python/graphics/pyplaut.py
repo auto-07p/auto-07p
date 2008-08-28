@@ -11,11 +11,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if locals is None:
             return
         
-        self.expert = 0
-        self.dset = 1
-        self.ict = 0
-        self.icl = 0
-
         root=Tkinter.Tk()
         root.withdraw()
         self.handle = windowPlotter.WindowPlotter2D(root,{})
@@ -66,10 +61,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.yaxis = 1
         else:
             self.yaxis = self.yaxis + 2
-        self.title = self["top_title"]
-        self.xlabel = self["xlabel"]
-        self.ylabel = self["ylabel"]
-        self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
+        self.defaults = {}
+        for key in ["xlabel", "ylabel", "top_title"]:
+            self.defaults[key] = self.handle.config(key)[3]
+        self.plotdefaults = {}
+        for key in ["top_title", "grid", "stability", "use_symbols"]:
+            self.plotdefaults[key] = self[key]
+        self.normal_usage()
 
     def raw_input(self, prompt=None):
         line = ""
@@ -123,7 +121,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
         if "dp" in opts:
             self["stability"] = 1
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
             its = 1
         if "ax" in opts:
             its = 1
@@ -143,19 +140,14 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 self.dset = 1
                 self.expert = 0
                 self.handle.config(self[dopt])
-                self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
                 its = 1
         if "nu" in opts:
             its = 1
-            self.dset = 0
-            self.expert = 0
-            self.icl = 0
-            self.ict = 0
-            self.xlabel = ""
-            self.ylabel = ""
-            self.title = ""
-            self.handle.config(use_symbols = 0, stability = 0, top_title = "")
-            self.handle.config(xlabel=self.xlabel,ylabel=self.ylabel)
+            self.handle.config(self.defaults)
+            self.handle.grapher.addRCOptions(self.defaults)
+            self.normal_usage()
+            self.handle.config(self.plotdefaults)
+            self.handle.grapher.plot()
         if "xp" in opts:
             its = 1
             self.expert = 1
@@ -200,6 +192,14 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             print ' ILLEGAL COMMAND - REENTER'
         return ""
 
+    def normal_usage(self):
+        self.dset = 1
+        self.expert = 0
+        self.icl = 0
+        self.ict = 0
+        for key in ["xlabel", "ylabel", "top_title"]:
+            setattr(self, key, self.handle.config(key)[3])
+
     def savefile(self):
         print ' ENTER FILE NAME:'
         flname = string.strip(raw_input())
@@ -208,37 +208,34 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.handle.grapher.postscript(flname)
     
     def settitles(self,tit,rtit,axlb,raxlb):
-        if raxlb:
-            if not self.expert:
-                print ' ENTER X AXIS LABEL BETWEEN THE QUOTES'
-            print ' "                              "'
-            self.xlabel = string.strip(raw_input())
-        if axlb:
-            self["xlabel"] = self.xlabel
-        else:
-            self["xlabel"] = ""
-
-        if raxlb:
-            if not self.expert:
-                print ' ENTER Y AXIS LABEL BETWEEN THE QUOTES'
-            print ' "                              "'
-            self.ylabel = string.strip(raw_input())
-        if axlb:
-            self["ylabel"] = self.ylabel
-        else:
-            self["xlabel"] = ""
+        for key in ["xlabel","ylabel"]:
+            if axlb:
+                if raxlb:
+                    if not self.expert:
+                        print (' ENTER '+ string.upper(key[0]) +
+                               ' AXIS LABEL BETWEEN THE QUOTES')
+                    print ' "                              "'
+                    setattr(self, key, string.strip(raw_input()))
+                label = getattr(self, key)
+            else:
+                label = ""
+            if label is not None:
+                self[key] = label
+            self.handle.grapher.addRCOptions({key:label})
+            if label is None:
+                self.handle.grapher.plot()
 
         if rtit:
             if not self.expert:
                 print ' ENTER TOP TITLE BETWEEN THE QUOTES'
             print ' "                                                            "'
-            self.title = string.strip(raw_input())
+            self.top_title = string.strip(raw_input())
 
             #if not self.expert:
             #    print ' ENTER BOTTOM TITLE BETWEEN THE QUOTES'
             #print ' "                                                            "'
         if tit:
-            self["top_title"] = self.title
+            self["top_title"] = self.top_title
         else:
             self["top_title"] = ""
         self.handle.grapher.update()
@@ -348,7 +345,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.yaxs = [2]
         
         self.handle.config(type = "solution")
-        self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel)
         if not self.enterlabels():
             return
         s = self["solution"]
@@ -422,13 +418,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     except:
                         pass
             self.handle.config(type = "bifurcation")
-            self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel,
-                               xticks = None, yticks = None,
+            self.handle.config(xticks = None, yticks = None,
                                minx = xmin, maxx = xmax,
                                miny = ymin, maxy = ymax)
         else:
             self.handle.config(type = "bifurcation")
-            self.handle.config(xlabel = self.xlabel, ylabel = self.ylabel)
         if not self.dset:
             self.getopts()
         
