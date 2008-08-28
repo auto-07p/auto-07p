@@ -264,6 +264,14 @@ class WindowPlotter2D(WindowPlotter):
             for x in self.grapher.cget(ocd):
                 list.append(str(x))
         sol = self.grapher.cget(o)
+        if self.grapher.cget("type") == "solution":
+            indepvarname = ""
+            if hasattr(sol,"indepvarname"):
+                indepvarname = sol.indepvarname
+            if self.grapher.cget(ox[:-1]+"indepvarname"):
+                indepvarname = self.grapher.cget(ox[:-1]+"indepvarname")
+            if indepvarname != "":
+                list.append("[%s]"%string.strip(indepvarname))
         coordnames = []
         if hasattr(sol,"coordnames"):
             coordnames = sol.coordnames
@@ -279,9 +287,10 @@ class WindowPlotter2D(WindowPlotter):
             for xylist in [xlist,ylist]:
                 for i in range(len(xylist)):
                     if type(xylist[i]) == type(1):
-                        if self.grapher.cget("type") == "solution":
-                            xylist[i] = xylist[i] + 1
-                        xylist[i] = string.strip(coordnames[xylist[i]])
+                        if xylist[i] == -1:    
+                            xylist[i] = string.strip(indepvarname)
+                        else:
+                            xylist[i] = string.strip(coordnames[xylist[i]])
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []

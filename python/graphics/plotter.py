@@ -19,7 +19,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["type"]     = ("bifurcation",self.__optionCallback)  
         # The X column
         optionDefaults["bifurcation_x"] = ([0],self.__optionCallback)
-        optionDefaults["solution_x"]    = (["t"],self.__optionCallback)
+        optionDefaults["solution_x"]    = ([-1],self.__optionCallback)
         # The Y column
         optionDefaults["bifurcation_y"] = ([1],self.__optionCallback)
         optionDefaults["solution_y"]    = ([0],self.__optionCallback)
@@ -224,13 +224,19 @@ class plotter(grapher.GUIGrapher):
         xlabel = self["xlabel"]
         xcol = xcolumns[0]
         if type(xcol) == type(1):
-            xcol = coordnames[xcol]
+            if xcol == -1:
+                xcol = indepvarname
+            else:
+                xcol = coordnames[xcol]
         if self.config("xlabel")[3] is None:
             xlabel = xcol
         ylabel = self["ylabel"]
         ycol = ycolumns[0]
         if type(ycol) == type(1):
-            ycol = coordnames[ycol]
+            if ycol == -1:
+                ycol = indepvarname
+            else:
+                ycol = coordnames[ycol]
         if self.config("ylabel")[3] is None:
             ylabel = ycol
         grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
@@ -262,7 +268,10 @@ class plotter(grapher.GUIGrapher):
                     xycols = []
                     for col in [xcolumns[j],ycolumns[j]]:
                         if type(col) == type(1):
-                            col = coordnames[col]
+                            if col == -1:
+                                col = indepvarname
+                            else:
+                                col = coordnames[col]
                         xy = None
                         col = string.strip(col)
                         if string.strip(indepvarname) == col:
