@@ -21,16 +21,21 @@ import string
 import os
 import sys
 import AUTOExceptions
+import AUTOutil
 import types
 import parseC
+fromstring = None
 try:
     import matplotlib.numerix
     N = matplotlib.numerix
+    if N.which[0] == 'numpy':
+        from numpy import fromstring        
 except ImportError:
     try:
         import numpy
         N = numpy
         N.nonzero = N.flatnonzero
+        from numpy import fromstring
     except ImportError:
         try:
             import Numeric
@@ -106,10 +111,19 @@ class AUTOBranch:
         if not hasattr(N,"transpose"):
             self.__parsearray(ncolumns,datalist)
             return
-        try:
-            data = N.array(map(float, datalist),'d')
-        except:
-            data = N.array(map(AUTOatof, datalist),'d')
+        if fromstring:
+            total = len(datalist)
+            data = []
+            s = " ".join(datalist)
+            if string.find(s, "D") == -1:
+                data = fromstring(s, dtype=float, sep=' ')
+            if data == [] or len(data) > total:
+                data = N.array(map(parseB.AUTOatof,datalist), 'd')
+        else:
+            try:
+                data = N.array(map(float, datalist),'d')
+            except:
+                data = N.array(map(AUTOatof, datalist),'d')
         self.BR = int(data[0])
         data.shape = (-1,ncolumns)
         self.coordarray = N.transpose(data[:,4:]).copy()
@@ -397,12 +411,10 @@ class AUTOBranch:
             split = str.split
         if prevline:
             line = prevline
-        elif hasattr(inputfile,"next"):
-            line = inputfile.next()
         else:
-            if type(inputfile) != type([]):
-                inputfile = inputfile.readlines()
-            line = inputfile.pop(0)
+            if not hasattr(inputfile,"next"):
+                inputfile = AUTOutil.myreadlines(inputfile)
+            line = inputfile.next()
         headerlist = []
         columns = split(line)
         if columns[0] == '0':
@@ -412,8 +424,6 @@ class AUTOBranch:
                 if columns[0] != '0':
                     break
                 headerlist.append(line)
-        if type(inputfile) == type([]):
-            del inputfile[:len(headerlist)]
         ncolumns = len(columns)
         linelen = len(line)
         datalist = []
@@ -439,8 +449,6 @@ class AUTOBranch:
             if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
                 self._lastline = line
         self.__parse(headerlist,ncolumns,linelen,datalist)
-        if type(inputfile) == type([]):
-            del inputfile[:len(self.coordarray[0])]
 
     def readFilename(self,filename,screen_lines=0):
 	inputfile = open(filename,"r")
@@ -592,7 +600,7 @@ class parseB(AUTOBranch):
         # We now go through the file and read the branches.
         prevline = None
         if not hasattr(inputfile,"next"):
-            inputfile = inputfile.readlines()
+            inputfile = AUTOutil.myreadlines(inputfile)
         while 1:
             branch = AUTOBranch(inputfile,screen_lines,prevline)
             prevline = branch._lastline

@@ -25,6 +25,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["solution_y"]    = ([0],self.__optionCallback)
         # The coordinate names
         optionDefaults["bifurcation_coordnames"] = (None,self.__optionCallback)
+        optionDefaults["solution_indepvarname"]  = (None,self.__optionCallback)
         optionDefaults["solution_coordnames"]    = (None,self.__optionCallback)
         # Sets of labels that the user is likely to want to use
         optionDefaults["label_defaults"]   = (None,self.__optionCallback)
@@ -238,6 +239,9 @@ class plotter(grapher.GUIGrapher):
         self.delAllData()
         xcolumns = self.cget("solution_x")
         ycolumns = self.cget("solution_y")
+        indepvarname = self.cget("solution").indepvarname
+        if self.cget("solution_indepvarname"):
+            indepvarname = self.cget("solution_indepvarname")
         coordnames = self.cget("solution").coordnames
         if self.cget("solution_coordnames"):
             coordnames = self.cget("solution_coordnames")
@@ -248,7 +252,7 @@ class plotter(grapher.GUIGrapher):
             index = 9
             for ind in self.cget("index"):
                 sol = self.cget("solution").getIndex(ind)
-                solution = sol["data"]
+                tm = sol[sol.indepvarname]
                 label = sol["Label"]
                 xnames = ""
                 ynames = ""
@@ -257,31 +261,33 @@ class plotter(grapher.GUIGrapher):
                     cols = []
                     xycols = []
                     for col in [xcolumns[j],ycolumns[j]]:
-                        if type(col) != type(1):
-                            col = string.strip(col)
+                        if type(col) == type(1):
+                            col = coordnames[col]
+                        xy = None
+                        col = string.strip(col)
+                        if string.strip(indepvarname) == col:
+                            xy = tm
+                        else:
                             for i in range(len(coordnames)):
                                 if string.strip(coordnames[i]) == col:
-                                    col = i - 1
+                                    xy = sol[sol.coordnames[i]]
                                     break
-                        if type(col) != type(1):
+                        if xy is None:
                             print "Unknown column name: %s"%(col)
-                            col = -1
-                        if col == -1:
-                            xy = map(lambda s: s["t"], solution)
-                        else:
-                            xy = map(lambda s, c = col: s["u"][c], solution)
+                            xy = tm
+                            col = 't'
                         cols.append(col)
                         xycols.append(xy)
                     [x,y] = xycols
                     if not(self.cget("mark_t") is None):
-                        for i in range(len(solution)):
-                            if i != 0 and solution[i-1]["t"] <= self.cget("mark_t") < solution[i]["t"]:
+                        for i in range(len(tm)):
+                            if i != 0 and tm[i-1] <= self.cget("mark_t") < tm[i]:
                                 labels.append({"index": i,
                                                "text": "",
                                                "symbol": "fillcircle"})
-                    if len(solution) <= 15:
+                    if len(tm) <= 15:
                         index = 1
-                        if len(solution) <= 1:
+                        if len(tm) <= 1:
                             index = 0
                     labels.append({"index": index, "text": str(label), "symbol": ""})
                     # Call the base class config
@@ -292,10 +298,10 @@ class plotter(grapher.GUIGrapher):
                                       [x[lab["index"]],y[lab["index"]]],
                                       lab["text"],lab["symbol"])
 
-                    xnames = xnames + ", " + coordnames[cols[0]+1]
-                    ynames = ynames + ", " + coordnames[cols[1]+1]
+                    xnames = xnames + ", " + cols[0]
+                    ynames = ynames + ", " + cols[1]
                 index = index + 10
-                if index > len(solution):
+                if index > len(tm):
                     index = 14
             xlabel = self["xlabel"]
             if self.config("xlabel")[3] is None:

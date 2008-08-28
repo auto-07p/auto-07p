@@ -26,6 +26,24 @@ import AUTOExceptions
 import types
 import copy
 import parseB
+fromstring = None
+try:
+    import matplotlib.numerix
+    N = matplotlib.numerix
+    if N.which[0] == 'numpy':
+        from numpy import fromstring        
+except ImportError:
+    try:
+        import numpy
+        N = numpy
+        from numpy import fromstring
+    except ImportError:
+        try:
+            import Numeric
+            N = Numeric
+        except ImportError:
+            import array
+            N = array
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -96,6 +114,7 @@ class parseS(UserList.UserList):
             self.data.append(solution)
             prev = solution
         if len(self.data) > 0:
+            self.indepvarname = self.data[0].indepvarname
             self.coordnames = self.data[0].coordnames
 
     def write(self,output):
@@ -201,18 +220,36 @@ class AUTOSolution(UserDict.UserDict):
         keys.sort()
         rep=""
         for key in keys:
-            if key != "data":
-                rep=rep+str(key)+": "+str(self[key])+"\n"
+            rep=rep+str(key)+": "+str(self[key])+"\n"
         return rep
+
     def __getitem__(self,key):
-        big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p"]
+        big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p"] + [self.indepvarname] + self.coordnames
         if type(key) == types.IntType:
             if not(self.__fullyParsed):
                 self.__readAll()
-            return self["data"][key]
+            u = []
+            for i in range(len(self.coordarray)/2):
+                u.append(self.coordarray[i][key])
+            udot = []
+            for i in range(len(self.coordarray)/2,len(self.coordarray)):
+                udot.append(self.coordarray[i][key])
+            item = { self.indepvarname : self.indepvararray[key],
+                     "u" : u,
+                     "udot" : udot }
+            return item
         else:
             if key in big_data_keys and not(self.__fullyParsed):
                 self.__readAll()
+            if key == "data":
+                solution = []
+                for point in self:
+                    solution.append(point)
+                return solution
+            if key == self.indepvarname:
+                return self.indepvararray
+            if key in self.coordnames:
+                return self.coordarray[self.coordnames.index(key)]
             return UserDict.UserDict.__getitem__(self,key)
     
     def type(self):
@@ -327,7 +364,7 @@ class AUTOSolution(UserDict.UserDict):
             self["Branch number"] = int(data[0])
             self["Point number"] = int(data[1])
             self["Type number"] = int(data[2])
-            self["Type name"] = parseB.type_translation(self["Type number"])["short name"]
+            self["Type name"] = parseB.type_translation(int(data[2]))["short name"]
             self["Label"] = int(data[3])
             self.__numChangingParameters = int(data[4])
             self["ISW"] = int(data[5])
@@ -342,7 +379,8 @@ class AUTOSolution(UserDict.UserDict):
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
-            self.coordnames = ['t']
+            self.indepvarname = 't'
+            self.coordnames = []
             for i in range(self.__numEntriesPerBlock-1):
                 self.coordnames.append("U("+str(i+1)+")")
         except IndexError:
@@ -351,23 +389,56 @@ class AUTOSolution(UserDict.UserDict):
         
     def __readAll(self):
         self.__fullyParsed = 1
-        data = string.split(self.__data)
-        try:
-            fdata = map(float, data)
-        except:
-            fdata = map(parseB.AUTOatof, data)
         n = self.__numEntriesPerBlock
         total = n * self.__numSValues + self.__numFreeParameters
         if self["NTST"] != 0:
             total = (total + 2 * self.__numChangingParameters +
                      (n-1) * self.__numSValues)
-        if total != len(fdata):
-            raise PrematureEndofData
         solution = []
         j = 0
-        for i in range(self.__numSValues):
-            solution.append({"t": fdata[j],"u": fdata[j+1:j+n]})
-            j = j + n
+        nrows = self.__numSValues
+        if hasattr(N,"transpose"):
+            if fromstring:
+                fdata = []
+                if string.find(self.__data,"D") == -1:
+                    fdata = fromstring(self.__data, dtype=float, sep=' ')
+                if fdata == [] or len(fdata) > total:
+                    fdata = N.array(map(parseB.AUTOatof,
+                                        string.split(self.__data)), 'd')
+            else:
+                data = string.split(self.__data)
+                try:
+                    fdata = N.array(map(float, data), 'd')
+                except:
+                    fdata = N.array(map(parseB.AUTOatof, data), 'd')
+            if total != len(fdata):
+                raise PrematureEndofData
+            ups = N.reshape(fdata[:n * nrows],(nrows,n))
+            self.indepvararray = ups[:,0]
+            self.coordarray = N.transpose(ups[:,1:])
+        else: #no numpy
+            data = string.split(self.__data)
+            try:
+                fdata = map(float, data)
+            except:
+                fdata = map(parseB.AUTOatof, data)
+            if total != len(fdata):
+                raise PrematureEndofData
+            self.coordarray = []
+            try:
+                self.indepvararray = N.array('d',fdata[:n*nrows:n])
+                for i in range(1,n):
+                    self.coordarray.append(N.array('d',fdata[i:n*nrows:n]))
+            except TypeError:
+                self.indepvararray = N.array('d',
+                                             map(lambda j, d=fdata: 
+                                                 d[j], xrange(0,n*nrows,n)))
+                for i in range(1,n):
+                    self.coordarray.append(N.array('d',
+                                                   map(lambda j, d=fdata: 
+                                                    d[j], xrange(i,n*nrows,n))))
+        j = j + n * nrows
+
 	# I am using the value of NTST to test to see if it is an algebraic or
 	# ODE problem.
 	if self["NTST"] != 0:
@@ -377,11 +448,19 @@ class AUTOSolution(UserDict.UserDict):
             self["Parameter NULL vector"] = fdata[j:j+nfpr]
             j = j + nfpr
             n = n - 1
-            for i in range(self.__numSValues):
-                solution[i]["u dot"] = fdata[j:j+n]
-                j = j + n
+            if hasattr(N,"transpose"):
+                self.coordarray = N.concatenate((self.coordarray,N.transpose(
+                     N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))))
+            else:
+                try:
+                    for i in range(1,n):
+                        self.coordarray.append(N.array('d',fdata[i:n*nrows:n]))
+                except TypeError:
+                    self.coordarray.append(N.array('d',
+                                                   map(lambda j, d=fdata: 
+                                                   d[j], xrange(i,n*nrows,n))))
+            j = j + n * nrows
 
-        self["data"] = solution
         self["Parameters"] = fdata[j:j+self.__numFreeParameters]
         self["parameters"] = self["Parameters"]
         self["p"] = self["Parameters"]
@@ -498,7 +577,7 @@ class AUTOSolution(UserDict.UserDict):
 def pointtest(a,b):
     keys = ['Type number', 'Type name', 'Parameter NULL vector',
             'Free Parameters', 'Branch number',
-            'data', 'NCOL', 'Label', 'ISW', 'NTST',
+            'NCOL', 'Label', 'ISW', 'NTST',
             'Point number', 'Parameters']
 
     # make sure the solutions are fully parsed...
