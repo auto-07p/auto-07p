@@ -182,6 +182,8 @@ class AUTOBranch:
         return self
 
     def __len__(self):
+        if self.coordarray == []:
+            return 0
         return len(self.coordarray[0])
 
     # Removes solutions with the given labels or type names
