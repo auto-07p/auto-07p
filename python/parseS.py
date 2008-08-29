@@ -123,12 +123,16 @@ class parseS(UserList.UserList):
         output.flush()
 
     def readFilename(self,filename):
-	inputfile = open(filename,"rb")
+        try:
+            inputfile = open(filename,"rb")
+        except IOError:
+            import gzip
+            inputfile = gzip.open(filename+".gz","rb")
         self.read(inputfile)
         inputfile.close()
 
     def writeFilename(self,filename):
-	output = open(filename,"w")
+	output = open(filename,"wb")
         self.write(output)
 	output.close()
 
@@ -236,7 +240,7 @@ class AUTOSolution(UserDict.UserDict):
                 udot.append(self.coordarray[i][key])
             item = { self.indepvarname : self.indepvararray[key],
                      "u" : u,
-                     "udot" : udot }
+                     "u dot" : udot }
             return item
         else:
             if key in big_data_keys and not(self.__fullyParsed):
@@ -256,17 +260,25 @@ class AUTOSolution(UserDict.UserDict):
 	return parseB.type_translation(self["Type number"])["long name"]
 
     def readAllFilename(self,filename):
-	inputfile = open(filename,"rb")
+        try:
+            inputfile = open(filename,"rb")
+        except IOError:
+            import gzip
+            inputfile = gzip.open(filename+".gz","rb")
 	self.readAll(inputfile)
 	inputfile.close()
 
     def readFilename(self,filename):
-	inputfile = open(filename,"rb")
+        try:
+            inputfile = open(filename,"rb")
+        except IOError:
+            import gzip
+            inputfile = gzip.open(filename+".gz","rb")
 	self.read(inputfile)
 	inputfile.close()
 
     def writeFilename(self,filename):
-	output = open(filename,"w")
+	output = open(filename,"wb")
 	self.write(output)
         output.flush()
 	output.close()
@@ -304,7 +316,7 @@ class AUTOSolution(UserDict.UserDict):
             # guess the end from the previous solution
             end = input.tell() + prev._getEnd() - prev._getStartOfData()
             # See if the guess for the solution end is correct
-            input.seek(end,0)
+            input.seek(end)
             data = input.readline()
             data = string.split(data)
             # This is where we detect the end of the file
@@ -503,7 +515,7 @@ class AUTOSolution(UserDict.UserDict):
                                                          self["NCOL"],
                                                          npar
                                                          )
-	output.write(line+"\n")
+	output.write(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
         # the end of the solution we can just copy from the raw data from the
         # input file into the output file.
@@ -513,19 +525,16 @@ class AUTOSolution(UserDict.UserDict):
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
-            for point in self["data"]:
-                num = "%19.10E" % (point["t"])
-                line = "    "+num
-                j = 1
-                for n in point["u"]:
-                    num = "%19.10E" % (n)
-                    line = line + num
-                    j = j + 1
+            slist = []
+            half = len(self.coordarray)/2
+            for i in range(len(self.indepvararray)):
+                slist.append("    "+"%19.10E" % (self.indepvararray[i]))
+                for j in range(1,half+1):
                     if j%7==0:
-                        output.write(line+"\n")
-                        line = "    "
-                if j%7!=0:
-                    output.write(line+"\n")
+                        slist.append(os.linesep+"    ")
+                    slist.append("%19.10E" % (self.coordarray[j-1][i]))
+                slist.append(os.linesep)
+            output.write(string.join(slist,""))
             # I am using the value of NTST to test to see if it is an algebraic or
             # ODE problem.
             if self["NTST"] != 0:
@@ -534,32 +543,30 @@ class AUTOSolution(UserDict.UserDict):
                     output.write("%5d" % (parameter))
                     j = j + 1
                     if j%20==0:
-                        output.write("\n")
+                        output.write(os.linesep)
                 if j%20!=0:
-                    output.write("\n")
+                    output.write(os.linesep)
 
                 line = "    "
                 i = 0
                 for vi in self["Parameter NULL vector"]:
                     num = "%19.10E" % (vi)
                     if i != 0 and i%7==0:
-                        line = line + "\n    "
+                        line = line + os.linesep + "    "
                     line = line + num
                     i = i + 1
-                output.write(line+"\n")
+                output.write(line+os.linesep)
 
-                for point in self["data"]:
-                    line = "    "
-                    j = 0
-                    for n in point["u dot"]:
-                        num = "%19.10E" % (n)
-                        line = line + num
-                        j = j + 1
-                        if j%7==0:
-                            output.write(line+"\n")
-                            line = "    "
-                    if j%7!=0:
-                        output.write(line+"\n")
+                # write UDOTPS
+                slist = []
+                for i in range(len(self.indepvararray)):
+                    slist.append("    ")
+                    for j in range(half):
+                        if j!=0 and j%7==0:
+                            slist.append(os.linesep+"    ")
+                        slist.append("%19.10E" %(self.coordarray[j+half][i]))
+                    slist.append(os.linesep)
+                output.write(string.join(slist,""))
 
             line = "    "
             j = 0
@@ -568,10 +575,10 @@ class AUTOSolution(UserDict.UserDict):
                 line = line + num 
                 j = j + 1
                 if j%7==0:
-                    output.write(line+"\n")
+                    output.write(line+os.linesep)
                     line = "    "
             if j%7!=0:
-                output.write(line+"\n")
+                output.write(line+os.linesep)
             output.flush()
 
 def pointtest(a,b):

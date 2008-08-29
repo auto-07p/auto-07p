@@ -107,11 +107,15 @@ class plotter(grapher.GUIGrapher):
             self.cget("bifurcation_diagram").read(value.getBifurcation_diagram())
             self.cget("solution").read(value.getSolution())
         elif key == "bifurcation_diagram_filename":
-            if os.path.exists(value):
+            try:
                 self.cget("bifurcation_diagram").readFilename(value)
+            except IOError:
+                pass
         elif key == "solution_filename":
-            if os.path.exists(value):
+            try:
                 self.cget("solution").readFilename(value)
+            except IOError:
+                pass
             if self.cget("label") != [0]:
                 self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":

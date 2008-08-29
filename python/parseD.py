@@ -104,7 +104,11 @@ class parseD(UserList.UserList):
         self.data[-1]["Text"] = self.data[-1]["Text"][:-len(divstr)]
 
     def readFilename(self,filename):
-        self.read(open(filename,"r"))
+        try:
+            inputfile = open(filename,"r")
+        except IOError:
+            import gzip
+            inputfile = gzip.open(filename+".gz","r")
         
     def write(self,output):
         output.write(self.__str__())

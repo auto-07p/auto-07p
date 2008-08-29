@@ -422,36 +422,40 @@ class AUTOBranch:
             for line in inputfile:
                 columns = split(line)
                 if columns[0] != '0':
+                    self._lastline = line
                     break
                 headerlist.append(line)
         ncolumns = len(columns)
         linelen = len(line)
         datalist = []
         if columns[0] != '0':
+            self._lastline = None
             if screen_lines:
                 if columns[2] != 0:
                     datalist = columns
-                n = 1
                 for line in inputfile:
                     columns = split(line)
                     if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                        self._lastline = line
                         break
                     if columns[2] != 0:
                         datalist.extend(columns)
-                    n = n + 1
             else:
                 datalist = columns
                 for line in inputfile:
                     columns = split(line)
                     if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                        self._lastline = line
                         break
                     datalist.extend(columns)
-            if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
-                self._lastline = line
         self.__parse(headerlist,ncolumns,linelen,datalist)
 
     def readFilename(self,filename,screen_lines=0):
-	inputfile = open(filename,"r")
+        try:
+            inputfile = open(filename,"r")
+        except IOError:
+            import gzip
+            inputfile = gzip.open(filename+".gz","r")
 	self.read(inputfile,screen_lines)
 	inputfile.close()
 
