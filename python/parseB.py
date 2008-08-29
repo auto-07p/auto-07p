@@ -87,6 +87,8 @@ def type_translation(type):
 # a branch within the parseB class
 class AUTOBranch:
     def __init__(self,input=None,screen_lines=0,prevline=None):
+        self.coordarray = []
+        self.coordnames = []
         if input is not None:
             self.read(input,screen_lines,prevline)
 
@@ -99,7 +101,6 @@ class AUTOBranch:
         if header != "":
             self.constants = self.parseHeader(header)
         line = headerlist[-1]
-        self.coordnames = []
         if string.find(line, " PT ") != -1:
             columnlen = (linelen - 19) / (ncolumns - 4)
             n = linelen - columnlen * (ncolumns - 4)

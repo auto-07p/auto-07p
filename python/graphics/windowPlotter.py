@@ -181,7 +181,7 @@ class WindowPlotter(Pmw.MegaToplevel):
             entry = string.replace(entry,"[","['")
             entry = string.replace(entry,"]","']")
             entry = string.replace(entry,",","','")
-            if entry[0] != '[':
+            if entry == "" or entry[0] != '[':
                 entry = "'" + entry + "'"
             self.grapher[key] = eval(entry,{},{})
         if key == "type":

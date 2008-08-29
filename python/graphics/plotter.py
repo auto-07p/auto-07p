@@ -203,7 +203,7 @@ class plotter(grapher.GUIGrapher):
                         old = 0
                         for pt in branch.stability:
                             abspt = abs(pt)
-                            if old < abspt - 1 and abspt > 2:
+                            if abspt > 2 or pt == branch.stability[-1]:
                                 self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
                                                     newsect,stable=pt<0)
                                 old = abspt - 1
