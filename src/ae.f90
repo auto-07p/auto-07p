@@ -52,7 +52,7 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
-    LOGICAL IPOS,CHNG
+    LOGICAL IPOS,CHNG,SECOND
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -74,23 +74,12 @@ CONTAINS
 
     NINS=0
     IAP(33)=NINS
-    RBP=0.d0
-    REV=0.d0
-    RLP=0.d0
-    IF(NUZR.GT.0)THEN
-       DO I=1,NUZR
-          UZR(I)=0.d0
-       ENDDO
-    ENDIF
     RDS=DS
     DSOLD=DS
     RAP(5)=DSOLD
-    NIT=0
     NBIF=0
     NBFC=0
     IPOS=.TRUE.
-    NTOT=0
-    IAP(32)=NTOT
     LAB=0
     IAP(37)=LAB
 
@@ -125,9 +114,6 @@ CONTAINS
 
     CALL STHD(IAP,RAP,ICP,ICU)
 
-! Write plotting data for the starting point
-
-    ISTOP=0
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE
@@ -135,178 +121,161 @@ CONTAINS
     ENDIF
     IAP(27)=ITP
     U(NDIM+1)=PAR(ICP(1))
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 6
 
-! Set initial approximations to the second point on the branch
+    DO !bifurcation switch loop
 
-    IF(ISW<0)GOTO 22
-    UOLD(:)=U(:)
-    U(:)=UOLD(:)+RDS*UDOT(:)
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 5
-    ITP=0
-    IAP(27)=ITP
-    GOTO 3
-
-! Initialize computation of the next bifurcating branch.
-
- 2  CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
-    CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
-
-    IF(IPOS)THEN
-       NBIF=NBIF-1
-       NBFC=NBFC+1
-    ENDIF
-
-    RBP=0.d0
-    REV=0.d0
-    RLP=0.d0
-    IF(NUZR.GT.0)THEN
+       RBP=0.d0
+       REV=0.d0
+       RLP=0.d0
        DO I=1,NUZR
           UZR(I)=0.d0
        ENDDO
-    ENDIF
-    IF(.NOT.IPOS .OR. MXBF.LT.0 )IBR=IBR+1
-    IAP(30)=IBR
 
-    NTOT=0
-    IAP(32)=NTOT
-    ISTOP=0
-    ITP=0
-    IAP(27)=ITP
-    NIT=0
-    DSOLD=RDS
-    RAP(5)=DSOLD
+       NTOT=0
+       IAP(32)=NTOT
+       ISTOP=0
+       NIT=0
 
 ! Store plotting data for first point on the bifurcating branch
+! or for the starting point
 
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 6
+       CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
-! Determine the second point on the bifurcating branch
-
-22  CALL SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 5
-
-! Store plotting data for second point :
-
-    CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
-    IF(ISTOP.EQ.1)GOTO 6
-    RBP=0.d0
-    REV=0.d0
-    RLP=0.d0
+       SECOND=.TRUE.
+       DO WHILE(ISTOP==0) ! branch computation loop
+          ITP=0
+          IAP(27)=ITP
 
 ! Provide initial approximation to the next point on the branch
-
-3   CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
+          CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
 
 ! Find the next solution point on the branch
-
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
+          CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
 
 ! Check for user supplied parameter output parameter-values.
 
-    IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
-       DO IUZR=1,NUZR
-          IAP(26)=IUZR
-          CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
-               U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
-          ITP=IAP(27)
-          IF(ITP.EQ.-1.AND.ISTOP.EQ.0)THEN
-             ITP=-4-10*ITPST
-             IAP(27)=ITP
-             IF(IUZ(IUZR).GT.0)THEN
-                DO K=1,NUZR
-                   UZR(K)=0.d0
-                ENDDO
-             ELSE
-                ISTOP=-1
-             ENDIF
+          IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
+             DO IUZR=1,NUZR
+                IAP(26)=IUZR
+                CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
+                     U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
+                ITP=IAP(27)
+                IF(ITP.EQ.-1.AND.ISTOP.EQ.0)THEN
+                   ITP=-4-10*ITPST
+                   IAP(27)=ITP
+                   IF(IUZ(IUZR).GT.0)THEN
+                      DO K=1,NUZR
+                         UZR(K)=0.d0
+                      ENDDO
+                   ELSE
+                      ISTOP=-1
+                   ENDIF
+                ENDIF
+             ENDDO
           ENDIF
-       ENDDO
-    ENDIF
 
 ! Check for fold
 
-    IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
-            U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
-       ITP=IAP(27)
-       IF(ISTOP.EQ.0.AND.ITP.EQ.-1) THEN
-          ITP=2+10*ITPST
-          IAP(27)=ITP
-          IF(ILP.GT.0)THEN
-             RLP=0.d0
-             RBP=0.d0
-             REV=0.d0
-          ELSE
+          IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
+             CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
+                  U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
+             ITP=IAP(27)
+             IF(ISTOP.EQ.0.AND.ITP.EQ.-1) THEN
+                ITP=2+10*ITPST
+                IAP(27)=ITP
+                IF(ILP.GT.0)THEN
+                   RLP=0.d0
+                   RBP=0.d0
+                   REV=0.d0
+                ELSE
 !            *Stop at the first found fold
-             ISTOP=-1
+                   ISTOP=-1
+                ENDIF
+             ENDIF
           ENDIF
-       ENDIF
-    ENDIF
 !
 ! Check for branch point, and if so store data :
 !
-    IF(ISTOP.EQ.0.AND.ABS(ISP).GT.0)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
-            U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
-       ITP=IAP(27)
-       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
-          ITP=1+10*ITPST
-          IAP(27)=ITP
-          IF(ISP.GT.0)THEN
-             CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
-             RLP=0.d0
-             RBP=0.d0
-             REV=0.d0
-          ELSE
+          IF(ISTOP.EQ.0.AND.ABS(ISP).GT.0)THEN
+             CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
+                  U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
+             ITP=IAP(27)
+             IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
+                ITP=1+10*ITPST
+                IAP(27)=ITP
+                IF(ISP.GT.0)THEN
+                   CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
+                   RLP=0.d0
+                   RBP=0.d0
+                   REV=0.d0
+                ELSE
 !            *Stop at the first found BP
-             ISTOP=-1
+                   ISTOP=-1
+                ENDIF
+             ENDIF
           ENDIF
-       ENDIF
-    ENDIF
 
 ! Check for Hopf bifurcation
 
-    IF(ISTOP.EQ.0.AND.ABS(IPS).EQ.1)THEN
-       CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
-            U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
-       ITP=IAP(27)
-       IF(ITP.EQ.-1)THEN
-          ITP=3+10*ITPST
-          IAP(27)=ITP
-          RLP=0.d0
-          RBP=0.d0
-          REV=0.d0
-       ENDIF
-    ELSEIF(ABS(IPS).EQ.1)THEN
+          IF(ISTOP.EQ.0.AND.ABS(IPS).EQ.1)THEN
+             CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
+                  U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
+             ITP=IAP(27)
+             IF(ITP.EQ.-1)THEN
+                ITP=3+10*ITPST
+                IAP(27)=ITP
+                RLP=0.d0
+                RBP=0.d0
+                REV=0.d0
+             ENDIF
+          ELSEIF(ABS(IPS).EQ.1)THEN
 ! Still determine eigenvalue information and stability
-       REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
-    ENDIF
+             REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+          ENDIF
 
 ! Store plotting data on unit 7 :
 
-5   CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
+          NTOT=IAP(32)
+          IF(ISW<0.OR..NOT.SECOND)THEN
+             CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
+          ENDIF
 
 ! Adapt the stepsize along the branch
 
-    ITP=IAP(27)
-    NTOT=IAP(32)
-    IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
-         .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
-       ITNW=IAP(20)
-       NTOP=MOD(NTOT-1,9999)+1
-       DSMAX=RAP(3)
-       CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
-    ENDIF
+          ITP=IAP(27)
+          IF(IADS.NE.0 .AND. .NOT.SECOND .AND. MOD(NTOT,IADS).EQ.0 &
+               .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
+             ITNW=IAP(20)
+             NTOP=MOD(NTOT-1,9999)+1
+             DSMAX=RAP(3)
+             CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+          ENDIF
+          SECOND=.FALSE.
+       ENDDO !from branch computation loop
 
-6   ITP=0
-    IAP(27)=ITP
-    IF(ISTOP.EQ.0)GOTO 3
+       IF(NBIF==0.OR.NBFC>=ABS(MXBF))EXIT
 
-    IF(NBIF.NE.0 .AND. NBFC.LT.ABS(MXBF))GOTO 2
+       ! Initialize computation of the next bifurcating branch.
+
+       CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
+       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
+
+       ITP=0
+       IAP(27)=ITP
+       DSOLD=RDS
+       RAP(5)=DSOLD
+
+       IF(IPOS)THEN
+          NBIF=NBIF-1
+          NBFC=NBFC+1
+       ENDIF
+
+       IF(.NOT.IPOS .OR. MXBF.LT.0 )IBR=IBR+1
+       IAP(30)=IBR
+
+       ISW=-1
+       IAP(10)=ISW
+    ENDDO !from bifurcation switch loop
 
     DEALLOCATE(EVV,AA,U,UDOT,UOLD,STUD,STU,UZR)
   END SUBROUTINE CNRLAE
@@ -335,7 +304,7 @@ CONTAINS
 ! Gets the starting data from unit 3
     INTEGER IAP(*),ICP(*),NODIR
     DOUBLE PRECISION RAP(*),PAR(*),U(*),UDOT(*)
-    INTEGER IRS,NFPR,NFPRS,NPARS,I
+    INTEGER IRS,NFPR,NFPRS,I
     INTEGER,ALLOCATABLE :: ICPRS(:)
 
     IRS=IAP(3)
@@ -438,12 +407,15 @@ CONTAINS
 
     NDIM=IAP(1)
     IPS=IAP(2)
+    NTOT=IAP(32)
 
     DSOLD=RAP(5)
 
-    DO I=1,NDIM+1
-       UDOT(I)=(U(I)-UOLD(I))/DSOLD
-    ENDDO
+    IF(NTOT>1)THEN
+       DO I=1,NDIM+1
+          UDOT(I)=(U(I)-UOLD(I))/DSOLD
+       ENDDO
+    ENDIF
 
     DO I=1,NDIM+1
        UOLD(I)=U(I)
@@ -467,25 +439,40 @@ CONTAINS
 ! from the current point. An initial approximation to the new point
 ! ( i.e. to PAR(ICP(1)) and U ) has been supplied by CONT.
 
+! It also controls the computation of the second point on a bifurcating branch.
+! This point is required to lie in a hyper-plane at distance DS from the
+! branch point. This hyper-plane is parallel to the tangent of the
+! known branch at the branch point.
+
     EXTERNAL FUNI
 
-    INTEGER IAP(*),ICP(*),NIT
-    DOUBLE PRECISION RAP(*),AA(IAP(1)+1,*),U(*),UOLD(*),UDOT(*),THU(*),PAR(*)
-    DOUBLE PRECISION RDS
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    INTEGER, INTENT(OUT) :: NIT
+    INTEGER, INTENT(INOUT) :: ISTOP
+    DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
+    DOUBLE PRECISION, INTENT(OUT) :: UOLD(*),AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
 ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: RHS(:),DU(:),DFDU(:,:),DFDP(:,:)
+    INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K,NDM,ISW
+    DOUBLE PRECISION, ALLOCATABLE :: U1(:),RHS(:),DU(:), &
+         DFDU(:,:),DFDP(:,:)
+    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET,DSOLD
+    DOUBLE PRECISION AU,ADU,DELREF
+    CHARACTER (LEN=*), PARAMETER :: O9 = & 
+     "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
+        &ES11.3,1X,'U=',7ES11.3)"
     CHARACTER (LEN=7) FIXEDMINIMUM
-    INTEGER NDIM,IADS,IID,ITNW,NDM,IBR,ISTOP,I,K,NTOP,NTOT,NIT1,NPAR
-    DOUBLE PRECISION DSMIN,DSMAX,DSOLD,DET,DELREF,EPSL,EPSU,SS
-    DOUBLE PRECISION DUMX,UMX,RDUMX,ADU,AU,RDRLM
 
     NDIM=IAP(1)
     IADS=IAP(8)
+    ISW=IAP(10)
     IID=IAP(18)
     ITNW=IAP(20)
     NDM=IAP(23)
     IBR=IAP(30)
     NPAR=IAP(31)
+    NTOT=IAP(32)
+    NTOP=MOD(NTOT-1,9999)+1
 
     DSMIN=RAP(2)
     EPSL=RAP(11)
@@ -499,17 +486,21 @@ CONTAINS
        DSOLD=RDS
        RAP(5)=DSOLD
        NIT=0
-       NTOT=IAP(32)
-       NTOP=MOD(NTOT-1,9999)+1
+
+! Write additional output on unit 9 if requested :
+
        IF(IID.GE.2)THEN
-          IF(NIT.EQ.0)THEN
+          IF(ISW==-1.AND.NTOT==1)THEN
+             WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
+                  U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
+          ELSE
              CALL WRBAR("=",47)
              WRITE(9,100)
+             WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
+100          FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
+101          FORMAT(I4,I6,I4,5X,2ES14.5)
           ENDIF
-          WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
        ENDIF
-100    FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
-101    FORMAT(I4,I6,I4,5X,2ES14.5)
 
 
 ! Call user-supplied FUNC to evaluate the right hand side of the
@@ -531,11 +522,20 @@ CONTAINS
              ENDDO
           ENDDO
           SS=0.d0
-          DO K=1,NDIM+1
-             AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))/RDS
-             SS=SS+THU(K)*(U(K)-UOLD(K))**2
-          ENDDO
-          RHS(NDIM+1)=RDS-SS/RDS
+          IF(ISW==-1.AND.NTOT==1)THEN
+             ! Branch switch
+             DO K=1,NDIM+1
+                AA(NDIM+1,K)=THU(K)*UDOT(K)
+                SS=SS+THU(K)*(U(K)-UOLD(K)-RDS*UDOT(K))*UDOT(K)
+             ENDDO
+             RHS(NDIM+1)=-SS
+          ELSE
+             DO K=1,NDIM+1
+                AA(NDIM+1,K)=2.d0*THU(K)*(U(K)-UOLD(K))/RDS
+                SS=SS+THU(K)*(U(K)-UOLD(K))**2
+             ENDDO
+             RHS(NDIM+1)=RDS-SS/RDS
+          ENDIF
 
 ! Use Gauss elimination with pivoting to solve the linearized system :
 
@@ -558,10 +558,16 @@ CONTAINS
           ENDDO
 
           IF(IID.GE.2)THEN
-             WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
+             IF(ISW==-1.AND.NTOT==1)THEN
+                WRITE(9,O9)IBR,NTOP,NIT,ICP(1),U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
+             ELSE
+                WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
+             ENDIF
           ENDIF
 
-          RDRLM= ABS(DU(NDIM+1))/(1.d0+ ABS(U(NDIM+1)))
+! Check whether relative error has reached user-supplied tolerance :
+
+          RDRLM=ABS(DU(NDIM+1))/(1.d0+ABS(U(NDIM+1)))
           RDUMX=DUMX/(1.d0+UMX)
           IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
 ! Recompute Jacobian for test functions
@@ -582,21 +588,21 @@ CONTAINS
              RETURN
           ENDIF
 
-! Check whether relative error has reached user-supplied tolerance :
-
-          IF(NIT.EQ.1)THEN
-             DELREF=20*MAX(RDRLM,RDUMX)
-          ELSE
-             IF(MAX(RDRLM,RDUMX).GT.DELREF)EXIT
+          IF(ISW/=-1.OR.NTOT/=1)THEN
+             IF(NIT.EQ.1)THEN
+                DELREF=20*MAX(RDRLM,RDUMX)
+             ELSE
+                IF(MAX(RDRLM,RDUMX).GT.DELREF)EXIT
+             ENDIF
           ENDIF
 
        ENDDO
 
-! Maximum number of iterations has been reached
+! Maximum number of iterations has been reached.
 
        IF(IADS.EQ.0)EXIT
 
-! Reduce stepsize and try again
+! Reduce stepsize and try again.
 
        DSMAX=RAP(3)
        NIT=ITNW
@@ -605,18 +611,26 @@ CONTAINS
        DO I=1,NDIM+1
           U(I)=UOLD(I)+RDS*UDOT(I)
        ENDDO
-       IF(IID.GE.2)WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
+       IF(IID.GE.2)THEN
+          WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
+       ENDIF
     ENDDO
 
-! Minimum stepsize reached
+! Minimum stepsize reached.
 
     IF(IADS==0)THEN
        FIXEDMINIMUM='fixed'
     ELSE
        FIXEDMINIMUM='minimum'
     ENDIF
-    WRITE(9,"(I4,I6,A,A,A)")&
-         IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
+    IF(ISW/=-1.OR.NTOT/=1)THEN
+       WRITE(9,"(I4,I6,A,A,A)")&
+         IBR,NTOP,' NOTE:No convergence when switching branches with ',&
+         FIXEDMINIMUM,' step size'
+    ELSE
+       WRITE(9,"(I4,I6,A,A,A)")&
+            IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
+    ENDIF
     DO I=1,NDIM+1
        U(I)=UOLD(I)
     ENDDO
@@ -680,47 +694,42 @@ CONTAINS
 
     S0=0.d0
     S1=DSOLD
-    ITLCSP=0
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
-1   RDS=(1.d0+HMACH)*RDS
-    S=S1+RDS
+    DO ITLCSP=0,ITMX
+       RDS=(1.d0+HMACH)*RDS
+       S=S1+RDS
 
 ! Return if relative tolerance has been met :
 
-    RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
-    IF(RRDS.LT.EPSS)THEN
-       ITP=-1
-       IAP(27)=ITP
-       Q=0.d0
-       WRITE(9,102)RDS
-       RETURN
-    ENDIF
+       RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
+       IF(RRDS.LT.EPSS)THEN
+          ITP=-1
+          IAP(27)=ITP
+          Q=0.d0
+          WRITE(9,102)RDS
+          RETURN
+       ENDIF
 
 ! If requested write additional output on unit 9 :
 
-    IF(IID.GE.2)THEN
-       WRITE(9,101)ITLCSP,RDS
-    ENDIF
+       IF(IID.GE.2)THEN
+          WRITE(9,101)ITLCSP,RDS
+       ENDIF
 
-    CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
-    CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
-    IF(ISTOP.EQ.1)THEN
-       Q=0.d0
-       RETURN
-    ENDIF
+       CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
+       CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
+       IF(ISTOP.EQ.1)THEN
+          Q=0.d0
+          RETURN
+       ENDIF
 
-    Q=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
-    ITLCSP=ITLCSP+1
-    IF(ITLCSP.LE.ITMX)THEN
+       Q=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
-       GOTO 1
-    ELSE
-       WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
-       Q=0.d0
-       RETURN
-    ENDIF
+    ENDDO
+    WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
+    Q=0.d0
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)
@@ -1046,161 +1055,6 @@ CONTAINS
 
   END SUBROUTINE SWPNT
 
-! ---------- -----
-  SUBROUTINE SWPRC(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,RDS,THU,NIT,ISTOP)
-
-    USE MESH
-    USE SUPPORT
-    IMPLICIT NONE
-
-! Controls the computation of the second point on a bifurcating branch.
-! This point is required to lie in a hyper-plane at distance DS from the
-! branch point. This hyper-plane is parallel to the tangent of the
-! known branch at the branch point.
-
-    EXTERNAL FUNI
-
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
-    INTEGER, INTENT(OUT) :: NIT
-    INTEGER, INTENT(INOUT) :: ISTOP
-    DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: UOLD(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
-! Local
-    INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K
-    DOUBLE PRECISION, ALLOCATABLE :: U1(:),AA(:,:),RHS(:),DU(:), &
-         DFDU(:,:),DFDP(:,:)
-    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET,DSOLD
-    DOUBLE PRECISION AU,ADU
-    CHARACTER (LEN=*), PARAMETER :: O9 = & 
-     "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
-        &ES11.3,1X,'U=',7ES11.3)"
-    CHARACTER (LEN=7) FIXEDMINIMUM
-
-    NDIM=IAP(1)
-    IADS=IAP(8)
-    IID=IAP(18)
-    ITNW=IAP(20)
-    IBR=IAP(30)
-    NPAR=IAP(31)
-    NTOT=IAP(32)
-    NTOP=MOD(NTOT-1,9999)+1
-
-    DSMIN=RAP(2)
-    EPSL=RAP(11)
-    EPSU=RAP(12)
-
-! Initialize and provide initial guess :
-
-    ALLOCATE(U1(NDIM+1),AA(NDIM+1,NDIM+1),RHS(NDIM+1),&
-         DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
-    DO I=1,NDIM+1
-       UOLD(I)=U(I)
-    ENDDO
-
-    DO
-       DO I=1,NDIM+1
-          U(I)=UOLD(I)+RDS*UDOT(I)
-       ENDDO
-
-       DSOLD=RDS
-       RAP(5)=DSOLD
-       NIT=0
-
-! Write additional output on unit 9 if requested :
-
-       IF(IID.GE.2)WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
-            U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
-
-       DO I=1,NDIM+1
-          U1(I)=U(I)
-       ENDDO
-
-       DO NIT1=1,ITNW
-
-          NIT=NIT1
-          PAR(ICP(1))=U(NDIM+1)
-          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
-          DO I=1,NDIM
-             AA(I,NDIM+1)=DFDP(I,ICP(1))
-             RHS(I)=-RHS(I)
-             DO K=1,NDIM
-                AA(I,K)=DFDU(I,K)
-             ENDDO
-          ENDDO
-          SS=0.d0
-          DO K=1,NDIM+1
-             AA(NDIM+1,K)=THU(K)*UDOT(K)
-             SS=SS+THU(K)*(U(K)-U1(K))*UDOT(K)
-          ENDDO
-          RHS(NDIM+1)=-SS
-
-! Use Gauss elimination with pivoting to solve the linearized system :
-
-          IF(IID.GE.5)CALL WRJAC(NDIM+1,NDIM+1,AA,RHS)
-          CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
-          RAP(14)=DET
-
-! Add the Newton increments :
-
-          DO I=1,NDIM+1
-             U(I)=U(I)+DU(I)
-          ENDDO
-          DUMX=0.d0
-          UMX=0.d0
-          DO I=1,NDIM
-             ADU=ABS(DU(I))
-             IF(ADU>DUMX)DUMX=ADU
-             AU=ABS(U(I))
-             IF(AU>UMX)UMX=AU
-          ENDDO
-
-          IF(IID.GE.2)THEN
-             WRITE(9,O9)IBR,NTOP,NIT,ICP(1),U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
-          ENDIF
-
-! Check whether relative error has reached user-supplied tolerance :
-
-          RDRLM=ABS(DU(NDIM+1))/(1.d0+ABS(U(NDIM+1)))
-          RDUMX=DUMX/(1.d0+UMX)
-          IF(RDRLM.LT.EPSL.AND.RDUMX.LT.EPSU)THEN
-             DEALLOCATE(U1,AA,RHS,DU,DFDU,DFDP)
-             RETURN
-          ENDIF
-       ENDDO
-
-! Maximum number of iterations reached. Reduce stepsize and try again.
-
-       IF(IADS.EQ.0)EXIT
-       DSMAX=RAP(3)
-       NIT=ITNW
-       CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
-       IF(ABS(RDS).LT.DSMIN)EXIT
-       IF(IID.GE.2)THEN
-          WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
-       ENDIF
-    ENDDO
-
-! Minimum stepsize reached.
-
-    IF(IADS==0)THEN
-       FIXEDMINIMUM='fixed'
-    ELSE
-       FIXEDMINIMUM='minimum'
-    ENDIF
-    WRITE(9,"(I4,I6,A,A,A)")&
-         IBR,NTOP,' NOTE:No convergence when switching branches with ',&
-         FIXEDMINIMUM,' step size'
-    DO I=1,NDIM+1
-       U(I)=UOLD(I)
-    ENDDO
-    PAR(ICP(1))=U(NDIM+1)
-    ISTOP=1
-
-    DEALLOCATE(U1,AA,RHS,DU,DFDU,DFDP)
-
-  END SUBROUTINE SWPRC
-  
 ! ---------- ------
   SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
