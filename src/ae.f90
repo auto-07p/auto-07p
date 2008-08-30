@@ -52,7 +52,7 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
-    LOGICAL IPOS,CHNG,SECOND
+    LOGICAL IPOS,CHNG
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -64,6 +64,11 @@ CONTAINS
     NUZR=IAP(15)
     MXBF=IAP(17)
     NBIFS=ABS(MXBF)
+    IF(MXBF>0)THEN
+       NBFCS=2*NBIFS
+    ELSE
+       NBFCS=NBIFS
+    ENDIF
     ITPST=IAP(28)
     IBR=IAP(30)
 
@@ -75,10 +80,7 @@ CONTAINS
     NINS=0
     IAP(33)=NINS
     RDS=DS
-    DSOLD=DS
-    RAP(5)=DSOLD
     NBIF=0
-    NBFC=0
     IPOS=.TRUE.
     LAB=0
     IAP(37)=LAB
@@ -99,33 +101,13 @@ CONTAINS
 
     CALL NEWLAB(IAP)
 
-! Starting procedure  (to get direction vector) :
-
-    IF(NODIR==1.AND.ISW>=0)THEN
-       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0)
-    ELSEIF(IRS/=0.AND.ISW<0)THEN
-       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
-    ELSEIF(UDOT(NDIM+1)<0.d0)THEN
-! Make sure that the PAR(ICP(1))-dot is positive.
-       UDOT(:)=-UDOT(:)
-    ENDIF
-
 ! Write constants
 
     CALL STHD(IAP,RAP,ICP,ICU)
 
-    IF(IRS.EQ.0) THEN
-       ITP=9+10*ITPST
-    ELSE
-       ITP=0
-    ENDIF
-    IAP(27)=ITP
-    U(NDIM+1)=PAR(ICP(1))
-
-    DO !bifurcation switch loop
+    DO NBFC=0,NBFCS !bifurcation switch loop
 
        RBP=0.d0
-       REV=0.d0
        RLP=0.d0
        DO I=1,NUZR
           UZR(I)=0.d0
@@ -136,12 +118,52 @@ CONTAINS
        ISTOP=0
        NIT=0
 
+       IF(IRS.EQ.0) THEN
+          ITP=9+10*ITPST
+       ELSE
+          ITP=0
+       ENDIF
+       IAP(27)=ITP
+       U(NDIM+1)=PAR(ICP(1))
+
+       DSOLD=RDS
+       RAP(5)=DSOLD
+
+! Starting procedure  (to get direction vector) :
+
+       IF(NODIR==1.AND.ISW>=0)THEN
+          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0,AA)
+       ELSEIF(IRS/=0.AND.ISW<0)THEN
+          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1,AA)
+       ELSE
+          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,-1,AA)
+       ENDIF
+       ! Get stability
+       REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+
 ! Store plotting data for first point on the bifurcating branch
 ! or for the starting point
 
        CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
-       SECOND=.TRUE.
+       IF(ISTOP==0)THEN
+! Provide initial approximation to the second point on the branch
+          UOLD(:)=U(:)
+          U(:)=U(:)+UDOT(:)*RDS
+
+! Determine the second point on the bifurcating or original branch
+          CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,&
+               ISW<0)
+
+          IF(ISW<0)THEN
+             ! Get stability
+             REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+             ! Store plotting data for second point :
+             CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
+          ENDIF
+       ENDIF
+
+       REV=0.d0
        DO WHILE(ISTOP==0) ! branch computation loop
           ITP=0
           IAP(27)=ITP
@@ -236,45 +258,36 @@ CONTAINS
 ! Store plotting data on unit 7 :
 
           NTOT=IAP(32)
-          IF(ISW<0.OR..NOT.SECOND)THEN
-             CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
-          ENDIF
+          CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
 
 ! Adapt the stepsize along the branch
 
           ITP=IAP(27)
-          IF(IADS.NE.0 .AND. .NOT.SECOND .AND. MOD(NTOT,IADS).EQ.0 &
+          IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
                .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
              ITNW=IAP(20)
              NTOP=MOD(NTOT-1,9999)+1
              DSMAX=RAP(3)
              CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
           ENDIF
-          SECOND=.FALSE.
        ENDDO !from branch computation loop
 
-       IF(NBIF==0.OR.NBFC>=ABS(MXBF))EXIT
+       IF(NBIF==0.OR.NBFC>=NBFCS)EXIT
 
        ! Initialize computation of the next bifurcating branch.
 
        CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
-       CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1)
-
-       ITP=0
-       IAP(27)=ITP
-       DSOLD=RDS
-       RAP(5)=DSOLD
 
        IF(IPOS)THEN
           NBIF=NBIF-1
-          NBFC=NBFC+1
        ENDIF
 
        IF(.NOT.IPOS .OR. MXBF.LT.0 )IBR=IBR+1
        IAP(30)=IBR
 
+       ! IRS and ISW are for internal use: don't store in IAP!
+       IRS=1
        ISW=-1
-       IAP(10)=ISW
     ENDDO !from bifurcation switch loop
 
     DEALLOCATE(EVV,AA,U,UDOT,UOLD,STUD,STU,UZR)
@@ -332,7 +345,7 @@ CONTAINS
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP)
+  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP,AA)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -342,9 +355,10 @@ CONTAINS
     EXTERNAL FUNI
 
     DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*),ICP(*)
+    DIMENSION AA(IAP(1)+1,IAP(1)+1)
 
 ! Local
-    ALLOCATABLE AA(:,:),F(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE AAA(:,:),F(:),DFDU(:,:),DFDP(:,:)
 
     NDIM=IAP(1)
     IID=IAP(18)
@@ -360,23 +374,20 @@ CONTAINS
 ! Determine the direction of the branch at the starting point
 
     CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-    IF(IPERP==1)THEN
-       ALLOCATE(AA(NDIM+1,NDIM+1))
-    ELSE
-       ALLOCATE(AA(NDIM,NDIM+1))
-    ENDIF
-    AA(:,1:NDIM)=DFDU(:,:)
-    AA(:,NDIM+1)=DFDP(:,ICP(1))
 
     IF(IPERP==1)THEN
+       AA(:,1:NDIM)=DFDU(:,:)
+       AA(:,NDIM+1)=DFDP(:,ICP(1))
        AA(NDIM+1,:)=UDOT(:)
        IF(IID.GE.3)CALL WRJAC(NDIM+1,NDIM+1,AA,F)
        CALL NLVC(NDIM+1,NDIM+1,1,AA,UDOT)
-    ELSE
-       IF(IID.GE.3)CALL WRJAC(NDIM,NDIM+1,AA,F)
-       CALL NLVC(NDIM,NDIM+1,1,AA,UDOT)
-       DEALLOCATE(AA)
-       ALLOCATE(AA(NDIM+1,NDIM+1))
+    ELSEIF(IPERP==0)THEN
+       ALLOCATE(AAA(NDIM,NDIM+1))
+       AAA(:,1:NDIM)=DFDU(:,:)
+       AAA(:,NDIM+1)=DFDP(:,ICP(1))
+       IF(IID.GE.3)CALL WRJAC(NDIM,NDIM+1,AAA,F)
+       CALL NLVC(NDIM,NDIM+1,1,AAA,UDOT)
+       DEALLOCATE(AAA)
     ENDIF
 
 ! Scale and make sure that the PAR(ICP(1))-dot is positive.
@@ -387,10 +398,15 @@ CONTAINS
     ENDDO
 
     SIGN=1.d0
-    IF(UDOT(NDIM+1)<0.d0.AND.IPERP==0)SIGN=-1.d0
+    IF(UDOT(NDIM+1)<0.d0.AND.IPERP/=1)SIGN=-1.d0
     UDOT(:)=SIGN/DSQRT(SS)*UDOT(:)
 
-    DEALLOCATE(AA,F,DFDU,DFDP)
+! Get the Jacobian for stability computation.
+    AA(:,1:NDIM)=DFDU(:,:)
+    AA(:,NDIM+1)=DFDP(:,ICP(1))
+    AA(NDIM+1,:)=UDOT(:)
+
+    DEALLOCATE(F,DFDU,DFDP)
 
   END SUBROUTINE STPRAE
 
@@ -411,11 +427,9 @@ CONTAINS
 
     DSOLD=RAP(5)
 
-    IF(NTOT>1)THEN
-       DO I=1,NDIM+1
-          UDOT(I)=(U(I)-UOLD(I))/DSOLD
-       ENDDO
-    ENDIF
+    DO I=1,NDIM+1
+       UDOT(I)=(U(I)-UOLD(I))/DSOLD
+    ENDDO
 
     DO I=1,NDIM+1
        UOLD(I)=U(I)
@@ -427,7 +441,7 @@ CONTAINS
   END SUBROUTINE CONTAE
 
 ! ---------- ------
-  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
+  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,SW)
 
     USE IO
     USE MESH
@@ -452,8 +466,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
     DOUBLE PRECISION, INTENT(OUT) :: UOLD(*),AA(IAP(1)+1,IAP(1)+1)
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
+    LOGICAL, OPTIONAL, INTENT(IN) :: SW
 ! Local
-    INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K,NDM,ISW
+    INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K,NDM
+    LOGICAL BSW
     DOUBLE PRECISION, ALLOCATABLE :: U1(:),RHS(:),DU(:), &
          DFDU(:,:),DFDP(:,:)
     DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET,DSOLD
@@ -465,7 +481,6 @@ CONTAINS
 
     NDIM=IAP(1)
     IADS=IAP(8)
-    ISW=IAP(10)
     IID=IAP(18)
     ITNW=IAP(20)
     NDM=IAP(23)
@@ -479,6 +494,9 @@ CONTAINS
     EPSU=RAP(12)
 
     DELREF=0
+    BSW=.FALSE.
+    IF(PRESENT(SW))BSW=SW
+    
 
     ALLOCATE(RHS(NDIM+1),DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
 
@@ -490,11 +508,11 @@ CONTAINS
 ! Write additional output on unit 9 if requested :
 
        IF(IID.GE.2)THEN
-          IF(ISW==-1.AND.NTOT==1)THEN
+          CALL WRBAR("=",47)
+          IF(BSW)THEN
              WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
                   U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
           ELSE
-             CALL WRBAR("=",47)
              WRITE(9,100)
              WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
 100          FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
@@ -522,7 +540,7 @@ CONTAINS
              ENDDO
           ENDDO
           SS=0.d0
-          IF(ISW==-1.AND.NTOT==1)THEN
+          IF(BSW)THEN
              ! Branch switch
              DO K=1,NDIM+1
                 AA(NDIM+1,K)=THU(K)*UDOT(K)
@@ -558,7 +576,7 @@ CONTAINS
           ENDDO
 
           IF(IID.GE.2)THEN
-             IF(ISW==-1.AND.NTOT==1)THEN
+             IF(BSW)THEN
                 WRITE(9,O9)IBR,NTOP,NIT,ICP(1),U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
              ELSE
                 WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
@@ -588,7 +606,7 @@ CONTAINS
              RETURN
           ENDIF
 
-          IF(ISW/=-1.OR.NTOT/=1)THEN
+          IF(.NOT.BSW)THEN
              IF(NIT.EQ.1)THEN
                 DELREF=20*MAX(RDRLM,RDUMX)
              ELSE
@@ -623,7 +641,7 @@ CONTAINS
     ELSE
        FIXEDMINIMUM='minimum'
     ENDIF
-    IF(ISW/=-1.OR.NTOT/=1)THEN
+    IF(BSW)THEN
        WRITE(9,"(I4,I6,A,A,A)")&
          IBR,NTOP,' NOTE:No convergence when switching branches with ',&
          FIXEDMINIMUM,' step size'
@@ -836,6 +854,9 @@ CONTAINS
 
     CHNG=.FALSE.
 
+! Set tolerance for deciding if an eigenvalue is in the positive
+! half-plane. Use, for example, tol=1d-3 for conservative systems.
+
 ! Try to guess whether the system is probably conservative or definitely not:
 ! the dimension is even and the trace 0 if it is conservative.
 ! In that case we use a tolerance to avoid detecting spurious
@@ -912,10 +933,6 @@ CONTAINS
 
 ! Count the number of eigenvalues with negative real part.
 
-! Set tolerance for deciding if an eigenvalue is in the positive
-! half-plane. Use, for example, tol=1d-3 for conservative systems.
-
-    tol=1.d-5
     NINS1=0
     DO I=1,NDM
        IF(REAL(EV(I)).LE.tol)NINS1=NINS1+1
@@ -936,7 +953,6 @@ CONTAINS
     NTOT=IAP(32)
     NTOTP1=NTOT+1
     IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
-    IF(NINS1.EQ.NDM)NTOTP1=-NTOTP1
 
     WRITE(9,102)ABS(IBR),NTOP+1,NINS
     IF(IPS.EQ.-1)THEN
@@ -1168,7 +1184,7 @@ CONTAINS
 
     NTOTS=NTOT
     NINS=IAP(33)
-    IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1 .AND. NTOT.GT.1)THEN
+    IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1)THEN
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
     CALL WRLINE(IAP,PAR,ICU,IBR,NTOTS,LABW,AMP,U)
