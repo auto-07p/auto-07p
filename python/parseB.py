@@ -86,22 +86,24 @@ def type_translation(type):
 
 # a branch within the parseB class
 class AUTOBranch:
-    def __init__(self,input=None,screen_lines=0,prevline=None):
+    def __init__(self,input=None,screen_lines=0,prevline=None,coordnames=[]):
         self.coordarray = []
         self.coordnames = []
+        self.labels = {}
         if input is not None:
-            self.read(input,screen_lines,prevline)
+            self.read(input,screen_lines,prevline,coordnames)
 
     def __parse(self,headerlist=None,ncolumns=None,linelen=None,
-                datalist=None):
-	if not headerlist:
-            return
+                datalist=None,coordnames=[]):
         header = string.join(headerlist,"")
         self.header = header
+        line = ""
         if header != "":
             self.constants = self.parseHeader(header)
-        line = headerlist[-1]
+            line = headerlist[-1]
+        self.coordnames = coordnames
         if string.find(line, " PT ") != -1:
+            self.coordnames = []
             columnlen = (linelen - 19) / (ncolumns - 4)
             n = linelen - columnlen * (ncolumns - 4)
             for i in range(ncolumns-4):
@@ -136,9 +138,11 @@ class AUTOBranch:
         points = data[:,1]
         # self.stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
-        self.stability = N.concatenate((N.compress(
-                    N.less(points[:-1]*points[1:],0),
-                    points[:-1]),points[-1:])).astype('i')
+        stab = N.concatenate((N.nonzero(N.less(points[:-1]*points[1:],0)),
+                              [len(points)-1]))
+        points = N.less(N.take(points,stab),0)
+        stab = stab + 1
+        self.stability = N.where(points,-stab,stab)
 
     def __parsearray(self,ncolumns,datalist):
         # for those without numpy...
@@ -166,9 +170,15 @@ class AUTOBranch:
             if lab != 0 or ty != 0:
                 self.labels[j/ncolumns] = {"LAB":lab,"TY number":ty,"PT":pt}
             if pt * prevpt < 0:
-                self.stability.append(prevpt)
+                p = j/ncolumns
+                if prevpt < 0:
+                    p = -p
+                self.stability.append(p)
             prevpt = pt
-        self.stability.append(pt)
+        p = len(data)/ncolumns
+        if pt < 0:
+            p = -p
+        self.stability.append(p)
 
     def __str__(self):
         return self.summary()
@@ -274,6 +284,10 @@ class AUTOBranch:
                     if p < 0:
                         pt = -pt
                     break
+            if pt < 0:
+                pt = -((-pt-1) % 9999) - 1
+            else:
+                pt = ((pt-1) % 9999) + 1
             tynumber = 0
             lab = 0
         data = []
@@ -351,6 +365,10 @@ class AUTOBranch:
                 lab = 0
             if pt == self.stability[istab]:
                 istab = istab + 1
+            if pt < 0:
+                pt = -((-pt-1) % 9999) - 1
+            else:
+                pt = ((pt-1) % 9999) + 1
             output_line = "%4d%6d%4d%5d"%(br,pt,tynumber,lab)
             for j in range(len(data)):
                 output_line = output_line + format%data[j][i]
@@ -392,7 +410,22 @@ class AUTOBranch:
 	self.write(output)
 	output.close()
 
-    def read(self,inputfile,screen_lines=0,prevline=None):
+    def __checknorotate(self,columns,datalist):
+        # Sometimes the point numbers rotate, like
+        # 9996, 9997, 9998, 9999, 1, 2, ...
+        # -9996, -9997, 1, 0, -1, -2, ... (an AUTO bug)
+        # do not define a new branch if that happens
+        prevpt = datalist[-len(columns)+1]
+        if prevpt not in ['9999','-9999','9997','-9997','0']:
+            return True
+        # do some corrections
+        if prevpt in ['-9997','9997']:
+            columns[1] = '-9998'
+        elif prevpt == '0':
+            datalist[-len(columns)+1] = '-9999'
+        return False
+
+    def read(self,inputfile,screen_lines=0,prevline=None,coordnames=[]):
         # We now go through the file and read the branches.
         # read the branch header
         # A section is defined as a part of a fort.7
@@ -438,7 +471,9 @@ class AUTOBranch:
                     datalist = columns
                 for line in inputfile:
                     columns = split(line)
-                    if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                    c = columns[1]
+                    if (columns[0] == '0' or ((c == '-1' or c == '1') and
+                         self.__checknorotate(columns,datalist))):
                         self._lastline = line
                         break
                     if columns[2] != 0:
@@ -447,11 +482,13 @@ class AUTOBranch:
                 datalist = columns
                 for line in inputfile:
                     columns = split(line)
-                    if columns[0] == '0' or columns[1] == '-1' or columns[1] == '1':
+                    c = columns[1]
+                    if (columns[0] == '0' or ((c == '-1' or c == '1') and
+                         self.__checknorotate(columns,datalist))):
                         self._lastline = line
                         break
                     datalist.extend(columns)
-        self.__parse(headerlist,ncolumns,linelen,datalist)
+        self.__parse(headerlist,ncolumns,linelen,datalist,coordnames)
 
     def readFilename(self,filename,screen_lines=0):
         try:
@@ -606,11 +643,13 @@ class parseB(AUTOBranch):
     def read(self,inputfile,screen_lines=0):
         # We now go through the file and read the branches.
         prevline = None
+        coordnames = []
         if not hasattr(inputfile,"next"):
             inputfile = AUTOutil.myreadlines(inputfile)
         while 1:
-            branch = AUTOBranch(inputfile,screen_lines,prevline)
+            branch = AUTOBranch(inputfile,screen_lines,prevline,coordnames)
             prevline = branch._lastline
+            coordnames = branch.coordnames
             self.branches.append(branch)
             if prevline is None:
                 break
