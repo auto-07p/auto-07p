@@ -411,6 +411,29 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         [x,y] = self.valueToCanvas(val)
         return [x,self.cget("realheight") - y]
 
+    def transform_seq(self,seqs):
+        minx=self.cget("minx")
+        maxx=self.cget("maxx")
+        miny=self.cget("miny")
+        maxy=self.cget("maxy")
+        width = int(self.cget("realwidth"))
+        height = int(self.cget("realheight"))
+        left_margin = self.cget("left_margin")
+        right_margin = self.cget("right_margin")
+        top_margin = self.cget("top_margin")
+        bottom_margin = self.cget("bottom_margin")
+        valuetocanvasfast = self.__valueToCanvasFast
+        sp2 = 5 #fontsize
+        sp4 = 5
+        l = []
+        for i in range(len(seqs[0])):
+            val = [seqs[0][i],seqs[1][i]]
+            [x,y] = valuetocanvasfast(val,minx,maxx,miny,maxy,
+                width,height,left_margin,right_margin,top_margin,bottom_margin)
+            l.append(
+                [(x - left_margin) / sp2,((height - y) - bottom_margin) / sp4])
+        return l
+
     def canvasToValue(self,val):
         if len(val) != 2:
             raise GrapherError,"Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements."
@@ -466,11 +489,11 @@ class LabeledGrapher(BasicGrapher):
         if not self.cget("use_labels") or len(self.labels) == 0:
             return
 
-        trans = self.transform
+        trans = self.transform_seq
         if self.cget("smart_label"):
             mp = self.inarrs()
             for i in range(len(self.data)):
-                self.map_curve(mp,self.data[i]["x"],self.data[i]["y"],trans)
+                self.map_curve(mp,trans([self.data[i]["x"],self.data[i]["y"]]))
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
@@ -642,50 +665,50 @@ class LabeledGrapher(BasicGrapher):
     #-----------------------------------------------------------------------
     #        Maps the curves in mp array
     #-----------------------------------------------------------------------
-    def map_curve(self,mp,xs,ys,trans):
-        sp1 = self.cget("left_margin")
-        sp2 = 5 #fontsize
-        sp3 = self.cget("bottom_margin")
-        sp4 = 5
+    def map_curve(self,mp,xys):
         ixmax = len(mp)
         iymax = len(mp[0])
-        minx = self["minx"]
-        maxx = self["maxx"]
-        miny = self["miny"]
-        maxy = self["maxy"]
-        x,y = xs[0],ys[0]
-        for i in range(1,len(xs)):
-            oldx,oldy = x,y
-            x,y = xs[i],ys[i]
+        [x2,y2] = xys[0]
+        ix2,iy2 = int(x2),int(y2)
+        for xy in xys[1:]:
+            x1,y1 = x2,y2
+            ix1,iy1 = ix2,iy2
+            [x2,y2] = xy
+            ix2,iy2 = int(x2),int(y2)
+            if ix1 == ix2 and iy1 == iy2:
+                #optimize common case of short line segments
+                if ix1 >= 0 and ix1 < ixmax and iy1 >= 0 and iy1 < iymax:
+                    mp[ix1][iy1] = 1
+                continue
             # if we are sure that the line is outside the graph limits we
             # should skip and save a lot of time
-            if ((oldx < minx and x < minx) or
-                (oldy < miny and y < miny) or
-                (oldx > maxx and x > maxx) or
-                (oldy > maxy and y > maxy)):
+            if ((ix1 < 0 and ix2 < 0) or (iy1 < 0 and iy2 < 0) or
+                (ix1 >= ixmax and ix2 >= ixmax) or 
+                (iy1 >= iymax and iy2 >= iymax)):
                 continue
-            xold,yold = trans((oldx,oldy))
-            x1 = (xold - sp1) / sp2
-            y1 = (yold - sp3) / sp4
-            xnew,ynew = trans((x,y))
-            dx = (xnew - xold) / sp2
-            dy = (ynew - yold) / sp4
+            dx = x2 - x1
+            dy = y2 - y1
             index = int(max(abs(dx),abs(dy))) + 1
-            ilow = 0
+            ilow  = 0
             ihigh = index
-            if dx != 0 and dy != 0:
+            if dx != 0:
                 xlim1 = -x1*index/dx
                 xlim2 = (ixmax-x1)*index/dx+1
+                ilow  = max(ilow,min(xlim1,xlim2))
+                ihigh = min(ihigh,max(xlim1,xlim2))
+            if dy != 0:
                 ylim1 = -y1*index/dy
                 ylim2 = (iymax-y1)*index/dy+1
-                ilow  = max(min(xlim1,xlim2),min(ylim1,ylim2),0)
-                ihigh = min(max(xlim1,xlim2),max(ylim1,ylim2),index)
+                ilow  = max(ilow,min(ylim1,ylim2))
+                ihigh = min(ihigh,max(ylim1,ylim2))
             for i in range(int(ilow),int(ihigh)):
                 f = float(i)/index
                 ix = int(x1 + f * dx)
                 iy = int(y1 + f * dy)
-                if ix >= 0 and ix < ixmax and iy >= 0 and iy < iymax:
-                    mp[ix][iy] = 1        
+                try:
+                    mp[ix][iy] = 1
+                except IndexError:
+                    pass
 
     def draw(self):
         self.plotlabels()

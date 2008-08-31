@@ -4,6 +4,7 @@ matplotlib.use('TkAgg')
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
+from matplotlib.numerix import transpose
 
 import Tkinter
 import Pmw
@@ -282,15 +283,25 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             return
 
         if hasattr(self.ax.transData,'transform'):
-            trans = self.ax.transData.transform
+            transseq = trans = self.ax.transData.transform
             inv_trans = self.ax.transData.inverted().transform
         else:
             trans = self.ax.transData.xy_tup
+            transseq = self.ax.transData.seq_xy_tups
             inv_trans = self.ax.transData.inverse_xy_tup
         if self.cget("smart_label"):
             mp = self.inarrs()
+            sp1 = self.cget("left_margin")
+            sp2 = 5 #fontsize
+            sp3 = self.cget("bottom_margin")
+            sp4 = 5
             for i in range(len(self.data)):
-                self.map_curve(mp,self.data[i]["x"],self.data[i]["y"],trans)
+                seq = transseq(transpose([self.data[i]["x"],
+                                          self.data[i]["y"]]))
+                seq[:,0] = (seq[:,0] - sp1) / sp2
+                seq[:,1] = (seq[:,1] - sp3) / sp4
+                self.map_curve(mp,seq)
+                                                      
         for i in range(len(self.labels)):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
