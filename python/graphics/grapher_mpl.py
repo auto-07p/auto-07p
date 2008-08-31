@@ -283,11 +283,14 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             return
 
         if hasattr(self.ax.transData,'transform'):
-            transseq = trans = self.ax.transData.transform
+            trans = self.ax.transData.transform
+            def transseq(x,y):
+                return trans(transpose([x,y]))
             inv_trans = self.ax.transData.inverted().transform
         else:
             trans = self.ax.transData.xy_tup
-            transseq = self.ax.transData.seq_xy_tups
+            def transseq(x,y):
+                return transpose(self.ax.transData.numerix_x_y(x,y))
             inv_trans = self.ax.transData.inverse_xy_tup
         if self.cget("smart_label"):
             mp = self.inarrs()
@@ -296,8 +299,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             sp3 = self.cget("bottom_margin")
             sp4 = 5
             for i in range(len(self.data)):
-                seq = transseq(transpose([self.data[i]["x"],
-                                          self.data[i]["y"]]))
+                seq = transseq(self.data[i]["x"],self.data[i]["y"])
                 seq[:,0] = (seq[:,0] - sp1) / sp2
                 seq[:,1] = (seq[:,1] - sp3) / sp4
                 self.map_curve(mp,seq)
