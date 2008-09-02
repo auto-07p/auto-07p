@@ -138,8 +138,10 @@ CONTAINS
        ELSE
           CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,-1,AA)
        ENDIF
-       ! Get stability
-       REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+       IF(ABS(IPS).EQ.1)THEN
+          ! Get stability
+          REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+       ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
 ! or for the starting point
@@ -156,8 +158,10 @@ CONTAINS
                ISW<0)
 
           IF(ISW<0)THEN
-             ! Get stability
-             REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+             IF(ABS(IPS).EQ.1)THEN
+                ! Get stability
+                REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+             ENDIF
              ! Store plotting data for second point :
              CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,ISTOP)
           ENDIF
