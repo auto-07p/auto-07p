@@ -199,6 +199,16 @@ CONTAINS
     ELSEIF(IRS.NE.0 .AND. ISW.LT.0)THEN
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,1,P0,P1,THL,THU)
+    ELSEIF( ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+       CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
+            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,-1,P0,P1,THL,THU)
+    ENDIF
+    IF(ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+       ! determine and print Floquet multipliers and stability
+       SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
+            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+            DTM,THL,THU,IUZ,VUZ)
+       SP1 = 0.0d0
     ENDIF
 
 ! Store plotting data for restart point :
@@ -212,147 +222,144 @@ CONTAINS
     IAP(27)=ITP
     CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
     CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
-    IF(ISTOP.EQ.1)RETURN
-
-    CALL EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS)
-
-    ITP=0
-    IAP(27)=ITP
-    GOTO 2
-
-1   ITP=0
-    IAP(27)=ITP
-    NTOT=IAP(32)
-
-! Adapt the mesh to the solution.
-
-    IF(IAD.NE.0)THEN
-       IF(MOD(NTOT,IAD).EQ.0)THEN
-          CALL ADAPT(IAP,NTST,NCOL,NTST,NCOL,TM,DTM,NDX,UPS,UOLDPS)
-       ENDIF
+    IF(ISTOP==0)THEN
+       CALL EXTRBV(NDIM,NTST,NCOL,NFPR,RDS,RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS)
     ENDIF
-
-! Adapt the stepsize along the branch.
-
-    IF(IADS.NE.0)THEN
-       IF(MOD(NTOT,IADS).EQ.0)THEN
-          ITNW=IAP(20)
-          IBR=IAP(30)
-          NTOP=MOD(NTOT-1,9999)+1
-          DSMAX=RAP(3)
-          CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
-       ENDIF
-    ENDIF
-
-! Provide initial approximation and determine next point.
-
-    CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-         NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
-2   CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
-         TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+    DO WHILE(ISTOP==0)
+       ITP=0
+       IAP(27)=ITP
+       CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
 ! Check for user supplied parameter output parameter-values.
 
-    IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
-       DO IUZR=1,NUZR
-          IAP(26)=IUZR 
-          CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
-               UZR(IUZR),RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS, &
-               UDOTPS,UPOLDP,FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-          ITP=IAP(27)
-          IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
-             ITP=-4-10*ITPST
-             IAP(27)=ITP
-             IF(IUZ(IUZR).GT.0)THEN
-                DO K=1,NUZR
-                   UZR(K)=0.d0
-                ENDDO
-             ELSE
-                ISTOP=-1
+       IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
+          DO IUZR=1,NUZR
+             IAP(26)=IUZR 
+             CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
+                  UZR(IUZR),RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS, &
+                  UPOLDP,FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+             ITP=IAP(27)
+             IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
+                ITP=-4-10*ITPST
+                IAP(27)=ITP
+                IF(IUZ(IUZR).GT.0)THEN
+                   DO K=1,NUZR
+                      UZR(K)=0.d0
+                   ENDDO
+                ELSE
+                   ISTOP=-1
+                ENDIF
              ENDIF
-          ENDIF
-       ENDDO
-    ENDIF
+          ENDDO
+       ENDIF
 
 ! Check for fold.
 
-    IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
-       CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       ITP=IAP(27)
-       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
-          ITP=5+10*ITPST
-          IAP(27)=ITP
-          IF(ILP.GT.0)THEN
-             RLP=0.d0
-             BP1=0.d0
-             SP1=0.d0
-          ELSE
+       IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
+          CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+          ITP=IAP(27)
+          IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
+             ITP=5+10*ITPST
+             IAP(27)=ITP
+             IF(ILP.GT.0)THEN
+                RLP=0.d0
+                BP1=0.d0
+                SP1=0.d0
+             ELSE
 !            *Stop at the first found fold
-             ISTOP=-1
+                ISTOP=-1
+             ENDIF
           ENDIF
        ENDIF
-    ENDIF
 
 ! Check for branch point.
 
-    IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
-       CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       ITP=IAP(27)
-       IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
-          ITP=6+10*ITPST
-          IAP(27)=ITP
-          IF(ISP.GT.0)THEN
-             RLP=0.d0
-             BP1=0.d0
-             SP1=0.d0
-          ELSE
+       IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
+          CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+          ITP=IAP(27)
+          IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
+             ITP=6+10*ITPST
+             IAP(27)=ITP
+             IF(ISP.GT.0)THEN
+                RLP=0.d0
+                BP1=0.d0
+                SP1=0.d0
+             ELSE
 !            *Stop at the first found BP
-             ISTOP=-1
+                ISTOP=-1
+             ENDIF
           ENDIF
        ENDIF
-    ENDIF
 
 ! Check for period-doubling and torus bifurcation.
 
-    IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
-         (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
-       CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
-       ITP=IAP(27)
-       IF(ISTOP.EQ.0 .AND. ITP.EQ.-1)THEN
+       IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
+            (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+          CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+          ITP=IAP(27)
+          IF(ISTOP.EQ.0 .AND. ITP.EQ.-1)THEN
 !            **Secondary periodic bifurcation: determine type
-          CALL TPSPBV(IAP,RAP,PAR,EV)
-          IF(ISP.GT.0)THEN
-             RLP=0.d0
-             BP1=0.d0
-             SP1=0.d0
-          ELSE
+             CALL TPSPBV(IAP,RAP,PAR,EV)
+             IF(ISP.GT.0)THEN
+                RLP=0.d0
+                BP1=0.d0
+                SP1=0.d0
+             ELSE
 !            *Stop at the first found SPB
-             ISTOP=-1
+                ISTOP=-1
+             ENDIF
           ENDIF
-       ENDIF
-    ELSEIF(ABS(ISP).GT.0 .AND. &
-         (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+       ELSEIF(ABS(ISP).GT.0 .AND. &
+            (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
 ! Still determine and print Floquet multipliers
-       SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
-            DTM,THL,THU,IUZ,VUZ)
-    ENDIF
+          SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+               DTM,THL,THU,IUZ,VUZ)
+       ENDIF
 
 ! Store plotting data.
 
-    CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+       CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+       CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU, &
+            ISTOP)
 
-    IF(ISTOP.EQ.0)THEN
-       GOTO 1
-    ENDIF
+       IF(ISTOP/=0)EXIT
+       NTOT=IAP(32)
+
+! Adapt the mesh to the solution.
+
+       IF(IAD.NE.0)THEN
+          IF(MOD(NTOT,IAD).EQ.0)THEN
+             CALL ADAPT(IAP,NTST,NCOL,NTST,NCOL,TM,DTM,NDX,UPS,UOLDPS)
+          ENDIF
+       ENDIF
+
+! Adapt the stepsize along the branch.
+
+       IF(IADS.NE.0)THEN
+          IF(MOD(NTOT,IADS).EQ.0)THEN
+             ITNW=IAP(20)
+             IBR=IAP(30)
+             NTOP=MOD(NTOT-1,9999)+1
+             DSMAX=RAP(3)
+             CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+          ENDIF
+       ENDIF
+
+! Provide initial approximation and determine next point.
+
+       CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
+
+    ENDDO
     DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,UDOTPS,FA,FC,TM,DTM,P0,P1)
     DEALLOCATE(UZR,RLCUR,RLOLD,RLDOT)
 
@@ -399,7 +406,7 @@ CONTAINS
 
 ! Extrapolate to get initial approximation to next solution point.
 
-    CALL EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS)
+    CALL EXTRBV(NDIM,NTST,NCOL,NFPR,RDS,RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS)
 
 ! Store time-derivative.
 
@@ -408,36 +415,22 @@ CONTAINS
   END SUBROUTINE CONTBV
 
 ! ---------- ------
-  SUBROUTINE EXTRBV(IAP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS)
+  SUBROUTINE EXTRBV(NDIM,NTST,NCOL,NFPR,RDS,RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-!
 ! Determines an initial approximation to the next solution by
 ! extrapolating from the two preceding points.
-! The stepsize used in the preceding step has been stored in DSOLD.
-!
-    EXTERNAL FUNI
 
-    DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*)
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(*)
+    INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,NFPR
+    DOUBLE PRECISION, INTENT(IN) :: UDOTPS(NDIM*NCOL,NTST+1), RLDOT(NFPR), RDS
+    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM*NCOL,NTST+1), RLCUR(NFPR)
+    DOUBLE PRECISION, INTENT(OUT) :: UOLDPS(NDIM*NCOL,NTST+1), RLOLD(NFPR)
 
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    NFPR=IAP(29)
+    INTEGER NROW,I,J
 
-    NROW=NDIM*NCOL
-    DO I=1,NFPR
-       RLOLD(I)=RLCUR(I)
-       RLCUR(I)=RLCUR(I)+RDS*RLDOT(I)
-    ENDDO
-    DO J=1,NTST+1
-       DO I=1,NROW
-          UOLDPS(I,J)=UPS(I,J)
-          UPS(I,J)=UPS(I,J)+RDS*UDOTPS(I,J)
-       ENDDO
-    ENDDO
+    RLOLD(:)=RLCUR(:)
+    RLCUR(:)=RLCUR(:)+RDS*RLDOT(:)
+    UOLDPS(:,:)=UPS(:,:)
+    UPS(:,:)=UPS(:,:)+RDS*UDOTPS(:,:)
 
   END SUBROUTINE EXTRBV
 
@@ -549,103 +542,109 @@ CONTAINS
     EPSU=RAP(12)
 
     DELREF=0
-1   DSOLD=RDS
-    RAP(5)=DSOLD
-    NITPS=0
+    DO
+       DSOLD=RDS
+       RAP(5)=DSOLD
+       NITPS=0
 
 ! Write additional output on unit 9 if requested.
 
-    CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
+       CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
 
 ! Generate the Jacobian matrix and the right hand side.
 
-    DO NIT1=1,ITNW
+       DO NIT1=1,ITNW
 
-       NITPS=NIT1
-       NLLV=0
+          NITPS=NIT1
+          NLLV=0
 
-       IFST=0
-       IF(NITPS.LE.NWTN)IFST=1
+          IFST=0
+          IF(NITPS.LE.NWTN)IFST=1
 
-       CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
-            P0,P1,THL,THU)
+          CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
+               P0,P1,THL,THU)
 
 ! Add Newton increments.
 
-       DO I=1,NDIM
-          UPS(I,NTST+1)=UPS(I,NTST+1)+FC(I)
-       ENDDO
-       DO I=1,NFPR
-          RLCUR(I)=RLCUR(I)+FC(NDIM+I)
-          PAR(ICP(I))=RLCUR(I)
-       ENDDO
-
-       DUMX=0.d0
-       UMX=0.d0
-       DO J=1,NTST
-          DO I=1,NROW
-             ADU=ABS(FA(I,J))
-             IF(ADU.GT.DUMX)DUMX=ADU
-             AU=ABS(UPS(I,J))
-             IF(AU.GT.UMX)UMX=AU
-             UPS(I,J)=UPS(I,J)+FA(I,J)
+          DO I=1,NDIM
+             UPS(I,NTST+1)=UPS(I,NTST+1)+FC(I)
           ENDDO
-       ENDDO
+          DO I=1,NFPR
+             RLCUR(I)=RLCUR(I)+FC(NDIM+I)
+             PAR(ICP(I))=RLCUR(I)
+          ENDDO
 
-       CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
+          DUMX=0.d0
+          UMX=0.d0
+          DO J=1,NTST
+             DO I=1,NROW
+                ADU=ABS(FA(I,J))
+                IF(ADU.GT.DUMX)DUMX=ADU
+                AU=ABS(UPS(I,J))
+                IF(AU.GT.UMX)UMX=AU
+                UPS(I,J)=UPS(I,J)+FA(I,J)
+             ENDDO
+          ENDDO
+
+          CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
 
 ! Check whether user-supplied error tolerances have been met :
 
-       DONE=.TRUE.
-       RDRL=0.d0
-       DO I=1,NFPR
-          ADRL=ABS(FC(NDIM+I))/(1.d0+ABS(RLCUR(I)))
-          IF(ADRL.GT.EPSL)DONE=.FALSE.
-          IF(ADRL.GT.RDRL)RDRL=ADRL
+          DONE=.TRUE.
+          RDRL=0.d0
+          DO I=1,NFPR
+             ADRL=ABS(FC(NDIM+I))/(1.d0+ABS(RLCUR(I)))
+             IF(ADRL.GT.EPSL)DONE=.FALSE.
+             IF(ADRL.GT.RDRL)RDRL=ADRL
+          ENDDO
+          RDUMX=DUMX/(1.d0+UMX)
+          IF(DONE.AND.RDUMX.LT.EPSU)THEN
+             CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+             IF(IID.GE.2)WRITE(9,*)  
+             RETURN
+          ENDIF
+
+          IF(NITPS.EQ.1)THEN
+             DELREF=20*DMAX1(RDRL,RDUMX)
+          ELSE
+             DELMAX=DMAX1(RDRL,RDUMX)
+             IF(DELMAX.GT.DELREF)EXIT
+          ENDIF
+
        ENDDO
-       RDUMX=DUMX/(1.d0+UMX)
-       IF(DONE.AND.RDUMX.LT.EPSU)THEN
-          CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-          IF(IID.GE.2)WRITE(9,*)  
-          RETURN
-       ENDIF
-
-       IF(NITPS.EQ.1)THEN
-          DELREF=20*DMAX1(RDRL,RDUMX)
-       ELSE
-          DELMAX=DMAX1(RDRL,RDUMX)
-          IF(DELMAX.GT.DELREF)EXIT
-       ENDIF
-
-    ENDDO
 
 ! Maximum number of iterations reached.
 
-    IF(IADS.EQ.0)WRITE(9,101)IBR,NTOP
-    IF(IADS.EQ.0)GOTO 13
+       IF(IADS.EQ.0)THEN
+          WRITE(9,101)IBR,NTOP
+          EXIT
+       ENDIF
 
 ! Reduce stepsize and try again.
 
-    DSMAX=RAP(3)
-    NITPS=ITNW
-    CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
-    IF(ABS(RDS).LT.DSMIN)GOTO 12
-    DO I=1,NFPR
-       RLCUR(I)=RLOLD(I)+RDS*RLDOT(I)
-    ENDDO
-    DO J=1,NTST+1
-       DO I=1,NROW
-          UPS(I,J)=UOLDPS(I,J)+RDS*UDOTPS(I,J)
+       DSMAX=RAP(3)
+       NITPS=ITNW
+       CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+       IF(ABS(RDS).LT.DSMIN)THEN
+          ! Minimum stepsize reached.
+          WRITE(9,103)IBR,NTOP
+          EXIT
+       ENDIF
+       DO I=1,NFPR
+          RLCUR(I)=RLOLD(I)+RDS*RLDOT(I)
        ENDDO
+       DO J=1,NTST+1
+          DO I=1,NROW
+             UPS(I,J)=UOLDPS(I,J)+RDS*UDOTPS(I,J)
+          ENDDO
+       ENDDO
+       IF(IID.GE.2)WRITE(9,102)IBR,NTOP
     ENDDO
-    IF(IID.GE.2)WRITE(9,102)IBR,NTOP
-    GOTO 1
 
 ! Minimum stepsize reached.
 
-12  WRITE(9,103)IBR,NTOP
-13  DO I=1,NFPR
+    DO I=1,NFPR
        RLCUR(I)=RLOLD(I)
        PAR(ICP(I))=RLCUR(I)
     ENDDO
@@ -1004,6 +1003,8 @@ CONTAINS
          RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
          P0,P1,THL,THU)
 
+    IF(IPERP==-1)RETURN
+    
 ! Compute the starting direction.
 
     DO I=1,NDIM
@@ -1115,51 +1116,48 @@ CONTAINS
 
     S0=0.d0
     S1=DSOLD
-    NITSP1=0
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
-1   RDS=(1.d0+HMACH)*RDS
-    S=S1+RDS
+    DO NITSP1=0,ITMX
+       RDS=(1.d0+HMACH)*RDS
+       S=S1+RDS
 
 ! Return if tolerance has been met :
 
-    RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
-    IF(RRDS.LT.EPSS) THEN
-       ITP=-1
-       IAP(27)=ITP
+       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
+       IF(RRDS.LT.EPSS) THEN
+          ITP=-1
+          IAP(27)=ITP
 !xx???   Q=0.d0
-       WRITE(9,102)RDS
-       RETURN
-    ENDIF
+          WRITE(9,102)RDS
+          RETURN
+       ENDIF
 
 ! If requested write additional output on unit 9 :
 
-    IF(IID.GE.2)THEN
-       WRITE(9,101)NITSP1,RDS
-    ENDIF
+       IF(IID.GE.2)THEN
+          WRITE(9,101)NITSP1,RDS
+       ENDIF
 
-    CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-         NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
-    CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-         FA,FC,TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
-    IF(ISTOP.NE.0)THEN
-       Q=0.d0
-       RETURN
-    ENDIF
+       CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
+       CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+            FA,FC,TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+       IF(ISTOP.NE.0)THEN
+          Q=0.d0
+          RETURN
+       ENDIF
 
 ! Check for zero.
 
-    Q=FNCS(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
-         TM,DTM,THL,THU,IUZ,VUZ)
+       Q=FNCS(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
+            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+            TM,DTM,THL,THU,IUZ,VUZ)
 
-    NITSP1=NITSP1+1
-    IF(NITSP1.LE.ITMX)THEN
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
-       GOTO 1
-    ENDIF
+    ENDDO
 
     WRITE(9,103)IBR,NTOP+1
     Q=0.d0

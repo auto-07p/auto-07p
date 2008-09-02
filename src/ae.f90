@@ -135,7 +135,7 @@ CONTAINS
           CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0,AA)
        ELSEIF(IRS/=0.AND.ISW<0)THEN
           CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1,AA)
-       ELSE
+       ELSEIF(ABS(IPS).EQ.1)THEN
           CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,-1,AA)
        ENDIF
        IF(ABS(IPS).EQ.1)THEN
@@ -150,8 +150,7 @@ CONTAINS
 
        IF(ISTOP==0)THEN
 ! Provide initial approximation to the second point on the branch
-          UOLD(:)=U(:)
-          U(:)=U(:)+UDOT(:)*RDS
+          CALL EXTRAE(NDIM,RDS,U,UOLD,UDOT)
 
 ! Determine the second point on the bifurcating or original branch
           CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,&
@@ -435,14 +434,29 @@ CONTAINS
        UDOT(I)=(U(I)-UOLD(I))/DSOLD
     ENDDO
 
-    DO I=1,NDIM+1
-       UOLD(I)=U(I)
-       U(I)=U(I)+UDOT(I)*RDS
-    ENDDO
+    CALL EXTRAE(NDIM,RDS,U,UOLD,UDOT)
 !      Save old time for time integration
     IF(IPS.EQ.-2)RAP(15)=UOLD(NDIM+1)
 
   END SUBROUTINE CONTAE
+
+! ---------- ------
+  SUBROUTINE EXTRAE(NDIM,RDS,U,UOLD,UDOT)
+
+! Determines an initial approximation to the next solution by
+! extrapolating from the two preceding points.
+
+    INTEGER, INTENT(IN) :: NDIM
+    DOUBLE PRECISION, INTENT(IN) :: UDOT(NDIM+1), RDS
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM+1) 
+    DOUBLE PRECISION, INTENT(OUT) :: UOLD(NDIM+1)
+
+    INTEGER NROW,I,J
+
+    UOLD(:)=U(:)
+    U(:)=U(:)+UDOT(:)*RDS
+
+  END SUBROUTINE EXTRAE
 
 ! ---------- ------
   SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,SW)
