@@ -1337,6 +1337,7 @@ try:
     import windowPlotter
     try:
         import readline
+        import atexit
     except:
         pass
     import select
@@ -1369,6 +1370,8 @@ try:
         def __init__(self,name=None,templates=None,options={},**kw):
             self.options = AUTOutil.cnfmerge((options,kw))
             commandWithFilenameTemplate.__init__(self,name,None,templates)
+        def quit(self):
+            self.handle.destroy()
         def __call__(self):
             import Tkinter
             # root has to be here since I am passing options in
@@ -1401,6 +1404,10 @@ try:
                           grapher_solution_filename=n1s,
                           grapher_width=600,grapher_height=480)
             self.handle.update()
+            try:
+                atexit.register(self.quit)
+            except:
+                pass
             return valueStringAndData("Created plotter\n",self.handle)
 
 except:

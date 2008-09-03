@@ -14,6 +14,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         root=Tkinter.Tk()
         root.withdraw()
         self.handle = windowPlotter.WindowPlotter2D(root,{})
+        self.handle.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.orig_destroy = self.handle.destroy
+        self.handle.destroy = self.destroy
 
         #handle default options
         config = self.handle.configure()
@@ -77,6 +80,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 line = raw_input(prompt)
             line = self.process_input(line)
 
+    def destroy(self):
+        self.orig_destroy()
+        sys.exit()
+
     def process_input(self, line):
         lower = 0
         upper = 0
@@ -89,6 +96,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if upper and not lower:
             line=string.lower(line)
         if line in ["stop","exit","quit","end"]:
+            self.handle.destroy()
             sys.exit()
         elif line in ["scr","screen"]:
             return ""

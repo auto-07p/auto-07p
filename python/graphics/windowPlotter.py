@@ -46,9 +46,9 @@ class WindowPlotter(Pmw.MegaToplevel):
                                  )
         self.menuBar.addmenuitem("File",
                                  "command",
-                                 "Destory the plot",
+                                 "Destroy the plot",
                                  label = "Quit",
-                                 command = self.withdraw
+                                 command = self.quit
                                  )
         self.menuBar.addmenuitem("Options",
                                  "command",
@@ -220,7 +220,10 @@ class WindowPlotter(Pmw.MegaToplevel):
 
     def update(self):
         self.grapher.update()
-        Pmw.MegaToplevel.update(self)        
+        Pmw.MegaToplevel.update(self)
+
+    def quit(self):
+        self.destroy()
 
 class WindowPlotter2D(WindowPlotter):
     def __init__(self,parent=None,cnf={},**kw):
