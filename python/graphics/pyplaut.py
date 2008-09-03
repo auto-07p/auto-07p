@@ -4,6 +4,10 @@ import code
 import sys
 import string
 import Tkinter
+try:
+    import termios
+except ImportError:
+    pass
 
 class PyPlautInteractiveConsole(code.InteractiveConsole):
     def __init__(self,locals=None,b=None,s=None):
@@ -17,6 +21,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.handle.protocol("WM_DELETE_WINDOW", self.destroy)
         self.orig_destroy = self.handle.destroy
         self.handle.destroy = self.destroy
+        try:
+            self.tcattr = termios.tcgetattr(sys.stdin.fileno())
+        except:
+            pass
 
         #handle default options
         config = self.handle.configure()
@@ -82,6 +90,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 
     def destroy(self):
         self.orig_destroy()
+        try:
+            termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, self.tcattr)
+        except:
+            pass
         sys.exit()
 
     def process_input(self, line):
@@ -96,7 +108,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if upper and not lower:
             line=string.lower(line)
         if line in ["stop","exit","quit","end"]:
-            self.handle.destroy()
+            self.orig_destroy()
             sys.exit()
         elif line in ["scr","screen"]:
             return ""
