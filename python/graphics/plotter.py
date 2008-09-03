@@ -1,9 +1,11 @@
 #! /usr/bin/env python
 try:
-    import grapher_mpl 
+    import grapher_mpl
     grapher = grapher_mpl
 except ImportError:
     import grapher
+    print "Using plain TkInter for plotting. You can obtain better quality graphics"
+    print "using matplotlib (http://matplotlib.sf.net)."
 import parseB
 import parseS
 import AUTOutil
