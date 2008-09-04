@@ -293,8 +293,8 @@ C Local
       INTEGER I,N
 C
 C
-      CALL WINT(NCOL+1,WI)
-      CALL GENWTS(NCOL,NCOL+1,WT,WP)
+      CALL WINT(NCOL,WI)
+      CALL GENWTS(NCOL,WT,WP)
 C
       I = IAM*NA/NT+1
       N = (IAM+1)*NA/NT+1-I

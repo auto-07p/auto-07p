@@ -3249,6 +3249,8 @@ C Local
 C
        NDIM=IAP(1)
        IRS=IAP(3)
+       NTST=IAP(5)
+       NCOL=IAP(6)
        NDM=IAP(23)
        NFPR=IAP(29)
        NPAR=IAP(31)
@@ -3282,7 +3284,7 @@ C (using UPOLDP for temporary storage)
        CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
        DEALLOCATE(U)
        UPOLDP(1,NRSP1)=FS
-       PAR(10)=RINTG(IAP,NDX,1,UPOLDP,DTM)
+       PAR(10)=RINTG(NTST,NCOL,NDIM,1,UPOLDP,DTM)
 C
 C Complement starting data
 C

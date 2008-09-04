@@ -9,7 +9,7 @@ MODULE MESH
 
   PRIVATE
   PUBLIC :: MSH,GENWTS,WINT,ADPTDS,ADAPT,INTWTS,SCALEB
-  PUBLIC :: RINPR,RNRMSQ,RINTG,RNRM2,RMXUPS,RMNUPS
+  PUBLIC :: RINPR,RNRMSQ,RINTG,RNRM2,RMXUPS,RMNUPS,RMXUPST,RMNUPST
 
 CONTAINS
 
@@ -31,7 +31,7 @@ CONTAINS
   END SUBROUTINE MSH
 
 ! ---------- ------
-  SUBROUTINE GENWTS(NCOL,N1,WT,WP)
+  SUBROUTINE GENWTS(NCOL,WT,WP)
 
     IMPLICIT NONE
 
@@ -43,44 +43,38 @@ CONTAINS
 !         WT : for the function value,
 !         WP : for the first derivative,
 
-    INTEGER, INTENT(IN) :: NCOL, N1
-    DOUBLE PRECISION, INTENT(OUT) :: WT(N1,*),WP(N1,*)   
+    INTEGER, INTENT(IN) :: NCOL
+    DOUBLE PRECISION, INTENT(OUT) :: WT(0:NCOL,NCOL),WP(0:NCOL,NCOL)
 ! Local
-    INTEGER NCP1,I,IB,IC,K,L
-    DOUBLE PRECISION ZM(NCOL),XM(NCOL+1),D,DENOM,P,SUM
+    INTEGER IB,IC,K,L,DENOM
+    DOUBLE PRECISION ZM(NCOL),P,SUM
 
 ! Generate the collocation points :
     CALL CPNTS(NCOL,ZM)
 
-    NCP1=NCOL+1
-    D=1.d0/NCOL
-    DO I=1,NCP1
-       XM(I)=(I-1)*D
-    ENDDO
-
 ! Generate weights :
 
-    DO IB=1,NCP1
-       DENOM=1.d0
-       DO K=1,NCP1
-          IF(K.NE.IB)DENOM=DENOM*( XM(IB)-XM(K) )
+    DO IB=0,NCOL
+       DENOM=1
+       DO K=0,NCOL
+          IF(K/=IB)DENOM=DENOM*(IB-K)
        ENDDO
        DO IC=1,NCOL
 ! Weights for the function values :
           P=1.d0
-          DO K=1,NCP1
-             IF(K.NE.IB)P=P*( ZM(IC)-XM(K) )
+          DO K=0,NCOL
+             IF(K/=IB)P=P*( ZM(IC)*NCOL-K )
           ENDDO
           WT(IB,IC)=P/DENOM
 ! Weights for derivatives :
           SUM=0.d0
-          DO L=1,NCP1
-             IF(L.NE.IB)THEN
+          DO L=0,NCOL
+             IF(L/=IB)THEN
                 P=1.d0
-                DO K=1,NCP1
-                   IF(K.NE.IB.AND.K.NE.L)P=P*( ZM(IC)-XM(K) )
+                DO K=0,NCOL
+                   IF(K/=IB.AND.K/=L)P=P*( ZM(IC)*NCOL-K )
                 ENDDO
-                SUM=SUM+P
+                SUM=SUM+P*NCOL
              ENDIF
           ENDDO
           WP(IB,IC)=SUM/DENOM
@@ -137,93 +131,86 @@ CONTAINS
 !              0 = x  < x  < ... < x  = 1.
 !                   0    1          N
     INTEGER, INTENT(IN) :: N
-    DOUBLE PRECISION, INTENT(OUT) :: D(N+1)
+    DOUBLE PRECISION, INTENT(OUT) :: D(0:N)
 
     INTEGER I,K,K1
     DOUBLE PRECISION SC
 
-    D(1)=1.d0
+    D(0)=1.d0
     IF(N.EQ.0)RETURN
 
     DO I=1,N
-       D(I+1)=0.d0
-       DO K=1,I
-          K1=I+2-K
+       D(I)=0.d0
+       DO K=0,I-1
+          K1=I-K
           D(K1)=D(K1-1)-D(K1)
        ENDDO
-       D(1)=-D(1)
+       D(0)=-D(0)
     ENDDO
 
 ! Scale to [0,1]  :
 
-    SC=N**N
-    DO I=1,N+1
-       D(I)=SC*D(I)
-    ENDDO
+    D(:)=(N**N)*D(:)
 
   END SUBROUTINE CNTDIF
 
 ! ---------- ----
-  SUBROUTINE WINT(N,WI)
+  SUBROUTINE WINT(NCOL,WI)
 
     IMPLICIT NONE
 
 ! Generates the weights for the integration formula based on polynomial
-! interpolation at N equally spaced points in [0,1].
+! interpolation at NCOL+1 equally spaced points in [0,1].
 
-    INTEGER, INTENT(IN) :: N
-    DOUBLE PRECISION, INTENT(OUT) :: WI(N)
+    INTEGER, INTENT(IN) :: NCOL
+    DOUBLE PRECISION, INTENT(OUT) :: WI(0:NCOL)
 
     DOUBLE PRECISION C
 
-    GOTO (3,4,5,6,7,8)N-2
-
-3   C=1.d0/6.0d0
-    WI(1)=C
-    WI(2)=4.0d0*C
-    WI(3)=C
-    RETURN
-
-4   C=1.d0/8.0d0
-    WI(1)=C
-    WI(2)=3.0d0*C
-    WI(3)=WI(2)
-    WI(4)=C
-    RETURN
-
-5   C=1.d0/90.0d0
-    WI(1)=7.0d0*C
-    WI(2)=32.0d0*C
-    WI(3)=12.0d0*C
-    WI(4)=WI(2)
-    WI(5)=WI(1)
-    RETURN
-
-6   WI(1)=19.0d0/288.0d0
-    WI(2)=25.0d0/96.0d0
-    WI(3)=25.0d0/144.0d0
-    WI(4)=WI(3)
-    WI(5)=WI(2)
-    WI(6)=WI(1)
-    RETURN
-
-7   WI(1)=41.0d0/840.0d0
-    WI(2)=9.0d0/35.0d0
-    WI(3)=9.0d0/280.0d0
-    WI(4)=34.0d0/105.0d0
-    WI(5)=WI(3)
-    WI(6)=WI(2)
-    WI(7)=WI(1)
-    RETURN
-
-8   WI(1)=751.0d0/17280.0d0
-    WI(2)=3577.0d0/17280.0d0
-    WI(3)=49.0d0/640.0d0
-    WI(4)=2989.0d0/17280.0d0
-    WI(5)=WI(4)
-    WI(6)=WI(3)
-    WI(7)=WI(2)
-    WI(8)=WI(1)
+    SELECT CASE(NCOL)
+    CASE(2)
+       C=1.d0/6.0d0
+       WI(0)=C
+       WI(1)=4.0d0*C
+       WI(2)=C
+    CASE(3)
+       C=1.d0/8.0d0
+       WI(0)=C
+       WI(1)=3.0d0*C
+       WI(2)=WI(1)
+       WI(3)=C
+    CASE(4)
+       C=1.d0/90.0d0
+       WI(0)=7.0d0*C
+       WI(1)=32.0d0*C
+       WI(2)=12.0d0*C
+       WI(3)=WI(1)
+       WI(4)=WI(0)
+    CASE(5)
+       WI(0)=19.0d0/288.0d0
+       WI(1)=25.0d0/96.0d0
+       WI(2)=25.0d0/144.0d0
+       WI(3)=WI(2)
+       WI(4)=WI(1)
+       WI(5)=WI(0)
+    CASE(6)
+       WI(0)=41.0d0/840.0d0
+       WI(1)=9.0d0/35.0d0
+       WI(2)=9.0d0/280.0d0
+       WI(3)=34.0d0/105.0d0
+       WI(4)=WI(2)
+       WI(5)=WI(1)
+       WI(6)=WI(0)
+    CASE(7)
+       WI(0)=751.0d0/17280.0d0
+       WI(1)=3577.0d0/17280.0d0
+       WI(2)=49.0d0/640.0d0
+       WI(3)=2989.0d0/17280.0d0
+       WI(4)=WI(3)
+       WI(5)=WI(2)
+       WI(6)=WI(1)
+       WI(7)=WI(0)
+    END SELECT
 
   END SUBROUTINE WINT
 
@@ -579,7 +566,7 @@ CONTAINS
     NCOL=IAP(6)
 
 ! Weights for the integration formulae :
-    CALL WINT(NCOL+1,WI)
+    CALL WINT(NCOL,WI)
 
     S=0.d0
     DO J=1,NTST
@@ -613,33 +600,27 @@ CONTAINS
   END FUNCTION RNRMSQ
 
 ! ------ --------- -------- -----
-  DOUBLE PRECISION FUNCTION RINTG(IAP,NDX,IC,UPS,DTM)
+  DOUBLE PRECISION FUNCTION RINTG(NTST,NCOL,NDIM,IC,UPS,DTM)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Computes the integral of the IC'th component of UPS.
 
-    DIMENSION IAP(*),UPS(NDX,*),DTM(*)
+    INTEGER, INTENT(IN) :: IC,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL),DTM(NTST)
 ! Local
-    DIMENSION WI(IAP(6)+1)
-
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
+    DOUBLE PRECISION WI(0:NCOL)
+    INTEGER J,K
+    DOUBLE PRECISION S
 
 ! Weights for the integration formulae :
-    CALL WINT(NCOL+1,WI)
+    CALL WINT(NCOL,WI)
 
     S=0.d0
+    K=0
     DO J=1,NTST
-       JP1=J+1
-       SJ=0.d0
-       DO K=1,NCOL
-          K1=(K-1)*NDIM+IC
-          SJ=SJ+WI(K)*UPS(K1,J)
-       ENDDO
-       SJ=SJ+WI(NCOL+1)*UPS(IC,JP1)
-       S=S+DTM(J)*SJ
+       S=S+DTM(J)*DOT_PRODUCT(WI,UPS(IC,K:K+NCOL))
+       K=K+NCOL
     ENDDO
 
     RINTG=S
@@ -647,88 +628,106 @@ CONTAINS
   END FUNCTION RINTG
 
 ! ------ --------- -------- -----
-  DOUBLE PRECISION FUNCTION RNRM2(IAP,NDX,IC,UPS,DTM)
+  DOUBLE PRECISION FUNCTION RNRM2(NTST,NCOL,NDIM,IC,UPS,DTM)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Computes the L2-norm of the IC'th component of UPS.
  
-    DIMENSION IAP(*),UPS(NDX,*),DTM(*)
+    INTEGER, INTENT(IN) :: IC,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL),DTM(NTST)
 ! Local
-    DIMENSION WI(IAP(6)+1)
-
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
+    DOUBLE PRECISION WI(0:NCOL)
+    INTEGER J,K
+    DOUBLE PRECISION S
 
 ! Weights for the integration formulae :
-    CALL WINT(NCOL+1,WI)
+    CALL WINT(NCOL,WI)
 
     S=0.d0
+    K=0
     DO J=1,NTST
-       JP1=J+1
-       SJ=0.d0
-       DO K=1,NCOL
-          K1=(K-1)*NDIM+IC
-          SJ=SJ+WI(K)*UPS(K1,J)**2
-       ENDDO
-       SJ=SJ+WI(NCOL+1)*UPS(IC,JP1)**2
-       S=S+DTM(J)*SJ
+       S=S+DTM(J)*DOT_PRODUCT(WI,UPS(IC,K:K+NCOL)**2)
+       K=K+NCOL
     ENDDO
 
-    RNRM2=DSQRT(S)
+    RNRM2=SQRT(S)
 
   END FUNCTION RNRM2
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION RMXUPS(IAP,NDX,I,UPS)
+  DOUBLE PRECISION FUNCTION RMXUPS(NTST,NCOL,NDIM,I,UPS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! Computes the maximum of the I'th component of UPS.
 
-    DIMENSION IAP(*),UPS(NDX,*)
+    INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL)
 
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-
-    RMXUPS=UPS(I,1)
-
-    DO J=1,NTST
-       DO K=1,NCOL
-          K1=(K-1)*NDIM+I
-          IF(UPS(K1,J).GT.RMXUPS)RMXUPS=UPS(K1,J)
-       ENDDO
-    ENDDO
-    IF(UPS(I,NTST+1).GT.RMXUPS)RMXUPS=UPS(I,NTST+1)
+    RMXUPS=MAXVAL(UPS(I,:))
 
   END FUNCTION RMXUPS
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION RMNUPS(IAP,NDX,I,UPS)
+! ------ --------- -------- -------
+  DOUBLE PRECISION FUNCTION RMXUPST(NTST,NCOL,NDIM,I,UPS,DTM)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
+
+! Computes the t value for the maximum of the I'th component of UPS.
+
+    INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL),DTM(NTST)
+
+    INTEGER LOC(1),J,L,M
+
+    LOC=MAXLOC(UPS(I,:))
+    L=LOC(1)-1
+    J=L/NCOL
+    RMXUPST=SUM(DTM(1:J))
+    M=MOD(L,NCOL)
+    IF(M>0)THEN
+       RMXUPST=RMXUPST+DTM(J+1)*M/NCOL
+    ENDIF
+
+  END FUNCTION RMXUPST
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION RMNUPS(NTST,NCOL,NDIM,I,UPS)
+
+    IMPLICIT NONE
 
 ! Computes the minimum of the I'th component of UPS.
 
-    DIMENSION IAP(*),UPS(NDX,*)
+    INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL)
 
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-
-    RMNUPS=UPS(I,1)
-
-    DO J=1,NTST
-       DO K=1,NCOL
-          K1=(K-1)*NDIM+I
-          IF(UPS(K1,J).LT.RMNUPS)RMNUPS=UPS(K1,J)
-       ENDDO
-    ENDDO
-    IF(UPS(I,NTST+1).LT.RMNUPS)RMNUPS=UPS(I,NTST+1)
+    RMNUPS=MINVAL(UPS(I,:))
 
   END FUNCTION RMNUPS
+
+! ------ --------- -------- -------
+  DOUBLE PRECISION FUNCTION RMNUPST(NTST,NCOL,NDIM,I,UPS,DTM)
+
+    IMPLICIT NONE
+
+! Computes the t value for the minimum of the I'th component of UPS.
+
+    INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTST*NCOL),DTM(NTST)
+
+    INTEGER LOC(1),J,L,M
+
+    LOC=MINLOC(UPS(I,:))
+    L=LOC(1)-1
+    J=L/NCOL
+    RMNUPST=SUM(DTM(1:J))
+    M=MOD(L,NCOL)
+    IF(M>0)THEN
+       RMNUPST=RMNUPST+DTM(J+1)*M/NCOL
+    ENDIF
+
+  END FUNCTION RMNUPST
 
 ! ---------- ------
   SUBROUTINE SCALEB(IAP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)

@@ -470,72 +470,78 @@ END MODULE SUPPORT
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
     DIMENSION UPS(IAV(1)*IAV(6),*)
+    DIMENSION WI(0:IAV(6))
     CHARACTER*3 CODE
 
+    NDIM=IAV(1)
     IPS=IAV(2)
-    NX=IAV(1)*IAV(6)
+    NTST=IAV(5)
+    NCOL=IAV(6)
+
     GETP=0
 
     IF( ABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
-       IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
-          GETP=ABS(UPS(IC,1))    
-       ELSEIF(CODE.EQ.'INT'.OR.CODE.EQ.'int')THEN
+       SELECT CASE(CODE)
+       CASE('NRM','nrm')
+          GETP=ABS(UPS(IC,1))
+       CASE('INT','int','MAX','max','MIN','min','BV1','bv1')
           GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'MAX'.OR.CODE.EQ.'max')THEN
-          GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'MIN'.OR.CODE.EQ.'min')THEN
-          GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'BV0'.OR.CODE.EQ.'bv0')THEN
-          GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'BV1'.OR.CODE.EQ.'bv1')THEN
-          GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'STP'.OR.CODE.EQ.'stp')THEN
-          GETP=RAV(5)
-       ELSEIF(CODE.EQ.'FLD'.OR.CODE.EQ.'fld')THEN
-          GETP=RAV(16)
-       ELSEIF(CODE.EQ.'HBF'.OR.CODE.EQ.'hbf')THEN
+       CASE('HBF','hbf')
           GETP=RAV(17)
-       ELSEIF(CODE.EQ.'BIF'.OR.CODE.EQ.'bif')THEN
+       CASE('BIF','bif')
           GETP=RAV(14)
-       ELSEIF(CODE.EQ.'SPB'.OR.CODE.EQ.'spb')THEN
+       CASE('SPB','spb','MXT','mxt','MNT','mnt')
           GETP=0.
-       ELSEIF(CODE.EQ.'STA'.OR.CODE.EQ.'sta')THEN
-          GETP=IAV(33)
-       ENDIF
+       END SELECT
     ELSE
-       IF(CODE.EQ.'NRM'.OR.CODE.EQ.'nrm')THEN
-          GETP=RNRM2(IAV,NX,IC,UPS,DTV)    
-       ELSEIF(CODE.EQ.'INT'.OR.CODE.EQ.'int')THEN
-          GETP=RINTG(IAV,NX,IC,UPS,DTV)
-       ELSEIF(CODE.EQ.'MAX'.OR.CODE.EQ.'max')THEN
-          GETP=RMXUPS(IAV,NX,IC,UPS)
-       ELSEIF(CODE.EQ.'MIN'.OR.CODE.EQ.'min')THEN
-          GETP=RMNUPS(IAV,NX,IC,UPS)
-       ELSEIF(CODE.EQ.'BV0'.OR.CODE.EQ.'bv0')THEN
-          GETP=UPS(IC,1)
-       ELSEIF(CODE.EQ.'BV1'.OR.CODE.EQ.'bv1')THEN
+       SELECT CASE(CODE)
+       CASE('NRM','nrm')
+          GETP=RNRM2(NTST,NCOL,NDIM,IC,UPS,DTV)
+       CASE('INT','int')
+          GETP=RINTG(NTST,NCOL,NDIM,IC,UPS,DTV)
+       CASE('MAX','max')
+          GETP=RMXUPS(NTST,NCOL,NDIM,IC,UPS)
+       CASE('MIN','min')
+          GETP=RMNUPS(NTST,NCOL,NDIM,IC,UPS)
+       CASE('MXT','mxt')
+          GETP=RMXUPST(NTST,NCOL,NDIM,IC,UPS,DTV)
+       CASE('MNT','mnt')
+          GETP=RMNUPST(NTST,NCOL,NDIM,IC,UPS,DTV)
+       CASE('BV1','bv1')
           GETP=UPS(IC,IAV(5)+1)
-       ELSEIF(CODE.EQ.'STP'.OR.CODE.EQ.'stp')THEN
-          GETP=RAV(5)
-       ELSEIF(CODE.EQ.'FLD'.OR.CODE.EQ.'fld')THEN
-          GETP=RAV(16)
-       ELSEIF(CODE.EQ.'HBF'.OR.CODE.EQ.'hbf')THEN
-          GETP=0.
-       ELSEIF(CODE.EQ.'BIF'.OR.CODE.EQ.'bif')THEN
+       CASE('HBF','hbf')
+          GETP=0.d0
+       CASE('BIF','bif')
           GETP=RAV(18)
-       ELSEIF(CODE.EQ.'SPB'.OR.CODE.EQ.'spb')THEN
+       CASE('SPB','spb')
           GETP=RAV(19)
-       ELSEIF(CODE.EQ.'STA'.OR.CODE.EQ.'sta')THEN
-          GETP=IAV(33)
-       ENDIF
+       END SELECT
     ENDIF
-    IF(CODE.EQ.'EIG'.OR.CODE.EQ.'eig')THEN
+    SELECT CASE(CODE) 
+    CASE('BV0','bv0')
+       GETP=UPS(IC,1)
+    CASE('STP','stp')
+       GETP=RAV(5)
+    CASE('FLD','fld')
+       GETP=RAV(16)
+    CASE('STA','sta')
+       GETP=IAV(33)
+    CASE('EIG','eig')
        IF(MOD(IC,2)==1)THEN
           GETP=REAL(EVV((IC+1)/2))
        ELSE
           GETP=AIMAG(EVV(IC/2))
        ENDIF
-    ENDIF
+    CASE('NTS','nts')
+       GETP=IAV(5)
+    CASE('NCO','nco')
+       GETP=IAV(6)
+    CASE('DTM','dtm')
+       GETP=DTV(IC)
+    CASE('WIN','win')
+       CALL WINT(NCOL,WI)
+       GETP=WI(I)
+    END SELECT
 
   END FUNCTION GETP
 
