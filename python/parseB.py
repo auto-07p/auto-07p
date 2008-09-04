@@ -471,8 +471,8 @@ class AUTOBranch:
                     datalist = columns
                 for line in inputfile:
                     columns = split(line)
-                    c = columns[1]
-                    if (columns[0] == '0' or ((c == '-1' or c == '1') and
+                    if (columns[0] == '0' or
+                        ((columns[1] == '-1' or columns[1] == '1') and
                          self.__checknorotate(columns,datalist))):
                         self._lastline = line
                         break
@@ -482,8 +482,8 @@ class AUTOBranch:
                 datalist = columns
                 for line in inputfile:
                     columns = split(line)
-                    c = columns[1]
-                    if (columns[0] == '0' or ((c == '-1' or c == '1') and
+                    if (columns[0] == '0' or
+                        ((columns[1] == '-1' or columns[1] == '1') and
                          self.__checknorotate(columns,datalist))):
                         self._lastline = line
                         break
