@@ -4,8 +4,13 @@ import code
 import sys
 import string
 import Tkinter
+import select
 try:
     import termios
+except ImportError:
+    pass
+try:
+    import readline
 except ImportError:
     pass
 
@@ -25,6 +30,13 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.tcattr = termios.tcgetattr(sys.stdin.fileno())
         except:
             pass
+
+        if sys.platform == "cygwin":
+            try:
+                self.root = root
+                readline.set_pre_input_hook(self.handleevents)
+            except:
+                pass
 
         #handle default options
         config = self.handle.configure()
@@ -79,6 +91,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         for key in ["top_title", "grid", "stability", "use_symbols"]:
             self.plotdefaults[key] = self[key]
         self.normal_usage()
+
+    # this polling loop is here so that Cygwin Python does not "hang" the
+    # plot window while Python waits for a user input
+    def handleevents(self):
+        while select.select([sys.stdin],[],[],0.02) == ([], [], []):
+            self.root.dooneevent()
 
     def raw_input(self, prompt=None):
         line = ""
@@ -522,11 +540,6 @@ def exportFunctions(log=None):
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
-    try:
-        import readline
-    except:
-        pass
-
     sys.ps1=""
     if len(sys.argv) < 2:
         b='fort.7'
