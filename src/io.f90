@@ -276,10 +276,8 @@ CONTAINS
 ! Determine a suitable label when restarting.
 
     INTEGER, INTENT(INOUT) :: IAP(*)
-    LOGICAL EOF3
 
-    INTEGER IBRS,LABRS,NSKIP
-    INTEGER IPS,IRS,ISW,ITP,LAB,IBR,I
+    INTEGER IPS,IRS,ISW,ITP,LAB,IBR
 
     IPS=IAP(2)
     IRS=IAP(3)

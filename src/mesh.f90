@@ -7,6 +7,7 @@
 !
 MODULE MESH
 
+  IMPLICIT NONE
   PRIVATE
   PUBLIC :: MSH,GENWTS,WINT,ADPTDS,ADAPT,INTWTS,SCALEB
   PUBLIC :: RINPR,RNRMSQ,RINTG,RNRM2,RMXUPS,RMNUPS,RMXUPST,RMNUPST
@@ -16,24 +17,21 @@ CONTAINS
 ! ---------- ---
   SUBROUTINE MSH(NTST,TM)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-!
 ! Generates a uniform mesh on [0,1].
-!
-    DIMENSION TM(*)
 
-    TM(1)=0.d0
-    DT=1.d0/NTST
-    DO J=1,NTST
-       TM(J+1)=J*DT
+    INTEGER, INTENT(IN) :: NTST
+    DOUBLE PRECISION, INTENT(OUT) :: TM(0:NTST)
+
+    INTEGER J
+
+    DO J=0,NTST
+       TM(J)=DBLE(J)/NTST
     ENDDO
 
   END SUBROUTINE MSH
 
 ! ---------- ------
   SUBROUTINE GENWTS(NCOL,WT,WP)
-
-    IMPLICIT NONE
 
 ! Generates weights of the collocation method. The user selected
 ! number of collocation points (ncol) must be one of { 2,...,7 }.
@@ -85,8 +83,6 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE CPNTS(NCOL,ZM)
 
-    IMPLICIT NONE
-
 ! Generates the collocation points with respect to [0,1].
 
     INTEGER, INTENT(IN) :: NCOL
@@ -124,8 +120,6 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE CNTDIF(N,D)
 
-    IMPLICIT NONE
-
 ! Generates the coefficients of the central difference formula for
 ! Nth derivative at uniformly spaced points
 !              0 = x  < x  < ... < x  = 1.
@@ -134,7 +128,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: D(0:N)
 
     INTEGER I,K,K1
-    DOUBLE PRECISION SC
 
     D(0)=1.d0
     IF(N.EQ.0)RETURN
@@ -156,8 +149,6 @@ CONTAINS
 
 ! ---------- ----
   SUBROUTINE WINT(NCOL,WI)
-
-    IMPLICIT NONE
 
 ! Generates the weights for the integration formula based on polynomial
 ! interpolation at NCOL+1 equally spaced points in [0,1].
@@ -223,7 +214,6 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
 
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: NIT,ITNW,IBR,NTOP
     DOUBLE PRECISION, INTENT(IN) :: DSMAX
     DOUBLE PRECISION, INTENT(INOUT) :: RDS
@@ -257,15 +247,15 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE ADAPT(IAP,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,UPS,VPS)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! Adapts the distribution of the mesh points so that the increase of the
 ! monotone function EQDF becomes approximately equidistributed over the
 ! intervals. The functions UPS and VPS are interpolated on new mesh.
 
-    DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
+    INTEGER, INTENT(IN) :: IAP(*),NOLD,NCOLD,NNEW,NCNEW,NDX
+    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
 ! Local
-    ALLOCATABLE TINT(:),UINT(:,:),TM2(:),ITM(:)
+    DOUBLE PRECISION, ALLOCATABLE :: TINT(:),UINT(:,:)
+    INTEGER NDIM,IPS,ISW,NOLDP1,NNEWP1,NRWNEW,I,J,IPER
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -275,7 +265,6 @@ CONTAINS
     NNEWP1=NNEW+1
     NRWNEW=NDIM*NCNEW
     ALLOCATE(TINT(NNEWP1),UINT(NRWNEW,NNEWP1))
-    ALLOCATE(TM2(NNEWP1),ITM(NNEWP1))
 
     DO J=1,NNEWP1
        DO I=1,NRWNEW
@@ -297,8 +286,7 @@ CONTAINS
 
 ! Replace UPS by its interpolant on the new mesh :
 
-    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW, &
-         TINT,UINT,TM2,ITM)
+    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,UPS,NNEWP1,NCNEW,TINT,UINT)
     DO J=1,NNEWP1
        DO I=1,NRWNEW
           UPS(I,J)=UINT(I,J)
@@ -307,8 +295,7 @@ CONTAINS
 
 ! Replace VPS by its interpolant on the new mesh :
 
-    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW, &
-         TINT,UINT,TM2,ITM)
+    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,VPS,NNEWP1,NCNEW,TINT,UINT)
     DO J=1,NNEWP1
        DO I=1,NRWNEW
           VPS(I,J)=UINT(I,J)
@@ -323,22 +310,27 @@ CONTAINS
        TM(J+1)=TINT(J+1)
     ENDDO
 
-    DEALLOCATE(TINT,UINT,TM2,ITM)
+    DEALLOCATE(TINT,UINT)
   END SUBROUTINE ADAPT
 
 ! ---------- ------
-  SUBROUTINE INTERP(NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,TM2,ITM1)
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  SUBROUTINE INTERP(NDIM,N,NC,TM,UPS,N1,NC1,TM1,UPS1)
 
 ! Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 
-    DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NC1*NDIM,*)
+    INTEGER, INTENT(IN) :: NDIM,N,NC,N1,NC1
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM*NC,N+1)
+    DOUBLE PRECISION, INTENT(IN) :: TM(N+1),TM1(N1)
+    DOUBLE PRECISION, INTENT(OUT) :: UPS1(NC1*NDIM,N1)
 ! Local
-    DIMENSION X(NC+1),W(NC+1)
+    INTEGER I,J,J1,K,K1,L,L1,NCP1,N1M1
+    INTEGER, ALLOCATABLE :: ITM1(:)
+    DOUBLE PRECISION X(NC+1),W(NC+1),Z,D,RI
+    DOUBLE PRECISION, ALLOCATABLE :: TM2(:)
 
     NCP1=NC+1
     N1M1=N1-1
+    ALLOCATE(TM2(N1M1),ITM1(N1M1))
 
     DO I=1,NC1
        RI=I-1
@@ -369,24 +361,29 @@ CONTAINS
     DO I=1,NDIM
        UPS1(I,N1)=UPS(I,N)
     ENDDO
+    DEALLOCATE(TM2,ITM1)
 
   END SUBROUTINE INTERP
 
 ! ---------- ------
   SUBROUTINE NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,NNEW,TMNEW,IPER)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! Redistributes the mesh according to the function EQDF.
 
-    DIMENSION TMOLD(*),DTMOLD(*),TMNEW(*),UPS(*)
+    INTEGER, INTENT(IN) :: NDIM,NDX,NOLD,NCOLD,NNEW,IPER
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,*),TMOLD(NOLD+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: DTMOLD(NOLD+1)
+    DOUBLE PRECISION, INTENT(OUT) :: TMNEW(NNEW+1)
 ! Local
-    ALLOCATABLE EQF(:),UNEQ(:),IAL(:)
+    INTEGER J,J1,NOLDP1,NNEWP1
+    DOUBLE PRECISION X,DAL
+    INTEGER, ALLOCATABLE :: IAL(:)
+    DOUBLE PRECISION, ALLOCATABLE :: EQF(:),UNEQ(:)
     ALLOCATE(EQF(NOLD+1),UNEQ(NNEW+1),IAL(NNEW+1))
 
 ! Put the values of the monotonely increasing function EQDF in EQF.
 
-    CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
+    CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,UPS,EQF,IPER)
 
 ! Uniformly divide the range of EQDF :
 
@@ -418,30 +415,30 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE ORDR(N,TM,N1,TM1,ITM1)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! TM and TM1 are two ascending arrays with values in [0,1]. On exit the
 ! value of ITM1( i ) specifies the index of the TM-interval in which
 ! TM1(i) lies.
 
-    DIMENSION TM(N),TM1(N1),ITM1(N1)
+    INTEGER, INTENT(IN) :: N,N1
+    INTEGER, INTENT(OUT) :: ITM1(N1)
+    DOUBLE PRECISION, INTENT(IN) :: TM(N),TM1(N1)
+
+    INTEGER K0,J,J1,K1
 
     K0=2
     DO J1=1,N1
        K1=K0
        DO J=K0,N
           K1=J
-          IF(TM1(J1).LT.TM(J))GOTO 1
+          IF(TM1(J1).LT.TM(J))EXIT
        ENDDO
-1      ITM1(J1)=K1-1
+       ITM1(J1)=K1-1
        K0=K1
     ENDDO
   END SUBROUTINE ORDR
 
 ! ---------- ------
   SUBROUTINE INTWTS(N,Z,X,WTS)
-
-    IMPLICIT NONE
 
 ! Generates weights for Lagrange interpolation.
 
@@ -467,17 +464,21 @@ CONTAINS
   END SUBROUTINE INTWTS
 
 ! ---------- ----
-  SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
+  SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,UPS,EQF,IPER)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    INTEGER, INTENT(IN) :: NTST,NDIM,NCOL,IPER
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM*NCOL,NTST+1)
+    DOUBLE PRECISION, INTENT(OUT) :: EQF(NTST+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: DTM(NTST)
 
-    DIMENSION UPS(NDX,*),EQF(*),DTM(*)
-    LOGICAL SMALL
 ! Local
-    DIMENSION WH(NCOL+1)
-    ALLOCATABLE HD(:,:)
+    DOUBLE PRECISION WH(NCOL+1),SC,E,PWR,DTAV
+    DOUBLE PRECISION, ALLOCATABLE :: HD(:,:)
+    LOGICAL SMALL
+    INTEGER I,J,JP1,K,K1
+
     ALLOCATE(HD(NDIM*NCOL,NTST+1))
 
 ! Compute approximation to NCOL-th derivative :
@@ -550,20 +551,17 @@ CONTAINS
   END SUBROUTINE EQDF
 
 ! ------ --------- -------- -----
-  DOUBLE PRECISION FUNCTION RINPR(IAP,NDIM1,NDX,UPS,VPS,DTM,THU)
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  DOUBLE PRECISION FUNCTION RINPR(NTST,NCOL,NDIM,NDIM1,UPS,VPS,DTM,THU)
 
 ! Computes the L2 inner product of UPS and VPS.
 ! (Using the first NDIM1 components only.)
 
-    DIMENSION IAP(*),UPS(NDX,*),VPS(NDX,*),DTM(*),THU(*)
+    INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NDIM1
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NCOL*NDIM,*),VPS(NCOL*NDIM,*)
+    DOUBLE PRECISION, INTENT(IN) :: DTM(*),THU(*)
 ! Local
-    DIMENSION WI(IAP(6)+1)
-
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
+    INTEGER I,J,JP1,K,K1
+    DOUBLE PRECISION S,SJ,WI(NCOL+1)
 
 ! Weights for the integration formulae :
     CALL WINT(NCOL,WI)
@@ -587,22 +585,19 @@ CONTAINS
   END FUNCTION RINPR
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION RNRMSQ(IAP,NDIM1,NDX,UPS,DTM,THU)
+  DOUBLE PRECISION FUNCTION RNRMSQ(NTST,NCOL,NDIM,NDIM1,UPS,DTM,THU)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    DIMENSION THU(*),IAP(*),UPS(*),DTM(*)
+    INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NDIM1
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NCOL*NDIM,*),DTM(*),THU(*)
 
 ! Finds the norm-squared of UPS (first NDIM1 components are included only).
 
-    RNRMSQ=RINPR(IAP,NDIM1,NDX,UPS,UPS,DTM,THU)
+    RNRMSQ=RINPR(NTST,NCOL,NDIM,NDIM1,UPS,UPS,DTM,THU)
 
   END FUNCTION RNRMSQ
 
 ! ------ --------- -------- -----
   DOUBLE PRECISION FUNCTION RINTG(NTST,NCOL,NDIM,IC,UPS,DTM)
-
-    IMPLICIT NONE
 
 ! Computes the integral of the IC'th component of UPS.
 
@@ -630,8 +625,6 @@ CONTAINS
 ! ------ --------- -------- -----
   DOUBLE PRECISION FUNCTION RNRM2(NTST,NCOL,NDIM,IC,UPS,DTM)
 
-    IMPLICIT NONE
-
 ! Computes the L2-norm of the IC'th component of UPS.
  
     INTEGER, INTENT(IN) :: IC,NDIM,NCOL,NTST
@@ -658,8 +651,6 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION RMXUPS(NTST,NCOL,NDIM,I,UPS)
 
-    IMPLICIT NONE
-
 ! Computes the maximum of the I'th component of UPS.
 
     INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
@@ -671,8 +662,6 @@ CONTAINS
 
 ! ------ --------- -------- -------
   DOUBLE PRECISION FUNCTION RMXUPST(NTST,NCOL,NDIM,I,UPS,DTM)
-
-    IMPLICIT NONE
 
 ! Computes the t value for the maximum of the I'th component of UPS.
 
@@ -695,8 +684,6 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION RMNUPS(NTST,NCOL,NDIM,I,UPS)
 
-    IMPLICIT NONE
-
 ! Computes the minimum of the I'th component of UPS.
 
     INTEGER, INTENT(IN) :: I,NDIM,NCOL,NTST
@@ -708,8 +695,6 @@ CONTAINS
 
 ! ------ --------- -------- -------
   DOUBLE PRECISION FUNCTION RMNUPST(NTST,NCOL,NDIM,I,UPS,DTM)
-
-    IMPLICIT NONE
 
 ! Computes the t value for the minimum of the I'th component of UPS.
 
@@ -730,26 +715,24 @@ CONTAINS
   END FUNCTION RMNUPST
 
 ! ---------- ------
-  SUBROUTINE SCALEB(IAP,NDIM1,NDX,DVPS,RLD,DTM,THL,THU)
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  SUBROUTINE SCALEB(NTST,NCOL,NDIM,NFPR,NDIM1,DVPS,RLD,DTM,THL,THU)
 
 ! Scales the vector (DVPS,RLD) so its norm becomes 1.
 
-    DIMENSION IAP(*),DVPS(NDX,*),DTM(*),RLD(*),THL(*),THU(*)
+    INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NFPR,NDIM1
+    DOUBLE PRECISION, INTENT(IN) :: DTM(*),THL(*),THU(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: DVPS(NCOL*NDIM,NTST+1),RLD(NFPR)
 
-    NDIM=IAP(1)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    NFPR=IAP(29)
+    INTEGER I,J,K,K1
+    DOUBLE PRECISION SS,SC
 
-    SS=RNRMSQ(IAP,NDIM1,NDX,DVPS,DTM,THU)
+    SS=RNRMSQ(NTST,NCOL,NDIM,NDIM1,DVPS,DTM,THU)
 
     DO I=1,NFPR
        SS=SS+THL(I)*RLD(I)**2
     ENDDO
 
-    SC=1.d0/DSQRT(SS)
+    SC=1.d0/SQRT(SS)
 
     DO J=1,NTST
        DO I=1,NCOL

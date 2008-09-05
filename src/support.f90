@@ -540,7 +540,7 @@ END MODULE SUPPORT
        GETP=DTV(IC)
     CASE('WIN','win')
        CALL WINT(NCOL,WI)
-       GETP=WI(I)
+       GETP=WI(IC)
     END SELECT
 
   END FUNCTION GETP
