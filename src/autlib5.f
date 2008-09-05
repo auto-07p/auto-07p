@@ -760,22 +760,21 @@ C     at times TM,TM+DTM using the old mesh at times T,T+DT.
 C
 C     Used by TRANHO to initiate branch switching to n-homoclinic orbits.
 C
-      NCP1=NCOLRS+1
-      ALLOCATE(X(NCP1),W(NCP1))
+      ALLOCATE(X(0:NCOLRS),W(0:NCOLRS))
 C
       D=DTM/NCOLRS
-      DO L=1,NCP1
-         X(L)=TM+(L-1)*D
+      DO L=0,NCOLRS
+         X(L)=TM+L*D
       ENDDO
       DO I=0,NCOLRS-1
          Z=T+DT*I/NCOLRS
-         CALL INTWTS(NCP1,Z,X,W)
+         CALL INTWTS(NCOLRS,Z,X,W)
          K1=I*NDIM+N
          DO K=1,NDM
-            UPS(K1+K,J1)=W(NCP1)*UPS(N+K,J+1)
-            UDOTPS(K1+K,J1)=W(NCP1)*UDOTPS(N+K,J+1)
-            DO L=1,NCOLRS
-               L1=K+(L-1)*NDIM+N
+            UPS(K1+K,J1)=W(NCOLRS)*UPS(N+K,J+1)
+            UDOTPS(K1+K,J1)=W(NCOLRS)*UDOTPS(N+K,J+1)
+            DO L=0,NCOLRS-1
+               L1=K+L*NDIM+N
                UPS(K1+K,J1)=UPS(K1+K,J1)+W(L)*UPS(L1,J)
                UDOTPS(K1+K,J1)=UDOTPS(K1+K,J1)+W(L)*UDOTPS(L1,J)
             ENDDO

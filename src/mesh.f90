@@ -252,25 +252,17 @@ CONTAINS
 ! intervals. The functions UPS and VPS are interpolated on new mesh.
 
     INTEGER, INTENT(IN) :: IAP(*),NOLD,NCOLD,NNEW,NCNEW,NDX
-    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDX,0:*),VPS(NDX,0:*),TM(0:*),DTM(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: TINT(:),UINT(:,:)
-    INTEGER NDIM,IPS,ISW,NOLDP1,NNEWP1,NRWNEW,I,J,IPER
+    INTEGER NDIM,IPS,ISW,I,J,IPER
 
     NDIM=IAP(1)
     IPS=IAP(2)
     ISW=IAP(10)
+    ALLOCATE(TINT(0:NNEW),UINT(NDIM*NCNEW,0:NNEW))
 
-    NOLDP1=NOLD+1
-    NNEWP1=NNEW+1
-    NRWNEW=NDIM*NCNEW
-    ALLOCATE(TINT(NNEWP1),UINT(NRWNEW,NNEWP1))
-
-    DO J=1,NNEWP1
-       DO I=1,NRWNEW
-          UINT(I,J)=0.d0
-       ENDDO
-    ENDDO
+    UINT(:,:)=0.d0
 
 ! For periodic boundary conditions extrapolate by periodicity.
 
@@ -286,73 +278,66 @@ CONTAINS
 
 ! Replace UPS by its interpolant on the new mesh :
 
-    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,UPS,NNEWP1,NCNEW,TINT,UINT)
-    DO J=1,NNEWP1
-       DO I=1,NRWNEW
+    CALL INTERP(NDIM,NOLD,NCOLD,TM,UPS,NDX,NNEW,NCNEW,TINT,UINT)
+    DO J=0,NNEW
+       DO I=1,NDIM*NCNEW
           UPS(I,J)=UINT(I,J)
        ENDDO
     ENDDO
 
 ! Replace VPS by its interpolant on the new mesh :
 
-    CALL INTERP(NDIM,NOLDP1,NCOLD,TM,VPS,NNEWP1,NCNEW,TINT,UINT)
-    DO J=1,NNEWP1
-       DO I=1,NRWNEW
+    CALL INTERP(NDIM,NOLD,NCOLD,TM,VPS,NDX,NNEW,NCNEW,TINT,UINT)
+    DO J=0,NNEW
+       DO I=1,NDIM*NCNEW
           VPS(I,J)=UINT(I,J)
        ENDDO
     ENDDO
 
 ! Replace old mesh :
 
-    TM(1)=0.d0
     DO J=1,NNEW
-       DTM(J)=TINT(J+1)-TINT(J)
-       TM(J+1)=TINT(J+1)
+       DTM(J)=TINT(J)-TINT(J-1)
     ENDDO
+    TM(0:NNEW)=TINT(:)
 
     DEALLOCATE(TINT,UINT)
   END SUBROUTINE ADAPT
 
 ! ---------- ------
-  SUBROUTINE INTERP(NDIM,N,NC,TM,UPS,N1,NC1,TM1,UPS1)
+  SUBROUTINE INTERP(NDIM,N,NC,TM,UPS,NDX,N1,NC1,TM1,UPS1)
 
 ! Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 
-    INTEGER, INTENT(IN) :: NDIM,N,NC,N1,NC1
-    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM*NC,N+1)
-    DOUBLE PRECISION, INTENT(IN) :: TM(N+1),TM1(N1)
-    DOUBLE PRECISION, INTENT(OUT) :: UPS1(NC1*NDIM,N1)
+    INTEGER, INTENT(IN) :: NDIM,N,NC,N1,NC1,NDX
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,0:N)
+    DOUBLE PRECISION, INTENT(IN) :: TM(0:N),TM1(0:N1)
+    DOUBLE PRECISION, INTENT(OUT) :: UPS1(NC1*NDIM,0:N1)
 ! Local
-    INTEGER I,J,J1,K,K1,L,L1,NCP1,N1M1
-    INTEGER, ALLOCATABLE :: ITM1(:)
-    DOUBLE PRECISION X(NC+1),W(NC+1),Z,D,RI
-    DOUBLE PRECISION, ALLOCATABLE :: TM2(:)
+    INTEGER I,J,J1,K,K1,L
+    DOUBLE PRECISION X(0:NC),W(0:NC),Z,D
 
-    NCP1=NC+1
-    N1M1=N1-1
-    ALLOCATE(TM2(N1M1),ITM1(N1M1))
-
-    DO I=1,NC1
-       RI=I-1
-       D=RI/NC1
-       DO J1=1,N1M1
-          TM2(J1)=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
-       ENDDO
-       CALL ORDR(N,TM,N1M1,TM2,ITM1)
-       DO J1=1,N1M1
-          J=ITM1(J1)
-          Z=TM2(J1)
-          D=( TM(J+1)-TM(J) )/NC
-          DO L=1,NCP1
-             X(L)=TM(J)+(L-1)*D
+    J=1
+    DO J1=0,N1-1
+       DO I=0,NC1-1
+          D=DBLE(I)/NC1
+          Z=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
+          DO
+             IF(J>N)EXIT
+             IF(TM(J)>Z)EXIT
+             J=J+1
           ENDDO
-          CALL INTWTS(NCP1,Z,X,W)
+          J=J-1
+          D=( TM(J+1)-TM(J) )/NC
+          DO L=0,NC
+             X(L)=TM(J)+L*D
+          ENDDO
+          CALL INTWTS(NC,Z,X,W)
           DO K=1,NDIM
-             K1=(I-1)*NDIM+K
-             UPS1(K1,J1)=W(NCP1)*UPS(K,J+1)
-             DO L=1,NC
-                L1=K+(L-1)*NDIM
-                UPS1(K1,J1)=UPS1(K1,J1)+W(L)*UPS(L1,J)
+             K1=I*NDIM+K
+             UPS1(K1,J1)=W(NC)*UPS(K,J+1)
+             DO L=0,NC-1
+                UPS1(K1,J1)=UPS1(K1,J1)+W(L)*UPS(K+L*NDIM,J)
              ENDDO
           ENDDO
        ENDDO
@@ -361,7 +346,6 @@ CONTAINS
     DO I=1,NDIM
        UPS1(I,N1)=UPS(I,N)
     ENDDO
-    DEALLOCATE(TM2,ITM1)
 
   END SUBROUTINE INTERP
 
@@ -371,71 +355,47 @@ CONTAINS
 ! Redistributes the mesh according to the function EQDF.
 
     INTEGER, INTENT(IN) :: NDIM,NDX,NOLD,NCOLD,NNEW,IPER
-    DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,*),TMOLD(NOLD+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: DTMOLD(NOLD+1)
-    DOUBLE PRECISION, INTENT(OUT) :: TMNEW(NNEW+1)
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,0:*),TMOLD(0:NOLD),DTMOLD(NOLD)
+    DOUBLE PRECISION, INTENT(OUT) :: TMNEW(0:NNEW)
 ! Local
-    INTEGER J,J1,NOLDP1,NNEWP1
-    DOUBLE PRECISION X,DAL
-    INTEGER, ALLOCATABLE :: IAL(:)
-    DOUBLE PRECISION, ALLOCATABLE :: EQF(:),UNEQ(:)
-    ALLOCATE(EQF(NOLD+1),UNEQ(NNEW+1),IAL(NNEW+1))
+    INTEGER J,J1
+    DOUBLE PRECISION X,DAL,UNEQ
+    DOUBLE PRECISION, ALLOCATABLE :: EQF(:)
+    ALLOCATE(EQF(0:NOLD))
 
 ! Put the values of the monotonely increasing function EQDF in EQF.
 
-    CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,UPS,EQF,IPER)
+    CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,UPS,NDX,EQF,IPER)
 
 ! Uniformly divide the range of EQDF :
 
-    NOLDP1=NOLD+1
-    NNEWP1=NNEW+1
-    DAL=EQF(NOLDP1)/NNEW
-    DO J=1,NNEWP1
-       UNEQ(J)=(J-1)*DAL
-    ENDDO
-
-    CALL ORDR(NOLDP1,EQF,NNEWP1,UNEQ,IAL)
+    DAL=EQF(NOLD)/NNEW
 
 ! Generate the new mesh in TMNEW :
 
-    DO J1=1,NNEW
-       J=IAL(J1)
-       X=(UNEQ(J1)-EQF(J))/(EQF(J+1)-EQF(J))
+    J=1
+    DO J1=0,NNEW-1
+
+! EQF is an ascending array with values in [0,1]. Get the
+! value of the index of the TM-interval in which EQF(i) lies.
+       UNEQ=J1*DAL
+       DO
+          IF(J>NOLD)EXIT
+          IF(EQF(J)>UNEQ)EXIT
+          J=J+1
+       ENDDO
+       J=J-1
+       X=(UNEQ-EQF(J))/(EQF(J+1)-EQF(J))
        TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
     ENDDO
 
-! Assign TMNEW(NNEWP1) explicitly because of loss of precision
-! problems when EQF(NOLDP1) and EQF(NOLD) are very close
+! Assign TMNEW(NNEW) explicitly because of loss of precision
+! problems when EQF(NOLD) and EQF(NOLD-1) are very close
 
-    TMNEW(NNEWP1)=TMOLD(NOLDP1)
+    TMNEW(NNEW)=TMOLD(NOLD)
 
-    DEALLOCATE(EQF,UNEQ,IAL)
+    DEALLOCATE(EQF)
   END SUBROUTINE NEWMSH
-
-! ---------- ----
-  SUBROUTINE ORDR(N,TM,N1,TM1,ITM1)
-
-! TM and TM1 are two ascending arrays with values in [0,1]. On exit the
-! value of ITM1( i ) specifies the index of the TM-interval in which
-! TM1(i) lies.
-
-    INTEGER, INTENT(IN) :: N,N1
-    INTEGER, INTENT(OUT) :: ITM1(N1)
-    DOUBLE PRECISION, INTENT(IN) :: TM(N),TM1(N1)
-
-    INTEGER K0,J,J1,K1
-
-    K0=2
-    DO J1=1,N1
-       K1=K0
-       DO J=K0,N
-          K1=J
-          IF(TM1(J1).LT.TM(J))EXIT
-       ENDDO
-       ITM1(J1)=K1-1
-       K0=K1
-    ENDDO
-  END SUBROUTINE ORDR
 
 ! ---------- ------
   SUBROUTINE INTWTS(N,Z,X,WTS)
@@ -443,56 +403,52 @@ CONTAINS
 ! Generates weights for Lagrange interpolation.
 
     INTEGER, INTENT(IN) :: N
-    DOUBLE PRECISION, INTENT(IN) :: Z, X(N)
-    DOUBLE PRECISION, INTENT(OUT) :: WTS(N)
+    DOUBLE PRECISION, INTENT(IN) :: Z, X(0:N)
+    DOUBLE PRECISION, INTENT(OUT) :: WTS(0:N)
 
     INTEGER IB,K
-    DOUBLE PRECISION P,DENOM
+    DOUBLE PRECISION P
 
-    DO IB=1,N
+    DO IB=0,N
        P=1.d0
-       DENOM=1.d0
-       DO K=1,N
-          IF(K.NE.IB)THEN
-             P=P*( Z-X(K) )
-             DENOM=DENOM*( X(IB)-X(K) )
+       DO K=0,N
+          IF(K/=IB)THEN
+             P=P*( Z-X(K) )/( X(IB)-X(K) )
           ENDIF
        ENDDO
-       WTS(IB)=P/DENOM
+       WTS(IB)=P
     ENDDO
 
   END SUBROUTINE INTWTS
 
 ! ---------- ----
-  SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,UPS,EQF,IPER)
+  SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,UPS,NDX,EQF,IPER)
 
     DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
-    INTEGER, INTENT(IN) :: NTST,NDIM,NCOL,IPER
-    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM*NCOL,NTST+1)
-    DOUBLE PRECISION, INTENT(OUT) :: EQF(NTST+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: DTM(NTST)
+    INTEGER, INTENT(IN) :: NTST,NDIM,NCOL,IPER,NDX
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDX,0:NTST),DTM(NTST)
+    DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
 
 ! Local
-    DOUBLE PRECISION WH(NCOL+1),SC,E,PWR,DTAV
+    DOUBLE PRECISION WH(0:NCOL),SC,E,PWR,DTAV
     DOUBLE PRECISION, ALLOCATABLE :: HD(:,:)
     LOGICAL SMALL
-    INTEGER I,J,JP1,K,K1
+    INTEGER I,J,K,K1
 
-    ALLOCATE(HD(NDIM*NCOL,NTST+1))
+    ALLOCATE(HD(NDIM,NTST+1))
 
 ! Compute approximation to NCOL-th derivative :
     CALL CNTDIF(NCOL,WH)
 
     SMALL=.TRUE.
     DO J=1,NTST
-       JP1=J+1
        SC=1.d0/DTM(J)**NCOL
        DO I=1,NDIM
-          HD(I,J)=WH(NCOL+1)*UPS(I,JP1)
-          DO K=1,NCOL
-             K1=I+(K-1)*NDIM
-             HD(I,J)=HD(I,J)+WH(K)*UPS(K1,J)
+          HD(I,J)=WH(NCOL)*UPS(I,J)
+          DO K=0,NCOL-1
+             K1=I+K*NDIM
+             HD(I,J)=HD(I,J)+WH(K)*UPS(K1,J-1)
           ENDDO
           HD(I,J)=SC*HD(I,J)
           IF(ABS(HD(I,J)).GT.HMACH)SMALL=.FALSE.
@@ -502,8 +458,8 @@ CONTAINS
 ! Take care of "small derivative" case.
 
     IF(SMALL)THEN
-       DO I=1,NTST+1
-          EQF(I)=I-1
+       DO I=0,NTST
+          EQF(I)=I
        ENDDO
        DEALLOCATE(HD)
        RETURN
@@ -511,41 +467,36 @@ CONTAINS
 
     IF(IPER.EQ.1)THEN
 !        *Extend by periodicity :
-       DO I=1,NDIM
-          HD(I,NTST+1)=HD(I,1)
-       ENDDO
-       DTM(NTST+1)=DTM(1)
+       HD(:,NTST+1)=HD(:,1)
     ELSE
 !        *Extend by extrapolation :
-       DO I=1,NDIM
-          HD(I,NTST+1)=2*HD(I,NTST)-HD(I,NTST-1)
-       ENDDO
-       DTM(NTST+1)=DTM(NTST)
+       HD(:,NTST+1)=2*HD(:,NTST)-HD(:,NTST-1)
     ENDIF
 
 ! Compute approximation to (NCOL+1)-st derivative :
 
-    DO J=1,NTST
-       JP1=J+1
+    DO J=1,NTST-1
        DTAV=.5d0*(DTM(J)+DTM(J+1))
-       SC=1.d0/DTAV
-       DO I=1,NDIM
-          HD(I,J)=SC*( HD(I,JP1)-HD(I,J) )
-       ENDDO
+       HD(:,J)=( HD(:,J+1)-HD(:,J) )/DTAV
     ENDDO
+    IF(IPER==1)THEN
+       DTAV=.5d0*(DTM(NTST)+DTM(1))
+    ELSE
+       DTAV=DTM(NTST)
+    ENDIF
+    HD(:,NTST)=(HD(:,NTST+1)-HD(:,NTST))/DTAV
 
 ! Define the equidistribution function :
 
     PWR=1.d0/(NCOL+1.d0)
-    EQF(1)=0.d0
+    EQF(0)=0.d0
     DO J=1,NTST
        E=0.d0
        DO I=1,NDIM
           E=E+ABS( HD(I,J) )**PWR
        ENDDO
-       EQF(J+1)=EQF(J)+DTM(J)*E
+       EQF(J)=EQF(J-1)+DTM(J)*E
     ENDDO
-
 
     DEALLOCATE(HD)
   END SUBROUTINE EQDF
@@ -557,26 +508,27 @@ CONTAINS
 ! (Using the first NDIM1 components only.)
 
     INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NDIM1
-    DOUBLE PRECISION, INTENT(IN) :: UPS(NCOL*NDIM,*),VPS(NCOL*NDIM,*)
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NCOL*NTST),VPS(NDIM,0:NCOL*NTST)
     DOUBLE PRECISION, INTENT(IN) :: DTM(*),THU(*)
 ! Local
-    INTEGER I,J,JP1,K,K1
-    DOUBLE PRECISION S,SJ,WI(NCOL+1)
+    INTEGER I,J,K,KC
+    DOUBLE PRECISION S,SJ,SK,WI(0:NCOL)
 
 ! Weights for the integration formulae :
     CALL WINT(NCOL,WI)
 
     S=0.d0
+    K=0
     DO J=1,NTST
-       JP1=J+1
        SJ=0.d0
-       DO I=1,NDIM1
-          DO K=1,NCOL
-             K1=(K-1)*NDIM+I
-             SJ=SJ+WI(K)*THU(I)*UPS(K1,J)*VPS(K1,J)
+       DO KC=0,NCOL
+          SK=0.d0
+          DO I=1,NDIM1
+             SK=SK+THU(I)*UPS(I,K+KC)*VPS(I,K+KC)
           ENDDO
-          SJ=SJ+WI(NCOL+1)*THU(I)*UPS(I,JP1)*VPS(I,JP1)
+          SJ=SJ+SK*WI(KC)
        ENDDO
+       K=K+NCOL
        S=S+DTM(J)*SJ
     ENDDO
 
@@ -588,7 +540,7 @@ CONTAINS
   DOUBLE PRECISION FUNCTION RNRMSQ(NTST,NCOL,NDIM,NDIM1,UPS,DTM,THU)
 
     INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NDIM1
-    DOUBLE PRECISION, INTENT(IN) :: UPS(NCOL*NDIM,*),DTM(*),THU(*)
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,*),DTM(*),THU(*)
 
 ! Finds the norm-squared of UPS (first NDIM1 components are included only).
 
@@ -720,36 +672,20 @@ CONTAINS
 ! Scales the vector (DVPS,RLD) so its norm becomes 1.
 
     INTEGER, INTENT(IN) :: NTST,NCOL,NDIM,NFPR,NDIM1
-    DOUBLE PRECISION, INTENT(IN) :: DTM(*),THL(*),THU(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: DVPS(NCOL*NDIM,NTST+1),RLD(NFPR)
+    DOUBLE PRECISION, INTENT(IN) :: DTM(*),THL(NFPR),THU(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: DVPS(NDIM,0:NCOL*NTST),RLD(NFPR)
 
-    INTEGER I,J,K,K1
-    DOUBLE PRECISION SS,SC
+    INTEGER J
+    DOUBLE PRECISION SS
 
-    SS=RNRMSQ(NTST,NCOL,NDIM,NDIM1,DVPS,DTM,THU)
+    SS=SQRT(RNRMSQ(NTST,NCOL,NDIM,NDIM1,DVPS,DTM,THU)+ &
+         DOT_PRODUCT(THL(:),RLD(:)**2))
 
-    DO I=1,NFPR
-       SS=SS+THL(I)*RLD(I)**2
+    DO J=0,NTST*NCOL
+       DVPS(1:NDIM1,J)=DVPS(1:NDIM1,J)/SS
     ENDDO
 
-    SC=1.d0/SQRT(SS)
-
-    DO J=1,NTST
-       DO I=1,NCOL
-          K1=(I-1)*NDIM
-          DO K=K1+1,K1+NDIM1
-             DVPS(K,J)=DVPS(K,J)*SC
-          ENDDO
-       ENDDO
-    ENDDO
-
-    DO I=1,NDIM1
-       DVPS(I,NTST+1)=DVPS(I,NTST+1)*SC
-    ENDDO
-
-    DO I=1,NFPR
-       RLD(I)=SC*RLD(I)
-    ENDDO
+    RLD(:)=RLD(:)/SS
 
   END SUBROUTINE SCALEB
 
