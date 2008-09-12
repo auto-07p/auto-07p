@@ -11,7 +11,7 @@
       PUBLIC :: FNHB,STPNHB ! Hopf bifs (ODEs,waves,maps)
       PUBLIC :: FNPS,BCPS,ICPS,STPNPS ! Periodic solutions
       PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
-      PUBLIC :: FNWP,STPNWP ! Travelling waves (parabolic PDEs)
+      PUBLIC :: FNWP        ! Travelling waves (parabolic PDEs)
       PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
       PUBLIC :: FNPE,ICPE   ! Time evolution (parabolic PDEs)
       PUBLIC :: FNPL,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
@@ -1040,7 +1040,7 @@ C
       END SUBROUTINE ICPS
 C
 C     ---------- -----
-      SUBROUTINE PDBLE(NDIM,NTST,NCOL,NDX,UPS,UDOTPS,TM,PAR)
+      SUBROUTINE PDBLE(NDIM,NTST,NCOL,UPS,UDOTPS,TM,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -1049,26 +1049,22 @@ C
 C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
-      DIMENSION TM(*),UPS(NDX,*),UDOTPS(NDX,*),PAR(*)
+      DIMENSION TM(0:*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*),PAR(*)
+      INTEGER NTC
 C
        PAR(11)=2.d0*PAR(11)
        IF(IRTN.NE.0)PAR(19)=2.d0*PAR(19)
 C
-       DO I=1,NTST
+       DO I=0,NTST-1
          TM(I)=.5d0*TM(I)
          TM(NTST+I)=.5d0+TM(I)
        ENDDO
+       TM(2*NTST)=1
 C
-       TM(2*NTST+1)=1
-C
-       DO J=1,NTST+1
-         DO I1=1,NDIM
-          DO I2=1,NCOL
-           I=(I2-1)*NDIM+I1
-              UPS(I,NTST+J)=   UPS(I1,NTST+1)+   UPS(I,J)-   UPS(I1,1)
-           UDOTPS(I,NTST+J)=UDOTPS(I1,NTST+1)+UDOTPS(I,J)-UDOTPS(I1,1)
-          ENDDO
-         ENDDO
+       NTC=NTST*NCOL
+       DO J=0,NTC
+              UPS(:,NTC+J)=   UPS(:,NTC)+   UPS(:,J)-   UPS(:,0)
+           UDOTPS(:,NTC+J)=UDOTPS(:,NTC)+UDOTPS(:,J)-UDOTPS(:,0)
        ENDDO
 C
        NTST=2*NTST
@@ -1078,9 +1074,10 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNPS(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates starting data for the continuation of a branch of periodic
@@ -1089,9 +1086,9 @@ C If IPS is not equal to 2 then the user must have supplied
 C BCND, ICND, and period-scaled F in FUNC, and the user period-scaling of F
 C must be taken into account.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION THL(*),THU(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IPS=IAP(2)
@@ -1099,143 +1096,36 @@ C
        ISW=IAP(10)
        ITP=IAP(27)
 C
-       IF(ITP.NE.3 .AND. ABS(ITP/10).NE.3) THEN
-          IF(IRS.GT.0)THEN
-             CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,
-     *            RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-             IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
+       IF(IRS==0)THEN
+          CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
+     *         RLDOT,UPS,UDOTPS,TM,NODIR)
+          RETURN
+       ENDIF
+
+       IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
+C               period doubling
+          NTSR2=NTSR*2
+       ELSE
+          NTSR2=NTSR
+       ENDIF
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR2),
+     *      UDOTPSR(NDIM,0:NCOLRS*NTSR2),TMR(0:NTSR2))
+       CALL STPNBV1(IAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,
+     *      RLDOT,UPSR,UDOTPSR,TMR,NODIR)
+       IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
 C
 C Special case : Preprocess restart data in case of branch switching
 C at a period doubling bifurcation.
 C
-                CALL PDBLE(NDIM,NTSR,NCOLRS,NDX,UPS,UDOTPS,TM,PAR)
-             ENDIF
-          ELSE
-             CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,
-     *            RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-          ENDIF
-       ELSE
-
-C from a Hopf bifurcation point:
-
-          CALL STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
-     *         NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNI)
+          CALL PDBLE(NDIM,NTSR,NCOLRS,UPSR,UDOTPSR,TMR,PAR)
        ENDIF
-
-      END SUBROUTINE STPNPS
-C
-C     ---------- ------
-      SUBROUTINE STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     *     RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FUNIWS)
-C
-      USE IO
-      USE MESH
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C     Generates starting data for a periodic orbit from a Hopf
-C     bifurcation point (for waves or periodic orbits)
-
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*),THU(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
-      EXTERNAL FUNIWS
-C Local
-      ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:)
-      DOUBLE PRECISION DUMDFP(1),UOLD(1)
-      INTEGER :: ICPRS(2)
-      DOUBLE PRECISION THL(2)
-
-       NDIM=IAP(1)
-       IPS=IAP(2)
-       IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
-       NFPR=IAP(29)
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.TRUE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 
-       ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
-       ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
-C
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
-       PERIOD=PAR(11)
-       TPI=PI(2.d0)
-       RIMHB=TPI/PERIOD
-       NTSR=NTST
-       NCOLRS=NCOL
-C
-       NDIM2=2*NDIM
-       DO I=1,NDIM2
-         DO J=1,NDIM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDIM
-         SMAT(I,I)=-RIMHB
-         SMAT(NDIM+I,NDIM+I)=RIMHB
-       ENDDO
-C
-       CALL FUNIWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           SMAT(I,NDIM+J)=DFU(I,J)
-           SMAT(NDIM+I,J)=DFU(I,J)
-           IF(IPS/=2.AND.IPS/=12)THEN
-C Note that the user period-scaling in FUNC is taken into account:
-              SMAT(I,NDIM+J)=SMAT(I,NDIM+J)/PAR(11)
-              SMAT(NDIM+I,J)=SMAT(NDIM+I,J)/PAR(11)
-           ENDIF
-         ENDDO
-       ENDDO
-C
-       CALL NLVC(NDIM2,NDIM2,2,SMAT,RNLLV)
-       CALL NRMLZ(NDIM2,RNLLV)
-C
-C Generate the (initially uniform) mesh.
-C
-       CALL MSH(NTST,TM)
-       DT=1.d0/NTST
-C
-       DO J=1,NTST
-         DO I=0,NCOL-1
-           T=TM(J)+I*( TM(J+1)-TM(J) )/NCOL
-           S=SIN(TPI*T)
-           C=COS(TPI*T)
-           DO  K=1,NDIM
-             K1=I*NDIM+K
-             UDOTPS(K1,J)=S*RNLLV(K)+C*RNLLV(NDIM+K)
-             UPOLDP(K1,J)=C*RNLLV(K)-S*RNLLV(NDIM+K)
-             UPS(K1,J)=U(K)
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       DO K=1,NDIM
-         UDOTPS(K,NTST+1)=RNLLV(NDIM+K)
-         UPOLDP(K,NTST+1)=RNLLV(K)
-         UPS(K,NTST+1)=U(K)
-       ENDDO
-C
-       RLDOT(1)=0.d0
-       RLDOT(2)=0.d0
-       THL(1)=0.d0
-       THL(2)=0.d0
-C
-       DO I=1,NTST
-         DTM(I)=DT
-       ENDDO
-C
-       CALL SCALEB(NTST,NCOL,NDIM,NFPR,NDIM,UDOTPS,RLDOT,DTM,THL,THU)
-C
-       NODIR=-1
-C
-       DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT)
-      END SUBROUTINE STHOPF
+      END SUBROUTINE STPNPS
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1252,9 +1142,10 @@ C Sets up equations for the continuation of spatially homogeneous
 C solutions to parabolic systems, for the purpose of finding
 C bifurcations to travelling wave solutions.
 C
-      DIMENSION IAP(*),U(*),ICP(*),PAR(*)
-      DOUBLE PRECISION RAP(*),UOLD(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER IAP(*),ICP(*),IJAC
+      DOUBLE PRECISION :: RAP(*),UOLD(*),U(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM),DFDU(NDIM,NDIM)
+      DOUBLE PRECISION, INTENT(OUT) :: DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:,:),DFP(:,:)
 C
@@ -1337,68 +1228,33 @@ C
 C
 C Equations for the continuation of traveling waves.
 C
-      DIMENSION IAP(*),U(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*),ICP(*)
-      DOUBLE PRECISION RAP(*),UOLD(*)
+      INTEGER IAP(*),ICP(*),IJAC
+      DOUBLE PRECISION :: RAP(*),UOLD(*),U(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM),DFDU(NDIM,NDIM)
+      DOUBLE PRECISION, INTENT(OUT) :: DFDP(NDIM,*)
 C
 C Generate the function and Jacobian.
 C
-       IF(ICP(2).EQ.11)THEN
-C          **Variable wave length
-           CALL FNWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-           PERIOD=PAR(11)
-           DO I=1,NDIM
-             DFDP(I,11)=F(I)
-             F(I)=PERIOD*F(I)
-           ENDDO
-           IF(IJAC.EQ.0)RETURN
-           DO I=1,NDIM
-             DO J=1,NDIM
-               DFDU(I,J)=PERIOD*DFDU(I,J)
-             ENDDO
-           ENDDO
-           DO I=1,NDIM
-             DFDP(I,ICP(1))=PERIOD*DFDP(I,ICP(1))
-           ENDDO
-       ELSE
-C          **Fixed wave length
-           CALL FNWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-           PERIOD=PAR(11)
-           DO I=1,NDIM
-             F(I)=PERIOD*F(I)
-           ENDDO
-           IF(IJAC.EQ.0)RETURN
-           DO I=1,NDIM
-             DO J=1,NDIM
-               DFDU(I,J)=PERIOD*DFDU(I,J)
-             ENDDO
-           ENDDO
-           DO I=1,NDIM
-             DO J=1,2
-               DFDP(I,ICP(J))=PERIOD*DFDP(I,ICP(J))
-             ENDDO
-           ENDDO
-       ENDIF
-C
-      RETURN
-      END SUBROUTINE FNWP
-C
-C     ---------- ------
-      SUBROUTINE STPNWP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C Generates starting data for the continuation of a branch of periodic
-C solutions starting from a Hopf bifurcation point (Waves).
-C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
-      DIMENSION THL(*),THU(*)
-C
-      CALL STHOPF(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU,FNWS)
+      CALL FNWS(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      PERIOD=PAR(11)
+      IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
+C        **Variable wave length
+         DFDP(:,11)=F(:)
+      ENDIF
+      F(:)=PERIOD*F(:)
+      IF(IJAC.EQ.0)RETURN
+      DFDU(:,:)=PERIOD*DFDU(:,:)
+      IF(ABS(IJAC).EQ.1)RETURN
+      NFPX=1
+      IF(ICP(2).NE.11)THEN
+C        **Fixed wave length
+         NFPX=2
+      ENDIF
+      DO J=1,NFPX
+         DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
+      ENDDO
 
-      END SUBROUTINE STPNWP
+      END SUBROUTINE FNWP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -1756,28 +1612,32 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNPL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates starting data for the 2-parameter continuation of folds
 C on a branch of periodic solutions.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
 C Local
       DOUBLE PRECISION RLDOTRS(4)
       INTEGER ICPRS(4)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
-     *      TM,ITPRS,NDX)
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+     *      UDOTPSR,TMR,ITPRS,NDIM)
 C
 C Complement starting data
          PAR(12)=0.d0
@@ -1796,28 +1656,17 @@ C          Fixed period
            RLDOT(3)=0.d0
            RLDOT(4)=0.d0
          ENDIF
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             K1=(I-1)*NDIM+NDM+1
-             K2=I*NDIM
-             DO K=K1,K2
-               UPS(K,J)=0.d0
-               UDOTPS(K,J)=0.d0
-             ENDDO
-           ENDDO
+         DO J=0,NTSR*NCOLRS
+            UPSR(NDM+1:NDIM,J)=0.d0
+            UDOTPSR(NDM+1:NDIM,J)=0.d0
          ENDDO
-         K1=NDM+1
-         NRSP1=NTSR+1
-         DO K=K1,NDIM
-           UPS(K,NRSP1)=0.d0
-           UDOTPS(K,NRSP1)=0.d0
-         ENDDO
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
 C
        NODIR=0
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 C
       RETURN
       END SUBROUTINE STPNPL
@@ -2181,7 +2030,7 @@ C
 C
 C     ---------- -------
       SUBROUTINE STPNPBP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
@@ -2192,19 +2041,24 @@ C
 C Generates starting data for the 2-parameter continuation of BP
 C on a branch of periodic solutions.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION TM(*),DTM(*),THL(*),THU(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*)
+      DIMENSION UPS(IAP(1),0:*),UDOTPS(*)
+      DIMENSION TM(*)
 C Local
-      ALLOCATABLE VPS(:,:),VDOTPS(:,:),RVDOT(:)
-      ALLOCATABLE THU1(:),THL1(:)
+      ALLOCATABLE VPS(:,:),VDOTPS(:,:)
+      ALLOCATABLE THU1(:)
       ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
-      ALLOCATABLE U(:),UPOLD(:)
+      ALLOCATABLE U(:),DTM(:)
       INTEGER ICPRS(11)
-      DOUBLE PRECISION DUM(1),RLDOTRS(11)
+      DOUBLE PRECISION DUM(1),RLDOTRS(11),RLCUR(2),RVDOT(2),THL1(2)
+      DOUBLE PRECISION, ALLOCATABLE :: UPST(:,:),UDOTPST(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
+       NTST=IAP(5)
+       NCOL=IAP(6)
        ISW=IAP(10)
        NDM=IAP(23)
        NFPR=IAP(29)
@@ -2213,33 +2067,32 @@ C
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
-         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
-     *     NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+     *     UPS,UDOTPS,TM,NODIR)
          RETURN
        ENDIF
 C
-       NRSP1=NTSR+1
-C
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
        IF(ISW.LT.0) THEN
 C
 C Start
 C
 C        ** allocation
-         ALLOCATE(VDOTPS(NDX,NRSP1),RVDOT(2))
-         ALLOCATE(THU1(NDM),THL1(NFPR))
-         ALLOCATE(FA(NDM*NCOLRS,NRSP1),FC(NDM+2))
+         ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
+         ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
+         ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS))
+         ALLOCATE(THU1(NDM))
+         ALLOCATE(FA(NDM,0:NCOLRS*NTSR-1),FC(NDM+2))
          ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
-         ALLOCATE(U(NDM),UPOLD(NDM))
-C
-C        ** redefine IAP(1)
-         IAP(1)=NDM
+         ALLOCATE(U(NDM),DTM(NTSR))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
-     *     UDOTPS,TM,ITPRS,NDX)
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
+     *     UDOTPST,TMR,ITPRS,NDM)
 C
          DO I=1,NTSR
-           DTM(I)=TM(I+1)-TM(I)
+           DTM(I)=TMR(I)-TMR(I-1)
          ENDDO
 C
          RLCUR(1)=PAR(ICPRS(1))
@@ -2248,8 +2101,7 @@ C
 C Compute the second null vector
 C
 C        ** redefine IAP, RAP
-         NTST=IAP(5)
-         NCOL=IAP(6)
+         IAP(1)=NDM
          IAP(5)=NTSR
          IAP(6)=NCOLRS
          NBC=IAP(12)
@@ -2260,60 +2112,30 @@ C        ** redefine IAP, RAP
          DET=RAP(14)
 C
 C        ** compute UPOLDP
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             DO K=1,NDM
-               U(K)=UPS((I-1)*NDM+K,J)
-             ENDDO
-             CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
-             DO K=1,NDM
-               UPOLDP((I-1)*NDM+K,J)=PAR(11)*UPOLD(K)
-             ENDDO
-           ENDDO
-         ENDDO
-         DO I=1,NDM
-           U(I)=UPS(I,NRSP1)
-         ENDDO
-         CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
-         DO I=1,NDM
-           UPOLDP(I,NRSP1)=PAR(11)*UPOLD(I)
+         DO J=0,NTSR*NCOLRS
+            U(:)=UPST(:,J)
+            CALL FNPS(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
          ENDDO
 C
 C        ** unit weights
-         DO I=1,NFPR
-           THL1(I)=1.d0
-         ENDDO
-         DO I=1,NDM
-           THU1(I)=1.d0
-         ENDDO
+         THL1(:)=1.d0
+         THU1(1:NDM)=1.d0
 C
 C        ** call SOLVBV
          RDSZ=0.d0
          NLLV=1
          IFST=1
          CALL SOLVBV(IFST,IAP,RAP,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV,
-     *     RLCUR,RLCUR,RLDOTRS,NDX,UPS,UPS,UDOTPS,UPOLDP,DTM,
-     *     FA,FC,P0,P1,THL1,THU1)
+     *     RLCUR,RLCUR,RLDOTRS,NDM*NCOLRS,UPST,UPST,UDOTPST,UPOLDPT,
+     *     DTM,FA,FC,P0,P1,THL1,THU1)
 C
-         DO I=1,NDM
-           VDOTPS(I,NRSP1)=FC(I)
-         ENDDO
-         RVDOT(1)=FC(NDM+1)
-         RVDOT(2)=FC(NDM+2)
-C
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             DO K=1,NDM
-               VDOTPS((I-1)*NDM+K,J)=FA((I-1)*NDM+K,J)
-             ENDDO
-           ENDDO
-         ENDDO
+         VDOTPST(:,0:NTSR*NCOLRS-1)=FA(:,:)
+         VDOTPST(:,NTSR*NCOLRS)=FC(1:NDM)
+         RVDOT(1:2)=FC(NDM+1:NDM+2)
 C
 C        ** normalization
-         CALL SCALEB(NTSR,NCOLRS,NDIM,NFPR,NDM,UDOTPS,RLDOTRS,DTM,THL1,
-     *        THU1)
-         CALL SCALEB(NTSR,NCOLRS,NDIM,NFPR,NDM,VDOTPS,RVDOT,DTM,THL1,
-     *        THU1)
+         CALL SCALEB(NTSR,NCOLRS,NDM,2,UDOTPST,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEB(NTSR,NCOLRS,NDM,2,VDOTPST,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP, RAP
          IAP(1)=NDIM
@@ -2325,42 +2147,18 @@ C        ** restore IAP, RAP
          RAP(14)=DET
 C
 C        ** init UPS,PAR
-         DO J=1,NTSR
-           DO I=NCOLRS,1,-1
-             DO K=1,NDM
-               UPS((I-1)*NDIM+K,J)=UPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+NDM+K,J)=UDOTPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+2*NDM+K,J)=VDOTPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+3*NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+2*NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+3*NDM+K,J)=0.d0
-             ENDDO
-           ENDDO
-         ENDDO
-         DO K=1,NDM
-           UPS(K+NDM,NRSP1)=UDOTPS(K,NRSP1)
-           UPS(K+2*NDM,NRSP1)=VDOTPS(K,NRSP1)
-           UPS(K+3*NDM,NRSP1)=0.d0
-           UDOTPS(K,NRSP1)=0.d0
-           UDOTPS(K+NDM,NRSP1)=0.d0
-           UDOTPS(K+2*NDM,NRSP1)=0.d0
-           UDOTPS(K+3*NDM,NRSP1)=0.d0
-         ENDDO
+         UPSR(1:NDM,:)=UPST(:,:)
+         UPSR(NDM+1:2*NDM,:)=UDOTPST(:,:)
+         UPSR(2*NDM+1:3*NDM,:)=VDOTPST(:,:)
+         UPSR(3*NDM+1:4*NDM,:)=0.d0
+         UDOTPSR(:,:)=0.d0
 C
 C        ** init q,r,psi^*3,a,b,c1,c1
-         PAR(12)=RLDOTRS(1)
-         PAR(13)=RLDOTRS(2)
-         PAR(14)=RVDOT(1)
-         PAR(15)=RVDOT(2)
-         PAR(16)=0.d0
-         PAR(17)=0.d0
-         PAR(18)=0.d0
-         PAR(20)=0.d0
-         PAR(21)=0.d0
-         RLDOT(1)=0.d0
-         RLDOT(2)=0.d0
+         PAR(12:13)=RLDOTRS(1:2)
+         PAR(14:15)=RVDOT(1:2)
+         PAR(16:18)=0.d0
+         PAR(20:21)=0.d0
+         RLDOT(1:2)=0.d0
          IF(ICP(4).EQ.11)THEN
 C          ** Variable period
            RLDOT(3)=1.d0
@@ -2370,19 +2168,13 @@ C          ** Fixed period
            RLDOT(3)=0.d0
            RLDOT(4)=1.d0
          ENDIF
-         RLDOT(5)=0.d0
-         RLDOT(6)=0.d0
-         RLDOT(7)=0.d0
-         RLDOT(8)=0.d0
-         RLDOT(9)=0.d0
-         RLDOT(10)=0.d0
-         RLDOT(11)=0.d0
+         RLDOT(5:11)=0.d0
 C
-         DEALLOCATE(VDOTPS,RVDOT)
-         DEALLOCATE(THU1,THL1)
+         DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST)
+         DEALLOCATE(THU1)
          DEALLOCATE(FA,FC)
          DEALLOCATE(P0,P1)
-         DEALLOCATE(U,UPOLD)
+         DEALLOCATE(U,DTM)
 C
          NODIR=0
 C
@@ -2390,26 +2182,15 @@ C
 C
 C Restart 1
 C
-         ALLOCATE(VPS(2*NDX,NRSP1),VDOTPS(2*NDX,NRSP1))
+         ALLOCATE(VPS(2*NDIM,0:NTSR*NCOLRS),
+     *         VDOTPS(2*NDIM,0:NTSR*NCOLRS))
 C
 C        ** read the std branch
-         IAP(1)=2*NDIM
          CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
-     *     VDOTPS,TM,ITPRS,2*NDX)
-         IAP(1)=NDIM
+     *     VDOTPS,TMR,ITPRS,2*NDIM)
 C
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             DO K=1,NDM
-               UPS((I-1)*NDIM+K,J)=VPS((I-1)*2*NDIM+K,J)
-               UPS((I-1)*NDIM+K+NDM,J)=VPS((I-1)*2*NDIM+K+3*NDM,J)
-             ENDDO
-           ENDDO
-         ENDDO
-         DO K=1,NDM
-           UPS(K,NRSP1)=VPS(K,NRSP1)
-           UPS(K+NDM,NRSP1)=VPS(K+3*NDM,NRSP1)
-         ENDDO
+         UPSR(1:NDM,:)=VPS(1:NDM,:)
+         UPSR(NDM+1:2*NDM,:)=VPS(3*NDM+1:4*NDM,:)
 C
          DEALLOCATE(VPS,VDOTPS)
 C
@@ -2417,10 +2198,9 @@ C
 C
        ENDIF
 C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
       RETURN
       END SUBROUTINE STPNPBP
 C
@@ -2614,18 +2394,20 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNPD(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates starting data for the 2-parameter continuation of
 C period-doubling bifurcations on a branch of periodic solutions.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
 C Local
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       DOUBLE PRECISION RLDOTRS(4)
       INTEGER ICPRS(4)
 C
@@ -2634,36 +2416,27 @@ C
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
-     *      TM,ITPRS,NDX)
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+     *      UDOTPSR,TMR,ITPRS,NDIM)
        RLDOT(1)=RLDOTRS(1)
        RLDOT(2)=RLDOTRS(2)
 C
 C Complement starting data 
          PAR(13)=0.d0
          RLDOT(3)=0.d0
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             K1=(I-1)*NDIM+NDM+1
-             K2=I*NDIM
-             DO K=K1,K2
-               UPS(K,J)=0.d0
-               UDOTPS(K,J)=0.d0
-             ENDDO
-           ENDDO
+         DO J=0,NTSR*NCOLRS
+            UPSR(NDM+1:NDIM,J)=0.d0
+            UDOTPSR(NDM+1:NDIM,J)=0.d0
          ENDDO
-         K1=NDM+1
-         NRSP1=NTSR+1
-         DO K=K1,NDIM
-           UPS(NRSP1,K)=0.d0
-           UDOTPS(NRSP1,K)=0.d0
-         ENDDO
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
 C
        NODIR=0
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 C
       RETURN
       END SUBROUTINE STPNPD
@@ -2878,10 +2651,11 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNTR(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
@@ -2889,57 +2663,53 @@ C
 C Generates starting data for the 2-parameter continuation of torus
 C bifurcations.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
 C Local
       DOUBLE PRECISION RLDOTRS(4)
       INTEGER ICPRS(4)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
-     *      TM,ITPRS,NDX)
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+     *      UDOTPSR,TMR,ITPRS,NDIM)
 C
        RLDOT(1)=RLDOTRS(1)
        RLDOT(2)=RLDOTRS(2)
        RLDOT(3)=0.d0
        RLDOT(4)=0.d0
 C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           K2P1=K2+1
-           K3=K2+NDM
-           T=TM(J)+(I-1)*(TM(J+1)-TM(J))/NCOLRS
-           DO K=K2P1,K3
-             UPS(K,J)    =0.0001d0*SIN(T)
-             UPS(K+NDM,J)=0.0001d0*COS(T)
-             UDOTPS(K,J)=0.d0
-             UDOTPS(K+NDM,J)=0.d0
-           ENDDO
-         ENDDO
-       ENDDO
-       NRSP1=NTSR+1
-       DO I=1,NDM
-         UPS(NDM+I,NRSP1)=0.d0
-         UPS(2*NDM+I,NRSP1)=0.d0
-       ENDDO
-       DO I=1,NDM
-         UDOTPS(NDM+I,NRSP1)=0.d0
-         UDOTPS(2*NDM+I,NRSP1)=0.d0
+       T=0.d0
+       DT=0.d0
+       DO I=0,NTSR*NCOLRS
+          IF(MOD(I,NCOLRS)==0)THEN
+             J=I/NCOLRS
+             T=TMR(J)
+             IF(J<NTSR)DT=(TMR(J+1)-T)/NCOLRS
+          ENDIF
+          DO K=NDM+1,2*NDM
+             UPSR(K,I)        = 0.0001d0*SIN(T)
+             UPSR(K+NDM,I)    = 0.0001d0*COS(T)
+             UDOTPSR(K,I)     = 0.d0
+             UDOTPSR(K+NDM,I) = 0.d0
+          ENDDO
+          T=T+DT
        ENDDO
 C
        PAR(13)=0.d0
 C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
        NODIR=0
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 C
       RETURN
       END SUBROUTINE STPNTR
@@ -3233,7 +3003,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNPO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
@@ -3242,12 +3012,13 @@ C
 C
 C Generates starting data for optimization of periodic solutions.
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
       DOUBLE PRECISION RAP(*)
 C Local
       ALLOCATABLE ICPRS(:),RLDOTRS(:)
-      ALLOCATABLE U(:)
+      ALLOCATABLE U(:),TEMP(:),DTMTEMP(:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -3258,35 +3029,26 @@ C
        NPAR=IAP(31)
 C
        ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
-     *      TM,ITPRS,NDX)
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+     *      UDOTPSR,TMR,ITPRS,NDIM)
        DEALLOCATE(ICPRS,RLDOTRS)
+       ALLOCATE(U(NDM),TEMP(0:NTSR*NCOLRS),DTMTEMP(NTSR))
        DO J=1,NTSR
-         DTM(J)=TM(J+1)-TM(J)
+         DTMTEMP(J)=TM(J+1)-TM(J)
        ENDDO
 C
 C Compute the starting value of the objective functional
-C (using UPOLDP for temporary storage)
-       ALLOCATE(U(NDM))
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=K1+NDM-1
-           DO K=K1,K2
-             U(K-K1+1)=UPS(K,J)
-           ENDDO
-           CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
-           UPOLDP(K1,J)=FS
-         ENDDO
+       DO J=0,NTSR*NCOLRS
+          DO K=1,NDM
+             U(K)=UPSR(K,J)
+          ENDDO
+          CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
+          TEMP(J)=FS
        ENDDO
-       NRSP1=NTSR+1
-       DO K=1,NDM
-          U(K)=UPS(K,NRSP1)
-       ENDDO
-       CALL FOPT(NDM,U,ICP,PAR,0,FS,DUMU,DUMP)
-       DEALLOCATE(U)
-       UPOLDP(1,NRSP1)=FS
-       PAR(10)=RINTG(NTST,NCOL,NDIM,1,UPOLDP,DTM)
+       PAR(10)=RINTG(NTSR,NCOLRS,1,1,TEMP,DTMTEMP)
+       DEALLOCATE(U,TEMP,DTMTEMP)
 C
 C Complement starting data
 C
@@ -3294,25 +3056,16 @@ C
          PAR(I)=0.d0
        ENDDO
 C
-       DO  J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+NDM+1
-           K2=I*NDIM
-           DO K=K1,K2
-             UPS(K,J)=0.d0
-           ENDDO
-         ENDDO
-       ENDDO
-       K1=NDM+1
-       DO K=K1,NDIM
-         UPS(K,NRSP1)=0.d0
-       ENDDO
-C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
+       DO J=0,NTSR*NCOLRS
+          DO K=NDM+1,NDIM
+             UPSR(K,J)=0.d0
+          ENDDO
        ENDDO
 C
        NODIR=1
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 C
       RETURN
       END SUBROUTINE STPNPO
@@ -3680,20 +3433,22 @@ C
 C
 C     ---------- ------
       SUBROUTINE STPNBL(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
       USE IO
+      USE MESH
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C
 C Generates starting data for the 2-parameter continuation of folds.
 C (BVP).
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
 C Local
       ALLOCATABLE ICPRS(:),RLDOTRS(:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -3701,8 +3456,10 @@ C
        NFPR=IAP(29)
 C
        ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,UDOTPS,
-     *      TM,ITPRS,NDX)
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
+     *      TMR(0:NTSR))
+       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+     *      UDOTPSR,TMR,ITPRS,NDIM)
 C
        NFPR0=NFPR/2
        DO I=1,NFPR0
@@ -3710,21 +3467,9 @@ C
        ENDDO
        DEALLOCATE(ICPRS,RLDOTRS)
 C
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+NDM+1
-           K2=I*NDIM
-           DO K=K1,K2
-             UPS(K,J)=0.d0
-             UDOTPS(K,J)=0.d0
-           ENDDO
-         ENDDO
-       ENDDO
-       K1=NDM+1
-       NRSP1=NTSR+1
-       DO K=K1,NDIM
-         UPS(K,NRSP1)=0.d0
-         UDOTPS(K,NRSP1)=0.d0
+       DO J=0,NTSR*NCOLRS
+          UPSR(NDM+1:NDIM,J)=0.d0
+          UDOTPSR(NDM+1:NDIM,J)=0.d0
        ENDDO
 C
        NFPX=NFPR/2-1
@@ -3738,11 +3483,12 @@ C Initialize the norm of the null vector
        PAR(11+NFPR/2)=0.
        RLDOT(NFPR0+1)=0.d0
 C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
        NODIR=0
+       NTST=IAP(5)
+       NCOL=IAP(6)
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
 C
       RETURN
       END SUBROUTINE STPNBL
@@ -4309,7 +4055,7 @@ C
 C
 C     ---------- -------
       SUBROUTINE STPNBBP(IAP,RAP,PAR,ICP,NTSR,NCOLRS,
-     * RLCUR,RLDOT,NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+     * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE SOLVEBV
       USE BVP
@@ -4320,18 +4066,22 @@ C
 C Generates starting data for the 2-parameter continuation
 C of BP (BVP).
 C
-      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLCUR(*),RLDOT(*)
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION TM(*),DTM(*),THL(*),THU(*)
+      DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*)
+      DIMENSION UPS(*),UDOTPS(*),TM(*)
 C Local
       ALLOCATABLE VPS(:,:),VDOTPS(:,:),RVDOT(:)
       ALLOCATABLE THU1(:),THL1(:)
       ALLOCATABLE FA(:,:),FC(:),P0(:,:),P1(:,:)
-      ALLOCATABLE U(:),UPOLD(:),ICPRS(:),RLDOTRS(:)
+      ALLOCATABLE U(:),ICPRS(:),RLDOTRS(:),RLCUR(:),DTM(:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPST(:,:),UDOTPST(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       DOUBLE PRECISION DUM(1)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
+       NTST=IAP(5)
+       NCOL=IAP(6)
        ISW=IAP(10)
        NBC=IAP(12)
        NINT=IAP(13)
@@ -4342,11 +4092,13 @@ C
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
-         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
-     *     NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+         CALL STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+     *     UPS,UDOTPS,TM,NODIR)
          RETURN
        ENDIF
 C
+       ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),
+     *      UDOTPSR(NDIM,0:NCOLRS*NTSR),TMR(0:NTSR))
        IF(ISW.LT.0) THEN
 C        ** start
          NBC0=(4*NBC-NINT-5*NDM+2)/15
@@ -4361,29 +4113,27 @@ C        ** generic case
          NNT0=(-NBC+2*NINT+3*NDM-3)/3
        ENDIF
        NFPX=NBC0+NNT0-NDM+1
-       NRSP1=NTSR+1
 C
-       ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
+       ALLOCATE(ICPRS(NFPR),RLCUR(NFPR),RLDOTRS(NFPR))
        IF(ISW.LT.0) THEN
 C
 C Start
 C
 C        ** allocation
-         ALLOCATE(VDOTPS(NDX,NRSP1),RVDOT(NFPX))
-         ALLOCATE(THU1(NDM),THL1(NFPR))
-         ALLOCATE(FA(NDM*NCOLRS,NRSP1),FC(NBC0+NNT0+1))
+         ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
+         ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
+         ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS),RVDOT(NFPX))
+         ALLOCATE(THU1(NDM),THL1(NFPX))
+         ALLOCATE(FA(NDM,0:NCOLRS*NTSR-1),FC(NBC0+NNT0+1))
          ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
-         ALLOCATE(U(NDM),UPOLD(NDM))
-C
-C        ** redefine IAP(1)
-         IAP(1)=NDM
+         ALLOCATE(U(NDM),DTM(NTSR))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPS,
-     *     UDOTPS,TM,ITPRS,NDX)
+         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
+     *     UDOTPST,TMR,ITPRS,NDM)
 C
          DO I=1,NTSR
-           DTM(I)=TM(I+1)-TM(I)
+           DTM(I)=TMR(I)-TMR(I-1)
          ENDDO
 C
          DO I=1,NFPX
@@ -4393,8 +4143,7 @@ C
 C Compute the second null vector
 C
 C        ** redefine IAP, RAP
-         NTST=IAP(5)
-         NCOL=IAP(6)
+         IAP(1)=NDM
          IAP(5)=NTSR
          IAP(6)=NCOLRS
          IAP(12)=NBC0
@@ -4404,62 +4153,32 @@ C        ** redefine IAP, RAP
 C
 C        ** compute UPOLDP
          IF(NNT0.GT.0) THEN
-           DO J=1,NTSR
-             DO I=1,NCOLRS
-               DO K=1,NDM
-                 U(K)=UPS((I-1)*NDIM+K,J)
-               ENDDO
-               CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
-               DO K=1,NDM
-                 UPOLDP((I-1)*NDIM+K,J)=UPOLD(K)
-               ENDDO
-             ENDDO
-           ENDDO
-           DO I=1,NDM
-             U(I)=UPS(I,NRSP1)
-           ENDDO
-           CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,UPOLD,DUM,DUM)
-           DO I=1,NDM
-             UPOLDP(I,NRSP1)=UPOLD(I)
-           ENDDO
+            DO J=0,NTSR*NCOLRS
+               U(:)=UPST(:,J)
+               CALL FUNI(IAP,RAP,NDM,U,U,ICPRS,PAR,0,
+     *              UPOLDPT(1,J),DUM,DUM)
+            ENDDO
          ENDIF
 C
 C        ** unit weights
-         DO I=1,NFPR
-           THL1(I)=1.d0
-         ENDDO
-         DO I=1,NDM
-           THU1(I)=1.d0
-         ENDDO
+         THL1(1:NFPX)=1.d0
+         THU1(1:NDM)=1.d0
 C
 C        ** call SOLVBV
          RDSZ=0.d0
          NLLV=1
          IFST=1
          CALL SOLVBV(IFST,IAP,RAP,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV,
-     *     RLCUR,RLCUR,RLDOTRS,NDX,UPS,UPS,UDOTPS,UPOLDP,DTM,FA,FC,
-     *     P0,P1,THL1,THU1)
+     *     RLCUR,RLCUR,RLDOTRS,NDM*NCOLRS,UPST,UPST,UDOTPST,UPOLDPT,
+     *     DTM,FA,FC,P0,P1,THL1,THU1)
 C
-         DO I=1,NDM
-           VDOTPS(I,NRSP1)=FC(I)
-         ENDDO
-         DO I=1,NFPX
-           RVDOT(I)=FC(NDM+I)
-         ENDDO
-C
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             DO K=1,NDM
-               VDOTPS((I-1)*NDM+K,J)=FA((I-1)*NDM+K,J)
-             ENDDO
-           ENDDO
-         ENDDO
+         VDOTPST(:,0:NTSR*NCOLRS-1)=FA(:,:)
+         VDOTPST(:,NTSR*NCOLRS)=FC(1:NDM)
+         RVDOT(1:NFPX)=FC(NDM+1:)
 C
 C        ** normalization
-         CALL SCALEB(NTSR,NCOLRS,NDIM,NFPR,NDM,UDOTPS,RLDOTRS,DTM,THL1,
-     *        THU1)
-         CALL SCALEB(NTSR,NCOLRS,NDIM,NFPR,NDM,VDOTPS,RVDOT,DTM,THL1,
-     *        THU1)
+         CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,UDOTPST,RLDOTRS,DTM,THL1,THU1)
+         CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,VDOTPST,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP, RAP
          IAP(1)=NDIM
@@ -4471,29 +4190,11 @@ C        ** restore IAP, RAP
          RAP(14)=DET
 
 C        ** init UPS,PAR
-         DO J=1,NTSR
-           DO I=NCOLRS,1,-1
-             DO K=1,NDM
-               UPS((I-1)*NDIM+K,J)=UPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+NDM+K,J)=UDOTPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+2*NDM+K,J)=VDOTPS((I-1)*NDM+K,J)
-               UPS((I-1)*NDIM+3*NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+2*NDM+K,J)=0.d0
-               UDOTPS((I-1)*NDIM+3*NDM+K,J)=0.d0
-             ENDDO
-           ENDDO
-         ENDDO
-         DO K=1,NDM
-           UPS(K+NDM,NRSP1)=UDOTPS(K,NRSP1)
-           UPS(K+2*NDM,NRSP1)=VDOTPS(K,NRSP1)
-           UPS(K+3*NDM,NRSP1)=0.d0
-           UDOTPS(K,NRSP1)=0.d0
-           UDOTPS(K+NDM,NRSP1)=0.d0
-           UDOTPS(K+2*NDM,NRSP1)=0.d0
-           UDOTPS(K+3*NDM,NRSP1)=0.d0
-         ENDDO
+         UPSR(1:NDM,:)=UPST(:,:)
+         UPSR(NDM+1:2*NDM,:)=UDOTPST(:,:)
+         UPSR(2*NDM+1:3*NDM,:)=VDOTPST(:,:)
+         UPSR(3*NDM+1:4*NDM,:)=0.d0
+         UDOTPSR(:,:)=0.d0
 C
          DO I=1,NFPX
            PAR(11+I)=RLDOTRS(I)
@@ -4510,10 +4211,7 @@ C        ** init psi^*2,psi^*3
          ENDDO
 C
 C        ** init a,b,c1,c1,d
-         PAR(11+3*NFPX+NDM)=0.d0
-         PAR(11+3*NFPX+NDM+1)=0.d0
-         PAR(11+3*NFPX+NDM+2)=0.d0
-         PAR(11+3*NFPX+NDM+3)=0.d0
+         PAR(11+3*NFPX+NDM:11+3*NFPX+NDM+3)=0.d0
          RLDOT(NFPX+1)=0.d0
          RLDOT(NFPX+2)=1.d0
          RLDOT(4*NFPX+NDM+2)=0.d0
@@ -4523,11 +4221,11 @@ C        ** init a,b,c1,c1,d
            RLDOT(4*NFPX+NDM+I+3)=0.d0
          ENDDO
 C
-         DEALLOCATE(VDOTPS,RVDOT)
+         DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST,RVDOT)
          DEALLOCATE(THU1,THL1)
          DEALLOCATE(FA,FC)
          DEALLOCATE(P0,P1)
-         DEALLOCATE(U,UPOLD)
+         DEALLOCATE(U,DTM)
 C
          NODIR=0
 C
@@ -4535,38 +4233,26 @@ C
 C
 C Restart 1
 C
-         ALLOCATE(VPS(2*NDX,NRSP1),VDOTPS(2*NDX,NRSP1))
+         ALLOCATE(VPS(2*NDIM,0:NTSR*NCOLRS),
+     *         VDOTPS(2*NDIM,0:NTSR*NCOLRS))
 C
 C        ** read the std branch
-         IAP(1)=2*NDIM
          CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
-     *     VDOTPS,TM,ITPRS,2*NDX)
-         IAP(1)=NDIM
+     *     VDOTPS,TMR,ITPRS,2*NDIM)
 C
-         DO J=1,NTSR
-           DO I=1,NCOLRS
-             DO K=1,NDM
-               UPS((I-1)*NDIM+K,J)=VPS((I-1)*2*NDIM+K,J)
-               UPS((I-1)*NDIM+K+NDM,J)=VPS((I-1)*2*NDIM+K+3*NDM,J)
-             ENDDO
-           ENDDO
-         ENDDO
-         DO K=1,NDM
-           UPS(K,NRSP1)=VPS(K,NRSP1)
-           UPS(K+NDM,NRSP1)=VPS(K+3*NDM,NRSP1)
-         ENDDO
+         UPSR(1:NDM,:)=VPS(1:NDM,:)
+         UPSR(NDM+1:2*NDM,:)=VPS(3*NDM+1:4*NDM,:)
 C
          DEALLOCATE(VPS,VDOTPS)
 C
          NODIR=1
 C
        ENDIF
-       DEALLOCATE(ICPRS,RLDOTRS)
+       DEALLOCATE(ICPRS,RLDOTRS,RLCUR)
 C
-       DO I=1,NFPR
-         RLCUR(I)=PAR(ICP(I))
-       ENDDO
-C
+       CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
+     *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+       DEALLOCATE(TMR,UPSR,UDOTPSR)
       RETURN
       END SUBROUTINE STPNBBP
 C

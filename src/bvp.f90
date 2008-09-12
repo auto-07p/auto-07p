@@ -187,21 +187,26 @@ CONTAINS
 
     NODIR=0
     CALL RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT, &
-         NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+         NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
     CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
 
 !     don't set global rotations here for homoclinics, but in autlib5.c
     IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST,NDX,UPS,PAR)
 
+    IPERP=2
     IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
-       CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,0,P0,P1,THL,THU)
+       ! no direction given or valid; no branch switch
+       IPERP=0
     ELSEIF(IRS.NE.0 .AND. ISW.LT.0)THEN
+       ! branch switch
+       IPERP=1
+    ELSEIF( ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+       ! periodic orbit with detection of special points: compute FMs
+       IPERP=-1
+    ENDIF
+    IF(IPERP/=2)THEN
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,1,P0,P1,THL,THU)
-    ELSEIF( ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
-       CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,-1,P0,P1,THL,THU)
+            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,IPERP,P0,P1,THL,THU)
     ENDIF
     IF(ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
        ! determine and print Floquet multipliers and stability
@@ -402,7 +407,7 @@ CONTAINS
        RLDOT(I)=(RLCUR(I)-RLOLD(I))*DDS
     ENDDO
 ! Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,NDIM,UDOTPS,RLDOT,DTM,THL,THU)
+    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
 
 ! Extrapolate to get initial approximation to next solution point.
 
@@ -667,7 +672,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD, &
-       RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+       RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
     USE MESH
@@ -685,9 +690,7 @@ CONTAINS
     DIMENSION IAP(*),RAP(*)
     DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*),UDOTPS(NDX,*)
     DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
-    DIMENSION THL(*),THU(*)
-
-    ALLOCATABLE UPSN(:,:),UPOLDN(:,:),UDOTPN(:,:),TMN(:),DTMN(:)
+    DIMENSION THU(*)
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -695,83 +698,38 @@ CONTAINS
     NTST=IAP(5)
     NCOL=IAP(6)
     NDM=IAP(23)
+    ITP=IAP(27)
     NFPR=IAP(29)
 
 ! Get restart data :
-!
-!     First take a peek at the file to see if ntst, ndim and
-!     ncol are different then the values found in
-!     the parameter file fort.2.
-!
-    IF(IRS.GT.0)THEN
-       NTST3=GETNTST3()
-       NTSRS=NTST3
-       NCOL3=GETNCOL3()
-       NCOLRS=NCOL3
-       NDIM3=GETNDIM3()
+
+    IF(IRS>0)THEN
+       NTSRS=GETNTST3()
+       NCOLRS=GETNCOL3()
     ELSE
-       NTST3=NTST
-       NCOL3=NCOL
-       NDIM3=NDIM
+       NTSRS=NTST
+       NCOLRS=NCOL
     ENDIF
-       
-! use the bigger of the size defined in fort.2 and the one defined in fort.8
-    NTSTU=MAX(NTST,NTST3)
-    NCOLU=MAX(NCOL,NCOL3)
-    NDIMU=NDIM
-    NDXLOC=NDIMU*NCOLU
-    NTSTCU=(NTSTU+1)*NCOLU
-
-! Autodetect special case when homoclinic branch switching is
-! completed and the orbit's representation has to be
-! changed.
-
-    IF(IPS.EQ.9.AND.NDIM3.GT.(NDM*2).AND.NDIM3.GT.NDIM)THEN
-       NTSTCU=(NTSTU+1)*(NDIM3/NDM)
-       NDIMU=NDIM3
-       NDXLOC=NDIMU*NCOLU
-       IAP(1)=NDIMU
+    IF(NCOLRS*NTSRS==0)THEN
+       IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
+          ! Hopf bifurcation
+          CALL STHOPF(IAP,RAP,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
+               NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
+       ELSE
+          WRITE(6,"(A)")"The restart label is not a Hopf bifurcation."
+          STOP
+       ENDIF
+    ELSE
+       CALL STPNT(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
     ENDIF
-    ALLOCATE(UPSN(NDXLOC,NTSTCU),UPOLDN(NDXLOC,NTSTCU))
-    ALLOCATE(UDOTPN(NDXLOC,NTSTCU),TMN(NTSTCU),DTMN(NTSTCU))
-! initialize arrays
-    DO I=1,NTSTCU
-       DO J=1,NDXLOC
-          UPSN(J,I)=0.0d0
-          UPOLDN(J,I)=0.0d0
-          UDOTPN(J,I)=0.0d0
-       ENDDO
-    ENDDO
-
-    CALL STPNT(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT, &
-         NDXLOC,UPSN,UDOTPN,UPOLDN,TMN,DTMN,NODIR,THL,THU)
-    IAP(1)=NDIM
 
 ! Determine a suitable starting label and branch number.
 
     CALL NEWLAB(IAP)
 
-    DO J=1,NTSRS
-       DTMN(J)=TMN(J+1)-TMN(J)
+    DO J=1,NTST
+       DTM(J)=TM(J+1)-TM(J)
     ENDDO
-
-! Adapt mesh if necessary :
-
-    IF( NTST.NE.NTSRS .OR. NCOL.NE.NCOLRS)THEN
-       CALL ADAPT(IAP,NTSRS,NCOLRS,NTST,NCOL,TMN,DTMN,NDXLOC, &
-            UPSN,UDOTPN)
-    ENDIF
-! Copy from the temporary large arrays into the normal arrays.
-    DO I=1,NTST+1
-       DTM(I)=DTMN(I)
-       TM(I)=TMN(I)
-       DO J=1,NDIM*NCOL
-          UPS(J,I)=UPSN(J,I)
-          UPOLDP(J,I)=UPOLDN(J,I)
-          UDOTPS(J,I)=UDOTPN(J,I)
-       ENDDO
-    ENDDO
-    DEALLOCATE(DTMN,TMN,UPSN,UPOLDN,UDOTPN)
 
 ! Set UOLDPS, RLOLD.
 
@@ -802,21 +760,32 @@ CONTAINS
   END SUBROUTINE RSPTBV
 
 ! ---------- ------
-  SUBROUTINE STPNBV(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT, &
-       NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+  SUBROUTINE STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT, &
+       UPS,UDOTPS,TM,NODIR)
+
+    USE MESH
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*),TM(*),DTM(*),THL(*),THU(*)
+    DIMENSION IAP(*),RAP(*),UPS(*),UDOTPS(*)
+    DIMENSION PAR(*),ICP(*),RLDOT(*),TM(*)
+    DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
+    NDIM=IAP(1)
+    NTST=IAP(5)
+    NCOL=IAP(6)
 
-    CALL STPNBV1(IAP,RAP,PAR,ICP,NTSRS,NDIMRD,NCOLRS,RLCUR,RLDOT, &
-         NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+    ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR), &
+         TMR(0:NTSR))
+    CALL STPNBV1(IAP,PAR,ICP,NTSRS,NDIMRD,NCOLRS,RLDOT, &
+         UPSR,UDOTPSR,TMR,NODIR)
+    CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM, &
+         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+    DEALLOCATE(TMR,UPSR,UDOTPSR)
 
   END SUBROUTINE STPNBV
 
 ! ---------- -------
-  SUBROUTINE STPNBV1(IAP,RAP,PAR,ICP,NTSRS,NDIMRD,NCOLRS,RLCUR,RLDOT, &
-       NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+  SUBROUTINE STPNBV1(IAP,PAR,ICP,NTSRS,NDIMRD,NCOLRS,RLDOT, &
+       UPS,UDOTPS,TM,NODIR)
 
     USE IO
     IMPLICIT NONE
@@ -825,29 +794,24 @@ CONTAINS
 ! restart computation at the point with label IRS.
 ! This information is expected on unit 3.
 
-    INTEGER, INTENT(IN) :: NDX,ICP(*)
+    INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(OUT) :: NTSRS,NDIMRD,NCOLRS,NODIR
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
-    DOUBLE PRECISION, INTENT(OUT) :: UPS(NDX,*),UDOTPS(NDX,*),TM(*)
-    DOUBLE PRECISION, INTENT(IN) :: UPOLDP(NDX,*),DTM(*),THL(*),THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLCUR(*),RLDOT(*)
+    DOUBLE PRECISION, INTENT(OUT) :: UPS(*),UDOTPS(*),TM(*)
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*)
 ! Local
-    INTEGER IRS,NFPR,NFPRS,ITPRS,I,NPARS
+    INTEGER IRS,NFPR,NFPRS,ITPRS,I,NPARS,NDIM
     INTEGER, ALLOCATABLE :: ICPRS(:)
 
     LOGICAL FOUND
 
+    NDIM=IAP(1)
     IRS=IAP(3)
     NFPR=IAP(29)
 
     ALLOCATE(ICPRS(NFPR))
     CALL READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS, &
-         UDOTPS,TM,ITPRS,NDX)
-
-    DO I=1,NFPR
-       RLCUR(I)=PAR(ICP(I))
-    ENDDO
+         UDOTPS,TM,ITPRS,NDIM)
 
 ! Take care of the case where the free parameters have been changed at
 ! the restart point.
@@ -869,8 +833,8 @@ CONTAINS
   END SUBROUTINE STPNBV1
 
 ! ---------- ------
-  SUBROUTINE STPNUB(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLCUR,RLDOT, &
-       NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+  SUBROUTINE STPNUB(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLDOT, &
+       UPS,UDOTPS,TM,NODIR)
 
     USE MESH
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -879,54 +843,102 @@ CONTAINS
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*),TM(*),DTM(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLDOT(*),THL(*),THU(*)
-! Local
-    ALLOCATABLE U(:)
+    DIMENSION IAP(*),RAP(*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+    DIMENSION PAR(*),ICP(*),RLDOT(*)
 
     NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
     NFPR=IAP(29)
-    ALLOCATE(U(NDIM))
 
 ! Generate the (initially uniform) mesh.
 
     CALL MSH(NTST,TM)
-    DT=1.d0/(NTST*NCOL)
 
-    DO J=1,NTST+1
-       IF(J.EQ.(NTST+1)) THEN
-          NCOL1=1
-       ELSE
-          NCOL1=NCOL
-       ENDIF
-       DO I=1,NCOL1
-          T=TM(J)+(I-1)*DT
-          K1=(I-1)*NDIM+1
-          K2=I*NDIM
-          CALL STPNT(NDIM,U,PAR,T)
-          DO K=K1,K2
-             UPS(K,J)=U(K-K1+1)
-          ENDDO
-       ENDDO
+    DO J=0,NTST*NCOL
+       CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
     ENDDO
 
-    NTSRS=NTST
-    NCOLRS=NCOL
     IBR=1
     IAP(30)=IBR
     LAB=0
     IAP(37)=LAB
 
-    DO I=1,NFPR
-       RLCUR(I)=PAR(ICP(I))
-    ENDDO
-
     NODIR=1
 
-    DEALLOCATE(U)
   END SUBROUTINE STPNUB
+
+! ---------- ------
+  SUBROUTINE STHOPF(IAP,RAP,PAR,ICP,NTST,NCOL, &
+       NFPR,RLDOT,NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
+
+    USE IO
+    USE MESH
+    USE SUPPORT
+    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+!  Generates starting data for a periodic orbit from a Hopf
+!  bifurcation point (for waves or periodic orbits)
+
+    DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*),THU(*)
+    DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
+    EXTERNAL FUNI
+! Local
+    ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:), DTM(:)
+    DOUBLE PRECISION DUMDFP(1),UOLD(1)
+    INTEGER :: ICPRS(2)
+    DOUBLE PRECISION THL(2)
+
+    ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
+    ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
+
+    CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+
+    PERIOD=PAR(11)
+    TPI=PI(2.d0)
+    RIMHB=TPI/PERIOD
+
+    SMAT(:,:)=0.d0
+
+    DO I=1,NDIM
+       SMAT(I,I)=-RIMHB
+       SMAT(NDIM+I,NDIM+I)=RIMHB
+    ENDDO
+
+    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
+
+! Note that the period-scaling in FUNC is taken into account:
+    SMAT(1:NDIM,NDIM+1:2*NDIM)=DFU(:,:)/PAR(11)
+    SMAT(NDIM+1:2*NDIM,1:NDIM)=DFU(:,:)/PAR(11)
+
+    CALL NLVC(2*NDIM,2*NDIM,2,SMAT,RNLLV)
+    CALL NRMLZ(2*NDIM,RNLLV)
+
+! Generate the (initially uniform) mesh.
+
+    CALL MSH(NTST,TM)
+
+    DO J=0,NTST*NCOL
+       T=J*TPI/(NTST*NCOL)
+       S=SIN(T)
+       C=COS(T)
+       UDOTPS(:,J)=S*RNLLV(1:NDIM)+C*RNLLV(NDIM+1:2*NDIM)
+       UPOLDP(:,J)=C*RNLLV(1:NDIM)-S*RNLLV(NDIM+1:2*NDIM)
+       UPS(:,J)=U(:)
+    ENDDO
+
+    RLDOT(1:2)=0.d0
+    THL(1:2)=0.d0
+
+    ALLOCATE(DTM(NTST))
+    DTM(:)=1.d0/NTST
+
+    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
+
+    NODIR=-1
+
+    DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT,DTM)
+  END SUBROUTINE STHOPF
 
 ! ---------- ------
   SUBROUTINE SETRTN(NDM,NTST,NDX,UPS,PAR)
@@ -1021,7 +1033,7 @@ CONTAINS
 
 ! Scale the starting direction.
 
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,NDIM,UDOTPS,RLDOT,DTM,THL,THU)
+    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
 
 ! Make sure that RLDOT(1) is positive (unless zero).
 
@@ -1226,7 +1238,7 @@ CONTAINS
 
 ! Scale the direction vector.
 
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,NDIM,UDOTPS,RLDOT,DTM,THL,THU)
+    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
     IF(IID.GE.2)THEN
        WRITE(9,101)ABS(IBR),NTOP+1,RLDOT(1)
     ENDIF

@@ -786,7 +786,7 @@ C
       END SUBROUTINE INTPHO
 C
 C     ---------- ------
-      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,
+      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,NDX,UPS,
      *     UDOTPS,PAR,NPAR)
 C
 C     Transform the data representation of the homoclinic orbit into
@@ -804,7 +804,7 @@ C
 C     Called by PREHO
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION TM(*), DTM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
+      DIMENSION TM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
 C Local
       DIMENSION J2(3),A(3),B(3),T(3),TT(3)
       ALLOCATABLE TTM(:),UMAX(:)
@@ -945,23 +945,22 @@ C
                I2=I
             ENDIF
          ENDDO
-         DTM(J-1)=TM(J)-TM(J-1)
 C     
 C     copy first part to temp arrays upst
 C     Replace UPS and UDOTPS by its interpolant on the new mesh :
 C     
          CALL INTPHO(NDM,NCOLRS,TT(1),T(1)-TT(1),NDX,UPS,UDOTPS,
-     *        TM(J-1),DTM(J-1),0,NDIM,J2(1)-1,J-1)
+     *        TM(J-1),TM(J)-TM(J-1),0,NDIM,J2(1)-1,J-1)
 C
 C     Remesh middle part :
 C     
          CALL INTPHO(NDM,NCOLRS,TT(2),T(2)-TT(2),NDX,UPS,UDOTPS,
-     *        TM(J-1),DTM(J-1),NDM,NDIM,J2(2)-1,J-1)
+     *        TM(J-1),TM(J)-TM(J-1),NDM,NDIM,J2(2)-1,J-1)
 C     
 C     Remesh last part :
 C     
          CALL INTPHO(NDM,NCOLRS,TT(3),T(3)-TT(3),NDX,UPS,UDOTPS,
-     *        TM(J-1),DTM(J-1),NDIM-NDM,NDIM,J2(3)+JMAX-1,J-1)
+     *        TM(J-1),TM(J)-TM(J-1),NDIM-NDM,NDIM,J2(3)+JMAX-1,J-1)
 C     
 C     Copy middle parts, this applies only for 1->n switching
 C     where n>=3 and NDIM=(n+1)*NDM: (NDIM/NDM)-3 times.
@@ -1004,10 +1003,10 @@ C
       END SUBROUTINE TRANHO
 C
 C     ---------- ------
-      SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+      SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,NDX,UPS,UDOTPS,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION UPS(NDX,*), UDOTPS(NDX,*), TM(*), PAR(*), DTM(*)
+      DIMENSION UPS(NDX,*), UDOTPS(NDX,*), TM(*), PAR(*)
 C
 C     Copy the homoclinic orbit back from the special representation 
 C     gotten from TRANHO to the usual representation.
@@ -1046,7 +1045,6 @@ C
             ELSE
                TM(I)=(TBASE+TM(J)*PAR(19+K*2))/TIME
             ENDIF
-            DTM(I)=TM(I+1)-TM(I)
          ENDDO
          IF (K.EQ.1) THEN
             TBASE=TBASE-PAR(10)
@@ -1063,8 +1061,7 @@ C
       END SUBROUTINE CPBKHO
 C
 C     ---------- -----
-      SUBROUTINE PREHO(IAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,
-     *     TM,DTM)
+      SUBROUTINE PREHO(IAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,TM)
 C
 C     Special homoclinic orbit preprocessing.
 C
@@ -1072,7 +1069,7 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION UPS(NDX,*), TM(*), DTM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
+      DIMENSION UPS(NDX,*), TM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
       DIMENSION ICP(*)
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
@@ -1087,7 +1084,7 @@ C
 C
       IF (ISTART.GE.0.AND.NAR.GT.2*NDM) THEN
 C        Use the usual representation again for normal continuation.
-         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,DTM,NDX,UPS,UDOTPS,PAR)
+         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,NDX,UPS,UDOTPS,PAR)
       ENDIF
 C     Look for rotations
       CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
@@ -1258,12 +1255,17 @@ C
               ENDDO
            ENDDO
  3         IF(JR.NE.0)THEN
-              DO J=JR,NTSR+1
+              DO J=JR,NTSR
                  DO I=1,NCOLRS*NDIM
                     IF (NRTN(MOD(I-1,NDIM)+1).NE.0) THEN
                        UPS(I,J)=UPS(I,J)+PAR(19)*NRTN(MOD(I-1,NDIM)+1)
                     ENDIF
                  ENDDO
+              ENDDO
+              DO I=1,NDIM
+                 IF (NRTN(I).NE.0) THEN
+                    UPS(I,NTSR+1)=UPS(I,NTSR+1)+PAR(19)*NRTN(I)
+                 ENDIF
               ENDDO
            ENDIF
         ENDIF
@@ -1276,7 +1278,7 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,DTM,NDX,UPS,UDOTPS,PAR,NPAR)
+        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,NDX,UPS,UDOTPS,PAR,NPAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
@@ -1318,10 +1320,12 @@ C
       END SUBROUTINE PREHO
 C
 C     ---------- ------
-      SUBROUTINE STPNHO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,
-     * NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+      SUBROUTINE STPNHO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+     * UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
+      USE MESH
+      USE IO
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates a starting point for the continuation of a branch of
@@ -1333,11 +1337,11 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),RAP(*),UPS(NDX,*),UDOTPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLDOT(*)
-      DIMENSION THL(*),THU(*)
+      DIMENSION IAP(*),RAP(*),UPS(IAP(1),0:*),UDOTPS(*)
+      DIMENSION TM(*),PAR(*),ICP(*),RLDOT(*)
 C Local
       ALLOCATABLE RR(:),RI(:),VR(:,:),VT(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1350,17 +1354,34 @@ C
 C Special case : Preprocess restart data in case of homoclinic
 C continuation
 C
-          CALL STPNBV1(IAP,RAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,RLCUR,RLDOT,
-     *         NDX,UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
-          CALL PREHO(IAP,PAR,ICP,NDX,NTSR,NDIMRD,NCOLRS,UPS,
-     *         UDOTPS,TM,DTM)
+          NTSTCU=2*(NTSR+1)
+          NDXLOC=NCOLRS*NDIM
+! Autodetect special case when homoclinic branch switching is
+! completed and the orbit's representation has to be
+! changed.
+          NDIM3=GETNDIM3()
+          IF(NDIM3.GT.(NDM*2).AND.NDIM3.GT.NDIM)THEN
+             NTSTCU=(NTSR+1)*(NDIM3/NDM)
+             NDXLOC=NDIM3*NCOLRS
+             IAP(1)=NDIM3
+          ENDIF
+          ALLOCATE(UPSR(NDXLOC,NTSTCU),UDOTPSR(NDXLOC,NTSTCU),
+     *         TMR(NTSTCU))
+          CALL STPNBV1(IAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,RLDOT,
+     *         UPSR,UDOTPSR,TMR,NODIR)
+          CALL PREHO(IAP,PAR,ICP,NDXLOC,NTSR,NDIMRD,NCOLRS,UPSR,
+     *         UDOTPSR,TMR)
+          IAP(1)=NDIM
+          CALL ADAPT2(NTSR,NCOLRS,NDXLOC/NCOLRS,NTST,NCOL,NDIM,
+     *         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+          DEALLOCATE(TMR,UPSR,UDOTPSR)
           RETURN
        ENDIF
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLCUR,RLDOT,NDX,
-     *      UPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THL,THU)
+       CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+     *      UPS,UDOTPS,TM,NODIR)
 C
 C Initialize solution and additional parameters
 C
@@ -1397,22 +1418,14 @@ C
 C     
 C Starting guess for homoclinic orbit in real principal unstable direction
 C
-       DO J=1,NTST+1
-          IF(J.EQ.(NTST+1)) THEN
-             NCOL1=1
-          ELSE
-             NCOL1=NCOL
-          ENDIF
-          DO I=1,NCOL1
-             T=TM(J)+(I-1)*DT
-             K2=(I-1)*NDIM
-             DO K=1,NDIM
-                UPS(K2+K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
-     +               EXP(RR(NSTAB+1)*T*PAR(11))
-             ENDDO
-             write(9,111)(ups(j,k2+k),k=1,ndim)
- 111         format('stpho : ',e20.10)
+       DO J=0,NTST*NCOL
+          T=PAR(11)*J/(NTST*NCOL)
+          DO K=1,NDIM
+             UPS(K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
+     +            EXP(RR(NSTAB+1)*T)
           ENDDO
+          write(9,111)(ups(k,j),k=1,ndim)
+ 111      format('stpho : ',e20.10)
        ENDDO
 C
 C Artificial parameters at the right-hand end point of the orbit

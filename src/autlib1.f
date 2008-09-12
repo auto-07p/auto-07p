@@ -224,18 +224,13 @@ C        ** Periodic solutions
 C
        ELSE IF(IPS.EQ.12 .AND. ABS(ISW).LE.1 ) THEN
 C        ** Wave train solutions to parabolic systems.
-         IF(ITP.NE.3) THEN
-           IF(IRS.GT.0)THEN
+          IF(IRS.GT.0)THEN
              CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNBV,
      *        PVLSBV,THL,THU,IUZ,VUZ)
-           ELSE
+          ELSE
              CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNUB,
      *        PVLSBV,THL,THU,IUZ,VUZ)
-           ENDIF
-         ELSE
-           CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNWP,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
-         ENDIF
+          ENDIF
 C
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)<=1) THEN
 C        ** Boundary value problems. (4)
