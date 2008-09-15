@@ -135,6 +135,7 @@ CONTAINS
     NBC=IAP(12)
     NINT=IAP(13)
     NUZR=IAP(15)
+    ITP=IAP(27)
     ITPST=IAP(28)
     NFPR=IAP(29)
     NDX=NDIM*NCOL
@@ -200,20 +201,22 @@ CONTAINS
     ELSEIF(IRS.NE.0 .AND. ISW.LT.0)THEN
        ! branch switch
        IPERP=1
-    ELSEIF( ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+    ELSEIF( ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) .AND. &
+         ITP/=3 .AND. ABS(ITP/10)/=3) THEN
        ! periodic orbit with detection of special points: compute FMs
+       ! (but not at a Hopf bifurcation)
        IPERP=-1
     ENDIF
     IF(IPERP/=2)THEN
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,IPERP,P0,P1,THL,THU)
-    ENDIF
-    IF(ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
-       ! determine and print Floquet multipliers and stability
-       SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
-            DTM,THL,THU,IUZ,VUZ)
-       SP1 = 0.0d0
+       IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+          ! determine and print Floquet multipliers and stability
+          SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
+               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+               DTM,THL,THU,IUZ,VUZ)
+          SP1 = 0.0d0
+       ENDIF
     ENDIF
 
 ! Store plotting data for restart point :
@@ -802,8 +805,6 @@ CONTAINS
 ! Local
     INTEGER IRS,NFPR,NFPRS,ITPRS,I,NPARS,NDIM
     INTEGER, ALLOCATABLE :: ICPRS(:)
-
-    LOGICAL FOUND
 
     NDIM=IAP(1)
     IRS=IAP(3)

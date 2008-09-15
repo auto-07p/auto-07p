@@ -3036,7 +3036,7 @@ C
        DEALLOCATE(ICPRS,RLDOTRS)
        ALLOCATE(U(NDM),TEMP(0:NTSR*NCOLRS),DTMTEMP(NTSR))
        DO J=1,NTSR
-         DTMTEMP(J)=TM(J+1)-TM(J)
+         DTMTEMP(J)=TMR(J)-TMR(J-1)
        ENDDO
 C
 C Compute the starting value of the objective functional
