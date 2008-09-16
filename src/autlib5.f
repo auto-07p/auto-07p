@@ -744,23 +744,23 @@ C
       END SUBROUTINE INHO
 C
 C     ---------- ------
-      SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,NDX,UPS,UDOTPS,T,DT,N,
-     *     NDIM,J,J1)
+      SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,UPS,UDOTPS,T,DT,N,NDIM,J,J1)
 C
       USE MESH
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION UPS(NDX,*), UDOTPS(NDX,*)
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NDM,NCOLRS,N,NDIM,J,J1
+      DOUBLE PRECISION, INTENT(IN) :: TM,DTM,T,DT
+      DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM,0:*),UDOTPS(NDIM,0:*)
 C
 C Local
 C
-      ALLOCATABLE X(:),W(:)
+      INTEGER I,L,JJ,K
+      DOUBLE PRECISION D,Z,X(0:NCOLRS),W(0:NCOLRS)
 C
 C     Finds interpolant (TM(.) , UPS(.), UDOTPS(.) ) on the new mesh
 C     at times TM,TM+DTM using the old mesh at times T,T+DT.
 C
 C     Used by TRANHO to initiate branch switching to n-homoclinic orbits.
-C
-      ALLOCATE(X(0:NCOLRS),W(0:NCOLRS))
 C
       D=DTM/NCOLRS
       DO L=0,NCOLRS
@@ -769,25 +769,17 @@ C
       DO I=0,NCOLRS-1
          Z=T+DT*I/NCOLRS
          CALL INTWTS(NCOLRS,Z,X,W)
-         K1=I*NDIM+N
+         JJ=J1+I
          DO K=1,NDM
-            UPS(K1+K,J1)=W(NCOLRS)*UPS(N+K,J+1)
-            UDOTPS(K1+K,J1)=W(NCOLRS)*UDOTPS(N+K,J+1)
-            DO L=0,NCOLRS-1
-               L1=K+L*NDIM+N
-               UPS(K1+K,J1)=UPS(K1+K,J1)+W(L)*UPS(L1,J)
-               UDOTPS(K1+K,J1)=UDOTPS(K1+K,J1)+W(L)*UDOTPS(L1,J)
-            ENDDO
+            UPS(N+K,JJ)=DOT_PRODUCT(W(:),UPS(N+K,J:J+NCOLRS))
+            UDOTPS(N+K,JJ)=DOT_PRODUCT(W(:),UDOTPS(N+K,J:J+NCOLRS))
          ENDDO
       ENDDO
-C
-      DEALLOCATE(X,W)
-      RETURN
+
       END SUBROUTINE INTPHO
 C
 C     ---------- ------
-      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,NDX,UPS,
-     *     UDOTPS,PAR,NPAR)
+      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,NPAR)
 C
 C     Transform the data representation of the homoclinic orbit into
 C     an object suitable for homoclinic branch switching:
@@ -804,25 +796,25 @@ C
 C     Called by PREHO
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION TM(*), UPS(NDX,*), UDOTPS(NDX,*), PAR(*)
+      DIMENSION TM(0:*), UPS(NDIM,0:*), UDOTPS(NDIM,0:*), PAR(*)
 C Local
-      DIMENSION J2(3),A(3),B(3),T(3),TT(3)
-      ALLOCATABLE TTM(:),UMAX(:)
+      DIMENSION J2(3),A(3),B(3),T(3),TT(3),I2L(1)
+      ALLOCATABLE TTM(:)
 C
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
-      ALLOCATE(TTM(NTSR*2),UMAX(NDM))
+      ALLOCATE(TTM(0:NTSR*2-1))
 C
 C First find maximum from the equilibrium
 C     
       UPSMAX=0
-      JMAX=1
-      DO J=1,NTSR+1
+      JMAX=0
+      DO J=0,NTSR
          UPSI=0
          DO I=1,NDM
-            UPSI=UPSI+(UPS(I,J)-PAR(11+I))*(UPS(I,J)-PAR(11+I))
+            UPSI=UPSI+(UPS(I,J*NCOLRS)-PAR(11+I))**2
          ENDDO
-         IF (UPSI.GT.UPSMAX) THEN
+         IF (UPSI>UPSMAX) THEN
             UPSMAX=UPSI
             JMAX=J
          ENDIF
@@ -831,24 +823,21 @@ C
 C Just use the point in the middle
          UPSMAX = 0
          DO I=1,NDM
-            IF(NRTN(I).NE.0)GOTO 1
+            IF(NRTN(I).NE.0)EXIT
          ENDDO
- 1       CONTINUE
-         DO J=1,NTSR+1
-            D1=DABS(UPS(I,J)-PAR(I+11))
-            UPSI=DABS(UPS(I,J)-(PAR(I+11)+PAR(19)*NRTN(I)))
-            IF(D1.LT.UPSI)UPSI=D1
-            IF(UPSI.GT.UPSMAX)THEN
+         DO J=0,NTSR
+            D1=ABS(UPS(I,J*NCOLRS)-PAR(I+11))
+            UPSI=ABS(UPS(I,J*NCOLRS)-(PAR(I+11)+PAR(19)*NRTN(I)))
+            IF(D1<UPSI)UPSI=D1
+            IF(UPSI>UPSMAX)THEN
                UPSMAX=UPSI
                JMAX=J
             ENDIF
          ENDDO
       ENDIF
       TMMAX=TM(JMAX)
-      DO I=1,NDM
-         UMAX(I) = UPS(I,JMAX)
-      ENDDO
-      CALL FUNC(NDM,UMAX,ICP,PAR,0,PAR(NPAR-NDM+1),DUM1,DUM2)
+      CALL FUNC(NDM,UPS(:,JMAX*NCOLRS),ICP,PAR,0,PAR(NPAR-NDM+1),
+     *     DUM1,DUM2)
 C     
 C     PAR(NPAR-NDM+1...NPAR) contains the point furthest from
 C     the equilibrium.
@@ -872,10 +861,10 @@ C
       IF (ITWIST.EQ.1) THEN
          DNORM=0.D0
          DO I=1,NDM
-            PAR(NPAR-2*NDM+I)=UPS(NDM+I,JMAX)
-            DNORM=DNORM+UPS(NDM+I,JMAX)*UPS(NDM+I,JMAX)
+            PAR(NPAR-2*NDM+I)=UPS(NDM+I,JMAX*NCOLRS)
+            DNORM=DNORM+UPS(NDM+I,JMAX*NCOLRS)**2
          ENDDO
-         DNORM=DSQRT(DNORM)
+         DNORM=SQRT(DNORM)
          DO I=1,NDM
             PAR(NPAR-2*NDM+I)=PAR(NPAR-2*NDM+I)/DNORM
          ENDDO
@@ -887,118 +876,113 @@ C     so that we can subsequently overwrite the beginning.
 C 
       PHDIFF=0
       IADDPH=1
-      DO L=2*NTSR,NTSR,-1
-         J=L-2*NTSR+JMAX
-         IF (J.LE.0) THEN
+      DO L=2*NTSR-1,NTSR-1,-1
+         J=L-(2*NTSR-1)+JMAX
+         IF (J<0) THEN
             J=J+NTSR
             IADDPH=0
          ENDIF
          TTM(L)=TM(J)-TMMAX
-         IF (TTM(L).LT.0) TTM(L)=TTM(L)+1D0
-         DO K=0,(NCOLRS-1)*NDIM,NDIM
-            DO I=K+1,K+NDM
+         IF (TTM(L)<0) TTM(L)=TTM(L)+1D0
+         DO K=0,NCOLRS-1
+            JJ=J*NCOLRS+K
+            LL=L*NCOLRS+K
+            DO I=1,NDM
                IF(IRTN.NE.0)THEN
                   PHDIFF=0
                   IF(IADDPH.NE.0)PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)
                ENDIF
-               UPS(I+NDM,L)=UPS(I,J)+PHDIFF
-               UDOTPS(I+NDM,L)=UDOTPS(I,J)+PHDIFF
-               UPS(I,L)=UPS(I,J)
-               UDOTPS(I,L)=UDOTPS(I,J)
-               IF (L.LE.2*NTSR-JMAX) THEN
+               UPS(I+NDM,LL)=UPS(I,JJ)+PHDIFF
+               UDOTPS(I+NDM,LL)=UDOTPS(I,JJ)+PHDIFF
+               UPS(I,LL)=UPS(I,JJ)
+               UDOTPS(I,LL)=UDOTPS(I,JJ)
+               IF (L<2*NTSR-JMAX-1) THEN
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
-                  UPS(I+NDIM-NDM,L+JMAX)=UPS(I,J)+PHDIFF
-                  UDOTPS(I+NDIM-NDM,L+JMAX)=UDOTPS(I,J)+PHDIFF
+                  LLL=LL+(1+JMAX)*NCOLRS
+                  UPS(I+NDIM-NDM,LLL)=UPS(I,JJ)+PHDIFF
+                  UDOTPS(I+NDIM-NDM,LLL)=UDOTPS(I,JJ)+PHDIFF
                ENDIF
             ENDDO
          ENDDO
       ENDDO
-      TTM(2*NTSR)=1D0
+      TTM(2*NTSR-1)=1D0
 C     
 C     create matching mesh
 C     merge TM(1..JMAX)/TMMAX, TM(JMAX..NTSR)-TMMAX,
 C           TM(1..JMAX)+1D0-TMMAX, 
 C           (TM(JMAX..NTSR)-TMMAX)/(1D0-TMMAX)
 C
-      J2(1)=2*NTSR-JMAX+2
-      J2(2)=NTSR+1
-      J2(3)=NTSR+1
-      A(1)=TMMAX-1D0
-      A(2)=0D0
-      A(3)=0D0
-      B(1)=TMMAX
-      B(2)=1D0
-      B(3)=1D0-TMMAX
+      J2 = (/ 2*NTSR-JMAX, NTSR, NTSR      /)
+      A  = (/ TMMAX-1D0,   0D0,  0D0       /)
+      B  = (/ TMMAX,       1D0,  1D0-TMMAX /)
       NTSR=NTSR*2-2
       DO I=1,3
          T(I) = (TTM(J2(I))+A(I))/B(I)
          TT(I) = (TTM(J2(I)-1)+A(I))/B(I)
       ENDDO
-      DO J=2,NTSR+1
-         TM(J)=T(1)
-         I2=1
-         DO I=2,3
-            IF (T(I).LT.TM(J)) THEN
-               TM(J)=T(I)
-               I2=I
-            ENDIF
-         ENDDO
+      DO J=0,NTSR-1
+         I2L=MINLOC(T)
+         I2=I2L(1)
+         TM(J+1)=T(I2)
+         JJ=J*NCOLRS
+         DTM=TM(J+1)-TM(J)
 C     
-C     copy first part to temp arrays upst
 C     Replace UPS and UDOTPS by its interpolant on the new mesh :
 C     
-         CALL INTPHO(NDM,NCOLRS,TT(1),T(1)-TT(1),NDX,UPS,UDOTPS,
-     *        TM(J-1),TM(J)-TM(J-1),0,NDIM,J2(1)-1,J-1)
+         CALL INTPHO(NDM,NCOLRS,TT(1),T(1)-TT(1),UPS,UDOTPS,
+     *        TM(J),DTM,0,NDIM,(J2(1)-1)*NCOLRS,JJ)
 C
 C     Remesh middle part :
 C     
-         CALL INTPHO(NDM,NCOLRS,TT(2),T(2)-TT(2),NDX,UPS,UDOTPS,
-     *        TM(J-1),TM(J)-TM(J-1),NDM,NDIM,J2(2)-1,J-1)
+         CALL INTPHO(NDM,NCOLRS,TT(2),T(2)-TT(2),UPS,UDOTPS,
+     *        TM(J),DTM,NDM,NDIM,(J2(2)-1)*NCOLRS,JJ)
 C     
 C     Remesh last part :
 C     
-         CALL INTPHO(NDM,NCOLRS,TT(3),T(3)-TT(3),NDX,UPS,UDOTPS,
-     *        TM(J-1),TM(J)-TM(J-1),NDIM-NDM,NDIM,J2(3)+JMAX-1,J-1)
+         CALL INTPHO(NDM,NCOLRS,TT(3),T(3)-TT(3),UPS,UDOTPS,
+     *        TM(J),DTM,NDIM-NDM,NDIM,(J2(3)+JMAX)*NCOLRS,JJ)
 C     
 C     Copy middle parts, this applies only for 1->n switching
 C     where n>=3 and NDIM=(n+1)*NDM: (NDIM/NDM)-3 times.
 C     
          DO K2=NDM,NDIM-3*NDM,NDM
-            DO K=NDM,(NCOLRS-1)*NDIM+NDM,NDIM
-               DO I=K+1,K+NDM
+            DO K=0,NCOLRS-1
+               DO I=NDM+1,2*NDM
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(K2/NDM)
                   ENDIF
-                  UPS(I+K2,J-1)=UPS(I,J-1)+PHDIFF
-                  UDOTPS(I+K2,J-1)=UDOTPS(I,J-1)+PHDIFF
+                  UPS(I+K2,JJ+K)=UPS(I,JJ+K)+PHDIFF
+                  UDOTPS(I+K2,JJ+K)=UDOTPS(I,JJ+K)+PHDIFF
                ENDDO
             ENDDO
          ENDDO
          J2(I2)=J2(I2)+1
          TT(I2)=T(I2)
-         IF(J.LE.NTSR)THEN
+         IF(J<NTSR-1)THEN
             T(I2)=(TTM(J2(I2))+A(I2))/B(I2)
          ENDIF
       ENDDO
 C
 C     Adjust end points
 C
+      NTNC=NTSR*NCOLRS
       DO I=1,NDM
          IF(IRTN.NE.0)PHDIFF=PAR(19)*NRTN(I)
          DO K2=I,NDIM-NDM,NDM
-            UPS(K2,NTSR+1)=UPS(I+NDM,NTSR+2)+PHDIFF*((K2-I)/NDM-1)
-            UDOTPS(K2,NTSR+1)=UDOTPS(I+NDM,NTSR+2)+PHDIFF*((K2-I)/NDM-1)
+            P=PHDIFF*((K2-I)/NDM-1)
+            UPS(K2,NTNC)=UPS(I+NDM,NTNC+NCOLRS)+P
+            UDOTPS(K2,NTNC)=UDOTPS(I+NDM,NTNC+NCOLRS)+P
          ENDDO
-         UPS(I+NDIM-NDM,NTSR+1)=UPS(I,1)+PHDIFF*(-ISTART)
-         UDOTPS(I+NDIM-NDM,NTSR+1)=UDOTPS(I,1)+PHDIFF*(-ISTART)
+         UPS(I+NDIM-NDM,NTNC)=UPS(I,0)+PHDIFF*(-ISTART)
+         UDOTPS(I+NDIM-NDM,NTNC)=UDOTPS(I,0)+PHDIFF*(-ISTART)
       ENDDO
 C
 C     Rotations: PAR(19) needs adjustment
 C
       IF(IRTN.NE.0)PAR(19)=PAR(19)*(-ISTART)
-      DEALLOCATE(TTM,UMAX)
+      DEALLOCATE(TTM)
       RETURN
       END SUBROUTINE TRANHO
 C
@@ -1278,7 +1262,7 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,NDX,UPS,UDOTPS,PAR,NPAR)
+        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,NPAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
