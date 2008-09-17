@@ -346,7 +346,8 @@ CONTAINS
 
        IF(IAD.NE.0)THEN
           IF(MOD(NTOT,IAD).EQ.0)THEN
-             CALL ADAPT(IAP,NTST,NCOL,NTST,NCOL,TM,DTM,NDX,UPS,UOLDPS)
+             CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
+                  (IPS.EQ.2 .AND. ABS(ISW).LE.1))
           ENDIF
        ENDIF
 

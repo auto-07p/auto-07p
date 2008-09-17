@@ -987,10 +987,11 @@ C
       END SUBROUTINE TRANHO
 C
 C     ---------- ------
-      SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,NDX,UPS,UDOTPS,PAR)
+      SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION UPS(NDX,*), UDOTPS(NDX,*), TM(*), PAR(*)
+      DIMENSION UPS(NAR,0:*), UDOTPS(NAR,0:*)
+      DIMENSION TM(0:*), PAR(*)
 C
 C     Copy the homoclinic orbit back from the special representation 
 C     gotten from TRANHO to the usual representation.
@@ -999,42 +1000,39 @@ C     again once the branch switching is complete.
 C
       NDIM=NDM*(ITWIST+1)
       NCOPY=NAR/NDM
-      J=1
       TIME=PAR(10)+PAR(11)
       DO K=1,NCOPY-2
          TIME=TIME+PAR(19+2*K)
       ENDDO
       TBASE=TIME-PAR(11)
-      TM(NTSR*NCOPY+1)=1.0D0
+      TM(NTSR*NCOPY)=1.0D0
 C
 C     first init last point; otherwise it's overwritten
 C
       DO K=1,NDM
-         UPS(K,NTSR*NCOPY+1)=UPS(K+(NCOPY-1)*NDM,NTSR+1)
-         UDOTPS(K,NTSR*NCOPY+1)=UDOTPS(K+(NCOPY-1)*NDM,NTSR+1)
+         UPS(K,NTSR*NCOPY*NCOLRS)=UPS(K+(NCOPY-1)*NDM,NTSR*NCOLRS)
+         UDOTPS(K,NTSR*NCOPY*NCOLRS)=UDOTPS(K+(NCOPY-1)*NDM,NTSR*NCOLRS)
       ENDDO
       DO K=NCOPY-1,0,-1
-         DO J=NTSR,1,-1
-            I=J+NTSR*K
-            DO L=0,NCOLRS-1
-               DO M=1,NDM
-                  UPS(L*NDIM+M,I)=UPS(L*NAR+K*NDM+M,J)
-                  UDOTPS(L*NDIM+M,I)=UDOTPS(L*NAR+K*NDM+M,J)
-               ENDDO
+         DO J=NCOLRS*NTSR-1,0,-1
+            I=J+NTSR*NCOLRS*K
+            DO M=1,NDM
+               UPS(M,I)=UPS(K*NDM+M,J)
+               UDOTPS(M,I)=UDOTPS(K*NDM+M,J)
             ENDDO
-            IF (K.EQ.0) THEN
-               TM(I)=TM(J)*PAR(10)/TIME
-            ELSEIF (K.EQ.NCOPY-1) THEN
-               TM(I)=(TBASE+TM(J)*PAR(11))/TIME
-            ELSE
-               TM(I)=(TBASE+TM(J)*PAR(19+K*2))/TIME
-            ENDIF
          ENDDO
-         IF (K.EQ.1) THEN
-            TBASE=TBASE-PAR(10)
-         ELSE
-            TBASE=TBASE-PAR(17+K*2)
-         ENDIF
+      ENDDO
+      DO J=NTSR,1,-1
+         TM(J+NTSR*(NCOPY-1))=(TBASE+TM(J)*PAR(11))/TIME
+      ENDDO
+      DO K=NCOPY-2,1,-1
+         TBASE=TBASE-PAR(19+2*K)
+         DO J=NTSR,1,-1
+            TM(J+NTSR*K)=(TBASE+TM(J)*PAR(19+K*2))/TIME
+         ENDDO
+      ENDDO
+      DO J=1,NTSR
+         TM(J)=TM(J)*PAR(10)/TIME
       ENDDO
       NTSR=NTSR*NCOPY
 C
@@ -1068,7 +1066,7 @@ C
 C
       IF (ISTART.GE.0.AND.NAR.GT.2*NDM) THEN
 C        Use the usual representation again for normal continuation.
-         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,NDX,UPS,UDOTPS,PAR)
+         CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
       ENDIF
 C     Look for rotations
       CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
