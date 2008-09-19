@@ -735,7 +735,7 @@ C
      *     " Error in fort.12 or h. file: bad integer on line ",
      *     LINE,"."
       GOTO 3
- 2    WRITE(6,"(A)")
+ 2    WRITE(6,"(A,I2,A)")
      *     " Error in fort.12 or h. file: ends prematurely on line ",
      *     LINE,"."
  3    CLOSE(UNIT=12,STATUS='KEEP')
@@ -1043,7 +1043,7 @@ C
       END SUBROUTINE CPBKHO
 C
 C     ---------- -----
-      SUBROUTINE PREHO(IAP,PAR,ICP,NDX,NTSR,NAR,NCOLRS,UPS,UDOTPS,TM)
+      SUBROUTINE PREHO(IAP,PAR,ICP,NTSR,NAR,NCOLRS,UPS,UDOTPS,TM)
 C
 C     Special homoclinic orbit preprocessing.
 C
@@ -1051,14 +1051,15 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION UPS(NDX,*), TM(*), UDOTPS(NDX,*), PAR(*), IAP(*)
-      DIMENSION ICP(*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+      DIMENSION UPS(IAP(1),0:NTSR*NCOLRS), TM(0:NTSR) 
+      DIMENSION UDOTPS(IAP(1),0:NTSR*NCOLRS), PAR(*)
       POINTER NRTN(:)
       COMMON /BLRTN/ NRTN,IRTN
 C
 C Local
 C
-      ALLOCATABLE F(:),UI(:)
+      ALLOCATABLE F(:)
 C
       NDIM=IAP(1)
       NDM=IAP(23)
@@ -1069,13 +1070,13 @@ C        Use the usual representation again for normal continuation.
          CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
       ENDIF
 C     Look for rotations
-      CALL SETRTN(NDM,NTSR,NDX,UPS,PAR)
+      CALL SETRTN(NDM,NTSR,NDIM*NCOLRS,UPS,PAR)
       IF (ISTART.LT.0 .AND. .NOT.(NAR.LT.NDIM .AND. NAR.LT.3*NDM)) THEN
 C        Adjust rotations
         IF(IRTN.EQ.0)ALLOCATE(NRTN(NDM))
         IRTN=0
         DO I=1,NDM
-          NRTN(I)=NINT( (UPS(NAR-NDM+I,NTSR+1)-UPS(I,1)) / 
+          NRTN(I)=NINT( (UPS(NAR-NDM+I,NTSR*NCOLRS)-UPS(I,0)) / 
      *          (PI(2.d0) * (-ISTART)) )
           IF(NRTN(I).NE.0)THEN
              PAR(19)=PI(2.d0)
@@ -1095,14 +1096,11 @@ C explicitely given. This is just the point where the speed is minimal.
 C We hope that Newton's method will do the rest.
 
          IF (IEQUIB.GT.0) THEN
-            ALLOCATE(UI(NDM),F(NDM))
-            UPSMIN=1D20
+            ALLOCATE(F(NDM))
+            UPSMIN=HUGE(1.d0)
             JMIN=1
-            DO J=1,NTSR+1
-               DO I=1,NDM
-                  UI(I) = UPS(I,J)
-               ENDDO
-               CALL FUNC(NDM,UI,ICP,PAR,0,F,DUM1,DUM2)
+            DO J=0,NTSR*NCOLRS
+               CALL FUNC(NDM,UPS(:,J),ICP,PAR,0,F,DUM1,DUM2)
                UPSI=0
                DO I=1,NDM
                   UPSI=UPSI+F(I)*F(I)
@@ -1112,20 +1110,18 @@ C We hope that Newton's method will do the rest.
                   UPSMIN = UPSI
                ENDIF
             ENDDO
-            DO I=1,NDM
-               PAR(11+I)=UPS(I,JMIN)
-            ENDDO
-            DEALLOCATE(UI,F)
+            PAR(12:12+NDM-1)=UPS(:,JMIN)
+            DEALLOCATE(F)
          ENDIF
 C
 C Find smallest value in norm
 C
-       UPSMIN=1D20
-       JMIN=1
-       DO J=1,NTSR+1
+       UPSMIN=HUGE(1.d0)
+       JMIN=0
+       DO J=0,NTSR
          UPSI=0
          DO I=1,NDM
-           UPSI=UPSI+(UPS(I,J)-PAR(11+I))*(UPS(I,J)-PAR(11+I))
+           UPSI=UPSI+(UPS(I,J*NCOLRS)-PAR(11+I))**2
          ENDDO
          IF (UPSI.LT.UPSMIN) THEN
            UPSMIN=UPSI
@@ -1141,39 +1137,37 @@ C
           J2=JMIN
           J1=J2
           J=JMIN-1
-          DO WHILE(J.NE.JMIN+1)
-             IF(J.EQ.0)J=NTSR+1
+          DO WHILE(J/=JMIN+1)
+             IF(J==-1)J=NTSR
              UPSI=0
              DO I=1,NDM
-                UPSI=UPSI+(UPS(I,J)-PAR(I+11))*(UPS(I,J)-PAR(I+11))
+                UPSI=UPSI+(UPS(I,J*NCOLRS)-PAR(I+11))**2
              ENDDO
-             IF(UPSI.GT.COMPZERO)THEN
+             IF(UPSI>COMPZERO)THEN
                 J1=J+1
-                GOTO 1
+                EXIT
              ENDIF
              J=J-1
           ENDDO
- 1        CONTINUE
           J=JMIN+1
-          DO WHILE(J.NE.J1)
-             IF(J.EQ.NTSR+2)J=1
+          DO WHILE(J/=J1)
+             IF(J.EQ.NTSR+1)J=0
              UPSI=0
              DO I=1,NDM
-                UPSI=UPSI+(UPS(I,J)-PAR(I+11))*(UPS(I,J)-PAR(I+11))
+                UPSI=UPSI+(UPS(I,J*NCOLRS)-PAR(I+11))**2
              ENDDO
-             IF(UPSI.GT.COMPZERO)THEN
+             IF(UPSI>COMPZERO)THEN
                 J2=J-1
-                GOTO 2
+                EXIT
              ENDIF
              J=J+1
           ENDDO
- 2        CONTINUE
           T=(TM(J2)+TM(J1))/2
-          IF(J1.GT.J2)THEN
+          IF(J1>J2)THEN
              T=(TM(J2)+TM(J1)+1)/2
-             IF(T.GE.1)T=T-1
-             IF(TM(J1).LE.T)THEN
-                J2=NTSR+2
+             IF(T>=1)T=T-1
+             IF(TM(J1)<=T)THEN
+                J2=NTSR+1
              ELSE
                 J1=0
              ENDIF
@@ -1181,72 +1175,66 @@ C
           DO WHILE((TM(J1).LE.T).AND.(J1.LT.J2))
              J1=J1+1
           ENDDO
-          JMIN=j1
+          JMIN=J1
           IF(T-TM(JMIN-1).LT.TM(JMIN)-T) JMIN=JMIN-1
        ENDIF
        TMMIN=TM(JMIN)
 C
 C And then do the actual shift
 C 
-       IF (JMIN.NE.1) THEN
-        IST=0
-        J=NTSR+1
-        DO II=1,NTSR
-           IF (J.EQ.NTSR+1) THEN
+       IF (JMIN/=0) THEN
+        IST=-1
+        J=NTSR*NCOLRS
+        DO II=0,NTSR*NCOLRS-1
+           IF (J==NTSR*NCOLRS) THEN
               IST=IST+1
-              TM(J)=TM(IST)
-              DO K=1,NCOLRS*NDIM
-                  UPS(K,J)=UPS(K,IST)
-               UDOTPS(K,J)=UDOTPS(K,IST)
-              ENDDO
+              IF(MOD(IST,NCOLRS)==0)THEN
+                 TM(NTSR)=TM(IST/NCOLRS)
+              ENDIF
+              UPS(:,J)=UPS(:,IST)
+              UDOTPS(:,J)=UDOTPS(:,IST)
               J=IST
            ENDIF
            I=J
-           J=J+JMIN-1
-           IF (J.GT.NTSR) J=J-NTSR
-           IF (J.EQ.IST) J=NTSR+1
-           TM(I)=TM(J)-TMMIN
-           IF (TM(I).LT.0) TM(I)=TM(I)+1.0D0
-           DO K=1,NCOLRS*NDIM
-                  UPS(K,I)=UPS(K,J)
-               UDOTPS(K,I)=UDOTPS(K,J)
-           ENDDO
+           J=J+JMIN*NCOLRS
+           IF (J>=NTSR*NCOLRS) J=J-NTSR*NCOLRS
+           IF (J==IST) J=NTSR*NCOLRS
+           IF(MOD(I,NCOLRS)==0)THEN
+              IT=I/NCOLRS
+              TM(IT)=TM(J/NCOLRS)-TMMIN
+              IF (TM(IT)<0) TM(IT)=TM(IT)+1.0D0
+           ENDIF
+           UPS(:,I)=UPS(:,J)
+           UDOTPS(:,I)=UDOTPS(:,J)
         ENDDO
 C
 C Last equal to first
 C
-        TM(NTSR+1)=1.0D0
-        DO K=1,NCOLRS*NDIM
-             UPS(K,NTSR+1)=UPS(K,1)
-          UDOTPS(K,NTSR+1)=UDOTPS(K,1)
-        ENDDO
+        TM(NTSR)=1.0D0
+        UPS(:,NCOLRS*NTSR)=UPS(:,0)
+        UDOTPS(:,NCOLRS*NTSR)=UDOTPS(:,0)
 C
 C Rotations
 C
         IF(IRTN.NE.0)THEN
-           JR=0
-           DO J=1,NTSR+1
+           JR=-1
+           ntsrloop: DO J=0,NTSR*NCOLRS,NCOLRS
               DO I=1,NDM
-                 IF(NRTN(I).NE.0) THEN
-                    IF(DABS((UPS(I,J+1)-UPS(I,J))/NRTN(I)).GT.
-     *                   DABS(PAR(19)/2)) THEN
-                       JR=J+1
-                       GOTO 3
+                 IF(NRTN(I)/=0) THEN
+                    IF(ABS((UPS(I,J+NCOLRS)-UPS(I,J))/NRTN(I))>
+     *                   ABS(PAR(19)/2)) THEN
+                       JR=J+NCOLRS
+                       EXIT ntsrloop
                     ENDIF
                  ENDIF
               ENDDO
-           ENDDO
- 3         IF(JR.NE.0)THEN
-              DO J=JR,NTSR
-                 DO I=1,NCOLRS*NDIM
-                    IF (NRTN(MOD(I-1,NDIM)+1).NE.0) THEN
-                       UPS(I,J)=UPS(I,J)+PAR(19)*NRTN(MOD(I-1,NDIM)+1)
-                    ENDIF
-                 ENDDO
-              ENDDO
+           ENDDO ntsrloop
+           IF(JR/=-1)THEN
               DO I=1,NDIM
-                 IF (NRTN(I).NE.0) THEN
-                    UPS(I,NTSR+1)=UPS(I,NTSR+1)+PAR(19)*NRTN(I)
+                 IF (NRTN(I)/=0) THEN
+                    DO J=JR,NTSR*NCOLRS
+                       UPS(I,J)=UPS(I,J)+PAR(19)*NRTN(I)
+                    ENDDO
                  ENDIF
               ENDDO
            ENDIF
@@ -1264,12 +1252,10 @@ C
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
-         DO J=1,NTSR+1
-            DO K=0,NDIM*(NCOLRS-1),NDIM
-               DO I=NDIM,NAR-NDM+1,-1
-                  UPS(K+I,J)=UPS(K+I-NDIM+NAR,J)
-                  UDOTPS(K+I,J)=UDOTPS(K+I-NDIM+NAR,J)
-               ENDDO
+         DO J=0,NTSR*NCOLRS
+            DO I=NDIM,NAR-NDM+1,-1
+               UPS(I,J)=UPS(I-NDIM+NAR,J)
+               UDOTPS(I,J)=UDOTPS(I-NDIM+NAR,J)
             ENDDO
          ENDDO
          DO I=1,(NDIM-NAR)/NDM
@@ -1284,18 +1270,7 @@ C Preprocesses (perturbs) restart data to enable
 C initial computation of the adjoint variable
 C
       IF (NAR.NE.NDIM .AND. ISTART.GE.0 .AND. ITWIST.EQ.1) THEN  
-       DO J=1,NTSR
-         DO I=1,NCOLRS
-           K1=(I-1)*NDIM+1
-           K2=I*NDIM
-           DO K=K1+NAR,K2
-             UPS(K,J)=0.1d0
-           ENDDO
-         ENDDO
-       ENDDO
-       DO K=1+NAR,NDIM
-         UPS(K,NTSR+1)=0.1d0
-       ENDDO
+         UPS(NAR+1:NDIM,:)=0.1d0
       ENDIF
 C
       RETURN
@@ -1336,25 +1311,23 @@ C
 C Special case : Preprocess restart data in case of homoclinic
 C continuation
 C
-          NTSTCU=2*(NTSR+1)
-          NDXLOC=NCOLRS*NDIM
+          NTSTCU=2*NTSR*NCOLRS
+          NDIMU=NDIM
 ! Autodetect special case when homoclinic branch switching is
 ! completed and the orbit's representation has to be
 ! changed.
           NDIM3=GETNDIM3()
           IF(NDIM3.GT.(NDM*2).AND.NDIM3.GT.NDIM)THEN
-             NTSTCU=(NTSR+1)*(NDIM3/NDM)
-             NDXLOC=NDIM3*NCOLRS
-             IAP(1)=NDIM3
+             NTSTCU=NTSR*(NDIM3/NDM)*NCOLRS
+             NDIMU=NDIM3
           ENDIF
-          ALLOCATE(UPSR(NDXLOC,NTSTCU),UDOTPSR(NDXLOC,NTSTCU),
-     *         TMR(NTSTCU))
-          CALL STPNBV1(IAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,RLDOT,
+          ALLOCATE(UPSR(NDIMU,0:NTSTCU),UDOTPSR(NDIMU,0:NTSTCU),
+     *         TMR(0:NTSTCU))
+          CALL STPNBV1(IAP,PAR,ICP,NDIMU,NTSR,NDIMRD,NCOLRS,RLDOT,
      *         UPSR,UDOTPSR,TMR,NODIR)
-          CALL PREHO(IAP,PAR,ICP,NDXLOC,NTSR,NDIMRD,NCOLRS,UPSR,
+          CALL PREHO(IAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,UPSR,
      *         UDOTPSR,TMR)
-          IAP(1)=NDIM
-          CALL ADAPT2(NTSR,NCOLRS,NDXLOC/NCOLRS,NTST,NCOL,NDIM,
+          CALL ADAPT2(NTSR,NCOLRS,NDIMU,NTST,NCOL,NDIM,
      *         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
           DEALLOCATE(TMR,UPSR,UDOTPSR)
           RETURN
