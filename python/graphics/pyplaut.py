@@ -74,16 +74,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             if len(config) > 5 and config[5]:
                 del dict[key]
         self.handle.config(dict)
-        self.xaxis = self["solution_x"][0]
-        if self.xaxis == 't':
-            self.xaxis = 1
-        else:
-            self.xaxis = self.xaxis + 2
-        self.yaxis = self["solution_y"][0]
-        if self.yaxis == 't':
-            self.yaxis = 1
-        else:
-            self.yaxis = self.yaxis + 2
         self.defaults = {}
         for key in ["xlabel", "ylabel", "top_title"]:
             self.defaults[key] = self.handle.config(key)[3]
@@ -164,9 +154,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
             print ' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :'
             try:
-                [self.xaxis,self.yaxis] = map(int,string.split(raw_input()))
-                self["bifurcation_x"] = [self.xaxis-1]
-                self["bifurcation_y"] = [self.yaxis-1]
+                [xaxis,yaxis] = map(int,string.split(raw_input()))
+                self["bifurcation_x"] = [xaxis-1]
+                self["bifurcation_y"] = [yaxis-1]
             except:
                 pass
         if "st" in opts:
@@ -379,8 +369,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         return 1
         
     def plotsol(self):
-        self.xaxs = [1]
-        self.yaxs = [2]
+        xaxsn = [1]
+        yaxsn = [2]
         
         self.handle.config(type = "solution")
         if not self.enterlabels():
@@ -390,7 +380,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 	while 1:
             its = 0
             print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
-            axisstr = "%s %s"%(self.xaxs,self.yaxs)
+            axisstr = "%s %s"%(xaxsn,yaxsn)
             axisstr = string.replace(axisstr,"[","")
             axisstr = string.replace(axisstr,"]","")
             axisstr = string.replace(axisstr,", ",",")
@@ -417,16 +407,16 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 try:
                     axislist = map(int,string.split(string.replace(line,
                                                                    ","," ")))
-                    self.xaxs = axislist[:len(axislist)/2]
-                    self.yaxs = axislist[len(axislist)/2:]
+                    xaxsn = axislist[:len(axislist)/2]
+                    yaxsn = axislist[len(axislist)/2:]
                     xaxs = []
-                    for x in self.xaxs:
+                    for x in xaxsn:
                         if x == 1:
                             xaxs.append("t")
                         else:
                             xaxs.append(x-2)
                     yaxs = []
-                    for y in self.yaxs:
+                    for y in yaxsn:
                         if y == 1:
                             yaxs.append("t")
                         else:
