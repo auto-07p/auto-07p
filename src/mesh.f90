@@ -125,25 +125,20 @@ CONTAINS
 !              0 = x  < x  < ... < x  = 1.
 !                   0    1          N
     INTEGER, INTENT(IN) :: N
-    DOUBLE PRECISION, INTENT(OUT) :: D(0:N)
+    INTEGER, INTENT(OUT) :: D(0:N)
 
-    INTEGER I,K,K1
+    INTEGER I,K
 
-    D(0)=1.d0
+    D(0)=1
     IF(N.EQ.0)RETURN
 
     DO I=1,N
-       D(I)=0.d0
-       DO K=0,I-1
-          K1=I-K
-          D(K1)=D(K1-1)-D(K1)
+       D(I)=0
+       DO K=I,1,-1
+          D(K)=D(K-1)-D(K)
        ENDDO
        D(0)=-D(0)
     ENDDO
-
-! Scale to [0,1]  :
-
-    D(:)=(N**N)*D(:)
 
   END SUBROUTINE CNTDIF
 
@@ -453,10 +448,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
 
 ! Local
-    DOUBLE PRECISION WH(0:NCOL),SC,E,PWR,DTAV
+    DOUBLE PRECISION SC,E,PWR,DTAV
     DOUBLE PRECISION, ALLOCATABLE :: HD(:,:)
     LOGICAL SMALL
-    INTEGER I,J
+    INTEGER I,J,WH(0:NCOL)
 
     ALLOCATE(HD(NDIM,NTST+1))
 
@@ -465,7 +460,7 @@ CONTAINS
 
     SMALL=.TRUE.
     DO J=1,NTST
-       SC=1.d0/DTM(J)**NCOL
+       SC=(NCOL/DTM(J))**NCOL
        DO I=1,NDIM
           HD(I,J)=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
           IF(ABS(HD(I,J))>HMACH)SMALL=.FALSE.
@@ -485,22 +480,16 @@ CONTAINS
     IF(IPER)THEN
 !        *Extend by periodicity :
        HD(:,NTST+1)=HD(:,1)
+       DTAV=.5d0*(DTM(NTST)+DTM(1))
     ELSE
 !        *Extend by extrapolation :
        HD(:,NTST+1)=2*HD(:,NTST)-HD(:,NTST-1)
-    ENDIF
-
-! Compute approximation to (NCOL+1)-st derivative :
-
-    DO J=1,NTST-1
-       DTAV=.5d0*(DTM(J)+DTM(J+1))
-       HD(:,J)=( HD(:,J+1)-HD(:,J) )/DTAV
-    ENDDO
-    IF(IPER)THEN
-       DTAV=.5d0*(DTM(NTST)+DTM(1))
-    ELSE
        DTAV=DTM(NTST)
     ENDIF
+
+    DO J=1,NTST-1
+       HD(:,J)=2*( HD(:,J+1)-HD(:,J) )/(DTM(J)+DTM(J+1))
+    ENDDO
     HD(:,NTST)=(HD(:,NTST+1)-HD(:,NTST))/DTAV
 
 ! Define the equidistribution function :
