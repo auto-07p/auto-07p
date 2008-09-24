@@ -279,10 +279,10 @@ C
       INFEV = .FALSE.
       DO J = 1, NDIMM1
           IF (QZBETA(J) .NE. 0.0D0) THEN
-	      EV(J+1) = CMPLX( QZALFR(J)/QZBETA(J), 
+              EV(J+1) = CMPLX( QZALFR(J)/QZBETA(J), 
      &                         QZALFI(J)/QZBETA(J), KIND(1.0D0) )
-	  ELSE
-	      EV(J+1) = ( 1.0D+30, 1.0D+30 )
+          ELSE
+              EV(J+1) = ( 1.0D+30, 1.0D+30 )
               INFEV = .TRUE.
           END IF
       ENDDO
@@ -403,16 +403,16 @@ C
 C  Test the input parameters.
 C
       IF ((K .LT. 1) .OR. (K .GT. J)) THEN
-	  WRITE (9,*) 'Domain error for K in DHHPR'
-	  STOP
+          WRITE (9,*) 'Domain error for K in DHHPR'
+          STOP
       END IF
       IF (J .GT. N) THEN
-	  WRITE (9,*) 'Domain error for J in DHHPR'
-	  STOP
+          WRITE (9,*) 'Domain error for J in DHHPR'
+          STOP
       END IF
       IF (INCX .LT. 1) THEN
-	  WRITE (9,*) 'Domain error for INCX in DHHPR'
-	  STOP
+          WRITE (9,*) 'Domain error for INCX in DHHPR'
+          STOP
       END IF
 C
 C  Number of potential non-zero elements in V.
@@ -434,15 +434,15 @@ C  Copy X(K)/M, ... , X(J)/M to V(K), ... , V(J)
 C
       IF (INCX .EQ. 1) THEN
           DO I = K, J
-	      V(I) = X(I)/M
+              V(I) = X(I)/M
           ENDDO
       ELSE
-	  IEND = JMKP1*INCX
-	  ISTART = (K-1)*INCX + 1
-	  L = K
+          IEND = JMKP1*INCX
+          ISTART = (K-1)*INCX + 1
+          L = K
           DO I = ISTART, IEND, INCX
-	      V(L) = X(I)/M
-	      L = L + 1
+              V(L) = X(I)/M
+              L = L + 1
           ENDDO
       END IF
 C 
@@ -543,22 +543,22 @@ C
 C  Test the input parameters.
 C
       IF ((JOB .NE. 1) .AND. (JOB .NE. 2)) THEN
-	  WRITE (9,*) 'Domain error for JOB in DHHAP'
-	  STOP
+          WRITE (9,*) 'Domain error for JOB in DHHAP'
+          STOP
       END IF
       IF ((K .LT. 1) .OR. (K .GT. J)) THEN
-	  WRITE (9,*) 'Domain error for K in DHHAP'
-	  STOP
+          WRITE (9,*) 'Domain error for K in DHHAP'
+          STOP
       END IF
       IF (JOB .EQ. 1) THEN
           IF (J .GT. N) THEN
-	      WRITE (9,*) 'Domain error for J in DHHAP'
-	      STOP
+              WRITE (9,*) 'Domain error for J in DHHAP'
+              STOP
           END IF
       ELSE
           IF (J .GT. Q) THEN
-	      WRITE (9,*) 'Domain error for J in DHHAP'
-	      STOP
+              WRITE (9,*) 'Domain error for J in DHHAP'
+              STOP
           END IF
       END IF
 C
@@ -583,17 +583,17 @@ C      End For
 C  End If
 C
       IF (JOB .EQ. 1) THEN
-	  DO COL = 1, Q
-	      S = BETA * DDOT(JMKP1, V(K), 1, A(K, COL), 1)
-	      DO ROW = K, J
-		  A(ROW,COL) = A(ROW,COL) - S*V(ROW)
+          DO COL = 1, Q
+              S = BETA * DDOT(JMKP1, V(K), 1, A(K, COL), 1)
+              DO ROW = K, J
+                  A(ROW,COL) = A(ROW,COL) - S*V(ROW)
               ENDDO
           ENDDO
       ELSE
-	  DO ROW = 1, N
-	      S = BETA * DDOT(JMKP1, V(K), 1, A(ROW, K), LDA)
-	      DO COL = K, J
-		  A(ROW,COL) = A(ROW,COL) - S*V(COL)
+          DO ROW = 1, N
+              S = BETA * DDOT(JMKP1, V(K), 1, A(ROW, K), LDA)
+              DO COL = K, J
+                  A(ROW,COL) = A(ROW,COL) - S*V(COL)
               ENDDO
           ENDDO
       END IF

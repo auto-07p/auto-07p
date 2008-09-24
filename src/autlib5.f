@@ -146,12 +146,12 @@ C
             F(I+NDIM-NDM)=PAR(11)*F(I+NDIM-NDM)
          ENDDO   
       ENDIF
-C	
+C       
       RETURN
       END SUBROUTINE FFHO
 C
 C     ---------- ----
-      SUBROUTINE BCHO(IAP,RAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCHO(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -160,7 +160,7 @@ C
 C Generates the boundary conditions for homoclinic bifurcation analysis
 C
       DIMENSION IAP(*),ICP(*)
-      DIMENSION RAP(*),U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
+      DIMENSION U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
 C Local
       ALLOCATABLE UU(:),FF1(:),FF2(:)
 C
@@ -168,7 +168,7 @@ C
 C
 C Generate the function.
 C
-       CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.TRUE.,U0,U1,F)
+       CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.TRUE.,U0,U1,F)
 C
        IF(IJAC.EQ.0)RETURN
        ALLOCATE(UU(NDIM),FF1(NBC),FF2(NBC))
@@ -185,9 +185,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U0(I)-EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF1)
+         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF1)
          UU(I)=U0(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF2)
+         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF2)
          UU(I)=U0(I)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -206,9 +206,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U1(I)-EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF1)
+         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF1)
          UU(I)=U1(I)+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF2)
+         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF2)
          UU(I)=U1(I)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
@@ -217,7 +217,7 @@ C
 C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
+         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
@@ -229,7 +229,7 @@ C
       END SUBROUTINE BCHO
 C
 C     ---------- ----
-      SUBROUTINE FBHO(IAP,RAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
+      SUBROUTINE FBHO(IAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
 C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -237,7 +237,7 @@ C
 C Generates the boundary conditions for homoclinic orbits.
 C
       DIMENSION ICP(*),IAP(*)
-      DIMENSION RAP(*),PAR(*),U0(*),U1(*),FB(*)
+      DIMENSION PAR(*),U0(*),U1(*),FB(*)
       LOGICAL CSAVE
 C Local
       ALLOCATABLE VR(:,:,:),VT(:,:,:),UMAX(:)
@@ -291,7 +291,7 @@ C     **Regular Continuation**
       IF(ISTART.NE.3) THEN
 C        *Projection boundary conditions for the homoclinic orbit
 C        *NSTAB boundary conditions at t=0
-	     CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
+             CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
              DO I=1,NSTAB
                 DO K=1,NDM
                    FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(I,K)
@@ -301,7 +301,7 @@ C        *NSTAB boundary conditions at t=0
 C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
-            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
+            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=1,NUNSTAB
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
@@ -329,19 +329,19 @@ C
          INEIG=0
 C        *NFIXED extra boundary conditions for the fixed conditions
          IF (NFIXED.GT.0) THEN
-            CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),VR(1,1,1),
+            CALL EIGHI(IAP,2,RR(1,1),RI(1,1),VR(1,1,1),
      *           XEQUIB1,ICP,PAR,NDM)
             IF(IEQUIB.LT.0) THEN
-               CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),VR(1,1,2),
+               CALL EIGHI(IAP,2,RR(1,2),RI(1,2),VR(1,1,2),
      *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
                IF((IFIXED(I).GT.10).AND.(INEIG.EQ.0)) THEN
-                  CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+                  CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *                 XEQUIB1,ICP,PAR,NDM)
                   INEIG=1
                   IF(IEQUIB.LT.0) THEN
-                     CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),
+                     CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),
      *                    XEQUIB2,ICP,PAR,NDM)
                   ENDIF
                ENDIF
@@ -352,12 +352,12 @@ C        *NFIXED extra boundary conditions for the fixed conditions
 C        *extra boundary condition in the case of a saddle-node homoclinic
          IF (IEQUIB.EQ.2) THEN
             IF(INEIG.EQ.0) THEN
-               CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+               CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *              XEQUIB1,ICP,PAR,NDM)
                INEIG=1
-	    ENDIF
-	    FB(JB)=RR(NSTAB+1,1)
-	    JB=JB+1
+            ENDIF
+            FB(JB)=RR(NSTAB+1,1)
+            JB=JB+1
          ENDIF
 C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
          IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
@@ -372,7 +372,7 @@ C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
 C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
-            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
+            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
             DO I=1,NUNSTAB
                DUM=0.0
                DO K=1,NDM
@@ -382,7 +382,7 @@ C           *-orthogonal to the unstable directions of A  at t=0
                JB = JB+1
             ENDDO
 C           *-orthogonal to the stable directions of A  at t=1
-            CALL PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
+            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
             DO I=1,NSTAB
                DUM=0.0
                DO K=1,NDM
@@ -436,7 +436,7 @@ C     **Starting Solutions using Homotopy**
          ENDIF
          KP=IP
 C        *Explicit boundary conditions for homoclinic orbit at t=0
-         CALL EIGHI(IAP,RAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
+         CALL EIGHI(IAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
          JB=NDM+1
          IF(NUNSTAB.GT.1) THEN
             FB(JB)=0.0
@@ -449,7 +449,7 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
                FB(JB)=FB(JB)+PAR(IP+J)**2
             ENDDO
             FB(JB)=FB(JB)-PAR(IP)
-	    JB=JB+1
+            JB=JB+1
          ELSE
             KP=IP+1
             DO I=1,NDM
@@ -458,7 +458,7 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
             ENDDO
          ENDIF
 C        *Projection boundary conditions for the homoclinic orbit at t=1
-         CALL EIGHI(IAP,RAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
+         CALL EIGHI(IAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
          DO I=NDM-NUNSTAB+1,NDM
             DUM=0.0D0
             DO J=1,NDM
@@ -466,7 +466,7 @@ C        *Projection boundary conditions for the homoclinic orbit at t=1
             ENDDO 
             KP=KP+1
             FB(JB)=DUM-PAR(KP)
-	    JB=JB+1
+            JB=JB+1
          ENDDO
 C        *NDM initial conditions for the equilibrium if IEQUIB=1,2,-2
          IF ((IEQUIB.NE.0).AND.(IEQUIB.NE.-1)) THEN
@@ -495,7 +495,7 @@ C
       END SUBROUTINE FBHO
 C
 C     ---------- ----
-      SUBROUTINE ICHO(IAP,RAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICHO(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -503,16 +503,17 @@ C
 C
 C Generates integral conditions for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*)
+      DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
+       NDM=IAP(23)
        NNT0=IAP(25)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
        IF(IJAC.EQ.0)THEN
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F)
+         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
          RETURN
        ENDIF
 C
@@ -529,10 +530,10 @@ C
        DO I=1,NDIM
          UU=U(I) 
          U(I)=UU-EP
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
      *    UPOLD,F)
          U(I)=UU+EP
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
      *    UPOLD,DINT(1,I))
          U(I)=UU
 C
@@ -543,12 +544,12 @@ C
 C
 C Generate the function.
 C
-       CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F)
+       CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
 C
        IF(IJAC.EQ.1)RETURN
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
      *    UPOLD,DINT(1,NDIM+ICP(I)))
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
@@ -560,17 +561,15 @@ C
       END SUBROUTINE ICHO
 C
 C     ---------- ----
-      SUBROUTINE FIHO(IAP,RAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     * UPOLD,FI)
+      SUBROUTINE FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Generates the integral conditions for homoclinic orbits.
 C
-      DIMENSION ICP(*),IAP(*)
-      DIMENSION RAP(*),PAR(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
+      DIMENSION ICP(*)
+      DIMENSION PAR(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
 C
-      NDM=IAP(23)
       JB=0
 C
 C Integral phase condition for homoclinic orbit
@@ -700,7 +699,7 @@ C     *regular continuation
         ENDIF
         NBC=NBC+NSTAB+NUNSTAB+NDIM-NDM+IEQUIB*NDM+NFREE-NINT-ICORR
         IF (IEQUIB.EQ.2) THEN
-	  NBC=NBC-NDM+1
+          NBC=NBC-NDM+1
         ENDIF
         IF (IEQUIB.LT.0) THEN
            NBC=NBC-(3*IEQUIB+2)*NDM
@@ -1348,8 +1347,8 @@ C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
        DT=1.d0/(NTST*NCOL)
        CALL PVLS(NDM,UPS,PAR)
-       CALL EIGHI(IAP,RAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
-       CALL EIGHI(IAP,RAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
+       CALL EIGHI(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
+       CALL EIGHI(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
 C
 C Set up artificial parameters at the left-hand end point of orbit
 C
@@ -1400,12 +1399,12 @@ C
       END SUBROUTINE STPNHO
 C
 C     ---------- ------
-      SUBROUTINE PVLSHO(IAP,RAP,ICP,UPS,NDIM,PAR)
+      SUBROUTINE PVLSHO(IAP,ICP,UPS,NDIM,PAR)
 C
       USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
+      DIMENSION IAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
 C Local
       ALLOCATABLE PU0(:),PU1(:)
       ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
@@ -1418,14 +1417,14 @@ C
        NTST=IAP(5)
        NCOL=IAP(6)
 C
-       CALL PVLSBV(IAP,RAP,ICP,UPS,NDIM,PAR)
+       CALL PVLSBV(IAP,ICP,UPS,NDIM,PAR)
 C
 C      *Compute eigenvalues
        INEIG=0
-       CALL EIGHI(IAP,RAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
+       CALL EIGHI(IAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
      *      PAR,NDM)
        IF(IEQUIB.LT.0)THEN
-          CALL EIGHI(IAP,RAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
+          CALL EIGHI(IAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
      *         PAR,NDM)
        ENDIF
        IF(IID.GE.3)THEN
@@ -1447,10 +1446,10 @@ C      *Compute eigenvalues
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *         PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
@@ -1466,10 +1465,10 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
-          CALL EIGHI(IAP,RAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *          PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,RAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
@@ -1555,9 +1554,9 @@ C   (saddle, saddle-focus transition)
 C
  2    CONTINUE
       IF (ABS(RI(NSTAB,1)).GT.COMPZERO) THEN
-	 PSIHO=-(RI(NSTAB,1)-RI(NSTAB-1,1))**2
+         PSIHO=-(RI(NSTAB,1)-RI(NSTAB-1,1))**2
       ELSE
-	 PSIHO=(RR(NSTAB,1)-RR(NSTAB-1,1))**2
+         PSIHO=(RR(NSTAB,1)-RR(NSTAB-1,1))**2
       ENDIF
       RETURN
 C     
@@ -1696,17 +1695,17 @@ C
       END FUNCTION PSIHO
 C     
 C     ---------- -----
-      SUBROUTINE EIGHI(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
+      SUBROUTINE EIGHI(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION RAP(*),RR(*),RI(*),VRET(NDM,*),XEQUIB(*),PAR(*)
+      DOUBLE PRECISION RR(*),RI(*),VRET(NDM,*),XEQUIB(*),PAR(*)
 C Local
       ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
 C
         NPAR=IAP(31)
         ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM))
-        CALL EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
+        CALL EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *             DFDU,DFDP,ZZ)
         DEALLOCATE(DFDU,DFDP,ZZ)
 C
@@ -1714,7 +1713,7 @@ C
       END SUBROUTINE EIGHI
 C
 C     ---------- -----
-      SUBROUTINE EIGHO(IAP,RAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
+      SUBROUTINE EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
      *                  DFDU,DFDP,ZZ)
 C
 C Uses EISPACK routine RG to calculate the eigenvalues/eigenvectors
@@ -1722,24 +1721,24 @@ C of the linearization matrix a (obtained from DFHO) and orders them
 C according to their real parts. Simple continuity with respect
 C previous call with same value of ITRANS.
 C
-C	input variables
+C       input variables
 C               ITRANS = 1 use transpose of A
 C                      = 2 otherwise
 C
 C       output variables
-C		RR,RI real and imaginary parts of eigenvalues, ordered w.r.t
-C	           real parts (largest first)
-C	        VRET the rows of which are real parts of corresponding 
+C               RR,RI real and imaginary parts of eigenvalues, ordered w.r.t
+C                  real parts (largest first)
+C               VRET the rows of which are real parts of corresponding 
 C                  eigenvectors 
 C
       USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NDM,*)
+      DIMENSION IAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NDM,*)
       DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
       DIMENSION IEIGC(2)
-      DOUBLE PRECISION DUM1(1)
+      DOUBLE PRECISION DUM1(1),RAP(1)
       ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
       ALLOCATABLE VRPREV(:,:,:)
       SAVE IEIGC,VRPREV
@@ -1851,18 +1850,18 @@ C
       END SUBROUTINE EIGHO
 C
 C     ---------- ------
-      SUBROUTINE PRJCTI(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+      SUBROUTINE PRJCTI(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *                  IMFD,IS,ITRANS,NDM)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       LOGICAL CSAVE
       INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION RAP(*),BOUND(NDM,*),XEQUIB(*),PAR(*)
+      DOUBLE PRECISION BOUND(NDM,*),XEQUIB(*),PAR(*)
 C Local
       ALLOCATABLE A(:,:),V(:,:)
 C
       ALLOCATE(A(NDM,NDM),V(NDM,NDM))
-      CALL PRJCTN(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+      CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *            IMFD,IS,ITRANS,NDM,A,V)
       DEALLOCATE(A,V)
 C
@@ -1870,7 +1869,7 @@ C
       END SUBROUTINE PRJCTI
 C
 C     ---------- ------
-      SUBROUTINE PRJCTN(IAP,RAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+      SUBROUTINE PRJCTN(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *                  IMFD,IS,ITRANS,NDM,A,V)
 C
 C Compute NUNSTAB (or NSTAB) projection boundary condition functions
@@ -1892,12 +1891,12 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)
+      DIMENSION IAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)
       DIMENSION BOUND(NDM,*),XEQUIB(*)
       LOGICAL CSAVE
 C Local
       INTEGER TYPE,IFLAG(2,2)
-      DOUBLE PRECISION UDUM(1),DDUM(1)
+      DOUBLE PRECISION UDUM(1),DDUM(1),RAP(1)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
       ALLOCATABLE TYPE(:)
@@ -1955,11 +1954,11 @@ C Set previous matrix to be the present one if this is the first call
          DO I=1,MCOND
             DO J=1,NDM
                CPREV(I,J,IS,ITRANS)=V(J,I)
-	       BOUND(I,J)=V(J,I)
+               BOUND(I,J)=V(J,I)
             ENDDO
          ENDDO
          IFLAG(IS,ITRANS)=1234
-	 RETURN
+         RETURN
       ENDIF
 C     
 C Calculate the (transpose of the) BEYN matrix D and hence BOUND 
