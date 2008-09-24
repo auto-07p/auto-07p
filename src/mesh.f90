@@ -448,24 +448,51 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
 
 ! Local
-    DOUBLE PRECISION SC,E,PWR,DTAV
-    DOUBLE PRECISION, ALLOCATABLE :: HD(:,:)
+    DOUBLE PRECISION SC,E,PWR,DTAV,ND
+    DOUBLE PRECISION, ALLOCATABLE :: HD(:)
     LOGICAL SMALL
     INTEGER I,J,WH(0:NCOL)
 
-    ALLOCATE(HD(NDIM,NTST+1))
-
-! Compute approximation to NCOL-th derivative :
+    ALLOCATE(HD(NDIM))
     CALL CNTDIF(NCOL,WH)
 
+! Compute approximation to NCOL-th and (NCOL+1)-st derivative
+! and define the equidistribution function :
+
     SMALL=.TRUE.
+    PWR=1.d0/(NCOL+1.d0)
+    EQF(0)=0.d0
     DO J=1,NTST
+       E=0.d0
        SC=(NCOL/DTM(J))**NCOL
        DO I=1,NDIM
-          HD(I,J)=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
-          IF(ABS(HD(I,J))>HMACH)SMALL=.FALSE.
+          ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
+          IF(J>1)THEN
+             E=E+ABS( 2*( ND-HD(I) )/(DTM(J-1)+DTM(J)) )**PWR
+          ENDIF
+          IF(ABS(ND)>HMACH)SMALL=.FALSE.
+          HD(I)=ND
        ENDDO
+       IF(J>1)EQF(J-1)=EQF(J-2)+DTM(J-1)*E
     ENDDO
+
+    E=0.d0
+    IF(IPER)THEN
+!      *Extend by periodicity :
+       J=1
+       DTAV=(DTM(NTST)+DTM(1))/2
+    ELSE
+!      *Extend by extrapolation :
+       J=NTST-1
+       DTAV=DTM(NTST)
+    ENDIF
+    SC=(NCOL/DTM(J))**NCOL
+    DO I=1,NDIM
+       ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
+       E=E+ABS( (ND-HD(I))/DTAV )**PWR
+       IF(ABS(ND)>HMACH)SMALL=.FALSE.
+    ENDDO
+    EQF(NTST)=EQF(NTST-1)+DTM(NTST)*E
 
 ! Take care of "small derivative" case.
 
@@ -473,36 +500,7 @@ CONTAINS
        DO I=0,NTST
           EQF(I)=I
        ENDDO
-       DEALLOCATE(HD)
-       RETURN
     ENDIF
-
-    IF(IPER)THEN
-!        *Extend by periodicity :
-       HD(:,NTST+1)=HD(:,1)
-       DTAV=.5d0*(DTM(NTST)+DTM(1))
-    ELSE
-!        *Extend by extrapolation :
-       HD(:,NTST+1)=2*HD(:,NTST)-HD(:,NTST-1)
-       DTAV=DTM(NTST)
-    ENDIF
-
-    DO J=1,NTST-1
-       HD(:,J)=2*( HD(:,J+1)-HD(:,J) )/(DTM(J)+DTM(J+1))
-    ENDDO
-    HD(:,NTST)=(HD(:,NTST+1)-HD(:,NTST))/DTAV
-
-! Define the equidistribution function :
-
-    PWR=1.d0/(NCOL+1.d0)
-    EQF(0)=0.d0
-    DO J=1,NTST
-       E=0.d0
-       DO I=1,NDIM
-          E=E+ABS( HD(I,J) )**PWR
-       ENDDO
-       EQF(J)=EQF(J-1)+DTM(J)*E
-    ENDDO
 
     DEALLOCATE(HD)
   END SUBROUTINE EQDF
