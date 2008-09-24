@@ -178,7 +178,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call mpisum(d,ncb*nrc)
 end subroutine mpicon
 
-subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(iap,rap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   integer NIAP,NRAP,NPARX
 
@@ -188,13 +188,13 @@ subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer :: nra,iap(*),icp(*),ifst,nllv
+  integer :: iap(*),icp(*),ifst,nllv
   double precision :: rap(*),par(*),dtm(*),thu(*)
-  double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
 
   external funi, icni
 
-  integer :: ierr,ntst,ndim,iam,nint,nfpr
+  integer :: ncol,npar,ierr,ntst,ndim,iam,nint,nfpr
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
@@ -206,7 +206,6 @@ subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
      call mpibcasti(iap,NIAP)
   endif
 
-  ndim=iap(1)
   nint=iap(13)
   nfpr=iap(29)
   npar=iap(31)
@@ -254,11 +253,12 @@ subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
   deallocate(buffer)
 
   ntst=iap(5)
+  ncol=iap(6)
   call mpiscat(dtm,1,ntst,0)
-  call mpiscat(ups,nra,ntst,1)
-  call mpiscat(uoldps,nra,ntst,1)
-  call mpiscat(udotps,nra,ntst,1)
-  call mpiscat(upoldp,nra,ntst,1)
+  call mpiscat(ups,ndim*ncol,ntst,ndim)
+  call mpiscat(uoldps,ndim*ncol,ntst,ndim)
+  call mpiscat(udotps,ndim*ncol,ntst,ndim)
+  call mpiscat(upoldp,ndim*ncol,ntst,ndim)
 
   ! Worker runs here
 
@@ -289,7 +289,7 @@ subroutine mpiscat(buf,ndx,n,add)
   include 'mpif.h'
 
   integer ndx,n,add
-  double precision :: buf(ndx,*)
+  double precision :: buf(*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
   integer i, ierr, loop_start, iam, kwt, na0
@@ -303,14 +303,14 @@ subroutine mpiscat(buf,ndx,n,add)
      allocate(counts(kwt),displacements(kwt))
      loop_start = 0
      do i=1,kwt
-        counts(i) = ndx*(np(i)+add)
+        counts(i) = ndx*np(i)+add
         displacements(i) = ndx*loop_start
         loop_start = loop_start + np(i)
      enddo
      counts(1) = 0
   endif
 
-  na0=(np(iam+1)+add)*ndx
+  na0=np(iam+1)*ndx+add
   if(iam==0)na0=0
   call MPI_Scatterv(buf,counts,displacements,MPI_DOUBLE_PRECISION, &
        buf,na0,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)

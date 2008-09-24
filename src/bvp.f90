@@ -52,7 +52,7 @@ CONTAINS
     integer iam,kwt
     external funi,icni,bcni
 
-    integer :: ndim, nra, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
+    integer :: ndim, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
     integer :: npar, iap(NIAP)
     double precision :: rap(NRAP)
 
@@ -78,15 +78,15 @@ CONTAINS
     call partition(ntst,kwt,np)
     na=np(iam+1)
     deallocate(np)
-    nra=ndim*ncol
 
     allocate(icp(nfpr+nint),thu(ndim*8),dtm(na),par(npar))
-    allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
+    allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
+    allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
 
-    call mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp, &
+    call mpisbv(iap,rap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
-         nllv,dum1,dum1,dum1,nra,ups,uoldps,udotps,upoldp,dtm, &
+         nllv,dum1,dum1,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
          dum1,dum1,dum1,dum1,dum1,thu)
 
     ! free input arrays
@@ -521,7 +521,7 @@ CONTAINS
           IF(NITPS.LE.NWTN)IFST=1
 
           CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
-               RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
                P0,P1,THL,THU)
 
 ! Add Newton increments.
@@ -937,7 +937,7 @@ CONTAINS
     IFST=1
     ALLOCATE(DUPS(NDIM,0:NCOL*NTST),DRL(NFPR))
     CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-         RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
+         RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
 
     IF(IPERP==-1)THEN
@@ -1136,7 +1136,7 @@ CONTAINS
 
     ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
     CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-         RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
+         RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
 
     RLDOT(:)=DRL(:)
