@@ -248,10 +248,10 @@ C        ** Evolution calculations for parabolic systems.
 C           (Periodic boundary conditions.)
          IF(IRS.GT.0) THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
+     *      PVLSPE,THL,THU,IUZ,VUZ)
          ELSE
            CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNUB,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
+     *      PVLSPE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.15.AND.ABS(ISW).EQ.1) THEN
@@ -269,10 +269,10 @@ C        ** Evolution calculations for parabolic systems.
 C           (User supplied boundary conditions.)
          IF(IRS.GT.0) THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
+     *      PVLSPE,THL,THU,IUZ,VUZ)
          ELSE
            CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNUB,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
+     *      PVLSPE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF(IPS.EQ.17) THEN
@@ -442,7 +442,7 @@ C
 C
       INTEGER IBR,I,IUZR,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
-      DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,TIVP,HBFF,FLDF
+      DOUBLE PRECISION AMP,BIFF,DET,DSOLD,SPBF,HBFF,FLDF
       CHARACTER(LEN=256) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS
       LOGICAL KEYS
@@ -734,7 +734,6 @@ C
 C
       AMP=0.d0
       DET=0.d0
-      TIVP=0.d0
       FLDF=0.d0
       HBFF=0.d0
       BIFF=0.d0
@@ -745,7 +744,6 @@ C
       RAP(12)=EPSU
       RAP(13)=EPSS
       RAP(14)=DET
-      RAP(15)=TIVP
       RAP(16)=FLDF
       RAP(17)=HBFF
       RAP(18)=BIFF

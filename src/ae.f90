@@ -433,8 +433,6 @@ CONTAINS
     ENDDO
 
     CALL EXTRAE(NDIM,RDS,U,UOLD,UDOT)
-!      Save old time for time integration
-    IF(IPS.EQ.-2)RAP(15)=UOLD(NDIM+1)
 
   END SUBROUTINE CONTAE
 

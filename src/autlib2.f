@@ -118,10 +118,6 @@ C
          DO I=1,NFPR
             PAR(ICP(I))=RLCUR(I)
          ENDDO
-C
-C     ** Time evolution computations (parabolic systems)
-         IPS=IAP(2)
-         IF(IPS.EQ.14 .OR. IPS.EQ.16)RAP(15)=RLOLD(1)
          CALL SUBVBC(NDIM,NTST*NCOL,NBC,NFPR,BCNI,
      +        IAP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),

@@ -176,7 +176,7 @@ CONTAINS
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
     CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
 
-!     don't set global rotations here for homoclinics, but in autlib5.c
+!     don't set global rotations here for homoclinics, but in autlib5.f
     IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST*NCOL,NDIM,UPS,PAR)
 
     IPERP=2
@@ -193,6 +193,9 @@ CONTAINS
        IPERP=-1
     ENDIF
     IF(IPERP/=2)THEN
+       ! ** Time evolution computations (parabolic systems),
+       !    to avoid zero time for direction
+       IF(IPS.EQ.14 .OR. IPS.EQ.16)PAR(12)=PAR(12)-DS
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN

@@ -13,7 +13,7 @@
       PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
       PUBLIC :: FNWP        ! Travelling waves (parabolic PDEs)
       PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
-      PUBLIC :: FNPE,ICPE   ! Time evolution (parabolic PDEs)
+      PUBLIC :: FNPE,ICPE,PVLSPE   ! Time evolution (parabolic PDEs)
       PUBLIC :: FNPL,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
       PUBLIC :: FNPBP,BCPBP,ICPBP,STPNPBP ! BP cont of periodic sol
       PUBLIC :: FNPD,BCPD,ICPD,STPNPD ! PD cont of periodic sol
@@ -676,7 +676,7 @@ C
 C
        CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-       TOLD=RAP(15)
+       TOLD=UOLD(NDIM+1)
        DT=PAR(ICP(1))-TOLD
 C
        DO I=1,NDIM
@@ -1348,14 +1348,10 @@ C
          ALLOCATE(DFU(NDM,NDM))
        ENDIF
 C
-       DS=RAP(1)
-       DSMIN=RAP(2)
-C
        PERIOD=PAR(11)
        T=PAR(ICP(1))
-       RLOLD=RAP(15)
+       RLOLD=PAR(12)
        DT=T-RLOLD
-       IF(DABS(DT).LT.DSMIN)DT=DS
 C
        IIJAC=IJAC
        IF(IJAC.GT.1)IIJAC=1
@@ -1397,6 +1393,22 @@ C Dummy integral condition subroutine for parabolic systems.
 C
       RETURN
       END SUBROUTINE ICPE
+
+C     ---------- ------
+      SUBROUTINE PVLSPE(IAP,ICP,UPS,NDIM,PAR)
+
+      USE BVP
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+
+C     save old time
+      
+      PAR(12)=PAR(ICP(1))
+      CALL PVLSBV(IAP,ICP,UPS,NDIM,PAR)
+
+      END SUBROUTINE PVLSPE
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
