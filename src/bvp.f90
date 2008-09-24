@@ -133,12 +133,11 @@ CONTAINS
     ITP=IAP(27)
     ITPST=IAP(28)
     NFPR=IAP(29)
-    NDX=NDIM*NCOL
 
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
-    ALLOCATE(UPS(NDX,NTST+1),UOLDPS(NDX,NTST+1))
-    ALLOCATE(UPOLDP(NDX,NTST+1),UDOTPS(NDX,NTST+1))
-    ALLOCATE(TM(NTST+1),DTM(NTST+1))
+    ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
+    ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
+    ALLOCATE(TM(0:NTST),DTM(NTST))
     ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR),EV(NDIM))
 
     CALL SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
@@ -170,22 +169,18 @@ CONTAINS
        RLDOT(I)=0.d0
     ENDDO
 
-    DO J=1,NTST+1
-       DO I=1,NDX
-          UPS(I,J)=0.d0
-          UOLDPS(I,J)=0.d0
-          UPOLDP(I,J)=0.d0
-          UDOTPS(I,J)=0.d0
-       ENDDO
-    ENDDO
+    UPS(:,:)=0.d0
+    UOLDPS(:,:)=0.d0
+    UPOLDP(:,:)=0.d0
+    UDOTPS(:,:)=0.d0
 
     NODIR=0
     CALL RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT, &
-         NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
-    CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+         NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
+    CALL PVLI(IAP,RAP,ICP,UPS,NDIM,PAR)
 
 !     don't set global rotations here for homoclinics, but in autlib5.c
-    IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST,NDX,UPS,PAR)
+    IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST*NCOL,NDIM,UPS,PAR)
 
     IPERP=2
     IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
@@ -221,8 +216,8 @@ CONTAINS
        ITP=0
     ENDIF
     IAP(27)=ITP
-    CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+    CALL PVLI(IAP,RAP,ICP,UPS,NDIM,PAR)
+    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
     IF(ISTOP==0)THEN
        CALL EXTRBV(NDIM,NTST,NCOL,NFPR,RDS,RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS)
     ENDIF
@@ -239,7 +234,7 @@ CONTAINS
           DO IUZR=1,NUZR
              IAP(26)=IUZR 
              CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
-                  UZR(IUZR),RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS, &
+                  UZR(IUZR),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
                   UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
              ITP=IAP(27)
              IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
@@ -260,7 +255,7 @@ CONTAINS
 
        IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
@@ -281,7 +276,7 @@ CONTAINS
 
        IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
@@ -303,7 +298,7 @@ CONTAINS
        IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
             (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0 .AND. ITP.EQ.-1)THEN
@@ -328,8 +323,8 @@ CONTAINS
 
 ! Store plotting data.
 
-       CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-       CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU, &
+       CALL PVLI(IAP,RAP,ICP,UPS,NDIM,PAR)
+       CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THL,THU, &
             ISTOP)
 
        IF(ISTOP/=0)EXIT
@@ -359,7 +354,7 @@ CONTAINS
 ! Provide initial approximation and determine next point.
 
        CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
+            NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     ENDDO
     DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,UDOTPS,TM,DTM,P0,P1)
@@ -369,7 +364,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
+       NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     USE MESH
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -381,10 +376,9 @@ CONTAINS
     EXTERNAL FUNI
 
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*)
-    DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(*),DTM(*)
+    DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(*),DTM(*)
     DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 
-    NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
     NFPR=IAP(29)
@@ -393,16 +387,8 @@ CONTAINS
 
 ! Compute rate of change (along branch) of PAR(ICP(1)) and U :
 
-    DDS=1.d0/DSOLD
-    NROW=NDIM*NCOL
-    DO J=1,NTST+1
-       DO I=1,NROW
-          UDOTPS(I,J)=(UPS(I,J)-UOLDPS(I,J))*DDS
-       ENDDO
-    ENDDO
-    DO I=1,NFPR
-       RLDOT(I)=(RLCUR(I)-RLOLD(I))*DDS
-    ENDDO
+    UDOTPS(:,0:NCOL*NTST)=(UPS(:,0:NCOL*NTST)-UOLDPS(:,0:NCOL*NTST))/DSOLD
+    RLDOT(:NFPR)=(RLCUR(:NFPR)-RLOLD(:NFPR))/DSOLD
 ! Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
     CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
 
@@ -412,7 +398,7 @@ CONTAINS
 
 ! Store time-derivative.
 
-    CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDX,UPS,UOLDPS,UPOLDP)
+    CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
 
   END SUBROUTINE CONTBV
 
@@ -423,9 +409,9 @@ CONTAINS
 ! extrapolating from the two preceding points.
 
     INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,NFPR
-    DOUBLE PRECISION, INTENT(IN) :: UDOTPS(NDIM*NCOL,NTST+1), RLDOT(NFPR), RDS
-    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM*NCOL,NTST+1), RLCUR(NFPR)
-    DOUBLE PRECISION, INTENT(OUT) :: UOLDPS(NDIM*NCOL,NTST+1), RLOLD(NFPR)
+    DOUBLE PRECISION, INTENT(IN) :: UDOTPS(NDIM,0:NCOL*NTST), RLDOT(NFPR), RDS
+    DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM,0:NCOL*NTST), RLCUR(NFPR)
+    DOUBLE PRECISION, INTENT(OUT) :: UOLDPS(NDIM,0:NCOL*NTST), RLOLD(NFPR)
 
     RLOLD(:)=RLCUR(:)
     RLCUR(:)=RLCUR(:)+RDS*RLDOT(:)
@@ -436,7 +422,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD, &
-       NDX,UPS,UOLDPS,UPOLDP)
+       NDIM,UPS,UOLDPS,UPOLDP)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -444,12 +430,11 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
+    DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*),RAP(*)
 ! Local
-    ALLOCATABLE U(:),UOLD(:),F(:),DFDU(:),DFDP(:)
+    ALLOCATABLE UOLD(:),DFDU(:,:),DFDP(:,:)
 
-    NDIM=IAP(1)
     IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
@@ -460,48 +445,22 @@ CONTAINS
        PAR(ICP(I))=RLOLD(I)
     ENDDO
 
-    ALLOCATE(U(NDIM),UOLD(NDIM),F(NDIM))
-    ALLOCATE(DFDU(NDIM**2),DFDP(NDIM*NPAR))
+    ALLOCATE(UOLD(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
 
-    DO J=1,NTST+1
-       DO I=1,NDIM
-          U(I)=UOLDPS(I,J)
-          IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-             UOLD(I)=2*UOLDPS(I,J)-UPS(I,J)
-          ELSE
-             UOLD(I)=UOLDPS(I,J)
-          ENDIF
-       ENDDO
-       CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
-       DO I=1,NDIM
-          UPOLDP(I,J)=F(I)
-       ENDDO
-    ENDDO
-
-    NC1=NCOL-1
-    DO K=1,NC1
-       N1=K*NDIM
-       DO J=1,NTST
-          DO I=1,NDIM
-             U(I)=UOLDPS(N1+I,J)
-             IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-                UOLD(I)=2*UOLDPS(N1+I,J)-UPS(N1+I,J)
-             ELSE
-                UOLD(I)=UOLDPS(N1+I,J)
-             ENDIF
-          ENDDO
-          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
-          DO I=1,NDIM
-             UPOLDP(N1+I,J)=F(I)
-          ENDDO
-       ENDDO
+    DO J=0,NTST*NCOL
+       IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
+          UOLD(:)=2*UOLDPS(:,J)-UPS(:,J)
+       ELSE
+          UOLD(:)=UOLDPS(:,J)
+       ENDIF
+       CALL FUNI(IAP,RAP,NDIM,UOLDPS(:,J),UOLD,ICP,PAR,0,UPOLDP(:,J),DFDU,DFDP)
     ENDDO
 
     DO I=1,NFPR
        PAR(ICP(I))=RLCUR(I)
     ENDDO
 
-    DEALLOCATE(U,UOLD,F,DFDU,DFDP)
+    DEALLOCATE(UOLD,DFDU,DFDP)
   END SUBROUTINE STUPBV
 
 ! ---------- ------
@@ -525,10 +484,8 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
     LOGICAL DONE
 
-    NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
-    NROW=NDIM*NCOL
     IADS=IAP(8)
     IID=IAP(18)
     ITNW=IAP(20)
@@ -551,7 +508,7 @@ CONTAINS
 
 ! Write additional output on unit 9 if requested.
 
-       CALL WRTBV9(IAP,RAP,RLCUR,NROW,UPS,TM,DTM,THU,NITPS)
+       CALL WRTBV9(IAP,RAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
 ! Generate the Jacobian matrix and the right hand side.
 
@@ -564,7 +521,7 @@ CONTAINS
           IF(NITPS.LE.NWTN)IFST=1
 
           CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
-               RLCUR,RLOLD,RLDOT,NROW,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
+               RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
                P0,P1,THL,THU)
 
 ! Add Newton increments.
@@ -586,7 +543,7 @@ CONTAINS
              ENDDO
           ENDDO
 
-          CALL WRTBV9(IAP,RAP,RLCUR,NROW,UPS,TM,DTM,THU,NITPS)
+          CALL WRTBV9(IAP,RAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
 ! Check whether user-supplied error tolerances have been met :
 
@@ -599,7 +556,7 @@ CONTAINS
           ENDDO
           RDUMX=DUMX/(1.d0+UMX)
           IF(DONE.AND.RDUMX.LT.EPSU)THEN
-             CALL PVLI(IAP,RAP,ICP,DTM,NROW,UPS,NDIM,P0,P1,PAR)
+             CALL PVLI(IAP,RAP,ICP,UPS,NDIM,PAR)
              IF(IID.GE.2)WRITE(9,*)
              DEALLOCATE(DUPS,DRL)
              RETURN
@@ -660,7 +617,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD, &
-       RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
+       RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
     USE MESH
@@ -676,11 +633,10 @@ CONTAINS
     EXTERNAL FUNI, STPNT
 
     DIMENSION IAP(*),RAP(*)
-    DIMENSION UPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*),UDOTPS(NDX,*)
-    DIMENSION TM(*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*),UDOTPS(NDIM,0:*)
+    DIMENSION TM(0:*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
     DIMENSION THU(*)
 
-    NDIM=IAP(1)
     IPS=IAP(2)
     IRS=IAP(3)
     NTST=IAP(5)
@@ -715,9 +671,7 @@ CONTAINS
 
     CALL NEWLAB(IAP)
 
-    DO J=1,NTST
-       DTM(J)=TM(J+1)-TM(J)
-    ENDDO
+    DTM(1:NTST)=TM(1:NTST)-TM(0:NTST-1)
 
 ! Set UOLDPS, RLOLD.
 
@@ -726,12 +680,7 @@ CONTAINS
        RLOLD(I)=RLCUR(I)
     ENDDO
 
-    NROW=NDIM*NCOL
-    DO J=1,NTST+1
-       DO I=1,NROW
-          UOLDPS(I,J)=UPS(I,J)
-       ENDDO
-    ENDDO
+    UOLDPS(:,0:NCOL*NTST)=UPS(:,0:NCOL*NTST)
 
 ! Store U-prime (derivative with respect to time or space variable).
 
@@ -742,7 +691,7 @@ CONTAINS
        IAP(10)=ISW
     ELSE
 !      ** Restart from orbit.
-       CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDX,UPS,UOLDPS,UPOLDP)
+       CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
     ENDIF
 
   END SUBROUTINE RSPTBV
@@ -926,7 +875,7 @@ CONTAINS
   END SUBROUTINE STHOPF
 
 ! ---------- ------
-  SUBROUTINE SETRTN(NDM,NTST,NDX,UPS,PAR)
+  SUBROUTINE SETRTN(NDM,NTNC,NDIM,UPS,PAR)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -935,12 +884,12 @@ CONTAINS
     
     POINTER NRTN(:)
     COMMON /BLRTN/ NRTN,IRTN
-    DIMENSION UPS(NDX,*),PAR(*)
+    DIMENSION UPS(NDIM,0:NTNC),PAR(*)
 
     ALLOCATE(NRTN(NDM))
     IRTN=0
     DO I=1,NDM
-       NRTN(I)=NINT( (UPS(I,NTST+1)-UPS(I,1)) / PI(2.d0) )
+       NRTN(I)=NINT( (UPS(I,NTNC)-UPS(I,0)) / PI(2.d0) )
        IF(NRTN(I).NE.0)THEN
           PAR(19)=PI(2.d0)
           IRTN=1
@@ -1037,7 +986,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE LCSPBV(IAP,RAP,PAR,ICP,FNCS,FUNI,BCNI,ICNI,PVLI,Q, &
-       RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
+       RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
 
     USE SUPPORT
@@ -1067,7 +1016,6 @@ CONTAINS
     DIMENSION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),IUZ(*),VUZ(*)
     DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
 
-    NDIM=IAP(1)
     IID=IAP(18)
     ITMX=IAP(19)
     IBR=IAP(30)
@@ -1120,7 +1068,7 @@ CONTAINS
        ENDIF
 
        CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
+            NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
        CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
@@ -1232,7 +1180,6 @@ CONTAINS
     ALLOCATABLE PP(:)
     DOUBLE PRECISION U(1),F(1)
 
-    NDIM=IAP(1)
     IID=IAP(18)
 
 ! Save the determinant of the reduced system.
@@ -1295,7 +1242,6 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI
 
-    NDIM=IAP(1)
     ISP=IAP(9)
     ISW=IAP(10)
     IID=IAP(18)
@@ -1543,7 +1489,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDX,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
+  SUBROUTINE STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THL,THU,ISTOP)
 
     USE IO
     USE MESH
@@ -1581,7 +1527,6 @@ CONTAINS
 ! Local
     DIMENSION UMX(7)
 
-    NDIM=IAP(1)
     IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
@@ -1677,13 +1622,13 @@ CONTAINS
 ! Write plotting and restart data on unit 8.
 
     IF(MOD(ITP,10).NE.0)THEN
-       CALL WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
+       CALL WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
     ENDIF
 
   END SUBROUTINE STPLBV
 
 ! ---------- ------
-  SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,TM,DTM)
+  SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -1729,14 +1674,13 @@ CONTAINS
 !
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
-    DIMENSION IAP(*),UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
+    DIMENSION IAP(*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
     DIMENSION PAR(*),ICP(*),RLDOT(*)
 !xxx====================================================================
 !xxx Test problem: compute the error
     err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
 
-    NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
     ISW=IAP(10)
@@ -1760,23 +1704,18 @@ CONTAINS
 
 !xxx====================================================================
 !xxx Test problem
-    eg=0.d0
-    em=0.d0
+    !xxx eg=0.d0
+    !xxx em=0.d0
 !xxx====================================================================
-    DO J=1,NTST
-       RN=1.d0/NCOL
-       DO I=1,NCOL
-          K1=(I-1)*NDIM+1
-          K2=I*NDIM
-          T=TM(J)+(I-1)*RN*DTM(J)
-          WRITE(8,102)T,(UPS(K,J),K=K1,K2)
+    DO J=0,NTST*NCOL
+       T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
+       WRITE(8,102)T,UPS(:,J)
 !xxx====================================================================
 !xxx Test problem
-          er = err(ups(k1,j),T)
-          if(dabs(er).gt.eg)eg=dabs(er)
-          if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
+       !xxx er = err(ups(1,j),T)
+       !xxx if(dabs(er).gt.eg)eg=dabs(er)
+       !xxx if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
 !xxx====================================================================
-       ENDDO
     ENDDO
 !xxx====================================================================
 !xxx Test problem
@@ -1784,7 +1723,6 @@ CONTAINS
 !xxx       write(10,100)ncol,ntst,eg,em
 !xxx 100   FORMAT(4X,I2,I4,7ES11.3)
 !xxx====================================================================
-    WRITE(8,102)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
 
 ! Write the free parameter indices:
 
@@ -1793,14 +1731,9 @@ CONTAINS
 ! Write the direction of the branch:
 
     WRITE(8,102)(RLDOT(I),I=1,NFPR)
-    DO J=1,NTST
-       DO I=1,NCOL
-          K1=(I-1)*NDIM+1
-          K2=I*NDIM
-          WRITE(8,102)(UDOTPS(K,J),K=K1,K2)
-       ENDDO
+    DO J=0,NTST*NCOL
+       WRITE(8,102)UDOTPS(:,J)
     ENDDO
-    WRITE(8,102)(UDOTPS(K,NTST+1),K=1,NDIM)
 
 ! Write the parameter values.
 
@@ -1814,7 +1747,7 @@ CONTAINS
   END SUBROUTINE WRTBV8
 
 ! ---------- ------
-  SUBROUTINE WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
+  SUBROUTINE WRTBV9(IAP,RAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
     USE IO
     USE MESH
@@ -1823,9 +1756,8 @@ CONTAINS
 ! Writes additional output on unit 9.
 
     DIMENSION IAP(*),RAP(*)
-    DIMENSION DTM(*),UPS(NDX,*),TM(*),RLCUR(*),THU(*)
+    DIMENSION DTM(*),UPS(NDIM,0:*),TM(*),RLCUR(*),THU(*)
 
-    NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
     IPLT=IAP(11)
@@ -1850,16 +1782,10 @@ CONTAINS
 
     IF(IID.GE.5)THEN
        WRITE(9,104)
-       DO J=1,NTST
-          RN=1.d0/NCOL
-          DO I=1,NCOL
-             T=TM(J)+(I-1)*RN*DTM(J)
-             K1=(I-1)*NDIM+1
-             K2=I*NDIM
-             WRITE(9,105)T,(UPS(K,J),K=K1,K2)
-          ENDDO
+       DO J=0,NTST*NCOL
+          T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
+          WRITE(9,105)T,UPS(:,J)
        ENDDO
-       WRITE(9,105)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
     ENDIF
 102 FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
 103 FORMAT(I4,I6,I4,5X,6ES14.5)
@@ -1869,12 +1795,11 @@ CONTAINS
   END SUBROUTINE WRTBV9
 
 ! ---------- ------
-  SUBROUTINE PVLSBV(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+  SUBROUTINE PVLSBV(IAP,RAP,ICP,UPS,NDIM,PAR)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    DIMENSION IAP(*),RAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
-    DIMENSION P0(NDIM,*),P1(NDIM,*)
+    DIMENSION IAP(*),RAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
 
     NDM=IAP(23)
     CALL PVLS(NDM,UPS,PAR)
@@ -1930,7 +1855,7 @@ CONTAINS
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5)+1)
+    TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5))
     TARGET P0(NDIM,NDIM),P1(NDIM,NDIM)
     COMPLEX(KIND(1.0D0)), TARGET :: EV(NDIM)
 

@@ -1070,7 +1070,7 @@ C        Use the usual representation again for normal continuation.
          CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
       ENDIF
 C     Look for rotations
-      CALL SETRTN(NDM,NTSR,NDIM*NCOLRS,UPS,PAR)
+      CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
       IF (ISTART.LT.0 .AND. .NOT.(NAR.LT.NDIM .AND. NAR.LT.3*NDM)) THEN
 C        Adjust rotations
         IF(IRTN.EQ.0)ALLOCATE(NRTN(NDM))
@@ -1340,7 +1340,7 @@ C
 C
 C Initialize solution and additional parameters
 C
-       CALL SETRTN(NDM,NTSR,NDIM*NCOLRS,UPS,PAR)
+       CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
        IF (ISTART.NE.3) THEN
           RETURN
        ENDIF
@@ -1400,13 +1400,12 @@ C
       END SUBROUTINE STPNHO
 C
 C     ---------- ------
-      SUBROUTINE PVLSHO(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+      SUBROUTINE PVLSHO(IAP,RAP,ICP,UPS,NDIM,PAR)
 C
       USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),RAP(*),ICP(*),DTM(*),UPS(NDX,*),PAR(*)
-      DIMENSION P0(NDIM,*),P1(NDIM,*)
+      DIMENSION IAP(*),RAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
 C Local
       ALLOCATABLE PU0(:),PU1(:)
       ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
@@ -1417,8 +1416,9 @@ C
        IID=IAP(18)
        NDM=IAP(23)
        NTST=IAP(5)
+       NCOL=IAP(6)
 C
-        CALL PVLSBV(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
+       CALL PVLSBV(IAP,RAP,ICP,UPS,NDIM,PAR)
 C
 C      *Compute eigenvalues
        INEIG=0
@@ -1442,8 +1442,8 @@ C      *Compute eigenvalues
        ENDIF
        IF (((ITWIST.EQ.1).AND.(ISTART.GE.0)).OR.NPSI.GT.0) THEN
           DO I=1,NDIM
-             PU0(I)=UPS(I,1)
-             PU1(I)=UPS(I,NTST+1)
+             PU0(I)=UPS(I,0)
+             PU1(I)=UPS(I,NTST*NCOL)
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
