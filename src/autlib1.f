@@ -477,6 +477,7 @@ C
       ITHL(1)=11
       VTHL(1)=0d0
       NUZR=0
+      NPAR=NPARX
 
       NPOS=1
       KEYS=.FALSE.

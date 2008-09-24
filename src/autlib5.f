@@ -507,7 +507,6 @@ C
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C
        NDM=IAP(23)
-       NNT0=IAP(25)
        NFPR=IAP(29)
 C
 C Generate the function.
@@ -997,7 +996,6 @@ C     gotten from TRANHO to the usual representation.
 C     This is called from PREHO in order to perform normal continuation
 C     again once the branch switching is complete.
 C
-      NDIM=NDM*(ITWIST+1)
       NCOPY=NAR/NDM
       TIME=PAR(10)+PAR(11)
       DO K=1,NCOPY-2
@@ -1345,7 +1343,6 @@ C
        ENDIF
 C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
-       DT=1.d0/(NTST*NCOL)
        CALL PVLS(NDM,UPS,PAR)
        CALL EIGHI(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
        CALL EIGHI(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
@@ -1541,157 +1538,142 @@ C
 C
       IF(IS.NE.11)DEALLOCATE(F1)
       IF(IS.NE.12)DEALLOCATE(F0)
-      GOTO(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)IS
+      SELECT CASE(IS)
 C
 C Resonant eigenvalues (neutral saddle)
 C
- 1    CONTINUE
-      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RI(NSTAB,1)+RI(NSTAB+1,1)
-      RETURN     
+      CASE(1)
+         PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RI(NSTAB,1)+RI(NSTAB+1,1)
 C
 C Double real leading eigenvalues (stable)
 C   (saddle, saddle-focus transition)
 C
- 2    CONTINUE
-      IF (ABS(RI(NSTAB,1)).GT.COMPZERO) THEN
-         PSIHO=-(RI(NSTAB,1)-RI(NSTAB-1,1))**2
-      ELSE
-         PSIHO=(RR(NSTAB,1)-RR(NSTAB-1,1))**2
-      ENDIF
-      RETURN
+      CASE(2)
+         IF (ABS(RI(NSTAB,1)).GT.COMPZERO) THEN
+            PSIHO=-(RI(NSTAB,1)-RI(NSTAB-1,1))**2
+         ELSE
+            PSIHO=(RR(NSTAB,1)-RR(NSTAB-1,1))**2
+         ENDIF
 C     
 C Double real positive eigenvalues (unstable)
 C   (saddle, saddle-focus transition)
 C
- 3    CONTINUE
-      IF (ABS(RI(NSTAB+1,1)).GT.COMPZERO) THEN
-         PSIHO=-(RI(NSTAB+1,1)-RI(NSTAB+2,1))**2
-      ELSE
-         PSIHO=(RR(NSTAB+1,1)-RR(NSTAB+2,1))**2
-      ENDIF
-      RETURN
+      CASE(3)
+         IF (ABS(RI(NSTAB+1,1)).GT.COMPZERO) THEN
+            PSIHO=-(RI(NSTAB+1,1)-RI(NSTAB+2,1))**2
+         ELSE
+            PSIHO=(RR(NSTAB+1,1)-RR(NSTAB+2,1))**2
+         ENDIF
 C
 C Neutral saddle, saddle-focus or bi-focus (includes 1, above, also) 
 C
- 4    CONTINUE
-      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)
-      RETURN     
+      CASE(4)
+         PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)
 C
 C Neutrally-divergent saddle-focus (stable eigenvalues complex)
 C
- 5    CONTINUE
-      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB-1,1)
-      RETURN
+      CASE(5)
+         PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB-1,1)
 C
 C Neutrally-divergent saddle-focus (unstable eigenvalues complex)
 C
- 6    CONTINUE
-      PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB+2,1)
-      RETURN
+      CASE(6)
+         PSIHO=RR(NSTAB,1)+RR(NSTAB+1,1)+RR(NSTAB+2,1)
 C
 C Three leading eigenvalues (stable)
 C
- 7    CONTINUE
-      VNORM1 = 0D0
-      VNORM2 = 0D0      
-      DO I=1,NDM
-          VNORM1 = VNORM1 + ABS(V(NSTAB,I,1))
-          VNORM2 = VNORM2 + ABS(V(NSTAB-2,I,1))
-      ENDDO
-      IF (VNORM1.GT.VNORM2) THEN
-        PSIHO=RR(NSTAB,1)-RR(NSTAB-2,1)
-      ELSE
-        PSIHO=RR(NSTAB-2,1)-RR(NSTAB,1)
-      ENDIF
-      RETURN
+      CASE(7)
+         VNORM1 = 0D0
+         VNORM2 = 0D0      
+         DO I=1,NDM
+            VNORM1 = VNORM1 + ABS(V(NSTAB,I,1))
+            VNORM2 = VNORM2 + ABS(V(NSTAB-2,I,1))
+         ENDDO
+         IF (VNORM1.GT.VNORM2) THEN
+            PSIHO=RR(NSTAB,1)-RR(NSTAB-2,1)
+         ELSE
+            PSIHO=RR(NSTAB-2,1)-RR(NSTAB,1)
+         ENDIF
 C
 C Three leading eigenvalues (unstable)
 C
- 8    CONTINUE
-      VNORM1 = 0D0
-      VNORM2 = 0D0      
-      DO I=1,NDM
-          VNORM1 = VNORM1 + ABS(V(NSTAB+1,I,1))
-          VNORM2 = VNORM2 + ABS(V(NSTAB+3,I,1))
-      ENDDO
-      IF (VNORM1.GT.VNORM2) THEN
-        PSIHO=RR(NSTAB+1,1)-RR(NSTAB+3,1)
-      ELSE
-        PSIHO=RR(NSTAB+3,1)-RR(NSTAB+1,1)
-      ENDIF
-      RETURN
+      CASE(8)
+         VNORM1 = 0D0
+         VNORM2 = 0D0      
+         DO I=1,NDM
+            VNORM1 = VNORM1 + ABS(V(NSTAB+1,I,1))
+            VNORM2 = VNORM2 + ABS(V(NSTAB+3,I,1))
+         ENDDO
+         IF (VNORM1.GT.VNORM2) THEN
+            PSIHO=RR(NSTAB+1,1)-RR(NSTAB+3,1)
+         ELSE
+            PSIHO=RR(NSTAB+3,1)-RR(NSTAB+1,1)
+         ENDIF
 C
 C Local bifurcation (zero eigenvalue or Hopf): NSTAB decreases
 C  (nb. the problem becomes ill-posed after a zero of 9 or 10)
 C
- 9    CONTINUE
-      PSIHO=RR(NSTAB,1)
-      RETURN
+      CASE(9)
+         PSIHO=RR(NSTAB,1)
 C
 C Local bifurcation (zero eigenvalue or Hopf): NSTAB increases 
 C
- 10   CONTINUE
-      PSIHO=RR(NSTAB+1,1) 
-      RETURN     
+      CASE(10)
+         PSIHO=RR(NSTAB+1,1) 
 C     
 C Orbit flip (with respect to leading stable direction)
 C     e.g. 1D unstable manifold
 C
- 11   CONTINUE
-      DO J=1,NDM
-         PSIHO= PSIHO + F1(J)*VT(NSTAB,J,1)
-      ENDDO
-      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
-      DEALLOCATE(F1)
-      RETURN
+      CASE(11)
+         DO J=1,NDM
+            PSIHO= PSIHO + F1(J)*VT(NSTAB,J,1)
+         ENDDO
+         PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
+         DEALLOCATE(F1)
 C
 C Orbit flip (with respect to leading unstable direction)
 C     e.g. 1D stable manifold
 C
- 12   CONTINUE
-      DO J=1,NDM
-         PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J,1)
-      ENDDO
-      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
-      DEALLOCATE(F0)
-      RETURN
+      CASE(12)
+         DO J=1,NDM
+            PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J,1)
+         ENDDO
+         PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
+         DEALLOCATE(F0)
 C
 C Inclination flip (critically twisted) with respect to stable manifold
 C   e.g. 1D unstable manifold   
 C
- 13   CONTINUE
-      DO I=1,NDM
-          PSIHO= PSIHO + PU0(NDM+I)*V(NSTAB,I,1)
-      ENDDO
-      PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
-      RETURN
+      CASE(13)
+         DO I=1,NDM
+            PSIHO= PSIHO + PU0(NDM+I)*V(NSTAB,I,1)
+         ENDDO
+         PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
 C
 C Inclination flip (critically twisted) with respect to unstable manifold
 C   e.g. 1D stable manifold
 C
- 14   CONTINUE
-      DO I=1,NDM
-         PSIHO= PSIHO + PU1(NDM+I)*V(NSTAB+1,I,1)
-      ENDDO
-      PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
-      RETURN
+      CASE(14)
+         DO I=1,NDM
+            PSIHO= PSIHO + PU1(NDM+I)*V(NSTAB+1,I,1)
+         ENDDO
+         PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
 C
 C Non-central homoclinic to saddle-node (in stable manifold)
 C
- 15   CONTINUE
-      DO I=1,NDM 
-        PSIHO=PSIHO+(PAR(11+I)-PU1(I))*V(NSTAB+1,I,1)
-      ENDDO
-      RETURN
+      CASE(15)
+         DO I=1,NDM 
+            PSIHO=PSIHO+(PAR(11+I)-PU1(I))*V(NSTAB+1,I,1)
+         ENDDO
 C
 C Non-central homoclinic to saddle-node (in unstable manifold)
 C
- 16   CONTINUE
-      DO I=1,NDM 
-        PSIHO=PSIHO+(PAR(11+I)-PU0(I))*V(NSTAB+1,I,1)
-      ENDDO 
-      RETURN
+      CASE(16)
+         DO I=1,NDM 
+            PSIHO=PSIHO+(PAR(11+I)-PU0(I))*V(NSTAB+1,I,1)
+         ENDDO
 C
+      END SELECT
       END FUNCTION PSIHO
 C     
 C     ---------- -----

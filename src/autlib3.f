@@ -165,7 +165,6 @@ C Local
 C
        NDIM=IAP(1)
        IPS=IAP(2)
-       IRS=IAP(3)
        NDM=IAP(23)
 C
        CALL READLB(IAP,ICPRS,U,UDOT,PAR)
@@ -328,7 +327,6 @@ C Local
 C
        NDIM=IAP(1)
        IPS=IAP(2)
-       IRS=IAP(3)
        ISW=IAP(10)
        NDM=IAP(23)
        NPAR=IAP(31)
@@ -588,7 +586,6 @@ C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
        NPAR=IAP(31)
@@ -866,7 +863,6 @@ C Local
 C
        NDIM=IAP(1)
        IPS=IAP(2)
-       IRS=IAP(3)
        NDM=IAP(23)
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
@@ -1630,9 +1626,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NDM=IAP(23)
-       NFPR=IAP(29)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -2057,7 +2051,6 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
        ISW=IAP(10)
@@ -2407,9 +2400,7 @@ C Local
       INTEGER ICPRS(4)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NDM=IAP(23)
-       NFPR=IAP(29)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -2666,9 +2657,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NDM=IAP(23)
-       NFPR=IAP(29)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -3017,7 +3006,6 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
        NDM=IAP(23)
@@ -3447,7 +3435,6 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NDM=IAP(23)
        NFPR=IAP(29)
 C
@@ -4076,7 +4063,6 @@ C Local
       DOUBLE PRECISION DUM(1)
 C
        NDIM=IAP(1)
-       IRS=IAP(3)
        NTST=IAP(5)
        NCOL=IAP(6)
        ISW=IAP(10)

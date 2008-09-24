@@ -21,7 +21,6 @@ end subroutine mpiiap
 
 logical function mpiwfi(autobv)
   logical :: autobv
-  external funi,icni
   mpiwfi = .false.
 end function mpiwfi
 

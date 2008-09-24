@@ -52,7 +52,7 @@ CONTAINS
     integer iam,kwt
     external funi,icni,bcni
 
-    integer :: ndim, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
+    integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
     integer :: npar, iap(NIAP)
     double precision :: rap(NRAP)
 
@@ -69,7 +69,6 @@ CONTAINS
     ndim=iap(1)
     ntst=iap(5)
     ncol=iap(6)
-    nbc=iap(12)
     nint=iap(13)
     nfpr=iap(29)
     npar=iap(31)
@@ -127,8 +126,6 @@ CONTAINS
     IADS=IAP(8)
     ISP=IAP(9)
     ISW=IAP(10)
-    NBC=IAP(12)
-    NINT=IAP(13)
     NUZR=IAP(15)
     ITP=IAP(27)
     ITPST=IAP(28)
@@ -637,11 +634,9 @@ CONTAINS
     DIMENSION TM(0:*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
     DIMENSION THU(*)
 
-    IPS=IAP(2)
     IRS=IAP(3)
     NTST=IAP(5)
     NCOL=IAP(6)
-    NDM=IAP(23)
     ITP=IAP(27)
     NFPR=IAP(29)
 
@@ -737,10 +732,9 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: UPS(*),UDOTPS(*),TM(*)
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*)
 ! Local
-    INTEGER IRS,NFPR,NFPRS,ITPRS,I,NPARS
+    INTEGER NFPR,NFPRS,ITPRS,I
     INTEGER, ALLOCATABLE :: ICPRS(:)
 
-    IRS=IAP(3)
     NFPR=IAP(29)
 
     ALLOCATE(ICPRS(NFPR))
@@ -783,7 +777,6 @@ CONTAINS
     NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
-    NFPR=IAP(29)
 
 ! Generate the (initially uniform) mesh.
 
@@ -1678,7 +1671,7 @@ CONTAINS
     DIMENSION PAR(*),ICP(*),RLDOT(*)
 !xxx====================================================================
 !xxx Test problem: compute the error
-    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
+!    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
 
     NTST=IAP(5)

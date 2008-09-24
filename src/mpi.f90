@@ -192,8 +192,6 @@ subroutine mpisbv(iap,rap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
   double precision :: rap(*),par(*),dtm(*),thu(*)
   double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
 
-  external funi, icni
-
   integer :: ncol,npar,ierr,ntst,ndim,iam,nint,nfpr
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
