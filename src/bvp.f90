@@ -52,13 +52,13 @@ CONTAINS
     integer iam,kwt
     external funi,icni,bcni
 
-    integer :: ndim, nra, nfc, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
+    integer :: ndim, nra, ifst, nllv, na, nbc, ncol, nint, ntst, nfpr
     integer :: npar, iap(NIAP)
     double precision :: rap(NRAP)
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dtm(:),fa(:,:),fc(:),par(:)
+    double precision, allocatable :: dtm(:),par(:)
     integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1)
 
@@ -79,23 +79,18 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
     nra=ndim*ncol
-    nfc=nbc+nint+1
 
     allocate(icp(nfpr+nint),thu(ndim*8),dtm(na),par(npar))
     allocate(ups(nra,na+1),uoldps(nra,na+1),udotps(nra,na+1),upoldp(nra,na+1))
-    ! output arrays
-    allocate(fa(nra,na),fc(nfc))
 
     call mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
          nllv,dum1,dum1,dum1,nra,ups,uoldps,udotps,upoldp,dtm, &
-         fa,fc,dum1,dum1,dum1,thu)
+         dum1,dum1,dum1,dum1,dum1,thu)
 
     ! free input arrays
     deallocate(ups,uoldps,dtm,udotps,upoldp,thu,icp,par)
-
-    deallocate(fa,fc)
 
   end subroutine mpi_setubv_worker
 
@@ -116,7 +111,7 @@ CONTAINS
     COMPLEX(KIND(1.0D0)) EV
     ALLOCATABLE RLCUR(:),RLOLD(:),RLDOT(:)
     ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
-    ALLOCATABLE UDOTPS(:,:),FA(:,:),FC(:),TM(:),DTM(:)
+    ALLOCATABLE UDOTPS(:,:),TM(:),DTM(:)
     ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
     LOGICAL CHNG
 
@@ -142,9 +137,8 @@ CONTAINS
 
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
     ALLOCATE(UPS(NDX,NTST+1),UOLDPS(NDX,NTST+1))
-    ALLOCATE(UPOLDP(NDX,NTST+1))
-    ALLOCATE(UDOTPS(NDX,NTST+1),FA(NDX,NTST+1))
-    ALLOCATE(FC(NBC+NINT+1),TM(NTST+1),DTM(NTST+1))
+    ALLOCATE(UPOLDP(NDX,NTST+1),UDOTPS(NDX,NTST+1))
+    ALLOCATE(TM(NTST+1),DTM(NTST+1))
     ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR),EV(NDIM))
 
     CALL SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
@@ -182,7 +176,6 @@ CONTAINS
           UOLDPS(I,J)=0.d0
           UPOLDP(I,J)=0.d0
           UDOTPS(I,J)=0.d0
-          FA(I,J)=0.d0
        ENDDO
     ENDDO
 
@@ -209,11 +202,11 @@ CONTAINS
     ENDIF
     IF(IPERP/=2)THEN
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
-            NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,IPERP,P0,P1,THL,THU)
+            NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
           SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM, &
                DTM,THL,THU,IUZ,VUZ)
           SP1 = 0.0d0
        ENDIF
@@ -237,7 +230,7 @@ CONTAINS
        ITP=0
        IAP(27)=ITP
        CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
 ! Check for user supplied parameter output parameter-values.
@@ -247,7 +240,7 @@ CONTAINS
              IAP(26)=IUZR 
              CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
                   UZR(IUZR),RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS, &
-                  UPOLDP,FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
              ITP=IAP(27)
              IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
                 ITP=-4-10*ITPST
@@ -268,7 +261,7 @@ CONTAINS
        IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
                RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
              ITP=5+10*ITPST
@@ -289,7 +282,7 @@ CONTAINS
        IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
                RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
              ITP=6+10*ITPST
@@ -311,7 +304,7 @@ CONTAINS
             (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
           CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
                RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               FA,FC,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
+               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
           IF(ISTOP.EQ.0 .AND. ITP.EQ.-1)THEN
 !            **Secondary periodic bifurcation: determine type
@@ -329,7 +322,7 @@ CONTAINS
             (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
 ! Still determine and print Floquet multipliers
           SP1 = FNSPBV(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM, &
                DTM,THL,THU,IUZ,VUZ)
        ENDIF
 
@@ -369,7 +362,7 @@ CONTAINS
             NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     ENDDO
-    DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,UDOTPS,FA,FC,TM,DTM,P0,P1)
+    DEALLOCATE(EV,UPS,UOLDPS,UPOLDP,UDOTPS,TM,DTM,P0,P1)
     DEALLOCATE(UZR,RLCUR,RLOLD,RLDOT)
 
   END SUBROUTINE CNRLBV
@@ -513,7 +506,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
-       RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+       RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
     USE MESH
@@ -525,10 +518,11 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI,PVLI
 
-    DIMENSION IAP(*),RAP(*),UPS(NDX,*),UOLDPS(NDX,*),UDOTPS(NDX,*)
-    DIMENSION UPOLDP(NDX,*),FA(NDX,*),FC(*),TM(*),DTM(*)
+    DIMENSION IAP(*),RAP(*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
+    DIMENSION UPOLDP(NDIM,0:*),TM(*),DTM(*)
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
     DIMENSION P0(*),P1(*)
+    DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
     LOGICAL DONE
 
     NDIM=IAP(1)
@@ -548,6 +542,7 @@ CONTAINS
     EPSL=RAP(11)
     EPSU=RAP(12)
 
+    ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
     DELREF=0
     DO
        DSOLD=RDS
@@ -556,7 +551,7 @@ CONTAINS
 
 ! Write additional output on unit 9 if requested.
 
-       CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
+       CALL WRTBV9(IAP,RAP,RLCUR,NROW,UPS,TM,DTM,THU,NITPS)
 
 ! Generate the Jacobian matrix and the right hand side.
 
@@ -569,46 +564,44 @@ CONTAINS
           IF(NITPS.LE.NWTN)IFST=1
 
           CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
-               RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
+               RLCUR,RLOLD,RLDOT,NROW,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
                P0,P1,THL,THU)
 
 ! Add Newton increments.
 
-          DO I=1,NDIM
-             UPS(I,NTST+1)=UPS(I,NTST+1)+FC(I)
-          ENDDO
           DO I=1,NFPR
-             RLCUR(I)=RLCUR(I)+FC(NDIM+I)
+             RLCUR(I)=RLCUR(I)+DRL(I)
              PAR(ICP(I))=RLCUR(I)
           ENDDO
 
           DUMX=0.d0
           UMX=0.d0
-          DO J=1,NTST
-             DO I=1,NROW
-                ADU=ABS(FA(I,J))
+          DO J=0,NTST*NCOL
+             DO I=1,NDIM
+                ADU=ABS(DUPS(I,J))
                 IF(ADU.GT.DUMX)DUMX=ADU
                 AU=ABS(UPS(I,J))
                 IF(AU.GT.UMX)UMX=AU
-                UPS(I,J)=UPS(I,J)+FA(I,J)
+                UPS(I,J)=UPS(I,J)+DUPS(I,J)
              ENDDO
           ENDDO
 
-          CALL WRTBV9(IAP,RAP,RLCUR,NDX,UPS,TM,DTM,THU,NITPS)
+          CALL WRTBV9(IAP,RAP,RLCUR,NROW,UPS,TM,DTM,THU,NITPS)
 
 ! Check whether user-supplied error tolerances have been met :
 
           DONE=.TRUE.
           RDRL=0.d0
           DO I=1,NFPR
-             ADRL=ABS(FC(NDIM+I))/(1.d0+ABS(RLCUR(I)))
+             ADRL=ABS(DRL(I))/(1.d0+ABS(RLCUR(I)))
              IF(ADRL.GT.EPSL)DONE=.FALSE.
              IF(ADRL.GT.RDRL)RDRL=ADRL
           ENDDO
           RDUMX=DUMX/(1.d0+UMX)
           IF(DONE.AND.RDUMX.LT.EPSU)THEN
-             CALL PVLI(IAP,RAP,ICP,DTM,NDX,UPS,NDIM,P0,P1,PAR)
-             IF(IID.GE.2)WRITE(9,*)  
+             CALL PVLI(IAP,RAP,ICP,DTM,NROW,UPS,NDIM,P0,P1,PAR)
+             IF(IID.GE.2)WRITE(9,*)
+             DEALLOCATE(DUPS,DRL)
              RETURN
           ENDIF
 
@@ -638,14 +631,8 @@ CONTAINS
           WRITE(9,103)IBR,NTOP
           EXIT
        ENDIF
-       DO I=1,NFPR
-          RLCUR(I)=RLOLD(I)+RDS*RLDOT(I)
-       ENDDO
-       DO J=1,NTST+1
-          DO I=1,NROW
-             UPS(I,J)=UOLDPS(I,J)+RDS*UDOTPS(I,J)
-          ENDDO
-       ENDDO
+       RLCUR(:NFPR)=RLOLD(:NFPR)+RDS*RLDOT(:NFPR)
+       UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)+RDS*UDOTPS(:,0:NCOL*NTST)
        IF(IID.GE.2)WRITE(9,102)IBR,NTOP
     ENDDO
 
@@ -655,12 +642,9 @@ CONTAINS
        RLCUR(I)=RLOLD(I)
        PAR(ICP(I))=RLCUR(I)
     ENDDO
-    DO J=1,NTST+1
-       DO I=1,NROW
-          UPS(I,J)=UOLDPS(I,J)
-       ENDDO
-    ENDDO
+    UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)
     ISTOP=1
+    DEALLOCATE(DUPS,DRL)
 
 101 FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
 102 FORMAT(I4,I6,' NOTE:Retrying step')
@@ -968,7 +952,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD, &
-       RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,DTM,IPERP, &
+       RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP, &
        P0,P1,THL,THU)
 
     USE MESH
@@ -980,57 +964,47 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),RAP(*),UDOTPS(NDX,*),FA(NDX,*),FC(*),DTM(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
-    DOUBLE PRECISION UPS(NDX,*),UOLDPS(NDX,*)
-    DOUBLE PRECISION UPOLDP(NDX,*),P0(*),P1(*)
+    DIMENSION IAP(*),RAP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6)),DTM(*)
+    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(IAP(29)),THL(*),THU(*)
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
+    ALLOCATABLE DUPS(:,:),DRL(:)
 
 ! Generate the Jacobian matrix with zero direction vector.
 ! (Then the last row of the Jacobian will be zero)
 ! in case the starting direction is to be determined.
 
-    NDIM=IAP(1)
     NTST=IAP(5)
     NCOL=IAP(6)
     IID=IAP(18)
     NFPR=IAP(29)
 
-    NROW=NDIM*NCOL
     IF(IPERP.EQ.0)THEN
-       DO J=1,NTST+1
-          DO I=1,NROW
-             UDOTPS(I,J)=0.d0
-          ENDDO
-       ENDDO
-       DO I=1,NFPR
-          RLDOT(I)=0.d0
-       ENDDO
+       UDOTPS(:,:)=0.d0
+       RLDOT(:)=0.d0
     ENDIF
 
     RDSZ=0.d0
     NLLV=1
     IFST=1
+    ALLOCATE(DUPS(NDIM,0:NCOL*NTST),DRL(NFPR))
     CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
+         RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
 
-    IF(IPERP==-1)RETURN
+    IF(IPERP==-1)THEN
+       DEALLOCATE(DUPS,DRL)
+       RETURN
+    ENDIF
     
 ! Compute the starting direction.
 
-    DO I=1,NDIM
-       UDOTPS(I,NTST+1)=FC(I)
-    ENDDO
     DO I=1,NFPR
-       RLDOT(I)=FC(NDIM+I)
+       RLDOT(I)=DRL(I)
        PAR(ICP(I))=RLCUR(I)
     ENDDO
 
-    DO J=1,NTST
-       DO I=1,NROW
-          UDOTPS(I,J)=FA(I,J)
-       ENDDO
-    ENDDO
+    UDOTPS(:,:)=DUPS(:,:)
+    DEALLOCATE(DUPS,DRL)
 
 ! Scale the starting direction.
 
@@ -1039,14 +1013,8 @@ CONTAINS
 ! Make sure that RLDOT(1) is positive (unless zero).
 
     IF(RLDOT(1).LT.0.d0)THEN
-       DO I=1,NFPR
-          RLDOT(I)=-RLDOT(I)
-       ENDDO
-       DO J=1,NTST+1
-          DO I=1,NROW
-             UDOTPS(I,J)=-UDOTPS(I,J)
-          ENDDO
-       ENDDO
+       RLDOT(:)=-RLDOT(:)
+       UDOTPS(:,:)=-UDOTPS(:,:)
     ENDIF
 
     IF(IID.GE.2)THEN
@@ -1069,7 +1037,7 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE LCSPBV(IAP,RAP,PAR,ICP,FNCS,FUNI,BCNI,ICNI,PVLI,Q, &
-       RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+       RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
 
     USE SUPPORT
@@ -1095,10 +1063,11 @@ CONTAINS
 
     LOGICAL CHNG
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),TM(*),DTM(*),FA(*),FC(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),TM(*),DTM(*)
     DIMENSION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),IUZ(*),VUZ(*)
     DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
 
+    NDIM=IAP(1)
     IID=IAP(18)
     ITMX=IAP(19)
     IBR=IAP(30)
@@ -1114,7 +1083,7 @@ CONTAINS
 
     Q0=Q
     Q1=FNCS(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+         RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
          TM,DTM,THL,THU,IUZ,VUZ)
 
     PQ=Q0*Q1
@@ -1153,8 +1122,8 @@ CONTAINS
        CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
             NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
        CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            FA,FC,TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)THEN
           Q=0.d0
           RETURN
@@ -1163,7 +1132,7 @@ CONTAINS
 ! Check for zero.
 
        Q=FNCS(IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, &
-            RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC, &
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,THL,THU,IUZ,VUZ)
 
 !        Use Mueller's method with bracketing for subsequent steps
@@ -1183,7 +1152,7 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNLPBV &
        (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV,RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM,DTM,THL,THU,IUZ,VUZ)
+       NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,THL,THU,IUZ,VUZ)
 
     USE MESH
     USE SOLVEBV
@@ -1197,13 +1166,12 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),UDOTPS(NDX,*),FA(NDX,*)
-    DIMENSION FC(*)
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),TM(*),DTM(*),THL(*),THU(*)
-    DOUBLE PRECISION UPS(NDX,*),UOLDPS(NDX,*)
-    DOUBLE PRECISION UPOLDP(NDX,*),P0(*),P1(*)
+    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6))
+    DIMENSION RLCUR(*),RLOLD(*),RLDOT(IAP(29)),TM(*),DTM(*),THL(*),THU(*)
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
 
-    NDIM=IAP(1)
+    DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
+
     NTST=IAP(5)
     NCOL=IAP(6)
     IID=IAP(18)
@@ -1218,24 +1186,14 @@ CONTAINS
     IFST=0
     RDSZ=0.d0
 
+    ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
     CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-         RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,FA,FC, &
+         RLCUR,RLOLD,RLDOT,NDIM*NCOL,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
 
-    DO I=1,NDIM
-       UDOTPS(I,NTST+1)=FC(I)
-    ENDDO
-
-    DO I=1,NFPR
-       RLDOT(I)=FC(NDIM+I)
-    ENDDO
-
-    NROW=NDIM*NCOL
-    DO J=1,NTST
-       DO I=1,NROW
-          UDOTPS(I,J)=FA(I,J)
-       ENDDO
-    ENDDO
+    RLDOT(:)=DRL(:)
+    UDOTPS(:,:)=DUPS(:,:)
+    DEALLOCATE(DUPS,DRL)
 
 ! Scale the direction vector.
 
@@ -1257,7 +1215,7 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNBPBV &
        (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV,RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM,DTM,THL,THU,IUZ,VUZ)
+       NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,THL,THU,IUZ,VUZ)
 
     USE SUPPORT
 
@@ -1314,7 +1272,7 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNSPBV &
        (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV, RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM,DTM,THL,THU,IUZ,VUZ)
+       NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,THL,THU,IUZ,VUZ)
 
     USE FLOQUET
 
@@ -1329,8 +1287,8 @@ CONTAINS
     COMPLEX(KIND(1.0D0)) EV(*),ZTMP
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),P0(*),P1(*)
     DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*)
-    DOUBLE PRECISION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-    DOUBLE PRECISION FA(NDX,*),FC(*),TM(*),DTM(*),THL(*),THU(*),VUZ(*)
+    DOUBLE PRECISION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*)
+    DOUBLE PRECISION TM(*),DTM(*),THL(*),THU(*),VUZ(*)
     INTEGER IUZ(*)
 ! Local
     LOGICAL CHNG
@@ -1489,7 +1447,7 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNUZBV &
        (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV,RLCUR,RLOLD,RLDOT, &
-       NDX,UPS,UOLDPS,UDOTPS,UPOLDP,FA,FC,TM,DTM,THL,THU,IUZ,VUZ)
+       NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,THL,THU,IUZ,VUZ)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 

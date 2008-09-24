@@ -22,7 +22,7 @@ C
 C     ---------- ------
       SUBROUTINE SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,
      * NLLV,RLCUR,RLOLD,RLDOT,NDX,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,
-     * FA,FC,P0,P1,THL,THU)
+     * DUPS,DRL,P0,P1,THL,THU)
 C
 C$    USE OMP_LIB
       USE AUTOMPI
@@ -31,9 +31,9 @@ C
 C Sets up and solves the linear equations for one Newton/Chord iteration
 C
       EXTERNAL FUNI,BCNI,ICNI
-      DIMENSION IAP(*),RAP(*),FC(*),PAR(*),ICP(*),RLOLD(*),RLCUR(*)
+      DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),RLOLD(*),RLCUR(*)
       DIMENSION UPS(NDX,*),UDOTPS(NDX,*),UOLDPS(NDX,*),UPOLDP(NDX,*)
-      DIMENSION FA(IAP(1)*IAP(6),*),DTM(*),RLDOT(*)
+      DIMENSION DUPS(IAP(1),0:*),DTM(*),RLDOT(*),DRL(IAP(29))
       DOUBLE PRECISION P0(*),P1(*),THL(*),THU(*)
 C
 C Local
@@ -42,6 +42,7 @@ C Local
       ALLOCATABLE CCLO(:,:,:),CCBC(:,:,:)
       ALLOCATABLE DDBC(:,:),DD(:,:,:),FCFC(:,:),FAA(:,:),SOL(:,:)
       ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:),NP(:)
+      ALLOCATABLE FA(:,:),FC(:)
       SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC,ICF,IRF,IPR,IPC
 C
 C Most of the required memory is allocated below
@@ -87,6 +88,7 @@ C     The value of NTST may be different in different nodes.
 C
       NTSTNA=NA
       IF(IAM.EQ.0)NTSTNA=NTST
+      ALLOCATE(FA(NROW,NTSTNA),FC(NFC))
       MNT = 1
 C$    MNT = OMP_GET_MAX_THREADS()
       IF(MNT.GT.NA)THEN
@@ -168,9 +170,18 @@ C        Global concatenation of the solution from each node.
         CALL MPIGAT(FA,NDX,NTST)
       ENDIF
 C
-      IF(IAM.EQ.0)RAP(14)=DET
+      IF(IAM.EQ.0)THEN
+         RAP(14)=DET
+         DO I=0,NTST-1
+            DO J=0,NCOL-1
+               DUPS(:,I*NCOL+J)=FA(J*NDIM+1:J*(NDIM+1),I+1)
+            ENDDO
+         ENDDO
+         DUPS(:,NTST*NCOL)=FC(1:NDIM)
+         DRL(:)=FC(NDIM+1:)
+      ENDIF
 C
-      DEALLOCATE(NP)
+      DEALLOCATE(NP,FA,FC)
       RETURN
       END SUBROUTINE SOLVBV
 C
