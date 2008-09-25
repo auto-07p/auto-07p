@@ -1851,7 +1851,7 @@ MainWindow::closePreferDialogAndGiveUpChange()
 
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
-    preferDialog->reject();
+    delete preferDialog;
     updateScene();
 }
 
@@ -1902,7 +1902,7 @@ MainWindow::closePreferDialogAndUpdateScene()
 
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
-    preferDialog->accept();
+    delete preferDialog;
     updateScene();
 }
 
@@ -1956,7 +1956,7 @@ MainWindow::savePreferAndUpdateScene()
     updateScene();
 
     writePreferValuesToFile();
-    preferDialog->accept();
+    delete preferDialog;
 }
 
 
