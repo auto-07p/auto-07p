@@ -1611,6 +1611,7 @@ PreferDialog::createOptionFrameGuts(QGroupBox *frame)
                                           (LENGTH(graphWidgetItems)+1)/2, 2);
 #endif
     QButtonGroup *group = new QButtonGroup;
+    group->setExclusive(false);
     connect(group,
 #if QT_VERSION >= 0x40000
         SIGNAL(buttonClicked(int)),
