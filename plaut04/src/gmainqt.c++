@@ -29,6 +29,10 @@
 
 #define LBL_OFFSET   4
 
+static QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
+static EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
+            *coordSystemMenuItems;
+
 extern SbBool printToPostScript (SoNode *root, FILE *file,
 SoQtExaminerViewer *viewer, int printerDPI);
 extern SoSeparator * createBoundingBox();
@@ -719,6 +723,7 @@ MainWindow::buildOptionMenu()
     pulldown->insertItem("&Normalize Data", this, SLOT(optMenuPick(int)),
                          0, OPT_NORMALIZE_DATA);
     pulldown->insertSeparator();
+    preferDialog = NULL;
     pulldown->insertItem("&PREFERENCES", this, SLOT(createPreferDialog()));
 
     return pulldown;
@@ -1309,7 +1314,7 @@ LinePatternComboBox::valueChangedCB(int position)
 //  This creates the COLOR and LINE preference sheet stuff.
 //
 void
-MainWindow::createLineColorAndPatternPrefSheetGuts(QWidget *form, QGridLayout *layout, const char *name, int id)
+PreferDialog::createLineColorAndPatternPrefSheetGuts(QWidget *form, QGridLayout *layout, const char *name, int id)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1344,7 +1349,7 @@ MainWindow::createLineColorAndPatternPrefSheetGuts(QWidget *form, QGridLayout *l
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createColorAndLinePrefSheetHeader(QWidget *parent, 
+PreferDialog::createColorAndLinePrefSheetHeader(QWidget *parent, 
         QGridLayout *layout, int column)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1366,7 +1371,7 @@ MainWindow::createColorAndLinePrefSheetHeader(QWidget *parent,
 //  This simply creates the default parts of the pref dialog.
 //
 void
-MainWindow::createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form,
+PreferDialog::createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form,
    const char** name)
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1391,7 +1396,7 @@ MainWindow::createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form,
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createPreferActionFormControls(QWidget *parent)
+PreferDialog::createPreferActionFormControls(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1399,14 +1404,12 @@ MainWindow::createPreferActionFormControls(QWidget *parent)
     QHBoxLayout *form = new QHBoxLayout(parent, 5, -1, "control form");
 
     saveBtn = new QPushButton(" &Save ", parent);
-    connect(saveBtn, SIGNAL(clicked()),
-                     this, SLOT(savePreferAndUpdateScene()));
+    connect(saveBtn, SIGNAL(clicked()), this, SLOT(save()));
     form->addWidget(saveBtn);
 
     closeBtn = new QPushButton(" &Update ", parent);
     form->addWidget(closeBtn);
-    connect(closeBtn, SIGNAL(clicked()),
-                     this, SLOT(closePreferDialogAndUpdateScene()));
+    connect(closeBtn, SIGNAL(clicked()), this, SLOT(accept()));
 
     applyBtn = new QPushButton(" &Apply ", parent);
     form->addWidget(applyBtn);
@@ -1415,15 +1418,14 @@ MainWindow::createPreferActionFormControls(QWidget *parent)
 
     cancelBtn = new QPushButton(" &Cancel ", parent);
     form->addWidget(cancelBtn);
-    connect(cancelBtn, SIGNAL(clicked()),
-                     this, SLOT(closePreferDialogAndGiveUpChange()));
+    connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::graphCoordinateSystemToggledCB(int which)
+PreferDialog::graphCoordinateSystemToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1437,7 +1439,7 @@ MainWindow::graphCoordinateSystemToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
+PreferDialog::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1478,7 +1480,7 @@ MainWindow::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::graphStyleWidgetToggledCB(int which)
+PreferDialog::graphStyleWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1489,7 +1491,7 @@ MainWindow::graphStyleWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphStyleFrameGuts(QGroupBox *frame)
+PreferDialog::createGraphStyleFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1528,7 +1530,7 @@ MainWindow::createGraphStyleFrameGuts(QGroupBox *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::graphTypeWidgetToggledCB(int which)
+PreferDialog::graphTypeWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1539,7 +1541,7 @@ MainWindow::graphTypeWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::graphCoordWidgetToggledCB(int which)
+PreferDialog::graphCoordWidgetToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1550,7 +1552,7 @@ MainWindow::graphCoordWidgetToggledCB(int which)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphTypeFrameGuts(QGroupBox *frame)
+PreferDialog::createGraphTypeFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1587,7 +1589,7 @@ MainWindow::createGraphTypeFrameGuts(QGroupBox *frame)
 // callback for all ToggleButtons.
 //
 void
-MainWindow::defaultGraphWidgetToggledCB(int bit)
+PreferDialog::defaultGraphWidgetToggledCB(int bit)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1598,7 +1600,7 @@ MainWindow::defaultGraphWidgetToggledCB(int bit)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createOptionFrameGuts(QGroupBox *frame)
+PreferDialog::createOptionFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1633,7 +1635,7 @@ MainWindow::createOptionFrameGuts(QGroupBox *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createGraphCoordPartsFrameGuts(QGroupBox *frame)
+PreferDialog::createGraphCoordPartsFrameGuts(QGroupBox *frame)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1674,7 +1676,7 @@ MainWindow::createGraphCoordPartsFrameGuts(QGroupBox *frame)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createPreferDefaultPages(QWidget *parent)
+PreferDialog::createPreferDefaultPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1717,7 +1719,7 @@ MainWindow::createPreferDefaultPages(QWidget *parent)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createLineAttPages(QWidget *parent)
+PreferDialog::createLineAttPages(QWidget *parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1752,7 +1754,7 @@ MainWindow::createLineAttPages(QWidget *parent)
 ///////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::createPreferNotebookPages(QTabWidget *notebook)
+PreferDialog::createPreferNotebookPages(QTabWidget *notebook)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1781,26 +1783,33 @@ MainWindow::createPreferDialog()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    static QDialog *shell;
-
-//    if(!shell)
+    if(!preferDialog)
     {
-        shell = new QDialog(this, "Preference Dialog");
-        preferDialog = shell;
-        shell->setCaption("Preference Dialog");
-
-        QVBoxLayout *panedWin = new QVBoxLayout(shell, 5, -1, "pane");
-
-        // create notebook to hold all the pages
-        QTabWidget *notebook = new QTabWidget(shell, "Options");
-        createPreferNotebookPages(notebook);
-        panedWin->addWidget(notebook);
-
-        QWidget *actionForm = new QWidget(shell, "action form");
-        createPreferActionFormControls(actionForm);
-        panedWin->addWidget(actionForm);
+        preferDialog = new PreferDialog(this, "Preference Dialog");
     }
-    shell->show();
+    preferDialog->show();
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+PreferDialog::PreferDialog(QWidget * parent, const char *name) :
+  QDialog(parent, name, Qt::WDestructiveClose)
+//
+////////////////////////////////////////////////////////////////////////
+{
+    setCaption("Preference Dialog");
+
+    QVBoxLayout *panedWin = new QVBoxLayout(this, 5, -1, "pane");
+
+    // create notebook to hold all the pages
+    QTabWidget *notebook = new QTabWidget(this, "Options");
+    createPreferNotebookPages(notebook);
+    panedWin->addWidget(notebook);
+
+    QWidget *actionForm = new QWidget(this, "action form");
+    createPreferActionFormControls(actionForm);
+    panedWin->addWidget(actionForm);
+    setModal(false);
 }
 
 
@@ -1808,7 +1817,7 @@ MainWindow::createPreferDialog()
 //         CANCEL CALL BACK
 //
 void
-MainWindow::closePreferDialogAndGiveUpChange()
+PreferDialog::reject()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1851,8 +1860,8 @@ MainWindow::closePreferDialogAndGiveUpChange()
 
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
-    delete preferDialog;
     updateScene();
+    QDialog::reject();
 }
 
 
@@ -1860,7 +1869,7 @@ MainWindow::closePreferDialogAndGiveUpChange()
 //         OK & CLOSE CALL BACK
 //
 void
-MainWindow::closePreferDialogAndUpdateScene()
+PreferDialog::accept()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1902,8 +1911,8 @@ MainWindow::closePreferDialogAndUpdateScene()
 
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
-    delete preferDialog;
     updateScene();
+    QDialog::reject();
 }
 
 
@@ -1911,7 +1920,7 @@ MainWindow::closePreferDialogAndUpdateScene()
 //         OK & SAVE CALL BACK
 //
 void
-MainWindow::savePreferAndUpdateScene()
+PreferDialog::save(void)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1956,7 +1965,7 @@ MainWindow::savePreferAndUpdateScene()
     updateScene();
 
     writePreferValuesToFile();
-    delete preferDialog;
+    QDialog::accept();
 }
 
 
@@ -1964,7 +1973,7 @@ MainWindow::savePreferAndUpdateScene()
 //         APPLY CALL BACK
 //
 void
-MainWindow::applyPreferDialogChangeAndUpdateScene()
+PreferDialog::applyPreferDialogChangeAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {

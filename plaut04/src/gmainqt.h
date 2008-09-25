@@ -9,6 +9,7 @@
 #include <qpushbutton.h>
 #include <qlabel.h>
 #include <qlayout.h>
+#include <qdialog.h>
 #include <qmainwindow.h>
 #include <qgroupbox.h>
 #if QT_VERSION >= 0x40000
@@ -72,6 +73,41 @@ typedef struct EditMenuItems
     int     which;
 } EditMenuItems;
 
+class PreferDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    PreferDialog(QWidget * parent, const char *name);
+
+public slots:
+    void applyPreferDialogChangeAndUpdateScene();
+    void graphCoordinateSystemToggledCB(int which);
+    void graphTypeWidgetToggledCB(int which);
+    void graphStyleWidgetToggledCB(int which);
+    void graphCoordWidgetToggledCB(int which);
+    void defaultGraphWidgetToggledCB(int bit);
+    void save();
+
+protected slots:
+    void accept();
+    void reject();
+
+private:
+    void createPreferNotebookPages(QTabWidget *notebook);
+    void createPreferActionFormControls(QWidget *parent);
+    void createPreferDefaultPages(QWidget *parent);
+    void createLineAttPages(QWidget *parent);
+    void createLineColorAndPatternPrefSheetGuts(QWidget *parent, QGridLayout *layout, const char *name, int id);
+    void createColorAndLinePrefSheetHeader(QWidget *parent, QGridLayout *form, int column);
+    void createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form, const char** name);
+    void createGraphCoordinateSystemFrameGuts(QGroupBox *frame);
+    void createGraphStyleFrameGuts(QGroupBox *frame);
+    void createGraphTypeFrameGuts(QGroupBox *frame);
+    void createOptionFrameGuts(QGroupBox *frame);
+    void createGraphCoordPartsFrameGuts(QGroupBox *frame);
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -108,17 +144,6 @@ public slots:
     void dimensionToggledCB();
     void createBdBoxCB();
 
-    void graphCoordinateSystemToggledCB(int which);
-    void graphTypeWidgetToggledCB(int which);
-    void graphStyleWidgetToggledCB(int which);
-    void graphCoordWidgetToggledCB(int which);
-    void defaultGraphWidgetToggledCB(int bit);
-
-    void closePreferDialogAndGiveUpChange();
-    void closePreferDialogAndUpdateScene();
-    void savePreferAndUpdateScene();
-    void applyPreferDialogChangeAndUpdateScene();
-
 private:
     void buildMenu();
     QPopupMenu *buildFileMenu();
@@ -129,29 +154,14 @@ private:
     QPopupMenu *buildCoordMenu();
     QPopupMenu *buildCenterMenu();
 
-    void createPreferActionFormControls(QWidget *parent);
-    void createLineColorAndPatternPrefSheetGuts(QWidget *parent, QGridLayout *layout, const char *name, int id);
-    void createColorAndLinePrefSheetHeader(QWidget *parent, QGridLayout *form, int column);
-    void createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form, const char** name);
-    void createGraphCoordinateSystemFrameGuts(QGroupBox *frame);
-    void createGraphStyleFrameGuts(QGroupBox *frame);
-    void createGraphTypeFrameGuts(QGroupBox *frame);
-    void createOptionFrameGuts(QGroupBox *frame);
-    void createGraphCoordPartsFrameGuts(QGroupBox *frame);
-    void createPreferNotebookPages(QTabWidget *notebook);
-    void createPreferDefaultPages(QWidget *parent);
-    void createLineAttPages(QWidget *parent);
-
     void getFileName(int);
 
     QComboBox *xAxisList, *yAxisList, *zAxisList, *labelsList,
               *colorMethodSeletionList;
-    QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
     QPushButton *dimButton;
-    QDialog *preferDialog;
+    PreferDialog *preferDialog;
 
-    EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
-            *optMenuItems, *coordSystemMenuItems;
+    EditMenuItems *optMenuItems;
     SoSeparator *sceneGraph;
 #ifdef USE_EXAM_VIEWER
     SoQtExaminerViewer *renderArea;
