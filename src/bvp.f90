@@ -54,13 +54,12 @@ CONTAINS
 
     integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
     integer :: npar, iap(NIAP)
-    double precision :: rap(NRAP)
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dtm(:),par(:)
     integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1)
+    double precision :: dum,dum1(1),det
 
     call mpibcasti(iap,NIAP)
     iap(38)=iam
@@ -82,9 +81,9 @@ CONTAINS
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
 
-    call mpisbv(iap,rap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
+    call mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
-    call solvbv(ifst,iap,rap,par,icp,funi,bcni,icni,dum, &
+    call solvbv(ifst,iap,det,par,icp,funi,bcni,icni,dum, &
          nllv,dum1,dum1,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
          dum1,dum1,dum1,dum1,dum1,thu)
 
@@ -142,7 +141,6 @@ CONTAINS
 
     RDS=DS
     DSOLD=RDS
-    RAP(5)=DSOLD
     IF(ISP.LT.0)THEN
        ISP=-ISP
        IAP(9)=ISP
@@ -172,7 +170,7 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT, &
+    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
     CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
 
@@ -224,7 +222,7 @@ CONTAINS
     DO WHILE(ISTOP==0)
        ITP=0
        IAP(27)=ITP
-       CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -233,7 +231,7 @@ CONTAINS
        IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
           DO IUZR=1,NUZR
              IAP(26)=IUZR 
-             CALL LCSPBV(IAP,RAP,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
+             CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNUZBV,FUNI,BCNI,ICNI,PVLI, &
                   UZR(IUZR),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
                   UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
              ITP=IAP(27)
@@ -254,7 +252,7 @@ CONTAINS
 ! Check for fold.
 
        IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
-          CALL LCSPBV(IAP,RAP,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
+          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
@@ -275,7 +273,7 @@ CONTAINS
 ! Check for branch point.
 
        IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
-          CALL LCSPBV(IAP,RAP,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
+          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
@@ -297,7 +295,7 @@ CONTAINS
 
        IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
             (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
-          CALL LCSPBV(IAP,RAP,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
+          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
           ITP=IAP(27)
@@ -353,7 +351,7 @@ CONTAINS
 
 ! Provide initial approximation and determine next point.
 
-       CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+       CALL CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     ENDDO
@@ -363,7 +361,7 @@ CONTAINS
   END SUBROUTINE CNRLBV
 
 ! ---------- ------
-  SUBROUTINE CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+  SUBROUTINE CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
        NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     USE MESH
@@ -375,15 +373,13 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*)
+    DIMENSION IAP(*),PAR(*),ICP(*)
     DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(*),DTM(*)
     DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 
     NTST=IAP(5)
     NCOL=IAP(6)
     NFPR=IAP(29)
-
-    DSOLD=RAP(5)
 
 ! Compute rate of change (along branch) of PAR(ICP(1)) and U :
 
@@ -398,7 +394,7 @@ CONTAINS
 
 ! Store time-derivative.
 
-    CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
+    CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
 
   END SUBROUTINE CONTBV
 
@@ -421,7 +417,7 @@ CONTAINS
   END SUBROUTINE EXTRBV
 
 ! ---------- ------
-  SUBROUTINE STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD, &
+  SUBROUTINE STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD, &
        NDIM,UPS,UOLDPS,UPOLDP)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -431,7 +427,7 @@ CONTAINS
     EXTERNAL FUNI
 
     DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*),RAP(*)
+    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*)
 ! Local
     ALLOCATABLE UOLD(:),DFDU(:,:),DFDP(:,:)
 
@@ -453,7 +449,7 @@ CONTAINS
        ELSE
           UOLD(:)=UOLDPS(:,J)
        ENDIF
-       CALL FUNI(IAP,RAP,NDIM,UOLDPS(:,J),UOLD,ICP,PAR,0,UPOLDP(:,J),DFDU,DFDP)
+       CALL FUNI(IAP,NDIM,UOLDPS(:,J),UOLD,ICP,PAR,0,UPOLDP(:,J),DFDU,DFDP)
     ENDDO
 
     DO I=1,NFPR
@@ -464,7 +460,7 @@ CONTAINS
   END SUBROUTINE STUPBV
 
 ! ---------- ------
-  SUBROUTINE STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+  SUBROUTINE STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -503,7 +499,6 @@ CONTAINS
     DELREF=0
     DO
        DSOLD=RDS
-       RAP(5)=DSOLD
        NITPS=0
 
 ! Write additional output on unit 9 if requested.
@@ -520,9 +515,10 @@ CONTAINS
           IFST=0
           IF(NITPS.LE.NWTN)IFST=1
 
-          CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
+          CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
                P0,P1,THL,THU)
+          RAP(14)=DET
 
 ! Add Newton increments.
 
@@ -616,7 +612,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE RSPTBV(IAP,RAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD, &
+  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
@@ -632,7 +628,7 @@ CONTAINS
 
     EXTERNAL FUNI, STPNT
 
-    DIMENSION IAP(*),RAP(*)
+    DIMENSION IAP(*)
     DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*),UDOTPS(NDIM,0:*)
     DIMENSION TM(0:*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
     DIMENSION THU(*)
@@ -655,14 +651,14 @@ CONTAINS
     IF(NCOLRS*NTSRS==0)THEN
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
           ! Hopf bifurcation
-          CALL STHOPF(IAP,RAP,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
+          CALL STHOPF(IAP,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
                NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
        ELSE
           WRITE(6,"(A)")"The restart label is not a Hopf bifurcation."
           STOP
        ENDIF
     ELSE
-       CALL STPNT(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
+       CALL STPNT(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
     ENDIF
 
 ! Determine a suitable starting label and branch number.
@@ -689,19 +685,19 @@ CONTAINS
        IAP(10)=ISW
     ELSE
 !      ** Restart from orbit.
-       CALL STUPBV(IAP,RAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
+       CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UPS,UOLDPS,UPOLDP)
     ENDIF
 
   END SUBROUTINE RSPTBV
 
 ! ---------- ------
-  SUBROUTINE STPNBV(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT, &
+  SUBROUTINE STPNBV(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT, &
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION IAP(*),RAP(*),UPS(*),UDOTPS(*)
+    DIMENSION IAP(*),UPS(*),UDOTPS(*)
     DIMENSION PAR(*),ICP(*),RLDOT(*),TM(*)
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
     NDIM=IAP(1)
@@ -764,7 +760,7 @@ CONTAINS
   END SUBROUTINE STPNBV1
 
 ! ---------- ------
-  SUBROUTINE STPNUB(IAP,RAP,PAR,ICP,NTSRS,NCOLRS,RLDOT, &
+  SUBROUTINE STPNUB(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT, &
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
@@ -774,7 +770,7 @@ CONTAINS
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    DIMENSION IAP(*),RAP(*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+    DIMENSION IAP(*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
     DIMENSION PAR(*),ICP(*),RLDOT(*)
 
     NDIM=IAP(1)
@@ -799,7 +795,7 @@ CONTAINS
   END SUBROUTINE STPNUB
 
 ! ---------- ------
-  SUBROUTINE STHOPF(IAP,RAP,PAR,ICP,NTST,NCOL, &
+  SUBROUTINE STHOPF(IAP,PAR,ICP,NTST,NCOL, &
        NFPR,RLDOT,NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
 
     USE IO
@@ -810,7 +806,7 @@ CONTAINS
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
 
-    DIMENSION PAR(*),ICP(*),IAP(*),RAP(*),RLDOT(*),THU(*)
+    DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*),THU(*)
     DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
     EXTERNAL FUNI
 ! Local
@@ -835,7 +831,7 @@ CONTAINS
        SMAT(NDIM+I,NDIM+I)=RIMHB
     ENDDO
 
-    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
+    CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
 
 ! Note that the period-scaling in FUNC is taken into account:
     SMAT(1:NDIM,NDIM+1:2*NDIM)=DFU(:,:)/PAR(11)
@@ -932,9 +928,10 @@ CONTAINS
     NLLV=1
     IFST=1
     ALLOCATE(DUPS(NDIM,0:NCOL*NTST),DRL(NFPR))
-    CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+    CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
          RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
+    RAP(14)=DET
 
     IF(IPERP==-1)THEN
        DEALLOCATE(DUPS,DRL)
@@ -981,7 +978,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE LCSPBV(IAP,RAP,PAR,ICP,FNCS,FUNI,BCNI,ICNI,PVLI,Q, &
+  SUBROUTINE LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNCS,FUNI,BCNI,ICNI,PVLI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP)
 
@@ -1020,7 +1017,6 @@ CONTAINS
 
     DS=RAP(1)
     DSMAX=RAP(3)
-    DSOLD=RAP(5)
     EPSS=RAP(13)
 
 ! Check for zero.
@@ -1063,9 +1059,9 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
-       CALL CONTBV(IAP,RAP,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+       CALL CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
-       CALL STEPBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)THEN
@@ -1131,9 +1127,10 @@ CONTAINS
     RDSZ=0.d0
 
     ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
-    CALL SOLVBV(IFST,IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+    CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
          RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
+    RAP(14)=DET
 
     RLDOT(:)=DRL(:)
     UDOTPS(:,:)=DUPS(:,:)

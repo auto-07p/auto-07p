@@ -94,7 +94,7 @@ CONTAINS
 ! Generate the starting point
 
     NODIR=1
-    CALL STPNT(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
+    CALL STPNT(IAP,PAR,ICP,U,UDOT,NODIR)
     CALL PVLSAE(IAP,RAP,U,PAR)
 
 ! Determine a suitable starting label and branch number
@@ -127,16 +127,15 @@ CONTAINS
        U(NDIM+1)=PAR(ICP(1))
 
        DSOLD=RDS
-       RAP(5)=DSOLD
 
 ! Starting procedure  (to get direction vector) :
 
        IF(NODIR==1.AND.ISW>=0)THEN
-          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0,AA)
+          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,0,AA)
        ELSEIF(IRS/=0.AND.ISW<0)THEN
-          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1,AA)
+          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,1,AA)
        ELSEIF(ABS(IPS).EQ.1)THEN
-          CALL STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,-1,AA)
+          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,-1,AA)
        ENDIF
        IF(ABS(IPS).EQ.1)THEN
           ! Get stability
@@ -153,8 +152,8 @@ CONTAINS
           CALL EXTRAE(NDIM,RDS,U,UOLD,UDOT)
 
 ! Determine the second point on the bifurcating or original branch
-          CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,&
-               ISW<0)
+          CALL SOLVAE(IAP,RAP,DSOLD,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,&
+               ISTOP,ISW<0)
 
           IF(ISW<0)THEN
              IF(ABS(IPS).EQ.1)THEN
@@ -172,17 +171,18 @@ CONTAINS
           IAP(27)=ITP
 
 ! Provide initial approximation to the next point on the branch
-          CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
+          CALL CONTAE(NDIM,DSOLD,RDS,U,UOLD,UDOT)
 
 ! Find the next solution point on the branch
-          CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
+          CALL SOLVAE(IAP,RAP,DSOLD,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,&
+               NIT,ISTOP)
 
 ! Check for user supplied parameter output parameter-values.
 
           IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
              DO IUZR=1,NUZR
                 IAP(26)=IUZR
-                CALL LCSPAE(IAP,RAP,PAR,ICP,FNUZAE,FUNI,AA,&
+                CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNUZAE,FUNI,AA,&
                      U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
                 ITP=IAP(27)
                 IF(ITP.EQ.-1.AND.ISTOP.EQ.0)THEN
@@ -202,7 +202,7 @@ CONTAINS
 ! Check for fold
 
           IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
-             CALL LCSPAE(IAP,RAP,PAR,ICP,FNLPAE,FUNI,AA,&
+             CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNLPAE,FUNI,AA,&
                   U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
              ITP=IAP(27)
              IF(ISTOP.EQ.0.AND.ITP.EQ.-1) THEN
@@ -222,7 +222,7 @@ CONTAINS
 ! Check for branch point, and if so store data :
 !
           IF(ISTOP.EQ.0.AND.ABS(ISP).GT.0)THEN
-             CALL LCSPAE(IAP,RAP,PAR,ICP,FNBPAE,FUNI,AA, &
+             CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNBPAE,FUNI,AA, &
                   U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
              ITP=IAP(27)
              IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
@@ -243,7 +243,7 @@ CONTAINS
 ! Check for Hopf bifurcation
 
           IF(ISTOP.EQ.0.AND.ABS(IPS).EQ.1)THEN
-             CALL LCSPAE(IAP,RAP,PAR,ICP,FNHBAE,FUNI,AA, &
+             CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNHBAE,FUNI,AA, &
                   U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
              ITP=IAP(27)
              IF(ITP.EQ.-1)THEN
@@ -297,7 +297,7 @@ CONTAINS
   END SUBROUTINE CNRLAE
 
 ! ---------- ------
-  SUBROUTINE STPNUS(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
+  SUBROUTINE STPNUS(IAP,PAR,ICP,U,UDOT,NODIR)
 
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
@@ -312,14 +312,14 @@ CONTAINS
   END SUBROUTINE STPNUS
 
 ! ---------- ------
-  SUBROUTINE STPNAE(IAP,RAP,PAR,ICP,U,UDOT,NODIR)
+  SUBROUTINE STPNAE(IAP,PAR,ICP,U,UDOT,NODIR)
 
     USE IO
     IMPLICIT NONE
 
 ! Gets the starting data from unit 3
     INTEGER IAP(*),ICP(*),NODIR
-    DOUBLE PRECISION RAP(*),PAR(*),U(*),UDOT(*)
+    DOUBLE PRECISION PAR(*),U(*),UDOT(*)
     INTEGER NFPR,NFPRS,I
     INTEGER,ALLOCATABLE :: ICPRS(:)
 
@@ -347,7 +347,7 @@ CONTAINS
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,RAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP,AA)
+  SUBROUTINE STPRAE(IAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP,AA)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -356,7 +356,7 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*),ICP(*)
+    DIMENSION IAP(*),U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*),ICP(*)
     DIMENSION AA(IAP(1)+1,IAP(1)+1)
 
 ! Local
@@ -375,7 +375,7 @@ CONTAINS
 
 ! Determine the direction of the branch at the starting point
 
-    CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+    CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
     IF(IPERP==1)THEN
        AA(:,1:NDIM)=DFDU(:,:)
@@ -413,24 +413,20 @@ CONTAINS
   END SUBROUTINE STPRAE
 
 ! ---------- ------
-  SUBROUTINE CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
+  SUBROUTINE CONTAE(NDIM,DSOLD,RDS,U,UOLD,UDOT)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    IMPLICIT NONE
 
 ! This subroutine determines an initial approximation to the next
 ! solution on a branch by extrapolating from the two preceding points.
 ! The step used in the preceding step has been stored in DSOLD.
 
-    DIMENSION IAP(*),RAP(*),UOLD(*),U(*),UDOT(*)
+    INTEGER, INTENT(IN) :: NDIM
+    DOUBLE PRECISION, INTENT(IN) :: DSOLD,RDS
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM+1),UOLD(NDIM+1)
+    DOUBLE PRECISION, INTENT(OUT) :: UDOT(NDIM+1)
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-
-    DSOLD=RAP(5)
-
-    DO I=1,NDIM+1
-       UDOT(I)=(U(I)-UOLD(I))/DSOLD
-    ENDDO
+    UDOT(:)=(U(:)-UOLD(:))/DSOLD
 
     CALL EXTRAE(NDIM,RDS,U,UOLD,UDOT)
 
@@ -438,6 +434,8 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE EXTRAE(NDIM,RDS,U,UOLD,UDOT)
+
+    IMPLICIT NONE
 
 ! Determines an initial approximation to the next solution by
 ! extrapolating from the two preceding points.
@@ -453,7 +451,8 @@ CONTAINS
   END SUBROUTINE EXTRAE
 
 ! ---------- ------
-  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP,SW)
+  SUBROUTINE SOLVAE(IAP,RAP,DSOLD,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,&
+       ISTOP,SW)
 
     USE IO
     USE MESH
@@ -476,7 +475,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: NIT
     INTEGER, INTENT(INOUT) :: ISTOP
     DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: UOLD(*),AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(OUT) :: DSOLD,UOLD(*),AA(IAP(1)+1,IAP(1)+1)
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
     LOGICAL, OPTIONAL, INTENT(IN) :: SW
 ! Local
@@ -484,7 +483,7 @@ CONTAINS
     LOGICAL BSW
     DOUBLE PRECISION, ALLOCATABLE :: RHS(:),DU(:), &
          DFDU(:,:),DFDP(:,:)
-    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET,DSOLD
+    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,SS,UMX,DUMX,RDRLM,RDUMX,DET
     DOUBLE PRECISION AU,ADU,DELREF
     CHARACTER (LEN=*), PARAMETER :: O9 = & 
      "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
@@ -514,7 +513,6 @@ CONTAINS
 
     DO
        DSOLD=RDS
-       RAP(5)=DSOLD
        NIT=0
 
 ! Write additional output on unit 9 if requested :
@@ -540,7 +538,7 @@ CONTAINS
 
           NIT=NIT1
           PAR(ICP(1))=U(NDIM+1)
-          CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
+          CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
 
 ! Set up the Jacobian matrix and the right hand side :
 
@@ -602,7 +600,7 @@ CONTAINS
           IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
 ! Recompute Jacobian for test functions
              PAR(ICP(1))=U(NDIM+1)
-             CALL FUNI(IAP,RAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
+             CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
              DO I=1,NDIM
                 AA(I,NDIM+1)=DFDP(I,ICP(1))
                 DO K=1,NDIM
@@ -676,7 +674,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(IAP,RAP,PAR,ICP,FNCS,FUNI,AA, &
+  SUBROUTINE LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNCS,FUNI,AA, &
        U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP)
 
     USE SUPPORT
@@ -700,13 +698,13 @@ CONTAINS
 
     LOGICAL CHNG
 
+    NDIM=IAP(1)
     IID=IAP(18)
     ITMX=IAP(19)
     IBR=IAP(30)
 
     DS=RAP(1)
     DSMAX=RAP(3)
-    DSOLD=RAP(5)
     EPSS=RAP(13)
 
 ! Check whether FNCS has changed sign (FNCS is EXTERNAL).
@@ -747,8 +745,8 @@ CONTAINS
           WRITE(9,101)ITLCSP,RDS
        ENDIF
 
-       CALL CONTAE(IAP,RAP,RDS,U,UOLD,UDOT)
-       CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
+       CALL CONTAE(NDIM,DSOLD,RDS,U,UOLD,UDOT)
+       CALL SOLVAE(IAP,RAP,DSOLD,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,ISTOP)
        IF(ISTOP.EQ.1)THEN
           Q=0.d0
           RETURN

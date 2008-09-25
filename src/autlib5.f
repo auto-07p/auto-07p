@@ -22,7 +22,7 @@ C
       CONTAINS
 
 C     ---------- ----
-      SUBROUTINE FNHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNHO(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
@@ -30,7 +30,7 @@ C
 C
 C Generates the equations for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),RAP(*),ICP(*)
+      DIMENSION IAP(*),ICP(*)
       DIMENSION U(*),UOLD(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C Local
       ALLOCATABLE DFU(:)
@@ -44,7 +44,7 @@ C
         ALLOCATE(DFU(NDIM*NDIM))
       ENDIF
       IF(IJAC.EQ.0)THEN
-        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
         IF(ALLOCATED(DFU))DEALLOCATE(DFU)
         RETURN
       ENDIF
@@ -61,16 +61,16 @@ C
       DO I=1,NDIM
         UU=U(I)
         U(I)=UU-EP
-        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
+        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
         U(I)=UU+EP
-        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
         U(I)=UU
         DO J=1,NDIM
           DFDU(J,I)=(F(J)-DFDU(J,I))/(2*EP)
         ENDDO
       ENDDO
 C
-      CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+      CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
       IF(IJAC==1)THEN
         IF(ALLOCATED(DFU))DEALLOCATE(DFU)
         RETURN
@@ -78,7 +78,7 @@ C
 C
       DO I=1,NFPR
         PAR(ICP(I))=PAR(ICP(I))+EP
-        CALL FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
+        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
         ENDDO
@@ -90,13 +90,13 @@ C
       END SUBROUTINE FNHO
 C
 C     ---------- ----
-      SUBROUTINE FFHO(IAP,RAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       DIMENSION IAP(*),ICP(*)
-      DIMENSION RAP(*),U(NDIM),UOLD(*),PAR(*),F(*)
+      DIMENSION U(NDIM),UOLD(*),PAR(*),F(*)
       DIMENSION DFDU(NDM,*)
 C
 C       Local
@@ -110,7 +110,7 @@ C           *Evaluate the R.-H. sides
             CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DUM1)
          ELSEIF(ITWIST.EQ.1)THEN
 C           *Adjoint variational equations for normal vector
-            CALL FUNI(IAP,RAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
+            CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
 C           *Set F = - (Df)^T u
             DO J=1,NDM
                DUM1=0.0D0
@@ -1274,7 +1274,7 @@ C
       END SUBROUTINE PREHO
 C
 C     ---------- ------
-      SUBROUTINE STPNHO(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+      SUBROUTINE STPNHO(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      * UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -1291,7 +1291,7 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),RAP(*),UPS(IAP(1),0:*),UDOTPS(*)
+      DIMENSION IAP(*),UPS(IAP(1),0:*),UDOTPS(*)
       DIMENSION TM(*),PAR(*),ICP(*),RLDOT(*)
 C Local
       ALLOCATABLE RR(:),RI(:),VR(:,:),VT(:,:)
@@ -1332,7 +1332,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL STPNUB(IAP,RAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+       CALL STPNUB(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      *      UPS,UDOTPS,TM,NODIR)
 C
 C Initialize solution and additional parameters
@@ -1720,7 +1720,7 @@ C
       DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
 C Local
       DIMENSION IEIGC(2)
-      DOUBLE PRECISION DUM1(1),RAP(1)
+      DOUBLE PRECISION DUM1(1)
       ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
       ALLOCATABLE VRPREV(:,:,:)
       SAVE IEIGC,VRPREV
@@ -1728,7 +1728,7 @@ C
       ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM),FV1(NDM),IV1(NDM))
       IFAIL=0
 C     
-      CALL FUNI(IAP,RAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
+      CALL FUNI(IAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
 C     
       IF (ITRANS.EQ.1) THEN
          DO I=1,NDM
@@ -1878,7 +1878,7 @@ C
       LOGICAL CSAVE
 C Local
       INTEGER TYPE,IFLAG(2,2)
-      DOUBLE PRECISION UDUM(1),DDUM(1),RAP(1)
+      DOUBLE PRECISION UDUM(1),DDUM(1)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
       ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
       ALLOCATABLE TYPE(:)
@@ -1886,7 +1886,7 @@ C
       SAVE CPREV,IFLAG
 C
       ALLOCATE(FDUM(NDM))
-      CALL FUNI(IAP,RAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
+      CALL FUNI(IAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
       DEALLOCATE(FDUM)
 C
 C Compute transpose of A if ITRANS=1

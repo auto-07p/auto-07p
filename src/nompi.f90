@@ -30,10 +30,10 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 end subroutine mpicon
 
-subroutine mpisbv(iap,rap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(iap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   integer :: nra,iap(*),icp(*),ifst,nllv
-  double precision :: rap(*),par(*),dtm(*),thu(*)
+  double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
 end subroutine mpisbv
 
