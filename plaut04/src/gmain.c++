@@ -419,7 +419,7 @@ createSolutionSceneWithWidgets()
                 asMin[0] = asMin[1] = asMin[2] = -1;
             }
 
-            coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+            coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
             result->addChild(coordSep);
         }
 
@@ -584,7 +584,7 @@ createBifurcationScene()
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
-        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
 
         result->addChild(coordSep);
     }
@@ -4511,37 +4511,27 @@ setVariableDefaultValues()
     winWidth  = WIN_WIDTH;
     winHeight = WIN_HEIGHT;
 
-    lineColor[ 0][0] = 1.0;  lineColor[ 0][1] = 1.0;  lineColor[ 0][2] = 1.0;
-    lineColor[ 1][0] = 1.0;  lineColor[ 1][1] = 0.0;  lineColor[ 1][2] = 0.0;
-    lineColor[ 2][0] = 0.0;  lineColor[ 2][1] = 1.0;  lineColor[ 2][2] = 0.0;
-    lineColor[ 3][0] = 0.0;  lineColor[ 3][1] = 0.0;  lineColor[ 3][2] = 1.0;
-    lineColor[ 4][0] = 1.0;  lineColor[ 4][1] = 1.0;  lineColor[ 4][2] = 0.0;
-    lineColor[ 5][0] = 0.5;  lineColor[ 5][1] = 0.5;  lineColor[ 5][2] = 0.0;
-    lineColor[ 6][0] = 0.0;  lineColor[ 6][1] = 0.0;  lineColor[ 6][2] = 0.5;
-    lineColor[ 7][0] = 0.0;  lineColor[ 7][1] = 0.5;  lineColor[ 7][2] = 0.5;
-    lineColor[ 8][0] = 1.0;  lineColor[ 8][1] = 0.0;  lineColor[ 8][2] = 1.0;
-    lineColor[ 9][0] = 0.0;  lineColor[ 9][1] = 1.0;  lineColor[ 9][2] = 1.0;
-    lineColor[10][0] = 0.3;  lineColor[10][1] = 0.0;  lineColor[10][2] = 0.3;
-    lineColor[11][0] = 0.6;  lineColor[11][1] = 0.0;  lineColor[11][2] = 0.6;
-    lineColor[12][0] = 1.0;  lineColor[12][1] = 1.0;  lineColor[12][2] = 1.0;
+    static const float linecolor[][3] = {
+      {1.0, 1.0, 1.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+      {1.0, 1.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.0, 0.5}, {0.0, 0.5, 0.5}, 
+      {1.0, 0.0, 1.0}, {0.0, 1.0, 0.0}, {0.3, 0.0, 0.3}, {0.6, 0.0, 0.6},
+      {1.0, 1.0, 1.0} };
 
-    envColors[ 0][0] = 0.0;  envColors[ 0][1] = 0.0;  envColors[ 0][2] = 0.0;
-    envColors[ 1][0] = 1.0;  envColors[ 1][1] = 0.0;  envColors[ 1][2] = 0.0;
-    envColors[ 2][0] = 0.0;  envColors[ 2][1] = 1.0;  envColors[ 2][2] = 0.0;
-    envColors[ 3][0] = 0.0;  envColors[ 3][1] = 0.0;  envColors[ 3][2] = 1.0;
-    envColors[ 4][0] = 0.0;  envColors[ 4][1] = 1.0;  envColors[ 4][2] = 0.0;
-    envColors[ 5][0] = 1.0;  envColors[ 5][1] = 0.0;  envColors[ 5][2] = 0.0;
-    envColors[ 6][0] = 0.0;  envColors[ 6][1] = 0.0;  envColors[ 6][2] = 1.0;
-    envColors[ 7][0] = 1.0;  envColors[ 7][1] = 0.0;  envColors[ 7][2] = 0.0;
+    static const float envcolors[][3] = {
+      {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+      {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 0.0}, 
 #ifdef R3B
-    envColors[ 8][0] = 0.0;  envColors[ 8][1] = 1.0;  envColors[ 8][2] = 0.0;
-    envColors[ 9][0] = 1.0;  envColors[ 9][1] = 0.0;  envColors[ 9][2] = 0.0;
-    envColors[10][0] = 0.0;  envColors[10][1] = 0.0;  envColors[10][2] = 1.0;
-    envColors[11][0] = 1.0;  envColors[11][1] = 0.0;  envColors[11][2] = 1.0;
+      {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}
 #endif
+    };
 
-    for(int i=0; i<NUM_SP_POINTS; ++i)
+    for(unsigned i = 0; i < sizeof(envcolors)/sizeof(envcolors[0]); ++i)
+        envColors[i] = SbColor(envcolors[i]);
+
+    for(int i=0; i<NUM_SP_POINTS; ++i) {
+        lineColor[i] = SbColor(linecolor[i]);
         linePattern[i]   = 0xffff;
+    }
 
     stabilityLinePattern[0]   = 0x1111;
     stabilityLinePattern[1]   = 0xffff;

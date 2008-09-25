@@ -706,7 +706,7 @@ createSolutionInertialFrameScene(float dis)
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
-        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord));
+        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
 
         aSep->addChild(coordSep);
     }

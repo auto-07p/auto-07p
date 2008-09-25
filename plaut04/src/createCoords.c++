@@ -15,13 +15,8 @@ SoSeparator * createCoordinates(float sclMax[3], float sclMin[3], SbColor color[
 }
 
 
-SoSeparator * createCoordinates(bool show3D, int type, float sclMax[3], float sclMin[3], int tickers[3], int where)
+SoSeparator * createCoordinates(bool show3D, int type, float sclMax[3], float sclMin[3], int tickers[3], int where, SbColor color[3])
 {
-    SbColor color[3];
-    color[0].setValue(1,0,0);
-    color[1].setValue(0,1,0);
-    color[2].setValue(0,0,1);
-
     SoSeparator *axisSep = new SoSeparator;
 
     float transDis = -1.1;

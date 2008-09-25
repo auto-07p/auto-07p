@@ -286,7 +286,7 @@ SoSeparator * createLegend(SbVec3f pos, double val[5]);
 SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
-SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where);
+SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where, SbColor color[3]);
 SoSeparator * drawASphere(float ptb[], float size);
 
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
