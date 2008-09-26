@@ -88,14 +88,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: NCOL
     DOUBLE PRECISION, INTENT(OUT) :: ZM(NCOL)
 
-    INTEGER INDEX
-
     DOUBLE PRECISION, PARAMETER :: &
-         C21 = .5d0/SQRT(3.0d0), &
-         C31 = .5d0*SQRT(0.6d0), &
-         R = 6.0d0/7.0d0, C4 = .5d0*SQRT(R**2-12.0d0/35.0d0), &
-         C41 = .5d0*SQRT(3.0d0/7.0d0+C4), &
-         C42 = .5d0*SQRT(3.0d0/7.0d0-C4), &
          C51 = .5d0*0.90617984593866399280d0, &
          C52 = .5d0*0.53846931010568309104d0, &
          C61 = .5d0*0.93246951420315202781d0, &
@@ -103,18 +96,32 @@ CONTAINS
          C63 = .5d0*0.23861918608319690863d0, &
          C71 = .5d0*0.949107991234275852452d0, &
          C72 = .5d0*0.74153118559939443986d0, &
-         C73 = .5d0*0.40584515137739716690d0
+         C73 = .5d0*0.40584515137739716690d0, &
+         R = 6.0d0/7.0d0
 
-    DOUBLE PRECISION, PARAMETER :: ZMS(2+3+4+5+6+7) = &
-      (/ .5d0-C21,                                               .5d0+C21, &
-         .5d0-C31,                     .5d0,                     .5d0+C31, &
-         .5d0-C41, .5d0-C42,                           .5d0+C42, .5d0+C41, &
-         .5d0-C51, .5d0-C52,           .5d0,           .5d0+C52, .5d0+C51, &
-         .5d0-C61, .5d0-C62, .5d0-C63,       .5d0+C63, .5d0+C62, .5d0+C61, &
-         .5d0-C71, .5d0-C72, .5d0-C73, .5d0, .5d0+C73, .5d0+C72, .5d0+C71  /)
+    DOUBLE PRECISION C21,C31,C4,C41,C42
 
-    INDEX = NCOL*(NCOL-1)/2
-    ZM(1:NCOL) = ZMS(INDEX:INDEX+NCOL-1)
+    SELECT CASE(NCOL)
+       CASE(2)
+          C21 = .5d0/SQRT(3.0d0)
+          ZM(:) = (/ .5d0-C21, .5d0+C21 /)
+       CASE(3)
+          C31 = .5d0*SQRT(0.6d0)
+          ZM(:) = (/ .5d0-C31, .5d0, .5d0+C31 /)
+       CASE(4)
+          C4  = .5d0*SQRT(R**2-12.0d0/35.0d0)
+          C41 = .5d0*SQRT(3.0d0/7.0d0+C4)
+          C42 = .5d0*SQRT(3.0d0/7.0d0-C4)
+          ZM(:) = (/ .5d0-C41, .5d0-C42, .5d0+C42, .5d0+C41 /)
+       CASE(5)
+          ZM(:) = (/ .5d0-C51, .5d0-C52, .5d0, .5d0+C52, .5d0+C51 /)
+       CASE(6)
+          ZM(:) = (/ .5d0-C61, .5d0-C62, .5d0-C63, &
+                     .5d0+C63, .5d0+C62, .5d0+C61 /)
+       CASE(7)
+          ZM(:) = (/ .5d0-C71, .5d0-C72, .5d0-C73, .5d0, &
+                     .5d0+C73, .5d0+C72, .5d0+C71  /)
+    END SELECT
   END SUBROUTINE CPNTS
 
 ! ---------- ------

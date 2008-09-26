@@ -527,7 +527,7 @@ CONTAINS
          READ(3,'(A)',END=2)
        ENDDO
     ELSE
-       WRITE(FMT,'(AI9A)')'(',NSKIP-1,'/)'
+       WRITE(FMT,'(A,I9,A)')'(',NSKIP-1,'/)'
        READ(3,FMT,END=2)
     ENDIF
     EOF3=.FALSE.

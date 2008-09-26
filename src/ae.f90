@@ -325,6 +325,7 @@ CONTAINS
 
     NFPRS=GETNFPR3()
     ALLOCATE(ICPRS(NFPRS))
+    ICPRS(:)=0
     CALL READLB(IAP,ICPRS,U,UDOT,PAR)
   
 ! Take care of the case where the free parameters have been changed at
