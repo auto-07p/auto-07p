@@ -10,6 +10,8 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qdialog.h>
+#include <qradiobutton.h>
+#include <qcheckbox.h>
 #include <qmainwindow.h>
 #include <qgroupbox.h>
 #if QT_VERSION >= 0x40000
@@ -79,19 +81,18 @@ class PreferDialog : public QDialog
 
 public:
     PreferDialog(QWidget * parent, const char *name);
+    void update();
 
 public slots:
+    void closePreferDialogAndGiveUpChange();
+    void closePreferDialogAndUpdateScene();
+    void savePreferAndUpdateScene();
     void applyPreferDialogChangeAndUpdateScene();
     void graphCoordinateSystemToggledCB(int which);
     void graphTypeWidgetToggledCB(int which);
     void graphStyleWidgetToggledCB(int which);
     void graphCoordWidgetToggledCB(int which);
     void defaultGraphWidgetToggledCB(int bit);
-    void save();
-
-protected slots:
-    void accept();
-    void reject();
 
 private:
     void createPreferNotebookPages(QTabWidget *notebook);
@@ -106,6 +107,9 @@ private:
     void createGraphTypeFrameGuts(QGroupBox *frame);
     void createOptionFrameGuts(QGroupBox *frame);
     void createGraphCoordPartsFrameGuts(QGroupBox *frame);
+    QRadioButton **coordSysButton, **styleButton, **typeButton,
+      **coordButton;
+    QCheckBox **widgetButton;
 };
 
 class MainWindow : public QMainWindow

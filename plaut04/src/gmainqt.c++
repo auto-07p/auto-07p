@@ -1376,17 +1376,6 @@ PreferDialog::createLineAttrPrefSheetParts(QWidget *parent, QGridLayout *form,
 ////////////////////////////////////////////////////////////////////////
 {
     for(int i=0; i<NUM_SP_POINTS; ++i)
-    {
-        linePatternTemp[i] = linePattern[i];
-        linePatternOld[i]  = linePattern[i];
-        for(int j=0; j<3; ++j)
-        {
-            lineColorTemp[i][j] = lineColor[i][j];
-            lineColorOld[i][j]  = lineColor[i][j];
-        }
-    }
-
-    for(int i=0; i<NUM_SP_POINTS; ++i)
         createLineColorAndPatternPrefSheetGuts(parent, form, name[i], i);
     for(int i=1; i<(NUM_SP_POINTS+1)/2; ++i)
         form->setRowStretch(i, 1);
@@ -1404,12 +1393,14 @@ PreferDialog::createPreferActionFormControls(QWidget *parent)
     QHBoxLayout *form = new QHBoxLayout(parent, 5, -1, "control form");
 
     saveBtn = new QPushButton(" &Save ", parent);
-    connect(saveBtn, SIGNAL(clicked()), this, SLOT(save()));
+    connect(saveBtn, SIGNAL(clicked()),
+                     this, SLOT(savePreferAndUpdateScene()));
     form->addWidget(saveBtn);
 
     closeBtn = new QPushButton(" &Update ", parent);
     form->addWidget(closeBtn);
-    connect(closeBtn, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(closeBtn, SIGNAL(clicked()), 
+                     this, SLOT(closePreferDialogAndUpdateScene()));
 
     applyBtn = new QPushButton(" &Apply ", parent);
     form->addWidget(applyBtn);
@@ -1418,7 +1409,8 @@ PreferDialog::createPreferActionFormControls(QWidget *parent)
 
     cancelBtn = new QPushButton(" &Cancel ", parent);
     form->addWidget(cancelBtn);
-    connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(cancelBtn, SIGNAL(clicked()), 
+                     this, SLOT(closePreferDialogAndGiveUpChange()));
 }
 
 
@@ -1450,8 +1442,6 @@ PreferDialog::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
     };
 
 // create default selections
-    whichCoordSystemOld  = whichCoordSystem;
-    whichCoordSystemTemp = whichCoordSystem;
 
 #if QT_VERSION >= 0x40000
     QHBoxLayout *layout = new QHBoxLayout(frame);
@@ -1464,6 +1454,7 @@ PreferDialog::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphCoordinateSystemToggledCB(int)));
+    coordSysButton = new QRadioButton*[LENGTH (coordSysItems)];
     for (unsigned int i = 0; i < LENGTH (coordSysItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordSysItems[i], frame);
@@ -1471,7 +1462,7 @@ PreferDialog::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if ((unsigned)whichCoordSystem == i) w->setChecked(true);
+	coordSysButton[i] = w;
     }
 }
 #endif
@@ -1501,8 +1492,6 @@ PreferDialog::createGraphStyleFrameGuts(QGroupBox *frame)
     };
 
 // create default selections
-    whichStyleOld  = whichStyle;
-    whichStyleTemp = whichStyle;
 
 #if QT_VERSION >= 0x40000
     QHBoxLayout *layout = new QHBoxLayout(frame);
@@ -1515,6 +1504,7 @@ PreferDialog::createGraphStyleFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphStyleWidgetToggledCB(int)));
+    styleButton = new QRadioButton*[LENGTH (graphStyleItems)];
     for (unsigned i = 0; i < LENGTH (graphStyleItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphStyleItems[i], frame);
@@ -1522,7 +1512,7 @@ PreferDialog::createGraphStyleFrameGuts(QGroupBox *frame)
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichStyle == (int)i) w->setChecked(true);
+	styleButton[i] = w;
     }
 }
 
@@ -1558,9 +1548,6 @@ PreferDialog::createGraphTypeFrameGuts(QGroupBox *frame)
 {
     const char *graphTypeItems[]={ "Solution Diagram" , "Bifurcation Diagram" };
 
-    whichTypeOld  = whichType;
-    whichTypeTemp = whichType;
-
 #if QT_VERSION >= 0x40000
     QHBoxLayout *layout = new QHBoxLayout(frame);
 #endif
@@ -1572,6 +1559,7 @@ PreferDialog::createGraphTypeFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphTypeWidgetToggledCB(int)));
+    typeButton = new QRadioButton*[LENGTH (graphTypeItems)];
     for (unsigned i = 0; i < LENGTH (graphTypeItems); i++)
     {
         QRadioButton *w = new QRadioButton(graphTypeItems[i], frame);
@@ -1579,7 +1567,7 @@ PreferDialog::createGraphTypeFrameGuts(QGroupBox *frame)
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichType == (int)i) w->setChecked(true);
+	typeButton[i] = w;
     }
 }
 
@@ -1619,16 +1607,15 @@ PreferDialog::createOptionFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(defaultGraphWidgetToggledCB(int)));
+    widgetButton = new QCheckBox*[LENGTH (graphWidgetItems)];
     for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
-        graphWidgetToggleSetOld = graphWidgetToggleSet;
-        graphWidgetToggleSetTemp= graphWidgetToggleSet;
         QCheckBox *w = new QCheckBox(graphWidgetItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
         layout->addWidget(w, i%2, i/2);
 #endif
-        if (graphWidgetToggleSet & (1<<i)) w->setChecked(true);
+	widgetButton[i] = w;
     }
 }
 
@@ -1648,9 +1635,6 @@ PreferDialog::createGraphCoordPartsFrameGuts(QGroupBox *frame)
 
 // create default selections
 
-    whichCoordOld  = whichCoord;
-    whichCoordTemp = whichCoord;
-
 #if QT_VERSION >= 0x40000
     QHBoxLayout *layout = new QHBoxLayout(frame);
 #endif
@@ -1662,6 +1646,7 @@ PreferDialog::createGraphCoordPartsFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphCoordWidgetToggledCB(int)));
+    coordButton = new QRadioButton*[LENGTH (coordButton)];
     for (unsigned i = 0; i < LENGTH (coordItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordItems[i], frame);
@@ -1669,7 +1654,7 @@ PreferDialog::createGraphCoordPartsFrameGuts(QGroupBox *frame)
 #if QT_VERSION >= 0x40000
         layout->addWidget(w);
 #endif
-        if (whichCoord == (int)i) w->setChecked(true);
+	coordButton[i] = w;
     }
 }
 
@@ -1788,13 +1773,14 @@ MainWindow::createPreferDialog()
     {
         preferDialog = new PreferDialog(this, "Preference Dialog");
     }
+    preferDialog->update();
     preferDialog->show();
 }
 
 ////////////////////////////////////////////////////////////////////////
 //
 PreferDialog::PreferDialog(QWidget * parent, const char *name) :
-  QDialog(parent, name, Qt::WDestructiveClose)
+  QDialog(parent, name)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1813,12 +1799,52 @@ PreferDialog::PreferDialog(QWidget * parent, const char *name) :
     setModal(false);
 }
 
+////////////////////////////////////////////////////////////////////////
+//
+void PreferDialog::update()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    for(int i=0; i<NUM_SP_POINTS; ++i)
+    {
+        linePatternTemp[i] = linePattern[i];
+        linePatternOld[i]  = linePattern[i];
+        for(int j=0; j<3; ++j)
+        {
+            lineColorTemp[i][j] = lineColor[i][j];
+            lineColorOld[i][j]  = lineColor[i][j];
+        }
+    }
+
+    whichStyleOld  = whichStyle;
+    whichStyleTemp = whichStyle;
+    styleButton[whichStyle]->setChecked(true);
+
+    whichTypeOld  = whichType;
+    whichTypeTemp = whichType;
+    typeButton[whichType]->setChecked(true);
+
+    graphWidgetToggleSetOld = graphWidgetToggleSet;
+    graphWidgetToggleSetTemp= graphWidgetToggleSet;
+    for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
+        widgetButton[i]->setChecked((graphWidgetToggleSet & (1<<i)) != 0);
+
+    whichCoordOld  = whichCoord;
+    whichCoordTemp = whichCoord;
+    coordButton[whichCoord]->setChecked(true);
+
+#ifdef R3B
+    whichCoordSystemOld  = whichCoordSystem;
+    whichCoordSystemTemp = whichCoordSystem;
+    coordSysButton[whichCoordSystem]->setChecked(true);
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////
 //         CANCEL CALL BACK
 //
 void
-PreferDialog::reject()
+PreferDialog::closePreferDialogAndGiveUpChange()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1870,7 +1896,7 @@ PreferDialog::reject()
 //         OK & CLOSE CALL BACK
 //
 void
-PreferDialog::accept()
+PreferDialog::closePreferDialogAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1921,7 +1947,7 @@ PreferDialog::accept()
 //         OK & SAVE CALL BACK
 //
 void
-PreferDialog::save(void)
+PreferDialog::savePreferAndUpdateScene()
 //
 ////////////////////////////////////////////////////////////////////////
 {
