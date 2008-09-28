@@ -81,15 +81,23 @@ AC_FC_FREEFORM(,
   exit 1
 )
 # ifc needs -Vaxlib to use FLUSH and ETIME.
-unset COMPAT
+COMPAT="f2003"
 AC_LINK_IFELSE([
+  program main
+  real t
+  print *,'hello'
+  flush(6)
+  call cpu_time(t)
+  end
+ ],,[ COMPAT="unix"
+ AC_LINK_IFELSE([
   program main
   real t(2),r,etime
   print *,'hello'
   call flush(6)
   r=etime(t)
   end
-],,[ tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+ ],,[ tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
   AC_LINK_IFELSE([
     program main
     real t(2),r,etime
@@ -97,7 +105,7 @@ AC_LINK_IFELSE([
     call flush(6)
     r=etime(t)
     end
-  ],FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="../lib/compat.o"])])
+  ],FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
 AC_SUBST(COMPAT)
 # Use gfortran/g95 to link wrapper functions if possible.
 # It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,

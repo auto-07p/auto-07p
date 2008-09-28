@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/eispack.o @COMPAT@
+OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/eispack.o
 RM=rm -f
 #
 all: lib compile ../lib/libauto_c.a move
@@ -44,7 +44,7 @@ compile: $(OBJ)
 ../lib/support.o: support.f90 ../lib/mesh.o
 	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
 #
-../lib/io.o: io.f90
+../lib/io.o: io.f90 ../lib/compat.o
 	$(FC) $(FFLAGS) $(OPT) -c io.f90 -o $@
 #
 ../lib/mesh.o: mesh.f90
@@ -72,8 +72,8 @@ fcon: $(AUTO_DIR)/src/fcon.f
 ../lib/blas.o: blas.f
 	$(FC) $(FFLAGS) $(OPT) -c blas.f -o $@
 #
-../lib/compat.o: compat.f90
-	$(FC) $(FFLAGS) $(OPT) -c compat.f90 -o $@
+../lib/compat.o: @COMPAT@.f90
+	$(FC) $(FFLAGS) $(OPT) -c @COMPAT@.f90 -o $@
 #
 ../lib/mpi.o: @MPIFILE@ ../include/auto.h
 	$(FC) $(FFLAGS) $(OPT) -I../include -c @MPIFILE@ -o $@

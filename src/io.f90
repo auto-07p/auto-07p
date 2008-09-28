@@ -27,6 +27,8 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE STHD(IAP,RAP,ICP,ICU)
 
+    USE COMPAT
+
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
 ! The first line in the file contains the (generally) user-supplied
@@ -100,12 +102,14 @@ CONTAINS
     ELSE
        WRITE(7,"('s: ',24I4)")(ICP(I),I=1,NFPR)
     ENDIF
-    CALL FLUSH(7)
+    CALL AUTOFLUSH(7)
 
   END SUBROUTINE STHD
 
 ! ---------- ------
   SUBROUTINE HEADNG(IAP,ICP,IUNIT,N1,N2)
+
+    USE COMPAT
 
 ! Prints headings above columns on unit 6, 7, and 9.
 ! N1 = number of parameters to print (maximum: 7 for screen output)
@@ -169,7 +173,7 @@ CONTAINS
     ENDDO
 
     WRITE(IUNIT,"()")
-    CALL FLUSH(IUNIT)
+    CALL AUTOFLUSH(IUNIT)
 
   CONTAINS
 
@@ -198,6 +202,8 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE WRLINE(IAP,PAR,ICU,IBR,NTOT,LAB,VAXIS,U)
+
+    USE COMPAT
 
 ! Write one line of output on unit 6 and 7.
 
@@ -251,11 +257,11 @@ CONTAINS
     IF(MOD(ITP,10).NE.0)THEN
        WRITE(6,F69)ABS(IBR),ABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS, &
             (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
-       CALL FLUSH(6)
+       CALL AUTOFLUSH(6)
     ENDIF
     WRITE(7,F7)IBR,MTOT,ITP,LAB,PAR(ICU(1)),VAXIS, &
          (U(I),I=1,N2),(PAR(ICU(I)),I=2,NICP)
-    CALL FLUSH(7)
+    CALL AUTOFLUSH(7)
     WRITE(9,F69)IBR,MTOT,ATYPE,LAB,PAR(ICU(1)),VAXIS, &
          (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)
   END SUBROUTINE WRLINE

@@ -5,12 +5,13 @@ public :: autoflush, autim
 
 contains
 
-! This file calls no extensions (see f2003.f90 for the new Standard forms)
-! You can edit it to adjust these routines to the compiler that is used.
+! This file calls some F2003/F95 functions that were previously only
+! available as Unix extensions.
 
   subroutine autoflush(i)
+! The Fortran 2003 way:
     integer, intent(in) :: i
-    !call flush(i)
+    flush(i)
   end subroutine autoflush
 
 !-----------------------------------------------------------------------
@@ -20,9 +21,10 @@ contains
 ! ------ --------- --------
   double precision function autim()
 
-    !call cpu_time(etime)
-    !autim = etime
-    autim = -1
+    real etime
+
+    call cpu_time(etime)
+    autim = etime
 
   end function autim
 

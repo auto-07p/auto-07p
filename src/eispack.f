@@ -3178,12 +3178,12 @@ C-----------------------------------------------------------------------
 c     compute the singular value decomposition of the 2 by 2
 c     upper triangular matrix [[a,b];[0,c]]
 c     inputs -
-c       a,b,c - real*8 - matrix entries
+c       a,b,c - double precision - matrix entries
 c     outputs -
-c       sigmin - real*8 - +-smaller singular value
-c       sigmax - real*8 - +-larger singular value
-c       snr, csr - real*8 - sin and cos of right rotation (see below)
-c       snl, csl - real*8 - sin and cos of left rotation (see below)
+c       sigmin - double precision - +-smaller singular value
+c       sigmax - double precision - +-larger singular value
+c       snr, csr - double precision - sin and cos of right rotation (see below)
+c       snl, csl - double precision - sin and cos of left rotation (see below)
 c
 c       [  csl  snl ]  * [ a b ] * [ csr  -snr ] = [ sigmax    0   ]
 c       [ -snl  csl ]    [ 0 c ]   [ snr   csr ]   [    0   sigmin ]
@@ -3208,12 +3208,13 @@ c     or true angle of rotation < UF/eps
 c
 c     note: if c=0, then csl=1. and snl=0. (needed in general svd)
 c
-      real*8 a,b,c,sigmin,sigmax,snr,csr,snl,csl
-      real*8 sinr,cosr,sinl,cosl
+      double precision a,b,c,sigmin,sigmax,snr,csr,snl,csl
+      double precision sinr,cosr,sinl,cosl
 c   
 c     local variables:
-      real*8 absa,absb,absc,acmn,acmx,as,at,au,temp,temp1,temp2,temp3
-      real*8 ac,ca,bac,absbac,sgnmn,sgnmx,sgna,sgnb,sgnc
+      double precision absa,absb,absc,acmn,acmx,as,at,au,temp,temp1
+      double precision temp2,temp3
+      double precision ac,ca,bac,absbac,sgnmn,sgnmx,sgna,sgnb,sgnc
 c
       absa = dabs(a)
       absb = dabs(b)

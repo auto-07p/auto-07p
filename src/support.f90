@@ -413,42 +413,6 @@ CONTAINS
     DEALLOCATE(IR,IC)
   END SUBROUTINE GESC
 
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!          System Dependent Subroutines for Timing AUTO
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!
-! ---------- ------
-  SUBROUTINE AUTIM0(T)
-
-!$  USE OMP_LIB
-    DOUBLE PRECISION, INTENT(OUT) :: T
-    REAL etime
-    REAL timaray(2)
-
-! Set initial time for measuring CPU time used.
-
-    T=etime(timaray)
-!$  T=omp_get_wtime()
-
-  END SUBROUTINE AUTIM0
-
-! ---------- ------
-  SUBROUTINE AUTIM1(T)
-
-!$  USE OMP_LIB
-    DOUBLE PRECISION, INTENT(OUT) :: T
-    REAL etime
-    REAL timaray(2)
-
-! Set final time for measuring CPU time used.
-
-    T=etime(timaray)
-!$  T=omp_get_wtime()
-
-  END SUBROUTINE AUTIM1
-
 END MODULE SUPPORT
 
 ! The following functions and subroutines are called from

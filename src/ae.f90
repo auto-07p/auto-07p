@@ -1205,6 +1205,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,U,UDOT)
 
+    USE COMPAT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Write restart information on singular points, plotting points, etc.,
@@ -1244,7 +1245,7 @@ CONTAINS
 102 FORMAT(4X,7ES19.10)
 103 FORMAT(20I5)
 
-    CALL FLUSH(8)
+    CALL AUTOFLUSH(8)
   END SUBROUTINE WRTSP8
 
 ! ---------- ------

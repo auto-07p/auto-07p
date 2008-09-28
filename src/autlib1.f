@@ -33,6 +33,8 @@ C
       USE IO
       USE SUPPORT
       USE AUTO_CONSTANTS
+      USE OMP_LIB
+      USE COMPAT
 C
       IMPLICIT NONE
 C
@@ -61,7 +63,8 @@ C
  1     IF(IAP(39).GT.1)THEN
          CALL MPITIM(TIME0)
        ELSE
-         CALL AUTIM0(TIME0)
+         TIME0=AUTIM()
+C$       TIME0=omp_get_wtime()
        ENDIF
        CALL INIT(IAP,RAP,EOF,LINE)
        IF(EOF)THEN
@@ -76,7 +79,8 @@ C
       IF(IAP(39).GT.1)THEN
         CALL MPITIM(TIME1)
       ELSE
-        CALL AUTIM1(TIME1)
+        TIME1=AUTIM()
+C$      TIME1=omp_get_wtime()
       ENDIF
       TOTTIM=TIME1-TIME0
       CALL WRBAR("=",47)

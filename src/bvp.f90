@@ -1623,6 +1623,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
+    USE COMPAT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Writes plotting and restart data on unit 8, viz.:
@@ -1736,7 +1737,7 @@ CONTAINS
 102 FORMAT(4X,7ES19.10)
 103 FORMAT(20I5)
 
-    CALL FLUSH(8)
+    CALL AUTOFLUSH(8)
   END SUBROUTINE WRTBV8
 
 ! ---------- ------
