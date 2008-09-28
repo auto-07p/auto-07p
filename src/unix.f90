@@ -19,7 +19,7 @@ contains
 ! ------ --------- --------
   double precision function autim()
 
-    real t(2)
+    real t(2),etime
     autim = etime(t)
 
   end function autim
