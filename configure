@@ -3319,13 +3319,20 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 # ifc needs -Vaxlib to use FLUSH and ETIME.
 COMPAT="f2003"
+
+
+{ echo "$as_me:$LINENO: checking for F2003 or pre-F2003 compatibility functions" >&5
+echo $ECHO_N "checking for F2003 or pre-F2003 compatibility functions... $ECHO_C" >&6; }
 cat >conftest.$ac_ext <<_ACEOF
 
   program main
   real t
+  character*80 s
   print *,'hello'
   flush(6)
   call cpu_time(t)
+  t=command_argument_count()
+  call get_command_argument(0,s)
   end
 
 _ACEOF
@@ -3352,14 +3359,17 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	 COMPAT="unix"
- cat >conftest.$ac_ext <<_ACEOF
+
+ COMPAT="unix"; cat >conftest.$ac_ext <<_ACEOF
 
   program main
   real t(2),r,etime
+  character*80 s
   print *,'hello'
   call flush(6)
   r=etime(t)
+  t=iargc()
+  call getarg(0,s)
   end
 
 _ACEOF
@@ -3386,15 +3396,18 @@ else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	 tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
-  cat >conftest.$ac_ext <<_ACEOF
+	tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+   cat >conftest.$ac_ext <<_ACEOF
 
-    program main
-    real t(2),r,etime
-    print *,'hello'
-    call flush(6)
-    r=etime(t)
-    end
+  program main
+  real t(2),r,etime
+  character*80 s
+  print *,'hello'
+  call flush(6)
+  r=etime(t)
+  t=iargc()
+  call getarg(0,s)
+  end
 
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
@@ -3434,6 +3447,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 
+{ echo "$as_me:$LINENO: result: $COMPAT.f90" >&5
+echo "${ECHO_T}$COMPAT.f90" >&6; }
 # Use gfortran/g95 to link wrapper functions if possible.
 # It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
 # because of spaces in names such as 'Program Files'
@@ -7543,7 +7558,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/cir/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/lor/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pen/Makefile demos/pla/Makefile demos/plp/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/she/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/cir/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/lor/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pen/Makefile demos/pla/Makefile demos/plp/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/she/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8111,6 +8126,7 @@ do
     "cmds/cmds.make") CONFIG_FILES="$CONFIG_FILES cmds/cmds.make" ;;
     "cmds/Makefile") CONFIG_FILES="$CONFIG_FILES cmds/Makefile" ;;
     "gui/auto.makefile") CONFIG_FILES="$CONFIG_FILES gui/auto.makefile" ;;
+    "cmds/compat.sh") CONFIG_FILES="$CONFIG_FILES cmds/compat.sh" ;;
     "demos/brc/Makefile") CONFIG_FILES="$CONFIG_FILES demos/brc/Makefile" ;;
     "demos/brf/Makefile") CONFIG_FILES="$CONFIG_FILES demos/brf/Makefile" ;;
     "demos/bru/Makefile") CONFIG_FILES="$CONFIG_FILES demos/bru/Makefile" ;;

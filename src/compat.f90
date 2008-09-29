@@ -1,7 +1,7 @@
 module compat
 
 implicit none
-public :: autoflush, autim
+public :: autoflush, autim, autargc, autgetarg
 
 contains
 
@@ -25,5 +25,14 @@ contains
     autim = -1
 
   end function autim
+
+  integer function autargc()
+    autargc = 0
+  end function autargc
+
+  subroutine autgetarg(number,value)
+    integer, intent(in) :: number
+    character(len=*), intent(out) :: value
+  end subroutine autgetarg
 
 end module compat

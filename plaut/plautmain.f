@@ -16,6 +16,7 @@ C  USER OPTIONS CAN BE SEPARATE FROM OR PREFIXED TO THE BASIC COMMAND
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C---
+       USE COMPAT
        CHARACTER*80 ISTR,OSTR,PART2*2,INB,INS
        CHARACTER*4 TTITLE*80,BTITLE*80
      * ,XLAB*80,YLAB*80
@@ -51,9 +52,9 @@ C---
        COMMON /CB3D/ B3DC
        COMMON /SPNUM/ SP1,SP2,SP3,SP4
 C---
-       IF(COMMAND_ARGUMENT_COUNT()==2)THEN
-         CALL GET_COMMAND_ARGUMENT(1,INB)
-         CALL GET_COMMAND_ARGUMENT(2,INS)
+       IF(AUTARGC()==2)THEN
+         CALL AUTGETARG(1,INB)
+         CALL AUTGETARG(2,INS)
        ELSE
          INB='fort.17'
          INS='fort.18'

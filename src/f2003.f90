@@ -28,4 +28,14 @@ contains
 
   end function autim
 
+  integer function autargc()
+    autargc = command_argument_count()
+  end function autargc
+
+  subroutine autgetarg(number,value)
+    integer, intent(in) :: number
+    character(len=*), intent(out) :: value
+    call get_command_argument(number,value)
+  end subroutine autgetarg
+
 end module compat

@@ -82,31 +82,36 @@ AC_FC_FREEFORM(,
 )
 # ifc needs -Vaxlib to use FLUSH and ETIME.
 COMPAT="f2003"
-AC_LINK_IFELSE([
+AC_DEFUN([F2KPROG], [
   program main
   real t
+  character*80 s
   print *,'hello'
   flush(6)
   call cpu_time(t)
+  t=command_argument_count()
+  call get_command_argument(0,s)
   end
- ],,[ COMPAT="unix"
- AC_LINK_IFELSE([
+])
+AC_DEFUN([UNIXPROG], [
   program main
   real t(2),r,etime
+  character*80 s
   print *,'hello'
   call flush(6)
   r=etime(t)
+  t=iargc()
+  call getarg(0,s)
   end
- ],,[ tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
-  AC_LINK_IFELSE([
-    program main
-    real t(2),r,etime
-    print *,'hello'
-    call flush(6)
-    r=etime(t)
-    end
-  ],FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
+])
+AC_MSG_CHECKING([for F2003 or pre-F2003 compatibility functions])
+AC_LINK_IFELSE([F2KPROG],,[
+ COMPAT="unix"; AC_LINK_IFELSE([UNIXPROG],,
+  [tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
+   AC_LINK_IFELSE([UNIXPROG],
+   FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
 AC_SUBST(COMPAT)
+AC_MSG_RESULT([$COMPAT.f90])
 # Use gfortran/g95 to link wrapper functions if possible.
 # It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
 # because of spaces in names such as 'Program Files'
@@ -308,7 +313,7 @@ AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile
+AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh
 demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/cir/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/lor/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pen/Makefile demos/pla/Makefile demos/plp/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/she/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
