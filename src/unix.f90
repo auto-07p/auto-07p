@@ -25,6 +25,7 @@ contains
   end function autim
 
   integer function autargc()
+    integer iargc
     autargc = iargc()
   end function autargc
 

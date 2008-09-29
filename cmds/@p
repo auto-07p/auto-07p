@@ -1,5 +1,5 @@
 #!/bin/sh
-source compat.sh
+. compat.sh
 if ( test $# -eq 1 ) then
 	b1=b.$1
 	s1=s.$1
@@ -9,7 +9,7 @@ else
 	s1=fort.8
 	echo "Plotting fort.7 and fort.8 ..."
 fi
-if ( test $COMPAT == compat ) then
+if test $COMPAT = compat; then
 	cp $b1 fort.17
 	cp $s1 fort.18
 	b1=
