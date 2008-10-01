@@ -107,13 +107,15 @@ def findBaseClass(inputClass,baseClass):
 def getAUTORC(section):
     parser = ConfigParser.ConfigParser()
     parser.add_section(section)
-    if(os.path.exists(os.path.expandvars("$AUTO_DIR/.autorc"))):
-        parser.read(os.path.expandvars("$AUTO_DIR/.autorc"))
-    if(os.path.exists(os.path.expandvars("$HOME/.autorc"))):
-        parser.read(os.path.expandvars("$HOME/.autorc"))
-    if(os.path.exists("./autorc")):
+    path = os.path.expandvars("$AUTO_DIR/.autorc")
+    if os.path.exists(path):
+        parser.read(path)
+    path = os.path.expandvars("$HOME/.autorc")
+    if os.path.exists(path):
+        parser.read(path)
+    if os.path.exists("./autorc"):
         parser.read("./autorc")
-    elif(os.path.exists("./.autorc")):
+    elif os.path.exists("./.autorc"):
         parser.read("./.autorc")
     return parser
 

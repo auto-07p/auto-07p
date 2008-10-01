@@ -267,8 +267,8 @@ class commandRelabel(commandWithFilenameTemplate):
         else:
             n2b = self.name2["bifurcationDiagram"]
             n2s = self.name2["solution"]
-        command = os.path.expandvars("$AUTO_DIR/bin/relabel")
-        rval.interact(command,n1b,n1s,n2b,n2s)
+        import relabel
+        relabel.relabel(n1b,n1s,n2b,n2s)
         if os.access(n2b,os.F_OK):
             if self.name2["bifurcationDiagram"] is None:
                 # Save backups
@@ -280,19 +280,13 @@ class commandRelabel(commandWithFilenameTemplate):
                     os.remove(n1s+'~')
                 os.rename(n1s,n1s+'~')
                 os.rename(n2s,n1s)
-                rval.info("Relabeling succeeded\n")            
             elif os.path.exists(self.name1["diagnostics"]):
                 shutil.copy(self.name1["diagnostics"],
                             self.name2["diagnostics"])
-        rval.info("Relabeling succeeded\n")
+            rval.info("Relabeling succeeded\n")
 
         rval.info("Relabeling done\n")
-
         return rval
-
-
-
-
 
 class commandAppend(commandWithFilenameTemplate):
     """Append data files.

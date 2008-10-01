@@ -7,8 +7,8 @@
 #
 FC=@FC@
 FFLAGS=@FFLAGS@
-CFLAGS=@CFLAGS@
 OPT=@OPT_FLAG@
+COMPAT=@COMPAT@
 RM=rm -f
 #
 all: ../bin/autlab ../bin/double ../bin/triple \
@@ -48,14 +48,19 @@ utility.o: utility.f90
 ../bin/reduce: reduce.f90 utility.o
 	$(FC) $(FFLAGS) $(OPT) reduce.f90 utility.o -o $@
 #
-../bin/relabel: relabel.c
-	$(CC) $(CFLAGS) relabel.c -o $@
+compat.o : ../src/$(COMPAT).f90
+	$(FC) $(FFLAGS) $(OPT) -c ../src/$(COMPAT).f90 -o $@
+#
+../bin/relabel: relabel.f90 compat.o
+	$(FC) $(FFLAGS) $(OPT) relabel.f90 compat.o -o $@
 #
 zero: $(AUTO_DIR)/util/zero.f90
 	$(FC) $(FFLAGS) $(OPT) $(AUTO_DIR)/util/zero.f90 -o zero
 #
 superclean:
 	rm -f *.mod *.o
+
+clean: superclean
 #
 #  DO NOT ADD ANYTHING AFTER THIS LINE
 #
