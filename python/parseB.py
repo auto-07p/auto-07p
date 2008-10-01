@@ -24,25 +24,7 @@ import AUTOExceptions
 import AUTOutil
 import types
 import parseC
-fromstring = None
-try:
-    import matplotlib.numerix
-    N = matplotlib.numerix
-    if N.which[0] == 'numpy':
-        from numpy import fromstring        
-except ImportError:
-    try:
-        import numpy
-        N = numpy
-        N.nonzero = N.flatnonzero
-        from numpy import fromstring
-    except ImportError:
-        try:
-            import Numeric
-            N = Numeric
-        except ImportError:
-            import array
-            N = array
+numpyimported = False
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -95,6 +77,29 @@ class AUTOBranch:
 
     def __parse(self,headerlist=None,ncolumns=None,linelen=None,
                 datalist=None,coordnames=[]):
+        global N, fromstring, numpyimported
+        if not numpyimported:
+            fromstring = None
+            try:
+                import matplotlib.numerix
+                N = matplotlib.numerix
+                if N.which[0] == 'numpy':
+                    from numpy import fromstring        
+            except ImportError:
+                try:
+                    import numpy
+                    N = numpy
+                    N.nonzero = N.flatnonzero
+                    from numpy import fromstring
+                except ImportError:
+                    try:
+                        import Numeric
+                        N = Numeric
+                    except ImportError:
+                        import array
+                        N = array
+            numpyimported = True
+
         header = string.join(headerlist,"")
         self.header = header
         line = ""

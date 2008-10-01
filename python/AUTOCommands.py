@@ -1334,7 +1334,8 @@ class commandPlotter3D(command):
 
 
 try:
-    import windowPlotter
+    import Tkinter
+    plotterimported = False
     try:
         import readline
         import atexit
@@ -1373,7 +1374,12 @@ try:
         def quit(self):
             self.handle.destroy()
         def __call__(self):
-            import Tkinter
+            # delay importing plotting modules until we actually plot...
+            global plotterimported, windowPlotter
+            if not plotterimported:
+                import windowPlotter
+                plotterimported = True
+
             # root has to be here since I am passing options in
             # a dictionary.  Otherwise the default agruements
             # get messed up
