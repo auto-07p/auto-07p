@@ -59,7 +59,8 @@ class parseC(UserDict.UserDict):
             'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
-            'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR']:
+            'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
+            'sv', 's']:
             self[key] = None
         for key in ["THL","THU","UZR","ICP"]:
             self[key] = []

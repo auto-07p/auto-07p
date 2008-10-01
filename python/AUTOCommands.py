@@ -374,7 +374,7 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             n1s = self.name1["solution"]
             n1d = self.name1["diagnostics"]        
             self.parsed.writeFilename(n1b,n1s,n1d)
-            rval.info("Saving to %s, %s and %s\n"%(n1b,n1s,n1d))
+            rval.info("Saving to %s, %s and %s ... done\n"%(n1b,n1s,n1d))
             return rval
         
         i = 7
@@ -1163,16 +1163,19 @@ class commandRun(commandWithRunner):
         if not(self.name is None):
             func=commandRunnerLoadName(self.name,self.runner,self.templates)
             func()
+        self.kw['sv'] = self.sv
         func=commandRunnerLoadName(None,self.runner,self.templates,self.kw)
         func()
         func=commandRunMakefileWithSetup(self.runner)
         ret=func()
-        if not(self.sv is None):
-            func=commandCopyFortFiles(self.sv)
-            rval=func()
-            ret.value = ret.value + rval.value
-        if not(self.ap is None):
-            func=commandAppend(self.ap)
+        if self.sv is not None:
+            ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(
+                'b.'+self.sv,'s.'+self.sv,'d.'+self.sv)
+        if self.ap is not None:
+            if self.sv is None:
+                func=commandAppend(self.ap)
+            else:
+                func=commandAppend(self.sv,self.ap)
             rval=func()
             ret.value = ret.value + rval.value
         return ret

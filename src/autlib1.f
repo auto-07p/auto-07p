@@ -43,6 +43,8 @@ C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
       INTEGER IAM,LINE
+      LOGICAL FIRST
+      CHARACTER(256) :: SFILE, SOLFILE, BIFFILE, DIAFILE
 C
 C Initialization :
 C
@@ -53,10 +55,12 @@ C
          STOP
        ENDIF
 C
+       FIRST=.TRUE.
+       SFILE='fort.3'
+       BIFFILE='fort.7'
+       SOLFILE='fort.8'
+       DIAFILE='fort.9'
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
-       OPEN(7,FILE='fort.7',STATUS='unknown',ACCESS='sequential')
-       OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
-       OPEN(9,FILE='fort.9',STATUS='unknown',ACCESS='sequential')
 C
        EOF=.FALSE.
        LINE=0
@@ -66,12 +70,25 @@ C
          TIME0=AUTIM()
 C$       TIME0=omp_get_wtime()
        ENDIF
-       CALL INIT(IAP,RAP,EOF,LINE)
+       CALL INIT(IAP,RAP,EOF,LINE,SFILE,BIFFILE)
+       IF(FIRST)THEN
+          IF(BIFFILE/='fort.7')THEN
+             BIFFILE(1:2)='b.'
+             SOLFILE=BIFFILE
+             SOLFILE(1:2)='s.'
+             DIAFILE=BIFFILE
+             DIAFILE(1:2)='d.'
+          ENDIF
+          OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
+          OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
+          OPEN(9,FILE=DIAFILE,STATUS='unknown',ACCESS='sequential')
+          FIRST=.FALSE.
+       ENDIF
        IF(EOF)THEN
          CALL MPIEND()
          STOP
        ENDIF
-       CALL FINDLB_OR_STOP(IAP)
+       CALL FINDLB_OR_STOP(SFILE,IAP)
        CALL MPIIAP(IAP)
        CALL AUTOI(IAP,RAP)
 C-----------------------------------------------------------------------
@@ -127,7 +144,7 @@ C     ---------- ---------
       END SUBROUTINE MPIWORKER
 C
 C     ---------- --------------
-      SUBROUTINE FINDLB_OR_STOP(IAP)
+      SUBROUTINE FINDLB_OR_STOP(SFILE,IAP)
 C
 C Find restart label and determine type of restart point.
 C or stop otherwise
@@ -135,6 +152,7 @@ C
       USE AUTO_CONSTANTS
       IMPLICIT NONE
       INTEGER IAP(*)
+      CHARACTER(*) SFILE
 
       INTEGER NFPR,NPARR
       LOGICAL FOUND
@@ -143,7 +161,7 @@ C
 
       FOUND=.FALSE.
       IF(IRS.GT.0) THEN
-         CALL FINDLB('fort.3',IAP,IRS,NFPR,NPARR,FOUND)
+         CALL FINDLB(SFILE,IAP,IRS,NFPR,NPARR,FOUND)
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
             WRITE(6,"(' Restart label ',I4,' not found')")IRS
@@ -431,7 +449,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,EOF,LINE)
+      SUBROUTINE INIT(IAP,RAP,EOF,LINE,SFILE,SVFILE)
 C
       USE AUTO_CONSTANTS
 C
@@ -443,6 +461,7 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: RAP(*)
       LOGICAL, INTENT(OUT) :: EOF
       INTEGER, INTENT(INOUT) :: LINE
+      CHARACTER(LEN=*), INTENT(INOUT) :: SFILE, SVFILE
 C
       INTEGER IBR,I,IUZR,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
@@ -558,6 +577,13 @@ C
             DEALLOCATE(ITH,VTHU)
             ALLOCATE(ITH(NTHU),VTHU(NTHU))
             READ(STR(POS:),*,ERR=3)(ITH(I),VTHU(I),I=1,NTHU)
+         ELSEIF(STR(1:KEYEND)=='s'.OR.STR(1:KEYEND)=='sv')THEN
+            IF(STR(1:KEYEND)=='s')THEN
+               SFILE(1:2)='s.'
+               READ(STR(POS:),*)SFILE(3:)
+            ELSEIF(STR(1:KEYEND)=='sv')THEN
+               READ(STR(POS:),*)SVFILE(3:)
+            ENDIF
          ELSE
             WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ",STR(1:KEYEND),
      &           " on line ",LINE
