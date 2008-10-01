@@ -26,24 +26,7 @@ import AUTOExceptions
 import types
 import copy
 import parseB
-fromstring = None
-try:
-    import matplotlib.numerix
-    N = matplotlib.numerix
-    if N.which[0] == 'numpy':
-        from numpy import fromstring        
-except ImportError:
-    try:
-        import numpy
-        N = numpy
-        from numpy import fromstring
-    except ImportError:
-        try:
-            import Numeric
-            N = Numeric
-        except ImportError:
-            import array
-            N = array
+numpyimported = False
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -400,6 +383,28 @@ class AUTOSolution(UserDict.UserDict):
         self.__start_of_data = inputfile.tell()
         
     def __readAll(self):
+        global N, fromstring, numpyimported
+        if not numpyimported:
+            fromstring = None
+            try:
+                import matplotlib.numerix
+                N = matplotlib.numerix
+                if N.which[0] == 'numpy':
+                    from numpy import fromstring        
+            except ImportError:
+                try:
+                    import numpy
+                    N = numpy
+                    N.nonzero = N.flatnonzero
+                    from numpy import fromstring
+                except ImportError:
+                    try:
+                        import Numeric
+                        N = Numeric
+                    except ImportError:
+                        import array
+                        N = array
+            numpyimported = True
         self.__fullyParsed = 1
         n = self.__numEntriesPerBlock
         total = n * self.__numSValues + self.__numFreeParameters
