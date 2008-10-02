@@ -244,6 +244,9 @@ class parseC(UserDict.UserDict):
                     output.write(key+"="+str(value)+"\n")
             return
             
+        for key,value in self.items():
+            if value != None and key in ["sv","s","NPAR"]:
+                output.write(key+"="+str(value)+"\n")
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
 	output.write("          "+line1_comment+"\n")
