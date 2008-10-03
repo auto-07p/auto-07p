@@ -209,8 +209,10 @@ Aliases: execfile ex"""
                   (pre == ',' or pre == ';' or pre == '/' or
                   not self.re_exclude_auto.match(theRest))):
                 obj = self._ofind(cmd)
-                if not obj is None and callable(obj):
-                    return self.handle_auto(pre,cmd,theRest,obj)
+                if not obj is None and cmd != 'print' and callable(obj):
+                    command = (line[:(len(line) - len(string.lstrip(line)))]+
+                               self.handle_auto(pre,cmd,theRest,obj))
+                    return command
             return line
         return line
 
