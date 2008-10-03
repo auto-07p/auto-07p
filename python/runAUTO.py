@@ -180,7 +180,8 @@ class runAUTO:
         self.__printErr("===%s start===\n"%(d,))
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
-        os.remove(d+".exe")
+        if os.path.exists(d+".exe"):
+            os.remove(d+".exe")
         cmd = "make -e %s.exe"%d
         if "subprocess" in sys.modules.keys():
             p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
@@ -225,26 +226,29 @@ class runAUTO:
         self.__parseOptions(cnf)
 
     def __setup(self):
-        """     This function sets up self.options["dir"] by creating a
-        fort.2, fort.3 amd fort.12 files.  The "constants", "solution",
+        """     This function sets up self.options["dir"] by creating
+        fort.2, fort.3 and fort.12 files.  The "constants", "solution",
         and "homcont" options 
         can be anything with a writeFilename method.  NOTE:  The
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
-        os.system("rm -f fort.2")
+        if os.path.exists("fort.2"):
+            os.remove("fort.2")
         if (self.options["constants"] is None):
             raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
         else:
             self.options["constants"].writeFilename("fort.2")
 
-        os.system("rm -f fort.3")
+        if os.path.exists("fort.3"):
+            os.remove("fort.3")
         if (self.options["solution"] is None):
-            os.system("touch fort.3")
+            open("fort.3","wb").close()
         else:
             self.options["solution"].writeFilename("fort.3")
 
-        os.system("rm -f fort.12")
+        if os.path.exists("fort.12"):
+            os.remove("fort.12")
         if not (self.options["homcont"] is None):
             self.options["homcont"].writeFilename("fort.12")
 
