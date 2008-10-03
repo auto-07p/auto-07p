@@ -4,6 +4,7 @@ import signal, os, time
 import cStringIO
 import re
 import types
+import glob,stat
 import AUTOExceptions,parseC,parseH,parseBandS
 try:
     import subprocess
@@ -252,6 +253,71 @@ class runAUTO:
         if not (self.options["homcont"] is None):
             self.options["homcont"].writeFilename("fort.12")
 
+    def __newer(self,sources,target):
+        targettime = os.stat(target)[stat.ST_MTIME]
+        for src in sources:
+            if os.stat(src)[stat.ST_MTIME] > targettime:
+                return True
+        return False
+
+    def __make(self,equation):
+        # do the same as $AUTO_DIR/cmds/cmds.make but in Python
+        # first get the configure-set variables
+        f = open(os.path.join(os.path.expandvars("$AUTO_DIR"),
+                              "cmds","cmds.make"),"rb")
+        var = {}
+        while True:
+            line = string.split(f.readline())
+            if len(line) < 3:
+                continue
+            if line[0] == "SRC":
+                break
+            for key in ["CC","FC","CFLAGS","FFLAGS","OPT"]:
+                if line[0] == key:
+                    v = string.join(line[2:])
+                    v = string.replace(v,"$(AUTO_DIR)",os.environ["AUTO_DIR"])
+                    var[key] = v
+        f.close()
+        # figure out equation file name
+        src = ""
+        for ext in [".f90",".f",".c"]:
+            if os.path.exists(equation+ext):
+                src = equation+ext
+        if src == "":
+            print "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
+                equation)
+            return
+        # compile
+        if not os.path.exists(equation+'.o') or self.__newer([src],
+                                                             equation+'.o'):
+            if src[-1] == 'c':
+                cmd = "%s %s %s -c %s -o %s.o"%(var["CC"],var["CFLAGS"],
+                                                var["OPT"],src,equation)
+            else:
+                cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
+                                                var["OPT"],src,equation)
+            if self.options["verbose"] == "yes":
+                self.options["verbose_print"].write(cmd+"\n")
+            self.__printLog(cmd+"\n")
+            self.__runCommand(cmd)
+        # link
+        libdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"lib")
+        libs = os.path.join(libdir,"*.o")
+        deps = glob.glob(libs) + [equation+'.o']
+        if not os.path.exists(equation+'.exe') or self.__newer(deps,equation+'.exe'):
+            if src[-1] == 'c':
+                cmd = "%s -L%s %s %s %s.o -o %s.exe %s -lauto_c"%(var["FC"],libdir,
+                                   var["FFLAGS"],var["OPT"],equation,equation,libs)
+            else:
+                cmd = "%s %s %s %s.o -o %s.exe %s"%(var["FC"],var["FFLAGS"],var["OPT"],
+                                                    equation,equation,libs)
+            if self.options["verbose"] == "yes":
+                self.options["verbose_print"].write(cmd+"\n")
+            self.__printLog(cmd+"\n")
+            cmd = string.replace(cmd, libs, string.join(deps[:-1]," "))
+            self.__runCommand(cmd)
+        return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
+
     def runMakefileWithSetup(self,equation=None):
         self.__resetInternalLogs()
         self.__setup()
@@ -288,6 +354,26 @@ class runAUTO:
 
         if self.options["makefile"] is None:
             executable = "make -e %s"%self.options["equation"]
+        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make":
+            curdir = os.getcwd()
+            os.chdir(self.options["dir"])
+            equation = self.options["equation"][14:]
+            if self.__make(equation):
+                line = "Starting %s ...\n"%equation
+                if self.options["verbose"] == "yes":
+                    self.options["verbose_print"].write(line)
+                self.__printLog(line)
+                self.__runCommand(equation + ".exe")
+                if os.path.exists("fort.2"):
+                    os.remove("fort.2")
+                if os.path.exists("fort.3"):
+                    os.remove("fort.3")
+                line = "%s ... done\n"%equation
+                if self.options["verbose"] == "yes":
+                    self.options["verbose_print"].write(line)
+                self.__printLog(line)        
+            os.chdir(curdir)
+            return
         else:
             executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
         self.__runExecutable(executable)
@@ -378,6 +464,9 @@ class runAUTO:
                     demo_killed = 1
                 status = demo_object.poll()
             if status != 0:
+                if self.options["verbose"] == "yes":
+                    self.options["verbose_print"].write(stderr.read())
+                    self.options["verbose_print"].flush()
                 raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
         else:
             stdout, stdin, stderr = popen2.popen3(command)
