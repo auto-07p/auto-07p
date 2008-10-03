@@ -1,10 +1,14 @@
 #! /usr/bin/env python
-import getopt,sys,os,popen2,string
+import getopt,sys,os,string
 import signal, os, time
 import cStringIO
 import re
 import types
 import AUTOExceptions,parseC,parseH,parseBandS
+try:
+    import subprocess
+except ImportError:
+    import popen2
 
 # A few global variables for the signal handler
 alarm_demo=""
@@ -100,8 +104,22 @@ class runAUTO:
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
-        cout,cin = popen2.popen2("ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
+        if "subprocess" in sys.modules.keys():
+            p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(["grep",alarm_demo+".exe"], stdin=p1.stdout,
+                                  stdout=subprocess.PIPE)
+            p3 = subprocess.Popen(["grep","-v","grep"], stdin=p2.stdout,
+                                  stdout=subprocess.PIPE)
+            cout = p3.stdout
+        else:
+            cout,cin = popen2.popen2(
+                "ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
+            cin.close()
         pids = cout.read()
+        if "subprocess" in sys.modules.keys():
+            p1.stdout.close()
+            p2.stdout.close()
+        cout.close()
         pids = string.split(pids,"\n")
         pids = pids[:-1]
         for pid in pids:
@@ -110,7 +128,10 @@ class runAUTO:
             pid = int(pid[0])
             command = "/bin/kill -KILL %d"%(pid,)
             self.options["verbose_print"](command)
-            os.system(command)
+            if hasattr(os,"kill"):
+                os.kill(pid,signal.SIGKILL)
+            else:
+                os.system("sh -c '%s'"%command)
         # Restart the alarm to make sure everything gets killed
         self.options["verbose_print"].flush()
         if hasattr(signal,"alarm"):
@@ -157,19 +178,40 @@ class runAUTO:
         self.options["dir"] = os.path.join(self.options["demos_dir"],d)
 
         self.__printErr("===%s start===\n"%(d,))
-        stdout,stdin,stderr = popen2.popen3("cd %s; rm -f %s.exe;make -e %s.exe;"%
-                                            (self.options["dir"],d,d))
+        curdir = os.getcwd()
+        os.chdir(self.options["dir"])
+        os.remove(d+".exe")
+        cmd = "make -e %s.exe"%d
+        if "subprocess" in sys.modules.keys():
+            p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            stdout,stderr = p.stdout,p.stderr
+        else:
+            stdout,stdin,stderr = popen2.popen3(cmd)
+            stdin.close()
 
         self.__printLog(stdout.read())
         self.__printErr(stderr.read())
+        stdout.close()
+        stderr.close()
 
         self.__runMakefile()
 
         if self.options["clean"] == "yes":
-            stdout,stdin,stderr = popen2.popen3("cd %s; make -e clean; cd ..;"%
-                                                (self.options["dir"],))
+            os.chdir(self.options["dir"])
+            cmd = "make -e clean"
+            if "subprocess" in sys.modules.keys():
+                p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                stdout,stderr = p.stdout,p.stderr
+            else:
+                stdout,stdin,stderr = popen2.popen3(cmd)
+                stdin.close()
+        os.chdir(curdir)
         self.__printLog(stdout.read())
         self.__printErr(stderr.read())
+        stdout.close()
+        stderr.close()
 
         if demo_killed != 0:
             self.__printLog("***Demo was killed because it took too long***\n")
@@ -303,45 +345,49 @@ class runAUTO:
         # later on to see if it is still running.
         if hasattr(os,"times"):
             user_time = os.times()[2]
-        if hasattr(popen2,"Popen3"):
-            demo_object = popen2.Popen3(command,1,1)
-            stdout = demo_object.fromchild
-            stdin = demo_object.tochild
-            stderr = demo_object.childerr
+        tmp_out = []
+        command = os.path.expandvars(command)
+        if 'subprocess' in sys.modules.keys() or hasattr(popen2,"Popen3"):
+            if 'subprocess' in sys.modules.keys():
+                args = os.path.expandvars(command).split()
+                demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
+                                               stderr=subprocess.PIPE)
+                stdout, stderr = demo_object.stdout, demo_object.stderr
+                teststatus = None
+            else:
+                demo_object = popen2.Popen3(command,1,1)
+                demo_object.tochild.close()
+                stdout, stderr = demo_object.fromchild, demo_object.childerr
+                teststatus = -1
             alarm_demo = self.options["dir"]
-            if(demo_max_time > 0):
+            if demo_max_time > 0 and hasattr(signal,"alarm"):
                 signal.alarm(demo_max_time)
-            tmp_out = cStringIO.StringIO()
             status = demo_object.poll()
-            while (status == -1):
+            while status == teststatus:
                 try:
                     line = stdout.readline()
                     if self.options["verbose"] == "yes":
                         self.options["verbose_print"].write(line)
                         self.options["verbose_print"].flush()
-                    tmp_out.write(line)
+                    tmp_out.append(line)
                 except:
                     demo_killed = 1
                 status = demo_object.poll()
             if status != 0:
                 raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
         else:
-            command = "sh -c '%s'"%(command)
             stdout, stdin, stderr = popen2.popen3(command)
-            tmp_out = cStringIO.StringIO()
+            stdin.close()
         line = stdout.readline()
         # Read the rest of the data from stdout
         while len(line) > 0:
-            tmp_out.write(line)
+            tmp_out.append(line)
             if self.options["verbose"] == "yes":
                 self.options["verbose_print"].write(line)
                 self.options["verbose_print"].flush()
             line = stdout.readline()
-        # Rewind the tmp_out so I can read from it now
-        tmp_out.seek(0,0)
-        self.__printLog(tmp_out.read())
+        self.__printLog(string.join(tmp_out,""))
         self.__printErr(stderr.read())
-        stdin.close()
         stdout.close()
         stderr.close()
         if hasattr(signal,"alarm"):
