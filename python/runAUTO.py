@@ -363,7 +363,7 @@ class runAUTO:
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)
-                self.__runCommand(equation + ".exe")
+                self.__runCommand(os.path.join(".",equation + ".exe"))
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
