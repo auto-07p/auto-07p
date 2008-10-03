@@ -292,15 +292,24 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
         if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
         fi
-	AC_PATH_PROGS(
-	  MOC,
-	  [$MOCNAMES],
-	  $QTDIR/bin/moc,
-	  $QTDIR/bin:/usr/lib/qt2/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/qt/bin:/usr/local/qt/bin:$PATH
-	)
-	SOXT_OBJS="gmainqt.moc.o gmainqt.o"
-	SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
-	X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+	if test -n "$QTDIR"; then
+	    mocpath=$QTDIR/bin:$PATH
+	else
+	    mocpath=$PATH
+	fi
+	AC_PATH_PROGS(MOC,[$MOCNAMES],false,$mocpath)
+	if test x"$MOC" = x"false"; then
+	    AC_MSG_WARN([''moc'' Qt preprocessor not found])
+	    if test -z "$QTDIR"; then
+		AC_MSG_WARN([(QTDIR environment variable not set)])
+	    fi
+	    PLAUT04=""
+	    PLAUT04_TEST="no"
+	else
+	    SOXT_OBJS="gmainqt.moc.o gmainqt.o"
+	    SOXT_OBJS_R3B="../gmainqt.moc.o gmainqt.o"
+	    X_CFLAGS="$X_CFLAGS -DUSE_SOQT"
+	fi
     fi
 else
     PLAUT04=""
