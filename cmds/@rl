@@ -15,7 +15,7 @@ else
 	outb=fort.37
 	outs=fort.38
 fi
-if ! $AUTO_DIR/python/relabel.py $inb $ins $outb $outs 2> /dev/null; then
+if $AUTO_DIR/python/relabel.py $inb $ins $outb $outs 2> /dev/null; then :; else
 	#Fortran relabelling
 	. compat.sh
 	if test $COMPAT = compat; then

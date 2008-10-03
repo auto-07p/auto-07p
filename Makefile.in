@@ -16,7 +16,7 @@ src: .FORCE
 cmds: .FORCE
 	# work around case insensitive filesystems
 	cd ./cmds; for cmd in @H @LB @R @RD @RL; do \
-	    if (! test -r $$cmd); then \
+	    if test ! -r $$cmd; then \
 		cp -p @$$cmd $$cmd; \
 	    fi \
 	done

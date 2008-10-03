@@ -1,6 +1,6 @@
 #!/bin/sh
 echo " "
-if [ -f $1.f -o ! -f $1.c ]; then
+if test -f $1.f -o ! -f $1.c; then
   echo "(Required files : $1.f, c.$1, $1.dat)"
 else
   echo "(Required files : $1.c, c.$1, $1.dat)"
