@@ -209,11 +209,11 @@ class runAUTO:
             else:
                 stdout,stdin,stderr = popen2.popen3(cmd)
                 stdin.close()
+            self.__printLog(stdout.read())
+            self.__printErr(stderr.read())
+            stdout.close()
+            stderr.close()
         os.chdir(curdir)
-        self.__printLog(stdout.read())
-        self.__printErr(stderr.read())
-        stdout.close()
-        stderr.close()
 
         if demo_killed != 0:
             self.__printLog("***Demo was killed because it took too long***\n")
