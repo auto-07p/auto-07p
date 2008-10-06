@@ -1357,7 +1357,16 @@ C
        PERIOD=PAR(11)
        T=PAR(ICP(1))
        RLOLD=PAR(12)
-       DT=T-RLOLD
+       IF(T==RLOLD)THEN
+          ! Two reasons:
+          ! 1. at the start, then UOLD==U, so we can set DT to 1, because
+          !    it is irrelevant.
+          ! 2. from STUPBV, to calculate UPOLDP, which is not needed because
+          !    NINT is forced to 0.
+          DT=1.d0
+       ELSE
+          DT=T-RLOLD
+       ENDIF
 C
        IIJAC=IJAC
        IF(IJAC.GT.1)IIJAC=1

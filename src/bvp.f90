@@ -193,7 +193,6 @@ CONTAINS
     IF(IPERP/=2)THEN
        ! ** Time evolution computations (parabolic systems),
        !    to avoid zero time for direction
-       IF(IPS.EQ.14 .OR. IPS.EQ.16)PAR(12)=PAR(12)-DS
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
@@ -429,9 +428,8 @@ CONTAINS
     DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*)
 ! Local
-    ALLOCATABLE UOLD(:),DFDU(:,:),DFDP(:,:)
+    ALLOCATABLE DFDU(:,:),DFDP(:,:)
 
-    IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
     NFPR=IAP(29)
@@ -441,22 +439,18 @@ CONTAINS
        PAR(ICP(I))=RLOLD(I)
     ENDDO
 
-    ALLOCATE(UOLD(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
+    ALLOCATE(DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
 
     DO J=0,NTST*NCOL
-       IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-          UOLD(:)=2*UOLDPS(:,J)-UPS(:,J)
-       ELSE
-          UOLD(:)=UOLDPS(:,J)
-       ENDIF
-       CALL FUNI(IAP,NDIM,UOLDPS(:,J),UOLD,ICP,PAR,0,UPOLDP(:,J),DFDU,DFDP)
+       CALL FUNI(IAP,NDIM,UOLDPS(:,J),UOLDPS(:,J),ICP,PAR,0,UPOLDP(:,J),&
+            DFDU,DFDP)
     ENDDO
 
     DO I=1,NFPR
        PAR(ICP(I))=RLCUR(I)
     ENDDO
 
-    DEALLOCATE(UOLD,DFDU,DFDP)
+    DEALLOCATE(DFDU,DFDP)
   END SUBROUTINE STUPBV
 
 ! ---------- ------
