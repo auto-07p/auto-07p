@@ -24,7 +24,7 @@ import AUTOExceptions
 import AUTOutil
 import types
 import parseC
-numpyimported = False
+import Points
 
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
@@ -66,47 +66,67 @@ def type_translation(type):
 # Once the data is read in the class provides a list all the points
 # in the fort.7 file.
 
+# a point within an AUTOBranch
+class BDPoint(Points.Point):
+    def has_key(self, key):
+        return (key in ["TY name","data"] or self.labels.has_key(key) or
+                Points.Point.has_key(self,key))
+
+    def makeIxMaps(self):
+        stripnames = map(string.strip, self.coordnames)
+        self._name_ix_map = dict(zip(stripnames,range(self.dimension)))
+        self._ix_name_map = stripnames
+
+    def __setitem__(self, ixarg, val):
+        """Change coordinate array values."""
+        if type(ixarg) == type("") and self.labels.has_key(ixarg):
+            self.labels[ixarg] = val
+        else:
+            Points.Point.__setitem__(self, ixarg, val)
+
+    def __getitem__(self, coords):
+        if type(coords) == type(""):
+            if self.labels.has_key(coords):
+                return self.labels[coords]
+            if coords == "data":
+                return list(self.coordarray)
+            elif coords == "TY name":
+                return type_translation(self.labels["TY number"])["short name"]
+        return Points.Point.__getitem__(self, coords)
+
+    def __str__(self):
+        tynumber = self.labels["TY number"]
+        return str({"BR": self.labels["BR"],
+                "PT": self.labels["PT"],
+                "TY number": tynumber,
+                "TY name": type_translation(tynumber)["short name"],
+                "LAB": self.labels["LAB"],
+                "data": list(self.coordarray),
+                "section": 0,
+                "index": self.labels["index"]})
+
 # a branch within the parseB class
 class AUTOBranch:
     def __init__(self,input=None,screen_lines=0,prevline=None,coordnames=[]):
         self.coordarray = []
-        self.coordnames = []
+        self.coordnames = coordnames
         self.labels = {}
         if input is not None:
-            self.read(input,screen_lines,prevline,coordnames)
+            self.read(input,screen_lines,prevline)
 
     def __parse(self,headerlist=None,ncolumns=None,linelen=None,
-                datalist=None,coordnames=[]):
-        global N, fromstring, numpyimported
-        if not numpyimported:
-            fromstring = None
-            try:
-                import matplotlib.numerix
-                N = matplotlib.numerix
-                if N.which[0] == 'numpy':
-                    from numpy import fromstring        
-            except ImportError:
-                try:
-                    import numpy
-                    N = numpy
-                    N.nonzero = N.flatnonzero
-                    from numpy import fromstring
-                except ImportError:
-                    try:
-                        import Numeric
-                        N = Numeric
-                    except ImportError:
-                        import array
-                        N = array
-            numpyimported = True
-
+                datalist=None):
+        global N
+        if not Points.numpyimported:
+            Points.importnumpy()
+        fromstring = Points.fromstring
+        N = Points.N
         header = string.join(headerlist,"")
         self.header = header
         line = ""
         if header != "":
             self.constants = self.parseHeader(header)
             line = headerlist[-1]
-        self.coordnames = coordnames
         if string.find(line, " PT ") != -1:
             self.coordnames = []
             columnlen = (linelen - 19) / (ncolumns - 4)
@@ -150,6 +170,7 @@ class AUTOBranch:
         self.stability = N.where(points,-stab,stab)
 
     def __parsearray(self,ncolumns,datalist):
+        global N
         # for those without numpy...
         try:
             data = map(float, datalist)
@@ -275,13 +296,10 @@ class AUTOBranch:
                 if string.strip(self.coordnames[i]) == index:
                     return self.coordarray[i]
             raise IndexError
-        label = None
         if index in self.labels.keys():
-            label = self.labels[index]
-        if label:
-            pt = label["PT"]
-            tynumber = label["TY number"]
-            lab = label["LAB"]
+            label = self.labels[index].copy()
+            label["index"] = index
+            label["BR"] = self.BR
         else:
             pt = index+1
             for p in self.stability:
@@ -293,19 +311,18 @@ class AUTOBranch:
                 pt = -((-pt-1) % 9999) - 1
             else:
                 pt = ((pt-1) % 9999) + 1
-            tynumber = 0
-            lab = 0
-        data = []
-        for j in range(len(self.coordarray)):
-            data.append(self.coordarray[j][index])
-        return {"BR": self.BR,
-                "PT": pt,
-                "TY number": tynumber,
-                "TY name": type_translation(tynumber)["short name"],
-                "LAB": lab,
-                "data": data,
-                "section": 0,
-                "index": index}
+            label = {"BR": self.BR, "PT": pt, "TY number": 0, "LAB": 0,
+                     "index": index, "section": 0}
+        if type(self.coordarray) == type([]):
+            data = []
+            for a in self.coordarray:
+                data.append(a[index])
+            data = N.array('d', data)
+        else:
+            data = self.coordarray[:,index]
+        return BDPoint({'coordarray': data,
+                        'coordnames': self.coordnames,
+                        'labels': label})
 
     # Get all the labels from the solution
     def getLabels(self):
@@ -430,7 +447,7 @@ class AUTOBranch:
             datalist[-len(columns)+1] = '-9999'
         return False
 
-    def read(self,inputfile,screen_lines=0,prevline=None,coordnames=[]):
+    def read(self,inputfile,screen_lines=0,prevline=None):
         # We now go through the file and read the branches.
         # read the branch header
         # A section is defined as a part of a fort.7
@@ -493,7 +510,7 @@ class AUTOBranch:
                         self._lastline = line
                         break
                     datalist.extend(columns)
-        self.__parse(headerlist,ncolumns,linelen,datalist,coordnames)
+        self.__parse(headerlist,ncolumns,linelen,datalist)
 
     def readFilename(self,filename,screen_lines=0):
         try:

@@ -137,6 +137,21 @@ except NameError:
     bool = bool
 
 try:
+    dict
+except NameError:
+    # Pre-2.2 Python has no dict() keyword.
+    def dict(seq=[], **kwargs):
+        """
+        New dictionary initialization.
+        """
+        d = {}
+        for k, v in seq:
+            d[k] = v
+        d.update(kwargs)
+        return d
+    __builtin__.dict = dict
+
+try:
     False
 except NameError:
     # Pre-2.2 Python has no False keyword.
@@ -151,6 +166,27 @@ except NameError:
     __builtin__.True = not 0
     # Assign to True in this module namespace so it shows up in pydoc output.
     True = True
+
+# 
+try: 
+    zip 
+except NameError: 
+    # Pre-2.2 Python has no zip() function. 
+    def zip(*lists):
+        """
+	Emulates the behavior we need from the built-in zip() function
+	added in Python 2.2.
+
+	Returns a list of tuples, where each tuple contains the i-th
+	element rom each of the argument sequences. The returned
+	list is truncated in length to the length of the shortest
+	argument sequence.
+	"""
+	result = []
+	for i in xrange(min(map(len, lists))):
+	    result.append(tuple(map(lambda l, i=i: l[i], lists)))
+	return result
+    __builtin__.zip = zip 
 
 class myreadlines:
     def __init__(self,f):
