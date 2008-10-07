@@ -300,6 +300,7 @@ class AUTOBranch:
             label = self.labels[index].copy()
             label["index"] = index
             label["BR"] = self.BR
+            label["section"] = 0
         else:
             pt = index+1
             for p in self.stability:
