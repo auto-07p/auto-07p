@@ -105,7 +105,7 @@ class runAUTO:
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
-        if "subprocess" in sys.modules.keys():
+        if sys.modules.has_key("subprocess"):
             p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(["grep",alarm_demo+".exe"], stdin=p1.stdout,
                                   stdout=subprocess.PIPE)
@@ -117,7 +117,7 @@ class runAUTO:
                 "ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
             cin.close()
         pids = cout.read()
-        if "subprocess" in sys.modules.keys():
+        if sys.modules.has_key("subprocess"):
             p1.stdout.close()
             p2.stdout.close()
         cout.close()
@@ -184,7 +184,7 @@ class runAUTO:
         if os.path.exists(d+".exe"):
             os.remove(d+".exe")
         cmd = "make -e %s.exe"%d
-        if "subprocess" in sys.modules.keys():
+        if sys.modules.has_key("subprocess"):
             p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             stdout,stderr = p.stdout,p.stderr
@@ -202,7 +202,7 @@ class runAUTO:
         if self.options["clean"] == "yes":
             os.chdir(self.options["dir"])
             cmd = "make -e clean"
-            if "subprocess" in sys.modules.keys():
+            if sys.modules.has_key("subprocess"):
                 p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
                 stdout,stderr = p.stdout,p.stderr
@@ -437,8 +437,8 @@ class runAUTO:
             user_time = os.times()[2]
         tmp_out = []
         command = os.path.expandvars(command)
-        if 'subprocess' in sys.modules.keys() or hasattr(popen2,"Popen3"):
-            if 'subprocess' in sys.modules.keys():
+        if sys.modules.has_key("subprocess") or hasattr(popen2,"Popen3"):
+            if sys.modules.has_key("subprocess"):
                 args = os.path.expandvars(command).split()
                 demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
                                                stderr=subprocess.PIPE)

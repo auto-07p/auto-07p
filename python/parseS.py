@@ -26,7 +26,7 @@ import AUTOExceptions
 import types
 import copy
 import parseB
-numpyimported = False
+import Points
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -383,28 +383,10 @@ class AUTOSolution(UserDict.UserDict):
         self.__start_of_data = inputfile.tell()
         
     def __readAll(self):
-        global N, fromstring, numpyimported
-        if not numpyimported:
-            fromstring = None
-            try:
-                import matplotlib.numerix
-                N = matplotlib.numerix
-                if N.which[0] == 'numpy':
-                    from numpy import fromstring        
-            except ImportError:
-                try:
-                    import numpy
-                    N = numpy
-                    N.nonzero = N.flatnonzero
-                    from numpy import fromstring
-                except ImportError:
-                    try:
-                        import Numeric
-                        N = Numeric
-                    except ImportError:
-                        import array
-                        N = array
-            numpyimported = True
+        if not Points.numpyimported:
+            Points.importnumpy()        
+        fromstring = Points.fromstring
+        N = Points.N
         self.__fullyParsed = 1
         n = self.__numEntriesPerBlock
         total = n * self.__numSValues + self.__numFreeParameters
@@ -443,16 +425,14 @@ class AUTOSolution(UserDict.UserDict):
                 raise PrematureEndofData
             self.coordarray = []
             try:
-                self.indepvararray = N.array('d',fdata[:n*nrows:n])
+                self.indepvararray = N.array(fdata[:n*nrows:n])
                 for i in range(1,n):
-                    self.coordarray.append(N.array('d',fdata[i:n*nrows:n]))
+                    self.coordarray.append(N.array(fdata[i:n*nrows:n]))
             except TypeError:
-                self.indepvararray = N.array('d',
-                                             map(lambda j, d=fdata: 
+                self.indepvararray = N.array(map(lambda j, d=fdata: 
                                                  d[j], xrange(0,n*nrows,n)))
                 for i in range(1,n):
-                    self.coordarray.append(N.array('d',
-                                                   map(lambda j, d=fdata: 
+                    self.coordarray.append(N.array(map(lambda j, d=fdata: 
                                                     d[j], xrange(i,n*nrows,n))))
         j = j + n * nrows
 
@@ -471,10 +451,9 @@ class AUTOSolution(UserDict.UserDict):
             else:
                 try:
                     for i in range(1,n):
-                        self.coordarray.append(N.array('d',fdata[i:n*nrows:n]))
+                        self.coordarray.append(N.array(fdata[i:n*nrows:n]))
                 except TypeError:
-                    self.coordarray.append(N.array('d',
-                                                   map(lambda j, d=fdata: 
+                    self.coordarray.append(N.array(map(lambda j, d=fdata: 
                                                    d[j], xrange(i,n*nrows,n))))
             j = j + n * nrows
 

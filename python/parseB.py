@@ -180,12 +180,12 @@ class AUTOBranch:
         columns = []
         try:
             for i in range(4,ncolumns):
-                columns.append(N.array('d',data[i::ncolumns]))
+                columns.append(N.array(data[i::ncolumns]),'d')
         except TypeError:
             for i in range(4,ncolumns):
-                columns.append(N.array('d',
-                                       map(lambda j, d=data: 
-                                           d[j], xrange(i,len(data),ncolumns))))
+                columns.append(N.array(map(lambda j, d=data: 
+                                           d[j], xrange(i,len(data),ncolumns)),
+                               'd'))
         self.coordarray = columns
         self.labels = {}
         self.stability = []
@@ -218,7 +218,7 @@ class AUTOBranch:
         return self
 
     def __len__(self):
-        if self.coordarray == []:
+        if len(self.coordarray) == 0:
             return 0
         return len(self.coordarray[0])
 
@@ -318,7 +318,7 @@ class AUTOBranch:
             data = []
             for a in self.coordarray:
                 data.append(a[index])
-            data = N.array('d', data)
+            data = N.array(data, 'd')
         else:
             data = self.coordarray[:,index]
         return BDPoint({'coordarray': data,
