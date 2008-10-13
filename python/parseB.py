@@ -40,6 +40,8 @@ type_translation_dict = {
        9: {"long name" : "Normal begin or end","short name" : "EP"},
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
+all_point_types = ["No Label","BP","LP","HB","RG","UZ","PD","TR","EP","MX"]
+
 # A little dictionary to transform types to human readable strings
 def type_translation(type):
     if type>=0:
@@ -69,8 +71,12 @@ def type_translation(type):
 # a point within an AUTOBranch
 class BDPoint(Points.Point):
     def has_key(self, key):
-        return (key in ["TY name","data"] or self.labels.has_key(key) or
-                Points.Point.has_key(self,key))
+        if key in ["TY name","data"] or Points.Point.has_key(self,key):
+            return True
+        for k,v in self.labels.items():
+            if k in all_point_types:
+                return v.has_key(key)
+        return False
 
     def makeIxMaps(self):
         stripnames = map(string.strip, self.coordnames)
@@ -79,40 +85,66 @@ class BDPoint(Points.Point):
 
     def __setitem__(self, ixarg, val):
         """Change coordinate array values."""
-        if type(ixarg) == type("") and self.labels.has_key(ixarg):
-            self.labels[ixarg] = val
-        else:
-            Points.Point.__setitem__(self, ixarg, val)
+        if type(ixarg) == type(""):
+            for k,v in self.labels.items():
+                if k in all_point_types:
+                    if v.has_key(ixarg):
+                        label[ixarg] = val
+                        return
+        Points.Point.__setitem__(self, ixarg, val)
 
     def __getitem__(self, coords):
         if type(coords) == type(""):
-            if self.labels.has_key(coords):
-                return self.labels[coords]
+            for k,v in self.labels.items():
+                if k in all_point_types:
+                    if v.has_key(coords):
+                        return v[coords]
+                    elif coords == "TY name":
+                        return k
             if coords == "data":
                 return list(self.coordarray)
-            elif coords == "TY name":
-                return type_translation(self.labels["TY number"])["short name"]
         return Points.Point.__getitem__(self, coords)
 
     def __str__(self):
-        tynumber = self.labels["TY number"]
-        return str({"BR": self.labels["BR"],
-                "PT": self.labels["PT"],
-                "TY number": tynumber,
-                "TY name": type_translation(tynumber)["short name"],
-                "LAB": self.labels["LAB"],
+        for k,v in self.labels.items():
+            if k in all_point_types:
+                ty_name = k
+                label = v
+                break
+        return str({"BR": label["BR"],
+                "PT": label["PT"],
+                "TY number": label["TY number"],
+                "TY name": ty_name,
+                "LAB": label["LAB"],
                 "data": list(self.coordarray),
                 "section": 0,
-                "index": self.labels["index"]})
+                "index": label["index"]})
+
+    __repr__ = __str__
 
 # a branch within the parseB class
-class AUTOBranch:
+class AUTOBranch(Points.Pointset):
     def __init__(self,input=None,screen_lines=0,prevline=None,coordnames=[]):
-        self.coordarray = []
+        self.coordarray = [[]]
         self.coordnames = coordnames
         self.labels = {}
         if input is not None:
             self.read(input,screen_lines,prevline)
+            Points.Pointset.__init__(self,{
+                    "coordarray": self.coordarray,
+                    "coordnames": self.coordnames,
+                    "labels": self.labels,
+                    })
+
+    def makeIxMaps(self):
+        Points.Pointset.makeIxMaps(self)
+        self._ix_name_map = map(string.strip,self._ix_name_map)
+        self._name_ix_map = dict(zip(self._ix_name_map, range(self.dimension)))
+
+    def __gettypelabel(self,idx):
+        for k,v in self.labels[idx].items():
+            if k in all_point_types:
+                return k,v
 
     def __parse(self,headerlist=None,ncolumns=None,linelen=None,
                 datalist=None):
@@ -157,9 +189,11 @@ class AUTOBranch:
         self.coordarray = N.transpose(data[:,4:]).copy()
         self.labels = {}
         for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
-            self.labels[i] = {"LAB":int(data[i,3]),
-                              "PT":int(data[i,1]),
-                              "TY number":int(data[i,2])}
+            tynumber = int(data[i,2])
+            key = type_translation(tynumber)["short name"]
+            self.labels[i] = {key: {"LAB":int(data[i,3]),
+                                    "PT":int(data[i,1]),
+                                    "TY number":int(data[i,2])}}
         points = data[:,1]
         # self.stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
@@ -194,7 +228,9 @@ class AUTOBranch:
         for j in xrange(0,len(data),ncolumns):
             [pt,ty,lab] = map(int,data[j+1:j+4])
             if lab != 0 or ty != 0:
-                self.labels[j/ncolumns] = {"LAB":lab,"TY number":ty,"PT":pt}
+                key = type_translation(ty)["short name"]
+                self.labels[j/ncolumns] = {key: {"LAB":lab,"TY number":ty,
+                                                 "PT":pt}}
             if pt * prevpt < 0:
                 p = j/ncolumns
                 if prevpt < 0:
@@ -217,47 +253,35 @@ class AUTOBranch:
             return self.getLabel(label)
         return self
 
-    def __len__(self):
-        if len(self.coordarray) == 0:
-            return 0
-        return len(self.coordarray[0])
-
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
             label = [label]
-        labels = self.labels
-        for k,v in labels.items():
-            ty_name = type_translation(v["TY number"])["short name"]
+        for ty_name,v in map(self.__gettypelabel,self.labels.getIndices()):
             if ((not keep and (v["LAB"] in label or ty_name in label)) or
                (keep and not v["LAB"] in label and not ty_name in label)):
                 v["LAB"] = 0
                 if not keepTY:
                     v["TY number"] = 0
                 if v["TY number"] == 0:
-                    del labels[k]
+                    self.labels.remove(idx)
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
         labels = self.labels
         if type(old_label)  == types.IntType:
-            for v in labels.values():
-                if v["LAB"] == old_label:
-                    v["LAB"] = new_label
-        else:
-            for j in range(len(old_label)):
-                for v in labels.values():
-                    if v["LAB"] == old_label[j]:
-                        v["LAB"] = new_label[j]
+            old_label = [old_label]
+            new_label = [new_label]
+        for j in range(len(old_label)):
+            for k,v in map(self.__gettypelabel,self.labels.getIndices()):
+                if v["LAB"] == old_label[j]:
+                    v["LAB"] = new_label[j]
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self,label=1):
-        keys = self.labels.keys()
-        keys.sort()
-        for index in keys:
-            v = self.labels[index]
+        for k,v in map(self.__gettypelabel,self.labels.getIndices()):
             if v["LAB"] != 0:
                 v["LAB"] = label
                 label = label + 1
@@ -265,39 +289,47 @@ class AUTOBranch:
     # Given a label, return the correct solution
     def getLabel(self,label):
         if type(label) == types.IntType:
-            for k,v in self.labels.items():
+            for k in self.labels.getIndices():
+                key,v = self.__gettypelabel(k)
                 if v["LAB"] == label:
                     return self.getIndex(k)
             return
-        if type(label) != types.ListType:
-            label = [label]        
+        if type(label) == types.StringType:
+            for k,v in self.labels.sortByIndex():
+                if label in v.keys():
+                    return self.getIndex(k)
+            return
         labels = {}
-        for k,v in self.labels.items():
-            ty_name = type_translation(v["TY number"])["short name"]
+        for k,val in self.labels.sortByIndex():
+            ty_name,v = self.__gettypelabel(k)
             if v["LAB"] in label or ty_name in label:
-                labels[k] = v
+                labels[k] = val
         if labels == {}:
             return
         new = self.__class__()
         new.BR = self.BR
         new.header = self.header
-        new.coordnames = self.coordnames
-        new.coordarray = self.coordarray
         new.labels = labels
         new.stability = self.stability
+        Points.Pointset.__init__(new,{
+                "coordarray": self.coordarray,
+                "coordnames": self.coordnames,
+                "labels": labels})
         return new
 
     # Return a parseB style line item; if given a string, return the
     # relevant column
     def getIndex(self,index):
-        if type(index) == type(""):
-            index = string.strip(index)
-            for i in range(len(self.coordnames)):
-                if string.strip(self.coordnames[i]) == index:
-                    return self.coordarray[i]
-            raise IndexError
-        if index in self.labels.keys():
-            label = self.labels[index].copy()
+        ret = Points.Pointset.__getitem__(self,index)
+        if (not isinstance(ret, Points.Point) or
+            isinstance(ret, Points.Pointset)):
+            return ret
+        label = {}
+        for k,v in ret.labels.items():
+            if k in all_point_types:
+                label = v
+                break
+        if label != {}:
             label["index"] = index
             label["BR"] = self.BR
             label["section"] = 0
@@ -312,26 +344,17 @@ class AUTOBranch:
                 pt = -((-pt-1) % 9999) - 1
             else:
                 pt = ((pt-1) % 9999) + 1
-            label = {"BR": self.BR, "PT": pt, "TY number": 0, "LAB": 0,
-                     "index": index, "section": 0}
-        if type(self.coordarray) == type([]):
-            data = []
-            for a in self.coordarray:
-                data.append(a[index])
-            data = N.array(data, 'd')
-        else:
-            data = self.coordarray[:,index]
-        return BDPoint({'coordarray': data,
-                        'coordnames': self.coordnames,
-                        'labels': label})
+            ret.labels["No Label"] = {"BR": self.BR, "PT": pt, "TY number": 0,
+                                      "LAB": 0, "index": index, "section": 0}
+        return BDPoint({'coordarray': ret.coordarray,
+                        'coordnames': ret.coordnames,
+                        'labels': ret.labels})
 
     # Get all the labels from the solution
     def getLabels(self):
         labels = []
-        keys = self.labels.keys()
-        keys.sort()
-        for index in keys:
-            x = self.labels[index]
+        for index in self.labels.getIndices():
+            k,x = self.__gettypelabel(index)
             if x["LAB"] != 0:
                 labels.append(x["LAB"])
         return labels
@@ -375,17 +398,18 @@ class AUTOBranch:
         istab = 0
         format = "%"+str(columnlen)+"."+str(columnlen-9)+"E"
         for i in range(len(data[0])):
-            if self.labels.has_key(i):
-                label = self.labels[i]
-                pt = label["PT"]
-                tynumber = label["TY number"]
-                lab = label["LAB"]
-            else:
-                pt = i+1
-                if self.stability[istab] < 0:
-                    pt = -pt
-                tynumber = 0
-                lab = 0
+            pt = i+1
+            if self.stability[istab] < 0:
+                pt = -pt
+            tynumber = 0
+            lab = 0
+            if i in self.labels.by_index.keys():
+                for k,label in self.labels[i].items():
+                    if k in all_point_types:
+                        pt = label["PT"]
+                        tynumber = label["TY number"]
+                        lab = label["LAB"]
+                        break
             if pt == self.stability[istab]:
                 istab = istab + 1
             if pt < 0:
@@ -408,10 +432,12 @@ class AUTOBranch:
             for name in self.coordnames:
                 output_line.append("%-14s"%name)
             slist.append(string.join(output_line,""))
-        keys = self.labels.keys()
-        keys.sort()
-        for index in keys:
-            label = self.labels[index]
+        for index,l in self.labels.sortByIndex():
+            label = {}
+            for k,v in l.items():
+                if k in all_point_types:
+                    label = v
+                    break
             ty_number = label["TY number"]
             if ty_number == 0:
                 continue
@@ -592,9 +618,10 @@ class parseB(AUTOBranch):
         label = 1
         for d in self.branches:
             d.uniquelyLabel(label)
-            for v in d.labels.values():
-                if v["TY number"] != 0:
-                    label = v["LAB"]
+            for idx,val in d.labels.sortByIndex():
+                for k,v in val.items():
+                    if k in all_point_types and v["TY number"] != 0:
+                        label = v["LAB"]
             label = label + 1
             
     # Given a label, return the correct solution
@@ -616,7 +643,7 @@ class parseB(AUTOBranch):
     # Given an index, return the correct solution
     # Return a parseB style line item
     def getIndex(self,index):
-        if type(index) == type(""):
+        if type(index) != type(0):
             return self.branches[0].getIndex(index)
         section = 0
         i = index
@@ -624,8 +651,8 @@ class parseB(AUTOBranch):
             l = len(d.coordarray[0])
             if i < l:
                 item = d.getIndex(i)
-                item["section"] = section
-                item["index"] = index
+                item.labels["section"] = section
+                item.labels["index"] = index
                 return item
             i = i - l
             section = section + 1

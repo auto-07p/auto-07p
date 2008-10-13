@@ -1305,7 +1305,7 @@ class Pointset(Point):
             # The labels (PointInfo) object doesn't understand -ve indices,
             # but don't take modulo length otherwise iteration will break
             if ix < 0:
-                ix = ix + self.coordarray.shape[1]
+                ix = ix + len(self.coordarray[0])
             label = self.labels[ix]
             try:
                 pt = self.coordarray[:,ix]
@@ -1888,7 +1888,7 @@ class Pointset(Point):
                 outputList.append("Independent variable:\n")
                 outputList.append(self.indepvarname + ':  '+ivstr+"\n")
             outputList.append("Coordinates:\n")
-            for c in self.coordnames:
+            for c in self._ix_name_map:
                 v = self.coordarray[self._map_names_to_ixs(c)]
                 if not isinstance(v, ndarray):
                     # only alternative is a singleton numeric value (not a list)
@@ -2133,17 +2133,24 @@ class PointInfo(object):
                     except TypeError:
                         key = self_ixs
                 else:
-                    if all(map(lambda k,s=str,i=isinstance: i(k,s), key)):
+                    ki = None
+                    for k in key:
+                        if not isinstance(k,str):
+                            for k in key:
+                                if not isinstance(k,int):
+                                    raise TypeError(
+                                        "Invalid key type for PointInfo")
+                            ki = intersect(key, self.getIndices())
+                            key = ki
+                    if not ki:
                         keylabels = intersect(key, self.getLabels())
                         key = []
                         for l in keylabels:
                             key.extend(self.by_label[l].keys())
-                        key = makeSeqUnique(key)
-                    elif all(map(lambda k,n=int,i=isinstance: i(k,n), key)):
-                        key = intersect(key, self.getIndices())
-                    else:
-                        raise TypeError("Invalid key type for PointInfo")
-                return PointInfo(dict(zip(key,map(lambda i,b=self.by_index:b[i], key))))
+                d = {}
+                for i in key:
+                    d[i] = self.by_index[i]
+                return PointInfo(d)
             elif self.by_index.has_key(key):
                 return self.by_index[key]
             elif self.by_label.has_key(key):
@@ -2214,7 +2221,7 @@ class PointInfo(object):
         if byix:
             for k in key2:
                 # have to check k in dict otherwise DefaultDict creates entry!
-                if k in self.by_label:
+                if k in self.by_label.keys():
                     del self.by_index[key1][k]
                     del self.by_label[k][key1]
                 else:
@@ -2226,7 +2233,7 @@ class PointInfo(object):
         else:
             for k in key2:
                 # have to check k in dict otherwise DefaultDict creates entry!
-                if k in self.by_index:
+                if k in self.by_index.keys():
                     del self.by_index[k][key1]
                     del self.by_label[key1][k]
                 else:

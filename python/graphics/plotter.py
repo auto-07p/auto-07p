@@ -190,12 +190,12 @@ class plotter(grapher.GUIGrapher):
                 [xcol,ycol] = cols
                 for branch in solution.branches:
                     try:
-                        x = branch[branch.coordnames[xcol]]
+                        x = branch.coordarray[xcol]
                     except IndexError:
                         print "The x-coordinate (set to column %s) is out of range"%xcol
                         break
                     try:
-                        y = branch[branch.coordnames[ycol]]
+                        y = branch.coordarray[ycol]
                     except IndexError:
                         print "The y-coordinate (set to column %s) is out of range"%ycol
                         break
@@ -212,7 +212,11 @@ class plotter(grapher.GUIGrapher):
                                 newsect = 0
                     else:
                         self.addArrayNoDraw((x,y),1)
-                    for i,label in branch.labels.items():
+                    for i,l in branch.labels.sortByIndex():
+                        for k,v in l.items():
+                            if k in parseB.all_point_types:
+                                label = v
+                                break
                         lab = label["LAB"]
                         TYnumber = label["TY number"]
                         text = ""
