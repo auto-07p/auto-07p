@@ -653,10 +653,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict):
                 for i in range(len(self.indepvararray)):
                     slist.append("    ")
                     c = self["udotps"].coordarray
-                    for j in range(len(c)):
+                    l = len(c)
+                    for j in range(len(self.coordarray)):
                         if j!=0 and j%7==0:
                             slist.append(os.linesep+"    ")
-                        slist.append("%19.10E" %c[j][i])
+                        if j<l:
+                            slist.append("%19.10E" %c[j][i])
+                        else:
+                            slist.append("%19.10E" %0)
                     slist.append(os.linesep)
                 output.write(string.join(slist,""))
 
