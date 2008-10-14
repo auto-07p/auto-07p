@@ -1704,7 +1704,7 @@ class Pointset(Point):
 
 
     def append(self, parg, t=None, skipMatchingIndepvar=False):
-        """Append individual Point or Pointset.
+        """Append individual Point, Pointset or coordinates.
 
         skipMatchingIndepvar option causes a matching independent
         variable value at the beginning of p to be skipped (only
@@ -1829,8 +1829,22 @@ class Pointset(Point):
                 self.coordarray[ix][new_len-1] = p(self._ix_name_map[ix])
             if len(p.labels) > 0:
                 self.labels.update({new_len-1: p.labels})
+        elif isinstance(p,str) or isinstance(p,list):
+            if isinstance(p,str):
+                p = [p]
+            c = self.coordarray
+            l = len(p)
+            if hasattr(N,'resize'):
+                self.coordarray = N.resize(self.coordarray,
+                                           (c.shape[0]+l,c.shape[1]))
+                self.coordarray[self.dimension:,:] = 0
+            else:
+                for i in range(l):
+                    c.append(array([0]*len(c[0])))
+            self.coordnames.extend(p)
+            self.dimension = self.dimension + l
         else:
-            raise TypeError("append requires Point or Pointset argument")
+            raise TypeError("append requires Point, Pointset or (list of) string argument")
         self.makeIxMaps()
 
 
@@ -1880,8 +1894,8 @@ class Pointset(Point):
                 if not isinstance(iv, ndarray):
                     iv = array(iv, self.indepvartype)  # permits slicing (lists don't)
                 if lenv > 8:
-                    alo = array2string(iv[ixslo],precision=precision)
-                    ahi = array2string(iv[ixshi],precision=precision)
+                    alo = array2string(take(iv,ixslo),precision=precision)
+                    ahi = array2string(take(iv,ixshi),precision=precision)
                     ivstr = alo[:-1] + ", ..., " + ahi[1:]
                 else:
                     ivstr = array2string(iv,precision=precision)
@@ -1894,8 +1908,8 @@ class Pointset(Point):
                     # only alternative is a singleton numeric value (not a list)
                     v = array([v], self.coordtype)
                 if lenv > 8:
-                    alo = array2string(v[ixslo],precision=precision)
-                    ahi = array2string(v[ixshi],precision=precision)
+                    alo = array2string(take(v,ixslo),precision=precision)
+                    ahi = array2string(take(v,ixshi),precision=precision)
                     dvstr = alo[:-1] + ", ..., " + ahi[1:]
                 else:
                     dvstr = array2string(v, precision=precision)

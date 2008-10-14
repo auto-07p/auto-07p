@@ -56,6 +56,7 @@ NPAR = 20
 
 class parseS(UserList.UserList):
     def __init__(self,filename=None):
+        self.name = ''
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
             self.readFilename(filename)
@@ -85,7 +86,7 @@ class parseS(UserList.UserList):
     def tryNextPointRead(self,inputfile):
 	current_position = inputfile.tell()
 	try:
-	    self.data.append(AUTOSolution(inputfile))
+	    self.data.append(AUTOSolution(inputfile,name=self.name))
 	except PrematureEndofData:
 	    inputfile.seek(current_position)
 
@@ -93,7 +94,7 @@ class parseS(UserList.UserList):
         # We now go through the file and read the solutions.
         prev = None
         while inputfile.read(1) != "":
-            solution = AUTOSolution(inputfile,prev)
+            solution = AUTOSolution(inputfile,prev,name=self.name)
             self.data.append(solution)
             prev = solution
         if len(self.data) > 0:
@@ -111,6 +112,7 @@ class parseS(UserList.UserList):
         except IOError:
             import gzip
             inputfile = gzip.open(filename+".gz","rb")
+        self.name = filename
         self.read(inputfile)
         inputfile.close()
 
@@ -150,9 +152,16 @@ class parseS(UserList.UserList):
 
     # Given a label, return the correct solution
     def getLabel(self,label):
+        if label is None:
+            return self
         if type(label) == types.IntType:
             for d in self.data:
                 if d["Label"] == label:
+                    return d
+            return
+        if type(label) == types.StringType:
+            for d in self.data:
+                if d["Type name"] == label:
                     return d
             return
         if type(label) != types.ListType:
@@ -173,6 +182,72 @@ class parseS(UserList.UserList):
             labels.append(x["Label"])
         return labels
 
+# an old-style point and point keys within an AUTOSolution
+class SLPointKey(UserList.UserList):
+    def __init__(self, solution=None, index=None, coords=None):
+        if coords=="u dot":
+            self.solution = solution["udotps"]
+        else:
+            self.solution = solution
+        self.index = index
+    def __getattr__(self, attr):
+        if attr == 'data':
+            data = []
+            for i in range(len(self.solution.coordarray)):
+                data.append(self.solution.coordarray[i][self.index])
+            return data
+    def __setitem__(self, i, item):
+        self.solution.coordarray[i][self.index] = item
+    def __str__(self):
+        return str(self.data)
+    def append(self, item):
+        self.enlarge(1)
+        self.solution.coordarray[-1][self.index] = item
+        self.data.append(item)
+    def extend(self, other):
+        self.enlarge(len(other))
+        for i in range(len(other)):
+            self.solution.coordarray[-len(other)+i][self.index] = other[i]
+    def enlarge(self, ext):
+        # enlarges the dimension of coordarray and coordnames
+        s = self.solution
+        if s._dims is None:
+            s._dims = [s.dimension]*len(s)
+            c = []
+            s0 = s.coordnames[0]
+            for i in range(ext):
+                c.append(s0[0:string.find(s0,'(')+1]+str(s.dimension+i+1)+')')
+            s.extend(c)
+        s._dims[self.index] = s.dimension
+        if min(s._dims) == max(s._dims):
+            s._dims = None
+
+class SLPoint(Points.Point):
+    def __init__(self, p, solution=None, index=None):
+        Points.Point.__init__(self, p)
+        self.index = index
+        self.solution = solution
+        
+    def has_key(self, key):
+        return key in ["u", "u dot", "t"] or Points.Point.has_key(self,key)
+
+    def __getitem__(self, coords):
+        if coords == "t":
+            return self.solution.indepvararray[self.index]
+        if coords in ["u", "u dot"]:
+            return SLPointKey(self.solution, self.index, coords)
+        return Points.Point.__getitem__(self, coords)
+
+    def __setitem__(self, coords, item):
+        if coords == 't':
+            self.solution.indepvararray[self.index] = item
+        Points.Point.__setitem__(self, coords, item)
+
+    def __str__(self):
+        return str({ "t" : self["t"], "u" : self["u"], "u dot" : self["u dot"]})
+
+    __repr__ = __str__
+
 # The AUTOsolution class parses an AUTO fort.8 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:
@@ -190,55 +265,66 @@ class parseS(UserList.UserList):
 # read and write methods and letting the outside class take care
 # of opening the file.
 
-class AUTOSolution(UserDict.UserDict):
-    def __init__(self,input=None,offset=None):
+class AUTOSolution(Points.Pointset,UserDict.UserDict):
+    def __init__(self,input=None,offset=None,name=None):
 	UserDict.UserDict.__init__(self)
         self.__start_of_header = None
         self.__start_of_data   = None
         self.__end              = None
         self.__fullyParsed     = 0
+        self._dims            = None
+        self.name = name
+        self.data_keys = ["Point number", "Branch number", "Type number",
+                          "Type name", "Label", "ISW", "NTST", "NCOL",
+                          "Free Parameters", "Parameter NULL vector",
+                          "Parameters","parameters","p", "udotps"]
 	if input:
 	    self.read(input,offset)
 
     def __str__(self):
         if not(self.__fullyParsed):
             self.__readAll()
-        keys = self.keys()
+        keys = self.data.keys()
         keys.sort()
-        rep=""
+        rep=Points.Pointset.__repr__(self)
         for key in keys:
-            rep=rep+str(key)+": "+str(self[key])+"\n"
+            v = self[key]
+            if isinstance(v,Points.Pointset):
+                v = repr(v)
+            elif type(v) not in [type(1),type(1.0),type("")]:
+                v = list(v)
+            if type(v) == type([]):
+                v = map(str,v)
+            rep=rep+str(key)+": "+str(v)+"\n"
         return rep
 
-    def __getitem__(self,key):
-        big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p"] + [self.indepvarname] + self.coordnames
-        if type(key) == types.IntType:
-            if not(self.__fullyParsed):
-                self.__readAll()
-            u = []
-            for i in range(len(self.coordarray)/2):
-                u.append(self.coordarray[i][key])
-            udot = []
-            for i in range(len(self.coordarray)/2,len(self.coordarray)):
-                udot.append(self.coordarray[i][key])
-            item = { self.indepvarname : self.indepvararray[key],
-                     "u" : u,
-                     "u dot" : udot }
-            return item
+    def __repr__(self):
+        return self.__str__()
+
+    def __setitem__(self,key,value):
+        if key in self.data_keys:
+            self.data[key] = value
         else:
-            if key in big_data_keys and not(self.__fullyParsed):
-                self.__readAll()
-            if key == "data":
-                solution = []
-                for point in self:
-                    solution.append(point)
-                return solution
-            if key == self.indepvarname:
-                return self.indepvararray
-            if key in self.coordnames:
-                return self.coordarray[self.coordnames.index(key)]
-            return UserDict.UserDict.__getitem__(self,key)
-    
+            Points.Pointset.__setitem__(self,key,value)
+
+    def __getitem__(self,key):
+        big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p","udotps"]
+        if key in big_data_keys and not(self.__fullyParsed):
+            self.__readAll()
+        if key in self.data_keys:
+            return self.data[key]
+        if not(self.__fullyParsed):
+            self.__readAll()
+        if key == "data":
+            return self
+        ret = Points.Pointset.__getitem__(self,key)
+        if type(key) != types.IntType:
+            return ret
+        return SLPoint(ret, self, key)
+
+    def has_key(self,key):
+        return self.data.has_key(key) or Points.Pointset.has_key(self,key)
+
     def type(self):
 	return parseB.type_translation(self["Type number"])["long name"]
 
@@ -446,20 +532,42 @@ class AUTOSolution(UserDict.UserDict):
             j = j + nfpr
             n = n - 1
             if hasattr(N,"transpose"):
-                self.coordarray = N.concatenate((self.coordarray,N.transpose(
-                     N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))))
+                self["udotps"] = N.transpose(
+                     N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
             else:
+                self["udotps"] = []
                 try:
-                    for i in range(1,n):
-                        self.coordarray.append(N.array(fdata[i:n*nrows:n]))
+                    for i in range(n):
+                        self["udotps"].append(N.array(fdata[i:n*nrows:n]))
                 except TypeError:
-                    self.coordarray.append(N.array(map(lambda j, d=fdata: 
+                    for i in range(n):
+                        self["udotps"].append(N.array(map(lambda j, d=fdata: 
                                                    d[j], xrange(i,n*nrows,n))))
+            udotnames = []
+            if self["NTST"] > 0:
+                for i in range(self.__numEntriesPerBlock-1):
+                    udotnames.append("UDOT("+str(i+1)+")")
+            self["udotps"] = Points.Pointset({
+                "coordarray": self["udotps"],
+                "coordnames": udotnames,
+                "name": self.name})
+            self["udotps"]._dims = None
             j = j + n * nrows
 
         self["Parameters"] = fdata[j:j+self.__numFreeParameters]
         self["parameters"] = self["Parameters"]
         self["p"] = self["Parameters"]
+        Points.Pointset.__init__(self,{
+                "indepvararray": self.indepvararray,
+                "indepvarname": self.indepvarname,
+                "coordarray": self.coordarray,
+                "coordnames": self.coordnames,
+                "name": self.name})
+
+    def __getattr__(self,attr):
+        if not(self.__fullyParsed):
+            self.__readAll()
+        return getattr(self,attr)
 
     # just a simple way to get PAR(x) -- could be extended later to not
     # be read-only
@@ -510,10 +618,9 @@ class AUTOSolution(UserDict.UserDict):
         # parsed it will get parsed here.
         else:
             slist = []
-            half = len(self.coordarray)/2
             for i in range(len(self.indepvararray)):
                 slist.append("    "+"%19.10E" % (self.indepvararray[i]))
-                for j in range(1,half+1):
+                for j in range(1,len(self.coordarray)+1):
                     if j%7==0:
                         slist.append(os.linesep+"    ")
                     slist.append("%19.10E" % (self.coordarray[j-1][i]))
@@ -545,10 +652,11 @@ class AUTOSolution(UserDict.UserDict):
                 slist = []
                 for i in range(len(self.indepvararray)):
                     slist.append("    ")
-                    for j in range(half):
+                    c = self["udotps"].coordarray
+                    for j in range(len(c)):
                         if j!=0 and j%7==0:
                             slist.append(os.linesep+"    ")
-                        slist.append("%19.10E" %(self.coordarray[j+half][i]))
+                        slist.append("%19.10E" %c[j][i])
                     slist.append(os.linesep)
                 output.write(string.join(slist,""))
 

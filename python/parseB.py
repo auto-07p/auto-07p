@@ -249,9 +249,7 @@ class AUTOBranch(Points.Pointset):
         return self.getIndex(index)
 
     def __call__(self,label=None):
-        if label:
-            return self.getLabel(label)
-        return self
+        return self.getLabel(label)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
@@ -288,6 +286,8 @@ class AUTOBranch(Points.Pointset):
 
     # Given a label, return the correct solution
     def getLabel(self,label):
+        if label is None:
+            return self
         if type(label) == types.IntType:
             for k in self.labels.getIndices():
                 key,v = self.__gettypelabel(k)
