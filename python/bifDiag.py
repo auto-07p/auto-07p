@@ -8,7 +8,13 @@ import types
 import AUTOExceptions
 
 class bifDiag(parseB.parseBR):
-    def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None):
+    def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
+                 filebased=False):
+        if filebased:
+            self.fort7_filename = fort7_filename
+            self.fort8_filename = fort8_filename
+            self.fort9_filename = fort9_filename
+            return
         parseB.parseBR.__init__(self,fort7_filename)
         if (fort8_filename is None) and not(fort7_filename is None) and not(
             type(fort7_filename) == types.ListType):
@@ -29,6 +35,17 @@ class bifDiag(parseB.parseBR):
                 x["solution"] = solution[i]
                 i = i+1
 
+    #delayed file-based reading to save memory if sv= is used in run()
+    def __getattr__(self,attr):
+        if attr == 'data':
+            self.__init__(self.fort7_filename, self.fort8_filename,
+                          self.fort9_filename)
+            del self.fort7_filename
+            del self.fort8_filename
+            del self.fort9_filename
+            return self.data
+        raise AttributeError
+        
     def __repr__(self):
         return ""
 

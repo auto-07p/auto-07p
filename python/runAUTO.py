@@ -509,10 +509,11 @@ class runAUTO:
         else:
             self.outputFort8 = None
         self.data = None
-        #if (self.outputFort7 and self.outputFort8 and 
-        #    os.path.isfile(self.fort9_path)):
-        #    self.data = bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-        #                                self.fort9_path)
+        if (self.outputFort7 and self.outputFort8 and 
+            os.path.isfile(self.fort9_path)):
+            self.data = bifDiag.bifDiag(self.fort7_path,self.fort8_path,
+                                        self.fort9_path,
+                                        self.options["constants"].has_key('sv'))
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
