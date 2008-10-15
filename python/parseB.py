@@ -22,6 +22,7 @@ import os
 import sys
 import AUTOExceptions
 import AUTOutil
+import UserList
 import types
 import parseC
 import Points
@@ -69,7 +70,26 @@ def type_translation(type):
 # in the fort.7 file.
 
 # a point within an AUTOBranch
+class BDPointData(UserList.UserList):
+    def __init__(self, branch=None, index=None):
+        self.branch = branch
+        self.index = index
+    def __getattr__(self, attr):
+        if attr == 'data':
+            data = []
+            for i in range(len(self.branch.coordarray)):
+                data.append(self.branch.coordarray[i][self.index])
+            return data
+    def __setitem__(self, i, item):
+        self.branch.coordarray[i][self.index] = item
+    def __str__(self):
+        return str(self.data)
 class BDPoint(Points.Point):
+    def __init__(self, p, branch=None, index=None):
+        Points.Point.__init__(self, p)
+        self.index = index
+        self.branch = branch
+    
     def has_key(self, key):
         if key in ["TY name","data"] or Points.Point.has_key(self,key):
             return True
@@ -102,7 +122,7 @@ class BDPoint(Points.Point):
                     elif coords == "TY name":
                         return k
             if coords == "data":
-                return list(self.coordarray)
+                return BDPointData(self.branch, self.index)
         return Points.Point.__getitem__(self, coords)
 
     def __str__(self):
@@ -257,7 +277,8 @@ class AUTOBranch(Points.Pointset):
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
             label = [label]
-        for ty_name,v in map(self.__gettypelabel,self.labels.getIndices()):
+        for idx in self.labels.getIndices():
+            ty_name,v = self.__gettypelabel(idx)
             if ((not keep and (v["LAB"] in label or ty_name in label)) or
                (keep and not v["LAB"] in label and not ty_name in label)):
                 v["LAB"] = 0
@@ -348,7 +369,7 @@ class AUTOBranch(Points.Pointset):
                                       "LAB": 0, "index": index, "section": 0}
         return BDPoint({'coordarray': ret.coordarray,
                         'coordnames': ret.coordnames,
-                        'labels': ret.labels})
+                        'labels': ret.labels},self,index)
 
     # Get all the labels from the solution
     def getLabels(self):
@@ -591,32 +612,28 @@ class AUTOBranch(Points.Pointset):
                 dict[key] = v
         return dict
 
-class parseB(AUTOBranch):
+class parseBR(UserList.UserList,AUTOBranch):
     def __init__(self,filename=None,screen_lines=0):
-        self.branches = []
         if type(filename) == types.StringType:
+            UserList.UserList.__init__(self)
             self.readFilename(filename,screen_lines)
-
-    def __len__(self):
-        l = 0
-        for d in self.branches:
-            l = l + len(d)
-        return l
+        else:
+            UserList.UserList.__init__(self,filename)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
-        for d in self.branches:
+        for d in self.data:
             d.deleteLabel(label,keepTY,keep)
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
-        for d in self.branches:
+        for d in self.data:
             d.relabel(old_label,new_label)
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self):
         label = 1
-        for d in self.branches:
+        for d in self.data:
             d.uniquelyLabel(label)
             for idx,val in d.labels.sortByIndex():
                 for k,v in val.items():
@@ -627,27 +644,27 @@ class parseB(AUTOBranch):
     # Given a label, return the correct solution
     def getLabel(self,label):
         if type(label) == types.IntType:
-            for d in self.branches:
+            for d in self.data:
                 item = d.getLabel(label)
                 if item:
                     return item
             return
         new = self.__class__()
-        new.branches = []
-        for d in self.branches:
+        new.data = []
+        for d in self.data:
             newbranch = d.getLabel(label)
             if newbranch:
-                new.branches.append(newbranch)
+                new.data.append(newbranch)
         return new
 
     # Given an index, return the correct solution
     # Return a parseB style line item
     def getIndex(self,index):
         if type(index) != type(0):
-            return self.branches[0].getIndex(index)
+            return self.data[0].getIndex(index)
         section = 0
         i = index
-        for d in self.branches:
+        for d in self.data:
             l = len(d.coordarray[0])
             if i < l:
                 item = d.getIndex(i)
@@ -661,32 +678,32 @@ class parseB(AUTOBranch):
     # Get all the labels from the solution
     def getLabels(self):
         labels = []
-        for d in self.branches:
+        for d in self.data:
             labels.extend(d.getLabels())
         return labels
 
     def toArray(self):
         array = []
-        for d in self.branches:
+        for d in self.data:
             array.extend(d.toArray())
         return array
 
     def writeRaw(self,output):
-        for d in self.branches:
+        for d in self.data:
             d.writeRaw(output)
             output.write("\n")
                 
     def write(self,output):
-        for d in self.branches:
+        for d in self.data:
             d.write(output)
 
     def writeShort(self):
-        for d in self.branches:
+        for d in self.data:
             d.writeShort()
 
     def summary(self):
         slist = []
-        for branch in self.branches:
+        for branch in self.data:
             slist.append(branch.__str__())
         return string.join(slist,"\n")+"\n"
 
@@ -700,9 +717,39 @@ class parseB(AUTOBranch):
             branch = AUTOBranch(inputfile,screen_lines,prevline,coordnames)
             prevline = branch._lastline
             coordnames = branch.coordnames
-            self.branches.append(branch)
+            self.data.append(branch)
             if prevline is None:
                 break
+
+class parseB(AUTOBranch):
+    #compatibility class for dg()
+    def __init__(self,filename=None,screen_lines=0):
+        self.branches = parseBR(filename,screen_lines)
+        if len(self.branches) > 0:
+            self.coordnames = self.branches[0].coordnames
+        self.deleteLabel = self.branches.deleteLabel
+        self.relabel = self.branches.relabel
+        self.uniquelyLabel = self.branches.uniquelyLabel
+        self.getIndex = self.branches.getIndex
+        self.getLabels = self.branches.getLabels
+        self.toArray = self.branches.toArray
+        self.writeRaw = self.branches.writeRaw
+        self.write = self.branches.write
+        self.writeShort = self.branches.writeShort
+        self.summary = self.branches.summary
+    def __len__(self):
+        l = 0
+        for d in self.branches:
+            l = l + len(d)
+        return l
+    def getLabel(self,label):
+        if type(label) == types.IntType:
+            return self.branches.getLabel(label)
+        new = self.__class__()
+        new.branches = self.branches.getLabel(label)
+        return new
+    def read(self,inputfile,screen_lines=0):
+        self.branches.read(inputfile,screen_lines)
         if len(self.branches) > 0:
             self.coordnames = self.branches[0].coordnames
 
