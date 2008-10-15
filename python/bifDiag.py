@@ -11,11 +11,11 @@ class bifDiag(parseB.parseBR):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
                  filebased=False):
         if filebased:
-            self.fort7_filename = fort7_filename
-            self.fort8_filename = fort8_filename
-            self.fort9_filename = fort9_filename
+            self.filenames = [fort7_filename,fort8_filename,fort9_filename]
             return
         parseB.parseBR.__init__(self,fort7_filename)
+        if type(fort7_filename) == types.ListType:
+            return
         if (fort8_filename is None) and not(fort7_filename is None) and not(
             type(fort7_filename) == types.ListType):
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
@@ -37,12 +37,10 @@ class bifDiag(parseB.parseBR):
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
-        if attr == 'data':
-            self.__init__(self.fort7_filename, self.fort8_filename,
-                          self.fort9_filename)
-            del self.fort7_filename
-            del self.fort8_filename
-            del self.fort9_filename
+        if attr == 'data' and hasattr(self,'filenames'):
+            self.__init__(self.filenames[0], self.filenames[1],
+                          self.filenames[2])
+            del self.filenames
             return self.data
         raise AttributeError
         

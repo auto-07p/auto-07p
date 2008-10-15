@@ -513,7 +513,7 @@ class runAUTO:
             os.path.isfile(self.fort9_path)):
             self.data = bifDiag.bifDiag(self.fort7_path,self.fort8_path,
                                         self.fort9_path,
-                                        self.options["constants"].has_key('sv'))
+                           self.options["constants"]['sv'] is not None)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")

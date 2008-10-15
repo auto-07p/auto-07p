@@ -1192,8 +1192,13 @@ class commandRun(commandWithRunner):
 
     def __call__(self):
         if not(self.name is None):
-            func=commandRunnerLoadName(self.name,self.runner,self.templates)
-            func()
+            if type(self.name) == type(""):
+                func=commandRunnerLoadName(self.name,self.runner,self.templates)
+                func()
+            elif not self.kw.has_key('s') and isinstance(self.name,
+                                                         parseS.AUTOSolution):
+                self.kw['s'] = self.name
+                self.kw['IRS'] = self.name["Label"]
         self.kw['sv'] = self.sv
         func=commandRunnerLoadName(None,self.runner,self.templates,self.kw)
         func()
@@ -1357,7 +1362,30 @@ class commandPlotter3D(command):
         if self.data == []:
             os.system("sh -c $AUTO_DIR/bin/plaut04 &")
         else:
-            os.system("sh -c '$AUTO_DIR/bin/plaut04 %s' &"%(self.data[0],))
+            d = self.data[0]
+            if type(d) == type(""):
+                os.system("sh -c '$AUTO_DIR/bin/plaut04 %s' &"%d)
+            else:
+                if not _runner.outputFort7 is None:
+                    _runner.outputFort7.close()
+                if not _runner.outputFort8 is None:
+                    _runner.outputFort8.close()
+                for f in ["fort.7","fort.8","fort.9"]:
+                    if os.path.exists(f):
+                        os.remove(f)
+                if isinstance(d,bifDiag.bifDiag):
+                    d.writeFilename("fort.7","fort.8","fort.9")
+                elif isinstance(d,parseBandS.parseBandS):
+                    d.writeFilename("fort.7","fort.8")
+                elif isinstance(d,parseB.parseB):
+                    d.writeFilename("fort.7")
+                elif isinstance(d,parseS.parseS):
+                    d.writeFilename("fort.8")
+                elif isinstance(d,parseB.AUTOBranch):
+                    d.writeFilename("fort.7")
+                elif isinstance(d,parseS.AUTOSolution):
+                    d.writeFilename("fort.8")
+                os.system("sh -c $AUTO_DIR/bin/plaut04 &")
         return valueString("")
 
 
