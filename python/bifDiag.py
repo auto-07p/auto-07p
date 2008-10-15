@@ -34,6 +34,8 @@ class bifDiag(parseB.parseBR):
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 x["solution"] = solution[i]
                 i = i+1
+        # for now just attach diagnostics information to the first branch
+        self[0].diagnostics = diagnostics
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
@@ -68,13 +70,17 @@ class bifDiag(parseB.parseBR):
         if fort9_input is not None:
             diagnostics = parseD.parseD()
             diagnostics.read(fort9_input)
+            # for now just attach diagnostics information to the first branch
+            self[0].diagnostics = diagnostics
 
     def write(self,fort7_output,fort8_output=None,fort9_output=None):
         parseB.parseBR.write(self,fort7_output)
         if fort8_output is not None:
             self().write(fort8_output)
-        #if fort9_output is not None:
-        #    self.diagnostics.write(fort9_output)
+        if fort9_output is not None:
+            for d in self:
+                if hasattr(d,"diagnostics"):
+                    d.diagnostics.write(fort9_output)
 
     def readFilename(self,fort7_filename,fort8_filename,fort9_filename=None):
         parseB.parseBR.readFilename(self,fort7_filename)
@@ -86,7 +92,8 @@ class bifDiag(parseB.parseBR):
                     x["solution"] = solution[i]
                     i = i+1
         if not fort9_filename is None:
-            diagnostics = parseD.parseD(fort9_filename)
+            # for now just attach diagnostics information to the first branch
+            self[0].diagnostics = parseD.parseD(fort9_filename)
 
     def writeFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None,append=False):
         #if only one filename is given, then just save the solutions file
@@ -95,8 +102,11 @@ class bifDiag(parseB.parseBR):
         else:
             parseB.parseBR.writeFilename(self,fort7_filename,append)
         self().writeFilename(fort8_filename,append)
-        #if not fort9_filename is None:
-        #    self.diagnostics.writeFilename(fort9_filename,append)
+        if not fort9_filename is None:
+            for d in self:
+                if hasattr(d,"diagnostics"):
+                    d.diagnostics.writeFilename(fort9_filename,append)
+                    append=True
 
     def deleteLabel(self,label=None,keepTY=0,keep=0):
         parseB.parseBR.deleteLabel(self,label,keepTY,keep)

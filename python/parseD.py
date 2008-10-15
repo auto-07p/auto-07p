@@ -109,6 +109,7 @@ class parseD(UserList.UserList):
         except IOError:
             import gzip
             inputfile = gzip.open(filename+".gz","r")
+        self.read(inputfile)
         
     def write(self,output):
         output.write(self.__str__())
