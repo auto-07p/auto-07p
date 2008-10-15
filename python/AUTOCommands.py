@@ -5,6 +5,7 @@ import parseB
 import parseS
 import parseBandS
 import parseH
+import bifDiag
 import os
 import AUTOutil
 import sys
@@ -303,9 +304,39 @@ class commandAppend(commandWithFilenameTemplate):
     type=SIMPLE
     shortName="append"
     def __init__(self,name1,name2=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,name2,templates)
+        self.parsed1=None
+        self.parsed2=None
+        if isinstance(name1, bifDiag.bifDiag):
+            self.parsed1=name1
+            name1=name2
+            name2=None
+        if isinstance(name1, bifDiag.bifDiag):
+            self.parsed2=name1
+        else:
+            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
+        if self.parsed1 or self.parsed2:
+            n = None
+            if not self.parsed1:
+                n = self.name1
+            elif not self.parsed2:
+                n = self.name2
+            if n:
+                nb = n["bifurcationDiagram"]
+                ns = n["solution"]
+                nd = n["diagnostics"]
+        if self.parsed2: #append to parsed2
+            parsed1 = self.parsed1
+            if not parsed1:
+                parsed1 = bifDiag.bifDiag(nb,ns,nd)
+                rval.info("Appending from %s, %s and %s ... done\n"%(nb,ns,nd))
+            self.parsed2.extend(parsed1)
+            return rval
+        if self.parsed1: #append from parsed1 to file
+            self.parsed1.writeFilename(nb,ns,nd,append=True)
+            rval.info("Appending to %s, %s and %s ... done\n"%(nb,ns,nd))
+            return rval
         i = 7
         for s in ["bifurcationDiagram","solution","diagnostics"]:
             n1 = self.name1[s]
@@ -369,7 +400,7 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             if os.path.exists(n1):
                 shutil.copy(n1,n1+'~')
 
-        if not self.parsed is None:
+        if self.parsed:
             n1b = self.name1["bifurcationDiagram"]
             n1s = self.name1["solution"]
             n1d = self.name1["diagnostics"]        
@@ -1367,7 +1398,11 @@ try:
         shortName="plot"
         def __init__(self,name=None,templates=None,options={},**kw):
             self.options = AUTOutil.cnfmerge((options,kw))
-            commandWithFilenameTemplate.__init__(self,name,None,templates)
+            if type(name) == type(""):
+                commandWithFilenameTemplate.__init__(self,name,None,templates)
+                self.parsed = None
+            else:
+                self.parsed = name
         def quit(self):
             self.handle.destroy()
         def __call__(self):
@@ -1397,14 +1432,35 @@ try:
                     _root=root
                 except:
                     pass
-            n1b = self.name1["bifurcationDiagram"]
-            n1s = self.name1["solution"]
-            if n1b is None:
-                n1b = "fort.7"
-                n1s = "fort.8"
+            if self.parsed:
+                nb, ns = None, None
+                if isinstance(self.parsed,bifDiag.bifDiag):
+                    nb = self.parsed
+                    ns = self.parsed()
+                elif isinstance(self.parsed,parseBandS.parseBandS):
+                    nb = self.parsed.diagram.branches
+                    ns = self.parsed.solution
+                elif isinstance(self.parsed,parseB.parseB):
+                    nb = self.parsed.branches
+                elif isinstance(self.parsed,parseS.parseS):
+                    ns = self.parsed
+                elif isinstance(self.parsed,parseB.AUTOBranch):
+                    nb = parseB.parseBR([self.parsed])
+                elif isinstance(self.parsed,parseS.AUTOSolution):
+                    ns = parseS.parseS([self.parsed])
+                if nb:
+                    self.options["grapher_bifurcation_diagram"] = nb
+                if ns:
+                    self.options["grapher_solution"] = ns                    
+            else:
+                n1b = self.name1["bifurcationDiagram"]
+                n1s = self.name1["solution"]
+                if n1b is None:
+                    n1b = "fort.7"
+                    n1s = "fort.8"
+                self.options["grapher_bifurcation_diagram_filename"] = n1b
+                self.options["grapher_solution_filename"] = n1s
             self.handle = windowPlotter.WindowPlotter2D(root,self.options,
-                          grapher_bifurcation_diagram_filename=n1b,
-                          grapher_solution_filename=n1s,
                           grapher_width=600,grapher_height=480)
             self.handle.update()
             try:

@@ -73,7 +73,7 @@ class parseS(UserList.UserList):
         rep = rep + "\n"
         return rep
 
-    def __call__(self,label):
+    def __call__(self,label=None):
         return self.getLabel(label)
 
     # This function needs a little explanation
@@ -116,8 +116,11 @@ class parseS(UserList.UserList):
         self.read(inputfile)
         inputfile.close()
 
-    def writeFilename(self,filename):
-	output = open(filename,"wb")
+    def writeFilename(self,filename,append=False):
+        if append:
+            output = open(filename,"wab")
+        else:
+            output = open(filename,"wb")
         self.write(output)
 	output.close()
 
@@ -323,7 +326,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict):
         return SLPoint(ret, self, key)
 
     def has_key(self,key):
-        return self.data.has_key(key) or Points.Pointset.has_key(self,key)
+        return (key == "data" or self.data.has_key(key) or
+                Points.Pointset.has_key(self,key))
 
     def type(self):
 	return parseB.type_translation(self["Type number"])["long name"]
@@ -680,7 +684,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict):
 def pointtest(a,b):
     keys = ['Type number', 'Type name', 'Parameter NULL vector',
             'Free Parameters', 'Branch number',
-            'NCOL', 'Label', 'ISW', 'NTST',
+            'data', 'NCOL', 'Label', 'ISW', 'NTST',
             'Point number', 'Parameters']
 
     # make sure the solutions are fully parsed...

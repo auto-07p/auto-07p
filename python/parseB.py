@@ -161,7 +161,7 @@ class AUTOBranch(Points.Pointset):
         self._ix_name_map = map(string.strip,self._ix_name_map)
         self._name_ix_map = dict(zip(self._ix_name_map, range(self.dimension)))
 
-    def __gettypelabel(self,idx):
+    def _gettypelabel(self,idx):
         for k,v in self.labels[idx].items():
             if k in all_point_types:
                 return k,v
@@ -278,7 +278,7 @@ class AUTOBranch(Points.Pointset):
         if type(label) != types.ListType:
             label = [label]
         for idx in self.labels.getIndices():
-            ty_name,v = self.__gettypelabel(idx)
+            ty_name,v = self._gettypelabel(idx)
             if ((not keep and (v["LAB"] in label or ty_name in label)) or
                (keep and not v["LAB"] in label and not ty_name in label)):
                 v["LAB"] = 0
@@ -294,13 +294,13 @@ class AUTOBranch(Points.Pointset):
             old_label = [old_label]
             new_label = [new_label]
         for j in range(len(old_label)):
-            for k,v in map(self.__gettypelabel,self.labels.getIndices()):
+            for k,v in map(self._gettypelabel,self.labels.getIndices()):
                 if v["LAB"] == old_label[j]:
                     v["LAB"] = new_label[j]
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self,label=1):
-        for k,v in map(self.__gettypelabel,self.labels.getIndices()):
+        for k,v in map(self._gettypelabel,self.labels.getIndices()):
             if v["LAB"] != 0:
                 v["LAB"] = label
                 label = label + 1
@@ -311,7 +311,7 @@ class AUTOBranch(Points.Pointset):
             return self
         if type(label) == types.IntType:
             for k in self.labels.getIndices():
-                key,v = self.__gettypelabel(k)
+                key,v = self._gettypelabel(k)
                 if v["LAB"] == label:
                     return self.getIndex(k)
             return
@@ -322,7 +322,7 @@ class AUTOBranch(Points.Pointset):
             return
         labels = {}
         for k,val in self.labels.sortByIndex():
-            ty_name,v = self.__gettypelabel(k)
+            ty_name,v = self._gettypelabel(k)
             if v["LAB"] in label or ty_name in label:
                 labels[k] = val
         if labels == {}:
@@ -375,7 +375,7 @@ class AUTOBranch(Points.Pointset):
     def getLabels(self):
         labels = []
         for index in self.labels.getIndices():
-            k,x = self.__gettypelabel(index)
+            k,x = self._gettypelabel(index)
             if x["LAB"] != 0:
                 labels.append(x["LAB"])
         return labels
@@ -475,8 +475,11 @@ class AUTOBranch(Points.Pointset):
     def writeScreen(self):
         sys.stdout.write(self.summary())
 
-    def writeFilename(self,filename):
-	output = open(filename,"w")
+    def writeFilename(self,filename,append=False):
+        if append:
+            output = open(filename,"wa")
+        else:
+            output = open(filename,"w")
 	self.write(output)
 	output.close()
 

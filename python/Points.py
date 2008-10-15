@@ -1604,6 +1604,8 @@ class Pointset(Point):
 
     def __ne__(self, other):
         if isinstance(other, Pointset):
+            if len(self) == 0 or len(other) == 0:
+                return True
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
             return array(map(lambda i,s=self,o=other:s[i]!=o[i], range(len(self))), bool8)

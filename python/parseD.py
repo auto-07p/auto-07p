@@ -113,8 +113,11 @@ class parseD(UserList.UserList):
     def write(self,output):
         output.write(self.__str__())
 
-    def writeFilename(self,filename):
-        output = open(filename,"w")
+    def writeFilename(self,filename,append=False):
+        if append:
+            output = open(filename,"wa")
+        else:
+            output = open(filename,"w")
         self.write(output)
         output.close()
 

@@ -5,7 +5,7 @@ import cStringIO
 import re
 import types
 import glob,stat
-import AUTOExceptions,parseC,parseH,parseBandS
+import AUTOExceptions,parseC,parseH,bifDiag
 try:
     import subprocess
 except ImportError:
@@ -75,18 +75,22 @@ class runAUTO:
         self.internalLog.write(text)
         # now we also want to look at the log information to try and determine
         # where the data was written to
-        value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
-        if len(value):
-            # return as the output data the last filename which was
-            # either saved or appended to
-            self.fort7_path = os.path.join(self.options["dir"],"b.%s"%(value[-1][1]))
-            self.fort8_path = os.path.join(self.options["dir"],"s.%s"%(value[-1][1]))
-            self.fort9_path = os.path.join(self.options["dir"],"d.%s"%(value[-1][1]))
+        files = ["fort.7", "fort.8", "fort.9"]
+        v = None
+        if self.options["constants"].has_key("sv"):
+            v = self.options["constants"]["sv"]
         else:
-            # Otherwise we assume it is fort.7 and fort.8
-            self.fort7_path = os.path.join(self.options["dir"],"fort.7")
-            self.fort8_path = os.path.join(self.options["dir"],"fort.8")
-            self.fort9_path = os.path.join(self.options["dir"],"fort.9")
+            value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
+            if len(value):
+                v = value[-1][1]
+        if v:
+            files = ["b."+v, "s."+v, "d."+v]
+        # return as the output data the last filename which was
+        # either saved or appended to or
+        # otherwise we assume it is fort.7 and fort.8
+        self.fort7_path = os.path.join(self.options["dir"],files[0])
+        self.fort8_path = os.path.join(self.options["dir"],files[1])
+        self.fort9_path = os.path.join(self.options["dir"],files[2])
 
     def __printErr(self,text):
         if not(self.options["err"] is None):
@@ -507,8 +511,8 @@ class runAUTO:
         self.data = None
         #if (self.outputFort7 and self.outputFort8 and 
         #    os.path.isfile(self.fort9_path)):
-        #    self.data = parseBandS.parseBandS(self.fort7_path,self.fort8_path,
-        #                                      self.fort9_path)
+        #    self.data = bifDiag.bifDiag(self.fort7_path,self.fort8_path,
+        #                                self.fort9_path)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")

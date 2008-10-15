@@ -278,6 +278,8 @@ class WindowPlotter2D(WindowPlotter):
         coordnames = []
         if hasattr(sol,"coordnames"):
             coordnames = sol.coordnames
+        elif len(sol) > 0:
+            coordnames = sol[0].coordnames
         if self.grapher.cget(ox[:-1]+"coordnames"):
             coordnames = self.grapher.cget(ox[:-1]+"coordnames")
         for s in coordnames:

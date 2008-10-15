@@ -169,7 +169,14 @@ class plotter(grapher.GUIGrapher):
         ycolumns = self.cget("bifurcation_y")
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
-        coordnames = solution.coordnames
+        coordnames = []
+        if hasattr(solution,"coordnames"):
+            coordnames = solution.coordnames
+            branches = solution.branches
+        else:
+            if len(solution) > 0:
+                coordnames = solution[0].coordnames
+            branches = solution
         if self.cget("bifurcation_coordnames"):
             coordnames = self.cget("bifurcation_coordnames")
         dp = self.cget("stability")
@@ -188,7 +195,7 @@ class plotter(grapher.GUIGrapher):
                         col = 0
                     cols.append(col)
                 [xcol,ycol] = cols
-                for branch in solution.branches:
+                for branch in branches:
                     try:
                         x = branch.coordarray[xcol]
                     except IndexError:
