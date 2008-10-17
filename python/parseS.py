@@ -569,8 +569,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict):
                 "name": self.name})
 
     def __getattr__(self,attr):
-        if not(self.__fullyParsed):
-            self.__readAll()
+        if self.__fullyParsed:
+            raise AttributeError
+        self.__readAll()
         return getattr(self,attr)
 
     # just a simple way to get PAR(x) -- could be extended later to not

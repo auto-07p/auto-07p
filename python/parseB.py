@@ -98,11 +98,6 @@ class BDPoint(Points.Point):
                 return v.has_key(key)
         return False
 
-    def makeIxMaps(self):
-        stripnames = map(string.strip, self.coordnames)
-        self._name_ix_map = dict(zip(stripnames,range(self.dimension)))
-        self._ix_name_map = stripnames
-
     def __setitem__(self, ixarg, val):
         """Change coordinate array values."""
         if type(ixarg) == type(""):
@@ -145,75 +140,61 @@ class BDPoint(Points.Point):
 # a branch within the parseB class
 class AUTOBranch(Points.Pointset):
     def __init__(self,input=None,prevline=None,coordnames=[]):
-        self.coordarray = [[]]
-        self.coordnames = coordnames
-        self.labels = {}
         if input is not None:
             self.read(input,prevline)
-            Points.Pointset.__init__(self,{
-                    "coordarray": self.coordarray,
-                    "coordnames": self.coordnames,
-                    "labels": self.labels,
-                    })
+            self.__fullyParsed = False
 
-    def makeIxMaps(self):
-        Points.Pointset.makeIxMaps(self)
-        self._ix_name_map = map(string.strip,self._ix_name_map)
-        self._name_ix_map = dict(zip(self._ix_name_map, range(self.dimension)))
+    def __getattr__(self,attr):
+        if self.__fullyParsed:
+            raise AttributeError
+        self.__parse()
+        return getattr(self,attr)
 
     def _gettypelabel(self,idx):
         for k,v in self.labels[idx].items():
             if k in all_point_types:
                 return k,v
 
-    def __parse(self,headerlist=None,ncolumns=None,linelen=None,
-                datalist=None):
+    def __parse(self):
+        if self.__fullyParsed:
+            return
         global N
         if not Points.numpyimported:
             Points.importnumpy()
+        self.__fullyParsed = True
         fromstring = Points.fromstring
         N = Points.N
-        header = string.join(headerlist,"")
-        self.header = header
-        line = ""
-        if header != "":
-            self.constants = self.parseHeader(header)
-            line = headerlist[-1]
-        if string.find(line, " PT ") != -1:
-            self.coordnames = []
-            columnlen = (linelen - 19) / (ncolumns - 4)
-            n = linelen - columnlen * (ncolumns - 4)
-            for i in range(ncolumns-4):
-                self.coordnames.append(string.rstrip(line[n:n+columnlen]))
-                n = n + columnlen
-        if self.coordnames == []:
-            self.coordnames = map(str,range(ncolumns-4))            
+        datalist = self.__datalist
+        del self.__datalist
+        ncolumns = len(string.split(datalist[0]))
+        nrows = len(datalist)
+        datalist = string.join(datalist,"")
         if not hasattr(N,"transpose"):
             self.__parsearray(ncolumns,datalist)
             return
         if fromstring:
-            total = len(datalist)
+            total = nrows * ncolumns
             data = []
-            s = " ".join(datalist)
-            if string.find(s, "D") == -1:
-                data = fromstring(s, dtype=float, sep=' ')
+            if string.find(datalist, "D") == -1:
+                data = fromstring(datalist, dtype=float, sep=' ')
             if data == [] or len(data) > total:
-                data = N.array(map(parseB.AUTOatof,datalist), 'd')
+                data = N.array(map(AUTOatof,datalist.split()), 'd')
         else:
+            datalist = string.split(datalist)
             try:
                 data = N.array(map(float, datalist),'d')
             except:
                 data = N.array(map(AUTOatof, datalist),'d')
         self.BR = int(data[0])
         data.shape = (-1,ncolumns)
-        self.coordarray = N.transpose(data[:,4:]).copy()
-        self.labels = {}
+        coordarray = N.transpose(data[:,4:]).copy()
+        labels = {}
         for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
             tynumber = int(data[i,2])
             key = type_translation(tynumber)["short name"]
-            self.labels[i] = {key: {"LAB":int(data[i,3]),
-                                    "PT":int(data[i,1]),
-                                    "TY number":int(data[i,2])}}
+            labels[i] = {key: {"LAB":int(data[i,3]),
+                               "PT":int(data[i,1]),
+                               "TY number":int(data[i,2])}}
         points = data[:,1]
         # self.stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
@@ -222,10 +203,16 @@ class AUTOBranch(Points.Pointset):
         points = N.less(N.take(points,stab),0)
         stab = stab + 1
         self.stability = N.where(points,-stab,stab)
+        Points.Pointset.__init__(self,{
+            "coordarray": coordarray,
+            "coordnames": self.coordnames,
+            "labels": labels,
+            })
 
     def __parsearray(self,ncolumns,datalist):
         global N
         # for those without numpy...
+        datalist = string.split(datalist)
         try:
             data = map(float, datalist)
         except:
@@ -270,6 +257,11 @@ class AUTOBranch(Points.Pointset):
 
     def __call__(self,label=None):
         return self.getLabel(label)
+
+    def __len__(self):
+        if not self.__fullyParsed:
+            return len(self.__datalist)
+        return Points.Pointset.__len__(self)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
@@ -329,7 +321,8 @@ class AUTOBranch(Points.Pointset):
             return
         new = self.__class__()
         new.BR = self.BR
-        new.header = self.header
+        new.headerlist = self.headerlist
+        new.headernames = self.headernames
         new.labels = labels
         new.stability = self.stability
         Points.Pointset.__init__(new,{
@@ -405,13 +398,13 @@ class AUTOBranch(Points.Pointset):
                 
     def write(self,output,columnlen=19):
         format = "%"+str(-columnlen)+"s"
-        if self.header != "":
-            for l in string.split(self.header,"\n"):
-                if string.find(l," PT ") == -1 and l != "":
-                    output.write(l+"\n")
-        if self.coordnames != []:
+        if self.headerlist != []:
+            for l in self.headerlist:
+                if string.find(l," PT ") == -1:
+                    output.write(l)
+        if self.headernames != []:
             output_line = ["   0    PT  TY  LAB "]
-            for name in self.coordnames:
+            for name in self.headernames:
                 output_line.append(format%name)
             output.write(string.join(output_line,"")+'\n')
         br = self.BR
@@ -448,9 +441,9 @@ class AUTOBranch(Points.Pointset):
     def summary(self):
         slist = []
         data = self.coordarray
-        if self.coordnames != []:
+        if self.headernames != []:
             output_line = ["\n  BR    PT  TY  LAB "]
-            for name in self.coordnames:
+            for name in self.headernames:
                 output_line.append("%-14s"%name)
             slist.append(string.join(output_line,""))
         for index,l in self.labels.sortByIndex():
@@ -534,12 +527,11 @@ class AUTOBranch(Points.Pointset):
                     self._lastline = line
                     break
                 headerlist.append(line)
-        ncolumns = len(columns)
-        linelen = len(line)
         datalist = []
         if columns[0] != '0':
             self._lastline = None
             datalist = columns
+            datalist = [line]
             for line in inputfile:
                 columns = split(line)
                 if (columns[0] == '0' or
@@ -547,8 +539,9 @@ class AUTOBranch(Points.Pointset):
                      self.__checknorotate(columns,datalist))):
                     self._lastline = line
                     break
-                datalist.extend(columns)
-        self.__parse(headerlist,ncolumns,linelen,datalist)
+                datalist.append(line)
+        self.__datalist = datalist
+        self.constants = self.parseHeader(headerlist)
 
     def readFilename(self,filename):
         try:
@@ -559,21 +552,37 @@ class AUTOBranch(Points.Pointset):
 	self.read(inputfile)
 	inputfile.close()
 
-    def parseHeader(self,header):
+    def parseHeader(self,headerlist):
+        self.headerlist = headerlist
         split = string.split
         if hasattr(str,"split"):
             split = str.split
-        header = split(header,'\n')
+        line = ""
+        if headerlist != []:
+            line = headerlist[-1]
+        ncolumns = len(split(self.__datalist[0])) - 4
+        self.headernames = []
+        if string.find(line, " PT ") != -1:
+            self.coordnames = []
+            linelen = len(self.__datalist[0])
+            columnlen = (linelen - 19) / ncolumns
+            n = linelen - columnlen * ncolumns
+            for i in range(ncolumns):
+                self.headernames.append(string.rstrip(line[n:n+columnlen]))
+                self.coordnames.append(string.strip(line[n:n+columnlen]))
+                n = n + columnlen
+        if self.coordnames == []:
+            self.coordnames = map(str,range(ncolumns))                
         dict = parseC.parseC()
         i = 0
-        words = split(header[0])
+        words = split(headerlist[0])
         if len(words) < 5:
             return
         for key in ["RL0","RL1","A0","A1"]:
             i = i + 1
             dict[key] = AUTOatof(words[i])
         key = ""
-        for line in header[1:]:
+        for line in headerlist[1:]:
             line = string.replace(line,"="," ")
             line = string.replace(line,"s:",":")
             words = split(line)

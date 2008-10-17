@@ -528,7 +528,7 @@ class Point(object):
         raise NotImplementedError
 
     def get(self, coord, d=None):
-        if coord in self._ix_name_map:
+        if coord in self.coordnames:
             return self.__call__(coord)
         else:
             return d
@@ -556,7 +556,7 @@ class Point(object):
         return iter(self._ix_name_map)
 
     def has_key(self, k):
-        return k in self._ix_name_map
+        return k in self.coordnames
 
 
     def _map_names_to_ixs(self, namelist):
@@ -582,7 +582,7 @@ class Point(object):
         elif x in range(self.dimension):
             # only used for recursive calls
             return [x]
-        elif x in self._ix_name_map:
+        elif x in self.coordnames:
             # only used for recursive calls
             return [self._name_ix_map[x]]
         elif isinstance(x, _seq_types):
@@ -601,13 +601,13 @@ class Point(object):
             return range(s1, s2, s3)
         else:
             raise ValueError("Invalid coordinate / index: %s"%str(x) + \
-                             " -- coord names are: %s"%str(self._ix_name_map))
+                             " -- coord names are: %s"%str(self.coordnames))
 
 
     def __call__(self, coords):
         if coords in range(self.dimension):
             return self.coordarray[coords]
-        elif coords in self._ix_name_map:
+        elif coords in self.coordnames:
             ix = self._name_ix_map[coords]
             return self.coordarray[ix]
         else:
@@ -786,13 +786,13 @@ class Point(object):
         precision = 8
         if verbose == 0:
             outputList = ["Point with coords:\n"]
-            for c in self._ix_name_map:
+            for c in self.coordnames:
                 outputList.append(c)
-                if c != self._ix_name_map[-1]:
+                if c != self.coordnames[-1]:
                     outputList.append("\n")
         elif verbose > 0:
             outputList = []
-            for c in self._ix_name_map:
+            for c in self.coordnames:
                 v = self.coordarray[self._map_names_to_ixs(c)]
                 if isinstance(v, ndarray):
                     dvstr = str(v[0])
@@ -800,7 +800,7 @@ class Point(object):
                     # only alternative is a singleton numeric value (not list)
                     dvstr = str(v)
                 outputList.append(string.strip(c)+':  '+dvstr)
-                if c != self._ix_name_map[-1]:
+                if c != self.coordnames[-1]:
                     outputList.append("\n")
             for label, infodict in self.labels.items():
                 outputList.append("\nLabels: %s (%s)"%(label, str(infodict)))
@@ -1904,7 +1904,7 @@ class Pointset(Point):
                 outputList.append("Independent variable:\n")
                 outputList.append(self.indepvarname + ':  '+ivstr+"\n")
             outputList.append("Coordinates:\n")
-            for c in self._ix_name_map:
+            for c in self.coordnames:
                 v = self.coordarray[self._map_names_to_ixs(c)]
                 if not isinstance(v, ndarray):
                     # only alternative is a singleton numeric value (not a list)
