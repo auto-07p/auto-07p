@@ -397,6 +397,10 @@ class AUTOBranch(Points.Pointset):
             output.write("\n")
                 
     def write(self,output,columnlen=19):
+        if columnlen == 19 and not self.__fullyParsed:
+            output.write(string.join(self.headerlist,""))
+            output.write(string.join(self.__datalist,""))
+            return
         format = "%"+str(-columnlen)+"s"
         if self.headerlist != []:
             for l in self.headerlist:
