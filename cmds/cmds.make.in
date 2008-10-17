@@ -44,7 +44,10 @@ $(EXE): $(OBJ) $(LIBS)
 	$(FC) $(FFLAGS) $(OPT) -c $< -o $@
 #
 .c.o:
-	@if [ -f $(EQUATION_NAME).f90 -o -f $(EQUATION_NAME).f ]; then \
+	@if [ -f $(EQUATION_NAME).f90 ]; then \
+	  echo $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f90 -o $@; \
+	  $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f90 -o $@; \
+	elif [ -f $(EQUATION_NAME).f ]; then \
 	  echo $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f -o $@; \
 	  $(FC) $(FFLAGS) $(OPT) -c $(EQUATION_NAME).f -o $@; \
 	else \
