@@ -6,8 +6,8 @@ import parseB
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        diagram=parseB.parseB('b.'+sys.argv[1],screen_lines=1)
+        diagram=parseB.parseB('b.'+sys.argv[1])
     else:
-        diagram=parseB.parseB('fort.7',screen_lines=1)
+        diagram=parseB.parseB('fort.7')
     diagram.writeScreen()
 
