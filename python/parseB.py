@@ -144,12 +144,12 @@ class BDPoint(Points.Point):
 
 # a branch within the parseB class
 class AUTOBranch(Points.Pointset):
-    def __init__(self,input=None,screen_lines=0,prevline=None,coordnames=[]):
+    def __init__(self,input=None,prevline=None,coordnames=[]):
         self.coordarray = [[]]
         self.coordnames = coordnames
         self.labels = {}
         if input is not None:
-            self.read(input,screen_lines,prevline)
+            self.read(input,prevline)
             Points.Pointset.__init__(self,{
                     "coordarray": self.coordarray,
                     "coordnames": self.coordnames,
@@ -498,7 +498,7 @@ class AUTOBranch(Points.Pointset):
             datalist[-len(columns)+1] = '-9999'
         return False
 
-    def read(self,inputfile,screen_lines=0,prevline=None):
+    def read(self,inputfile,prevline=None):
         # We now go through the file and read the branches.
         # read the branch header
         # A section is defined as a part of a fort.7
@@ -539,37 +539,24 @@ class AUTOBranch(Points.Pointset):
         datalist = []
         if columns[0] != '0':
             self._lastline = None
-            if screen_lines:
-                if columns[2] != 0:
-                    datalist = columns
-                for line in inputfile:
-                    columns = split(line)
-                    if (columns[0] == '0' or
-                        ((columns[1] == '-1' or columns[1] == '1') and
-                         self.__checknorotate(columns,datalist))):
-                        self._lastline = line
-                        break
-                    if columns[2] != 0:
-                        datalist.extend(columns)
-            else:
-                datalist = columns
-                for line in inputfile:
-                    columns = split(line)
-                    if (columns[0] == '0' or
-                        ((columns[1] == '-1' or columns[1] == '1') and
-                         self.__checknorotate(columns,datalist))):
-                        self._lastline = line
-                        break
-                    datalist.extend(columns)
+            datalist = columns
+            for line in inputfile:
+                columns = split(line)
+                if (columns[0] == '0' or
+                    ((columns[1] == '-1' or columns[1] == '1') and
+                     self.__checknorotate(columns,datalist))):
+                    self._lastline = line
+                    break
+                datalist.extend(columns)
         self.__parse(headerlist,ncolumns,linelen,datalist)
 
-    def readFilename(self,filename,screen_lines=0):
+    def readFilename(self,filename):
         try:
             inputfile = open(filename,"r")
         except IOError:
             import gzip
             inputfile = gzip.open(filename+".gz","r")
-	self.read(inputfile,screen_lines)
+	self.read(inputfile)
 	inputfile.close()
 
     def parseHeader(self,header):
@@ -616,10 +603,10 @@ class AUTOBranch(Points.Pointset):
         return dict
 
 class parseBR(UserList.UserList,AUTOBranch):
-    def __init__(self,filename=None,screen_lines=0):
+    def __init__(self,filename=None):
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
-            self.readFilename(filename,screen_lines)
+            self.readFilename(filename)
         else:
             UserList.UserList.__init__(self,filename)
 
@@ -710,14 +697,14 @@ class parseBR(UserList.UserList,AUTOBranch):
             slist.append(branch.__str__())
         return string.join(slist,"\n")+"\n"
 
-    def read(self,inputfile,screen_lines=0):
+    def read(self,inputfile):
         # We now go through the file and read the branches.
         prevline = None
         coordnames = []
         if not hasattr(inputfile,"next"):
             inputfile = AUTOutil.myreadlines(inputfile)
         while 1:
-            branch = AUTOBranch(inputfile,screen_lines,prevline,coordnames)
+            branch = AUTOBranch(inputfile,prevline,coordnames)
             prevline = branch._lastline
             coordnames = branch.coordnames
             self.data.append(branch)
@@ -726,8 +713,8 @@ class parseBR(UserList.UserList,AUTOBranch):
 
 class parseB(AUTOBranch):
     #compatibility class for dg()
-    def __init__(self,filename=None,screen_lines=0):
-        self.branches = parseBR(filename,screen_lines)
+    def __init__(self,filename=None):
+        self.branches = parseBR(filename)
         if len(self.branches) > 0:
             self.coordnames = self.branches[0].coordnames
         self.deleteLabel = self.branches.deleteLabel
@@ -751,8 +738,8 @@ class parseB(AUTOBranch):
         new = self.__class__()
         new.branches = self.branches.getLabel(label)
         return new
-    def read(self,inputfile,screen_lines=0):
-        self.branches.read(inputfile,screen_lines)
+    def read(self,inputfile):
+        self.branches.read(inputfile)
         if len(self.branches) > 0:
             self.coordnames = self.branches[0].coordnames
 
