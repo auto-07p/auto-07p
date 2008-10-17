@@ -257,9 +257,16 @@ class commandRelabel(commandWithFilenameTemplate):
     type=SIMPLE
     shortName="relabel"
     def __init__(self,name1,name2=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,name2,templates)
+        self.type = type(name1)
+        self.name1 = name1
+        if type(name1) == type(""):
+            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
+        if self.type != type(""):
+            self.name1.uniquelyLabel()
+            rval.info("Relabeling done\n")
+            return rval
         n1b = self.name1["bifurcationDiagram"]
         n1s = self.name1["solution"]
         if self.name2["bifurcationDiagram"] is None:
@@ -318,14 +325,10 @@ class commandAppend(commandWithFilenameTemplate):
 	rval=valueSystem()
         if self.parsed1 or self.parsed2:
             n = None
-            if not self.parsed1:
-                n = self.name1
-            elif not self.parsed2:
-                n = self.name2
-            if n:
-                nb = n["bifurcationDiagram"]
-                ns = n["solution"]
-                nd = n["diagnostics"]
+            if not self.parsed1 or not self.parsed2:
+                nb = self.name1["bifurcationDiagram"]
+                ns = self.name1["solution"]
+                nd = self.name1["diagnostics"]
         if self.parsed2: #append to parsed2
             parsed1 = self.parsed1
             if not parsed1:

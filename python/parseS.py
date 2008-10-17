@@ -62,6 +62,9 @@ class parseS(UserList.UserList):
             self.readFilename(filename)
         else:
             UserList.UserList.__init__(self,filename)
+            if len(self.data) > 0:
+                self.indepvarname = self.data[0].indepvarname
+                self.coordnames = self.data[0].coordnames
 
     def __str__(self):
         rep = ""
@@ -118,7 +121,7 @@ class parseS(UserList.UserList):
 
     def writeFilename(self,filename,append=False):
         if append:
-            output = open(filename,"wab")
+            output = open(filename,"ab")
         else:
             output = open(filename,"wb")
         self.write(output)

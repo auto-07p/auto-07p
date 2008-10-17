@@ -474,7 +474,7 @@ class AUTOBranch(Points.Pointset):
 
     def writeFilename(self,filename,append=False):
         if append:
-            output = open(filename,"wa")
+            output = open(filename,"a")
         else:
             output = open(filename,"w")
 	self.write(output)
