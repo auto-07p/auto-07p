@@ -33,7 +33,7 @@ C
       USE IO
       USE SUPPORT
       USE AUTO_CONSTANTS
-      USE OMP_LIB
+C$    USE OMP_LIB
       USE COMPAT
 C
       IMPLICIT NONE

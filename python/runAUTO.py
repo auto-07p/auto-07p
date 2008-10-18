@@ -272,14 +272,17 @@ class runAUTO:
         var = {}
         while True:
             line = string.split(f.readline())
-            if len(line) < 3:
+            if len(line) < 2 or line[1] != '=':
                 continue
             if line[0] == "SRC":
                 break
             for key in ["CC","FC","CFLAGS","FFLAGS","OPT"]:
                 if line[0] == key:
-                    v = string.join(line[2:])
-                    v = string.replace(v,"$(AUTO_DIR)",os.environ["AUTO_DIR"])
+                    if len(line) == 2:
+                        v = ""
+                    else:
+                        v = string.join(line[2:])
+                        v = string.replace(v,"$(AUTO_DIR)",os.environ["AUTO_DIR"])
                     var[key] = v
         f.close()
         # figure out equation file name

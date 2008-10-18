@@ -82,7 +82,7 @@ class bifDiag(parseB.parseBR):
                 if hasattr(d,"diagnostics"):
                     d.diagnostics.write(fort9_output)
 
-    def readFilename(self,fort7_filename,fort8_filename,fort9_filename=None):
+    def readFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
         parseB.parseBR.readFilename(self,fort7_filename)
         if fort8_filename is not None and type(fort8_filename) == types.StringType:
             solution = parseS.parseS(fort8_filename)
