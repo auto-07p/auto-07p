@@ -533,11 +533,11 @@ class AUTOBranch(Points.Pointset):
                 inputfile = AUTOutil.myreadlines(inputfile)
             line = inputfile.next()
         headerlist = []
-        columns = split(line)
+        columns = split(line,None,2)
         if columns[0] == '0':
             headerlist.append(line)
             for line in inputfile:
-                columns = split(line)
+                columns = split(line,None,2)
                 if columns[0] != '0':
                     self._lastline = line
                     break
@@ -547,6 +547,14 @@ class AUTOBranch(Points.Pointset):
         if columns[0] != '0':
             self._lastline = None
             datalist = [line]
+            if columns[2][0] != '0': #type
+                columns = split(line,None,4)
+                pt = int(columns[1])
+                ty = int(columns[2])
+                lab = int(columns[3])
+                key = type_translation(ty)["short name"]
+                labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty,
+                                                 "PT":pt}}
             for line in inputfile:
                 datalist.append(line)
                 columns = split(line,None,2)
@@ -667,10 +675,17 @@ class parseBR(UserList.UserList,AUTOBranch):
     # Given a label, return the correct solution
     def getLabel(self,label):
         if type(label) == types.IntType:
+            i = 0
+            section = 0
             for d in self.data:
+                l = len(d.coordarray[0])
                 item = d.getLabel(label)
                 if item:
+                    item["index"] = item["index"] + i
+                    item["section"] = section
                     return item
+                i = i + l
+                section = section + 1
             return
         new = self.__class__()
         new.data = []
