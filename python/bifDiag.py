@@ -34,8 +34,9 @@ class bifDiag(parseB.parseBR):
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 x["solution"] = solution[i]
                 i = i+1
-        # for now just attach diagnostics information to the first branch
-        self[0].diagnostics = diagnostics
+        if self.data != []:
+            # for now just attach diagnostics information to the first branch
+            self[0].diagnostics = diagnostics
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):

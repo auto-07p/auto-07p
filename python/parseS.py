@@ -133,28 +133,33 @@ class parseS(UserList.UserList):
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
             label = [label]
-        for x in self.data[:]:
+        indices = []
+        for i in range(len(self.data)):
+            x = self.data[i]
             if ((not keep and (x["Label"] in label or x["Type name"] in label)
                  or (keep and not x["Label"] in label and 
                               not x["Type name"] in label))):
-                self.data.remove(x)
+                indices.append(i)
+        indices.reverse()
+        for i in indices:
+            del self.data[i]
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
-        if type(old_label)  == types.IntType:
-            for i in range(len(self)):
-                if self.data[i]["Label"] == old_label:
-                    self.data[i]["Label"] = new_label
-        else:
-            for j in range(len(old_label)):
-                for i in range(len(self)):
-                    if self.data[i]["Label"] == old_label[j]:
-                        self.data[i]["Label"] = new_label[j]
+        if type(old_label) == types.IntType:
+            old_label = [old_label]
+            new_label = [new_label]
+        for j in range(len(old_label)):
+            for d in self.data:
+                if d["Label"] == old_label[j]:
+                    d["Label"] = new_label[j]
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self):
-        for i in range(len(self)):
-            self.data[i]["Label"] = i+1
+        i = 1
+        for d in self.data:
+            d["Label"] = i
+            i = i + 1
 
     # Given a label, return the correct solution
     def getLabel(self,label):

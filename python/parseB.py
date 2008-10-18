@@ -177,7 +177,7 @@ class AUTOBranch(Points.Pointset):
                 data = fromstring(datalist, dtype=float, sep=' ')
             if len(data) != nrows * ncolumns:
                 data = N.array(map(AUTOatof,datalist.split()), 'd')
-            coordarray, labels = self.__parsenumpy(ncolumns,data)
+            coordarray = self.__parsenumpy(ncolumns,data)
         else: #numarray, Numeric, array
             datalist = string.split(datalist)
             try:
@@ -186,26 +186,19 @@ class AUTOBranch(Points.Pointset):
                 data = map(AUTOatof, datalist)
             if hasattr(N,"transpose"):
                 data = N.array(data,'d')
-                coordarray, labels = self.__parsenumpy(ncolumns,data)
+                coordarray = self.__parsenumpy(ncolumns,data)
             else:
-                coordarray, labels = self.__parsearray(ncolumns,data)
+                coordarray = self.__parsearray(ncolumns,data)
         Points.Pointset.__init__(self,{
             "coordarray": coordarray,
             "coordnames": self.coordnames,
-            "labels": labels,
+            "labels": self.labels,
             })
 
     def __parsenumpy(self,ncolumns,data):
         global N
         data.shape = (-1,ncolumns)
         coordarray = N.transpose(data[:,4:]).copy()
-        labels = {}
-        for i in N.nonzero(N.fabs(data[:,2])+data[:,3]):
-            tynumber = int(data[i,2])
-            key = type_translation(tynumber)["short name"]
-            labels[i] = {key: {"LAB":int(data[i,3]),
-                               "PT":int(data[i,1]),
-                               "TY number":int(data[i,2])}}
         points = data[:,1]
         # self.stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
@@ -214,7 +207,7 @@ class AUTOBranch(Points.Pointset):
         points = N.less(N.take(points,stab),0)
         stab = stab + 1
         self.stability = N.where(points,-stab,stab)
-        return coordarray,labels
+        return coordarray
 
     def __parsearray(self,ncolumns,data):
         global N
@@ -228,16 +221,11 @@ class AUTOBranch(Points.Pointset):
                 coordarray.append(N.array(map(lambda j, d=data: 
                                             d[j], xrange(i,len(data),ncolumns)),
                                'd'))
-        labels = {}
         self.stability = []
         prevpt = data[1]
         stab = []
-        for j in xrange(0,len(data),ncolumns):
-            [pt,ty,lab] = map(int,data[j+1:j+4])
-            if lab != 0 or ty != 0:
-                key = type_translation(ty)["short name"]
-                labels[j/ncolumns] = {key: {"LAB":lab,"TY number":ty,
-                                            "PT":pt}}
+        for j in xrange(1,len(data),ncolumns):
+            pt = int(data[j])
             if pt * prevpt < 0:
                 p = j/ncolumns
                 if prevpt < 0:
@@ -248,7 +236,7 @@ class AUTOBranch(Points.Pointset):
         if pt < 0:
             p = -p
         self.stability.append(p)
-        return coordarray,labels
+        return coordarray
 
     def __str__(self):
         return self.summary()
@@ -277,6 +265,10 @@ class AUTOBranch(Points.Pointset):
                 v["LAB"] = 0
                 if not keepTY:
                     v["TY number"] = 0
+                if not self.__fullyParsed:
+                    self.__patchline(self.__datalist,idx,3,0)
+                    if not keepTY:
+                        self.__patchline(self.__datalist,idx,2,0)
                 if v["TY number"] == 0:
                     self.labels.remove(idx)
             
@@ -287,15 +279,21 @@ class AUTOBranch(Points.Pointset):
             old_label = [old_label]
             new_label = [new_label]
         for j in range(len(old_label)):
-            for k,v in map(self._gettypelabel,self.labels.getIndices()):
+            for index in self.labels.getIndices():
+                v = self._gettypelabel(index)[1]
                 if v["LAB"] == old_label[j]:
                     v["LAB"] = new_label[j]
+                    if not self.__fullyParsed:
+                        self.__patchline(self.__datalist,index,3,new_label[j])
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self,label=1):
-        for k,v in map(self._gettypelabel,self.labels.getIndices()):
+        for index in self.labels.getIndices():
+            v = self._gettypelabel(index)[1]
             if v["LAB"] != 0:
                 v["LAB"] = label
+                if not self.__fullyParsed:
+                    self.__patchline(self.__datalist,index,3,label)
                 label = label + 1
 
     # Given a label, return the correct solution
@@ -304,7 +302,7 @@ class AUTOBranch(Points.Pointset):
             return self
         if type(label) == types.IntType:
             for k in self.labels.getIndices():
-                key,v = self._gettypelabel(k)
+                v = self._gettypelabel(k)[1]
                 if v["LAB"] == label:
                     return self.getIndex(k)
             return
@@ -369,7 +367,7 @@ class AUTOBranch(Points.Pointset):
     def getLabels(self):
         labels = []
         for index in self.labels.getIndices():
-            k,x = self._gettypelabel(index)
+            x = self._gettypelabel(index)[1]
             if x["LAB"] != 0:
                 labels.append(x["LAB"])
         return labels
@@ -481,19 +479,31 @@ class AUTOBranch(Points.Pointset):
 	self.write(output)
 	output.close()
 
-    def __checknorotate(self,columns,datalist):
+    def __patchline(self,datalist,lineno,column,new):
+        #patch column of line with new integer value
+        newsp = 0
+        line = datalist[lineno]
+        l = len(line)
+        for i in range(column+1):
+            oldsp = newsp
+            start = l - len(string.lstrip(line[oldsp:]))
+            newsp = string.find(line,' ',start)
+        datalist[lineno] = (line[:oldsp]+
+                            '%'+str(newsp-oldsp)+'d'+line[newsp:])%new
+
+    def __checknorotate(self,datalist):
         # Sometimes the point numbers rotate, like
         # 9996, 9997, 9998, 9999, 1, 2, ...
         # -9996, -9997, 1, 0, -1, -2, ... (an AUTO bug)
         # do not define a new branch if that happens
-        prevpt = datalist[-len(columns)+1]
-        if prevpt not in ['9999','-9999','9997','-9997','0']:
+        prevpt = int(string.split(datalist[-2],None,2)[1])
+        if prevpt not in [9999,-9999,9997,-9997,0]:
             return True
         # do some corrections
-        if prevpt in ['-9997','9997']:
-            columns[1] = '-9998'
-        elif prevpt == '0':
-            datalist[-len(columns)+1] = '-9999'
+        if prevpt in [-9997,9997]:
+            self.__patchline(datalist,-1,1,-9998)
+        elif prevpt == 0:
+            self.__patchline(datalist,-2,1,-9999)
         return False
 
     def read(self,inputfile,prevline=None):
@@ -533,18 +543,27 @@ class AUTOBranch(Points.Pointset):
                     break
                 headerlist.append(line)
         datalist = []
+        labels = {}
         if columns[0] != '0':
             self._lastline = None
-            datalist = columns
             datalist = [line]
             for line in inputfile:
-                columns = split(line)
+                datalist.append(line)
+                columns = split(line,None,2)
                 if (columns[0] == '0' or
                     ((columns[1] == '-1' or columns[1] == '1') and
-                     self.__checknorotate(columns,datalist))):
-                    self._lastline = line
+                     self.__checknorotate(datalist))):
+                    self._lastline = datalist.pop()
                     break
-                datalist.append(line)
+                if columns[2][0] != '0': #type
+                    columns = split(datalist[-1],None,4)
+                    pt = int(columns[1])
+                    ty = int(columns[2])
+                    lab = int(columns[3])
+                    key = type_translation(ty)["short name"]
+                    labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty,
+                                                     "PT":pt}}
+        self.labels = Points.PointInfo(labels)
         self.__datalist = datalist
         self.constants = self.parseHeader(headerlist)
 

@@ -18,6 +18,7 @@ import UserDict
 from copy import copy, deepcopy
 
 numpyimported = False
+ndarray = AUTOutil.ArrayType
 def importnumpy():
     global N, numpyimported, fromstring, ndarray, array, rank, take, less
     global float64, int32, array2string, shape, zeros, ravel, bool8
