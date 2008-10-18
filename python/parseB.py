@@ -166,26 +166,37 @@ class AUTOBranch(Points.Pointset):
         N = Points.N
         datalist = self.__datalist
         del self.__datalist
-        ncolumns = len(string.split(datalist[0]))
+        line0 = string.split(datalist[0])
+        self.BR = int(line0[0])
+        ncolumns = len(line0)
         nrows = len(datalist)
         datalist = string.join(datalist,"")
-        if not hasattr(N,"transpose"):
-            self.__parsearray(ncolumns,datalist)
-            return
-        if fromstring:
-            total = nrows * ncolumns
+        if fromstring: #numpy
             data = []
             if string.find(datalist, "D") == -1:
                 data = fromstring(datalist, dtype=float, sep=' ')
-            if data == [] or len(data) > total:
+            if len(data) != nrows * ncolumns:
                 data = N.array(map(AUTOatof,datalist.split()), 'd')
-        else:
+            coordarray, labels = self.__parsenumpy(ncolumns,data)
+        else: #numarray, Numeric, array
             datalist = string.split(datalist)
             try:
-                data = N.array(map(float, datalist),'d')
+                data = map(float, datalist)
             except:
-                data = N.array(map(AUTOatof, datalist),'d')
-        self.BR = int(data[0])
+                data = map(AUTOatof, datalist)
+            if hasattr(N,"transpose"):
+                data = N.array(data,'d')
+                coordarray, labels = self.__parsenumpy(ncolumns,data)
+            else:
+                coordarray, labels = self.__parsearray(ncolumns,data)
+        Points.Pointset.__init__(self,{
+            "coordarray": coordarray,
+            "coordnames": self.coordnames,
+            "labels": labels,
+            })
+
+    def __parsenumpy(self,ncolumns,data):
+        global N
         data.shape = (-1,ncolumns)
         coordarray = N.transpose(data[:,4:]).copy()
         labels = {}
@@ -203,32 +214,21 @@ class AUTOBranch(Points.Pointset):
         points = N.less(N.take(points,stab),0)
         stab = stab + 1
         self.stability = N.where(points,-stab,stab)
-        Points.Pointset.__init__(self,{
-            "coordarray": coordarray,
-            "coordnames": self.coordnames,
-            "labels": labels,
-            })
+        return coordarray,labels
 
-    def __parsearray(self,ncolumns,datalist):
+    def __parsearray(self,ncolumns,data):
         global N
         # for those without numpy...
-        datalist = string.split(datalist)
-        try:
-            data = map(float, datalist)
-        except:
-            data = map(AUTOatof, datalist)
-        self.BR = int(data[0])
-        columns = []
+        coordarray = []
         try:
             for i in range(4,ncolumns):
-                columns.append(N.array(data[i::ncolumns]),'d')
+                coordarray.append(N.array(data[i::ncolumns]),'d')
         except TypeError:
             for i in range(4,ncolumns):
-                columns.append(N.array(map(lambda j, d=data: 
-                                           d[j], xrange(i,len(data),ncolumns)),
+                coordarray.append(N.array(map(lambda j, d=data: 
+                                            d[j], xrange(i,len(data),ncolumns)),
                                'd'))
-        self.coordarray = columns
-        self.labels = {}
+        labels = {}
         self.stability = []
         prevpt = data[1]
         stab = []
@@ -236,8 +236,8 @@ class AUTOBranch(Points.Pointset):
             [pt,ty,lab] = map(int,data[j+1:j+4])
             if lab != 0 or ty != 0:
                 key = type_translation(ty)["short name"]
-                self.labels[j/ncolumns] = {key: {"LAB":lab,"TY number":ty,
-                                                 "PT":pt}}
+                labels[j/ncolumns] = {key: {"LAB":lab,"TY number":ty,
+                                            "PT":pt}}
             if pt * prevpt < 0:
                 p = j/ncolumns
                 if prevpt < 0:
@@ -248,6 +248,7 @@ class AUTOBranch(Points.Pointset):
         if pt < 0:
             p = -p
         self.stability.append(p)
+        return coordarray,labels
 
     def __str__(self):
         return self.summary()
