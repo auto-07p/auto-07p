@@ -25,11 +25,11 @@ class bifDiag(parseB.parseBR):
         diagnostics = None
         if type(fort7_filename) == types.StringType or fort7_filename is None:
             solution = parseS.parseS(fort8_filename)
-            for s in solution:
-                s.options = options.copy()
-                if options is not None:
+            if options is not None:
+                for s in solution:
+                    s.options = options.copy()
                     s.options["constants"] = parseC.parseC(options["constants"])
-                s.options["solution"] = s
+                    s.options["solution"] = s
             if not fort9_filename is None:
                 diagnostics = parseD.parseD(fort9_filename)
         else:
