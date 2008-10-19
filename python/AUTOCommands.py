@@ -1053,7 +1053,10 @@ class commandRunnerLoadName(commandRunnerConfig):
     type="simple"
     shortName="loadName"
     def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
-        if not(name is None):
+        if runner is None and isinstance(name, runAUTO.runAUTO):
+            runner = name
+            name = None 
+        elif name is not None:
             kw["equation"]   = name
             kw["constants"]  = name
             kw["solution"]   = name
@@ -1192,20 +1195,18 @@ class commandRun(commandWithRunner):
         self.kw = kw
         self.sv = sv
         self.ap = ap
+        if runner is None and isinstance(name, runAUTO.runAUTO):
+            self.runner = name
+            self.name = None
 
     def __call__(self):
-        if not(self.name is None):
-            if type(self.name) == type(""):
-                func=commandRunnerLoadName(self.name,self.runner,self.templates)
-                func()
-            elif not self.kw.has_key('s') and isinstance(self.name,
-                                                         parseS.AUTOSolution):
-                self.kw['s'] = self.name
-                self.kw['IRS'] = self.name["Label"]
+        if self.name is not None:
+            func=commandRunnerLoadName(self.name,self.runner,self.templates)
+            func()
         self.kw['sv'] = self.sv
         func=commandRunnerLoadName(None,self.runner,self.templates,self.kw)
         func()
-        func=commandRunMakefileWithSetup(self.runner)
+        func=commandRunMakefileWithSetup(runner=self.runner)
         ret=func()
         if self.sv is not None:
             ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(

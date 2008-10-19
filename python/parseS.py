@@ -27,6 +27,7 @@ import types
 import copy
 import parseB
 import Points
+import runAUTO
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -276,9 +277,10 @@ class SLPoint(Points.Point):
 # read and write methods and letting the outside class take care
 # of opening the file.
 
-class AUTOSolution(Points.Pointset,UserDict.UserDict):
+class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __init__(self,input=None,offset=None,name=None):
 	UserDict.UserDict.__init__(self)
+        runAUTO.runAUTO.__init__(self)
         self.__start_of_header = None
         self.__start_of_data   = None
         self.__end              = None

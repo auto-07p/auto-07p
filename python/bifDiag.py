@@ -2,6 +2,7 @@
 # this is an enhanced list of bifurcation branches:
 # the labels contain the solutions and diagnostics as well
 import parseB
+import parseC
 import parseS
 import parseD
 import types
@@ -9,8 +10,10 @@ import AUTOExceptions
 
 class bifDiag(parseB.parseBR):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
-                 filebased=False):
-        if filebased:
+                 options=None):
+        self.options = options
+        if options is not None and options["constants"]['sv'] is not None:
+            #filebased
             self.filenames = [fort7_filename,fort8_filename,fort9_filename]
             return
         parseB.parseBR.__init__(self,fort7_filename)
@@ -22,6 +25,11 @@ class bifDiag(parseB.parseBR):
         diagnostics = None
         if type(fort7_filename) == types.StringType or fort7_filename is None:
             solution = parseS.parseS(fort8_filename)
+            for s in solution:
+                s.options = options.copy()
+                if options is not None:
+                    s.options["constants"] = parseC.parseC(options["constants"])
+                s.options["solution"] = s
             if not fort9_filename is None:
                 diagnostics = parseD.parseD(fort9_filename)
         else:

@@ -5,7 +5,7 @@ import cStringIO
 import re
 import types
 import glob,stat
-import AUTOExceptions,parseC,parseH,bifDiag
+import AUTOExceptions,parseC,parseH,parseS,bifDiag
 try:
     import subprocess
 except ImportError:
@@ -159,9 +159,9 @@ class runAUTO:
         
     def runDemo(self,d):
         self.__resetInternalLogs()
-        self.__runDemo(d)
+        data = self.__runDemo(d)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
 
     def __runDemo(self,d):
         """     This function compiles the demo, then calls the runMakefile
@@ -201,7 +201,7 @@ class runAUTO:
         stdout.close()
         stderr.close()
 
-        self.__runMakefile()
+        data = self.__runMakefile()
 
         if self.options["clean"] == "yes":
             os.chdir(self.options["dir"])
@@ -224,6 +224,7 @@ class runAUTO:
             self.__printErr("***Demo was killed because it took too long***\n")
 
         self.__printErr("===%s end===\n"%(d,))
+        return data
 
     def config(self,cnf={},**kw):
         """     Change the options for this runner object"""
@@ -240,10 +241,11 @@ class runAUTO:
         or runCommand)"""
         if os.path.exists("fort.2"):
             os.remove("fort.2")
-        if (self.options["constants"] is None):
+        if self.options["constants"] is None:
             raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
-        else:
-            self.options["constants"].writeFilename("fort.2")
+        if isinstance(self,parseS.AUTOSolution):
+            self.options["constants"]["IRS"] = self["Label"]
+        self.options["constants"].writeFilename("fort.2")
 
         if os.path.exists("fort.3"):
             os.remove("fort.3")
@@ -328,14 +330,14 @@ class runAUTO:
     def runMakefileWithSetup(self,equation=None):
         self.__resetInternalLogs()
         self.__setup()
-        self.__runMakefile(equation)
+        data = self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def runMakefile(self,equation=None):
         self.__resetInternalLogs()
-        self.__runMakefile(equation)
+        data = self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def __runMakefile(self,equation=None):        
         """     This function expects self.options["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
@@ -365,12 +367,13 @@ class runAUTO:
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
             equation = self.options["equation"][14:]
+            data = None
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)
-                self.__runCommand(os.path.join(".",equation + ".exe"))
+                data = self.__runCommand(os.path.join(".",equation + ".exe"))
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
@@ -380,22 +383,22 @@ class runAUTO:
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)        
             os.chdir(curdir)
-            return
+            return data
         else:
             executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
-        self.__runExecutable(executable)
+        return self.__runExecutable(executable)
 
     def runExecutableWithSetup(self,executable=None):
         self.__resetInternalLogs()
         self.__setup()
-        self.__runExecutable(executable)
+        data = self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def runExecutable(self,executable=None):
         self.__resetInternalLogs()
-        self.__runExecutable(executable)
+        data = self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def __runExecutable(self,executable=None):
         """     This function expects self.options["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
@@ -412,20 +415,21 @@ class runAUTO:
 
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
-        self.__runCommand(executable)
+        data = self.__runCommand(executable)
         os.chdir(curdir)
+        return data
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
-        self.__runCommand(command)
+        data = self.__runCommand(command)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
-        self.__runCommand(command)
+        data = self.__runCommand(command)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,self.data]
+        return [self.internalLog,self.internalErr,data]
     def __runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
@@ -511,12 +515,10 @@ class runAUTO:
             self.outputFort8 = open(self.fort8_path,"r")
         else:
             self.outputFort8 = None
-        self.data = None
         if (self.outputFort7 and self.outputFort8 and 
             os.path.isfile(self.fort9_path)):
-            self.data = bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                        self.fort9_path,
-                           self.options["constants"]['sv'] is not None)
+            return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
+                                   self.fort9_path,self.options)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")

@@ -53,7 +53,12 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 class parseC(UserDict.UserDict):
     def __init__(self,filename=None):
-	UserDict.UserDict.__init__(self)
+        if filename is not None and type(filename) != type(""):
+            if isinstance(filename,UserDict.UserDict):
+                self.__new = filename.__new
+            UserDict.UserDict.__init__(self,filename)
+            return
+        UserDict.UserDict.__init__(self)
         self.__new = 1
         for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
             'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
