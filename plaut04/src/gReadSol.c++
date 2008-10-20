@@ -54,8 +54,10 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
     {
         if(maxColSize < nar) maxColSize = nar;
         if(lastBranchID == -999) lastBranchID = ibr;
-        if(lastBranchID != ibr && lastBranchID != -999)
+        if(lastBranchID != ibr && lastBranchID != -999) {
             branchCounter++;
+            lastBranchID = ibr;
+	}
 
         totalNumPoints += (ntpl != 1) ? ntpl : 2;
         current = new solution;
