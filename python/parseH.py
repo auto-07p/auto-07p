@@ -48,7 +48,17 @@ line4_comment="NPSI,(/,I,IPSI(I)),I=1,NPSI)"
 class parseH(UserDict.UserDict):
 
     def __init__(self,filename=None):
+        if filename is not None and type(filename) != type(""):
+            if isinstance(filename,UserDict.UserDict):
+                self.__new = filename.__new
+            UserDict.UserDict.__init__(self,filename)
+            return
 	UserDict.UserDict.__init__(self)
+        for key in ['NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
+                    'NREV', 'NFIXED', 'NPSI']:
+            self[key] = None
+        for key in ['IREV', 'IFIXED', 'IPSI']:
+            self[key] = []
 	if filename:
 	    self.readFilename(filename)
 #        self.dataString=""
@@ -80,34 +90,33 @@ class parseH(UserDict.UserDict):
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NREV"] = int(data[0])
-	self["IREV"] = []
+        nrev = int(data[0])
         data = []
-	if self["NREV"] > 0:
+	if nrev > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
-	for i in data:
-	    self["IREV"].append(int(i))
+        self["IREV"] = map(int,data)
+	self["NREV"] = nrev
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NFIXED"] = int(data[0])
-	self["IFIXED"] = []
-	if self["NFIXED"] > 0:
+        nfixed = int(data[0])
+        data = []
+	if nfixed > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
-	for i in range(self["NFIXED"]):
-	    self["IFIXED"].append(int(data[i]))
+	self["IFIXED"] = map(int,data[:nfixed])
+	self["NFIXED"] = nfixed
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["NPSI"] = int(data[0])
-	self["IPSI"] = []
-	if self["NPSI"] > 0:
+        npsi = int(data[0])
+        data = []
+	if npsi > 0:
 	    line = inputfile.readline()
 	    data = string.split(line)
-	for i in range(self["NPSI"]):
-	    self["IPSI"].append(int(data[i]))
+        self["IPSI"] = map(int,data[:npsi])
+	self["NPSI"] = npsi
 
 
     def write(self,output):
@@ -117,25 +126,28 @@ class parseH(UserDict.UserDict):
 	output.write(str(self["ISTART"]) +" ")
 	output.write("          "+line1_comment+"\n")
 
-	output.write(str(self["NREV"])+" ")
+        nrev = 0
+        if len(self["IREV"]) > 0:
+            nrev = 1
+	output.write(str(nrev)+" ")
 	output.write("          "+line2_comment+"\n")
-	for i in self["IREV"]:
-	    output.write(str(i)+" ")
-	if self["NREV"] > 0:
+	for d in self["IREV"]:
+	    output.write(str(d)+" ")
+	if nrev > 0:
 	    output.write("\n")
 
-	output.write(str(self["NFIXED"])+" ")
+	output.write(str(len(self["IFIXED"]))+" ")
 	output.write("          "+line3_comment+"\n")
-	for i in range(self["NFIXED"]):
-	    output.write(str(self["IFIXED"][i])+" ")
-	if self["NFIXED"] > 0:
+	for d in self["IFIXED"]:
+	    output.write(str(d)+" ")
+	if len(self["IFIXED"]) > 0:
 	    output.write("\n")
 
-	output.write(str(self["NPSI"])+" ")
+	output.write(str(len(self["IPSI"]))+" ")
 	output.write("          "+line4_comment+"\n")
-	for i in range(self["NPSI"]):
-	    output.write(str(self["IPSI"][i])+" ")
-	if self["NPSI"] > 0:
+	for d in self["IPSI"]:
+	    output.write(str(d)+" ")
+	if len(self["IPSI"]) > 0:
 	    output.write("\n")
         
         output.flush()

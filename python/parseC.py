@@ -65,9 +65,10 @@ class parseC(UserDict.UserDict):
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
+            'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
             'sv', 's']:
             self[key] = None
-        for key in ["THL","THU","UZR","ICP"]:
+        for key in ["THL","THU","UZR","ICP","IREV","IFIXED","IPSI"]:
             self[key] = []
 	if filename:
 	    self.readFilename(filename)
@@ -78,9 +79,9 @@ class parseC(UserDict.UserDict):
         return string.getvalue()
 
     def __setitem__(self,key,item):
-        if key == "ICP":
-            self.data["__NICP"] = len(item)
-            self.data["ICP"] = item
+        if key in ["ICP","IREV","IFIXED","IPSI"]:
+            self.data["__N"+key] = len(item)
+            self.data[key] = item
         elif key in ["THL","THU","UZR"]:
             self.data["__N"+key] = len(item)
             self.data[key] = []
@@ -118,7 +119,7 @@ class parseC(UserDict.UserDict):
                     break
             value = string.strip(line[pos+1:pos2])
             line = string.strip(line[pos2:])
-            if key == 'ICP':
+            if key in ['ICP','IREV','IFIXED','IPSI']:
                 self[key]=map(int,string.split(value[1:-1],','))
             elif key in ['THU','THL','UZR']:
                 value = string.strip(string.replace(value[1:-1],']',' '))
@@ -236,7 +237,7 @@ class parseC(UserDict.UserDict):
     def write(self,output):
         if self.__new:
             for key,value in self.items():
-                if key == "ICP":
+                if key in ["ICP","IREV","IFIXED","IPSI"]:
                     if value != []:
                         output.write(key+"="+str(value)+"\n")
                 elif key in ["THL","THU","UZR"]:

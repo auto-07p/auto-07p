@@ -10,13 +10,14 @@ C
 
       PRIVATE
 
-      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO
+      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,INSTRHO
 
 C     This common block is also used by demos: don't remove it!!
 C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 
       INTEGER, ALLOCATABLE, SAVE :: IREV(:),IPSI(:),IFIXED(:)
+      LOGICAL, SAVE :: NEWCFILE=.FALSE.
       DOUBLE PRECISION, SAVE :: COMPZERO
 
       CONTAINS
@@ -602,12 +603,60 @@ C
       RETURN
       END SUBROUTINE FIHO
 C
+C     ---------- -------
+      SUBROUTINE INSTRHO(KEYSTR,VALSTR,LISTLEN,IERR)
+C
+      IMPLICIT NONE
+      CHARACTER(LEN=*), INTENT(IN) :: KEYSTR, VALSTR
+      INTEGER, INTENT(IN) :: LISTLEN
+      INTEGER, INTENT(OUT) :: IERR
+      INTEGER NDIM,I
+C
+C     read HomCont constants from a string
+C
+      IERR = 0
+      NEWCFILE = .TRUE.
+      SELECT CASE(KEYSTR)
+      CASE('NUNSTAB')
+         READ(VALSTR,*,ERR=3)NUNSTAB
+      CASE('NSTAB')
+         READ(VALSTR,*,ERR=3)NSTAB
+      CASE('IEQUIB')
+         READ(VALSTR,*,ERR=3)IEQUIB
+      CASE('ISTART')
+         READ(VALSTR,*,ERR=3)ISTART
+      CASE('ITWIST')
+         READ(VALSTR,*,ERR=3)ITWIST
+      CASE('IREV')
+         NDIM=LISTLEN
+         IF(ALLOCATED(IREV))DEALLOCATE(IREV)
+         ALLOCATE(IREV(NDIM))
+         READ(VALSTR,*,ERR=3)(IREV(I),I=1,NDIM)
+         NREV=1
+      CASE('IFIXED')
+         NFIXED=LISTLEN
+         IF(ALLOCATED(IFIXED))DEALLOCATE(IFIXED)
+         ALLOCATE(IFIXED(NFIXED))
+         READ(VALSTR,*,ERR=3)(IFIXED(I),I=1,NFIXED)
+      CASE('IPSI')
+         NPSI=LISTLEN
+         IF(ALLOCATED(IPSI))DEALLOCATE(IPSI)
+         ALLOCATE(IPSI(NPSI))
+         READ(VALSTR,*,ERR=3)(IPSI(I),I=1,NPSI)
+      CASE DEFAULT
+         IERR = 1
+      END SELECT
+      RETURN
+ 3    IERR = 3
+      END SUBROUTINE INSTRHO
+C
 C     ---------- ----
       SUBROUTINE INHO(IAP,ICP,PAR)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       PARAMETER(HMACHHO=1.0d-13)
       DIMENSION PAR(*),IAP(*),ICP(*)
+      INTEGER stat
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -623,39 +672,49 @@ C
       NDM=NDIM
       COMPZERO=HMACHHO
 C
-      OPEN(UNIT=12,FILE='fort.12',STATUS='OLD',ACCESS='sequential')
-      LINE=1
-      READ(12,*,ERR=1,END=2)NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
+      OPEN(UNIT=12,FILE='fort.12',STATUS='OLD',ACCESS='sequential',
+     *     IOSTAT=stat)
+      IF(STAT/=0)THEN
+         IF(.NOT.NEWCFILE)THEN
+            WRITE(6,"(A,A)")
+     *       " Error: Using HomCont without ",
+     *       " fort.12, h., or new-style c. file."
+            STOP
+         ENDIF
+      ELSE
+         LINE=1
+         READ(12,*,ERR=1,END=2)NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
 C
 C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
-      IF(ALLOCATED(IREV))DEALLOCATE(IREV)
-      ALLOCATE(IREV(NDM))
-      LINE=LINE+1
-      READ(12,*,ERR=1,END=2)NREV
-      IF(NREV>0)THEN
+         IF(ALLOCATED(IREV))DEALLOCATE(IREV)
+         ALLOCATE(IREV(NDM))
          LINE=LINE+1
-         READ(12,*,ERR=1,END=2)(IREV(I),I=1,NDM)
-      ENDIF
+         READ(12,*,ERR=1,END=2)NREV
+         IF(NREV>0)THEN
+            LINE=LINE+1
+            READ(12,*,ERR=1,END=2)(IREV(I),I=1,NDM)
+         ENDIF
 C
-      LINE=LINE+1
-      READ(12,*,ERR=1,END=2)NFIXED
-      IF(ALLOCATED(IFIXED))DEALLOCATE(IFIXED)
-      ALLOCATE(IFIXED(NFIXED))
-      IF (NFIXED>0)THEN
          LINE=LINE+1
-         READ(12,*,ERR=1,END=2)(IFIXED(I),I=1,NFIXED)
-      ENDIF
-      LINE=LINE+1
-      READ(12,*,ERR=1,END=2)NPSI
-      IF(ALLOCATED(IPSI))DEALLOCATE(IPSI)
-      ALLOCATE(IPSI(NPSI))
-      IF (NPSI>0)THEN
+         READ(12,*,ERR=1,END=2)NFIXED
+         IF(ALLOCATED(IFIXED))DEALLOCATE(IFIXED)
+         ALLOCATE(IFIXED(NFIXED))
+         IF (NFIXED>0)THEN
+            LINE=LINE+1
+            READ(12,*,ERR=1,END=2)(IFIXED(I),I=1,NFIXED)
+         ENDIF
          LINE=LINE+1
-         READ(12,*,ERR=1,END=2)(IPSI(I),I=1,NPSI)
+         READ(12,*,ERR=1,END=2)NPSI
+         IF(ALLOCATED(IPSI))DEALLOCATE(IPSI)
+         ALLOCATE(IPSI(NPSI))
+         IF (NPSI>0)THEN
+            LINE=LINE+1
+            READ(12,*,ERR=1,END=2)(IPSI(I),I=1,NPSI)
+         ENDIF
+         CLOSE(UNIT=12,STATUS='KEEP')
       ENDIF
-      CLOSE(UNIT=12,STATUS='KEEP')
       NFREE=2+NFIXED-NREV+NINT+NBC
       IF (ISTART.LT.0) THEN
 C        n-homoclinic branch switching
@@ -1986,3 +2045,8 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       END MODULE HOMCONT
 
+      BLOCK DATA
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+      DATA ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+     *       /0,1,1,0,0,-1,-1,0/
+      END

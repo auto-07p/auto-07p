@@ -56,15 +56,15 @@ class runAUTO:
         for key in dict.keys():
             if self.options.has_key(key):
                 pass
+            elif (self.options["homcont"] is not None and
+                  self.options["homcont"].has_key(key)):
+                self.options["homcont"][key] = dict[key]
             elif self.options["constants"].has_key(key):
                 if key == "DS" and (dict[key] == '-' or dict[key] == '+'):
                     if dict[key] == '-':
                         self.options["constants"][key] = -self.options["constants"][key]
                 else:
                     self.options["constants"][key] = dict[key]
-            elif (not self.options["homcont"] is None and
-                  self.options["homcont"].has_key(key)):
-                self.options["homcont"][key] = dict[key]
             else:
                 raise "Unknown option: %s"%(key,)
 
@@ -256,7 +256,7 @@ class runAUTO:
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
-        if not (self.options["homcont"] is None):
+        if self.options["homcont"] is not None:
             self.options["homcont"].writeFilename("fort.12")
 
     def __newer(self,sources,target):
@@ -373,7 +373,8 @@ class runAUTO:
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)
-                data = self.__runCommand(os.path.join(".",equation + ".exe"))
+                self.__runCommand(os.path.join(".",equation + ".exe"))
+                data = self.__outputCommand()
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
@@ -415,19 +416,22 @@ class runAUTO:
 
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
-        data = self.__runCommand(executable)
+        self.__runCommand(executable)
+        data = self.__outputCommand()
         os.chdir(curdir)
         return data
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
-        data = self.__runCommand(command)
+        self.__runCommand(command)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
-        data = self.__runCommand(command)
+        self.__runCommand(command)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def __runCommand(self,command=None):
@@ -501,6 +505,7 @@ class runAUTO:
         else:
             user_time = 1.0
 
+    def __outputCommand(self):
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
         if not self.outputFort7 is None:

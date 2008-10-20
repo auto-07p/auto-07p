@@ -452,6 +452,7 @@ C     ---------- ----
       SUBROUTINE INIT(IAP,RAP,EOF,LINE,SFILE,SVFILE)
 C
       USE AUTO_CONSTANTS
+      USE HOMCONT, ONLY : INSTRHO
 C
       IMPLICIT NONE
 C
@@ -467,7 +468,7 @@ C
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
       DOUBLE PRECISION AMP,BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=256) :: STR
-      INTEGER KEYEND,POS,LISTLEN,NPOS
+      INTEGER KEYEND,POS,LISTLEN,NPOS,IERR
       LOGICAL KEYS
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
      * "NDIM", "IPS ", "IRS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
@@ -557,37 +558,42 @@ C
                CYCLE scanloop
             ENDIF
          ENDDO
-         IF(STR(1:KEYEND)=='ICP')THEN
+         SELECT CASE(STR(1:KEYEND))
+         CASE('ICP')
             NICP=LISTLEN
             DEALLOCATE(ICU)
             ALLOCATE(ICU(NICP))
             READ(STR(POS:),*,ERR=3)ICU            
-         ELSEIF(STR(1:KEYEND)=='UZR')THEN
+         CASE('UZR')
             NUZR=LISTLEN
             DEALLOCATE(IUZ,VUZ)
             ALLOCATE(IUZ(NUZR),VUZ(NUZR))
             READ(STR(POS:),*,ERR=3)(IUZ(I),VUZ(I),I=1,NUZR)
-         ELSEIF(STR(1:KEYEND)=='THL')THEN
+         CASE('THL')
             NTHL=LISTLEN
             DEALLOCATE(ITHL,VTHL)
             ALLOCATE(ITHL(NTHL),VTHL(NTHL))
             READ(STR(POS:),*,ERR=3)(ITHL(I),VTHL(I),I=1,NTHL)
-         ELSEIF(STR(1:KEYEND)=='THU')THEN
+         CASE('THU')
             NTHU=LISTLEN
             DEALLOCATE(ITH,VTHU)
             ALLOCATE(ITH(NTHU),VTHU(NTHU))
             READ(STR(POS:),*,ERR=3)(ITH(I),VTHU(I),I=1,NTHU)
-         ELSEIF(STR(1:KEYEND)=='s'.OR.STR(1:KEYEND)=='sv')THEN
+         CASE('s','sv')
             IF(STR(1:KEYEND)=='s')THEN
                SFILE(1:2)='s.'
                READ(STR(POS:),*)SFILE(3:)
             ELSEIF(STR(1:KEYEND)=='sv')THEN
                READ(STR(POS:),*)SVFILE(3:)
             ENDIF
-         ELSE
-            WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ",STR(1:KEYEND),
-     &           " on line ",LINE
-         ENDIF
+         CASE DEFAULT
+            CALL INSTRHO(STR(1:KEYEND),STR(POS:),LISTLEN,IERR)
+            IF(IERR==3)GOTO 3
+            IF(IERR==1)THEN
+               WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ",
+     &              STR(1:KEYEND)," on line ",LINE
+            ENDIF
+         END SELECT
       ENDDO scanloop
 
  1    IF(EOF.AND..NOT.KEYS)GOTO 5
