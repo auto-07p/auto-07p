@@ -5,7 +5,7 @@ import cStringIO
 import re
 import types
 import glob,stat
-import AUTOExceptions,parseC,parseH,parseS,bifDiag
+import AUTOExceptions,parseC,parseH
 try:
     import subprocess
 except ImportError:
@@ -239,6 +239,7 @@ class runAUTO:
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
+        import parseS
         if os.path.exists("fort.2"):
             os.remove("fort.2")
         if self.options["constants"] is None:
@@ -508,6 +509,7 @@ class runAUTO:
     def __outputCommand(self):
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
+        import bifDiag
         if not self.outputFort7 is None:
             self.outputFort7.close()
         if os.path.isfile(self.fort7_path):
