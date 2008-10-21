@@ -7,8 +7,9 @@
 
 MODULE SUPPORT
 
+IMPLICIT NONE
 PRIVATE
-PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV, AUTIM0, AUTIM1
+PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
 PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
@@ -22,9 +23,12 @@ CONTAINS
 
 ! Mueller's method with bracketing
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DOUBLE PRECISION, INTENT(IN) :: Q,S
+    DOUBLE PRECISION, INTENT(INOUT) :: Q0,Q1,S0,S1
+    DOUBLE PRECISION, INTENT(OUT) :: RDS
 
-    PARAMETER (RSMALL=1.0d-30)
+    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
+    DOUBLE PRECISION H0,H1,D,A,B,C,R,DQ
 
     H0=S0-S
     H1=S1-S
@@ -44,7 +48,7 @@ CONTAINS
     ENDIF
 
     DQ=Q1*Q
-    IF(DQ.LT.0.d0)THEN
+    IF(DQ<0.d0)THEN
        Q0=Q1
        S0=S1
     ENDIF
@@ -53,9 +57,7 @@ CONTAINS
   END SUBROUTINE MUELLER
 
 ! ---------- ---
-  SUBROUTINE EIG(IAP,NDIM,M1A,A,EV,IER)
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  SUBROUTINE EIG(IAP,NDIM,M1A,A,EV)
 
 ! This subroutine uses the EISPACK subroutine RG to compute the
 ! eigenvalues of the general real matrix A.
@@ -63,13 +65,14 @@ CONTAINS
 ! M1A is the first dimension of A as in the DIMENSION statement.
 ! The eigenvalues are to be returned in the complex vector EV.
 
-    DIMENSION A(M1A,*),IAP(*)
-    INTEGER, INTENT(OUT) :: IER
+    INTEGER, INTENT(IN) :: IAP(*), NDIM, M1A
+    DOUBLE PRECISION, INTENT(IN) :: A(M1A,NDIM)
+    COMPLEX(KIND(1.0D0)), INTENT(OUT) :: EV(NDIM)
 
-    COMPLEX(KIND(1.0D0)) EV(*)
 ! Local
-    ALLOCATABLE WR(:),WI(:),Z(:),FV1(:),IV1(:)
-    ALLOCATE(WR(NDIM),WI(NDIM),Z(M1A*NDIM),FV1(NDIM),IV1(NDIM))
+    INTEGER IID,IBR,NTOT,NTOP,IER,MATZ,I,J
+    DOUBLE PRECISION, ALLOCATABLE :: WR(:),WI(:),Z(:,:),FV1(:),IV1(:)
+    ALLOCATE(WR(NDIM),WI(NDIM),Z(M1A,NDIM),FV1(NDIM),IV1(NDIM))
 
     IID=IAP(18)
     IBR=IAP(30)
@@ -77,24 +80,23 @@ CONTAINS
     NTOP=MOD(NTOT-1,9999)+1
 
     IER=0
-    IF(IID.GE.4)THEN 
+    IF(IID>=4)THEN 
        MATZ=1
     ELSE
        MATZ=0
     ENDIF
 
     CALL RG(M1A,NDIM,A,WR,WI,MATZ,Z,IV1,FV1,IER)
-    IF(IER.NE.0)IER=1
-    IF(IER.EQ.1)WRITE(9,101)IBR,NTOP
-
-    IF(MATZ.NE.0)THEN
-       WRITE(9,102)
+    IF(IER/=0)WRITE(9,'(I4,I6,A)') IBR,NTOP,&
+         'NOTE:Error return from EISPACK routine RG'
+    IF(MATZ/=0)THEN
+       WRITE(9,'(A)')' Eigenvalues:'
        DO I=1,NDIM
-          WRITE(9,104)WR(I),WI(I)
+          WRITE(9,'(4X,7ES19.10)')WR(I),WI(I)
        ENDDO
-       WRITE(9,103)
+       WRITE(9,'(A)')' Eigenvectors (by row):'
        DO I=1,NDIM
-          WRITE(9,104)(Z((I-1)*M1A+J),J=1,NDIM)
+          WRITE(9,'(4X,7ES19.10)')Z(:NDIM,I)
        ENDDO
     ENDIF
 
@@ -102,19 +104,11 @@ CONTAINS
        EV(I) = CMPLX(WR(I),WI(I),KIND(1.0D0))
     ENDDO
 
-
-101 FORMAT(I4,I6,' NOTE:Error return from EISPACK routine RG')
-102 FORMAT(/,' Eigenvalues:')
-103 FORMAT(/,' Eigenvectors (by row):')
-104 FORMAT(4X,7ES19.10)
-
     DEALLOCATE(WR,WI,Z,FV1,IV1)
   END SUBROUTINE EIG
 
 ! ---------- ------
   SUBROUTINE NULLVC(m,n,k,A,u,ic)
-
-    IMPLICIT NONE
 
     DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
 
@@ -208,8 +202,6 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE NLVC(m,n,k,A,U)
 
-    IMPLICIT NONE
-
 ! Finds a null-vector of a singular matrix A.
 ! The null space of A is assumed to be k-dimensional.
 !
@@ -235,9 +227,10 @@ CONTAINS
 ! ------ --------- -------- -----
   DOUBLE PRECISION FUNCTION RNRMV(N,V)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    INTEGER, INTENT(IN) :: N
+    DOUBLE PRECISION, INTENT(IN) :: V(N)
 
-    DIMENSION V(*)
+    INTEGER I
 
 ! Returns the L2-norm of the vector V.
 
@@ -245,16 +238,18 @@ CONTAINS
     DO I=1,N
        RNRMV=RNRMV+V(I)**2
     ENDDO
-    RNRMV=DSQRT(RNRMV)
+    RNRMV=SQRT(RNRMV)
 
   END FUNCTION RNRMV
 
 ! ---------- -----
   SUBROUTINE NRMLZ(NDIM,V)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    INTEGER, INTENT(IN) :: NDIM
+    DOUBLE PRECISION, INTENT(INOUT) :: V(NDIM)
 
-    DIMENSION V(*)
+    INTEGER I
+    DOUBLE PRECISION SS
 
 ! Scale the vector V so that its discrete L2-norm becomes 1.
 
@@ -262,26 +257,20 @@ CONTAINS
     DO I=1,NDIM
        SS=SS+V(I)*V(I)
     ENDDO
-    C=1.d0/DSQRT(SS)
-    DO I=1,NDIM
-       V(I)=V(I)*C
-    ENDDO
+    V(:)=V(:)/SQRT(SS)
 
   END SUBROUTINE NRMLZ
 
 ! ------ --------- --------
   DOUBLE PRECISION FUNCTION PI(R)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    PI=R*4.0d0*DATAN(1.d0)
+    DOUBLE PRECISION, INTENT(IN) :: R
+    PI=R*4.0d0*ATAN(1.d0)
 
   END FUNCTION PI
 
 ! ---------- ----
   SUBROUTINE GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
-
-    IMPLICIT NONE
 
     DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
 
@@ -391,7 +380,6 @@ CONTAINS
 
 ! ---------- ---
   SUBROUTINE GEL(N,A,NRHS,U,F,DET)
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: N,NRHS
     DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
@@ -403,7 +391,6 @@ CONTAINS
 
 ! ---------- ----
   SUBROUTINE GESC(N,A,NRHS,U,F,DET)
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: N,NRHS
     DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
@@ -421,8 +408,11 @@ END MODULE SUPPORT
 ! ---------- --
   SUBROUTINE GE(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION IR(*),IC(*),A(M1A,*),U(NDX,*),F(M1F,*)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: IAM,N,M1A,NRHS,NDX,M1F
+    DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,N),F(M1F,NRHS)
+    DOUBLE PRECISION, INTENT(OUT) :: U(NDX,NRHS),DET
+    INTEGER, INTENT(OUT) :: IR(N),IC(N)
     CALL GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.FALSE.)
   END SUBROUTINE GE
 
@@ -431,11 +421,14 @@ END MODULE SUPPORT
 
     USE MESH
     USE SUPPORT
+    IMPLICIT NONE
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION UPS(IAV(1)*IAV(6),*)
-    DIMENSION WI(0:IAV(6))
-    CHARACTER*3 CODE
+    CHARACTER*3, INTENT(IN) :: CODE
+    INTEGER, INTENT(IN) :: IC
+    DOUBLE PRECISION, INTENT(IN) :: UPS(IAV(1)*IAV(6),*)
+
+    INTEGER NDIM,IPS,NTST,NCOL
+    DOUBLE PRECISION WI(0:IAV(6))
 
     NDIM=IAV(1)
     IPS=IAV(2)

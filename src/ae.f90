@@ -892,7 +892,7 @@ CONTAINS
 
 ! Compute the eigenvalues of the Jacobian
 
-    CALL EIG(IAP,NDM,NDIM+1,AA,EV,IER)
+    CALL EIG(IAP,NDM,NDIM+1,AA,EV)
     IF(IPS.EQ.-1)THEN
        DO I=1,NDM
           IF(REAL(EV(I)).NE.-1.d0 .OR. &
