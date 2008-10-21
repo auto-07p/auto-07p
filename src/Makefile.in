@@ -56,16 +56,6 @@ compile: $(OBJ)
 	ar cr $@ user_c.o
 	rm -f user_c.o
 #
-fcon: $(AUTO_DIR)/src/fcon.f
-	@if [ -f $(EQUATION_NAME).f90 ]; then \
-	  $(FC) $(FFLAGS) $(OPT) $(EQUATION_NAME).f90 $(AUTO_DIR)/src/fcon.f -o fcon; \
-	elif [ -f $(EQUATION_NAME).f ]; then \
-	  $(FC) $(FFLAGS) $(OPT) $(EQUATION_NAME).f $(AUTO_DIR)/src/fcon.f -o fcon; \
-	elif [ -f $(EQUATION_NAME).c ]; then \
-	  $(CC) -I$(AUTO_DIR)/include $(CFLAGS) $(OPT) -c $(EQUATION_NAME).c -o fcone.o; \
-	  $(FC) -L$(AUTO_DIR)/lib $(FFLAGS) $(OPT) fcone.o $(AUTO_DIR)/src/fcon.f -o fcon -lauto_c; \
-	fi
-#
 ../lib/eispack.o: eispack.f
 	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
 #

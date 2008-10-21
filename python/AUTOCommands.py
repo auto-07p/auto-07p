@@ -179,7 +179,7 @@ class commandUserData(command):
         datfile = "%s.dat"%(self.data[0])
         rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                      datfile))
-        rval.system("make -f $AUTO_DIR/src/Makefile EQUATION_NAME=%s fcon"%(self.data[0],))
+        rval.system("make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=%s fcon"%(self.data[0],))
         if os.path.exists(cfile):
             shutil.copy(cfile,"fort.2")
         if os.path.exists(datfile):

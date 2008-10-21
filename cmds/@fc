@@ -6,7 +6,7 @@ else
   echo "(Required files : $1.c, c.$1, $1.dat)"
 fi
 echo " "
-make -f $AUTO_DIR/src/Makefile fcon EQUATION_NAME=$1
+make -f $AUTO_DIR/cmds/cmds.make fcon EQUATION_NAME=$1
 cp c.$1   fort.2
 cp $1.dat fort.3
 ./fcon

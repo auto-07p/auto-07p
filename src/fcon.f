@@ -5,7 +5,7 @@ C This program converts a data file into a labeled AUTO solution
 C
 C
       IMPLICIT NONE
-      INTEGER, PARAMETER :: NPARX=36
+      include 'fcon.h'
 C
       INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J
       DOUBLE PRECISION RLDOT(1),TEMP,T,PERIOD
