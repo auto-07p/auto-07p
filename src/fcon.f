@@ -9,8 +9,8 @@ C
 C
       INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J
       DOUBLE PRECISION RLDOT(1),TEMP,T,PERIOD
-      DOUBLE PRECISION, ALLOCATABLE :: U(:),TM(:),UPS(:,:),VPS(:,:)
-      DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),VPSR(:,:),PAR(:)
+      DOUBLE PRECISION, ALLOCATABLE :: U(:),TM(:),UPS(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),PAR(:)
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
@@ -28,30 +28,27 @@ C
 C
  2      NOLD=NOLD-2
         ALLOCATE(TM(0:NTST),TMR(0:NOLD))
-        ALLOCATE(UPSR(NDIM,0:NOLD),VPSR(NDIM,0:NOLD))
-        ALLOCATE(UPS(NDIM,0:NTST*NCOL),VPS(NDIM,0:NTST*NCOL))
+        ALLOCATE(UPSR(NDIM,0:NOLD),UPS(NDIM,0:NTST*NCOL))
 C
         REWIND 3
         DO J=0,NOLD
           READ(3,*)TMR(J),UPSR(1:NDIM,J)
         ENDDO
-        VPSR(:,:)=0d0
 C
         PERIOD=TMR(NOLD)-TMR(0)
         DO I=NOLD,0,-1
           TMR(I)=(TMR(I)-TMR(0))/PERIOD
         ENDDO
-        CALL ADAPT(NOLD,1,NDIM,NTST,NCOL,NDIM,TMR,UPSR,VPSR,TM,UPS,VPS,
+        CALL ADAPT(NOLD,NDIM,NTST,NCOL,NDIM,TMR,UPSR,TM,UPS,
      &       (IPS.EQ.2 .AND. ABS(ISW).LE.1))
 C
         ICP(1)=1
         RLDOT(1)=1.d0
         PAR(11)=PERIOD
         CALL STPNT(NDIM,U,PAR,T)
-        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,VPS,
-     *       TM,NPAR)
+        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,TM,NPAR)
 C
-        DEALLOCATE(U,TM,TMR,UPS,UPSR,VPS,VPSR)
+        DEALLOCATE(U,TM,TMR,UPS,UPSR)
 C
       STOP
       CONTAINS
@@ -84,101 +81,73 @@ C
       END SUBROUTINE INIT
 
 C     ---------- -----
-      SUBROUTINE ADAPT(NOLD,NCOLD,NDOLD,NNEW,NCNEW,NDIM,
-     &     TMR,UPSR,VPSR,TM,UPS,VPS,IPER)
+      SUBROUTINE ADAPT(NOLD,NDOLD,NNEW,NCNEW,NDIM,
+     &     TMR,UPSR,TM,UPS,IPER)
 
 C Adapts the distribution of the mesh points so that the increase of the
 C monotone function EQDF becomes approximately equidistributed over the
-C intervals. The functions UPS and VPS are interpolated on new mesh.
+C intervals. The function UPS is interpolated on new mesh.
 
-      INTEGER, INTENT(IN) :: NOLD,NCOLD,NDOLD,NNEW,NCNEW,NDIM
+      INTEGER, INTENT(IN) :: NOLD,NDOLD,NNEW,NCNEW,NDIM
       LOGICAL, INTENT(IN) :: IPER
-      DOUBLE PRECISION, INTENT(IN) :: UPSR(NDOLD,0:*),VPSR(NDOLD,0:*),
-     &     TMR(0:NOLD)
-      DOUBLE PRECISION, INTENT(OUT) :: UPS(NDIM,0:*),VPS(NDIM,0:*),
-     &     TM(0:*)
-C Local
-       INTEGER J
-       DOUBLE PRECISION, ALLOCATABLE :: DTM(:)
-
-       IF(NOLD==NNEW.AND.NCOLD==NCNEW)THEN
-C Just copy
-         DO J=0,NCNEW*NNEW
-            UPS(1:NDIM,J)=UPSR(1:NDIM,J)
-            VPS(1:NDIM,J)=VPSR(1:NDIM,J)
-         ENDDO
-         TM(0:NNEW)=TMR(0:NNEW)
-         RETURN
-       ENDIF
+      DOUBLE PRECISION, INTENT(IN) :: UPSR(NDOLD,0:*), TMR(0:NOLD)
+      DOUBLE PRECISION, INTENT(OUT) :: UPS(NDIM,0:*), TM(0:*)
 
 C Generate the new mesh :
 
-       ALLOCATE(DTM(NOLD))
-       DTM(:)=TMR(1:NOLD)-TMR(0:NOLD-1)
-       CALL NEWMSH(NDIM,NDOLD,UPSR,NOLD,NCOLD,TMR,DTM,NNEW,TM,IPER)
-       DEALLOCATE(DTM)
+       CALL NEWMSH(NDIM,NDOLD,UPSR,NOLD,TMR,NNEW,TM,IPER)
 
 C Replace UPS by its interpolant on the new mesh :
 
-       CALL INTERP(NDIM,NOLD,NCOLD,TMR,UPSR,NDOLD,NNEW,NCNEW,TM,UPS)
-
-C Replace VPS by its interpolant on the new mesh :
-
-       CALL INTERP(NDIM,NOLD,NCOLD,TMR,VPSR,NDOLD,NNEW,NCNEW,TM,VPS)
+       CALL INTERP(NDIM,NOLD,TMR,UPSR,NDOLD,NNEW,NCNEW,TM,UPS)
 
       END SUBROUTINE ADAPT
 
 C     ---------- ------
-      SUBROUTINE INTERP(NDIM,N,NC,TM,UPS,NDOLD,N1,NC1,TM1,UPS1)
+      SUBROUTINE INTERP(NDIM,N,TM,UPS,NDOLD,N1,NC1,TM1,UPS1)
 
 C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
 
-      INTEGER, INTENT(IN) :: NDIM,N,NC,N1,NC1,NDOLD
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:N*NC)
+      INTEGER, INTENT(IN) :: NDIM,N,N1,NC1,NDOLD
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:N)
       DOUBLE PRECISION, INTENT(IN) :: TM(0:N),TM1(0:N1)
       DOUBLE PRECISION, INTENT(OUT) :: UPS1(NDIM,0:N1*NC1)
 C Local
-      INTEGER I,J,J1,K,L
-      DOUBLE PRECISION X(0:NC),W(0:NC),Z,D
+      INTEGER I,J,J1,K
+      DOUBLE PRECISION W0,W1,Z
 
        J=1
        DO J1=0,N1-1
          DO I=0,NC1-1
-           D=DBLE(I)/NC1
-           Z=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
+           Z=TM1(J1)+I*( TM1(J1+1)-TM1(J1) )/NC1
            DO
              IF(J>N)EXIT
              IF(TM(J)>Z)EXIT
              J=J+1
            ENDDO
            J=J-1
-           D=( TM(J+1)-TM(J) )/NC
-           DO L=0,NC
-             X(L)=TM(J)+L*D
-           ENDDO
-           CALL INTWTS(NC,Z,X,W)
+           W0=( Z-TM(J+1) )/( TM(J)-TM(J+1) )
+           W1=( Z-TM(J) )/( TM(J+1)-TM(J) )
            DO K=1,NDIM
-             UPS1(K,J1*NC1+I)=DOT_PRODUCT(W(:),UPS(K,J*NC:J*NC+NC))
+             UPS1(K,J1*NC1+I)=W0*UPS(K,J)+W1*UPS(K,J+1)
            ENDDO
          ENDDO
        ENDDO
 
        DO I=1,NDIM
-         UPS1(I,N1*NC1)=UPS(I,N*NC)
+         UPS1(I,N1*NC1)=UPS(I,N)
        ENDDO
 
       END SUBROUTINE INTERP
 
 C     ---------- ------
-      SUBROUTINE NEWMSH(NDIM,NDOLD,UPS,NOLD,NCOLD,TMOLD,DTMOLD,NNEW,
-     &     TMNEW,IPER)
+      SUBROUTINE NEWMSH(NDIM,NDOLD,UPS,NOLD,TMOLD,NNEW,TMNEW,IPER)
 
 C Redistributes the mesh according to the function EQDF.
 
-      INTEGER, INTENT(IN) :: NDIM,NDOLD,NOLD,NCOLD,NNEW
+      INTEGER, INTENT(IN) :: NDIM,NDOLD,NOLD,NNEW
       LOGICAL, INTENT(IN) :: IPER
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:*),TMOLD(0:NOLD),
-     &     DTMOLD(NOLD)
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:*),TMOLD(0:NOLD)
       DOUBLE PRECISION, INTENT(OUT) :: TMNEW(0:NNEW)
 C Local
       INTEGER J,J1
@@ -188,7 +157,7 @@ C Local
 
 C Put the values of the monotonely increasing function EQDF in EQF.
 
-       CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,UPS,NDOLD,EQF,IPER)
+       CALL EQDF(NOLD,NDIM,TMOLD,UPS,NDOLD,EQF,IPER)
 
 C Uniformly divide the range of EQDF :
 
@@ -220,86 +189,58 @@ C problems when EQF(NOLD) and EQF(NOLD-1) are very close
       DEALLOCATE(EQF)
       END SUBROUTINE NEWMSH
 
-C     ---------- ------
-      SUBROUTINE INTWTS(N,Z,X,WTS)
-
-C Generates weights for Lagrange interpolation.
-
-      INTEGER, INTENT(IN) :: N
-      DOUBLE PRECISION, INTENT(IN) :: Z, X(0:N)
-      DOUBLE PRECISION, INTENT(OUT) :: WTS(0:N)
-
-      INTEGER IB,K
-      DOUBLE PRECISION P
-
-       DO IB=0,N
-         P=1.d0
-         DO K=0,N
-           IF(K/=IB)THEN
-             P=P*( Z-X(K) )/( X(IB)-X(K) )
-           ENDIF
-         ENDDO
-         WTS(IB)=P
-       ENDDO
-
-      END SUBROUTINE INTWTS
-
 C     ---------- ----
-      SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,UPS,NDOLD,EQF,IPER)
+      SUBROUTINE EQDF(NTST,NDIM,TM,UPS,NDOLD,EQF,IPER)
 
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
-      INTEGER, INTENT(IN) :: NTST,NDIM,NCOL,NDOLD
+      INTEGER, INTENT(IN) :: NTST,NDIM,NDOLD
       LOGICAL, INTENT(IN) :: IPER
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:NTST*NCOL),DTM(NTST)
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:NTST),TM(0:NTST)
       DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
 
 C Local
-      DOUBLE PRECISION SC,E,PWR,DTAV,ND
+      DOUBLE PRECISION E,DTAV,ND,DT
       DOUBLE PRECISION, ALLOCATABLE :: HD(:)
       LOGICAL SMALL
-      INTEGER I,J,WH(0:NCOL)
+      INTEGER I,J
 
        ALLOCATE(HD(NDIM))
-       CALL CNTDIF(NCOL,WH)
 
 C Compute approximation to NCOL-th and (NCOL+1)-st derivative
 C and define the equidistribution function :
 
        SMALL=.TRUE.
-       PWR=1.d0/(NCOL+1.d0)
        EQF(0)=0.d0
        DO J=1,NTST
          E=0.d0
-         SC=(NCOL/DTM(J))**NCOL
+         DT=TM(J)-TM(J-1)
          DO I=1,NDIM
-           ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
+           ND=(UPS(I,J)-UPS(I,J-1))/DT
            IF(J>1)THEN
-             E=E+ABS( 2*( ND-HD(I) )/(DTM(J-1)+DTM(J)) )**PWR
+             E=E+SQRT(ABS( 2*( ND-HD(I) )/(TM(J)-TM(J-2)) ))
            ENDIF
            IF(ABS(ND)>HMACH)SMALL=.FALSE.
            HD(I)=ND
          ENDDO
-         IF(J>1)EQF(J-1)=EQF(J-2)+DTM(J-1)*E
+         IF(J>1)EQF(J-1)=EQF(J-2)+(TM(J-1)-TM(J-2))*E
        ENDDO
 
        E=0.d0
+       J=NTST-1
+       DTAV=TM(NTST)-TM(NTST-1)
        IF(IPER)THEN
 C      *Extend by periodicity :
          J=1
-         DTAV=(DTM(NTST)+DTM(1))/2
-       ELSE
-C      *Extend by extrapolation :
-         J=NTST-1
-         DTAV=DTM(NTST)
+         DTAV=(DTAV+TM(1)-TM(0))/2
        ENDIF
-       SC=(NCOL/DTM(J))**NCOL
+C      *else extend by extrapolation :
        DO I=1,NDIM
-         ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
-         E=E+ABS( (ND-HD(I))/DTAV )**PWR
+         ND=(UPS(I,J)-UPS(I,J-1))/(TM(J)-TM(J-1))
+         E=E+SQRT(ABS( (ND-HD(I))/DTAV ))
          IF(ABS(ND)>HMACH)SMALL=.FALSE.
        ENDDO
-       EQF(NTST)=EQF(NTST-1)+DTM(NTST)*E
+       EQF(NTST)=EQF(NTST-1)+(TM(NTST)-TM(NTST-1))*E
 
 C Take care of "small derivative" case.
 
@@ -313,36 +254,12 @@ C Take care of "small derivative" case.
       END SUBROUTINE EQDF
 
 C     ---------- ------
-      SUBROUTINE CNTDIF(N,D)
-
-C Generates the coefficients of the central difference formula for
-C Nth derivative at uniformly spaced points
-      INTEGER, INTENT(IN) :: N
-      INTEGER, INTENT(OUT) :: D(0:N)
-
-      INTEGER I,K
-
-       D(0)=1
-       IF(N.EQ.0)RETURN
-
-       DO I=1,N
-         D(I)=0
-         DO K=I,1,-1
-           D(K)=D(K-1)-D(K)
-         ENDDO
-         D(0)=-D(0)
-       ENDDO
-
-      END SUBROUTINE CNTDIF
-
-C     ---------- ------
-      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,UDOTPS,
-     &     TM,NPAR)
+      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,TM,NPAR)
 
       IMPLICIT NONE
 
       INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,ISW,ICP(*),NPAR
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*),UDOTPS(NDIM,0:*),
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*),
      &     TM(0:*),PAR(*),RLDOT(*)
 
       INTEGER IBR,ITP,NFPR,NTOT,LAB,NTPL,NAR,NRD,NROWPR,MTOT
@@ -378,7 +295,7 @@ C Write the direction of the branch:
 
        WRITE(8,102)(RLDOT(I),I=1,NFPR)
        DO J=0,NTST*NCOL
-         WRITE(8,102)UDOTPS(:,J)
+         WRITE(8,102)(0.0d0,I=1,NDIM)
        ENDDO
 
 C Write the parameter values.
