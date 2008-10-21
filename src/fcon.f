@@ -3,12 +3,14 @@ C     ------- ------
 C
 C This program converts a data file into a labeled AUTO solution
 C
-      PARAMETER (NPARX=36)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
+      INTEGER, PARAMETER :: NPARX=36
 C
-      DIMENSION ICP(1),RLDOT(1)
-      ALLOCATABLE U(:),TM(:),DTM(:),UPS(:,:),VPS(:,:),PAR(:)
+      INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J
+      DOUBLE PRECISION RLDOT(1),TEMP,T,PERIOD
+      DOUBLE PRECISION, ALLOCATABLE :: U(:),TM(:),UPS(:,:),VPS(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),VPSR(:,:),PAR(:)
 C
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
@@ -25,34 +27,31 @@ C
         ENDDO
 C
  2      NOLD=NOLD-2
-        NTSTM=MAX(NOLD+1,NTST+1)
-        NDX=NDIM*NCOL
-        ALLOCATE(TM(NTSTM),DTM(NTSTM))
-        ALLOCATE(UPS(NDX,NTSTM),VPS(NDX,NTSTM))
+        ALLOCATE(TM(0:NTST),TMR(0:NOLD))
+        ALLOCATE(UPSR(NDIM,0:NOLD),VPSR(NDIM,0:NOLD))
+        ALLOCATE(UPS(NDIM,0:NTST*NCOL),VPS(NDIM,0:NTST*NCOL))
 C
         REWIND 3
-        DO J=1,NOLD+1
-          READ(3,*)TM(J),UPS(1:NDIM,J)
+        DO J=0,NOLD
+          READ(3,*)TMR(J),UPSR(1:NDIM,J)
         ENDDO
-        VPS(:,:)=0d0
+        VPSR(:,:)=0d0
 C
-        PERIOD=TM(NOLD+1)-TM(1)
-        DO I=NOLD+1,1,-1
-          TM(I)=(TM(I)-TM(1))/PERIOD
+        PERIOD=TMR(NOLD)-TMR(0)
+        DO I=NOLD,0,-1
+          TMR(I)=(TMR(I)-TMR(0))/PERIOD
         ENDDO
-        DO I=1,NOLD
-          DTM(I)=TM(I+1)-TM(I)
-        ENDDO
-        CALL ADAPT(NDIM,IPS,ISW,NOLD,1,NTST,NCOL,TM,DTM,NDX,UPS,VPS)
+        CALL ADAPT(NOLD,1,NDIM,NTST,NCOL,NDIM,TMR,UPSR,VPSR,TM,UPS,VPS,
+     &       (IPS.EQ.2 .AND. ABS(ISW).LE.1))
 C
         ICP(1)=1
         RLDOT(1)=1.d0
         PAR(11)=PERIOD
         CALL STPNT(NDIM,U,PAR,T)
-        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,NDX,UPS,VPS,
-     *       TM,DTM,NPAR)
+        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,VPS,
+     *       TM,NPAR)
 C
-        DEALLOCATE(U,TM,DTM,UPS,VPS)
+        DEALLOCATE(U,TM,TMR,UPS,UPSR,VPS,VPSR)
 C
       STOP
       CONTAINS
@@ -60,7 +59,8 @@ C
 C     ---------- ----
       SUBROUTINE INIT(NDIM,IPS,NTST,NCOL,ISW,NPAR)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
+      INTEGER, INTENT(OUT) :: NDIM,IPS,NTST,NCOL,ISW,NPAR
       CHARACTER(LEN=20) STR
 C
 C Reads the file of continuation constants
@@ -82,386 +82,313 @@ C
  1    PRINT*,' Error : End of file encountered in AUTO constants-file'
       RETURN
       END SUBROUTINE INIT
-C
+
 C     ---------- -----
-      SUBROUTINE ADAPT(NDIM,IPS,ISW,NOLD,NCOLD,NNEW,NCNEW,TM,DTM,NDX,
-     *     UPS,VPS)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
+      SUBROUTINE ADAPT(NOLD,NCOLD,NDOLD,NNEW,NCNEW,NDIM,
+     &     TMR,UPSR,VPSR,TM,UPS,VPS,IPER)
+
 C Adapts the distribution of the mesh points so that the increase of the
 C monotone function EQDF becomes approximately equidistributed over the
 C intervals. The functions UPS and VPS are interpolated on new mesh.
-C
-      DIMENSION UPS(NDX,*),VPS(NDX,*),TM(*),DTM(*)
-C Local
-      ALLOCATABLE TINT(:),TM2(:),UINT(:,:),ITM(:)
-C
-       NOLDP1=NOLD+1
-       NNEWP1=NNEW+1
-C
-       ALLOCATE(TINT(NNEWP1),UINT(NDIM*NCNEW,NNEWP1))
-       ALLOCATE(TM2(NNEWP1),ITM(NNEWP1))
-C
-       UINT(:,:)=0.d0
-C
-C For periodic boundary conditions extrapolate by periodicity.
-C
-       IF(IPS.EQ.2 .AND. IABS(ISW).NE.2) THEN
-         IPER=1
-       ELSE
-         IPER=0
-       ENDIF
-C
-C Generate the new mesh :
-C
-       CALL NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TM,DTM,NNEW,TINT,IPER)
-C
-C Replace UPS by its interpolant on the new mesh :
-C
-       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,UPS,NNEWP1,NCNEW,
-     *  TINT,UINT,TM2,ITM)
-       UPS(:,:NNEWP1)=UINT(:,:)
-C
-C Replace VPS by its interpolant on the new mesh :
-C
-       CALL INTERP(NDIM,NOLDP1,NCOLD,TM,NDX,VPS,NNEWP1,NCNEW,
-     *  TINT,UINT,TM2,ITM)
-       VPS(:,:NNEWP1)=UINT(:,:)
-C
-C Replace old mesh :
-C
-       TM(1)=0.d0
-       DO J=1,NNEW
-         DTM(J)=TINT(J+1)-TINT(J)
-         TM(J+1)=TINT(J+1)
-       ENDDO
-C
-       DEALLOCATE(UINT,TINT,TM2,ITM)
-C
-      RETURN
-      END SUBROUTINE ADAPT
-C
-C     ---------- ------
-      SUBROUTINE INTERP(NDIM,N,NC,TM,NDX,UPS,N1,NC1,TM1,UPS1,TM2,ITM1)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
-C
-      DIMENSION TM(*),TM1(*),TM2(*),ITM1(*),UPS(NDX,*),UPS1(NC1*NDIM,*)
-C Local
-      DIMENSION W(NC+1),X(NC+1)
-C
-       NCP1=NC+1
-       N1M1=N1-1
-C
-       DO I=1,NC1
-         RI=I-1
-         D=RI/NC1
-         DO J1=1,N1M1
-           TM2(J1)=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
-         ENDDO
-         CALL ORDR(N,TM,N1M1,TM2,ITM1)
-         DO J1=1,N1M1
-           J=ITM1(J1)
-           Z=TM2(J1)
-           D=( TM(J+1)-TM(J) )/NC
-           DO L=1,NCP1
-             X(L)=TM(J)+(L-1)*D
-           ENDDO
-           CALL INTWTS(NCP1,Z,X,W)
-           DO K=1,NDIM
-             K1=(I-1)*NDIM+K
-             UPS1(K1,J1)=W(NCP1)*UPS(K,J+1)
-             DO L=1,NC
-               L1=K+(L-1)*NDIM
-               UPS1(K1,J1)=UPS1(K1,J1)+W(L)*UPS(L1,J)
-             ENDDO
-           ENDDO
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDIM
-         UPS1(I,N1)=UPS(I,N)
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE INTERP
-C
-C     ---------- ------
-      SUBROUTINE NEWMSH(NDIM,NDX,UPS,NOLD,NCOLD,TMOLD,DTMOLD,
-     * NNEW,TMNEW,IPER)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C Redistributes the mesh according to the function EQDF.
-C
-      DIMENSION TMOLD(*),DTMOLD(*),TMNEW(*),UPS(NDX,*)
-C Local
-      ALLOCATABLE EQF(:),UNEQ(:),IAL(:)
-      ALLOCATE(IAL(NNEW+1),UNEQ(NNEW+1),EQF(NOLD+1))
-C
-C Put the values of the monotonely increasing function EQDF in EQF.
-C
-       CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,NDX,UPS,EQF,IPER)
-C
-C Uniformly divide the range of EQDF :
-C
-       NOLDP1=NOLD+1
-       NNEWP1=NNEW+1
-       DAL=EQF(NOLDP1)/NNEW
-       DO J=1,NNEWP1
-         UNEQ(J)=(J-1)*DAL
-       ENDDO
-C
-       CALL ORDR(NOLDP1,EQF,NNEWP1,UNEQ,IAL)
-C
-C Generate the new mesh in TMNEW :
-C
-       DO J1=1,NNEW
-         J=IAL(J1)
-         X=(UNEQ(J1)-EQF(J))/(EQF(J+1)-EQF(J))
-         TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
-       ENDDO
-C
-C Assign TMNEW(NNEWP1) explicitly because of loss of precision
-C problems when EQF(NOLDP1) and EQF(NOLD) are very close
-C
-       TMNEW(NNEWP1)=TMOLD(NOLDP1)
-C
-       DEALLOCATE(IAL,UNEQ,EQF)
-      RETURN
-      END SUBROUTINE NEWMSH
-C
-C     ---------- ----
-      SUBROUTINE ORDR(N,TM,N1,TM1,ITM1)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-C TM and TM1 are two ascending arrays with values in [0,1]. On exit the
-C value of ITM1( i ) specifies the index of the TM-interval in which
-C TM1(i) lies.
-C
-      DIMENSION TM(N),TM1(N1),ITM1(N1)
-C
-       K0=2
-       DO J1=1,N1
-         K1=K0
-         DO J=K0,N
-           K1=J
-           IF(TM1(J1).LT.TM(J))GOTO 1
-         ENDDO
- 1       ITM1(J1)=K1-1
-         K0=K1
-       ENDDO
-C
-      END SUBROUTINE ORDR
-C
-C     ---------- ------
-      SUBROUTINE INTWTS(N,Z,X,WTS)
-C
-      IMPLICIT NONE
-C
-C Generates weights for Lagrange interpolation.
-C
-      INTEGER, INTENT(IN) :: N
-      DOUBLE PRECISION, INTENT(IN) :: Z, X(N)
-      DOUBLE PRECISION, INTENT(OUT) :: WTS(N)
 
-      INTEGER IB,K
-      DOUBLE PRECISION P,DENOM
-
-       DO IB=1,N
-         P=1.d0
-         DENOM=1.d0
-         DO K=1,N
-           IF(K.NE.IB)THEN
-             P=P*( Z-X(K) )
-             DENOM=DENOM*( X(IB)-X(K) )
-            ENDIF
-         ENDDO
-         WTS(IB)=P/DENOM
-       ENDDO
-C
-      END SUBROUTINE INTWTS
-C
-C     ---------- ----
-      SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,NDX,UPS,EQF,IPER)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
-      DIMENSION UPS(NDX,*),EQF(*),DTM(*)
-      LOGICAL SMALL
+      INTEGER, INTENT(IN) :: NOLD,NCOLD,NDOLD,NNEW,NCNEW,NDIM
+      LOGICAL, INTENT(IN) :: IPER
+      DOUBLE PRECISION, INTENT(IN) :: UPSR(NDOLD,0:*),VPSR(NDOLD,0:*),
+     &     TMR(0:NOLD)
+      DOUBLE PRECISION, INTENT(OUT) :: UPS(NDIM,0:*),VPS(NDIM,0:*),
+     &     TM(0:*)
 C Local
-      DIMENSION WH(NCOL+1)
-      ALLOCATABLE HD(:,:)
-      ALLOCATE(HD(NCOL*NDIM,NTST+1))
-C
-C Compute approximation to NCOL-th derivative :
-       CALL CNTDIF(NCOL,WH)
-C
-       SMALL=.TRUE.
-       DO J=1,NTST
-         JP1=J+1
-         SC=1.d0/DTM(J)**NCOL
-         DO I=1,NDIM
-           HD(I,J)=WH(NCOL+1)*UPS(I,JP1)
-           DO K=1,NCOL
-             K1=I+(K-1)*NDIM
-             HD(I,J)=HD(I,J)+WH(K)*UPS(K1,J)
-           ENDDO
-           HD(I,J)=SC*HD(I,J)
-           IF(DABS(HD(I,J)).GT.HMACH)SMALL=.FALSE.
+       INTEGER J
+       DOUBLE PRECISION, ALLOCATABLE :: DTM(:)
+
+       IF(NOLD==NNEW.AND.NCOLD==NCNEW)THEN
+C Just copy
+         DO J=0,NCNEW*NNEW
+            UPS(1:NDIM,J)=UPSR(1:NDIM,J)
+            VPS(1:NDIM,J)=VPSR(1:NDIM,J)
          ENDDO
-       ENDDO
-C
-C Take care of "small derivative" case.
-C
-       IF(SMALL)THEN
-         DO I=1,NTST+1
-           EQF(I)=I-1
-         ENDDO
+         TM(0:NNEW)=TMR(0:NNEW)
          RETURN
        ENDIF
-C
-C Extend by periodicity :
-C
-       IF(IPER==1)THEN
-          HD(:,NTST+1)=HD(:,1)
-          DTM(NTST+1)=DTM(1)
-       ELSE
-C
-C Extend by extrapolation :
-C
-          HD(:,NTST+1)=2*HD(:,NTST)-HD(:,NTST-1)
-          DTM(NTST+1)=DTM(NTST)
-       ENDIF
-C
-C Compute approximation to (NCOL+1)-st derivative :
-C
-       DO J=1,NTST
-         DTAV=.5d0*(DTM(J)+DTM(J+1))
-         SC=1.d0/DTAV
-         DO I=1,NDIM
-           HD(I,J)=SC*( HD(I,J+1)-HD(I,J) )
+
+C Generate the new mesh :
+
+       ALLOCATE(DTM(NOLD))
+       DTM(:)=TMR(1:NOLD)-TMR(0:NOLD-1)
+       CALL NEWMSH(NDIM,NDOLD,UPSR,NOLD,NCOLD,TMR,DTM,NNEW,TM,IPER)
+       DEALLOCATE(DTM)
+
+C Replace UPS by its interpolant on the new mesh :
+
+       CALL INTERP(NDIM,NOLD,NCOLD,TMR,UPSR,NDOLD,NNEW,NCNEW,TM,UPS)
+
+C Replace VPS by its interpolant on the new mesh :
+
+       CALL INTERP(NDIM,NOLD,NCOLD,TMR,VPSR,NDOLD,NNEW,NCNEW,TM,VPS)
+
+      END SUBROUTINE ADAPT
+
+C     ---------- ------
+      SUBROUTINE INTERP(NDIM,N,NC,TM,UPS,NDOLD,N1,NC1,TM1,UPS1)
+
+C Finds interpolant (TM(.) , UPS(.) ) on new mesh TM1.
+
+      INTEGER, INTENT(IN) :: NDIM,N,NC,N1,NC1,NDOLD
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:N*NC)
+      DOUBLE PRECISION, INTENT(IN) :: TM(0:N),TM1(0:N1)
+      DOUBLE PRECISION, INTENT(OUT) :: UPS1(NDIM,0:N1*NC1)
+C Local
+      INTEGER I,J,J1,K,L
+      DOUBLE PRECISION X(0:NC),W(0:NC),Z,D
+
+       J=1
+       DO J1=0,N1-1
+         DO I=0,NC1-1
+           D=DBLE(I)/NC1
+           Z=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
+           DO
+             IF(J>N)EXIT
+             IF(TM(J)>Z)EXIT
+             J=J+1
+           ENDDO
+           J=J-1
+           D=( TM(J+1)-TM(J) )/NC
+           DO L=0,NC
+             X(L)=TM(J)+L*D
+           ENDDO
+           CALL INTWTS(NC,Z,X,W)
+           DO K=1,NDIM
+             UPS1(K,J1*NC1+I)=DOT_PRODUCT(W(:),UPS(K,J*NC:J*NC+NC))
+           ENDDO
          ENDDO
        ENDDO
-C
-C Define the equidistribution function :
-C
+
+       DO I=1,NDIM
+         UPS1(I,N1*NC1)=UPS(I,N*NC)
+       ENDDO
+
+      END SUBROUTINE INTERP
+
+C     ---------- ------
+      SUBROUTINE NEWMSH(NDIM,NDOLD,UPS,NOLD,NCOLD,TMOLD,DTMOLD,NNEW,
+     &     TMNEW,IPER)
+
+C Redistributes the mesh according to the function EQDF.
+
+      INTEGER, INTENT(IN) :: NDIM,NDOLD,NOLD,NCOLD,NNEW
+      LOGICAL, INTENT(IN) :: IPER
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:*),TMOLD(0:NOLD),
+     &     DTMOLD(NOLD)
+      DOUBLE PRECISION, INTENT(OUT) :: TMNEW(0:NNEW)
+C Local
+      INTEGER J,J1
+      DOUBLE PRECISION X,DAL,UNEQ
+      DOUBLE PRECISION, ALLOCATABLE :: EQF(:)
+      ALLOCATE(EQF(0:NOLD))
+
+C Put the values of the monotonely increasing function EQDF in EQF.
+
+       CALL EQDF(NOLD,NDIM,NCOLD,DTMOLD,UPS,NDOLD,EQF,IPER)
+
+C Uniformly divide the range of EQDF :
+
+       DAL=EQF(NOLD)/NNEW
+
+C Generate the new mesh in TMNEW :
+
+       J=1
+       DO J1=0,NNEW-1
+
+C EQF is an ascending array with values in [0,1]. Get the
+C value of the index of the TM-interval in which EQF(i) lies.
+        UNEQ=J1*DAL
+        DO
+          IF(J>NOLD)EXIT
+          IF(EQF(J)>UNEQ)EXIT
+          J=J+1
+        ENDDO
+        J=J-1
+        X=(UNEQ-EQF(J))/(EQF(J+1)-EQF(J))
+        TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
+      ENDDO
+
+C Assign TMNEW(NNEW) explicitly because of loss of precision
+C problems when EQF(NOLD) and EQF(NOLD-1) are very close
+
+      TMNEW(NNEW)=TMOLD(NOLD)
+
+      DEALLOCATE(EQF)
+      END SUBROUTINE NEWMSH
+
+C     ---------- ------
+      SUBROUTINE INTWTS(N,Z,X,WTS)
+
+C Generates weights for Lagrange interpolation.
+
+      INTEGER, INTENT(IN) :: N
+      DOUBLE PRECISION, INTENT(IN) :: Z, X(0:N)
+      DOUBLE PRECISION, INTENT(OUT) :: WTS(0:N)
+
+      INTEGER IB,K
+      DOUBLE PRECISION P
+
+       DO IB=0,N
+         P=1.d0
+         DO K=0,N
+           IF(K/=IB)THEN
+             P=P*( Z-X(K) )/( X(IB)-X(K) )
+           ENDIF
+         ENDDO
+         WTS(IB)=P
+       ENDDO
+
+      END SUBROUTINE INTWTS
+
+C     ---------- ----
+      SUBROUTINE EQDF(NTST,NDIM,NCOL,DTM,UPS,NDOLD,EQF,IPER)
+
+      DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
+
+      INTEGER, INTENT(IN) :: NTST,NDIM,NCOL,NDOLD
+      LOGICAL, INTENT(IN) :: IPER
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:NTST*NCOL),DTM(NTST)
+      DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
+
+C Local
+      DOUBLE PRECISION SC,E,PWR,DTAV,ND
+      DOUBLE PRECISION, ALLOCATABLE :: HD(:)
+      LOGICAL SMALL
+      INTEGER I,J,WH(0:NCOL)
+
+       ALLOCATE(HD(NDIM))
+       CALL CNTDIF(NCOL,WH)
+
+C Compute approximation to NCOL-th and (NCOL+1)-st derivative
+C and define the equidistribution function :
+
+       SMALL=.TRUE.
        PWR=1.d0/(NCOL+1.d0)
-       EQF(1)=0.d0
+       EQF(0)=0.d0
        DO J=1,NTST
          E=0.d0
+         SC=(NCOL/DTM(J))**NCOL
          DO I=1,NDIM
-           E=E+DABS( HD(I,J) )**PWR
+           ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
+           IF(J>1)THEN
+             E=E+ABS( 2*( ND-HD(I) )/(DTM(J-1)+DTM(J)) )**PWR
+           ENDIF
+           IF(ABS(ND)>HMACH)SMALL=.FALSE.
+           HD(I)=ND
          ENDDO
-         EQF(J+1)=EQF(J)+DTM(J)*E
+         IF(J>1)EQF(J-1)=EQF(J-2)+DTM(J-1)*E
        ENDDO
-C
+
+       E=0.d0
+       IF(IPER)THEN
+C      *Extend by periodicity :
+         J=1
+         DTAV=(DTM(NTST)+DTM(1))/2
+       ELSE
+C      *Extend by extrapolation :
+         J=NTST-1
+         DTAV=DTM(NTST)
+       ENDIF
+       SC=(NCOL/DTM(J))**NCOL
+       DO I=1,NDIM
+         ND=SC*DOT_PRODUCT(WH(:),UPS(I,(J-1)*NCOL:J*NCOL))
+         E=E+ABS( (ND-HD(I))/DTAV )**PWR
+         IF(ABS(ND)>HMACH)SMALL=.FALSE.
+       ENDDO
+       EQF(NTST)=EQF(NTST-1)+DTM(NTST)*E
+
+C Take care of "small derivative" case.
+
+       IF(SMALL)THEN
+         DO I=0,NTST
+            EQF(I)=I
+         ENDDO
+       ENDIF
+
        DEALLOCATE(HD)
       END SUBROUTINE EQDF
-C
+
 C     ---------- ------
       SUBROUTINE CNTDIF(N,D)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
+
 C Generates the coefficients of the central difference formula for
 C Nth derivative at uniformly spaced points
-C
-      DIMENSION D(*)
-C
-       D(1)=1.d0
+      INTEGER, INTENT(IN) :: N
+      INTEGER, INTENT(OUT) :: D(0:N)
+
+      INTEGER I,K
+
+       D(0)=1
        IF(N.EQ.0)RETURN
-C
+
        DO I=1,N
-         D(I+1)=0.d0
-         DO K=1,I
-           K1=I+2-K
-           D(K1)=D(K1-1)-D(K1)
+         D(I)=0
+         DO K=I,1,-1
+           D(K)=D(K-1)-D(K)
          ENDDO
-         D(1)=-D(1)
+         D(0)=-D(0)
        ENDDO
-C
-C Scale to [0,1]  :
-C
-       SC=N**N
-       NP1=N+1
-       DO I=1,NP1
-         D(I)=SC*D(I)
-       ENDDO
-C
+
       END SUBROUTINE CNTDIF
-C
+
 C     ---------- ------
-      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,NDX,UPS,UDOTPS,
-     *  TM,DTM,NPAR)
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      DIMENSION UPS(NDX,*),UDOTPS(NDX,*),TM(*),DTM(*)
-      DIMENSION PAR(*),ICP(*),RLDOT(*)
-C
+      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,UDOTPS,
+     &     TM,NPAR)
+
+      IMPLICIT NONE
+
+      INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,ISW,ICP(*),NPAR
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*),UDOTPS(NDIM,0:*),
+     &     TM(0:*),PAR(*),RLDOT(*)
+
+      INTEGER IBR,ITP,NFPR,NTOT,LAB,NTPL,NAR,NRD,NROWPR,MTOT
+
        ITP=9
        NFPR=1
        IBR=1
        NTOT=1
        LAB=1
-C
+
 C Write information identifying the solution :
-C
+
        NTPL=NCOL*NTST+1
        NAR=NDIM+1
        NRD=(NDIM+7)/7+(NDIM+6)/7
-       NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7
-     *                          + (NFPR+19)/20
-C
-       MTOT=MOD(NTOT,10000)
+       NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
+       MTOT=MOD(NTOT-1,9999)+1
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,
-     *             NTST,NCOL,NPAR
-C
+     &      NTST,NCOL,NPAR
+
 C Write the entire solution on unit 8 :
-C
-       DO J=1,NTST
-         RN=1.d0/NCOL
-         DO I=1,NCOL
-           K1=(I-1)*NDIM+1
-           K2=I*NDIM
-           T=TM(J)+(I-1)*RN*DTM(J)
-           WRITE(8,102)T,(UPS(K,J),K=K1,K2)
-         ENDDO
+
+       DO J=0,NTST*NCOL
+         T=TM(J/NCOL)+MOD(J,NCOL)*(TM(J/NCOL+1)-TM(J/NCOL))/NCOL
+         WRITE(8,102)T,UPS(:,J)
        ENDDO
-       WRITE(8,102)TM(NTST+1),(UPS(I,NTST+1),I=1,NDIM)
-C
+
 C Write the free parameter indices:
-C
+
        WRITE(8,103)(ICP(I),I=1,NFPR)
-C
+
 C Write the direction of the branch:
-C
+
        WRITE(8,102)(RLDOT(I),I=1,NFPR)
-       DO J=1,NTST
-         DO I=1,NCOL
-           K1=(I-1)*NDIM+1
-           K2=I*NDIM
-           WRITE(8,102)(UDOTPS(K,J),K=K1,K2)
-         ENDDO
+       DO J=0,NTST*NCOL
+         WRITE(8,102)UDOTPS(:,J)
        ENDDO
-       WRITE(8,102)(UDOTPS(K,NTST+1),K=1,NDIM)
-C
+
 C Write the parameter values.
-C
+
        WRITE(8,102)(PAR(I),I=1,NPAR)
-C
+
  101   FORMAT(6I6,I8,I6,I8,3I5)
- 102   FORMAT(4X,1P7E19.10)
+ 102   FORMAT(4X,7ES19.10)
  103   FORMAT(20I5)
-C
-      RETURN
+
       END SUBROUTINE WRTBV8
 
       END PROGRAM AUTCON
