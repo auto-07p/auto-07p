@@ -16,6 +16,10 @@ class bifDiag(parseB.parseBR):
             #filebased
             self.filenames = [fort7_filename,fort8_filename,fort9_filename]
             return
+        self.__realinit(fort7_filename,fort8_filename,fort9_filename)
+
+    def __realinit(self,fort7_filename,fort8_filename,fort9_filename):
+        options = self.options
         parseB.parseBR.__init__(self,fort7_filename)
         if type(fort7_filename) == types.ListType:
             return
@@ -49,8 +53,8 @@ class bifDiag(parseB.parseBR):
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
         if attr == 'data' and hasattr(self,'filenames'):
-            self.__init__(self.filenames[0], self.filenames[1],
-                          self.filenames[2])
+            self.__realinit(self.filenames[0], self.filenames[1],
+                            self.filenames[2])
             del self.filenames
             return self.data
         raise AttributeError

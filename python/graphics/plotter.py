@@ -145,10 +145,18 @@ class plotter(grapher.GUIGrapher):
 
     def _plotNoDraw(self):
         self.delAllData()
-        if self.cget("type") == "bifurcation" and len(self.cget("bifurcation_diagram")) > 0:
-            self.__plot7()
-        if self.cget("type") == "solution" and len(self.cget("solution")) > 0:
-            self.__plot8()
+        ty = self.cget("type")
+        columns = [self.cget(ty+"_x"),self.cget(ty+"_y")]
+        for coord in range(2):
+            if type(columns[coord]) != type([]):
+                columns[coord] = [columns[coord]]
+            if len(columns[coord]) == 1:
+                columns[coord] = columns[coord] * len(columns[1-coord])
+        [xcolumns,ycolumns] = columns
+        if ty == "bifurcation" and len(self.cget("bifurcation_diagram")) > 0:
+            self.__plot7(columns[0],columns[1])
+        if ty == "solution" and len(self.cget("solution")) > 0:
+            self.__plot8(columns[0],columns[1])
 
     def plot(self):
         self._plotNoDraw()
@@ -158,15 +166,13 @@ class plotter(grapher.GUIGrapher):
         grapher.GUIGrapher.plot(self)
         self.draw()
 
-    def __plot7(self):
+    def __plot7(self,xcolumns,ycolumns):
         symbollist = [
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
             [[3],   "hopf_symbol"],
             [[8],   "torus_symbol"],
             [[-4],  "user_point_symbol"]]
-        xcolumns = self.cget("bifurcation_x")
-        ycolumns = self.cget("bifurcation_y")
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
         coordnames = []
@@ -241,27 +247,19 @@ class plotter(grapher.GUIGrapher):
         xlabel = self["xlabel"]
         xcol = xcolumns[0]
         if type(xcol) == type(1):
-            if xcol == -1:
-                xcol = indepvarname
-            else:
-                xcol = coordnames[xcol]
+            xcol = coordnames[xcol]
         if self.config("xlabel")[3] is None:
             xlabel = xcol
         ylabel = self["ylabel"]
         ycol = ycolumns[0]
         if type(ycol) == type(1):
-            if ycol == -1:
-                ycol = indepvarname
-            else:
-                ycol = coordnames[ycol]
+            ycol = coordnames[ycol]
         if self.config("ylabel")[3] is None:
             ylabel = ycol
         grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
 
-    def __plot8(self):
+    def __plot8(self,xcolumns,ycolumns):
         self.delAllData()
-        xcolumns = self.cget("solution_x")
-        ycolumns = self.cget("solution_y")
         indepvarname = self.cget("solution").indepvarname
         if self.cget("solution_indepvarname"):
             indepvarname = self.cget("solution_indepvarname")
@@ -329,13 +327,19 @@ class plotter(grapher.GUIGrapher):
                 index = index + 10
                 if index > len(tm):
                     index = 14
-            xlabel = self["xlabel"]
-            if self.config("xlabel")[3] is None:
-                xlabel = xnames[2:]
-            ylabel = self["ylabel"]
-            if self.config("ylabel")[3] is None:
-                ylabel = ynames[2:]
-            grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
+            label = {}
+            for coord in ["x","y"]:
+                label[coord] = self[coord+"label"]
+                if self.config(coord+"label")[3] is None:
+                    names = {"x": xnames, "y": ynames}[coord]
+                    columns = {"x": xcolumns, "y": ycolumns}[coord]
+                    origcolumns = self.cget("solution_"+coord)
+                    if type(origcolumns) != type([]) or len(origcolumns) == 1:
+                        label[coord] = names[2:len(names)/len(columns)]
+                    else:
+                        label[coord] = names[2:]
+            grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
+                                             ylabel=label["y"])
 
 
 def test():
