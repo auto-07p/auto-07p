@@ -41,6 +41,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     s.options = options.copy()
                     s.options["constants"] = parseC.parseC(options["constants"])
                     s.options["solution"] = s
+                options["solution"] = solution
             if fort7_filename is None:
                 # similate a bifurcation diagram
                 labels = {}

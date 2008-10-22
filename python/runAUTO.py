@@ -244,16 +244,19 @@ class runAUTO:
             os.remove("fort.2")
         if self.options["constants"] is None:
             raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
-        if isinstance(self,parseS.AUTOSolution):
-            self.options["constants"]["IRS"] = self["Label"]
+        solution = self.options["solution"]
+        if isinstance(solution,parseS.AUTOSolution):
+            self.options["constants"]["IRS"] = solution["Label"]
+        elif isinstance(solution,parseS.parseS) and len(solution) == 1:
+            self.options["constants"]["IRS"] = solution[0]["Label"]
         self.options["constants"].writeFilename("fort.2")
 
         if os.path.exists("fort.3"):
             os.remove("fort.3")
-        if (self.options["solution"] is None):
+        if solution is None:
             open("fort.3","wb").close()
         else:
-            self.options["solution"].writeFilename("fort.3")
+            solution.writeFilename("fort.3")
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
