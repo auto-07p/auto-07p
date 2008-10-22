@@ -8,24 +8,23 @@ import os,compute_lps
 print "\n***Compute s.start"
 if not os.path.exists('s.start'):
     compute_lps.compute()
+start=load(e='r3b',s='start')
+[HBL1,HBV1] = start(['HB'])[:2]
 
 print "\n***Lagrange family L1***"
-ld(e='r3b',c='r3b.L1',s="start")
-run()
-sv('L1')
-rl('L1')
+L1=run(HBL1,c='r3b.L1')
+rl(L1)
+sv(L1,'L1')
 
 print "\n***Halo family H1***"
-ld(e='r3b',c='r3b.H1',s='L1')
-run()
-sv('H1')
-rl('H1')
+H1=run(L1('BP'),c='r3b.H1')
+rl(H1)
+sv(H1,'H1')
 
 print "\n***Vertical family V1***"
-ld(e='r3b',c='r3b.V1',s="start")
-run()
-sv('V1')
-rl('V1')
+V1=run(HBV1,c='r3b.V1')
+rl(V1)
+sv(V1,'V1')
 
 print "\n***Clean the directory***"
 cl()
