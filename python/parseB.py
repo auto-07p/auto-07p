@@ -80,6 +80,7 @@ class BDPointData(UserList.UserList):
             for i in range(len(self.branch.coordarray)):
                 data.append(self.branch.coordarray[i][self.index])
             return data
+        raise AttributeError
     def __setitem__(self, i, item):
         self.branch.coordarray[i][self.index] = item
     def __str__(self):

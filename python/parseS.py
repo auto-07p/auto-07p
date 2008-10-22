@@ -208,6 +208,7 @@ class SLPointKey(UserList.UserList):
             for i in range(len(self.solution.coordarray)):
                 data.append(self.solution.coordarray[i][self.index])
             return data
+        raise AttributeError
     def __setitem__(self, i, item):
         self.solution.coordarray[i][self.index] = item
     def __str__(self):

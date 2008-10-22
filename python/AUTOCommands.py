@@ -1031,9 +1031,9 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         dict = self.__applyRunnerConfigResolveFilenames(dict)
         self.runner.config(dict)
         data = None
-        if self.sname is not None:
+        if self.sname is not None and self.runner.options["solution"]:
             bname = self. _applyTemplate(self.sname,"bifurcationDiagram")
-            sname = self. _applyTemplate(self.sname,"solution")
+            sname = self.runner.options["solution"]
             dname = self. _applyTemplate(self.sname,"diagnostics")
             data = bifDiag.bifDiag(bname,sname,dname,self.runner.options)
         return valueStringAndData("Runner configured\n",data)
@@ -1171,7 +1171,7 @@ class commandSetDirectory(commandWithRunner):
         self.runner.config(dir=self.directory)
         return valueString("Directory set to %s\n"%self.directory)
 
-class commandRun(commandWithRunner):
+class commandRun(commandWithRunner,commandWithFilenameTemplate):
     """Run AUTO.
 
     Type FUNC([options]) to run AUTO with the given options.
@@ -1219,10 +1219,12 @@ class commandRun(commandWithRunner):
         func()
         func=commandRunMakefileWithSetup(runner=self.runner)
         ret=func()
-        if self.sv is not None:
-            bname = self. _applyTemplate(self.sv,"bifurcationDiagram")
-            sname = self. _applyTemplate(self.sv,"solution")
-            dname = self. _applyTemplate(self.sv,"diagnostics")            
+        if self.sv is not None:            
+            commandWithFilenameTemplate.__init__(self,self.sv,None,
+                                                 self.templates)
+            bname = self.name1["bifurcationDiagram"]
+            sname = self.name1["solution"]
+            dname = self.name1["diagnostics"]
             ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(
                 bname,sname,dname)
         if self.ap is not None:
