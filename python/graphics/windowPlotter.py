@@ -294,8 +294,10 @@ class WindowPlotter2D(WindowPlotter):
                     if type(xylist[i]) == type(1):
                         if xylist[i] == -1:    
                             xylist[i] = string.strip(indepvarname)
-                        else:
+                        elif coordnames != []:
                             xylist[i] = string.strip(coordnames[xylist[i]])
+                        else:
+                            xylist[i] = str(i)
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []

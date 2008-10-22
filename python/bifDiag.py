@@ -5,12 +5,15 @@ import parseB
 import parseC
 import parseS
 import parseD
+import Points
 import types
 import AUTOExceptions
+import runAUTO
 
-class bifDiag(parseB.parseBR):
+class bifDiag(parseB.parseBR,runAUTO.runAUTO):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
                  options=None):
+        runAUTO.runAUTO.__init__(self)
         self.options = options
         if options is not None and options["constants"]['sv'] is not None:
             #filebased
@@ -20,7 +23,11 @@ class bifDiag(parseB.parseBR):
 
     def __realinit(self,fort7_filename,fort8_filename,fort9_filename):
         options = self.options
-        parseB.parseBR.__init__(self,fort7_filename)
+        try:
+            parseB.parseBR.__init__(self,fort7_filename)
+        except IOError:
+            parseB.parseBR.__init__(self)
+            fort7_filename = None
         if type(fort7_filename) == types.ListType:
             return
         if (fort8_filename is None) and not(fort7_filename is None) and not(
@@ -34,8 +41,31 @@ class bifDiag(parseB.parseBR):
                     s.options = options.copy()
                     s.options["constants"] = parseC.parseC(options["constants"])
                     s.options["solution"] = s
+            if fort7_filename is None:
+                # similate a bifurcation diagram
+                labels = {}
+                i = 0
+                br = 0
+                for s in solution:
+                    br = s["Branch number"]
+                    pt = s["Point number"]
+                    ty = s["Type number"]
+                    lab = s["Label"]
+                    key = parseB.type_translation(ty)["short name"]
+                    labels[i] = {key: {"LAB":lab,"TY number":ty,"PT":pt}}
+                    i = i+1
+                branch = parseB.AUTOBranch()
+                branch.BR = br
+                branch.labels = Points.PointInfo(labels)
+                branch.coordarray = []
+                branch.coordnames = []
+                branch.headernames = []
+                self.append(branch)
             if not fort9_filename is None:
-                diagnostics = parseD.parseD(fort9_filename)
+                try:
+                    diagnostics = parseD.parseD(fort9_filename)
+                except IOError:
+                    pass
         else:
             solution = fort8_filename
             diagnostics = fort9_filename

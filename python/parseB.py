@@ -140,6 +140,7 @@ class BDPoint(Points.Point):
 # a branch within the parseB class
 class AUTOBranch(Points.Pointset):
     def __init__(self,input=None,prevline=None,coordnames=[]):
+        self.__fullyParsed = True
         if input is not None:
             self.read(input,prevline)
             self.__fullyParsed = False
@@ -250,6 +251,8 @@ class AUTOBranch(Points.Pointset):
     def __len__(self):
         if not self.__fullyParsed:
             return len(self.__datalist)
+        if self.coordarray == []:
+            return 0
         return Points.Pointset.__len__(self)
 
     # Removes solutions with the given labels or type names
@@ -444,11 +447,11 @@ class AUTOBranch(Points.Pointset):
     def summary(self):
         slist = []
         data = self.coordarray
+        output_line = ["\n  BR    PT  TY  LAB "]
         if self.headernames != []:
-            output_line = ["\n  BR    PT  TY  LAB "]
             for name in self.headernames:
                 output_line.append("%-14s"%name)
-            slist.append(string.join(output_line,""))
+        slist.append(string.join(output_line,""))
         for index,l in self.labels.sortByIndex():
             label = {}
             for k,v in l.items():

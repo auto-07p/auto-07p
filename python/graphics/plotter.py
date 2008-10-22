@@ -153,7 +153,8 @@ class plotter(grapher.GUIGrapher):
             if len(columns[coord]) == 1:
                 columns[coord] = columns[coord] * len(columns[1-coord])
         [xcolumns,ycolumns] = columns
-        if ty == "bifurcation" and len(self.cget("bifurcation_diagram")) > 0:
+        if (ty == "bifurcation" and len(self.cget("bifurcation_diagram")) and
+            len(self.cget("bifurcation_diagram")[0])):
             self.__plot7(columns[0],columns[1])
         if ty == "solution" and len(self.cget("solution")) > 0:
             self.__plot8(columns[0],columns[1])

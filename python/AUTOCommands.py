@@ -973,6 +973,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         self.configDict = dict
     
     def __applyRunnerConfigResolveAbbreviation(self,kw={}):
+        self.sname = None
         abbrev = {}
         abbrev["e"]         = "equation"
         abbrev["equation"]  = "equation"
@@ -984,7 +985,8 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         abbrev["homcont"]   = "homcont"
         for key in kw.keys():
             # remove long duplicates
-            if key in abbrev.keys() and key != abbrev[key]:
+            if (abbrev.has_key(key) and key != abbrev[key] and
+                kw.has_key(abbrev[key])):
                 del kw[abbrev[key]]
         for key,value in kw.items():
             if abbrev.has_key(key):
@@ -992,6 +994,8 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 del kw[key]
                 if type(value) == types.StringType:
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
+                    if abbrev[key] == "solution":
+                        self.sname = value
                 else:
                     kw[abbrev[key]] = value
         return kw
@@ -1026,7 +1030,13 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         dict = self.__applyRunnerConfigResolveAbbreviation(self.configDict)
         dict = self.__applyRunnerConfigResolveFilenames(dict)
         self.runner.config(dict)
-        return valueString("Runner configured\n")
+        data = None
+        if self.sname is not None:
+            bname = self. _applyTemplate(self.sname,"bifurcationDiagram")
+            sname = self. _applyTemplate(self.sname,"solution")
+            dname = self. _applyTemplate(self.sname,"diagnostics")
+            data = bifDiag.bifDiag(bname,sname,dname,self.runner.options)
+        return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):
     """Load files into the AUTO runner.
@@ -1210,8 +1220,11 @@ class commandRun(commandWithRunner):
         func=commandRunMakefileWithSetup(runner=self.runner)
         ret=func()
         if self.sv is not None:
+            bname = self. _applyTemplate(self.sv,"bifurcationDiagram")
+            sname = self. _applyTemplate(self.sv,"solution")
+            dname = self. _applyTemplate(self.sv,"diagnostics")            
             ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(
-                'b.'+self.sv,'s.'+self.sv,'d.'+self.sv)
+                bname,sname,dname)
         if self.ap is not None:
             if self.sv is None:
                 func=commandAppend(self.ap)
