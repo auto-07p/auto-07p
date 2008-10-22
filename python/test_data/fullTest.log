@@ -1,52 +1,60 @@
 Runner configured
-cp: omitting directory `/home/amavisitors/redrod/src/auto/2000/demos/pp2/CVS'Copying demo pp2 ... done
+Copying demo wav ... done
 Runner configured
  ALIASES    DESCRIPTION
- ap append                Append data files.
+ append ap                Append data files.
  cat                      Print the contents of a file
  cd                       Change directories.
- clean cl                 Clean the current directory.
+ cl clean                 Clean the current directory.
  dm demo                  Copy a demo into the current directory and load it.
- copy cp                  Copy data files.
+ cp copy                  Copy data files.
  copydemo                 Copy a demo into the current directory.
- sv save                  Save data files.
+ save sv                  Save data files.
  gui                      Show AUTOs graphical user interface.
- delete dl                Delete data files.
+ dl delete                Delete data files.
  df deletefort            Clear the current directory of fort files.
- double db                Double a solution.
- man help                 Get help on the AUTO commands.
+ dlb                      Delete special labels.
+ dsp                      Delete special points.
+ db double                Double a solution.
+ man                      Get help on the AUTO commands.
+ klb                      Keep special labels.
+ ksp                      Keep special points.
  ls                       List the current directory.
- mv move                  Move data-files to a new name.
+ move                     Move data-files to a new name.
  cn constantsget          Get the current continuation constants.
  bt diagramandsolutionget Parse both bifurcation diagram and solution.
  dg diagramget            Parse a bifurcation diagram.
- sl solutionget           Parse solution file:
- p2 pl plot               2D plotting of data.
+ solutionget sl           Parse solution file:
+ plot pl p2               2D plotting of data.
  plot3 p3                 3D plotting of data.
- br bp branchpoint        Print the ``branch-point function''.
- eigenvalue ev eg         Print eigenvalues of Jacobian (algebraic case).
- fl floquet               Print the Floquet multipliers.
- hb hp hopf lp            Print the value of the ``Hopf function''.
+ bp br branchpoint        Print the ``branch-point function''.
+ eigenvalue eg ev         Print eigenvalues of Jacobian (algebraic case).
+ floquet fl               Print the Floquet multipliers.
+ lp hopf hp hb            Print the value of the ``Hopf function''.
  iterations it            Print the number of Newton interations.
  lm limitpoint            Print the value of the ``limit point function''.
- nt note                  Print notes in info file.
- sc secondaryperiod sp    Print value of ``secondary-periodic bif. fcn''.
- ss stepsize st           Print continuation step sizes.
+ note nt                  Print notes in info file.
+ secondaryperiod sp sc    Print value of ``secondary-periodic bif. fcn''.
+ stepsize ss st           Print continuation step sizes.
+ rl relabel               Relabel data files.
  rn run r                 Run AUTO.
  hch                      Modify continuation constants.
- changeconstant cc ch     Modify continuation constants.
+ changeconstant ch cc     Modify continuation constants.
  ld load                  Load files into the AUTO runner.
  hpr                      Print continuation parameters.
- pc pr printconstant      Print continuation parameters.
+ pr pc printconstant      Print continuation parameters.
  shell                    Run a shell command.
+ splabs                   Return special labels
  tr triple                Triple a solution.
- us userdata              Covert user-supplied data files.
+ userdata us              Convert user-supplied data files.
  wait                     Wait for the user to enter a key.
+ execfile ex              Execute an AUTO CLUI script.
+ demofile dmf             Execute an AUTO CLUI script, line by line (demo mode).
 
 Run AUTO.
 
     Type run([options]) to run AUTO with the given options.
-    There are four possible options:
+    There are four possible basic options:
     
     Long name   Short name    Description
     -------------------------------------------
@@ -60,244 +68,230 @@ Run AUTO.
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
+    You can also specify an sv='xxx' option to save to b.xxx, and so on,
+    or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards).
+
     Type run('name') load all files with base 'name'.
     This does the same thing as running
     run(e='name',c='name,s='name',h='name').
+
+    run('name','save') does the same thing as running
+    run(e='name',c='name,s='name',h='name',sv='save').
     
-Commmand name: commandRun
+Command name: commandRun
 Aliases: rn run r 
 Runner configured
-gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c pp2.c
-gcc -O pp2.o -o pp2.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
-Starting pp2 ...
+gfortran -fopenmp -O -c wav.f -o wav.o
+gfortran -fopenmp -O wav.o -o wav.exe /home/boldeman/auto/07p/lib/*.o
+Starting wav ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
-   1    14  BP   2  6.000000E-01  0.000000E+00  0.000000E+00  0.000000E+00
-   1    26  EP   3  1.200000E+00  0.000000E+00  0.000000E+00  0.000000E+00
- 
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   2    16  BP   4  8.219044E-01  3.333336E-01  3.333336E-01  0.000000E+00
-   2    19  LP   5  8.329293E-01  4.111619E-01  4.111619E-01  0.000000E+00
-   2    50  EP   6  7.892881E-02  9.731735E-01  9.731735E-01  0.000000E+00
- 
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   2    47  EP   7  7.484181E-04  2.021092E+00 -2.021092E+00  0.000000E+00
- 
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   3    11  HB   8  6.715938E-01  4.948663E-01  3.333333E-01  3.657615E-01
-   3    46  EP   9  6.406324E-03  2.012212E+00  3.333333E-01  1.984411E+00
- 
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   3    23  EP  10  1.209653E+00  1.000686E+00  3.333333E-01 -9.435367E-01
+  BR    PT  TY  LAB    PAR(3)        L2-NORM         U(1)          U(2)     
+   1     1  EP    1   5.00000E+02   1.08768E+02   6.27662E+01   8.88308E+01
+   1    47  LP    2   6.66144E+02   1.81841E+02   4.69085E+01   1.75687E+02
+   1    82  LP    3   6.30891E+02   7.49020E+01   3.23345E+01   6.75632E+01
+   1    94  HB    4   6.62202E+02   3.25591E+01   1.79875E+01   2.71394E+01
+   1   127  UZ    5   8.00000E+02   8.90053E+01   2.79228E+00   8.89614E+01
 
- Total Time    2.827E-02
-pp2 ... done
-Appending fort.7 to b.pp2 ... done
-Appending fort.8 to s.pp2 ... done
-Appending fort.9 to d.pp2 ... done
-Starting pp2 ...
+ Total Time    0.230E-01
+wav ... done
+Appending fort.7 to b.wav ... done
+Appending fort.8 to s.wav ... done
+Appending fort.9 to d.wav ... done
+Starting wav ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   3    24  EP  11  1.639174E+00  2.016464E+00  3.333333E-01 -1.988722E+00
+  BR    PT  TY  LAB    PAR(3)        L2-NORM         U(1)          U(2)          U(3)          U(4)     
+   1     1  EP    1   5.00000E+02   1.08768E+02   6.27662E+01   8.88308E+01   0.00000E+00   0.00000E+00
+   1    47  LP    2   6.66144E+02   1.81841E+02   4.69085E+01   1.75687E+02   0.00000E+00   0.00000E+00
+   1    82  LP    3   6.30891E+02   7.49020E+01   3.23345E+01   6.75632E+01   0.00000E+00   0.00000E+00
+   1    87  HB    4   6.35591E+02   5.49735E+01   2.74121E+01   4.76515E+01   0.00000E+00   0.00000E+00
+   1   128  UZ    5   8.00000E+02   8.90054E+01   2.79228E+00   8.89616E+01   0.00000E+00   0.00000E+00
 
- Total Time    1.090E-02
-pp2 ... done
-Appending fort.7 to b.pp2 ... done
-Appending fort.8 to s.pp2 ... done
-Appending fort.9 to d.pp2 ... done
-Starting pp2 ...
+ Total Time    0.301E-01
+wav ... done
+Appending fort.7 to b.wav ... done
+Appending fort.8 to s.wav ... done
+Appending fort.9 to d.wav ... done
+Starting wav ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM       MAX(1)        MAX(2)         PERIOD    
-   8     6  UZ  12  6.765295E-01  4.904253E-01  4.309354E-01  5.108299E-01  1.099995E+01
-   8    10  UZ  13  6.921110E-01  4.714657E-01  5.516740E-01  5.963101E-01  1.399885E+01
-   8    13  UZ  14  7.037283E-01  4.504823E-01  6.224366E-01  5.936510E-01  2.000673E+01
-   8    15  UZ  15  7.075772E-01  4.381817E-01  6.474717E-01  5.821662E-01  2.998662E+01
-   8    19  MX  16  7.080680E-01  4.299559E-01  6.517691E-01  5.800569E-01  5.444957E+01
+  BR    PT  TY  LAB    PAR(3)        L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      MAX U(4)       PERIOD    
+   4     2  MX    6   6.62202E+02   3.25591E+01   1.79875E+01   2.71394E+01   1.42644-153   6.01358-154   3.41183E+00
 
- Total Time    1.051E-01
-pp2 ... done
-Appending fort.7 to b.pp2 ... done
-Appending fort.8 to s.pp2 ... done
-Appending fort.9 to d.pp2 ... done
-Starting pp2 ...
- 
-  BR    PT  TY LAB    PAR(0)        L2-NORM       MAX(1)        MAX(2)         PERIOD    
-   8    13  MX  17  7.080728E-01  4.253023E-01  6.518110E-01  5.813729E-01  8.807907E+01
-
- Total Time    1.246E-01
-pp2 ... done
-Appending fort.7 to b.pp2 ... done
-Appending fort.8 to s.pp2 ... done
-Appending fort.9 to d.pp2 ... done
-cp: omitting directory `/home/amavisitors/redrod/src/auto/2000/demos/cir/CVS'Copying demo cir ... done
+ Total Time    0.455E-02
+wav ... done
+Appending fort.7 to b.wav ... done
+Appending fort.8 to s.wav ... done
+Appending fort.9 to d.wav ... done
+Starting wav ...
+ Restart label    8 not found
+wav ... done
+Appending fort.7 to b.wav ... done
+Appending fort.8 to s.wav ... done
+Appending fort.9 to d.wav ... done
+Copying demo cir ... done
 Runner configured
 NOTE: This command does not use filename templates
 Starting conversion of cir.dat : 
-(Required files : cir.c, c.cir, cir.dat)
+(Required files : cir.f, c.cir, cir.dat)
+Finished running: ./fcon
 Conversion done : converted file saved as s.dat
 Runner configured
-gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c cir.c
-gcc -O cir.o -o cir.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
 Starting cir ...
  
-  BR    PT  TY LAB     PERIOD       L2-NORM       MAX(1)        MAX(2)        MAX(3)        PAR(0)     
-   1    21  UZ   2  1.000000E+02  1.286637E-01  4.229868E-01  5.806155E-02  3.328556E-01 -7.213093E-01
-   1    42  UZ   3  2.000000E+02  9.097897E-02  4.232528E-01  5.800996E-02  3.328461E-01 -7.213092E-01
-   1    50  EP   4  2.400000E+02  8.305206E-02  4.231229E-01  5.806911E-02  3.328259E-01 -7.213092E-01
+  BR    PT  TY  LAB     PERIOD       L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      PAR(1)     
+   1    21  UZ    2   1.00000E+02   1.28664E-01   4.22987E-01   5.80615E-02   3.32856E-01  -7.21309E-01
+   1    42  UZ    3   2.00000E+02   9.09790E-02   4.23140E-01   5.80767E-02   3.32881E-01  -7.21309E-01
+   1    50  EP    4   2.40000E+02   8.30521E-02   4.22913E-01   5.80199E-02   3.32756E-01  -7.21309E-01
 
- Total Time    2.134E+00
+ Total Time    0.121E+00
 cir ... done
 Starting cir ...
  
-  BR    PT  TY LAB     PERIOD       L2-NORM       MAX(1)        MAX(2)        MAX(3)        PAR(0)     
-   1    21  UZ   2  1.000000E+02  1.286637E-01  4.229868E-01  5.806155E-02  3.328556E-01 -7.213093E-01
-   1    42  UZ   3  2.000000E+02  9.097897E-02  4.232528E-01  5.800996E-02  3.328461E-01 -7.213092E-01
-   1    50  EP   4  2.400000E+02  8.305206E-02  4.231229E-01  5.806911E-02  3.328259E-01 -7.213092E-01
+  BR    PT  TY  LAB     PERIOD       L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      PAR(1)     
+   1    21  UZ    2   1.00000E+02   1.28664E-01   4.22987E-01   5.80615E-02   3.32856E-01  -7.21309E-01
+   1    42  UZ    3   2.00000E+02   9.09790E-02   4.23140E-01   5.80767E-02   3.32881E-01  -7.21309E-01
+   1    50  EP    4   2.40000E+02   8.30521E-02   4.22913E-01   5.80199E-02   3.32756E-01  -7.21309E-01
 
- Total Time    2.121E+00
+ Total Time    0.123E+00
 cir ... done
 Saving fort.7 as b.cir ... done
 Saving fort.8 as s.cir ... done
 Saving fort.9 as d.cir ... done
-   1     3        Stepsize        1.500000E+00
-   1     4        Stepsize        1.650000E+00
-   1     5        Stepsize        1.815000E+00
-   1     6        Stepsize        1.996500E+00
-   1     7        Stepsize        2.196150E+00
-   1     8        Stepsize        2.415765E+00
-   1     9        Stepsize        2.657342E+00
-   1    10        Stepsize        2.923076E+00
-   1    11        Stepsize        3.215384E+00
-   1    12        Stepsize        3.536922E+00
-   1    13        Stepsize        3.890614E+00
-   1    14        Stepsize        4.279675E+00
-   1    15        Stepsize        4.707643E+00
-   1    16        Stepsize        5.000001E+00
-   1    17        Stepsize        5.000001E+00
-   1    18        Stepsize        5.000001E+00
-   1    19        Stepsize        5.000001E+00
-   1    20        Stepsize        5.000001E+00
-   1    21        Stepsize        5.000001E+00
- ==> Location of special point :  Iteration   0   Stepsize = -3.914E+00
-==> Location of special point : Convergence.    Stepsize =  3.857E-07
-   1    22        Stepsize        5.000001E+00
-   1    23        Stepsize        5.000001E+00
-   1    24        Stepsize        5.000001E+00
-   1    25        Stepsize        5.000001E+00
-   1    26        Stepsize        5.000001E+00
-   1    27        Stepsize        5.000001E+00
-   1    28        Stepsize        5.000001E+00
-   1    29        Stepsize        5.000001E+00
-   1    30        Stepsize        5.000001E+00
-   1    31        Stepsize        5.000001E+00
-   1    32        Stepsize        5.000001E+00
-   1    33        Stepsize        5.000001E+00
-   1    34        Stepsize        5.000001E+00
-   1    35        Stepsize        5.000001E+00
-   1    36        Stepsize        5.000001E+00
-   1    37        Stepsize        5.000001E+00
-   1    38        Stepsize        5.000001E+00
-   1    39        Stepsize        5.000001E+00
-   1    40        Stepsize        5.000001E+00
-   1    41        Stepsize        5.000001E+00
-   1    42        Stepsize        5.000001E+00
- ==> Location of special point :  Iteration   0   Stepsize = -5.000E+00
-==> Location of special point : Convergence.    Stepsize =  4.981E-07
-   1    43        Stepsize        5.000001E+00
-   1    44        Stepsize        5.000001E+00
-   1    45        Stepsize        5.000001E+00
-   1    46        Stepsize        5.000001E+00
-   1    47        Stepsize        5.000001E+00
-   1    48        Stepsize        5.000001E+00
-   1    49        Stepsize        5.000001E+00
-   1    50        Stepsize        5.000001E+00
-
-
-
-   1     2        Iterations       2
-   1     3        Iterations       3
-   1     4        Iterations       3
-   1     5        Iterations       3
-   1     6        Iterations       3
-   1     7        Iterations       3
-   1     8        Iterations       3
-   1     9        Iterations       3
-   1    10        Iterations       3
-   1    11        Iterations       3
-   1    12        Iterations       3
-   1    13        Iterations       3
-   1    14        Iterations       3
-   1    15        Iterations       3
-   1    16        Iterations       3
-   1    17        Iterations       3
-   1    18        Iterations       3
-   1    19        Iterations       3
-   1    20        Iterations       3
-   1    21        Iterations       2
-   1    22        Iterations       2
-   1    23        Iterations       3
-   1    24        Iterations       3
-   1    25        Iterations       3
-   1    26        Iterations       3
-   1    27        Iterations       3
-   1    28        Iterations       3
-   1    29        Iterations       3
-   1    30        Iterations       3
-   1    31        Iterations       3
-   1    32        Iterations       3
-   1    33        Iterations       3
-   1    34        Iterations       3
-   1    35        Iterations       3
-   1    36        Iterations       3
-   1    37        Iterations       3
-   1    38        Iterations       3
-   1    39        Iterations       3
-   1    40        Iterations       3
-   1    41        Iterations       3
-   1    42        Iterations       2
-   1    43        Iterations       2
-   1    44        Iterations       3
-   1    45        Iterations       3
-   1    46        Iterations       2
-   1    47        Iterations       2
-   1    48        Iterations       2
-   1    49        Iterations       2
+   1     2         Next Step    :   1.50000E+00
+   1     3         Next Step    :   1.65000E+00
+   1     4         Next Step    :   1.81500E+00
+   1     5         Next Step    :   1.99650E+00
+   1     6         Next Step    :   2.19615E+00
+   1     7         Next Step    :   2.41577E+00
+   1     8         Next Step    :   2.65734E+00
+   1     9         Next Step    :   2.92308E+00
+   1    10         Next Step    :   3.21538E+00
+   1    11         Next Step    :   3.53692E+00
+   1    12         Next Step    :   3.89061E+00
+   1    13         Next Step    :   4.27968E+00
+   1    14         Next Step    :   4.70764E+00
+   1    15         Next Step    :   5.00000E+00
+   1    16         Next Step    :   5.00000E+00
+   1    17         Next Step    :   5.00000E+00
+   1    18         Next Step    :   5.00000E+00
+   1    19         Next Step    :   5.00000E+00
+   1    20         Next Step    :   5.00000E+00
+ ==> Location of special point :  Convergence.   Step size =   3.85684E-07
+   1    21         Next Step    :   5.00000E+00
+   1    22         Next Step    :   5.00000E+00
+   1    23         Next Step    :   5.00000E+00
+   1    24         Next Step    :   5.00000E+00
+   1    25         Next Step    :   5.00000E+00
+   1    26         Next Step    :   5.00000E+00
+   1    27         Next Step    :   5.00000E+00
+   1    28         Next Step    :   5.00000E+00
+   1    29         Next Step    :   5.00000E+00
+   1    30         Next Step    :   5.00000E+00
+   1    31         Next Step    :   5.00000E+00
+   1    32         Next Step    :   5.00000E+00
+   1    33         Next Step    :   5.00000E+00
+   1    34         Next Step    :   5.00000E+00
+   1    35         Next Step    :   5.00000E+00
+   1    36         Next Step    :   5.00000E+00
+   1    37         Next Step    :   5.00000E+00
+   1    38         Next Step    :   5.00000E+00
+   1    39         Next Step    :   5.00000E+00
+   1    40         Next Step    :   5.00000E+00
+   1    41         Next Step    :   5.00000E+00
+ ==> Location of special point :  Convergence.   Step size =   4.98082E-07
+   1    42         Next Step    :   5.00000E+00
+   1    43         Next Step    :   5.00000E+00
+   1    44         Next Step    :   5.00000E+00
+   1    45         Next Step    :   5.00000E+00
+   1    46         Next Step    :   5.00000E+00
+   1    47         Next Step    :   5.00000E+00
+   1    48         Next Step    :   5.00000E+00
+   1    49         Next Step    :   5.00000E+00
 
 
 
 
-Deleting fort.* *.o *.exe ... done
-cp: omitting directory `/home/amavisitors/redrod/src/auto/2000/demos/ab/CVS'Copying demo ab ... done
+   1     2         Iterations   :   2
+   1     3         Iterations   :   3
+   1     4         Iterations   :   3
+   1     5         Iterations   :   3
+   1     6         Iterations   :   3
+   1     7         Iterations   :   3
+   1     8         Iterations   :   3
+   1     9         Iterations   :   3
+   1    10         Iterations   :   3
+   1    11         Iterations   :   3
+   1    12         Iterations   :   3
+   1    13         Iterations   :   3
+   1    14         Iterations   :   3
+   1    15         Iterations   :   3
+   1    16         Iterations   :   3
+   1    17         Iterations   :   3
+   1    18         Iterations   :   3
+   1    19         Iterations   :   3
+   1    20         Iterations   :   3
+   1    21         Iterations   :   2
+   1    22         Iterations   :   2
+   1    23         Iterations   :   3
+   1    24         Iterations   :   3
+   1    25         Iterations   :   3
+   1    26         Iterations   :   3
+   1    27         Iterations   :   3
+   1    28         Iterations   :   3
+   1    29         Iterations   :   3
+   1    30         Iterations   :   3
+   1    31         Iterations   :   3
+   1    32         Iterations   :   3
+   1    33         Iterations   :   3
+   1    34         Iterations   :   3
+   1    35         Iterations   :   3
+   1    36         Iterations   :   3
+   1    37         Iterations   :   3
+   1    38         Iterations   :   3
+   1    39         Iterations   :   3
+   1    40         Iterations   :   3
+   1    41         Iterations   :   3
+   1    42         Iterations   :   2
+   1    43         Iterations   :   2
+   1    44         Iterations   :   3
+   1    45         Iterations   :   3
+   1    46         Iterations   :   2
+   1    47         Iterations   :   2
+   1    48         Iterations   :   2
+   1    49         Iterations   :   2
+
+
+
+
+
+Deleting fort.* *.o *.exe *.*~ ... done
+Copying demo ab ... done
 Runner configured
 Deleting b.ab ... done
 Deleting s.ab ... done
 Deleting d.ab ... done
 Runner configured
-gcc -O -DPTHREADS -O -I/home/amavisitors/redrod/src/auto/2000/include -c ab.c
-gcc -O ab.o -o ab.exe /home/amavisitors/redrod/src/auto/2000/lib/*.o  -lpthread -L/home/amavisitors/redrod/src/auto/2000/lib -lauto_f2c -lm
+gfortran -fopenmp -O -c ab.f -o ab.o
+gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
-   1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
-   1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
-   1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
-   1    92  EP   5  1.512417E-01  4.369748E+00  9.155894E-01  4.272750E+00
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
+   1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+   1    31  UZ    2   1.40000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+   1    36  UZ    3   1.50000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+   1    41  UZ    4   1.60000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+   1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+   1    51  UZ    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    1.649E-02
+ Total Time    0.856E-02
 ab ... done
 RL1 changed to 0.4
 Starting ab ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM         U(1)          U(2)     
-   1     1  EP   1  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
-   1    33  LP   2  1.057390E-01  1.484391E+00  3.110230E-01  1.451441E+00
-   1    70  LP   3  8.893185E-02  3.288241E+00  6.889822E-01  3.215250E+00
-   1    90  HB   4  1.308998E-01  4.271867E+00  8.950803E-01  4.177042E+00
-   1   100  EP   5  4.061884E-01  4.651372E+00  9.745977E-01  4.548123E+00
+  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
+   1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    1.814E-02
+ Total Time    0.661E-03
 ab ... done
 Saving fort.7 as b.ab ... done
 Saving fort.8 as s.ab ... done
@@ -307,24 +301,23 @@ Appending fort.8 to s.ab ... done
 Appending fort.9 to d.ab ... done
 Starting ab ...
  
-  BR    PT  TY LAB    PAR(0)        L2-NORM       MAX(1)        MAX(2)         PERIOD    
-   4    30       6  1.198815E-01  3.987129E+00  9.919113E-01  7.020342E+00  2.721044E+00
-   4    60       7  1.153033E-01  3.146307E+00  9.995775E-01  9.957649E+00  6.147449E+00
-   4    90       8  1.056503E-01  2.219179E+00  9.991660E-01  9.366073E+00  1.399772E+01
-   4   120       9  1.055071E-01  1.696848E+00  9.992682E-01  9.309299E+00  9.956168E+01
-   4   150  EP  10  1.055071E-01  1.604555E+00  9.992947E-01  9.298441E+00  1.659432E+03
+  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)     
+   1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+   1    14  UZ    2   2.50000E-01   7.22011E-01   3.22893E-01   6.45786E-01
 
- Total Time    1.646E+00
+ Total Time    0.298E-02
 ab ... done
 Copying b.ab to b.double ... done
 Copying s.ab to s.double ... done
 Copying d.ab to d.double ... done
 Copying c.ab to c.double ... done
+Finished running: /home/boldeman/auto/07p/bin/double
 Solution doubling done.
 Renaming b.double as b.triple ... done
 Renaming s.double as s.triple ... done
 Renaming d.double as d.triple ... done
 Renaming c.double as c.triple ... done
+Finished running: /home/boldeman/auto/07p/bin/triple
 Solution doubling done.
 Parsed file: fort.8
 Parsed file: fort.7

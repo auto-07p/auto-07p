@@ -10,11 +10,6 @@ def %s(self,*args,**kw):
     return self._queueCommand(%s.%s,args,kw)
 """
 
-_functionTemplateAlias="""
-def %s(self,*args,**kw):
-    return apply(%s,args,kw)
-"""
-
 class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
         # Initialize the output recorder (if any)
@@ -32,7 +27,7 @@ class AUTOSimpleFunctions:
         # Now I resolve the aliases
         for key, alias in self._aliases.items():
             AUTOSimpleFunctions.__dict__[key] = getattr(self, alias)
-            exec _functionTemplateAlias%(key,alias)
+            exec _functionTemplate%(key,"AUTOCommands",alias)
             AUTOSimpleFunctions.__dict__[key] = locals()[key]
             doc = getattr(AUTOCommands,alias).__doc__
             doc = self._adjustdoc(doc, key, alias)
@@ -77,7 +72,7 @@ class AUTOSimpleFunctions:
         # but it seems to work.
         command = apply(commandType,args,kw)
         output = command()
-        if not(self.__outputRecorder is None):
+        if self.__outputRecorder is not None:
             self.__outputRecorder.write(str(output))
         sys.stdout.write(str(output))
         # check to see if the command returned any data.  If so, pass it on.

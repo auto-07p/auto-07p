@@ -8,6 +8,7 @@ import AUTOclui
 import getopt
 import re
 import AUTOExceptions
+import __builtin__
 
 class AUTOInteractiveConsole(code.InteractiveConsole):
     def __init__(self,locals,filename=None):
@@ -125,7 +126,7 @@ Aliases: execfile ex"""
         oname_parts = string.split(oname,'.')
         oname_head, oname_rest = oname_parts[0],oname_parts[1:]
         # Namespaces to search in:
-        for ns in [ self.locals, __builtins__.__dict__ ]:
+        for ns in [ self.locals, __builtin__.__dict__ ]:
             try:
                 obj = ns[oname_head]
             except KeyError:
@@ -216,6 +217,17 @@ Aliases: execfile ex"""
             return line
         return line
 
+def _setbuiltins(runner):
+    __builtin__.execfile = runner.execfile
+    __builtin__.ex = runner.ex
+    __builtin__.demofile = runner.demofile
+    __builtin__.dmf = runner.dmf
+    try:
+        runner.oldhelp = __builtin__.help
+    except:
+        pass
+    __builtin__.help = runner.help    
+
 def test():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
@@ -230,6 +242,7 @@ def _testFilename(inputname,outputname):
     old_path = os.getcwd()
     log = open("log","w")
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
+    _setbuiltins(runner)
     runner.execfile(inputname)
     log.close()
     os.chdir(old_path)
@@ -317,15 +330,7 @@ if __name__ == "__main__":
         pass
 
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions())
-    __builtins__.execfile = runner.execfile
-    __builtins__.ex = runner.ex
-    __builtins__.demofile = runner.demofile
-    __builtins__.dmf = runner.dmf
-    try:
-        runner.oldhelp = __builtins__.help
-    except:
-        pass
-    __builtins__.help = runner.help
+    _setbuiltins(runner)
 
     if len(args) > 0:
         for arg in args:

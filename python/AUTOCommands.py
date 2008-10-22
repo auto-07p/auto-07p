@@ -698,14 +698,14 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
         try:
             for s in f:
                 if self.diagnostic in s:
-                    sys.stdout.write(s)
+                    rval.info(s)
         except:
             while 1:
                 s = f.readline()
                 if s == "":
                     break
                 if string.find(s,self.diagnostic) != -1:
-                    sys.stdout.write(s)
+                    rval.info(s)
         f.close()
         rval.info("\n")
         return rval
@@ -1804,9 +1804,9 @@ def test():
 
     runner = runAUTO.runAUTO()
     
-    clean      = commandRunDemo("ab","clean",runner)
-    first      = commandRunDemo("ab","first",runner)
-    second     = commandRunDemo("ab","second",runner)
+    clean      = commandRunDemo("wav","clean",runner)
+    first      = commandRunDemo("wav","first",runner)
+    second     = commandRunDemo("wav","second",runner)
     tmacro     = commandMacro((clean,first,first))
     printer    = commandPrintFunc(print_test,"Hello World")
     quiet      = commandRunnerConfig(runner,verbose="no")

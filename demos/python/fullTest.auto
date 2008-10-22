@@ -1,5 +1,5 @@
-# This is a sample AUTO2000 script file.  This file uses the
-# entire AUTO2000 command set, except for the plotting commands.
+# This is a sample AUTO-07P script file.  This file uses the
+# entire AUTO-07P command set, except for the plotting commands.
 # Accordingly, some of the command sequences are not optimal
 # (i.e. some of the same functionality can be accomplished
 # with fewer commands).
@@ -19,35 +19,35 @@ cd /tmp
 # Go into the newly created test directory
 cd test
 # Copy the pp2 demo into the current directory.  This command
-# also loads in the problem definition file pp2.c and the
-# constants file c.pp2.  Basically, the 'dm' command is
+# also loads in the problem definition file wav.c and the
+# constants file c.wav.  Basically, the 'dm' command is
 # the concatenation of the 'copyDemo' command and the
 # 'ld' command
-dm("pp2")
-# Check what files are in the current directory
+dm("wav")
+# Check what files are in the current directory	
 ls
 # Print out the short online help for all the commands
-help
+man
 # Print out the long online help for the 'run' command
-help run
-# Print out the contents of the c.pp2.1 file
-cat c.pp2.1
-# Load the files pp2.c, c.pp2, s.pp2, and h.pp2 into the AUTO
-# command interpretor.   If either the s.pp2 or the h.pp2 file
+man run
+# Print out the contents of the c.wav.1 file
+cat c.wav
+# Load the files wav.c, c.wav, s.wav, and h.wav into the AUTO
+# command interpretor.   If either the s.wav or the h.wav file
 # does not exist it is silently ignored, since they are not
 # necessarily required to run AUTO.  NOTE:  in this case this
 # command is not needed since its functionality is included
 # in the 'dm' command.  It is put here for clarity.
-ld("pp2")
+ld("wav")
 # This loop runs the AUTO using each of the constants files
-# c.pp2.1, c.pp2.2, c.pp2.3, c.pp2.4, and c.pp2.5.  The
-# results of each computation are appended to the file s.pp2,
+# c.wav.1, c.wav.2, c.wav.3, c.wav.4, and c.wav.5.  The
+# results of each computation are apwavded to the file s.wav,
 # which is read back in to provide starting data for the
-# next calculation.  Note the Python syntax 'c="pp2.%d"%i', which
+# next calculation.  Note the Python syntax 'c="wav.%d"%i', which
 # use to generate the constants file names.
 for i in range(1,5):
-  rn(c="pp2.%d"%i,s="pp2")
-  ap("pp2")
+  rn(c="wav.%d"%i,s="wav")
+  ap("wav")
 # Remove all files from the current directory.
 ! rm -f *
 # We set a Python variable to contain the name of the next
@@ -128,7 +128,7 @@ cp(demo,"double")
 db("double")
 # Move the files d.double, s.double, and b.double to
 # d.triple, s.triple, and b.triple
-mv("double","triple")
+move("double","triple")
 # 'Triple' the solutions in d.triple, s.triple, and b.triple.  This
 # is used to compute period tripling bifurcations.
 tr("triple")
