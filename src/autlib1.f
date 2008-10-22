@@ -160,8 +160,9 @@ C
       NFPR=IAP(29)
 
       FOUND=.FALSE.
-      IF(IRS.GT.0) THEN
+      IF(IRS.NE.0) THEN
          CALL FINDLB(SFILE,IAP,IRS,NFPR,NPARR,FOUND)
+         IAP(3)=IRS
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
             WRITE(6,"(' Restart label ',I4,' not found')")IRS
