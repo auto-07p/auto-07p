@@ -55,9 +55,9 @@ $(EXE): $(OBJ) $(LIBS)
 	  $(CC) $(CFLAGS) $(OPT) -c $< -o $@; \
 	fi
 #
+FLAGS=-I$(AUTO_DIR)/include $(OPT)
+FCON=$(AUTO_DIR)/src/fcon.f
 fcon: $(AUTO_DIR)/src/fcon.f $(AUTO_DIR)/include/fcon.h
-	FLAGS=-I$(AUTO_DIR)/include $(OPT)
-	FCON=$(AUTO_DIR)/src/fcon.f
 	@if [ -f $(EQUATION_NAME).f90 ]; then \
 	  $(FC) $(FLAGS) $(FFLAGS) $(EQUATION_NAME).f90 $(FCON) -o $@; \
 	elif [ -f $(EQUATION_NAME).f ]; then \

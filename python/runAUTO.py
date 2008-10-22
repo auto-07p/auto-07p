@@ -295,7 +295,7 @@ class runAUTO:
                 src = equation+ext
         if src == "":
             print "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
-                equation)
+                equation,equation,equation)
             return
         # compile
         if not os.path.exists(equation+'.o') or self.__newer([src],
@@ -309,7 +309,8 @@ class runAUTO:
             if self.options["verbose"] == "yes":
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
-            self.__runCommand(cmd)
+            if not self.__runCommand(cmd):
+                return False
         # link
         libdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"lib")
         libs = os.path.join(libdir,"*.o")
@@ -325,7 +326,8 @@ class runAUTO:
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = string.replace(cmd, libs, string.join(deps[:-1]," "))
-            self.__runCommand(cmd)
+            if not self.__runCommand(cmd):
+                return False
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
 
     def runMakefileWithSetup(self,equation=None):
@@ -483,7 +485,17 @@ class runAUTO:
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(stderr.read())
                     self.options["verbose_print"].flush()
-                raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
+                if status < 0:
+                    status = abs(status)
+                    if hasattr(signal,'SIGSEGV') and status == signal.SIGSEGV:
+                        sys.stderr.write("Segmentation fault\n")
+                    elif hasattr(signal,'SIGINT') and status == signal.SIGINT:
+                        sys.stderr.write("Ctrl-C\n")
+                        raise KeyboardInterrupt
+                    else:
+                        sys.stderr.write("Signal %d\n"%status)
+                sys.stderr.write("Error running AUTO\n")
+                return False
         else:
             stdout, stdin, stderr = popen2.popen3(command)
             stdin.close()
@@ -505,6 +517,7 @@ class runAUTO:
             user_time = os.times()[2]
         else:
             user_time = 1.0
+        return True
 
     def __outputCommand(self):
         # Check to see if output files were created.

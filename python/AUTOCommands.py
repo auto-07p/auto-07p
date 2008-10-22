@@ -983,9 +983,12 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         abbrev["h"]         = "homcont"
         abbrev["homcont"]   = "homcont"
         for key in kw.keys():
-            if key in abbrev.keys():
+            # remove long duplicates
+            if key in abbrev.keys() and key != abbrev[key]:
+                del kw[abbrev[key]]
+        for key,value in kw.items():
+            if abbrev.has_key(key):
                 # change the abbreviation to the long version
-                value = kw[key]
                 del kw[key]
                 if type(value) == types.StringType:
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
@@ -1057,12 +1060,13 @@ class commandRunnerLoadName(commandRunnerConfig):
             runner = name
             name = None 
         elif name is not None:
-            kw["equation"]   = name
-            kw["constants"]  = name
-            kw["solution"]   = name
-            kw["homcont"]    = name
+            if not kw.has_key("equation"): kw["equation"] = name
+            if not kw.has_key("constants"): kw["constants"] = name
+            if not kw.has_key("solution"): kw["solution"] = name
+            if not kw.has_key("homcont"): kw["homcont"] = name
         commandRunnerConfig.__init__(self,runner,templates,
                                      AUTOutil.cnfmerge((kw,cnf)))
+        
 
 class commandRunnerPrintFort2(commandWithRunner):
     """Print continuation parameters.
@@ -1200,11 +1204,8 @@ class commandRun(commandWithRunner):
             self.name = None
 
     def __call__(self):
-        if self.name is not None:
-            func=commandRunnerLoadName(self.name,self.runner,self.templates)
-            func()
         self.kw['sv'] = self.sv
-        func=commandRunnerLoadName(None,self.runner,self.templates,self.kw)
+        func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         func()
         func=commandRunMakefileWithSetup(runner=self.runner)
         ret=func()
