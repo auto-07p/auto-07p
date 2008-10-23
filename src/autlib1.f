@@ -160,7 +160,7 @@ C
       NFPR=IAP(29)
 
       FOUND=.FALSE.
-      IF(IRS.NE.0) THEN
+      IF(IRS/=0) THEN
          CALL FINDLB(SFILE,IAP,IRS,NFPR,NPARR,FOUND)
          IAP(3)=IRS
          IAP(29)=NFPR

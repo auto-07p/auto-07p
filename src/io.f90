@@ -337,21 +337,24 @@ CONTAINS
 
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,ISWR,NTPL,NAR,NROWPR,NTST,NCOL
-    INTEGER ISW,ITPST
+    INTEGER ISW,ITPST,I
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
+! If IRS is negative, then just pick the abs(IRS)th solution.
 
     FOUND=.FALSE.
     ISW=IAP(10)
 
     OPEN(3,FILE=NAME,STATUS='old',ACCESS='sequential')
+    I=0
     DO
+       I=I+1
        READ(3,*,END=2)IBR,NTOT,ITP,LAB,NFPR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
        IF(IBR>MBR)MBR=IBR
        IF(LAB>MLAB)MLAB=LAB
 
-       IF((LAB==IRS.OR.IRS==-1).AND..NOT.FOUND)THEN
+       IF((LAB==IRS.OR.IRS==-I).AND..NOT.FOUND)THEN
           IRS=LAB
           FOUND=.TRUE.
           IAP(27)=ITP
