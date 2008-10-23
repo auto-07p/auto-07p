@@ -454,6 +454,7 @@ C     ---------- ----
 C
       USE AUTO_CONSTANTS
       USE HOMCONT, ONLY : INSTRHO
+      USE IO, ONLY : NUNAMES,NPARNAMES,UNAMES,PARNAMES,EFILE
 C
       IMPLICIT NONE
 C
@@ -580,13 +581,23 @@ C
             DEALLOCATE(ITH,VTHU)
             ALLOCATE(ITH(NTHU),VTHU(NTHU))
             READ(STR(POS:),*,ERR=3)(ITH(I),VTHU(I),I=1,NTHU)
-         CASE('s','sv')
-            IF(STR(1:KEYEND)=='s')THEN
-               SFILE(1:2)='s.'
-               READ(STR(POS:),*)SFILE(3:)
-            ELSEIF(STR(1:KEYEND)=='sv')THEN
-               READ(STR(POS:),*)SVFILE(3:)
-            ENDIF
+         CASE('PAR')
+            NPARNAMES=LISTLEN
+            IF(ALLOCATED(PARNAMES))DEALLOCATE(PARNAMES)
+            ALLOCATE(PARNAMES(NPARNAMES))
+            READ(STR(POS:),*,ERR=3)(PARNAMES(I),I=1,NPARNAMES)
+         CASE('U')
+            NUNAMES=LISTLEN
+            IF(ALLOCATED(UNAMES))DEALLOCATE(UNAMES)
+            ALLOCATE(UNAMES(NUNAMES))
+            READ(STR(POS:),*,ERR=3)(UNAMES(I),I=1,NUNAMES)
+         CASE('s')
+            SFILE(1:2)='s.'
+            READ(STR(POS:),*)SFILE(3:)
+         CASE('sv')
+            READ(STR(POS:),*)SVFILE(3:)
+         CASE('e')
+            READ(STR(POS:),*)EFILE
          CASE DEFAULT
             CALL INSTRHO(STR(1:KEYEND),STR(POS:),LISTLEN,IERR)
             IF(IERR==3)GOTO 3
@@ -827,21 +838,23 @@ C
          C=STR(I:I)
          IF(QUOTE==' ')THEN
             SELECT CASE(C)
-            CASE('"',"'")
-               QUOTE=C
             CASE(',',' ')
                IF(LEVEL==0)EXIT
             CASE(']')
                STR(I:I)=' '
+               IF(LEVEL==1.AND.PREV=='[')LISTLEN=0
                LEVEL=LEVEL-1
             CASE DEFAULT
                IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
                   LISTLEN=LISTLEN+1
                ENDIF
-               IF(C=='[')THEN
+               SELECT CASE(C)
+               CASE('[')
                   STR(I:I)=' '
                   LEVEL=LEVEL+1
-               ENDIF
+               CASE('"',"'")
+                  QUOTE=C
+               END SELECT
             END SELECT
          ELSEIF(C==QUOTE)THEN
             ! ignore "" and ''

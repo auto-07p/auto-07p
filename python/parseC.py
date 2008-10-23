@@ -66,9 +66,9 @@ class parseC(UserDict.UserDict):
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-            'sv', 's']:
+            'sv', 's', 'e']:
             self[key] = None
-        for key in ["THL","THU","UZR","ICP","IREV","IFIXED","IPSI"]:
+        for key in ["THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR"]:
             self[key] = []
 	if filename:
 	    self.readFilename(filename)
@@ -251,7 +251,8 @@ class parseC(UserDict.UserDict):
             return
             
         for key,value in self.items():
-            if value != None and key in ["sv","s","NPAR"]:
+            if (value != None and value != [] and
+                key in ["sv","s","e","NPAR","PAR","U"]):
                 output.write(key+"="+str(value)+"\n")
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")

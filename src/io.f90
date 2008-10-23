@@ -9,7 +9,8 @@ MODULE IO
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: FINDLB, READLB, READBV, WRLINE, WRBAR, STHD, NEWLAB, &
-       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3
+       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3, &
+       PARNAMES, NPARNAMES, UNAMES, NUNAMES, EFILE
 
   TYPE SOLUTION
      INTEGER :: IBR, NTOT, ITP, LAB, NFPR, ISW, NTPL, NAR, NROWPR, NTST, NCOL,&
@@ -21,7 +22,9 @@ MODULE IO
      TYPE(SOLUTION), POINTER :: NEXT
   END TYPE SOLUTION
   TYPE(SOLUTION), POINTER :: ROOTSOL, CURSOL
-  INTEGER, SAVE :: MBR=0, MLAB=0
+  INTEGER, SAVE :: MBR=0, MLAB=0, NUNAMES=0, NPARNAMES=0
+  CHARACTER(LEN=13), DIMENSION(:), ALLOCATABLE :: UNAMES, PARNAMES
+  CHARACTER(256) :: EFILE
 CONTAINS
 
 ! ---------- ----
@@ -118,6 +121,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: IAP(*),ICP(*),IUNIT,N1,N2
 ! Local
     INTEGER I,J,IPS,IPLT,NDM
+    CHARACTER(LEN=13) UNAME
 
     IPS=IAP(2)
     IPLT=IAP(11)
@@ -133,7 +137,9 @@ CONTAINS
        IF(J==1.OR.J>N2+2)THEN
           I=1
           IF(J>1)I=J-N2-1
-          IF(ICP(I)==11.AND.IPS>0.AND.IPS/=4.AND.IPS/=7)THEN
+          IF(ICP(I)<=NPARNAMES.AND.LEN_TRIM(PARNAMES(ICP(I)))>0)THEN
+             CALL WRITECOL(-1,PARNAMES(ICP(I)))
+          ELSEIF(ICP(I)==11.AND.IPS>0.AND.IPS/=4.AND.IPS/=7)THEN
              CALL WRITECOL(5,'PERIOD')
           ELSEIF(ICP(I)==10.AND.(IPS==5.OR.IPS==15))THEN
              CALL WRITECOL(6,'FOPT')
@@ -142,20 +148,32 @@ CONTAINS
           ELSE
              CALL WRITECOL(4,'PAR',ICP(I))
           ENDIF
+       ELSEIF(J==2.AND.IPLT/=0.AND.MOD(ABS(IPLT)-1,NDM)<NUNAMES.AND.&
+            LEN_TRIM(UNAMES(MOD(ABS(IPLT)-1,NDM)+1))>0)THEN
+          UNAME=UNAMES(MOD(ABS(IPLT)-1,NDM)+1)
+          IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
+             CALL WRITECOL(-1,'INTEGRAL ' // UNAME)
+          ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
+             CALL WRITECOL(-1,'L2-NORM '// UNAME)
+          ELSE IF(ABS(IPLT)<=NDM) THEN
+             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                CALL WRITECOL(2,UNAME)
+             ELSE IF(IPLT>0)THEN
+                CALL WRITECOL(-1,'MAX ' // UNAME)
+             ELSE
+                CALL WRITECOL(-1,'MIN ' // UNAME)
+             ENDIF
+          ENDIF
        ELSEIF(J==2)THEN
           IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
              CALL WRITECOL(2,'INTEGRAL U',IPLT-NDM)
           ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
              CALL WRITECOL(2,'L2-NORM U',IPLT-2*NDM)
-          ELSE IF(IPLT>0.AND.IPLT<=NDM) THEN
+          ELSE IF(IPLT/=0.AND.ABS(IPLT)<=NDM) THEN
              IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
-                CALL WRITECOL(6,'U',IPLT)
-             ELSE
+                CALL WRITECOL(6,'U',ABS(IPLT))
+             ELSE IF(IPLT>0)THEN
                 CALL WRITECOL(4,'MAX U',IPLT)
-             ENDIF
-          ELSE IF(IPLT<0.AND.IPLT>=-NDM) THEN
-             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
-                CALL WRITECOL(6,'U',-IPLT)
              ELSE
                 CALL WRITECOL(4,'MIN U',-IPLT)
              ENDIF
@@ -163,7 +181,13 @@ CONTAINS
              CALL WRITECOL(4,'L2-NORM')
           ENDIF
        ELSE !J>2 with N2>0
-          IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+          IF(J-2<=NUNAMES.AND.LEN_TRIM(UNAMES(J-2))>0)THEN
+             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                CALL WRITECOL(-1,UNAMES(J-2))
+             ELSE
+                CALL WRITECOL(-1,'MAX '//UNAMES(J-2))
+             ENDIF
+          ELSEIF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
              CALL WRITECOL(6,'U',J-2)
           ELSE
              CALL WRITECOL(4,'MAX U',J-2)
@@ -177,14 +201,20 @@ CONTAINS
 
   CONTAINS
 
-    SUBROUTINE WRITECOL(I,S,N)
-      INTEGER, INTENT(IN) :: I
+    SUBROUTINE WRITECOL(II,S,N)
+      INTEGER, INTENT(IN) :: II
       CHARACTER(*), INTENT(IN) :: S
       INTEGER, INTENT(IN), OPTIONAL :: N
 ! Local
       CHARACTER(10) SN
       CHARACTER(19) COL
+      INTEGER I
       COL=' '
+      I=II
+      IF(I==-1)THEN
+         ! centre into the column
+         I=MAX(7-(LEN_TRIM(S)-1)/2,2)
+      ENDIF
       IF(PRESENT(N))THEN
          WRITE(SN,"(I10)")N
          WRITE(COL(I:),"(A,A,A,A)") S,'(',TRIM(ADJUSTL(SN)),')'
