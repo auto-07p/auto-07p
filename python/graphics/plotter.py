@@ -186,6 +186,7 @@ class plotter(grapher.GUIGrapher):
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
             [[3],   "hopf_symbol"],
+            [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
             [[-4],  "user_point_symbol"]]
         self.delAllData()
