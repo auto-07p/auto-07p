@@ -219,7 +219,7 @@ CONTAINS
          WRITE(SN,"(I10)")N
          WRITE(COL(I:),"(A,A,A,A)") S,'(',TRIM(ADJUSTL(SN)),')'
       ELSE
-         WRITE(COL(I:),"(A)") S
+         WRITE(COL(I:),"(A)") TRIM(S)
       ENDIF
       IF(IUNIT.EQ.7)THEN
          WRITE(IUNIT,"(A19)",ADVANCE="NO")COL
