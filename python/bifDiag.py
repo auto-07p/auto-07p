@@ -14,7 +14,9 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
                  options=None):
         runAUTO.runAUTO.__init__(self)
-        self.options = options
+        self.options = None
+        if options is not None:
+            self.options = options.copy()
         if options is not None and options["constants"]['sv'] is not None:
             #filebased
             self.filenames = [fort7_filename,fort8_filename,fort9_filename]
