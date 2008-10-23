@@ -11,7 +11,6 @@ import parseS
 import AUTOutil
 import types
 import os
-import string
 
 class plotter(grapher.GUIGrapher):
     def __init__(self,parent=None,cnf={},**kw):
@@ -153,11 +152,26 @@ class plotter(grapher.GUIGrapher):
             if len(columns[coord]) == 1:
                 columns[coord] = columns[coord] * len(columns[1-coord])
         [xcolumns,ycolumns] = columns
+        xnames = None
         if (ty == "bifurcation" and len(self.cget("bifurcation_diagram")) and
             len(self.cget("bifurcation_diagram")[0])):
-            self.__plot7(columns[0],columns[1])
+            xnames, ynames = self.__plot7(columns[0],columns[1])
         if ty == "solution" and len(self.cget("solution")) > 0:
-            self.__plot8(columns[0],columns[1])
+            xnames, ynames = self.__plot8(columns[0],columns[1])
+        if xnames is not None:
+            label = {}
+            for coord in ["x","y"]:
+                label[coord] = self[coord+"label"]
+                if self.config(coord+"label")[3] is None:
+                    names = {"x": xnames, "y": ynames}[coord]
+                    columns = {"x": xcolumns, "y": ycolumns}[coord]
+                    origcolumns = self.cget(ty+"_"+coord)
+                    if type(origcolumns) != type([]) or len(origcolumns) == 1:
+                        label[coord] = names[2:len(names)/len(columns)]
+                    else:
+                        label[coord] = names[2:]
+            grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
+                                             ylabel=label["y"])
 
     def plot(self):
         self._plotNoDraw()
@@ -187,19 +201,20 @@ class plotter(grapher.GUIGrapher):
         if self.cget("bifurcation_coordnames"):
             coordnames = self.cget("bifurcation_coordnames")
         dp = self.cget("stability")
+        xnames="Error"
+        ynames="Error"
         if len(solution) > 0 and len(xcolumns) == len(ycolumns):
+            xnames = ""
+            ynames = ""
             for j in range(len(xcolumns)):
                 cols = []
                 for col in [xcolumns[j],ycolumns[j]]:
                     if type(col) != type(1):
-                        col = string.strip(col)
-                        for i in range(len(coordnames)):
-                            if string.strip(coordnames[i]) == col:
-                                col = i
-                                break
-                    if type(col) != type(1):
-                        print "Unknown column name: %s"%(col)
-                        col = 0
+                        try:
+                            col = coordnames.index(col)
+                        except ValueError:
+                            print "Unknown column name: %s"%(col)
+                            col = 0
                     cols.append(col)
                 [xcol,ycol] = cols
                 for branch in branches:
@@ -243,22 +258,10 @@ class plotter(grapher.GUIGrapher):
                         if not symbol and TYnumber not in [0,4,9]:
                             symbol = self.cget("error_symbol")
                         self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
+                xnames = xnames + ", " + coordnames[xcol]
+                ynames = ynames + ", " + coordnames[ycol]
+        return xnames, ynames
         
-        # Call the base class config
-        xlabel = self["xlabel"]
-        xcol = xcolumns[0]
-        if type(xcol) == type(1):
-            xcol = coordnames[xcol]
-        if self.config("xlabel")[3] is None:
-            xlabel = xcol
-        ylabel = self["ylabel"]
-        ycol = ycolumns[0]
-        if type(ycol) == type(1):
-            ycol = coordnames[ycol]
-        if self.config("ylabel")[3] is None:
-            ylabel = ycol
-        grapher.GUIGrapher._configNoDraw(self,xlabel=xlabel,ylabel=ylabel)
-
     def __plot8(self,xcolumns,ycolumns):
         self.delAllData()
         indepvarname = self.cget("solution").indepvarname
@@ -268,9 +271,9 @@ class plotter(grapher.GUIGrapher):
         if self.cget("solution_coordnames"):
             coordnames = self.cget("solution_coordnames")
 
+        xnames="Error"
+        ynames="Error"
         if len(xcolumns) == len(ycolumns):
-            xnames="Error"
-            ynames="Error"
             index = 9
             for ind in self.cget("index"):
                 sol = self.cget("solution").getIndex(ind)
@@ -288,19 +291,15 @@ class plotter(grapher.GUIGrapher):
                                 col = indepvarname
                             else:
                                 col = coordnames[col]
-                        xy = None
-                        col = string.strip(col)
-                        if string.strip(indepvarname) == col:
+                        if indepvarname == col:
                             xy = tm
                         else:
-                            for i in range(len(coordnames)):
-                                if string.strip(coordnames[i]) == col:
-                                    xy = sol[sol.coordnames[i]]
-                                    break
-                        if xy is None:
-                            print "Unknown column name: %s"%(col)
-                            xy = tm
-                            col = 't'
+                            try:
+                                xy = sol[sol.coordnames[coordnames.index(col)]]
+                            except ValueError:
+                                print "Unknown column name: %s"%(col)
+                                xy = tm
+                                col = 't'
                         cols.append(col)
                         xycols.append(xy)
                     [x,y] = xycols
@@ -328,19 +327,7 @@ class plotter(grapher.GUIGrapher):
                 index = index + 10
                 if index > len(tm):
                     index = 14
-            label = {}
-            for coord in ["x","y"]:
-                label[coord] = self[coord+"label"]
-                if self.config(coord+"label")[3] is None:
-                    names = {"x": xnames, "y": ynames}[coord]
-                    columns = {"x": xcolumns, "y": ycolumns}[coord]
-                    origcolumns = self.cget("solution_"+coord)
-                    if type(origcolumns) != type([]) or len(origcolumns) == 1:
-                        label[coord] = names[2:len(names)/len(columns)]
-                    else:
-                        label[coord] = names[2:]
-            grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
-                                             ylabel=label["y"])
+        return xnames,ynames
 
 
 def test():
