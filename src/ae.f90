@@ -368,6 +368,8 @@ CONTAINS
     NPAR=IAP(31)
 
     ALLOCATE(F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
+    DFDU(:,:)=0.d0
+    DFDP(:,:)=0.d0
 
     UOLD(NDIM+1)=PAR(ICP(1))
     DO I=1,NDIM
@@ -511,6 +513,8 @@ CONTAINS
     
 
     ALLOCATE(RHS(NDIM+1),DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
+    DFDU(:,:)=0.d0
+    DFDP(:,:)=0.d0
 
     DO
        DSOLD=RDS

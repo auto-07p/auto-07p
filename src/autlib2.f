@@ -219,6 +219,7 @@ C Local
       INTEGER I,K
 C
       ALLOCATE(UBC0(NDIM),UBC1(NDIM),FBC(NBC),DBC(NBC,2*NDIM+NPAR))
+      DBC(:,:)=0.d0
 C
 C     Boundary conditions :
 C     
@@ -358,6 +359,9 @@ C
             ENDDO
          ENDIF
        ENDDO
+       DFDU(:)=0.d0
+       DFDP(:)=0.d0
+       DICD(:)=0.d0
 
        DO J=1,N
 C
