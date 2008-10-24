@@ -252,7 +252,9 @@ class parseC(UserDict.UserDict):
             
         for key,value in self.items():
             if (value != None and value != [] and
-                key in ["sv","s","e","NPAR","PAR","U"]):
+                key in ["sv","s","e","NPAR","PAR","U",
+                        "NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART",
+                        "IREV","IFIXED","IPSI"]):
                 output.write(key+"="+str(value)+"\n")
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
