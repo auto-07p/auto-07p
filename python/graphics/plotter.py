@@ -249,6 +249,10 @@ class plotter(grapher.GUIGrapher):
                                 break
                         lab = label["LAB"]
                         TYnumber = label["TY number"]
+                        if TYnumber>=0:
+                            TYnumber=TYnumber%10
+                        else:
+                            TYnumber=-((-TYnumber)%10)
                         text = ""
                         if lab != 0:
                             text = str(lab)
