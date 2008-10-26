@@ -898,27 +898,40 @@ C
      *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 C
 C General initialization. Redefinition of constants.
-C
+C The following constants are redefined, ie. they are different than in
+C fort.2 or c.*:
+
+C   DS: if DS is set to 0 it'll be set to 0.1
+C   DS: if DSMIN is set to 0 it'll be set to 1.0d-4 * |DS|
+C   DSMIN is divided by 1+HMACH
+C   DS and DSMAX are multiplied by 1+HMACH
+
+C   NDIM: set to the dimension of the extended system
+C   IPS: set to 1/2 for IPS=11/12 (waves)
+C   ILP: set to 0 dependent on problem type
+C   ISP: set to 0 dependent on problem type
+C   ISW: set to 1 if equal to 0, to -|ISW| for starts of ext systems
+C   NBC: set by problem type
+C   NINT: set by problem type
+C   NMX: set to 5 for starts of extended systems
+
       INTEGER IAP(*),ICP(*)
       DOUBLE PRECISION RAP(*),PAR(*)
 C
 C Local
-      INTEGER NDIM,IPS,IRS,ILP,NCOL,ISP,ISW,NBC,NINT,NMX,NUZR
-      INTEGER JAC,ITP,NFPR,NICP,NDM,NXP,I,J,NNEG,IC,JC
+      INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX
+      INTEGER ITP,NFPR,NICP,NDM,NXP,I,J,NNEG,IC,JC
       DOUBLE PRECISION DS,DSMIN,DSMAX,FC
 C
        NDIM=IAP(1)
        IPS=IAP(2)
        IRS=IAP(3)
        ILP=IAP(4)
-       NCOL=IAP(6)
        ISP=IAP(9)
        ISW=IAP(10)
        NBC=IAP(12)
        NINT=IAP(13)
        NMX=IAP(14)
-       NUZR=IAP(15)
-       JAC=IAP(22)
        ITP=IAP(27)
        NFPR=IAP(29)
        NICP=IAP(41)
@@ -990,7 +1003,6 @@ C        Redefine AUTO constants for homoclinic orbits
          NDIM=IAP(1)
          NBC=IAP(12)
          NINT=IAP(13)
-         NUZR=IAP(15)
          NFPR=NBC+NINT-NDIM+1
 C
        ELSE IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
@@ -1311,16 +1323,12 @@ C     redefine nthl to be nfpr sized and indexed
 C
        IAP(1)=NDIM
        IAP(2)=IPS
-       IAP(3)=IRS
        IAP(4)=ILP
-       IAP(6)=NCOL
        IAP(9)=ISP
        IAP(10)=ISW
        IAP(12)=NBC
        IAP(13)=NINT
        IAP(14)=NMX
-       IAP(15)=NUZR
-       IAP(22)=JAC
        IAP(29)=NFPR
        IAP(41)=NICP
 C

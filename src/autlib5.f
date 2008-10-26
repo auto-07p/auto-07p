@@ -668,7 +668,6 @@ C
       ISW=IAP(10)
       NBC=IAP(12)
       NINT=IAP(13)
-      NUZR=IAP(15)
       NDM=NDIM
       COMPZERO=HMACHHO
 C
@@ -783,7 +782,6 @@ C
       IAP(1)=NDIM
       IAP(12)=NBC
       IAP(13)=NINT
-      IAP(15)=NUZR
       IAP(23)=NDM
 C
       RETURN
