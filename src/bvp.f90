@@ -695,6 +695,8 @@ CONTAINS
     DIMENSION PAR(*),ICP(*),RLDOT(*),TM(*)
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
     NDIM=IAP(1)
+    IPS=IAP(2)
+    ISW=IAP(10)
     NTST=IAP(5)
     NCOL=IAP(6)
 
@@ -703,7 +705,7 @@ CONTAINS
     CALL STPNBV1(IAP,PAR,ICP,NDIM,NTSRS,NDIMRD,NCOLRS,RLDOT, &
          UPSR,UDOTPSR,TMR,NODIR)
     CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM, &
-         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
+         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,IPS==2 .AND. ABS(ISW)<=1)
     DEALLOCATE(TMR,UPSR,UDOTPSR)
 
   END SUBROUTINE STPNBV
@@ -758,6 +760,7 @@ CONTAINS
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
+    USE AUTO_CONSTANTS, ONLY : DATFILE
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Generates a starting point for the continuation of a branch of
@@ -766,18 +769,50 @@ CONTAINS
 
     DIMENSION IAP(*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
     DIMENSION PAR(*),ICP(*),RLDOT(*)
+    DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),UDOTPSR(:,:)
 
     NDIM=IAP(1)
+    IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
+    ISW=IAP(10)
 
 ! Generate the (initially uniform) mesh.
 
     CALL MSH(NTST,TM)
 
-    DO J=0,NTST*NCOL
-       CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
-    ENDDO
+    IF(DATFILE/='')THEN
+       OPEN(3,FILE=TRIM(DATFILE)//'.dat',STATUS='unknown',ACCESS='sequential',&
+            IOSTAT=io)
+       IF(io/=0)THEN
+          WRITE(6,"(A,A,A)")'Datafile ',TRIM(DATFILE),'.dat not found.'
+       ENDIF
+       NTSR=-1
+       DO
+          READ(3,*,END=2)TEMP,(TEMP,I=1,NDIM)
+          NTSR=NTSR+1
+       ENDDO
+2      CONTINUE
+       ALLOCATE(TMR(0:NTSR),UPSR(NDIM,0:NTSR),UDOTPSR(NDIM,0:NTSR))
+       REWIND 3
+       DO J=0,NTSR
+          READ(3,*)TMR(J),UPSR(:,J)
+       ENDDO
+       CLOSE(3)
+       UDOTPSR(:,:)=0.d0
+       PERIOD=TMR(NTSR)-TMR(0)
+       DO I=NTSR,0,-1
+          TMR(I)=(TMR(I)-TMR(0))/PERIOD
+       ENDDO
+       CALL ADAPT2(NTSR,1,NDIM,NTST,NCOL,NDIM, &
+            TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,IPS==2 .AND. ABS(ISW)<=1)
+       PAR(11)=PERIOD
+       CALL STPNT(NDIM,UPS(:,0),PAR,0)
+    ELSE
+       DO J=0,NTST*NCOL
+          CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
+       ENDDO
+    ENDIF
 
     IBR=1
     IAP(30)=IBR

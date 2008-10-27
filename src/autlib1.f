@@ -4,7 +4,7 @@ C
       USE AUTOMPI
       USE IO
       USE SUPPORT
-      USE AUTO_CONSTANTS, ONLY: NIAP,NRAP,SVFILE,SFILE,IPS,ISW,IRS
+      USE AUTO_CONSTANTS,ONLY:NIAP,NRAP,SVFILE,SFILE,DATFILE,IPS,ISW,IRS
 C$    USE OMP_LIB
       USE COMPAT
 C
@@ -30,6 +30,7 @@ C
        FIRST=.TRUE.
        SFILE=''
        SVFILE=''
+       DATFILE=''
        BIFFILE='fort.7'
        SOLFILE='fort.8'
        DIAFILE='fort.9'
@@ -591,6 +592,8 @@ C
             READ(STR(POS:),*,ERR=3)UNAMES
          CASE('s')
             READ(STR(POS:),*)SFILE
+         CASE('dat')
+            READ(STR(POS:),*)DATFILE
          CASE('sv')
             READ(STR(POS:),*)SVFILE
          CASE('e')

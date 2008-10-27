@@ -66,7 +66,7 @@ class parseC(UserDict.UserDict):
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-            'sv', 's', 'e']:
+            'sv', 's', 'dat', 'e']:
             self[key] = None
         for key in ["THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR"]:
             self[key] = []
@@ -79,7 +79,7 @@ class parseC(UserDict.UserDict):
         return string.getvalue()
 
     def __setitem__(self,key,item):
-        if key in ["ICP","IREV","IFIXED","IPSI"]:
+        if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
             self.data["__N"+key] = len(item)
             self.data[key] = item
         elif key in ["THL","THU","UZR"]:
@@ -121,6 +121,14 @@ class parseC(UserDict.UserDict):
             line = string.strip(line[pos2:])
             if key in ['ICP','IREV','IFIXED','IPSI']:
                 self[key]=map(int,string.split(value[1:-1],','))
+            elif key in ['U','PAR']:
+                slist=string.split(value[1:-1],',')
+                for i in range(len(slist)):
+                    if slist[i][0] in ["'",'"']:
+                        slist[i] = slist[i][1:]
+                    if slist[i][-1] in ["'",'"']:
+                        slist[i] = slist[i][:-1]
+                self[key] = slist
             elif key in ['THU','THL','UZR']:
                 value = string.strip(string.replace(value[1:-1],']',' '))
                 value = string.replace(value,',',' ')
@@ -252,10 +260,12 @@ class parseC(UserDict.UserDict):
             
         for key,value in self.items():
             if (value != None and value != [] and
-                key in ["sv","s","e","NPAR","PAR","U",
+                key in ["NPAR","PAR","U",
                         "NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART",
                         "IREV","IFIXED","IPSI"]):
                 output.write(key+"="+str(value)+"\n")
+            elif value != None and key in ["sv","s","dat","e"]:
+                output.write(key+"='"+str(value)+"'\n")
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
 	output.write("          "+line1_comment+"\n")
