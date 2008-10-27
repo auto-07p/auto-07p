@@ -191,8 +191,6 @@ CONTAINS
        IPERP=-1
     ENDIF
     IF(IPERP/=2)THEN
-       ! ** Time evolution computations (parabolic systems),
-       !    to avoid zero time for direction
        CALL STDRBV(IAP,RAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN

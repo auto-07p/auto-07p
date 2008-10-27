@@ -133,7 +133,6 @@ C
       LOGICAL FOUND
 
       IRS=IAP(3)
-      NFPR=IAP(29)
 
       FOUND=.FALSE.
       IF(IRS/=0) THEN
@@ -166,12 +165,12 @@ C
       INTEGER IAP(*)
       DOUBLE PRECISION RAP(*)
 
-      INTEGER ITP,NFPR,NNICP,NPAR,NDIMA,I,J
+      INTEGER ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,I,J
       INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
       DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
       ITP=IAP(27)
-      NFPR=IAP(29)
+      NFPRPREV=IAP(29)
 C
       IF(IAP(38)==0)THEN
         NPAR=IAP(31)
@@ -182,8 +181,8 @@ C
         ALLOCATE(PAR(NPAR))
         PAR(:)=0.d0
         CALL INIT1(IAP,RAP,ICP,PAR)
-        NFPR=IAP(29)
 C     redefine thl to be nfpr sized and indexed
+        NFPR=IAP(29)
         ALLOCATE(THL(NFPR))
         DO I=1,NFPR
            THL(I)=1.0D0
@@ -290,7 +289,7 @@ C           (Periodic boundary conditions.)
 C
        ELSE IF(IPS.EQ.15.AND.ABS(ISW).EQ.1) THEN
 C        ** Optimization of periodic solutions.
-         IF(NFPR.LT.6)THEN
+         IF(NFPRPREV.LT.6)THEN
            CALL AUTOBV(IAP,RAP,PAR,ICP,ICU,FNPO,BCPO,ICPO,STPNPO,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
@@ -322,8 +321,8 @@ C           (User supplied boundary conditions.)
 C
        ELSE IF(IPS.EQ.5) THEN
 C        ** Algebraic optimization problems.
-         IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
-         IF(NFPR.EQ.2) THEN
+         IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPRPREV=NFPRPREV+1
+         IF(NFPRPREV.EQ.2) THEN
            IF(IRS.GT.0) THEN
             CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNC1,STPNAE,THL,THU,IUZ,VUZ)
            ELSE
