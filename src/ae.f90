@@ -407,8 +407,8 @@ CONTAINS
     UDOT(:)=SIGN/DSQRT(SS)*UDOT(:)
 
 ! Get the Jacobian for stability computation.
-    AA(:,1:NDIM)=DFDU(:,:)
-    AA(:,NDIM+1)=DFDP(:,ICP(1))
+    AA(:NDIM,:NDIM)=DFDU(:,:)
+    AA(:NDIM,NDIM+1)=DFDP(:,ICP(1))
     AA(NDIM+1,:)=UDOT(:)
 
     DEALLOCATE(F,DFDU,DFDP)
