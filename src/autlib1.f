@@ -664,9 +664,10 @@ C
       DSMAX=ABS(DSMAX)
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) LISTLEN
+      !allocate: no THL vs. non-allocated:default THL (in SUB. INIT1)
+      IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
+      ALLOCATE(IVTHL(LISTLEN))
       IF(LISTLEN>0)THEN
-        IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
-        ALLOCATE(IVTHL(LISTLEN))
         DO I=1,LISTLEN
           LINE=LINE+1
           READ(2,*,ERR=3,END=4)IVTHL(I)
@@ -1158,11 +1159,8 @@ C          ** Continuation of period doubling bifurcations; start
            IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
 C            ** Variable period
              ICP(2)=11
-             ICP(3)=13
-           ELSE
-C            ** Fixed period
-             ICP(3)=13
            ENDIF
+           ICP(3)=13
            ILP=0
            ISW=-2
            ISP=0
@@ -1175,7 +1173,7 @@ C          ** Continuation of period doubling bifurcations; restart
            NBC=NDIM
            NINT=2
            NFPR=NBC+NINT-NDIM+1
-           IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
+           IF(NICP.EQ.2)THEN
 C            ** Variable period
              ICP(3)=11
            ENDIF
@@ -1287,7 +1285,7 @@ C
 C
        IF(.NOT.ALLOCATED(IVTHL))THEN
           ! set default for *THL
-          IF(IPS==2.OR.IPS==9)THEN
+          IF(IPS==2)THEN
              ALLOCATE(IVTHL(1))
              IVTHL(1)%INDEX=11
              IVTHL(1)%VAR=0d0
