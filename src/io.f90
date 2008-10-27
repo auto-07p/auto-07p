@@ -9,8 +9,7 @@ MODULE IO
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: FINDLB, READLB, READBV, WRLINE, WRBAR, STHD, NEWLAB, &
-       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3, &
-       PARNAMES, NPARNAMES, UNAMES, NUNAMES, EFILE
+       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3
 
   TYPE SOLUTION
      INTEGER :: IBR, NTOT, ITP, LAB, NFPR, ISW, NTPL, NAR, NROWPR, NTST, NCOL,&
@@ -22,15 +21,15 @@ MODULE IO
      TYPE(SOLUTION), POINTER :: NEXT
   END TYPE SOLUTION
   TYPE(SOLUTION), POINTER :: ROOTSOL, CURSOL
-  INTEGER, SAVE :: MBR=0, MLAB=0, NUNAMES=0, NPARNAMES=0
-  CHARACTER(LEN=13), DIMENSION(:), ALLOCATABLE :: UNAMES, PARNAMES
-  CHARACTER(256) :: EFILE
+  INTEGER, SAVE :: MBR=0, MLAB=0
 CONTAINS
 
 ! ---------- ----
-  SUBROUTINE STHD(IAP,RAP,ICP,ICU)
+  SUBROUTINE STHD(IAP,RAP,ICP)
 
     USE COMPAT
+    USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, UNAMES, PARNAMES, &
+         NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -38,29 +37,30 @@ CONTAINS
 ! limits of the bifurcation diagram, viz. RL0,RL1,A0 and A1.
 ! These are often convenient for an initial plot of the diagram.
 
-    INTEGER, INTENT(IN) :: ICP(*),ICU(*),IAP(*)
+    INTEGER, INTENT(IN) :: ICP(*),IAP(*)
     DOUBLE PRECISION, INTENT(IN) :: RAP(*)
     CHARACTER (LEN=*), PARAMETER :: D3 = "('   0',3(A8,ES11.4))"
     CHARACTER (LEN=*), PARAMETER :: I4 = "('   0',4(A8,I4))"
-    CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',A7,I5,3(A8,I4))"
+    CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',2(A7,I5),2(A8,I4))"
     CHARACTER (LEN=*), PARAMETER :: I6 = "('   0',3(A8,I4),2(A7,I4))"
-    INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT,NMX
-    INTEGER NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,NICP,I
-    DOUBLE PRECISION DS,DSMIN,DSMAX,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
+    CHARACTER (LEN=*), PARAMETER :: I7 = "('   0',(A7,I5),2(A8,I4),2(A7,I4))"
+    INTEGER NDIMA,IPSA,IRSA,ILPA,NTST,NCOL,IAD,ISPA,ISWA,IPLT,NBCA,NINTA,NMXA
+    INTEGER NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,NICP,I,NPAR
+    DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    IRS=IAP(3)
-    ILP=IAP(4)
+    NDIMA=IAP(1)
+    IPSA=IAP(2)
+    IRSA=IAP(3)
+    ILPA=IAP(4)
     NTST=IAP(5)
     NCOL=IAP(6)
     IAD=IAP(7)
-    ISP=IAP(9)
-    ISW=IAP(10)
+    ISPA=IAP(9)
+    ISWA=IAP(10)
     IPLT=IAP(11)
-    NBC=IAP(12)
-    NINT=IAP(13)
-    NMX=IAP(14)
+    NBCA=IAP(12)
+    NINTA=IAP(13)
+    NMXA=IAP(14)
     NUZR=IAP(15)
     NPR=IAP(16)
     MXBF=IAP(17)
@@ -70,11 +70,12 @@ CONTAINS
     NWTN=IAP(21)
     JAC=IAP(22)
     NFPR=IAP(29)
-    NICP=IAP(41)
+    NPAR=IAP(31)
+    NICP=IAP(41)    
 
-    DS=RAP(1)
-    DSMIN=RAP(2)
-    DSMAX=RAP(3)
+    DSA=RAP(1)
+    DSMINA=RAP(2)
+    DSMAXA=RAP(3)
     RL0=RAP(6)
     RL1=RAP(7)
     A0=RAP(8)
@@ -85,18 +86,44 @@ CONTAINS
 
     WRITE(7,"(I4,' ',4ES12.4)")0,RL0,RL1,A0,A1
     WRITE(7,D3)'EPSL=',EPSL,'EPSU =',EPSU, 'EPSS =',EPSS
+    WRITE(7,D3)'DS  =',DSA,  'DSMIN=',DSMINA,'DSMAX=',DSMAXA
+    WRITE(7,I4)'NDIM=',NDIMA,'IPS =',IPSA, 'IRS =',IRSA, 'ILP =',ILPA
+    WRITE(7,I4)'NTST=',NTST,'NCOL=',NCOL,'IAD =',IAD, 'ISP =',ISPA
+    WRITE(7,I4)'ISW =',ISWA, 'IPLT=',IPLT,'NBC =',NBCA, 'NINT=',NINTA
+    WRITE(7,I5)' NMX=',NMXA, 'NPR=', NPR, 'MXBF=',MXBF,'IID =',IID
+    WRITE(7,I6)'ITMX=',ITMX,'ITNW=',ITNW,'NWTN=',NWTN,'JAC=',JAC,'  NUZR=',NUZR
+
+    WRITE(7,"(A,I4,A)",ADVANCE="NO")"   0   NPAR=",NPAR
+    CALL WRITELIST("   THL = ",IVTHL)
+    CALL WRITELIST("    THU = ",IVTHU)
+    WRITE(7,*)
+    CALL WRITELIST("   0   UZR = ",IVUZR)
+    WRITE(7,*)
+    IF(SIZE(PARNAMES)>0)THEN
+       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   PAR = ['",TRIM(PARNAMES(1)),"'"
+       DO I=2,SIZE(PARNAMES)
+          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(PARNAMES(I)),"'"
+       ENDDO
+       WRITE(7,"(A)")']'
+    ENDIF
+    IF(SIZE(UNAMES)>0)THEN
+       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   U   = ['",TRIM(UNAMES(1)),"'"
+       DO I=2,SIZE(UNAMES)
+          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(UNAMES(I)),"'"
+       ENDDO
+       WRITE(7,"(A)")']'
+    ENDIF
+
+    WRITE(7,"('   0   User-specified constants:')")
     WRITE(7,D3)'DS  =',DS,  'DSMIN=',DSMIN,'DSMAX=',DSMAX
     WRITE(7,I4)'NDIM=',NDIM,'IPS =',IPS, 'IRS =',IRS, 'ILP =',ILP
-    WRITE(7,I4)'NTST=',NTST,'NCOL=',NCOL,'IAD =',IAD, 'ISP =',ISP
-    WRITE(7,I4)'ISW =',ISW, 'IPLT=',IPLT,'NBC =',NBC, 'NINT=',NINT
-    WRITE(7,I5)' NMX=',NMX, 'NPR =',NPR, 'MXBF=',MXBF,'IID =',IID
-    WRITE(7,I6)'ITMX=',ITMX,'ITNW=',ITNW,'NWTN=',NWTN,'JAC=',JAC,'  NUZR=',NUZR
+    WRITE(7,I7)'NMX=', NMX, 'ISP =',ISP, 'ISW =',ISW,' NBC=',NBC, 'NINT=',NINT
 
     WRITE(7,"('   0   User-specified parameter')",ADVANCE="NO")
     IF(NICP.EQ.1)THEN
-       WRITE(7,"(':       ',  I4)")(ICU(I),I=1,NICP)
+       WRITE(7,"(':       ',  I4)")ICU
     ELSE
-       WRITE(7,"('s:      ',24I4)")(ICU(I),I=1,NICP)
+       WRITE(7,"('s:      ',24I4)")ICU
     ENDIF
 
     WRITE(7,"('   0   Active continuation parameter')",ADVANCE="NO")
@@ -105,7 +132,36 @@ CONTAINS
     ELSE
        WRITE(7,"('s: ',24I4)")(ICP(I),I=1,NFPR)
     ENDIF
+
     CALL AUTOFLUSH(7)
+
+  CONTAINS
+
+    SUBROUTINE WRITELIST(NAME,IVLIST)
+      USE AUTO_CONSTANTS, ONLY: INDEXVAR
+      CHARACTER(LEN=*), INTENT(IN) :: NAME
+      TYPE(INDEXVAR), INTENT(IN) :: IVLIST(:)
+      
+      LOGICAL FIRST
+      CHARACTER(LEN=12) :: INDSTR
+      CHARACTER(LEN=19) :: VARSTR
+
+      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'['
+      FIRST=.TRUE.
+      DO I=1,SIZE(IVLIST)
+         IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
+         WRITE(INDSTR,'(I12)')IVLIST(I)%INDEX
+         IF(INT(IVLIST(I)%VAR)==IVLIST(I)%VAR)THEN
+            WRITE(VARSTR,'(I19)')INT(IVLIST(I)%VAR)
+         ELSE
+            WRITE(VARSTR,'(ES19.10)')IVLIST(I)%VAR
+         ENDIF
+         WRITE(7,"(A,A,A,A,A)", ADVANCE="NO")"[",TRIM(ADJUSTL(INDSTR)),&
+              ", ",TRIM(ADJUSTL(VARSTR)),"]"
+         FIRST=.FALSE.
+      ENDDO
+      WRITE(7,"(A)", ADVANCE="NO")']'
+    END SUBROUTINE WRITELIST
 
   END SUBROUTINE STHD
 
@@ -113,6 +169,7 @@ CONTAINS
   SUBROUTINE HEADNG(IAP,ICP,IUNIT,N1,N2)
 
     USE COMPAT
+    USE AUTO_CONSTANTS, ONLY : UNAMES, PARNAMES
 
 ! Prints headings above columns on unit 6, 7, and 9.
 ! N1 = number of parameters to print (maximum: 7 for screen output)
@@ -137,7 +194,7 @@ CONTAINS
        IF(J==1.OR.J>N2+2)THEN
           I=1
           IF(J>1)I=J-N2-1
-          IF(ICP(I)<=NPARNAMES.AND.LEN_TRIM(PARNAMES(ICP(I)))>0)THEN
+          IF(ICP(I)<=SIZE(PARNAMES).AND.LEN_TRIM(PARNAMES(ICP(I)))>0)THEN
              CALL WRITECOL(-1,PARNAMES(ICP(I)))
           ELSEIF(ICP(I)==11.AND.IPS>0.AND.IPS/=4.AND.IPS/=7)THEN
              CALL WRITECOL(5,'PERIOD')
@@ -148,7 +205,7 @@ CONTAINS
           ELSE
              CALL WRITECOL(4,'PAR',ICP(I))
           ENDIF
-       ELSEIF(J==2.AND.IPLT/=0.AND.MOD(ABS(IPLT)-1,NDM)<NUNAMES.AND.&
+       ELSEIF(J==2.AND.IPLT/=0.AND.MOD(ABS(IPLT)-1,NDM)<SIZE(UNAMES).AND.&
             LEN_TRIM(UNAMES(MOD(ABS(IPLT)-1,NDM)+1))>0)THEN
           UNAME=UNAMES(MOD(ABS(IPLT)-1,NDM)+1)
           IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
@@ -181,7 +238,7 @@ CONTAINS
              CALL WRITECOL(4,'L2-NORM')
           ENDIF
        ELSE !J>2 with N2>0
-          IF(J-2<=NUNAMES.AND.LEN_TRIM(UNAMES(J-2))>0)THEN
+          IF(J-2<=SIZE(UNAMES).AND.LEN_TRIM(UNAMES(J-2))>0)THEN
              IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
                 CALL WRITECOL(-1,UNAMES(J-2))
              ELSE

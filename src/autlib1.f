@@ -1,38 +1,10 @@
-C     ------ --------------
-      MODULE AUTO_CONSTANTS
-C
-      IMPLICIT NONE
-      INTEGER NPARX,NIAP,NRAP
-      INCLUDE 'auto.h'
-C
-      INTEGER NDIM,IPS,IRS,ILP
-      INTEGER NICP
-      INTEGER,ALLOCATABLE :: ICU(:)
-      INTEGER NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-      INTEGER NMX
-      DOUBLE PRECISION RL0,RL1,A0,A1
-      INTEGER NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-      DOUBLE PRECISION EPSL,EPSU,EPSS
-      DOUBLE PRECISION DS,DSMIN,DSMAX
-      INTEGER IADS
-      INTEGER NTHL
-      INTEGER,ALLOCATABLE :: ITHL(:)
-      DOUBLE PRECISION,ALLOCATABLE :: THL(:),VTHL(:)
-      INTEGER NTHU
-      DOUBLE PRECISION,ALLOCATABLE :: THU(:)
-      INTEGER NUZR
-      INTEGER, ALLOCATABLE :: IUZ(:)
-      DOUBLE PRECISION,ALLOCATABLE :: VUZ(:)
-C
-      END MODULE AUTO_CONSTANTS
-C
 C     ------- ----
       PROGRAM AUTO
 C
       USE AUTOMPI
       USE IO
       USE SUPPORT
-      USE AUTO_CONSTANTS
+      USE AUTO_CONSTANTS, ONLY: NIAP,NRAP,SVFILE,SFILE,IPS,ISW,IRS
 C$    USE OMP_LIB
       USE COMPAT
 C
@@ -42,9 +14,9 @@ C
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
-      INTEGER IAM,LINE
+      INTEGER IAM,LINE,io
       LOGICAL FIRST
-      CHARACTER(256) :: SFILE, SOLFILE, BIFFILE, DIAFILE
+      CHARACTER(256) :: SOLFILE, BIFFILE, DIAFILE
 C
 C Initialization :
 C
@@ -56,11 +28,17 @@ C
        ENDIF
 C
        FIRST=.TRUE.
-       SFILE='fort.3'
+       SFILE=''
+       SVFILE=''
        BIFFILE='fort.7'
        SOLFILE='fort.8'
        DIAFILE='fort.9'
-       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
+       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=io)
+       IF(io/=0)THEN
+          WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ',
+     *         'could not be found.'
+          STOP
+       ENDIF
 C
        EOF=.FALSE.
        LINE=0
@@ -70,14 +48,12 @@ C
          TIME0=AUTIM()
 C$       TIME0=omp_get_wtime()
        ENDIF
-       CALL INIT(IAP,RAP,EOF,LINE,SFILE,BIFFILE)
+       CALL INIT(IAP,RAP,EOF,LINE)
        IF(FIRST)THEN
-          IF(BIFFILE/='fort.7')THEN
-             BIFFILE(1:2)='b.'
-             SOLFILE=BIFFILE
-             SOLFILE(1:2)='s.'
-             DIAFILE=BIFFILE
-             DIAFILE(1:2)='d.'
+          IF(SVFILE/='')THEN
+             BIFFILE='b.'//SVFILE
+             SOLFILE='s.'//SVFILE
+             DIAFILE='d.'//SVFILE
           ENDIF
           OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
           OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
@@ -88,7 +64,7 @@ C$       TIME0=omp_get_wtime()
          CALL MPIEND()
          STOP
        ENDIF
-       CALL FINDLB_OR_STOP(SFILE,IAP)
+       CALL FINDLB_OR_STOP(IAP)
        CALL MPIIAP(IAP)
        CALL AUTOI(IAP,RAP)
 C-----------------------------------------------------------------------
@@ -113,7 +89,7 @@ C
 C     ---------- ---------
       SUBROUTINE MPIWORKER(IAP)
       
-      USE AUTO_CONSTANTS
+      USE AUTO_CONSTANTS, ONLY: IPS, IRS, ISW
       USE AUTOMPI
       IMPLICIT NONE
 
@@ -144,24 +120,29 @@ C     ---------- ---------
       END SUBROUTINE MPIWORKER
 C
 C     ---------- --------------
-      SUBROUTINE FINDLB_OR_STOP(SFILE,IAP)
+      SUBROUTINE FINDLB_OR_STOP(IAP)
 C
 C Find restart label and determine type of restart point.
 C or stop otherwise
 C
-      USE AUTO_CONSTANTS
       IMPLICIT NONE
       INTEGER IAP(*)
-      CHARACTER(*) SFILE
+      CHARACTER(256) FILE
 
-      INTEGER NFPR,NPARR
+      INTEGER NFPR,NPARR,IRS
       LOGICAL FOUND
 
+      IRS=IAP(3)
       NFPR=IAP(29)
 
       FOUND=.FALSE.
       IF(IRS/=0) THEN
-         CALL FINDLB(SFILE,IAP,IRS,NFPR,NPARR,FOUND)
+         IF(LEN_TRIM(SFILE)==0)THEN
+            FILE='fort.3'
+         ELSE
+            FILE='s.'//SFILE
+         ENDIF
+         CALL FINDLB(FILE,IAP,IRS,NFPR,NPARR,FOUND)
          IAP(3)=IRS
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
@@ -176,30 +157,60 @@ C     ---------- -----
       SUBROUTINE AUTOI(IAP,RAP)
 C
       USE INTERFACES
-      USE AUTO_CONSTANTS
+      USE AUTO_CONSTANTS, ONLY: ICU,IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM
       USE AE
       USE BVP
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO
 C
+      IMPLICIT NONE
       INTEGER IAP(*)
       DOUBLE PRECISION RAP(*)
 
-      INTEGER ITP,NFPR,NNICP,NPAR
-      INTEGER, ALLOCATABLE :: ICP(:)
-      DOUBLE PRECISION, ALLOCATABLE :: PAR(:)
+      INTEGER ITP,NFPR,NNICP,NPAR,NDIMA,I,J
+      INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
+      DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
       ITP=IAP(27)
       NFPR=IAP(29)
 C
       IF(IAP(38)==0)THEN
         NPAR=IAP(31)
-        NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*NICP+NDIM+3)
+        NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
         ALLOCATE(ICP(NNICP))
-        ICP(1:NICP)=ICU(1:NICP)
-        ICP(NICP+1:NNICP)=0
+        ICP(:SIZE(ICU))=ICU(:)
+        ICP(SIZE(ICU)+1:)=0
         ALLOCATE(PAR(NPAR))
         PAR(:)=0.d0
         CALL INIT1(IAP,RAP,ICP,PAR)
+        NFPR=IAP(29)
+C     redefine thl to be nfpr sized and indexed
+        ALLOCATE(THL(NFPR))
+        DO I=1,NFPR
+           THL(I)=1.0D0
+           DO J=1,SIZE(IVTHL)
+              IF(ICP(I)==IVTHL(J)%INDEX)THEN
+                 THL(I)=IVTHL(J)%VAR
+              ENDIF
+           ENDDO
+        ENDDO
+C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
+        NDIMA=IAP(1) ! active NDIM from INIT1
+        ALLOCATE(THU(NDIMA+1))
+        DO I=1,NDIMA
+           THU(I)=1.d0
+        ENDDO
+        DO I=1,SIZE(IVTHU)
+           THU(IVTHU(I)%INDEX)=IVTHU(I)%VAR
+        ENDDO
+C     set IUZ/VUZ
+        ALLOCATE(IUZ(SIZE(IVUZR)),VUZ(SIZE(IVUZR)))
+        DO I=1,SIZE(IVUZR)
+           IUZ(I)=IVUZR(I)%INDEX
+           VUZ(I)=IVUZR(I)%VAR
+        ENDDO
+      ELSE
+        ! ignored for MPI workers
+        ALLOCATE(ICP(1),PAR(1),THU(1),THL(1),IUZ(1),VUZ(1))
       ENDIF
 C
 C-----------------------------------------------------------------------
@@ -439,7 +450,7 @@ C Error Message.
  500  FORMAT(' Initialization Error')
 C
       IF(IAP(38)==0)THEN
-         DEALLOCATE(ICP,PAR)
+         DEALLOCATE(ICP,PAR,THL,THU,IUZ,VUZ)
       ENDIF
 
       END SUBROUTINE AUTOI
@@ -450,11 +461,10 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,EOF,LINE,SFILE,SVFILE)
+      SUBROUTINE INIT(IAP,RAP,EOF,LINE)
 C
       USE AUTO_CONSTANTS
       USE HOMCONT, ONLY : INSTRHO
-      USE IO, ONLY : NUNAMES,NPARNAMES,UNAMES,PARNAMES,EFILE
 C
       IMPLICIT NONE
 C
@@ -464,10 +474,9 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: RAP(*)
       LOGICAL, INTENT(OUT) :: EOF
       INTEGER, INTENT(INOUT) :: LINE
-      CHARACTER(LEN=*), INTENT(INOUT) :: SFILE, SVFILE
 C
       INTEGER IBR,I,IUZR,NFPR,NDM,NNT0,NBC0
-      INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR
+      INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR,NUZR,NICP
       DOUBLE PRECISION AMP,BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=256) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS,IERR
@@ -486,8 +495,6 @@ C
       DOUBLE PRECISION, PARAMETER :: RDEFAULTS(13) = (/
      * 0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,
      * 0d0, 1d-7, 1d-7, 1d-5 /)
-      INTEGER, ALLOCATABLE :: ITH(:)
-      DOUBLE PRECISION, ALLOCATABLE :: VTHU(:)
 C
       IAP(1:23)=IDEFAULTS(:)
       RAP(1:13)=RDEFAULTS(:)
@@ -496,12 +503,8 @@ C
       RAP(8)=-HUGE(1d0)
       RAP(9)=HUGE(1d0)
       NICP=1
-      ALLOCATE(ICU(1),IUZ(1),VUZ(1),ITH(1),VTHU(1),ITHL(1),VTHL(1))
+      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),PARNAMES(0),UNAMES(0))
       ICU(1)=1
-      NTHU=0
-      NTHL=1
-      ITHL(1)=11
-      VTHL(1)=0d0
       NUZR=0
       NPAR=NPARX
 
@@ -568,34 +571,29 @@ C
             READ(STR(POS:),*,ERR=3)ICU            
          CASE('UZR')
             NUZR=LISTLEN
-            DEALLOCATE(IUZ,VUZ)
-            ALLOCATE(IUZ(NUZR),VUZ(NUZR))
-            READ(STR(POS:),*,ERR=3)(IUZ(I),VUZ(I),I=1,NUZR)
+            DEALLOCATE(IVUZR)
+            ALLOCATE(IVUZR(NUZR))
+            READ(STR(POS:),*,ERR=3)IVUZR
          CASE('THL')
-            NTHL=LISTLEN
-            DEALLOCATE(ITHL,VTHL)
-            ALLOCATE(ITHL(NTHL),VTHL(NTHL))
-            READ(STR(POS:),*,ERR=3)(ITHL(I),VTHL(I),I=1,NTHL)
+            IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
+            ALLOCATE(IVTHL(LISTLEN))
+            READ(STR(POS:),*,ERR=3)IVTHL
          CASE('THU')
-            NTHU=LISTLEN
-            DEALLOCATE(ITH,VTHU)
-            ALLOCATE(ITH(NTHU),VTHU(NTHU))
-            READ(STR(POS:),*,ERR=3)(ITH(I),VTHU(I),I=1,NTHU)
+            DEALLOCATE(IVTHU)
+            ALLOCATE(IVTHU(LISTLEN))
+            READ(STR(POS:),*,ERR=3)IVTHU
          CASE('PAR')
-            NPARNAMES=LISTLEN
             IF(ALLOCATED(PARNAMES))DEALLOCATE(PARNAMES)
-            ALLOCATE(PARNAMES(NPARNAMES))
-            READ(STR(POS:),*,ERR=3)(PARNAMES(I),I=1,NPARNAMES)
+            ALLOCATE(PARNAMES(LISTLEN))
+            READ(STR(POS:),*,ERR=3)PARNAMES
          CASE('U')
-            NUNAMES=LISTLEN
             IF(ALLOCATED(UNAMES))DEALLOCATE(UNAMES)
-            ALLOCATE(UNAMES(NUNAMES))
-            READ(STR(POS:),*,ERR=3)(UNAMES(I),I=1,NUNAMES)
+            ALLOCATE(UNAMES(LISTLEN))
+            READ(STR(POS:),*,ERR=3)UNAMES
          CASE('s')
-            SFILE(1:2)='s.'
-            READ(STR(POS:),*)SFILE(3:)
+            READ(STR(POS:),*)SFILE
          CASE('sv')
-            READ(STR(POS:),*)SVFILE(3:)
+            READ(STR(POS:),*)SVFILE
          CASE('e')
             READ(STR(POS:),*)EFILE
          CASE DEFAULT
@@ -666,54 +664,37 @@ C
       DSMIN=ABS(DSMIN)
       DSMAX=ABS(DSMAX)
       LINE=LINE+1
-      READ(2,*,ERR=3,END=4) NTHL
-      IF(NTHL.GT.0)THEN
-        DEALLOCATE(ITHL,VTHL)
-        ALLOCATE(ITHL(NTHL),VTHL(NTHL))
-        DO I=1,NTHL
+      READ(2,*,ERR=3,END=4) LISTLEN
+      IF(LISTLEN>0)THEN
+        IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
+        ALLOCATE(IVTHL(LISTLEN))
+        DO I=1,LISTLEN
           LINE=LINE+1
-          READ(2,*,ERR=3,END=4)ITHL(I),VTHL(I)
+          READ(2,*,ERR=3,END=4)IVTHL(I)
         ENDDO
       ENDIF
       LINE=LINE+1
-      READ(2,*,ERR=3,END=4) NTHU
-      IF(NTHU.GT.0)THEN
-        DEALLOCATE(ITH,VTHU)
-        ALLOCATE(ITH(NTHU),VTHU(NTHU))
-        DO I=1,NTHU
+      READ(2,*,ERR=3,END=4) LISTLEN
+      IF(LISTLEN>0)THEN
+        DEALLOCATE(IVTHU)
+        ALLOCATE(IVTHU(LISTLEN))
+        DO I=1,LISTLEN
           LINE=LINE+1
-          READ(2,*,ERR=3,END=4)ITH(I),VTHU(I)
+          READ(2,*,ERR=3,END=4)IVTHU(I)
         ENDDO
       ENDIF
       LINE=LINE+1
       READ(2,*,ERR=3,END=4)NUZR
-      IF(NUZR.GT.0)THEN
-        DEALLOCATE(IUZ,VUZ)
-        ALLOCATE(IUZ(NUZR),VUZ(NUZR))
+      IF(NUZR>0)THEN
+        DEALLOCATE(IVUZR)
+        ALLOCATE(IVUZR(NUZR))
         DO I=1,NUZR
           LINE=LINE+1
-          READ(2,*,ERR=3,END=4)IUZ(I),VUZ(I)
+          READ(2,*,ERR=3,END=4)IVUZR(I)
         ENDDO
       ENDIF
 C
-C     we allocate THU (a pointer to the THU array in the
-C     main program) here since this is the place where we 
-C     know the size.  It is 8 times bigger then ndim since
-C     INIT can modify THU based on the problem type,
-C     but only up to making it 8 times larger.
-C
- 2    ALLOCATE(THU(8*NDIM+1))
-      DO I=1,NDIM*8+1
-        THU(I)=1.d0
-      ENDDO
-      IF(NTHU.GT.0)THEN
-        DO I=1,NTHU
-          THU(ITH(I))=VTHU(I)
-        ENDDO
-      ENDIF
-      DEALLOCATE(ITH,VTHU)
-C
-      IAP(1)=NDIM
+ 2    IAP(1)=NDIM
       IAP(2)=IPS
       IAP(3)=IRS
       IAP(4)=ILP
@@ -875,11 +856,11 @@ C     ---------- -------
 C
 C     Deallocate some globally allocated arrays.
 C
-      USE AUTO_CONSTANTS
+      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,PARNAMES,UNAMES
 
       IMPLICIT NONE
 
-      DEALLOCATE(THU,IUZ,VUZ,THL,ICU)
+      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,PARNAMES,UNAMES)
       END SUBROUTINE CLEANUP
 C
 C-----------------------------------------------------------------------
@@ -892,7 +873,7 @@ C     ---------- -----
       SUBROUTINE INIT1(IAP,RAP,ICP,PAR)
 C
       USE HOMCONT, ONLY:INHO
-      USE AUTO_CONSTANTS, ONLY:ICU,ITHL,VTHL,THL,NTHL
+      USE AUTO_CONSTANTS, ONLY:ICU,IVTHL
 C
       DOUBLE PRECISION, PARAMETER ::
      *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
@@ -920,7 +901,7 @@ C   NMX: set to 5 for starts of extended systems
 C
 C Local
       INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX
-      INTEGER ITP,NFPR,NICP,NDM,NXP,I,J,NNEG,IC,JC
+      INTEGER ITP,NFPR,NICP,NDM,NXP,I,NNEG,IC,JC
       DOUBLE PRECISION DS,DSMIN,DSMAX,FC
 C
        NDIM=IAP(1)
@@ -1048,11 +1029,7 @@ C overload to define optimality integrals
                ICP(NFPR+NNEG)=JC
              ENDIF
            ENDDO
-C Set indices of output parameters
            NICP=NFPR-3
-           DO I=1,NICP
-             ICU(I)=ICP(I)
-           ENDDO
 C
        ELSE IF(IPS.EQ.5)THEN
 C        ** Algebraic optimization Problems
@@ -1308,19 +1285,18 @@ C
          ENDIF
 C
        ENDIF
-
-C     redefine nthl to be nfpr sized and indexed
-       ALLOCATE(THL(NFPR))
-       DO I=1,NFPR
-         THL(I)=1.0D0
-         DO J=1,NTHL
-           IF(ICP(I)==ITHL(J))THEN
-             THL(I)=VTHL(J)
-           ENDIF
-         ENDDO
-       ENDDO
-       DEALLOCATE(ITHL,VTHL)
 C
+       IF(.NOT.ALLOCATED(IVTHL))THEN
+          ! set default for *THL
+          IF(IPS==2.OR.IPS==9)THEN
+             ALLOCATE(IVTHL(1))
+             IVTHL(1)%INDEX=11
+             IVTHL(1)%VAR=0d0
+          ELSE
+             ALLOCATE(IVTHL(0))
+          ENDIF
+       ENDIF
+
        IAP(1)=NDIM
        IAP(2)=IPS
        IAP(4)=ILP

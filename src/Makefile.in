@@ -44,11 +44,14 @@ compile: $(OBJ)
 ../lib/support.o: support.f90 ../lib/mesh.o
 	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
 #
-../lib/io.o: io.f90 ../lib/compat.o
+../lib/io.o: io.f90 ../lib/auto_constants.o ../lib/compat.o
 	$(FC) $(FFLAGS) $(OPT) -c io.f90 -o $@
 #
 ../lib/mesh.o: mesh.f90
 	$(FC) $(FFLAGS) $(OPT) -c mesh.f90 -o $@
+#
+../lib/auto_constants.o: auto_constants.f90
+	$(FC) $(FFLAGS) $(OPT) -I../include -c auto_constants.f90 -o $@
 #
 ../lib/libauto_c.a: user_c.c ../include/auto_f2c.h ../include/config.h
 	rm -f $@

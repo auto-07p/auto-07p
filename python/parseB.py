@@ -618,12 +618,16 @@ class AUTOBranch(Points.Pointset):
             i = i + 1
             dict[key] = AUTOatof(words[i])
         key = ""
+        userspec = False
         for line in headerlist[1:]:
             line = string.replace(line,"="," ")
             line = string.replace(line,"s:",":")
             words = split(line)
             if len(words) < 2:
                 break
+            if words[-1] == "constant:":
+                userspec = True
+                continue
             if words[1] in ["User-specified", "Active"]:
                 index = words.index("parameter:") + 1
                 if words[1][0] == "U":
@@ -637,13 +641,43 @@ class AUTOBranch(Points.Pointset):
                 key = words[i]
                 v = words[i+1]
                 i = i+2
-                if key[0] in ["E","D"]:
+                if v[0] == '[':
+                    if len(v) > 1 and v[1] == ']':
+                        v = []
+                    elif key in ["PAR","U"]:
+                        v = []
+                        c = ','
+                        while True:
+                            item = words[i-1]
+                            if item[-1] in [',',']']:
+                                c = item[-1]
+                                item = item[:-1]
+                            if item[0] == '[':
+                                item = item[1:]
+                            v.append(item[1:-1])
+                            if c == ']':
+                                break
+                            i = i+1
+                    else:
+                        #parse THL/THU/UZR
+                        v = []
+                        while True:
+                            item1 = string.replace(words[i-1],'[','')[:-1]
+                            item2 = words[i]
+                            v.append([int(item1),AUTOatof(item2[:-2])])
+                            i = i+1
+                            if item2[-1] == ']':
+                                break
+                            i = i+1
+                elif key[0] in ["E","D"]:
                     v = AUTOatof(v)
                 else:
                     try:
                         v = int(v)
                     except:
-                        v = 9999
+                        v = 99999
+                if userspec:
+                    dict["Active "+key] = dict[key]
                 dict[key] = v
         return dict
 

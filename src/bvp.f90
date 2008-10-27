@@ -206,7 +206,7 @@ CONTAINS
 
 ! Store plotting data for restart point :
 
-    CALL STHD(IAP,RAP,ICP,ICU)
+    CALL STHD(IAP,RAP,ICP)
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE

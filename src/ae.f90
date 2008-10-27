@@ -103,7 +103,7 @@ CONTAINS
 
 ! Write constants
 
-    CALL STHD(IAP,RAP,ICP,ICU)
+    CALL STHD(IAP,RAP,ICP)
 
     DO NBFC=0,NBFCS !bifurcation switch loop
 
