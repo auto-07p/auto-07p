@@ -644,22 +644,7 @@ class AUTOBranch(Points.Pointset):
                 if v[0] == '[':
                     if len(v) > 1 and v[1] == ']':
                         v = []
-                    elif key in ["PAR","U"]:
-                        v = []
-                        c = ','
-                        while True:
-                            item = words[i-1]
-                            if item[-1] in [',',']']:
-                                c = item[-1]
-                                item = item[:-1]
-                            if item[0] == '[':
-                                item = item[1:]
-                            v.append(item[1:-1])
-                            if c == ']':
-                                break
-                            i = i+1
-                    else:
-                        #parse THL/THU/UZR
+                    elif key in ["THL","THU","UZR"]:
                         v = []
                         while True:
                             item1 = string.replace(words[i-1],'[','')[:-1]
@@ -669,8 +654,27 @@ class AUTOBranch(Points.Pointset):
                             if item2[-1] == ']':
                                 break
                             i = i+1
+                    else: # PAR,U,HomCont lists
+                        v = []
+                        c = ','
+                        while True:
+                            item = words[i-1]
+                            if item[-1] in [',',']']:
+                                c = item[-1]
+                                item = item[:-1]
+                            if item[0] == '[':
+                                item = item[1:]
+                            if item[0] == "'":
+                                v.append(item[1:-1])
+                            else:
+                                v.append(int(item))
+                            if c == ']':
+                                break
+                            i = i+1
                 elif key[0] in ["E","D"]:
                     v = AUTOatof(v)
+                elif v[0] == "'":
+                    v = v[1:-1]
                 else:
                     try:
                         v = int(v)

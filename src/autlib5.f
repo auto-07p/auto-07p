@@ -8,15 +8,13 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
+      USE AUTO_CONSTANTS, ONLY : ITWIST,ISTART,IEQUIB,NFIXED,NPSI,
+     *     NUNSTAB,NSTAB,NREV,IREV,IPSI,IFIXED
+
       PRIVATE
 
       PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,INSTRHO
 
-C     This common block is also used by demos: don't remove it!!
-C
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-
-      INTEGER, ALLOCATABLE, SAVE :: IREV(:),IPSI(:),IFIXED(:)
       LOGICAL, SAVE :: NEWCFILE=.FALSE.
       DOUBLE PRECISION, SAVE :: COMPZERO
 
@@ -615,6 +613,17 @@ C
 C     read HomCont constants from a string
 C
       IERR = 0
+      IF(.NOT.NEWCFILE)THEN
+         NUNSTAB=-1
+         NSTAB=-1
+         IEQUIB=1
+         ITWIST=0
+         ISTART=1
+         NREV=0
+         NFIXED=0
+         NPSI=0
+         ALLOCATE(IREV(0),IFIXED(0),IPSI(0))
+      ENDIF
       NEWCFILE = .TRUE.
       SELECT CASE(KEYSTR)
       CASE('NUNSTAB')
@@ -688,12 +697,14 @@ C updated reading in of constants for reversible equations
 C replaces location in datafile of compzero
 C
          IF(ALLOCATED(IREV))DEALLOCATE(IREV)
-         ALLOCATE(IREV(NDM))
          LINE=LINE+1
          READ(12,*,ERR=1,END=2)NREV
          IF(NREV>0)THEN
+            ALLOCATE(IREV(NDM))
             LINE=LINE+1
             READ(12,*,ERR=1,END=2)(IREV(I),I=1,NDM)
+         ELSE
+            ALLOCATE(IREV(0))
          ENDIF
 C
          LINE=LINE+1

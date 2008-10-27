@@ -29,7 +29,9 @@ CONTAINS
 
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, UNAMES, PARNAMES, &
-         NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU
+         NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
+         EFILE, SVFILE, SFILE, DATFILE, &
+         ITWIST,ISTART,IEQUIB,NUNSTAB,NSTAB,IREV,IPSI,IFIXED
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -46,6 +48,7 @@ CONTAINS
     CHARACTER (LEN=*), PARAMETER :: I7 = "('   0',(A7,I5),2(A8,I4),2(A7,I4))"
     INTEGER NDIMA,IPSA,IRSA,ILPA,NTST,NCOL,IAD,ISPA,ISWA,IPLT,NBCA,NINTA,NMXA
     INTEGER NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,NICP,I,NPAR
+    INTEGER LSV,LDAT,LE,LS
     DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
 
     NDIMA=IAP(1)
@@ -97,8 +100,43 @@ CONTAINS
     CALL WRITELIST("   THL = ",IVTHL)
     CALL WRITELIST("    THU = ",IVTHU)
     WRITE(7,*)
-    CALL WRITELIST("   0   UZR = ",IVUZR)
-    WRITE(7,*)
+    IF(NUZR>0)THEN
+       CALL WRITELIST("   0   UZR = ",IVUZR)
+       WRITE(7,*)
+    ENDIF
+    IF(IPS==9)THEN
+       !homcont constants
+       WRITE(7,"('   0   ',2(A,I4),2(A8,I2),(A8,I4))") &
+            'NUNSTAB=',NUNSTAB,' NSTAB=',NSTAB,&
+            'IEQUIB=',IEQUIB,'ITWIST=',ITWIST,'ISTART=',ISTART
+       IF(SIZE(IREV)>0.OR.SIZE(IFIXED)>0.OR.SIZE(IPSI)>0)THEN
+          WRITE(7,"('   0  ')",ADVANCE='NO')
+          CALL WRITEINTLIST(" IREV=",IREV)
+          CALL WRITEINTLIST(" IFIXED=",IFIXED)
+          CALL WRITEINTLIST(" IPSI=",IPSI)
+          WRITE(7,*)
+       ENDIF
+    ENDIF
+    LE=LEN_TRIM(EFILE)
+    LSV=LEN_TRIM(SVFILE)
+    LS=LEN_TRIM(SFILE)
+    LDAT=LEN_TRIM(DATFILE)
+    IF(LE>0.OR.LSV>0.OR.LS>0.OR.LDAT>0)THEN
+       WRITE(7,"('   0  ')",ADVANCE="NO")
+       IF(LE>0)THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" e = '",TRIM(EFILE),"'"
+       ENDIF
+       IF(LS>0)THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" s = '",TRIM(SFILE),"'"
+       ENDIF
+       IF(LDAT>0)THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" dat = '",TRIM(DATFILE),"'"
+       ENDIF
+       IF(LSV>0)THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" sv = '",TRIM(SVFILE),"'"
+       ENDIF
+       WRITE(7,*)
+    ENDIF
     IF(SIZE(PARNAMES)>0)THEN
        WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   PAR = ['",TRIM(PARNAMES(1)),"'"
        DO I=2,SIZE(PARNAMES)
@@ -162,6 +200,26 @@ CONTAINS
       ENDDO
       WRITE(7,"(A)", ADVANCE="NO")']'
     END SUBROUTINE WRITELIST
+
+    SUBROUTINE WRITEINTLIST(NAME,ILIST)
+      USE AUTO_CONSTANTS, ONLY: INDEXVAR
+      CHARACTER(LEN=*), INTENT(IN) :: NAME
+      INTEGER, INTENT(IN) :: ILIST(:)
+      
+      LOGICAL FIRST
+      CHARACTER(LEN=12) :: INDSTR
+
+      IF (SIZE(ILIST) == 0) RETURN
+      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'['
+      FIRST=.TRUE.
+      DO I=1,SIZE(ILIST)
+         IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
+         WRITE(INDSTR,'(I12)')ILIST(I)
+         WRITE(7,"(A)", ADVANCE="NO")TRIM(ADJUSTL(INDSTR))
+         FIRST=.FALSE.
+      ENDDO
+      WRITE(7,"(A)", ADVANCE="NO")']'
+    END SUBROUTINE WRITEINTLIST
 
   END SUBROUTINE STHD
 
