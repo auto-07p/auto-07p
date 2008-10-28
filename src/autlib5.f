@@ -1781,13 +1781,23 @@ C
       DOUBLE PRECISION, INTENT(IN) :: RR(:)
       INTEGER, INTENT(IN) :: STAB
 
-      INTEGER I
+      INTEGER I,IAMIN
 
        IF(N/=-1)RETURN
  
+       IAMIN=0
+       IF(IEQUIB==2)THEN
+          !exclude eigenvalue closest to zero for saddle-node homs
+          IAMIN=1
+          DO I=1,SIZE(RR)
+             IF(ABS(RR(I))<ABS(RR(IAMIN)))THEN
+                IAMIN=I
+             ENDIF
+          ENDDO
+       ENDIF
        N=0
        DO I=1,SIZE(RR)
-          IF(RR(I)*STAB>0)THEN
+          IF(I/=IAMIN.AND.RR(I)*STAB>0)THEN
              N=N+1
           ENDIF
        ENDDO
