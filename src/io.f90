@@ -30,8 +30,7 @@ CONTAINS
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, UNAMES, PARNAMES, &
          NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, &
-         ITWIST,ISTART,IEQUIB,NUNSTAB,NSTAB,IREV,IPSI,IFIXED
+         EFILE, SVFILE, SFILE, DATFILE, HCONST
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -107,13 +106,15 @@ CONTAINS
     IF(IPS==9)THEN
        !homcont constants
        WRITE(7,"('   0   ',2(A,I4),2(A8,I2),(A8,I4))") &
-            'NUNSTAB=',NUNSTAB,' NSTAB=',NSTAB,&
-            'IEQUIB=',IEQUIB,'ITWIST=',ITWIST,'ISTART=',ISTART
-       IF(SIZE(IREV)>0.OR.SIZE(IFIXED)>0.OR.SIZE(IPSI)>0)THEN
+            'NUNSTAB=',HCONST%NUNSTAB,' NSTAB=',HCONST%NSTAB,&
+            'IEQUIB=',HCONST%IEQUIB,'ITWIST=',HCONST%ITWIST,&
+            'ISTART=',HCONST%ISTART
+       IF(SIZE(HCONST%IREV)>0.OR.SIZE(HCONST%IFIXED)>0.OR.&
+            SIZE(HCONST%IPSI)>0)THEN
           WRITE(7,"('   0  ')",ADVANCE='NO')
-          CALL WRITEINTLIST(" IREV=",IREV)
-          CALL WRITEINTLIST(" IFIXED=",IFIXED)
-          CALL WRITEINTLIST(" IPSI=",IPSI)
+          CALL WRITEINTLIST(" IREV=",HCONST%IREV)
+          CALL WRITEINTLIST(" IFIXED=",HCONST%IFIXED)
+          CALL WRITEINTLIST(" IPSI=",HCONST%IPSI)
           WRITE(7,*)
        ENDIF
     ENDIF

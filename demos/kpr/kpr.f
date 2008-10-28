@@ -59,11 +59,11 @@ C
 C----------------------------------------------------------------------
 C Problem parameters (only PAR(1-9) are available to the user) :
 C
-        PAR(1) = -1.8512    ! lambda
+        PAR(1) = -1.851185124d0    ! lambda
         PAR(2) = -0.15D0         ! kappa 
         PAR(3) = 10.0d0          ! 1/epsilon_1
 C
-        PAR(11)=  0.1            ! truncated time interval 
+        PAR(11)=  0.1d0          ! truncated time interval 
 C----------------------------------------------------------------------
 C If IEQUIB=1 then put the equilibrium in PAR(11+i), i=1,...,NDIM :
 C

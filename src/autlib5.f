@@ -8,13 +8,17 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      USE AUTO_CONSTANTS, ONLY : ITWIST,ISTART,IEQUIB,NFIXED,NPSI,
-     *     NUNSTAB,NSTAB,NREV,IREV,IPSI,IFIXED
+      USE AUTO_CONSTANTS, ONLY : HCONST,HCONST_TYPE
 
       PRIVATE
 
       PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,INSTRHO
 
+C     This common block is also used by demos: don't remove it!!
+C
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
+
+      INTEGER, ALLOCATABLE, TARGET :: IREV(:),IFIXED(:),IPSI(:)
       LOGICAL, SAVE :: NEWCFILE=.FALSE.
       DOUBLE PRECISION, SAVE :: COMPZERO
 
@@ -755,6 +759,23 @@ C
          ENDDO
       ENDIF 
 C
+      HCONST=HCONST_TYPE(NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART,
+     *     IREV,IFIXED,IPSI)
+      IF(NSTAB==-1.OR.NUNSTAB==-1)THEN
+         IF (IEQUIB.EQ.2) THEN
+            NBCPROJ=NDM-1
+         ELSE
+            NBCPROJ=NDM
+         ENDIF
+      ELSE
+         NBCPROJ=NSTAB+NUNSTAB
+      ENDIF
+      IF(NSTAB==-1.AND.NUNSTAB/=-1)THEN
+         NSTAB=NBCPROJ-NUNSTAB
+      ELSEIF(NUNSTAB==-1.AND.NSTAB/=-1)THEN
+         NUNSTAB=NBCPROJ-NSTAB
+      ENDIF
+
       IF (ISTART.NE.3) THEN
 C     *regular continuation
         IF (ISTART.GE.0) THEN
@@ -765,7 +786,7 @@ C     *regular continuation
         ELSE
           ICORR = 1
         ENDIF
-        NBC=NBC+NSTAB+NUNSTAB+NDIM-NDM+IEQUIB*NDM+NFREE-NINT-ICORR
+        NBC=NBC+NBCPROJ+NDIM-NDM+IEQUIB*NDM+NFREE-NINT-ICORR
         IF (IEQUIB.EQ.2) THEN
           NBC=NBC-NDM+1
         ENDIF
@@ -774,7 +795,7 @@ C     *regular continuation
         ENDIF
       ELSE
 C     *starting solutions using homotopy
-        IF (NUNSTAB.EQ.1) THEN
+        IF (ABS(NUNSTAB).EQ.1) THEN
           NBC=NDM*(1+IEQUIB)+1
         ELSE
           NBC=NDM*(1+IEQUIB)+NUNSTAB+1
@@ -1395,25 +1416,29 @@ C
           CALL ADAPT2(NTSR,NCOLRS,NDIMU,NTST,NCOL,NDIM,
      *         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
           DEALLOCATE(TMR,UPSR,UDOTPSR)
-          RETURN
-       ENDIF
+       ELSE
 C
 C Generate the (initially uniform) mesh.
 C
-       CALL STPNUB(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
-     *      UPS,UDOTPS,TM,NODIR)
+          CALL STPNUB(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+     *         UPS,UDOTPS,TM,NODIR)
 C
 C Initialize solution and additional parameters
 C
-       CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
-       IF (ISTART.NE.3) THEN
-          RETURN
+          CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
        ENDIF
 C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
        CALL PVLS(NDM,UPS,PAR)
        CALL EIGHI(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
+       CALL GETSTAB(NUNSTAB,RR,1)
        CALL EIGHI(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
+       CALL GETSTAB(NSTAB,RR,-1)
+C
+       IF (IRS>0.OR.ISTART/=3)THEN
+          DEALLOCATE(RR,RI,VR,VT)
+          RETURN
+       ENDIF
 C
 C Set up artificial parameters at the left-hand end point of orbit
 C
@@ -1743,6 +1768,30 @@ C
 C
       END SELECT
       END FUNCTION PSIHO
+C
+C     ---------- -------
+      SUBROUTINE GETSTAB(N,RR,STAB)
+C
+C     Determine number of stable (STAB==-1) or unstable (STAB==1)
+C     eigenvalues in RR
+C
+      IMPLICIT NONE
+
+      INTEGER, INTENT(INOUT) :: N
+      DOUBLE PRECISION, INTENT(IN) :: RR(:)
+      INTEGER, INTENT(IN) :: STAB
+
+      INTEGER I
+
+       IF(N/=-1)RETURN
+ 
+       N=0
+       DO I=1,SIZE(RR)
+          IF(RR(I)*STAB>0)THEN
+             N=N+1
+          ENDIF
+       ENDDO
+      END SUBROUTINE GETSTAB
 C     
 C     ---------- -----
       SUBROUTINE EIGHI(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
