@@ -245,7 +245,7 @@ class parseC(UserDict.UserDict):
     def write(self,output):
         if self.__new:
             for key,value in self.items():
-                if key in ["ICP","IREV","IFIXED","IPSI"]:
+                if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
                     if value != []:
                         output.write(key+"="+str(value)+"\n")
                 elif key in ["THL","THU","UZR"]:
@@ -254,7 +254,7 @@ class parseC(UserDict.UserDict):
                         for item in value:
                             s=s+str([item["PAR index"],item["PAR value"]])+','
                         output.write(s[:-1]+"]\n")
-                elif key[0] != '_' and value != None:
+                elif key[0] != '_' and key[:7] != "Active " and value != None:
                     output.write(key+"="+str(value)+"\n")
             return
             

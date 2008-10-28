@@ -1003,9 +1003,10 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __applyRunnerConfigResolveFilenames(self,kw={}):
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
-                object = parseC.parseC()
-                object.readFilename(kw["constants"])
-                kw["constants"] = object
+                try:
+                    kw["constants"] = parseC.parseC(kw["constants"])
+                except IOError:
+                    del kw["constants"]
         if kw.has_key("solution"):
             if type(kw["solution"]) == types.StringType:
                 object = parseS.parseS()
@@ -1032,10 +1033,11 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         self.runner.config(dict)
         data = None
         if self.sname is not None and self.runner.options["solution"]:
+            options = self.runner.options.copy()
             bname = self. _applyTemplate(self.sname,"bifurcationDiagram")
-            sname = self.runner.options["solution"]
+            sname = options["solution"]
             dname = self. _applyTemplate(self.sname,"diagnostics")
-            data = bifDiag.bifDiag(bname,sname,dname,self.runner.options)
+            data = bifDiag.bifDiag(bname,sname,dname,options)
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):

@@ -76,7 +76,7 @@ class parseD(UserList.UserList):
             labline = 0
             for line in lines:
                 sp = string.split(line)
-                if labline:
+                if labline and len(sp) > 3:
                     if sp[2] != '0':
                         try:
                             item["Label"] = int(sp[2])

@@ -489,7 +489,7 @@ C
      * "MXBF", "IID ", "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
       INTEGER, PARAMETER :: IDEFAULTS(23) = (/
      * 2, 1, 0, 1, 20, 4, 3, 1,
-     * 2, 1, 0, 0, 0, 99999, 0, 9999,
+     * 2, 1, 0, 0, 0, 99999, 0, 99999,
      * 10, 2, 9, 5, 3, 0, NPARX /)
       CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/
      * "DS   ", "DSMIN", "DSMAX", "     ", "     ", "RL0  ", "RL1  ",
@@ -500,10 +500,10 @@ C
 C
       IAP(1:23)=IDEFAULTS(:)
       RAP(1:13)=RDEFAULTS(:)
-      RAP(6)=-HUGE(1d0)
-      RAP(7)=HUGE(1d0)
-      RAP(8)=-HUGE(1d0)
-      RAP(9)=HUGE(1d0)
+      RAP(6)=-HUGE(1d0)*0.99995d0 !avoid rounding up in sthd
+      RAP(7)=HUGE(1d0)*0.99995d0
+      RAP(8)=-HUGE(1d0)*0.99995d0
+      RAP(9)=HUGE(1d0)*0.99995d0
       NICP=1
       ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),PARNAMES(0),UNAMES(0))
       ICU(1)=1

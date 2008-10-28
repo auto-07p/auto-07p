@@ -37,7 +37,7 @@ class runAUTO:
         self.options["executable"] = None
         self.options["command"] = None
         self.options["makefile"] = None
-        self.options["constants"] = parseC.parseC()
+        self.options["constants"] = None
         self.options["solution"] = None
         self.options["homcont"] = None
         self.options["copy setup"] = None
@@ -53,18 +53,20 @@ class runAUTO:
         for key in dict.keys():
             if self.options.has_key(key):
                 self.options[key] = dict[key]
-        for key in dict.keys():
+        for key,value in dict.items():
             if self.options.has_key(key):
-                pass
-            elif (self.options["homcont"] is not None and
+                continue
+            if self.options["constants"] is None:
+                self.options["constants"]=parseC.parseC()
+            if (self.options["homcont"] is not None and
                   self.options["homcont"].has_key(key)):
-                self.options["homcont"][key] = dict[key]
+                self.options["homcont"][key] = value
             elif self.options["constants"].has_key(key):
-                if key == "DS" and (dict[key] == '-' or dict[key] == '+'):
-                    if dict[key] == '-':
+                if key == "DS" and (value == '-' or value == '+'):
+                    if value == '-':
                         self.options["constants"][key] = -self.options["constants"][key]
                 else:
-                    self.options["constants"][key] = dict[key]
+                    self.options["constants"][key] = value
             else:
                 raise "Unknown option: %s"%(key,)
 
@@ -239,16 +241,25 @@ class runAUTO:
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
-        import parseS
+        import parseS,bifDiag
         if os.path.exists("fort.2"):
             os.remove("fort.2")
         if self.options["constants"] is None:
             raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
         solution = self.options["solution"]
+        if solution is None and isinstance(self,bifDiag.bifDiag):
+            solution = self()
         if isinstance(solution,parseS.AUTOSolution):
             self.options["constants"]["IRS"] = solution["Label"]
         elif isinstance(solution,parseS.parseS) and len(solution) == 1:
             self.options["constants"]["IRS"] = solution[0]["Label"]
+
+        # figure out equation file name
+        equation = self.options["equation"][14:]
+        for ext in [".f90",".f",".c"]:
+            if os.path.exists(equation+ext):
+                self.options["constants"]["e"] = equation
+                break
         self.options["constants"].writeFilename("fort.2")
 
         if os.path.exists("fort.3"):
@@ -372,7 +383,7 @@ class runAUTO:
         elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make":
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
-            equation = self.options["equation"][14:]
+            equation = self.options["constants"]["e"]
             data = None
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
@@ -492,6 +503,8 @@ class runAUTO:
                     status = abs(status)
                     if hasattr(signal,'SIGSEGV') and status == signal.SIGSEGV:
                         sys.stderr.write("Segmentation fault\n")
+                    if hasattr(signal,'SIGFPE') and status == signal.SIGFPE:
+                        sys.stderr.write("Floating point exception\n")
                     elif hasattr(signal,'SIGINT') and status == signal.SIGINT:
                         sys.stderr.write("Ctrl-C\n")
                         raise KeyboardInterrupt
@@ -540,8 +553,11 @@ class runAUTO:
             self.outputFort8 = None
         if (self.outputFort7 and self.outputFort8 and 
             os.path.isfile(self.fort9_path)):
+            options = self.options.copy()
+            options["solution"] = None # do not include solution that this
+                                       # run started from!
             return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,self.options)
+                                   self.fort9_path,options)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")

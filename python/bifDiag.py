@@ -16,17 +16,20 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         runAUTO.runAUTO.__init__(self)
         self.options = None
         if options is not None:
-            self.options = options.copy()
-        if options is not None and options["constants"]['sv'] is not None:
-            #filebased
-            self.filenames = [fort7_filename,fort8_filename,fort9_filename]
-            return
+            self.options = options
+            if (options["constants"] is not None and
+                options["constants"]['sv'] is not None):
+                #filebased
+                self.filenames = [fort7_filename,fort8_filename,fort9_filename]
+                return
         self.__realinit(fort7_filename,fort8_filename,fort9_filename)
 
     def __realinit(self,fort7_filename,fort8_filename,fort9_filename):
         options = self.options
         try:
             parseB.parseBR.__init__(self,fort7_filename)
+            if options is not None and options["constants"] is None:
+                options["constants"] = self[0].constants
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None

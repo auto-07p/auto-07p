@@ -303,7 +303,7 @@ man     -> List of AUTO CLUI commands"""]
 
 if __name__ == "__main__":
     sys.ps1="AUTO> "    
-    opts_list,args=getopt.getopt(sys.argv[1:],"diqtT:L:")
+    opts_list,args=getopt.getopt(sys.argv[1:],"c:diqtT:L:")
     opts={}
     for x in opts_list:
         opts[x[0]]=x[1]
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         sys.exit()
     elif opts.has_key("-d"):
         demo_mode = 'yes'
-        
+
     try:
         import readline
     except:
@@ -345,5 +345,10 @@ if __name__ == "__main__":
         from AUTOclui import *
         del cat, cd, ls
         autoipython()
+    elif opts.has_key("-c"):
+        source = ""
+        for line in string.split(opts["-c"],"\n"):
+            source = source + runner.processShorthand(line) +"\n"
+        runner.runsource(source,"-c","exec")
     else:
         runner.interact()

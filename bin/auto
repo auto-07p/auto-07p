@@ -1,10 +1,15 @@
 #! /bin/sh
-PYTHONPATH=$AUTO_DIR/python:$AUTO_DIR/python/graphics:$DV/Python_interface/python_script:$AUTO_DIR/python/lib/Linux_OpenGL:$AUTO_DIR/python/lib/Linux_Mesa:.
+PPATH=$AUTO_DIR/python:$AUTO_DIR/python/graphics:$DV/Python_interface/python_script:$AUTO_DIR/python/lib/Linux_OpenGL:$AUTO_DIR/python/lib/Linux_Mesa:.
+if [ -z "$PYTHONPATH" ]; then
+    PYTHONPATH=$PPATH
+else
+    PYTHONPATH=$PPATH:$PYTHONPATH
+fi
 export PYTHONPATH
 
 if test "`uname`" = "Darwin"; then
   if which pythonw > /dev/null; then
-    exec pythonw $AUTO_DIR/python/interactiveBindings.py $*;
+    exec pythonw $AUTO_DIR/python/interactiveBindings.py ${1+"$@"};
   fi
 fi
-$AUTO_DIR/python/interactiveBindings.py $*;
+$AUTO_DIR/python/interactiveBindings.py ${1+"$@"};

@@ -641,6 +641,7 @@ class AUTOBranch(Points.Pointset):
                 key = words[i]
                 v = words[i+1]
                 i = i+2
+                if key == "NUZR": continue
                 if v[0] == '[':
                     if len(v) > 1 and v[1] == ']':
                         v = []
