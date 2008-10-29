@@ -319,7 +319,11 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         if key in self.data_keys:
             self.data[key] = value
         else:
-            Points.Pointset.__setitem__(self,key,value)
+            c = self.options["constants"]
+            if c is not None and type(key) == type("") and c.has_key(key):
+                c[key] = value
+            else:
+                Points.Pointset.__setitem__(self,key,value)
 
     def __getitem__(self,key):
         big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p","udotps"]
@@ -327,6 +331,12 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             self.__readAll()
         if key in self.data_keys:
             return self.data[key]
+        c = self.options["constants"]
+        if c is not None:
+            if key == "":
+                return c
+            if c.has_key(key):
+                return c[key]
         if not(self.__fullyParsed):
             self.__readAll()
         if key == "data":

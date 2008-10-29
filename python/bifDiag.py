@@ -95,6 +95,26 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             return self.data
         raise AttributeError
         
+    def __setitem__(self,key,item):
+        if type(key) == type(""):
+            if self.options is not None:
+                c = self.options["constants"]
+                if c is not None:
+                    c[key] = item
+        else:
+            parseB.parseBR.__setitem__(self,key,item)            
+
+    def __getitem__(self,item):
+        if type(item) == type(""):
+            if self.options is not None:
+                c = self.options["constants"]
+                if c is not None:
+                    if item == "":
+                        return c
+                    else:
+                        return c[item]
+        return parseB.parseBR.__getitem__(self,item)            
+
     def __repr__(self):
         return ""
 
