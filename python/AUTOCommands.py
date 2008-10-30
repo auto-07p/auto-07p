@@ -228,7 +228,7 @@ class commandWithFilenameTemplate(command):
     def _applyTemplate(self,text,template):
         if text is None:
             return None
-        elif type(text) == types.StringType:
+        elif type(text) in [type(""), type(1), type(1.0)]:
             exec "rval = '%s'%%text"%self.templates[template]
             tmp = glob.glob(rval)
             if len(tmp) > 0:
@@ -992,7 +992,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             if abbrev.has_key(key):
                 # change the abbreviation to the long version
                 del kw[key]
-                if type(value) == types.StringType:
+                if type(value) in [type(""),type(1),type(1.0)]:
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
                     if abbrev[key] == "solution":
                         self.sname = value
@@ -1007,7 +1007,20 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     kw["constants"] = parseC.parseC(kw["constants"])
                 except IOError:
                     del kw["constants"]
+        self.bifdiag = None
         if kw.has_key("solution"):
+            if (self.sname is not None and not kw.has_key("constants") and
+                self.runner.options["constants"] is None):
+                bname = self._applyTemplate(self.sname,"bifurcationDiagram")
+                try:
+                    self.bifdiag = parseB.parseBR(bname)
+                    kw["constants"] = self.bifdiag[0].c
+                    for key in ["U", "PAR"]:
+                        if (kw["constants"].has_key(key) and
+                            not kw.has_key(key)):
+                            kw[key] = kw["constants"][key]
+                except IOError:
+                    pass
             if type(kw["solution"]) == types.StringType:
                 object = parseS.parseS()
                 try:
@@ -1038,7 +1051,10 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         data = None
         if self.sname is not None and self.runner.options["solution"]:
             options = self.runner.options.copy()
-            bname = self._applyTemplate(self.sname,"bifurcationDiagram")
+            if self.bifdiag:
+                bname = self.bifdiag
+            else:
+                bname = self._applyTemplate(self.sname,"bifurcationDiagram")
             sname = options["solution"]
             dname = self._applyTemplate(self.sname,"diagnostics")
             data = bifDiag.bifDiag(bname,sname,dname,options)
@@ -1072,7 +1088,8 @@ class commandRunnerLoadName(commandRunnerConfig):
     type="simple"
     shortName="loadName"
     def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
-        if runner is None and name is not None and type(name) != type(""):
+        if (runner is None and name is not None and type(name) != type("")
+            and type(name) != type(1)):
             if isinstance(name, runAUTO.runAUTO):
                 runner = name
             elif not kw.has_key("s"):
@@ -1218,7 +1235,8 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         self.kw = kw
         self.sv = sv
         self.ap = ap
-        if runner is None and name is not None and type(name) != type(""):
+        if (runner is None and name is not None and type(name) != type("")
+            and type(name) != type(1)):
             if isinstance(name, runAUTO.runAUTO):
                 self.runner = name
             elif not kw.has_key("s"):

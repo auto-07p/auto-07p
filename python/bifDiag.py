@@ -29,34 +29,35 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         try:
             parseB.parseBR.__init__(self,fort7_filename)
             if options is not None and options["constants"] is None:
-                options["constants"] = self[0].constants
+                options["constants"] = self[0].c
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None
         if type(fort7_filename) == types.ListType:
             return
-        if (fort8_filename is None) and not(fort7_filename is None) and not(
-            type(fort7_filename) == types.ListType):
-            raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
         diagnostics = None
         if type(fort7_filename) == types.StringType or fort7_filename is None:
-            if options is not None:
-                if isinstance(fort8_filename, parseS.AUTOSolution):
-                    fort8_filename = [fort8_filename]
-                if options["constants"] is None:
-                    solution = parseS.parseS(fort8_filename)
-                else:
-                    solution = apply(parseS.parseS,(fort8_filename,),
+            try:
+                if options is not None:
+                    if isinstance(fort8_filename, parseS.AUTOSolution):
+                        fort8_filename = [fort8_filename]
+                    if options["constants"] is None:
+                        solution = parseS.parseS(fort8_filename)
+                    else:
+                        solution = apply(parseS.parseS,(fort8_filename,),
                                      options["constants"].data)
-                for s in solution:
-                    s.options = options.copy()
-                    s.options["constants"] = parseC.parseC(options["constants"])
-                    s.options["solution"] = s
-                options["solution"] = solution
-            else:
-                solution = parseS.parseS(fort8_filename)
+                    for s in solution:
+                        s.options = options.copy()
+                        s.options["constants"] = parseC.parseC(
+                            options["constants"])
+                        s.options["solution"] = s
+                    options["solution"] = solution
+                else:
+                    solution = parseS.parseS(fort8_filename)
+            except IOError:
+                solution = None
             if fort7_filename is None:
-                # similate a bifurcation diagram
+                # simulate a bifurcation diagram
                 labels = {}
                 i = 0
                 br = 0
@@ -88,10 +89,11 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if diagnostics is None:
             diagnostics = []
         i = 0
-        for d in self:
-            for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                x["solution"] = solution[i]
-                i = i+1
+        if solution is not None:
+            for d in self:
+                for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    x["solution"] = solution[i]
+                    i = i+1
         if self.data != []:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = diagnostics
@@ -116,7 +118,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         sols = []
         for d in self:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                sols.append(x["solution"])
+                if x.has_key("solution"):
+                    sols.append(x["solution"])
         solution = parseS.parseS(sols)
         return solution(label)
 

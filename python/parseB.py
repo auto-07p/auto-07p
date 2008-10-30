@@ -577,7 +577,7 @@ class AUTOBranch(Points.Pointset):
                                                      "PT":pt}}
         self.labels = Points.PointInfo(labels)
         self.__datalist = datalist
-        self.constants = self.parseHeader(headerlist)
+        self.c = self.parseHeader(headerlist)
 
     def readFilename(self,filename):
         try:

@@ -1,5 +1,8 @@
 #!/usr/bin/env autox
 import windowPlotter
+import parseB
+import parseS
+import bifDiag
 import code
 import sys
 import string
@@ -55,9 +58,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             dict["default_option"] = ("d1",None)
         self.handle.grapher.addOptions(dict)
 
+        bd = bifDiag.bifDiag(b,s,options={'constants':None})
         dict = {
-            "bifurcation_diagram_filename": b,
-            "solution_filename": s,
+            "bifurcation_diagram": bd,
+            "solution": bd(),
             "width": 600, "height": 480,
             "bifurcation_symbol": "square",
             "limit_point_symbol": None,
