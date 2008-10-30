@@ -309,25 +309,25 @@ class AUTOBranch(Points.Pointset):
                 v = self._gettypelabel(k)[1]
                 if v["LAB"] == label:
                     return self.getIndex(k)
-            return
+            raise KeyError("Label %s not found"%label)
         if type(label) == types.StringType:
             for k,v in self.labels.sortByIndex():
                 if label in v.keys():
                     return self.getIndex(k)
-            return
+            raise KeyError("Label %s not found"%label)
         labels = {}
         for k,val in self.labels.sortByIndex():
             ty_name,v = self._gettypelabel(k)
             if v["LAB"] in label or ty_name in label:
                 labels[k] = val
-        if labels == {}:
-            return
         new = self.__class__()
         new.BR = self.BR
         new.headerlist = self.headerlist
         new.headernames = self.headernames
         new.labels = labels
         new.stability = self.stability
+        if labels == {}:
+            return new
         Points.Pointset.__init__(new,{
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
@@ -717,19 +717,21 @@ class parseBR(UserList.UserList,AUTOBranch):
             
     # Given a label, return the correct solution
     def getLabel(self,label):
-        if type(label) == types.IntType:
+        if type(label) in [types.IntType, types.StringType]:
             i = 0
             section = 0
             for d in self.data:
                 l = len(d.coordarray[0])
-                item = d.getLabel(label)
-                if item:
+                try:
+                    item = d.getLabel(label)
                     item["index"] = item["index"] + i
                     item["section"] = section
                     return item
+                except:
+                    pass
                 i = i + l
                 section = section + 1
-            return
+            raise KeyError("Label %s not found"%label)
         new = self.__class__()
         new.data = []
         for d in self.data:
@@ -824,7 +826,7 @@ class parseB(AUTOBranch):
             l = l + len(d)
         return l
     def getLabel(self,label):
-        if type(label) == types.IntType:
+        if type(label) in [types.IntType,types.StringType]:
             return self.branches.getLabel(label)
         new = self.__class__()
         new.branches = self.branches.getLabel(label)

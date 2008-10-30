@@ -41,8 +41,13 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         diagnostics = None
         if type(fort7_filename) == types.StringType or fort7_filename is None:
             if options is not None:
-                solution = apply(parseS.parseS,(fort8_filename,),
-                                 options["constants"].data)
+                if isinstance(fort8_filename, parseS.AUTOSolution):
+                    fort8_filename = [fort8_filename]
+                if options["constants"] is None:
+                    solution = parseS.parseS(fort8_filename)
+                else:
+                    solution = apply(parseS.parseS,(fort8_filename,),
+                                     options["constants"].data)
                 for s in solution:
                     s.options = options.copy()
                     s.options["constants"] = parseC.parseC(options["constants"])
@@ -76,6 +81,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                 except IOError:
                     pass
         else:
+            if isinstance(fort8_filename, parseS.AUTOSolution):
+                fort8_filename = parseS.parseS([fort8_filename])
             solution = fort8_filename
             diagnostics = fort9_filename
         if diagnostics is None:

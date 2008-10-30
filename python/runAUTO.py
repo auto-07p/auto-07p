@@ -23,7 +23,7 @@ class runAUTO:
             signal.signal(signal.SIGALRM, self.__handler)
         self.internalLog = None
         self.internalErr = None
-        
+
         self.options={}
         self.options["log"] = None
         self.options["err"] = None
@@ -60,7 +60,7 @@ class runAUTO:
             if self.options.has_key(key):
                 self.options[key] = dict[key]
         for key,value in dict.items():
-            if self.options.has_key(key):
+            if self.options.has_key(key) or key in ['t','p']:
                 continue
             if self.options["constants"] is None:
                 self.options["constants"]=parseC.parseC()
@@ -396,8 +396,8 @@ class runAUTO:
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)
-                self.__runCommand(os.path.join(".",equation + ".exe"))
-                data = self.__outputCommand()
+                success=self.__runCommand(os.path.join(".",equation + ".exe"))
+                data = self.__outputCommand(success)
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
@@ -439,22 +439,22 @@ class runAUTO:
 
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
-        self.__runCommand(executable)
-        data = self.__outputCommand()
+        success = self.__runCommand(executable)
+        data = self.__outputCommand(success)
         os.chdir(curdir)
         return data
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
-        self.__runCommand(command)
-        data = self.__outputCommand()
+        success = self.__runCommand(command)
+        data = self.__outputCommand(success)
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
-        self.__runCommand(command)
-        data = self.__outputCommand()
+        success = self.__runCommand(command)
+        data = self.__outputCommand(success)
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def __runCommand(self,command=None):
@@ -541,19 +541,19 @@ class runAUTO:
             user_time = 1.0
         return True
 
-    def __outputCommand(self):
+    def __outputCommand(self,success=True):
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
         import bifDiag
         if not self.outputFort7 is None:
             self.outputFort7.close()
-        if os.path.isfile(self.fort7_path):
+        if success and os.path.isfile(self.fort7_path):
             self.outputFort7 = open(self.fort7_path,"r")
         else:
             self.outputFort7 = None
         if not self.outputFort8 is None:
             self.outputFort8.close()
-        if os.path.isfile(self.fort8_path):
+        if success and os.path.isfile(self.fort8_path):
             self.outputFort8 = open(self.fort8_path,"r")
         else:
             self.outputFort8 = None

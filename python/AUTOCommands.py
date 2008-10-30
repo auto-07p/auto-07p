@@ -1016,6 +1016,10 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
                     object = None
                 kw["solution"] = object
+            elif (not isinstance(kw["solution"], parseS.parseS) and
+                  not isinstance(kw["solution"], runAUTO.runAUTO)):
+                kw["solution"] =apply(parseS.AUTOSolution,(kw["solution"],),kw)
+                self.sname = ""
         if kw.has_key("homcont"):
             if type(kw["homcont"]) == types.StringType:
                 object = parseH.parseH()
@@ -1034,9 +1038,9 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         data = None
         if self.sname is not None and self.runner.options["solution"]:
             options = self.runner.options.copy()
-            bname = self. _applyTemplate(self.sname,"bifurcationDiagram")
+            bname = self._applyTemplate(self.sname,"bifurcationDiagram")
             sname = options["solution"]
-            dname = self. _applyTemplate(self.sname,"diagnostics")
+            dname = self._applyTemplate(self.sname,"diagnostics")
             data = bifDiag.bifDiag(bname,sname,dname,options)
         return valueStringAndData("Runner configured\n",data)
 
@@ -1068,8 +1072,11 @@ class commandRunnerLoadName(commandRunnerConfig):
     type="simple"
     shortName="loadName"
     def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
-        if runner is None and isinstance(name, runAUTO.runAUTO):
-            runner = name
+        if runner is None and name is not None and type(name) != type(""):
+            if isinstance(name, runAUTO.runAUTO):
+                runner = name
+            elif not kw.has_key("s"):
+                kw["s"] = name
             name = None 
         elif name is not None:
             if not kw.has_key("equation"): kw["equation"] = name
@@ -1211,8 +1218,11 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         self.kw = kw
         self.sv = sv
         self.ap = ap
-        if runner is None and isinstance(name, runAUTO.runAUTO):
-            self.runner = name
+        if runner is None and name is not None and type(name) != type(""):
+            if isinstance(name, runAUTO.runAUTO):
+                self.runner = name
+            elif not kw.has_key("s"):
+                self.kw["s"] = name
             self.name = None
 
     def __call__(self):

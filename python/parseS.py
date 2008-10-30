@@ -170,12 +170,12 @@ class parseS(UserList.UserList):
             for d in self.data:
                 if d["Label"] == label:
                     return d
-            return
+            raise KeyError("Label %s not found"%label)
         if type(label) == types.StringType:
             for d in self.data:
                 if d["Type name"] == label:
                     return d
-            return
+            raise KeyError("Label %s not found"%label)
         if type(label) != types.ListType:
             label = [label]        
         data = []
@@ -325,6 +325,11 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__fullyParsed     = False
         self._dims            = None
         self.name = name
+        if name == './fort.8':
+            if kw.has_key("equation"):
+                self.name = kw["equation"][14:]
+            elif kw.has_key("e"):
+                self.name = kw["e"]
         self.coordnames = kw.get("U",[])
         self.PAR = AUTOParameters(coordnames=kw.get("PAR",[]))
         self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
@@ -340,8 +345,61 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             "Type number": "TY number",
             "Type name": "TY name",
             "Label": "LAB"}
-	if input:
-	    self.read(input,offset)            
+        if input is None:
+            pass
+        elif type(input) == types.FileType:
+            self.read(input,offset)
+        else:
+            #init from array
+            if not Points.numpyimported:
+                Points.importnumpy()        
+            N = Points.N
+            if type(input[0]) == type(1) or type(input[0]) == type(1.0):
+                # point
+                indepvararray = [0.0]
+                coordarray = []
+                ncol = 0
+                ntst = 1
+                for d in input:
+                    coordarray.append([d])
+            else: 
+                # time + solution
+                if kw.has_key("t"):
+                    indepvararray = kw["t"]
+                    coordarray = input
+                else:
+                    indepvararray = input[0]
+                    coordarray = input[1:]
+                ncol = 1
+                ntst = len(indepvararray)-1
+                t0 = indepvararray[0]
+                period = indepvararray[-1] - t0
+                if period != 1.0 or t0 != 0.0:
+                    #scale to [0,1]
+                    for i in range(len(indepvararray)):
+                        indepvararray[i] = (indepvararray[i] - t0)/period
+                    if kw.has_key("p"):
+                        if len(kw["p"]) < 11:
+                            kw["p"] = list(kw["p"]) + [0.0]*(11-len(kw["p"]))
+                        kw["p"][10] = period
+            indepvarname = "t"
+            coordnames = []
+            for i in range(len(coordarray)):
+                coordnames.append("U("+str(i+1)+")")
+            if kw.has_key("U"):
+                coordnames[:len(kw["U"])] = kw["U"]
+            pdict = {"indepvararray": indepvararray,
+                     "indepvarname": indepvarname,
+                     "coordarray": coordarray,
+                     "coordnames": coordnames}
+            if kw.has_key("equation"):
+                pdict["name"] = kw["equation"][14:]
+            Points.Pointset.__init__(self,pdict)
+            self.__fullyParsed = True
+            self.data.update({"BR":1, "PT":1, "TY number":9, "TY name": "EP",
+                              "LAB":1, "ISW":1, "NTST": ntst, "NCOL": ncol})
+            if kw.has_key("p"):
+                self.PAR.__init__(coordarray=kw["p"], name=self.name)
 
     def __str__(self):
         if not(self.__fullyParsed):
@@ -663,24 +721,26 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         return getattr(self,attr)
 
     def write(self,output):
-        nfpr = self.__numChangingParameters
-        ndim = self.__numEntriesPerBlock-1
-        npar = self.__numFreeParameters
-        ntpl = self.__numSValues
-
         if self.__fullyParsed:
             ndim = len(self.coordarray)
             npar = len(self["Parameters"])
-            ntpl = len(self["data"])
+            ntpl = len(self)
+        else:
+            ndim = self.__numEntriesPerBlock-1
+            npar = self.__numFreeParameters
+            ntpl = self.__numSValues
 
         if self["NTST"] != 0:
             if self.__fullyParsed:
                 nfpr = len(self.get("Active ICP",[0]))
+            else:
+                nfpr = self.__numChangingParameters
             nrd = 2 + ndim/7 + (ndim-1)/7
             nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
                       (nfpr-1)/7+1 + (npar-1)/7+1 + (nfpr-1)/20+1)
         else:
             nrowpr = ndim/7+1 + (npar-1)/7+1
+            nfpr = self.__numChangingParameters
             
 	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],
                                                          self["PT"],
@@ -738,10 +798,13 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
                 # write UDOTPS
                 slist = []
-                for i in range(len(self.indepvararray)):
-                    slist.append("    ")
+                if self.data.has_key("udotps"):
                     c = self["udotps"].coordarray
                     l = len(c)
+                else:
+                    l = 0
+                for i in range(len(self.indepvararray)):
+                    slist.append("    ")
                     for j in range(len(self.coordarray)):
                         if j!=0 and j%7==0:
                             slist.append(os.linesep+"    ")
