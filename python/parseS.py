@@ -447,8 +447,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
     def __getitem__(self,key):
         big_data_keys = ["data","Active ICP","rldot","p","udotps"]
-        if (type(key) == type("") and not key in self.coordnames and
-            key != self.indepvarname and not key in self.PAR.coordnames):
+        if (type(key) == type("") and key not in self.coordnames and
+            key != self.indepvarname and key not in self.PAR.coordnames):
             shortkey = self.long_data_keys.get(key,key)
             if shortkey in big_data_keys and not(self.__fullyParsed):
                 self.__readAll()
@@ -460,13 +460,15 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 return self
         if not(self.__fullyParsed):
             self.__readAll()
-        try:
-            ret = Points.Pointset.__getitem__(self,key)
-            if type(key) != types.IntType:
-                return ret
-            return SLPoint(ret, self, key)
-        except:
-            return self.PAR[key]
+        if type(key) == types.StringType:
+            try:
+                return Points.Pointset.__getitem__(self,key)
+            except:
+                return self.PAR[key]
+        ret = Points.Pointset.__getitem__(self,key)
+        if type(key) != types.IntType:
+            return ret
+        return SLPoint(ret, self, key)
 
     def has_key(self,key):
         return (key == "data" or self.long_data_keys.has_key(key) or
