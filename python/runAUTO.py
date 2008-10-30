@@ -48,6 +48,12 @@ class runAUTO:
         self.__parseOptions(kw)
         self.__parseOptions(cnf)
             
+    def __setattr__(self,attr,item):
+        if attr == "c":
+            self.options["constants"] = item
+        else:
+            self.__dict__[attr] = item
+
     def __parseOptions(self,dict):
         # first the normal parameters, then IRS=... style parameters
         for key in dict.keys():
