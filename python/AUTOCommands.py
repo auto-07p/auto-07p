@@ -1011,7 +1011,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             if type(kw["solution"]) == types.StringType:
                 object = parseS.parseS()
                 try:
-                    object.readFilename(kw["solution"])
+                    apply(object.readFilename,(kw["solution"],),kw)
                 except IOError:
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
                     object = None

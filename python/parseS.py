@@ -56,11 +56,11 @@ NPAR = 20
 # in the fort.8 file.
 
 class parseS(UserList.UserList):
-    def __init__(self,filename=None):
+    def __init__(self,filename=None,**kw):
         self.name = ''
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
-            self.readFilename(filename)
+            apply(self.readFilename,(filename,),kw)
         else:
             UserList.UserList.__init__(self,filename)
             if len(self.data) > 0:
@@ -94,11 +94,11 @@ class parseS(UserList.UserList):
 	except PrematureEndofData:
 	    inputfile.seek(current_position)
 
-    def read(self,inputfile):
+    def read(self,inputfile,**kw):
         # We now go through the file and read the solutions.
         prev = None
         while inputfile.read(1) != "":
-            solution = AUTOSolution(inputfile,prev,name=self.name)
+            solution = apply(AUTOSolution,(inputfile,prev,self.name),kw)
             self.data.append(solution)
             prev = solution
         if len(self.data) > 0:
@@ -110,14 +110,14 @@ class parseS(UserList.UserList):
             x.write(output)
         output.flush()
 
-    def readFilename(self,filename):
+    def readFilename(self,filename,**kw):
         try:
             inputfile = open(filename,"rb")
         except IOError:
             import gzip
             inputfile = gzip.open(filename+".gz","rb")
         self.name = filename
-        self.read(inputfile)
+        apply(self.read,(inputfile,),kw)
         inputfile.close()
 
     def writeFilename(self,filename,append=False):
@@ -263,20 +263,21 @@ class SLPoint(Points.Point):
 
 class AUTOParameters(Points.Point):
     def __init__(self, kwd=None, **kw):
-        self.coordnames = []
-        self.parnames = None
-        self.dimension = 0
         if kwd is None and kw == {}:
+            self.coordnames = []
+            self.parnames = []
+            self.dimension = 0
+            return
+        if not kw.has_key("coordarray") and kw.has_key("coordnames"):
+            self.coordnames = kw["coordnames"]
+            self.parnames = self.coordnames[:]
+            self.dimension = len(self.coordnames)
             return
         if kw.has_key("coordarray") and not kw.has_key("coordnames"):
-            parnames = []
-            for i in range(len(kw["coordarray"])):
-                parnames.append("PAR("+str(i+1)+")")
-            if kw.has_key("PAR"):
-                self.parnames = kw["PAR"]
-                parnames[:len(kw["PAR"])] = kw["PAR"]
+            for i in range(len(self.coordnames),len(kw["coordarray"])):
+                self.coordnames.append("PAR("+str(i+1)+")")
             kw["coordtype"] = Points.float64
-            kw["coordnames"] = parnames
+            kw["coordnames"] = self.coordnames
         apply(Points.Point.__init__,(self,kwd),kw)
 
     def __call__(self,index):
@@ -315,7 +316,7 @@ class AUTOParameters(Points.Point):
 # of opening the file.
 
 class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
-    def __init__(self,input=None,offset=None,name=None):
+    def __init__(self,input=None,offset=None,name=None,**kw):
 	UserDict.UserDict.__init__(self)
         runAUTO.runAUTO.__init__(self)
         self.__start_of_header = None
@@ -324,7 +325,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__fullyParsed     = False
         self._dims            = None
         self.name = name
-        self.PAR = AUTOParameters()
+        self.coordnames = kw.get("U",[])
+        self.PAR = AUTOParameters(coordnames=kw.get("PAR",[]))
         self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
                           "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                           "udotps"]
@@ -358,10 +360,10 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             v = self[key]
             if isinstance(v,Points.Pointset):
                 v = repr(v)
-            elif type(v) not in [type(1),type(1.0),Points.N.float64,type("")]:
+            elif type(v) not in [type(1),type(1.0),Points.float64,type("")]:
                 v = list(v)
             if type(v) == type([]) and type(v[0]) not in [type(1),type(1.0),
-                                                          Points.N.float64]:
+                                                          Points.float64]:
                 v = map(str,v)
             rep=rep+"\n"+str(key)+": "+str(v)
         rep=rep+"\n"+str(self.PAR)
@@ -532,10 +534,10 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         try:
             self.indepvarname = 't'
             self.__numEntriesPerBlock = int(data[7])
-            self.coordnames = []
-            for i in range(self.__numEntriesPerBlock-1):
+            for i in range(len(self.coordnames),
+                           self.__numEntriesPerBlock-1):
                 self.coordnames.append("U("+str(i+1)+")")
-
+ 
             self["BR"] = int(data[0])
             self["PT"] = int(data[1])
             self["TY number"] = int(data[2])

@@ -40,13 +40,16 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
         diagnostics = None
         if type(fort7_filename) == types.StringType or fort7_filename is None:
-            solution = parseS.parseS(fort8_filename)
             if options is not None:
+                solution = apply(parseS.parseS,(fort8_filename,),
+                                 options["constants"].data)
                 for s in solution:
                     s.options = options.copy()
                     s.options["constants"] = parseC.parseC(options["constants"])
                     s.options["solution"] = s
                 options["solution"] = solution
+            else:
+                solution = parseS.parseS(fort8_filename)
             if fort7_filename is None:
                 # similate a bifurcation diagram
                 labels = {}
