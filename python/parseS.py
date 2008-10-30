@@ -261,6 +261,42 @@ class SLPoint(Points.Point):
 
     __repr__ = __str__
 
+class AUTOParameters(Points.Point):
+    def __init__(self, kwd=None, **kw):
+        self.coordnames = []
+        self.parnames = None
+        self.dimension = 0
+        if kwd is None and kw == {}:
+            return
+        if kw.has_key("coordarray") and not kw.has_key("coordnames"):
+            parnames = []
+            for i in range(len(kw["coordarray"])):
+                parnames.append("PAR("+str(i+1)+")")
+            if kw.has_key("PAR"):
+                self.parnames = kw["PAR"]
+                parnames[:len(kw["PAR"])] = kw["PAR"]
+            kw["coordtype"] = Points.float64
+            kw["coordnames"] = parnames
+        apply(Points.Point.__init__,(self,kwd),kw)
+
+    def __call__(self,index):
+        return self.coordarray[index-1]
+
+    def __str__(self):
+        parnames = self.parnames
+        rep = ""
+        for i in range(1,len(self)+1,5):
+            j = min(i+4,len(self))
+            rep = rep+"\nPAR(%-7s "%(str(i)+':'+str(j)+"):")
+            if parnames is not None and i<=len(parnames):
+                j2 = min(j,len(parnames))
+                for k in range(i,j2+1):
+                    rep = rep+"    %-15s"%parnames[k-1]
+                rep = rep+"\n            "
+            for k in range(i,j+1):
+                rep = rep+"%19.10E"%self(k)
+        return rep[1:]
+
 # The AUTOsolution class parses an AUTO fort.8 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:
@@ -285,59 +321,96 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__start_of_header = None
         self.__start_of_data   = None
         self.__end              = None
-        self.__fullyParsed     = 0
+        self.__fullyParsed     = False
         self._dims            = None
         self.name = name
-        self.data_keys = ["Point number", "Branch number", "Type number",
-                          "Type name", "Label", "ISW", "NTST", "NCOL",
-                          "Free Parameters", "Parameter NULL vector",
-                          "Parameters","parameters","p", "udotps"]
+        self.PAR = AUTOParameters()
+        self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
+                          "ISW", "NTST", "NCOL", "Active ICP", "rldot",
+                          "udotps"]
+        self.long_data_keys = {
+            "Parameters": "p",
+            "parameters": "p",
+            "Parameter NULL vector": "rldot",
+            "Free Parameters": "Active ICP",
+            "Point number": "PT",
+            "Branch number": "BR",
+            "Type number": "TY number",
+            "Type name": "TY name",
+            "Label": "LAB"}
 	if input:
-	    self.read(input,offset)
+	    self.read(input,offset)            
 
     def __str__(self):
         if not(self.__fullyParsed):
             self.__readAll()
         keys = self.data.keys()
+        for key in ["BR","PT","TY name","TY number","LAB","ISW","NTST","NCOL"]:
+            keys.remove(key)
         keys.sort()
         rep=Points.Pointset.__repr__(self)
+        rep=rep+ "\n  BR    PT  TY  LAB ISW NTST NCOL"
+        rep=rep+ "\n%4d%6d%4s%5d%4d%5d%5d" % (self["BR"], self["PT"],
+                                              self["TY name"], self["LAB"],
+                                              self["ISW"], self["NTST"],
+                                              self["NCOL"])
         for key in keys:
             v = self[key]
             if isinstance(v,Points.Pointset):
                 v = repr(v)
-            elif type(v) not in [type(1),type(1.0),type("")]:
+            elif type(v) not in [type(1),type(1.0),Points.N.float64,type("")]:
                 v = list(v)
-            if type(v) == type([]):
+            if type(v) == type([]) and type(v[0]) not in [type(1),type(1.0),
+                                                          Points.N.float64]:
                 v = map(str,v)
-            rep=rep+str(key)+": "+str(v)+"\n"
+            rep=rep+"\n"+str(key)+": "+str(v)
+        rep=rep+"\n"+str(self.PAR)
         return rep
 
     def __repr__(self):
         return self.__str__()
 
     def __setitem__(self,key,value):
-        if key in self.data_keys:
-            self.data[key] = value
-        else:
+        if (type(key) == type("") and not key in self.coordnames and
+            key != self.indepvarname and not key in self.PAR.coordnames):
+            shortkey = self.long_data_keys.get(key,key)
+            if shortkey in self.data_keys:
+                self.data[shortkey] = value
+                return
+            if shortkey == "p":
+                self.PAR.__init__(coordarray=value)
+                return
+        try:
             Points.Pointset.__setitem__(self,key,value)
+        except:
+            self.PAR[key] = value
 
     def __getitem__(self,key):
-        big_data_keys = ["data","Free Parameters","Parameter NULL vector","Parameters","parameters","p","udotps"]
-        if key in big_data_keys and not(self.__fullyParsed):
-            self.__readAll()
-        if key in self.data_keys:
-            return self.data[key]
+        big_data_keys = ["data","Active ICP","rldot","p","udotps"]
+        if (type(key) == type("") and not key in self.coordnames and
+            key != self.indepvarname and not key in self.PAR.coordnames):
+            shortkey = self.long_data_keys.get(key,key)
+            if shortkey in big_data_keys and not(self.__fullyParsed):
+                self.__readAll()
+            if shortkey in self.data_keys:
+                return self.data[shortkey]
+            if shortkey == "p":
+                return self.PAR
+            if shortkey == "data":
+                return self
         if not(self.__fullyParsed):
             self.__readAll()
-        if key == "data":
-            return self
-        ret = Points.Pointset.__getitem__(self,key)
-        if type(key) != types.IntType:
-            return ret
-        return SLPoint(ret, self, key)
+        try:
+            ret = Points.Pointset.__getitem__(self,key)
+            if type(key) != types.IntType:
+                return ret
+            return SLPoint(ret, self, key)
+        except:
+            return self.PAR[key]
 
     def has_key(self,key):
-        return (key == "data" or self.data.has_key(key) or
+        return (key == "data" or self.long_data_keys.has_key(key) or
+                self.data.has_key(key) or
                 Points.Pointset.has_key(self,key))
 
     def type(self):
@@ -457,15 +530,20 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 	if not line: raise PrematureEndofData
 	data = string.split(line)
         try:
-            self["Branch number"] = int(data[0])
-            self["Point number"] = int(data[1])
-            self["Type number"] = int(data[2])
-            self["Type name"] = parseB.type_translation(int(data[2]))["short name"]
-            self["Label"] = int(data[3])
+            self.indepvarname = 't'
+            self.__numEntriesPerBlock = int(data[7])
+            self.coordnames = []
+            for i in range(self.__numEntriesPerBlock-1):
+                self.coordnames.append("U("+str(i+1)+")")
+
+            self["BR"] = int(data[0])
+            self["PT"] = int(data[1])
+            self["TY number"] = int(data[2])
+            self["TY name"] = parseB.type_translation(int(data[2]))["short name"]
+            self["LAB"] = int(data[3])
             self.__numChangingParameters = int(data[4])
             self["ISW"] = int(data[5])
             self.__numSValues = int(data[6])
-            self.__numEntriesPerBlock = int(data[7])
             self.__numLinesPerEntry = int(data[8])
             self["NTST"] = int(data[9])
             self["NCOL"] = int(data[10])
@@ -475,10 +553,6 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
-            self.indepvarname = 't'
-            self.coordnames = []
-            for i in range(self.__numEntriesPerBlock-1):
-                self.coordnames.append("U("+str(i+1)+")")
         except IndexError:
             raise PrematureEndofData
         self.__start_of_data = inputfile.tell()
@@ -488,7 +562,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             Points.importnumpy()        
         fromstring = Points.fromstring
         N = Points.N
-        self.__fullyParsed = 1
+        self.__fullyParsed = True
         n = self.__numEntriesPerBlock
         total = n * self.__numSValues + self.__numFreeParameters
         if self["NTST"] != 0:
@@ -541,9 +615,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 	# ODE problem.
 	if self["NTST"] != 0:
             nfpr = self.__numChangingParameters
-            self["Free Parameters"] = map(int,fdata[j:j+nfpr])
+            self["Active ICP"] = map(int,fdata[j:j+nfpr])
             j = j + nfpr
-            self["Parameter NULL vector"] = fdata[j:j+nfpr]
+            self["rldot"] = fdata[j:j+nfpr]
             j = j + nfpr
             n = n - 1
             if hasattr(N,"transpose"):
@@ -569,9 +643,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             self["udotps"]._dims = None
             j = j + n * nrows
 
-        self["Parameters"] = fdata[j:j+self.__numFreeParameters]
-        self["parameters"] = self["Parameters"]
-        self["p"] = self["Parameters"]
+        self.PAR.__init__(coordarray=fdata[j:j+self.__numFreeParameters])
         Points.Pointset.__init__(self,{
                 "indepvararray": self.indepvararray,
                 "indepvarname": self.indepvarname,
@@ -588,11 +660,6 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__readAll()
         return getattr(self,attr)
 
-    # just a simple way to get PAR(x) -- could be extended later to not
-    # be read-only
-    def PAR(self,index):
-        return self["Parameters"][index-1]
-
     def write(self,output):
         nfpr = self.__numChangingParameters
         ndim = self.__numEntriesPerBlock-1
@@ -600,23 +667,23 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         ntpl = self.__numSValues
 
         if self.__fullyParsed:
-            ndim = len(self[0]['u'])
+            ndim = len(self.coordarray)
             npar = len(self["Parameters"])
             ntpl = len(self["data"])
 
         if self["NTST"] != 0:
             if self.__fullyParsed:
-                nfpr = len(self["Free Parameters"])
+                nfpr = len(self.get("Active ICP",[0]))
             nrd = 2 + ndim/7 + (ndim-1)/7
             nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
                       (nfpr-1)/7+1 + (npar-1)/7+1 + (nfpr-1)/20+1)
         else:
             nrowpr = ndim/7+1 + (npar-1)/7+1
             
-	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["Branch number"],
-                                                         self["Point number"],
-                                                         self["Type number"],
-                                                         self["Label"],
+	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],
+                                                         self["PT"],
+                                                         self["TY number"],
+                                                         self["LAB"],
                                                          nfpr,
                                                          self["ISW"],
                                                          ntpl,
@@ -649,7 +716,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             # ODE problem.
             if self["NTST"] != 0:
                 j = 0
-                for parameter in self["Free Parameters"]:
+                for parameter in self.get("Active ICP",[0]):
                     output.write("%5d" % (parameter))
                     j = j + 1
                     if j%20==0:
@@ -659,7 +726,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
                 line = "    "
                 i = 0
-                for vi in self["Parameter NULL vector"]:
+                for vi in self.get("rldot",[1.0]):
                     num = "%19.10E" % (vi)
                     if i != 0 and i%7==0:
                         line = line + os.linesep + "    "
@@ -685,7 +752,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
             line = "    "
             j = 0
-            for parameter in self["Parameters"]:
+            for parameter in self.PAR.toarray():
                 num = "%19.10E" % (parameter)
                 line = line + num 
                 j = j + 1
