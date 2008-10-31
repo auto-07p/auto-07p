@@ -82,7 +82,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         for key in ["xlabel", "ylabel", "top_title"]:
             self.defaults[key] = self.handle.config(key)[3]
         self.plotdefaults = {}
-        for key in ["top_title", "grid", "stability", "use_symbols"]:
+        for key in ["top_title", "grid", "stability", "use_symbols",
+                    "use_labels"]:
             self.plotdefaults[key] = self[key]
         self.normal_usage()
 
@@ -178,7 +179,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self.handle.config(self.defaults)
             self.handle.grapher.addRCOptions(self.defaults)
             self.normal_usage()
-            self.handle.config(self.plotdefaults)
+            self.handle.config(use_symbols=0,use_labels=0,
+                               grid="no",stability=0)
             self.handle.grapher.plot()
         if "xp" in opts:
             its = 1
