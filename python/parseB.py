@@ -620,70 +620,34 @@ class AUTOBranch(Points.Pointset):
         key = ""
         userspec = False
         for line in headerlist[1:]:
-            line = string.replace(line,"="," ")
-            line = string.replace(line,"s:",":")
             words = split(line)
             if len(words) < 2:
                 break
-            if words[-1] == "constant:":
+            if words[-1] == "constants:":
                 userspec = True
                 continue
             if words[1] in ["User-specified", "Active"]:
-                index = words.index("parameter:") + 1
+                line = string.replace(line,"s:",":")
+                for ind in range(2,len(words)):
+                    if words[ind] in ["parameter:","parameters:"]:
+                        index = ind + 1
+                        break
                 if words[1][0] == "U":
                     key = "ICP"
                 else:
                     key = "Active ICP"
-                dict[key] = map(int,words[index:])
-                continue
-            i = 1
-            while i < len(words):
-                key = words[i]
-                v = words[i+1]
-                i = i+2
-                if key == "NUZR": continue
-                if v[0] == '[':
-                    if len(v) > 1 and v[1] == ']':
-                        v = []
-                    elif key in ["THL","THU","UZR"]:
-                        v = []
-                        while True:
-                            item1 = string.replace(words[i-1],'[','')[:-1]
-                            item2 = words[i]
-                            v.append([int(item1),AUTOatof(item2[:-2])])
-                            i = i+1
-                            if item2[-1] == ']':
-                                break
-                            i = i+1
-                    else: # PAR,U,HomCont lists
-                        v = []
-                        c = ','
-                        while True:
-                            item = words[i-1]
-                            if item[-1] in [',',']']:
-                                c = item[-1]
-                                item = item[:-1]
-                            if item[0] == '[':
-                                item = item[1:]
-                            if item[0] == "'":
-                                v.append(item[1:-1])
-                            else:
-                                v.append(int(item))
-                            if c == ']':
-                                break
-                            i = i+1
-                elif key[0] in ["E","D"]:
-                    v = AUTOatof(v)
-                elif v[0] == "'":
-                    v = v[1:-1]
-                else:
+                d = []
+                for w in words[index:]:
                     try:
-                        v = int(v)
-                    except:
-                        v = 99999
-                if userspec:
-                    dict["Active "+key] = dict[key]
-                dict[key] = v
+                        w = int(w)
+                    except ValueError:
+                        if ((w[0] == "'" and w[-1] == "'") or
+                            (w[0] == '"' and w[-1] == '"')):
+                            w = w[1:-1]
+                    d.append(w)
+                dict[key] = d
+                continue
+            dict.parseline(string.join(words[1:]),userspec)
         return dict
 
 class parseBR(UserList.UserList,AUTOBranch):

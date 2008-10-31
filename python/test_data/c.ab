@@ -1,3 +1,8 @@
+U = [ 'a', "b" ]
+IRS=5  U = [ 'a', "b" ]
+ICP=[ 'ab' , 2 ]
+e='ab'
+e=ab
 2 1 0 1				NDIM,IPS,IRS,ILP
 1   1   			NICP,(ICP(I),I=1,NICP)
 50 4 3 1 1 0 0 0 		NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT

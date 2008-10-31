@@ -160,9 +160,9 @@ CONTAINS
 
     WRITE(7,"('   0   User-specified parameter')",ADVANCE="NO")
     IF(NICP.EQ.1)THEN
-       WRITE(7,"(':       ',  I4)")ICU
+       WRITE(7,"(':       ',  A,A,A)")" '",TRIM(ICU(1)),"'"
     ELSE
-       WRITE(7,"('s:      ',24I4)")ICU
+       WRITE(7,"('s:      ',24(A,A,A))")(" '",TRIM(ICU(I)),"'",I=1,SIZE(ICU))
     ENDIF
 
     WRITE(7,"('   0   Active continuation parameter')",ADVANCE="NO")
@@ -182,20 +182,26 @@ CONTAINS
       TYPE(INDEXVAR), INTENT(IN) :: IVLIST(:)
       
       LOGICAL FIRST
-      CHARACTER(LEN=12) :: INDSTR
+      CHARACTER(LEN=15) :: INDSTR
+      INTEGER INDX,io
       CHARACTER(LEN=19) :: VARSTR
 
       WRITE(7,"(A,A)", ADVANCE="NO")NAME,'['
       FIRST=.TRUE.
       DO I=1,SIZE(IVLIST)
          IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
-         WRITE(INDSTR,'(I12)')IVLIST(I)%INDEX
+         READ(IVLIST(I)%INDEX,*,IOSTAT=io)INDX
+         IF(io==0)THEN
+            INDSTR=IVLIST(I)%INDEX
+         ELSE
+            INDSTR="'"//TRIM(IVLIST(I)%INDEX)//"'"
+         ENDIF
          IF(INT(IVLIST(I)%VAR)==IVLIST(I)%VAR)THEN
             WRITE(VARSTR,'(I19)')INT(IVLIST(I)%VAR)
          ELSE
             WRITE(VARSTR,'(ES19.10)')IVLIST(I)%VAR
          ENDIF
-         WRITE(7,"(A,A,A,A,A)", ADVANCE="NO")"[",TRIM(ADJUSTL(INDSTR)),&
+         WRITE(7,"(A,A,A,A,A)", ADVANCE="NO")"[",TRIM(INDSTR),&
               ", ",TRIM(ADJUSTL(VARSTR)),"]"
          FIRST=.FALSE.
       ENDDO

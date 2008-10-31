@@ -23,6 +23,7 @@ import sys
 import UserDict
 import cStringIO
 import AUTOExceptions
+import parseB
 
 line1_comment="NDIM,IPS,IRS,ILP"
 line2_comment="NICP,(ICP(I),I=1 NICP)"
@@ -102,49 +103,113 @@ class parseC(UserDict.UserDict):
 	self.write(output)
 	output.close()
 
+    def scanvalue(self,line):
+        # Scans line for a value
+        # returns the value, followed by the rest of the line
+        # The value is returned as a flat list of strings if the line 
+        # starts with [ and otherwise as a single string
+        level = 0
+        quote = ' '
+        quoteesc = False
+        prev = ' '
+        npos = 0
+        value = []
+        start = 0
+        v = ''
+        line = string.strip(line)
+        for i in range(len(line)):
+            npos = i
+            c = line[i]
+            if quote == ' ':
+                if c in [',',' ']:
+                    if level == 0:
+                        break
+                elif c == ']':
+                    if level == 1 and prev == '[':
+                        value = []
+                    level = level - 1
+                    if v != '':
+                        value.append(v)
+                    v = ''
+                else:
+                    if (prev == ',' or prev == ' ') and level > 0 and v != '':
+                        value.append(v)
+                        v = ''
+                    if c == '[':
+                        level = level + 1
+                    elif c in ['"',"'"]:
+                        quote = c
+                    else:
+                        v = v + c
+            elif c == quote:
+                # ignore "" and ''
+                if (i+1 < len(line) and line[i+1] == c) or quoteesc:
+                    quoteesc = not quoteesc
+                else:
+                    quote = ' '
+            else:
+                v = v + c
+            prev = c
+        if v != '':
+            value = v
+        while npos < len(line) and line[npos] in [" ",","]:
+            npos = npos + 1
+        if npos >= len(line) - 1:
+            line = ''
+        else:
+            line = string.strip(line[npos:])
+        return value, line
+
+    def parseline(self,line,userspec=False):
+        # parses a new-style constant file line and puts the keys
+        # in the dictionary c; also used for the header of a b. file
+        while line != "":
+            line = string.strip(line)
+            if line[0] in ['#','!','_']:
+                return
+            pos = string.find(line, '=')
+            if pos == -1:
+                return
+            key = string.strip(line[:pos])
+            value, line = self.scanvalue(line[pos+1:])
+            if key in ['ICP','IREV','IFIXED','IPSI']:
+                d = []
+                for v in value:
+                    try:
+                        v = int(v)
+                    except ValueError:
+                        pass
+                    d.append(v)
+                value = d
+            elif key in ['THU','THL','UZR']:
+                d = []
+                for i in range(0,len(value),2):
+                    try:
+                        v0 = int(value[i])
+                    except ValueError:
+                        v0 = value[i]
+                    d.append([v0,parseB.AUTOatof(value[i+1])])
+                value = d
+            elif key in ['s','dat','sv','e','U','PAR']:
+                pass
+            elif key in self.keys():
+                if key[0] in ['I','J','K','L','M','N']:
+                    value=int(value)
+                else:
+                    value=parseB.AUTOatof(value)
+            else:
+                value = None
+            if value is not None:
+                if userspec:
+                    self["Active "+key] = self[key]
+                self[key] = value
+
     def read(self,inputfile):
 	line = inputfile.readline()
 	data = string.split(line)
         while not data[0][0] in string.digits:
-            line = string.strip(line)
-            if line[0] in ['#','!','_']:
-                line = inputfile.readline()
-                continue
-            pos = string.find(line, '=')
-            key = string.strip(line[:pos])
-            pos2 = len(line)
-            for i in range(pos+1,pos2):
-                if line[i] in ['#!_'] or line[i] in string.ascii_uppercase:
-                    pos2 = i
-                    break
-            value = string.strip(line[pos+1:pos2])
-            line = string.strip(line[pos2:])
-            if key in ['ICP','IREV','IFIXED','IPSI']:
-                self[key]=map(int,string.split(value[1:-1],','))
-            elif key in ['U','PAR']:
-                slist=string.split(value[1:-1],',')
-                for i in range(len(slist)):
-                    if slist[i][0] in ["'",'"']:
-                        slist[i] = slist[i][1:]
-                    if slist[i][-1] in ["'",'"']:
-                        slist[i] = slist[i][:-1]
-                self[key] = slist
-            elif key in ['THU','THL','UZR']:
-                value = string.strip(string.replace(value[1:-1],']',' '))
-                value = string.replace(value,',',' ')
-                value = string.split(value[1:],'[')
-                list = []
-                for valuei in value:
-                    valuei = string.split(valuei)
-                    list.append([int(valuei[0]),float(valuei[1])])
-                self[key]=list
-            elif key in self.keys():
-                if key[0] in ['I','J','K','L','M','N']:
-                    self[key]=int(value)
-                else:
-                    self[key]=float(value)
-            if line == '':
-                line = inputfile.readline()
+            self.parseline(line)
+            line = inputfile.readline()
             while line != '' and line[0] == '\n':
                 line = inputfile.readline()
             if line == '':
@@ -165,7 +230,12 @@ class parseC(UserDict.UserDict):
 	self.data["__NICP"] = int(data[0])
 	self.data["ICP"] = []
 	for i in range(self["__NICP"]):
-	    self.data["ICP"].append(int(data[i+1]))
+            d = data[i+1]
+            try:
+                d = int(d)
+            except ValueError:
+                pass
+	    self.data["ICP"].append(d)
 
 	line = inputfile.readline()
 	data = string.split(line)
@@ -181,10 +251,10 @@ class parseC(UserDict.UserDict):
 	line = inputfile.readline()
 	data = string.split(line)
 	self["NMX"] = int(data[0])
-	self["RL0"] = float(data[1])
-	self["RL1"] = float(data[2])
-	self["A0"] = float(data[3])
-	self["A1"] = float(data[4])
+	self["RL0"] = parseB.AUTOatof(data[1])
+	self["RL1"] = parseB.AUTOatof(data[2])
+	self["A0"] = parseB.AUTOatof(data[3])
+	self["A1"] = parseB.AUTOatof(data[4])
 	
 	line = inputfile.readline()
 	data = string.split(line)
@@ -198,15 +268,15 @@ class parseC(UserDict.UserDict):
 	
 	line = inputfile.readline()
 	data = string.split(line)
-	self["EPSL"] = float(data[0])
-	self["EPSU"] = float(data[1])
-	self["EPSS"] = float(data[2])
+	self["EPSL"] = parseB.AUTOatof(data[0])
+	self["EPSU"] = parseB.AUTOatof(data[1])
+	self["EPSS"] = parseB.AUTOatof(data[2])
 
 	line = inputfile.readline()
 	data = string.split(line)
-	self["DS"] = float(data[0])
-	self["DSMIN"] = float(data[1])
-	self["DSMAX"] = float(data[2])
+	self["DS"] = parseB.AUTOatof(data[0])
+	self["DSMIN"] = parseB.AUTOatof(data[1])
+	self["DSMAX"] = parseB.AUTOatof(data[2])
 	self["IADS"] = int(data[3])
 	
 	line = inputfile.readline()
@@ -218,7 +288,7 @@ class parseC(UserDict.UserDict):
 	    line = inputfile.readline()
 	    data = string.split(line)
 	    self.data["THL"][i]["PAR index"] = int(data[0])
-	    self.data["THL"][i]["PAR value"] = float(data[1])
+	    self.data["THL"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
 	line = inputfile.readline()
 	data = string.split(line)
@@ -229,7 +299,7 @@ class parseC(UserDict.UserDict):
 	    line = inputfile.readline()
 	    data = string.split(line)
 	    self.data["THU"][i]["PAR index"] = int(data[0])
-	    self.data["THU"][i]["PAR value"] = float(data[1])
+	    self.data["THU"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
 	line = inputfile.readline()
 	data = string.split(line)
@@ -239,8 +309,13 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"].append({})
 	    line = inputfile.readline()
 	    data = string.split(line)
-	    self.data["UZR"][i]["PAR index"] = int(data[0])
-	    self.data["UZR"][i]["PAR value"] = float(data[1])
+            d = data[0]
+            try:
+                d = int(d)
+            except ValueError:
+                pass
+	    self.data["UZR"][i]["PAR index"] = d
+	    self.data["UZR"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
     def write(self,output):
         if self.__new:

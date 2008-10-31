@@ -5,7 +5,7 @@ C
       USE IO
       USE SUPPORT
       USE AUTO_CONSTANTS,ONLY:NIAP,NRAP,SVFILE,SFILE,DATFILE,EFILE,
-     *     IPS,ISW,IRS
+     *     IPS,ISW,IRS,ICU,PARNAMES
 C$    USE OMP_LIB
       USE COMPAT
 C
@@ -15,7 +15,8 @@ C
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
-      INTEGER IAM,LINE,io
+      INTEGER I,IAM,LINE,io
+      INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
       CHARACTER(256) :: SOLFILE, BIFFILE, DIAFILE
 C
@@ -69,7 +70,12 @@ C$       TIME0=omp_get_wtime()
        ENDIF
        CALL FINDLB_OR_STOP(IAP)
        CALL MPIIAP(IAP)
-       CALL AUTOI(IAP,RAP)
+       ALLOCATE(IICU(SIZE(ICU)))
+       DO I=1,SIZE(ICU)
+          IICU(I)=NAMEIDX(ICU(I),PARNAMES)
+       ENDDO
+       CALL AUTOI(IAP,RAP,IICU)
+       DEALLOCATE(IICU)
 C-----------------------------------------------------------------------
 C
       IF(IAP(39).GT.1)THEN
@@ -96,7 +102,7 @@ C     ---------- ---------
       USE AUTOMPI
       IMPLICIT NONE
 
-      INTEGER IAP(*)
+      INTEGER IAP(*),ICU(1)
       DOUBLE PRECISION RAP(1)
 
       INTEGER FUNI_ICNI_PARAMS(5)
@@ -116,7 +122,7 @@ C     ---------- ---------
          IAP(10) = ISW
          IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
          IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
-         CALL AUTOI(IAP,RAP)
+         CALL AUTOI(IAP,RAP,ICU)
          ! autoi calls autobv which eventually calls solvbv;
          ! a return means another init message
       ENDDO
@@ -155,17 +161,48 @@ C
       ENDIF
       END SUBROUTINE FINDLB_OR_STOP
 C
+C     ------- -------- -------
+      INTEGER FUNCTION NAMEIDX(NAME,NAMES)
+C
+      CHARACTER(13), INTENT(IN) :: NAME
+      CHARACTER(13), INTENT(IN) :: NAMES(:)
+      CHARACTER(13) PNAME
+      INTEGER I,SIGN
+C
+C     map a symbolic parameter name or an ascii integer to an index
+C
+      SIGN=1
+      IF(NAME(1:1)=='-')THEN
+         PNAME=NAME(1:)
+         SIGN=-1
+      ELSE
+         PNAME=NAME
+      ENDIF
+      DO I=1,SIZE(NAMES)
+         IF(NAMES(I)==PNAME)THEN
+            NAMEIDX=I*SIGN
+            RETURN
+         ENDIF
+      ENDDO
+      IF(TRIM(PNAME)=='PERIOD')THEN
+         NAMEIDX=SIGN*11
+      ELSE
+         READ(NAME,*)NAMEIDX
+      ENDIF
+      END FUNCTION
+
 C     ---------- -----
-      SUBROUTINE AUTOI(IAP,RAP)
+      SUBROUTINE AUTOI(IAP,RAP,ICU)
 C
       USE INTERFACES
-      USE AUTO_CONSTANTS, ONLY: ICU,IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM
+      USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,UNAMES,
+     &     PARNAMES
       USE AE
       USE BVP
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO
 C
       IMPLICIT NONE
-      INTEGER IAP(*)
+      INTEGER IAP(*),ICU(:)
       DOUBLE PRECISION RAP(*)
 
       INTEGER ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,I,J
@@ -183,14 +220,14 @@ C
         ICP(SIZE(ICU)+1:)=0
         ALLOCATE(PAR(NPAR))
         PAR(:)=0.d0
-        CALL INIT1(IAP,RAP,ICP,PAR)
+        CALL INIT1(IAP,RAP,ICP,ICU,PAR)
 C     redefine thl to be nfpr sized and indexed
         NFPR=IAP(29)
         ALLOCATE(THL(NFPR))
         DO I=1,NFPR
            THL(I)=1.0D0
            DO J=1,SIZE(IVTHL)
-              IF(ICP(I)==IVTHL(J)%INDEX)THEN
+              IF(ICP(I)==NAMEIDX(IVTHL(J)%INDEX,PARNAMES))THEN
                  THL(I)=IVTHL(J)%VAR
               ENDIF
            ENDDO
@@ -202,12 +239,12 @@ C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
            THU(I)=1.d0
         ENDDO
         DO I=1,SIZE(IVTHU)
-           THU(IVTHU(I)%INDEX)=IVTHU(I)%VAR
+           THU(NAMEIDX(IVTHU(I)%INDEX,UNAMES))=IVTHU(I)%VAR
         ENDDO
 C     set IUZ/VUZ
         ALLOCATE(IUZ(SIZE(IVUZR)),VUZ(SIZE(IVUZR)))
         DO I=1,SIZE(IVUZR)
-           IUZ(I)=IVUZR(I)%INDEX
+           IUZ(I)=NAMEIDX(IVUZR(I)%INDEX,PARNAMES)
            VUZ(I)=IVUZR(I)%VAR
         ENDDO
       ELSE
@@ -506,7 +543,7 @@ C
       RAP(9)=HUGE(1d0)*0.99995d0
       NICP=1
       ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),PARNAMES(0),UNAMES(0))
-      ICU(1)=1
+      ICU(1)='1'
       NUZR=0
       NPAR=NPARX
 
@@ -665,8 +702,6 @@ C
       READ(2,*,ERR=3,END=4) EPSL,EPSU,EPSS
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) DS,DSMIN,DSMAX,IADS
-      DSMIN=ABS(DSMIN)
-      DSMAX=ABS(DSMAX)
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) LISTLEN
       !allocate: no THL vs. non-allocated:default THL (in SUB. INIT1)
@@ -757,8 +792,8 @@ C
       IAP(41)=NICP
 C
       RAP(1)=DS
-      RAP(2)=DSMIN
-      RAP(3)=DSMAX
+      RAP(2)=ABS(DSMIN)
+      RAP(3)=ABS(DSMAX)
       RAP(6)=RL0
       RAP(7)=RL1
       RAP(8)=A0
@@ -875,10 +910,10 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE INIT1(IAP,RAP,ICP,PAR)
+      SUBROUTINE INIT1(IAP,RAP,ICP,ICU,PAR)
 C
       USE HOMCONT, ONLY:INHO
-      USE AUTO_CONSTANTS, ONLY:ICU,IVTHL
+      USE AUTO_CONSTANTS, ONLY:IVTHL
 C
       DOUBLE PRECISION, PARAMETER ::
      *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
@@ -901,7 +936,7 @@ C   NBC: set by problem type
 C   NINT: set by problem type
 C   NMX: set to 5 for starts of extended systems
 
-      INTEGER IAP(*),ICP(*)
+      INTEGER IAP(*),ICP(*),ICU(*)
       DOUBLE PRECISION RAP(*),PAR(*)
 C
 C Local
@@ -1292,7 +1327,7 @@ C
           ! set default for *THL
           IF(IPS==2)THEN
              ALLOCATE(IVTHL(1))
-             IVTHL(1)%INDEX=11
+             IVTHL(1)%INDEX='11'
              IVTHL(1)%VAR=0d0
           ELSE
              ALLOCATE(IVTHL(0))
