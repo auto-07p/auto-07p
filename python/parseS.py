@@ -330,8 +330,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 self.name = kw["equation"][14:]
             elif kw.has_key("e"):
                 self.name = kw["e"]
-        self.coordnames = kw.get("U",[])
-        self.PAR = AUTOParameters(coordnames=kw.get("PAR",[]))
+        self.coordnames = kw.get("U",[])[:]
+        self.PAR = AUTOParameters(coordnames=kw.get("PAR",[])[:])
         self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
                           "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                           "udotps"]
@@ -388,6 +388,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 coordnames.append("U("+str(i+1)+")")
             if kw.has_key("U"):
                 coordnames[:len(kw["U"])] = kw["U"]
+                ndim = len(coordarray)
+                if ndim < len(self.coordnames):
+                    self.coordnames = self.coordnames[:ndim]
             pdict = {"indepvararray": indepvararray,
                      "indepvarname": indepvarname,
                      "coordarray": coordarray,
@@ -594,6 +597,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         try:
             self.indepvarname = 't'
             self.__numEntriesPerBlock = int(data[7])
+            ndim = self.__numEntriesPerBlock-1
+            if ndim < len(self.coordnames):
+                self.coordnames = self.coordnames[:ndim]
             for i in range(len(self.coordnames),
                            self.__numEntriesPerBlock-1):
                 self.coordnames.append("U("+str(i+1)+")")

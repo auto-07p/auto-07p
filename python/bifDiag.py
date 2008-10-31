@@ -36,59 +36,53 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if type(fort7_filename) == types.ListType:
             return
         diagnostics = None
-        if type(fort7_filename) == types.StringType or fort7_filename is None:
-            try:
-                if options is not None:
-                    if isinstance(fort8_filename, parseS.AUTOSolution):
-                        fort8_filename = [fort8_filename]
-                    if options["constants"] is None:
-                        solution = parseS.parseS(fort8_filename)
-                    else:
-                        solution = apply(parseS.parseS,(fort8_filename,),
-                                     options["constants"].data)
-                    for s in solution:
-                        s.options = options.copy()
-                        s.options["constants"] = parseC.parseC(
-                            options["constants"])
-                        s.options["solution"] = s
-                    options["solution"] = solution
-                else:
+        if isinstance(fort8_filename, parseS.AUTOSolution):
+            fort8_filename = [fort8_filename]
+        try:
+            if options is not None:
+                if options["constants"] is None:
                     solution = parseS.parseS(fort8_filename)
-            except IOError:
-                solution = None
-                if fort7_filename is None:
-                    raise AUTOExceptions.AUTORuntimeError(
-                        "No bifurcation diagram or solution file found.")
-            if fort7_filename is None:
-                # simulate a bifurcation diagram
-                labels = {}
-                i = 0
-                br = 0
+                else:
+                    solution = apply(parseS.parseS,(fort8_filename,),
+                                     options["constants"].data)
                 for s in solution:
-                    br = s["Branch number"]
-                    pt = s["Point number"]
-                    ty = s["Type number"]
-                    lab = s["Label"]
-                    key = parseB.type_translation(ty)["short name"]
-                    labels[i] = {key: {"LAB":lab,"TY number":ty,"PT":pt}}
-                    i = i+1
-                branch = parseB.AUTOBranch()
-                branch.BR = br
-                branch.labels = Points.PointInfo(labels)
-                branch.coordarray = []
-                branch.coordnames = []
-                branch.headernames = []
-                self.append(branch)
-            if not fort9_filename is None:
-                try:
-                    diagnostics = parseD.parseD(fort9_filename)
-                except IOError:
-                    pass
-        else:
-            if isinstance(fort8_filename, parseS.AUTOSolution):
-                fort8_filename = parseS.parseS([fort8_filename])
-            solution = fort8_filename
-            diagnostics = fort9_filename
+                    s.options = options.copy()
+                    s.options["constants"] = parseC.parseC(
+                        options["constants"])
+                    s.options["solution"] = s
+                options["solution"] = solution
+            else:
+                solution = parseS.parseS(fort8_filename)
+        except IOError:
+            solution = None
+            if fort7_filename is None:
+                raise AUTOExceptions.AUTORuntimeError(
+                    "No bifurcation diagram or solution file found.")
+        if fort7_filename is None:
+            # simulate a bifurcation diagram
+            labels = {}
+            i = 0
+            br = 0
+            for s in solution:
+                br = s["Branch number"]
+                pt = s["Point number"]
+                ty = s["Type number"]
+                lab = s["Label"]
+                key = parseB.type_translation(ty)["short name"]
+                labels[i] = {key: {"LAB":lab,"TY number":ty,"PT":pt}}
+                i = i+1
+            branch = parseB.AUTOBranch()
+            branch.BR = br
+            branch.labels = Points.PointInfo(labels)
+            branch.coordarray = []
+            branch.coordnames = []
+            branch.headernames = []
+            self.append(branch)
+        if not fort9_filename is None:
+            try:
+                diagnostics = parseD.parseD(fort9_filename)
+            except IOError:
+                pass
         if diagnostics is None:
             diagnostics = []
         i = 0

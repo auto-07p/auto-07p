@@ -606,8 +606,8 @@ C---
        WRITE(ITERM,2)
  2     FORMAT(
      +       /,'        PLAUT Default Options :'
-     +    ,///,'  <D0>    Use solid curves, labels, symbols'
-     +     ,//,'  <D1>    As <D0>, showing stability' 
+     +    ,///,'  <D0>    Use solid curves, symbols, but no labels'
+     +     ,//,'  <D1>    As <D0>, showing stability and labels' 
      +     ,//,'  <D2>    As <D1>, without labels'
      +     ,//,'  <D3>    As <D1>, with grid lines'
      +     ,//,'  <D4>    AS <D2>, with grid lines'

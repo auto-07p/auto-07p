@@ -1014,11 +1014,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 bname = self._applyTemplate(self.sname,"bifurcationDiagram")
                 try:
                     self.bifdiag = parseB.parseBR(bname)
-                    kw["constants"] = self.bifdiag[0].c
-                    for key in ["U", "PAR"]:
-                        if (kw["constants"].has_key(key) and
-                            not kw.has_key(key)):
-                            kw[key] = kw["constants"][key]
+                    self.runner.options["constants"] = self.bifdiag[0].c
                 except IOError:
                     pass
             if type(kw["solution"]) == types.StringType:
