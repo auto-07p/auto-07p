@@ -58,7 +58,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             if fort7_filename is None:
                 raise AUTOExceptions.AUTORuntimeError(
                     "No bifurcation diagram or solution file found.")
-        if fort7_filename is None:
+        if fort7_filename is None and fort8_filename is not None:
             # simulate a bifurcation diagram
             labels = {}
             i = 0

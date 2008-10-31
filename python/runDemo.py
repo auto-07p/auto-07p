@@ -11,8 +11,8 @@ def test():
     import commands
     log=open("log","w")
     err=open("err","w")
-    runDemo("ab",log=log,err=err,
-            auto_dir="%s/src/auto/07p"%(os.environ["HOME"],),
+    runDemo("wav",log=log,err=err,
+            auto_dir="%s"%(os.environ["AUTO_DIR"],),
             verbose="yes",
             clean="yes")
     log.close()

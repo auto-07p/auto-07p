@@ -85,8 +85,9 @@ class runAUTO:
         # where the data was written to
         files = ["fort.7", "fort.8", "fort.9"]
         v = None
-        if self.options["constants"].has_key("sv"):
-            v = self.options["constants"]["sv"]
+        c = self.options["constants"]
+        if c is not None and c.has_key("sv"):
+            v = c["sv"]
         else:
             value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
             if len(value):
@@ -567,13 +568,13 @@ class runAUTO:
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
-    [log,err,data]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("wav")
     print log.read()
     runner.config(equation="clean",verbose="no")
-    [log,err,data]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("wav")
     print log.read()
     runner.config(equation="first")
-    [log,err,data]=runner.runDemo("ab")
+    [log,err,data]=runner.runDemo("wav")
     print log.read()
     
 
