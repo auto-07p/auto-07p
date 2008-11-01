@@ -729,6 +729,85 @@ class parseBR(UserList.UserList,AUTOBranch):
             labels.extend(d.getLabels())
         return labels
 
+    # Merges branches
+    def merge(self):
+        fw = None
+        data = []
+        for bw in self.data:
+            data.append(bw)
+            if fw is None or fw.BR != bw.BR or (fw.c is not None and
+                    bw.c is not None and fw.c["DS"] * bw.c["DS"] > 0):
+                fw = bw
+                continue
+            f0 = fw[0]
+            b0 = bw[0]
+            if len(f0) != len(b0):
+                fw = bw
+                continue
+            for i in range(len(f0)):
+                if f0[i] != b0[i]:
+                    fw = bw
+                    continue
+            #now we know that the branches have the same starting point:
+            #merge them
+            lenbw = len(bw)
+            bw.headerlist = fw.headerlist
+            bw.headernames = fw.headernames
+            bw.reverse()
+            bw.append(fw[1:])
+
+            def pointtrans(pt,idx,l):
+                if idx < lenbw:
+                    if pt < 0:
+                        pt = -(lenbw+pt+1)
+                    else:
+                        pt = lenbw-pt+1
+                else:
+                    if pt < 0:
+                        pt = pt-lenbw+1
+                    else:
+                        pt = pt+lenbw-1
+                return pt
+
+            # adjust point and label numbers
+            lab = min(fw.getLabels()+bw.getLabels())
+            for idx,val in bw.labels.sortByIndex():
+                for k,v in val.items():
+                    if k in all_point_types:
+                        pt = pointtrans(v["PT"],idx,lenbw)
+                        if idx < lenbw and idx>0 and v["PT"] in bw.stability:
+                            pt = -pt
+                        v["PT"] = pt
+                        if v["LAB"] > 0:
+                            v["LAB"] = lab
+                            lab = lab+1
+
+            # adjust stability array
+            stability = []
+            for p in bw.stability:
+                stability.append(-pointtrans(p,abs(p)-1,lenbw))
+            stability.reverse()
+            for p in fw.stability:
+                stability.append(pointtrans(p,lenbw+abs(p)-1,lenbw))
+            bwstablen = len(bw.stability)
+            if (bwstablen>0 and len(fw.stability)>0 and
+                (stability[bwstablen-1] == -stability[bwstablen])):
+                del stability[bwstablen-1:bwstablen+1]
+            if len(stability)>0 and abs(stability[0]) == 1:
+                del stability[0]
+            bw.stability = stability
+
+            if hasattr(fw,"diagnostics"):
+                if hasattr(bw,"diagnostics"):
+                    bw.diagnostics = fw.diagnostics + bw.diagnostics
+                else:
+                    bw.diagnostics = fw.diagnostics
+
+            del data[-2]
+            #reset for further search
+            fw = None
+        self.data = data
+
     def toArray(self):
         array = []
         for d in self.data:

@@ -190,6 +190,17 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         parseB.parseBR.uniquelyLabel(self)
         self().uniquelyLabel()
 
+    def merge(self):
+        # Merges branches and then sync solution
+        parseB.parseBR.merge(self)
+        mlab = max(self.getLabels())
+        for d in self:
+            for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                if x.has_key("solution"):
+                    x["solution"]._mlab = mlab
+                    x["solution"]["PT"] = abs(x["PT"])
+                    x["solution"]["LAB"] = x["LAB"]
+
 def pointtest7(a,b):
     if not(a.has_key("TY name")):
         raise AUTOExceptions.AUTORegressionError("No TY name label")

@@ -1,0 +1,14 @@
+#! /usr/bin/env autox
+
+import sys
+from AUTOCommands import commandMergeBranches
+
+# This is the Python syntax for making a script runnable
+if __name__ == '__main__':
+    if len(sys.argv) > 2:
+        merge = commandMergeBranches(sys.argv[1],sys.argv[2])
+    elif len(sys.argv) > 1:
+        merge = commandMergeBranches(sys.argv[1])
+    else:
+        merge = commandMergeBranches()
+    merge()

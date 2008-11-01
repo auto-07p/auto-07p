@@ -1150,7 +1150,7 @@ class Pointset(Point):
     def reverse(self):
         """Reverse order of points *IN PLACE*."""
         self.coordarray = self.coordarray[:,::-1]
-        self.labels.mapIndices(dict(zip(range(0,len(self)),range(len(self),0,-1))))
+        self.labels.mapIndices(dict(zip(range(0,len(self)),range(len(self)-1,-1,-1))))
 
 
     def makeIxMaps(self):

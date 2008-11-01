@@ -256,25 +256,30 @@ class commandRelabel(commandWithFilenameTemplate):
 
     type=SIMPLE
     shortName="relabel"
-    def __init__(self,name1,name2=None,templates=None):
+    def __init__(self,name1=None,name2=None,templates=None):
         self.type = type(name1)
         self.name1 = name1
         if type(name1) == type(""):
             commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
 	rval=valueSystem()
-        if self.type != type(""):
+        if self.type != type("") and self.type != type(None):
             self.name1.uniquelyLabel()
             rval.info("Relabeling done\n")
             return rval
         n1b = self.name1["bifurcationDiagram"]
         n1s = self.name1["solution"]
+        n1d = self.name1["diagnostics"]
+        if n1b is None and n1s is None and n1d is None:
+            n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
         if self.name2["bifurcationDiagram"] is None:
             n2b = n1b+'~~'
             n2s = n1s+'~~'
+            n2d = n1d+'~~'
         else:
             n2b = self.name2["bifurcationDiagram"]
             n2s = self.name2["solution"]
+            n2d = self.name2["diagnostics"]
         import relabel
         relabel.relabel(n1b,n1s,n2b,n2s)
         if os.access(n2b,os.F_OK):
@@ -288,12 +293,65 @@ class commandRelabel(commandWithFilenameTemplate):
                     os.remove(n1s+'~')
                 os.rename(n1s,n1s+'~')
                 os.rename(n2s,n1s)
-            elif os.path.exists(self.name1["diagnostics"]):
-                shutil.copy(self.name1["diagnostics"],
-                            self.name2["diagnostics"])
+            elif os.path.exists(n1d):
+                shutil.copy(n1d, n2d)
             rval.info("Relabeling succeeded\n")
 
         rval.info("Relabeling done\n")
+        return rval
+
+class commandMergeBranches(commandWithFilenameTemplate):
+    """Merge branches in data files.
+
+    Type FUNC('xxx') to merge branches in s.xxx, b.xxx, and d.xxx (if you are
+    using the default filename templates).  Backups of the
+    original files are saved.
+
+    Type FUNC('xxx','yyy') to merge branches in the existing data-files
+    s.xxx, b.xxx, and d.xxx and save them to s.yyy, b.yyy, and d.yyy (if you
+    are using the default filename templates). 
+    """
+
+    type=SIMPLE
+    shortName="merge"
+    def __init__(self,name1=None,name2=None,templates=None):
+        self.type = type(name1)
+        self.name1 = name1
+        if type(name1) == type(""):
+            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
+    def __call__(self):
+	rval=valueSystem()
+        if self.type != type("") and self.type != type(None):
+            self.name1.merge()
+            rval.info("Merge done\n")
+            return rval
+        n1b = self.name1["bifurcationDiagram"]
+        n1s = self.name1["solution"]
+        n1d = self.name1["diagnostics"]
+        if n1b is None and n1s is None and n1d is None:
+            n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
+        bd = bifDiag.bifDiag(n1b,n1s,n1d)
+        bd.merge()
+        if self.name2["bifurcationDiagram"] is None:
+            n2b = n1b+'~~'
+            n2s = n1s+'~~'
+            n2d = n1d+'~~'
+        else:
+            n2b = self.name2["bifurcationDiagram"]
+            n2s = self.name2["solution"]
+            n2d = self.name2["diagnostics"]
+        bd.writeFilename(n2b,n2s,n2d)
+        if os.access(n2b,os.F_OK):
+            if self.name2["bifurcationDiagram"] is None:
+                # Save backups
+                for [n1,n2] in [[n1b,n2b],[n1s,n2s],[n1d,n2d]]:
+                    if os.access(n1+'~',os.F_OK):
+                        os.remove(n1+'~')
+                    os.rename(n1,n1+'~')
+                    os.rename(n2,n1)
+            rval.info("Merging succeeded\n")
+
+        rval.info("Merging done\n")
         return rval
 
 class commandAppend(commandWithFilenameTemplate):

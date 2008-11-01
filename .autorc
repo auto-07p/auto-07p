@@ -35,6 +35,7 @@ move		=commandMoveFiles
 plot		=commandPlotter
 plot3		=commandPlotter3D
 relabel		=commandRelabel
+merge		=commandMergeBranches
 run		=commandRun
 save		=commandCopyFortFiles
 solutionGet	=commandParseSolutionFile
@@ -73,6 +74,7 @@ pl		=commandPlotter
 #FIXME:  This doesn't match the rule we use for all other commands
 p3	        =commandPlotter3D
 rl		=commandRelabel
+mb		=commandMergeBranches
 rn		=commandRun
 sv		=commandCopyFortFiles
 sl		=commandParseSolutionFile
