@@ -1,4 +1,4 @@
-#!/usr/bin/env auto15x
+#!/usr/bin/env python
 #======================================================================
 #======================================================================
 #         Utility Program for Relabeling Labeled Solutions
@@ -44,6 +44,8 @@ def relabel(n1b,n1s,n2b,n2s):
     bd.writeFilename(n2b,n2s)
 
 if __name__ == '__main__':
+    import os
+    sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
     if len(sys.argv) == 5:
 	inb = sys.argv[1]
 	ins = sys.argv[2]
