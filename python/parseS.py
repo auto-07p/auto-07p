@@ -104,10 +104,20 @@ class parseS(UserList.UserList):
         if len(self.data) > 0:
             self.indepvarname = self.data[0].indepvarname
             self.coordnames = self.data[0].coordnames
+            mbr, mlab = 0, 0
+            for d in self.data:
+                if d["BR"] > mbr: mbr = d["BR"]
+                if d["LAB"] > mlab: mlab = d["LAB"]
+            for d in self.data:
+                d._mbr, d._mlab = mbr, mlab
 
-    def write(self,output):
-        for x in self.data:
+    def write(self,output,mlab=False):
+        for x in self.data[:-1]:
             x.write(output)
+        #maybe write a header after the last solution so that AUTO can pickup
+        #a new branch and solution label number
+        if len(self.data) > 0:
+            self.data[-1].write(output,mlab)
         output.flush()
 
     def readFilename(self,filename,**kw):
@@ -120,12 +130,12 @@ class parseS(UserList.UserList):
         apply(self.read,(inputfile,),kw)
         inputfile.close()
 
-    def writeFilename(self,filename,append=False):
+    def writeFilename(self,filename,append=False,mlab=False):
         if append:
             output = open(filename,"ab")
         else:
             output = open(filename,"wb")
-        self.write(output)
+        self.write(output,mlab)
 	output.close()
 
     # Removes solutions with the given labels or type name
@@ -144,6 +154,10 @@ class parseS(UserList.UserList):
         indices.reverse()
         for i in indices:
             del self.data[i]
+        if len(self.data) > 0:
+            maxlab = max(self.getLabels())
+            for d in self.data:
+                d._mlab = maxlab
             
     # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
@@ -154,12 +168,17 @@ class parseS(UserList.UserList):
             for d in self.data:
                 if d["Label"] == old_label[j]:
                     d["Label"] = new_label[j]
+        if len(self.data) > 0:
+            maxlab = max(self.getLabels())
+            for d in self.data:
+                d._mlab = maxlab
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self):
         i = 1
         for d in self.data:
             d["Label"] = i
+            d._mlab = len(self.data)
             i = i + 1
 
     # Given a label, return the correct solution
@@ -324,6 +343,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__end              = None
         self.__fullyParsed     = False
         self._dims            = None
+        self._mbr             = 0
+        self._mlab            = 0
         self.name = name
         if name == './fort.8':
             if kw.has_key("equation"):
@@ -411,12 +432,12 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         for key in ["BR","PT","TY name","TY number","LAB","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()
-        rep=Points.Pointset.__repr__(self)
-        rep=rep+ "\n  BR    PT  TY  LAB ISW NTST NCOL"
+        rep="\n  BR    PT  TY  LAB ISW NTST NCOL"
         rep=rep+ "\n%4d%6d%4s%5d%4d%5d%5d" % (self["BR"], self["PT"],
                                               self["TY name"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
+        rep=rep+Points.Pointset.__repr__(self)
         for key in keys:
             v = self[key]
             if isinstance(v,Points.Pointset):
@@ -499,9 +520,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 	self.read(inputfile)
 	inputfile.close()
 
-    def writeFilename(self,filename):
+    def writeFilename(self,filename,mlab=False):
 	output = open(filename,"wb")
-	self.write(output)
+	self.write(output,mlab)
         output.flush()
 	output.close()
 
@@ -728,7 +749,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         self.__readAll()
         return getattr(self,attr)
 
-    def write(self,output):
+    def write(self,output,mlab=False):
         if self.__fullyParsed:
             ndim = len(self.coordarray)
             npar = len(self["Parameters"])
@@ -769,7 +790,6 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         # input file into the output file.
         if not(self.__fullyParsed) and not(self.__end is None):
             output.write(self.__data)
-            output.flush()
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
@@ -834,7 +854,13 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                     line = "    "
             if j%7!=0:
                 output.write(line+os.linesep)
-            output.flush()
+        if mlab and (self._mbr > 0 or self._mlab > 0) and not (
+            self._mbr == self["BR"] and self._mlab == self["LAB"]):
+            # header for empty solution so that AUTO can pickup the maximal
+            # label and branch numbers.
+            output.write("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%s"%((self._mbr,
+                                   0, 0, self._mlab) + 8*(0,) + (os.linesep,)))
+        output.flush()
 
 def pointtest(a,b):
     keys = ['Type number', 'Type name', 'Parameter NULL vector',

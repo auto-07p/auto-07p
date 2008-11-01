@@ -274,7 +274,7 @@ class runAUTO:
         if solution is None:
             open("fort.3","wb").close()
         else:
-            solution.writeFilename("fort.3")
+            solution.writeFilename("fort.3",mlab=True)
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
