@@ -89,8 +89,9 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if solution is not None:
             for d in self:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    x["solution"] = solution[i]
-                    i = i+1
+                    if x["LAB"] != 0:
+                        x["solution"] = solution[i]
+                        i = i+1
         if self.data != []:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = diagnostics
