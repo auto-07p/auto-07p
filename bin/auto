@@ -1,5 +1,5 @@
 #! /bin/sh
-PPATH=$AUTO_DIR/python:$AUTO_DIR/python/graphics:$DV/Python_interface/python_script:$AUTO_DIR/python/lib/Linux_OpenGL:$AUTO_DIR/python/lib/Linux_Mesa:.
+PPATH=$AUTO_DIR/python
 if [ -z "$PYTHONPATH" ]; then
     PYTHONPATH=$PPATH
 else

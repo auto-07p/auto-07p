@@ -1541,7 +1541,7 @@ try:
             # delay importing plotting modules until we actually plot...
             global plotterimported, windowPlotter
             if not plotterimported:
-                import windowPlotter
+                from graphics import windowPlotter
                 plotterimported = True
 
             # root has to be here since I am passing options in
@@ -1770,7 +1770,7 @@ class commandCreateGUI(command):
     def __call__(self):
         import Tkinter
         import Pmw
-        import AUTOgui
+        from graphics import AUTOgui
         # Get rid of the initial window
         root = Tkinter.Tk()
         root.withdraw()

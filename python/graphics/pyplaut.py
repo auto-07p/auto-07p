@@ -1,8 +1,6 @@
 #!/usr/bin/env autox
-import windowPlotter
-import parseB
-import parseS
 import bifDiag
+from graphics import windowPlotter
 import code
 import sys
 import string

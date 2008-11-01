@@ -1,6 +1,8 @@
-#! /usr/bin/env autox
+#! /usr/bin/env python
 
 import sys
+import os
+sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
 from AUTOCommands import commandMergeBranches
 
 # This is the Python syntax for making a script runnable

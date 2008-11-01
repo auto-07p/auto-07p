@@ -1,7 +1,9 @@
-#! /usr/bin/env autox
+#! /usr/bin/env python
 
+import sys
 import os
 import string
+sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
 from AUTOclui import *
 import parseBandS
 
