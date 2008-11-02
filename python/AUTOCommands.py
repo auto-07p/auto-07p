@@ -1469,17 +1469,22 @@ class commandPlotter3D(command):
     inspection of the output-files 'fort.7' and 'fort.8'.
     """
 
-    def __init__(self,name1=None):
+    def __init__(self,name1=None,r3b=False):
         self.data = []
+        self.r3b = r3b
         if not name1 is None:
             self.data.append(name1)
     def __call__(self):
-        if self.data == []:
-            os.system("sh -c $AUTO_DIR/bin/plaut04 &")
+        cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
+        if self.r3b:
+            cmd = os.path.join(cmd, "r3bplaut04")
         else:
+            cmd = os.path.join(cmd, "plaut04")
+        arg = []
+        if self.data != []:
             d = self.data[0]
             if type(d) == type(""):
-                os.system("sh -c '$AUTO_DIR/bin/plaut04 %s' &"%d)
+                arg = [d]
             else:
                 if not _runner.outputFort7 is None:
                     _runner.outputFort7.close()
@@ -1500,7 +1505,12 @@ class commandPlotter3D(command):
                     d.writeFilename("fort.7")
                 elif isinstance(d,parseS.AUTOSolution):
                     d.writeFilename("fort.8")
-                os.system("sh -c $AUTO_DIR/bin/plaut04 &")
+        if hasattr(os,"spawnv"):
+            if not os.path.exists(cmd):
+                cmd = cmd + '.exe'
+            os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
+        else:
+            os.system(string.join([cmd]+arg+["&"]))
         return valueString("")
 
 
@@ -1541,7 +1551,7 @@ try:
         shortName="plot"
         def __init__(self,name=None,templates=None,options={},**kw):
             self.options = AUTOutil.cnfmerge((options,kw))
-            if type(name) == type(""):
+            if type(name) == type("") or name is None:
                 commandWithFilenameTemplate.__init__(self,name,None,templates)
                 self.parsed = None
             else:
