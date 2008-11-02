@@ -288,7 +288,7 @@ class runAUTO:
                 return True
         return False
 
-    def __make(self,equation):
+    def __make(self,equation,fcon=False):
         # do the same as $AUTO_DIR/cmds/cmds.make but in Python
         # first get the configure-set variables
         f = open(os.path.join(os.path.expandvars("$AUTO_DIR"),
@@ -319,6 +319,8 @@ class runAUTO:
                 equation,equation,equation)
             return
         # compile
+        if fcon:
+            equation = "fcon"
         if not os.path.exists(equation+'.o') or self.__newer([src],
                                                              equation+'.o'):
             if src[-1] == 'c':
@@ -334,15 +336,24 @@ class runAUTO:
                 return False
         # link
         libdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"lib")
-        libs = os.path.join(libdir,"*.o")
-        deps = glob.glob(libs) + [equation+'.o']
+        if fcon:
+            srcdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"src")
+            incdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"include")
+            libs = os.path.join(srcdir,"fcon.f")
+            deps = [libs] + [os.path.join(incdir,"fcon.h")]
+            var["FFLAGS"] = var["FFLAGS"] + " -I" +  incdir
+            execfile = "fcon"
+        else:
+            libs = os.path.join(libdir,"*.o")
+            deps = glob.glob(libs) + [equation+'.o']
+            execfile = equation + ".exe"
         if not os.path.exists(equation+'.exe') or self.__newer(deps,equation+'.exe'):
             if src[-1] == 'c':
-                cmd = "%s -L%s %s %s %s.o -o %s.exe %s -lauto_c"%(var["FC"],libdir,
-                                   var["FFLAGS"],var["OPT"],equation,equation,libs)
+                cmd = "%s -L%s %s %s %s.o -o %s %s -lauto_c"%(var["FC"],libdir,
+                                   var["FFLAGS"],var["OPT"],equation,execfile,libs)
             else:
-                cmd = "%s %s %s %s.o -o %s.exe %s"%(var["FC"],var["FFLAGS"],var["OPT"],
-                                                    equation,equation,libs)
+                cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
+                                                    equation,execfile,libs)
             if self.options["verbose"] == "yes":
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
@@ -409,6 +420,9 @@ class runAUTO:
                 self.__printLog(line)        
             os.chdir(curdir)
             return data
+        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
+            self.__make(equation,fcon=True)
+            return
         else:
             executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
         return self.__runExecutable(executable)

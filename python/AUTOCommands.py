@@ -179,7 +179,10 @@ class commandUserData(command):
         datfile = "%s.dat"%(self.data[0])
         rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                      datfile))
-        rval.system("make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=%s fcon"%(self.data[0],))
+        fconrun = runAUTO.runAUTO(verbose="no",
+                                  makefile="$AUTO_DIR/cmds/cmds.make fcon")
+        fconrun.config(e=self.data[0])
+        fconrun.runMakefile(self.data[0]) #,fcon=True)
         if os.path.exists(cfile):
             shutil.copy(cfile,"fort.2")
         if os.path.exists(datfile):
@@ -919,10 +922,18 @@ class commandLs(command):
     def __init__(self,dir=None):
         self.dir = dir
     def __call__(self):
+        cmd = "ls"
+        if os.name in ["nt", "dos"]:
+            path = string.split(os.environ["PATH"],os.pathsep)
+            cmd = "dir" 
+            for s in path:
+                if os.path.exists(os.path.join(s,"ls.exe")):
+                    cmd = "ls"
+                    break
         if self.dir is None:
-            os.system("ls")
+            os.system(cmd)
         else:
-            os.system("ls %s"%(self.dir,))
+            os.system("%s %s"%(cmd,self.dir,))
         return valueString("")
         
 class commandQuit(command):
@@ -995,7 +1006,7 @@ class commandCd(commandWithRunner):
         commandWithRunner.__init__(self,runner)
     def __call__(self):
         if self.dir is None or self.dir == '':
-            self.dir = os.environ["HOME"]
+            self.dir = os.path.expanduser("~")
         try:
             self.dir = os.path.expanduser(self.dir)
             self.dir = os.path.expandvars(self.dir)
@@ -1849,15 +1860,6 @@ class valueSystem:
         self.value = ""
     def __str__(self):
         return self.value
-    def system(self,command):
-        if os.name == "posix":
-            import commands
-            self.value = self.value + commands.getoutput(command)
-        else:
-            pipe = os.popen('sh -c \'{ ' + command + '; } 2>&1\'', 'r')
-            text = pipe.read()
-            if text[-1:] == '\n': text = text[:-1]
-            self.value = self.value + text
     def interact(self,command,*args):
         if hasattr(os,"spawnv"):
             def syscmd(command,args):
