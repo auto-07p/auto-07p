@@ -4,6 +4,8 @@ import sys
 import string
 import os
 import AUTOCommands
+import interactiveBindings
+import __builtin__
 
 _functionTemplate="""
 def %s(self,*args,**kw):
@@ -81,16 +83,6 @@ class AUTOSimpleFunctions:
         except:
             return None
 
-# Export the functions inside AUTOSimpleFunctions in this modules namespace
-# This is to make "from AUTOclui import *" work
-# ALMOST like the AUTOInteractiveConsole.  Things that
-# don't work are help, shell, !, ls, cd, and any changes
-# to the aliases
-_AUTOSimpleFunctionsGlobalInstance = AUTOSimpleFunctions()
-for name in AUTOSimpleFunctions.__dict__.keys():
-    if name[0] != '_':
-        globals()[name] = getattr(_AUTOSimpleFunctionsGlobalInstance, name)
-
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
 def exportFunctions(log=None):
@@ -101,8 +93,22 @@ def exportFunctions(log=None):
             dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
     return dict
 
+# Export the functions inside AUTOSimpleFunctions in this modules namespace
+# This is to make "from AUTOclui import *" work
+# ALMOST like the AUTOInteractiveConsole.  Things that
+# don't work are help, shell, !, ls, cd, and any changes
+# to the aliases
+if not os.environ.has_key("AUTO_DIR"):
+    absfile = os.path.abspath(__file__)
+    autodir = os.path.dirname(os.path.dirname(absfile))
+    os.environ["AUTO_DIR"] = autodir
+funcs = exportFunctions()
+runner = interactiveBindings.AUTOInteractiveConsole(funcs)
+for name,value in funcs.items():
+    if name not in __builtin__.__dict__.keys():
+        globals()[name] = value
+
 def test():
-    import interactiveBindings
     interactiveBindings._testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
 
 if __name__ == "__main__":

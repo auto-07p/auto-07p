@@ -1,4 +1,9 @@
 #! /bin/sh
+if [ -z "$AUTO_DIR" ]; then
+    bindir=`dirname $0`
+    AUTO_DIR=`dirname bindir`
+    export AUTO_DIR
+fi
 PPATH=$AUTO_DIR/python
 if [ -z "$PYTHONPATH" ]; then
     PYTHONPATH=$PPATH

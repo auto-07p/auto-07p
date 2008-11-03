@@ -1697,8 +1697,11 @@ class commandHelp(command):
                     self.__print(doc[0])
                     self.__print("\n")
 
-            execlist = [{'name' : 'execfile', 'alias' : 'ex', 'fn' : execfile},
-                        {'name' : 'demofile', 'alias' : 'dmf', 'fn' : demofile}]
+            import interactiveBindings            
+            execlist = [{'name' : 'auto', 'alias' : 'ex', 
+                         'fn' : interactiveBindings.AUTOInteractiveConsole.ex},
+                        {'name' : 'demofile', 'alias' : 'dmf',
+                         'fn' : interactiveBindings.AUTOInteractiveConsole.dmf}]
             for cmdprop in execlist:
                 cmd = cmdprop['name']
                 return_value[cmd] = {}

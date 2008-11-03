@@ -4,7 +4,6 @@ import sys
 import os
 import code
 import string
-import AUTOclui
 import getopt
 import re
 import AUTOExceptions
@@ -12,6 +11,17 @@ import __builtin__
 
 class AUTOInteractiveConsole(code.InteractiveConsole):
     def __init__(self,locals,filename=None):
+        locals["execfile"] = self.execfile
+        locals["ex"] = self.ex
+        locals["auto"] = self.auto
+        locals["demofile"] = self.demofile
+        locals["dmf"] = self.dmf
+        try:
+            self.oldhelp = __builtin__.help
+        except:
+            pass
+        locals["help"] = self.help
+
         code.InteractiveConsole.__init__(self,locals)
         self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
                                      r'([\?\w\.]+\w*\s*)'
@@ -54,12 +64,15 @@ Aliases: demofile dmf"""
 Aliases: demofile dmf"""
         self.demofile(name)
 
-    def execfile(self,name):
+    def execfile(self,name=None):
         """Execute an AUTO CLUI script.
 
     Type execfile('xxx.auto') to run the script xxx.auto.
 
-Aliases: execfile ex"""
+Aliases: auto ex"""
+        if name is None:
+            automain()
+            return
         lines = open(name,"r")
         lines = lines.readlines()
         source = ""
@@ -67,19 +80,27 @@ Aliases: execfile ex"""
             source = source + self.processShorthand(line[:-1]) +"\n"
         self.runsource(source,name,"exec")
 
-    def ex(self,name):
+    def ex(self,name=None):
         """Execute an AUTO CLUI script.
 
     Type ex('xxx.auto') to run the script xxx.auto.
 
-Aliases: execfile ex"""
+Aliases: auto ex"""
+        self.execfile(name)
+
+    def auto(self,name=None):
+        """Execute an AUTO CLUI script.
+
+    Type auto('xxx.auto') to run the script xxx.auto.
+
+Aliases: ex"""
         self.execfile(name)
 
     def help(self,*args,**kwds):
         if "oldhelp" in self.__dict__.keys():
             if len(args) == 0 and len(kwds) == 0:
                 print 'Press ENTER and then type "man" for help about the AUTO Python CLUI.'
-            apply(runner.oldhelp,args,kwds)
+            apply(self.oldhelp,args,kwds)
         else:
             apply(self.locals['man'],args,kwds)
 
@@ -217,17 +238,6 @@ Aliases: execfile ex"""
             return line
         return line
 
-def _setbuiltins(runner):
-    __builtin__.execfile = runner.execfile
-    __builtin__.ex = runner.ex
-    __builtin__.demofile = runner.demofile
-    __builtin__.dmf = runner.dmf
-    try:
-        runner.oldhelp = __builtin__.help
-    except:
-        pass
-    __builtin__.help = runner.help    
-
 def test():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
@@ -239,10 +249,10 @@ def _quicktest():
     
 def _testFilename(inputname,outputname):
     import commands
+    import AUTOclui
     old_path = os.getcwd()
     log = open("log","w")
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
-    _setbuiltins(runner)
     runner.execfile(inputname)
     log.close()
     os.chdir(old_path)
@@ -301,7 +311,8 @@ man     -> List of AUTO CLUI commands"""]
     # message):
     ipshell()
 
-if __name__ == "__main__":
+def automain(name=None):
+    import AUTOclui
     sys.ps1="AUTO> "    
     opts_list,args=getopt.getopt(sys.argv[1:],"c:diqtT:L:")
     opts={}
@@ -329,8 +340,8 @@ if __name__ == "__main__":
     except:
         pass
 
-    runner = AUTOInteractiveConsole(AUTOclui.exportFunctions())
-    _setbuiltins(runner)
+    funcs = AUTOclui.exportFunctions()
+    runner = AUTOInteractiveConsole(funcs)
 
     if len(args) > 0:
         for arg in args:
@@ -342,8 +353,9 @@ if __name__ == "__main__":
                             runner.__class__.__name__))
                 runner.demofile(arg)
     elif use_ipython:
-        from AUTOclui import *
-        del cat, cd, ls
+        for name,value in funcs.items():
+            globals()[name] = value
+        del globals()['cat'], globals()['cd'], globals()['ls']
         autoipython()
     elif opts.has_key("-c"):
         source = ""
@@ -352,3 +364,7 @@ if __name__ == "__main__":
         runner.runsource(source,"-c","exec")
     else:
         runner.interact()
+
+if __name__ == "__main__":
+    automain()
+
