@@ -34,9 +34,9 @@ wait()
 # foreground color to white.  'color_list" is the list of
 # colors used for the actual plot.
 plot1.config(bg="black",fg="white",color_list="white")
-# We plot solution with label number 6 instead of the bifurcation diagram
+# We plot solution with label number 2 instead of the bifurcation diagram
 # in plot2.
-plot2.config(type="solution",label=[6])
+plot2.config(type="solution",label=[2])
 wait()
 # These two commands put explicit bounds on the plotting
 # bounds, instead of having them computed automatically
@@ -53,7 +53,7 @@ plot2.config(solution_x=("t",),solution_y=(0,))
 wait()
 # This command changes the row and column labels
 plot1.config(xlabel="Randy is cool",ylabel="Sebius is cool")
-plot2.config(index=[4])
+plot2.config(index=[1])
 wait()
 # This command goes back to the default plot of  column 0 vs column 1 in plot1
 plot1.config(bifurcation_x=(0,),bifurcation_y=(1,))

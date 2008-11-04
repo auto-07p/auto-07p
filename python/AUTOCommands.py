@@ -1614,10 +1614,12 @@ try:
             # get messed up
             # NOTE: options set here go to the MegaToplevel!, while
             # the return value of this function is the underlying
-            # grapher.  Accordingly:
-            # foo = commandPlotter3D(foo="bar").data
-            # is not the same as
-            # foo.config(foo="bar")
+            # grapher.  So we add 'grapher_' to all options that don't
+            # already do
+            for k, v in self.options.items():
+                if k[:8] != 'grapher_':
+                    del self.options[k]
+                    self.options['grapher_'+k] = v
 
             # Get rid of the initial window
             root=Tkinter.Tk()

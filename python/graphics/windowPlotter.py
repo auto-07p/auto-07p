@@ -198,12 +198,14 @@ class WindowPlotter(Pmw.MegaToplevel):
         for key,value in dict.items():
             if key == "type":
                 self.labelEntry.setvalue(value)
-            if key in ["type","label",
+            if key in ["type","label","label_defaults",
                        "bifurcation_diagram_filename",
                        "solution_filename",
                        "bifurcation_column_defaults",
                        "bifurcation_diagram","bifurcation_x","bifurcation_y",
+                       "bifurcation_coordnames",
                        "solution_column_defaults",
+                       "solution_indepvarname","solution_coordnames",
                        "solution","solution_x","solution_y"]:
                 self.typeUpdateCallback()
 
@@ -262,10 +264,10 @@ class WindowPlotter2D(WindowPlotter):
         self.yEntry.configure(selectioncommand = lambda entry,
                               obj=self,oa=oy:obj._modifyOption(oa,entry))
 
-        list = []
+        lst = []
         if not(self.grapher.cget(ocd) is None):
             for x in self.grapher.cget(ocd):
-                list.append(str(x))
+                lst.append(str(x))
         sol = self.grapher.cget(o)
         if self.grapher.cget("type") == "solution":
             indepvarname = ""
@@ -274,7 +276,7 @@ class WindowPlotter2D(WindowPlotter):
             if self.grapher.cget(ox[:-1]+"indepvarname"):
                 indepvarname = self.grapher.cget(ox[:-1]+"indepvarname")
             if indepvarname != "":
-                list.append("[%s]"%string.strip(indepvarname))
+                lst.append("[%s]"%indepvarname)
         coordnames = []
         if hasattr(sol,"coordnames"):
             coordnames = sol.coordnames
@@ -283,21 +285,25 @@ class WindowPlotter2D(WindowPlotter):
         if self.grapher.cget(ox[:-1]+"coordnames"):
             coordnames = self.grapher.cget(ox[:-1]+"coordnames")
         for s in coordnames:
-            list.append("[%s]"%string.strip(s))
-        self.xEntry.setlist(list)
-        self.yEntry.setlist(list)
+            lst.append("[%s]"%s)
+        self.xEntry.setlist(lst)
+        self.yEntry.setlist(lst)
         xlist = self.grapher.cget(ox)
         ylist = self.grapher.cget(oy)
+        if type(xlist) == type((0,)):
+            xlist = list(xlist)
+        if type(ylist) == type((0,)):
+            ylist = list(ylist)
         if len(sol) > 0:
             for xylist in [xlist,ylist]:
                 for i in range(len(xylist)):
                     if type(xylist[i]) == type(1):
                         if xylist[i] == -1:    
-                            xylist[i] = string.strip(indepvarname)
+                            xylist[i] = indepvarname
                         elif coordnames != []:
-                            xylist[i] = string.strip(coordnames[xylist[i]])
+                            xylist[i] = coordnames[xylist[i]]
                         else:
-                            xylist[i] = str(i)
+                            xylist[i] = str(i) 
         self.xEntry.setentry(self._shortstr(xlist))
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []

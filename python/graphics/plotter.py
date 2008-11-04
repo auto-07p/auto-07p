@@ -133,7 +133,7 @@ class plotter(grapher.GUIGrapher):
                 options["label"].append(labels[v])
         elif key in ["bifurcation_x","bifurcation_y",
                      "solution_x","solution_y"]:
-            if type(value) != type([]):
+            if type(value) != type([]) and type(value) != type(()):
                 value = [value]
         # We only recreate the data if one of the above options gets set
         # We can't just recreate the data for any option since:
@@ -147,7 +147,8 @@ class plotter(grapher.GUIGrapher):
         ty = self.cget("type")
         columns = [self.cget(ty+"_x"),self.cget(ty+"_y")]
         for coord in range(2):
-            if type(columns[coord]) != type([]):
+            if (type(columns[coord]) != type([]) and
+                type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
             if len(columns[coord]) == 1:
                 columns[coord] = columns[coord] * len(columns[1-coord])
@@ -166,7 +167,9 @@ class plotter(grapher.GUIGrapher):
                     names = {"x": xnames, "y": ynames}[coord]
                     columns = {"x": xcolumns, "y": ycolumns}[coord]
                     origcolumns = self.cget(ty+"_"+coord)
-                    if type(origcolumns) != type([]) or len(origcolumns) == 1:
+                    if ((type(origcolumns) != type([])
+                         and type(origcolumns != type(()))) or
+                        len(origcolumns) == 1):
                         label[coord] = names[2:len(names)/len(columns)]
                     else:
                         label[coord] = names[2:]
