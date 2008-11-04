@@ -400,31 +400,42 @@ class AUTOBranch(Points.Pointset):
         coordarray = N.array(self.coordarray)
         if not isinstance(other,Points.Pointset):
             other = other[0]
-        b0 = other[ref][index:]
-        if b0[0] > b0[1]:
+        b0 = other[ref]
+        if b0[index] > b0[index+1]:
             # decreasing array: take first part until it increases
-            k = 1
-            while b0[k] <= b0[k-1]:
+            k = index+1
+            while k < len(b0) and b0[k] <= b0[k-1]:
                 k = k + 1
             b0 = b0[:k]
-            try:
-                b0.reverse()
-            except:
-                b0 = b0[::-1]
+        else:
+            k = index+1
+            while k < len(b0) and b0[k] >= b0[k-1]:
+                k = k + 1
+            b0 = b0[:k]
         r = 0
         for i in range(len(other.coordnames)):
             if other.coordnames[i] == ref:
                 r = i
         a0 = self.coordarray[r]
-        k = 0
+        k = index+1
         for j in range(len(a0)):
-            #find k so that b0[k-1] < a0[j] <= b0[k]
-            if a0[j] > b0[k]:
-                while k < len(b0)-1 and a0[j] > b0[k] and b0[k+1] >= b0[k]:
-                    k = k + 1
-            elif b0[k-1] >= a0[j]:
-                while k > 0 and b0[k-1] >= a0[j]:
-                    k = k - 1
+            if b0[index+1] > b0[index]:
+                #find k so that b0[k-1] < a0[j] <= b0[k]
+                if a0[j] > b0[k]:
+                    while k < len(b0)-1 and a0[j] > b0[k]:
+                        k = k + 1
+                elif b0[k-1] >= a0[j]:
+                    while k > index+1 and b0[k-1] >= a0[j]:
+                        k = k - 1
+            else:
+                #find k so that b0[k-1] > a0[j] >= b0[k]
+                if a0[j] < b0[k]:
+                    while k < len(b0)-1 and a0[j] < b0[k]:
+                        k = k + 1
+                elif b0[k-1] <= a0[j]:
+                    while k > index+1 and b0[k-1] <= a0[j]:
+                        k = k - 1
+            #do extrapolation if past the boundaries...
             for i in range(len(self.coordnames)):
                 if i == r or i >= len(other.coordarray):
                     continue

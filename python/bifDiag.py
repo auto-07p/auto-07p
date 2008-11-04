@@ -90,7 +90,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if solution is not None:
             for d in self:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if x["LAB"] != 0:
+                    if x["LAB"] != 0 and i < len(solution):
                         x["solution"] = solution[i]
                         i = i+1
         if self.data != []:
@@ -168,7 +168,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             fort8_filename = fort7_filename
         else:
             parseB.parseBR.writeFilename(self,fort7_filename,append)
-        self().writeFilename(fort8_filename,append)
+        if fort8_filename != '':
+            self().writeFilename(fort8_filename,append)
         if not fort9_filename is None:
             for d in self:
                 if hasattr(d,"diagnostics"):

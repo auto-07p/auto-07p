@@ -357,6 +357,50 @@ class commandMergeBranches(commandWithFilenameTemplate):
         rval.info("Merging done\n")
         return rval
 
+class commandSubtractBranches(commandWithFilenameTemplate):
+    """Subtract branches in data files.
+
+    Type FUNC('xxx','yyy','ref') to subtract, using interpolation, the first
+    branch in b.yyy from all branches in b.xxx, and save the result in 'xxx'.
+    A Backup of the original file is saved. Use 'ref' (e.g., 'PAR(1)')
+    as the reference column in b.yyy (only the first monotonically
+    increasing or decreasing part is used).
+
+    Use optional arguments branch=m, and point=n, to denote the branch and
+    first point on that branch within 'yyy', where m,n are in {1,2,3,...}.
+    """
+
+    type=SIMPLE
+    shortName="subtract"
+    def __init__(self,name1,name2,col,branch=1,point=1,templates=None):
+        self.type = type(name1)
+        self.name1 = name1
+        self.name2 = name2
+        self.col = col
+        self.branch = branch
+        self.point = point
+        if type(name1) == type(""):
+            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
+    def __call__(self):
+	rval=valueSystem()
+        if self.type != type(""):
+            sub = self.name1.subtract(self.name2[self.branch-1],self.col,
+                                      self.point)
+        else:
+            n1b = self.name1["bifurcationDiagram"]
+            bd1 = bifDiag.bifDiag(n1b)
+            n2b = self.name2["bifurcationDiagram"]
+            if n1b == n2b:
+                bd2 = bd1
+            else:
+                bd2 = bifDiag.bifDiag(n2b)
+            sub = bd1.subtract(bd2[self.branch-1],self.col,self.point)
+            shutil.copy(n1b,n1b+'~')
+            sub.writeFilename(n1b,'')            
+        rval.info("Subtracting done\n")
+        rval.data = sub
+        return rval
+
 class commandAppend(commandWithFilenameTemplate):
     """Append data files.
 
