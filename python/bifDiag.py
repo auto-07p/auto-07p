@@ -9,6 +9,7 @@ import Points
 import types
 import AUTOExceptions
 import runAUTO
+import gzip
 
 class bifDiag(parseB.parseBR,runAUTO.runAUTO):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
@@ -123,7 +124,9 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)
-        if fort8_input is not None and type(fort8_input) == types.FileType:
+        if fort8_input is not None and (
+            type(fort8_input) == types.FileType or
+            isinstance(fort8_input, gzip.GzipFile)):
             solution = parseS.parseS()
             solution.read(fort8_input)
             i = 0

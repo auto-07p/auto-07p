@@ -28,6 +28,7 @@ import copy
 import parseB
 import Points
 import runAUTO
+import gzip
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -124,8 +125,11 @@ class parseS(UserList.UserList):
         try:
             inputfile = open(filename,"rb")
         except IOError:
-            import gzip
-            inputfile = gzip.open(filename+".gz","rb")
+            try:
+                import gzip
+                inputfile = gzip.open(filename+".gz","rb")
+            except IOError:
+                raise IOError("Could not find solution file %s."%filename)
         self.name = filename
         apply(self.read,(inputfile,),kw)
         inputfile.close()
@@ -368,7 +372,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             "Label": "LAB"}
         if input is None:
             pass
-        elif type(input) == types.FileType:
+        elif type(input) == types.FileType or isinstance(input,gzip.GzipFile):
             self.read(input,offset)
         else:
             #init from array
@@ -506,8 +510,11 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         try:
             inputfile = open(filename,"rb")
         except IOError:
-            import gzip
-            inputfile = gzip.open(filename+".gz","rb")
+            try:
+                import gzip
+                inputfile = gzip.open(filename+".gz","rb")
+            except IOError:
+                raise IOError("Could not find solution file %s."%filename)
 	self.readAll(inputfile)
 	inputfile.close()
 
@@ -515,8 +522,11 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         try:
             inputfile = open(filename,"rb")
         except IOError:
-            import gzip
-            inputfile = gzip.open(filename+".gz","rb")
+            try:
+                import gzip
+                inputfile = gzip.open(filename+".gz","rb")
+            except IOError:
+                raise IOError("Could not find solution file %s."%filename)
 	self.read(inputfile)
 	inputfile.close()
 

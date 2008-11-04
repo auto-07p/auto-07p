@@ -43,8 +43,8 @@ type_translation_dict = {
 
 all_point_types = ["No Label","BP","LP","HB","RG","UZ","PD","TR","EP","MX"]
 
-# A little dictionary to transform types to human readable strings
 def type_translation(type):
+    """A little dictionary to transform types to human readable strings"""
     if type>=0:
         type=type%10
     else:
@@ -256,8 +256,8 @@ class AUTOBranch(Points.Pointset):
             return 0
         return Points.Pointset.__len__(self)
 
-    # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):
+        """Removes solutions with the given labels or type names"""
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
@@ -276,8 +276,8 @@ class AUTOBranch(Points.Pointset):
                 if v["TY number"] == 0:
                     self.labels.remove(idx)
             
-    # Relabels the first solution with the given label
     def relabel(self,old_label,new_label):
+        """Relabels the first solution with the given label"""
         labels = self.labels
         if type(old_label)  == types.IntType:
             old_label = [old_label]
@@ -290,8 +290,8 @@ class AUTOBranch(Points.Pointset):
                     if not self.__fullyParsed:
                         self.__patchline(self.__datalist,index,3,new_label[j])
 
-    # Make all labels in the file unique and sequential
     def uniquelyLabel(self,label=1):
+        """Make all labels in the file unique and sequential"""
         for index in self.labels.getIndices():
             v = self._gettypelabel(index)[1]
             if v["LAB"] != 0:
@@ -300,8 +300,8 @@ class AUTOBranch(Points.Pointset):
                     self.__patchline(self.__datalist,index,3,label)
                 label = label + 1
 
-    # Given a label, return the correct solution
     def getLabel(self,label):
+        """Given a label, return the correct solution"""
         if label is None:
             return self
         if type(label) == types.IntType:
@@ -334,9 +334,9 @@ class AUTOBranch(Points.Pointset):
                 "labels": labels})
         return new
 
-    # Return a parseB style line item; if given a string, return the
-    # relevant column
     def getIndex(self,index):
+        """Return a parseB style line item; if given a string, return the
+        relevant column"""
         ret = Points.Pointset.__getitem__(self,index)
         if (not isinstance(ret, Points.Point) or
             isinstance(ret, Points.Pointset)):
@@ -367,8 +367,8 @@ class AUTOBranch(Points.Pointset):
                         'coordnames': ret.coordnames,
                         'labels': ret.labels},self,index)
 
-    # Get all the labels from the solution
     def getLabels(self):
+        """Get all the labels from the solution"""
         labels = []
         for index in self.labels.getIndices():
             x = self._gettypelabel(index)[1]
@@ -382,6 +382,60 @@ class AUTOBranch(Points.Pointset):
         output.flush()
 	output.close()
         
+    def subtract(self,other,ref,pt=None):
+        """Subtracts branch branches using interpolation with respect to other
+        with monotonically increasing or decreasing reference coordinate ref,
+        and starting point pt"""
+        if pt is None:
+            index = 0
+        elif type(pt) == type(1):
+            index = abs(pt) - 1
+        else:
+            index = pt["index"]
+        new = self.__class__()
+        new.BR = self.BR
+        new.headerlist = self.headerlist
+        new.headernames = self.headernames
+        new.stability = self.stability
+        coordarray = N.array(self.coordarray)
+        if not isinstance(other,Points.Pointset):
+            other = other[0]
+        b0 = other[ref][index:]
+        if b0[0] > b0[1]:
+            # decreasing array: take first part until it increases
+            k = 1
+            while b0[k] <= b0[k-1]:
+                k = k + 1
+            b0 = b0[:k]
+            try:
+                b0.reverse()
+            except:
+                b0 = b0[::-1]
+        r = 0
+        for i in range(len(other.coordnames)):
+            if other.coordnames[i] == ref:
+                r = i
+        a0 = self.coordarray[r]
+        k = 0
+        for j in range(len(a0)):
+            #find k so that b0[k-1] < a0[j] <= b0[k]
+            if a0[j] > b0[k]:
+                while k < len(b0)-1 and a0[j] > b0[k] and b0[k+1] >= b0[k]:
+                    k = k + 1
+            elif b0[k-1] >= a0[j]:
+                while k > 0 and b0[k-1] >= a0[j]:
+                    k = k - 1
+            for i in range(len(self.coordnames)):
+                if i == r or i >= len(other.coordarray):
+                    continue
+                a = coordarray[i]
+                b = other.coordarray[i]
+                a[j]=a[j]-b[k-1]-(a0[j]-b0[k-1])*(b[k]-b[k-1])/(b0[k]-b0[k-1])
+        Points.Pointset.__init__(new, coordarray = coordarray,
+                                 coordnames = self.coordnames,
+                                 labels = self.labels)
+        return new
+
     def toArray(self):
         array = []
         data = self.coordarray
@@ -583,8 +637,11 @@ class AUTOBranch(Points.Pointset):
         try:
             inputfile = open(filename,"r")
         except IOError:
-            import gzip
-            inputfile = gzip.open(filename+".gz","r")
+            try:
+                import gzip
+                inputfile = gzip.open(filename+".gz","r")
+            except IOError:
+                raise IOError("Could not find solution file %s."%filename)
 	self.read(inputfile)
 	inputfile.close()
 
@@ -807,6 +864,15 @@ class parseBR(UserList.UserList,AUTOBranch):
             #reset for further search
             fw = None
         self.data = data
+
+    def subtract(self,other,ref,pt=None):
+        """Subtracts branch branches using interpolation with respect to other
+        with monotonically increasing or decreasing reference coordinate ref,
+        and starting point pt"""
+        new = self.__class__()
+        for d in self.data:
+            new.append(d.subtract(other,ref,pt))
+        return new
 
     def toArray(self):
         array = []

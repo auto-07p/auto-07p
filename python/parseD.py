@@ -107,8 +107,11 @@ class parseD(UserList.UserList):
         try:
             inputfile = open(filename,"r")
         except IOError:
-            import gzip
-            inputfile = gzip.open(filename+".gz","r")
+            try:
+                import gzip
+                inputfile = gzip.open(filename+".gz","r")
+            except IOError:
+                raise IOError("Could not find solution file %s."%filename)
         self.read(inputfile)
         
     def write(self,output):
