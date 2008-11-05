@@ -1087,6 +1087,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     
     def __applyRunnerConfigResolveAbbreviation(self,kw={}):
         self.sname = None
+        self.ename = None
         abbrev = {}
         abbrev["e"]         = "equation"
         abbrev["equation"]  = "equation"
@@ -1109,15 +1110,21 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
                     if abbrev[key] == "solution":
                         self.sname = value
+                    if abbrev[key] == "equation":
+                        self.ename = value
                 else:
                     kw[abbrev[key]] = value
         return kw
 
     def __applyRunnerConfigResolveFilenames(self,kw={}):
+        doneread = False
+        wantread = False
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
+                wantread = True
                 try:
                     kw["constants"] = parseC.parseC(kw["constants"])
+                    doneread = True
                 except IOError:
                     del kw["constants"]
         self.bifdiag = None
@@ -1128,12 +1135,15 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 try:
                     self.bifdiag = parseB.parseBR(bname)
                     self.runner.options["constants"] = self.bifdiag[0].c
+                    doneread = True
                 except IOError:
                     pass
             if type(kw["solution"]) == types.StringType:
+                wantread = True
                 object = parseS.parseS()
                 try:
                     apply(object.readFilename,(kw["solution"],),kw)
+                    doneread = True
                 except IOError:
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
                     object = None
@@ -1144,13 +1154,20 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 self.sname = ""
         if kw.has_key("homcont"):
             if type(kw["homcont"]) == types.StringType:
+                wantread = True
                 object = parseH.parseH()
                 try:
                     object.readFilename(kw["homcont"])
+                    doneread = True
                 except IOError:
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["homcont"])
                     object = None
                 kw["homcont"] = object
+        if wantread and not doneread:
+            if kw.has_key("equation") and os.path.exists(kw["equation"][11:]):
+                doneread = True
+            if not doneread:
+                raise IOError("No files found.")
         return kw
 
     def __call__(self):
@@ -1158,15 +1175,18 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         dict = self.__applyRunnerConfigResolveFilenames(dict)
         self.runner.config(dict)
         data = None
-        if self.sname is not None and self.runner.options["solution"]:
-            options = self.runner.options.copy()
-            if self.bifdiag:
-                bname = self.bifdiag
+        if self.sname is not None or self.ename is not None:
+            if self.runner.options["solution"]:
+                options = self.runner.options.copy()
+                if self.bifdiag:
+                    bname = self.bifdiag
+                else:
+                    bname = self._applyTemplate(self.sname,"bifurcationDiagram")
+                sname = options["solution"]
+                dname = self._applyTemplate(self.sname,"diagnostics")
+                data = bifDiag.bifDiag(bname,sname,dname,options)
             else:
-                bname = self._applyTemplate(self.sname,"bifurcationDiagram")
-            sname = options["solution"]
-            dname = self._applyTemplate(self.sname,"diagnostics")
-            data = bifDiag.bifDiag(bname,sname,dname,options)
+                data = self.runner
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):

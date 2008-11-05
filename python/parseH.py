@@ -55,10 +55,9 @@ class parseH(UserDict.UserDict):
             return
 	UserDict.UserDict.__init__(self)
         for key in ['NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-                    'NREV', 'NFIXED', 'NPSI']:
+                    'NREV', 'NFIXED', 'NPSI',
+                    'IREV', 'IFIXED', 'IPSI']:
             self[key] = None
-        for key in ['IREV', 'IFIXED', 'IPSI']:
-            self[key] = []
 	if filename:
 	    self.readFilename(filename)
 #        self.dataString=""

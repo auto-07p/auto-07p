@@ -48,6 +48,13 @@ class runAUTO:
         self.__parseOptions(kw)
         self.__parseOptions(cnf)
             
+    def __getattr__(self,attr):
+        if self.options is not None:
+            c = self.options["constants"]
+            if attr == "c" and c is not None:
+                return c
+        raise AttributeError
+
     def __setattr__(self,attr,item):
         if attr == "c":
             self.options["constants"] = item

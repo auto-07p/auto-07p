@@ -67,10 +67,9 @@ class parseC(UserDict.UserDict):
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-            'sv', 's', 'dat', 'e']:
+            'sv', 's', 'dat', 'e',
+            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR"]:
             self[key] = None
-        for key in ["THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR"]:
-            self[key] = []
 	if filename:
 	    self.readFilename(filename)
 
@@ -81,9 +80,16 @@ class parseC(UserDict.UserDict):
 
     def __setitem__(self,key,item):
         if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
-            self.data["__N"+key] = len(item)
+            l = 0
+            if item is not None:
+                l = len(item)
+            self.data["__N"+key] = l
             self.data[key] = item
         elif key in ["THL","THU","UZR"]:
+            if item is None:
+                self.data["__N"+key] = 0
+                self.data[key] = None
+                return
             self.data["__N"+key] = len(item)
             self.data[key] = []
             for x in item:
@@ -98,9 +104,9 @@ class parseC(UserDict.UserDict):
 	self.read(inputfile)
 	inputfile.close()
 
-    def writeFilename(self,filename):
+    def writeFilename(self,filename,new=False):
 	output = open(filename,"w")
-	self.write(output)
+	self.write(output,new)
 	output.close()
 
     def scanvalue(self,line):
@@ -317,30 +323,80 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"][i]["PAR index"] = d
 	    self.data["UZR"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
-    def write(self,output):
-        if self.__new:
-            for key,value in self.items():
+    def write(self,output,new=False):
+        if self.__new or new:
+            wdth2keys = ["A0","A1"]
+            wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
+            wdth5keys = ["EPSU","EPSS"]
+            lines = [
+                ["e","s","dat","sv"],
+                ["U","PAR"],
+                ["NDIM","IPS","IRS","ILP"],
+                ["ICP"],
+                ["NTST","NCOL","IAD","ISP","ISW","IPLT","NBC","NINT"],
+                ["NMX","RL0","RL1","A0","A1"],
+                ["NPR","MXBF","IID","ITMX","ITNW","NWTN","JAC"],
+                ["EPSL","EPSU","EPSS"],
+                ["DS","DSMIN","DSMAX","IADS"],
+                ["NPAR","THL","THU"],
+                ["UZR"],
+                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
+                ["IREV","IFIXED","IPSI"]]
+        else:
+            lines = [
+                ["e","s","dat","sv"],
+                ["U","PAR"],
+                ["NPAR"],
+                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
+                ["IREV","IFIXED","IPSI"]]
+        for line in lines:
+            pos = 0
+            for key in line:
+                value = self[key]
+                if value is None:
+                    continue
+                if pos > 0:
+                    output.write(", ")
+                pos = pos + 1
+                if key in wdth2keys:
+                    output.write("%-2s="%key)
+                elif key in wdth3keys:
+                    output.write("%-3s="%key)
+                elif key in wdth5keys:
+                    output.write("%-5s="%key)
+                else:
+                    output.write("%-4s="%key)
                 if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
-                    if value != []:
-                        output.write(key+"="+str(value)+"\n")
+                    output.write("  "+str(value))
                 elif key in ["THL","THU","UZR"]:
-                    if value != []:
-                        s=key+"=["
-                        for item in value:
-                            s=s+str([item["PAR index"],item["PAR value"]])+','
-                        output.write(s[:-1]+"]\n")
-                elif key[0] != '_' and key[:7] != "Active " and value != None:
-                    output.write(key+"="+str(value)+"\n")
+                    l=[]
+                    for item in value:
+                        l.append([item["PAR index"],item["PAR value"]])
+                    output.write("  "+str(l))
+                elif key in ["sv","s","dat","e"]:
+                    value = "'"+str(value)+"'"
+                    output.write("%4s"%value)
+                elif key[0] in ["A", "D", "E", "R"]:
+                    #check if we can use more compact output than str...
+                    #if abs(value)
+                    str1 = "%.5g"%value
+                    str2 = str(value)
+                    if float(str1) == float(str2) and 'e' in str1:
+                        value = str1
+                    else:
+                        value = str2
+                    output.write("%6s"%value)
+                elif pos > 4:
+                    output.write("%2s"%value)
+                elif key in wdth3keys:
+                    output.write("%5s"%value)
+                else:
+                    output.write("%4s"%value)
+            if pos > 0:
+                output.write("\n")
+        if self.__new or new:
             return
             
-        for key,value in self.items():
-            if (value != None and value != [] and
-                key in ["NPAR","PAR","U",
-                        "NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART",
-                        "IREV","IFIXED","IPSI"]):
-                output.write(key+"="+str(value)+"\n")
-            elif value != None and key in ["sv","s","dat","e"]:
-                output.write(key+"='"+str(value)+"'\n")
 	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
 	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
 	output.write("          "+line1_comment+"\n")
