@@ -22,6 +22,9 @@ class parseD(UserList.UserList):
         else:
             UserList.UserList.__init__(self,filename)
 
+    def __getitem__(self,index):
+        return self.getIndex(index)
+
     def __call__(self,label):
         return self.getLabel(label)
 
@@ -32,31 +35,26 @@ class parseD(UserList.UserList):
         return s
 
     def getIndex(self,index):
+        self.__readAll()
         return self.data[index]
 
     def getLabel(self,label):
+        self.__readAll()
         for x in self.data:
             if x["Label"] == label:
                 return x
 
-    def read(self,input):
-        data = input.read()
-        divstr = "--------------------------------------------------------------------------------------------\n"
-        data=string.split(data,divstr)
-        if len(data) == 1:
-            divstr = "===============================================\n"
-            data=string.split(data[0],divstr)
-        self.data=[]
-        for solution in data:
-            item = {"Text": solution + divstr,
+    def __readAll(self):
+        for item in self.data:
+            solution = item["Text"]
+            item.update({
                     "Branch number": 0,
                     "Point number": 0,
                     "Label": 0,
                     "Eigenvalues": [],
-                    "Multipliers": []}
-            lines = string.split(solution,'\n')
+                    "Multipliers": []})
+            lines = string.split(solution,'\n')[:-1]
             if len(lines) < 3:
-                self.data.append(item)
                 continue
             i = 0
             for line in lines:
@@ -65,11 +63,9 @@ class parseD(UserList.UserList):
                     break
                 i = i + 1
             if i + 1 >= len(lines):
-                self.data.append(item)
                 continue
             sp = string.split(lines[i+1])
             if len(sp) < 2:
-                self.data.append(item)
                 continue
             item["Branch number"] = int(sp[0])
             item["Point number"] = int(sp[1])
@@ -100,7 +96,17 @@ class parseD(UserList.UserList):
                 real_part = parseB.AUTOatof(multiplier_string[2])
                 imag_part = parseB.AUTOatof(multiplier_string[3])
                 item["Multipliers"].append([real_part,imag_part])
-            self.data.append(item)
+        
+    def read(self,input):
+        data = input.read()
+        divstr = "===============================================\n"
+        data=string.split(data,divstr)
+        if len(data) == 1:
+            divstr = "--------------------------------------------------------------------------------------------\n"
+            data=string.split(data[0],divstr)
+        self.data=[]
+        for solution in data:
+            self.data.append({"Text": solution + divstr})
         self.data[-1]["Text"] = self.data[-1]["Text"][:-len(divstr)]
 
     def readFilename(self,filename):
