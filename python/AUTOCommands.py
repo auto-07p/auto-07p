@@ -1081,13 +1081,13 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
 
     def __init__(self,runner=None,templates=None,cnf={},**kw):
         commandWithFilenameTemplate.__init__(self,None,None,templates)
+        self.runnerprovided = runner is not None
         commandWithRunner.__init__(self,runner)
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.configDict = dict
     
     def __applyRunnerConfigResolveAbbreviation(self,kw={}):
         self.sname = None
-        self.ename = None
         abbrev = {}
         abbrev["e"]         = "equation"
         abbrev["equation"]  = "equation"
@@ -1110,8 +1110,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
                     if abbrev[key] == "solution":
                         self.sname = value
-                    if abbrev[key] == "equation":
-                        self.ename = value
                 else:
                     kw[abbrev[key]] = value
         return kw
@@ -1175,9 +1173,9 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         dict = self.__applyRunnerConfigResolveFilenames(dict)
         self.runner.config(dict)
         data = None
-        if self.sname is not None or self.ename is not None:
-            if self.runner.options["solution"]:
-                options = self.runner.options.copy()
+        if not self.runnerprovided:
+            options = self.runner.options.copy()
+            if self.sname is not None and self.runner.options["solution"]:
                 if self.bifdiag:
                     bname = self.bifdiag
                 else:
@@ -1186,7 +1184,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 dname = self._applyTemplate(self.sname,"diagnostics")
                 data = bifDiag.bifDiag(bname,sname,dname,options)
             else:
-                options = self.runner.options.copy()
                 data = bifDiag.bifDiag([],None,None,options)
         return valueStringAndData("Runner configured\n",data)
 
