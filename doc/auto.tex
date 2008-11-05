@@ -10,6 +10,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{url}
 \usepackage{subfigure}
+\usepackage{xspace}
 \pagestyle{plain}
 \topmargin=0pt
 \textwidth=6.75in
@@ -71,14 +72,17 @@ Earlier versions of {\cal AUTO} were described in
 \citename{DoWa:95a} \citeyear{DoWa:95a},
 \citename{WaDo:95b} \citeyear{WaDo:95b},
 \citename{AUTO:97} \citeyear{AUTO:97},
-\citename{AUTO:2000} \citeyear{AUTO:2000},
+\citename{AUTO:2000} \citeyear{AUTO:2000}.
 For a description of the basic algorithms see
 \citename{DoKeKe:91a} \citeyear{DoKeKe:91a},
 \citename{DoKeKe:91b} \citeyear{DoKeKe:91b}.
 {\cal AUTO} incorporates the {\cal HomCont} algorithms of
 \citename{ChKu:94} \citeyear{ChKu:94},
 \citename{ChKuSa:95} \citeyear{ChKuSa:95}
-for the bifurcation analysis of homoclinic orbits.
+for the bifurcation analysis of homoclinic orbits, and
+the BPcont algorithms of \citename{DercoleSMSC:08}
+\citeyear{DercoleSMSC:08} for the continuation of
+branch points in both symmetric and non-symmetric problems.
 The Floquet multiplier algorithms were written by
 \citename{Fa:94} \citeyear{Fa:94},
 \citename{FaJe:91} \citeyear{FaJe:91}.
@@ -95,8 +99,9 @@ He is also thankful to {\cal AUTO} users and research collaborators who have
 directly or indirectly contributed to its development,
 in particular, 
 Jean Pierre Kern\'evez, UTC, Compi\`egne, France;
-Don Aronson, University of Minnesota, Minneapolis; and 
-Hans Othmer, University of Utah.
+Don Aronson, University of Minnesota, Minneapolis;
+Hans Othmer, University of Utah; and
+Frank Schilder, University of Surrey.
 Some material in this document related to the computation of connecting orbits
 was developed with Mark Friedman, University of Alabama, Huntsville.
 Also acknowledged is the work of Nguyen Thanh Long,
@@ -115,7 +120,6 @@ M.~J. Friedman, University of Alabama,
 A. Rucklidge, University of Cambridge, 
 M. Koper, University of Utrecht,
 C.~J. Budd, University of Bath, and
-Frank Schilder, University of Surrey,
 Financial support for this collaboration was also received from the U.K.
 Engineering and Physical Science Research Council and the Nuffield Foundation.
 
@@ -350,23 +354,14 @@ also find precompiled PLAUT04 binaries at
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
 There are size restrictions in the file {\tt auto/07p/include/auto.h}
-on the following {\cal AUTO}-constants~:
-the effective number of equation parameters {\tt NPAR}, and
-the number of stored branch points {\tt NBIF} for algebraic problems,
-See Chapter~\ref{ch:AUTO_constants} 
-for the significance these constants. 
-Their maxima are denoted by the  corresponding constant followed by an{\tt X}.
-For example, {\tt NPARX} in {\tt auto.h} denotes the maximum value 
-of {\tt NPAR}.
-If any of these maxima is exceeded in an {\cal AUTO}-run then a message 
-will be printed.
-The exception is the the maximum value of {\tt NPAR},
-which, if exceeded, may lead to unreported errors.
+on the effective number of equation parameters {\tt NPAR}.
+Its maximum value is denoted by {\tt NPARX}, and if
+it is exceeded in an {\cal AUTO}-run then a message will be printed.
 Upon installation {\tt NPARX}=36; it should never be decreased below that value;
 see also Section~\ref{sec:Restrictions_on_PAR}.
 Size restrictions can be changed by editing {\tt auto.h}.
 This must be followed by recompilation by typing {\it make} 
-in directory {\tt auto/07p/src}.
+in the directory {\tt auto/07p/src}.
 
 Note that in certain cases the {\it effective dimension} may be greater
 than the user dimension.
@@ -477,7 +472,7 @@ of solutions of systems of ordinary differential equation (ODEs) of the form
   \qquad  f(\cdot,\cdot) , u(\cdot) \in \Rn,
 \end{equation}
 subject to boundary (including initial) conditions and integral constraints.
-Above, $p$ denotes one or more free parameters,
+Above, $p$ denotes one or more free parameters.
 
 These boundary value algorithms also allow {\cal AUTO} to do certain stationary 
 solution and wave calculations for the partial differential equation (PDE)
@@ -506,7 +501,7 @@ Specifically, for (\ref{1}) {\cal AUTO} can~:~
 \item[-]
   Locate branch points, continue these in two or three parameters,
   and automatically compute
-  bifurcating families. \\ (Demos {\tt pp2}; Run~1 and {\tt apnf}.)
+  bifurcating families. \\ (Demos {\tt pp2}; Run~1, and {\tt apnf}.)
 \item[-]
   Locate Hopf bifurcation points and continue these in two
   parameters. \\ (Demo {\tt ab}; Runs~1 and 5.)
@@ -542,15 +537,23 @@ For the ODE (\ref{2}) the program can~:~
   Branch switching is possible at branch points and at period 
   doubling bifurcations.  \\
   (Demos {\tt tor}, {\tt lor}.)
-\item[-]  Continue folds, branch points, period-doubling bifurcations,
-  and bifurcations to tori, in two parameters. \\ (Demos {\tt plp},
-  {\tt sspg}, {\tt pp3}, {\tt tor}.)
+\item[-]  Continue folds, period-doubling bifurcations,
+  and bifurcations to tori, in two parameters. \\
+  (Demos {\tt plp}, {\tt pp3}, {\tt tor}.)
+
   The continuation of orbits of fixed period is also
   possible. This is the simplest way to compute curves of
-  homoclinic orbits, if the period is sufficiently large.
-  \\ (Demo {\tt pp2}.)
+  homoclinic orbits, if the period is sufficiently large. \\
+  (Demo {\tt pp2}.)
+
+  The continuation of branch points in two parameters is only possible
+  in non-generic problems, characterized by problem-specific symmetries.\\
+  (Demo {\tt lcbp}, Run~2.)
+
   Generically, in non-symmetric problems, branch points are continued
-  in three parameters.\\ (Demo {\tt abcb}.)
+  in three parameters.\\
+  (Demos {\tt lcbp}, Run~3, and {\tt abcb}.)
+
 \item[-]  Do each of the above for {\it rotations}, i.e., when some of the
   solution components are periodic modulo a phase gain of a
   multiple of $2 \pi$. \\
@@ -580,8 +583,8 @@ For the ODE (\ref{2}) the program can~:~
   Determine folds and branch points along
   solution families to the above boundary value problem.
   Branch switching is possible at branch points.
-  Curves of folds can be computed in two parameters.\\
-  (Demos {\tt bvp}, {\tt int}.)
+  Curves of folds and branch points can be computed.\\
+  (Demos {\tt bvp}, {\tt int}, {\tt sspg}.)
 \end{itemize}
  
 
@@ -745,7 +748,7 @@ lowercase letters; with Fortran you can use any case.
 \section{ User-Supplied Derivatives.} \label{sec:derivatives}
 If {\cal AUTO}-constant {\tt JAC} equals 0 
 then derivatives need not be specified in 
-{\tt FUNC}, {\tt BCND}, {\tt ICND}, and {\tt FOPT}; see Section~{sec:JAC}.
+{\tt FUNC}, {\tt BCND}, {\tt ICND}, and {\tt FOPT}; see Section~\ref{sec:JAC}.
 If {\tt JAC=1} then derivatives must be given.
 This may be necessary for sensitive 
 problems, and is recommended for computations in which {\cal AUTO} 
@@ -846,7 +849,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Scripts which end in the
  suffix \filef{.auto} are called ``basic'' scripts and can
  be run by typing \commandf{auto scriptname.auto}.
- The scripts show in Section~\ref{sec:clui_first_example}
+ The scripts shown in Section~\ref{sec:clui_first_example}
  and Section~\ref{sec:clui_complex_example} are examples
  of basic scripts.
  Scripts which end in the
@@ -1508,7 +1511,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  for the \AUTO CLUI.  Several examples of such
  ``expert'' scripts can be found in \filef{auto/07p/demos/python/n-body}.
 
- Just as loops and conditionals can be used in \python~,
+ Just as loops and conditionals can be used in \python,
  one can also define functions.  For example,
  Figure~\ref{exa:clui_complex_function} is a
  functional version of script from 
@@ -1692,13 +1695,12 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- AUTO> data=dg('ab')
- Parsed file: b.ab
+ AUTO> data=dg('start')
+ Parsed file: b.start
  AUTO> print data[0]
- {'LAB': 6, 'TY name': 'EP', 'data': [0.0, 0.0, 0.0, 0.0], 'section': 12, 
- 'BR': 2, 'PT': 1, 'TY number': 9}
+ {'TY number': 9, 'PT': 1, 'index': 0, 'section': 1, 'LAB': 1, 'BR': 1, 'data': [8.0, 0.0, 0.0, 0.0], 'TY name': 'EP'}
  AUTO> print data[0]['LAB']
- 6
+ 1
  AUTO> 
  \end{boxedverbatim}
  \end{center} 
@@ -1776,7 +1778,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  \end{tabular}
  \caption[Type translations.]
- {This table shows the the various types of points
+ {This table shows the various types of points
  that can be in solution and bifurcation diagram
  files, with their short names and numbers.}
  \label{tbl:clui type translation}
@@ -1828,7 +1830,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  }
  \caption[An example of parsing a bifurcation solution.]
  {This figure shows an example of parsing a bifurcation solution.
- The first command, \commandf{data=dg('ab')}, reads in the bifurcation
+ The first command, \commandf{data=sl('ab')}, reads in the bifurcation
  solution and puts it into the variable \commandf{data}.
  The second command, \commandf{print data[0]} prints out all of
  the data about the first solution in the list.
@@ -1846,11 +1848,15 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  Query string & Meaning \\
  \hline
- data  & \begin{minipage}{4in} \smallskip An array which contains the \AUTO output. \smallskip \end{minipage} \\
+ data  & \begin{minipage}{4in} \smallskip An array which contains the
+ \AUTO output. Each array entry is a Python dictionary with a scalar
+ entry 't' denoting time,
+ and sub-arrays for the solution vector 'u' and the solution
+ direction vector 'u dot'.  \smallskip \end{minipage} \\
  \hline
  Branch number & \begin{minipage}{4in} \smallskip The number of the branch to which the solution belongs. \smallskip \end{minipage} \\ 
  \hline
- ISW & \begin{minipage}{4in} \smallskip  The ISW value used to start the calcluation.  See Section~\ref{sec:ISW}. \smallskip \end{minipage} \\ 
+ ISW & \begin{minipage}{4in} \smallskip  The ISW value used to start the calculation.  See Section~\ref{sec:ISW}. \smallskip \end{minipage} \\ 
  \hline
  Label & \begin{minipage}{4in} \smallskip The label of the solution.   \smallskip \end{minipage} \\ 
  \hline
@@ -1866,9 +1872,16 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  Type number & \begin{minipage}{4in} \smallskip A number which describes the type of the solution (see Table~\ref{tbl:clui type translation}).  \smallskip \end{minipage} \\  
  \hline
- p & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameter'). \smallskip \end{minipage} \\  
+ p & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameters'). \smallskip \end{minipage} \\  
  \hline
- parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameter').\smallskip \end{minipage} \\  
+ parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameters').\smallskip \end{minipage} \\  
+ \hline
+ Free Parameters & \begin{minipage}{4in} \smallskip
+ The values of the (one-based) indices of the free parameters.
+ \smallskip \end{minipage} \\  
+ \hline
+ Parameter NULL vector & \begin{minipage}{4in} \smallskip The values
+ of the parameter direction vector.\smallskip \end{minipage} \\  
  \hline
  \end{tabular}
  \caption[Contents of a bifurcation solution object.]
@@ -2959,7 +2972,7 @@ the data in {\tt fort.7} and {\tt fort.8}; see Chapters~\ref{ch:PLAUT},
 {\cal PLAUT} can be used to extract graphical
 information from the {\cal AUTO} output-files {\tt fort.7} and {\tt fort.8},
 or from the corresponding data-files {\tt b.xxx} and {\tt s.xxx}.
-To invoke {\cal PLAUT}, use the the {\it @p} command defined in 
+To invoke {\cal PLAUT}, use the {\it @p} command defined in 
 Section~\ref{sec:command_mode}.
 The {\cal PLAUT} window (a Tektronix window) will appear, in which {\cal PLAUT}
 commands can be entered.
@@ -3046,7 +3059,7 @@ Thus, for example, one can enter the command {\it d1bd0}.
 
 If no default option {\it d0, d1, d2, d3}, or {\it d4} has been selected 
 or if you want to override a default feature,
-then the the following commands can be used.
+then the following commands can be used.
 These can be entered as individual commands or as prefixes.
 For example, one can enter the command {\it sydpbd0}.
 
@@ -6390,7 +6403,7 @@ For a detailed analysis of the solution behavior see
 %==============================================================================
 \section{ ezp : Complex Bifurcation in a BVP.} \label{sec:Demos_ezp}
 This demo illustrates the computation of a solution family to
-the the complex boundary value problem
+the complex boundary value problem
 
 \begin{equation} \begin{array}{cl}
   u_1 ' &= u_2  ,  \\
@@ -9989,7 +10002,7 @@ yields the output
   1  50  EP   4  2.400000E+02  8.305208E-02 ... -7.213093E-01
 \end{verbatim}
 Note that $\nu=$\parf{ PAR(1)} remains constant during the continuation
-as the parameter values do not change, only the the length of
+as the parameter values do not change, only the length of
 the interval over which the approximate homoclinic solution is computed.
 Note from the eigenvalues, stored in \filef{ d.1} that this is a homoclinic
 orbit to a saddle-focus with a one-dimensional unstable manifold.
