@@ -1,0 +1,37 @@
+
+#========================
+# AUTO Demo lcbp
+# BPCONT for limit cycles
+#========================
+
+pgm="lcbp"
+load(pgm)
+
+print "\n***"+pgm+": run 1: cycle continuation***"
+r1=run(sv=pgm+'.1')
+bp=r1('BP')
+
+print "\n***"+pgm+": run 1: branch switch***"
+run(bp,ISW=-1,NMX=5,NPR=1,sv=pgm+'.1.sw')
+
+for isw in [2,3]:
+
+   if isw==2:
+      msg="\n***"+pgm+": run 2: BP cont non-generic "
+      load(bp,ICP=[1,2,11])
+   else:
+      msg="\n***"+pgm+": run 3: BP cont generic "
+      load(bp,ICP=[1,2,3,11])
+   solprefix=pgm+'.'+str(isw)+'.'
+
+   print msg+"(sw)***"
+   sw=run(bp,ISW=isw,NMX=20,NPR=10,DS=1.e-4,sv=solprefix+'sw')
+
+   print msg+"(fw)***"
+   run(sw,NMX=50,DS=0.01,sv=solprefix+'fw')
+
+   print msg+"(bw)***"
+   run(sw,DS='-',sv=solprefix+'bw')
+
+print "\n***Clean the directory***"
+cl()

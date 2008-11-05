@@ -1,0 +1,17 @@
+
+#===============
+# AUTO Demo lcbp
+#===============
+
+pgm="lcbp"
+
+print "\n***Clean the directory***"
+dl(pgm+'.1')
+dl(pgm+'.1.sw')
+dl(pgm+'.2.sw')
+dl(pgm+'.2.bw')
+dl(pgm+'.2.fw')
+dl(pgm+'.3.sw')
+dl(pgm+'.3.bw')
+dl(pgm+'.3.fw')
+cl()
