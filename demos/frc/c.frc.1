@@ -1,16 +1,9 @@
-4 2 0 1                      NDIM,IPS,IRS,ILP
-2   3 11                     NICP,(ICP(I),I=1,NICP)
-20 4 3 2 1 9 0 0             NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-10   0. 101  0.0 1.e6        NMX,RL0,RL1,A0,A1
-100 5 2 8 7 3 0              NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
- 1.e-7 1.e-7 1.e-4           EPSL,EPSU,EPSS
- 0.05 1.e-3 1.0  1           DS,DSMIN,DSMAX,IADS
-0                            NTHL,(/,I,THL(I)),I=1,NTHL)
-0                            NTHU,(/,I,THU(I)),I=1,NTHU)
-6                            NUZR,(/,I,PAR(I)),I=1,NUZR)
-  3  0.2
- 11  1.
- 11  2.
- 11  3.
- 11  4.
- 11  5.
+NDIM=   4, IPS =   2, IRS =   0, ILP =   1
+ICP =  [3, 11]
+NTST=  20, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 9, NBC= 0, NINT= 0
+NMX=   10, RL0=   0.0, RL1= 101.0, A0=   0.0, A1= 1e+06
+NPR=  100, MXBF=   5, IID =   2, ITMX=   8, ITNW= 7, NWTN= 3, JAC= 0
+EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
+DS  =  0.05, DSMIN= 0.001, DSMAX=   1.0, IADS=   1
+THL =  [], THU =  []
+UZR =  [[3, 0.2], [11, 1.0], [11, 2.0], [11, 3.0], [11, 4.0], [11, 5.0]]
