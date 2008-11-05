@@ -324,10 +324,10 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
     def write(self,output,new=False):
+        wdth2keys = ["A0","A1"]
+        wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
+        wdth5keys = ["EPSU","EPSS"]
         if self.__new or new:
-            wdth2keys = ["A0","A1"]
-            wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
-            wdth5keys = ["EPSU","EPSS"]
             lines = [
                 ["e","s","dat","sv"],
                 ["U","PAR"],
