@@ -1186,7 +1186,8 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 dname = self._applyTemplate(self.sname,"diagnostics")
                 data = bifDiag.bifDiag(bname,sname,dname,options)
             else:
-                data = self.runner
+                options = self.runner.options.copy()
+                data = bifDiag.bifDiag([],None,None,options)
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):

@@ -324,6 +324,14 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"][i]["PAR value"] = parseB.AUTOatof(data[1])
 
     def write(self,output,new=False):
+        def compactstr(value):
+            """check if we can use more compact output than str..."""
+            str1 = "%.5g"%value
+            str2 = str(value)
+            if float(str1) == float(str2) and 'e' in str1:
+                return str1
+            return str2
+            
         wdth2keys = ["A0","A1"]
         wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
         wdth5keys = ["EPSU","EPSS"]
@@ -371,20 +379,17 @@ class parseC(UserDict.UserDict):
                 elif key in ["THL","THU","UZR"]:
                     l=[]
                     for item in value:
-                        l.append([item["PAR index"],item["PAR value"]])
-                    output.write("  "+str(l))
+                        l.append([item["PAR index"],
+                                  compactstr(item["PAR value"])])
+                    # remove quotes for PAR value
+                    s = string.replace(str(l),"']","]")
+                    s = string.replace(s,", '",", ")
+                    output.write("  "+s)
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
                     output.write("%4s"%value)
                 elif key[0] in ["A", "D", "E", "R"]:
-                    #check if we can use more compact output than str...
-                    #if abs(value)
-                    str1 = "%.5g"%value
-                    str2 = str(value)
-                    if float(str1) == float(str2) and 'e' in str1:
-                        value = str1
-                    else:
-                        value = str2
+                    value = compactstr(value)
                     output.write("%6s"%value)
                 elif pos > 4:
                     output.write("%2s"%value)

@@ -968,34 +968,37 @@ def AUTOatof(input_string):
     #instead of x.xxxxxxxE+xx.  Here we assume the exponent
     #is 0 and make it into a real real number :-)
     try:
-        value=float(input_string)
+        return float(input_string)
     except (ValueError):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                value=float(string.strip(input_string)[0:-1])
-            elif input_string[-4] in ["-","+"]:
+                return float(string.strip(input_string)[0:-1])
+            if input_string[-4] in ["-","+"]:
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                value=float(input_string[:-4]+'E'+input_string[-4:])
-            elif input_string[-4] == "D":
+                return float(input_string[:-4]+'E'+input_string[-4:])
+            if input_string[-4] == "D":
                 #  This is the case where you have x.xxxxxxxxxD+yy
                 #  or x.xxxxxxxxxD-yy (standard Fortran but not C)
-                value=float(input_string[:-4]+'E'+input_string[-3:])
-            else:
-                print "Encountered value I don't understand"
-                print input_string
-                print "Setting to 0"
-                value=0.0
+                return float(input_string[:-4]+'E'+input_string[-3:])
+            input_string = string.replace(input_string,"D","E")
+            input_string = string.replace(input_string,"d","e")
+            try:
+                return float(input_string)
+            except (ValueError):
+                pass
+            print "Encountered value I don't understand"
+            print input_string
+            print "Setting to 0"
+            return 0.0
         except:
             print "Encountered value which raises an exception while processing!!!"
             print input_string
             print "Setting to 0"
-            value=0.0
+            return 0.0
             
             
-    return value
-
 def pointtest(a,b):
     if not(a.has_key("TY name")):
         raise AUTOExceptions.AUTORegressionError("No TY label")
