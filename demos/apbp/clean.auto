@@ -1,0 +1,14 @@
+
+#===============
+# AUTO Demo apbp
+#===============
+
+pgm="apbp"
+
+print "\n***Clean the directory***"
+dl(pgm+'.1')
+dl(pgm+'.2.bw')
+dl(pgm+'.2.fw')
+dl(pgm+'.3.bw')
+dl(pgm+'.3.fw')
+cl()
