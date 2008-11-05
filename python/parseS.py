@@ -442,12 +442,12 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         for key in ["BR","PT","TY name","TY number","LAB","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()
-        rep="\n  BR    PT  TY  LAB ISW NTST NCOL"
+        rep="  BR    PT  TY  LAB ISW NTST NCOL"
         rep=rep+ "\n%4d%6d%4s%5d%4d%5d%5d" % (self["BR"], self["PT"],
                                               self["TY name"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
-        rep=rep+Points.Pointset.__repr__(self)
+        rep=rep+"\n"+Points.Pointset.__repr__(self)
         for key in keys:
             v = self[key]
             if isinstance(v,Points.Pointset):

@@ -105,7 +105,7 @@ class BDPoint(Points.Point):
             for k,v in self.labels.items():
                 if k in all_point_types:
                     if v.has_key(ixarg):
-                        label[ixarg] = val
+                        v[ixarg] = val
                         return
         Points.Point.__setitem__(self, ixarg, val)
 
@@ -725,6 +725,12 @@ class parseBR(UserList.UserList,AUTOBranch):
             self.readFilename(filename)
         else:
             UserList.UserList.__init__(self,filename)
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self,state):
+        self.__dict__.update(state)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0):

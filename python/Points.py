@@ -839,11 +839,18 @@ class Point(object):
     def __getstate__(self):
         d = copy(self.__dict__)
         # remove reference to Cfunc type
+        if not numpyimported:
+            importnumpy()
+        _num_type2name = {float64: 'float', int32: 'int',
+                          type(1.0): 'float', type(1): 'int'}
         d['coordtype'] = _num_type2name[self.coordtype]
         return d
 
 
     def __setstate__(self, state):
+        if not numpyimported:
+            importnumpy()
+        _num_name2type = {'float': float64, 'int': int32}
         self.__dict__.update(state)
         # reinstate Cfunc type
         self.coordtype = _num_name2type[self.coordtype]
@@ -1956,6 +1963,10 @@ class Pointset(Point):
     def __getstate__(self):
         d = copy(self.__dict__)
         # remove reference to Cfunc types by converting them to strings
+        if not numpyimported:
+            importnumpy()
+        _num_type2name = {float64: 'float', int32: 'int',
+                          type(1.0): 'float', type(1): 'int'}
         try:
             d['indepvartype'] = _num_type2name[self.indepvartype]
         except KeyError:
@@ -1966,6 +1977,9 @@ class Pointset(Point):
 
 
     def __setstate__(self, state):
+        if not numpyimported:
+            importnumpy()
+        _num_name2type = {'float': float64, 'int': int32}
         self.__dict__.update(state)
         # reinstate Cfunc types
         try:
