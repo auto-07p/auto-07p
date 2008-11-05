@@ -1,18 +1,19 @@
 
-#==============
-# AUTO Demo abc
-#==============
+#===============
+# AUTO Demo abcb
+#===============
+
+pgm="abcb"
 
 print "\n***Clean the directory***"
-dl('abc.1')
-dl('abc.2')
-dl('abc.3.sw')
-dl('abc.3.fw')
-dl('abc.3.bw')
-dl('abc.4.fw')
-dl('abc.4.bw')
-dl('abc.5.sw')
-dl('abc.5.fw')
-dl('abc.5.bw')
-dl('abc.5.rs')
+dl(pgm+'.1')
+dl(pgm+'.2')
+dl(pgm+'.3.sw')
+dl(pgm+'.3.fw')
+dl(pgm+'.3.bw')
+dl(pgm+'.4.fw')
+dl(pgm+'.4.bw')
+dl(pgm+'.5.sw')
+dl(pgm+'.5.fw')
+dl(pgm+'.5.bw')
 cl()
