@@ -519,7 +519,7 @@ C
       INTEGER IBR,I,IUZR,NFPR,NDM,NNT0,NBC0
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR,NUZR,NICP
       DOUBLE PRECISION AMP,BIFF,DET,SPBF,HBFF,FLDF
-      CHARACTER(LEN=256) :: STR
+      CHARACTER(LEN=2048) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS,IERR
       LOGICAL KEYS
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
@@ -591,7 +591,10 @@ C
          ENDIF
          POS=SCAN(STR,'=')+1
          STR(POS:)=ADJUSTL(STR(POS:))
-         CALL SCANVALUE(STR,POS,NPOS,LISTLEN)
+         CALL SCANVALUE(STR(POS:),NPOS,LISTLEN)
+         IF(NPOS/=1)THEN
+            NPOS=NPOS+POS-1
+         ENDIF
          DO I=1,23
             IF(STR(1:KEYEND)==TRIM(ICONSTANTS(I)))THEN
                READ(STR(POS:),*,ERR=3)IAP(I)
@@ -833,20 +836,19 @@ C
       END SUBROUTINE INIT
 
 C     ---------- ---------
-      SUBROUTINE SCANVALUE(STR,POS,NPOS,LISTLEN)
+      SUBROUTINE SCANVALUE(STR,NPOS,LISTLEN)
       IMPLICIT NONE
 C
-C     Scans STR(POS:) for a value
+C     Scans STR(:) for a value
 C     NPOS points to the next keyword on the same line,
 C       or is set to 1 if there is none
 C     LISTLEN gives the number of items in lists delimited by []
 C     [] characters are removed
 C
       CHARACTER(*), INTENT(INOUT) :: STR
-      INTEGER, INTENT(IN) :: POS
       INTEGER, INTENT(OUT) :: NPOS,LISTLEN
 
-      INTEGER I,LEVEL
+      INTEGER I,LEVEL,LENSTR,ios
       CHARACTER(1) C,PREV,QUOTE
       LOGICAL QUOTEESC
       LISTLEN=1
@@ -855,8 +857,18 @@ C
       QUOTEESC=.FALSE.
       PREV=' '
 
-      NPOS=POS
-      DO I=POS,LEN_TRIM(STR)
+      NPOS=1
+      LENSTR=LEN_TRIM(STR)
+      FLUSH(6)
+      I=1
+      DO
+         IF(I>LENSTR)THEN
+            IF(LEVEL==0)EXIT
+            LENSTR=LEN_TRIM(STR)
+            READ(2,'(A)',IOSTAT=ios) STR(LENSTR+1:)
+            IF(ios/=0)EXIT
+            LENSTR=LEN_TRIM(STR)
+         ENDIF
          NPOS=I
          C=STR(I:I)
          IF(QUOTE==' ')THEN
@@ -888,6 +900,7 @@ C
             ENDIF
          ENDIF
          PREV=C
+         I=I+1
       ENDDO
       NPOS=NPOS+VERIFY(STR(NPOS:)," ,")-1
       IF(NPOS>=LEN_TRIM(STR))NPOS=1

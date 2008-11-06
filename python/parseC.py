@@ -109,7 +109,7 @@ class parseC(UserDict.UserDict):
 	self.write(output,new)
 	output.close()
 
-    def scanvalue(self,line):
+    def scanvalue(self,line,inputfile=None):
         # Scans line for a value
         # returns the value, followed by the rest of the line
         # The value is returned as a flat list of strings if the line 
@@ -123,7 +123,13 @@ class parseC(UserDict.UserDict):
         start = 0
         v = ''
         line = string.strip(line)
-        for i in range(len(line)):
+        i = 0
+        while True:
+            if i == len(line):
+                if level == 0 or inputfile is None:
+                    break
+                line = string.strip(inputfile.readline())
+                i = 0
             npos = i
             c = line[i]
             if quote == ' ':
@@ -156,6 +162,7 @@ class parseC(UserDict.UserDict):
             else:
                 v = v + c
             prev = c
+            i = i + 1
         if v != '':
             value = v
         while npos < len(line) and line[npos] in [" ",","]:
@@ -166,7 +173,7 @@ class parseC(UserDict.UserDict):
             line = string.strip(line[npos:])
         return value, line
 
-    def parseline(self,line,userspec=False):
+    def parseline(self,line,userspec=False,inputfile=None):
         # parses a new-style constant file line and puts the keys
         # in the dictionary c; also used for the header of a b. file
         while line != "":
@@ -177,7 +184,7 @@ class parseC(UserDict.UserDict):
             if pos == -1:
                 return
             key = string.strip(line[:pos])
-            value, line = self.scanvalue(line[pos+1:])
+            value, line = self.scanvalue(line[pos+1:],inputfile)
             if key in ['ICP','IREV','IFIXED','IPSI']:
                 d = []
                 for v in value:
@@ -214,7 +221,7 @@ class parseC(UserDict.UserDict):
 	line = inputfile.readline()
 	data = string.split(line)
         while not data[0][0] in string.digits:
-            self.parseline(line)
+            self.parseline(line,inputfile=inputfile)
             line = inputfile.readline()
             while line != '' and line[0] == '\n':
                 line = inputfile.readline()
