@@ -190,11 +190,24 @@ class WindowPlotter(Pmw.MegaToplevel):
     def typeUpdateCallback(self):
         pass
 
+    def checktype(self):
+        # force type change if a bifurcation diagram or solution don't exist
+        ty = self.grapher.cget("type")
+        bd = self.grapher.cget("bifurcation_diagram")
+        sol = self.grapher.cget("solution")
+        if ty == "bifurcation" and (len(bd)==0 or len(bd[0])==0) and len(sol):
+            self.grapher.config(type="solution")
+            self.labelEntry.setvalue("solution")
+        elif ty == "solution" and len(sol)==0 and len(bd) and len(bd[0]):
+            self.grapher.config(type="bifurcation")
+            self.labelEntry.setvalue("bifurcation")
+
     def config(self,cnf=None,**kw):
         if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
             return self.grapher.config(cnf)
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.grapher.config(dict)
+        self.checktype()
         for key,value in dict.items():
             if key == "type":
                 self.labelEntry.setvalue(value)
@@ -246,6 +259,7 @@ class WindowPlotter2D(WindowPlotter):
                                       label_text="Y")
         self.yEntry.grid(row=0,column=1)
 
+        self.checktype()
         self.typeUpdateCallback()
 
     def typeUpdateCallback(self):
