@@ -437,7 +437,7 @@ END MODULE SUPPORT
 
     GETP=0
 
-    IF( ABS(IPS).LE.1 .OR. IPS.EQ.5)THEN
+    IF( IPS<=1 .OR. IPS==5 .OR. IPS==11)THEN
        SELECT CASE(CODE)
        CASE('NRM','nrm')
           GETP=ABS(UPS(IC,1))

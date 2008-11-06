@@ -215,16 +215,25 @@ C
       NFPRPREV=IAP(29)
 C
       IF(IAP(38)==0)THEN
-        NPAR=IAP(31)
         NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
         ALLOCATE(ICP(NNICP))
         ICP(:SIZE(ICU))=ICU(:)
         ICP(SIZE(ICU)+1:)=0
+        CALL INIT1(IAP,RAP,ICP,ICU)
+        NFPR=IAP(29)
+        NPAR=IAP(31)
+        NPAR=MAX(MAXVAL(ICP(:NFPR)),MAXVAL(ICU),NPAR)
+        IF(ABS(IPS)==1)THEN
+           !HB period is stored in PAR(11)
+           NPAR=MAX(11,NPAR)
+        ELSEIF(IPS>=2.AND.IPS/=5.AND.IPS/=11)THEN
+           !BVPs: rotations may use PAR(19); TR info in PAR(12)
+           NPAR=MAX(19,NPAR)
+        ENDIF
+        IAP(31)=NPAR
         ALLOCATE(PAR(NPAR))
         PAR(:)=0.d0
-        CALL INIT1(IAP,RAP,ICP,ICU,PAR)
 C     redefine thl to be nfpr sized and indexed
-        NFPR=IAP(29)
         ALLOCATE(THL(NFPR))
         DO I=1,NFPR
            THL(I)=1.0D0
@@ -517,7 +526,7 @@ C
       INTEGER, INTENT(INOUT) :: LINE
 C
       INTEGER IBR,I,IUZR,NFPR,NDM,NNT0,NBC0
-      INTEGER NINS,LAB,NTOT,ITP,ITPST,NPAR,NUZR,NICP
+      INTEGER NINS,LAB,NTOT,ITP,ITPST,NUZR,NICP
       DOUBLE PRECISION AMP,BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=2048) :: STR
       INTEGER KEYEND,POS,LISTLEN,NPOS,IERR
@@ -547,7 +556,6 @@ C
       ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),PARNAMES(0),UNAMES(0))
       ICU(1)='1'
       NUZR=0
-      NPAR=NPARX
 
       NPOS=1
       KEYS=.FALSE.
@@ -925,7 +933,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE INIT1(IAP,RAP,ICP,ICU,PAR)
+      SUBROUTINE INIT1(IAP,RAP,ICP,ICU)
 C
       USE HOMCONT, ONLY:INHO
       USE AUTO_CONSTANTS, ONLY:IVTHL
@@ -952,7 +960,7 @@ C   NINT: set by problem type
 C   NMX: set to 5 for starts of extended systems
 
       INTEGER IAP(*),ICP(*),ICU(*)
-      DOUBLE PRECISION RAP(*),PAR(*)
+      DOUBLE PRECISION RAP(*)
 C
 C Local
       INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX
@@ -1035,7 +1043,7 @@ C
        ELSE IF( IPS.EQ.9 .AND. ABS(ISW).EQ.1  ) THEN
 C        ** Homoclinic bifurcation analysis
 C        Redefine AUTO constants for homoclinic orbits
-         CALL INHO(IAP,ICP,PAR)
+         CALL INHO(IAP,ICP)
          NDIM=IAP(1)
          NBC=IAP(12)
          NINT=IAP(13)

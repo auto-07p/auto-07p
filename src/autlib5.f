@@ -8,7 +8,7 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      USE AUTO_CONSTANTS, ONLY : HCONST,HCONST_TYPE
+      USE AUTO_CONSTANTS, ONLY : HCONST,HCONST_TYPE,NPARX
 
       PRIVATE
 
@@ -664,11 +664,11 @@ C
       END SUBROUTINE INSTRHO
 C
 C     ---------- ----
-      SUBROUTINE INHO(IAP,ICP,PAR)
+      SUBROUTINE INHO(IAP,ICP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       PARAMETER(HMACHHO=1.0d-13)
-      DIMENSION PAR(*),IAP(*),ICP(*)
+      DIMENSION IAP(*),ICP(*)
       INTEGER stat
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
@@ -734,6 +734,12 @@ C
 C        n-homoclinic branch switching
          NFREE=NFREE-ISTART-1
          NDIM=NDM*(-ISTART+1)
+         NPAR=IAP(31)
+         ! make sure there is enough room for the Lin vector etc.
+         IF(NPAR<NPARX)THEN
+            NPAR=NPARX
+         ENDIF
+         IAP(31)=NPAR
 C      
 C Free parameter (artificial parameter for psi)
 C nondegeneracy parameter of the adjoint
@@ -741,7 +747,6 @@ C
       ELSEIF (ITWIST.EQ.1) THEN
          NFREE = NFREE + 1
          ICP(NFREE) = 10
-         PAR(10)= 0.0D0
          NDIM=NDM*2
       ENDIF
 C
@@ -1355,7 +1360,8 @@ C
 C Preprocesses (perturbs) restart data to enable 
 C initial computation of the adjoint variable
 C
-      IF (NAR.NE.NDIM .AND. ISTART.GE.0 .AND. ITWIST.EQ.1) THEN  
+      IF (NAR.NE.NDIM .AND. ISTART.GE.0 .AND. ITWIST.EQ.1) THEN
+         PAR(10)= 0.0D0
          UPS(NAR+1:NDIM,:)=0.1d0
       ENDIF
 C
