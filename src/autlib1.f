@@ -867,7 +867,6 @@ C
 
       NPOS=1
       LENSTR=LEN_TRIM(STR)
-      FLUSH(6)
       I=1
       DO
          IF(I>LENSTR)THEN
