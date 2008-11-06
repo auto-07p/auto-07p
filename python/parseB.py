@@ -778,6 +778,12 @@ class parseBR(UserList.UserList,AUTOBranch):
                 new.data.append(newbranch)
         return new
 
+    def __getitem__(self,index):
+        try:
+            return UserList.UserList.__getitem__(self,index)
+        except TypeError:
+            return self.data[0][index]
+
     # Given an index, return the correct solution
     # Return a parseB style line item
     def getIndex(self,index):
