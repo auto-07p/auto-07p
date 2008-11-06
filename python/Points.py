@@ -1156,7 +1156,11 @@ class Pointset(Point):
 
     def reverse(self):
         """Reverse order of points *IN PLACE*."""
-        self.coordarray = self.coordarray[:,::-1]
+        try:
+            self.coordarray = self.coordarray[:,::-1]
+        except TypeError:
+            for ar in self.coordarray:
+                ar.reverse()
         self.labels.mapIndices(dict(zip(range(0,len(self)),range(len(self)-1,-1,-1))))
 
 
@@ -1763,7 +1767,7 @@ class Pointset(Point):
             else:
                 if t is not None:
                     raise TypeError("t argument cannot be used for non-parameterized pointsets")
-                added_len = p.coordarray.shape[1]
+                added_len = shape(p.coordarray)[1]
                 start_ix = 0
             assert pdim == self.dimension, "Dimension mismatch with Pointset"
             if pdim < p.dimension:

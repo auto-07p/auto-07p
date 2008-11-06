@@ -831,16 +831,16 @@ class parseBR(UserList.UserList,AUTOBranch):
             bw.append(fw[1:])
 
             def pointtrans(pt,idx,l):
-                if idx < lenbw:
+                if idx < l:
                     if pt < 0:
-                        pt = -(lenbw+pt+1)
+                        pt = -(l+pt+1)
                     else:
-                        pt = lenbw-pt+1
+                        pt = l-pt+1
                 else:
                     if pt < 0:
-                        pt = pt-lenbw+1
+                        pt = pt-l+1
                     else:
-                        pt = pt+lenbw-1
+                        pt = pt+l-1
                 return pt
 
             # adjust point and label numbers
