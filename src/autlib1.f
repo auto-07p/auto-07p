@@ -15,7 +15,7 @@ C
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
-      INTEGER I,IAM,LINE,io
+      INTEGER I,IAM,LINE,ios
       INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
       CHARACTER(256) :: SOLFILE, BIFFILE, DIAFILE
@@ -37,8 +37,8 @@ C
        BIFFILE='fort.7'
        SOLFILE='fort.8'
        DIAFILE='fort.9'
-       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=io)
-       IF(io/=0)THEN
+       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+       IF(ios/=0)THEN
           WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ',
      *         'could not be found.'
           STOP
