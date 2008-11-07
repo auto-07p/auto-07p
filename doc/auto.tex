@@ -35,7 +35,7 @@
 \Large CONTINUATION AND BIFURCATION SOFTWARE \\
 \Large FOR ORDINARY DIFFERENTIAL EQUATIONS\\ 
 \author{
-\Large Eusebius J. Doedel\\
+\Large Eusebius J. Doedel and Bart E. Oldeman\\
 \Large Concordia University\\
 \Large Montreal, Canada\\
 \\
@@ -46,7 +46,6 @@ Fabio Dercole (Milano),
 Thomas Fairgrieve (Toronto),
 \\
 Yuri Kuznetsov (Utrecht),
-Bart Oldeman,
 Randy Paffenroth (Pasadena),
 \\
 Bj\"orn Sandstede (Surrey),
@@ -54,7 +53,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{February 2008}
+\date{November 2008}
 \maketitle
 \tableofcontents
 %
@@ -161,10 +160,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 \end{footnotesize}
 
-Note that the three-dimensional plotting tool PLAUT04 optionally
+Note that the three-dimensional plotting tool {\cal PLAUT04} optionally
 depends on libraries that are covered by the GNU General Public
 License (GPL), in particular, Coin, SoQt and Qt. In that case the
-PLAUT04 binaries are also covered by the GPL.
+{\cal PLAUT04} binaries are also covered by the GPL.
 
 %==============================================================================
 %==============================================================================
@@ -175,15 +174,16 @@ PLAUT04 binaries are also covered by the GPL.
 %The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
 %directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
-The {\cal AUTO} file \filef{auto07p-0.5.tar.gz} is
+The {\cal AUTO} file \filef{auto07p-0.6.tar.gz} is
 available via \url{http://indy.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
-Below it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
-and that the file \filef{auto07p-0.5.tar.gz} is in your main directory.
+Here it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
+and that the file \filef{auto07p-0.6.tar.gz} is in your main
+directory. See below for OS-specific notes.
 
 While in your main directory, enter the commands
-\commandf{gunzip auto07p-0.5.tar.gz},
-followed by \commandf{tar xvfo auto07p-0.5.tar}.
+\commandf{gunzip auto07p-0.6.tar.gz},
+followed by \commandf{tar xvfo auto07p-0.6.tar}.
 This will result in a directory \filef{auto}, 
 with one subdirectory, \filef{auto/07p}. 
 Type \commandf{cd auto/07p}
@@ -216,7 +216,7 @@ other hand, if you are using a \commandf{csh} compatible shell, such
 as \commandf{csh} or \commandf{tcsh}, enter the command \commandf{
 source~ {\rm \$}HOME/auto/07p/cmds/auto.env}.
 
-The Graphical User Interface (GUI) requires the {\cal X-Window} system
+The Graphical User Interface (GUI94) requires the {\cal X-Window} system
 and {\cal Motif} or {\cal LessTif}.
 Note that the GUI is not strictly necessary, since {\cal AUTO} can be
 run very effectively using the Unix Command Language User Interface (CLUI).
@@ -226,36 +226,34 @@ The GUI is not compiled by default. To compile
 \AUTO with the GUI, type \commandf{./configure --enable-gui}
 and then \commandf{make} in the directory \filef{auto/07p}.
 
-The new graphic tool for \AUTO data visualization, PLAUT04, is
+To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} 2D plotter it
+is strongly recommended to install NumPy
+(\url{http://numpy.scipy.org}), TkInter, and
+Matplotlib (\url{http://matplotlib.sourceforge.net/}).
+For enhanced interactive use of the Python CLUI it is also worth
+installing IPython (\url{http://ipython.scipy.org}).
+
+The graphic tool for 3D \AUTO data visualization, {\cal PLAUT04}, is
 compiled by default, but depends on a few libraries that may not be
 in a standard installation of a typical Unix-like
 system. These libraries may be available as optional packages,
-though. The packages Coin3D (version 2.2 or higher), SoQt
-(1.1.0 or higher), and simage (1.6 or higher) are recommended.
-Many Linux distributions provide packages for some or all
-these libraries, using names such as Coin2-Devel, SoQt-Devel (Fedora)
-and libcoin40-dev, libsoqt-dev, and libsimage-dev (Debian and Ubuntu).
-For Mac OS X there exist Fink packages.
-The libraries can also be downloaded from
-\url{http://www.coin3d.org/download/} and compiled from source.
-
-Instead of SoQt it is possible to use the SoXt library, which
-interfaces with (Open)Motif or LessTif (version 2.0 or higher)
-instead of Qt. The user interface has a few problems with LessTif
-though, in particular it is likely to crash on 64-bit machines, so the
-Qt version or (Open)Motif is recommended.
-
-As a third alternative, one can download SGI's implementation of the
+though. In order of preference these are:
+\begin{enumerate}
+\item
+Coin3D (version 2.2 or higher), SoQt (1.1.0 or higher), and simage (1.6 or higher).
+\item
+Coin3D with the SoXt library, which interfaces with (Open)Motif or
+LessTif (version 2.0 or higher) instead of Qt. The user interface has
+a few problems with LessTif though, in particular it is likely to
+crash on 64-bit machines, so the Qt version or (Open)Motif is
+recommended.
+\item
+One can download SGI's implementation of the
 Open Inventor libraries from:
 \url{ftp://oss.sgi.com/projects/inventor/download/}
 Because SGI's implementation for Linux cannot show text correctly, 
 we recommend that Coin is used instead of SGI's implementation. 
-
-If you need to compile and install one of the libraries
-from the source code available at the above web site, and you
-find that, after that, PLAUT04 still does not work then you might need to
-adjust the environment variable {\tt LD\_LIBRARY\_PATH} to include
-the location of these libraries, for instance {\tt /usr/local/lib}.
+\end{enumerate}
 
 The \filef{configure} script checks
 for these libraries and outputs a warning if any of these libraries
@@ -264,20 +262,21 @@ you pass {\tt --disable-plaut04-qt} as an option to \filef{configure}.
 If the libraries are not available you can still compile
 all other components of \AUTO using \filef{make}.
 
-For timing purposes, the file \filef{auto/07p/src/autlib1.f}
-contains references to the function {\it etime}.
-Similarly, this file contains references to the
-subroutine {\it FLUSH} to avoid buffering of screen output when
-running \AUTO from Python. These routines are not part of any
-Fortran standard but are common extensions. The \filef{configure}
-script checks if your compiler supplies them. If they are not
-supplied then the dummy replacement routines in \filef{src/compat.f}
-are used.
+The Fortran code uses several routines that were not standardardized
+prior to the Fortran 2003 standard, for timing, flushing output, and
+accessing command-line arguments. The \filef{configure} script first looks if
+the F2003 routines are supported (\filef{src/f2003.f90}), then checks
+for a set of routines that are widely implemented across Unix
+compilers (\filef{src/unix.f90}), and if that fails too, uses a set of
+dummy replacement routines (\filef{src/compat.f90}), which could be
+edited for some obscure installations.
 
 The PostScript conversion command \commandf{@ps} is compiled by
 default. Alternatively you can type \commandf{make} in the directory
 \filef{auto/07p/tek2ps}.
-To generate the on-line manual, type \commandf{make} in \filef{auto/07p/doc}.
+To generate the on-line manual, type \commandf{make} in
+\filef{auto/07p/doc}, which depends on the presence of xfig's
+(transfig) fig2dev utility.
 
 To prepare {\cal AUTO} for transfer to another machine,
 type \commandf{make superclean}
@@ -288,20 +287,72 @@ thereby reduce the size of the package.
 Some {\cal EISPACK} routines used by {\cal AUTO} for computing eigenvalues and
 Floquet multipliers are included in the package
 (\citename{EISPACK:76} \citeyear{EISPACK:76}).
+The Python CLUI includes a slightly modified version of the Pointset
+and Point classes from PyDSTool by R.~Clewley, M.D.~LaMar, and E.~Sherwood
+(\url{http://pydstool.sourceforge.net})
+
+\subsection{Installation on Linux/Unix}
+A free Fortran 95 compiler, Gfortran, is shipped with most recent
+Linux distributions, or can be obtained at 
+\url{http://gcc.gnu.org/wiki/Gfortran}.
+The following packages (and their dependencies) are recommended for
+Fedora:
+\begin{itemize}
+\item Python: \filef{python-matplotlib-tk} and \filef{ipython}.
+\item {\cal PLAUT04}: \filef{SoQt-devel}. To see pictures of stars, the earth
+and the moon instead of white blobs, compile simage from
+source (see \url{www.coin3d.org}; needs \filef{libjpeg-devel}).
+\item {\cal PLAUT}: \filef{xterm}.
+\item GUI94: \filef{lesstif-devel} or \filef{openmotif-devel}.
+\item manual: \LaTeX (\filef{tetex} or \filef{texlive}) and \filef{transfig}.
+\end{itemize}
+and the following for Ubuntu and Debian:
+\begin{itemize}
+\item Python: \filef{python-matplotlib} and \filef{ipython}.
+\item {\cal PLAUT04}: SoQt (\filef{libsoqt-dev} or \filef{libsoqt4-dev}) and
+\filef{libsimage-dev}.
+\item {\cal PLAUT}: \filef{xterm}
+\item GUI94: \filef{lesstif2-dev} or \filef{libmotif-dev}.
+\item manual: \LaTeX (\filef{tetex} or \filef{texlive}) and \filef{transfig}.
+\end{itemize}
+Other distributions may have packages with similar names.
+
+If you need to compile and install one of the above {\cal PLAUT04} libraries
+from the source code available at the above web site, and you
+find that, after that, {\cal PLAUT04} still does not work then you might need to
+adjust the environment variable {\tt LD\_LIBRARY\_PATH} to include
+the location of these libraries, for instance {\tt /usr/local/lib}.
 
 \subsection{Installation on Mac OS X}
 \AUTO runs on Mac OS X using the above instructions provided that
 you have the development tools
-installed. You do not need to start an X server to run AUTO. To be able
-to plot in the Python CLUI, \AUTO uses \filef{pythonw} instead of
-\filef{python}. This should happen automatically.
-
-The old plotting tool {\cal PLAUT} may not display fonts. To solve
-this issue you would need to obtain a different version of xterm; see
-\url{http://iparrizar.mnstate.edu/~juan/urania/2007/07/19/xterm-tektronix-emulation-broken-on-macos}
-or 
+installed. You do not need to start an X server to run AUTO.
+Furthermore, the following packages are recommended:
+\begin{itemize}
+\item Gfortran: See \url{r.research.att.com/tools/}.
+\item Python: You can install Python, Matplotlib, NumPy,
+  Python-dateutil, and pytz from 
+\url{http://pythonmac.org/packages/py25-fat/index.html}.
+The default Python in Mac OS X may be too old for Matplotlib and NumPy,
+and we found that these packages work better than the Fink packages.
+There are other alternatives, for instance the Enthought Python
+Distribution at \url{www.enthought.com}.\\
+To be able to plot in the Python CLUI in some versions of OS X,
+\AUTO uses \filef{pythonw} instead of \filef{python}.
+This should happen automatically.
+\item {\cal PLAUT04}: Get a Qt \filef{.dmg} from
+\url{trolltech.com/downloads/opensource/appdev/mac-os-cpp}.
+Similarly, you can get a binary Coin package from \url{coin3d.org}.
+After that you can compile SoQt and simage from the source code
+at \url{coin3d.org}. Try to make sure that the native (Aqua) Qt
+is used by setting {\tt \$QTDIR}, if you also have fink installed.
+\item {\cal PLAUT}: In pre-Leopard OS X it appears that you do not see
+fonts. To solve this issue you need to obtain a different
+version of xterm; see
 \url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
-Apple is aware of this problem.
+\item GUI94: Perhaps possible using Fink but not attempted.
+\item manual: \LaTeX and transfig (comes with xfig).
+\end{itemize}
 
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
@@ -310,7 +361,10 @@ combined with a native Win32 version of Python,
 obtained at \url{http://www.python.org}. To install this setup:
 \begin{itemize}
 \item
-Install Python from \url{http://www.python.org}.
+Install Python (as of this writing, version 2.5, not 2.6!)
+from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
+and Matplotlib from \url{matplotlib.sf.net}, which all come
+with installers.
 \item
 Install the minimal Unix-like environment MSYS from
 \url{http://www.mingw.org}. You do not need to install MinGW
@@ -318,15 +372,8 @@ itself.
 \item
 Install GFortran from \url{http://gcc.gnu.org/wiki/GFortran}.
 \item
-Open a CMD.EXE window (click Start, Run, type {\tt cmd}
-in the input box and press the Enter key), and run {\tt sh} in the
-MSYS directory, for instance, using
-\filef{ c:\textbackslash msys\textbackslash 1.0\textbackslash
-bin\textbackslash sh $--$login $-$i }
-(the Python CLUI does not work in the default MSYS shell environment
- accessed by its desktop icon).
-\item
-The {\tt sh} command put you in a home directory, where you can unpack
+Start MSYS by clicking on its desktop icon, which
+puts you in a home directory, where you can unpack
 \AUTO using \filef{gunzip} and \filef{tar}, as described above.
 \item
 Make sure that the {\tt gfortran} and {\tt python} binaries
@@ -336,30 +383,42 @@ You can do this, for instance, using the shell command
 You can also inspect, edit and then source the file
 \filef{auto/07p/cmds/auto.env.sh} to achieve this.
 \item
-Now you should be able to run configure, make, and run \AUTO as
-shown above.
+Now you should be able to run configure and make to compile \AUTO
+as shown above.
 \end{itemize}
 
-Alternatively, \AUTO runs on Windows as above using the Unix-like
-environment Cygwin (see \url{http://www.cygwin.com}). You should have
-at least the default installation, \filef{gcc}, \filef{gfortran},
-\filef{make}, and \filef{python} installed. The 2D-plot command
-is not as reponsive in Cygwin Python as in the above native setup, however.
+You can use \AUTO using shell commands from the default MSYS shell
+environment; however the Python CLUI does not cooperate well with it.
+To work around that, you can start the CLUI by double clicking on the file
+\filef{auto.py} in the \filef{python} folder of \AUTO in Windows Explorer,
+or by creating a shortcut to it.
 
-In both cases, an X server is not necessary, unless you wish to try to run
-PLAUT or the GUI. With some effort it is possible to compile PLAUT04
+Or you can start MSYS inside \filef{CMD.EXE}: create a copy of the MSYS
+desktop icon and add \filef{--norxvt} to the ``Target'' field.
+If its behaviour does not change, then replace
+\filef{C:\textbackslash msys \textbackslash 1.0 \textbackslash
+  msys.bat}
+by the file at
+\url{http://mingw.cvs.sourceforge.net/mingw/msys/dvlpr/bin/msys.bat}.
+
+Alternatively, \AUTO runs on Windows as above using the Unix-like
+environment Cygwin (see \url{http://www.cygwin.com}), but the
+non-Cygwin setup is more responsive and is much easier to setup for
+Matplotlib. You can however use its X server and lesstif to compile
+and run the old {\cal PLAUT} and GUI94, if you so desire.
+
+With some effort it is possible to compile {\cal PLAUT04}
 on Windows (without an X server) using Coin, SoQt, and Qt. You can
-also find precompiled PLAUT04 binaries at
+also find precompiled {\cal PLAUT04} binaries at
 \url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
-There are size restrictions in the file {\tt auto/07p/include/auto.h}
-on the effective number of equation parameters {\tt NPAR}.
-Its maximum value is denoted by {\tt NPARX}, and if
-it is exceeded in an {\cal AUTO}-run then a message will be printed.
-Upon installation {\tt NPARX}=36; it should never be decreased below that value;
-see also Section~\ref{sec:Restrictions_on_PAR}.
-Size restrictions can be changed by editing {\tt auto.h}.
+There are no size restrictions in the file \filef{
+  auto/07p/include/auto.h} any more. This file now contains the
+default effective number of equation parameters {\tt NPAR}, set to 36
+upon installation. It can be overridden in constant files.
+See also Section~\ref{sec:Restrictions_on_PAR}.
+The default can be changed by editing {\tt auto.h}.
 This must be followed by recompilation by typing {\it make} 
 in the directory {\tt auto/07p/src}.
 
@@ -395,7 +454,9 @@ There are also minor changes in the formatting of these files
 compared to recent versions of {\cal AUTO}, such as {\cal AUTO97} 
 and {\cal AUTO2000}.
 The main change compared to {\cal AUTO97} is that there is now a
-programmable Python CLUI.
+programmable Python CLUI. The constants file can be written using
+a completely new, more flexible syntax, but the old syntax is
+still accepted.
 
 When upgrading from {\cal AUTO2000}, you can continue to use
 equations-files written in C. However, there is now a strict
@@ -418,7 +479,7 @@ on shared-memory multi-processors, or the MPI message passing
 library.
 When the \filef{ configure} script is run it will try to
 detect if the Fortran compiler supports OpenMP; examples
-are Gfortran 4.2 and the Intel Fortran Compiler.
+are Gfortran 4.2 or later and the Intel Fortran Compiler.
 If it is successful the necessary compiler flags are used
 to enable OpenMP in \AUTO.
 To force the \filef{ configure} script not to use OpenMP,
@@ -2139,7 +2200,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \section{Three Dimensional Plotting Tool}
 
- The \AUTO three dimensional plotting tool, PLAUT04, as described
+ The \AUTO three dimensional plotting tool, {\cal PLAUT04}, as described
  in Chapter~\ref{ch:PLAUT04}, can be run from the Python CLUI
  using the command
  \commandf{plot3} or \commandf{commandPlotter3D}, in a similar
@@ -2540,7 +2601,7 @@ Run a shell command.\section*{Description}
     Type 'shell xxx' to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     \section*{Aliases}
-shell \medskip\hrule\end{minipage}\subsection{commandSpecialPointLabels} \label{sec:clui_ref_commandShell}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
+shell \medskip\hrule\end{minipage}\subsection{commandSpecialPointLabels} \label{sec:clui_ref_commandSpecialPointLabels}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
 Return special labels.\section*{Description}
         
     Type splabs('xxx',typename) to get a list of labels with the specified
@@ -2976,9 +3037,9 @@ To invoke {\cal PLAUT}, use the {\it @p} command defined in
 Section~\ref{sec:command_mode}.
 The {\cal PLAUT} window (a Tektronix window) will appear, in which {\cal PLAUT}
 commands can be entered.
-For examples of using {\cal PLAUT} see the tutorial demo {\tt ab}, in particular,
-Sections~\ref{sec:Tutorial_PLAUT} and \ref{sec:Tutorial_plotting_2p}.
-See also demo {\tt pp2} in Section~\ref{sec:Demos_pp2}.
+For examples of using {\cal PLAUT} see the tutorial demos {\tt pp2}
+and {\tt pp3} in sections~\ref{sec:Demos_pp2} and \ref{sec:Demos_pp3},
+respectively.
 
 
 \section{ Basic {\cal PLAUT}-Commands.} \label{sec:main_PLAUT_commands}
@@ -4514,7 +4575,7 @@ the calculation.
 
 \item
 \commandf{ plaut04.rc }: A file that contains default settings for
-the 3-dimensional plotting tool PLAUT04.
+the 3-dimensional plotting tool {\cal PLAUT04}.
 
 \end{enumerate}
 
@@ -4756,7 +4817,7 @@ Section~\ref{clui:2d plotting}.
 
 \section{ Plotting the Results with \AUTO in 3D.}
 Whilst not very useful for this simple example, you can also plot
-your results in 3D, using the \commandf{plot3} command (PLAUT04), for example
+your results in 3D, using the \commandf{plot3} command ({\cal PLAUT04}), for example
 \commandf{plot3('mu')}. Unlike the 2D tool, this shows the stable and
 unstable parts: blue is stable, and red is unstable. You can also
 spin the bifurcation diagram around and zoom in using the mouse.
@@ -5269,7 +5330,7 @@ while $p_2=p_4=3$ and $p_3=5$, are fixed
 The use of {\cal PLAUT} is also illustrated. The saved plots are shown
 in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
 You can obtain similar figures using the Python CLUI's plot
-command and using PLAUT04.
+command and using {\cal PLAUT04}.
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
