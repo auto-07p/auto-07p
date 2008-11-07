@@ -52,7 +52,7 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
-    LOGICAL IPOS,CHNG
+    LOGICAL IPOS,CHNG,FOUND
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -183,9 +183,8 @@ CONTAINS
              DO IUZR=1,NUZR
                 IAP(26)=IUZR
                 CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNUZAE,FUNI,AA,&
-                     U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP)
-                ITP=IAP(27)
-                IF(ITP.EQ.-1.AND.ISTOP.EQ.0)THEN
+                     U,UOLD,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                IF(FOUND.AND.ISTOP.EQ.0)THEN
                    ITP=-4-10*ITPST
                    IAP(27)=ITP
                    IF(IUZ(IUZR).GT.0)THEN
@@ -203,9 +202,8 @@ CONTAINS
 
           IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
              CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNLPAE,FUNI,AA,&
-                  U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP)
-             ITP=IAP(27)
-             IF(ISTOP.EQ.0.AND.ITP.EQ.-1) THEN
+                  U,UOLD,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+             IF(FOUND) THEN
                 ITP=2+10*ITPST
                 IAP(27)=ITP
                 IF(ILP.GT.0)THEN
@@ -223,9 +221,8 @@ CONTAINS
 !
           IF(ISTOP.EQ.0.AND.ABS(ISP).GT.0)THEN
              CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNBPAE,FUNI,AA, &
-                  U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP)
-             ITP=IAP(27)
-             IF(ISTOP.EQ.0.AND.ITP.EQ.-1)THEN
+                  U,UOLD,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+             IF(FOUND)THEN
                 ITP=1+10*ITPST
                 IAP(27)=ITP
                 IF(ISP.GT.0)THEN
@@ -244,9 +241,8 @@ CONTAINS
 
           IF(ISTOP.EQ.0.AND.ABS(IPS).EQ.1)THEN
              CALL LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNHBAE,FUNI,AA, &
-                  U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP)
-             ITP=IAP(27)
-             IF(ITP.EQ.-1)THEN
+                  U,UOLD,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+             IF(FOUND)THEN
                 ITP=3+10*ITPST
                 IAP(27)=ITP
                 RLP=0.d0
@@ -680,7 +676,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(IAP,RAP,DSOLD,PAR,ICP,FNCS,FUNI,AA, &
-       U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP)
+       U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -701,8 +697,9 @@ CONTAINS
     DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),THU(*),IUZ(*),VUZ(*)
     DIMENSION AA(IAP(1)+1,*),U(*),UDOT(*),UOLD(*)
 
-    LOGICAL CHNG
+    LOGICAL CHNG,FOUND
 
+    FOUND=.FALSE.
     NDIM=IAP(1)
     IID=IAP(18)
     ITMX=IAP(19)
@@ -737,8 +734,7 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS)THEN
-          ITP=-1
-          IAP(27)=ITP
+          FOUND=.TRUE.
           Q=0.d0
           WRITE(9,102)RDS
           RETURN

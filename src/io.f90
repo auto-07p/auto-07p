@@ -50,7 +50,7 @@ CONTAINS
     INTEGER NMXA,NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,I,NPARA
     INTEGER LSV,LDAT,LE,LS,INDX,io
     DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
-    CHARACTER(LEN=15) :: INDSTR
+    CHARACTER(LEN=12) :: INDSTR
 
     NDIMA=IAP(1)
     IPSA=IAP(2)
@@ -169,18 +169,26 @@ CONTAINS
     DO I=1,SIZE(ICU)
        READ(ICU(I),*,IOSTAT=io)INDX
        IF(io==0)THEN
-          INDSTR="   "//TRIM(ICU(I))
+          WRITE(7,"(3X,A)",ADVANCE="NO")TRIM(ICU(I))
        ELSE
-          INDSTR=" '"//TRIM(ICU(I))//"'"
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" '",TRIM(ICU(I)),"'"
        ENDIF
-       WRITE(7,"(A)",ADVANCE="NO")TRIM(INDSTR)
     ENDDO
     WRITE(7,"(/'   0   Active continuation parameter')",ADVANCE="NO")
     IF(NFPR.EQ.1)THEN
-       WRITE(7,"(':  ',  I4)")(ICP(I),I=1,NFPR)
+       WRITE(7,"(':  ')",ADVANCE="NO")
     ELSE
-       WRITE(7,"('s: ',24I4)")(ICP(I),I=1,NFPR)
+       WRITE(7,"('s: ')",ADVANCE="NO")
     ENDIF
+    DO I=1,NFPR
+       IF (I<=SIZE(PARNAMES)) THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" '",TRIM(PARNAMES(ICP(I))),"'"
+       ELSE
+          WRITE(INDSTR,"(I12)")ICP(I)
+          WRITE(7,"(3X,A)",ADVANCE="NO")TRIM(ADJUSTL(INDSTR))
+       ENDIF
+    ENDDO
+    WRITE(7,*)
 
     CALL AUTOFLUSH(7)
 
