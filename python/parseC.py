@@ -93,9 +93,12 @@ class parseC(UserDict.UserDict):
             self.data["__N"+key] = len(item)
             self.data[key] = []
             for x in item:
-                self.data[key].append({})
-                self.data[key][-1]["PAR index"] = x[0]
-                self.data[key][-1]["PAR value"] = x[1]
+                if type(x) == type({}):
+                    self.data[key].append(x)
+                else:
+                    self.data[key].append({})
+                    self.data[key][-1]["PAR index"] = x[0]
+                    self.data[key][-1]["PAR value"] = x[1]
         else:
             self.data[key] = item
             
@@ -394,7 +397,10 @@ class parseC(UserDict.UserDict):
                     output.write("  "+s)
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
-                    output.write("%4s"%value)
+                    if key in wdth3keys:
+                        output.write("%5s"%value)
+                    else:
+                        output.write("%4s"%value)
                 elif key[0] in ["A", "D", "E", "R"]:
                     value = compactstr(value)
                     output.write("%6s"%value)
