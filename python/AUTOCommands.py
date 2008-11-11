@@ -1431,7 +1431,7 @@ class commandRunMakefile(command):
         # since when the runner is verbose it prints to
         # to stdout anyway
         if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data,data)
+            return valueRun(err,data=data)
         else:
             return valueRun(log,err,data=data)
 

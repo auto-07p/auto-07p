@@ -72,13 +72,10 @@ class runAUTO:
                   self.options["homcont"].has_key(key)):
                 self.options["homcont"][key] = value
             elif self.options["constants"].has_key(key):
-                if key == "DS" and (value == '-' or value == '+'):
-                    if value == '-':
-                        self.options["constants"][key] = -self.options["constants"][key]
-                else:
-                    self.options["constants"][key] = value
+                self.options["constants"][key] = value
             else:
-                raise "Unknown option: %s"%(key,)
+                raise AUTOExceptions.AUTORuntimeError(
+                    "Unknown option: %s"%(key,))
 
     def __printLog(self,text):
         # Write out the log information to the appropriate place

@@ -9,7 +9,7 @@ import __builtin__
 
 _functionTemplate="""
 def %s(self,*args,**kw):
-    return self._queueCommand(%s.%s,args,kw)
+    return apply(self._queueCommand,(%s.%s,)+args,kw)
 """
 
 class AUTOSimpleFunctions:
@@ -68,7 +68,7 @@ class AUTOSimpleFunctions:
                     doc = self._adjustdoc(doc, key)
                     AUTOSimpleFunctions.__dict__[key].__doc__ = doc
 
-    def _queueCommand(self,commandType,args=[],kw={}):
+    def _queueCommand(self,commandType,*args,**kw):
         # Put back in the arguments
         # I am not 100% sure if this is the best way to do this,
         # but it seems to work.

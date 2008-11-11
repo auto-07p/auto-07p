@@ -54,13 +54,13 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 class parseC(UserDict.UserDict):
     def __init__(self,filename=None):
+        self.__new = 1
         if filename is not None and type(filename) != type(""):
             if isinstance(filename,UserDict.UserDict):
                 self.__new = filename.__new
             UserDict.UserDict.__init__(self,filename)
             return
         UserDict.UserDict.__init__(self)
-        self.__new = 1
         for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
             'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
@@ -99,8 +99,14 @@ class parseC(UserDict.UserDict):
                     self.data[key].append({})
                     self.data[key][-1]["PAR index"] = x[0]
                     self.data[key][-1]["PAR value"] = x[1]
+        elif key == "DS" and item == '-':
+            self.data[key] = -self.data[key]
         else:
             self.data[key] = item
+
+    def update(self, d):
+        for k, v in d.items():
+            self[k] = v
             
     def readFilename(self,filename):
 	inputfile = open(filename,"r")
@@ -370,7 +376,7 @@ class parseC(UserDict.UserDict):
         for line in lines:
             pos = 0
             for key in line:
-                value = self[key]
+                value = self.get(key)
                 if value is None:
                     continue
                 if pos > 0:
