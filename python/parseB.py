@@ -928,11 +928,17 @@ class parseBR(UserList.UserList,AUTOBranch):
         coordnames = []
         if not hasattr(inputfile,"next"):
             inputfile = AUTOutil.myreadlines(inputfile)
-        while 1:
+        lastc = None
+        while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)
             prevline = branch._lastline
             coordnames = branch.coordnames
             self.data.append(branch)
+            if branch.c is None:
+                #for header-less branches use constants of last branch header
+                branch.c = lastc
+            else:
+                lastc = branch.c
             if prevline is None:
                 break
 
