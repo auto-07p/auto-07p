@@ -72,10 +72,6 @@ class commandClean(command):
         pass
     def __call__(self):
 	rval=valueSystem()
-        if not _runner.outputFort7 is None:
-            _runner.outputFort7.close()
-        if not _runner.outputFort8 is None:
-            _runner.outputFort8.close()
         toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
                    glob.glob("*.*~"))
         for f in toclean:
@@ -137,10 +133,6 @@ class commandDeleteFortFiles(command):
         pass
     def __call__(self):
 	rval=valueSystem()
-        if not _runner.outputFort7 is None:
-            _runner.outputFort7.close()
-        if not _runner.outputFort8 is None:
-            _runner.outputFort8.close()
         toclean = glob.glob("fort.*")
         for f in toclean:
             os.remove(f)
@@ -187,8 +179,6 @@ class commandUserData(command):
             shutil.copy(cfile,"fort.2")
         if os.path.exists(datfile):
             shutil.copy(datfile,"fort.3")
-        if not _runner.outputFort8 is None:
-            _runner.outputFort8.close()
         rval.interact("./fcon")
         if os.path.exists("fort.8"):
             if os.path.exists("s.dat"):
@@ -1548,10 +1538,6 @@ class commandPlotter3D(command):
             if type(d) == type(""):
                 arg = [d]
             else:
-                if not _runner.outputFort7 is None:
-                    _runner.outputFort7.close()
-                if not _runner.outputFort8 is None:
-                    _runner.outputFort8.close()
                 for f in ["fort.7","fort.8","fort.9"]:
                     if os.path.exists(f):
                         os.remove(f)

@@ -42,9 +42,6 @@ class runAUTO:
         self.options["homcont"] = None
         self.options["copy setup"] = None
 
-        self.outputFort7 = None
-        self.outputFort8 = None
-
         self.__parseOptions(kw)
         self.__parseOptions(cnf)
             
@@ -113,14 +110,6 @@ class runAUTO:
             self.options["err"].write(text)
         self.internalErr.write(text)
 
-    def getFort7(self):
-        self.outputFort7.seek(0)
-        return self.outputFort7
-
-    def getFort8(self):
-        self.outputFort8.seek(0)
-        return self.outputFort8
-        
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
@@ -567,19 +556,8 @@ class runAUTO:
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
         import bifDiag
-        if not self.outputFort7 is None:
-            self.outputFort7.close()
-        if success and os.path.isfile(self.fort7_path):
-            self.outputFort7 = open(self.fort7_path,"r")
-        else:
-            self.outputFort7 = None
-        if not self.outputFort8 is None:
-            self.outputFort8.close()
-        if success and os.path.isfile(self.fort8_path):
-            self.outputFort8 = open(self.fort8_path,"r")
-        else:
-            self.outputFort8 = None
-        if (self.outputFort7 and self.outputFort8 and 
+        if (os.path.isfile(self.fort7_path) and
+            os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
             options = self.options.copy()
             options["solution"] = None # do not include solution that this
