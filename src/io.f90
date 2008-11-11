@@ -507,7 +507,7 @@ CONTAINS
 
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,ISWR,NTPL,NAR,NROWPR,NTST,NCOL
-    INTEGER ISW,ITPST,I
+    INTEGER ISW,ITPST,I,ios
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -516,7 +516,12 @@ CONTAINS
     FOUND=.FALSE.
     ISW=IAP(10)
 
-    OPEN(3,FILE=NAME,STATUS='old',ACCESS='sequential')
+    OPEN(3,FILE=NAME,STATUS='old',ACCESS='sequential',IOSTAT=ios)
+    IF(ios/=0)THEN
+       WRITE(6,'(A,A)')'The solution file (fort.3 or s. file) ',&
+            'could not be found.'
+       STOP
+    ENDIF
     I=0
     DO
        I=I+1

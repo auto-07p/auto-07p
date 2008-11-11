@@ -778,10 +778,15 @@ CONTAINS
     CALL MSH(NTST,TM)
 
     IF(DATFILE/='')THEN
-       OPEN(3,FILE=TRIM(DATFILE)//'.dat',STATUS='unknown',ACCESS='sequential',&
+       OPEN(3,FILE=TRIM(DATFILE),STATUS='old',ACCESS='sequential',&
             IOSTAT=io)
        IF(io/=0)THEN
-          WRITE(6,"(A,A,A)")'Datafile ',TRIM(DATFILE),'.dat not found.'
+          OPEN(3,FILE=TRIM(DATFILE)//'.dat',STATUS='old',&
+               ACCESS='sequential',IOSTAT=io)
+       ENDIF
+       IF(io/=0)THEN
+          WRITE(6,"(A,A,A)")'Datafile ',TRIM(DATFILE),' not found.'
+          STOP
        ENDIF
        NTSR=-1
        DO
