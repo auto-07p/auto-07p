@@ -1159,8 +1159,12 @@ class Pointset(Point):
         try:
             self.coordarray = self.coordarray[:,::-1]
         except TypeError:
+            ca = []
             for ar in self.coordarray:
-                ar.reverse()
+                a = ar[:]
+                a.reverse()
+                ca.append(a)
+            self.coordarray = ca
         self.labels.mapIndices(dict(zip(range(0,len(self)),range(len(self)-1,-1,-1))))
 
 

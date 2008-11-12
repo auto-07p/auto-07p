@@ -318,7 +318,7 @@ class commandMergeBranches(commandWithFilenameTemplate):
     def __call__(self):
 	rval=valueSystem()
         if self.type != type("") and self.type != type(None):
-            self.name1.merge()
+            rval.data = self.name1.merge()
             rval.info("Merge done\n")
             return rval
         n1b = self.name1["bifurcationDiagram"]
@@ -327,7 +327,7 @@ class commandMergeBranches(commandWithFilenameTemplate):
         if n1b is None and n1s is None and n1d is None:
             n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
         bd = bifDiag.bifDiag(n1b,n1s,n1d)
-        bd.merge()
+        bd = bd.merge()
         if self.name2["bifurcationDiagram"] is None:
             n2b = n1b+'~~'
             n2s = n1s+'~~'

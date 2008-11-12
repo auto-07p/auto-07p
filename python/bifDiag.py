@@ -258,14 +258,18 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
 
     def merge(self):
         # Merges branches and then sync solution
-        parseB.parseBR.merge(self)
+        new = parseB.parseBR.merge(self)
         mlab = max(self.getLabels())
-        for d in self:
+        for d in new:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 if x.has_key("solution"):
-                    x["solution"]._mlab = mlab
-                    x["solution"]["PT"] = abs(x["PT"])
-                    x["solution"]["LAB"] = x["LAB"]
+                    news = x["solution"].__class__(x["solution"])
+                    news._mlab = mlab
+                    news.data = news.data.copy()
+                    news.data["PT"] = abs(x["PT"])
+                    news.data["LAB"] = x["LAB"]
+                    x["solution"] = news
+        return new
 
 def pointtest7(a,b):
     if not(a.has_key("TY name")):

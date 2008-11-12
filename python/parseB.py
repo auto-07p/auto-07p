@@ -833,8 +833,8 @@ class parseBR(UserList.UserList,AUTOBranch):
         data = []
         for bw in self.data:
             data.append(bw)
-            if fw is None or fw.BR != bw.BR or (fw.c is not None and
-                    bw.c is not None and fw.c["DS"] * bw.c["DS"] > 0):
+            if fw is None or fw.BR != bw.BR or (fw.c is not bw.c and
+                                      fw.c["DS"] * bw.c["DS"] > 0):
                 fw = bw
                 continue
             f0 = fw[0]
@@ -849,10 +849,14 @@ class parseBR(UserList.UserList,AUTOBranch):
             #now we know that the branches have the same starting point:
             #merge them
             lenbw = len(bw)
-            bw.headerlist = fw.headerlist
-            bw.headernames = fw.headernames
-            bw.reverse()
-            bw.append(fw[1:])
+            new = bw.__class__(bw)
+            data[-1] = new
+            new.headerlist = fw.headerlist
+            new.headernames = fw.headernames
+            new.coordarray = new.coordarray
+            new.labels = Points.PointInfo(new.labels.by_index.copy())
+            new.reverse()
+            new.append(fw[1:])
 
             def pointtrans(pt,idx,l):
                 if idx < l:
@@ -869,15 +873,16 @@ class parseBR(UserList.UserList,AUTOBranch):
 
             # adjust point and label numbers
             lab = min(fw.getLabels()+bw.getLabels())
-            for idx,val in bw.labels.sortByIndex():
+            for idx,val in new.labels.sortByIndex():
                 for k,v in val.items():
                     if k in all_point_types:
                         pt = pointtrans(v["PT"],idx,lenbw)
                         if idx < lenbw and idx>0 and v["PT"] in bw.stability:
                             pt = -pt
-                        v["PT"] = pt
+                        val[k] = v.copy()
+                        val[k]["PT"] = pt
                         if v["LAB"] > 0:
-                            v["LAB"] = lab
+                            val[k]["LAB"] = lab
                             lab = lab+1
 
             # adjust stability array
@@ -893,18 +898,18 @@ class parseBR(UserList.UserList,AUTOBranch):
                 del stability[bwstablen-1:bwstablen+1]
             if len(stability)>0 and abs(stability[0]) == 1:
                 del stability[0]
-            bw.stability = stability
+            new.stability = stability
 
             if hasattr(fw,"diagnostics"):
                 if hasattr(bw,"diagnostics"):
-                    bw.diagnostics = fw.diagnostics + bw.diagnostics
+                    new.diagnostics = fw.diagnostics + bw.diagnostics
                 else:
-                    bw.diagnostics = fw.diagnostics
+                    new.diagnostics = fw.diagnostics
 
             del data[-2]
             #reset for further search
             fw = None
-        self.data = data
+        return self.__class__(data)
 
     def subtract(self,other,ref,pt=None):
         """Subtracts branch branches using interpolation with respect to other
