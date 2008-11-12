@@ -142,7 +142,10 @@ class BDPoint(Points.Point):
 class AUTOBranch(Points.Pointset):
     def __init__(self,input=None,prevline=None,coordnames=[]):
         self.__fullyParsed = True
-        if input is not None:
+        if isinstance(input,self.__class__):
+            for k,v in input.__dict__.items():
+                self.__dict__[k] = v
+        elif input is not None:
             self.read(input,prevline)
             self.__fullyParsed = False
 
@@ -276,8 +279,25 @@ class AUTOBranch(Points.Pointset):
                 if v["TY number"] == 0:
                     self.labels.remove(idx)
             
-    def relabel(self,old_label,new_label):
+    def relabel(self,old_label=1,new_label=None):
         """Relabels the first solution with the given label"""
+        if new_label is None:
+            label = old_label
+            new = self.__class__(self)
+            labels = {}
+            if not self.__fullyParsed:
+                new.__datalist = self.__datalist[:]
+            for index in self.labels.getIndices():
+                labels[index] = self.labels[index].copy()
+                ty_name,v = self._gettypelabel(index)
+                if v["LAB"] != 0:
+                    labels[index][ty_name] = v.copy()
+                    labels[index][ty_name]["LAB"] = label
+                    if not self.__fullyParsed:
+                        self.__patchline(new.__datalist,index,3,label)
+                    label = label + 1
+            new.labels = Points.PointInfo(labels)
+            return new
         labels = self.labels
         if type(old_label)  == types.IntType:
             old_label = [old_label]
@@ -320,18 +340,8 @@ class AUTOBranch(Points.Pointset):
             ty_name,v = self._gettypelabel(k)
             if v["LAB"] in label or ty_name in label:
                 labels[k] = val
-        new = self.__class__()
-        new.BR = self.BR
-        new.headerlist = self.headerlist
-        new.headernames = self.headernames
-        new.labels = labels
-        new.stability = self.stability
-        if labels == {}:
-            return new
-        Points.Pointset.__init__(new,{
-                "coordarray": self.coordarray,
-                "coordnames": self.coordnames,
-                "labels": labels})
+        new = self.__class__(self)
+        new.labels = Points.PointInfo(labels)
         return new
 
     def getIndex(self,index):
@@ -392,11 +402,7 @@ class AUTOBranch(Points.Pointset):
             index = abs(pt) - 1
         else:
             index = pt["index"]
-        new = self.__class__()
-        new.BR = self.BR
-        new.headerlist = self.headerlist
-        new.headernames = self.headernames
-        new.stability = self.stability
+        new = self.__class__(self)
         coordarray = N.array(self.coordarray)
         if not isinstance(other,Points.Pointset):
             other = other[0]
@@ -738,7 +744,19 @@ class parseBR(UserList.UserList,AUTOBranch):
             d.deleteLabel(label,keepTY,keep)
             
     # Relabels the first solution with the given label
-    def relabel(self,old_label,new_label):
+    def relabel(self,old_label=None,new_label=None):
+        if new_label is None:
+            label = 1
+            new = self.__class__()
+            for d in self.data:
+                newd = d.relabel(label)
+                for idx,val in newd.labels.sortByIndex():
+                    for k,v in val.items():
+                        if k in all_point_types and v["TY number"] != 0:
+                            label = v["LAB"]
+                new.append(newd)
+                label = label + 1
+            return new
         for d in self.data:
             d.relabel(old_label,new_label)
 
@@ -1055,7 +1073,11 @@ def test():
     if len(labels) != len(new_labels) + 1:
         raise AUTOExceptions.AUTORegressionError("Error in label deletion")
         
-    
+    bar = foo.relabel()
+    old_labels = foo.getLabels()
+    new_labels = bar.getLabels()
+    if old_labels[0] != 57 or new_labels[0] != 1:
+        raise AUTOExceptions.AUTORegressionError("Error in relabelling")
     print "parseB passed all tests"
 
 if __name__ == '__main__' :

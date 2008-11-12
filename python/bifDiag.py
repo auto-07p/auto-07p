@@ -238,8 +238,17 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
 
     def relabel(self,old_label=None,new_label=None):
         if old_label is None and new_label is None:
-            self.uniquelyLabel()
-            return self
+            new = parseB.parseBR.relabel(self)
+            label = 0
+            for d in new:
+                for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if x.has_key("solution") and x["LAB"] != 0:
+                        label = label + 1
+                        news = x["solution"].__class__(x["solution"])
+                        news.data = news.data.copy()
+                        news.data["LAB"] = label
+                        x["solution"] = news
+            return new
         parseB.parseBR.relabel(self,old_label,new_label)
         self().relabel(old_label,new_label)
     

@@ -20,7 +20,7 @@ for solution in ab(["HB"]):
     ab = ab + run(solution,c='ab.3')
 
 print "\n***Relabel and save the output files***"
-rl(ab)
+ab=rl(ab)
 sv(ab,'ab')
 
 print "\n***Clean the directory***"

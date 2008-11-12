@@ -165,7 +165,18 @@ class parseS(UserList.UserList):
                 d._mlab = maxlab
             
     # Relabels the first solution with the given label
-    def relabel(self,old_label,new_label):
+    def relabel(self,old_label=None,new_label=None):
+        if old_label is None and new_label is None:
+            i = 1
+            new = parseS.parseS()
+            for d in self.data:
+                news = d.__class__(d)
+                news.data = news.data.copy()
+                news.data["Label"] = i
+                news._mlab = len(self.data)
+                i = i + 1
+                new.append(news)
+            return new
         if type(old_label) == types.IntType:
             old_label = [old_label]
             new_label = [new_label]

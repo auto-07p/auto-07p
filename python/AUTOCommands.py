@@ -260,7 +260,7 @@ class commandRelabel(commandWithFilenameTemplate):
     def __call__(self):
 	rval=valueSystem()
         if self.type != type("") and self.type != type(None):
-            self.name1.uniquelyLabel()
+            rval.data = self.name1.relabel()
             rval.info("Relabeling done\n")
             return rval
         n1b = self.name1["bifurcationDiagram"]
