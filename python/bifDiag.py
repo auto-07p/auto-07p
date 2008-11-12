@@ -136,6 +136,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                 if x.has_key("solution"):
                     c = {"constants": parseC.parseC(d.c)}
                     c.update(kw)
+                    if c.has_key("solution"):
+                        del c["solution"]
                     sol = apply(parseS.AUTOSolution,(x["solution"],),c)
                     sols.append(sol)
         solution = parseS.parseS(sols)
