@@ -359,12 +359,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 self.name = kw["equation"][14:]
             elif kw.has_key("e"):
                 self.name = kw["e"]
-        unames = parnames = []
-        if self.options["constants"] is not None:
-            unames = self.options.get("U",[])
-            parnames = self.options.get("PAR",[])
-        self.coordnames = unames[:]
-        self.PAR = AUTOParameters(coordnames=parnames[:])
+        names = kw.get("U",[])
+        if names is None:
+            names = []
+        self.coordnames = names[:]
+        names = kw.get("PAR",[])
+        if names is None:
+            names = []
+        self.PAR = AUTOParameters(coordnames=names[:])
         self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
                           "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                           "udotps"]
