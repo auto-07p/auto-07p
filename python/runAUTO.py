@@ -52,7 +52,9 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = None
+        self.options["bifurcationDiagram"] = None
         self.options["solution"] = None
+        self.options["diagnostics"] = None
         self.options["homcont"] = None
         self.options["copy setup"] = None
 

@@ -1074,22 +1074,21 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
 
     def __init__(self,runner=None,templates=None,cnf={},**kw):
         commandWithFilenameTemplate.__init__(self,None,None,templates)
-        self.runnerprovided = runner is not None
         commandWithRunner.__init__(self,runner)
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.configDict = dict
     
     def __applyRunnerConfigResolveAbbreviation(self,kw={}):
-        self.sname = None
         abbrev = {}
-        abbrev["e"]         = "equation"
-        abbrev["equation"]  = "equation"
-        abbrev["c"]         = "constants"
-        abbrev["constants"] = "constants"
-        abbrev["s"]         = "solution"
-        abbrev["solution"]  = "solution"
-        abbrev["h"]         = "homcont"
-        abbrev["homcont"]   = "homcont"
+        for key in ["equation", "constants", "bifurcationDiagram",
+                    "solution", "diagnostics", "homcont"]:
+            abbrev[key[0]] = key
+            abbrev[key]    = key
+        if kw.has_key("bsd"):
+            kw["bifurcationDiagram"] = kw["bsd"]
+            kw["solution"] = kw["bsd"]
+            kw["diagnostics"] = kw["bsd"]
+            del kw["bsd"]
         for key in kw.keys():
             # remove long duplicates
             if (abbrev.has_key(key) and key != abbrev[key] and
@@ -1101,8 +1100,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 del kw[key]
                 if type(value) in [type(""),type(1),type(1.0)]:
                     kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
-                    if abbrev[key] == "solution":
-                        self.sname = value
                 else:
                     kw[abbrev[key]] = value
         return kw
@@ -1110,6 +1107,15 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __applyRunnerConfigResolveFilenames(self,kw={}):
         doneread = False
         wantread = False
+        if kw.has_key("bifurcationDiagram"):
+            if type(kw["bifurcationDiagram"]) == types.StringType:
+                try:
+                    object = parseB.parseBR(kw["bifurcationDiagram"])
+                    self.runner.options["constants"] = object[0].c
+                    doneread = True
+                except IOError:
+                    object = None
+                kw["bifurcationDiagram"] = object
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
                 wantread = True
@@ -1118,17 +1124,10 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     doneread = True
                 except IOError:
                     del kw["constants"]
-        self.bifdiag = None
         if kw.has_key("solution"):
-            if (self.sname is not None and not kw.has_key("constants") and
-                self.runner.options["constants"] is None):
-                bname = self._applyTemplate(self.sname,"bifurcationDiagram")
-                try:
-                    self.bifdiag = parseB.parseBR(bname)
-                    self.runner.options["constants"] = self.bifdiag[0].c
-                    doneread = True
-                except IOError:
-                    pass
+            # wipe out b/d from current runner options if not explicitly given
+            for other in ["bifurcationDiagram", "diagnostics"]:
+                if not kw.has_key(other): kw[other] = None
             if type(kw["solution"]) == types.StringType:
                 wantread = True
                 object = parseS.parseS()
@@ -1139,10 +1138,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
                     object = None
                 kw["solution"] = object
-            elif (not isinstance(kw["solution"], parseS.parseS) and
-                  not isinstance(kw["solution"], runAUTO.runAUTO)):
-                kw["solution"] =apply(parseS.AUTOSolution,(kw["solution"],),kw)
-                self.sname = ""
         if kw.has_key("homcont"):
             if type(kw["homcont"]) == types.StringType:
                 wantread = True
@@ -1164,21 +1159,21 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __call__(self):
         dict = self.__applyRunnerConfigResolveAbbreviation(self.configDict)
         dict = self.__applyRunnerConfigResolveFilenames(dict)
-        if self.runnerprovided:
+        if hasattr(self.runner,'load'):
             data = apply(self.runner.load,(),dict)
         else:
             self.runner.config(dict)
             options = self.runner.options.copy()
-            if self.sname is not None and options["solution"]:
-                if self.bifdiag:
-                    bname = self.bifdiag
-                else:
-                    bname = self._applyTemplate(self.sname,"bifurcationDiagram")
-                sname = options["solution"]
-                dname = self._applyTemplate(self.sname,"diagnostics")
-                data = apply(bifDiag.bifDiag,(bname,sname,dname),options)
-            elif options["solution"]:
-                data = apply(bifDiag.bifDiag,(None,options["solution"]),options)
+            sol = options["solution"]
+            if not isinstance(sol,
+                            (parseS.parseS, runAUTO.runAUTO, type(None))):
+                data = apply(parseS.AUTOSolution,(dict["solution"],),dict)
+                data.config(options)
+                data.options["solution"] = data
+            elif options["bifurcationDiagram"] is not None or sol is not None:
+                bname = options["bifurcationDiagram"]
+                dname = options["diagnostics"]
+                data = apply(bifDiag.bifDiag,(bname,sol,dname),options)
             else:
                 data = apply(bifDiag.bifDiag,([],),options)
         return valueStringAndData("Runner configured\n",data)
@@ -1211,18 +1206,18 @@ class commandRunnerLoadName(commandRunnerConfig):
     type="simple"
     shortName="loadName"
     def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
-        if (runner is None and name is not None and type(name) != type("")
-            and type(name) != type(1)):
+        if runner is None and name is not None and type(name) not in [
+                type(""),type(1),type(1.0)]:
             if isinstance(name, runAUTO.runAUTO):
                 runner = name
-            elif not kw.has_key("s"):
+            else:
                 kw["s"] = name
             name = None 
         elif name is not None:
-            if not kw.has_key("equation"): kw["equation"] = name
-            if not kw.has_key("constants"): kw["constants"] = name
-            if not kw.has_key("solution"): kw["solution"] = name
-            if not kw.has_key("homcont"): kw["homcont"] = name
+            for key in ["equation", "constants", "bifurcationDiagram",
+                        "solution", "diagnostics", "homcont"]:
+                if not kw.has_key(key):
+                    kw[key] = name
         commandRunnerConfig.__init__(self,runner,templates,
                                      AUTOutil.cnfmerge((kw,cnf)))
         
