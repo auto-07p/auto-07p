@@ -71,7 +71,7 @@ class parseS(UserList.UserList):
 
     def __str__(self):
         rep = ""
-        rep = rep + "Number of solutions :" + str(len(self)) + "\n"
+        rep = rep + "Number of solutions: " + str(len(self)) + "\n"
         labels = self.getLabels()
         rep = rep + "Labels: "
         for label in labels:
@@ -81,31 +81,6 @@ class parseS(UserList.UserList):
 
     def __call__(self,label=None):
         return self.getLabel(label)
-
-    def load(self,**kw):
-        """Load solutions in list with the given AUTO constants.
-        Returns a shallow copy with a copied set of updated constants"
-        """
-        sols = []
-        for s in self.data:
-            sols.append(apply(AUTOSolution,(s,),kw))
-        return self.__class__(sols)
-
-    def run(self,**kw):
-        """Run AUTO.
-
-        Run AUTO from solution list with the given AUTO constants.
-        Returns a bifurcation diagram of the result.
-        """
-        if len(self) == 1:
-            solution = self[0]
-        elif kw.get("IRS",0) != 0:
-            solution = self(kw["IRS"])
-        else:
-            options = self[0].options.copy()
-            options["solution"] = None
-            solution = runAUTO.runAUTO(options)
-        return apply(solution.run,(),kw)
 
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
@@ -553,11 +528,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        c = parseC.parseC(self.options["constants"])
+        c = self.options.copy()
         c.update(kw)
-        if c.get("IRS",0) != self["LAB"]:
+        irs = 0
+        if self.options["constants"] is not None:
+            irs = self.options["constants"].get("IRS",0)
+        if c.get("IRS",irs) != self["LAB"]:
             c["IRS"] = -1
-        return apply(runAUTO.runAUTO.run,(self,),c.data)
+        return apply(runAUTO.runAUTO.run,(self,),c)
 
     def readAllFilename(self,filename):
         try:

@@ -3,6 +3,7 @@
 # the labels contain the solutions and diagnostics as well
 import parseB
 import parseC
+import parseH
 import parseS
 import parseD
 import Points
@@ -45,8 +46,12 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             solution = apply(parseS.parseS,(fort8_filename,),options)
             for s in solution:
                 s.options = options.copy()
-                s.options["constants"] = parseC.parseC(
-                    options["constants"])
+                if options["constants"] is not None:
+                    s.options["constants"] = parseC.parseC(
+                        options["constants"])
+                if options["homcont"] is not None:
+                    s.options["homcont"] = parseH.parseH(
+                        options["homcont"])
                 s.options["solution"] = s
             options["solution"] = solution
         except IOError:
@@ -101,9 +106,12 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             newc = parseC.parseC(self[0].c)
             if c is not None:
                 newc.update(c)
+            self.options["constants"] = newc
         elif c is not None:
-            newc = parseC.parseC(c)
-        self.options["constants"] = newc
+            self.options["constants"] = parseC.parseC(c)
+        h = self.options["homcont"]
+        if h is not None:
+            self.options["homcont"] = parseH.parseH(h)
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
@@ -126,12 +134,15 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         for d in self:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 if x.has_key("solution"):
-                    c = parseC.parseC(d.c)
+                    c = {"constants": parseC.parseC(d.c)}
                     c.update(kw)
-                    sol = apply(parseS.AUTOSolution,(x["solution"],),c.data)
+                    sol = apply(parseS.AUTOSolution,(x["solution"],),c)
                     sols.append(sol)
         solution = parseS.parseS(sols)
         return solution(label)
+
+    def __call__(self,label=None,**kw):
+        return apply(self.getLabel,(label,),kw)
 
     def load(self,**kw):
         """Load bifurcation diagram with the given AUTO constants.
@@ -145,13 +156,22 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         Run AUTO from the bifurcation diagram with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        c = parseC.parseC(self.options["constants"])
+        c = self.options.copy()
         c.update(kw)
-        solutions = self()
-        if len(solutions) > 0:
-            return apply(solutions.run,(),c.data)
+        solutions = apply(self,(),c)
+        irs = 0
+        if self.options["constants"] is not None:
+            irs = self.options["constants"].get("IRS",0)
+        irs = c.get("IRS",irs)
+        if len(solutions) == 1:
+            return solutions[0].run()
+        elif irs in solutions.getLabels():
+            return solutions(irs).run()
         else:
-            return apply(runAUTO.runAUTO.run,(self,),c.data)
+            if irs == 0:
+                c = c.copy()
+                c["solution"] = None
+            return apply(runAUTO.runAUTO.run,(self,),c)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)

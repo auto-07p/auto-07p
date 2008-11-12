@@ -23,8 +23,12 @@ class runAUTO:
                 self.__dict__[k] = v
             if kw != {}:
                 self.options = self.options.copy()
-                self.options["constants"] = parseC.parseC(
-                    self.options["constants"])
+                if self.options["constants"] is not None:
+                    self.options["constants"] = parseC.parseC(
+                        self.options["constants"])
+                if self.options["homcont"] is not None:
+                    self.options["homcont"] = parseH.parseH(
+                        self.options["homcont"])
                 self.config(kw)
             return
 
@@ -367,17 +371,9 @@ class runAUTO:
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        c = kw.copy()
-        if c.has_key("output"):
-            del c["output"]
-        self.config(c)
+        self.config(kw)
         log,err,data = self.runMakefileWithSetup()
-        if kw.has_key("output"):
-            # log was already written if the runner is verbose
-            if self.options["verbose"] == "no":
-                kw["output"]["log"] = log
-            kw["output"]["err"] = err
-        else:
+        if self.options["err"] is None:
             # log was already written if the runner is verbose
             if self.options["verbose"] == "no":
                 sys.stdout.write(log.read())

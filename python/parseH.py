@@ -49,8 +49,6 @@ class parseH(UserDict.UserDict):
 
     def __init__(self,filename=None):
         if filename is not None and type(filename) != type(""):
-            if isinstance(filename,UserDict.UserDict):
-                self.__new = filename.__new
             UserDict.UserDict.__init__(self,filename)
             return
 	UserDict.UserDict.__init__(self)

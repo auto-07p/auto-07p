@@ -98,7 +98,10 @@ class commandCopyDemo(command):
         demofiles = glob.glob(os.path.expandvars(
                 "$AUTO_DIR/demos/%s/*"%self.demo))
         for f in demofiles:
-            shutil.copy(f, ".")
+            try:
+                shutil.copy(f, ".")
+            except IOError:
+                pass
         if os.path.exists("c.%s.1"%(self.demo)):
             shutil.copy("c.%s.1"%(self.demo),"c.%s"%(self.demo))
         rval.info("Copying demo %s ... done\n"%self.demo)
@@ -174,7 +177,7 @@ class commandUserData(command):
         fconrun = runAUTO.runAUTO(verbose="no",
                                   makefile="$AUTO_DIR/cmds/cmds.make fcon")
         fconrun.config(e=self.data[0])
-        fconrun.runMakefile(self.data[0]) #,fcon=True)
+        fconrun.runMakefile(self.data[0])
         if os.path.exists(cfile):
             shutil.copy(cfile,"fort.2")
         if os.path.exists(datfile):
@@ -1367,12 +1370,20 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         self.kw['sv'] = self.sv
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         runner = func().data
-        output = {}
-        data = runner.run(output=output)
-        if output.has_key("log"):
-            ret = valueRun(output["log"],output["err"],data=data)
+        err = cStringIO.StringIO()
+        if runner.options["verbose"] == "no":
+            log = cStringIO.StringIO()
+            data = runner.run(log=log,err=err)
+            log.seek(0)
+            err.seek(0)
+            ret = valueRun(log,err,data=data)
+            log.close()
         else:
-            ret = valueRun(output["err"],data=data)
+            # log was already written if the runner is verbose
+            data = runner.run(err=err)
+            err.seek(0)
+            ret = valueRun(err,data=data)
+        err.close()
         if self.sv is not None:            
             commandWithFilenameTemplate.__init__(self,self.sv,None,
                                                  self.templates)
