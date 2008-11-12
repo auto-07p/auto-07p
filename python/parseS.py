@@ -26,6 +26,7 @@ import AUTOExceptions
 import types
 import copy
 import parseB
+import parseC
 import Points
 import runAUTO
 import gzip
@@ -80,6 +81,31 @@ class parseS(UserList.UserList):
 
     def __call__(self,label=None):
         return self.getLabel(label)
+
+    def load(self,**kw):
+        """Load solutions in list with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants"
+        """
+        sols = []
+        for s in self.data:
+            sols.append(apply(AUTOSolution,(s,),kw))
+        return self.__class__(sols)
+
+    def run(self,**kw):
+        """Run AUTO.
+
+        Run AUTO from solution list with the given AUTO constants.
+        Returns a bifurcation diagram of the result.
+        """
+        if len(self) == 1:
+            solution = self[0]
+        elif kw.get("IRS",0) != 0:
+            solution = self(kw["IRS"])
+        else:
+            options = self[0].options.copy()
+            options["solution"] = None
+            solution = runAUTO.runAUTO(options)
+        return apply(solution.run,(),kw)
 
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
@@ -340,6 +366,9 @@ class AUTOParameters(Points.Point):
 
 class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __init__(self,input=None,offset=None,name=None,**kw):
+        if isinstance(input,self.__class__):
+            apply(runAUTO.runAUTO.__init__,(self,input),kw)
+            return
 	UserDict.UserDict.__init__(self)
         runAUTO.runAUTO.__init__(self)
         self.__start_of_header = None
@@ -511,6 +540,24 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
     def type(self):
 	return parseB.type_translation(self["Type number"])["long name"]
+
+    def load(self,**kw):
+        """Load solution with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants"
+        """
+        return apply(AUTOSolution,(self,),kw)
+
+    def run(self,**kw):
+        """Run AUTO.
+
+        Run AUTO from the solution with the given AUTO constants.
+        Returns a bifurcation diagram of the result.
+        """
+        c = parseC.parseC(self.options["constants"])
+        c.update(kw)
+        if c.get("IRS",0) != self["LAB"]:
+            c["IRS"] = -1
+        return apply(runAUTO.runAUTO.run,(self,),c.data)
 
     def readAllFilename(self,filename):
         try:

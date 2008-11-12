@@ -1161,20 +1161,23 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __call__(self):
         dict = self.__applyRunnerConfigResolveAbbreviation(self.configDict)
         dict = self.__applyRunnerConfigResolveFilenames(dict)
-        self.runner.config(dict)
-        data = None
-        if not self.runnerprovided:
+        if self.runnerprovided:
+            data = apply(self.runner.load,(),dict)
+        else:
+            self.runner.config(dict)
             options = self.runner.options.copy()
-            if self.sname is not None and self.runner.options["solution"]:
+            if self.sname is not None and options["solution"]:
                 if self.bifdiag:
                     bname = self.bifdiag
                 else:
                     bname = self._applyTemplate(self.sname,"bifurcationDiagram")
                 sname = options["solution"]
                 dname = self._applyTemplate(self.sname,"diagnostics")
-                data = bifDiag.bifDiag(bname,sname,dname,options)
+                data = apply(bifDiag.bifDiag,(bname,sname,dname),options)
+            elif options["solution"]:
+                data = apply(bifDiag.bifDiag,(None,options["solution"]),options)
             else:
-                data = bifDiag.bifDiag([],None,None,options)
+                data = apply(bifDiag.bifDiag,([],),options)
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):
@@ -1363,9 +1366,13 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
     def __call__(self):
         self.kw['sv'] = self.sv
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
-        func()
-        func=commandRunMakefileWithSetup(runner=self.runner)
-        ret=func()
+        runner = func().data
+        output = {}
+        data = runner.run(output=output)
+        if output.has_key("log"):
+            ret = valueRun(output["log"],output["err"],data=data)
+        else:
+            ret = valueRun(output["err"],data=data)
         if self.sv is not None:            
             commandWithFilenameTemplate.__init__(self,self.sv,None,
                                                  self.templates)

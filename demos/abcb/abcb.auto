@@ -16,7 +16,8 @@ r2=run(r1('HB'),IPS=2,ICP=[1,11],IPLT=1,sv=pgm+'.2')
 print "\n***"+pgm+": run 3: switch to LP continuation***"
 sw3=run(r2('LP'),ICP=[1,2,11],ISW=2,IPLT=0,NPR=10,sv=pgm+'.3.sw')
 print "\n***"+pgm+": run 3: LP continuation (fw)***"
-run(sw3,ICP=[2,1,11],NMX=50,RL1=10.0,sv=pgm+'.3.fw')
+sw3=load(sw3,ICP=[2,1,11],NMX=50,RL1=10.0)
+run(sw3,sv=pgm+'.3.fw')
 
 print "\n***"+pgm+": run 3: LP continuation (bw)***"
 sb3=run(sw3,DS='-',sv=pgm+'.3.bw')

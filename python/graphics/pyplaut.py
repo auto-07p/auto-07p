@@ -56,7 +56,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             dict["default_option"] = ("d1",None)
         self.handle.grapher.addOptions(dict)
 
-        bd = bifDiag.bifDiag(b,s,options={'constants':None})
+        bd = bifDiag.bifDiag(b,s)
         dict = {
             "bifurcation_diagram": bd,
             "solution": bd(),

@@ -12,14 +12,18 @@ import runAUTO
 import gzip
 
 class bifDiag(parseB.parseBR,runAUTO.runAUTO):
-    def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None,
-                 options=None):
-        runAUTO.runAUTO.__init__(self)
-        self.options = None
-        if options is not None:
-            self.options = options
-            if (options["constants"] is not None and
-                options["constants"]['sv'] is not None):
+    def __init__(self,fort7_filename=None,fort8_filename=None,
+                 fort9_filename=None,**kw):
+        if isinstance(fort7_filename,self.__class__):
+            apply(runAUTO.runAUTO.__init__,(self,fort7_filename),kw)
+            return
+        runAUTO.runAUTO.__init__(self,kw)
+        if kw != {}:
+            if (kw["constants"] is not None and
+                kw["constants"]['sv'] is not None and
+                type(fort7_filename) in (type(""),type(None)) and
+                type(fort8_filename) in (type(""),type(None)) and
+                type(fort9_filename) in (type(""),type(None))):
                 #filebased
                 self.filenames = [fort7_filename,fort8_filename,fort9_filename]
                 return
@@ -29,8 +33,6 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         options = self.options
         try:
             parseB.parseBR.__init__(self,fort7_filename)
-            if options is not None and options["constants"] is None:
-                options["constants"] = self[0].c
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None
@@ -40,20 +42,13 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if isinstance(fort8_filename, parseS.AUTOSolution):
             fort8_filename = [fort8_filename]
         try:
-            if options is not None:
-                if options["constants"] is None:
-                    solution = parseS.parseS(fort8_filename)
-                else:
-                    solution = apply(parseS.parseS,(fort8_filename,),
-                                     options["constants"].data)
-                for s in solution:
-                    s.options = options.copy()
-                    s.options["constants"] = parseC.parseC(
-                        options["constants"])
-                    s.options["solution"] = s
-                options["solution"] = solution
-            else:
-                solution = parseS.parseS(fort8_filename)
+            solution = apply(parseS.parseS,(fort8_filename,),options)
+            for s in solution:
+                s.options = options.copy()
+                s.options["constants"] = parseC.parseC(
+                    options["constants"])
+                s.options["solution"] = s
+            options["solution"] = solution
         except IOError:
             solution = None
             if fort7_filename is None:
@@ -62,23 +57,28 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if fort7_filename is None and fort8_filename is not None:
             # simulate a bifurcation diagram
             labels = {}
-            i = 0
-            br = 0
             for s in solution:
                 br = s["Branch number"]
+                if labels == {} or br != branch.BR:
+                    if labels != {}:
+                        branch.labels = Points.PointInfo(labels)
+                    branch = parseB.AUTOBranch()
+                    self.append(branch)
+                    branch.BR = br
+                    branch.coordarray = []
+                    branch.coordnames = []
+                    branch.headernames = []
+                    branch.c = s.c
+                    labels = {}
+                    i = 0
                 pt = s["Point number"]
                 ty = s["Type number"]
                 lab = s["Label"]
                 key = parseB.type_translation(ty)["short name"]
                 labels[i] = {key: {"LAB":lab,"TY number":ty,"PT":pt}}
                 i = i+1
-            branch = parseB.AUTOBranch()
-            branch.BR = br
-            branch.labels = Points.PointInfo(labels)
-            branch.coordarray = []
-            branch.coordnames = []
-            branch.headernames = []
-            self.append(branch)
+            if labels != {}:
+                branch.labels = Points.PointInfo(labels)
         if not fort9_filename is None:
             try:
                 diagnostics = parseD.parseD(fort9_filename)
@@ -96,6 +96,14 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if self.data != []:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = diagnostics
+        c = self.options["constants"]
+        if len(self)>0 and self[0].c is not None:
+            newc = parseC.parseC(self[0].c)
+            if c is not None:
+                newc.update(c)
+        elif c is not None:
+            newc = parseC.parseC(c)
+        self.options["constants"] = newc
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
@@ -113,14 +121,37 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
     def __repr__(self):
         return ""
 
-    def getLabel(self,label):
+    def getLabel(self,label,**kw):
         sols = []
         for d in self:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 if x.has_key("solution"):
-                    sols.append(x["solution"])
+                    c = parseC.parseC(d.c)
+                    c.update(kw)
+                    sol = apply(parseS.AUTOSolution,(x["solution"],),c.data)
+                    sols.append(sol)
         solution = parseS.parseS(sols)
         return solution(label)
+
+    def load(self,**kw):
+        """Load bifurcation diagram with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants"
+        """
+        return apply(bifDiag,(self,),kw)
+
+    def run(self,**kw):
+        """Run AUTO.
+
+        Run AUTO from the bifurcation diagram with the given AUTO constants.
+        Returns a bifurcation diagram of the result.
+        """
+        c = parseC.parseC(self.options["constants"])
+        c.update(kw)
+        solutions = self()
+        if len(solutions) > 0:
+            return apply(solutions.run,(),c.data)
+        else:
+            return apply(runAUTO.runAUTO.run,(self,),c.data)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)

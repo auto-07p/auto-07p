@@ -18,6 +18,16 @@ demo_max_time=-1
 
 class runAUTO:
     def __init__(self,cnf={},**kw):
+        if isinstance(cnf,self.__class__):
+            for k,v in cnf.__dict__.items():
+                self.__dict__[k] = v
+            if kw != {}:
+                self.options = self.options.copy()
+                self.options["constants"] = parseC.parseC(
+                    self.options["constants"])
+                self.config(kw)
+            return
+
         # Set the signal handler
         if hasattr(signal,'SIGALRM'):
             signal.signal(signal.SIGALRM, self.__handler)
@@ -64,7 +74,8 @@ class runAUTO:
             if self.options.has_key(key):
                 self.options[key] = dict[key]
         for key,value in dict.items():
-            if self.options.has_key(key) or key in ['t','p']:
+            if (self.options.has_key(key) or key in ['t','p'] or
+                key[:7] == 'Active '):
                 continue
             if self.options["constants"] is None:
                 self.options["constants"]=parseC.parseC()
@@ -247,12 +258,7 @@ class runAUTO:
         if self.options["constants"] is None:
             raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
         solution = self.options["solution"]
-        if solution is None and isinstance(self,bifDiag.bifDiag):
-            solution = self()
-        if isinstance(solution,parseS.AUTOSolution):
-            self.options["constants"]["IRS"] = solution["Label"]
-        elif isinstance(solution,parseS.parseS) and len(solution) == 1:
-            self.options["constants"]["IRS"] = solution[0]["Label"]
+        self.options["constants"].writeFilename("fort.2")
 
         # figure out equation file name
         equation = self.options["equation"][14:]
@@ -354,6 +360,29 @@ class runAUTO:
             if not self.__runCommand(cmd):
                 return False
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
+
+    def run(self,**kw):
+        """Run AUTO.
+
+        Run AUTO from the solution with the given AUTO constants.
+        Returns a bifurcation diagram of the result.
+        """
+        c = kw.copy()
+        if c.has_key("output"):
+            del c["output"]
+        self.config(c)
+        log,err,data = self.runMakefileWithSetup()
+        if kw.has_key("output"):
+            # log was already written if the runner is verbose
+            if self.options["verbose"] == "no":
+                kw["output"]["log"] = log
+            kw["output"]["err"] = err
+        else:
+            # log was already written if the runner is verbose
+            if self.options["verbose"] == "no":
+                sys.stdout.write(log.read())
+            sys.stdout.write(err.read())
+        return data
 
     def runMakefileWithSetup(self,equation=None):
         self.__resetInternalLogs()
@@ -559,8 +588,8 @@ class runAUTO:
             options = self.options.copy()
             options["solution"] = None # do not include solution that this
                                        # run started from!
-            return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,options)
+            return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
+                                          self.fort9_path),options)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
