@@ -52,34 +52,176 @@ C
 C
       STOP
       CONTAINS
-C
+
 C     ---------- ----
       SUBROUTINE INIT(NDIM,IPS,NTST,NCOL,ISW,NPAR)
 C
       IMPLICIT NONE
       INTEGER, INTENT(OUT) :: NDIM,IPS,NTST,NCOL,ISW,NPAR
-      CHARACTER(LEN=20) STR
+      CHARACTER(LEN=2048) :: STR
 C
 C Reads the file of continuation constants
 C
-      READ(2,'(A)') STR
-      STR=ADJUSTL(STR)
-      IF (STR(1:4)=='NPAR') THEN
-         READ(STR(SCAN(STR,'=')+1:),*)NPAR
-      ELSE
-         NPAR=NPARX
-         BACKSPACE 2
-      ENDIF
-      READ(2,*,END=1) NDIM,IPS
-      READ(2,*,END=1) 
-      READ(2,*,END=1) NTST,NCOL,ISW,ISW,ISW
+      INTEGER KEYEND,POS,NPOS
+      LOGICAL EOF,KEYS
+      INTEGER LINE
 C
-      RETURN
+C Defaults
 C
- 1    PRINT*,' Error : End of file encountered in AUTO constants-file'
+      NDIM=2
+      IPS=1
+      NTST=20
+      NCOL=4
+      ISW=1
+      NPAR=NPARX
+
+      LINE=0
+      NPOS=1
+      KEYS=.FALSE.
+      scanloop: DO
+         IF(NPOS==1)THEN
+            LINE=LINE+1
+            EOF=.TRUE.
+            READ(2,'(A)',END=1) STR
+            EOF=.FALSE.
+         ELSE
+            STR=STR(NPOS:)
+         ENDIF
+         STR=ADJUSTL(STR)
+         IF(LEN_TRIM(STR)==0)CYCLE
+         DO I=1,LEN_TRIM(STR)
+            ! comment on line
+            IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
+               NPOS=1
+               CYCLE scanloop
+            ENDIF
+            ! keyword detected
+            IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR.
+     &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
+               STR=STR(I:)
+               KEYS=.TRUE.
+               EXIT
+            ELSE
+               EXIT scanloop
+            ENDIF
+            IF(I==LEN_TRIM(STR))THEN
+               NPOS=1
+               CYCLE scanloop
+            ENDIF
+         ENDDO
+         EOF=.FALSE.
+         ! look for = after keyword
+         KEYEND=SCAN(STR,'= ')-1
+         IF(KEYEND==-1)THEN
+            LINE=LINE-1
+            EXIT scanloop
+         ENDIF
+         POS=SCAN(STR,'=')+1
+         STR(POS:)=ADJUSTL(STR(POS:))
+         NPOS=SCANVALUE(STR(POS:))
+         IF(NPOS/=1)THEN
+            NPOS=NPOS+POS-1
+         ENDIF
+         SELECT CASE(STR(1:KEYEND))
+         CASE('NDIM')
+            READ(STR(POS:),*,ERR=3)NDIM
+         CASE('IPS')
+            READ(STR(POS:),*,ERR=3)IPS
+         CASE('NTST')
+            READ(STR(POS:),*,ERR=3)NTST
+         CASE('NCOL')
+            READ(STR(POS:),*,ERR=3)NCOL
+         CASE('ISW')
+            READ(STR(POS:),*,ERR=3)ISW
+         CASE('NPAR')
+            READ(STR(POS:),*,ERR=3)NPAR
+         ! ignore all others
+         END SELECT
+      ENDDO scanloop
+
+ 1    IF(EOF.AND..NOT.KEYS)GOTO 5
+      BACKSPACE 2
+
+      READ(2,*,ERR=3,END=5) NDIM,IPS
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4)
+      LINE=LINE+1
+      READ(2,*,ERR=3,END=4) NTST,NCOL,ISW,ISW,ISW
+
+ 2    CONTINUE
       RETURN
+ 3    WRITE(6,"(A,I2,A)")
+     *     " Error in fort.2 or c. file: bad value on line ",
+     *     LINE,"."
+      STOP
+ 4    WRITE(6,"(A,I2,A)")
+     *     " Error in fort.2 or c. file: ends prematurely on line ",
+     *     LINE,"."
+ 5    BACKSPACE 2
+      IF(.NOT.EOF.OR.KEYS)GOTO 2
       END SUBROUTINE INIT
 
+C     ------- -------- ---------
+      INTEGER FUNCTION SCANVALUE(STR)
+      IMPLICIT NONE
+C
+C     Scans STR(:) for a value
+C     NPOS points to the next keyword on the same line,
+C       or is set to 1 if there is none
+C
+      CHARACTER(*), INTENT(INOUT) :: STR
+
+      INTEGER NPOS,I,LEVEL,LENSTR,ios
+      CHARACTER(1) C,PREV,QUOTE
+      LOGICAL QUOTEESC
+      LEVEL=0
+      QUOTE=' '
+      QUOTEESC=.FALSE.
+      PREV=' '
+
+      NPOS=1
+      LENSTR=LEN_TRIM(STR)
+      I=1
+      DO
+         IF(I>LENSTR)THEN
+            IF(LEVEL==0)EXIT
+            LENSTR=LEN_TRIM(STR)
+            READ(2,'(A)',IOSTAT=ios) STR(LENSTR+1:)
+            IF(ios/=0)EXIT
+            LENSTR=LEN_TRIM(STR)
+         ENDIF
+         NPOS=I
+         C=STR(I:I)
+         IF(QUOTE==' ')THEN
+            SELECT CASE(C)
+            CASE(',',' ')
+               IF(LEVEL==0)EXIT
+            CASE(']')
+               LEVEL=LEVEL-1
+            CASE DEFAULT
+               SELECT CASE(C)
+               CASE('[')
+                  LEVEL=LEVEL+1
+               CASE('"',"'")
+                  QUOTE=C
+               END SELECT
+            END SELECT
+         ELSEIF(C==QUOTE)THEN
+            ! ignore "" and ''
+            IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+               QUOTEESC=.NOT.QUOTEESC
+            ELSE
+               QUOTE=' '
+            ENDIF
+         ENDIF
+         PREV=C
+         I=I+1
+      ENDDO
+      NPOS=NPOS+VERIFY(STR(NPOS:)," ,")-1
+      IF(NPOS>=LEN_TRIM(STR))NPOS=1
+      SCANVALUE=NPOS
+      END FUNCTION SCANVALUE
+C
 C     ---------- -----
       SUBROUTINE ADAPT(NOLD,NDOLD,NNEW,NCNEW,NDIM,
      &     TMR,UPSR,TM,UPS,IPER)
