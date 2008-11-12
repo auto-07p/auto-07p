@@ -546,6 +546,7 @@ class commandDeleteDataFiles(commandWithFilenameTemplate):
 
 class commandDeleteLabel(commandWithFilenameTemplate):
     def __init__(self,typenames=None,name1=None,templates=None,keepTY=0,keep=0):
+        self.name = name1
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
         self.typenames=typenames
         self.keepTY=keepTY
@@ -553,13 +554,17 @@ class commandDeleteLabel(commandWithFilenameTemplate):
         
     def __call__(self):
         codes=self.typenames
+        if hasattr(codes,'deleteLabel'):
+            data = codes.deleteLabel(self.name,keepTY=self.keepTY,
+                                     keep=self.keep,copy=1)
+            return valueStringAndData("",data)
         if self.name1["solution"] is None:
             changedb='fort.7'
             changeds='fort.8'
         else:
             changedb=self.name1["bifurcationDiagram"]
             changeds=self.name1["solution"]
-        bs=parseBandS.parseBandS(changedb,changeds)
+        bs=bifDiag.bifDiag(changedb,changeds)
         bs.deleteLabel(codes,keepTY=self.keepTY,keep=self.keep)
         origb=changedb+'~'
         origs=changeds+'~'

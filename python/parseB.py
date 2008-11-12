@@ -259,26 +259,53 @@ class AUTOBranch(Points.Pointset):
             return 0
         return Points.Pointset.__len__(self)
 
-    def deleteLabel(self,label=None,keepTY=0,keep=0):
+    def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
         """Removes solutions with the given labels or type names"""
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
         if type(label) != types.ListType:
             label = [label]
-        for idx in self.labels.getIndices():
-            ty_name,v = self._gettypelabel(idx)
+        if copy:
+            new = self.__class__(self)
+            new.labels = Points.PointInfo(self.labels.by_index.copy())
+            if not self.__fullyParsed:
+                new.__datalist = self.__datalist[:]
+        else:
+            new = self
+        for idx in new.labels.getIndices():
+            ty_name,v = new._gettypelabel(idx)
             if ((not keep and (v["LAB"] in label or ty_name in label)) or
                (keep and not v["LAB"] in label and not ty_name in label)):
-                v["LAB"] = 0
+                if copy:
+                    new.labels[idx][ty_name] = v.copy()
+                new.labels[idx][ty_name]["LAB"] = 0
                 if not keepTY:
-                    v["TY number"] = 0
-                if not self.__fullyParsed:
-                    self.__patchline(self.__datalist,idx,3,0)
+                    new.labels[idx][ty_name]["TY number"] = 0
+                if not new.__fullyParsed:
+                    new.__patchline(new.__datalist,idx,3,0)
                     if not keepTY:
-                        self.__patchline(self.__datalist,idx,2,0)
+                        new.__patchline(new.__datalist,idx,2,0)
                 if v["TY number"] == 0:
-                    self.labels.remove(idx)
-            
+                    new.labels.remove(idx)
+        if copy:
+            return new
+
+    def dsp(self,label=None):
+        """Removes solutions with the given labels or type names"""
+        return self.deleteLabel(label,copy=1)
+
+    def ksp(self,label=None):
+        """Keeps solutions with the given labels or type names"""
+        return self.deleteLabel(label,keep=1,copy=1)
+
+    def dlb(self,label=None):
+        """Removes solutions with the given labels or type names"""
+        return self.deleteLabel(label,keepTY=1,copy=1)
+
+    def klb(self,label=None):
+        """Keeps solutions with the given labels or type names"""
+        return self.deleteLabel(label,keepTY=1,keep=1,copy=1)
+
     def relabel(self,old_label=1,new_label=None):
         """Relabels the first solution with the given label"""
         if new_label is None:
@@ -739,7 +766,12 @@ class parseBR(UserList.UserList,AUTOBranch):
         self.__dict__.update(state)
 
     # Removes solutions with the given labels or type names
-    def deleteLabel(self,label=None,keepTY=0,keep=0):
+    def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
+        if copy:
+            data = []
+            for d in self.data:
+                data.append(d.deleteLabel(label,keepTY,keep,copy))
+            return self.__class__(data)
         for d in self.data:
             d.deleteLabel(label,keepTY,keep)
             

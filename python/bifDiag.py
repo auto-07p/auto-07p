@@ -127,7 +127,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         raise AttributeError
         
     def __repr__(self):
-        return ""
+        return "<_=%s instance at %#010x>"%(self.__class__.__name__,id(self))
 
     def getLabel(self,label,**kw):
         sols = []
@@ -229,12 +229,23 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     d.diagnostics.writeFilename(fort9_filename,append)
                     append=True
 
-    def deleteLabel(self,label=None,keepTY=0,keep=0):
-        parseB.parseBR.deleteLabel(self,label,keepTY,keep)
-        for d in self:
+    def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
+        new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
+        if not copy:
+            new = self
+        maxlab = max(new.getLabels())
+        for d in new:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if x.has_key("solution") and x["LAB"] == 0:
-                    del x["solution"]
+                if x.has_key("solution"):
+                    if x["LAB"] == 0:
+                        del x["solution"]
+                    elif x["solution"]._mlab != maxlab:
+                        if copy:
+                            news = x["solution"].__class__(x["solution"])
+                            x["solution"] = news
+                        x["solution"]._mlab = maxlab
+        if copy:
+            return new
 
     def relabel(self,old_label=None,new_label=None):
         if old_label is None and new_label is None:
