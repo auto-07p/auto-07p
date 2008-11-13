@@ -1,19 +1,18 @@
 from AUTOclui import *
 import sys
 
-def make_s(sfile,label,step,floquet=None):
-    solution = sl(sfile)(label)
+def get(s,label,step,floquet=None):
+    solution = rl(s([label]))(1)
     if floquet is None:
-        floquet = solution['Parameters'][3]
+        floquet = solution['PAR(4)']
     print "Floquet multiplier: ", floquet
-    solution['Label'] = 1
-    solution['Free Parameters'] = [2, 3, 4]
-    solution["Parameter NULL vector"] = [0, 1, 0]
-    solution['Parameters'][3] = floquet
-    solution['Parameters'][4] = 0
-    solution['Parameters'][5] = step
-    solution.writeFilename('s.ext')
-    print "Written to s.ext"
+    solution['PAR(4)'] = floquet
+    solution['PAR(5)'] = 0
+    solution['PAR(6)'] = step
+    return solution
+
+def make_s(sfile,label,step,floquet=None):
+    save(get(load(s=sfile),label,step,floquet),'s.ext')
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ import math,sys,copy
 def write_lagrange(x, i):
     # When we determine which Lagrange point we have we save it.
     periods = []
-    x["Type number"] = 3 #HB
+    x["TY number"] = 3 #HB
     print "L"+str(i)+":"
     for imagv in [x.PAR(5), x.PAR(6), x.PAR(7)]:
         if imagv != 0:
@@ -23,8 +23,8 @@ def write_lagrange(x, i):
             label = label - 2 + len(periods)
         print "Label: %d; imaginary part: %13s; period: %10s"%(label,
 	    2*math.pi/period, period)
-        x["Label"] = label
-        x["Branch number"] = i*10+j+1
+        x["LAB"] = label
+        x["BR"] = i*10+j+1
         x["PAR(11)"] = period
         list.append(x.copy())
     return list
@@ -80,9 +80,8 @@ def compute(m=0.063):
     start = []
     for i in range(1,6):
         start = start + write_lagrange(uzpoints[lp.index(i)], i)
-    start = load(s=start)
     save(start,'start')
-    return start
+    return load(s=start)
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
