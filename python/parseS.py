@@ -168,11 +168,11 @@ class parseS(UserList.UserList):
     def relabel(self,old_label=None,new_label=None):
         if old_label is None and new_label is None:
             i = 1
-            new = parseS.parseS()
+            new = parseS()
             for d in self.data:
                 news = d.__class__(d)
                 news.data = news.data.copy()
-                news.data["Label"] = i
+                news.data["LAB"] = i
                 news._mlab = len(self.data)
                 i = i + 1
                 new.append(news)
@@ -298,21 +298,22 @@ class SLPoint(Points.Point):
 
 class AUTOParameters(Points.Point):
     def __init__(self, kwd=None, **kw):
+        if isinstance(kwd, self.__class__):
+            for k,v in kwd.__dict__.items():
+                self.__dict__[k] = v
+            return
         if kwd is None and kw == {}:
             self.coordnames = []
-            self.parnames = []
             self.dimension = 0
+            self.parnames = []
             return
-        if not kw.has_key("coordarray") and kw.has_key("coordnames"):
-            self.coordnames = kw["coordnames"]
-            self.parnames = self.coordnames[:]
-            self.dimension = len(self.coordnames)
-            return
-        if kw.has_key("coordarray") and not kw.has_key("coordnames"):
-            for i in range(len(self.coordnames),len(kw["coordarray"])):
-                self.coordnames.append("PAR("+str(i+1)+")")
+        coordnames = kw.get("coordnames",[])
+        if kw.has_key("coordarray") and coordnames == []:
+            self.parnames = coordnames[:]
+            for i in range(len(coordnames),len(kw["coordarray"])):
+                coordnames.append("PAR("+str(i+1)+")")
             kw["coordtype"] = Points.float64
-            kw["coordnames"] = self.coordnames
+            kw["coordnames"] = coordnames
         apply(Points.Point.__init__,(self,kwd),kw)
 
     def __call__(self,index):
@@ -377,7 +378,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         names = kw.get("PAR",[])
         if names is None:
             names = []
-        self.PAR = AUTOParameters(coordnames=names[:])
+        self.__parnames = names[:]
         self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
                           "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                           "udotps"]
@@ -445,16 +446,17 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 pdict["name"] = kw["equation"][14:]
             Points.Pointset.__init__(self,pdict)
             self.__fullyParsed = True
-            self.data.update({"BR":1, "PT":1, "TY number":9, "TY name": "EP",
+            self.data.update({"BR":1, "PT":1, "TY number":9,
                               "LAB":1, "ISW":1, "NTST": ntst, "NCOL": ncol})
             if kw.has_key("p"):
-                self.PAR.__init__(coordarray=kw["p"], name=self.name)
+                self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                          coordarray=kw["p"], name=self.name)
 
     def __str__(self):
         if not(self.__fullyParsed):
             self.__readAll()
         keys = self.data.keys()
-        for key in ["BR","PT","TY name","TY number","LAB","ISW","NTST","NCOL"]:
+        for key in ["BR","PT","TY number","LAB","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"
@@ -481,13 +483,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
     def __setitem__(self,key,value):
         if (type(key) == type("") and not key in self.coordnames and
-            key != self.indepvarname and not key in self.PAR.coordnames):
+            key != self.indepvarname and not key in self.__parnames):
             shortkey = self.long_data_keys.get(key,key)
             if shortkey in self.data_keys:
                 self.data[shortkey] = value
                 return
             if shortkey == "p":
-                self.PAR.__init__(coordarray=value)
+                self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                          coordarray=value)
                 return
         try:
             Points.Pointset.__setitem__(self,key,value)
@@ -497,11 +500,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __getitem__(self,key):
         big_data_keys = ["data","Active ICP","rldot","p","udotps"]
         if (type(key) == type("") and key not in self.coordnames and
-            key != self.indepvarname and key not in self.PAR.coordnames):
+            key != self.indepvarname and key not in self.__parnames):
             shortkey = self.long_data_keys.get(key,key)
             if shortkey in big_data_keys and not(self.__fullyParsed):
                 self.__readAll()
             if shortkey in self.data_keys:
+                if shortkey == "TY name":
+                    return parseB.type_translation(
+                        self.data["TY number"])["short name"]
                 return self.data[shortkey]
             if shortkey == "p":
                 return self.PAR
@@ -522,6 +528,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __copy__(self):
         new = self.__class__(self)
         new.data = new.data.copy()
+        new.PAR = AUTOParameters(new.PAR)
         new.PAR.coordarray = Points.array(new.PAR.coordarray)
         return new
 
@@ -689,7 +696,6 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             self["BR"] = int(data[0])
             self["PT"] = int(data[1])
             self["TY number"] = int(data[2])
-            self["TY name"] = parseB.type_translation(int(data[2]))["short name"]
             self["LAB"] = int(data[3])
             self.__numChangingParameters = int(data[4])
             self["ISW"] = int(data[5])
@@ -793,7 +799,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             self["udotps"]._dims = None
             j = j + n * nrows
 
-        self.PAR.__init__(coordarray=fdata[j:j+self.__numFreeParameters])
+        self.PAR = AUTOParameters(coordnames=self.__parnames,
+                               coordarray=fdata[j:j+self.__numFreeParameters])
         Points.Pointset.__init__(self,{
                 "indepvararray": self.indepvararray,
                 "indepvarname": self.indepvarname,

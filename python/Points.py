@@ -600,6 +600,9 @@ class Point(object):
             if s1 < 0 or s2 > self.dimension or s1 >= self.dimension:
                 raise ValueError("Slice index out of range")
             return range(s1, s2, s3)
+        elif isinstance(x,int):
+            raise IndexError("Invalid index: %d"%x + \
+                             " -- coord names are: %s"%str(self.coordnames))
         else:
             raise ValueError("Invalid coordinate / index: %s"%str(x) + \
                              " -- coord names are: %s"%str(self.coordnames))

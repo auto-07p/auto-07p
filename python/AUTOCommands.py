@@ -505,11 +505,16 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             n1b = self.name1["bifurcationDiagram"]
             n1s = self.name1["solution"]
             n1d = self.name1["diagnostics"]        
-            self.parsed.writeFilename(n1b,n1s,n1d)
-            if len(self.parsed) == 0 or len(self.parsed[0]) == 0:
-                msg = "Saving to %s ... done\n"%(n1s)
-            else:
+            if (isinstance(self.parsed,bifDiag.bifDiag) and
+                len(self.parsed) > 0 and len(self.parsed[0]) > 0):
+                self.parsed.writeFilename(n1b,n1s,n1d)
                 msg = "Saving to %s, %s and %s ... done\n"%(n1b,n1s,n1d)
+            else:
+                if (type(self.parsed) == type([]) and
+                    isinstance(self.parsed[0], parseS.AUTOSolution)):
+                    self.parsed = parseS.parseS(self.parsed)
+                self.parsed.writeFilename(n1s)
+                msg = "Saving to %s ... done\n"%(n1s)
             rval.info(msg)
             return rval
         

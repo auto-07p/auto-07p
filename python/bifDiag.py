@@ -74,7 +74,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     branch.coordnames = []
                     branch.headernames = []
                     branch.headerlist = []
-                    branch.c = s.c
+                    branch.c = s.options["constants"]
                     labels = {}
                     i = 0
                 pt = s["Point number"]
