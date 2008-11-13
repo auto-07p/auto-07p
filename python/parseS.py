@@ -307,9 +307,9 @@ class AUTOParameters(Points.Point):
             self.dimension = 0
             self.parnames = []
             return
-        coordnames = kw.get("coordnames",[])
-        if kw.has_key("coordarray") and coordnames == []:
-            self.parnames = coordnames[:]
+        coordnames = kw.get("coordnames",[])[:]
+        self.parnames = coordnames[:]
+        if kw.has_key("coordarray"):
             for i in range(len(coordnames),len(kw["coordarray"])):
                 coordnames.append("PAR("+str(i+1)+")")
             kw["coordtype"] = Points.float64
@@ -355,9 +355,13 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __init__(self,input=None,offset=None,name=None,**kw):
         if isinstance(input,self.__class__):
             apply(runAUTO.runAUTO.__init__,(self,input),kw)
+            if kw == {}:
+                #otherwise already copied
+                self.options = self.options.copy()
+            self.options["solution"] = self
             return
 	UserDict.UserDict.__init__(self)
-        runAUTO.runAUTO.__init__(self)
+        runAUTO.runAUTO.__init__(self,solution=self)
         self.__start_of_header = None
         self.__start_of_data   = None
         self.__end              = None
@@ -537,8 +541,14 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
     def has_key(self,key):
         return (key == "data" or self.long_data_keys.has_key(key) or
-                self.data.has_key(key) or
+                (not self.__fullyParsed and key in self.data_keys) or
+                (self.__fullyParsed and self.data.has_key(key)) or
                 Points.Pointset.has_key(self,key))
+
+    def get(self, key, failobj=None):
+        if self.has_key(key):
+            return self[key]
+        return failobj
 
     def type(self):
 	return parseB.type_translation(self["Type number"])["long name"]
@@ -560,6 +570,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         irs = 0
         if self.options["constants"] is not None:
             irs = self.options["constants"].get("IRS",0)
+            if irs is None:
+                irs = 0
         if c.get("IRS",irs) != self["LAB"]:
             c["IRS"] = -1
         return apply(runAUTO.runAUTO.run,(self,),c)
@@ -807,6 +819,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
                 "name": self.name})
+        del self.__data
 
     def __getattr__(self,attr):
         c = self.options["constants"]

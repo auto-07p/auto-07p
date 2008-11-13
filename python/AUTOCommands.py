@@ -1130,6 +1130,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 except IOError:
                     object = None
                 kw["bifurcationDiagram"] = object
+        irs = -1
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
                 wantread = True
@@ -1138,20 +1139,34 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     doneread = True
                 except IOError:
                     del kw["constants"]
+            irs = kw.get("constants",{}).get("IRS",-1)
+            if irs is None:
+                irs = -1
+        irs = kw.get("IRS",irs)
+        #if IRS was explicitly set to 0, then wipe out the solution
+        #as it is irrelevant
+        if irs == 0:
+            self.runner.options["solution"] = None
         if kw.has_key("solution"):
             # wipe out b/d from current runner options if not explicitly given
             for other in ["bifurcationDiagram", "diagnostics"]:
                 if not kw.has_key(other): kw[other] = None
-            if type(kw["solution"]) == types.StringType:
+            if type(kw["solution"]) == types.StringType and irs != 0:
                 wantread = True
-                object = parseS.parseS()
                 try:
+                    object = parseS.parseS()
                     apply(object.readFilename,(kw["solution"],),kw)
                     doneread = True
                 except IOError:
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
                     object = None
                 kw["solution"] = object
+            elif irs == 0:
+                sol = kw["solution"]
+                if (isinstance(sol, (parseS.parseS, runAUTO.runAUTO,
+                                     types.StringType)) or
+                    isinstance(sol[0], parseS.AUTOSolution)):
+                    del kw["solution"]
         if kw.has_key("homcont"):
             if type(kw["homcont"]) == types.StringType:
                 wantread = True

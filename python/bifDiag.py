@@ -165,6 +165,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         irs = 0
         if self.options["constants"] is not None:
             irs = self.options["constants"].get("IRS",0)
+            if irs is None:
+                irs = 0
         irs = c.get("IRS",irs)
         if len(solutions) == 1:
             return solutions[0].run()
