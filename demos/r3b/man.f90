@@ -41,32 +41,7 @@
 
  END SUBROUTINE FUNC
 !---------------------------------------------------------------------- 
- SUBROUTINE STPNT(NDIM,U,PAR,T)
-!---------- -----
-
-   IMPLICIT NONE
-   INTEGER, INTENT(IN) :: NDIM
-   DOUBLE PRECISION, INTENT(IN) :: T
-   DOUBLE PRECISION, INTENT(OUT) :: U(NDIM), PAR(*)
-
-   INTEGER, SAVE :: IFirst
-   DOUBLE PRECISION eps
-
-   IF(IFirst.NE.12345)THEN
-      IFirst=12345
-      OPEN(13,FILE='man.dat',STATUS='old',ACCESS='sequential')
-      READ(13,*)PAR(2),PAR(3),PAR(6),PAR(25:36)
-      CLOSE(13)
-   ENDIF
-
-   eps=PAR(6)
-!  PAR(25:30) are USTART and PAR(31:36) are VSTART
-   U = PAR(25:25+NDIM-1) + eps*PAR(31:31+NDIM-1)
-
-   PAR(12)=0.d0
-
-   PAR(21:23)=U(1:3)
-
+ SUBROUTINE STPNT
  END SUBROUTINE STPNT
 !---------------------------------------------------------------------- 
  SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)

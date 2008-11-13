@@ -1,7 +1,8 @@
 from AUTOclui import *
 import sys
 
-def get(s,label,step,floquet=None):
+def get(sfile,label,step,floquet=None):
+    s = load(s=sfile)
     solution = rl(s([label]))(1)
     if floquet is None:
         floquet = solution['PAR(4)']
@@ -12,7 +13,8 @@ def get(s,label,step,floquet=None):
     return solution
 
 def make_s(sfile,label,step,floquet=None):
-    save(get(load(s=sfile),label,step,floquet),'s.ext')
+    solution = get(sfile,label,step,floquet)
+    save(solution,'s.ext')
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

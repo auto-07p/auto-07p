@@ -6,24 +6,23 @@
 import compute_lps,ext,data,os
 
 if not os.path.exists('s.H1'):
-    execfile('r3b.auto')
+    auto('r3b.auto')
 
 print "\n***Add the zero adjoint variable***"
-ext.make_s('H1',3,-1e-5)
+sext = ext.get('H1',3,-1e-5)
 
 print "\n*** Compute the Floquet eigenfunction***"
-run(c='flq',e='flq',s='ext',sv='flq')
+flq = run(sext,e='flq',c='flq',sv='flq')
 
 print "\n*** Extract data for the selected orbit from s.flq***"
-data.create()
+startman = data.get(flq('UZ'))
 
 print "\n*** Time integration using continuation***"
-ld(e='man',c='man.H1b.0')
-run(sv='startH1b')
+startH1b = run(startman,e='man',c='man.H1b.0',sv='startH1b')
 
 print "\n*** Compute the unstable manifold***"
-run(c='man.H1b.1',s='startH1b',sv='H1b')
-rl('H1b')
+H1b = run(startH1b,c='man.H1b.1')
+save(rl(H1b),'H1b')
 
 print "\n***Clean the directory***"
 cl()
