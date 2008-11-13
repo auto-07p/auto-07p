@@ -73,6 +73,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     branch.coordarray = []
                     branch.coordnames = []
                     branch.headernames = []
+                    branch.headerlist = []
                     branch.c = s.c
                     labels = {}
                     i = 0
@@ -199,7 +200,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             self().write(fort8_output)
         if fort9_output is not None:
             for d in self:
-                if hasattr(d,"diagnostics"):
+                if hasattr(d,"diagnostics") and d.diagnostics != []:
                     d.diagnostics.write(fort9_output)
 
     def readFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
@@ -219,13 +220,13 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         #if only one filename is given, then just save the solutions file
         if fort8_filename is None:
             fort8_filename = fort7_filename
-        else:
+        elif len(self) > 0 and len(self[0]) > 0:
             parseB.parseBR.writeFilename(self,fort7_filename,append)
         if fort8_filename != '':
             self().writeFilename(fort8_filename,append)
         if not fort9_filename is None:
             for d in self:
-                if hasattr(d,"diagnostics"):
+                if hasattr(d,"diagnostics") and d.diagnostics != []:
                     d.diagnostics.writeFilename(fort9_filename,append)
                     append=True
 

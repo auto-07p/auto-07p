@@ -3,17 +3,18 @@
 # Lagrange points.
 
 from AUTOclui import *
-import parseD,math,sys
+import math,sys,copy
 
-def write_lagrange(x, i, output):
+def write_lagrange(x, i):
     # When we determine which Lagrange point we have we save it.
     periods = []
     x["Type number"] = 3 #HB
     print "L"+str(i)+":"
-    for imagv in [x["p"][4], x["p"][5], x["p"][6]]:
+    for imagv in [x.PAR(5), x.PAR(6), x.PAR(7)]:
         if imagv != 0:
             periods.append(2*math.pi/imagv)
     periods.sort()
+    list = []
     for j in range(len(periods)):
         period = periods[j]
         label = (i-1)*2+j+1
@@ -24,37 +25,36 @@ def write_lagrange(x, i, output):
 	    2*math.pi/period, period)
         x["Label"] = label
         x["Branch number"] = i*10+j+1
-        x["p"][10] = period
-        x.write(output)
+        x["PAR(11)"] = period
+        list.append(x.copy())
+    return list
 
 def compute(m=0.063):
     # m is the desired mass ratio
 
+    # Compute the circle.
     # Load r3b.f and c.r3b into the AUTO CLUI
-    load('r3b',c='r3b')
-
     # Add a stopping condition so we only compute the loop once
     # We tell AUTO to stop when parameter 16 is 0.991, parameter 2 is -0.1,
     # or parameter 2 is 1.1.  If parameter2 is m we just report
     # a point.
-    cc('UZR',[[-16,0.991],
-              [-2,-0.1],
-              [2,m],
-              [-2,1.1]])
-
-    # Compute the circle.
-    run()
+    # This command also parses the solution file fort.8 and returns
+    # a Python object which contains all of the data in the
+    # file in an easy to use format.
+    data = run('r3b',c='r3b',
+               UZR=[[-16,0.991],
+                    [-2,-0.1],
+                    [2,m],
+                    [-2,1.1]])
 
     # Extract the 5 Lagrange points for each of the branches
     # which we will use in later calculations.
 
-    # This command parses the solution file fort.8 and returns
-    # a Python object which contains all of the data in the
-    # file in an easy to use format.
-    data=sl()
-
     # For every user defined point the fort.8 file...
-    uzpoints = map(data, splabs(data, "UZ"))
+    uzpoints = data(["UZ"])
+    # Get rid of the first UZ point if it is on branch 1 (it's a stop)
+    if uzpoints[0]["BR"] == 1:
+        del uzpoints[0]
     # We look at the value of one of the components
     # to determine which Lagrange point it is.
 
@@ -77,11 +77,12 @@ def compute(m=0.063):
         return 1
     lp = map(select_lp, uzpoints)
 
-    output = open("s.start","w")
+    start = []
     for i in range(1,6):
-        write_lagrange(uzpoints[lp.index(i)], i, output)
-    output.close()
-    print "Written to s.start"
+        start = start + write_lagrange(uzpoints[lp.index(i)], i)
+    start = load(s=start)
+    save(start,'start')
+    return start
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

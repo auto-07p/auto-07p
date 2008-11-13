@@ -519,6 +519,15 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             return ret
         return SLPoint(ret, self, key)
 
+    def __copy__(self):
+        new = self.__class__(self)
+        new.data = new.data.copy()
+        new.PAR.coordarray = Points.array(new.PAR.coordarray)
+        return new
+
+    def copy(self):
+        return self.__copy__()
+
     def has_key(self,key):
         return (key == "data" or self.long_data_keys.has_key(key) or
                 self.data.has_key(key) or

@@ -506,7 +506,11 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             n1s = self.name1["solution"]
             n1d = self.name1["diagnostics"]        
             self.parsed.writeFilename(n1b,n1s,n1d)
-            rval.info("Saving to %s, %s and %s ... done\n"%(n1b,n1s,n1d))
+            if len(self.parsed) == 0 or len(self.parsed[0]) == 0:
+                msg = "Saving to %s ... done\n"%(n1s)
+            else:
+                msg = "Saving to %s, %s and %s ... done\n"%(n1b,n1s,n1d)
+            rval.info(msg)
             return rval
         
         i = 7
@@ -1170,8 +1174,9 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             self.runner.config(dict)
             options = self.runner.options.copy()
             sol = options["solution"]
-            if not isinstance(sol,
-                            (parseS.parseS, runAUTO.runAUTO, type(None))):
+            if (not isinstance(sol,
+                            (parseS.parseS, runAUTO.runAUTO, type(None))) and
+                not isinstance(sol[0], parseS.AUTOSolution)):
                 data = apply(parseS.AUTOSolution,(dict["solution"],),dict)
                 data.config(options)
                 data.options["solution"] = data
