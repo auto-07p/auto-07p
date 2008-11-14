@@ -155,7 +155,7 @@ CONTAINS
           CALL SOLVAE(IAP,RAP,DSOLD,PAR,ICP,FUNI,RDS,AA,U,UOLD,UDOT,THU,NIT,&
                ISTOP,ISW<0)
 
-          IF(ISW<0)THEN
+          IF(ISW<0.OR.ISTOP/=0)THEN
              IF(ABS(IPS).EQ.1)THEN
                 ! Get stability
                 REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
