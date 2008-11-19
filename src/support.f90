@@ -489,7 +489,7 @@ END MODULE SUPPORT
        ELSE
           GETP=AIMAG(EVV(IC/2))
        ENDIF
-    CASE('NDI','ndi')
+    CASE('NDI','ndi','NDX','ndx')
        GETP=NDIM
     CASE('NTS','nts')
        GETP=NTST

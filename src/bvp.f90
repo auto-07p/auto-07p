@@ -170,9 +170,8 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD,RLDOT, &
+    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNT,PVLI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
-    CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
 
 !     don't set global rotations here for homoclinics, but in autlib5.f
     IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST*NCOL,NDIM,UPS,PAR)
@@ -602,7 +601,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNT,RLCUR,RLOLD, &
+  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNT,PVLI,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
@@ -616,7 +615,7 @@ CONTAINS
 ! If IRS=0 then the starting point must be provided analytically in the
 ! user-supplied subroutine STPNT.
 
-    EXTERNAL FUNI, STPNT
+    EXTERNAL FUNI, STPNT, PVLI
 
     DIMENSION IAP(*)
     DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*),UDOTPS(NDIM,0:*)
@@ -659,6 +658,8 @@ CONTAINS
 
 ! Set UOLDPS, RLOLD.
 
+    ! call PVLS here the first time so the parameters can be initialized
+    CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
        RLOLD(I)=RLCUR(I)
