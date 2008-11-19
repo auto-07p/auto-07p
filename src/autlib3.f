@@ -2859,8 +2859,7 @@ C
 C
 C Rotations
        IF(IRTN.NE.0)THEN
-         NBC0=IAP(24)
-         DO I=1,NBC0
+         DO I=1,NBC/2
            IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
          ENDDO
        ENDIF
@@ -2894,21 +2893,19 @@ C
       DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
 C Local
-      ALLOCATABLE DFU(:),DFP(:),F1(:),F2(:),DNT(:,:)
+      ALLOCATABLE DFU(:),DFP(:),F1(:),F2(:)
       NPAR=IAP(31)
-      ALLOCATE(DNT(NINT,NDIM+NPAR),DFU(NDIM*NDIM),DFP(NDIM*NPAR))
+      ALLOCATE(DFU(NDIM*NDIM),DFP(NDIM*NPAR))
 C
        NDM=IAP(23)
-       NNT0=IAP(25)
        NFPR=IAP(29)
 C
 C Generate the function.
 C
-       CALL FIPO(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     *  UPOLD,F,DNT,NDM,DFU,DFP)
+       CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
-         DEALLOCATE(DNT,DFU,DFP)
+         DEALLOCATE(DFU,DFP)
          RETURN
        ENDIF
 C
@@ -2925,11 +2922,9 @@ C
        DO I=1,NDIM
          UU=U(I)
          U(I)=UU-EP
-         CALL FIPO(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     *    UPOLD,F1,DNT,NDM,DFU,DFP)
+         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FIPO(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     *    UPOLD,F2,DNT,NDM,DFU,DFP)
+         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F2,NDM,DFU,DFP)
          U(I)=UU
          DO J=1,NINT
            DINT(J,I)=(F2(J)-F1(J))/(2*EP)
@@ -2938,27 +2933,26 @@ C
 C
        DO I=1,NFPR
          PAR(ICP(I))=PAR(ICP(I))+EP
-         CALL FIPO(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
-     *    UPOLD,F1,DNT,NDM,DFU,DFP)
+         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(F1(J)-F(J))/EP
          ENDDO
          PAR(ICP(I))=PAR(ICP(I))-EP
        ENDDO
 C
-       DEALLOCATE(DNT,F1,F2,DFU,DFP)
+       DEALLOCATE(F1,F2,DFU,DFP)
       RETURN
       END SUBROUTINE ICPO
 C
 C     ---------- ----
-      SUBROUTINE FIPO(IAP,PAR,ICP,NINT,NNT0,
-     * U,UOLD,UDOT,UPOLD,FI,DINT,NDMT,DFDU,DFDP)
+      SUBROUTINE FIPO(IAP,PAR,ICP,NINT,
+     * U,UOLD,UDOT,UPOLD,FI,NDMT,DFDU,DFDP)
 C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C
       DIMENSION IAP(*),ICP(*),PAR(*)
-      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*),DINT(NNT0,*)
+      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
       DIMENSION DFDU(NDMT,NDMT),DFDP(NDMT,*)
 C
 C Local
@@ -3212,7 +3206,7 @@ C Local
       ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
 C
        NDM=IAP(23)
-       NBC0=IAP(24)
+       NBC0=NBC/2
        NFPR=IAP(29)
        NPAR=IAP(31)
        ALLOCATE(DFU(NBC0,2*NDM+NPAR))
@@ -3335,7 +3329,7 @@ C Local
       ALLOCATABLE UU1(:),UU2(:),FF1(:),FF2(:),DFU(:,:)
 C
        NDM=IAP(23)
-       NNT0=IAP(25)
+       NNT0=(NINT-1)/2
        NFPR=IAP(29)
        NPAR=IAP(31)
        ALLOCATE(DFU(NNT0,NDM+NPAR))
@@ -3680,8 +3674,6 @@ C
        ISW=IAP(10)
        NINT=IAP(13)
        NDM=IAP(23)
-C      NBC0=IAP(24)
-C      NNT0=IAP(25)
        NFPR=IAP(29)
        NPAR=IAP(31)
 C

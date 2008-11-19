@@ -789,8 +789,6 @@ C
       LAB=0
 C
       IAP(23)=NDM
-      IAP(24)=NBC0
-      IAP(25)=NNT0
       IAP(26)=IUZR
       IAP(27)=ITP
       IAP(28)=ITPST
