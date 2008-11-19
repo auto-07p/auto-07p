@@ -5,15 +5,20 @@ module autompi
 implicit none
 private
 public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti, mpiscat
-public :: mpigat, mpiend, mpitim, partition
+public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
-subroutine mpiini(iap)
-  integer iap(*)
-  iap(38) = 0 ! IAM
-  iap(39) = 1 ! KWT
+subroutine mpiini()
 end subroutine mpiini
+
+integer function mpiiam()
+  mpiiam = 0
+end function mpiiam
+
+integer function mpikwt()
+  mpikwt = 1
+end function mpikwt
 
 subroutine mpiiap(iap)
   integer iap(*)

@@ -58,8 +58,8 @@ C 1 (since their entries will then be recreated in conpar
 C  and setubv).
 C
 C
-      IAM=IAP(38)
-      KWT=IAP(39)
+      IAM=MPIIAM()
+      KWT=MPIKWT()
 C
       NDIM=IAP(1)
       NTST=IAP(5)

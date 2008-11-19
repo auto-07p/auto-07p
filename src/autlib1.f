@@ -15,16 +15,15 @@ C
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
-      INTEGER I,IAM,LINE,ios
+      INTEGER I,LINE,ios
       INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
       CHARACTER(256) :: SOLFILE, BIFFILE, DIAFILE
 C
 C Initialization :
 C
-       CALL MPIINI(IAP)
-       IAM=IAP(38)
-       IF(IAM/=0)THEN
+       CALL MPIINI()
+       IF(MPIIAM()/=0)THEN
          CALL MPIWORKER(IAP)
          STOP
        ENDIF
@@ -46,7 +45,7 @@ C
 C
        EOF=.FALSE.
        LINE=0
- 1     IF(IAP(39).GT.1)THEN
+ 1     IF(MPIKWT()>1)THEN
          CALL MPITIM(TIME0)
        ELSE
          TIME0=AUTIM()
@@ -74,11 +73,11 @@ C$       TIME0=omp_get_wtime()
        DO I=1,SIZE(ICU)
           IICU(I)=NAMEIDX(ICU(I),PARNAMES)
        ENDDO
-       CALL AUTOI(IAP,RAP,IICU)
+       CALL AUTOI(IAP,RAP,IICU,.FALSE.)
        DEALLOCATE(IICU)
 C-----------------------------------------------------------------------
 C
-      IF(IAP(39).GT.1)THEN
+      IF(MPIKWT()>1)THEN
         CALL MPITIM(TIME1)
       ELSE
         TIME1=AUTIM()
@@ -121,7 +120,7 @@ C     ---------- ---------
          IAP(10) = ISW
          IAP(27) = FUNI_ICNI_PARAMS(4) ! itp
          IAP(29) = FUNI_ICNI_PARAMS(5) ! nfpr
-         CALL AUTOI(IAP,RAP,ICU)
+         CALL AUTOI(IAP,RAP,ICU,.TRUE.)
          ! autoi calls autobv which eventually calls solvbv;
          ! a return means another init message
       ENDDO
@@ -191,7 +190,7 @@ C
       END FUNCTION
 
 C     ---------- -----
-      SUBROUTINE AUTOI(IAP,RAP,ICU)
+      SUBROUTINE AUTOI(IAP,RAP,ICU,WORKER)
 C
       USE INTERFACES
       USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,UNAMES,
@@ -202,6 +201,7 @@ C
 C
       IMPLICIT NONE
       INTEGER IAP(*),ICU(:)
+      LOGICAL WORKER
       DOUBLE PRECISION RAP(*)
 
       INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,I,J
@@ -214,7 +214,7 @@ C
       ITP=IAP(27)
       NFPRPREV=IAP(29)
 C
-      IF(IAP(38)==0)THEN
+      IF(.NOT.WORKER)THEN
         NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
         ALLOCATE(ICP(NNICP))
         ICP(:SIZE(ICU))=ICU(:)
@@ -499,9 +499,7 @@ C
 C Error Message.
  500  FORMAT(' Initialization Error')
 C
-      IF(IAP(38)==0)THEN
-         DEALLOCATE(ICP,PAR,THL,THU,IUZ,VUZ)
-      ENDIF
+      DEALLOCATE(ICP,PAR,THL,THU,IUZ,VUZ)
 
       END SUBROUTINE AUTOI
 C-----------------------------------------------------------------------
@@ -801,8 +799,8 @@ C
       IAP(31)=NPAR
       IAP(32)=NTOT
       IAP(33)=NINS
-      IAP(37)=LAB
-      IAP(41)=NICP
+      IAP(34)=LAB
+      IAP(35)=NICP
 C
       RAP(1)=DS
       RAP(2)=ABS(DSMIN)
@@ -977,7 +975,7 @@ C
        NMX=IAP(14)
        ITP=IAP(27)
        NFPR=IAP(29)
-       NICP=IAP(41)
+       NICP=IAP(35)
 C
        DS=RAP(1)
        DSMIN=RAP(2)
@@ -1365,7 +1363,7 @@ C
        IAP(13)=NINT
        IAP(14)=NMX
        IAP(29)=NFPR
-       IAP(41)=NICP
+       IAP(35)=NICP
 C
        RAP(1)=DS
        RAP(2)=DSMIN

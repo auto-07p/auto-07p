@@ -28,11 +28,11 @@ CONTAINS
 
     EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
 
-    IF(IAP(38).GT.0)THEN
+    IF(MPIIAM()>0)THEN
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
        DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(IAP(38),IAP(39),FUNI,ICNI,BCNI)
+          CALL mpi_setubv_worker(FUNI,ICNI,BCNI)
        ENDDO
        RETURN
     ENDIF
@@ -42,7 +42,7 @@ CONTAINS
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(iam,kwt,funi,icni,bcni)
+  subroutine mpi_setubv_worker(funi,icni,bcni)
     use autompi
     use solvebv
     implicit none
@@ -62,8 +62,8 @@ CONTAINS
     double precision :: dum,dum1(1),det
 
     call mpibcasti(iap,NIAP)
-    iap(38)=iam
-    iap(39)=kwt
+    iam=mpiiam()
+    kwt=mpikwt()
 
     ndim=iap(1)
     ntst=iap(5)
@@ -819,7 +819,7 @@ CONTAINS
     IBR=1
     IAP(30)=IBR
     LAB=0
-    IAP(37)=LAB
+    IAP(34)=LAB
 
     NODIR=1
 
@@ -1611,9 +1611,9 @@ CONTAINS
 
     LABW=0
     IF(MOD(ITP,10).NE.0) THEN
-       LAB=IAP(37)
+       LAB=IAP(34)
        LAB=LAB+1
-       IAP(37)=LAB
+       IAP(34)=LAB
        LABW=LAB
     ENDIF
 
@@ -1714,7 +1714,7 @@ CONTAINS
     IBR=IAP(30)
     NPAR=IAP(31)
     NTOT=IAP(32)
-    LAB=IAP(37)
+    LAB=IAP(34)
 
 ! Write information identifying the solution :
 

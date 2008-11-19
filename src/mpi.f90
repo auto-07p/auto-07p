@@ -22,24 +22,22 @@ implicit none
 private
 
 public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti, mpiscat
-public :: mpigat, mpiend, mpitim, partition
+public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
-subroutine mpiini(iap)
+subroutine mpiini()
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer ierr,iam,namelen,iap(*)
+  integer ierr,iam,namelen
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
   integer :: message_type
 
   call MPI_Init(ierr)
-  call MPI_Comm_size(MPI_COMM_WORLD,iap(39),ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  iap(38) = iam
   call MPI_Get_processor_name(processor_name,namelen,ierr)
 !  print *,'Process ',iam,' on ',processor_name
   if(iam/=0)then
@@ -51,6 +49,20 @@ subroutine mpiini(iap)
  endif
 
 end subroutine mpiini
+
+integer function mpiiam()
+  include 'mpif.h'
+
+  integer ierr
+  call MPI_Comm_rank(MPI_COMM_WORLD,mpiiam,ierr)
+end function mpiiam
+
+integer function mpikwt()
+  include 'mpif.h'
+
+  integer ierr
+  call MPI_Comm_size(MPI_COMM_WORLD,mpikwt,ierr)
+end function mpikwt
 
 subroutine mpiiap(iap)
   include 'mpif.h'
@@ -196,7 +208,7 @@ subroutine mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
-  iam=iap(38)
+  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   if(iam==0)then
      ! Send message to get worker into setubv mode
      call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &

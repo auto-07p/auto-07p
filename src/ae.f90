@@ -27,7 +27,7 @@ CONTAINS
 
     EXTERNAL FUNI,STPNT
 
-    IF(IAP(38)>0)THEN
+    IF(MPIIAM()>0)THEN
        IF(MPIWFI(.FALSE.))THEN
           RETURN
        ENDIF
@@ -83,7 +83,7 @@ CONTAINS
     NBIF=0
     IPOS=.TRUE.
     LAB=0
-    IAP(37)=LAB
+    IAP(34)=LAB
 
     DO I=1,NDIM
        U(I)=0.d0
@@ -1181,9 +1181,9 @@ CONTAINS
 
     LABW=0
     IF(MOD(ITP,10).NE.0)THEN
-       LAB=IAP(37)
+       LAB=IAP(34)
        LAB=LAB+1
-       IAP(37)=LAB
+       IAP(34)=LAB
        LABW=LAB
     ENDIF
 
