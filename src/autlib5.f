@@ -349,7 +349,7 @@ C        *NFIXED extra boundary conditions for the fixed conditions
      *                    XEQUIB2,ICP,PAR,NDM)
                   ENDIF
                ENDIF
-               FB(JB)=PSIHO(IAP,IFIXED(I),RR,RI,VR,VT,ICP,PAR,U0,U1)
+               FB(JB)=PSIHO(NDM,IFIXED(I),RR,RI,VR,VT,ICP,PAR,U0,U1)
                JB = JB+1 
             ENDDO
          ENDIF
@@ -1556,7 +1556,7 @@ C      *Compute eigenvalues
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
-          ORIENT = PSIHO(IAP,0,RR,RI,V,VT,ICP,PAR,PU0,PU1)
+          ORIENT = PSIHO(NDM,0,RR,RI,V,VT,ICP,PAR,PU0,PU1)
           IF(IID.GE.3)THEN
             IF (ORIENT.LT.0.0D0) THEN
                WRITE(9,102) ORIENT             
@@ -1576,7 +1576,7 @@ C
           ENDIF
           INEIG=1
         ENDIF
-        PAR(20+IPSI(I))=PSIHO(IAP,IPSI(I),RR,RI,V,VT,ICP,PAR,PU0,PU1)
+        PAR(20+IPSI(I))=PSIHO(NDM,IPSI(I),RR,RI,V,VT,ICP,PAR,PU0,PU1)
         IF(IID.GE.3)WRITE(9,104)IPSI(I),PAR(20+IPSI(I))
       ENDDO
 C  
@@ -1591,7 +1591,7 @@ C
       END SUBROUTINE PVLSHO
 C
 C     -------- ------- -------- -----
-      DOUBLE PRECISION FUNCTION PSIHO(IAP,IS,RR,RI,V,VT,ICP,PAR,PU0,PU1)
+      DOUBLE PRECISION FUNCTION PSIHO(NDM,IS,RR,RI,V,VT,ICP,PAR,PU0,PU1)
 C
 C The conditions for degenerate homoclinic orbits are given by PSI(IS)=0.
 C 
@@ -1603,12 +1603,10 @@ C In the block ENDPTS are stored the co-ordinates of the left (PU0)
 C and right (PU1) endpoints of the solution (+  vector if that is computed)
 C
       IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION IAP(*),ICP(*),PAR(*),RR(IAP(23),*),RI(IAP(23),*)
-      DIMENSION V(IAP(23),IAP(23),*),VT(IAP(23),IAP(23),*),PU0(*),PU1(*)
+      DIMENSION ICP(*),PAR(*),RR(NDM,*),RI(NDM,*)
+      DIMENSION V(NDM,NDM,*),VT(NDM,NDM,*),PU0(*),PU1(*)
 C Local
       ALLOCATABLE F0(:),F1(:)
-C
-      NDM=IAP(23)
 C
       ALLOCATE(F0(NDM),F1(NDM))
       CALL FUNC(NDM,PU0,ICP,PAR,0,F0,DUM1,DUM2)
