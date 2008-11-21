@@ -621,6 +621,8 @@ CONTAINS
     DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*),UDOTPS(NDIM,0:*)
     DIMENSION TM(0:*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
     DIMENSION THU(*)
+    DOUBLE PRECISION, ALLOCATABLE :: U(:),UDOT(:)
+    INTEGER :: ICPRS(2)
 
     IRS=IAP(3)
     NTST=IAP(5)
@@ -638,14 +640,26 @@ CONTAINS
        NCOLRS=NCOL
     ENDIF
     IF(NCOLRS*NTSRS==0)THEN
+       ALLOCATE(U(NDIM),UDOT(NDIM+1))
+       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+
+! Generate the (initially uniform) mesh.
+
+       CALL MSH(NTST,TM)
+
+       DO J=0,NTST*NCOL
+          UPS(:,J)=U(:)
+       ENDDO
+
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
           ! Hopf bifurcation
-          CALL STHOPF(IAP,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
-               NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
+          CALL STHOPF(IAP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
+               NDIM,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
        ELSE
-          WRITE(6,"(A)")"The restart label is not a Hopf bifurcation."
-          STOP
+          ! else we just use the uniform mesh with no direction given
+          NODIR=1
        ENDIF
+       DEALLOCATE(U,UDOT)
     ELSE
        CALL STPNT(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
     ENDIF
@@ -826,8 +840,8 @@ CONTAINS
   END SUBROUTINE STPNUB
 
 ! ---------- ------
-  SUBROUTINE STHOPF(IAP,PAR,ICP,NTST,NCOL, &
-       NFPR,RLDOT,NDIM,UPS,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
+  SUBROUTINE STHOPF(IAP,U,PAR,ICP,NTST,NCOL, &
+       NFPR,RLDOT,NDIM,UDOTPS,UPOLDP,TM,NODIR,THU,FUNI)
 
     USE IO
     USE MESH
@@ -837,19 +851,15 @@ CONTAINS
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
 
-    DIMENSION PAR(*),ICP(*),IAP(*),RLDOT(*),THU(*)
-    DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
+    DIMENSION U(NDIM),PAR(*),ICP(*),IAP(*),RLDOT(*),THU(*)
+    DIMENSION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
     EXTERNAL FUNI
 ! Local
-    ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),U(:),UDOT(:), DTM(:)
+    ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),DTM(:)
     DOUBLE PRECISION DUMDFP(1),UOLD(1)
-    INTEGER :: ICPRS(2)
     DOUBLE PRECISION THL(2)
 
-    ALLOCATE(DFU(NDIM,NDIM),F(NDIM),U(NDIM),UDOT(NDIM+1))
-    ALLOCATE(RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
-
-    CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+    ALLOCATE(DFU(NDIM,NDIM),F(NDIM),RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 
     PERIOD=PAR(11)
     TPI=PI(2.d0)
@@ -871,17 +881,12 @@ CONTAINS
     CALL NLVC(2*NDIM,2*NDIM,2,SMAT,RNLLV)
     CALL NRMLZ(2*NDIM,RNLLV)
 
-! Generate the (initially uniform) mesh.
-
-    CALL MSH(NTST,TM)
-
     DO J=0,NTST*NCOL
        T=J*TPI/(NTST*NCOL)
        S=SIN(T)
        C=COS(T)
        UDOTPS(:,J)=S*RNLLV(1:NDIM)+C*RNLLV(NDIM+1:2*NDIM)
        UPOLDP(:,J)=C*RNLLV(1:NDIM)-S*RNLLV(NDIM+1:2*NDIM)
-       UPS(:,J)=U(:)
     ENDDO
 
     RLDOT(1:2)=0.d0
@@ -894,7 +899,7 @@ CONTAINS
 
     NODIR=-1
 
-    DEALLOCATE(DFU,F,U,UDOT,RNLLV,SMAT,DTM)
+    DEALLOCATE(DFU,F,RNLLV,SMAT,DTM)
   END SUBROUTINE STHOPF
 
 ! ---------- ------
