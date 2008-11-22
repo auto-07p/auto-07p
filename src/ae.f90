@@ -53,6 +53,7 @@ CONTAINS
 ! Local
     ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS,CHNG,FOUND
+    INTEGER STOPCNTS(-9:9)
 
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -115,6 +116,7 @@ CONTAINS
 
        NTOT=0
        IAP(32)=NTOT
+       STOPCNTS(:)=0
        ISTOP=0
        NIT=0
 
@@ -187,7 +189,7 @@ CONTAINS
                 IF(FOUND.AND.ISTOP.EQ.0)THEN
                    ITP=-4-10*ITPST
                    IAP(27)=ITP
-                   IF(IUZ(IUZR).GT.0)THEN
+                   IF(IUZ(IUZR)>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                       DO K=1,NUZR
                          UZR(K)=0.d0
                       ENDDO
@@ -206,7 +208,7 @@ CONTAINS
              IF(FOUND) THEN
                 ITP=2+10*ITPST
                 IAP(27)=ITP
-                IF(ILP.GT.0)THEN
+                IF(ILP.GT.0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    RLP=0.d0
                    RBP=0.d0
                    REV=0.d0
@@ -225,7 +227,7 @@ CONTAINS
              IF(FOUND)THEN
                 ITP=1+10*ITPST
                 IAP(27)=ITP
-                IF(ISP.GT.0)THEN
+                IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
                    RLP=0.d0
                    RBP=0.d0
@@ -245,9 +247,14 @@ CONTAINS
              IF(FOUND)THEN
                 ITP=3+10*ITPST
                 IAP(27)=ITP
-                RLP=0.d0
-                RBP=0.d0
-                REV=0.d0
+                IF(.NOT.STOPPED(ITP,STOPCNTS))THEN
+                   RLP=0.d0
+                   RBP=0.d0
+                   REV=0.d0
+                ELSE
+!                  *Stop at the found HB
+                   ISTOP=-1
+                ENDIF
              ENDIF
           ELSEIF(ABS(IPS).EQ.1)THEN
 ! Still determine eigenvalue information and stability

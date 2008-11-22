@@ -98,6 +98,7 @@ CONTAINS
 
     USE IO
     USE MESH
+    USE SUPPORT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Controls the computation of solution branches.
@@ -112,6 +113,7 @@ CONTAINS
     ALLOCATABLE UDOTPS(:,:),TM(:),DTM(:)
     ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
     LOGICAL CHNG,FOUND
+    INTEGER STOPCNTS(-9:9)
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -157,6 +159,7 @@ CONTAINS
     NTOT=0
     IAP(32)=NTOT
     ISTOP=0
+    STOPCNTS(:)=0
 
     DO I=1,NFPR
        RLCUR(I)=0.d0
@@ -233,7 +236,7 @@ CONTAINS
              IF(ISTOP.EQ.0.AND.FOUND)THEN
                 ITP=-4-10*ITPST
                 IAP(27)=ITP
-                IF(IUZ(IUZR).GT.0)THEN
+                IF(IUZ(IUZR)>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    DO K=1,NUZR
                       UZR(K)=0.d0
                    ENDDO
@@ -253,7 +256,7 @@ CONTAINS
           IF(FOUND)THEN
              ITP=5+10*ITPST
              IAP(27)=ITP
-             IF(ILP.GT.0)THEN
+             IF(ILP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
                 SP1=0.d0
@@ -273,7 +276,7 @@ CONTAINS
           IF(ISTOP.EQ.0.AND.FOUND)THEN
              ITP=6+10*ITPST
              IAP(27)=ITP
-             IF(ISP.GT.0)THEN
+             IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
                 SP1=0.d0
@@ -294,7 +297,7 @@ CONTAINS
           IF(FOUND)THEN
 !            **Secondary periodic bifurcation: determine type
              CALL TPSPBV(IAP,RAP,PAR,EV)
-             IF(ISP.GT.0)THEN
+             IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
                 SP1=0.d0

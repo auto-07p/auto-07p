@@ -9,7 +9,7 @@ MODULE SUPPORT
 
 IMPLICIT NONE
 PRIVATE
-PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
+PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV, STOPPED
 PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
@@ -399,6 +399,35 @@ CONTAINS
     CALL GELI(N,N,A,NRHS,N,U,N,F,IR,IC,DET,.TRUE.)
     DEALLOCATE(IR,IC)
   END SUBROUTINE GESC
+
+! ------- -------- -------
+  LOGICAL FUNCTION STOPPED(ITP,COUNTS)
+    USE AUTO_CONSTANTS, ONLY : TYSTOP
+    INTEGER, INTENT(IN) :: ITP
+    INTEGER, INTENT(INOUT) :: COUNTS(-9:9)
+
+    ! determine if the given TY labels has been reached n times so
+    ! we need to stop
+    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:9) = &
+         (/ 'MX','  ','  ','  ','  ','UZ','  ','  ','  ', '  ', &
+            'BP','LP','HB','UZ','LP','BP','PD','TR','EP' /)
+    CHARACTER(LEN=2) ATYPE
+    INTEGER NTY,I,M
+
+    NTY=MOD(ITP,10)
+    ATYPE=ATYPES(NTY)
+    STOPPED = .FALSE.
+    DO I=1,SIZE(TYSTOP)
+       IF (TYSTOP(I)(1:2)==ATYPE) THEN
+          COUNTS(NTY)=COUNTS(NTY)+1
+          READ(TYSTOP(I)(3:),*)M
+          IF(COUNTS(NTY)==M)THEN
+             STOPPED=.TRUE.
+          ENDIF
+          EXIT
+       ENDIF
+    ENDDO
+  END FUNCTION STOPPED
 
 END MODULE SUPPORT
 

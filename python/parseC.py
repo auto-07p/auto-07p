@@ -68,7 +68,7 @@ class parseC(UserDict.UserDict):
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
             'sv', 's', 'dat', 'e',
-            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR"]:
+            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
             self[key] = None
 	if filename:
 	    self.readFilename(filename)
@@ -79,7 +79,7 @@ class parseC(UserDict.UserDict):
         return string.getvalue()
 
     def __setitem__(self,key,item):
-        if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
+        if key in ["ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
             l = 0
             if item is not None:
                 l = len(item)
@@ -212,7 +212,7 @@ class parseC(UserDict.UserDict):
                         v0 = value[i]
                     d.append([v0,parseB.AUTOatof(value[i+1])])
                 value = d
-            elif key in ['s','dat','sv','e','U','PAR']:
+            elif key in ['s','dat','sv','e','U','PAR','TYSTOP']:
                 pass
             elif key in self.keys():
                 if key[0] in ['I','J','K','L','M','N']:
@@ -364,6 +364,7 @@ class parseC(UserDict.UserDict):
                 ["DS","DSMIN","DSMAX","IADS"],
                 ["NPAR","THL","THU"],
                 ["UZR"],
+                ["TYSTOP"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
                 ["IREV","IFIXED","IPSI"]]
         else:
@@ -371,6 +372,7 @@ class parseC(UserDict.UserDict):
                 ["e","s","dat","sv"],
                 ["U","PAR"],
                 ["NPAR"],
+                ["TYSTOP"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
                 ["IREV","IFIXED","IPSI"]]
         for line in lines:
@@ -390,7 +392,7 @@ class parseC(UserDict.UserDict):
                     output.write("%-5s="%key)
                 else:
                     output.write("%-4s="%key)
-                if key in ["ICP","IREV","IFIXED","IPSI","U","PAR"]:
+                if key in ["ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
                     output.write("  "+str(value))
                 elif key in ["THL","THU","UZR"]:
                     l=[]

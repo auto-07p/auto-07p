@@ -30,7 +30,7 @@ CONTAINS
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, UNAMES, PARNAMES, &
          NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR
+         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, TYSTOP
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -151,6 +151,13 @@ CONTAINS
        WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   U   = ['",TRIM(UNAMES(1)),"'"
        DO I=2,SIZE(UNAMES)
           WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(UNAMES(I)),"'"
+       ENDDO
+       WRITE(7,"(A)")']'
+    ENDIF
+    IF(SIZE(TYSTOP)>0)THEN
+       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   TYSTOP=['",TRIM(TYSTOP(1)),"'"
+       DO I=2,SIZE(TYSTOP)
+          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(TYSTOP(I)),"'"
        ENDDO
        WRITE(7,"(A)")']'
     ENDIF
