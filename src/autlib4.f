@@ -39,7 +39,6 @@ C  subroutine drot   : apply a plane rotation                      (BLAS-1)
 C  subroutine dswap  : swap two vectors                            (BLAS-1)
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-C  subroutine dgemc  : matrix-matrix copy
 C  subroutine xerbla : BLAS error handling routine                 (BLAS-2)
 C  function   lsame  : compare character strings                   (BLAS-2)
 C-----------------------------------------------------------------------
@@ -89,13 +88,12 @@ C
 C
 C  storage for SVD computations
 C
-      INTEGER           SVDJOB, SVDINF
-      DOUBLE PRECISION  SVDS(:), SVDE(:), SVDWRK(:),
-     &                  SVDU(1,1), SVDV(:,:), SVDTOL
+      INTEGER           SVDINF, SVDLWRK
+      DOUBLE PRECISION  SVDS(:), SVDE(:), SVDWRK(:), SVDV(:,:)
       ALLOCATABLE       C0,C1,RWORK,X,V,SVDS,SVDE,SVDWRK,SVDV
 C  compute right singular vectors only
-      PARAMETER         (SVDTOL = 1.0D-16)
-      PARAMETER         (SVDJOB = 1)
+      CHARACTER(1), PARAMETER :: SVDJOBA = 'G',
+     &     SVDJOBU = 'N', SVDJOBV = 'V'
 C
 C  storage for generalized eigenvalue computations
 C
@@ -113,25 +111,18 @@ C
       DOUBLE PRECISION  DNRM2
       EXTERNAL          DNRM2, DGEMM
 C
-C  routines from EISPACK
+C  routines from LAPACK
 C
-      EXTERNAL          QZHES, QZIT, QZVAL
-C
-C  own routines
-C
-      EXTERNAL          DGEMC
-C
-C  Jim Demmel's svd routine  (demmel@nyu.edu)
-C
-      EXTERNAL          EZSVD
+      EXTERNAL          DGESVJ, DGGEV
 C
 C  builtin F77 functions
 C
       INTRINSIC         MAX, ABS, CMPLX
 C
+      SVDLWRK = MAX(6,2*NDIM)
       ALLOCATE(C0(NDIM,NDIM),C1(NDIM,NDIM),RWORK(NDIM,NDIM))
       ALLOCATE(SVDE(NDIM),SVDS(NDIM+1),SVDV(NDIM,NDIM),V(NDIM),X(NDIM))
-      ALLOCATE(QZALFI(NDIM),QZBETA(NDIM),QZALFR(NDIM),SVDWRK(NDIM))
+      ALLOCATE(QZALFI(NDIM),QZBETA(NDIM),QZALFR(NDIM),SVDWRK(SVDLWRK))
 C
 C Change sign of P1 so that we get the sign of the multipliers right.
 C
@@ -179,8 +170,8 @@ C  not it the first column, as was shown in the paper.
 C
       RWORK = C0 - C1
 C
-      CALL EZSVD ( RWORK, NDIM, NDIM, NDIM, SVDS, SVDE, SVDU, 1,
-     &             SVDV, NDIM, SVDWRK, SVDJOB, SVDINF, SVDTOL )
+      CALL DGESVJ( SVDJOBA, SVDJOBU, SVDJOBV, NDIM, NDIM, RWORK, NDIM,
+     &     SVDS, 0, SVDV, NDIM, SVDWRK, SVDLWRK, SVDINF )
       IF (SVDINF .NE. 0) WRITE (9, 901) SVDINF
 C
 C  Apply a Householder matrix (call it H1) based on the null vector
@@ -189,10 +180,10 @@ C  is the null vector.
 C
       CALL DGEMM ( 'n', 'n', NDIM, NDIM, NDIM, 1.0d0, C0, NDIM, 
      &             SVDV, NDIM, 0.0d0, RWORK, NDIM )
-      CALL DGEMC ( NDIM, NDIM, RWORK, NDIM, C0, NDIM, .FALSE. )
+      C0 = RWORK
       CALL DGEMM ( 'n', 'n', NDIM, NDIM, NDIM, 1.0d0, C1, NDIM, 
      &             SVDV, NDIM, 0.0d0, RWORK, NDIM )
-      CALL DGEMC ( NDIM, NDIM, RWORK, NDIM, C1, NDIM, .FALSE. )
+      C1 = RWORK
 C
 C  Apply a Householder matrix (call it H2) based on 
 C  (C0*X/||C0*X|| + C1*X/||C1*X||) / 2 
@@ -255,23 +246,16 @@ C  by using the QZ routines from EISPACK.
 C
       NDIMM1 = NDIM - 1
 C
-C  reduce the generalized eigenvalue problem to a simpler form
-C   (C0BarDef,C1BarDef) = (upper hessenberg, upper triangular)
+C  compute the eigenvalues for the generalized eigenvalue problem
 C
-C
-      CALL QZHES (NDIM, NDIMM1, C0(2,1), C1(2,1), QZMATZ, QZZ)
-C
-C  now reduce to an even simpler form
-C   (C0BarDef,C1BarDef) = (quasi-upper triangular, upper triangular)
-C
-      CALL QZIT (NDIM, NDIMM1, C0(2,1), C1(2,1), 
-     &           QZEPS1, QZMATZ, QZZ, QZIERR)
+      CALL DGGEV('N', 'N', NDIMM1, C0(2,1), NDIM, C1(2,1), NDIM, QZALFR,
+     &     QZALFI, QZBETA, QZZ, 1, QZZ, 1, SVDWRK, -1, QZIERR)
+      SVDLWRK = SVDWRK(1)
+      DEALLOCATE(SVDWRK)
+      ALLOCATE(SVDWRK(SVDLWRK))
+      CALL DGGEV('N', 'N', NDIMM1, C0(2,1), NDIM, C1(2,1), NDIM, QZALFR,
+     &     QZALFI, QZBETA, QZZ, 1, QZZ, 1, SVDWRK, SVDLWRK, QZIERR)
       IF (QZIERR .NE. 0) WRITE (9, 902) QZIERR
-C
-C  compute the generalized eigenvalues
-C
-      CALL QZVAL (NDIM, NDIMM1, C0(2,1), C1(2,1), 
-     &            QZALFR, QZALFI, QZBETA, QZMATZ, QZZ)
 C
 C  Pack the eigenvalues into complex form.
 C

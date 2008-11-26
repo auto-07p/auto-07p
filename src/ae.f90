@@ -914,16 +914,13 @@ CONTAINS
 ! Order the eigenvalues by real part.
 
     DO I=1,NDM-1
-       RMAX=-HUGE(RMAX)
        LOC=I
-       DO J=I,NDM
-          RP=REAL(EV(J))
-          IF(RP.GE.RMAX)THEN
-             RMAX=RP
+       DO J=I+1,NDM
+          IF(REAL(EV(J)).GE.REAL(EV(LOC)))THEN
              LOC=J
           ENDIF
        ENDDO
-       IF(LOC.NE.I) THEN
+       IF(LOC>I) THEN
           ZTMP=EV(LOC)
           EV(LOC)=EV(I)
           EV(I)=ZTMP

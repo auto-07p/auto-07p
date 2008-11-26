@@ -59,14 +59,14 @@ CONTAINS
 ! ---------- ---
   SUBROUTINE EIG(IAP,NDIM,M1A,A,EV)
 
-! This subroutine uses the EISPACK subroutine RG to compute the
+! This subroutine uses the LAPACK subroutine DGEEV to compute the
 ! eigenvalues of the general real matrix A.
 ! NDIM is the dimension of A.
 ! M1A is the first dimension of A as in the DIMENSION statement.
 ! The eigenvalues are to be returned in the complex vector EV.
 
     INTEGER, INTENT(IN) :: IAP(*), NDIM, M1A
-    DOUBLE PRECISION, INTENT(IN) :: A(M1A,NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,NDIM)
     COMPLEX(KIND(1.0D0)), INTENT(OUT) :: EV(NDIM)
 
 ! Local
@@ -557,3 +557,33 @@ END MODULE SUPPORT
     ENDIF
 
   END SUBROUTINE GETMDMX
+!
+! because some demos call RG here is a wrapper around DGEEV
+!
+  SUBROUTINE RG(M1A,NDIM,A,WR,WI,MATZ,Z,IV1,FV1,IER)
+
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: M1A,NDIM,MATZ,IV1(NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: FV1(NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,NDIM)
+    DOUBLE PRECISION, INTENT(OUT) :: WR(NDIM),WI(NDIM),Z(M1A,NDIM)
+    INTEGER, INTENT(OUT) :: IER
+
+    CHARACTER(1) JOBVR
+    INTEGER LWORK
+    DOUBLE PRECISION, ALLOCATABLE :: WORK(:)
+
+    IF(MATZ==1)THEN
+       JOBVR='V'
+    ELSE
+       JOBVR='N'
+    ENDIF
+    ALLOCATE(WORK(1))
+    CALL DGEEV('N',JOBVR,NDIM,A,M1A,WR,WI,Z,M1A,Z,M1A,WORK,-1,IER)
+    LWORK=WORK(1)
+    DEALLOCATE(WORK)
+    ALLOCATE(WORK(LWORK))
+    CALL DGEEV('N',JOBVR,NDIM,A,M1A,WR,WI,Z,M1A,Z,M1A,WORK,LWORK,IER)
+    DEALLOCATE(WORK)
+
+  END SUBROUTINE RG

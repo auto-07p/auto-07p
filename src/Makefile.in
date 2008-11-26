@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/eispack.o
+OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/lapack.o
 RM=rm -f
 #
 all: lib compile ../lib/libauto_c.a move
@@ -59,8 +59,8 @@ compile: $(OBJ)
 	ar cr $@ user_c.o
 	rm -f user_c.o
 #
-../lib/eispack.o: eispack.f
-	$(FC) $(FFLAGS) $(OPT) -c eispack.f -o $@
+../lib/lapack.o: lapack.f
+	$(FC) $(FFLAGS) $(OPT) -c lapack.f -o $@
 #
 ../lib/blas.o: blas.f
 	$(FC) $(FFLAGS) $(OPT) -c blas.f -o $@

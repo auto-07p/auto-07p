@@ -295,23 +295,23 @@ C     **Regular Continuation**
       IF(ISTART.NE.3) THEN
 C        *Projection boundary conditions for the homoclinic orbit
 C        *NSTAB boundary conditions at t=0
-             CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
+             CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
              DO I=1,NSTAB
                 DO K=1,NDM
-                   FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(I,K)
+                   FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(K,I)
                 ENDDO
                 JB = JB+1
              ENDDO
 C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
-            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
+            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=1,NUNSTAB
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
-                    FB(JB)=FB(JB)+(U1(K)-XEQUIB2(K))*BOUND(I,K)
+                    FB(JB)=FB(JB)+(U1(K)-XEQUIB2(K))*BOUND(K,I)
                   ELSE
-                    FB(JB)=FB(JB)+(U1(NDIM-NDM+K)-XEQUIB2(K))*BOUND(I,K)
+                    FB(JB)=FB(JB)+(U1(NDIM-NDM+K)-XEQUIB2(K))*BOUND(K,I)
                     IF (ITWIST.EQ.0) THEN
 C                     allow jump at end.
                        FB(JB)=FB(JB)+PAR(22)
@@ -333,19 +333,19 @@ C
          INEIG=0
 C        *NFIXED extra boundary conditions for the fixed conditions
          IF (NFIXED.GT.0) THEN
-            CALL EIGHI(IAP,2,RR(1,1),RI(1,1),VR(1,1,1),
+            CALL EIGHO(IAP,2,RR(1,1),RI(1,1),VR(1,1,1),
      *           XEQUIB1,ICP,PAR,NDM)
             IF(IEQUIB.LT.0) THEN
-               CALL EIGHI(IAP,2,RR(1,2),RI(1,2),VR(1,1,2),
+               CALL EIGHO(IAP,2,RR(1,2),RI(1,2),VR(1,1,2),
      *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
                IF((IFIXED(I).GT.10).AND.(INEIG.EQ.0)) THEN
-                  CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+                  CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *                 XEQUIB1,ICP,PAR,NDM)
                   INEIG=1
                   IF(IEQUIB.LT.0) THEN
-                     CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),
+                     CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),
      *                    XEQUIB2,ICP,PAR,NDM)
                   ENDIF
                ENDIF
@@ -356,7 +356,7 @@ C        *NFIXED extra boundary conditions for the fixed conditions
 C        *extra boundary condition in the case of a saddle-node homoclinic
          IF (IEQUIB.EQ.2) THEN
             IF(INEIG.EQ.0) THEN
-               CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+               CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *              XEQUIB1,ICP,PAR,NDM)
                INEIG=1
             ENDIF
@@ -376,21 +376,21 @@ C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
 C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
-            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
+            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
             DO I=1,NUNSTAB
                DUM=0.0
                DO K=1,NDM
-                  DUM=DUM+U0(NDM+K)*BOUND(I,K)
+                  DUM=DUM+U0(NDM+K)*BOUND(K,I)
                ENDDO
                FB(JB)=DUM 
                JB = JB+1
             ENDDO
 C           *-orthogonal to the stable directions of A  at t=1
-            CALL PRJCTI(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
+            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
             DO I=1,NSTAB
                DUM=0.0
                DO K=1,NDM
-                  DUM=DUM+U1(NDM+K)*BOUND(I,K)
+                  DUM=DUM+U1(NDM+K)*BOUND(K,I)
                ENDDO
                FB(JB)=DUM 
                JB = JB+1
@@ -440,7 +440,7 @@ C     **Starting Solutions using Homotopy**
          ENDIF
          KP=IP
 C        *Explicit boundary conditions for homoclinic orbit at t=0
-         CALL EIGHI(IAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
+         CALL EIGHO(IAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
          JB=NDM+1
          IF(NUNSTAB.GT.1) THEN
             FB(JB)=0.0
@@ -462,7 +462,7 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
             ENDDO
          ENDIF
 C        *Projection boundary conditions for the homoclinic orbit at t=1
-         CALL EIGHI(IAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
+         CALL EIGHO(IAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
          DO I=NDM-NUNSTAB+1,NDM
             DUM=0.0D0
             DO J=1,NDM
@@ -1443,9 +1443,9 @@ C
 C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
        CALL PVLS(NDM,UPS,PAR)
-       CALL EIGHI(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
+       CALL EIGHO(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
        CALL GETSTAB(NUNSTAB,RR,1)
-       CALL EIGHI(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
+       CALL EIGHO(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
        CALL GETSTAB(NSTAB,RR,-1)
 C
        IF (IRS>0.OR.ISTART/=3)THEN
@@ -1524,10 +1524,10 @@ C
 C
 C      *Compute eigenvalues
        INEIG=0
-       CALL EIGHI(IAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
+       CALL EIGHO(IAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
      *      PAR,NDM)
        IF(IEQUIB.LT.0)THEN
-          CALL EIGHI(IAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
+          CALL EIGHO(IAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
      *         PAR,NDM)
        ENDIF
        IF(IID.GE.3)THEN
@@ -1549,10 +1549,10 @@ C      *Compute eigenvalues
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *         PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
@@ -1568,10 +1568,10 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
-          CALL EIGHI(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *          PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHI(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=1
@@ -1815,35 +1815,16 @@ C
       END SUBROUTINE GETSTAB
 C     
 C     ---------- -----
-      SUBROUTINE EIGHI(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
+      SUBROUTINE EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION RR(*),RI(*),VRET(NDM,*),XEQUIB(*),PAR(*)
-C Local
-      ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
-C
-        NPAR=IAP(31)
-        ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM))
-        CALL EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
-     *             DFDU,DFDP,ZZ)
-        DEALLOCATE(DFDU,DFDP,ZZ)
-C
-      RETURN
-      END SUBROUTINE EIGHI
-C
-C     ---------- -----
-      SUBROUTINE EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM,
-     *                  DFDU,DFDP,ZZ)
-C
-C Uses EISPACK routine RG to calculate the eigenvalues/eigenvectors
+C Uses LAPACK routine DGEEV to calculate the eigenvalues/eigenvectors
 C of the linearization matrix a (obtained from DFHO) and orders them
 C according to their real parts. Simple continuity with respect
 C previous call with same value of ITRANS.
 C
 C       input variables
-C               ITRANS = 1 use transpose of A
-C                      = 2 otherwise
+C               ITRANS = 1 use transpose of A (left eigenvectors)
+C                      = 2 otherwise (right eigenvectors)
 C
 C       output variables
 C               RR,RI real and imaginary parts of eigenvalues, ordered w.r.t
@@ -1854,77 +1835,84 @@ C
       USE INTERFACES, ONLY:FUNI
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),ICP(*),PAR(*),RR(*),RI(*),VRET(NDM,*)
-      DIMENSION XEQUIB(*),DFDU(NDM,*),DFDP(NDM,*),ZZ(NDM,*)
+      INTEGER IAP(*),ICP(*)
+      DOUBLE PRECISION PAR(*),RR(*),RI(*),VRET(NDM,*),XEQUIB(*)
 C Local
       DIMENSION IEIGC(2)
       DOUBLE PRECISION DUM1(1)
-      ALLOCATABLE VI(:,:),VR(:,:),F(:),FV1(:),IV1(:)
+      CHARACTER(1) JOBVL,JOBVR
+      ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
+      ALLOCATABLE VI(:,:),VR(:,:),F(:),WORK(:)
       ALLOCATABLE VRPREV(:,:,:)
       SAVE IEIGC,VRPREV
 C
-      ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM),FV1(NDM),IV1(NDM))
+      NPAR=IAP(31)
+      ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM))
+      ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM))
       IFAIL=0
 C     
       CALL FUNI(IAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
-C     
+C
       IF (ITRANS.EQ.1) THEN
-         DO I=1,NDM
-            DO J=1,I-1
-               TMP=DFDU(I,J)
-               DFDU(I,J)=DFDU(J,I)
-               DFDU(J,I)=TMP
-            ENDDO
-         ENDDO
+         JOBVL='V'
+         JOBVR='N'
+      ELSE
+         JOBVL='N'
+         JOBVR='V'
       ENDIF
 C
-C EISPACK call for eigenvalues and eigenvectors
-      CALL RG(NDM,NDM,DFDU,RR,RI,1,ZZ,IV1,FV1,IFAIL)
+C LAPACK call for eigenvalues and eigenvectors
+      ALLOCATE(WORK(1))
+      CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
+     *     -1,IFAIL)
+      LWORK=WORK(1)
+      DEALLOCATE(WORK)
+      ALLOCATE(WORK(LWORK))
+      CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
+     *     LWORK,IFAIL)
+      DEALLOCATE(WORK)
 C
       IF (IFAIL.NE.0) THEN   
-         WRITE(9,*) 'EISPACK EIGENVALUE ROUTINE FAILED !'
+         WRITE(9,*) 'LAPACK EIGENVALUE ROUTINE FAILED !'
       ENDIF
-C 
-      DO J=1,NDM 
-        IF((RI(J).GT.COMPZERO).AND.(J.LT.NDM))THEN
-          DO I=1,NDM
-            VR(I,J)=ZZ(I,J)
-            VI(I,J)=ZZ(I,J+1)
-          ENDDO
-        ELSEIF((RI(J).LT.-COMPZERO).AND.(J.GT.1))THEN
-          DO I=1,NDM
-            VR(I,J)= ZZ(I,J-1)
-            VI(I,J)=-ZZ(I,J)
-          ENDDO
-        ELSE
-          DO I=1,NDM
-            VR(I,J)=ZZ(I,J)
-            VI(I,J)=0.d0
-          ENDDO
-        ENDIF
-      ENDDO   
+C
+      ! use - for compatibility with older code.
+      VR(:,:)=-ZZ(:,:)
+      J=1
+      DO WHILE(J<NDM)
+         IF(RR(J)==RR(J+1).AND.RI(J)/=0.d0)THEN
+            ! complex conjugate
+            DO I=1,NDM
+               VR(I,J+1)=VR(I,J)
+            ENDDO
+            J=J+1
+         ENDIF
+         J=J+1
+      ENDDO
+C
 C Order the eigenvectors/values according size of real part of eigenvalue.
 C     (smallest first)
 C
       DO I=1,NDM-1
-         DO J=I+1,NDM
-            IF (RR(I).GT.RR(J)) THEN
-               TMP=RR(I)
-               RR(I)=RR(J)
-               RR(J)=TMP
-               TMP=RI(I)
-               RI(I)=RI(J)
-               RI(J)=TMP
-               DO K=1,NDM
-                  TMP=VR(K,I)
-                  VR(K,I)=VR(K,J)
-                  VR(K,J)=TMP
-                  TMP=VI(K,I)
-                  VI(K,I)=VI(K,J)
-                  VI(K,J)=TMP
-               ENDDO
+         J=I
+         DO L=I+1,NDM
+            IF (RR(L)<RR(J)) THEN
+               J=L
             ENDIF
          ENDDO
+         IF(J>I)THEN
+            TMP=RR(I)
+            RR(I)=RR(J)
+            RR(J)=TMP
+            TMP=RI(I)
+            RI(I)=RI(J)
+            RI(J)=TMP
+            DO K=1,NDM
+               TMP=VR(K,I)
+               VR(K,I)=VR(K,J)
+               VR(K,J)=TMP
+            ENDDO
+         ENDIF
       ENDDO
 C
 C Choose sign of real part of eigenvectors to be 
@@ -1949,7 +1937,6 @@ C
          IF (VDOT.LT.0.0D0) THEN
             DO J=1,NDM
                VR(J,I)=-VR(J,I)
-C               VI(J,I)=-VI(J,I)
             ENDDO
          ENDIF
          DO J=1,NDM
@@ -1965,32 +1952,25 @@ C
          ENDDO
       ENDDO
 C     
-      DEALLOCATE(VI,VR,F,FV1,IV1)
-      RETURN
+      DEALLOCATE(VI,VR,F,DFDU,DFDP,ZZ)
+C
       END SUBROUTINE EIGHO
 C
-C     ---------- ------
-      SUBROUTINE PRJCTI(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
-     *                  IMFD,IS,ITRANS,NDM)
+C     ------- -------- ------
+      LOGICAL FUNCTION SELPOS(ER, EI)
+      DOUBLE PRECISION, INTENT(IN) :: ER,EI
+      SELPOS = ER.GT.0
+      END FUNCTION SELPOS
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      LOGICAL CSAVE
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION BOUND(NDM,*),XEQUIB(*),PAR(*)
-C Local
-      ALLOCATABLE A(:,:),V(:,:)
-C
-      ALLOCATE(A(NDM,NDM),V(NDM,NDM))
-      CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
-     *            IMFD,IS,ITRANS,NDM,A,V)
-      DEALLOCATE(A,V)
-C
-      RETURN
-      END SUBROUTINE PRJCTI
+C     ------- -------- ------
+      LOGICAL FUNCTION SELNEG(ER, EI)
+      DOUBLE PRECISION, INTENT(IN) :: ER,EI
+      SELNEG = ER.LT.0
+      END FUNCTION SELNEG
 C
 C     ---------- ------
       SUBROUTINE PRJCTN(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
-     *                  IMFD,IS,ITRANS,NDM,A,V)
+     *                  IMFD,IS,ITRANS,NDM)
 C
 C Compute NUNSTAB (or NSTAB) projection boundary condition functions
 C onto to the UNSTABLE (or STABLE) manifold of the appropriate equilibrium
@@ -2011,19 +1991,21 @@ C
       USE SUPPORT
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      DIMENSION IAP(*),ICP(*),PAR(*),A(NDM,*),V(NDM,*)
+      DIMENSION IAP(*),ICP(*),PAR(*)
       DIMENSION BOUND(NDM,*),XEQUIB(*)
       LOGICAL CSAVE
 C Local
-      INTEGER TYPE,IFLAG(2,2)
+      LOGICAL , SAVE :: IFLAG(2,2) = 
+     &     RESHAPE((/.TRUE.,.TRUE.,.TRUE.,.TRUE./),(/2,2/))
+      LOGICAL, ALLOCATABLE :: BWORK(:)
       DOUBLE PRECISION UDUM(1),DDUM(1)
       ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
-      ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),ORT(:)
-      ALLOCATABLE TYPE(:)
+      ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),WORK(:)
+      ALLOCATABLE A(:,:),V(:,:)
 C
-      SAVE CPREV,IFLAG
+      SAVE CPREV
 C
-      ALLOCATE(FDUM(NDM))
+      ALLOCATE(A(NDM,NDM),FDUM(NDM))
       CALL FUNI(IAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
       DEALLOCATE(FDUM)
 C
@@ -2037,87 +2019,86 @@ C Compute transpose of A if ITRANS=1
           ENDDO
         ENDDO
       ENDIF
+
+      IF (IMFD.EQ.1) THEN
+         MCOND = NUNSTAB
+      ELSE
+         MCOND = NSTAB
+      ENDIF
 C
-C Compute basis V to put A in upper Hessenberg form
-C    
-        ALLOCATE(ORT(NDM))
-        CALL ORTHES(NDM,NDM,1,NDM,A,ORT)
-        CALL ORTRAN(NDM,NDM,1,NDM,A,ORT,V)
-        DEALLOCATE(ORT)
+C Call LAPACK routine for the Schur decomposition of A
 C
-C Force A to be upper Hessenberg
-        IF (NDM.GT.2) THEN
-          DO I=3,NDM   
-            DO J=1,I-2
-              A(I,J) = 0.0D0
-            ENDDO 
-          ENDDO
-        ENDIF
+      CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,
+     &     EI, BOUND, NDM, DDUM, -1, BWORK, IFAIL)
+      LWORK = DDUM(1)
+      ALLOCATE(ER(NDM),EI(NDM),WORK(LWORK),BWORK(NDM))
+      IF(IMFD.EQ.-1)THEN
+         CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,
+     &        EI, BOUND, NDM, WORK, LWORK, BWORK, IFAIL)
+      ELSE
+         CALL DGEES('V', 'S', SELPOS, NDM, A, NDM, ISDIM, ER,
+     &        EI, BOUND, NDM, WORK, LWORK, BWORK, IFAIL)
+      ENDIF
+      IF (IFAIL.EQ.0.AND.ISDIM.NE.MCOND) THEN
+         BWORK=.FALSE.
 C
-C Computes basis to put A in "Quasi Upper-Triangular form"
-C with the positive (negative) eigenvalues first if IMFD =-1 (=1)
-        EPS = COMPZERO
-        ALLOCATE(TYPE(NDM),ER(NDM),EI(NDM))
-        CALL HQR3LC(A,V,NDM,1,NDM,EPS,ER,EI,TYPE,NDM,NDM,IMFD)
-        DEALLOCATE(TYPE,ER,EI)
+C     Get orthonormal basis for the nstab lowest eigenvalues
+C     or nunstab highest eigenvalues (real part),
+C     which do not necessarily all have to be negative/positive
 C
-C Determine basis of the appropriate part of the matrix V
-        IF (IMFD.EQ.1) THEN
-           MCOND = NUNSTAB
-        ELSE
-           MCOND = NSTAB
-        ENDIF
+         IF (IMFD.EQ.-1) THEN
+            DO I=1,NSTAB
+               BWORK(MINLOC(ER,.NOT.BWORK))=.TRUE.
+            ENDDO
+         ELSE
+            DO I=1,NUNSTAB
+               BWORK(MAXLOC(ER,.NOT.BWORK))=.TRUE.
+            ENDDO
+         ENDIF
+         CALL DTRSEN('N', 'V', BWORK, NDM, A, NDM, BOUND, NDM, ER, EI,
+     &        ISDIM, S, SEP, WORK, LWORK, IWORK, 1, IFAIL)
+         IF (IFAIL.NE.0) THEN
+            WRITE(9,*)'LAPACK SCHUR DECOMPOSITION ROUTINE FAILED !'
+         ENDIF
+      ENDIF
+      DEALLOCATE(A,ER,EI,WORK,BWORK)
 C
 C Set previous matrix to be the present one if this is the first call
-      IF (IFLAG(IS,ITRANS).NE.1234) THEN
+      IF (IFLAG(IS,ITRANS)) THEN
          IF (.NOT.ALLOCATED(CPREV))ALLOCATE(CPREV(NDM,NDM,2,2))
-         DO I=1,MCOND
-            DO J=1,NDM
-               CPREV(I,J,IS,ITRANS)=V(J,I)
-               BOUND(I,J)=V(J,I)
-            ENDDO
-         ENDDO
-         IFLAG(IS,ITRANS)=1234
+         CPREV(1:NDM,1:MCOND,IS,ITRANS)=BOUND(1:NDM,1:MCOND)
+         IFLAG(IS,ITRANS)=.FALSE.
          RETURN
       ENDIF
 C     
-C Calculate the (transpose of the) BEYN matrix D and hence BOUND 
+C Calculate the BEYN matrix D and hence BOUND
+C This amounts to solving (CPREV^T * V) * D = CPREV^T * CPREV
+C and then calculating BOUND = V * D
+C
+      IF(MCOND==0)RETURN
+
       ALLOCATE(D(MCOND,MCOND),DUM1(MCOND,MCOND),DUM2(MCOND,MCOND))
-      DO I=1,MCOND
-        DO J=1,MCOND
-          DUM1(I,J)=0.0D0
-          DUM2(I,J)=0.0D0
-          DO K=1,NDM
-             DUM1(I,J) = DUM1(I,J)+CPREV(I,K,IS,ITRANS)*
-     +                   V(K,J)
-             DUM2(I,J) = DUM2(I,J)+CPREV(I,K,IS,ITRANS)*
-     +                   CPREV(J,K,IS,ITRANS)
-          ENDDO
-        ENDDO
-      ENDDO
-C     
-      IF(MCOND.GT.0)THEN
-        CALL GEL(MCOND,DUM1,MCOND,D,DUM2,DET)
-      ENDIF
-C     
-      DO I=1,MCOND
-         DO J=1,NDM
-            BOUND(I,J)=0.0
-            DO K=1,MCOND
-               BOUND(I,J)=BOUND(I,J)+D(K,I)*V(J,K)
-            ENDDO
-         ENDDO
-      ENDDO
-C     
+      ! DUM1 = CPREV^T * BOUND
+      CALL DGEMM('T','N',MCOND,MCOND,NDM,1.d0,CPREV(1,1,IS,ITRANS),
+     *     NDM,BOUND,NDM,0.d0,DUM1,MCOND)
+      ! DUM2 = CPREV^T * CPREV
+      CALL DGEMM('T','N',MCOND,MCOND,NDM,1.d0,CPREV(1,1,IS,ITRANS),
+     *     NDM,CPREV(1,1,IS,ITRANS),NDM,0.d0,DUM2,MCOND)
+
+      ! D = DUM1^-1 * DUM2
+      CALL GEL(MCOND,DUM1,MCOND,D,DUM2,DET)
+
+      ! BOUND = BOUND * D
+      ALLOCATE(V(NDM,MCOND))
+      CALL DGEMM('N','N',NDM,MCOND,MCOND,1d0,BOUND,
+     *     NDM,D,MCOND,0d0,V,NDM)
+      BOUND(1:NDM,1:MCOND)=V(1:NDM,1:MCOND)
+      DEALLOCATE(V,D,DUM1,DUM2)
+
       IF(CSAVE)THEN
-         DO I=1,MCOND
-            DO J=1,NDM
-               CPREV(I,J,IS,ITRANS)=BOUND(I,J)
-            ENDDO
-         ENDDO
+         CPREV(1:NDM,1:MCOND,IS,ITRANS)=BOUND(1:NDM,1:MCOND)
       ENDIF
-C     
-      DEALLOCATE(D,DUM1,DUM2)
+C
       RETURN
       END SUBROUTINE PRJCTN
 C-----------------------------------------------------------------------
