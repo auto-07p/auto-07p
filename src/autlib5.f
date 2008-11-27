@@ -1506,6 +1506,7 @@ C     ---------- ------
 C
       USE BVP
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      LOGICAL INEIG
 C
       DIMENSION IAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
 C Local
@@ -1523,7 +1524,7 @@ C
        CALL PVLSBV(IAP,ICP,UPS,NDIM,PAR)
 C
 C      *Compute eigenvalues
-       INEIG=0
+       INEIG=.FALSE.
        CALL EIGHO(IAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
      *      PAR,NDM)
        IF(IEQUIB.LT.0)THEN
@@ -1555,7 +1556,7 @@ C      *Compute eigenvalues
              CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
-          INEIG=1
+          INEIG=.TRUE.
           ORIENT = PSIHO(NDM,0,RR,RI,V,VT,ICP,PAR,PU0,PU1)
           IF(IID.GE.3)THEN
             IF (ORIENT.LT.0.0D0) THEN
@@ -1567,14 +1568,14 @@ C      *Compute eigenvalues
        ENDIF             
 C
       DO I=1,NPSI
-        IF((IPSI(I).GT.10).AND.(INEIG.EQ.0)) THEN
+        IF((IPSI(I).GT.10).AND..NOT.INEIG) THEN
           CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *          PAR,NDM)
           IF(IEQUIB.LT.0)THEN
              CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
-          INEIG=1
+          INEIG=.TRUE.
         ENDIF
         PAR(20+IPSI(I))=PSIHO(NDM,IPSI(I),RR,RI,V,VT,ICP,PAR,PU0,PU1)
         IF(IID.GE.3)WRITE(9,104)IPSI(I),PAR(20+IPSI(I))
@@ -1732,7 +1733,7 @@ C
          DO J=1,NDM
             PSIHO= PSIHO + F1(J)*VT(NSTAB,J,1)
          ENDDO
-         PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
+         PSIHO= PSIHO * EXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
          DEALLOCATE(F1)
 C
 C Orbit flip (with respect to leading unstable direction)
@@ -1742,7 +1743,7 @@ C
          DO J=1,NDM
             PSIHO= PSIHO + F0(J)*VT(NSTAB+1,J,1)
          ENDDO
-         PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
+         PSIHO= PSIHO * EXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
          DEALLOCATE(F0)
 C
 C Inclination flip (critically twisted) with respect to stable manifold
@@ -1752,7 +1753,7 @@ C
          DO I=1,NDM
             PSIHO= PSIHO + PU0(NDM+I)*V(NSTAB,I,1)
          ENDDO
-         PSIHO= PSIHO * DEXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
+         PSIHO= PSIHO * EXP(-PAR(11)*RR(NSTAB,1)/2.0D0)
 C
 C Inclination flip (critically twisted) with respect to unstable manifold
 C   e.g. 1D stable manifold
@@ -1761,7 +1762,7 @@ C
          DO I=1,NDM
             PSIHO= PSIHO + PU1(NDM+I)*V(NSTAB+1,I,1)
          ENDDO
-         PSIHO= PSIHO * DEXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
+         PSIHO= PSIHO * EXP(PAR(11)*RR(NSTAB+1,1)/2.0D0)
 C
 C Non-central homoclinic to saddle-node (in stable manifold)
 C
@@ -1836,24 +1837,22 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
       INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION PAR(*),RR(*),RI(*),VRET(NDM,*),XEQUIB(*)
+      DOUBLE PRECISION PAR(*),RR(*),RI(*),VRET(NDM,NDM),XEQUIB(*)
 C Local
-      DIMENSION IEIGC(2)
+      LOGICAL, SAVE :: IEIGC(2) = (/.FALSE.,.FALSE./)
       DOUBLE PRECISION DUM1(1)
       CHARACTER(1) JOBVL,JOBVR
       ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
-      ALLOCATABLE VI(:,:),VR(:,:),F(:),WORK(:)
-      ALLOCATABLE VRPREV(:,:,:)
-      SAVE IEIGC,VRPREV
+      ALLOCATABLE F(:),WORK(:)
+      DOUBLE PRECISION, SAVE, ALLOCATABLE :: VRPREV(:,:,:)
 C
       NPAR=IAP(31)
-      ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM))
-      ALLOCATE(VI(NDM,NDM),VR(NDM,NDM),F(NDM))
+      ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM),F(NDM))
       IFAIL=0
 C     
       CALL FUNI(IAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
 C
-      IF (ITRANS.EQ.1) THEN
+      IF (ITRANS==1) THEN
          JOBVL='V'
          JOBVR='N'
       ELSE
@@ -1876,15 +1875,11 @@ C
          WRITE(9,*) 'LAPACK EIGENVALUE ROUTINE FAILED !'
       ENDIF
 C
-      ! use - for compatibility with older code.
-      VR(:,:)=-ZZ(:,:)
       J=1
       DO WHILE(J<NDM)
          IF(RR(J)==RR(J+1).AND.RI(J)/=0.d0)THEN
             ! complex conjugate
-            DO I=1,NDM
-               VR(I,J+1)=VR(I,J)
-            ENDDO
+            ZZ(:,J+1)=ZZ(:,J)
             J=J+1
          ENDIF
          J=J+1
@@ -1908,9 +1903,9 @@ C
             RI(I)=RI(J)
             RI(J)=TMP
             DO K=1,NDM
-               TMP=VR(K,I)
-               VR(K,I)=VR(K,J)
-               VR(K,J)=TMP
+               TMP=ZZ(K,I)
+               ZZ(K,I)=ZZ(K,J)
+               ZZ(K,J)=TMP
             ENDDO
          ENDIF
       ENDDO
@@ -1919,40 +1914,33 @@ C Choose sign of real part of eigenvectors to be
 C commensurate with that of the corresponding eigenvector 
 C from the previous call with the same value of ITRANS
 C
-      IF (IEIGC(ITRANS).EQ.0) THEN
-         IF(.NOT.ALLOCATED(VRPREV))ALLOCATE(VRPREV(2,NDM,NDM))
-         DO J=1,NDM
-            DO I=1,NDM
-               VRPREV(ITRANS,I,J)=VR(I,J)
-            ENDDO
+      IF (.NOT.IEIGC(ITRANS)) THEN
+         IF(.NOT.ALLOCATED(VRPREV))ALLOCATE(VRPREV(NDM,NDM,2))
+         ! normalize eigenvector so that the largest (in absolute value)
+         ! component is positive
+         DO I=1,NDM
+            M=IDAMAX(NDM,ZZ(:,I),1)
+            IF(ZZ(M,I)<0)THEN
+               ZZ(:,I)=-ZZ(:,I)
+            ENDIF
          ENDDO
-         IEIGC(ITRANS)=1
+         IEIGC(ITRANS)=.TRUE.
+      ELSE
+         DO I=1,NDM
+            IF (DOT_PRODUCT(ZZ(:,I),VRPREV(:,I,ITRANS))<0.0D0) THEN
+               ZZ(:,I)=-ZZ(:,I)
+            ENDIF
+         ENDDO
       ENDIF
-C
-      DO I=1,NDM
-         VDOT=0.0D0
-         DO J=1,NDM
-            VDOT=VDOT+VR(J,I)*VRPREV(ITRANS,J,I)
-         ENDDO
-         IF (VDOT.LT.0.0D0) THEN
-            DO J=1,NDM
-               VR(J,I)=-VR(J,I)
-            ENDDO
-         ENDIF
-         DO J=1,NDM
-            VRPREV(ITRANS,J,I)=VR(J,I)
-         ENDDO
-      ENDDO
+      VRPREV(:,:,ITRANS)=ZZ(:,:)
 C
 C Send back the transpose of the matrix of real parts of eigenvectors
 C
       DO I=1,NDM
-         DO J=1,NDM
-            VRET(I,J)=VR(J,I)
-         ENDDO
+         VRET(I,:)=ZZ(:,I)
       ENDDO
 C     
-      DEALLOCATE(VI,VR,F,DFDU,DFDP,ZZ)
+      DEALLOCATE(F,DFDU,DFDP,ZZ)
 C
       END SUBROUTINE EIGHO
 C
