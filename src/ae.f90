@@ -1116,8 +1116,7 @@ CONTAINS
 !
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
-    DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(IN) :: RAP(*),PAR(*),U(*),UDOT(*)
     INTEGER, INTENT(INOUT) :: ISTOP
 
     INTEGER NDIM,IPS,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR
@@ -1167,7 +1166,6 @@ CONTAINS
     ELSE
        AMP=RNRMV(NDM,U)
     ENDIF
-    RAP(10)=AMP
 
     IF(ISTOP.EQ.1)THEN
 !        Maximum number of iterations reached somewhere.
@@ -1202,12 +1200,12 @@ CONTAINS
 
 ! Write restart information for multi-parameter analysis :
 
-    IF(LABW.NE.0)CALL WRTSP8(IAP,RAP,PAR,ICP,LABW,U,UDOT)
+    IF(LABW.NE.0)CALL WRTSP8(IAP,PAR,ICP,LABW,U,UDOT)
 !
   END SUBROUTINE STPLAE
 
 ! ---------- ------
-  SUBROUTINE WRTSP8(IAP,RAP,PAR,ICP,LAB,U,UDOT)
+  SUBROUTINE WRTSP8(IAP,PAR,ICP,LAB,U,UDOT)
 
     USE COMPAT
     IMPLICIT DOUBLE PRECISION (A-H,O-Z)
@@ -1215,7 +1213,7 @@ CONTAINS
 ! Write restart information on singular points, plotting points, etc.,
 ! on unit 8.
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),U(*),UDOT(*)
+    DIMENSION IAP(*),PAR(*),ICP(*),U(*),UDOT(*)
 
     NDIM=IAP(1)
     ISW=IAP(10)
@@ -1231,8 +1229,6 @@ CONTAINS
     NROWPR=(NDIM+7)/7+(NDIM+6)/7 + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
     PAR(ICP(1))=U(NDIM+1)
     T=0.d0
-    AMP=0.d0
-    RAP(10)=AMP
 
     MTOT=MOD(NTOT-1,9999)+1
     WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,1,0,NPAR
