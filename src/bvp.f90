@@ -1738,7 +1738,7 @@ CONTAINS
     !xxx eg=0.d0
     !xxx em=0.d0
 !xxx====================================================================
-    DO J=0,NTST*NCOL
+    DO J=0,NTST*NCOL-1
        T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
        WRITE(8,102)T,UPS(:,J)
 !xxx====================================================================
@@ -1748,6 +1748,7 @@ CONTAINS
        !xxx if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
 !xxx====================================================================
     ENDDO
+    WRITE(8,102)1.0d0,UPS(:,NTST*NCOL)
 !xxx====================================================================
 !xxx Test problem
 ! Write global error and mesh error
@@ -1815,10 +1816,11 @@ CONTAINS
 
     IF(IID.GE.5)THEN
        WRITE(9,104)
-       DO J=0,NTST*NCOL
+       DO J=0,NTST*NCOL-1
           T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
           WRITE(9,105)T,UPS(:,J)
        ENDDO
+       WRITE(9,105)1.0d0,UPS(:,NTST*NCOL)
     ENDIF
 102 FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
 103 FORMAT(I4,I6,I4,5X,6ES14.5)
