@@ -97,21 +97,28 @@ C$       CALL OMP_SET_NUM_THREADS(NA)
       ENDIF
       IF(IFST.EQ.1)THEN
          IF(ALLOCATED(A))THEN
-C           Free floating point arrays
-            DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC)
-C           Free integer arrays
-            DEALLOCATE(ICF,IRF,IPR,IPC)
+C            !a sufficient check to see if array dimensions have changed:
+            IF (ANY(SHAPE(A)/=(/NCLM,NROW,NA+1/)).OR.
+     *          ANY(SHAPE(CC)/=(/NDIM,NRC,NTSTNA+1/)).OR.
+     *          ANY(SHAPE(DDBC)/=(/NFPR,NBC/)))THEN
+C              Free floating point arrays
+               DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC)
+C              Free integer arrays
+               DEALLOCATE(ICF,IRF,IPR,IPC)
+            ENDIF
          ENDIF
 C
-         ALLOCATE(A(NCLM,NROW,NA+1),B(NFPR,NROW,NA+1))
-         ALLOCATE(C(NCLM,NRC,NA+1),D(NFPR,NRC))
-         ALLOCATE(A1(NDIM,NDIM,NTSTNA+1),A2(NDIM,NDIM,NTSTNA+1))
-         ALLOCATE(S1(NDIM,NDIM,NTSTNA+1),S2(NDIM,NDIM,NTSTNA+1))
-         ALLOCATE(BB(NFPR,NDIM,NTSTNA+1),CC(NDIM,NRC,NTSTNA+1))
-         ALLOCATE(CCBC(NDIM,NBC,2),DDBC(NFPR,NBC))
+         IF(.NOT.ALLOCATED(A))THEN
+            ALLOCATE(A(NCLM,NROW,NA+1),B(NFPR,NROW,NA+1))
+            ALLOCATE(C(NCLM,NRC,NA+1),D(NFPR,NRC))
+            ALLOCATE(A1(NDIM,NDIM,NTSTNA+1),A2(NDIM,NDIM,NTSTNA+1))
+            ALLOCATE(S1(NDIM,NDIM,NTSTNA+1),S2(NDIM,NDIM,NTSTNA+1))
+            ALLOCATE(BB(NFPR,NDIM,NTSTNA+1),CC(NDIM,NRC,NTSTNA+1))
+            ALLOCATE(CCBC(NDIM,NBC,2),DDBC(NFPR,NBC))
 C
-         ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTSTNA-1))
-         ALLOCATE(IPC(NDIM,NTSTNA-1))
+            ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTSTNA-1))
+            ALLOCATE(IPC(NDIM,NTSTNA-1))
+         ENDIF
       ENDIF
       IF(IAM.EQ.0)THEN
 C
