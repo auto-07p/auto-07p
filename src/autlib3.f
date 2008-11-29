@@ -4440,74 +4440,70 @@ C     ---------- ----
       SUBROUTINE ICNI(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
+      DOUBLE PRECISION HMACH,RSMALL,RLARGE
       PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
 C
 C Interface subroutine to user supplied ICND.
 C
-      DIMENSION IAP(*),U(*),UOLD(*),UDOT(*),UPOLD(*)
-      DIMENSION F(*),DINT(NINT,*),ICP(*),PAR(*)
-C Local
-      ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
+      INTEGER IAP(*),ICP(*),NDIM,NINT,IJAC
+      DOUBLE PRECISION U(*),UOLD(*),UDOT(*),UPOLD(*),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(*),DINT(NINT,*)
+C
+      INTEGER JAC,I,J,NFPR,IJC
+      DOUBLE PRECISION UMX,EP,UU,P
 C
        JAC=IAP(22)
-       NFPR=IAP(29)
 C
 C Generate the integrand.
 C
-       IF(JAC.EQ.0)THEN
-         IJC=0
-       ELSE
-         IJC=IJAC
-       ENDIF
-       CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
-C
-       IF(JAC.EQ.1 .OR. IJAC.EQ.0)RETURN
-C
-       ALLOCATE(U1ZZ(NDIM),U2ZZ(NDIM),F1ZZ(NINT),F2ZZ(NINT))
+       IF(JAC==0 .AND. IJAC/=0)THEN
 C
 C Generate the Jacobian by differencing.
 C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-       ENDDO
+          UMX=0.d0
+          DO I=1,NDIM
+             IF(ABS(U(I)).GT.UMX)UMX=ABS(U(I))
+          ENDDO
 C
-       EP=HMACH*(1+UMX)
+          EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           U1ZZ(J)=U(J)
-           U2ZZ(J)=U(J)
-         ENDDO
-         U1ZZ(I)=U1ZZ(I)-EP
-         U2ZZ(I)=U2ZZ(I)+EP
-         CALL ICND(NDIM,PAR,ICP,NINT,U1ZZ,UOLD,UDOT,UPOLD,F1ZZ,0,DINT)
-         CALL ICND(NDIM,PAR,ICP,NINT,U2ZZ,UOLD,UDOT,UPOLD,F2ZZ,0,DINT)
-         DO J=1,NINT
-           DINT(J,I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
-         ENDDO
-       ENDDO
-C
-       DEALLOCATE(U1ZZ,U2ZZ,F2ZZ)
-       IF(IJAC.EQ.1)THEN
-         DEALLOCATE(F1ZZ)
-         RETURN
+          DO I=1,NDIM
+             UU=U(I)
+             U(I)=UU-EP
+             CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,0,DINT)
+             U(I)=UU+EP
+             CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,DINT(1,I),0,
+     *            DINT)
+             U(I)=UU
+             DO J=1,NINT
+                DINT(J,I)=(DINT(J,I)-F(J))/(2*EP)
+             ENDDO
+          ENDDO
        ENDIF
 C
+       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
+         IJC=IJAC
+       ELSE
+         IJC=0
+       ENDIF
+       CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
+       IF(JAC==1 .OR. IJAC/=2)RETURN
+C
+       NFPR=IAP(29)
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P) )
          PAR(ICP(I))=P+EP
-         CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1ZZ,0,DINT)
+         CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+     *        DINT(1,NDIM+ICP(I)),0,DINT)
          DO J=1,NINT
-           DINT(J,NDIM+ICP(I))=(F1ZZ(J)-F(J))/EP
+           DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
          ENDDO
          PAR(ICP(I))=P
        ENDDO
 C
-      DEALLOCATE(F1ZZ)
       RETURN
       END SUBROUTINE ICNI
 C
