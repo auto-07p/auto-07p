@@ -4345,94 +4345,87 @@ C
 C     ---------- ----
       SUBROUTINE BCNI(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      IMPLICIT NONE
 C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+      DOUBLE PRECISION, PARAMETER ::
+     *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 C
 C Interface subroutine to the user supplied BCND.
 C
-      DIMENSION IAP(*),PAR(*),ICP(*),U0(*),U1(*),F(*),DBC(NBC,*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+      INTEGER, INTENT(IN) :: NDIM,NBC,IJAC
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U0(NDIM),U1(NDIM)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NBC),DBC(NBC,*)
 C Local
-      ALLOCATABLE U1ZZ(:),U2ZZ(:),F1ZZ(:),F2ZZ(:)
+      DOUBLE PRECISION EP,UMX,UU,P
+      INTEGER IJC,I,J,JAC,NFPR
 C
        JAC=IAP(22)
-       NFPR=IAP(29)
 C
 C Generate the function.
 C
-       IF(JAC.EQ.0)THEN
-         IJC=0
-       ELSE
-         IJC=IJAC
-       ENDIF
-       CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
-C
-       IF(JAC.EQ.1 .OR. IJAC.EQ.0)RETURN
-C
-       ALLOCATE(U1ZZ(NDIM),U2ZZ(NDIM),F1ZZ(NBC),F2ZZ(NBC))
+       IF(JAC==0 .AND. IJAC/=0)THEN
 C
 C Generate the Jacobian by differencing.
 C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U0(I)).GT.UMX)UMX=DABS(U0(I))
-       ENDDO
+          UMX=0.d0
+          DO I=1,NDIM
+             IF(ABS(U0(I)).GT.UMX)UMX=ABS(U0(I))
+          ENDDO
 C
-       EP=HMACH*(1+UMX)
+          EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           U1ZZ(J)=U0(J)
-           U2ZZ(J)=U0(J)
-         ENDDO
-         U1ZZ(I)=U1ZZ(I)-EP
-         U2ZZ(I)=U2ZZ(I)+EP
-         CALL BCND(NDIM,PAR,ICP,NBC,U1ZZ,U1,F1ZZ,0,DBC)
-         CALL BCND(NDIM,PAR,ICP,NBC,U2ZZ,U1,F2ZZ,0,DBC)
-         DO J=1,NBC
-           DBC(J,I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
-         ENDDO
-       ENDDO
+          DO I=1,NDIM
+             UU=U0(I)
+             U0(I)=UU-EP
+             CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,0,DBC)
+             U0(I)=UU+EP
+             CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,DBC(1,I),0,DBC)
+             U0(I)=UU
+             DO J=1,NBC
+                DBC(J,I)=(DBC(J,I)-F(J))/(2*EP)
+             ENDDO
+          ENDDO
 C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U1(I)).GT.UMX)UMX=DABS(U1(I))
-       ENDDO
+          UMX=0.d0
+          DO I=1,NDIM
+             IF(ABS(U1(I)).GT.UMX)UMX=ABS(U1(I))
+          ENDDO
 C
-       EP=HMACH*(1+UMX)
+          EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           U1ZZ(J)=U1(J)
-           U2ZZ(J)=U1(J)
-         ENDDO
-         U1ZZ(I)=U1ZZ(I)-EP
-         U2ZZ(I)=U2ZZ(I)+EP
-         CALL BCND(NDIM,PAR,ICP,NBC,U0,U1ZZ,F1ZZ,0,DBC)
-         CALL BCND(NDIM,PAR,ICP,NBC,U0,U2ZZ,F2ZZ,0,DBC)
-         DO J=1,NBC
-           DBC(J,NDIM+I)=(F2ZZ(J)-F1ZZ(J))/(2*EP)
-         ENDDO
-       ENDDO
-C
-       DEALLOCATE(U1ZZ,U2ZZ,F2ZZ)
-       IF(IJAC.EQ.1)THEN
-         DEALLOCATE(F1ZZ)
-         RETURN
+          DO I=1,NDIM
+             UU=U1(I)
+             U1(I)=UU-EP
+             CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,0,DBC)
+             U1(I)=UU+EP
+             CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,DBC(1,NDIM+I),0,DBC)
+             DO J=1,NBC
+                DBC(J,NDIM+I)=(DBC(J,NDIM+I)-F(J))/(2*EP)
+             ENDDO
+          ENDDO
        ENDIF
 C
+       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
+         IJC=IJAC
+       ELSE
+         IJC=0
+       ENDIF
+       CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
+       IF(JAC==1 .OR. IJAC/=2)RETURN
+C
+       NFPR=IAP(29)
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P))
          PAR(ICP(I))=P+EP
-         CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F1ZZ,0,DBC)
+         CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,DBC(1,2*NDIM+ICP(I)),0,DBC)
          DO J=1,NBC
-           DBC(J,2*NDIM+ICP(I))=(F1ZZ(J)-F(J))/EP
+           DBC(J,2*NDIM+ICP(I))=(DBC(J,2*NDIM+ICP(I))-F(J))/EP
          ENDDO
          PAR(ICP(I))=P
        ENDDO
 C
-      DEALLOCATE(F1ZZ)
       RETURN
       END SUBROUTINE BCNI
 C
