@@ -98,7 +98,8 @@ C
          DEALLOCATE(FF1,DFU,DFP)
          RETURN
        ENDIF
-       PAR(ICP(1))=PAR(ICP(1))+EP
+       P=PAR(ICP(1))
+       PAR(ICP(1))=P+EP
 C
        DFDP(1:NDM,ICP(1))=DFP(:,ICP(1))
        CALL FFLP(IAP,NDIM,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
@@ -107,7 +108,7 @@ C
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
        ENDDO
 C
-       PAR(ICP(1))=PAR(ICP(1))-EP
+       PAR(ICP(1))=P
        DEALLOCATE(FF1,DFU,DFP)
 C
       RETURN
@@ -246,7 +247,8 @@ C
          DEALLOCATE(FF1,DFU,DFP)
          RETURN
        ENDIF
-       PAR(ICP(1))=PAR(ICP(1))+EP
+       P=PAR(ICP(1))
+       PAR(ICP(1))=P+EP
 C
        CALL FFBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
 C
@@ -254,7 +256,7 @@ C
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
        ENDDO
 C
-       PAR(ICP(1))=PAR(ICP(1))-EP
+       PAR(ICP(1))=P
        DEALLOCATE(FF1,DFU,DFP)
 C
       RETURN
@@ -765,7 +767,8 @@ C
          RETURN
        ENDIF
 C
-       PAR(ICP(1))=PAR(ICP(1))+EP
+       P=PAR(ICP(1))
+       PAR(ICP(1))=P+EP
 C
        CALL FFHB(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU)
 C
@@ -773,7 +776,7 @@ C
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
        ENDDO
 C
-       PAR(ICP(1))=PAR(ICP(1))-EP
+       PAR(ICP(1))=P
        DEALLOCATE(FF1,DFU)
 C
       RETURN
@@ -1445,7 +1448,7 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:),FF1(:),FF2(:)
       INTEGER NDM,NFPR,I,J
-      DOUBLE PRECISION UMX,UU,EP
+      DOUBLE PRECISION UMX,UU,EP,P
 C
        NDM=IAP(23)
        NFPR=IAP(29)
@@ -1511,12 +1514,13 @@ C
 C
        DO I=1,NFPR-1
          IF(ICP(I)==11)CYCLE
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FFPL(IAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          DO J=NDM+1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
       ENDDO
 C
       DEALLOCATE(DFU,DFP,FF1)
@@ -1756,12 +1760,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FFPBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
       ENDDO
 C
       DEALLOCATE(DFU,DFP,FF1)
@@ -1958,12 +1963,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FIPBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        DEALLOCATE(FF1)
@@ -2279,12 +2285,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FFPD(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
       ENDDO
 C
       DEALLOCATE(FF1,DFU)
@@ -2516,12 +2523,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FFTR(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(FF1,DFU)
@@ -2793,12 +2801,13 @@ C
       ENDIF
 C
       DO I=1,NFPR
-        PAR(ICP(I))=PAR(ICP(I))+EP
+        P=PAR(ICP(I))
+        PAR(ICP(I))=P+EP
         CALL FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
         ENDDO
-        PAR(ICP(I))=PAR(ICP(I))-EP
+        PAR(ICP(I))=P
       ENDDO
 C
       DEALLOCATE(UPOLD,DFU,FF1)
@@ -2932,12 +2941,13 @@ C
        ENDDO
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(F1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        DEALLOCATE(F1,F2,DFU,DFP)
@@ -3152,12 +3162,13 @@ C
 C
       NFPX=NFPR/2-1
       DO I=1,NFPR-NFPX
-        PAR(ICP(I))=PAR(ICP(I))+EP
+        P=PAR(ICP(I))
+        PAR(ICP(I))=P+EP
         CALL FFBL(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
         ENDDO
-        PAR(ICP(I))=PAR(ICP(I))-EP
+        PAR(ICP(I))=P
       ENDDO
 C
       DEALLOCATE(DFU,DFP,FF1)
@@ -3271,12 +3282,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,U1,FF2,DFU)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(DFU,FF2)
@@ -3377,13 +3389,14 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FIBL(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(FF1,DFU)
@@ -3561,12 +3574,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FFBBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        DEALLOCATE(DFU,DFP,FF1)
@@ -3749,12 +3763,13 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF1,DFU)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        DEALLOCATE(FF1,DFU)
@@ -3931,13 +3946,14 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        DEALLOCATE(FF1,DFU)
@@ -4269,7 +4285,7 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(*),DFDU(NDIM,*),DFDP(NDIM,*)
 C
       INTEGER JAC,I,J,NFPR,IJC
-      DOUBLE PRECISION UMX,EP,UU
+      DOUBLE PRECISION UMX,EP,UU,P
 C
        JAC=IAP(22)
 C
@@ -4313,13 +4329,14 @@ C
        IF(JAC.EQ.1.OR.IJAC.NE.2)RETURN
        NFPR=IAP(29)
        DO I=1,NFPR
-         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         EP=HMACH*( 1 +ABS(P) )
+         PAR(ICP(I))=P+EP
          CALL FUNC(NDIM,U,ICP,PAR,0,DFDP(1,ICP(I)),DFDU,DFDP)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       RETURN
@@ -4405,13 +4422,14 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         EP=HMACH*( 1 +ABS(P))
+         PAR(ICP(I))=P+EP
          CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F1ZZ,0,DBC)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(F1ZZ(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(F1ZZ)
@@ -4479,13 +4497,14 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         EP=HMACH*( 1 +ABS(P) )
+         PAR(ICP(I))=P+EP
          CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1ZZ,0,DINT)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(F1ZZ(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(F1ZZ)
@@ -4544,11 +4563,12 @@ C
        IF(IJAC.EQ.1)RETURN
 C
        DO I=1,NFPR
-         EP=HMACH*( 1 +DABS(PAR(ICP(I))) )
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         EP=HMACH*( 1 +ABS(P) )
+         PAR(ICP(I))=P+EP
          CALL FOPT(NDIM,U,ICP,PAR,0,F1,DFDU,DFDP)
          DFDP(ICP(I))=(F1-F)/EP
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
        RETURN

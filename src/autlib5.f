@@ -81,12 +81,13 @@ C
       ENDIF
 C
       DO I=1,NFPR
-        PAR(ICP(I))=PAR(ICP(I))+EP
+        P=PAR(ICP(I))
+        PAR(ICP(I))=P+EP
         CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
         ENDDO
-        PAR(ICP(I))=PAR(ICP(I))-EP
+        PAR(ICP(I))=P
       ENDDO
 C
       IF(ALLOCATED(DFU))DEALLOCATE(DFU)
@@ -220,12 +221,13 @@ C
        ENDDO
 C
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       DEALLOCATE(FF1,FF2,UU)
@@ -551,13 +553,14 @@ C
 C
        IF(IJAC.EQ.1)RETURN
        DO I=1,NFPR
-         PAR(ICP(I))=PAR(ICP(I))+EP
+         P=PAR(ICP(I))
+         PAR(ICP(I))=P+EP
          CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
      *    UPOLD,DINT(1,NDIM+ICP(I)))
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
          ENDDO
-         PAR(ICP(I))=PAR(ICP(I))-EP
+         PAR(ICP(I))=P
        ENDDO
 C
       RETURN

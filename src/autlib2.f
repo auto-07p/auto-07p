@@ -370,15 +370,15 @@ C
        DFDP(:)=0.d0
        DICD(:)=0.d0
 
+       DO I=1,NPAR
+          PRM(I)=PAR(I)
+       ENDDO
        DO J=1,N
 C
 C Generate AA , BB and FA :
 C
           DO IC=1,NCOL
              IC1=(IC-1)*NDIM+1
-             DO I=1,NPAR
-                PRM(I)=PAR(I)
-             ENDDO
              JJ=(J-1)*NCOL
              CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,IAP,PRM,ICP,
      +            AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,JJ),
@@ -400,9 +400,6 @@ C
 C     
 C     Integral constraints+pseudo-arclength equation :
 C     
-            DO I=1,NPAR
-               PRM(I)=PAR(I)
-            ENDDO
             CALL SBVICN(NDIM,NINT,NCB,NCA,ICNI,IAP,PRM,ICP,
      +           CC(K1,1,J),DD,FC,UPS(1,J1),UOLDPS(1,J1),
      +           UDOTPS(1,J1),UPOLDP(1,J1),DTM(J),THU,WI(K),FICD,DICD,
