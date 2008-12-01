@@ -55,6 +55,13 @@ def type_translation(type):
         return {"long name" : "Unknown type",
                 "short name" : "Unknown type"}
     
+def reverse_type_translation(type):
+    """A little dictionary to transform human readable strings to types"""
+    for k,v in type_translation_dict.items():
+        if v["short name"] == type or v["long name"] == type:
+            return k
+    return type
+    
 # The parseB and AUTOBranch classes parse an AUTO fort.7 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:

@@ -456,13 +456,15 @@ END MODULE SUPPORT
     INTEGER, INTENT(IN) :: IC
     DOUBLE PRECISION, INTENT(IN) :: UPS(IAV(1)*IAV(6),*)
 
-    INTEGER NDIM,IPS,NTST,NCOL
+    INTEGER NDIM,IPS,NTST,NCOL,NBC,NINT
     DOUBLE PRECISION WI(0:IAV(6))
 
     NDIM=IAV(1)
     IPS=IAV(2)
     NTST=IAV(5)
     NCOL=IAV(6)
+    NBC=IAV(12)
+    NINT=IAV(13)
 
     GETP=0
 
@@ -524,6 +526,10 @@ END MODULE SUPPORT
        GETP=NTST
     CASE('NCO','nco')
        GETP=NCOL
+    CASE('NBC','nbc')
+       GETP=NBC
+    CASE('NIN','nin')
+       GETP=NINT
     CASE('DTM','dtm')
        GETP=DTV(IC)
     CASE('WIN','win')

@@ -358,103 +358,112 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             if kw == {}:
                 #otherwise already copied
                 self.options = self.options.copy()
+            self.data = self.data.copy()
+            self.PAR = AUTOParameters(self.PAR)
+            self.PAR.coordarray = Points.array(self.PAR.coordarray)
             self.options["solution"] = self
-            return
-	UserDict.UserDict.__init__(self)
-        runAUTO.runAUTO.__init__(self,solution=self)
-        self.__start_of_header = None
-        self.__start_of_data   = None
-        self.__end              = None
-        self.__fullyParsed     = False
-        self._dims            = None
-        self._mbr             = 0
-        self._mlab            = 0
-        self.name = name
-        if name == './fort.8':
-            if kw.has_key("equation"):
-                self.name = kw["equation"][14:]
-            elif kw.has_key("e"):
-                self.name = kw["e"]
-        names = kw.get("U",[])
-        if names is None:
-            names = []
-        self.coordnames = names[:]
-        names = kw.get("PAR",[])
-        if names is None:
-            names = []
-        self.__parnames = names[:]
-        self.data_keys = ["PT", "BR", "TY number", "TY name", "LAB",
-                          "ISW", "NTST", "NCOL", "Active ICP", "rldot",
-                          "udotps"]
-        self.long_data_keys = {
-            "Parameters": "p",
-            "parameters": "p",
-            "Parameter NULL vector": "rldot",
-            "Free Parameters": "Active ICP",
-            "Point number": "PT",
-            "Branch number": "BR",
-            "Type number": "TY number",
-            "Type name": "TY name",
-            "Label": "LAB"}
-        if input is None:
-            pass
-        elif type(input) == types.FileType or isinstance(input,gzip.GzipFile):
-            self.read(input,offset)
         else:
-            #init from array
-            if not Points.numpyimported:
-                Points.importnumpy()        
-            N = Points.N
-            if type(input[0]) == type(1) or type(input[0]) == type(1.0):
-                # point
-                indepvararray = [0.0]
-                coordarray = []
-                ncol = 0
-                ntst = 1
-                for d in input:
-                    coordarray.append([d])
-            else: 
-                # time + solution
-                if kw.has_key("t"):
-                    indepvararray = kw["t"]
-                    coordarray = input
+            UserDict.UserDict.__init__(self)
+            runAUTO.runAUTO.__init__(self,solution=self)
+            self.__start_of_header = None
+            self.__start_of_data   = None
+            self.__end              = None
+            self.__fullyParsed     = False
+            self._dims            = None
+            self._mbr             = 0
+            self._mlab            = 0
+            self.name = name
+            if name == './fort.8':
+                if kw.has_key("equation"):
+                    self.name = kw["equation"][14:]
+                elif kw.has_key("e"):
+                    self.name = kw["e"]
+            names = kw.get("unames",[])
+            if names is None:
+                names = []
+            self.coordnames = names[:]
+            names = kw.get("parnames",[])
+            if names is None:
+                names = []
+            self.__parnames = names[:]
+            self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
+                              "ISW", "NTST", "NCOL", "Active ICP", "rldot",
+                              "udotps"]
+            self.long_data_keys = {
+                "Parameters": "p",
+                "parameters": "p",
+                "Parameter NULL vector": "rldot",
+                "Free Parameters": "Active ICP",
+                "Point number": "PT",
+                "Branch number": "BR",
+                "Type number": "TY number",
+                "Type name": "TY",
+                "TY name": "TY",
+                "Label": "LAB"}
+            if input is None:
+                pass
+            elif isinstance(input,(types.FileType,gzip.GzipFile)):
+                self.read(input,offset)
+            else:
+                par = kw.get("PAR",[])
+                if type(par) == type({}):
+                    par = par.items()
+                #init from array
+                if not Points.numpyimported:
+                    Points.importnumpy()        
+                N = Points.N
+                if not hasattr(input[0],'append'):
+                    # point
+                    indepvararray = [0.0]
+                    coordarray = []
+                    ncol = 0
+                    ntst = 1
+                    for d in input:
+                        coordarray.append([d])
                 else:
-                    indepvararray = input[0]
-                    coordarray = input[1:]
-                ncol = 1
-                ntst = len(indepvararray)-1
-                t0 = indepvararray[0]
-                period = indepvararray[-1] - t0
-                if period != 1.0 or t0 != 0.0:
-                    #scale to [0,1]
-                    for i in range(len(indepvararray)):
-                        indepvararray[i] = (indepvararray[i] - t0)/period
-                    if kw.has_key("p"):
-                        if len(kw["p"]) < 11:
-                            kw["p"] = list(kw["p"]) + [0.0]*(11-len(kw["p"]))
-                        kw["p"][10] = period
-            indepvarname = "t"
-            coordnames = []
-            for i in range(len(coordarray)):
-                coordnames.append("U("+str(i+1)+")")
-            if kw.has_key("U"):
-                coordnames[:len(kw["U"])] = kw["U"]
-                ndim = len(coordarray)
-                if ndim < len(self.coordnames):
-                    self.coordnames = self.coordnames[:ndim]
-            pdict = {"indepvararray": indepvararray,
-                     "indepvarname": indepvarname,
-                     "coordarray": coordarray,
-                     "coordnames": coordnames}
-            if kw.has_key("equation"):
-                pdict["name"] = kw["equation"][14:]
-            Points.Pointset.__init__(self,pdict)
-            self.__fullyParsed = True
-            self.data.update({"BR":1, "PT":1, "TY number":9,
+                    # time + solution
+                    if kw.has_key("t"):
+                        indepvararray = kw["t"]
+                        coordarray = input
+                    else:
+                        indepvararray = input[0]
+                        coordarray = input[1:]
+                    ncol = 1
+                    ntst = len(indepvararray)-1
+                    t0 = indepvararray[0]
+                    period = indepvararray[-1] - t0
+                    if period != 1.0 or t0 != 0.0:
+                        #scale to [0,1]
+                        for i in range(len(indepvararray)):
+                            indepvararray[i] = (indepvararray[i] - t0)/period
+                    if 11 not in dict(par).keys():
+                        par = [[11,period]] + par
+                indepvarname = "t"
+                coordnames = []
+                for i in range(len(coordarray)):
+                    coordnames.append("U("+str(i+1)+")")
+                if kw.has_key("U"):
+                    coordnames[:len(kw["U"])] = kw["U"]
+                    ndim = len(coordarray)
+                    if ndim < len(self.coordnames):
+                        self.coordnames = self.coordnames[:ndim]
+                pdict = {"indepvararray": indepvararray,
+                         "indepvarname": indepvarname,
+                         "coordarray": coordarray,
+                         "coordnames": coordnames}
+                if kw.has_key("equation"):
+                    pdict["name"] = kw["equation"][14:]
+                Points.Pointset.__init__(self,pdict)
+                self.__fullyParsed = True
+                self.data.update({"BR":1, "PT":1, "TY number":9,
                               "LAB":1, "ISW":1, "NTST": ntst, "NCOL": ncol})
-            if kw.has_key("p"):
-                self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                          coordarray=kw["p"], name=self.name)
+                if par != []:
+                    p = max(dict(par).keys())*[0.0]
+                    self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                          coordarray=p, name=self.name)
+        for k,v in kw.items():
+            if k in self.data_keys or k == "PAR":
+                self[k] = v
 
     def __str__(self):
         if not(self.__fullyParsed):
@@ -465,7 +474,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"
         rep=rep+ "\n%4d%6d%4s%5d%4d%5d%5d" % (self["BR"], self["PT"],
-                                              self["TY name"], self["LAB"],
+                                              self["TY"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
         rep=rep+"\n"+Points.Pointset.__repr__(self)
@@ -490,7 +499,16 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             key != self.indepvarname and not key in self.__parnames):
             shortkey = self.long_data_keys.get(key,key)
             if shortkey in self.data_keys:
+                if shortkey == "TY":
+                    value = parseB.reverse_type_translation(value)
+                    shortkey = "TY number"
                 self.data[shortkey] = value
+                return
+            if shortkey == "PAR":
+                if type(value) == type({}):
+                    value = value.items()
+                for k,v in value:
+                    self.PAR[k-1] = v
                 return
             if shortkey == "p":
                 self.PAR = AUTOParameters(coordnames=self.__parnames,
@@ -509,7 +527,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             if shortkey in big_data_keys and not(self.__fullyParsed):
                 self.__readAll()
             if shortkey in self.data_keys:
-                if shortkey == "TY name":
+                if shortkey == "TY":
                     return parseB.type_translation(
                         self.data["TY number"])["short name"]
                 return self.data[shortkey]
@@ -530,11 +548,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         return SLPoint(ret, self, key)
 
     def __copy__(self):
-        new = self.__class__(self)
-        new.data = new.data.copy()
-        new.PAR = AUTOParameters(new.PAR)
-        new.PAR.coordarray = Points.array(new.PAR.coordarray)
-        return new
+        return self.__class__(self)
 
     def copy(self):
         return self.__copy__()
@@ -555,7 +569,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
 
     def load(self,**kw):
         """Load solution with the given AUTO constants.
-        Returns a shallow copy with a copied set of updated constants"
+        Returns a shallow copy with a copied set of updated constants
         """
         return apply(AUTOSolution,(self,),kw)
 

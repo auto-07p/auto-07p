@@ -3,14 +3,11 @@ import sys
 
 def get(sfile,label,step,floquet=None):
     s = load(s=sfile)
-    solution = rl(s([label]))(1)
+    solution = s(label)
     if floquet is None:
-        floquet = solution['PAR(4)']
+        floquet = solution.PAR(4)
     print "Floquet multiplier: ", floquet
-    solution['PAR(4)'] = floquet
-    solution['PAR(5)'] = 0
-    solution['PAR(6)'] = step
-    return solution
+    return load(solution,LAB=1,PAR={4:floquet,5:0,6:step})
 
 def make_s(sfile,label,step,floquet=None):
     solution = get(sfile,label,step,floquet)

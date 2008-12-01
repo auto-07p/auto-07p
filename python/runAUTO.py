@@ -80,8 +80,8 @@ class runAUTO:
             if self.options.has_key(key):
                 self.options[key] = dict[key]
         for key,value in dict.items():
-            if (self.options.has_key(key) or key in ['t','p'] or
-                key[:7] == 'Active '):
+            if (self.options.has_key(key) or key in ['t','LAB','PT','BR','TY']
+                or key[:7] == 'Active '):
                 continue
             if self.options["constants"] is None:
                 self.options["constants"]=parseC.parseC()

@@ -24,13 +24,30 @@ MODULE IO
   INTEGER, SAVE :: MBR=0, MLAB=0
 CONTAINS
 
+! ------------- -------- -------
+  CHARACTER(13) FUNCTION getname(is, ind)
+    USE AUTO_CONSTANTS, ONLY: INDEXSTR
+    TYPE(INDEXSTR), INTENT(IN) :: is(:)
+    INTEGER, INTENT(IN) :: ind
+    INTEGER i
+
+    getname = ''
+    DO i = 1, SIZE(is)
+       IF (is(i)%index == ind) THEN
+          getname = is(i)%str
+          RETURN
+       ENDIF
+    ENDDO
+  END FUNCTION getname
+
+
 ! ---------- ----
   SUBROUTINE STHD(IAP,RAP,ICP)
 
     USE COMPAT
-    USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, UNAMES, PARNAMES, &
+    USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, unames, parnames, &
          NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, TYSTOP
+         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, TYSTOP
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -51,6 +68,7 @@ CONTAINS
     INTEGER LSV,LDAT,LE,LS,INDX,io
     DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
     CHARACTER(LEN=12) :: INDSTR
+    CHARACTER(LEN=13) :: name
 
     NDIMA=IAP(1)
     IPSA=IAP(2)
@@ -140,19 +158,21 @@ CONTAINS
        ENDIF
        WRITE(7,*)
     ENDIF
-    IF(SIZE(PARNAMES)>0)THEN
-       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   PAR = ['",TRIM(PARNAMES(1)),"'"
-       DO I=2,SIZE(PARNAMES)
-          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(PARNAMES(I)),"'"
-       ENDDO
-       WRITE(7,"(A)")']'
+    IF(SIZE(parnames)>0)THEN
+       CALL WRITESTRLIST("   0   parnames = ",parnames)
+       WRITE(7,*)
     ENDIF
-    IF(SIZE(UNAMES)>0)THEN
-       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   U   = ['",TRIM(UNAMES(1)),"'"
-       DO I=2,SIZE(UNAMES)
-          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(UNAMES(I)),"'"
-       ENDDO
-       WRITE(7,"(A)")']'
+    IF(SIZE(unames)>0)THEN
+       CALL WRITESTRLIST("   0   unames   = ",unames)
+       WRITE(7,*)
+    ENDIF
+    IF(SIZE(PARVALS)>0)THEN
+       CALL WRITELIST("   0   PAR     = ",PARVALS)
+       WRITE(7,*)
+    ENDIF
+    IF(SIZE(UVALS)>0)THEN
+       CALL WRITELIST("   0   U       = ",UVALS)
+       WRITE(7,*)
     ENDIF
     IF(SIZE(TYSTOP)>0)THEN
        WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   TYSTOP=['",TRIM(TYSTOP(1)),"'"
@@ -188,8 +208,9 @@ CONTAINS
        WRITE(7,"('s: ')",ADVANCE="NO")
     ENDIF
     DO I=1,NFPR
-       IF (I<=SIZE(PARNAMES)) THEN
-          WRITE(7,"(A,A,A)",ADVANCE="NO")" '",TRIM(PARNAMES(ICP(I))),"'"
+       name = getname(parnames, ICP(I))
+       IF (LEN_TRIM(name)>0) THEN
+          WRITE(7,"(A,A,A)",ADVANCE="NO")" '",TRIM(name),"'"
        ELSE
           WRITE(INDSTR,"(I12)")ICP(I)
           WRITE(7,"(3X,A)",ADVANCE="NO")TRIM(ADJUSTL(INDSTR))
@@ -211,7 +232,7 @@ CONTAINS
       INTEGER INDX,io
       CHARACTER(LEN=19) :: VARSTR
 
-      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'['
+      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'{'
       FIRST=.TRUE.
       DO I=1,SIZE(IVLIST)
          IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
@@ -226,12 +247,32 @@ CONTAINS
          ELSE
             WRITE(VARSTR,'(ES19.10)')IVLIST(I)%VAR
          ENDIF
-         WRITE(7,"(A,A,A,A,A)", ADVANCE="NO")"[",TRIM(INDSTR),&
-              ", ",TRIM(ADJUSTL(VARSTR)),"]"
+         WRITE(7,"(A,A,A)", ADVANCE="NO")TRIM(INDSTR),&
+              ": ",TRIM(ADJUSTL(VARSTR))
          FIRST=.FALSE.
       ENDDO
-      WRITE(7,"(A)", ADVANCE="NO")']'
+      WRITE(7,"(A)", ADVANCE="NO")'}'
     END SUBROUTINE WRITELIST
+
+    SUBROUTINE WRITESTRLIST(NAME,ISLIST)
+      USE AUTO_CONSTANTS, ONLY: INDEXSTR
+      CHARACTER(LEN=*), INTENT(IN) :: NAME
+      TYPE(INDEXSTR), INTENT(IN) :: ISLIST(:)
+      
+      LOGICAL FIRST
+      CHARACTER(LEN=15) :: INDSTR
+
+      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'{'
+      FIRST=.TRUE.
+      DO I=1,SIZE(ISLIST)
+         IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
+         WRITE(INDSTR,'(I15)')ISLIST(I)%INDEX
+         WRITE(7,"(A,A,A,A)", ADVANCE="NO")TRIM(ADJUSTL(INDSTR)), &
+              ": '",TRIM(ISLIST(I)%STR),"'"
+         FIRST=.FALSE.
+      ENDDO
+      WRITE(7,"(A)", ADVANCE="NO")'}'
+    END SUBROUTINE WRITESTRLIST
 
     SUBROUTINE WRITEINTLIST(NAME,ILIST)
       USE AUTO_CONSTANTS, ONLY: INDEXVAR
@@ -259,7 +300,7 @@ CONTAINS
   SUBROUTINE HEADNG(IAP,ICP,IUNIT,N1,N2)
 
     USE COMPAT
-    USE AUTO_CONSTANTS, ONLY : UNAMES, PARNAMES
+    USE AUTO_CONSTANTS, ONLY : unames, parnames
 
 ! Prints headings above columns on unit 6, 7, and 9.
 ! N1 = number of parameters to print (maximum: 7 for screen output)
@@ -268,7 +309,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: IAP(*),ICP(*),IUNIT,N1,N2
 ! Local
     INTEGER I,J,IPS,IPLT,NDM
-    CHARACTER(LEN=13) UNAME
+    CHARACTER(LEN=13) name
 
     IPS=IAP(2)
     IPLT=IAP(11)
@@ -284,8 +325,9 @@ CONTAINS
        IF(J==1.OR.J>N2+2)THEN
           I=1
           IF(J>1)I=J-N2-1
-          IF(ICP(I)<=SIZE(PARNAMES).AND.LEN_TRIM(PARNAMES(ICP(I)))>0)THEN
-             CALL WRITECOL(-1,PARNAMES(ICP(I)))
+          name = getname(parnames, ICP(I))
+          IF(LEN_TRIM(name)>0)THEN
+             CALL WRITECOL(-1,name)
           ELSEIF(ICP(I)==11.AND.IPS>0.AND.IPS/=4.AND.IPS/=7)THEN
              CALL WRITECOL(5,'PERIOD')
           ELSEIF(ICP(I)==10.AND.(IPS==5.OR.IPS==15))THEN
@@ -295,44 +337,46 @@ CONTAINS
           ELSE
              CALL WRITECOL(4,'PAR',ICP(I))
           ENDIF
-       ELSEIF(J==2.AND.IPLT/=0.AND.MOD(ABS(IPLT)-1,NDM)<SIZE(UNAMES).AND.&
-            LEN_TRIM(UNAMES(MOD(ABS(IPLT)-1,NDM)+1))>0)THEN
-          UNAME=UNAMES(MOD(ABS(IPLT)-1,NDM)+1)
-          IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
-             CALL WRITECOL(-1,'INTEGRAL ' // UNAME)
-          ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
-             CALL WRITECOL(-1,'L2-NORM '// UNAME)
-          ELSE IF(ABS(IPLT)<=NDM) THEN
-             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
-                CALL WRITECOL(2,UNAME)
-             ELSE IF(IPLT>0)THEN
-                CALL WRITECOL(-1,'MAX ' // UNAME)
-             ELSE
-                CALL WRITECOL(-1,'MIN ' // UNAME)
-             ENDIF
-          ENDIF
+       ELSEIF(J==2.AND.(IPLT==0.OR.IPLT<-NDM.OR.IPLT>3*NDM))THEN
+          CALL WRITECOL(4,'L2-NORM')
        ELSEIF(J==2)THEN
-          IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
-             CALL WRITECOL(2,'INTEGRAL U',IPLT-NDM)
-          ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
-             CALL WRITECOL(2,'L2-NORM U',IPLT-2*NDM)
-          ELSE IF(IPLT/=0.AND.ABS(IPLT)<=NDM) THEN
-             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
-                CALL WRITECOL(6,'U',ABS(IPLT))
-             ELSE IF(IPLT>0)THEN
-                CALL WRITECOL(4,'MAX U',IPLT)
-             ELSE
-                CALL WRITECOL(4,'MIN U',-IPLT)
+          name = getname(unames, MOD(ABS(IPLT)-1,NDM)+1)
+          IF(LEN_TRIM(name)>0)THEN
+             IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
+                CALL WRITECOL(-1, 'INTEGRAL ' // name)
+             ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
+                CALL WRITECOL(-1, 'L2-NORM '// name)
+             ELSE IF(ABS(IPLT)<=NDM) THEN
+                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                   CALL WRITECOL(2, name)
+                ELSE IF(IPLT>0)THEN
+                   CALL WRITECOL(-1, 'MAX ' // name)
+                ELSE
+                   CALL WRITECOL(-1, 'MIN ' // name)
+                ENDIF
              ENDIF
           ELSE
-             CALL WRITECOL(4,'L2-NORM')
+             IF(IPLT>NDM.AND.IPLT<=2*NDM) THEN
+                CALL WRITECOL(2,'INTEGRAL U',IPLT-NDM)
+             ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
+                CALL WRITECOL(2,'L2-NORM U',IPLT-2*NDM)
+             ELSE IF(IPLT/=0.AND.ABS(IPLT)<=NDM) THEN
+                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                   CALL WRITECOL(6,'U',ABS(IPLT))
+                ELSE IF(IPLT>0)THEN
+                   CALL WRITECOL(4,'MAX U',IPLT)
+                ELSE
+                   CALL WRITECOL(4,'MIN U',-IPLT)
+                ENDIF
+             ENDIF
           ENDIF
        ELSE !J>2 with N2>0
-          IF(J-2<=SIZE(UNAMES).AND.LEN_TRIM(UNAMES(J-2))>0)THEN
+          name = getname(unames, J-2)
+          IF(LEN_TRIM(name)>0)THEN
              IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
-                CALL WRITECOL(-1,UNAMES(J-2))
+                CALL WRITECOL(-1,name)
              ELSE
-                CALL WRITECOL(-1,'MAX '//UNAMES(J-2))
+                CALL WRITECOL(-1,'MAX '//name)
              ENDIF
           ELSEIF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
              CALL WRITECOL(6,'U',J-2)

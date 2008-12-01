@@ -67,7 +67,7 @@ class parseC(UserDict.UserDict):
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-            'sv', 's', 'dat', 'e',
+            'sv', 's', 'dat', 'e', 'unames', 'parnames',
             "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
             self[key] = None
 	if filename:
@@ -79,17 +79,19 @@ class parseC(UserDict.UserDict):
         return string.getvalue()
 
     def __setitem__(self,key,item):
-        if key in ["ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
+        if key in ["ICP","IREV","IFIXED","IPSI","TYSTOP"]:
             l = 0
             if item is not None:
                 l = len(item)
             self.data["__N"+key] = l
             self.data[key] = item
-        elif key in ["THL","THU","UZR"]:
+        elif key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
             if item is None:
                 self.data["__N"+key] = 0
                 self.data[key] = None
                 return
+            if type(item) == type({}):
+                item = item.items()
             self.data["__N"+key] = len(item)
             self.data[key] = []
             for x in item:
@@ -145,18 +147,20 @@ class parseC(UserDict.UserDict):
                 if c in [',',' ']:
                     if level == 0:
                         break
-                elif c == ']':
-                    if level == 1 and prev == '[':
+                elif c == ':':
+                    pass
+                elif c in [']','}']:
+                    if level == 1 and prev in ['[','{']:
                         value = []
                     level = level - 1
                     if v != '':
                         value.append(v)
                     v = ''
                 else:
-                    if (prev == ',' or prev == ' ') and level > 0 and v != '':
+                    if prev in [',',' ',':'] and level > 0 and v != '':
                         value.append(v)
                         v = ''
-                    if c == '[':
+                    if c in ['[','{']:
                         level = level + 1
                     elif c in ['"',"'"]:
                         quote = c
@@ -203,7 +207,7 @@ class parseC(UserDict.UserDict):
                         pass
                     d.append(v)
                 value = d
-            elif key in ['THU','THL','UZR']:
+            elif key in ['THU','THL','UZR','U','PAR']:
                 d = []
                 for i in range(0,len(value),2):
                     try:
@@ -212,7 +216,12 @@ class parseC(UserDict.UserDict):
                         v0 = value[i]
                     d.append([v0,parseB.AUTOatof(value[i+1])])
                 value = d
-            elif key in ['s','dat','sv','e','U','PAR','TYSTOP']:
+            elif key in ['unames','parnames']:
+                d = []
+                for i in range(0,len(value),2):
+                    d.append([int(value[i]),value[i+1]])
+                value = d                
+            elif key in ['s','dat','sv','e','TYSTOP']:
                 pass
             elif key in self.keys():
                 if key[0] in ['I','J','K','L','M','N']:
@@ -354,6 +363,7 @@ class parseC(UserDict.UserDict):
         if self.__new or new:
             lines = [
                 ["e","s","dat","sv"],
+                ["unames","parnames"],
                 ["U","PAR"],
                 ["NDIM","IPS","IRS","ILP"],
                 ["ICP"],
@@ -370,6 +380,7 @@ class parseC(UserDict.UserDict):
         else:
             lines = [
                 ["e","s","dat","sv"],
+                ["unames","parnames"],
                 ["U","PAR"],
                 ["NPAR"],
                 ["TYSTOP"],
@@ -392,17 +403,20 @@ class parseC(UserDict.UserDict):
                     output.write("%-5s="%key)
                 else:
                     output.write("%-4s="%key)
-                if key in ["ICP","IREV","IFIXED","IPSI","U","PAR","TYSTOP"]:
+                if key in ["ICP","IREV","IFIXED","IPSI","TYSTOP"]:
                     output.write("  "+str(value))
-                elif key in ["THL","THU","UZR"]:
+                elif key in ["THL","THU","UZR","U","PAR"]:
                     l=[]
                     for item in value:
-                        l.append([item["PAR index"],
-                                  compactstr(item["PAR value"])])
-                    # remove quotes for PAR value
-                    s = string.replace(str(l),"']","]")
-                    s = string.replace(s,", '",", ")
-                    output.write("  "+s)
+                        l.append(repr(item["PAR index"])+": "+
+                                 compactstr(item["PAR value"]))
+                    output.write("  {"+string.join(l,", ")+"}")
+                elif key in ["unames","parnames"]:
+                    l=[]
+                    for item in value:
+                        l.append(str(item["PAR index"])+": "+
+                                 repr(item["PAR value"]))
+                    output.write("{"+string.join(l,", ")+"}")
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
                     if key in wdth3keys:

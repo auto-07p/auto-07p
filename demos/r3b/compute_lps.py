@@ -8,13 +8,12 @@ import math,sys,copy
 def write_lagrange(x, i):
     # When we determine which Lagrange point we have we save it.
     periods = []
-    x["TY number"] = 3 #HB
     print "L"+str(i)+":"
     for imagv in [x.PAR(5), x.PAR(6), x.PAR(7)]:
         if imagv != 0:
             periods.append(2*math.pi/imagv)
     periods.sort()
-    list = []
+    lst = []
     for j in range(len(periods)):
         period = periods[j]
         label = (i-1)*2+j+1
@@ -23,11 +22,9 @@ def write_lagrange(x, i):
             label = label - 2 + len(periods)
         print "Label: %d; imaginary part: %13s; period: %10s"%(label,
 	    2*math.pi/period, period)
-        x["LAB"] = label
-        x["BR"] = i*10+j+1
-        x["PAR(11)"] = period
-        list.append(x.copy())
-    return list
+        x=load(x,TY="HB",LAB=label,BR=i*10+j+1,PAR={11:period})
+        lst.append(x)
+    return lst
 
 def compute(m=0.063):
     # m is the desired mass ratio

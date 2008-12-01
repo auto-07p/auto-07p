@@ -5,7 +5,7 @@ C
       USE IO
       USE SUPPORT
       USE AUTO_CONSTANTS,ONLY:NIAP,NRAP,SVFILE,SFILE,DATFILE,EFILE,
-     *     ICU,PARNAMES
+     *     ICU,parnames
 C$    USE OMP_LIB
       USE COMPAT
 C
@@ -71,7 +71,7 @@ C$       TIME0=omp_get_wtime()
        CALL MPIIAP(IAP)
        ALLOCATE(IICU(SIZE(ICU)))
        DO I=1,SIZE(ICU)
-          IICU(I)=NAMEIDX(ICU(I),PARNAMES)
+          IICU(I)=NAMEIDX(ICU(I),parnames)
        ENDDO
        CALL AUTOI(IAP,RAP,IICU,.FALSE.)
        DEALLOCATE(IICU)
@@ -162,8 +162,9 @@ C
 C     ------- -------- -------
       INTEGER FUNCTION NAMEIDX(NAME,NAMES)
 C
+      USE AUTO_CONSTANTS, ONLY: INDEXSTR
       CHARACTER(13), INTENT(IN) :: NAME
-      CHARACTER(13), INTENT(IN) :: NAMES(:)
+      TYPE(INDEXSTR), INTENT(IN) :: NAMES(:)
       CHARACTER(13) PNAME
       INTEGER I,SIGN
 C
@@ -177,8 +178,8 @@ C
          PNAME=NAME
       ENDIF
       DO I=1,SIZE(NAMES)
-         IF(NAMES(I)==PNAME)THEN
-            NAMEIDX=I*SIGN
+         IF(NAMES(I)%STR==PNAME)THEN
+            NAMEIDX=NAMES(I)%INDEX*SIGN
             RETURN
          ENDIF
       ENDDO
@@ -193,8 +194,8 @@ C     ---------- -----
       SUBROUTINE AUTOI(IAP,RAP,ICU,WORKER)
 C
       USE INTERFACES
-      USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,UNAMES,
-     &     PARNAMES
+      USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
+     &     parnames,UVALS,PARVALS
       USE AE
       USE BVP
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO
@@ -238,7 +239,7 @@ C     redefine thl to be nfpr sized and indexed
         DO I=1,NFPR
            THL(I)=1.0D0
            DO J=1,SIZE(IVTHL)
-              IF(ICP(I)==NAMEIDX(IVTHL(J)%INDEX,PARNAMES))THEN
+              IF(ICP(I)==NAMEIDX(IVTHL(J)%INDEX,parnames))THEN
                  THL(I)=IVTHL(J)%VAR
               ENDIF
            ENDDO
@@ -250,12 +251,12 @@ C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
            THU(I)=1.d0
         ENDDO
         DO I=1,SIZE(IVTHU)
-           THU(NAMEIDX(IVTHU(I)%INDEX,UNAMES))=IVTHU(I)%VAR
+           THU(NAMEIDX(IVTHU(I)%INDEX,unames))=IVTHU(I)%VAR
         ENDDO
 C     set IUZ/VUZ
         ALLOCATE(IUZ(SIZE(IVUZR)),VUZ(SIZE(IVUZR)))
         DO I=1,SIZE(IVUZR)
-           IUZ(I)=NAMEIDX(IVUZR(I)%INDEX,PARNAMES)
+           IUZ(I)=NAMEIDX(IVUZR(I)%INDEX,parnames)
            VUZ(I)=IVUZR(I)%VAR
         ENDDO
       ELSE
@@ -551,7 +552,8 @@ C
       RAP(8)=-HUGE(1d0)*0.99995d0
       RAP(9)=HUGE(1d0)*0.99995d0
       NICP=1
-      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),PARNAMES(0),UNAMES(0),TYSTOP(0))
+      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),parnames(0),unames(0),TYSTOP(0))
+      ALLOCATE(UVALS(0),PARVALS(0))
       ICU(1)='1'
       NUZR=0
 
@@ -637,13 +639,21 @@ C
             ALLOCATE(TYSTOP(LISTLEN))
             READ(STR(POS:),*,ERR=3)TYSTOP
          CASE('PAR')
-            IF(ALLOCATED(PARNAMES))DEALLOCATE(PARNAMES)
-            ALLOCATE(PARNAMES(LISTLEN))
-            READ(STR(POS:),*,ERR=3)PARNAMES
+            IF(ALLOCATED(PARVALS))DEALLOCATE(PARVALS)
+            ALLOCATE(PARVALS(LISTLEN))
+            READ(STR(POS:),*,ERR=3)PARVALS
          CASE('U')
-            IF(ALLOCATED(UNAMES))DEALLOCATE(UNAMES)
-            ALLOCATE(UNAMES(LISTLEN))
-            READ(STR(POS:),*,ERR=3)UNAMES
+            IF(ALLOCATED(UVALS))DEALLOCATE(UVALS)
+            ALLOCATE(UVALS(LISTLEN))
+            READ(STR(POS:),*,ERR=3)UVALS
+         CASE('parnames')
+            IF(ALLOCATED(parnames))DEALLOCATE(parnames)
+            ALLOCATE(parnames(LISTLEN))
+            READ(STR(POS:),*,ERR=3)parnames
+         CASE('unames')
+            IF(ALLOCATED(unames))DEALLOCATE(unames)
+            ALLOCATE(unames(LISTLEN))
+            READ(STR(POS:),*,ERR=3)unames
          CASE('s')
             READ(STR(POS:),*)SFILE
          CASE('dat')
@@ -880,16 +890,19 @@ C
             SELECT CASE(C)
             CASE(',',' ')
                IF(LEVEL==0)EXIT
-            CASE(']')
+               IF(PREV==':')C=PREV !eat ',' and ' ' after ':'
+            CASE(':')
+               STR(I:I)=','
+            CASE(']','}')
                STR(I:I)=' '
-               IF(LEVEL==1.AND.PREV=='[')LISTLEN=0
+               IF(LEVEL==1.AND.(PREV=='['.OR.PREV=='{'))LISTLEN=0
                LEVEL=LEVEL-1
             CASE DEFAULT
                IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
                   LISTLEN=LISTLEN+1
                ENDIF
                SELECT CASE(C)
-               CASE('[')
+               CASE('[','{')
                   STR(I:I)=' '
                   LEVEL=LEVEL+1
                CASE('"',"'")
@@ -916,12 +929,13 @@ C     ---------- -------
 C
 C     Deallocate some globally allocated arrays.
 C
-      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,PARNAMES,UNAMES,
-     *     TYSTOP
+      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames,
+     *     TYSTOP,PARVALS,UVALS
 
       IMPLICIT NONE
 
-      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,PARNAMES,UNAMES,TYSTOP)
+      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,TYSTOP,PARVALS,
+     *     UVALS)
       END SUBROUTINE CLEANUP
 C
 C-----------------------------------------------------------------------
