@@ -4400,6 +4400,7 @@ C
              CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,0,DBC)
              U1(I)=UU+EP
              CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,DBC(1,NDIM+I),0,DBC)
+             U1(I)=UU
              DO J=1,NBC
                 DBC(J,NDIM+I)=(DBC(J,NDIM+I)-F(J))/(2*EP)
              ENDDO
