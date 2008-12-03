@@ -7,6 +7,7 @@
 !
 MODULE BVP
 
+  IMPLICIT NONE
   PRIVATE
   PUBLIC :: AUTOBV,STPNUB,STPNBV,STPNBV1,PVLSBV,SETRTN
   INTEGER NPARX,NIAP,NRAP
@@ -19,7 +20,6 @@ CONTAINS
        PVLI,THL,THU,IUZ,VUZ)
 
     USE AUTOMPI
-    IMPLICIT NONE
 
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 
@@ -45,7 +45,6 @@ CONTAINS
   subroutine mpi_setubv_worker(funi,icni,bcni)
     use autompi
     use solvebv
-    implicit none
     integer NIAP,NRAP,NPARX
     include 'auto.h'
 
@@ -99,21 +98,24 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Controls the computation of solution branches.
 
     EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THL(*),THU(*)
+    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THL(*),THU(*)
 ! Local
-    COMPLEX(KIND(1.0D0)) EV
-    ALLOCATABLE RLCUR(:),RLOLD(:),RLDOT(:)
-    ALLOCATABLE EV(:),UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
-    ALLOCATABLE UDOTPS(:,:),TM(:),DTM(:)
-    ALLOCATABLE P0(:,:),P1(:,:),UZR(:)
+    COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
+    DOUBLE PRECISION, ALLOCATABLE :: RLCUR(:),RLOLD(:),RLDOT(:)
+    DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
+    DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),DTM(:)
+    DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:),UZR(:)
     LOGICAL CHNG,FOUND
+    INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
+    INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,K,NITPS,NODIR,NTOP,NTOT
     INTEGER STOPCNTS(-9:9)
+    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,EPSS,BP1,SP1,RLP
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -296,7 +298,8 @@ CONTAINS
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
           IF(FOUND)THEN
 !            **Secondary periodic bifurcation: determine type
-             CALL TPSPBV(IAP,RAP,PAR,EV)
+             EPSS=RAP(13)
+             IAP(27)=TPSPBV(NDIM,EPSS,ITPST,PAR,EV)
              IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
@@ -360,7 +363,6 @@ CONTAINS
        NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     USE MESH
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Determines an initial approximation to the next solution point,
 ! by extrapolating from the two preceding points.
@@ -368,9 +370,12 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),PAR(*),ICP(*)
-    DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(*),DTM(*)
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+    INTEGER IAP(*),ICP(*),NDIM
+    DOUBLE PRECISION DSOLD,PAR(*),RDS
+    DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(*)
+    DOUBLE PRECISION DTM(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+
+    INTEGER NTST,NCOL,NFPR
 
     NTST=IAP(5)
     NCOL=IAP(6)
@@ -415,16 +420,16 @@ CONTAINS
   SUBROUTINE STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD, &
        NDIM,UPS,UOLDPS,UPOLDP)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! Stores U-prime (derivative with respect to T) in UPOLDP.
 
     EXTERNAL FUNI
 
-    DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),IAP(*)
+    INTEGER ICP(*),IAP(*),NDIM
+    DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
+    DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*)
 ! Local
-    ALLOCATABLE DFDU(:,:),DFDP(:,:)
+    INTEGER NTST,NCOL,NFPR,NPAR,I,J
+    DOUBLE PRECISION, ALLOCATABLE :: DFDU(:,:),DFDP(:,:)
 
     NTST=IAP(5)
     NCOL=IAP(6)
@@ -458,17 +463,21 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Controls the solution of the nonlinear equations (by Newton's method)
 ! for the next solution (PAR(ICP(*)) , U) on a branch of solutions.
 
     EXTERNAL FUNI,BCNI,ICNI,PVLI
 
-    DIMENSION IAP(*),RAP(*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
-    DIMENSION UPOLDP(NDIM,0:*),TM(*),DTM(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
-    DIMENSION P0(*),P1(*)
+    INTEGER IAP(*),ICP(*),NDIM,NITPS,ISTOP
+    DOUBLE PRECISION RAP(*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
+    DOUBLE PRECISION UPOLDP(NDIM,0:*),TM(*),DTM(*)
+    DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
+    DOUBLE PRECISION P0(*),P1(*),DSOLD,RDS
+
+    INTEGER NTST,NCOL,IADS,IID,ITNW,NWTN,NFPR,IBR,NTOT,NTOP,IFST,NLLV,I,J,NIT1
+    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
+    DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
     LOGICAL DONE
 
@@ -609,7 +618,6 @@ CONTAINS
 
     USE IO
     USE MESH
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Restarts computation of a branch of solutions at point labelled IRS.
 ! The output written on unit 8 by a previous run is now expected as
@@ -620,12 +628,14 @@ CONTAINS
 
     EXTERNAL FUNI, STPNT, PVLI
 
-    DIMENSION IAP(*)
-    DIMENSION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*),UDOTPS(NDIM,0:*)
-    DIMENSION TM(0:*),DTM(*),PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(*)
-    DIMENSION THU(*)
+    INTEGER IAP(*),ICP(*),NDIM,NODIR
+    DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
+    DOUBLE PRECISION UDOTPS(NDIM,0:*),TM(0:*),DTM(*),PAR(*)
+    DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*)
+    DOUBLE PRECISION THU(*)
+
     DOUBLE PRECISION, ALLOCATABLE :: U(:),UDOT(:)
-    INTEGER :: ICPRS(2)
+    INTEGER :: ICPRS(2),IRS,NTST,NCOL,ITP,NFPR,ISW,NCOLRS,NTSRS,I,J
 
     IRS=IAP(3)
     NTST=IAP(5)
@@ -704,9 +714,10 @@ CONTAINS
 
     USE MESH
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    DIMENSION IAP(*),UPS(*),UDOTPS(*)
-    DIMENSION PAR(*),ICP(*),RLDOT(*),TM(*)
+    INTEGER IAP(*),ICP(*),NTSR,NCOLRS,NODIR
+    DOUBLE PRECISION PAR(*),RLDOT(*),TM(*),UPS(*),UDOTPS(*)
+
+    INTEGER NDIM,IPS,ISW,NTST,NCOL,NDIMRD,NTSRS
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
     NDIM=IAP(1)
     IPS=IAP(2)
@@ -729,7 +740,6 @@ CONTAINS
        UPS,UDOTPS,TM,NODIR)
 
     USE IO
-    IMPLICIT NONE
 
 ! This subroutine locates and retrieves the information required to
 ! restart computation at the point with label IRS.
@@ -775,14 +785,16 @@ CONTAINS
 
     USE MESH
     USE AUTO_CONSTANTS, ONLY : DATFILE
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Generates a starting point for the continuation of a branch of
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    DIMENSION IAP(*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
-    DIMENSION PAR(*),ICP(*),RLDOT(*)
+    INTEGER IAP(*),ICP(*),NTSRS,NCOLRS,NODIR
+    DOUBLE PRECISION PAR(*),RLDOT(*),TM(0:*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
+
+    INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,io,I,J
+    DOUBLE PRECISION TEMP,PERIOD
     DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),UDOTPSR(:,:)
 
     NDIM=IAP(1)
@@ -849,18 +861,20 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
 
-    DIMENSION U(NDIM),PAR(*),ICP(*),IAP(*),RLDOT(*),THU(*)
-    DIMENSION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
+    INTEGER IAP(*),ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
+    DOUBLE PRECISION U(NDIM),PAR(*),RLDOT(*),THU(*)
+    DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
     EXTERNAL FUNI
 ! Local
-    ALLOCATABLE DFU(:,:),SMAT(:,:),RNLLV(:),F(:),DTM(:)
+    INTEGER I,J
+    DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),SMAT(:,:),RNLLV(:),F(:),DTM(:)
     DOUBLE PRECISION DUMDFP(1),UOLD(1)
     DOUBLE PRECISION THL(2)
+    DOUBLE PRECISION PERIOD,TPI,RIMHB,T,C,S
 
     ALLOCATE(DFU(NDIM,NDIM),F(NDIM),RNLLV(2*NDIM),SMAT(2*NDIM,2*NDIM))
 
@@ -909,13 +923,17 @@ CONTAINS
   SUBROUTINE SETRTN(NDM,NTNC,NDIM,UPS,PAR)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Initialization for rotations
     
-    POINTER NRTN(:)
+    INTEGER, POINTER :: NRTN(:)
+    INTEGER IRTN
     COMMON /BLRTN/ NRTN,IRTN
-    DIMENSION UPS(NDIM,0:NTNC),PAR(*)
+    INTEGER, INTENT(IN) :: NDM, NTNC, NDIM
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTNC)
+    DOUBLE PRECISION PAR(*)
+
+    INTEGER I
 
     ALLOCATE(NRTN(NDM))
     IRTN=0
@@ -937,17 +955,20 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Generates a direction vector (UDOTPS,RLDOT) that is needed to start
 ! the computation of a branch when no direction vector is given.
 
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),RAP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6)),DTM(*)
-    DIMENSION PAR(*),ICP(*),RLCUR(*),RLOLD(*),RLDOT(IAP(29)),THL(*),THU(*)
+    INTEGER IAP(*),ICP(*),NDIM,IPERP
+    DOUBLE PRECISION RAP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6)),DTM(*)
+    DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*),RLDOT(IAP(29)),THL(*),THU(*)
     DOUBLE PRECISION UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
-    ALLOCATABLE DUPS(:,:),DRL(:)
+
+    INTEGER NTST,NCOL,IID,NFPR,NLLV,IFST,I
+    DOUBLE PRECISION RDSZ,DET
+    DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
 
 ! Generate the Jacobian matrix with zero direction vector.
 ! (Then the last row of the Jacobian will be zero)
@@ -1022,9 +1043,8 @@ CONTAINS
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 
 ! This subroutine uses the Secant method to accurately locate folds
 ! branch points, and zero(es) of user parameter values.
@@ -1039,14 +1059,15 @@ CONTAINS
 ! of branches of solutions to general boundary value problems.
 
     EXTERNAL FUNI,BCNI,ICNI,PVLI
-
     COMPLEX(KIND(1.0D0)) EV(*)
-
     LOGICAL CHNG,FOUND
+    INTEGER IAP(*),ICP(*),IUZ(*),NDIM,NITPS,ISTOP
+    DOUBLE PRECISION RAP(*),PAR(*),TM(*),DTM(*),FNCS,DSOLD,Q
+    DOUBLE PRECISION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),VUZ(*)
+    DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),TM(*),DTM(*)
-    DIMENSION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),IUZ(*),VUZ(*)
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
+    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1
+    DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,PQ,DQ,RDS,RRDS,S,S0,S1
 
     FOUND=.FALSE.
     IID=IAP(18)
@@ -1135,20 +1156,19 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! RETURNS A QUANTITY THAT CHANGES SIGN AT A LIMIT POINT (BVP)
 
+    INTEGER IAP(*),ICP(*),NDIM,IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),P0(*),P1(*),RLCUR(*),RLOLD(*),RLDOT(IAP(29))
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UDOTPS(NDIM,0:IAP(5)*IAP(6))
+    DOUBLE PRECISION UPOLDP(*),TM(*),DTM(*),THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
-
     LOGICAL CHNG
-
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6))
-    DIMENSION RLCUR(*),RLOLD(*),RLDOT(IAP(29)),TM(*),DTM(*),THL(*),THU(*)
-    DOUBLE PRECISION UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
-
+    INTEGER NTST,NCOL,IID,NFPR,IBR,NTOT,NTOP,NLLV,IFST
+    DOUBLE PRECISION RDSZ,DET
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
 
     NTST=IAP(5)
@@ -1199,18 +1219,18 @@ CONTAINS
 
     USE SUPPORT
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
+    INTEGER IAP(*),ICP(*),NDIM,IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),P0(*),P1(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UDOTPS(*),UPOLDP(*),TM(*),DTM(*)
+    DOUBLE PRECISION THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
-
     LOGICAL CHNG
-
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),RAP(*),P1(*)
 ! Local
-    ALLOCATABLE PP(:)
-    DOUBLE PRECISION U(1),F(1)
+    DOUBLE PRECISION, ALLOCATABLE :: PP(:)
+    INTEGER IID,I,IBR,NTOP,NTOT
+    DOUBLE PRECISION U(1),F(1),DET,DET0
 
     IID=IAP(18)
 
@@ -1255,24 +1275,24 @@ CONTAINS
 
     USE FLOQUET
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 
 ! This function returns a quantity that changes sign when a complex
 ! pair of eigenvalues of the linearized Poincare map moves in or out
 ! of the unit circle or when a real eigenvalues passes through -1.
 
-    COMPLEX(KIND(1.0D0)) EV(*),ZTMP
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),P0(*),P1(*)
-    DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*)
-    DOUBLE PRECISION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*)
-    DOUBLE PRECISION TM(*),DTM(*),THL(*),THU(*),VUZ(*)
-    INTEGER IUZ(*)
-! Local
+    INTEGER IAP(*),ICP(*),NDIM,IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),P0(*),P1(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UDOTPS(*),UPOLDP(*),TM(*),DTM(*)
+    DOUBLE PRECISION THL(*),THU(*),VUZ(*)
+    COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG
-
     EXTERNAL FUNI,BCNI,ICNI
+
+! Local
+    COMPLEX(KIND(1.0D0)) ZTMP
+    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,LOC,NINS,NINS1
+    DOUBLE PRECISION D,AMIN,AZM1,tol
 
     ISP=IAP(9)
     ISW=IAP(10)
@@ -1427,15 +1447,15 @@ CONTAINS
        (IAP,RAP,PAR,ICP,CHNG,FUNI,BCNI,ICNI,P0,P1,EV,RLCUR,RLOLD,RLDOT, &
        NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,THL,THU,IUZ,VUZ)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
+    INTEGER IAP(*),ICP(*),NDIM,IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),P0(*),P1(*),RLCUR(*),RLOLD(*),RLDOT(*)
+    DOUBLE PRECISION UPS(*),UOLDPS(*),UDOTPS(*),UPOLDP(*),TM(*),DTM(*)
+    DOUBLE PRECISION THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
-
     LOGICAL CHNG
-
     EXTERNAL FUNI,BCNI,ICNI
 
-    DIMENSION IAP(*),PAR(*),IUZ(*),VUZ(*)
+    INTEGER IID,IUZR,IBR,NTOT,NTOP
 
     IID=IAP(18)
     IUZR=IAP(26)
@@ -1451,23 +1471,21 @@ CONTAINS
 
   END FUNCTION FNUZBV
 
-! ---------- ------
-  SUBROUTINE TPSPBV(IAP,RAP,PAR,EV)
+! ------- -------- ------
+  INTEGER FUNCTION TPSPBV(NDIM,EPSS,ITPST,PAR,EV)
 
 ! Determines type of secondary periodic bifurcation.
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
 
     COMPLEX(KIND(1.0D0)) EV(*)
 
-    DIMENSION PAR(*),IAP(*),RAP(*)
+    INTEGER, INTENT(IN) :: NDIM,ITPST
+    DOUBLE PRECISION, INTENT(IN) :: EPSS
+    DOUBLE PRECISION PAR(*)
 
-    NDIM=IAP(1)
-
-    EPSS=RAP(13)
-    ITPST=IAP(28)
+    INTEGER LOC,LOC1,I
+    DOUBLE PRECISION AMIN,AZM1,D,AD
 
 ! Find the eigenvalue closest to z=1.
 
@@ -1499,20 +1517,17 @@ CONTAINS
 
     IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 !       ** torus bifurcation
-       ITP=8+10*ITPST
-       IAP(27)=ITP
+       TPSPBV=8+10*ITPST
        PAR(12)=ASIN(AIMAG(EV(LOC1)))
     ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 !       ** period doubling
-       ITP=7+10*ITPST
-       IAP(27)=ITP
+       TPSPBV=7+10*ITPST
     ELSE
 !       ** something else...
-       ITP=0
-       IAP(27)=ITP
+       TPSPBV=0
     ENDIF
 
-  END SUBROUTINE TPSPBV
+  END FUNCTION TPSPBV
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1525,7 +1540,6 @@ CONTAINS
 
     USE IO
     USE MESH
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Writes the bifurcation diagram on unit 7 (Differential Equations)
 ! (Also controls the writing of complete solutions on unit 8).
@@ -1554,10 +1568,14 @@ CONTAINS
 !  MAX U(*)   : The maxima of the first few solution components.
 !  PAR(ICP(*)): Further free parameters (if any).
 
-    DIMENSION PAR(*),ICP(*),ICU(*),IAP(*),RAP(*),TM(*),DTM(*),UPS(*),THL(*),THU(*)
-    DIMENSION RLDOT(*),UDOTPS(*)
+    INTEGER ICP(*),ICU(*),IAP(*),NDIM,ISTOP
+    DOUBLE PRECISION PAR(*),RAP(*),TM(*),DTM(*),UPS(*),THL(*),THU(*)
+    DOUBLE PRECISION RLDOT(*),UDOTPS(*)
 ! Local
-    DIMENSION UMX(7)
+    DOUBLE PRECISION UMX(7)
+    INTEGER IPS,NTST,NCOL,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR,I,IAB,IBRS,ITMP
+    INTEGER LAB,LABW,N2,NINS,NTOT,NTOTS
+    DOUBLE PRECISION RL0,RL1,A0,A1,AMP
 
     IPS=IAP(2)
     NTST=IAP(5)
@@ -1661,7 +1679,6 @@ CONTAINS
   SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
     USE COMPAT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Writes plotting and restart data on unit 8, viz.:
 ! (1) data identifying the corresponding point on unit 7,
@@ -1705,8 +1722,13 @@ CONTAINS
 !
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
-    DIMENSION IAP(*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
-    DIMENSION PAR(*),ICP(*),RLDOT(*)
+    INTEGER IAP(*),ICP(*),NDIM
+    DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
+    DOUBLE PRECISION PAR(*),RLDOT(*)
+
+    INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NRD,NROWPR
+    INTEGER MTOT,I,J
+    DOUBLE PRECISION T
 !xxx====================================================================
 !xxx Test problem: compute the error
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
@@ -1783,7 +1805,6 @@ CONTAINS
 
     USE IO
     USE MESH
-    IMPLICIT NONE
 
 ! Writes additional output on unit 9.
 
@@ -1832,9 +1853,11 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE PVLSBV(IAP,ICP,UPS,NDIM,PAR)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
-    DIMENSION IAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
+    INTEGER NDM
 
     NDM=IAP(23)
     CALL PVLS(NDM,UPS,PAR)
@@ -1846,17 +1869,16 @@ CONTAINS
 
     USE SUPPORT
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    DIMENSION P0(NDIM,*),P1(NDIM,*)
+    INTEGER, INTENT(IN) :: NDIM
+    DOUBLE PRECISION, INTENT(IN) :: P0(NDIM,*),P1(NDIM,*)
 
 ! Local
-    ALLOCATABLE Q0(:,:), Q1(:,:), P(:,:), Z(:,:), WR(:), WI(:)
-    ALLOCATABLE IV1(:), FV1(:)
+    DOUBLE PRECISION, ALLOCATABLE :: Q0(:,:),Q1(:,:),P(:,:),Z(:,:),WR(:),WI(:)
+    INTEGER IV1(1),I,J,IERR
+    DOUBLE PRECISION FV1(1),DET
 
     ALLOCATE(Q0(NDIM,NDIM), Q1(NDIM,NDIM), P(NDIM,NDIM))
     ALLOCATE(Z(NDIM,NDIM), WR(NDIM), WI(NDIM))
-    ALLOCATE(IV1(NDIM), FV1(NDIM))
 
     DO I=1,NDIM
        DO J=1,NDIM
@@ -1882,16 +1904,17 @@ CONTAINS
 101 FORMAT(" ")
 102 FORMAT(2ES14.5," | ",8ES14.5)
 
-    DEALLOCATE(Q0,Q1,P,Z,WR,WI,IV1,FV1)
+    DEALLOCATE(Q0,Q1,P,Z,WR,WI)
   END SUBROUTINE EVECS
 
 ! ---------- ------
   SUBROUTINE SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    TARGET IAP(NIAP),RAP(NRAP),DTM(IAP(5))
-    TARGET P0(NDIM,NDIM),P1(NDIM,NDIM)
+    INTEGER, INTENT(IN) :: NDIM
+    INTEGER, TARGET :: IAP(NIAP)
+    DOUBLE PRECISION, TARGET :: RAP(NRAP),DTM(IAP(5))
+    DOUBLE PRECISION, TARGET :: P0(NDIM,NDIM),P1(NDIM,NDIM)
     COMPLEX(KIND(1.0D0)), TARGET :: EV(NDIM)
 
     IAV=>IAP
