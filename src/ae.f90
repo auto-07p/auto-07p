@@ -7,6 +7,7 @@
 !
 MODULE AE
 
+  IMPLICIT NONE
   PRIVATE
   PUBLIC :: AUTOAE,STPNUS,STPNAE
   INTEGER NPARX,NIAP,NRAP
@@ -20,7 +21,6 @@ CONTAINS
 ! This is the entry subroutine for algebraic systems.
 
     USE AUTOMPI
-    IMPLICIT NONE
 
     INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
@@ -43,16 +43,21 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Controls the bifurcation analysis of algebraic problems
 
     EXTERNAL FUNI,STPNT
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),ICU(*),IUZ(*),VUZ(*),THU(*)
+    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THU(*)
 ! Local
-    ALLOCATABLE AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
+    DOUBLE PRECISION, ALLOCATABLE :: &
+         AA(:,:),U(:),UDOT(:),UOLD(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS,CHNG,FOUND
+    INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
+    INTEGER ITNW,ITP,ISTOP
+    INTEGER I,K,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
+    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,REV,RLP,RBP
     INTEGER STOPCNTS(-9:9)
 
     NDIM=IAP(1)
@@ -282,7 +287,7 @@ CONTAINS
 
        ! Initialize computation of the next bifurcating branch.
 
-       CALL SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
+       CALL SWPNT(IAP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
        IF(IPOS)THEN
           NBIF=NBIF-1
@@ -302,15 +307,22 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE STPNUS(IAP,PAR,ICP,U,UDOT,NODIR)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
 ! Gets the starting data from user supplied STPNT
 
-    DIMENSION IAP(*)
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+
+    INTEGER NDIM
+    DOUBLE PRECISION T
 
     NDIM=IAP(1)
+    T=0.d0
 
     CALL STPNT(NDIM,U,PAR,T)
+    UDOT(1)=0
+    NODIR=1
     
   END SUBROUTINE STPNUS
 
@@ -318,11 +330,13 @@ CONTAINS
   SUBROUTINE STPNAE(IAP,PAR,ICP,U,UDOT,NODIR)
 
     USE IO
-    IMPLICIT NONE
 
 ! Gets the starting data from unit 3
-    INTEGER IAP(*),ICP(*),NODIR
-    DOUBLE PRECISION PAR(*),U(*),UDOT(*)
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+
     INTEGER NFPR,NFPRS,I
     INTEGER,ALLOCATABLE :: ICPRS(:)
 
@@ -354,17 +368,19 @@ CONTAINS
   SUBROUTINE STPRAE(IAP,PAR,ICP,FUNI,U,UOLD,UDOT,THU,IPERP,AA)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Finds the second point on the initial solution branch.
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*),ICP(*)
-    DIMENSION AA(IAP(1)+1,IAP(1)+1)
+    INTEGER IAP(*),ICP(*),IPERP
+    DOUBLE PRECISION U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*)
+    DOUBLE PRECISION AA(IAP(1)+1,IAP(1)+1)
 
 ! Local
-    ALLOCATABLE AAA(:,:),F(:),DFDU(:,:),DFDP(:,:)
+    DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:),F(:),DFDU(:,:),DFDP(:,:)
+    INTEGER NDIM,IID,NPAR,I
+    DOUBLE PRECISION SIGN,SS
 
     NDIM=IAP(1)
     IID=IAP(18)
@@ -407,7 +423,7 @@ CONTAINS
 
     SIGN=1.d0
     IF(UDOT(NDIM+1)<0.d0.AND.IPERP/=1)SIGN=-1.d0
-    UDOT(:)=SIGN/DSQRT(SS)*UDOT(:)
+    UDOT(:)=SIGN/SQRT(SS)*UDOT(:)
 
 ! Get the Jacobian for stability computation.
     AA(:NDIM,:NDIM)=DFDU(:,:)
@@ -420,8 +436,6 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE CONTAE(NDIM,DSOLD,RDS,U,UOLD,UDOT)
-
-    IMPLICIT NONE
 
 ! This subroutine determines an initial approximation to the next
 ! solution on a branch by extrapolating from the two preceding points.
@@ -440,8 +454,6 @@ CONTAINS
 
 ! ---------- ------
   SUBROUTINE EXTRAE(NDIM,RDS,U,UOLD,UDOT)
-
-    IMPLICIT NONE
 
 ! Determines an initial approximation to the next solution by
 ! extrapolating from the two preceding points.
@@ -463,7 +475,6 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
-    IMPLICIT NONE
 
 ! This is the subroutine for computing solution branches. It solves
 ! the equations for finding the next point on the branch at distance DS
@@ -686,9 +697,8 @@ CONTAINS
        U,UOLD,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    PARAMETER (HMACH=1.0d-7)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
 ! This subroutine uses the secant method to accurately locate special
 ! points (branch points, folds, Hopf bifurcations, user zeroes).
@@ -701,10 +711,13 @@ CONTAINS
 
     EXTERNAL FUNI
 
-    DIMENSION IAP(*),RAP(*),PAR(*),ICP(*),THU(*),IUZ(*),VUZ(*)
-    DIMENSION AA(IAP(1)+1,*),U(*),UDOT(*),UOLD(*)
+    INTEGER IAP(*),ICP(*),IUZ(*),NIT,ISTOP
+    DOUBLE PRECISION RAP(*),DSOLD,PAR(*),THU(*),VUZ(*),FNCS
+    DOUBLE PRECISION AA(IAP(1)+1,*),U(*),UDOT(*),UOLD(*),Q
 
     LOGICAL CHNG,FOUND
+    INTEGER NDIM,IID,ITMX,IBR,ITLCSP,NTOT
+    DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,PQ,DQ,S,S0,S1,RDS,RRDS
 
     FOUND=.FALSE.
     NDIM=IAP(1)
@@ -739,7 +752,7 @@ CONTAINS
 
 ! Return if relative tolerance has been met :
 
-       RRDS=ABS(RDS)/(1+DSQRT(ABS(DS*DSMAX)))
+       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS)THEN
           FOUND=.TRUE.
           Q=0.d0
@@ -777,11 +790,12 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNBPAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
+    INTEGER IAP(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),AA(IAP(1)+1,IAP(1)+1),VUZ(*)
     LOGICAL CHNG
 
-    DIMENSION IAP(*),RAP(*)
+    INTEGER IID,IBR,NTOT,NTOP
+    DOUBLE PRECISION DET
 
     IID=IAP(18)
     IBR=IAP(30)
@@ -803,12 +817,14 @@ CONTAINS
   DOUBLE PRECISION FUNCTION FNLPAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
-    DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,IAP(1)+1)
+    INTEGER IAP(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),AA(IAP(1)+1,IAP(1)+1),VUZ(*)
 ! Local
-    ALLOCATABLE UD(:),AAA(:,:),RHS(:)
+    DOUBLE PRECISION, ALLOCATABLE :: UD(:),AAA(:,:),RHS(:)
 
+    INTEGER NDIM,IID,IBR,NTOT,NTOP
+    DOUBLE PRECISION DET
     LOGICAL CHNG
 
     NDIM=IAP(1)
@@ -845,15 +861,16 @@ CONTAINS
 
     USE SUPPORT
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RLARGE=1.0d+30
 
-    PARAMETER (HMACH=1.0d-7,RLARGE=1.0d+30)
-
-    DIMENSION IAP(*),RAP(*),PAR(*),AA(IAP(1)+1,*),IUZ(*),VUZ(*)
-! Local
-    COMPLEX(KIND(1.0D0)) EV, ZTMP
-    ALLOCATABLE EV(:)
+    INTEGER IAP(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),AA(IAP(1)+1,*),VUZ(*)
     LOGICAL CHNG
+! Local
+    COMPLEX(KIND(1.0D0)) ZTMP
+    COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
+    INTEGER NDIM,NDM,IPS,ISP,ISW,IID,IBR,NTOT,NTOP,NINS,NINS1,I,j,LOC
+    DOUBLE PRECISION a,AR,AREV,RIMHB,tol,trace,REV
 
     NDIM=IAP(1)
     NDM=IAP(23)
@@ -986,11 +1003,12 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNUZAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-
-    DIMENSION IAP(*),PAR(*),IUZ(*),VUZ(*)
+    INTEGER IAP(*),IUZ(*)
+    DOUBLE PRECISION RAP(*),PAR(*),AA(IAP(1)+1,IAP(1)+1),VUZ(*)
 
     LOGICAL CHNG
+
+    INTEGER IID,IUZR,IBR,NTOT,NTOP
 
     IID=IAP(18)
     IUZR=IAP(26)
@@ -1016,7 +1034,6 @@ CONTAINS
   SUBROUTINE STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
 
     USE SUPPORT
-    IMPLICIT NONE
 
 ! Stores branching data in the following arrays :
 !        STU    ( the solution vector U | PAR(ICP(1)) )
@@ -1040,24 +1057,25 @@ CONTAINS
   END SUBROUTINE STBIF
 
 ! ---------- -----
-  SUBROUTINE SWPNT(IAP,RAP,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
-
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  SUBROUTINE SWPNT(IAP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
 ! This subroutine retrieves the branching data U, U-dot, PAR(ICP(1)),
 ! PAR(ICP(1))-dot. If this initialization corresponds to the computation
 ! of the bifurcating branch in opposite direction, then only the sign of
 !  the stepsize ( DS ) along the branch is reversed.
 
-    DIMENSION IAP(*),RAP(*),U(*),UDOT(*),STUD(NBIFS,*),STU(NBIFS,*)
-    DIMENSION PAR(*),ICP(*)
+    INTEGER IAP(*),ICP(*)
+    INTEGER, INTENT(IN) :: NBIF,NBIFS
+    DOUBLE PRECISION, INTENT(IN) :: DS
+    DOUBLE PRECISION, INTENT(OUT) :: RDS
+    DOUBLE PRECISION PAR(*),U(*),UDOT(*),STUD(NBIFS,*),STU(NBIFS,*)
     LOGICAL IPOS
+
+    INTEGER NDIM,ISW,MXBF,I,I1
 
     NDIM=IAP(1)
     ISW=IAP(10)
     MXBF=IAP(17)
-
-    DS=RAP(1)
 
     RDS=DS
     IF(.NOT.IPOS)RDS=-DS
@@ -1087,7 +1105,6 @@ CONTAINS
 
     USE IO
     USE SUPPORT
-    IMPLICIT NONE
 
 ! Stores the bifurcation diagram on unit 7 (Algebraic Problems).
 ! Every line written contains, in order, the following:
@@ -1116,7 +1133,8 @@ CONTAINS
 !
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
-    DOUBLE PRECISION, INTENT(IN) :: RAP(*),PAR(*),U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(IN) :: RAP(*),U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     INTEGER, INTENT(INOUT) :: ISTOP
 
     INTEGER NDIM,IPS,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR
@@ -1208,12 +1226,16 @@ CONTAINS
   SUBROUTINE WRTSP8(IAP,PAR,ICP,LAB,U,UDOT)
 
     USE COMPAT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
 ! Write restart information on singular points, plotting points, etc.,
 ! on unit 8.
 
-    DIMENSION IAP(*),PAR(*),ICP(*),U(*),UDOT(*)
+    INTEGER, INTENT(IN) :: IAP(*),ICP(*),LAB
+    DOUBLE PRECISION, INTENT(IN) :: U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+
+    INTEGER NDIM,ISW,ITP,IBR,NFPR,NPAR,NTOT,NROWPR,MTOT,NAR,NTPL,I,K
+    DOUBLE PRECISION T
 
     NDIM=IAP(1)
     ISW=IAP(10)
@@ -1251,8 +1273,6 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE WRJAC(M,N,AA,RHS)
 
-    IMPLICIT NONE
-    
     INTEGER, INTENT(IN) :: M,N
     DOUBLE PRECISION, INTENT(IN) :: AA(M,N),RHS(M)
     INTEGER I,J
@@ -1272,9 +1292,10 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE PVLSAE(IAP,RAP,U,PAR)
 
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+    INTEGER IAP(*)
+    DOUBLE PRECISION RAP(*),U(*),PAR(*)
 
-    DIMENSION IAP(*),RAP(*),U(*),PAR(*)
+    INTEGER NDM
 
     CALL SETPAE(IAP,RAP)
     NDM=IAP(23)
@@ -1286,8 +1307,8 @@ CONTAINS
   SUBROUTINE SETPAE(IAP,RAP)
 
     USE SUPPORT
-    IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-    TARGET IAP(NIAP),RAP(NRAP)
+    INTEGER, TARGET :: IAP(NIAP)
+    DOUBLE PRECISION, TARGET :: RAP(NRAP)
 
     IAV=>IAP
     RAV=>RAP
