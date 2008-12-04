@@ -250,7 +250,7 @@ C  compute the eigenvalues for the generalized eigenvalue problem
 C
       CALL DGGEV('N', 'N', NDIMM1, C0(2,1), NDIM, C1(2,1), NDIM, QZALFR,
      &     QZALFI, QZBETA, QZZ, 1, QZZ, 1, SVDWRK, -1, QZIERR)
-      SVDLWRK = SVDWRK(1)
+      SVDLWRK = NINT(SVDWRK(1))
       DEALLOCATE(SVDWRK)
       ALLOCATE(SVDWRK(SVDLWRK))
       CALL DGGEV('N', 'N', NDIMM1, C0(2,1), NDIM, C1(2,1), NDIM, QZALFR,

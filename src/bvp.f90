@@ -9,14 +9,17 @@ MODULE BVP
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: AUTOBV,STPNUB,STPNBV,STPNBV1,PVLSBV,SETRTN
+  PUBLIC :: AUTOBV,STPNUB,STPNBV,STPNBV1,PVLSBV,SETRTN,IRTN,NRTN
   INTEGER NPARX,NIAP,NRAP
   INCLUDE 'auto.h'
+
+  INTEGER, POINTER :: NRTN(:)
+  INTEGER IRTN
 
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
+  SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE AUTOMPI
@@ -26,7 +29,7 @@ CONTAINS
     INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
 
-    EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
+    include 'interfaces.h'
 
     IF(MPIIAM()>0)THEN
 !        This is a little trick to tell MPI workers what FUNI and ICNI
@@ -36,7 +39,7 @@ CONTAINS
        ENDDO
        RETURN
     ENDIF
-    CALL CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
+    CALL CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
          PVLI,THL,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOBV
@@ -49,7 +52,7 @@ CONTAINS
     include 'auto.h'
 
     integer iam,kwt
-    external funi,icni,bcni
+    include 'interfaces.h'
 
     integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
     integer :: npar, iap(NIAP)
@@ -92,7 +95,7 @@ CONTAINS
   end subroutine mpi_setubv_worker
 
 ! ---------- ------
-  SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNT, &
+  SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE IO
@@ -101,7 +104,7 @@ CONTAINS
 
 ! Controls the computation of solution branches.
 
-    EXTERNAL FUNI,BCNI,ICNI,STPNT,PVLI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THL(*),THU(*)
@@ -175,7 +178,7 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNT,PVLI,RLCUR,RLOLD,RLDOT, &
+    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
 !     don't set global rotations here for homoclinics, but in autlib5.f
@@ -368,7 +371,7 @@ CONTAINS
 ! by extrapolating from the two preceding points.
 ! The stepsize used in the preceding step has been stored in DSOLD.
 
-    EXTERNAL FUNI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),NDIM
     DOUBLE PRECISION DSOLD,PAR(*),RDS
@@ -422,7 +425,7 @@ CONTAINS
 
 ! Stores U-prime (derivative with respect to T) in UPOLDP.
 
-    EXTERNAL FUNI
+    include 'interfaces.h'
 
     INTEGER ICP(*),IAP(*),NDIM
     DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
@@ -467,7 +470,7 @@ CONTAINS
 ! Controls the solution of the nonlinear equations (by Newton's method)
 ! for the next solution (PAR(ICP(*)) , U) on a branch of solutions.
 
-    EXTERNAL FUNI,BCNI,ICNI,PVLI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),NDIM,NITPS,ISTOP
     DOUBLE PRECISION RAP(*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
@@ -613,7 +616,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNT,PVLI,RLCUR,RLOLD, &
+  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
@@ -626,7 +629,7 @@ CONTAINS
 ! If IRS=0 then the starting point must be provided analytically in the
 ! user-supplied subroutine STPNT.
 
-    EXTERNAL FUNI, STPNT, PVLI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),NDIM,NODIR
     DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
@@ -674,7 +677,7 @@ CONTAINS
        ENDIF
        DEALLOCATE(U,UDOT)
     ELSE
-       CALL STPNT(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
+       CALL STPNBVI(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
     ENDIF
 
 ! Determine a suitable starting label and branch number.
@@ -714,8 +717,12 @@ CONTAINS
 
     USE MESH
 
-    INTEGER IAP(*),ICP(*),NTSR,NCOLRS,NODIR
-    DOUBLE PRECISION PAR(*),RLDOT(*),TM(*),UPS(*),UDOTPS(*)
+    INTEGER, INTENT(INOUT) :: IAP(*)
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),TM(*)
+    DOUBLE PRECISION, INTENT(OUT) :: UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
 
     INTEGER NDIM,IPS,ISW,NTST,NCOL,NDIMRD,NTSRS
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
@@ -747,7 +754,7 @@ CONTAINS
 
     INTEGER, INTENT(IN) :: ICP(*),NDIM
     INTEGER, INTENT(INOUT) :: IAP(*)
-    INTEGER, INTENT(OUT) :: NTSRS,NDIMRD,NCOLRS,NODIR
+    INTEGER, INTENT(OUT) :: NTSRS,NCOLRS,NDIMRD,NODIR
     DOUBLE PRECISION, INTENT(OUT) :: UPS(*),UDOTPS(*),TM(*)
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*)
 ! Local
@@ -790,8 +797,12 @@ CONTAINS
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    INTEGER IAP(*),ICP(*),NTSRS,NCOLRS,NODIR
-    DOUBLE PRECISION PAR(*),RLDOT(*),TM(0:*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
+    INTEGER, INTENT(INOUT) :: IAP(*)
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(INOUT) :: NTSRS,NCOLRS
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(IAP(29))
+    DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
 
     INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,io,I,J
     DOUBLE PRECISION TEMP,PERIOD
@@ -839,6 +850,7 @@ CONTAINS
             TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,IPS==2 .AND. ABS(ISW)<=1)
        PAR(11)=PERIOD
        CALL STPNT(NDIM,UPS(:,0),PAR,0d0)
+       RLDOT(:)=0.d0
     ELSE
        DO J=0,NTST*NCOL
           CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
@@ -868,11 +880,11 @@ CONTAINS
     INTEGER IAP(*),ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
     DOUBLE PRECISION U(NDIM),PAR(*),RLDOT(*),THU(*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),TM(*)
-    EXTERNAL FUNI
+    include 'interfaces.h'
 ! Local
     INTEGER I,J
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),SMAT(:,:),RNLLV(:),F(:),DTM(:)
-    DOUBLE PRECISION DUMDFP(1),UOLD(1)
+    DOUBLE PRECISION DUMDFP(1)
     DOUBLE PRECISION THL(2)
     DOUBLE PRECISION PERIOD,TPI,RIMHB,T,C,S
 
@@ -889,7 +901,7 @@ CONTAINS
        SMAT(NDIM+I,NDIM+I)=RIMHB
     ENDDO
 
-    CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DUMDFP)
+    CALL FUNI(IAP,NDIM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
 
 ! Note that the period-scaling in FUNC is taken into account:
     SMAT(1:NDIM,NDIM+1:2*NDIM)=DFU(:,:)/PAR(11)
@@ -926,9 +938,6 @@ CONTAINS
 
 ! Initialization for rotations
     
-    INTEGER, POINTER :: NRTN(:)
-    INTEGER IRTN
-    COMMON /BLRTN/ NRTN,IRTN
     INTEGER, INTENT(IN) :: NDM, NTNC, NDIM
     DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NTNC)
     DOUBLE PRECISION PAR(*)
@@ -959,7 +968,7 @@ CONTAINS
 ! Generates a direction vector (UDOTPS,RLDOT) that is needed to start
 ! the computation of a branch when no direction vector is given.
 
-    EXTERNAL FUNI,BCNI,ICNI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),NDIM,IPERP
     DOUBLE PRECISION RAP(*),UDOTPS(NDIM,0:IAP(5)*IAP(6)),DTM(*)
@@ -1058,7 +1067,7 @@ CONTAINS
 ! This subroutine is called from CNRLB, which controls the computation
 ! of branches of solutions to general boundary value problems.
 
-    EXTERNAL FUNI,BCNI,ICNI,PVLI
+    include 'interfaces.h'
     COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG,FOUND
     INTEGER IAP(*),ICP(*),IUZ(*),NDIM,NITPS,ISTOP
@@ -1165,7 +1174,7 @@ CONTAINS
     DOUBLE PRECISION UPOLDP(*),TM(*),DTM(*),THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG
-    EXTERNAL FUNI,BCNI,ICNI
+    include 'interfaces.h'
 
     INTEGER NTST,NCOL,IID,NFPR,IBR,NTOT,NTOP,NLLV,IFST
     DOUBLE PRECISION RDSZ,DET
@@ -1225,7 +1234,7 @@ CONTAINS
     DOUBLE PRECISION THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG
-    EXTERNAL FUNI,BCNI,ICNI
+    include 'interfaces.h'
 
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: PP(:)
@@ -1287,7 +1296,7 @@ CONTAINS
     DOUBLE PRECISION THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG
-    EXTERNAL FUNI,BCNI,ICNI
+    include 'interfaces.h'
 
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
@@ -1453,7 +1462,7 @@ CONTAINS
     DOUBLE PRECISION THL(*),THU(*),VUZ(*)
     COMPLEX(KIND(1.0D0)) EV(*)
     LOGICAL CHNG
-    EXTERNAL FUNI,BCNI,ICNI
+    include 'interfaces.h'
 
     INTEGER IID,IUZR,IBR,NTOT,NTOP
 

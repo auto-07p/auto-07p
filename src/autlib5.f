@@ -8,7 +8,8 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      USE AUTO_CONSTANTS, ONLY : HCONST,HCONST_TYPE,NPARX
+      USE AUTO_CONSTANTS, ONLY : HCONST,NPARX
+      IMPLICIT NONE
 
       PRIVATE
 
@@ -23,21 +24,24 @@ C
       LOGICAL, SAVE :: NEWCFILE=.FALSE.
       DOUBLE PRECISION, SAVE :: COMPZERO
 
+      DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
+
       CONTAINS
 
 C     ---------- ----
       SUBROUTINE FNHO(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
 C Generates the equations for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),ICP(*)
-      DIMENSION U(*),UOLD(*),PAR(*),F(*),DFDU(NDIM,*),DFDP(NDIM,*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
-      ALLOCATABLE DFU(:)
+      DOUBLE PRECISION, ALLOCATABLE :: DFU(:)
+      INTEGER NDM,NFPR,I,J
+      DOUBLE PRECISION UMX,EP,P,UU
 C
        NDM=IAP(23)
        NFPR=IAP(29)
@@ -97,22 +101,22 @@ C
 C     ---------- ----
       SUBROUTINE FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
-      USE INTERFACES, ONLY:FUNI
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      USE INTERFACES, ONLY:FUNI,FUNC
 C
-      DIMENSION IAP(*),ICP(*)
-      DIMENSION U(NDIM),UOLD(*),PAR(*),F(*)
-      DIMENSION DFDU(NDM,*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
 C
 C       Local
-      DOUBLE PRECISION DDUM1(1)
-C
-      NDM=IAP(23)
+      INTEGER I,J
+      DOUBLE PRECISION DDUM1(1),DUM1
 C
       IF(ISTART.GE.0)THEN
          IF(ITWIST.EQ.0)THEN
 C           *Evaluate the R.-H. sides
-            CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DUM1)
+            CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DDUM1)
          ELSEIF(ITWIST.EQ.1)THEN
 C           *Adjoint variational equations for normal vector
             CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
@@ -132,7 +136,7 @@ C           *Set F =  F + PAR(10) * f
       ELSE
 C        Homoclinic branch switching
          DO J=0,NDIM-NDM,NDM
-            CALL FUNC(NDM,U(J+1),ICP,PAR,0,F(J+1),DFDU,DUM1)
+            CALL FUNC(NDM,U(J+1),ICP,PAR,0,F(J+1),DFDU,DDUM1)
          ENDDO
       ENDIF
 C
@@ -158,16 +162,16 @@ C
 C     ---------- ----
       SUBROUTINE BCHO(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
 C Generates the boundary conditions for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),ICP(*)
-      DIMENSION U0(*),U1(*),F(NBC),PAR(*),DBC(NBC,*)
+      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
+      DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 C Local
-      ALLOCATABLE UU(:),FF1(:),FF2(:)
+      DOUBLE PRECISION, ALLOCATABLE :: UU(:),FF1(:),FF2(:)
+      INTEGER NFPR,I,J
+      DOUBLE PRECISION UMX,EP,P
 C
        NFPR=IAP(29)
 C
@@ -237,21 +241,24 @@ C
 C     ---------- ----
       SUBROUTINE FBHO(IAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
 C
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      USE SUPPORT, ONLY: PI
+      USE BVP, ONLY: NRTN, IRTN
+      USE INTERFACES, ONLY: FUNC,BCND,PVLS
 C
 C Generates the boundary conditions for homoclinic orbits.
 C
-      DIMENSION ICP(*),IAP(*)
-      DIMENSION PAR(*),U0(*),U1(*),FB(*)
-      LOGICAL CSAVE
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NBC
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U0(NDIM),U1(NDIM)
+      DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
+      LOGICAL, INTENT(IN) :: CSAVE
 C Local
-      ALLOCATABLE VR(:,:,:),VT(:,:,:),UMAX(:)
-      ALLOCATABLE BOUND(:,:),RR(:,:),RI(:,:),XEQUIB1(:),XEQUIB2(:)
-      SAVE UMAX
-C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
+      DOUBLE PRECISION, ALLOCATABLE :: VR(:,:,:),VT(:,:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: BOUND(:,:),RR(:,:),RI(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: XEQUIB1(:),XEQUIB2(:)
+      DOUBLE PRECISION, ALLOCATABLE, SAVE :: UMAX(:)
+
+      INTEGER NDM,NPAR,NBCN,JB,INEIG,I,J,K,IP,KP
+      DOUBLE PRECISION DUM,DUM1(1),DUM2(1)
 C
       NDM=IAP(23)
       NPAR=IAP(31)
@@ -490,7 +497,7 @@ C
 C      write(9,*) NBCN,NBC
 C *user defined extra boundary conditions
       IF (NBCN.GT.0) THEN
-         CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FB(JB),0,0)
+         CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FB(JB),0,DUM2)
       ELSEIF (NBCN.LT.0) THEN
          PRINT*,'Evil BUG!: Negative number of boundary conditions left'
          STOP
@@ -504,13 +511,16 @@ C     ---------- ----
       SUBROUTINE ICHO(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER (HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30)
-C
 C Generates integral conditions for homoclinic bifurcation analysis
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
-      DIMENSION U(*),UOLD(*),UDOT(*),UPOLD(*),F(*),DINT(NINT,*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
+      DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
+
+      INTEGER NDM,NFPR,I,J
+      DOUBLE PRECISION UMX,EP,P,UU
 C
        NDM=IAP(23)
        NFPR=IAP(29)
@@ -569,12 +579,16 @@ C
 C     ---------- ----
       SUBROUTINE FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
 C Generates the integral conditions for homoclinic orbits.
 C
-      DIMENSION ICP(*)
-      DIMENSION PAR(*),U(*),UOLD(*),UDOT(*),UPOLD(*),FI(*)
+      USE INTERFACES, ONLY: ICND
+      INTEGER, INTENT(IN) :: NDM,ICP(*),NINT
+      DOUBLE PRECISION, INTENT(IN) :: UOLD(*),UDOT(*),UPOLD(*),U(*)
+      DOUBLE PRECISION, INTENT(IN) :: PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: FI(*)
+
+      INTEGER JB,I
+      DOUBLE PRECISION DUM,DUM1(1)
 C
       JB=0
 C
@@ -612,7 +626,6 @@ C
 C     ---------- -------
       SUBROUTINE INSTRHO(KEYSTR,VALSTR,LISTLEN,IERR)
 C
-      IMPLICIT NONE
       CHARACTER(LEN=*), INTENT(IN) :: KEYSTR, VALSTR
       INTEGER, INTENT(IN) :: LISTLEN
       INTEGER, INTENT(OUT) :: IERR
@@ -670,10 +683,10 @@ C
 C     ---------- ----
       SUBROUTINE INHO(IAP,ICP)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      PARAMETER(HMACHHO=1.0d-13)
-      DIMENSION IAP(*),ICP(*)
-      INTEGER stat
+      DOUBLE PRECISION, PARAMETER :: HMACHHO=1.0d-13
+      INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
+
+      INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE,NPAR
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -848,8 +861,7 @@ C
 C     ---------- ------
       SUBROUTINE INTPHO(NDM,NCOLRS,TM,DTM,UPS,UDOTPS,T,DT,N,NDIM,J,J1)
 C
-      USE MESH
-      IMPLICIT NONE
+      USE MESH, ONLY: INTWTS
       INTEGER, INTENT(IN) :: NDM,NCOLRS,N,NDIM,J,J1
       DOUBLE PRECISION, INTENT(IN) :: TM,DTM,T,DT
       DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM,0:*),UDOTPS(NDIM,0:*)
@@ -881,7 +893,7 @@ C
       END SUBROUTINE INTPHO
 C
 C     ---------- ------
-      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,NPAR)
+      SUBROUTINE TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,ICP,NPAR)
 C
 C     Transform the data representation of the homoclinic orbit into
 C     an object suitable for homoclinic branch switching:
@@ -897,14 +909,18 @@ C     t=1|maximum from equil.|maximum from equil.| end of hom. orbit  |
 C
 C     Called by PREHO
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION TM(0:*), UPS(NDIM,0:*), UDOTPS(NDIM,0:*), PAR(*)
+      USE BVP, ONLY: NRTN,IRTN
+      USE INTERFACES, ONLY: FUNC
+      INTEGER, INTENT(IN) :: NCOLRS,NDM,NDIM,ICP(*),NPAR
+      INTEGER, INTENT(INOUT) :: NTSR
+      DOUBLE PRECISION, INTENT(INOUT) :: TM(0:*), UPS(NDIM,0:*),
+     *     UDOTPS(NDIM,0:*), PAR(*)
 C Local
-      DIMENSION J2(3),A(3),B(3),T(3),TT(3),I2L(1)
-      ALLOCATABLE TTM(:)
+      DOUBLE PRECISION, ALLOCATABLE :: TTM(:)
+      INTEGER J2(3),I2L(1),I,I2,J,JJ,JMAX,K,K2,L,LL,LLL,IADDPH,NTNC
+      DOUBLE PRECISION A(3),B(3),T(3),TT(3),DUM1(1),DUM2(1)
+      DOUBLE PRECISION D1,DNORM,DTM,P,PHDIFF,TMMAX,UPSI,UPSMAX
 C
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
       ALLOCATE(TTM(0:NTSR*2-1))
 C
 C First find maximum from the equilibrium
@@ -1091,9 +1107,13 @@ C
 C     ---------- ------
       SUBROUTINE CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION UPS(NAR,0:*), UDOTPS(NAR,0:*)
-      DIMENSION TM(0:*), PAR(*)
+      INTEGER, INTENT(IN) :: NCOLRS,NDM
+      INTEGER, INTENT(INOUT) :: NTSR,NAR
+      DOUBLE PRECISION, INTENT(INOUT) :: UPS(NAR,0:*), UDOTPS(NAR,0:*)
+      DOUBLE PRECISION, INTENT(INOUT) :: TM(0:*), PAR(*)
+
+      INTEGER NCOPY,I,J,K,M
+      DOUBLE PRECISION TIME,TBASE
 C
 C     Copy the homoclinic orbit back from the special representation 
 C     gotten from TRANHO to the usual representation.
@@ -1148,19 +1168,20 @@ C     ---------- -----
 C
 C     Special homoclinic orbit preprocessing.
 C
-      USE BVP
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      USE BVP, ONLY: IRTN,NRTN,SETRTN
+      USE SUPPORT, ONLY: PI
+      USE INTERFACES, ONLY: FUNC
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*)
-      DIMENSION UPS(IAP(1),0:NTSR*NCOLRS), TM(0:NTSR) 
-      DIMENSION UDOTPS(IAP(1),0:NTSR*NCOLRS), PAR(*)
-      POINTER NRTN(:)
-      COMMON /BLRTN/ NRTN,IRTN
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NCOLRS
+      INTEGER, INTENT(INOUT) :: NTSR,NAR
+      DOUBLE PRECISION, INTENT(INOUT) :: UPS(IAP(1),0:NTSR*NCOLRS), 
+     *     TM(0:NTSR),UDOTPS(IAP(1),0:NTSR*NCOLRS),PAR(*)
 C
 C Local
 C
-      ALLOCATABLE F(:)
+      DOUBLE PRECISION, ALLOCATABLE :: F(:)
+      INTEGER NDIM,NDM,NPAR,II,IT,IST,I,J,J1,J2,JMIN,JR
+      DOUBLE PRECISION T,TMMIN,UPSI,UPSMIN,DUM1(1),DUM2(1)
 C
       NDIM=IAP(1)
       NDM=IAP(23)
@@ -1349,7 +1370,7 @@ C to change the representation of the homoclinic orbit in UPS and
 C UDOTPS.
 C
       IF (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.LT.3*NDM) THEN
-        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,NPAR)
+        CALL TRANHO(NTSR,NCOLRS,NDM,NDIM,TM,UPS,UDOTPS,PAR,ICP,NPAR)
       ELSEIF 
      *   (ISTART.LT.0 .AND. NAR.LT.NDIM .AND. NAR.GE.3*NDM) THEN
 C Copy forelast part
@@ -1382,10 +1403,10 @@ C     ---------- ------
       SUBROUTINE STPNHO(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      * UPS,UDOTPS,TM,NODIR)
 C
-      USE BVP
-      USE MESH
-      USE IO
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      USE BVP, ONLY: STPNUB,STPNBV1,SETRTN
+      USE MESH, ONLY: ADAPT2
+      USE IO, ONLY: GETNDIM3
+      USE INTERFACES, ONLY: PVLS
 C
 C Generates a starting point for the continuation of a branch of
 C of solutions to general boundary value problems by calling the user
@@ -1396,11 +1417,17 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      DIMENSION IAP(*),UPS(IAP(1),0:*),UDOTPS(*)
-      DIMENSION TM(*),PAR(*),ICP(*),RLDOT(*)
+      INTEGER, INTENT(INOUT) :: IAP(*)
+      INTEGER, INTENT(IN) :: ICP(*)
+      INTEGER, INTENT(OUT) :: NTSR,NCOLRS,NODIR
+      DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),UPS(IAP(1),0:*),
+     *     UDOTPS(IAP(1),0:*),TM(0:*)
 C Local
-      ALLOCATABLE RR(:),RI(:),VR(:,:),VT(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: RR(:),RI(:),VR(:,:),VT(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
+      INTEGER NDIM,IRS,NTST,NCOL,NDM,NDIM3,NDIMRD,NDIMU,NTSTCU
+      INTEGER IP,KP,I,J,K
+      DOUBLE PRECISION T
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1507,14 +1534,17 @@ C
 C     ---------- ------
       SUBROUTINE PVLSHO(IAP,ICP,UPS,NDIM,PAR)
 C
-      USE BVP
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      LOGICAL INEIG
+      USE BVP, ONLY: PVLSBV
 C
-      DIMENSION IAP(*),ICP(*),UPS(NDIM,0:*),PAR(*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 C Local
-      ALLOCATABLE PU0(:),PU1(:)
-      ALLOCATABLE RR(:,:),RI(:,:),V(:,:,:),VT(:,:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: PU0(:),PU1(:),RR(:,:),RI(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: V(:,:,:),VT(:,:,:)
+      INTEGER IID,NDM,NTST,NCOL,I,J
+      LOGICAL INEIG
+      DOUBLE PRECISION ORIENT
 C
       ALLOCATE(PU0(NDIM),PU1(NDIM))
       ALLOCATE(RR(NDIM,2),RI(NDIM,2),V(NDIM,NDIM,2),VT(NDIM,NDIM,2))
@@ -1606,11 +1636,15 @@ C The (generalised) real left eigenvectors are in the ROWS of VT.
 C In the block ENDPTS are stored the co-ordinates of the left (PU0)
 C and right (PU1) endpoints of the solution (+  vector if that is computed)
 C
-      IMPLICIT DOUBLE PRECISION(A-H,O-Z)
-      DIMENSION ICP(*),PAR(*),RR(NDM,*),RI(NDM,*)
-      DIMENSION V(NDM,NDM,*),VT(NDM,NDM,*),PU0(*),PU1(*)
+      USE INTERFACES, ONLY: FUNC
+      INTEGER, INTENT(IN) :: ICP(*),NDM,IS
+      DOUBLE PRECISION, INTENT(IN) :: PAR(*),RR(NDM,*),RI(NDM,*),
+     *     V(NDM,NDM,*),VT(NDM,NDM,*),PU0(*),PU1(*)
 C Local
-      ALLOCATABLE F0(:),F1(:)
+      DOUBLE PRECISION, ALLOCATABLE :: F0(:),F1(:)
+      INTEGER I,J
+      DOUBLE PRECISION DROOT,DUM1(1),DUM2(1),F0NORM,F1NORM,S1,S2
+      DOUBLE PRECISION U0NORM,U1NORM,VNORM1,VNORM2
 C
       ALLOCATE(F0(NDM),F1(NDM))
       CALL FUNC(NDM,PU0,ICP,PAR,0,F0,DUM1,DUM2)
@@ -1790,8 +1824,6 @@ C
 C     Determine number of stable (STAB==-1) or unstable (STAB==1)
 C     eigenvalues in RR
 C
-      IMPLICIT NONE
-
       INTEGER, INTENT(INOUT) :: N
       DOUBLE PRECISION, INTENT(IN) :: RR(:)
       INTEGER, INTENT(IN) :: STAB
@@ -1837,23 +1869,25 @@ C               VRET the rows of which are real parts of corresponding
 C                  eigenvectors 
 C
       USE INTERFACES, ONLY:FUNI
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      INTEGER IAP(*),ICP(*)
-      DOUBLE PRECISION PAR(*),RR(*),RI(*),VRET(NDM,NDM),XEQUIB(*)
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),ITRANS,NDM
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),XEQUIB(*)
+      DOUBLE PRECISION, INTENT(OUT) :: RR(NDM),RI(NDM),VRET(NDM,NDM)
 C Local
       LOGICAL, SAVE :: IEIGC(2) = (/.FALSE.,.FALSE./)
-      DOUBLE PRECISION DUM1(1)
       CHARACTER(1) JOBVL,JOBVR
-      ALLOCATABLE DFDU(:,:),DFDP(:,:),ZZ(:,:)
-      ALLOCATABLE F(:),WORK(:)
+      DOUBLE PRECISION, ALLOCATABLE :: DFDU(:,:),DFDP(:,:),ZZ(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: F(:),WORK(:)
       DOUBLE PRECISION, SAVE, ALLOCATABLE :: VRPREV(:,:,:)
+      INTEGER NPAR,IFAIL,LWORK,I,J,K,L,M
+      DOUBLE PRECISION TMP
+      INTEGER, EXTERNAL :: IDAMAX
 C
       NPAR=IAP(31)
       ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM),F(NDM))
       IFAIL=0
 C     
-      CALL FUNI(IAP,NDM,XEQUIB,DUM1,ICP,PAR,1,F,DFDU,DFDP)
+      CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,F,DFDU,DFDP)
 C
       IF (ITRANS==1) THEN
          JOBVL='V'
@@ -1867,7 +1901,7 @@ C LAPACK call for eigenvalues and eigenvectors
       ALLOCATE(WORK(1))
       CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
      *     -1,IFAIL)
-      LWORK=WORK(1)
+      LWORK=NINT(WORK(1))
       DEALLOCATE(WORK)
       ALLOCATE(WORK(LWORK))
       CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
@@ -1979,25 +2013,27 @@ C branch" is at the values of PAR at which the routine was last
 C called with the same values of IS and ITRANS.
 C
       USE INTERFACES, ONLY:FUNI
-      USE SUPPORT
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      USE SUPPORT, ONLY: GEL
 C
-      DIMENSION IAP(*),ICP(*),PAR(*)
-      DIMENSION BOUND(NDM,*),XEQUIB(*)
-      LOGICAL CSAVE
+      INTEGER, INTENT(IN) :: IAP(*),ICP(*),IMFD,IS,ITRANS,NDM
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),XEQUIB(*)
+      DOUBLE PRECISION, INTENT(OUT) :: BOUND(NDM,*)
+      LOGICAL, INTENT(IN) :: CSAVE
 C Local
       LOGICAL , SAVE :: IFLAG(2,2) = 
      &     RESHAPE((/.TRUE.,.TRUE.,.TRUE.,.TRUE./),(/2,2/))
       LOGICAL, ALLOCATABLE :: BWORK(:)
-      DOUBLE PRECISION UDUM(1),DDUM(1)
-      ALLOCATABLE ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
-      ALLOCATABLE DUM1(:,:),DUM2(:,:),FDUM(:),WORK(:)
-      ALLOCATABLE A(:,:),V(:,:)
+      DOUBLE PRECISION DDUM(1)
+      DOUBLE PRECISION, ALLOCATABLE :: ER(:),EI(:),D(:,:),CPREV(:,:,:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: DUM1(:,:),DUM2(:,:),FDUM(:)
+      DOUBLE PRECISION, ALLOCATABLE :: WORK(:),A(:,:),V(:,:)
+      INTEGER MCOND,IFAIL,LWORK,ISDIM,IWORK,I,J
+      DOUBLE PRECISION TMP,DET,S,SEP
 C
       SAVE CPREV
 C
       ALLOCATE(A(NDM,NDM),FDUM(NDM))
-      CALL FUNI(IAP,NDM,XEQUIB,UDUM,ICP,PAR,1,FDUM,A,DDUM)
+      CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,FDUM,A,DDUM)
       DEALLOCATE(FDUM)
 C
 C Compute transpose of A if ITRANS=1
@@ -2021,7 +2057,7 @@ C Call LAPACK routine for the Schur decomposition of A
 C
       CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,
      &     EI, BOUND, NDM, DDUM, -1, BWORK, IFAIL)
-      LWORK = DDUM(1)
+      LWORK = NINT(DDUM(1))
       ALLOCATE(ER(NDM),EI(NDM),WORK(LWORK),BWORK(NDM))
       IF(IMFD.EQ.-1)THEN
          CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,

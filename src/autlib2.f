@@ -6,6 +6,7 @@ C-----------------------------------------------------------------------
 C
       MODULE SOLVEBV
 
+      IMPLICIT NONE
       PRIVATE
 
       PUBLIC ::SOLVBV
@@ -26,24 +27,29 @@ C     ---------- ------
 C
 C$    USE OMP_LIB
       USE AUTOMPI
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Sets up and solves the linear equations for one Newton/Chord iteration
 C
-      EXTERNAL FUNI,BCNI,ICNI
-      DIMENSION IAP(*),PAR(*),ICP(*),RLOLD(*),RLCUR(*)
-      DIMENSION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*)
-      DIMENSION UPOLDP(NDIM,0:*),DUPS(NDIM,0:*),DTM(*),RLDOT(*)
+      include 'interfaces.h'
+      INTEGER IFST,NLLV,IAP(*),ICP(*)
+      DOUBLE PRECISION DET,PAR(*),RDS,RLOLD(*),RLCUR(*)
+      DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*)
+      DOUBLE PRECISION UPOLDP(NDIM,0:*),DUPS(NDIM,0:*),DTM(*),RLDOT(*)
       DOUBLE PRECISION DRL(IAP(29)),P0(*),P1(*),THL(*),THU(*)
 C
 C Local
-      ALLOCATABLE A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:)
-      ALLOCATABLE S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:)
-      ALLOCATABLE CCLO(:,:,:),CCBC(:,:,:)
-      ALLOCATABLE DDBC(:,:),DD(:,:,:),FCFC(:,:),FAA(:,:),SOL(:,:)
-      ALLOCATABLE ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:),NP(:)
-      ALLOCATABLE FA(:,:),FC(:)
-      SAVE A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC,ICF,IRF,IPR,IPC
+      DOUBLE PRECISION, ALLOCATABLE, SAVE ::
+     *     A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:),
+     *     S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),CCBC(:,:,:),DDBC(:,:)
+      INTEGER, ALLOCATABLE, SAVE ::
+     *     ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:)
+      DOUBLE PRECISION, ALLOCATABLE ::
+     *     CCLO(:,:,:),DD(:,:,:),FCFC(:,:),FAA(:,:),SOL(:,:),FA(:,:),
+     *     FC(:)
+      INTEGER, ALLOCATABLE :: NP(:)
+      INTEGER IAM,KWT,NDIM,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
+      INTEGER NRC,NFC,NROW,NCLM
+      INTEGER NA,NTSTNA,IT,NT,MNT,I,J
 C
 C Most of the required memory is allocated below
 C
@@ -189,8 +195,11 @@ C
 C
 C     ---------- -------
       SUBROUTINE SETFCDD(IFST,DD,FC,NCB,NRC)
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION FC(*),DD(NCB,*)
+
+      INTEGER, INTENT(IN) :: IFST,NCB,NRC
+      DOUBLE PRECISION FC(*),DD(NCB,*)
+
+      INTEGER I,J
 C
       DO I=1,NRC
         IF(IFST.EQ.1)THEN
@@ -208,14 +217,12 @@ C     ---------- ---------
       SUBROUTINE SUBVBC(NDIM,NTNC,NBC,NCB,BCNI,
      + IAP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
 C
-      IMPLICIT NONE
-C
 C     This subroutine handles a non-parallel part of SETUBV, that is,
 C     * the boundary conditions (not much to parallelize here and
 C       HomCont relies on non-parallel execution): the arrays CCBC,
 C       DDBC, and parts of FC.
 C
-      EXTERNAL BCNI
+      include 'interfaces.h'
 C
       INTEGER NDIM,NTNC,NBC,NCB,IAP(*),ICP(*),IFST,NPAR
       DOUBLE PRECISION CCBC(NDIM,NBC,*),DDBC(NCB,*)
@@ -257,7 +264,6 @@ C     ---------- -------
       SUBROUTINE SUBVPSA(NCB,RDS,DDPA,FCPA,RLCUR,RLOLD,RLDOT,THL,IFST)
 C
       USE MESH
-      IMPLICIT NONE
 C
 C     This subroutine handles a non-parallel part of SETUBV, that is,
 C     * creating the parameter dependent pseudo-arclength parts of FC and D:
@@ -290,7 +296,6 @@ C     ---------- ------
      + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT,IRF,ICF,NLLV)
 C
       USE MESH
-      IMPLICIT NONE
 C
       INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,IFST,IAM,NT,NPAR
       INTEGER IAP(*),ICP(*),IRF(NRA,*),ICF(NCA,*),NLLV
@@ -300,7 +305,7 @@ C
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION DDD(NCB,NRC,*),FCFC(NRC,*)
 C
-      EXTERNAL FUNI,ICNI
+      include 'interfaces.h'
 C
 C Local
       DOUBLE PRECISION WI(0:NCOL),WP(0:NCOL,NCOL),WT(0:NCOL,NCOL)
@@ -335,7 +340,7 @@ C     ---------- ---------
 C
 C     This is the per-CPU parallelized part of SETUBV
 C
-      EXTERNAL FUNI,ICNI
+      include 'interfaces.h'
 C
       INTEGER NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,IAP(*),ICP(*),NPAR
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
@@ -431,11 +436,12 @@ C     ---------- ---------
 C
 C     Does one call to FUNI and stores the result in AA, BB, and FA.
 C
-      EXTERNAL FUNI
+      include 'interfaces.h'
 C
       INTEGER, INTENT(IN) :: NDIM,NCOL,NCB,NCA,IAP(*),ICP(*)
       INTEGER, INTENT(IN) :: IFST,NLLV
-      DOUBLE PRECISION, INTENT(IN) :: PAR(*),WT(0:NCOL),WPLOC(0:NCOL)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+      DOUBLE PRECISION, INTENT(IN) :: WT(0:NCOL),WPLOC(0:NCOL)
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NCOL)
       DOUBLE PRECISION, INTENT(IN) :: UOLDPS(NDIM,0:NCOL)
       DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,*),BB(NCB,*),FA(*),U(*)
@@ -486,15 +492,14 @@ C     ---------- ------
      + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,FICD,DICD,UIC,UIO,UID,UIP,
      + IFST,NLLV)
 C
-      IMPLICIT NONE
-C
 C     Does one call to ICNI (integral constraints) and stores the
 C     result in CC, DD and FC; and stores the pseudo-arclength
 C     result too.
 C
-      EXTERNAL ICNI
+      include 'interfaces.h'
       INTEGER, INTENT(IN) :: NDIM,NINT,NCB,NCA,IAP(*),ICP(*),IFST,NLLV
-      DOUBLE PRECISION, INTENT(IN) :: PAR(*),UPS(*),UDOTPS(*)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+      DOUBLE PRECISION, INTENT(IN) :: UPS(*),UDOTPS(*)
       DOUBLE PRECISION, INTENT(IN) :: UOLDPS(*),UPOLDP(*),DTM,WI,THU(*)
       DOUBLE PRECISION, INTENT(OUT) :: CC(NCA,*),FICD(*),DICD(NINT,*)
       DOUBLE PRECISION, INTENT(OUT) :: UIC(*),UIO(*),UID(*),UIP(*)
@@ -548,8 +553,6 @@ C     ---------- ----
      +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
      +  NCB,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
      +  SOL,S1,S2,IPR,IPC,ICF,IAM,KWT,IT,NT)
-C
-      IMPLICIT NONE
 C
 C Arguments
       INTEGER   IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
@@ -622,8 +625,6 @@ C
 C     ---------- -------
       SUBROUTINE SETZERO(FA,FC,NA,NRA,NFC)
 C
-      IMPLICIT NONE
-C
 C Arguments
       INTEGER   NA,NRA,NFC
       DOUBLE PRECISION FA(NRA,*),FC(*)
@@ -647,8 +648,6 @@ C
 C     ---------- ------
       SUBROUTINE CONPAR(NOV,NRA,NCA,A,NCB,B,NRC,C,D,FA,FC,IRF,ICF,IAMAX,
      +     NLLV)
-C
-      IMPLICIT NONE
 C
 C Arguments
       INTEGER, INTENT(IN) :: NOV,NRA,NCA,NCB,NRC,NLLV
@@ -754,7 +753,7 @@ C
 C
 C     ---------- ------
       SUBROUTINE IMSBRA(NOV,NCA,NRA,A,AP,ICP1,IAMAX,RM)
-      IMPLICIT NONE
+C
 C Arguments
       DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
       DOUBLE PRECISION, INTENT(INOUT) :: A(*)
@@ -786,7 +785,6 @@ C     Also recalculate absolute maximum for current row
 C
 C     ---------- ------
       SUBROUTINE SUBRAC(NOV,NCA,C,AP,ICP1,RM)
-      IMPLICIT NONE
 C Arguments
       DOUBLE PRECISION, INTENT(IN) :: AP(*),RM
       DOUBLE PRECISION, INTENT(INOUT) :: C(*)
@@ -806,8 +804,6 @@ C
 C
 C     ---------- ------
       SUBROUTINE CONRHS(NOV,NRA,NCA,A,NRC,C,FA,FC,IRF)
-C
-      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NOV,NRA,NCA
@@ -850,19 +846,17 @@ C     ---------- ------
       SUBROUTINE COPYCP(NA,NOV,NRA,NCA,A,
      +  NCB,B,NRC,C,A1,A2,BB,CC,CCLO,IT)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
 C Arguments
-      INTEGER   NA,NOV,NRA,NCA
-      INTEGER   NCB,NRC,IT
-      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
-      DIMENSION A1(NOV,NOV,*),A2(NOV,NOV,*)
-      DIMENSION BB(NCB,NOV,*),CC(NOV,NRC,*),CCLO(NOV,NRC,*)
+      INTEGER, INTENT(IN) :: NA,NOV,NRA,NCA
+      INTEGER, INTENT(IN) ::  NCB,NRC,IT
+      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
+      DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
+      DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NRC,*),CCLO(NOV,NRC,*)
 C
-C     DIMENSION FA(NRA,*),FAA(NOV,*)
+C     DOUBLE PRECISION FA(NRA,*),FAA(NOV,*)
 C
 C Local
-      INTEGER   I,IR,IC
+      INTEGER   I,IR,IR1,IC,IC1,NAP1
 C
 C Copies the condensed sytem generated by CONPAR into workspace.
 C
@@ -906,12 +900,11 @@ C     ---------- ------
       SUBROUTINE CPYRHS(NA,NOV,NRA,FAA,FA)
 C
       USE AUTOMPI
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
 C Arguments
       INTEGER   NA,NOV,NRA
 
-      DIMENSION FA(NRA,*),FAA(NOV,*)
+      DOUBLE PRECISION FA(NRA,*),FAA(NOV,*)
 C
 C Local
       INTEGER   I,IR
@@ -931,7 +924,6 @@ C     ---------- ------
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 C
       USE AUTOMPI
-      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NTST,NOV,NCB,NRC,IFST,NLLV,IT,NT,IAM,KWT
@@ -1199,8 +1191,6 @@ C      ---------- ------
        SUBROUTINE REDSWP(IC,NOV,NCB,
      +     S11,S12,A12,A21,S21,A22,BB1,BB2)
 C
-       IMPLICIT NONE
-C
        INTEGER IC,NOV,NCB
        DOUBLE PRECISION S11(NOV),S12(NOV),A12(NOV),A21(NOV)
        DOUBLE PRECISION S21(NOV),A22(NOV),BB1(NCB),BB2(NCB)
@@ -1231,8 +1221,6 @@ C
 C      ---------- -------
        SUBROUTINE REDELIM(IC,NOV,NCB,IAMAX,JPIV,
      +     A12,A21,S12,S11,A22,S21,BB2,BB1)
-C
-       IMPLICIT NONE
 C
        INTEGER IC,NOV,NCB,IAMAX,JPIV
        DOUBLE PRECISION A12(NOV),A21(NOV),S12(NOV),S11(NOV)
@@ -1284,8 +1272,6 @@ C
 C     ---------- ---------
       SUBROUTINE REDRHSBLK(A21,FAA1,A12,FAA2,CC,FC,NOV,NRC,IPR)
 C
-      IMPLICIT NONE
-C
 C Arguments
       INTEGER   NOV,NRC,IPR(NOV)
       DOUBLE PRECISION A12(NOV,NOV),A21(NOV,NOV)
@@ -1327,8 +1313,6 @@ C     ---------- ------
      +  NA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
 C
       USE SUPPORT
-      IMPLICIT NONE
-C
 C Arguments
       INTEGER   NA,NFC,NBC,NOV,NCB,IDB,NLLV
       DOUBLE PRECISION E(NOV+NFC,*),CC(NOV,NFC-NBC,*),CCBC(NOV,NBC,*)
@@ -1465,8 +1449,6 @@ C
 C     ---------- -------
       SUBROUTINE BCKSUB1(S1,A2,S2,BB,FAA,FCC,SOL1,SOL2,FC,NOV,NCB,IPC)
 C
-      IMPLICIT NONE
-C
 C Arguments
       INTEGER   NOV,NCB,IPC(NOV)
       DOUBLE PRECISION S1(NOV,NOV),S2(NOV,NOV)
@@ -1508,7 +1490,6 @@ C     ---------- ------
      +     IT,NT,IAM,KWT)
 C
       USE AUTOMPI
-      IMPLICIT NONE
 C
 C Arguments
       INTEGER   NTST,NOV,NCB,IPC(NOV,*),IT,NT,IAM,KWT
@@ -1581,15 +1562,14 @@ C
 C     ---------- ------
       SUBROUTINE INFPAR(A,B,FA,SOL,FC,NA,NOV,NRA,NCA,NCB,ICF,X)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
 C  Arguments
       INTEGER   NA,NOV,NRA,NCA,NCB,ICF(NCA,*)
-      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
-      DIMENSION SOL(NOV,*),X(*)
+      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
+      DOUBLE PRECISION SOL(NOV,*),X(*)
 C
 C Local
-      DOUBLE PRECISION SM
+      INTEGER NRAM,NRAPJ,NOVPIR,I,J,J1,IR,IRP1
+      DOUBLE PRECISION SM,TMP
 C
 C Determine the local varables by backsubstitition.
 C
@@ -1638,11 +1618,13 @@ C     ---------- ------
       SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,FA,
      + FC,FCFC,NT)
 C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-C
-      DIMENSION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DIMENSION CCBC(NCA-NRA,NBC,*),D(NCB,*),DD(NCB,NFC-NBC,*)
-      DIMENSION DDBC(NCB,*),FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
+      INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,NT
+      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
+      DOUBLE PRECISION CCBC(NCA-NRA,NBC,*),D(NCB,*),DD(NCB,NFC-NBC,*)
+      DOUBLE PRECISION DDBC(NCB,*),FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
+
+      INTEGER I,IR,IC
+      DOUBLE PRECISION FC1,D1
 C
        WRITE(9,101)
        DO I=1,NA

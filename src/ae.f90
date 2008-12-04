@@ -16,7 +16,7 @@ MODULE AE
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THL,THU,IUZ,VUZ)
 
 ! This is the entry subroutine for algebraic systems.
 
@@ -25,7 +25,7 @@ CONTAINS
     INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
 
-    EXTERNAL FUNI,STPNT
+    include 'interfaces.h'
 
     IF(MPIIAM()>0)THEN
        IF(MPIWFI(.FALSE.))THEN
@@ -33,12 +33,12 @@ CONTAINS
        ENDIF
     ENDIF
     THU(IAP(1)+1)=THL(1)
-    CALL CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THU,IUZ,VUZ)
+    CALL CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOAE
 
 ! ---------- ------
-  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNT,THU,IUZ,VUZ)
+  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
 
     USE IO
     USE MESH
@@ -46,7 +46,7 @@ CONTAINS
 
 ! Controls the bifurcation analysis of algebraic problems
 
-    EXTERNAL FUNI,STPNT
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
     DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THU(*)
@@ -100,7 +100,7 @@ CONTAINS
 ! Generate the starting point
 
     NODIR=1
-    CALL STPNT(IAP,PAR,ICP,U,UDOT,NODIR)
+    CALL STPNAEI(IAP,PAR,ICP,U,UDOT,NODIR)
     CALL PVLSAE(IAP,RAP,U,PAR)
 
 ! Determine a suitable starting label and branch number
@@ -371,7 +371,7 @@ CONTAINS
 
 ! Finds the second point on the initial solution branch.
 
-    EXTERNAL FUNI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),IPERP
     DOUBLE PRECISION U(*),UOLD(*),UDOT(IAP(1)+1),THU(*),PAR(*)
@@ -486,14 +486,14 @@ CONTAINS
 ! branch point. This hyper-plane is parallel to the tangent of the
 ! known branch at the branch point.
 
-    EXTERNAL FUNI
+    include 'interfaces.h'
 
     INTEGER, INTENT(IN) :: IAP(*),ICP(*)
     INTEGER, INTENT(OUT) :: NIT
     INTEGER, INTENT(INOUT) :: ISTOP
     DOUBLE PRECISION, INTENT(IN) :: UDOT(*),THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: DSOLD,UOLD(*),AA(IAP(1)+1,IAP(1)+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),PAR(*),RDS
+    DOUBLE PRECISION, INTENT(OUT) :: DSOLD,AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),UOLD(*),PAR(*),RDS
     LOGICAL, OPTIONAL, INTENT(IN) :: SW
 ! Local
     INTEGER NDIM,IADS,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K,NDM
@@ -709,7 +709,7 @@ CONTAINS
 ! accuracy if the ratio between RDS and the user supplied value of
 ! DS is less than the user-supplied toler EPSS.
 
-    EXTERNAL FUNI
+    include 'interfaces.h'
 
     INTEGER IAP(*),ICP(*),IUZ(*),NIT,ISTOP
     DOUBLE PRECISION RAP(*),DSOLD,PAR(*),THU(*),VUZ(*),FNCS
