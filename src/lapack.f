@@ -14048,8 +14048,8 @@ C-----------------------------------------------------------------------
 *        ==== Workspace query call to DORMHR ====
 *
          CALL DORMHR( 'R', 'N', JW, JW, 1, JW-1, T, LDT, WORK, V, LDV,
-     $                WORK( JW+1 ), -1, INFO )
-         LWK2 = INT( WORK( JW+1 ) )
+     $                WORK( 1 ), -1, INFO )
+         LWK2 = INT( WORK( 1 ) )
 *
 *        ==== Optimal workspace ====
 *
@@ -14596,8 +14596,8 @@ C-----------------------------------------------------------------------
 *        ==== Workspace query call to DORMHR ====
 *
          CALL DORMHR( 'R', 'N', JW, JW, 1, JW-1, T, LDT, WORK, V, LDV,
-     $                WORK( JW+1 ), -1, INFO )
-         LWK2 = INT( WORK( JW+1 ) )
+     $                WORK( 1 ), -1, INFO )
+         LWK2 = INT( WORK( 1 ) )
 *
 *        ==== Workspace query call to DLAQR4 ====
 *
