@@ -158,7 +158,8 @@ C
 C$    IT = OMP_GET_THREAD_NUM()
       NT = 1
 C$    NT = OMP_GET_NUM_THREADS()
-      CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
+      IF(NLLV>=0.OR.IFST==1)
+     +  CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
      +   FUNI,ICNI,IAP,PAR,NPAR,ICP,A,B,C,D,DD,FA,
      +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT,
      +   IRF,ICF,NLLV)
@@ -554,6 +555,127 @@ C     ---------- ----
      +  NCB,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
      +  SOL,S1,S2,IPR,IPC,ICF,IAM,KWT,IT,NT)
 C
+C Solves linear systems with matrix profile:
+C
+C     -----------------------------------------------
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !XXXXXXXXXX                                !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !        XXXXXXXXXX                        !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                XXXXXXXXXX                !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                        XXXXXXXXXX        !XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     !                                XXXXXXXXXX!XX!
+C     -----------------------------------------------
+C     !XX                                      XX!XX!
+C     !XX                                      XX!XX!
+C     !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!XX!
+C     !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!XX!
+C     !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!XX!
+C     -----------------------------------------------
+C
+C
+C partioned as
+C
+C
+C      ---------
+C      !     ! !   !    !   !    !
+C      !  A  !B!   ! XA !   ! FA !
+C      !     ! ! . !    ! = !    !   .
+C      !-----!-!   !----!   !----!
+C      ! CCBC!DDBC !    !   !    !
+C      !-----!-!   ! XC !   ! FC !
+C      !  C  !D!   !    !   !    !
+C      !-----!-!   !----!   !----!
+C
+C
+C Input parameters :
+C
+C   NA    number of blocks in A,
+C   NRA   number of rows in each block of A,
+C   NCA   number of columns in each block of A,
+C   A     the matrix in the schematic representation above,
+C
+C   NCB   number of columns in each block of B,
+C         (note that B is also three dimensional),
+C   B     the matrix in the schema above,
+C
+C   NRC   the number of rows of the two dimensional matrix C,
+C   C     the matrix C in the schema above,
+C
+C   D      the matrix D above,
+C
+C   NFC   the number of rows of the two dimensional matrices C+CCBC, XC and FC
+C   C     the matrix C in the schema above,
+C
+C   CCBC  the matrix CCBC above,
+C   DDBC  the matrix CCBC above,
+C   NBC   the number of rows of the two dimensional matrices CCBC and DDBC
+C
+C   FA     part of the right hand side vector,
+C          (note that FA is also two dimensional),
+C   FC     part of the right hand side vector.
+C
+C   IFST   = 1 on first call,
+C          = 0  on subsequent calls with the same right hand side.
+C
+C   IDB   = 0..2 no debug output,
+C         = 3    output of the residuals of the reduced system on unit 9,
+C         = 4    output of the reduced Jacobian matrix and solution vector
+C                on unit 9,
+C         = 5    output of most matrices on unit 9 (see PRINT1),
+C
+C   IPR, IPC, ICF: Integer arrays
+C
+C   NLLV : If NLLV>0 then a null vector will be returned.
+C          If NLLV = -1 then the system will be solved with zero right
+C          hand side, except for the last equation, for which the right
+C          hand side entry will be set to 1 (i.e., the last entry of FC
+C          will be set to 1, otherwise FA and FC are zero).
+C          If the linear system is the same as in the preceding call
+C          then IFST=0 may be used even if NLLV is nonzero.
+C
+C Returned values :
+C
+C   FA     Part of solution vector corresponding to XA in the diagram.
+C   FC     Part of solution vector corresponding to XC in the diagram.
+C
+C Notes: The number of columns of overlap for every two consecutive
+C        blocks should be equal to the number NOV (NDIM).
+C        Parts of the reduction are done in SUBVPA.
+C
 C Arguments
       INTEGER   IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
       INTEGER   NCA,NCB,NFC,IAM,KWT,IT,NT
@@ -596,26 +718,29 @@ C
       CALL REDUCE(A1,A2,BB,CC,CCLO,D,DD,FAA,FC(NBC+1),FCFC,
      +     NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 C
+C Solve the system generated by REDUCE
+C by Gauss elimination with complete pivoting.
+C
 C REDUCE already has a barrier.
 C$OMP MASTER
-C
       IF(IAM.EQ.0)THEN
-         ALLOCATE(FCC(2*NOV+NFC+2*NOV*NOV+1),E(NOV+NFC,2*NOV+NFC))
-C
+         ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
          CALL DIMRGE(E,CC,CCBC,D,DDBC,FC,
      +     NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
          DO II=1,NOV
             SOL(II,1)=FCC(II)
          ENDDO
-C
          DEALLOCATE(FCC,E)
       ENDIF
-C
 C$OMP END MASTER
+C
+C Backsubstitution in the reduction process.
 C
       CALL BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT,IAM,KWT)
 C
-      ALLOCATE(X(NRA))
+C Backsubstitution in the condensation of parameters process.
+C
+      ALLOCATE(X(NOV+1:NRA))
       CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,ICF,X)
       DEALLOCATE(X)
 C
@@ -1315,59 +1440,49 @@ C
       USE SUPPORT
 C Arguments
       INTEGER   NA,NFC,NBC,NOV,NCB,IDB,NLLV
-      DOUBLE PRECISION E(NOV+NFC,*),CC(NOV,NFC-NBC,*),CCBC(NOV,NBC,*)
+      DOUBLE PRECISION E(NOV+NFC,*),CC(NOV,NFC-NBC,*),CCBC(NOV,NBC,2)
       DOUBLE PRECISION D(NCB,*),DDBC(NCB,*),P0(NOV,*),P1(NOV,*)
       DOUBLE PRECISION S(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),FC(*),FCC(*)
       DOUBLE PRECISION, INTENT(OUT) :: DET
 C
 C Local
-      INTEGER  I,J,K,K1,K2,KC,KR,NAP1,NCR,NRC,NOVPI,NOVPJ,NOVPJ2
-      DOUBLE PRECISION XE
-      ALLOCATABLE XE(:)
+      INTEGER  I,J,NCR,NRC
+      DOUBLE PRECISION, ALLOCATABLE :: XE(:)
       ALLOCATE(XE(NOV+NFC))
 C
-      NAP1    = NA+1
       NCR     = NFC+NOV
       NRC     = NFC-NBC
 C     
 C Copy
       DO I=1,NOV
          DO J=1,NOV
-            NOVPJ      = NOV+J
             E(I,J)     = S(J,I,NA)
             P0(I,J)    = S(J,I,NA)
-            E(I,NOVPJ) = A2(J,I,NA)
+            E(I,NOV+J) = A2(J,I,NA)
             P1(I,J)    = A2(J,I,NA)
          ENDDO
          DO J=1,NCB
-            NOVPJ2      = 2*NOV+J
-            E(I,NOVPJ2) = BB(J,I,NA)
+            E(I,2*NOV+J) = BB(J,I,NA)
          ENDDO
       ENDDO
 C     
       DO I=1,NBC
-         NOVPI=NOV+I
          DO J=1,NOV
-            NOVPJ          = NOV+J
-            E(NOVPI,J)     = CCBC(J,I,1)
-            E(NOVPI,NOVPJ) = CCBC(J,I,2)
+            E(NOV+I,J)     = CCBC(J,I,1)
+            E(NOV+I,NOV+J) = CCBC(J,I,2)
          ENDDO
          DO J=1,NCB
-            NOVPJ2          = 2*NOV+J
-            E(NOVPI,NOVPJ2) = DDBC(J,I)
+            E(NOV+I,2*NOV+J) = DDBC(J,I)
          ENDDO
       ENDDO
       DO I=1,NRC
-         NOVPI=NOV+NBC+I
          DO J=1,NOV
-            NOVPJ          = NOV+J
-            E(NOVPI,J)     = CC(J,I,1)
-            E(NOVPI,NOVPJ) = CC(J,I,NAP1)
+            E(NOV+NBC+I,J)       = CC(J,I,1)
+            E(NOV+NBC+I,NOV+J)   = CC(J,I,NA+1)
          ENDDO
          DO J=1,NCB
-            NOVPJ2          = 2*NOV+J
-            E(NOVPI,NOVPJ2) = D(J,I)
+            E(NOV+NBC+I,2*NOV+J) = D(J,I)
          ENDDO
       ENDDO
 C
@@ -1376,8 +1491,7 @@ C
       ENDDO
 C
       DO I=1,NFC
-         NOVPI     = NOV+I
-         XE(NOVPI) = FC(I)
+         XE(NOV+I) = FC(I)
       ENDDO
 C     
       IF(IDB.GE.3)THEN
@@ -1393,15 +1507,15 @@ C
       ENDIF
 C
 C Solve for FCC
-      IF(NLLV.EQ.0)THEN
-         CALL GEL(NCR,E,1,FCC,XE,DET)
-      ELSEIF(NLLV.GT.0)THEN
+      IF(NLLV>0)THEN
          CALL NLVC(NCR,NCR,NLLV,E,FCC)
       ELSE
-         DO I=1,NCR-1
-            XE(I)=0.D0
-         ENDDO
-         XE(NCR)=1.D0
+         IF(NLLV<0)THEN
+            DO I=1,NCR-1
+               XE(I)=0.D0
+            ENDDO
+            XE(NCR)=1.D0
+         ENDIF
          CALL GEL(NCR,E,1,FCC,XE,DET)
       ENDIF
 
@@ -1409,17 +1523,6 @@ C Solve for FCC
          WRITE(9,103)
          WRITE(9,100)(FCC(I),I=1,NCR)
       ENDIF
-C
-      K1=NCR
-      K2=K1+NOV**2
-      DO KR=1,NOV
-         DO KC=1,NOV
-            K=(KR-1)*NOV+KC
-            FCC(K1+K)=P0(KR,KC)
-            FCC(K2+K)=P1(KR,KC)
-         ENDDO
-      ENDDO
-      FCC(NCR+2*NOV**2+1)=DET
 C
 
  100  FORMAT(1X,10E11.3)
@@ -1430,17 +1533,6 @@ C
       DO I=1,NFC
          FC(I)=FCC(NOV+I)
       ENDDO
-C
-      K1=NCR
-      K2=K1+NOV**2
-      DO KR=1,NOV
-         DO KC=1,NOV
-            K=(KR-1)*NOV+KC
-            P0(KR,KC) = FCC(K1+K)
-            P1(KR,KC) = FCC(K2+K)
-         ENDDO
-      ENDDO
-      DET=FCC(NCR+2*NOV**2+1)
 C
       DEALLOCATE(XE)
       RETURN
@@ -1565,35 +1657,29 @@ C
 C  Arguments
       INTEGER   NA,NOV,NRA,NCA,NCB,ICF(NCA,*)
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),FA(NRA,*),FC(*)
-      DOUBLE PRECISION SOL(NOV,*),X(*)
+      DOUBLE PRECISION SOL(NOV,*),X(NOV+1:NRA)
 C
 C Local
-      INTEGER NRAM,NRAPJ,NOVPIR,I,J,J1,IR,IRP1
+      INTEGER I,J,IR
       DOUBLE PRECISION SM,TMP
 C
 C Determine the local varables by backsubstitition.
 C
-      NRAM=NRA-NOV
-C
 C Backsubstitution in the condensation of parameters; no communication.
       DO I=1,NA
-         DO IR=NRAM,1,-1
-            IRP1=IR+1
+         DO IR=NRA-NOV,1,-1
             SM=FA(IR,I)
             DO J=1,NOV
-               NRAPJ=NRA+J
                SM=SM-A(J,IR,I)*SOL(J,I)
-               SM=SM-A(NRAPJ,IR,I)*SOL(J,I+1)
+               SM=SM-A(NRA+J,IR,I)*SOL(J,I+1)
             ENDDO
             DO J=1,NCB
                SM=SM-B(J,IR,I)*FC(NOV+J)
             ENDDO
-            DO J=IRP1,NRAM
-               J1=J+NOV
-               SM=SM-A(J1,IR,I)*X(J1)
+            DO J=IR+1,NRA-NOV
+               SM=SM-A(J+NOV,IR,I)*X(J+NOV)
             ENDDO
-            NOVPIR=NOV+IR
-            X(NOVPIR)=SM/A(NOVPIR,IR,I)
+            X(NOV+IR)=SM/A(NOV+IR,IR,I)
          ENDDO    
 C        **Copy SOL into FA 
          DO J=1,NOV
@@ -1609,7 +1695,6 @@ C        **Undo pivots and copy X into FA
             FA(J,I)=X(J)
          ENDDO
       ENDDO
-C
 C     
       RETURN
       END SUBROUTINE INFPAR
