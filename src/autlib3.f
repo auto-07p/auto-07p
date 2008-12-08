@@ -455,7 +455,7 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DDU(:),DDP(:)
-      INTEGER JAC,NDM,NFPR,NPAR,I,J
+      INTEGER JAC,NDM,NFPR,NPAR,I,II,J
 C
        JAC=IAP(22)
        NDM=IAP(23)
@@ -471,13 +471,15 @@ C
        IF(IJAC.NE.0)THEN
          DO J=NDM,1,-1
            DO I=NDM,1,-1
-             DFDU(I,J)=DFDU( (J-1)*NDM+I ,1 )
+             II=(J-1)*NDM+I-1
+             DFDU(I,J)=DFDU(MOD(II,NDIM)+1, II/NDIM+1)
            ENDDO
          ENDDO
 C
          DO J=NPAR,1,-1
            DO I=NDM,1,-1
-             DFDP(I,J)=DFDP( (J-1)*NDM+I , 1 )
+             II=(J-1)*NDM+I-1
+             DFDP(I,J)=DFDP(MOD(II,NDIM)+1, II/NDIM+1)
            ENDDO
          ENDDO
        ENDIF
@@ -757,7 +759,7 @@ C
 C Generate the equations for continuing fixed points.
 C
       INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
-      DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
+      DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM+1)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
@@ -2689,7 +2691,7 @@ C
       INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NDM)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDM*3)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*)
 C Local
       INTEGER NDM2,I,J
@@ -2977,7 +2979,7 @@ C
       INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*),UPOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NDM)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDM*2)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*)
 C Local
       INTEGER JAC,NFPR,I,J
@@ -3476,7 +3478,7 @@ C     ---------- ----
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC0
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NBC0)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NBC0+IAP(23)+IAP(29)/2-1)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 C
       INTEGER NDM,NFPR,NFPX,I,J
@@ -3492,12 +3494,10 @@ C
            F(NBC0+I)=F(NBC0+I)+DBC(I,J)*U0(NDM+J)
            F(NBC0+I)=F(NBC0+I)+DBC(I,NDM+J)*U1(NDM+J)
          ENDDO
-         IF(NFPX.NE.0) THEN
-           DO J=1,NFPX
-             F(NBC0+I)=F(NBC0+I)
+         DO J=1,NFPX
+            F(NBC0+I)=F(NBC0+I)
      *       + DBC(I,NDIM+ICP(1+J))*PAR(ICP(NFPR-NFPX+J))
-           ENDDO
-         ENDIF
+         ENDDO
        ENDDO
 C
       RETURN
@@ -3977,7 +3977,7 @@ C     ---------- -----
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,NBC0
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: FB(NBC0)
+      DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 
       INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J

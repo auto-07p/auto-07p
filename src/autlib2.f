@@ -183,7 +183,7 @@ C
       IF(IAM.EQ.0)THEN
          DO I=0,NTST-1
             DO J=0,NCOL-1
-               DUPS(:,I*NCOL+J)=FA(J*NDIM+1:J*(NDIM+1),I+1)
+               DUPS(:,I*NCOL+J)=FA(J*NDIM+1:(J+1)*NDIM,I+1)
             ENDDO
          ENDDO
          DUPS(:,NTST*NCOL)=FC(1:NDIM)
@@ -1349,7 +1349,7 @@ C      ---------- -------
 C
        INTEGER IC,NOV,NCB,IAMAX,JPIV
        DOUBLE PRECISION A12(NOV),A21(NOV),S12(NOV),S11(NOV)
-       DOUBLE PRECISION A22(NOV),S21(NOV),BB1(NOV),BB2(NOV)
+       DOUBLE PRECISION A22(NOV),S21(NOV),BB1(NCB),BB2(NCB)
 C
        INTEGER L
        DOUBLE PRECISION RM,V,PPIV,TPIV
@@ -1385,7 +1385,9 @@ C     Also recalculate absolute maximum for current row
           ENDDO
        ELSEIF(IAMAX.EQ.JPIV)THEN
 C     recalculate absolute maximum for current row
-          IAMAX = IC+IDAMAX(NOV-IC,A12(IC+1),1)
+          IF(IC<NOV)THEN
+             IAMAX = IC+IDAMAX(NOV-IC,A12(IC+1),1)
+          ENDIF
        ELSEIF(IAMAX.EQ.IC)THEN
           IAMAX = JPIV
        ENDIF

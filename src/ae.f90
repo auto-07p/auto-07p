@@ -1095,7 +1095,7 @@ CONTAINS
     ENDIF
     IF(.NOT.IPOS)RETURN
 
-    DO I=1,NBIF
+    DO I=1,NBIF-1
        DO I1=1,NDIM+1
           STU(I,I1)=STU(I+1,I1)
           STUD(I,I1)=STUD(I+1,I1)
