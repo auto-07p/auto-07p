@@ -563,11 +563,11 @@ CONTAINS
     IF(IID.GE.2)THEN
        CALL WRBAR("=",47)
        IF(BSW)THEN
-          WRITE(9,O9)IBR,NTOP,NIT,ICP(1), &
+          WRITE(9,O9)IBR,NTOP,0,ICP(1), &
                U(NDIM+1),(U(I),I=1,MIN(NDIM,6))
        ELSE
           WRITE(9,100)
-          WRITE(9,101)IBR,NTOP+1,NIT,U(NDIM+1),RNRMV(NDM,U)
+          WRITE(9,101)IBR,NTOP+1,0,U(NDIM+1),RNRMV(NDM,U)
 100       FORMAT(/,'  BR    PT  IT         PAR',11X,'L2-NORM')
 101       FORMAT(I4,I6,I4,5X,2ES14.5)
        ENDIF
