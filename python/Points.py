@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 # Point class used by parseB and parseS
-# derived from PyDSTool, by:
-#Author:    Robert Clewley
-#Date:      14 January 2007
-#$Revision: 2.0.4 $
+# derived from PyDSTool
 """Point and Pointset enhanced array classes.
 
 (Objects of both classes are mutable.)
@@ -242,7 +239,7 @@ class DefaultDict(UserDict.UserDict):
         return d
 
 
-def uniqueList(objlist):
+def isUniqueSeq(objlist):
     """Check that list contains items only once"""
     for obj in objlist:
         if objlist.count(obj) != 1:
@@ -391,7 +388,7 @@ class Point(object):
             try:
                 ct = kw['coordtype']
             except KeyError:
-                self.coordtype = float64
+                self.coordtype = float
             else:
                 try:
                     self.coordtype = _num_equivtype[ct]
@@ -409,9 +406,11 @@ class Point(object):
                         coorddict[c_key] = v[0]
                     else:
                         coorddict[c_key] = array(v)
-                    assert self.coordtype == coorddict[c_key].dtype.type, 'type mismatch'
+                    assert self.coordtype == coorddict[c_key].dtype.type, \
+                        'type mismatch'
                 elif isinstance(v, _float_types):
-                    assert compareNumTypes(self.coordtype, float64), 'type mismatch'
+                    assert compareNumTypes(self.coordtype, float64), \
+                        'type mismatch'
                     coorddict[c_key] = array([v], self.coordtype)
                 elif isinstance(v, _int_types):
                     assert compareNumTypes(self.coordtype, (int32, float64)), 'type mismatch'
@@ -420,7 +419,8 @@ class Point(object):
 ##                    assert compareNumTypes(self.coordtype, complex64), 'type mismatch'
 ##                    coorddict[c_key] = array([v], self.coordtype)
                 else:
-                    raise TypeError("Must pass numeric type or sequence of numeric types")
+                    raise TypeError("Must pass numeric type or sequence of "
+                                    "numeric types")
             self.coordnames = coorddict.keys()
             # only way to order dictionary keys for array is to sort
             self.coordnames.sort()
@@ -482,7 +482,7 @@ class Point(object):
             self.coordnames = kw['coordnames']
         else:
             raise ValueError("Missing coord info in keywords")
-        assert uniqueList(self.coordnames), 'Coordinate names must be unique'
+        assert isUniqueSeq(self.coordnames), 'Coordinate names must be unique'
         self.makeIxMaps()
         if kw.has_key('norm'):
             if kw['norm'] == 0:
@@ -1060,7 +1060,7 @@ class Pointset(Point):
             self.coordtype = _num_equivtype[type(self.coordarray[0][0])]
         else:
             raise ValueError("Missing coord info in keywords")
-        assert uniqueList(self.coordnames), 'Coordinate names must be unique'
+        assert isUniqueSeq(self.coordnames), 'Coordinate names must be unique'
         self.makeIxMaps()
         if self._parameterized:
             assert self.indepvarname not in self.coordnames, \
@@ -1170,6 +1170,14 @@ class Pointset(Point):
             self.coordarray = ca
         self.labels.mapIndices(dict(zip(range(0,len(self)),range(len(self)-1,-1,-1))))
 
+    def rename(self, coord, newcoord):
+        """Rename a coordinate."""
+        try:
+            ix = self.coordnames.index(coord)
+        except ValueError:
+            raise ValueError("No such coordinate: %s"%coord)
+        self.coordnames[ix] = newcoord
+        self.makeIxMaps()
 
     def makeIxMaps(self):
         self._name_ix_map = dict(zip(self.coordnames, range(self.dimension)))
@@ -1365,7 +1373,10 @@ class Pointset(Point):
         if isinstance(ref1, (list, ndarray, _int_types)):
             if isinstance(ref1, _int_types):
                 ref1 = [ref1]
-            ca = take(self.coordarray, ref1, axis=1)
+            try:
+                ca = take(self.coordarray, ref1, axis=1)
+            except ValueError:
+                raise ValueError("Invalid variable names given: "%(str(ref1)))
             try:
                 ci = take(self.indepvararray, ref1, axis=0)
             except (IndexError, AttributeError, ValueError):
@@ -1725,7 +1736,7 @@ class Pointset(Point):
 
 
     def append(self, parg, t=None, skipMatchingIndepvar=False):
-        """Append individual Point, Pointset or coordinates.
+        """Append individual Point, Pointset or coordinates in place.
 
         skipMatchingIndepvar option causes a matching independent
         variable value at the beginning of p to be skipped (only
