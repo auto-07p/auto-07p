@@ -178,7 +178,7 @@ CONTAINS
 
 ! Check for user supplied parameter output parameter-values.
 
-          IF(.NOT.ISTOP.AND.NUZR.GT.0)THEN
+          IF(.NOT.ISTOP)THEN
              DO IUZR=1,NUZR
                 IAP(26)=IUZR
                 CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNUZAE,FUNI,AA,&
@@ -200,7 +200,7 @@ CONTAINS
 
 ! Check for fold
 
-          IF(.NOT.ISTOP.AND.ABS(ILP).GT.0)THEN
+          IF(.NOT.ISTOP.AND.CHECKSP(2,IPS,ILP,ISP))THEN
              CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNLPAE,FUNI,AA,&
                   U,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
              IF(FOUND) THEN
@@ -219,7 +219,7 @@ CONTAINS
 !
 ! Check for branch point, and if so store data :
 !
-          IF(.NOT.ISTOP.AND.ABS(ISP).GT.0)THEN
+          IF(.NOT.ISTOP.AND.CHECKSP(1,IPS,ILP,ISP))THEN
              CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNBPAE,FUNI,AA, &
                   U,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
              IF(FOUND)THEN
@@ -239,7 +239,7 @@ CONTAINS
 
 ! Check for Hopf bifurcation
 
-          IF(.NOT.ISTOP.AND.ABS(IPS).EQ.1)THEN
+          IF(.NOT.ISTOP.AND.CHECKSP(3,IPS,ILP,ISP))THEN
              CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNHBAE,FUNI,AA, &
                   U,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
              IF(FOUND)THEN

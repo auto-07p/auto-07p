@@ -252,7 +252,7 @@ CONTAINS
 
 ! Check for fold.
 
-       IF(ISTOP.EQ.0.AND.ABS(ILP).GT.0)THEN
+       IF(ISTOP.EQ.0.AND.CHECKSP(5,IPS,ILP,ISP))THEN
           CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNLPBV,FUNI,BCNI,ICNI,PVLI,RLP, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
@@ -272,7 +272,7 @@ CONTAINS
 
 ! Check for branch point.
 
-       IF(ABS(ISP)>=2.AND.ABS(ISP)/=4)THEN
+       IF(ISTOP.EQ.0.AND.CHECKSP(6,IPS,ILP,ISP))THEN
           CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNBPBV,FUNI,BCNI,ICNI,PVLI,BP1, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
@@ -292,8 +292,7 @@ CONTAINS
 
 ! Check for period-doubling and torus bifurcation.
 
-       IF(ISTOP.EQ.0 .AND. ABS(ISP).GT.0 .AND. &
-            (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+       IF(ISTOP.EQ.0.AND.(CHECKSP(7,IPS,ILP,ISP).OR.CHECKSP(8,IPS,ILP,ISP)))THEN
           CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,FNSPBV,FUNI,BCNI,ICNI,PVLI,SP1, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
@@ -301,13 +300,15 @@ CONTAINS
 !            **Secondary periodic bifurcation: determine type
              EPSS=RAP(13)
              IAP(27)=TPSPBV(NDIM,EPSS,ITPST,PAR,EV)
-             IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                RLP=0.d0
-                BP1=0.d0
-                SP1=0.d0
-             ELSE
+             IF(CHECKSP(IAP(27),IPS,ILP,ISP))THEN
+                IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                   RLP=0.d0
+                   BP1=0.d0
+                   SP1=0.d0
+                ELSE
 !            *Stop at the first found SPB
-                ISTOP=-1
+                   ISTOP=-1
+                ENDIF
              ENDIF
           ENDIF
        ELSEIF(ABS(ISP).GT.0 .AND. &

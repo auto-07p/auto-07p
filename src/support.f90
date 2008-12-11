@@ -9,7 +9,8 @@ MODULE SUPPORT
 
 IMPLICIT NONE
 PRIVATE
-PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV, STOPPED
+PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
+PUBLIC :: CHECKSP, STOPPED
 PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
@@ -402,12 +403,55 @@ CONTAINS
   END SUBROUTINE GESC
 
 ! ------- -------- -------
+  LOGICAL FUNCTION CHECKSP(ITP,IPS,ILP,ISP)
+    USE AUTO_CONSTANTS, ONLY : SP
+    INTEGER, INTENT(IN) :: ITP,IPS,ILP,ISP
+
+    ! determine if the given TY label needs to be checked
+    CHARACTER(LEN=2), PARAMETER :: ATYPES(1:8) = &
+         (/ 'BP','LP','HB','UZ','LP','BP','PD','TR' /)
+    CHARACTER(LEN=2) ATYPE
+    INTEGER NTY,I,M
+
+    NTY=MOD(ITP,10)
+    ATYPE=ATYPES(NTY)
+
+    CHECKSP = .FALSE.
+    SELECT CASE(ITP)
+    CASE(1) ! BP
+       CHECKSP = ISP/=0
+    CASE(2,5) ! LP
+       CHECKSP = ILP/=0
+    CASE(3) ! Hopf
+       CHECKSP = ABS(IPS)==1
+    CASE(6) ! BP (BVP)
+       CHECKSP = ABS(ISP)>=2.AND.ABS(ISP)/=4
+    CASE(7,8) ! PD,TR
+       CHECKSP = ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12)
+    END SELECT
+
+    ATYPE=ATYPES(ITP)
+    DO I=1,SIZE(SP)
+       IF (SP(I)(1:2)==ATYPE) THEN
+          CHECKSP=.TRUE.
+          IF (LEN_TRIM(SP(I))>2)THEN
+             READ(SP(I)(3:),*)M
+             IF(M==0)THEN
+                CHECKSP=.FALSE.
+             ENDIF
+          ENDIF
+          EXIT
+       ENDIF
+    ENDDO
+  END FUNCTION CHECKSP
+
+! ------- -------- -------
   LOGICAL FUNCTION STOPPED(ITP,COUNTS)
-    USE AUTO_CONSTANTS, ONLY : TYSTOP
+    USE AUTO_CONSTANTS, ONLY : SP
     INTEGER, INTENT(IN) :: ITP
     INTEGER, INTENT(INOUT) :: COUNTS(-9:9)
 
-    ! determine if the given TY labels has been reached n times so
+    ! determine if the given TY label has been reached n times so
     ! we need to stop
     CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:9) = &
          (/ 'MX','  ','  ','  ','  ','UZ','  ','  ','  ', '  ', &
@@ -418,10 +462,10 @@ CONTAINS
     NTY=MOD(ITP,10)
     ATYPE=ATYPES(NTY)
     STOPPED = .FALSE.
-    DO I=1,SIZE(TYSTOP)
-       IF (TYSTOP(I)(1:2)==ATYPE) THEN
+    DO I=1,SIZE(SP)
+       IF (LEN_TRIM(SP(I))>2.AND.SP(I)(1:2)==ATYPE) THEN
           COUNTS(NTY)=COUNTS(NTY)+1
-          READ(TYSTOP(I)(3:),*)M
+          READ(SP(I)(3:),*)M
           IF(COUNTS(NTY)==M)THEN
              STOPPED=.TRUE.
           ENDIF

@@ -47,7 +47,7 @@ CONTAINS
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, unames, parnames, &
          NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, TYSTOP
+         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -174,10 +174,10 @@ CONTAINS
        CALL WRITELIST("   0   U       = ",UVALS)
        WRITE(7,*)
     ENDIF
-    IF(SIZE(TYSTOP)>0)THEN
-       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   TYSTOP=['",TRIM(TYSTOP(1)),"'"
-       DO I=2,SIZE(TYSTOP)
-          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(TYSTOP(I)),"'"
+    IF(SIZE(SP)>0)THEN
+       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   SP=['",TRIM(SP(1)),"'"
+       DO I=2,SIZE(SP)
+          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(SP(I)),"'"
        ENDDO
        WRITE(7,"(A)")']'
     ENDIF

@@ -552,7 +552,7 @@ C
       RAP(8)=-HUGE(1d0)*0.99995d0
       RAP(9)=HUGE(1d0)*0.99995d0
       NICP=1
-      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),parnames(0),unames(0),TYSTOP(0))
+      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),parnames(0),unames(0),SP(0))
       ALLOCATE(UVALS(0),PARVALS(0))
       ICU(1)='1'
       NUZR=0
@@ -634,10 +634,10 @@ C
             DEALLOCATE(IVTHU)
             ALLOCATE(IVTHU(LISTLEN))
             READ(STR(POS:),*,ERR=3)IVTHU
-         CASE('TYSTOP')
-            IF(ALLOCATED(TYSTOP))DEALLOCATE(TYSTOP)
-            ALLOCATE(TYSTOP(LISTLEN))
-            READ(STR(POS:),*,ERR=3)TYSTOP
+         CASE('SP')
+            IF(ALLOCATED(SP))DEALLOCATE(SP)
+            ALLOCATE(SP(LISTLEN))
+            READ(STR(POS:),*,ERR=3)SP
          CASE('PAR')
             IF(ALLOCATED(PARVALS))DEALLOCATE(PARVALS)
             ALLOCATE(PARVALS(LISTLEN))
@@ -920,11 +920,11 @@ C
 C     Deallocate some globally allocated arrays.
 C
       USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames,
-     *     TYSTOP,PARVALS,UVALS
+     *     SP,PARVALS,UVALS
 
       IMPLICIT NONE
 
-      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,TYSTOP,PARVALS,
+      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,PARVALS,
      *     UVALS)
       END SUBROUTINE CLEANUP
 C
