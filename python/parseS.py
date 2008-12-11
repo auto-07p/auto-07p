@@ -66,6 +66,9 @@ class parseS(UserList.UserList):
         else:
             UserList.UserList.__init__(self,filename)
             if len(self.data) > 0:
+                if kw != {}:
+                    for i in range(len(self.data)):
+                        self.data[i] = apply(AUTOSolution,(self.data[i],),kw)
                 self.indepvarname = self.data[0].indepvarname
                 self.coordnames = self.data[0].coordnames
 
@@ -355,16 +358,13 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __init__(self,input=None,offset=None,name=None,**kw):
         if isinstance(input,self.__class__):
             apply(runAUTO.runAUTO.__init__,(self,input),kw)
-            if kw == {}:
-                #otherwise already copied
-                self.options = self.options.copy()
             self.data = self.data.copy()
-            self.PAR = AUTOParameters(self.PAR)
-            self.PAR.coordarray = Points.array(self.PAR.coordarray)
-            self.options["solution"] = self
+            if self.__fullyParsed:
+                self.PAR = AUTOParameters(self.PAR)
+                self.PAR.coordarray = Points.array(self.PAR.coordarray)
         else:
             UserDict.UserDict.__init__(self)
-            runAUTO.runAUTO.__init__(self,solution=self)
+            apply(runAUTO.runAUTO.__init__,(self,),kw)
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end              = None
@@ -461,8 +461,13 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                     p = max(dict(par).keys())*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
+        if kw == {}:
+            #otherwise already copied
+            self.options = self.options.copy()
+        self.options["solution"] = self
         for k,v in kw.items():
-            if k in self.data_keys or k == "PAR":
+            if ((k in self.data_keys and k not in ["ISW","NTST","NCOL"])
+                or k == "PAR"):
                 self[k] = v
 
     def __str__(self):
