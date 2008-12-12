@@ -159,7 +159,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         irs = 0
         options = bd.options
         if options["constants"] is not None:
-            irs = options["constants"].get("IRS",0)
+            irs = options["constants"].get("IRS",0) or 0
         solutions = bd()
         if len(solutions) == 1:
             return solutions[0].run()
