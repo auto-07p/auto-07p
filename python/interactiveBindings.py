@@ -45,13 +45,15 @@ Aliases: demofile dmf"""
         lines = lines.readlines()
         runline = ''
         for line in lines:
+            while len(line) > 0 and line[-1] in "\r\n":
+                line = line[:-1]
             # we only wait if the current line is not a comment
             if len(string.strip(line)) >0 and string.strip(line)[0] != "#":
-                sys.stdout.write(sys.ps1+line[:-1])
+                sys.stdout.write(sys.ps1+line)
                 raw_input()
             else:
-                sys.stdout.write(line)
-            runline = runline + runner.processShorthand(line[:-1]) + "\n"
+                sys.stdout.write(line+"\n")
+            runline = runline + runner.processShorthand(line) + "\n"
             if not self.runsource(runline):
                 runline = ''
 
@@ -77,7 +79,9 @@ Aliases: auto ex"""
         lines = lines.readlines()
         source = ""
         for line in lines:
-            source = source + self.processShorthand(line[:-1]) +"\n"
+            while len(line) > 0 and line[-1] in "\r\n":
+                line = line[:-1]
+            source = source + self.processShorthand(line) + "\n"
         self.runsource(source,name,"exec")
 
     def ex(self,name=None):
