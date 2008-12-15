@@ -15,13 +15,13 @@ print "\n*** Compute the Floquet eigenfunction***"
 flq = run(sext,c='flq',e='flq',sv='flq')
 
 print "\n*** Extract data for the selected orbit from s.flq***"
-startman = data.get(flq('UZ'))
+startman = data.get(flq('UZ1'))
 
 print "\n*** Time integration using continuation***"
 startH1a = run(startman,e='man',c='man.H1a.0',sv='startH1a')
 
 print "\n*** Compute part of the unstable manifold***"
-startUZs = startH1a(['UZ'])
+startUZs = startH1a('UZ')
 startUZ = startUZs[0]
 for s in startUZs:
     # find minimum

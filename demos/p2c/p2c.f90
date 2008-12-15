@@ -191,10 +191,8 @@
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     DOUBLE PRECISION GETP
 
-    INTEGER NBC
     DOUBLE PRECISION X(3),W(3),F(3),A(3,3),H(3),length
 
-    NBC=GETP('NBC',0,U)
     IF(NDIM==6)THEN
        ! Initial values for homotopy parameters
        ! Base point on the cycle       

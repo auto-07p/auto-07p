@@ -209,10 +209,14 @@ class parseS(UserList.UserList):
                 if d["Label"] == label:
                     return d
             raise KeyError("Label %s not found"%label)
-        if type(label) == types.StringType:
+        if type(label) == types.StringType and len(label) > 2:
+            number = int(label[2:])
+            i = 0
             for d in self.data:
-                if d["Type name"] == label:
-                    return d
+                if d["Type name"] == label[:2]:
+                    i = i + 1
+                    if i == number:
+                        return d
             raise KeyError("Label %s not found"%label)
         if type(label) != types.ListType:
             label = [label]        

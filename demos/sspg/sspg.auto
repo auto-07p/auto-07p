@@ -8,7 +8,7 @@ pgm="sspg"
 
 print "\n***"+pgm+": run 1: trivial solution***"
 r1=run(pgm,sv=pgm+'.1')
-bp=r1('BP')
+bp=r1('BP1')
 
 print "\n***"+pgm+": run 1: branch switch***"
 run(bp,ISW=-1,NMX=5,NPR=1,sv=pgm+'.1.sw')

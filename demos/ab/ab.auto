@@ -16,7 +16,7 @@ rl(ab)
 sv(ab,'ab')
 
 print "\n***Compute periodic solution families***"
-for solution in ab(["HB"]):
+for solution in ab("HB"):
     ab = ab + run(solution,c='ab.3')
 
 print "\n***Relabel and save the output files***"

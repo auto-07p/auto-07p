@@ -48,7 +48,7 @@ def compute(m=0.063):
     # which we will use in later calculations.
 
     # For every user defined point the fort.8 file...
-    uzpoints = data(["UZ"])
+    uzpoints = data("UZ")
     # Get rid of the first UZ point if it is on branch 1 (it's a stop)
     if uzpoints[0]["BR"] == 1:
         del uzpoints[0]

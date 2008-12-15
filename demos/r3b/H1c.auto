@@ -15,7 +15,7 @@ print "\n*** Compute the Floquet eigenfunction***"
 flq = run(sext,c='flq',e='flq',sv='flq')
 
 print "\n*** Extract data for the selected orbit from s.flq***"
-startman = data.get(flq('UZ'))
+startman = data.get(flq('UZ1'))
 
 print "\n*** Time integration using continuation***"
 startH1c = run(startman,e='man',c='man.H1c.0',sv='startH1c')

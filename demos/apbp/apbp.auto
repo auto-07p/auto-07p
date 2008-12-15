@@ -9,7 +9,7 @@ ld(pgm)
 
 print "\n***"+pgm+": run 1: solution continuation***"
 r1=rn(sv=pgm+'.1')
-bp=r1('BP')
+bp=r1('BP1')
 
 print "\n***"+pgm+": run 2: BP cont non-generic (fw)***"
 rn(bp,ICP=[1,2],ISW=2,sv=pgm+'.2.fw')

@@ -364,11 +364,17 @@ class AUTOBranch(Points.Pointset):
                 if v["LAB"] == label:
                     return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
-        if type(label) == types.StringType:
+        if type(label) == types.StringType and len(label) > 2:
+            number = int(label[2:])
+            i = 0
             for k,v in self.labels.sortByIndex():
-                if label in v.keys():
-                    return self.getIndex(k)
+                if label[:2] in v.keys():
+                    i  = i + 1
+                    if i == number:
+                        return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
+        if type(label) != types.ListType:
+            label = [label]        
         labels = {}
         for k,val in self.labels.sortByIndex():
             ty_name,v = self._gettypelabel(k)

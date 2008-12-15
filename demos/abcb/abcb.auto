@@ -11,10 +11,10 @@ print "\n***"+pgm+": run 1: equilibrium continuation***"
 r1=run(sv=pgm+'.1')
 
 print "\n***"+pgm+": run 2: cycle continuation***"
-r2=run(r1('HB'),IPS=2,ICP=[1,11],IPLT=1,sv=pgm+'.2')
+r2=run(r1('HB1'),IPS=2,ICP=[1,11],IPLT=1,sv=pgm+'.2')
 
 print "\n***"+pgm+": run 3: switch to LP continuation***"
-sw3=run(r2('LP'),ICP=[1,2,11],ISW=2,IPLT=0,NPR=10,sv=pgm+'.3.sw')
+sw3=run(r2('LP1'),ICP=[1,2,11],ISW=2,IPLT=0,NPR=10,sv=pgm+'.3.sw')
 print "\n***"+pgm+": run 3: LP continuation (fw)***"
 sw3=load(sw3,ICP=[2,1,11],NMX=50,RL1=10.0)
 run(sw3,sv=pgm+'.3.fw')
@@ -23,13 +23,13 @@ print "\n***"+pgm+": run 3: LP continuation (bw)***"
 sb3=run(sw3,DS='-',sv=pgm+'.3.bw')
 
 print "\n***"+pgm+": run 4: cycle continuation (bw)***"
-sb4=run(sb3('LP'),ICP=[1,11],ISW=1,NMX=10,NPR=2,sv=pgm+'.4.bw')
+sb4=run(sb3('LP1'),ICP=[1,11],ISW=1,NMX=10,NPR=2,sv=pgm+'.4.bw')
 
 print "\n***"+pgm+": run 4: cycle continuation (fw)***"
-sf4=run(sb4('EP'),ITMX=10,DS='-',sv=pgm+'.4.fw')
+sf4=run(sb4('EP1'),ITMX=10,DS='-',sv=pgm+'.4.fw')
 
 print "\n***"+pgm+": run 5: switch to BP continuation***"
-sw5=run(sf4('BP'),ICP=[1,2,3,11],ISW=3,NMX=50,NPR=10,
+sw5=run(sf4('BP1'),ICP=[1,2,3,11],ISW=3,NMX=50,NPR=10,
   DS=0.001,DSMAX=0.01,sv=pgm+'.5.sw')
 
 print "\n***"+pgm+": run 5: BP continuation (fw)***"

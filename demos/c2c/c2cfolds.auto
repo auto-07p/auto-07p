@@ -1,14 +1,14 @@
 pgm = 'c2c'
 d2 = load('d2')
 
-lp4 = d2(['LP'])[3]
+lp4 = d2('LP4')
 print pgm, ": fifteenth run : 2d start-up"
 s2d1 = run(lp4,NPR=100,ICP=[1,2,11,4,5,6],ISW=2,SP=[])
 
 print pgm, ": sixteenth run : continuation primary branch in d1 and d2"
 fold1 = run(s2d1)
 
-lp3 = d2(['LP'])[2]
+lp3 = d2('LP3')
 print pgm, ": seventeenth run : 2d start-up"
 s2d2 = run(lp3,NPR=100,ICP=[1,2,11,4,5,6],ISW=2,SP=[])
 

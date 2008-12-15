@@ -9,7 +9,7 @@ load(pgm)
 
 print "\n***"+pgm+": run 1: cycle continuation***"
 r1=run(sv=pgm+'.1')
-bp=r1('BP')
+bp=r1('BP1')
 
 print "\n***"+pgm+": run 1: branch switch***"
 run(bp,ISW=-1,NMX=5,NPR=1,sv=pgm+'.1.sw')
