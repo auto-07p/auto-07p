@@ -18,10 +18,10 @@ for isw in [2,3]:
 
    if isw==2:
       msg="\n***"+pgm+": run 2: BP cont non-generic "
-      load(bp,ICP=[1,2,11])
+      bp=load(bp,ICP=[1,2,11])
    else:
       msg="\n***"+pgm+": run 3: BP cont generic "
-      load(bp,ICP=[1,2,3,11])
+      bp=load(bp,ICP=[1,2,3,11])
    solprefix=pgm+'.'+str(isw)+'.'
 
    print msg+"(sw)***"
