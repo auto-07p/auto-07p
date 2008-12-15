@@ -186,7 +186,7 @@ CONTAINS
                 IF(FOUND)THEN
                    ITP=-4-10*ITPST
                    IAP(27)=ITP
-                   IF(IUZ(IUZR)>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                   IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                       DO K=1,NUZR
                          UZR(K)=0.d0
                       ENDDO
@@ -206,7 +206,7 @@ CONTAINS
              IF(FOUND) THEN
                 ITP=2+10*ITPST
                 IAP(27)=ITP
-                IF(ILP.GT.0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                IF(ILP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    RLP=0.d0
                    RBP=0.d0
                    REV=0.d0
@@ -225,7 +225,7 @@ CONTAINS
              IF(FOUND)THEN
                 ITP=1+10*ITPST
                 IAP(27)=ITP
-                IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
                    RLP=0.d0
                    RBP=0.d0
@@ -313,6 +313,7 @@ CONTAINS
 
     NDIM=IAP(1)
     T=0.d0
+    U(:NDIM)=0.d0
 
     CALL STPNT(NDIM,U,PAR,T)
     UDOT(1)=0

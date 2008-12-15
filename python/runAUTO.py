@@ -24,11 +24,17 @@ class runAUTO:
             if kw != {}:
                 self.options = self.options.copy()
                 if self.options["constants"] is not None:
-                    self.options["constants"] = parseC.parseC(
-                        self.options["constants"])
+                    try:
+                        self.options["constants"] = parseC.parseC(
+                            self.options["constants"])
+                    except IOError:
+                        pass
                 if self.options["homcont"] is not None:
-                    self.options["homcont"] = parseH.parseH(
-                        self.options["homcont"])
+                    try:
+                        self.options["homcont"] = parseH.parseH(
+                            self.options["homcont"])
+                    except IOError:
+                        pass
                 self.config(kw)
             return
 
@@ -258,7 +264,6 @@ class runAUTO:
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
-        import parseS,bifDiag
         if os.path.exists("fort.2"):
             os.remove("fort.2")
         if self.options["constants"] is None:

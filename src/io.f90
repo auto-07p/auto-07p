@@ -751,7 +751,9 @@ CONTAINS
        ! system is extended; call STPNT for extension
        ALLOCATE(U(NDIM),P(NPAR))
        P(:)=PAR(:NPAR)
+       U(NDIMRD+1:NDIM)=0.d0
        DO J=0,NTSRS*NCOLRS
+          U(1:NDIMRD)=UPS(1:NDIMRD,J)
           CALL STPNT(NDIM,U,P,CURSOL%TM(J))
           UPS(NDIMRD+1:NDIM,J)=U(NDIMRD+1:NDIM)
        ENDDO

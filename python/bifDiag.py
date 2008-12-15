@@ -143,7 +143,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
 
     def load(self,**kw):
         """Load bifurcation diagram with the given AUTO constants.
-        Returns a shallow copy with a copied set of updated constants"
+        Returns a shallow copy with a copied set of updated constants
         """
         return apply(bifDiag,(self,),kw)
 
@@ -161,13 +161,11 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if options["constants"] is not None:
             irs = options["constants"].get("IRS",0) or 0
         solutions = bd()
-        if len(solutions) == 1:
-            return solutions[0].run()
-        elif irs in solutions.getLabels():
+        if len(solutions) > 1 and irs in solutions.getLabels():
             return solutions(irs).run()
+        elif len(solutions) > 0:
+            return solutions[-1].run()
         else:
-            if irs == 0:
-                bd = bifDiag(bd,solution=None)
             return runAUTO.runAUTO.run(bd)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):

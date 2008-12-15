@@ -1130,7 +1130,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 except IOError:
                     object = None
                 kw["bifurcationDiagram"] = object
-        irs = -1
+        irs = None
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
                 wantread = True
@@ -1139,9 +1139,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     doneread = True
                 except IOError:
                     del kw["constants"]
-            irs = kw.get("constants",{}).get("IRS",-1)
-            if irs is None:
-                irs = -1
+            irs = kw.get("constants",{}).get("IRS")
         irs = kw.get("IRS",irs)
         #if IRS was explicitly set to 0, then wipe out the solution
         #as it is irrelevant

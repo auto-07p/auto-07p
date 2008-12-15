@@ -37,8 +37,7 @@
 
          SUBROUTINE STPNT(NDIM,U,PAR,T)
          INTEGER, INTENT(IN) :: NDIM
-         DOUBLE PRECISION, INTENT(OUT) :: U(NDIM)
-         DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+         DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
          DOUBLE PRECISION, INTENT(IN) :: T
          END SUBROUTINE STPNT
 
@@ -520,6 +519,7 @@ C
        NFPR=IAP(29)
 C
        T=0.d0
+       U(:NDIM)=0.d0
        CALL STPNT(NDIM,U,PAR,T)
        NFPR=2
        IAP(29)=NFPR

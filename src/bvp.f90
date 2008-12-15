@@ -239,7 +239,7 @@ CONTAINS
              IF(ISTOP.EQ.0.AND.FOUND)THEN
                 ITP=-4-10*ITPST
                 IAP(27)=ITP
-                IF(IUZ(IUZR)>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    DO K=1,NUZR
                       UZR(K)=0.d0
                    ENDDO
@@ -259,7 +259,7 @@ CONTAINS
           IF(FOUND)THEN
              ITP=5+10*ITPST
              IAP(27)=ITP
-             IF(ILP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+             IF(ILP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
                 SP1=0.d0
@@ -279,7 +279,7 @@ CONTAINS
           IF(ISTOP.EQ.0.AND.FOUND)THEN
              ITP=6+10*ITPST
              IAP(27)=ITP
-             IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+             IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                 RLP=0.d0
                 BP1=0.d0
                 SP1=0.d0
@@ -301,7 +301,7 @@ CONTAINS
              EPSS=RAP(13)
              IAP(27)=TPSPBV(NDIM,EPSS,ITPST,PAR,EV)
              IF(CHECKSP(IAP(27),IPS,ILP,ISP))THEN
-                IF(ISP>0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                    RLP=0.d0
                    BP1=0.d0
                    SP1=0.d0
@@ -862,6 +862,7 @@ CONTAINS
        RLDOT(:)=0.d0
     ELSE
        DO J=0,NTST*NCOL
+          UPS(:,J)=0.d0
           CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
        ENDDO
     ENDIF
