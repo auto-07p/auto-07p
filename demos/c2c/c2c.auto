@@ -1,0 +1,44 @@
+pgm='c2c'
+print pgm, ": first run : find the Hopf bifurcation"
+hb = run(e=pgm,NDIM=3,DSMIN=0.00001,ITNW=7,SP=['HB1'])('HB')
+
+print pgm, ": second run : periodic solutions"
+ps = run(hb,IPS=2,ICP=[1,11],NTST=30,UZR={1:0.25},SP=['UZ2'])
+
+print pgm, ": third run : continue zero eigenfunction until eigenvalue"	
+zero = run(ps,IPS=4,ICP=[11,12,10],NDIM=6,NBC=7,NINT=1,UZR={},SP=['BP3'])
+
+print pgm, ": fourth run : switch to continuation of nontrivial eigenfunction"
+ef = run(zero,ISW=-1,ILP=0,DSMAX=0.2,UZR={10:1.0},SP=['UZ1'])
+
+print pgm, ": fifth run : continue zero eigenfunction until eigenvalue"
+zero1 = run(ef,ISW=1,ICP=[11,4,25,6,26],NDIM=12,NBC=14,NINT=2,UZR={},SP=['BP1'])
+
+print pgm, ": sixth run : switch to continuation of nontrivial eigenfunction"
+ef1 = run(zero1,ISW=-1,UZR={25:1.0},SP=['UZ1'])
+
+print pgm, ": seventh run : switch to second zero eigenfunction until eigenvalue"
+zero2 = run(ef1,ISW=1,ICP=[11,4,5,6,26],UZR={},SP=['BP3'])
+
+print pgm, ": eighth run : switch to continuation of second nontrivial eigenfunction"
+ef2 = run(zero2,ISW=-1,UZR={26:1.0},SP=['UZ1'])
+
+print pgm, ": ninth run : homotopy in T,h11,h21"
+ti = run(ef2,ISW=1,ISP=0,ICP=[7,11,4,5,6,21,23],NDIM=15,NBC=19,NINT=2,NTST=105,
+   UZR={21:0},SP=['UZ19'],DSMAX=10)
+
+print pgm, ": tenth run : homotopy in T and h21"
+h12 = run(ti,ICP=[7,23,11,4,5,6,8],NTST=150,UZR={23:0},SP=['UZ1'])
+
+print pgm, ": eleventh run : homotopy in T and h12"
+h21 = run(h12,ICP=[7,22,11,4,5,6,8],UZR={22:0})
+
+print pgm, ": twelfth run : homotopy in T and h22"
+h22 = run(h21,ICP=[7,24,11,4,5,6,8],UZR={24:0},SP=['UZ2'])
+
+print pgm, ": thirteenth run : increase period (par 7)"
+inct = run(h22,ICP=[7,11,4,5,6],NTST=200,NINT=0,UZR={7:450},SP=['UZ1'])
+
+print pgm, ": fourteenth run : fw continuation in d2 (par2) until LP: primary homoclinic"
+d2 = run(inct,ICP=[1,11,4,5,6,35,36],ILP=1,UZR={1:0.2785},SP=['LP4'])
+save(d2,'d2')
