@@ -102,6 +102,8 @@ class parseC(UserDict.UserDict):
                     self.data[key][-1]["PAR index"] = x[0]
                     self.data[key][-1]["PAR value"] = x[1]
         elif key == "DS" and item == '-':
+            if self.data[key] is None:
+                self.data[key] = 0.01
             self.data[key] = -self.data[key]
         else:
             self.data[key] = item
