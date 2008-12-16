@@ -5,5 +5,5 @@ NMX=   50, RL0=   0.0, RL1=  30.0, A0=   0.0, A1= 1e+10
 NPR=  100, MXBF=  10, IID =   2, ITMX=   8, ITNW= 7, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
 DS  =   0.1, DSMIN=  0.01, DSMAX=   5.0, IADS=   1
-THL =  [[11, 0.0]], THU =  []
-UZR =  []
+THL =  {11: 0.0}, THU =  {}
+UZR =  {}

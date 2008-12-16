@@ -132,6 +132,7 @@ class parseC(UserDict.UserDict):
         npos = 0
         value = []
         start = 0
+        isdict = False
         v = ''
         line = string.strip(line)
         i = 0
@@ -150,18 +151,26 @@ class parseC(UserDict.UserDict):
                 elif c == ':':
                     pass
                 elif c in [']','}']:
+                    if c == '}':
+                        isdict = False
                     if level == 1 and prev in ['[','{']:
                         value = []
                     level = level - 1
                     if v != '':
                         value.append(v)
                     v = ''
+                    if c == ']' and isdict:
+                        value.append(']')
                 else:
                     if prev in [',',' ',':'] and level > 0 and v != '':
                         value.append(v)
                         v = ''
                     if c in ['[','{']:
                         level = level + 1
+                        if c == '{':
+                            isdict = True
+                        elif isdict:
+                            value.append('[')
                     elif c in ['"',"'"]:
                         quote = c
                     else:
@@ -209,12 +218,34 @@ class parseC(UserDict.UserDict):
                 value = d
             elif key in ['THU','THL','UZR','U','PAR']:
                 d = []
-                for i in range(0,len(value),2):
+                v0s = []
+                i = 0
+                while i < len(value):
                     try:
                         v0 = int(value[i])
                     except ValueError:
                         v0 = value[i]
-                    d.append([v0,parseB.AUTOatof(value[i+1])])
+                    if value[i+1] == '[':
+                        i = i + 1
+                        v1 = []
+                        while i+1 < len(value) and value[i+1] != ']':
+                            v1.append(parseB.AUTOatof(value[i+1]))
+                            i = i + 1
+                    else:
+                        v1 = parseB.AUTOatof(value[i+1])
+                        if v0 in v0s:
+                            v1 = [v1]
+                    if v0 in v0s:
+                        # add to list when parameter was already encountered
+                        try:
+                            d[v0s.index(v0)][1].extend(v1)
+                        except AttributeError:
+                            d[v0s.index(v0)][1] = [d[v0s.index(v0)][1]]
+                            d[v0s.index(v0)][1].extend(v1)
+                    else:
+                        v0s.append(v0)
+                        d.append([v0,v1])
+                    i = i + 2
                 value = d
             elif key in ['unames','parnames']:
                 d = []
@@ -351,11 +382,17 @@ class parseC(UserDict.UserDict):
     def write(self,output,new=False):
         def compactstr(value):
             """check if we can use more compact output than str..."""
-            str1 = "%.5g"%value
-            str2 = str(value)
-            if float(str1) == float(str2) and 'e' in str1:
-                return str1
-            return str2
+            try:
+                str1 = "%.5g"%value
+                str2 = str(value)
+                if float(str1) == float(str2) and 'e' in str1:
+                    return str1
+                return str2
+            except TypeError:
+                l = []
+                for v in value:
+                    l.append(compactstr(v))
+                return '['+string.join(l,", ")+']'
             
         wdth2keys = ["A0","A1"]
         wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]

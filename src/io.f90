@@ -120,7 +120,7 @@ CONTAINS
     CALL WRITELIST("    THU = ",IVTHU)
     WRITE(7,*)
     IF(NUZR>0)THEN
-       CALL WRITELIST("   0   UZR = ",IVUZR)
+       CALL WRITEUZRLIST("   0   UZR = ",IVUZR)
        WRITE(7,*)
     ENDIF
     IF(IPS==9)THEN
@@ -253,6 +253,45 @@ CONTAINS
       ENDDO
       WRITE(7,"(A)", ADVANCE="NO")'}'
     END SUBROUTINE WRITELIST
+
+    SUBROUTINE WRITEUZRLIST(NAME,IVLIST)
+      USE AUTO_CONSTANTS, ONLY: INDEXMVAR
+      CHARACTER(LEN=*), INTENT(IN) :: NAME
+      TYPE(INDEXMVAR), INTENT(IN) :: IVLIST(:)
+      
+      LOGICAL FIRST
+      CHARACTER(LEN=15) :: INDSTR
+      INTEGER INDX,I,J,io
+      CHARACTER(LEN=19) :: VARSTR
+      DOUBLE PRECISION V
+
+      WRITE(7,"(A,A)", ADVANCE="NO")NAME,'{'
+      FIRST=.TRUE.
+      DO I=1,SIZE(IVLIST)
+         IF(.NOT.FIRST)WRITE(7,"(A)", ADVANCE="NO")", "
+         READ(IVLIST(I)%INDEX,*,IOSTAT=io)INDX
+         IF(io==0)THEN
+            INDSTR=IVLIST(I)%INDEX
+         ELSE
+            INDSTR="'"//TRIM(IVLIST(I)%INDEX)//"'"
+         ENDIF
+         WRITE(7,"(A,A)", ADVANCE="NO")TRIM(INDSTR),": "
+         IF(SIZE(IVLIST(I)%VAR)>1)WRITE(7,"(A)", ADVANCE="NO")'['
+         DO J=1,SIZE(IVLIST(I)%VAR)
+            IF(J>1)WRITE(7,"(A)", ADVANCE="NO")", "
+            V=IVLIST(I)%VAR(J)
+            IF(INT(V)==V)THEN
+               WRITE(VARSTR,'(I19)')INT(V)
+            ELSE
+               WRITE(VARSTR,'(ES19.10)')V
+            ENDIF
+            WRITE(7,"(A)", ADVANCE="NO")TRIM(ADJUSTL(VARSTR))
+         ENDDO
+         IF(SIZE(IVLIST(I)%VAR)>1)WRITE(7,"(A)", ADVANCE="NO")']'
+         FIRST=.FALSE.
+      ENDDO
+      WRITE(7,"(A)", ADVANCE="NO")'}'
+    END SUBROUTINE WRITEUZRLIST
 
     SUBROUTINE WRITESTRLIST(NAME,ISLIST)
       USE AUTO_CONSTANTS, ONLY: INDEXSTR

@@ -205,13 +205,15 @@ C
       LOGICAL WORKER
       DOUBLE PRECISION RAP(*)
 
-      INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,I,J
+      INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K
+      INTEGER NUZR
       INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
       DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
       IPS=IAP(2)
       IRS=IAP(3)
       ISW=IAP(10)
+      NUZR=IAP(15)
       ITP=IAP(27)
       NFPRPREV=IAP(29)
 C
@@ -254,10 +256,15 @@ C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
            THU(NAMEIDX(IVTHU(I)%INDEX,unames))=IVTHU(I)%VAR
         ENDDO
 C     set IUZ/VUZ
-        ALLOCATE(IUZ(SIZE(IVUZR)),VUZ(SIZE(IVUZR)))
+        ALLOCATE(IUZ(NUZR),VUZ(NUZR))
+        K=0
         DO I=1,SIZE(IVUZR)
-           IUZ(I)=NAMEIDX(IVUZR(I)%INDEX,parnames)
-           VUZ(I)=IVUZR(I)%VAR
+           IND=NAMEIDX(IVUZR(I)%INDEX,parnames)
+           DO J=1,SIZE(IVUZR(I)%VAR)
+              K=K+1
+              IUZ(K)=IND
+              VUZ(K)=IVUZR(I)%VAR(J)
+           ENDDO
         ENDDO
       ELSE
         ! ignored for MPI workers
@@ -524,12 +531,20 @@ C
       LOGICAL, INTENT(OUT) :: EOF
       INTEGER, INTENT(INOUT) :: LINE
 C
-      INTEGER IBR,I,IUZR,NFPR,NDM
+      INTEGER IBR,I,J,IUZR,NFPR,NDM
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NUZR,NICP
       DOUBLE PRECISION BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=2048) :: STR
-      INTEGER KEYEND,POS,LISTLEN,NPOS,IERR
+      CHARACTER(LEN=1) :: C,PREV
+      INTEGER KEYEND,POS,LISTLEN,NPOS,LISTLEN2,IERR
       LOGICAL KEYS
+
+      TYPE INDEXSTRL
+         CHARACTER(13) INDEX
+         CHARACTER(2048) STRL
+      END TYPE INDEXSTRL
+      TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
+
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
      * "NDIM", "IPS ", "IRS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
      * "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",
@@ -622,10 +637,30 @@ C
             ALLOCATE(ICU(NICP))
             READ(STR(POS:),*,ERR=3)ICU            
          CASE('UZR')
-            NUZR=LISTLEN
+            ALLOCATE(IVUZRS(LISTLEN))
+            READ(STR(POS:),*,ERR=3)IVUZRS
+            DO I=1,SIZE(IVUZR)
+               DEALLOCATE(IVUZR(I)%VAR)
+            ENDDO
             DEALLOCATE(IVUZR)
-            ALLOCATE(IVUZR(NUZR))
-            READ(STR(POS:),*,ERR=3)IVUZR
+            ALLOCATE(IVUZR(LISTLEN))
+            NUZR=0
+            DO I=1,LISTLEN
+               PREV=' '
+               LISTLEN2=0
+               DO J=1,LEN_TRIM(IVUZRS(I)%STRL)
+                  C=IVUZRS(I)%STRL(J:J)
+                  IF(C/=' '.AND.C/=','.AND.(PREV==' '.OR.PREV==','))THEN
+                     LISTLEN2=LISTLEN2+1
+                  ENDIF
+                  PREV=C
+               ENDDO
+               ALLOCATE(IVUZR(I)%VAR(LISTLEN2))
+               IVUZR(I)%INDEX=IVUZRS(I)%INDEX
+               READ(IVUZRS(I)%STRL,*,ERR=3)IVUZR(I)%VAR
+               NUZR=NUZR+LISTLEN2
+            ENDDO
+            DEALLOCATE(IVUZRS)
          CASE('THL')
             IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
             ALLOCATE(IVTHL(LISTLEN))
@@ -751,11 +786,15 @@ C
       LINE=LINE+1
       READ(2,*,ERR=3,END=4)NUZR
       IF(NUZR>0)THEN
+        DO I=1,SIZE(IVUZR)
+           DEALLOCATE(IVUZR(I)%VAR)
+        ENDDO
         DEALLOCATE(IVUZR)
         ALLOCATE(IVUZR(NUZR))
         DO I=1,NUZR
           LINE=LINE+1
-          READ(2,*,ERR=3,END=4)IVUZR(I)
+          ALLOCATE(IVUZR(I)%VAR(1))
+          READ(2,*,ERR=3,END=4)IVUZR(I)%INDEX,IVUZR(I)%VAR(1)
         ENDDO
       ENDIF
 C
@@ -856,7 +895,7 @@ C
 
       INTEGER I,LEVEL,LENSTR,ios
       CHARACTER(1) C,PREV,QUOTE
-      LOGICAL QUOTEESC
+      LOGICAL QUOTEESC,ISDICT
       LISTLEN=1
       LEVEL=0
       QUOTE=' '
@@ -864,6 +903,7 @@ C
       PREV=' '
 
       NPOS=1
+      ISDICT=.FALSE.
       LENSTR=LEN_TRIM(STR)
       I=1
       DO
@@ -884,9 +924,11 @@ C
             CASE(':')
                STR(I:I)=','
             CASE(']','}')
+               IF(C=='}') ISDICT=.FALSE.
                STR(I:I)=' '
                IF(LEVEL==1.AND.(PREV=='['.OR.PREV=='{'))LISTLEN=0
                LEVEL=LEVEL-1
+               IF(C==']'.AND.ISDICT) STR(I:I)="'"
             CASE DEFAULT
                IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
                   LISTLEN=LISTLEN+1
@@ -895,6 +937,11 @@ C
                CASE('[','{')
                   STR(I:I)=' '
                   LEVEL=LEVEL+1
+                  IF(C=='{')THEN
+                     ISDICT=.TRUE.
+                  ELSEIF(ISDICT)THEN
+                     STR(I:I)="'"
+                  ENDIF
                CASE('"',"'")
                   QUOTE=C
                END SELECT
@@ -924,6 +971,9 @@ C
 
       IMPLICIT NONE
 
+      DO I=1,SIZE(IVUZR)
+         DEALLOCATE(IVUZR(I)%VAR)
+      ENDDO
       DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,PARVALS,
      *     UVALS)
       END SUBROUTINE CLEANUP
