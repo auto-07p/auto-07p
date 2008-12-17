@@ -2271,256 +2271,12 @@ in Chapter~\ref{sec:command_mode} and start with an ``@''-sign can be
 entered directly, without the ``!''.
 \pagebreak
 \section{ Reference }  \label{sec:clui reference}
-\subsection{commandAppend} \label{sec:clui_ref_commandAppend}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Append data files.\section*{Description}
+\subsection{Basic commands.} 
+\begin{description}
+\item[run]
+Run AUTO.
 
-    Type commandAppend('xxx') to append the output-files fort.7, fort.8,
-    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
-    using the default filename templates).
-
-    Type commandAppend('xxx','yyy') to append existing data-files s.xxx, b.xxx,
-    and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
-    the default filename templates).
-    \section*{Aliases}
-ap append \medskip\hrule\end{minipage}\subsection{commandCat} \label{sec:clui_ref_commandCat}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the contents of a file\section*{Description}
-
-    Type 'commandCat xxx' to list the contents of the file 'xxx'.  This calls the
-    Unix function 'cat' for reading the file.  
-    \section*{Aliases}
-cat \medskip\hrule\end{minipage}\subsection{commandCd} \label{sec:clui_ref_commandCd}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Change directories.\section*{Description}
-    
-    Type 'commandCd xxx' to change to the directory 'xxx'.  This command
-    understands both shell variables and home directory expansion.
-    \section*{Aliases}
-cd \medskip\hrule\end{minipage}\subsection{commandClean} \label{sec:clui_ref_commandClean}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Clean the current directory.\section*{Description}
-
-    Type commandClean() to clean the current directory.  This command will
-    delete all files of the form fort.*, *.o, and *.exe.
-    \section*{Aliases}
-clean cl \medskip\hrule\end{minipage}\subsection{commandCopyAndLoadDemo} \label{sec:clui_ref_commandCopyAndLoadDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Copy a demo into the current directory and load it.\section*{Description}
-
-    Type commandCopyAndLoadDemo('xxx') to copy all files from auto/07p/demos/xxx to the
-    current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
-    files, always run demos in a clean work directory.  NOTE: This
-    command automatically performs the commandRunnerLoadName command
-    as well.
-    \section*{Aliases}
-dm demo \medskip\hrule\end{minipage}\subsection{commandCopyDataFiles} \label{sec:clui_ref_commandCopyDataFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Copy data files.\section*{Description}
-
-    Type commandCopyDataFiles('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
-    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
-    default filename templates).
-    \section*{Aliases}
-copy cp \medskip\hrule\end{minipage}\subsection{commandCopyDemo} \label{sec:clui_ref_commandCopyDemo}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Copy a demo into the current directory.\section*{Description}
-
-    Type commandCopyDemo('xxx') to copy all files from auto/07p/demos/xxx to the
-    current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
-    files, always run demos in a clean work directory.
-    \section*{Aliases}
-copydemo \medskip\hrule\end{minipage}\subsection{commandCopyFortFiles} \label{sec:clui_ref_commandCopyFortFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Save data files.\section*{Description}
-
-    Type commandCopyFortFiles('xxx') to save the output-files fort.7, fort.8, fort.9,
-    to b.xxx, s.xxx, d.xxx (if you are using the default filename
-    templates).  Existing files with these names will be overwritten.
-    \section*{Aliases}
-sv save \medskip\hrule\end{minipage}\subsection{commandCreateGUI} \label{sec:clui_ref_commandCreateGUI}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Show AUTOs graphical user interface.\section*{Description}
-
-    Type commandCreateGUI() to start AUTOs graphical user interface.
-    
-    NOTE: This command is not implemented yet.
-    \section*{Aliases}
-gui \medskip\hrule\end{minipage}\subsection{commandDeleteDataFiles} \label{sec:clui_ref_commandDeleteDataFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Delete data files.\section*{Description}
-
-    Type commandDeleteDataFiles('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
-    (if you are using the default filename templates).
-    \section*{Aliases}
-delete dl \medskip\hrule\end{minipage}\subsection{commandDeleteFortFiles} \label{sec:clui_ref_commandDeleteFortFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Clear the current directory of fort files.\section*{Description}
-
-    Type commandDeleteFortFiles() to clean the current directory.  This command will
-    delete all files of the form fort.*.
-    \section*{Aliases}
-df deletefort \medskip\hrule\end{minipage}\subsection{commandDouble} \label{sec:clui_ref_commandDouble}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Double a solution.\section*{Description}
-
-    Type commandDouble() to double the solution in 'fort.7' and 'fort.8'.
-
-    Type commandDouble('xxx') to double the solution in b.xxx and s.xxx (if you
-    are using the default filename templates).
-    \section*{Aliases}
-double db \medskip\hrule\end{minipage}\subsection{commandInteractiveHelp} \label{sec:clui_ref_commandInteractiveHelp}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Get help on the AUTO commands.\section*{Description}
-    
-    Type 'help' to list all commands with a online help.
-    Type 'help xxx' to get help for command 'xxx'.
-    \section*{Aliases}
-man help \medskip\hrule\end{minipage}\subsection{commandLs} \label{sec:clui_ref_commandLs}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-List the current directory.\section*{Description}
-    
-    Type 'commandLs' to run the system 'ls' command in the current directory.  This
-    command will accept whatever arguments are accepted by the Unix command
-    'ls'.
-    \section*{Aliases}
-ls \medskip\hrule\end{minipage}\subsection{commandMoveFiles} \label{sec:clui_ref_commandMoveFiles}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Move data-files to a new name.\section*{Description}
-
-    Type commandMoveFiles('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
-    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
-    default filename templates).  \section*{Aliases}
-move mv \medskip\hrule\end{minipage}\subsection{commandParseConstantsFile} \label{sec:clui_ref_commandParseConstantsFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Get the current continuation constants.\section*{Description}
-
-    Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
-    c.xxx (if you are using the default filename templates).
-    \section*{Aliases}
-cn constantsget \medskip\hrule\end{minipage}\subsection{commandParseDiagramAndSolutionFile} \label{sec:clui_ref_commandParseDiagramAndSolutionFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Parse both bifurcation diagram and solution.\section*{Description}
-
-    Type commandParseDiagramAndSolutionFile('xxx') to get a parsed version of the diagram file b.xxx
-    and solution file s.xxx (if you are using the default filename
-    templates).
-    \section*{Aliases}
-bt diagramandsolutionget \medskip\hrule\end{minipage}\subsection{commandParseDiagramFile} \label{sec:clui_ref_commandParseDiagramFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Parse a bifurcation diagram.\section*{Description}
-
-    Type commandParseDiagramFile('xxx') to get a parsed version of the diagram file b.xxx
-    (if you are using the default filename templates).
-    \section*{Aliases}
-dg diagramget \medskip\hrule\end{minipage}\subsection{commandParseSolutionFile} \label{sec:clui_ref_commandParseSolutionFile}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Parse solution file:\section*{Description}
-
-    Type commandParseSolutionFile('xxx') to get a parsed version of the solution file
-    s.xxx (if you are using the default filename templates).
-    \section*{Aliases}
-sl solutionget \medskip\hrule\end{minipage}\subsection{commandPlotter} \label{sec:clui_ref_commandPlotter}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-2D plotting of data.\section*{Description}
-
-    Type commandPlotter('xxx') to run the graphics program for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
-    default filename templates).  The return value will be the handle
-    for the graphics window.
-
-    Type commandPlotter() to run the graphics program for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.  The return
-    value will be the handle for the graphics window.
-    \section*{Aliases}
-p2 pl plot \medskip\hrule\end{minipage}\subsection{commandPlotter3D} \label{sec:clui_ref_commandPlotter3D}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-3D plotting of data.\section*{Description}
-
-    Type commandPlotter3D('xxx') to run the graphics program for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
-    default filename templates).  The return value will be the handle
-    for the graphics window.
-
-    Type commandPlotter3D() to run the graphics program for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.  The return
-    value will be the handle for the graphics window.
-    \section*{Aliases}
-plot3 p3 \medskip\hrule\end{minipage}\subsection{commandQueryBranchPoint} \label{sec:clui_ref_commandQueryBranchPoint}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the ``branch-point function''.\section*{Description}
-    
-    Type commandQueryBranchPoint() to list the value of the ``branch-point function'' 
-    in the output-file fort.9. This function vanishes at a branch point.
-    
-    Type commandQueryBranchPoint('xxx') to list the value of the ``branch-point function''
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-br bp branchpoint \medskip\hrule\end{minipage}\subsection{commandQueryEigenvalue} \label{sec:clui_ref_commandQueryEigenvalue}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print eigenvalues of Jacobian (algebraic case).\section*{Description}
-
-    Type commandQueryEigenvalue() to list the eigenvalues of the Jacobian 
-    in fort.9. 
-    (Algebraic problems.)
-
-    Type commandQueryEigenvalue('xxx') to list the eigenvalues of the Jacobian 
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-eigenvalue ev eg \medskip\hrule\end{minipage}\subsection{commandQueryFloquet} \label{sec:clui_ref_commandQueryFloquet}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the Floquet multipliers.\section*{Description}
-
-    Type commandQueryFloquet() to list the Floquet multipliers
-    in the output-file fort.9. 
-    (Differential equations.)
-
-    Type commandQueryFloquet('xxx') to list the Floquet multipliers 
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-fl floquet \medskip\hrule\end{minipage}\subsection{commandQueryHopf} \label{sec:clui_ref_commandQueryHopf}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the value of the ``Hopf function''.\section*{Description}
-
-    Type commandQueryHopf() to list the value of the ``Hopf function'' 
-    in the output-file fort.9. This function
-    vanishes at a Hopf bifurcation point.
-
-    Type commandQueryHopf('xxx') to list the value of the ``Hopf function''
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-hb hp hopf lp \medskip\hrule\end{minipage}\subsection{commandQueryIterations} \label{sec:clui_ref_commandQueryIterations}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the number of Newton interations.\section*{Description}
-
-    Type commandQueryIterations() to list the number of Newton iterations per
-    continuation step in fort.9. 
-
-    Type commandQueryIterations('xxx') to list the number of Newton iterations per
-    continuation step in the info file 'd.xxx'.
-    \section*{Aliases}
-iterations it \medskip\hrule\end{minipage}\subsection{commandQueryLimitpoint} \label{sec:clui_ref_commandQueryLimitpoint}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print the value of the ``limit point function''.\section*{Description}
-
-    Type commandQueryLimitpoint() to list the value of the ``limit point function'' 
-    in the output-file fort.9. This function
-    vanishes at a limit point (fold).
-
-    Type commandQueryLimitpoint('xxx') to list the value of the ``limit point function'' 
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-lm limitpoint \medskip\hrule\end{minipage}\subsection{commandQueryNote} \label{sec:clui_ref_commandQueryNote}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print notes in info file.\section*{Description}
-
-    Type commandQueryNote() to show any notes 
-    in the output-file fort.9.
-
-    Type commandQueryNote('xxx') to show any notes 
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-nt note \medskip\hrule\end{minipage}\subsection{commandQuerySecondaryPeriod} \label{sec:clui_ref_commandQuerySecondaryPeriod}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print value of ``secondary-periodic bif. fcn''.\section*{Description}
-
-    Type commandQuerySecondaryPeriod()  to list the value of the 
-    ``secondary-periodic bifurcation function'' 
-    in the output-file 'fort.9. This function
-    vanishes at period-doubling and torus bifurcations.
-
-    Type commandQuerySecondaryPeriod('xxx') to list the value of the
-    ``secondary-periodic bifurcation function''
-    in the info file 'd.xxx'.
-    \section*{Aliases}
-sc secondaryperiod sp \medskip\hrule\end{minipage}\subsection{commandQueryStepsize} \label{sec:clui_ref_commandQueryStepsize}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print continuation step sizes.\section*{Description}
-
-    Type commandQueryStepsize() to list the continuation step size for each
-    continuation step in  'fort.9. 
-
-    Type commandQueryStepsize('xxx') to list the continuation step size for each
-    continuation step in the info file 'd.xxx'.
-    \section*{Aliases}
-ss stepsize st \medskip\hrule\end{minipage}\subsection{commandRun} \label{sec:clui_ref_commandRun}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Run AUTO.\section*{Description}
-
-    Type commandRun([options]) to run AUTO with the given options.
+    Type run([options]) to run AUTO with the given options.
     There are four possible options:
     \begin{verbatim}
     Long name   Short name    Description
@@ -2531,7 +2287,7 @@ Run AUTO.\section*{Description}
     homcont     h             The Homcont parameter file
     \end{verbatim}
     Options which are not explicitly set retain their previous value.
-    For example one may type: commandRun(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: run(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
@@ -2539,29 +2295,19 @@ Run AUTO.\section*{Description}
     or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
 
-    Type commandRun('name') load all files with base 'name'.
+    Type run('name') load all files with base 'name'.
     This does the same thing as running
-    commandRun(e='name',c='name,s='name',h='name').
+    run(e='name',c='name,s='name',h='name').
 
     run('name','save') does the same thing as running
     run(e='name',c='name,s='name',h='name',sv='save').
-    \section*{Aliases}
-r run rn \medskip\hrule\end{minipage}\subsection{commandRunnerConfigFort2} \label{sec:clui_ref_commandRunnerConfigFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Modify continuation constants.\section*{Description}
 
-    Type commandRunnerConfigFort2('xxx',yyy) to change the constant 'xxx' to have
-    value yyy.
-    \section*{Aliases}
-changeconstant cc ch \medskip\hrule\end{minipage}\subsection{commandRunnerConfigFort12} \label{sec:clui_ref_commandRunnerConfigFort12}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Modify HomCont continuation constants.\section*{Description}
+    \textbf{Aliases:} r rn commandRun
 
-    Type commandRunnerConfigFort12('xxx',yyy) to change the HomCont constant 'xxx' to have
-    value yyy.
-    \section*{Aliases}
-hch \medskip\hrule\end{minipage}\subsection{commandRunnerLoadName} \label{sec:clui_ref_commandRunnerLoadName}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Load files into the AUTO runner.\section*{Description}
+\item[load]
+Load files into the AUTO runner.
 
-    Type commandRunnerLoadName([options]) to modify AUTO runner.
+    Type load([options]) to modify AUTO runner.
     There are four possible options:
     \begin{verbatim}
     Long name   Short name    Description
@@ -2572,57 +2318,257 @@ Load files into the AUTO runner.\section*{Description}
     homcont     h             The Homcont parameter file
     \end{verbatim}
     Options which are not explicitly set retain their previous value.
-    For example one may type: commandRunnerLoadName(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: load(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
-    Type commandRunnerLoadName('name') load all files with base 'name'.
+    Type load('name') load all files with base 'name'.
     This does the same thing as running
-    commandRunnerLoadName(e='name',c='name,s='name',h='name').
+    load(e='name',c='name,s='name',h='name').
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
-   \section*{Aliases}
-ld load \medskip\hrule\end{minipage}\subsection{commandRunnerPrintFort2} \label{sec:clui_ref_commandRunnerPrintFort2}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print continuation parameters.\section*{Description}
+    \textbf{Aliases:} ld commandRunnerLoadName
 
-    Type commandRunnerPrintFort2() to print all the parameters.
-    Type commandRunnerPrintFort2('xxx') to return the parameter 'xxx'.
-    \section*{Aliases}
-pc pr printconstant \medskip\hrule\end{minipage}\subsection{commandRunnerPrintFort12} \label{sec:clui_ref_commandRunnerPrintFort12}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Print HomCont continuation parameters.\section*{Description}
+\item[save]
+Save data files.
 
-    Type commandRunnerPrintFort12() to print all the parameters.
-    Type commandRunnerPrintFort12('xxx') to return the parameter 'xxx'.
-    \section*{Aliases}
-hpr \medskip\hrule\end{minipage}\subsection{commandShell} \label{sec:clui_ref_commandShell}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Run a shell command.\section*{Description}
-        
-    Type 'shell xxx' to run the command 'xxx' in the Unix shell and display
-    the results in the AUTO command line user interface.
-    \section*{Aliases}
-shell \medskip\hrule\end{minipage}\subsection{commandSpecialPointLabels} \label{sec:clui_ref_commandSpecialPointLabels}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Return special labels.\section*{Description}
-        
-    Type splabs('xxx',typename) to get a list of labels with the specified
-    typename, where typename can be one of
-    'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+    Type save('xxx') to save the output-files fort.7, fort.8, fort.9,
+    to b.xxx, s.xxx, d.xxx (if you are using the default filename
+    templates).  Existing files with these names will be overwritten.
 
-    Or use splabs(s,typename) where s is a parsed solution from sl().
+\textbf{Aliases:} commandCopyFortFiles
+
+\item[append]
+
+Append data files.
+
+    Type append('xxx') to append the output-files fort.7, fort.8,
+    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
+    using the default filename templates).
+
+    Type append('xxx','yyy') to append existing data-files s.xxx, b.xxx,
+    and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
+    the default filename templates).
+
+    \textbf{Aliases:} ap commandAppend
+\end{description}
+
+\subsection{Plotting commands.}
+
+\begin{description}
+\item[plot]
+2D plotting of data.
+
+    Type plot('xxx') to run the graphics program for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).  The return value will be the handle
+    for the graphics window.
+
+    Type plot() to run the graphics program for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.  The return
+    value will be the handle for the graphics window.
     
-    \section*{Aliases}
-splabs \medskip\hrule\end{minipage}\subsection{commandTriple} \label{sec:clui_ref_commandTriple}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Triple a solution.\section*{Description}
+\textbf{Aliases:} p2 pl commandPlotter
 
-    Type commandTriple() to triple the solution in 'fort.7' and 'fort.8'.
+\item[plot3]
+3D plotting of data.
 
-    Type commandTriple('xxx') to triple the solution in b.xxx and s.xxx (if you
+    Type plot3('xxx') to run the graphics program for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).  The return value will be the handle
+    for the graphics window.
+
+    Type plot3() to run the graphics program for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.  The return
+    value will be the handle for the graphics window.
+    
+\textbf{Aliases:} p3 commandPlotter3D
+\end{description}
+
+\subsection{File-manipulation.}
+\begin{description}
+\item[copy]
+Copy data files.
+
+    Type copy('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
+    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
+    default filename templates).
+    
+\textbf{Aliases:} cp commandCopyDataFiles
+
+\item[move]
+Move data-files to a new name.
+
+    Type move('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
+    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
+    default filename templates).  
+
+\textbf{Aliases:} mv commandMoveFiles
+
+\item[deletefort]
+Clear the current directory of fort files.
+
+    Type deletefort() to clean the current directory.  This command will
+    delete all files of the form fort.*.
+    
+\textbf{Aliases:} df commandDeleteFortFiles
+
+\item[clean]
+Clean the current directory.
+
+    Type clean() to clean the current directory.  This command will
+    delete all files of the form fort.*, *.o, and *.exe.
+    
+\textbf{Aliases:}
+cl commandClean
+
+\item[delete]
+Delete data files.
+
+    Type delete('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
+    (if you are using the default filename templates).
+    
+\textbf{Aliases:} dl commandDeleteDataFiles
+\end{description}
+
+\subsection{Diagnostics.}
+
+\begin{description}
+\item[limitpoint]
+Print the value of the ``limit point function''.
+
+    Type limitpoint() to list the value of the ``limit point function'' 
+    in the output-file fort.9. This function
+    vanishes at a limit point (fold).
+
+    Type limitpoint('xxx') to list the value of the ``limit point function'' 
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} lm lp commandQueryLimitpoint
+
+\item[branchpoint]
+Print the ``branch-point function''.
+    
+    Type branchpoint() to list the value of the ``branch-point function'' 
+    in the output-file fort.9. This function vanishes at a branch point.
+    
+    Type branchpoint('xxx') to list the value of the ``branch-point function''
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} br bp commandQueryBranchPoint
+
+\item[hopf]
+Print the value of the ``Hopf function''.
+
+    Type hopf() to list the value of the ``Hopf function'' 
+    in the output-file fort.9. This function
+    vanishes at a Hopf bifurcation point.
+
+    Type hopf('xxx') to list the value of the ``Hopf function''
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} hb hp commandQueryHopf
+
+\item[secondaryperiod]
+Print value of ``secondary-periodic bif. fcn''.
+
+    Type secondaryperiod()  to list the value of the
+    ``secondary-periodic bifurcation function'' 
+    in the output-file 'fort.9. This function
+    vanishes at period-doubling and torus bifurcations.
+
+    Type secondaryperiod('xxx') to list the value of the
+    ``secondary-periodic bifurcation function''
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} sc sp commandQuerySecondaryPeriod
+
+\item[iterations]
+Print the number of Newton interations.
+
+    Type iterations() to list the number of Newton iterations per
+    continuation step in fort.9. 
+
+    Type iterations('xxx') to list the number of Newton iterations per
+    continuation step in the info file 'd.xxx'.
+    
+\textbf{Aliases:} it commandQueryIterations
+
+\item[note]
+Print notes in info file.
+
+    Type commandQueryNote() to show any notes 
+    in the output-file fort.9.
+
+    Type commandQueryNote('xxx') to show any notes 
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} nt commandQueryNote
+
+\item[stepsize]
+Print continuation step sizes.
+
+    Type stepsize() to list the continuation step size for each
+    continuation step in  'fort.9. 
+
+    Type stepsize('xxx') to list the continuation step size for each
+    continuation step in the info file 'd.xxx'.
+    
+\textbf{Aliases:} ss st commandQueryStepsize
+
+\item[eigenvalue]
+Print eigenvalues of Jacobian (algebraic case).
+
+    Type eigenvalue() to list the eigenvalues of the Jacobian 
+    in fort.9. 
+    (Algebraic problems.)
+
+    Type eigenvalue('xxx') to list the eigenvalues of the Jacobian 
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} ev eg commandQueryEigenvalue
+
+\item[floquet]
+Print the Floquet multipliers.
+
+    Type floquet() to list the Floquet multipliers
+    in the output-file fort.9. 
+    (Differential equations.)
+
+    Type floquet('xxx') to list the Floquet multipliers 
+    in the info file 'd.xxx'.
+    
+\textbf{Aliases:} fl commandQueryFloquet
+\end{description}
+
+\subsection{File-maintenance.}
+
+\begin{description}
+\item[double]
+Double a solution.
+
+    Type double() to double the solution in 'fort.7' and 'fort.8'.
+
+    Type double('xxx') to double the solution in b.xxx and s.xxx (if you
     are using the default filename templates).
-    \section*{Aliases}
-tr triple \medskip\hrule\end{minipage}\subsection{commandUserData} \label{sec:clui_ref_commandUserData}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Covert user-supplied data files.\section*{Description}
+    
+\textbf{Aliases:} db commandDouble
 
-    Type commandUserData('xxx') to convert a user-supplied data file 'xxx.dat' to
+\item[triple]
+Triple a solution.
+
+    Type triple() to triple the solution in 'fort.7' and 'fort.8'.
+
+    Type triple('xxx') to triple the solution in b.xxx and s.xxx (if you
+    are using the default filename templates).
+    
+\textbf{Aliases:} tr commandTriple
+
+\item[userdata]
+Convert user-supplied data files.
+
+    Type userdata('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
     PAR(11).  Other parameter values must be set in 'stpnt'. (When
@@ -2631,14 +2577,179 @@ Covert user-supplied data files.\section*{Description}
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
     of using the 'userData' command see demos 'lor' and 'pen' (where
     it has the old name 'fc').
-    \section*{Aliases}
-us userdata \medskip\hrule\end{minipage}\subsection{commandWait} \label{sec:clui_ref_commandWait}\begin{minipage}{6in}\hrule\medskip\section*{Purpose}
-Wait for the user to enter a key.\section*{Description}
+    
+\textbf{Aliases:} us commandUserData
+\end{description}
 
-    Type 'commandWait' to have the AUTO interface wait
+\subsection{Copying a demo.}
+\begin{description}
+\item[demo]
+Copy a demo into the current directory and load it.
+
+    Type demo('xxx') to copy all files from auto/07p/demos/xxx to the
+    current user directory.  Here 'xxx' denotes a demo name; e.g.,
+    'abc'.  Note that the 'dm' command also copies a Makefile to the
+    current user directory. To avoid the overwriting of existing
+    files, always run demos in a clean work directory.  NOTE: This
+    command automatically performs the commandRunnerLoadName command
+    as well.
+    
+\textbf{Aliases:} dm commandCopyAndLoadDemo
+
+\item[copydemo]
+Copy a demo into the current directory.
+
+    Type copydemo('xxx') to copy all files from auto/07p/demos/xxx to the
+    current user directory.  Here 'xxx' denotes a demo name; e.g.,
+    'abc'.  Note that the 'dm' command also copies a Makefile to the
+    current user directory. To avoid the overwriting of existing
+    files, always run demos in a clean work directory.
+    
+\textbf{Aliases:} copydemo commandCopyDemo
+\end{description}
+
+\subsection{Python data structure manipulation functions.}
+\begin{description}
+\item[man]
+Get help on the AUTO commands.
+    
+    Type 'man' to list all commands with a online help.
+    Type 'man xxx' to get help for command 'xxx'.
+    
+\textbf{Aliases:} commandInteractiveHelp
+
+\item[cn]
+Get the current continuation constants.
+
+    Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
+    c.xxx (if you are using the default filename templates).
+    
+\textbf{Aliases:} constantsget commandParseConstantsFile
+
+\item[dg]
+Parse a bifurcation diagram.
+
+    Type dg('xxx') to get a parsed version of the diagram file b.xxx
+    (if you are using the default filename templates).
+    
+\textbf{Aliases:} diagramget commandParseDiagramFile
+
+\item[sl]
+Parse solution file:
+
+    Type sl('xxx') to get a parsed version of the solution file
+    s.xxx (if you are using the default filename templates).
+    
+\textbf{Aliases:} solutionget commandParseSolutionFile
+
+\item[bt]
+Parse both bifurcation diagram and solution.
+
+    Type bt('xxx') to get a parsed version of the diagram file b.xxx
+    and solution file s.xxx (if you are using the default filename
+    templates).
+    
+\textbf{Aliases:} diagramandsolutionget commandParseDiagramAndSolutionFile
+
+\item[ch]
+Modify continuation constants.
+
+    Type ch('xxx',yyy) to change the constant 'xxx' to have
+    value yyy.
+    
+\textbf{Aliases:} changeconstant cc commandRunnerConfigFort2
+
+\item[hch]
+Modify HomCont continuation constants.
+
+    Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
+    value yyy.
+    
+\textbf{Aliases:} commandRunnerConfigFort12
+
+\item[pr]
+Print continuation parameters.
+
+    Type pr() to print all the parameters.
+    Type pr('xxx') to return the parameter 'xxx'.
+    
+\textbf{Aliases:} pc pr printconstant commandRunnerPrintFort2
+
+\item[hpr]
+Print HomCont continuation parameters.
+
+    Type hpr() to print all the parameters.
+    Type hpr('xxx') to return the parameter 'xxx'.
+    
+\textbf{Aliases:} commandRunnerPrintFort12
+
+\item[splabs]
+Return special labels.
+        
+    Type splabs('xxx',typename) to get a list of labels with the specified
+    typename, where typename can be one of
+    'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+
+    Or use splabs(s,typename) where s is a parsed solution from sl().
+    
+\textbf{Aliases:} commandSpecialPointLabels
+
+\item[wait]
+Wait for the user to enter a key.
+
+    Type 'wait' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
-    \section*{Aliases}
-wait \medskip\hrule\end{minipage}
+
+\textbf{Aliases:} commandWait
+
+\item[gui]
+Show AUTOs graphical user interface.
+
+    Type gui() to start AUTOs graphical user interface.
+    
+    NOTE: This command is not implemented yet.
+    
+\textbf{Aliases:} commandCreateGUI
+
+\end{description}
+
+\subsection{Shell Commands.}
+
+\begin{description}
+\item[cat]
+Print the contents of a file
+
+    Type 'cat xxx' to list the contents of the file 'xxx'.  This calls the
+    Unix function 'cat' for reading the file.  
+    
+\textbf{Aliases:} commandCat
+
+\item[cd]
+Change directories.
+    
+    Type 'cd xxx' to change to the directory 'xxx'.  This command
+    understands both shell variables and home directory expansion.
+    
+\textbf{Aliases:} commandCd 
+
+\item[ls]
+List the current directory.
+    
+    Type 'ls' to run the system 'ls' command in the current directory.  This
+    command will accept whatever arguments are accepted by the Unix command
+    'ls'.
+    
+\textbf{Aliases:} commandLs
+
+\item[shell]
+Run a shell command.
+        
+    Type shell('xxx') to run the command 'xxx' in the Unix shell and display
+    the results in the AUTO command line user interface.
+    
+\textbf{Aliases:} commandShell
+\end{description}
+
 
 %==============================================================================
 %==============================================================================
@@ -2709,15 +2820,30 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 
-\item[\tt @p]~:
-  Type {\it @p xxx} to run the graphics program {\cal PLAUT}
+\item[\tt @pp]~:
+  Type {\it @pp xxx} to run the graphics program {\cal PyPLAUT}
   (See Chapter~\ref{ch:PLAUT})
   for the graphical inspection of the data-files 
   {\tt b.xxx} and {\tt s.xxx}. 
 \item[-]
-  Type {\it @p} to run the graphics program {\cal PLAUT}
+  Type {\it @pp} to run the graphics program {\cal PyPLAUT}
   for the graphical inspection of the output-files 
   {\tt fort.7} and {\tt fort.8}.
+
+\item[\tt @pl]~:
+  The command {\it @pl} is equivalent to {\tt @pp} but runs
+  the graphics program {\cal PLAUT04} instead.
+  (See Chapter~\ref{ch:PLAUT04})
+
+\item[\tt @r3b]~:
+  The command {\it @r3b} is equivalent to {\tt @pp} but runs
+  the graphics program {\cal PLAUT04} instead in R3B mode.
+  (See Chapter~\ref{ch:PLAUT04})
+
+\item[\tt @p]~:
+  The command {\it @p} is equivalent to {\tt @pp} but runs
+  the graphics program {\cal PLAUT} instead.
+  (See Chapter~\ref{ch:PLAUT})
 
 \item[\tt @ps]~:
   Type {\it @ps fig.x} to convert a saved {\cal PLAUT} figure {\tt fig.x}
@@ -6102,421 +6228,6 @@ here $(u_1,u_2)$.
 \end{center}
 \end{table}
 
-%==============================================================================
-%==============================================================================
-\chapter{ \AUTO Demos : BVP.} \label{ch:Demos_BVP}
-%==============================================================================
-%==============================================================================
-
-%==============================================================================
-%DEMO=exp======================================================================
-%==============================================================================
-\section{ exp : Bratu's Equation.} \label{sec:Demos_exp}
-This demo illustrates the computation of a solution family to
-the boundary value problem
-
-
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= -p_1  e^{u_1} , \\
-\end{array} \end{equation}
-with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$
-This equation is also considered in 
-\citename{DoKeKe:91a} \citeyear{DoKeKe:91a}.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir exp} & create an empty work directory \\ 
-  \commandf{ cd exp} & change directory \\
-  \commandf{ demo('exp')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='exp.1')} & 1st run; compute solution family containing fold \\ 
-  \commandf{ sv('exp')} & save output-files as \filef{ b.exp, s.exp, d.exp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='exp.2',s='exp')} & \parbox[t]{3in}{2nd run; restart at a labeled solution, using increased accuracy.  Constants changed : \parf{ IRS, NTST, A1, DSMAX} vspace{0.2cm}}\\ 
-  \commandf{ ap('exp')} & append output-files to \filef{ b.exp, s.exp, d.exp} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ exp}.}
-\label{tbl:demo_exp}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=int======================================================================
-%==============================================================================
-\section{ int : Boundary and Integral Constraints.} \label{sec:Demos_int}
-This demo illustrates the computation of a solution family to
-the equation
-
-\begin{equation} \begin{array}{cl}
- u_1 ' &= u_2 , \\
-  u_2 ' &= -p_1  e^{u_1} , \\\end{array} \end{equation}
-with a non-separated boundary condition and an integral constraint:
-
-$$ u_1(0)-u_1(1)-p_2=0 ,\qquad \int_0^{1}u(t)dt-p_3=0 . $$
-The solution family contains a fold, which, in the second run, is  
-continued in two equation parameters.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir int} & create an empty work directory \\ 
-  \commandf{ cd int} & change directory \\
-  \commandf{ demo('int')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='int.1')} & 1st run; detection of a fold \\ 
-  \commandf{ sv('int')} & save output-files as \filef{ b.int, s.int, d.int} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='int.2',s='int')} & 2nd run; generate starting data for a curve of folds.  \parbox[t]{3in}{Constants changed : \parf{ IRS, ISW } vspace{0.2cm}}\\ 
-  \commandf{ sv('t')} & save the output-files as \filef{ b.t, s.t, d.t} \\ 
-\hline
-%==============================================================================
-
-  \commandf{ run(c='int.3',s='t')} & \parbox[t]{3in}{3rd run; compute a curve of folds; restart from \filef{ s.t}.  Constants changed : \parf{ IRS} vspace{0.2cm}}\\ 
-  \commandf{ sv('lp')} & save the output-files as \filef{ b.lp, s.lp, d.lp} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ int}.}
-\label{tbl:demo_int}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=bvp======================================================================
-%==============================================================================
-\section{ bvp : A Nonlinear ODE Eigenvalue Problem.} \label{sec:Demos_bvp}
-This demo illustrates the location of eigenvalues of a nonlinear ODE
-boundary value problem as bifurcations from the trivial solution family.
-The families of solutions that bifurcate at all five computed
-eigenvalues, that is, the eigenfunctions, are computed in both directions.
-The equations are
-\begin{equation} \begin{array}{cl}
- u_1 ' &= u_2  ,  \\
-  u_2 ' &=-(p_1 \pi)^{2}u_1 + u_1^{2} ,\end{array} \end{equation}
-with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$~~~
-We add the integral constraint
- $$ \int_0^{1} u_1(t) dt - p_2 = 0. $$
-Then $p_2$ is simply the average of the first solution component.
-The integral constaint gives a measure: the exact same continuations
-could be done without any integral conditions in just the
-one parameter $p_1$,
-however $p_2$ gives us extra possibilities to plot and stop at
-desirable solutions.
-The values that \filef{bvp.auto} sets in \parf{UZR} make sure that
-solutions are given for $p_2=\pm 3,\pm 6,\pm 9$, and the continuation
-stops at $p_2=\pm 9$, and also makes sure that $0 \le p_1 \le 5.5$.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ mkdir bvp} & create an empty work directory \\ 
-  \commandf{ cd bvp} & change directory \\
-  \commandf{ @dm bvp } & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ auto bvp.auto } or & Run the script bvp.auto\\
-  \commandf{ execfile('bvp.auto') } & \\
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ bvp}.}
-\label{tbl:demo_bvp}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=lin======================================================================
-%==============================================================================
-\section{ lin : A Linear ODE Eigenvalue Problem.} \label{sec:Demos_lin}
-This demo illustrates the location of eigenvalues of a linear ODE
-boundary value problem as bifurcations from the trivial solution family.
-By means of branch switching an eigenfunction is computed,
-as is illustrated for the first eigenvalue. 
-This eigenvalue is then continued in two parameters
-by fixing the $L_2$-norm of the first solution component.
-The eigenvalue problem is given by the equations
-
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= (p_1 \pi)^{2} u_1 , \end{array} \end{equation}
-with boundary conditions $ u_1(0)-p_2=0 $ and $  u_1(1)=0.$
-We add the integral constraint
- $$ \int_0^{1} u_1(t)^{2} dt - p_3 = 0. $$
-Then $p_3$ is simply the $L_2$-norm of the first solution component.
-In the first two runs $p_2$ is fixed, while $p_1$ and $p_3$ are free.
-In the third run  $p_3$ is fixed, while $p_1$ and $p_2$ are free.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir lin} & create an empty work directory \\ 
-  \commandf{ cd lin} & change directory \\
-  \commandf{ demo('lin')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='lin.1')} & 1st run; compute the trivial solution family and locate eigenvalues \\ 
-  \commandf{ sv('lin')} & save output-files as \filef{ b.lin, s.lin, d.lin} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='lin.2',s='lin')} & \parbox[t]{3in}{2nd run; compute a few steps along the bifurcating family.  Constants changed : \parf{ IRS, ISW, DSMAX} \vspace{0.2cm}}\\ 
-  \commandf{ ap('lin')} & append output-files to \filef{ b.lin, s.lin, d.lin} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='lin.3',s='lin')} & \parbox[t]{3in}{3rd run; compute a two-parameter curve of eigenvalues. Constants changed : \parf{ IRS, ISW, ICP(2)} \vspace{0.2cm}} \\ 
-  \commandf{ sv('2p')} & save the output-files as \filef{ b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ lin}.}
-\label{tbl:demo_lin}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=non======================================================================
-%==============================================================================
-\section{ non : A Non-Autonomous BVP.} \label{sec:Demos_non}
-This demo illustrates the continuation of solutions to
-the non-autonomous boundary value problem
-
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= -p_1  e^{x^3 u_1} , \\\end{array} \end{equation}
-with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$
-Here $x$ is the independent variable.
-This system is first converted to the following equivalent
-autonomous system~:
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= -p_1  e^{u_3^3 u_1} ,  \\  
-  u_3 ' &= 1 ,  \\
-\end{array} \end{equation}
- with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0, \quad u_3(0)=0.$
-(For a periodically forced system see demo \filef{ frc}).
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir non} & create an empty work directory \\ 
-  \commandf{ cd non} & change directory \\
-  \commandf{ demo('non')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-
-  \commandf{ run(c='non.1')} & compute the solution family \\ 
-  \commandf{ sv('non')} & save output-files as \filef{ b.non, s.non, d.non} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ non}.}
-\label{tbl:demo_non}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=kar======================================================================
-%==============================================================================
-\section{ kar : The Von Karman Swirling Flows.} \label{sec:Demos_kar}
-The steady axi-symmetric flow of a viscous incompressible fluid
-above an infinite rotating disk is modeled by the following 
-ODE boundary value problem (Equation (11) in
-\citename{LeKe:80} \citeyear{LeKe:80}~:
-\begin{equation} \begin{array}{cl}
-  u_1' &= T u_2,  \\
-  u_2' &= T u_3,  \\
-  u_3' &= T \bigl[ -2 \gamma u_4 + u_2^2 - 2 u_1 u_3 - u_4^2 \bigr], \\
-  u_4' &= T u_5, \\
-  u_5' &= T \bigl[ 2 \gamma u_2 + 2 u_2 u_4 - 2 u_1 u_5 \bigr], \\
-\end{array} \end{equation}
-with left boundary conditions
-$$ u_1(0)=0, \qquad u_2(0)=0, \qquad u_4(0)=1-\gamma, $$
-and (asymptotic) right boundary conditions
-\begin{equation} \begin{array}{cl}
-  & \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~ u_2(1) + u_3(1)
-  - \gamma ~ \frac{ u_4(1) }{ a(f_\infty,\gamma) } = 0,  \\
-  & a(f_\infty,\gamma)~ \frac{ b^2(f_\infty,\gamma) }{ \gamma } ~u_2(1)
-  + \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~u_4(1) 
-  + u_5(1) = 0, \\
- & u_1(1) = f_\infty,
- \end{array} \end{equation}
-where
-\begin{equation} \begin{array}{cl}
- & a(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
-  \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} + f_\infty^2 \bigr]^{1/2}, \\
- & b(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
-  \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} - f_\infty^2 \bigr]^{1/2}.  \\
-\end{array} \end{equation}
-Note that there are five differential equations and six boundary conditions.
-Correspondingly, there are two free parameters in the computation of a 
-solution family, namely $\gamma$ and $f_\infty$.
-The ``period'' $T$ is fixed; $T=500$.
-The starting solution is $u_i=0$, $i=1,\cdots,5$, 
-at $\gamma=1$, $f_\infty=0$.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir kar} & create an empty work directory \\ 
-  \commandf{ cd kar} & change directory \\
-  \commandf{ demo('kar')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='kar.1')} & computation of the solution family \\ 
-  \commandf{ sv('kar')} & save output-files as \filef{ b.kar, s.kar, d.kar} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ kar}.}
-\label{tbl:demo_kar}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=spb======================================================================
-%==============================================================================
-\section{ spb : A Singularly-Perturbed BVP.} \label{sec:Demos_spb}
-This demo illustrates the use of continuation to compute 
-solutions to the singularly perturbed boundary value problem
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= \frac{\lambda }{ \eps} \bigl(
-  u_1 u_2 (u_1^2 - 1) + u_1
-  \bigr)  , \\ \end{array} \end{equation}
-with boundary conditions $u_1(0)=3/2$,  $u_1(1)=\gamma.$
-The parameter $\lambda$ has been introduced into the equations in order
-to allow a homotopy from a simple equation with known exact solution
-to the actual equation. This is done in the first run.
-In the second run $\eps$ is decreased by continuation.
-In the third run $\eps$ is fixed at $\eps=.001$ and the solution is continued 
-in $\gamma$.
-This run takes more than 1500 continuation steps.
-For a detailed analysis of the solution behavior see 
-\citename{JL:82} \citeyear{JL:82}.
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir spb} & create an empty work directory \\ 
-  \commandf{ cd spb} & change directory \\
-  \commandf{ demo('spb')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='spb.1')} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
-  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='spb.2',s='1')} & \parbox[t]{3in}{2nd run; let $\eps$ tend to zero; restart from \filef{ s.1}.  constants changed : \parf{ IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
-  \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(1), RL0, ITNW, EPSL, EPSU, NUZR} \vspace{0.2cm}} \\ 
-  \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ spb}.}
-\label{tbl:demo_spb}
-\end{center}
-\end{table}
-
-\newpage
-%==============================================================================
-%DEMO=ezp======================================================================
-%==============================================================================
-\section{ ezp : Complex Bifurcation in a BVP.} \label{sec:Demos_ezp}
-This demo illustrates the computation of a solution family to
-the complex boundary value problem
-
-\begin{equation} \begin{array}{cl}
-  u_1 ' &= u_2  ,  \\
-  u_2 ' &= -p_1  e^{u_1} , \\
-\end{array} \end{equation}
-with boundary conditions $ u_1(0)=0 , ~u_1(1)=0.$
-Here $u_1$ and $u_2$ are allowed to be complex, 
-while the parameter $p_1$ can only take real values.
-In the real case, this is Bratu's equation, whose solution family 
-contains a fold; see the demo \filef{ exp}.
-It is known 
-(\citename{HeKe:90} \citeyear{HeKe:90}) that a simple quadratic fold gives rise to a pitch fork
-bifurcation in the complex equation.
-This bifurcation is located in the first computation below.
-In the second and third run, both legs of the bifurcating solution family
-are computed.
-On it, both solution components $u_1$ and $u_2$ have nontrivial 
-imaginary part.
-
-
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir ezp} & create an empty work directory \\ 
-  \commandf{ cd ezp} & change directory \\
-  \commandf{ demo('ezp')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ run(c='ezp.1')} & 1st run; compute solution family containing fold \\ 
-  \commandf{ sv('ezp')} & save output-files as \filef{ p.ezp, s.ezp, d.ezp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='ezp.2',s='ezp')} & \parbox[t]{3in}{2nd run; compute bifurcating complex solution family.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
-  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='ezp.3',s='ezp')} & \parbox[t]{3in}{3rd run; compute 2nd leg of bifurcating family.  constant changed : \parf{ DS} \vspace{0.2cm}}\\ 
-  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ ezp}.}
-\label{tbl:demo_ezp}
-\end{center}
-\end{table}
-%==============================================================================
-
 
 \newpage
 %==============================================================================
@@ -7184,6 +6895,422 @@ Table~\ref{tbl:demo_v1b}.
 \caption{Detailed AUTO shell and Python commands for the V1b demo.}
 \label{tbl:demo_v1b}
 \end{table}
+
+%==============================================================================
+%==============================================================================
+\chapter{ \AUTO Demos : BVP.} \label{ch:Demos_BVP}
+%==============================================================================
+%==============================================================================
+
+%==============================================================================
+%DEMO=exp======================================================================
+%==============================================================================
+\section{ exp : Bratu's Equation.} \label{sec:Demos_exp}
+This demo illustrates the computation of a solution family to
+the boundary value problem
+
+
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= -p_1  e^{u_1} , \\
+\end{array} \end{equation}
+with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$
+This equation is also considered in 
+\citename{DoKeKe:91a} \citeyear{DoKeKe:91a}.
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir exp} & create an empty work directory \\ 
+  \commandf{ cd exp} & change directory \\
+  \commandf{ demo('exp')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='exp.1')} & 1st run; compute solution family containing fold \\ 
+  \commandf{ sv('exp')} & save output-files as \filef{ b.exp, s.exp, d.exp} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='exp.2',s='exp')} & \parbox[t]{3in}{2nd run; restart at a labeled solution, using increased accuracy.  Constants changed : \parf{ IRS, NTST, A1, DSMAX} vspace{0.2cm}}\\ 
+  \commandf{ ap('exp')} & append output-files to \filef{ b.exp, s.exp, d.exp} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ exp}.}
+\label{tbl:demo_exp}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=int======================================================================
+%==============================================================================
+\section{ int : Boundary and Integral Constraints.} \label{sec:Demos_int}
+This demo illustrates the computation of a solution family to
+the equation
+
+\begin{equation} \begin{array}{cl}
+ u_1 ' &= u_2 , \\
+  u_2 ' &= -p_1  e^{u_1} , \\\end{array} \end{equation}
+with a non-separated boundary condition and an integral constraint:
+
+$$ u_1(0)-u_1(1)-p_2=0 ,\qquad \int_0^{1}u(t)dt-p_3=0 . $$
+The solution family contains a fold, which, in the second run, is  
+continued in two equation parameters.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir int} & create an empty work directory \\ 
+  \commandf{ cd int} & change directory \\
+  \commandf{ demo('int')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='int.1')} & 1st run; detection of a fold \\ 
+  \commandf{ sv('int')} & save output-files as \filef{ b.int, s.int, d.int} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='int.2',s='int')} & 2nd run; generate starting data for a curve of folds.  \parbox[t]{3in}{Constants changed : \parf{ IRS, ISW } vspace{0.2cm}}\\ 
+  \commandf{ sv('t')} & save the output-files as \filef{ b.t, s.t, d.t} \\ 
+\hline
+%==============================================================================
+
+  \commandf{ run(c='int.3',s='t')} & \parbox[t]{3in}{3rd run; compute a curve of folds; restart from \filef{ s.t}.  Constants changed : \parf{ IRS} vspace{0.2cm}}\\ 
+  \commandf{ sv('lp')} & save the output-files as \filef{ b.lp, s.lp, d.lp} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ int}.}
+\label{tbl:demo_int}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=bvp======================================================================
+%==============================================================================
+\section{ bvp : A Nonlinear ODE Eigenvalue Problem.} \label{sec:Demos_bvp}
+This demo illustrates the location of eigenvalues of a nonlinear ODE
+boundary value problem as bifurcations from the trivial solution family.
+The families of solutions that bifurcate at all five computed
+eigenvalues, that is, the eigenfunctions, are computed in both directions.
+The equations are
+\begin{equation} \begin{array}{cl}
+ u_1 ' &= u_2  ,  \\
+  u_2 ' &=-(p_1 \pi)^{2}u_1 + u_1^{2} ,\end{array} \end{equation}
+with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$~~~
+We add the integral constraint
+ $$ \int_0^{1} u_1(t) dt - p_2 = 0. $$
+Then $p_2$ is simply the average of the first solution component.
+The integral constaint gives a measure: the exact same continuations
+could be done without any integral conditions in just the
+one parameter $p_1$,
+however $p_2$ gives us extra possibilities to plot and stop at
+desirable solutions.
+The values that \filef{bvp.auto} sets in \parf{UZR} make sure that
+solutions are given for $p_2=\pm 3,\pm 6,\pm 9$, and the continuation
+stops at $p_2=\pm 9$, and also makes sure that $0 \le p_1 \le 5.5$.
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ mkdir bvp} & create an empty work directory \\ 
+  \commandf{ cd bvp} & change directory \\
+  \commandf{ @dm bvp } & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ auto bvp.auto } or & Run the script bvp.auto\\
+  \commandf{ execfile('bvp.auto') } & \\
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ bvp}.}
+\label{tbl:demo_bvp}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=lin======================================================================
+%==============================================================================
+\section{ lin : A Linear ODE Eigenvalue Problem.} \label{sec:Demos_lin}
+This demo illustrates the location of eigenvalues of a linear ODE
+boundary value problem as bifurcations from the trivial solution family.
+By means of branch switching an eigenfunction is computed,
+as is illustrated for the first eigenvalue. 
+This eigenvalue is then continued in two parameters
+by fixing the $L_2$-norm of the first solution component.
+The eigenvalue problem is given by the equations
+
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= (p_1 \pi)^{2} u_1 , \end{array} \end{equation}
+with boundary conditions $ u_1(0)-p_2=0 $ and $  u_1(1)=0.$
+We add the integral constraint
+ $$ \int_0^{1} u_1(t)^{2} dt - p_3 = 0. $$
+Then $p_3$ is simply the $L_2$-norm of the first solution component.
+In the first two runs $p_2$ is fixed, while $p_1$ and $p_3$ are free.
+In the third run  $p_3$ is fixed, while $p_1$ and $p_2$ are free.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir lin} & create an empty work directory \\ 
+  \commandf{ cd lin} & change directory \\
+  \commandf{ demo('lin')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='lin.1')} & 1st run; compute the trivial solution family and locate eigenvalues \\ 
+  \commandf{ sv('lin')} & save output-files as \filef{ b.lin, s.lin, d.lin} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='lin.2',s='lin')} & \parbox[t]{3in}{2nd run; compute a few steps along the bifurcating family.  Constants changed : \parf{ IRS, ISW, DSMAX} \vspace{0.2cm}}\\ 
+  \commandf{ ap('lin')} & append output-files to \filef{ b.lin, s.lin, d.lin} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='lin.3',s='lin')} & \parbox[t]{3in}{3rd run; compute a two-parameter curve of eigenvalues. Constants changed : \parf{ IRS, ISW, ICP(2)} \vspace{0.2cm}} \\ 
+  \commandf{ sv('2p')} & save the output-files as \filef{ b.2p, s.2p, d.2p} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ lin}.}
+\label{tbl:demo_lin}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=non======================================================================
+%==============================================================================
+\section{ non : A Non-Autonomous BVP.} \label{sec:Demos_non}
+This demo illustrates the continuation of solutions to
+the non-autonomous boundary value problem
+
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= -p_1  e^{x^3 u_1} , \\\end{array} \end{equation}
+with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0.$
+Here $x$ is the independent variable.
+This system is first converted to the following equivalent
+autonomous system~:
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= -p_1  e^{u_3^3 u_1} ,  \\  
+  u_3 ' &= 1 ,  \\
+\end{array} \end{equation}
+ with boundary conditions $ u_1(0)=0 ,  \quad  u_1(1)=0, \quad u_3(0)=0.$
+(For a periodically forced system see demo \filef{ frc}).
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir non} & create an empty work directory \\ 
+  \commandf{ cd non} & change directory \\
+  \commandf{ demo('non')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+
+  \commandf{ run(c='non.1')} & compute the solution family \\ 
+  \commandf{ sv('non')} & save output-files as \filef{ b.non, s.non, d.non} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ non}.}
+\label{tbl:demo_non}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=kar======================================================================
+%==============================================================================
+\section{ kar : The Von Karman Swirling Flows.} \label{sec:Demos_kar}
+The steady axi-symmetric flow of a viscous incompressible fluid
+above an infinite rotating disk is modeled by the following 
+ODE boundary value problem (Equation (11) in
+\citename{LeKe:80} \citeyear{LeKe:80}~:
+\begin{equation} \begin{array}{cl}
+  u_1' &= T u_2,  \\
+  u_2' &= T u_3,  \\
+  u_3' &= T \bigl[ -2 \gamma u_4 + u_2^2 - 2 u_1 u_3 - u_4^2 \bigr], \\
+  u_4' &= T u_5, \\
+  u_5' &= T \bigl[ 2 \gamma u_2 + 2 u_2 u_4 - 2 u_1 u_5 \bigr], \\
+\end{array} \end{equation}
+with left boundary conditions
+$$ u_1(0)=0, \qquad u_2(0)=0, \qquad u_4(0)=1-\gamma, $$
+and (asymptotic) right boundary conditions
+\begin{equation} \begin{array}{cl}
+  & \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~ u_2(1) + u_3(1)
+  - \gamma ~ \frac{ u_4(1) }{ a(f_\infty,\gamma) } = 0,  \\
+  & a(f_\infty,\gamma)~ \frac{ b^2(f_\infty,\gamma) }{ \gamma } ~u_2(1)
+  + \bigl[ f_\infty + a(f_\infty,\gamma) \bigr] ~u_4(1) 
+  + u_5(1) = 0, \\
+ & u_1(1) = f_\infty,
+ \end{array} \end{equation}
+where
+\begin{equation} \begin{array}{cl}
+ & a(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
+  \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} + f_\infty^2 \bigr]^{1/2}, \\
+ & b(f_\infty,\gamma) = \frac{1 }{ \sqrt{2} }
+  \bigl[ (f_\infty^4 + 4 \gamma^2)^{1/2} - f_\infty^2 \bigr]^{1/2}.  \\
+\end{array} \end{equation}
+Note that there are five differential equations and six boundary conditions.
+Correspondingly, there are two free parameters in the computation of a 
+solution family, namely $\gamma$ and $f_\infty$.
+The ``period'' $T$ is fixed; $T=500$.
+The starting solution is $u_i=0$, $i=1,\cdots,5$, 
+at $\gamma=1$, $f_\infty=0$.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir kar} & create an empty work directory \\ 
+  \commandf{ cd kar} & change directory \\
+  \commandf{ demo('kar')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='kar.1')} & computation of the solution family \\ 
+  \commandf{ sv('kar')} & save output-files as \filef{ b.kar, s.kar, d.kar} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ kar}.}
+\label{tbl:demo_kar}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=spb======================================================================
+%==============================================================================
+\section{ spb : A Singularly-Perturbed BVP.} \label{sec:Demos_spb}
+This demo illustrates the use of continuation to compute 
+solutions to the singularly perturbed boundary value problem
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= \frac{\lambda }{ \eps} \bigl(
+  u_1 u_2 (u_1^2 - 1) + u_1
+  \bigr)  , \\ \end{array} \end{equation}
+with boundary conditions $u_1(0)=3/2$,  $u_1(1)=\gamma.$
+The parameter $\lambda$ has been introduced into the equations in order
+to allow a homotopy from a simple equation with known exact solution
+to the actual equation. This is done in the first run.
+In the second run $\eps$ is decreased by continuation.
+In the third run $\eps$ is fixed at $\eps=.001$ and the solution is continued 
+in $\gamma$.
+This run takes more than 1500 continuation steps.
+For a detailed analysis of the solution behavior see 
+\citename{JL:82} \citeyear{JL:82}.
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir spb} & create an empty work directory \\ 
+  \commandf{ cd spb} & change directory \\
+  \commandf{ demo('spb')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='spb.1')} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
+  \commandf{ sv('1')} & save output-files as \filef{ b.1, s.1, d.1} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='spb.2',s='1')} & \parbox[t]{3in}{2nd run; let $\eps$ tend to zero; restart from \filef{ s.1}.  constants changed : \parf{ IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
+  \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(1), RL0, ITNW, EPSL, EPSU, NUZR} \vspace{0.2cm}} \\ 
+  \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ spb}.}
+\label{tbl:demo_spb}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=ezp======================================================================
+%==============================================================================
+\section{ ezp : Complex Bifurcation in a BVP.} \label{sec:Demos_ezp}
+This demo illustrates the computation of a solution family to
+the complex boundary value problem
+
+\begin{equation} \begin{array}{cl}
+  u_1 ' &= u_2  ,  \\
+  u_2 ' &= -p_1  e^{u_1} , \\
+\end{array} \end{equation}
+with boundary conditions $ u_1(0)=0 , ~u_1(1)=0.$
+Here $u_1$ and $u_2$ are allowed to be complex, 
+while the parameter $p_1$ can only take real values.
+In the real case, this is Bratu's equation, whose solution family 
+contains a fold; see the demo \filef{ exp}.
+It is known 
+(\citename{HeKe:90} \citeyear{HeKe:90}) that a simple quadratic fold gives rise to a pitch fork
+bifurcation in the complex equation.
+This bifurcation is located in the first computation below.
+In the second and third run, both legs of the bifurcating solution family
+are computed.
+On it, both solution components $u_1$ and $u_2$ have nontrivial 
+imaginary part.
+
+
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{ ! mkdir ezp} & create an empty work directory \\ 
+  \commandf{ cd ezp} & change directory \\
+  \commandf{ demo('ezp')} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{ run(c='ezp.1')} & 1st run; compute solution family containing fold \\ 
+  \commandf{ sv('ezp')} & save output-files as \filef{ p.ezp, s.ezp, d.ezp} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='ezp.2',s='ezp')} & \parbox[t]{3in}{2nd run; compute bifurcating complex solution family.  Constants changed : \parf{ IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\ 
+\hline
+%==============================================================================
+  \commandf{ run(c='ezp.3',s='ezp')} & \parbox[t]{3in}{3rd run; compute 2nd leg of bifurcating family.  constant changed : \parf{ DS} \vspace{0.2cm}}\\ 
+  \commandf{ ap('ezp')} & append output-files to \filef{ p.ezp, s.ezp, d.ezp} \\
+\hline
+%==============================================================================
+\end{tabular}
+\caption{Commands for running demo \filef{ ezp}.}
+\label{tbl:demo_ezp}
+\end{center}
+\end{table}
+%==============================================================================
+
 
 %==============================================================================
 %==============================================================================
@@ -8312,7 +8439,7 @@ of the overspecified parameters.
 %==============================================================================
 %DEMO=ext======================================================================
 %==============================================================================
-\section{ ext : Spurious Solutions to BVB.} \label{sec:Demos_ext}
+\section{ ext : Spurious Solutions to BVP.} \label{sec:Demos_ext}
 
 This demo illustrates the computation of spurious solutions
 to the boundary value problem
