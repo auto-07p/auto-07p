@@ -12,7 +12,7 @@ for solution in start():
     ab = ab + run(solution,c='ab.2')
 
 print "\n***Relabel and save the output files***"
-rl(ab)
+ab=rl(ab)
 sv(ab,'ab')
 
 print "\n***Compute periodic solution families***"

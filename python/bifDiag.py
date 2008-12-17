@@ -50,12 +50,12 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             fort8_filename = [fort8_filename]
         try:
             solution = apply(parseS.parseS,(fort8_filename,),options)
-            options["solution"] = solution
         except IOError:
             solution = None
             if fort7_filename is None:
                 raise AUTOExceptions.AUTORuntimeError(
                     "No bifurcation diagram or solution file found.")
+        options["solution"] = solution
         if fort7_filename is None and fort8_filename is not None:
             # simulate a bifurcation diagram
             labels = {}
@@ -102,6 +102,9 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         c = self.options["constants"]
         if len(self)>0 and self[0].c is not None:
             newc = parseC.parseC(self[0].c)
+            for k in newc.keys():
+                if k in runAUTO.nonekeys:
+                    newc[k] = None
             if c is not None:
                 newc.update(c)
             self.options["constants"] = newc
@@ -156,14 +159,11 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         bd = self
         if kw != {}:
             bd = apply(bifDiag,(bd,),kw)
-        irs = 0
-        options = bd.options
-        if options["constants"] is not None:
-            irs = options["constants"].get("IRS",0) or 0
+        irs = (bd.options["constants"] or {}).get("IRS")
         solutions = bd()
-        if len(solutions) > 1 and irs in solutions.getLabels():
+        if irs in solutions.getLabels():
             return solutions(irs).run()
-        elif len(solutions) > 0:
+        elif len(solutions) > 0 and irs is None:
             return solutions[-1].run()
         else:
             return runAUTO.runAUTO.run(bd)

@@ -360,6 +360,7 @@ class AUTOParameters(Points.Point):
 
 class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
     def __init__(self,input=None,offset=None,name=None,**kw):
+        c = kw.get("constants",{}) or {}
         if isinstance(input,self.__class__):
             apply(runAUTO.runAUTO.__init__,(self,input),kw)
             self.data = self.data.copy()
@@ -382,14 +383,22 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                     self.name = kw["equation"][14:]
                 elif kw.has_key("e"):
                     self.name = kw["e"]
-            names = kw.get("unames",[])
-            if names is None:
-                names = []
-            self.coordnames = names[:]
-            names = kw.get("parnames",[])
-            if names is None:
-                names = []
-            self.__parnames = names[:]
+                elif c.has_key("e"):
+                    self.name = c["e"]
+            names = kw.get("unames",c.get("unames"))
+            self.coordnames = []
+            if names is not None:
+                if type(names) != type({}):
+                    names = dict(names)
+                for i in range(1,max(names.keys())+1):
+                    self.coordnames.append(names.get(i,'U('+str(i)+')'))
+            names = kw.get("parnames",c.get("parnames"))
+            self.__parnames = []
+            if names is not None:
+                if type(names) != type({}):
+                    names = dict(names)
+                for i in range(1,max(names.keys())+1):
+                    self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
                               "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                               "udotps"]
@@ -446,11 +455,15 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 coordnames = []
                 for i in range(len(coordarray)):
                     coordnames.append("U("+str(i+1)+")")
-                if kw.has_key("U"):
-                    coordnames[:len(kw["U"])] = kw["U"]
-                    ndim = len(coordarray)
-                    if ndim < len(self.coordnames):
-                        self.coordnames = self.coordnames[:ndim]
+                names = kw.get("unames",c.get("unames")) or {}
+                if type(names) == type({}):
+                    names = names.items()
+                for k,v in names:
+                    if k < len(coordnames):
+                        coordnames[k] = v
+                ndim = len(coordarray)
+                if ndim < len(self.coordnames):
+                    self.coordnames = self.coordnames[:ndim]
                 pdict = {"indepvararray": indepvararray,
                          "indepvarname": indepvarname,
                          "coordarray": coordarray,
@@ -590,13 +603,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         """
         c = self.options.copy()
         c.update(kw)
-        irs = 0
-        if self.options["constants"] is not None:
-            irs = self.options["constants"].get("IRS",0)
-            if irs is None:
-                irs = 0
-        if c.get("IRS",irs) != self["LAB"]:
-            c["IRS"] = -1
+        c["IRS"] = self["LAB"]
         return apply(runAUTO.runAUTO.run,(self,),c)
 
     def readAllFilename(self,filename):

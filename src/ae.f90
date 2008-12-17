@@ -303,12 +303,14 @@ CONTAINS
 
 ! Gets the starting data from user supplied STPNT
 
+    USE AUTO_CONSTANTS, ONLY : UVALS, PARVALS, unames, parnames
+    USE IO, ONLY: NAMEIDX
     INTEGER, INTENT(IN) :: IAP(*),ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
-    INTEGER NDIM
+    INTEGER NDIM,I
     DOUBLE PRECISION T
 
     NDIM=IAP(1)
@@ -316,6 +318,16 @@ CONTAINS
     U(:NDIM)=0.d0
 
     CALL STPNT(NDIM,U,PAR,T)
+
+! override parameter/point values with values from constants file
+
+    DO I=1,SIZE(UVALS)
+       U(NAMEIDX(UVALS(I)%INDEX,unames))=UVALS(I)%VAR
+    ENDDO
+    DO I=1,SIZE(PARVALS)
+       PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
+    ENDDO
+
     UDOT(1)=0
     NODIR=1
     

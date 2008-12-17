@@ -159,43 +159,13 @@ C
       ENDIF
       END SUBROUTINE FINDLB_OR_STOP
 C
-C     ------- -------- -------
-      INTEGER FUNCTION NAMEIDX(NAME,NAMES)
-C
-      USE AUTO_CONSTANTS, ONLY: INDEXSTR
-      CHARACTER(13), INTENT(IN) :: NAME
-      TYPE(INDEXSTR), INTENT(IN) :: NAMES(:)
-      CHARACTER(13) PNAME
-      INTEGER I,SIGN
-C
-C     map a symbolic parameter name or an ascii integer to an index
-C
-      SIGN=1
-      IF(NAME(1:1)=='-')THEN
-         PNAME=NAME(1:)
-         SIGN=-1
-      ELSE
-         PNAME=NAME
-      ENDIF
-      DO I=1,SIZE(NAMES)
-         IF(NAMES(I)%STR==PNAME)THEN
-            NAMEIDX=NAMES(I)%INDEX*SIGN
-            RETURN
-         ENDIF
-      ENDDO
-      IF(TRIM(PNAME)=='PERIOD')THEN
-         NAMEIDX=SIGN*11
-      ELSE
-         READ(NAME,*)NAMEIDX
-      ENDIF
-      END FUNCTION
-
 C     ---------- -----
       SUBROUTINE AUTOI(IAP,RAP,ICU,WORKER)
 C
       USE INTERFACES
       USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
      &     parnames,UVALS,PARVALS
+      USE IO, ONLY: NAMEIDX
       USE AE
       USE BVP
       USE HOMCONT, ONLY:FNHO,BCHO,ICHO,PVLSHO,STPNHO

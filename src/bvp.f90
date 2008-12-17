@@ -800,7 +800,8 @@ CONTAINS
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
-    USE AUTO_CONSTANTS, ONLY : DATFILE
+    USE AUTO_CONSTANTS, ONLY : DATFILE, UVALS, PARVALS, unames, parnames
+    USE IO, ONLY: NAMEIDX
 
 ! Generates a starting point for the continuation of a branch of
 ! of solutions to general boundary value problems by calling the user
@@ -866,6 +867,12 @@ CONTAINS
           CALL STPNT(NDIM,UPS(:,J),PAR,DBLE(J)/(NTST*NCOL))
        ENDDO
     ENDIF
+
+! override parameter values with values from constants file
+
+    DO I=1,SIZE(PARVALS)
+       PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
+    ENDDO
 
     IBR=1
     IAP(30)=IBR

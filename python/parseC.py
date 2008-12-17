@@ -96,11 +96,9 @@ class parseC(UserDict.UserDict):
             self.data[key] = []
             for x in item:
                 if type(x) == type({}):
-                    self.data[key].append(x)
+                    self.data[key].append([x["PAR index"],x["PAR value"]])
                 else:
-                    self.data[key].append({})
-                    self.data[key][-1]["PAR index"] = x[0]
-                    self.data[key][-1]["PAR value"] = x[1]
+                    self.data[key].append([x[0],x[1]])
         elif key == "DS" and item == '-':
             if self.data[key] is None:
                 self.data[key] = 0.01
@@ -351,8 +349,8 @@ class parseC(UserDict.UserDict):
 	    self.data["THL"].append({})
 	    line = inputfile.readline()
 	    data = string.split(line)
-	    self.data["THL"][i]["PAR index"] = int(data[0])
-	    self.data["THL"][i]["PAR value"] = parseB.AUTOatof(data[1])
+	    self.data["THL"][i][0] = int(data[0])
+	    self.data["THL"][i][1] = parseB.AUTOatof(data[1])
 
 	line = inputfile.readline()
 	data = string.split(line)
@@ -362,8 +360,8 @@ class parseC(UserDict.UserDict):
 	    self.data["THU"].append({})
 	    line = inputfile.readline()
 	    data = string.split(line)
-	    self.data["THU"][i]["PAR index"] = int(data[0])
-	    self.data["THU"][i]["PAR value"] = parseB.AUTOatof(data[1])
+	    self.data["THU"][i][0] = int(data[0])
+	    self.data["THU"][i][1] = parseB.AUTOatof(data[1])
 
 	line = inputfile.readline()
 	data = string.split(line)
@@ -378,8 +376,8 @@ class parseC(UserDict.UserDict):
                 d = int(d)
             except ValueError:
                 pass
-	    self.data["UZR"][i]["PAR index"] = d
-	    self.data["UZR"][i]["PAR value"] = parseB.AUTOatof(data[1])
+	    self.data["UZR"][i][0] = d
+	    self.data["UZR"][i][1] = parseB.AUTOatof(data[1])
 
     def write(self,output,new=False):
         def compactstr(value):
@@ -446,15 +444,13 @@ class parseC(UserDict.UserDict):
                     output.write("  "+str(value))
                 elif key in ["THL","THU","UZR","U","PAR"]:
                     l=[]
-                    for item in value:
-                        l.append(repr(item["PAR index"])+": "+
-                                 compactstr(item["PAR value"]))
+                    for k,v in value:
+                        l.append(repr(k)+": "+compactstr(v))
                     output.write("  {"+string.join(l,", ")+"}")
                 elif key in ["unames","parnames"]:
                     l=[]
-                    for item in value:
-                        l.append(str(item["PAR index"])+": "+
-                                 repr(item["PAR value"]))
+                    for k,v in value:
+                        l.append(str(k)+": "+repr(v))
                     output.write("{"+string.join(l,", ")+"}")
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
@@ -513,20 +509,20 @@ class parseC(UserDict.UserDict):
 	output.write(str(self["__NTHL"]))
 	output.write("          "+line8_comment+"\n")
 	for i in range(self["__NTHL"]):
-	    output.write(str(self["THL"][i]["PAR index"])+" ")
-	    output.write(str(self["THL"][i]["PAR value"])+"\n")
+	    output.write(str(self["THL"][i][0])+" ")
+	    output.write(str(self["THL"][i][1])+"\n")
 
 	output.write(str(self["__NTHU"]))
 	output.write("          "+line9_comment+"\n")
 	for i in range(self["__NTHU"]):
-	    output.write(str(self["THU"][i]["PAR index"])+" ")
-	    output.write(str(self["THU"][i]["PAR value"])+"\n")
+	    output.write(str(self["THU"][i][0])+" ")
+	    output.write(str(self["THU"][i][1])+"\n")
 
 	output.write(str(self["__NUZR"]))
 	output.write("          "+line10_comment+"\n")
 	for i in range(self["__NUZR"]):
-	    output.write(str(self["UZR"][i]["PAR index"])+" ")
-	    output.write(str(self["UZR"][i]["PAR value"])+"\n")
+	    output.write(str(self["UZR"][i][0])+" ")
+	    output.write(str(self["UZR"][i][1])+"\n")
         output.flush()
 
 def pointtest(a):

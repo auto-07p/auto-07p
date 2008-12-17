@@ -1130,7 +1130,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 except IOError:
                     object = None
                 kw["bifurcationDiagram"] = object
-        irs = None
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
                 wantread = True
@@ -1139,32 +1138,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     doneread = True
                 except IOError:
                     del kw["constants"]
-            irs = kw.get("constants",{}).get("IRS")
-        irs = kw.get("IRS",irs)
-        #if IRS was explicitly set to 0, then wipe out the solution
-        #as it is irrelevant
-        if irs == 0:
-            self.runner.options["solution"] = None
-        if kw.has_key("solution"):
-            # wipe out b/d from current runner options if not explicitly given
-            for other in ["bifurcationDiagram", "diagnostics"]:
-                if not kw.has_key(other): kw[other] = None
-            if type(kw["solution"]) == types.StringType and irs != 0:
-                wantread = True
-                try:
-                    object = parseS.parseS()
-                    apply(object.readFilename,(kw["solution"],),kw)
-                    doneread = True
-                except IOError:
-                    #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
-                    object = None
-                kw["solution"] = object
-            elif irs == 0:
-                sol = kw["solution"]
-                if (isinstance(sol, (parseS.parseS, runAUTO.runAUTO,
-                                     types.StringType)) or
-                    isinstance(sol[0], parseS.AUTOSolution)):
-                    del kw["solution"]
         if kw.has_key("homcont"):
             if type(kw["homcont"]) == types.StringType:
                 wantread = True
@@ -1176,6 +1149,20 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["homcont"])
                     object = None
                 kw["homcont"] = object
+        if kw.has_key("solution"):
+            # wipe out b/d from current runner options if not explicitly given
+            for other in ["bifurcationDiagram", "diagnostics"]:
+                if not kw.has_key(other): kw[other] = None
+            if type(kw["solution"]) == types.StringType:
+                wantread = True
+                try:
+                    object = parseS.parseS()
+                    apply(object.readFilename,(kw["solution"],),kw)
+                    doneread = True
+                except IOError:
+                    #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
+                    object = None
+                kw["solution"] = object
         if wantread and not doneread:
             if kw.has_key("equation") and os.path.exists(kw["equation"][11:]):
                 doneread = True
@@ -1378,8 +1365,10 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         self.name = name
         self.runner = runner
         self.templates = templates
+        if sv is not None:
+            kw = kw.copy()
+            kw['sv'] = sv
         self.kw = kw
-        self.sv = sv
         self.ap = ap
         if (runner is None and name is not None and type(name) != type("")
             and type(name) != type(1)):
@@ -1390,10 +1379,10 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             self.name = None
 
     def __call__(self):
-        self.kw['sv'] = self.sv
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         runner = func().data
         err = cStringIO.StringIO()
+        sv = runner.options["constants"]["sv"]
         if runner.options["verbose"] == "no":
             log = cStringIO.StringIO()
             data = runner.run(log=log,err=err)
@@ -1407,8 +1396,8 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             err.seek(0)
             ret = valueRun(err,data=data)
         err.close()
-        if self.sv is not None:            
-            commandWithFilenameTemplate.__init__(self,self.sv,None,
+        if sv is not None:            
+            commandWithFilenameTemplate.__init__(self,sv,None,
                                                  self.templates)
             bname = self.name1["bifurcationDiagram"]
             sname = self.name1["solution"]
@@ -1416,10 +1405,10 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(
                 bname,sname,dname)
         if self.ap is not None:
-            if self.sv is None:
+            if sv is None:
                 func=commandAppend(self.ap)
             else:
-                func=commandAppend(self.sv,self.ap)
+                func=commandAppend(sv,self.ap)
             rval=func()
             ret.value = ret.value + rval.value
         return ret

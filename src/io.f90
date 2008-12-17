@@ -9,7 +9,7 @@ MODULE IO
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: FINDLB, READLB, READBV, WRLINE, WRBAR, STHD, NEWLAB, &
-       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3
+       GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3, NAMEIDX
 
   TYPE SOLUTION
      INTEGER :: IBR, NTOT, ITP, LAB, NFPR, ISW, NTPL, NAR, NROWPR, NTST, NCOL,&
@@ -720,10 +720,15 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE READLB(IAP,ICPRS,U,UDOT,PAR)
 
+    USE AUTO_CONSTANTS, ONLY: UVALS, PARVALS, unames, parnames
     INTEGER, INTENT(IN) :: IAP(*)
     INTEGER, INTENT(OUT) :: ICPRS(*)
     DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
-    INTEGER NFPR,NPARR,NDIM
+
+    DOUBLE PRECISION, ALLOCATABLE :: UX(:),P(:)
+    INTEGER I,NFPR,NPARR,NPAR,NDIM,NDIMRD
+
+    NPAR=IAP(31)
 
 ! Reads the restart data for algebraic problems.
 
@@ -739,19 +744,41 @@ CONTAINS
     ENDIF
     PAR(1:NPARR)=CURSOL%PAR(1:NPARR)
 
+! override parameter/point values with values from constants file
+
+    DO I=1,SIZE(UVALS)
+       U(NAMEIDX(UVALS(I)%INDEX,unames))=UVALS(I)%VAR
+    ENDDO
+    DO I=1,SIZE(PARVALS)
+       PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
+    ENDDO
+
+    NDIMRD=MIN(NDIM,CURSOL%NAR-1)
+    IF(NDIM>CURSOL%NAR-1)THEN
+       ! system is extended; call STPNT for extension
+       ALLOCATE(UX(NDIM),P(NPAR))
+       P(:)=PAR(:NPAR)
+       UX(1:NDIMRD)=U(1:NDIMRD)
+       UX(NDIMRD+1:NDIM)=0.d0
+       CALL STPNT(NDIM,UX,P,0d0)
+       U(NDIMRD+1:NDIM)=UX(NDIMRD+1:NDIM)
+       DEALLOCATE(UX,P)
+    ENDIF
+
   END SUBROUTINE READLB
 
 ! ---------- ------
   SUBROUTINE READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOTRS,UPS, &
        UDOTPS,TM,ITPRS,NDIM)
 
+    USE AUTO_CONSTANTS, ONLY: UVALS, PARVALS, unames, parnames
     INTEGER, INTENT(IN) :: NDIM
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(OUT) :: ICPRS(*),NTSRS,NCOLRS,NDIMRD,ITPRS
     DOUBLE PRECISION, INTENT(OUT) :: RLDOTRS(*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),PAR(*)
 ! Local
-    INTEGER J,NFPR,NFPRS,NPARR,NPAR
+    INTEGER I,J,NFPR,NFPRS,NPARR,NPAR
     DOUBLE PRECISION, ALLOCATABLE :: U(:),P(:)
 
     NFPR=IAP(29)
@@ -785,6 +812,12 @@ CONTAINS
 ! Read the parameter values.
 
     PAR(1:NPARR)=CURSOL%PAR(1:NPARR)
+
+! override parameter values with values from constants file
+
+    DO I=1,SIZE(PARVALS)
+       PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
+    ENDDO
 
     IF(NDIM>NDIMRD)THEN
        ! system is extended; call STPNT for extension
@@ -824,5 +857,36 @@ CONTAINS
 2   RETURN
 
   END SUBROUTINE SKIP3
+
+! ------- -------- -------
+  INTEGER FUNCTION NAMEIDX(NAME,NAMES)
+
+    USE AUTO_CONSTANTS, ONLY: INDEXSTR
+    CHARACTER(13), INTENT(IN) :: NAME
+    TYPE(INDEXSTR), INTENT(IN) :: NAMES(:)
+    CHARACTER(13) PNAME
+    INTEGER I,SIGN
+
+    ! map a symbolic parameter name or an ascii integer to an index
+
+    SIGN=1
+    IF(NAME(1:1)=='-')THEN
+       PNAME=NAME(1:)
+       SIGN=-1
+    ELSE
+       PNAME=NAME
+    ENDIF
+    DO I=1,SIZE(NAMES)
+       IF(NAMES(I)%STR==PNAME)THEN
+          NAMEIDX=NAMES(I)%INDEX*SIGN
+          RETURN
+       ENDIF
+    ENDDO
+    IF(TRIM(PNAME)=='PERIOD')THEN
+       NAMEIDX=SIGN*11
+    ELSE
+       READ(NAME,*)NAMEIDX
+    ENDIF
+  END FUNCTION NAMEIDX
 
 END MODULE IO

@@ -16,6 +16,9 @@ alarm_demo=""
 demo_killed=0
 demo_max_time=-1
 
+# some constants must not be preserved from run to run. These are:
+nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
+
 class runAUTO:
     def __init__(self,cnf={},**kw):
         if isinstance(cnf,self.__class__):
@@ -591,6 +594,9 @@ class runAUTO:
             options = self.options.copy()
             options["solution"] = None # do not include solution that this
                                        # run started from!
+            for k in (self.options.get("constants") or {}).keys():
+                if k in nonekeys:
+                    self.options["constants"][k] = None
             return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
                                           self.fort9_path),options)
 

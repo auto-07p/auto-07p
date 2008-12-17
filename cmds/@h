@@ -9,15 +9,25 @@ if ( test $# -eq 1 ) then
 	if (test -r s.$1) then
 		cat s.$1 > fort.3
 	fi
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
 elif ( test $# -eq 2 ) then
-	cat c.$1 > fort.2
-	cat h.$1 > fort.12
-	cat s.$2 > fort.3
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
-else
+        if ( test -r c.$1 -a -r s.$2 ) then
+	     cat c.$1 > fort.2
+	     cat h.$1 > fort.12
+	     cat s.$2 > fort.3
+        else
+	     cat c.$1.$2 > fort.2
+	     cat h.$1.$2 > fort.12
+	     if (test -r s.$1) then
+		cat s.$1 > fort.3
+	     fi
+        fi
+elif ( test -r c.$3 -a -r s.$2 ) then
 	cat c.$3 > fort.2
 	cat h.$3 > fort.12
 	cat s.$2 > fort.3
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+else
+	cat c.$1.$2 > fort.2
+	cat h.$1.$2 > fort.12
+	cat s.$3 > fort.3
 fi
+make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
