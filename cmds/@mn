@@ -1,2 +1,22 @@
 #!/bin/sh
-gv  $AUTO_DIR/doc/auto.pdf &
+VIEWERS="gv evince"
+MANUAL=$AUTO_DIR/doc/auto.pdf
+GOT_VIEWER="false"
+for VIEWER in $VIEWERS; do
+  saveIFS=$IFS
+  IFS=":"
+  for d in $PATH; do
+     if test -f "$d/$VIEWER" && test -x "$d/$VIEWER"; then
+         $VIEWER $MANUAL &
+         GOT_VIEWER="true"
+         break
+     fi
+  done
+  IFS=$saveIFS
+  if test "$GOT_VIEWER" = "true"; then
+     break
+  fi
+done
+if test "$GOT_VIEWER" = "false"; then
+  echo "No suitable PDF viewer found (tried: $VIEWERS)"
+fi
