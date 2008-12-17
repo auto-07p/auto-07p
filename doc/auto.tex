@@ -53,7 +53,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{November 2008}
+\date{December 2008}
 \maketitle
 \tableofcontents
 %
@@ -284,9 +284,9 @@ in the directory \filef{auto/07p} before creating the \filef{tar}-file.
 This will remove all executable, object, and other non-essential files, and
 thereby reduce the size of the package.
 
-Some {\cal EISPACK} routines used by {\cal AUTO} for computing eigenvalues and
+Some {\cal LAPACK} routines used by {\cal AUTO} for computing eigenvalues and
 Floquet multipliers are included in the package
-(\citename{EISPACK:76} \citeyear{EISPACK:76}).
+(\citename{LAPACK:99} \citeyear{LAPACK:99}).
 The Python CLUI includes a slightly modified version of the Pointset
 and Point classes from PyDSTool by R.~Clewley, M.D.~LaMar, and E.~Sherwood
 (\url{http://pydstool.sourceforge.net})
@@ -361,7 +361,7 @@ combined with a native Win32 version of Python,
 obtained at \url{http://www.python.org}. To install this setup:
 \begin{itemize}
 \item
-Install Python (as of this writing, version 2.5, not 2.6!)
+Install Python (as of this writing, version 2.5, not 2.6 or 3.0!)
 from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
 and Matplotlib from \url{matplotlib.sf.net}, which all come
 with installers.
@@ -558,17 +558,17 @@ Specifically, for (\ref{1}) {\cal AUTO} can~:~
  
 \begin{itemize}
 \item[-]
-  Compute solution families.\\  (Demo {\tt ab}; Run~1.) 
+  Compute solution families.\\  (Demo {\tt ab}; Run~2.) 
 \item[-]
   Locate branch points, continue these in two or three parameters,
   and automatically compute
-  bifurcating families. \\ (Demos {\tt pp2}; Run~1, and {\tt apnf}.)
+  bifurcating families. \\ (Demos {\tt pp2}; Run~1, and {\tt apbp}.)
 \item[-]
   Locate Hopf bifurcation points and continue these in two
-  parameters. \\ (Demo {\tt ab}; Runs~1 and 5.)
+  parameters. \\ (Demo {\tt pp3}.)
 \item[-]
   Locate folds (limit points) and continue these 
-  in two parameters. \\(Demo {\tt ab}; Runs~1,3,4.)
+  in two parameters. \\
 \item[-]
   Do each of the above for fixed points
   of the discrete dynamical system 

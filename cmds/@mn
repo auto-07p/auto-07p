@@ -1,6 +1,6 @@
 #!/bin/sh
 VIEWERS="gv evince"
-MANUAL=$AUTO_DIR/doc/auto.pdf
+MANUAL="$AUTO_DIR/doc/auto.pdf"
 GOT_VIEWER="false"
 for VIEWER in $VIEWERS; do
   saveIFS=$IFS
