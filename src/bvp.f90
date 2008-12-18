@@ -822,7 +822,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(IAP(29))
     DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
 
-    INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,io,I,J
+    INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,ios,I,J
     DOUBLE PRECISION TEMP,PERIOD
     DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),UDOTPSR(:,:)
 
@@ -838,12 +838,12 @@ CONTAINS
 
     IF(DATFILE/='')THEN
        OPEN(3,FILE=TRIM(DATFILE),STATUS='old',ACCESS='sequential',&
-            IOSTAT=io)
-       IF(io/=0)THEN
+            IOSTAT=ios)
+       IF(ios/=0)THEN
           OPEN(3,FILE=TRIM(DATFILE)//'.dat',STATUS='old',&
-               ACCESS='sequential',IOSTAT=io)
+               ACCESS='sequential',IOSTAT=ios)
        ENDIF
-       IF(io/=0)THEN
+       IF(ios/=0)THEN
           WRITE(6,"(A,A,A)")'Datafile ',TRIM(DATFILE),' not found.'
           STOP
        ENDIF
