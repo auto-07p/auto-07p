@@ -465,7 +465,7 @@ C file and the references to it using {\tt PAR()} in constants
 files and output, using {\tt par[i]=PAR(I+1)}. In practise this
 means that you do not have to change the C file, but need to
 add 1 to all parameter indices in the constant files, namely
-{\tt ICP(I)}, {\tt THL(I)}, and {\tt UZR(I)}. For example,
+{\tt ICP}, {\tt THL}, and {\tt UZR}. For example,
 the period is referenced by {\tt par[10]} in the C file,
 but by {\tt PAR(11)} in the constants file. Equation files
 written in C are used in the homoclinic branch switching
@@ -2247,6 +2247,7 @@ commandQueryLimitpoint & lm limitpoint  & Print the value of the ``limit point f
 commandQueryNote & nt note  & Print notes in info file.\\ \hline 
 commandQuerySecondaryPeriod & sc secondaryperiod sp  & Print value of ``secondary-periodic bif. fcn''.\\ \hline 
 commandQueryStepsize & ss stepsize st  & Print continuation step sizes.\\ \hline 
+commandQuit & q quit  & Quit the AUTO CLUI.\\ \hline 
 commandRun & r run rn  & Run AUTO.\\ \hline 
 commandRunnerConfigFort2 & changeconstant cc ch  & Modify continuation constants.\\ \hline 
 commandRunnerConfigFort12 & hch  & Modify HomCont continuation constants.\\ \hline 
@@ -2276,62 +2277,105 @@ entered directly, without the ``!''.
 \item[run]
 Run AUTO.
 
-    Type run([options]) to run AUTO with the given options.
-    There are four possible options:
-    \begin{verbatim}
-    Long name   Short name    Description
-    -------------------------------------------
-    equation    e             The equations file
-    constants   c             The AUTO constants file
-    solution    s             The restart solution file
-    homcont     h             The Homcont parameter file
-    \end{verbatim}
-    Options which are not explicitly set retain their previous value.
-    For example one may type: run(e='ab',c='ab.1') to use 'ab.c' as
-    the equations file and c.ab.1 as the constants file (if you are
-    using the default filename templates).
+    Type r=run([s],[options]) to run AUTO from solution s with the given
+    AUTO constants or file keyword options.
+    
+    The results are stored in the bifurcation diagram r which you can
+    later print with ``print r'', obtain branches from via r[0], r[1], ...,
+    and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
+    are label numbers, and 'LP2' refers to the second LP label.
 
-    You can also specify an sv='xxx' option to save to b.xxx, and so on,
-    or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
-    Special values for DS are '+' (forwards) and '-' (backwards).
+    run(s) runs AUTO in the following way for different types of s:
+    \begin{itemize}
+    \item
+      A solution: AUTO starts from solution s, with AUTO constants s.c.
+    \item
+      A bifurcation diagram: AUTO start from the solution specified by
+      the AUTO constant IRS, or if IRS is not specified, the last solution
+      in s, with AUTO constants s.c.
+    \item
+      A string: AUTO uses the solution in the file 's.s' together with the
+      constants in the files 'b.s', 'c.s', and 'h.s'. Not all of these
+      files need to be present.
+    \end{itemize}
 
-    Type run('name') load all files with base 'name'.
-    This does the same thing as running
-    run(e='name',c='name,s='name',h='name').
+    If no solution s is specified, then the global values from the
+    'load' command (below) are used instead, where
+    options which are not explicitly set retain their previous value.
 
-    run('name','save') does the same thing as running
-    run(e='name',c='name,s='name',h='name',sv='save').
+    Keyword argument options can be AUTO constants, such as DS=0.05,
+    or ISW=-1, or specify a constant or solution file. These override
+    the constants in s.c, where applicable. See ``load'':\\
+    run(s,options) is equivalent to run(load(s,options))
+
+    Example: given a bifurcation diagram bd, with a branch point
+    solution, switch branches and stop at the first Hopf bifurcation:\\
+    hb = run(bd('BP1'),ISW=-1,SP='HB1')
+    
+    Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
+    constant:\\
+    run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')\\
+    saves to the files b.hb, s.hb and d.hb, and appends to b.all,
+    s.all, and d.all.
 
     \textbf{Aliases:} r rn commandRun
 
 \item[load]
-Load files into the AUTO runner.
+Load files into the AUTO runner or modify a solution or bifurcation diagram.
 
-    Type load([options]) to modify AUTO runner.
-    There are four possible options:
+    Type result=load([options]) to modify the AUTO runner.\\
+    Type result=load(data,[options]) to return possibly
+    modified solution or bifurcation diagram data.\\
+
+    The type of result will be:
+    \begin{itemize}
+      \item
+        if data is not specified, data is a string, or data is a
+        bifurcation diagram: a bifurcation diagram.
+      \item
+        if data is a solution, a Python list array or a numpy array
+        representing a solution: a solution.
+    \end{itemize}
+
+    There are many possible options:
     \begin{verbatim}
     Long name   Short name    Description
     -------------------------------------------
     equation    e             The equations file
     constants   c             The AUTO constants file
-    solution    s             The restart solution file
     homcont     h             The Homcont parameter file
+    bifurcationDiagram b      The bifurcation diagram file
+    solution    s             The restart solution file
+    diagnostic  d             The diagnostics file
+                NDIM,IPS,etc  AUTO constants.
+                BR,PT,TY,LAB  Solution constants.
     \end{verbatim}
-    Options which are not explicitly set retain their previous value.
-    For example one may type: load(e='ab',c='ab.1') to use 'ab.c' as
+    If data is not specified or data is a string then options which
+    are not explicitly set retain their previous value.
+    For example one may type: bd=load(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
-    Type load('name') load all files with base 'name'.
+    Type bd=load('name') to load all files with base 'name'.
     This does the same thing as running
-    load(e='name',c='name,s='name',h='name').
+    bd=load(e='name',c='name,h='name',b='name',s='name',d='name').\\
+    plot(bd) will then plot the 'b' and 's' components.
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
-    Special values for DS are '+' (forwards) and '-' (backwards).
+    Special values for DS are '+' (forwards) and '-' (backwards).\\
+    Example: s = load(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+
     \textbf{Aliases:} ld commandRunnerLoadName
 
 \item[save]
 Save data files.
+
+    Type save(xxx,'xxx') to save bifurcation diagram xxx
+    to the files b.xxx, s.xxx, d.xxx. 
+    Existing files with these names will be overwritten.
+    If xxx is a solution, a list of solutions, or does not contain any
+    bifurcation diagram or diagnostics data, then only the file s.xxx
+    is saved to.
 
     Type save('xxx') to save the output-files fort.7, fort.8, fort.9,
     to b.xxx, s.xxx, d.xxx (if you are using the default filename
@@ -2342,6 +2386,16 @@ Save data files.
 \item[append]
 
 Append data files.
+
+    Type append(xxx,'xxx') to append bifurcation diagram xxx
+    to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
+    the command\\
+    save(xxx+load('xxx'),'xxx')
+
+    Type append('xxx',xxx) to append existing data-files s.xxx, b.xxx,
+    and d.xxx to bifurcation diagram xxx. This is equivalent to
+    the command\\
+    xxx=load('xxx')+xxx
 
     Type append('xxx') to append the output-files fort.7, fort.8,
     fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
@@ -2360,28 +2414,35 @@ Append data files.
 \item[plot]
 2D plotting of data.
 
-    Type plot('xxx') to run the graphics program for the graphical
+    Type plot(xxx) to run the graphics program PyPLAUT for the graphical
+    inspection of bifurcation diagram or solution data in xxx.
+
+    Type plot('xxx') to run the graphics program PyPLAUT for the graphical
     inspection of the data-files b.xxx and s.xxx (if you are using the
-    default filename templates).  The return value will be the handle
-    for the graphics window.
+    default filename templates).
 
     Type plot() to run the graphics program for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.  The return
-    value will be the handle for the graphics window.
+    inspection of the output-files 'fort.7' and 'fort.8'.
+
+    The return value will be the handle for the graphics window.
     
 \textbf{Aliases:} p2 pl commandPlotter
 
 \item[plot3]
 3D plotting of data.
 
-    Type plot3('xxx') to run the graphics program for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
-    default filename templates).  The return value will be the handle
-    for the graphics window.
+    Type plot3(xxx) to run the graphics program PLAUT04 for the graphical
+    inspection of bifurcation diagram or solution data in xxx.
 
-    Type plot3() to run the graphics program for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.  The return
-    value will be the handle for the graphics window.
+    Type plot3('xxx') to run the graphics program PLAUT04 for the graphical
+    inspection of the data-files b.xxx and s.xxx (if you are using the
+    default filename templates).
+
+    Type plot3() to run the graphics program PLAUT04 for the graphical
+    inspection of the output-files 'fort.7' and 'fort.8'.
+
+    Type plot3(...,r3b=True) to run PLAUT04 in restricted three body
+    problem mode.
     
 \textbf{Aliases:} p3 commandPlotter3D
 \end{description}
@@ -2406,13 +2467,13 @@ Move data-files to a new name.
 
 \textbf{Aliases:} mv commandMoveFiles
 
-\item[deletefort]
+\item[df]
 Clear the current directory of fort files.
 
-    Type deletefort() to clean the current directory.  This command will
+    Type df() to clean the current directory.  This command will
     delete all files of the form fort.*.
     
-\textbf{Aliases:} df commandDeleteFortFiles
+\textbf{Aliases:} deletefort commandDeleteFortFiles
 
 \item[clean]
 Clean the current directory.
@@ -2565,10 +2626,10 @@ Triple a solution.
     
 \textbf{Aliases:} tr commandTriple
 
-\item[userdata]
+\item[us]
 Convert user-supplied data files.
 
-    Type userdata('xxx') to convert a user-supplied data file 'xxx.dat' to
+    Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
     PAR(11).  Other parameter values must be set in 'stpnt'. (When
@@ -2577,8 +2638,11 @@ Convert user-supplied data files.
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
     of using the 'userData' command see demos 'lor' and 'pen' (where
     it has the old name 'fc').
+
+    Note: this technique has been obsoleted by the 'dat' AUTO constant
+    in Section~\ref{sec:dat}.
     
-\textbf{Aliases:} us commandUserData
+\textbf{Aliases:} userdata commandUserData
 \end{description}
 
 \subsection{Copying a demo.}
@@ -2609,13 +2673,15 @@ Copy a demo into the current directory.
 \end{description}
 
 \subsection{Python data structure manipulation functions.}
+All commands here, except for 'man', 'gui', and 'wait' are only
+provided for backwards compatibility. Alternatives are given.
 \begin{description}
 \item[man]
 Get help on the AUTO commands.
     
     Type 'man' to list all commands with a online help.
-    Type 'man xxx' to get help for command 'xxx'.
-    
+    Type 'man xxx' or 'help xxx' to get help for command 'xxx'.
+
 \textbf{Aliases:} commandInteractiveHelp
 
 \item[cn]
@@ -2623,6 +2689,8 @@ Get the current continuation constants.
 
     Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
     c.xxx (if you are using the default filename templates).
+    This is equivalent to the command\\
+    load('xxx').c
     
 \textbf{Aliases:} constantsget commandParseConstantsFile
 
@@ -2631,6 +2699,8 @@ Parse a bifurcation diagram.
 
     Type dg('xxx') to get a parsed version of the diagram file b.xxx
     (if you are using the default filename templates).
+    This is equivalent to the command load('xxx') but without the
+    solutions in s.xxx and without the diagnostics in d.xxx.
     
 \textbf{Aliases:} diagramget commandParseDiagramFile
 
@@ -2639,6 +2709,8 @@ Parse solution file:
 
     Type sl('xxx') to get a parsed version of the solution file
     s.xxx (if you are using the default filename templates).
+    This is equivalent to the command\\
+    load('xxx')()
     
 \textbf{Aliases:} solutionget commandParseSolutionFile
 
@@ -2648,6 +2720,8 @@ Parse both bifurcation diagram and solution.
     Type bt('xxx') to get a parsed version of the diagram file b.xxx
     and solution file s.xxx (if you are using the default filename
     templates).
+    This is equivalent to the command load('xxx') but without the
+    diagnostics in d.xxx.
     
 \textbf{Aliases:} diagramandsolutionget commandParseDiagramAndSolutionFile
 
@@ -2656,7 +2730,10 @@ Modify continuation constants.
 
     Type ch('xxx',yyy) to change the constant 'xxx' to have
     value yyy.
-    
+    This is equivalent to the command\\
+    bd=load(bd,xxx=yyy)\\
+    where bd is a bifurcation diagram or a solution.
+
 \textbf{Aliases:} changeconstant cc commandRunnerConfigFort2
 
 \item[hch]
@@ -2664,6 +2741,9 @@ Modify HomCont continuation constants.
 
     Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
     value yyy.
+    This is equivalent to the command\\
+    bd=load(bd,xxx=yyy)\\
+    where bd is a bifurcation diagram or a solution.
     
 \textbf{Aliases:} commandRunnerConfigFort12
 
@@ -2672,6 +2752,10 @@ Print continuation parameters.
 
     Type pr() to print all the parameters.
     Type pr('xxx') to return the parameter 'xxx'.
+    These commands are equivalent to the commands\\
+    print bd.c\\
+    print bd.c['xxx']\\
+    where bd is a bifurcation diagram or a solution.
     
 \textbf{Aliases:} pc pr printconstant commandRunnerPrintFort2
 
@@ -2680,6 +2764,10 @@ Print HomCont continuation parameters.
 
     Type hpr() to print all the parameters.
     Type hpr('xxx') to return the parameter 'xxx'.
+    These commands are equivalent to the commands\\
+    print bd.c\\
+    print bd.c['xxx']\\
+    where bd is a bifurcation diagram or a solution.
     
 \textbf{Aliases:} commandRunnerPrintFort12
 
@@ -2689,9 +2777,16 @@ Return special labels.
     Type splabs('xxx',typename) to get a list of labels with the specified
     typename, where typename can be one of
     'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+    This is equivalent to the command\\
+    load('xxx')(typename)\\
+    which gives a list of the solutions themselves;
+    load('xxx')(typename).getLabels()\\
+    returns the list of labels.
 
     Or use splabs(s,typename) where s is a parsed solution from sl().
-    
+    This is equivalent to the command\\
+    s(typename).getLabels()
+
 \textbf{Aliases:} commandSpecialPointLabels
 
 \item[wait]
@@ -2701,6 +2796,11 @@ Wait for the user to enter a key.
     until the user hits any key (mainly used in scripts).
 
 \textbf{Aliases:} commandWait
+
+\item[quit]
+Quits the AUTO CLUI
+
+\textbf{Aliases:} q commandQuit
 
 \item[gui]
 Show AUTOs graphical user interface.
@@ -3004,6 +3104,9 @@ or in any of its subdirectories.}
   {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
   (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
   For examples of using the {\it @fc} command see demos {\tt lor} and {\tt pen}.
+  
+  Note: this technique has been obsoleted by the 'dat' AUTO constant
+  in Section~\ref{sec:dat}.
 
 \end{itemize}
 
@@ -3057,7 +3160,7 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 
-\item[\tt @mn]~: Use {\cal gv} to view the PDF version of this manual.
+\item[\tt @mn]~: Use {\cal gv} or {\cal evince} to view the PDF version of this manual.
 \end{itemize}
 
 \newpage
@@ -3617,27 +3720,35 @@ As described in Section~\ref{ch:User_supplied_files},
 if the equations-file is {\tt xxx.f} 
 then the constants that define the computation 
 are normally expected in the file  {\tt c.xxx}.
-The general format of this file is the same for all {\cal AUTO} runs.
-For example, the file {\tt c.cusp} 
-in directory {\tt auto/07p/demos/cusp} is listed below.
-(The tutorial demo {\tt cusp} is described in detail in 
-Chapter~\ref{ch:Demos:_Tutorial}.)  
+The format of this file is free, with constant=value pairs separated
+by commas or spaces.
+An example, with default values, is listed below. In real constant
+files you only need to specify those values that are different from
+these, but listing all of them allows for easier editing.
 
 \begin{verbatim}
-1 1 0 1                 NDIM,IPS,IRS,ILP
-2 2 1                   NICP,(ICP(I),I=1,NICP)
-5 4 3 2 1 0 0 0         NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-200 -2. 2. 0 100        NMX,RL0,RL1,A0,A1
-20 0  2 8 5 3 0         NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-1.e-6 1.e-6 0.0001      EPSL,EPSU,EPSS
-0.01 0.005 0.1 1        DS,DSMIN,DSMAX,IADS
-0                       NTHL,((I,THL(I)),I=1,NTHL)
-0                       NTHU,((I,THU(I)),I=1,NTHU)
-0                       NUZR,((I,UZR(I)),I=1,NUZR)
+e  ='cusp', s='', dat='', sv=''
+unames = {}, parnames = {}
+U = {}, PAR = {}
+NDIM=   2, IPS =   1, IRS =   0, ILP =   1
+ICP =  [1]
+NTST=  20, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
+NMX=99999, RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308
+NPR=99999, MXBF=  10, IID =   2, ITMX=   9, ITNW= 5, NWTN= 3, JAC= 0
+EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
+DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
+NPAR=  36, THL =  {}, THU =  {}
+UZR = {}
+SP = {}
+NUNSTAB = -1, NSTAB = -1, IEQUIB = 0, ITWIST = 0, ISTART = 1
+IREV = [], IFIXED = [], IPSI = []
 \end{verbatim}
 
 The significance of the {\cal AUTO}-constants, grouped by function, is 
-described in the sections below. 
+described in the sections below. The HomCont constants \texttt{NUNSTAB},
+\texttt{NSTAB}, \texttt{IEQUIB}, \texttt{ITWIST}, \texttt{ISTART},
+\texttt{IREV}, \texttt{IFIXED}, and \texttt{IPSI} are explained in
+Chapter~\ref{ch:HomCont}.
 Representative demos that illustrate use of the {\cal AUTO}-constants
 are also mentioned.
 
@@ -3656,6 +3767,10 @@ are also mentioned.
  The number of integral conditions as specified in the user-supplied
  routine {\tt ICND}. \\ 
 (Demos {\tt int}, {\tt lin}, {\tt obv}.)
+
+\subsection{\tt NPAR} \label{sec:NPAR}
+ Maximum parameter number that can be used in all user-supplied
+ routines.
 
 \subsection{\tt JAC}  \label{sec:JAC}
  Used to indicate whether derivatives are supplied by the user
@@ -3816,37 +3931,36 @@ pseudo-arclength stepsize.
   almost all demos.
 \end{itemize}
   
-\subsection{\tt NTHL}  \label{sec:NTHL}
+\subsection{\tt THL}  \label{sec:THL}
 By default, the pseudo-arclength stepsize includes all state variables
 (or state functions) and all free parameters.
 Under certain circumstances one may want to modify the weight accorded 
 to individual parameters in the definition of stepsize.
 For this purpose, {\tt NTHL} defines the number of parameters whose weight 
 is to be modified.
-If {\tt NTHL}=0 then all weights will have default value 1.0~.
-If {\tt NTHL}$>$0 then one must enter {\tt NTHL} pairs,
-             ~{\it Parameter Index} ~ {\it Weight}~,
-with each pair on a separate line.
+If {\tt THL}=\{\} then all weights will have default value 1.0~.
+else one must enter pairs,
+             ~\{{\it Parameter Index} : {\it Weight}, ...\}~.
 
 For example, for the computation of periodic solutions it is 
 recommended that the period not be included in the pseudo-arclength 
 continuation stepsize, in order to avoid period-induced limitations 
 on the stepsize near orbits of infinite period. 
-This exclusion can be accomplished by setting {\tt NTHL=1}, with, 
-on a separate line, the pair ~ 11 ~ 0.0 ~.
+This exclusion can be accomplished by setting {\tt THL}=\{11:0.0\}.
+If {\tt THL} is not specified this is the default for computing
+periodic solutions ({\tt IPS=2}).
 Most demos that compute periodic solutions use this option;
 see for example demo {\tt ab}.
 
-\subsection{\tt NTHU}  \label{sec:NTHU}
+\subsection{\tt THU}  \label{sec:THU}
 Under certain circumstances one may want to modify the weight accorded 
 to individual state variables (or state functions) in the definition 
 of stepsize.
-For this purpose, {\tt NTHU} defines the number of states whose weight 
+For this purpose, {\tt THU} defines the number of states whose weight 
 is to be modified.
-If {\tt NTHU}=0 then all weights will have default value 1.0~.
-If {\tt NTHU}$>$0 then one must enter {\tt NTHU} pairs,
-             ~{\it State Index} ~ {\it Weight}~,
-with each pair on a separate line.
+If {\tt THU}=\{\} then all weights will have default value 1.0~.
+else one must enter pairs,
+             ~\{{\it State Index} : {\it Weight}, ...\}~.
 At present none of the demos use this option.
 %=====================================================================
 \section{ Diagram Limits.} \label{sec:Diagram_limits}
@@ -3866,7 +3980,7 @@ By specifying the maximum number of steps, {\tt NMX}.
 
 \item[-]
 By specifying a negative parameter index in the list associated 
-with the constant {\tt NUZR}; see Section~\ref{sec:NUZR}. 
+with the constant {\tt UZR}; see Section~\ref{sec:UZR}. 
 \end{itemize}
 
 \subsection{\tt NMX} \label{sec:NMX}
@@ -4082,6 +4196,24 @@ the other parameters cannot be used as true continuation parameters.
 \item[-] {\tt ILP=1}~: 
   Detection of folds. To be used if subsequent fold continuation is intended.
 \end{itemize}
+
+\subsection{\tt SP}  \label{sec:SP}
+This constant controls the detection of bifurcations and adds stopping
+conditions. It is specified as a list of bifurcation type strings
+followed by an optional number. If this number is 0, then the detection
+of this bifurcation is turned off, and if it is missing
+then the detection is turned on. A number $n$ greater than zero
+specifies that the contination should stop as soon as the $n$th
+bifurcation of this type has been reached.
+Examples:\\
+\begin{itemize}
+\item[-] SP=['LP0']\\
+turn off detection of folds.
+\item[-] SP=['LP','HB3','BP0','UZ3']\\
+turn on the detection of folds and Hopf bifurcations,
+turn off detection of branch points and stop at the third Hopf
+bifurcation or third user defined point, whichever comes first.
+\end{itemize}
  
 \subsection{\tt ISP}  \label{sec:ISP}
 This constant controls the detection of branch points,
@@ -4155,6 +4287,32 @@ period-doubling bifurcations, and torus bifurcations.
  If {\tt MXBF} is negative then the bifurcating families of the first 
  $\abs{{\tt MXBF}}$ branch points will be traced out in only one direction. 
 
+\subsection{\tt s}  \label{sec:s}
+This constant sets the name of the solution file from which the computation
+is to be restarted, instead of \filef{fort.3}: if s='xxx' then the
+name of the restart file is \filef{s.xxx}.
+
+\subsection{\tt dat}  \label{sec:dat}
+This constant, where dat='xxx', sets the name of a user-supplied ASCII
+data file {\tt xxx.dat}, from which the contination is to be restarted.
+{\cal AUTO} automatically sets the period in {\tt PAR(11)}.
+Other parameter values must be set in {\tt STPNT}. (When necessary,
+PAR(11) may also be redefined there.) 
+
+The first column in the data file denotes the time, and further
+columns the coordinates of the solution. The constant {\tt IRS} must
+be set to 0.
+
+\subsection{\tt U}  \label{sec:U}
+This constant, where U={i1:x1,i2:x2}, changes the U(i1) to x1, U(i2) to
+x2 and so on, with respect to the solution to start from. This is only
+valid for restarting from algebraic problems or a constant-in-time
+solution.
+
+\subsection{\tt PAR}  \label{sec:PAR}
+This constant, where PAR={i1:x1,i2:x2}, changes the PAR(i1) to x1, PAR(i2) to
+x2 and so on, with respect to the solution to start from.
+
 \subsection{\tt IRS}  \label{sec:IRS}
 This constant sets the label of the solution where the computation
 is to be restarted.
@@ -4165,8 +4323,8 @@ is to be restarted.
   routine {\tt STPNT}.
   For representative examples of analytical starting solutions 
   see demos {\tt ab} and {\tt frc}.
-  For starting from unlabeled numerical data see the {\it @fc} command
-  (Section~\ref{sec:command_mode}) and demos {\tt lor} and {\tt pen}.
+  For starting from unlabeled numerical data see the {\tt dat} command
+  above, and demos {\tt lor} and {\tt pen}.
   
 \item[-] {\tt IRS$>$0}~: 
   Restart the computation at the previously computed solution with label {\tt IRS}. 
@@ -4174,6 +4332,12 @@ is to be restarted.
  {\tt s.xxx}; see also the {\it @r} and {\it @R} commands in 
  Section~\ref{sec:command_mode}.
  Various {\cal AUTO}-constants can be modified when restarting.
+
+\item[-] {\tt IRS$<$0}~:
+  Restart the computation at the -IRSth computed solution in the
+  restart file. This is especially useful if you do not want to look
+  up label numbers and know for sure that the solution to continue
+  from is at a fixed position.
 \end{itemize}
 
 \subsection{\tt IPS}  \label{sec:IPS}
@@ -4313,6 +4477,31 @@ This constant defines the problem type~:
 
 
 \section{ Output Control.} \label{sec:Output_control}
+\subsection{\tt unames}  \label{sec:U}
+This constant, where unames={i1:s1,i2:s2}, changes the names in all
+output from 'U(i1)' to 's1', from 'U(i2)' to 's2', and so on.
+You can also refer to these strings, instead of the corresponding indices,
+in the constants \texttt{U} and \texttt{THU}.
+
+\subsection{\tt parnames}  \label{sec:U}
+This constant, where parnames={i1:s1,i2:s2}, changes the names in all
+output from 'PAR(i1)' to 's1', from 'PAR(i2)' to 's2', and so on.
+You can also refer to these strings, instead of the corresponding indices,
+in the constants \texttt{ICP}, \texttt{THL}, and \texttt{UZR}.
+
+\subsection{\tt e}  \label{sec:e}
+This constant, where e='xxx', is only for use by post-processors:
+it denotes the name of the equations file and is stored
+in the bifurcation diagram file (\filef{fort.7}), so restarts in the
+Python interface are possible without needing to specify the equations
+file.
+
+\subsection{\tt sv} \label{sec:sv}
+This constant specifies a string to write the output to instead of
+{\tt fort.7}, {\tt fort.8}, and {\tt fort.9}: if sv='xxx', then
+the output files are
+{\tt b.xxx}, {\tt s.xxx}, and {\tt d.xxx}.
+
 \subsection{\tt NPR}  \label{sec:NPR}
  This constant can be used to regularly write {\tt fort.8} plotting and restart 
  data.  
@@ -4321,7 +4510,7 @@ This constant defines the problem type~:
  Note that special solutions, such as branch points, folds, end points, etc., 
  are always written in {\tt fort.8}.
  Furthermore, one can specify parameter values where plotting and restart 
- data is to be written; see Section~\ref{sec:NUZR}.
+ data is to be written; see Section~\ref{sec:UZR}.
  For these reasons, and to limit the output volume, it is recommended that
  {\tt NPR} output be kept to a minimum.
 
@@ -4378,7 +4567,7 @@ This constant defines the problem type~:
   Note that the interval of integration is $[0,1]$, the standard interval
  used by AUTO. For periodic solutions the independent variable is transformed
  to range from 0 to 1, before the norm is computed. The AUTO-constants THL(*) 
- and THU(*) (see Section~\ref{sec:NTHL} and Section~\ref{sec:NTHU})
+ and THU(*) (see Section~\ref{sec:THL} and Section~\ref{sec:THU})
  affect the definition of the $L_2$-norm.
 \item[-]
   If 0 $<$ {\tt IPLT} $\le$ {\tt NDIM} then the maximum of the {\tt IPLT}'th solution component 
@@ -4403,23 +4592,26 @@ Note also that the routine {\tt PVLS} provides a second, more general way
 of defining solution measures; see Section~\ref{sec:Parameter_over_specification}.
 
 
-\subsection{\tt NUZR} \label{sec:NUZR} 
+\subsection{\tt UZR} \label{sec:UZR} 
  This constant allows the setting of parameter values at which labeled plotting 
  and restart information is to be written in the {\tt fort.8} output-file.
  Optionally, it also allows the computation to terminate at such a point.
 
 \begin{itemize}
 \item[-]
- Set {\tt NUZR}=0 if no such output is needed. Many demos use this setting.
+ Set {\tt UZR}=\{\} if no such output is needed. Many demos use this setting.
 \item[-]
- If {\tt NUZR}$>$0 then one must enter {\tt NUZR} pairs,
-            ~{\it Parameter-Index} ~ {\it Parameter-Value}~,
- with each pair on a separate line, to designate the parameters and the parameter
+ Else one must enter pairs,
+            ~\{{\it Parameter-Index} : {\it Parameter-Value}, ...\}~,\\
+ or indices with lists of values,
+            ~\{{\it Parameter-Index} : \[{\it Parameter-Value}, ...\], ...\}~,
+ to designate the parameters and the parameter
  values at which output is to be written.
  For examples see demos {\tt exp}, {\tt int}, and {\tt fsh}.
 \item[-]
  If such a parameter index is preceded by a minus sign then the computation will
- terminate at such a solution point.
+ terminate at such a solution point. See also \texttt{SP} in
+ Section~\ref{sec:SP} above for an alternative termination method.
  (Demos {\tt pen} and {\tt bru}.)
 \end{itemize}
 
@@ -4434,6 +4626,7 @@ Section~\ref{sec:Parameter_over_specification}.
 \begin{tabular}{|l|l|}
 \hline
 {\tt NDIM} & Problem dimension \\
+{\tt NPAR} & Maximum number of parameters \\
 {\tt IPS}  & Problem type; 0=AE, 1=FP(ODEs), -1=FP(maps), 2=PO,
            -2=IVP,\\
            & 4=BVP, 7=BVP with Floquet multipliers, 5=algebraic
@@ -4477,9 +4670,9 @@ Section~\ref{sec:Parameter_over_specification}.
 {\tt DSMIN, DSMAX} & Step size interval $\mathtt{DSMIN} \leq h \leq \mathtt{DSMAX}$ \\
 {\tt IADS} & Step size adaption every IADS steps; 0=off \\
 \hline
-{\tt NTHL, NTHU} & list of parameter and solution weights \\
+{\tt THL, THU} & list of parameter and solution weights \\
 \hline
-{\tt NUZR} & list of values for user defined output\\
+{\tt UZR} & list of values for user defined output\\
 \hline
 \end{tabular}
 
@@ -5188,7 +5381,7 @@ Table~\ref{tbl:demo_abcC1}, we note the following:
 
 \item[-] {\tt ICP(1)=1}~: the continuation parameter is PAR(1) 
 
-\item[-] {\tt NUZR=1}~: there is one user output point, namely at
+\item[-] {\tt UZR=\{-1:0.4\}}~: there is one user output point, namely at
 	 {\tt PAR(1)=0.4}. Moreover, since the index ("{\tt -1}") in
 	 the last line of the constants-file {\tt c.abc.1} is negative, 
 	 the calculation will terminate when the calculation reaches
@@ -5208,7 +5401,7 @@ Table~\ref{tbl:demo_abcC2}, we note that:
 \item[-] {\tt NICP=2}~: there are two continuation parameters
 	 (namely {\tt PAR(1)}, and the period, {\tt PAR(11)}). 
 
-\item[-] {\tt NUZR=1}~: there is one user output point, now at
+\item[-] {\tt UZR=\{-1:0.25\}}~: there is one user output point, now at
 	 {\tt PAR(1)=0.25}, where the calculation is to terminate,
 	 since the index ("{\tt -1}") is negative.
 \end{itemize}
@@ -5290,18 +5483,15 @@ as defined in the equations-file {\tt abc.f}.}
 {\small
 \begin{center}
 \begin{boxedverbatim}
-3 1 0 1                         NDIM,IPS,IRS,ILP
-1   1                           NICP,(ICP(I),I=1,NICP)
-15 4 3 1 1 0 0 0                NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-130 0 0.4 0 25                  NMX,RL0,RL1,A0,A1
-200 10 2 8 5 3 0                NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-1e-7 1e-7 1e-4                  EPSL,EPSU,EPSS
-0.02 0.001 0.1 1                DS,DSMIN,DSMAX,IADS
-1                               NTHL,((I,THL(I)),I=1,NTHL)
-11 0
-0                               NTHU,((I,THU(I)),I=1,NTHU)
-1                               NUZR,((I,UZR(I)),I=1,NUZR)
--1 0.4
+NDIM=   3, IPS =   1, IRS =   0, ILP =   1
+ICP =  [1]
+NTST=  15, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
+NMX=  130, RL0=   0.0, RL1=   0.4, A0=   0.0, A1=  25.0
+NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
+EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
+DS  =  0.02, DSMIN= 0.001, DSMAX=   0.1, IADS=   1
+THL =  {11: 0.0}, THU =  {}
+UZR =  {-1: 0.4}
 \end{boxedverbatim}
 \end{center}
 }
@@ -5317,18 +5507,15 @@ of demo {\tt abc}.}
 {\small
 \begin{center}
 \begin{boxedverbatim}
-3 2 2 1                         NDIM,IPS,IRS,ILP
-2   1 11                        NICP,(ICP(I),I=1,NICP)
-25 4 3 1 1 0 0 0                NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
-200 0 0.4 0 25                  NMX,RL0,RL1,A0,A1
-200 10 2 8 5 3 0                NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
-1e-7 1e-7 1e-4                  EPSL,EPSU,EPSS
-0.02 0.001 0.1 1                DS,DSMIN,DSMAX,IADS
-1                               NTHL,((I,THL(I)),I=1,NTHL)
-11 0
-0                               NTHU,((I,THU(I)),I=1,NTHU)
-1                               NUZR,((I,UZR(I)),I=1,NUZR)
--1 0.25
+NDIM=   3, IPS =   2, IRS =   2, ILP =   1
+ICP =  [1, 11]
+NTST=  25, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
+NMX=  200, RL0=   0.0, RL1=   0.4, A0=   0.0, A1=  25.0
+NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
+EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
+DS  =  0.02, DSMIN= 0.001, DSMAX=   0.1, IADS=   1
+THL =  {11: 0.0}, THU =  {}
+UZR =  {-1: 0.25}
 \end{boxedverbatim}
 \end{center}
 }
@@ -5765,11 +5952,11 @@ In the fold continuation $s_0$ is also free.
   \commandf{ sv('tmp')} & save output-files as \filef{ b.tmp, s.tmp, d.tmp} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='plp.5',s='tmp')} & \parbox[t]{3in}{  fold continuation; restart data from \filef{ s.tmp}.  Constants changed : \parf{ IRS, NUZR} \vspace{0.2cm}} \\ 
+  \commandf{ run(c='plp.5',s='tmp')} & \parbox[t]{3in}{  fold continuation; restart data from \filef{ s.tmp}.  Constants changed : \parf{ IRS, UZR} \vspace{0.2cm}} \\ 
   \commandf{ ap('2p')} & append output-files to \filef{ b.2p, s.2p, d.2p} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='plp.6',s='2p')} & \parbox[t]{3in}{ compute an isola of periodic solutions; restart data from \filef{ s.2p}.  Constants changed : \parf{ IRS, ISW, NMX, NUZR } \vspace{0.2cm}} \\ 
+  \commandf{ run(c='plp.6',s='2p')} & \parbox[t]{3in}{ compute an isola of periodic solutions; restart data from \filef{ s.2p}.  Constants changed : \parf{ IRS, ISW, NMX, UZR } \vspace{0.2cm}} \\ 
   \commandf{ sv('iso')} & save output-files as \filef{ b.iso, s.iso, d.iso} \\ 
 \hline
 %==============================================================================
@@ -7242,7 +7429,7 @@ For a detailed analysis of the solution behavior see
   \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(1), RL0, ITNW, EPSL, EPSU, NUZR} \vspace{0.2cm}} \\ 
+  \commandf{ run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{ s.2}.  Constants changed : \parf{ IRS, ICP(1), RL0, ITNW, EPSL, EPSU, UZR} \vspace{0.2cm}} \\ 
   \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
@@ -7478,11 +7665,11 @@ All equation parameters, except $p_3$, are fixed throughout.
   \commandf{ sv('wav') } & save output-files as \filef{ b.wav, s.wav, d.wav} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='wav.3',s='wav') } & \parbox[t]{3in}{3rd run; wave train solutions of fixed wave speed.  Constants changed : \parf{ IRS, IPS, NUZR, ILP} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='wav.3',s='wav') } & \parbox[t]{3in}{3rd run; wave train solutions of fixed wave speed.  Constants changed : \parf{ IRS, IPS, UZR, ILP} \vspace{0.2cm}}\\ 
   \commandf{ ap('wav') } & append output-files to \filef{ b.wav, s.wav, d.wav} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='wav.4',s='wav') } & \parbox[t]{3in}{4th run; wave train solutions of fixed wave length.  Constants changed : \parf{ IRS, IPS, NMX, ICP, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='wav.4',s='wav') } & \parbox[t]{3in}{4th run; wave train solutions of fixed wave length.  Constants changed : \parf{ IRS, IPS, NMX, ICP, UZR} \vspace{0.2cm}}\\ 
   \commandf{ sv('rng') } & save output-files as \filef{ b.rng, s.rng, d.rng} \\ 
 \hline
 %==============================================================================
@@ -7964,7 +8151,7 @@ optimality variable $\tau_1$ is never used.
   \commandf{ sv('0')} & save output-files as \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='ops.2',s='0')} & \parbox[t]{3in}{compute a family of periodic solutions;  restart from \filef{ s.0}. Constants changed : \parf{ IPS, IRS, NMX, NUZR}  \vspace{0.2cm}}\\ 
+  \commandf{ run(c='ops.2',s='0')} & \parbox[t]{3in}{compute a family of periodic solutions;  restart from \filef{ s.0}. Constants changed : \parf{ IPS, IRS, NMX, UZR}  \vspace{0.2cm}}\\ 
   \commandf{ ap('0')} & append the output-files to \filef{ b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
@@ -7980,7 +8167,7 @@ optimality variable $\tau_1$ is never used.
   \commandf{ sv('2')} & save the output-files as \filef{ b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='ops.6',s='2')} & \parbox[t]{3in}{compute 3-parameter family of 2-parameter extrema; restart from \filef{ s.2}.   Constants changed : \parf{ IRS, ICP, EPSL, EPSU, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='ops.6',s='2')} & \parbox[t]{3in}{compute 3-parameter family of 2-parameter extrema; restart from \filef{ s.2}.   Constants changed : \parf{ IRS, ICP, EPSL, EPSU, UZR} \vspace{0.2cm}}\\ 
   \commandf{ sv('3')} & save the output-files as \filef{ b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
@@ -8473,7 +8660,7 @@ and
   \commandf{ sv('ext')} & save output-files as \filef{ b.ext, s.ext, d.ext} \\ 
 \hline
 %==============================================================================
-  \commandf{ run(c='ext.2',s='ext')} & \parbox[t]{3in}{compute a bifurcating family containing spurious bifurcations.  Constants changed : \parf{ IRS, ISW, NUZR} \vspace{0.2cm}}\\ 
+  \commandf{ run(c='ext.2',s='ext')} & \parbox[t]{3in}{compute a bifurcating family containing spurious bifurcations.  Constants changed : \parf{ IRS, ISW, UZR} \vspace{0.2cm}}\\ 
   \commandf{ ap('ext')} & append output-files to \filef{ b.ext, s.ext, d.ext} \\ 
 \hline
 %==============================================================================
@@ -8756,7 +8943,7 @@ for a list. If a test function is activated then the
 corresponding parameter (\parf{ IPSI(I)+20}) 
 must be added to the list of continuation parameters \parf{ NICP,(ICP(I),I=1 NICP)}
 and zero of this parameter added to the list of user-defined
-output points \parf{ NUZR,} \parf{ (/,I,PAR(I)),I=1, NUZR} in \filef{ c.xxx}.
+output points \parf{ UZR,} in \filef{ c.xxx}.
 
 \section{ Restrictions on {\cal HomCont} Constants.}
 Note that certain combinations of these constants are not allowed
@@ -9133,7 +9320,7 @@ solution obtained at $a=0.25$. This is
 achieved by making the change \parf{ ITWIST = 1} saved in \filef{ h.san.2},
 and \parf{ IRS = 2},  \parf{ NMX = 2} and \parf{ ICP(1) = 9} saved in 
 \filef{ c.san.2}. We also disable any
-user-defined functions \parf{ NUZR=0}. The computation so-defined 
+user-defined functions \parf{ UZR=\{\}}. The computation so-defined 
 is a single step in a trivial parameter \parf{ PAR(9)} (namely a parameter
 that does not appear in the problem). The effect is to perform a Newton
 step to enable \AUTO to converge to a solution of the adjoint equation.
@@ -9463,7 +9650,7 @@ Firstly, in {\tt h.mtn.1}, {\tt NPSI} is
 set to 2 and the active test functions {\tt IPSI(I),I=1,2}
 are chosen as 15 and 16. This sets up the monitoring of these
 test functions. Secondly, in {\tt c.mtn.1} user-defined functions
-({\tt NUZR=2}) are set up to look for zeros of the parameters
+({\tt UZR}) are set up to look for zeros of the parameters
 corresponding to these test functions. Recall that the
 parameters to be zeroed are always the test functions plus 20.
 Finally, these parameters are included in the list of continuation
@@ -9612,7 +9799,7 @@ continuation problem is specified in {\tt c.mtn.6} and {\tt h.mtn.6}.
 Notice that we set {\tt ILP=1} and choose {\tt PAR(3)} as the first 
 continuation parameter so that \AUTO can detect limit points 
 with respect to this parameter. We also make a user-defined function
-({\tt NUZR=1})
+({\tt UZR})
 to detect intersections with the plane $D_0=0.01$.
 We get among other output
 \begin{verbatim}
