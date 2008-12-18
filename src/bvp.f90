@@ -461,6 +461,7 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
+    USE SUPPORT, ONLY: CHECKSP
 
 ! Controls the solution of the nonlinear equations (by Newton's method)
 ! for the next solution (PAR(ICP(*)) , U) on a branch of solutions.
@@ -474,14 +475,18 @@ CONTAINS
     DOUBLE PRECISION P0(*),P1(*),DSOLD,RDS
 
     INTEGER NTST,NCOL,IADS,IID,ITNW,NWTN,NFPR,IBR,NTOT,NTOP,IFST,NLLV,I,J,NIT1
+    INTEGER IPS,ILP,ISP
     DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
     DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX,RDSZ
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:),P0T(:),P1T(:)
     LOGICAL DONE
 
+    IPS=IAP(2)
+    ILP=IAP(4)
     NTST=IAP(5)
     NCOL=IAP(6)
     IADS=IAP(8)
+    ISP=IAP(9)
     IID=IAP(18)
     ITNW=IAP(20)
     NWTN=IAP(21)
@@ -551,23 +556,26 @@ CONTAINS
           ENDDO
           RDUMX=DUMX/(1.d0+UMX)
           IF(DONE.AND.RDUMX.LT.EPSU)THEN
-             ! Find the direction vector (for test functions)
-             ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
-             NLLV=-1
-             IFST=0
-             RDSZ=0.d0
+             IF(CHECKSP(5,IPS,ILP,ISP))THEN
+                ! Find the direction vector (for test functions)
+                ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
+                NLLV=-1
+                IFST=0
+                RDSZ=0.d0
 
-             CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-                  RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS, &
-                  DRL,P0T,P1T,THL,THU)
+                CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+                     RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
+                     DRL,P0T,P1T,THL,THU)
 
-             ! Scale the direction vector.
-             CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
-             RAP(16)=DRL(1)
+                ! Scale the direction vector.
+                CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
+                RAP(16)=DRL(1)
+                DEALLOCATE(P0T,P1T)
+             ENDIF
 
              CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
              IF(IID.GE.2)WRITE(9,*)
-             DEALLOCATE(DUPS,DRL,P0T,P1T)
+             DEALLOCATE(DUPS,DRL)
              RETURN
           ENDIF
 
