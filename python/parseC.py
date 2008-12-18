@@ -379,21 +379,21 @@ class parseC(UserDict.UserDict):
 	    self.data["UZR"][i][0] = d
 	    self.data["UZR"][i][1] = parseB.AUTOatof(data[1])
 
-    def write(self,output,new=False):
-        def compactstr(value):
-            """check if we can use more compact output than str..."""
-            try:
-                str1 = "%.5g"%value
-                str2 = str(value)
-                if float(str1) == float(str2) and 'e' in str1:
-                    return str1
-                return str2
-            except TypeError:
-                l = []
-                for v in value:
-                    l.append(compactstr(v))
-                return '['+string.join(l,", ")+']'
+    def __compactstr(self,value):
+        """check if we can use more compact output than str..."""
+        try:
+            str1 = "%.5g"%value
+            str2 = str(value)
+            if float(str1) == float(str2) and 'e' in str1:
+                return str1
+            return str2
+        except TypeError:
+            l = []
+            for v in value:
+                l.append(self.__compactstr(v))
+            return '['+string.join(l,", ")+']'
             
+    def write(self,output,new=False):
         wdth2keys = ["A0","A1"]
         wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
         wdth5keys = ["EPSU","EPSS"]
@@ -445,7 +445,7 @@ class parseC(UserDict.UserDict):
                 elif key in ["THL","THU","UZR","U","PAR"]:
                     l=[]
                     for k,v in value:
-                        l.append(repr(k)+": "+compactstr(v))
+                        l.append(repr(k)+": "+self.__compactstr(v))
                     output.write("  {"+string.join(l,", ")+"}")
                 elif key in ["unames","parnames"]:
                     l=[]
@@ -459,7 +459,7 @@ class parseC(UserDict.UserDict):
                     else:
                         output.write("%4s"%value)
                 elif key[0] in ["A", "D", "E", "R"]:
-                    value = compactstr(value)
+                    value = self.__compactstr(value)
                     output.write("%6s"%value)
                 elif pos > 4:
                     output.write("%2s"%value)

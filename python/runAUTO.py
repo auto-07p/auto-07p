@@ -270,9 +270,11 @@ class runAUTO:
         if os.path.exists("fort.2"):
             os.remove("fort.2")
         if self.options["constants"] is None:
-            raise AUTOExceptions.AUTORuntimeError("tried to explicitly setup but parameter not set as an option")
+            open("fort.2","wb").close()
+            self.options["constants"] = parseC.parseC()
+        else:
+            self.options["constants"].writeFilename("fort.2")
         solution = self.options["solution"]
-        self.options["constants"].writeFilename("fort.2")
 
         # figure out equation file name
         equation = self.options["equation"][14:]

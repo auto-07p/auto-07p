@@ -1382,7 +1382,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         runner = func().data
         err = cStringIO.StringIO()
-        sv = runner.options["constants"]["sv"]
+        sv = (runner.options.get("constants") or {}).get("sv")
         if runner.options["verbose"] == "no":
             log = cStringIO.StringIO()
             data = runner.run(log=log,err=err)
