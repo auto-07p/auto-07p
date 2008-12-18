@@ -162,13 +162,13 @@ C$    NT = OMP_GET_NUM_THREADS()
      +  CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,
      +   FUNI,ICNI,IAP,PAR,NPAR,ICP,A,B,C,D,DD,FA,
      +   FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IT,NT,
-     +   IRF,ICF,NLLV)
+     +   IRF,ICF,IID,NLLV)
 C
       I = IT*NA/NT+1
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,
      +  FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,
      +  NFPR,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
-     +  SOL,S1,S2,IPR,IPC,ICF(1,I),IAM,KWT,IT,NT)
+     +  SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT)
 C
 C$OMP END PARALLEL
 C
@@ -294,12 +294,12 @@ C
 C     ---------- ------
       SUBROUTINE SETUBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,
      + ICNI,IAP,PAR,NPAR,ICP,AA,BB,CC,DD,DDD,FA,FC,FCFC,
-     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT,IRF,ICF,NLLV)
+     + UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,NT,IRF,ICF,IDB,NLLV)
 C
       USE MESH
 C
       INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,IFST,IAM,NT,NPAR
-      INTEGER IAP(*),ICP(*),IRF(NRA,*),ICF(NCA,*),NLLV
+      INTEGER IAP(*),ICP(*),IRF(NRA,*),ICF(NCA,*),IDB,NLLV
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
       DOUBLE PRECISION DD(NCB,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*)
       DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(*)
@@ -415,6 +415,9 @@ C
      +           UDOTPS(1,J1),UPOLDP(1,J1),DTM(J),THU,WI(K),FICD,DICD,
      +           UIC,UIO,UID,UIP,IFST,NLLV)
          ENDDO
+
+C     debug: do condensation of parameters later after printing
+         IF(IDB>4.AND.IAM==0)CYCLE
 C
 C      Condensation of parameters:
          IF(IFST.EQ.1)THEN
@@ -553,7 +556,7 @@ C     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,DD,FA,FAA,FC,FCFC,P0,P1,IFST,
      +  IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,
      +  NCB,NFC,A1,A2,BB,CC,CCLO,CCBC,DDBC,
-     +  SOL,S1,S2,IPR,IPC,ICF,IAM,KWT,IT,NT)
+     +  SOL,S1,S2,IPR,IPC,IRF,ICF,IAM,KWT,IT,NT)
 C
 C Solves linear systems with matrix profile:
 C
@@ -677,31 +680,64 @@ C        blocks should be equal to the number NOV (NDIM).
 C        Parts of the reduction are done in SUBVPA.
 C
 C Arguments
-      INTEGER   IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
-      INTEGER   NCA,NCB,NFC,IAM,KWT,IT,NT
+      INTEGER, INTENT(IN) :: IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
+      INTEGER, INTENT(IN) :: NCA,NCB,NFC,IAM,KWT,IT,NT
       DOUBLE PRECISION, INTENT(OUT) :: DET
-      DOUBLE PRECISION A(*),B(*),C(NCA,NFC-NBC,*),D(NCB,*)
-      DOUBLE PRECISION DD(NCB,NFC-NBC,*)
-      DOUBLE PRECISION FA(*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*),P0(*)
+      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
+      DOUBLE PRECISION D(NCB,*),DD(NCB,NFC-NBC,*)
+      DOUBLE PRECISION FA(NRA,*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*),P0(*)
       DOUBLE PRECISION P1(*),A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NFC-NBC,*)
       DOUBLE PRECISION CCLO(NOV,NFC-NBC,*)
       DOUBLE PRECISION CCBC(*),DDBC(*),SOL(NOV,*),S1(*),S2(*)
-      INTEGER   IPR(*),IPC(*),ICF(*)
+      INTEGER   IPR(*),IPC(*),IRF(NRA,*),ICF(NCA,*)
 C
 C Local
-      DOUBLE PRECISION FCC,E,X
-      INTEGER I,II,N,NRC
-      ALLOCATABLE FCC(:),E(:,:),X(:)
+      INTEGER I,J,K,II,N,NRC
+      INTEGER, ALLOCATABLE :: IAMAX(:)
+      DOUBLE PRECISION, ALLOCATABLE :: FCC(:),E(:,:),X(:)
 C
       NRC=NFC-NBC
-C
-      IF(IDB.GT.4.and.IAM.EQ.0.and.IT.EQ.0)
-     +     CALL PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,
-     +     FA,FC,FCFC,NT)
-C
       I = IT*NA/NT+1
       N = (IT+1)*NA/NT+1-I
+C
+      IF(IDB.GT.4.and.IAM.EQ.0)THEN
+C$OMP BARRIER
+C$OMP MASTER
+         CALL PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,
+     +     FA,FC,FCFC,NT,NLLV)
+C$OMP END MASTER
+C$OMP BARRIER
+         IF(IFST.EQ.1.OR.NLLV>=0)THEN
+            ALLOCATE(IAMAX(NRA))
+            DO J=1,N
+               IF(IFST.EQ.1)THEN
+                  DO K=1,NRA
+                     IAMAX(K)= NOV+IDAMAX(NRA-NOV,A(NOV+1,K,J),1)
+                  ENDDO
+                  IF(IT>0)THEN
+                     CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,
+     +                    C(1,1,J),DD(1,1,IT),FA(1,J),FCFC(1,IT),
+     +                    IRF(1,J),ICF(1,J),IAMAX,NLLV)
+                  ELSE
+                     CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,
+     +                    C(1,1,J),D,FA(1,J),FC(NBC+1),
+     +                    IRF(1,J),ICF(1,J),IAMAX,NLLV)
+                  ENDIF
+               ELSE
+                  IF(IT>0)THEN
+                     CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,
+     +                    C(1,1,J),FA(1,J),FCFC(1,IT),IRF(1,J))
+                  ELSE
+                     CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,
+     +                    C(1,1,J),FA(1,J),FC(NBC+1),IRF(1,J))
+                  ENDIF
+               ENDIF
+            ENDDO
+            DEALLOCATE(IAMAX)
+         ENDIF
+      ENDIF
+
       IF(IFST.EQ.1)THEN
          CALL COPYCP(N,NOV,NRA,NCA,A,NCB,B,NRC,C,A1(1,1,I),A2(1,1,I),
      +       BB(1,1,I),CC(1,1,I),CCLO,IT)
@@ -1703,9 +1739,9 @@ C
 C           
 C     ---------- ------
       SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,FA,
-     + FC,FCFC,NT)
+     + FC,FCFC,NT,NLLV)
 C
-      INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,NT
+      INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,NT,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
       DOUBLE PRECISION CCBC(NCA-NRA,NBC,*),D(NCB,*),DD(NCB,NFC-NBC,*)
       DOUBLE PRECISION DDBC(NCB,*),FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
@@ -1717,8 +1753,13 @@ C
        DO I=1,NA
          WRITE(9,102)I
          DO IR=1,NRA
-           WRITE(9,103)(A(IC,IR,I),IC=1,NCA),(B(IC,IR,I),IC=1,NCB)
-     *     ,FA(IR,I)
+           IF(NLLV==0)THEN
+              WRITE(9,103)(A(IC,IR,I),IC=1,NCA),(B(IC,IR,I),IC=1,NCB)
+     *             ,FA(IR,I)
+           ELSE
+              WRITE(9,103)(A(IC,IR,I),IC=1,NCA),(B(IC,IR,I),IC=1,NCB)
+     *             ,0d0
+           ENDIF
          ENDDO
        ENDDO
 C
