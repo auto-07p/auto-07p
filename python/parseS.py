@@ -175,7 +175,7 @@ class parseS(UserList.UserList):
             for d in self.data:
                 news = d.__class__(d)
                 news.data = news.data.copy()
-                news.data["LAB"] = i
+                news["LAB"] = i
                 news._mlab = len(self.data)
                 i = i + 1
                 new.append(news)
@@ -358,11 +358,17 @@ class AUTOParameters(Points.Point):
 # read and write methods and letting the outside class take care
 # of opening the file.
 
-class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
+class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         if isinstance(input,self.__class__):
+            irs = input.options["constants"]["IRS"]
             apply(runAUTO.runAUTO.__init__,(self,input),kw)
+            if kw == {}:
+                #otherwise already copied
+                self.options = self.options.copy()
+            self.options["constants"] = parseC.parseC(self.options["constants"])
+            self.options["constants"]["IRS"] = irs
             self.data = self.data.copy()
             if self.__fullyParsed:
                 self.PAR = AUTOParameters(self.PAR)
@@ -370,6 +376,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         else:
             UserDict.UserDict.__init__(self)
             apply(runAUTO.runAUTO.__init__,(self,),kw)
+            self.options["constants"] = parseC.parseC(self.options["constants"])
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end              = None
@@ -475,14 +482,12 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 Points.Pointset.__init__(self,pdict)
                 self.__fullyParsed = True
                 self.data.update({"BR":1, "PT":1, "TY number":9,
-                              "LAB":1, "ISW":1, "NTST": ntst, "NCOL": ncol})
+                                  "ISW":1, "NTST": ntst, "NCOL": ncol})
+                self.options["constants"]["IRS"] = 1
                 if par != []:
                     p = max(dict(par).keys())*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
-        if kw == {}:
-            #otherwise already copied
-            self.options = self.options.copy()
         self.options["solution"] = self
         for k,v in kw.items():
             if ((k in self.data_keys and k not in ["ISW","NTST","NCOL"])
@@ -493,7 +498,7 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         if not(self.__fullyParsed):
             self.__readAll()
         keys = self.data.keys()
-        for key in ["BR","PT","TY number","LAB","ISW","NTST","NCOL"]:
+        for key in ["BR","PT","TY number","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"
@@ -526,6 +531,9 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 if shortkey == "TY":
                     value = parseB.reverse_type_translation(value)
                     shortkey = "TY number"
+                elif shortkey == "LAB":
+                    self.options["constants"]["IRS"] = value
+                    return
                 self.data[shortkey] = value
                 return
             if shortkey == "PAR":
@@ -554,6 +562,8 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
                 if shortkey == "TY":
                     return parseB.type_translation(
                         self.data["TY number"])["short name"]
+                elif shortkey == "LAB":
+                    return self.options["constants"]["IRS"]
                 return self.data[shortkey]
             if shortkey == "p":
                 return self.PAR
@@ -605,7 +615,6 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
         """
         c = self.options.copy()
         c.update(kw)
-        c["IRS"] = self["LAB"]
         return apply(runAUTO.runAUTO.run,(self,),c)
 
     def readAllFilename(self,filename):

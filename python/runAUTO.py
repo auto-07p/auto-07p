@@ -130,7 +130,10 @@ class runAUTO:
 
     def __printErr(self,text):
         if not(self.options["err"] is None):
-            self.options["err"].write(text)
+            try:
+                self.options["err"].write(text)
+            except ValueError: # closed file
+                pass
         self.internalErr.write(text)
 
     def __handler(self, signum, frame):
@@ -594,11 +597,12 @@ class runAUTO:
             os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
             options = self.options.copy()
+            options["constants"] = parseC.parseC(options["constants"])
             options["solution"] = None # do not include solution that this
                                        # run started from!
-            for k in (self.options.get("constants") or {}).keys():
+            for k in (options.get("constants") or {}).keys():
                 if k in nonekeys:
-                    self.options["constants"][k] = None
+                    options["constants"][k] = None
             return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
                                           self.fort9_path),options)
 

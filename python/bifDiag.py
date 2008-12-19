@@ -44,6 +44,27 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             parseB.parseBR.__init__(self)
             fort7_filename = None
         if type(fort7_filename) == types.ListType:
+            c = self.options["constants"]
+            if len(self)>0 and self[0].c is not None:
+                newc = parseC.parseC(self[0].c)
+                for k in newc.keys():
+                    if k in runAUTO.nonekeys:
+                        newc[k] = None
+                if c is not None:
+                    newc.update(c)
+                self.options["constants"] = newc
+            #adjust maximum label
+            labs = self.getLabels()
+            if labs != []:
+                mlab = max(labs)
+                for d in self:
+                    for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                        if x.has_key("solution") and x["LAB"] != 0:
+                            s = x["solution"]
+                            if s._mlab != mlab:
+                                news = s.__class__(s)
+                                news._mlab = mlab
+                                x["solution"] = news
             return
         diagnostics = None
         if isinstance(fort8_filename, parseS.AUTOSolution):

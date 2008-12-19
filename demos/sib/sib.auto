@@ -1,40 +1,67 @@
-ld('sib')
-rn()
-sv('1')
-rn(c='sib.2',s='1')
-sv('2')
-rn(c='sib.3',s='2')
-sv('3')
-#plot('3')
+#first run
+r1=run(e='sib',c='sib')
+save(r1,'1')
+
+#second run
+r2=run(r1,ICP=[4])
+save(r2,'2')
+
+#third run
+r3=run(r2('HB1'),IPS=2,ICP=[5,11],NMX=200,DS=0.01,DSMAX=0.01,UZR={-11:35})
+save(r3,'3')
+plot(r3)
+#wait()
+
+#fourth run
+r4=run(r3,IPS=9,ICP=[3,5],NPR=60,JAC=1,UZR={-3:-2.0},ISTART=4)
+save(r4,'4')
+
+#fifth run
+r5=run(r4,ICP=[5,8],NMX=2,ITWIST=1,ISTART=1)
+save(r5,'5')
+
+#sixth run
+r6=run(r5,ICP=[4,5,33],NMX=30,DS=-0.01,DSMAX=1.0,UZR={33:0.0,-4:0.0},IPSI=[13])
+
+#seventh run
+r7=run(r6('UZ1'),ICP=[21,22,5],NMX=300,NPR=10,UZR={-22:0.2},ISTART=-2,IPSI=[])
+save(r7,'7')
+plot(r7)
+#wait()
+
+#eighth run
+r8=run(r7,ICP=[4,5,22],NPR=310,DS=0.01,DSMAX=0.01,UZR={-22:0.0,4:0.074})
+r6=r6+r8
+
+#ninth run
+print "r8", r8().getLabels()
+r9=run(r8,ICP=[4,5],NMX=30,DS='-',DSMAX=0.1,UZR={4:0.15},ISTART=1,ITWIST=0)
+r6=r6+r9
+#r6=load('6') #should not be necessary!
+
+#tenth run
+r10=run(r6('UZ1'),ICP=[21,22,24,5],NMX=300,NPR=10,UZR={-22:0.2},ISTART=-3,
+  IPSI=[])
+save(r10,'10')
+
+#eleventh run
+r11=run(r10,ICP=[4,5,22,24],NPR=310,DS=0.01,DSMAX=0.01,UZR={-22:0.0,4:0.082})
+r6=r6+r11
+
+#twelfth run
+r12=run(r11,ICP=[4,5,23,24],NMX=32,NTST=40,DS=-1.0,DSMAX=1.0,
+  UZR={24:0.0,4:0.18})
+r6=r6+r12
+
+#thirteenth run
+r13=run(r12('UZ1'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.13},ISTART=1,
+  ITWIST=0)
+r6=r6+r13
+
+#fourteenth run
+r14=run(r12('UZ3'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.145},ISTART=1,
+  ITWIST=0)
+r6=r6+r14
+save(r6,'6')
+plot(r6)
 wait()
-rn(c='sib.4',h='sib.shift',s='3')
-sv('4')
-rn(c='sib.5',h='sib.twist',s='4')
-sv('5')
-rn(c='sib.6',h='sib.if',s='5')
-sv('6')
-rn(c='sib.7',h='sib.hbs2',s='6')
-sv('7')
-plot('7')
-wait()
-rn(c='sib.8',h='sib.hbs2',s='7')
-ap('6')
-rn(c='sib.9',h='sib.hom',s='6')
-ap('6')
-rn(c='sib.10',h='sib.hbs3',s='6')
-sv('10')
-rn(c='sib.11',h='sib.hbs3',s='10')
-ap('6')
-rn(c='sib.12',h='sib.hbs3',s='6')
-ap('6')
-rn(c='sib.13',h='sib.hom',s='6')
-ap('6')
-rn(c='sib.14',h='sib.hom',s='6')
-ap('6')
-plot('6')
-wait()
-
-
-
-
-
