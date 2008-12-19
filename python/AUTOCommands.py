@@ -1383,6 +1383,8 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         runner = func().data
         err = cStringIO.StringIO()
         sv = (runner.options.get("constants") or {}).get("sv")
+        if sv == '':
+            sv = None
         if runner.options["verbose"] == "no":
             log = cStringIO.StringIO()
             data = runner.run(log=log,err=err)
@@ -1396,7 +1398,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             err.seek(0)
             ret = valueRun(err,data=data)
         err.close()
-        if sv is not None:            
+        if sv is not None:
             commandWithFilenameTemplate.__init__(self,sv,None,
                                                  self.templates)
             bname = self.name1["bifurcationDiagram"]

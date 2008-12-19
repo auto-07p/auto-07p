@@ -130,7 +130,7 @@ class parseC(UserDict.UserDict):
         quoteesc = False
         prev = ' '
         npos = 0
-        value = []
+        value = ''
         start = 0
         isdict = False
         v = ''
@@ -166,6 +166,8 @@ class parseC(UserDict.UserDict):
                         value.append(v)
                         v = ''
                     if c in ['[','{']:
+                        if level == 0:
+                            value = []
                         level = level + 1
                         if c == '{':
                             isdict = True

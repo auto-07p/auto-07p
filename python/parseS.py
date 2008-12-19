@@ -390,15 +390,17 @@ class AUTOSolution(Points.Pointset,UserDict.UserDict,runAUTO.runAUTO):
             if names is not None:
                 if type(names) != type({}):
                     names = dict(names)
-                for i in range(1,max(names.keys())+1):
-                    self.coordnames.append(names.get(i,'U('+str(i)+')'))
+                if names != {}:
+                    for i in range(1,max(names.keys())+1):
+                        self.coordnames.append(names.get(i,'U('+str(i)+')'))
             names = kw.get("parnames",c.get("parnames"))
             self.__parnames = []
             if names is not None:
                 if type(names) != type({}):
                     names = dict(names)
-                for i in range(1,max(names.keys())+1):
-                    self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
+                if names != {}:
+                    for i in range(1,max(names.keys())+1):
+                        self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
                               "ISW", "NTST", "NCOL", "Active ICP", "rldot",
                               "udotps"]
