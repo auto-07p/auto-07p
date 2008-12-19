@@ -341,43 +341,20 @@ class parseC(UserDict.UserDict):
 	self["DSMAX"] = parseB.AUTOatof(data[2])
 	self["IADS"] = int(data[3])
 	
-	line = inputfile.readline()
-	data = string.split(line)
-	self.data["__NTHL"] = int(data[0])
-	self.data["THL"] = []
-	for i in range(self["__NTHL"]):
-	    self.data["THL"].append({})
-	    line = inputfile.readline()
-	    data = string.split(line)
-	    self.data["THL"][i][0] = int(data[0])
-	    self.data["THL"][i][1] = parseB.AUTOatof(data[1])
-
-	line = inputfile.readline()
-	data = string.split(line)
-	self.data["__NTHU"] = int(data[0])
-	self.data["THU"] = []
-	for i in range(self["__NTHU"]):
-	    self.data["THU"].append({})
-	    line = inputfile.readline()
-	    data = string.split(line)
-	    self.data["THU"][i][0] = int(data[0])
-	    self.data["THU"][i][1] = parseB.AUTOatof(data[1])
-
-	line = inputfile.readline()
-	data = string.split(line)
-	self.data["__NUZR"] = int(data[0])
-	self.data["UZR"] = []
-	for i in range(self["__NUZR"]):
-	    self.data["UZR"].append({})
-	    line = inputfile.readline()
-	    data = string.split(line)
-            d = data[0]
-            try:
-                d = int(d)
-            except ValueError:
-                pass
-	    self.data["UZR"][i][0] = d
-	    self.data["UZR"][i][1] = parseB.AUTOatof(data[1])
+        for key in ["THL","THU","UZR"]:
+            line = inputfile.readline()
+            data = string.split(line)
+            self.data["__N"+key] = int(data[0])
+            self.data[key] = []
+            for i in range(self["__N"+key]):
+                line = inputfile.readline()
+                data = string.split(line)
+                d = data[0]
+                try:
+                    d = int(d)
+                except ValueError:
+                    pass
+                self.data[key].append([d,parseB.AUTOatof(data[1])])
 
     def __compactstr(self,value):
         """check if we can use more compact output than str..."""
