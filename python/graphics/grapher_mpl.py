@@ -90,7 +90,8 @@ class BasicGrapher(grapher.BasicGrapher):
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
 
-        for key in ["grid","decorations","xlabel","ylabel"]:
+        for key in ["grid","decorations","xlabel","ylabel","minx","maxx",
+                    "miny","maxy"]:
             self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
 

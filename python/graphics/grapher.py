@@ -162,7 +162,6 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             return (math.floor(quotient)+1)*increment
         
     def _computeNiceRanges(self,minimum,maximum):
-        returnVal = {}
         # This bit of code computes "nice" range values.  Given a
         # minimum and manximum it computes a new minimum, maximum,
         # and number of divisions so that the number of digits in
@@ -185,10 +184,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         else:
             maximum = maximumr ;
         num = int(round(( maximum - minimum ) / inc))
-        returnVal["min"] = minimum
-        returnVal["max"] = maximum
-        returnVal["divisions"] = num + 1
-        return returnVal
+        return {"min": minimum, "max": maximum, "divisions": num + 1}
 
     def computeXRange(self,guess_minimum=None,guess_maximum=None):
         if guess_minimum is None:
