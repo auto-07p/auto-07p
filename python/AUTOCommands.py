@@ -1693,8 +1693,14 @@ try:
                 if n1b is None:
                     n1b = "fort.7"
                     n1s = "fort.8"
-                self.options["grapher_bifurcation_diagram_filename"] = n1b
-                self.options["grapher_solution_filename"] = n1s
+                try:
+                    n1b = parseB.parseBR(n1b)
+                    options = {"constants": n1b[0].c}
+                    n1b = apply(bifDiag.bifDiag,(n1b,n1s),options)
+                except IOError:
+                    n1b = bifDiag.bifDiag(b,s)
+                self.options["grapher_bifurcation_diagram"] = n1b
+                self.options["grapher_solution"] = n1b()
             self.handle = windowPlotter.WindowPlotter2D(root,self.options,
                           grapher_width=600,grapher_height=480)
             self.handle.update()
