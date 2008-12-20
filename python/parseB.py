@@ -376,10 +376,19 @@ class AUTOBranch(Points.Pointset):
         if type(label) != types.ListType:
             label = [label]        
         labels = {}
+        counts = [0]*len(label)
         for k,val in self.labels.sortByIndex():
             ty_name,v = self._gettypelabel(k)
+            for i in range(len(label)):
+                lab = label[i]
+                if (type(lab) == types.StringType and len(lab) > 2 and
+                    ty_name == lab[:2]):
+                    counts[i] = counts[i] + 1
+                    if counts[i] == int(lab[2:]):
+                        labels[k] = val
             if v["LAB"] in label or ty_name in label:
                 labels[k] = val
+                continue
         new = self.__class__(self)
         new.labels = Points.PointInfo(labels)
         return new

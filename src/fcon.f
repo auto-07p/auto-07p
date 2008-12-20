@@ -196,11 +196,13 @@ C
             SELECT CASE(C)
             CASE(',',' ')
                IF(LEVEL==0)EXIT
-            CASE(']')
+               IF(PREV==':')C=PREV !eat ',' and ' ' after ':'
+            CASE(':')
+            CASE(']','}')
                LEVEL=LEVEL-1
             CASE DEFAULT
                SELECT CASE(C)
-               CASE('[')
+               CASE('[','{')
                   LEVEL=LEVEL+1
                CASE('"',"'")
                   QUOTE=C

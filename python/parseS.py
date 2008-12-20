@@ -221,9 +221,20 @@ class parseS(UserList.UserList):
         if type(label) != types.ListType:
             label = [label]        
         data = []
+        counts = [0]*len(label)
         for d in self.data:
+            ap = None
             if d["Label"] in label or d["Type name"] in label:
-                data.append(d)
+                ap = d
+            for i in range(len(label)):
+                lab = label[i]
+                if (type(lab) == types.StringType and len(lab) > 2 and
+                    d["Type name"] == lab[:2]):
+                    counts[i] = counts[i] + 1
+                    if counts[i] == int(lab[2:]):
+                        ap = d
+            if ap is not None:
+                data.append(ap)
         return self.__class__(data)
 
     def getIndex(self,index):
@@ -522,6 +533,9 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
 
     def __repr__(self):
         return self.__str__()
+
+    def __len__(self):
+        return Points.Pointset.__len__(self)
 
     def __setitem__(self,key,value):
         if (type(key) == type("") and not key in self.coordnames and

@@ -61,7 +61,6 @@ ap		=commandAppend
 bt		=commandParseDiagramAndSolutionFile
 cl		=commandClean
 cn		=commandParseConstantsFile
-cp		=commandCopyDataFiles
 dl		=commandDeleteDataFiles
 dsp		=commandDeleteSpecialPoints
 ksp		=commandKeepSpecialPoints
