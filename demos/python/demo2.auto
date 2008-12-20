@@ -1,22 +1,17 @@
-copydemo('bvp')
+demo('bvp')
 
-ld('bvp')
-run()
-sv('bvp')
-ld(s='bvp')
-data = sl('bvp')
-ch("NTST",50)
-for solution in data:
-    if solution["Type name"] == "BP":
-        ch("IRS", solution["Label"])
-        ch("ISW", -1)
-        # Compute forward
-        run()
-        ap('bvp')
-        # Compute back
-        ch("DS",-pr("DS"))
-        run()
-        ap('bvp')
+bvp = run('bvp')
+for solution in bvp("BP"):
+    bp = load(solution, ISW=-1, NTST=50)
+    # Compute forwards
+    print "Solution label", bp["LAB"], "forwards"
+    fw = run(bp)
+    # Compute backwards
+    print "Solution label", bp["LAB"], "backwards"
+    bw = run(bp,DS='-')
+    bvp = bvp + merge(fw + bw)
 
-plot('bvp')
+bvp=relabel(bvp)
+save(bvp, 'bvp')
+plot(bvp)
 wait()

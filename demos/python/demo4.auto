@@ -1,13 +1,11 @@
-,copydemo bvp
+,demo bvp
 
-#run bvp.f with c.bvp (first parameter), save in {b,s}.bvp (second parameter)
-,r bvp bvp
-ld s='bvp', NTST=50
-for l in splabs('bvp','BP'):
-    # Compute forward
-    r(IRS=l,ISW=-1,ap='bvp')
-    # Compute back
-    r(DS='-',ap='bvp')
+bvp=ld(r('bvp'),NTST=50,ISW=-1)
+for solution in bvp('BP'):
+    # Compute forwards and backwards
+    bvp = bvp + mb(r(solution)+r(solution,DS='-'))
 
-,pl bvp
+bvp=rl(bvp)
+pl bvp
+sv bvp, 'bvp'
 wait

@@ -754,7 +754,7 @@ Here {\tt xxx} stands for a user-selected name.
 If any of these routines is irrelevant 
 to the problem then its body need not be completed.
 Examples are in {\tt auto/07p/demos}, where, e.g.,
-the file {\tt ab/ab.f} defines a two-dimensional dynamical system,
+the file {\tt ab/ab.f90} defines a two-dimensional dynamical system,
 and the file {\tt exp/exp.f} defines a boundary value problem.
 The simplest way to create a new equations-file is to copy 
 an appropriate demo file.
@@ -785,10 +785,14 @@ the file {\tt xxx.{f90,f}} is described below.
 \item[-] {\tt STPNT}~:~
   This routine is called only if {\tt IRS}=0 
 (see Section~\ref{sec:IRS} for {\tt IRS}),
-  which typically is the case for the first run.
+  which typically is the case for the first run, or when a system
+  is manually extended. A system is extended if {\tt NDIM} (see
+  Section~\ref{sec:NDIM}) increases between runs.
   It defines a starting solution $(u,p)$ of (\ref{1}) or (\ref{2}).
-  The starting solution should not be a branch point.\\ 
-  (Demos {\tt ab}, {\tt exp}, {\tt frc}, {\tt lor}.)  
+  The starting solution should not be a branch point.\\
+  (Demos {\tt ab}, {\tt exp}, {\tt frc}, {\tt lor}.)\\
+  It extends an existing solution into higher dimensions in the demos
+  {\tt p2c} and {\tt c2c}.
 \item[-] {\tt BCND}~:~ 
   A routine {\tt BCND} that defines the boundary conditions. \\
   (Demo {\tt exp}, {\tt kar}.)
@@ -814,6 +818,35 @@ If {\tt JAC=1} then derivatives must be given.
 This may be necessary for sensitive 
 problems, and is recommended for computations in which {\cal AUTO} 
 generates an extended system.
+Derivatives are specified as follows, where zero entries may be
+omitted:
+\begin{itemize}
+\item[{\tt FUNC}]
+\begin{itemize}
+\item
+ Derivatives with respect to phase space variables
+  are specified in {\tt DFDU(1:NDIM, 1:NDIM)}.
+\item
+ Parameter derivatives go into {\tt DFDP(1:NDIM, 1:NPAR)}.
+\end{itemize}
+\item[{\tt BCND}]
+\begin{itemize}
+\item
+Derivatives with respect to the two boundary conditions
+are specified in {\tt DBC(1:NBC, 1:NBC)} and {\tt DBC(1:NBC, NBC+1:2*NBC)},
+respectively.
+\item
+Parameter derivatives go into {\tt DBC(1:NBC, 2*NBC+1:2*NBC+NPAR)}.
+\end{itemize}
+\item[{\tt ICND}]
+\begin{itemize}
+\item
+Derivatives with respect to the integral conditions
+are specified in {\tt DINT(1:NINT, 1:NINT)}.
+\item
+Parameter derivatives go into {\tt DINT(1:NINT, NINT+1:NINT+NPAR)}.
+\end{itemize}
+\end{itemize}
 Examples of user-supplied derivatives can be found in
 demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
@@ -880,11 +913,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  {\small 
  \begin{center} \begin{boxedverbatim}
  > auto
- Initializing
- Python 1.5.2 (1, Feb  1 2000, 16:32:16)  [GCC egcs-2.91.66 19990314/Linux 
- Copyright 1991-1995 Stichting Mathematisch Centrum, Amsterdam
+ Python 2.5.2 (r252:60911, Nov 14 2008, 19:46:32) 
+ [GCC 4.3.2] on linux2
+ Type "help", "copyright", "credits" or "license" for more information.
  (AUTOInteractiveConsole)
- AUTO> 
+ AUTO>
  \end{boxedverbatim}
  \end{center}
  }
@@ -983,7 +1016,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  The commands listed in Table~\ref{tbl:example_clui_1}
  will copy the demo files to your work directory and run
  the first part of the demo.
- The results of running these commands are shown in Figure~\ref{exa:clui_first_example}.
+ The results of running these commands are shown in
+ Figure~\ref{exa:clui_first_example}.
 
 
  \begin{table}[htbp]
@@ -997,10 +1031,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
    \AUTO CLUI COMMAND  & ACTION \\
  \hline
-   \commandf{ copydemo('ab')}  & copy the demo files to the work directory\\
-   \commandf{ load(equation='ab')}  & load the filename \filef{ab.f} into memory\\
-   \commandf{ load(constants='ab.1')}  & load the contents of the file \filef{c.ab.1} into memory\\
-   \commandf{ run()}  & run \AUTO with the current set of files\\
+   \commandf{ demo('ab')}  & copy the demo files to the work directory\\
+   \commandf{ ab = load(equation='ab')}  & load the filename \filef{ab.f90} into the bifurcation diagram ab\\
+   \commandf{ ab = load(ab, constants='ab.1')}  & load the contents of
+   the file \filef{c.ab.1} into the variable ab\\
+   \commandf{ run(ab)}  & run \AUTO with the current set of files\\
  \hline
  %==============================================================================
  \end{tabular}
@@ -1013,19 +1048,20 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
  > auto
- Python 2.3.5 (#2, Jun 13 2006, 23:12:55) 
- [GCC 4.1.2 20060613 (prerelease) (Debian 4.1.1-4)] on linux2
+ Python 2.5.2 (r252:60911, Nov 14 2008, 19:46:32) 
+ [GCC 4.3.2] on linux2
  Type "help", "copyright", "credits" or "license" for more information.
  (AUTOInteractiveConsole)
- AUTO> copydemo('ab')
+ AUTO> demo('ab')
  Copying demo ab ... done
- AUTO> load(equation='ab')
  Runner configured
- AUTO> load(constants='ab')
+ AUTO> ab = load(equation='ab')
  Runner configured
- AUTO> run()
- gfortran  -O -c ab.f -o ab.o
- gfortran -O ab.o -o ab.exe /home/enbeo/auto/07pp/lib/*.o
+ AUTO> ab = load(ab,constants='ab.1')
+ Runner configured
+ AUTO> run(ab)
+ gfortran -fopenmp -O -c ab.f90 -o ab.o
+ gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
  Starting ab ...
  
    BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
@@ -1034,10 +1070,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
     1    36  UZ    3   1.50000E+01   0.00000E+00   0.00000E+00   0.00000E+00
     1    41  UZ    4   1.60000E+01   0.00000E+00   0.00000E+00   0.00000E+00
     1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
-    1    51  EP    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
+    1    51  UZ    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    0.240E-01
+  Total Time    0.181E-01
  ab ... done
+ <_=bifDiag instance at 0x0972198c>
  AUTO>
  \end{boxedverbatim}
  \end{center} 
@@ -1051,33 +1088,39 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
 
  Let us examine more closely what action each of the commands 
- performs.  First, \commandf{copydemo('ab')} 
- (Section~\ref{sec:clui_ref_commandCopyDemo} in the reference) copies the files in 
+ performs.  First, \commandf{demo('ab')} 
+ (Section~\ref{sec:clui_ref_demo} in the reference) copies the files in 
  \filef{ \$AUTO\_DIR/demo/ab} into the work directory.  
 
- Next, \commandf{load(equation='ab')} 
- (Section~\ref{sec:clui_ref_commandRunnerLoadName} in the reference)
+ Next, \commandf{ab = load(equation='ab')} 
+ (Section~\ref{sec:clui_ref_basic} in the reference)
  informs the \AUTO CLUI that the name of
- the user defined function file is \filef{ab.f}.  The command
+ the user defined function file is \filef{ab.f90}.  The command
  \commandf{load} is one of the most commonly used commands in the
  \AUTO CLUI, since it reads and parses the user files which are
- manipulated by other commands.  The \AUTO CLUI stores this setting
- until it is changed by a command, such as another \commandf{load}
+ manipulated by other commands.  The \AUTO CLUI stores this setting in
+ the variable {\tt ab} until it is changed by a command,
+ such as another \commandf{load}
  command.  The idea of storing information is one of the ideas that
  sets the CLUI apart from the command language described in
  Section~\ref{sec:command_mode}.
 
- Next, \commandf{load(constants='ab.1')} parses the \AUTO
+ Next, \commandf{ab = load(ab, constants='ab.1')} parses the \AUTO
  constants file \filef{c.ab.1} and reads it into memory.  Note that
  \emp{changes to the file \filef{c.ab.1} after it has been loaded in
  will not be used by \AUTO unless it is loaded in again after the
  changes are made}.  
 
- Finally, \commandf{run()} 
- (Section~\ref{sec:clui_ref_commandRun} in the reference)
+ Finally, \commandf{run(ab)} 
+ (Section~\ref{sec:clui_ref_basic} in the reference)
  uses the user defined functions loaded
  by the \commandf{load(equation='ab')} command, and the \AUTO constants
  loaded by the \commandf{load(constants='ab.1')} to run \AUTO.
+
+ The \commandf{run} command returns a bifurcation diagram structure. It can
+ be referenced using the special \commandf{\_} variable in interactive
+ sessions, or assigned as \commandf{result=run(ab)}. The result
+ can then be referred to in further calculations, plotted, and saved.
 
  Figure~\ref{exa:clui_first_example} showed two of 
  the file types that the 
@@ -1088,7 +1131,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  in using the \commandf{load} command, and they are
  the restart solution file (Section~\ref{ch:Output_files})
  and the {\cal HomCont} parameter
- file (Section~\ref{sec:HomCont_files}).
+ file (Section~\ref{sec:HomCont_files}). The \commandf{load} command
+ can also directly load AUTO constants.
 
  Note that the name given to the load
  command is not the same as the filename which is read
@@ -1107,7 +1151,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  Long name & Short name & Name entered & Transformed file name \\
  \hline
- equation  & e          & foo          &foo.c \\
+ equation  & e          & foo          &foo.f90/foo.f/foo.c \\
  \hline
  constants  & c          & foo          & c.foo \\
  \hline
@@ -1142,9 +1186,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- AUTO> load(e='ab')
+ AUTO> ab = load(e='ab')
  Runner configured
- AUTO> load(c='ab.1)
+ AUTO> ab = load(ab,c='ab.1)
  Runner configured
  \end{boxedverbatim}
  \end{center} 
@@ -1156,7 +1200,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- AUTO> load(e='ab',c='ab.1')
+ AUTO> ab = load(e='ab',c='ab.1')
  Runner configured
  \end{boxedverbatim}
  \end{center} 
@@ -1168,12 +1212,13 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  Also, since it is common that several files will be loaded that
  have the same base name \commandf{load('ab')} performs the same 
- action as \commandf{load(e='ab',c='ab',s='ab',h='ab')}.  Note, 
+ action as \commandf{load(e='ab', c='ab', b='ab', s='ab', d='ab',
+   h='ab')}. 
+ Note,
  for the command \commandf{load('ab')} it is only required that 
- \filef{ab.f} and \filef{c.ab} exist;  \filef{s.ab} and
+ \filef{ab.f90} and \filef{c.ab} exist;  \filef{s.ab} and
  \filef{h.ab} are optional, and if they do not exist,
  no error message will be given.  
-
 
  \section{ Scripting }
 
@@ -1195,10 +1240,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htb]
  {\small \begin{center} \begin{boxedverbatim}
- copydemo('ab')
- load(equation='ab')
- load(constants='ab.1')
- run()
+ demo('ab')
+ run(e='ab',c='ab.1')
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1213,17 +1256,13 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \begin{figure}[htb]
  {\small \begin{center} \begin{boxedverbatim}
  > cat demo1.auto
- copydemo('ab')
- load(equation='ab')
- load(constants='ab.1')
- run()
+ demo('ab')
+ run(e='ab',c='ab.1')
 
  > auto demo1.auto 
- Initializing
  Copying demo ab ... done
  Runner configured
- Runner configured
- gfortran -fopenmp -O -c ab.f -o ab.o
+ gfortran -fopenmp -O -c ab.f90 -o ab.o
  gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
  Starting ab ...
 
@@ -1235,7 +1274,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
     1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
     1    51  EP    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
-  Total Time    0.771E-01
+  Total Time    0.193E-01
  ab ... done
  > 
  \end{boxedverbatim}
@@ -1268,27 +1307,22 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- copydemo('bvp')
+ demo('bvp')
 
- ld('bvp')
- run()
- sv('bvp')
- ld(s='bvp')
- data = sl('bvp')
- ch("NTST",50)
- for solution in data:
-     if solution["Type name"] == "BP":
-         ch("IRS", solution["Label"])
-         ch("ISW", -1)
-         # Compute forward
-         run()
-         ap('bvp')
-         # Compute back
-         ch("DS",-pr("DS"))
-         run()
-         ap('bvp')
+ bvp = run('bvp')
+ for solution in bvp("BP"):
+     bp = load(solution, ISW=-1, NTST=50)
+     # Compute forwards
+     print "Solution label", bp["LAB"], "forwards"
+     fw = run(bp)
+     # Compute backwards
+     print "Solution label", bp["LAB"], "backwards"
+     bw = run(bp,DS='-')
+     bvp = bvp + merge(fw + bw)
 
- plot('bvp')
+ bvp=relabel(bvp)
+ save(bvp, 'bvp')
+ plot(bvp)
  wait()
  \end{boxedverbatim}
  \end{center} 
@@ -1305,14 +1339,13 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  identical to that shown in Figure~\ref{exa:clui_first_example}
  except that the shorthand discussed in 
  Section~\ref{sec:clui_first_example} is used for the 
- \commandf{ld} command.
+ \commandf{run} command.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- copydemo('bvp')
+ demo('bvp')
 
- ld('bvp')
- run()
+ run('bvp')
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1323,9 +1356,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  The next section of the script, extracted into 
  Figure~\ref{exa:clui_complex_second}, introduces
- three new \AUTO CLUI commands.  First, \commandf{sv('bvp')}
- (Section~\ref{sec:clui_ref_commandCopyDataFiles} in the reference)
- saves the results of the \AUTO run into files using
+ three new \AUTO CLUI commands.  First, \commandf{save(bvp,'bvp')}
+ (Section~\ref{sec:clui_ref_basic} in the reference)
+ saves the results of the \AUTO runs into files using
  the base name \filef{bvp} and the filename extensions in
  Table~\ref{tbl:clui_filename_translation}.  For example,
  in this case the bifurcation diagram file \filef{fort.7}
@@ -1333,7 +1366,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  the solution file \filef{fort.8}
  will be saved as \filef{s.bvp}, and  
  the diagnostics file \filef{fort.9}
- will be saved as \filef{d.bvp}.  Next, \commandf{ld(s='bvp')}
+ will be saved as \filef{d.bvp}.  Next, \commandf{load(s='bvp')}
  loads the solution file \filef{s.bvp} into memory
  so that it can be used by \AUTO for further calculations.
 
@@ -1343,7 +1376,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  been designed in this way to make it easy for users to
  migrate from the old command language to the
  \AUTO CLUI.  The next command, namely \commandf{data = sl('bvp')}
- (Section~\ref{sec:clui_ref_commandParseSolutionFile} in the reference)
+ (Section~\ref{sec:clui_ref_python} in the reference)
  is the first command which has no analog in the 
  old command language.
  The command \commandf{sl('bvp')} parses the file \filef{s.bvp}
@@ -1357,7 +1390,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  such as {\cal C} in that their type does not have to be
  declared before they are created.
  Finally, \commandf{ch("NTST",50)}  
- (Section~\ref{sec:clui_ref_commandRunnerConfigFort2} in the reference)
+ (Section~\ref{sec:clui_ref_python} in the reference)
  changes the \parf{NTST} value to \parf{50} (see Section~\ref{sec:NDIM}).
  To be precise, the command \commandf{ch("NTST",50)} only modifies
  the ``in memory'' version of the \AUTO constants created
@@ -1430,7 +1463,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  calculation of the bifurcating branch and then append the
  data to the \filef{s.bvp}, \filef{b.bvp}, and
  \filef{d.bvp} files with the \commandf{ap('bvp')}
- command (Section~\ref{sec:clui_ref_commandAppend} in the reference).
+ command (Section~\ref{sec:clui_ref_basic} in the reference).
  In addition, as can be seen in Figure~\ref{exa:clui_complex_third},
  the \commandf{\#} character is the \python~ comment character.
  When the \python~ interpretor encounters a \commandf{\#} character
@@ -1446,17 +1479,15 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- for solution in data:
-     if solution["Type name"] == "BP":
-         ch("IRS", solution["Label"])
-         ch("ISW", -1)
-         # Compute forward
-         run()
-         ap('bvp')
-         # Compute back
-         ch("DS",-pr("DS"))
-         run()
-         ap('bvp')
+ for solution in bvp("BP"):
+     bp = load(solution, ISW=-1, NTST=50)
+     # Compute forwards
+     print "Solution label", bp["LAB"], "forwards"
+     fw = run(bp)
+     # Compute backwards
+     print "Solution label", bp["LAB"], "backwards"
+     bw = run(bp,DS='-')
+     bvp = bvp + merge(fw + bw)
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1469,7 +1500,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Figure~\ref{exa:clui_complex_third} has finished computing the
  bifurcation diagram, the command \commandf{plot('bvp')}
  brings up a plotting window 
- (Section~\ref{sec:clui_ref_commandPlotter} in the reference),
+ (Section~\ref{sec:clui_ref_plot} in the reference),
  and the command \commandf{wait()} causes the \AUTO CLUI
  to wait for input.  You may now exit the \AUTO CLUI
  by pressing any key in the window in which you started
@@ -1490,18 +1521,16 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- copydemo('bvp')
+ demo('bvp')
 
- #run bvp.f with c.bvp (first parameter), save in {b,s}.bvp (second parameter)
- r('bvp','bvp')
- ld(s='bvp',NTST=50)
- for solution in splabs('bvp','BP'):
-     # Compute forward
-     r(IRS=solution,ISW=-1,ap='bvp')
-     # Compute back
-     r(DS='-',ap='bvp')
+ bvp=ld(r('bvp'),NTST=50,ISW=-1)
+ for solution in bvp('BP'):
+     # Compute forwards and backwards, merge branches, append
+     bvp = bvp + mb(r(solution)+r(solution,DS='-'))
 
- pl('bvp')
+ bvp=rl(bvp)
+ pl(bvp)
+ sv(bvp,'bvp')
  wait()
  \end{boxedverbatim}
  \end{center} 
@@ -1531,18 +1560,16 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  at the command prompt but do not help readability in scripts.
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- ,copydemo bvp
+ ,demo bvp
 
- #run bvp.f with c.bvp (first parameter), save in {b,s}.bvp (second parameter)
- ,r bvp bvp
- ld s='bvp', NTST=50
- for l in splabs('bvp','BP'):
-     # Compute forward
-     r(IRS=l,ISW=-1,ap='bvp')
-     # Compute back
-     r(DS='-',ap='bvp')
+ bvp=ld(r('bvp'),NTST=50,ISW=-1)
+ for solution in bvp('BP'):
+     # Compute forwards and backwards
+     bvp = bvp + mb(r(solution)+r(solution,DS='-'))
 
- ,pl bvp
+ bvp=rl(bvp)
+ pl bvp
+ sv bvp, 'bvp'
  wait
  \end{boxedverbatim}
  \end{center} 
@@ -1727,7 +1754,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \section{Bifurcation Diagram Files}
  Using the \commandf{commandParseDiagramFile} 
- command (Section~\ref{sec:clui_ref_commandParseDiagramFile} in the reference)
+ command (Section~\ref{sec:clui_ref_python} in the reference)
  the user can parse and read into memory an \AUTO bifurcation
  diagram file.   For example, the command  \commandf{commandParseDiagramFile('ab')}
  would parse the file \filef{b.ab} (if you are using the standard
@@ -1848,7 +1875,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \section{Solution Files}
  Using the \commandf{commandParseSolutionFile} 
- command (Section~\ref{sec:clui_ref_commandParseSolutionFile} in the reference)
+ command (Section~\ref{sec:clui_ref_python} in the reference)
  the user can parse and read into memory an \AUTO bifurcation
  solution file.   For example, the command  \commandf{commandParseSolutionFile('ab')}
  would parse the file \filef{b.ab} (if you are using the standard
@@ -2272,7 +2299,7 @@ in Chapter~\ref{sec:command_mode} and start with an ``@''-sign can be
 entered directly, without the ``!''.
 \pagebreak
 \section{ Reference }  \label{sec:clui reference}
-\subsection{Basic commands.} 
+\subsection{Basic commands.} \label{sec:clui_ref_basic}
 \begin{description}
 \item[run]
 Run AUTO.
@@ -2408,7 +2435,7 @@ Append data files.
     \textbf{Aliases:} ap commandAppend
 \end{description}
 
-\subsection{Plotting commands.}
+\subsection{Plotting commands.} \label{sec:clui_ref_plot}
 
 \begin{description}
 \item[plot]
@@ -2447,7 +2474,7 @@ Append data files.
 \textbf{Aliases:} p3 commandPlotter3D
 \end{description}
 
-\subsection{File-manipulation.}
+\subsection{File-manipulation.} \label{sec:clui_ref_files}
 \begin{description}
 \item[copy]
 Copy data files.
@@ -2493,7 +2520,7 @@ Delete data files.
 \textbf{Aliases:} dl commandDeleteDataFiles
 \end{description}
 
-\subsection{Diagnostics.}
+\subsection{Diagnostics.} \label{sec:clui_ref_diagnostics}
 
 \begin{description}
 \item[limitpoint]
@@ -2632,8 +2659,8 @@ Convert user-supplied data files.
     Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
-    PAR(11).  Other parameter values must be set in 'stpnt'. (When
-    necessary, PAR(11) may also be redefined there.)  The
+    {\tt PAR(11)}.  Other parameter values must be set in 'stpnt'. (When
+    necessary, {\tt PAR(11)} may also be redefined there.)  The
     constants-file file 'c.xxx' must be present, as the AUTO-constants
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
     of using the 'userData' command see demos 'lor' and 'pen' (where
@@ -2646,6 +2673,7 @@ Convert user-supplied data files.
 \end{description}
 
 \subsection{Copying a demo.}
+\label{sec:clui_ref_demo}
 \begin{description}
 \item[demo]
 Copy a demo into the current directory and load it.
@@ -2673,6 +2701,7 @@ Copy a demo into the current directory.
 \end{description}
 
 \subsection{Python data structure manipulation functions.}
+\label{sec:clui_ref_python}
 All commands here, except for 'man', 'gui', and 'wait' are only
 provided for backwards compatibility. Alternatives are given.
 \begin{description}
@@ -2813,7 +2842,7 @@ Show AUTOs graphical user interface.
 
 \end{description}
 
-\subsection{Shell Commands.}
+\subsection{Shell Commands.} \label{sec:clui_ref_shell}
 
 \begin{description}
 \item[cat]
@@ -3099,7 +3128,7 @@ or in any of its subdirectories.}
   The original file is left unchanged.
   {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
   Other parameter values must be set in {\tt STPNT}. (When necessary,
-  PAR(11) may also be redefined there.) 
+  {\tt PAR(11)} may also be redefined there.) 
   The constants-file file {\tt c.xxx} must be present, as the 
   {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
   (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
@@ -3742,7 +3771,7 @@ DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 NPAR=  36, THL =  {}, THU =  {}
 UZR = {}
 SP = []
-NUNSTAB = -1, NSTAB = -1, IEQUIB = 0, ITWIST = 0, ISTART = 1
+NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 1
 IREV = [], IFIXED = [], IPSI = []
 \end{verbatim}
 
@@ -3938,9 +3967,9 @@ By default, the pseudo-arclength stepsize includes all state variables
 (or state functions) and all free parameters.
 Under certain circumstances one may want to modify the weight accorded 
 to individual parameters in the definition of stepsize.
-For this purpose, {\tt NTHL} defines the number of parameters whose weight 
+For this purpose, {\tt THL} defines the parameters whose weight 
 is to be modified.
-If {\tt THL}=\{\} then all weights will have default value 1.0~.
+If {\tt THL=\{\}} then all weights will have default value 1.0,
 else one must enter pairs,
              ~\{{\it Parameter Index} : {\it Weight}, ...\}~.
 
@@ -3948,7 +3977,7 @@ For example, for the computation of periodic solutions it is
 recommended that the period not be included in the pseudo-arclength 
 continuation stepsize, in order to avoid period-induced limitations 
 on the stepsize near orbits of infinite period. 
-This exclusion can be accomplished by setting {\tt THL}=\{11:0.0\}.
+This exclusion can be accomplished by setting {\tt THL=\{11:0.0\}}.
 If {\tt THL} is not specified this is the default for computing
 periodic solutions ({\tt IPS=2}).
 Most demos that compute periodic solutions use this option;
@@ -3960,7 +3989,7 @@ to individual state variables (or state functions) in the definition
 of stepsize.
 For this purpose, {\tt THU} defines the number of states whose weight 
 is to be modified.
-If {\tt THU}=\{\} then all weights will have default value 1.0~.
+If {\tt THU}=\{\} then all weights will have default value 1.0,
 else one must enter pairs,
              ~\{{\it State Index} : {\it Weight}, ...\}~.
 At present none of the demos use this option.
@@ -4037,7 +4066,7 @@ Thus, in this run {\tt PAR(1)} is designated as the free parameter.
 \subsection{ Periodic solutions and rotations.}
 The continuation of periodic solutions and rotations generically requires 
 two parameters, namely, one problem parameter and the period.
-For example, in Run~2 of demo {\tt ab} we have {\tt ICP}=[1,11].
+For example, in Run~2 of demo {\tt ab} we have {\tt ICP=[1,11]}.
 Thus, in this run, the free parameters are {\tt PAR(1)} and {\tt PAR(11)}.
 (Note that {\cal AUTO} reserves {\tt PAR(11)} for the period.)
 
@@ -4049,7 +4078,7 @@ and in the {\tt fort.7} output-file.
 
 For fixed period orbits one must specify two free problem 
 parameters.
-For example, in Run~7 of demo {\tt pp2}, we have {\tt ICP}=[1,2], with 
+For example, in Run~7 of demo {\tt pp2}, we have {\tt ICP=[1,2]}, with 
 {\tt PAR(1)} and {\tt PAR(2)}
 specified as free problem parameters.
 The period {\tt PAR(11)} is fixed in this run.
@@ -4059,7 +4088,7 @@ effective method for computing a locus of homoclinic orbits.
 \subsection{ Folds and Hopf bifurcations.}
 The continuation of folds for algebraic problems and the continuation of
 Hopf bifurcations requires two free problem parameters.
-For example, to continue a fold in Run~3 of demo {\tt ab}, we have {\tt ICP}=[1,3], 
+For example, to continue a fold in Run~3 of demo {\tt ab}, we have {\tt ICP=[1,3]}, 
 with {\tt PAR(1)} and {\tt PAR(3)} specified as free parameters.
 Note that one must set {\tt ISW}=2 for computing such loci of special solutions.
 Also note that in the continuation of folds the principal continuation parameter
@@ -4072,7 +4101,7 @@ and the continuation of period-doubling bifurcations require two free
 problem parameters plus the free period. Thus, one would normally
 specify three parameters.
 For example, in Run~6 of demo {\tt pen}, where a locus of period-doubling
-bifurcations is computed for rotations, we have {\tt ICP}=[2,3,11], 
+bifurcations is computed for rotations, we have {\tt ICP=[2,3,11]}, 
 with {\tt PAR(2)}, {\tt PAR(3)}, and {\tt PAR(11)} specified as free parameters. 
 Note that one must set {\tt ISW}=2 for computing such loci of special solutions.
 Also note that in the continuation of folds the principal continuation parameter
@@ -4081,7 +4110,7 @@ must be the one with respect to which the fold was located.
 Actually, one may only specify the problem parameters,
 as {\cal AUTO} will automatically add the period.
 For example, in Run~3 of demo {\tt plp}, where a locus of folds is computed 
-for periodic orbits, we have {\tt ICP}=[4,1], with {\tt PAR(4)} and {\tt PAR(1)} specified
+for periodic orbits, we have {\tt ICP=[4,1]}, with {\tt PAR(4)} and {\tt PAR(1)} specified
 as free parameters. 
 However, in this case the period will not appear in the screen output 
 and in the {\tt fort.7} output-file. 
@@ -4103,7 +4132,7 @@ namely {\tt PAR(1)}.
 More generally, for boundary value problems with integral constraints,
 the generic number of free parameters is {\tt NBC} + {\tt NINT}$-${\tt NDIM} +1.
 For example, in demo {\tt lin}, we have {\tt NDIM}=2, {\tt NBC}=2, and {\tt NINT}=1.
-Thus {\tt ICP}=[1,3]. 
+Thus {\tt ICP=[1,3]}. 
 Indeed, in this demo two free parameters are designated,
 namely {\tt PAR(1)} and {\tt PAR(3)}.
 
@@ -4119,21 +4148,21 @@ In algebraic optimization problems one must set {\tt ICP}(1)=10,
 as {\cal AUTO} uses {\tt PAR(10)} as principal continuation parameter
 to monitor the value of the objective function.
 Furthermore, one must designate one free equation parameter in {\tt ICP}(2). 
-Thus, {\tt ICP}=[10,2] in the first run.
+Thus, {\tt ICP=[10,2]} in the first run.
 
 Folds with respect to {\tt PAR(10)} correspond to extrema of the objective function.
 In a second run one can restart at such a fold, with an additional
 free equation parameter specified in {\tt ICP}(3).
-Thus, {\tt ICP}=[10,2,3] in the second run.
+Thus, {\tt ICP=[10,2,3]} in the second run.
 
 The above procedure can be repeated.
 For example, folds from the second run can be continued in a third run
 with three equation parameters specified in addition to {\tt PAR(10)}.
-Thus, {\tt \#ICP}=4 in the third run.
+Thus, {\tt \#ICP=4} in the third run.
 
 For a simple example see demo {\tt opt}, where a four-parameter extremum
 is located.
-Note that {\tt \#ICP}=5 in each of the four constants-files of this demo, 
+Note that {\tt \#ICP=5} in each of the four constants-files of this demo, 
 with the indices of {\tt PAR(10)} and {\tt PAR(1)-PAR(4)} specified in {\tt ICP}.
 Thus, in the first three runs, there are overspecified parameters.
 However, {\cal AUTO} will always use the correct number of parameters.
@@ -4180,7 +4209,7 @@ the $L_2$-norm of the first solution component,
 the minimum of the second component, and
 the left boundary value of the second component.
 These solution measures are assigned to {\tt PAR(2), PAR(3)}, and {\tt PAR(4)}, respectively.
-In the constants-file {\tt c.pvl} we have {\tt \#ICP}=4, with {\tt PAR(1)-PAR(4)}
+In the constants-file {\tt c.pvl} we have {\tt \#ICP=4}, with {\tt PAR(1)-PAR(4)}
 specified as parameters.
 Thus, in this example, {\tt PAR(2)-PAR(4)} are overspecified.
 Note that {\tt PAR(1)} must appear first in the {\tt ICP} list;
@@ -4206,9 +4235,9 @@ specifies that the contination should stop as soon as the $n$th
 bifurcation of this type has been reached.
 Examples:\\
 \begin{itemize}
-\item[-] SP=['LP0']\\
+\item[-] {\tt SP=['LP0']}\\
 turn off detection of folds.
-\item[-] SP=['LP','HB3','BP0','UZ3']\\
+\item[-] {\tt SP=['LP','HB3','BP0','UZ3']}\\
 turn on the detection of folds and Hopf bifurcations,
 turn off detection of branch points and stop at the third Hopf
 bifurcation or third user defined point, whichever comes first.
@@ -4288,15 +4317,15 @@ period-doubling bifurcations, and torus bifurcations.
 
 \subsection{\tt s}  \label{sec:s}
 This constant sets the name of the solution file from which the computation
-is to be restarted, instead of \filef{fort.3}: if s='xxx' then the
+is to be restarted, instead of \filef{fort.3}: if {\tt s='xxx'} then the
 name of the restart file is \filef{s.xxx}.
 
 \subsection{\tt dat}  \label{sec:dat}
-This constant, where dat='xxx', sets the name of a user-supplied ASCII
+This constant, where {\tt dat='xxx'}, sets the name of a user-supplied ASCII
 data file {\tt xxx.dat}, from which the contination is to be restarted.
 {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
 Other parameter values must be set in {\tt STPNT}. (When necessary,
-PAR(11) may also be redefined there.) 
+{\tt PAR(11)} may also be redefined there.) 
 
 The first column in the data file denotes the time, which does
 \emph{not} need to be rescaled to the interval $[0,1]$, and further
@@ -4304,14 +4333,16 @@ columns the coordinates of the solution. The constant {\tt IRS} must
 be set to 0.
 
 \subsection{\tt U}  \label{sec:U}
-This constant, where U={i1:x1,i2:x2}, changes the U(i1) to x1, U(i2) to
-x2 and so on, with respect to the solution to start from. This is only
+This constant, where {\tt U=\{i1:x1,i2:x2\}}, changes the value of
+{\tt U(i1)} to {\tt x1}, {\tt U(i2)} to {\tt x2}, and so on,
+with respect to the solution to start from. This is only
 valid for restarting from algebraic problems or a constant-in-time
 solution.
 
 \subsection{\tt PAR}  \label{sec:PAR}
-This constant, where PAR={i1:x1,i2:x2}, changes the PAR(i1) to x1, PAR(i2) to
-x2 and so on, with respect to the solution to start from.
+This constant, where {\tt PAR=\{i1:x1,i2:x2\}}, changes the value of
+{\tt PAR(i1)}  to {\tt x1}, {\tt PAR(i2)} to
+{\tt x2}, and so on, with respect to the solution to start from.
 
 \subsection{\tt IRS}  \label{sec:IRS}
 This constant sets the label of the solution where the computation
@@ -4478,19 +4509,20 @@ This constant defines the problem type~:
 
 \section{ Output Control.} \label{sec:Output_control}
 \subsection{\tt unames}  \label{sec:U}
-This constant, where unames={i1:s1,i2:s2}, changes the names in all
-output from 'U(i1)' to 's1', from 'U(i2)' to 's2', and so on.
+This constant, where {\tt unames=\{i1:s1,i2:s2\}}, changes the names in all
+output from {\tt U(i1)} to {\tt s1}, from {\tt U(i2)} to {\tt s2}, and so on.
 You can also refer to these strings, instead of the corresponding indices,
 in the constants \texttt{U} and \texttt{THU}.
 
 \subsection{\tt parnames}  \label{sec:U}
-This constant, where parnames={i1:s1,i2:s2}, changes the names in all
-output from 'PAR(i1)' to 's1', from 'PAR(i2)' to 's2', and so on.
+This constant, where {\tt parnames=\{i1:s1,i2:s2\}}, changes the names in all
+output from {\tt PAR(i1)} to {\tt s1}, from {\tt PAR(i2)} to {\tt s2},
+and so on.
 You can also refer to these strings, instead of the corresponding indices,
 in the constants \texttt{ICP}, \texttt{THL}, and \texttt{UZR}.
 
 \subsection{\tt e}  \label{sec:e}
-This constant, where e='xxx', is only for use by post-processors:
+This constant, where {\tt e='xxx'}, is only for use by post-processors:
 it denotes the name of the equations file and is stored
 in the bifurcation diagram file (\filef{fort.7}), so restarts in the
 Python interface are possible without needing to specify the equations
@@ -4498,7 +4530,7 @@ file.
 
 \subsection{\tt sv} \label{sec:sv}
 This constant specifies a string to write the output to instead of
-{\tt fort.7}, {\tt fort.8}, and {\tt fort.9}: if sv='xxx', then
+{\tt fort.7}, {\tt fort.8}, and {\tt fort.9}: if {\tt sv='xxx'}, then
 the output files are
 {\tt b.xxx}, {\tt s.xxx}, and {\tt d.xxx}.
 
@@ -4600,7 +4632,7 @@ of defining solution measures; see Section~\ref{sec:Parameter_over_specification
 
 \begin{itemize}
 \item[-]
- Set {\tt UZR}=\{\} if no such output is needed. Many demos use this setting.
+ Set {\tt UZR=\{\}} if no such output is needed. Many demos use this setting.
 \item[-]
  Else one must enter pairs,
             ~\{{\it Parameter-Index} : {\it Parameter-Value}, ...\}~,\\
@@ -7513,7 +7545,77 @@ imaginary part.
 \end{center}
 \end{table}
 %==============================================================================
+\newpage
 
+%
+%==============================================================================
+%DEMO=um2======================================================================
+%==============================================================================
+\section{ um2 : Basic computation of a 2D unstable manifold.} \label{sec:Demos_um2}
+This demo shows how one can compute a 2D unstable manifold of an equilibrium
+using {\it orbit continuation}.
+The model equations are given by
+\begin{equation} \begin{array}{cl}
+ x' &= ~\eps x - y^3~, \\
+ y' &=   ~~y + x^3~. \\
+\end{array} \end{equation}
+The origin has eigenvalues $\eps$ and $1$, where $\eps>0$, so that its 
+unstable manifold is indeed $2$-dimensional. Since the phase space itself 
+is $2$-dimensional, one can also consider this demo as showing how to generate 
+part of a $2$-dimensional phase portrait. However, the basic steps in this demo 
+also apply to the computation of $2$-dimensional unstable manifolds of equilibria 
+in higher-dimensional phase space.
+
+In the computations the independent time variable $t$ is scaled to vary in
+the unit interval, so that the actual integration time $T$ becomes an 
+explicit parameter in the equations, namely,
+
+\begin{equation} \begin{array}{cl}
+ x' &= ~T~(\eps x - y^3)~, \\
+ y' &=      ~T~(~y + x^3)~. \\
+\end{array} \end{equation}
+
+To carry out the calculations run the Python script \filef{um2.auto} included 
+in the demo. In order to better appreciate the power of orbit continuation 
+for computing such manifolds, one can also run the script for a smaller value 
+of $\eps$, {\it e.g.}, $\eps=10^{-2},\cdots,10^{-6}$, by changing the value
+entered on the last line of the constants-file \filef{c.umn.2}. One can view
+the phase portrait by plotting the solutions in the solutions-file \filef{s.3}
+in the $x$-$y$ plane.
+
+In the first run an orbit is ``grown'' by continuation in the integration time 
+$T$, starting from a very small value of $T$, so that a solution that is
+constant in time is an accurate initial approximation. The starting solution is 
+in fact a point on a circle of small radius $r_0$ around the stationary point,
+{\it i.e.}, around the origin. For illustrative purpose the value of $r_0$ is
+$0.1$ in this demo, but could be smaller if more accuracy is needed.
+The precise starting point is in the strongly unstable direction, namely, in 
+the $y$-direction, which is the direction of the eigenvector associated with 
+the ``strongly unstable eigenvalue'', which here has value $1$. 
+The growing of the initial orbit is terminated when the norm of its endpoint 
+reaches the value 0.6, {\it i.e.}, when $\sqrt{x(1)^2+y(1)^2}=0.6$. 
+
+The value of $\eps$ is $0.5$ in the first run. In the second run continuation
+is used to decrease the value of $\eps$ to $0.1$ (or, if desired, to a smaller 
+value, as already mentioned above). The norm of the endpoint  $(x(1),y(1))$
+is fixed in the second run, while $T$ is variable.
+
+In the third run the norm of the endpoint remains fixed. However, the 
+initial point $(x(0),y(0))$ is allowed to move around the small circle of 
+radius $r_0$ around the orgin.  The endpoint thereby moves around the ``large''
+circle of radius $0.6$. The integration time $T$ remains variable.
+The orbits computed in this run generate the local 
+manifold.
+
+When viewing the orbits computed in the third run, as written in the file 
+\filef{s.3}, notice that orbits near the ``weakly unstable direction'',
+which here corresponds to the $x$ direction, have been well-computed. Such 
+orbits are sensitively dependent on the initial condition $(x(0),y(0))$ when 
+the problem is considered as an initial value problem. It is in fact the 
+{\it continuation} of the {\it entire orbits} using a {\it boundary value 
+approach} which enables their determination. As already mentioned, this 
+feature is even more visible when running this demo with a smaller value 
+of $\eps$.
 
 %==============================================================================
 %==============================================================================

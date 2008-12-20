@@ -1,0 +1,23 @@
+
+#==============
+# Demo um2
+#==============
+
+dl("1")
+dl("2")
+dl("3")
+
+print "\n***Grow an initial orbit by continuation***"
+init = run(e='um2',c='um2.1')
+save(init, '1')
+
+print "\n***Decrease the value of the problem parameter eps***"
+decr = run(init,c='um2.2')
+save(decr, '2')
+
+print "\n***Allow the initial condition to move around a small circle***"
+circle = run(decr,c='um2.3')
+save(circle, '3')
+
+print "\n***Clean the directory***"
+cl()

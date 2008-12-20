@@ -1,4 +1,2 @@
-copydemo('ab')
-load(equation='ab')
-load(constants='ab.1')
-run()
+demo('ab')
+run(e='ab',c='ab.1')

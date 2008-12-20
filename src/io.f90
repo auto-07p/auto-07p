@@ -865,13 +865,13 @@ CONTAINS
     CHARACTER(13), INTENT(IN) :: NAME
     TYPE(INDEXSTR), INTENT(IN) :: NAMES(:)
     CHARACTER(13) PNAME
-    INTEGER I,SIGN
+    INTEGER I,SIGN,ios
 
     ! map a symbolic parameter name or an ascii integer to an index
 
     SIGN=1
     IF(NAME(1:1)=='-')THEN
-       PNAME=NAME(1:)
+       PNAME=NAME(2:)
        SIGN=-1
     ELSE
        PNAME=NAME
@@ -885,7 +885,11 @@ CONTAINS
     IF(TRIM(PNAME)=='PERIOD')THEN
        NAMEIDX=SIGN*11
     ELSE
-       READ(NAME,*)NAMEIDX
+       READ(NAME,*,IOSTAT=ios)NAMEIDX
+       IF(ios/=0)THEN
+          WRITE(6,"(A,A,A)")"Name '",TRIM(NAME),"' not found."
+          STOP
+       ENDIF
     ENDIF
   END FUNCTION NAMEIDX
 
