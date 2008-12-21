@@ -1421,6 +1421,12 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
                 func=commandAppend(sv,self.ap)
             rval=func()
             ret.value = ret.value + rval.value
+        if self.runner is None:
+            # delete ["sv"] from the global runner
+            global _runner
+            c = _runner.options.get("constants") or {}
+            if c.has_key("sv"):
+                c["sv"] = None
         return ret
 
 class commandRunDemo(commandWithRunner):
