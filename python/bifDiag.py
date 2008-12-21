@@ -61,6 +61,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     for k,x in map(d._gettypelabel, d.labels.getIndices()):
                         if x.has_key("solution") and x["LAB"] != 0:
                             s = x["solution"]
+                            self.options['makefile'] = s.options['makefile']
                             if s._mlab != mlab:
                                 news = s.__class__(s)
                                 news._mlab = mlab
@@ -270,7 +271,6 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     if x.has_key("solution") and x["LAB"] != 0:
                         label = label + 1
                         news = x["solution"].__class__(x["solution"])
-                        news.data = news.data.copy()
                         news["LAB"] = label
                         x["solution"] = news
             return new
@@ -290,9 +290,8 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                 if x.has_key("solution"):
                     news = x["solution"].__class__(x["solution"])
                     news._mlab = mlab
-                    news.data = news.data.copy()
-                    news.data["PT"] = abs(x["PT"])
-                    news.data["LAB"] = x["LAB"]
+                    news["PT"] = abs(x["PT"])
+                    news["LAB"] = x["LAB"]
                     x["solution"] = news
         return new
 

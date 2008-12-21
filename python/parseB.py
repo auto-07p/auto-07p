@@ -808,7 +808,7 @@ class parseBR(UserList.UserList,AUTOBranch):
     def relabel(self,old_label=None,new_label=None):
         if new_label is None:
             label = 1
-            new = self.__class__()
+            new = []
             for d in self.data:
                 newd = d.relabel(label)
                 for idx,val in newd.labels.sortByIndex():
@@ -817,7 +817,7 @@ class parseBR(UserList.UserList,AUTOBranch):
                             label = v["LAB"]
                 new.append(newd)
                 label = label + 1
-            return new
+            return self.__class__(new)
         for d in self.data:
             d.relabel(old_label,new_label)
 
@@ -849,13 +849,12 @@ class parseBR(UserList.UserList,AUTOBranch):
                 i = i + l
                 section = section + 1
             raise KeyError("Label %s not found"%label)
-        new = self.__class__()
-        new.data = []
+        new = []
         for d in self.data:
             newbranch = d.getLabel(label)
             if newbranch:
-                new.data.append(newbranch)
-        return new
+                new.append(newbranch)
+        return self.__class__(new)
 
     def __getitem__(self,index):
         try:
@@ -976,10 +975,10 @@ class parseBR(UserList.UserList,AUTOBranch):
         """Subtracts branch branches using interpolation with respect to other
         with monotonically increasing or decreasing reference coordinate ref,
         and starting point pt"""
-        new = self.__class__()
+        new = []
         for d in self.data:
             new.append(d.subtract(other,ref,pt))
-        return new
+        return self.__class__(new)
 
     def toArray(self):
         array = []

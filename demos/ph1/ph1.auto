@@ -1,0 +1,25 @@
+
+#==========
+# Demo ph1
+#==========
+
+print "\n***Compute stationary solutions***"
+sa = run(e='ph1',c='ph1.ss')
+
+print "\n***Compute periodic solutions***"
+startsa = load(sa,c='ph1.ps')
+for hb in startsa('HB'):
+    sa = sa + run(hb)
+
+print "\n***Relabel and save the sa output files***"
+sa = rl(sa)
+save(sa, 'sa')
+
+print "\n***Phase shift of Solution 6 in s.sa***"
+ph1 = run(sa(6),c='ph1')
+ph1 = rl(ph1)
+save(ph1, 'ph1')
+
+print "\n***Clean the directory***"
+cl()
+

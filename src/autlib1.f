@@ -927,8 +927,13 @@ C
          PREV=C
          I=I+1
       ENDDO
-      NPOS=NPOS+VERIFY(STR(NPOS:)," ,")-1
-      IF(NPOS>=LEN_TRIM(STR))NPOS=1
+      I=VERIFY(STR(NPOS:)," ,")
+      IF(I==0)THEN
+         NPOS=1
+      ELSE
+         NPOS=NPOS+I-1
+         IF(NPOS>=LEN_TRIM(STR))NPOS=1
+      ENDIF
       END SUBROUTINE SCANVALUE
 
 C     ---------- -------

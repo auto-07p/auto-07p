@@ -6137,6 +6137,66 @@ out by running the Python script \filef{plp.auto} included in the demo.
 
 \newpage
 %==============================================================================
+%DEMO=ph1======================================================================
+%==============================================================================
+\section{ ph1 : Phase-Shifting using Continuation.} \label{sec:Demos_ph1}
+This demo, which uses the activator-inhibitor model in 
+\citename{DoKeKe:91a} \citeyear{DoKeKe:91a}, shows how one can
+phase-shift a periodic solution. This can be useful in applications, for example 
+when one wants a component of a periodic solution to have a specific value at 
+time $0$.
+The equations are given by
+\begin{equation} \begin{array}{cl}
+ s' &= (s_{0} - s) - \rho R (s,a)~, \\
+ a' &=\alpha (a_{0} - a) - \rho R (s,a)~, \\
+\end{array} \end{equation}
+where
+$$ R(s,a)=\frac{s a}{1+s+ \kappa s^{2} }~.$$
+The first two runs compute a family
+of stationary solutions and a bifurcating family of periodic solutions.
+The free problem parameter in these runs is $\rho$.
+The results are saved in the files \filef{b.sa}, \filef{s.sa}, and \filef{d.sa}.
+The third run starts at a specified
+periodic solution in \filef{s.sa}, namely, the solution with label $6$, and
+phase-shifts this solution in time until $s(0)=30$. The above sequence of 
+calculations can be carried out by running the Python script \filef{ph1.auto} 
+included in the demo.
+
+The basic idea for doing the phase shift in the third run is to drop the integral 
+phase condition, which is automatically added when the {\cal AUTO}-constant \parf{IPS}
+has value $2$. For this purpose the third run uses the value $4$ for \parf{IPS},
+as specified in \filef{c.ph1}, in which case the periodicity conditions must be
+specified explicitly in the subroutine {\tt BCND} in the equations-file \filef{ph1.f90}. 
+Also, the interval of periodicity must be scaled explicitly to the interval $[0,1]$, 
+which introduces the period $T$ as an explicit parameter in the differential equations.
+Note that no integral phase condition is specified in {\tt ICND}. 
+The problem formulation in \filef{ph1.f90} is therefore
+
+\begin{equation} \begin{array}{cl}
+ s' &= T[(s_{0} - s) - \rho R (s,a)]~, \\
+ a' &= T[\alpha (a_{0} - a) - \rho R (s,a)]~, \\
+\end{array} \end{equation}
+\\
+with boundary conditions
+\\
+\begin{equation} \begin{array}{cl}
+ s(0) - s(1) &= 0~, \\
+ a(0) - a(1) &= 0~. \\
+\end{array} \end{equation}
+
+Note that the \AUTO parameter {\tt PAR(9)}, defined in the subroutine
+{\tt PVLS} in \filef{ph1.f90}, is used to monitor the value of $s(0)$.
+Since there are two constraints, the third run requires only one free 
+parameter, namely $T$ ({\tt PAR(11)}). Note that, to numerical accuracy, 
+$T$ does not change during this run.
+Alternatively one can use the free parameter $\rho$ ({\tt PAR(4)})
+in the third run. In this case, to numerical accuracy, $\rho$ does not 
+change during the run.
+The third run terminates when {\tt PAR(9)} reached the value $30$, as 
+specified in the equations-file \filef{c.ph1}.
+
+\newpage
+%==============================================================================
 %DEMO=pp3======================================================================
 %==============================================================================
 \section{ pp3 : Periodic Families and Loci of Hopf Points.} \label{sec:Demos_pp3}
