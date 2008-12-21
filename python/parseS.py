@@ -381,21 +381,23 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             self.options["constants"] = parseC.parseC(self.options["constants"])
             self.options["constants"]["IRS"] = irs
             self.data = self.data.copy()
-            self.coordnames = []
             names = kw.get("unames",c.get("unames"))
             if names is not None:
                 if type(names) != type({}):
                     names = dict(names)
                 if names != {}:
-                    for i in range(1,max(names.keys())+1):
+                    l = len(self.coordnames)
+                    self.coordnames = []
+                    for i in range(1,max(names.keys())+1,l+1):
                         self.coordnames.append(names.get(i,'U('+str(i)+')'))
             names = kw.get("parnames",c.get("parnames"))
-            self.__parnames = []
             if names is not None:
                 if type(names) != type({}):
                     names = dict(names)
                 if names != {}:
-                    for i in range(1,max(names.keys())+1):
+                    l = len(self.__parnames)
+                    self.__parnames = []
+                    for i in range(1,max(names.keys())+1,l+1):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             if self.__fullyParsed:
                 self.PAR = AUTOParameters(coordnames=self.__parnames,

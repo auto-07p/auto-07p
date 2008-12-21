@@ -271,7 +271,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                         label = label + 1
                         news = x["solution"].__class__(x["solution"])
                         news.data = news.data.copy()
-                        news.data["LAB"] = label
+                        news["LAB"] = label
                         x["solution"] = news
             return new
         parseB.parseBR.relabel(self,old_label,new_label)

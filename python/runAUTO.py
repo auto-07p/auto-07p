@@ -86,11 +86,19 @@ class runAUTO:
     def __parseOptions(self,dict):
         # first the normal parameters, then IRS=... style parameters
         for key in dict.keys():
-            if self.options.has_key(key):
+            if (key == "constants" and dict[key] is not None and
+                self.options.get(key) is not None):
+                c = self.options[key]
+                for k, v in dict[key].items():
+                    if v is not None:
+                        c[k] = v
+            elif self.options.has_key(key):
                 self.options[key] = dict[key]
         for key,value in dict.items():
             if (self.options.has_key(key) or key in ['t','LAB','PT','BR','TY']
                 or key[:7] == 'Active '):
+                continue
+            if value is None:
                 continue
             if self.options["constants"] is None:
                 self.options["constants"]=parseC.parseC()
