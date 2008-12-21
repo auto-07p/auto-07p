@@ -806,7 +806,15 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
         n1d = self.name1["diagnostics"]
         if n1d is None:
             n1d = "fort.9"
-        f = open(n1d)
+        try:
+            f = open(n1d)
+        except TypeError:
+            for branch in n1d:
+                for s in string.split(str(branch.diagnostics),"\n"):
+                    if string.find(s,self.diagnostic) != -1:
+                        rval.info(s+"\n")
+            rval.info("\n")
+            return rval
         try:
             for s in f:
                 if self.diagnostic in s:

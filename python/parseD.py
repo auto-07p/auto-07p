@@ -29,10 +29,10 @@ class parseD(UserList.UserList):
         return self.getLabel(label)
 
     def __str__(self):
-        s = ""
+        s = []
         for d in self.data:
-            s = s + d["Text"]
-        return s
+            s.append(d["Text"])
+        return string.join(s,"")
 
     def getIndex(self,index):
         self.__readAll()
