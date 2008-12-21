@@ -576,40 +576,50 @@ class LabeledGrapher(BasicGrapher):
         #C---     *x1, y1 ARE SCREEN COORDINATES
         xi = (x1 - sp1) / sp2
         yi = (y1 - sp3) / sp4
-        rd = math.pi / 180.0
-        start = rd * 30.0
-        radius = 2
+        pi2 = math.pi * 2.0
+        start = pi2 / 12.0
         npoint = 16
 
-        found = 0
-        while radius < 70:
-            radius = radius + 1
+        hx = len(mp) - 5
+        hy = len(mp[0]) - 5
+        found = False
+        for radius in range(3,71):
             npoint = npoint + 8
             st     = start
-            rinc   = rd * 360.0 / float(npoint)
+            rinc   = pi2 / float(npoint)
 
             for i in range(npoint):
                 xd = int(xi + radius * math.cos(st))
                 yd = int(yi + radius * math.sin(st))
-                if self.emptsp(xd,yd,mp):
-                    r1 = (radius + 3) * sp2
-                    ix = x1 + r1 * math.cos(st)
-                    iy = y1 + r1 * math.sin(st)
-                    if (ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy):
-                        found = 1
-                        break
+                #-------------------------------------------------------
+                #   Organize the search along two sides of
+                #   a square of size 2(xd) with pnt xi, yi in its center.
+                #--------------------------------------------------------
+                if xd <= hx and xd >= 3 and yd <= hy and yd >= 3:
+                    found = True
+                    for col in mp[xd-2:xd+3]:
+                        if max(col[yd-2:yd+3]) == 1:
+                            found = False
+                            break
+                    if found:
+                        r1 = (radius + 3) * sp2
+                        ix = x1 + r1 * math.cos(st)
+                        iy = y1 + r1 * math.sin(st)
+                        if ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy:
+                            break
+                        found = False
                 st = st + rinc
             if found:
                 break
 
-        if radius >= 70:
+        if not found:
             return [1,1,10,10,11,11,4] #if no empty space
 
-        for i1 in range(xd-2,xd+3):
+        for col in mp[xd-2:xd+3]:
             for i2 in range(yd-1,yd+2):
-                mp[i1][i2] = 1
+                col[i2] = 1
 
-        pos = int((st/rd - 22.5) / 45)
+        pos = int(st/pi2*8.0 - 0.5)
         radius = radius * sp2
         cosst = math.cos(st)
         sinst = math.sin(st)
@@ -625,21 +635,6 @@ class LabeledGrapher(BasicGrapher):
     def getpos(self,pos):
         anchor = [ "sw", "s", "se", "e", "ne", "n", "nw", "w", "sw" ]
         return anchor[pos]
-
-    #-----------------------------------------------------------------------
-    #   Organizes the search along two sides of
-    #   a square of size 2(xd) with pnt xi, yi in its center.
-    #-----------------------------------------------------------------------
-    def emptsp(self,ix,iy,mp):
-       if ix > len(mp) - 5 or ix < 3:
-           return 0
-       if iy > len(mp[0]) - 5 or iy < 3:
-           return 0
-       for i in range(ix-2,ix+3):
-           for j in range(iy-2,iy+3):
-               if mp[i][j]:
-                   return 0
-       return 1
 
     #-----------------------------------------------------------------------
     #    Initializes the map array that is

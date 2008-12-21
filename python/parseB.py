@@ -201,6 +201,13 @@ class AUTOBranch(Points.Pointset):
                 coordarray = self.__parsenumpy(ncolumns,data)
             else:
                 coordarray = self.__parsearray(ncolumns,data)
+        # sometimes the columns names are the same: add spaces to those
+        for i in range(len(self.coordnames)):
+            name = self.coordnames[i]
+            if self.coordnames.count(name) > 1:
+                for j in range(i+1,len(self.coordnames)):
+                    if self.coordnames[j] == name:
+                        self.coordnames[j] = name + ' '
         Points.Pointset.__init__(self,{
             "coordarray": coordarray,
             "coordnames": self.coordnames,
