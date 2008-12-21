@@ -5389,7 +5389,7 @@ This demo is full scripted, see Table~\ref{tbl:demo_ab}.
   \commandf{ demo('ab')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ execfile('ab.auto')} & run the demo \\
+  \commandf{ auto('ab.auto')} & run the demo \\
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{ ab}.}
@@ -5865,7 +5865,7 @@ command and using {\cal PLAUT04}.
 \hline
 %============================================================================== 
   \commandf{ auto pp2.auto } or & Run the script pp2.auto\\
-  \commandf{ execfile('pp2.auto') } & \\
+  \commandf{ auto('pp2.auto') } & \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -6116,7 +6116,7 @@ is also free.
 \section{ plp : Fold Continuation for Periodic Solutions.} \label{sec:Demos_plp}
 This demo, which corresponds to computations in 
 \citename{DoKeKe:91a} \citeyear{DoKeKe:91a}, shows how one can
-continue a fold on a family of periodic solution in two parameters.
+continue folds on a family of periodic solutions in two parameters.
 The calculation of a locus of Hopf bifurcations is also included.
 The equations, that model a one-compartment activator-inhibitor system 
 (\citename{JPK:80} \citeyear{JPK:80}),
@@ -6129,50 +6129,11 @@ where
 $$ R(s,a)=\frac{s a}{1+s+ \kappa s^{2} },
 \qquad \kappa  > 0. $$
 The free parameter is $\rho$.
-In the fold continuation $s_0$ is also free.
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{| l | l |}
-\hline
-  \AUTO-COMMAND  & ACTION \\
-\hline
-%==============================================================================
-  \commandf{ ! mkdir plp} & create an empty work directory \\ 
-  \commandf{ cd plp} & change directory \\
-  \commandf{ demo('plp')} & copy the demo files to the work directory \\
-\hline
-%==============================================================================
-  \commandf{ ld('plp')} & load the problem definition \\ 
-  \commandf{ run(c='plp.1')} & 1st run; compute a stationary solution family and locate HBs \\ 
-  \commandf{ sv('plp')} & save output-files as \filef{ b.plp, s.plp, d.plp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='plp.2',s='plp')} & \parbox[t]{3in}{ compute a family of periodic solutions and locate a fold.  Constants changed : \parf{ IPS, IRS, NMX} \vspace{0.2cm}} \\ 
-  \commandf{ ap('plp')} & append output-files to \filef{ b.plp, s.plp, d.plp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='plp.3',s='plp')} & \parbox[t]{3in}{ Compute a locus of Hopf bifurcation points.  Constants changed : \parf{ IPS, ICP, ISW, NMX, RL1} \vspace{0.2cm}} \\ 
-  \commandf{ sv('2p')} & save output-files as \filef{ b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='plp.4',s='plp')} & \parbox[t]{3in}{ generate starting data for the fold continuation.  Constants changed : \parf{ IPS, IRS, ICP, NMX} \vspace{0.2cm}} \\ 
-  \commandf{ sv('tmp')} & save output-files as \filef{ b.tmp, s.tmp, d.tmp} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='plp.5',s='tmp')} & \parbox[t]{3in}{  fold continuation; restart data from \filef{ s.tmp}.  Constants changed : \parf{ IRS, UZR} \vspace{0.2cm}} \\ 
-  \commandf{ ap('2p')} & append output-files to \filef{ b.2p, s.2p, d.2p} \\ 
-\hline
-%==============================================================================
-  \commandf{ run(c='plp.6',s='2p')} & \parbox[t]{3in}{ compute an isola of periodic solutions; restart data from \filef{ s.2p}.  Constants changed : \parf{ IRS, ISW, NMX, UZR } \vspace{0.2cm}} \\ 
-  \commandf{ sv('iso')} & save output-files as \filef{ b.iso, s.iso, d.iso} \\ 
-\hline
-%==============================================================================
-\end{tabular}
-\caption{Commands for running demo \filef{ plp}.}
-\label{tbl:demo_plp}
-\end{center}
-\end{table}
+In the Hopf and fold continuations the parameter $s_0$ is also free.
+The computed loci of Hopf points and folds suggest the existence
+of {\it isolas} of periodic solutions. The computation of one such 
+isola is also included in this demo. All calculations can be carried 
+out by running the Python script \filef{plp.auto} included in the demo.
 
 \newpage
 %==============================================================================
@@ -6217,7 +6178,7 @@ is continued in two parameters, also producing the other locus.
 \hline
 %============================================================================== 
   \commandf{ auto pp3.auto } or & Run the script pp3.auto\\
-  \commandf{ execfile('pp3.auto') } & \\
+  \commandf{ auto('pp3.auto') } & \\
 %==============================================================================
 \hline
 %==============================================================================
@@ -6652,7 +6613,7 @@ Running the Python script \filef{r3b.auto} will generate the families of periodi
 solutions L1, H1, and V1, for the case of the mass-ratio $\mu=0.063$:
 \begin{center}
 \begin{tabular}{l | l }
-\commandf{auto r3b.auto} & \commandf{execfile('r3b.auto')} \\
+\commandf{auto r3b.auto} & \commandf{auto('r3b.auto')} \\
 \end{tabular}
 \end{center}
 where, as in the following examples, the left hand side command can be used
@@ -6735,7 +6696,7 @@ been entered there.\\
 Now run the Python script \filef{L1a.auto}:
 \begin{center}
 \begin{tabular}{ l | l }
-\commandf{auto L1a.auto} & \commandf{execfile('L1a.auto')}
+\commandf{auto L1a.auto} & \commandf{auto('L1a.auto')}
 \end{tabular}
 \end{center}
 This will run \filef{r3b.auto} as above if this was not already done.
@@ -6769,7 +6730,7 @@ quite a bit of CPU time and generate big data files.
 \multicolumn{2}{|l|}{Copy the r3b demo to the local directory r3b.}\\
 \hline
 
-\commandf{auto r3b.auto} & \commandf{execfile('r3b.auto')} \\
+\commandf{auto r3b.auto} & \commandf{auto('r3b.auto')} \\
 \multicolumn{2}{|l|}{Generate the CR3BP AUTO data files.} \\
 \hline
 
@@ -6938,7 +6899,7 @@ Save the results in \filef{b.L1a}, \filef{s.L1a}, and \filef{d.L1a}.
 \noindent Use
 \begin{center}
 \begin{tabular}{ l | l }
-\commandf{auto clean.auto} & \commandf{execfile('clean.auto')}\\
+\commandf{auto clean.auto} & \commandf{auto('clean.auto')}\\
 \end{tabular}
 \end{center}
 to remove all generated files.
@@ -7037,13 +6998,13 @@ Follow the instructions for L1a above, where you replace L by H throughout,
 for instance you can run everything in one go using
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto H1a.auto} & \commandf{execfile('H1a.auto')} \\
+	\commandf{auto H1a.auto} & \commandf{auto('H1a.auto')} \\
 \end{tabular}
 \end{center}
 or with the extra calculations:
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto H1aX.auto} & \commandf{execfile('H1aX.auto')} \\
+	\commandf{auto H1aX.auto} & \commandf{auto('H1aX.auto')} \\
 \end{tabular}
 \end{center}
 The Floquet eigenfunction is now computed from label 7 with step size
@@ -7110,13 +7071,13 @@ Follow the instructions for L1a above, where you replace L by H, and a by b
 throughout; for instance you can run everything in one go using
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto H1b.auto} & \commandf{execfile('H1b.auto')} \\
+	\commandf{auto H1b.auto} & \commandf{auto('H1b.auto')} \\
 \end{tabular}
 \end{center}
 or with the extra calculations:
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto H1bX.auto} & \commandf{execfile('H1bX.auto')} \\
+	\commandf{auto H1bX.auto} & \commandf{auto('H1bX.auto')} \\
 \end{tabular}
 \end{center}
 The Floquet eigenfunction is now computed from label 3 with step size
@@ -7154,7 +7115,7 @@ Follow the instructions for L1a above, where you replace L by H, and a by c
 throughout; for instance you can run everything in one go using
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto H1c.auto} & \commandf{execfile('H1c.auto')} \\
+	\commandf{auto H1c.auto} & \commandf{auto('H1c.auto')} \\
 \end{tabular}
 \end{center}
 The Floquet eigenfunction is now computed from label 68 with step size
@@ -7169,7 +7130,7 @@ Follow the instructions for L1a above, where you replace L by V throughout,
 for instance you can run everything in one go using
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto V1a.auto} & \commandf{execfile('V1a.auto')} \\
+	\commandf{auto V1a.auto} & \commandf{auto('V1a.auto')} \\
 \end{tabular}
 \end{center}
 The Floquet eigenfunction is now computed from label 8 with step size
@@ -7223,13 +7184,13 @@ Follow the instructions for L1a above, where you replace L by V, and a by b
 throughout; for instance you can run everything in one go using
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto V1b.auto} & \commandf{execfile('V1b.auto')} \\
+	\commandf{auto V1b.auto} & \commandf{auto('V1b.auto')} \\
 \end{tabular}
 \end{center}
 or with the extra calculations:
 \begin{center}
 \begin{tabular}{l|l}
-	\commandf{auto V1bX.auto} & \commandf{execfile('V1bX.auto')} \\
+	\commandf{auto V1bX.auto} & \commandf{auto('V1bX.auto')} \\
 \end{tabular}
 \end{center}
 The Floquet eigenfunction is now computed from label 12 with step size
@@ -7424,7 +7385,7 @@ stops at $p_2=\pm 9$, and also makes sure that $0 \le p_1 \le 5.5$.
 \hline
 %==============================================================================
   \commandf{ auto bvp.auto } or & Run the script bvp.auto\\
-  \commandf{ execfile('bvp.auto') } & \\
+  \commandf{ auto('bvp.auto') } & \\
 \hline
 %==============================================================================
 \end{tabular}

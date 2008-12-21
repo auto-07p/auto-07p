@@ -1,0 +1,41 @@
+
+#=========
+# Demo plp
+#=========
+
+print "\n***Compute stationary solutions***"
+plp = run(e='plp',c='plp.ss')
+
+print "\n***Compute periodic solutions***"
+for hb in plp('HB'):
+    ps = run(hb,c='plp.ps')
+    plp = plp + ps
+
+print "\n***Relabel and save the plp output files***"
+plp = rl(plp)
+save(plp, 'plp')
+
+print "\n***Follow Hopf bifurcation***"
+hbstart = load(plp("HB1"), c='plp.hb')
+loci = run(hbstart)
+loci = loci + run(hbstart, DS='-')
+loci = merge(loci)
+
+print "\n***Follow periodic orbit folds: Starting data***"
+lpstart = run(plp('LP1'),c='plp.plp')
+
+print "\n***Follow periodic orbit folds***"
+loci = loci + merge(run(lpstart) + run(lpstart, DS='-'))
+
+print "\n***Relabel and save the loci output files***"
+loci = rl(loci)
+save(loci, 'loci')
+
+print "\n***Compute an isola of periodic solutions***"
+isostart = load(loci('UZ4'), c='plp.iso')
+iso = merge(run(isostart) + run(isostart, DS='-'))
+iso = relabel(iso)
+save(iso, 'iso')
+
+print "\n***Clean the directory***"
+cl()

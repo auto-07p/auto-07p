@@ -1,0 +1,10 @@
+#==============
+# AUTO Demo plp
+#==============
+
+print "\n***Clean the directory***"
+
+dl("plp")
+dl("loci")
+dl("iso")
+cl()
