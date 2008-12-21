@@ -1,2 +1,4 @@
 demo('ab')
-run(e='ab',c='ab.1')
+ab = load(equation='ab')
+ab = load(ab, constants='ab.1')
+run(ab)

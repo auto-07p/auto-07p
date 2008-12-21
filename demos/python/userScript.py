@@ -1,3 +1,6 @@
+# This is an example script for the AUTO07p command line user
+# interface.  See the "Command Line User Interface" chapter in the
+# manual for more details.
 from auto import *
 
 def myRun(demoname):
@@ -22,5 +25,3 @@ def myRun(demoname):
     save(r, demoname)
     plot(r)
     wait()
-
-myRun('bvp')

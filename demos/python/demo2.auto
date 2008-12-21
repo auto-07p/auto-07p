@@ -1,7 +1,8 @@
 demo('bvp')
 
 bvp = run('bvp')
-for solution in bvp("BP"):
+branchpoints = bvp("BP")
+for solution in branchpoints:
     bp = load(solution, ISW=-1, NTST=50)
     # Compute forwards
     print "Solution label", bp["LAB"], "forwards"
@@ -9,7 +10,9 @@ for solution in bvp("BP"):
     # Compute backwards
     print "Solution label", bp["LAB"], "backwards"
     bw = run(bp,DS='-')
-    bvp = bvp + merge(fw + bw)
+    both = fw + bw
+    merged = merge(both)
+    bvp = bvp + merged
 
 bvp=relabel(bvp)
 save(bvp, 'bvp')

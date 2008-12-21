@@ -48,7 +48,7 @@ Thomas Fairgrieve (Toronto),
 Yuri Kuznetsov (Utrecht),
 Randy Paffenroth (Pasadena),
 \\
-Bj\"orn Sandstede (Surrey),
+Bj\"orn Sandstede (Brown),
 Xianjun Wang,
 and
 Chenghai Zhang.\\
@@ -431,7 +431,7 @@ Similarly, for the continuation of Hopf bifurcations,
 the effective dimension is 3{\tt NDIM}+2.
  
  
-\section{Compatibility with Earlier Versions.} \label{sec:Compatibility}
+\section{ Compatibility with Earlier Versions.} \label{sec:Compatibility}
 Unlike earlier versions, \AUTO can no longer be compiled using a pure
 Fortran 77 compiler, but you need at least a Fortran 90 compiler.
 A free Fortran 95 compiler, GFortran, is shipped with most recent
@@ -471,7 +471,7 @@ but by {\tt PAR(11)} in the constants file. Equation files
 written in C are used in the homoclinic branch switching
 demo in Chapter~\ref{ch:HomCont_hbs}.
  
-\section{Parallel Version.} \label{sec:Parallel}
+\section{ Parallel Version.} \label{sec:Parallel}
 \AUTO contains code which allows
 it to run in on parallel computers.  Namely,
 it can use either OpenMP to run most of its code in parallel
@@ -884,13 +884,13 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  in that it facilitates the interactive creating and editing of 
  equations-files and constants-files.
  It differs from the other command language in that it is based 
- on the object-oriented scripting language \python~ (see \citename{Lut:96} \citeyear{Lut:96})
+ on the object-oriented scripting language \python (see \citename{Lut:96} \citeyear{Lut:96})
  and provides extensive programming capabilities.
  This chapter will provide documentation for the \AUTO CLUI commands,
- but is not intended as a tutorial for the \python~ language.
+ but is not intended as a tutorial for the \python language.
  We will attempt to make this chapter self contained by describing
- all \python~ constructs that we use in the examples, but
- for more extensive documentation on the \python~ language,
+ all \python constructs that we use in the examples, but
+ for more extensive documentation on the \python language,
  including tutorials and pointers to further documentation,
  please see \citename{Lut:96} \citeyear{Lut:96} or the
  web page \url{http://www.python.org} which contains
@@ -962,7 +962,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  demo1.auto & \begin{minipage}{3in}\smallskip The demo script from Section~\ref{sec:clui_first_example}.\smallskip\end{minipage} \\
  \hline
- demo2.auto & \begin{minipage}{3in}\smallskip The demo script from Section~\ref{sec:clui_complex_example}.\smallskip\end{minipage} \\
+ demo2.auto, demo3.auto, and demo4.auto & \begin{minipage}{3in}\smallskip The demo scripts from Section~\ref{sec:clui_complex_example}.\smallskip\end{minipage} \\
  \hline
  userScript.xauto & \begin{minipage}{3in}\smallskip The expert demo script from Figure~\ref{exa:clui_complex_function}.\smallskip\end{minipage} \\
  \hline
@@ -1095,9 +1095,10 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Next, \commandf{ab = load(equation='ab')} 
  (Section~\ref{sec:clui_ref_basic} in the reference)
  informs the \AUTO CLUI that the name of
- the user defined function file is \filef{ab.f90}.  The command
- \commandf{load} is one of the most commonly used commands in the
- \AUTO CLUI, since it reads and parses the user files which are
+ the user defined function file is \filef{ab.f90}.  The commands
+ \commandf{load}, and the closely related \commandf{run}, are
+ two of the most commonly used commands in the
+ \AUTO CLUI, since they read and parse the user files which are
  manipulated by other commands.  The \AUTO CLUI stores this setting in
  the variable {\tt ab} until it is changed by a command,
  such as another \commandf{load}
@@ -1115,7 +1116,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  (Section~\ref{sec:clui_ref_basic} in the reference)
  uses the user defined functions loaded
  by the \commandf{load(equation='ab')} command, and the \AUTO constants
- loaded by the \commandf{load(constants='ab.1')} to run \AUTO.
+ loaded by the \commandf{load(constants = 'ab.1')} to run \AUTO.
 
  The \commandf{run} command returns a bifurcation diagram structure. It can
  be referenced using the special \commandf{\_} variable in interactive
@@ -1183,6 +1184,10 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  For example, the two commands in Figure~\ref{exa:clui_two_command}
  have the same effect as the single command in 
  Figure~\ref{exa:clui_one_command}.
+ Last, you can bypass the \commandf{load} command, unless the
+ intermediate result is needed, and use the \commandf{run} command
+ directly on the \commandf{load} arguments, as in
+ Figure~\ref{exa:clui_one_run_command}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
@@ -1210,24 +1215,36 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{exa:clui_one_command}
  \end{figure}
 
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> runab1 = run(e='ab',c='ab.1')
+ Runner configured
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption[Loading two files at the same time and running]
+ {Loading two files at the same time and run using them.}
+ \label{exa:clui_one_run_command}
+ \end{figure}
+
  Also, since it is common that several files will be loaded that
  have the same base name \commandf{load('ab')} performs the same 
  action as \commandf{load(e='ab', c='ab', b='ab', s='ab', d='ab',
    h='ab')}. 
- Note,
- for the command \commandf{load('ab')} it is only required that 
- \filef{ab.f90} and \filef{c.ab} exist;  \filef{s.ab} and
- \filef{h.ab} are optional, and if they do not exist,
- no error message will be given.  
+ Note, for the command \commandf{load('ab')} it is not required that all
+ of the files exist. Information from all existing files is used only
+ if they exist, and no error message will be given for non-existing
+ files. However, later \commandf{run} commands may cause \AUTO to err
+ with incomplete information.
 
  \section{ Scripting }
 
  Section~\ref{sec:clui_first_example} showed commands
  being interactively entered at the \AUTO CLUI
  prompt, but since the \AUTO CLUI is based 
- on \python~ one has the ability to write
+ on \python one has the ability to write
  scripts for performing sequences of commands
- automatically.  A \python~ script is very similar
+ automatically.  A \python script is very similar
  to the interactive mode shown in Section~\ref{sec:clui_first_example}
  except that the commands are placed in a file and
  read all at once.  For example, if the
@@ -1241,7 +1258,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \begin{figure}[htb]
  {\small \begin{center} \begin{boxedverbatim}
  demo('ab')
- run(e='ab',c='ab.1')
+ ab = load(equation='ab')
+ ab = load(ab, constants='ab.1')
+ run(ab)
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1257,10 +1276,14 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  {\small \begin{center} \begin{boxedverbatim}
  > cat demo1.auto
  demo('ab')
- run(e='ab',c='ab.1')
+ ab = load(equation='ab')
+ ab = load(ab, constants='ab.1')
+ run(ab)
 
  > auto demo1.auto 
  Copying demo ab ... done
+ Runner configured
+ Runner configured
  Runner configured
  gfortran -fopenmp -O -c ab.f90 -o ab.o
  gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
@@ -1295,9 +1318,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  In Section~\ref{sec:clui_first_example} we showed a very simple
  \AUTO CLUI script, in this Section we will describe a more
  complex example, which introduces several new \AUTO CLUI
- commands as well as some basic \python~ constructs for conditionals
- and looping.  We will not provide an exhaustive reference for
- the \python~ language, but only 
+ commands as well as a basic \python construct for looping.
+ We will not provide an exhaustive reference for
+ the \python language, but only 
  the very basics.  For more extensive documentation we refer the
  reader to \citename{Lut:96} \citeyear{Lut:96} or the
  web page \url{http://www.python.org}.
@@ -1310,7 +1333,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  demo('bvp')
 
  bvp = run('bvp')
- for solution in bvp("BP"):
+ branchpoints = bvp("BP")
+ for solution in branchpoints:
      bp = load(solution, ISW=-1, NTST=50)
      # Compute forwards
      print "Solution label", bp["LAB"], "forwards"
@@ -1318,7 +1342,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
      # Compute backwards
      print "Solution label", bp["LAB"], "backwards"
      bw = run(bp,DS='-')
-     bvp = bvp + merge(fw + bw)
+     both = fw + bw
+     merged = merge(both)
+     bvp = bvp + merged
 
  bvp=relabel(bvp)
  save(bvp, 'bvp')
@@ -1345,7 +1371,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  {\small \begin{center} \begin{boxedverbatim}
  demo('bvp')
 
- run('bvp')
+ bvp = run('bvp')
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1354,55 +1380,39 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{exa:clui_complex_first}
  \end{figure}
 
- The next section of the script, extracted into 
- Figure~\ref{exa:clui_complex_second}, introduces
- three new \AUTO CLUI commands.  First, \commandf{save(bvp,'bvp')}
- (Section~\ref{sec:clui_ref_basic} in the reference)
- saves the results of the \AUTO runs into files using
- the base name \filef{bvp} and the filename extensions in
- Table~\ref{tbl:clui_filename_translation}.  For example,
- in this case the bifurcation diagram file \filef{fort.7}
- will be saved as \filef{b.bvp}, 
- the solution file \filef{fort.8}
- will be saved as \filef{s.bvp}, and  
- the diagnostics file \filef{fort.9}
- will be saved as \filef{d.bvp}.  Next, \commandf{load(s='bvp')}
- loads the solution file \filef{s.bvp} into memory
- so that it can be used by \AUTO for further calculations.
-
  Up to this point all of the commands presented have had
  analogs in the command language discussed in 
  Section~\ref{sec:command_mode}, and the \AUTO CLUI has
  been designed in this way to make it easy for users to
  migrate from the old command language to the
- \AUTO CLUI.  The next command, namely \commandf{data = sl('bvp')}
- (Section~\ref{sec:clui_ref_python} in the reference)
- is the first command which has no analog in the 
+ \AUTO CLUI.  The next section of the script extracted into
+ Figure~\ref{exa:clui_complex_first}, introduces a new
+ command, namely \commandf{branchpoints = bvp("BP")},
+ which is the first command which has no analog in the 
  old command language.
- The command \commandf{sl('bvp')} parses the file \filef{s.bvp}
- and returns a python object which encapsulates the
- information contained in the file and presents it to the
- user in an easy to use format.  Accordingly, the
- command \commandf{data = sl('bvp')} stores this easy to
- use representation of the object in the \python~
- variable \commandf{data}.
- Note, variables in \python~ are different from those in languages
+ The command \commandf{bvp("BP")}, given the output variable \commandf{bvp}
+ from the first run, returns a \python object which represents a list
+ of all branchpoint solutions.
+ Accordingly, this list is stored in the \python
+ variable \commandf{branchpoints}.
+ Note, variables in \python are different from those in languages
  such as {\cal C} in that their type does not have to be
  declared before they are created.
- Finally, \commandf{ch("NTST",50)}  
- (Section~\ref{sec:clui_ref_python} in the reference)
- changes the \parf{NTST} value to \parf{50} (see Section~\ref{sec:NDIM}).
- To be precise, the command \commandf{ch("NTST",50)} only modifies
- the ``in memory'' version of the \AUTO constants created
- by the \commandf{ld('bvp')} command.
- The original file \filef{c.bvp} is \emp{not} modified.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- sv('bvp')
- ld(s='bvp')
- data = sl('bvp')
- ch("NTST",50)
+ branchpoints = bvp("BP")
+ for solution in branchpoints:
+     bp = load(solution, ISW=-1, NTST=50)
+     # Compute forwards
+     print "Solution label", bp["LAB"], "forwards"
+     fw = run(bp)
+     # Compute backwards
+     print "Solution label", bp["LAB"], "backwards"
+     bw = run(bp,DS='-')
+     both = fw + bw
+     merged = merge(both)
+     bvp = bvp + merged
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1411,94 +1421,94 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{exa:clui_complex_second}
  \end{figure}
 
- The next section of the script, extracted into 
- Figure~\ref{exa:clui_complex_third}, shows as example
- of looping and conditionals in an \AUTO CLUI script.
- The first line \commandf{for solution in data:} is
- the \python~ syntax for loops.  The \commandf{data} variable
- was defined in Figure~\ref{exa:clui_complex_second}
- to be the parsed version of an \AUTO \filef{fort.8}
- file, and accordingly contains a list of the solutions
- from the \filef{fort.8} file.  The command 
- \commandf{for solution in data:} is used to loop
- over all solutions in the data variable by 
+ The next command, \commandf{for solution in branchpoints:} is
+ the \python syntax for loops.  The \commandf{branchpoints} object
+ is a list of the branch point solutions from the first run.
+ The command 
+ \commandf{for solution in branchpoints:} is used to loop
+ over all solutions in the branchpoints variable by 
  setting the variable \commandf{solution} to
- be one of the solutions in \commandf{data}
+ be one of the solutions in \commandf{branchpoints}
  and then calling the rest of the code in the
  block.  
 
- \python~ differs from most other computer languages in that
+ \python differs from most other computer languages in that
  blocks of code are not defined by some delimiter, such
- as \commandf{\{\}} in {\cal C}, but by indentation.  
- In Figure~\ref{exa:clui_complex_script} the commands
- \commandf{plot('bvp')} and \commandf{wait()} are not
+ as \commandf{END DO} in {\cal Fortran}, but by indentation.  
+ In Figure~\ref{exa:clui_complex_script} the commands starting with
+ \commandf{bvp=relabel(bvp)} are not
  part of the loop, because they are indented 
- differently.  This can be confusing first time users of \python~,
+ differently.  This can be confusing first time users of \python,
  but it has the advantage that the code
  is forced to have a consistent indentation style.
 
- The next command in the script, \commandf{if solution["Type name"] == "BP":}
- is a \python~ conditional.  
- It examines the contents of the
- variable \commandf{solution} (which is one of the entries
- in the array of solutions \commandf{data}) 
- and checks to see if the condition
- \commandf{solution["Type name"] == "BP"} holds.  
- For parsed \filef{fort.8}
- files \commandf{Type name} \commandf{BP} corresponds to a bifurcation
- point.  Accordingly, the function of this loop and conditional
- is to examine every solution in the \filef{fort.8} file and
- run the following commands if the solution is a bifurcation
- point.
+ The next command in the script,
+ \commandf{bp = load(solution, ISW=-1, NTST=50)}
+ loads a solution with modified AUTO constants. All other constants are
+ the same as they were in the first run.
+ The \parf{ISW} value is changed to \parf{-1} (see
+ Section~\ref{sec:ISW}), so that a branch switch is performed, and
+ the \parf{NTST} value is changed to \parf{50} (see
+ Section~\ref{sec:NTST}).
+ Only `in memory'' version of the \AUTO constants are modified;
+ the original file \filef{c.bvp} is \emp{not} modified.
 
- The next line
- is \commandf{ch("IRS", solution["Label"])} which changes
- the ``in memory'' version of the \AUTO constants file to 
- set \parf{IRS} (see Section~\ref{sec:IRS}) equal to the label
- of the bifurcation point. We then use \commandf{ch("ISW", -1)} to change
- the \AUTO constant \parf{ISW} to \commandf{-1}, which
- indicates a branch switch (see Section~\ref{sec:ISW}).
-
- We then use a \commandf{run()} command to perform the
- calculation of the bifurcating branch and then append the
- data to the \filef{s.bvp}, \filef{b.bvp}, and
- \filef{d.bvp} files with the \commandf{ap('bvp')}
- command (Section~\ref{sec:clui_ref_basic} in the reference).
- In addition, as can be seen in Figure~\ref{exa:clui_complex_third},
- the \commandf{\#} character is the \python~ comment character.
- When the \python~ interpretor encounters a \commandf{\#} character
+ Some diagnostics are then printed to the screen using a standard \python
+ \commandf{print} command: the label number of the branch point that
+ we switch at can be found by using \commandf{bp["LAB"]}.
+ In addition, as can be seen in Figure~\ref{exa:clui_complex_second},
+ the \commandf{\#} character is the \python comment character.
+ When the \python interpretor encounters a \commandf{\#} character
  it ignores everything from that character to the end of the line.
 
- Finally, we us \commandf{ch("DS",-pr("DS"))} to change the
- \AUTO initial step size from positive to negative, which allows
- us to compute the bifurcating branch in the other direction
- (see Section~\ref{sec:DS}).  Running the \AUTO calculation
- with the \commandf{run()} command and appending the
- data the appropriate files with the \commandf{ap('bvp')} command
- completes the body of the loop.
+ We then use a \commandf{fw=run(bp)} command to perform the
+ calculation of the bifurcating branch from solution \commandf{bp}.
+ We print additional information and use the command
+  \commandf{bw = run(bp,DS='-')} to change the
+ \AUTO initial step size from positive to negative, which causes
+ \AUTO to compute the bifurcating branch in the other direction
+ (see Section~\ref{sec:DS}).
+ This output is appended to the existing output in the
+ \python variable \commandf{bvp} after some more processing.
+ First the command
+ \commandf{both = fw + bw} concatenates, using standard Python list
+ syntax, the forwards and backwards branches. Subsequently
+ \commandf{merged = merge(both)} merges the two branches into one
+ continuous branch where, the backwards branch is flipped.
+ Finally, the command \commandf{bvp = bvp + merged} appends the
+ merged branch to the existing results.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- for solution in bvp("BP"):
-     bp = load(solution, ISW=-1, NTST=50)
-     # Compute forwards
-     print "Solution label", bp["LAB"], "forwards"
-     fw = run(bp)
-     # Compute backwards
-     print "Solution label", bp["LAB"], "backwards"
-     bw = run(bp,DS='-')
-     bvp = bvp + merge(fw + bw)
+ bvp=relabel(bvp)
+ save(bvp, 'bvp')
+ plot(bvp)
+ wait()
  \end{boxedverbatim}
  \end{center} 
  }
- \caption[The second part of the  complex \AUTO CLUI script.]
- {The second part of the  complex \AUTO CLUI script.}
+ \caption[The third part of the  complex \AUTO CLUI script.]
+ {The third part of the  complex \AUTO CLUI script.}
  \label{exa:clui_complex_third}
  \end{figure}
 
+ The last section of the script, extracted into 
+ Figure~\ref{exa:clui_complex_third}, 
+ does some postprocessing and
+ plotting. First, the command \commandf{bvp=relabel(bvp)} relabels
+ so all solutions in the \commandf{bvp} object have unique labels
+ starting at 1. The command \commandf{save(bvp,'bvp')}
+ (Section~\ref{sec:clui_ref_basic} in the reference)
+ saves the results of the \AUTO runs into files using
+ the base name \filef{bvp} and the filename extensions in
+ Table~\ref{tbl:clui_filename_translation}.  For example,
+ in this case the bifurcation diagram will be saved as \filef{b.bvp}, 
+ the solution will be saved as \filef{s.bvp}, and  
+ the diagnostics will be saved as \filef{d.bvp}.
+
  Now that the section of script shown in 
  Figure~\ref{exa:clui_complex_third} has finished computing the
- bifurcation diagram, the command \commandf{plot('bvp')}
+ bifurcation diagram, the command \commandf{plot(bvp)}
  brings up a plotting window 
  (Section~\ref{sec:clui_ref_plot} in the reference),
  and the command \commandf{wait()} causes the \AUTO CLUI
@@ -1507,16 +1517,15 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  the \AUTO CLUI.
 
  For convenience, some of these commands have shorter forms.
- For instance, you can directly specify a change of NTST in
- the \commandf{ld} and \commandf{run} commands, by giving
- {\tt NTST=xxx} as an extra parameter, as well as the special
- {\tt DS='-'} notation to quickly revert the direction (the sign
- of {\tt DS}). The command \commandf{run}
- also accepts the files to save or append to using
- {\tt sv=} and {\tt ap=}, respectively.
- Another helpful function
- is \commandf{splabs}, that return a list of labels for a given
- solution file. A shorter version of the complex \AUTO
+ For instance, the \commandf{load}, \commandf{run}, \commandf{merge},
+ \commandf{relabel}, \commandf{save}, and \commandf{plot} commands
+ have the shorter forms \commandf{ld}, \commandf{r}, \commandf{mb},
+ \commandf{rl}, \commandf{sv}, and \commandf{pl}, respectively.
+ It is also possible to apply the \parf{NTST} and \parf{ISW} changes
+ to all solutions in the \commandf{bvp} object by loading them
+ directly. Lastly all algebraic and functional expressions can be
+ combined in the
+ usual way. Combining these techniques, a shorter version of the complex \AUTO
   CLUI script is given in Figure~\ref{exa:clui_complex_fourth}.
 
  \begin{figure}[htbp]
@@ -1549,7 +1558,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  for a command that does not assign to a variable you can skip the
  parentheses, and by using a ``,'' on the first character of a line
  you force all parameters to be quoted. For example, you can just
- type \commandf{pl} to plot the last computation.
+ type \commandf{pl bvp} to plot the bifurcation diagram and solutions
+ in the object \commandf{bvp}.
  Beware that these extra short forms are only possible in
  normal auto scripts and at the AUTO CLUI prompt, and only if they
  start in the first column, but not in the
@@ -1605,20 +1615,21 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  functional version of script from 
  Figure~\ref{exa:clui_complex_script}.
  The changes are actually quite minor.  
- The first line, \commandf{from AUTOclui import *},
+ The first line, \commandf{from auto import *},
  includes the definitions of the \AUTO CLUI commands,
  and must be included in all \AUTO CLUI scripts
  which define functions.
  The next line, 
- \commandf{def myRun(demo):},
+ \commandf{def myRun(demoname):},
  begins the function definition, and 
  creates a function named \commandf{myRun} which
- takes one argument \commandf{demo}.  The
+ takes one argument \commandf{demoname}.  The
  rest of the script is the same except that it
  has been indented to indicate that it is
- part of the function definition, and all occurrences
+ part of the function definition, all occurrences
  of string \commandf{'bvp'} have been replaced
- with the variable \commandf{demo}.
+ with the variable \commandf{demoname}, and the variable
+ \commandf{bvp} was replaced by the variable \commandf{r}.
  Finally we have added a line \commandf{myRun('bvp')}
  which actually calls the function we have 
  created and runs the same computation as
@@ -1626,31 +1637,29 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- from AUTOclui import *
+ from auto import *
 
- def myRun(demo):
+ def myRun(demoname):
 
-     copydemo(demo)
+     demo(demoname)
 
-     ld(demo)
-     run()
-     sv(demo)
-     ld(s=demo)
-     data = sl(demo)
-     ch("NTST",50)
-     for solution in data:
-         if solution["Type name"] == "BP":
-             ch("IRS", solution["Label"])
-             ch("ISW", -1)
-             # Compute forward
-             run()
-             ap(demo)
-             # Compute back
-             ch("DS",-pr("DS"))
-             run()
-             ap(demo)
+     r = run(demoname)
+     branchpoints = r("BP")
+     for solution in branchpoints:
+         bp = load(solution, ISW=-1, NTST=50)
+         # Compute forwards
+         print "Solution label", bp["LAB"], "forwards"
+         fw = run(bp)
+         # Compute backwards
+         print "Solution label", bp["LAB"], "backwards"
+         bw = run(bp,DS='-')
+         both = fw + bw
+         merged = merge(both)
+         r = r + merged
 
-     plot(demo)
+     r=relabel(r)
+     save(r, demoname)
+     plot(r)
      wait()
 
  myRun('bvp')
@@ -1704,38 +1713,35 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  # This is an example script for the AUTO07p command line user
  # interface.  See the "Command Line User Interface" chapter in the
  # manual for more details.
- from AUTOclui import *
+ from auto import *
 
- def myRun(demo):
+ def myRun(demoname):
 
-     copydemo(demo)
+     demo(demoname)
 
-     ld(demo)
-     run()
-     sv(demo)
-     ld(s=demo)
-     data = sl(demo)
-     ch("NTST",50)
-     for solution in data:
-         if solution["Type name"] == "BP":
-             ch("IRS", solution["Label"])
-             ch("ISW", -1)
-             # Compute forward
-             run()
-             ap(demo)
-             # Compute back
-             ch("DS",-pr("DS"))
-             run()
-             ap(demo)
+     r = run(demoname)
+     branchpoints = r("BP")
+     for solution in branchpoints:
+         bp = load(solution, ISW=-1, NTST=50)
+         # Compute forwards
+         print "Solution label", bp["LAB"], "forwards"
+         fw = run(bp)
+         # Compute backwards
+         print "Solution label", bp["LAB"], "backwards"
+         bw = run(bp,DS='-')
+         both = fw + bw
+         merged = merge(both)
+         r = r + merged
 
-     plot(demo)
+     r=relabel(r)
+     save(r, demoname)
+     plot(r)
      wait()
 
  > auto
- Initializing
- Python 1.5.2 (#1, Feb  1 2000, 16:32:16)  [GCC egcs-2.91.66 19990314/Linux 
- (egcs- on linux-i386
- Copyright 1991-1995 Stichting Mathematisch Centrum, Amsterdam
+ Python 2.5.2 (r252:60911, Nov 14 2008, 19:46:32) 
+ [GCC 4.3.2] on linux2
+ Type "help", "copyright", "credits" or "license" for more information.
  (AUTOInteractiveConsole)
  AUTO> from userScript import *
  AUTO> myRun('bvp')
@@ -1752,57 +1758,135 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{exa:clui_complex_interactive}
  \end{figure}
 
- \section{Bifurcation Diagram Files}
- Using the \commandf{commandParseDiagramFile} 
- command (Section~\ref{sec:clui_ref_python} in the reference)
- the user can parse and read into memory an \AUTO bifurcation
- diagram file.   For example, the command  \commandf{commandParseDiagramFile('ab')}
- would parse the file \filef{b.ab} (if you are using the standard
- filename translations from Table~\ref{tbl:clui_filename_translation})
- and return an object which encapsulates
- the bifurcation diagram in an easy to use form.
+ \section{ Bifurcation Diagram Objects}
+ The \commandf{load} and \commandf{run} commands usually (see
+ Section~\ref{sec:clui_ref_basic} in the reference for details)
+ return a ~\python structure which we refer to as a \emph{bifurcation
+ diagram object}. It represents the information that is also stored
+ in \AUTO's output files (\filef{fort.7}, \filef{fort.8},
+ and \filef{fort.9}, or \filef{b.*}, \filef{s.*}, and \filef{d.*}),
+ and in \AUTO's constant files.
+ For example, the command \commandf{load('ab')}
+ returns an object corresponding to the files \filef{b.ab},
+ \filef{s.ab}, and \filef{d.ab}, and if they exist, also
+ \filef{c.ab}, \filef{h.ab}, and the equation file
+ \filef{ab.\{f90,f,c\}}
+ (if you are using the standard
+ filename translations from Table~\ref{tbl:clui_filename_translation}).
+ The command \commandf{run('ab')} returns
+ an object corresponding to the output of the run.
 
- The object returned by the \commandf{commandParseDiagramFile} 
- is a list of all of the solutions in the appropriate
- bifurcation diagram file, and each solution is a Python
- dictionary with entries for each piece of
- data for the solution.  For example, the sequence of commands
+ The bifurcation diagram object encapsulates all this information in
+ an easy to use form.
+ This object is a list of all of the branches in the appropriate
+ bifurcation diagram file, and each branch behaves like an array
+ (a PyDSTool Pointset subclass, to be precise). This array can be
+ viewed as a list of all of the points in the appropriate
+ bifurcation diagram file, and each point is a \python
+ dictionary with entries for each piece of data for the point.
+ For example, the sequence of commands
  in Figure~\ref{exa:clui parse diagram}, prints out the
- label of the first solution in a bifurcation diagram.
- The queriable parts of the object are listed in
+ label of the first point of a branch in a bifurcation diagram.
+ The query-able parts of the object are listed in
  Table~\ref{tbl:clui parse diagram}.
 
  The individual elements of the array may be accessed 
- in two ways, either by index of the solution using the
- \commandf{[]} syntax or by label number using the
+ in a number of ways: by index of the point using the
+ \commandf{[]} syntax, a column using \commandf{['columnname']} syntax,
+ or by label number or type name plus one-based index using the
  \commandf{()} syntax.  For example, assume that the parsed object is contained
- in a variable \commandf{data}.  
- The first solution may be accessed 
- using the command \commandf{data[0]}, while the solution with
- label \commandf{57} may be accessed using the command \commandf{data(57)}.
+ in a variable \commandf{data}, and the first branch is in a variable
+ \commandf{br=data[0]}.
+ The first point may then be accessed 
+ using the command \commandf{br[0]}, while the column
+ with label \parf{PAR(1)} may be accessed using the command
+ \commandf{br['PAR(1)']}.
+ The point with label \commandf{57} may be accessed using the command
+ \commandf{br(57)}, and the second Hopf bifurcation point using
+ the command \commandf{br('HB2')}
+ Using the \commandf{()} syntax you can also obtain new lists of
+ points: \commandf{br('HB')} gives a list of all Hopf bifurcation
+ points, \commandf{br([1,4])} gives the points with labels 1 and 4,
+ and \commandf{br(['UZ',4])} gives all user defined points and label
+ 4.
+ 
+ The \commandf{['columnname']} syntax is especially useful for
+ plotting, as is illustrated in Figure~\ref{exa:bdplot}. Here the
+ \python package matplotlib is directly used to plot a branch.
+ Of course, the command \commandf{plot} may also be used, but
+ sometimes more control may be needed.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- AUTO> data=dg('start')
- Parsed file: b.start
- AUTO> print data[0]
- {'TY number': 9, 'PT': 1, 'index': 0, 'section': 1, 'LAB': 1, 'BR': 1, 'data': [8.0, 0.0, 0.0, 0.0], 'TY name': 'EP'}
- AUTO> print data[0]['LAB']
- 1
- AUTO> 
+ AUTO> demo('lrz')
+ Copying demo lrz ... done
+ Runner configured
+ AUTO> data=run('lrz')
+ gfortran -fopenmp -O -c lrz.f -o lrz.o
+ gfortran -fopenmp -O lrz.o -o lrz.exe /home/bart/auto/07p/lib/*.o
+ Starting lrz ...
+(...)
+lrz ... done
+ AUTO> print data
+
+  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+   1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+   1     5  BP    2   1.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+   1    13  EP    3   3.16000E+01   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+
+  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+   2    42  HB    4   2.47368E+01   2.62685E+01   7.95602E+00   7.95602E+00   2.37368E+01
+   2    45  EP    5   3.26008E+01   3.41635E+01   9.17980E+00   9.17980E+00   3.16008E+01
+
+  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+   2    42  HB    6   2.47368E+01   2.62685E+01  -7.95602E+00  -7.95602E+00   2.37368E+01
+   2    45  EP    7   3.26008E+01   3.41635E+01  -9.17980E+00  -9.17980E+00   3.16008E+01
+
+ AUTO> br=data[1]
+ AUTO> print br
+  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+   2    42  HB    4   2.47368E+01   2.62685E+01   7.95602E+00   7.95602E+00   2.37368E+01
+   2    45  EP    5   3.26008E+01   3.41635E+01   9.17980E+00   9.17980E+00   3.16008E+01
+ AUTO> print br[0]
+ {'TY number': 0, 'PT': -1, 'index': 0, 'section': 0, 'LAB': 0, 'BR': 2,
+  'data': [0.99999994000000003, 0.0, 0.0, 0.0, 0.0], 'TY name': 'No Label'}
+ AUTO> print br['PAR(1)']
+ [  0.99999994   1.001875     1.00747645   1.01786791   1.03426011
+    1.05801491   1.08738983   1.12195713   1.16544975   1.21923418
+(...)
+   13.69994168  15.15715248  16.76398367  18.53533839  20.48761501
+   22.63885621  24.73684367  27.10974373  29.72303281  32.60076345]
+ AUTO> print br(4)
+ {'TY number': 3, 'PT': 42, 'index': 41, 'section': 0, 'LAB': 4, 'BR': 2, 
+  'data': [24.736843667999999, 26.268502943000001, 7.9560197197999996,
+   7.9560197197999996, 23.736843667999999], 'TY name': 'HB'}
  \end{boxedverbatim}
  \end{center} 
  }
- \caption[An example of parsing a bifurcation diagram.]
+ \caption[An example of processing a bifurcation diagram of a run.]
  {This figure shows an example of parsing a bifurcation diagram.
- The first command, \commandf{data=dg('ab')}, reads in the bifurcation
- diagram and puts it into the variable \commandf{data}.
- The second command, \commandf{print data[0]} prints out all of
- the data about the first solution in the list.
- The third command, \commandf{print data[0]['LAB']}, prints
- out the label of the first point.
+ First the demo involving the Lorenz equations named 'lrz' is copied
+ and we perform its first run. We then print
+ the result, its second branch, the first point on this branch,
+ the column corresponding to 'PAR(1)', and the point with
+ label 4 on this branch.
  }
  \label{exa:clui parse diagram}
+ \end{figure}
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ AUTO> import pylab
+ AUTO> pylab.plot(br['PAR(1)'],br['U(1)'])
+ [<matplotlib.lines.Line2D object at 0x9b1356c>]
+ AUTO> pylab.show()
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption{Following the example in Figure~\ref{exa:clui parse diagram} 
+  we can plot a subset of the bifurcation diagram, that is, the second
+  branch, directly using matplotlib.}
+ \label{exa:bdplot}
  \end{figure}
 
  \begin{table}[htbp]
@@ -1873,59 +1957,82 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \end{center}
  \end{table}
 
- \section{Solution Files}
- Using the \commandf{commandParseSolutionFile} 
- command (Section~\ref{sec:clui_ref_python} in the reference)
- the user can parse and read into memory an \AUTO bifurcation
- solution file.   For example, the command  \commandf{commandParseSolutionFile('ab')}
- would parse the file \filef{b.ab} (if you are using the standard
- filename translations from Table~\ref{tbl:clui_filename_translation})
- and return an object which encapsulates
- the bifurcation solution in a easy to use form.
+ \subsection{ Solutions}
+ You can also obtain solutions from a bifurcation diagram structure,
+ by using the \commandf{()} syntax directly on the diagram instead of
+ on individual branches.
+ For example, in the above example the command
+ \commandf{s=data()}
+ returns an object which encapsulates
+ all solutions in a easy to use form.
 
- The object returned by the \commandf{commandParseSolutionFile} 
+ The object returned in this way
  is a list of all of the solutions in the appropriate
  bifurcation solution file, and each solution is a Python
  dictionary with entries for each  piece of
  data for the solution.  For example, the sequence of commands
  in Figure~\ref{exa:clui parse solution}, prints out the
  label of the first solution in a bifurcation solution.
- The queriable parts of the object are listed in
+ The query-able parts of the object are listed in
  Table~\ref{tbl:clui parse solution}.
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
- AUTO> data=sl()
- Parsed file: fort.8
- AUTO> print data[0]
- 'Branch number': 2
- 'ISW': 1
- 'Label': 6
- 'NCOL': 0
- 'NTST': 0
- 'Parameters': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
- 'Point number': 1
- 'Type name': 'EP'
- 'Type number': 9
- 'p': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
- 'parameters': [0.0, 14.0, 2.0, 0.0, 0.0, 0.0]
- AUTO> print data[0]['Label']
- 6
- AUTO> data[0]["data"][0]
- {'t': 0.0, 'u': [0.0, 0.0]}
+ AUTO> s=data()
+ AUTO> sol=s[3] #or s(4), data(4), s('HB1'), or data('HB1')
+ AUTO> print sol 
+   BR    PT  TY  LAB ISW NTST NCOL
+    2    42  HB    4   1    1    0
+ Pointset lrz (parameterized)
+ Independent variable:
+ t:  [ 0.]
+ Coordinates:
+ U(1):  [ 7.95601972]
+ U(2):  [ 7.95601972]
+ U(3):  [ 23.73684367]
+ Labels by index: Empty
+ Active ICP: [1]
+ rldot: [0.69738311435]
+ udotps: Pointset lrz (non-parameterized)
+ Coordinates:
+ UDOT(1):  [ 0.11686228]
+ UDOT(2):  [ 0.11686228]
+ UDOT(3):  [ 0.69738311]
+ Labels by index: Empty
+ PAR(1:5):      2.4736843668E+01   2.6666666667E+00   1.0000000000E+01   0   0
+ PAR(6:10):     0.0000000000E+00   0.0000000000E+00   0.0000000000E+00   0   0
+ PAR(11:15):    6.5283032822E-01   0.0000000000E+00   0.0000000000E+00   0   0
+(...)
+ PAR(36:36):    0.0000000000E+00
+ AUTO> print sol['LAB']
+ 4
+ AUTO> sol[0]
+ {'u': [7.9560197197999996, 7.9560197197999996, 23.736843667999999],
+   't': 0.0, 'u dot': [0.11686227712, 0.11686227712, 0.69738311435]}
+ AUTO> sol['t']
+ array([ 0.])
+ AUTO> sol['U(1)']
+ array([ 7.95601972])
+ AUTO> sol.PAR(1) # or sol['PAR(1)']
+ 24.736843667999999
+ AUTO> pylab.plot(sol['U(1)'],sol['U(2)'],'+')
+ [<matplotlib.lines.Line2D object at 0x9c3348c>]
+ AUTO> pylab.show()
  \end{boxedverbatim}
  \end{center} 
  }
- \caption[An example of parsing a bifurcation solution.]
- {This figure shows an example of parsing a bifurcation solution.
- The first command, \commandf{data=sl('ab')}, reads in the bifurcation
- solution and puts it into the variable \commandf{data}.
- The second command, \commandf{print data[0]} prints out all of
- the data about the first solution in the list.
- The third command, \commandf{print data[0]['Label']}, prints
- out the label of the first point.  The last command prints
- the value of the solution at the first point of the
- first solution.
+ \caption[An example of parsing solutions.]
+ {This figure shows an example of parsing solutions.
+ The first command, \commandf{s=data()}, extracts a list of all solutions
+ stored in the bifurcation diagram object \commandf{data} from the
+ 'lrz' demo in Figure~\ref{exa:clui parse diagram}
+ and puts it into the variable \commandf{s}.
+ The command \commandf{sol=s[3]} obtains the fourth solution.
+ Next, \commandf{print sol} displays it.
+ The last commands illustrate how to extract components from
+ this fourth solution: its label, its first point, its time array, its first
+ coordinate array, its first parameter, and a plot of the first two
+ coordinates.
  }
  \label{exa:clui parse solution}
  \end{figure}
@@ -1940,63 +2047,118 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \AUTO output. Each array entry is a Python dictionary with a scalar
  entry 't' denoting time,
  and sub-arrays for the solution vector 'u' and the solution
- direction vector 'u dot'.  \smallskip \end{minipage} \\
+ direction vector 'u dot'.\\
+ Other syntax: \commandf{s[0]}, \commandf{s['t']}, \commandf{s['U(1)']}.
+  \smallskip \end{minipage} \\
  \hline
- Branch number & \begin{minipage}{4in} \smallskip The number of the branch to which the solution belongs. \smallskip \end{minipage} \\ 
+ BR & \begin{minipage}{4in} \smallskip The number of the branch to which the solution belongs. \smallskip \end{minipage} \\ 
  \hline
  ISW & \begin{minipage}{4in} \smallskip  The ISW value used to start the calculation.  See Section~\ref{sec:ISW}. \smallskip \end{minipage} \\ 
  \hline
- Label & \begin{minipage}{4in} \smallskip The label of the solution.   \smallskip \end{minipage} \\ 
+ LAB & \begin{minipage}{4in} \smallskip The label of the solution.   \smallskip \end{minipage} \\ 
  \hline
  NCOL & \begin{minipage}{4in} \smallskip The number of collocation points used to compute the solution.  See Section~\ref{sec:NCOL}. \smallskip \end{minipage} \\ 
  \hline
  NTST & \begin{minipage}{4in} \smallskip The number of mesh intervals used to compute the solution.  See Section~\ref{sec:NTST}. \smallskip \end{minipage} \\ 
  \hline
  Parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. \smallskip \end{minipage} \\ 
+ parameters & \begin{minipage}{4in} \smallskip 'p' and 'parameters' are aliases.\end{minipage} \\ 
+ p & \begin{minipage}{4in} \smallskip Other syntax: \commandf{s.PAR(1)}, \commandf{s['PAR(1)']} \smallskip \end{minipage} \\ 
  \hline
- Point number & \begin{minipage}{4in} \smallskip The number of the point in the given branch.  \smallskip \end{minipage} \\  
+ PT & \begin{minipage}{4in} \smallskip The number of the point in the given branch.  \smallskip \end{minipage} \\  
  \hline
- Type name & \begin{minipage}{4in} \smallskip A short string which describes the type of the solution (see Table~\ref{tbl:clui type translation}). \smallskip \end{minipage} \\  
+ TY & \begin{minipage}{4in} \smallskip A short string which describes the type of the solution (see Table~\ref{tbl:clui type translation}). \smallskip \end{minipage} \\  
  \hline
- Type number & \begin{minipage}{4in} \smallskip A number which describes the type of the solution (see Table~\ref{tbl:clui type translation}).  \smallskip \end{minipage} \\  
+ TY number & \begin{minipage}{4in} \smallskip A number which describes the type of the solution (see Table~\ref{tbl:clui type translation}).  \smallskip \end{minipage} \\  
  \hline
- p & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameters'). \smallskip \end{minipage} \\  
- \hline
- parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. (This is an alias for 'Parameters').\smallskip \end{minipage} \\  
- \hline
- Free Parameters & \begin{minipage}{4in} \smallskip
+ Active ICP & \begin{minipage}{4in} \smallskip
  The values of the (one-based) indices of the free parameters.
  \smallskip \end{minipage} \\  
  \hline
- Parameter NULL vector & \begin{minipage}{4in} \smallskip The values
+ rldot & \begin{minipage}{4in} \smallskip The values
  of the parameter direction vector.\smallskip \end{minipage} \\  
  \hline
  \end{tabular}
- \caption[Contents of a bifurcation solution object.]
+ \caption[Contents of a solution object.]
  {This table shows the strings that can be used to
- query a bifurcation solution object and their
+ query a solution object and their
  meanings.}
  \label{tbl:clui parse solution}
  \end{center}
  \end{table}
 
- The individual elements of the array may be accessed 
+ The individual elements of the array may, again, be accessed 
  in two ways, either by the index of the solution using the
- \commandf{[]} syntax or by label number using the
- \commandf{()} syntax.  For example, sssume that the parsed object is contained
- in a variable \commandf{data}.  
+ \commandf{[]} syntax or by label number or type name using the
+ \commandf{()} syntax.  For example, assume that the parsed object is contained
+ in a variable \commandf{s=data()}.
  The first solution may be accessed 
- using the command \commandf{data[0]}, while the solution with
- label \commandf{57} may be accessed using the command \commandf{data(57)}.
+ using the command \commandf{s[0]}, while the solution with
+ label \commandf{57} may be accessed using the command \commandf{s(57)}.
 
- \section{Exporting output data for use by Python or external
+ Individual solutions can be also be obtained directly from the
+ bifurcation diagram object \commandf{data} in the same way as for
+ individual points above, by using \commandf{s=data(label)}.
+ For example, the solution with label \commandf{57} may be accessed
+ using the command
+ \commandf{data(57)}, and the second Hopf bifurcation solution using
+ the command \commandf{data('HB2')}.
+ All individual solutions can then be used as a starting point for a new run.
+
+ Similarly, using the \commandf{()} syntax you can also obtain new lists of
+ solutions: \commandf{data('HB')} gives a list of all Hopf bifurcation
+ solutions, \commandf{data([1,4])} gives the solutions with labels 1 and 4,
+ and \commandf{data(['UZ',4])} gives all user defined solutions and
+ label 4. A for loop can then iterate through the list and provide new
+ starting solutions.
+
+ \subsection{Summary and reference}
+ We have defined the following objects:
+ \begin{description}
+   \item[Bifurcation diagram object]:
+    \commandf{bd=run(...)}, \commandf{bd=load(...)}.
+   \item[Branch]:
+    \commandf{bd[0], bd[1], bd[2], ...}.
+   \item[Branch AUTO constants]:
+    \commandf{bd[0].c, bd[1].c, bd[2].c, ...}.\\
+    \commandf{bd.c} is copied from \commandf{bd[0].c}, removing the
+    constants \parf{IRS}, \parf{PAR}, \parf{U}, \parf{sv}, \parf{s}, 
+    and \parf{dat}, because those constants need to change between runs.
+   \item[Branch column]:
+    \commandf{bd['PAR(1')], bd[0]['PAR(1)'], bd[1]['L2-NORM'], ...}.\\
+    Here \commandf{bd['PAR(1)']} is a shortcut for \commandf{bd[0]['PAR(1)']}.
+   \item[Point]:
+    \commandf{bd[0][0], bd[1](5), bd[1]('UZ1'), ...}.
+   \item[Point list]:
+    \commandf{bd[0]('UZ'), bd[0]([1,2]), bd[0](['UZ','HB1',7]), ...}.
+   \item[Solution]:
+    \commandf{bd(5), bd('UZ1'), bd()[0], ...}.
+   \item[Solution list]:
+    \commandf{s=bd(), s('UZ'), bd('UZ'), bd([1,2]), bd(['UZ','HB1',7]), ...}.
+   \item[Solution column]:
+    \commandf{bd('UZ1')['t'], bd('UZ1')['U(1)'], ...}
+   \item[Solution point]:
+    \commandf{bd('UZ1')(0), bd('UZ1')[0], ...}.\\
+    Here the \commandf{bd('UZ1')(t)} notation gives the point at
+    time \commandf{t}.
+   \item[Solution AUTO constants]:
+    \commandf{bd(5).c, bd('UZ1').c, bd()[0].c, ...}.\\
+    These constants are copied from \commandf{bd.c}. The AUTO constant
+    \parf{IRS} is automatically set to the solution label.
+ \end{description}
+
+ \section{ Exporting output data for use by Python or external
    visualization tools.} \label{sec:clui_exporting}
 
- The bifurcation and solution file classes have two methods that are 
+ The bifurcation and solution file classes have three methods that are 
  particularily useful for creating data which can be used in other
  programs.  First, there is a method called \commandf{toArray} which
  takes a bifurcation diagram or solution and
- returns a standard Python array.  Second, there is a method called
+ returns a Python array (a list of lists). Second, the method
+ \commandf{toarray} returns a Numerical Python (numpy) array,
+ which works for
+ branches, points and solutions (but not for lists of branches).
+ Third, there is a method called
  \commandf{writeRawFilename} which will create a standard ASCII file
  which contains the bifurcation diagram or the solution. 
  In the solution ASCII file, the first element of each row will be
@@ -2006,28 +2168,28 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Gnuplot and MATLAB.
 
  For example, we assume
- that the parsed bifurcation diagram is contained in a variable
- \commandf{b}, for instance, using \commandf{b=dg('ab')}.  If
- one wanted to have the bifurcation diagram returned as a Python array
- one would type \commandf{b.toArray()}.  Similarily, if one wanted
+ that a bifurcation diagram object is contained in a variable
+ \commandf{bd}, for instance, using \commandf{bd=load('ab')}.  If
+ one wanted to have the bifurcation diagram returned as a Python list
+ one would type \commandf{bd.toArray()}.  Similarily, if one wanted
  to write out the bifurcation diagram to the file \commandf{outputfile}
- one would type \commandf{b.writeRawFilename('outputfile')}.
+ one would type \commandf{bd.writeRawFilename('outputfile')}.
 
- Now we assume that the parsed solution file is contained
- in a variable \commandf{s}, for example, using \commandf{s=sl('ab')}.
- To get the solution with label \commandf{57} returned as a Python
- array one would type \commandf{s(57).toArray()}.
+ To get the solution with label \commandf{57} returned as a numpy
+ array one would type \commandf{bd(57).toarray()}.
  Similarily, if one wanted to write out the solution
  to the file \commandf{outputfile} one would type
- \commandf{s(57).writeRawFilename('outputfile')}.
+ \commandf{bd(57).writeRawFilename('outputfile')}.
 
- \section{ The \filef{.autorc} File }
+ \section{ The \filef{.autorc} or \filef{autorc} File }
 
  Much of the default behavior of the \AUTO CLUI
  can be controlled by the \filef{.autorc} file.
  The \filef{.autorc} file can exist in
  either the main \AUTO directory, the users
- home directory, or the current directory.  For any
+ home directory, or the current directory. In the current directory
+ it can also have the name \filef{autorc}, that is, without the dot.
+ For any
  option which is defined in more then one file, 
  the \filef{.autorc} file
  in the current directory (if it exists) takes precedence, 
@@ -2057,11 +2219,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  %FIXME:  Fix the documentation here
  {\em NOTE:  Defaults for the plotting tool may be included in
- the .autorc file as well.  The documentation for this
- is under developement, but the file \filef{\$AUTO\_DIR/.autorc}
- contains examples of how these options may be set.}
+ the .autorc file as well.}
 
- \section{Two Dimensional Plotting Tool}\label{clui:2d plotting}
+ \section{ Two Dimensional Plotting Tool}\label{clui:2d plotting}
 
  The two dimensional plotting tool can be run by using the command
  \commandf{plot()} to plot the files \filef{fort.7} and \filef{fort.8}
@@ -2225,7 +2385,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \label{tbl:clui 2d plotter specific options}
  \end{longtable}
 
- \section{Three Dimensional Plotting Tool}
+ \section{ Three Dimensional Plotting Tool}
 
  The \AUTO three dimensional plotting tool, {\cal PLAUT04}, as described
  in Chapter~\ref{ch:PLAUT04}, can be run from the Python CLUI
@@ -2241,53 +2401,53 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  function they perform.  Each command may be entered using 
  its full name or any of its aliases.
 
-\begin{longtable}{|l|p{1.5in}|p{2in}|}
+\begin{longtable}{|p{1.1in}|l|p{2.5in}|}
 \hline 
-Command & Aliases & Description\\ \hline 
-commandAppend & ap append  & Append data files.\\ \hline 
-commandCat & cat  & Print the contents of a file\\ \hline 
-commandCd & cd  & Change directories.\\ \hline 
-commandClean & clean cl  & Clean the current directory.\\ \hline 
-commandCopyAndLoadDemo & dm demo  & Copy a demo into the current directory and load it.\\ \hline 
-commandCopyDataFiles & copy cp  & Copy data files.\\ \hline 
-commandCopyDemo & copydemo  & Copy a demo into the current directory.\\ \hline 
-commandCopyFortFiles & sv save  & Save data files.\\ \hline 
-commandCreateGUI & gui  & Show AUTOs graphical user interface.\\ \hline 
-commandDeleteDataFiles & delete dl  & Delete data files.\\ \hline 
-commandDeleteFortFiles & df deletefort  & Clear the current directory of fort files.\\ \hline 
-commandDouble & double db  & Double a solution.\\ \hline 
-commandInteractiveHelp & man help  & Get help on the AUTO commands.\\ \hline 
-commandLs & ls  & List the current directory.\\ \hline 
-commandMoveFiles & move mv  & Move data-files to a new name.\\ \hline 
-commandParseConstantsFile & cn constantsget  & Get the current continuation constants.\\ \hline 
-commandParseDiagramAndSolutionFile & bt diagramandsolutionget  & Parse both bifurcation diagram and solution.\\ \hline 
-commandParseDiagramFile & dg diagramget  & Parse a bifurcation diagram.\\ \hline 
-commandParseSolutionFile & sl solutionget  & Parse solution file:\\ \hline 
-commandPlotter & p2 pl plot  & 2D plotting of data.\\ \hline 
-commandPlotter3D & plot3 p3  & 3D plotting of data.\\ \hline 
-commandQueryBranchPoint & br bp branchpoint  & Print the ``branch-point function''.\\ \hline 
-commandQueryEigenvalue & eigenvalue ev eg  & Print eigenvalues of Jacobian (algebraic case).\\ \hline 
-commandQueryFloquet & fl floquet  & Print the Floquet multipliers.\\ \hline 
-commandQueryHopf & hb hp hopf lp  & Print the value of the ``Hopf function''.\\ \hline 
-commandQueryIterations & iterations it  & Print the number of Newton interations.\\ \hline 
-commandQueryLimitpoint & lm limitpoint  & Print the value of the ``limit point function''.\\ \hline 
-commandQueryNote & nt note  & Print notes in info file.\\ \hline 
-commandQuerySecondaryPeriod & sc secondaryperiod sp  & Print value of ``secondary-periodic bif. fcn''.\\ \hline 
-commandQueryStepsize & ss stepsize st  & Print continuation step sizes.\\ \hline 
-commandQuit & q quit  & Quit the AUTO CLUI.\\ \hline 
-commandRun & r run rn  & Run AUTO.\\ \hline 
-commandRunnerConfigFort2 & changeconstant cc ch  & Modify continuation constants.\\ \hline 
-commandRunnerConfigFort12 & hch  & Modify HomCont continuation constants.\\ \hline 
-commandRunnerLoadName & ld load  & Load files into the AUTO runner.\\ \hline 
-commandRunnerPrintFort2 & pc pr printconstant  & Print continuation parameters.\\ \hline 
-commandRunnerPrintFort12 & hpr & Print HomCont continuation parameters.\\ \hline 
-commandShell & shell  & Run a shell command.\\ \hline 
-commandSpecialPointLabels & splabs & Return special labels.\\ \hline
-commandTriple & tr triple  & Triple a solution.\\ \hline 
-commandUserData & us userdata  & Covert user-supplied data files.\\ \hline 
-commandWait & wait  & Wait for the user to enter a key.\\ \hline 
-execfile & ex  & Execute an AUTO CLUI script.\\ \hline
-demofile & dmf & Execute an AUTO CLUI script, line by line (demo
+Command, Aliases & Long name & Description\\ \hline 
+append ap & commandAppend & Append data files.\\ \hline 
+cat & commandCat & Print the contents of a file\\ \hline 
+cd & commandCd & Change directories.\\ \hline 
+clean cl & commandClean & Clean the current directory.\\ \hline 
+demo dm & commandCopyAndLoadDemo & Copy a demo into the current directory and load it.\\ \hline 
+copy cp & commandCopyDataFiles & Copy data files.\\ \hline 
+copydemo & commandCopyDemo & Copy a demo into the current directory.\\ \hline 
+save sv & commandCopyFortFiles & Save data files.\\ \hline 
+gui & commandCreateGUI & Show AUTOs graphical user interface.\\ \hline 
+delete, dl & commandDeleteDataFiles & Delete data files.\\ \hline 
+df deletefort & commandDeleteFortFiles & Clear the current directory of fort files.\\ \hline 
+double & commandDouble & Double a solution.\\ \hline 
+man & commandInteractiveHelp & Get help on the AUTO commands.\\ \hline 
+ls & commandLs & List the current directory.\\ \hline 
+move & commandMoveFiles & Move data-files to a new name.\\ \hline 
+cn constantsget & commandParseConstantsFile & Get the current continuation constants.\\ \hline 
+bt diagramandsolutionget & commandParseDiagramAndSolutionFile & Parse both bifurcation diagram and solution.\\ \hline 
+dg diagramget & commandParseDiagramFile & Parse a bifurcation diagram.\\ \hline 
+sl solutionget & commandParseSolutionFile & Parse solution file:\\ \hline 
+plot p2 pl & commandPlotter & 2D plotting of data.\\ \hline 
+plot3 p3 & commandPlotter3D & 3D plotting of data.\\ \hline 
+branchpoint br bp & commandQueryBranchPoint & Print the ``branch-point function''.\\ \hline 
+eigenvalue ev eg & commandQueryEigenvalue & Print eigenvalues of Jacobian (algebraic case).\\ \hline 
+floquet fl & commandQueryFloquet & Print the Floquet multipliers.\\ \hline 
+hopf hb hp & commandQueryHopf & Print the value of the ``Hopf function''.\\ \hline 
+iterations it & commandQueryIterations & Print the number of Newton interations.\\ \hline 
+limitpoint lm lp & commandQueryLimitpoint & Print the value of the ``limit point function''.\\ \hline 
+note nt & commandQueryNote & Print notes in info file.\\ \hline 
+secondaryperiod sc sp & commandQuerySecondaryPeriod & Print value of ``secondary-periodic bif. fcn''.\\ \hline 
+stepsize ss st & commandQueryStepsize & Print continuation step sizes.\\ \hline 
+quit q & commandQuit & Quit the AUTO CLUI.\\ \hline 
+run r rn & commandRun & Run AUTO.\\ \hline 
+ch changeconstant cc & commandRunnerConfigFort2 & Modify continuation constants.\\ \hline 
+hch & commandRunnerConfigFort12 & Modify HomCont continuation constants.\\ \hline 
+load ld & commandRunnerLoadName & Load files into the AUTO runner.\\ \hline 
+printconstant pc pr & commandRunnerPrintFort2 & Print continuation parameters.\\ \hline 
+hpr & commandRunnerPrintFort12 & Print HomCont continuation parameters.\\ \hline 
+shell & commandShell & Run a shell command.\\ \hline 
+splabs & commandSpecialPointLabels & Return special labels.\\ \hline
+triple tr & commandTriple & Triple a solution.\\ \hline 
+us userdata & commandUserData & Covert user-supplied data files.\\ \hline 
+wait & commandWait & Wait for the user to enter a key.\\ \hline 
+auto execfile ex & & Execute an AUTO CLUI script.\\ \hline
+demofile dmf & & Execute an AUTO CLUI script, line by line (demo
 mode). \\ \hline
 \end{longtable}
 For convenience, you can use ``!'' to run a shell command. Moreover
@@ -2358,7 +2518,7 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
     \begin{itemize}
       \item
         if data is not specified, data is a string, or data is a
-        bifurcation diagram: a bifurcation diagram.
+        bifurcation diagram object: a bifurcation diagram object.
       \item
         if data is a solution, a Python list array or a numpy array
         representing a solution: a solution.
@@ -2483,7 +2643,7 @@ Copy data files.
     and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
     default filename templates).
     
-\textbf{Aliases:} cp commandCopyDataFiles
+\textbf{Aliases:} commandCopyDataFiles
 
 \item[move]
 Move data-files to a new name.
@@ -2492,7 +2652,7 @@ Move data-files to a new name.
     and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
     default filename templates).  
 
-\textbf{Aliases:} mv commandMoveFiles
+\textbf{Aliases:} commandMoveFiles
 
 \item[df]
 Clear the current directory of fort files.
@@ -4508,13 +4668,13 @@ This constant defines the problem type~:
 
 
 \section{ Output Control.} \label{sec:Output_control}
-\subsection{\tt unames}  \label{sec:U}
+\subsection{\tt unames}  \label{sec:unames}
 This constant, where {\tt unames=\{i1:s1,i2:s2\}}, changes the names in all
 output from {\tt U(i1)} to {\tt s1}, from {\tt U(i2)} to {\tt s2}, and so on.
 You can also refer to these strings, instead of the corresponding indices,
 in the constants \texttt{U} and \texttt{THU}.
 
-\subsection{\tt parnames}  \label{sec:U}
+\subsection{\tt parnames}  \label{sec:parnames}
 This constant, where {\tt parnames=\{i1:s1,i2:s2\}}, changes the names in all
 output from {\tt PAR(i1)} to {\tt s1}, from {\tt PAR(i2)} to {\tt s2},
 and so on.
@@ -4654,7 +4814,7 @@ For details on overspecified parameters see
 Section~\ref{sec:Parameter_over_specification}.
 %=====================================================================
 
-\section{Quick reference}
+\section{ Quick reference}
 \vspace{-2mm}
 \begin{tabular}{|l|l|}
 \hline
