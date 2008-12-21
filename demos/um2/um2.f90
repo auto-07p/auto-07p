@@ -13,16 +13,16 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,*),DFDP(NDIM,*)
 
-      DOUBLE PRECISION eps, Period, X, Y
+      DOUBLE PRECISION eps, Period, x, y
 
 	eps    = PAR(2)
  	Period = PAR(11)
 
-	X = U(1)
-	Y = U(2)
+	x = U(1)
+	y = U(2)
 
-	F(1) =  Period * ( eps * X - Y**3 )
-	F(2) =  Period * (       Y + X**3 )
+	F(1) =  Period * ( eps * x - y**3 )
+	F(2) =  Period * (       y + x**3 )
  
       END SUBROUTINE FUNC
 !---------------------------------------------------------------------- 
@@ -35,20 +35,17 @@
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
 
-      DOUBLE PRECISION theta, eps, r0, r1, Period, PI
-
-       theta = 0.25
-       eps   = 0.5
-       r0    = 0.1
-       r1    = r0
-       Period= 1.d-4
+      DOUBLE PRECISION, PARAMETER :: &
+           theta = 0.25, &
+           eps   = 0.5, &
+           r0    = 0.1, &
+           r1    = r0, &
+           Period= 1.d-4
+      DOUBLE PRECISION PI
 
        PI = 4*ATAN(1.D0)
 
-       PAR(1) = theta
-       PAR(2) = eps
-       PAR(3) = r0
-       PAR(4) = r1
+       PAR(1:4) = (/theta,eps,r0,r1/)
        PAR(11)= Period
 
        U(1) = r0 * COS( 2.0D0 * PI * theta)
@@ -81,7 +78,7 @@
 
        	FB(1) = x0 - r0 * COS( 2.0 * PI * theta) 
 	FB(2) = y0 - r0 * SIN( 2.0 * PI * theta) 
-        FB(3) = SQRT(x1**2 + y1**2) - PAR(4) 
+        FB(3) = SQRT(x1**2 + y1**2) - r1 
 
       END SUBROUTINE BCND
 !---------------------------------------------------------------------- 

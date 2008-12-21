@@ -7776,6 +7776,52 @@ the problem is considered as an initial value problem. It is in fact the
 approach} which enables their determination. As already mentioned, this 
 feature is even more visible when running this demo with a smaller value 
 of $\eps$.
+\newpage
+
+%==============================================================================
+%DEMO=um3======================================================================
+%==============================================================================
+\section{ um3 : A 2D unstable manifold in 3D.} \label{sec:Demos_um3}
+This demo uses {\it orbit continuation} to compute part of the 2D unstable 
+manifold of the origin of the equations
+\begin{equation} \begin{array}{cl}
+ x' &= ~\eps x - y^3 + z^3~, \\
+ y' &=   ~~y + x^3~, \\
+ z' &=    -z + x^2~. \\
+\end{array} \end{equation}
+The origin has unstable eigenvalues $\eps$ and $1$, where $\eps>0$, so that its 
+unstable manifold is $2$-dimensional. 
+In the computations the independent time variable $t$ is scaled to vary in
+the unit interval, so that the actual integration time $T$ becomes an 
+explicit parameter in the equations; see, for example, demo \filef{um2}.
+The calculations can be done by running the Python script \filef{um3.auto} 
+included in the demo. 
+
+In the first run an orbit is ``grown'' by continuation in the integration time 
+$T$, starting from a very small value of $T$, so that a solution that is
+constant in time is an accurate initial approximation. The starting solution is 
+in fact a point on a circle of small radius $r_0=0.03$ in the unstable eigenspace
+of the origin. 
+The precise starting point is in the strongly unstable direction, namely, the
+$y$-direction.
+The initial orbit is grown until the $L_2$-norm of its endpoint 
+$(x(1),y(1),z(1))$ reaches the value $1$. 
+The value of $\eps$ is fixed at $0.5$ in the first run. In the second run 
+continuation is used to decrease $\eps$ to $0.01$. The norm of the endpoint  
+$(x(1),y(1),z(1))$ is fixed in this run, while $T$ is variable.
+
+In the third run the norm of the endpoint remains fixed, but the 
+initial point $(x(0),y(0),z(0))$ is allowed to move around the small circle of 
+radius $r_0$ in the unstable eigenspace of the origin.  
+The endpoint thereby moves on the surface of the ``large'' sphere of radius 
+$1$. The integration time $T$ remains variable.
+The orbits computed in this run generate the local manifold.
+
+When viewing the orbits computed in the third run, as written in the file 
+\filef{s.3}, notice that there appears to be second equilibrium with a 2D 
+stable manifold which intersects the 2D unstable manifold of the origin. 
+The intersection curve, which corresponds to a heteroclinic orbit,
+is visible in the graphical representation of the manifold. 
 
 %==============================================================================
 %==============================================================================

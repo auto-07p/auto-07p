@@ -1,0 +1,34 @@
+
+#==============
+# Demo um3
+#==============
+
+print "\n***Grow an initial orbit by continuation***"
+init = run(e='um3',
+           unames = {1:'x',2:'y',3:'z'},
+           parnames = {1:'theta',2:'eps',3:'r0',4:'r1',11:'Period'},
+           NDIM=3,IPS=4,ILP=0,ISP=0,ICP=['Period','r1'],
+           NTST=60,IPLT=3,NBC=4,
+           DS=5e-2,DSMIN=1e-5,DSMAX=1e1,
+           THL={'Period':0.},
+           UZR={'-r1':1.})
+save(init, '1')
+
+print "\n***Decrease the value of the problem parameter eps***"
+decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'-eps':0.01})
+save(decr, '2')
+
+print "\n***Part 1 of the unstable manifold***"
+startman = load(decr, ICP=['theta','Period'],NPR=1,
+                DS=5e-2,DSMIN=1e-5,DSMAX=1e0,
+                UZR={'-theta':[1.25,-0.75],'-Period':1e4})
+part1 = run(startman)
+
+print "\n***Part 2 of the unstable manifold"
+part2 = run(startman,DS='-')
+
+print "\n***Merge, relabel and save the orbits***"
+save(relabel(merge(part1+part2)),'3')
+
+print "\n***Clean the directory***"
+cl()
