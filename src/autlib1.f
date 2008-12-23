@@ -566,6 +566,7 @@ C
      &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
                STR=STR(I:)
                KEYS=.TRUE.
+               NEWCFILE=.TRUE.
                EXIT
             ELSE
                EXIT scanloop

@@ -8,7 +8,7 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      USE AUTO_CONSTANTS, ONLY : HCONST,NPARX
+      USE AUTO_CONSTANTS, ONLY : HCONST,NPARX,NEWCFILE
       IMPLICIT NONE
 
       PRIVATE
@@ -21,7 +21,7 @@ C
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 
       INTEGER, ALLOCATABLE, TARGET :: IREV(:),IFIXED(:),IPSI(:)
-      LOGICAL, SAVE :: NEWCFILE=.FALSE.
+      LOGICAL, SAVE :: INITCNST=.FALSE.
       DOUBLE PRECISION, SAVE :: COMPZERO
 
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
@@ -634,7 +634,7 @@ C
 C     read HomCont constants from a string
 C
       IERR = 0
-      IF(.NOT.NEWCFILE)THEN
+      IF(.NOT.INITCNST)THEN
          NUNSTAB=-1
          NSTAB=-1
          IEQUIB=1
@@ -645,7 +645,7 @@ C
          NPSI=0
          ALLOCATE(IREV(0),IFIXED(0),IPSI(0))
       ENDIF
-      NEWCFILE = .TRUE.
+      INITCNST = .TRUE.
       SELECT CASE(KEYSTR)
       CASE('NUNSTAB')
          READ(VALSTR,*,ERR=3)NUNSTAB
