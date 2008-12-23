@@ -1,0 +1,15 @@
+#=========
+# Demo she
+#=========
+
+pgm = 'she'
+
+print pgm, ": first run : continue heteroclinic orbit"
+r1=run('she',c='she.1',sv='1')
+
+print pgm, ": second run : repeat with IEQUIB=-1"
+r2=run('she',c='she.2')
+
+print pgm, ": third run : continue in reverse direction"
+r3=run(r2(2),c='she.3')
+save(r2+r3,'2')

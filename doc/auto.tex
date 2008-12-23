@@ -10872,34 +10872,35 @@ We begin by computing towards $\mu=0$ with the option \parf{IEQUIB=-2}
 which means that both equilibria are solved for as part of
 the continuation process.
 \begin{center}
-\commandf{@dm she} \\
-\commandf{make first}
+\commandf{demo('she')} \\
+\commandf{r1=run('she',c='she.1',sv='1')}
 \end{center} 
 This yields the output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(3)        L2-NORM    ...    PAR(1)     
-   1     5       2  4.528332E-01  3.726787E-01 ...  1.364973E-01
-   1    10       3  3.943370E-01  3.303798E-01 ...  1.044119E-01
-   1    15       4  3.358942E-01  2.873213E-01 ...  7.515570E-02
-   1    20       5  2.772726E-01  2.433403E-01 ...  4.952636E-02
-   1    25       6  2.181955E-01  1.981358E-01 ...  2.845849E-02
-   1    30  EP   7  1.581633E-01  1.512340E-01 ...  1.292975E-02
+  BR    PT  TY  LAB    PAR(3)        L2-NORM    ...   PAR(1)     
+   1     1  EP    1   5.00000E-01   4.05950E-01 ...  1.63875E-01
+   1     5        2   4.52847E-01   3.72688E-01 ...  1.36505E-01
+   1    10        3   3.94351E-01   3.30390E-01 ...  1.04419E-01
+   1    15        4   3.35908E-01   2.87331E-01 ...  7.51623E-02
+   1    20        5   2.77287E-01   2.43351E-01 ...  4.95320E-02
+   1    25        6   2.18210E-01   1.98147E-01 ...  2.84629E-02
+   1    30  EP    7   1.58178E-01   1.51246E-01 ...  1.29327E-02
 \end{verbatim}
 Alternatively, for this problem there exists an analytic expression for
 the two equilibria. This is specified in the subroutine \funcf{PVLS} of
 \filef{she.f}. Re-running with \parf{IEQUIB=-1}
 \begin{center}
-\it make second
-\end{center} 
+r2=run('she',c='she.2')
+\end{center}
 we obtain the output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(3)        L2-NORM    ...    PAR(1)     
-   1     5       2  4.432015E-01  3.657716E-01 ...  1.310559E-01
-   1    10       3  3.723085E-01  3.142439E-01 ...  9.300982E-02
-   1    15       4  3.008842E-01  2.611556E-01 ...  5.933966E-02
-   1    20       5  2.286652E-01  2.062194E-01 ...  3.179939E-02
-   1    25       6  1.555409E-01  1.491652E-01 ...  1.239897E-02
-   1    30  EP   7  8.107462E-02  9.143108E-02 ...  2.386616E-03
+   1     1  EP    1   5.00000E-01   4.05950E-01 ...  1.63875E-01
+   1     5        2   4.43202E-01   3.65772E-01 ...  1.31056E-01
+   1    10        3   3.72309E-01   3.14244E-01 ...  9.30098E-02
+   1    15        4   3.00884E-01   2.61156E-01 ...  5.93397E-02
+   1    20        5   2.28665E-01   2.06219E-01 ...  3.17994E-02
+   1    25        6   1.55541E-01   1.49165E-01 ...  1.23990E-02
+   1    30  EP    7   8.10746E-02   9.14311E-02 ...  2.38662E-03
 \end{verbatim}
 This output is similar to that above, but note that it is obtained slightly
 more efficiently because the extra parameters \parf{PAR(12-21)} representing the
@@ -10908,7 +10909,8 @@ part of the continuation problem. Also note that \AUTO has chosen to take
 slightly larger steps along the family. Finally, we can continue in the opposite
 direction along the family from the original starting point (again with \parf{IEQUIB=-1}).
 \begin{center}
-\it make third
+r3=run(r2(2),c='she.3')\\
+save(r2+r3,'2')
 \end{center}
 %
 %------------------------------------------------------
@@ -10922,14 +10924,14 @@ orbits.}
 %------------------------------------------------------
 %
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(3)        L2-NORM    ...    PAR(1)     
-   1     5       8  4.997590E-01  4.060153E-01 ...  1.637322E-01
-   1    10       9  5.705299E-01  4.551872E-01 ...  2.065264E-01
-   1    15      10  6.416439E-01  5.031844E-01 ...  2.507829E-01
-   1    20      11  7.133301E-01  5.500668E-01 ...  2.959336E-01
-   1    25      12  7.857688E-01  5.958712E-01 ...  3.415492E-01
-   1    30      13  8.590970E-01  6.406182E-01 ...  3.872997E-01
-   1    35  EP  14  9.334159E-01  6.843173E-01 ...  4.329270E-01
+  BR    PT  TY  LAB    PAR(3)        L2-NORM    ...   PAR(1)     
+   1     5        8   4.99759E-01   4.06015E-01 ...  1.63732E-01
+   1    10        9   5.70530E-01   4.55187E-01 ...  2.06526E-01
+   1    15       10   6.41644E-01   5.03184E-01 ...  2.50783E-01
+   1    20       11   7.13330E-01   5.50067E-01 ...  2.95934E-01
+   1    25       12   7.85769E-01   5.95871E-01 ...  3.41549E-01
+   1    30       13   8.59097E-01   6.40618E-01 ...  3.87300E-01
+   1    35  EP   14   9.33416E-01   6.84317E-01 ...  4.32927E-01
 \end{verbatim}
 The results of both computations are presented in Figure \ref{Fshear}, 
 from which we see that the orbit shrinks to zero as
@@ -10949,17 +10951,16 @@ from which we see that the orbit shrinks to zero as
   \commandf{demo('she')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{us('she')} & use the starting data in \filef{she.dat} to create \filef{s.dat} \\ 
-  \commandf{run(c='she.1',h='she.1',s='dat')} &  continue heteroclinic orbit; restart from \filef{s.dat}\\ 
-  \commandf{sv('1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{r1=run('she',c='she.1',sv='1')} &  continue heteroclinic orbit; start from \filef{she.dat}\\ 
+  & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='she.2',h='she.2',s='dat')} &  repeat with \parf{IEQUIB=-1} \\ 
-  \commandf{sv('2')} & save output-files as \filef{b.2, s.2, d.2} \\ 
+  \commandf{r2=run('she',c='she.2')} &  repeat with \parf{IEQUIB=-1} \\ 
 \hline
 %=============================================================================
-  \commandf{run(c='she.3',h='she.3',s='2')} & continue in reverse direction ; restart from \filef{s.2} \\ 
-  \commandf{ap('2')} & append output-files to \filef{b.2, s.2, d.2} \\ 
+  \commandf{r3=run(r2(2),c='she.3')} & continue in reverse direction ;\\
+  & restart from label 2 of \parf{r2}} \\ 
+  \commandf{save(r2+r3,'2')} & Save appended results to \filef{b.2, s.2, d.2}\\ 
 \hline
 %=============================================================================
 \end{tabular}

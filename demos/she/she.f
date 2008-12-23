@@ -109,7 +109,7 @@ C
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION U(*),PAR(*)
 C Homoclinic bifurcations COMMON block needed here :
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 C
 C If IEQUIB =-1 put analytic expressions for equilibria in
 C   PAR(11+i), i=1,..,NDIM         left-hand equilibrium

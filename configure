@@ -7572,7 +7572,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pla/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/she/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/mtn/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pla/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/rev/Makefile demos/san/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8169,7 +8169,6 @@ do
     "demos/pvl/Makefile") CONFIG_FILES="$CONFIG_FILES demos/pvl/Makefile" ;;
     "demos/rev/Makefile") CONFIG_FILES="$CONFIG_FILES demos/rev/Makefile" ;;
     "demos/san/Makefile") CONFIG_FILES="$CONFIG_FILES demos/san/Makefile" ;;
-    "demos/she/Makefile") CONFIG_FILES="$CONFIG_FILES demos/she/Makefile" ;;
     "demos/stw/Makefile") CONFIG_FILES="$CONFIG_FILES demos/stw/Makefile" ;;
     "demos/tor/Makefile") CONFIG_FILES="$CONFIG_FILES demos/tor/Makefile" ;;
     "demos/wav/Makefile") CONFIG_FILES="$CONFIG_FILES demos/wav/Makefile" ;;
