@@ -1,0 +1,25 @@
+#=========
+# Demo pen
+#=========
+
+pgm = 'pen'
+
+print pgm, ": first run : locate a period doubling bifurcation"  
+pen=run(pgm,c='pen.1')
+
+print pgm, ": second run : a bifurcating branch of out-of-phase rotations"
+pen=pen+run(pen('PD1'),c='pen.2')
+
+print pgm, ": third run : a secondary bifurcating branch (without bifurcation detection)"
+pen=pen+run(pen('BP1'),c='pen.3')
+
+print pgm, ": fourth run : another secondary bifurcating branch (without bifurcation detection)"
+pen=pen+run(pen('BP2'),c='pen.4')
+save(pen,'pen')
+
+print pgm, ": fifth run : generate starting data for period doubling continuation"
+t=run(pen('PD1'),c='pen.5')
+
+print pgm, ": sixth run : compute a locus of period doubling bifurcations; restart from t"
+pd=run(t,sv='pd')
+

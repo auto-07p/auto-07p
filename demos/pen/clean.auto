@@ -1,0 +1,9 @@
+#==============
+# AUTO Demo pen
+#==============
+
+print "\n***Clean the directory***"
+
+dl("pen")
+dl("pd")
+cl()

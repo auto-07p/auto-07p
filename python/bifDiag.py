@@ -53,18 +53,22 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                 if c is not None:
                     newc.update(c)
                 self.options["constants"] = newc
-            #adjust maximum label
+            #adjust maximum label/branch
             labs = self.getLabels()
             if labs != []:
-                mlab = max(labs)
+                mbr, mlab = 0, 0
+                for d in self():
+                    if d["BR"] > mbr: mbr = d["BR"]
+                    if d["LAB"] > mlab: mlab = d["LAB"]
                 for d in self:
                     for k,x in map(d._gettypelabel, d.labels.getIndices()):
                         if x.has_key("solution") and x["LAB"] != 0:
                             s = x["solution"]
                             self.options['makefile'] = s.options['makefile']
-                            if s._mlab != mlab:
+                            if s._mlab != mlab or s._mbr != mbr:
                                 news = s.__class__(s)
                                 news._mlab = mlab
+                                news._mbr = mbr
                                 x["solution"] = news
             return
         diagnostics = None

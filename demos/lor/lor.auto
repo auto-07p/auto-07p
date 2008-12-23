@@ -1,0 +1,15 @@
+#=========
+# Demo lor
+#=========
+
+pgm = 'lor'
+
+print pgm, ": first run : a solution branch starting from numerical data"  
+lor=run('lor',c='lor.1')
+
+print pgm, ": second run : switch branches at a period-doubling"
+lor=lor+run(lor('PD1'),c='lor.2')
+
+print pgm, ": third run : third run : another period-doubling"
+lor=lor+run(lor('PD2'),c='lor.3')
+save(lor,'lor')

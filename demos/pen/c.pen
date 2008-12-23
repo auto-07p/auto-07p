@@ -1,4 +1,5 @@
-NDIM=   4, IPS =   2, IRS =   1, ILP =   0
+dat = 'pen'
+NDIM=   4, IPS =   2, IRS =   0, ILP =   0
 ICP =  [3, 11]
 NTST=  15, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=  200, RL0=  -0.1, RL1=  15.0, A0=   0.0, A1= 100.0
