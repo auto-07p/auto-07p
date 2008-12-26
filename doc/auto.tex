@@ -419,7 +419,7 @@ default effective number of equation parameters {\tt NPAR}, set to 36
 upon installation. It can be overridden in constant files.
 See also Section~\ref{sec:Restrictions_on_PAR}.
 The default can be changed by editing {\tt auto.h}.
-This must be followed by recompilation by typing {\it make} 
+This must be followed by recompilation by typing \commandf{make} 
 in the directory {\tt auto/07p/src}.
 
 Note that in certain cases the {\it effective dimension} may be greater
@@ -3062,44 +3062,44 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 \item[\tt @r]:
-  Type {\it @r xxx} to run {\cal AUTO}.
+  Type \commandf{@r xxx} to run {\cal AUTO}.
   Restart data, if needed, are expected in {\tt s.xxx},
   and {\cal AUTO}-constants in {\tt c.xxx}.
   This is the simplest way to run {\cal AUTO}.
 \item[-]
-  Type {\it @r xxx yyy} to run {\cal AUTO}
+  Type \commandf{@r xxx yyy} to run {\cal AUTO}
   with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
   {\cal AUTO}-constants must be in {\tt c.xxx}.
 \item[-]
-  Type {\it @r xxx yyy zzz} to run {\cal AUTO}
+  Type \commandf{@r xxx yyy zzz} to run {\cal AUTO}
   with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
   and constants-file {\tt c.zzz}.
 
 \item[\tt @R]~:
-  The command {\it @R xxx} is equivalent to the command {\it @r xxx} above.
+  The command \commandf{@R xxx} is equivalent to the command \commandf{@r xxx} above.
 \item[-]
-  Type {\it @R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f},
+  Type \commandf{@R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f},
   constants-file {\tt c.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
-  Type {\it @R xxx i yyy} to run {\cal AUTO}
+  Type \commandf{@R xxx i yyy} to run {\cal AUTO}
   with equations-file {\tt xxx.f}, 
   constants-file {\tt c.xxx.i}
   and restart data-file {\tt s.yyy}.
 
 \item[\tt @sv]~:
-  Type {\it @sv xxx} to save the output-files 
+  Type \commandf{@sv xxx} to save the output-files 
   {\tt fort.7}, {\tt fort.8}, {\tt fort.9},
   as {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, respectively.
   Existing files by these names will be deleted.
 
 \item[\tt @ap]~:
-  Type {\it @ap xxx} to append the output-files 
+  Type \commandf{@ap xxx} to append the output-files 
   {\tt fort.7}, {\tt fort.8}, {\tt fort.9}, 
   to existing data-files 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, resp.
 \item[-]
-  Type {\it @ap xxx yyy} 
+  Type \commandf{@ap xxx yyy} 
   to append 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, to
   {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, resp.
@@ -3110,32 +3110,32 @@ or in any of its subdirectories.}
 \begin{itemize}
 
 \item[\tt @pp]~:
-  Type {\it @pp xxx} to run the graphics program {\cal PyPLAUT}
+  Type \commandf{@pp xxx} to run the graphics program {\cal PyPLAUT}
   (See Chapter~\ref{ch:PLAUT})
   for the graphical inspection of the data-files 
   {\tt b.xxx} and {\tt s.xxx}. 
 \item[-]
-  Type {\it @pp} to run the graphics program {\cal PyPLAUT}
+  Type \commandf{@pp} to run the graphics program {\cal PyPLAUT}
   for the graphical inspection of the output-files 
   {\tt fort.7} and {\tt fort.8}.
 
 \item[\tt @pl]~:
-  The command {\it @pl} is equivalent to {\tt @pp} but runs
+  The command \commandf{@pl} is equivalent to {\tt @pp} but runs
   the graphics program {\cal PLAUT04} instead.
   (See Chapter~\ref{ch:PLAUT04})
 
 \item[\tt @r3b]~:
-  The command {\it @r3b} is equivalent to {\tt @pp} but runs
+  The command \commandf{@r3b} is equivalent to {\tt @pp} but runs
   the graphics program {\cal PLAUT04} instead in R3B mode.
   (See Chapter~\ref{ch:PLAUT04})
 
 \item[\tt @p]~:
-  The command {\it @p} is equivalent to {\tt @pp} but runs
+  The command \commandf{@p} is equivalent to {\tt @pp} but runs
   the graphics program {\cal PLAUT} instead.
   (See Chapter~\ref{ch:PLAUT})
 
 \item[\tt @ps]~:
-  Type {\it @ps fig.x} to convert a saved {\cal PLAUT} figure {\tt fig.x}
+  Type \commandf{@ps fig.x} to convert a saved {\cal PLAUT} figure {\tt fig.x}
   from compact {\cal PLOT10} format to {\cal PostScript} format.
   The converted file is called {\tt fig.x.ps}. 
   The original file is left unchanged.
@@ -3147,30 +3147,30 @@ or in any of its subdirectories.}
 \begin{itemize}
 
 \item[\tt @cp]~:
-  Type {\it @cp xxx yyy} 
+  Type \commandf{@cp xxx yyy} 
   to copy the data-files 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx} to
   {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
 
 \item[\tt @mv]~:
-  Type {\it @mv xxx yyy} 
+  Type \commandf{@mv xxx yyy} 
   to move the data-files 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx}, to
   {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
 
 \item[\tt @df]~:
-  Type {\it @df} 
+  Type \commandf{@df} 
   to delete the output-files 
   {\tt fort.7}, {\tt fort.8}, {\tt fort.9}.
 
 \item[\tt @cl]~:
-  Type {\it @cl} 
+  Type \commandf{@cl} 
   to clean the current directory.
   This command will delete  all files of the form
   {\tt fort.*}, {\tt *.o}, and {\tt *.exe}.
 
 \item[\tt @dl]~:
-  Type {\it @dl xxx} 
+  Type \commandf{@dl xxx} 
  to delete the data-files 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}.
 \end{itemize}
@@ -3179,68 +3179,68 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 \item[\tt @lp]~:
-  Type {\it @lp} to list the value of the ``limit point function'' 
+  Type \commandf{@lp} to list the value of the ``limit point function'' 
   in the output-file {\tt fort.9}. This function
   vanishes at a limit point (fold).
   \item[-]
-  Type {\it @lp xxx} to list the value of the ``limit point function'' 
+  Type \commandf{@lp xxx} to list the value of the ``limit point function'' 
   in the data-file {\tt d.xxx}. This function
   vanishes at a limit point (fold).
 \item[\tt @bp]~:
-  Type {\it @bp} to list the value of the ``branch-point function'' 
+  Type \commandf{@bp} to list the value of the ``branch-point function'' 
   in the output-file {\tt fort.9}. This function
   vanishes at a branch point.
   \item[-]
-  Type {\it @bp xxx} to list the value of the ``branch-point function''
+  Type \commandf{@bp xxx} to list the value of the ``branch-point function''
   in the data-file {\tt d.xxx}. This function
   vanishes at a branch point.
 \item[\tt @hb]~:
-  Type {\it @hb} to list the value of the ``Hopf function'' 
+  Type \commandf{@hb} to list the value of the ``Hopf function'' 
   in the output-file {\tt fort.9}. This function
   vanishes at a Hopf bifurcation point.
   \item[-]
-  Type {\it @hb xxx} to list the value of the ``Hopf function''
+  Type \commandf{@hb xxx} to list the value of the ``Hopf function''
   in the data-file {\tt d.xxx}. This function
   vanishes at a  Hopf bifurcation point.
 \item[\tt @sp]~:
-  Type {\it @sp} to list the value of the 
+  Type \commandf{@sp} to list the value of the 
   ``secondary-periodic bifurcation function'' 
   in the output-file {\tt fort.9}. This function
   vanishes at period-doubling and torus bifurcations.
   \item[-]
-  Type {\it @sp xxx} to list the value of the
+  Type \commandf{@sp xxx} to list the value of the
    ``secondary-periodic bifurcation function''
   in the data-file {\tt d.xxx}. This function
   vanishes at period-doubling and torus bifurcations.
 \item[\tt @it]~:
-  Type {\it @it} to list the number of Newton iterations per
+  Type \commandf{@it} to list the number of Newton iterations per
   continuation step in {\tt fort.9}. 
   \item[-]
-   Type {\it @it xxx} to list the number of Newton iterations per
+   Type \commandf{@it xxx} to list the number of Newton iterations per
   continuation step in {\tt d.xxx}. 
 \item[\tt @st]~:
-  Type {\it @st} to list the number of stable eigenvalues or stable
+  Type \commandf{@st} to list the number of stable eigenvalues or stable
   Floquet multipliers per continuation step in  {\tt fort.9}. 
 \item[\tt @ss]~:
-  Type {\it @st} to list the continuation step size for each
+  Type \commandf{@st} to list the continuation step size for each
   continuation step in  {\tt fort.9}. 
   \item[-]
-   Type {\it @st xxx} to list the continuation step size for each
+   Type \commandf{@st xxx} to list the continuation step size for each
   continuation step in {\tt d.xxx}. 
 \item[\tt @ev]~:
-  Type {\it @ev} to list the eigenvalues of the Jacobian 
+  Type \commandf{@ev} to list the eigenvalues of the Jacobian 
   in {\tt fort.9}. 
   (Algebraic problems.)
   \item[-]
-   Type {\it @ev xxx} to list the eigenvalues of the Jacobian 
+   Type \commandf{@ev xxx} to list the eigenvalues of the Jacobian 
   in {\tt d.xxx}. 
   (Algebraic problems.)
 \item[\tt @fl]~:
-  Type {\it @fl} to list the Floquet multipliers
+  Type \commandf{@fl} to list the Floquet multipliers
   in the output-file {\tt fort.9}. 
   (Differential equations.)
   \item[-]
-   Type {\it @fl xxx} to list the Floquet multipliers 
+   Type \commandf{@fl xxx} to list the Floquet multipliers 
   in the data-file {\tt d.xxx}. 
   (Differential equations.)
 \end{itemize}
@@ -3268,22 +3268,22 @@ or in any of its subdirectories.}
 
 \begin{itemize}
 \item[\tt @lb]~:
-  Type {\it @lb} to run an interactive utility program
+  Type \commandf{@lb} to run an interactive utility program
   for listing, deleting and relabeling solutions 
   in the output-files {\tt fort.7} and {\tt fort.8}.
   The original files are backed up as
 {\tt $\sim$fort.7} and {\tt $\sim$fort.8}. 
   \item[-]
-  Type {\it @lb xxx} to list, delete and relabel solutions
+  Type \commandf{@lb xxx} to list, delete and relabel solutions
   in the data-files {\tt b.xxx} and {\tt s.xxx}.
   The original files are backed up as {\tt $\sim$b.xxx} and {\tt $\sim$s.xxx}. 
 \item[-]
-  Type {\it @lb xxx yyy} to list, delete and relabel solutions
+  Type \commandf{@lb xxx yyy} to list, delete and relabel solutions
   in the data-files {\tt b.xxx} and {\tt s.xxx}.
   The modified files are written as {\tt b.yyy} and {\tt s.yyy}. 
 
 \item[\tt @fc]~:
-  Type {\it @fc xxx} to convert a user-supplied data file {\tt xxx.dat}
+  Type \commandf{@fc xxx} to convert a user-supplied data file {\tt xxx.dat}
   to {\cal AUTO} format. The converted file is called {\tt s.dat}.
   The original file is left unchanged.
   {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
@@ -3292,7 +3292,7 @@ or in any of its subdirectories.}
   The constants-file file {\tt c.xxx} must be present, as the 
   {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
   (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
-  For examples of using the {\it @fc} command see demos {\tt lor} and {\tt pen}.
+  For examples of using the \commandf{@fc} command see demos {\tt lor} and {\tt pen}.
   
   Note: this technique has been obsoleted by the 'dat' AUTO constant
   in Section~\ref{sec:dat}.
@@ -3305,26 +3305,26 @@ or in any of its subdirectories.}
 \item[\tt @h]~:
   Use {\tt @h} instead of {\tt @r} when using {\cal HomCont}, i.e., when {\tt IPS}=9
   (see Chapter~\ref{ch:HomCont}).
-  Type {\it @h xxx} to run {\cal AUTO}/{\cal HomCont}.
+  Type \commandf{@h xxx} to run {\cal AUTO}/{\cal HomCont}.
   Restart data, if needed, are expected in {\tt s.xxx},
   {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
 \item[-]
-  Type {\it @h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
+  Type \commandf{@h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
   {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
 \item[-]
-  Type {\it @h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
+  Type \commandf{@h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
   and constants-files {\tt c.zzz} and {\tt s.zzz}.
 
 \item[\tt @H]~:
-  The command {\it @H xxx} is equivalent to the command {\it @h xxx} above.
+  The command \commandf{@H xxx} is equivalent to the command \commandf{@h xxx} above.
 \item[-]
-  Type {\it @H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
+  Type \commandf{@H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
   and constants-files {\tt c.xxx.i} and {\tt s.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
-  Type {\it @H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
+  Type \commandf{@H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f}, 
   constants-files {\tt c.xxx.i} and {\tt s.xxx.i},
   and restart data-file {\tt s.yyy}.
@@ -3335,12 +3335,12 @@ or in any of its subdirectories.}
 \begin{itemize}
 
 \item[\tt @dm]~:
-  Type {\it @dm xxx} 
+  Type \commandf{@dm xxx} 
   to copy all files 
   from {\tt auto/07p/demos/xxx}
   to the current user directory.
   Here {\tt xxx} denotes a demo name; e.g., {\tt abc}.
-  Note that the {\it @dm} command also copies a {\it Makefile}
+  Note that the \commandf{@dm} command also copies a {\it Makefile}
   to the current user directory. To avoid the overwriting of
   existing files, always run demos in a clean work directory.
 \end{itemize}
@@ -3429,11 +3429,11 @@ which can then be printed by ``parameter overspecification'';
 see Section~\ref{sec:Parameter_over_specification}.
 For an example see demo {\tt pvl}.
 
-The {\cal AUTO}-commands {\it @sv}(\commandf{sv}), {\it @ap}(\commandf{ap}),
- and {\it @df}(\commandf{df}) can be used 
+The {\cal AUTO}-commands \commandf{@sv}(\commandf{sv}), \commandf{@ap}(\commandf{ap}),
+ and \commandf{@df}(\commandf{df}) can be used 
 to manipulate  the output-files {\tt fort.7}, {\tt fort.8},
 and {\tt fort.9}.
-Furthermore, the {\cal AUTO}-command {\it @lb}(\commandf{rl}) can be
+Furthermore, the {\cal AUTO}-command \commandf{@lb}(\commandf{rl}) can be
 used to delete and
 relabel solutions simultaneously in {\tt fort.7} and {\tt fort.8}.
 For details see Section~\ref{sec:command_mode}.
@@ -3451,7 +3451,7 @@ the data in {\tt fort.7} and {\tt fort.8}; see Chapters~\ref{ch:PLAUT},
 {\cal PLAUT} can be used to extract graphical
 information from the {\cal AUTO} output-files {\tt fort.7} and {\tt fort.8},
 or from the corresponding data-files {\tt b.xxx} and {\tt s.xxx}.
-To invoke {\cal PLAUT}, use the {\it @p} command defined in 
+To invoke {\cal PLAUT}, use the \commandf{@p} command defined in 
 Section~\ref{sec:command_mode}.
 The {\cal PLAUT} window (a Tektronix window) will appear, in which {\cal PLAUT}
 commands can be entered.
@@ -3507,7 +3507,7 @@ The principal {\cal PLAUT}-commands are
   To list the labels of all solutions stored in {\tt fort.8}.
   Note that {\cal PLAUT} requires all labels to be distinct.
   In case of multiple labels you can use the {\cal AUTO}
-  command {\it @lb} to relabel solutions in
+  command \commandf{@lb} to relabel solutions in
   {\tt fort.7} and {\tt fort.8}.
 
 \item[\tt end]~:  To end execution of {\cal PLAUT}.
@@ -3570,7 +3570,7 @@ The full {\cal PLAUT} program has several other capabilities, for example,
 \section{ Printing {\cal PLAUT} Files.} \label{sec:Printing_PLAUT_files}
 \begin{itemize}
 \item[\tt @ps]~:
-  Type {\it @ps fig.1} to convert a saved {\cal PLAUT} file {\tt fig.1} 
+  Type \commandf{@ps fig.1} to convert a saved {\cal PLAUT} file {\tt fig.1} 
   to {\cal PostScript} format
   in {\tt fig.1.ps}.
 \end{itemize}
@@ -3837,23 +3837,23 @@ together with the corresponding GUI button.
 \begin{center}
 \begin{tabular}{| l | l |}
 \hline
-{\it @r }  & {\it Run} \\  
+\commandf{@r }  & {\it Run} \\  
 \hline
-{\it @sv }  & {\it Save}  \\ 
+\commandf{@sv }  & {\it Save}  \\ 
 \hline
-{\it @ap }  & {\it Append} \\ 
+\commandf{@ap }  & {\it Append} \\ 
 \hline
-{\it @p }  & {\it Plot}  \\ 
+\commandf{@p }  & {\it Plot}  \\ 
 \hline
-{\it @cp }  & {\it Files/Copy}  \\ 
+\commandf{@cp }  & {\it Files/Copy}  \\ 
 \hline
-{\it @mv }  & {\it Files/Move}  \\ 
+\commandf{@mv }  & {\it Files/Move}  \\ 
 \hline
-{\it @cl }  & {\it Files/Clean} \\ 
+\commandf{@cl }  & {\it Files/Clean} \\ 
 \hline
-{\it @dl }  & {\it Files/Delete} \\  
+\commandf{@dl }  & {\it Files/Delete} \\  
 \hline
-{\it @dm }  & {\it Equations/Demo} \\  
+\commandf{@dm }  & {\it Equations/Demo} \\  
 \hline
 \end{tabular}
 \caption{Command Mode - GUI correspondences.}
@@ -3862,14 +3862,14 @@ together with the corresponding GUI button.
 \end{table}
 
 
-The {\cal AUTO}-command {\it @r xxx yyy} is given in the GUI as follows~:
+The {\cal AUTO}-command \commandf{@r xxx yyy} is given in the GUI as follows~:
 click {\it Files/Restart} and enter {\it yyy} as data.
 Then click {\it Run}.
 As noted in Section~\ref{sec:command_mode}, 
 this will run {\cal AUTO} with the current equations-file
 {\tt xxx.f} and the current constants-file {\tt c.xxx}, 
 while expecting restart data in {\tt s.yyy}.
-The {\cal AUTO}-command {\it @ap xxx yyy} is given in the GUI by
+The {\cal AUTO}-command \commandf{@ap xxx yyy} is given in the GUI by
 clicking {\it Files/Append}.
 
 \section{ Customizing the GUI.} \label{sec:Customizing_the_GUI}
@@ -4520,7 +4520,7 @@ is to be restarted.
 \item[-] {\tt IRS$>$0}~: 
   Restart the computation at the previously computed solution with label {\tt IRS}. 
   This solution is normally expected to be in the current data-file 
- {\tt s.xxx}; see also the {\it @r} and {\it @R} commands in 
+ {\tt s.xxx}; see also the \commandf{@r} and \commandf{@R} commands in 
  Section~\ref{sec:command_mode}.
  Various {\cal AUTO}-constants can be modified when restarting.
 
@@ -9518,11 +9518,11 @@ from the continuation problem.
 \section{ Notes on Running {\cal HomCont} Demos.} \label{sec:HomCont_Tutorial_examples}
 {\cal HomCont} demos are given in the following chapters.
 To copy all files of a demo \filef{xxx} (for example, \filef{san}),
-move to a clean directory and type {\it demo('xxx')}.
-Simply typing {\it make} or {\it make all} will then automatically
+move to a clean directory and type \commandf{demo('xxx')}.
+Simply typing \commandf{make} or \commandf{make all} will then automatically
 execute all runs of the demo.
 %To automatically run a demo in ``step-by-step'' mode,
-%type  {\it make first}, {\it make second}, etc.,
+%type  \commandf{make first}, \commandf{make second}, etc.,
 %to run each separate computation of the demo. 
 At each step, the user is encouraged to plot the data
 saved by using the command {\it plot} (e.g., {\it plot('1')} plots the data
@@ -9556,13 +9556,13 @@ to make appropriate changes in the {\cal AUTO} constants-files.
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it ld('san')}                & load the problem defition    \\ 
-  {\it run(c='san.1',h='san.1')} & get the HomCont constants-file and run \AUTO/{\cal HomCont}\\
-  {\it sv('6')}                  & save output-files as \filef{b.6, s.6, d.6}  \\ 
+  \commandf{ld('san')}                & load the problem defition    \\ 
+  \commandf{run(c='san.1',h='san.1')} & get the HomCont constants-file and run \AUTO/{\cal HomCont}\\
+  \commandf{sv('6')}                  & save output-files as \filef{b.6, s.6, d.6}  \\ 
 \hline
 %==============================================================================
-  {\it @H san 1}           &    \\ 
-  {\it @sv 6}              &    \\ 
+  \commandf{@H san 1}           &    \\ 
+  \commandf{@sv 6}              &    \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -9579,12 +9579,12 @@ to make appropriate changes in the {\cal AUTO} constants-files.
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it run(c='san.9',h='san.9',s='6')} & \parbox[t]{3in}{get the HomCont constants-file and run \AUTO/{\cal HomCont}; restart solution read from \filef{s.6}\vspace{0.2cm}}\\
-  {\it ap('6')}                        & append output-files to \filef{b.6, s.6, d.6}  \\ 
+  \commandf{run(c='san.9',h='san.9',s='6')} & \parbox[t]{3in}{get the HomCont constants-file and run \AUTO/{\cal HomCont}; restart solution read from \filef{s.6}\vspace{0.2cm}}\\
+  \commandf{ap('6')}                        & append output-files to \filef{b.6, s.6, d.6}  \\ 
 \hline
 %==============================================================================
-  {\it @H san 9 6}         &  \\ 
-  {\it @ap 6}              &  \\ 
+  \commandf{@H san 9 6}         &  \\ 
+  \commandf{@ap 6}              &  \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -9767,11 +9767,11 @@ $(a,b,\alpha,\beta, \mu)=(0.5,3,1,0,0.25)$.
 The sequence of continuations up to the desired parameter values 
 are run via
 \begin{center}
-\it make sixth\\
+\commandf{make sixth\\
 make seventh\\
 make eighth\\
 make ninth\\ 
-make tenth\\
+make tenth\\}
 \end{center}
 with appropriate continuation parameters and user output values
 set in the corresponding files \filef{c.san.xx}. 
@@ -9783,7 +9783,7 @@ the negative direction of $(\mu,\ti \mu)=$ (\parf{PAR(7),PAR(8)}) with
 the test function $\psi_{11}$ for orbit flips with respect to the
 stable manifold activated.
 \begin{center}
-\it make eleventh
+\commandf{make eleventh}
 \end{center}
 The output detects an inclination flip (by a zero of \parf{PAR(31)}) 
 at \parf{PAR(7)=0} 
@@ -9805,7 +9805,7 @@ orbit is contained in the $(x,y)$-plane}
 Finally, we demonstrate that the orbit flip can be continued as 
 three parameters (\parf{PAR(6), PAR(7), PAR(8)}) are varied. 
 \begin{center}
-\it make twelfth
+\commandf{make twelfth}
 \end{center}
 \begin{verbatim}
  BR    PT  TY LAB    PAR(7)       ...    PAR(8)        PAR(6)     
@@ -9938,7 +9938,7 @@ bifurcation curve $P$. The fold curves meet at a cusp singular point
 $C$, while the Hopf and the homoclinic curves originate at a
 Bogdanov-Takens point $BT$. Only the homoclinic curve $P$ will be 
 considered here, the other bifurcation curves can be computed using
-{\tt AUTO} or,
+\AUTO or,
 for example, {\cal locbif} \cite{KhKuLeNi:93}.
 
 \section{Continuation of Central Saddle-Node Homoclinics.}
@@ -9952,115 +9952,115 @@ homoclinic
 orbit to this saddle-node, departing and returning along its central
 direction (i.e., tangent to the null-vector).
 \par
-Starting from this solution, stored in the file {\tt mtn.dat}, we
+Starting from this solution, stored in the file \filef{mtn.dat}, we
 continue the saddle-node central homoclinic orbit 
 with respect to the parameters $K$ and $Z$ by copying the
 demo and running it
 \begin{center}
-{\it @dm mtn}\\
-{\it make first}
+\commandf{dm('mtn')}\\
+\commandf{r1=run('mtn',c='mtn.1',sv='1')}
 \end{center}
-The file {\tt mtn.f} contains approximate
+The file \filef{mtn.f} contains approximate
 parameter values
 $$
-K={\tt PAR(1)}=6.0,\ Z={\tt PAR(2)}=0.06729762,
+K=\parf{PAR(1)}=6.0,\ Z=\parf{PAR(2)}=0.06729762,
 $$
 as well as the coordinates of the saddle-node
 $$
-X^0={\tt PAR(12)}=5.738626,\ Y^0={\tt PAR(13)}=0.5108401,
+X^0=\parf{PAR(12)}=5.738626,\ Y^0=\parf{PAR(13)}=0.5108401,
 $$
 and the length of the truncated time-interval
 $$
-T_0={\tt PAR(11)} = 1046.178 \: .
+T_0=\parf{PAR(11)} = 1046.178 \: .
 $$
 Since a homoclinic orbit to a saddle-node is being followed, we have also
-made the choices
+made the choice
 $$
-{\tt IEQUIB = 2 \quad NUNSTAB =0 \quad NSTAB = 1   }
+\parf{IEQUIB = 2}
 $$
-in {\tt h.mtn.1}. The two test-functions, $\psi_{15}$ and $\psi_{16}$, 
+in \filef{c.mtn.1}. The two test-functions, $\psi_{15}$ and $\psi_{16}$, 
 to detect non-central saddle-node homoclinic
 orbits are also activated, which must be specified in three ways. 
-Firstly, in {\tt h.mtn.1}, {\tt NPSI} is
-set to 2 and the active test functions {\tt IPSI(I),I=1,2}
+Firstly, in \filef{c.mtn.1}, \parf{IPSI} is
+set to \parf{[15,16]} so the active test functions
 are chosen as 15 and 16. This sets up the monitoring of these
-test functions. Secondly, in {\tt c.mtn.1} user-defined functions
-({\tt UZR}) are set up to look for zeros of the parameters
+test functions. Secondly, in \filef{c.mtn.1} user-defined functions
+(\parf{UZR}) are set up to look for zeros of the parameters
 corresponding to these test functions. Recall that the
 parameters to be zeroed are always the test functions plus 20.
 Finally, these parameters are included in the list of continuation
-parameters ({\tt ICP}).
+parameters (\parf{ICP}).
 
 Among the output there is a line 
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)    ...     PAR(2)        PAR(35)       PAR(36)    
-   1    27  UZ   5  6.10437E+00 ...   6.932475E-02 -6.782898E-07  8.203437E-02
+  BR    PT  TY  LAB    PAR(1)     ...    PAR(2)        PAR(35)       PAR(36)
+   1    26  UZ    4   6.61046E+00 ...   6.93248E-02   5.23950E-09  -6.42344E-02
 \end{verbatim}
-indicating that a zero of the test function {\tt IPSI(1)=15} 
+indicating that a zero of the test function \parf{IPSI(1)=15} 
 This means that at
 $$
-D_1=(K^1,Z^1)=(6.6104\ldots, 0.069325\ldots)
+D_1=(K^1,Z^1)=(6.6105\ldots, 0.069325\ldots)
 $$
 the homoclinic orbit to the saddle-node becomes {\it non-central}, namely,
 it returns to the equilibrium along the stable eigenvector, forming a
-non-smooth loop. The output is saved in {\tt b.1}, {\tt s.1} and {\tt d.1}. 
+non-smooth loop. The output is saved in \filef{b.1}, \filef{s.1} and
+\filef{d.1}. 
 Repeating computations in the opposite direction along the curve, 
-{\tt IRS=1, DS=-0.01} in {\tt c.mtn.2}, 
+\parf{IRS=1, DS=-0.01} in \filef{c.mtn.2}, 
 \begin{center}
-{\it make second}
+\commandf{r1=r1+run(r1(1),c='mtn.2',ap='1')}
 \end{center}
 one obtains 
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)     ...    PAR(2)        PAR(35)       PAR(36)  
-   1    34  UZ   9  5.180323E+00 ...  6.385506E-02  3.349720E-09  9.361957E-02
+  BR    PT  TY  LAB    PAR(1)     ...    PAR(2)        PAR(35)       PAR(36)
+   1    34  UZ   10   5.18039E+00 ...   6.38554E-02   8.86654E-10  -7.28132E-02
 \end{verbatim}
 which means another non-central saddle-node homoclinic bifurcation occurs
 at
 $$
 D_2=(K^2,Z^2)=(5.1803\ldots,0.063855\ldots).
 $$
-Note that these data were obtained using a smaller value of {\tt NTST} than
-the original computation (compare {\tt c.mtn.1} with {\tt c.mtn.2}). The
-high original value of {\tt NTST} was only necessary for the first few steps
+Note that these data were obtained using a smaller value of \parf{NTST} than
+the original computation (compare \filef{c.mtn.1} with \filef{c.mtn.2}). The
+high original value of \parf{NTST} was only necessary for the first few steps
 because the original solution is specified on a uniform mesh. 
 
 \section{Switching between Saddle-Node and Saddle Homoclinic Orbits.}
 Now we can switch to continuation of saddle homoclinic orbits at the
 located codim 2 points $D_1$ and $D_2$. 
 \begin{center}
-{\it make third}
+\commandf{r1=r1+run(r1('UZ1'),c='mtn.3',ap='1')}
 \end{center}
 starts from $D_1$. Note that now 
 \begin{center}
-{\tt 
-NUNSTAB = 1 \quad IEQUIB = 1}  
+\parf{IEQUIB = 1}  
 \end{center}
-has been specified in {\tt h.mtn.3}. Also, test functions $\psi_9$
+has been specified in \filef{c.mtn.3}. Also, test functions $\psi_9$
 and $\psi_{10}$ have been activated in order
 to monitor for non-hyperbolic equilibria along the homoclinic locus. 
 We get the following output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)     ...    PAR(2)        PAR(29)       PAR(30)    
-   1    10      11  7.114523E+00 ...  7.081751E-02 -4.649861E-01  3.183429E-03
-   1    20      12  9.176810E+00 ...  7.678731E-02 -4.684912E-01  1.609294E-02
-   1    30      13  1.210834E+01 ...  8.543468E-02 -4.718871E-01  3.069638E-02
-   1    40  EP  14  1.503788E+01 ...  9.428036E-02 -4.743794E-01  4.144558E-02
+  BR    PT  TY  LAB    PAR(1)     ...    PAR(2)        PAR(29)       PAR(30)    
+   1    10       12   7.11454E+00 ...   7.08176E-02  -4.64986E-01   3.18355E-03
+   1    20       13   9.17683E+00 ...   7.67874E-02  -4.68491E-01   1.60931E-02
+   1    30       14   1.21084E+01 ...   8.54348E-02  -4.71887E-01   3.06966E-02
+   1    40  EP   15   1.50379E+01 ...   9.42805E-02  -4.74379E-01   4.14457E-02
 \end{verbatim}
-The fact that {\tt PAR(29)} and {\tt PAR(30)} do not change sign indicates 
+The fact that \parf{PAR(29)} and \parf{PAR(30)} do not change sign indicates 
 that there are no further non-hyperbolic equilibria
-along this family. Note that restarting in the opposite direction with {\tt IRS=11,
-DS=-0.02} 
+along this family. Note that restarting in the opposite direction with
+\parf{IRS=15,DS=-0.02} 
 \begin{center}
-{\it make fourth}
+\commandf{r4=run(r1,c='mtn.4',sv='4')}
 \end{center}
 will detect the same codim 2 point $D_1$ but now as a zero
 of the test-function $\psi_{10}$
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)     ...    PAR(2)        PAR(29)       PAR(30)
-  1    10  UZ  15  6.610459E+00  ...  6.932482E-02 -4.636603E-01  1.725013E-09    
+  BR    PT  TY  LAB    PAR(1)     ...    PAR(2)        PAR(29)       PAR(30)
+   1    38  UZ   11   6.61046E+00 ...   6.93248E-02  -4.63660E-01   3.13439E-08
 \end{verbatim}
-Note that the values of {\tt PAR(1)} and {\tt PAR(2)} differ from that at label {\tt 4} 
-only in the sixth significant figure. 
+Note that the values of \parf{PAR(1)} and \parf{PAR(2)} are equal to those
+at label \parf{4} up to at least six significant figures.
 
 Actually, the program runs further and
 eventually computes the point $D_2$ and the whole lower family of $P$
@@ -10073,20 +10073,20 @@ $D_2$.}, therefore we do not save these data.
 The reliable way to compute the lower family of $P$ is to restart computation
 of saddle homoclinic orbits in the other direction from the point $D_2$
 \begin{center}
-{\it make fifth}
+\commandf{r1=r1+run(r1('UZ3'),c='mtn.5',ap='1')}
 \end{center}
 This gives the lower family of $P$ approaching the BT point
 (see Figure \ref{SNF.1})
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)     ...   PAR(2)        PAR(29)       PAR(30)    
-   1    10      15  4.966429E+00 ... 6.298418E-02 -4.382426E-01  4.946824E-03
-   1    20      16  4.925379E+00 ... 7.961214E-02 -3.399102E-01  3.288447E-02
-   1    30      17  7.092267E+00 ... 1.587114E-01 -1.692842E-01  3.876291E-02
-   1    40  EP  18  1.101819E+01 ... 2.809825E-01 -3.482651E-02  2.104384E-02
+  BR    PT  TY  LAB    PAR(1)     ...   PAR(2)        PAR(29)       PAR(30)
+   1    10       16   4.96649E+00 ...  6.29843E-02  -4.38247E-01   4.94481E-03
+   1    20       17   4.92531E+00 ...  7.96087E-02  -3.39922E-01   3.28829E-02
+   1    30       18   7.09217E+00 ...  1.58708E-01  -1.69289E-01   3.87631E-02
+   1    40  EP   19   1.10181E+01 ...  2.80980E-01  -3.48294E-02   2.10449E-02
 \end{verbatim}
-The data are appended to the stored results in {\tt b.1}, {\tt s.1} and
-{\tt d.1}. One could now display all data using the \AUTO
-command {\it @p 1} to reproduce the curve $P$ shown in Figure
+The data are appended to the stored results in \filef{b.1}, \filef{s.1} and
+\filef{d.1}. One could now display all data using the \AUTO
+command \commandf{@pp 1} to reproduce the curve $P$ shown in Figure
 \ref{SNF.1}.
 \par
 %------------------------------------------------------
@@ -10122,36 +10122,35 @@ as $\|\alpha-\alpha^*\|^{-1}$ in the saddle-node case.
 \section{Three-Parameter Continuation.}
 Finally, we can follow the curve of non-central saddle-node homoclinic
 orbits in three parameters. The extra continuation parameter is
-$D_0$={\tt PAR(3)}.  To achieve this we restart at label {\tt 4},
+$D_0$=\parf{PAR(3)}.  To achieve this we restart at label \parf{4},
 corresponding to the codim 2 point $D_1$. We return to continuation of
-saddle-node homoclinics, {\tt NUNSTAB=0},{\tt IEQUIB=2}, but append the
+saddle-node homoclinics, \parf{NUNSTAB=0},\parf{IEQUIB=2}, but append the
 defining equation $\psi_{15}=0$ to the continuation problem
-(via {\tt NFIXED=1}, {\tt IFIXED(1)=15}). The new
-continuation problem is specified in {\tt c.mtn.6} and {\tt h.mtn.6}.
+(via \parf{NFIXED=1}, \parf{IFIXED(1)=15}). The new
+continuation problem is specified in \filef{c.mtn.6}.
 \begin{center}
-{\it make sixth}
+\commandf{r6=run(r1('UZ1'),c='mtn.6',sv='6')}
 \end{center}
-Notice that we set {\tt ILP=1} and choose {\tt PAR(3)} as the first 
+Notice that we set \parf{ILP=1} and choose \parf{PAR(3)} as the first 
 continuation parameter so that \AUTO can detect limit points 
 with respect to this parameter. We also make a user-defined function
-({\tt UZR})
+(\parf{UZR})
 to detect intersections with the plane $D_0=0.01$.
 We get among other output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(3)        L2-NORM    ...    PAR(1)        PAR(2)
-   1    22  LP  19  1.081212E-02  5.325894E+00 ...  5.673631E+00  6.608184E-02
-   1    31  UZ  20  1.000000E-02  4.819681E+00 ...  5.180317E+00  6.385503E-02
+  BR    PT  TY  LAB    PAR(3)        L2-NORM    ...    PAR(1)        PAR(2)
+   1    22  LP   20   1.08120E-02   5.32589E+00 ...   5.67363E+00   6.60818E-02
+   1    31  UZ   21   1.00000E-02   4.81969E+00 ...   5.18032E+00   6.38551E-02
 \end{verbatim}
 the first line of which represents the $D_0$ value at which 
 the homoclinic curve $P$ has a tangency with the family $t_2$ 
 of fold bifurcations. Beyond this value of $D_0$,
-$P$ consists entirely of saddle homoclinic orbits. The data at label {\tt 20} 
+$P$ consists entirely of saddle homoclinic orbits. The data at label \parf{20} 
 reproduce the coordinates of the point $D_2$. The results of this
 computation and a similar one starting from $D_1$ in the opposite direction
-(with {\tt DS=-0.01}) are displayed in Figure \ref{SNF.3}.
+(with \parf{DS=-0.01}) are displayed in Figure \ref{SNF.3}.
 %
 
-\newpage
 \section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
@@ -10160,38 +10159,42 @@ computation and a similar one starting from $D_1$ in the opposite direction
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  {\it mkdir mtn} & create an empty work directory \\ 
-  {\it cd mtn} & change directory \\
-  {\it demo('mtn')} & copy the demo files to the work directory \\
+  \commandf{mkdir mtn} & create an empty work directory \\ 
+  \commandf{cd mtn} & change directory \\
+  \commandf{demo('mtn')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  {\it us('mtn')} & use the starting data in {\tt mtn.dat} to create {\tt s.dat} \\ 
-  {\it run(c='mtn.1',h='mtn.1',s='dat')} &  continue saddle-node homoclinic orbit\\
-  {\it sv('1') } & save output-files as {\tt b.1, s.1, d.1} \\ 
+  \commandf{r1=run('mtn',c='mtn.1',sv='1')} &  continue saddle-node
+  homoclinic orbit from \filef{mnt.dat}\\
+  & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it run(c='mtn.2',h='mtn.2',s='1')} & continue in opposite direction; restart from {\tt s.1} \\ 
-  {\it ap('1') } & append output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{r1=r1+run(r1(1),c='mtn.2',ap='1')} & continue in opposite
+  direction; restart from label 1 \\ 
+  & append output-files to \filef{b.1, s.1, d.1} \\ 
 \hline
 %=============================================================================
-  {\it run(c='mtn.3',h='mtn.3',s='1')} & switch to saddle homoclinic orbit  ; restart from {\tt s.1} \\ 
-  {\it ap('1') } & append output-files to {\tt b.1, s.1, d.1} \\ 
+  \commandf{r1=r1+run(r1('UZ1'),c='mtn.3',ap='1')} & switch to saddle
+  homoclinic orbit  ; restart: 1st \parf{UZ} \\ 
+  & append output-files to \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it run(c='mtn.4',h='mtn.4',s='1')} & continue in reverse direction; restart from {\tt s.1} \\ 
-  {\it sv('4') } & save output-files as {\tt b.4, s.4, d.4} \\ 
+  \commandf{r4=run(r1,c='mtn.4',sv='4')} & continue in reverse
+  direction; restart from last label \\ 
+  & save output-files as \filef{b.4, s.4, d.4} \\ 
 \hline
 %=============================================================================
-  {\it run(c='mtn.5',h='mtn.5',s='1')} & other saddle homoclinic orbit family; restart from {\tt s.1} \\
-  {\it ap('1') } & append output-files to {\tt b., s.1, d.1} \\ 
+  \commandf{r1=r1+run(r1('UZ3'),c='mtn.5',ap='1')} & other saddle
+  homoclinic orbit family; restart: 3rd \parf{UZ} \\
+  & append output-files to \filef{b., s.1, d.1} \\ 
 \hline
 %==============================================================================
-  {\it run(c='mtn.6',h='mtn.6',s='1')} & 3-parameter non-central saddle-node homoclinic. \\ 
-  {\it sv('6') } & save output-files as {\tt b.6, s.6, d.6} \\ 
+  \commandf{r6=run(r1('UZ1'),c='mtn.6',sv='6')} & 3-parameter non-central saddle-node homoclinic. \\ 
+  & save output-files as \filef{b.6, s.6, d.6} \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{Detailed \AUTO-Commands for running demo {\tt mtn}.}
+\caption{Detailed \AUTO-Commands for running demo \filef{mtn}.}
 \label{tbl:demo_mtn_1}
 \end{center}
 \end{table}
@@ -10518,7 +10521,7 @@ freeing the parameter $\eps=$ \parf{PAR(3)}.
 First we continue the first inclination flip stored at label
 \parf{7} in \filef{s.3}
 \begin{center}
-\it make tenth
+\commandf{make tenth}
 \end{center}
 Note that \parf{ITWIST=1} in \filef{h.kpr.10}, so that the adjoint is also
 continued, and there is one fixed condition \parf{IFIXED(1)=13} so that
@@ -10533,7 +10536,7 @@ curve
 The other detected inclination flip (at label \parf{8} in \filef{s.3}) is continued
 similarly
 \begin{center}
-\it make eleventh
+\commandf{make eleventh}
 \end{center}
 giving among its output another codim 3 saddle-node inclination-flip point
 \begin{verbatim} 
@@ -10890,7 +10893,7 @@ Alternatively, for this problem there exists an analytic expression for
 the two equilibria. This is specified in the subroutine \funcf{PVLS} of
 \filef{she.f}. Re-running with \parf{IEQUIB=-1}
 \begin{center}
-r2=run('she',c='she.2')
+\commandf{r2=run('she',c='she.2')}
 \end{center}
 we obtain the output
 \begin{verbatim}
@@ -10909,8 +10912,8 @@ part of the continuation problem. Also note that \AUTO has chosen to take
 slightly larger steps along the family. Finally, we can continue in the opposite
 direction along the family from the original starting point (again with \parf{IEQUIB=-1}).
 \begin{center}
-r3=run(r2(2),c='she.3')\\
-save(r2+r3,'2')
+\commandf{r3=run(r2(2),c='she.3')}\\
+\commandf{save(r2+r3,'2')}
 \end{center}
 %
 %------------------------------------------------------
@@ -10937,7 +10940,6 @@ The results of both computations are presented in Figure \ref{Fshear},
 from which we see that the orbit shrinks to zero as
 \parf{PAR(1)=}$\mu \to 0$.
 
-\newpage   
 \section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
@@ -10959,7 +10961,7 @@ from which we see that the orbit shrinks to zero as
 \hline
 %=============================================================================
   \commandf{r3=run(r2(2),c='she.3')} & continue in reverse direction ;\\
-  & restart from label 2 of \parf{r2}} \\ 
+  & restart from label 2 of \parf{r2} \\ 
   \commandf{save(r2+r3,'2')} & Save appended results to \filef{b.2, s.2, d.2}\\ 
 \hline
 %=============================================================================
@@ -11015,7 +11017,7 @@ R_2: (u_1,u_2,u_3,u_4,t) \mapsto (-u_1,u_2,-u_3,u_4,-t)
 \end{equation}
 First, we copy the demo into a new directory 
 \begin{center}
-\commandf{@dm rev }
+\commandf{demo('rev')}
 \end{center}
 For this example, we shall make two separate starts
 from data stored in equation and data files \filef{rev.c.1,
@@ -11033,26 +11035,26 @@ under $R_1$ and the second for data that is reversible under $R_2$.
 
 The first run
 \begin{center}
-\it make first
+\commandf{r1=run('rev',c='rev.1',sv='1')}
 \end{center}
-starts by 
-copying the files \filef{rev.c.1} and \filef{rev.dat.1} to 
-\filef{rev.f} and \filef{rev.dat}. The orbit contained in
+starts by using the file \filef{rev.dat.1} via the
+\parf{'dat'} \AUTO-constant in \filef{c.rev.1}.
+The orbit contained in
 the data file is a ``primary'' homoclinic solution for $P=1.6$, with
 truncation (half-)interval \parf{PAR(11) = 39.0448429}.
 which is reversible under $R_1$. Note that this reversibility is
-specified in \filef{h.rev.1} via \parf{NREV=1}, 
-\parf{(IREV(I), I=1,NDIM)} \parf{= 0 1 0 1}. Note also, from
+specified in \filef{c.rev.1} via \parf{IREV=[0,1,0,1]}. Note also, from
 \filef{c.rev.1} that we only have one free parameter \parf{PAR(1)}
 because symmetric homoclinic orbits in reversible systems are
 generic rather than of codimension one.
 The first run  results in the output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)   ...   
-   1     7  UZ   2  1.700002E+00  2.633353E-01  4.179794E-01
-   1    12  UZ   3  1.800000E+00  2.682659E-01  4.806063E-01
-   1    15  UZ   4  1.900006E+00  2.493415E-01  4.429364E-01
-   1    20  EP   5  1.996247E+00  1.111306E-01  1.007111E-01
+  BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)   ...
+   1     1  EP    1   1.60000E+00   2.85704E-01   3.62232E-01
+   1     8  UZ    2   1.70000E+00   2.90288E-01   4.18225E-01
+   1    11  UZ    3   1.80000E+00   2.95723E-01   4.80604E-01
+   1    14  UZ    4   1.90000E+00   2.74864E-01   4.43069E-01
+   1    20  EP    5   1.99678E+00   1.13379E-01   9.59430E-02
 \end{verbatim}
 which is consistent with the theoretical result that the solution
 tends uniformly to zero as $P\to 0$. Note, by plotting the data
@@ -11085,16 +11087,16 @@ The second run continues in the other direction of \parf{PAR(1)}, with
 the test function $\psi_2$ activated 
 for the detection of saddle to saddle-focus transition points
 \begin{center}
-\it make second
+\commandf{r1=r1+run(r1('UZ1'),c='rev.2',ap='1')}
 \end{center}
 The output
 \begin{verbatim}
- BR  PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)   ...    PAR(22)    
-  1  11  UZ   6  1.000005E+00  2.555446E-01  1.767149E-01 ... -3.000005E+00
-  1  22  UZ   7 -1.198325E-07  2.625491E-01  4.697314E-02 ... -2.000000E+00
-  1  33  UZ   8 -1.000000E+00  2.741483E-01  4.316007E-03 ... -1.000000E+00
-  1  44  UZ   9 -2.000000E+00  2.873838E-01  1.245735E-11 ...  2.318248E-08
-  1  55  EP  10 -3.099341E+00  3.020172E-01 -2.749454E-11 ...  1.099341E+00
+ BR  PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)   ...   PAR(22)    
+  1  11  UZ    6   1.00001E+00   2.81700E-01   1.76625E-01 ... -3.00001E+00
+  1  22  UZ    7  -1.00743E-07   2.89421E-01   4.69706E-02 ... -2.00000E+00
+  1  33  UZ    8  -1.00000E+00   3.02208E-01   4.32654E-03 ... -1.00000E+00
+  1  44  UZ    9  -2.00000E+00   3.16798E-01   1.22616E-11 ...  2.66362E-08
+  1  55  EP   10  -3.09920E+00   3.32927E-01  -4.00188E-10 ...  1.09920E+00
 \end{verbatim}
 shows a saddle to saddle-focus transition 
 (indicated by a zero of \parf{PAR(22)}) at \parf{PAR(1)=-2}. Beyond
@@ -11104,27 +11106,30 @@ point of symmetry) monotone decreasing. See Figure \ref{Frev2}.
 \section{An $R_2$-Reversible Homoclinic Solution.}
 
 \begin{center}
-\commandf{make third}
+\commandf{r3=run('rev',c='rev.3',sv='3')}
 \end{center}
-Copies the files \filef{rev.c.3} and \filef{rev.dat.3} to 
-\filef{rev.f} and \filef{rev.dat}, and runs them with the
-constants stored in \filef{c.rev.3} and \filef{h.rev.3}. 
+starts by using the file \filef{rev.dat.3} via the
+\parf{'dat'} \AUTO-constant in \filef{c.rev.3},
+and runs them with the constants stored in \filef{c.rev.3}. 
 The orbit contained in
 the data file is a ``multi-pulse'' homoclinic solution for $P=1.6$, with
 truncation (half-)interval \parf{PAR(11) = 47.4464189}.
 which is reversible under $R_2$. This reversibility is
-specified in \filef{h.rev.1} via \parf{NREV=1}, 
-\parf{(IREV(I), I=1,NDIM)} \parf{= 1 0 1 0}. The output 
+specified in \filef{c.rev.1} via \parf{IREV=[1,0,1,0]}.
+The output 
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)   ...
-   1    15  UZ   2  1.700000E+00  3.836401E-01  4.890015E-01  
-   1    16  LP   3  1.711574E+00  3.922135E-01  5.442385E-01  
-   1    19  UZ   4  1.600000E+00  4.329404E-01  7.769491E-01  
-   1    31  UZ   5  1.000000E+00  4.808488E-01  1.083298E+00  
-   1    86  UZ   6 -9.664802E-10  5.158463E-01  1.258650E+00  
+  BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)   ...
+   1     1  EP    1   1.60000E+00   3.69766E-01   3.83942E-01
+   1     7  UZ    2   1.70000E+00   3.83640E-01   4.89066E-01
+   1     9  LP    3   1.71157E+00   3.92475E-01   5.46080E-01
+   1    11  UZ    4   1.69884E+00   4.04207E-01   6.10428E-01
+   1    14  UZ    5   1.60000E+00   4.32940E-01   7.77395E-01
+   1    26  UZ    6   1.00000E+00   4.80849E-01   1.08252E+00
+   1    49  UZ    7  -5.38706E-08   5.15846E-01   1.25863E+00
+   1   128  MX    8  -9.15462E-01   5.44202E-01   1.32395E+00
 \end{verbatim}
 contains the label of a limit point (\parf{ILP} was set to \parf{1} in
-\filef{c.rev.3}, which corresponds to a ``coalescence'' of two reversible
+\filef{c.rev.3}), which corresponds to a ``coalescence'' of two reversible
 homoclinic orbits. The two solutions on either side of this limit point are
 displayed in Figure \ref{Frev3}. The computation ends in a no-convergence
 point. The solution here is depicted in Figure \ref{Frev4}. The lack of
@@ -11151,21 +11156,18 @@ corresponding to labels \parf{1} (smaller amplitude) and \parf{5} (larger amplit
 
 Continuing from the initial solution in the other parameter direction
 \begin{center}
-\it make fourth
+\commandf{r3=r3+run(r3('UZ1'),c='rev.4',ap='3')}
 \end{center}
 we obtain the output
 \begin{verbatim}
-  BR    PT  TY LAB    PAR(1)        L2-NORM       MAX U(1)   ...
-   1     7  UZ   8  1.600000E+00  3.701709E-01  3.836833E-01  
-   1    33  UZ   9  9.999980E-01  3.614405E-01  1.775035E-01  
-   1    93  UZ  10 -7.819855E-06  3.713007E-01  4.698309E-02  
+  BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)   ...
+   1     7  UZ    9   1.60000E+00   3.70171E-01   3.84045E-01
+   1    33  UZ   10   9.99998E-01   3.61440E-01   1.77504E-01
+   1    94  UZ   11  -5.14775E-08   3.71301E-01   4.69706E-02
+   1   153  MX   12  -2.54464E-01   3.75071E-01   3.00627E-02
 \end{verbatim}
 which again ends at a no convergence error for similar reasons.
 
-
-
-
-\newpage
 \section{ Detailed \AUTO-Commands.}
 \begin{table}[htbp]
 \begin{center}
@@ -11179,26 +11181,24 @@ which again ends at a no convergence error for similar reasons.
   \commandf{demo('rev')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{! cp rev.c.1 rev.c} &  get equations file to \filef{rev.c}\\
-  \commandf{! cp rev.dat.1 rev.dat} & get the starting data to \filef{rev.dat} \\ 
-  \commandf{us('rev')} & use the starting data in \filef{rev.dat} to create \filef{s.dat} \\ 
-  \commandf{run(c='rev.1',h='rev.1',s='dat')} &  increase \parf{PAR(1)} \\ 
-  \commandf{sv('1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
+  & use the starting data in \filef{rev.dat.1} \\ 
+  \commandf{r1=run('rev',c='rev.1',sv='1')} &  increase \parf{PAR(1)} \\ 
+  & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='rev.2',h='rev.2',s='1')} &  continue in reverse direction; restart from \filef{s.1} \\ 
-  \commandf{ap('1')} & append output-files to \filef{b.1, s.1, d.1} \\ 
+  \commandf{r1=r1+run(r1('UZ1'),c='rev.2',ap='1')} &  continue in
+  reverse direction; restart: 1st \parf{UZ} \\ 
+  & append output-files to \filef{b.1, s.1, d.1} \\ 
 \hline
 %=============================================================================
-  \commandf{! cp rev.c.3 rev.c} & get equations file with new value of \parf{PAR(11)}\\
-  \commandf{! cp rev.dat.3 rev.dat} & get starting data with different reversibility\\
-  \commandf{us('rev')} & use the starting data in \filef{rev.dat} to create \filef{s.dat} \\ 
-  \commandf{run(c='rev.3',h='rev.3',s='dat')} & restart with different reversibility \\ 
-  \commandf{sv('3')} & save output-files as \filef{b.3, s.3, d.3} \\ 
+  & use the starting data in \filef{rev.dat.3} \\ 
+  \commandf{r3=run('rev',c='rev.3',sv='3')} & restart with different reversibility \\ 
+  & save output-files as \filef{b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='rev.4',h='rev.4',s='3')} & continue in reverse direction; restart from \filef{s.3} \\ 
-  \commandf{ap('3')} & append output-files to \filef{b.3, s.3, d.3} \\ 
+  \commandf{r3=r3+run(r3('UZ1'),c='rev.4',ap='3')} & continue in
+  reverse direction; restart: 1st \parf{UZ} \\ 
+  & append output-files to \filef{b.3, s.3, d.3} \\ 
 \hline
 %=============================================================================
 \end{tabular}

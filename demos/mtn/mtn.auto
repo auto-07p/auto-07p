@@ -1,0 +1,23 @@
+#=========
+# Demo mtn
+#=========
+
+pgm = 'mtn'
+
+print pgm, ": first run : continue saddle-node homoclinic orbit"
+r1=run('mtn',c='mtn.1',sv='1')
+
+print pgm, ": second run : continue in opposite direction"
+r1=r1+run(r1(1),c='mtn.2',ap='1')
+
+print pgm, ": third run : switch to saddle homoclinic orbit"
+r1=r1+run(r1('UZ1'),c='mtn.3',ap='1')
+
+print pgm, ": fourth run : continue in reverse direction"
+r4=run(r1,c='mtn.4',sv='4')
+
+print pgm, ": fifth run : other saddle homoclinic orbit branch"
+r1=r1+run(r1('UZ3'),c='mtn.5',ap='1')
+
+print pgm, ": sixth run : 3-parameter continuation of non-central saddle-node homoclinic"
+r6=run(r1('UZ1'),c='mtn.6',sv='6')

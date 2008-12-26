@@ -1,4 +1,5 @@
-NDIM=   2, IPS =   9, IRS =   1, ILP =   0
+dat = 'mtn'
+NDIM=   2, IPS =   9, IRS =   0, ILP =   0
 ICP =  [1, 2, 35, 36]
 NTST= 100, NCOL=   4, IAD =   1, ISP =   0, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=   30, RL0=-100.0, RL1=1100.0, A0=-100.0, A1= 100.0
@@ -7,3 +8,5 @@ EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.01, DSMIN= 0.001, DSMAX=  0.05, IADS=   1
 THL =  {}, THU =  {}
 UZR =  {35: 0.0, 36: 0.0}
+IEQUIB = 2
+IPSI = [15,16]

@@ -1,0 +1,17 @@
+#=========
+# Demo mtn
+#=========
+
+pgm = 'rev'
+
+print pgm, ": first run : increase PAR(1)"
+r1=run('rev',c='rev.1',sv='1')
+
+print pgm, ": second run : continue in reverse direction"
+r1=r1+run(r1('UZ1'),c='rev.2',ap='1')
+
+print pgm, ": third run : restart from solution with different reversibility"
+r3=run('rev',c='rev.3',sv='3')
+
+print pgm, ": fourth run : continue in reverse direction"
+r3=r3+run(r3('UZ1'),c='rev.4',ap='3')

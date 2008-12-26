@@ -65,8 +65,6 @@ C Problem parameters (only PAR(1-9) are available to the user) :
 C
        PAR(1)=1.6                ! P
 C
-       PAR(11)=47.4464189 	 ! Truncated time interval 
-C
 C----------------------------------------------------------------------
 C If IEQUIB >0 put initial equilibrium in PAR(11+i), i=1,...,NDIM :
 C

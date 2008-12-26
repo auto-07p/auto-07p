@@ -1,0 +1,9 @@
+#==============
+# AUTO Demo rev
+#==============
+
+print "\n***Clean the directory***"
+
+dl("1")
+dl("3")
+cl()
