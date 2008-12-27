@@ -2,7 +2,7 @@ from AUTOclui import *
 import sys
 
 def get(sfile,label,step,floquet=None):
-    s = load(s=sfile)
+    s = loadbd(s=sfile)
     solution = s(label)
     if floquet is None:
         floquet = solution.PAR(4)

@@ -1,9 +1,10 @@
 ,demo bvp
 
-bvp=ld(r('bvp'),NTST=50,ISW=-1)
+bvp=r('bvp')
 for solution in bvp('BP'):
+    bp = ld(solution,NTST=50,ISW=-1)
     # Compute forwards and backwards
-    bvp = bvp + mb(r(solution)+r(solution,DS='-'))
+    bvp = bvp + mb(r(bp)+r(bp,DS='-'))
 
 bvp=rl(bvp)
 pl bvp

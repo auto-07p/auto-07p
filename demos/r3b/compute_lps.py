@@ -78,7 +78,7 @@ def compute(m=0.063):
     for i in range(1,6):
         start = start + write_lagrange(uzpoints[lp.index(i)], i)
     save(start,'start')
-    return load(s=start)
+    return loadbd(s=start)
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

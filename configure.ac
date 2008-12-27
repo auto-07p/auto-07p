@@ -323,7 +323,7 @@ AC_SUBST(SOXT_OBJS_R3B)
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
 AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh
-demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/fhh/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/kpr/Makefile demos/lin/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pla/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/san/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile)
+demos/brc/Makefile demos/brf/Makefile demos/bru/Makefile demos/chu/Makefile demos/dd2/Makefile demos/enz/Makefile demos/ext/Makefile demos/frc/Makefile demos/fsh/Makefile demos/int/Makefile demos/ivp/Makefile demos/kar/Makefile demos/lin/Makefile demos/nag/Makefile demos/non/Makefile demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pla/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"

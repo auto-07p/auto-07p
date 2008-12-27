@@ -1032,7 +1032,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
    \AUTO CLUI COMMAND  & ACTION \\
  \hline
    \commandf{demo('ab')}  & copy the demo files to the work directory\\
-   \commandf{ab = load(equation='ab')}  & load the filename \filef{ab.f90} into the bifurcation diagram ab\\
+   \commandf{ab = load(equation='ab')}  & load the filename \filef{ab.f90} into the variable ab\\
    \commandf{ab = load(ab, constants='ab.1')}  & load the contents of
    the file \filef{c.ab.1} into the variable ab\\
    \commandf{run(ab)}  & run \AUTO with the current set of files\\
@@ -1229,8 +1229,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
 
  Also, since it is common that several files will be loaded that
  have the same base name \commandf{load('ab')} performs the same 
- action as \commandf{load(e='ab', c='ab', b='ab', s='ab', d='ab',
-   h='ab')}. 
+ action as \commandf{load(e='ab', c='ab', s='ab', h='ab')}. 
  Note, for the command \commandf{load('ab')} it is not required that all
  of the files exist. Information from all existing files is used only
  if they exist, and no error message will be given for non-existing
@@ -1521,10 +1520,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \commandf{relabel}, \commandf{save}, and \commandf{plot} commands
  have the shorter forms \commandf{ld}, \commandf{r}, \commandf{mb},
  \commandf{rl}, \commandf{sv}, and \commandf{pl}, respectively.
- It is also possible to apply the \parf{NTST} and \parf{ISW} changes
- to all solutions in the \commandf{bvp} object by loading them
- directly. Lastly all algebraic and functional expressions can be
- combined in the
+ All algebraic and functional expressions can be combined in the
  usual way. Combining these techniques, a shorter version of the complex \AUTO
   CLUI script is given in Figure~\ref{exa:clui_complex_fourth}.
 
@@ -1532,10 +1528,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  {\small \begin{center} \begin{boxedverbatim}
  demo('bvp')
 
- bvp=ld(r('bvp'),NTST=50,ISW=-1)
+ bvp=r('bvp')
  for solution in bvp('BP'):
-     # Compute forwards and backwards, merge branches, append
-     bvp = bvp + mb(r(solution)+r(solution,DS='-'))
+     bp = ld(solution,NTST=50,ISW=-1)
+     # Compute forwards and backwards
+     bvp = bvp + mb(r(bp)+r(bp,DS='-'))
 
  bvp=rl(bvp)
  pl(bvp)
@@ -1572,10 +1569,11 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  {\small \begin{center} \begin{boxedverbatim}
  ,demo bvp
 
- bvp=ld(r('bvp'),NTST=50,ISW=-1)
+ bvp=r('bvp')
  for solution in bvp('BP'):
+     bp = ld(solution,NTST=50,ISW=-1)
      # Compute forwards and backwards
-     bvp = bvp + mb(r(solution)+r(solution,DS='-'))
+     bvp = bvp + mb(r(bp)+r(bp,DS='-'))
 
  bvp=rl(bvp)
  pl bvp
@@ -1759,18 +1757,16 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \end{figure}
 
  \section{ Bifurcation Diagram Objects}
- The \commandf{load} and \commandf{run} commands usually (see
+ The \commandf{run} and \commandf{loadbd} commands (see
  Section~\ref{sec:clui_ref_basic} in the reference for details)
  return a ~\python structure which we refer to as a \emph{bifurcation
  diagram object}. It represents the information that is also stored
  in \AUTO's output files (\filef{fort.7}, \filef{fort.8},
  and \filef{fort.9}, or \filef{b.*}, \filef{s.*}, and \filef{d.*}),
  and in \AUTO's constant files.
- For example, the command \commandf{load('ab')}
+ For example, the command \commandf{loadbd('ab')}
  returns an object corresponding to the files \filef{b.ab},
- \filef{s.ab}, and \filef{d.ab}, and if they exist, also
- \filef{c.ab}, \filef{h.ab}, and the equation file
- \filef{ab.\{f90,f,c\}}
+ \filef{s.ab}, and \filef{d.ab}.
  (if you are using the standard
  filename translations from Table~\ref{tbl:clui_filename_translation}).
  The command \commandf{run('ab')} returns
@@ -2116,7 +2112,7 @@ lrz ... done
  We have defined the following objects:
  \begin{description}
    \item[Bifurcation diagram object]:
-    \commandf{bd=run(...)}, \commandf{bd=load(...)}.
+    \commandf{bd=run(...)}, \commandf{bd=loadbd(...)}.
    \item[Branch]:
     \commandf{bd[0], bd[1], bd[2], ...}.
    \item[Branch AUTO constants]:
@@ -2169,7 +2165,7 @@ lrz ... done
 
  For example, we assume
  that a bifurcation diagram object is contained in a variable
- \commandf{bd}, for instance, using \commandf{bd=load('ab')}.  If
+ \commandf{bd}, for instance, using \commandf{bd=loadbd('ab')}.  If
  one wanted to have the bifurcation diagram returned as a Python list
  one would type \commandf{bd.toArray()}.  Similarily, if one wanted
  to write out the bifurcation diagram to the file \commandf{outputfile}
@@ -2479,10 +2475,10 @@ Run AUTO.
     \item
       A bifurcation diagram: AUTO start from the solution specified by
       the AUTO constant IRS, or if IRS is not specified, the last solution
-      in s, with AUTO constants s.c.
+      in s, s()[-1], with AUTO constants s()[-1].c.
     \item
       A string: AUTO uses the solution in the file 's.s' together with the
-      constants in the files 'b.s', 'c.s', and 'h.s'. Not all of these
+      constants in the files 'c.s', and 'h.s'. Not all of these
       files need to be present.
     \end{itemize}
 
@@ -2512,16 +2508,29 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
 
     Type result=load([options]) to modify the AUTO runner.\\
     Type result=load(data,[options]) to return possibly
-    modified solution or bifurcation diagram data.\\
+    modified solution data.\\
 
-    The type of result will be:
+    The type of the result is a solution object.
+
+    load(data,[options]) returns a solution in the following way for
+    different types of data:
     \begin{itemize}
-      \item
-        if data is not specified, data is a string, or data is a
-        bifurcation diagram object: a bifurcation diagram object.
-      \item
-        if data is a solution, a Python list array or a numpy array
-        representing a solution: a solution.
+    \item
+      A solution: load returns the solution data, with AUTO constants
+      modified by options.
+    \item
+      A bifurcation diagram or a solution list:
+      returns the solution specified by
+      the AUTO constant IRS, or if IRS is not specified, the last solution
+      in s.
+    \item
+      A string: AUTO uses the solution in the file 's.s' together with the
+      constants in the files 'c.s', and 'h.s'. Not all of these
+      files need to be present.
+    \item
+      A Python list array or a numpy array representing a solution,
+      returns a solution with the given contents. Such an array must be given
+      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn], ...].
     \end{itemize}
 
     There are many possible options:
@@ -2531,9 +2540,7 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
     equation    e             The equations file
     constants   c             The AUTO constants file
     homcont     h             The Homcont parameter file
-    bifurcationDiagram b      The bifurcation diagram file
     solution    s             The restart solution file
-    diagnostic  d             The diagnostics file
                 NDIM,IPS,etc  AUTO constants.
                 BR,PT,TY,LAB  Solution constants.
     \end{verbatim}
@@ -2545,14 +2552,35 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
 
     Type bd=load('name') to load all files with base 'name'.
     This does the same thing as running
-    bd=load(e='name',c='name,h='name',b='name',s='name',d='name').\\
-    plot(bd) will then plot the 'b' and 's' components.
+    bd=load(e='name',c='name,h='name',s='name').
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).\\
     Example: s = load(s,DS='-') changes s.c['DS'] to -s.c['DS'].
 
     \textbf{Aliases:} ld commandRunnerLoadName
+
+\item[loadbd]
+    Load bifurcation diagram files.
+
+    Type b=loadbd([options]) to load output files or output data.
+    There are three possible options:
+    \\begin{verbatim}
+    Long name   Short name    Description
+    -------------------------------------------
+    bifurcationdiagram   b    The bifurcation diagram file
+    solution    s             The solution file or list of solutions
+    diagnostics d             The diagnostics file
+    \\end{verbatim}
+
+    Type loadbd('name') load all files with base 'name'.
+    This does the same thing as running\\
+    loadbd(b='name',s='name,d='name').\\
+    plot(b) will then plot the 'b' and 's' components.
+
+    Returns a bifurcation diagram object representing the files in b.
+
+    \textbf{Aliases:} bd commandParseOutputFiles
 
 \item[save]
 Save data files.
