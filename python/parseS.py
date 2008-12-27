@@ -85,6 +85,21 @@ class parseS(UserList.UserList):
     def __call__(self,label=None):
         return self.getLabel(label)
 
+    def load(self,**kw):
+        """Load solution with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants
+        """
+        irs = kw.get("IRS")
+        if irs in self.getLabels():
+            sol = self(irs)
+        elif len(self) > 0 and irs is None:
+            sol = self[-1]
+        else:
+            sol = None
+        if kw != {} or sol is None:
+            sol = apply(AUTOSolution,(sol,),kw)
+        return sol
+
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
     # it cannot (because the file ends prematurely) is sets the
@@ -415,6 +430,9 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             self._mbr             = 0
             self._mlab            = 0
             self.name = name
+            self.data.update({"BR":1, "PT":1, "TY number":9,
+                              "ISW":1, "NTST": 1, "NCOL": 0})
+            self.options["constants"]["IRS"] = 0
             if name == './fort.8':
                 if kw.has_key("equation"):
                     self.name = kw["equation"][14:]
@@ -423,6 +441,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 elif c.has_key("e"):
                     self.name = c["e"]
             names = kw.get("unames",c.get("unames"))
+            self.indepvarname = 't'
             self.coordnames = []
             if names is not None:
                 if type(names) != type({}):
@@ -457,7 +476,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             elif isinstance(input,(types.FileType,gzip.GzipFile)):
                 self.read(input,offset)
             else:
-                par = kw.get("PAR",[])
+                par = kw.get("PAR",c.get("PAR")) or []
                 if type(par) == type({}):
                     par = par.items()
                 #init from array
@@ -511,8 +530,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                     pdict["name"] = kw["equation"][14:]
                 Points.Pointset.__init__(self,pdict)
                 self.__fullyParsed = True
-                self.data.update({"BR":1, "PT":1, "TY number":9,
-                                  "ISW":1, "NTST": ntst, "NCOL": ncol})
+                self.data.update({"NTST": ntst, "NCOL": ncol})
                 self.options["constants"]["IRS"] = 1
                 if par != []:
                     p = max(dict(par).keys())*[0.0]
@@ -525,7 +543,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 self[k] = v
 
     def __str__(self):
-        if not(self.__fullyParsed):
+        if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
         keys = self.data.keys()
         for key in ["BR","PT","TY number","ISW","NTST","NCOL"]:
@@ -536,7 +554,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                               self["TY"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
-        rep=rep+"\n"+Points.Pointset.__repr__(self)
+        if self.__start_of_header is not None or self.__fullyParsed:
+            rep=rep+"\n"+Points.Pointset.__repr__(self)
         for key in keys:
             v = self[key]
             if isinstance(v,Points.Pointset):
@@ -547,11 +566,12 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                                           Points.float64]:
                 v = map(str,v)
             rep=rep+"\n"+str(key)+": "+str(v)
-        rep=rep+"\n"+str(self.PAR)
+        if self.__start_of_header is not None or self.__fullyParsed:
+            rep=rep+"\n"+str(self.PAR)
         return rep
 
     def __repr__(self):
-        return self.__str__()
+        return "<_=%s instance at %#010x>"%(self.__class__.__name__,id(self))
 
     def __len__(self):
         return Points.Pointset.__len__(self)
@@ -910,6 +930,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             npar = len(self["Parameters"])
             ntpl = len(self)
         else:
+            if self.__start_of_header is None:
+                return
             ndim = self.__numEntriesPerBlock-1
             npar = self.__numFreeParameters
             ntpl = self.__numSValues

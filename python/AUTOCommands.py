@@ -1102,15 +1102,9 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     
     def __applyRunnerConfigResolveAbbreviation(self,kw={}):
         abbrev = {}
-        for key in ["equation", "constants", "bifurcationDiagram",
-                    "solution", "diagnostics", "homcont"]:
+        for key in ["equation", "constants", "solution", "homcont"]:
             abbrev[key[0]] = key
             abbrev[key]    = key
-        if kw.has_key("bsd"):
-            kw["bifurcationDiagram"] = kw["bsd"]
-            kw["solution"] = kw["bsd"]
-            kw["diagnostics"] = kw["bsd"]
-            del kw["bsd"]
         for key in kw.keys():
             # remove long duplicates
             if (abbrev.has_key(key) and key != abbrev[key] and
@@ -1129,15 +1123,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __applyRunnerConfigResolveFilenames(self,kw={}):
         doneread = False
         wantread = False
-        if kw.has_key("bifurcationDiagram"):
-            if type(kw["bifurcationDiagram"]) == types.StringType:
-                try:
-                    object = parseB.parseBR(kw["bifurcationDiagram"])
-                    self.runner.options["constants"] = object[0].c
-                    doneread = True
-                except IOError:
-                    object = None
-                kw["bifurcationDiagram"] = object
         if kw.has_key("constants"):
             if type(kw["constants"]) == types.StringType:
                 wantread = True
@@ -1158,9 +1143,6 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     object = None
                 kw["homcont"] = object
         if kw.has_key("solution"):
-            # wipe out b/d from current runner options if not explicitly given
-            for other in ["bifurcationDiagram", "diagnostics"]:
-                if not kw.has_key(other): kw[other] = None
             if type(kw["solution"]) == types.StringType:
                 wantread = True
                 try:
@@ -1172,8 +1154,12 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     object = None
                 kw["solution"] = object
         if wantread and not doneread:
-            if kw.has_key("equation") and os.path.exists(kw["equation"][11:]):
-                doneread = True
+            if kw.has_key("equation"):
+                eq = kw["equation"][14:]
+                for ext in [".f90",".f",".c"]:
+                    if os.path.exists(eq+ext):
+                        doneread = True
+                        break
             if not doneread:
                 raise IOError("No files found.")
         return kw
@@ -1185,20 +1171,14 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             data = apply(self.runner.load,(),dict)
         else:
             self.runner.config(dict)
-            options = self.runner.options.copy()
-            sol = options["solution"]
-            if (not isinstance(sol,
-                            (parseS.parseS, runAUTO.runAUTO, type(None))) and
-                not isinstance(sol[0], parseS.AUTOSolution)):
-                data = apply(parseS.AUTOSolution,(dict["solution"],),dict)
-                data.config(options)
-                data.options["solution"] = data
-            elif options["bifurcationDiagram"] is not None or sol is not None:
-                bname = options["bifurcationDiagram"]
-                dname = options["diagnostics"]
-                data = apply(bifDiag.bifDiag,(bname,sol,dname),options)
+            options = self.runner.options
+            if hasattr(options["solution"],'load'):
+                data = apply(options["solution"].load,(),options)
             else:
-                data = apply(bifDiag.bifDiag,([],),options)
+                if dict.has_key('t'):
+                    options = options.copy()
+                    options['t'] = dict['t']
+                data = apply(parseS.AUTOSolution,(options["solution"],),options)
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):
@@ -1231,19 +1211,78 @@ class commandRunnerLoadName(commandRunnerConfig):
     def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
         if runner is None and name is not None and type(name) not in [
                 type(""),type(1),type(1.0)]:
-            if isinstance(name, runAUTO.runAUTO):
+            if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
                 runner = name
             else:
                 kw["s"] = name
             name = None 
         elif name is not None:
-            for key in ["equation", "constants", "bifurcationDiagram",
-                        "solution", "diagnostics", "homcont"]:
+            for key in ["equation", "constants", "solution", "homcont"]:
                 if not kw.has_key(key):
                     kw[key] = name
         commandRunnerConfig.__init__(self,runner,templates,
                                      AUTOutil.cnfmerge((kw,cnf)))
         
+
+class commandParseOutputFiles(commandWithFilenameTemplate):
+    """Load bifurcation diagram files.
+
+    Type b=FUNC([options]) to load output files or output data.
+    There are three possible options:
+    \\begin{verbatim}
+    Long name   Short name    Description
+    -------------------------------------------
+    bifurcationdiagram   b    The bifurcation diagram file
+    solution    s             The solution file or list of solutions
+    diagnostics d             The diagnostics file
+    \\end{verbatim}
+
+    Type FUNC('name') load all files with base 'name'.
+    This does the same thing as running
+    FUNC(b='name',s='name,d='name').
+
+    Returns a bifurcation diagram object representing the files in b.
+    """
+    type="simple"
+    shortName="loadbsd"
+    def __init__(self,name=None,templates=None,cnf={},**kw):
+        if name is not None:
+            for key in ["bifurcationDiagram", "solution", "diagnostics"]:
+                if not kw.has_key(key):
+                    kw[key] = name
+        commandWithFilenameTemplate.__init__(self,None,None,templates)
+        dict = AUTOutil.cnfmerge((cnf,kw))
+        self.configDict = dict
+    
+    def __applyBsdConfigResolveAbbreviation(self,kw={}):
+        abbrev = {}
+        for key in ["bifurcationDiagram", "solution", "diagnostics"]:
+            abbrev[key[0]] = key
+            abbrev[key]    = key
+        for key in kw.keys():
+            # remove long duplicates
+            if (abbrev.has_key(key) and key != abbrev[key] and
+                kw.has_key(abbrev[key])):
+                del kw[abbrev[key]]
+        for key,value in kw.items():
+            if abbrev.has_key(key):
+                # change the abbreviation to the long version
+                del kw[key]
+                if type(value) in [type(""),type(1),type(1.0)]:
+                    kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
+                else:
+                    kw[abbrev[key]] = value
+        return kw
+
+    def __call__(self):
+        dict = self.__applyBsdConfigResolveAbbreviation(self.configDict)
+        bname = dict.get("bifurcationDiagram")
+        sname = dict.get("solution")
+        dname = dict.get("diagnostics")
+        data = bifDiag.bifDiag(bname,sname,dname,
+                               verbose = _runner.options["verbose"],
+                               makefile = _runner.options["makefile"])
+        return valueStringAndData("Parsed output data\n",data)
 
 class commandRunnerPrintFort2(commandWithRunner):
     """Print continuation parameters.
@@ -1380,7 +1419,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
         self.ap = ap
         if (runner is None and name is not None and type(name) != type("")
             and type(name) != type(1)):
-            if isinstance(name, runAUTO.runAUTO):
+            if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
                 self.runner = name
             elif not kw.has_key("s"):
                 self.kw["s"] = name

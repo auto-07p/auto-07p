@@ -9,50 +9,33 @@ import parseD
 import Points
 import types
 import AUTOExceptions
-import runAUTO
 import gzip
 
-class bifDiag(parseB.parseBR,runAUTO.runAUTO):
+# some constants must not be preserved from run to run. These are:
+nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
+
+class bifDiag(parseB.parseBR):
     def __init__(self,fort7_filename=None,fort8_filename=None,
                  fort9_filename=None,**kw):
-        if isinstance(fort7_filename,self.__class__):
-            apply(runAUTO.runAUTO.__init__,(self,fort7_filename),kw)
-            if kw != {}:
-                for d in self:
-                    for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                        if x.has_key("solution"):
-                            x["solution"] = apply(parseS.AUTOSolution,
-                                                  (x["solution"],),self.options)
-            return
-        runAUTO.runAUTO.__init__(self,kw)
-        if kw != {}:
-            if (kw["constants"] is not None and
-                kw["constants"]['sv'] is not None and
-                type(fort7_filename) in (type(""),type(None)) and
-                type(fort8_filename) in (type(""),type(None)) and
-                type(fort9_filename) in (type(""),type(None))):
-                #filebased
-                self.filenames = [fort7_filename,fort8_filename,fort9_filename]
-                return
-        self.__realinit(fort7_filename,fort8_filename,fort9_filename)
+        if (kw != {} and
+            kw.get("constants") is not None and
+            kw["constants"]['sv'] is not None and
+            type(fort7_filename) in (type(""),type(None)) and
+            type(fort8_filename) in (type(""),type(None)) and
+            type(fort9_filename) in (type(""),type(None))):
+            #filebased
+            self.options = kw
+            self.filenames = [fort7_filename,fort8_filename,fort9_filename]
+        else:
+            self.__realinit(fort7_filename,fort8_filename,fort9_filename,kw)
 
-    def __realinit(self,fort7_filename,fort8_filename,fort9_filename):
-        options = self.options
+    def __realinit(self,fort7_filename,fort8_filename,fort9_filename,options):
         try:
             parseB.parseBR.__init__(self,fort7_filename)
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None
         if type(fort7_filename) == types.ListType:
-            c = self.options["constants"]
-            if len(self)>0 and self[0].c is not None:
-                newc = parseC.parseC(self[0].c)
-                for k in newc.keys():
-                    if k in runAUTO.nonekeys:
-                        newc[k] = None
-                if c is not None:
-                    newc.update(c)
-                self.options["constants"] = newc
             #adjust maximum label/branch
             labs = self.getLabels()
             if labs != []:
@@ -64,7 +47,6 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     for k,x in map(d._gettypelabel, d.labels.getIndices()):
                         if x.has_key("solution") and x["LAB"] != 0:
                             s = x["solution"]
-                            self.options['makefile'] = s.options['makefile']
                             if s._mlab != mlab or s._mbr != mbr:
                                 news = s.__class__(s)
                                 news._mlab = mlab
@@ -75,13 +57,12 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         if isinstance(fort8_filename, parseS.AUTOSolution):
             fort8_filename = [fort8_filename]
         try:
-            solution = apply(parseS.parseS,(fort8_filename,),options)
+            solution = parseS.parseS(fort8_filename)
         except IOError:
             solution = None
             if fort7_filename is None:
                 raise AUTOExceptions.AUTORuntimeError(
                     "No bifurcation diagram or solution file found.")
-        options["solution"] = solution
         if fort7_filename is None and fort8_filename is not None:
             # simulate a bifurcation diagram
             labels = {}
@@ -97,7 +78,7 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
                     branch.coordnames = []
                     branch.headernames = []
                     branch.headerlist = []
-                    branch.c = s.options["constants"]
+                    branch.c = options.get("constants")
                     labels = {}
                     i = 0
                 pt = s["Point number"]
@@ -117,41 +98,41 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
             diagnostics = []
         i = 0
         if solution is not None:
+            if not options.has_key("constants"):
+                options["constants"] = None
             for d in self:
+                if options["constants"] is None and d.c is not None:
+                    if d.c["e"] is not None and options.get("equation") is None:
+                        options["equation"] = "EQUATION_NAME="+d.c["e"]
+                    options["constants"] = d.c
+                if options["constants"] is not None:
+                    options = options.copy()
+                    c = parseC.parseC(options["constants"])
+                    options["constants"] = c
+                    for k in c.keys():
+                        if k in nonekeys:
+                            c[k] = None              
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if x["LAB"] != 0 and i < len(solution):
-                        x["solution"] = solution[i]
+                    if ((x["LAB"] != 0 or solution[i]["LAB"] == 0) and
+                        i < len(solution)):
+                        x["solution"] = apply(parseS.AUTOSolution,
+                                              (solution[i],),options)
                         i = i+1
         if self.data != []:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = diagnostics
-        c = self.options["constants"]
-        if len(self)>0 and self[0].c is not None:
-            newc = parseC.parseC(self[0].c)
-            for k in newc.keys():
-                if k in runAUTO.nonekeys:
-                    newc[k] = None
-            if c is not None:
-                newc.update(c)
-            self.options["constants"] = newc
-        elif c is not None:
-            self.options["constants"] = parseC.parseC(c)
-        h = self.options["homcont"]
-        if h is not None:
-            self.options["homcont"] = parseH.parseH(h)
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
         if attr == 'c':
-            if self.options is not None:
-                c = self.options["constants"]
-                if c is not None:
-                    return c
+            if len(self)>0 and self[0].c is not None:
+                return self[0].c
         elif attr == 'data':
             if hasattr(self,'filenames'):
                 self.__realinit(self.filenames[0], self.filenames[1],
-                                self.filenames[2])
+                                self.filenames[2], self.options)
                 del self.filenames
+                del self.options
                 return self.data
         raise AttributeError
         
@@ -171,28 +152,10 @@ class bifDiag(parseB.parseBR,runAUTO.runAUTO):
         return self.getLabel(label)
 
     def load(self,**kw):
-        """Load bifurcation diagram with the given AUTO constants.
+        """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        return apply(bifDiag,(self,),kw)
-
-    def run(self,**kw):
-        """Run AUTO.
-
-        Run AUTO from the bifurcation diagram with the given AUTO constants.
-        Returns a bifurcation diagram of the result.
-        """
-        bd = self
-        if kw != {}:
-            bd = apply(bifDiag,(bd,),kw)
-        irs = (bd.options["constants"] or {}).get("IRS")
-        solutions = bd()
-        if irs in solutions.getLabels():
-            return solutions(irs).run()
-        elif len(solutions) > 0 and irs is None:
-            return solutions[-1].run()
-        else:
-            return runAUTO.runAUTO.run(bd)
+        return apply(self().load,(),kw)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)

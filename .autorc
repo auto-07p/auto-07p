@@ -31,6 +31,7 @@ diagramGet	=commandParseDiagramFile
 double		=commandDouble
 demo		=commandCopyAndLoadDemo
 load		=commandRunnerLoadName
+loadbd		=commandParseOutputFiles
 move		=commandMoveFiles
 plot		=commandPlotter
 plot3		=commandPlotter3D
@@ -69,6 +70,7 @@ klb		=commandKeepLabels
 dg		=commandParseDiagramFile
 db		=commandDouble
 dm		=commandCopyAndLoadDemo
+bd		=commandParseOutputFiles
 ld		=commandRunnerLoadName
 pl		=commandPlotter
 #FIXME:  This doesn't match the rule we use for all other commands

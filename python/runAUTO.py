@@ -6,6 +6,7 @@ import re
 import types
 import glob,stat
 import AUTOExceptions,parseC,parseH
+import bifDiag
 try:
     import subprocess
 except ImportError:
@@ -15,9 +16,6 @@ except ImportError:
 alarm_demo=""
 demo_killed=0
 demo_max_time=-1
-
-# some constants must not be preserved from run to run. These are:
-nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
 
 class runAUTO:
     def __init__(self,cnf={},**kw):
@@ -449,6 +447,10 @@ class runAUTO:
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
                 self.__printLog(line)
+                for filename in [self.fort7_path,self.fort8_path,
+                                 self.fort9_path]:
+                    if os.path.exists(filename):
+                        os.remove(filename)
                 success=self.__runCommand(os.path.join(".",equation + ".exe"))
                 data = self.__outputCommand(success)
                 if os.path.exists("fort.2"):
@@ -458,7 +460,7 @@ class runAUTO:
                 line = "%s ... done\n"%equation
                 if self.options["verbose"] == "yes":
                     self.options["verbose_print"].write(line)
-                self.__printLog(line)        
+                self.__printLog(line)
             os.chdir(curdir)
             return data
         elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
@@ -600,19 +602,11 @@ class runAUTO:
     def __outputCommand(self,success=True):
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
-        import bifDiag
         if (os.path.isfile(self.fort7_path) and
             os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
-            options = self.options.copy()
-            options["constants"] = parseC.parseC(options["constants"])
-            options["solution"] = None # do not include solution that this
-                                       # run started from!
-            for k in (options.get("constants") or {}).keys():
-                if k in nonekeys:
-                    options["constants"][k] = None
             return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
-                                          self.fort9_path),options)
+                                          self.fort9_path),self.options)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
