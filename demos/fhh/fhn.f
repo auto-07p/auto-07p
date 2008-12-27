@@ -44,7 +44,7 @@ C
       DIMENSION U(*),PAR(*)
 C
 C COMMON block needed if IPS=9 (homoclinic bifurcations) :
-      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB
+      COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
 C
 C----------------------------------------------------------------------
 C Problem parameters (only PAR(1-9) are available to the user) :
@@ -66,7 +66,7 @@ C----------------------------------------------------------------------
 C Distance along the unstable manifold :
 C
         IF (ISTART.EQ.3) THEN
-          PAR(12+NDIM*IEQUIB)=-0.00001
+          PAR(12+NDIM*IEQUIB)=0.00001
         ENDIF
 C----------------------------------------------------------------------
 C

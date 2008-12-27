@@ -1,0 +1,45 @@
+#=========
+# Demo kpr
+#=========
+
+pgm = 'kpr'
+
+print "Starting from analytical solution"
+print pgm, ": first run : continuation in the period T"
+r1=run('kpr',c='kpr.1',sv='1')
+
+print pgm, ": second run : locate the homoclinic orbit"
+r2=run(r1('UZ1'),c='kpr.2',sv='2')
+
+print pgm, ": third run : generate adjoint variables"
+r3=run(r2('UZ1'),c='kpr.3',sv='3')
+
+print pgm, ": fourth run : continue the homoclinic orbit"
+r3=r3+run(r3,c='kpr.4',ap='3')
+
+print pgm, ": fifth run : continue in reverse direction"
+r3=r3+run(r3()[0],c='kpr.5',ap='3')
+
+print pgm, ": sixth run : increase the period"
+r6=run(r2('EP1'),c='kpr.6',sv='6')
+
+print pgm, ": seventh run : recompute the branch of homoclinic orbits"
+r7=run(r6('UZ1'),c='kpr.7',sv='7')
+
+print pgm, ": eighth run : continue central saddle-node homoclinics"
+r8=run(r7('UZ1'),c='kpr.8',sv='8')
+
+print pgm, ": ninth run : continue homoclinics from codim-2 point"
+r9=run(r8('UZ1'),c='kpr.9',sv='9')
+
+print pgm, ": tenth run : 3-parameter curve of inclination-flips"
+r10=run(r3('UZ1'),c='kpr.10',sv='10')
+
+print pgm, ": eleventh run : another curve of inclination-flips" 
+r11=run(r3('UZ2'),c='kpr.11',sv='11')
+
+print pgm, ": twelfth run : non-central saddle-node homoclinics"
+r12=run(r7('UZ1'),c='kpr.12',sv='12')
+
+print pgm, ": thirteenth run : non-central saddle-node homoclinics"
+r12=r12+run(r8('UZ1'),c='kpr.13',ap='12')

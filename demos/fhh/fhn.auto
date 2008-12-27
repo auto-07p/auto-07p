@@ -1,0 +1,38 @@
+#=========
+# Demo fhn
+#=========
+
+pgm = 'fhn'
+
+print pgm, ": first run : homotopy in PAR(11) and PAR(17)"
+r1=run('fhn',c='fhn.1',sv='1')
+
+print pgm, ": second run : homotopy in PAR(11) and PAR(2)"
+r2=run(r1('UZ1'),c='fhn.2',sv='2')
+
+print pgm, ": third run : continue homoclinic orbit in PAR(11)"
+r3=run(r2('UZ1'),c='fhn.3',sv='3')
+
+print pgm, ": fourth run : continue in PAR(2) and PAR(1) "
+r4=run(r3('UZ1'),c='fhn.4',sv='4')
+
+print pgm, ": fifth run : continue in reverse direction"
+r4=r4+run(r4('UZ1'),c='fhn.5',ap='4')
+
+print pgm, ": sixth run : add adjoint"
+r5=run(r3('UZ1'),c='fhn.6',sv='5')
+
+print pgm, ": seventh run : compute inclination flip"
+r6=run(r5,c='fhn.7',sv='6')
+
+print pgm, ": eighth run : continue inclination flip in PAR(3), PAR(1), PAR(2)"
+r7=run(r6('UZ1'),c='fhn.8',sv='7')
+
+print pgm, ": ninth run : continue in reverse direction"
+r7=r7+run(r7()[0],c='fhn.9',ap='7')
+
+print pgm, ": tenth run : continue Belyakov point in PAR(3), PAR(1) and PAR(2)"
+r8=run(r4('UZ1'),c='fhn.10',sv='8')
+
+print pgm, ": eleventh run : continue in reverse direction"
+r8=r8+run(r8()[0],c='fhn.11',ap='8')

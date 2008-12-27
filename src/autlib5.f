@@ -1618,9 +1618,9 @@ C
       RETURN
 C
  101  FORMAT(1X,'(',F12.7,',',1X,F12.7,')')
- 102  FORMAT(1X,'Non-orientable',' (',D20.10,')')
- 103  FORMAT(1X,'orientable',' (',D20.10,')')      
- 104  FORMAT(1X,'PSI(',I2,')=',D20.10)
+ 102  FORMAT(1X,'Non-orientable',' (',E20.10,')')
+ 103  FORMAT(1X,'orientable',' (',E20.10,')')      
+ 104  FORMAT(1X,'PSI(',I2,')=',E20.10)
 C
       END SUBROUTINE PVLSHO
 C

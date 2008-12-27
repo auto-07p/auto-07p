@@ -1,0 +1,9 @@
+#==============
+# AUTO Demo san
+#==============
+
+print "\n***Clean the directory***"
+
+for name in ["1", "2", "3", "4", "6", "7", "8", "9", "10", "11", "12"]:
+    dl(name)
+cl()

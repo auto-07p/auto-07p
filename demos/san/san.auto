@@ -1,0 +1,47 @@
+#=========
+# Demo san
+#=========
+
+pgm = 'san'
+
+print "Starting from analytical solution"
+print pgm, ": first run : continuation in PAR(1)"
+san=load('san',IPS=9,NDIM=3,ISP=0,ILP=0,ITNW=7,JAC=1,NTST=35,IEQUIB=0,DS=0.05)
+r1=run(san,ICP=[1,8],UZR={-1:0.25})
+
+print pgm, ": second run : generate adjoint variables"
+r2=run(r1,ICP=[9,8],ITWIST=1,NMX=2,UZR={})
+
+print pgm, ": third run : continue homoclinic orbit and adjoint"
+r3=run(r2,ICP=[4,8,10,21,33],IPSI=[1,13],NMX=50,NPR=20,UZR={4:1.0,21:0,33:0})
+save(r3,'3')
+
+print pgm, ": fourth run : no convergence without dummy step"
+r4=run(r1,ICP=[4,8,10,21,33],ITWIST=1,IPSI=[1,13],NMX=50,UZR={33:0})
+
+print pgm, ": fifth run : continue non-orientable orbit"
+r5=run(r3('UZ2'),ICP=[1,8,10,21,33],NMX=20,DS='-',sv='5')
+
+print pgm, ": sixth run : restart and homotopy to PAR(4)=1.0"
+r6=run(san,ICP=[4,8],UZR={-4:1})
+
+print pgm, ": seventh run : homotopy to PAR(5)=0.0"
+r7=run(r6,ICP=[5,8],UZR={-5:0},DS='-')
+
+print pgm, ": eighth run : homotopy to PAR(1)=0.5"
+r8=run(r7,ICP=[1,8],UZR={-1:0.5},DS='-')
+
+print pgm, ": ninth run : homotopy to PAR(2)=3.0"
+r9=run(r8,ICP=[2,8],UZR={-2:3.0})
+
+print pgm, ": tenth run : homotopy to PAR(7)=0.25"
+r10=run(r9,ICP=[7,8],UZR={-7:0.25})
+
+print pgm, ": eleventh run : continue in PAR(7) to detect orbit flip"
+r11=run(r10,ICP=[7,8,31],IPSI=[11],UZR={31:0.0,-7:-0.5},DS='-')
+save(r11,'11')
+
+print pgm, ": twelfth run : three-parameter continuation of orbit flip"
+of = r11('UZ1')
+r12=run(of,ICP=[7,8,6],IPSI=[],NPR=5,NMX=20,IFIXED=[11],UZR={},DS='-')
+save(r12,'12')
