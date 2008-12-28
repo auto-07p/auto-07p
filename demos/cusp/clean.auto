@@ -1,0 +1,9 @@
+#===============
+# AUTO Demo cusp
+#===============
+
+print "\n***Clean the directory***"
+
+dl("mu")
+dl("cusp")
+cl()

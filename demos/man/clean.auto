@@ -1,0 +1,13 @@
+#==============
+# AUTO Demo man
+#==============
+
+print "\n***Clean the directory***"
+
+dl("0")
+dl("1")
+dl("2")
+dl("man1")
+dl("man2")
+dl("start")
+cl()

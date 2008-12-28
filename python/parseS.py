@@ -543,7 +543,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             if k in self.data_keys and k not in ["ISW","NTST","NCOL"]:
                 self[k] = v
         par = kw.get("PAR",c.get("PAR"))
-        if par is not None:
+        if (par is not None and
+            (self.__start_of_header is not None or self.__fullyParsed)):
             self["PAR"] = par
 
     def __str__(self):

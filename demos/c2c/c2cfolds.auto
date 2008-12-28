@@ -1,5 +1,5 @@
 pgm = 'c2c'
-d2 = load('d2')
+d2 = loadbd('d2')
 
 lp4 = d2('LP4')
 print pgm, ": fifteenth run : 2d start-up"
