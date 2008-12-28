@@ -90,6 +90,8 @@ class parseS(UserList.UserList):
         Returns a shallow copy with a copied set of updated constants
         """
         irs = kw.get("IRS")
+        if irs is None:
+            irs = (kw.get("constants") or {}).get("IRS")
         if irs in self.getLabels():
             sol = self(irs)
         elif len(self) > 0 and irs is None:

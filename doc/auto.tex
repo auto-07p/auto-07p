@@ -3201,6 +3201,13 @@ or in any of its subdirectories.}
   Type \commandf{@dl xxx} 
  to delete the data-files 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}.
+
+\item[\tt @cnvc]~:
+  Type \commandf{@cnvc xxx yyy} to convert old-format constant files
+\filef{c.xxx} and \filef{h.xxx} to a new-format constant file
+\filef{c.yyy}.\\
+  The command \commandf{@cnvc xxx} overwrites the file \filef{c.xxx}
+  with the new style file and deletes \filef{h.xxx} if it exists.
 \end{itemize}
 
 \section{ Diagnostics.} 
@@ -9112,14 +9119,14 @@ Note also that at present, {\cal HomCont} can be run only in
 
 In order to run {\cal HomCont} one must prepare an equations file \filef{xxx.f}, 
 where \filef{xxx} is the name of the example, 
-and two constants-files \filef{c.xxx} and \filef{h.xxx}.
-The first two of these files are in the standard {\cal AUTO} format, 
-whereas the \filef{h.xxx} file
-contains constants that are specific to homoclinic continuation.
+and constants-file \filef{c.xxx}.
+These files are in the standard {\cal AUTO} format, but
+the \filef{c.xxx} file almost always also must
+contain constants that are specific to homoclinic continuation.
 The choice \parf{IPS}=9 in \filef{c.xxx} specifies the problem as
-being homoclinic continuation, in which case \filef{h.xxx} is required.
+being homoclinic continuation.
 
-The equation-file \filef{kpr.f} serves as a sample for new equation
+The equation-file \filef{kpr.f90} serves as a sample for new equation
 files. It contains the Fortran routines 
 \funcf{ FUNC}, \funcf{ STPNT}, \funcf{ PVLS}, \funcf{ BCND}, \funcf{ ICND} 
 and \funcf{ FOPT}. The final three are
@@ -9129,7 +9136,8 @@ Note a minor difference in \funcf{ STPNT} and \funcf{ PVLS} with other
 \parf{/BLHOM/} is required.
 
 The constants-file \filef{c.xxx} is identical in format to other
-{\cal AUTO} constants-files. Note that the values of the constants
+{\cal AUTO} constants-files, except for the added constants.
+Note that the values of the constants
 \parf{NBC} and \parf{NINT} are irrelevant, as these are set
 automatically by the choice \parf{IPS}=9. Also, the choice \parf{JAC=1}
 is strongly recommended, because the Jacobian is used extensively for
@@ -9138,27 +9146,40 @@ evaluating boundary conditions and certain test functions. However,
 note that \parf{JAC=1} does not necessarily mean that {\cal auto} will
 use the analytically specified Jacobian for continuation.
 
+The earlier HomCont files \filef{h.xxx} are obsolete but still
+supported. You can convert from the old to the new format by running
+the command \commandf{@cnvc xxx yyy} where \commandf{xxx} refers to either
+or both of the files \filef{c.xxx} and \filef{h.xxx}. A new-style
+constants file, \filef{c.yyy} is written. The command
+\commandf{@cnvc xxx} overwrites \filef{c.xxx} and deletes \filef{h.xxx}.
+
 \section{ {\cal HomCont}-Constants.} \label{sec:HomCont_Constants}
-An example for the additional file \filef{h.xxx} is listed below:
+An example for the HomCont-specific constants in \filef{c.xxx} is listed below:
 \begin{verbatim}
-          1 2 1 1 1    NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART
-          0            NREV,(/,I,IREV(I)),I=1,NREV)
-          1            NFIXED,(/,I,IFIXED(I)),I=1,NFIXED)
-            13
-          1            NPSI,(/,I,IPSI(I)),I=1,NPSI)
-            9 10 13
+          NUNSTAB=1, NSTAB=2, IEQUIB=1, ITWIST=1, ISTART=1
+          IREV = []
+          IFIXED = [13]
+          IPSI = [9,10]
 \end{verbatim}
-The constants specified in \filef{h.xxx} have the following meaning. 
+These constants have the following meaning. 
 
 \subsection{\parf{NUNSTAB}}  \label{sec:NUNSTAB}
 
 Number of unstable eigenvalues of the left-hand equilibrium (the equilibrium 
-approached by the orbit as $t \to -\infty$).
-
+approached by the orbit as $t \to -\infty$). The default value is -1,
+which means autodetection. In almost all cases autodetection is
+possible. The exception is when starting from a homoclinic to a
+saddle-node equilibrium when \parf{IEQUIB$\ne$1}. Examples for this
+exception are in runs 9, 12, and 13 of the
+demo \texttt{kpr} (see Chapter~\label{ch:HomCont_kpr}).
+Even in this case
+only one of \parf{NUNSTAB} and \parf{NSTAB} needs to be specified, the
+other one being computed as \parf{NDIM} minus the specified constant.
 
 \subsection{\parf{NSTAB}}  \label{sec:NSTAB}
 Number of stable eigenvalues of the right-hand equilibrium (the equilibrium
-approached by the orbit as $t \to +\infty$).
+approached by the orbit as $t \to +\infty$). The same default as for
+\parf{NUNSTAB} applies here.
 
 \subsection{\parf{IEQUIB}}  \label{sec:IEQUIB}
 \begin{itemize}
@@ -9166,7 +9187,7 @@ approached by the orbit as $t \to +\infty$).
 Homoclinic orbits to hyperbolic equilibria;  
 the equilibrium is specified explicitly in \parf{PVLS} and stored in
 \parf{PAR(11+I)}, \parf{I=1,NDIM}.
-\item[-] \parf{IEQUIB=1}~: 
+\item[-] \parf{IEQUIB=1}~(default): 
 Homoclinic orbits to hyperbolic equilibria;  
 the equilibrium is solved for during continuation. Initial values for
 the equilibrium are stored in \parf{PAR(11+I)}, \parf{I=1,NDIM} in \funcf{ STPNT}.
@@ -9188,7 +9209,7 @@ specified in \funcf{ STPNT} and stored in \parf{PAR(11+I)}, \parf{I=1,NDIM} (lef
 
 \subsection{\parf{ITWIST}}  \label{sec:ITWIST}
 \begin{itemize}
-\item[-] \parf{ITWIST=0}~: 
+\item[-] \parf{ITWIST=0}~(default): 
 the orientation of the homoclinic orbit is not computed.
 \item[-] \parf{ITWIST=1}~: 
 the orientation of the homoclinic orbit is computed. For this purpose, the
@@ -9203,19 +9224,8 @@ Section~\ref{sec:Starting_strategies} for more details.
 
 \subsection{\parf{ISTART}}  \label{sec:ISTART}
 \begin{itemize}
-\item[-] \parf{ISTART=1}~:  
-This option is obsolete in the current version. 
-It may be used as a flag that a solution is to be
-restarted from a previously computed point or
-from numerical data converted into {\cal AUTO} format using
-\commandf{us} or \commandf{@fc}.
-In this case \parf{IRS>0}.
-%If \parf{IRS=0} then starting data are read from the file 
-%\filef{fort.4} (copied from \filef{xxx.dat} in the examples).
-%These data must be \parf{t,U} in multi-column format at each 
-%point with \parf{t} in the interval \parf{[0,1]}. If \parf{IRS}$\neq$\parf{0},
-%this value of \parf{ISTART} should be used to read starting data from
-%a previously-obtained output point from {\cal AUTO}.
+\item[-] \parf{ISTART=1}~(default):
+No special action is taken.
 \item[-] \parf{ISTART=2}~: 
 If \parf{IRS=0}, an explicit solution must be specified in the
 subroutine \funcf{ STPNT} in the usual format. 
@@ -9245,11 +9255,11 @@ from the point $x_0$ back to the point $x_0$. The last part $U_N$
 goes from the point $x_0$ back to the equilibrium. 
 The derivatives $\dot{x}_0$ with respect to time
 of the point that is furthest from the equilibrium are stored at the 
-parameters \parf{PAR(NPARX-NDIM+1...NPARX)}.
+parameters \parf{PAR(NP-NDIM+1...NP)}, where \parf{NP=max(NPARX,NPAR)}.
 
 If \parf{ITWIST=1}, and this was also the case in the preceding run,
 then a copy of the adjoint vector $\Psi$ at $x_0$ is stored at the parameters
-\parf{PAR(NPARX-NDIM*2+1...NPARX-NDIM)} and Lin's method can be used
+\parf{PAR(NP-NDIM*2+1...NP-NDIM)} and Lin's method can be used
 to do homoclinic branch switching. To be more precise, the individual parts
 $u_i$ and $u_{i+1}$ are at distances $\varepsilon_i$ away from each
 other, along the Lin vector $Psi$, at the left- and right-hand end
@@ -9283,30 +9293,31 @@ if \parf{ITWIST} is set to 1, one needs to do a Newton dummy step
 first to recalculate the adhoint.
 \end{itemize}
 
-\subsection{\parf{NREV, IREV}}  \label{sec:IREV}
-If \parf{NREV=1} then it is assumed that
+\subsection{\parf{IREV}}  \label{sec:IREV}
+If \parf{IREV$\ne$[]} then it is assumed that
 the system is reversible under the transformation 
 $t \to -t$ and $U(i) \to -U(i)$ for all $i$ with 
 \parf{IREV(i)>0}. Then only half the homoclinic solution is
 solved for with right-hand boundary conditions specifying
 that the solution is symmetric under the reversibility
 (see \citeasnoun{ChSp:93}). The number of free parameters
-is then reduced by one. Otherwise \parf{IREV=0}.
+is then reduced by one. Otherwise the default applies, \parf{IREV=[]}.
 
-\subsection{\parf{NFIXED, IFIXED}}  \label{sec:IFIXED}
-Number and labels of test functions that are held fixed. 
-E.g., with \parf{NFIXED=1} one can compute a locus in
+\subsection{\parf{IFIXED}}  \label{sec:IFIXED}
+Labels of test functions that are held fixed. 
+E.g., with \parf{IFIXED=[n]} one can compute a locus in
 one extra parameter of a singularity defined by 
-test function \parf{PSI(IFIXED(1))=0}.
+test function \parf{PSI(n)=0}. The default is \parf{IFIXED=[]}.
 
-\subsection{\parf{NPSI, IPSI}}  \label{sec:IPSI}
-Number and labels of activated test functions for detecting homoclinic
+\subsection{\parf{IPSI}}  \label{sec:IPSI}
+Labels of activated test functions for detecting homoclinic
 bifurcations, see Section~\ref{sec:HomCont_Test_functions} 
 for a list. If a test function is activated then the
 corresponding parameter (\parf{IPSI(I)+20}) 
 must be added to the list of continuation parameters \parf{ICP}
 and zero of this parameter added to the list of user-defined
 output points \parf{UZR,} in \filef{c.xxx}.
+The default is \parf{IPSI=[]}.
 
 \section{ Restrictions on {\cal HomCont} Constants.}
 Note that certain combinations of these constants are not allowed
@@ -9316,12 +9327,12 @@ in the present implementation. In particular,
 The computation of orientation \parf{ITWIST=1} is not
 implemented for \parf{IEQUIB<0} (heteroclinic orbits), 
 \parf{IEQUIB=2} (saddle-node homoclinics),
-\parf{IREV=1} (reversible systems), \parf{ISTART=3} (homotopy
+\parf{IREV$\ne$[]} (reversible systems), \parf{ISTART=3} (homotopy
 method for starting), or if the equilibrium contains complex
 eigenvalues in its linearization.  
 \item[-] The homotopy method \parf{ISTART=3} is not fully implemented
 for heteroclinic connections \parf{IEQUIB<0}, saddle-node homoclinic
-orbits \parf{IEQUIB=2} or reversible systems \parf{IREV=1}.
+orbits \parf{IEQUIB=2} or reversible systems \parf{IREV$\ne$[]}.
 \item[-] Certain test functions are not valid for certain forms
 of continuation 
 (see Section~\ref{sec:HomCont_Test_functions} below); 
@@ -9368,16 +9379,15 @@ leading eigenvalues are not complex and the homoclinic solution is not
 in a flip configuration, that is, none of the test functions 
 $\psi_i$ for $i=11,12,13,14$ is zero (or close to zero), 
 see Section~\ref{sec:HomCont_Test_functions}.
- Finally, the values of the \parf{NPSI} activated test functions are written. 
+ Finally, the values of the \parf{IPSI} activated test functions are written. 
 
 \section{ Test Functions.} \label{sec:HomCont_Test_functions}
 Codimension-two homoclinic orbits are detected along branches of codim
 1 homoclinics by locating zeroes of certain test functions
 $\psi_i$. The test functions that are ``switched on'' during any
 continuation are given by the choice of the labels $i$, and are
-specified by the parameters \parf{NPSI,(/,I,IPSI(I)),I=1,NPSI)} in \filef{
-h.xxx}.  Here \parf{NPSI} gives the number of activated test functions
-and \parf{IPSI(1),$\ldots$,IPSI(NPSI)} give the labels of
+specified by the parameters \parf{IPSI)} in \filef{
+c.xxx}.  Here \parf{IPSI=[IPSI(1),$\ldots$,IPSI(NPSI)]} gives the labels of
 the test functions (numbers between 1 and 16). A zero of
 each labeled test function defines a certain codimension-two 
 homoclinic singularity, specified as follows.
@@ -9460,17 +9470,15 @@ point in question.
 \item[{\bf(ii)}]
 Data from numerical integration (e.g.,\ computation of a stable
 periodic orbit, or an approximate homoclinic obtained by shooting)  
-can be read in from a data file using the general {\cal AUTO} 
-utility \commandf{@fc} or \commandf{us} (see earlier in the manual). 
+can be read in from a data file using the \AUTO constant \parf{dat}
+(see Section~\ref{sec:dat}). 
 The  numerical data should be stored in
 a file  \filef{xxx.dat}, in multi-column format according to the read statement
 \begin{verbatim}
        READ(...,*) T(J),(U(I,J),I=1,NDIM)
 \end{verbatim}
 where $T$ runs in the interval \parf{[0,1]}.
-After running \commandf{@fc} or \commandf{us} the restart data is stored in
-the format of a previously computed solution in \filef{s.dat}.
-When starting from this solution \parf{IRS} should be set to 1 and 
+When starting from this solution \parf{IRS} should be set to 0 and 
 the value of \parf{ISTART} is irrelevant.
 
 \item[{\bf(iii)}]
@@ -9553,8 +9561,8 @@ execute all runs of the demo.
 %type  \commandf{make first}, \commandf{make second}, etc.,
 %to run each separate computation of the demo. 
 At each step, the user is encouraged to plot the data
-saved by using the command {\it plot} (e.g., {\it plot('1')} plots the data
-saved in \filef{b.1} and \filef{s.1}).
+saved by using the command {\it plot} (e.g., {\it plot(r)} plots the data
+saved in the \python variable \parf{r}).
 
 Of course, in a real application, the runs will not have been prepared
 in advance, and {\cal AUTO}-commands must be used.
@@ -9563,7 +9571,6 @@ A sequence of detailed \AUTO-commands will be given in these tables
 as illustrated in Table~\ref{tbl:HomCont_demos_1}
 and Table~\ref{tbl:HomCont_demos_2} for two representative runs of 
 {\cal HomCont} demo \filef{san}.
-
 
 The user is encouraged to copy the format of one of these demos
 when constructing new examples.
@@ -9584,12 +9591,15 @@ to make appropriate changes in the {\cal AUTO} constants-files.
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{ld('san')}                & load the problem defition    \\ 
-  \commandf{run(c='san.1',h='san.1')} & get the HomCont constants-file and run \AUTO/{\cal HomCont}\\
-  \commandf{sv('6')}                  & save output-files as \filef{b.6, s.6, d.6}  \\ 
+  \commandf{san=load('san',IPS=9,NDIM=3,ISP=0,ILP=0,} &\\
+  \commandf{  ITNW=7,JAC=1,NTST=35,IEQUIB=0,DS=0.05)}
+  & set common \AUTO constants\\
+  \commandf{r1=run(san,ICP=[1,8],UZR=\{-1:0.25\})} & run AUTO using the
+  specified constants\\
+  \commandf{save(r1,'6')}                & save output-files as \filef{b.6, s.6, d.6}  \\ 
 \hline
 %==============================================================================
-  \commandf{@H san 1}           &    \\ 
+  \commandf{@R san 1}           & use the constants file \filef{c.san.1}   \\ 
   \commandf{@sv 6}              &    \\ 
 \hline
 %==============================================================================
@@ -9599,7 +9609,6 @@ to make appropriate changes in the {\cal AUTO} constants-files.
 \end{center}
 \end{table}
 
-
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
@@ -9607,16 +9616,23 @@ to make appropriate changes in the {\cal AUTO} constants-files.
   COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{run(c='san.9',h='san.9',s='6')} & \parbox[t]{3in}{get the HomCont constants-file and run \AUTO/{\cal HomCont}; restart solution read from \filef{s.6}\vspace{0.2cm}}\\
-  \commandf{ap('6')}                        & append output-files to \filef{b.6, s.6, d.6}  \\ 
+  \commandf{r9=run(r8,ICP=[2,8],UZR=\{-2:3.0\})} & \parbox[t]{3in}{get
+    the \AUTO constants-file and run \AUTO/{\cal HomCont}; restart
+    from the last label in \parf{r8}\vspace{0.2cm}}\\
+  \commandf{r6=r6+r9}                        & append output to the
+  \python variable \parf{r6}  \\ 
+  \commandf{save(r6,'6')}                    & save output to the
+  files \filef{b.6, s.6, d.6}  \\ 
 \hline
 %==============================================================================
-  \commandf{@H san 9 6}         &  \\ 
-  \commandf{@ap 6}              &  \\ 
+  \commandf{@R san 9 6}         & use the constants file
+  \filef{c.san.9}, start from the file \filef{s.6}  \\ 
+  \commandf{@ap 6}              & append output to the
+   files \filef{b.6, s.6, d.6}  \\ 
 \hline
 %==============================================================================
 \end{tabular}
-\caption{ These two sets of {\cal AUTO}-Commands are equivalent.}
+\caption{ These two sets of {\cal AUTO}-Commands behave similarly.}
 \label{tbl:HomCont_demos_2}
 \end{center}
 \end{table}
@@ -10159,7 +10175,7 @@ $D_0$=\parf{PAR(3)}.  To achieve this we restart at label \parf{4},
 corresponding to the codim 2 point $D_1$. We return to continuation of
 saddle-node homoclinics, \parf{NUNSTAB=0},\parf{IEQUIB=2}, but append the
 defining equation $\psi_{15}=0$ to the continuation problem
-(via \parf{NFIXED=1}, \parf{IFIXED(1)=15}). The new
+(via \parf{IFIXED=[15]}). The new
 continuation problem is specified in \filef{c.mtn.6}.
 \begin{center}
 \commandf{r6=run(r1('UZ1'),c='mtn.6',sv='6')}
@@ -10245,7 +10261,7 @@ computation and a similar one starting from $D_1$ in the opposite direction
 %==============================================================================
 \section{ Koper's Extended Van der Pol Model.}
 %
-The equation-file \filef{kpr.f} contains the equations
+The equation-file \filef{kpr.f90} contains the equations
 \begin{equation} \label{ko} \begin{array}{rcl}
 \dot{x} & = & \eps_1^{-1}\:(k\: y - x^3 +3\:x - \lambda) \\
 \dot{y} & = & x - 2\: y + z \\
@@ -10260,7 +10276,7 @@ To copy across the demo \filef{kpr} and compile we type
 
 \section{The Primary Branch of Homoclinics.}
 First, we locate a homoclinic orbit using 
-the homotopy method. The file \filef{kpr.f} 
+the homotopy method. The file \filef{kpr.f90} 
 already contains 
 approximate parameter values for a homoclinic orbit, 
 namely $\lambda=$\parf{PAR(1)=-1.851185}, $k=$\parf{PAR(2)=-0.15}. 
@@ -10586,7 +10602,7 @@ restart from the data saved at \parf{LAB=8} and \parf{LAB=11} in
 ways, either by appending the defining condition $\psi_{16} =0$ to
 the continuation of saddle-node homoclinic orbits (with \parf{IEQUIB=2},
 etc.), or by appending $\psi_{9} =0$ to the continuation 
-of a saddle homoclinic orbit (with \parf{IEQUIB=1}. 
+of a saddle homoclinic orbit (with \parf{IEQUIB=1}). 
 The first approach is used in the example \filef{mtn},  
 for contrast we shall adopt the second approach here.
 %------------------------------------------------------
@@ -10762,8 +10778,8 @@ The new constants defining the continuation are given in \filef{c.cir.2}.
 We also activate the test functions pertinent to codimension-two
 singularities which may be encountered along a family of saddle-focus
 homoclinic orbits, viz.\ $\psi_2$, $\psi_4$, $\psi_5$, $\psi_9$ and $\psi_{10}$.
-This must be specified in three ways: by choosing \parf{NPSI=5} and appropriate
-\parf{IPSI(I)} in \filef{c.cir.2}, by adding the corresponding parameter labels
+This must be specified in three ways: by appropriate
+\parf{IPSI} in \filef{c.cir.2}, by adding the corresponding parameter labels
 to the list of continuation parameters \parf{ICP(I)} in \filef{c.cir.2}
 (recall that these parameter indices are 20 more than the corresponding
 $\psi$ indices), and finally adding UZR functions defining zeros of
@@ -11309,30 +11325,27 @@ We start by copying the demo to the current work directory
 and running the first step
 \begin{center}
 \commandf{demo('sib') }\\
-\commandf{ld('sib') } \\
-\commandf{rn() } \\
-\commandf{sv('1') }
+\commandf{r1=run(e='sib',c='sib') } \\
+\commandf{save(r1,'1') }
 \end{center}
 The equilibrium is followed in $a$ until $a$ (or \parf{PAR(1)}) is at our
 desired value, $0.375$.
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(1)     ...    U(1)          U(2)          U(3)     
    1     1  EP    1   0.00000E+00 ... 6.66667E-01   0.00000E+00   0.00000E+00
-   1     5  EP    2   3.75000E-01 ... 6.66667E-01  -1.33333E-01   0.00000E+00
+   1     5  UZ    2   3.75000E-01 ... 6.66667E-01  -1.33333E-01   0.00000E+00
 \end{verbatim}
 The output is saved in the files \filef{b.1}, \filef{s.1} and
 \filef{d.1}.
 Next we continue in $\alpha$ (\parf{PAR(4)}) until a Hopf bifurcation is
 found:
 \begin{center}
-\commandf{rn(c='sib.2',s='1') }\\
-\commandf{sv('2') }
+\commandf{r2=run(r1,ICP=[4]) }\\
+\commandf{save(r2,'2') }
 \end{center}
 or, alternatively,
 \begin{center}
-\commandf{cc("IRS",2) }\\
-\commandf{cc("ICP",[4]) }\\
-\commandf{rn(s='1') }\\
+\commandf{rn(c='sib.2',s='1')}\\
 \commandf{sv('2') }
 \end{center}
 \begin{verbatim}
@@ -11346,8 +11359,8 @@ periodic orbit eventually reaches a homoclinic bifurcation. We
 continue in $\mu$=\parf{PAR(5)} and \parf{PAR(11)}, 
 which corresponds to the period, and stop when the period is equal to $35$.
 \begin{center}
-\commandf{rn(c='sib.3',s='2') } \\
-\commandf{sv('3') }
+\commandf{r3=run(r2('HB1'),IPS=2,ICP=[5,11],NMX=200,DS=0.01,DSMAX=0.01,UZR=\{-11:35\})} \\
+\commandf{save(r3,'3')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(5)        L2-NORM    ...    PERIOD    
@@ -11355,7 +11368,7 @@ which corresponds to the period, and stop when the period is equal to $35$.
                                                 ...
    3    40        8  -1.29495E-02   6.14547E-01 ...  1.41297E+01
                                                 ...
-   3    81  EP   13  -1.04657E-04   4.01829E-01 ...  3.50000E+01
+   3    81  UZ   13  -1.04657E-04   4.01829E-01 ...  3.50000E+01
 \end{verbatim}
 The output is saved in the files \filef{b.3}, \filef{s.3} and
 \filef{d.3}. Note that $\mu$ first decreases and then increases towards
@@ -11364,10 +11377,10 @@ orbits occur on the line $\mu=0$ in the $(\alpha,\mu)$-plane.
 It is now instructive to look at a phase space diagram to see what is
 going on.
 \begin{center}
-\commandf{plot('3') }
+\commandf{plot(r3) }
 \end{center}
 Selecting 'solution' for Type, [5,6,7,8,9,10,11,12,13] for Label,
-[0] for X and [1] for Y, we obtain the diagram depicted in 
+[U(1)] for X and [U(2)] for Y, we obtain the diagram depicted in 
 Figure~\ref{hopfbif}(a), where the periodic orbit grows from the
 Hopf equilibrium to a homoclinic orbit.
 \begin{figure}[htb]
@@ -11388,7 +11401,7 @@ Hopf equilibrium to a homoclinic orbit.
 
 Note however, that the homoclinic orbit has the wrong left-hand and
 right-hand end points. This can be seen by plotting the solution
-corresponding to Label [13] using 't' vs. 'x' (coordinate [0]), 
+corresponding to Label [13] using 't' vs. 'x' (coordinate [U(1)]), 
 as depicted in Figure~\ref{hopfbif}(b).
 
 Hence, in order to continue this as a real homoclinic 
@@ -11396,43 +11409,37 @@ we have to give {\cal HomCont} special instructions, to do a phase-shift in
 time. This can be done by setting \parf{ISTART=4}. Moreover, 
 since we have not specified the value of
 the equilibrium at the origin in \filef{sib.c}, 
-we need to set \parf{IEQUIB=1} to let
+we need to set \parf{IEQUIB=1} (this is the default value) to let
 {\cal HomCont} detect the equilibrium. Note that in this case this is not
 strictly necessary; however, we do this for instructional purposes.
 
 Now we use {\cal HomCont} to continue the homoclinic orbit in $c$ and $\mu$ 
 (\parf{PAR(3)}, \parf{PAR(5)}), to get the desired value $c=-2.0$.
 \begin{center}
-\commandf{rn(c='sib.4',h='sib.shift',s='3') } \\
-\commandf{sv('4') }
+\commandf{r4=run(r3,IPS=9,ICP=[3,5],NPR=60,JAC=1,UZR=\{-3:-2.0\},ISTART=4) } \\
+\commandf{save(r4,'4')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(3)        L2-NORM      ...    PAR(5)     
-   3    51  EP   14  -2.00000E+00   4.01890E-01   ...  2.66146E-09
+   3    51  UZ   14  -2.00000E+00   4.01890E-01   ...  2.66146E-09
 \end{verbatim}
 The output is saved in the files \filef{b.4}, \filef{s.4} and
 \filef{d.4}. Note that \parf{PAR(5)}=$\mu$ remains zero, which is exactly
 what we expect.
 
 Next we want to add a solution to the adjoint equation to this
-solution. This is achieved by making the change \parf{ITWIST = 1}
-saved in \filef{h.sib.twist}. Also, we set \parf{ISTART} to 1 to tell 
-{\cal HomCont} that it is should not try to shift the orbit anymore.
+solution. This is achieved by making the change \parf{ITWIST = 1}.
+Also, we set \parf{ISTART} to 1 to tell 
+{\cal HomCont} that it should not try to shift the orbit anymore.
 \begin{center}
-\commandf{rn(c='sib.5',h='sib.twist',s='4') } \\
-\commandf{sv('5') }
+\commandf{r5=run(r4,ICP=[5,8],NMX=2,ITWIST=1,ISTART=1)} \\
+\commandf{save(r5,'5') }
 \end{center}
 or, alternatively,
 \begin{center}
-\commandf{cc("IRS",14) }\\
-\commandf{cc("ICP",[5,8])}\\
-\commandf{cc("NMX",2)}\\
-\commandf{hch("ITWIST",1)}\\
-\commandf{hch("ISTART",1)}\\
-\commandf{rn(s='4')}\\
-\commandf{sv('5')}
+\commandf{rn(c='sib.5',s='4')}\\
+\commandf{sv('5')}\\
 \end{center}
-where \commandf{hch} means ``change {\cal HomCont} constant''.
 The output is stored in \filef{b.5}, \filef{s.5}  and \filef{d.5}.
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(5)        L2-NORM    ...    PAR(8)     
@@ -11441,16 +11448,15 @@ The output is stored in \filef{b.5}, \filef{s.5}  and \filef{d.5}.
 Here \parf{PAR(8)} is a dummy (unused) parameter and $\mu$ just stays where
 it is. Now that we have obtained the solution of the adjoint equation,
 we are able to detect inclination flips. This can be achieved by
-setting \parf{NPSI} to 1, \parf{IPSI(1)} to 13, and monitoring \parf{PAR(33)}.
+setting \parf{IPSI} to [13] and monitoring \parf{PAR(33)}.
 \begin{center}
-\commandf{rn(c='sib.6',h='sib.if',s='5') } \\
-\commandf{sv('6') }
+\commandf{r6=run(r5,ICP=[4,5,33],NMX=30,DS=-0.01,DSMAX=1.0,UZR=\{33:0,-4:0\},IPSI=[13])}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)        L2-NORM    ...  PAR(5)        PAR(33)
    3    19  UZ   16   7.11774E-02   4.01890E-01 ... 1.24376E-11  -2.36702E-07
 \end{verbatim}   
-The output is stored in \filef{b.6}, \filef{s.6}  and \filef{d.6}.
+The output is stored in the \python variable \parf{r6}.
 Hence an inclination flip was found at $\alpha=0.711774$.
 
 Now we are ready to perform homoclinic branch switching, using
@@ -11470,15 +11476,15 @@ aim to find a 2-homoclinic orbit, so that it will split it up in three
 parts with two potential Lin gaps. We effectively have a 9-dimensional
 system at this point.
 \begin{center}
-\commandf{rn(c='sib.7',h='sib.hbs2',s='6') } \\
-\commandf{sv('7') }
+\commandf{r7=run(r6('UZ1'),ICP=[21,22,5],NMX=300,NPR=10,UZR=\{-22:0.2\},ISTART=-2,IPSI=[])}\\
+\commandf{save(r7,'7')}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(21)       L2-NORM    ...  PAR(22)       PAR(5)     
    3    10       18   3.45897E+01   4.46818E-01 ... 7.87712E-07  -1.55885E-11
    3    20       19   2.73699E+01   4.46818E-01 ... 2.91119E-05  -1.63974E-09
    3    30       20   1.73720E+01   4.46817E-01 ... 4.42273E-03  -3.10167E-05
-   3    38  EP   21   1.01451E+01   4.46796E-01 ... 2.00000E-01  -1.48615E-02
+   3    38  UZ   21   1.01451E+01   4.46796E-01 ... 2.00000E-01  -1.48615E-02
 \end{verbatim}
 The output is stored in \filef{b.7}, \filef{s.7}  and \filef{d.7}.
 Here we see that $T_1$, the time it takes to make the first loop with
@@ -11501,29 +11507,29 @@ constant value.
 Projection of the ``broken homoclinic orbit''
 onto the $(x,y)$-plane, where $\varepsilon_1=0.2$. To include all the
 pieces necessary to obtain this
-figure, the ``X'' box must contain [0,3,6] and the ``Y'' box must contain
-[1,4,7] (b).}
+figure, the ``X'' box must contain [U(1),U(4),U(7)]
+and the ``Y'' box must contain [U(2),U(5),U(8)] (b).}
 \label{broken}
 \end{center}
 \end{figure}
 \begin{center}
-\commandf{rn(c='sib.8',h='sib.hbs2',s='7') } \\
-\commandf{ap('6') }
+\commandf{r8=run(r7,ICP=[4,5,22],NPR=310,DS=0.01,DSMAX=0.01,UZR=\{-22:0.0,4:0.074\})} \\
+\commandf{r6=r6+r8}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)        PAR(22)    
    3     3  UZ   22   7.40000E-02   4.46781E-01 ... -1.43162E-02   1.93746E-01
-   3    32  EP   23   1.98414E-01   4.46590E-01 ... -6.05495E-03   2.29300E-06
+   3    32  UZ   23   1.98414E-01   4.46590E-01 ... -6.05495E-03   2.29300E-06
 \end{verbatim}
-The output is appended to \filef{b.6}, \filef{s.6}  and \filef{d.6}.
-Now we have obtained a 2-homoclinic orbit at label 24. However, the
+The output is appended to the \python variable \parf{r6}.
+Now we have obtained a 2-homoclinic orbit at label 23. However, the
 homoclinic orbit is still split in three parts. We can switch back to
 a normal orbit by setting \parf{ITWIST} back to 0 and continuing in the usual
 way. Here we continue back to the inclination flip point in $\alpha$
 and $\mu$.
 \begin{center}
-\commandf{rn(c='sib.9',h='sib.hom',s='6') } \\
-\commandf{ap('6') }
+\commandf{r9=run(r8,ICP=[4,5],NMX=30,DS='-',DSMAX=0.1,UZR=\{4:0.15\},ISTART=1,ITWIST=0)} \\
+\commandf{r6=r6+r9}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
@@ -11532,10 +11538,10 @@ and $\mu$.
 \end{verbatim}
 So the 2-homoclinic orbit converges back to the 1-homoclinic orbit at
 the inclination flip bifurcation.
-The output is appended to \filef{b.6}, \filef{s.6}  and \filef{d.6}.
+The output is appended to the python variable \parf{r6}.
 The resulting 2-homoclinic orbits can be seen using
 \begin{center}
-\commandf{plot('6') }
+\commandf{plot(r6) }
 \end{center} 
 and is depicted in Figure~\ref{hom2.eps}(a).
 \begin{figure}[htb]
@@ -11561,33 +11567,33 @@ gap, $\varepsilon_2$=\parf{PAR(24)} and, once again, stop
 when $\varepsilon_1$=\parf{PAR(22)=0}. Note that the 
 dimension of the boundary value problem we continue
 is now equal to 12. This is not to be confused with the setting
-of \parf{NDIM=3} in the parameter file, because {\cal HomCont} handles this
+of the \AUTO constant \parf{NDIM=3}, because {\cal HomCont} handles this
 internally.
 \begin{center}
-\commandf{rn(c='sib.10',h='sib.hbs3',s='6') } \\
-\commandf{sv('10') }
+\commandf{r10=run(r6('UZ1'),ICP=[21,22,24,5],NMX=300,NPR=10,UZR=\{-22:0.2\},ISTART=-3,IPSI=[])} \\
+\commandf{save(r10,'10') }
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(21)    ...   PAR(22)       PAR(24)       PAR(5)     
    3    10       26   3.45896E+01 ...  7.87894E-07   6.42157E-07  -1.06346E-11
    3    20       27   2.73699E+01 ...  2.91126E-05   6.51591E-07  -1.63655E-09
    3    30       28   1.73719E+01 ...  4.42289E-03   1.44090E-04  -3.10188E-05
-   3    38  EP   29   1.01451E+01 ...  2.00000E-01   6.97445E-02  -1.48615E-02
+   3    38  UZ   29   1.01451E+01 ...  2.00000E-01   6.97445E-02  -1.48615E-02
 \end{verbatim}
 The output is stored in \filef{b.10}, \filef{s.10}  and \filef{d.10}.
 Now we need to subsequently close the Lin gaps. Our strategy is to
 keep $T_1$ fixed. We first continue in $\alpha$, $\mu$,
 $\varepsilon_1$ and $\varepsilon_2$ until $\varepsilon_1=0$.
 \begin{center}
-\commandf{rn(c='sib.11',h='sib.hbs3',s='10') } \\
-\commandf{ap('6') }
+\commandf{r11=run(r10,ICP=[4,5,22,24],NPR=310,DS=0.01,DSMAX=0.01,UZR=\{-22:0.0,4:0.082\})} \\
+\commandf{r6=r6+r11}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)     ...   PAR(5)        PAR(22)       PAR(24)
    3     6  UZ   30   8.20000E-02 ... -1.29790E-02   1.76995E-01   6.37184E-02
-   3    32  EP   31   1.98414E-01 ... -6.05495E-03   2.30717E-06   3.62449E-02
+   3    32  UZ   31   1.98414E-01 ... -6.05495E-03   2.30717E-06   3.62449E-02
 \end{verbatim}
-The output is appended to \filef{b.6}, \filef{s.6}  and \filef{d.6}.
+The output is appended to the \python variable \parf{r6}.
 Note that this continuation is very similar to the one where we found
 a 2-homoclinic orbit. In fact we have now found a 2-homoclinic orbit
 (numerically) followed by a `broken' 1-homoclinic orbit; only the mesh
@@ -11599,8 +11605,9 @@ $\varepsilon_1$ by $T_2$, because $T_2$ (\parf{PAR(23)})
 still has to be decreased from
 its high value (35) and $\varepsilon_1$ needs to stay at 0.
 \begin{center}
-\commandf{rn(c='sib.12',h='sib.hbs3',s='6') } \\
-\commandf{ap('6') }
+\commandf{r12=run(r11,ICP=[4,5,23,24],NMX=32,NTST=40,DS=-1,DSMAX=1,
+  UZR=\{24:0,4:0.18\})}\\
+\commandf{r6=r6+r12}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)     ...   PAR(5)        PAR(23)       PAR(24)
@@ -11609,7 +11616,7 @@ its high value (35) and $\varepsilon_1$ needs to stay at 0.
    3    30  UZ   34   1.66990E-01 ... -6.89269E-03   9.41745E+00  -1.03179E-06
    3    32  EP   35   1.78172E-01 ... -6.55364E-03   9.50300E+00  -7.20367E-02
 \end{verbatim}
-The output is appended to \filef{b.6}, \filef{s.6}  and \filef{d.6}.
+The output is appended to the \python variable \parf{r6}.
 Note that we have found two zeros of \parf{PAR(24)}, at labels 32 and
 34, respectively. The two zeros
 correspond to two different 3-homoclinic
@@ -11619,8 +11626,8 @@ These two 3-homoclinic orbits are depicted in Figure~\ref{hom2.eps}(b).
 We can follow both of these back to the inclination flip point, by
 setting \parf{ITWIST} back to 0:
 \begin{center}
-\commandf{rn(c='sib.13',h='sib.hom',s='6') } \\
-\commandf{ap('6') }
+\commandf{r13=run(r12('UZ1'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.13\},ISTART=1,ITWIST=0)}\\
+\commandf{r6=r6+r13}
 \end{center} 
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
@@ -11628,15 +11635,17 @@ setting \parf{ITWIST} back to 0:
    3    30  EP   37   9.27258E-02   5.06560E-01 ... -2.76788E-04
 \end{verbatim}
 \begin{center}
-\commandf{rn(c='sib.14',h='sib.hom',s='6') } \\
-\commandf{ap('6') }
+\commandf{r14=run(r12('UZ3'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.145\},ISTART=1,ITWIST=0)} \\
+\commandf{r6=r6+r14}
+\commandf{save(r6,'6')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(4)        L2-NORM    ...   PAR(5)     
    3     7  UZ   38   1.45000E-01   5.47347E-01 ... -4.79400E-03
-   3    30  EP   39   8.39401E-02   5.52605E-01 ... -7.36741E-05
+   3    30  EP   39   8.39399E-02   5.52605E-01 ... -7.36611E-05
 \end{verbatim}
-All the output is appended to \filef{b.6}, \filef{s.6}  and \filef{d.6}.
+All the combind appended output is saved to \filef{b.6}, \filef{s.6}
+and \filef{d.6}.
 The bifurcation diagram and the paths we followed when closing the Lin
 gaps are depicted in Figure~\ref{parspace}. It is possible and
 straightforward to obtain $4, 5, 6, \dots$-homoclinic orbits by 
@@ -11654,7 +11663,7 @@ closing the Lin gaps. The (approximately overlaid)
 curves though labels 25 and 35 correspond to the 
 2- and one of the 3-homoclinic orbits.
 Finally, the curve through label 37 corresponds to the other
-3-homoclinic orbit, which was obtained for \parf{PAR(22)}=$T_2=12.03201$.}
+3-homoclinic orbit, which was obtained for \parf{PAR(23)}=$T_2=12.03201$.}
 \label{parspace}
 \end{center}
 \end{figure}
@@ -11701,16 +11710,14 @@ First we obtain a homoclinic orbit using a homotopy technique (see
 values $c=0.21, a=0.2, \epsilon=0.0025$.
 
 \begin{center}
-\commandf{demo('sib') }\\
-\commandf{ld('fnb')}\\
-\commandf{rn()}\\
-\commandf{sv('1')}
+\commandf{demo('fnb') }\\
+\commandf{r1 = run('fhn',sv='1')}
 \end{center}
 
 Among the output we see:
 \begin{verbatim}
   BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(17)
-   1    20  UZ    3   2.92257E+01   2.37916E-01 ... -1.68000E-09
+   1    21  UZ    4   2.91921E+01   2.38053E-01 ...  2.37630E-11
 \end{verbatim}
 and a zero of \parf{PAR(17)} means that a zero of an artificial parameter has
 been located and the right-hand end point of the corresponding
@@ -11719,23 +11726,21 @@ at the saddle. This point still needs to come closer to the
 equilibrium, which we can achieve by further increasing the period to
 300, while keeping \parf{PAR(17)} at 0:
 \begin{center}
-\commandf{rn(c='fnb.2',h='fnb.1',s='1')}\\
-\commandf{sv('2')}
+\commandf{r2 = run(r1('UZ1'),c='fhn.2',sv='2')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(2)
-   1   190  UZ   10   3.00000E+02   7.37932E-02 ...  1.79286E-01
+   1   189  UZ   11   3.00000E+02   7.37932E-02 ...  1.79286E-01
 \end{verbatim}
 
 Next we stop using the homotopy technique and increase the period even
 further, to 1000.
 \begin{center}
-\commandf{rn(c='fnb.3',h='fnb.3',s='2')}\\
-\commandf{sv('3')}
+\commandf{r3 = run(r2('UZ1'),c='fhn.3',sv='3')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB     PERIOD       L2-NORM    ...   PAR(2)
-   1    80  UZ   13   1.00000E+03   4.04183E-02 ...  1.79286E-01
+   1    80  UZ   14   1.00000E+03   4.04183E-02 ...  1.79286E-01
 \end{verbatim}
 
 A continuation in \parf{PAR(2)}=$a$ and \parf{PAR(1)}=$c$ needs to be 
@@ -11743,13 +11748,12 @@ performed to arrive
 at the place where we wish to find a 2-homoclinic orbit: $a=0$. At the
 same time we monitor \parf{PAR(22)} to locate Belyakov points.
 \begin{center}
-\commandf{rn(c='fnb.4',h='fnb.4',s='3')}\\
-\commandf{sv('4')}
+\commandf{r4 = run(r3('UZ1'),c='fhn.4',sv='4')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(1)        PAR(22)
-   1     6  UZ   15   1.31812E-01   3.28710E-02 ...  2.17166E-01  -6.31243E-06
-   1    23  UZ   19  -8.54548E-08   1.56158E-02 ...  2.74218E-01  -9.88772E-02
+   1     6  UZ   16   1.31812E-01   3.28710E-02 ...  2.17166E-01  -6.31253E-06
+   1    23  UZ   20  -8.55398E-08   1.56158E-02 ...  2.74218E-01  -9.88772E-02
 \end{verbatim}
 Hence, there exists a Belyakov point at $(a,c)=(0.131812,0.21766)$.
 At label 19 we have a lower value of $a$ than at the Belyakov point,
@@ -11760,31 +11764,29 @@ real part, and conclude that this orbit is of Shil'nikov type.
 Before starting the homoclinic branch switching, we calculate
 the adjoint to obtain a `Lin vector':
 \begin{center}
-\commandf{rn(c='fnb.5',h='fnb.5',s='4')}\\
-\commandf{sv('5')}
+\commandf{r5 = run(r4('UZ5'),c='fhn.5',sv='5')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(9)        L2-NORM    ...   PAR(3)     
-   1     2  EP   28  -1.00000E+00   1.56158E-02 ...  2.50000E-03
+   1     2  EP   29  -1.00000E+00   1.56158E-02 ...  2.50000E-03
 \end{verbatim}
 Next, we continue in the time $T_1$ (\parf{PAR(21)}), the gap
 $\varepsilon_1$ (\parf{PAR(22)}) and $c$ (\parf{PAR(1)}), 
 and by setting \parf{ISTART}=-2
 we try to locate a 2-homoclinic orbit:
 \begin{center}
-\commandf{rn(c='fnb.6',h='fnb.6',s='5')}\\
-\commandf{sv('6')}
+\commandf{r6 = run(r5,c='fhn.6',sv='6')}
 \end{center}
 In fact we find many of them, exactly as is predicted by the theory:
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(21)    ...   PAR(1)        PAR(22)
 ... 
-   1   175  UZ   46   1.64818E+02 ...  2.74218E-01   4.59218E-16
-   1   180  UZ   47   1.44759E+02 ...  2.74218E-01  -1.43728E-14
-   1   184  UZ   48   1.24939E+02 ...  2.74218E-01   1.55506E-13
-   1   189  UZ   49   1.04615E+02 ...  2.74218E-01  -2.37665E-11
-   1   193  UZ   50   8.53538E+01 ...  2.74218E-01   1.02165E-11
-   1   198  UZ   51   6.37899E+01 ...  2.74218E-01  -5.74204E-14
+   1   174  UZ   45   1.64799E+02 ...  2.74218E-01  -3.44422E-11
+   1   178  UZ   46   1.44799E+02 ...  2.74218E-01   3.29142E-14
+   1   182  UZ   47   1.24854E+02 ...  2.74218E-01   1.70138E-15
+   1   187  UZ   48   1.04789E+02 ...  2.74218E-01  -8.57896E-14
+   1   191  UZ   49   8.49517E+01 ...  2.74218E-01   1.93804E-13
+   1   196  UZ   50   6.45145E+01 ...  2.74218E-01  -2.26551E-09
 \end{verbatim}
 Each of these homoclinic orbits differ 
 by about 20 in the value $T_1$. This is about 
@@ -11858,14 +11860,12 @@ $b=(\sqrt{65}+3)/4$:
 
 \begin{center}
 \commandf{demo('kdv') }\\
-\commandf{ld('kdv')}\\
-\commandf{rn()}\\
-\commandf{sv('1')}
+\commandf{r1=run('kdv',sv='1')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(1)        L2-NORM    ...   PAR(3)     
    1     1  EP    1   3.00000E+00   5.56544E+00 ...  0.00000E+00
-   1     2  EP    2   3.04959E+00   5.49141E+00 ...  1.77919E-17
+   1     2  EP    2   3.04959E+00   5.49141E+00 ... -4.53380E-18
 \end{verbatim}
 Here \parf{PAR(1)}=$a$, \parf{PAR(2)}=$b$, and
 \parf{PAR(3)}=$\lambda$. We have only done a
@@ -11873,21 +11873,19 @@ very small continuation to give \AUTO a chance to create a good mesh
 and avoid convergence problems later.
 Next, we set \parf{ITWIST=1} and calculate the adjoint:
 \begin{center}
-\commandf{rn(c='kdv.2',h='kdv.2',s='1')}\\
-\commandf{sv('2')}
+\commandf{r2=run(r1,c='kdv.2',sv='2')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(9)
-   1     2  EP    3   2.76556E+00   5.49140E+00 ... -7.62944E-08
+   1     2  EP    3   2.76557E+00   5.49141E+00 ... -3.12500E-04
 \end{verbatim}
 We now need to move back to the orbit flip at $a=3$:
 \begin{center}
-\commandf{rn(c='kdv.3',h='kdv.3',s='2')}\\
-\commandf{sv('3')}
+\commandf{r3=run(r2,c='kdv.3',sv='3')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(1)        L2-NORM    ...   PAR(3)     
-   1    14  UZ    5   3.00000E+00   5.47612E+00 ...  1.47274E-09
+   1    14  UZ    5   3.00000E+00   5.47613E+00 ...  1.47725E-09
 \end{verbatim}
 Now all preparations are done to start homoclinic branch
 switching. This is very similar to the technique used in 
@@ -11895,42 +11893,40 @@ Sandstede's model in Section~\ref{sec:HomCont_hbs_san};
 to find a 3-homoclinic orbit, we open 2 Lin gaps,
 until $T_1=3.5$, while also varying $\lambda$=\parf{PAR(3)}.
 \begin{center}
-\commandf{rn(c='kdv.4',h='kdv.4',s='3')}\\
-\commandf{sv('4')}
+\commandf{r4=run(r3('UZ2'),c='kdv.4',sv='4')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(3)     ...   PAR(21)       PAR(22)       PAR(24)
-   1    13        8   6.31458E-10 ...  1.65469E+01  -8.57681E-08  -7.30773E-07
-   1    23  UZ    9   1.46493E-09 ...  9.92489E+00  -5.84373E-12   1.93098E-07
-   1    26       10   4.01320E-09 ...  6.92406E+00   2.59555E-07   7.47534E-07
-   1    33  EP   11   2.15487E-06 ...  3.50000E+00   7.92587E-04   3.98390E-04
+   1    13        8   5.85315E-10 ...  1.65474E+01  -9.20183E-08  -6.11537E-07
+   1    23  UZ    9   1.52986E-09 ...  9.85223E+00  -6.68578E-12   2.01956E-07
+   1    26       10   4.09273E-09 ...  6.87525E+00   2.68679E-07   7.64502E-07
+   1    33  UZ   11   2.15483E-06 ...  3.49999E+00   7.94022E-04   3.99104E-04
 \end{verbatim}
 We then look for an orbit with $a<3$ and close the gap corresponding 
 to $\varepsilon_1$=\parf{PAR(22)}, for decreasing $a$.
 \begin{center}
-\commandf{rn(c='kdv.5',h='kdv.5',s='4')}\\
-\commandf{sv('5')}
+\commandf{r5=run(r4,c='kdv.5',sv='5')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(2)     ...   PAR(3)        PAR(22)       PAR(24)
-   1    10       12   2.58030E+00 ...  2.15869E-06   7.65037E-04   3.82464E-04
-   1    13  UZ   13   2.32044E+00 ...  4.02730E-11   1.17522E-10   1.69655E-08
-   1    20  EP   14  -1.14985E-01 ... -8.87194E-04  -7.18231E-01  -3.31153E-01
+   1    10       12   2.57977E+00 ...  2.15713E-06   7.65450E-04   3.82670E-04
+   1    13  UZ   13   2.32044E+00 ...  3.86701E-11   1.13817E-10   1.58675E-08
+   1    20  EP   14  -1.47788E-01 ... -9.46232E-04  -7.53666E-01  -3.43203E-01
 \end{verbatim}
 and finally close the gap corresponding to $\varepsilon_2$=\parf{PAR(24)},
 \begin{center}
-\commandf{rn(c='kdv.6',h='kdv.6',s='5')}\\
-\commandf{sv('6')}
+\commandf{r6=run(r5('UZ1'),c='kdv.6',sv='6')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(2)     ...   PAR(3)        PAR(23)       PAR(24)
-   1    35       15   2.31893E+00 ... -2.16070E-08   7.69046E+00  -1.08126E-05
-   1    51  UZ   16   2.34039E+00 ...  2.83533E-07   3.47976E+00   1.42651E-04
-   1    58  UZ   17   3.08085E+00 ...  1.84952E-12   3.50004E+00  -1.64827E-10
-   1    70  EP   18   3.08870E+00 ... -8.10422E-08   5.87541E+00  -4.82991E-05
+   1    23  UZ   15   2.32044E+00 ...  3.30393E-12   1.48758E+01  -2.30540E-10
+   1    35       16   2.31894E+00 ... -2.15192E-08   7.69389E+00  -1.07760E-05
+   1    51  UZ   17   2.33846E+00 ...  2.57829E-07   3.48152E+00   1.29755E-04
+   1    58  UZ   18   3.08085E+00 ...  2.28299E-12   3.50004E+00  -1.62266E-10
 \end{verbatim}
 so that a three-homoclinic orbit is found. Here the zero at label
-16 is the one we are looking for. At label 17, $a$=\parf{PAR(1)} 
+17 is the one we are looking for. Label 15 is a false positive since
+$T_2=PAR(23)$ is still too high. At label 18, $a$=\parf{PAR(1)} 
 has changed
 considerably to the extend that $a>3$ and a second 3-homoclinic orbit 
 is found. Note that for all zeros of \parf{PAR(24)}=$\varepsilon_2$, the
@@ -11938,16 +11934,15 @@ parameter $\lambda$=\parf{PAR(3)} is also zero (within \AUTO accuracy),
 which it has to be to remain
 within the original Hamiltonian system.
 Setting \parf{ISTART=1}, a normal ``trivial'' continuation (with \parf{NMX=1})
-of the orbit corresponding to label 16
+of the orbit corresponding to label 17
 lets {\cal HomCont} produce a proper concatenated
 3-homoclinic orbit:
 \begin{center}
-\commandf{rn(c='kdv.7',h='kdv.7',s='6')}\\
-\commandf{sv('7')}
+\commandf{r7=run(r6('UZ2'),c='kdv.7',sv='7')}
 \end{center}
 \begin{verbatim}
   BR    PT  TY  LAB    PAR(2)        L2-NORM    ...   PAR(3)     
-   1     1  EP   19   2.34039E+00   7.51157E+00 ...  2.83533E-07
+   1     1  EP   20   2.33846E+00   7.50835E+00 ...  2.57829E-07
 \end{verbatim}
 This 3-homoclinic orbit is depicted in Figure~\ref{kdv3hom}.
 \begin{figure}[htb]

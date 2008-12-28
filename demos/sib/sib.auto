@@ -32,7 +32,6 @@ r8=run(r7,ICP=[4,5,22],NPR=310,DS=0.01,DSMAX=0.01,UZR={-22:0.0,4:0.074})
 r6=r6+r8
 
 #ninth run
-print "r8", r8().getLabels()
 r9=run(r8,ICP=[4,5],NMX=30,DS='-',DSMAX=0.1,UZR={4:0.15},ISTART=1,ITWIST=0)
 r6=r6+r9
 

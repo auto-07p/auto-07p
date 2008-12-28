@@ -1244,7 +1244,7 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
     Returns a bifurcation diagram object representing the files in b.
     """
     type="simple"
-    shortName="loadbsd"
+    shortName="loadbd"
     def __init__(self,name=None,templates=None,cnf={},**kw):
         if name is not None:
             for key in ["bifurcationDiagram", "solution", "diagnostics"]:
