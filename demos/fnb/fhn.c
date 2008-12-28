@@ -1,7 +1,7 @@
 #include "auto_f2c.h"
 
 struct {
-    integer itwist, istart, iequib, nfixed, npsi, nunstab, nstab;
+    integer itwist, istart, iequib, nfixed, npsi, nunstab, nstab, nrev;
 } blhom_1;
 
 /* ---------------------------------------------------------------------- */
@@ -81,7 +81,7 @@ int stpnt(integer ndim, doublereal t, doublereal *u, doublereal *par)
 /* Distance along the unstable manifold : */
 
     if (blhom_1.istart == 3) {
-	par[ndim * blhom_1.iequib + 11] = -1e-5;
+	par[ndim * blhom_1.iequib + 11] = 1e-5;
     }
 /* ---------------------------------------------------------------------- */
 

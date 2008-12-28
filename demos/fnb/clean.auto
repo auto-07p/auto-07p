@@ -1,0 +1,14 @@
+#==============
+# AUTO Demo fnb
+#==============
+
+print "\n***Clean the directory***"
+
+dl("1")
+dl("2")
+dl("3")
+dl("4")
+dl("5")
+dl("6")
+dl("7")
+cl()

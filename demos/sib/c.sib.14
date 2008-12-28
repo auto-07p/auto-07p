@@ -7,3 +7,4 @@ EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  = -0.01, DSMIN= 0.001, DSMAX=   0.1, IADS=   1
 THL =  {11: 0.0}, THU =  {}
 UZR =  {4: 0.145}
+ITWIST = 0, ISTART = 1
