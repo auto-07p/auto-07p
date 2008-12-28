@@ -18,7 +18,7 @@ def get(solution):
     return load(u,PAR=p)
 
 def create(sfile='flq',label=2):
-    solution = load(s=sfile)(label)
+    solution = loadbd(s=sfile)(label)
     save(get(solution),'startman')
 
 # This is the Python syntax for making a script runable    

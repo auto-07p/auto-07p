@@ -6820,7 +6820,7 @@ quite a bit of CPU time and generate big data files.
 \hline
 
 \commandf{autox ext.py L1 3 -1e-5} & \commandf{import ext} \\
-			& \commandf{ext.make\_s('L1',3,-1e-5)} \\
+			& \commandf{sext=ext.get('L1',3,-1e-5)} \\
 \multicolumn{2}{|p{7in}|}{
                 Convert the data for a selected labeled solution from
                 \filef{s.L1}, 
@@ -6830,10 +6830,10 @@ quite a bit of CPU time and generate big data files.
 		The \filef{ext.py} script looks for the relevant
                 Floquet multiplier in
 		\filef{d.L1}. The converted solution will be written in the
-                file \filef{s.ext}.}\\
+                file \filef{s.ext} or stored in \parf{sext}.}\\
 \hline
 
-\commandf{@r flq ext}	& \commandf{run(e='flq',c='flq',s='ext')} \\
+\commandf{@r flq ext}	& \commandf{flq=run(sext,c='flq',e='flq')} \\
 \multicolumn{2}{|p{7in}|}{
 		Compute the Floquet eigenfunction. Free scalar variables in
 		this run (see \filef{c.flq}) are: 
@@ -6850,14 +6850,14 @@ quite a bit of CPU time and generate big data files.
                 If the run is not successful then see REMARK 1 below.}\\
 \hline
 
-\commandf{@sv flq} & \commandf{sv('flq')} \\
+\commandf{@sv flq} & \commandf{save(flq,'flq')} \\
 \multicolumn{2}{|l|}{
 		Save the results in \filef{b.flq}, \filef{s.flq}, and
                 \filef{d.flq}.}\\
 \hline
 
 \commandf{autox data.py} & \commandf{import data} \\
-			& \commandf{data.create()} \\
+			& \commandf{startman=data.get(flq('UZ1'))} \\
 \multicolumn{2}{|p{7in}|}{
 		Extract data for a selected orbit from \filef{s.flq}.
                 These data 
@@ -6867,19 +6867,20 @@ quite a bit of CPU time and generate big data files.
 		with label 2. If you did the ``optional'' computation (see 
 		Remark 2) you may need to change the label of the 
 		restart solution:}\\
-\commandf{autox data.py flq n} & \commandf{data.create(label=n)}\\
+\commandf{autox data.py flq n} & \commandf{startman=data.get(flq(n))} \\
 \multicolumn{2}{|p{7in}|}{
 		where $n$ is the different label number.
                 The extracted data will be saved in a file called
-                \filef{man.dat},
-                which contains, in order, the mass-ratio parameter mu, the
-                energy, the initial step size, epsilon, into the direction
-                of the unstable manifold, the orbit coordinates at
+                \filef{s.startman},
+                which contains a new starting solution that can be
+                used as a base for the manifold computations.
+                The orbit coordinates at
                 ``time zero'', and the Floquet eigenfunction
-                coordinates at ``time zero''.}\\
+                are saved at \parf{PAR(25:30)} and \parf{PAR(31:36)},
+                respectively.}\\
 \hline
 
-\commandf{@R man L1a.0}	& \commandf{run(e='man',c='man.L1a.0')} \\
+\commandf{@R man L1a.0 startman}& \commandf{startL1a = run(startman,e='man',c='man.L1a.0')} \\
 \multicolumn{2}{|p{7in}|}{
                 This step does a time integration using continuation in the
                 ``period'' $T$, i.e., \parf{PAR(11)}, which here is
@@ -6890,7 +6891,7 @@ quite a bit of CPU time and generate big data files.
                 longer. The starting point of the orbit is the point on the
                 periodic orbit at ``time zero'' plus a small distance
                 ($\varepsilon$)
-                into the direction of the unstable manifold. In AUTO,
+                into the direction of the unstable manifold. In \AUTO,
                 $\varepsilon$
                 corresponds to
                 \parf{PAR(6)}. This parameter $\varepsilon$ is initialized
@@ -6909,7 +6910,7 @@ quite a bit of CPU time and generate big data files.
               }\\
 \hline
 
-\commandf{@sv startL1a}		& \commandf{sv('startL1a')} \\
+\commandf{@sv startL1a}		& \commandf{save(startL1a,'startL1a')} \\
 \multicolumn{2}{|l|}{
 Save the results in \filef{b.startL1a}, \filef{s.startL1a}, 
 and \filef{d.startL1a}.
@@ -6927,7 +6928,7 @@ and \filef{d.startL1a}.
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
-\commandf{@R man L1a.1 startL1a} & \commandf{run(e='man',c='man.L1a.1',s='startL1a')} \\
+\commandf{@R man L1a.1 startL1a} & \commandf{L1a=run(startL1a,c='man.L1a.1')} \\
 \multicolumn{2}{|p{7in}|}{
 		Look at c.man.L1a.1 to see from which label in s.startL1a this
 		run starts. In this run the y-coordinate of the end point 
@@ -6950,7 +6951,7 @@ and \filef{d.startL1a}.
 }\\
 \hline
 
-\commandf{@sv L1a}			& \commandf{sv('L1a')} \\
+\commandf{@sv L1a}			& \commandf{save(L1a,'L1a')} \\
 
 \multicolumn{2}{|l|}{
 Save the results in \filef{b.L1a}, \filef{s.L1a}, and \filef{d.L1a}.
@@ -6958,7 +6959,7 @@ Save the results in \filef{b.L1a}, \filef{s.L1a}, and \filef{d.L1a}.
 \hline
 
 \commandf{@R man L1a.2 startL1a} &
-\commandf{run(e='man',c='man.L1a.2',s='startL1a')} \\
+\commandf{L1a2=run(startL1a,c='man.L1a.2')} \\
 \multicolumn{2}{|p{7in}|}{
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
@@ -6967,7 +6968,7 @@ Save the results in \filef{b.L1a}, \filef{s.L1a}, and \filef{d.L1a}.
                 orbit.
 }\\
 \hline
-\commandf{@sv L1a2} & \commandf{sv('L1a2')} \\
+\commandf{@sv L1a2} & \commandf{save(L1a2,'L1a2')} \\
 
 \multicolumn{2}{|l|}{
 		Save the results in \filef{b.L1a2}, \filef{s.L1a2},
@@ -7004,9 +7005,9 @@ in more stages, as in Table~\ref{tbl:demo_r3b_remark1}.
 		is smaller than the associated Floquet multiplier (magnitude
 		greater than 1) .}\\
 \commandf{autox ext.py L1 3 -1e-5 2000} & \commandf{import ext} \\
-			& \commandf{ext.make\_s('L1',3,-1e-5,2000)} \\
+			& \commandf{sext=ext.get('L1',3,-1e-5,2000)} \\
 \hline
-\commandf{@R flq 2 ext}	& \commandf{run(e='flq',c='flq.2',s='ext')} \\
+\commandf{@R flq 2 ext}	& \commandf{flq=run(sext,c='flq.2',e='flq')} \\
 
 \multicolumn{2}{|p{7in}|}{
 		Continue the approximate multiplier; If all goes well then 
@@ -7020,9 +7021,9 @@ in more stages, as in Table~\ref{tbl:demo_r3b_remark1}.
               \end{tabular}}\\
 \hline
 
-\commandf{@sv flq} & \commandf{sv('flq')} \\
+\commandf{@sv flq} & \commandf{save(flq,'flq')} \\
 \hline
-\commandf{@R flq 3} & \commandf{run(e='flq',c='flq.3',s='flq')} \\
+\commandf{@R flq 3} & \commandf{flq=run(flq,e='flq',c='flq.3')} \\
 
 \multicolumn{2}{|p{7in}|}{
 		Switch branches at the BP, thereby generating the nonzero 
@@ -7039,7 +7040,7 @@ in more stages, as in Table~\ref{tbl:demo_r3b_remark1}.
 		corresponding solution should have Label 4.
 }\\
 \hline
-\commandf{@sv flq} & \commandf{sv('flq')}\\
+\commandf{@sv flq} & \commandf{save(flq,'flq')}\\
 \hline
 \end{tabular}
 \end{center}
@@ -7055,7 +7056,7 @@ Table~\ref{tbl:demo_r3b_remark2}.
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
-\commandf{@R flq 4} & \commandf{run(e='flq',c='flq.4',s='flq')}\\
+\commandf{@R flq 4} & \commandf{flq=run(flq,e='flq',c='flq.4')}\\
 \multicolumn{2}{|p{7in}|}{
 		Free scalar variables in this run are
 
@@ -7069,7 +7070,7 @@ Table~\ref{tbl:demo_r3b_remark2}.
                 this run.
 }\\
 \hline
-\commandf{@sv flq} & \commandf{sv('flq')}\\
+\commandf{@sv flq} & \commandf{save(flq,'flq')}\\
 \hline
 \end{tabular}
 \end{center}
@@ -7103,7 +7104,7 @@ Table~\ref{tbl:demo_h1a}.
 \begin{tabular}{|l|l|}
 \hline
 \commandf{@R man H1a.1 startH1a} &
-\commandf{run(e='man',c='man.H1a.1',s='startH1a')}\\
+\commandf{H1a=run(startH1a,e='man',c='man.H1a.1')}\\
 \multicolumn{2}{|p{7in}|}{
 		Look at c.man.H1a.1 to see from which label in s.startH1a this
 		run starts. In this run the x-coordinate of the end point 
@@ -7124,14 +7125,14 @@ Table~\ref{tbl:demo_h1a}.
                   \parf{PAR(23)} & $z$-coordinate at end point
                 \end{tabular}}\\
 \hline
-\commandf{@sv H1a} &\commandf{sv('H1a')}\\
+\commandf{@sv H1a} &\commandf{save(H1a,'H1a')}\\
 
 \multicolumn{2}{|l|}{
 Save the results in \filef{b.H1a}, \filef{s.H1a}, and \filef{d.H1a}.}\\
 \hline
 
 \commandf{@R man H1a.2 startH1a} &
-\commandf{run(e='man',c='man.H1a.2',s='startH1a')}\\
+\commandf{hetH1a=run(startH1a,e='man',c='man.H1a.2')}\\
 
 \multicolumn{2}{|p{7in}|}{
   Another run, starting from a longer initial orbit, which 
@@ -7140,7 +7141,7 @@ Save the results in \filef{b.H1a}, \filef{s.H1a}, and \filef{d.H1a}.}\\
   the detection of a connecting orbit.
 }\\
 \hline
-\commandf{@sv hetH1a} &\commandf{sv('hetH1a')}\\
+\commandf{@sv hetH1a} &\commandf{save(hetH1a,'hetH1a')}\\
 \multicolumn{2}{|l|}{
 Save the results in \filef{b.hetH1a}, \filef{s.hetH1a}, and \filef{d.hetH1a}.}\\
 \hline
@@ -7175,7 +7176,7 @@ is one extra run; see Table~\ref{tbl:demo_h1b}.
 \begin{tabular}{|l|l|}
 \hline
 \commandf{@R man H1b.3 startH1b} &
-\commandf{run(e='man',c='man.H1b.3',s='startH1b')}\\
+\commandf{het2H1b=run(startH1b,e='man',c='man.H1b.3')}\\
 \multicolumn{2}{|p{7in}|}{
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
@@ -7183,7 +7184,7 @@ is one extra run; see Table~\ref{tbl:demo_h1b}.
 		the detection of another connecting orbit.
 }\\
 \hline
-\commandf{@sv het2H1b} & \commandf{sv('het2H1b')}\\
+\commandf{@sv het2H1b} & \commandf{save(het2H1b,'het2H1b')}\\
 \multicolumn{2}{|l|}{
 Save the results in \filef{b.het2H1b}, \filef{s.het2H1b}, and
                 \filef{d.het2H1b}.}\\
@@ -7229,7 +7230,7 @@ Table~\ref{tbl:demo_v1a}.
 \begin{tabular}{|l|l|}
 \hline
 \commandf{@R man V1a.1 startV1a} &
-\commandf{run(e='man',c='man.V1a.1',s='startV1a')}\\
+\commandf{V1a=run(startV1a,e='man',c='man.V1a.1')}\\
 
 \multicolumn{2}{|p{7in}|}{
 		Look at \filef{c.man.V1a.1} to see from which label in
@@ -7252,7 +7253,7 @@ Table~\ref{tbl:demo_v1a}.
                 \end{tabular}
 }\\
 \hline
-\commandf{@sv V1a} & \commandf{sv('V1a')}\\
+\commandf{@sv V1a} & \commandf{save(V1a,'V1a')}\\
 \multicolumn{2}{|l|}{
 		Save the results in \filef{b.V1a}, \filef{s.V1a}, and
                 \filef{d.V1a}.}\\
@@ -7290,7 +7291,7 @@ Table~\ref{tbl:demo_v1b}.
 \begin{tabular}{|l|l|}
 \hline
 \commandf{@R man V1b.1 startV1b} &
-\commandf{run(e='man',c='man.V1b.1',s='startV1b')}\\
+\commandf{V1b=run(startV1b,e='man',c='man.V1b.1')}\\
 \multicolumn{2}{|p{7in}|}{
 		Look at \filef{c.man.V1b.1}
                 to see from which label in \filef{s.startV1b} this
@@ -7311,13 +7312,13 @@ Table~\ref{tbl:demo_v1b}.
                   \parf{PAR(23)} & $z$-coordinate at end point
                 \end{tabular}}\\
 \hline
-\commandf{@sv V1b}			& \commandf{sv('V1b')}\\
+\commandf{@sv V1b}			& \commandf{save(V1b,'V1b')}\\
 \multicolumn{2}{|l|}{
 		Save the results in \filef{b.V1b}, \filef{s.V1b}, and
                 \filef{d.V1b} .}\\
 \hline
 \commandf{@R man V1b.2 startV1b} &
-\commandf{run(e='man',c='man.V1b.2',s='startV1b')} \\
+\commandf{hetV1b=run(startV1b,e='man',c='man.V1b.2'} \\
 \multicolumn{2}{|p{7in}|}{
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
@@ -7325,7 +7326,7 @@ Table~\ref{tbl:demo_v1b}.
 		the detection of a connecting orbit.}\\
 \hline
 
-\commandf{@sv hetV1b} & \commandf{sv('hetV1b')}\\
+\commandf{@sv hetV1b} & \commandf{save(hetV1b,'hetV1b')}\\
 \multicolumn{2}{|l|}{
 		Save the results in \filef{b.hetV1b},
                 \filef{s.hetV1b}, and \filef{d.hetV1b} .

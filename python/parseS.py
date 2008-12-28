@@ -540,9 +540,11 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                           coordarray=p, name=self.name)
         self.options["solution"] = self
         for k,v in kw.items():
-            if ((k in self.data_keys and k not in ["ISW","NTST","NCOL"])
-                or k == "PAR"):
+            if k in self.data_keys and k not in ["ISW","NTST","NCOL"]:
                 self[k] = v
+        par = kw.get("PAR",c.get("PAR"))
+        if par is not None:
+            self["PAR"] = par
 
     def __str__(self):
         if not self.__fullyParsed and self.__start_of_header is not None:
@@ -588,6 +590,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                     shortkey = "TY number"
                 elif shortkey == "LAB":
                     self.options["constants"]["IRS"] = value
+                    self._mlab = 0
+                    self._mbr = 0
                     return
                 self.data[shortkey] = value
                 return

@@ -11,7 +11,7 @@ def get(sfile,label,step,floquet=None):
 
 def make_s(sfile,label,step,floquet=None):
     solution = get(sfile,label,step,floquet)
-    save(solution,'s.ext')
+    save(solution,'ext')
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

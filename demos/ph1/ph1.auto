@@ -7,9 +7,8 @@ print "\n***Compute stationary solutions***"
 sa = run(e='ph1',c='ph1.ss')
 
 print "\n***Compute periodic solutions***"
-startsa = load(sa,c='ph1.ps')
-for hb in startsa('HB'):
-    sa = sa + run(hb)
+for hb in sa('HB'):
+    sa = sa + run(hb,c='ph1.ps')
 
 print "\n***Relabel and save the sa output files***"
 sa = rl(sa)
