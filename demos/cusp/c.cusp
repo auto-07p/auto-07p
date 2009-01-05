@@ -1,5 +1,7 @@
+parnames = {1:'lambda', 2:'mu'}
+unames = {1:'x'}
 NDIM=   1, IPS =   1, IRS =   0, ILP =   1
-ICP =  [2, 1]
+ICP =  ['mu', 'lambda']
 NTST=   5, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=  200, RL0=  -2.0, RL1=   2.0, A0=   0.0, A1= 100.0
 NPR=   20, MXBF=   0, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0

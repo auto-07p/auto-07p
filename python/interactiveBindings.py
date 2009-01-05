@@ -53,7 +53,7 @@ Aliases: demofile dmf"""
                 raw_input()
             else:
                 sys.stdout.write(line+"\n")
-            runline = runline + runner.processShorthand(line) + "\n"
+            runline = runline + self.processShorthand(line) + "\n"
             if not self.runsource(runline):
                 runline = ''
 

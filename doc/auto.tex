@@ -53,7 +53,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{December 2008}
+\date{January 2009}
 \maketitle
 \tableofcontents
 %
@@ -777,7 +777,7 @@ for the significance of each constant.
 \newpage
 \section{ User-Supplied Routines.} \label{sec: User_supplied_routines}
 The purpose of each of the user-supplied routines in
-the file {\tt xxx.{f90,f}} is described below.
+the file {\tt xxx.\{f90,f\}} is described below.
   
 \begin{itemize}
 \item[-] {\tt FUNC}~:~
@@ -972,7 +972,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  plotter.auto & \begin{minipage}{3in}\smallskip A demonstration of some of the plotting capabilities of \AUTO. \smallskip\end{minipage}\\
  \hline
- fullTest.auto & \begin{minipage}{3in}\smallskip A script which implements the tutorial from Section~\ref{sec:Demos_ab}. \smallskip\end{minipage}\\
+ tutorial.auto & \begin{minipage}{3in}\smallskip A script which implements the tutorial from Section~\ref{sec:Demos_ab}. \smallskip\end{minipage}\\
 
  \hline n-body/compute\_lagrange\_points\_family.auto 
  & \begin{minipage}{3in}\smallskip A basic script which computes and plots all of the
@@ -5102,10 +5102,10 @@ will copy the demo files to your work directory.
 \end{center}
 \end{table}
 
-Typing \commandf{ls } reveals the existence of 5 files:
+Typing \commandf{ls} reveals the existence of 5 files:
 \begin{enumerate}
 \item
-\commandf{cusp.f90 }: This file contains the differential equations
+\commandf{cusp.f90}: This file contains the differential equations
 and the initial values. If you inspect it, you will see that only two
 routines are used. The subroutine {\tt FUNC} specifies the actual
 differential equation. The routine {\tt STPNT} gives {\cal AUTO}
@@ -5116,27 +5116,29 @@ For your own models you would generally copy another equation file
 and then only change the pieces that actually define the equation.
 
 \item
-\commandf{c.cusp }: The initial computational constants are stored
+\commandf{c.cusp}: The initial computational constants are stored
 in this file. Most importantly, you see that the dimension of the
-problem ({\tt NDIM}) is set to 1, and the problem type {\tt IPS}
+problem (\parf{NDIM}) is set to 1, and the problem type \parf{IPS}
 is set to 1 to specify continuation of a stationary solution.
-The constants given by {\tt ICP} specify the parameters that are
-used for the continuation. In this case these are 2 for $\mu$ and
-1 for $\lambda$.
+The constants given by \parf{ICP} specify the parameters that are
+used for the continuation. In this case these are 'mu' for $\mu$ and
+'lambda' for $\lambda$, which correspond to the indices 2 and 1,
+respectively, using the constant \parf{parnames}.
 Since initially we only really continue in one parameter ($\mu$),
 the second parameter $\lambda$ is \emph{overspecified}.
 Another important constant is the initial step size {\tt DS}: as it is
 positive, we initally continue in the positive $\mu$ direction.
 
 \item
-\commandf{c.cusp.1 }: A copy of c.cusp, for convenience.
-
-\item
-\commandf{cusp.auto }: A script with Python CLUI commands that steer
+\commandf{cusp.auto}: A script with Python CLUI commands that steer
 the calculation.
 
 \item
-\commandf{plaut04.rc }: A file that contains default settings for
+\commandf{clean.auto}: A script that cleans the directory of all
+generated files.
+
+\item
+\commandf{plaut04.rc}: A file that contains default settings for
 the 3-dimensional plotting tool {\cal PLAUT04}.
 
 \end{enumerate}
@@ -5173,44 +5175,42 @@ each of the demo. The essential commands in \filef{cusp.auto}
 are given in Table~\ref{tbl:demo_cusp_4a}.
 
 Note that there are four separate runs, where each \commandf{run}
-command (\commandf{r} is an abbreviation) performs a run.
+command performs a run.
 In the first run, a branch of stationary solutions is traced out.
 Along it, one fold (LP) (limit point, or in this case, a saddle-node
 bifurcation) is located. The free parameter is $\mu$.
 The other parameter $\lambda$ remains fixed in this run.
 Note also that only special, labeled solution points are printed on the screen.
-More detailed results are saved 
-in the data-files \filef{b.mu}, \filef{s.mu}, and \filef{d.mu}.
+Detailed results are saved in the \python variable \parf{mu}.
 
 The second run does the same thing but now in the negative direction
 of $\mu$, i.e., backwards instead of forwards. The backwards
 continuation is appended to the forwards continuation in the
 data-files. Afterwards we perform a relabelling to make sure that we have
-unique labels for each special solution.
+unique labels for each special solution. Next the relabelled result is saved
+to the data-files \filef{b.mu}, \filef{s.mu}, and \filef{d.mu}.
 
 The results are then plotted on the screen. Pressing the enter key
 at the command line causes an automatic $\mu$ vs. $x$ display that
 shows the two fold points at labels 2 and 7.
 
 In the third run, the fold detected in the first run is followed in
-the two parameters $\mu$ and $\lambda$. The commands that accomplish
-this must change a few constants of the constant file: the first
-constant is {\tt ISW}, that must be set to 2 to cause a two-parameter
-continuation.
+the two parameters $\mu$ and $\lambda$.
+We know that label 2, with solution \parf{mu(2)} is the right
+solution to start from. However, we did not know this number in
+advance, and moreover, in sensitive cases, it can be different on
+different computer types. Another way to specify the starting label
+is to use the notation \parf{mu('LP1')}: this specifies the first
+LP-labelled solution of all solutions in \parf{mu}.
 
-The second constant is the starting label for the file
-\filef{s.mu} that we are starting from. We know that 2 is a good label.
-However, we did not know this number in advance, and moreover,
-in sensitive cases, it can be different on different computer types.
-Another way to specify the starting label is to use the {\tt
-  splabs} Python function: in this case {\tt splabs('mu','LP')}
-returns the list of 'LP' labels for \filef{b.mu}, and \filef{s.mu},
-and so the first one, {\tt splabs('mu','LP')[0]} denotes label 2.
+Furthermore the command that accomplishes
+this must change the constant {\tt ISW} of the constants file: 
+it must be set to 2 to cause a two-parameter continuation.
 
 The fourth run continues this branch in opposite direction.
-The detailed results of these continuations are accumulated
+The detailed results of these continuations are saved
 in the data-files \filef{b.cusp}, \filef{s.cusp}, and \filef{
-  d.cusp}. Finally, a plot of the cusp is produced.
+d.cusp}. Finally, a plot of the cusp is produced.
 
 The numerical results are given below
 in somewhat abbreviated form.
@@ -5229,9 +5229,9 @@ in Table~\ref{tbl:demo_cusp_3}.
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{cl()}  & remove temporary files of demo \filef{cusp} \\ 
-  \commandf{dl('mu')}  & remove 'mu' data-files of demo \filef{cusp} \\ 
-  \commandf{dl('cusp')}  & remove 'cusp' data-files of demo \filef{cusp} \\ 
+  \commandf{clean()}  & remove temporary files of demo \filef{cusp} \\ 
+  \commandf{delete('mu')}  & remove 'mu' data-files of demo \filef{cusp} \\ 
+  \commandf{delete('cusp')}  & remove 'cusp' data-files of demo \filef{cusp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5245,7 +5245,7 @@ in Table~\ref{tbl:demo_cusp_3}.
 \begin{verbatim}
 # Run forwards
  
-  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+  BR    PT  TY  LAB       mu         L2-NORM          x           lambda    
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   1.00000E+00
    1    14  LP    2   3.84900E-01   5.77360E-01  -5.77360E-01   1.00000E+00
    1    20        3   1.26582E-01   9.29410E-01  -9.29410E-01   1.00000E+00
@@ -5254,7 +5254,7 @@ in Table~\ref{tbl:demo_cusp_3}.
 
 # Run backwards
  
-  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+  BR    PT  TY  LAB       mu         L2-NORM          x           lambda    
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   1.00000E+00
    1    14  LP    2  -3.84900E-01   5.77360E-01   5.77360E-01   1.00000E+00
    1    20        3  -1.26582E-01   9.29410E-01   9.29410E-01   1.00000E+00
@@ -5263,18 +5263,18 @@ in Table~\ref{tbl:demo_cusp_3}.
 
 # Forward continuation of the first fold in two parameters
  
-  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
+  BR    PT  TY  LAB       mu         L2-NORM          x           lambda    
+   2    20       11   1.09209E+00   8.17354E-01  -8.17354E-01   2.00420E+00
+   2    34  EP   12   2.02776E+00   1.00461E+00  -1.00461E+00   3.02770E+00
+
+# Backward continuation of the fold in two parameters
+
+  BR    PT  TY  LAB       mu         L2-NORM          x           lambda    
    2    20       11   5.42543E-02   3.00470E-01  -3.00470E-01   2.70847E-01
    2    40       12  -9.99228E-02   3.68308E-01   3.68308E-01   4.06953E-01
    2    60       13  -5.89228E-01   6.65403E-01   6.65403E-01   1.32828E+00
    2    80       14  -1.71622E+00   9.50271E-01   9.50271E-01   2.70904E+00
    2    85  EP   15  -2.06374E+00   1.01051E+00   1.01051E+00   3.06341E+00
-
-# Backward continuation of the fold in two parameters
-
-  BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)        PAR(1)     
-   2    20       11   1.09209E+00   8.17354E-01  -8.17354E-01   2.00420E+00
-   2    34  EP   12   2.02776E+00   1.00461E+00  -1.00461E+00   3.02770E+00
 \end{verbatim}
 \end{center}
 
@@ -5290,18 +5290,21 @@ changes to perform the calculation.
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{ld('cusp')}  & load the problem definition  \filef{cusp} \\ 
-  \commandf{r(sv='mu')}  & execute the run and save the results\\
-                          & in the files \filef{b.mu}, \filef{s.mu}, and \filef{d.mu}\\ 
-  \commandf{r(DS='-',ap='mu')}  & execute the run backwards and \\
-    & append the results to the above files\\ 
-  \commandf{rl('mu') } & relabel solutions in b.mu and s.mu \\
-  \commandf{ld(s='mu',ISW=2,IRS=splabs('mu','LP')[0]) } & use s.mu as
-  the solution file to start from,\\
-  & change ISW to 2,\\
-  & and change IRS to select the first fold in b.mu. \\
-  \commandf{r(sv='cusp') } & execute the third run of demo \filef{cusp} \\ 
-  \commandf{r(DS='-',ap='cusp') } & execute the fourth run of demo \filef{cusp} \\ 
+  \commandf{cusp = load('cusp')}  & load the problem definition  \filef{cusp} \\ 
+  \commandf{mu = run(cusp)}  & execute the run \\
+  \commandf{mu = mu + run(cusp,DS='-')}  & execute the run backwards and \\
+    & append the results to \parf{mu}\\ 
+  \commandf{mu = rl(mu) } & relabel solutions in mu \\
+  \commandf{save(mu, 'mu')} & save the results
+                   in the files \filef{b.mu}, \filef{s.mu}, and \filef{d.mu}\\ 
+  \commandf{lp1 = load(mu('LP1'), ISW=2)} & use the first fold (LP) in
+    \parf{mu} as the restart solution,\\
+  & and change ISW to 2.\\
+  \commandf{cusp = run(lp1) } & execute the third run of demo \filef{cusp} \\ 
+  \commandf{cusp = cusp + run(lp1,DS='-') } & execute the fourth run
+  of demo \filef{cusp} \\ 
+  \commandf{save(cusp,'cusp')} & save the results
+                   in the files \filef{b.cusp}, \filef{s.cusp}, and \filef{d.cusp}\\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -5327,8 +5330,8 @@ The plotting window consists of a menubar at the top, a plotting area,
 and a control panel with four control widgets at the bottom.  By
 default the first two columns in the bifurcation diagram output
 are plotted against each other. To obtain a $\mu$ versus $x$
-bifurcation diagram you need to plot column 0 versus column 1.
-You can do that by changing the ``Y'' box to say ``[2]'', either by
+bifurcation diagram you need to plot column 'mu' versus column 'x'.
+You can do that by changing the ``Y'' box to say ``[x]'', either by
 typing it there, by using the menu obtained by clicking the
 downwards facing triangle or by using a scripted command as used
 in \filef{cusp.auto}.
@@ -5342,9 +5345,13 @@ the ``Label'' to ``[1,2,3,4,5,6,7,8,9,10]''.
 
 The plotting tool can also be used to create Postscript files from
 plots by selecting the ``File'' on the menubar and then selecting the
-``Save Postscript...'' from the drop down menu.  This will bring up
+``Save Postscript...'' from the drop down menu.
+This will bring up
 a dialog into which the user can enter the filename of the postscript
 file to save the plot in.  
+When using matplotlib
+you can also click on the floppy disk icon to save using a variety of
+file formats.
 Further information on the plotting tool can be found in
 Section~\ref{clui:2d plotting}.
 
@@ -5355,24 +5362,29 @@ Section~\ref{clui:2d plotting}.
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{plot("mu")} & run \AUTO to graph the contents of \filef{b.mu} and \filef{s.mu}; \\  
+  \commandf{plot(mu)} & run \AUTO to graph the contents of \parf{mu}\\
+  \commandf{plot("mu")} & run \AUTO to graph the contents of
+  \filef{b.mu} and \filef{s.mu}; \\  
+  & (this is the same as \commandf{plot(loadbd("mu"))})\\
 %==============================================================================
 \hline
 \end{tabular}
-\caption{Command for plotting the files \filef{b.ab} and \filef{s.ab}.}
+\caption{Commands for plotting 
+   or the bifurcation diagram and solutions of the \python variable \parf{mu},
+and the files \filef{b.mu} and \filef{s.mu}}
 \label{tbl:demo_cusp_7}
 \end{center}
 \end{table}
 
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cusp1.ps}}
+\centerline{\epsffile{include/cusp1.eps}}
 \caption{The first bifurcation diagram of demo \filef{cusp}.}
 \label{fig:cusp_1}
 \end{figure}
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cusp2.ps}}
+\centerline{\epsffile{include/cusp2.eps}}
 \caption{The second bifurcation diagram of demo \filef{cusp}.}
 \label{fig:cusp_2}
 \end{figure}
@@ -5380,7 +5392,7 @@ Section~\ref{clui:2d plotting}.
 \section{ Plotting the Results with \AUTO in 3D.}
 Whilst not very useful for this simple example, you can also plot
 your results in 3D, using the \commandf{plot3} command ({\cal PLAUT04}), for example
-\commandf{plot3('mu')}. Unlike the 2D tool, this shows the stable and
+\commandf{plot3('mu')}. Unlike the 2D tool by default, this shows the stable and
 unstable parts: blue is stable, and red is unstable. You can also
 spin the bifurcation diagram around and zoom in using the mouse.
 
@@ -5390,7 +5402,7 @@ tools to work with AUTO's data. The ``writeRawFilename'' method (see
 also Section~\ref{sec:clui_exporting}) can be used for this.
 In this tutorial we can for
 instance export the bifurcation diagram using\\
-\commandf{dg('cusp').writeRawFilename('cusp.dat') }, and then use
+\commandf{cusp.writeRawFilename('cusp.dat') }, and then use
 the command \commandf{plot 'cusp.dat' using 1:4 wi li } to plot
 the bifurcation diagram in GNUPlot.
 
@@ -6792,7 +6804,9 @@ will result in AUTO files \filef{b.L1a}, \filef{s.L1a}, and
 \filef{s.L1a} constitute the manifold, which can be viewed with the graphics 
 program \commandf{plaut04} or \commandf{r3bplaut04}:
 \begin{center}
-\commandf{@pl L1a} or \commandf{@r3b L1a}
+\begin{tabular}{ l | l }
+\commandf{@pl L1a} or \commandf{@r3b L1a} & \commandf{plot3('L1a',r3b=True)}
+\end{tabular}
 \end{center}
 The various steps executed by the Python commands in the script file
 \filef{L1a.auto} are explained below in Tables~\ref{tbl:demo_l1a1} and

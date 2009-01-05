@@ -4,6 +4,6 @@
 
 print "\n***Clean the directory***"
 
-dl("mu")
-dl("cusp")
-cl()
+delete("mu")
+delete("cusp")
+clean()

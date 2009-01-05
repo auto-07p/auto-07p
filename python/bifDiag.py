@@ -240,6 +240,10 @@ class bifDiag(parseB.parseBR):
                         news = x["solution"].__class__(x["solution"])
                         news["LAB"] = label
                         x["solution"] = news
+            for d in new:
+                for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if x.has_key("solution") and x["LAB"] != 0:
+                        x["solution"]._mlab = label
             return new
         parseB.parseBR.relabel(self,old_label,new_label)
         self().relabel(old_label,new_label)
