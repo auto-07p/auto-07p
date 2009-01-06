@@ -2498,13 +2498,13 @@ Run AUTO.
     Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
     constant:\\
     run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')\\
-    saves to the files b.hb, s.hb and d.hb, and appends to b.all,
-    s.all, and d.all.
+    saves to the files \filef{b.hb}, \filef{s.hb} and \filef{d.hb},
+    and appends to \filef{b.all}, \filef{s.all}, and \filef{d.all}.
 
     \textbf{Aliases:} r rn commandRun
 
 \item[load]
-Load files into the AUTO runner or modify a solution or bifurcation diagram.
+Load files into the AUTO runner or return modified solution data.
 
     Type result=load([options]) to modify the AUTO runner.\\
     Type result=load(data,[options]) to return possibly
@@ -2546,13 +2546,13 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
     \end{verbatim}
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
-    For example one may type: bd=load(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: s=load(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
-    Type bd=load('name') to load all files with base 'name'.
+    Type s=load('name') to load all files with base 'name'.
     This does the same thing as running
-    bd=load(e='name',c='name,h='name',s='name').
+    s=load(e='name',c='name,h='name',s='name').
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).\\
@@ -2565,15 +2565,15 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
 
     Type b=loadbd([options]) to load output files or output data.
     There are three possible options:
-    \\begin{verbatim}
+    \begin{verbatim}
     Long name   Short name    Description
     -------------------------------------------
     bifurcationdiagram   b    The bifurcation diagram file
     solution    s             The solution file or list of solutions
     diagnostics d             The diagnostics file
-    \\end{verbatim}
+    \end{verbatim}
 
-    Type loadbd('name') load all files with base 'name'.
+    Type loadbd('name') to load all files with base 'name'.
     This does the same thing as running\\
     loadbd(b='name',s='name,d='name').\\
     plot(b) will then plot the 'b' and 's' components.
@@ -2585,15 +2585,16 @@ Load files into the AUTO runner or modify a solution or bifurcation diagram.
 \item[save]
 Save data files.
 
-    Type save(xxx,'xxx') to save bifurcation diagram xxx
-    to the files b.xxx, s.xxx, d.xxx. 
+    Type save(x,'xxx') to save bifurcation diagram \parf{x}
+    to the files \filef{b.xxx}, \filef{s.xxx}, \filef{d.xxx}. 
     Existing files with these names will be overwritten.
-    If xxx is a solution, a list of solutions, or does not contain any
-    bifurcation diagram or diagnostics data, then only the file s.xxx
+    If \parf{x} is a solution, a list of solutions, or does not contain any
+    bifurcation diagram or diagnostics data, then only the file \filef{s.xxx}
     is saved to.
 
-    Type save('xxx') to save the output-files fort.7, fort.8, fort.9,
-    to b.xxx, s.xxx, d.xxx (if you are using the default filename
+    Type save('xxx') to save the output-files \filef{fort.7},
+    \filef{fort.8}, \filef{fort.9}, to \filef{b.xxx}, \filef{s.xxx},
+    \filef{d.xxx} (if you are using the default filename
     templates).  Existing files with these names will be overwritten.
 
 \textbf{Aliases:} commandCopyFortFiles
@@ -2602,15 +2603,15 @@ Save data files.
 
 Append data files.
 
-    Type append(xxx,'xxx') to append bifurcation diagram xxx
+    Type append(x,'xxx') to append bifurcation diagram x
     to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
     the command\\
-    save(xxx+load('xxx'),'xxx')
+    save(x+load('xxx'),'xxx')
 
     Type append('xxx',xxx) to append existing data-files s.xxx, b.xxx,
-    and d.xxx to bifurcation diagram xxx. This is equivalent to
+    and d.xxx to bifurcation diagram x. This is equivalent to
     the command\\
-    xxx=load('xxx')+xxx
+    x=load('xxx')+x
 
     Type append('xxx') to append the output-files fort.7, fort.8,
     fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
@@ -2629,15 +2630,15 @@ Append data files.
 \item[plot]
 2D plotting of data.
 
-    Type plot(xxx) to run the graphics program PyPLAUT for the graphical
-    inspection of bifurcation diagram or solution data in xxx.
+    Type plot(x) to run the graphics program PyPLAUT for the graphical
+    inspection of bifurcation diagram or solution data in x.
 
     Type plot('xxx') to run the graphics program PyPLAUT for the graphical
     inspection of the data-files b.xxx and s.xxx (if you are using the
     default filename templates).
 
     Type plot() to run the graphics program for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.
+    inspection of the output-files '\filef{fort.7}' and '\filef{fort.8}'.
 
     The return value will be the handle for the graphics window.
     
@@ -2646,8 +2647,8 @@ Append data files.
 \item[plot3]
 3D plotting of data.
 
-    Type plot3(xxx) to run the graphics program PLAUT04 for the graphical
-    inspection of bifurcation diagram or solution data in xxx.
+    Type plot3(x) to run the graphics program PLAUT04 for the graphical
+    inspection of bifurcation diagram or solution data in x.
 
     Type plot3('xxx') to run the graphics program PLAUT04 for the graphical
     inspection of the data-files b.xxx and s.xxx (if you are using the
@@ -2667,8 +2668,9 @@ Append data files.
 \item[copy]
 Copy data files.
 
-    Type copy('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
-    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
+    Type copy('xxx','yyy') to copy the data-files \filef{c.xxx},
+    \filef{d.xxx}, \filef{b.xxx}, and \filef{h.xxx} to \filef{c.yyy},
+    \filef{d.yyy}, \filef{b.yyy}, and \filef{h.yyy} (if you are using the
     default filename templates).
     
 \textbf{Aliases:} commandCopyDataFiles
@@ -2676,8 +2678,9 @@ Copy data files.
 \item[move]
 Move data-files to a new name.
 
-    Type move('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
-    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
+    Type move('xxx','yyy') to move the data-files \filef{b.xxx},
+    \filef{s.xxx}, \filef{d.xxx}, and \filef{c.xxx} to \filef{b.yyy},
+    \filef{s.yyy}, \filef{d.yyy}, and \filef{c.yyy} (if you are using the
     default filename templates).  
 
 \textbf{Aliases:} commandMoveFiles
@@ -2686,7 +2689,7 @@ Move data-files to a new name.
 Clear the current directory of fort files.
 
     Type df() to clean the current directory.  This command will
-    delete all files of the form fort.*.
+    delete all files of the form \filef{fort.*}.
     
 \textbf{Aliases:} deletefort commandDeleteFortFiles
 
@@ -2694,7 +2697,8 @@ Clear the current directory of fort files.
 Clean the current directory.
 
     Type clean() to clean the current directory.  This command will
-    delete all files of the form fort.*, *.o, and *.exe.
+    delete all files of the form \filef{fort.*}, \filef{*.*\~{}},
+    \filef{*.o}, and \filef{*.exe}.
     
 \textbf{Aliases:}
 cl commandClean
@@ -2702,8 +2706,9 @@ cl commandClean
 \item[delete]
 Delete data files.
 
-    Type delete('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
-    (if you are using the default filename templates).
+    Type delete('xxx') to delete the data-files \filef{d.xxx},
+    \filef{b.xxx}, and \filef{s.xxx} (if you are using the default
+    filename templates).
     
 \textbf{Aliases:} dl commandDeleteDataFiles
 \end{description}
@@ -2714,20 +2719,27 @@ Delete data files.
 \item[limitpoint]
 Print the value of the ``limit point function''.
 
+    Type limitpoint(x) to list the value of the ``limit point function'' 
+    in the diagnostics of the bifurcation diagram object \parf{x}.
+    This function vanishes at a limit point (fold).
+
     Type limitpoint() to list the value of the ``limit point function'' 
-    in the output-file fort.9. This function
-    vanishes at a limit point (fold).
+    in the output-file fort.9.
 
     Type limitpoint('xxx') to list the value of the ``limit point function'' 
-    in the info file 'd.xxx'.
+    in the info file '\filef{d.xxx}'.
     
 \textbf{Aliases:} lm lp commandQueryLimitpoint
 
 \item[branchpoint]
 Print the ``branch-point function''.
     
+    Type branchpoint(x) to list the value of the ``branch-point function'' 
+    in the diagnostics of the bifurcation diagram object \parf{x}.
+    This function vanishes at a branch point.
+
     Type branchpoint() to list the value of the ``branch-point function'' 
-    in the output-file fort.9. This function vanishes at a branch point.
+    in the output-file fort.9.
     
     Type branchpoint('xxx') to list the value of the ``branch-point function''
     in the info file 'd.xxx'.
@@ -2737,9 +2749,12 @@ Print the ``branch-point function''.
 \item[hopf]
 Print the value of the ``Hopf function''.
 
+    Type hopf(x) to list the value of the ``Hopf function'' 
+    in the diagnostics of the bifurcation diagram object \parf{x}.
+    This function vanishes at a Hopf bifurcation point.
+
     Type hopf() to list the value of the ``Hopf function'' 
-    in the output-file fort.9. This function
-    vanishes at a Hopf bifurcation point.
+    in the output-file fort.9.
 
     Type hopf('xxx') to list the value of the ``Hopf function''
     in the info file 'd.xxx'.
@@ -2749,10 +2764,14 @@ Print the value of the ``Hopf function''.
 \item[secondaryperiod]
 Print value of ``secondary-periodic bif. fcn''.
 
+    Type secondaryperiod(x) to list the value of the
+    ``secondary-periodic bifurcation function'' 
+    in the diagnostics of the bifurcation diagram object \parf{x}.
+    This function vanishes at period-doubling and torus bifurcations.
+
     Type secondaryperiod()  to list the value of the
     ``secondary-periodic bifurcation function'' 
-    in the output-file 'fort.9. This function
-    vanishes at period-doubling and torus bifurcations.
+    in the output-file 'fort.9.
 
     Type secondaryperiod('xxx') to list the value of the
     ``secondary-periodic bifurcation function''
@@ -2762,6 +2781,10 @@ Print value of ``secondary-periodic bif. fcn''.
 
 \item[iterations]
 Print the number of Newton interations.
+
+    Type iterations(x) to list the number of Newton iterations per
+    continuation step in the diagnostics of the bifurcation diagram
+    object \parf{x}.
 
     Type iterations() to list the number of Newton iterations per
     continuation step in fort.9. 
@@ -2774,16 +2797,22 @@ Print the number of Newton interations.
 \item[note]
 Print notes in info file.
 
-    Type commandQueryNote() to show any notes 
-    in the output-file fort.9.
+    Type note(x) to show any notes 
+    in the diagnostics of the bifurcation diagram
+    object \parf{x}.
 
-    Type commandQueryNote('xxx') to show any notes 
-    in the info file 'd.xxx'.
+    Type note() to show any notes in the output-file fort.9.
+
+    Type note('xxx') to show any notes  in the info file 'd.xxx'.
     
 \textbf{Aliases:} nt commandQueryNote
 
 \item[stepsize]
 Print continuation step sizes.
+
+    Type stepsize(x) to list the continuation step size for each
+    continuation step in the diagnostics of the bifurcation diagram
+    object \parf{x}.
 
     Type stepsize() to list the continuation step size for each
     continuation step in  'fort.9. 
@@ -2796,9 +2825,12 @@ Print continuation step sizes.
 \item[eigenvalue]
 Print eigenvalues of Jacobian (algebraic case).
 
+    Type eigenvalue(x) to list the eigenvalues of the Jacobian 
+    in the diagnostics of the bifurcation diagram object \parf{x}.
+    (Algebraic problems.)
+
     Type eigenvalue() to list the eigenvalues of the Jacobian 
     in fort.9. 
-    (Algebraic problems.)
 
     Type eigenvalue('xxx') to list the eigenvalues of the Jacobian 
     in the info file 'd.xxx'.
@@ -2808,9 +2840,12 @@ Print eigenvalues of Jacobian (algebraic case).
 \item[floquet]
 Print the Floquet multipliers.
 
-    Type floquet() to list the Floquet multipliers
-    in the output-file fort.9. 
+    Type floquet(x) to list the Floquet multipliers
+    in the diagnostics of the bifurcation diagram object \parf{x}.
     (Differential equations.)
+
+    Type floquet() to list the 
+    in the output-file fort.9. 
 
     Type floquet('xxx') to list the Floquet multipliers 
     in the info file 'd.xxx'.
@@ -2824,9 +2859,9 @@ Print the Floquet multipliers.
 \item[double]
 Double a solution.
 
-    Type double() to double the solution in 'fort.7' and 'fort.8'.
+    Type double() to double the solution in '\filef{fort.8}'.
 
-    Type double('xxx') to double the solution in b.xxx and s.xxx (if you
+    Type double('xxx') to double the solution in \filef{s.xxx} (if you
     are using the default filename templates).
     
 \textbf{Aliases:} db commandDouble
@@ -2834,9 +2869,9 @@ Double a solution.
 \item[triple]
 Triple a solution.
 
-    Type triple() to triple the solution in 'fort.7' and 'fort.8'.
+    Type triple() to triple the solution in '\filef{fort.8}'.
 
-    Type triple('xxx') to triple the solution in b.xxx and s.xxx (if you
+    Type triple('xxx') to triple the solution in \filef{s.xxx} (if you
     are using the default filename templates).
     
 \textbf{Aliases:} tr commandTriple
@@ -2847,7 +2882,7 @@ Convert user-supplied data files.
     Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
-    {\tt PAR(11)}.  Other parameter values must be set in 'stpnt'. (When
+    {\tt PAR(11)}.  Other parameter values must be set in 'STPNT'. (When
     necessary, {\tt PAR(11)} may also be redefined there.)  The
     constants-file file 'c.xxx' must be present, as the AUTO-constants
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
@@ -2868,11 +2903,9 @@ Copy a demo into the current directory and load it.
 
     Type demo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
-    files, always run demos in a clean work directory.  NOTE: This
-    command automatically performs the commandRunnerLoadName command
-    as well.
+    'abc'.  To avoid the overwriting of existing files, always run
+    demos in a clean work directory.  NOTE: This command automatically
+    performs the \commandf{load} command as well.
     
 \textbf{Aliases:} dm commandCopyAndLoadDemo
 
@@ -2881,8 +2914,7 @@ Copy a demo into the current directory.
 
     Type copydemo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
+    'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
     
 \textbf{Aliases:} copydemo commandCopyDemo
@@ -2907,7 +2939,7 @@ Get the current continuation constants.
     Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
     c.xxx (if you are using the default filename templates).
     This is equivalent to the command\\
-    load('xxx').c
+    loadbd('xxx').c
     
 \textbf{Aliases:} constantsget commandParseConstantsFile
 
@@ -2916,7 +2948,7 @@ Parse a bifurcation diagram.
 
     Type dg('xxx') to get a parsed version of the diagram file b.xxx
     (if you are using the default filename templates).
-    This is equivalent to the command load('xxx') but without the
+    This is equivalent to the command loadbd('xxx') but without the
     solutions in s.xxx and without the diagnostics in d.xxx.
     
 \textbf{Aliases:} diagramget commandParseDiagramFile
@@ -2927,7 +2959,7 @@ Parse solution file:
     Type sl('xxx') to get a parsed version of the solution file
     s.xxx (if you are using the default filename templates).
     This is equivalent to the command\\
-    load('xxx')()
+    loadbd('xxx')()
     
 \textbf{Aliases:} solutionget commandParseSolutionFile
 
@@ -2937,7 +2969,7 @@ Parse both bifurcation diagram and solution.
     Type bt('xxx') to get a parsed version of the diagram file b.xxx
     and solution file s.xxx (if you are using the default filename
     templates).
-    This is equivalent to the command load('xxx') but without the
+    This is equivalent to the command loadbd('xxx') but without the
     diagnostics in d.xxx.
     
 \textbf{Aliases:} diagramandsolutionget commandParseDiagramAndSolutionFile
@@ -2948,8 +2980,8 @@ Modify continuation constants.
     Type ch('xxx',yyy) to change the constant 'xxx' to have
     value yyy.
     This is equivalent to the command\\
-    bd=load(bd,xxx=yyy)\\
-    where bd is a bifurcation diagram or a solution.
+    s=load(s,xxx=yyy)\\
+    where s is a solution.
 
 \textbf{Aliases:} changeconstant cc commandRunnerConfigFort2
 
@@ -2959,8 +2991,8 @@ Modify HomCont continuation constants.
     Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
     value yyy.
     This is equivalent to the command\\
-    bd=load(bd,xxx=yyy)\\
-    where bd is a bifurcation diagram or a solution.
+    s=load(s,xxx=yyy)\\
+    where s is a solution.
     
 \textbf{Aliases:} commandRunnerConfigFort12
 
@@ -2970,21 +3002,21 @@ Print continuation parameters.
     Type pr() to print all the parameters.
     Type pr('xxx') to return the parameter 'xxx'.
     These commands are equivalent to the commands\\
-    print bd.c\\
-    print bd.c['xxx']\\
-    where bd is a bifurcation diagram or a solution.
+    print s.c\\
+    print s.c['xxx']\\
+    where s is a solution.
     
 \textbf{Aliases:} pc pr printconstant commandRunnerPrintFort2
 
 \item[hpr]
 Print HomCont continuation parameters.
 
-    Type hpr() to print all the parameters.
-    Type hpr('xxx') to return the parameter 'xxx'.
+    Type hpr() to print all the HomCont parameters.
+    Type hpr('xxx') to return the HomCont parameter 'xxx'.
     These commands are equivalent to the commands\\
-    print bd.c\\
-    print bd.c['xxx']\\
-    where bd is a bifurcation diagram or a solution.
+    print s.c\\
+    print s.c['xxx']\\
+    where s is a solution.
     
 \textbf{Aliases:} commandRunnerPrintFort12
 
@@ -3009,7 +3041,7 @@ Return special labels.
 \item[wait]
 Wait for the user to enter a key.
 
-    Type 'wait' to have the AUTO interface wait
+    Type 'wait()' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
 
 \textbf{Aliases:} commandWait

@@ -65,7 +65,7 @@ class commandClean(command):
     """Clean the current directory.
 
     Type FUNC() to clean the current directory.  This command will
-    delete all files of the form fort.*, *.o, and *.exe.
+    delete all files of the form fort.*, *.*~, *.o, and *.exe.
     """
     
     def __init__(self):
@@ -84,8 +84,7 @@ class commandCopyDemo(command):
 
     Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
+    'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
     """
     
@@ -112,11 +111,9 @@ class commandCopyAndLoadDemo(commandMacro):
 
     Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
-    'abc'.  Note that the 'dm' command also copies a Makefile to the
-    current user directory. To avoid the overwriting of existing
+    'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.  NOTE: This
-    command automatically performs the commandRunnerLoadName command
-    as well.
+    command automatically performs the load command as well.
     """
     
     def __init__(self,name1,runner=None):
@@ -148,12 +145,14 @@ class commandUserData(command):
     Type FUNC('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
-    PAR(11).  Other parameter values must be set in 'stpnt'. (When
+    PAR(11).  Other parameter values must be set in 'STPNT'. (When
     necessary, PAR(11) may also be redefined there.)  The
     constants-file file 'c.xxx' must be present, as the AUTO-constants
     'NTST' and 'NCOL' are used to define the new mesh.  For examples
     of using the 'userData' command see demos 'lor' and 'pen' (where
     it has the old name 'fc').
+
+    Note: this technique has been obsoleted by the 'dat' AUTO constant.
     """
     
     def __init__(self,name1):
@@ -241,6 +240,9 @@ class commandWithFilenameTemplate(command):
 class commandRelabel(commandWithFilenameTemplate):
     """Relabel data files.
 
+    Type y=FUNC(x) to return the python object x, with the solution
+    labels sequentially relabelled starting at 1, as a new object y.
+
     Type FUNC('xxx') to relabel s.xxx, b.xxx, and d.xxx (if you are
     using the default filename templates).  Backups of the
     original files are saved.
@@ -299,6 +301,9 @@ class commandRelabel(commandWithFilenameTemplate):
 class commandMergeBranches(commandWithFilenameTemplate):
     """Merge branches in data files.
 
+    Type y=FUNC(x) to return the python object x, with its branches
+    merged into continuous curves, as a new object y.
+
     Type FUNC('xxx') to merge branches in s.xxx, b.xxx, and d.xxx (if you are
     using the default filename templates).  Backups of the
     original files are saved.
@@ -353,14 +358,19 @@ class commandMergeBranches(commandWithFilenameTemplate):
 class commandSubtractBranches(commandWithFilenameTemplate):
     """Subtract branches in data files.
 
+    Type z=FUNC(x,y,ref) to return the python object x, where,
+    using interpolation, the first branch in y is subtracted from all
+    branches in x, as a new object z.
+    Use 'ref' (e.g., 'PAR(1)')  as the reference column in y
+    (only the first monotonically increasing or decreasing part is used).
+
     Type FUNC('xxx','yyy','ref') to subtract, using interpolation, the first
     branch in b.yyy from all branches in b.xxx, and save the result in 'xxx'.
-    A Backup of the original file is saved. Use 'ref' (e.g., 'PAR(1)')
-    as the reference column in b.yyy (only the first monotonically
-    increasing or decreasing part is used).
+    A Backup of the original file is saved.
 
     Use optional arguments branch=m, and point=n, to denote the branch and
-    first point on that branch within 'yyy', where m,n are in {1,2,3,...}.
+    first point on that branch within y or 'b.yyy', where m,n are in
+    {1,2,3,...}.
     """
 
     type=SIMPLE
@@ -396,6 +406,16 @@ class commandSubtractBranches(commandWithFilenameTemplate):
 
 class commandAppend(commandWithFilenameTemplate):
     """Append data files.
+
+    Type FUNC(x,'xxx') to append bifurcation diagram x
+    to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
+    the command
+    save(x+load('xxx'),'xxx')
+
+    Type FUNC('xxx',x) to append existing data-files s.xxx, b.xxx,
+    and d.xxx to bifurcation diagram x. This is equivalent to
+    the command
+    x=load('xxx')+x
 
     Type FUNC('xxx') to append the output-files fort.7, fort.8,
     fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
@@ -480,6 +500,13 @@ class commandCopyDataFiles(commandWithFilenameTemplate):
     
 class commandCopyFortFiles(commandWithFilenameTemplate):
     """Save data files.
+
+    Type FUNC(x,'xxx') to save bifurcation diagram x
+    to the files b.xxx, s.xxx, d.xxx. 
+    Existing files with these names will be overwritten.
+    If x is a solution, a list of solutions, or does not contain any
+    bifurcation diagram or diagnostics data, then only the file s.xxx
+    is saved to.
 
     Type FUNC('xxx') to save the output-files fort.7, fort.8, fort.9,
     to b.xxx, s.xxx, d.xxx (if you are using the default filename
@@ -593,6 +620,8 @@ class commandDeleteLabel(commandWithFilenameTemplate):
 class commandDeleteSpecialPoints(commandDeleteLabel):
     """Delete special points.
 
+    Type FUNC(list,x) to delete the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
     (if you are using the default filename templates).
@@ -609,6 +638,8 @@ class commandDeleteSpecialPoints(commandDeleteLabel):
 class commandKeepSpecialPoints(commandDeleteLabel):
     """Keep special points.
 
+    Type FUNC(list,x) to only keep the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
     (if you are using the default filename templates).
@@ -626,6 +657,8 @@ class commandKeepSpecialPoints(commandDeleteLabel):
 class commandDeleteLabels(commandDeleteLabel):
     """Delete special labels.
 
+    Type FUNC(list,x) to delete the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
     (if you are using the default filename templates).
@@ -643,6 +676,8 @@ class commandDeleteLabels(commandDeleteLabel):
 class commandKeepLabels(commandDeleteLabel):
     """Keep special labels.
 
+    Type FUNC(list,x) to only keep the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
     (if you are using the default filename templates).
@@ -721,6 +756,9 @@ class commandParseConstantsFile(commandWithFilenameTemplate):
 
     Type FUNC('xxx') to get a parsed version of the constants file
     c.xxx (if you are using the default filename templates).
+
+    This is equivalent to the command
+    loadbd('xxx').c
     """
     
     def __init__(self,name1,templates=None):
@@ -749,6 +787,9 @@ class commandParseSolutionFile(commandWithFilenameTemplate):
 
     Type FUNC('xxx') to get a parsed version of the solution file
     s.xxx (if you are using the default filename templates).
+
+    This is equivalent to the command
+    loadbd('xxx')()
     """
 
     def __init__(self,name1=None,templates=None):
@@ -765,6 +806,9 @@ class commandParseDiagramFile(commandWithFilenameTemplate):
 
     Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
     (if you are using the default filename templates).
+
+    This is equivalent to the command loadbd('xxx') but without the
+    solutions in s.xxx and without the diagnostics in d.xxx.
     """
 
     def __init__(self,name1=None,templates=None):
@@ -782,6 +826,9 @@ class commandParseDiagramAndSolutionFile(commandWithFilenameTemplate):
     Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
     and solution file s.xxx (if you are using the default filename
     templates).
+
+    This is equivalent to the command loadbd('xxx') but without the
+    diagnostics in d.xxx.
     """
     
     def __init__(self,name1=None,templates=None):
@@ -810,9 +857,10 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
             f = open(n1d)
         except TypeError:
             for branch in n1d:
-                for s in string.split(str(branch.diagnostics),"\n"):
-                    if string.find(s,self.diagnostic) != -1:
-                        rval.info(s+"\n")
+                if hasattr(branch,"diagnostics"):
+                    for s in string.split(str(branch.diagnostics),"\n"):
+                        if string.find(s,self.diagnostic) != -1:
+                            rval.info(s+"\n")
             rval.info("\n")
             return rval
         try:
@@ -833,8 +881,12 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
 class commandQueryBranchPoint(commandQueryDiagnostic):
     """Print the ``branch-point function''.
     
+    Type FUNC(x) to list the value of the ``branch-point function'' 
+    in the diagnostics of the bifurcation diagram object x.
+    This function vanishes at a branch point.
+
     Type FUNC() to list the value of the ``branch-point function'' 
-    in the output-file fort.9. This function vanishes at a branch point.
+    in the output-file fort.9.
     
     Type FUNC('xxx') to list the value of the ``branch-point function''
     in the info file 'd.xxx'.
@@ -846,9 +898,12 @@ class commandQueryBranchPoint(commandQueryDiagnostic):
 class commandQueryEigenvalue(commandQueryDiagnostic):
     """Print eigenvalues of Jacobian (algebraic case).
 
+    Type FUNC(x) to list the eigenvalues of the Jacobian 
+    in the diagnostics of the bifurcation diagram object x.
+    (Algebraic problems.)
+
     Type FUNC() to list the eigenvalues of the Jacobian 
     in fort.9. 
-    (Algebraic problems.)
 
     Type FUNC('xxx') to list the eigenvalues of the Jacobian 
     in the info file 'd.xxx'.
@@ -860,9 +915,12 @@ class commandQueryEigenvalue(commandQueryDiagnostic):
 class commandQueryFloquet(commandQueryDiagnostic):
     """Print the Floquet multipliers.
 
+    Type FUNC(x) to list the Floquet multipliers
+    in the diagnostics of the bifurcation diagram object x.
+    (Differential equations.)
+
     Type FUNC() to list the Floquet multipliers
     in the output-file fort.9. 
-    (Differential equations.)
 
     Type FUNC('xxx') to list the Floquet multipliers 
     in the info file 'd.xxx'.
@@ -874,9 +932,12 @@ class commandQueryFloquet(commandQueryDiagnostic):
 class commandQueryHopf(commandQueryDiagnostic):
     """Print the value of the ``Hopf function''.
 
+    Type FUNC(x) to list the value of the ``Hopf function'' 
+    in the diagnostics of the bifurcation diagram object x.
+    This function vanishes at a Hopf bifurcation point.
+
     Type FUNC() to list the value of the ``Hopf function'' 
-    in the output-file fort.9. This function
-    vanishes at a Hopf bifurcation point.
+    in the output-file fort.9.
 
     Type FUNC('xxx') to list the value of the ``Hopf function''
     in the info file 'd.xxx'.
@@ -887,6 +948,10 @@ class commandQueryHopf(commandQueryDiagnostic):
 
 class commandQueryIterations(commandQueryDiagnostic):
     """Print the number of Newton interations.
+
+    Type FUNC(x) to list the number of Newton iterations per
+    continuation step in the diagnostics of the bifurcation diagram
+    object x.
 
     Type FUNC() to list the number of Newton iterations per
     continuation step in fort.9. 
@@ -901,9 +966,12 @@ class commandQueryIterations(commandQueryDiagnostic):
 class commandQueryLimitpoint(commandQueryDiagnostic):
     """Print the value of the ``limit point function''.
 
+    Type FUNC(x) to list the value of the ``limit point function'' 
+    in the diagnostics of the bifurcation diagram object x.
+    This function vanishes at a limit point (fold).
+
     Type FUNC() to list the value of the ``limit point function'' 
-    in the output-file fort.9. This function
-    vanishes at a limit point (fold).
+    in the output-file fort.9.
 
     Type FUNC('xxx') to list the value of the ``limit point function'' 
     in the info file 'd.xxx'.
@@ -914,6 +982,10 @@ class commandQueryLimitpoint(commandQueryDiagnostic):
 
 class commandQueryNote(commandQueryDiagnostic):
     """Print notes in info file.
+
+    Type FUNC(x) to show any notes 
+    in the diagnostics of the bifurcation diagram
+    object x.
 
     Type FUNC() to show any notes 
     in the output-file fort.9.
@@ -928,10 +1000,14 @@ class commandQueryNote(commandQueryDiagnostic):
 class commandQuerySecondaryPeriod(commandQueryDiagnostic):
     """Print value of ``secondary-periodic bif. fcn''.
 
+    Type FUNC(x) to list the value of the
+    ``secondary-periodic bifurcation function'' 
+    in the diagnostics of the bifurcation diagram object x.
+    This function vanishes at period-doubling and torus bifurcations.
+
     Type FUNC()  to list the value of the 
     ``secondary-periodic bifurcation function'' 
-    in the output-file 'fort.9. This function
-    vanishes at period-doubling and torus bifurcations.
+    in the output-file 'fort.9.
 
     Type FUNC('xxx') to list the value of the
     ``secondary-periodic bifurcation function''
@@ -943,6 +1019,10 @@ class commandQuerySecondaryPeriod(commandQueryDiagnostic):
 
 class commandQueryStepsize(commandQueryDiagnostic):
     """Print continuation step sizes.
+
+    Type FUNC(x) to list the continuation step size for each
+    continuation step in the diagnostics of the bifurcation diagram
+    object x.
 
     Type FUNC() to list the continuation step size for each
     continuation step in  'fort.9. 
@@ -957,9 +1037,9 @@ class commandQueryStepsize(commandQueryDiagnostic):
 class commandTriple(commandExpandData):
     """Triple a solution.
 
-    Type FUNC() to triple the solution in 'fort.7' and 'fort.8'.
+    Type FUNC() to triple the solution in 'fort.8'.
 
-    Type FUNC('xxx') to triple the solution in b.xxx and s.xxx (if you
+    Type FUNC('xxx') to triple the solution in s.xxx (if you
     are using the default filename templates).
     """
 
@@ -1008,7 +1088,7 @@ class commandQuit(command):
 class commandShell(command):
     """Run a shell command.
         
-    Type 'shell xxx' to run the command 'xxx' in the Unix shell and display
+    Type FUNC('xxx') to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     """
     
@@ -1021,7 +1101,7 @@ class commandShell(command):
 class commandWait(command):
     """Wait for the user to enter a key.
 
-    Type 'FUNC' to have the AUTO interface wait
+    Type 'FUNC()' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
     """
 
@@ -1076,24 +1156,32 @@ class commandCd(commandWithRunner):
         return valueString("")
 
 class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
-    """Load files into the AUTO runner.
+    """Load files into the AUTO runner or return modified solution data.
 
-    Type FUNC([options]) to modify AUTO runner.
-    There are four possible options:
+    Type result=FUNC([options]) to modify the AUTO runner.
+
+    The type of the result is a solution object.
+
+    There are many possible options:
     \\begin{verbatim}
     Long name   Short name    Description
     -------------------------------------------
     equation    e             The equations file
     constants   c             The AUTO constants file
-    solution    s             The restart solution file
     homcont     h             The Homcont parameter file
+    solution    s             The restart solution file
+                NDIM,IPS,etc  AUTO constants.
+                BR,PT,TY,LAB  Solution constants.
     \\end{verbatim}
     Options which are not explicitly set retain their previous value.
-    For example one may type: FUNC(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
-    """
 
+    You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
+    Special values for DS are '+' (forwards) and '-' (backwards).
+    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    """
     def __init__(self,runner=None,templates=None,cnf={},**kw):
         commandWithFilenameTemplate.__init__(self,None,None,templates)
         commandWithRunner.__init__(self,runner)
@@ -1182,29 +1270,57 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):
-    """Load files into the AUTO runner.
+    """Load files into the AUTO runner or return modified solution data.
 
-    Type FUNC([options]) to modify AUTO runner.
-    There are four possible options:
+    Type result=FUNC([options]) to modify the AUTO runner.
+    Type result=FUNC(data,[options]) to return possibly
+    modified solution data.
+
+    The type of the result is a solution object.
+
+    FUNC(data,[options]) returns a solution in the following way for
+    different types of data:
+
+    * A solution: load returns the solution data, with AUTO constants
+      modified by options.
+
+    * A bifurcation diagram or a solution list:
+      returns the solution specified by
+      the AUTO constant IRS, or if IRS is not specified, the last solution
+      in s.
+
+    * A string: AUTO uses the solution in the file 's.s' together with the
+      constants in the files 'c.s', and 'h.s'. Not all of these
+      files need to be present.
+
+    * A Python list array or a numpy array representing a solution,
+      returns a solution with the given contents. Such an array must be given
+      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn], ...].
+
+    There are many possible options:
     \\begin{verbatim}
     Long name   Short name    Description
     -------------------------------------------
     equation    e             The equations file
     constants   c             The AUTO constants file
-    solution    s             The restart solution file
     homcont     h             The Homcont parameter file
+    solution    s             The restart solution file
+                NDIM,IPS,etc  AUTO constants.
+                BR,PT,TY,LAB  Solution constants.
     \\end{verbatim}
-    Options which are not explicitly set retain their previous value.
-    For example one may type: FUNC(e='ab',c='ab.1') to use 'ab.c' as
+    If data is not specified or data is a string then options which
+    are not explicitly set retain their previous value.
+    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file (if you are
     using the default filename templates).
 
-    Type FUNC('name') load all files with base 'name'.
+    Type s=FUNC('name') to load all files with base 'name'.
     This does the same thing as running
-    FUNC(e='name',c='name,s='name',h='name').
-
+    s=FUNC(e='name',c='name,h='name',s='name').
+ 
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
+    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
     type="simple"
     shortName="loadName"
@@ -1237,9 +1353,10 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
     diagnostics d             The diagnostics file
     \\end{verbatim}
 
-    Type FUNC('name') load all files with base 'name'.
+    Type FUNC('name') to load all files with base 'name'.
     This does the same thing as running
     FUNC(b='name',s='name,d='name').
+    plot(b) will then plot the 'b' and 's' components.
 
     Returns a bifurcation diagram object representing the files in b.
     """
@@ -1289,6 +1406,10 @@ class commandRunnerPrintFort2(commandWithRunner):
 
     Type FUNC() to print all the parameters.
     Type FUNC('xxx') to return the parameter 'xxx'.
+    These commands are equivalent to the commands
+    print s.c
+    print s.c['xxx']
+    where s is a solution.
     """
     
     def __init__(self,parameter=None,runner=None):
@@ -1302,10 +1423,14 @@ class commandRunnerPrintFort2(commandWithRunner):
                                       self.runner.options["constants"][self.parameter])
 
 class commandRunnerPrintFort12(commandWithRunner):
-    """Print continuation parameters.
+    """Print HomCont continuation parameters.
 
     Type FUNC() to print all the HomCont parameters.
     Type FUNC('xxx') to return the HomCont parameter 'xxx'.
+    These commands are equivalent to the commands
+    print s.c
+    print s.c['xxx']
+    where s is a solution.
     """
     
     def __init__(self,parameter=None,runner=None):
@@ -1323,6 +1448,9 @@ class commandRunnerConfigFort2(commandWithRunner):
 
     Type FUNC('xxx',yyy) to change the constant 'xxx' to have
     value yyy.
+    This is equivalent to the command
+    s=load(s,xxx=yyy)
+    where s is a solution.
     """
 
     type=SIMPLE
@@ -1348,6 +1476,9 @@ class commandRunnerConfigFort12(commandWithRunner):
 
     Type FUNC('xxx',yyy) to change the HomCont constant 'xxx' to have
     value yyy.
+    This is equivalent to the command
+    s=load(s,xxx=yyy)
+    where s is a solution.
     """
 
     type=SIMPLE
@@ -1380,31 +1511,44 @@ class commandSetDirectory(commandWithRunner):
 class commandRun(commandWithRunner,commandWithFilenameTemplate):
     """Run AUTO.
 
-    Type FUNC([options]) to run AUTO with the given options.
-    There are four possible basic options:
-    \\begin{verbatim}
-    Long name   Short name    Description
-    -------------------------------------------
-    equation    e             The equations file
-    constants   c             The AUTO constants file
-    solution    s             The restart solution file
-    homcont     h             The Homcont parameter file
-    \\end{verbatim}
-    Options which are not explicitly set retain their previous value.
-    For example one may type: FUNC(e='ab',c='ab.1') to use 'ab.c' as
-    the equations file and c.ab.1 as the constants file (if you are
-    using the default filename templates).
+    Type r=FUNC([s],[options]) to run AUTO from solution s with the given
+    AUTO constants or file keyword options.
+    
+    The results are stored in the bifurcation diagram r which you can
+    later print with ``print r'', obtain branches from via r[0], r[1], ...,
+    and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
+    are label numbers, and 'LP2' refers to the second LP label.
 
-    You can also specify an sv='xxx' option to save to b.xxx, and so on,
-    or ap to append, or AUTO Constants, e.g., DS=0.05, or IRS=2.
-    Special values for DS are '+' (forwards) and '-' (backwards).
+    FUNC(s) runs AUTO in the following way for different types of s:
 
-    Type FUNC('name') load all files with base 'name'.
-    This does the same thing as running
-    FUNC(e='name',c='name,s='name',h='name').
+    * A solution: AUTO starts from solution s, with AUTO constants s.c.
 
-    FUNC('name','save') does the same thing as running
-    FUNC(e='name',c='name,s='name',h='name',sv='save').
+    * A bifurcation diagram: AUTO start from the solution specified by
+      the AUTO constant IRS, or if IRS is not specified, the last solution
+      in s, s()[-1], with AUTO constants s()[-1].c.
+
+    * A string: AUTO uses the solution in the file 's.s' together with the
+      constants in the files 'c.s', and 'h.s'. Not all of these
+      files need to be present.
+
+    If no solution s is specified, then the global values from the
+    'load' command are used instead, where
+    options which are not explicitly set retain their previous value.
+
+    Keyword argument options can be AUTO constants, such as DS=0.05,
+    or ISW=-1, or specify a constant or solution file. These override
+    the constants in s.c, where applicable. See ``load'':
+    FUNC(s,options) is equivalent to FUNC(load(s,options))
+
+    Example: given a bifurcation diagram bd, with a branch point
+    solution, switch branches and stop at the first Hopf bifurcation:
+    hb = FUNC(bd('BP1'),ISW=-1,SP='HB1')
+    
+    Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
+    constant:
+    FUNC(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
+    saves to the files b.hb, s.hb and d.hb, and appends to b.all,
+    s.all, and d.all.
     """
     type=SIMPLE
     shortName="run"
@@ -1598,12 +1742,18 @@ class commandRunCommand(command):
 class commandPlotter3D(command):
     """3D plotting of data.
 
+    Type FUNC(x) to run the graphics program PLAUT04 for the graphical
+    inspection of bifurcation diagram or solution data in x.
+
     Type FUNC('xxx') to run the graphics program PLAUT04 for the graphical
     inspection of the data-files b.xxx and s.xxx (if you are using the
     default filename templates).
 
     Type FUNC() to run the graphics program PLAUT04 for the graphical
     inspection of the output-files 'fort.7' and 'fort.8'.
+
+    Type FUNC(...,r3b=True) to run PLAUT04 in restricted three body
+    problem mode.
     """
 
     def __init__(self,name1=None,r3b=False):
@@ -1670,14 +1820,17 @@ try:
     class commandPlotter(commandWithFilenameTemplate):
         """2D plotting of data.
 
-        Type FUNC('xxx') to run the graphics program for the graphical
+        Type FUNC(x) to run the graphics program PyPLAUT for the graphical
+        inspection of bifurcation diagram or solution data in x.
+
+        Type FUNC('xxx') to run the graphics program PyPLAUT for the graphical
         inspection of the data-files b.xxx and s.xxx (if you are using the
-        default filename templates).  The return value will be the handle
-        for the graphics window.
+        default filename templates).
 
         Type FUNC() to run the graphics program for the graphical
-        inspection of the output-files 'fort.7' and 'fort.8'.  The return
-        value will be the handle for the graphics window.
+        inspection of the output-files 'fort.7' and 'fort.8'.
+
+        The return value will be the handle for the graphics window.
         """
 
         type=SIMPLE
@@ -1962,8 +2115,15 @@ class commandSpecialPointLabels(command):
     Type FUNC('xxx',typename) to get a list of labels with the specified
     typename, where typename can be one of
     'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
+    This is equivalent to the command
+    load('xxx')(typename)
+    which gives a list of the solutions themselves;
+    load('xxx')(typename).getLabels()
+    returns the list of labels.
 
     Or use FUNC(s,typename) where s is a parsed solution from sl().
+    This is equivalent to the command
+    s(typename).getLabels()
     """
     def __init__(self,s,typename):
         self.s = s
