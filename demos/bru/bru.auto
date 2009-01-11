@@ -1,0 +1,14 @@
+
+#==============
+# AUTO Demo bru
+#==============
+
+pgm = "bru"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : time integration towards stationary state"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

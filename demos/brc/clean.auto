@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo brc
+#==============
+
+print "\n***Clean the directory***"
+dl('brc')
+cl()

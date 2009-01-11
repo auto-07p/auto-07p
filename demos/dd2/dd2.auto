@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo dd2
+#==============
+
+pgm = "dd2"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : fixed point solution branches"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n%s : second run : a 2-parameter curve of Naimark-Sacker bifurcations"%pgm
+r2 = run(r1("HB1"),ICP=[1,2],ISW=2)
+save(r2,'ns')
+
+print "\n***Clean the directory***"
+cl()
+

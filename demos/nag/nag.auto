@@ -1,0 +1,16 @@
+
+#==============
+# AUTO Demo nag
+#==============
+
+pgm = "nag"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : part of a branch of heteroclinic orbits"%pgm
+r1 = run(e=pgm,c=pgm)
+
+print "\n%s : second run : compute in opposite direction"%pgm
+r2 = run(e=pgm,c=pgm,DS='-')
+save(r1+r2,pgm)
+
+print "\n***Clean the directory***"
+cl()

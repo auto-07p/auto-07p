@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo nag
+#==============
+
+print "\n***Clean the directory***"
+dl('nag')
+cl()

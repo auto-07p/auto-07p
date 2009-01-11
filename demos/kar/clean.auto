@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo kar
+#==============
+
+print "\n***Clean the directory***"
+dl('kar')
+cl()

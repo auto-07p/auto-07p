@@ -1,0 +1,14 @@
+
+#==============
+# AUTO Demo non
+#==============
+
+pgm = "non"
+print "\nDemo %s is started"%pgm
+print "\n%s : compute a solution branch"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

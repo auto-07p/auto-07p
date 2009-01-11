@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo int
+#==============
+
+print "\n***Clean the directory***"
+dl('int')
+dl('lp')
+cl()

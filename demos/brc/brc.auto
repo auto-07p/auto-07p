@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo brc
+#==============
+
+pgm = "brc"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : stationary solutions"%pgm
+r1 = run(e=pgm,c=pgm)
+
+print "\n%s : second run : periodic solutions"%pgm
+r2 = run(r1("HB1"),IPS=2,ICP=[5,11])
+
+print "\n%s : third run : secondary periodic solutions"%pgm
+r3 = run(r2("BP1"),ISW=-1)
+
+save(r1+r2+r3,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

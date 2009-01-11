@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo lin
+#==============
+
+pgm = "lin"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : compute trivial solutions and locate eigenvalues"%pgm
+r1 = run(e=pgm,c=pgm)
+
+print "\n%s : second run : compute a few steps on the bifurcating branch"%pgm
+r2 = run(r1("BP1"),NTST=6,ISW=-1,DSMAX=0.5)
+save(r1+r2,'lin')
+
+print "\n%s : third run : compute a 2-parameter curve of eigenvalues"%pgm
+r3 = run(r2("UZ1"),ICP=[1,2],NTST=5,ISW=1)
+save(r3,'2p')
+
+print "\n***Clean the directory***"
+cl()
+

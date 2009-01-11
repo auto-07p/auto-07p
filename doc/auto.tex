@@ -5517,9 +5517,8 @@ This equation is also considered in
   \commandf{demo('enz')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('enz')} & load the problem definition \\
-  \commandf{run(c='enz.1')} & compute stationary solution families \\ 
-  \commandf{sv('enz')} & save output-files as \filef{b.enz, s.enz, d.enz} \\ 
+  \commandf{r1=run(e='enz',c='enz')} & compute stationary solution families \\ 
+  \commandf{save(r1,'enz')} & save output-files as \filef{b.enz, s.enz, d.enz} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{enz}.}
@@ -5559,13 +5558,12 @@ The remaining equation parameter, $p_3$, is fixed in both runs.
 \hline
 %==============================================================================
  
-  \commandf{ld('dd2')} & load the problem definition \\ 
-  \commandf{run(c='dd2.1')} & 1st run; fixed point solution branches \\ 
-  \commandf{sv('dd2')} & save output-files as \filef{b.dd2, s.dd2, d.dd2} \\ 
+  \commandf{r1=run(e='dd2',c='dd2')} & 1st run; fixed point solution branches \\ 
+  \commandf{save(r1,'dd2')} & save output-files as \filef{b.dd2, s.dd2, d.dd2} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='dd2.2',s='dd2')} & \parbox[t]{3in}{2nd run; a locus of Naimark-Sacker bifurcations.  Constants changed : {\tt IRS, ISW} \vspace{0.2cm}}\\ 
-  \commandf{sv('ns')} & save output-files as \filef{b.ns, s.ns, d.ns} \\ 
+  \commandf{r2=run(r1("HB1"),ICP=[1,2],ISW=2)} & \parbox[t]{3in}{2nd run; a locus of Naimark-Sacker bifurcations.  \vspace{0.2cm}}\\ 
+  \commandf{save(r2,'ns')} & save output-files as \filef{b.ns, s.ns, d.ns} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{dd2}.}
@@ -6111,13 +6109,15 @@ For detailed results see
   \commandf{demo('frc')} & copy the demo files to the work directory \\
 \hline
 %============================================================================== 
-  \commandf{ld('frc')} & load the problem definition \\ 
-  \commandf{run(c='frc.1')} & homotopy to $r=0.2$ \\ 
-  \commandf{sv('0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
+  \commandf{r1=run(e='frc',c='frc')} & homotopy to $r=0.2$ \\ 
+  \commandf{save(r1,'0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='frc.2',s='0')} & \parbox[t]{3in}{ compute solution family; restart from \filef{s.0}.  Constants changed : {\tt IRS, ICP(1), NTST, NMX, DS, DSMAX} \vspace{0.2cm}} \\ 
-  \commandf{sv('frc')} & save output-files as \filef{b.frc, s.frc, d.frc} \\ 
+\parbox[t]{3in}{
+  \commandf{r2=run(r1('UZ1'),ICP=[5,11],
+    NMX=20,DS=-0.5,DSMAX=5.0)}\vspace{0.2cm}} & 
+  \parbox[t]{3in}{ compute solution family; restart from r1. \vspace{0.2cm}} \\ 
+  \commandf{save(r2,'frc')} & save output-files as \filef{b.frc, s.frc, d.frc} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -6602,13 +6602,11 @@ The free parameter is $\alpha$.
   \commandf{demo('chu')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('chu')} & load the problem definition \\ 
-  \commandf{run(c='chu.1')} & 1st run; stationary solutions \\ 
-  \commandf{sv('chu')} & save output-files as \filef{b.chu, s.chu, d.chu} \\ 
+  \commandf{r1=run(e='chu',c='chu')} & 1st run; stationary solutions \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='chu.2',s='chu')} & \parbox[t]{3in}{ 2nd run; periodic solutions, with detection of period-doubling.  constants changed : \parf{IPS, IRS, ICP, ICP} \vspace{0.2cm}} \\ 
-  \commandf{ap('chu')} & append the output-files to \filef{b.chu, s.chu, d.chu} \\ 
+  \commandf{r2=run(r1("HB1"),IPS=2,ICP=[1,11])} & \parbox[t]{3in}{ 2nd run; periodic solutions, with detection of period-doubling. \vspace{0.2cm}} \\ 
+  \commandf{save(r1+r2,'chu')} & save all output to \filef{b.chu, s.chu, d.chu} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -6702,9 +6700,8 @@ here $(u_1,u_2)$.
   \commandf{demo('ivp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('ivp')} & load the problem definition \\ 
-  \commandf{run(c='ivp.1')} & time integration \\ 
-  \commandf{sv('ivp')} & save output-files as \filef{b.ivp, s.ivp, d.ivp} \\ 
+  \commandf{r1=run(e='ivp',c='ivp')} & time integration \\ 
+  \commandf{save(r1,'ivp')} & save output-files as \filef{b.ivp, s.ivp, d.ivp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7364,7 +7361,7 @@ Table~\ref{tbl:demo_v1b}.
                 \filef{d.V1b} .}\\
 \hline
 \commandf{@R man V1b.2 startV1b} &
-\commandf{hetV1b=run(startV1b,e='man',c='man.V1b.2'} \\
+\commandf{hetV1b=run(startV1b,e='man',c='man.V1b.2')} \\
 \multicolumn{2}{|p{7in}|}{
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
@@ -7460,17 +7457,17 @@ continued in two equation parameters.
   \commandf{demo('int')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='int.1')} & 1st run; detection of a fold \\ 
-  \commandf{sv('int')} & save output-files as \filef{b.int, s.int, d.int} \\ 
+  \commandf{r1=run(e='int',c='int')} & 1st run; detection of a fold \\ 
+  \commandf{save(r1,'int')} & save output-files as \filef{b.int, s.int, d.int} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='int.2',s='int')} & 2nd run; generate starting data for a curve of folds.  \parbox[t]{3in}{Constants changed : \parf{IRS, ISW } vspace{0.2cm}}\\ 
-  \commandf{sv('t')} & save the output-files as \filef{b.t, s.t, d.t} \\ 
+  \commandf{r2=run(r1("LP1"),ICP=[1,2],ISW=2)} & 2nd run; generate starting data for a curve of folds.\\ 
 \hline
 %==============================================================================
 
-  \commandf{run(c='int.3',s='t')} & \parbox[t]{3in}{3rd run; compute a curve of folds; restart from \filef{s.t}.  Constants changed : \parf{IRS} vspace{0.2cm}}\\ 
-  \commandf{sv('lp')} & save the output-files as \filef{b.lp, s.lp, d.lp} \\ 
+  \commandf{r3=run(r2)} & \parbox[t]{3in}{3rd run; compute a curve of
+    folds; restart from the last and only label in \parf{r2}. \vspace{0.2cm}}\\ 
+  \commandf{save(r3,'lp')} & save the output-files as \filef{b.lp, s.lp, d.lp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7561,16 +7558,16 @@ In the third run  $p_3$ is fixed, while $p_1$ and $p_2$ are free.
   \commandf{demo('lin')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='lin.1')} & 1st run; compute the trivial solution family and locate eigenvalues \\ 
-  \commandf{sv('lin')} & save output-files as \filef{b.lin, s.lin, d.lin} \\ 
+  \commandf{r1=run(e='lin',c='lin')} & \parbox[t]{3in}{1st run;
+    compute the trivial solution family and locate eigenvalues. \vspace{0.2cm}} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='lin.2',s='lin')} & \parbox[t]{3in}{2nd run; compute a few steps along the bifurcating family.  Constants changed : \parf{IRS, ISW, DSMAX} \vspace{0.2cm}}\\ 
-  \commandf{ap('lin')} & append output-files to \filef{b.lin, s.lin, d.lin} \\ 
+  \commandf{r2=run(r1('BP1'),NTST=6,ISW=-1,DSMAX=0.5)} & \parbox[t]{3in}{2nd run; compute a few steps along the bifurcating family.  \vspace{0.2cm}}\\ 
+  \commandf{save(r1+r2,'lin')} & save all output to \filef{b.lin, s.lin, d.lin} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='lin.3',s='lin')} & \parbox[t]{3in}{3rd run; compute a two-parameter curve of eigenvalues. Constants changed : \parf{IRS, ISW, ICP(2)} \vspace{0.2cm}} \\ 
-  \commandf{sv('2p')} & save the output-files as \filef{b.2p, s.2p, d.2p} \\ 
+  \commandf{r3=run(r2('UZ1'),ICP=[1,2],NTST=5,ISW=1)} & \parbox[t]{3in}{3rd run; compute a two-parameter curve of eigenvalues. \vspace{0.2cm}} \\ 
+  \commandf{save(r3,'2p')} & save the output-files as \filef{b.2p, s.2p, d.2p} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7615,8 +7612,8 @@ autonomous system~:
 \hline
 %==============================================================================
 
-  \commandf{run(c='non.1')} & compute the solution family \\ 
-  \commandf{sv('non')} & save output-files as \filef{b.non, s.non, d.non} \\ 
+  \commandf{r1=run(e='non',c='non')} & compute the solution family \\ 
+  \commandf{save(r1,'non')} & save output-files as \filef{b.non, s.non, d.non} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7678,8 +7675,8 @@ at $\gamma=1$, $f_\infty=0$.
   \commandf{demo('kar')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='kar.1')} & computation of the solution family \\ 
-  \commandf{sv('kar')} & save output-files as \filef{b.kar, s.kar, d.kar} \\ 
+  \commandf{r1=run(e='kar',c='kar')} & computation of the solution family \\ 
+  \commandf{save(r1,'kar')} & save output-files as \filef{b.kar, s.kar, d.kar} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8145,16 +8142,16 @@ be taken to recognize spurious solutions and bifurcations.
   \commandf{demo('brc')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='brc.1') } & compute the stationary solution family with Hopf bifurcations \\ 
-  \commandf{sv('brc') } & save output-files as \filef{b.brc, s.brc, d.brc} \\ 
+  \commandf{r1=run(e='brc',c='brc') } & \parbox[t]{3in}{
+compute the stationary solution family with Hopf bifurcations.
+\vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='brc.2',s='brc') } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point.  Constants changed : \parf{IRS, IPS} \vspace{0.2cm}}\\ 
-  \commandf{ap('brc') } & append the output-files to \filef{b.brc, s.brc, d.brc} \\ 
+  \commandf{run(r1("HB1"),IPS=2,ICP=[5,11]) } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point. \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='brc.3',s='brc') } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation.  Constants changed : \parf{IRS, ISW} \vspace{0.2cm}}\\ 
-  \commandf{ap('brc') } & append the output-files to \filef{b.brc, s.brc, d.brc} \\ 
+  \commandf{run(r2("BP1"),ISW=-1) } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation. \vspace{0.2cm}}\\ 
+  \commandf{save(r1+r2+r3,'brc') } & save all output to \filef{b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8206,16 +8203,21 @@ be taken to recognize spurious solutions and bifurcations.
   \commandf{demo('brf') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='brf.1') } & compute the stationary solution family with Hopf bifurcations \\ 
-  \commandf{sv('brf') } & save output-files as \filef{b.brf, s.brf, d.brf} \\ 
+  \commandf{r1=run(e='brf',c='brf') } & \parbox[t]{3in}{compute the
+    stationary solution family with Hopf bifurcations \vspace{0.2cm}}  \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='brf.2',s='brf') } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point.  Constants changed : \parf{IRS, IPS}  \vspace{0.2cm}}\\ 
-  \commandf{ap('brf') } & append the output-files to \filef{b.brf, s.brf, d.brf} \\ 
+\parbox[t]{3in}{
+  \commandf{r2=run(r1("HB1"),IPS=2,ICP=[5,11], NMX=120,EPSL=1e-8) }
+\vspace{0.2cm}}
+ & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point. \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='brf.3',s='brf') } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation.  Constants changed : \parf{IRS, ISW} \vspace{0.2cm}}\\ 
-  \commandf{ap('brf') } & append the output-files to \filef{b.brf, s.brf, d.brf} \\ 
+\parbox[t]{3in}{
+  \commandf{r3=run(r2("BP1"),ISW=-1, NMX=100,EPSL=1e-7) }
+\vspace{0.2cm}}
+& \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation.\vspace{0.2cm}}\\ 
+  \commandf{save(r1+r2+r3,'brf') } & save all output to \filef{b.brf, s.brf, d.brf} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8274,8 +8276,8 @@ integrator is advisable.
   \commandf{demo('bru') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='bru.1') } & time integration \\ 
-  \commandf{sv('bru') } & save output-files as \filef{b.bru, s.bru, d.bru} \\ 
+  \commandf{r1=run(e='bru',c='bru') } & time integration \\ 
+  \commandf{save(r1,'bru') } & save output-files as \filef{b.bru, s.bru, d.bru} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8774,12 +8776,16 @@ and both $c$ and $T$ remain free.
   \commandf{demo('fsh')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='fsh.1')} & continuation in the period $T$, with $c$ fixed; no phase condition \\ 
-  \commandf{sv('0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
+  \commandf{r1=run(e='fsh',c='fsh')} & continuation in the period $T$, with $c$ fixed; no phase condition \\ 
+  \commandf{save(r1,'0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='fsh.2',s='0')} & \parbox[t]{3in}{continuation in $c$ and $T$, with active phase condition. Constants changed : \parf{IRS, ICP, NINT, DS} \vspace{0.2cm}} \\ 
-  \commandf{sv('fsh')} & save output-files as \filef{b.fsh, s.fsh, d.fsh} \\ 
+ \parbox[t]{2in}{
+  \commandf{r2 = run(r1("EP2"), ICP=[2,11,12,13,14], NINT=1,
+DS='-', UZR=\{2:[1,2,3,5,10]\})} \vspace{0.2cm}} & 
+ \parbox[t]{3in}{continuation in $c$ and $T$, with active phase
+   condition. \vspace{0.2cm}} \\ 
+  \commandf{save(r2,'fsh')} & save output-files as \filef{b.fsh, s.fsh, d.fsh} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8839,12 +8845,11 @@ see also
   \commandf{demo('nag')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='nag.1')} & compute part of first family of heteroclinic orbits \\ 
-  \commandf{sv('nag')} & save output-files as \filef{b.nag, s.nag, d.nag} \\ 
+  \commandf{r1=run(e='nag',c='nag')} & compute part of first family of heteroclinic orbits \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='nag.2',s='nag')} & \parbox[t]{3in}{compute first family in opposite direction.  Constants changed : \parf{DS}  \vspace{0.2cm}}\\ 
-  \commandf{ap('nag')} & append output-files to \filef{b.nag, s.nag, d.nag} \\ 
+  \commandf{r2=run(e='nag',c='nag',DS='-')} & compute first family in opposite direction\\ 
+  \commandf{save(r1+r2,'nag')} & save all output to \filef{b.nag, s.nag, d.nag} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -9073,12 +9078,11 @@ and
   \commandf{demo('ext')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='ext.1')} & detect bifurcations from the trivial solution family \\ 
-  \commandf{sv('ext')} & save output-files as \filef{b.ext, s.ext, d.ext} \\ 
+  \commandf{r1=run(e='ext',c='ext')} & detect bifurcations from the trivial solution family \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ext.2',s='ext')} & \parbox[t]{3in}{compute a bifurcating family containing spurious bifurcations.  Constants changed : \parf{IRS, ISW, UZR} \vspace{0.2cm}}\\ 
-  \commandf{ap('ext')} & append output-files to \filef{b.ext, s.ext, d.ext} \\ 
+  \commandf{r2=run(r1("BP3"),ISW=-1,NCOL=3)} & \parbox[t]{3in}{compute a bifurcating family containing spurious bifurcations. \vspace{0.2cm}}\\ 
+  \commandf{save(r1+r2,'ext')} & save all output to \filef{b.ext, s.ext, d.ext} \\ 
 \hline
 %==============================================================================
 \end{tabular}

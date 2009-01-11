@@ -1,0 +1,19 @@
+
+#==============
+# AUTO Demo fsh
+#==============
+
+pgm = "fsh"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : continuation in the period T"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1, '0')
+
+print "\n%s : second run : continuation in c and T"%pgm
+r2 = run(r1("EP2"),ICP =  [2, 11, 12, 13, 14],NINT=1,
+DS='-',UZR =  {2: [1.0,2.0,3.0,5.0,10.0]})
+save(r2, pgm)
+
+print "\n***Clean the directory***"
+cl()
+

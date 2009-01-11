@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo int
+#==============
+
+pgm = "int"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : detection of a fold"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n%s : second run : generate starting data"%pgm
+r2 = run(r1("LP1"),ICP=[1,2],ISW=2)
+
+print "\n%s : third run : compute a curve of folds"%pgm
+r3 = run(r2)
+save(r3,'lp')
+
+print "\n***Clean the directory***"
+cl()
+

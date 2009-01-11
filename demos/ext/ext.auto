@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo ext
+#==============
+
+pgm = "ext"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : detect bifurcations from the trivial solution"%pgm
+r1 = run(e=pgm,c=pgm)
+
+print "\n%s : second run : compute a bifurcation branch"%pgm
+r2 = run(r1("BP3"),ISW=-1,NCOL=3)
+
+save(r1+r2,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

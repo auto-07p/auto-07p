@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo dd2
+#==============
+
+print "\n***Clean the directory***"
+dl('dd2')
+dl('ns')
+cl()

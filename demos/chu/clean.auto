@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo chu
+#==============
+
+print "\n***Clean the directory***"
+dl('chu')
+cl()

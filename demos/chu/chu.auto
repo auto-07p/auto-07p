@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo chu
+#==============
+
+pgm = "chu"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : stationary solutions"%pgm
+r1 = run(e=pgm,c=pgm)
+
+print "\n%s : second run : periodic solutions"%pgm
+r2 = run(r1("HB1"),IPS=2,ICP=[1,11])
+
+save(r1+r2,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

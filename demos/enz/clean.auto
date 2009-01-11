@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo enz
+#==============
+
+print "\n***Clean the directory***"
+dl('enz')
+cl()

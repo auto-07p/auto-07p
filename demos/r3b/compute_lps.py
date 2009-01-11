@@ -55,21 +55,19 @@ def compute(m=0.063):
     # We look at the value of one of the components
     # to determine which Lagrange point it is.
 
-    # The solution is a Python dictionary.  One of the
-    # elements of the dictionary is an array called "data"
-    # which contains the values of the solution.  For example,
-    # x["data"][0]["t"] is the 't' value of the first point
-    # of the solution. x["data"][0]["u"] is an array of which
-    # contains the value of the solution at t=0.
-    def select_lp(x):
-        u = x["data"][0]["u"]
-        if u[1] > 0.01:
+    # The solution is a Pointset. In this case there is only
+    # one point, at t=0, accessible via x(0), x[0], or via the
+    # x['U(1)'] and x['U(2)'] arrays.
+    def select_lp(u):
+        [x]=u['U(1)']
+        [y]=u['U(2)']
+        if y > 0.01:
             return 4
-        if u[1] < -0.01:
+        if y < -0.01:
             return 5
-        if u[0] > 1:
+        if x > 1:
             return 2
-        if u[0] < -0.01:
+        if x < -0.01:
             return 3
         return 1
     lp = map(select_lp, uzpoints)
