@@ -388,7 +388,7 @@ class Point(object):
             try:
                 ct = kw['coordtype']
             except KeyError:
-                self.coordtype = float
+                self.coordtype = float64
             else:
                 try:
                     self.coordtype = _num_equivtype[ct]

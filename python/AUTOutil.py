@@ -269,7 +269,11 @@ def array(l, code=None):
 		a2.append(N.array(code, a1))
 	    return a2
 	return N.array(code, l)
-    return N.array(code, [l])
+    try:
+        l=list(l)
+        return N.array(code, l)	
+    except TypeError:
+        return N.array(code, [l])
 
 def rank(a):
     if isinstance(a, list):
