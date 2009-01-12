@@ -808,7 +808,7 @@ CONTAINS
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
-    USE AUTO_CONSTANTS, ONLY : DATFILE, UVALS, PARVALS, unames, parnames
+    USE AUTO_CONSTANTS, ONLY : DATFILE, PARVALS, parnames
     USE IO, ONLY: NAMEIDX
 
 ! Generates a starting point for the continuation of a branch of

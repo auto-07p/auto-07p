@@ -164,7 +164,7 @@ C     ---------- -----
 C
       USE INTERFACES
       USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
-     &     parnames,UVALS,PARVALS
+     &     parnames
       USE IO, ONLY: NAMEIDX
       USE AE
       USE BVP
