@@ -38,7 +38,7 @@ tek2ps: .FORCE
 
 #
 clean:
-	cd ./cmds; if diff @R @RR > /dev/null; then rm @H @LB @R @RD; fi
+	cd ./cmds; if diff @R @@R > /dev/null; then rm @H @LB @R @RD; fi
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
 	cd ./plaut04;$(MAKE) clean
@@ -57,7 +57,8 @@ superclean:  clean
 	cd ./include; rm -f stamp-h1
 	rm -f python/*.pyc python/graphics/*.pyc
 	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
-	  tek2ps/Makefile gui/auto.makefile include/config.h cmds/cmds.make
+	  tek2ps/Makefile gui/auto.makefile include/config.h cmds/cmds.make \
+	  cmds/compat.sh util/Makefile
 	@echo "Super cleaning ... done"
 
 .FORCE:
