@@ -410,6 +410,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             elif line == 'd':
                 if not self.dset:
                     self.getopts()
+            elif line in ["save","sav","sa","s"]:
+                self.savefile()
             elif line == '2d':
                 self.enterlabels()
             else:

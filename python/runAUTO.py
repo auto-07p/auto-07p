@@ -6,7 +6,6 @@ import re
 import types
 import glob,stat
 import AUTOExceptions,parseC,parseH
-import bifDiag
 try:
     import subprocess
 except ImportError:
@@ -605,6 +604,7 @@ class runAUTO:
         if (os.path.isfile(self.fort7_path) and
             os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
+            import bifDiag
             return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
                                           self.fort9_path),self.options)
 

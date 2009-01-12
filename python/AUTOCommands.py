@@ -535,7 +535,7 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             if (isinstance(self.parsed,bifDiag.bifDiag) and
                 len(self.parsed) > 0 and len(self.parsed[0]) > 0):
                 self.parsed.writeFilename(n1b,n1s,n1d)
-                msg = "Saving to %s, %s and %s ... done\n"%(n1b,n1s,n1d)
+                msg = "Saving to %s, %s, and %s ... done\n"%(n1b,n1s,n1d)
             else:
                 if (type(self.parsed) == type([]) and
                     isinstance(self.parsed[0], parseS.AUTOSolution)):
@@ -1595,7 +1595,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             bname = self.name1["bifurcationDiagram"]
             sname = self.name1["solution"]
             dname = self.name1["diagnostics"]
-            ret.value = ret.value + "Saving to %s, %s and %s ... done\n"%(
+            ret.value = ret.value + "Saving to %s, %s, and %s ... done\n"%(
                 bname,sname,dname)
         if self.ap is not None:
             if sv is None:

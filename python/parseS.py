@@ -376,7 +376,7 @@ class AUTOParameters(Points.Point):
 #    stream (basically any object with has the method "readline"
 #    for reading and "write" for writing)
 #    
-# readFilename and writeFilename take as an arguement a filename
+# readFilename and writeFilename take as an argument a filename
 #    in which to read/write the parameters (basically it opens the
 #    file and then calles "read" or "write"
 #    
@@ -390,13 +390,11 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         if isinstance(input,self.__class__):
-            irs = input.options["constants"]["IRS"]
             apply(runAUTO.runAUTO.__init__,(self,input),kw)
             if kw == {}:
                 #otherwise already copied
                 self.options = self.options.copy()
             self.options["constants"] = parseC.parseC(self.options["constants"])
-            self.options["constants"]["IRS"] = irs
             self.data = self.data.copy()
             names = kw.get("unames",c.get("unames"))
             if names is not None:
@@ -432,9 +430,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             self._mbr             = 0
             self._mlab            = 0
             self.name = name
-            self.data.update({"BR":1, "PT":1, "TY number":9,
+            self.data.update({"BR":1, "PT":1, "TY number":9, "LAB":0,
                               "ISW":1, "NTST": 1, "NCOL": 0})
-            self.options["constants"]["IRS"] = 0
             if name == './fort.8':
                 if kw.has_key("equation"):
                     self.name = kw["equation"][14:]
@@ -532,8 +529,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                     pdict["name"] = kw["equation"][14:]
                 Points.Pointset.__init__(self,pdict)
                 self.__fullyParsed = True
-                self.data.update({"NTST": ntst, "NCOL": ncol})
-                self.options["constants"]["IRS"] = 1
+                self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1})
                 if par != []:
                     p = max(dict(par).keys())*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
@@ -589,11 +585,10 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 if shortkey == "TY":
                     value = parseB.reverse_type_translation(value)
                     shortkey = "TY number"
-                elif shortkey == "LAB":
-                    self.options["constants"]["IRS"] = value
-                    self._mlab = 0
+                elif shortkey == "BR":
                     self._mbr = 0
-                    return
+                elif shortkey == "LAB":
+                    self._mlab = 0
                 self.data[shortkey] = value
                 return
             if shortkey == "PAR":
@@ -622,8 +617,6 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 if shortkey == "TY":
                     return parseB.type_translation(
                         self.data["TY number"])["short name"]
-                elif shortkey == "LAB":
-                    return self.options["constants"]["IRS"]
                 return self.data[shortkey]
             if shortkey == "p":
                 return self.PAR
@@ -675,6 +668,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         """
         c = self.options.copy()
         c.update(kw)
+        c["IRS"] = self["LAB"]
         return apply(runAUTO.runAUTO.run,(self,),c)
 
     def readAllFilename(self,filename):

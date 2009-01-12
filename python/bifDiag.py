@@ -35,24 +35,6 @@ class bifDiag(parseB.parseBR):
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None
-        if type(fort7_filename) == types.ListType:
-            #adjust maximum label/branch
-            labs = self.getLabels()
-            if labs != []:
-                mbr, mlab = 0, 0
-                for d in self():
-                    if d["BR"] > mbr: mbr = d["BR"]
-                    if d["LAB"] > mlab: mlab = d["LAB"]
-                for d in self:
-                    for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                        if x.has_key("solution") and x["LAB"] != 0:
-                            s = x["solution"]
-                            if s._mlab != mlab or s._mbr != mbr:
-                                news = s.__class__(s)
-                                news._mlab = mlab
-                                news._mbr = mbr
-                                x["solution"] = news
-            return
         diagnostics = None
         if isinstance(fort8_filename, parseS.AUTOSolution):
             fort8_filename = [fort8_filename]
@@ -146,7 +128,23 @@ class bifDiag(parseB.parseBR):
                 if x.has_key("solution"):
                     sols.append(x["solution"])
         solution = parseS.parseS(sols)
-        return solution(label)
+        s = solution(label)
+        #adjust maximum label/branch
+        mbr, mlab = 0, 0
+        for d in solution:
+            if d["BR"] > mbr: mbr = d["BR"]
+            if d["LAB"] > mlab: mlab = d["LAB"]
+        if isinstance(s,parseS.parseS):
+            for i in range(len(s)):
+                if s[i]._mlab != mlab or s[i]._mbr != mbr:
+                    s[i] = s[i].__class__(s[i])
+                    s[i]._mlab = mlab
+                    s[i]._mbr = mbr
+        elif s._mlab != mlab or s._mbr != mbr:
+            s = s.__class__(s)
+            s._mlab = mlab
+            s._mbr = mbr
+        return s
 
     def __call__(self,label=None):
         return self.getLabel(label)
