@@ -839,7 +839,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 fdata = []
                 if string.find(self.__data,"D") == -1:
                     fdata = fromstring(self.__data, dtype=float, sep=' ')
-                if fdata == [] or len(fdata) > total:
+                if fdata == [] or len(fdata) != total:
                     fdata = N.array(map(parseB.AUTOatof,
                                         string.split(self.__data)), 'd')
             else:
