@@ -2224,9 +2224,10 @@ lrz ... done
  \section{ Two Dimensional Plotting Tool}\label{clui:2d plotting}
 
  The two dimensional plotting tool can be run by using the command
- \commandf{plot()} to plot the files \filef{fort.7} and \filef{fort.8}
+ \commandf{plot(bd)} to plot a bifurcation diagram object \parf{bd}
  after a calculation has been run, or using the command
- \commandf{plot('foo')} to plote the data in the
+ \commandf{plot()} to plot the files \filef{fort.7} and \filef{fort.8},
+ or using the command \commandf{plot('foo')} to plote the data in the
  files \filef{s.foo} and \filef{b.foo}.  
 
  The menu bar provides two buttons.  The \commandf{File}
@@ -2243,7 +2244,22 @@ lrz ... done
  demo script \filef{auto/07p/demo/python/plotter.py} contains several
  examples of changing options in plotters.
 
- Pressing the right mouse button in the plotting window brings
+ If you are using matplotlib, then you will find seven icons that allow
+ you to use various zoom functions: a home button to go back to the
+ original plot, back and forward buttons to go back and forwards
+ between zooms, a button to select pan/zoom mode, a button to select
+ rectangular zoom mode, a button to which brings up sliders that
+ adjust margins, and a floppy disk button that you can use
+ to save the plot to a file. 
+ In ``zoom to rect'' mode, the left mouse button may be held down to create
+ a box in the plot.  When the left button is released the plot will
+ zoom to the selected portion of the diagram. Similarly, the right
+ mouse button can be used to zoom out. In ``pan/zoom'' mode, dragging
+ with the left mouse button pressed pans (shifts) the graph, whereas
+ dragging with the right mouse button zooms in and out.
+
+ If you are \emph{not} using matplotlib, then
+ pressing the right mouse button in the plotting window brings
  up a menu of buttons which control several aspects
  of the plotting window.  The top two toggle buttons
  control what function the left button performs.  
@@ -2289,6 +2305,8 @@ lrz ... done
  \hline
  bifurcation\_column\_defaults  & A set of bifurcation columns the user is likely to use. \\
  \hline
+ bifurcation\_coordnames & Names to use instead of PAR(1),... for bifurcation diagrams. \\
+ \hline
  bifurcation\_diagram  &  A parsed bifurcation diagram file to plot. \\
  \hline
  bifurcation\_diagram\_filename  & The filename of the bifurcation diagram to plot. \\
@@ -2299,25 +2317,39 @@ lrz ... done
  \hline
  bifurcation\_y  & The column to plot along the Y-axis for bifurcation diagrams. \\
  \hline
+ bottom\_margin  & The margin between the graph and the bottom edge. \\
+ \hline
  color\_list  &  A list of colors to use for multiple plots. \\
+ \hline
+ dashes  &    List of dash, no-dash lengths for dashed lines. \\ 
  \hline
  decorations  & Turn on or off the axis, tick marks, etc. \\
  \hline
+ default\_option & Default d0, d1, d2, etc. setting to use with {\cal PyPLAUT}. \\
+ \hline
  error\_symbol  &    The symbol to use for error points. \\ 
+ \hline
+ even\_tick\_length  & The length of the even tick marks. \\
  \hline
  foreground  &  The background color of the plot. \\
  \hline
  grid  &  Turn on or off the grid. \\
  \hline
+ height  & Height of the graph. \\
+ \hline
  hopf\_symbol  &    The symbol to use for Hopf bifurcation points. \\ 
  \hline
- index  & An array of indicies to plot.\\
+ index  & An array of indices to plot.\\
  \hline
  label  & An array of labels to plot.\\
  \hline
  label\_defaults  & A set of labels that the user is likely to use. \\
  \hline
+ left\_margin  & The margin between the graph and the left edge. \\
+ \hline
  limit\_point\_symbol  &    The symbol to use for limit points. \\ 
+ \hline
+ line\_width & Width to use for lines and curves. \\
  \hline
  mark\_t  &  The t value to marker with a small ball. \\      
  \hline
@@ -2329,11 +2361,17 @@ lrz ... done
  \hline
  miny  & The lower bound for the y-axis of the plot. \\
  \hline
+ odd\_tick\_length  & The length of the odd tick marks. \\
+ \hline
  period\_doubling\_symbol  &   The symbol to use for period doubling bifurcation points. \\ 
  \hline
  ps\_colormode  & The PostScript output mode: 'color', 'gray' or 'monochrome'. \\ 
  \hline
+ right\_margin  & The margin between the graph and the left edge. \\
+ \hline
  runner  &  The runner object from which to get data. \\       
+ \hline
+ smart\_label  & Whether to use a smart but slower label placement algorithm. \\ 
  \hline
  special\_point\_colors  &    An array of colors used to mark special points. \\ 
  \hline
@@ -2343,11 +2381,17 @@ lrz ... done
  \hline
  solution\_column\_defaults  & A set of solution columns the user is likely to use.\\
  \hline
+ solution\_coordnames & Variable names to use instead of U(1),... for solutions. \\
+ \hline
  solution\_filename  & The filename of the solution to plot. \\
+ \hline
+ solution\_indepvarname & Variable name to use instead of 't' for solutions. \\
  \hline
  solution\_x  &  The column to plot along the X-axis for solutions. \\
  \hline
  solution\_y  & The column to plot along the Y-axis for solutions. \\
+ \hline
+ stability  & Turn on or off stability information using dashed curves. \\
  \hline
  symbol\_font  &  The font to use for marker symbols. \\
  \hline
@@ -2357,23 +2401,33 @@ lrz ... done
  \hline
  tick\_length  &  The length of the tick marks. \\
  \hline
+ top\_margin  & The margin between the graph and the top edge. \\
+ \hline
+ top\_title  &    The label for the top title. \\ 
+ \hline
+ top\_title\_fontsize  & The font size for the top title. \\ 
+ \hline
  torus\_symbol  &    The symbol to use for torus bifurcation points. \\ 
  \hline
  type  & The type of the plot, either ``solution'' or ``bifurcation''. \\  
  \hline
  use\_labels &   Whether or not to display label numbers in the graph. \\ 
  \hline
+ use\_symbols  & Whether or not to display bifurcation symbols in the graph. \\
+ \hline
  user\_point\_symbol  &   The symbol to use for user defined output points. \\ 
+ \hline
+ width  & Width of the graph. \\
  \hline
  xlabel  & The label for the x-axis. \\
  \hline
- xmargin  & The margin between the graph and the right and left edges. \\
+ xlabel\_fontsize  & The font size for the x-axis label. \\
  \hline
  xticks  & The number of ticks on the x-axis. \\
  \hline
  ylabel  & The label for the y-axis. \\
  \hline
- ymargin  & The margin between the graph and the top and bottom edges. \\
+ ylabel\_fontsize  & The font size for the y-axis label. \\
  \hline
  yticks  & The number of ticks on the y-axis. \\
  \hline
