@@ -5498,12 +5498,16 @@ The directory {\tt auto/07p/demos} has a large number of subdirectories,
 for example {\tt ab}, {\tt pp2}, {\tt exp}, etc.,
 each containing all necessary files for certain illustrative calculations.
 Each subdirectory, say {\tt xxx}, corresponds to a particular equation
-and contains one equations-file {\tt xxx.\{f90,f,c\}}
-and one or more constants-files {\tt c.xxx.i}, 
+and contains one equations-file \filef{xxx.\{f90,f,c\}}
+and one or more constants-files \filef{c.xxx.i}, 
 one for each successive run of the demo.
+You also find \python script files \filef{xxx.auto} and
+\filef{clean.auto}: the command \filef{auto xxx.auto} runs the demo,
+and the command \filef{auto clean.auto} deletes all generated files.
 To see how the equations have been programmed, inspect the equations-file. 
 To understand in detail how {\cal AUTO} is instructed to carry out a 
-particular task, inspect the appropriate constants-file.
+particular task, inspect the appropriate constants-file and \python
+script.
 In this chapter we describe the tutorial demo {\tt cusp} in detail.
 A brief description of other demos is given in later chapters.
 
@@ -8339,6 +8343,47 @@ stable manifold which intersects the 2D unstable manifold of the origin.
 The intersection curve, which corresponds to a heteroclinic orbit,
 is visible in the graphical representation of the manifold. 
 
+\newpage
+%
+%==============================================================================
+%DEMO=p2c======================================================================
+%==============================================================================
+\section{ p2c : Point to cycle connections.} \label{sec:Demos_p2c}
+In this demo a point to cycle heteroclinic connection is computed via
+homotopy, and then continued in two system parameters, in the Lorenz equations
+\begin{eqnarray*}
+  u_1' &=&  p_3 (u_2 - u_1), \\
+  u_2' &=&  p_1 u_1 - u_2 - u_1 u_3,  \\
+  u_3' &=&  u_1 u_2 - p_2 u_3. \end{eqnarray*}
+Type \commandf{auto p2c.auto} to run the demo and
+\commandf{auto clean.auto} to remove generated files.
+
+Refer to \citename{DoKoVoKu08} \citeyear{DoKoVoKu08} and 
+\url{http://www.bio.vu.nl/thb/research/project/globif/index_main.html}
+for background information.
+
+%
+%==============================================================================
+%DEMO=c2c======================================================================
+%==============================================================================
+\section{ c2c : Cycle to cycle connections.} \label{sec:Demos_c2c}
+
+In this demo a cycle to cycle heteroclinic connection is computed via
+homotopy, and then continued in one system parameter, in a food chain model:
+\begin{eqnarray*}
+    x' &=& x(1 - x) - \frac{5 x y}{1 + 3 x}, \\
+    y' &=& \frac{5 x y}{1 + 3 x}  - p_1 y - \frac{0.1 y z}{1 + 2 y}, \\
+    z' &=& \frac{0.1 y z}{1 + 2 y} - p_2 z. \end{eqnarray*}
+Type \commandf{auto c2c.auto} to run the demo.
+After that it is possible to compute two-parameter continuations of
+folds of the cycle-to-cycle
+connection, but since this is computationally intensive it is put in
+a seperate file: type \commandf{auto c2cfolds.auto}.
+Type \commandf{auto clean.auto} to remove all generated files.
+
+Refer to \citename{DoKoVoKu09} \citeyear{DoKoVoKu09} and 
+\url{http://www.bio.vu.nl/thb/research/project/globif/index_main.html}
+for background information.
 %==============================================================================
 %==============================================================================
 \chapter{ \AUTO Demos : Parabolic PDEs.} \label{ch:Demos_PDE}
