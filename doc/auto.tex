@@ -3321,6 +3321,12 @@ must be in the current user directory.
 {\it Do not run {\cal AUTO} in the directory {\tt auto/07p} 
 or in any of its subdirectories.}
 
+Most commands only need a plain Unix shell but some use \python: the
+commands that depend on \python are \commandf{@cnvc},
+\commandf{@dlb}, \commandf{@dsp}, \commandf{@klb}, \commandf{@ksp},
+\commandf{@lbf}, \commandf{@ll}, \commandf{@ls}, \commandf{@mb},
+\commandf{@pp}, and \commandf{@sb}.
+
 \section{ Basic commands.} 
 
 \begin{itemize}
@@ -4839,10 +4845,11 @@ Three solution measures are defined in the routine {\tt PVLS}, namely,
 the $L_2$-norm of the first solution component,
 the minimum of the second component, and
 the left boundary value of the second component.
-These solution measures are assigned to {\tt PAR(2), PAR(3)}, and {\tt PAR(4)}, respectively.
-In the constants-file {\tt c.pvl} we have {\tt \#ICP=4}, with {\tt PAR(1)-PAR(4)}
-specified as parameters.
-Thus, in this example, {\tt PAR(2)-PAR(4)} are overspecified.
+These solution measures are assigned to {\tt PAR(2), PAR(3), PAR(4)},
+and {\tt PAR(5)}, respectively.
+In the constants-file {\tt c.pvl} we have {\tt \#ICP=5},
+with {\tt PAR(1)-PAR(5)} specified as parameters.
+Thus, in this example, {\tt PAR(2)-PAR(5)} are overspecified.
 Note that {\tt PAR(1)} must appear first in the {\tt ICP} list;
 the other parameters cannot be used as true continuation parameters.
 %=====================================================================
@@ -9447,20 +9454,21 @@ Note that additional parameters are specified in the user-supplied subroutine
 \funcf{ PVLS} in file \filef{pvl.f90}, namely,
 $p_2$ (the $L_2$-norm of $u_1$),
 $p_3$ (the minimum of $u_2$ on the space-interval $[0,1]$~),
-$p_4$ (the boundary value $u_2(0)$~).
+$p_4$ (the boundary value $u_2(0)$~),
+$p_5$ (the same boundary value $u_2(0)$~).
 These additional parameters should be considered as ``solution measures''
 for output purposes; they should not be treated as true
 continuation parameters.
 
 Note also that four free parameters are specified in the \AUTO-constants file 
-\filef{c.pvl}, namely, $p_1$, $p_2$, $p_3$, and $p_4$.
+\filef{c.pvl}, namely, $p_1$, $p_2$, $p_3$, $p_4$, and $p_5$.
 The first one in this list, $p_1$, is the true continuation parameter. 
-The parameters $p_2$, $p_3$, and $p_4$ are \emp{ overspecified}
+The parameters $p_2$, $p_3$, $p_4$, and $p_5$ are \emp{ overspecified}
 so that their values will appear in the output.
 However, 
 \emp{ it is essential that the true continuation parameter appear first.}
 For example, it would be an error to specify the parameters
-in the following order~: $p_2$, $p_1$, $p_3$, $p_4$.
+in the following order~: $p_2$, $p_1$, $p_3$, $p_4$, $p_5$.
 
 In general, true continuation parameters must appear first in the
 parameter-specification in the \AUTO constants-file.
@@ -9468,7 +9476,7 @@ Overspecified parameters will be printed, and can be
 defined in \funcf{ PVLS}, but they are not part of the intrinsic continuation
 procedure.
 
-As this demo also illustrates (see the \parf{UZR} values in \filef{c.pvl.1}),
+As this demo also illustrates (see the \parf{UZR} values in \filef{c.pvl}),
 labeled solutions can also be output at selected values 
 of the overspecified parameters.
 
@@ -12127,7 +12135,7 @@ These two 3-homoclinic orbits are depicted in Figure~\ref{hom2.eps}(b).
 We can follow both of these back to the inclination flip point, by
 setting \parf{ITWIST} back to 0:
 \begin{center}
-\commandf{r13=run(r12('UZ1'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.13\},ISTART=1,ITWIST=0)}\\
+\commandf{r13=run(r6('UZ7'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.13\},ISTART=1,ITWIST=0)}\\
 \commandf{r6=r6+r13}
 \end{center} 
 \begin{verbatim}
@@ -12136,7 +12144,7 @@ setting \parf{ITWIST} back to 0:
    3    30  EP   37   9.27258E-02   5.06560E-01 ... -2.76788E-04
 \end{verbatim}
 \begin{center}
-\commandf{r14=run(r12('UZ3'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.145\},ISTART=1,ITWIST=0)} \\
+\commandf{r14=run(r6('UZ9'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.145\},ISTART=1,ITWIST=0)} \\
 \commandf{r6=r6+r14}
 \commandf{save(r6,'6')}
 \end{center}

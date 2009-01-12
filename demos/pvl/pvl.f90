@@ -48,6 +48,15 @@
 
       END SUBROUTINE BCND
 
+      DOUBLE PRECISION FUNCTION GETU2(U,NDX,NTST,NCOL)
+!     ------ --------- -------- -----
+      INTEGER, INTENT(IN) :: NDX,NCOL,NTST
+      DOUBLE PRECISION, INTENT(IN) :: U(NDX,0:NCOL*NTST)
+
+        GETU2 = U(2,0)
+
+      END FUNCTION GETU2
+
       SUBROUTINE PVLS(NDIM,U,PAR)
 !     ---------- ----
 
@@ -56,7 +65,8 @@
       DOUBLE PRECISION, INTENT(IN) :: U(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
-      DOUBLE PRECISION, EXTERNAL :: GETP
+      DOUBLE PRECISION, EXTERNAL :: GETP,GETU2
+      INTEGER NDX,NCOL,NTST
 !---------------------------------------------------------------------- 
 ! NOTE : 
 ! Parameters set in this subroutine should be considered as ``solution 
@@ -88,6 +98,12 @@
 ! Set PAR(4) equal to the value of U(2) at the left boundary.
        PAR(4)=GETP('BV0',2,U)
 
+! Set PAR(5) equal to the value of U(2) at the left boundary using
+! another method
+       NDX=NINT(GETP('NDX',0,U))
+       NTST=NINT(GETP('NTST',0,U))
+       NCOL=NINT(GETP('NCOL',0,U))
+       PAR(5)=GETU2(U,NDX,NTST,NCOL)
 !---------------------------------------------------------------------- 
 ! The first argument of GETP may be one of the following:
 !        'NRM' (L2-norm),     'MAX' (maximum),
