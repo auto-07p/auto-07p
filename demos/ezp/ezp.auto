@@ -4,19 +4,14 @@
 #==============
 
 print "\n***Compute a solution family***"
-ld(e='ezp',c='ezp.1')
-run()
-sv('ezp')
+ezp=run(e='ezp',c='ezp')
 
 print "\n***Compute one leg of the bifurcating family***"
-ld(e='ezp',c='ezp.2',s='ezp')
-run()
-ap('ezp')
+ezp=ezp+run(ezp('BP1'),ISW=-1)
 
 print "\n***Compute the other leg of the bifurcating family***"
-ld(e='ezp',c='ezp.3',s='ezp')
-run()
-ap('ezp')
+ezp=ezp+run(ezp('BP1'),ISW=-1,DS='-')
+save(ezp,'ezp')
 
 print "\n***Clean the directory***"
 cl()

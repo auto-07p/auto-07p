@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo fhn
+#==============
+
+print "\n***Clean the directory***"
+dl('fhn')
+dl('hb')
+cl()

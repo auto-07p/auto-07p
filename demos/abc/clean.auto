@@ -1,0 +1,10 @@
+
+#===============
+# AUTO Demo abc
+#===============
+
+pgm="abc"
+
+print "\n***Clean the directory***"
+dl(pgm)
+cl()

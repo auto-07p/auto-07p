@@ -4,14 +4,12 @@
 #==============
 
 print "\n***Compute an initial orbit in the manifold***"
-ld(e='man',c='man.0')
-run()
-sv('0')
+r0=run(e='man',c='man.0')
+save(r0,'0')
 
 print "\n***Compute the manifold***"
-ld(c='man.1',s='0')
-run()
-sv('1')
+r1=run(r0('UZ2'),c='man.1')
+save(r1,'1')
 
 print "\n***Clean the directory***"
 cl()

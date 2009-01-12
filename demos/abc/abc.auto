@@ -4,21 +4,15 @@
 #==============
 
 print "\n***Compute a stationary solution family***"
-ld(e='abc',c='abc.1')
-run()
-sv('abc')
+abc=run(e='abc',c='abc.1')
 
 print "\n***Compute periodic solution families***"
-ld(c='abc.2',s='abc')
-data = sl('abc')
-for solution in data:
-    if solution["Type name"] == "HB":
-        ch("IRS", solution["Label"])
-        run()
-        ap('abc')
+for solution in abc('HB'):
+    abc=abc+run(solution,c='abc.2')
 
-print "\n***Relabel the output files***"
-rl('abc')
+print "\n***Relabel the output***"
+abc=rl(abc)
+save(abc,'abc')
 
 print "\n***Clean the directory***"
 cl()

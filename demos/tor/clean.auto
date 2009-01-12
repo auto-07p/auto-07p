@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo tor
+#==============
+
+print "\n***Clean the directory***"
+dl('1')
+dl('tor')
+cl()

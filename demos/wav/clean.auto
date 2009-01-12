@@ -1,0 +1,11 @@
+
+#==============
+# AUTO Demo wav
+#==============
+
+print "\n***Clean the directory***"
+dl('ode')
+dl('wav')
+dl('rng')
+dl('tim')
+cl()

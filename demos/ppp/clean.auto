@@ -1,0 +1,9 @@
+
+#==============
+# AUTO Demo lin
+#==============
+
+print "\n***Clean the directory***"
+dl('ppp')
+dl('hb')
+cl()

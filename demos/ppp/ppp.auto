@@ -1,0 +1,21 @@
+
+#==============
+# AUTO Demo ppp
+#==============
+
+pgm = "ppp"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : stationary solutions"%pgm
+ppp = run(e=pgm,c=pgm)
+
+print "\n%s : second run : periodic solutions"%pgm
+ppp = ppp+run(ppp("HB2"),IPS=2,ICP=[1,11],ILP=0,NMX=15,NPR=50,DS=0.1,DSMAX=0.5)
+save(ppp,'ppp')
+
+print "\n%s : third run : compute Hopf bifurcation curves"%pgm
+hb = run(ppp("HB2"),ICP=[1,4],ILP=0,ISW=2,NMX=100,RL1=0.58,DSMAX=0.1)
+save(hb,'hb')
+
+print "\n***Clean the directory***"
+cl()
+

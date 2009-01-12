@@ -1,0 +1,18 @@
+
+#==============
+# AUTO Demo pd1
+#==============
+
+pgm = "pd1"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : time integration towards stationary state"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,'1')
+
+print "\n%s : second run : continuation of stationary state"%pgm
+r2 = run(r1,IPS=17,ICP=[1],NTST=20,NMX=100,RL1=50,NPR=25,DS=0.1,DSMAX=0.5)
+save(r2,'2')
+
+print "\n***Clean the directory***"
+cl()
+

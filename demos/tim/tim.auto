@@ -1,0 +1,14 @@
+
+#==============
+# AUTO Demo tim
+#==============
+
+pgm = "tim"
+print "\nDemo %s is started"%pgm
+print "\n%s : Timing run"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

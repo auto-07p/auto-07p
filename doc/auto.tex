@@ -2117,9 +2117,7 @@ lrz ... done
     \commandf{bd[0], bd[1], bd[2], ...}.
    \item[Branch AUTO constants]:
     \commandf{bd[0].c, bd[1].c, bd[2].c, ...}.\\
-    \commandf{bd.c} is copied from \commandf{bd[0].c}, removing the
-    constants \parf{IRS}, \parf{PAR}, \parf{U}, \parf{sv}, \parf{s}, 
-    and \parf{dat}, because those constants need to change between runs.
+    \commandf{bd.c} refers to \commandf{bd[0].c}.
    \item[Branch column]:
     \commandf{bd['PAR(1')], bd[0]['PAR(1)'], bd[1]['L2-NORM'], ...}.\\
     Here \commandf{bd['PAR(1)']} is a shortcut for \commandf{bd[0]['PAR(1)']}.
@@ -2139,7 +2137,10 @@ lrz ... done
     time \commandf{t}.
    \item[Solution AUTO constants]:
     \commandf{bd(5).c, bd('UZ1').c, bd()[0].c, ...}.\\
-    These constants are copied from \commandf{bd.c}. The AUTO constant
+    These constants are copied from the corresponding branch
+    constants, removing the constants \parf{IRS}, \parf{PAR}, \parf{U},
+    \parf{sv}, \parf{s}, and \parf{dat}, because those constants need
+    to change between runs. The AUTO constant
     \parf{IRS} is automatically set to the solution label.
  \end{description}
 
@@ -3407,7 +3408,7 @@ or in any of its subdirectories.}
   from {\tt auto/07p/demos/xxx}
   to the current user directory.
   Here {\tt xxx} denotes a demo name; e.g., {\tt abc}.
-  Note that the \commandf{@dm} command also copies a {\it Makefile}
+  Note that the \commandf{@dm} command also copies \filef{.auto} files
   to the current user directory. To avoid the overwriting of
   existing files, always run demos in a clean work directory.
 \end{itemize}
@@ -4968,12 +4969,13 @@ The following restrictions apply~:
 
 \begin{itemize}
 \item[-]
-  The maximum number of parameters, {\tt NPARX} in {\tt auto/07p/include/auto.h},
-  has pre-defined value {\tt NPARX}=36.  {\tt NPARX} should not normally be increased
+  The default maximum number of parameters, \parf{NPAR} has a
+  pre-defined value in \filef{auto/07p/include/auto.h},
+  of \parf{NPARX}=36.  \parf{NPARX} should not normally be increased
   and it should never be decreased.
-  Any increase of {\tt NPARX} must be followed by recompilation of {\cal AUTO}.
+  Any increase of \parf{NPARX} must be followed by recompilation of {\cal AUTO}.
 \item[-]
-  Generally one should only use {\tt PAR(1)-PAR(9)} for equation parameters,
+  Generally one should only use \parf{PAR(1)-PAR(9)} for equation parameters,
   as {\cal AUTO} may need the other components internally.  
 \end{itemize}
 
@@ -5168,6 +5170,10 @@ the calculation.
 \item
 \commandf{clean.auto}: A script that cleans the directory of all
 generated files.
+
+\item
+\commandf{autorc}: A file that contains default settings for
+the 2-dimensional plotting tool {\cal PyPLAUT}.
 
 \item
 \commandf{plaut04.rc}: A file that contains default settings for
@@ -5605,17 +5611,19 @@ on the two periodic solution families.
   \commandf{demo('lrz')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('lrz')} & load the problem definition \\ 
-  \commandf{run(c='lrz.1')} & compute stationary solutions \\ 
-  \commandf{sv('lrz')} & save output-files as \filef{b.lrz, s.lrz, d.lrz} \\ 
+  \commandf{lrz=run(e='lrz',c='lrz')} & compute stationary solutions \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='lrz.2',s='lrz')} & \parbox[t]{3in}{ compute periodic solutions; the final orbit is near-homoclinic.  Constants changed : {\tt IPS, IRS, ICP, NMX, NPR, DS} \vspace{0.2cm}} \\ 
-  \commandf{ap('lrz')} & append the output-files to \filef{b.lrz, s.lrz, d.lrz} \\ 
+\parbox[t]{3in}{
+  \commandf{lrz=lrz+run(lrz('HB1'),IPS=2,
+   ICP=[1,11],NMX=35,NPR=2,DS=0.5)}\vspace{0.2cm}} & \parbox[t]{3in}{ compute periodic solutions; the final orbit is near-homoclinic. \vspace{0.2cm}} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='lrz.3',s='lrz')} & \parbox[t]{3in}{ compute the symmetric periodic solution family.  Constants changed : {\tt IRS} \vspace{0.2cm}} \\ 
-  \commandf{ap('lrz')} & append the output-files to \filef{b.lrz, s.lrz, d.lrz} \\ 
+\parbox[t]{3in}{
+  \commandf{lrz=lrz+run(lrz('HB2'),IPS=2,
+    ICP=[1,11],NMX=35,NPR=2,DS=0.5)}
+\vspace{0.2cm}} & compute the symmetric periodic solution family \\ 
+  \commandf{save(lrz,'lrz')} & save all output to \filef{b.lrz, s.lrz, d.lrz} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{lrz}.}
@@ -5664,7 +5672,7 @@ Table~\ref{tbl:demo_abcC1}, we note the following:
 \item[-] {\tt IRS=0}~: the starting point defined in {\tt STPNT} 
 	 is to be used (see  Table~\ref{tbl:demo_abcE2}). 
 
-\item[-] {\tt ICP(1)=1}~: the continuation parameter is PAR(1) 
+\item[-] {\tt ICP=[1]}~: the continuation parameter is PAR(1) 
 
 \item[-] {\tt UZR=\{-1:0.4\}}~: there is one user output point, namely at
 	 {\tt PAR(1)=0.4}. Moreover, since the index ("{\tt -1}") in
@@ -5855,21 +5863,12 @@ of demo {\tt abc}.}
 {\small 
 \begin{center} 
 \begin{boxedverbatim}
-ld(e='abc',c='abc.1')
-run()
-sv('abc')
-ld(c='abc.2',s='abc')
-run()
-ap('abc')
-ld(c='abc.3',s='abc')
-run()
-ap('abc')
-ld(c='abc.4',s='abc')
-run()
-ap('abc')
-ld(c='abc.5',s='abc')
-run()
-ap('abc')
+abc=run(e='abc',c='abc.1')
+abc=abc+run(abc('HB1'),c='abc.2')
+abc=abc+run(abc('HB2'),c='abc.3')
+abc=abc+run(abc('HB3'),c='abc.4')
+abc=abc+run(abc('HB4'),c='abc.5')
+save(abc,'abc')
 \end{boxedverbatim}
 \end{center}
 }
@@ -5883,17 +5882,11 @@ ap('abc')
 {\small
 \begin{center}
 \begin{boxedverbatim}
-ld(e='abc',c='abc.1')
-run()
-sv('abc')
-ld(c='abc.2',s='abc')
-data = sl('abc')
-for solution in data:
-    if solution["Type name"] == "HB":
-        ch("IRS", solution["Label"])
-        run()
-        ap('abc')
-
+abc=run(e='abc',c='abc.1')
+for solution in abc('HB'):
+    abc=abc+run(solution,c='abc.2')
+abc=rl(abc)
+save(abc,'abc')
 \end{boxedverbatim}
 \end{center}
 }
@@ -5957,9 +5950,14 @@ command and using {\cal PLAUT04}.
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  \commandf{@p pp2} & run {\cal PLAUT} to graph the contents of {\tt b.pp2} and {\tt s.pp2}; \\ 
+  \commandf{@p pp2} or \commandf{@pp pp2} & 
+  \begin{minipage}{10cm}~\\
+  run {\cal PLAUT} or {\cal
+    PyPLAUT} to graph the contents of {\tt b.pp2} and {\tt s.pp2};\\
+  \end{minipage}
+  \\ 
 \hline
-  {\cal PLAUT}-COMMAND  & ACTION \\
+  {\cal PLAUT/PyPLAUT}-COMMAND  & ACTION \\
 \hline
   \commandf{d2}  & set convenient defaults\\ 
   \commandf{ax}  & select axes \\ 
@@ -5970,7 +5968,8 @@ command and using {\cal PLAUT04}.
   \commandf{bd}  & get blow-up of current bifurcation diagram \\ 
   \commandf{0~ 1 ~-0.25~ 1} & enter diagram limits  \\
   \commandf{sav}  & save plot (see Figure~\ref{fig:pp2_1})\\
-  \commandf{fig.1}  & upon prompt, enter a new file name, e.g., {\tt fig.1} \\
+  \commandf{fig.1} or \commandf{fig1.eps} & upon prompt, enter a new
+  file name, e.g., {\tt fig.1} or {\tt fig.eps}\\
   \commandf{cl}  & clear the screen  \\
 \hline
   \commandf{2d}  & enter 2D mode, for plotting labeled solutions\\ 
@@ -5983,10 +5982,10 @@ command and using {\cal PLAUT04}.
   \commandf{2 3}  & select columns 2 and 3 in {\tt s.pp2} \\
   \commandf{d}  & phase plane display; $u_2$ versus $u_1$\\
   \commandf{sav}  & save plot  (see Figure~\ref{fig:pp2_2})\\
-  \commandf{fig.2}  & upon prompt, enter a new file name \\
+  \commandf{fig.2} or \commandf{fig2.eps} & upon prompt, enter a new file name \\
   \commandf{ex}  & exit from 2D mode  \\
 \hline
-  \commandf{end}  & exit from {\cal PLAUT} \\
+  \commandf{end}  & exit from {\cal PLAUT/PyPLAUT} \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -5998,7 +5997,7 @@ command and using {\cal PLAUT04}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/pp21.ps}}
+\centerline{\epsffile{include/pp21.eps}}
 \caption{The bifurcation diagram of demo {\tt pp2}.}
 \label{fig:pp2_1}
 \end{figure}
@@ -6007,7 +6006,7 @@ command and using {\cal PLAUT04}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/pp22.ps}}
+\centerline{\epsffile{include/pp22.eps}}
 \caption{The phase plot of solutions 11, 15, 19, and 23 in demo {\tt pp2}.}
 \label{fig:pp2_2}
 \end{figure}
@@ -6116,7 +6115,7 @@ For detailed results see
 \parbox[t]{3in}{
   \commandf{r2=run(r1('UZ1'),ICP=[5,11],
     NMX=20,DS=-0.5,DSMAX=5.0)}\vspace{0.2cm}} & 
-  \parbox[t]{3in}{ compute solution family; restart from r1. \vspace{0.2cm}} \\ 
+  \parbox[t]{3in}{ compute solution family; restart from \parf{r1}. \vspace{0.2cm}} \\ 
   \commandf{save(r2,'frc')} & save output-files as \filef{b.frc, s.frc, d.frc} \\ 
 \hline
 %==============================================================================
@@ -6159,18 +6158,25 @@ is also free.
   \commandf{demo('ppp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('ppp')} & load the problem definition \\ 
-  \commandf{run(c='ppp.1')} & compute stationary solutions; detect Hopf bifurcations \\ 
-  \commandf{sv('ppp')} & save output-files as \filef{b.ppp, s.ppp, d.ppp} \\ 
+  \commandf{ppp=run(e='ppp',c='ppp')} & 
+  \parbox[t]{3in}{
+  compute stationary solutions; detect Hopf bifurcations
+  \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ppp.2',s='ppp')} & \parbox[t]{3in}{ compute a family of periodic solutions.  Constants changed : {\tt IPS, IRS, ICP} \vspace{0.2cm}} \\ 
-  \commandf{ap('ppp')} & append the output-files to \filef{b.ppp, s.ppp, d.ppp} \\ 
+  \parbox[t]{3.4in}{
+    \commandf{ppp=ppp+run(ppp("HB2"),IPS=2,ICP=[1,11],
+      ILP=0,NMX=15,NPR=50,DS=0.1,DSMAX=0.5)}\vspace{0.2cm}} & 
+  compute a family of periodic solutions\\
+  \commandf{save(ppp,'ppp')} & save the output to \filef{b.ppp, s.ppp, d.ppp} \\ 
 \hline
 %==============================================================================
-
-  \commandf{run(c='ppp.3',s='ppp')} & compute Hopf bifurcation curves \\ 
-  \commandf{sv('hb')} & save the output-files as \filef{b.hb, s.hb, d.hb} \\ 
+  \parbox[t]{3.4in}{
+  \commandf{hb =
+    run(ppp("HB2"),ICP=[1,4],ILP=0,
+    ISW=2,NMX=100,RL1=0.58,DSMAX=0.1)\vspace{0.2cm}}} & 
+    compute Hopf bifurcation curves \\ 
+  \commandf{save(hb,'hb')} & save the output-files as \filef{b.hb, s.hb, d.hb} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -6325,9 +6331,12 @@ is continued in two parameters, also producing the other locus.
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  \commandf{@p pp3} & run {\cal PLAUT} to graph the contents of {\tt b.pp3} and {\tt s.pp3}; \\ 
+  \commandf{@p pp3} or \commandf{@pp pp3} & \begin{minipage}{8cm}~\\
+      run {\cal PLAUT/PyPLAUT} to graph the contents of {\tt b.pp3} and {\tt
+        s.pp3};\\
+      \end{minipage} \\ 
 \hline
-  {\cal PLAUT}-COMMAND  & ACTION \\
+  {\cal PLAUT/PyPLAUT}-COMMAND  & ACTION \\
 \hline
   \commandf{d2}  & set convenient defaults\\ 
   \commandf{ax}  & select axes \\ 
@@ -6375,9 +6384,11 @@ is continued in two parameters, also producing the other locus.
 \hline
   {\cal AUTO}-COMMAND  & ACTION \\
 \hline
-  \commandf{@p hb} & run {\cal PLAUT} to graph the contents of {\tt b.hb} and {\tt s.hb}; \\ 
+  \commandf{@p hb} or \commandf{@pp hb} & run {\cal PLAUT/PyPLAUT} to
+  graph \\
+ & the contents of {\tt b.hb} and {\tt s.hb}; \\ 
 \hline
-  {\cal PLAUT}-COMMAND  & ACTION \\
+  {\cal PLAUT/PyPLAUT}-COMMAND  & ACTION \\
 \hline
   \commandf{d0}  & set defaults\\ 
   \commandf{ax}  & select axes \\ 
@@ -6428,17 +6439,18 @@ Initially $\nu=-0.9$ and $\beta=0.5$.
   \commandf{demo('tor')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('tor')} & load the problem definition \\ 
-  \commandf{run(c='tor.1')} & 1st run; compute a stationary solution family with Hopf bifurcation \\ 
-  \commandf{sv('1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{r1=run(e='tor',c='tor')} & 
+  \parbox[t]{3in}{
+  1st run; compute a stationary solution family with Hopf bifurcation
+  \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='tor.2',s='1')} & \parbox[t]{3in}{ compute a family of periodic solutions; restart from \filef{s.1}.   Constants changed : \parf{IPS, IRS } \vspace{0.2cm}} \\ 
-  \commandf{ap('1')} & append output-files to \filef{b.1, s.1, d.1} \\ 
+  \commandf{r2=run(r1("HB1"),IPS=2,ICP=[1,11])} &
+  \parbox[t]{3in}{ compute a family of periodic solutions; restart from \parf{r1}. \vspace{0.2cm}} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='tor.3',s='1')} & \parbox[t]{3in}{ compute a bifurcating family of periodic solutions; restart from \filef{s.1}.  Constants changed : \parf{IRS, ISW, NMX} \vspace{0.2cm}} \\ 
-  \commandf{ap('1')} & append output-files to \filef{b.1, s.1, d.1} \\ 
+  \commandf{r3=run(r2("BP1"),ISW=-1,NMX=90)} & \parbox[t]{3in}{ compute a bifurcating family of periodic solutions; restart from \parf{r2}. \vspace{0.2cm}} \\ 
+  \commandf{save(r1+r2+r3,'1')} & save output to \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -6490,7 +6502,7 @@ The \AUTO-constant \parf{dat='pen'} in \filef{c.pen.1}
 causes \AUTO to start from the data in \filef{pen.dat}.
 The mesh will be suitably adapted to the solution, using the number of
 mesh intervals \parf{NTST} and the number of collocation point per mesh
-interval \parf{NCOL} specified in the constants-file \filef{c.pen}.
+interval \parf{NCOL} specified in the constants-file \filef{c.pen.1}.
 
 The first run, with $I$ as free problem parameter,
 starts from the solution (here \parf{IRS=0}) in \filef{pen.dat}.
@@ -6541,7 +6553,7 @@ locate a period doubling bifurcation; restart from \filef{pen.dat}} \\
   \commandf{t=run(pen('PD1'),c='pen.5')} & \parbox[t]{3in}{  generate starting data for period doubling continuation.  Constants changed : \parf{IRS, ICP, ICP, ISW, NMX} \vspace{0.2cm}} \\ 
 \hline
 %==============================================================================
-  \commandf{pd=run(t,sv='pd')} & \parbox[t]{3in}{  compute a locus of period doubling bifurcations; restart from \filef{s.t}.  Constants changed : \parf{IRS} \vspace{0.2cm}} \\ 
+  \commandf{pd=run(t,sv='pd')} & \parbox[t]{3in}{  compute a locus of period doubling bifurcations; restart from \parf{t}.  Constants changed : \parf{IRS} \vspace{0.2cm}} \\ 
   & save output-files as \filef{b.pd, s.pd, d.pd} \\ 
 %\hline
 %==============================================================================
@@ -6649,13 +6661,11 @@ in the solution in the same location.
   \commandf{demo('phs')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{ld('phs')} & load the problem definition \\ 
-  \commandf{run(c='phs.1')} & detect Hopf bifurcation \\ 
-  \commandf{sv('phs')} & save output-files as \filef{b.phs, s.phs, d.phs} \\ 
+  \commandf{r1=run(e='phs',c='phs.1')} & detect Hopf bifurcation \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='phs.2',s='phs')} & \parbox[t]{3in}{ compute periodic solutions. Constants changed : \parf{IRS, IPS, NPR} \vspace{0.2cm}} \\ 
-  \commandf{ap('phs')} & append output-files to \filef{b.phs, s.phs, d.phs} \\ 
+  \commandf{r2=run(r1('HB1'),c='phs.2')} & \parbox[t]{3in}{ compute periodic solutions. Constants changed : \parf{IRS, IPS, NPR} \vspace{0.2cm}} \\ 
+  \commandf{save(r1+r2,'phs')} & save output to \filef{b.phs, s.phs, d.phs} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -6913,11 +6923,11 @@ quite a bit of CPU time and generate big data files.
 \commandf{autox data.py flq n} & \commandf{startman=data.get(flq(n))} \\
 \multicolumn{2}{|p{7in}|}{
 		where $n$ is the different label number.
-                The extracted data will be saved in a file called
+                The extracted data may be saved in a file called
                 \filef{s.startman},
                 which contains a new starting solution that can be
                 used as a base for the manifold computations.
-                The orbit coordinates at
+                The orbit coordinates are at
                 ``time zero'', and the Floquet eigenfunction
                 are saved at \parf{PAR(25:30)} and \parf{PAR(31:36)},
                 respectively.}\\
@@ -6938,7 +6948,7 @@ quite a bit of CPU time and generate big data files.
                 $\varepsilon$
                 corresponds to
                 \parf{PAR(6)}. This parameter $\varepsilon$ is initialized
-                in the file \filef{flq.dat}.
+                via the script \filef{ext.py}.
                 (The sign of $\varepsilon$ is significant!)
                 The parameters in this run (see \filef{c.man.L1a.0}) are:
 
@@ -6973,7 +6983,8 @@ and \filef{d.startL1a}.
 \hline
 \commandf{@R man L1a.1 startL1a} & \commandf{L1a=run(startL1a,c='man.L1a.1')} \\
 \multicolumn{2}{|p{7in}|}{
-		Look at c.man.L1a.1 to see from which label in s.startL1a this
+		Look at \filef{c.man.L1a.1} to see from which label in
+                \filef{s.startL1a} this
 		run starts. In this run the y-coordinate of the end point 
 		(\parf{PAR(22)}) is kept fixed,
                 while the ``period'' (\parf{PAR(11)}), 
@@ -7414,12 +7425,11 @@ This equation is also considered in
   \commandf{demo('exp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='exp.1')} & 1st run; compute solution family containing fold \\ 
-  \commandf{sv('exp')} & save output-files as \filef{b.exp, s.exp, d.exp} \\ 
+  \commandf{r1=run(e='exp',c='exp')} & 1st run; compute solution family containing fold \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='exp.2',s='exp')} & \parbox[t]{3in}{2nd run; restart at a labeled solution, using increased accuracy.  Constants changed : \parf{IRS, NTST, A1, DSMAX} vspace{0.2cm}}\\ 
-  \commandf{ap('exp')} & append output-files to \filef{b.exp, s.exp, d.exp} \\ 
+  \commandf{r2=run(r1,NTST=20)} & 2nd run; restart at the last labeled solution, using increased accuracy\\ 
+  \commandf{save(r1+r2,'exp')} & save output to \filef{b.exp, s.exp, d.exp} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7719,16 +7729,21 @@ For a detailed analysis of the solution behavior see
   \commandf{demo('spb')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='spb.1')} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
-  \commandf{sv('1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
+
+  \commandf{r1=run(e='spb',c='spb.0')} & 1st run; homotopy from $\lambda=0$ to $\lambda=1$ \\ 
+  \commandf{save(r1,'0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='spb.2',s='1')} & \parbox[t]{3in}{2nd run; let $\eps$ tend to zero; restart from \filef{s.1}.  constants changed : \parf{IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
-  \commandf{sv('2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
+  \commandf{r2=run(r1,c='spb.1')} & \parbox[t]{3in}{2nd run; let
+    $\eps$ tend to zero; restart from the last label of \parf{r0}.
+    constants changed : \parf{IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
+  \commandf{save(r2,'1')} & save the output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='spb.3',s='2')} & \parbox[t]{3in}{3rd run; continuation in $\gamma$; $\eps=0.001$; restart from \filef{s.2}.  Constants changed : \parf{IRS, ICP(1), RL0, ITNW, EPSL, EPSU, UZR} \vspace{0.2cm}} \\ 
-  \commandf{sv('3')} & save the output-files as \filef{b.3, s.3, d.3} \\ 
+  \commandf{r3=run(r2('UZ2'),c='spb.3')} & \parbox[t]{3in}{3rd run;
+    continuation in $\gamma$; $\eps=0.001$; restart from 2nd UZ label
+    of \parf{r2}.  Constants changed : \parf{IRS, ICP(1), RL0, ITNW, EPSL, EPSU, UZR} \vspace{0.2cm}} \\ 
+  \commandf{save(r3,'2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -7777,16 +7792,15 @@ imaginary part.
   \commandf{demo('ezp')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='ezp.1')} & 1st run; compute solution family containing fold \\ 
-  \commandf{sv('ezp')} & save output-files as \filef{p.ezp, s.ezp, d.ezp} \\ 
+  \commandf{ezp=run(e='ezp',c='ezp')} & 1st run; compute solution family containing fold \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ezp.2',s='ezp')} & \parbox[t]{3in}{2nd run; compute bifurcating complex solution family.  Constants changed : \parf{IRS, ISW} \vspace{0.2cm}}\\ 
+  \commandf{ezp=ezp+run(ezp('BP1'),ISW=-1)} & \parbox[t]{3in}{2nd run; compute bifurcating complex solution family.  \vspace{0.2cm}}\\ 
   \commandf{ap('ezp')} & append output-files to \filef{p.ezp, s.ezp, d.ezp} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ezp.3',s='ezp')} & \parbox[t]{3in}{3rd run; compute 2nd leg of bifurcating family.  constant changed : \parf{DS} \vspace{0.2cm}}\\ 
-  \commandf{ap('ezp')} & append output-files to \filef{p.ezp, s.ezp, d.ezp} \\
+  \commandf{ezp=ezp+run(ezp('BP1'),ISW=-1,DS='-')} & \parbox[t]{3in}{3rd run; compute 2nd leg of bifurcating family. \vspace{0.2cm}}\\ 
+  \commandf{save(ezp,'ezp')} & save combined output to \filef{b.ezp, s.ezp, d.ezp} \\
 \hline
 %==============================================================================
 \end{tabular}
@@ -7960,12 +7974,16 @@ generally be used only to locate stationary states.
   \commandf{demo('pd1') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='pd1.1') } & time integration towards stationary state \\ 
-  \commandf{sv('1') } & save output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{r1=run(e='pd1',c='pd1') } & time integration towards stationary state \\ 
+  \commandf{save(r1,'1') } & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='pd1.2',s='1')} & \parbox[t]{3in}{continuation of stationary states; read restart data from \filef{s.1}. constants changed : \parf{IPS, IRS, ICP}, etc.\vspace{0.2cm}} \\ 
-  \commandf{sv('2') } & save output-files as \filef{b.2, s.2, d.2} \\ 
+\parbox[t]{3.3in}{
+  \commandf{r2=run(r1,IPS=17,ICP=[1],NTST=20,
+    NMX=100,RL1=50,NPR=25,DS=0.1,DSMAX=0.5)}}
+& \parbox[t]{3in}{continuation of stationary states; read restart data
+  from the last label of \parf{r1} \vspace{0.2cm}} \\ 
+  \commandf{save(r2,'2') } & save output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8022,12 +8040,15 @@ generally be used only to locate stationary states.
   \commandf{demo('pd2') } & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='pd2.1') } & time integration towards stationary state \\ 
-  \commandf{sv('1') } & save output-files as \filef{b.1, s.1, d.1} \\ 
+
+  \commandf{r1=run(e='pd2',c='pd2') } & time integration towards stationary state \\ 
+  \commandf{save(r1,'1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='pd2.2',s='1')} & \parbox[t]{3in}{continuation of stationary states; read restart data from \filef{s.1}.  constants changed : \parf{IPS, IRS, ICP}, etc. \vspace{0.2cm}}\\ 
-  \commandf{sv('2') } & save output-files as \filef{b.2, s.2, d.2} \\ 
+\parbox[t]{3.4in}{
+  \commandf{r2 = run(r1,IPS=17,ICP=[1],ISP=2,NMX=15,
+            NPR=50,DS=-0.1,DSMAX=1.0,UZR=\{-1:0.0\})}} & \parbox[t]{3in}{continuation of stationary states; read restart data from \filef{s.1} \vspace{0.2cm}}\\ 
+  \commandf{save(r2,'2') } & save output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8070,25 +8091,36 @@ All equation parameters, except $p_3$, are fixed throughout.
   \commandf{demo('wav')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='wav.1') } & 1st run; stationary solutions of the system without diffusion \\ 
-  \commandf{sv('ode') } & save output-files as \filef{b.ode, s.ode, d.ode} \\ 
+  \commandf{r1=run(e='wav',c='wav')} &
+  \parbox[t]{3in}{
+  1st run; stationary solutions of the system without diffusion \vspace{0.2cm}} \\ 
+  \commandf{save(r1,"ode")} & save output-files as \filef{b.ode, s.ode, d.ode} \\ 
 \hline
 %==============================================================================
-  \commandf{cp c.wav.2 c.wav} & constants changed : \parf{IPS} \\ 
-  \commandf{run(c='wav.2',s='wav') } & \parbox[t]{3in}{2nd run; detect bifurcations to wave train solutions.  Constants changed : \parf{IPS} \vspace{0.2cm}}\\ 
-  \commandf{sv('wav') } & save output-files as \filef{b.wav, s.wav, d.wav} \\ 
+  \commandf{r2=run(e='wav',c='wav',IPS=11)} &
+  \parbox[t]{3in}{2nd run; detect bifurcations to wave train solutions \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='wav.3',s='wav') } & \parbox[t]{3in}{3rd run; wave train solutions of fixed wave speed.  Constants changed : \parf{IRS, IPS, UZR, ILP} \vspace{0.2cm}}\\ 
-  \commandf{ap('wav') } & append output-files to \filef{b.wav, s.wav, d.wav} \\ 
+  \parbox[t]{3.5in}{
+  \commandf{r3=run(r2("HB1"),IPS=12,ICP=[3,11],ILP=0,
+    ISP=0,RL1=700,DS=0.1,DSMAX=1.0,
+    UZR=\{3:[610.0,638.0], -11:500.0\})}}
+ & \parbox[t]{3in}{3rd run; wave train solutions of fixed wave speed \vspace{0.2cm}}\\ 
+  \commandf{save(r2+r3,'wav') } & save output to \filef{b.wav, s.wav, d.wav} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='wav.4',s='wav') } & \parbox[t]{3in}{4th run; wave train solutions of fixed wave length.  Constants changed : \parf{IRS, IPS, NMX, ICP, UZR} \vspace{0.2cm}}\\ 
-  \commandf{sv('rng') } & save output-files as \filef{b.rng, s.rng, d.rng} \\ 
+  \parbox[t]{3.5in}{
+  \commandf{uz3=load(r3("UZ3"),RL1=1000,
+    DS=0.5,DSMAX=2.0,UZR=\{\})}}&
+  load restart label\\
+  \commandf{r4=run(uz3,ICP=[3,10],NPR=50)} & \parbox[t]{3in}{4th run; wave train solutions of fixed wave length \vspace{0.2cm}}\\ 
+  \commandf{save(r4,'rng') } & save output-files as \filef{b.rng, s.rng, d.rng} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='wav.5',s='wav') } & \parbox[t]{3in}{5th run; time evolution computation.  Constants changed : \parf{IPS, NMX, NPR, ICP} \vspace{0.2cm}}\\ 
-  \commandf{sv('tim') } & save output-files as \filef{b.tim, s.tim, d.tim} \\ 
+  \commandf{r5=run(uz3,IPS=14,ICP=[14],NMX=230,NPR=5)} & \parbox[t]{3in}{5th run; time evolution computation \vspace{0.2cm}}\\ 
+  \commandf{save(r5,'tim') } & save output-files as \filef{b.tim, s.tim, d.tim} \\ 
+%
+%#
 \hline
 %==============================================================================
 \end{tabular}
@@ -8147,10 +8179,10 @@ compute the stationary solution family with Hopf bifurcations.
 \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(r1("HB1"),IPS=2,ICP=[5,11]) } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point. \vspace{0.2cm}}\\ 
+  \commandf{r2=run(r1("HB1"),IPS=2,ICP=[5,11]) } & \parbox[t]{3in}{compute a family of periodic solutions from the first Hopf point. \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(r2("BP1"),ISW=-1) } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation. \vspace{0.2cm}}\\ 
+  \commandf{r3=run(r2("BP1"),ISW=-1) } & \parbox[t]{3in}{compute a solution family from a secondary periodic bifurcation. \vspace{0.2cm}}\\ 
   \commandf{save(r1+r2+r3,'brc') } & save all output to \filef{b.brc, s.brc, d.brc} \\ 
 \hline
 %==============================================================================
@@ -8321,20 +8353,20 @@ see  \citename{DoKeKe:91a} \citeyear{DoKeKe:91a},
   \commandf{demo('opt')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='opt.1')} & one free equation parameter \\ 
-  \commandf{sv('1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{r1=run(e='opt',c='opt')} & one free equation parameter \\ 
+  \commandf{save(r1,'1')} & save output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='opt.2',s='1')} & \parbox[t]{3in}{two free equation parameters; read restart data from \filef{s.1}.  Constants changed : \parf{IRS} \vspace{0.2cm}}\\ 
-  \commandf{sv('2')} & save output-files as \filef{b.2, s.2, d.2} \\ 
+  \commandf{r2=run(r1("LP1"))} & \parbox[t]{3in}{two free equation parameters; read restart data from \parf{r1} \vspace{0.2cm}}\\ 
+  \commandf{save(r2,'2')} & save output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %============================================================================== 
-  \commandf{run(c='opt.3',s='2')} & \parbox[t]{3in}{three free equation parameters; read restart data from \filef{s.2}.  Constants changed : \parf{IRS} \vspace{0.2cm}}\\ 
-  \commandf{sv('3')} & save output-files as \filef{b.3, s.3, d.3} \\ 
+  \commandf{r3=run(r2("LP1"))} & \parbox[t]{3in}{three free equation parameters; read restart data from \parf{r2} \vspace{0.2cm}}\\ 
+  \commandf{save(r3,'3')} & save output-files as \filef{b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='opt.4',s='3')} & \parbox[t]{3in}{four free equation parameters; read restart data from \filef{s.3}.  Constants changed : \parf{IRS} \vspace{0.2cm}}\\ 
-  \commandf{sv('4')} & save output-files as \filef{b.4, s.4, d.4} \\ 
+  \commandf{run(r3("LP1"))} & \parbox[t]{3in}{four free equation parameters; read restart data from \parf{r3} \vspace{0.2cm}}\\ 
+  \commandf{save(r4,'4')} & save output-files as \filef{b.4, s.4, d.4} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8552,8 +8584,6 @@ are not used in this demo.
 Also, $\lambda_1$ is used in the last run only, and its corresponding 
 optimality variable $\tau_1$ is never used.
 
-
-
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{| l | l |}
@@ -8566,28 +8596,41 @@ optimality variable $\tau_1$ is never used.
   \commandf{demo('ops')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='ops.1')} & locate a Hopf bifurcation \\ 
-  \commandf{sv('0')} & save output-files as \filef{b.0, s.0, d.0} \\ 
+  \commandf{r1=run(e='ops',c='ops')} & locate a Hopf bifurcation \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ops.2',s='0')} & \parbox[t]{3in}{compute a family of periodic solutions;  restart from \filef{s.0}. Constants changed : \parf{IPS, IRS, NMX, UZR}  \vspace{0.2cm}}\\ 
-  \commandf{ap('0')} & append the output-files to \filef{b.0, s.0, d.0} \\ 
+  \commandf{uzr=\{3:[0.92,0.93]\}} & set variable for \parf{UZR} \\
+  \parbox[t]{3.2in}{\commandf{
+      r2=run(r1("HB1"),IPS=2,ICP=[3,11], NMX=150,RL0=0.9,UZR=uzr)}} &
+   \parbox[t]{3in}{compute a family of periodic solutions;  restart
+     from \parf{r1} \vspace{0.2cm}}\\ 
+  \commandf{save(r1+r2,'0')} & save output to \filef{b.0, s.0, d.0} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ops.3',s='0')} & \parbox[t]{3in}{locate a 1-parameter extremum as a bifurcation; restart from \filef{s.0}.  Constants changed : \parf{IPS, IRS, ICP}, $\cdots$ \vspace{0.2cm}}\\ 
-  \commandf{sv('1')} & save the output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{icp=[3,11,12,22,-22,-23,-31]} & set variable for \parf{ICP} \\
+  \parbox[t]{3.2in}{\commandf{
+   r3=run(r2("UZ1"),IPS=15,ILP=0, ICP=icp,ISP=2,NMX=25,ITNW=7,DS=-0.05)}}
+  & \parbox[t]{3in}{locate a 1-parameter extremum as a bifurcation; restart from \parf{r2} \vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ops.4',s='1')} & \parbox[t]{3in}{switch branches to generate optimality starting data; restart from \filef{s.1}.  Constants changed : \parf{IRS, ISP, ISW, NMX} \vspace{0.2cm}}\\ 
-  \commandf{ap('1')} & append the output-files to \filef{b.1, s.1, d.1} \\ 
+  \commandf{r4=run(r3("BP1"),ISW=-1,ISP=0,NMX=5)} & \parbox[t]{3in}{switch branches to generate optimality starting data; restart from \parf{r3} \vspace{0.2cm}}\\ 
+  \commandf{save(r3+r4,'1')} & save output to \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ops.5',s='1')} & \parbox[t]{3in}{compute 2-parameter family of 1-parameter extrema; restart from \filef{s.1}.  Constants changed : \parf{IRS, ISW, ICP, ISW}, $\cdots$\vspace{0.2cm}}\\ 
-  \commandf{sv('2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
+  \commandf{icp[1:3]=[2,11]} & set variable for \parf{ICP} \\
+  \commandf{uzr[22]=0.0} & set variable for \parf{UZR} \\
+  \parbox[t]{3.2in}{
+  \commandf{r5=run(r4,ICP=icp,ISW=1,NMX=150, RL0=0.8,RL1=1.9,DS='-',UZR=uzr)}} 
+ & \parbox[t]{3in}{compute 2-parameter family of 1-parameter extrema;
+   restart from \parf{r4} \vspace{0.2cm}}\\ 
+  \commandf{save(r5,'2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='ops.6',s='2')} & \parbox[t]{3in}{compute 3-parameter family of 2-parameter extrema; restart from \filef{s.2}.   Constants changed : \parf{IRS, ICP, EPSL, EPSU, UZR} \vspace{0.2cm}}\\ 
-  \commandf{sv('3')} & save the output-files as \filef{b.3, s.3, d.3} \\ 
+  \commandf{icp[2:4]=[1,11]} & set variable for \parf{ICP} \\
+  \parbox[t]{3.4in}{\commandf{r6=run(r5("UZ4"),IRS=15,ICP=icp,NTST=50,
+UZR=\{1:[0.1,0.05,0.01,0.005,0.001]\})}} &
+ \parbox[t]{3in}{compute 3-parameter family of 2-parameter extrema; restart from \parf{r5} \vspace{0.2cm}}\\ 
+  \commandf{save(r6,'3')} & save the output-files as \filef{b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8694,20 +8737,22 @@ where a three-parameter extremum is located.
   \commandf{demo('obv')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='obv.1')} & locate 1-parameter extrema as branch points \\ 
-  \commandf{sv('obv')} & save output-files as \filef{b.obv, s.obv, d.obv} \\ 
+  \commandf{r1=run(e='obv',c='obv')} & locate 1-parameter extrema as branch points \\ 
+  \commandf{save(r1,'obv')} & save output-files as \filef{b.obv, s.obv, d.obv} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='obv.2',s='obv')} & \parbox[t]{3in}{compute a few step on the first bifurcating family.  Constants changed : \parf{IRS, ISW, NMX} \vspace{0.2cm}}\\ 
-  \commandf{sv('1')} & save the output-files as \filef{b.1, s.1, d.1} \\ 
+  \commandf{r2=run(r1("BP1"),ISW=-1,NMX=5)} & \parbox[t]{3in}{compute a few step on the first bifurcating family \vspace{0.2cm}}\\ 
+  \commandf{save(r2,'1')} & save the output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='obv.3',s='1')} & \parbox[t]{3in}{locate 2-parameter extremum; restart from \filef{s.1}.  Constants changed : \parf{IRS, ISW, NMX, ICP(3)} \vspace{0.2cm}}\\ 
-  \commandf{sv('2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
+\parbox[t]{3.2in}{
+  \commandf{r3=run(r2,ICP=[10,1,2,17,18,13,14,15], ISW=1,NMX=100)}} & \parbox[t]{3in}{locate 2-parameter extremum; restart from \parf{r2} \vspace{0.2cm}}\\ 
+  \commandf{save(r3,'2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
-  \commandf{run(c='obv.4',s='2')} & \parbox[t]{3in}{locate 3-parameter extremum; restart from \filef{s.2}.  Constants changed : \parf{IRS, ICP(4)} \vspace{0.2cm}}\\ 
-  \commandf{sv('3')} & save the output-files as \filef{b.3, s.3, d.3} \\ 
+\parbox[t]{3.2in}{
+  \commandf{r4=run(r3("UZ2"), ICP=[10,1,2,3,18,13,14,15],NMX=25)}} & \parbox[t]{3in}{locate 3-parameter extremum; restart from \parf{r3} \vspace{0.2cm}}\\ 
+  \commandf{save(r4,'3')} & save the output-files as \filef{b.3, s.3, d.3} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8961,8 +9006,8 @@ vary continously from the values for Case~1
   \commandf{demo('stw')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='stw.1')} & continuation of the sharp traveling wave \\ 
-  \commandf{sv('stw')} & save output-files as \filef{b.stw, s.stw, d.stw} \\ 
+  \commandf{r1=run(e='stw',c='stw')} & continuation of the sharp traveling wave \\ 
+  \commandf{save(r1,'stw')} & save output-files as \filef{b.stw, s.stw, d.stw} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -8994,7 +9039,7 @@ As in demo \filef{exp}, a solution curve requires one free parameter;
 here $p_1$.
 
 Note that additional parameters are specified in the user-supplied subroutine 
-\funcf{ PVLS} in file \filef{pvls.f}, namely,
+\funcf{ PVLS} in file \filef{pvl.f90}, namely,
 $p_2$ (the $L_2$-norm of $u_1$),
 $p_3$ (the minimum of $u_2$ on the space-interval $[0,1]$~),
 $p_4$ (the boundary value $u_2(0)$~).
@@ -9003,7 +9048,7 @@ for output purposes; they should not be treated as true
 continuation parameters.
 
 Note also that four free parameters are specified in the \AUTO-constants file 
-\filef{c.pvl.1}, namely, $p_1$, $p_2$, $p_3$, and $p_4$.
+\filef{c.pvl}, namely, $p_1$, $p_2$, $p_3$, and $p_4$.
 The first one in this list, $p_1$, is the true continuation parameter. 
 The parameters $p_2$, $p_3$, and $p_4$ are \emp{ overspecified}
 so that their values will appear in the output.
@@ -9034,8 +9079,8 @@ of the overspecified parameters.
   \commandf{demo('pvl')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='pvl.1')} & compute a solution family \\ 
-  \commandf{sv('pvl')} & save output-files as \filef{b.pvl, s.pvl, d.pvl} \\ 
+  \commandf{r1=run(e='pvl',c='pvl')} & compute a solution family \\ 
+  \commandf{save(r1,'pvl')} & save output-files as \filef{b.pvl, s.pvl, d.pvl} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -9127,8 +9172,8 @@ of \parf{NDIM}, \parf{NTST}, and \parf{NCOL} are given below.
   \commandf{demo('tim')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{run(c='tim.1')} & Timing run \\ 
-  \commandf{sv('tim')} & save output-files as \filef{b.tim, s.tim, d.tim} \\ 
+  \commandf{r1=run(e='tim',c='tim')} & Timing run \\ 
+  \commandf{save(r1,'tim')} & save output-files as \filef{b.tim, s.tim, d.tim} \\ 
 \hline
 %==============================================================================
 \end{tabular}
@@ -9222,7 +9267,7 @@ which means autodetection. In almost all cases autodetection is
 possible. The exception is when starting from a homoclinic to a
 saddle-node equilibrium when \parf{IEQUIB$\ne$1}. Examples for this
 exception are in runs 9, 12, and 13 of the
-demo \texttt{kpr} (see Chapter~\label{ch:HomCont_kpr}).
+demo \texttt{kpr} (see Chapter~\ref{ch:HomCont_kpr}).
 Even in this case
 only one of \parf{NUNSTAB} and \parf{NSTAB} needs to be specified, the
 other one being computed as \parf{NDIM} minus the specified constant.
@@ -9606,14 +9651,14 @@ from the continuation problem.
 {\cal HomCont} demos are given in the following chapters.
 To copy all files of a demo \filef{xxx} (for example, \filef{san}),
 move to a clean directory and type \commandf{demo('xxx')}.
-Simply typing \commandf{make} or \commandf{make all} will then automatically
+Simply typing \commandf{auto xxx.auto} will then automatically
 execute all runs of the demo.
 %To automatically run a demo in ``step-by-step'' mode,
 %type  \commandf{make first}, \commandf{make second}, etc.,
 %to run each separate computation of the demo. 
 At each step, the user is encouraged to plot the data
-saved by using the command {\it plot} (e.g., {\it plot(r)} plots the data
-saved in the \python variable \parf{r}).
+saved by using the command \commandf{plot} (e.g., \commandf{plot(r)}
+plots the data saved in the \python variable \parf{r}).
 
 Of course, in a real application, the runs will not have been prepared
 in advance, and {\cal AUTO}-commands must be used.
@@ -11695,7 +11740,7 @@ setting \parf{ITWIST} back to 0:
    3     7  UZ   38   1.45000E-01   5.47347E-01 ... -4.79400E-03
    3    30  EP   39   8.39399E-02   5.52605E-01 ... -7.36611E-05
 \end{verbatim}
-All the combind appended output is saved to \filef{b.6}, \filef{s.6}
+All the combined appended output is saved to \filef{b.6}, \filef{s.6}
 and \filef{d.6}.
 The bifurcation diagram and the paths we followed when closing the Lin
 gaps are depicted in Figure~\ref{parspace}. It is possible and

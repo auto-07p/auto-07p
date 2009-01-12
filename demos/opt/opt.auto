@@ -1,0 +1,26 @@
+
+#==============
+# AUTO Demo opt
+#==============
+
+pgm = "opt"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : one free equation parameter"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,'1')
+
+print "\n%s : second run : two free equation parameters"%pgm
+r2 = run(r1("LP1"))
+save(r2,'2')
+
+print "\n%s : third run : three free equation parameters"%pgm
+r3 = run(r2("LP1"))
+save(r3,'3')
+
+print "\n%s : fourth run : four free equation parameters"%pgm
+r4 = run(r3("LP1"))
+save(r4,'4')
+
+print "\n***Clean the directory***"
+cl()
+

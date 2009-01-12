@@ -5,7 +5,7 @@
 
 pgm = "kar"
 print "\nDemo %s is started"%pgm
-print "\n%s : first run : computation of the solution branch"%pgm
+print "\n%s : computation of the solution branch"%pgm
 r1 = run(e=pgm,c=pgm)
 save(r1,pgm)
 

@@ -4,18 +4,12 @@
 #==============
 
 print "\n***Compute the basic solution family***"
-ld(e='nep',c='nep.1')
-run()
-sv('nep')
+nep = run(e='nep',c='nep.1')
 
 print "\n***Compute bifurcating solution families***"
-ld(c='nep.2',s='nep')
-data = sl('nep')
-for solution in data:
-    if solution["Type name"] == "BP":
-        ch("IRS", solution["Label"])
-        run()
-        ap('nep')
+for solution in nep('BP'):
+    nep = nep + run(solution,c='nep.2')
 
+save(nep,'nep')
 print "\n***Clean the directory***"
 cl()

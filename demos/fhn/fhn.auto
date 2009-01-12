@@ -4,27 +4,22 @@
 #==============
 
 print "\n***Stationary solutions***"
-ld(e='fhn',c='fhn.1')
-run()
-sv('fhn')
+r1 = run(e='fhn',c='fhn.1')
 
 print "\n***Periodic solutions***"
-ld(c='fhn.2',s='fhn')
-run()
-ap('fhn')
+r2 = run(r1("HB"),c='fhn.2')
+save(r1+r2,'fhn')
 
 print "\n***Continue Hopf bifurcations in 2 parameters***"
-ld(c='fhn.3')
-run()
-sv('hb')
+r3 = run(r1("HB"),c='fhn.3')
 
 print "\n***Continue Hopf bifurcations in 2 parameters***"
-ld(c='fhn.4')
-run()
-ap('hb')
+r4 = run(r1("HB"),c='fhn.4')
+hb = r3 + r4
 
-print "\n***Relabel the Hopf bifurcations files***"
-rl('hb')
+print "\n***Relabel and save the Hopf bifurcations files***"
+hb = rl(hb)
+save(hb, 'hb')
 
 print "\n***Clean the directory***"
 cl()

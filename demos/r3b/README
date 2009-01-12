@@ -5,12 +5,12 @@
  Running the Python script r3b.auto will generate the families of periodic 
  solutions L1, H1, and V1, for the case of the mass-ratio mu=0.063 :
 
- 	auto r3b.auto			| execfile('r3b.auto')
+ 	auto r3b.auto			| auto('r3b.auto')
 
  where as in the following examples, the left hand side command can be used
  at the shell prompt, and the right hand side command at the Python CLUI
  prompt. Note that the commands starting with @ work in both interfaces,
- but cannot be used in the .py scripts.
+ but cannot be used in the expert scripts with a .py suffix.
 
  For example, the data generated for the Lyapunov family L1 will consist of
 
@@ -76,7 +76,7 @@
  been entered there.
  Now run the Python script L1a.auto:
 
-	auto L1a.auto			| execfile('L1a.auto')
+	auto L1a.auto			| auto('L1a.auto')
 
  This will run r3b.auto as above if this was not already done.
 
@@ -85,7 +85,7 @@
  s.L1a constitute the manifold, which can be viewed with the graphics 
  program plaut04 or r3bplaut04 :
 
-		@pl L1a 	or 	@r3b L1a
+	@pl L1a or             @r3b L1a | plot3('L1a',r3b=True)
 
  The various steps executed by the Python commands in the script file
  L1a.auto are explained below, however, showing instead the equivalent 
@@ -107,20 +107,21 @@ cd r3b			| cd r3b
 
 		Copy the r3b demo to the local directory r3b.
 
-auto r3b.auto		| execfile('r3b.auto')
+auto r3b.auto		| auto('r3b.auto')
 
 		Generate the CR3BP AUTO data files.
 
 autox ext.py L1 3 -1e-5 | import ext
-			| ext.make_s('L1',3,-1e-5)
+			| sext=ext.get('L1',3,-1e-5)
 
 		Convert the data for a selected labeled solution from s.L1, 
 		adding a zero adjoint variable. The solution label is 3,
                 and the initial step size into the unstable manifold is -1e-5.
 		The ext.py script looks for the relevant Floquet multiplier in
-		d.L1. The converted solution will be written in the file s.ext.
+		d.L1. The converted solution will be written in the file s.ext
+		or stored in sext.
 
-@r flq ext		| run(e='flq',c='flq',s='ext')
+@r flq ext		| flq=run(sext,c='flq',e='flq')
 
 		Compute the Floquet eigenfunction. Free scalar variables in
 		this run (see c.flq) are: 
@@ -133,12 +134,12 @@ autox ext.py L1 3 -1e-5 | import ext
 		in fact, PAR(5) should reach the value 1.  If the run is 
 		not successful then see REMARK 1 below.
 
-@sv flq			| sv('flq')
+@sv flq			| save(flq,'flq')
 
 		Save the results in b.flq, s.flq, and d.flq .
 
 autox data.py		| import data
-			| data.create()
+			| startman=data.get(flq('UZ1'))
 
 		Extract data for a selected orbit from s.flq. These data 
 		are for both the orbit and its Floquet eigenfunction. It 
@@ -146,15 +147,16 @@ autox data.py		| import data
 		with label 2. If you did the "optional" computation (see 
 		Remark 2) then you may need to change the label of the 
 		restart solution:
-                   autox data.py flq n		| data.create(label=n)
+                   autox data.py flq n		| startman=data.get(flq(n))
 		where n is the different label number.
-                The extracted data will be saved in a file called man.dat,
-                which contains, in order, the mass-ratio parameter mu, the
-                energy, the initial step size, epsilon, into the direction
-                of the unstable manifold, the orbit coordinates at "time zero",
-                and the Floquet eigenfunction coordinates at "time zero".
+                The extracted data may be saved in a file called s.startman,
+                which contains a new starting solution that can be used as
+		a base for the manifold computations.
+                The orbit coordinates are at "time zero", and the Floquet
+		eigenfunction are saved at PAR(25:30) and PAR(31:36),
+		respectively.
 
-@R man L1a.0		| run(e='man',c='man.L1a.0')
+@R man L1a.0 startman | startL1a = run(startman,e='man',c='man.L1a.0')
 
                 This step does a time integration using continuation in the
                 "period" T, i.e., PAR(11), which here is the "integration
@@ -174,11 +176,11 @@ autox data.py		| import data
 		PAR(22) = y-coord at end point
 		PAR(23) = z-coord at end point
 
-@sv startL1a		| sv('startL1a')
+@sv startL1a		| save(startL1a,'startL1a')
 
 		Save the results in b.startL1a, s.startL1a, and d.startL1a . (*)
 
-@R man L1a.1 startL1a	| run(e='man',c='man.L1a.1',s='startL1a')
+@R man L1a.1 startL1a	| L1a=run(startL1a,c='man.L1a.1')
 
 		Look at c.man.L1a.1 to see from which label in s.startL1a this
 		run starts. In this run the y-coordinate of the end point 
@@ -195,18 +197,18 @@ autox data.py		| import data
 		PAR(21) = x-coord at end point
 		PAR(23) = z-coord at end point
 
-@sv L1a			| sv('L1a')
+@sv L1a			| save(L1a,'L1a')
 
 		Save the results in b.L1a, s.L1a, and d.L1a .
 
-@R man L1a.2 startL1a	| run(e='man',c='man.L1a.2',s='startL1a')
+@R man L1a.2 startL1a	| L1a2=run(startL1a,c='man.L1a.2')
 
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
 		same as in the preceding run. This computation results in 
 		the orbit winding around the selected periodic L1 orbit.
 
-@sv L1a2 		| sv('L1a2')
+@sv L1a2 		| save(L1a2,'L1a2')
 
 		Save the results in b.L1a2, s.L1a2, and d.L1a2 .
 
@@ -215,7 +217,7 @@ autox data.py		| import data
 
 Use
 
-auto clean.auto		| execfile('clean.auto')
+auto clean.auto		| auto('clean.auto')
 
 to remove all generated files.
 
@@ -233,8 +235,8 @@ to remove all generated files.
 		greater than 1) .
 
 autox ext.py L1 3 -1e-5 2000 | import ext
-			     | ext.make_s('L1',3,-1e-5,2000)
-@R flq 2 ext		     | run(e='flq',c='flq.2',s='ext')
+			     | sext=ext.get('L1',3,-1e-5,2000)
+@R flq 2 ext		     | flq=run(sext,c='flq.2',e='flq')
 
 		Continue the approximate multiplier; If all goes well then 
 		the actual multiplier will be detected as a branch point 
@@ -244,8 +246,8 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 		PAR(4) = multiplier
 		PAR(5) = norm of eigenfunction
 
-@sv flq			     | sv('flq')
-@R flq 3		     | run(e='flq',c='flq.3',s='flq')
+@sv flq			     | save(flq,'flq')
+@R flq 3		     | flq=run(flq,e='flq',c='flq.3')
 
 		Switch branches at the BP, thereby generating the nonzero 
 		Floquet eigenfunction. The free scalar variables are : 
@@ -257,7 +259,7 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 		If all goes well then PAR(5) should become nonzero, and the
 		corresponding solution should have Label 4.
 
-@sv flq			     | sv('flq')
+@sv flq			     | save(flq,'flq')
 ----------------------------------------------------------------------------
 ----------------------------------------------------------------------------
 ----------------------------REMARK 2----------------------------------------
@@ -265,7 +267,7 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 ----------------------------------------------------------------------------
  One can also follow the orbit, its multiplier and eigenfunction, as follows:
 
-@R flq 4		     | run(e='flq',c='flq.4',s='flq')
+@R flq 4		     | flq=run(flq,e='flq',c='flq.3')
 
 		Free scalar variables in this run are
 
@@ -275,7 +277,7 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 
 		The norm, PAR(5), of the eigenfunction is fixed in this run.
 
-@sv flq			     | sv('flq')
+@sv flq			     | save(flq,'flq')
 ----------------------------------------------------------------------------
 ----------------------------------------------------------------------------
 
@@ -285,18 +287,18 @@ autox ext.py L1 3 -1e-5 2000 | import ext
  Follow the instructions for L1a above, where you replace L by H throughout,
  for instance you can run everything in one go using
 
-	auto H1a.auto			| execfile('H1a.auto')
+	auto H1a.auto			| auto('H1a.auto')
 
  or with the extra calculations:
 
-	auto H1aX.auto			| execfile('H1aX.auto')
+	auto H1aX.auto			| auto('H1aX.auto')
 
  The Floquet eigenfunction is now computed from label 7 with step size -1e-3.
 
  The detailed commands are likewise, except for the manifold calculations
  following (*) (at @sv startL1a):
 
-@R man H1a.1 startH1a	| run(e='man',c='man.H1a.1',s='startH1a')
+@R man H1a.1 startH1a	| H1a=run(startH1a,e='man',c='man.H1a.1')
 
 		Look at c.man.H1a.1 to see from which label in s.startH1a this
 		run starts. In this run the x-coordinate of the end point 
@@ -313,18 +315,18 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 		PAR(22) = y-coord at end point
 		PAR(23) = z-coord at end point
 
-@sv H1a			| sv('H1a')
+@sv H1a			| save(H1a,'H1a')
 
 		Save the results in b.H1a, s.H1a, and d.H1a .
 
-@R man H1a.2 startH1a	| run(e='man',c='man.H1a.2',s='startH1a')
+@R man H1a.2 startH1a	| hetH1a=run(startH1a,e='man',c='man.H1a.2')
 
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
 		same as in the preceding run. This computation results in 
 		the detection of a connecting orbit.
 
-@sv hetH1a 		| sv('hetH1a')
+@sv hetH1a 		| save(hetH1a,'hetH1a')
 
 		Save the results in b.hetH1a, s.hetH1a, and d.hetH1a .
 ----------------------------------------------------------------------------
@@ -336,25 +338,25 @@ autox ext.py L1 3 -1e-5 2000 | import ext
  Follow the instructions for L1a above, where you replace L by H, and a by b
  throughout; for instance you can run everything in one go using
 
-	auto H1b.auto			| execfile('H1b.auto')
+	auto H1b.auto			| auto('H1b.auto')
 
  or with the extra calculations:
 
-	auto H1bX.auto			| execfile('H1bX.auto')
+	auto H1bX.auto			| auto('H1bX.auto')
 
  The Floquet eigenfunction is now computed from label 3 with step size -1e-5.
 
  The detailed commands follow the ones for H1a above, except that there
  is one extra run:
 
-@R man H1b.3 startH1b	| run(e='man',c='man.H1b.3',s='startH1b')
+@R man H1b.3 startH1b	| het2H1b=run(startH1b,e='man',c='man.H1b.3')
 
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
 		same as in the preceding run. This computation results in 
 		the detection of another connecting orbit.
 
-@sv het2H1b
+@sv het2H1b	    	| save(het2H1b,'het2H1b')
 
 		Save the results in b.het2H1b, s.het2H1b, and d.het2H1b .
 ----------------------------------------------------------------------------
@@ -366,7 +368,7 @@ autox ext.py L1 3 -1e-5 2000 | import ext
  Follow the instructions for L1a above, where you replace L by H, and a by c
  throughout; for instance you can run everything in one go using
 
-	auto H1c.auto			| execfile('H1c.auto')
+	auto H1c.auto			| auto('H1c.auto')
 
  The Floquet eigenfunction is now computed from label 68 with step size -1e-2.
 
@@ -382,14 +384,14 @@ autox ext.py L1 3 -1e-5 2000 | import ext
  Follow the instructions for L1a above, where you replace L by V throughout,
  for instance you can run everything in one go using
 
-	auto V1a.auto			| execfile('V1a.auto')
+	auto V1a.auto			| auto('V1a.auto')
 
  The Floquet eigenfunction is now computed from label 8 with step size -1e-5.
 
  The detailed commands are likewise, except for the manifold calculations
  following (*) (at @sv startL1a):
 
-@R man V1a.1 startV1a	| run(e='man',c='man.V1a.1',s='startV1a')
+@R man V1a.1 startV1a	| V1a=run(startV1a,e='man',c='man.V1a.1')
 
 		Look at c.man.V1a.1 to see from which label in s.startV1a this
 		run starts. In this run the z-coordinate of the end point 
@@ -406,7 +408,7 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 		PAR(21) = x-coord at end point
 		PAR(22) = y-coord at end point
 
-@sv V1a			| sv('V1a')
+@sv V1a			| save(V1a,'V1a')
 
 		Save the results in b.V1a, s.V1a, and d.V1a .
 ----------------------------------------------------------------------------
@@ -418,18 +420,18 @@ autox ext.py L1 3 -1e-5 2000 | import ext
  Follow the instructions for L1a above, where you replace L by V, and a by b
  throughout; for instance you can run everything in one go using
 
-	auto V1b.auto			| execfile('V1b.auto')
+	auto V1b.auto			| auto('V1b.auto')
 
  or with the extra calculations:
 
-	auto V1bX.auto			| execfile('V1bX.auto')
+	auto V1bX.auto			| auto('V1bX.auto')
 
  The Floquet eigenfunction is now computed from label 12 with step size 1e-5.
 
  The detailed commands are likewise, except for the manifold calculations
  following (*) (at @sv startL1a):
 
-@R man V1b.1 startV1b	| run(e='man',c='man.V1b.1',s='startV1b')
+@R man V1b.1 startV1b	| V1b=run(startV1b,e='man',c='man.V1b.1')
 
 		Look at c.man.V1b.1 to see from which label in s.startV1b this
 		run starts. In this run the x-coordinate of the end point 
@@ -446,18 +448,18 @@ autox ext.py L1 3 -1e-5 2000 | import ext
 		PAR(22) = y-coord at end point
 		PAR(23) = z-coord at end point
 
-@sv V1b			| sv('V1b')
+@sv V1b			| save(V1b,'V1b')
 
 		Save the results in b.V1b, s.V1b, and d.V1b .
 
-@R man V1b.2 startV1b	| run(e='man',c='man.V1b.2',s='startV1b')
+@R man V1b.2 startV1b	| hetV1b=run(startV1b,e='man',c='man.V1b.2')
 
 		Another run, starting from a longer initial orbit, which 
 		computes part of the manifold. The free parameters are the 
 		same as in the preceding run. This computation results in 
 		the detection of a connecting orbit.
 
-@sv hetV1b		| sv('hetV1b')
+@sv hetV1b		| save(hetV1b,'hetV1b')
 
 		Save the results in b.hetV1b, s.hetV1b, and d.hetV1b .
 ----------------------------------------------------------------------------

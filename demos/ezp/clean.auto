@@ -1,0 +1,8 @@
+
+#==============
+# AUTO Demo ezp
+#==============
+
+print "\n***Clean the directory***"
+dl('ezp')
+cl()

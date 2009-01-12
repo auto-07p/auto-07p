@@ -1,0 +1,8 @@
+#==============
+# AUTO Demo lrz
+#==============
+
+print "\n***Clean the directory***"
+
+dl("lrz")
+cl()

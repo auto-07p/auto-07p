@@ -1,0 +1,26 @@
+
+#==============
+# AUTO Demo obv
+#==============
+
+pgm = "obv"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : locate 1-parameter extrema as bifurcation points"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,'obv')
+
+print "\n%s : second run : compute a few step on the first bifurcating branch"%pgm
+r2 = run(r1("BP1"),ISW=-1,NMX=5)
+save(r2,'1')
+
+print "\n%s : third run : locate 2-parameter extremum"%pgm
+r3 = run(r2,ICP=[10,1,2,17,18,13,14,15],ISW=1,NMX=100)
+save(r3,'2')
+
+print "\n%s : fourth run : locate 3-parameter extremum"%pgm
+r4 = run(r3("UZ2"),ICP=[10,1,2,3,18,13,14,15],NMX=25)
+save(r4,'3')
+
+print "\n***Clean the directory***"
+cl()
+

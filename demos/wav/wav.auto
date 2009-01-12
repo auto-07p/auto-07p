@@ -1,0 +1,35 @@
+
+#==============
+# AUTO Demo wav
+#==============
+
+pgm = "wav"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : stationary solutions of the ODE"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,"ode")
+
+print "\n%s : second run : stationary solutions of the reduced PDE"%pgm
+r2 = run(e=pgm,c=pgm,IPS=11)
+
+print "\n%s : third run : wave train solutions of fixed wave speed"%pgm
+r3 = run(r2("HB1"),IPS=12,ICP=[3,11],ILP=0,ISP=0,RL1=700,DS=0.1,DSMAX=1.0,
+         UZR={3:[610.0,638.0], -11:500.0})
+save(r2+r3,pgm)
+
+print "\n%s : fourth run : fixed wave length waves on a ring"%pgm
+uz3 = load(r3("UZ3"),RL1=1000,DS=0.5,DSMAX=2.0,UZR={})
+r4 = run(uz3,ICP=[3,10],NPR=50)
+save(r4,'rng')
+
+print "\n%s : fifth run : time evolution computation"%pgm
+r5 = run(uz3,IPS=14,ICP=[14],NMX=230,NPR=5)
+save(r5,'tim')
+
+#print "\n%s : sixth run : stationary wave continuation"%pgm
+#r6 = run(r2+r3,c=pgm+'6')
+#save(r2+r3+r6,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

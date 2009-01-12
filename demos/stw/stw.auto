@@ -1,0 +1,14 @@
+
+#==============
+# AUTO Demo stw
+#==============
+
+pgm = "stw"
+print "\nDemo %s is started"%pgm
+print "\n%s : continuation of the sharp traveling wave"%pgm
+r1 = run(e=pgm,c=pgm)
+save(r1,pgm)
+
+print "\n***Clean the directory***"
+cl()
+

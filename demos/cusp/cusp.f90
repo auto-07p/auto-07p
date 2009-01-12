@@ -23,7 +23,8 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: NDIM, IJAC, ICP(*)
   DOUBLE PRECISION, INTENT(IN) :: U(NDIM), PAR(*)
-  DOUBLE PRECISION, INTENT(OUT) :: F(NDIM), DFDU(NDIM,*), DFDP(NDIM,*)
+  DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+  DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 
   DOUBLE PRECISION x, mu, lambda
 
@@ -37,7 +38,7 @@ END SUBROUTINE FUNC
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-SUBROUTINE STPNT(NDIM,U,PAR)
+SUBROUTINE STPNT(NDIM,U,PAR,T)
 !--------- -----
 !
 ! Input arguments :
@@ -48,12 +49,13 @@ SUBROUTINE STPNT(NDIM,U,PAR)
 !      PAR    :   The corresponding equation-parameter values
 !
 ! Note : For time- or space-dependent solutions this subroutine has
-!        arguments (NDIM,U,PAR,T), where the scalar input parameter T
-!        contains the varying time or space variable value.
+!        the scalar input parameter T contains the varying time or space
+!        variable value.
   
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: NDIM
-  DOUBLE PRECISION, INTENT(OUT) :: U(NDIM), PAR(*)
+  DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+  DOUBLE PRECISION, INTENT(IN) :: T
 
 ! Initialize the equation parameters
   PAR(1:2) = (/ 1.0d0, 0.0d0 /)
@@ -87,7 +89,8 @@ SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: NDIM, ICP(*), NBC, IJAC
   DOUBLE PRECISION, INTENT(IN) :: PAR(*), U0(NDIM), U1(NDIM)
-  DOUBLE PRECISION, INTENT(OUT) :: FB(NBC), DBC(NBC,*)
+  DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
+  DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 !
 !X FB(1)=
 !X FB(2)=
@@ -124,7 +127,8 @@ SUBROUTINE ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI,IJAC,DINT)
   INTEGER, INTENT(IN) :: NDIM, ICP(*), NINT, IJAC
   DOUBLE PRECISION, INTENT(IN) :: PAR(*)
   DOUBLE PRECISION, INTENT(IN) :: U(NDIM), UOLD(NDIM), UDOT(NDIM), UPOLD(NDIM)
-  DOUBLE PRECISION, INTENT(OUT) :: FI(NINT), DINT(NINT,*)
+  DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
+  DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
 
 !X FI(1)=
 
@@ -152,7 +156,8 @@ SUBROUTINE FOPT(NDIM,U,ICP,PAR,IJAC,FS,DFDU,DFDP)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
   DOUBLE PRECISION, INTENT(IN) :: U(NDIM), PAR(*)
-  DOUBLE PRECISION, INTENT(OUT) :: FS, DFDU(NDIM,*), DFDP(NDIM,*)
+  DOUBLE PRECISION, INTENT(OUT) :: FS
+  DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 
 !X FS=
 

@@ -1,0 +1,11 @@
+
+#==============
+# AUTO Demo obv
+#==============
+
+print "\n***Clean the directory***"
+dl('obv')
+dl('1')
+dl('2')
+dl('3')
+cl()

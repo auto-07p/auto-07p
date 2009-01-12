@@ -5,7 +5,7 @@
 
 pgm = "enz"
 print "\nDemo %s is started"%pgm
-print "\n%s : first run : stationary solution branches"%pgm
+print "\n%s : stationary solution branches"%pgm
 r1 = run(e=pgm,c=pgm)
 save(r1,pgm)
 

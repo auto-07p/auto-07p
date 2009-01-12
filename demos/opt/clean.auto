@@ -1,0 +1,11 @@
+
+#==============
+# AUTO Demo opt
+#==============
+
+print "\n***Clean the directory***"
+dl('1')
+dl('2')
+dl('3')
+dl('4')
+cl()

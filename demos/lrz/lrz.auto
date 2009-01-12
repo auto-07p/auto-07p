@@ -4,19 +4,14 @@
 #==============
 
 print "\n***Compute stationary solution families***"
-ld(e='lrz',c='lrz.1')
-run()
-sv('lrz')
+lrz=run(e='lrz',c='lrz')
 
 print "\n***Compute the first periodic solution family***"
-ld(c='lrz.2',s='lrz')
-run()
-ap('lrz')
+lrz=lrz+run(lrz('HB1'),IPS=2,ICP=[1,11],NMX=35,NPR=2,DS=0.5)
 
 print "\n***Compute the second periodic solution family***"
-ld(c='lrz.3',s='lrz')
-run()
-ap('lrz')
+lrz=lrz+run(lrz('HB2'),IPS=2,ICP=[1,11],NMX=35,NPR=2,DS=0.5)
+save(lrz,'lrz')
 
 print "\n***Clean the directory***"
 cl()

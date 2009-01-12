@@ -50,12 +50,12 @@ r12=run(r11,ICP=[4,5,23,24],NMX=32,NTST=40,DS=-1.0,DSMAX=1.0,
 r6=r6+r12
 
 #thirteenth run
-r13=run(r12('UZ1'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.13},ISTART=1,
+r13=run(r6('UZ7'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.13},ISTART=1,
   ITWIST=0)
 r6=r6+r13
 
 #fourteenth run
-r14=run(r12('UZ3'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.145},ISTART=1,
+r14=run(r6('UZ9'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR={4:0.145},ISTART=1,
   ITWIST=0)
 r6=r6+r14
 save(r6,'6')

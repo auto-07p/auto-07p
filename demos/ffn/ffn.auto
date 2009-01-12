@@ -6,25 +6,22 @@
 print "\n***Periodically forced FitzHugh-Nagumo equations***"
 print " "
 print "\n***Homotopy in the coupling constant ***"
-ld(e='ffn',c='ffn.1')
-run()
-sv('1')
+r1 = run(e='ffn',c='ffn.1')
+save(r1,'1')
 
 print "\n***Continue with varying FHN parameter 'a'***"
-ld(c='ffn.2',s='1')
-run()
-sv('2')
+r2 = run(r1,c='ffn.2')
 
-print "\n***Relabel the solution files***"
-rl('2')
+print "\n***Relabel and save the solution files***"
+r2 = rl(r2)
+save(r2,'2')
 
 print "\n***Increase the coupling constant ***"
-ld(e='ffn',c='ffn.3')
-run()
-sv('3')
+r3 = run(r1(1),e='ffn',c='ffn.3')
 
-print "\n***Relabel the solution files***"
-rl('3')
+print "\n***Relabel and save the solution files***"
+r3 = rl(r3)
+save(r3,'3')
 
 print "\n***Clean the directory***"
 cl()

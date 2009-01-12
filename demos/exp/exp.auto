@@ -4,14 +4,11 @@
 #==============
 
 print "\n***Compute a solution family***"
-ld(e='exp',c='exp.1')
-run()
-sv('exp')
+r1=run(e='exp',c='exp')
 
 print "\n***Restart the solution family***"
-ld(c='exp.2',s='exp')
-run()
-ap('exp')
+r2=run(r1,NTST=20)
+save(r1+r2,'exp')
 
 print "\n***Clean the directory***"
 cl()

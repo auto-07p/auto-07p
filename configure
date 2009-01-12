@@ -7572,7 +7572,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh demos/obv/Makefile demos/ops/Makefile demos/opt/Makefile demos/pd1/Makefile demos/pd2/Makefile demos/pla/Makefile demos/ppp/Makefile demos/pvl/Makefile demos/stw/Makefile demos/tor/Makefile demos/wav/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8141,17 +8141,6 @@ do
     "cmds/Makefile") CONFIG_FILES="$CONFIG_FILES cmds/Makefile" ;;
     "gui/auto.makefile") CONFIG_FILES="$CONFIG_FILES gui/auto.makefile" ;;
     "cmds/compat.sh") CONFIG_FILES="$CONFIG_FILES cmds/compat.sh" ;;
-    "demos/obv/Makefile") CONFIG_FILES="$CONFIG_FILES demos/obv/Makefile" ;;
-    "demos/ops/Makefile") CONFIG_FILES="$CONFIG_FILES demos/ops/Makefile" ;;
-    "demos/opt/Makefile") CONFIG_FILES="$CONFIG_FILES demos/opt/Makefile" ;;
-    "demos/pd1/Makefile") CONFIG_FILES="$CONFIG_FILES demos/pd1/Makefile" ;;
-    "demos/pd2/Makefile") CONFIG_FILES="$CONFIG_FILES demos/pd2/Makefile" ;;
-    "demos/pla/Makefile") CONFIG_FILES="$CONFIG_FILES demos/pla/Makefile" ;;
-    "demos/ppp/Makefile") CONFIG_FILES="$CONFIG_FILES demos/ppp/Makefile" ;;
-    "demos/pvl/Makefile") CONFIG_FILES="$CONFIG_FILES demos/pvl/Makefile" ;;
-    "demos/stw/Makefile") CONFIG_FILES="$CONFIG_FILES demos/stw/Makefile" ;;
-    "demos/tor/Makefile") CONFIG_FILES="$CONFIG_FILES demos/tor/Makefile" ;;
-    "demos/wav/Makefile") CONFIG_FILES="$CONFIG_FILES demos/wav/Makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

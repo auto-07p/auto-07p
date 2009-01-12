@@ -4,14 +4,11 @@
 #==============
 
 print "\n***Compute the zero family***"
-ld(e='vhb',c='vhb.1')
-run()
-sv('vhb')
+r1 = run(e='vhb',c='vhb.1')
 
 print "\n***Compute the bifurcating vertical branch of periodic solutions***"
-ld(c='vhb.2',s='vhb')
-run()
-ap('vhb')
+r2 = run(r1('HB1'),c='vhb.2')
+save(r1+r2,'vhb')
 
 print "\n***Clean the directory***"
 cl()
