@@ -243,12 +243,12 @@ class commandRelabel(commandWithFilenameTemplate):
     Type y=FUNC(x) to return the python object x, with the solution
     labels sequentially relabelled starting at 1, as a new object y.
 
-    Type FUNC('xxx') to relabel s.xxx, b.xxx, and d.xxx (if you are
+    Type FUNC('xxx') to relabel s.xxx and b.xxx (if you are
     using the default filename templates).  Backups of the
     original files are saved.
 
-    Type FUNC('xxx','yyy') to relabel the existing data-files s.xxx, b.xxx,
-    and d.xxx and save then to s.yyy, b.yyy, and d.yyy (if you are using
+    Type FUNC('xxx','yyy') to relabel the existing data-files s.xxx and b.xxx,
+    and save them to s.yyy and b.yyy; d.xxx is copied to d.yyy (if you are using
     the default filename templates). 
     """
 
@@ -365,7 +365,7 @@ class commandSubtractBranches(commandWithFilenameTemplate):
     (only the first monotonically increasing or decreasing part is used).
 
     Type FUNC('xxx','yyy','ref') to subtract, using interpolation, the first
-    branch in b.yyy from all branches in b.xxx, and save the result in 'xxx'.
+    branch in b.yyy from all branches in b.xxx, and save the result in b.xxx.
     A Backup of the original file is saved.
 
     Use optional arguments branch=m, and point=n, to denote the branch and
@@ -664,7 +664,7 @@ class commandDeleteLabels(commandDeleteLabel):
     (if you are using the default filename templates).
     Type FUNC(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
-    Type information in kept in the bifurcation diagram file for plotting.
+    Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
@@ -683,7 +683,7 @@ class commandKeepLabels(commandDeleteLabel):
     (if you are using the default filename templates).
     Type FUNC(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
-    Type information in kept in the bifurcation diagram file for plotting.
+    Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and

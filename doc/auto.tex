@@ -175,7 +175,7 @@ License (GPL), in particular, Coin, SoQt and Qt. In that case the
 %are available via FTP from 
 %directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
 The {\cal AUTO} file \filef{auto07p-0.6.tar.gz} is
-available via \url{http://indy.cs.concordia.ca/auto}.
+available via \url{http://cmvl.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
 Here it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
 and that the file \filef{auto07p-0.6.tar.gz} is in your main
@@ -450,13 +450,16 @@ the output files are called
 {\tt s.xxx} (the solution-file),
 and
 {\tt d.xxx} (the diagnostics-file).
+The command \commandf{@rn} can be used to rename all these files from
+their old names.
 There are also minor changes in the formatting of these files 
 compared to recent versions of {\cal AUTO}, such as {\cal AUTO97} 
 and {\cal AUTO2000}.
 The main change compared to {\cal AUTO97} is that there is now a
 programmable Python CLUI. The constants file can be written using
 a completely new, more flexible syntax, but the old syntax is
-still accepted.
+still accepted, and files can be converted using the command
+\commandf{@cnvc} (see Section~\ref{sec:command_mode}).
 
 When upgrading from {\cal AUTO2000}, you can continue to use
 equations-files written in C. However, there is now a strict
@@ -2412,9 +2415,14 @@ save sv & commandCopyFortFiles & Save data files.\\ \hline
 gui & commandCreateGUI & Show AUTOs graphical user interface.\\ \hline 
 delete, dl & commandDeleteDataFiles & Delete data files.\\ \hline 
 df deletefort & commandDeleteFortFiles & Clear the current directory of fort files.\\ \hline 
+dlb & commandDeleteLabels & Delete special labels.\\ \hline 
+dsp & commandDeleteSpecialPoints & Delete special points.\\ \hline 
 double & commandDouble & Double a solution.\\ \hline 
 man & commandInteractiveHelp & Get help on the AUTO commands.\\ \hline 
+klb & commandKeepLabels & Keep special labels.\\ \hline 
+ksp & commandKeepSpecialPoints & Keep special points.\\ \hline 
 ls & commandLs & List the current directory.\\ \hline 
+merge mb & commandMergeBranches & Merge branches in data files. \\ \hline
 move & commandMoveFiles & Move data-files to a new name.\\ \hline 
 cn constantsget & commandParseConstantsFile & Get the current continuation constants.\\ \hline 
 bt diagramandsolutionget & commandParseDiagramAndSolutionFile & Parse both bifurcation diagram and solution.\\ \hline 
@@ -2432,6 +2440,7 @@ note nt & commandQueryNote & Print notes in info file.\\ \hline
 secondaryperiod sc sp & commandQuerySecondaryPeriod & Print value of ``secondary-periodic bif. fcn''.\\ \hline 
 stepsize ss st & commandQueryStepsize & Print continuation step sizes.\\ \hline 
 quit q & commandQuit & Quit the AUTO CLUI.\\ \hline 
+relabel rl & commandRelabel & Relabel data files.\\ \hline
 run r rn & commandRun & Run AUTO.\\ \hline 
 ch changeconstant cc & commandRunnerConfigFort2 & Modify continuation constants.\\ \hline 
 hch & commandRunnerConfigFort12 & Modify HomCont continuation constants.\\ \hline 
@@ -2440,6 +2449,7 @@ printconstant pc pr & commandRunnerPrintFort2 & Print continuation parameters.\\
 hpr & commandRunnerPrintFort12 & Print HomCont continuation parameters.\\ \hline 
 shell & commandShell & Run a shell command.\\ \hline 
 splabs & commandSpecialPointLabels & Return special labels.\\ \hline
+subtract sb & commandSubtractBranches & Subtract branches in data files.\\ \hline
 triple tr & commandTriple & Triple a solution.\\ \hline 
 us userdata & commandUserData & Covert user-supplied data files.\\ \hline 
 wait & commandWait & Wait for the user to enter a key.\\ \hline 
@@ -2451,7 +2461,7 @@ For convenience, you can use ``!'' to run a shell command. Moreover
 the common shell commands \commandf{clear}, \commandf{less},
 \commandf{mkdir}, \commandf{rmdir},
 \commandf{cp}, \commandf{mv}, \commandf{rm}, \commandf{ls},
-\commandf{cd}, and \commandf{cat}, and all AUTO Unix commands that are described
+\commandf{cd}, and \commandf{cat}, and all \AUTO Unix commands that are described
 in Chapter~\ref{sec:command_mode} and start with an ``@''-sign can be
 entered directly, without the ``!''.
 \pagebreak
@@ -2459,73 +2469,73 @@ entered directly, without the ``!''.
 \subsection{Basic commands.} \label{sec:clui_ref_basic}
 \begin{description}
 \item[run]
-Run AUTO.
+Run \AUTO.
 
-    Type r=run([s],[options]) to run AUTO from solution s with the given
-    AUTO constants or file keyword options.
+    Type \commandf{r=run([s],[options])} to run \AUTO from solution s with the given
+    \AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
-    later print with ``print r'', obtain branches from via r[0], r[1], ...,
+    later print with \commandf{print r}, obtain branches from via r[0], r[1], ...,
     and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
-    run(s) runs AUTO in the following way for different types of s:
+    \commandf{run(s)} runs \AUTO in the following way for different types of \parf{s}:
     \begin{itemize}
     \item
-      A solution: AUTO starts from solution s, with AUTO constants s.c.
+      A solution: \AUTO starts from solution \parf{s}, with \AUTO constants \parf{s.c}.
     \item
-      A bifurcation diagram: AUTO start from the solution specified by
-      the AUTO constant IRS, or if IRS is not specified, the last solution
-      in s, s()[-1], with AUTO constants s()[-1].c.
+      A bifurcation diagram: \AUTO start from the solution specified by
+      the \AUTO constant \parf{IRS}, or if \parf{IRS} is not specified, the last solution
+      in \parf{s}, \parf{s()[-1]}, with \AUTO constants \parf{s()[-1].c}.
     \item
-      A string: AUTO uses the solution in the file 's.s' together with the
-      constants in the files 'c.s', and 'h.s'. Not all of these
+      A string: \AUTO uses the solution in the file \filef{s.s} together with the
+      constants in the files \filef{c.s}, and \filef{h.s}. Not all of these
       files need to be present.
     \end{itemize}
 
-    If no solution s is specified, then the global values from the
-    'load' command (below) are used instead, where
+    If no solution \parf{s} is specified, then the global values from the
+    \commandf{load} command (below) are used instead, where
     options which are not explicitly set retain their previous value.
 
-    Keyword argument options can be AUTO constants, such as DS=0.05,
-    or ISW=-1, or specify a constant or solution file. These override
-    the constants in s.c, where applicable. See ``load'':\\
-    run(s,options) is equivalent to run(load(s,options))
+    Keyword argument options can be \AUTO constants, such as \parf{DS=0.05},
+    or \parf{ISW=-1}, or specify a constant or solution file. These override
+    the constants in \filef{s.c}, where applicable. See \commandf{load}:\\
+    \commandf{run(s,options)} is equivalent to \commandf{run(load(s,options))}
 
     Example: given a bifurcation diagram bd, with a branch point
     solution, switch branches and stop at the first Hopf bifurcation:\\
-    hb = run(bd('BP1'),ISW=-1,SP='HB1')
+    \commandf{hb = run(bd('BP1'),ISW=-1,SP='HB1')}
     
-    Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
+    Special keyword arguments are \parf{sv} and \parf{ap}; \parf{sv} is also an \AUTO
     constant:\\
-    run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')\\
+    \commandf{run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')}\\
     saves to the files \filef{b.hb}, \filef{s.hb} and \filef{d.hb},
     and appends to \filef{b.all}, \filef{s.all}, and \filef{d.all}.
 
     \textbf{Aliases:} r rn commandRun
 
 \item[load]
-Load files into the AUTO runner or return modified solution data.
+Load files into the \AUTO runner or return modified solution data.
 
-    Type result=load([options]) to modify the AUTO runner.\\
-    Type result=load(data,[options]) to return possibly
+    Type \commandf{result=load([options])} to modify the \AUTO runner.\\
+    Type \commandf{result=load(data,[options])} to return possibly
     modified solution data.\\
 
     The type of the result is a solution object.
 
-    load(data,[options]) returns a solution in the following way for
+    \commandf{load(data,[options])} returns a solution in the following way for
     different types of data:
     \begin{itemize}
     \item
-      A solution: load returns the solution data, with AUTO constants
+      A solution: load returns the solution data, with \AUTO constants
       modified by options.
     \item
       A bifurcation diagram or a solution list:
       returns the solution specified by
-      the AUTO constant IRS, or if IRS is not specified, the last solution
-      in s.
+      the \AUTO constant \parf{IRS}, or if \parf{IRS} is not specified, the last solution
+      in \parf{s}.
     \item
-      A string: AUTO uses the solution in the file 's.s' together with the
+      A string: \AUTO uses the solution in the file 's.s' together with the
       constants in the files 'c.s', and 'h.s'. Not all of these
       files need to be present.
     \item
@@ -2547,24 +2557,24 @@ Load files into the AUTO runner or return modified solution data.
     \end{verbatim}
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
-    For example one may type: s=load(e='ab',c='ab.1') to use 'ab.c' as
-    the equations file and c.ab.1 as the constants file (if you are
+    For example one may type: \commandf{s=load(e='ab',c='ab.1')} to use \filef{ab.c} as
+    the equations file and \filef{c.ab.1} as the constants file (if you are
     using the default filename templates).
 
-    Type s=load('name') to load all files with base 'name'.
+    Type \commandf{s=load('name')} to load all files with base 'name'.
     This does the same thing as running
-    s=load(e='name',c='name,h='name',s='name').
+    \commandf{s=load(e='name',c='name,h='name',s='name')}.
  
-    You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
-    Special values for DS are '+' (forwards) and '-' (backwards).\\
-    Example: s = load(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    You can also specify \AUTO Constants, e.g., \parf{DS=0.05}, or \parf{IRS=2}.
+    Special values for \parf{DS} are \parf{'+'} (forwards) and \parf{'-'} (backwards).\\
+    Example: \commandf{s = load(s,DS='-')} changes \parf{s.c['DS']} to \parf{-s.c['DS']}.
 
     \textbf{Aliases:} ld commandRunnerLoadName
 
 \item[loadbd]
     Load bifurcation diagram files.
 
-    Type b=loadbd([options]) to load output files or output data.
+    Type \commandf{b=loadbd([options])} to load output files or output data.
     There are three possible options:
     \begin{verbatim}
     Long name   Short name    Description
@@ -2574,10 +2584,10 @@ Load files into the AUTO runner or return modified solution data.
     diagnostics d             The diagnostics file
     \end{verbatim}
 
-    Type loadbd('name') to load all files with base 'name'.
+    Type \commandf{loadbd('name')} to load all files with base 'name'.
     This does the same thing as running\\
-    loadbd(b='name',s='name,d='name').\\
-    plot(b) will then plot the 'b' and 's' components.
+    \commandf{loadbd(b='name',s='name,d='name')}.\\
+    \commandf{plot(b)} will then plot the 'b' and 's' components.
 
     Returns a bifurcation diagram object representing the files in b.
 
@@ -2586,14 +2596,14 @@ Load files into the AUTO runner or return modified solution data.
 \item[save]
 Save data files.
 
-    Type save(x,'xxx') to save bifurcation diagram \parf{x}
+    Type \commandf{save(x,'xxx')} to save bifurcation diagram \parf{x}
     to the files \filef{b.xxx}, \filef{s.xxx}, \filef{d.xxx}. 
     Existing files with these names will be overwritten.
     If \parf{x} is a solution, a list of solutions, or does not contain any
     bifurcation diagram or diagnostics data, then only the file \filef{s.xxx}
     is saved to.
 
-    Type save('xxx') to save the output-files \filef{fort.7},
+    Type \commandf{save('xxx')} to save the output-files \filef{fort.7},
     \filef{fort.8}, \filef{fort.9}, to \filef{b.xxx}, \filef{s.xxx},
     \filef{d.xxx} (if you are using the default filename
     templates).  Existing files with these names will be overwritten.
@@ -2604,23 +2614,23 @@ Save data files.
 
 Append data files.
 
-    Type append(x,'xxx') to append bifurcation diagram x
-    to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
+    Type \commandf{append(x,'xxx')} to append bifurcation diagram x
+    to the data-files \filef{b.xxx}, \filef{s.xxx}, and \filef{d.xxx}. This is equivalent to
     the command\\
-    save(x+load('xxx'),'xxx')
+    \commandf{save(x+load('xxx'),'xxx')}
 
-    Type append('xxx',xxx) to append existing data-files s.xxx, b.xxx,
-    and d.xxx to bifurcation diagram x. This is equivalent to
+    Type \commandf{append('xxx',xxx)} to append existing data-files \filef{s.xxx}, \filef{b.xxx},
+    and \filef{d.xxx} to bifurcation diagram x. This is equivalent to
     the command\\
-    x=load('xxx')+x
+    \commandf{x=load('xxx')+x}
 
-    Type append('xxx') to append the output-files fort.7, fort.8,
-    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
+    Type \commandf{append('xxx')} to append the output-files \filef{fort.7}, \filef{fort.8},
+    \filef{fort.9}, to existing data-files \filef{s.xxx}, \filef{b.xxx}, and \filef{d.xxx} (if you are
     using the default filename templates).
 
-    Type append('xxx','yyy') to append existing data-files s.xxx, b.xxx,
-    and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
-    the default filename templates).
+    Type \commandf{append('xxx','yyy')} to append existing data-files \filef{s.xxx}, \filef{b.xxx},
+    and \filef{d.xxx} to data-files \filef{s.yyy}, \filef{b.yyy}, and
+    \filef{d.yyy} (if you are using the default filename templates).
 
     \textbf{Aliases:} ap commandAppend
 \end{description}
@@ -2631,15 +2641,15 @@ Append data files.
 \item[plot]
 2D plotting of data.
 
-    Type plot(x) to run the graphics program PyPLAUT for the graphical
+    Type \commandf{plot(x)} to run the graphics program PyPLAUT for the graphical
     inspection of bifurcation diagram or solution data in x.
 
-    Type plot('xxx') to run the graphics program PyPLAUT for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
+    Type \commandf{plot('xxx')} to run the graphics program PyPLAUT for the graphical
+    inspection of the data-files \filef{b.xxx} and \filef{s.xxx} (if you are using the
     default filename templates).
 
-    Type plot() to run the graphics program for the graphical
-    inspection of the output-files '\filef{fort.7}' and '\filef{fort.8}'.
+    Type \commandf{plot()} to run the graphics program for the graphical
+    inspection of the output-files \filef{fort.7} and \filef{fort.8}.
 
     The return value will be the handle for the graphics window.
     
@@ -2648,17 +2658,17 @@ Append data files.
 \item[plot3]
 3D plotting of data.
 
-    Type plot3(x) to run the graphics program PLAUT04 for the graphical
+    Type \commandf{plot3(x)} to run the graphics program PLAUT04 for the graphical
     inspection of bifurcation diagram or solution data in x.
 
-    Type plot3('xxx') to run the graphics program PLAUT04 for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
+    Type \commandf{plot3('xxx')} to run the graphics program PLAUT04 for the graphical
+    inspection of the data-files \filef{b.xxx} and \filef{s.xxx} (if you are using the
     default filename templates).
 
-    Type plot3() to run the graphics program PLAUT04 for the graphical
-    inspection of the output-files 'fort.7' and 'fort.8'.
+    Type \commandf{plot3()} to run the graphics program PLAUT04 for the graphical
+    inspection of the output-files \filef{fort.7} and \filef{fort.8}.
 
-    Type plot3(...,r3b=True) to run PLAUT04 in restricted three body
+    Type \commandf{plot3(...,r3b=True)} to run PLAUT04 in restricted three body
     problem mode.
     
 \textbf{Aliases:} p3 commandPlotter3D
@@ -2669,7 +2679,7 @@ Append data files.
 \item[copy]
 Copy data files.
 
-    Type copy('xxx','yyy') to copy the data-files \filef{c.xxx},
+    Type \commandf{copy('xxx','yyy')} to copy the data-files \filef{c.xxx},
     \filef{d.xxx}, \filef{b.xxx}, and \filef{h.xxx} to \filef{c.yyy},
     \filef{d.yyy}, \filef{b.yyy}, and \filef{h.yyy} (if you are using the
     default filename templates).
@@ -2679,7 +2689,7 @@ Copy data files.
 \item[move]
 Move data-files to a new name.
 
-    Type move('xxx','yyy') to move the data-files \filef{b.xxx},
+    Type \commandf{move('xxx','yyy')} to move the data-files \filef{b.xxx},
     \filef{s.xxx}, \filef{d.xxx}, and \filef{c.xxx} to \filef{b.yyy},
     \filef{s.yyy}, \filef{d.yyy}, and \filef{c.yyy} (if you are using the
     default filename templates).  
@@ -2689,7 +2699,7 @@ Move data-files to a new name.
 \item[df]
 Clear the current directory of fort files.
 
-    Type df() to clean the current directory.  This command will
+    Type \commandf{df()} to clean the current directory.  This command will
     delete all files of the form \filef{fort.*}.
     
 \textbf{Aliases:} deletefort commandDeleteFortFiles
@@ -2697,7 +2707,7 @@ Clear the current directory of fort files.
 \item[clean]
 Clean the current directory.
 
-    Type clean() to clean the current directory.  This command will
+    Type \commandf{clean()} to clean the current directory.  This command will
     delete all files of the form \filef{fort.*}, \filef{*.*\~{}},
     \filef{*.o}, and \filef{*.exe}.
     
@@ -2707,7 +2717,7 @@ cl commandClean
 \item[delete]
 Delete data files.
 
-    Type delete('xxx') to delete the data-files \filef{d.xxx},
+    Type \commandf{delete('xxx')} to delete the data-files \filef{d.xxx},
     \filef{b.xxx}, and \filef{s.xxx} (if you are using the default
     filename templates).
     
@@ -2720,136 +2730,136 @@ Delete data files.
 \item[limitpoint]
 Print the value of the ``limit point function''.
 
-    Type limitpoint(x) to list the value of the ``limit point function'' 
+    Type \commandf{limitpoint(x)} to list the value of the ``limit point function'' 
     in the diagnostics of the bifurcation diagram object \parf{x}.
     This function vanishes at a limit point (fold).
 
-    Type limitpoint() to list the value of the ``limit point function'' 
-    in the output-file fort.9.
+    Type \commandf{limitpoint()} to list the value of the ``limit point function'' 
+    in the output-file \filef{fort.9}.
 
-    Type limitpoint('xxx') to list the value of the ``limit point function'' 
-    in the info file '\filef{d.xxx}'.
+    Type \commandf{limitpoint('xxx')} to list the value of the ``limit point function'' 
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} lm lp commandQueryLimitpoint
 
 \item[branchpoint]
 Print the ``branch-point function''.
     
-    Type branchpoint(x) to list the value of the ``branch-point function'' 
+    Type \commandf{branchpoint(x)} to list the value of the ``branch-point function'' 
     in the diagnostics of the bifurcation diagram object \parf{x}.
     This function vanishes at a branch point.
 
-    Type branchpoint() to list the value of the ``branch-point function'' 
-    in the output-file fort.9.
+    Type \commandf{branchpoint()} to list the value of the ``branch-point function'' 
+    in the output-file \filef{fort.9}.
     
-    Type branchpoint('xxx') to list the value of the ``branch-point function''
-    in the info file 'd.xxx'.
+    Type \commandf{branchpoint('xxx')} to list the value of the ``branch-point function''
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} br bp commandQueryBranchPoint
 
 \item[hopf]
 Print the value of the ``Hopf function''.
 
-    Type hopf(x) to list the value of the ``Hopf function'' 
+    Type \commandf{hopf(x)} to list the value of the ``Hopf function'' 
     in the diagnostics of the bifurcation diagram object \parf{x}.
     This function vanishes at a Hopf bifurcation point.
 
-    Type hopf() to list the value of the ``Hopf function'' 
-    in the output-file fort.9.
+    Type \commandf{hopf()} to list the value of the ``Hopf function'' 
+    in the output-file \filef{fort.9}.
 
-    Type hopf('xxx') to list the value of the ``Hopf function''
-    in the info file 'd.xxx'.
+    Type \commandf{hopf('xxx')} to list the value of the ``Hopf function''
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} hb hp commandQueryHopf
 
 \item[secondaryperiod]
 Print value of ``secondary-periodic bif. fcn''.
 
-    Type secondaryperiod(x) to list the value of the
+    Type \commandf{secondaryperiod(x)} to list the value of the
     ``secondary-periodic bifurcation function'' 
     in the diagnostics of the bifurcation diagram object \parf{x}.
     This function vanishes at period-doubling and torus bifurcations.
 
-    Type secondaryperiod()  to list the value of the
+    Type \commandf{secondaryperiod()}  to list the value of the
     ``secondary-periodic bifurcation function'' 
-    in the output-file 'fort.9.
+    in the output-file \filef{fort.9}.
 
-    Type secondaryperiod('xxx') to list the value of the
+    Type \commandf{secondaryperiod('xxx')} to list the value of the
     ``secondary-periodic bifurcation function''
-    in the info file 'd.xxx'.
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} sc sp commandQuerySecondaryPeriod
 
 \item[iterations]
 Print the number of Newton interations.
 
-    Type iterations(x) to list the number of Newton iterations per
+    Type \commandf{iterations(x)} to list the number of Newton iterations per
     continuation step in the diagnostics of the bifurcation diagram
     object \parf{x}.
 
-    Type iterations() to list the number of Newton iterations per
-    continuation step in fort.9. 
+    Type \commandf{iterations()} to list the number of Newton iterations per
+    continuation step in \filef{fort.9}. 
 
-    Type iterations('xxx') to list the number of Newton iterations per
-    continuation step in the info file 'd.xxx'.
+    Type \commandf{iterations('xxx')} to list the number of Newton iterations per
+    continuation step in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} it commandQueryIterations
 
 \item[note]
 Print notes in info file.
 
-    Type note(x) to show any notes 
+    Type \commandf{note(x)} to show any notes 
     in the diagnostics of the bifurcation diagram
     object \parf{x}.
 
-    Type note() to show any notes in the output-file fort.9.
+    Type \commandf{note()} to show any notes in the output-file \filef{fort.9}.
 
-    Type note('xxx') to show any notes  in the info file 'd.xxx'.
+    Type \commandf{note('xxx')} to show any notes  in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} nt commandQueryNote
 
 \item[stepsize]
 Print continuation step sizes.
 
-    Type stepsize(x) to list the continuation step size for each
+    Type \commandf{stepsize(x)} to list the continuation step size for each
     continuation step in the diagnostics of the bifurcation diagram
     object \parf{x}.
 
-    Type stepsize() to list the continuation step size for each
-    continuation step in  'fort.9. 
+    Type \commandf{stepsize()} to list the continuation step size for each
+    continuation step in  \filef{fort.9}. 
 
-    Type stepsize('xxx') to list the continuation step size for each
-    continuation step in the info file 'd.xxx'.
+    Type \commandf{stepsize('xxx')} to list the continuation step size for each
+    continuation step in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} ss st commandQueryStepsize
 
 \item[eigenvalue]
 Print eigenvalues of Jacobian (algebraic case).
 
-    Type eigenvalue(x) to list the eigenvalues of the Jacobian 
+    Type \commandf{eigenvalue(x)} to list the eigenvalues of the Jacobian 
     in the diagnostics of the bifurcation diagram object \parf{x}.
     (Algebraic problems.)
 
-    Type eigenvalue() to list the eigenvalues of the Jacobian 
-    in fort.9. 
+    Type \commandf{eigenvalue()} to list the eigenvalues of the Jacobian 
+    in \filef{fort.9}. 
 
-    Type eigenvalue('xxx') to list the eigenvalues of the Jacobian 
-    in the info file 'd.xxx'.
+    Type \commandf{eigenvalue('xxx')} to list the eigenvalues of the Jacobian 
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} ev eg commandQueryEigenvalue
 
 \item[floquet]
 Print the Floquet multipliers.
 
-    Type floquet(x) to list the Floquet multipliers
+    Type \commandf{floquet(x)} to list the Floquet multipliers
     in the diagnostics of the bifurcation diagram object \parf{x}.
     (Differential equations.)
 
-    Type floquet() to list the 
-    in the output-file fort.9. 
+    Type \commandf{floquet()} to list the 
+    in the output-file \filef{fort.9}. 
 
-    Type floquet('xxx') to list the Floquet multipliers 
-    in the info file 'd.xxx'.
+    Type \commandf{floquet('xxx')} to list the Floquet multipliers 
+    in the info file \filef{d.xxx}.
     
 \textbf{Aliases:} fl commandQueryFloquet
 \end{description}
@@ -2857,12 +2867,29 @@ Print the Floquet multipliers.
 \subsection{File-maintenance.}
 
 \begin{description}
+\item[relabel]
+Relabel data files.
+
+    Type \commandf{y=relabel(x)} to return the python object x, with the solution
+    labels sequentially relabelled starting at 1, as a new object y.
+
+    Type \commandf{relabel('xxx')} to relabel \filef{s.xxx} and \filef{b.xxx} (if you are
+    using the default filename templates).  Backups of the
+    original files are saved.
+
+    Type \commandf{relabel('xxx','yyy')} to relabel the existing data-files
+    \filef{s.xxx} and \filef{b.xxx} and save then to \filef{s.yyy} and
+    \filef{b.yyy}; \filef{d.xxx} is copied to \filef{d.yyy} (if you are using
+    the default filename templates). 
+
+\textbf{Aliases:} rl commandRelabel
+
 \item[double]
 Double a solution.
 
-    Type double() to double the solution in '\filef{fort.8}'.
+    Type \commandf{double()} to double the solution in \filef{fort.8}.
 
-    Type double('xxx') to double the solution in \filef{s.xxx} (if you
+    Type \commandf{double('xxx')} to double the solution in \filef{s.xxx} (if you
     are using the default filename templates).
     
 \textbf{Aliases:} db commandDouble
@@ -2870,9 +2897,9 @@ Double a solution.
 \item[triple]
 Triple a solution.
 
-    Type triple() to triple the solution in '\filef{fort.8}'.
+    Type \commandf{triple()} to triple the solution in \filef{fort.8}.
 
-    Type triple('xxx') to triple the solution in \filef{s.xxx} (if you
+    Type \commandf{triple('xxx')} to triple the solution in \filef{s.xxx} (if you
     are using the default filename templates).
     
 \textbf{Aliases:} tr commandTriple
@@ -2880,20 +2907,138 @@ Triple a solution.
 \item[us]
 Convert user-supplied data files.
 
-    Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
-    AUTO format. The converted file is called 's.dat'.  The original
-    file is left unchanged.  AUTO automatically sets the period in
+    Type \commandf{us('xxx')} to convert a user-supplied data file 'xxx.dat' to
+    \AUTO format. The converted file is called 's.dat'.  The original
+    file is left unchanged.  \AUTO automatically sets the period in
     {\tt PAR(11)}.  Other parameter values must be set in 'STPNT'. (When
     necessary, {\tt PAR(11)} may also be redefined there.)  The
-    constants-file file 'c.xxx' must be present, as the AUTO-constants
-    'NTST' and 'NCOL' are used to define the new mesh.  For examples
-    of using the 'userData' command see demos 'lor' and 'pen' (where
-    it has the old name 'fc').
+    constants-file file 'c.xxx' must be present, as the \AUTO-constants
+    'NTST' and 'NCOL' are used to define the new mesh.
 
-    Note: this technique has been obsoleted by the 'dat' AUTO constant
+    Note: this technique has been obsoleted by the 'dat' \AUTO constant
     in Section~\ref{sec:dat}.
     
 \textbf{Aliases:} userdata commandUserData
+
+\item[dlb]
+Delete special labels.
+
+    Type \commandf{dlb(list,x)} to delete the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
+
+    Type \commandf{dlb(list,'xxx')} to delete the special points in list from
+    the data-files \filef{b.xxx}, and \filef{s.xxx}.
+    (if you are using the default filename templates).
+
+    Type \commandf{dlb(list)} to delete the special points in list from
+    the data-files \filef{fort.7} and \filef{fort.8}.
+
+    Type information is kept in the bifurcation diagram for plotting.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
+
+\textbf{Alias:} commandDeleteLabels
+
+\item[klb]
+Keep special labels.
+
+    Type \commandf{klb(list,x)} to only keep the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
+
+    Type \commandf{klb(list,'xxx')} to only keep the special points in list from
+    the data-files \filef{b.xxx}, and \filef{s.xxx}.
+    (if you are using the default filename templates).
+
+    Type \commandf{klb(list)} to only keep the special points in list from
+    the data-files \filef{fort.7} and \filef{fort.8}.
+
+    Type information is kept in the bifurcation diagram for plotting.
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
+    regular points.
+
+\textbf{Alias:} commandKeepLabels
+
+\item[dsp]
+Delete special points.
+
+    Type \commandf{dsp(list,x)} to delete the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
+
+    Type \commandf{dsp(list,'xxx')} to delete the special points in list from
+    the data-files \filef{b.xxx}, and \filef{s.xxx}.
+    (if you are using the default filename templates).
+
+    Type \commandf{dsp(list)} to delete the special points in list from
+    the data-files \filef{fort.7} and \filef{fort.8}.
+
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean the special points ['BP', 'LP', 'HB', 'PD', 'TR', 'EP',
+    'MX']
+
+\textbf{Alias:} commandDeleteSpecialPoints
+
+\item[ksp]
+Keep special points.
+
+    Type \commandf{ksp(list,x)} to only keep the special points in list from
+    the Python object x, which must be a solution list or a bifurcation diagram.
+
+    Type \commandf{ksp(list,'xxx')} to only keep the special points in list from
+    the data-files \filef{b.xxx}, and \filef{s.xxx}.
+    (if you are using the default filename templates).
+
+    Type \commandf{ksp(list)} to only keep the special points in list from
+    the data-files \filef{fort.7} and \filef{fort.8}.
+
+    list is a label number or type name code, or a list of those,
+    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
+    regular points.
+
+\textbf{Alias:} commandKeepSpecialPoints
+
+\item[merge]
+Merge branches in data files.
+
+    Type \commandf{y=merge(x)} to return the python object x, with its branches
+    merged into continuous curves, as a new object y.
+
+    Type \commandf{merge('xxx')} to merge branches in \filef{s.xxx},
+    \filef{b.xxx}, and \filef{d.xxx} (if you are
+    using the default filename templates).  Backups of the
+    original files are saved.
+
+    Type \commandf{merge('xxx','yyy')} to merge branches in the existing data-files
+    \filef{s.xxx}, \filef{b.xxx}, and \filef{d.xxx} and save them to 
+    \filef{s.yyy}, \filef{b.yyy}, and \filef{d.yyy} (if you
+    are using the default filename templates). 
+
+\textbf{Aliases:} mb commandMergeBranches
+
+\item[subtract]
+Subtract branches in data files.
+
+    Type \commandf{z=subtract(x,y,ref)} to return the python object x, where,
+    using interpolation, the first branch in y is subtracted from all
+    branches in x, as a new object z.
+    Use 'ref' (e.g., 'PAR(1)')  as the reference column in y
+    (only the first monotonically increasing or decreasing part is used).
+
+    Type \commandf{subtract('xxx','yyy','ref')} to subtract, using interpolation, the first
+    branch in \filef{b.yyy} from all branches in \filef{b.xxx},
+    and save the result in \filef{b.xxx}.
+    A Backup of the original file is saved.
+
+    Use optional arguments branch=m, and point=n, to denote the branch and
+    first point on that branch within y or \filef{b.yyy}, where m,n are in
+    {1,2,3,...}.
+
+\textbf{Aliases:} sb commandSubtractBranches
+
 \end{description}
 
 \subsection{Copying a demo.}
@@ -2902,7 +3047,7 @@ Convert user-supplied data files.
 \item[demo]
 Copy a demo into the current directory and load it.
 
-    Type demo('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type \commandf{demo('xxx')} to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing files, always run
     demos in a clean work directory.  NOTE: This command automatically
@@ -2913,7 +3058,7 @@ Copy a demo into the current directory and load it.
 \item[copydemo]
 Copy a demo into the current directory.
 
-    Type copydemo('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type \commandf{copydemo('xxx')} to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
@@ -2927,135 +3072,136 @@ All commands here, except for 'man', 'gui', and 'wait' are only
 provided for backwards compatibility. Alternatives are given.
 \begin{description}
 \item[man]
-Get help on the AUTO commands.
+Get help on the \AUTO commands.
     
-    Type 'man' to list all commands with a online help.
-    Type 'man xxx' or 'help xxx' to get help for command 'xxx'.
+    Type \commandf{man} to list all commands with a online help.
+    Type \commandf{man xxx} or \commandf{help xxx} to get help for command \commandf{xxx}.
 
 \textbf{Aliases:} commandInteractiveHelp
 
 \item[cn]
 Get the current continuation constants.
 
-    Type commandParseConstantsFile('xxx') to get a parsed version of the constants file
-    c.xxx (if you are using the default filename templates).
+    Type \commandf{cn('xxx')} to get a parsed version of the constants file
+    \filef{c.xxx} (if you are using the default filename templates).
     This is equivalent to the command\\
-    loadbd('xxx').c
+    \commandf{loadbd('xxx').c}
     
 \textbf{Aliases:} constantsget commandParseConstantsFile
 
 \item[dg]
 Parse a bifurcation diagram.
 
-    Type dg('xxx') to get a parsed version of the diagram file b.xxx
+    Type \commandf{dg('xxx')} to get a parsed version of the diagram file \filef{b.xxx}
     (if you are using the default filename templates).
-    This is equivalent to the command loadbd('xxx') but without the
-    solutions in s.xxx and without the diagnostics in d.xxx.
+    This is equivalent to the command \commandf{loadbd('xxx')} but without the
+    solutions in \filef{s.xxx} and without the diagnostics in \filef{d.xxx}.
     
 \textbf{Aliases:} diagramget commandParseDiagramFile
 
 \item[sl]
 Parse solution file:
 
-    Type sl('xxx') to get a parsed version of the solution file
-    s.xxx (if you are using the default filename templates).
+    Type \commandf{sl('xxx')} to get a parsed version of the solution file
+    \filef{s.xxx} (if you are using the default filename templates).
     This is equivalent to the command\\
-    loadbd('xxx')()
+    \commandf{loadbd('xxx')()}
     
 \textbf{Aliases:} solutionget commandParseSolutionFile
 
 \item[bt]
 Parse both bifurcation diagram and solution.
 
-    Type bt('xxx') to get a parsed version of the diagram file b.xxx
-    and solution file s.xxx (if you are using the default filename
+    Type \commandf{bt('xxx')} to get a parsed version of the diagram file \filef{b.xxx}
+    and solution file \filef{s.xxx} (if you are using the default filename
     templates).
-    This is equivalent to the command loadbd('xxx') but without the
-    diagnostics in d.xxx.
+    This is equivalent to the command \commandf{loadbd('xxx')} but without the
+    diagnostics in \filef{d.xxx}.
     
 \textbf{Aliases:} diagramandsolutionget commandParseDiagramAndSolutionFile
 
 \item[ch]
 Modify continuation constants.
 
-    Type ch('xxx',yyy) to change the constant 'xxx' to have
-    value yyy.
+    Type \commandf{ch('xxx',yyy)} to change the constant \parf{'xxx'} to have
+    value \parf{yyy}.
     This is equivalent to the command\\
-    s=load(s,xxx=yyy)\\
-    where s is a solution.
+    \commandf{s=load(s,xxx=yyy)}\\
+    where \parf{s} is a solution.
 
 \textbf{Aliases:} changeconstant cc commandRunnerConfigFort2
 
 \item[hch]
 Modify HomCont continuation constants.
 
-    Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
-    value yyy.
+    Type \commandf{hch('xxx',yyy)} to change the HomCont constant \parf{'xxx'} to have
+    value \parf{yyy}.
     This is equivalent to the command\\
-    s=load(s,xxx=yyy)\\
-    where s is a solution.
+    \commandf{s=load(s,xxx=yyy)}\\
+    where \parf{s} is a solution.
     
 \textbf{Aliases:} commandRunnerConfigFort12
 
 \item[pr]
 Print continuation parameters.
 
-    Type pr() to print all the parameters.
-    Type pr('xxx') to return the parameter 'xxx'.
+    Type \commandf{pr()} to print all the parameters.
+    Type \commandf{pr('xxx')} to return the parameter 'xxx'.
     These commands are equivalent to the commands\\
-    print s.c\\
-    print s.c['xxx']\\
-    where s is a solution.
+    \commandf{print s.c}\\
+    \commandf{print s.c['xxx']}\\
+    where \parf{s} is a solution.
     
 \textbf{Aliases:} pc pr printconstant commandRunnerPrintFort2
 
 \item[hpr]
 Print HomCont continuation parameters.
 
-    Type hpr() to print all the HomCont parameters.
-    Type hpr('xxx') to return the HomCont parameter 'xxx'.
+    Type \commandf{hpr()} to print all the HomCont parameters.
+    Type \commandf{hpr('xxx')} to return the HomCont parameter 'xxx'.
     These commands are equivalent to the commands\\
-    print s.c\\
-    print s.c['xxx']\\
-    where s is a solution.
+    \commandf{print s.c}\\
+    \commandf{print s.c['xxx']}\\
+    where \parf{s} is a solution.
     
 \textbf{Aliases:} commandRunnerPrintFort12
 
 \item[splabs]
 Return special labels.
         
-    Type splabs('xxx',typename) to get a list of labels with the specified
+    Type \commandf{splabs('xxx',typename)} to get a list of labels with the specified
     typename, where typename can be one of
     'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
     This is equivalent to the command\\
-    load('xxx')(typename)\\
+    \commandf{load('xxx')(typename)}\\
     which gives a list of the solutions themselves;
-    load('xxx')(typename).getLabels()\\
+    \commandf{load('xxx')(typename).getLabels()}\\
     returns the list of labels.
 
-    Or use splabs(s,typename) where s is a parsed solution from sl().
+    Or use \commandf{splabs(s,typename)} where \parf{s} is a parsed
+    solution from \commandf{sl()}.
     This is equivalent to the command\\
-    s(typename).getLabels()
+    \commandf{s(typename).getLabels()}
 
 \textbf{Aliases:} commandSpecialPointLabels
 
 \item[wait]
 Wait for the user to enter a key.
 
-    Type 'wait()' to have the AUTO interface wait
+    Type \commandf{wait()} to have the \AUTO interface wait
     until the user hits any key (mainly used in scripts).
 
 \textbf{Aliases:} commandWait
 
 \item[quit]
-Quits the AUTO CLUI
+Quits the \AUTO CLUI
 
 \textbf{Aliases:} q commandQuit
 
 \item[gui]
-Show AUTOs graphical user interface.
+Show \AUTO's graphical user interface.
 
-    Type gui() to start AUTOs graphical user interface.
+    Type \commandf{gui()} to start \AUTO's graphical user interface.
     
     NOTE: This command is not implemented yet.
     
@@ -3069,15 +3215,15 @@ Show AUTOs graphical user interface.
 \item[cat]
 Print the contents of a file
 
-    Type 'cat xxx' to list the contents of the file 'xxx'.  This calls the
-    Unix function 'cat' for reading the file.  
+    Type \commandf{cat xxx} to list the contents of the file \filef{xxx}.  This calls the
+    Unix function \commandf{cat} for reading the file.  
     
 \textbf{Aliases:} commandCat
 
 \item[cd]
 Change directories.
     
-    Type 'cd xxx' to change to the directory 'xxx'.  This command
+    Type \commandf{cd xxx} to change to the directory \filef{xxx}.  This command
     understands both shell variables and home directory expansion.
     
 \textbf{Aliases:} commandCd 
@@ -3085,17 +3231,19 @@ Change directories.
 \item[ls]
 List the current directory.
     
-    Type 'ls' to run the system 'ls' command in the current directory.  This
-    command will accept whatever arguments are accepted by the Unix command
-    'ls'.
+    Type \commandf{ls} to run the system \commandf{ls} command in the
+    current directory.
+    This command will accept whatever arguments are accepted by the Unix command
+    \commandf{ls}.
     
 \textbf{Aliases:} commandLs
 
 \item[shell]
 Run a shell command.
         
-    Type shell('xxx') to run the command 'xxx' in the Unix shell and display
-    the results in the AUTO command line user interface.
+    Type \commandf{shell('xxx')} to run the command \commandf{xxx}
+    in the Unix shell and display
+    the results in the \AUTO command line user interface.
     
 \textbf{Aliases:} commandShell
 \end{description}
@@ -3147,6 +3295,8 @@ or in any of its subdirectories.}
   with equations-file {\tt xxx.f}, 
   constants-file {\tt c.xxx.i}
   and restart data-file {\tt s.yyy}.
+\item[-]
+  Use \commandf{@@R} on case-insensitive file systems.
 
 \item[\tt @sv]~:
   Type \commandf{@sv xxx} to save the output-files 
@@ -3164,6 +3314,24 @@ or in any of its subdirectories.}
   to append 
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, to
   {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, resp.
+
+\item[\tt @ll]~:
+  Type \commandf{@ll} to list all solutions in \filef{fort.8}.\\
+  Type \commandf{@ll xxx} to list all solutions in \filef{s.xxx}.
+
+\item[\tt @ls]~:
+  Type \commandf{@ls} to list the abbreviated contents of \filef{fort.7}.\\
+  Type \commandf{@ls xxx} to list the abbreviated contents of \filef{b.xxx}.\\
+  The contents are shown in a similar format as the screen output of
+  AUTO runs.
+
+\item[\tt @lbf]~:
+  Type \commandf{@lbf} to list the contents of \filef{fort.7}.\\
+  Type \commandf{@lbf xxx} to list the contents of \filef{b.xxx}.\\
+  The contents are shown with less accuracy (6 instead of 11
+  significant figures) than in the actual file for easier viewing.
+
+
 \end{itemize}
 
 \section{ Plotting commands.} 
@@ -3236,11 +3404,38 @@ or in any of its subdirectories.}
   {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}.
 
 \item[\tt @cnvc]~:
-  Type \commandf{@cnvc xxx yyy} to convert old-format constant files
+  Type \commandf{@cnvc xxx yyy} to convert old-format constants files
 \filef{c.xxx} and \filef{h.xxx} to a new-format constant file
 \filef{c.yyy}.\\
   The command \commandf{@cnvc xxx} overwrites the file \filef{c.xxx}
   with the new style file and deletes \filef{h.xxx} if it exists.
+
+\item[\tt @rn]~:
+  Type \commandf{@rn} to rename, within the current directory, all
+  old-named constants, HomCont, bifurcation
+  diagram, and solution files starting with \filef{r.}, \filef{s.},
+  \filef{p.}, and \filef{q.} to files with the new prefixes
+  \filef{c.}, \filef{h.}, \filef{b.}, and \filef{s.}.
+
+\item[\tt @rc]~:
+  Type \commandf{@rc} to do a recovery by swapping the backup files
+  \filef{fort.7~} and \filef{fort.8~} with the files
+  \filef{fort.7} and \filef{fort.8}.\\
+  Type \commandf{@rc xxx} to do a recovery by swapping the backup files
+  \filef{b.xxx} and \filef{s.xxx} with the files
+  \filef{b.xxx~} and \filef{s.xxx~}.
+
+\item[\tt @gz]~:
+  Type \commandf{@gz} to compress, using \commandf{gzip} all output
+  files in the current directory.
+
+\item[\tt @uz]~:
+  Type \commandf{@uz} to decompress, using \commandf{unzip} all output
+  files in the current directory.
+
+\item[\tt @sr]~:
+  Type \commandf{@sr xxx y} to copy \filef{c.xxx} to \filef{c.xxx.y}.
+
 \end{itemize}
 
 \section{ Diagnostics.} 
@@ -3270,6 +3465,8 @@ or in any of its subdirectories.}
   Type \commandf{@hb xxx} to list the value of the ``Hopf function''
   in the data-file {\tt d.xxx}. This function
   vanishes at a  Hopf bifurcation point.
+\item[\tt @ho]~:
+  The command \commandf{@ho} is an alias to \commandf{@hb} above.
 \item[\tt @sp]~:
   Type \commandf{@sp} to list the value of the 
   ``secondary-periodic bifurcation function'' 
@@ -3311,6 +3508,10 @@ or in any of its subdirectories.}
    Type \commandf{@fl xxx} to list the Floquet multipliers 
   in the data-file {\tt d.xxx}. 
   (Differential equations.)
+\item[\tt @no]~:
+  Type \commandf{@no} to show any notes in {\tt fort.9}.
+  \item[-]
+  Type \commandf{@no xxx} to show any notes in {\tt d.xxx}.
 \end{itemize}
 
 \section{ File-editing.} 
@@ -3335,20 +3536,39 @@ or in any of its subdirectories.}
 \section{ File-maintenance.} 
 
 \begin{itemize}
+\item[\tt @rl]~:
+  Type \commandf{@rl} to sequentially relabel solutions with the numbers $1,2,3,\ldots$
+  in the output-files {\tt fort.7} and {\tt fort.8}.
+  The original files are backed up as
+{\tt fort.7$\sim$} and {\tt fort.8$\sim$}. 
+  \item[-]
+  Type \commandf{@rl xxx} to relabel solutions
+  in the data-files {\tt b.xxx} and {\tt s.xxx}.
+  The original files are backed up as {\tt b.xxx$\sim$} and {\tt s.xxx$\sim$}. 
+\item[-]
+  Type \commandf{@rl xxx yyy} to relabel solutions
+  in the data-files {\tt b.xxx} and {\tt s.xxx}.
+  The modified files are written as {\tt b.yyy} and {\tt s.yyy}. 
+
 \item[\tt @lb]~:
   Type \commandf{@lb} to run an interactive utility program
   for listing, deleting and relabeling solutions 
   in the output-files {\tt fort.7} and {\tt fort.8}.
   The original files are backed up as
-{\tt $\sim$fort.7} and {\tt $\sim$fort.8}. 
+{\tt fort.7$\sim$} and {\tt fort.8$\sim$}. 
   \item[-]
   Type \commandf{@lb xxx} to list, delete and relabel solutions
   in the data-files {\tt b.xxx} and {\tt s.xxx}.
-  The original files are backed up as {\tt $\sim$b.xxx} and {\tt $\sim$s.xxx}. 
+  The original files are backed up as {\tt b.xxx$\sim$} and {\tt s.xxx$\sim$}. 
 \item[-]
   Type \commandf{@lb xxx yyy} to list, delete and relabel solutions
   in the data-files {\tt b.xxx} and {\tt s.xxx}.
   The modified files are written as {\tt b.yyy} and {\tt s.yyy}. 
+
+\item[\tt @LB]~:
+  Type \commandf{@LB} or \commandf{@@LB} on case-insensitive file
+  systems is equivalent to \commandf{@lb} above but moves instead of
+  copies files so that it is much quicker but interrupts may be harmful.
 
 \item[\tt @fc]~:
   Type \commandf{@fc xxx} to convert a user-supplied data file {\tt xxx.dat}
@@ -3360,42 +3580,155 @@ or in any of its subdirectories.}
   The constants-file file {\tt c.xxx} must be present, as the 
   {\cal AUTO}-constants {\tt NTST} and {\tt NCOL} 
   (Sections~\ref{sec:NTST} and \ref{sec:NCOL}) are used to define the new mesh.
-  For examples of using the \commandf{@fc} command see demos {\tt lor} and {\tt pen}.
   
   Note: this technique has been obsoleted by the 'dat' AUTO constant
   in Section~\ref{sec:dat}.
+
+\item[\tt @db]~:
+  Type \commandf{@db} to double the solution in \filef{fort.8}.
+  Type \commandf{@db xxx} to double the solution in \filef{s.xxx}.
+
+\item[\tt @tr]~:
+  Type \commandf{@tr} to triple the solution in \filef{fort.8}.
+  Type \commandf{@tr xxx} to triple the solution in \filef{s.xxx}.
+
+\item[\tt @dlb]~:
+  Type \commandf{@dlb} to delete all special labels in \filef{fort.7} and
+  \filef{fort.8}. Backups are made.\\
+  Type \commandf{@dlb xxx} to delete all special labels in \filef{b.xxx} and
+  \filef{s.xxx}. Backups are made.\\
+  Type \commandf{@dlb xxx yyy} to delete all special labels in \filef{b.xxx} and
+  \filef{s.xxx}. The output is written to \filef{b.yyy} and
+  \filef{s.yyy}.\\
+  Optionally, give an argument of the form
+  \commandf{-UZ}, \commandf{-HB}, \commandf{-LP}, \commandf{-EP}, \commandf{-PD},
+  \commandf{-TR}, \commandf{-BP}, \commandf{-MX}, or \commandf{-RG} to
+  remove all labels with the given type, as in
+  \commandf{@dlb -UZ xxx}; otherwise only labels with type UZ and
+  regular labels are kept.\\
+  Type information is kept in the bifurcation diagram for plotting.
+
+\item[\tt @klb]~:
+  Type \commandf{@klb} to keep all special labels in \filef{fort.7} and
+  \filef{fort.8}. Backups are made.\\
+  Type \commandf{@klb xxx} to keep all special labels in \filef{b.xxx} and
+  \filef{s.xxx}. Backups are made.\\
+  Type \commandf{@klb xxx yyy} to keep all special labels in \filef{b.xxx} and
+  \filef{s.xxx}. The output is written to \filef{b.yyy} and
+  \filef{s.yyy}.\\
+  Optionally, give an argument of the form
+  \commandf{-UZ}, \commandf{-HB}, \commandf{-LP}, \commandf{-EP}, \commandf{-PD},
+  \commandf{-TR}, \commandf{-BP}, \commandf{-MX}, or \commandf{-RG} to
+  keep all labels with the given type, as in
+  \commandf{@klb -UZ xxx} and remove all others;
+  otherwise all labels are kept except for labels with type UZ and regular labels.\\
+  Type information is kept in the bifurcation diagram for plotting.
+
+\item[\tt @dsp]~:
+  The command \commandf{@dsp} is equivalent to the command \commandf{@dlb}
+  above, except that
+  type information is \emph{not} kept in the bifurcation diagram for plotting.
+
+\item[\tt @ksp]~:
+  The command \commandf{@ksp} is equivalent to the command \commandf{@klb}
+  above, except that
+  type information is \emph{not} kept in the bifurcation diagram for plotting.
+
+\item[\tt @dlp]~:
+  The command \commandf{@dlp} is equivalent to the command \commandf{@dsp -LP}
+  above.
+
+\item[\tt @kbp]~:
+  The command \commandf{@kbp} is equivalent to the command \commandf{@ksp -BP}
+  above.
+
+\item[\tt @klp]~:
+  The command  \commandf{@klp} is equivalent to the command \commandf{@ksp -LP}
+  above.
+
+\item[\tt @kuz]~:
+  The command  \commandf{@kuz} is equivalent to the command \commandf{@dsp}
+  without an argument above: it keeps UZ and regular points.
+
+\item[\tt @rd]~:
+  Type \commandf{@rd} to reduce the solution in \filef{fort.7}
+  and \filef{fort.8}.\\
+  Type \commandf{@rd xxx} to reduce the solution in \filef{b.xxx} and
+  \filef{s.xxx}.\\
+  Reducing means that all even regular point solutions
+  (from \parf{NPR}: the 2nd, 4th, 6th,  etc.) are deleted from the files.
+
+\item[\tt @RD]~:
+  The commands \commandf{@RD} and \commandf{@@RD} (for
+  case-insensitive file systems) are equivalent to \commandf{@rd}
+  above but are faster, though not reliable when interrupting,
+  by using moves instead of copies.
+
+\item[\tt @mb]~:
+  Type \commandf{@mb} to merge branches into continuous curves
+  in \filef{fort.7}, \filef{fort.8}, and \filef{fort.9}.  Backups of the
+  original files are saved.\\
+  Type \commandf{@mb xxx} to merge branches in \filef{s.xxx},
+  \filef{b.xxx}, and \filef{d.xxx}.  Backups of the
+  original files are saved.\\
+  Type \commandf{@mb xxx yyy} to merge branches in \filef{s.xxx},
+  \filef{b.xxx}, and \filef{d.xxx},
+  and save them to \filef{s.yyy}, \filef{b.yyy}, and \filef{d.yyy}.
+
+\item[\tt @sb]~:
+  Type \commandf{@sb xxx yyy ref} to subtract, using interpolation, the first
+  branch in \filef{b.yyy} from all branches in \filef{b.xxx},
+  and save the result in \filef{b.xxx}.
+  Use \commandf{ref} (e.g., \commandf{PAR(1)}) as the reference
+  column in \filef{b.yyy}.
+  (only the first monotonically increasing or decreasing part is used).
+  A Backup of the original file is saved.
+
+  Use optional fourth and fifth arguments \commandf{m}, and
+  \commandf{n}, to denote the
+  branch $m$ and first point $n$ on that branch within \filef{b.yyy},
+  where $m,n$ are in $\{1,2,3,\ldots\}$.
+
+\item[\tt @zr]~:
+  Type \commandf{@zr xxx} to zero all small numbers, with absolute
+  value less than $10^{-16}$ in \filef{s.xxx}. A backup file is made.
 
 \end{itemize}
 
 \section{ HomCont commands.} 
 
+Note that the \commandf{@h} and \commandf{@H} are obsolete with
+new-style constants files, where HomCont constants can be included in
+the main constant file with a {\tt c.} prefix.
 \begin{itemize}
 \item[\tt @h]~:
   Use {\tt @h} instead of {\tt @r} when using {\cal HomCont}, i.e., when {\tt IPS}=9
   (see Chapter~\ref{ch:HomCont}).
   Type \commandf{@h xxx} to run {\cal AUTO}/{\cal HomCont}.
   Restart data, if needed, are expected in {\tt s.xxx},
-  {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
+  {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt h.xxx}.
 \item[-]
   Type \commandf{@h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
-  {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt s.xxx}.
+  {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt h.xxx}.
 \item[-]
   Type \commandf{@h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
-  and constants-files {\tt c.zzz} and {\tt s.zzz}.
+  and constants-files {\tt c.zzz} and {\tt h.zzz}.
 
 \item[\tt @H]~:
   The command \commandf{@H xxx} is equivalent to the command \commandf{@h xxx} above.
 \item[-]
   Type \commandf{@H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
-  and constants-files {\tt c.xxx.i} and {\tt s.xxx.i}
+  and constants-files {\tt c.xxx.i} and {\tt h.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
   Type \commandf{@H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
   with equations-file {\tt xxx.f}, 
-  constants-files {\tt c.xxx.i} and {\tt s.xxx.i},
+  constants-files {\tt c.xxx.i} and {\tt h.xxx.i},
   and restart data-file {\tt s.yyy}.
+\item[-]
+  Use \commandf{@@H} on case-insensitive file systems.
 \end{itemize}
 
 \section{ Copying a demo.} 
@@ -3513,20 +3846,28 @@ the data in {\tt fort.7} and {\tt fort.8}; see Chapters~\ref{ch:PLAUT},
  
 %==============================================================================
 %==============================================================================
-\chapter{ The Graphics Program PLAUT.} \label{ch:PLAUT}
+\chapter{ The Graphics Programs PLAUT and PyPLAUT.} \label{ch:PLAUT}
 %==============================================================================
 %==============================================================================
-{\cal PLAUT} can be used to extract graphical
+{\cal PLAUT} and {\cal PyPLAUT} can be used to extract graphical
 information from the {\cal AUTO} output-files {\tt fort.7} and {\tt fort.8},
 or from the corresponding data-files {\tt b.xxx} and {\tt s.xxx}.
 To invoke {\cal PLAUT}, use the \commandf{@p} command defined in 
 Section~\ref{sec:command_mode}.
 The {\cal PLAUT} window (a Tektronix window) will appear, in which {\cal PLAUT}
 commands can be entered.
-For examples of using {\cal PLAUT} see the tutorial demos {\tt pp2}
+To invoke {\cal PyPLAUT}, use the \commandf{@pp} command. The same
+plotting window as you get by using \commandf{plot} in the \python interface
+appears (see Section~\ref{clui:2d plotting}), 
+but you can also manipulate it by typing {\cal PLAUT}
+commands in the terminal in which you typed \commandf{@pp}.
+For examples of using {\cal PLAUT} and {\cal PyPLAUT} see the tutorial demos {\tt pp2}
 and {\tt pp3} in sections~\ref{sec:Demos_pp2} and \ref{sec:Demos_pp3},
 respectively.
 
+The files \filef{.autorc} and \filef{autorc}, as explained in
+Section~\ref{clui:2d plotting}, can be used to customize
+{\cal PyPLAUT}'s behaviour and appearance.
 
 \section{ Basic {\cal PLAUT}-Commands.} \label{sec:main_PLAUT_commands}
 The principal {\cal PLAUT}-commands are 
@@ -3592,16 +3933,13 @@ or they can be entered as prefixes in the {\it bd0} and {\it bd} commands.
 Thus, for example, one can enter the command {\it d1bd0}.  
 
 \begin{itemize}
-\item[\tt d0]~:  Use solid curves, showing solution labels and symbols.  
+\item[\tt d0]~:  Use solid curves, showing symbols, but no solution labels. 
 \item[\tt d1]~:  Use solid curves, except use dashed curves for unstable
   solutions and for solutions of unknown stability.
   Show solution labels and symbols.
-\item[\tt d2]~:  As {\it d1}, but with grid lines.  
-\item[\tt d3]~:  As {\it d1}, except for periodic solutions use 
-  solid circles if stable,
-  and open circles if unstable or if the stability
-  is unknown.
-\item[\tt d4]~:  Use solid curves, without labels and symbols.  
+\item[\tt d2]~:  As {\it d1}, but without solution labels.
+\item[\tt d3]~:  As {\it d1}, but with grid lines.
+\item[\tt d4]~:  As {\it d2}, but with grid lines.
 \end{itemize}
 
 If no default option {\it d0, d1, d2, d3}, or {\it d4} has been selected 
@@ -3634,6 +3972,7 @@ The full {\cal PLAUT} program has several other capabilities, for example,
 \item[\tt rss]~:  To change the size of special solution point symbols.
 \end{itemize}
 
+These commands are not available in {\cal PyPLAUT}.
 
 \section{ Printing {\cal PLAUT} Files.} \label{sec:Printing_PLAUT_files}
 \begin{itemize}
@@ -3641,7 +3980,14 @@ The full {\cal PLAUT} program has several other capabilities, for example,
   Type \commandf{@ps fig.1} to convert a saved {\cal PLAUT} file {\tt fig.1} 
   to {\cal PostScript} format
   in {\tt fig.1.ps}.
+
+\item[\tt @eps]~:
+  Type \commandf{@eps fig.1} to convert a saved {\cal PLAUT} file {\tt fig.1} 
+  to encapsulated {\cal PostScript} format
+  in {\tt fig.1.eps}.
 \end{itemize}
+In {\cal PyPLAUT} you can directly save to a variety of file
+formats, including \filef{.eps} and \filef{.png}.
 
  
 %==============================================================================
@@ -3983,6 +4329,9 @@ and ``!'', and run to the end of a line.
 An example, with default values, is listed below. In real constant
 files you only need to specify those values that are different from
 these, but listing all of them allows for easier editing.
+
+Note that this file is not strictly necessary when using the \python
+interface: you can define all constants inside the scripts if you so wish.
 
 \begin{verbatim}
 # Default AUTO Constants file
@@ -4560,6 +4909,8 @@ The first column in the data file denotes the time, which does
 columns the coordinates of the solution. The constant {\tt IRS} must
 be set to 0.
 
+(Demos {\tt lor}, {\tt pen}.)
+
 \subsection{\tt U}  \label{sec:U}
 This constant, where {\tt U=\{i1:x1,i2:x2\}}, changes the value of
 {\tt U(i1)} to {\tt x1}, {\tt U(i2)} to {\tt x2}, and so on,
@@ -4970,7 +5321,7 @@ The following restrictions apply~:
 \begin{itemize}
 \item[-]
   The default maximum number of parameters, \parf{NPAR} has a
-  pre-defined value in \filef{auto/07p/include/auto.h},
+  pre-defined value in \filef{auto/07p/ include/auto.h},
   of \parf{NPARX}=36.  \parf{NPARX} should not normally be increased
   and it should never be decreased.
   Any increase of \parf{NPARX} must be followed by recompilation of {\cal AUTO}.

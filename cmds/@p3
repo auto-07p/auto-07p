@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-        $AUTO_DIR/pendula/p3_0 s.$1
-else
-       $AUTO_DIR/pendula/p3_0 fort.8 
-fi

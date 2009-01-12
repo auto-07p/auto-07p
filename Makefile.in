@@ -15,7 +15,7 @@ src: .FORCE
 
 cmds: .FORCE
 	# work around case insensitive filesystems
-	cd ./cmds; for cmd in @H @LB @R @RD @RL; do \
+	cd ./cmds; for cmd in @H @LB @R @RD; do \
 	    if test ! -r $$cmd; then \
 		cp -p @$$cmd $$cmd; \
 	    fi \
@@ -38,7 +38,7 @@ tek2ps: .FORCE
 
 #
 clean:
-	cd ./cmds; if diff @R @RR > /dev/null; then rm @H @LB @R @RD @RL; fi
+	cd ./cmds; if diff @R @RR > /dev/null; then rm @H @LB @R @RD; fi
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
 	cd ./plaut04;$(MAKE) clean
