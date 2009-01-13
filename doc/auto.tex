@@ -461,6 +461,15 @@ a completely new, more flexible syntax, but the old syntax is
 still accepted, and files can be converted using the command
 \commandf{@cnvc} (see Section~\ref{sec:command_mode}).
 
+Due to the replacement of EISPACK routines by LAPACK routines for the
+computation of eigenvalues and eigenvectors, the sign of the
+eigenvectors may have flipped sometimes with respect to earlier
+versions. This affects the sign of some {\cal HomCont}
+test functions and the initial direction when using the homotopy
+method (you may have to flip the sign of the starting distance
+in the routine STPNT). Eigenvectors are now normalized to avoid
+future problems and improve consistency.
+
 When upgrading from {\cal AUTO2000}, you can continue to use
 equations-files written in C. However, there is now a strict
 difference between indexing of the array {\tt par[]} in the
@@ -2321,11 +2330,15 @@ lrz ... done
  \hline
  color\_list  &  A list of colors to use for multiple plots. \\
  \hline
+ d0, d1, d2, d3, d4 & Redefine d0, d1, d2, etc. setting to use with
+ {\cal PyPLAUT} (\commandf{@pp}). \\
+ \hline
  dashes  &    List of dash, no-dash lengths for dashed lines. \\ 
  \hline
  decorations  & Turn on or off the axis, tick marks, etc. \\
  \hline
- default\_option & Default d0, d1, d2, etc. setting to use with {\cal PyPLAUT}. \\
+ default\_option & Default d0, d1, d2, etc. setting to use with {\cal
+   PyPLAUT} (\commandf{@pp}). \\
  \hline
  error\_symbol  &    The symbol to use for error points. \\ 
  \hline
@@ -2463,7 +2476,7 @@ cat & commandCat & Print the contents of a file\\ \hline
 cd & commandCd & Change directories.\\ \hline 
 clean cl & commandClean & Clean the current directory.\\ \hline 
 demo dm & commandCopyAndLoadDemo & Copy a demo into the current directory and load it.\\ \hline 
-copy cp & commandCopyDataFiles & Copy data files.\\ \hline 
+copy & commandCopyDataFiles & Copy data files.\\ \hline 
 copydemo & commandCopyDemo & Copy a demo into the current directory.\\ \hline 
 save sv & commandCopyFortFiles & Save data files.\\ \hline 
 gui & commandCreateGUI & Show AUTOs graphical user interface.\\ \hline 

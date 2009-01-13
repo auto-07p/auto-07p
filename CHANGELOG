@@ -1,3 +1,134 @@
+0.6:
+* The 2D plotter PyPLAUT can now use matplotlib, be called via the @pp command,
+  and operated like the old PLAUT plotter.
+  New settings were added to .autorc/autorc for more effective control:
+  xlabel, ylabel, xlabel_fontsize, ylabel_fontsize, top_title, top_title_fontsize,
+  dashes, solution_coordnames, solution_indepvarname, bifurcation_coordnames,
+  stability, default_option, d0, d1, d2, d3, d4.
+  PyPLAUT can now also show the stability of branches via dashed curves.
+  The coordinate input boxes are more permissive: no need to type quotes or ['t','t','t']:
+  just type t. The input boxes now, by default, show the column names from bifurcation
+  diagram files.
+
+* A new free-form constants file format is introduced with the following
+  new constants: sv, e, s, dat, unames, parnames, SP, U, PAR, NPAR.
+  The "dat" constant obsoletes the @fc/us() commands by reading directly from the ASCII
+  data file.
+  HomCont constants can also be added.
+  Strings, set via unames and parnames, can be used in ICP, THU, THL, and UZR.
+* Add new setting ISP=4 which detects PDs and TRs but not BPs.
+* Implemented SP AUTO constant: SP=["HB1","LP2"] stops at the first HB or
+  second LP. SP=["HB","LP"] selects which special points to detect.
+* Support new, more compact, dictionary notation for the AUTO constants THL, THU, UZR,
+  PAR, and U.
+* If IRS is set to -1, then just get the first solution from the solution file.
+  Use IRS<-I for the Ith label in the solution file.
+* HomCont can automatically detect NSTAB and NUNSTAB, the number of stable and
+  unstable eigenvalues in most cases.
+
+* Introduce new @ksp, @dsp, @klb, and @dlb commands:
+   @dsp -lp abc         removes all 'LP' labels from b.abc and s.abc
+   @dsp -bp             removes all 'BP' labels from fort.7 and fort.8
+   @dsp -uz abc abc2    removes all 'UZ' labels from b.abc and s.abc;
+   			writes to b.abc2 and s.abc2
+   @dsp abc             removes all special labels (anything that is not either every NPR
+   			steps or an 'UZ' label) from b.abc and s.abc.
+   @ksp does the opposite, e.g.:
+   @ksp -lp abc	        keeps all 'LP' labels, and removes all other labels in b.abc and
+                        s.abc	
+  @dlb and @klb retain type numbers in b. files so they can be plotted.
+  The new ksp, dsp, klb, and dlb commands in the Python interface work similarly.
+* New merge/@mb commands merge branches in bifurcation diagram files.
+* New subtract/@sb commands subtract branches using interpolation
+  in bifurcation diagram files.
+* The relabel (@rl) command is much faster.
+* Removed obsolete @ commands.
+* Avoid problems on case-insensitive filesystems by using @@R etc. instead of @R;
+  make creates @R from @@R and so on, on case-sensitive filesystems.
+
+* Allow manual branch switching for algebraic problems with ISW=-1. Derivatives are
+  now stored in solution files to allow this to work reliably.
+* The GETP function that can be called via PVLS supports new arguments:
+  * 'EIG' obtains eigenvalues and Floquet multipliers:
+     index 1, 3, 5,... obtain the real parts of ev's 1, 2, 3,... and 2, 4, 6,... the
+     imaginary parts.
+     Eigenvalues are ordered by real part.
+     Floquet multipliers are ordered by distance from |z|=1.
+  * 'NBC' gets the active NBC
+  * 'NINT' gets the active NINT
+  * 'NTST' gets NTST
+  * 'NCOL' gets NCOL
+  * 'NDIM' and 'NDX' get the dimension of the extended system
+  * 'MXT' gets t value for maximum of component
+  * 'MNT' gets t value for minumum of component
+  * 'WINT' gets weight for integral; 0<=I<=NCOL
+  * 'DTM' gets value for delta t array 1<=I<=NTST
+  Some of these together allow for direct access of the solution array in 
+* If the last point of a branch has type UZ, PD, HB, LP, etc. then that type is printed
+  instead of EP.
+* AUTO computes and prints Floquet multipliers, eigenvalues and stability also
+  for the first and last points on a branch.
+* NBIFX is eliminated from auto.h. Only NPARX is relevant. It now just designates a
+  default maximum; it can be changed at runtime by the NPAR auto constant.
+* Bifurcation diagram files (fort.7/b.xxx) now have complete headers showing all
+  AUTO constants.
+* DFDU, DFDP, DBC, and DICD are zero-initialized so it is not necessary to initialize
+  those entries in equation files.
+* It is now possible to extend a system via STPNT.
+* Allow restarting from a point that is not a Hopf bifurcation in a BVP:
+  it will be seen as a constant solution on the interval [0,1].
+* Use LAPACK instead of EISPACK throughout.
+  Eigenvectors might be different than before but are normalized to have the largest
+  component positive.
+* Better diagnostics for errors in fort.2/c.xxx and fort.12/h.xxx input files.
+* Better performance and accuracy for fold continuations through smarter computation of
+  the Jacobian matrix.
+* The performance of input/output routines and commands has improved, for instance
+  by avoiding re-reads.
+* Some parallellization and cache use performance improvements.
+* Fix issue not detecting Hopf bifurcations and stability changes:
+  a tolerance is only set if the trace of the Jacobian is zero and the dimension is
+  even so the system is probably conservative.
+* Fix numerous bugs, thanks also to Thomas Wagenknecht, Hinke Osinga, Phil Naylor.
+
+* Many Python syntax changes, all backwards-compatible:
+  The run command returns a bifurcation diagram object that represents all output,
+  and can work in a bd=run(solution,options) fashion.
+  The load command returns a solutions + constants to start from.
+  The loadbd command returns a bifurcation diagram object from files.
+  It is straightforward to obtain all bifurcation points, branches, or a selection
+  from bifurcation diagram objects; these objects can be concatenated like standard
+  Python lists.
+* "load" now supports changing LAB/PT/TY/BR/PAR in a solution.
+* In Python allow starting AUTO via "run" directly from a Python solution array.
+* Solutions and bifurcation diagrams in Python now use PyDSTool Pointsets and
+  can use numpy/numarray/Numeric for efficiency.
+* Elimination of internal use of shell commands by the Python CLUI, so it works
+  especially faster in Windows and does not depend on a shell.
+* Improved ctrl-c handling running Python scripts.
+* You can now plot and read gzipped files directly in PyPLAUT and Python commands.
+* Introduce "-c" for the auto command (works like python's -c), and preserve already
+  set PYTHONPATH.
+* Add an r3b boolean parameter to plot3 in the Python CLUI.
+* The Python CLUI can now read .auto files with DOS line endings on Unix systems.
+* The lp Python CLUI alias now finds limit points instead of Hopf points,
+  and cp is no longer aliased to commandCopyDataFiles (conflicts with cp as
+  Unix copy).
+* Python2.6 compatibility.
+
+* PLAUT04 uses less memory and parses solution, bifurcation diagram and diagnostics
+  files more efficiently.
+* You can set PLAUT04's axis colours in plaut04.rc.
+
+* All demos were updated to use Python, also thanks to Fabio Dercole.
+  Special HomCont (h.xxx) were eliminated from all demos.
+* New demos: um2, um3, ph1 (Eusebius Doedel), c2c and p2c (based on work by
+  Doedel, Kooi, van Voorn, and Kuznetsov).
+
+* Improved configure script for use with MacOS X.
+
+* Many updates to the manual, also thanks to Fabio Dercole.
+
 0.5:
 * PLAUT04 can now also use the SoQt and Qt libraries. That
   makes it easier to compile on various Linux distributions,
