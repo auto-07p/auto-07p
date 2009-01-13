@@ -211,7 +211,11 @@ class bifDiag(parseB.parseBR):
 
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
         new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
-        if not copy:
+        if copy:
+            for i in range(len(self)):
+                if hasattr(self[i],"diagnostics"):
+                    new[i].diagnostics = self[i].diagnostics
+        else:
             new = self
         maxlab = max(new.getLabels())
         for d in new:
@@ -231,6 +235,9 @@ class bifDiag(parseB.parseBR):
         if old_label is None and new_label is None:
             new = parseB.parseBR.relabel(self)
             label = 0
+            for i in range(len(self)):
+                if hasattr(self[i],"diagnostics"):
+                    new[i].diagnostics = self[i].diagnostics
             for d in new:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
                     if x.has_key("solution") and x["LAB"] != 0:
