@@ -400,11 +400,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             if names is not None:
                 if type(names) != type({}):
                     names = dict(names)
-                if names != {}:
-                    l = len(self.coordnames)
-                    self.coordnames = []
-                    for i in range(1,max(names.keys())+1,l+1):
-                        self.coordnames.append(names.get(i,'U('+str(i)+')'))
+                for i in range(len(self.coordnames)):
+                    self.coordnames[i] = names.get(i+1,'U('+str(i+1)+')')
             names = kw.get("parnames",c.get("parnames"))
             if names is not None:
                 if type(names) != type({}):
