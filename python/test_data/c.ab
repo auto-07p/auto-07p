@@ -1,5 +1,5 @@
-U = [ 'a', "b" ]
-IRS=5  U = [ 'a', "b" ]
+unames = { 1:'a', 2:"b" }
+IRS=5  unames = { 1:'a', 2:"b" }
 ICP=[ 'ab' , 2 ]
 e='ab'
 e=ab

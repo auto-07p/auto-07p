@@ -714,7 +714,10 @@ class commandExpandData(commandWithFilenameTemplate):
         os.rename("fort.38",n1s)
         if os.path.exists("fort.28"):
             os.remove("fort.28")
-        rval.info("Solution doubling done.\n")
+        if self.command == "double":
+            rval.info("Solution doubling done.\n")
+        else:
+            rval.info("Solution tripling done.\n")
         return rval
 
 class commandDouble(commandExpandData):
@@ -2202,7 +2205,8 @@ def test():
     import runAUTO
     import sys
 
-    runner = runAUTO.runAUTO()
+    runner = runAUTO.runAUTO(auto_dir=
+                             os.path.join(os.environ["AUTO_DIR"],"..","97"))
     
     clean      = commandRunDemo("wav","clean",runner)
     first      = commandRunDemo("wav","first",runner)

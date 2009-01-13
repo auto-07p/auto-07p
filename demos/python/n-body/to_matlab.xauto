@@ -3,7 +3,7 @@
 # files which can be read into Matlab .
 # For example, the command:
 #
-#   auto -x to_matlab.xauto foo bar
+#   autox to_matlab.xauto foo bar
 #
 # will take the bifurcation diagram file b.foo and produce
 # the file bar_bifur, and it will take the solution
@@ -22,16 +22,16 @@ import sys
 # This function actually performs the decoding of the
 # AUTO data files.
 def to_matlab(filename,prefix):
-    # First we parse the bifurcation diagram file.
-    data=dg(filename)
+    # We parse the bifurcation diagram file and solution file.
+    data=loadbd(filename)
     # The Python object has a method for taking the
     # data and writing it out as columns, so
     # we use that here.
     data.writeRawFilename(prefix+'_bifur')
     
-    # Next, we write out the solutions by first
-    # parsing the file.
-    data=sl(filename)
+    # Next, we write out the solutions by first using data() to get the
+    # solution list.
+    data=data()
     # The we iterate over each of the solutions in the file
     # using the loop.
     for solution in data:

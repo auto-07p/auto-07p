@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 
 modules = ["parseB", "parseS", "parseBandS", "parseC", "parseH",
-           "AUTOCommands",
-           "runAUTO", "runDemo", "AUTOclui","interactiveBindings",
-           "parseD"]
+           "AUTOclui", "interactiveBindings", "AUTOCommands",
+           "parseD", "bifDiag"] #runDemo,runAUTO
 
 for module in modules:
     print "-----------------------"

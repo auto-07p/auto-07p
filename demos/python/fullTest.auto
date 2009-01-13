@@ -122,7 +122,7 @@ ap(demo)
 # solution file to s.ab
 run(constants="ab.2",solution="ab")
 # Copy the files d.ab, s.ab, and b.ab to d.double, s.double, and b.double
-cp(demo,"double")
+copy(demo,"double")
 # 'Double' the solutions in d.double, s.double, and b.double.  This
 # is used to compute period doubling bifurcations.
 db("double")

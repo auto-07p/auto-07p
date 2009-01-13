@@ -1,4 +1,4 @@
-NDIM=   6, IPS =   0, IRS =   0, ILP =   0
+NDIM=   6, IPS =   0, ILP =   0
 ICP =  [1, 11, 15, 16]
 NTST=  50, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX= 2000, RL0=  -1.0, RL1= 1e+10, A0=   0.0, A1= 1e+10

@@ -547,7 +547,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
         keys = self.data.keys()
-        for key in ["BR","PT","TY number","ISW","NTST","NCOL"]:
+        for key in ["BR","PT","LAB","TY number","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"

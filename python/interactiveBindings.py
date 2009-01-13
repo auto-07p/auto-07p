@@ -260,7 +260,7 @@ def _testFilename(inputname,outputname):
     runner.execfile(inputname)
     log.close()
     os.chdir(old_path)
-    status,output = commands.getstatusoutput("diff --ignore-matching-lines='gcc.*' --ignore-matching-lines='.*Total Time.*' log %s"%outputname)
+    status,output = commands.getstatusoutput("diff --ignore-matching-lines='gfortran.*' --ignore-matching-lines='.*Total Time.*' log %s"%outputname)
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")
