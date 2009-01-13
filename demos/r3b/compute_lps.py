@@ -39,10 +39,7 @@ def compute(m=0.063):
     # a Python object which contains all of the data in the
     # file in an easy to use format.
     data = run('r3b',c='r3b',
-               UZR=[[-16,0.991],
-                    [-2,-0.1],
-                    [2,m],
-                    [-2,1.1]])
+               UZR={-16:0.991, -2:[-0.1,1.1], 2:m})
 
     # Extract the 5 Lagrange points for each of the branches
     # which we will use in later calculations.
@@ -56,8 +53,8 @@ def compute(m=0.063):
     # to determine which Lagrange point it is.
 
     # The solution is a Pointset. In this case there is only
-    # one point, at t=0, accessible via x(0), x[0], or via the
-    # x['U(1)'] and x['U(2)'] arrays.
+    # one point, at t=0, accessible via u(0), u[0], or via the
+    # u['U(1)'] and u['U(2)'] arrays.
     def select_lp(u):
         [x]=u['U(1)']
         [y]=u['U(2)']

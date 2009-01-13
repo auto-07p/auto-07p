@@ -104,6 +104,8 @@ splabs          =commandSpecialPointLabels
 [AUTO_plotter]
 
 #default_option="d1"
+#d1 = {"grid": "no", "use_labels": 1, "use_symbols": 1, "stability": 1}
+# similarly you can redefine d0, d2, d3, d4.
 
 #grid = "no"
 #stability = 0
