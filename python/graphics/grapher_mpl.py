@@ -124,7 +124,10 @@ class BasicGrapher(grapher.BasicGrapher):
                 self.ax.get_figure().subplots_adjust(top=1-tm/value,
                                                      bottom=bm/value)
         elif key == "grid":
-            self.ax.grid(value == "yes", color=self.cget("foreground"))
+            if value == "yes":
+                self.ax.grid(color = self.cget("foreground"))
+            else:
+                self.ax.grid(False)
         elif key == "width":
             self.canvas.get_tk_widget()[key] = value
         elif key == "height":
