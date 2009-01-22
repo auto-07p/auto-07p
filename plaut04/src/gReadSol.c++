@@ -206,10 +206,13 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
 
 		if(ntst != 0)
                 {
-                    for(i=0; i<ntpl+2; ++i) fgets(line, sizeof(line), inFile);
+                    int ndim=nar-1;
+                    int nrd=(ndim+6)/7;
+                    int nLines = nrd*ntpl + (nfpr+6)/7 + (nfpr+19)/20;
+                    for(i=0; i<nLines; ++i) fgets(line, sizeof(line), inFile);
                 }
 
-                int nLines = (npar1/7 == 0) ? npar1/7 : npar1/7 + 1;
+                int nLines = (npar1+6)/7;
                 for(int nzoo = 0; nzoo<nLines; ++nzoo)
                 {
                     fgets(line, sizeof(line), inFile);
