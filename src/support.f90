@@ -523,7 +523,7 @@ END MODULE SUPPORT
           GETP=RAV(17)
        CASE('BIF','bif')
           GETP=RAV(14)
-       CASE('SPB','spb','MXT','mxt','MNT','mnt')
+       CASE('SPB','spb','MXT','mxt','MNT','mnt','DTM','dtm','WIN','win')
           GETP=0.
        END SELECT
     ELSE
@@ -540,6 +540,11 @@ END MODULE SUPPORT
           GETP=RMXUPST(NTST,NCOL,NDIM,IC,UPS,DTV)
        CASE('MNT','mnt')
           GETP=RMNUPST(NTST,NCOL,NDIM,IC,UPS,DTV)
+       CASE('DTM','dtm')
+          GETP=DTV(IC)
+       CASE('WIN','win')
+          CALL WINT(NCOL,WI)
+          GETP=WI(IC)
        CASE('BV1','bv1')
           GETP=UPS(IC,IAV(5)+1)
        CASE('HBF','hbf')
@@ -575,11 +580,6 @@ END MODULE SUPPORT
        GETP=NBC
     CASE('NIN','nin')
        GETP=NINT
-    CASE('DTM','dtm')
-       GETP=DTV(IC)
-    CASE('WIN','win')
-       CALL WINT(NCOL,WI)
-       GETP=WI(IC)
     END SELECT
 
   END FUNCTION GETP
