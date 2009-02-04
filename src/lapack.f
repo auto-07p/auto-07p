@@ -648,7 +648,7 @@ C-----------------------------------------------------------------------
 *     ..
 *     .. Local Scalars ..
       LOGICAL            FIRST
-      DOUBLE PRECISION   EPS, EPS2, PREC, RMACH, RND, SFMIN, SMALL
+      DOUBLE PRECISION   EPS, EPS2, PREC, RMACH, RND, SFMIN, SMALL, RMAX
 *     ..
 *     .. External Functions ..
       LOGICAL            LSAME
@@ -678,7 +678,8 @@ C-----------------------------------------------------------------------
             EPS = EPSILON(ONE)
          ENDIF
          PREC = EPS*RADIX(ONE)
-         SMALL = ONE / HUGE(ONE)
+         RMAX = HUGE(ONE)
+         SMALL = ONE / RMAX
          IF( SMALL.GE.TINY(ONE) ) THEN
 *
 *           Use SMALL plus a bit, to avoid the possibility of rounding
