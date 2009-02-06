@@ -35,7 +35,6 @@ class bifDiag(parseB.parseBR):
         except IOError:
             parseB.parseBR.__init__(self)
             fort7_filename = None
-        diagnostics = None
         if isinstance(fort8_filename, parseS.AUTOSolution):
             fort8_filename = [fort8_filename]
         try:
@@ -71,13 +70,12 @@ class bifDiag(parseB.parseBR):
                 i = i+1
             if labels != {}:
                 branch.labels = Points.PointInfo(labels)
-        if not fort9_filename is None:
+        if fort9_filename is not None and self.data != []:
             try:
-                diagnostics = parseD.parseD(fort9_filename)
+                # for now just attach diagnostics information to first branch
+                self[0].diagnostics = parseD.parseD(fort9_filename)
             except IOError:
                 pass
-        if diagnostics is None:
-            diagnostics = []
         i = 0
         if solution is not None:
             if not options.has_key("constants"):
@@ -100,9 +98,6 @@ class bifDiag(parseB.parseBR):
                         x["solution"] = apply(parseS.AUTOSolution,
                                               (solution[i],),options)
                         i = i+1
-        if self.data != []:
-            # for now just attach diagnostics information to the first branch
-            self[0].diagnostics = diagnostics
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
@@ -179,7 +174,7 @@ class bifDiag(parseB.parseBR):
             self().write(fort8_output)
         if fort9_output is not None:
             for d in self:
-                if hasattr(d,"diagnostics") and d.diagnostics != []:
+                if hasattr(d,"diagnostics"):
                     d.diagnostics.write(fort9_output)
 
     def readFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
@@ -205,7 +200,7 @@ class bifDiag(parseB.parseBR):
             self().writeFilename(fort8_filename,append)
         if not fort9_filename is None:
             for d in self:
-                if hasattr(d,"diagnostics") and d.diagnostics != []:
+                if hasattr(d,"diagnostics"):
                     d.diagnostics.writeFilename(fort9_filename,append)
                     append=True
 
