@@ -38,7 +38,6 @@ tek2ps: .FORCE
 
 #
 clean:
-	cd ./cmds; if diff @R @@R > /dev/null; then rm @H @LB @R @RD; fi
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
 	cd ./plaut04;$(MAKE) clean
@@ -46,6 +45,7 @@ clean:
 	cd ./doc;$(MAKE) clean
 #
 superclean:  clean
+	cd ./cmds; if diff @R @@R > /dev/null; then rm @H @LB @R @RD; fi
 	cd ./plaut04;$(MAKE) superclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
