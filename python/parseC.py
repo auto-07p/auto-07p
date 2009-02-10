@@ -258,7 +258,10 @@ class parseC(UserDict.UserDict):
                 pass
             elif key in self.keys():
                 if key[0] in ['I','J','K','L','M','N']:
-                    value=int(value)
+                    if value[0] == '*':
+                        value = 10**len(value)
+                    else:
+                        value = int(value)
                 else:
                     value=parseB.AUTOatof(value)
             else:
