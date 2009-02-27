@@ -172,7 +172,7 @@ AC_PROG_CXX
 AC_LANG_CPLUSPLUS
 PLAUT04_TEST=yes
 AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
-COIN_LIBS=
+COIN_LIBS="-lCoin"
 COIN_LDFLAGS=
 COIN_INCLUDES=
 if test x$HAVE_COIN_CONFIG = "xtrue"; then
@@ -184,7 +184,9 @@ tmp_LIBS=$LIBS
 LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
 tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $COIN_LDFLAGS"
-AC_CHECK_LIB([Coin],abort,COIN3D="yes",COIN3D="no")
+AC_LINK_IFELSE([#include <Inventor/SoDB.h>
+                int main(void){SoDB::init();}],
+		[COIN3D="yes"],[COIN3D="no"])
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 if test x$COIN3D = "xno"; then
