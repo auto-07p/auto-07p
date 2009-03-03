@@ -6959,6 +6959,8 @@ tmp_LIBS=$LIBS
 LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
 tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $COIN_LDFLAGS"
+tmp_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $COIN_INCLUDES"
 
 cat >conftest.$ac_ext <<_ACEOF
 #include <Inventor/SoDB.h>
@@ -6994,6 +6996,7 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
+CPPFLAGS=$tmp_CPPFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed";

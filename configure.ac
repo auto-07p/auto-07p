@@ -184,11 +184,14 @@ tmp_LIBS=$LIBS
 LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
 tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $COIN_LDFLAGS"
+tmp_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $COIN_INCLUDES"
 AC_LINK_IFELSE([#include <Inventor/SoDB.h>
                 int main(void){SoDB::init();}],
 		[COIN3D="yes"],[COIN3D="no"])
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
+CPPFLAGS=$tmp_CPPFLAGS
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed"; 
