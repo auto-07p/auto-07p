@@ -269,7 +269,7 @@ class AUTOBranch(Points.Pointset):
     def __len__(self):
         if not self.__fullyParsed:
             return len(self.__datalist)
-        if self.coordarray == []:
+        if len(self.coordarray) == 0:
             return 0
         return Points.Pointset.__len__(self)
 
