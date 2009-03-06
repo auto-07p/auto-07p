@@ -2028,6 +2028,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: DUM1(:,:),DUM2(:,:),FDUM(:)
       DOUBLE PRECISION, ALLOCATABLE :: WORK(:),A(:,:),V(:,:)
       INTEGER MCOND,IFAIL,LWORK,ISDIM,IWORK,I,J
+      INTEGER LOC(1)
       DOUBLE PRECISION TMP,DET,S,SEP
 C
       SAVE CPREV
@@ -2073,15 +2074,14 @@ C     Get orthonormal basis for the nstab lowest eigenvalues
 C     or nunstab highest eigenvalues (real part),
 C     which do not necessarily all have to be negative/positive
 C
-         IF (IMFD.EQ.-1) THEN
-            DO I=1,NSTAB
-               BWORK(MINLOC(ER,.NOT.BWORK))=.TRUE.
-            ENDDO
-         ELSE
-            DO I=1,NUNSTAB
-               BWORK(MAXLOC(ER,.NOT.BWORK))=.TRUE.
-            ENDDO
-         ENDIF
+         DO I=1,MCOND
+            IF (IMFD.EQ.-1) THEN
+               LOC=MINLOC(ER,.NOT.BWORK)
+            ELSE
+               LOC=MAXLOC(ER,.NOT.BWORK)
+            ENDIF
+            BWORK(LOC(1))=.TRUE.
+         ENDDO
          CALL DTRSEN('N', 'V', BWORK, NDM, A, NDM, BOUND, NDM, ER, EI,
      &        ISDIM, S, SEP, WORK, LWORK, IWORK, 1, IFAIL)
          IF (IFAIL.NE.0) THEN
