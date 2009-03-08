@@ -3,7 +3,6 @@ import types
 import ConfigParser
 import os
 import array
-import string
 N = array
 
 # This file contains code from the Python distribution.  As
@@ -294,7 +293,7 @@ def take(a, idx, axis=0):
     return array(b)
 
 def array2string(a,precision=0):
-    return '[ '+string.join(map(str, a),"  ")+']'
+    return '[ '+"  ".join(map(str, a))+']'
 
 def shape(a):
     if isinstance(a, list):

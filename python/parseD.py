@@ -7,7 +7,6 @@
 import re
 import sys
 import UserList
-import string
 import getopt
 import math
 import AUTOExceptions
@@ -32,7 +31,7 @@ class parseD(UserList.UserList):
         s = []
         for d in self.data:
             s.append(d["Text"])
-        return string.join(s,"")
+        return "".join(s)
 
     def getIndex(self,index):
         self.__readAll()
@@ -53,25 +52,25 @@ class parseD(UserList.UserList):
                     "Label": 0,
                     "Eigenvalues": [],
                     "Multipliers": []})
-            lines = string.split(solution,'\n')[:-1]
+            lines = solution.splitlines()
             if len(lines) < 3:
                 continue
             i = 0
             for line in lines:
-                sp = string.split(line)
+                sp = line.split()
                 if len(sp) > 0 and sp[0] == 'BR':
                     break
                 i = i + 1
             if i + 1 >= len(lines):
                 continue
-            sp = string.split(lines[i+1])
+            sp = lines[i+1].split()
             if len(sp) < 2:
                 continue
             item["Branch number"] = int(sp[0])
             item["Point number"] = int(sp[1])
             labline = 0
             for line in lines:
-                sp = string.split(line)
+                sp = line.split()
                 if labline and len(sp) > 3:
                     if sp[2] != '0':
                         try:
@@ -83,13 +82,13 @@ class parseD(UserList.UserList):
                     labline = 1
             result = re.findall("Eigenvalue\s.*",solution)
             for eigenvalue_string in result:
-                eigenvalue_string = string.split(eigenvalue_string)
+                eigenvalue_string = eigenvalue_string.split()
                 real_part = parseB.AUTOatof(eigenvalue_string[2])
                 imag_part = parseB.AUTOatof(eigenvalue_string[3])
                 item["Eigenvalues"].append([real_part,imag_part])
             result = re.findall("Multiplier\s.*",solution)
             for multiplier_string in result:
-                multiplier_string = string.split(multiplier_string)
+                multiplier_string = multiplier_string.split()
                 # "inaccurate" or "accurate"
                 if multiplier_string[1][-1] == "e":
                     continue
@@ -100,10 +99,10 @@ class parseD(UserList.UserList):
     def read(self,input):
         data = input.read()
         divstr = "===============================================\n"
-        data=string.split(data,divstr)
+        data=data.split(divstr)
         if len(data) == 1:
             divstr = "--------------------------------------------------------------------------------------------\n"
-            data=string.split(data[0],divstr)
+            data=data[0].split(divstr)
         self.data=[]
         for solution in data:
             self.data.append({"Text": solution + divstr})

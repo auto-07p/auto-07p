@@ -17,7 +17,6 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-import string
 import os
 import sys
 import AUTOExceptions
@@ -178,20 +177,20 @@ class AUTOBranch(Points.Pointset):
         N = Points.N
         datalist = self.__datalist
         del self.__datalist
-        line0 = string.split(datalist[0])
+        line0 = datalist[0].split()
         self.BR = int(line0[0])
         ncolumns = len(line0)
         nrows = len(datalist)
-        datalist = string.join(datalist,"")
+        datalist = "".join(datalist)
         if fromstring: #numpy
             data = []
-            if string.find(datalist, "D") == -1:
+            if datalist.find("D") == -1:
                 data = fromstring(datalist, dtype=float, sep=' ')
             if len(data) != nrows * ncolumns:
                 data = N.array(map(AUTOatof,datalist.split()), 'd')
             coordarray = self.__parsenumpy(ncolumns,data)
         else: #numarray, Numeric, array
-            datalist = string.split(datalist)
+            datalist = datalist.split()
             try:
                 data = map(float, datalist)
             except:
@@ -528,19 +527,19 @@ class AUTOBranch(Points.Pointset):
                 
     def write(self,output,columnlen=19):
         if columnlen == 19 and not self.__fullyParsed:
-            output.write(string.join(self.headerlist,""))
-            output.write(string.join(self.__datalist,""))
+            output.write("".join(self.headerlist))
+            output.write("".join(self.__datalist))
             return
         format = "%"+str(-columnlen)+"s"
         if self.headerlist != []:
             for l in self.headerlist:
-                if string.find(l," PT ") == -1:
+                if l.find(" PT ") == -1:
                     output.write(l)
         if self.headernames != []:
             output_line = ["   0    PT  TY  LAB "]
             for name in self.headernames:
                 output_line.append(format%name)
-            output.write(string.join(output_line,"")+'\n')
+            output.write("".join(output_line)+'\n')
         br = self.BR
         data = self.coordarray
         istab = 0
@@ -579,7 +578,7 @@ class AUTOBranch(Points.Pointset):
         if self.headernames != []:
             for name in self.headernames:
                 output_line.append("%-14s"%name)
-        slist.append(string.join(output_line,""))
+        slist.append("".join(output_line))
         for index,l in self.labels.sortByIndex():
             label = {}
             for k,v in l.items():
@@ -597,7 +596,7 @@ class AUTOBranch(Points.Pointset):
             for i in range(len(data)):
                 output_line = output_line + "%14.5E"%data[i][index]
             slist.append(output_line)
-        return string.join(slist,"\n")
+        return "\n".join(slist)
 
     def writeScreen(self):
         sys.stdout.write(self.summary())
@@ -617,8 +616,8 @@ class AUTOBranch(Points.Pointset):
         l = len(line)
         for i in range(column+1):
             oldsp = newsp
-            start = l - len(string.lstrip(line[oldsp:]))
-            newsp = string.find(line,' ',start)
+            start = l - len(line[oldsp:].lstrip())
+            newsp = line.find(' ',start)
         datalist[lineno] = (line[:oldsp]+
                             '%'+str(newsp-oldsp)+'d'+line[newsp:])%new
 
@@ -627,7 +626,7 @@ class AUTOBranch(Points.Pointset):
         # 9996, 9997, 9998, 9999, 1, 2, ...
         # -9996, -9997, 1, 0, -1, -2, ... (an AUTO bug)
         # do not define a new branch if that happens
-        prevpt = int(string.split(datalist[-2],None,2)[1])
+        prevpt = int(datalist[-2].split(None,2)[1])
         if prevpt not in [9999,-9999,9997,-9997,0]:
             return True
         # do some corrections
@@ -654,9 +653,11 @@ class AUTOBranch(Points.Pointset):
         # Another way for a section to start is with a point number
         # equal to 1.
         self._lastline = None
-        split = string.split
         if hasattr(str,"split"):
             split = str.split
+        else:
+            import string
+            split = string.split
         if prevline:
             line = prevline
         else:
@@ -720,22 +721,24 @@ class AUTOBranch(Points.Pointset):
 
     def parseHeader(self,headerlist):
         self.headerlist = headerlist
-        split = string.split
         if hasattr(str,"split"):
             split = str.split
+        else:
+            import string
+            split = string.split
         line = ""
         if headerlist != []:
             line = headerlist[-1]
         ncolumns = len(split(self.__datalist[0])) - 4
         self.headernames = []
-        if string.find(line, " PT ") != -1:
+        if line.find(" PT ") != -1:
             self.coordnames = []
             linelen = len(self.__datalist[0])
             columnlen = (linelen - 19) / ncolumns
             n = linelen - columnlen * ncolumns
             for i in range(ncolumns):
-                self.headernames.append(string.rstrip(line[n:n+columnlen]))
-                self.coordnames.append(string.strip(line[n:n+columnlen]))
+                self.headernames.append(line[n:n+columnlen].rstrip())
+                self.coordnames.append(line[n:n+columnlen].strip())
                 n = n + columnlen
         if self.coordnames == []:
             self.coordnames = map(str,range(ncolumns))                
@@ -757,7 +760,7 @@ class AUTOBranch(Points.Pointset):
                 userspec = True
                 continue
             if words[1] in ["User-specified", "Active"]:
-                line = string.replace(line,"s:",":")
+                line = line.replace("s:",":")
                 for ind in range(2,len(words)):
                     if words[ind] in ["parameter:","parameters:"]:
                         index = ind + 1
@@ -777,7 +780,7 @@ class AUTOBranch(Points.Pointset):
                     d.append(w)
                 dict[key] = d
                 continue
-            dict.parseline(string.join(words[1:]),userspec)
+            dict.parseline(" ".join(words[1:]),userspec)
         return dict
 
 class parseBR(UserList.UserList,AUTOBranch):
@@ -1003,7 +1006,7 @@ class parseBR(UserList.UserList,AUTOBranch):
         slist = []
         for branch in self.data:
             slist.append(branch.__str__())
-        return string.join(slist,"\n")+"\n"
+        return "\n".join(slist)+"\n"
 
     def read(self,inputfile):
         # We now go through the file and read the branches.
@@ -1068,7 +1071,7 @@ def AUTOatof(input_string):
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
-                return float(string.strip(input_string)[0:-1])
+                return float(input_string.strip()[0:-1])
             if input_string[-4] in ["-","+"]:
                 #  This is the case where you have x.xxxxxxxxx-yyy
                 #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
@@ -1077,8 +1080,8 @@ def AUTOatof(input_string):
                 #  This is the case where you have x.xxxxxxxxxD+yy
                 #  or x.xxxxxxxxxD-yy (standard Fortran but not C)
                 return float(input_string[:-4]+'E'+input_string[-3:])
-            input_string = string.replace(input_string,"D","E")
-            input_string = string.replace(input_string,"d","e")
+            input_string = input_string.replace("D","E")
+            input_string = input_string.replace("d","e")
             try:
                 return float(input_string)
             except (ValueError):

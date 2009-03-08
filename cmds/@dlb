@@ -2,7 +2,6 @@
 
 import sys
 import os
-import string
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
 from AUTOclui import *
 import parseBandS
@@ -12,7 +11,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         code=sys.argv[1]
         if code[0] == '-':
-            codes=[string.upper(code[1:3])]
+            codes=[code[1:3].upper()]
             n=1
         else:
             codes=None

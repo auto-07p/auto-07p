@@ -17,7 +17,6 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-import string
 import os
 import sys
 import UserDict
@@ -134,13 +133,13 @@ class parseC(UserDict.UserDict):
         start = 0
         isdict = False
         v = ''
-        line = string.strip(line)
+        line = line.strip()
         i = 0
         while True:
             if i == len(line):
                 if level == 0 or inputfile is None:
                     break
-                line = string.strip(inputfile.readline())
+                line = inputfile.readline().strip()
                 i = 0
             npos = i
             c = line[i]
@@ -194,20 +193,20 @@ class parseC(UserDict.UserDict):
         if npos >= len(line) - 1:
             line = ''
         else:
-            line = string.strip(line[npos:])
+            line = line[npos:].strip()
         return value, line
 
     def parseline(self,line,userspec=False,inputfile=None):
         # parses a new-style constant file line and puts the keys
         # in the dictionary c; also used for the header of a b. file
         while line != "":
-            line = string.strip(line)
+            line = line.strip()
             if line[0] in ['#','!','_']:
                 return
-            pos = string.find(line, '=')
+            pos = line.find('=')
             if pos == -1:
                 return
-            key = string.strip(line[:pos])
+            key = line[:pos].strip()
             value, line = self.scanvalue(line[pos+1:],inputfile)
             if key in ['ICP','IREV','IFIXED','IPSI']:
                 d = []
@@ -273,15 +272,15 @@ class parseC(UserDict.UserDict):
 
     def read(self,inputfile):
 	line = inputfile.readline()
-	data = string.split(line)
-        while not data[0][0] in string.digits:
+	data = line.split()
+        while not data[0][0].isdigit():
             self.parseline(line,inputfile=inputfile)
             line = inputfile.readline()
             while line != '' and line[0] == '\n':
                 line = inputfile.readline()
             if line == '':
                 break
-            data = string.split(line)
+            data = line.split()
                 
         if line == '':
             return
@@ -293,7 +292,7 @@ class parseC(UserDict.UserDict):
 	self["ILP"] = int(data[3])
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self.data["__NICP"] = int(data[0])
 	self.data["ICP"] = []
 	for i in range(self["__NICP"]):
@@ -305,7 +304,7 @@ class parseC(UserDict.UserDict):
 	    self.data["ICP"].append(d)
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["NTST"] = int(data[0])
 	self["NCOL"] = int(data[1])
 	self["IAD"] = int(data[2])
@@ -316,7 +315,7 @@ class parseC(UserDict.UserDict):
 	self["NINT"] = int(data[7])
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["NMX"] = int(data[0])
 	self["RL0"] = parseB.AUTOatof(data[1])
 	self["RL1"] = parseB.AUTOatof(data[2])
@@ -324,7 +323,7 @@ class parseC(UserDict.UserDict):
 	self["A1"] = parseB.AUTOatof(data[4])
 	
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["NPR"] = int(data[0])
 	self["MXBF"] = int(data[1])
 	self["IID"] = int(data[2])
@@ -334,13 +333,13 @@ class parseC(UserDict.UserDict):
 	self["JAC"] = int(data[6])
 	
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["EPSL"] = parseB.AUTOatof(data[0])
 	self["EPSU"] = parseB.AUTOatof(data[1])
 	self["EPSS"] = parseB.AUTOatof(data[2])
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["DS"] = parseB.AUTOatof(data[0])
 	self["DSMIN"] = parseB.AUTOatof(data[1])
 	self["DSMAX"] = parseB.AUTOatof(data[2])
@@ -348,12 +347,12 @@ class parseC(UserDict.UserDict):
 	
         for key in ["THL","THU","UZR"]:
             line = inputfile.readline()
-            data = string.split(line)
+            data = line.split()
             self.data["__N"+key] = int(data[0])
             self.data[key] = []
             for i in range(self["__N"+key]):
                 line = inputfile.readline()
-                data = string.split(line)
+                data = line.split()
                 d = data[0]
                 try:
                     d = int(d)
@@ -373,7 +372,7 @@ class parseC(UserDict.UserDict):
             l = []
             for v in value:
                 l.append(self.__compactstr(v))
-            return '['+string.join(l,", ")+']'
+            return '['+", ".join(l)+']'
             
     def write(self,output,new=False):
         wdth2keys = ["A0","A1"]
@@ -428,12 +427,12 @@ class parseC(UserDict.UserDict):
                     l=[]
                     for k,v in value:
                         l.append(repr(k)+": "+self.__compactstr(v))
-                    output.write("  {"+string.join(l,", ")+"}")
+                    output.write("  {"+", ".join(l)+"}")
                 elif key in ["unames","parnames"]:
                     l=[]
                     for k,v in value:
                         l.append(str(k)+": "+repr(v))
-                    output.write("{"+string.join(l,", ")+"}")
+                    output.write("{"+", ".join(l)+"}")
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
                     if key in wdth3keys:

@@ -1,7 +1,6 @@
 # Python interface to some of the commands of the 2.4 version of the
 # BLT extension to tcl.
 
-import string
 import types
 import Tkinter
 
@@ -77,7 +76,7 @@ def busy_forget(window):
 def vector_expr(expression):
     tk = Tkinter._default_root.tk
     strList = tk.splitlist(tk.call(_vectorCommand, 'expr', expression))
-    return tuple(map(string.atof, strList))
+    return tuple(map(float, strList))
 
 def vector_names(pattern = None):
     tk = Tkinter._default_root.tk
@@ -105,7 +104,7 @@ class Vector:
 	return self._name
 
     def __repr__(self):
-	return '[' + string.join(map(str, self), ', ') + ']'
+	return '[' + ', '.join(map(str, self)) + ']'
     def __cmp__(self, list):
 	return cmp(self[:], list)
 

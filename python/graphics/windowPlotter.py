@@ -5,7 +5,6 @@ import Pmw
 import AUTOutil
 import plotter
 import types
-import string
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
@@ -132,7 +131,7 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.optionSelctionDialog.destroy()
 
     def _shortstr(self,list):
-        return "[" + string.join(map(str,list),",") + "]"
+        return "[" + ",".join(map(str,list)) + "]"
         
     def setOptionDialog(self,key):
         self.diag = Pmw.Dialog(self.interior(),
@@ -177,10 +176,10 @@ class WindowPlotter(Pmw.MegaToplevel):
         try:
             self.grapher[key] = eval(entry,{},{})
         except (NameError,SyntaxError):
-            entry = string.strip(entry)
-            entry = string.replace(entry,"[","['")
-            entry = string.replace(entry,"]","']")
-            entry = string.replace(entry,",","','")
+            entry = entry.strip()
+            entry = entry.replace("[","['")
+            entry = entry.replace("]","']")
+            entry = entry.replace(",","','")
             if entry == "" or entry[0] != '[':
                 entry = "'" + entry + "'"
             self.grapher[key] = eval(entry,{},{})

@@ -17,7 +17,6 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-import string
 import os
 import sys
 import UserDict
@@ -78,7 +77,7 @@ class parseH(UserDict.UserDict):
     def read(self,inputfile):
 #        self.dataString = inputfile.read()
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
 	self["NUNSTAB"] = int(data[0])
 	self["NSTAB"] = int(data[1])
 	self["IEQUIB"] = int(data[2])
@@ -86,32 +85,32 @@ class parseH(UserDict.UserDict):
 	self["ISTART"] = int(data[4])
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
         nrev = int(data[0])
         data = []
 	if nrev > 0:
 	    line = inputfile.readline()
-	    data = string.split(line)
+	    data = line.split()
         self["IREV"] = map(int,data)
 	self["NREV"] = nrev
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
         nfixed = int(data[0])
         data = []
 	if nfixed > 0:
 	    line = inputfile.readline()
-	    data = string.split(line)
+	    data = line.split()
 	self["IFIXED"] = map(int,data[:nfixed])
 	self["NFIXED"] = nfixed
 
 	line = inputfile.readline()
-	data = string.split(line)
+	data = line.split()
         npsi = int(data[0])
         data = []
 	if npsi > 0:
 	    line = inputfile.readline()
-	    data = string.split(line)
+	    data = line.split()
         self["IPSI"] = map(int,data[:npsi])
 	self["NPSI"] = npsi
 

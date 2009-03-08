@@ -3,7 +3,6 @@ import Tkinter
 import Pmw
 import tkSimpleDialog
 import tkFileDialog
-import string
 import types
 import AUTOutil
 import optionHandler
@@ -246,7 +245,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         pass
 
     def draw(self):
-        color_list = string.split(self.cget("color_list"))
+        color_list = self.cget("color_list").split()
         minx=self.cget("minx")
         maxx=self.cget("maxx")
         miny=self.cget("miny")
@@ -758,7 +757,7 @@ class InteractiveGrapher(LabeledGrapher):
             #tags associated with the point
             point_tags = self.gettags(point)
             for tag in point_tags:
-                tag=string.split(tag,":")
+                tag=tag.split(":")
                 if tag[0] == "data_point":
                     point=int(tag[1])
                 if tag[0] == "curve":

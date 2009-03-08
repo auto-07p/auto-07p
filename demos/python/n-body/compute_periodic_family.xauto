@@ -15,7 +15,6 @@ import parseD
 # We also import a few general Python utility
 # libraries.
 import sys
-import string
 import math
 
 # We have divided the functionality if this
@@ -168,13 +167,13 @@ if __name__ == '__main__':
 
     npr = 20
     if opts.has_key("-n"):
-        npr = string.atoi(opts["-n"])
+        npr = int(opts["-n"])
 
     # The first argument is the name of the file in
     # which you find the starting point
     starting_point = args[0]
     # The second argument is the desired mu value.
-    mu = string.atof(args[1])
+    mu = float(args[1])
     compute_periodic_family(starting_point,mu,compute_bifur_flag,npr)
 
 

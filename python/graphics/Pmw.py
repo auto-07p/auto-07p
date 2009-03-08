@@ -51,8 +51,12 @@ def installedversions(alpha = 0):
 # Megawidgets are built by creating a class that inherits from either
 # the MegaToplevel or MegaWidget class.
 
+try:
+    long
+except NameError:
+    long = int
+
 import os
-import string
 import sys
 import traceback
 import types
@@ -401,7 +405,7 @@ class MegaArchetype:
 		for name, info in self._optionInfo.items():
 		    value = info[_VALUE]
 		    if value is _DEFAULT_OPTION_VALUE:
-			resourceClass = string.upper(name[0]) + name[1:]
+			resourceClass = name[0].upper() + name[1:]
 			value = option_get(name, resourceClass)
 			if value != '':
 			    try:
@@ -507,7 +511,7 @@ class MegaArchetype:
 	    keywords = {}
 	for alias, component in componentAliases:
 	    # Create aliases to the component and its sub-components.
-	    index = string.find(component, '_')
+	    index = component.find('_')
 	    if index < 0:
 		self.__componentAliases[alias] = (component, None)
 	    else:
@@ -542,7 +546,7 @@ class MegaArchetype:
 		# keyword argument as being used, but do not remove it
 		# since it may be required when creating another
 		# component.
-		index = string.find(option, '_')
+		index = option.find('_')
 		if index >= 0 and componentGroup == option[:index]:
 		    rest = option[(index + 1):]
 		    kw[rest] = keywords[option][0]
@@ -617,7 +621,7 @@ class MegaArchetype:
                     # This keyword argument has not been used.  If it
                     # does not refer to a dynamic group, mark it as
                     # unused.
-                    index = string.find(name, '_')
+                    index = name.find('_')
                     if index < 0 or name[:index] not in self._dynamicGroups:
                         unusedOptions.append(name)
 	    if len(unusedOptions) > 0:
@@ -625,7 +629,7 @@ class MegaArchetype:
 		    text = 'Unknown option "'
 		else:
 		    text = 'Unknown options "'
-		raise KeyError, text + string.join(unusedOptions, ', ') + \
+		raise KeyError, text + ', '.join(unusedOptions) + \
 			'" for ' + self.__class__.__name__
 
 	    # Call the configuration callback function for every option.
@@ -666,13 +670,13 @@ class MegaArchetype:
 	    if option is None:
 		rtn = {}
 		for option, config in self._optionInfo.items():
-		    resourceClass = string.upper(option[0]) + option[1:]
+		    resourceClass = option[0].upper() + option[1:]
 		    rtn[option] = (option, option, resourceClass,
 			    config[_OPT_DEFAULT], config[_OPT_VALUE])
 		return rtn
 	    else:
 		config = self._optionInfo[option]
-		resourceClass = string.upper(option[0]) + option[1:]
+		resourceClass = option[0].upper() + option[1:]
 		return (option, option, resourceClass, config[_OPT_DEFAULT],
 			config[_OPT_VALUE])
 
@@ -710,7 +714,7 @@ class MegaArchetype:
 		optionInfo[option][VALUE] = value
 		directOptions.append(option)
 	    else:
-		index = string.find(option, '_')
+		index = option.find('_')
 		if index >= 0:
 		    # This option may be of the form <component>_<option>.
 		    component = option[:index]
@@ -778,7 +782,7 @@ class MegaArchetype:
 	# widget components directly.
 
 	# Find the main component and any subcomponents
-	index = string.find(name, '_')
+	index = name.find('_')
 	if index < 0:
 	    component = name
 	    remainingComponents = None
@@ -819,7 +823,7 @@ class MegaArchetype:
 	if self._optionInfo.has_key(option):
 	    return self._optionInfo[option][_OPT_VALUE]
 	else:
-	    index = string.find(option, '_')
+	    index = option.find('_')
 	    if index >= 0:
 		component = option[:index]
 		componentOption = option[(index + 1):]
@@ -1130,7 +1134,7 @@ class MegaToplevel(MegaArchetype):
 	# Position the window at the same place it was last time.
 
 	geometry = self.geometry()
-	index = string.find(geometry, '+')
+	index = geometry.find('+')
 	if index >= 0:
 	    return geometry[index:]
         else:
@@ -1673,10 +1677,10 @@ class _BusyWrapper:
 def drawarrow(canvas, color, direction, tag, baseOffset = 0.25, edgeOffset = 0.15):
     canvas.delete(tag)
 
-    bw = (string.atoi(canvas['borderwidth']) + 
-            string.atoi(canvas['highlightthickness']))
-    width = string.atoi(canvas['width'])
-    height = string.atoi(canvas['height'])
+    bw = (int(canvas['borderwidth']) + 
+            int(canvas['highlightthickness']))
+    width = int(canvas['width'])
+    height = int(canvas['height'])
 
     if direction in ('up', 'down'):
         majorDimension = height
@@ -1770,7 +1774,7 @@ class __TkinterCallWrapper:
                     name = self.func.__name__
                 if len(args) == 1 and hasattr(args[0], 'type'):
                     # The argument to the callback is an event.
-                    eventName = _eventTypeToName[string.atoi(args[0].type)]
+                    eventName = _eventTypeToName[int(args[0].type)]
                     if eventName in ('KeyPress', 'KeyRelease',):
                         argStr = '(%s %s Event: %s)' % \
                             (eventName, args[0].keysym, args[0].widget)
@@ -1823,7 +1827,7 @@ def _reporterror(func, args):
 
     # If the argument to the callback is an event, add the event type.
     if eventArg:
-	eventNum = string.atoi(args[0].type)
+	eventNum = int(args[0].type)
         if eventNum in _eventTypeToName.keys():
             msg = msg + '  Event type: %s (type num: %d)\n' % \
                     (_eventTypeToName[eventNum], eventNum)
@@ -1920,7 +1924,7 @@ class _ErrorWindow:
 		geom = None
 	    else:
                 geometry = self._top.geometry()
-                index = string.find(geometry, '+')
+                index = geometry.find('+')
                 if index >= 0:
                     geom = geometry[index:]
                 else:
@@ -2164,7 +2168,7 @@ import re
 import string
 
 def timestringtoseconds(text, separator = ':'):
-  inputList = string.split(string.strip(text), separator)
+  inputList = text.strip().split(separator)
   if len(inputList) != 3:
     raise ValueError, 'invalid value: ' + text
 
@@ -2174,12 +2178,12 @@ def timestringtoseconds(text, separator = ':'):
       sign = -1
     inputList[0] = inputList[0][1:]
 
-  if re.search('[^0-9]', string.join(inputList, '')) is not None:
+  if re.search('[^0-9]', ''.join(inputList)) is not None:
     raise ValueError, 'invalid value: ' + text
 
-  hour = string.atoi(inputList[0])
-  minute = string.atoi(inputList[1])
-  second = string.atoi(inputList[2])
+  hour = int(inputList[0])
+  minute = int(inputList[1])
+  second = int(inputList[2])
 
   if minute >= 60 or second >= 60:
     raise ValueError, 'invalid value: ' + text
@@ -2198,16 +2202,16 @@ def setyearpivot(pivot, century = None):
     return oldvalues
 
 def datestringtojdn(text, format = 'ymd', separator = '/'):
-  inputList = string.split(string.strip(text), separator)
+  inputList = text.strip().split(separator)
   if len(inputList) != 3:
     raise ValueError, 'invalid value: ' + text
 
-  if re.search('[^0-9]', string.join(inputList, '')) is not None:
+  if re.search('[^0-9]', ''.join(inputList)) is not None:
     raise ValueError, 'invalid value: ' + text
   formatList = list(format)
-  day = string.atoi(inputList[formatList.index('d')])
-  month = string.atoi(inputList[formatList.index('m')])
-  year = string.atoi(inputList[formatList.index('y')])
+  day = int(inputList[formatList.index('d')])
+  month = int(inputList[formatList.index('m')])
+  year = int(inputList[formatList.index('y')])
 
   if _year_pivot is not None:
     if year >= 0 and year < 100:
@@ -2298,12 +2302,12 @@ def jdntoymd(jdn, julian = -1, papal = 1):
 
 def stringtoreal(text, separator = '.'):
     if separator != '.':
-	if string.find(text, '.') >= 0:
+	if text.find('.') >= 0:
 	    raise ValueError, 'invalid value: ' + text
-	index = string.find(text, separator)
+	index = text.find(separator)
 	if index >= 0:
 	    text = text[:index] + '.' + text[index + 1:]
-    return string.atof(text)
+    return float(text)
 
 ######################################################################
 ### File: PmwBalloon.py
@@ -2659,8 +2663,8 @@ class Balloon(MegaToplevel):
             y = bottomrel + widget.winfo_rooty()
         y = y + self['yoffset']
 
-        edges = (string.atoi(str(self.cget('hull_highlightthickness'))) +
-            string.atoi(str(self.cget('hull_borderwidth')))) * 2
+        edges = (int(str(self.cget('hull_highlightthickness'))) +
+            int(str(self.cget('hull_borderwidth')))) * 2
         if x + self._label.winfo_reqwidth() + edges > screenWidth:
             x = screenWidth - self._label.winfo_reqwidth() - edges
 
@@ -3257,7 +3261,7 @@ def integervalidator(text):
     if text in ('', '-', '+'):
         return PARTIAL
     try:
-	string.atol(text)
+	long(text)
 	return OK
     except ValueError:
 	return ERROR
@@ -3278,30 +3282,30 @@ def hexadecimalvalidator(text):
     if text in ('', '0x', '0X', '+', '+0x', '+0X', '-', '-0x', '-0X'):
         return PARTIAL
     try:
-	string.atol(text, 16)
+	long(text, 16)
 	return OK
     except ValueError:
 	return ERROR
     
 def realvalidator(text, separator = '.'):
     if separator != '.':
-	if string.find(text, '.') >= 0:
+	if text.find('.') >= 0:
 	    return ERROR
-	index = string.find(text, separator)
+	index = text.find(separator)
 	if index >= 0:
 	    text = text[:index] + '.' + text[index + 1:]
     try:
-	string.atof(text)
+	float(text)
 	return OK
     except ValueError:
 	# Check if the string could be made valid by appending a digit
 	# eg ('-', '+', '.', '-.', '+.', '1.23e', '1E-').
 	if len(text) == 0:
 	    return PARTIAL
-	if text[-1] in string.digits:
+	if text[-1].isdigit():
 	    return ERROR
 	try:
-	    string.atof(text + '0')
+	    float(text + '0')
 	    return PARTIAL
 	except ValueError:
 	    return ERROR
@@ -3327,9 +3331,9 @@ def datevalidator(text, format = 'ymd', separator = '/'):
 	return PARTIAL
 
 _standardValidators = {
-    'numeric'      : (numericvalidator,      string.atol),
-    'integer'      : (integervalidator,      string.atol),
-    'hexadecimal'  : (hexadecimalvalidator,  lambda s: string.atol(s, 16)),
+    'numeric'      : (numericvalidator,      long),
+    'integer'      : (integervalidator,      long),
+    'hexadecimal'  : (hexadecimalvalidator,  lambda s: long(s, 16)),
     'real'         : (realvalidator,         stringtoreal),
     'alphabetic'   : (alphabeticvalidator,   len),
     'alphanumeric' : (alphanumericvalidator, len),
@@ -3374,16 +3378,16 @@ def aligngrouptags(groups):
     maxTagHeight = 0
     for group in groups:
 	if group._tag is None:
-	    height = (string.atoi(str(group._ring.cget('borderwidth'))) +
-		    string.atoi(str(group._ring.cget('highlightthickness'))))
+	    height = (int(str(group._ring.cget('borderwidth'))) +
+		    int(str(group._ring.cget('highlightthickness'))))
 	else:
 	    height = group._tag.winfo_reqheight()
 	if maxTagHeight < height:
 	    maxTagHeight = height
 
     for group in groups:
-	ringBorder = (string.atoi(str(group._ring.cget('borderwidth'))) +
-		string.atoi(str(group._ring.cget('highlightthickness'))))
+	ringBorder = (int(str(group._ring.cget('borderwidth'))) +
+		int(str(group._ring.cget('highlightthickness'))))
 	topBorder = maxTagHeight / 2 - ringBorder / 2
 	group._hull.grid_rowconfigure(0, minsize = topBorder)
 	group._ring.grid_rowconfigure(0,
@@ -3428,8 +3432,8 @@ class Group( MegaWidget ):
 	    Tkinter.Label, (interior,),
 	    )
 
-	ringBorder = (string.atoi(str(self._ring.cget('borderwidth'))) +
-		string.atoi(str(self._ring.cget('highlightthickness'))))
+	ringBorder = (int(str(self._ring.cget('borderwidth'))) +
+		int(str(self._ring.cget('highlightthickness'))))
 	if self._tag is None:
 	    tagHeight = ringBorder
 	else:
@@ -3693,26 +3697,25 @@ class MainMenuBar(MegaArchetype):
             for item in range(end + 1):
                 if menu.type(item) not in ('separator', 'tearoff'):
                     underline = \
-                            string.atoi(str(menu.entrycget(item, 'underline')))
+                            int(str(menu.entrycget(item, 'underline')))
                     if underline != -1:
                         label = str(menu.entrycget(item, 'label'))
                         if underline < len(label):
-                            hotkey = string.lower(label[underline])
+                            hotkey = label[underline].lower()
                             if hotkey not in hotkeyList:
                                 hotkeyList.append(hotkey)
 
         name = kw['label']
 
         if type(traverseSpec) == types.StringType:
-            lowerLetter = string.lower(traverseSpec)
+            lowerLetter = traverseSpec.lower()
             if traverseSpec in name and lowerLetter not in hotkeyList:
-                kw['underline'] = string.index(name, traverseSpec)
+                kw['underline'] = name.index(traverseSpec)
         else:
-            targets = string.digits + string.letters
-            lowerName = string.lower(name)
+            lowerName = name.lower()
             for letter_index in range(len(name)):
                 letter = lowerName[letter_index]
-                if letter in targets and letter not in hotkeyList:
+                if letter.isalnum() and letter not in hotkeyList:
                     kw['underline'] = letter_index
                     break
 
@@ -3931,11 +3934,11 @@ class MenuBar(MegaWidget):
             for menuName in self._menuInfo.keys():
                 if self._menuInfo[menuName][0] is None:
                     menubutton = self.component(menuName + '-button')
-                    underline = string.atoi(str(menubutton.cget('underline')))
+                    underline = int(str(menubutton.cget('underline')))
                     if underline != -1:
                         label = str(menubutton.cget(textKey))
                         if underline < len(label):
-                            hotkey = string.lower(label[underline])
+                            hotkey = label[underline].lower()
                             if hotkey not in hotkeyList:
                                 hotkeyList.append(hotkey)
         else:
@@ -3944,27 +3947,26 @@ class MenuBar(MegaWidget):
             if end is not None:
                 for item in range(end + 1):
                     if menu.type(item) not in ('separator', 'tearoff'):
-                        underline = string.atoi(
+                        underline = int(
                             str(menu.entrycget(item, 'underline')))
                         if underline != -1:
                             label = str(menu.entrycget(item, textKey))
                             if underline < len(label):
-                                hotkey = string.lower(label[underline])
+                                hotkey = label[underline].lower()
                                 if hotkey not in hotkeyList:
                                     hotkeyList.append(hotkey)
 
         name = kw[textKey]
 
         if type(traverseSpec) == types.StringType:
-            lowerLetter = string.lower(traverseSpec)
+            lowerLetter = traverseSpec.lower()
             if traverseSpec in name and lowerLetter not in hotkeyList:
-                kw['underline'] = string.index(name, traverseSpec)
+                kw['underline'] = name.index(traverseSpec)
         else:
-            targets = string.digits + string.letters
-            lowerName = string.lower(name)
+            lowerName = name.lower()
             for letter_index in range(len(name)):
                 letter = lowerName[letter_index]
-                if letter in targets and letter not in hotkeyList:
+                if letter.isalnum() and letter not in hotkeyList:
                     kw['underline'] = letter_index
                     break
 
@@ -4076,7 +4078,7 @@ class MessageBar(MegaWidget):
 	self._activemessage[priority] = 1
 	if text is None:
 	    text = ''
-	self._messagetext[priority] = string.replace(text, '\n', ' ')
+	self._messagetext[priority] = text.replace('\n', ' ')
 	self._redisplayInfoMessage()
 
 	if logmessage:
@@ -4627,8 +4629,8 @@ class NoteBook(MegaArchetype):
 
         hullWidth, hullHeight = self._canvasSize
         borderWidth = self._borderWidth
-        canvasBorder = string.atoi(self._hull['borderwidth']) + \
-            string.atoi(self._hull['highlightthickness'])
+        canvasBorder = int(self._hull['borderwidth']) + \
+            int(self._hull['highlightthickness'])
         if not self._withTabs:
             self.tabBottom = canvasBorder
         oldTabBottom = self.tabBottom
@@ -5134,8 +5136,8 @@ class PanedWidget(MegaWidget):
         # Note that, since the hull is a frame, the width and height
         # options specify the geometry *outside* the borderwidth and
         # highlightthickness.
-        bw = string.atoi(str(self.cget('hull_borderwidth')))
-        hl = string.atoi(str(self.cget('hull_highlightthickness')))
+        bw = int(str(self.cget('hull_borderwidth')))
+        hl = int(str(self.cget('hull_highlightthickness')))
         extra = (bw + hl) * 2
         if str(self.cget('orient')) == 'horizontal':
             totalWidth = totalWidth + extra
@@ -5318,8 +5320,8 @@ class PanedWidget(MegaWidget):
 	    self._minorSize = self.winfo_height()
 	    majorspec = Tkinter.Frame.winfo_reqwidth
 
-        bw = string.atoi(str(self.cget('hull_borderwidth')))
-        hl = string.atoi(str(self.cget('hull_highlightthickness')))
+        bw = int(str(self.cget('hull_borderwidth')))
+        hl = int(str(self.cget('hull_highlightthickness')))
         extra = (bw + hl) * 2
         self._majorSize = self._majorSize - extra
         self._minorSize = self._minorSize - extra
@@ -6396,7 +6398,7 @@ class ScrolledFrame(MegaWidget):
     def xview(self, mode = None, value = None, units = None):
 
         if type(value) == types.StringType:
-            value = string.atof(value)
+            value = float(value)
         if mode is None:
             return self._horizScrollbar.get()
 	elif mode == 'moveto':
@@ -6418,7 +6420,7 @@ class ScrolledFrame(MegaWidget):
     def yview(self, mode = None, value = None, units = None):
 
         if type(value) == types.StringType:
-            value = string.atof(value)
+            value = float(value)
         if mode is None:
             return self._vertScrollbar.get()
 	elif mode == 'moveto':
@@ -7981,8 +7983,8 @@ class TimeCounter(MegaWidget):
 		self._upSecondArrowBtn,
 		self._downHourArrowBtn,
 		self._downMinuteArrowBtn, self._downSecondArrowBtn):
-	    bw = (string.atoi(btn['borderwidth']) +
-		    string.atoi(btn['highlightthickness']))
+	    bw = (int(btn['borderwidth']) +
+		    int(btn['highlightthickness']))
 	    newHeight = self._hourCounterEntry.winfo_reqheight() - 2 * bw
 	    newWidth = int(newHeight * self['buttonaspect'])
 	    btn.configure(width=newWidth, height=newHeight)
@@ -8006,13 +8008,13 @@ class TimeCounter(MegaWidget):
         return self.getstring()
 
     def setvalue(self, text):
-        list = string.split(text, ':')
+        list = text.split(':')
 	if len(list) != 3:
 	    raise ValueError, 'invalid value: ' + text
 
-	self._hour = string.atoi(list[0])
-	self._minute = string.atoi(list[1])
-	self._second = string.atoi(list[2]) 
+	self._hour = int(list[0])
+	self._minute = int(list[1])
+	self._second = int(list[2]) 
 
     	self._setHMS()
 
@@ -8047,9 +8049,9 @@ class TimeCounter(MegaWidget):
 	  if self._flag == 'stopped':
 	    return
 
-	value = (string.atoi(self._hourCounterEntry.get()) *3600) + \
-	      (string.atoi(self._minuteCounterEntry.get()) *60) + \
-	      string.atoi(self._secondCounterEntry.get()) + \
+	value = (int(self._hourCounterEntry.get()) *3600) + \
+	      (int(self._minuteCounterEntry.get()) *60) + \
+	      int(self._secondCounterEntry.get()) + \
 	      factor * increment
 	min = self._minVal
 	max = self._maxVal
@@ -8395,7 +8397,7 @@ class ComboBox(MegaWidget):
 	if len(cursels) == 0:
 	    index = 0
 	else:
-	    index = string.atoi(cursels[0])
+	    index = int(cursels[0])
 	    if index == size - 1:
 		index = 0
 	    else:
@@ -8413,7 +8415,7 @@ class ComboBox(MegaWidget):
 	if len(cursels) == 0:
 	    index = size - 1
 	else:
-	    index = string.atoi(cursels[0])
+	    index = int(cursels[0])
 	    if index == 0:
 		index = size - 1
 	    else:
@@ -8508,8 +8510,8 @@ class ComboBox(MegaWidget):
 	self._ignoreRelease = 0
 
     def _resizeArrow(self, event):
-	bw = (string.atoi(self._arrowBtn['borderwidth']) + 
-		string.atoi(self._arrowBtn['highlightthickness']))
+	bw = (int(self._arrowBtn['borderwidth']) + 
+		int(self._arrowBtn['highlightthickness']))
 	newHeight = self._entryfield.winfo_reqheight() - 2 * bw
 	newWidth = int(newHeight * self['buttonaspect'])
 	self._arrowBtn.configure(width=newWidth, height=newHeight)
@@ -8736,8 +8738,8 @@ class Counter(MegaWidget):
 
     def _resizeArrow(self, event):
 	for btn in (self._upArrowBtn, self._downArrowBtn):
-	    bw = (string.atoi(btn['borderwidth']) +
-		    string.atoi(btn['highlightthickness']))
+	    bw = (int(btn['borderwidth']) +
+		    int(btn['highlightthickness']))
 	    newHeight = self._counterEntry.winfo_reqheight() - 2 * bw
 	    newWidth = int(newHeight * self['buttonaspect'])
 	    btn.configure(width=newWidth, height=newHeight)
@@ -8884,7 +8886,7 @@ class Counter(MegaWidget):
 forwardmethods(Counter, EntryField, '_counterEntry')
 
 def _changeNumber(text, factor, increment):
-  value = string.atol(text)
+  value = long(text)
   if factor > 0:
     value = (value / increment) * increment + increment
   else:
@@ -8920,7 +8922,7 @@ def _changeReal(text, factor, increment, separator = '.'):
 
   text = str(value)
   if separator != '.':
-      index = string.find(text, '.')
+      index = text.find('.')
       if index >= 0:
 	text = text[:index] + separator + text[index + 1:]
   return text
@@ -9105,7 +9107,7 @@ def logicalfont(name='Helvetica', sizeIncr = 0, **kw):
 
     rtn.append(realValue)
 
-  return string.join(rtn, '-')
+  return '-'.join(rtn)
 
 def logicalfontnames():
   return _fontInfo.keys()

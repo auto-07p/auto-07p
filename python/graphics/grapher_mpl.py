@@ -9,7 +9,6 @@ from matplotlib.numerix import transpose
 import Tkinter
 import Pmw
 import tkFileDialog
-import string
 import AUTOutil
 import optionHandler
 import math
@@ -150,7 +149,7 @@ class BasicGrapher(grapher.BasicGrapher):
             if self.cget("grid") == "yes":
                 self.ax.grid(color=value)
         elif key == "color_list":
-            color_list = string.split(value)
+            color_list = value.split()
             i = 0
             for d in self.data:
                 if d["newsect"] is None or d["newsect"]:
@@ -218,7 +217,7 @@ class BasicGrapher(grapher.BasicGrapher):
         FigureCanvasTkAgg.draw(self.canvas)
 
     def plot(self):
-        color_list = string.split(self.cget("color_list"))
+        color_list = self.cget("color_list").split()
             
         # data
         line_width=self.cget("line_width")

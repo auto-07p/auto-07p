@@ -3,7 +3,6 @@
 import sys
 import os
 import code
-import string
 import getopt
 import re
 import AUTOExceptions
@@ -48,7 +47,7 @@ Aliases: demofile dmf"""
             while len(line) > 0 and line[-1] in "\r\n":
                 line = line[:-1]
             # we only wait if the current line is not a comment
-            if len(string.strip(line)) >0 and string.strip(line)[0] != "#":
+            if len(line.strip()) >0 and line.strip()[0] != "#":
                 sys.stdout.write(sys.ps1+line)
                 raw_input()
             else:
@@ -115,7 +114,7 @@ Aliases: ex"""
         if lsplit is None:  # no regexp match returns None
             #print "match failed for line '%s'" % line  # dbg
             try:
-                iFun,theRest = string.split(line,None,1)
+                iFun,theRest = line.split(None,1)
             except ValueError:
                 #print "split failed for line '%s'" % line  # dbg
                 iFun,theRest = line,''
@@ -133,7 +132,7 @@ Aliases: ex"""
             theRest = iFun+unicode(' ')+theRest
             iFun = unicode('')
             
-        return pre,string.strip(iFun),theRest
+        return pre,iFun.strip(),theRest
 
     def _ofind(self, oname):
         """Find an object in the available namespaces.
@@ -141,14 +140,14 @@ Aliases: ex"""
         self._ofind(oname) -> obj
         """
         #shamelessly stolen from IPython        
-        oname = string.strip(oname)
+        oname = oname.strip()
         # initialize results to 'null'
         found = 0; obj = None;
 
         # Look for the given name by splitting it in parts.  If the head is
         # found, then we look for all the remaining parts as members, and only
         # declare success if we can find them all.
-        oname_parts = string.split(oname,'.')
+        oname_parts = oname.split('.')
         oname_head, oname_rest = oname_parts[0],oname_parts[1:]
         # Namespaces to search in:
         for ns in [ self.locals, __builtin__.__dict__ ]:
@@ -182,12 +181,12 @@ Aliases: ex"""
         #shamelessly stolen from IPython, too
         if pre == ',':
             # Auto-quote splitting on whitespace
-            newcmd = '%s("%s")' % (iFun,string.join(string.split(theRest),'", "'))
+            newcmd = '%s("%s")' % (iFun,'", "'.join(theRest.split()))
         elif pre == ';':
             # Auto-quote whole string
             newcmd = '%s("%s")' % (iFun,theRest)
         elif pre == '/':
-            newcmd = '%s(%s)' % (iFun,string.join(string.split(theRest),","))
+            newcmd = '%s(%s)' % (iFun,",".join(theRest.split()))
         else:
             # Auto-paren.
             if len(theRest) > 0 and theRest[0] == '[':
@@ -199,11 +198,11 @@ Aliases: ex"""
                 else:
                     # if the object doesn't support [] access, go ahead and
                     # autocall
-                    newcmd = '%s(%s)' % (string.rstrip(iFun),theRest)
+                    newcmd = '%s(%s)' % (iFun.rstrip(),theRest)
             elif len(theRest) > 0 and theRest[-1] == ';':
-                newcmd = '%s(%s);' % (string.rstrip(iFun),theRest[:-1])
+                newcmd = '%s(%s);' % (iFun.rstrip(),theRest[:-1])
             else:
-                newcmd = '%s(%s)' % (string.rstrip(iFun), theRest)
+                newcmd = '%s(%s)' % (iFun.rstrip(), theRest)
 
         return newcmd
 
@@ -211,7 +210,7 @@ Aliases: ex"""
         """    Given a line of python input check to see if it is
         a AUTO shorthand command, if so, change it to
         its real python equivalent. """
-        lst = string.split(line)
+        lst = line.split()
         spaces = re.match(" *",line)
 
         shortCommands = ["ls","cd","cat"]
@@ -220,11 +219,11 @@ Aliases: ex"""
         if len(lst) > 0:
             pre,cmd,theRest = self.split_user_input(line)
             if lst[0]=="shell":
-                return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+5:]) +"')"
+                return spaces.group()+"shell('" + line[len(spaces.group())+5:].strip() +"')"
             elif lst[0][0]=="!":
-                return spaces.group()+"shell('" + string.strip(line[len(spaces.group())+1:]) +"')"
+                return spaces.group()+"shell('" + line[len(spaces.group())+1:].strip() +"')"
             elif lst[0][0]=="@" or lst[0] in shortUnixCommands:
-                return spaces.group()+"shell('" + string.strip(line[len(spaces.group()):]) +"')"
+                return spaces.group()+"shell('" + line[len(spaces.group()):].strip() +"')"
             elif lst[0] in shortCommands:
                 if len(lst) == 2:
                     command = spaces.group() + lst[0] + "('%s')"%lst[1]
@@ -236,7 +235,7 @@ Aliases: ex"""
                   not self.re_exclude_auto.match(theRest))):
                 obj = self._ofind(cmd)
                 if not obj is None and cmd != 'print' and callable(obj):
-                    command = (line[:(len(line) - len(string.lstrip(line)))]+
+                    command = (line[:(len(line) - len(line.lstrip()))]+
                                self.handle_auto(pre,cmd,theRest,obj))
                     return command
             return line
@@ -363,7 +362,7 @@ def automain(name=None):
         autoipython()
     elif opts.has_key("-c"):
         source = ""
-        for line in string.split(opts["-c"],"\n"):
+        for line in opts["-c"].split("\n"):
             source = source + runner.processShorthand(line) +"\n"
         runner.runsource(source,"-c","exec")
     else:

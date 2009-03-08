@@ -17,7 +17,6 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-import string
 import os
 import sys
 import UserDict
@@ -299,7 +298,7 @@ class SLPointKey(UserList.UserList):
             c = []
             s0 = s.coordnames[0]
             for i in range(ext):
-                c.append(s0[0:string.find(s0,'(')+1]+str(s.dimension+i+1)+')')
+                c.append(s0[0:s0.find('(')+1]+str(s.dimension+i+1)+')')
             s.extend(c)
         s._dims[self.index] = s.dimension
         if min(s._dims) == max(s._dims):
@@ -733,7 +732,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             # See if the guess for the solution end is correct
             input.seek(end)
             data = input.readline()
-            data = string.split(data)
+            data = data.split()
             # This is where we detect the end of the file
             if len(data) == 0:
                 data = input.read(1)
@@ -756,7 +755,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             slist = []
             for i in range(self.__numLinesPerEntry):
                 slist.append(input.readline())
-            self.__data = string.join(slist,"")
+            self.__data = "".join(slist)
             end = input.tell()
         else:
             self.__data = input.read(end - self.__start_of_data)
@@ -786,7 +785,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         inputfile.seek(self.__start_of_header)
 	line = inputfile.readline()
 	if not line: raise PrematureEndofData
-	data = string.split(line)
+	data = line.split()
         try:
             self.indepvarname = 't'
             self.__numEntriesPerBlock = int(data[7])
@@ -834,13 +833,13 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         if hasattr(N,"transpose"):
             if fromstring:
                 fdata = []
-                if string.find(self.__data,"D") == -1:
+                if self.__data.find("D") == -1:
                     fdata = fromstring(self.__data, dtype=float, sep=' ')
                 if fdata == [] or len(fdata) != total:
                     fdata = N.array(map(parseB.AUTOatof,
-                                        string.split(self.__data)), 'd')
+                                        self.__data.split()), 'd')
             else:
-                data = string.split(self.__data)
+                data = self.__data.split()
                 try:
                     fdata = N.array(map(float, data), 'd')
                 except:
@@ -851,7 +850,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             self.indepvararray = ups[:,0]
             self.coordarray = N.transpose(ups[:,1:])
         else: #no numpy
-            data = string.split(self.__data)
+            data = self.__data.split()
             try:
                 fdata = map(float, data)
             except:
@@ -976,7 +975,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                         slist.append(os.linesep+"    ")
                     slist.append("%19.10E" % (self.coordarray[j-1][i]))
                 slist.append(os.linesep)
-            output.write(string.join(slist,""))
+            output.write("".join(slist))
             # I am using the value of NTST to test to see if it is an algebraic or
             # ODE problem.
             if self["NTST"] != 0:
@@ -1016,7 +1015,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                         else:
                             slist.append("%19.10E" %0)
                     slist.append(os.linesep)
-                output.write(string.join(slist,""))
+                output.write("".join(slist))
 
             line = "    "
             j = 0

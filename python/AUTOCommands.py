@@ -10,7 +10,6 @@ import os
 import AUTOutil
 import sys
 import types
-import string
 import glob
 import runAUTO
 import re
@@ -230,7 +229,7 @@ class commandWithFilenameTemplate(command):
                 rval = ""
                 for x in tmp:	
                    rval = rval + x + " "
-            rval = string.strip(rval)
+            rval = rval.strip()
             return rval
         else:
             return text
@@ -861,8 +860,8 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
         except TypeError:
             for branch in n1d:
                 if hasattr(branch,"diagnostics"):
-                    for s in string.split(str(branch.diagnostics),"\n"):
-                        if string.find(s,self.diagnostic) != -1:
+                    for s in str(branch.diagnostics).splitlines():
+                        if s.find(self.diagnostic) != -1:
                             rval.info(s+"\n")
             rval.info("\n")
             return rval
@@ -875,7 +874,7 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
                 s = f.readline()
                 if s == "":
                     break
-                if string.find(s,self.diagnostic) != -1:
+                if s.find(self.diagnostic) != -1:
                     rval.info(s)
         f.close()
         rval.info("\n")
@@ -1066,7 +1065,7 @@ class commandLs(command):
     def __call__(self):
         cmd = "ls"
         if os.name in ["nt", "dos"]:
-            path = string.split(os.environ["PATH"],os.pathsep)
+            path = os.environ["PATH"].split(os.pathsep)
             cmd = "dir" 
             for s in path:
                 if os.path.exists(os.path.join(s,"ls.exe")):
@@ -1796,7 +1795,7 @@ class commandPlotter3D(command):
                 cmd = cmd + '.exe'
             os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
         else:
-            os.system(string.join([cmd]+arg+["&"]))
+            os.system(" ".join([cmd]+arg+["&"]))
         return valueString("")
 
 
@@ -1989,7 +1988,7 @@ class commandHelp(command):
                 doc = getattr(AUTOCommands,cmd).__doc__
                 if not(doc is None):
                     self.__print(" %-25s"%aliases)
-                    doc = string.split(doc,"\n")
+                    doc = doc.splitlines()
                     return_value[cmd]["description"] = doc[0]
                     self.__print(doc[0])
                     self.__print("\n")
@@ -2006,7 +2005,7 @@ class commandHelp(command):
                 aliases = cmd + " " + cmdprop['alias']
                 doc = cmdprop["fn"].__doc__
                 self.__print(" %-25s"%aliases)
-                doc = string.split(doc,"\n")
+                doc = doc.splitlines()
                 return_value[cmd]["description"] = doc[0]
                 self.__print(doc[0])
                 self.__print("\n")
@@ -2027,12 +2026,12 @@ class commandHelp(command):
                 doc = getattr(AUTOCommands,self._aliases[self.command_string]).__doc__
                 return_value["name"] = self._aliases[self.command_string]
             doc = re.sub("FUNC",self.command_string,doc)
-            return_value["short description"] = string.split(doc,"\n")[0]
-            return_value["long description"]  = string.join(string.split(doc,"\n")[1:],"\n")
+            return_value["short description"] = doc.splitlines()[0]
+            return_value["long description"]  = "\n".join(doc.split("\n")[1:])
             # Get rid of the LaTeX stuff from the string that gets returned, but
             # NOT from the data portion
-            doc = string.replace(doc,"\\begin{verbatim}","")
-            doc = string.replace(doc,"\\end{verbatim}","")
+            doc = doc.replace("\\begin{verbatim}","")
+            doc = doc.replace("\\end{verbatim}","")
             doc = doc + "\n"
 
             command_string = self.command_string
@@ -2186,9 +2185,9 @@ class valueSystem:
                                  (os.path.basename(command),) + args)
         else:
             def syscmd(command,args):
-                fullcmd = string.join([command]+list(args)," ")
+                fullcmd = " ".join([command]+list(args))
                 return os.system(fullcmd)
-        fullcmd = string.join([command]+list(args)," ")
+        fullcmd = " ".join([command]+list(args))
         if syscmd(command,args) != 0:
             raise AUTOExceptions.AUTORuntimeError("Error running %s"%fullcmd)
         self.value = self.value + "Finished running: " + fullcmd + "\n"

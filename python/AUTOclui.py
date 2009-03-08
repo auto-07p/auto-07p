@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import AUTOutil
 import sys
-import string
 import os
 import AUTOCommands
 import interactiveBindings
@@ -41,11 +40,11 @@ class AUTOSimpleFunctions:
         if doc == None:
             return doc
         # Get rid of the LaTeX stuff from the string that gets returned.
-        doc = string.replace(doc,"\\begin{verbatim}","")
-        doc = string.replace(doc,"\\end{verbatim}","")
+        doc = doc.replace("\\begin{verbatim}","")
+        doc = doc.replace("\\end{verbatim}","")
         doc = doc + "\n"
 
-        doc = string.replace(doc, "FUNC", commandname)
+        doc = doc.replace("FUNC", commandname)
         # This means help was asked for an alias
         if not truecommandname is None:
             commandname = truecommandname

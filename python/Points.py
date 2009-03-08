@@ -9,7 +9,6 @@
 """
 
 # ----------------------------------------------------------------------------
-import string
 import AUTOutil
 import UserDict
 from copy import copy, deepcopy
@@ -803,12 +802,12 @@ class Point(object):
                 else:
                     # only alternative is a singleton numeric value (not list)
                     dvstr = str(v)
-                outputList.append(string.strip(c)+':  '+dvstr)
+                outputList.append(c.strip()+':  '+dvstr)
                 if c != self.coordnames[-1]:
                     outputList.append("\n")
             for label, infodict in self.labels.items():
                 outputList.append("\nLabels: %s (%s)"%(label, str(infodict)))
-        return string.join(outputList,"")
+        return "".join(outputList)
 
 
     def __repr__(self):
@@ -1949,7 +1948,7 @@ class Pointset(Point):
                 if c != self.coordnames[-1]:
                     outputList.append("\n")
             outputList.append("\nLabels by index: " + self.labels._infostr(17))
-        return string.join(outputList,"")
+        return "".join(outputList)
 
 
     def __repr__(self):
@@ -2387,11 +2386,11 @@ class PointInfo(object):
         if lenself > 0:
             entries = self.sortByIndex()
             if lenself > 8:
-                return string.join(map(_pretty_print_label, entries[0:3]),basestr) + ",\n" +\
+                return basestr.join(map(_pretty_print_label, entries[0:3])) + ",\n" +\
                        (tabstr + " .\n")*3 + tabstr +\
-                       string.join(map(_pretty_print_label, entries[-3:]),basestr)
+                       basestr.join(map(_pretty_print_label, entries[-3:]))
             else:
-                return string.join(map(_pretty_print_label, entries),basestr)
+                return basestr.join(map(_pretty_print_label, entries))
         else:
             return "Empty"
 
@@ -2413,7 +2412,7 @@ def _pretty_print_label(d):
         if len(keys) == 0:
             s = s + "{%s: {}}"%k
         else:
-            s = s + "{%s: {keys=%s}}"%(k,string.join(keys,","))
+            s = s + "{%s: {keys=%s}}"%(k,",".join(keys))
         if ki < kimax-1:
             s = s + ', '
         ki = ki + 1
