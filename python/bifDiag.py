@@ -95,8 +95,8 @@ class bifDiag(parseB.parseBR):
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
                     if ((x["LAB"] != 0 or solution[i]["LAB"] == 0) and
                         i < len(solution)):
-                        x["solution"] = apply(parseS.AUTOSolution,
-                                              (solution[i],),options)
+                        x["solution"] = parseS.AUTOSolution(solution[i],
+                                                            **options)
                         i = i+1
 
     #delayed file-based reading to save memory if sv= is used in run()
@@ -148,7 +148,7 @@ class bifDiag(parseB.parseBR):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        return apply(self().load,(),kw)
+        return self().load(**kw)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)

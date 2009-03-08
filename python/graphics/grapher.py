@@ -456,7 +456,7 @@ class LabeledGrapher(BasicGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         self.labels=[]
-        apply(BasicGrapher.__init__,(self,parent),kw)
+        BasicGrapher.__init__(self,parent,**kw)
 
     def addLabel(self,i,xy,input_text,symbol=None):
         new_label={}
@@ -739,7 +739,7 @@ class LabeledGrapher(BasicGrapher):
 class InteractiveGrapher(LabeledGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
-        apply(LabeledGrapher.__init__,(self,parent),kw)    
+        LabeledGrapher.__init__(self,parent,**kw)    
 
     def unzoom(self):
         self.computeXRange()
@@ -820,7 +820,7 @@ class InteractiveGrapher(LabeledGrapher):
 class GUIGrapher(InteractiveGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
-        apply(InteractiveGrapher.__init__,(self,parent),kw)
+        InteractiveGrapher.__init__(self,parent,**kw)
         self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()
         self.menu.add_radiobutton(label="print value",command=self.printValueBindings)

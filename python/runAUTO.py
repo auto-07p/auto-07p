@@ -605,8 +605,8 @@ class runAUTO:
             os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
             import bifDiag
-            return apply(bifDiag.bifDiag,(self.fort7_path,self.fort8_path,
-                                          self.fort9_path),self.options)
+            return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
+                                   self.fort9_path,**self.options)
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")

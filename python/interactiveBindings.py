@@ -103,9 +103,9 @@ Aliases: ex"""
         if "oldhelp" in self.__dict__.keys():
             if len(args) == 0 and len(kwds) == 0:
                 print 'Press ENTER and then type "man" for help about the AUTO Python CLUI.'
-            apply(self.oldhelp,args,kwds)
+            self.oldhelp(*args,**kwds)
         else:
-            apply(self.locals['man'],args,kwds)
+            self.locals['man'](*args,**kwds)
 
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""

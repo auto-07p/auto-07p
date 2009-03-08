@@ -8,7 +8,7 @@ import __builtin__
 
 _functionTemplate="""
 def %s(self,*args,**kw):
-    return apply(self._queueCommand,(%s.%s,)+args,kw)
+    return self._queueCommand(*(%s.%s,)+args,**kw)
 """
 
 class AUTOSimpleFunctions:
@@ -71,7 +71,7 @@ class AUTOSimpleFunctions:
         # Put back in the arguments
         # I am not 100% sure if this is the best way to do this,
         # but it seems to work.
-        command = apply(commandType,args,kw)
+        command = commandType(*args,**kw)
         output = command()
         if self.__outputRecorder is not None:
             self.__outputRecorder.write(str(output))

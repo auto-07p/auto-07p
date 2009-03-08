@@ -13,7 +13,7 @@ _MAX_RGB = float(256 * 256 - 1) # max size of rgb values returned from Tk
 
 def setscheme(root, background=None, **kw):
     root = root._root()
-    palette = apply(_calcPalette, (root, background,), kw)
+    palette = _calcPalette(root, background,**kw)
     for option, value in palette.items():
 	root.option_add('*' + option, value, 'widgetDefault')
 
@@ -326,7 +326,7 @@ def _recolorTree(widget, oldpalette, newcolors):
         except:
             continue
         if oldpalette is None or value == oldpalette[dbOption]:
-            apply(widget.configure, (), {option : newcolors[dbOption]})
+            widget.configure(**{option : newcolors[dbOption]})
 
     for child in widget.winfo_children():
        _recolorTree(child, oldpalette, newcolors)
@@ -335,7 +335,7 @@ def changecolor(widget, background=None, **kw):
      root = widget._root()
      if not hasattr(widget, '_Pmw_oldpalette'):
 	 widget._Pmw_oldpalette = getdefaultpalette(root)
-     newpalette = apply(_calcPalette, (root, background,), kw)
+     newpalette = _calcPalette(root, background, **kw)
      _recolorTree(widget, widget._Pmw_oldpalette, newpalette)
      widget._Pmw_oldpalette = newpalette
 

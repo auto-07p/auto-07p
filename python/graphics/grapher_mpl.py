@@ -76,7 +76,7 @@ class BasicGrapher(grapher.BasicGrapher):
         self.redrawlabels = 0
 
         callback = self.__optionCallback
-        apply(grapher.BasicGrapher.__init__,(self,parent,callback,cnf),kw)
+        grapher.BasicGrapher.__init__(self,parent,callback,cnf,**kw)
         optionDefaults={}
         optionDefaults["xticks"] = (None,callback)
         optionDefaults["yticks"] = (None,callback)
@@ -249,7 +249,7 @@ class BasicGrapher(grapher.BasicGrapher):
         self.ax.get_figure().axes = [self.ax]
             
     def __setitem__(self,key,value):
-        apply(self.configure, (), {key: value})
+        self.configure(**{key: value})
 
     def __getitem__(self,key):
         return self.cget(key)
@@ -258,7 +258,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
         self.labels=[]
-        apply(BasicGrapher.__init__,(self,parent),kw)
+        BasicGrapher.__init__(self,parent,**kw)
 
     def _delData(self,i):
         del self.labels[i]
@@ -411,12 +411,12 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
 class InteractiveGrapher(LabeledGrapher,grapher.InteractiveGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
-        apply(LabeledGrapher.__init__,(self,parent),kw)    
+        LabeledGrapher.__init__(self,parent,**kw)
 
 class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
     def __init__(self,parent=None,cnf={},**kw):
         kw=AUTOutil.cnfmerge((cnf,kw))
-        apply(InteractiveGrapher.__init__,(self,parent),kw)
+        InteractiveGrapher.__init__(self,parent,**kw)
         #self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()
 #        self.menu.add_radiobutton(label="print tag",command=self.printTagBindings)

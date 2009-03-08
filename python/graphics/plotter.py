@@ -64,7 +64,7 @@ class plotter(grapher.GUIGrapher):
             optionDefaultsRC[option] = v
 
         self.__needsPlot = None
-        apply(grapher.GUIGrapher.__init__,(self,parent,optionDefaultsRC))
+        grapher.GUIGrapher.__init__(self,parent,optionDefaultsRC)
 
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.addOptions(optionDefaults)

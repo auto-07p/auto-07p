@@ -48,7 +48,7 @@ class AUTOGUIComponent:
 
 class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
     def __init__(self,parent=None,messageFunc=None,textFunc=None,**kw):
-        apply(Tkinter.Frame.__init__,(self,parent),kw)
+        Tkinter.Frame.__init__(self,parent,**kw)
         AUTOGUIComponent.__init__(self,messageFunc,textFunc)
         self.default = None
         self.create()
@@ -97,7 +97,7 @@ class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
 
 class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
     def __init__(self,parent=None,messageFunc=None,textFunc=None,**kw):
-        apply(Pmw.MenuBar.__init__,(self,parent),kw)
+        Pmw.MenuBar.__init__(self,parent,**kw)
         AUTOGUIComponent.__init__(self,messageFunc,textFunc)
         self.create()
 

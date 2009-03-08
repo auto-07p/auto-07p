@@ -1237,7 +1237,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 wantread = True
                 try:
                     object = parseS.parseS()
-                    apply(object.readFilename,(kw["solution"],),kw)
+                    object.readFilename(kw["solution"],**kw)
                     doneread = True
                 except IOError:
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
@@ -1258,17 +1258,17 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         dict = self.__applyRunnerConfigResolveAbbreviation(self.configDict)
         dict = self.__applyRunnerConfigResolveFilenames(dict)
         if hasattr(self.runner,'load'):
-            data = apply(self.runner.load,(),dict)
+            data = self.runner.load(**dict)
         else:
             self.runner.config(dict)
             options = self.runner.options
             if hasattr(options["solution"],'load'):
-                data = apply(options["solution"].load,(),options)
+                data = options["solution"].load(**options)
             else:
                 if dict.has_key('t'):
                     options = options.copy()
                     options['t'] = dict['t']
-                data = apply(parseS.AUTOSolution,(options["solution"],),options)
+                data = parseS.AUTOSolution(options["solution"],**options)
         return valueStringAndData("Runner configured\n",data)
 
 class commandRunnerLoadName(commandRunnerConfig):
@@ -1904,7 +1904,7 @@ try:
                 try:
                     n1b = parseB.parseBR(n1b)
                     options = {"constants": n1b[0].c}
-                    n1b = apply(bifDiag.bifDiag,(n1b,n1s),options)
+                    n1b = bifDiag.bifDiag(n1b,n1s,**options)
                 except IOError:
                     n1b = bifDiag.bifDiag(b,s)
                 self.options["grapher_bifurcation_diagram"] = n1b

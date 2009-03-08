@@ -61,13 +61,13 @@ class parseS(UserList.UserList):
         self.name = ''
         if type(filename) == types.StringType:
             UserList.UserList.__init__(self)
-            apply(self.readFilename,(filename,),kw)
+            self.readFilename(filename,**kw)
         else:
             UserList.UserList.__init__(self,filename)
             if len(self.data) > 0:
                 if kw != {}:
                     for i in range(len(self.data)):
-                        self.data[i] = apply(AUTOSolution,(self.data[i],),kw)
+                        self.data[i] = AUTOSolution(self.data[i],**kw)
                 self.indepvarname = self.data[0].indepvarname
                 self.coordnames = self.data[0].coordnames
 
@@ -98,7 +98,7 @@ class parseS(UserList.UserList):
         else:
             sol = None
         if kw != {} or sol is None:
-            sol = apply(AUTOSolution,(sol,),kw)
+            sol = AUTOSolution(sol,**kw)
         return sol
 
     # This function needs a little explanation
@@ -119,7 +119,7 @@ class parseS(UserList.UserList):
         # We now go through the file and read the solutions.
         prev = None
         while inputfile.read(1) != "":
-            solution = apply(AUTOSolution,(inputfile,prev,self.name),kw)
+            solution = AUTOSolution(inputfile,prev,self.name,**kw)
             self.data.append(solution)
             prev = solution
         if len(self.data) > 0:
@@ -151,7 +151,7 @@ class parseS(UserList.UserList):
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
         self.name = filename
-        apply(self.read,(inputfile,),kw)
+        self.read(inputfile,**kw)
         inputfile.close()
 
     def writeFilename(self,filename,append=False,mlab=False):
@@ -348,7 +348,7 @@ class AUTOParameters(Points.Point):
                 coordnames.append("PAR("+str(i+1)+")")
             kw["coordtype"] = Points.float64
             kw["coordnames"] = coordnames
-        apply(Points.Point.__init__,(self,kwd),kw)
+        Points.Point.__init__(self,kwd,**kw)
 
     def __call__(self,index):
         return self.coordarray[index-1]
@@ -389,7 +389,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         if isinstance(input,self.__class__):
-            apply(runAUTO.runAUTO.__init__,(self,input),kw)
+            runAUTO.runAUTO.__init__(self,input,**kw)
             if kw == {}:
                 #otherwise already copied
                 self.options = self.options.copy()
@@ -416,7 +416,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                           name=self.name)
         else:
             UserDict.UserDict.__init__(self)
-            apply(runAUTO.runAUTO.__init__,(self,),kw)
+            runAUTO.runAUTO.__init__(self,**kw)
             self.options["constants"] = parseC.parseC(self.options["constants"])
             self.__start_of_header = None
             self.__start_of_data   = None
@@ -654,7 +654,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        return apply(AUTOSolution,(self,),kw)
+        return AUTOSolution(self,**kw)
 
     def run(self,**kw):
         """Run AUTO.
@@ -665,7 +665,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         c = self.options.copy()
         c.update(kw)
         c["IRS"] = self["LAB"]
-        return apply(runAUTO.runAUTO.run,(self,),c)
+        return runAUTO.runAUTO.run(self,**c)
 
     def readAllFilename(self,filename):
         try:
