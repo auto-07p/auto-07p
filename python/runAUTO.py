@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import getopt,sys,os,string
+import getopt,sys,os
 import signal, os, time
 import cStringIO
 import re
@@ -161,11 +161,10 @@ class runAUTO:
             p1.stdout.close()
             p2.stdout.close()
         cout.close()
-        pids = string.split(pids,"\n")
-        pids = pids[:-1]
+        pids = pids.splitlines(pids)
         for pid in pids:
             self.options["verbose_print"]('Killing: '+str(pid))
-            pid = string.split(pid)
+            pid = pid.split()
             pid = int(pid[0])
             command = "/bin/kill -KILL %d"%(pid,)
             self.options["verbose_print"](command)
@@ -318,7 +317,7 @@ class runAUTO:
                               "cmds","cmds.make"),"rb")
         var = {}
         while True:
-            line = string.split(f.readline())
+            line = f.readline().split()
             if len(line) < 2 or line[1] != '=':
                 continue
             if line[0] == "SRC":
@@ -328,8 +327,8 @@ class runAUTO:
                     if len(line) == 2:
                         v = ""
                     else:
-                        v = string.join(line[2:])
-                        v = string.replace(v,"$(AUTO_DIR)",os.environ["AUTO_DIR"])
+                        v = " ".join(line[2:])
+                        v = v.replace("$(AUTO_DIR)",os.environ["AUTO_DIR"])
                     var[key] = v
         f.close()
         # figure out equation file name
@@ -380,7 +379,7 @@ class runAUTO:
             if self.options["verbose"] == "yes":
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
-            cmd = string.replace(cmd, libs, string.join(deps[:-1]," "))
+            cmd = cmd.replace(libs, " ".join(deps[:-1]))
             if not self.__runCommand(cmd):
                 return False
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
@@ -586,7 +585,7 @@ class runAUTO:
                 self.options["verbose_print"].write(line)
                 self.options["verbose_print"].flush()
             line = stdout.readline()
-        self.__printLog(string.join(tmp_out,""))
+        self.__printLog("".join(tmp_out))
         self.__printErr(stderr.read())
         stdout.close()
         stderr.close()

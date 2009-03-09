@@ -2165,7 +2165,6 @@ class Dialog(MegaToplevel):
 # Functions for dealing with dates and times.
 
 import re
-import string
 
 def timestringtoseconds(text, separator = ':'):
   inputList = text.strip().split(separator)
@@ -2312,7 +2311,6 @@ def stringtoreal(text, separator = '.'):
 ######################################################################
 ### File: PmwBalloon.py
 import os
-import string
 import Tkinter
 
 
@@ -2909,7 +2907,6 @@ class ButtonBox(MegaWidget):
 # Based on iwidgets2.2.0/entryfield.itk code.
 
 import re
-import string
 import types
 import Tkinter
 
@@ -3367,7 +3364,6 @@ def _postProcess(event):
 
 ######################################################################
 ### File: PmwGroup.py
-import string
 import Tkinter
 
 
@@ -3522,7 +3518,6 @@ class LabeledWidget(MegaWidget):
 ### File: PmwMainMenuBar.py
 # Main menubar
 
-import string
 import types
 import Tkinter
 
@@ -3749,7 +3744,6 @@ forwardmethods(MainMenuBar, Tkinter.Menu, '_hull')
 ### File: PmwMenuBar.py
 # Manager widget for menus.
 
-import string
 import types
 import Tkinter
 
@@ -3994,7 +3988,6 @@ class MenuBar(MegaWidget):
 ### File: PmwMessageBar.py
 # Class to display messages in an information line.
 
-import string
 import Tkinter
 
 
@@ -4214,7 +4207,6 @@ class MessageDialog(Dialog):
 
 ######################################################################
 ### File: PmwNoteBook.py
-import string
 import types
 import Tkinter
 
@@ -4986,7 +4978,6 @@ class OptionMenu(MegaWidget):
 # PanedWidget
 # a frame which may contain several resizable sub-frames
 
-import string
 import sys
 import types
 import Tkinter
@@ -6252,7 +6243,6 @@ forwardmethods(ScrolledField, Tkinter.Entry, '_scrolledFieldEntry')
 
 ######################################################################
 ### File: PmwScrolledFrame.py
-import string
 import types
 import Tkinter
 
@@ -7724,7 +7714,6 @@ forwardmethods(TextDialog, ScrolledText, '_text')
 ### File: PmwTimeCounter.py
 # Authors: Joe VanAndel and Greg McFarlane
 
-import string
 import sys
 import time
 import Tkinter
@@ -8164,7 +8153,6 @@ def aboutcontact(value):
 # Based on iwidgets2.2.0/combobox.itk code.
 
 import os
-import string
 import types
 import Tkinter
 
@@ -8609,7 +8597,6 @@ forwardmethods(ComboBoxDialog, ComboBox, '_combobox')
 
 ######################################################################
 ### File: PmwCounter.py
-import string
 import sys
 import types
 import Tkinter
@@ -9043,7 +9030,6 @@ forwardmethods(CounterDialog, Counter, '_cdCounter')
 ######################################################################
 ### File: PmwLogicalFont.py
 import os
-import string
 
 def _font_initialise(root, size=None, fontScheme = None):
     global _fontSize
