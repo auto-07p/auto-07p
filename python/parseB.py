@@ -97,20 +97,23 @@ class BDPoint(Points.Point):
         self.index = index
         self.branch = branch
     
-    def has_key(self, key):
+    def __contains__(self, key):
         if key in ["TY name","data"] or Points.Point.has_key(self,key):
             return True
         for k,v in self.labels.items():
             if k in all_point_types:
-                return v.has_key(key)
+                return key in v
         return False
+
+    def has_key(self, key):
+        return self.__contains__(key)
 
     def __setitem__(self, ixarg, val):
         """Change coordinate array values."""
         if type(ixarg) == type(""):
             for k,v in self.labels.items():
                 if k in all_point_types:
-                    if v.has_key(ixarg):
+                    if ixarg in v:
                         v[ixarg] = val
                         return
         Points.Point.__setitem__(self, ixarg, val)
@@ -119,7 +122,7 @@ class BDPoint(Points.Point):
         if type(coords) == type(""):
             for k,v in self.labels.items():
                 if k in all_point_types:
-                    if v.has_key(coords):
+                    if coords in v:
                         return v[coords]
                     elif coords == "TY name":
                         return k
@@ -1098,19 +1101,19 @@ def AUTOatof(input_string):
             
             
 def pointtest(a,b):
-    if not(a.has_key("TY name")):
+    if "TY name" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY label")
-    if not(a.has_key("TY number")):
+    if "TY number" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY label")
-    if not(a.has_key("BR")):
+    if "BR" not in a:
         raise AUTOExceptions.AUTORegressionError("No BR label")
-    if not(a.has_key("data")):
+    if "data" not in a:
         raise AUTOExceptions.AUTORegressionError("No data label")
-    if not(a.has_key("PT")):
+    if "PT" not in a:
         raise AUTOExceptions.AUTORegressionError("No PT label")
-    if not(a.has_key("LAB")):
+    if "LAB" not in a:
         raise AUTOExceptions.AUTORegressionError("No LAB label")
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 def test():

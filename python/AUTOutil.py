@@ -239,7 +239,7 @@ except TypeError:
                 if isinstance(obj, t):
                     return 1
             return 0
-        if d.has_key(type_or_seq):
+        if type_or_seq in d:
             return type(obj) == d[type_or_seq]
         return _isinstance(obj, type_or_seq)
     __builtin__.isinstance = isinstance

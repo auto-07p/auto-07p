@@ -78,7 +78,7 @@ class bifDiag(parseB.parseBR):
                 pass
         i = 0
         if solution is not None:
-            if not options.has_key("constants"):
+            if "constants" not in options:
                 options["constants"] = None
             for d in self:
                 if options["constants"] is None and d.c is not None:
@@ -120,7 +120,7 @@ class bifDiag(parseB.parseBR):
         sols = []
         for d in self:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if x.has_key("solution"):
+                if "solution" in x:
                     sols.append(x["solution"])
         solution = parseS.parseS(sols)
         s = solution(label)
@@ -215,7 +215,7 @@ class bifDiag(parseB.parseBR):
         maxlab = max(new.getLabels())
         for d in new:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if x.has_key("solution"):
+                if "solution" in x:
                     if x["LAB"] == 0:
                         del x["solution"]
                     elif x["solution"]._mlab != maxlab:
@@ -235,14 +235,14 @@ class bifDiag(parseB.parseBR):
                     new[i].diagnostics = self[i].diagnostics
             for d in new:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if x.has_key("solution") and x["LAB"] != 0:
+                    if "solution" in x and x["LAB"] != 0:
                         label = label + 1
                         news = x["solution"].__class__(x["solution"])
                         news["LAB"] = label
                         x["solution"] = news
             for d in new:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if x.has_key("solution") and x["LAB"] != 0:
+                    if "solution" in x and x["LAB"] != 0:
                         x["solution"]._mlab = label
             return new
         parseB.parseBR.relabel(self,old_label,new_label)
@@ -258,7 +258,7 @@ class bifDiag(parseB.parseBR):
         mlab = max(self.getLabels())
         for d in new:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if x.has_key("solution"):
+                if "solution" in x:
                     news = x["solution"].__class__(x["solution"])
                     news._mlab = mlab
                     news["PT"] = abs(x["PT"])
@@ -267,19 +267,19 @@ class bifDiag(parseB.parseBR):
         return new
 
 def pointtest7(a,b):
-    if not(a.has_key("TY name")):
+    if "TY name" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY name label")
-    if not(a.has_key("TY number")):
+    if "TY number" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY number label")
-    if not(a.has_key("BR")):
+    if "BR" not in a:
         raise AUTOExceptions.AUTORegressionError("No BR label")
-    if not(a.has_key("data")):
+    if "data" not in a:
         raise AUTOExceptions.AUTORegressionError("No data label")
-    if not(a.has_key("PT")):
+    if "PT" not in a:
         raise AUTOExceptions.AUTORegressionError("No PT label")
-    if not(a.has_key("LAB")):
+    if "LAB" not in a:
         raise AUTOExceptions.AUTORegressionError("No LAB label")
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
    
     
@@ -292,9 +292,9 @@ def pointtest8(a,b):
     scratch=a['Parameters']
     scratch=b['Parameters']
     for key in keys:
-        if not(a.has_key(key)):
+        if key not in a:
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 

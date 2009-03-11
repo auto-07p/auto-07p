@@ -244,7 +244,7 @@ Aliases: ex"""
 def test():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
-    if os.environ.has_key("DISPLAY"):
+    if "DISPLAY" in os.environ:
         _testFilename("../demos/python/plotter.auto","test_data/plotter.log")
 
 def _quicktest():
@@ -324,18 +324,18 @@ def automain(name=None):
     demo_mode = 'no'
 
     use_ipython = 0
-    if opts.has_key("-t"):
+    if "-t" in opts:
         test()
         sys.exit()
-    elif opts.has_key("-q"):
+    elif "-q" in opts:
         _quicktest()
         sys.exit()
-    elif opts.has_key("-i"):
+    elif "-i" in opts:
         use_ipython = 1
-    elif opts.has_key("-T"):
+    elif "-T" in opts:
         _testFilename(opts["-T"],opts["-L"])
         sys.exit()
-    elif opts.has_key("-d"):
+    elif "-d" in opts:
         demo_mode = 'yes'
 
     try:
@@ -360,7 +360,7 @@ def automain(name=None):
             globals()[name] = value
         del globals()['cat'], globals()['cd'], globals()['ls']
         autoipython()
-    elif opts.has_key("-c"):
+    elif "-c" in opts:
         source = ""
         for line in opts["-c"].split("\n"):
             source = source + runner.processShorthand(line) +"\n"

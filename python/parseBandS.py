@@ -137,19 +137,19 @@ class parseBandS(parseS.parseS):
         self.solution.uniquelyLabel()
 
 def pointtest7(a,b):
-    if not(a.has_key("TY name")):
+    if "TY name" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY name label")
-    if not(a.has_key("TY number")):
+    if "TY number" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY number label")
-    if not(a.has_key("BR")):
+    if "BR" not in a:
         raise AUTOExceptions.AUTORegressionError("No BR label")
-    if not(a.has_key("data")):
+    if "data" not in a:
         raise AUTOExceptions.AUTORegressionError("No data label")
-    if not(a.has_key("PT")):
+    if "PT" not in a:
         raise AUTOExceptions.AUTORegressionError("No PT label")
-    if not(a.has_key("LAB")):
+    if "LAB" not in a:
         raise AUTOExceptions.AUTORegressionError("No LAB label")
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
    
     
@@ -162,9 +162,9 @@ def pointtest8(a,b):
     scratch=a['Parameters']
     scratch=b['Parameters']
     for key in keys:
-        if not(a.has_key(key)):
+        if key not in a:
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 

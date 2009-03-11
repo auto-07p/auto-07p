@@ -46,12 +46,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     "stability":  [   0,    1,    1,     1,     1]}
         dict = {}
         for i in range(5):
-            if not config.has_key("d"+str(i)):
+            if "d"+str(i) not in config:
                 di = {}
                 for k,v in doptions.items():
                     di[k] = v[i]
                 dict["d"+str(i)] = (di,None)
-        if not config.has_key("default_option"):
+        if "default_option" not in config:
             dict["default_option"] = ("d1",None)
         self.handle.grapher.addOptions(dict)
 

@@ -245,11 +245,11 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
             del dict[ex]
     # discard dangerous methods supplied by the caller
     for ex in exclude:
-        if dict.has_key(ex):
+        if ex in dict:
             del dict[ex]
     # discard methods already defined in fromClass
     for ex in __methods(fromClass):
-        if dict.has_key(ex):
+        if ex in dict:
             del dict[ex]
 
     for method, func in dict.items():
@@ -462,9 +462,9 @@ class MegaArchetype:
 
         # optimisations:
         optionInfo = self._optionInfo
-        optionInfo_has_key = optionInfo.has_key
+        optionInfo_has_key = optionInfo.__contains__
         keywords = self._constructorKeywords
-        keywords_has_key = keywords.has_key
+        keywords_has_key = keywords.__contains__
         FUNCTION = _OPT_FUNCTION
 
         for name, default, function in optionDefs:
@@ -498,7 +498,7 @@ class MegaArchetype:
             componentGroup, widgetClass, *widgetArgs, **kw):
         # Create a component (during construction or later).
 
-        if self.__componentInfo.has_key(componentName):
+        if componentName in self.__componentInfo:
             raise ValueError, 'Component "%s" already exists' % componentName
 
         if '_' in componentName:
@@ -552,7 +552,7 @@ class MegaArchetype:
                     kw[rest] = keywords[option][0]
                     keywords[option][1] = 1
 
-        if kw.has_key('pyclass'):
+        if 'pyclass' in kw:
             widgetClass = kw['pyclass']
             del kw['pyclass']
         if widgetClass is None:
@@ -682,11 +682,11 @@ class MegaArchetype:
 
         # optimisations:
         optionInfo = self._optionInfo
-        optionInfo_has_key = optionInfo.has_key
+        optionInfo_has_key = optionInfo.__contains__
         componentInfo = self.__componentInfo
-        componentInfo_has_key = componentInfo.has_key
+        componentInfo_has_key = componentInfo.__contains__
         componentAliases = self.__componentAliases
-        componentAliases_has_key = componentAliases.has_key
+        componentAliases_has_key = componentAliases.__contains__
         VALUE = _OPT_VALUE
         FUNCTION = _OPT_FUNCTION
 
@@ -701,7 +701,7 @@ class MegaArchetype:
         # component and whose values are a dictionary of options and
         # values for the component.
         indirectOptions = {}
-        indirectOptions_has_key = indirectOptions.has_key
+        indirectOptions_has_key = indirectOptions.__contains__
 
         for option, value in kw.items():
             if optionInfo_has_key(option):
@@ -791,7 +791,7 @@ class MegaArchetype:
             remainingComponents = name[(index + 1):]
 
         # Expand component alias
-        if self.__componentAliases.has_key(component):
+        if component in self.__componentAliases:
             component, subComponent = self.__componentAliases[component]
             if subComponent is not None:
                 if remainingComponents is None:
@@ -810,7 +810,7 @@ class MegaArchetype:
         return self._hull
 
     def hulldestroyed(self):
-        return not _hullToMegaWidget.has_key(self._hull)
+        return self._hull not in _hullToMegaWidget
 
     def __str__(self):
         return str(self._hull)
@@ -820,7 +820,7 @@ class MegaArchetype:
 
         # Return the value of an option, for example myWidget['font']. 
 
-        if self._optionInfo.has_key(option):
+        if option in self._optionInfo:
             return self._optionInfo[option][_OPT_VALUE]
         else:
             index = option.find('_')
@@ -829,7 +829,7 @@ class MegaArchetype:
                 componentOption = option[(index + 1):]
 
                 # Expand component alias
-                if self.__componentAliases.has_key(component):
+                if component in self.__componentAliases:
                     component, subComponent = self.__componentAliases[component]
                     if subComponent is not None:
                         componentOption = subComponent + '_' + componentOption
@@ -837,7 +837,7 @@ class MegaArchetype:
                     # Expand option string to write on error
                     option = component + '_' + componentOption
 
-                if self.__componentInfo.has_key(component):
+                if component in self.__componentInfo:
                     # Call cget on the component.
                     componentCget = self.__componentInfo[component][3]
                     return componentCget(componentOption)
@@ -1064,7 +1064,7 @@ class MegaToplevel(MegaArchetype):
 
     def destroy(self):
         # Allow this to be called more than once.
-        if _hullToMegaWidget.has_key(self._hull):
+        if self._hull in _hullToMegaWidget:
             self.deactivate()
 
             # Remove circular references, so that object can get cleaned up.
@@ -1334,7 +1334,7 @@ def hidebusycursor(forceFocusRestore = 0):
 
     for window in busyInfo['newBusyWindows']:
         # If this window has not been deleted, release the busy cursor.
-        if _toplevelBusyInfo.has_key(window):
+        if window in _toplevelBusyInfo:
             winInfo = _toplevelBusyInfo[window]
             winInfo['isBusy'] = 0
             _busy_release(window)
@@ -1393,7 +1393,7 @@ def _addRootToToplevelBusyInfo():
     root = Tkinter._default_root
     if root == None:
         root = Tkinter.Tk()
-    if not _toplevelBusyInfo.has_key(root):
+    if root not in _toplevelBusyInfo:
         _addToplevelBusyInfo(root)
 
 def busycallback(command, updateFunction = None):
@@ -1632,7 +1632,7 @@ def __TkinterToplevelTitle(self, *args):
     # Toplevel in the list of toplevels and set the initial
     # WM_DELETE_WINDOW protocol to destroy() so that we get to know
     # about it.
-    if not _toplevelBusyInfo.has_key(self):
+    if self not in _toplevelBusyInfo:
         _addToplevelBusyInfo(self)
         self._Pmw_WM_DELETE_name = self.register(self.destroy, None, 0)
         self.protocol('WM_DELETE_WINDOW', self._Pmw_WM_DELETE_name)
@@ -1721,7 +1721,7 @@ def drawarrow(canvas, color, direction, tag, baseOffset = 0.25, edgeOffset = 0.1
 _hullToMegaWidget = {}
 
 def __TkinterToplevelDestroy(tkWidget):
-    if _hullToMegaWidget.has_key(tkWidget):
+    if tkWidget in _hullToMegaWidget:
         mega = _hullToMegaWidget[tkWidget]
         try:
             mega.destroy()
@@ -1731,7 +1731,7 @@ def __TkinterToplevelDestroy(tkWidget):
         # Delete the busy info structure for this toplevel (if the
         # window was created before initialise() was called, it
         # will not have any.
-        if _toplevelBusyInfo.has_key(tkWidget):
+        if tkWidget in _toplevelBusyInfo:
             del _toplevelBusyInfo[tkWidget]
         if hasattr(tkWidget, '_Pmw_WM_DELETE_name'):
             tkWidget.tk.deletecommand(tkWidget._Pmw_WM_DELETE_name)
@@ -1739,7 +1739,7 @@ def __TkinterToplevelDestroy(tkWidget):
         Tkinter.BaseWidget.destroy(tkWidget)
 
 def __TkinterWidgetDestroy(tkWidget):
-    if _hullToMegaWidget.has_key(tkWidget):
+    if tkWidget in _hullToMegaWidget:
         mega = _hullToMegaWidget[tkWidget]
         try:
             mega.destroy()
@@ -2350,7 +2350,7 @@ class Balloon(MegaToplevel):
         # The default hull configuration options give a black border
         # around the balloon, but avoids a black 'flash' when the
         # balloon is deiconified, before the text appears.
-        if not kw.has_key('hull_background'):
+        if 'hull_background' not in kw:
             self.configure(hull_background = \
                     str(self._label.cget('background')))
 
@@ -2415,7 +2415,7 @@ class Balloon(MegaToplevel):
 
     def unbind(self, widget):
         if hasattr(widget, '_Pmw_BalloonBindIds'):
-            if widget._Pmw_BalloonBindIds.has_key(None):
+            if None in widget._Pmw_BalloonBindIds:
                 (enterId, motionId, leaveId, buttonId, destroyId) = \
                         widget._Pmw_BalloonBindIds[None]
                 # Need to pass in old bindings, so that Tkinter can
@@ -2468,7 +2468,7 @@ class Balloon(MegaToplevel):
 
     def tagunbind(self, widget, tagOrItem):
         if hasattr(widget, '_Pmw_BalloonBindIds'):
-            if widget._Pmw_BalloonBindIds.has_key(tagOrItem):
+            if tagOrItem in widget._Pmw_BalloonBindIds:
                 (enterId, motionId, leaveId, buttonId) = \
                         widget._Pmw_BalloonBindIds[tagOrItem]
                 widget.tag_unbind(tagOrItem, '<Enter>', enterId)
@@ -2778,7 +2778,7 @@ class ButtonBox(MegaWidget):
     def insert(self, componentName, beforeComponent = 0, **kw):
         if componentName in self.components():
             raise ValueError, 'button "%s" already exists' % componentName
-        if not kw.has_key('text'):
+        if 'text' not in kw:
             kw['text'] = componentName
         kw['default'] = 'normal'
         button = self.createcomponent(componentName,
@@ -3010,9 +3010,9 @@ class EntryField(MegaWidget):
 
         while 1:
             traversedValidators.append(validator)
-            if extraValidators.has_key(validator):
+            if validator in extraValidators:
                 validator = extraValidators[validator][index]
-            elif _standardValidators.has_key(validator):
+            elif validator in _standardValidators:
                 validator = _standardValidators[validator][index]
             else:
                 return validator
@@ -3042,7 +3042,7 @@ class EntryField(MegaWidget):
 
         # Look up validator maps and replace 'stringtovalue' field
         # with the corresponding function.
-        if dict.has_key('stringtovalue'):
+        if 'stringtovalue' in dict:
             stringtovalue = dict['stringtovalue'] 
             strFunction = self._getValidatorFunc(stringtovalue, 1)
             self._checkValidateFunction(
@@ -3359,7 +3359,7 @@ def _postProcess(event):
 
     # The function specified by the 'command' option may have destroyed
     # the megawidget in a binding earlier in bindtags, so need to check.
-    if _entryCache.has_key(event.widget):
+    if event.widget in _entryCache:
         _entryCache[event.widget]._postProcess()
 
 ######################################################################
@@ -3611,16 +3611,16 @@ class MainMenuBar(MegaArchetype):
             raise ValueError, 'menu "%s" already exists' % menuName
 
         menukw = {}
-        if kw.has_key('tearoff'):
+        if 'tearoff' in kw:
             menukw['tearoff'] = kw['tearoff']
             del kw['tearoff']
         else:
             menukw['tearoff'] = 0
-        if kw.has_key('name'):
+        if 'name' in kw:
             menukw['name'] = kw['name']
             del kw['name']
 
-        if not kw.has_key('label'):
+        if 'label' not in kw:
             kw['label'] = menuName
 
         self._addHotkeyToOptions(parentMenuName, kw, traverseSpec)
@@ -3674,8 +3674,8 @@ class MainMenuBar(MegaArchetype):
 
     def _addHotkeyToOptions(self, menuName, kw, traverseSpec):
 
-        if (not self['hotkeys'] or kw.has_key('underline') or
-                not kw.has_key('label')):
+        if (not self['hotkeys'] or 'underline' in kw or
+                'label' not in kw):
             return
 
         if type(traverseSpec) == types.IntType:
@@ -3846,13 +3846,13 @@ class MenuBar(MegaWidget):
             raise ValueError, 'menu "%s" already exists' % menuName
 
         menukw = {}
-        if kw.has_key('tearoff'):
+        if 'tearoff' in kw:
             menukw['tearoff'] = kw['tearoff']
             del kw['tearoff']
         else:
             menukw['tearoff'] = 0
 
-        if not kw.has_key(textKey):
+        if textKey not in kw:
             kw[textKey] = menuName
 
         self._addHotkeyToOptions(parentMenuName, kw, textKey, traverseSpec)
@@ -3915,8 +3915,8 @@ class MenuBar(MegaWidget):
 
     def _addHotkeyToOptions(self, menuName, kw, textKey, traverseSpec):
 
-        if (not self['hotkeys'] or kw.has_key('underline') or
-                not kw.has_key(textKey)):
+        if (not self['hotkeys'] or 'underline' in kw or
+                textKey not in kw):
             return
 
         if type(traverseSpec) == types.IntType:
@@ -4329,7 +4329,7 @@ class NoteBook(MegaArchetype):
         self.initialiseoptions()
 
     def insert(self, pageName, before = 0, **kw):
-        if self._pageAttrs.has_key(pageName):
+        if pageName in self._pageAttrs:
             msg = 'Page "%s" already exists.' % pageName
             raise ValueError, msg
 
@@ -4458,7 +4458,7 @@ class NoteBook(MegaArchetype):
         return list(self._pageNames)
 
     def getcurselection(self):
-        if self._pending.has_key('topPage'):
+        if 'topPage' in self._pending:
             return self._pending['topPage']
         else:
             return self._topPageName
@@ -4627,13 +4627,13 @@ class NoteBook(MegaArchetype):
             self.tabBottom = canvasBorder
         oldTabBottom = self.tabBottom
 
-        if self._pending.has_key('borderColor'):
+        if 'borderColor' in self._pending:
             self._lightBorderColor, self._darkBorderColor = \
                     Color.bordercolors(self, self['hull_background'])
 
         # Draw all the tabs.
-        if self._withTabs and (self._pending.has_key('tabs') or
-                self._pending.has_key('size')):
+        if self._withTabs and ('tabs' in self._pending or
+                'size' in self._pending):
             # Find total requested width and maximum requested height
             # of tabs.
             sumTabReqWidth = 0
@@ -4707,8 +4707,8 @@ class NoteBook(MegaArchetype):
 
         # Redraw shadow under tabs so that it appears that tab for old
         # top page is lowered and that tab for new top page is raised.
-        if self._withTabs and (self._pending.has_key('topPage') or
-                self._pending.has_key('tabs') or self._pending.has_key('size')):
+        if self._withTabs and ('topPage' in self._pending or
+                'tabs' in self._pending or 'size' in self._pending):
 
             if self.getcurselection() is None:
                 # No pages, so draw line across top of page area.
@@ -4749,7 +4749,7 @@ class NoteBook(MegaArchetype):
             self.tag_raise(self._pageTop2Border)
 
         # Position the page border shadows.
-        if self._pending.has_key('size') or oldTabBottom != self.tabBottom:
+        if 'size' in self._pending or oldTabBottom != self.tabBottom:
 
             self.coords(self._pageLeftBorder,
                 canvasBorder, self.tabBottom,
@@ -4782,7 +4782,7 @@ class NoteBook(MegaArchetype):
                     )
 
         # Color borders.
-        if self._pending.has_key('borderColor'):
+        if 'borderColor' in self._pending:
             self.itemconfigure('lighttag', fill = self._lightBorderColor)
             self.itemconfigure('darktag', fill = self._darkBorderColor)
 
@@ -4809,7 +4809,7 @@ class NoteBook(MegaArchetype):
         #      page (eg:  initially or when all pages deleted).
         #   3) tab height has changed, due to difference in the height of a tab
         if (newTopPage is not None or \
-                self._pending.has_key('size') and self._topPageName is not None
+                'size' in self._pending and self._topPageName is not None
                 or oldTabBottom != self.tabBottom):
             self.itemconfigure(self._topPageItem,
                 width = hullWidth - 2 * canvasBorder - pageBorder * 2,
@@ -5635,7 +5635,7 @@ class PromptDialog(Dialog):
         self._promptDialogEntry.pack(fill='x', expand=1,
                 padx = self['borderx'], pady = self['bordery'])
         
-        if not kw.has_key('activatecommand'):
+        if 'activatecommand' not in kw:
             # Whenever this dialog is activated, set the focus to the
             # EntryField's entry widget.
             tkentry = self.component('entry')
@@ -5806,18 +5806,18 @@ class RadioSelect(MegaWidget):
 
         kw['command'] = \
                 lambda self=self, name=componentName: self.invoke(name)
-        if not kw.has_key('text'):
+        if 'text' not in kw:
             kw['text'] = componentName
 
         if self['buttontype'] == 'radiobutton':
-            if not kw.has_key('anchor'):
+            if 'anchor' not in kw:
                 kw['anchor'] = 'w'
-            if not kw.has_key('variable'):
+            if 'variable' not in kw:
                 kw['variable'] = self.var
-            if not kw.has_key('value'):
+            if 'value' not in kw:
                 kw['value'] = kw['text']
         elif self['buttontype'] == 'checkbutton':
-            if not kw.has_key('anchor'):
+            if 'anchor' not in kw:
                 kw['anchor'] = 'w'
 
         button = self.createcomponent(componentName,
@@ -7014,7 +7014,7 @@ def _handleEvent(event, eventType):
 
     # A binding earlier in the bindtags list may have destroyed the
     # megawidget, so need to check.
-    if _listboxCache.has_key(event.widget):
+    if event.widget in _listboxCache:
         _listboxCache[event.widget]._handleEvent(event, eventType)
 
 ######################################################################
@@ -7648,7 +7648,7 @@ class SelectionDialog(Dialog):
         self._list.pack(side='top', expand='true', fill='both',
                 padx = self['borderx'], pady = self['bordery'])
 
-        if not kw.has_key('activatecommand'):
+        if 'activatecommand' not in kw:
             # Whenever this dialog is activated, set the focus to the
             # ScrolledListBox's listbox widget.
             listbox = self.component('listbox')
@@ -7775,9 +7775,9 @@ class TimeCounter(MegaWidget):
         # be raised (but not around the label).
         if self['labelpos'] is None:
             frame = interior
-            if not kw.has_key('hull_relief'):
+            if 'hull_relief' not in kw:
                 frame.configure(relief = 'raised')
-            if not kw.has_key('hull_borderwidth'):
+            if 'hull_borderwidth' not in kw:
                 frame.configure(borderwidth = 1)
         else:
             frame = self.createcomponent('frame',
@@ -8122,10 +8122,10 @@ class AboutDialog(MessageDialog):
         MessageDialog.__init__(self, parent)
 
         applicationname = self['applicationname']
-        if not kw.has_key('title'):
+        if 'title' not in kw:
             self.configure(title = 'About ' + applicationname)
 
-        if not kw.has_key('message_text'):
+        if 'message_text' not in kw:
             text = applicationname + '\n\n'
             if AboutDialog._version != '':
               text = text + 'Version ' + AboutDialog._version + '\n'
@@ -8574,7 +8574,7 @@ class ComboBoxDialog(Dialog):
         self._combobox.pack(side='top', expand='true', fill='both',
                 padx = self['borderx'], pady = self['bordery'])
 
-        if not kw.has_key('activatecommand'):
+        if 'activatecommand' not in kw:
             # Whenever this dialog is activated, set the focus to the
             # ComboBox's listbox widget.
             listbox = self.component('listbox')
@@ -8640,9 +8640,9 @@ class Counter(MegaWidget):
         # be raised (but not around the label).
         if self['labelpos'] is None:
             frame = interior
-            if not kw.has_key('hull_relief'):
+            if 'hull_relief' not in kw:
                 frame.configure(relief = 'raised')
-            if not kw.has_key('hull_borderwidth'):
+            if 'hull_borderwidth' not in kw:
                 frame.configure(borderwidth = 1)
         else:
             frame = self.createcomponent('frame',
@@ -8793,7 +8793,7 @@ class Counter(MegaWidget):
 
         if type(datatype) is types.DictionaryType:
             self._counterArgs = datatype.copy()
-            if self._counterArgs.has_key('counter'):
+            if 'counter' in self._counterArgs:
                 datatype = self._counterArgs['counter']
                 del self._counterArgs['counter']
             else:
@@ -8801,7 +8801,7 @@ class Counter(MegaWidget):
         else:
             self._counterArgs = {}
 
-        if _counterCommands.has_key(datatype):
+        if datatype in _counterCommands:
             self._counterCommand = _counterCommands[datatype]
         elif callable(datatype):
             self._counterCommand = datatype
@@ -9006,7 +9006,7 @@ class CounterDialog(Dialog):
         self._cdCounter.pack(fill='x', expand=1,
                 padx = self['borderx'], pady = self['bordery'])
         
-        if not kw.has_key('activatecommand'):
+        if 'activatecommand' not in kw:
             # Whenever this dialog is activated, set the focus to the
             # Counter's entry widget.
             tkentry = self.component('entry')
@@ -9063,25 +9063,25 @@ def _font_initialise(root, size=None, fontScheme = None):
         root.option_add('*Text*Font',       textFont,     'userDefault')
 
 def logicalfont(name='Helvetica', sizeIncr = 0, **kw):
-  if not _fontInfo.has_key(name):
+  if name not in _fontInfo:
     raise ValueError, 'font %s does not exist' % name
 
   rtn = []
   for field in _fontFields:
-    if kw.has_key(field):
+    if field in kw:
       logicalValue = kw[field]
-    elif _fontInfo[name].has_key(field):
+    elif field in _fontInfo[name]:
       logicalValue = _fontInfo[name][field]
     else:
       logicalValue = '*'
 
-    if _propertyAliases[name].has_key((field, logicalValue)):
+    if (field, logicalValue) in _propertyAliases[name]:
       realValue = _propertyAliases[name][(field, logicalValue)]
-    elif _propertyAliases[name].has_key((field, None)):
+    elif (field, None) in _propertyAliases[name]:
       realValue = _propertyAliases[name][(field, None)]
-    elif _propertyAliases[None].has_key((field, logicalValue)):
+    elif (field, logicalValue) in _propertyAliases[None]:
       realValue = _propertyAliases[None][(field, logicalValue)]
-    elif _propertyAliases[None].has_key((field, None)):
+    elif (field, None) in _propertyAliases[None]:
       realValue = _propertyAliases[None][(field, None)]
     else:
       realValue = logicalValue

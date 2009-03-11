@@ -97,7 +97,7 @@ def exportFunctions(log=None):
 # ALMOST like the AUTOInteractiveConsole.  Things that
 # don't work are help, shell, !, ls, cd, and any changes
 # to the aliases
-if not os.environ.has_key("AUTO_DIR"):
+if "AUTO_DIR" not in os.environ:
     absfile = os.path.abspath(__file__)
     autodir = os.path.dirname(os.path.dirname(absfile))
     os.environ["AUTO_DIR"] = autodir

@@ -232,7 +232,7 @@ class DefaultDict(UserDict.UserDict):
         self.default = default
 
     def __getitem__(self, key):
-        if self.data.has_key(key): return self.data[key]
+        if key in self.data: return self.data[key]
         d = deepcopy(self.default)
         self.data[key] = d
         return d
@@ -382,7 +382,7 @@ class Point(object):
             temp_kw = {}
             temp_kw['coorddict'] = copy(kw)
             kw = copy(temp_kw)
-        if kw.has_key('coorddict'):
+        if 'coorddict' in kw:
             coorddict = {}
             try:
                 ct = kw['coordtype']
@@ -437,7 +437,7 @@ class Point(object):
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
             assert self.dimension == len(self.coordarray), "Invalid coord array"
-        elif kw.has_key('coordarray'):
+        elif 'coordarray' in kw:
             # 'coordtype' key is optional unless 'array' is actually a list,
             # when this key specifies the internal Python to use
             if isinstance(kw['coordarray'], ndarray):
@@ -464,7 +464,7 @@ class Point(object):
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
             self.dimension = len(self.coordarray)
-            if kw.has_key('coordnames'):
+            if 'coordnames' in kw:
                 if isinstance(kw['coordnames'], str):
                     coordnames = [kw['coordnames']]
                 else:
@@ -483,14 +483,14 @@ class Point(object):
             raise ValueError("Missing coord info in keywords")
         assert isUniqueSeq(self.coordnames), 'Coordinate names must be unique'
         self.makeIxMaps()
-        if kw.has_key('norm'):
+        if 'norm' in kw:
             if kw['norm'] == 0:
                 raise ValueError("Norm order for point cannot be zero")
             self._normord = kw['norm']
         else:
             self._normord = 2
         # extra information (for special bifurcation point data)
-        if kw.has_key('labels'):
+        if 'labels' in kw:
             self.addlabel(kw['labels'])
 
 
@@ -878,7 +878,7 @@ class Pointset(Point):
                 temp_kw['coorddict'] = copy(kw)
                 kw = copy(temp_kw)
         # Deal with independent variable, if present
-        if kw.has_key('indepvardict'):
+        if 'indepvardict' in kw:
             assert len(kw['indepvardict']) == 1
             try:
                 it = kw['indepvartype']
@@ -900,8 +900,8 @@ class Pointset(Point):
                     raise TypeError("Invalid type for independent variable value")
                 else:
                     self.indepvararray = array([vals], self.indepvartype)
-        elif kw.has_key('indepvararray'):
-            if kw.has_key('indepvarname'):
+        elif 'indepvararray' in kw:
+            if 'indepvarname' in kw:
                 self.indepvarname = kw['indepvarname']
             else:
                 self.indepvarname = 't'
@@ -962,7 +962,7 @@ class Pointset(Point):
             do_reverse = not isincreasing(self.indepvararray)
             self._parameterized = True
         # Deal with coordinate data
-        if kw.has_key('coorddict'):
+        if 'coorddict' in kw:
             coorddict = {}
             try:
                 ct = kw['coordtype']
@@ -1016,7 +1016,7 @@ class Pointset(Point):
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
             assert self.dimension == len(self.coordarray), "Invalid coord array"
-        elif kw.has_key('coordarray'):
+        elif 'coordarray' in kw:
             if not isinstance(kw['coordarray'], _seq_types):
                 raise TypeError('Coordinate type %s not valid for Pointset'%str(type(kw['coordarray'])))
             try:
@@ -1041,7 +1041,7 @@ class Pointset(Point):
             else:
                 raise ValueError("Invalid rank for coordinate array %i"%r)
             self.dimension = len(self.coordarray)
-            if kw.has_key('coordnames'):
+            if 'coordnames' in kw:
                 if isinstance(kw['coordnames'], str):
                     coordnames = [kw['coordnames']]
                 else:
@@ -1071,7 +1071,7 @@ class Pointset(Point):
             #else:
             #    assert self.coordarray.shape[0] == len(self.indepvararray)
             # process choice of indep var tolerance
-            if kw.has_key('checklevel'):
+            if 'checklevel' in kw:
                 checklevel = kw['checklevel']
                 if checklevel in [0,1]:
                     self.checklevel = checklevel
@@ -1080,7 +1080,7 @@ class Pointset(Point):
             else:
                 # default to use tolerance in indep val resolution
                 self.checklevel = 1
-            if kw.has_key('tolerance'):
+            if 'tolerance' in kw:
                 tol = kw['tolerance']
                 if tol > 0:
                     self._abseps = tol
@@ -1088,20 +1088,20 @@ class Pointset(Point):
                     raise ValueError("Tolerance must be a positive real number")
             else:
                 self._abseps = 1e-10
-        if kw.has_key('name'):
+        if 'name' in kw:
             if isinstance(kw['name'], str):
                 self.name = kw['name']
             else:
                 raise TypeError("name argument must be a string")
         else:
             self.name = ""
-        if kw.has_key('norm'):
+        if 'norm' in kw:
             if kw['norm'] == 0:
                 raise ValueError("Norm order for point cannot be zero")
             self._normord = kw['norm']
         else:
             self._normord = 2
-        if kw.has_key('labels'):
+        if 'labels' in kw:
             try:
                 self.labels = PointInfo(kw['labels'].by_index)
             except AttributeError:
@@ -2156,7 +2156,7 @@ class PointInfo(object):
 
 
     def __contains__(self, key):
-        return self.by_index.has_key(key) or self.by_label.has_key(key)
+        return key in self.by_index or key in self.by_label
 
 
     def __getitem__(self, key):
@@ -2203,9 +2203,9 @@ class PointInfo(object):
                 for i in key:
                     d[i] = self.by_index[i]
                 return PointInfo(d)
-            elif self.by_index.has_key(key):
+            elif key in self.by_index:
                 return self.by_index[key]
-            elif self.by_label.has_key(key):
+            elif key in self.by_label:
                 return self.by_label[key]
             else:
                 return {}
@@ -2263,7 +2263,7 @@ class PointInfo(object):
 
     def remove(self, key1, *key2):
         """remove one or more items, keyed either by index or label."""
-        byix = self.by_index.has_key(key1)
+        byix = key1 in self.by_index
         if key2 == ():
             # remove all labels associated with index, or vice versa
             if byix:
@@ -2328,8 +2328,8 @@ class PointInfo(object):
         elif isinstance(key1, _int_types):
             if info is None:
                 info = {}
-            if self.by_index.has_key(key1):
-                if self.by_index[key1].has_key(key2):
+            if key1 in self.by_index:
+                if key2 in self.by_index[key1]:
                     self.by_index[key1][key2].update(info)
                 else:
                     self.__setitem__(key1, (key2, info))
@@ -2338,8 +2338,8 @@ class PointInfo(object):
         elif isinstance(key1, str):
             if info is None:
                 info = {}
-            if self.by_label.has_key(key1):
-                if self.by_label[key1].has_key(key2):
+            if key1 in self.by_label:
+                if key2 in self.by_label[key1]:
                     self.by_label[key1][key2].update(info)
                 else:
                     self.__setitem__(key2, (key1, info))

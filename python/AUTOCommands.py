@@ -1197,11 +1197,11 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             abbrev[key]    = key
         for key in kw.keys():
             # remove long duplicates
-            if (abbrev.has_key(key) and key != abbrev[key] and
-                kw.has_key(abbrev[key])):
+            if (key in abbrev and key != abbrev[key] and
+                abbrev[key] in kw):
                 del kw[abbrev[key]]
         for key,value in kw.items():
-            if abbrev.has_key(key):
+            if key in abbrev:
                 # change the abbreviation to the long version
                 del kw[key]
                 if type(value) in [type(""),type(1),type(1.0)]:
@@ -1213,7 +1213,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     def __applyRunnerConfigResolveFilenames(self,kw={}):
         doneread = False
         wantread = False
-        if kw.has_key("constants"):
+        if "constants" in kw:
             if type(kw["constants"]) == types.StringType:
                 wantread = True
                 try:
@@ -1221,7 +1221,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     doneread = True
                 except IOError:
                     del kw["constants"]
-        if kw.has_key("homcont"):
+        if "homcont" in kw:
             if type(kw["homcont"]) == types.StringType:
                 wantread = True
                 object = parseH.parseH()
@@ -1232,7 +1232,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["homcont"])
                     object = None
                 kw["homcont"] = object
-        if kw.has_key("solution"):
+        if "solution" in kw:
             if type(kw["solution"]) == types.StringType:
                 wantread = True
                 try:
@@ -1244,7 +1244,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     object = None
                 kw["solution"] = object
         if wantread and not doneread:
-            if kw.has_key("equation"):
+            if "equation" in kw:
                 eq = kw["equation"][14:]
                 for ext in [".f90",".f",".c"]:
                     if os.path.exists(eq+ext):
@@ -1265,7 +1265,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
             if hasattr(options["solution"],'load'):
                 data = options["solution"].load(**options)
             else:
-                if dict.has_key('t'):
+                if 't' in dict:
                     options = options.copy()
                     options['t'] = dict['t']
                 data = parseS.AUTOSolution(options["solution"],**options)
@@ -1336,7 +1336,7 @@ class commandRunnerLoadName(commandRunnerConfig):
             name = None 
         elif name is not None:
             for key in ["equation", "constants", "solution", "homcont"]:
-                if not kw.has_key(key):
+                if key not in kw:
                     kw[key] = name
         commandRunnerConfig.__init__(self,runner,templates,
                                      AUTOutil.cnfmerge((kw,cnf)))
@@ -1367,7 +1367,7 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
     def __init__(self,name=None,templates=None,cnf={},**kw):
         if name is not None:
             for key in ["bifurcationDiagram", "solution", "diagnostics"]:
-                if not kw.has_key(key):
+                if key not in kw:
                     kw[key] = name
         commandWithFilenameTemplate.__init__(self,None,None,templates)
         dict = AUTOutil.cnfmerge((cnf,kw))
@@ -1380,11 +1380,11 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
             abbrev[key]    = key
         for key in kw.keys():
             # remove long duplicates
-            if (abbrev.has_key(key) and key != abbrev[key] and
-                kw.has_key(abbrev[key])):
+            if (key in abbrev and key != abbrev[key] and
+                abbrev[key] in kw):
                 del kw[abbrev[key]]
         for key,value in kw.items():
-            if abbrev.has_key(key):
+            if key in abbrev:
                 # change the abbreviation to the long version
                 del kw[key]
                 if type(value) in [type(""),type(1),type(1.0)]:
@@ -1567,7 +1567,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             and type(name) != type(1)):
             if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
                 self.runner = name
-            elif not kw.has_key("s"):
+            elif "s" not in kw:
                 self.kw["s"] = name
             self.name = None
 
@@ -1610,7 +1610,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             # delete ["sv"] from the global runner
             global _runner
             c = _runner.options.get("constants") or {}
-            if c.has_key("sv"):
+            if "sv" in c:
                 c["sv"] = None
         return ret
 

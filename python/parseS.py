@@ -309,9 +309,12 @@ class SLPoint(Points.Point):
         Points.Point.__init__(self, p)
         self.index = index
         self.solution = solution
-        
-    def has_key(self, key):
+
+    def __contains__(self, key):
         return key in ["u", "u dot", "t"] or Points.Point.has_key(self,key)
+
+    def has_key(self, key):
+        return self.__contains__(key)
 
     def __getitem__(self, coords):
         if coords == "t":
@@ -343,7 +346,7 @@ class AUTOParameters(Points.Point):
             return
         coordnames = kw.get("coordnames",[])[:]
         self.parnames = coordnames[:]
-        if kw.has_key("coordarray"):
+        if "coordarray" in kw:
             for i in range(len(coordnames),len(kw["coordarray"])):
                 coordnames.append("PAR("+str(i+1)+")")
             kw["coordtype"] = Points.float64
@@ -429,11 +432,11 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             self.data.update({"BR":1, "PT":1, "TY number":9, "LAB":0,
                               "ISW":1, "NTST": 1, "NCOL": 0})
             if name == './fort.8':
-                if kw.has_key("equation"):
+                if "equation" in kw:
                     self.name = kw["equation"][14:]
-                elif kw.has_key("e"):
+                elif "e" in kw:
                     self.name = kw["e"]
-                elif c.has_key("e"):
+                elif "e" in c:
                     self.name = c["e"]
             names = kw.get("unames",c.get("unames"))
             self.indepvarname = 't'
@@ -488,7 +491,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                         coordarray.append([d])
                 else:
                     # time + solution
-                    if kw.has_key("t"):
+                    if "t" in kw:
                         indepvararray = kw["t"]
                         coordarray = input
                     else:
@@ -521,7 +524,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                          "indepvarname": indepvarname,
                          "coordarray": coordarray,
                          "coordnames": coordnames}
-                if kw.has_key("equation"):
+                if "equation" in kw:
                     pdict["name"] = kw["equation"][14:]
                 Points.Pointset.__init__(self,pdict)
                 self.__fullyParsed = True
@@ -636,14 +639,17 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
     def copy(self):
         return self.__copy__()
 
-    def has_key(self,key):
-        return (key == "data" or self.long_data_keys.has_key(key) or
+    def __contains__(self,key):
+        return (key == "data" or key in self.long_data_keys or
                 (not self.__fullyParsed and key in self.data_keys) or
-                (self.__fullyParsed and self.data.has_key(key)) or
+                (self.__fullyParsed and key in self.data) or
                 Points.Pointset.has_key(self,key))
 
+    def has_key(self, key):
+        return self.__contains__(key)
+
     def get(self, key, failobj=None):
-        if self.has_key(key):
+        if key in self:
             return self[key]
         return failobj
 
@@ -1000,7 +1006,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
 
                 # write UDOTPS
                 slist = []
-                if self.data.has_key("udotps"):
+                if "udotps" in self.data:
                     c = self["udotps"].coordarray
                     l = len(c)
                 else:
@@ -1046,9 +1052,9 @@ def pointtest(a,b):
     scratch=a['Parameters']
     scratch=b['Parameters']
     for key in keys:
-        if not(a.has_key(key)):
+        if key not in a:
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
-    if not(len(a["data"]) == len(b["data"])):
+    if len(a["data"]) != len(b["data"]):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 

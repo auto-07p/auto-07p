@@ -65,7 +65,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
         dict = AUTOutil.cnfmerge((cnf,kw))
         for key in dict.keys():
-            if not optionDefaults.has_key(key):
+            if key not in optionDefaults:
                 del dict[key]
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)

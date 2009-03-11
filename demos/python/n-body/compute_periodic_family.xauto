@@ -160,13 +160,13 @@ if __name__ == '__main__':
 
     # If you use the -b option then we want to compute the bifurcating
     # branches.
-    if opts.has_key("-b"):
+    if "-b" in opts:
         compute_bifur_flag="yes"
     else:
         compute_bifur_flag="no"
 
     npr = 20
-    if opts.has_key("-n"):
+    if "-n" in opts:
         npr = int(opts["-n"])
 
     # The first argument is the name of the file in

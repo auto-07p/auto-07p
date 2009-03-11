@@ -267,13 +267,13 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def _delAllData(self):
         for l in self.labels:
             for label in l:
-                if label.has_key("mpline"):
+                if "mpline" in label:
                     self.ax.lines.remove(label["mpline"])
-                if label.has_key("mptext"):
+                if "mptext" in label:
                     self.ax.texts.remove(label["mptext"])
-                if label.has_key("mpsymline"):
+                if "mpsymline" in label:
                     self.ax.lines.remove(label["mpsymline"])
-                if label.has_key("mpsymtext"):
+                if "mpsymtext" in label:
                     self.ax.texts.remove(label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
@@ -289,10 +289,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
 
         for i in range(len(self.labels)):
             for label in self.labels[i]:
-                if label.has_key("mpline"):
+                if "mpline" in label:
                     self.ax.lines.remove(label["mpline"])
                     del label["mpline"]
-                if label.has_key("mptext"):
+                if "mptext" in label:
                     self.ax.texts.remove(label["mptext"])
                     del label["mptext"]
 
@@ -372,10 +372,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     continue
                 c=self.cget("symbol_color")
                 mfc=self.ax.get_axis_bgcolor()
-                if label.has_key("mpsymline"):
+                if "mpsymline" in label:
                     self.ax.lines.remove(label["mpsymline"])
                     del label["mpsymline"]
-                if label.has_key("mpsymtext"):
+                if "mpsymtext" in label:
                     self.ax.texts.remove(label["mpsymtext"])
                     del label["mpsymtext"]
                 if not self.cget("use_symbols"):

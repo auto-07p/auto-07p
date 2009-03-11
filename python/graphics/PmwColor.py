@@ -216,10 +216,10 @@ def _calcPalette(root, background=None, **kw):
         new[key] = value
     if background is not None:
         new['background'] = background
-    if not new.has_key('background'):
+    if 'background' not in new:
         raise ValueError, 'must specify a background color'
 
-    if not new.has_key('foreground'):
+    if 'foreground' not in new:
         new['foreground'] = 'black'
 
     bg = name2rgb(root, new['background'])
@@ -227,14 +227,14 @@ def _calcPalette(root, background=None, **kw):
 
     for i in ('activeForeground', 'insertBackground', 'selectForeground',
             'highlightColor'):
-        if not new.has_key(i):
+        if i not in new:
             new[i] = new['foreground']
 
-    if not new.has_key('disabledForeground'):
+    if 'disabledForeground' not in new:
         newCol = average(bg, fg, 0.3)
         new['disabledForeground'] = rgb2name(newCol)
 
-    if not new.has_key('highlightBackground'):
+    if 'highlightBackground' not in new:
         new['highlightBackground'] = new['background']
 
     # Set <lighterBg> to a color that is a little lighter that the
@@ -256,7 +256,7 @@ def _calcPalette(root, background=None, **kw):
     # normal background.
     darkerBg = (bg[0] * 0.9, bg[1] * 0.9, bg[2] * 0.9)
 
-    if not new.has_key('activeBackground'):
+    if 'activeBackground' not in new:
         # If the foreground is dark, pick a light active background.
         # If the foreground is light, pick a dark active background.
         # XXX This has been disabled, since it does not look very
@@ -268,11 +268,11 @@ def _calcPalette(root, background=None, **kw):
         else:
             new['activeBackground'] = rgb2name(lighterBg)
 
-    if not new.has_key('selectBackground'):
+    if 'selectBackground' not in new:
         new['selectBackground'] = rgb2name(darkerBg)
-    if not new.has_key('troughColor'):
+    if 'troughColor' not in new:
         new['troughColor'] = rgb2name(darkerBg)
-    if not new.has_key('selectColor'):
+    if 'selectColor' not in new:
         new['selectColor'] = 'yellow'
 
     return new

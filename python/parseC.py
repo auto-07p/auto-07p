@@ -513,7 +513,7 @@ def pointtest(a):
             'RL0', 'RL1', 'ICP', '__NTHU', 'IPLT', 'ILP', 'NCOL', 'THL',
             'DSMAX', 'ISW', 'IRS', 'THU', 'IAD', 'JAC', '__NUZR', 'NDIM']
     for key in keys:
-        if not(a.has_key(key)):
+        if key not in a:
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
 
 def test():

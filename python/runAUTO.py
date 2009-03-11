@@ -89,10 +89,10 @@ class runAUTO:
                 for k, v in dict[key].items():
                     if v is not None:
                         c[k] = v
-            elif self.options.has_key(key):
+            elif key in self.options:
                 self.options[key] = dict[key]
         for key,value in dict.items():
-            if (self.options.has_key(key) or key in ['t','LAB','PT','BR','TY']
+            if (key in self.options or key in ['t','LAB','PT','BR','TY']
                 or key[:7] == 'Active '):
                 continue
             if value is None:
@@ -100,9 +100,9 @@ class runAUTO:
             if self.options["constants"] is None:
                 self.options["constants"]=parseC.parseC()
             if (self.options["homcont"] is not None and
-                  self.options["homcont"].has_key(key)):
+                  key in self.options["homcont"]):
                 self.options["homcont"][key] = value
-            elif self.options["constants"].has_key(key):
+            elif key in self.options["constants"]:
                 self.options["constants"][key] = value
             else:
                 raise AUTOExceptions.AUTORuntimeError(
@@ -118,7 +118,7 @@ class runAUTO:
         files = ["fort.7", "fort.8", "fort.9"]
         v = None
         c = self.options["constants"]
-        if c is not None and c.has_key("sv"):
+        if c is not None and "sv" in c:
             v = c["sv"]
         else:
             value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
@@ -145,7 +145,7 @@ class runAUTO:
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
-        if sys.modules.has_key("subprocess"):
+        if "subprocess" in sys.modules:
             p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE)
             p2 = subprocess.Popen(["grep",alarm_demo+".exe"], stdin=p1.stdout,
                                   stdout=subprocess.PIPE)
@@ -157,7 +157,7 @@ class runAUTO:
                 "ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
             cin.close()
         pids = cout.read()
-        if sys.modules.has_key("subprocess"):
+        if "subprocess" in sys.modules:
             p1.stdout.close()
             p2.stdout.close()
         cout.close()
@@ -204,7 +204,7 @@ class runAUTO:
         global demo_killed
 
         if self.options["auto_dir"] is None:
-            if os.environ.has_key("AUTO_DIR"):
+            if "AUTO_DIR" in os.environ:
                 self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
@@ -223,7 +223,7 @@ class runAUTO:
         if os.path.exists(d+".exe"):
             os.remove(d+".exe")
         cmd = "make -e %s.exe"%d
-        if sys.modules.has_key("subprocess"):
+        if "subprocess" in sys.modules:
             p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             stdout,stderr = p.stdout,p.stderr
@@ -241,7 +241,7 @@ class runAUTO:
         if self.options["clean"] == "yes":
             os.chdir(self.options["dir"])
             cmd = "make -e clean"
-            if sys.modules.has_key("subprocess"):
+            if "subprocess" in sys.modules:
                 p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
                 stdout,stderr = p.stdout,p.stderr
@@ -425,7 +425,7 @@ class runAUTO:
             self.options["equation"] = equation
 
         if self.options["auto_dir"] is None:
-            if os.environ.has_key("AUTO_DIR"):
+            if "AUTO_DIR" in os.environ:
                 self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
@@ -531,8 +531,8 @@ class runAUTO:
             user_time = os.times()[2]
         tmp_out = []
         command = os.path.expandvars(command)
-        if sys.modules.has_key("subprocess") or hasattr(popen2,"Popen3"):
-            if sys.modules.has_key("subprocess"):
+        if "subprocess" in sys.modules or hasattr(popen2,"Popen3"):
+            if "subprocess" in sys.modules:
                 args = os.path.expandvars(command).split()
                 demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
                                                stderr=subprocess.PIPE)
@@ -629,7 +629,7 @@ if __name__ == "__main__":
         opts[x[0]]=x[1]
     log = None
     err = None
-    if opts.has_key("-l"):
+    if "-l" in opts:
         log = open(opts["-l"],"w")
         err = open(opts["-l"]+"errors","w")
 

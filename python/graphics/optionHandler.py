@@ -54,7 +54,7 @@ class OptionHandler:
 
     def _isInternalOption(self,key):
         key = self.__applyOptionAliases(key)
-        if self.__options.has_key(key):
+        if key in self.__options:
             return 1
         else:
             return 0
@@ -72,7 +72,7 @@ class OptionHandler:
                 return AUTOutil.cnfmerge((dict,self.__baseClass.config(self)))
         elif type(cnf) == types.StringType:
             cnf = self.__applyOptionAliases(cnf)
-            if self.__options.has_key(cnf):
+            if cnf in self.__options:
                 return (cnf,cnf,cnf,
                         self.__optionDefaults[cnf],
                         self.__options[cnf],
@@ -91,7 +91,7 @@ class OptionHandler:
     configure = config
     def cget(self,key):
         newkey = self.__applyOptionAliases(key)
-        if self.__options.has_key(newkey):
+        if newkey in self.__options:
             return self.__options[newkey]
         else:
             if self.__baseClass is None:
