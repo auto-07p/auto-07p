@@ -4,7 +4,6 @@ import Tkinter
 import Pmw
 import AUTOutil
 import plotter
-import types
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
@@ -160,11 +159,11 @@ class WindowPlotter(Pmw.MegaToplevel):
         optionLabel.setentry(key)
         valueLabel.setentry(str(self.grapher.cget(key)))
         valueEntry.clear()
-        if type(self.grapher.cget(key)) == types.IntType:
+        if isinstance(self.grapher.cget(key), int):
             valueEntry.configure(validate={"validator":"integer"})
-        elif type(self.grapher.cget(key)) == types.FloatType:
+        elif isinstance(self.grapher.cget(key), float):
             valueEntry.configure(validate={"validator":"real"})
-        elif type(self.grapher.cget(key)) == types.StringType:
+        elif isinstance(self.grapher.cget(key), str):
             pass
 
     def __dialogFunction(self,button,key,entry):
@@ -202,7 +201,7 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.labelEntry.setvalue("bifurcation")
 
     def config(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
             return self.grapher.config(cnf)
         dict = AUTOutil.cnfmerge((cnf,kw))
         self.grapher.config(dict)

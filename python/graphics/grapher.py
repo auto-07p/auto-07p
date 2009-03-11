@@ -3,7 +3,6 @@ import Tkinter
 import Pmw
 import tkSimpleDialog
 import tkFileDialog
-import types
 import AUTOutil
 import optionHandler
 import math
@@ -75,7 +74,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         return len(self.data)
 
     def config(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
             return self._configNoDraw(cnf)
         else:
             self._configNoDraw(AUTOutil.cnfmerge((cnf,kw)))
@@ -87,7 +86,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     # for example, if you want to config, but know you
     # will need to redraw later.
     def _configNoDraw(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
             return optionHandler.OptionHandler.config(self,cnf)
         else:
             optionHandler.OptionHandler.config(self,AUTOutil.cnfmerge((cnf,kw)))
@@ -868,11 +867,11 @@ class GUIGrapher(InteractiveGrapher):
         
     def __modifyOption(self):
         key = self.optionList.getcurselection()[0]
-        if type(self.cget(key)) == types.IntType:
+        if isinstance(self.cget(key), int):
             self[key] = int(self.valueEntry.get())
-        elif type(self.cget(key)) == types.FloatType:
+        elif isinstance(self.cget(key), float):
             self[key] = float(self.valueEntry.get())
-        elif type(self.cget(key)) == types.StringType:
+        elif isinstance(self.cget(key), str):
             self[key] = self.valueEntry.get()
         self.valueLabel.setentry(self.cget(key))
 
@@ -881,11 +880,11 @@ class GUIGrapher(InteractiveGrapher):
         self.optionLabel.setentry(key)
         self.valueLabel.setentry(self.cget(key))
         self.valueEntry.clear()
-        if type(self.cget(key)) == types.IntType:
+        if isinstance(self.cget(key), int):
             self.valueEntry.configure(validate={"validator":"integer"})
-        elif type(self.cget(key)) == types.FloatType:
+        elif isinstance(self.cget(key), float):
             self.valueEntry.configure(validate={"validator":"real"})
-        elif type(self.cget(key)) == types.StringType:
+        elif isinstance(self.cget(key), str):
             self.valueEntry.configure(validate={"validator":"alphanumeric"})
         
     def generatePostscript(self,filename=None,pscolormode=None):

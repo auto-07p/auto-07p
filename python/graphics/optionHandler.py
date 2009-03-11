@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import types
 import AUTOutil
 import AUTOExceptions
 
@@ -70,7 +69,7 @@ class OptionHandler:
                 return dict
             else:
                 return AUTOutil.cnfmerge((dict,self.__baseClass.config(self)))
-        elif type(cnf) == types.StringType:
+        elif isinstance(cnf, str):
             cnf = self.__applyOptionAliases(cnf)
             if cnf in self.__options:
                 return (cnf,cnf,cnf,

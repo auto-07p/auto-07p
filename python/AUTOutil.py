@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-import types
 import ConfigParser
 import os
 import array
@@ -67,44 +66,43 @@ N = array
 # Copyright (c) 2001-2004 Twisted Matrix Laboratories
 
 # Two routines taken from Tkinter.py for merging dictionaries
-def _flatten(tuple):
-        res = ()
-        for item in tuple:
-                if type(item) in (types.TupleType, types.ListType):
-                        res = res + _flatten(item)
-                elif item is not None:
-                        res = res + (item,)
-        return res
+def _flatten(seq):
+    res = ()
+    for item in seq:
+        if isinstance(item, (tuple, list)):
+            res = res + _flatten(item)
+	elif item is not None:
+            res = res + (item,)
+    return res
 
 def cnfmerge(cnfs):
-        if type(cnfs) is types.DictionaryType:
-                return cnfs
-        elif type(cnfs) in (types.NoneType, types.StringType):
-                return cnfs
-        else:
-                cnf = {}
-                for c in _flatten(cnfs):
-                        try:
-                                cnf.update(c)
-                        except (AttributeError, TypeError), msg:
-                                print "_cnfmerge: fallback due to:", msg
-                                for k, v in c.items():
-                                        cnf[k] = v
-                return cnf
+    if isinstance(cnfs, dict):
+        return cnfs
+    elif isinstance(cnfs, (type(None), str)):
+        return cnfs
+    else:
+        cnf = {}
+        for c in _flatten(cnfs):
+            try:
+                cnf.update(c)
+            except (AttributeError, TypeError), msg:
+                print "_cnfmerge: fallback due to:", msg
+                for k, v in c.items():
+                    cnf[k] = v
+        return cnf
 
 
 def findBaseClass(inputClass,baseClass):
-        try:
-                for base in inputClass.__bases__:
-                        if base == baseClass:
-                                return 1
-                        else:
-                                if findBaseClass(base,baseClass) == 1:
-                                        return 1
-                return 0
+    try:
+        for base in inputClass.__bases__:
+            if base == baseClass:
+                return 1
+            elif findBaseClass(base,baseClass) == 1:
+                return 1
+        return 0
         # Sometimes inputClass isn't really a class, if so we just return false
-        except AttributeError:
-                return 0
+    except AttributeError:
+        return 0
 
 def getAUTORC(section):
     parser = ConfigParser.ConfigParser()
@@ -199,57 +197,6 @@ except NameError:
     __builtin__.True = not 0
     # Assign to True in this module namespace so it shows up in pydoc output.
     True = True
-
-# 
-try: 
-    zip 
-except NameError: 
-    # Pre-2.2 Python has no zip() function. 
-    def zip(*lists):
-        """
-        Emulates the behavior we need from the built-in zip() function
-        added in Python 2.2.
-
-        Returns a list of tuples, where each tuple contains the i-th
-        element rom each of the argument sequences. The returned
-        list is truncated in length to the length of the shortest
-        argument sequence.
-        """
-        result = []
-        for i in xrange(min(map(len, lists))):
-            result.append(tuple(map(lambda l, i=i: l[i], lists)))
-        return result
-    __builtin__.zip = zip 
-
-try:
-    isinstance('', (list, str))
-except TypeError:
-    #
-    # Wrap isinstance() to make it compatible with the version in
-    # Python 2.2 and newer.
-    #
-    _isinstance = isinstance
-    from types import *
-    d = { str: StringType, list: ListType, tuple: TupleType,
-          dict: DictType, slice: SliceType, float: FloatType,
-          int: IntType }
-    def isinstance(obj, type_or_seq):
-        if type(type_or_seq) in (type([]),type(())):
-            for t in type_or_seq:
-                if isinstance(obj, t):
-                    return 1
-            return 0
-        if type_or_seq in d:
-            return type(obj) == d[type_or_seq]
-        return _isinstance(obj, type_or_seq)
-    __builtin__.isinstance = isinstance
-
-try:
-    object
-except NameError:
-    class object:
-        pass
-    __builtin__.object = object
 
 # very basic numpy emulation:
 def array(l, code=None):

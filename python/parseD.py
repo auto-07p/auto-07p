@@ -11,11 +11,10 @@ import getopt
 import math
 import AUTOExceptions
 import parseB
-import types
 
 class parseD(UserList.UserList):
     def __init__(self,filename=None):
-        if type(filename) == types.StringType:
+        if isinstance(filename, str):
             UserList.UserList.__init__(self)
             self.readFilename(filename)
         else:

@@ -9,7 +9,6 @@ import bifDiag
 import os
 import AUTOutil
 import sys
-import types
 import glob
 import runAUTO
 import re
@@ -1214,7 +1213,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         doneread = False
         wantread = False
         if "constants" in kw:
-            if type(kw["constants"]) == types.StringType:
+            if isinstance(kw["constants"], str):
                 wantread = True
                 try:
                     kw["constants"] = parseC.parseC(kw["constants"])
@@ -1222,7 +1221,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 except IOError:
                     del kw["constants"]
         if "homcont" in kw:
-            if type(kw["homcont"]) == types.StringType:
+            if isinstance(kw["homcont"], str):
                 wantread = True
                 object = parseH.parseH()
                 try:
@@ -1233,7 +1232,7 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                     object = None
                 kw["homcont"] = object
         if "solution" in kw:
-            if type(kw["solution"]) == types.StringType:
+            if isinstance(kw["solution"], str):
                 wantread = True
                 try:
                     object = parseS.parseS()
@@ -1964,7 +1963,7 @@ class commandHelp(command):
                 command_list.append(key)
 
         return_value = {}
-        if type(self.command_string) != types.StringType:
+        if isinstance(self.command_string, str):
             self.__print(self.command_string.__doc__+'\n')
             return valueStringAndData(self.__outputString,return_value)
         if len(self.command_string) == 0:

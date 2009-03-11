@@ -22,7 +22,6 @@ import sys
 import UserDict
 import UserList
 import AUTOExceptions
-import types
 import copy
 import parseB
 import parseC
@@ -59,7 +58,7 @@ NPAR = 20
 class parseS(UserList.UserList):
     def __init__(self,filename=None,**kw):
         self.name = ''
-        if type(filename) == types.StringType:
+        if isinstance(filename, str):
             UserList.UserList.__init__(self)
             self.readFilename(filename,**kw)
         else:
@@ -166,7 +165,7 @@ class parseS(UserList.UserList):
     def deleteLabel(self,label=None,keep=0):
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
-        if type(label) != types.ListType:
+        if not isinstance(label, list):
             label = [label]
         indices = []
         for i in range(len(self.data)):
@@ -196,7 +195,7 @@ class parseS(UserList.UserList):
                 i = i + 1
                 new.append(news)
             return new
-        if type(old_label) == types.IntType:
+        if isinstance(old_label, int):
             old_label = [old_label]
             new_label = [new_label]
         for j in range(len(old_label)):
@@ -220,12 +219,12 @@ class parseS(UserList.UserList):
     def getLabel(self,label):
         if label is None:
             return self
-        if type(label) == types.IntType:
+        if isinstance(label, int):
             for d in self.data:
                 if d["Label"] == label:
                     return d
             raise KeyError("Label %s not found"%label)
-        if type(label) == types.StringType and len(label) > 2:
+        if isinstance(label, str) and len(label) > 2:
             number = int(label[2:])
             i = 0
             for d in self.data:
@@ -234,7 +233,7 @@ class parseS(UserList.UserList):
                     if i == number:
                         return d
             raise KeyError("Label %s not found"%label)
-        if type(label) != types.ListType:
+        if not isinstance(label, list):
             label = [label]        
         data = []
         counts = [0]*len(label)
@@ -244,7 +243,7 @@ class parseS(UserList.UserList):
                 ap = d
             for i in range(len(label)):
                 lab = label[i]
-                if (type(lab) == types.StringType and len(lab) > 2 and
+                if (isinstance(lab, str) and len(lab) > 2 and
                     d["Type name"] == lab[:2]):
                     counts[i] = counts[i] + 1
                     if counts[i] == int(lab[2:]):
@@ -471,7 +470,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 "Label": "LAB"}
             if input is None:
                 pass
-            elif isinstance(input,(types.FileType,gzip.GzipFile)):
+            elif isinstance(input,(file,gzip.GzipFile)):
                 self.read(input,offset)
             else:
                 par = kw.get("PAR",c.get("PAR")) or []
@@ -623,13 +622,13 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 return self
         if not(self.__fullyParsed):
             self.__readAll()
-        if type(key) == types.StringType:
+        if isinstance(key, str):
             try:
                 return Points.Pointset.__getitem__(self,key)
             except:
                 return self.PAR[key]
         ret = Points.Pointset.__getitem__(self,key)
-        if type(key) != types.IntType:
+        if not isinstance(key, int):
             return ret
         return SLPoint(ret, self, key)
 

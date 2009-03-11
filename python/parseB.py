@@ -22,7 +22,6 @@ import sys
 import AUTOExceptions
 import AUTOutil
 import UserList
-import types
 import parseC
 import Points
 
@@ -279,7 +278,7 @@ class AUTOBranch(Points.Pointset):
         """Removes solutions with the given labels or type names"""
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
-        if type(label) != types.ListType:
+        if not isinstance(label, list):
             label = [label]
         if copy:
             new = self.__class__(self)
@@ -342,7 +341,7 @@ class AUTOBranch(Points.Pointset):
             new.labels = Points.PointInfo(labels)
             return new
         labels = self.labels
-        if type(old_label)  == types.IntType:
+        if isinstance(old_label, int):
             old_label = [old_label]
             new_label = [new_label]
         for j in range(len(old_label)):
@@ -367,13 +366,13 @@ class AUTOBranch(Points.Pointset):
         """Given a label, return the correct solution"""
         if label is None:
             return self
-        if type(label) == types.IntType:
+        if isinstance(label, int):
             for k in self.labels.getIndices():
                 v = self._gettypelabel(k)[1]
                 if v["LAB"] == label:
                     return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
-        if type(label) == types.StringType and len(label) > 2:
+        if isinstance(label, str) and len(label) > 2:
             number = int(label[2:])
             i = 0
             for k,v in self.labels.sortByIndex():
@@ -382,7 +381,7 @@ class AUTOBranch(Points.Pointset):
                     if i == number:
                         return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
-        if type(label) != types.ListType:
+        if not isinstance(label, list):
             label = [label]        
         labels = {}
         counts = [0]*len(label)
@@ -390,7 +389,7 @@ class AUTOBranch(Points.Pointset):
             ty_name,v = self._gettypelabel(k)
             for i in range(len(label)):
                 lab = label[i]
-                if (type(lab) == types.StringType and len(lab) > 2 and
+                if (isinstance(lab, str) and len(lab) > 2 and
                     ty_name == lab[:2]):
                     counts[i] = counts[i] + 1
                     if counts[i] == int(lab[2:]):
@@ -788,7 +787,7 @@ class AUTOBranch(Points.Pointset):
 
 class parseBR(UserList.UserList,AUTOBranch):
     def __init__(self,filename=None):
-        if type(filename) == types.StringType:
+        if isinstance(filename, str):
             UserList.UserList.__init__(self)
             self.readFilename(filename)
         else:
@@ -840,7 +839,7 @@ class parseBR(UserList.UserList,AUTOBranch):
             
     # Given a label, return the correct solution
     def getLabel(self,label):
-        if type(label) in [types.IntType, types.StringType]:
+        if isinstance(label, (int, str)):
             i = 0
             section = 0
             for d in self.data:
@@ -1053,7 +1052,7 @@ class parseB(AUTOBranch):
             l = l + len(d)
         return l
     def getLabel(self,label):
-        if type(label) in [types.IntType,types.StringType]:
+        if isinstance(label, (int, str)):
             return self.branches.getLabel(label)
         new = self.__class__()
         new.branches = self.branches.getLabel(label)

@@ -9,7 +9,6 @@ except ImportError:
 import parseB
 import parseS
 import AUTOutil
-import types
 import os
 
 class plotter(grapher.GUIGrapher):
@@ -78,7 +77,7 @@ class plotter(grapher.GUIGrapher):
         grapher.GUIGrapher.plot(self)
 
     def config(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
             return self._configNoDraw(cnf)
         else:
             self._configNoDraw(AUTOutil.cnfmerge((cnf,kw)))
@@ -97,7 +96,7 @@ class plotter(grapher.GUIGrapher):
     configure=config
 
     def _configNoDraw(self,cnf=None,**kw):
-        if type(cnf) == types.StringType or (cnf is None and len(kw) == 0):
+        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
             return grapher.GUIGrapher._configNoDraw(self,cnf)
         else:
             grapher.GUIGrapher._configNoDraw(self,AUTOutil.cnfmerge((cnf,kw)))

@@ -3,7 +3,6 @@ import getopt,sys,os
 import signal, os, time
 import cStringIO
 import re
-import types
 import glob,stat
 import AUTOExceptions,parseC,parseH
 try:

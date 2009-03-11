@@ -19,18 +19,17 @@
 import parseB
 import parseS
 import parseD
-import types
 import AUTOExceptions
 
 class parseBandS(parseS.parseS):
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None):
         self.diagnostics = None
-        if type(fort7_filename) == types.ListType:
+        if isinstance(fort7_filename, list):
             self.diagram = None
             self.solution = parseS.parseS(fort7_filename)
         elif (fort8_filename is None) and not(fort7_filename is None):
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
-        elif type(fort7_filename) == types.StringType or fort7_filename is None:
+        elif isinstance(fort7_filename, str) or fort7_filename is None:
             self.diagram = parseB.parseB(fort7_filename)
             self.solution = parseS.parseS(fort8_filename)
             if not fort9_filename is None:
@@ -52,7 +51,7 @@ class parseBandS(parseS.parseS):
         return ""
         
     def getLabel(self,label):
-        if type(label) == types.IntType:
+        if isinstance(label, int):
             return self.solution(label)
         return parseBandS(self.diagram(label),self.solution(label),
                           self.diagnostics)

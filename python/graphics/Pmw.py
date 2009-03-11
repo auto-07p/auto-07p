@@ -59,7 +59,6 @@ except NameError:
 import os
 import sys
 import traceback
-import types
 import Tkinter
 
 # Special values used in index() methods of several megawidgets.
@@ -146,7 +145,7 @@ def __methodDict(cls, dict):
     # do my methods last to override base classes
     for key, value in cls.__dict__.items():
         # ignore class attributes
-        if type(value) == types.FunctionType:
+        if isinstance(value, type(__methodDict)):
             dict[key] = value
 
 def __methods(cls):
@@ -216,7 +215,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
 
 
     # Allow an attribute name (String) or a function to determine the instance
-    if type(toPart) != types.StringType:
+    if not isinstance(toPart, str):
 
         # check that it is something like a function
         if callable(toPart):
@@ -254,7 +253,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
 
     for method, func in dict.items():
         d = {'method': method, 'func': func}
-        if type(toPart) == types.StringType:
+        if isinstance(toPart, str):
             execString = \
                 __stringBody % {'method' : method, 'attribute' : toPart}
         else:
@@ -557,7 +556,7 @@ class MegaArchetype:
             del kw['pyclass']
         if widgetClass is None:
             return None
-        if len(widgetArgs) == 1 and type(widgetArgs[0]) == types.TupleType:
+        if len(widgetArgs) == 1 and isinstance(widgetArgs[0], tuple):
             # Arguments to the constructor can be specified as either
             # multiple trailing arguments to createcomponent() or as a
             # single tuple argument.
@@ -1096,7 +1095,7 @@ class MegaToplevel(MegaArchetype):
                 parent = self.winfo_parent()
                 # winfo_parent() should return the parent widget, but the
                 # the current version of Tkinter returns a string.
-                if type(parent) == types.StringType:
+                if isinstance(parent, str):
                     parent = self._hull._nametowidget(parent)
                 master = parent.winfo_toplevel()
             self.transient(master)
@@ -1108,7 +1107,7 @@ class MegaToplevel(MegaArchetype):
         # and one third down.)
 
         parent = self.winfo_parent()
-        if type(parent) == types.StringType:
+        if isinstance(parent, str):
             parent = self._hull._nametowidget(parent)
 
         # Find size of window.
@@ -1183,7 +1182,7 @@ class MegaToplevel(MegaArchetype):
                 parent = self.winfo_parent()
                 # winfo_parent() should return the parent widget, but the
                 # the current version of Tkinter returns a string.
-                if type(parent) == types.StringType:
+                if isinstance(parent, str):
                     parent = self._hull._nametowidget(parent)
                 master = parent.winfo_toplevel()
             self.transient(master)
@@ -1550,7 +1549,7 @@ class _TraceTk:
         global _recursionCounter
 
         _callToTkReturned = 0
-        if len(args) == 1 and type(args[0]) == types.TupleType:
+        if len(args) == 1 and isinstance(args[0], tuple):
             argStr = str(args[0])
         else:
             argStr = str(args)
@@ -1812,14 +1811,16 @@ def _reporterror(func, args):
     exc_type, exc_value, exc_traceback = sys.exc_info()
 
     # Give basic information about the callback exception.
-    if type(exc_type) == types.ClassType:
+    class _C:
+        def _m(self): pass
+    if isinstance(exc_type, type(_C)):
         # Handle python 1.5 class exceptions.
         exc_type = exc_type.__name__
     msg = str(exc_type) + ' Exception in Tk callback\n'
     msg = msg + '  Function: %s (type: %s)\n' % (repr(func), type(func))
     msg = msg + '  Args: %s\n' % str(args)
 
-    if type(args) == types.TupleType and len(args) > 0 and \
+    if isinstance(args, tuple) and len(args) > 0 and \
             hasattr(args[0], 'type'):
         eventArg = 1
     else:
@@ -1984,7 +1985,6 @@ class _ErrorWindow:
 #                   the application.
 
 import sys
-import types
 import Tkinter
 
 
@@ -2115,7 +2115,7 @@ class Dialog(MegaToplevel):
 
     def _buttons(self):
         buttons = self['buttons']
-        if type(buttons) != types.TupleType and type(buttons) != types.ListType:
+        if not isinstance(buttons, (tuple, list)):
             raise ValueError, \
                 'bad buttons option "%s": should be a tuple' % str(buttons)
         if self.oldButtons == buttons:
@@ -2679,7 +2679,6 @@ class Balloon(MegaToplevel):
 ### File: PmwButtonBox.py
 # Based on iwidgets2.2.0/buttonbox.itk code.
 
-import types
 import Tkinter
 
 
@@ -2749,7 +2748,7 @@ class ButtonBox(MegaWidget):
 
     def index(self, index, forInsert = 0):
         listLength = len(self._buttonList)
-        if type(index) == types.IntType:
+        if isinstance(index, int):
             if forInsert and index <= listLength:
                 return index
             elif not forInsert and index < listLength:
@@ -2907,7 +2906,6 @@ class ButtonBox(MegaWidget):
 # Based on iwidgets2.2.0/entryfield.itk code.
 
 import re
-import types
 import Tkinter
 
 
@@ -2976,7 +2974,7 @@ class EntryField(MegaWidget):
             for tag in tagList:
 
                 sequences = root.bind_class(tag)
-                if type(sequences) is types.StringType:
+                if isinstance(sequences, str):
                     # In old versions of Tkinter, bind_class returns a string
                     sequences = root.tk.splitlist(sequences)
 
@@ -3020,7 +3018,7 @@ class EntryField(MegaWidget):
                 return validator
 
     def _validate(self):
-        dict = {
+        dct = {
             'validator' : None,
             'min' : None,
             'max' : None,
@@ -3028,22 +3026,22 @@ class EntryField(MegaWidget):
             'maxstrict' : 1,
         }
         opt = self['validate']
-        if type(opt) is types.DictionaryType:
-            dict.update(opt)
+        if isinstance(opt, dict):
+            dct.update(opt)
         else:
-            dict['validator'] = opt
+            dct['validator'] = opt
 
         # Look up validator maps and replace 'validator' field with
         # the corresponding function.
-        validator = dict['validator']
+        validator = dct['validator']
         valFunction = self._getValidatorFunc(validator, 0)
         self._checkValidateFunction(valFunction, 'validate', validator)
-        dict['validator'] = valFunction
+        dct['validator'] = valFunction
 
         # Look up validator maps and replace 'stringtovalue' field
         # with the corresponding function.
-        if 'stringtovalue' in dict:
-            stringtovalue = dict['stringtovalue'] 
+        if 'stringtovalue' in dct:
+            stringtovalue = dct['stringtovalue'] 
             strFunction = self._getValidatorFunc(stringtovalue, 1)
             self._checkValidateFunction(
                     strFunction, 'stringtovalue', stringtovalue)
@@ -3051,10 +3049,10 @@ class EntryField(MegaWidget):
             strFunction = self._getValidatorFunc(validator, 1)
             if strFunction == validator:
                 strFunction = len
-        dict['stringtovalue'] = strFunction
+        dct['stringtovalue'] = strFunction
 
-        self._validationInfo = dict
-        args = dict.copy()
+        self._validationInfo = dct
+        args = dct.copy()
         del args['validator']
         del args['min']
         del args['max']
@@ -3064,10 +3062,10 @@ class EntryField(MegaWidget):
         self._validationArgs = args
         self._previousText = None
 
-        if type(dict['min']) == types.StringType and strFunction is not None:
-            dict['min'] = strFunction(dict['min'], **args)
-        if type(dict['max']) == types.StringType and strFunction is not None:
-            dict['max'] = strFunction(dict['max'], **args)
+        if isinstance(dct['min'], str) and strFunction is not None:
+            dct['min'] = strFunction(dct['min'], **args)
+        if isinstance(dct['max'], str) and strFunction is not None:
+            dct['max'] = strFunction(dct['max'], **args)
 
         self._checkValidity()
 
@@ -3518,7 +3516,6 @@ class LabeledWidget(MegaWidget):
 ### File: PmwMainMenuBar.py
 # Main menubar
 
-import types
 import Tkinter
 
 
@@ -3678,7 +3675,7 @@ class MainMenuBar(MegaArchetype):
                 'label' not in kw):
             return
 
-        if type(traverseSpec) == types.IntType:
+        if isinstance(traverseSpec, int):
             kw['underline'] = traverseSpec
             return
 
@@ -3702,7 +3699,7 @@ class MainMenuBar(MegaArchetype):
 
         name = kw['label']
 
-        if type(traverseSpec) == types.StringType:
+        if isinstance(traverseSpec, str):
             lowerLetter = traverseSpec.lower()
             if traverseSpec in name and lowerLetter not in hotkeyList:
                 kw['underline'] = name.index(traverseSpec)
@@ -3744,7 +3741,6 @@ forwardmethods(MainMenuBar, Tkinter.Menu, '_hull')
 ### File: PmwMenuBar.py
 # Manager widget for menus.
 
-import types
 import Tkinter
 
 
@@ -3919,7 +3915,7 @@ class MenuBar(MegaWidget):
                 textKey not in kw):
             return
 
-        if type(traverseSpec) == types.IntType:
+        if isinstance(traverseSpec, int):
             kw['underline'] = traverseSpec
             return
 
@@ -3952,7 +3948,7 @@ class MenuBar(MegaWidget):
 
         name = kw[textKey]
 
-        if type(traverseSpec) == types.StringType:
+        if isinstance(traverseSpec, str):
             lowerLetter = traverseSpec.lower()
             if traverseSpec in name and lowerLetter not in hotkeyList:
                 kw['underline'] = name.index(traverseSpec)
@@ -4207,7 +4203,6 @@ class MessageDialog(Dialog):
 
 ######################################################################
 ### File: PmwNoteBook.py
-import types
 import Tkinter
 
 
@@ -4472,7 +4467,7 @@ class NoteBook(MegaArchetype):
 
     def index(self, index, forInsert = 0):
         listLength = len(self._pageNames)
-        if type(index) == types.IntType:
+        if isinstance(index, int):
             if forInsert and index <= listLength:
                 return index
             elif not forInsert and index < listLength:
@@ -4826,7 +4821,6 @@ forwardmethods(NoteBook, Tkinter.Canvas, '_hull')
 
 ######################################################################
 ### File: PmwOptionMenu.py
-import types
 import Tkinter
 
 
@@ -4938,7 +4932,7 @@ class OptionMenu(MegaWidget):
 
     def index(self, index):
         listLength = len(self._itemList)
-        if type(index) == types.IntType:
+        if isinstance(index, int):
             if index < listLength:
                 return index
             else:
@@ -4979,7 +4973,6 @@ class OptionMenu(MegaWidget):
 # a frame which may contain several resizable sub-frames
 
 import sys
-import types
 import Tkinter
 
 
@@ -5188,7 +5181,7 @@ class PanedWidget(MegaWidget):
     def _parsePaneOptions(self, name, args):
         # Parse <args> for options.
         for arg, value in args.items():
-            if type(value) == types.FloatType:
+            if isinstance(value, float):
                 relvalue = value
                 value = self._absSize(relvalue)
             else:
@@ -5658,7 +5651,6 @@ forwardmethods(PromptDialog, EntryField, '_promptDialogEntry')
 
 ######################################################################
 ### File: PmwRadioSelect.py
-import types
 import Tkinter
 
 
@@ -5777,7 +5769,7 @@ class RadioSelect(MegaWidget):
         # Return the integer index of the button with the given index.
 
         listLength = len(self._buttonList)
-        if type(index) == types.IntType:
+        if isinstance(index, int):
             if index < listLength:
                 return index
             else:
@@ -6243,7 +6235,6 @@ forwardmethods(ScrolledField, Tkinter.Entry, '_scrolledFieldEntry')
 
 ######################################################################
 ### File: PmwScrolledFrame.py
-import types
 import Tkinter
 
 
@@ -6387,7 +6378,7 @@ class ScrolledFrame(MegaWidget):
     # update the frame and the scrollbar.
     def xview(self, mode = None, value = None, units = None):
 
-        if type(value) == types.StringType:
+        if isinstance(value, str):
             value = float(value)
         if mode is None:
             return self._horizScrollbar.get()
@@ -6409,7 +6400,7 @@ class ScrolledFrame(MegaWidget):
     # update the frame and the scrollbar.
     def yview(self, mode = None, value = None, units = None):
 
-        if type(value) == types.StringType:
+        if isinstance(value, str):
             value = float(value)
         if mode is None:
             return self._vertScrollbar.get()
@@ -6642,7 +6633,6 @@ class ScrolledFrame(MegaWidget):
 ### File: PmwScrolledListBox.py
 # Based on iwidgets2.2.0/scrolledlistbox.itk code.
 
-import types
 import Tkinter
 
 
@@ -6703,7 +6693,7 @@ class ScrolledListBox(MegaWidget):
 
         # Add the items specified by the initialisation option.
         items = self['items']
-        if type(items) != types.TupleType:
+        if not isinstance(items, tuple):
             items = tuple(items)
         if len(items) > 0:
             self._listbox.insert(*('end', + items))
@@ -6777,7 +6767,7 @@ class ScrolledListBox(MegaWidget):
     def setvalue(self, textOrList):
         self._listbox.selection_clear(0, 'end')
         listitems = list(self._listbox.get(0, 'end'))
-        if type(textOrList) == types.StringType:
+        if isinstance(textOrList, str):
             if textOrList in listitems:
                 self._listbox.selection_set(listitems.index(textOrList))
             else:
@@ -6792,7 +6782,7 @@ class ScrolledListBox(MegaWidget):
     def setlist(self, items):
         self._listbox.delete(0, 'end')
         if len(items) > 0:
-            if type(items) != types.TupleType:
+            if not isinstance(items, tuple):
                 items = tuple(items)
             self._listbox.insert(*(0,) + items)
 
@@ -8153,7 +8143,6 @@ def aboutcontact(value):
 # Based on iwidgets2.2.0/combobox.itk code.
 
 import os
-import types
 import Tkinter
 
 
@@ -8318,7 +8307,7 @@ class ComboBox(MegaWidget):
             return self._selectCmd()
 
     def selectitem(self, index, setentry=1):
-        if type(index) == types.StringType:
+        if isinstance(index, str):
             text = index
             items = self._list.get(0, 'end')
             if text in items:
@@ -8598,7 +8587,6 @@ forwardmethods(ComboBoxDialog, ComboBox, '_combobox')
 ######################################################################
 ### File: PmwCounter.py
 import sys
-import types
 import Tkinter
 
 
@@ -8791,7 +8779,7 @@ class Counter(MegaWidget):
     def _datatype(self):
         datatype = self['datatype']
 
-        if type(datatype) is types.DictionaryType:
+        if isinstance(datatype, dict):
             self._counterArgs = datatype.copy()
             if 'counter' in self._counterArgs:
                 datatype = self._counterArgs['counter']
