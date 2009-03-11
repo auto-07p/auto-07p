@@ -26,7 +26,7 @@ startUZ = startUZs[0]
 for s in startUZs:
     # find minimum
     if abs(s.PAR(21)) < abs(startUZ.PAR(21)):
-	startUZ = s
+        startUZ = s
 H1a = run(startUZ,c='man.H1a.1')
 save(rl(H1a),'H1a')
 

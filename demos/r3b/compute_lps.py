@@ -21,7 +21,7 @@ def write_lagrange(x, i):
         if i == 5:
             label = label - 2 + len(periods)
         print "Label: %d; imaginary part: %13s; period: %10s"%(label,
-	    2*math.pi/period, period)
+            2*math.pi/period, period)
         x=load(x,TY="HB",LAB=label,BR=i*10+j+1,PAR={11:period})
         lst.append(x)
     return lst

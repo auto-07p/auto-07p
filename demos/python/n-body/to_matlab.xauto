@@ -39,7 +39,7 @@ def to_matlab(filename,prefix):
         # has a method for taking the
         # data and writing it out as columns, so
         # we use that here.
-	solution.writeRawFilename(prefix+'_solution_'+`solution["Label"]`)
+        solution.writeRawFilename(prefix+'_solution_'+`solution["Label"]`)
 
 
 # This is the Python syntax for making a script runnable    

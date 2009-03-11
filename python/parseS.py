@@ -109,11 +109,11 @@ class parseS(UserList.UserList):
     # and it will ignore a partially created solution.
     # Basically it for an VBM kind of program.
     def tryNextPointRead(self,inputfile):
-	current_position = inputfile.tell()
-	try:
-	    self.data.append(AUTOSolution(inputfile,name=self.name))
-	except PrematureEndofData:
-	    inputfile.seek(current_position)
+        current_position = inputfile.tell()
+        try:
+            self.data.append(AUTOSolution(inputfile,name=self.name))
+        except PrematureEndofData:
+            inputfile.seek(current_position)
 
     def read(self,inputfile,**kw):
         # We now go through the file and read the solutions.
@@ -160,7 +160,7 @@ class parseS(UserList.UserList):
         else:
             output = open(filename,"wb")
         self.write(output,mlab)
-	output.close()
+        output.close()
 
     # Removes solutions with the given labels or type name
     def deleteLabel(self,label=None,keep=0):
@@ -648,7 +648,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
         return failobj
 
     def type(self):
-	return parseB.type_translation(self["Type number"])["long name"]
+        return parseB.type_translation(self["Type number"])["long name"]
 
     def load(self,**kw):
         """Load solution with the given AUTO constants.
@@ -676,8 +676,8 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 inputfile = gzip.open(filename+".gz","rb")
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
-	self.readAll(inputfile)
-	inputfile.close()
+        self.readAll(inputfile)
+        inputfile.close()
 
     def readFilename(self,filename):
         try:
@@ -688,20 +688,20 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 inputfile = gzip.open(filename+".gz","rb")
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
-	self.read(inputfile)
-	inputfile.close()
+        self.read(inputfile)
+        inputfile.close()
 
     def writeFilename(self,filename,mlab=False):
-	output = open(filename,"wb")
-	self.write(output,mlab)
+        output = open(filename,"wb")
+        self.write(output,mlab)
         output.flush()
-	output.close()
+        output.close()
 
     def writeRawFilename(self,filename):
-	output = open(filename,"w")
-	self.writeRaw(output)
+        output = open(filename,"w")
+        self.writeRaw(output)
         output.flush()
-	output.close()
+        output.close()
         
     def toArray(self):
         array = []
@@ -783,9 +783,9 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
 
     def __readHeader(self,inputfile):
         inputfile.seek(self.__start_of_header)
-	line = inputfile.readline()
-	if not line: raise PrematureEndofData
-	data = line.split()
+        line = inputfile.readline()
+        if not line: raise PrematureEndofData
+        data = line.split()
         try:
             self.indepvarname = 't'
             self.__numEntriesPerBlock = int(data[7])
@@ -870,9 +870,9 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                                     d[j], xrange(i,n*nrows,n))))
         j = j + n * nrows
 
-	# I am using the value of NTST to test to see if it is an algebraic or
-	# ODE problem.
-	if self["NTST"] != 0:
+        # I am using the value of NTST to test to see if it is an algebraic or
+        # ODE problem.
+        if self["NTST"] != 0:
             nfpr = self.__numChangingParameters
             self["Active ICP"] = map(int,fdata[j:j+nfpr])
             j = j + nfpr
@@ -945,7 +945,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
             nrowpr = ndim/7+1 + (npar-1)/7+1
             nfpr = self.__numChangingParameters
             
-	line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],
+        line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],
                                                          self["PT"],
                                                          self["TY number"],
                                                          self["LAB"],
@@ -958,7 +958,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                                          self["NCOL"],
                                                          npar
                                                          )
-	output.write(line+os.linesep)
+        output.write(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
         # the end of the solution we can just copy from the raw data from the
         # input file into the output file.

@@ -70,7 +70,7 @@ class commandClean(command):
     def __init__(self):
         pass
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
                    glob.glob("*.*~"))
         for f in toclean:
@@ -92,7 +92,7 @@ class commandCopyDemo(command):
     def __init__(self,name1):
         self.demo = name1
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         demofiles = glob.glob(os.path.expandvars(
                 "$AUTO_DIR/demos/%s/*"%self.demo))
         for f in demofiles:
@@ -131,7 +131,7 @@ class commandDeleteFortFiles(command):
     def __init__(self):
         pass
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         toclean = glob.glob("fort.*")
         for f in toclean:
             os.remove(f)
@@ -158,7 +158,7 @@ class commandUserData(command):
         self.data = []
         self.data.append(name1)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         rval.info("NOTE: This command does not use filename templates\n")
         rval.info("Starting conversion of %s.dat : \n"%(self.data[0],))
         if glob.glob("%s.f90"%(self.data[0],)) == []:
@@ -227,7 +227,7 @@ class commandWithFilenameTemplate(command):
             tmp = glob.glob(rval)
             if len(tmp) > 0:
                 rval = ""
-                for x in tmp:	
+                for x in tmp:   
                    rval = rval + x + " "
             rval = rval.strip()
             return rval
@@ -259,7 +259,7 @@ class commandRelabel(commandWithFilenameTemplate):
         if type(name1) == type(""):
             commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         if self.type != type("") and self.type != type(None):
             rval.data = self.name1.relabel()
             rval.info("Relabeling done\n")
@@ -320,7 +320,7 @@ class commandMergeBranches(commandWithFilenameTemplate):
         if type(name1) == type(""):
             commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         if self.type != type("") and self.type != type(None):
             rval.data = self.name1.merge()
             rval.info("Merge done\n")
@@ -384,7 +384,7 @@ class commandSubtractBranches(commandWithFilenameTemplate):
         if type(name1) == type(""):
             commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         if self.type != type(""):
             sub = self.name1.subtract(self.name2[self.branch-1],self.col,
                                       self.point)
@@ -439,7 +439,7 @@ class commandAppend(commandWithFilenameTemplate):
         else:
             commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         if self.parsed1 or self.parsed2:
             n = None
             if not self.parsed1 or not self.parsed2:
@@ -488,7 +488,7 @@ class commandCopyDataFiles(commandWithFilenameTemplate):
     def __init__(self,name1,name2,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
             n1 = self.name1[s]
             n2 = self.name2[s]
@@ -521,7 +521,7 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
             name1 = name2
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         for s in ["bifurcationDiagram","solution","diagnostics"]:
             n1 = self.name1[s]
             if os.path.exists(n1):
@@ -564,7 +564,7 @@ class commandDeleteDataFiles(commandWithFilenameTemplate):
     def __init__(self,name1,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         n1b = self.name1["bifurcationDiagram"]
         n1s = self.name1["solution"]
         n1d = self.name1["diagnostics"]
@@ -696,7 +696,7 @@ class commandExpandData(commandWithFilenameTemplate):
     def __init__(self,name1=None,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         n1b = self.name1["bifurcationDiagram"]
         n1s = self.name1["solution"]
         if n1s is None:
@@ -742,7 +742,7 @@ class commandMoveFiles(commandWithFilenameTemplate):
     def __init__(self,name1,name2,templates=None):
         commandWithFilenameTemplate.__init__(self,name1,name2,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
             n1 = self.name1[s]
             n2 = self.name2[s]
@@ -851,7 +851,7 @@ class commandQueryDiagnostic(commandWithFilenameTemplate):
         self.diagnostic = diagnostic
         commandWithFilenameTemplate.__init__(self,name1,None,templates)
     def __call__(self):
-	rval=valueSystem()
+        rval=valueSystem()
         n1d = self.name1["diagnostics"]
         if n1d is None:
             n1d = "fort.9"

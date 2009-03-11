@@ -7,7 +7,7 @@ pgm = 'cir'
 print pgm, ": first run : increase the truncation interval"
 r1=run('cir',c='cir.1',sv='1')
 
-print pgm, ": second run : continue saddle-focus homoclinic orbit"	
+print pgm, ": second run : continue saddle-focus homoclinic orbit"
 r2=run(r1('UZ2'),c='cir.2',sv='2')
 
 print pgm, " third run : continue in reverse direction"

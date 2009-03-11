@@ -15,7 +15,7 @@ def setscheme(root, background=None, **kw):
     root = root._root()
     palette = _calcPalette(root, background,**kw)
     for option, value in palette.items():
-	root.option_add('*' + option, value, 'widgetDefault')
+        root.option_add('*' + option, value, 'widgetDefault')
 
 def getdefaultpalette(root):
     # Return the default values of all options, using the defaults
@@ -64,19 +64,19 @@ def hue2name(hue, brightness = None):
     # hue is None, return a grey of the requested brightness.
 
     if hue is None:
-	rgb = hsi2rgb(0.0, 0.0, brightness)
+        rgb = hsi2rgb(0.0, 0.0, brightness)
     else:
-	while hue < 0:
-	    hue = hue + _TWO_PI
-	while hue >= _TWO_PI:
-	    hue = hue - _TWO_PI
+        while hue < 0:
+            hue = hue + _TWO_PI
+        while hue >= _TWO_PI:
+            hue = hue - _TWO_PI
 
-	rgb = hsi2rgb(hue, 1.0, 1.0)
-	if brightness is not None:
-	    b = rgb2brightness(rgb)
-	    i = 1.0 - (1.0 - brightness) * b
-	    s = bhi2saturation(brightness, hue, i)
-	    rgb = hsi2rgb(hue, s, i)
+        rgb = hsi2rgb(hue, 1.0, 1.0)
+        if brightness is not None:
+            b = rgb2brightness(rgb)
+            i = 1.0 - (1.0 - brightness) * b
+            s = bhi2saturation(brightness, hue, i)
+            rgb = hsi2rgb(hue, s, i)
 
     return rgb2name(rgb)
 
@@ -106,41 +106,41 @@ def bhi2saturation(brightness, hue, intensity):
 def hsi2rgb(hue, saturation, intensity):
     i = intensity
     if saturation == 0:
-	rgb = [i, i, i]
+        rgb = [i, i, i]
     else:
-	while hue < 0:
-	    hue = hue + _TWO_PI
-	while hue >= _TWO_PI:
-	    hue = hue - _TWO_PI
-	hue = hue / _THIRD_PI
-	f = hue - math.floor(hue)
-	p = i * (1.0 - saturation)
-	q = i * (1.0 - saturation * f)
-	t = i * (1.0 - saturation * (1.0 - f))
+        while hue < 0:
+            hue = hue + _TWO_PI
+        while hue >= _TWO_PI:
+            hue = hue - _TWO_PI
+        hue = hue / _THIRD_PI
+        f = hue - math.floor(hue)
+        p = i * (1.0 - saturation)
+        q = i * (1.0 - saturation * f)
+        t = i * (1.0 - saturation * (1.0 - f))
 
-	hue = int(hue)
-	if   hue == 0: rgb = [i, t, p]
-	elif hue == 1: rgb = [q, i, p]
-	elif hue == 2: rgb = [p, i, t]
-	elif hue == 3: rgb = [p, q, i]
-	elif hue == 4: rgb = [t, p, i]
-	elif hue == 5: rgb = [i, p, q]
+        hue = int(hue)
+        if   hue == 0: rgb = [i, t, p]
+        elif hue == 1: rgb = [q, i, p]
+        elif hue == 2: rgb = [p, i, t]
+        elif hue == 3: rgb = [p, q, i]
+        elif hue == 4: rgb = [t, p, i]
+        elif hue == 5: rgb = [i, p, q]
 
     for index in range(3):
-	val = rgb[index]
-	if val < 0.0:
-	    val = 0.0
-	if val > 1.0:
-	    val = 1.0
-	rgb[index] = val
+        val = rgb[index]
+        if val < 0.0:
+            val = 0.0
+        if val > 1.0:
+            val = 1.0
+        rgb[index] = val
 
     return rgb
 
 def average(rgb1, rgb2, fraction):
     return (
-	rgb2[0] * fraction + rgb1[0] * (1.0 - fraction),
-	rgb2[1] * fraction + rgb1[1] * (1.0 - fraction),
-	rgb2[2] * fraction + rgb1[2] * (1.0 - fraction)
+        rgb2[0] * fraction + rgb1[0] * (1.0 - fraction),
+        rgb2[1] * fraction + rgb1[1] * (1.0 - fraction),
+        rgb2[2] * fraction + rgb1[2] * (1.0 - fraction)
     )
 
 def rgb2name(rgb):
@@ -168,30 +168,30 @@ def rgb2hsi(rgb):
 
     hue = 0.0
     if saturation != 0.0:
-	c = []
-	for index in range(3):
-	    c.append((maxc - rgb[index]) / (maxc - minc))
+        c = []
+        for index in range(3):
+            c.append((maxc - rgb[index]) / (maxc - minc))
 
-	if rgb[0] == maxc:
-	    hue = c[2] - c[1]
-	elif rgb[1] == maxc:
-	    hue = 2 + c[0] - c[2]
-	elif rgb[2] == maxc:
-	    hue = 4 + c[1] - c[0]
+        if rgb[0] == maxc:
+            hue = c[2] - c[1]
+        elif rgb[1] == maxc:
+            hue = 2 + c[0] - c[2]
+        elif rgb[2] == maxc:
+            hue = 4 + c[1] - c[0]
 
-	hue = hue * _THIRD_PI
-	if hue < 0.0:
-	    hue = hue + _TWO_PI
+        hue = hue * _THIRD_PI
+        if hue < 0.0:
+            hue = hue + _TWO_PI
 
     return (hue, saturation, intensity)
 
 def name2rgb(root, colorName, asInt = 0):
     if colorName[0] == '#':
-	# Extract rgb information from the color name itself, assuming
-	# it is either #rgb, #rrggbb, #rrrgggbbb, or #rrrrggggbbbb
-	# This is useful, since tk may return incorrect rgb values if
-	# the colormap is full - it will return the rbg values of the
-	# closest color available.
+        # Extract rgb information from the color name itself, assuming
+        # it is either #rgb, #rrggbb, #rrrgggbbb, or #rrrrggggbbbb
+        # This is useful, since tk may return incorrect rgb values if
+        # the colormap is full - it will return the rbg values of the
+        # closest color available.
         colorName = colorName[1:]
         digits = len(colorName) / 3
         factor = 16 ** (4 - digits)
@@ -201,8 +201,8 @@ def name2rgb(root, colorName, asInt = 0):
             int(colorName[digits * 2:digits * 3], 16) * factor,
         )
     else:
-	# We have no choice but to ask Tk what the rgb values are.
-	rgb = root.winfo_rgb(colorName)
+        # We have no choice but to ask Tk what the rgb values are.
+        rgb = root.winfo_rgb(colorName)
 
     if not asInt:
         rgb = (rgb[0] / _MAX_RGB, rgb[1] / _MAX_RGB, rgb[2] / _MAX_RGB)
@@ -213,98 +213,98 @@ def _calcPalette(root, background=None, **kw):
     # aren't specified, compute them from other colors that are specified.
     new = {}
     for key, value in kw.items():
-	new[key] = value
+        new[key] = value
     if background is not None:
-	new['background'] = background
+        new['background'] = background
     if not new.has_key('background'):
-	raise ValueError, 'must specify a background color'
+        raise ValueError, 'must specify a background color'
 
     if not new.has_key('foreground'):
-	new['foreground'] = 'black'
+        new['foreground'] = 'black'
 
     bg = name2rgb(root, new['background'])
     fg = name2rgb(root, new['foreground'])
 
     for i in ('activeForeground', 'insertBackground', 'selectForeground',
-	    'highlightColor'):
-	if not new.has_key(i):
-	    new[i] = new['foreground']
+            'highlightColor'):
+        if not new.has_key(i):
+            new[i] = new['foreground']
 
     if not new.has_key('disabledForeground'):
-	newCol = average(bg, fg, 0.3)
-	new['disabledForeground'] = rgb2name(newCol)
+        newCol = average(bg, fg, 0.3)
+        new['disabledForeground'] = rgb2name(newCol)
 
     if not new.has_key('highlightBackground'):
-	new['highlightBackground'] = new['background']
+        new['highlightBackground'] = new['background']
 
     # Set <lighterBg> to a color that is a little lighter that the
     # normal background.  To do this, round each color component up by
     # 9% or 1/3 of the way to full white, whichever is greater.
     lighterBg = []
     for i in range(3):
-	lighterBg.append(bg[i])
-	inc1 = lighterBg[i] * 0.09
-	inc2 = (1.0 - lighterBg[i]) / 3
-	if inc1 > inc2:
-	    lighterBg[i] = lighterBg[i] + inc1
-	else:
-	    lighterBg[i] = lighterBg[i] + inc2
-	if lighterBg[i] > 1.0:
-	    lighterBg[i] = 1.0
+        lighterBg.append(bg[i])
+        inc1 = lighterBg[i] * 0.09
+        inc2 = (1.0 - lighterBg[i]) / 3
+        if inc1 > inc2:
+            lighterBg[i] = lighterBg[i] + inc1
+        else:
+            lighterBg[i] = lighterBg[i] + inc2
+        if lighterBg[i] > 1.0:
+            lighterBg[i] = 1.0
 
     # Set <darkerBg> to a color that is a little darker that the
     # normal background.
     darkerBg = (bg[0] * 0.9, bg[1] * 0.9, bg[2] * 0.9)
 
     if not new.has_key('activeBackground'):
-	# If the foreground is dark, pick a light active background.
-	# If the foreground is light, pick a dark active background.
-	# XXX This has been disabled, since it does not look very
-	# good with dark backgrounds. If this is ever fixed, the
-	# selectBackground and troughColor options should also be fixed.
+        # If the foreground is dark, pick a light active background.
+        # If the foreground is light, pick a dark active background.
+        # XXX This has been disabled, since it does not look very
+        # good with dark backgrounds. If this is ever fixed, the
+        # selectBackground and troughColor options should also be fixed.
 
-	if rgb2brightness(fg) < 0.5:
-	    new['activeBackground'] = rgb2name(lighterBg)
-	else:
-	    new['activeBackground'] = rgb2name(lighterBg)
+        if rgb2brightness(fg) < 0.5:
+            new['activeBackground'] = rgb2name(lighterBg)
+        else:
+            new['activeBackground'] = rgb2name(lighterBg)
 
     if not new.has_key('selectBackground'):
-	new['selectBackground'] = rgb2name(darkerBg)
+        new['selectBackground'] = rgb2name(darkerBg)
     if not new.has_key('troughColor'):
-	new['troughColor'] = rgb2name(darkerBg)
+        new['troughColor'] = rgb2name(darkerBg)
     if not new.has_key('selectColor'):
-	new['selectColor'] = 'yellow'
+        new['selectColor'] = 'yellow'
 
     return new
 
 def spectrum(numColors, correction = 1.0, saturation = 1.0, intensity = 1.0,
-	extraOrange = 1, returnHues = 0):
+        extraOrange = 1, returnHues = 0):
     colorList = []
     division = numColors / 7.0
     for index in range(numColors):
-	if extraOrange:
-	    if index < 2 * division:
-		hue = index / division
-	    else:
-		hue = 2 + 2 * (index - 2 * division) / division
-	    hue = hue * _SIXTH_PI
-	else:
-	    hue = index * _TWO_PI / numColors
-	if returnHues:
-	    colorList.append(hue)
-	else:
-	    rgb = hsi2rgb(hue, saturation, intensity)
-	    if correction != 1.0:
-		rgb = correct(rgb, correction)
-	    name = rgb2name(rgb)
-	    colorList.append(name)
+        if extraOrange:
+            if index < 2 * division:
+                hue = index / division
+            else:
+                hue = 2 + 2 * (index - 2 * division) / division
+            hue = hue * _SIXTH_PI
+        else:
+            hue = index * _TWO_PI / numColors
+        if returnHues:
+            colorList.append(hue)
+        else:
+            rgb = hsi2rgb(hue, saturation, intensity)
+            if correction != 1.0:
+                rgb = correct(rgb, correction)
+            name = rgb2name(rgb)
+            colorList.append(name)
     return colorList
 
 def correct(rgb, correction):
     correction = float(correction)
     rtn = []
     for index in range(3):
-	rtn.append((1 - (1 - rgb[index]) ** correction) ** (1 / correction))
+        rtn.append((1 - (1 - rgb[index]) ** correction) ** (1 / correction))
     return rtn
 
 #==============================================================================
@@ -334,7 +334,7 @@ def _recolorTree(widget, oldpalette, newcolors):
 def changecolor(widget, background=None, **kw):
      root = widget._root()
      if not hasattr(widget, '_Pmw_oldpalette'):
-	 widget._Pmw_oldpalette = getdefaultpalette(root)
+         widget._Pmw_oldpalette = getdefaultpalette(root)
      newpalette = _calcPalette(root, background, **kw)
      _recolorTree(widget, widget._Pmw_oldpalette, newpalette)
      widget._Pmw_oldpalette = newpalette

@@ -5,7 +5,7 @@ hb = run(e=pgm,NDIM=3,DSMIN=0.00001,ITNW=7,SP=['HB1'])
 print pgm, ": second run : periodic solutions"
 ps = run(hb,IPS=2,ICP=[1,11],NTST=30,UZR={1:0.25},SP=['UZ2'])
 
-print pgm, ": third run : continue zero eigenfunction until eigenvalue"	
+print pgm, ": third run : continue zero eigenfunction until eigenvalue"
 zero = run(ps,IPS=4,ICP=[11,12,10],NDIM=6,NBC=7,NINT=1,UZR={},SP=['BP3'])
 
 print pgm, ": fourth run : switch to continuation of nontrivial eigenfunction"

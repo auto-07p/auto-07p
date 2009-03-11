@@ -442,10 +442,10 @@ class AUTOBranch(Points.Pointset):
         return labels
 
     def writeRawFilename(self,filename):
-	output = open(filename,"w")
-	self.writeRaw(output)
+        output = open(filename,"w")
+        self.writeRaw(output)
         output.flush()
-	output.close()
+        output.close()
         
     def subtract(self,other,ref,pt=None):
         """Subtracts branch branches using interpolation with respect to other
@@ -606,8 +606,8 @@ class AUTOBranch(Points.Pointset):
             output = open(filename,"a")
         else:
             output = open(filename,"w")
-	self.write(output)
-	output.close()
+        self.write(output)
+        output.close()
 
     def __patchline(self,datalist,lineno,column,new):
         #patch column of line with new integer value
@@ -716,8 +716,8 @@ class AUTOBranch(Points.Pointset):
                 inputfile = gzip.open(filename+".gz","r")
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
-	self.read(inputfile)
-	inputfile.close()
+        self.read(inputfile)
+        inputfile.close()
 
     def parseHeader(self,headerlist):
         self.headerlist = headerlist

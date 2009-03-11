@@ -24,7 +24,7 @@ cd test
 # the concatenation of the 'copyDemo' command and the
 # 'ld' command
 dm("wav")
-# Check what files are in the current directory	
+# Check what files are in the current directory
 ls
 # Print out the short online help for all the commands
 man

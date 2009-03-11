@@ -94,17 +94,17 @@ def cnfmerge(cnfs):
 
 
 def findBaseClass(inputClass,baseClass):
-	try:
-		for base in inputClass.__bases__:
-			if base == baseClass:
-				return 1
-			else:
-				if findBaseClass(base,baseClass) == 1:
-					return 1
-		return 0
-	# Sometimes inputClass isn't really a class, if so we just return false
-	except AttributeError:
-		return 0
+        try:
+                for base in inputClass.__bases__:
+                        if base == baseClass:
+                                return 1
+                        else:
+                                if findBaseClass(base,baseClass) == 1:
+                                        return 1
+                return 0
+        # Sometimes inputClass isn't really a class, if so we just return false
+        except AttributeError:
+                return 0
 
 def getAUTORC(section):
     parser = ConfigParser.ConfigParser()
@@ -129,15 +129,15 @@ except NameError:
     # Pre-2.5 Python has no all() function.
     def all(iterable):
         """
-	Returns True if all elements of the iterable are true.
-	"""
-	for element in iterable:
+        Returns True if all elements of the iterable are true.
+        """
+        for element in iterable:
              if not element:
                 return False
-	return True
+        return True
     __builtin__.all = all
     all = all
- 	
+        
 try:
     any
 except NameError:
@@ -152,7 +152,7 @@ except NameError:
         return False
     __builtin__.any = any
     any = any
- 	
+        
 
 try:
     bool
@@ -207,18 +207,18 @@ except NameError:
     # Pre-2.2 Python has no zip() function. 
     def zip(*lists):
         """
-	Emulates the behavior we need from the built-in zip() function
-	added in Python 2.2.
+        Emulates the behavior we need from the built-in zip() function
+        added in Python 2.2.
 
-	Returns a list of tuples, where each tuple contains the i-th
-	element rom each of the argument sequences. The returned
-	list is truncated in length to the length of the shortest
-	argument sequence.
-	"""
-	result = []
-	for i in xrange(min(map(len, lists))):
-	    result.append(tuple(map(lambda l, i=i: l[i], lists)))
-	return result
+        Returns a list of tuples, where each tuple contains the i-th
+        element rom each of the argument sequences. The returned
+        list is truncated in length to the length of the shortest
+        argument sequence.
+        """
+        result = []
+        for i in xrange(min(map(len, lists))):
+            result.append(tuple(map(lambda l, i=i: l[i], lists)))
+        return result
     __builtin__.zip = zip 
 
 try:
@@ -231,17 +231,17 @@ except TypeError:
     _isinstance = isinstance
     from types import *
     d = { str: StringType, list: ListType, tuple: TupleType,
-	  dict: DictType, slice: SliceType, float: FloatType,
-	  int: IntType }
+          dict: DictType, slice: SliceType, float: FloatType,
+          int: IntType }
     def isinstance(obj, type_or_seq):
         if type(type_or_seq) in (type([]),type(())):
             for t in type_or_seq:
                 if isinstance(obj, t):
                     return 1
             return 0
-	if d.has_key(type_or_seq):
+        if d.has_key(type_or_seq):
             return type(obj) == d[type_or_seq]
-	return _isinstance(obj, type_or_seq)
+        return _isinstance(obj, type_or_seq)
     __builtin__.isinstance = isinstance
 
 try:
@@ -254,42 +254,42 @@ except NameError:
 # very basic numpy emulation:
 def array(l, code=None):
     if isinstance(l, N.ArrayType):
-	if code is None:
-	    code = l.typecode
-	return N.array(code, l.tolist())
+        if code is None:
+            code = l.typecode
+        return N.array(code, l.tolist())
     if code is None:
-	code = 'd'
+        code = 'd'
     if isinstance(l, list):
         if isinstance(l[0], N.ArrayType):
-	    return l
-	elif isinstance(l[0], list):
-	    a2 = []
-	    for a1 in l:
-		a2.append(N.array(code, a1))
-	    return a2
-	return N.array(code, l)
+            return l
+        elif isinstance(l[0], list):
+            a2 = []
+            for a1 in l:
+                a2.append(N.array(code, a1))
+            return a2
+        return N.array(code, l)
     try:
         l=list(l)
-        return N.array(code, l)	
+        return N.array(code, l) 
     except TypeError:
         return N.array(code, [l])
 
 def rank(a):
     if isinstance(a, list):
-	return 2
+        return 2
     return 1
 
 def take(a, idx, axis=0):
     b=[]
     if axis == 1:
-	for j in a:
-	    b.append(take(j, idx))
-	return b
+        for j in a:
+            b.append(take(j, idx))
+        return b
     try:
-	for i in idx:
-	    b.append(a[i])
+        for i in idx:
+            b.append(a[i])
     except TypeError:
-	raise IndexError
+        raise IndexError
     return array(b)
 
 def array2string(a,precision=0):
@@ -297,16 +297,16 @@ def array2string(a,precision=0):
 
 def shape(a):
     if isinstance(a, list):
-	return (len(a), len(a[0]))
+        return (len(a), len(a[0]))
     else:
-	return (len(a),)
+        return (len(a),)
         
 def zeros(dim,code):
     if len(dim) == 1:
-	return N.array(code,dim[0]*[0.0])
+        return N.array(code,dim[0]*[0.0])
     a = []
     for i in range(dim[0]):
-	a.append(N.array(code,dim[1]*[0.0]))
+        a.append(N.array(code,dim[1]*[0.0]))
     return a
 
 def less(a, val):
@@ -323,10 +323,10 @@ ArrayType = N.ArrayType
 class myreadlines:
     def __init__(self,f):
         self.lines = f.readlines()
-	self.lineno = -1
-	    
+        self.lineno = -1
+            
     def __getitem__(self,i):
-	self.lineno = self.lineno + 1
+        self.lineno = self.lineno + 1
         return self.lines[self.lineno]
 
     def next(self):

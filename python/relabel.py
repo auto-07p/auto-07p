@@ -47,13 +47,13 @@ if __name__ == '__main__':
     import os
     sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
     if len(sys.argv) == 5:
-	inb = sys.argv[1]
-	ins = sys.argv[2]
-	outb = sys.argv[3]
-	outs = sys.argv[4]
+        inb = sys.argv[1]
+        ins = sys.argv[2]
+        outb = sys.argv[3]
+        outs = sys.argv[4]
     else:
-	inb = "fort.27"
-	ins = "fort.28"
-	outb = "fort.37"
-	outs = "fort.38"
+        inb = "fort.27"
+        ins = "fort.28"
+        outb = "fort.37"
+        outs = "fort.38"
     relabel(inb,ins,outb,outs)

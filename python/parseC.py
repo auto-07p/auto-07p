@@ -69,8 +69,8 @@ class parseC(UserDict.UserDict):
             'sv', 's', 'dat', 'e', 'unames', 'parnames',
             "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","SP"]:
             self[key] = None
-	if filename:
-	    self.readFilename(filename)
+        if filename:
+            self.readFilename(filename)
 
     def __str__(self):
         string = cStringIO.StringIO()
@@ -110,14 +110,14 @@ class parseC(UserDict.UserDict):
             self[k] = v
             
     def readFilename(self,filename):
-	inputfile = open(filename,"r")
-	self.read(inputfile)
-	inputfile.close()
+        inputfile = open(filename,"r")
+        self.read(inputfile)
+        inputfile.close()
 
     def writeFilename(self,filename,new=False):
-	output = open(filename,"w")
-	self.write(output,new)
-	output.close()
+        output = open(filename,"w")
+        self.write(output,new)
+        output.close()
 
     def scanvalue(self,line,inputfile=None):
         # Scans line for a value
@@ -271,8 +271,8 @@ class parseC(UserDict.UserDict):
                 self[key] = value
 
     def read(self,inputfile):
-	line = inputfile.readline()
-	data = line.split()
+        line = inputfile.readline()
+        data = line.split()
         while not data[0][0].isdigit():
             self.parseline(line,inputfile=inputfile)
             line = inputfile.readline()
@@ -286,65 +286,65 @@ class parseC(UserDict.UserDict):
             return
         
         self.__new = 0
-	self["NDIM"] = int(data[0])
-	self["IPS"] = int(data[1])
-	self["IRS"] = int(data[2])
-	self["ILP"] = int(data[3])
+        self["NDIM"] = int(data[0])
+        self["IPS"] = int(data[1])
+        self["IRS"] = int(data[2])
+        self["ILP"] = int(data[3])
 
-	line = inputfile.readline()
-	data = line.split()
-	self.data["__NICP"] = int(data[0])
-	self.data["ICP"] = []
-	for i in range(self["__NICP"]):
+        line = inputfile.readline()
+        data = line.split()
+        self.data["__NICP"] = int(data[0])
+        self.data["ICP"] = []
+        for i in range(self["__NICP"]):
             d = data[i+1]
             try:
                 d = int(d)
             except ValueError:
                 pass
-	    self.data["ICP"].append(d)
+            self.data["ICP"].append(d)
 
-	line = inputfile.readline()
-	data = line.split()
-	self["NTST"] = int(data[0])
-	self["NCOL"] = int(data[1])
-	self["IAD"] = int(data[2])
-	self["ISP"] = int(data[3])
-	self["ISW"] = int(data[4])
-	self["IPLT"] = int(data[5])
-	self["NBC"] = int(data[6])
-	self["NINT"] = int(data[7])
+        line = inputfile.readline()
+        data = line.split()
+        self["NTST"] = int(data[0])
+        self["NCOL"] = int(data[1])
+        self["IAD"] = int(data[2])
+        self["ISP"] = int(data[3])
+        self["ISW"] = int(data[4])
+        self["IPLT"] = int(data[5])
+        self["NBC"] = int(data[6])
+        self["NINT"] = int(data[7])
 
-	line = inputfile.readline()
-	data = line.split()
-	self["NMX"] = int(data[0])
-	self["RL0"] = parseB.AUTOatof(data[1])
-	self["RL1"] = parseB.AUTOatof(data[2])
-	self["A0"] = parseB.AUTOatof(data[3])
-	self["A1"] = parseB.AUTOatof(data[4])
-	
-	line = inputfile.readline()
-	data = line.split()
-	self["NPR"] = int(data[0])
-	self["MXBF"] = int(data[1])
-	self["IID"] = int(data[2])
-	self["ITMX"] = int(data[3])
-	self["ITNW"] = int(data[4])
-	self["NWTN"] = int(data[5])
-	self["JAC"] = int(data[6])
-	
-	line = inputfile.readline()
-	data = line.split()
-	self["EPSL"] = parseB.AUTOatof(data[0])
-	self["EPSU"] = parseB.AUTOatof(data[1])
-	self["EPSS"] = parseB.AUTOatof(data[2])
+        line = inputfile.readline()
+        data = line.split()
+        self["NMX"] = int(data[0])
+        self["RL0"] = parseB.AUTOatof(data[1])
+        self["RL1"] = parseB.AUTOatof(data[2])
+        self["A0"] = parseB.AUTOatof(data[3])
+        self["A1"] = parseB.AUTOatof(data[4])
+        
+        line = inputfile.readline()
+        data = line.split()
+        self["NPR"] = int(data[0])
+        self["MXBF"] = int(data[1])
+        self["IID"] = int(data[2])
+        self["ITMX"] = int(data[3])
+        self["ITNW"] = int(data[4])
+        self["NWTN"] = int(data[5])
+        self["JAC"] = int(data[6])
+        
+        line = inputfile.readline()
+        data = line.split()
+        self["EPSL"] = parseB.AUTOatof(data[0])
+        self["EPSU"] = parseB.AUTOatof(data[1])
+        self["EPSS"] = parseB.AUTOatof(data[2])
 
-	line = inputfile.readline()
-	data = line.split()
-	self["DS"] = parseB.AUTOatof(data[0])
-	self["DSMIN"] = parseB.AUTOatof(data[1])
-	self["DSMAX"] = parseB.AUTOatof(data[2])
-	self["IADS"] = int(data[3])
-	
+        line = inputfile.readline()
+        data = line.split()
+        self["DS"] = parseB.AUTOatof(data[0])
+        self["DSMIN"] = parseB.AUTOatof(data[1])
+        self["DSMAX"] = parseB.AUTOatof(data[2])
+        self["IADS"] = int(data[3])
+        
         for key in ["THL","THU","UZR"]:
             line = inputfile.readline()
             data = line.split()
@@ -453,57 +453,57 @@ class parseC(UserDict.UserDict):
         if self.__new or new:
             return
             
-	output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
-	output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
-	output.write("          "+line1_comment+"\n")
-	
-	output.write(str(self["__NICP"])+" ")
-	for i in range(self["__NICP"]):
-	    output.write(str(self["ICP"][i])+" ")
-	output.write("          "+line2_comment+"\n")
-	
-	output.write(str(self["NTST"])+" "+str(self["NCOL"])+" ")
-	output.write(str(self["IAD"]) +" "+str(self["ISP"])+" ")
-	output.write(str(self["ISW"]) +" "+str(self["IPLT"])+" ")
-	output.write(str(self["NBC"]) +" "+str(self["NINT"])+" ")
-	output.write("          "+line3_comment+"\n")
-	
-	output.write(str(self["NMX"])+" "+str(self["RL0"])+" ")
-	output.write(str(self["RL1"]) +" "+str(self["A0"])+" ")
-	output.write(str(self["A1"]) +" ")
-	output.write("          "+line4_comment+"\n")
+        output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
+        output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
+        output.write("          "+line1_comment+"\n")
+        
+        output.write(str(self["__NICP"])+" ")
+        for i in range(self["__NICP"]):
+            output.write(str(self["ICP"][i])+" ")
+        output.write("          "+line2_comment+"\n")
+        
+        output.write(str(self["NTST"])+" "+str(self["NCOL"])+" ")
+        output.write(str(self["IAD"]) +" "+str(self["ISP"])+" ")
+        output.write(str(self["ISW"]) +" "+str(self["IPLT"])+" ")
+        output.write(str(self["NBC"]) +" "+str(self["NINT"])+" ")
+        output.write("          "+line3_comment+"\n")
+        
+        output.write(str(self["NMX"])+" "+str(self["RL0"])+" ")
+        output.write(str(self["RL1"]) +" "+str(self["A0"])+" ")
+        output.write(str(self["A1"]) +" ")
+        output.write("          "+line4_comment+"\n")
 
-	output.write(str(self["NPR"])+" "+str(self["MXBF"])+" ")
-	output.write(str(self["IID"]) +" "+str(self["ITMX"])+" ")
-	output.write(str(self["ITNW"]) +" "+str(self["NWTN"])+" ")
-	output.write(str(self["JAC"]) +" ")
-	output.write("          "+line5_comment+"\n")
+        output.write(str(self["NPR"])+" "+str(self["MXBF"])+" ")
+        output.write(str(self["IID"]) +" "+str(self["ITMX"])+" ")
+        output.write(str(self["ITNW"]) +" "+str(self["NWTN"])+" ")
+        output.write(str(self["JAC"]) +" ")
+        output.write("          "+line5_comment+"\n")
 
-	output.write(str(self["EPSL"])+" "+str(self["EPSU"])+" ")
-	output.write(str(self["EPSS"]) +" ")
-	output.write("          "+line6_comment+"\n")
+        output.write(str(self["EPSL"])+" "+str(self["EPSU"])+" ")
+        output.write(str(self["EPSS"]) +" ")
+        output.write("          "+line6_comment+"\n")
 
-	output.write(str(self["DS"]) +" "+str(self["DSMIN"])+" ")
-	output.write(str(self["DSMAX"]) +" "+str(self["IADS"])+" ")
-	output.write("          "+line7_comment+"\n")
-	
-	output.write(str(self["__NTHL"]))
-	output.write("          "+line8_comment+"\n")
-	for i in range(self["__NTHL"]):
-	    output.write(str(self["THL"][i][0])+" ")
-	    output.write(str(self["THL"][i][1])+"\n")
+        output.write(str(self["DS"]) +" "+str(self["DSMIN"])+" ")
+        output.write(str(self["DSMAX"]) +" "+str(self["IADS"])+" ")
+        output.write("          "+line7_comment+"\n")
+        
+        output.write(str(self["__NTHL"]))
+        output.write("          "+line8_comment+"\n")
+        for i in range(self["__NTHL"]):
+            output.write(str(self["THL"][i][0])+" ")
+            output.write(str(self["THL"][i][1])+"\n")
 
-	output.write(str(self["__NTHU"]))
-	output.write("          "+line9_comment+"\n")
-	for i in range(self["__NTHU"]):
-	    output.write(str(self["THU"][i][0])+" ")
-	    output.write(str(self["THU"][i][1])+"\n")
+        output.write(str(self["__NTHU"]))
+        output.write("          "+line9_comment+"\n")
+        for i in range(self["__NTHU"]):
+            output.write(str(self["THU"][i][0])+" ")
+            output.write(str(self["THU"][i][1])+"\n")
 
-	output.write(str(self["__NUZR"]))
-	output.write("          "+line10_comment+"\n")
-	for i in range(self["__NUZR"]):
-	    output.write(str(self["UZR"][i][0])+" ")
-	    output.write(str(self["UZR"][i][1])+"\n")
+        output.write(str(self["__NUZR"]))
+        output.write("          "+line10_comment+"\n")
+        for i in range(self["__NUZR"]):
+            output.write(str(self["UZR"][i][0])+" ")
+            output.write(str(self["UZR"][i][1])+"\n")
         output.flush()
 
 def pointtest(a):

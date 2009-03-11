@@ -385,7 +385,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             return
         s = self["solution"]
         self.ndim=len(s[0]["data"][0]['u'])+1
-	while 1:
+        while 1:
             its = 0
             print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
             axisstr = "%s %s"%(xaxsn,yaxsn)
@@ -395,7 +395,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             print ('  ENTER AXES  (DEFAULT %s),'\
                    ' <D> (DISPLAY), OR <EX> (EXIT)'%axisstr)
             line = raw_input()
-	    lower = 0
+            lower = 0
             upper = 0
             for c in line:
                 if c.islower():
