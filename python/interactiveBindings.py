@@ -234,7 +234,7 @@ Aliases: ex"""
                   (pre == ',' or pre == ';' or pre == '/' or
                   not self.re_exclude_auto.match(theRest))):
                 obj = self._ofind(cmd)
-                if not obj is None and cmd != 'print' and callable(obj):
+                if not obj is None and cmd != 'print' and hasattr(obj, '__call__'):
                     command = (line[:(len(line) - len(line.lstrip()))]+
                                self.handle_auto(pre,cmd,theRest,obj))
                     return command

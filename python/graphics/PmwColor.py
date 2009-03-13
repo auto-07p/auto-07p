@@ -217,7 +217,7 @@ def _calcPalette(root, background=None, **kw):
     if background is not None:
         new['background'] = background
     if 'background' not in new:
-        raise ValueError, 'must specify a background color'
+        raise ValueError('must specify a background color')
 
     if 'foreground' not in new:
         new['foreground'] = 'black'

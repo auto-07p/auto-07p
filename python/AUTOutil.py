@@ -71,7 +71,7 @@ def _flatten(seq):
     for item in seq:
         if isinstance(item, (tuple, list)):
             res = res + _flatten(item)
-	elif item is not None:
+        elif item is not None:
             res = res + (item,)
     return res
 

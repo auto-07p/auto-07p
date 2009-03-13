@@ -116,7 +116,7 @@ class Vector:
         try:
             return self.tk.getdouble(self.tk.globalgetvar(self._name, str(key)))
         except Tkinter.TclError:
-            raise IndexError, oldkey
+            raise IndexError(oldkey)
     def __setitem__(self, key, value): 
         if key < 0:
             key = key + len(self)
@@ -240,7 +240,7 @@ def _doConfigure(widget, subcommand, option, kw):
         if kw:
             # Having keywords implies setting configuration options.
             # Can't set and get in one command!
-            raise ValueError, 'cannot have option argument with keywords'
+            raise ValueError('cannot have option argument with keywords')
         option = '-' + option
         optionInfo = widget.tk.splitlist(widget.tk.call(subcommand + (option,)))
         return (optionInfo[0][1:],) + optionInfo[1:]

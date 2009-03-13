@@ -103,7 +103,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     def _addData(self,data,newsect=None,stable=None):
         for array in data:
             if len(array[0]) != len(array[1]):
-                raise GrapherError,"Array lengths must match"
+                raise GrapherError("Array lengths must match")
             new_array={}
             new_array["x"]=array[0]
             new_array["y"]=array[1]
@@ -377,7 +377,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         
     def valueToCanvas(self,val):
         if len(val) != 2:
-            raise GrapherError,"Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements."
+            raise GrapherError("Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements.")
         # make a few constants shorter
         minx=self.cget("minx")
         maxx=self.cget("maxx")
@@ -430,7 +430,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
     def canvasToValue(self,val):
         if len(val) != 2:
-            raise GrapherError,"Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements."
+            raise GrapherError("Illegal value choosen for coordinate transformation.  Must be a tuple with 2 elements.")
         x = val[0]
         if x < self.cget("left_margin"):
             x = self.cget("left_margin")

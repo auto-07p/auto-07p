@@ -34,7 +34,7 @@ class command:
     def __call__(self):
         pass
     def undo(self):
-        raise "Undo undefined for this command"
+        raise Exception("Undo undefined for this command")
 
 ##############################################
 #  Generic Commands
