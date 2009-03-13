@@ -267,18 +267,6 @@ def ravel(a):
 
 ArrayType = N.ArrayType
 
-class myreadlines:
-    def __init__(self,f):
-        self.lines = f.readlines()
-        self.lineno = -1
-            
-    def __getitem__(self,i):
-        self.lineno = self.lineno + 1
-        return self.lines[self.lineno]
-
-    def next(self):
-        return self.__getitem__(0)
-
 def test():
     a={}
     b={}

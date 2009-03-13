@@ -663,8 +663,6 @@ class AUTOBranch(Points.Pointset):
         if prevline:
             line = prevline
         else:
-            if not hasattr(inputfile,"next"):
-                inputfile = AUTOutil.myreadlines(inputfile)
             line = inputfile.next()
         headerlist = []
         columns = split(line,None,2)
@@ -1014,8 +1012,6 @@ class parseBR(UserList.UserList,AUTOBranch):
         # We now go through the file and read the branches.
         prevline = None
         coordnames = []
-        if not hasattr(inputfile,"next"):
-            inputfile = AUTOutil.myreadlines(inputfile)
         lastc = None
         while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)

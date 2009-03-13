@@ -55,20 +55,23 @@ NPAR = 20
 # Once the data is read in the class provides a list all the points
 # in the fort.8 file.
 
-class parseS(UserList.UserList):
+class parseS(list):
     def __init__(self,filename=None,**kw):
         self.name = ''
         if isinstance(filename, str):
-            UserList.UserList.__init__(self)
+            list.__init__(self)
             self.readFilename(filename,**kw)
         else:
-            UserList.UserList.__init__(self,filename)
-            if len(self.data) > 0:
+            if filename is None:
+                list.__init__(self)
+            else:
+                list.__init__(self,filename)
+            if len(self) > 0:
                 if kw != {}:
-                    for i in range(len(self.data)):
-                        self.data[i] = AUTOSolution(self.data[i],**kw)
-                self.indepvarname = self.data[0].indepvarname
-                self.coordnames = self.data[0].coordnames
+                    for i in range(len(self)):
+                        self[i] = AUTOSolution(self[i],**kw)
+                self.indepvarname = self[0].indepvarname
+                self.coordnames = self[0].coordnames
 
     def __str__(self):
         rep = ""
@@ -110,7 +113,7 @@ class parseS(UserList.UserList):
     def tryNextPointRead(self,inputfile):
         current_position = inputfile.tell()
         try:
-            self.data.append(AUTOSolution(inputfile,name=self.name))
+            self.append(AUTOSolution(inputfile,name=self.name))
         except PrematureEndofData:
             inputfile.seek(current_position)
 
@@ -119,25 +122,25 @@ class parseS(UserList.UserList):
         prev = None
         while inputfile.read(1) != "":
             solution = AUTOSolution(inputfile,prev,self.name,**kw)
-            self.data.append(solution)
+            self.append(solution)
             prev = solution
-        if len(self.data) > 0:
-            self.indepvarname = self.data[0].indepvarname
-            self.coordnames = self.data[0].coordnames
+        if len(self) > 0:
+            self.indepvarname = self[0].indepvarname
+            self.coordnames = self[0].coordnames
             mbr, mlab = 0, 0
-            for d in self.data:
+            for d in self:
                 if d["BR"] > mbr: mbr = d["BR"]
                 if d["LAB"] > mlab: mlab = d["LAB"]
-            for d in self.data:
+            for d in self:
                 d._mbr, d._mlab = mbr, mlab
 
     def write(self,output,mlab=False):
-        for x in self.data[:-1]:
+        for x in self[:-1]:
             x.write(output)
         #maybe write a header after the last solution so that AUTO can pickup
         #a new branch and solution label number
-        if len(self.data) > 0:
-            self.data[-1].write(output,mlab)
+        if len(self) > 0:
+            self[-1].write(output,mlab)
         output.flush()
 
     def readFilename(self,filename,**kw):
@@ -168,18 +171,18 @@ class parseS(UserList.UserList):
         if not isinstance(label, list):
             label = [label]
         indices = []
-        for i in range(len(self.data)):
-            x = self.data[i]
+        for i in range(len(self)):
+            x = self[i]
             if ((not keep and (x["Label"] in label or x["Type name"] in label)
                  or (keep and not x["Label"] in label and 
                               not x["Type name"] in label))):
                 indices.append(i)
         indices.reverse()
         for i in indices:
-            del self.data[i]
-        if len(self.data) > 0:
+            del self[i]
+        if len(self) > 0:
             maxlab = max(self.getLabels())
-            for d in self.data:
+            for d in self:
                 d._mlab = maxlab
             
     # Relabels the first solution with the given label
@@ -187,11 +190,10 @@ class parseS(UserList.UserList):
         if old_label is None and new_label is None:
             i = 1
             new = parseS()
-            for d in self.data:
+            for d in self:
                 news = d.__class__(d)
-                news.data = news.data.copy()
                 news["LAB"] = i
-                news._mlab = len(self.data)
+                news._mlab = len(self)
                 i = i + 1
                 new.append(news)
             return new
@@ -199,20 +201,20 @@ class parseS(UserList.UserList):
             old_label = [old_label]
             new_label = [new_label]
         for j in range(len(old_label)):
-            for d in self.data:
+            for d in self:
                 if d["Label"] == old_label[j]:
                     d["Label"] = new_label[j]
-        if len(self.data) > 0:
+        if len(self) > 0:
             maxlab = max(self.getLabels())
-            for d in self.data:
+            for d in self:
                 d._mlab = maxlab
 
     # Make all labels in the file unique and sequential
     def uniquelyLabel(self):
         i = 1
-        for d in self.data:
+        for d in self:
             d["Label"] = i
-            d._mlab = len(self.data)
+            d._mlab = len(self)
             i = i + 1
 
     # Given a label, return the correct solution
@@ -220,14 +222,14 @@ class parseS(UserList.UserList):
         if label is None:
             return self
         if isinstance(label, int):
-            for d in self.data:
+            for d in self:
                 if d["Label"] == label:
                     return d
             raise KeyError("Label %s not found"%label)
         if isinstance(label, str) and len(label) > 2:
             number = int(label[2:])
             i = 0
-            for d in self.data:
+            for d in self:
                 if d["Type name"] == label[:2]:
                     i = i + 1
                     if i == number:
@@ -237,7 +239,7 @@ class parseS(UserList.UserList):
             label = [label]        
         data = []
         counts = [0]*len(label)
-        for d in self.data:
+        for d in self:
             ap = None
             if d["Label"] in label or d["Type name"] in label:
                 ap = d
@@ -253,12 +255,12 @@ class parseS(UserList.UserList):
         return self.__class__(data)
 
     def getIndex(self,index):
-        return self.data[index]
+        return self[index]
 
     # Return a list of all the labels in the file.
     def getLabels(self):
         labels = []
-        for x in self.data:
+        for x in self:
             labels.append(x["Label"])
         return labels
 
