@@ -27,9 +27,9 @@ class AUTOSimpleFunctions:
 
         # Now I resolve the aliases
         for key, alias in self._aliases.items():
-            AUTOSimpleFunctions.__dict__[key] = getattr(self, alias)
-            exec _functionTemplate%(key,"AUTOCommands",alias)
-            AUTOSimpleFunctions.__dict__[key] = locals()[key]
+            setattr(AUTOSimpleFunctions, key, getattr(self, alias))
+            exec(_functionTemplate%(key,"AUTOCommands",alias))
+            setattr(AUTOSimpleFunctions, key, locals()[key])
             doc = getattr(AUTOCommands,alias).__doc__
             doc = self._adjustdoc(doc, key, alias)
             AUTOSimpleFunctions.__dict__[key].__doc__ = doc
@@ -61,8 +61,8 @@ class AUTOSimpleFunctions:
             for key in module.__dict__.keys():
                 # Check to see if it is a descendent of AUTOCommands.command
                 if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
-                    exec _functionTemplate%(key,module.__name__,key)
-                    AUTOSimpleFunctions.__dict__[key] = locals()[key]
+                    exec(_functionTemplate%(key,module.__name__,key))
+                    setattr(AUTOSimpleFunctions, key, locals()[key])
                     doc = module.__dict__[key].__doc__
                     doc = self._adjustdoc(doc, key)
                     AUTOSimpleFunctions.__dict__[key].__doc__ = doc

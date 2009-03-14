@@ -235,24 +235,23 @@ class AUTOBranch(Points.Pointset):
         coordarray = []
         try:
             for i in range(4,ncolumns):
-                coordarray.append(N.array(data[i::ncolumns]),'d')
+                coordarray.append(N.array(data[i::ncolumns],'d'))
         except TypeError:
             for i in range(4,ncolumns):
-                coordarray.append(N.array(map(lambda j, d=data: 
-                                            d[j], xrange(i,len(data),ncolumns)),
-                               'd'))
+                coordarray.append(N.array(
+                        [data[j] for j in xrange(i,len(data),ncolumns)],'d'))
         self.stability = []
         prevpt = data[1]
         stab = []
         for j in xrange(1,len(data),ncolumns):
             pt = int(data[j])
             if pt * prevpt < 0:
-                p = j/ncolumns
+                p = j//ncolumns
                 if prevpt < 0:
                     p = -p
                 self.stability.append(p)
             prevpt = pt
-        p = len(data)/ncolumns
+        p = len(data)//ncolumns
         if pt < 0:
             p = -p
         self.stability.append(p)
@@ -734,7 +733,7 @@ class AUTOBranch(Points.Pointset):
         if line.find(" PT ") != -1:
             self.coordnames = []
             linelen = len(self.__datalist[0])
-            columnlen = (linelen - 19) / ncolumns
+            columnlen = (linelen - 19) // ncolumns
             n = linelen - columnlen * ncolumns
             for i in range(ncolumns):
                 self.headernames.append(line[n:n+columnlen].rstrip())

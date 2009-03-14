@@ -370,7 +370,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             self.create_text(int(width)-left_margin*0.3,int(height)-bottom_margin*0.1,
                              text=self.cget("xlabel"),anchor="se",fill=self.cget("foreground"))
             # Title
-            self.create_text((left_margin-right_margin+int(width))/2,
+            self.create_text((left_margin-right_margin+int(width))//2,
                              top_margin*0.1,text=self.cget("top_title"),anchor="n",
                              fill=self.cget("foreground"))
 
@@ -552,7 +552,7 @@ class LabeledGrapher(BasicGrapher):
         #    print self.gettags("overlaps")
         #self.dtag("overlaps")
         #print "---------------------------------------------"    
-        return [xoffset/10,yoffset/10,xoffset,yoffset,xoffset,yoffset,pos]
+        return [xoffset//10,yoffset//10,xoffset,yoffset,xoffset,yoffset,pos]
 
     # smarter way to plot labels: ported from old PLAUT
     #-------------------------------------------------------------------
@@ -643,8 +643,8 @@ class LabeledGrapher(BasicGrapher):
         sp2 = 5 #fontsize
         sp3 = self.cget("bottom_margin")
         sp4 = 5
-        nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))/sp2
-        ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))/sp4
+        nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))//sp2
+        ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))//sp4
         r = ny*[0]
         mp = []
         for i in range(nx):

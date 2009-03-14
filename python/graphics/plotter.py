@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 try:
-    import grapher_mpl
-    grapher = grapher_mpl
+    import grapher_mpl as grapher
 except ImportError:
     import grapher
     print "Using plain TkInter for plotting. You can obtain better quality graphics"
@@ -169,7 +168,7 @@ class plotter(grapher.GUIGrapher):
                     if ((type(origcolumns) != type([])
                          and type(origcolumns != type(()))) or
                         len(origcolumns) == 1):
-                        label[coord] = names[2:len(names)/len(columns)]
+                        label[coord] = names[2:len(names)//len(columns)]
                     else:
                         label[coord] = names[2:]
             grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],

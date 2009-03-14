@@ -945,11 +945,11 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 nfpr = len(self.get("Active ICP",[0]))
             else:
                 nfpr = self.__numChangingParameters
-            nrd = 2 + ndim/7 + (ndim-1)/7
+            nrd = 2 + ndim//7 + (ndim-1)//7
             nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
-                      (nfpr-1)/7+1 + (npar-1)/7+1 + (nfpr-1)/20+1)
+                      (nfpr-1)//7+1 + (npar-1)//7+1 + (nfpr-1)//20+1)
         else:
-            nrowpr = ndim/7+1 + (npar-1)/7+1
+            nrowpr = ndim//7+1 + (npar-1)//7+1
             nfpr = self.__numChangingParameters
             
         line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],

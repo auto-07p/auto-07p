@@ -260,10 +260,10 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
             execString = \
                 __funcBody % {'forwardFunc' : forwardName, 'method' : method}
 
-        exec execString in d
+        exec(execString, d)
 
         # this creates a method
-        fromClass.__dict__[method] = d[method]
+        setattr(fromClass, method, d[method])
 
 #=============================================================================
 
@@ -755,9 +755,9 @@ class MegaArchetype:
                     raise KeyError('Unknown option "' + option + \
                             '" for ' + self.__class__.__name__)
 
-        # Call the configure methods for any components.
-        map(apply, indirectOptions.keys(),
-                ((),) * len(indirectOptions), indirectOptions.values())
+        # Call the configure methods for any components
+        for k in indirectOptions:
+            k(**indirectOptions[k])
 
         # Call the configuration callback function for each option.
         for option in directOptions:
@@ -6685,7 +6685,7 @@ class ScrolledListBox(MegaWidget):
         if not isinstance(items, tuple):
             items = tuple(items)
         if len(items) > 0:
-            self._listbox.insert(*('end', + items))
+            self._listbox.insert(*('end',) + items)
 
         _registerScrolledList(self._listbox, self)
 

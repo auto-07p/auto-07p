@@ -222,7 +222,7 @@ class commandWithFilenameTemplate(command):
         if text is None:
             return None
         elif type(text) in [type(""), type(1), type(1.0)]:
-            exec "rval = '%s'%%text"%self.templates[template]
+            rval = self.templates[template]%text
             tmp = glob.glob(rval)
             if len(tmp) > 0:
                 rval = ""

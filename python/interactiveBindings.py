@@ -41,7 +41,6 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
 
 Aliases: demofile dmf"""
         lines = open(name,"r")
-        lines = lines.readlines()
         runline = ''
         for line in lines:
             while len(line) > 0 and line[-1] in "\r\n":
@@ -75,7 +74,6 @@ Aliases: auto ex"""
             automain()
             return
         lines = open(name,"r")
-        lines = lines.readlines()
         source = ""
         for line in lines:
             while len(line) > 0 and line[-1] in "\r\n":
