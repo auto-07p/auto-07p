@@ -2762,7 +2762,7 @@ class ButtonBox(MegaWidget):
                 return self._defaultButton
             raise ValueError('ButtonBox has no default')
         else:
-            names = map(lambda t: t[0], self._buttonList)
+            names = [t[0] for t in self._buttonList]
             if index in names:
                 return names.index(index)
             validValues = 'a name, a number, END or DEFAULT'
@@ -5393,7 +5393,7 @@ class PanedWidget(MegaWidget):
         # Invoke the callback command
         cmd = self['command']
         if hasattr(cmd, '__call__'):
-            cmd(map(lambda x, s = self: s._size[x], self._paneNames))
+            cmd([self._size[x] for x in self._paneNames])
 
     def _plotHandles(self):
         if len(self._paneNames) == 0:

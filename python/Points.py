@@ -9,8 +9,10 @@
 """
 
 # ----------------------------------------------------------------------------
+
+from __future__ import division
+
 import AUTOutil
-import UserDict
 from copy import copy, deepcopy
 
 numpyimported = False
@@ -28,15 +30,13 @@ def importnumpy():
     # unless matplotlib uses Numeric (which is incompatible) we can use numpy
     if which != 'numeric':
         try:
-            import numpy
-            N = numpy
+            import numpy as N
             fromstring, ndarray, float64, int32, bool8 = (
                 N.fromstring, N.ndarray, N.float64, N.int32, N.bool)
             N.nonzero = N.flatnonzero
         except ImportError:
             try:
-                import numarray
-                N = numarray
+                import numarray as N
                 N.array2string = numarray.arrayprint.array2string
                 ndarray, float64, int32, bool8 = (
                     N.ArrayType, N.Float64, N.Int32, N.Bool)
@@ -48,8 +48,7 @@ def importnumpy():
                 which = 'numeric'
     if which == 'numeric':
         try:
-            import Numeric
-            N = Numeric
+            import Numeric as N
             float64, int32, bool8 = N.Float64, N.Int32, N.UnsignedInt8
         except ImportError:
             N = AUTOutil
@@ -105,11 +104,15 @@ class symbolMapClass(object):
         else:
             # assume arg is iterable and mutable (list, array, etc.)
             # ensure return type is the same
-            res = copy(arg)
             try:
-                for i, symbol in enumerate(arg):
+                res = copy(arg)
+            except TypeError:
+                # not copyable, so no need to worry
+                res = arg
+            try:
+                for i, v in enumerate(arg):
                     # overwrite unprocessed entry in res, from copy of arg
-                    res[i] = self.__getitem__(symbol)
+                    res[i] = self.__getitem__(v)
             except:
                 try:
                     return self.__getitem__(res)
@@ -134,7 +137,7 @@ class symbolMapClass(object):
     def __getitem__(self, symbol):
         try:
             return self.lookupDict[symbol]
-        except KeyError:
+        except (KeyError, TypeError):
             return symbol
 
     def __contains__(self, symbol):
@@ -166,9 +169,11 @@ class symbolMapClass(object):
             # was passed a dict
             self.lookupDict.update(amap)
 
+    def __len__(self):
+        return len(self.lookupDict)
+
     def copy(self):
         return symbolMapClass(self)
-
 
     def __repr__(self):
         return "Symbol mapping"
@@ -223,19 +228,16 @@ class auxfnDBclass(object):
     def clearall(self):
         self.auxnames = {}
 
-class DefaultDict(UserDict.UserDict):
+class DefaultDict(dict):
     """Dictionary with a default value for unknown keys.
 
     Written by Peter Norvig."""
     def __init__(self, default):
-        UserDict.UserDict.__init__(self)
         self.default = default
 
     def __getitem__(self, key):
-        if key in self.data: return self.data[key]
-        d = deepcopy(self.default)
-        self.data[key] = d
-        return d
+        if key in self: return self.get(key)
+        return self.setdefault(key, deepcopy(self.default))
 
 
 def isUniqueSeq(objlist):
@@ -257,7 +259,7 @@ def invertMap(themap):
     invertMap() returns a dictionary, regardless of whether the
     argument is a dictionary or a list."""
     if isinstance(themap, dict):
-        return dict(map(lambda (k,v): (v,k), themap.items()))
+        return dict([(v,k) for (k,v) in themap.items()])
     elif isinstance(themap, (list, tuple)):
         # input domain is the position index
         return dict(zip(themap, range(len(themap))))
@@ -283,7 +285,7 @@ def isincreasing(theseq, withVal=False):
     if hasattr(N,"transpose"):
         res = v[1:] > v[:-1]
     else:
-        res = map(lambda i,v=v: v[i+1] > v[i], range(len(v)-1))
+        res = [v[i+1] > v[i] for i in range(len(v)-1)]
     if withVal:
         if all(res):
             return True, None, None
@@ -470,7 +472,7 @@ class Point(object):
                 else:
                     coordnames = kw['coordnames']
             else:
-                coordnames = map(str, range(self.dimension))
+                coordnames = [str(cix) for cix in range(self.dimension)]
             if len(coordnames) != self.dimension:
                 print "Point initialization error:"
                 print "Found coord names: ", coordnames, \
@@ -566,7 +568,7 @@ class Point(object):
                 return self._name_ix_map[namelist]
             except TypeError:
                 # list of strings
-                return map(lambda n,m=self._name_ix_map:m[n], namelist)
+                return [self._name_ix_map[n] for n in namelist]
         except KeyError, e:
             import AUTOExceptions
             raise AUTOExceptions.AUTORuntimeError("Name not found: "+str(e))
@@ -589,8 +591,8 @@ class Point(object):
             if len(x) == 0:
                 return range(self.dimension)
             else:
-                return map(lambda el,m=self._force_coords_to_ixlist:m(el)[0], x)
-        elif isinstance(x, slice):
+                return [self._force_coords_to_ixlist(el)[0] for el in x]
+        elif isinstance(x, type(slice(0))):
             start = x.start or 0
             if start < 0: start = start + self.dimension
             stop = min(x.stop or self.dimension, self.dimension)
@@ -616,7 +618,7 @@ class Point(object):
         else:
             ixlist = self._force_coords_to_ixlist(coords)
             return Point({'coordarray': take(self.coordarray,ixlist),
-                      'coordnames': map(lambda i,c=self.coordnames:c[i], ixlist),
+                      'coordnames': [self.coordnames[i] for i in ixlist],
                       'coordtype': self.coordtype,
                       'norm': self._normord,
                       'labels': self.labels})
@@ -646,9 +648,9 @@ class Point(object):
     def __add__(self, other):
         res = self.copy()
         try:
-            res.coordarray = res.coordarray + other.coordarray
+            res.coordarray += other.coordarray
         except AttributeError:
-            res.coordarray = res.coordarray + other
+            res.coordarray += other
         return res
 
     __radd__ = __add__
@@ -656,9 +658,9 @@ class Point(object):
     def __sub__(self, other):
         res = self.copy()
         try:
-            res.coordarray = res.coordarray - other.coordarray
+            res.coordarray -= other.coordarray
         except AttributeError:
-            res.coordarray = res.coordarray - other
+            res.coordarray -= other
         return res
 
     def __rsub__(self, other):
@@ -672,9 +674,9 @@ class Point(object):
     def __mul__(self, other):
         res = self.copy()
         try:
-            res.coordarray = res.coordarray * other.coordarray
+            res.coordarray *= other.coordarray
         except AttributeError:
-            res.coordarray = res.coordarray * other
+            res.coordarray *= other
         return res
 
     __rmul__ = __mul__
@@ -682,9 +684,9 @@ class Point(object):
     def __div__(self, other):
         res = self.copy()
         try:
-            res.coordarray = res.coordarray / other.coordarray
+            res.coordarray /= other.coordarray
         except AttributeError:
-            res.coordarray = res.coordarray / other
+            res.coordarray /= other
         return res
 
     __truediv__ = __div__
@@ -701,7 +703,7 @@ class Point(object):
 
     def __pow__(self, other):
         res = self.copy()
-        res.coordarray = res.coordarray ** other
+        res.coordarray **= other
         return res
 
     def __neg__(self):
@@ -788,13 +790,13 @@ class Point(object):
     def _infostr(self, verbose=0):
         precision = 8
         if verbose == 0:
-            outputList = ["Point with coords:\n"]
+            outputStr = "Point with coords:\n"
             for c in self.coordnames:
-                outputList.append(c)
+                outputStr += c
                 if c != self.coordnames[-1]:
-                    outputList.append("\n")
+                    outputStr += "\n"
         elif verbose > 0:
-            outputList = []
+            outputStr = ''
             for c in self.coordnames:
                 v = self.coordarray[self._map_names_to_ixs(c)]
                 if isinstance(v, ndarray):
@@ -802,12 +804,12 @@ class Point(object):
                 else:
                     # only alternative is a singleton numeric value (not list)
                     dvstr = str(v)
-                outputList.append(c.strip()+':  '+dvstr)
+                outputStr += c+':  '+dvstr
                 if c != self.coordnames[-1]:
-                    outputList.append("\n")
+                    outputStr += "\n"
             for label, infodict in self.labels.items():
-                outputList.append("\nLabels: %s (%s)"%(label, str(infodict)))
-        return "".join(outputList)
+                outputStr += "\nLabels: %s (%s)"%(label, str(infodict))
+        return outputStr
 
 
     def __repr__(self):
@@ -1047,7 +1049,7 @@ class Pointset(Point):
                 else:
                     coordnames = kw['coordnames']
             else:
-                coordnames = map(str,range(self.dimension))
+                coordnames = [str(cix) for cix in range(self.dimension)]
             if len(coordnames) != self.dimension:
                 print "Pointset initialization error:"
                 print "Found Coordnames: ", coordnames, \
@@ -1336,8 +1338,7 @@ class Pointset(Point):
             try:
                 pt = self.coordarray[:,ix]
             except TypeError:
-                pt = array(map(lambda l,ix=ix: l[ix], self.coordarray),
-                           self.coordtype)
+                pt = array([l[ix] for l in self.coordarray], self.coordtype)
             return Point({'coordarray': pt,
                           'coordnames': self.coordnames,
                           'norm': self._normord,
@@ -1364,7 +1365,7 @@ class Pointset(Point):
                     ref1 = ix
                     ref2 = None
                     break
-        elif isinstance(ix, (ndarray, slice)):
+        elif isinstance(ix, (ndarray, type(slice(0)))):
             ref1 = ix
             ref2 = None
         else:
@@ -1384,8 +1385,8 @@ class Pointset(Point):
             cl = self.labels[ref1]
             cl_ixs = cl.getIndices()
             ixmap = invertMap(ref1)
-            new_cl_ixs = map(lambda i,m=ixmap: m[i], cl_ixs)
-        elif isinstance(ref1, slice):
+            new_cl_ixs = [ixmap[i] for i in cl_ixs]
+        elif isinstance(ref1, type(slice(0))):
             ls = len(self)
             stop = min(ref1.stop or ls, ls)
             if stop < 0:
@@ -1405,7 +1406,7 @@ class Pointset(Point):
             cl = self.labels[ref1]
             cl_ixs = cl.getIndices()
             lowest_ix = ref1.start or 0
-            new_cl_ixs = map(lambda i,l=lowest_ix: i-l, cl_ixs)
+            new_cl_ixs = [i-lowest_ix for i in cl_ixs]
         else:
             print "ref1 argument =", ref1
             raise TypeError("Type %s is invalid for Pointset indexing"%str(type(ref1)))
@@ -1417,19 +1418,17 @@ class Pointset(Point):
             pass
         if self._parameterized:
             return Pointset({'coordarray': ca,
-                             'coordnames': map(lambda i,c=self.coordnames:c[i], ixlist),
+                             'coordnames': [self.coordnames[i] for i in ixlist],
                              'indepvararray': ci,
                              'indepvarname': self.indepvarname,
                              'norm': self._normord,
                              'labels': cl})
         else:
             return Pointset({'coordarray': ca,
-                            'coordnames': map(lambda i,c=self.coordnames:c[i], ixlist),
+                            'coordnames': [self.coordnames[i] for i in ixlist],
                             'norm': self._normord,
                             'labels': cl})
 
-    def __getslice__(self, i, j):
-        return self[max(0, i):max(0, j):]
 
     def _resolve_indepvar(self, p):
         if self.checklevel == 0:
@@ -1466,7 +1465,7 @@ class Pointset(Point):
             # assume p is an all-numeric list, so it should be treated as
             # an independent variable.
             try:
-                ix = map(self._resolve_indepvar, p)
+                ix = [self._resolve_indepvar(i) for i in p]
             except KeyError:
                 raise ValueError("Independent variable value not valid: %s"%str(p))
         else:
@@ -1487,8 +1486,7 @@ class Pointset(Point):
                 try:
                     pt = self.coordarray[:,ix]
                 except TypeError:
-                    pt = array(map(lambda l,ix=ix: l[ix], self.coordarray),
-                               self.coordtype)
+                    pt = array([l[ix] for l in self.coordarray], self.coordtype)
                 return Point({'coordarray': pt,
                               'coordnames': self.coordnames,
                               'norm': self._normord,
@@ -1497,10 +1495,10 @@ class Pointset(Point):
                 labels = self.labels[ix]
                 cl_ixs = labels.getIndices()
                 ixmap = invertMap(ix)
-                new_cl_ixs = map(lambda i,m=ixmap: m[i], cl_ixs)
-                if isinstance(ix, slice):
+                new_cl_ixs = [ixmap[i] for i in cl_ixs]
+                if isinstance(ix, type(slice(0))):
                     lowest_ix = ix.start or 0
-                    new_cl_ixs = map(lambda i,l=lowest_ix:i-l, cl_ixs)
+                    new_cl_ixs = [i-lowest_ix for i in cl_ics]
                 try:
                     labels.mapIndices(dict(zip(cl_ixs, new_cl_ixs)))
                 except AttributeError:
@@ -1524,21 +1522,21 @@ class Pointset(Point):
                 try:
                     ar = take(self.coordarray[:, ix],clist)
                 except TypeError:
-                    ar = array(map(lambda i,c=self.coordarray,ix=ix:c[i][ix], clist), self.coordtype)
+                    ar = array([self.coordarray[i][ix] for i in clist], self.coordtype)
                 return Point({'coordarray': ar,
-                          'coordnames': map(lambda i,c=self.coordnames:c[i], clist),
+                          'coordnames': [self.coordnames[i] for i in clist],
                           'norm': self._normord,
                           'labels': label})
             else:
                 labels = self.labels[ix]
                 try:
-                    labels.mapIndices(dict(zip(labels, map(lambda i,ix=ix:i-ix[0], labels.getIndices()))))
+                    labels.mapIndices(dict(zip(labels, [i-ix[0] for i in labels.getIndices()])))
                 except AttributeError:
                     # empty
                     pass
                 return Pointset({'coordarray': take(take(self.coordarray,clist,
                                                          axis=0), ix, axis=1),
-                                 'coordnames': map(lambda i,c=self.coordnames:c[i], clist),
+                                 'coordnames': [self.coordnames[i] for i in clist],
                                  'indepvarname': self.indepvarname,
                                  'indepvararray': take(self.indepvararray, ix, axis=0),
                                  'norm': self._normord,
@@ -1570,9 +1568,9 @@ class Pointset(Point):
         if isinstance(other, Pointset):
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]<o[i], range(len(self))), bool8)
+            return array([self[i] < other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p<o, self), bool8)
+            return array([p < other for p in self], bool8)
         else:
             try:
                 return self.coordarray < other
@@ -1583,9 +1581,9 @@ class Pointset(Point):
         if isinstance(other, Pointset):
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]>o[i], range(len(self))), bool8)
+            return array([self[i] > other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p>o, self), bool8)
+            return array([p > other for p in self], bool8)
         else:
             try:
                 return self.coordarray > other
@@ -1596,9 +1594,9 @@ class Pointset(Point):
         if isinstance(other, Pointset):
             if not __sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]<=o[i], range(len(self))), bool8)
+            return array([self[i] <= other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p<=o, self), bool8)
+            return array([p <= other for p in self], bool8)
         else:
             try:
                 return self.coordarray <= other
@@ -1609,9 +1607,9 @@ class Pointset(Point):
         if isinstance(other, Pointset):
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]>=o[i], range(len(self))), bool8)
+            return array([self[i] >= other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p>=o, self), bool8)
+            return array([p >= other for p in self], bool8)
         else:
             try:
                 return self.coordarray >= other
@@ -1622,9 +1620,9 @@ class Pointset(Point):
         if isinstance(other, Pointset):
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]==o[i], range(len(self))), bool8)
+            return array([self[i] == other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p==o, self), bool8)
+            return array([p == other for p in self], bool8)
         else:
             try:
                 return self.coordarray == other
@@ -1637,9 +1635,9 @@ class Pointset(Point):
                 return True
             if not self.__sameindep(other):
                 raise ValueError("Independent variable arrays are not the same")
-            return array(map(lambda i,s=self,o=other:s[i]!=o[i], range(len(self))), bool8)
+            return array([self[i] != other[i] for i in range(len(self))], bool8)
         elif isinstance(other, Point):
-            return array(map(lambda p, o=other:p!=o, self), bool8)
+            return array([p != other for p in self], bool8)
         else:
             try:
                 return self.coordarray != other
@@ -1665,7 +1663,7 @@ class Pointset(Point):
                     else:
                         # tix was an integer, meaning that t is
                         # already present in Pointset
-                        raise ValueError("Point at independent variable"
+                        raise ValueError("Point at independent variable "
                                          "value %f already present"%t)
                 elif isinstance(p, Pointset) and p._parameterized and \
                        p.indepvarname == self.indepvarname:
@@ -1685,10 +1683,9 @@ class Pointset(Point):
                     lenp = len(p)
                     vd_p = p.todict()
                     try:
-                        s_ixs = map(lambda i,f=self.findIndex,iv=iva_p:
-                                        f(iv[i])[1]+i, range(lenp))
+                        s_ixs = [self.findIndex(iva_p[i])[1]+i for i in range(lenp)]
                     except TypeError:
-                        raise ValueError("Independent variable"
+                        raise ValueError("Independent variable "
                                          "values in Pointset already present")
                     p_label_ixs = p.labels.getIndices()
                     s_label_ixs = self.labels.getIndices()
@@ -1813,7 +1810,7 @@ class Pointset(Point):
                     self._ix_name_map[ix]][start_ix:]
             p_labels = copy(p.labels)
             pixs = p.labels.getIndices()
-            p_labels.mapIndices(dict(zip(pixs, map(lambda i,ol=old_len:i+ol, pixs))))
+            p_labels.mapIndices(dict(zip(pixs, [i+old_len for i in pixs])))
             self.labels.update(p_labels)
         elif isinstance(p, Point):
             # check p dimension and coordnames and type
@@ -1906,20 +1903,20 @@ class Pointset(Point):
 
     def _infostr(self, verbose=0):
         if self.name == '':
-            outputList = ["Pointset <no name>"]
+            outputStr = "Pointset <no name>"
         else:
-            outputList = ["Pointset " + self.name]
+            outputStr = "Pointset " + self.name
         if self._parameterized:
-            outputList.append(" (parameterized)")
+            outputStr += " (parameterized)"
         else:
-            outputList.append(" (non-parameterized)")
+            outputStr += " (non-parameterized)"
         if verbose > 0:
             precision = 8
             lenv = len(self)
             if lenv > 8:
                 ixslo = range(0,2)
                 ixshi = range(lenv-2,lenv)
-            outputList.append("\n")
+            outputStr += "\n"
             if self._parameterized:
                 iv = self.indepvararray
                 if not isinstance(iv, ndarray):
@@ -1930,9 +1927,9 @@ class Pointset(Point):
                     ivstr = alo[:-1] + ", ..., " + ahi[1:]
                 else:
                     ivstr = array2string(iv,precision=precision)
-                outputList.append("Independent variable:\n")
-                outputList.append(self.indepvarname + ':  '+ivstr+"\n")
-            outputList.append("Coordinates:\n")
+                outputStr += "Independent variable:\n"
+                outputStr += self.indepvarname + ':  '+ivstr+"\n"
+            outputStr += "Coordinates:\n"
             for c in self.coordnames:
                 v = self.coordarray[self._map_names_to_ixs(c)]
                 if not isinstance(v, ndarray):
@@ -1944,11 +1941,11 @@ class Pointset(Point):
                     dvstr = alo[:-1] + ", ..., " + ahi[1:]
                 else:
                     dvstr = array2string(v, precision=precision)
-                outputList.append(c+':  '+dvstr)
+                outputStr += c+':  '+dvstr
                 if c != self.coordnames[-1]:
-                    outputList.append("\n")
-            outputList.append("\nLabels by index: " + self.labels._infostr(17))
-        return "".join(outputList)
+                    outputStr += "\n"
+            outputStr += "\nLabels by index: " + self.labels._infostr(17)
+        return outputStr
 
 
     def __repr__(self):
@@ -2100,8 +2097,7 @@ class PointInfo(object):
         elif isinstance(ptlabels, PointInfo):
             self.by_label = ptlabels.by_label
             self.by_index = ptlabels.by_index
-        elif isinstance(ptlabels, dict) or isinstance(ptlabels,
-                                                          UserDict.UserDict):
+        elif isinstance(ptlabels, dict):
             # always expect the dictionary to be based on index
             self.by_label = DefaultDict({})
             self.by_index = DefaultDict({})
@@ -2110,6 +2106,7 @@ class PointInfo(object):
                     raise TypeError("Initialization dictionary must be keyed "
                                     "by integer indices")
                 if isinstance(v, str):
+                    print "bylab", self.by_label, type(self.by_label)
                     self.by_label[v][k] = {}
                     self.by_index[k][v] = {}
                 else:
@@ -2139,12 +2136,12 @@ class PointInfo(object):
 
     def sortByIndex(self):
         ixkeys = sortedDictKeys(self.by_index)
-        return zip(ixkeys,map(lambda ix,b=self.by_index:b[ix], ixkeys))
+        return zip(ixkeys,[self.by_index[ix] for ix in ixkeys])
 
 
     def sortByLabel(self):
         labelkeys = sortedDictKeys(self.by_label)
-        return zip(labelkeys,map(lambda label,b=self.by_label:b[label], labelkeys))
+        return zip(labelkeys,[self.by_label[label] for label in labelkeys])
 
 
     def getIndices(self):
@@ -2167,8 +2164,8 @@ class PointInfo(object):
         if isinstance(key, tuple):
             raise TypeError("Can only reference PointInfo with a single key")
         else:
-            if isinstance(key, (slice, list, ndarray)):
-                if isinstance(key, slice):
+            if isinstance(key, (type(slice(0)), list, ndarray)):
+                if isinstance(key, type(slice(0))):
                     self_ixs = self.getIndices()
                     if len(self_ixs) == 0:
                         max_ixs = 0
@@ -2273,7 +2270,7 @@ class PointInfo(object):
         if byix:
             for k in key2:
                 # have to check k in dict otherwise DefaultDict creates entry!
-                if k in self.by_label.keys():
+                if k in self.by_label:
                     del self.by_index[key1][k]
                     del self.by_label[k][key1]
                 else:
@@ -2285,7 +2282,7 @@ class PointInfo(object):
         else:
             for k in key2:
                 # have to check k in dict otherwise DefaultDict creates entry!
-                if k in self.by_index.keys():
+                if k in self.by_index:
                     del self.by_index[k][key1]
                     del self.by_label[key1][k]
                 else:
@@ -2386,11 +2383,11 @@ class PointInfo(object):
         if lenself > 0:
             entries = self.sortByIndex()
             if lenself > 8:
-                return basestr.join(map(_pretty_print_label, entries[0:3])) + ",\n" +\
+                return basestr.join([_pretty_print_label(i) for i in entries[0:3]]) + ",\n" +\
                        (tabstr + " .\n")*3 + tabstr +\
-                       basestr.join(map(_pretty_print_label, entries[-3:]))
+                       basestr.join([_pretty_print_label(i) for i in entries[-3:]])
             else:
-                return basestr.join(map(_pretty_print_label, entries))
+                return basestr.join([_pretty_print_label(i) for i in entries])
         else:
             return "Empty"
 
@@ -2410,12 +2407,12 @@ def _pretty_print_label(d):
     for k in entry_keys:
         keys = d[1][k].keys()
         if len(keys) == 0:
-            s = s + "{%s: {}}"%k
+            s += "{%s: {}}"%k
         else:
-            s = s + "{%s: {keys=%s}}"%(k,",".join(keys))
+            s += "{%s: {keys=%s}}"%(k,",".join(keys))
         if ki < kimax-1:
-            s = s + ', '
-        ki = ki + 1
+            s += ', '
+        ki += 1
     return s
 
 # ------------------------------------------------
@@ -2510,7 +2507,7 @@ def pointsToPointset(pointlist, indepvarname='', indepvararray=None,
                 dv[c] = []
             if p.labels != {}:
                 labels.update({0: p.labels})
-                i = i + 1
+                i += 1
         else:
             # coerce ints to float types if mixed
             if compareNumTypes(ptype, int32):
@@ -2530,13 +2527,13 @@ def pointsToPointset(pointlist, indepvarname='', indepvararray=None,
                 raise ValueError("Coordinate name mismatch in points")
             if p.labels != {}:
                 labels.update({i: p.labels})
-                i = i + 1
+                i += 1
         for c in xcoordnames: dv[c].append(p(c))
         if paramd and indepvararray is None:
             iv.append(p(indepvarname))
     # submit data as array to maintain coordname ordering present in Points
     dim = len(xcoordnames)
-    ca = array(map(lambda c,dv=dv:dv[c], xcoordnames), ptype)
+    ca = array([dv[c] for c in xcoordnames], ptype)
     argDict = {'coordarray': ca,
                'coordnames': xcoordnames,
                'coordtype': ptype,
@@ -2563,7 +2560,7 @@ def arrayToPointset(a, vnames=None, ia=None, iname=""):
     if rank(a) == 0:
         raise ValueError("Cannot convert arrays of rank 0")
     if vnames is None:
-        vnames = map(str, range(shape(a)[0]))
+        vnames = [str(i) for i in range(shape(a)[0])]
     else:
         if len(vnames) != shape(a)[0]:
             raise ValueError("Mismatch between number of coordinate names and"

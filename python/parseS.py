@@ -870,11 +870,9 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                 for i in range(1,n):
                     self.coordarray.append(N.array(fdata[i:n*nrows:n]))
             except TypeError:
-                self.indepvararray = N.array(map(lambda j, d=fdata: 
-                                                 d[j], xrange(0,n*nrows,n)))
+                self.indepvararray = N.array([fdata[j] for j in xrange(0,n*nrows,n)])
                 for i in range(1,n):
-                    self.coordarray.append(N.array(map(lambda j, d=fdata: 
-                                                    d[j], xrange(i,n*nrows,n))))
+                    self.coordarray.append(N.array([fdata[j] for j in xrange(i,n*nrows,n)]))
         j = j + n * nrows
 
         # I am using the value of NTST to test to see if it is an algebraic or
@@ -896,8 +894,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                         self["udotps"].append(N.array(fdata[i:n*nrows:n]))
                 except TypeError:
                     for i in range(n):
-                        self["udotps"].append(N.array(map(lambda j, d=fdata: 
-                                                   d[j], xrange(i,n*nrows,n))))
+                        self["udotps"].append(N.array([fdata[j] for j in xrange(i,n*nrows,n)]))
             udotnames = []
             if self["NTST"] > 0:
                 for i in range(self.__numEntriesPerBlock-1):
