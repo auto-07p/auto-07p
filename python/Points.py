@@ -2106,7 +2106,6 @@ class PointInfo(object):
                     raise TypeError("Initialization dictionary must be keyed "
                                     "by integer indices")
                 if isinstance(v, str):
-                    print "bylab", self.by_label, type(self.by_label)
                     self.by_label[v][k] = {}
                     self.by_index[k][v] = {}
                 else:
