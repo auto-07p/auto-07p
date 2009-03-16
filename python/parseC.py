@@ -19,10 +19,6 @@
 
 import os
 import sys
-try:
-    import cStringIO
-except ImportError:
-    import io as cStringIO
 import AUTOExceptions
 import parseB
 
@@ -55,7 +51,7 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 class parseC(dict):
     def __init__(self,filename=None):
-        self.__new = 1
+        self.__new = True
         if filename is not None and type(filename) != type(""):
             if isinstance(filename,dict):
                 self.__new = filename.__new
@@ -73,11 +69,6 @@ class parseC(dict):
             self[key] = None
         if filename:
             self.readFilename(filename)
-
-    def __str__(self):
-        string = cStringIO.StringIO()
-        self.write(string)
-        return string.getvalue()
 
     def __setitem__(self,key,item):
         if key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
@@ -292,7 +283,7 @@ class parseC(dict):
         if line == '':
             return
         
-        self.__new = 0
+        self.__new = False
         self["NDIM"] = int(data[0])
         self["IPS"] = int(data[1])
         self["IRS"] = int(data[2])
@@ -381,11 +372,11 @@ class parseC(dict):
                 l.append(self.__compactstr(v))
             return '['+", ".join(l)+']'
             
-    def write(self,output,new=False):
+    def __newstr(self,lines=None):
         wdth2keys = ["A0","A1"]
         wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
         wdth5keys = ["EPSU","EPSS"]
-        if self.__new or new:
+        if lines is None:
             lines = [
                 ["e","s","dat","sv"],
                 ["unames","parnames"],
@@ -402,15 +393,7 @@ class parseC(dict):
                 ["SP"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
                 ["IREV","IFIXED","IPSI"]]
-        else:
-            lines = [
-                ["e","s","dat","sv"],
-                ["unames","parnames"],
-                ["U","PAR"],
-                ["NPAR"],
-                ["SP"],
-                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
-                ["IREV","IFIXED","IPSI"]]
+        olist = []
         for line in lines:
             pos = 0
             for key in line:
@@ -418,97 +401,113 @@ class parseC(dict):
                 if value is None:
                     continue
                 if pos > 0:
-                    output.write(", ")
+                    olist.append(", ")
                 pos = pos + 1
                 if key in wdth2keys:
-                    output.write("%-2s="%key)
+                    s = "%-2s="%key
                 elif key in wdth3keys:
-                    output.write("%-3s="%key)
+                    s = "%-3s="%key
                 elif key in wdth5keys:
-                    output.write("%-5s="%key)
+                    s = "%-5s="%key
                 else:
-                    output.write("%-4s="%key)
+                    s = "%-4s="%key
+                olist.append(s)
                 if key in ["ICP","IREV","IFIXED","IPSI","SP"]:
-                    output.write("  "+str(value))
+                    s = "  "+str(value)
                 elif key in ["THL","THU","UZR","U","PAR"]:
                     l=[]
                     for k,v in value:
                         l.append(repr(k)+": "+self.__compactstr(v))
-                    output.write("  {"+", ".join(l)+"}")
+                    s = "  {"+", ".join(l)+"}"
                 elif key in ["unames","parnames"]:
                     l=[]
                     for k,v in value:
                         l.append(str(k)+": "+repr(v))
-                    output.write("{"+", ".join(l)+"}")
+                    s = "{"+", ".join(l)+"}"
                 elif key in ["sv","s","dat","e"]:
                     value = "'"+str(value)+"'"
                     if key in wdth3keys:
-                        output.write("%5s"%value)
+                        s = "%5s"%value
                     else:
-                        output.write("%4s"%value)
+                        s = "%4s"%value
                 elif key[0] in ["A", "D", "E", "R"]:
                     value = self.__compactstr(value)
-                    output.write("%6s"%value)
+                    s = "%6s"%value
                 elif pos > 4:
-                    output.write("%2s"%value)
+                    s = "%2s"%value
                 elif key in wdth3keys:
-                    output.write("%5s"%value)
+                    s = "%5s"%value
                 else:
-                    output.write("%4s"%value)
+                    s = "%4s"%value
+                olist.append(s)
             if pos > 0:
-                output.write("\n")
-        if self.__new or new:
-            return
+                olist.append("\n")
+        return "".join(olist)
+
+    def __oldstr(self):
+        olist = [self.__newstr([
+                ["e","s","dat","sv"],
+                ["unames","parnames"],
+                ["U","PAR"],
+                ["NPAR"],
+                ["SP"],
+                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
+                ["IREV","IFIXED","IPSI"]])]
             
-        output.write(str(self["NDIM"])+" "+str(self["IPS"])+" ")
-        output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
-        output.write("          "+line1_comment+"\n")
+        olist.append("%s %s %s %s           %s\n"%
+                     (self["NDIM"],self["IPS"],self["IRS"],self["ILP"],
+                      line1_comment))
         
-        output.write(str(len(self["ICP"]))+" ")
+        olist.append(str(len(self["ICP"]))+" ")
         for v in self["ICP"]:
-            output.write(str(v)+" ")
-        output.write("          "+line2_comment+"\n")
+            olist.append(str(v)+" ")
+        olist.append("          "+line2_comment+"\n")
         
-        output.write(str(self["NTST"])+" "+str(self["NCOL"])+" ")
-        output.write(str(self["IAD"]) +" "+str(self["ISP"])+" ")
-        output.write(str(self["ISW"]) +" "+str(self["IPLT"])+" ")
-        output.write(str(self["NBC"]) +" "+str(self["NINT"])+" ")
-        output.write("          "+line3_comment+"\n")
+        olist.append("%s %s %s %s %s %s %s %s           %s\n"%
+                     (self["NTST"],self["NCOL"],self["IAD"],self["ISP"],
+                      self["ISW"],self["IPLT"],self["NBC"],self["NINT"],
+                      line3_comment))
+
+        olist.append("%s %s %s %s %s           %s\n"%
+                     (self["NMX"],self["RL0"],self["RL1"],self["A0"],self["A1"],
+                      line4_comment))
+
+        olist.append("%s %s %s %s %s %s %s           %s\n"%
+                     (self["NPR"],self["MXBF"],self["IID"],self["ITMX"],
+                      self["ITNW"],self["NWTN"],self["JAC"],
+                      line5_comment))
         
-        output.write(str(self["NMX"])+" "+str(self["RL0"])+" ")
-        output.write(str(self["RL1"]) +" "+str(self["A0"])+" ")
-        output.write(str(self["A1"]) +" ")
-        output.write("          "+line4_comment+"\n")
+        olist.append("%s %s %s           %s\n"%
+                     (self["EPSL"],self["EPSU"],self["EPSS"],line6_comment))
 
-        output.write(str(self["NPR"])+" "+str(self["MXBF"])+" ")
-        output.write(str(self["IID"]) +" "+str(self["ITMX"])+" ")
-        output.write(str(self["ITNW"]) +" "+str(self["NWTN"])+" ")
-        output.write(str(self["JAC"]) +" ")
-        output.write("          "+line5_comment+"\n")
+        olist.append("%s %s %s %s           %s\n"%
+                     (self["DS"],self["DSMIN"],self["DSMAX"],self["IADS"],
+                      line7_comment))
 
-        output.write(str(self["EPSL"])+" "+str(self["EPSU"])+" ")
-        output.write(str(self["EPSS"]) +" ")
-        output.write("          "+line6_comment+"\n")
-
-        output.write(str(self["DS"]) +" "+str(self["DSMIN"])+" ")
-        output.write(str(self["DSMAX"]) +" "+str(self["IADS"])+" ")
-        output.write("          "+line7_comment+"\n")
-        
-        output.write(str(len(self["THL"])))
-        output.write("          "+line8_comment+"\n")
+        olist.append("%s          %s\n"%(len(self["THL"]),line8_comment))
         for k,v in self["THL"] or []:
-            output.write(str(k)+" "+str(v)+"\n")
+            olist.append("%s %s\n"%(k,v))
 
-        output.write(str(len(self["THU"])))
-        output.write("          "+line9_comment+"\n")
+        olist.append("%s          %s\n"%(len(self["THU"]),line9_comment))
         for k,v in self["THU"] or []:
-            output.write(str(k)+" "+str(v)+"\n")
+            olist.append("%s %s\n"%(k,v))
 
-        output.write(str(len(self["UZR"])))
-        output.write("          "+line10_comment+"\n")
+        olist.append("%s          %s\n"%(len(self["UZR"]),line10_comment))
         for k,v in self["UZR"] or []:
-            output.write(str(k)+" "+str(v)+"\n")
-        output.flush()
+            olist.append("%s %s\n"%(k,v))
+        return "".join(olist)
+
+    def __str__(self):
+        if self.__new:
+            return self.__newstr()
+        else:
+            return self.__oldstr()
+
+    def write(self,output,new=False):
+        if new:        
+            output.write(self.__newstr())
+        else:
+            output.write(str(self))
 
 def pointtest(a):
     keys = ['NPR', 'UZR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
@@ -525,6 +524,7 @@ def test():
     foo = parseC()
     foo.readFilename("test_data/c.ab")    
     pointtest(foo)
+    foo.write(sys.stdout,new=True)
 
     print("Testing reading from a stream")
     foo = parseC()
