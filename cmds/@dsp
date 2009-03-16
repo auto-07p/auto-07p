@@ -45,4 +45,4 @@ if __name__ == '__main__':
             bs=parseBandS.parseBandS('fort.7~','fort.8~')
     bs.deleteLabel(codes)
     bs.writeFilename(changedb,changeds)
-    print " @dsp: Rewriting finished."
+    print(" @dsp: Rewriting finished.")
