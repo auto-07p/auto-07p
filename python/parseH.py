@@ -19,8 +19,6 @@
 
 import os
 import sys
-import UserDict
-import cStringIO
 import AUTOExceptions
 
 line1_comment="NUNSTAB,NSTAB,IEQUIB,ITWIST,ISTART"
@@ -44,25 +42,19 @@ line4_comment="NPSI,(/,I,IPSI(I)),I=1,NPSI)"
 
 
 
-class parseH(UserDict.UserDict):
+class parseH(dict):
 
     def __init__(self,filename=None):
         if filename is not None and type(filename) != type(""):
-            UserDict.UserDict.__init__(self,filename)
+            dict.__init__(self,filename)
             return
-        UserDict.UserDict.__init__(self)
+        dict.__init__(self)
         for key in ['NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
                     'NREV', 'NFIXED', 'NPSI',
                     'IREV', 'IFIXED', 'IPSI']:
             self[key] = None
         if filename:
             self.readFilename(filename)
-#        self.dataString=""
-        
-    def __str__(self):
-        string = cStringIO.StringIO()
-        self.write(string)
-        return string.getvalue()
         
     def readFilename(self,filename):
         inputfile = open(filename,"r")
@@ -75,7 +67,6 @@ class parseH(UserDict.UserDict):
         output.close()
 
     def read(self,inputfile):
-#        self.dataString = inputfile.read()
         line = inputfile.readline()
         data = line.split()
         self["NUNSTAB"] = int(data[0])
@@ -114,39 +105,29 @@ class parseH(UserDict.UserDict):
         self["IPSI"] = map(int,data[:npsi])
         self["NPSI"] = npsi
 
-
-    def write(self,output):
-#        output.write(self.dataString)
-        output.write(str(self["NUNSTAB"])+" "+str(self["NSTAB"])+" ")
-        output.write(str(self["IEQUIB"]) +" "+str(self["ITWIST"])+" ")
-        output.write(str(self["ISTART"]) +" ")
-        output.write("          "+line1_comment+"\n")
+    def __str__(self):
+        olist = ["%s %s %s %s %s           %s\n"%
+                 (self["NUNSTAB"], self["NSTAB"], self["IEQUIB"],
+                  self["ITWIST"], self["ISTART"], line1_comment)]
 
         nrev = 0
         if len(self["IREV"]) > 0:
             nrev = 1
-        output.write(str(nrev)+" ")
-        output.write("          "+line2_comment+"\n")
-        for d in self["IREV"]:
-            output.write(str(d)+" ")
+        olist.append("%s           %s\n"%(nrev,line2_comment))
         if nrev > 0:
-            output.write("\n")
+            olist.append(" ".join(map(str,self["IREV"]))+"\n")
 
-        output.write(str(len(self["IFIXED"]))+" ")
-        output.write("          "+line3_comment+"\n")
-        for d in self["IFIXED"]:
-            output.write(str(d)+" ")
+        olist.append("%s           %s\n"%(len(self["IFIXED"]),line3_comment))
         if len(self["IFIXED"]) > 0:
-            output.write("\n")
+            olist.append(" ".join(map(str,self["IFIXED"]))+"\n")
 
-        output.write(str(len(self["IPSI"]))+" ")
-        output.write("          "+line4_comment+"\n")
-        for d in self["IPSI"]:
-            output.write(str(d)+" ")
+        olist.append("%s           %s\n"%(len(self["IPSI"]),line4_comment))
         if len(self["IPSI"]) > 0:
-            output.write("\n")
-        
-        output.flush()
+            olist.append(" ".join(map(str,self["IPSI"]))+"\n")
+        return "".join(olist)
+                
+    def write(self,output):
+        output.write(str(self))
 
 def pointtest(a):
     keys = ['NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
