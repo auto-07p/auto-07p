@@ -19,8 +19,10 @@
 
 import os
 import sys
-import UserDict
-import cStringIO
+try:
+    import cStringIO
+except ImportError:
+    import io as cStringIO
 import AUTOExceptions
 import parseB
 
@@ -51,15 +53,15 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 
 
-class parseC(UserDict.UserDict):
+class parseC(dict):
     def __init__(self,filename=None):
         self.__new = 1
         if filename is not None and type(filename) != type(""):
-            if isinstance(filename,UserDict.UserDict):
+            if isinstance(filename,dict):
                 self.__new = filename.__new
-            UserDict.UserDict.__init__(self,filename)
+            dict.__init__(self,filename)
             return
-        UserDict.UserDict.__init__(self)
+        dict.__init__(self)
         for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
             'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
@@ -78,36 +80,41 @@ class parseC(UserDict.UserDict):
         return string.getvalue()
 
     def __setitem__(self,key,item):
-        if key in ["ICP","IREV","IFIXED","IPSI","SP"]:
-            l = 0
+        if key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
             if item is not None:
-                l = len(item)
-            self.data["__N"+key] = l
-            self.data[key] = item
-        elif key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
-            if item is None:
-                self.data["__N"+key] = 0
-                self.data[key] = None
-                return
-            if type(item) == type({}):
-                item = item.items()
-            self.data["__N"+key] = len(item)
-            self.data[key] = []
-            for x in item:
-                if type(x) == type({}):
-                    self.data[key].append([x["PAR index"],x["PAR value"]])
-                else:
-                    self.data[key].append([x[0],x[1]])
+                if isinstance(item, dict):
+                    item = item.items()
+                new = []
+                for x in item:
+                    if isinstance(x, dict):
+                        new.append([x["PAR index"],x["PAR value"]])
+                    else:
+                        new.append([x[0],x[1]])
+                item = new
         elif key == "DS" and item == '-':
-            if self.data[key] is None:
-                self.data[key] = 0.01
-            self.data[key] = -self.data[key]
-        else:
-            self.data[key] = item
+            if self[key] is None:
+                item = -0.01
+            else:
+                item = -self[key]
+        dict.__setitem__(self, key, item)
 
-    def update(self, d):
-        for k, v in d.items():
+    def update(self, d, **kw):
+        if hasattr(d,'keys'):
+            d = d.items()
+        for k, v in d:
             self[k] = v
+        for k, v in kw:
+            self[k] = v
+            
+    def setdefault(self, *args):
+        k = args[0]
+        if len(args) > 1:
+            d = args[1]
+        else:
+            d = None
+        if k not in self:
+            self[k] = d
+        return self.get(*args)
             
     def readFilename(self,filename):
         inputfile = open(filename,"r")
@@ -293,15 +300,15 @@ class parseC(UserDict.UserDict):
 
         line = inputfile.readline()
         data = line.split()
-        self.data["__NICP"] = int(data[0])
-        self.data["ICP"] = []
-        for i in range(self["__NICP"]):
+        icp = []
+        for i in range(int(data[0])):
             d = data[i+1]
             try:
                 d = int(d)
             except ValueError:
                 pass
-            self.data["ICP"].append(d)
+            icp.append(d)
+        self["ICP"] = icp
 
         line = inputfile.readline()
         data = line.split()
@@ -348,9 +355,8 @@ class parseC(UserDict.UserDict):
         for key in ["THL","THU","UZR"]:
             line = inputfile.readline()
             data = line.split()
-            self.data["__N"+key] = int(data[0])
-            self.data[key] = []
-            for i in range(self["__N"+key]):
+            item = []
+            for i in range(int(data[0])):
                 line = inputfile.readline()
                 data = line.split()
                 d = data[0]
@@ -358,7 +364,8 @@ class parseC(UserDict.UserDict):
                     d = int(d)
                 except ValueError:
                     pass
-                self.data[key].append([d,parseB.AUTOatof(data[1])])
+                item.append([d,parseB.AUTOatof(data[1])])
+            self[key] = item
 
     def __compactstr(self,value):
         """check if we can use more compact output than str..."""
@@ -457,9 +464,9 @@ class parseC(UserDict.UserDict):
         output.write(str(self["IRS"]) +" "+str(self["ILP"])+" ")
         output.write("          "+line1_comment+"\n")
         
-        output.write(str(self["__NICP"])+" ")
-        for i in range(self["__NICP"]):
-            output.write(str(self["ICP"][i])+" ")
+        output.write(str(len(self["ICP"]))+" ")
+        for v in self["ICP"]:
+            output.write(str(v)+" ")
         output.write("          "+line2_comment+"\n")
         
         output.write(str(self["NTST"])+" "+str(self["NCOL"])+" ")
@@ -487,31 +494,28 @@ class parseC(UserDict.UserDict):
         output.write(str(self["DSMAX"]) +" "+str(self["IADS"])+" ")
         output.write("          "+line7_comment+"\n")
         
-        output.write(str(self["__NTHL"]))
+        output.write(str(len(self["THL"])))
         output.write("          "+line8_comment+"\n")
-        for i in range(self["__NTHL"]):
-            output.write(str(self["THL"][i][0])+" ")
-            output.write(str(self["THL"][i][1])+"\n")
+        for k,v in self["THL"] or []:
+            output.write(str(k)+" "+str(v)+"\n")
 
-        output.write(str(self["__NTHU"]))
+        output.write(str(len(self["THU"])))
         output.write("          "+line9_comment+"\n")
-        for i in range(self["__NTHU"]):
-            output.write(str(self["THU"][i][0])+" ")
-            output.write(str(self["THU"][i][1])+"\n")
+        for k,v in self["THU"] or []:
+            output.write(str(k)+" "+str(v)+"\n")
 
-        output.write(str(self["__NUZR"]))
+        output.write(str(len(self["UZR"])))
         output.write("          "+line10_comment+"\n")
-        for i in range(self["__NUZR"]):
-            output.write(str(self["UZR"][i][0])+" ")
-            output.write(str(self["UZR"][i][1])+"\n")
+        for k,v in self["UZR"] or []:
+            output.write(str(k)+" "+str(v)+"\n")
         output.flush()
 
 def pointtest(a):
     keys = ['NPR', 'UZR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
-            'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST', '__NICP',
-            'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF', '__NTHL',
-            'RL0', 'RL1', 'ICP', '__NTHU', 'IPLT', 'ILP', 'NCOL', 'THL',
-            'DSMAX', 'ISW', 'IRS', 'THU', 'IAD', 'JAC', '__NUZR', 'NDIM']
+            'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
+            'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
+            'RL0', 'RL1', 'ICP', 'IPLT', 'ILP', 'NCOL', 'THL',
+            'DSMAX', 'ISW', 'IRS', 'THU', 'IAD', 'JAC', 'NDIM']
     for key in keys:
         if key not in a:
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
