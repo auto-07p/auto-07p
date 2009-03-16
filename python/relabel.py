@@ -31,7 +31,7 @@ def relabel(n1b,n1s,n2b,n2s):
                     " Continue ? : "))
             ch = raw_input()
             if ch != 'y' and ch != 'Y':
-                print "Rewrite discontinued. Recovering original files"
+                print("Rewrite discontinued. Recovering original files")
                 import os
                 try:
                     os.remove(n2b)

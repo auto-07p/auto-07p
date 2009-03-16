@@ -517,18 +517,18 @@ def pointtest(a):
             raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
 
 def test():
-    print "Testing reading from a filename"
+    print("Testing reading from a filename")
     foo = parseC()
     foo.readFilename("test_data/c.ab")    
     pointtest(foo)
 
-    print "Testing reading from a stream"
+    print("Testing reading from a stream")
     foo = parseC()
     fp = open("test_data/c.ab","r")
     foo.read(fp)    
     pointtest(foo)
 
-    print "parseC passed all tests"
+    print("parseC passed all tests")
 
 if __name__ == '__main__' :
     test()

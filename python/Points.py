@@ -474,10 +474,10 @@ class Point(object):
             else:
                 coordnames = [str(cix) for cix in range(self.dimension)]
             if len(coordnames) != self.dimension:
-                print "Point initialization error:"
-                print "Found coord names: ", coordnames, \
-                             "(dimension = %s)"%len(coordnames)
-                print "vs. data dimension =", self.dimension
+                print("Point initialization error:")
+                print("Found coord names:  %s (dimension = %s)"%
+                      (coordnames, len(coordnames)))
+                print("vs. data dimension = %s"%self.dimension)
                 raise ValueError("Mismatch between number of coordnames and "
                                  "dimension of data")
             self.coordnames = kw['coordnames']
@@ -820,7 +820,7 @@ class Point(object):
 
 
     def info(self, verboselevel=1):
-        print self._infostr(verboselevel)
+        print(self._infostr(verboselevel))
 
 
     def __abs__(self):
@@ -1051,10 +1051,10 @@ class Pointset(Point):
             else:
                 coordnames = [str(cix) for cix in range(self.dimension)]
             if len(coordnames) != self.dimension:
-                print "Pointset initialization error:"
-                print "Found Coordnames: ", coordnames, \
-                             "(dimension = %s)"%len(coordnames)
-                print "vs. data dimension =", self.dimension
+                print("Pointset initialization error:")
+                print("Found Coordnames:  %s (dimension = %s)"%
+                      (coordnames, len(coordnames)))
+                print("vs. data dimension = %s"%self.dimension)
                 raise ValueError("Mismatch between number of coordnames and "
                                  "dimension of data")
             self.coordnames = coordnames
@@ -1408,7 +1408,7 @@ class Pointset(Point):
             lowest_ix = ref1.start or 0
             new_cl_ixs = [i-lowest_ix for i in cl_ixs]
         else:
-            print "ref1 argument =", ref1
+            print("ref1 argument = %s"%ref1)
             raise TypeError("Type %s is invalid for Pointset indexing"%str(type(ref1)))
         ixlist = self._force_coords_to_ixlist(ref2)
         ca = take(ca, ixlist, axis=0)
@@ -1765,7 +1765,7 @@ class Pointset(Point):
                         tval = t
                         start_ix = 0
                     if tval[0] <= self.indepvararray[-1]:
-                        print tval[0], " <= ", self.indepvararray[-1]
+                        print("%s  <=  %s"%(tval[0],self.indepvararray[-1]))
                         raise ValueError("Independent variable value too small to add pointset")
                     added_len = len(tval)
                 else:
@@ -1957,7 +1957,7 @@ class Pointset(Point):
 
 
     def info(self, verboselevel=1):
-        print self._infostr(verboselevel)
+        print(self._infostr(verboselevel))
 
 
     def __copy__(self):
@@ -2013,8 +2013,8 @@ class Pointset(Point):
         try:
             if other._parameterized and self._parameterized:
                 if not all(self.indepvararray == other.indepvararray):
-                    print self.indepvararray
-                    print other.indepvararray
+                    print(self.indepvararray)
+                    print(other.indepvararray)
                     raise ValueError("Mismatched independent variable arrays")
         except AttributeError:
             pass
@@ -2582,39 +2582,39 @@ def arrayToPointset(a, vnames=None, ia=None, iname=""):
 
 
 def test_point():
-    print "\n****** Point class test ******\n"
-    print "x uses Python float type:"
+    print("\n****** Point class test ******\n")
+    print("x uses Python float type:")
     xstr = """x = Point({'coorddict': {'x0': [1.123456789], 'x1': [-0.4],
                    'x2': [4000]},
                'coordtype': float})"""
-    print xstr
+    print(xstr)
     exec(xstr)
     # float is equivalent to float64
-    print "x => ", repr(x)
-    print "x.toarray() = ", x.toarray()
-    print "\nprint x => ", x
-    print "x.dimension => ", x.dimension, ", x.coordnames => ", x.coordnames
-    print "x.coordtype => ", x.coordtype
-    print "x.coordtype => ", x.coordtype
-    print "x('x1') = ", x('x1')
-    print "x(['x1','x0']) = ", x(['x1','x0'])
-    print "x([0,1]) = ", x([0,1])
-    print "\nChanging x entries is done by x[index] = value:"
-    print "x[1] = -0.45"
+    print("x =>  %s"%repr(x))
+    print("x.toarray() =  %s"%x.toarray())
+    print("\nprint x =>  %s"%x)
+    print("x.dimension =>  %s , x.coordnames =>  %s"%(x.dimension,x.coordnames))
+    print("x.coordtype =>  %s"%x.coordtype)
+    print("x.coordtype =>  %s"%x.coordtype)
+    print("x('x1') =  %s"%x('x1'))
+    print("x(['x1','x0']) =  %s"%x(['x1','x0']))
+    print("x([0,1]) =  %s"%x([0,1]))
+    print("\nChanging x entries is done by x[index] = value:")
+    print("x[1] = -0.45")
     x[1] = -0.45
-    print "\nThe index can also be a name, a list of names, or even a dictionary:"
-    print "x[['x0', 'x1']] = [4.11103, -0.56])"
+    print("\nThe index can also be a name, a list of names, or even a dictionary:")
+    print("x[['x0', 'x1']] = [4.11103, -0.56])")
     x[['x0', 'x1']] = [4.11103, -0.56]
-    print "\ny is a 1D point (with integer type):"
+    print("\ny is a 1D point (with integer type):")
     # can also specify as array([4])
     ystr = """y = Point({'y': 4})"""
-    print ystr
+    print(ystr)
     exec(ystr)
-    print "print y => ", y
-    print "y(0) = ", y(0)
-    print "type(y(0)) => ", type(y(0))
-    print "y([0]) = ", y([0])
-    print "y.toarray() = ", y.toarray()
+    print("print y =>  %s"%y)
+    print("y(0) =  %s"%y(0))
+    print("type(y(0)) =>  %s"%type(y(0)))
+    print("y([0]) =  %s"%y([0]))
+    print("y.toarray() =  %s"%y.toarray())
     if hasattr(N,'transpose'):
         assert comparePointCoords(x,(x+0)*1,fussy=True)
     # pass x back
@@ -2622,133 +2622,138 @@ def test_point():
 
 
 def test_pointset():
-    print "\n\n****** Pointset test ******\n"
-    print "v is a 'singleton' pointset, to make sure this doesn't break the interface"
+    print("\n\n****** Pointset test ******\n")
+    print("v is a 'singleton' pointset, to make sure this doesn't break the interface")
     vstr = """v = Pointset({'coorddict': {'x0': 0.2, 'x1': -1.2},
                  'indepvardict': {'t': 0.01},
                  'coordtype': float64,
                  'indepvartype': float64
                   })"""
-    print vstr
+    print(vstr)
     exec(vstr)
-    print "print v =>", v
-    print "\nprint v(0.01) => ", v(0.01)
-    print "and v(0.01) is a Point object\n"
-    print "print v(0.01, 0) => ", v(0.01, 0)
-    print "and v(0.01, 0) is a float\n"
-    print "print v(0.01, 'x0') => ", v(0.01, 'x0')
+    print("print v => %s"%v)
+    print("\nprint v(0.01) =>  %s"%v(0.01))
+    print("and v(0.01) is a Point object\n")
+    print("print v(0.01, 0) =>  %s"%v(0.01, 0))
+    print("and v(0.01, 0) is a float\n")
+    print("print v(0.01, 'x0') =>  %s"%v(0.01, 'x0'))
 
-    print "\nk tests deprecated syntax for single-point pointset"
+    print("\nk tests deprecated syntax for single-point pointset")
     kstr = """k = Pointset({'coordarray': array(0.1),
                   'coordnames': 'k0',
                   'indepvarname': 't',
                   'indepvararray': array(0.0)})"""
-    print kstr
+    print(kstr)
     exec(kstr)
     assert k.dimension == 1
-    print "print k.toarray() => ", k.toarray()
-    print "print k['t'] => ", k['t']
-    print "print k(0.0) => ", k(0.0)
-    print "print k => ", k
+    print("print k.toarray() =>  %s"%k.toarray())
+    print("print k['t'] =>  %s"%k['t'])
+    print("print k(0.0) =>  %s"%k(0.0))
+    print("print k =>  %s"%k)
 
-    print "\nu tests non-parameterized pointset"
+    print("\nu tests non-parameterized pointset")
     ustr = """u = Pointset({'coordarray': array([10., 20., 30., 40.])})"""
     exec(ustr)
-    print ustr
-    print "u.toarray() => ", u.toarray()
-    print "isparameterized(u) => ", isparameterized(u)
-    print "print u => ", u
+    print(ustr)
+    print("u.toarray() =>  %s"%u.toarray())
+    print("isparameterized(u) =>  %s"%isparameterized(u))
+    print("print u =>  %s"%u)
 
-    print "\nw tests alternative declaration syntax, and other forms of calling"
+    print("\nw tests alternative declaration syntax, and other forms of calling")
     wstr = """wp = Pointset({'coordarray': array([[4.456, 2.34634, 7.3431, 5.443],
                                   [-10.0336, -5.2235, -3.23221, -0.01],
                                   [3e5, 3.1e5, 3.3e5, 2.8e5]], float64),
                   'coordnames': ['x0', 'x1', 'x2'],
                   'indepvarname': 't',
                   'indepvararray': array([0.0, 1.0, 2.0, 3.0], float64)})"""
-    print wstr
+    print(wstr)
     exec(wstr)
     assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
-    print "wp.dimension => ", wp.dimension
-    print "print wp(0.0) => ", wp(0.0)
-    print "type(wp(0.0)) => ", type(wp(0.0))
-    print "print wp(1.0)(0) => ", wp(1.0)(0)
-    print "print wp(2.0, 'x1') => ", wp(2.0, 'x1')
-    print "\nprint wp(2.0, ['x2', 'x1']) => ", wp(2.0, ['x2', 'x1'])
-    print "type(wp(2.0, ['x1', 'x2'])) => ", type(wp(2.0, ['x1', 'x2']))
-    print "print wp[['x1','x0']] => ", wp[['x1','x0']]
-    print "\nwp.info(1) =>", wp.info(1)
-    print "wp(1.0).info(1) =>", wp(1.0).info(1)
-    print "wp['t'] => ", wp['t']
-    print "\nCall several 't' values at once (explicit values only -- no ellipses):"
-    print "wp([1., 2.]) => ", wp([1., 2.])
-    print "\nExtract a coordinate (only by name) as a regular array:"
+    print("wp.dimension =>  %s"%wp.dimension)
+    print("print wp(0.0) =>  %s"%wp(0.0))
+    print("type(wp(0.0)) =>  %s"%type(wp(0.0)))
+    print("print wp(1.0)(0) =>  %s"%wp(1.0)(0))
+    print("print wp(2.0, 'x1') =>  %s"%wp(2.0, 'x1'))
+    print("\nprint wp(2.0, ['x2', 'x1']) =>  %s"%wp(2.0, ['x2', 'x1']))
+    print("type(wp(2.0, ['x1', 'x2'])) =>  %s"%type(wp(2.0, ['x1', 'x2'])))
+    print("print wp[['x1','x0']] =>  %s"%wp[['x1','x0']])
+    import sys
+    sys.stdout.write("\nwp.info(1) => ")
+    wp.info(1)
+    print(None)
+    sys.stdout.write("wp(1.0).info(1) => ")
+    wp(1.0).info(1)
+    print(None)
+    print("wp['t'] =>  %s"%wp['t'])
+    print("\nCall several 't' values at once (explicit values only -- no ellipses):")
+    print("wp([1., 2.]) =>  %s"%wp([1., 2.]))
+    print("\nExtract a coordinate (only by name) as a regular array:")
     w_x0 = wp['x0']
-    print "w_x0 = wp['x0']  => ", w_x0
+    print("w_x0 = wp['x0']  =>  %s"%w_x0)
 
-    print "\nExtract a point of w as a regular array:"
+    print("\nExtract a point of w as a regular array:")
     w_at_1 = wp(1.).toarray()
-    print "w_at_1 = wp(1.).toarray()  => ", w_at_1
+    print("w_at_1 = wp(1.).toarray()  =>  %s"%w_at_1)
 
-    print "\nMany forms to access individual values or sub-arrays:"
-    print "wp(1., 'x1') => ", wp(1., 'x1')
-    print "wp(1.)('x1') => ", wp(1.)('x1')
-    print "wp(1., 1)) => ", wp(1., 1)
-    print "wp([1.,3.], 1) => ", wp([1.,3.], 1)
-    print "wp([1.,3.])('x1') => ", wp([1.,3.])['x1']
-    print "wp(1.)([0,1]) => ", wp(1.)([0,1])
-    print "but ... wp([1.])(1., [0,1]) => ", wp([1.])(1., [0,1])
-    print "... because wp([1.]) is a Pointset and wp(1.) is a Point"
-    print "This is why wp(1.).toarray() shows a different array shape to wp([1.]).toarray():"
-    print "wp(1.).toarray().shape => ", shape(wp(1.).toarray())
-    print "wp([1.]).toarray().shape => ", shape(wp([1.]).toarray())
+    print("\nMany forms to access individual values or sub-arrays:")
+    print("wp(1., 'x1') =>  %s"%wp(1., 'x1'))
+    print("wp(1.)('x1') =>  %s"%wp(1.)('x1'))
+    print("wp(1., 1)) =>  %s"%wp(1., 1))
+    print("wp([1.,3.], 1) =>  %s"%wp([1.,3.], 1))
+    print("wp([1.,3.])('x1') =>  %s"%wp([1.,3.])['x1'])
+    print("wp(1.)([0,1]) =>  %s"%wp(1.)([0,1]))
+    print("but ... wp([1.])(1., [0,1]) =>  %s"%wp([1.])(1., [0,1]))
+    print("... because wp([1.]) is a Pointset and wp(1.) is a Point")
+    print("This is why wp(1.).toarray() shows a different array shape to wp([1.]).toarray():")
+    print("wp(1.).toarray().shape =>  %s"%str(shape(wp(1.).toarray())))
+    print("wp([1.]).toarray().shape =>  %s"%str(shape(wp([1.]).toarray())))
 
-    print "\nChange a point in w using wp[indepvar_value] = point:"
-    print "Old value at t=1.0:  wp(1.0) =>", wp(1.0)
-    print "wp[1] = x"
+    print("\nChange a point in w using wp[indepvar_value] = point:")
+    print("Old value at t=1.0:  wp(1.0) => %s"%wp(1.0))
+    print("wp[1] = x")
     wp[1] = x
-    print "w has now been updated for the meshpoint at t=1.0  =>"
-    print "New value at t=1.0:  wp(1.0) => ", wp(1.0)
+    print("w has now been updated for the meshpoint at t=1.0  =>")
+    print("New value at t=1.0:  wp(1.0) =>  %s"%wp(1.0))
     assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
 
-    print "\nWe can test equality between arrays, as usual:"
-    print "w_at_1 != wp(1.).toarray() => ", w_at_1 != wp(1.).toarray()
-    print "We can also compare with a Pointset object:"
-    print "wp(1.) != w_at_1 => ", wp(1.) != w_at_1
-    print "But we can't put an array on the left-hand side if a Point or " \
-          "Pointset is on the right."
+    print("\nWe can test equality between arrays, as usual:")
+    print("w_at_1 != wp(1.).toarray() =>  %s"%(w_at_1 != wp(1.).toarray()))
+    print("We can also compare with a Pointset object:")
+    print("wp(1.) != w_at_1 =>  %s"%(wp(1.) != w_at_1))
+    print("But we can't put an array on the left-hand side if a Point or " \
+          "Pointset is on the right.")
 
-    print "\nTo demonstrate appending a Point and Pointset to another Pointset:"
+    print("\nTo demonstrate appending a Point and Pointset to another Pointset:")
     vw = Pointset({'coorddict': {'x0': [0.1, 0.15], 'x1': [100., 102], 'x2': [0.2, 0.1]},
                  'indepvardict': {'t': [4.5, 5.0]},
                  'coordtype': float64,
                  'indepvartype': float64,
                  'labels': {1: 'c'}
                   })
-    print "vw.labels -->", vw.labels
-    print "wp.append(vw)"
+    print("vw.labels --> %s"%vw.labels)
+    print("wp.append(vw)")
     wp.append(vw)
-    print "wp.labels -->", wp.labels
+    print("wp.labels --> %s"%wp.labels)
     assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
     wp.append(Point({'coorddict': {'t': 6.5, 'x0': 2, 'x1': -300, 'x2': -0.9997}}))
     assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
-    print "\nwp.toarray() -->\n", wp.toarray()
-    print "\nwp(4.5) -->\n", wp(4.5)
-    print "\nwp[[3,6]] -->", wp[[3,6]]
-    print "\nwp[3:5] -->", wp[3:5]
-    print "\nwp[2:] -->", wp[2:]
+    print("\nwp.toarray() -->\n%s"%wp.toarray())
+    print("\nwp(4.5) -->\n%s"%wp(4.5))
+    print("\nwp[[3,6]] --> %s"%wp[[3,6]])
+    print("\nwp[3:5] --> %s"%wp[3:5])
+    print("\nwp[2:] --> %s"%wp[2:])
     try:
         # index out of range
         wp[10:]
     except ValueError:
         pass
-    print "\nwp[wp.findIndex(4.5)] -->\n", wp[wp.findIndex(4.5)]
-    print "\nwp.labels -->", wp.labels
-    print "\nLabels test:"
+    print("\nwp[wp.findIndex(4.5)] -->\n%s"%wp[wp.findIndex(4.5)])
+    print("\nwp.labels --> %s"%wp.labels)
+    print("\nLabels test:")
     wp.labels[3] = ('a', {'bif':'SN'})
-    print "wp.labels[3] -->", wp.labels[3]
+    print("wp.labels[3] --> %s"%wp.labels[3])
     wp_part = wp[3:5]
-    print "wp_part.labels -->", wp_part.labels
+    print("wp_part.labels --> %s"%wp_part.labels)
     assert wp_part.labels[0] == wp.labels[3]
     wpt = wp(3.)
     assert wpt.labels == {'a': {'bif':'SN'}}
@@ -2758,40 +2763,40 @@ def test_pointset():
                  'indepvartype': float64,
                  'labels': {2: 'b', 3: {'a': {'bif':'H'}}}
                   })
-    print "\nwp_ins object created to insert into wp:"
-    print wp_ins
+    print("\nwp_ins object created to insert into wp:")
+    print(wp_ins)
     wp.insert(wp_ins)
-    print "\nwp.insert(wp_ins) -->\n", wp
+    print("\nwp.insert(wp_ins) -->\n%s"%wp)
 
-    print "\nTo demonstrate building a Pointset from a list of Point objects:"
+    print("\nTo demonstrate building a Pointset from a list of Point objects:")
     codestr = """pointlist = []
 for t in wp['t']:
     pointlist.append(wp(t))
 w_reconstructed = pointsToPointset(pointlist, 't', wp['t'])"""
-    print codestr
+    print(codestr)
     exec(codestr)
-    print "\nAnd to demonstrate that this yields an identical object:"
-    print "w_reconstructed == w  => ", w_reconstructed == wp
+    print("\nAnd to demonstrate that this yields an identical object:")
+    print("w_reconstructed == w  =>  %s"%(w_reconstructed == wp))
 
     try:
         w_double = w_reconstructed.append(w_reconstructed)
         raise RuntimeError("Internal error with Pointset class!")
     except ValueError:
-        print "(ensure that any independent variable values to append are well-ordered)"
+        print("(ensure that any independent variable values to append are well-ordered)")
 
-    print "\nTest of non-parameterized use of pointsToPointset:"
+    print("\nTest of non-parameterized use of pointsToPointset:")
     wnp = pointsToPointset(pointlist)
-    print "(Adding two additional labels to wnp)"
+    print("(Adding two additional labels to wnp)")
     wnp.labels[0]=('b', {})
     wnp.addlabel(4, 'c', {'bif': 'H'})  # preferred syntax
-    print wnp
-    print "\nwnp[:] -->\n", wnp[:]
-    print "-- OK!"
+    print(wnp)
+    print("\nwnp[:] -->\n%s"%wnp[:])
+    print("-- OK!")
 
-    print "\nCan iterate over points and pointsets:"
-    print "for p in wnp.bylabel('a'):\n  print p\n"
+    print("\nCan iterate over points and pointsets:")
+    print("for p in wnp.bylabel('a'):\n  print p\n")
     for p in wnp.bylabel('a'):
-        print p
+        print(p)
 
     # pass some of the objects back
     return wp, wnp, wpt, wp_part
@@ -2802,7 +2807,7 @@ w_reconstructed = pointsToPointset(pointlist, 't', wp['t'])"""
 if __name__ == '__main__':
     x = test_point()
     wp, wnp, wpt, wp_part = test_pointset()
-    print "\n"
-    print "x (point) and wp, wnp (param'd and non-param'd pointsets) are available in the global namespace,", \
-          "to play with interactively now that this script has run."
+    print("\n")
+    print("x (point) and wp, wnp (param'd and non-param'd pointsets) are available in the global namespace, " \
+          "to play with interactively now that this script has run.")
 

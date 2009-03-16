@@ -309,13 +309,13 @@ def test():
     if len(foo.getLabels()) != 5:
         raise AUTOExceptions.AUTORegressionError("Incorrect number of labels")
 
-    print "Deleting labels"
+    print("Deleting labels")
     foo.deleteLabel(range(6,9))
     
     if len(foo.getLabels()) != 2:
         raise AUTOExceptions.AUTORegressionError("Incorrect number of labels")
 
-    print "Relabeling"
+    print("Relabeling")
     foo.relabel(9,57)
 
     for i in range(len(foo[0])):
@@ -326,7 +326,7 @@ def test():
     if foo().getIndex(0)["Label"] != 57:
         raise AUTOExceptions.AUTORegressionError("Incorrect label")
 
-    print "Making labels unique"
+    print("Making labels unique")
     foo.uniquelyLabel()
 
     for i in range(len(foo[0])):
@@ -337,7 +337,7 @@ def test():
     if foo().getIndex(0)["Label"] != 1:
         raise AUTOExceptions.AUTORegressionError("Incorrect label")
 
-    print "bifDiag passed all tests"
+    print("bifDiag passed all tests")
 
 if __name__ == '__main__' :
     test()

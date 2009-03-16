@@ -86,7 +86,7 @@ def cnfmerge(cnfs):
             try:
                 cnf.update(c)
             except (AttributeError, TypeError), msg:
-                print "_cnfmerge: fallback due to:", msg
+                print("_cnfmerge: fallback due to: %s"%msg)
                 for k, v in c.items():
                     cnf[k] = v
         return cnf
@@ -275,7 +275,7 @@ def test():
     b["two"]   = "cyan"
     b["three"] = "red"
     b["four"]  = "yellow"
-    print cnfmerge((a,b))
+    print(cnfmerge((a,b)))
 
 if __name__ == "__main__":
     test()

@@ -99,7 +99,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         line = ""
         while 1:
             if line == "":
-                print " ENTER COMMAND\n"
+                print(" ENTER COMMAND\n")
                 line = raw_input(prompt)
             line = self.process_input(line)
 
@@ -159,7 +159,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
         if "ax" in opts:
             its = 1
-            print ' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :'
+            print(' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :')
             try:
                 [xaxis,yaxis] = map(int,raw_input().split())
                 self["bifurcation_x"] = [xaxis-1]
@@ -225,7 +225,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         elif line == "res":
             return ""
         if its == 0:
-            print ' ILLEGAL COMMAND - REENTER'
+            print(' ILLEGAL COMMAND - REENTER')
         return ""
 
     def normal_usage(self):
@@ -237,7 +237,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             setattr(self, key, self.handle.config(key)[3])
 
     def savefile(self):
-        print ' ENTER FILE NAME:'
+        print(' ENTER FILE NAME:')
         flname = raw_input().strip()
         if flname == '':
             flname = 'fig.1'
@@ -250,7 +250,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     if not self.expert:
                         print (' ENTER '+ key[0].upper() +
                                ' AXIS LABEL BETWEEN THE QUOTES')
-                    print ' "                              "'
+                    print(' "                              "')
                     setattr(self, key, raw_input().strip())
                 label = getattr(self, key)
             else:
@@ -263,8 +263,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 
         if rtit:
             if not self.expert:
-                print ' ENTER TOP TITLE BETWEEN THE QUOTES'
-            print ' "                                                            "'
+                print(' ENTER TOP TITLE BETWEEN THE QUOTES')
+            print(' "                                                            "')
             self.top_title = raw_input().strip()
 
             #if not self.expert:
@@ -286,23 +286,23 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             str=str+"%5d"%(label)
             i=i+1
             if i==10:
-                print str
+                print(str)
                 str='                      '
                 i=0
         if len(str) > 22:
-            print str
+            print(str)
 
     def getopts(self):
         if self.expert:
-            print ' LAB'
+            print(' LAB')
         else:
-            print ' SOLUTION LABELS ?  ( <Y> OR <N> ) '
+            print(' SOLUTION LABELS ?  ( <Y> OR <N> ) ')
         line = raw_input().strip()
         self["use_labels"] = line[0].lower() == 'y'
         if self.expert:
-            print ' GL'
+            print(' GL')
         else:
-            print ' GRID LINES ?  (Y OR N)'
+            print(' GRID LINES ?  (Y OR N)')
         line = raw_input().strip()
         if line[0].lower() == 'y':
             self["grid"] = "yes"
@@ -313,20 +313,20 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         axlb = 0
         raxlb = 0
         if self.expert:
-            print ' T - C'
+            print(' T - C')
             line = raw_input().strip()
             if len(line) > 0 and line[0].lower() == 'y':
                 tit = 1
                 if len(line) > 1 and line[1].lower() == 'y':
                     rtit   = 1
-            print ' A - C'
+            print(' A - C')
             line = raw_input().strip()
             if len(line) > 0 and line[0].lower() == 'y':
                 axlb = 1
                 if len(line) > 1 and line[1].lower() == 'y':
                     raxlb = 1
         else:
-            print ' TITLE ?  (Y OR N)'
+            print(' TITLE ?  (Y OR N)')
             line = raw_input().strip()
             if len(line) > 0 and line[0].lower() == 'y':
                 tit = 1
@@ -334,11 +334,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     self.ict = 1
                     rtit = 1
                 else:
-                    print  ' CHANGE TITLES ?  (Y OR N)'
+                    print(' CHANGE TITLES ?  (Y OR N)')
                     line = raw_input().strip()
                     if len(line) > 0 and line[0].lower() == 'y':
                         rtit = 1
-            print ' AXES LABELS ?  (Y OR N)'
+            print(' AXES LABELS ?  (Y OR N)')
             line = raw_input().strip()
             if len(line) > 0 and line[0].lower() == 'y':
                 axlb = 1
@@ -346,7 +346,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     self.icl = 1
                     raxlb  = 1
                 else:
-                    print ' CHANGE AXES LABELS ?  (Y OR N)'
+                    print(' CHANGE AXES LABELS ?  (Y OR N)')
                     line = raw_input().strip()
                     if len(line) > 0 and line[0].lower() == 'y':
                         raxlb = 1
@@ -354,7 +354,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         
     def enterlabels(self):
         self.listlabels()
-        print '\n ENTER LABELS, OR <A> (ALL)\n'
+        print('\n ENTER LABELS, OR <A> (ALL)\n')
         line = raw_input().lower()
         s = self["solution"]
         if line[0] == 'a':
@@ -368,7 +368,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 try:
                     lrange = map(int,lab.split('-'))
                 except:
-                    print "    INVALID COMMAND,  REENTER"
+                    print("    INVALID COMMAND,  REENTER")
                     return 0
                 if len(lrange) == 2:
                     lrange = range(lrange[0],lrange[1]+1)
@@ -387,7 +387,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.ndim=len(s[0]["data"][0]['u'])+1
         while 1:
             its = 0
-            print '  NUMBER OF COMPONENTS :%5d'%(self.ndim)
+            print('  NUMBER OF COMPONENTS :%5d'%(self.ndim))
             axisstr = "%s %s"%(xaxsn,yaxsn)
             axisstr = axisstr.replace("[","")
             axisstr = axisstr.replace("]","")
@@ -433,16 +433,16 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     self["solution_x"] = xaxs
                     self["solution_y"] = yaxs
                 except:
-                    print "    INVALID COMMAND,  REENTER"
+                    print("    INVALID COMMAND,  REENTER")
                 
 
     def plotbif(self,opt=None):
         if opt is None:
             while 1:
                 if self.expert:
-                    print ' LIMITS'
+                    print(' LIMITS')
                 else:
-                    print '  ENTER XMIN,XMAX,YMIN,YMAX'
+                    print('  ENTER XMIN,XMAX,YMIN,YMAX')
                 line = raw_input()
                 try:
                     [xmin,xmax,ymin,ymax] = map(float,line.split())
@@ -469,7 +469,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         return self.handle[key]
 
     def help(self):
-        print """
+        print("""
          Principal PLAUT Commands :
 
   <BD0>   Bifurcation diagram with default limits
@@ -497,11 +497,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
   <NU>    Normal usage (Reset special options)
 
   Press RETURN for more or Enter Command ...
-  """
+  """)
         line = raw_input()
         if line != "":
             return line
-        print """
+        print("""
         Additional PLAUT Commands :
 
   <SCR>   To change the plot size
@@ -523,7 +523,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
   <RES>   Reset curves and symbols
 
          --- End of Help ---
-  """
+  """)
         return ""
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary

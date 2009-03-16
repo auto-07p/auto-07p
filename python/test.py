@@ -5,9 +5,8 @@ modules = ["parseB", "parseS", "parseBandS", "parseC", "parseH",
            "parseD", "bifDiag"] #runDemo,runAUTO
 
 for module in modules:
-    print "-----------------------"
-    print "Testing Module: ",module
-    print
+    print("-----------------------")
+    print("Testing Module:  %s\n"%module)
     exec "import %s"%(module,)
     exec "%s.test()"%(module,)
     

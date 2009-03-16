@@ -767,13 +767,13 @@ class InteractiveGrapher(LabeledGrapher):
 
     def printTagWrapper(self,e):
         id=self.find("closest",e.x,e.y)
-        print self.gettags(id[0])
+        print(self.gettags(id[0]))
         
     def printValueWrapper(self,e):
         self.__printValue((e.x,e.y))
 
     def __printValue(self,val):
-        print self.canvasToValue(val)
+        print(self.canvasToValue(val))
 
     def zoomRubberBand(self,e):
         self.delete("rubber_band")
@@ -935,13 +935,13 @@ def test(grapher):
     button = Tkinter.Button(text="Quit",command=grapher.quit)
     button.pack()
     button.update()
-    print "Press <return> to continue"
+    print("Press <return> to continue")
     raw_input()
 
     grapher.delAllData()
     grapher.addArray((data,map(math.cos,data)))
     grapher.plot()
-    print "Press <return> to continue"
+    print("Press <return> to continue")
     raw_input()
 
 if __name__=='__main__':

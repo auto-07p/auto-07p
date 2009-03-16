@@ -1083,14 +1083,14 @@ def AUTOatof(input_string):
                 return float(input_string)
             except (ValueError):
                 pass
-            print "Encountered value I don't understand"
-            print input_string
-            print "Setting to 0"
+            print("Encountered value I don't understand")
+            print(input_string)
+            print("Setting to 0")
             return 0.0
         except:
-            print "Encountered value which raises an exception while processing!!!"
-            print input_string
-            print "Setting to 0"
+            print("Encountered value which raises an exception while processing!!!")
+            print(input_string)
+            print("Setting to 0")
             return 0.0
             
             
@@ -1111,14 +1111,14 @@ def pointtest(a,b):
         raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 def test():
-    print "Testing reading from a filename"
+    print("Testing reading from a filename")
     foo = parseB()
     foo.readFilename("test_data/fort.7")    
     if len(foo) != 150:
         raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(57))
 
-    print "Testing reading from a stream"
+    print("Testing reading from a stream")
     foo = parseB()
     fp = open("test_data/fort.7","r")
     foo.read(fp)
@@ -1127,7 +1127,7 @@ def test():
     pointtest(foo.getIndex(0),foo.getIndex(57))
 
 
-    print "Testing label manipulation"
+    print("Testing label manipulation")
     labels = foo.getLabels()
     foo.relabel(labels[0],57)
     labels = foo.getLabels()
@@ -1143,7 +1143,7 @@ def test():
     new_labels = bar.getLabels()
     if old_labels[0] != 57 or new_labels[0] != 1:
         raise AUTOExceptions.AUTORegressionError("Error in relabelling")
-    print "parseB passed all tests"
+    print("parseB passed all tests")
 
 if __name__ == '__main__' :
     test()

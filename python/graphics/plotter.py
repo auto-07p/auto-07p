@@ -3,8 +3,8 @@ try:
     import grapher_mpl as grapher
 except ImportError:
     import grapher
-    print "Using plain TkInter for plotting. You can obtain better quality graphics"
-    print "using matplotlib (http://matplotlib.sf.net)."
+    print("Using plain TkInter for plotting. You can obtain better quality graphics")
+    print("using matplotlib (http://matplotlib.sf.net).")
 import parseB
 import parseS
 import AUTOutil
@@ -215,7 +215,7 @@ class plotter(grapher.GUIGrapher):
                         try:
                             col = coordnames.index(col)
                         except ValueError:
-                            print "Unknown column name: %s"%(col)
+                            print("Unknown column name: %s"%(col))
                             col = 0
                     cols.append(col)
                 [xcol,ycol] = cols
@@ -223,12 +223,12 @@ class plotter(grapher.GUIGrapher):
                     try:
                         x = branch.coordarray[xcol]
                     except IndexError:
-                        print "The x-coordinate (set to column %s) is out of range"%xcol
+                        print("The x-coordinate (set to column %s) is out of range"%xcol)
                         break
                     try:
                         y = branch.coordarray[ycol]
                     except IndexError:
-                        print "The y-coordinate (set to column %s) is out of range"%ycol
+                        print("The y-coordinate (set to column %s) is out of range"%ycol)
                         break
                     if dp:
                         #look at stability:
@@ -303,7 +303,7 @@ class plotter(grapher.GUIGrapher):
                             try:
                                 xy = sol[sol.coordnames[coordnames.index(col)]]
                             except ValueError:
-                                print "Unknown column name: %s"%(col)
+                                print("Unknown column name: %s"%(col))
                                 xy = tm
                                 col = 't'
                         cols.append(col)
@@ -346,23 +346,23 @@ def test():
     foo.plot()
     foo.pack()
     foo.update()
-    print "Hit return to continue"
+    print("Hit return to continue")
     raw_input()
     foo.clear()
     foo.update()
-    print "Hit return to continue"
+    print("Hit return to continue")
     raw_input()
     foo.clear()
     foo.config(type="solution",label=[6])
     foo.plot()
     foo.update()
-    print "Hit return to continue"
+    print("Hit return to continue")
     raw_input()
     foo.clear()
     foo.config(index=[3])
     foo.plot()
     foo.update()
-    print "Hit return to continue"
+    print("Hit return to continue")
     raw_input()
 
 if __name__ == "__main__":

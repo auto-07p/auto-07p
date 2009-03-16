@@ -1107,7 +1107,7 @@ class commandWait(command):
     """
 
     def __call__(self):
-        print "Hit <return> to continue"
+        print("Hit <return> to continue")
         raw_input()
         return valueString("")
           
@@ -1152,7 +1152,7 @@ class commandCd(commandWithRunner):
             self.dir = os.path.expandvars(self.dir)
             os.chdir(self.dir)
         except:
-            print "Directory '%s' not found"%(self.dir,)
+            print("Directory '%s' not found"%(self.dir,))
         self.runner.config(dir=os.getcwd())      
         return valueString("")
 
@@ -1918,12 +1918,10 @@ try:
             return valueStringAndData("Created plotter\n",self.handle)
 
 except:
-    print
-    print "-------------------------------------------------------------"
-    print "Could not import plotting modules, plotting will be disabled."
-    print "This is probably because Tkinter is not enabled in your Python installation."
-    print "-------------------------------------------------------------"
-    print
+    print("\n-------------------------------------------------------------")
+    print("Could not import plotting modules, plotting will be disabled.")
+    print("This is probably because Tkinter is not enabled in your Python installation.")
+    print("-------------------------------------------------------------\n")
     class commandPlotter(commandWithFilenameTemplate):
         """2D plotting of data.
 
@@ -2197,7 +2195,7 @@ class valueSystem:
 #  Testing stuff
 ############################################
 def print_test(text):
-    print text
+    print(text)
 
 def test():
     import runAUTO
@@ -2219,7 +2217,7 @@ def test():
     first()
     tmacro()
     quiet()
-    print second()
+    print(second())
     printer()
 
 if __name__ == "__main__":

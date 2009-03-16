@@ -7,7 +7,7 @@ class randy(AUTOCommands.commandQueryDiagnostic):
 
     def __call__(self):
         for i in range(self.num):
-            print "Randy is a bonehead"
+            print("Randy is a bonehead")
 
 class start(AUTOCommands.command):
     def __init__(self,name=None):

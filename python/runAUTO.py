@@ -336,8 +336,8 @@ class runAUTO:
             if os.path.exists(equation+ext):
                 src = equation+ext
         if src == "":
-            print "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
-                equation,equation,equation)
+            print("Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
+                equation,equation,equation))
             return
         # compile
         if fcon:
@@ -609,13 +609,13 @@ class runAUTO:
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
     [log,err,data]=runner.runDemo("wav")
-    print log.read()
+    print(log.read())
     runner.config(equation="clean",verbose="no")
     [log,err,data]=runner.runDemo("wav")
-    print log.read()
+    print(log.read())
     runner.config(equation="first")
     [log,err,data]=runner.runDemo("wav")
-    print log.read()
+    print(log.read())
     
 
 if __name__ == "__main__":

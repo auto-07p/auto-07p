@@ -100,7 +100,7 @@ Aliases: ex"""
     def help(self,*args,**kwds):
         if "oldhelp" in self.__dict__.keys():
             if len(args) == 0 and len(kwds) == 0:
-                print 'Press ENTER and then type "man" for help about the AUTO Python CLUI.'
+                print('Press ENTER and then type "man" for help about the AUTO Python CLUI.')
             self.oldhelp(*args,**kwds)
         else:
             self.locals['man'](*args,**kwds)
@@ -268,7 +268,7 @@ def autoipython():
     try:
         import IPython.Shell
     except:
-        print "Sorry, ipython is not available on this system."
+        print("Sorry, ipython is not available on this system.")
         return
 
     import IPython

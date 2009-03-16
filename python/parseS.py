@@ -1057,14 +1057,14 @@ def pointtest(a,b):
 
 
 def test():
-    print "Testing reading from a filename"
+    print("Testing reading from a filename")
     foo = parseS()
     foo.readFilename("test_data/fort.8")    
     if len(foo) != 5:
         raise AUTOExceptions.AUTORegressionError("File length incorrect")
     pointtest(foo.getIndex(0),foo.getIndex(3))
 
-    print "Testing reading from a stream"
+    print("Testing reading from a stream")
     foo = parseS()
     fp = open("test_data/fort.8","rb")
     foo.read(fp)    
@@ -1074,7 +1074,7 @@ def test():
 
     
     
-    print "parseS passed all tests"
+    print("parseS passed all tests")
 
 if __name__ == '__main__' :
     test()
