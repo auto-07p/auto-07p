@@ -815,7 +815,7 @@ class parseBR(UserList.UserList,AUTOBranch):
                 newd = d.relabel(label)
                 for idx,val in newd.labels.sortByIndex():
                     for k,v in val.items():
-                        if k in all_point_types and v["TY number"] != 0:
+                        if k in all_point_types and v["LAB"] != 0:
                             label = v["LAB"]
                 new.append(newd)
                 label = label + 1
@@ -830,7 +830,7 @@ class parseBR(UserList.UserList,AUTOBranch):
             d.uniquelyLabel(label)
             for idx,val in d.labels.sortByIndex():
                 for k,v in val.items():
-                    if k in all_point_types and v["TY number"] != 0:
+                    if k in all_point_types and v["LAB"] != 0:
                         label = v["LAB"]
             label = label + 1
             
