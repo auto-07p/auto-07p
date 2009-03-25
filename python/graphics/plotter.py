@@ -296,7 +296,11 @@ class plotter(grapher.GUIGrapher):
                             if col == -1:
                                 col = indepvarname
                             else:
-                                col = coordnames[col]
+                                try:
+                                    col = coordnames[col]
+                                except IndexError:
+                                    print("Unknown column number: %s"%(col))
+                                    col = indepvarname
                         if indepvarname == col:
                             xy = tm
                         else:

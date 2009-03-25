@@ -200,11 +200,13 @@ class BasicGrapher(grapher.BasicGrapher):
     def _delAllData(self):
         self._configNoDraw(xticks=None,yticks=None)
         for d in self.data:
-            self.ax.lines.remove(d["mpline"])
+            if "mpline" in d:
+                self.ax.lines.remove(d["mpline"])
         self.data=[]
 
     def _delData(self,index):
-        self.ax.lines.remove(data[index]["mpline"])
+        if "mpline" in data[index]:
+            self.ax.lines.remove(data[index]["mpline"])
         del self.data[index]
 
     def clear(self):
