@@ -169,7 +169,8 @@ AC_SUBST(TEK2PS)
 dnl AC_HAVE_LIBRARY([m])
 
 AC_PROG_CXX
-AC_LANG_CPLUSPLUS
+AC_LANG(C++)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM()],[HAVE_CXX="yes"],[HAVE_CXX="no"])
 PLAUT04_TEST=yes
 AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
 COIN_LIBS="-lCoin"
@@ -344,6 +345,9 @@ if test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xno; then
   echo "SoQt or SoXt or Open Inventor and Open Inventor Xt)"
   echo "and perhaps Motif libraries (libXm) could not be   "
   echo "found. The compilation of PLAUT04 is disabled.     "
+  if test x$HAVE_CXX = xno; then
+    echo "You will also need to install a C++ compiler, e.g. g++."
+  fi
   echo "***************************************************"
 fi 
 if test x$openmp = "xyes" && test x$MPI != "xyes"; then
