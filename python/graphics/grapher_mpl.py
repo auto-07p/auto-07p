@@ -6,13 +6,17 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 from matplotlib.numerix import transpose
 
-import Tkinter
-import Pmw
-import tkFileDialog
+try:
+    import Tkinter
+    import tkFileDialog
+except ImportError:
+    import tkinter as Tkinter # Python 3
+    from tkinter import filedialog as tkFileDialog
+from graphics import Pmw
 import AUTOutil
-import optionHandler
+from graphics import optionHandler
 import math
-import grapher
+from graphics import grapher
 
 GrapherError="GrapherError"
 

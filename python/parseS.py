@@ -19,8 +19,11 @@
 
 import os
 import sys
-import UserDict
-import UserList
+try:
+    from UserDict import UserDict
+    from UserList import UserList
+except ImportError: #Python 3
+    from collections import UserDict, UserList
 import AUTOExceptions
 import copy
 import parseB
@@ -265,7 +268,7 @@ class parseS(list):
         return labels
 
 # an old-style point and point keys within an AUTOSolution
-class SLPointKey(UserList.UserList):
+class SLPointKey(UserList):
     def __init__(self, solution=None, index=None, coords=None):
         if coords=="u dot":
             self.solution = solution["udotps"]
@@ -389,7 +392,7 @@ class AUTOParameters(Points.Point):
 # read and write methods and letting the outside class take care
 # of opening the file.
 
-class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
+class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         if isinstance(input,self.__class__):
@@ -419,7 +422,7 @@ class AUTOSolution(UserDict.UserDict,runAUTO.runAUTO,Points.Pointset):
                                           coordarray=Points.array(self.PAR),
                                           name=self.name)
         else:
-            UserDict.UserDict.__init__(self)
+            UserDict.__init__(self)
             runAUTO.runAUTO.__init__(self,**kw)
             self.options["constants"] = parseC.parseC(self.options["constants"])
             self.__start_of_header = None

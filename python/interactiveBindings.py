@@ -6,7 +6,10 @@ import code
 import getopt
 import re
 import AUTOExceptions
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__ # Python 3
 
 class AUTOInteractiveConsole(code.InteractiveConsole):
     def __init__(self,locals,filename=None):

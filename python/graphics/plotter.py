@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 try:
-    import grapher_mpl as grapher
+    from graphics import grapher_mpl as grapher
 except ImportError:
-    import grapher
+    from graphics import grapher
     print("Using plain TkInter for plotting. You can obtain better quality graphics")
     print("using matplotlib (http://matplotlib.sf.net).")
 import parseB

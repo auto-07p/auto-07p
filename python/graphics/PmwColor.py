@@ -3,7 +3,10 @@
 
 import math
 import sys
-import Tkinter
+try:
+    import Tkinter
+except ImportError:
+    import tkinter as Tkinter # Python 3
 
 _PI = math.pi
 _TWO_PI = _PI * 2

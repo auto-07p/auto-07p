@@ -1,9 +1,12 @@
 #! /usr/bin/env python
 
-import Tkinter
-import Pmw
+try:
+    import Tkinter
+except ImportError:
+    import tkinter as Tkinter # Python 3
+from graphics import Pmw
 import AUTOutil
-import plotter
+from graphics import plotter
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):

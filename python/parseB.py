@@ -21,7 +21,10 @@ import os
 import sys
 import AUTOExceptions
 import AUTOutil
-import UserList
+try:
+    from UserList import UserList
+except ImportError: # Python 3
+    from collections import UserList
 import parseC
 import Points
 
@@ -75,7 +78,7 @@ def reverse_type_translation(type):
 # in the fort.7 file.
 
 # a point within an AUTOBranch
-class BDPointData(UserList.UserList):
+class BDPointData(UserList):
     def __init__(self, branch=None, index=None):
         self.branch = branch
         self.index = index
@@ -782,13 +785,13 @@ class AUTOBranch(Points.Pointset):
             dict.parseline(" ".join(words[1:]),userspec)
         return dict
 
-class parseBR(UserList.UserList,AUTOBranch):
+class parseBR(UserList,AUTOBranch):
     def __init__(self,filename=None):
         if isinstance(filename, str):
-            UserList.UserList.__init__(self)
+            UserList.__init__(self)
             self.readFilename(filename)
         else:
-            UserList.UserList.__init__(self,filename)
+            UserList.__init__(self,filename)
 
     def __getstate__(self):
         return self.__dict__.copy()
@@ -860,7 +863,7 @@ class parseBR(UserList.UserList,AUTOBranch):
 
     def __getitem__(self,index):
         try:
-            return UserList.UserList.__getitem__(self,index)
+            return UserList.__getitem__(self,index)
         except TypeError:
             return self.data[0][index]
 
@@ -1012,6 +1015,7 @@ class parseBR(UserList.UserList,AUTOBranch):
         prevline = None
         coordnames = []
         lastc = None
+        inputfile = iter(inputfile) # for Python 2.2
         while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)
             prevline = branch._lastline

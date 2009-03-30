@@ -4,7 +4,14 @@ import sys
 import os
 import AUTOCommands
 import interactiveBindings
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__ # Python 3
+try:
+    raw_input
+except NameError: # Python 3
+    __builtin__.raw_input = input
 
 _functionTemplate="""
 def %s(self,*args,**kw):

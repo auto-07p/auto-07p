@@ -6,19 +6,22 @@
 
 import re
 import sys
-import UserList
+try:
+    from UserList import UserList
+except ImportError: # Python 3
+    from collections import UserList
 import getopt
 import math
 import AUTOExceptions
 import parseB
 
-class parseD(UserList.UserList):
+class parseD(UserList):
     def __init__(self,filename=None):
         if isinstance(filename, str):
-            UserList.UserList.__init__(self)
+            UserList.__init__(self)
             self.readFilename(filename)
         else:
-            UserList.UserList.__init__(self,filename)
+            UserList.__init__(self,filename)
 
     def __getitem__(self,index):
         return self.getIndex(index)

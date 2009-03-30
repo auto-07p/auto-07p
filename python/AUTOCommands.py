@@ -1,5 +1,8 @@
 #! /usr/bin/env python 
-import cStringIO
+try:
+    from cStringIO import StringIO
+except ImportError: # Python 3
+    from io import StringIO
 import parseC
 import parseB
 import parseS
@@ -1573,12 +1576,12 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
     def __call__(self):
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         runner = func().data
-        err = cStringIO.StringIO()
+        err = StringIO()
         sv = (runner.options.get("constants") or {}).get("sv")
         if sv == '':
             sv = None
         if runner.options["verbose"] == "no":
-            log = cStringIO.StringIO()
+            log = StringIO()
             data = runner.run(log=log,err=err)
             log.seek(0)
             err.seek(0)
@@ -1799,7 +1802,10 @@ class commandPlotter3D(command):
 
 
 try:
-    import Tkinter
+    try:
+        from Tkinter import Tk
+    except ImportError:
+        from tkinter import Tk # Python 3
     plotterimported = False
     try:
         import readline
@@ -1865,7 +1871,7 @@ try:
                     self.options['grapher_'+k] = v
 
             # Get rid of the initial window
-            root=Tkinter.Tk()
+            root=Tk()
             root.withdraw()
             if sys.platform == "cygwin":
                 try:
@@ -2085,11 +2091,14 @@ class commandCreateGUI(command):
         self.type=type
         pass
     def __call__(self):
-        import Tkinter
+        try:
+            from Tkinter import Tk
+        except ImportError:
+            from tkinter import Tk # Python 3
         import Pmw
         from graphics import AUTOgui
         # Get rid of the initial window
-        root = Tkinter.Tk()
+        root = Tk()
         root.withdraw()
         gui = AUTOgui.AUTOgui(self.type)
         return valueStringAndData("GUI created\n",gui)

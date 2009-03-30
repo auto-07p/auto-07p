@@ -1,12 +1,6 @@
 
-import PmwColor
-Color = PmwColor
-del PmwColor
-
-import PmwBlt
-Blt = PmwBlt
-del PmwBlt
-
+from graphics import PmwColor as Color
+from graphics import PmwBlt as Blt
 
 ### Loader functions:
 
@@ -59,7 +53,10 @@ except NameError:
 import os
 import sys
 import traceback
-import Tkinter
+try:
+    import Tkinter
+except ImportError:
+    import tkinter as Tkinter # Python 3
 
 # Special values used in index() methods of several megawidgets.
 END = ['end']
@@ -239,7 +236,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
     __methodDict(toClass, dict)
 
     # discard special methods
-    for ex in dict.keys():
+    for ex in list(dict.keys()):
         if ex[:1] == '_' or ex[-1:] == '_':
             del dict[ex]
     # discard dangerous methods supplied by the caller
@@ -1555,7 +1552,8 @@ class _TraceTk:
         _recursionCounter = _recursionCounter + 1
         try:
             result = self.tclInterp.call(*args, **kw)
-        except Tkinter.TclError, errorString:
+        except Tkinter.TclError:
+            errorString = sys.exc_info()[1]
             _callToTkReturned = 1
             _recursionCounter = _recursionCounter - 1
             _traceTkFile.write('\nTK ERROR> %d:%s-> %s\n' %
@@ -1782,7 +1780,8 @@ class __TkinterCallWrapper:
                     (_recursionCounter, '  ' * _recursionCounter, name, argStr))
                 _traceTkFile.flush()
             return self.func(*args)
-        except SystemExit, msg:
+        except SystemExit:
+            msg = sys.exc_info()[1]
             raise SystemExit(msg)
         except:
             _reporterror(self.func, args)
@@ -1982,7 +1981,6 @@ class _ErrorWindow:
 #                   the application.
 
 import sys
-import Tkinter
 
 
 # A Toplevel with a ButtonBox and child site.
@@ -2233,24 +2231,24 @@ def ymdtojdn(year, month, day, julian = -1, papal = 1):
     # set Julian flag if auto set
     if julian < 0:
         if papal:                          # Pope Gregory XIII's decree
-            lastJulianDate = 15821004L     # last day to use Julian calendar
+            lastJulianDate = 15821004      # last day to use Julian calendar
         else:                              # British-American usage
-            lastJulianDate = 17520902L     # last day to use Julian calendar
+            lastJulianDate = 17520902      # last day to use Julian calendar
 
-        julian = ((year * 100L) + month) * 100 + day  <=  lastJulianDate
+        julian = ((year * 100) + month) * 100 + day  <=  lastJulianDate
 
     if year < 0:
         # Adjust BC year
         year = year + 1
 
     if julian:
-        return 367L * year - _cdiv(7 * (year + 5001L + _cdiv((month - 9), 7)), 4) + \
-            _cdiv(275 * month, 9) + day + 1729777L
+        return 367 * year - _cdiv(7 * (year + 5001 + _cdiv((month - 9), 7)), 4) + \
+            _cdiv(275 * month, 9) + day + 1729777
     else:
-        return (day - 32076L) + \
-            _cdiv(1461L * (year + 4800L + _cdiv((month - 14), 12)), 4) + \
+        return (day - 32076) + \
+            _cdiv(1461 * (year + 4800 + _cdiv((month - 14), 12)), 4) + \
             _cdiv(367 * (month - 2 - _cdiv((month - 14), 12) * 12), 12) - \
-            _cdiv((3 * _cdiv((year + 4900L + _cdiv((month - 14), 12)), 100)), 4) + \
+            _cdiv((3 * _cdiv((year + 4900 + _cdiv((month - 14), 12)), 100)), 4) + \
             1            # correction by rdg
 
 def jdntoymd(jdn, julian = -1, papal = 1):
@@ -2258,20 +2256,20 @@ def jdntoymd(jdn, julian = -1, papal = 1):
     # set Julian flag if auto set
     if julian < 0:
         if papal:                          # Pope Gregory XIII's decree
-            lastJulianJdn = 2299160L       # last jdn to use Julian calendar
+            lastJulianJdn = 2299160        # last jdn to use Julian calendar
         else:                              # British-American usage
-            lastJulianJdn = 2361221L       # last jdn to use Julian calendar
+            lastJulianJdn = 2361221        # last jdn to use Julian calendar
 
         julian = (jdn <= lastJulianJdn);
 
-    x = jdn + 68569L
+    x = jdn + 68569
     if julian:
         x = x + 38
-        daysPer400Years = 146100L
-        fudgedDaysPer4000Years = 1461000L + 1
+        daysPer400Years = 146100
+        fudgedDaysPer4000Years = 1461000 + 1
     else:
-        daysPer400Years = 146097L
-        fudgedDaysPer4000Years = 1460970L + 31
+        daysPer400Years = 146097
+        fudgedDaysPer4000Years = 1460970 + 31
 
     z = _cdiv(4 * x, daysPer400Years)
     x = x - _cdiv((daysPer400Years * z + 3), 4)
@@ -2306,7 +2304,6 @@ def stringtoreal(text, separator = '.'):
 ######################################################################
 ### File: PmwBalloon.py
 import os
-import Tkinter
 
 
 class Balloon(MegaToplevel):
@@ -2674,7 +2671,6 @@ class Balloon(MegaToplevel):
 ### File: PmwButtonBox.py
 # Based on iwidgets2.2.0/buttonbox.itk code.
 
-import Tkinter
 
 
 class ButtonBox(MegaWidget):
@@ -2900,7 +2896,6 @@ class ButtonBox(MegaWidget):
 # Based on iwidgets2.2.0/entryfield.itk code.
 
 import re
-import Tkinter
 
 
 # Possible return values of validation functions.
@@ -3356,7 +3351,6 @@ def _postProcess(event):
 
 ######################################################################
 ### File: PmwGroup.py
-import Tkinter
 
 
 def aligngrouptags(groups):
@@ -3471,7 +3465,6 @@ class Group( MegaWidget ):
 
 ######################################################################
 ### File: PmwLabeledWidget.py
-import Tkinter
 
 
 class LabeledWidget(MegaWidget):
@@ -3510,7 +3503,6 @@ class LabeledWidget(MegaWidget):
 ### File: PmwMainMenuBar.py
 # Main menubar
 
-import Tkinter
 
 
 class MainMenuBar(MegaArchetype):
@@ -3735,7 +3727,6 @@ forwardmethods(MainMenuBar, Tkinter.Menu, '_hull')
 ### File: PmwMenuBar.py
 # Manager widget for menus.
 
-import Tkinter
 
 
 class MenuBar(MegaWidget):
@@ -3978,7 +3969,6 @@ class MenuBar(MegaWidget):
 ### File: PmwMessageBar.py
 # Class to display messages in an information line.
 
-import Tkinter
 
 
 class MessageBar(MegaWidget):
@@ -4123,7 +4113,6 @@ forwardmethods(MessageBar, Tkinter.Entry, '_messageBarEntry')
 ### File: PmwMessageDialog.py
 # Based on iwidgets2.2.0/messagedialog.itk code.
 
-import Tkinter
 
 
 class MessageDialog(Dialog):
@@ -4196,7 +4185,6 @@ class MessageDialog(Dialog):
 
 ######################################################################
 ### File: PmwNoteBook.py
-import Tkinter
 
 
 class NoteBook(MegaArchetype):
@@ -4812,7 +4800,6 @@ forwardmethods(NoteBook, Tkinter.Canvas, '_hull')
 
 ######################################################################
 ### File: PmwOptionMenu.py
-import Tkinter
 
 
 class OptionMenu(MegaWidget):
@@ -4963,7 +4950,6 @@ class OptionMenu(MegaWidget):
 # a frame which may contain several resizable sub-frames
 
 import sys
-import Tkinter
 
 
 class PanedWidget(MegaWidget):
@@ -5641,7 +5627,6 @@ forwardmethods(PromptDialog, EntryField, '_promptDialogEntry')
 
 ######################################################################
 ### File: PmwRadioSelect.py
-import Tkinter
 
 
 class RadioSelect(MegaWidget):
@@ -5876,7 +5861,6 @@ class RadioSelect(MegaWidget):
 
 ######################################################################
 ### File: PmwScrolledCanvas.py
-import Tkinter
 
 
 class ScrolledCanvas(MegaWidget):
@@ -6168,7 +6152,6 @@ forwardmethods(ScrolledCanvas, Tkinter.Canvas, '_canvas')
 
 ######################################################################
 ### File: PmwScrolledField.py
-import Tkinter
 
 
 class ScrolledField(MegaWidget):
@@ -6224,7 +6207,6 @@ forwardmethods(ScrolledField, Tkinter.Entry, '_scrolledFieldEntry')
 
 ######################################################################
 ### File: PmwScrolledFrame.py
-import Tkinter
 
 
 class ScrolledFrame(MegaWidget):
@@ -6622,7 +6604,6 @@ class ScrolledFrame(MegaWidget):
 ### File: PmwScrolledListBox.py
 # Based on iwidgets2.2.0/scrolledlistbox.itk code.
 
-import Tkinter
 
 
 class ScrolledListBox(MegaWidget):
@@ -7000,7 +6981,6 @@ def _handleEvent(event, eventType):
 ### File: PmwScrolledText.py
 # Based on iwidgets2.2.0/scrolledtext.itk code.   
 
-import Tkinter
 
 
 class ScrolledText(MegaWidget):
@@ -7695,7 +7675,6 @@ forwardmethods(TextDialog, ScrolledText, '_text')
 
 import sys
 import time
-import Tkinter
 
 
 class TimeCounter(MegaWidget):
@@ -8132,7 +8111,6 @@ def aboutcontact(value):
 # Based on iwidgets2.2.0/combobox.itk code.
 
 import os
-import Tkinter
 
 
 class ComboBox(MegaWidget):
@@ -8576,7 +8554,6 @@ forwardmethods(ComboBoxDialog, ComboBox, '_combobox')
 ######################################################################
 ### File: PmwCounter.py
 import sys
-import Tkinter
 
 
 class Counter(MegaWidget):

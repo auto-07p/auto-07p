@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-import Tkinter
-import Pmw
-import tkSimpleDialog
-import tkFileDialog
+try:
+    import Tkinter
+    import tkSimpleDialog
+    import tkFileDialog
+except ImportError:
+    import tkinter as Tkinter # Python 3
+    from tkinter import simpledialog as tkSimpleDialog
+    from tkinter import filedialog as tkFileDialog
+from graphics import Pmw
 import AUTOutil
-import optionHandler
+from graphics import optionHandler
 import math
 
 GrapherError="GrapherError"

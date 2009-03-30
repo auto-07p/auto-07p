@@ -1,5 +1,8 @@
 #! /usr/bin/env python
-import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError: # Python 3
+    from configparser import ConfigParser
 import os
 import array
 N = array
@@ -85,7 +88,8 @@ def cnfmerge(cnfs):
         for c in _flatten(cnfs):
             try:
                 cnf.update(c)
-            except (AttributeError, TypeError), msg:
+            except (AttributeError, TypeError):
+                msg = sys.exc_info()[1]
                 print("_cnfmerge: fallback due to: %s"%msg)
                 for k, v in c.items():
                     cnf[k] = v
@@ -105,7 +109,7 @@ def findBaseClass(inputClass,baseClass):
         return 0
 
 def getAUTORC(section):
-    parser = ConfigParser.ConfigParser()
+    parser = ConfigParser()
     parser.add_section(section)
     path = os.path.expandvars("$AUTO_DIR/.autorc")
     if os.path.exists(path):
@@ -119,7 +123,10 @@ def getAUTORC(section):
         parser.read("./.autorc")
     return parser
 
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__ # Python 3
 
 try:
     all
@@ -186,17 +193,17 @@ try:
     False
 except NameError:
     # Pre-2.2 Python has no False keyword.
-    __builtin__.False = not 1
+    setattr(__builtin__, "False", not 1)
     # Assign to False in this module namespace so it shows up in pydoc output.
-    False = False
+    globals()["False"] = False
 
 try:
     True
 except NameError:
     # Pre-2.2 Python has no True keyword.
-    __builtin__.True = not 0
+    setattr(__builtin__, "True", not 0)
     # Assign to True in this module namespace so it shows up in pydoc output.
-    True = True
+    globals()["True"] = False
 
 # very basic numpy emulation:
 def array(l, code=None):

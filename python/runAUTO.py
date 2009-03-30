@@ -1,7 +1,10 @@
 #! /usr/bin/env python
 import getopt,sys,os
 import signal, os, time
-import cStringIO
+try:
+    from cStringIO import StringIO
+except ImportError: # Python 3
+    from io import StringIO
 import re
 import glob,stat
 import AUTOExceptions,parseC,parseH
@@ -178,15 +181,15 @@ class runAUTO:
 
     def __resetInternalLogs(self):
         if self.internalLog is None:
-            self.internalLog = cStringIO.StringIO()
+            self.internalLog = StringIO()
         else:
             self.internalLog.close()
-            self.internalLog = cStringIO.StringIO()
+            self.internalLog = StringIO()
         if self.internalErr is None:
-            self.internalErr = cStringIO.StringIO()
+            self.internalErr = StringIO()
         else:
             self.internalErr.close()
-            self.internalErr = cStringIO.StringIO()
+            self.internalErr = StringIO()
     def __rewindInternalLogs(self):
         self.internalLog.seek(0)
         self.internalErr.seek(0)

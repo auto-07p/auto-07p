@@ -1,7 +1,10 @@
 # Python interface to some of the commands of the 2.4 version of the
 # BLT extension to tcl.
 
-import Tkinter
+try:
+    import Tkinter
+except ImportError:
+    import tkinter as Tkinter # Python 3
 
 # Supported commands:
 _busyCommand = '::blt::busy'
