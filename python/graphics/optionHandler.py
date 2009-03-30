@@ -19,7 +19,7 @@ class OptionHandler:
             return key
 
     def __parseOptions(self,dict):
-        for key in dict.keys():
+        for key in list(dict):
             newkey = self.__applyOptionAliases(key)
             if newkey in self.__options.keys():
                 if self.__options[newkey] != dict[key]:

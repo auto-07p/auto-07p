@@ -28,6 +28,12 @@ except ImportError: # Python 3
 import parseC
 import Points
 
+try:
+    next
+except NameError: #Python < 3
+    def next(it):
+        return it.next()
+
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
        1: {"long name" : "Branch point (algebraic problem)","short name" : "BP"},
@@ -237,6 +243,8 @@ class AUTOBranch(Points.Pointset):
         # for those without numpy...
         coordarray = []
         try:
+            if not isinstance(data,list): #Python 3
+                data = list(data)
             for i in range(4,ncolumns):
                 coordarray.append(N.array(data[i::ncolumns],'d'))
         except TypeError:
@@ -246,7 +254,7 @@ class AUTOBranch(Points.Pointset):
         self.stability = []
         prevpt = data[1]
         stab = []
-        for j in xrange(1,len(data),ncolumns):
+        for j in range(1,len(data),ncolumns):
             pt = int(data[j])
             if pt * prevpt < 0:
                 p = j//ncolumns
@@ -665,7 +673,7 @@ class AUTOBranch(Points.Pointset):
         if prevline:
             line = prevline
         else:
-            line = inputfile.next()
+            line = next(inputfile)
         headerlist = []
         columns = split(line,None,2)
         if columns[0] == '0':

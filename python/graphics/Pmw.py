@@ -236,7 +236,7 @@ def forwardmethods(fromClass, toClass, toPart, exclude = ()):
     __methodDict(toClass, dict)
 
     # discard special methods
-    for ex in list(dict.keys()):
+    for ex in list(dict):
         if ex[:1] == '_' or ex[-1:] == '_':
             del dict[ex]
     # discard dangerous methods supplied by the caller
@@ -520,7 +520,7 @@ class MegaArchetype:
 
             alias = alias + '_'
             aliasLen = len(alias)
-            for option in keywords.keys():
+            for option in list(keywords):
                 if len(option) > aliasLen and option[:aliasLen] == alias:
                     newkey = component + '_' + option[aliasLen:]
                     keywords[newkey] = keywords[option]
@@ -528,7 +528,7 @@ class MegaArchetype:
 
         componentPrefix = componentName + '_'
         nameLen = len(componentPrefix)
-        for option in keywords.keys():
+        for option in list(keywords):
             if len(option) > nameLen and option[:nameLen] == componentPrefix:
                 # The keyword argument refers to this component, so add
                 # this to the options to use when constructing the widget.
@@ -866,7 +866,7 @@ class MegaArchetype:
 
         # This list includes the 'hull' component and all widget subcomponents
 
-        names = self.__componentInfo.keys()
+        names = list(self.__componentInfo)
         names.sort()
         return names
 

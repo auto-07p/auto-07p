@@ -304,7 +304,7 @@ def sortedDictKeys(d, onlykeys=[], reverse=False):
     if onlykeys != []:
         keys = intersect(d.keys(), onlykeys)
     else:
-        keys = d.keys()
+        keys = list(d)
     keys.sort()
     if reverse:
         keys.reverse()
@@ -330,12 +330,12 @@ def compareNumTypes(t1, t2):
 
 # find intersection of two lists, sequences, etc.
 def intersect(a, b):
-    return filter(lambda e,b=b : e in b, a)
+    return list(filter(lambda e,b=b : e in b, a))
 
 def remain(a, b):
     """Find remainder of two lists, sequences, etc., after intersection.
     Includes repetitions if they occur in the input lists."""
-    return filter(lambda e,b=b : e not in b, a)
+    return list(filter(lambda e,b=b : e not in b, a))
 
 __all__ = ['Point', 'Pointset', 'isparameterized', 'pointsToPointset',
            'PointInfo', 'makeNonParameterized', 'arrayToPointset',
@@ -422,7 +422,7 @@ class Point(object):
                 else:
                     raise TypeError("Must pass numeric type or sequence of "
                                     "numeric types")
-            self.coordnames = coorddict.keys()
+            self.coordnames = list(coorddict)
             # only way to order dictionary keys for array is to sort
             self.coordnames.sort()
             self.dimension = len(self.coordnames)
@@ -996,7 +996,7 @@ class Pointset(Point):
                         raise TypeError("Must pass arrays, lists, or numeric types")
                     else:
                         coorddict[c_key] = array([v], self.coordtype)
-            self.coordnames = coorddict.keys()
+            self.coordnames = list(coorddict)
             # only way to order dictionary keys for array is to sort
             self.coordnames.sort()
             self.dimension = len(self.coordnames)
@@ -1549,7 +1549,7 @@ class Pointset(Point):
 
 
     def __contains__(self, other):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             if comparePointCoords(self.__getitem__(i), other):
                 return True
         return False
@@ -1560,7 +1560,7 @@ class Pointset(Point):
         except TypeError:
             if len(self.indepvararray) != len(other.indepvararray):
                 return False
-            for i in xrange(len(self.indepvararray)):
+            for i in range(len(self.indepvararray)):
                 if self.indepvararray[i] != other.indepvararray[i]:
                     return False
             return True
@@ -1692,7 +1692,7 @@ class Pointset(Point):
                     s_label_ixs = self.labels.getIndices()
                     sLabelMap = {}
                     pLabelMap = {}
-                    for i in xrange(lenp):
+                    for i in range(lenp):
                         s_ix = s_ixs[i]
                         if i in p_label_ixs:
                             pLabelMap[i] = s_ix
@@ -1700,7 +1700,7 @@ class Pointset(Point):
                             if s_label_ix >= s_ix-i:
                                 sLabelMap[s_label_ix] = s_label_ix+i+1
                     # for each one, list-insert new point data
-                    for p_ix in xrange(lenp):
+                    for p_ix in range(lenp):
                         s_ix = s_ixs[p_ix]
                         iva.insert(s_ix, iva_p[p_ix])
                         for k in self._ix_name_map:
@@ -1805,7 +1805,7 @@ class Pointset(Point):
                 tvals = take(tval,range(added_len))
                 self.indepvararray[old_len:] = tvals
             pdict = p.todict()
-            for ix in xrange(self.dimension):
+            for ix in range(self.dimension):
                 self.coordarray[ix][:old_len] = old_coords[ix][:old_len]
                 self.coordarray[ix][old_len:] = pdict[
                     self._ix_name_map[ix]][start_ix:]
@@ -1853,7 +1853,7 @@ class Pointset(Point):
                                     _num_equivtype[type(self.indepvararray[0])])
                 self.indepvararray[:new_len-1] = old_indepvars
                 self.indepvararray[new_len-1] = tval
-            for ix in xrange(self.dimension):
+            for ix in range(self.dimension):
                 self.coordarray[ix][:new_len-1] = old_coords[ix]
                 self.coordarray[ix][new_len-1] = p(self._ix_name_map[ix])
             if len(p.labels) > 0:
@@ -2268,7 +2268,7 @@ class PointInfo(object):
             else:
                 key2 = self.by_label[key1].keys()
         if byix:
-            for k in key2:
+            for k in list(key2):
                 # have to check k in dict otherwise DefaultDict creates entry!
                 if k in self.by_label:
                     del self.by_index[key1][k]

@@ -126,12 +126,16 @@ Aliases: ex"""
         # iFun has to be a valid python identifier, so it better be only pure
         #ascii, no unicode:
         try:
-            iFun = iFun.encode('ascii')
-        except AttributeError:
-            pass
+            iFuntmp = iFun.encode('ascii')
+            if isinstance(iFuntmp, str):
+                iFun = iFuntmp
         except UnicodeEncodeError:
-            theRest = iFun+unicode(' ')+theRest
-            iFun = unicode('')
+            try:
+                theRest = iFun+unicode(' ')+theRest
+                iFun = unicode('')
+            except NameError:
+                theRest = iFun+' '+theRest
+                iFun = ''
             
         return pre,iFun.strip(),theRest
 

@@ -24,6 +24,10 @@ try:
     from UserList import UserList
 except ImportError: #Python 3
     from collections import UserDict, UserList
+try:
+    file
+except NameError: #Python 3
+    from io import IOBase as file
 import AUTOExceptions
 import copy
 import parseB
@@ -123,7 +127,7 @@ class parseS(list):
     def read(self,inputfile,**kw):
         # We now go through the file and read the solutions.
         prev = None
-        while inputfile.read(1) != "":
+        while len(inputfile.read(1)) > 0:
             solution = AUTOSolution(inputfile,prev,self.name,**kw)
             self.append(solution)
             prev = solution
@@ -765,7 +769,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             slist = []
             for i in range(self.__numLinesPerEntry):
                 slist.append(input.readline())
-            self.__data = "".join(slist)
+            self.__data = "".encode("ascii").join(slist)
             end = input.tell()
         else:
             self.__data = input.read(end - self.__start_of_data)
@@ -865,6 +869,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 fdata = map(float, data)
             except:
                 fdata = map(parseB.AUTOatof, data)
+            if not isinstance(fdata,list): # Python 3
+                fdata = list(fdata)
             if total != len(fdata):
                 raise PrematureEndofData
             self.coordarray = []

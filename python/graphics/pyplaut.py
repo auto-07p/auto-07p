@@ -3,7 +3,10 @@ import bifDiag, parseB
 from graphics import windowPlotter
 import code
 import sys
-import Tkinter
+try:
+    import Tkinter
+except ImportError:
+    import tkinter as Tkinter
 import select
 try:
     import termios

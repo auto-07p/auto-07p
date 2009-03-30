@@ -129,6 +129,11 @@ except ImportError:
     import builtins as __builtin__ # Python 3
 
 try:
+    raw_input
+except NameError: # Python 3
+    __builtin__.raw_input = input
+
+try:
     all
 except NameError:
     # Pre-2.5 Python has no all() function.
