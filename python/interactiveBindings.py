@@ -6,6 +6,7 @@ import code
 import getopt
 import re
 import AUTOExceptions
+import keyword
 try:
     import __builtin__
 except ImportError:
@@ -156,12 +157,16 @@ Aliases: ex"""
         oname_head, oname_rest = oname_parts[0],oname_parts[1:]
         # Namespaces to search in:
         for ns in [ self.locals, __builtin__.__dict__ ]:
+            if keyword.iskeyword(oname_head):
+                break
             try:
                 obj = ns[oname_head]
             except KeyError:
                 continue
             else:
                 for part in oname_rest:
+                    if keyword.iskeyword(part):
+                        break
                     try:
                         obj = getattr(obj,part)
                     except:
@@ -239,7 +244,7 @@ Aliases: ex"""
                   (pre == ',' or pre == ';' or pre == '/' or
                   not self.re_exclude_auto.match(theRest))):
                 obj = self._ofind(cmd)
-                if not obj is None and cmd != 'print' and hasattr(obj, '__call__'):
+                if obj is not None and hasattr(obj, '__call__'):
                     command = (line[:(len(line) - len(line.lstrip()))]+
                                self.handle_auto(pre,cmd,theRest,obj))
                     return command

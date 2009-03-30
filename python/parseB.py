@@ -288,7 +288,7 @@ class AUTOBranch(Points.Pointset):
         """Removes solutions with the given labels or type names"""
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
-        if not isinstance(label, list):
+        if isinstance(label, (str, int)):
             label = [label]
         if copy:
             new = self.__class__(self)

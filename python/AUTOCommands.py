@@ -467,11 +467,11 @@ class commandAppend(commandWithFilenameTemplate):
                 n2 = n1
                 n1 = "fort."+str(i)
             i = i+1
-            f1 = open(n1)
+            f1 = open(n1,"rb")
             f2 = open(n2,"ab")
             while 1:
                 buf = f1.read(1024*1024)
-                if buf == "":
+                if len(buf) == 0:
                     break
                 f2.write(buf)
             f1.close()
@@ -1197,12 +1197,12 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
         for key in ["equation", "constants", "solution", "homcont"]:
             abbrev[key[0]] = key
             abbrev[key]    = key
-        for key in kw.keys():
+        for key in list(kw):
             # remove long duplicates
             if (key in abbrev and key != abbrev[key] and
                 abbrev[key] in kw):
                 del kw[abbrev[key]]
-        for key,value in kw.items():
+        for key,value in list(kw.items()):
             if key in abbrev:
                 # change the abbreviation to the long version
                 del kw[key]

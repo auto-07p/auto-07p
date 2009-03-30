@@ -935,6 +935,16 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         return getattr(self,attr)
 
     def write(self,output,mlab=False):
+        try:
+            "".encode("ascii") + ""
+            def write_enc(s):
+                #write encoded
+                output.write(s)
+        except TypeError: #Python 3.0
+            def write_enc(s):
+                #write encoded
+                output.write(s.encode("ascii"))
+
         if self.__fullyParsed:
             ndim = len(self.coordarray)
             npar = len(self["Parameters"])
@@ -971,7 +981,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                                          self["NCOL"],
                                                          npar
                                                          )
-        output.write(line+os.linesep)
+        write_enc(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
         # the end of the solution we can just copy from the raw data from the
         # input file into the output file.
@@ -988,18 +998,18 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                         slist.append(os.linesep+"    ")
                     slist.append("%19.10E" % (self.coordarray[j-1][i]))
                 slist.append(os.linesep)
-            output.write("".join(slist))
+            write_enc("".join(slist))
             # I am using the value of NTST to test to see if it is an algebraic or
             # ODE problem.
             if self["NTST"] != 0:
                 j = 0
                 for parameter in self.get("Active ICP",[0]):
-                    output.write("%5d" % (parameter))
+                    write_enc("%5d" % (parameter))
                     j = j + 1
                     if j%20==0:
-                        output.write(os.linesep)
+                        write_enc(os.linesep)
                 if j%20!=0:
-                    output.write(os.linesep)
+                    write_enc(os.linesep)
 
                 line = "    "
                 i = 0
@@ -1009,7 +1019,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                         line = line + os.linesep + "    "
                     line = line + num
                     i = i + 1
-                output.write(line+os.linesep)
+                write_enc(line+os.linesep)
 
                 # write UDOTPS
                 slist = []
@@ -1028,7 +1038,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                         else:
                             slist.append("%19.10E" %0)
                     slist.append(os.linesep)
-                output.write("".join(slist))
+                write_enc("".join(slist))
 
             line = "    "
             j = 0
@@ -1037,15 +1047,15 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 line = line + num 
                 j = j + 1
                 if j%7==0:
-                    output.write(line+os.linesep)
+                    write_enc(line+os.linesep)
                     line = "    "
             if j%7!=0:
-                output.write(line+os.linesep)
+                write_enc(line+os.linesep)
         if mlab and (self._mbr > 0 or self._mlab > 0) and not (
             self._mbr == self["BR"] and self._mlab == self["LAB"]):
             # header for empty solution so that AUTO can pickup the maximal
             # label and branch numbers.
-            output.write("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%s"%((self._mbr,
+            write_enc("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%s"%((self._mbr,
                                    0, 0, self._mlab) + 8*(0,) + (os.linesep,)))
         output.flush()
 

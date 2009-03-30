@@ -148,11 +148,14 @@ class runAUTO:
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
         if "subprocess" in sys.modules:
-            p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE)
+            p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE,
+                                  universal_newlines=True)
             p2 = subprocess.Popen(["grep",alarm_demo+".exe"], stdin=p1.stdout,
-                                  stdout=subprocess.PIPE)
+                                  stdout=subprocess.PIPE,
+                                  universal_newlines=True)
             p3 = subprocess.Popen(["grep","-v","grep"], stdin=p2.stdout,
-                                  stdout=subprocess.PIPE)
+                                  stdout=subprocess.PIPE,
+                                  universal_newlines=True)
             cout = p3.stdout
         else:
             cout,cin = popen2.popen2(
@@ -227,7 +230,8 @@ class runAUTO:
         cmd = "make -e %s.exe"%d
         if "subprocess" in sys.modules:
             p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+                                 stderr=subprocess.PIPE,
+                                 universal_newlines=True)
             stdout,stderr = p.stdout,p.stderr
         else:
             stdout,stdin,stderr = popen2.popen3(cmd)
@@ -245,7 +249,8 @@ class runAUTO:
             cmd = "make -e clean"
             if "subprocess" in sys.modules:
                 p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
+                                     stderr=subprocess.PIPE,
+                                     universal_newlines=True)
                 stdout,stderr = p.stdout,p.stderr
             else:
                 stdout,stdin,stderr = popen2.popen3(cmd)
@@ -316,10 +321,10 @@ class runAUTO:
         # do the same as $AUTO_DIR/cmds/cmds.make but in Python
         # first get the configure-set variables
         f = open(os.path.join(os.path.expandvars("$AUTO_DIR"),
-                              "cmds","cmds.make"),"rb")
+                              "cmds","cmds.make"),"r")
         var = {}
-        while True:
-            line = f.readline().split()
+        for line in f:
+            line = line.split()
             if len(line) < 2 or line[1] != '=':
                 continue
             if line[0] == "SRC":
@@ -537,7 +542,8 @@ class runAUTO:
             if "subprocess" in sys.modules:
                 args = os.path.expandvars(command).split()
                 demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
-                                               stderr=subprocess.PIPE)
+                                               stderr=subprocess.PIPE,
+                                               universal_newlines=True)
                 stdout, stderr = demo_object.stdout, demo_object.stderr
                 teststatus = None
             else:
