@@ -213,7 +213,7 @@ class auxfnDBclass(object):
 
     def removeAuxFn(self, auxfnName):
         flagdelete = None
-        for k, v in self.auxnames.iteritems():
+        for k, v in self.auxnames.items():
             if v == auxfnName:
                 flagdelete = k
                 break
@@ -536,7 +536,7 @@ class Point(object):
             return d
 
     def update(self, d):
-        for k, v in d.iteritems():
+        for k, v in d.items():
             self.coordarray[self._map_names_to_ixs(k)] = v
 
     def items(self):
@@ -892,8 +892,8 @@ class Pointset(Point):
                     self.indepvartype = _num_equivtype[it]
                 except KeyError:
                     raise TypeError('Independent variable type %s not valid'%str(it))
-            vals = kw['indepvardict'].values()[0]
-            self.indepvarname = kw['indepvardict'].keys()[0]
+            vals = list(kw['indepvardict'].values())[0]
+            self.indepvarname = list(kw['indepvardict'])[0]
             if isinstance(vals, _seq_types):
                 self.indepvararray = array(vals, self.indepvartype)
             else:
@@ -2589,7 +2589,7 @@ def test_point():
                    'x2': [4000]},
                'coordtype': float})"""
     print(xstr)
-    exec(xstr)
+    exec(xstr,globals())
     # float is equivalent to float64
     print("x =>  %s"%repr(x))
     print("x.toarray() =  %s"%x.toarray())
@@ -2610,7 +2610,7 @@ def test_point():
     # can also specify as array([4])
     ystr = """y = Point({'y': 4})"""
     print(ystr)
-    exec(ystr)
+    exec(ystr,globals())
     print("print y =>  %s"%y)
     print("y(0) =  %s"%y(0))
     print("type(y(0)) =>  %s"%type(y(0)))
@@ -2631,7 +2631,7 @@ def test_pointset():
                  'indepvartype': float64
                   })"""
     print(vstr)
-    exec(vstr)
+    exec(vstr,globals())
     print("print v => %s"%v)
     print("\nprint v(0.01) =>  %s"%v(0.01))
     print("and v(0.01) is a Point object\n")
@@ -2645,7 +2645,7 @@ def test_pointset():
                   'indepvarname': 't',
                   'indepvararray': array(0.0)})"""
     print(kstr)
-    exec(kstr)
+    exec(kstr,globals())
     assert k.dimension == 1
     print("print k.toarray() =>  %s"%k.toarray())
     print("print k['t'] =>  %s"%k['t'])
@@ -2654,7 +2654,7 @@ def test_pointset():
 
     print("\nu tests non-parameterized pointset")
     ustr = """u = Pointset({'coordarray': array([10., 20., 30., 40.])})"""
-    exec(ustr)
+    exec(ustr,globals())
     print(ustr)
     print("u.toarray() =>  %s"%u.toarray())
     print("isparameterized(u) =>  %s"%isparameterized(u))
@@ -2668,7 +2668,7 @@ def test_pointset():
                   'indepvarname': 't',
                   'indepvararray': array([0.0, 1.0, 2.0, 3.0], float64)})"""
     print(wstr)
-    exec(wstr)
+    exec(wstr,globals())
     assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
     print("wp.dimension =>  %s"%wp.dimension)
     print("print wp(0.0) =>  %s"%wp(0.0))
@@ -2775,7 +2775,7 @@ for t in wp['t']:
     pointlist.append(wp(t))
 w_reconstructed = pointsToPointset(pointlist, 't', wp['t'])"""
     print(codestr)
-    exec(codestr)
+    exec(codestr,globals())
     print("\nAnd to demonstrate that this yields an identical object:")
     print("w_reconstructed == w  =>  %s"%(w_reconstructed == wp))
 

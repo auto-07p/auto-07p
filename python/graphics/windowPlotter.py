@@ -109,18 +109,18 @@ class WindowPlotter(Pmw.MegaToplevel):
         self._modifyOption("label",str(list))
 
     def _setOptionWindow(self):
-        keys = self.grapher.configure().keys()
+        keys = list(self.grapher.configure())
         keys.sort()
-        list = []
+        lst = []
         for key in keys:
             if self.grapher._isInternalOption(key):
-                list.append(key)
+                lst.append(key)
         self.optionSelctionDialog = Pmw.SelectionDialog(title = 'Options',
                                                         buttons = ('OK', 'Cancel'),
                                                         defaultbutton = 'OK',
                                                         scrolledlist_labelpos = 'n',
                                                         label_text = 'Setable options',
-                                                        scrolledlist_items = list,
+                                                        scrolledlist_items = lst,
                                                         command = self.optionSelectionDialogCommand)
         
     def _extraButtons(self,box):

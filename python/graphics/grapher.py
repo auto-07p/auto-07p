@@ -67,13 +67,13 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         Tkinter.Canvas.__init__(self,parent)
         optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
 
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        for key in dict.keys():
+        dct = AUTOutil.cnfmerge((cnf,kw))
+        for key in list(dct):
             if key not in optionDefaults:
-                del dict[key]
+                del dct[key]
         self.addOptions(optionDefaults)
         self.addAliases(optionAliases)
-        BasicGrapher._configNoDraw(self,dict)
+        BasicGrapher._configNoDraw(self,dct)
 
     def __len__(self):
         return len(self.data)
