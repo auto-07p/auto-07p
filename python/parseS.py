@@ -870,7 +870,10 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             except:
                 fdata = map(parseB.AUTOatof, data)
             if not isinstance(fdata,list): # Python 3
-                fdata = list(fdata)
+                try:
+                    fdata = list(fdata)
+                except:
+                    fdata = list(map(parseB.AUTOatof, data))
             if total != len(fdata):
                 raise PrematureEndofData
             self.coordarray = []
@@ -888,7 +891,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         # ODE problem.
         if self["NTST"] != 0:
             nfpr = self.__numChangingParameters
-            self["Active ICP"] = map(int,fdata[j:j+nfpr])
+            self["Active ICP"] = list(map(int,fdata[j:j+nfpr]))
             j = j + nfpr
             self["rldot"] = fdata[j:j+nfpr]
             j = j + nfpr

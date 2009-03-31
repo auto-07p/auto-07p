@@ -206,6 +206,11 @@ class AUTOBranch(Points.Pointset):
                 data = map(float, datalist)
             except:
                 data = map(AUTOatof, datalist)
+            if not isinstance(data,list): # Python 3
+                try:
+                    data = list(data)
+                except:
+                    data = list(map(parseB.AUTOatof, data))
             if hasattr(N,"transpose"):
                 data = N.array(data,'d')
                 coordarray = self.__parsenumpy(ncolumns,data)
@@ -243,8 +248,6 @@ class AUTOBranch(Points.Pointset):
         # for those without numpy...
         coordarray = []
         try:
-            if not isinstance(data,list): #Python 3
-                data = list(data)
             for i in range(4,ncolumns):
                 coordarray.append(N.array(data[i::ncolumns],'d'))
         except TypeError:

@@ -8,7 +8,7 @@ import math,sys,copy
 def write_lagrange(x, i):
     # When we determine which Lagrange point we have we save it.
     periods = []
-    print "L"+str(i)+":"
+    print("L"+str(i)+":")
     for imagv in [x.PAR(5), x.PAR(6), x.PAR(7)]:
         if imagv != 0:
             periods.append(2*math.pi/imagv)
@@ -20,8 +20,8 @@ def write_lagrange(x, i):
         # above Routh's ratio we have one period for L4/L5, otherwise 3.
         if i == 5:
             label = label - 2 + len(periods)
-        print "Label: %d; imaginary part: %13s; period: %10s"%(label,
-            2*math.pi/period, period)
+        print("Label: %d; imaginary part: %13s; period: %10s"%(label,
+            2*math.pi/period, period))
         x=load(x,TY="HB",LAB=label,BR=i*10+j+1,PAR={11:period})
         lst.append(x)
     return lst
@@ -67,7 +67,7 @@ def compute(m=0.063):
         if x < -0.01:
             return 3
         return 1
-    lp = map(select_lp, uzpoints)
+    lp = list(map(select_lp, uzpoints))
 
     start = []
     for i in range(1,6):

@@ -1380,12 +1380,12 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
             abbrev[key[0]] = key
             abbrev[key]    = key
-        for key in kw.keys():
+        for key in list(kw.keys()):
             # remove long duplicates
             if (key in abbrev and key != abbrev[key] and
                 abbrev[key] in kw):
                 del kw[abbrev[key]]
-        for key,value in kw.items():
+        for key,value in list(kw.items()):
             if key in abbrev:
                 # change the abbreviation to the long version
                 del kw[key]
@@ -1962,7 +1962,7 @@ class commandHelp(command):
 
         # Here we get a list of the names of all of the commands in AUTOCommands
         import AUTOCommands
-        for key in AUTOCommands.__dict__.keys():
+        for key in AUTOCommands.__dict__:
             if key in self._aliases.values():
                 command_list.append(key)
 
@@ -1984,7 +1984,7 @@ class commandHelp(command):
                 return_value[cmd] = {}
                 return_value[cmd]["aliases"] = []
                 aliases = ""
-                for key in self._aliases.keys():
+                for key in self._aliases:
                     if self._aliases[key] == cmd:
                         aliases = aliases + key + " "
                         return_value[cmd]["aliases"].append(key)
@@ -2044,7 +2044,7 @@ class commandHelp(command):
                 doc = doc + "Command name: "+command_string+"\n"
             return_value["aliases"] = []
             doc = doc + "Aliases: "
-            for key in self._aliases.keys():
+            for key in self._aliases:
                 if self._aliases[key] == command_string:
                     doc = doc + key + " "
                     return_value["aliases"].append(key)
