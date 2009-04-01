@@ -1403,6 +1403,7 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
         dname = dict.get("diagnostics")
         data = bifDiag.bifDiag(bname,sname,dname,
                                verbose = _runner.options["verbose"],
+                               redir = _runner.options["redir"],
                                makefile = _runner.options["makefile"])
         return valueStringAndData("Parsed output data\n",data)
 
@@ -1591,6 +1592,7 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
             err.close()
         elif runner.options["redir"] == "yes":
             # log was already written if the runner is verbose
+            err = StringIO()
             data = runner.run(err=err)
             err.seek(0)
             ret = valueRun(err,data=data)
