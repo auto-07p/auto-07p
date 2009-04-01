@@ -19,6 +19,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         locals["auto"] = self.auto
         locals["demofile"] = self.demofile
         locals["dmf"] = self.dmf
+        self.stopdemo = False
         try:
             self.oldhelp = __builtin__.help
         except:
@@ -36,6 +37,16 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         line = raw_input(prompt)
         line = self.processShorthand(line)
         return line
+
+    def showtraceback(self):
+        try:
+            raise
+        except AUTOExceptions.AUTORuntimeError:
+            e = sys.exc_info()[1]
+            self.write(str(e)+"\n")
+            self.stopdemo = True
+        except:
+            code.InteractiveConsole.showtraceback(self)
 
     def demofile(self,name):
         """Execute an AUTO CLUI script, line by line (demo mode).
@@ -57,6 +68,9 @@ Aliases: demofile dmf"""
                 sys.stdout.write(line+"\n")
             runline = runline + self.processShorthand(line) + "\n"
             if not self.runsource(runline):
+                if self.stopdemo:
+                    self.stopdemo = False
+                    raise AUTOExceptions.AUTORuntimeError('Demo interrupted')
                 runline = ''
 
     def dmf(self,name):

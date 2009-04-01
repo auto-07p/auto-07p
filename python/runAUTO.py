@@ -393,8 +393,7 @@ class runAUTO:
             if self.options["verbose"] == "yes":
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
-            if not self.__runCommand(cmd):
-                return False
+            self.__runCommand(cmd)
         # link
         libdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"lib")
         if fcon:
@@ -419,8 +418,7 @@ class runAUTO:
                 self.options["verbose_print"].write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
-            if not self.__runCommand(cmd):
-                return False
+            self.__runCommand(cmd)
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
 
     def run(self,**kw):
@@ -478,7 +476,6 @@ class runAUTO:
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
             equation = self.options["constants"]["e"]
-            data = None
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
                 if self.options["verbose"] == "yes":
@@ -488,8 +485,8 @@ class runAUTO:
                                  self.fort9_path]:
                     if os.path.exists(filename):
                         os.remove(filename)
-                success=self.__runCommand(os.path.join(".",equation + ".exe"))
-                data = self.__outputCommand(success)
+                self.__runCommand(os.path.join(".",equation + ".exe"))
+                data = self.__outputCommand()
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
@@ -534,22 +531,22 @@ class runAUTO:
 
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
-        success = self.__runCommand(executable)
-        data = self.__outputCommand(success)
+        self.__runCommand(executable)
+        data = self.__outputCommand()
         os.chdir(curdir)
         return data
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
-        success = self.__runCommand(command)
-        data = self.__outputCommand(success)
+        self.__runCommand(command)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
-        success = self.__runCommand(command)
-        data = self.__outputCommand(success)
+        self.__runCommand(command)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr,data]
     def __runCommand(self,command=None):
@@ -570,7 +567,13 @@ class runAUTO:
             user_time = os.times()[2]
         command = os.path.expandvars(command)
         if self.options["verbose"] == "yes" and self.options["redir"] == "no":
-            status = self.__runCommand_noredir(command)
+            try:
+                status = self.__runCommand_noredir(command)
+            except KeyboardInterrupt:
+                if hasattr(signal, 'SIGINT'):
+                    status = -signal.SIGINT
+                else:
+                    status = 1
         else:
             status = self.__runCommand_redir(command)
         if hasattr(signal,"alarm"):
@@ -585,16 +588,9 @@ class runAUTO:
                 found = False
                 for s in signals:
                     if hasattr(signal,s) and status == getattr(signal,s):
-                        sys.stderr.write(signals[s]+"\n")
-                        found = True
-                        break
-                if hasattr(signal,'SIGINT') and status == signal.SIGINT:
-                    raise KeyboardInterrupt
-                elif not found:
-                    sys.stderr.write("Signal %d\n"%status)
-            sys.stderr.write("Error running AUTO\n")
-            return False
-        return True
+                        raise AUTOExceptions.AUTORuntimeError(signals[s])
+                raise AUTOExceptions.AUTORuntimeError("Signal %d\n"%status)
+            raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
     def __runCommand_noredir(self,command=None):
         args = os.path.expandvars(command).split()
@@ -656,7 +652,7 @@ class runAUTO:
         stderr.close()
         return status
 
-    def __outputCommand(self,success=True):
+    def __outputCommand(self):
         # Check to see if output files were created.
         # If not, set the two output streams to be None.
         if (os.path.isfile(self.fort7_path) and
