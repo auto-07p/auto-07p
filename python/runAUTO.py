@@ -18,6 +18,40 @@ alarm_demo=""
 demo_killed=0
 demo_max_time=-1
 
+signals = {
+    "SIGHUP": "Hangup",
+    "SIGINT": "Interrupt",
+    "SIGQUIT": "Quit",
+    "SIGILL": "Illegal instruction",
+    "SIGTRAP": "Trace/breakpoint trap",
+    "SIGABRT": "Aborted",
+    "SIGBUS": "Bus error",
+    "SIGFPE": "Floating point exception",
+    "SIGKILL": "Killed",
+    "SIGUSR1": "User defined signal 1",
+    "SIGSEGV": "Segmentation fault",
+    "SIGUSR2": "User defined signal 2",
+    "SIGPIPE": "Broken pipe",
+    "SIGALRM": "Alarm clock",
+    "SIGTERM": "Terminated",
+    "SIGSTKFLT": "Stack fault",
+    "SIGCHLD": "Child exited",
+    "SIGCONT": "Continued",
+    "SIGSTOP": "Stopped (signal)",
+    "SIGTSTP": "Stopped",
+    "SIGTTIN": "Stopped (tty input)",
+    "SIGTTOU": "Stopped (tty output)",
+    "SIGURG": "Urgent I/O condition",
+    "SIGXCPU": "CPU time limit exceeded",
+    "SIGXFSZ": "File size limit exceeded",
+    "SIGVTALRM": "Virtual timer expired",
+    "SIGPROF": "Profiling timer expired",
+    "SIGWINCH": "Window changed",
+    "SIGIO": "I/O possible",
+    "SIGPWR": "Power failure",
+    "SIGSYS": "Bad system call"
+}
+
 class runAUTO:
     def __init__(self,cnf={},**kw):
         if isinstance(cnf,self.__class__):
@@ -52,6 +86,7 @@ class runAUTO:
         self.options["auto_dir"] = None
         self.options["demos_dir"] = None
         self.options["equation"] = "all"
+        self.options["redir"] = "yes"
         self.options["verbose"] = "no"
         self.options["verbose_print"] = sys.stdout
         self.options["clean"] = "no"
@@ -60,11 +95,8 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = None
-        self.options["bifurcationDiagram"] = None
         self.options["solution"] = None
-        self.options["diagnostics"] = None
         self.options["homcont"] = None
-        self.options["copy setup"] = None
 
         self.__parseOptions(kw)
         self.__parseOptions(cnf)
@@ -531,14 +563,55 @@ class runAUTO:
                 raise AUTOExceptions.AUTORuntimeError("No command set")
         else:
             self.options["command"] = command
-        # The command runs here.
-        # This is done as the object version so I can use the "poll" method
-        # later on to see if it is still running.
+        alarm_demo = self.options["dir"]
+        if demo_max_time > 0 and hasattr(signal,"alarm"):
+            signal.alarm(demo_max_time)
         if hasattr(os,"times"):
             user_time = os.times()[2]
-        tmp_out = []
         command = os.path.expandvars(command)
+        if self.options["verbose"] == "yes" and self.options["redir"] == "no":
+            status = self.__runCommand_noredir(command)
+        else:
+            status = self.__runCommand_redir(command)
+        if hasattr(signal,"alarm"):
+            signal.alarm(0)
+        if hasattr(os,"times"):
+            user_time = os.times()[2]
+        else:
+            user_time = 1.0
+        if status != 0:
+            if status < 0:
+                status = abs(status)
+                found = False
+                for s in signals:
+                    if hasattr(signal,s) and status == getattr(signal,s):
+                        sys.stderr.write(signals[s]+"\n")
+                        found = True
+                        break
+                if hasattr(signal,'SIGINT') and status == signal.SIGINT:
+                    raise KeyboardInterrupt
+                elif not found:
+                    sys.stderr.write("Signal %d\n"%status)
+            sys.stderr.write("Error running AUTO\n")
+            return False
+        return True
+
+    def __runCommand_noredir(self,command=None):
+        args = os.path.expandvars(command).split()
+        if "subprocess" in sys.modules:
+            return subprocess.call(args)
+        elif hasattr(os,"spawnlp"):
+            return os.spawnlp(os.P_WAIT, args[0], *args)
+        else:
+            return os.system(command)
+
+    def __runCommand_redir(self,command=None):
+        global demo_killed
+        tmp_out = []
         if "subprocess" in sys.modules or hasattr(popen2,"Popen3"):
+            # The command runs here.
+            # This is done as the object version so I can use the "poll" method
+            # later on to see if it is still running.
             if "subprocess" in sys.modules:
                 args = os.path.expandvars(command).split()
                 demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
@@ -551,9 +624,6 @@ class runAUTO:
                 demo_object.tochild.close()
                 stdout, stderr = demo_object.fromchild, demo_object.childerr
                 teststatus = -1
-            alarm_demo = self.options["dir"]
-            if demo_max_time > 0 and hasattr(signal,"alarm"):
-                signal.alarm(demo_max_time)
             status = demo_object.poll()
             while status == teststatus:
                 try:
@@ -565,26 +635,13 @@ class runAUTO:
                 except:
                     demo_killed = 1
                 status = demo_object.poll()
-            if status != 0:
-                if self.options["verbose"] == "yes":
-                    self.options["verbose_print"].write(stderr.read())
-                    self.options["verbose_print"].flush()
-                if status < 0:
-                    status = abs(status)
-                    if hasattr(signal,'SIGSEGV') and status == signal.SIGSEGV:
-                        sys.stderr.write("Segmentation fault\n")
-                    if hasattr(signal,'SIGFPE') and status == signal.SIGFPE:
-                        sys.stderr.write("Floating point exception\n")
-                    elif hasattr(signal,'SIGINT') and status == signal.SIGINT:
-                        sys.stderr.write("Ctrl-C\n")
-                        raise KeyboardInterrupt
-                    else:
-                        sys.stderr.write("Signal %d\n"%status)
-                sys.stderr.write("Error running AUTO\n")
-                return False
+            if status != 0 and self.options["verbose"] == "yes":
+                self.options["verbose_print"].write(stderr.read())
+                self.options["verbose_print"].flush()
         else:
             stdout, stdin, stderr = popen2.popen3(command)
             stdin.close()
+            status = 0
         line = stdout.readline()
         # Read the rest of the data from stdout
         while len(line) > 0:
@@ -597,13 +654,7 @@ class runAUTO:
         self.__printErr(stderr.read())
         stdout.close()
         stderr.close()
-        if hasattr(signal,"alarm"):
-            signal.alarm(0)
-        if hasattr(os,"times"):
-            user_time = os.times()[2]
-        else:
-            user_time = 1.0
-        return True
+        return status
 
     def __outputCommand(self,success=True):
         # Check to see if output files were created.

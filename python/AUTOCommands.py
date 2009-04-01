@@ -24,7 +24,8 @@ EXPERT=1
 import AUTOExceptions
 
 # Initialize a default runAUTO for those commands that use runAUTO object
-_runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make")
+_runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make",
+                          redir="no")
 
 #############################################
 #  commands      
@@ -1576,23 +1577,27 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
     def __call__(self):
         func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
         runner = func().data
-        err = StringIO()
         sv = (runner.options.get("constants") or {}).get("sv")
         if sv == '':
             sv = None
         if runner.options["verbose"] == "no":
             log = StringIO()
+            err = StringIO()
             data = runner.run(log=log,err=err)
             log.seek(0)
             err.seek(0)
             ret = valueRun(log,err,data=data)
             log.close()
-        else:
+            err.close()
+        elif runner.options["redir"] == "yes":
             # log was already written if the runner is verbose
             data = runner.run(err=err)
             err.seek(0)
             ret = valueRun(err,data=data)
-        err.close()
+            err.close()
+        else:
+            data = runner.run()
+            ret = valueRun(data=data)
         if sv is not None:
             commandWithFilenameTemplate.__init__(self,sv,None,
                                                  self.templates)
