@@ -237,9 +237,9 @@ class BasicGrapher(grapher.BasicGrapher):
             if len(d["x"]) == 1:
                 # If we only have one point we draw a small circle or a pixel
                 if self.cget("type") == "solution":
-                    self.ax.plot(d["x"],d["y"],'o'+fill[0])
+                    self.ax.plot(d["x"],d["y"],'o',color=fill)
                 else:
-                    self.ax.plot(d["x"],d["y"],','+fill[0])
+                    self.ax.plot(d["x"],d["y"],',',color=fill)
                 #tags=("data_point:%d"%(0,),curve,"data")
             else:
                 xs = d["x"]
