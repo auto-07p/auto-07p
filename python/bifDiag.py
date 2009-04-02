@@ -92,11 +92,11 @@ class bifDiag(parseB.parseBR):
                         if k in nonekeys:
                             c[k] = None              
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if ((x["LAB"] != 0 or solution[i]["LAB"] == 0) and
-                        i < len(solution)):
-                        x["solution"] = parseS.AUTOSolution(solution[i],
-                                                            **options)
-                        i = i+1
+                    if i < len(solution):
+                        s = solution[i]
+                        if x["LAB"] != 0 or s["LAB"] == 0:
+                            x["solution"] = parseS.AUTOSolution(s, **options)
+                            i = i+1
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
