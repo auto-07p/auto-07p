@@ -40,7 +40,6 @@ class parseBandS(parseS.parseS):
             self.diagnostics = fort9_filename
         if self.diagnostics is None:
             self.diagnostics = []
-        self.data = self.solution.data
         self.dg = self.diagram
         self.sl = self.solution
 

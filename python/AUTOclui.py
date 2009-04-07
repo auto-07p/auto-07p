@@ -9,11 +9,6 @@ try:
 except ImportError:
     import builtins as __builtin__ # Python 3
 
-_functionTemplate="""
-def %s(self,*args,**kw):
-    return self._queueCommand(*(%s.%s,)+args,**kw)
-"""
-
 class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
         # Initialize the output recorder (if any)
@@ -30,12 +25,18 @@ class AUTOSimpleFunctions:
 
         # Now I resolve the aliases
         for key, alias in self._aliases.items():
-            setattr(AUTOSimpleFunctions, key, getattr(self, alias))
-            exec(_functionTemplate%(key,"AUTOCommands",alias))
-            setattr(AUTOSimpleFunctions, key, locals()[key])
+            fun = getattr(AUTOCommands,alias).fun
+            f = self._functionFactory(fun, key)
+            setattr(AUTOSimpleFunctions, key, f)
             doc = getattr(AUTOCommands,alias).__doc__
             doc = self._adjustdoc(doc, key, alias)
             AUTOSimpleFunctions.__dict__[key].__doc__ = doc
+
+    def _functionFactory(self,fun,name):
+        def f(self,*args,**kw):
+            return self._queueCommand(fun,*args,**kw)
+        f.__name__ = name
+        return f
 
     def _adjustdoc(self, doc, commandname, truecommandname = None):
         # If we were created with the nonempty string return a formatted
@@ -62,20 +63,19 @@ class AUTOSimpleFunctions:
         for module in [AUTOCommands]:
             # Now we copy the commands from the module
             for key in module.__dict__.keys():
-                # Check to see if it is a descendent of AUTOCommands.command
-                if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
-                    exec(_functionTemplate%(key,module.__name__,key))
-                    setattr(AUTOSimpleFunctions, key, locals()[key])
+                # Check to see if it is a command
+                if hasattr(getattr(module,key),"fun"):
+                    f = self._functionFactory(getattr(module,key).fun, key)
+                    setattr(AUTOSimpleFunctions, key, f)
                     doc = module.__dict__[key].__doc__
                     doc = self._adjustdoc(doc, key)
                     AUTOSimpleFunctions.__dict__[key].__doc__ = doc
 
-    def _queueCommand(self,commandType,*args,**kw):
+    def _queueCommand(self,command,*args,**kw):
         # Put back in the arguments
         # I am not 100% sure if this is the best way to do this,
         # but it seems to work.
-        command = commandType(*args,**kw)
-        output = command()
+        output = command(*args,**kw)
         if self.__outputRecorder is not None:
             self.__outputRecorder.write(str(output))
         sys.stdout.write(str(output))

@@ -14,6 +14,7 @@ from __future__ import division
 
 import AUTOutil
 from copy import copy, deepcopy
+import sys
 
 numpyimported = False
 ndarray = AUTOutil.ArrayType

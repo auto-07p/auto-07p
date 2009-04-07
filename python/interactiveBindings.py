@@ -20,10 +20,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         locals["demofile"] = self.demofile
         locals["dmf"] = self.dmf
         self.stopdemo = False
-        try:
-            self.oldhelp = __builtin__.help
-        except:
-            pass
+        self.oldhelp = __builtin__.help
         locals["help"] = self.help
 
         code.InteractiveConsole.__init__(self,locals)
@@ -116,12 +113,9 @@ Aliases: ex"""
         self.execfile(name)
 
     def help(self,*args,**kwds):
-        if "oldhelp" in self.__dict__.keys():
-            if len(args) == 0 and len(kwds) == 0:
-                print('Press ENTER and then type "man" for help about the AUTO Python CLUI.')
-            self.oldhelp(*args,**kwds)
-        else:
-            self.locals['man'](*args,**kwds)
+        if len(args) == 0 and len(kwds) == 0:
+            print('Press ENTER and then type "man" for help about the AUTO Python CLUI.')
+        self.oldhelp(*args,**kwds)
 
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""

@@ -30,58 +30,59 @@ _runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make",
 #############################################
 #  commands      
 #############################################
-class command:
-    def __init__(self):
-        pass
-    # The call function must return something that you
-    # can call the "print" function on
-    def __call__(self):
-        pass
-    def undo(self):
-        raise Exception("Undo undefined for this command")
+def command(f,*args):
+    # This is a class factory that produces a class that can be used
+    # to make macros of commands.
+    class cmd(object):
+        if len(args) == 2:
+            type = args[0]
+            shortName = args[1]
+        fun = staticmethod(f)
+        __doc__ = f.__doc__
+        def __init__(self,*args,**kw):
+            self.args = args
+            self.kw = kw
+        # The call function must return something that you
+        # can call the "print" function on
+        def __call__(self):
+            return self.fun(*self.args,**self.kw)
+        def undo(self):
+            raise Exception("Undo undefined for this command")
+    return cmd
+
 
 ##############################################
 #  Generic Commands
 ##############################################
 
-class commandMacro(command):
-    def __init__(self,command_list):
-        self.command_list = command_list
-    def __call__(self):
-        text = ""
-        for command in self.command_list:
-            text = text + str(command())
-        return valueString(text)
+def macro(command_list):
+    text = ""
+    for command in command_list:
+        text = text + str(command())
+    return valueString(text)
+commandMacro = command(macro)
 
-class commandReturnString(command):
-    def __init__(self,text):
-        self.text = text
-    def __call__(self):
-        return valueString(self.text)
-        
 ##############################################
 #  Script based commands from $AUTO_DIR/97/cmds
 ##############################################
 
-class commandClean(command):
+def clean():
     """Clean the current directory.
 
     Type FUNC() to clean the current directory.  This command will
     delete all files of the form fort.*, *.*~, *.o, and *.exe.
     """
-    
-    def __init__(self):
-        pass
-    def __call__(self):
-        rval=valueSystem()
-        toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
-                   glob.glob("*.*~"))
-        for f in toclean:
-            os.remove(f)
-        rval.info("Deleting fort.* *.o *.exe *.*~ ... done\n")
-        return rval
+    rval=valueSystem()
+    toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
+               glob.glob("*.*~"))
+    for f in toclean:
+        os.remove(f)
+    rval.info("Deleting fort.* *.o *.exe *.*~ ... done\n")
+    return rval
+commandClean = command(clean)
 
-class commandCopyDemo(command):
+
+def copydemo(name):
     """Copy a demo into the current directory.
 
     Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
@@ -90,25 +91,21 @@ class commandCopyDemo(command):
     files, always run demos in a clean work directory.
     """
     
-    type=SIMPLE
-    shortName="demo"
-    def __init__(self,name1):
-        self.demo = name1
-    def __call__(self):
-        rval=valueSystem()
-        demofiles = glob.glob(os.path.expandvars(
-                "$AUTO_DIR/demos/%s/*"%self.demo))
-        for f in demofiles:
-            try:
-                shutil.copy(f, ".")
-            except IOError:
-                pass
-        if os.path.exists("c.%s.1"%(self.demo)):
-            shutil.copy("c.%s.1"%(self.demo),"c.%s"%(self.demo))
-        rval.info("Copying demo %s ... done\n"%self.demo)
-        return rval
+    rval=valueSystem()
+    demofiles = glob.glob(os.path.expandvars("$AUTO_DIR/demos/%s/*"%name))
+    for f in demofiles:
+        try:
+            shutil.copy(f, ".")
+        except IOError:
+            pass
+    if os.path.exists("c.%s.1"%name):
+        shutil.copy("c.%s.1"%name,"c.%s"%name)
+    rval.info("Copying demo %s ... done\n"%name)
+    return rval
+commandCopyDemo = command(copydemo,SIMPLE,"demo")
 
-class commandCopyAndLoadDemo(commandMacro):
+
+def demo(name,runner=None):
     """Copy a demo into the current directory and load it.
 
     Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
@@ -117,31 +114,28 @@ class commandCopyAndLoadDemo(commandMacro):
     files, always run demos in a clean work directory.  NOTE: This
     command automatically performs the load command as well.
     """
-    
-    def __init__(self,name1,runner=None):
-        lst=[]
-        lst.append(commandCopyDemo(name1))
-        lst.append(commandRunnerLoadName(name1,runner))
-        commandMacro.__init__(self,lst)
+    lst = [commandCopyDemo(name)]
+    lst.append(commandRunnerLoadName(name,runner))
+    return macro(lst)
+commandCopyAndLoadDemo = command(demo)
 
-class commandDeleteFortFiles(command):
+
+def df():
     """Clear the current directory of fort files.
 
     Type FUNC() to clean the current directory.  This command will
     delete all files of the form fort.*.
     """
-    
-    def __init__(self):
-        pass
-    def __call__(self):
-        rval=valueSystem()
-        toclean = glob.glob("fort.*")
-        for f in toclean:
-            os.remove(f)
-        rval.info("Deleting fort.* ... done\n")
-        return rval
+    rval=valueSystem()
+    toclean = glob.glob("fort.*")
+    for f in toclean:
+        os.remove(f)
+    rval.info("Deleting fort.* ... done\n")
+    return rval
+commandDeleteFortFiles = command(df)
 
-class commandUserData(command):
+
+def us(name):
     """Convert user-supplied data files.
 
     Type FUNC('xxx') to convert a user-supplied data file 'xxx.dat' to
@@ -157,89 +151,79 @@ class commandUserData(command):
     Note: this technique has been obsoleted by the 'dat' AUTO constant.
     """
     
-    def __init__(self,name1):
-        self.data = []
-        self.data.append(name1)
-    def __call__(self):
-        rval=valueSystem()
-        rval.info("NOTE: This command does not use filename templates\n")
-        rval.info("Starting conversion of %s.dat : \n"%(self.data[0],))
-        if glob.glob("%s.f90"%(self.data[0],)) == []:
-            if glob.glob("%s.f"%(self.data[0],)) == []:
-                equation_file="%s.c"%(self.data[0],)
-            else:
-                equation_file="%s.f"%(self.data[0],)
+    rval=valueSystem()
+    rval.info("NOTE: This command does not use filename templates\n")
+    rval.info("Starting conversion of %s.dat : \n"%name)
+    if glob.glob("%s.f90"%name) == []:
+        if glob.glob("%s.f"%name) == []:
+            equation_file="%s.c"%name
         else:
-            equation_file="%s.f90"%(self.data[0],)
-        cfile = "c.%s"%(self.data[0])
-        datfile = "%s.dat"%(self.data[0])
-        rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
-                                                     datfile))
-        fconrun = runAUTO.runAUTO(verbose="no",
-                                  makefile="$AUTO_DIR/cmds/cmds.make fcon")
-        fconrun.config(e=self.data[0])
-        fconrun.runMakefile(self.data[0])
-        if os.path.exists(cfile):
-            shutil.copy(cfile,"fort.2")
-        if os.path.exists(datfile):
-            shutil.copy(datfile,"fort.3")
-        rval.interact("./fcon")
-        if os.path.exists("fort.8"):
-            if os.path.exists("s.dat"):
-                os.remove("s.dat")
-            os.rename("fort.8","s.dat")
-            rval.info("Conversion done : converted file saved as s.dat\n")
-        files = glob.glob("fcon*") + ["fort.2", "fort.3"]
-        for f in files:
-            os.remove(f)
-        return rval
+            equation_file="%s.f"%name
+    else:
+        equation_file="%s.f90"%name
+    cfile = "c.%s"%name
+    datfile = "%s.dat"%name
+    rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
+                                                 datfile))
+    fconrun = runAUTO.runAUTO(verbose="no",
+                              makefile="$AUTO_DIR/cmds/cmds.make fcon")
+    fconrun.config(e=name)
+    fconrun.runMakefile(name)
+    if os.path.exists(cfile):
+        shutil.copy(cfile,"fort.2")
+    if os.path.exists(datfile):
+        shutil.copy(datfile,"fort.3")
+    rval.interact("./fcon")
+    if os.path.exists("fort.8"):
+        if os.path.exists("s.dat"):
+            os.remove("s.dat")
+        os.rename("fort.8","s.dat")
+        rval.info("Conversion done : converted file saved as s.dat\n")
+    files = glob.glob("fcon*") + ["fort.2", "fort.3"]
+    for f in files:
+        os.remove(f)
+    return rval
+commandUserData = command(us)
     
+
 ##############################################
 #  Commands which use the filename templates
 ##############################################
-class commandWithFilenameTemplate(command):
-    def __init__(self,name1=None,name2=None,templates=None):
-        if templates is None:
-            self.templates = {}
-            self.templates["equation"]           = "EQUATION_NAME=%s"
-            self.templates["constants"]          = "c.%s"
-            self.templates["bifurcationDiagram"] = "b.%s"
-            self.templates["solution"]           = "s.%s"
-            self.templates["diagnostics"]        = "d.%s"
-            self.templates["homcont"]           = "h.%s"
-        else:
-            self.templates = templates
+def applyTemplate(text,template,templates=None):
+    if templates is None:
+        templates = {}
+        templates["equation"]           = "EQUATION_NAME=%s"
+        templates["constants"]          = "c.%s"
+        templates["bifurcationDiagram"] = "b.%s"
+        templates["solution"]           = "s.%s"
+        templates["diagnostics"]        = "d.%s"
+        templates["homcont"]           = "h.%s"
 
-        self.name1={}
-        self.name1["constants"] = self. _applyTemplate(name1,"constants")
-        self.name1["bifurcationDiagram"] = self._applyTemplate(name1,"bifurcationDiagram")
-        self.name1["solution"] = self._applyTemplate(name1,"solution")
-        self.name1["diagnostics"] = self._applyTemplate(name1,"diagnostics")
-
-        self.name2={}
-        self.name2["constants"] = self._applyTemplate(name2,"constants")
-        self.name2["bifurcationDiagram"] = self._applyTemplate(name2,"bifurcationDiagram")
-        self.name2["solution"] = self._applyTemplate(name2,"solution")
-        self.name2["diagnostics"] = self._applyTemplate(name2,"diagnostics")
-        
-    def _applyTemplate(self,text,template):
-        if text is None:
-            return None
-        elif type(text) in [type(""), type(1), type(1.0)]:
-            rval = self.templates[template]%text
-            tmp = glob.glob(rval)
-            if len(tmp) > 0:
-                rval = ""
-                for x in tmp:   
-                   rval = rval + x + " "
-            rval = rval.strip()
-            return rval
-        else:
-            return text
+    if text is None:
+        return None
+    elif type(text) in [type(""), type(1), type(1.0)]:
+        rval = templates[template]%text
+        tmp = glob.glob(rval)
+        if len(tmp) > 0:
+            rval = ""
+            for x in tmp:   
+                rval = rval + x + " "
+        rval = rval.strip()
+        return rval
+    else:
+        return text
 
 
+def filenameTemplate(name=None,templates=None):
+    name1={}
+    name1["constants"] =  applyTemplate(name,"constants",templates)
+    name1["bifurcationDiagram"] = applyTemplate(name,"bifurcationDiagram",templates)
+    name1["solution"] = applyTemplate(name,"solution",templates)
+    name1["diagnostics"] = applyTemplate(name,"diagnostics",templates)
+    return name1
 
-class commandRelabel(commandWithFilenameTemplate):
+
+def relabel(name1=None,name2=None,templates=None):
     """Relabel data files.
 
     Type y=FUNC(x) to return the python object x, with the solution
@@ -254,53 +238,50 @@ class commandRelabel(commandWithFilenameTemplate):
     the default filename templates). 
     """
 
-    type=SIMPLE
-    shortName="relabel"
-    def __init__(self,name1=None,name2=None,templates=None):
-        self.type = type(name1)
-        self.name1 = name1
-        if type(name1) == type(""):
-            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        if self.type != type("") and self.type != type(None):
-            rval.data = self.name1.relabel()
-            rval.info("Relabeling done\n")
-            return rval
-        n1b = self.name1["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        n1d = self.name1["diagnostics"]
-        if n1b is None and n1s is None and n1d is None:
-            n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
-        if self.name2["bifurcationDiagram"] is None:
-            n2b = n1b+'~~'
-            n2s = n1s+'~~'
-            n2d = n1d+'~~'
-        else:
-            n2b = self.name2["bifurcationDiagram"]
-            n2s = self.name2["solution"]
-            n2d = self.name2["diagnostics"]
-        import relabel
-        relabel.relabel(n1b,n1s,n2b,n2s)
-        if os.access(n2b,os.F_OK):
-            if self.name2["bifurcationDiagram"] is None:
-                # Save backups
-                if os.access(n1b+'~',os.F_OK):
-                    os.remove(n1b+'~')
-                os.rename(n1b,n1b+'~')
-                os.rename(n2b,n1b)
-                if os.access(n1s+'~',os.F_OK):
-                    os.remove(n1s+'~')
-                os.rename(n1s,n1s+'~')
-                os.rename(n2s,n1s)
-            elif os.path.exists(n1d):
-                shutil.copy(n1d, n2d)
-            rval.info("Relabeling succeeded\n")
-
+    typen = type(name1)
+    if type(name1) == type(""):
+        name1 = filenameTemplate(name1,templates)
+        name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    if typen != type("") and typen != type(None):
+        rval.data = name1.relabel()
         rval.info("Relabeling done\n")
         return rval
+    n1b = name1["bifurcationDiagram"]
+    n1s = name1["solution"]
+    n1d = name1["diagnostics"]
+    if n1b is None and n1s is None and n1d is None:
+        n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
+    if name2["bifurcationDiagram"] is None:
+        n2b = n1b+'~~'
+        n2s = n1s+'~~'
+        n2d = n1d+'~~'
+    else:
+        n2b = name2["bifurcationDiagram"]
+        n2s = name2["solution"]
+        n2d = name2["diagnostics"]
+    import relabel
+    relabel.relabel(n1b,n1s,n2b,n2s)
+    if os.access(n2b,os.F_OK):
+        if name2["bifurcationDiagram"] is None:
+            # Save backups
+            if os.access(n1b+'~',os.F_OK):
+                os.remove(n1b+'~')
+            os.rename(n1b,n1b+'~')
+            os.rename(n2b,n1b)
+            if os.access(n1s+'~',os.F_OK):
+                os.remove(n1s+'~')
+            os.rename(n1s,n1s+'~')
+            os.rename(n2s,n1s)
+        elif os.path.exists(n1d):
+            shutil.copy(n1d, n2d)
+        rval.info("Relabeling succeeded\n")
+    rval.info("Relabeling done\n")
+    return rval
+commandRelabel = command(relabel,SIMPLE,"relabel")
 
-class commandMergeBranches(commandWithFilenameTemplate):
+
+def merge(name1=None,name2=None,templates=None):
     """Merge branches in data files.
 
     Type y=FUNC(x) to return the python object x, with its branches
@@ -315,49 +296,47 @@ class commandMergeBranches(commandWithFilenameTemplate):
     are using the default filename templates). 
     """
 
-    type=SIMPLE
-    shortName="merge"
-    def __init__(self,name1=None,name2=None,templates=None):
-        self.type = type(name1)
-        self.name1 = name1
-        if type(name1) == type(""):
-            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        if self.type != type("") and self.type != type(None):
-            rval.data = self.name1.merge()
-            rval.info("Merge done\n")
-            return rval
-        n1b = self.name1["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        n1d = self.name1["diagnostics"]
-        if n1b is None and n1s is None and n1d is None:
-            n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
-        bd = bifDiag.bifDiag(n1b,n1s,n1d)
-        bd = bd.merge()
-        if self.name2["bifurcationDiagram"] is None:
-            n2b = n1b+'~~'
-            n2s = n1s+'~~'
-            n2d = n1d+'~~'
-        else:
-            n2b = self.name2["bifurcationDiagram"]
-            n2s = self.name2["solution"]
-            n2d = self.name2["diagnostics"]
-        bd.writeFilename(n2b,n2s,n2d)
-        if os.access(n2b,os.F_OK):
-            if self.name2["bifurcationDiagram"] is None:
-                # Save backups
-                for [n1,n2] in [[n1b,n2b],[n1s,n2s],[n1d,n2d]]:
-                    if os.access(n1+'~',os.F_OK):
-                        os.remove(n1+'~')
-                    os.rename(n1,n1+'~')
-                    os.rename(n2,n1)
-            rval.info("Merging succeeded\n")
-
-        rval.info("Merging done\n")
+    ntype = type(name1)
+    if type(name1) == type(""):
+        name1 = filenameTemplate(name1,templates)
+        name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    if ntype != type("") and ntype != type(None):
+        rval.data = name1.merge()
+        rval.info("Merge done\n")
         return rval
+    n1b = name1["bifurcationDiagram"]
+    n1s = name1["solution"]
+    n1d = name1["diagnostics"]
+    if n1b is None and n1s is None and n1d is None:
+        n1b, n1s, n1d = "fort.7", "fort.8", "fort.9"
+    bd = bifDiag.bifDiag(n1b,n1s,n1d)
+    bd = bd.merge()
+    if name2["bifurcationDiagram"] is None:
+        n2b = n1b+'~~'
+        n2s = n1s+'~~'
+        n2d = n1d+'~~'
+    else:
+        n2b = name2["bifurcationDiagram"]
+        n2s = name2["solution"]
+        n2d = name2["diagnostics"]
+    bd.writeFilename(n2b,n2s,n2d)
+    if os.access(n2b,os.F_OK):
+        if name2["bifurcationDiagram"] is None:
+            # Save backups
+            for [n1,n2] in [[n1b,n2b],[n1s,n2s],[n1d,n2d]]:
+                if os.access(n1+'~',os.F_OK):
+                    os.remove(n1+'~')
+                os.rename(n1,n1+'~')
+                os.rename(n2,n1)
+        rval.info("Merging succeeded\n")
 
-class commandSubtractBranches(commandWithFilenameTemplate):
+    rval.info("Merging done\n")
+    return rval
+commandMergeBranches = command(merge,SIMPLE,"merge")
+
+
+def subtract(name1,name2,col,branch=1,point=1,templates=None):
     """Subtract branches in data files.
 
     Type z=FUNC(x,y,ref) to return the python object x, where,
@@ -374,39 +353,31 @@ class commandSubtractBranches(commandWithFilenameTemplate):
     first point on that branch within y or 'b.yyy', where m,n are in
     {1,2,3,...}.
     """
-
-    type=SIMPLE
-    shortName="subtract"
-    def __init__(self,name1,name2,col,branch=1,point=1,templates=None):
-        self.type = type(name1)
-        self.name1 = name1
-        self.name2 = name2
-        self.col = col
-        self.branch = branch
-        self.point = point
-        if type(name1) == type(""):
-            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        if self.type != type(""):
-            sub = self.name1.subtract(self.name2[self.branch-1],self.col,
-                                      self.point)
+    ntype = type(name1)
+    if type(name1) == type(""):
+        name1 = filenameTemplate(name1,templates)
+        name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    if ntype != type(""):
+        sub = name1.subtract(name2[branch-1],col,point)
+    else:
+        n1b = name1["bifurcationDiagram"]
+        bd1 = bifDiag.bifDiag(n1b)
+        n2b = name2["bifurcationDiagram"]
+        if n1b == n2b:
+            bd2 = bd1
         else:
-            n1b = self.name1["bifurcationDiagram"]
-            bd1 = bifDiag.bifDiag(n1b)
-            n2b = self.name2["bifurcationDiagram"]
-            if n1b == n2b:
-                bd2 = bd1
-            else:
-                bd2 = bifDiag.bifDiag(n2b)
-            sub = bd1.subtract(bd2[self.branch-1],self.col,self.point)
-            shutil.copy(n1b,n1b+'~')
-            sub.writeFilename(n1b,'')            
-        rval.info("Subtracting done\n")
-        rval.data = sub
-        return rval
+            bd2 = bifDiag.bifDiag(n2b)
+        sub = bd1.subtract(bd2[branch-1],col,point)
+        shutil.copy(n1b,n1b+'~')
+        sub.writeFilename(n1b,'')            
+    rval.info("Subtracting done\n")
+    rval.data = sub
+    return rval
+commandSubtractBranches = command(subtract,SIMPLE,"subtract")
 
-class commandAppend(commandWithFilenameTemplate):
+
+def append(name1,name2=None,templates=None):
     """Append data files.
 
     Type FUNC(x,'xxx') to append bifurcation diagram x
@@ -427,80 +398,77 @@ class commandAppend(commandWithFilenameTemplate):
     and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
     the default filename templates).
     """
-
-    type=SIMPLE
-    shortName="append"
-    def __init__(self,name1,name2=None,templates=None):
-        self.parsed1=None
-        self.parsed2=None
-        if isinstance(name1, bifDiag.bifDiag):
-            self.parsed1=name1
-            name1=name2
-            name2=None
-        if isinstance(name1, bifDiag.bifDiag):
-            self.parsed2=name1
-        else:
-            commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        if self.parsed1 or self.parsed2:
-            n = None
-            if not self.parsed1 or not self.parsed2:
-                nb = self.name1["bifurcationDiagram"]
-                ns = self.name1["solution"]
-                nd = self.name1["diagnostics"]
-        if self.parsed2: #append to parsed2
-            parsed1 = self.parsed1
-            if not parsed1:
-                parsed1 = bifDiag.bifDiag(nb,ns,nd)
-                rval.info("Appending from %s, %s and %s ... done\n"%(nb,ns,nd))
-            self.parsed2.extend(parsed1)
-            return rval
-        if self.parsed1: #append from parsed1 to file
-            self.parsed1.writeFilename(nb,ns,nd,append=True)
-            rval.info("Appending to %s, %s and %s ... done\n"%(nb,ns,nd))
-            return rval
-        i = 7
-        for s in ["bifurcationDiagram","solution","diagnostics"]:
-            n1 = self.name1[s]
-            n2 = self.name2[s]
-            if n2 is None:
-                n2 = n1
-                n1 = "fort."+str(i)
-            i = i+1
-            f1 = open(n1,"rb")
-            f2 = open(n2,"ab")
-            while 1:
-                buf = f1.read(1024*1024)
-                if len(buf) == 0:
-                    break
-                f2.write(buf)
-            f1.close()
-            f2.close()
-            rval.info("Appending %s to %s ... done\n"%(n1,n2))
+    parsed1=None
+    parsed2=None
+    if isinstance(name1, bifDiag.bifDiag):
+        parsed1=name1
+        name1=name2
+        name2=None
+    if isinstance(name1, bifDiag.bifDiag):
+        parsed2=name1
+    else:
+        name1 = filenameTemplate(name1,templates)
+        name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    if parsed1 or parsed2:
+        n = None
+        if not parsed1 or not parsed2:
+            nb = name1["bifurcationDiagram"]
+            ns = name1["solution"]
+            nd = name1["diagnostics"]
+    if parsed2: #append to parsed2
+        if not parsed1:
+            parsed1 = bifDiag.bifDiag(nb,ns,nd)
+            rval.info("Appending from %s, %s and %s ... done\n"%(nb,ns,nd))
+        parsed2.extend(parsed1)
         return rval
+    if parsed1: #append from parsed1 to file
+        parsed1.writeFilename(nb,ns,nd,append=True)
+        rval.info("Appending to %s, %s and %s ... done\n"%(nb,ns,nd))
+        return rval
+    i = 7
+    for s in ["bifurcationDiagram","solution","diagnostics"]:
+        n1 = name1[s]
+        n2 = name2[s]
+        if n2 is None:
+            n2 = n1
+            n1 = "fort."+str(i)
+        i = i+1
+        f1 = open(n1,"rb")
+        f2 = open(n2,"ab")
+        while 1:
+            buf = f1.read(1024*1024)
+            if len(buf) == 0:
+                break
+            f2.write(buf)
+        f1.close()
+        f2.close()
+        rval.info("Appending %s to %s ... done\n"%(n1,n2))
+    return rval
+commandAppend = command(append,SIMPLE,"append")
 
-class commandCopyDataFiles(commandWithFilenameTemplate):
+
+def copy(name1,name2,templates=None):
     """Copy data files.
 
     Type FUNC('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
     and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
     default filename templates).
     """
+    name1 = filenameTemplate(name1,templates)
+    name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
+        n1 = name1[s]
+        n2 = name2[s]
+        if os.path.exists(n1):
+            shutil.copy(n1,n2)
+            rval.info("Copying %s to %s ... done\n"%(n1,n2))
+    return rval
+commandCopyDataFiles = command(copy)
     
-    def __init__(self,name1,name2,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
-            n1 = self.name1[s]
-            n2 = self.name2[s]
-            if os.path.exists(n1):
-                shutil.copy(n1,n2)
-                rval.info("Copying %s to %s ... done\n"%(n1,n2))
-        return rval
-    
-class commandCopyFortFiles(commandWithFilenameTemplate):
+
+def save(name1,name2=None,templates=None):
     """Save data files.
 
     Type FUNC(x,'xxx') to save bifurcation diagram x
@@ -514,112 +482,101 @@ class commandCopyFortFiles(commandWithFilenameTemplate):
     to b.xxx, s.xxx, d.xxx (if you are using the default filename
     templates).  Existing files with these names will be overwritten.
     """
-    
-    type=SIMPLE
-    shortName="save"
-    def __init__(self,name1,name2=None,templates=None):
-        self.parsed = None
-        if not name2 is None:
-            self.parsed = name1
-            name1 = name2
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        rval=valueSystem()
-        for s in ["bifurcationDiagram","solution","diagnostics"]:
-            n1 = self.name1[s]
-            if os.path.exists(n1):
-                shutil.copy(n1,n1+'~')
+    parsed = None
+    if not name2 is None:
+        parsed = name1
+        name1 = name2
+    name1 = filenameTemplate(name1,templates)
+    rval=valueSystem()
+    for s in ["bifurcationDiagram","solution","diagnostics"]:
+        n1 = name1[s]
+        if os.path.exists(n1):
+            shutil.copy(n1,n1+'~')
 
-        if self.parsed:
-            n1b = self.name1["bifurcationDiagram"]
-            n1s = self.name1["solution"]
-            n1d = self.name1["diagnostics"]        
-            if (isinstance(self.parsed,bifDiag.bifDiag) and
-                len(self.parsed) > 0 and len(self.parsed[0]) > 0):
-                self.parsed.writeFilename(n1b,n1s,n1d)
-                msg = "Saving to %s, %s, and %s ... done\n"%(n1b,n1s,n1d)
-            else:
-                if (type(self.parsed) == type([]) and
-                    isinstance(self.parsed[0], parseS.AUTOSolution)):
-                    self.parsed = parseS.parseS(self.parsed)
-                self.parsed.writeFilename(n1s)
-                msg = "Saving to %s ... done\n"%(n1s)
-            rval.info(msg)
-            return rval
-        
-        i = 7
-        for s in ["bifurcationDiagram","solution","diagnostics"]:
-            n1 = self.name1[s]
-            forti = "fort." + str(i)
-            i = i + 1
-            if os.path.exists(forti):
-                shutil.copy(forti,n1)
-                rval.info("Saving %s as %s ... done\n"%(forti,n1))
+    if parsed:
+        n1b = name1["bifurcationDiagram"]
+        n1s = name1["solution"]
+        n1d = name1["diagnostics"]        
+        if (isinstance(parsed,bifDiag.bifDiag) and
+            len(parsed) > 0 and len(parsed[0]) > 0):
+            parsed.writeFilename(n1b,n1s,n1d)
+            msg = "Saving to %s, %s, and %s ... done\n"%(n1b,n1s,n1d)
+        else:
+            if (type(parsed) == type([]) and
+                isinstance(parsed[0], parseS.AUTOSolution)):
+                parsed = parseS.parseS(parsed)
+            parsed.writeFilename(n1s)
+            msg = "Saving to %s ... done\n"%(n1s)
+        rval.info(msg)
         return rval
         
-class commandDeleteDataFiles(commandWithFilenameTemplate):
+    i = 7
+    for s in ["bifurcationDiagram","solution","diagnostics"]:
+        n1 = name1[s]
+        forti = "fort." + str(i)
+        i = i + 1
+        if os.path.exists(forti):
+            shutil.copy(forti,n1)
+            rval.info("Saving %s as %s ... done\n"%(forti,n1))
+    return rval
+commandCopyFortFiles = command(save,SIMPLE,"save")
+        
+
+def delete(name,templates=None):
     """Delete data files.
 
     Type FUNC('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
     (if you are using the default filename templates).
     """
     
-    def __init__(self,name1,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        rval=valueSystem()
-        n1b = self.name1["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        n1d = self.name1["diagnostics"]
-        if os.path.exists(n1b):
-            os.remove(n1b)
-            rval.info("Deleting %s ... done\n"%n1b)
-        if os.path.exists(n1s):
-            os.remove(n1s)
-            rval.info("Deleting %s ... done\n"%n1s)
-        if os.path.exists(n1d):
-            os.remove(n1d)
-            rval.info("Deleting %s ... done\n"%n1d)
-        return rval
+    name = filenameTemplate(name,templates)
+    rval=valueSystem()
+    n1b = name["bifurcationDiagram"]
+    n1s = name["solution"]
+    n1d = name["diagnostics"]
+    if os.path.exists(n1b):
+        os.remove(n1b)
+        rval.info("Deleting %s ... done\n"%n1b)
+    if os.path.exists(n1s):
+        os.remove(n1s)
+        rval.info("Deleting %s ... done\n"%n1s)
+    if os.path.exists(n1d):
+        os.remove(n1d)
+        rval.info("Deleting %s ... done\n"%n1d)
+    return rval
+commandDeleteDataFiles = command(delete)
 
-class commandDeleteLabel(commandWithFilenameTemplate):
-    def __init__(self,typenames=None,name1=None,templates=None,keepTY=0,keep=0):
-        self.name = name1
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-        self.typenames=typenames
-        self.keepTY=keepTY
-        self.keep=keep
-        
-    def __call__(self):
-        codes=self.typenames
-        if hasattr(codes,'deleteLabel'):
-            data = codes.deleteLabel(self.name,keepTY=self.keepTY,
-                                     keep=self.keep,copy=1)
-            return valueStringAndData("",data)
-        if self.name1["solution"] is None:
-            changedb='fort.7'
-            changeds='fort.8'
-        else:
-            changedb=self.name1["bifurcationDiagram"]
-            changeds=self.name1["solution"]
-        bs=bifDiag.bifDiag(changedb,changeds)
-        bs.deleteLabel(codes,keepTY=self.keepTY,keep=self.keep)
-        origb=changedb+'~'
-        origs=changeds+'~'
-        try:
-            os.remove(origb)
-        except:
-            pass
-        try:
-            os.remove(origs)
-        except:
-            pass
-        os.rename(changedb,origb)
-        os.rename(changeds,origs)
-        bs.writeFilename(changedb,changeds)
-        return valueString("")
 
-class commandDeleteSpecialPoints(commandDeleteLabel):
+def deleteLabel(codes=None,name=None,templates=None,keepTY=0,keep=0):
+    if hasattr(codes,'deleteLabel'):
+        data = codes.deleteLabel(name,keepTY=keepTY,keep=keep,copy=1)
+        return valueStringAndData("",data)
+    name = filenameTemplate(name,templates)
+    if name["solution"] is None:
+        changedb='fort.7'
+        changeds='fort.8'
+    else:
+        changedb=name["bifurcationDiagram"]
+        changeds=name["solution"]
+    bs=bifDiag.bifDiag(changedb,changeds)
+    bs.deleteLabel(codes,keepTY=keepTY,keep=keep)
+    origb=changedb+'~'
+    origs=changeds+'~'
+    try:
+        os.remove(origb)
+    except:
+        pass
+    try:
+        os.remove(origs)
+    except:
+        pass
+    os.rename(changedb,origb)
+    os.rename(changeds,origs)
+    bs.writeFilename(changedb,changeds)
+    return valueString("")
+
+
+def dsp(typenames=None,name=None,templates=None):
     """Delete special points.
 
     Type FUNC(list,x) to delete the special points in list from
@@ -633,11 +590,11 @@ class commandDeleteSpecialPoints(commandDeleteLabel):
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
     """
-    
-    def __init__(self,typenames=None,name1=None,templates=None):
-        commandDeleteLabel.__init__(self,typenames,name1,templates)
+    return deleteLabel(typenames,name,templates)
+commandDeleteSpecialPoints = command(dsp)
         
-class commandKeepSpecialPoints(commandDeleteLabel):
+
+def ksp(typenames=None,name=None,templates=None):
     """Keep special points.
 
     Type FUNC(list,x) to only keep the special points in list from
@@ -652,11 +609,11 @@ class commandKeepSpecialPoints(commandDeleteLabel):
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
     """
-    
-    def __init__(self,typenames=None,name1=None,templates=None):
-        commandDeleteLabel.__init__(self,typenames,name1,templates,keep=1)
+    return deleteLabel(typenames,name,templates,keep=1)
+commandKeepSpecialPoints = command(ksp)
 
-class commandDeleteLabels(commandDeleteLabel):
+
+def dlb(typenames=None,name=None,templates=None):
     """Delete special labels.
 
     Type FUNC(list,x) to delete the special points in list from
@@ -671,11 +628,11 @@ class commandDeleteLabels(commandDeleteLabel):
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
     """
-    
-    def __init__(self,typenames=None,name1=None,templates=None):
-        commandDeleteLabel.__init__(self,typenames,name1,templates,keepTY=1)
+    return deleteLabel(typenames,name,templates,keepTY=1)
+commandDeleteLabels = command(dlb)
         
-class commandKeepLabels(commandDeleteLabel):
+
+def klb(typenames=None,name=None,templates=None):
     """Keep special labels.
 
     Type FUNC(list,x) to only keep the special points in list from
@@ -691,38 +648,36 @@ class commandKeepLabels(commandDeleteLabel):
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
     """
-    
-    def __init__(self,typenames=None,name1=None,templates=None):
-        commandDeleteLabel.__init__(self,typenames,name1,templates,keepTY=1,keep=1)
+    return deleteLabel(typenames,name,templates,keepTY=1,keep=1)
+commandKeepLabels = command(klb)
 
-class commandExpandData(commandWithFilenameTemplate):
-    def __init__(self,name1=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        rval=valueSystem()
-        n1b = self.name1["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        if n1s is None:
-            n1s = "fort.8"
-            n1b = "fort.7"
-        if os.path.exists(n1b):
-            shutil.copy(n1b,n1b+'~')
-        if os.path.exists(n1s):
-            shutil.copy(n1s,"fort.28")
-            if os.path.exists(n1s+'~'):
-                os.remove(n1s+'~')
-            os.rename(n1s,n1s+'~')
-        rval.interact(os.path.expandvars("$AUTO_DIR/bin/%s"%self.command))
-        os.rename("fort.38",n1s)
-        if os.path.exists("fort.28"):
-            os.remove("fort.28")
-        if self.command == "double":
-            rval.info("Solution doubling done.\n")
-        else:
-            rval.info("Solution tripling done.\n")
-        return rval
 
-class commandDouble(commandExpandData):
+def expandData(cmd,name=None,templates=None):
+    name = filenameTemplate(name,templates)
+    rval = valueSystem()
+    n1b = name["bifurcationDiagram"]
+    n1s = name["solution"]
+    if n1s is None:
+        n1s = "fort.8"
+        n1b = "fort.7"
+    if os.path.exists(n1b):
+        shutil.copy(n1b,n1b+'~')
+    if os.path.exists(n1s):
+        shutil.copy(n1s,"fort.28")
+        if os.path.exists(n1s+'~'):
+            os.remove(n1s+'~')
+        os.rename(n1s,n1s+'~')
+    rval.interact(os.path.expandvars("$AUTO_DIR/bin/%s"%cmd))
+    os.rename("fort.38",n1s)
+    if os.path.exists("fort.28"):
+        os.remove("fort.28")
+    if cmd == "double":
+        rval.info("Solution doubling done.\n")
+    else:
+        rval.info("Solution tripling done.\n")
+    return rval
+
+def double(name=None,templates=None):
     """Double a solution.
 
     Type FUNC() to double the solution in 'fort.7' and 'fort.8'.
@@ -730,33 +685,30 @@ class commandDouble(commandExpandData):
     Type FUNC('xxx') to double the solution in b.xxx and s.xxx (if you
     are using the default filename templates).
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandExpandData.__init__(self,name1,templates)
-        self.command = "double"
-        
-class commandMoveFiles(commandWithFilenameTemplate):
+    return expandData("double",name,templates)
+commandDouble = command(double)
+
+def move(name1,name2,templates=None):
     """Move data-files to a new name.
 
     Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
     and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
     default filename templates).  """
-    
-    def __init__(self,name1,name2,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,name2,templates)
-    def __call__(self):
-        rval=valueSystem()
-        for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
-            n1 = self.name1[s]
-            n2 = self.name2[s]
-            if os.path.exists(n1):
-                if os.path.exists(n2):
-                    os.remove(n2)
-                os.rename(n1,n2)
-                rval.info("Renaming %s as %s ... done\n"%(n1,n2))
-        return rval
+    name1 = filenameTemplate(name1,templates)
+    name2 = filenameTemplate(name2,templates)
+    rval=valueSystem()
+    for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
+        n1 = name1[s]
+        n2 = name2[s]
+        if os.path.exists(n1):
+            if os.path.exists(n2):
+                os.remove(n2)
+            os.rename(n1,n2)
+            rval.info("Renaming %s as %s ... done\n"%(n1,n2))
+    return rval
+commandMoveFiles = command(move)
 
-class commandParseConstantsFile(commandWithFilenameTemplate):
+def cn(name,templates=None):
     """Get the current continuation constants.
 
     Type FUNC('xxx') to get a parsed version of the constants file
@@ -765,29 +717,23 @@ class commandParseConstantsFile(commandWithFilenameTemplate):
     This is equivalent to the command
     loadbd('xxx').c
     """
-    
-    def __init__(self,name1,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        data = parseC.parseC(self.name1["constants"])
-        return valueStringAndData("Parsed file: %s\n"%self.name1["constants"],
-                                  data)
+    name = filenameTemplate(name,templates)
+    data = parseC.parseC(name["constants"])
+    return valueStringAndData("Parsed file: %s\n"%name["constants"],data)
+commandParseConstantsFile = command(cn)
 
-class commandParseHomcontFile(commandWithFilenameTemplate):
+def hcn(name,templates=None):
     """Get the current continuation constants.
 
     Type FUNC('xxx') to get a parsed version of the HomCont file
     h.xxx (if you are using the default filename templates).
     """
-    
-    def __init__(self,name1,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        data = parseH.parseH(self.name1["homcont"])
-        return valueStringAndData("Parsed file: %s\n"%self.name1["homcont"],
-                                  data)
+    name = filenameTemplate(name,templates)
+    data = parseH.parseH(name["homcont"])
+    return valueStringAndData("Parsed file: %s\n"%name["homcont"],data)
+commandParseHomcontFile = command(hcn)
         
-class commandParseSolutionFile(commandWithFilenameTemplate):
+def sl(name=None,templates=None):
     """Parse solution file:
 
     Type FUNC('xxx') to get a parsed version of the solution file
@@ -796,17 +742,16 @@ class commandParseSolutionFile(commandWithFilenameTemplate):
     This is equivalent to the command
     loadbd('xxx')()
     """
+    name = filenameTemplate(name,templates)
+    n1s = name["solution"]
+    if n1s is None:
+        n1s = "fort.8"
+    data = parseS.parseS(n1s)
+    return valueStringAndData("Parsed file: %s\n"%n1s,data)
+commandParseSolutionFile = command(sl)
 
-    def __init__(self,name1=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        n1s = self.name1["solution"]
-        if n1s is None:
-            n1s = "fort.8"
-        data = parseS.parseS(n1s)
-        return valueStringAndData("Parsed file: %s\n"%n1s,data)
-        
-class commandParseDiagramFile(commandWithFilenameTemplate):
+
+def dg(name=None,templates=None):
     """Parse a bifurcation diagram.
 
     Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
@@ -815,17 +760,16 @@ class commandParseDiagramFile(commandWithFilenameTemplate):
     This is equivalent to the command loadbd('xxx') but without the
     solutions in s.xxx and without the diagnostics in d.xxx.
     """
+    name = filenameTemplate(name,templates)
+    n1b = name["bifurcationDiagram"]
+    if n1b is None:
+        n1b = "fort.7"
+    data = parseB.parseB(n1b)
+    return valueStringAndData("Parsed file: %s\n"%n1b,data)
+commandParseDiagramFile = command(dg)
 
-    def __init__(self,name1=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        n1b = self.name1["bifurcationDiagram"]
-        if n1b is None:
-            n1b = "fort.7"
-        data = parseB.parseB(n1b)
-        return valueStringAndData("Parsed file: %s\n"%n1b,data)
 
-class commandParseDiagramAndSolutionFile(commandWithFilenameTemplate):
+def bt(name=None,templates=None):
     """Parse both bifurcation diagram and solution.
 
     Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
@@ -835,55 +779,42 @@ class commandParseDiagramAndSolutionFile(commandWithFilenameTemplate):
     This is equivalent to the command loadbd('xxx') but without the
     diagnostics in d.xxx.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        n1b = self.name1["bifurcationDiagram"]
-        n1s = self.name1["solution"]
-        if n1b is None:
-            n1b = "fort.7"
-            n1s = "fort.8"
-        data = parseBandS.parseBandS(n1b,n1s)
-        output_names = n1b + " and " + n1s
-        return valueStringAndData("Parsed files: %s\n"%output_names,data)
+    name = filenameTemplate(name,templates)
+    n1b = name["bifurcationDiagram"]
+    n1s = name["solution"]
+    if n1b is None:
+        n1b = "fort.7"
+        n1s = "fort.8"
+    data = parseBandS.parseBandS(n1b,n1s)
+    output_names = n1b + " and " + n1s
+    return valueStringAndData("Parsed files: %s\n"%output_names,data)
+commandParseDiagramAndSolutionFile = command(bt)
 
 
-class commandQueryDiagnostic(commandWithFilenameTemplate):
-    def __init__(self,diagnostic,name1=None,templates=None):
-        self.diagnostic = diagnostic
-        commandWithFilenameTemplate.__init__(self,name1,None,templates)
-    def __call__(self):
-        rval=valueSystem()
-        n1d = self.name1["diagnostics"]
-        if n1d is None:
-            n1d = "fort.9"
-        try:
-            f = open(n1d)
-        except TypeError:
-            for branch in n1d:
-                if hasattr(branch,"diagnostics"):
-                    for s in str(branch.diagnostics).splitlines():
-                        if s.find(self.diagnostic) != -1:
-                            rval.info(s+"\n")
-            rval.info("\n")
-            return rval
-        try:
-            for s in f:
-                if self.diagnostic in s:
-                    rval.info(s)
-        except:
-            while 1:
-                s = f.readline()
-                if s == "":
-                    break
-                if s.find(self.diagnostic) != -1:
-                    rval.info(s)
-        f.close()
+def queryDiagnostic(diagnostic,name=None,templates=None):
+    name = filenameTemplate(name,templates)
+    rval=valueSystem()
+    n1d = name["diagnostics"]
+    if n1d is None:
+        n1d = "fort.9"
+    try:
+        f = open(n1d)
+    except TypeError:
+        for branch in n1d:
+            if hasattr(branch,"diagnostics"):
+                for s in str(branch.diagnostics).splitlines():
+                    if s.find(diagnostic) != -1:
+                        rval.info(s+"\n")
         rval.info("\n")
         return rval
+    for s in f:
+        if s.find(diagnostic) != -1:
+            rval.info(s)
+    f.close()
+    rval.info("\n")
+    return rval
 
-class commandQueryBranchPoint(commandQueryDiagnostic):
+def branchpoint(name=None,templates=None):
     """Print the ``branch-point function''.
     
     Type FUNC(x) to list the value of the ``branch-point function'' 
@@ -896,11 +827,10 @@ class commandQueryBranchPoint(commandQueryDiagnostic):
     Type FUNC('xxx') to list the value of the ``branch-point function''
     in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"BP",name1,templates)
+    return queryDiagnostic("BP",name,templates)
+commandQueryBranchPoint = command(branchpoint)
         
-class commandQueryEigenvalue(commandQueryDiagnostic):
+def eigenvalue(name=None,templates=None):
     """Print eigenvalues of Jacobian (algebraic case).
 
     Type FUNC(x) to list the eigenvalues of the Jacobian 
@@ -913,11 +843,10 @@ class commandQueryEigenvalue(commandQueryDiagnostic):
     Type FUNC('xxx') to list the eigenvalues of the Jacobian 
     in the info file 'd.xxx'.
     """
+    return queryDiagnostic("Eigenvalue",name,templates)
+commandQueryEigenvalue = command(eigenvalue)
 
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Eigenvalue",name1,templates)
-
-class commandQueryFloquet(commandQueryDiagnostic):
+def floquet(name=None,templates=None):
     """Print the Floquet multipliers.
 
     Type FUNC(x) to list the Floquet multipliers
@@ -930,11 +859,10 @@ class commandQueryFloquet(commandQueryDiagnostic):
     Type FUNC('xxx') to list the Floquet multipliers 
     in the info file 'd.xxx'.
     """
+    return queryDiagnostic("Mult",name,templates)
+commandQueryFloquet = command(floquet)
 
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Mult",name1,templates)
-
-class commandQueryHopf(commandQueryDiagnostic):
+def hopf(name=None,templates=None):
     """Print the value of the ``Hopf function''.
 
     Type FUNC(x) to list the value of the ``Hopf function'' 
@@ -947,11 +875,10 @@ class commandQueryHopf(commandQueryDiagnostic):
     Type FUNC('xxx') to list the value of the ``Hopf function''
     in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Hopf",name1,templates)
+    return queryDiagnostic("Hopf",name,templates)
+commandQueryHopf = command(hopf)
 
-class commandQueryIterations(commandQueryDiagnostic):
+def iterations(name=None,templates=None):
     """Print the number of Newton interations.
 
     Type FUNC(x) to list the number of Newton iterations per
@@ -964,11 +891,10 @@ class commandQueryIterations(commandQueryDiagnostic):
     Type FUNC('xxx') to list the number of Newton iterations per
     continuation step in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Iterations",name1,templates)
+    return queryDiagnostic("Iterations",name,templates)
+commandQueryIterations = command(iterations)
 
-class commandQueryLimitpoint(commandQueryDiagnostic):
+def limitpoint(name=None,templates=None):
     """Print the value of the ``limit point function''.
 
     Type FUNC(x) to list the value of the ``limit point function'' 
@@ -981,11 +907,10 @@ class commandQueryLimitpoint(commandQueryDiagnostic):
     Type FUNC('xxx') to list the value of the ``limit point function'' 
     in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Fold",name1,templates)
+    return queryDiagnostic("Fold",name,templates)
+commandQueryLimitpoint = command(limitpoint)
 
-class commandQueryNote(commandQueryDiagnostic):
+def note(name=None,templates=None):
     """Print notes in info file.
 
     Type FUNC(x) to show any notes 
@@ -998,11 +923,10 @@ class commandQueryNote(commandQueryDiagnostic):
     Type FUNC('xxx') to show any notes 
     in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"NOTE",name1,templates)
+    return queryDiagnostic("NOTE",name,templates)
+commandQueryNote = command(note)
 
-class commandQuerySecondaryPeriod(commandQueryDiagnostic):
+def secondaryperiod(name=None,templates=None):
     """Print value of ``secondary-periodic bif. fcn''.
 
     Type FUNC(x) to list the value of the
@@ -1018,11 +942,10 @@ class commandQuerySecondaryPeriod(commandQueryDiagnostic):
     ``secondary-periodic bifurcation function''
     in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"SPB",name1,templates)
+    return queryDiagnostic("SPB",name,templates)
+commandQuerySecondaryPeriod = command(secondaryperiod)
 
-class commandQueryStepsize(commandQueryDiagnostic):
+def stepsize(name=None,templates=None):
     """Print continuation step sizes.
 
     Type FUNC(x) to list the continuation step size for each
@@ -1035,11 +958,10 @@ class commandQueryStepsize(commandQueryDiagnostic):
     Type FUNC('xxx') to list the continuation step size for each
     continuation step in the info file 'd.xxx'.
     """
-    
-    def __init__(self,name1=None,templates=None):
-        commandQueryDiagnostic.__init__(self,"Step",name1,templates)
+    return queryDiagnostic("Step",name,templates)
+commandQueryStepsize = command(stepsize)
 
-class commandTriple(commandExpandData):
+def triple(name=None,templates=None):
     """Triple a solution.
 
     Type FUNC() to triple the solution in 'fort.8'.
@@ -1047,120 +969,105 @@ class commandTriple(commandExpandData):
     Type FUNC('xxx') to triple the solution in s.xxx (if you
     are using the default filename templates).
     """
-
-    def __init__(self,name1=None,templates=None):
-        commandExpandData.__init__(self,name1,templates)
-        self.command = "triple"
+    return expandData("triple",name,templates)
+commandTriple = command(triple)
         
 ############################################
 #  System Commands
 ############################################
 
-class commandLs(command):
+def ls(dir=None):
     """List the current directory.
     
     Type 'FUNC' to run the system 'ls' command in the current directory.  This
     command will accept whatever arguments are accepted by the Unix command
     'ls'.
     """
-    def __init__(self,dir=None):
-        self.dir = dir
-    def __call__(self):
-        cmd = "ls"
-        if os.name in ["nt", "dos"]:
-            path = os.environ["PATH"].split(os.pathsep)
-            cmd = "dir" 
-            for s in path:
-                if os.path.exists(os.path.join(s,"ls.exe")):
-                    cmd = "ls"
-                    break
-        if self.dir is None:
-            os.system(cmd)
-        else:
-            os.system("%s %s"%(cmd,self.dir,))
-        return valueString("")
-        
-class commandQuit(command):
-    def __init__(self):
-        pass
-    def __call__(self):
-        try:
-            quit()
-        except:
-            sys.exit()
-        return valueString("")
+    cmd = "ls"
+    if os.name in ["nt", "dos"]:
+        path = os.environ["PATH"].split(os.pathsep)
+        cmd = "dir" 
+        for s in path:
+            if os.path.exists(os.path.join(s,"ls.exe")):
+                cmd = "ls"
+                break
+    if dir is None:
+        os.system(cmd)
+    else:
+        os.system("%s %s"%(cmd,dir,))
+    return valueString("")
+commandLs = command(ls)
 
-class commandShell(command):
+if isinstance(quit,str):
+    def quit():
+        sys.exit()
+        return valueString("")
+commandQuit = command(quit)
+
+def shell(cmd):
     """Run a shell command.
         
     Type FUNC('xxx') to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     """
-    
-    def __init__(self,command):
-        self.command = command
-    def __call__(self):
-        os.system(self.command) 
-        return valueString("")
+    os.system(cmd) 
+    return valueString("")
+commandShell = command(shell)
 
-class commandWait(command):
+def wait():
     """Wait for the user to enter a key.
 
     Type 'FUNC()' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
     """
-
-    def __call__(self):
-        print("Hit <return> to continue")
-        raw_input()
-        return valueString("")
+    print("Hit <return> to continue")
+    raw_input()
+    return valueString("")
+commandWait = command(wait)
           
-class commandCat(commandShell):
+def cat(f=None):
     """Print the contents of a file
 
     Type 'FUNC xxx' to list the contents of the file 'xxx'.  This calls the
     Unix function 'cat' for reading the file.  
     """
-    
-    def __init__(self,command=None):
-        self.command = "cat"
-        if not command is None:
-            self.command = self.command + " " + command
+    cmd = "cat"
+    if f is not None:
+        cmd = cmd + " " + f
+    return shell(cmd)
+commandCat = command(cat)
 
 
 ############################################
 #  Commands which use runAUTO
 ############################################       
-class commandWithRunner(command):
-    def __init__(self,runner=None):
-        if runner is None:
-            global _runner
-            self.runner = _runner
-        else:
-            self.runner = runner
+def withrunner(runner=None):
+    if runner is None:
+        global _runner
+        return _runner
+    else:
+        return runner
 
-class commandCd(commandWithRunner):
+def cd(dir=None,runner=None):
     """Change directories.
     
     Type 'FUNC xxx' to change to the directory 'xxx'.  This command
     understands both shell variables and home directory expansion.
     """
-    def __init__(self,dir=None,runner=None):
-        self.dir = dir
-        commandWithRunner.__init__(self,runner)
-    def __call__(self):
-        if self.dir is None or self.dir == '':
-            self.dir = os.path.expanduser("~")
-        try:
-            self.dir = os.path.expanduser(self.dir)
-            self.dir = os.path.expandvars(self.dir)
-            os.chdir(self.dir)
-        except:
-            print("Directory '%s' not found"%(self.dir,))
-        self.runner.config(dir=os.getcwd())      
-        return valueString("")
+    runner = withrunner(runner)
+    if dir is None or dir == '':
+        dir = os.path.expanduser("~")
+    try:
+        dir = os.path.expanduser(dir)
+        dir = os.path.expandvars(dir)
+        os.chdir(dir)
+    except:
+        print("Directory '%s' not found"%(dir,))
+    runner.config(dir=os.getcwd())
+    return valueString("")
+commandCd = command(cd)
 
-class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
+def configure(runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
     Type result=FUNC([options]) to modify the AUTO runner.
@@ -1187,13 +1094,8 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
     Special values for DS are '+' (forwards) and '-' (backwards).
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    def __init__(self,runner=None,templates=None,cnf={},**kw):
-        commandWithFilenameTemplate.__init__(self,None,None,templates)
-        commandWithRunner.__init__(self,runner)
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        self.configDict = dict
-    
-    def __applyRunnerConfigResolveAbbreviation(self,kw={}):
+
+    def applyRunnerConfigResolveAbbreviation(kw={}):
         abbrev = {}
         for key in ["equation", "constants", "solution", "homcont"]:
             abbrev[key[0]] = key
@@ -1208,12 +1110,12 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 # change the abbreviation to the long version
                 del kw[key]
                 if type(value) in [type(""),type(1),type(1.0)]:
-                    kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
+                    kw[abbrev[key]] = applyTemplate(value,abbrev[key],templates)
                 else:
                     kw[abbrev[key]] = value
         return kw
 
-    def __applyRunnerConfigResolveFilenames(self,kw={}):
+    def applyRunnerConfigResolveFilenames(kw={}):
         doneread = False
         wantread = False
         if "constants" in kw:
@@ -1257,24 +1159,27 @@ class commandRunnerConfig(commandWithFilenameTemplate,commandWithRunner):
                 raise IOError("No files found.")
         return kw
 
-    def __call__(self):
-        dict = self.__applyRunnerConfigResolveAbbreviation(self.configDict)
-        dict = self.__applyRunnerConfigResolveFilenames(dict)
-        if hasattr(self.runner,'load'):
-            data = self.runner.load(**dict)
+    runner = withrunner(runner)
+    dict = AUTOutil.cnfmerge((cnf,kw))
+    dict = applyRunnerConfigResolveAbbreviation(dict)
+    dict = applyRunnerConfigResolveFilenames(dict)
+    if hasattr(runner,'load'):
+        data = runner.load(**dict)
+    else:
+        runner.config(dict)
+        options = runner.options
+        if hasattr(options["solution"],'load'):
+            data = options["solution"].load(**options)
         else:
-            self.runner.config(dict)
-            options = self.runner.options
-            if hasattr(options["solution"],'load'):
-                data = options["solution"].load(**options)
-            else:
-                if 't' in dict:
-                    options = options.copy()
-                    options['t'] = dict['t']
-                data = parseS.AUTOSolution(options["solution"],**options)
-        return valueStringAndData("Runner configured\n",data)
+            if 't' in dict:
+                options = options.copy()
+                options['t'] = dict['t']
+            data = parseS.AUTOSolution(options["solution"],**options)
+    return valueStringAndData("Runner configured\n",data)
+commandRunnerConfig = command(configure)
 
-class commandRunnerLoadName(commandRunnerConfig):
+
+def load(name=None,runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
     Type result=FUNC([options]) to modify the AUTO runner.
@@ -1327,25 +1232,22 @@ class commandRunnerLoadName(commandRunnerConfig):
     Special values for DS are '+' (forwards) and '-' (backwards).
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    type="simple"
-    shortName="loadName"
-    def __init__(self,name=None,runner=None,templates=None,cnf={},**kw):
-        if runner is None and name is not None and type(name) not in [
-                type(""),type(1),type(1.0)]:
-            if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
-                runner = name
-            else:
-                kw["s"] = name
-            name = None 
-        elif name is not None:
-            for key in ["equation", "constants", "solution", "homcont"]:
-                if key not in kw:
-                    kw[key] = name
-        commandRunnerConfig.__init__(self,runner,templates,
-                                     AUTOutil.cnfmerge((kw,cnf)))
-        
+    if runner is None and name is not None and type(name) not in [
+        type(""),type(1),type(1.0)]:
+        if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
+            runner = name
+        else:
+            kw["s"] = name
+        name = None 
+    elif name is not None:
+        for key in ["equation", "constants", "solution", "homcont"]:
+            if key not in kw:
+                kw[key] = name
+    return configure(runner,templates,AUTOutil.cnfmerge((kw,cnf)))
+commandRunnerLoadName = command(load,SIMPLE,"loadname")
 
-class commandParseOutputFiles(commandWithFilenameTemplate):
+
+def loadbd(name=None,templates=None,cnf={},**kw):
     """Load bifurcation diagram files.
 
     Type b=FUNC([options]) to load output files or output data.
@@ -1365,18 +1267,7 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
 
     Returns a bifurcation diagram object representing the files in b.
     """
-    type="simple"
-    shortName="loadbd"
-    def __init__(self,name=None,templates=None,cnf={},**kw):
-        if name is not None:
-            for key in ["bifurcationDiagram", "solution", "diagnostics"]:
-                if key not in kw:
-                    kw[key] = name
-        commandWithFilenameTemplate.__init__(self,None,None,templates)
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        self.configDict = dict
-    
-    def __applyBsdConfigResolveAbbreviation(self,kw={}):
+    def __applyBsdConfigResolveAbbreviation(kw={}):
         abbrev = {}
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
             abbrev[key[0]] = key
@@ -1391,23 +1282,29 @@ class commandParseOutputFiles(commandWithFilenameTemplate):
                 # change the abbreviation to the long version
                 del kw[key]
                 if type(value) in [type(""),type(1),type(1.0)]:
-                    kw[abbrev[key]] = self._applyTemplate(value,abbrev[key])
+                    kw[abbrev[key]] = applyTemplate(value,abbrev[key],templates)
                 else:
                     kw[abbrev[key]] = value
         return kw
 
-    def __call__(self):
-        dict = self.__applyBsdConfigResolveAbbreviation(self.configDict)
-        bname = dict.get("bifurcationDiagram")
-        sname = dict.get("solution")
-        dname = dict.get("diagnostics")
-        data = bifDiag.bifDiag(bname,sname,dname,
-                               verbose = _runner.options["verbose"],
-                               redir = _runner.options["redir"],
-                               makefile = _runner.options["makefile"])
-        return valueStringAndData("Parsed output data\n",data)
+    if name is not None:
+        for key in ["bifurcationDiagram", "solution", "diagnostics"]:
+            if key not in kw:
+                kw[key] = name
+    dict = AUTOutil.cnfmerge((cnf,kw))
+    dict = __applyBsdConfigResolveAbbreviation(dict)
+    bname = dict.get("bifurcationDiagram")
+    sname = dict.get("solution")
+    dname = dict.get("diagnostics")
+    data = bifDiag.bifDiag(bname,sname,dname,
+                           verbose = _runner.options["verbose"],
+                           redir = _runner.options["redir"],
+                           makefile = _runner.options["makefile"])
+    return valueStringAndData("Parsed output data\n",data)
+commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd")
 
-class commandRunnerPrintFort2(commandWithRunner):
+
+def pr(parameter=None,runner=None):
     """Print continuation parameters.
 
     Type FUNC() to print all the parameters.
@@ -1417,18 +1314,15 @@ class commandRunnerPrintFort2(commandWithRunner):
     print s.c['xxx']
     where s is a solution.
     """
-    
-    def __init__(self,parameter=None,runner=None):
-        self.parameter = parameter
-        commandWithRunner.__init__(self,runner)
-    def __call__(self):
-        if self.parameter is None:
-            return valueString(str(self.runner.options["constants"]))
-        else:
-            return valueStringAndData("",
-                                      self.runner.options["constants"][self.parameter])
+    runner = withrunner(runner)
+    if parameter is None:
+        return valueString(str(runner.options["constants"]))
+    else:
+        return valueStringAndData("",runner.options["constants"][parameter])
+commandRunnerPrintFort2 = command(pr)
 
-class commandRunnerPrintFort12(commandWithRunner):
+
+def hpr(parameter=None,runner=None):
     """Print HomCont continuation parameters.
 
     Type FUNC() to print all the HomCont parameters.
@@ -1438,18 +1332,15 @@ class commandRunnerPrintFort12(commandWithRunner):
     print s.c['xxx']
     where s is a solution.
     """
-    
-    def __init__(self,parameter=None,runner=None):
-        self.parameter = parameter
-        commandWithRunner.__init__(self,runner)
-    def __call__(self):
-        if self.parameter is None:
-            return valueString(str(self.runner.options["homcont"]))
-        else:
-            return valueStringAndData("",
-                                      self.runner.options["homcont"][self.parameter])
+    runner = withrunner(runner)
+    if parameter is None:
+        return valueString(str(runner.options["homcont"]))
+    else:
+        return valueStringAndData("",runner.options["homcont"][parameter])
+commandRunnerPrintFort12 = command(hpr)
 
-class commandRunnerConfigFort2(commandWithRunner):
+
+def ch(entry=None,value=None,runner=None,**kw):
     """Modify continuation constants.
 
     Type FUNC('xxx',yyy) to change the constant 'xxx' to have
@@ -1458,26 +1349,16 @@ class commandRunnerConfigFort2(commandWithRunner):
     s=load(s,xxx=yyy)
     where s is a solution.
     """
+    runner = withrunner(runner)            
+    if entry is not None:
+        runner.options["constants"][entry] = value
+        return valueString("%s changed to %s\n"%(entry,value))
+    load(None,runner,None,kw)
+    return valueString(str(kw)+'\n')
+commandRunnerConfigFort2 = command(ch,SIMPLE,"changeConstants")
 
-    type=SIMPLE
-    shortName="changeConstants"
-    def __init__(self,entry=None,value=None,runner=None,**kw):
-        self.entry = None
-        if not(entry is None):
-            self.entry = entry
-        if not(value is None):
-            self.value = value
-        commandWithRunner.__init__(self,runner)            
-        self.kw = kw
-    def __call__(self):
-        if not(self.entry is None):
-            self.runner.options["constants"][self.entry] = self.value
-            return valueString("%s changed to %s\n"%(self.entry,self.value))
-        func=commandRunnerLoadName(None,None,None,self.kw)
-        func()
-        return valueString(str(self.kw)+'\n')
 
-class commandRunnerConfigFort12(commandWithRunner):
+def hch(entry=None,value=None,runner=None,**kw):
     """Modify continuation constants.
 
     Type FUNC('xxx',yyy) to change the HomCont constant 'xxx' to have
@@ -1486,35 +1367,16 @@ class commandRunnerConfigFort12(commandWithRunner):
     s=load(s,xxx=yyy)
     where s is a solution.
     """
-
-    type=SIMPLE
-    shortName="changeConstantsHomCont"
-    def __init__(self,entry=None,value=None,runner=None,**kw):
-        self.entry = None
-        if not(entry is None):
-            self.entry = entry
-        if not(value is None):
-            self.value = value
-        commandWithRunner.__init__(self,runner)            
-        self.kw = kw
-    def __call__(self):
-        if not(self.entry is None):
-            self.runner.options["homcont"][self.entry] = self.value
-            return valueString("%s changed to %s\n"%(self.entry,self.value))
-        func=commandRunnerLoadName(None,None,None,self.kw)
-        func()
-        return valueString(str(self.kw)+'\n')
-
+    runner = withrunner(runner)
+    if entry is not None:
+        runner.options["homcont"][entry] = value
+        return valueString("%s changed to %s\n"%(entry,value))
+    load(None,runner,None,kw)
+    return valueString(str(kw)+'\n')
+commandRunnerConfigFort12 = command(hch,SIMPLE,"changeConstantsHomCont")
     
-class commandSetDirectory(commandWithRunner):
-    def __init__(self,directory,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.directory = directory
-    def __call__(self):
-        self.runner.config(dir=self.directory)
-        return valueString("Directory set to %s\n"%self.directory)
 
-class commandRun(commandWithRunner,commandWithFilenameTemplate):
+def run(name=None,sv=None,ap=None,runner=None,templates=None,**kw):
     """Run AUTO.
 
     Type r=FUNC([s],[options]) to run AUTO from solution s with the given
@@ -1556,201 +1418,174 @@ class commandRun(commandWithRunner,commandWithFilenameTemplate):
     saves to the files b.hb, s.hb and d.hb, and appends to b.all,
     s.all, and d.all.
     """
-    type=SIMPLE
-    shortName="run"
-    def __init__(self,name=None,sv=None,ap=None,runner=None,templates=None,**kw):
-        self.name = name
-        self.runner = runner
-        self.templates = templates
-        if sv is not None:
-            kw = kw.copy()
-            kw['sv'] = sv
-        self.kw = kw
-        self.ap = ap
-        if (runner is None and name is not None and type(name) != type("")
-            and type(name) != type(1)):
-            if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
-                self.runner = name
-            elif "s" not in kw:
-                self.kw["s"] = name
-            self.name = None
-
-    def __call__(self):
-        func=commandRunnerLoadName(self.name,self.runner,self.templates,self.kw)
-        runner = func().data
-        sv = (runner.options.get("constants") or {}).get("sv")
-        if sv == '':
-            sv = None
-        if runner.options["verbose"] == "no":
-            log = StringIO()
-            err = StringIO()
-            data = runner.run(log=log,err=err)
-            log.seek(0)
-            err.seek(0)
-            ret = valueRun(log,err,data=data)
-            log.close()
-            err.close()
-        elif runner.options["redir"] == "yes":
-            # log was already written if the runner is verbose
-            err = StringIO()
-            data = runner.run(err=err)
-            err.seek(0)
-            ret = valueRun(err,data=data)
-            err.close()
+    origrunner = runner
+    if sv is not None:
+        kw = kw.copy()
+        kw['sv'] = sv
+    if runner is None and name is not None and type(name) not in [
+        type(""), type(1), type(1.0)]:
+        if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
+            origrunner = name
+        elif "s" not in kw:
+            kw["s"] = name
+        name = None
+    runner = load(name,origrunner,templates,kw).data
+    sv = (runner.options.get("constants") or {}).get("sv")
+    if sv == '':
+        sv = None
+    if runner.options["verbose"] == "no":
+        log = StringIO()
+        err = StringIO()
+        data = runner.run(log=log,err=err)
+        log.seek(0)
+        err.seek(0)
+        ret = valueRun(log,err,data=data)
+        log.close()
+        err.close()
+    elif runner.options["redir"] == "yes":
+        # log was already written if the runner is verbose
+        err = StringIO()
+        data = runner.run(err=err)
+        err.seek(0)
+        ret = valueRun(err,data=data)
+        err.close()
+    else:
+        data = runner.run()
+        ret = valueRun(data=data)
+    if sv is not None:
+        name = filenameTemplate(sv,templates)
+        bname = name["bifurcationDiagram"]
+        sname = name["solution"]
+        dname = name["diagnostics"]
+        ret.value = ret.value + "Saving to %s, %s, and %s ... done\n"%(
+            bname,sname,dname)
+    if ap is not None:
+        if sv is None:
+            rval=append(ap)
         else:
-            data = runner.run()
-            ret = valueRun(data=data)
-        if sv is not None:
-            commandWithFilenameTemplate.__init__(self,sv,None,
-                                                 self.templates)
-            bname = self.name1["bifurcationDiagram"]
-            sname = self.name1["solution"]
-            dname = self.name1["diagnostics"]
-            ret.value = ret.value + "Saving to %s, %s, and %s ... done\n"%(
-                bname,sname,dname)
-        if self.ap is not None:
-            if sv is None:
-                func=commandAppend(self.ap)
-            else:
-                func=commandAppend(sv,self.ap)
-            rval=func()
-            ret.value = ret.value + rval.value
-        if self.runner is None:
-            # delete ["sv"] from the global runner
-            global _runner
-            c = _runner.options.get("constants") or {}
-            if "sv" in c:
-                c["sv"] = None
-        return ret
-
-class commandRunDemo(commandWithRunner):
-    def __init__(self,demo,equation="all",runner=None):
-        self.demo = demo
-        self.equation = equation
-        commandWithRunner.__init__(self,runner)
-    def __call__(self):
-        self.runner.config(equation=self.equation)
-        log,err,data = self.runner.runDemo(self.demo)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunMakefileWithSetup(commandWithRunner):
-    def __init__(self,equation=None,fort2=None,fort3=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.equation = equation
-        self.fort2 = fort2
-        self.fort3 = fort3
-    def __call__(self):
-        if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
-        if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
-        # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exception.
-        log,err,data = self.runner.runMakefileWithSetup(self.equation)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunMakefile(command):
-    def __init__(self,equation=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.equation = equation
-    def __call__(self):
-        log,err,data = self.runner.runMakefile(self.equation)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunExecutableWithSetup(command):
-    def __init__(self,executable=None,fort2=None,fort3=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.executable = executable
-        self.fort2 = fort2
-        self.fort3 = fort3
-    def __call__(self):
-        if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
-        if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
-        # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exception.
-        log,err,data = self.runner.runExecutableWithSetup(self.executable)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunExecutable(command):
-    def __init__(self,executable=None,fort2=None,fort3=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.executable = executable
-        self.fort2 = fort2
-        self.fort3 = fort3
-    def __call__(self):
-        log,err,data = self.runner.runExecutable(self.executable)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunCommandWithSetup(command):
-    def __init__(self,command=None,fort2=None,fort3=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.command = command
-        self.fort2 = fort2
-        self.fort3 = fort3
-    def __call__(self):
-        if not(self.fort2 is None):
-            self.runner.config(fort2=self.fort2)
-        if not(self.fort3 is None):
-            self.runner.config(fort3=self.fort3)
-        # Before this is called runner needs to have the fort2 and fort3
-        # options set.  Otherwise this will raise an exception.
-        log,err,data = self.runner.runCommandWithSetup(self.command)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
-
-class commandRunCommand(command):
-    def __init__(self,command=None,runner=None):
-        commandWithRunner.__init__(self,runner)
-        self.command = command
-    def __call__(self):
-        log,err,data = self.runner.runCommand(self.command)
-        # Only return the log if the runner is not verbose
-        # since when the runner is verbose it prints to
-        # to stdout anyway
-        if self.runner.options["verbose"] == "yes":
-            return valueRun(err,data=data)
-        else:
-            return valueRun(log,err,data=data)
+            rval=append(sv,ap)
+        ret.value = ret.value + rval.value
+    if origrunner is None:
+        # delete ["sv"] from the global runner
+        global _runner
+        c = _runner.options.get("constants") or {}
+        if "sv" in c:
+            c["sv"] = None
+    return ret
+commandRun = command(run,SIMPLE,"run")
 
 
-class commandPlotter3D(command):
+def rundemo(demo,equation="all",runner=None):
+    runner = withrunner(runner)
+    runner.config(equation=equation)
+    log,err,data = runner.runDemo(demo)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunDemo = command(rundemo)
+
+
+def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
+    runner = withrunner(runner)
+    if fort2 is not None:
+        runner.config(fort2=fort2)
+    if fort3 is not None:
+        runner.config(fort3=fort3)
+    # Before this is called runner needs to have the fort2 and fort3
+    # options set.  Otherwise this will raise an exception.
+    log,err,data = runner.runMakefileWithSetup(equation)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunMakefileWithSetup = command(runMakefileWithSetup)
+
+
+def runMakefile(equation=None,runner=None):
+    runner = withrunner(runner)
+    log,err,data = runner.runMakefile(equation)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunMakefile = command(runMakefile)
+
+
+def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
+    runner = withrunner(runner)
+    if fort2 is not None:
+        runner.config(fort2=fort2)
+    if fort3 is not None:
+        runner.config(fort3=fort3)
+    # Before this is called runner needs to have the fort2 and fort3
+    # options set.  Otherwise this will raise an exception.
+    log,err,data = runner.runExecutableWithSetup(executable)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunExecutableWithSetup = command(runExecutableWithSetup)
+
+
+def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
+    runner = withrunner(runner)
+    log,err,data = runner.runExecutable(executable)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunExecutable = command(runExecutable)
+
+
+def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
+    runner = withrunner(runner)
+    if fort2 is not None:
+        runner.config(fort2=fort2)
+    if fort3 is not None:
+        runner.config(fort3=fort3)
+    # Before this is called runner needs to have the fort2 and fort3
+    # options set.  Otherwise this will raise an exception.
+    log,err,data = runner.runCommandWithSetup(command)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunCommandWithSetup = command(runCommandWithSetup)
+
+
+def runCommand(command=None,runner=None):
+    runner = withRunner(runner)
+    log,err,data = runner.runCommand(command)
+    # Only return the log if the runner is not verbose
+    # since when the runner is verbose it prints to
+    # to stdout anyway
+    if runner.options["verbose"] == "yes":
+        return valueRun(err,data=data)
+    else:
+        return valueRun(log,err,data=data)
+commandRunCommand = command(runCommand)
+
+
+def plot3(name=None,r3b=False):
     """3D plotting of data.
 
     Type FUNC(x) to run the graphics program PLAUT04 for the graphical
@@ -1766,46 +1601,39 @@ class commandPlotter3D(command):
     Type FUNC(...,r3b=True) to run PLAUT04 in restricted three body
     problem mode.
     """
-
-    def __init__(self,name1=None,r3b=False):
-        self.data = []
-        self.r3b = r3b
-        if not name1 is None:
-            self.data.append(name1)
-    def __call__(self):
-        cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
-        if self.r3b:
-            cmd = os.path.join(cmd, "r3bplaut04")
+    cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
+    if r3b:
+        cmd = os.path.join(cmd, "r3bplaut04")
+    else:
+        cmd = os.path.join(cmd, "plaut04")
+    arg = []
+    if name is not None:
+        if type(name) == type(""):
+            arg = [name]
         else:
-            cmd = os.path.join(cmd, "plaut04")
-        arg = []
-        if self.data != []:
-            d = self.data[0]
-            if type(d) == type(""):
-                arg = [d]
-            else:
-                for f in ["fort.7","fort.8","fort.9"]:
-                    if os.path.exists(f):
-                        os.remove(f)
-                if isinstance(d,bifDiag.bifDiag):
-                    d.writeFilename("fort.7","fort.8","fort.9")
-                elif isinstance(d,parseBandS.parseBandS):
-                    d.writeFilename("fort.7","fort.8")
-                elif isinstance(d,parseB.parseB):
-                    d.writeFilename("fort.7")
-                elif isinstance(d,parseS.parseS):
-                    d.writeFilename("fort.8")
-                elif isinstance(d,parseB.AUTOBranch):
-                    d.writeFilename("fort.7")
-                elif isinstance(d,parseS.AUTOSolution):
-                    d.writeFilename("fort.8")
-        if hasattr(os,"spawnv"):
-            if not os.path.exists(cmd):
-                cmd = cmd + '.exe'
-            os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
-        else:
-            os.system(" ".join([cmd]+arg+["&"]))
-        return valueString("")
+            for f in ["fort.7","fort.8","fort.9"]:
+                if os.path.exists(f):
+                    os.remove(f)
+            if isinstance(d,bifDiag.bifDiag):
+                d.writeFilename("fort.7","fort.8","fort.9")
+            elif isinstance(d,parseBandS.parseBandS):
+                d.writeFilename("fort.7","fort.8")
+            elif isinstance(d,parseB.parseB):
+                d.writeFilename("fort.7")
+            elif isinstance(d,parseS.parseS):
+                d.writeFilename("fort.8")
+            elif isinstance(d,parseB.AUTOBranch):
+                d.writeFilename("fort.7")
+            elif isinstance(d,parseS.AUTOSolution):
+                d.writeFilename("fort.8")
+    if hasattr(os,"spawnv"):
+        if not os.path.exists(cmd):
+            cmd = cmd + '.exe'
+        os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
+    else:
+        os.system(" ".join([cmd]+arg+["&"]))
+    return valueString("")
+commandPlotter3D = command(plot3)
 
 
 try:
@@ -1831,7 +1659,7 @@ try:
     #  Plotting commands
     #####################################################
 
-    class commandPlotter(commandWithFilenameTemplate):
+    def plot(name=None,templates=None,options={},**kw):
         """2D plotting of data.
 
         Type FUNC(x) to run the graphics program PyPLAUT for the graphical
@@ -1847,284 +1675,269 @@ try:
         The return value will be the handle for the graphics window.
         """
 
-        type=SIMPLE
-        shortName="plot"
-        def __init__(self,name=None,templates=None,options={},**kw):
-            self.options = AUTOutil.cnfmerge((options,kw))
-            if type(name) == type("") or name is None:
-                commandWithFilenameTemplate.__init__(self,name,None,templates)
-                self.parsed = None
-            else:
-                self.parsed = name
-        def quit(self):
-            self.handle.destroy()
-        def __call__(self):
-            # delay importing plotting modules until we actually plot...
-            global plotterimported, windowPlotter
-            if not plotterimported:
-                from graphics import windowPlotter
-                plotterimported = True
+        options = AUTOutil.cnfmerge((options,kw))
+        if type(name) == type("") or name is None:
+            name = filenameTemplate(name,templates)
+            parsed = None
+        else:
+            parsed = name
+        # delay importing plotting modules until we actually plot...
+        global plotterimported, windowPlotter
+        if not plotterimported:
+            from graphics import windowPlotter
+            plotterimported = True
 
-            # root has to be here since I am passing options in
-            # a dictionary.  Otherwise the default agruements
-            # get messed up
-            # NOTE: options set here go to the MegaToplevel!, while
-            # the return value of this function is the underlying
-            # grapher.  So we add 'grapher_' to all options that don't
-            # already do
-            for k, v in self.options.items():
-                if k[:8] != 'grapher_':
-                    del self.options[k]
-                    self.options['grapher_'+k] = v
+        # root has to be here since I am passing options in
+        # a dictionary.  Otherwise the default agruements
+        # get messed up
+        # NOTE: options set here go to the MegaToplevel!, while
+        # the return value of this function is the underlying
+        # grapher.  So we add 'grapher_' to all options that don't
+        # already do
+        for k, v in options.items():
+            if k[:8] != 'grapher_':
+                del options[k]
+                options['grapher_'+k] = v
 
-            # Get rid of the initial window
-            root=Tk()
-            root.withdraw()
-            if sys.platform == "cygwin":
-                try:
-                    readline.set_pre_input_hook(handleevents)
-                    global _root
-                    _root=root
-                except:
-                    pass
-            if self.parsed:
-                nb, ns = None, None
-                if isinstance(self.parsed,bifDiag.bifDiag):
-                    nb = self.parsed
-                    ns = self.parsed()
-                elif isinstance(self.parsed,parseBandS.parseBandS):
-                    nb = self.parsed.diagram.branches
-                    ns = self.parsed.solution
-                elif isinstance(self.parsed,parseB.parseB):
-                    nb = self.parsed.branches
-                elif isinstance(self.parsed,parseS.parseS):
-                    ns = self.parsed
-                elif isinstance(self.parsed,parseB.AUTOBranch):
-                    nb = parseB.parseBR([self.parsed])
-                elif isinstance(self.parsed,parseS.AUTOSolution):
-                    ns = parseS.parseS([self.parsed])
-                if nb:
-                    self.options["grapher_bifurcation_diagram"] = nb
-                if ns:
-                    self.options["grapher_solution"] = ns                    
-            else:
-                n1b = self.name1["bifurcationDiagram"]
-                n1s = self.name1["solution"]
-                if n1b is None:
-                    n1b = "fort.7"
-                    n1s = "fort.8"
-                try:
-                    n1b = parseB.parseBR(n1b)
-                    options = {"constants": n1b[0].c}
-                    n1b = bifDiag.bifDiag(n1b,n1s,**options)
-                except IOError:
-                    n1b = bifDiag.bifDiag(b,s)
-                self.options["grapher_bifurcation_diagram"] = n1b
-                self.options["grapher_solution"] = n1b()
-            self.handle = windowPlotter.WindowPlotter2D(root,self.options,
-                          grapher_width=600,grapher_height=480)
-            self.handle.update()
+        # Get rid of the initial window
+        root=Tk()
+        root.withdraw()
+        if sys.platform == "cygwin":
             try:
-                atexit.register(self.quit)
+                readline.set_pre_input_hook(handleevents)
+                global _root
+                _root=root
             except:
                 pass
-            return valueStringAndData("Created plotter\n",self.handle)
+        if parsed:
+            nb, ns = None, None
+            if isinstance(parsed,bifDiag.bifDiag):
+                nb = parsed
+                ns = parsed()
+            elif isinstance(parsed,parseBandS.parseBandS):
+                nb = parsed.diagram.branches
+                ns = parsed.solution
+            elif isinstance(parsed,parseB.parseB):
+                nb = parsed.branches
+            elif isinstance(parsed,parseS.parseS):
+                ns = parsed
+            elif isinstance(parsed,parseB.AUTOBranch):
+                nb = parseB.parseBR([parsed])
+            elif isinstance(parsed,parseS.AUTOSolution):
+                ns = parseS.parseS([parsed])
+            if nb:
+                options["grapher_bifurcation_diagram"] = nb
+            if ns:
+                options["grapher_solution"] = ns                    
+        else:
+            n1b = name["bifurcationDiagram"]
+            n1s = name["solution"]
+            if n1b is None:
+                n1b = "fort.7"
+                n1s = "fort.8"
+            try:
+                n1b = parseB.parseBR(n1b)
+                opt = {"constants": n1b[0].c}
+                n1b = bifDiag.bifDiag(n1b,n1s,**opt)
+            except IOError:
+                n1b = bifDiag.bifDiag(b,s)
+            options["grapher_bifurcation_diagram"] = n1b
+            options["grapher_solution"] = n1b()
+        handle = windowPlotter.WindowPlotter2D(root,options,
+                      grapher_width=600,grapher_height=480)
+        handle.update()
+        try:
+            def plotterquit():
+                handle.destroy()
+            atexit.register(plotterquit)
+        except:
+            pass
+        return valueStringAndData("Created plotter\n",handle)
 
 except:
     print("\n-------------------------------------------------------------")
     print("Could not import plotting modules, plotting will be disabled.")
     print("This is probably because Tkinter is not enabled in your Python installation.")
     print("-------------------------------------------------------------\n")
-    class commandPlotter(commandWithFilenameTemplate):
+    def plot(name=None,templates=None,options={},**kw):
         """2D plotting of data.
 
         Plotting of data has been disabled in the AUTO-07P CLUI.
         This is probably because the Python interpretor cannot
         load the Tkinter module.
         """
-        
-        def __call__(self):
-            return valueString("2D plotting has been disabled\n")
-
+        return valueString("2D plotting has been disabled\n")
+commandPlotter = command(plot,SIMPLE,"plot")
 
 
 ##################################################
 #  CLUI commands
 ##################################################
-class commandHelp(command):
-    def __init__(self,command_string=""):
-        self.command_string = command_string
-        self.__outputString = ""
-        # Read in the aliases.
-        self._aliases = {}
-        parser = AUTOutil.getAUTORC("AUTO_command_aliases")
-        for option in parser.options("AUTO_command_aliases"):
-            self._aliases[option] = parser.get("AUTO_command_aliases",option)
+def autohelp(command_string=""):
+    outputString = ""
+    # Read in the aliases.
+    _aliases = {}
+    parser = AUTOutil.getAUTORC("AUTO_command_aliases")
+    for option in parser.options("AUTO_command_aliases"):
+        _aliases[option] = parser.get("AUTO_command_aliases",option)
 
-    def __print(self,text):
-        self.__outputString = self.__outputString + text
+    command_list = []
 
-    def __call__(self):
-        command_list = []
+    # Here we get a list of the names of all of the commands in AUTOCommands
+    import AUTOCommands
+    for key in AUTOCommands.__dict__:
+        if key in _aliases.values():
+            command_list.append(key)
 
-        # Here we get a list of the names of all of the commands in AUTOCommands
-        import AUTOCommands
-        for key in AUTOCommands.__dict__:
-            if key in self._aliases.values():
-                command_list.append(key)
-
-        return_value = {}
-        if isinstance(self.command_string, str):
-            self.__print(self.command_string.__doc__+'\n')
-            return valueStringAndData(self.__outputString,return_value)
-        if len(self.command_string) == 0:
-            # If we were created with the empty string return a formatted
-            # quick reference of all commands as the string and a
-            # dictionary of all commands as the data.  The dictionary
-            # has an entry for each command which is a dictionary
-            # with two entries:
-            #   "aliases"  a list of the aliases of the command
-            #   "description" a one line description of the command
-            command_list.sort()
-            self.__print(" ALIASES    DESCRIPTION\n") 
-            for cmd in command_list:
-                return_value[cmd] = {}
-                return_value[cmd]["aliases"] = []
-                aliases = ""
-                for key in self._aliases:
-                    if self._aliases[key] == cmd:
-                        aliases = aliases + key + " "
-                        return_value[cmd]["aliases"].append(key)
-                doc = getattr(AUTOCommands,cmd).__doc__
-                if not(doc is None):
-                    self.__print(" %-25s"%aliases)
-                    doc = doc.splitlines()
-                    return_value[cmd]["description"] = doc[0]
-                    self.__print(doc[0])
-                    self.__print("\n")
-
-            import interactiveBindings            
-            execlist = [{'name' : 'auto', 'alias' : 'ex', 
-                         'fn' : interactiveBindings.AUTOInteractiveConsole.ex},
-                        {'name' : 'demofile', 'alias' : 'dmf',
-                         'fn' : interactiveBindings.AUTOInteractiveConsole.dmf}]
-            for cmdprop in execlist:
-                cmd = cmdprop['name']
-                return_value[cmd] = {}
-                return_value[cmd]["aliases"] = [cmd,cmdprop['alias']]
-                aliases = cmd + " " + cmdprop['alias']
-                doc = cmdprop["fn"].__doc__
-                self.__print(" %-25s"%aliases)
+    return_value = {}
+    if not isinstance(command_string, str):
+        try:
+            outputString += command_string.__doc__+'\n'
+        except TypeError:
+            pass
+        return valueStringAndData(outputString,return_value)
+    if len(command_string) == 0:
+        # If we were created with the empty string return a formatted
+        # quick reference of all commands as the string and a
+        # dictionary of all commands as the data.  The dictionary
+        # has an entry for each command which is a dictionary
+        # with two entries:
+        #   "aliases"  a list of the aliases of the command
+        #   "description" a one line description of the command
+        command_list.sort()
+        outputString += " ALIASES    DESCRIPTION\n"
+        for cmd in command_list:
+            return_value[cmd] = {}
+            return_value[cmd]["aliases"] = []
+            aliases = ""
+            for key in _aliases:
+                if _aliases[key] == cmd:
+                    aliases = aliases + key + " "
+                    return_value[cmd]["aliases"].append(key)
+            doc = getattr(AUTOCommands,cmd).__doc__
+            if not(doc is None):
+                outputString += " %-25s"%aliases
                 doc = doc.splitlines()
                 return_value[cmd]["description"] = doc[0]
-                self.__print(doc[0])
-                self.__print("\n")
-                
-            self.__print("\n")
-        else:
-            # If we were created with the nonempty string return a formatted
-            # reference for the given command as the string and a
-            # dictionary containing information about the command as the data.
-            # The dictionary has 3 entries:
-            #   "name"  the full name of the command
-            #   "aliases"  a list of all of the aliases of the command
-            #   "description" a long description of the command
-            try:
-                doc = getattr(AUTOCommands,self.command_string).__doc__
-                return_value["name"] = self.command_string
-            except:
-                doc = getattr(AUTOCommands,self._aliases[self.command_string]).__doc__
-                return_value["name"] = self._aliases[self.command_string]
-            doc = re.sub("FUNC",self.command_string,doc)
-            return_value["short description"] = doc.splitlines()[0]
-            return_value["long description"]  = "\n".join(doc.split("\n")[1:])
-            # Get rid of the LaTeX stuff from the string that gets returned, but
-            # NOT from the data portion
-            doc = doc.replace("\\begin{verbatim}","")
-            doc = doc.replace("\\end{verbatim}","")
-            doc = doc + "\n"
+                outputString += doc[0]
+                outputString += "\n"
 
-            command_string = self.command_string
-            if not self.command_string in command_list:
-                # This means help was asked for an alias
-                command_string = self._aliases[command_string]
-                doc = doc + "Command name: "+command_string+"\n"
-            return_value["aliases"] = []
-            doc = doc + "Aliases: "
-            for key in self._aliases:
-                if self._aliases[key] == command_string:
-                    doc = doc + key + " "
-                    return_value["aliases"].append(key)
-            self.__print(doc+"\n")
-        return valueStringAndData(self.__outputString,return_value)
+        import interactiveBindings            
+        execlist = [{'name' : 'auto', 'alias' : 'ex', 
+                     'fn' : interactiveBindings.AUTOInteractiveConsole.ex},
+                    {'name' : 'demofile', 'alias' : 'dmf',
+                     'fn' : interactiveBindings.AUTOInteractiveConsole.dmf}]
+        for cmdprop in execlist:
+            cmd = cmdprop['name']
+            return_value[cmd] = {}
+            return_value[cmd]["aliases"] = [cmd,cmdprop['alias']]
+            aliases = cmd + " " + cmdprop['alias']
+            doc = cmdprop["fn"].__doc__
+            outputString += " %-25s"%aliases
+            doc = doc.splitlines()
+            return_value[cmd]["description"] = doc[0]
+            outputString += doc[0]
+            outputString += "\n"
+
+        outputString += "\n"
+    else:
+        # If we were created with the nonempty string return a formatted
+        # reference for the given command as the string and a
+        # dictionary containing information about the command as the data.
+        # The dictionary has 3 entries:
+        #   "name"  the full name of the command
+        #   "aliases"  a list of all of the aliases of the command
+        #   "description" a long description of the command
+        try:
+            doc = getattr(AUTOCommands,command_string).__doc__
+            return_value["name"] = command_string
+        except:
+            doc = getattr(AUTOCommands,_aliases[command_string]).__doc__
+            return_value["name"] = _aliases[command_string]
+        doc = re.sub("FUNC",command_string,doc)
+        return_value["short description"] = doc.splitlines()[0]
+        return_value["long description"]  = "\n".join(doc.split("\n")[1:])
+        # Get rid of the LaTeX stuff from the string that gets returned, but
+        # NOT from the data portion
+        doc = doc.replace("\\begin{verbatim}","")
+        doc = doc.replace("\\end{verbatim}","")
+        doc = doc + "\n"
+
+        command_string = command_string
+        if not command_string in command_list:
+            # This means help was asked for an alias
+            command_string = _aliases[command_string]
+            doc = doc + "Command name: "+command_string+"\n"
+        return_value["aliases"] = []
+        doc = doc + "Aliases: "
+        for key in _aliases:
+            if _aliases[key] == command_string:
+                doc = doc + key + " "
+                return_value["aliases"].append(key)
+        outputString += doc+"\n"
+    return valueStringAndData(outputString,return_value)
+commandHelp = command(autohelp)
+
 
 # This is just a little wrapper around commandHelp which discards the
 # data portion of the return.  This is because, for the
 # interactive command line we don't want it to print out.
-class commandInteractiveHelp(commandHelp):
+def man(command_string=""):
     """Get help on the AUTO commands.
     
     Type 'FUNC' to list all commands with a online help.
     Type 'FUNC xxx' to get help for command 'xxx'.
     """
-    
-    def __init__(self,command_string=""):
-        commandHelp.__init__(self,command_string)
+    val = autohelp(command_string)
+    return valueString(str(val))
+commandInteractiveHelp = command(man)
 
-    def __call__(self):
-        val = commandHelp.__call__(self)
-        return valueString(str(val))
 
 ##################################################
 #  GUI commands
 ##################################################
-class commandPrintFunc(command):
-    def __init__(self,printFunc,text):
-        self.text = text
-        self.printFunc = printFunc
-    def __call__(self):
-        self.printFunc(self.text)
-        return valueString(self.text)
+def printFunc(printFnc,text):
+    printFnc(text)
+    return valueString(text)
+commandPrintFunc = command(printFunc)
+
 
 # FIXME: This is not done!!
-class commandCreateGUI(command):
+def gui(type="simple"):
     """Show AUTOs graphical user interface.
 
     Type FUNC() to start AUTOs graphical user interface.
     
     NOTE: This command is not implemented yet.
     """
-    def __init__(self,type="simple"):
-        self.type=type
-        pass
-    def __call__(self):
-        try:
-            from Tkinter import Tk
-        except ImportError:
-            from tkinter import Tk # Python 3
-        import Pmw
-        from graphics import AUTOgui
-        # Get rid of the initial window
-        root = Tk()
-        root.withdraw()
-        gui = AUTOgui.AUTOgui(self.type)
-        return valueStringAndData("GUI created\n",gui)
-    
+    try:
+        from Tkinter import Tk
+    except ImportError:
+        from tkinter import Tk # Python 3
+    import Pmw
+    from graphics import AUTOgui
+    # Get rid of the initial window
+    root = Tk()
+    root.withdraw()
+    guic = AUTOgui.AUTOgui(type)
+    return valueStringAndData("GUI created\n",guic)
+commandCreateGUI = command(gui)
+
+
 # Not ready yet
-##  class commandRunGeneralGUI(command):
-##      def __init__(self,runner):
-##          self.runner = runner
-##      def __call__(self):
-##          tkSimple
-##          first = commandSetupGeneralRun(eq_name,saved_data,parameter_name)
-##          second = commandRunnerConfig(self.runner,makefile="$AUTO_DIR/cmds/cmds.make")
-##          third = commandRunMakefile(self.runner,"EQUATION_NAME=%s"%(eq_name))
-##          return commandMacro((first,second,third))
+##  def commandRunGeneralGUI(runner):
+##      tkSimple
+##      first = commandSetupGeneralRun(eq_name,saved_data,parameter_name)
+##      second = commandRunnerConfig(runner,makefile="$AUTO_DIR/cmds/cmds.make")
+##      third = commandRunMakefile(runner,"EQUATION_NAME=%s"%(eq_name))
+##      return commandMacro((first,second,third))
+##  commandRunGeneralGUI = command(generalGUI)
         
+
 ############################################
 #  High level functions
 ############################################
-class commandSpecialPointLabels(command):
+def splabs(s,typename):
     """Return special labels
 
     Type FUNC('xxx',typename) to get a list of labels with the specified
@@ -2140,20 +1953,16 @@ class commandSpecialPointLabels(command):
     This is equivalent to the command
     s(typename).getLabels()
     """
-    def __init__(self,s,typename):
-        self.s = s
-        self.typename = typename
-    def __call__(self):
-        labels = []
-        func = commandParseSolutionFile(self.s)
-        try:
-            s = func().data
-        except:
-            s = self.s
-        for solution in s:
-            if solution['Type name'] == self.typename:
-                labels.append(solution['Label'])
-        return valueStringAndData("", labels)
+    labels = []
+    try:
+        s = sl(s).data
+    except:
+        pass
+    for solution in s:
+        if solution['Type name'] == typename:
+            labels.append(solution['Label'])
+    return valueStringAndData("", labels)
+commandSpecialPointLabels = command(splabs)
 
 ############################################
 #  Return values
@@ -2166,11 +1975,13 @@ class valueStringAndData:
     def __str__(self):
         return self.text
 
+
 class valueString:
     def __init__(self,text):
         self.text = text
     def __str__(self):
         return self.text
+
 
 class valueRun:
     def __init__(self,stream1=None,stream2=None,data=None):
@@ -2183,6 +1994,7 @@ class valueRun:
             self.data = data
     def __str__(self):
          return self.value
+
 
 class valueSystem:
     def __init__(self):

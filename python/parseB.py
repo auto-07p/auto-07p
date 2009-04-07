@@ -466,6 +466,10 @@ class AUTOBranch(Points.Pointset):
         """Subtracts branch branches using interpolation with respect to other
         with monotonically increasing or decreasing reference coordinate ref,
         and starting point pt"""
+        global N
+        if not Points.numpyimported:
+            Points.importnumpy()
+        N = Points.N
         if pt is None:
             index = 0
         elif type(pt) == type(1):
