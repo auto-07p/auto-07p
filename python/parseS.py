@@ -610,7 +610,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 return
         try:
             Points.Pointset.__setitem__(self,key,value)
-        except:
+        except (TypeError, ValueError, KeyError, IndexError):
             self.PAR[key] = value
 
     def __getitem__(self,key):
@@ -856,7 +856,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 data = self.__data.split()
                 try:
                     fdata = N.array(map(float, data), 'd')
-                except:
+                except ValueError:
                     fdata = N.array(map(parseB.AUTOatof, data), 'd')
             if total != len(fdata):
                 raise PrematureEndofData
@@ -867,12 +867,12 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             data = self.__data.split()
             try:
                 fdata = map(float, data)
-            except:
+            except ValueError:
                 fdata = map(parseB.AUTOatof, data)
             if not isinstance(fdata,list): # Python 3
                 try:
                     fdata = list(fdata)
-                except:
+                except ValueError:
                     fdata = list(map(parseB.AUTOatof, data))
             if total != len(fdata):
                 raise PrematureEndofData

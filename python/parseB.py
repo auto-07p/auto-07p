@@ -204,12 +204,12 @@ class AUTOBranch(Points.Pointset):
             datalist = datalist.split()
             try:
                 data = map(float, datalist)
-            except:
+            except ValueError:
                 data = map(AUTOatof, datalist)
             if not isinstance(data,list): # Python 3
                 try:
                     data = list(data)
-                except:
+                except ValueError:
                     data = list(map(parseB.AUTOatof, data))
             if hasattr(N,"transpose"):
                 data = N.array(data,'d')
@@ -864,7 +864,7 @@ class parseBR(UserList,AUTOBranch):
                     item["index"] = item["index"] + i
                     item["section"] = section
                     return item
-                except:
+                except (KeyError, IndexError):
                     pass
                 i = i + l
                 section = section + 1
@@ -1083,7 +1083,7 @@ def AUTOatof(input_string):
     #is 0 and make it into a real real number :-)
     try:
         return float(input_string)
-    except (ValueError):
+    except ValueError:
         try:
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
@@ -1100,13 +1100,13 @@ def AUTOatof(input_string):
             input_string = input_string.replace("d","e")
             try:
                 return float(input_string)
-            except (ValueError):
+            except ValueError:
                 pass
             print("Encountered value I don't understand")
             print(input_string)
             print("Setting to 0")
             return 0.0
-        except:
+        except ValueError:
             print("Encountered value which raises an exception while processing!!!")
             print(input_string)
             print("Setting to 0")
