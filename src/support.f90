@@ -112,8 +112,6 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE NULLVC(m,n,k,A,u,ic)
 
-    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
-
 ! Finds a null-vector of a singular matrix A.
 ! The null space of A is assumed to be K-dimensional.
 !
@@ -132,7 +130,11 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
     INTEGER i,j,jj,kk,l,ipiv,jpiv
-    DOUBLE PRECISION p,piv,rm,sm,tmp
+    DOUBLE PRECISION p,piv,rm,sm,tmp,eps,smlnum,smin
+    DOUBLE PRECISION, EXTERNAL :: DLAMCH
+
+    eps = DLAMCH( 'P' ) ! 2.2d-16
+    smlnum = DLAMCH( 'S' ) / eps ! 1d-292
 
     DO i=1,n
        ic(i)=i
@@ -154,10 +156,16 @@ CONTAINS
              ENDIF
           ENDDO
        ENDDO
-       IF(piv.LT.RSMALL)THEN
+       IF(JJ==1)THEN
+          ! now piv is ||A||_max
+          smin = MAX( eps*piv, smlnum )
+       ENDIF
+       IF(piv.LT.smin)THEN
           WRITE(9,"(8x,A,I3,A,E10.3,A/A)") &
-                       ' NOTE:Pivot ',jj,' < ',RSMALL,' in NLVC : ',&
+               ' NOTE:Pivot ',jj,' < eps*||A||_max=',smin,' in NLVC : ',&
                '        A null space may be multi-dimensional'
+          piv = smin
+          A(ipiv,ic(jpiv)) = piv
        ENDIF
 
        IF(jj/=ipiv)THEN
@@ -274,8 +282,6 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
 
-    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
-
 ! Solves the linear system  A U = F by Gauss elimination
 ! with complete pivoting. Optionally returns a scaled determinant.
 !
@@ -301,7 +307,11 @@ CONTAINS
     LOGICAL, INTENT(IN) :: SCALE
 
     INTEGER I,J,K,L,JJ,IRH,IPIV,JPIV
-    DOUBLE PRECISION P,PIV,AP,RM,SM
+    DOUBLE PRECISION P,PIV,AP,RM,SM,eps,smlnum,smin
+    DOUBLE PRECISION, EXTERNAL :: DLAMCH
+
+    eps = DLAMCH( 'P' ) ! 2.2d-16
+    smlnum = DLAMCH( 'S' ) / eps ! 1d-292
 
     DO I=1,N
        IC(I)=I
@@ -312,6 +322,7 @@ CONTAINS
 
     DET=1.d0
 
+    smin = MAX( EPS*A(1,1), SMLNUM )
     DO JJ=1,N-1
        IPIV=JJ
        JPIV=JJ
@@ -336,8 +347,15 @@ CONTAINS
        IF(IPIV.NE.JJ)DET=-DET
        IF(JPIV.NE.JJ)DET=-DET
 
-       IF(PIV.LT.RSMALL)WRITE(9,"(8x,A,I3,A,D10.3,A)")&
-            ' NOTE:Pivot ',JJ,' < ',RSMALL,' in GE'
+       IF(JJ==1)THEN
+          ! now PIV is ||A||_max
+          smin = MAX( eps*PIV, smlnum )
+       ENDIF
+       IF(PIV.LT.smin)THEN
+          WRITE(9,"(8x,A,I3,A,D10.3,A)")&
+               ' NOTE:Pivot ',JJ,' < eps*||A||_max=',smin,' in GE'
+          A(IR(IPIV),IC(JPIV)) = smin
+       ENDIF
        K=IR(JJ)
        IR(JJ)=IR(IPIV)
        IR(IPIV)=K
@@ -359,6 +377,11 @@ CONTAINS
        ENDDO
     ENDDO
     AP=A(IR(N),IC(N))
+    IF(ABS(AP).LT.smin)THEN
+       WRITE(9,"(8x,A,I3,A,D10.3,A)")&
+            ' NOTE:Pivot ',N,' < eps*||A||_max=',smin,' in GE'
+       A(IR(N),IC(N)) = smin
+    ENDIF
     IF(SCALE)THEN
        DET=DET*LOG10(10+ABS(AP)) * atan(AP)
     ELSE
