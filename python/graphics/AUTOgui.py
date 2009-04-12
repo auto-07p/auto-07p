@@ -23,23 +23,20 @@ class AUTOGUIComponent:
     def create(self,messageFunc=None,textFunc=None,runner=None):
         pass
 
-    def _getArgs(self,name,commandClass):
+    def _getArgs(self,command):
         args = tkSimpleDialog.askstring("Args for command","Args")
-        command = eval("commandClass(%s)"%args)
-        self._queueCommand(name,args,command)
+        self._queueCommand(args,command)
         
-    def _queueCommand(self,name,args,command):
-        if not(args is None):
+    def _queueCommand(self,args,command):
+        name = command.__name__
+        if args is not None:
             sys.stdout.write(name+"("+args+")\n")
         else:
             sys.stdout.write(name+"()\n")
-        output = command()
-        #if not(self.__outputRecorder is None):
-        #    self.__outputRecorder.write(str(output))
-        sys.stdout.write(str(output))
+        eval("command(%s)"%args)
         sys.stdout.write(sys.ps1)
         sys.stdout.flush()
-        if not(self.textFunc is None):
+        if self.textFunc is not None:
             self.textFunc(name+"("+args+")\n")
             self.textFunc(str(output))
             self.textFunc(sys.ps1)
@@ -55,7 +52,6 @@ class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
 
     def create(self,messageFunc=None,textFunc=None,runner=None):
         keys = AUTOCommands.__dict__.keys()
-
         self.simple(keys)
 
     def simple(self,keys):
@@ -69,30 +65,28 @@ class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
                                            command = self.__setDefault)
         self.defaultEntry.grid(row=0,columnspan=2)
         for module in moduleList:
-            keys = module.__dict__.keys()
+            keys = list(module.__dict__)
             keys.sort()
             i = 0
             for key in keys:
-                # Check to see if it is a descendent of AUTOCommands.command
-                if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
-                    try:
-                        if module.__dict__[key].type==AUTOCommands.SIMPLE:
-                            button = Tkinter.Button(self,text=module.__dict__[key].shortName,
-                                                    command=lambda obj=self,name=key,command=module.__dict__[key]:obj._getArgs(name,command))
-                            button.grid(row=i/2 + 1,column=i%2)
-                            i = i + 1
-                    except AttributeError:
-                        pass
+                # Check to see if it is a command
+                cmd = getattr(module,key)
+                if (hasattr(cmd,"fun") and hasattr(cmd,"type") and
+                    cmd.type==AUTOCommands.SIMPLE):
+                    button = Tkinter.Button(self,text=cmd.shortName,
+                                            command=lambda c=cmd.fun:
+                                                self._getArgs(c))
+                    button.grid(row=i/2 + 1,column=i%2)
+                    i = i + 1
 
     def __setDefault(self):
         self.default = self.defaultEntry.get()
                     
-    def _getArgs(self,name,commandClass):
+    def _getArgs(self,command):
         if self.default is None:
             self.default = tkSimpleDialog.askstring("Default Name","Name")
             self.defaultEntry.setentry(self.default)
-        command = eval("commandClass(%s)"%self.default)
-        self._queueCommand(name,self.default,command)
+        self._queueCommand(self.default,command)
         
 
 class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
@@ -102,7 +96,7 @@ class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
         self.create()
 
     def create(self):
-        if not(self.textFunc is None):
+        if self.textFunc is not None:
             self.textFunc(sys.ps1)
         keys = AUTOCommands.__dict__.keys()
 
@@ -111,15 +105,16 @@ class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
     def expert(self,keys):
         baseList = []
         for key in keys:
-            # Check to see if it is a descendent of AUTOCommands.command
-            if AUTOutil.findBaseClass(AUTOCommands.__dict__[key],AUTOCommands.command):
-                bases = AUTOCommands.__dict__[key].__bases__
+            # Check to see if it is a command
+            cmd = getattr(AUTOCommands,key)
+            if hasattr(cmd,"fun"):
+                bases = cmd.__bases__
                 for base in bases:
-                    if not(base in baseList):
+                    if base not in baseList:
                         baseList.append(base)
         
         for base in baseList:
-            if base.__name__[:7] == "command" and len(base.__name__) > 7: 
+            if len(base.__name__) > 7 and base.__name__[:7] == "command":
                 self.addmenu(base.__name__[7:],'Commands which inherit from %s'%base.__name__)
             else:
                 self.addmenu(base.__name__,'Commands which inherit from %s'%base.__name__)
@@ -127,21 +122,18 @@ class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
             
     def addExpertCommands(self,moduleList):
         for module in moduleList:
-            keys = module.__dict__.keys()
+            keys = list(module.__dict__)
             keys.sort()
             for key in keys:
-                # Check to see if it is a descendent of AUTOCommands.command
-                if AUTOutil.findBaseClass(module.__dict__[key],AUTOCommands.command):
-                    if module.__dict__[key].__bases__[0] == AUTOCommands.command:
-                        self.addmenuitem('command',
-                                         'command',
-                                         key,label=key,
-                                         command=lambda obj=self,name=key,command=module.__dict__[key]:obj._getArgs(name,command))
-                    else:
-                        self.addmenuitem(module.__dict__[key].__bases__[0].__name__[7:],
-                                         'command',
-                                         key,label=key,
-                                         command=lambda obj=self,name=key,command=module.__dict__[key]:obj._getArgs(name,command))
+                # Check to see if it is a command
+                cmd = getattr(module,key)
+                if hasattr(cmd,"fun"):
+                    f = cmd.fun
+                    name = cmd.__bases__[0].__name__
+                    if len(name) > 7:
+                        name = name[7:]
+                    self.addmenuitem(name, 'command', key, label=key,
+                                     command=lambda c=f: self._getArgs(c))
 
 
 class AUTOBody(Pmw.ScrolledText):

@@ -56,11 +56,22 @@ def command(f,*args):
 ##############################################
 
 def macro(command_list):
-    text = ""
     for command in command_list:
-        text = text + str(command())
-    return valueString(text)
+        command()
 commandMacro = command(macro)
+
+# info messages: override this function or sys.stdout to redirect
+def info(s):
+    sys.stdout.write(s)
+
+# interact with a .exe file
+def interact(command,*args):
+    if not os.path.exists(command):
+        command = command + '.exe'
+    fullcmd = " ".join([command]+list(args))
+    if os.spawnv(os.P_WAIT,command, (os.path.basename(command),) + args) != 0:
+        raise AUTOExceptions.AUTORuntimeError("Error running %s"%fullcmd)
+    info("Finished running: " + fullcmd + "\n")
 
 ##############################################
 #  Script based commands from $AUTO_DIR/97/cmds
@@ -69,29 +80,25 @@ commandMacro = command(macro)
 def clean():
     """Clean the current directory.
 
-    Type FUNC() to clean the current directory.  This command will
+    Type clean() to clean the current directory.  This command will
     delete all files of the form fort.*, *.*~, *.o, and *.exe.
     """
-    rval=valueSystem()
     toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
                glob.glob("*.*~"))
     for f in toclean:
         os.remove(f)
-    rval.info("Deleting fort.* *.o *.exe *.*~ ... done\n")
-    return rval
+    info("Deleting fort.* *.o *.exe *.*~ ... done\n")
 commandClean = command(clean)
 
 
 def copydemo(name):
     """Copy a demo into the current directory.
 
-    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type copydemo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
     """
-    
-    rval=valueSystem()
     demofiles = glob.glob(os.path.expandvars("$AUTO_DIR/demos/%s/*"%name))
     for f in demofiles:
         try:
@@ -100,15 +107,14 @@ def copydemo(name):
             pass
     if os.path.exists("c.%s.1"%name):
         shutil.copy("c.%s.1"%name,"c.%s"%name)
-    rval.info("Copying demo %s ... done\n"%name)
-    return rval
+    info("Copying demo %s ... done\n"%name)
 commandCopyDemo = command(copydemo,SIMPLE,"demo")
 
 
 def demo(name,runner=None):
     """Copy a demo into the current directory and load it.
 
-    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type demo('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.  NOTE: This
@@ -123,22 +129,20 @@ commandCopyAndLoadDemo = command(demo)
 def df():
     """Clear the current directory of fort files.
 
-    Type FUNC() to clean the current directory.  This command will
+    Type df() to clean the current directory.  This command will
     delete all files of the form fort.*.
     """
-    rval=valueSystem()
     toclean = glob.glob("fort.*")
     for f in toclean:
         os.remove(f)
-    rval.info("Deleting fort.* ... done\n")
-    return rval
+    info("Deleting fort.* ... done\n")
 commandDeleteFortFiles = command(df)
 
 
-def us(name):
+def us(name,templates=None):
     """Convert user-supplied data files.
 
-    Type FUNC('xxx') to convert a user-supplied data file 'xxx.dat' to
+    Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
     PAR(11).  Other parameter values must be set in 'STPNT'. (When
@@ -150,10 +154,7 @@ def us(name):
 
     Note: this technique has been obsoleted by the 'dat' AUTO constant.
     """
-    
-    rval=valueSystem()
-    rval.info("NOTE: This command does not use filename templates\n")
-    rval.info("Starting conversion of %s.dat : \n"%name)
+    info("Starting conversion of %s.dat : \n"%name)
     if glob.glob("%s.f90"%name) == []:
         if glob.glob("%s.f"%name) == []:
             equation_file="%s.c"%name
@@ -161,9 +162,9 @@ def us(name):
             equation_file="%s.f"%name
     else:
         equation_file="%s.f90"%name
-    cfile = "c.%s"%name
+    cfile = applyTemplate(name,"constants",templates)
     datfile = "%s.dat"%name
-    rval.info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
+    info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                  datfile))
     fconrun = runAUTO.runAUTO(verbose="no",
                               makefile="$AUTO_DIR/cmds/cmds.make fcon")
@@ -173,18 +174,18 @@ def us(name):
         shutil.copy(cfile,"fort.2")
     if os.path.exists(datfile):
         shutil.copy(datfile,"fort.3")
-    rval.interact("./fcon")
+    interact("./fcon")
+    sfile = applyTemplate("dat","solution",templates)
     if os.path.exists("fort.8"):
-        if os.path.exists("s.dat"):
-            os.remove("s.dat")
-        os.rename("fort.8","s.dat")
-        rval.info("Conversion done : converted file saved as s.dat\n")
+        if os.path.exists(sfile):
+            os.remove(sfile)
+        os.rename("fort.8",sfile)
+        info("Conversion done : converted file saved as %s\n"%sfile)
     files = glob.glob("fcon*") + ["fort.2", "fort.3"]
     for f in files:
         os.remove(f)
-    return rval
 commandUserData = command(us)
-    
+
 
 ##############################################
 #  Commands which use the filename templates
@@ -226,27 +227,24 @@ def filenameTemplate(name=None,templates=None):
 def relabel(name1=None,name2=None,templates=None):
     """Relabel data files.
 
-    Type y=FUNC(x) to return the python object x, with the solution
+    Type y=relabel(x) to return the python object x, with the solution
     labels sequentially relabelled starting at 1, as a new object y.
 
-    Type FUNC('xxx') to relabel s.xxx and b.xxx (if you are
-    using the default filename templates).  Backups of the
+    Type relabel('xxx') to relabel s.xxx and b.xxx. Backups of the
     original files are saved.
 
-    Type FUNC('xxx','yyy') to relabel the existing data-files s.xxx and b.xxx,
-    and save them to s.yyy and b.yyy; d.xxx is copied to d.yyy (if you are using
-    the default filename templates). 
+    Type relabel('xxx','yyy') to relabel the existing data-files s.xxx and b.xxx,
+    and save them to s.yyy and b.yyy; d.xxx is copied to d.yyy.
     """
 
     typen = type(name1)
     if type(name1) == type(""):
         name1 = filenameTemplate(name1,templates)
         name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     if typen != type("") and typen != type(None):
-        rval.data = name1.relabel()
-        rval.info("Relabeling done\n")
-        return rval
+        data = name1.relabel()
+        info("Relabeling done\n")
+        return data
     n1b = name1["bifurcationDiagram"]
     n1s = name1["solution"]
     n1d = name1["diagnostics"]
@@ -275,36 +273,32 @@ def relabel(name1=None,name2=None,templates=None):
             os.rename(n2s,n1s)
         elif os.path.exists(n1d):
             shutil.copy(n1d, n2d)
-        rval.info("Relabeling succeeded\n")
-    rval.info("Relabeling done\n")
-    return rval
+        info("Relabeling succeeded\n")
+    info("Relabeling done\n")
 commandRelabel = command(relabel,SIMPLE,"relabel")
 
 
 def merge(name1=None,name2=None,templates=None):
     """Merge branches in data files.
 
-    Type y=FUNC(x) to return the python object x, with its branches
+    Type y=merge(x) to return the python object x, with its branches
     merged into continuous curves, as a new object y.
 
-    Type FUNC('xxx') to merge branches in s.xxx, b.xxx, and d.xxx (if you are
-    using the default filename templates).  Backups of the
-    original files are saved.
+    Type merge('xxx') to merge branches in s.xxx, b.xxx, and d.xxx. Backups
+    of the original files are saved.
 
-    Type FUNC('xxx','yyy') to merge branches in the existing data-files
-    s.xxx, b.xxx, and d.xxx and save them to s.yyy, b.yyy, and d.yyy (if you
-    are using the default filename templates). 
+    Type merge('xxx','yyy') to merge branches in the existing data-files
+    s.xxx, b.xxx, and d.xxx and save them to s.yyy, b.yyy, and d.yyy.
     """
 
     ntype = type(name1)
     if type(name1) == type(""):
         name1 = filenameTemplate(name1,templates)
         name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     if ntype != type("") and ntype != type(None):
-        rval.data = name1.merge()
-        rval.info("Merge done\n")
-        return rval
+        data = name1.merge()
+        info("Merge done\n")
+        return data
     n1b = name1["bifurcationDiagram"]
     n1s = name1["solution"]
     n1d = name1["diagnostics"]
@@ -329,23 +323,21 @@ def merge(name1=None,name2=None,templates=None):
                     os.remove(n1+'~')
                 os.rename(n1,n1+'~')
                 os.rename(n2,n1)
-        rval.info("Merging succeeded\n")
-
-    rval.info("Merging done\n")
-    return rval
+        info("Merging succeeded\n")
+    info("Merging done\n")
 commandMergeBranches = command(merge,SIMPLE,"merge")
 
 
 def subtract(name1,name2,col,branch=1,point=1,templates=None):
     """Subtract branches in data files.
 
-    Type z=FUNC(x,y,ref) to return the python object x, where,
+    Type z=subtract(x,y,ref) to return the python object x, where,
     using interpolation, the first branch in y is subtracted from all
     branches in x, as a new object z.
     Use 'ref' (e.g., 'PAR(1)')  as the reference column in y
     (only the first monotonically increasing or decreasing part is used).
 
-    Type FUNC('xxx','yyy','ref') to subtract, using interpolation, the first
+    Type subtract('xxx','yyy','ref') to subtract, using interpolation, the first
     branch in b.yyy from all branches in b.xxx, and save the result in b.xxx.
     A Backup of the original file is saved.
 
@@ -357,9 +349,10 @@ def subtract(name1,name2,col,branch=1,point=1,templates=None):
     if type(name1) == type(""):
         name1 = filenameTemplate(name1,templates)
         name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     if ntype != type(""):
         sub = name1.subtract(name2[branch-1],col,point)
+        info("Subtracting done\n")
+        return sub
     else:
         n1b = name1["bifurcationDiagram"]
         bd1 = bifDiag.bifDiag(n1b)
@@ -371,32 +364,28 @@ def subtract(name1,name2,col,branch=1,point=1,templates=None):
         sub = bd1.subtract(bd2[branch-1],col,point)
         shutil.copy(n1b,n1b+'~')
         sub.writeFilename(n1b,'')            
-    rval.info("Subtracting done\n")
-    rval.data = sub
-    return rval
+        info("Subtracting done\n")
 commandSubtractBranches = command(subtract,SIMPLE,"subtract")
 
 
 def append(name1,name2=None,templates=None):
     """Append data files.
 
-    Type FUNC(x,'xxx') to append bifurcation diagram x
+    Type append(x,'xxx') to append bifurcation diagram x
     to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
     the command
     save(x+load('xxx'),'xxx')
 
-    Type FUNC('xxx',x) to append existing data-files s.xxx, b.xxx,
+    Type append('xxx',x) to append existing data-files s.xxx, b.xxx,
     and d.xxx to bifurcation diagram x. This is equivalent to
     the command
     x=load('xxx')+x
 
-    Type FUNC('xxx') to append the output-files fort.7, fort.8,
-    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx (if you are
-    using the default filename templates).
+    Type append('xxx') to append the output-files fort.7, fort.8,
+    fort.9, to existing data-files s.xxx, b.xxx, and d.xxx.
 
-    Type FUNC('xxx','yyy') to append existing data-files s.xxx, b.xxx,
-    and d.xxx to data-files s.yyy, b.yyy, and d.yyy (if you are using
-    the default filename templates).
+    Type append('xxx','yyy') to append existing data-files s.xxx, b.xxx,
+    and d.xxx to data-files s.yyy, b.yyy, and d.yyy.
     """
     parsed1=None
     parsed2=None
@@ -409,7 +398,6 @@ def append(name1,name2=None,templates=None):
     else:
         name1 = filenameTemplate(name1,templates)
         name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     if parsed1 or parsed2:
         n = None
         if not parsed1 or not parsed2:
@@ -419,13 +407,13 @@ def append(name1,name2=None,templates=None):
     if parsed2: #append to parsed2
         if not parsed1:
             parsed1 = bifDiag.bifDiag(nb,ns,nd)
-            rval.info("Appending from %s, %s and %s ... done\n"%(nb,ns,nd))
+            info("Appending from %s, %s and %s ... done\n"%(nb,ns,nd))
         parsed2.extend(parsed1)
-        return rval
+        return
     if parsed1: #append from parsed1 to file
         parsed1.writeFilename(nb,ns,nd,append=True)
-        rval.info("Appending to %s, %s and %s ... done\n"%(nb,ns,nd))
-        return rval
+        info("Appending to %s, %s and %s ... done\n"%(nb,ns,nd))
+        return
     i = 7
     for s in ["bifurcationDiagram","solution","diagnostics"]:
         n1 = name1[s]
@@ -443,51 +431,46 @@ def append(name1,name2=None,templates=None):
             f2.write(buf)
         f1.close()
         f2.close()
-        rval.info("Appending %s to %s ... done\n"%(n1,n2))
-    return rval
+        info("Appending %s to %s ... done\n"%(n1,n2))
 commandAppend = command(append,SIMPLE,"append")
 
 
 def copy(name1,name2,templates=None):
     """Copy data files.
 
-    Type FUNC('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
-    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy (if you are using the
-    default filename templates).
+    Type copy('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
+    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy.
     """
     name1 = filenameTemplate(name1,templates)
     name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
         n1 = name1[s]
         n2 = name2[s]
         if os.path.exists(n1):
             shutil.copy(n1,n2)
-            rval.info("Copying %s to %s ... done\n"%(n1,n2))
-    return rval
+            info("Copying %s to %s ... done\n"%(n1,n2))
 commandCopyDataFiles = command(copy)
     
 
 def save(name1,name2=None,templates=None):
     """Save data files.
 
-    Type FUNC(x,'xxx') to save bifurcation diagram x
+    Type save(x,'xxx') to save bifurcation diagram x
     to the files b.xxx, s.xxx, d.xxx. 
     Existing files with these names will be overwritten.
     If x is a solution, a list of solutions, or does not contain any
     bifurcation diagram or diagnostics data, then only the file s.xxx
     is saved to.
 
-    Type FUNC('xxx') to save the output-files fort.7, fort.8, fort.9,
-    to b.xxx, s.xxx, d.xxx (if you are using the default filename
-    templates).  Existing files with these names will be overwritten.
+    Type save('xxx') to save the output-files fort.7, fort.8, fort.9,
+    to b.xxx, s.xxx, d.xxx.  Existing files with these names will be
+    overwritten.
     """
     parsed = None
     if not name2 is None:
         parsed = name1
         name1 = name2
     name1 = filenameTemplate(name1,templates)
-    rval=valueSystem()
     for s in ["bifurcationDiagram","solution","diagnostics"]:
         n1 = name1[s]
         if os.path.exists(n1):
@@ -507,8 +490,8 @@ def save(name1,name2=None,templates=None):
                 parsed = parseS.parseS(parsed)
             parsed.writeFilename(n1s)
             msg = "Saving to %s ... done\n"%(n1s)
-        rval.info(msg)
-        return rval
+        info(msg)
+        return
         
     i = 7
     for s in ["bifurcationDiagram","solution","diagnostics"]:
@@ -517,40 +500,35 @@ def save(name1,name2=None,templates=None):
         i = i + 1
         if os.path.exists(forti):
             shutil.copy(forti,n1)
-            rval.info("Saving %s as %s ... done\n"%(forti,n1))
-    return rval
+            info("Saving %s as %s ... done\n"%(forti,n1))
 commandCopyFortFiles = command(save,SIMPLE,"save")
         
 
 def delete(name,templates=None):
     """Delete data files.
 
-    Type FUNC('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx
-    (if you are using the default filename templates).
+    Type delete('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx.
     """
     
     name = filenameTemplate(name,templates)
-    rval=valueSystem()
     n1b = name["bifurcationDiagram"]
     n1s = name["solution"]
     n1d = name["diagnostics"]
     if os.path.exists(n1b):
         os.remove(n1b)
-        rval.info("Deleting %s ... done\n"%n1b)
+        info("Deleting %s ... done\n"%n1b)
     if os.path.exists(n1s):
         os.remove(n1s)
-        rval.info("Deleting %s ... done\n"%n1s)
+        info("Deleting %s ... done\n"%n1s)
     if os.path.exists(n1d):
         os.remove(n1d)
-        rval.info("Deleting %s ... done\n"%n1d)
-    return rval
+        info("Deleting %s ... done\n"%n1d)
 commandDeleteDataFiles = command(delete)
 
 
 def deleteLabel(codes=None,name=None,templates=None,keepTY=0,keep=0):
     if hasattr(codes,'deleteLabel'):
-        data = codes.deleteLabel(name,keepTY=keepTY,keep=keep,copy=1)
-        return valueStringAndData("",data)
+        return codes.deleteLabel(name,keepTY=keepTY,keep=keep,copy=1)
     name = filenameTemplate(name,templates)
     if name["solution"] is None:
         changedb='fort.7'
@@ -573,74 +551,69 @@ def deleteLabel(codes=None,name=None,templates=None,keepTY=0,keep=0):
     os.rename(changedb,origb)
     os.rename(changeds,origs)
     bs.writeFilename(changedb,changeds)
-    return valueString("")
 
 
 def dsp(typenames=None,name=None,templates=None):
     """Delete special points.
 
-    Type FUNC(list,x) to delete the special points in list from
+    Type dsp(list,x) to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type FUNC(list,'xxx') to delete the special points in list from
+    Type dsp(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
-    (if you are using the default filename templates).
-    Type FUNC(list) to delete the special points in list from
+    Type dsp(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
     """
-    return deleteLabel(typenames,name,templates)
+    deleteLabel(typenames,name,templates)
 commandDeleteSpecialPoints = command(dsp)
         
 
 def ksp(typenames=None,name=None,templates=None):
     """Keep special points.
 
-    Type FUNC(list,x) to only keep the special points in list from
+    Type ksp(list,x) to only keep the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type FUNC(list,'xxx') to only keep the special points in list from
+    Type ksp(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
-    (if you are using the default filename templates).
-    Type FUNC(list) to only keep the special points in list from
+    Type ksp(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
     """
-    return deleteLabel(typenames,name,templates,keep=1)
+    deleteLabel(typenames,name,templates,keep=1)
 commandKeepSpecialPoints = command(ksp)
 
 
 def dlb(typenames=None,name=None,templates=None):
     """Delete special labels.
 
-    Type FUNC(list,x) to delete the special points in list from
+    Type dlb(list,x) to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type FUNC(list,'xxx') to delete the special points in list from
+    Type dlb(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
-    (if you are using the default filename templates).
-    Type FUNC(list) to delete the special points in list from
+    Type dlb(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
     Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
     """
-    return deleteLabel(typenames,name,templates,keepTY=1)
+    deleteLabel(typenames,name,templates,keepTY=1)
 commandDeleteLabels = command(dlb)
         
 
 def klb(typenames=None,name=None,templates=None):
     """Keep special labels.
 
-    Type FUNC(list,x) to only keep the special points in list from
+    Type klb(list,x) to only keep the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type FUNC(list,'xxx') to only keep the special points in list from
+    Type klb(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
-    (if you are using the default filename templates).
-    Type FUNC(list) to only keep the special points in list from
+    Type klb(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
     Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
@@ -648,13 +621,12 @@ def klb(typenames=None,name=None,templates=None):
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
     """
-    return deleteLabel(typenames,name,templates,keepTY=1,keep=1)
+    deleteLabel(typenames,name,templates,keepTY=1,keep=1)
 commandKeepLabels = command(klb)
 
 
 def expandData(cmd,name=None,templates=None):
     name = filenameTemplate(name,templates)
-    rval = valueSystem()
     n1b = name["bifurcationDiagram"]
     n1s = name["solution"]
     if n1s is None:
@@ -667,36 +639,33 @@ def expandData(cmd,name=None,templates=None):
         if os.path.exists(n1s+'~'):
             os.remove(n1s+'~')
         os.rename(n1s,n1s+'~')
-    rval.interact(os.path.expandvars("$AUTO_DIR/bin/%s"%cmd))
+    interact(os.path.expandvars("$AUTO_DIR/bin/%s"%cmd))
     os.rename("fort.38",n1s)
     if os.path.exists("fort.28"):
         os.remove("fort.28")
     if cmd == "double":
-        rval.info("Solution doubling done.\n")
+        info("Solution doubling done.\n")
     else:
-        rval.info("Solution tripling done.\n")
-    return rval
+        info("Solution tripling done.\n")
 
 def double(name=None,templates=None):
     """Double a solution.
 
-    Type FUNC() to double the solution in 'fort.7' and 'fort.8'.
+    Type double() to double the solution in 'fort.7' and 'fort.8'.
 
-    Type FUNC('xxx') to double the solution in b.xxx and s.xxx (if you
-    are using the default filename templates).
+    Type double('xxx') to double the solution in b.xxx and s.xxx.
     """
-    return expandData("double",name,templates)
+    expandData("double",name,templates)
 commandDouble = command(double)
 
 def move(name1,name2,templates=None):
     """Move data-files to a new name.
 
-    Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
-    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy (if you are using the
-    default filename templates).  """
+    Type move('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
+    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy.
+    """
     name1 = filenameTemplate(name1,templates)
     name2 = filenameTemplate(name2,templates)
-    rval=valueSystem()
     for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
         n1 = name1[s]
         n2 = name2[s]
@@ -704,58 +673,58 @@ def move(name1,name2,templates=None):
             if os.path.exists(n2):
                 os.remove(n2)
             os.rename(n1,n2)
-            rval.info("Renaming %s as %s ... done\n"%(n1,n2))
-    return rval
+            info("Renaming %s as %s ... done\n"%(n1,n2))
 commandMoveFiles = command(move)
 
 def cn(name,templates=None):
     """Get the current continuation constants.
 
-    Type FUNC('xxx') to get a parsed version of the constants file
-    c.xxx (if you are using the default filename templates).
+    Type cn('xxx') to get a parsed version of the constants file
+    c.xxx.
 
     This is equivalent to the command
     loadbd('xxx').c
     """
     name = filenameTemplate(name,templates)
     data = parseC.parseC(name["constants"])
-    return valueStringAndData("Parsed file: %s\n"%name["constants"],data)
+    info("Parsed file: %s\n"%name["constants"])
+    return data
 commandParseConstantsFile = command(cn)
 
 def hcn(name,templates=None):
-    """Get the current continuation constants.
+    """Get the current HomCont continuation constants.
 
-    Type FUNC('xxx') to get a parsed version of the HomCont file
-    h.xxx (if you are using the default filename templates).
+    Type hcn('xxx') to get a parsed version of the HomCont file
+    h.xxx.
     """
     name = filenameTemplate(name,templates)
     data = parseH.parseH(name["homcont"])
-    return valueStringAndData("Parsed file: %s\n"%name["homcont"],data)
+    info("Parsed file: %s\n"%name["homcont"])
+    return data
 commandParseHomcontFile = command(hcn)
         
 def sl(name=None,templates=None):
     """Parse solution file:
 
-    Type FUNC('xxx') to get a parsed version of the solution file
-    s.xxx (if you are using the default filename templates).
+    Type sl('xxx') to get a parsed version of the solution file
+    s.xxx.
 
     This is equivalent to the command
     loadbd('xxx')()
     """
     name = filenameTemplate(name,templates)
-    n1s = name["solution"]
-    if n1s is None:
-        n1s = "fort.8"
+    n1s = name["solution"] or "fort.8"
     data = parseS.parseS(n1s)
-    return valueStringAndData("Parsed file: %s\n"%n1s,data)
+    if isinstance(n1s, str):
+        info("Parsed file: %s\n"%n1s)
+    return data
 commandParseSolutionFile = command(sl)
 
 
 def dg(name=None,templates=None):
     """Parse a bifurcation diagram.
 
-    Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
-    (if you are using the default filename templates).
+    Type dg('xxx') to get a parsed version of the diagram file b.xxx.
 
     This is equivalent to the command loadbd('xxx') but without the
     solutions in s.xxx and without the diagnostics in d.xxx.
@@ -765,16 +734,16 @@ def dg(name=None,templates=None):
     if n1b is None:
         n1b = "fort.7"
     data = parseB.parseB(n1b)
-    return valueStringAndData("Parsed file: %s\n"%n1b,data)
+    info("Parsed file: %s\n"%n1b)
+    return data
 commandParseDiagramFile = command(dg)
 
 
 def bt(name=None,templates=None):
     """Parse both bifurcation diagram and solution.
 
-    Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
-    and solution file s.xxx (if you are using the default filename
-    templates).
+    Type bt('xxx') to get a parsed version of the diagram file b.xxx
+    and solution file s.xxx.
 
     This is equivalent to the command loadbd('xxx') but without the
     diagnostics in d.xxx.
@@ -787,13 +756,13 @@ def bt(name=None,templates=None):
         n1s = "fort.8"
     data = parseBandS.parseBandS(n1b,n1s)
     output_names = n1b + " and " + n1s
-    return valueStringAndData("Parsed files: %s\n"%output_names,data)
+    info("Parsed files: %s\n"%output_names)
+    return data
 commandParseDiagramAndSolutionFile = command(bt)
 
 
 def queryDiagnostic(diagnostic,name=None,templates=None):
     name = filenameTemplate(name,templates)
-    rval=valueSystem()
     n1d = name["diagnostics"]
     if n1d is None:
         n1d = "fort.9"
@@ -804,170 +773,168 @@ def queryDiagnostic(diagnostic,name=None,templates=None):
             if hasattr(branch,"diagnostics"):
                 for s in str(branch.diagnostics).splitlines():
                     if s.find(diagnostic) != -1:
-                        rval.info(s+"\n")
-        rval.info("\n")
-        return rval
+                        info(s+"\n")
+        info("\n")
+        return
     for s in f:
         if s.find(diagnostic) != -1:
-            rval.info(s)
+            info(s)
     f.close()
-    rval.info("\n")
-    return rval
+    info("\n")
 
 def branchpoint(name=None,templates=None):
     """Print the ``branch-point function''.
     
-    Type FUNC(x) to list the value of the ``branch-point function'' 
+    Type branchpoint(x) to list the value of the ``branch-point function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a branch point.
 
-    Type FUNC() to list the value of the ``branch-point function'' 
+    Type branchpoint() to list the value of the ``branch-point function'' 
     in the output-file fort.9.
     
-    Type FUNC('xxx') to list the value of the ``branch-point function''
+    Type branchpoint('xxx') to list the value of the ``branch-point function''
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("BP",name,templates)
+    queryDiagnostic("BP",name,templates)
 commandQueryBranchPoint = command(branchpoint)
         
 def eigenvalue(name=None,templates=None):
     """Print eigenvalues of Jacobian (algebraic case).
 
-    Type FUNC(x) to list the eigenvalues of the Jacobian 
+    Type eigenvalue(x) to list the eigenvalues of the Jacobian 
     in the diagnostics of the bifurcation diagram object x.
     (Algebraic problems.)
 
-    Type FUNC() to list the eigenvalues of the Jacobian 
+    Type eigenvalue() to list the eigenvalues of the Jacobian 
     in fort.9. 
 
-    Type FUNC('xxx') to list the eigenvalues of the Jacobian 
+    Type eigenvalue('xxx') to list the eigenvalues of the Jacobian 
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Eigenvalue",name,templates)
+    queryDiagnostic("Eigenvalue",name,templates)
 commandQueryEigenvalue = command(eigenvalue)
 
 def floquet(name=None,templates=None):
     """Print the Floquet multipliers.
 
-    Type FUNC(x) to list the Floquet multipliers
+    Type floquet(x) to list the Floquet multipliers
     in the diagnostics of the bifurcation diagram object x.
     (Differential equations.)
 
-    Type FUNC() to list the Floquet multipliers
+    Type floquet() to list the Floquet multipliers
     in the output-file fort.9. 
 
-    Type FUNC('xxx') to list the Floquet multipliers 
+    Type floquet('xxx') to list the Floquet multipliers 
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Mult",name,templates)
+    queryDiagnostic("Mult",name,templates)
 commandQueryFloquet = command(floquet)
 
 def hopf(name=None,templates=None):
     """Print the value of the ``Hopf function''.
 
-    Type FUNC(x) to list the value of the ``Hopf function'' 
+    Type hopf(x) to list the value of the ``Hopf function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a Hopf bifurcation point.
 
-    Type FUNC() to list the value of the ``Hopf function'' 
+    Type hopf() to list the value of the ``Hopf function'' 
     in the output-file fort.9.
 
-    Type FUNC('xxx') to list the value of the ``Hopf function''
+    Type hopf('xxx') to list the value of the ``Hopf function''
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Hopf",name,templates)
+    queryDiagnostic("Hopf",name,templates)
 commandQueryHopf = command(hopf)
 
 def iterations(name=None,templates=None):
     """Print the number of Newton interations.
 
-    Type FUNC(x) to list the number of Newton iterations per
+    Type iterations(x) to list the number of Newton iterations per
     continuation step in the diagnostics of the bifurcation diagram
     object x.
 
-    Type FUNC() to list the number of Newton iterations per
+    Type iterations() to list the number of Newton iterations per
     continuation step in fort.9. 
 
-    Type FUNC('xxx') to list the number of Newton iterations per
+    Type iterations('xxx') to list the number of Newton iterations per
     continuation step in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Iterations",name,templates)
+    queryDiagnostic("Iterations",name,templates)
 commandQueryIterations = command(iterations)
 
 def limitpoint(name=None,templates=None):
     """Print the value of the ``limit point function''.
 
-    Type FUNC(x) to list the value of the ``limit point function'' 
+    Type limitpoint(x) to list the value of the ``limit point function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a limit point (fold).
 
-    Type FUNC() to list the value of the ``limit point function'' 
+    Type limitpoint() to list the value of the ``limit point function'' 
     in the output-file fort.9.
 
-    Type FUNC('xxx') to list the value of the ``limit point function'' 
+    Type limitpoint('xxx') to list the value of the ``limit point function'' 
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Fold",name,templates)
+    queryDiagnostic("Fold",name,templates)
 commandQueryLimitpoint = command(limitpoint)
 
 def note(name=None,templates=None):
     """Print notes in info file.
 
-    Type FUNC(x) to show any notes 
+    Type note(x) to show any notes 
     in the diagnostics of the bifurcation diagram
     object x.
 
-    Type FUNC() to show any notes 
+    Type note() to show any notes 
     in the output-file fort.9.
 
-    Type FUNC('xxx') to show any notes 
+    Type note('xxx') to show any notes 
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("NOTE",name,templates)
+    queryDiagnostic("NOTE",name,templates)
 commandQueryNote = command(note)
 
 def secondaryperiod(name=None,templates=None):
     """Print value of ``secondary-periodic bif. fcn''.
 
-    Type FUNC(x) to list the value of the
+    Type secondaryperiod(x) to list the value of the
     ``secondary-periodic bifurcation function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at period-doubling and torus bifurcations.
 
-    Type FUNC()  to list the value of the 
+    Type secondaryperiod()  to list the value of the 
     ``secondary-periodic bifurcation function'' 
     in the output-file 'fort.9.
 
-    Type FUNC('xxx') to list the value of the
+    Type secondaryperiod('xxx') to list the value of the
     ``secondary-periodic bifurcation function''
     in the info file 'd.xxx'.
     """
-    return queryDiagnostic("SPB",name,templates)
+    queryDiagnostic("SPB",name,templates)
 commandQuerySecondaryPeriod = command(secondaryperiod)
 
 def stepsize(name=None,templates=None):
     """Print continuation step sizes.
 
-    Type FUNC(x) to list the continuation step size for each
+    Type stepsize(x) to list the continuation step size for each
     continuation step in the diagnostics of the bifurcation diagram
     object x.
 
-    Type FUNC() to list the continuation step size for each
+    Type stepsize() to list the continuation step size for each
     continuation step in  'fort.9. 
 
-    Type FUNC('xxx') to list the continuation step size for each
+    Type stepsize('xxx') to list the continuation step size for each
     continuation step in the info file 'd.xxx'.
     """
-    return queryDiagnostic("Step",name,templates)
+    queryDiagnostic("Step",name,templates)
 commandQueryStepsize = command(stepsize)
 
 def triple(name=None,templates=None):
     """Triple a solution.
 
-    Type FUNC() to triple the solution in 'fort.8'.
+    Type triple() to triple the solution in 'fort.8'.
 
-    Type FUNC('xxx') to triple the solution in s.xxx (if you
-    are using the default filename templates).
+    Type triple('xxx') to triple the solution in s.xxx.
     """
     return expandData("triple",name,templates)
 commandTriple = command(triple)
@@ -979,7 +946,7 @@ commandTriple = command(triple)
 def ls(dir=None):
     """List the current directory.
     
-    Type 'FUNC' to run the system 'ls' command in the current directory.  This
+    Type 'ls' to run the system 'ls' command in the current directory.  This
     command will accept whatever arguments are accepted by the Unix command
     'ls'.
     """
@@ -995,40 +962,36 @@ def ls(dir=None):
         os.system(cmd)
     else:
         os.system("%s %s"%(cmd,dir,))
-    return valueString("")
 commandLs = command(ls)
 
 if isinstance(quit,str):
     def quit():
         sys.exit()
-        return valueString("")
 commandQuit = command(quit)
 
 def shell(cmd):
     """Run a shell command.
         
-    Type FUNC('xxx') to run the command 'xxx' in the Unix shell and display
+    Type shell('xxx') to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     """
     os.system(cmd) 
-    return valueString("")
 commandShell = command(shell)
 
 def wait():
     """Wait for the user to enter a key.
 
-    Type 'FUNC()' to have the AUTO interface wait
+    Type 'wait()' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
     """
     print("Hit <return> to continue")
     raw_input()
-    return valueString("")
 commandWait = command(wait)
           
 def cat(f=None):
     """Print the contents of a file
 
-    Type 'FUNC xxx' to list the contents of the file 'xxx'.  This calls the
+    Type 'cat xxx' to list the contents of the file 'xxx'.  This calls the
     Unix function 'cat' for reading the file.  
     """
     cmd = "cat"
@@ -1051,7 +1014,7 @@ def withrunner(runner=None):
 def cd(dir=None,runner=None):
     """Change directories.
     
-    Type 'FUNC xxx' to change to the directory 'xxx'.  This command
+    Type 'cd xxx' to change to the directory 'xxx'.  This command
     understands both shell variables and home directory expansion.
     """
     runner = withrunner(runner)
@@ -1064,13 +1027,12 @@ def cd(dir=None,runner=None):
     except:
         print("Directory '%s' not found"%(dir,))
     runner.config(dir=os.getcwd())
-    return valueString("")
 commandCd = command(cd)
 
 def configure(runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
-    Type result=FUNC([options]) to modify the AUTO runner.
+    Type result=configure([options]) to modify the AUTO runner.
 
     The type of the result is a solution object.
 
@@ -1086,13 +1048,12 @@ def configure(runner=None,templates=None,cnf={},**kw):
                 BR,PT,TY,LAB  Solution constants.
     \\end{verbatim}
     Options which are not explicitly set retain their previous value.
-    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
-    the equations file and c.ab.1 as the constants file (if you are
-    using the default filename templates).
+    For example one may type: s=configure(e='ab',c='ab.1') to use 'ab.c' as
+    the equations file and c.ab.1 as the constants file.
 
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
-    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    Example: s = configure(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
 
     def applyRunnerConfigResolveAbbreviation(kw={}):
@@ -1161,6 +1122,11 @@ def configure(runner=None,templates=None,cnf={},**kw):
 
     runner = withrunner(runner)
     dict = AUTOutil.cnfmerge((cnf,kw))
+    if "info" in dict:
+        info = dict["info"]
+        del dict["info"]
+    else:
+        info = globals()["info"]
     dict = applyRunnerConfigResolveAbbreviation(dict)
     dict = applyRunnerConfigResolveFilenames(dict)
     if hasattr(runner,'load'):
@@ -1175,20 +1141,21 @@ def configure(runner=None,templates=None,cnf={},**kw):
                 options = options.copy()
                 options['t'] = dict['t']
             data = parseS.AUTOSolution(options["solution"],**options)
-    return valueStringAndData("Runner configured\n",data)
+    info("Runner configured\n")
+    return data
 commandRunnerConfig = command(configure)
 
 
-def load(name=None,runner=None,templates=None,cnf={},**kw):
+def load(data=None,runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
-    Type result=FUNC([options]) to modify the AUTO runner.
-    Type result=FUNC(data,[options]) to return possibly
+    Type result=load([options]) to modify the AUTO runner.
+    Type result=load(data,[options]) to return possibly
     modified solution data.
 
     The type of the result is a solution object.
 
-    FUNC(data,[options]) returns a solution in the following way for
+    load(data,[options]) returns a solution in the following way for
     different types of data:
 
     * A solution: load returns the solution data, with AUTO constants
@@ -1220,29 +1187,28 @@ def load(name=None,runner=None,templates=None,cnf={},**kw):
     \\end{verbatim}
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
-    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
-    the equations file and c.ab.1 as the constants file (if you are
-    using the default filename templates).
+    For example one may type: s=load(e='ab',c='ab.1') to use 'ab.c' as
+    the equations file and c.ab.1 as the constants file.
 
-    Type s=FUNC('name') to load all files with base 'name'.
+    Type s=load('name') to load all files with base 'name'.
     This does the same thing as running
-    s=FUNC(e='name',c='name,h='name',s='name').
+    s=load(e='name',c='name,h='name',s='name').
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
-    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    Example: s = load(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    if runner is None and name is not None and type(name) not in [
-        type(""),type(1),type(1.0)]:
-        if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
-            runner = name
-        else:
-            kw["s"] = name
-        name = None 
-    elif name is not None:
+    if runner is None:
+        if isinstance(data, parseS.parseS):
+            kw["s"] = data
+            data = None
+        elif isinstance(data, (runAUTO.runAUTO,bifDiag.bifDiag)):
+            runner = data
+            data = None
+    if data is not None:
         for key in ["equation", "constants", "solution", "homcont"]:
             if key not in kw:
-                kw[key] = name
+                kw[key] = data
     return configure(runner,templates,AUTOutil.cnfmerge((kw,cnf)))
 commandRunnerLoadName = command(load,SIMPLE,"loadname")
 
@@ -1250,7 +1216,7 @@ commandRunnerLoadName = command(load,SIMPLE,"loadname")
 def loadbd(name=None,templates=None,cnf={},**kw):
     """Load bifurcation diagram files.
 
-    Type b=FUNC([options]) to load output files or output data.
+    Type b=loadbd([options]) to load output files or output data.
     There are three possible options:
     \\begin{verbatim}
     Long name   Short name    Description
@@ -1260,9 +1226,9 @@ def loadbd(name=None,templates=None,cnf={},**kw):
     diagnostics d             The diagnostics file
     \\end{verbatim}
 
-    Type FUNC('name') to load all files with base 'name'.
+    Type loadbd('name') to load all files with base 'name'.
     This does the same thing as running
-    FUNC(b='name',s='name,d='name').
+    loadbd(b='name',s='name,d='name').
     plot(b) will then plot the 'b' and 's' components.
 
     Returns a bifurcation diagram object representing the files in b.
@@ -1300,15 +1266,16 @@ def loadbd(name=None,templates=None,cnf={},**kw):
                            verbose = _runner.options["verbose"],
                            redir = _runner.options["redir"],
                            makefile = _runner.options["makefile"])
-    return valueStringAndData("Parsed output data\n",data)
+    info("Parsed output data\n")
+    return data
 commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd")
 
 
 def pr(parameter=None,runner=None):
     """Print continuation parameters.
 
-    Type FUNC() to print all the parameters.
-    Type FUNC('xxx') to return the parameter 'xxx'.
+    Type pr() to print all the parameters.
+    Type pr('xxx') to return the parameter 'xxx'.
     These commands are equivalent to the commands
     print s.c
     print s.c['xxx']
@@ -1316,17 +1283,17 @@ def pr(parameter=None,runner=None):
     """
     runner = withrunner(runner)
     if parameter is None:
-        return valueString(str(runner.options["constants"]))
+        info(str(runner.options["constants"]))
     else:
-        return valueStringAndData("",runner.options["constants"][parameter])
+        return runner.options["constants"][parameter]
 commandRunnerPrintFort2 = command(pr)
 
 
 def hpr(parameter=None,runner=None):
     """Print HomCont continuation parameters.
 
-    Type FUNC() to print all the HomCont parameters.
-    Type FUNC('xxx') to return the HomCont parameter 'xxx'.
+    Type hpr() to print all the HomCont parameters.
+    Type hpr('xxx') to return the HomCont parameter 'xxx'.
     These commands are equivalent to the commands
     print s.c
     print s.c['xxx']
@@ -1334,16 +1301,16 @@ def hpr(parameter=None,runner=None):
     """
     runner = withrunner(runner)
     if parameter is None:
-        return valueString(str(runner.options["homcont"]))
+        info(str(runner.options["homcont"]))
     else:
-        return valueStringAndData("",runner.options["homcont"][parameter])
+        return runner.options["homcont"][parameter]
 commandRunnerPrintFort12 = command(hpr)
 
 
 def ch(entry=None,value=None,runner=None,**kw):
     """Modify continuation constants.
 
-    Type FUNC('xxx',yyy) to change the constant 'xxx' to have
+    Type ch('xxx',yyy) to change the constant 'xxx' to have
     value yyy.
     This is equivalent to the command
     s=load(s,xxx=yyy)
@@ -1352,16 +1319,17 @@ def ch(entry=None,value=None,runner=None,**kw):
     runner = withrunner(runner)            
     if entry is not None:
         runner.options["constants"][entry] = value
-        return valueString("%s changed to %s\n"%(entry,value))
-    load(None,runner,None,kw)
-    return valueString(str(kw)+'\n')
+        info("%s changed to %s\n"%(entry,value))
+    else:
+        configure(runner,None,kw,info=lambda s:None)
+        info(str(kw)+'\n')
 commandRunnerConfigFort2 = command(ch,SIMPLE,"changeConstants")
 
 
 def hch(entry=None,value=None,runner=None,**kw):
-    """Modify continuation constants.
+    """Modify HomCont continuation constants.
 
-    Type FUNC('xxx',yyy) to change the HomCont constant 'xxx' to have
+    Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
     value yyy.
     This is equivalent to the command
     s=load(s,xxx=yyy)
@@ -1370,16 +1338,17 @@ def hch(entry=None,value=None,runner=None,**kw):
     runner = withrunner(runner)
     if entry is not None:
         runner.options["homcont"][entry] = value
-        return valueString("%s changed to %s\n"%(entry,value))
-    load(None,runner,None,kw)
-    return valueString(str(kw)+'\n')
+        info("%s changed to %s\n"%(entry,value))
+    else:
+        configure(runner,None,kw,info=lambda s:None)
+        info(str(kw)+'\n')
 commandRunnerConfigFort12 = command(hch,SIMPLE,"changeConstantsHomCont")
     
 
-def run(name=None,sv=None,ap=None,runner=None,templates=None,**kw):
+def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     """Run AUTO.
 
-    Type r=FUNC([s],[options]) to run AUTO from solution s with the given
+    Type r=run([name],[options]) to run AUTO from solution data with the given
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -1387,91 +1356,89 @@ def run(name=None,sv=None,ap=None,runner=None,templates=None,**kw):
     and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
-    FUNC(s) runs AUTO in the following way for different types of s:
+    run(data) runs AUTO in the following way for different types of data:
 
-    * A solution: AUTO starts from solution s, with AUTO constants s.c.
+    * A solution: AUTO starts from solution data, with AUTO constants data.c.
 
     * A bifurcation diagram: AUTO start from the solution specified by
       the AUTO constant IRS, or if IRS is not specified, the last solution
-      in s, s()[-1], with AUTO constants s()[-1].c.
+      in data, data()[-1], with AUTO constants data()[-1].c.
 
-    * A string: AUTO uses the solution in the file 's.s' together with the
-      constants in the files 'c.s', and 'h.s'. Not all of these
+    * A string: AUTO uses the solution in the file 's.data' together with the
+      constants in the files 'c.data', and 'h.data'. Not all of these
       files need to be present.
 
-    If no solution s is specified, then the global values from the
+    If no solution data is specified, then the global values from the
     'load' command are used instead, where
     options which are not explicitly set retain their previous value.
 
     Keyword argument options can be AUTO constants, such as DS=0.05,
     or ISW=-1, or specify a constant or solution file. These override
     the constants in s.c, where applicable. See ``load'':
-    FUNC(s,options) is equivalent to FUNC(load(s,options))
+    run(s,options) is equivalent to run(load(s,options))
 
     Example: given a bifurcation diagram bd, with a branch point
     solution, switch branches and stop at the first Hopf bifurcation:
-    hb = FUNC(bd('BP1'),ISW=-1,SP='HB1')
+    hb = run(bd('BP1'),ISW=-1,SP='HB1')
     
     Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
     constant:
-    FUNC(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
+    run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
     saves to the files b.hb, s.hb and d.hb, and appends to b.all,
     s.all, and d.all.
     """
-    origrunner = runner
     if sv is not None:
         kw = kw.copy()
         kw['sv'] = sv
-    if runner is None and name is not None and type(name) not in [
-        type(""), type(1), type(1.0)]:
-        if isinstance(name, (runAUTO.runAUTO,bifDiag.bifDiag)):
-            origrunner = name
-        elif "s" not in kw:
-            kw["s"] = name
-        name = None
-    runner = load(name,origrunner,templates,kw).data
+    if runner is None:
+        if isinstance(data, (runAUTO.runAUTO, bifDiag.bifDiag)):
+            runner = data
+            data = None
+        elif isinstance(data, parseS.parseS) and "s" not in kw:
+            kw["s"] = data
+            data = None
+    origrunner = runner
+    runner = load(data,runner,templates,kw,info=lambda msg:None)
     sv = (runner.options.get("constants") or {}).get("sv")
     if sv == '':
         sv = None
     if runner.options["verbose"] == "no":
         log = StringIO()
         err = StringIO()
-        data = runner.run(log=log,err=err)
+        res = runner.run(log=log,err=err)
         log.seek(0)
         err.seek(0)
-        ret = valueRun(log,err,data=data)
+        info(log.read())
+        info(err.read())
         log.close()
         err.close()
     elif runner.options["redir"] == "yes":
         # log was already written if the runner is verbose
         err = StringIO()
-        data = runner.run(err=err)
+        res = runner.run(err=err)
         err.seek(0)
-        ret = valueRun(err,data=data)
+        info(err.read())
         err.close()
     else:
-        data = runner.run()
-        ret = valueRun(data=data)
+        res = runner.run()
     if sv is not None:
         name = filenameTemplate(sv,templates)
         bname = name["bifurcationDiagram"]
         sname = name["solution"]
         dname = name["diagnostics"]
-        ret.value = ret.value + "Saving to %s, %s, and %s ... done\n"%(
-            bname,sname,dname)
+        info("Saving to %s, %s, and %s ... done\n"%(bname,sname,dname))
     if ap is not None:
         if sv is None:
-            rval=append(ap)
+            append(ap)
         else:
-            rval=append(sv,ap)
-        ret.value = ret.value + rval.value
+            append(sv,ap)
     if origrunner is None:
         # delete ["sv"] from the global runner
         global _runner
         c = _runner.options.get("constants") or {}
         if "sv" in c:
             c["sv"] = None
-    return ret
+    return res
 commandRun = command(run,SIMPLE,"run")
 
 
@@ -1482,10 +1449,10 @@ def rundemo(demo,equation="all",runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunDemo = command(rundemo)
 
 
@@ -1501,10 +1468,10 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunMakefileWithSetup = command(runMakefileWithSetup)
 
 
@@ -1514,10 +1481,10 @@ def runMakefile(equation=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunMakefile = command(runMakefile)
 
 
@@ -1533,10 +1500,10 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunExecutableWithSetup = command(runExecutableWithSetup)
 
 
@@ -1546,10 +1513,10 @@ def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunExecutable = command(runExecutable)
 
 
@@ -1565,10 +1532,10 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunCommandWithSetup = command(runCommandWithSetup)
 
 
@@ -1578,27 +1545,26 @@ def runCommand(command=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] == "yes":
-        return valueRun(err,data=data)
-    else:
-        return valueRun(log,err,data=data)
+    if runner.options["verbose"] != "yes":
+        info(log.read())
+    info(err.read())
+    return data
 commandRunCommand = command(runCommand)
 
 
 def plot3(name=None,r3b=False):
     """3D plotting of data.
 
-    Type FUNC(x) to run the graphics program PLAUT04 for the graphical
+    Type plot3(x) to run the graphics program PLAUT04 for the graphical
     inspection of bifurcation diagram or solution data in x.
 
-    Type FUNC('xxx') to run the graphics program PLAUT04 for the graphical
-    inspection of the data-files b.xxx and s.xxx (if you are using the
-    default filename templates).
+    Type plot3('xxx') to run the graphics program PLAUT04 for the graphical
+    inspection of the data-files b.xxx and s.xxx.
 
-    Type FUNC() to run the graphics program PLAUT04 for the graphical
+    Type plot3() to run the graphics program PLAUT04 for the graphical
     inspection of the output-files 'fort.7' and 'fort.8'.
 
-    Type FUNC(...,r3b=True) to run PLAUT04 in restricted three body
+    Type plot3(...,r3b=True) to run PLAUT04 in restricted three body
     problem mode.
     """
     cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
@@ -1632,7 +1598,6 @@ def plot3(name=None,r3b=False):
         os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
     else:
         os.system(" ".join([cmd]+arg+["&"]))
-    return valueString("")
 commandPlotter3D = command(plot3)
 
 
@@ -1662,14 +1627,13 @@ try:
     def plot(name=None,templates=None,options={},**kw):
         """2D plotting of data.
 
-        Type FUNC(x) to run the graphics program PyPLAUT for the graphical
+        Type plot(x) to run the graphics program PyPLAUT for the graphical
         inspection of bifurcation diagram or solution data in x.
 
-        Type FUNC('xxx') to run the graphics program PyPLAUT for the graphical
-        inspection of the data-files b.xxx and s.xxx (if you are using the
-        default filename templates).
+        Type plot('xxx') to run the graphics program PyPLAUT for the graphical
+        inspection of the data-files b.xxx and s.xxx.
 
-        Type FUNC() to run the graphics program for the graphical
+        Type plot() to run the graphics program for the graphical
         inspection of the output-files 'fort.7' and 'fort.8'.
 
         The return value will be the handle for the graphics window.
@@ -1752,7 +1716,8 @@ try:
             atexit.register(plotterquit)
         except:
             pass
-        return valueStringAndData("Created plotter\n",handle)
+        info("Created plotter\n")
+        return handle
 
 except:
     print("\n-------------------------------------------------------------")
@@ -1766,7 +1731,7 @@ except:
         This is probably because the Python interpretor cannot
         load the Tkinter module.
         """
-        return valueString("2D plotting has been disabled\n")
+        info("2D plotting has been disabled\n")
 commandPlotter = command(plot,SIMPLE,"plot")
 
 
@@ -1795,7 +1760,8 @@ def autohelp(command_string=""):
             outputString += command_string.__doc__+'\n'
         except TypeError:
             pass
-        return valueStringAndData(outputString,return_value)
+        info(outputString)
+        return return_value
     if len(command_string) == 0:
         # If we were created with the empty string return a formatted
         # quick reference of all commands as the string and a
@@ -1854,7 +1820,6 @@ def autohelp(command_string=""):
         except:
             doc = getattr(AUTOCommands,_aliases[command_string]).__doc__
             return_value["name"] = _aliases[command_string]
-        doc = re.sub("FUNC",command_string,doc)
         return_value["short description"] = doc.splitlines()[0]
         return_value["long description"]  = "\n".join(doc.split("\n")[1:])
         # Get rid of the LaTeX stuff from the string that gets returned, but
@@ -1875,7 +1840,8 @@ def autohelp(command_string=""):
                 doc = doc + key + " "
                 return_value["aliases"].append(key)
         outputString += doc+"\n"
-    return valueStringAndData(outputString,return_value)
+    info(outputString)
+    return return_value
 commandHelp = command(autohelp)
 
 
@@ -1885,11 +1851,10 @@ commandHelp = command(autohelp)
 def man(command_string=""):
     """Get help on the AUTO commands.
     
-    Type 'FUNC' to list all commands with a online help.
-    Type 'FUNC xxx' to get help for command 'xxx'.
+    Type 'man' to list all commands with a online help.
+    Type 'man xxx' to get help for command 'xxx'.
     """
-    val = autohelp(command_string)
-    return valueString(str(val))
+    autohelp(command_string)
 commandInteractiveHelp = command(man)
 
 
@@ -1898,7 +1863,7 @@ commandInteractiveHelp = command(man)
 ##################################################
 def printFunc(printFnc,text):
     printFnc(text)
-    return valueString(text)
+    info(text)
 commandPrintFunc = command(printFunc)
 
 
@@ -1906,7 +1871,7 @@ commandPrintFunc = command(printFunc)
 def gui(type="simple"):
     """Show AUTOs graphical user interface.
 
-    Type FUNC() to start AUTOs graphical user interface.
+    Type gui() to start AUTOs graphical user interface.
     
     NOTE: This command is not implemented yet.
     """
@@ -1914,13 +1879,13 @@ def gui(type="simple"):
         from Tkinter import Tk
     except ImportError:
         from tkinter import Tk # Python 3
-    import Pmw
-    from graphics import AUTOgui
+    from graphics import AUTOgui, Pmw
     # Get rid of the initial window
     root = Tk()
     root.withdraw()
     guic = AUTOgui.AUTOgui(type)
-    return valueStringAndData("GUI created\n",guic)
+    info("GUI created\n")
+    return guic
 commandCreateGUI = command(gui)
 
 
@@ -1937,10 +1902,10 @@ commandCreateGUI = command(gui)
 ############################################
 #  High level functions
 ############################################
-def splabs(s,typename):
+def splabs(s,typename,templates=None):
     """Return special labels
 
-    Type FUNC('xxx',typename) to get a list of labels with the specified
+    Type splabs('xxx',typename) to get a list of labels with the specified
     typename, where typename can be one of
     'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
     This is equivalent to the command
@@ -1949,75 +1914,16 @@ def splabs(s,typename):
     load('xxx')(typename).getLabels()
     returns the list of labels.
 
-    Or use FUNC(s,typename) where s is a parsed solution from sl().
+    Or use splabs(s,typename) where s is a parsed solution from sl().
     This is equivalent to the command
     s(typename).getLabels()
     """
     labels = []
-    try:
-        s = sl(s).data
-    except:
-        pass
-    for solution in s:
+    for solution in sl(s,templates=templates):
         if solution['Type name'] == typename:
             labels.append(solution['Label'])
-    return valueStringAndData("", labels)
+    return labels
 commandSpecialPointLabels = command(splabs)
-
-############################################
-#  Return values
-############################################
-
-class valueStringAndData:
-    def __init__(self,text,data):
-        self.text = text
-        self.data = data
-    def __str__(self):
-        return self.text
-
-
-class valueString:
-    def __init__(self,text):
-        self.text = text
-    def __str__(self):
-        return self.text
-
-
-class valueRun:
-    def __init__(self,stream1=None,stream2=None,data=None):
-        self.value = ""
-        if not (stream1 is None):
-            self.value = self.value + stream1.read()
-        if not (stream2 is None):
-            self.value = self.value + stream2.read()
-        if not (data is None):
-            self.data = data
-    def __str__(self):
-         return self.value
-
-
-class valueSystem:
-    def __init__(self):
-        self.value = ""
-    def __str__(self):
-        return self.value
-    def interact(self,command,*args):
-        if hasattr(os,"spawnv"):
-            def syscmd(command,args):
-                if not os.path.exists(command):
-                    command = command + '.exe'
-                return os.spawnv(os.P_WAIT,command,
-                                 (os.path.basename(command),) + args)
-        else:
-            def syscmd(command,args):
-                fullcmd = " ".join([command]+list(args))
-                return os.system(fullcmd)
-        fullcmd = " ".join([command]+list(args))
-        if syscmd(command,args) != 0:
-            raise AUTOExceptions.AUTORuntimeError("Error running %s"%fullcmd)
-        self.value = self.value + "Finished running: " + fullcmd + "\n"
-    def info(self,text):
-        self.value = self.value + text
 
 ############################################
 #  Testing stuff
@@ -2028,6 +1934,13 @@ def print_test(text):
 def test():
     import runAUTO
     import sys
+    
+    f = StringIO()
+    def getinfo(s):
+        f.write(s)
+    def noinfo(s):
+        pass
+    global info
 
     runner = runAUTO.runAUTO(auto_dir=
                              os.path.join(os.environ["AUTO_DIR"],"..","97"))
@@ -2040,12 +1953,15 @@ def test():
     quiet      = commandRunnerConfig(runner,verbose="no")
     verbose    = commandRunnerConfig(runner,verbose="yes")
 
+    info = noinfo
     verbose()
     clean()
     first()
     tmacro()
     quiet()
-    print(second())
+    info = getinfo
+    second()
+    print(f.getvalue())
     printer()
 
 if __name__ == "__main__":

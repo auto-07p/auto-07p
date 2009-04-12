@@ -12,7 +12,11 @@ except ImportError:
 class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
         # Initialize the output recorder (if any)
-        self.__outputRecorder = outputRecorder
+        if outputRecorder:
+            def newinfo(s):
+                outputRecorder.write(s)
+                sys.stdout.write(s)
+            AUTOCommands.info = newinfo
 
         # Read in the aliases.
         self._aliases = {}
@@ -25,18 +29,11 @@ class AUTOSimpleFunctions:
 
         # Now I resolve the aliases
         for key, alias in self._aliases.items():
-            fun = getattr(AUTOCommands,alias).fun
-            f = self._functionFactory(fun, key)
-            setattr(AUTOSimpleFunctions, key, f)
+            f = getattr(AUTOCommands,alias).fun
+            setattr(AUTOSimpleFunctions, key, staticmethod(f))
             doc = getattr(AUTOCommands,alias).__doc__
             doc = self._adjustdoc(doc, key, alias)
-            AUTOSimpleFunctions.__dict__[key].__doc__ = doc
-
-    def _functionFactory(self,fun,name):
-        def f(self,*args,**kw):
-            return self._queueCommand(fun,*args,**kw)
-        f.__name__ = name
-        return f
+            f.__doc__ = doc
 
     def _adjustdoc(self, doc, commandname, truecommandname = None):
         # If we were created with the nonempty string return a formatted
@@ -48,7 +45,6 @@ class AUTOSimpleFunctions:
         doc = doc.replace("\\end{verbatim}","")
         doc = doc + "\n"
 
-        doc = doc.replace("FUNC", commandname)
         # This means help was asked for an alias
         if not truecommandname is None:
             commandname = truecommandname
@@ -62,35 +58,22 @@ class AUTOSimpleFunctions:
     def _addCommands(self,moduleList):
         for module in [AUTOCommands]:
             # Now we copy the commands from the module
-            for key in module.__dict__.keys():
+            for key in module.__dict__:
+                cmd = getattr(module,key)
                 # Check to see if it is a command
-                if hasattr(getattr(module,key),"fun"):
-                    f = self._functionFactory(getattr(module,key).fun, key)
-                    setattr(AUTOSimpleFunctions, key, f)
-                    doc = module.__dict__[key].__doc__
+                if hasattr(cmd,"fun"):
+                    f = cmd.fun
+                    setattr(AUTOSimpleFunctions, key, staticmethod(f))
+                    doc = cmd.__doc__
                     doc = self._adjustdoc(doc, key)
-                    AUTOSimpleFunctions.__dict__[key].__doc__ = doc
-
-    def _queueCommand(self,command,*args,**kw):
-        # Put back in the arguments
-        # I am not 100% sure if this is the best way to do this,
-        # but it seems to work.
-        output = command(*args,**kw)
-        if self.__outputRecorder is not None:
-            self.__outputRecorder.write(str(output))
-        sys.stdout.write(str(output))
-        # check to see if the command returned any data.  If so, pass it on.
-        try:
-            return output.data
-        except:
-            return None
+                    f.__doc__ = doc
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
 def exportFunctions(log=None):
     AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(log)
     dict = {}
-    for name in AUTOSimpleFunctions.__dict__.keys():
+    for name in AUTOSimpleFunctions.__dict__:
         if name[0] != '_':
             dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
     return dict
@@ -107,7 +90,7 @@ if "AUTO_DIR" not in os.environ:
 funcs = exportFunctions()
 runner = interactiveBindings.AUTOInteractiveConsole(funcs)
 for name,value in funcs.items():
-    if name not in __builtin__.__dict__.keys():
+    if name not in __builtin__.__dict__:
         globals()[name] = value
 
 def test():
