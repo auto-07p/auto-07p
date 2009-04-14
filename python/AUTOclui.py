@@ -43,7 +43,7 @@ class AUTOSimpleFunctions:
     def _copyfunction(self, f, key):
         if 'FunctionType' in globals():
             return FunctionType(f.__code__, f.__globals__, key,
-                                f.__kwdefaults__)
+                                f.__defaults__, f.__closure__)
         else:
             return function(f.func_code, f.func_globals, key,
                             f.func_defaults or ())
