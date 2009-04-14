@@ -1,107 +1,3 @@
-[AUTO_command_aliases]
-ls		=commandLs
-cd		=commandCd
-
-shell		=commandShell
-cat		=commandCat
-wait		=commandWait
-
-copyDemo	=commandCopyDemo
-gui		=commandCreateGUI
-
-branchPoint	=commandQueryBranchPoint
-eigenvalue	=commandQueryEigenvalue
-floquet		=commandQueryFloquet
-hopf		=commandQueryHopf
-iterations	=commandQueryIterations
-limitpoint	=commandQueryLimitpoint
-note		=commandQueryNote
-secondaryPeriod	=commandQuerySecondaryPeriod
-stepsize	=commandQueryStepsize
-changeConstant	=commandRunnerConfigFort2
-printConstant	=commandRunnerPrintFort2
-append		=commandAppend
-diagramAndSolutionGet	=commandParseDiagramAndSolutionFile
-clean		=commandClean
-constantsGet	=commandParseConstantsFile	
-copy		=commandCopyDataFiles
-delete		=commandDeleteDataFiles
-deleteFort	=commandDeleteFortFiles
-diagramGet	=commandParseDiagramFile
-double		=commandDouble
-demo		=commandCopyAndLoadDemo
-load		=commandRunnerLoadName
-loadbd		=commandParseOutputFiles
-move		=commandMoveFiles
-plot		=commandPlotter
-plot3		=commandPlotter3D
-relabel		=commandRelabel
-merge		=commandMergeBranches
-subtract	=commandSubtractBranches
-run		=commandRun
-save		=commandCopyFortFiles
-solutionGet	=commandParseSolutionFile
-triple		=commandTriple
-userData	=commandUserData
-quit            =commandQuit
-
-br		=commandQueryBranchPoint
-eg		=commandQueryEigenvalue
-fl		=commandQueryFloquet
-hp		=commandQueryHopf
-it		=commandQueryIterations
-lm		=commandQueryLimitpoint
-nt		=commandQueryNote
-sc		=commandQuerySecondaryPeriod
-st		=commandQueryStepsize
-ch		=commandRunnerConfigFort2
-hch             =commandRunnerConfigFort12
-pr		=commandRunnerPrintFort2
-hpr             =commandRunnerPrintFort12
-ap		=commandAppend
-bt		=commandParseDiagramAndSolutionFile
-cl		=commandClean
-cn		=commandParseConstantsFile
-hcn		=commandParseHomcontFile
-dl		=commandDeleteDataFiles
-dsp		=commandDeleteSpecialPoints
-ksp		=commandKeepSpecialPoints
-dlb		=commandDeleteLabels
-klb		=commandKeepLabels
-dg		=commandParseDiagramFile
-db		=commandDouble
-dm		=commandCopyAndLoadDemo
-bd		=commandParseOutputFiles
-ld		=commandRunnerLoadName
-pl		=commandPlotter
-#FIXME:  This doesn't match the rule we use for all other commands
-p3	        =commandPlotter3D
-rl		=commandRelabel
-mb		=commandMergeBranches
-sb		=commandSubtractBranches
-rn		=commandRun
-sv		=commandCopyFortFiles
-sl		=commandParseSolutionFile
-tr		=commandTriple
-us		=commandUserData
-        
-man		=commandInteractiveHelp
-
-bp		=commandQueryBranchPoint
-ev		=commandQueryEigenvalue
-hb		=commandQueryHopf
-lp		=commandQueryLimitpoint
-cc		=commandRunnerConfigFort2
-pc		=commandRunnerPrintFort2
-p2		=commandPlotter
-r		=commandRun
-sp		=commandQuerySecondaryPeriod
-ss		=commandQueryStepsize
-df		=commandDeleteFortFiles
-q               =commandQuit
-splabs          =commandSpecialPointLabels
-
-
 [AUTO_plotter]
 
 #default_option="d1"
@@ -181,3 +77,111 @@ splabs          =commandSpecialPointLabels
 #torus_symbol = "filldiamond"
 #user_point_symbol = "U"
 #error_symbol = None
+
+############################################################
+# below are defaults, for documentation purposes only
+# uncomment the section header and all entries to customize
+
+#[AUTO_command_aliases]
+#ls		=commandLs
+#cd		=commandCd
+
+#shell		=commandShell
+#cat		=commandCat
+#wait		=commandWait
+
+#copyDemo	=commandCopyDemo
+#gui		=commandCreateGUI
+
+#branchPoint	=commandQueryBranchPoint
+#eigenvalue	=commandQueryEigenvalue
+#floquet		=commandQueryFloquet
+#hopf		=commandQueryHopf
+#iterations	=commandQueryIterations
+#limitpoint	=commandQueryLimitpoint
+#note		=commandQueryNote
+#secondaryPeriod	=commandQuerySecondaryPeriod
+#stepsize	=commandQueryStepsize
+#changeConstant	=commandRunnerConfigFort2
+#printConstant	=commandRunnerPrintFort2
+#append		=commandAppend
+#diagramAndSolutionGet	=commandParseDiagramAndSolutionFile
+#clean		=commandClean
+#constantsGet	=commandParseConstantsFile	
+#copy		=commandCopyDataFiles
+#delete		=commandDeleteDataFiles
+#deleteFort	=commandDeleteFortFiles
+#diagramGet	=commandParseDiagramFile
+#double		=commandDouble
+#demo		=commandCopyAndLoadDemo
+#load		=commandRunnerLoadName
+#loadbd		=commandParseOutputFiles
+#move		=commandMoveFiles
+#plot		=commandPlotter
+#plot3		=commandPlotter3D
+#relabel		=commandRelabel
+#merge		=commandMergeBranches
+#subtract	=commandSubtractBranches
+#run		=commandRun
+#save		=commandCopyFortFiles
+#solutionGet	=commandParseSolutionFile
+#triple		=commandTriple
+#userData	=commandUserData
+#quit            =commandQuit
+
+#br		=commandQueryBranchPoint
+#eg		=commandQueryEigenvalue
+#fl		=commandQueryFloquet
+#hp		=commandQueryHopf
+#it		=commandQueryIterations
+#lm		=commandQueryLimitpoint
+#nt		=commandQueryNote
+#sc		=commandQuerySecondaryPeriod
+#st		=commandQueryStepsize
+#ch		=commandRunnerConfigFort2
+#hch             =commandRunnerConfigFort12
+#pr		=commandRunnerPrintFort2
+#hpr             =commandRunnerPrintFort12
+#ap		=commandAppend
+#bt		=commandParseDiagramAndSolutionFile
+#cl		=commandClean
+#cn		=commandParseConstantsFile
+#hcn		=commandParseHomcontFile
+#dl		=commandDeleteDataFiles
+#dsp		=commandDeleteSpecialPoints
+#ksp		=commandKeepSpecialPoints
+#dlb		=commandDeleteLabels
+#klb		=commandKeepLabels
+#dg		=commandParseDiagramFile
+#db		=commandDouble
+#dm		=commandCopyAndLoadDemo
+#bd		=commandParseOutputFiles
+#ld		=commandRunnerLoadName
+#pl		=commandPlotter
+##FIXME:  This doesn't match the rule we use for all other commands
+#p3	        =commandPlotter3D
+#rl		=commandRelabel
+#mb		=commandMergeBranches
+#sb		=commandSubtractBranches
+#rn		=commandRun
+#sv		=commandCopyFortFiles
+#sl		=commandParseSolutionFile
+#tr		=commandTriple
+#us		=commandUserData
+
+#man		=commandInteractiveHelp
+
+#bp		=commandQueryBranchPoint
+#ev		=commandQueryEigenvalue
+#hb		=commandQueryHopf
+#lp		=commandQueryLimitpoint
+#cc		=commandRunnerConfigFort2
+#pc		=commandRunnerPrintFort2
+#p2		=commandPlotter
+#r		=commandRun
+#sp		=commandQuerySecondaryPeriod
+#ss		=commandQueryStepsize
+#df		=commandDeleteFortFiles
+#q               =commandQuit
+#splabs          =commandSpecialPointLabels
+

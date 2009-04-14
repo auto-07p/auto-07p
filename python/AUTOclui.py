@@ -6,8 +6,10 @@ import AUTOCommands
 import interactiveBindings
 try:
     import __builtin__
+    from new import function
 except ImportError:
     import builtins as __builtin__ # Python 3
+    from types import FunctionType
 
 class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
@@ -19,21 +21,32 @@ class AUTOSimpleFunctions:
             AUTOCommands.info = newinfo
 
         # Read in the aliases.
-        self._aliases = {}
+        self._aliases = None
 
-        parser = AUTOutil.getAUTORC("AUTO_command_aliases")
-        for option in parser.options("AUTO_command_aliases"):
-            self._aliases[option] = parser.get("AUTO_command_aliases",option)
+        parser = AUTOutil.getAUTORC()
+        if parser.has_section("AUTO_command_aliases"):
+            self._aliases = {}
+            for option in parser.options("AUTO_command_aliases"):
+                self._aliases[option] = parser.get("AUTO_command_aliases",
+                                                   option)
 
         self._addCommands([AUTOCommands])
 
         # Now I resolve the aliases
         for key, alias in self._aliases.items():
-            f = getattr(AUTOCommands,alias).fun
+            f = self._copyfunction(getattr(AUTOCommands,alias).fun, key)
             setattr(AUTOSimpleFunctions, key, staticmethod(f))
             doc = getattr(AUTOCommands,alias).__doc__
             doc = self._adjustdoc(doc, key, alias)
             f.__doc__ = doc
+
+    def _copyfunction(self, f, key):
+        if 'FunctionType' in globals():
+            return FunctionType(f.__code__, f.__globals__, key,
+                                f.__kwdefaults__)
+        else:
+            return function(f.func_code, f.func_globals, key,
+                            f.func_defaults or ())
 
     def _adjustdoc(self, doc, commandname, truecommandname = None):
         # If we were created with the nonempty string return a formatted
@@ -45,6 +58,7 @@ class AUTOSimpleFunctions:
         doc = doc.replace("\\end{verbatim}","")
         doc = doc + "\n"
 
+        doc = doc.replace("FUNC", commandname)
         # This means help was asked for an alias
         if not truecommandname is None:
             commandname = truecommandname
@@ -56,13 +70,20 @@ class AUTOSimpleFunctions:
         return doc
 
     def _addCommands(self,moduleList):
+        addaliases = self._aliases is None
+        if addaliases:
+            self._aliases = {}
         for module in [AUTOCommands]:
             # Now we copy the commands from the module
             for key in module.__dict__:
                 cmd = getattr(module,key)
                 # Check to see if it is a command
                 if hasattr(cmd,"fun"):
-                    f = cmd.fun
+                    if addaliases and cmd.alias is not None:
+                        self._aliases[cmd.fun.__name__] = key
+                        for alias in cmd.alias:
+                            self._aliases[alias] = key
+                    f = self._copyfunction(cmd.fun, key)
                     setattr(AUTOSimpleFunctions, key, staticmethod(f))
                     doc = cmd.__doc__
                     doc = self._adjustdoc(doc, key)

@@ -108,9 +108,10 @@ def findBaseClass(inputClass,baseClass):
     except AttributeError:
         return 0
 
-def getAUTORC(section):
+def getAUTORC(section=None):
     parser = ConfigParser()
-    parser.add_section(section)
+    if section is not None:
+        parser.add_section(section)
     path = os.path.expandvars("$AUTO_DIR/.autorc")
     if os.path.exists(path):
         parser.read(path)

@@ -1,8 +1,10 @@
 #! /usr/bin/env python 
 try:
     from cStringIO import StringIO
+    import __builtin__
 except ImportError: # Python 3
     from io import StringIO
+    import builtins as __builtin__
 import parseC
 import parseB
 import parseS
@@ -14,7 +16,6 @@ import AUTOutil
 import sys
 import glob
 import runAUTO
-import re
 import shutil
 
 SIMPLE=0
@@ -30,13 +31,14 @@ _runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make",
 #############################################
 #  commands      
 #############################################
-def command(f,*args):
+def command(f,*args,**kw):
     # This is a class factory that produces a class that can be used
     # to make macros of commands.
     class cmd(object):
         if len(args) == 2:
             type = args[0]
             shortName = args[1]
+        alias = kw.get("alias",[])
         fun = staticmethod(f)
         __doc__ = f.__doc__
         def __init__(self,*args,**kw):
@@ -80,7 +82,7 @@ def interact(command,*args):
 def clean():
     """Clean the current directory.
 
-    Type clean() to clean the current directory.  This command will
+    Type FUNC() to clean the current directory.  This command will
     delete all files of the form fort.*, *.*~, *.o, and *.exe.
     """
     toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
@@ -88,13 +90,13 @@ def clean():
     for f in toclean:
         os.remove(f)
     info("Deleting fort.* *.o *.exe *.*~ ... done\n")
-commandClean = command(clean)
+commandClean = command(clean,alias=['cl'])
 
 
 def copydemo(name):
     """Copy a demo into the current directory.
 
-    Type copydemo('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
@@ -114,7 +116,7 @@ commandCopyDemo = command(copydemo,SIMPLE,"demo")
 def demo(name,runner=None):
     """Copy a demo into the current directory and load it.
 
-    Type demo('xxx') to copy all files from auto/07p/demos/xxx to the
+    Type FUNC('xxx') to copy all files from auto/07p/demos/xxx to the
     current user directory.  Here 'xxx' denotes a demo name; e.g.,
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.  NOTE: This
@@ -123,26 +125,26 @@ def demo(name,runner=None):
     lst = [commandCopyDemo(name)]
     lst.append(commandRunnerLoadName(name,runner))
     return macro(lst)
-commandCopyAndLoadDemo = command(demo)
+commandCopyAndLoadDemo = command(demo,alias=['dm'])
 
 
 def df():
     """Clear the current directory of fort files.
 
-    Type df() to clean the current directory.  This command will
+    Type FUNC() to clean the current directory.  This command will
     delete all files of the form fort.*.
     """
     toclean = glob.glob("fort.*")
     for f in toclean:
         os.remove(f)
     info("Deleting fort.* ... done\n")
-commandDeleteFortFiles = command(df)
+commandDeleteFortFiles = command(df,alias=['deletefort'])
 
 
 def us(name,templates=None):
     """Convert user-supplied data files.
 
-    Type us('xxx') to convert a user-supplied data file 'xxx.dat' to
+    Type FUNC('xxx') to convert a user-supplied data file 'xxx.dat' to
     AUTO format. The converted file is called 's.dat'.  The original
     file is left unchanged.  AUTO automatically sets the period in
     PAR(11).  Other parameter values must be set in 'STPNT'. (When
@@ -184,7 +186,7 @@ def us(name,templates=None):
     files = glob.glob("fcon*") + ["fort.2", "fort.3"]
     for f in files:
         os.remove(f)
-commandUserData = command(us)
+commandUserData = command(us,alias=['userdata'])
 
 
 ##############################################
@@ -227,13 +229,13 @@ def filenameTemplate(name=None,templates=None):
 def relabel(name1=None,name2=None,templates=None):
     """Relabel data files.
 
-    Type y=relabel(x) to return the python object x, with the solution
+    Type y=FUNC(x) to return the python object x, with the solution
     labels sequentially relabelled starting at 1, as a new object y.
 
-    Type relabel('xxx') to relabel s.xxx and b.xxx. Backups of the
+    Type FUNC('xxx') to relabel s.xxx and b.xxx. Backups of the
     original files are saved.
 
-    Type relabel('xxx','yyy') to relabel the existing data-files s.xxx and b.xxx,
+    Type FUNC('xxx','yyy') to relabel the existing data-files s.xxx and b.xxx,
     and save them to s.yyy and b.yyy; d.xxx is copied to d.yyy.
     """
 
@@ -275,19 +277,19 @@ def relabel(name1=None,name2=None,templates=None):
             shutil.copy(n1d, n2d)
         info("Relabeling succeeded\n")
     info("Relabeling done\n")
-commandRelabel = command(relabel,SIMPLE,"relabel")
+commandRelabel = command(relabel,SIMPLE,"relabel",alias=['rl'])
 
 
 def merge(name1=None,name2=None,templates=None):
     """Merge branches in data files.
 
-    Type y=merge(x) to return the python object x, with its branches
+    Type y=FUNC(x) to return the python object x, with its branches
     merged into continuous curves, as a new object y.
 
-    Type merge('xxx') to merge branches in s.xxx, b.xxx, and d.xxx. Backups
+    Type FUNC('xxx') to merge branches in s.xxx, b.xxx, and d.xxx. Backups
     of the original files are saved.
 
-    Type merge('xxx','yyy') to merge branches in the existing data-files
+    Type FUNC('xxx','yyy') to merge branches in the existing data-files
     s.xxx, b.xxx, and d.xxx and save them to s.yyy, b.yyy, and d.yyy.
     """
 
@@ -325,19 +327,19 @@ def merge(name1=None,name2=None,templates=None):
                 os.rename(n2,n1)
         info("Merging succeeded\n")
     info("Merging done\n")
-commandMergeBranches = command(merge,SIMPLE,"merge")
+commandMergeBranches = command(merge,SIMPLE,"merge",alias=['mb'])
 
 
 def subtract(name1,name2,col,branch=1,point=1,templates=None):
     """Subtract branches in data files.
 
-    Type z=subtract(x,y,ref) to return the python object x, where,
+    Type z=FUNC(x,y,ref) to return the python object x, where,
     using interpolation, the first branch in y is subtracted from all
     branches in x, as a new object z.
     Use 'ref' (e.g., 'PAR(1)')  as the reference column in y
     (only the first monotonically increasing or decreasing part is used).
 
-    Type subtract('xxx','yyy','ref') to subtract, using interpolation, the first
+    Type FUNC('xxx','yyy','ref') to subtract, using interpolation, the first
     branch in b.yyy from all branches in b.xxx, and save the result in b.xxx.
     A Backup of the original file is saved.
 
@@ -365,26 +367,26 @@ def subtract(name1,name2,col,branch=1,point=1,templates=None):
         shutil.copy(n1b,n1b+'~')
         sub.writeFilename(n1b,'')            
         info("Subtracting done\n")
-commandSubtractBranches = command(subtract,SIMPLE,"subtract")
+commandSubtractBranches = command(subtract,SIMPLE,"subtract",alias=['sb'])
 
 
 def append(name1,name2=None,templates=None):
     """Append data files.
 
-    Type append(x,'xxx') to append bifurcation diagram x
+    Type FUNC(x,'xxx') to append bifurcation diagram x
     to the data-files b.xxx, s.xxx, and d.xxx. This is equivalent to
     the command
     save(x+load('xxx'),'xxx')
 
-    Type append('xxx',x) to append existing data-files s.xxx, b.xxx,
+    Type FUNC('xxx',x) to append existing data-files s.xxx, b.xxx,
     and d.xxx to bifurcation diagram x. This is equivalent to
     the command
     x=load('xxx')+x
 
-    Type append('xxx') to append the output-files fort.7, fort.8,
+    Type FUNC('xxx') to append the output-files fort.7, fort.8,
     fort.9, to existing data-files s.xxx, b.xxx, and d.xxx.
 
-    Type append('xxx','yyy') to append existing data-files s.xxx, b.xxx,
+    Type FUNC('xxx','yyy') to append existing data-files s.xxx, b.xxx,
     and d.xxx to data-files s.yyy, b.yyy, and d.yyy.
     """
     parsed1=None
@@ -432,13 +434,13 @@ def append(name1,name2=None,templates=None):
         f1.close()
         f2.close()
         info("Appending %s to %s ... done\n"%(n1,n2))
-commandAppend = command(append,SIMPLE,"append")
+commandAppend = command(append,SIMPLE,"append",alias=['ap'])
 
 
 def copy(name1,name2,templates=None):
     """Copy data files.
 
-    Type copy('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
+    Type FUNC('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
     and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy.
     """
     name1 = filenameTemplate(name1,templates)
@@ -450,19 +452,19 @@ def copy(name1,name2,templates=None):
             shutil.copy(n1,n2)
             info("Copying %s to %s ... done\n"%(n1,n2))
 commandCopyDataFiles = command(copy)
-    
+
 
 def save(name1,name2=None,templates=None):
     """Save data files.
 
-    Type save(x,'xxx') to save bifurcation diagram x
+    Type FUNC(x,'xxx') to save bifurcation diagram x
     to the files b.xxx, s.xxx, d.xxx. 
     Existing files with these names will be overwritten.
     If x is a solution, a list of solutions, or does not contain any
     bifurcation diagram or diagnostics data, then only the file s.xxx
     is saved to.
 
-    Type save('xxx') to save the output-files fort.7, fort.8, fort.9,
+    Type FUNC('xxx') to save the output-files fort.7, fort.8, fort.9,
     to b.xxx, s.xxx, d.xxx.  Existing files with these names will be
     overwritten.
     """
@@ -501,13 +503,13 @@ def save(name1,name2=None,templates=None):
         if os.path.exists(forti):
             shutil.copy(forti,n1)
             info("Saving %s as %s ... done\n"%(forti,n1))
-commandCopyFortFiles = command(save,SIMPLE,"save")
-        
+commandCopyFortFiles = command(save,SIMPLE,"save",alias=['sv'])
+
 
 def delete(name,templates=None):
     """Delete data files.
 
-    Type delete('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx.
+    Type FUNC('xxx') to delete the data-files d.xxx, b.xxx, and s.xxx.
     """
     
     name = filenameTemplate(name,templates)
@@ -523,7 +525,7 @@ def delete(name,templates=None):
     if os.path.exists(n1d):
         os.remove(n1d)
         info("Deleting %s ... done\n"%n1d)
-commandDeleteDataFiles = command(delete)
+commandDeleteDataFiles = command(delete,alias=['dl'])
 
 
 def deleteLabel(codes=None,name=None,templates=None,keepTY=0,keep=0):
@@ -556,11 +558,11 @@ def deleteLabel(codes=None,name=None,templates=None,keepTY=0,keep=0):
 def dsp(typenames=None,name=None,templates=None):
     """Delete special points.
 
-    Type dsp(list,x) to delete the special points in list from
+    Type FUNC(list,x) to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type dsp(list,'xxx') to delete the special points in list from
+    Type FUNC(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
-    Type dsp(list) to delete the special points in list from
+    Type FUNC(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
@@ -573,11 +575,11 @@ commandDeleteSpecialPoints = command(dsp)
 def ksp(typenames=None,name=None,templates=None):
     """Keep special points.
 
-    Type ksp(list,x) to only keep the special points in list from
+    Type FUNC(list,x) to only keep the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type ksp(list,'xxx') to only keep the special points in list from
+    Type FUNC(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
-    Type ksp(list) to only keep the special points in list from
+    Type FUNC(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
@@ -591,11 +593,11 @@ commandKeepSpecialPoints = command(ksp)
 def dlb(typenames=None,name=None,templates=None):
     """Delete special labels.
 
-    Type dlb(list,x) to delete the special points in list from
+    Type FUNC(list,x) to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type dlb(list,'xxx') to delete the special points in list from
+    Type FUNC(list,'xxx') to delete the special points in list from
     the data-files b.xxx, and s.xxx.
-    Type dlb(list) to delete the special points in list from
+    Type FUNC(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
     Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
@@ -609,11 +611,11 @@ commandDeleteLabels = command(dlb)
 def klb(typenames=None,name=None,templates=None):
     """Keep special labels.
 
-    Type klb(list,x) to only keep the special points in list from
+    Type FUNC(list,x) to only keep the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
-    Type klb(list,'xxx') to only keep the special points in list from
+    Type FUNC(list,'xxx') to only keep the special points in list from
     the data-files b.xxx, and s.xxx.
-    Type klb(list) to only keep the special points in list from
+    Type FUNC(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
     Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
@@ -651,17 +653,18 @@ def expandData(cmd,name=None,templates=None):
 def double(name=None,templates=None):
     """Double a solution.
 
-    Type double() to double the solution in 'fort.7' and 'fort.8'.
+    Type FUNC() to double the solution in 'fort.7' and 'fort.8'.
 
-    Type double('xxx') to double the solution in b.xxx and s.xxx.
+    Type FUNC('xxx') to double the solution in b.xxx and s.xxx.
     """
     expandData("double",name,templates)
-commandDouble = command(double)
+commandDouble = command(double,alias=['db'])
+
 
 def move(name1,name2,templates=None):
     """Move data-files to a new name.
 
-    Type move('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
+    Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
     and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy.
     """
     name1 = filenameTemplate(name1,templates)
@@ -676,10 +679,11 @@ def move(name1,name2,templates=None):
             info("Renaming %s as %s ... done\n"%(n1,n2))
 commandMoveFiles = command(move)
 
+
 def cn(name,templates=None):
     """Get the current continuation constants.
 
-    Type cn('xxx') to get a parsed version of the constants file
+    Type FUNC('xxx') to get a parsed version of the constants file
     c.xxx.
 
     This is equivalent to the command
@@ -689,12 +693,13 @@ def cn(name,templates=None):
     data = parseC.parseC(name["constants"])
     info("Parsed file: %s\n"%name["constants"])
     return data
-commandParseConstantsFile = command(cn)
+commandParseConstantsFile = command(cn,alias=['constantsget'])
+
 
 def hcn(name,templates=None):
     """Get the current HomCont continuation constants.
 
-    Type hcn('xxx') to get a parsed version of the HomCont file
+    Type FUNC('xxx') to get a parsed version of the HomCont file
     h.xxx.
     """
     name = filenameTemplate(name,templates)
@@ -702,11 +707,12 @@ def hcn(name,templates=None):
     info("Parsed file: %s\n"%name["homcont"])
     return data
 commandParseHomcontFile = command(hcn)
+
         
 def sl(name=None,templates=None):
     """Parse solution file:
 
-    Type sl('xxx') to get a parsed version of the solution file
+    Type FUNC('xxx') to get a parsed version of the solution file
     s.xxx.
 
     This is equivalent to the command
@@ -718,13 +724,13 @@ def sl(name=None,templates=None):
     if isinstance(n1s, str):
         info("Parsed file: %s\n"%n1s)
     return data
-commandParseSolutionFile = command(sl)
+commandParseSolutionFile = command(sl,alias=['solutionget'])
 
 
 def dg(name=None,templates=None):
     """Parse a bifurcation diagram.
 
-    Type dg('xxx') to get a parsed version of the diagram file b.xxx.
+    Type FUNC('xxx') to get a parsed version of the diagram file b.xxx.
 
     This is equivalent to the command loadbd('xxx') but without the
     solutions in s.xxx and without the diagnostics in d.xxx.
@@ -736,13 +742,13 @@ def dg(name=None,templates=None):
     data = parseB.parseB(n1b)
     info("Parsed file: %s\n"%n1b)
     return data
-commandParseDiagramFile = command(dg)
+commandParseDiagramFile = command(dg,alias=['diagramget'])
 
 
 def bt(name=None,templates=None):
     """Parse both bifurcation diagram and solution.
 
-    Type bt('xxx') to get a parsed version of the diagram file b.xxx
+    Type FUNC('xxx') to get a parsed version of the diagram file b.xxx
     and solution file s.xxx.
 
     This is equivalent to the command loadbd('xxx') but without the
@@ -758,7 +764,7 @@ def bt(name=None,templates=None):
     output_names = n1b + " and " + n1s
     info("Parsed files: %s\n"%output_names)
     return data
-commandParseDiagramAndSolutionFile = command(bt)
+commandParseDiagramAndSolutionFile = command(bt,alias=['diagramandsolutionget'])
 
 
 def queryDiagnostic(diagnostic,name=None,templates=None):
@@ -782,162 +788,173 @@ def queryDiagnostic(diagnostic,name=None,templates=None):
     f.close()
     info("\n")
 
+
 def branchpoint(name=None,templates=None):
     """Print the ``branch-point function''.
     
-    Type branchpoint(x) to list the value of the ``branch-point function'' 
+    Type FUNC(x) to list the value of the ``branch-point function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a branch point.
 
-    Type branchpoint() to list the value of the ``branch-point function'' 
+    Type FUNC() to list the value of the ``branch-point function'' 
     in the output-file fort.9.
     
-    Type branchpoint('xxx') to list the value of the ``branch-point function''
+    Type FUNC('xxx') to list the value of the ``branch-point function''
     in the info file 'd.xxx'.
     """
     queryDiagnostic("BP",name,templates)
-commandQueryBranchPoint = command(branchpoint)
+commandQueryBranchPoint = command(branchpoint,alias=['bp','br'])
+
         
 def eigenvalue(name=None,templates=None):
     """Print eigenvalues of Jacobian (algebraic case).
 
-    Type eigenvalue(x) to list the eigenvalues of the Jacobian 
+    Type FUNC(x) to list the eigenvalues of the Jacobian 
     in the diagnostics of the bifurcation diagram object x.
     (Algebraic problems.)
 
-    Type eigenvalue() to list the eigenvalues of the Jacobian 
+    Type FUNC() to list the eigenvalues of the Jacobian 
     in fort.9. 
 
-    Type eigenvalue('xxx') to list the eigenvalues of the Jacobian 
+    Type FUNC('xxx') to list the eigenvalues of the Jacobian 
     in the info file 'd.xxx'.
     """
     queryDiagnostic("Eigenvalue",name,templates)
-commandQueryEigenvalue = command(eigenvalue)
+commandQueryEigenvalue = command(eigenvalue,alias=['ev','eg'])
+ 
 
 def floquet(name=None,templates=None):
     """Print the Floquet multipliers.
 
-    Type floquet(x) to list the Floquet multipliers
+    Type FUNC(x) to list the Floquet multipliers
     in the diagnostics of the bifurcation diagram object x.
     (Differential equations.)
 
-    Type floquet() to list the Floquet multipliers
+    Type FUNC() to list the Floquet multipliers
     in the output-file fort.9. 
 
-    Type floquet('xxx') to list the Floquet multipliers 
+    Type FUNC('xxx') to list the Floquet multipliers 
     in the info file 'd.xxx'.
     """
     queryDiagnostic("Mult",name,templates)
-commandQueryFloquet = command(floquet)
+commandQueryFloquet = command(floquet,alias=['fl'])
+
 
 def hopf(name=None,templates=None):
     """Print the value of the ``Hopf function''.
 
-    Type hopf(x) to list the value of the ``Hopf function'' 
+    Type FUNC(x) to list the value of the ``Hopf function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a Hopf bifurcation point.
 
-    Type hopf() to list the value of the ``Hopf function'' 
+    Type FUNC() to list the value of the ``Hopf function'' 
     in the output-file fort.9.
 
-    Type hopf('xxx') to list the value of the ``Hopf function''
+    Type FUNC('xxx') to list the value of the ``Hopf function''
     in the info file 'd.xxx'.
     """
     queryDiagnostic("Hopf",name,templates)
-commandQueryHopf = command(hopf)
+commandQueryHopf = command(hopf,alias=['hp','hb'])
+
 
 def iterations(name=None,templates=None):
     """Print the number of Newton interations.
 
-    Type iterations(x) to list the number of Newton iterations per
+    Type FUNC(x) to list the number of Newton iterations per
     continuation step in the diagnostics of the bifurcation diagram
     object x.
 
-    Type iterations() to list the number of Newton iterations per
+    Type FUNC() to list the number of Newton iterations per
     continuation step in fort.9. 
 
-    Type iterations('xxx') to list the number of Newton iterations per
+    Type FUNC('xxx') to list the number of Newton iterations per
     continuation step in the info file 'd.xxx'.
     """
     queryDiagnostic("Iterations",name,templates)
-commandQueryIterations = command(iterations)
+commandQueryIterations = command(iterations,alias=['it'])
+
 
 def limitpoint(name=None,templates=None):
     """Print the value of the ``limit point function''.
 
-    Type limitpoint(x) to list the value of the ``limit point function'' 
+    Type FUNC(x) to list the value of the ``limit point function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at a limit point (fold).
 
-    Type limitpoint() to list the value of the ``limit point function'' 
+    Type FUNC() to list the value of the ``limit point function'' 
     in the output-file fort.9.
 
-    Type limitpoint('xxx') to list the value of the ``limit point function'' 
+    Type FUNC('xxx') to list the value of the ``limit point function'' 
     in the info file 'd.xxx'.
     """
     queryDiagnostic("Fold",name,templates)
-commandQueryLimitpoint = command(limitpoint)
+commandQueryLimitpoint = command(limitpoint,alias=['lm','lp'])
+
 
 def note(name=None,templates=None):
     """Print notes in info file.
 
-    Type note(x) to show any notes 
+    Type FUNC(x) to show any notes 
     in the diagnostics of the bifurcation diagram
     object x.
 
-    Type note() to show any notes 
+    Type FUNC() to show any notes 
     in the output-file fort.9.
 
-    Type note('xxx') to show any notes 
+    Type FUNC('xxx') to show any notes 
     in the info file 'd.xxx'.
     """
     queryDiagnostic("NOTE",name,templates)
-commandQueryNote = command(note)
+commandQueryNote = command(note,alias=['nt'])
+
 
 def secondaryperiod(name=None,templates=None):
     """Print value of ``secondary-periodic bif. fcn''.
 
-    Type secondaryperiod(x) to list the value of the
+    Type FUNC(x) to list the value of the
     ``secondary-periodic bifurcation function'' 
     in the diagnostics of the bifurcation diagram object x.
     This function vanishes at period-doubling and torus bifurcations.
 
-    Type secondaryperiod()  to list the value of the 
+    Type FUNC()  to list the value of the 
     ``secondary-periodic bifurcation function'' 
     in the output-file 'fort.9.
 
-    Type secondaryperiod('xxx') to list the value of the
+    Type FUNC('xxx') to list the value of the
     ``secondary-periodic bifurcation function''
     in the info file 'd.xxx'.
     """
     queryDiagnostic("SPB",name,templates)
-commandQuerySecondaryPeriod = command(secondaryperiod)
+commandQuerySecondaryPeriod = command(secondaryperiod,alias=['sp','sc'])
+
 
 def stepsize(name=None,templates=None):
     """Print continuation step sizes.
 
-    Type stepsize(x) to list the continuation step size for each
+    Type FUNC(x) to list the continuation step size for each
     continuation step in the diagnostics of the bifurcation diagram
     object x.
 
-    Type stepsize() to list the continuation step size for each
+    Type FUNC() to list the continuation step size for each
     continuation step in  'fort.9. 
 
-    Type stepsize('xxx') to list the continuation step size for each
+    Type FUNC('xxx') to list the continuation step size for each
     continuation step in the info file 'd.xxx'.
     """
     queryDiagnostic("Step",name,templates)
-commandQueryStepsize = command(stepsize)
+commandQueryStepsize = command(stepsize,alias=['ss','st'])
+
 
 def triple(name=None,templates=None):
     """Triple a solution.
 
-    Type triple() to triple the solution in 'fort.8'.
+    Type FUNC() to triple the solution in 'fort.8'.
 
-    Type triple('xxx') to triple the solution in s.xxx.
+    Type FUNC('xxx') to triple the solution in s.xxx.
     """
     return expandData("triple",name,templates)
-commandTriple = command(triple)
+commandTriple = command(triple,alias=['tr'])
+
         
 ############################################
 #  System Commands
@@ -946,7 +963,7 @@ commandTriple = command(triple)
 def ls(dir=None):
     """List the current directory.
     
-    Type 'ls' to run the system 'ls' command in the current directory.  This
+    Type 'FUNC' to run the system 'ls' command in the current directory.  This
     command will accept whatever arguments are accepted by the Unix command
     'ls'.
     """
@@ -964,34 +981,41 @@ def ls(dir=None):
         os.system("%s %s"%(cmd,dir,))
 commandLs = command(ls)
 
-if isinstance(quit,str):
-    def quit():
+
+def quit():
+    """Quit the AUTO CLUI."""
+    if isinstance(__builtin__.quit,str):
         sys.exit()
-commandQuit = command(quit)
+    else:
+        __builtin__.quit()
+commandQuit = command(quit,alias=['q'])
+
 
 def shell(cmd):
     """Run a shell command.
         
-    Type shell('xxx') to run the command 'xxx' in the Unix shell and display
+    Type FUNC('xxx') to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     """
     os.system(cmd) 
 commandShell = command(shell)
 
+
 def wait():
     """Wait for the user to enter a key.
 
-    Type 'wait()' to have the AUTO interface wait
+    Type 'FUNC()' to have the AUTO interface wait
     until the user hits any key (mainly used in scripts).
     """
     print("Hit <return> to continue")
     raw_input()
 commandWait = command(wait)
           
+
 def cat(f=None):
     """Print the contents of a file
 
-    Type 'cat xxx' to list the contents of the file 'xxx'.  This calls the
+    Type 'FUNC xxx' to list the contents of the file 'xxx'.  This calls the
     Unix function 'cat' for reading the file.  
     """
     cmd = "cat"
@@ -1011,10 +1035,11 @@ def withrunner(runner=None):
     else:
         return runner
 
+
 def cd(dir=None,runner=None):
     """Change directories.
     
-    Type 'cd xxx' to change to the directory 'xxx'.  This command
+    Type 'FUNC xxx' to change to the directory 'xxx'.  This command
     understands both shell variables and home directory expansion.
     """
     runner = withrunner(runner)
@@ -1029,10 +1054,11 @@ def cd(dir=None,runner=None):
     runner.config(dir=os.getcwd())
 commandCd = command(cd)
 
+
 def configure(runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
-    Type result=configure([options]) to modify the AUTO runner.
+    Type result=FUNC([options]) to modify the AUTO runner.
 
     The type of the result is a solution object.
 
@@ -1048,12 +1074,12 @@ def configure(runner=None,templates=None,cnf={},**kw):
                 BR,PT,TY,LAB  Solution constants.
     \\end{verbatim}
     Options which are not explicitly set retain their previous value.
-    For example one may type: s=configure(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file.
 
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
-    Example: s = configure(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
 
     def applyRunnerConfigResolveAbbreviation(kw={}):
@@ -1143,19 +1169,19 @@ def configure(runner=None,templates=None,cnf={},**kw):
             data = parseS.AUTOSolution(options["solution"],**options)
     info("Runner configured\n")
     return data
-commandRunnerConfig = command(configure)
+commandRunnerConfig = command(configure,alias=None)
 
 
 def load(data=None,runner=None,templates=None,cnf={},**kw):
     """Load files into the AUTO runner or return modified solution data.
 
-    Type result=load([options]) to modify the AUTO runner.
-    Type result=load(data,[options]) to return possibly
+    Type result=FUNC([options]) to modify the AUTO runner.
+    Type result=FUNC(data,[options]) to return possibly
     modified solution data.
 
     The type of the result is a solution object.
 
-    load(data,[options]) returns a solution in the following way for
+    FUNC(data,[options]) returns a solution in the following way for
     different types of data:
 
     * A solution: load returns the solution data, with AUTO constants
@@ -1187,16 +1213,16 @@ def load(data=None,runner=None,templates=None,cnf={},**kw):
     \\end{verbatim}
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
-    For example one may type: s=load(e='ab',c='ab.1') to use 'ab.c' as
+    For example one may type: s=FUNC(e='ab',c='ab.1') to use 'ab.c' as
     the equations file and c.ab.1 as the constants file.
 
-    Type s=load('name') to load all files with base 'name'.
+    Type s=FUNC('name') to load all files with base 'name'.
     This does the same thing as running
-    s=load(e='name',c='name,h='name',s='name').
+    s=FUNC(e='name',c='name,h='name',s='name').
  
     You can also specify AUTO Constants, e.g., DS=0.05, or IRS=2.
     Special values for DS are '+' (forwards) and '-' (backwards).
-    Example: s = load(s,DS='-') changes s.c['DS'] to -s.c['DS'].
+    Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
     if runner is None:
         if isinstance(data, parseS.parseS):
@@ -1210,13 +1236,13 @@ def load(data=None,runner=None,templates=None,cnf={},**kw):
             if key not in kw:
                 kw[key] = data
     return configure(runner,templates,AUTOutil.cnfmerge((kw,cnf)))
-commandRunnerLoadName = command(load,SIMPLE,"loadname")
+commandRunnerLoadName = command(load,SIMPLE,"loadname",alias=['ld'])
 
 
 def loadbd(name=None,templates=None,cnf={},**kw):
     """Load bifurcation diagram files.
 
-    Type b=loadbd([options]) to load output files or output data.
+    Type b=FUNC([options]) to load output files or output data.
     There are three possible options:
     \\begin{verbatim}
     Long name   Short name    Description
@@ -1226,9 +1252,9 @@ def loadbd(name=None,templates=None,cnf={},**kw):
     diagnostics d             The diagnostics file
     \\end{verbatim}
 
-    Type loadbd('name') to load all files with base 'name'.
+    Type FUNC('name') to load all files with base 'name'.
     This does the same thing as running
-    loadbd(b='name',s='name,d='name').
+    FUNC(b='name',s='name,d='name').
     plot(b) will then plot the 'b' and 's' components.
 
     Returns a bifurcation diagram object representing the files in b.
@@ -1268,14 +1294,14 @@ def loadbd(name=None,templates=None,cnf={},**kw):
                            makefile = _runner.options["makefile"])
     info("Parsed output data\n")
     return data
-commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd")
+commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd",alias=['bd'])
 
 
 def pr(parameter=None,runner=None):
     """Print continuation parameters.
 
-    Type pr() to print all the parameters.
-    Type pr('xxx') to return the parameter 'xxx'.
+    Type FUNC() to print all the parameters.
+    Type FUNC('xxx') to return the parameter 'xxx'.
     These commands are equivalent to the commands
     print s.c
     print s.c['xxx']
@@ -1286,14 +1312,14 @@ def pr(parameter=None,runner=None):
         info(str(runner.options["constants"]))
     else:
         return runner.options["constants"][parameter]
-commandRunnerPrintFort2 = command(pr)
+commandRunnerPrintFort2 = command(pr,alias=['printconstant','pc'])
 
 
 def hpr(parameter=None,runner=None):
     """Print HomCont continuation parameters.
 
-    Type hpr() to print all the HomCont parameters.
-    Type hpr('xxx') to return the HomCont parameter 'xxx'.
+    Type FUNC() to print all the HomCont parameters.
+    Type FUNC('xxx') to return the HomCont parameter 'xxx'.
     These commands are equivalent to the commands
     print s.c
     print s.c['xxx']
@@ -1310,7 +1336,7 @@ commandRunnerPrintFort12 = command(hpr)
 def ch(entry=None,value=None,runner=None,**kw):
     """Modify continuation constants.
 
-    Type ch('xxx',yyy) to change the constant 'xxx' to have
+    Type FUNC('xxx',yyy) to change the constant 'xxx' to have
     value yyy.
     This is equivalent to the command
     s=load(s,xxx=yyy)
@@ -1323,13 +1349,14 @@ def ch(entry=None,value=None,runner=None,**kw):
     else:
         configure(runner,None,kw,info=lambda s:None)
         info(str(kw)+'\n')
-commandRunnerConfigFort2 = command(ch,SIMPLE,"changeConstants")
+commandRunnerConfigFort2 = command(ch,SIMPLE,"changeConstants",
+                                   alias=['changeconstant','cc'])
 
 
 def hch(entry=None,value=None,runner=None,**kw):
     """Modify HomCont continuation constants.
 
-    Type hch('xxx',yyy) to change the HomCont constant 'xxx' to have
+    Type FUNC('xxx',yyy) to change the HomCont constant 'xxx' to have
     value yyy.
     This is equivalent to the command
     s=load(s,xxx=yyy)
@@ -1348,7 +1375,7 @@ commandRunnerConfigFort12 = command(hch,SIMPLE,"changeConstantsHomCont")
 def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     """Run AUTO.
 
-    Type r=run([name],[options]) to run AUTO from solution data with the given
+    Type r=FUNC([name],[options]) to run AUTO from solution data with the given
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -1356,7 +1383,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
-    run(data) runs AUTO in the following way for different types of data:
+    FUNC(data) runs AUTO in the following way for different types of data:
 
     * A solution: AUTO starts from solution data, with AUTO constants data.c.
 
@@ -1375,15 +1402,15 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     Keyword argument options can be AUTO constants, such as DS=0.05,
     or ISW=-1, or specify a constant or solution file. These override
     the constants in s.c, where applicable. See ``load'':
-    run(s,options) is equivalent to run(load(s,options))
+    FUNC(s,options) is equivalent to FUNC(load(s,options))
 
     Example: given a bifurcation diagram bd, with a branch point
     solution, switch branches and stop at the first Hopf bifurcation:
-    hb = run(bd('BP1'),ISW=-1,SP='HB1')
+    hb = FUNC(bd('BP1'),ISW=-1,SP='HB1')
     
     Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
     constant:
-    run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
+    FUNC(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
     saves to the files b.hb, s.hb and d.hb, and appends to b.all,
     s.all, and d.all.
     """
@@ -1439,7 +1466,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
         if "sv" in c:
             c["sv"] = None
     return res
-commandRun = command(run,SIMPLE,"run")
+commandRun = command(run,SIMPLE,"run",alias=['r','rn'])
 
 
 def rundemo(demo,equation="all",runner=None):
@@ -1453,7 +1480,7 @@ def rundemo(demo,equation="all",runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunDemo = command(rundemo)
+commandRunDemo = command(rundemo,alias=None)
 
 
 def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
@@ -1472,7 +1499,7 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunMakefileWithSetup = command(runMakefileWithSetup)
+commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 
 
 def runMakefile(equation=None,runner=None):
@@ -1485,7 +1512,7 @@ def runMakefile(equation=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunMakefile = command(runMakefile)
+commandRunMakefile = command(runMakefile,alias=None)
 
 
 def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
@@ -1504,7 +1531,7 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunExecutableWithSetup = command(runExecutableWithSetup)
+commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 
 
 def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
@@ -1517,7 +1544,7 @@ def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunExecutable = command(runExecutable)
+commandRunExecutable = command(runExecutable,alias=None)
 
 
 def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
@@ -1536,7 +1563,7 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunCommandWithSetup = command(runCommandWithSetup)
+commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 
 
 def runCommand(command=None,runner=None):
@@ -1549,22 +1576,22 @@ def runCommand(command=None,runner=None):
         info(log.read())
     info(err.read())
     return data
-commandRunCommand = command(runCommand)
+commandRunCommand = command(runCommand,alias=None)
 
 
 def plot3(name=None,r3b=False):
     """3D plotting of data.
 
-    Type plot3(x) to run the graphics program PLAUT04 for the graphical
+    Type FUNC(x) to run the graphics program PLAUT04 for the graphical
     inspection of bifurcation diagram or solution data in x.
 
-    Type plot3('xxx') to run the graphics program PLAUT04 for the graphical
+    Type FUNC('xxx') to run the graphics program PLAUT04 for the graphical
     inspection of the data-files b.xxx and s.xxx.
 
-    Type plot3() to run the graphics program PLAUT04 for the graphical
+    Type FUNC() to run the graphics program PLAUT04 for the graphical
     inspection of the output-files 'fort.7' and 'fort.8'.
 
-    Type plot3(...,r3b=True) to run PLAUT04 in restricted three body
+    Type FUNC(...,r3b=True) to run PLAUT04 in restricted three body
     problem mode.
     """
     cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
@@ -1598,7 +1625,7 @@ def plot3(name=None,r3b=False):
         os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
     else:
         os.system(" ".join([cmd]+arg+["&"]))
-commandPlotter3D = command(plot3)
+commandPlotter3D = command(plot3,alias=['p3'])
 
 
 try:
@@ -1627,13 +1654,13 @@ try:
     def plot(name=None,templates=None,options={},**kw):
         """2D plotting of data.
 
-        Type plot(x) to run the graphics program PyPLAUT for the graphical
+        Type FUNC(x) to run the graphics program PyPLAUT for the graphical
         inspection of bifurcation diagram or solution data in x.
 
-        Type plot('xxx') to run the graphics program PyPLAUT for the graphical
+        Type FUNC('xxx') to run the graphics program PyPLAUT for the graphical
         inspection of the data-files b.xxx and s.xxx.
 
-        Type plot() to run the graphics program for the graphical
+        Type FUNC() to run the graphics program for the graphical
         inspection of the output-files 'fort.7' and 'fort.8'.
 
         The return value will be the handle for the graphics window.
@@ -1732,7 +1759,7 @@ except:
         load the Tkinter module.
         """
         info("2D plotting has been disabled\n")
-commandPlotter = command(plot,SIMPLE,"plot")
+commandPlotter = command(plot,SIMPLE,"plot",alias=['pl','p2'])
 
 
 ##################################################
@@ -1745,11 +1772,20 @@ def autohelp(command_string=""):
     parser = AUTOutil.getAUTORC("AUTO_command_aliases")
     for option in parser.options("AUTO_command_aliases"):
         _aliases[option] = parser.get("AUTO_command_aliases",option)
-
+    import AUTOCommands
+    if _aliases == {}:
+        # Now we copy the commands from the module
+        for key in AUTOCommands.__dict__:
+            cmd = getattr(AUTOCommands,key)
+            # Check to see if it is a command
+            if hasattr(cmd,"fun") and cmd.alias is not None:
+                _aliases[cmd.fun.__name__] = key
+                for alias in cmd.alias:
+                    _aliases[alias] = key
+        
     command_list = []
 
     # Here we get a list of the names of all of the commands in AUTOCommands
-    import AUTOCommands
     for key in AUTOCommands.__dict__:
         if key in _aliases.values():
             command_list.append(key)
@@ -1771,7 +1807,7 @@ def autohelp(command_string=""):
         #   "aliases"  a list of the aliases of the command
         #   "description" a one line description of the command
         command_list.sort()
-        outputString += " ALIASES    DESCRIPTION\n"
+        outputString += " ALIASES                  DESCRIPTION\n"
         for cmd in command_list:
             return_value[cmd] = {}
             return_value[cmd]["aliases"] = []
@@ -1781,7 +1817,7 @@ def autohelp(command_string=""):
                     aliases = aliases + key + " "
                     return_value[cmd]["aliases"].append(key)
             doc = getattr(AUTOCommands,cmd).__doc__
-            if not(doc is None):
+            if doc is not None:
                 outputString += " %-25s"%aliases
                 doc = doc.splitlines()
                 return_value[cmd]["description"] = doc[0]
@@ -1820,6 +1856,7 @@ def autohelp(command_string=""):
         except:
             doc = getattr(AUTOCommands,_aliases[command_string]).__doc__
             return_value["name"] = _aliases[command_string]
+        doc = doc.replace("FUNC",command_string)
         return_value["short description"] = doc.splitlines()[0]
         return_value["long description"]  = "\n".join(doc.split("\n")[1:])
         # Get rid of the LaTeX stuff from the string that gets returned, but
@@ -1851,8 +1888,8 @@ commandHelp = command(autohelp)
 def man(command_string=""):
     """Get help on the AUTO commands.
     
-    Type 'man' to list all commands with a online help.
-    Type 'man xxx' to get help for command 'xxx'.
+    Type 'FUNC' to list all commands with a online help.
+    Type 'FUNC xxx' to get help for command 'xxx'.
     """
     autohelp(command_string)
 commandInteractiveHelp = command(man)
@@ -1871,7 +1908,7 @@ commandPrintFunc = command(printFunc)
 def gui(type="simple"):
     """Show AUTOs graphical user interface.
 
-    Type gui() to start AUTOs graphical user interface.
+    Type FUNC() to start AUTOs graphical user interface.
     
     NOTE: This command is not implemented yet.
     """
@@ -1905,7 +1942,7 @@ commandCreateGUI = command(gui)
 def splabs(s,typename,templates=None):
     """Return special labels
 
-    Type splabs('xxx',typename) to get a list of labels with the specified
+    Type FUNC('xxx',typename) to get a list of labels with the specified
     typename, where typename can be one of
     'EP', 'MX', 'BP', 'LP', 'UZ', 'HB', 'PD', 'TR', or 'RG'.
     This is equivalent to the command
@@ -1914,7 +1951,7 @@ def splabs(s,typename,templates=None):
     load('xxx')(typename).getLabels()
     returns the list of labels.
 
-    Or use splabs(s,typename) where s is a parsed solution from sl().
+    Or use FUNC(s,typename) where s is a parsed solution from sl().
     This is equivalent to the command
     s(typename).getLabels()
     """
@@ -1924,6 +1961,7 @@ def splabs(s,typename,templates=None):
             labels.append(solution['Label'])
     return labels
 commandSpecialPointLabels = command(splabs)
+
 
 ############################################
 #  Testing stuff
