@@ -25,7 +25,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         
         root=Tkinter.Tk()
         root.withdraw()
-        self.handle = windowPlotter.WindowPlotter2D(root,{})
+        self.handle = windowPlotter.WindowPlotter2D(root)
         self.handle.protocol("WM_DELETE_WINDOW", self.destroy)
         self.orig_destroy = self.handle.destroy
         self.handle.destroy = self.destroy
@@ -56,7 +56,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 dict["d"+str(i)] = (di,None)
         if "default_option" not in config:
             dict["default_option"] = ("d1",None)
-        self.handle.grapher.addOptions(dict)
+        self.handle.grapher.addOptions(**dict)
 
         try:
             b = parseB.parseBR(b)
@@ -82,7 +82,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             config = self.handle.config(key)
             if len(config) > 5 and config[5]:
                 del dict[key]
-        self.handle.config(dict)
+        self.handle.config(**dict)
         self.defaults = {}
         for key in ["xlabel", "ylabel", "top_title"]:
             self.defaults[key] = self.handle.config(key)[3]
@@ -181,7 +181,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 its = 1
         if "nu" in opts:
             its = 1
-            self.handle.config(self.defaults)
+            self.handle.config(**self.defaults)
             self.handle.grapher.addRCOptions(self.defaults)
             self.normal_usage()
             self.handle.config(use_symbols=0,use_labels=0,

@@ -1055,7 +1055,7 @@ def cd(dir=None,runner=None):
 commandCd = command(cd)
 
 
-def configure(runner=None,templates=None,cnf={},**kw):
+def configure(runner=None,templates=None,**kw):
     """Load files into the AUTO runner or return modified solution data.
 
     Type result=FUNC([options]) to modify the AUTO runner.
@@ -1082,7 +1082,7 @@ def configure(runner=None,templates=None,cnf={},**kw):
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
 
-    def applyRunnerConfigResolveAbbreviation(kw={}):
+    def applyRunnerConfigResolveAbbreviation(**kw):
         abbrev = {}
         for key in ["equation", "constants", "solution", "homcont"]:
             abbrev[key[0]] = key
@@ -1102,7 +1102,7 @@ def configure(runner=None,templates=None,cnf={},**kw):
                     kw[abbrev[key]] = value
         return kw
 
-    def applyRunnerConfigResolveFilenames(kw={}):
+    def applyRunnerConfigResolveFilenames(**kw):
         doneread = False
         wantread = False
         if "constants" in kw:
@@ -1147,32 +1147,31 @@ def configure(runner=None,templates=None,cnf={},**kw):
         return kw
 
     runner = withrunner(runner)
-    dict = AUTOutil.cnfmerge((cnf,kw))
-    if "info" in dict:
-        info = dict["info"]
-        del dict["info"]
+    if "info" in kw:
+        info = kw["info"]
+        del kw["info"]
     else:
         info = globals()["info"]
-    dict = applyRunnerConfigResolveAbbreviation(dict)
-    dict = applyRunnerConfigResolveFilenames(dict)
+    kw = applyRunnerConfigResolveAbbreviation(**kw)
+    kw = applyRunnerConfigResolveFilenames(**kw)
     if hasattr(runner,'load'):
-        data = runner.load(**dict)
+        data = runner.load(**kw)
     else:
-        runner.config(dict)
+        runner.config(**kw)
         options = runner.options
         if hasattr(options["solution"],'load'):
             data = options["solution"].load(**options)
         else:
-            if 't' in dict:
+            if 't' in kw:
                 options = options.copy()
-                options['t'] = dict['t']
+                options['t'] = kw['t']
             data = parseS.AUTOSolution(options["solution"],**options)
     info("Runner configured\n")
     return data
 commandRunnerConfig = command(configure,alias=None)
 
 
-def load(data=None,runner=None,templates=None,cnf={},**kw):
+def load(data=None,runner=None,templates=None,**kw):
     """Load files into the AUTO runner or return modified solution data.
 
     Type result=FUNC([options]) to modify the AUTO runner.
@@ -1235,11 +1234,11 @@ def load(data=None,runner=None,templates=None,cnf={},**kw):
         for key in ["equation", "constants", "solution", "homcont"]:
             if key not in kw:
                 kw[key] = data
-    return configure(runner,templates,AUTOutil.cnfmerge((kw,cnf)))
+    return configure(runner,templates,**kw)
 commandRunnerLoadName = command(load,SIMPLE,"loadname",alias=['ld'])
 
 
-def loadbd(name=None,templates=None,cnf={},**kw):
+def loadbd(name=None,templates=None,**kw):
     """Load bifurcation diagram files.
 
     Type b=FUNC([options]) to load output files or output data.
@@ -1259,7 +1258,7 @@ def loadbd(name=None,templates=None,cnf={},**kw):
 
     Returns a bifurcation diagram object representing the files in b.
     """
-    def __applyBsdConfigResolveAbbreviation(kw={}):
+    def __applyBsdConfigResolveAbbreviation(**kw):
         abbrev = {}
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
             abbrev[key[0]] = key
@@ -1283,8 +1282,7 @@ def loadbd(name=None,templates=None,cnf={},**kw):
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
             if key not in kw:
                 kw[key] = name
-    dict = AUTOutil.cnfmerge((cnf,kw))
-    dict = __applyBsdConfigResolveAbbreviation(dict)
+    dict = __applyBsdConfigResolveAbbreviation(**kw)
     bname = dict.get("bifurcationDiagram")
     sname = dict.get("solution")
     dname = dict.get("diagnostics")
@@ -1415,7 +1413,6 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     s.all, and d.all.
     """
     if sv is not None:
-        kw = kw.copy()
         kw['sv'] = sv
     if runner is None:
         if isinstance(data, (runAUTO.runAUTO, bifDiag.bifDiag)):
@@ -1425,7 +1422,8 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
             kw["s"] = data
             data = None
     origrunner = runner
-    runner = load(data,runner,templates,kw,info=lambda msg:None)
+    kw["info"] = lambda msg:None
+    runner = load(data,runner,templates,**kw)
     sv = (runner.options.get("constants") or {}).get("sv")
     if sv == '':
         sv = None
@@ -1651,7 +1649,7 @@ try:
     #  Plotting commands
     #####################################################
 
-    def plot(name=None,templates=None,options={},**kw):
+    def plot(name=None,templates=None,**kw):
         """2D plotting of data.
 
         Type FUNC(x) to run the graphics program PyPLAUT for the graphical
@@ -1666,7 +1664,7 @@ try:
         The return value will be the handle for the graphics window.
         """
 
-        options = AUTOutil.cnfmerge((options,kw))
+        options = kw
         if type(name) == type("") or name is None:
             name = filenameTemplate(name,templates)
             parsed = None
@@ -1734,8 +1732,8 @@ try:
                 n1b = bifDiag.bifDiag(b,s)
             options["grapher_bifurcation_diagram"] = n1b
             options["grapher_solution"] = n1b()
-        handle = windowPlotter.WindowPlotter2D(root,options,
-                      grapher_width=600,grapher_height=480)
+        options.update({'grapher_width':600,'grapher_height':480})
+        handle = windowPlotter.WindowPlotter2D(root,**options)
         handle.update()
         try:
             def plotterquit():
@@ -1751,7 +1749,7 @@ except:
     print("Could not import plotting modules, plotting will be disabled.")
     print("This is probably because Tkinter is not enabled in your Python installation.")
     print("-------------------------------------------------------------\n")
-    def plot(name=None,templates=None,options={},**kw):
+    def plot(name=None,templates=None,**kw):
         """2D plotting of data.
 
         Plotting of data has been disabled in the AUTO-07P CLUI.

@@ -68,34 +68,6 @@ N = array
 #
 # Copyright (c) 2001-2004 Twisted Matrix Laboratories
 
-# Two routines taken from Tkinter.py for merging dictionaries
-def _flatten(seq):
-    res = ()
-    for item in seq:
-        if isinstance(item, (tuple, list)):
-            res = res + _flatten(item)
-        elif item is not None:
-            res = res + (item,)
-    return res
-
-def cnfmerge(cnfs):
-    if isinstance(cnfs, dict):
-        return cnfs
-    elif isinstance(cnfs, (type(None), str)):
-        return cnfs
-    else:
-        cnf = {}
-        for c in _flatten(cnfs):
-            try:
-                cnf.update(c)
-            except (AttributeError, TypeError):
-                msg = sys.exc_info()[1]
-                print("_cnfmerge: fallback due to: %s"%msg)
-                for k, v in c.items():
-                    cnf[k] = v
-        return cnf
-
-
 def findBaseClass(inputClass,baseClass):
     try:
         for base in inputClass.__bases__:
@@ -281,14 +253,10 @@ def ravel(a):
 ArrayType = N.ArrayType
 
 def test():
-    a={}
-    b={}
-    a["one"]   = "blue"
-    a["two"]   = "green"
-    b["two"]   = "cyan"
-    b["three"] = "red"
-    b["four"]  = "yellow"
-    print(cnfmerge((a,b)))
+    a=array([1,2,3])
+    b=array(a)
+    b[0] = 4
+    print(a,b)
 
 if __name__ == "__main__":
     test()

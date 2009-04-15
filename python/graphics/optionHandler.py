@@ -21,71 +21,61 @@ class OptionHandler:
     def __parseOptions(self,dict):
         for key in list(dict):
             newkey = self.__applyOptionAliases(key)
-            if newkey in self.__options.keys():
+            if newkey in self.__options:
                 if self.__options[newkey] != dict[key]:
                     self.__options[newkey] = dict[key]
-                    if not(self.__optionCallbacks[newkey] is None):
-                        self.__optionCallbacks[newkey](key,dict[key],self.__options)
+                    newcb = self.__optionCallbacks[newkey]
+                    if newcb is not None:
+                        newcb(key,dict[key],self.__options)
                 del dict[key]
                     
                 
     # Options are of the form data=(default_value,callback=None)
-    def addOptions(self,dict,**kw):
-        dict = AUTOutil.cnfmerge((dict,kw))
-        for key in dict.keys():
-            self.__optionDefaults[key] = dict[key][0]
-            self.__options[key] = dict[key][0]
-            self.__optionCallbacks[key] = dict[key][1]
+    def addOptions(self,**kw):
+        for key in kw:
+            self.__optionDefaults[key] = kw[key][0]
+            self.__options[key] = kw[key][0]
+            self.__optionCallbacks[key] = kw[key][1]
             self.__optionRC[key] = 0
 
-    def addRCOptions(self,dict,**kw):
-        dict = AUTOutil.cnfmerge((dict,kw))
-        for key in dict.keys():
-            self.__optionDefaults[key] = dict[key]
-            self.__options[key] = dict[key]
+    def addRCOptions(self,**kw):
+        self.__optionDefaults.update(kw)
+        self.__options.update(kw)
+        for key in kw:
             self.__optionRC[key] = 1
 
     # Aliases are of the form fg=foreground
-    def addAliases(self,dict,**kw):
-        dict = AUTOutil.cnfmerge((dict,kw))
-        for key in dict.keys():
-            self.__optionAliases[key] = dict[key]
+    def addAliases(self,**kw):
+        self.__optionAliases.update(kw)
 
     def _isInternalOption(self,key):
-        key = self.__applyOptionAliases(key)
-        if key in self.__options:
-            return 1
-        else:
-            return 0
+        return self.__applyOptionAliases(key) in self.__options
 
     def config(self,cnf=None,**kw):
-        if cnf is None and len(kw)==0:
+        if cnf is None and not kw:
             dict={}
-            for key in self.__optionAliases.keys():
+            for key in self.__optionAliases:
                 dict[key] = [key,self.__optionAliases[key]]
-            for key in self.__options.keys():
+            for key in self.__options:
                 dict[key] = OptionHandler.config(self,key)
-            if self.__baseClass is None:
-                return dict
-            else:
-                return AUTOutil.cnfmerge((dict,self.__baseClass.config(self)))
-        elif isinstance(cnf, str):
+            if self.__baseClass is not None:
+                dict.update(self.__baseClass.config(self))
+            return dict
+        if isinstance(cnf, str):
             cnf = self.__applyOptionAliases(cnf)
             if cnf in self.__options:
                 return (cnf,cnf,cnf,
                         self.__optionDefaults[cnf],
                         self.__options[cnf],
                         self.__optionRC[cnf])
-            else:
-                if self.__baseClass is None:
-                    raise AUTOExceptions.AUTORuntimeError("Option %s not found"%cnf)
-                else:
-                    return self.__baseClass.config(self,cnf)
-        else:
-            dict = AUTOutil.cnfmerge((cnf,kw))
-            self.__parseOptions(dict)
-            if not(self.__baseClass is None):
-                self.__baseClass.config(self,dict)
+            if self.__baseClass is None:
+                raise AUTOExceptions.AUTORuntimeError("Option %s not found"%cnf)
+            return self.__baseClass.config(self,cnf)
+        dct = (cnf or {}).copy()
+        dct.update(kw)
+        self.__parseOptions(dct)
+        if self.__baseClass is not None:
+            self.__baseClass.config(self,**dct)
         
     configure = config
     def cget(self,key):
@@ -106,18 +96,3 @@ class OptionHandler:
         for key in options.keys():
             dict[key] = self.cget(key)
         return dict
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-

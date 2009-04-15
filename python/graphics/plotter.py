@@ -11,7 +11,7 @@ import AUTOutil
 import os
 
 class plotter(grapher.GUIGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
+    def __init__(self,parent=None,**kw):
 
         optionDefaults = {}
         # The kind of diagram (single solution vs. bifur diagram)
@@ -62,13 +62,12 @@ class plotter(grapher.GUIGrapher):
             optionDefaultsRC[option] = v
 
         self.__needsPlot = None
-        grapher.GUIGrapher.__init__(self,parent,optionDefaultsRC)
+        grapher.GUIGrapher.__init__(self,parent,**optionDefaultsRC)
 
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        self.addOptions(optionDefaults)
-        self.addRCOptions(optionDefaultsRC)
-        plotter._configNoDraw(self,optionDefaultsRC)
-        plotter._configNoDraw(self,dict)
+        self.addOptions(**optionDefaults)
+        self.addRCOptions(**optionDefaultsRC)
+        plotter._configNoDraw(self,**optionDefaultsRC)
+        plotter._configNoDraw(self,**kw)
         self._plotNoDraw()
         self.__needsPlot = None
         self.computeXRange()
@@ -76,10 +75,9 @@ class plotter(grapher.GUIGrapher):
         grapher.GUIGrapher.plot(self)
 
     def config(self,cnf=None,**kw):
-        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
-            return self._configNoDraw(cnf)
-        else:
-            self._configNoDraw(AUTOutil.cnfmerge((cnf,kw)))
+        rval = self._configNoDraw(cnf,**kw)
+        if isinstance(cnf, str) or (cnf is None and not kw):
+            return rval
         if self.__needsPlot:
             self._plotNoDraw()
             self.__needsPlot = None
@@ -95,10 +93,7 @@ class plotter(grapher.GUIGrapher):
     configure=config
 
     def _configNoDraw(self,cnf=None,**kw):
-        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
-            return grapher.GUIGrapher._configNoDraw(self,cnf)
-        else:
-            grapher.GUIGrapher._configNoDraw(self,AUTOutil.cnfmerge((cnf,kw)))
+        return grapher.GUIGrapher._configNoDraw(self,cnf,**kw)
     _configureNoDraw = _configNoDraw
 
     def __optionCallback(self,key,value,options):

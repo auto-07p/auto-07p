@@ -19,7 +19,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
     A simple graphing widget
     By Randy P."""
-    def __init__(self,parent=None,callback=None,cnf={},**kw):
+    def __init__(self,parent=None,callback=None,**kw):
         self.data = []
         #Get the data from the arguments and then erase the
         #ones which are not used by canvas
@@ -67,34 +67,29 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         Tkinter.Canvas.__init__(self,parent)
         optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
 
-        dct = AUTOutil.cnfmerge((cnf,kw))
-        for key in list(dct):
+        for key in list(kw):
             if key not in optionDefaults:
-                del dct[key]
-        self.addOptions(optionDefaults)
-        self.addAliases(optionAliases)
-        BasicGrapher._configNoDraw(self,dct)
+                del kw[key]
+        self.addOptions(**optionDefaults)
+        self.addAliases(**optionAliases)
+        BasicGrapher._configNoDraw(self,**kw)
 
     def __len__(self):
         return len(self.data)
 
     def config(self,cnf=None,**kw):
-        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
-            return self._configNoDraw(cnf)
-        else:
-            self._configNoDraw(AUTOutil.cnfmerge((cnf,kw)))
-            self.clear()
-            self.draw()
+        rval = self._configNoDraw(cnf,**kw)
+        if isinstance(cnf, str) or (cnf is None and not kw):
+            return rval
+        self.clear()
+        self.draw()
     configure=config
 
     # This version can be used to increase efficiency
     # for example, if you want to config, but know you
     # will need to redraw later.
     def _configNoDraw(self,cnf=None,**kw):
-        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
-            return optionHandler.OptionHandler.config(self,cnf)
-        else:
-            optionHandler.OptionHandler.config(self,AUTOutil.cnfmerge((cnf,kw)))
+        return optionHandler.OptionHandler.config(self,cnf,**kw)
     _configureNoDraw = _configNoDraw
 
     def getData(self,i,j):
@@ -457,8 +452,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 maxy - (maxy-miny)*float(y)/(float(self.cget("realheight"))-(self.cget("bottom_margin")+self.cget("top_margin")))]
 
 class LabeledGrapher(BasicGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         self.labels=[]
         BasicGrapher.__init__(self,parent,**kw)
 
@@ -741,8 +735,7 @@ class LabeledGrapher(BasicGrapher):
 
 # FIXME:  No regression tester
 class InteractiveGrapher(LabeledGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         LabeledGrapher.__init__(self,parent,**kw)    
 
     def unzoom(self):
@@ -822,8 +815,7 @@ class InteractiveGrapher(LabeledGrapher):
         self.draw()
 
 class GUIGrapher(InteractiveGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         InteractiveGrapher.__init__(self,parent,**kw)
         self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()
@@ -932,8 +924,8 @@ def test(grapher):
 
     grapher.addArray((data,map(math.sin,data)))
     grapher.addArray((data,map(math.cos,data)))
-    grapher.addLabel(0,10,"hello")
-    grapher.addLabel(0,30,"world")
+    grapher.addLabel(0,[data[10],math.sin(data[10])],"hello")
+    grapher.addLabel(0,[data[30],math.sin(data[30])],"world")
     grapher.pack()
     grapher.plot()
 

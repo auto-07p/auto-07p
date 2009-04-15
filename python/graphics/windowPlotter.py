@@ -10,9 +10,9 @@ from graphics import plotter
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
-    def __init__(self,grapherClass,parent=None,cnf={},**kw):
+    def __init__(self,grapherClass,parent=None,**kw):
         optiondefs = []
-        self.defineoptions(AUTOutil.cnfmerge((cnf,kw)),optiondefs)
+        self.defineoptions(kw,optiondefs)
         Pmw.MegaToplevel.__init__(self, parent)
 
         interior = self.interior()
@@ -204,12 +204,13 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.labelEntry.setvalue("bifurcation")
 
     def config(self,cnf=None,**kw):
-        if isinstance(cnf, str) or (cnf is None and len(kw) == 0):
-            return self.grapher.config(cnf)
-        dict = AUTOutil.cnfmerge((cnf,kw))
-        self.grapher.config(dict)
+        rval = self.grapher.config(cnf,**kw)
+        if isinstance(cnf, str) or (cnf is None and not kw):
+            return rval
         self.checktype()
-        for key,value in dict.items():
+        dct = (cnf or {}).copy()
+        dct.update(kw)
+        for key,value in dct.items():
             if key == "type":
                 self.labelEntry.setvalue(value)
             if key in ["type","label","label_defaults",
@@ -242,8 +243,8 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.destroy()
 
 class WindowPlotter2D(WindowPlotter):
-    def __init__(self,parent=None,cnf={},**kw):
-        WindowPlotter.__init__(self,plotter.plotter,parent,AUTOutil.cnfmerge((cnf,kw)))
+    def __init__(self,parent=None,**kw):
+        WindowPlotter.__init__(self,plotter.plotter,parent,**kw)
 
     def _extraButtons(self,box):
         self.xEntry = self.createcomponent('xEntry',
@@ -280,7 +281,7 @@ class WindowPlotter2D(WindowPlotter):
                               obj=self,oa=oy:obj._modifyOption(oa,entry))
 
         lst = []
-        if not(self.grapher.cget(ocd) is None):
+        if self.grapher.cget(ocd) is not None:
             for x in self.grapher.cget(ocd):
                 lst.append(str(x))
         sol = self.grapher.cget(o)

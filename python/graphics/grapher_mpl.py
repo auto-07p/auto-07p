@@ -66,7 +66,7 @@ class BasicGrapher(grapher.BasicGrapher):
 
     A simple graphing widget
     By Randy P. and Bart O."""
-    def __init__(self,parent=None,cnf={},**kw):
+    def __init__(self,parent=None,**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
         self.ax.set_autoscale_on(0)
         self.canvas = FigureCanvasTkAggRedraw(self,parent)
@@ -80,7 +80,7 @@ class BasicGrapher(grapher.BasicGrapher):
         self.redrawlabels = 0
 
         callback = self.__optionCallback
-        grapher.BasicGrapher.__init__(self,parent,callback,cnf,**kw)
+        grapher.BasicGrapher.__init__(self,parent,callback,**kw)
         optionDefaults={}
         optionDefaults["xticks"] = (None,callback)
         optionDefaults["yticks"] = (None,callback)
@@ -90,8 +90,8 @@ class BasicGrapher(grapher.BasicGrapher):
         optionAliases = {}
         optionAliases["bg"] = "background"
 
-        self.addOptions(optionDefaults)
-        self.addAliases(optionAliases)
+        self.addOptions(**optionDefaults)
+        self.addAliases(**optionAliases)
 
         for key in ["grid","decorations","xlabel","ylabel","minx","maxx",
                     "miny","maxy"]:
@@ -131,9 +131,7 @@ class BasicGrapher(grapher.BasicGrapher):
                 self.ax.grid(color = self.cget("foreground"))
             else:
                 self.ax.grid(False)
-        elif key == "width":
-            self.canvas.get_tk_widget()[key] = value
-        elif key == "height":
+        elif key in ["width", "height"]:
             self.canvas.get_tk_widget()[key] = value
         elif key == "top_title":
             fontsize = self.cget("top_title_fontsize")
@@ -261,8 +259,7 @@ class BasicGrapher(grapher.BasicGrapher):
         return self.cget(key)
 
 class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         self.labels=[]
         BasicGrapher.__init__(self,parent,**kw)
 
@@ -415,13 +412,11 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
 
 # FIXME:  No regression tester
 class InteractiveGrapher(LabeledGrapher,grapher.InteractiveGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         LabeledGrapher.__init__(self,parent,**kw)
 
 class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
-    def __init__(self,parent=None,cnf={},**kw):
-        kw=AUTOutil.cnfmerge((cnf,kw))
+    def __init__(self,parent=None,**kw):
         InteractiveGrapher.__init__(self,parent,**kw)
         #self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()

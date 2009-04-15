@@ -53,7 +53,7 @@ signals = {
 }
 
 class runAUTO:
-    def __init__(self,cnf={},**kw):
+    def __init__(self,cnf=None,**kw):
         if isinstance(cnf,self.__class__):
             for k,v in cnf.__dict__.items():
                 self.__dict__[k] = v
@@ -71,7 +71,7 @@ class runAUTO:
                             self.options["homcont"])
                     except IOError:
                         pass
-                self.config(kw)
+                self.config(**kw)
             return
 
         # Set the signal handler
@@ -99,7 +99,6 @@ class runAUTO:
         self.options["homcont"] = None
 
         self.__parseOptions(kw)
-        self.__parseOptions(cnf)
             
     def __getattr__(self,attr):
         if self.options is not None:
@@ -300,10 +299,9 @@ class runAUTO:
         self.__printErr("===%s end===\n"%(d,))
         return data
 
-    def config(self,cnf={},**kw):
+    def config(self,**kw):
         """     Change the options for this runner object"""
         self.__parseOptions(kw)
-        self.__parseOptions(cnf)
 
     def __setup(self):
         """     This function sets up self.options["dir"] by creating
@@ -427,7 +425,7 @@ class runAUTO:
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        self.config(kw)
+        self.config(**kw)
         log,err,data = self.runMakefileWithSetup()
         if self.options["err"] is None:
             # log was already written if the runner is verbose
