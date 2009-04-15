@@ -680,7 +680,11 @@ class AUTOBranch(Points.Pointset):
         if prevline:
             line = prevline
         else:
-            line = next(inputfile)
+            try:
+                line = next(inputfile)
+            except StopIteration:
+                self.labels = None
+                return
         headerlist = []
         columns = split(line,None,2)
         if columns[0] == '0':
@@ -1025,6 +1029,12 @@ class parseBR(UserList,AUTOBranch):
             slist.append(branch.__str__())
         return "\n".join(slist)+"\n"
 
+    def __repr__(self):
+        slist = []
+        for branch in self.data:
+            slist.append(branch.__repr__())
+        return "\n".join(slist)+"\n"
+
     def read(self,inputfile):
         # We now go through the file and read the branches.
         prevline = None
@@ -1033,6 +1043,8 @@ class parseBR(UserList,AUTOBranch):
         inputfile = iter(inputfile) # for Python 2.2
         while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)
+            if branch.labels is None:
+                break
             prevline = branch._lastline
             coordnames = branch.coordnames
             self.data.append(branch)
@@ -1063,7 +1075,7 @@ class parseB(AUTOBranch):
     def __len__(self):
         l = 0
         for d in self.branches:
-            l = l + len(d)
+            l += len(d)
         return l
     def getLabel(self,label):
         if isinstance(label, (int, str)):
@@ -1075,6 +1087,8 @@ class parseB(AUTOBranch):
         self.branches.read(inputfile)
         if len(self.branches) > 0:
             self.coordnames = self.branches[0].coordnames
+    def __repr__(self):
+        return self.branches.__repr__()
 
 def AUTOatof(input_string):
     #Sometimes AUTO messes up the output.  I.e. it gives an

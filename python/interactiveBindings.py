@@ -283,11 +283,12 @@ def _testFilename(inputname,outputname):
     cmd = ["diff","--ignore-matching-lines='gfortran.*'",
            "--ignore-matching-lines='.*Total Time.*'","log",outputname]
     if 'subprocess' in locals():
-        pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE).stdout
-        status = pipe.close()
+        for i in range(len(cmd)):
+            cmd[i] = cmd[i].replace("'","")
+        status = subprocess.call(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
     else:
-        status, output = commands.getstatusoutput(" ".join(cmd))
+        status = commands.getstatusoutput(" ".join(cmd))[0]
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")

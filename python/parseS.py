@@ -175,7 +175,7 @@ class parseS(list):
     def deleteLabel(self,label=None,keep=0):
         if label == None:
             label=['BP','LP','HB','PD','TR','EP','MX']
-        if not isinstance(label, list):
+        if isinstance(label, (str, int)):
             label = [label]
         indices = []
         for i in range(len(self)):
@@ -242,7 +242,7 @@ class parseS(list):
                     if i == number:
                         return d
             raise KeyError("Label %s not found"%label)
-        if not isinstance(label, list):
+        if isinstance(label, (str, int)):
             label = [label]        
         data = []
         counts = [0]*len(label)
@@ -431,7 +431,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self.options["constants"] = parseC.parseC(self.options["constants"])
             self.__start_of_header = None
             self.__start_of_data   = None
-            self.__end              = None
+            self.__end             = None
             self.__fullyParsed     = False
             self._dims            = None
             self._mbr             = 0
@@ -618,7 +618,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         if (type(key) == type("") and key not in self.coordnames and
             key != self.indepvarname and key not in self.__parnames):
             shortkey = self.long_data_keys.get(key,key)
-            if shortkey in big_data_keys and not(self.__fullyParsed):
+            if shortkey in big_data_keys and not self.__fullyParsed:
                 self.__readAll()
             if shortkey in self.data_keys:
                 if shortkey == "TY":
@@ -629,7 +629,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 return self.PAR
             if shortkey == "data":
                 return self
-        if not(self.__fullyParsed):
+        if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
         if isinstance(key, str):
             try:
@@ -640,6 +640,11 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         if not isinstance(key, int):
             return ret
         return SLPoint(ret, self, key)
+
+    def __call__(self, p=None, coords=None):
+        if not p:
+            return(str(self))
+        return Points.Pointset.__call__(self, p, coords)
 
     def __copy__(self):
         return self.__class__(self)
@@ -678,7 +683,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         """
         c = self.options.copy()
         c.update(kw)
-        c["IRS"] = self["LAB"]
+        if self["LAB"] != 0:
+            c["IRS"] = self["LAB"]
         return runAUTO.runAUTO.run(self,**c)
 
     def readAllFilename(self,filename):
@@ -932,6 +938,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         c = self.options["constants"]
         if attr == "c" and c is not None:
             return c
+        if self.__start_of_header is None:
+            raise AUTOExceptions.AUTORuntimeError("Solution without data.")
         if self.__fullyParsed:
             raise AttributeError
         self.__readAll()
@@ -988,7 +996,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         # If the file isn't already parsed, and we happen to know the position of
         # the end of the solution we can just copy from the raw data from the
         # input file into the output file.
-        if not(self.__fullyParsed) and not(self.__end is None):
+        if not self.__fullyParsed and self.__end is not None:
             output.write(self.__data)
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.

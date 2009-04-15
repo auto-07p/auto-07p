@@ -98,7 +98,7 @@ class runAUTO:
         self.options["solution"] = None
         self.options["homcont"] = None
 
-        self.__parseOptions(kw)
+        self.config(**kw)
             
     def __getattr__(self,attr):
         if self.options is not None:
@@ -113,18 +113,14 @@ class runAUTO:
         else:
             self.__dict__[attr] = item
 
-    def __parseOptions(self,dict):
+    def config(self,**kw):
+        """     Change the options for this runner object"""
         # first the normal parameters, then IRS=... style parameters
-        for key in dict.keys():
-            if (key == "constants" and dict[key] is not None and
-                self.options.get(key) is not None):
-                c = self.options[key]
-                for k, v in dict[key].items():
-                    if v is not None:
-                        c[k] = v
-            elif key in self.options:
-                self.options[key] = dict[key]
-        for key,value in dict.items():
+        for key in kw:
+            if key in self.options:
+                self.options[key] = kw[key]
+        for key in kw:
+            value = kw[key]
             if (key in self.options or key in ['t','LAB','PT','BR','TY']
                 or key[:7] == 'Active '):
                 continue
@@ -298,10 +294,6 @@ class runAUTO:
 
         self.__printErr("===%s end===\n"%(d,))
         return data
-
-    def config(self,**kw):
-        """     Change the options for this runner object"""
-        self.__parseOptions(kw)
 
     def __setup(self):
         """     This function sets up self.options["dir"] by creating
