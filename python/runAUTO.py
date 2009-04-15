@@ -584,6 +584,7 @@ class runAUTO:
 
     def __runCommand_noredir(self,command=None):
         args = os.path.expandvars(command).split()
+        self.options["verbose_print"].flush()
         if "subprocess" in sys.modules:
             return subprocess.call(args)
         elif hasattr(os,"spawnlp"):
