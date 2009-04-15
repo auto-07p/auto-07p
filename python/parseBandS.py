@@ -21,13 +21,13 @@ import parseS
 import parseD
 import AUTOExceptions
 
-class parseBandS(parseS.parseS):
+class parseBandS:
     def __init__(self,fort7_filename=None,fort8_filename=None,fort9_filename=None):
         self.diagnostics = None
         if isinstance(fort7_filename, list):
             self.diagram = None
             self.solution = parseS.parseS(fort7_filename)
-        elif (fort8_filename is None) and not(fort7_filename is None):
+        elif fort8_filename is None and fort7_filename is not None:
             raise AUTOExceptions.AUTORuntimeError("Must set both both filenames")
         elif isinstance(fort7_filename, str) or fort7_filename is None:
             self.diagram = parseB.parseB(fort7_filename)
@@ -134,6 +134,9 @@ class parseBandS(parseS.parseS):
         self.diagram.uniquelyLabel()
         self.solution.uniquelyLabel()
 
+    def getLabels(self):
+        return self.diagram.getLabels()
+
 def pointtest7(a,b):
     if "TY name" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY name label")
@@ -211,19 +214,3 @@ def test():
 
 if __name__ == '__main__' :
     test()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,13 +1,19 @@
 #! /usr/bin/env python
+import AUTOExceptions
 
 modules = ["parseB", "parseS", "parseBandS", "parseC", "parseH",
            "AUTOclui", "interactiveBindings", "AUTOCommands",
            "parseD", "bifDiag"] #runDemo,runAUTO
 
+regressions = []
 for module in modules:
     print("-----------------------")
     print("Testing Module:  %s\n"%module)
-    exec "import %s"%(module,)
-    exec "%s.test()"%(module,)
+    mod = __import__(module)
     
-
+    try:
+        mod.test()
+    except AUTOExceptions.AUTORegressionError:
+        regressions.append(module)
+if regressions:
+    print("Found regressions in: %s"%", ".join(regressions))
