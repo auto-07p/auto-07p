@@ -130,11 +130,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
     INTEGER i,j,jj,kk,l,ipiv,jpiv
-    DOUBLE PRECISION p,piv,rm,sm,tmp,eps,smlnum,smin
-    DOUBLE PRECISION, EXTERNAL :: DLAMCH
-
-    eps = DLAMCH( 'P' ) ! 2.2d-16
-    smlnum = DLAMCH( 'S' ) / eps ! 1d-292
+    DOUBLE PRECISION p,piv,rm,sm,tmp,amax
 
     DO i=1,n
        ic(i)=i
@@ -158,13 +154,15 @@ CONTAINS
        ENDDO
        IF(JJ==1)THEN
           ! now piv is ||A||_max
-          smin = MAX( eps*piv, smlnum )
+          amax = piv
        ENDIF
-       IF(piv.LT.smin)THEN
-          WRITE(9,"(8x,A,I3,A,E10.3,A/A)") &
-               ' NOTE:Pivot ',jj,' < eps*||A||_max=',smin,' in NLVC : ',&
+       IF(piv<=amax/HUGE(piv))THEN
+          WRITE(9,"(8x,A,I3,A,ES11.4E3,A,ES11.4E3,A,ES11.4E3,A/A)") &
+               ' NOTE:Pivot ',jj,' = ',piv,' <= ||A||_max/',HUGE(piv),' = ', &
+               amax/HUGE(piv),' in NLVC : ',&
                '        A null space may be multi-dimensional'
-          piv = smin
+          ! to avoid overflow in most cases
+          piv = MAX(amax/HUGE(piv),TINY(piv))
           A(ipiv,ic(jpiv)) = piv
        ENDIF
 
@@ -307,11 +305,8 @@ CONTAINS
     LOGICAL, INTENT(IN) :: SCALE
 
     INTEGER I,J,K,L,JJ,IRH,IPIV,JPIV
-    DOUBLE PRECISION P,PIV,AP,RM,SM,eps,smlnum,smin
+    DOUBLE PRECISION P,PIV,AP,RM,SM,amax
     DOUBLE PRECISION, EXTERNAL :: DLAMCH
-
-    eps = DLAMCH( 'P' ) ! 2.2d-16
-    smlnum = DLAMCH( 'S' ) / eps ! 1d-292
 
     DO I=1,N
        IC(I)=I
@@ -322,7 +317,7 @@ CONTAINS
 
     DET=1.d0
 
-    smin = MAX( EPS*A(1,1), SMLNUM )
+    amax = ABS(A(1,1))
     DO JJ=1,N-1
        IPIV=JJ
        JPIV=JJ
@@ -349,12 +344,14 @@ CONTAINS
 
        IF(JJ==1)THEN
           ! now PIV is ||A||_max
-          smin = MAX( eps*PIV, smlnum )
+          amax = PIV
        ENDIF
-       IF(PIV.LT.smin)THEN
-          WRITE(9,"(8x,A,I3,A,D10.3,A)")&
-               ' NOTE:Pivot ',JJ,' < eps*||A||_max=',smin,' in GE'
-          A(IR(IPIV),IC(JPIV)) = smin
+       IF(PIV<=amax/HUGE(PIV))THEN
+          WRITE(9,"(8x,A,I3,A,ES11.4E3,A,ES11.4E3,A,ES11.4E3,A)")&
+               ' NOTE:Pivot ',JJ,' = ',PIV,' <= ||A||_max/',HUGE(PIV),' = ', &
+               amax/HUGE(PIV),' in GE'
+          ! to avoid overflow in most cases
+          A(IR(IPIV),IC(JPIV)) = MAX(amax/HUGE(PIV),TINY(PIV))
        ENDIF
        K=IR(JJ)
        IR(JJ)=IR(IPIV)
@@ -377,10 +374,12 @@ CONTAINS
        ENDDO
     ENDDO
     AP=A(IR(N),IC(N))
-    IF(ABS(AP).LT.smin)THEN
-       WRITE(9,"(8x,A,I3,A,D10.3,A)")&
-            ' NOTE:Pivot ',N,' < eps*||A||_max=',smin,' in GE'
-       A(IR(N),IC(N)) = smin
+    IF(ABS(AP)<=amax/HUGE(AP))THEN
+       WRITE(9,"(8x,A,I3,A,ES11.4E3,A,ES11.4E3,A,ES11.4E3,A)")&
+            ' NOTE:Pivot ',N,' = ',ABS(AP),' <= ||A||_max/',HUGE(AP),' = ', &
+            amax/HUGE(AP),' in GE'
+       ! to avoid overflow in most cases
+       A(IR(N),IC(N)) = MAX(amax/HUGE(AP),TINY(AP))
     ENDIF
     IF(SCALE)THEN
        DET=DET*LOG10(10+ABS(AP)) * atan(AP)
