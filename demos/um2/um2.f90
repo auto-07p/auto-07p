@@ -15,14 +15,14 @@
 
       DOUBLE PRECISION eps, Period, x, y
 
-	eps    = PAR(2)
- 	Period = PAR(11)
+        eps    = PAR(2)
+        Period = PAR(11)
 
-	x = U(1)
-	y = U(2)
+        x = U(1)
+        y = U(2)
 
-	F(1) =  Period * ( eps * x - y**3 )
-	F(2) =  Period * (       y + x**3 )
+        F(1) =  Period * ( eps * x - y**3 )
+        F(2) =  Period * (       y + x**3 )
  
       END SUBROUTINE FUNC
 !---------------------------------------------------------------------- 
@@ -65,19 +65,19 @@
 
       DOUBLE PRECISION x0, y0, x1, y1, PI, theta, r0, r1
 
-	x0 = U0(1) 
-	y0 = U0(2)
-	x1 = U1(1) 
-	y1 = U1(2) 
+        x0 = U0(1) 
+        y0 = U0(2)
+        x1 = U1(1) 
+        y1 = U1(2) 
 
         PI = 4*ATAN(1.D0)
 
-	theta = PAR(1)
-	r0  = PAR(3)
-	r1  = PAR(4)
+        theta = PAR(1)
+        r0  = PAR(3)
+        r1  = PAR(4)
 
-       	FB(1) = x0 - r0 * COS( 2.0 * PI * theta) 
-	FB(2) = y0 - r0 * SIN( 2.0 * PI * theta) 
+        FB(1) = x0 - r0 * COS( 2.0 * PI * theta) 
+        FB(2) = y0 - r0 * SIN( 2.0 * PI * theta) 
         FB(3) = SQRT(x1**2 + y1**2) - r1 
 
       END SUBROUTINE BCND
