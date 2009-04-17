@@ -13,7 +13,7 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM), DFDU(NDIM,*), DFDP(NDIM,*)
 
       DOUBLE PRECISION E
-! 
+
        E=EXP(U(1)) 
        F(1)=U(2) 
        F(2)=-PAR(1)*E 

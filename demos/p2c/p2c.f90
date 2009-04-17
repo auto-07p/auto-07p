@@ -80,7 +80,7 @@
     CALL RHS(3,U(7),PAR,F(7),A,.FALSE.) 
 !     PAR(13) = connection interval     
     F(7:9) = PAR(13)*F(7:9)
-!
+
   END SUBROUTINE FUNC
 
   SUBROUTINE STPNT(NDIM,U,PAR,T) 
@@ -114,7 +114,7 @@
     PAR(12)=-1.0d0
 !     Initial connection time
     PAR(13)=0.0d0
-!
+
 !     Equilibrium coordinates
     PAR(14:16)=U(1:3)
 
@@ -134,23 +134,23 @@
     PAR(23)=-1d-4
 
   END SUBROUTINE STPNT
-!
-!
+
+
   SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC) 
 ! ---------- ---- 
-!
+
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NDIM, ICP(*), NBC, IJAC
     DOUBLE PRECISION, INTENT(IN) :: PAR(*), U0(NDIM), U1(NDIM)
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC), DBC(NBC,*)
 
     DOUBLE PRECISION X(3),R(3),A(3,3),V(3),H(3),epsilon,rlambda
-!
+
 !     Periodic boundary conditions
 !     ----------------------------
     FB(1:3) = U0(1:3) - U1(1:3)
     FB(4:6) = U1(4:6) - U0(4:6)
-!
+
 !     Eigenfunction normalisation
     FB(7) = DOT_PRODUCT(U0(4:6),U0(4:6)) - PAR(10)
     IF(NBC == 7)RETURN

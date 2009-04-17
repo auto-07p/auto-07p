@@ -16,183 +16,196 @@
 ! The AUTO-constant NDIM must be set equal to the value of NE*NN
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
-! 
+
       SUBROUTINE FF(NE,U,PAR,F) 
 !     ---------- -- 
 !     Define the nonlinear term
-!
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
-      DIMENSION U(NE),F(NE),PAR(*)
-! 
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NE
+      DOUBLE PRECISION, INTENT(IN) :: U(NE),PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NE)
+
+      DOUBLE PRECISION X,Y,A,B
+
         X=U(1)
         Y=U(2)
         A=PAR(1)
         B=PAR(2)
-!
+
         F(1)= X**2*Y - (B+1)*X + A
         F(2)=-X**2*Y + B*X
-! 
-      RETURN 
-      END 
-!
+
+      END SUBROUTINE FF
+
       SUBROUTINE SETDC(NE,DC,PAR) 
 !     ---------- ----- 
 !     Set the diffusion constants (constant, or in terms of PAR)
-!
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
-      DIMENSION DC(NE),PAR(*)
-! 
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NE
+      DOUBLE PRECISION, INTENT(OUT) :: DC(NE)
+      DOUBLE PRECISION, INTENT(IN) :: PAR(*)
+
         DC(1)=PAR(3)/PAR(5)**2
         DC(2)=PAR(4)/PAR(5)**2
-! 
-      RETURN 
-      END 
-!
+
+      END SUBROUTINE SETDC
+
       SUBROUTINE SETBC(NE,PAR,U0,U1) 
 !     ---------- ----- 
 ! Set the boundary values (to be kept fixed in time)
-!
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
-      DIMENSION PAR(*),U0(NE),U1(NE)
-!
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NE
+      DOUBLE PRECISION, INTENT(IN) :: PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: U0(NE),U1(NE)
+
+      DOUBLE PRECISION A,B
+
         A=PAR(1)
         B=PAR(2)
-!
+
         U0(1)=A
         U0(2)=B/A
         U1(1)=A
         U1(2)=B/A
-!
-      RETURN 
-      END 
-! 
-      SUBROUTINE STPNT(NDIM,U,PAR) 
+
+      END SUBROUTINE SETBC
+
+      SUBROUTINE STPNT(NDIM,U,PAR,T)
 !     ---------- ----- 
 ! Define the starting stationary solution on the spatial mesh
-!
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
+
+      IMPLICIT NONE
       INCLUDE 'brc.inc'
-      PARAMETER ( NP=NN+1 )
+      INTEGER, PARAMETER :: NP=NN+1
+      DOUBLE PRECISION D2
       COMMON /BLPPDE/ D2(NN,0:NP)
-      DIMENSION U(NN,NE),PAR(*)
-!
+      INTEGER, INTENT(IN) :: NDIM
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NN,NE),PAR(*)
+      DOUBLE PRECISION, INTENT(IN) :: T
+
+      INTEGER I
+      DOUBLE PRECISION A,B,Dx,Dy,RL
+
 ! Set the parameter values
         A=2.d0
         B=5.45d0
         Dx=0.008d0
         Dy=0.004d0
         RL=0.4
-!
+
         PAR(1)=A
         PAR(2)=B
         PAR(3)=Dx
         PAR(4)=Dy
         PAR(5)=RL
-!
+
 ! Set the starting solution at the Chebyshev collocation points
-        DO 1 I=1,NN
+        DO I=1,NN
           U(I,1)=A
           U(I,2)=B/A
- 1      CONTINUE
-! 
-      RETURN 
-      END 
+        ENDDO
+
+      END SUBROUTINE STPNT
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
 !                Problem-independent subroutines
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
-! 
+
       SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP) 
 !     ---------- ---- 
-! 
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
+
+      IMPLICIT NONE
       INCLUDE 'brc.inc'
-      PARAMETER ( NP=NN+1 )
+      INTEGER, PARAMETER :: NP=NN+1
+      LOGICAL, SAVE :: ifrst = .TRUE.
+      DOUBLE PRECISION D2
       COMMON /BLPPDE/ D2(NN,0:NP)
-      COMMON /BLPPFR/ ifrst
-      DIMENSION U(NN,NE),F(NN,NE),PAR(*)
-      DIMENSION W(NE),FW(NE),DC(NE),U0(NE),U1(NE)
-!
+      INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
+      DOUBLE PRECISION, INTENT(IN) :: U(NN,NE), PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NN,NE)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
+
+      DOUBLE PRECISION W(NE),FW(NE),DC(NE),U0(NE),U1(NE)
+      INTEGER I,J,K
+
 ! Problem-independent initialization :
-        IF(ifrst.NE.1234)THEN
+        IF(ifrst)THEN
           CALL GENCF(PAR)
-          ifrst=1234
+          ifrst=.FALSE.
         ENDIF
-!
+
         CALL SETDC(NE,DC,PAR)
         CALL SETBC(NE,PAR,U0,U1)
-!
-        DO 4 I=1,NN
-          DO 1 K=1,NE
+
+        DO I=1,NN
+          DO K=1,NE
             W(K)=U(I,K)
- 1        CONTINUE
+          ENDDO
           CALL FF(NE,W,PAR,FW)
-          DO 3 J=1,NE
+          DO J=1,NE
             F(I,J)=FW(J) + DC(J)*(U0(J)*D2(I,0)+U1(J)*D2(I,NP))
-            DO 2 K=1,NN
+            DO K=1,NN
               F(I,J)=F(I,J)+DC(J)*D2(I,K)*U(K,J)
- 2          CONTINUE
- 3        CONTINUE
- 4      CONTINUE
-! 
-      RETURN 
-      END 
-!
+            ENDDO
+          ENDDO
+        ENDDO
+
+      END SUBROUTINE FUNC
+
       SUBROUTINE GENCF(PAR)
 !     ---------- -----
-!
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z) 
+
+      IMPLICIT NONE
       INCLUDE 'brc.inc'
-      PARAMETER ( NP=NN+1, M=NN+2)
+      INTEGER, PARAMETER :: NP=NN+1, M=NN+2
+      DOUBLE PRECISION D2
       COMMON /BLPPDE/ D2(NN,M)
-      DIMENSION X(M),XX(M,M),CC(M,M),RI(M,M),PAR(*)
-      DIMENSION IR(M),IC(M)
-!
-        pi=4*DATAN(1.d0)
+      DOUBLE PRECISION X(M),XX(M,M),CC(M,M),RI(M,M),PAR(*),pi,C,DET
+      INTEGER IR(M),IC(M),I,J,K
+
+        pi=4*ATAN(1.d0)
         X(1)=0.d0
-        DO 1 K=2,NP
+        DO K=2,NP
           C=COS( (2*K-3)*pi/(2*NN) )
           X(K)=(1+C)/2
- 1      CONTINUE
+        ENDDO
         X(M)=1.d0
-!
-        DO 3 I=1,M
-          DO 2 J=1,M
+
+        DO I=1,M
+          DO J=1,M
             RI(I,J)=0.d0
             XX(I,J)=X(I)**(J-1)
- 2        CONTINUE
+          ENDDO
           RI(I,I)=1.d0
- 3      CONTINUE
-!
+        ENDDO
+
         CALL GE(0,M,M,XX,M,M,CC,M,RI,IR,IC,DET) 
-!  
-        DO 6 I=1,NN
-          DO 5 J=1,M
+
+        DO I=1,NN
+          DO J=1,M
             D2(I,J)=0.d0
-            DO 4 K=2,M-1
+            DO K=2,M-1
               D2(I,J)=D2(I,J)+CC(K+1,J)*K*(K-1)*X(I+1)**(K-2)
- 4          CONTINUE
- 5        CONTINUE
- 6      CONTINUE 
-!
-      RETURN
-      END
-! 
+            ENDDO
+          ENDDO
+        ENDDO
+
+      END SUBROUTINE GENCF
+
       SUBROUTINE BCND 
-      RETURN 
-      END 
-! 
+      END SUBROUTINE BCND
+
       SUBROUTINE ICND 
-      RETURN 
-      END 
-! 
+      END SUBROUTINE ICND
+
       SUBROUTINE FOPT 
-      RETURN 
-      END 
+      END SUBROUTINE FOPT
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
-! 
+
       SUBROUTINE PVLS
-      RETURN 
-      END 
+      END SUBROUTINE PVLS

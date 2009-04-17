@@ -45,7 +45,7 @@
     F(3)= f2*y*z - d2*z
 
     IF(.NOT.IJAC)RETURN
-!     
+
 !     Jacobian elements
     DFDU(1,1)=1d0-2*x-f1*y+b1*x*y*(f1**2)/a1
     DFDU(1,2)=-f1*x

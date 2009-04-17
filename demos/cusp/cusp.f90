@@ -6,18 +6,18 @@
 
 SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
 !--------- ----
-!
+
 ! Evaluates the algebraic equations or ODE right hand side
-!
+
 ! Input arguments :
 !      NDIM   :   Dimension of the algebraic or ODE system 
 !      U      :   State variables
 !      ICP    :   Array indicating the free parameter(s)
 !      PAR    :   Equation parameters
-!
+
 ! Values to be returned :
 !      F      :   Equation or ODE right hand side values
-!
+
 ! Normally unused Jacobian arguments : IJAC, DFDU, DFDP (see manual)
 
   IMPLICIT NONE
@@ -40,14 +40,14 @@ END SUBROUTINE FUNC
 
 SUBROUTINE STPNT(NDIM,U,PAR,T)
 !--------- -----
-!
+
 ! Input arguments :
 !      NDIM   :   Dimension of the algebraic or ODE system 
-!
+
 ! Values to be returned :
 !      U      :   A starting solution vector
 !      PAR    :   The corresponding equation-parameter values
-!
+
 ! Note : For time- or space-dependent solutions this subroutine has
 !        the scalar input parameter T contains the varying time or space
 !        variable value.
@@ -70,9 +70,9 @@ END SUBROUTINE STPNT
 
 SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
 !--------- ----
-!
+
 ! Boundary Conditions
-!
+
 ! Input arguments :
 !      NDIM   :   Dimension of the ODE system 
 !      PAR    :   Equation parameters
@@ -80,21 +80,21 @@ SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
 !      NBC    :   Number of boundary conditions
 !      U0     :   State variable values at the left boundary
 !      U1     :   State variable values at the right boundary
-!
+
 ! Values to be returned :
 !      FB     :   The values of the boundary condition functions 
-!
+
 ! Normally unused Jacobian arguments : IJAC, DBC (see manual)
-!
+
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: NDIM, ICP(*), NBC, IJAC
   DOUBLE PRECISION, INTENT(IN) :: PAR(*), U0(NDIM), U1(NDIM)
   DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
   DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
-!
+
 !X FB(1)=
 !X FB(2)=
-!
+
 END SUBROUTINE BCND
 
 !----------------------------------------------------------------------
@@ -102,24 +102,24 @@ END SUBROUTINE BCND
 
 SUBROUTINE ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI,IJAC,DINT)
 !--------- ----
-!
+
 ! Integral Conditions
-!
+
 ! Input arguments :
 !      NDIM   :   Dimension of the ODE system 
 !      PAR    :   Equation parameters
 !      ICP    :   Array indicating the free parameter(s)
 !      NINT   :   Number of integral conditions
 !      U      :   Value of the vector function U at `time' t
-!
+
 ! The following input arguments, which are normally not needed,
 ! correspond to the preceding point on the solution branch
 !      UOLD   :   The state vector at 'time' t
 !      UDOT   :   Derivative of UOLD with respect to arclength
 !      UPOLD  :   Derivative of UOLD with respect to `time'
-!
+
 ! Normally unused Jacobian arguments : IJAC, DINT
-!
+
 ! Values to be returned :
 !      FI     :   The value of the vector integrand 
 
@@ -157,7 +157,7 @@ SUBROUTINE FOPT(NDIM,U,ICP,PAR,IJAC,FS,DFDU,DFDP)
   INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
   DOUBLE PRECISION, INTENT(IN) :: U(NDIM), PAR(*)
   DOUBLE PRECISION, INTENT(OUT) :: FS
-  DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+  DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM),DFDP(*)
 
 !X FS=
 
@@ -219,7 +219,7 @@ SUBROUTINE PVLS(NDIM,U,PAR)
 !   'HBF' (`Hopf function'; which vanishes at Hopf points).
 !   'SPB' ( Function which vanishes at secondary periodic bifurcations).
 !---------------------------------------------------------------------- 
-!
+
 
 END SUBROUTINE PVLS
 

@@ -113,9 +113,9 @@
       ! errors
       PAR(4) = 1
    ENDIF
-!
+
 !  Put purely imaginary eigenvalues in PAR(5), PAR(6) and PAR(7)
-!
+
    j=1
    PAR(5) = 0
    PAR(6) = 0

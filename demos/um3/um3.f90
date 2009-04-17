@@ -3,7 +3,7 @@
 !   um3: Computing a 2D unstable manifold in 3D (a phase portrait)
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
-! 
+
  SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP) 
 !---------- ---- 
 
