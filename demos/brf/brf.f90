@@ -6,9 +6,8 @@
 !     (Discretized in space by fourth order finite differences)
 !---------------------------------------------------------------------- 
 !----------------------------------------------------------------------
-! NOTE: The values of the constants NE and NX are defined in the file
-!       brf.inc. If they are changed then the equations-file brf.f must 
-!       be rewritten with an editor or with the GUI Write button.
+! NOTE: The values of the constants NE and NX are defined below as a
+!       module.
 !
 !      NE  :  the dimension of the PDE system
 !      NX  :  the number of space intervals for the discretization 
@@ -16,6 +15,13 @@
 ! The AUTO-constant NDIM must be set equal to the value of NE*(NX-1)
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
+
+      MODULE brf
+        SAVE
+        INTEGER, PARAMETER :: NE=2, NX=6
+        INTEGER, PARAMETER :: NN=NX-1
+        DOUBLE PRECISION D0(NN,NN),D2(NN,NN),DI(NN,NN),DD(NN,NN),RI(NN,NN)
+      END MODULE brf
 
       SUBROUTINE FF(NE,U,PAR,F) 
 !     ---------- -- 
@@ -78,12 +84,8 @@
 !     ---------- ----- 
 ! Define the starting stationary solution on the spatial mesh
 
+      USE brf
       IMPLICIT NONE
-      INCLUDE 'brf.inc' 
-      INTEGER, PARAMETER :: NN=NX-1
-      DOUBLE PRECISION D0,D2,DI,DD,RI
-      COMMON /BLPPDE/ D0(NN,NN),D2(NN,NN),DI(NN,NN),DD(NN,NN), &
-                RI(NN,NN)
       INTEGER, INTENT(IN) :: NDIM
       DOUBLE PRECISION, INTENT(INOUT) :: U(NN,NE),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
@@ -120,14 +122,8 @@
       SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP) 
 !     ---------- ---- 
 
+      USE brf
       IMPLICIT NONE
-      INCLUDE 'brf.inc' 
-      INTEGER, PARAMETER :: NN=NX-1
-      DOUBLE PRECISION D0,D2,DI,DD,RI
-      COMMON /BLPPDE/ D0(NN,NN),D2(NN,NN),DI(NN,NN),DD(NN,NN), &
-                RI(NN,NN)
-      INTEGER ifrst
-      COMMON /BLPPFR/ ifrst
       INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
       DOUBLE PRECISION, INTENT(IN) :: U(NN,NE), PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NN,NE)
@@ -139,10 +135,6 @@
       INTEGER I,J,K
 
 ! Problem-independent initialization :
-        IF(ifrst.NE.1234)THEN
-          CALL GENCF(PAR)
-          ifrst=1234
-        ENDIF
 
         CALL SETDC(NE,DC,PAR)
         CALL SETBC(NE,PAR,U0,U1)
@@ -174,12 +166,8 @@
       SUBROUTINE GENCF(PAR)
 !     ---------- -----
 
+      USE brf
       IMPLICIT NONE
-      INCLUDE 'brf.inc' 
-      INTEGER, PARAMETER :: NN=NX-1
-      DOUBLE PRECISION D0,D2,DI,DD,RI
-      COMMON /BLPPDE/ D0(NN,NN),D2(NN,NN),DI(NN,NN),DD(NN,NN), &
-                RI(NN,NN)
       DOUBLE PRECISION, INTENT(IN) :: PAR(*)
 
       INTEGER IR(NN),IC(NN),I,J,K
@@ -233,20 +221,17 @@
       SUBROUTINE PVLS(NDIM,U,PAR)
 !     ---------- ----
 
+      USE brf
       IMPLICIT NONE
-      INCLUDE 'brf.inc' 
-      INTEGER, PARAMETER :: NN=NX-1
       INTEGER, INTENT(IN) :: NDIM
       DOUBLE PRECISION, INTENT(IN) :: U(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-
-      INTEGER ifrst
-      COMMON /BLPPFR/ ifrst
+      LOGICAL, SAVE :: ifrst = .TRUE.
 
 ! Problem-independent initialization :
-      IF(ifrst.NE.1234)THEN
+      IF(ifrst)THEN
          CALL GENCF(PAR)
-         ifrst=1234
+         ifrst=.FALSE.
       ENDIF
 
       END SUBROUTINE PVLS

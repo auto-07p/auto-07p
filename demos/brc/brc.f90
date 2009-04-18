@@ -6,9 +6,8 @@
 ! (Discretized in space by polynomial collocation at Chebyshev points)
 !---------------------------------------------------------------------- 
 !----------------------------------------------------------------------
-! NOTE: The values of the constants NE and NN are defined in the file
-!       brc.inc. If they are changed then the equations-file brc.f must
-!       be rewritten with an editor or with the GUI Write button.
+! NOTE: The values of the constants NE and NN are defined in the module
+!       brc below.
 !
 !      NE  :  the dimension of the PDE system
 !      NN  :  the number of Chebyshev collocation points in space 
@@ -16,6 +15,13 @@
 ! The AUTO-constant NDIM must be set equal to the value of NE*NN
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
+
+      MODULE brc
+        SAVE
+        INTEGER, PARAMETER :: NE=2, NN=6
+        INTEGER, PARAMETER :: NP=NN+1
+        DOUBLE PRECISION D2(NN,0:NP)
+      END MODULE brc
 
       SUBROUTINE FF(NE,U,PAR,F) 
 !     ---------- -- 
@@ -77,11 +83,8 @@
 !     ---------- ----- 
 ! Define the starting stationary solution on the spatial mesh
 
+      USE brc
       IMPLICIT NONE
-      INCLUDE 'brc.inc'
-      INTEGER, PARAMETER :: NP=NN+1
-      DOUBLE PRECISION D2
-      COMMON /BLPPDE/ D2(NN,0:NP)
       INTEGER, INTENT(IN) :: NDIM
       DOUBLE PRECISION, INTENT(INOUT) :: U(NN,NE),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
@@ -118,12 +121,9 @@
       SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP) 
 !     ---------- ---- 
 
+      USE brc
       IMPLICIT NONE
-      INCLUDE 'brc.inc'
-      INTEGER, PARAMETER :: NP=NN+1
       LOGICAL, SAVE :: ifrst = .TRUE.
-      DOUBLE PRECISION D2
-      COMMON /BLPPDE/ D2(NN,0:NP)
       INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
       DOUBLE PRECISION, INTENT(IN) :: U(NN,NE), PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NN,NE)
@@ -159,11 +159,9 @@
       SUBROUTINE GENCF(PAR)
 !     ---------- -----
 
+      USE brc
       IMPLICIT NONE
-      INCLUDE 'brc.inc'
-      INTEGER, PARAMETER :: NP=NN+1, M=NN+2
-      DOUBLE PRECISION D2
-      COMMON /BLPPDE/ D2(NN,M)
+      INTEGER, PARAMETER :: M=NN+2
       DOUBLE PRECISION X(M),XX(M,M),CC(M,M),RI(M,M),PAR(*),pi,C,DET
       INTEGER IR(M),IC(M),I,J,K
 
@@ -187,9 +185,9 @@
 
         DO I=1,NN
           DO J=1,M
-            D2(I,J)=0.d0
+            D2(I,J-1)=0.d0
             DO K=2,M-1
-              D2(I,J)=D2(I,J)+CC(K+1,J)*K*(K-1)*X(I+1)**(K-2)
+              D2(I,J-1)=D2(I,J-1)+CC(K+1,J)*K*(K-1)*X(I+1)**(K-2)
             ENDDO
           ENDDO
         ENDDO

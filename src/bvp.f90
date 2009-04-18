@@ -685,6 +685,8 @@ CONTAINS
        ENDDO
 
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
+          ! call PVLS here the first time so the parameters can be initialized
+          CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
           ! Hopf bifurcation
           CALL STHOPF(IAP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
                NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
@@ -705,8 +707,6 @@ CONTAINS
 
 ! Set UOLDPS, RLOLD.
 
-    ! call PVLS here the first time so the parameters can be initialized
-    CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
        RLOLD(I)=RLCUR(I)
@@ -722,6 +722,8 @@ CONTAINS
        ISW=1
        IAP(10)=ISW
     ELSE
+       ! call PVLS here the first time so the parameters can be initialized
+       CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
 !      ** Restart from orbit.
        CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
     ENDIF

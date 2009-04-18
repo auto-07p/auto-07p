@@ -4,5 +4,8 @@
 #==============
 
 print "\n***Clean the directory***"
+import os,glob
 dl('brc')
 cl()
+for f in glob.glob('brc.mod'):
+    os.remove(f)
