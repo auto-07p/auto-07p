@@ -31,10 +31,10 @@ extern	"C"	{	/* Begin scope of extern "C" */
 #define  MAX_NTHL               10             /* has to be an even number */
 #define  MAX_NTHU               10             /* has to be an even number */
 #define  NONE			0
-#define  DEFAULT_RFILE          "c.aut"        /* "r.default" */
+#define  DEFAULT_RFILE          "c.aut"        /* "c.default" */
 #define  CURRENT_RFILE		"c.current"
-#define  DEFAULT_FILE           "aut.f"        /* "default.f" */
-#define  DEFAULT_NAME           "aut.f"
+#define  DEFAULT_FILE           "aut.f90"      /* "default.f90" */
+#define  DEFAULT_NAME           "aut.f90"
 #define  TEXT_WIDTH             72
 #define  EMPTY                  ""
 #define  MAX_FILESIZE           50000

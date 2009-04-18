@@ -767,11 +767,11 @@ If any of these routines is irrelevant
 to the problem then its body need not be completed.
 Examples are in {\tt auto/07p/demos}, where, e.g.,
 the file {\tt ab/ab.f90} defines a two-dimensional dynamical system,
-and the file {\tt exp/exp.f} defines a boundary value problem.
+and the file {\tt exp/exp.f90} defines a boundary value problem.
 The simplest way to create a new equations-file is to copy 
 an appropriate demo file.
 For a fully documented equations-file see
-{\tt auto/07p/demos/cusp/cusp.f90} or {\tt auto/07p/gui/aut.f}.
+{\tt auto/07p/demos/cusp/cusp.f90} or {\tt auto/07p/gui/aut.f90}.
 In GUI mode, this file can be directly loaded with the GUI-button 
 {\it Equations/New}; see Section~\ref{sec:GUI_Menu_bar}.
  
@@ -3326,7 +3326,7 @@ Apart from the Python commands described in the previous chapter,
 or using the Unix commands described below. These Unix commands run both
 directly in the shell and at the {\tt AUTO} Python prompt.
 The {\cal AUTO} aliases must have been activated; see Section~\ref{sec:Installation}; 
-and an equations-file {\tt xxx.f} 
+and an equations-file {\tt xxx.f90} 
 and a corresponding constants-file {\tt c.xxx} 
 (see Section~\ref{ch:User_supplied_files})
 must be in the current user directory.
@@ -3350,22 +3350,22 @@ commands that depend on \python are \commandf{@cnvc},
   This is the simplest way to run {\cal AUTO}.
 \item[-]
   Type \commandf{@r xxx yyy} to run {\cal AUTO}
-  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
+  with equations-file {\tt xxx.f90} and restart data-file {\tt s.yyy}.
   {\cal AUTO}-constants must be in {\tt c.xxx}.
 \item[-]
   Type \commandf{@r xxx yyy zzz} to run {\cal AUTO}
-  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
+  with equations-file {\tt xxx.f90}, restart data-file {\tt s.yyy}
   and constants-file {\tt c.zzz}.
 
 \item[\tt @R]~:
   The command \commandf{@R xxx} is equivalent to the command \commandf{@r xxx} above.
 \item[-]
-  Type \commandf{@R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f},
+  Type \commandf{@R xxx i}  to run {\cal AUTO} with equations-file {\tt xxx.f90},
   constants-file {\tt c.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
   Type \commandf{@R xxx i yyy} to run {\cal AUTO}
-  with equations-file {\tt xxx.f}, 
+  with equations-file {\tt xxx.f90}, 
   constants-file {\tt c.xxx.i}
   and restart data-file {\tt s.yyy}.
 \item[-]
@@ -3782,22 +3782,22 @@ the main constant file with a {\tt c.} prefix.
   {\cal AUTO}-constants in {\tt c.xxx} and {\cal HomCont}-constants in {\tt h.xxx}.
 \item[-]
   Type \commandf{@h xxx yyy} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f} and restart data-file {\tt s.yyy}.
+  with equations-file {\tt xxx.f90} and restart data-file {\tt s.yyy}.
   {\cal AUTO}-constants must be in {\tt c.xxx} and {\cal HomCont}-constants in {\tt h.xxx}.
 \item[-]
   Type \commandf{@h xxx yyy zzz} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f}, restart data-file {\tt s.yyy}
+  with equations-file {\tt xxx.f90}, restart data-file {\tt s.yyy}
   and constants-files {\tt c.zzz} and {\tt h.zzz}.
 
 \item[\tt @H]~:
   The command \commandf{@H xxx} is equivalent to the command \commandf{@h xxx} above.
 \item[-]
-  Type \commandf{@H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f}
+  Type \commandf{@H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f90}
   and constants-files {\tt c.xxx.i} and {\tt h.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
   Type \commandf{@H xxx i yyy} to run {\cal AUTO}/{\cal HomCont}
-  with equations-file {\tt xxx.f}, 
+  with equations-file {\tt xxx.f90}, 
   constants-files {\tt c.xxx.i} and {\tt h.xxx.i},
   and restart data-file {\tt s.yyy}.
 \item[-]
@@ -4174,7 +4174,7 @@ This pull-down menu contains the items
 {\it New}, to load a model equations-file,
 and
 {\it Demo}, to load a selected demo equations-file.
-Equations-file names are of the form {\tt xxx.f}.
+Equations-file names are of the form {\tt xxx.f90}.
 The corresponding constants-file {\tt c.xxx} is also loaded if it exists.
 The equation name {\tt xxx} remains active until redefined.
 
@@ -4191,7 +4191,7 @@ location of the cursor.
 \subsection{ Write-button.}
 This pull-down menu contains the item
 {\it Write},
-to write the loaded files {\tt xxx.f} and {\tt c.xxx},
+to write the loaded files {\tt xxx.f90} and {\tt c.xxx},
 by the active equation name,
 and the item
 {\it Write As}
@@ -4304,7 +4304,7 @@ and
 {\it Xedit},
 for editing files,
 and
-{\it Print}, for printing the active equations-file {\tt xxx.f}.
+{\it Print}, for printing the active equations-file {\tt xxx.f90}.
 
 
 \subsection{ Help-button.}
@@ -4354,7 +4354,7 @@ click {\it Files/Restart} and enter {\it yyy} as data.
 Then click {\it Run}.
 As noted in Section~\ref{sec:command_mode}, 
 this will run {\cal AUTO} with the current equations-file
-{\tt xxx.f} and the current constants-file {\tt c.xxx}, 
+{\tt xxx.f90} and the current constants-file {\tt c.xxx}, 
 while expecting restart data in {\tt s.yyy}.
 The {\cal AUTO}-command \commandf{@ap xxx yyy} is given in the GUI by
 clicking {\it Files/Append}.
@@ -4393,7 +4393,7 @@ string literal length.
 %==============================================================================
 \section{ The {\cal AUTO}-Constants File.} \label{sec:The_AUTO_constants_file}
 As described in Section~\ref{ch:User_supplied_files}, 
-if the equations-file is {\tt xxx.f} 
+if the equations-file is {\tt xxx.f90} 
 then the constants that define the computation 
 are normally expected in the file  {\tt c.xxx}.
 The format of this file is free, with constant=value pairs separated
@@ -6080,12 +6080,12 @@ in the A $\to$ B $\to$ C reaction
 with $p_2=1$, $p_3=1.55$, $p_4=8$, and $p_5=0.04$. 
 The free parameter is $p_1$.
 
-The equations, as programmed in the equations-file {\tt abc.f},
+The equations, as programmed in the equations-file {\tt abc.f90},
 appear in Table~\ref{tbl:demo_abcE1}.
 The starting point, an equilibrium of the equations,
-is also defined in  the equations-file {\tt abc.f},
+is also defined in  the equations-file {\tt abc.f90},
 as shown in  Table~\ref{tbl:demo_abcE2}.
-(The equations-file {\tt abc.f} also contains the skeletons
+(The equations-file {\tt abc.f90} also contains the skeletons
 of some other routines, which must be supplied, but which 
 are not used in this application.)
 
@@ -6133,36 +6133,40 @@ Table~\ref{tbl:demo_abcC2}, we note that:
 {\small
 \begin{center}
 \begin{boxedverbatim}
-      SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
-C     ---------- ----
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION U(NDIM),PAR(*),F(NDIM)
-C
+      SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP) 
+!     ---------- ---- 
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
+      DOUBLE PRECISION, INTENT(IN) :: U(NDIM), PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
+
+      DOUBLE PRECISION X1,X2,X3,D,ALPHA,BETA,B,S,E,X1C
+
        X1=U(1)
        X2=U(2)
        X3=U(3)
-C
+
        D=PAR(1)
        ALPHA=PAR(2)
        BETA=PAR(3)
        B=PAR(4)
        S=PAR(5)
-C
+
        E=DEXP(X3)
        X1C=1-X1
-C
+
        F(1)=-X1 + D*X1C*E
        F(2)=-X2 + D*E*(X1C - S*X2)
        F(3)=-X3 - BETA*X3 + D*B*E*(X1C + ALPHA*S*X2)
-C
-      RETURN
-      END
+
+      END SUBROUTINE FUNC
 \end{boxedverbatim}
 \end{center}
 }
 \caption{The equations for demo {\tt abc}, 
-as defined in the equations-file {\tt abc.f}.}
+as defined in the equations-file {\tt abc.f90}.}
 \label{tbl:demo_abcE1}
 \end{table}
 %------------------------------------------------------
@@ -6173,29 +6177,30 @@ as defined in the equations-file {\tt abc.f}.}
 {\small
 \begin{center}
 \begin{boxedverbatim}
-      SUBROUTINE STPNT(NDIM,U,PAR,T)
-C     ---------- -----
-C
-      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
-      DIMENSION U(NDIM),PAR(*)
-C
+      SUBROUTINE STPNT(NDIM,U,PAR,T) 
+!     ---------- ----- 
+
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NDIM
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+      DOUBLE PRECISION, INTENT(IN) :: T
+
        PAR(1)=0.0
        PAR(2)=1.0
        PAR(3)=1.55
        PAR(4)=8.
        PAR(5)=0.04
-C
+
        U(1)=0.
        U(2)=0.
        U(3)=0.
-C
-      RETURN
-      END
+
+      END SUBROUTINE STPNT
 \end{boxedverbatim}
 \end{center}
 }
 \caption{The starting solution for demo {\tt abc}, 
-as defined in the equations-file {\tt abc.f}.}
+as defined in the equations-file {\tt abc.f90}.}
 \label{tbl:demo_abcE2}
 \end{table}
 %------------------------------------------------------
@@ -8424,7 +8429,7 @@ in space-time, here consisting of \parf{PAR(14)} and  $u(x)$.
 Initial data are $u(x)=\sin(\pi x/L)$ at time zero.
 Note that in the subroutine \funcf{ STPNT} the initial data must be scaled to 
 the unit interval, and that the scaled derivative must also be provided; 
-see the equations-file \filef{pv1.f}.
+see the equations-file \filef{pv1.f90}.
 In the second run the continuation parameter is $p_1$.
 
 Euler time integration is only first order accurate, so that
@@ -8488,7 +8493,7 @@ in space-time, here consisting of \parf{PAR(14)} and $(u_1(x),u_2(x))$.
 Initial data at time zero are $u_1(x)=\sin(\pi x/L)$ and $u_2(x)=1$.
 Note that in the subroutine \funcf{ STPNT} the initial data must be scaled to 
 the unit interval, and that the scaled derivatives must also be provided; 
-see the equations-file \filef{pv2.f}.
+see the equations-file \filef{pv2.f90}.
 In the second run the continuation parameter is $p_1$.
 A branch point is located during this run.
 
@@ -8616,7 +8621,7 @@ interpolating coefficients with respect to points
 $\bigl\{ x_k \bigr\}_{k=0}^{n+1}$, where $x_0=0$ and $x_{n+1}=1$.
 The number of Chebyshev points in $[0,1]$,
 as well as the number of equations in the PDE system,
-can be set by the user in the file \filef{brc.inc}.
+can be set by the user in the file \filef{brc.f90}.
 
 As an illustrative application we consider the Brusselator
 (\citename{HoKnKu:87} \citeyear{HoKnKu:87})
@@ -8676,7 +8681,7 @@ This reduces the PDE to an autonomous ODE of fixed dimension
 which \AUTO is capable of treating.
 The spatial mesh is uniform; the number of mesh intervals,
 as well as the number of equations in the PDE system,
-can be set by the user in the file \filef{brf.inc}.
+can be set by the user in the file \filef{brf.f90}.
 
 As an illustrative application we consider the Brusselator
 (\citename{HoKnKu:87} \citeyear{HoKnKu:87})
@@ -8755,7 +8760,7 @@ $u(x)=A - 0.5 \sin(\pi x)$ and
 $v(x)=B/A + 0.7 \sin(\pi x)$.
 Note that in the subroutine \funcf{ STPNT} the space derivatives of $u$ and $v$
 must also be provided; 
-see the equations-file \filef{bru.f}.
+see the equations-file \filef{bru.f90}.
 
 Euler time integration is only first order accurate, so that
 the time step must be sufficiently small to ensure correct results.
@@ -8874,7 +8879,7 @@ can be addressed.
 
 For the case of periodic solutions, the extended optimality system
 can be generated automatically, i.e., one need only define the vector field 
-and the objective functional, as in done in the file \filef{ops.f}.
+and the objective functional, as in done in the file \filef{ops.f90}.
 For reference purpose it is convenient here to write down
 the full extended system in its general form~:
 
@@ -9120,7 +9125,7 @@ A detailed description of the basic method, as well as a discussion
 of the specific application considered here, is given in 
 \citename{DoKeKe:91b} \citeyear{DoKeKe:91b}.
 The required extended system is fully programmed here in the user-supplied
-routines in \filef{obv.f}.
+routines in \filef{obv.f90}.
 For the case of periodic solutions the optimality system can be generated
 automatically; see the demo \filef{ops}.
 
@@ -9344,7 +9349,7 @@ $u_1$-axis.
 In fact, the two connections together constitute a heteroclinic cycle.
 One of the exact solutions is used below as starting orbit.
 To start from the second exact solution, change SIGN=-1 in the  
-routine \funcf{STPNT} in \filef{nag.f} and repeat the computations below;
+routine \funcf{STPNT} in \filef{nag.f90} and repeat the computations below;
 see also
 \citename{FrDo:91} \citeyear{FrDo:91}.
 
@@ -9684,7 +9689,7 @@ Note also that at present, {\cal HomCont} can be run only in
 
 \section{{\cal HomCont} Files and Routines.} \label{sec:HomCont_files}
 
-In order to run {\cal HomCont} one must prepare an equations file \filef{xxx.f}, 
+In order to run {\cal HomCont} one must prepare an equations file \filef{xxx.f90}, 
 where \filef{xxx} is the name of the example, 
 and constants-file \filef{c.xxx}.
 These files are in the standard {\cal AUTO} format, but
@@ -10227,7 +10232,7 @@ Consider the system \cite{Sa:95b}
 \beta \, (x^2 \, (1-x) - y^2)
 
 \end{array} \end{equation}
-as given in the file \filef{san.f}.
+as given in the file \filef{san.f90}.
 Choosing the constants appearing
 in (\ref{bs1}) appropriately allows for computing inclination and
 orbit flips as well as non-orientable resonant bifurcations, see
@@ -10576,7 +10581,7 @@ demo and running it
 \commandf{dm('mtn')}\\
 \commandf{r1=run('mtn',c='mtn.1',sv='1')}
 \end{center}
-The file \filef{mtn.f} contains approximate
+The file \filef{mtn.f90} contains approximate
 parameter values
 $$
 K=\parf{PAR(1)}=6.0,\ Z=\parf{PAR(2)}=0.06729762,
@@ -11313,7 +11318,7 @@ First, we copy the demo into a new directory and compile
 \commandf{dm('cir')} \\
 \end{center}
 The system is contained in 
-the equation-file \filef{cir.f} and the initial run-time constants
+the equation-file \filef{cir.f90} and the initial run-time constants
 are stored in \filef{c.cir.1}. We begin by starting from
 the data from \filef{cir.dat} for a saddle-focus homoclinic orbit 
 at 
@@ -11484,7 +11489,7 @@ Here we shall reproduce a single curve in the $(\sigma,\mu)$-plane
 of codimension-one heteroclinic orbits connecting a non-trivial 
 equilibrium to the origin for $Q=0$ and $\zeta=4$. The defining
 problem is contained in equation-file 
-\filef{she.f}\footnote{The last parameter used to store the equilibria (\parf{PAR(21)}) is
+\filef{she.f90}\footnote{The last parameter used to store the equilibria (\parf{PAR(21)}) is
 overlaped here with the first test-function. In this example, it is harmless since the test functions are 
 irrelevant for heteroclinic continuation.}, and starting data for the orbit at 
 $(\sigma,\mu)=(0.5,0.163875)$ are stored in \filef{she.dat},
@@ -11510,7 +11515,7 @@ This yields the output
 \end{verbatim}
 Alternatively, for this problem there exists an analytic expression for
 the two equilibria. This is specified in the subroutine \funcf{PVLS} of
-\filef{she.f}. Re-running with \parf{IEQUIB=-1}
+\filef{she.f90}. Re-running with \parf{IEQUIB=-1}
 \begin{center}
 \commandf{r2=run('she',c='she.2')}
 \end{center}

@@ -140,8 +140,8 @@ extern	"C"	{	/* Begin scope of extern "C" */
 #define  NONE			0
 #define  DEFAULT_RFILE          "c.aut"
 #define  CURRENT_RFILE		"c.current"
-#define  DEFAULT_FILE           "aut.f"
-#define  DEFAULT_NAME           "aut.f"
+#define  DEFAULT_FILE           "aut.f90"
+#define  DEFAULT_NAME           "aut.f90"
 #define  TEXT_WIDTH             60
 #define  EMPTY                  ""
 #define  MAX_FILESIZE           20000
@@ -1132,8 +1132,8 @@ void	ConfigInit(Widget parent)
   for(i = 0; i < GP.numDemo; i++)  {
 
     k1 = strlen(demoItems[i]);
-    strncpy(demo,demoItems[i],k1-2);
-    demo[k1-2] = '\0';
+    strncpy(demo,demoItems[i],k1-4);
+    demo[k1-4] = '\0';
 
     GP.demoXmItems[i] = XmStringCreateLtoR(demo,XmSTRING_DEFAULT_CHARSET);
 /*
@@ -2520,7 +2520,7 @@ XtPointer		call_data	/*  data from widget class  */
       XmStringGetLtoR(scb->value, XmSTRING_DEFAULT_CHARSET, &fileName);
       
       strcpy(GP.fileName,fileName);
-      strcat(GP.fileName,".f");
+      strcat(GP.fileName,".f90");
 
       if( strcmp(fileName,EMPTY) == 0 )
 	strcpy(GP.fileName,DEFAULT_NAME);
@@ -2598,7 +2598,7 @@ XtPointer		call_data	/*  data from widget class  */
       strcpy(GP.fileName,fileName);
      
 
-      strcat(GP.fileName,".f");
+      strcat(GP.fileName,".f90");
 
  
       SaveFile();
@@ -7178,8 +7178,8 @@ void DemoCopyCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(GP.demoFileName,demoItems[index],k-2);   
-       GP.demoFileName[k-2] = '\0';
+       strncpy(GP.demoFileName,demoItems[index],k-4);
+       GP.demoFileName[k-4] = '\0';
        strcpy(GP.fileName,demoItems[index]);
 
        strcpy(cmd,"cp ");
@@ -7245,8 +7245,8 @@ void DemoRunCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(GP.demoFileName,demoItems[index],k-2);   
-       GP.demoFileName[k-2] = '\0';
+       strncpy(GP.demoFileName,demoItems[index],k-4);
+       GP.demoFileName[k-4] = '\0';
        RunDemo(GP.demoFileName);
        break;
      }
@@ -7279,7 +7279,7 @@ void DemoBrowseCB(Widget w,XtPointer userData,XtPointer callbackArg)
      if( XmStringCompare(item,GP.demoXmItems[i]) ) {
        index = i;
        k = strlen(demoItems[index]);
-       strncpy(name,demoItems[index],k-2); 
+       strncpy(name,demoItems[index],k-4); 
        name[k-2] = '\0';
        strcpy(file,GP.autoDir);
        strcat(file,"/demos/");
@@ -8136,7 +8136,9 @@ void   RunDemo(char *fileName)
 
   strcpy(command,"cd $AUTO_DIR/demos/");
   strcat(command,fileName);
-  strcat(command,"; make &");
+  strcat(command,"; auto ");
+  strcat(command,fileName);
+  strcat(command,".auto");
   system(command);
 }
 
@@ -8157,7 +8159,7 @@ void   clselCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
     strcpy(command,"cd $AUTO_DIR/demos/");
     strcat(command,GP.demoFileName);
-    strcat(command,"; make clean &");
+    strcat(command,"; auto clean.auto &");
     system(command);
   }
   else
