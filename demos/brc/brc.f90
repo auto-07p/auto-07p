@@ -6,21 +6,20 @@
 ! (Discretized in space by polynomial collocation at Chebyshev points)
 !---------------------------------------------------------------------- 
 !----------------------------------------------------------------------
-! NOTE: The values of the constants NE and NN are defined in the module
-!       brc below.
+! NOTE: The value of the constant NE is defined in the module brc below.
 !
 !      NE  :  the dimension of the PDE system
-!      NN  :  the number of Chebyshev collocation points in space 
 !
-! The AUTO-constant NDIM must be set equal to the value of NE*NN
+!      NN  :  the number of Chebyshev collocation points in space is
+!             determined by the AUTO-constant NDIM:
+!             NN = NDIM/NE
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
 
       MODULE brc
         SAVE
-        INTEGER, PARAMETER :: NE=2, NN=6
-        INTEGER, PARAMETER :: NP=NN+1
-        DOUBLE PRECISION D2(NN,0:NP)
+        INTEGER, PARAMETER :: NE=2
+        DOUBLE PRECISION, ALLOCATABLE :: D2(:,:)
       END MODULE brc
 
       SUBROUTINE FF(NE,U,PAR,F) 
@@ -86,10 +85,10 @@
       USE brc
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: NDIM
-      DOUBLE PRECISION, INTENT(INOUT) :: U(NN,NE),PAR(*)
+      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM/NE,NE),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
 
-      INTEGER I
+      INTEGER I,NN
       DOUBLE PRECISION A,B,Dx,Dy,RL
 
 ! Set the parameter values
@@ -106,6 +105,7 @@
         PAR(5)=RL
 
 ! Set the starting solution at the Chebyshev collocation points
+        NN=NDIM/NE
         DO I=1,NN
           U(I,1)=A
           U(I,2)=B/A
@@ -123,20 +123,17 @@
 
       USE brc
       IMPLICIT NONE
-      LOGICAL, SAVE :: ifrst = .TRUE.
       INTEGER, INTENT(IN) :: NDIM, ICP(*), IJAC
-      DOUBLE PRECISION, INTENT(IN) :: U(NN,NE), PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NN,NE)
+      DOUBLE PRECISION, INTENT(IN) :: U(NDIM/NE,NE), PAR(*)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM/NE,NE)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
 
       DOUBLE PRECISION W(NE),FW(NE),DC(NE),U0(NE),U1(NE)
-      INTEGER I,J,K
+      INTEGER I,J,K,NN,NP
 
 ! Problem-independent initialization :
-        IF(ifrst)THEN
-          CALL GENCF(PAR)
-          ifrst=.FALSE.
-        ENDIF
+        NN=NDIM/NE
+        NP=NN+1
 
         CALL SETDC(NE,DC,PAR)
         CALL SETBC(NE,PAR,U0,U1)
@@ -156,14 +153,24 @@
 
       END SUBROUTINE FUNC
 
-      SUBROUTINE GENCF(PAR)
+      SUBROUTINE GENCF(PAR,NN)
 !     ---------- -----
 
       USE brc
       IMPLICIT NONE
-      INTEGER, PARAMETER :: M=NN+2
-      DOUBLE PRECISION X(M),XX(M,M),CC(M,M),RI(M,M),PAR(*),pi,C,DET
-      INTEGER IR(M),IC(M),I,J,K
+      INTEGER, INTENT(IN) :: NN
+      DOUBLE PRECISION, INTENT(IN) :: PAR(*)
+
+      DOUBLE PRECISION, ALLOCATABLE :: X(:),XX(:,:),CC(:,:),RI(:,:)
+      INTEGER, ALLOCATABLE :: IR(:),IC(:)
+
+      DOUBLE PRECISION pi,C,DET
+      INTEGER I,J,K,M,NP
+
+        NP=NN+1
+        M=NN+2
+        ALLOCATE(D2(NN,0:NP))
+        ALLOCATE(X(M),XX(M,M),CC(M,0:NP),RI(M,M),IR(M),IC(M))
 
         pi=4*ATAN(1.d0)
         X(1)=0.d0
@@ -184,13 +191,14 @@
         CALL GE(0,M,M,XX,M,M,CC,M,RI,IR,IC,DET) 
 
         DO I=1,NN
-          DO J=1,M
-            D2(I,J-1)=0.d0
+          DO J=0,NP
+            D2(I,J)=0.d0
             DO K=2,M-1
-              D2(I,J-1)=D2(I,J-1)+CC(K+1,J)*K*(K-1)*X(I+1)**(K-2)
+              D2(I,J)=D2(I,J)+CC(K+1,J)*K*(K-1)*X(I+1)**(K-2)
             ENDDO
           ENDDO
         ENDDO
+        DEALLOCATE(X,XX,CC,RI,IR,IC)
 
       END SUBROUTINE GENCF
 
@@ -205,5 +213,20 @@
 !---------------------------------------------------------------------- 
 !---------------------------------------------------------------------- 
 
-      SUBROUTINE PVLS
+      SUBROUTINE PVLS(NDIM,U,PAR)
+!     ---------- ----
+
+      USE brc
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NDIM
+      DOUBLE PRECISION, INTENT(IN) :: U(NDIM)
+      DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+      LOGICAL, SAVE :: ifrst = .TRUE.
+
+! Problem-independent initialization :
+      IF(ifrst)THEN
+         CALL GENCF(PAR,NDIM/NE)
+         ifrst=.FALSE.
+      ENDIF
+
       END SUBROUTINE PVLS
