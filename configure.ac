@@ -112,14 +112,20 @@ AC_LINK_IFELSE([F2KPROG],,[
    FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
 AC_SUBST(COMPAT)
 AC_MSG_RESULT([$COMPAT.f90])
-# Use gfortran/g95 to link wrapper functions if possible.
-# It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
-# because of spaces in names such as 'Program Files'
+AC_FC_DUMMY_MAIN([fc_dummy="yes"],[fc_dummy="no"])
 realcc=$CC
-if test x$ac_cv_fc_compiler_gnu = "xyes"; then
-  CC=$FC
+if test x$fc_dummy = "xno"; then
+    # Use gfortran/g95 to link wrapper functions if possible.
+    # It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
+    # because of spaces in names such as 'Program Files'
+    CC=$FC
+    # avoid caching previous result
+    $as_unset ac_cv_fc_dummy_main
+    AC_FC_DUMMY_MAIN([fc_dummy="yes"],[fc_dummy="no"])
 fi
-AC_FC_DUMMY_MAIN(,[echo "Warning: can't link C with Fortran"])
+if test x$fc_dummy = "xno"; then
+    AC_MSG_WARN(["Warning: can't link C with Fortran"])
+fi
 AC_FC_WRAPPERS
 CC=$realcc
 if test x$openmp = "xyes"; then
