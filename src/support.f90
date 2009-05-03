@@ -138,6 +138,7 @@ CONTAINS
 
 !   Elimination.
 
+    amax = 0
     DO JJ=1,N-K
        IPIV=JJ
        JPIV=JJ

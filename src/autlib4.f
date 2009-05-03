@@ -68,9 +68,9 @@ C  pencil" method. This routine is called by the AUTO routine FNSPBV
 C
 C  Parameter declarations:
 C
-      INTEGER           NDIM, IID
-      DOUBLE PRECISION  P0(NDIM, NDIM), P1(NDIM, NDIM)
-      COMPLEX(KIND(1.0D0)) EV(*)
+      INTEGER, INTENT(IN) :: NDIM, IID
+      DOUBLE PRECISION, INTENT(IN) :: P0(NDIM, NDIM), P1(NDIM, NDIM)
+      COMPLEX(KIND(1.0D0)), INTENT(OUT) :: EV(NDIM)
 C
 C  Local declarations:
 C
@@ -314,10 +314,11 @@ C       First Edition, Pages 38-43
 C
       SUBROUTINE DHHPR ( K, J, N, X, INCX, BETA, V )
 C     .. Scalar Arguments ..
-      INTEGER            J, K, N, INCX
+      INTEGER, INTENT(IN) :: J, K, N, INCX
       DOUBLE PRECISION, INTENT(OUT) :: BETA
 C     .. Array Arguments ..
-      DOUBLE PRECISION   X( * ), V( * )
+      DOUBLE PRECISION, INTENT(IN) :: X( * )
+      DOUBLE PRECISION, INTENT(INOUT) :: V( * )
 C     ..
 C
 C  Purpose
@@ -451,10 +452,11 @@ C
       END SUBROUTINE DHHPR
       SUBROUTINE DHHAP ( K, J, N, Q, BETA, V, JOB, A, LDA )
 C     .. Scalar Arguments ..
-      INTEGER            J, K, N, Q, JOB, LDA
-      DOUBLE PRECISION   BETA
+      INTEGER, INTENT(IN) :: J, K, N, Q, JOB, LDA
+      DOUBLE PRECISION, INTENT(IN) :: BETA
 C     .. Array Arguments ..
-      DOUBLE PRECISION   V( * ), A( LDA, * )
+      DOUBLE PRECISION, INTENT(IN) :: V( * )
+      DOUBLE PRECISION, INTENT(INOUT) :: A( LDA, * )
 C     ..
 C
 C  Purpose
