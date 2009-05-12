@@ -188,7 +188,7 @@ CONTAINS
     LOGICAL, INTENT(OUT) :: EOF
     CHARACTER(12) FMT
 !
-    WRITE(FMT,'(AI9A)')'(',NSKIP-1,'/)'
+    WRITE(FMT,'(A,I9,A)')'(',NSKIP-1,'/)'
     EOF=.TRUE.
     READ(IUNIT,FMT,END=2)
     EOF=.FALSE.
