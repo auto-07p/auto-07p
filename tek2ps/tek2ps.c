@@ -2,11 +2,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "tek.h"
-
-extern char	*optarg;
-extern int	optind;
-extern double	atof();
 
 /* output filter for tektronics 4010-graphics files to generate postscript
  * files.  This does a simple-minded byte by byte translation to predefined
@@ -17,7 +14,7 @@ extern double	atof();
  * prolog:	as specified 12 lines below
  */
 
-main(argc, argv)
+int main(argc, argv)
 	int	argc;
 	char	*argv[];
 {
@@ -518,5 +515,6 @@ main(argc, argv)
 	} /* end of main input loop */
 	fprintf(stdout,"showpage\n");
 	} while ( ++optind < argc );
+	return 0;
 }
 
