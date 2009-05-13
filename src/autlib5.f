@@ -1192,7 +1192,9 @@ C        Use the usual representation again for normal continuation.
          CALL CPBKHO(NTSR,NCOLRS,NAR,NDM,TM,UPS,UDOTPS,PAR)
       ENDIF
 C     Look for rotations
-      CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+      IF(IEQUIB.GE.0)THEN
+         CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+      ENDIF
       IF (ISTART.LT.0 .AND. .NOT.(NAR.LT.NDIM .AND. NAR.LT.3*NDM)) THEN
 C        Adjust rotations
         IF(IRTN.EQ.0)ALLOCATE(NRTN(NDM))
@@ -1468,7 +1470,9 @@ C
 C
 C Initialize solution and additional parameters
 C
-          CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+          IF(IEQUIB.GE.0)THEN
+             CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+          ENDIF
        ENDIF
 C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
