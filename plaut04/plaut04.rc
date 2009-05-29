@@ -115,10 +115,12 @@ Object Color             = 1.0,  0.0,   0.0
 Object Radius        = 1.0
 
 # Set the maximum and minimum animation speed:
+Object Animation Speed = 50
 Object Max Animation Speed = 100
 Object Min Animation Speed = 0
 
 # Set the maximum and minimum highlighting animation speed:
+Orbit Animation Speed = 50
 Orbit Max Animation Speed = 100
 Orbit Min Animation Speed = 0
 

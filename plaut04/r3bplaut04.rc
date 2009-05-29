@@ -129,11 +129,13 @@ Large Primary Radius    = 1.0
 Small Primary Radius    = 1.0
 Libration Point Size    = 1.0
 
-# Set the maximum and minimum satellite animation speed:
+# Set the initial, maximum and minimum satellite animation speed:
+Sat Animation Speed = 100
 Sat Max Animation Speed = 100
 Sat Min Animation Speed = 0
 
-# Set the maximum and minimum orbit-change animation speed:
+# Set the initial, maximum and minimum orbit-change animation speed:
+Orbit Animation Speed = 50
 Orbit Max Animation Speed = 100
 Orbit Min Animation Speed = 0
 

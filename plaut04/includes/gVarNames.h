@@ -20,12 +20,15 @@
         "Line Width Scaler",
         "AniLine Thickness Scaler",
 #ifndef R3B
+        "Object Animation Speed",
         "Object Max Animation Speed",
         "Object Min Animation Speed",
 #else
+        "Sat Animation Speed",
         "Sat Max Animation Speed",
         "Sat Min Animation Speed",
 #endif
+        "Orbit Animation Speed",
         "Orbit Max Animation Speed",
         "Orbit Min Animation Speed",
         "Coordinate Type",
