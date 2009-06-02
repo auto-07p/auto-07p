@@ -75,9 +75,9 @@ SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
         double pos1 = 1-mass;
         double pos2 = -mass;
         char *txtureFileName = new char [strlen(autoDir) + 30];
-        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/large.rgb");
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/large.jpg");
         result->addChild(createPrimary(1-mass, pos2, 0.25*largePrimRadius, txtureFileName));
-        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/small.rgb");
+        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/small.jpg");
         result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName));
         delete [] txtureFileName;
     }

@@ -432,7 +432,7 @@ createSolutionSceneWithWidgets()
     if(options[OPT_BACKGROUND])
     {
         char *bgFileName = new char [strlen(autoDir) + 34];
-        sprintf(bgFileName, "%s%s",autoDir, "/plaut04/widgets/background.rgb");
+        sprintf(bgFileName, "%s%s",autoDir, "/plaut04/widgets/background.jpg");
         result->addChild(drawStarryBackground(bgFileName));
         delete [] bgFileName;
     }
