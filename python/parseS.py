@@ -642,7 +642,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         return SLPoint(ret, self, key)
 
     def __call__(self, p=None, coords=None):
-        if not p:
+        if p is None:
             return(str(self))
         return Points.Pointset.__call__(self, p, coords)
 

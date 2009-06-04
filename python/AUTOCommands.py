@@ -1224,11 +1224,11 @@ def load(data=None,runner=None,templates=None,**kw):
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
     if runner is None:
-        if isinstance(data, parseS.parseS):
-            kw["s"] = data
-            data = None
-        elif isinstance(data, (runAUTO.runAUTO,bifDiag.bifDiag)):
+        if isinstance(data, (runAUTO.runAUTO,bifDiag.bifDiag)):
             runner = data
+            data = None
+        elif hasattr(data,"__len__") and not isinstance(data, str):
+            kw["s"] = data
             data = None
     if data is not None:
         for key in ["equation", "constants", "solution", "homcont"]:
