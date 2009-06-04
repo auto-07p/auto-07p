@@ -7,12 +7,17 @@ C
       IMPLICIT NONE
       include 'fcon.h'
 C
-      INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J
+      INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J,ios
       DOUBLE PRECISION RLDOT(1),TEMP,T,PERIOD
       DOUBLE PRECISION, ALLOCATABLE :: U(:),TM(:),UPS(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),PAR(:)
 C
-       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential')
+       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+       IF(ios/=0)THEN
+          WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ',
+     *         'could not be found.'
+          STOP
+       ENDIF
        OPEN(3,FILE='fort.3',STATUS='unknown',ACCESS='sequential')
        OPEN(8,FILE='fort.8',STATUS='unknown',ACCESS='sequential')
 C
@@ -63,7 +68,6 @@ C
 C Reads the file of continuation constants
 C
       INTEGER KEYEND,POS,NPOS
-      LOGICAL EOF,KEYS
       INTEGER LINE
 C
 C Defaults
@@ -77,13 +81,10 @@ C
 
       LINE=0
       NPOS=1
-      KEYS=.FALSE.
       scanloop: DO
          IF(NPOS==1)THEN
             LINE=LINE+1
-            EOF=.TRUE.
             READ(2,'(A)',END=1) STR
-            EOF=.FALSE.
          ELSE
             STR=STR(NPOS:)
          ENDIF
@@ -99,7 +100,6 @@ C
             IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR.
      &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
                STR=STR(I:)
-               KEYS=.TRUE.
                EXIT
             ELSE
                EXIT scanloop
@@ -109,7 +109,6 @@ C
                CYCLE scanloop
             ENDIF
          ENDDO
-         EOF=.FALSE.
          ! look for = after keyword
          KEYEND=SCAN(STR,'= ')-1
          IF(KEYEND==-1)THEN
@@ -139,16 +138,14 @@ C
          END SELECT
       ENDDO scanloop
 
- 1    IF(EOF.AND..NOT.KEYS)GOTO 5
       BACKSPACE 2
-
-      READ(2,*,ERR=3,END=5) NDIM,IPS
+      READ(2,*,ERR=3,END=4) NDIM,IPS
       LINE=LINE+1
       READ(2,*,ERR=3,END=4)
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NTST,NCOL,ISW,ISW,ISW
 
- 2    CONTINUE
+ 1    CONTINUE
       RETURN
  3    WRITE(6,"(A,I2,A)")
      *     " Error in fort.2 or c. file: bad value on line ",
@@ -157,8 +154,7 @@ C
  4    WRITE(6,"(A,I2,A)")
      *     " Error in fort.2 or c. file: ends prematurely on line ",
      *     LINE,"."
- 5    BACKSPACE 2
-      IF(.NOT.EOF.OR.KEYS)GOTO 2
+      STOP
       END SUBROUTINE INIT
 
 C     ------- -------- ---------

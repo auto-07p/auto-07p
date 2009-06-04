@@ -548,12 +548,11 @@ C
 
       NPOS=1
       KEYS=.FALSE.
+      EOF=.FALSE.
       scanloop: DO
          IF(NPOS==1)THEN
             LINE=LINE+1
-            EOF=.TRUE.
-            READ(2,'(A)',END=1) STR
-            EOF=.FALSE.
+            READ(2,'(A)',END=5) STR
          ELSE
             STR=STR(NPOS:)
          ENDIF
@@ -580,7 +579,6 @@ C
                CYCLE scanloop
             ENDIF
          ENDDO
-         EOF=.FALSE.
          ! look for = after keyword
          KEYEND=SCAN(STR,'= ')-1
          IF(KEYEND==-1)THEN
@@ -682,8 +680,7 @@ C
          END SELECT
       ENDDO scanloop
 
- 1    IF(EOF.AND..NOT.KEYS)RETURN
-      NDIM=IAP(1)
+ 1    NDIM=IAP(1)
       IPS=IAP(2)
       IRS=IAP(3)
       ILP=IAP(4)
@@ -854,6 +851,8 @@ C
      *     LINE,"."
       EOF=.TRUE.
       RETURN
+ 5    EOF=.TRUE.
+      IF(KEYS)GOTO 1
       END SUBROUTINE INIT
 
 C     ---------- ---------
