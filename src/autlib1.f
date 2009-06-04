@@ -679,7 +679,6 @@ C
       ENDDO scanloop
 
  1    IF(EOF.AND..NOT.KEYS)GOTO 5
-      BACKSPACE 2
       NDIM=IAP(1)
       IPS=IAP(2)
       IRS=IAP(3)
@@ -714,6 +713,8 @@ C
       EPSU=RAP(12)
       EPSS=RAP(13)
 
+      IF(EOF)GOTO 5 ! avoid backspace, then reading at EOF.
+      BACKSPACE 2
       READ(2,*,ERR=3,END=5) NDIM,IPS,IRS,ILP
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NICP
