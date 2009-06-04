@@ -11,7 +11,7 @@ C$    USE OMP_LIB
 C
       IMPLICIT NONE
 C
-      LOGICAL EOF
+      LOGICAL EOF,KEYS
 C Local
       INTEGER IAP(NIAP)
       DOUBLE PRECISION RAP(NRAP),TIME0,TIME1,TOTTIM
@@ -43,7 +43,7 @@ C
           STOP
        ENDIF
 C
-       EOF=.FALSE.
+       KEYS=.FALSE.
        LINE=0
  1     IF(MPIKWT()>1)THEN
          CALL MPITIM(TIME0)
@@ -51,7 +51,7 @@ C
          TIME0=AUTIM()
 C$       TIME0=omp_get_wtime()
        ENDIF
-       CALL INIT(IAP,RAP,EOF,LINE)
+       CALL INIT(IAP,RAP,EOF,KEYS,LINE)
        IF(FIRST)THEN
           IF(SVFILE/='')THEN
              BIFFILE='b.'//SVFILE
@@ -487,7 +487,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE INIT(IAP,RAP,EOF,LINE)
+      SUBROUTINE INIT(IAP,RAP,EOF,KEYS,LINE)
 C
       USE AUTO_CONSTANTS
       USE HOMCONT, ONLY : INSTRHO
@@ -499,6 +499,7 @@ C
       INTEGER, INTENT(OUT) :: IAP(*)
       DOUBLE PRECISION, INTENT(OUT) :: RAP(*)
       LOGICAL, INTENT(OUT) :: EOF
+      LOGICAL, INTENT(INOUT) :: KEYS
       INTEGER, INTENT(INOUT) :: LINE
 C
       INTEGER IBR,I,J,IUZR,NFPR,NDM
@@ -507,7 +508,6 @@ C
       CHARACTER(LEN=2048) :: STR
       CHARACTER(LEN=1) :: C,PREV
       INTEGER KEYEND,POS,LISTLEN,NPOS,LISTLEN2,IERR
-      LOGICAL KEYS
 
       TYPE INDEXSTRL
          CHARACTER(13) INDEX
@@ -530,6 +530,10 @@ C
      * 0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,
      * 0d0, 1d-7, 1d-7, 1d-5 /)
 C
+      IF(KEYS)THEN
+         EOF=.TRUE.
+         RETURN
+      ENDIF
       IAP(1:23)=IDEFAULTS(:)
       RAP(1:13)=RDEFAULTS(:)
       RAP(6)=-HUGE(1d0)*0.99995d0 !avoid rounding up in sthd
@@ -678,7 +682,7 @@ C
          END SELECT
       ENDDO scanloop
 
- 1    IF(EOF.AND..NOT.KEYS)GOTO 5
+ 1    IF(EOF.AND..NOT.KEYS)RETURN
       NDIM=IAP(1)
       IPS=IAP(2)
       IRS=IAP(3)
@@ -713,9 +717,9 @@ C
       EPSU=RAP(12)
       EPSS=RAP(13)
 
-      IF(EOF)GOTO 5 ! avoid backspace, then reading at EOF.
+      IF(EOF)GOTO 2 ! completely new-style, just keys
       BACKSPACE 2
-      READ(2,*,ERR=3,END=5) NDIM,IPS,IRS,ILP
+      READ(2,*,ERR=3,END=4) NDIM,IPS,IRS,ILP
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NICP
       IF(NICP.GT.0)THEN
@@ -769,6 +773,7 @@ C
           READ(2,*,ERR=3,END=4)IVUZR(I)%INDEX,IVUZR(I)%VAR(1)
         ENDDO
       ENDIF
+      KEYS=.FALSE.
 C
  2    IAP(1)=NDIM
       IAP(2)=IPS
@@ -847,8 +852,7 @@ C
  4    WRITE(6,"(A,I2,A)")
      *     " Error in fort.2 or c. file: ends prematurely on line ",
      *     LINE,"."
- 5    BACKSPACE 2
-      IF(.NOT.EOF.OR.KEYS)GOTO 2
+      EOF=.TRUE.
       RETURN
       END SUBROUTINE INIT
 
