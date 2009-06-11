@@ -1294,8 +1294,11 @@ C          ** Continuation of torus bifurcations; restart
            NBC=NDIM
            NINT=3
            NFPR=NBC+NINT-NDIM+1
-           ICP(3)=11
-           ICP(4)=12
+           IF(NICP.LT.4)THEN
+C            **If not specified by user
+             ICP(3)=11
+             ICP(4)=12
+           ENDIF
 C
          ELSE IF( (ITP==5) .AND. (IPS==4.OR.IPS==7) )
      *   THEN
