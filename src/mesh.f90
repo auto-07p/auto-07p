@@ -396,10 +396,14 @@ CONTAINS
 
 ! Generate the new mesh in TMNEW :
 
-    J=1
-    DO J1=0,NNEW-1
+! Assign TMNEW(0) and TMNEW(NNEW) explicitly because of loss of precision
+! problems when the corresponding EQF values are very close
 
-! EQF is an ascending array with values in [0,1]. Get the
+    TMNEW(0)=TMOLD(0)
+    J=1
+    DO J1=1,NNEW-1
+
+! EQF is an ascending array with values in [0,EQF(NOLD)]. Get the
 ! value of the index of the TM-interval in which EQF(i) lies.
        UNEQ=J1*DAL
        DO
@@ -411,9 +415,6 @@ CONTAINS
        X=(UNEQ-EQF(J))/(EQF(J+1)-EQF(J))
        TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
     ENDDO
-
-! Assign TMNEW(NNEW) explicitly because of loss of precision
-! problems when EQF(NOLD) and EQF(NOLD-1) are very close
 
     TMNEW(NNEW)=TMOLD(NOLD)
 
