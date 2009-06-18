@@ -23,6 +23,10 @@ print "\n%s : fifth run : a branch of torus bifurcations"%pgm
 r5 = run(r4,ITNW=7)
 save(r5,'tor')
 
+print "\n%s : sixth run : a 3-parameter branch fixing the angle"%pgm
+r6 = run(r4,ITNW=7,ICP=[1,2,3,11])
+save(r6,'tor3')
+
 print "\n***Clean the directory***"
 cl()
 
