@@ -705,7 +705,7 @@ drawLabelPtsInBifurcationScene()
         {
             SoMaterial *lblMtl;
 
-            int k = lblIndices[i]-1;
+            int k = lblIndices[i];
             row = clientData.labelIndex[k][1];
             lbType = clientData.labelIndex[k][2];
 
