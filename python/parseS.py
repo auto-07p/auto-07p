@@ -399,6 +399,7 @@ class AUTOParameters(Points.Point):
 class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
+        par = None
         if isinstance(input,self.__class__):
             runAUTO.runAUTO.__init__(self,input,**kw)
             if kw == {}:
@@ -545,7 +546,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         for k,v in kw.items():
             if k in self.data_keys and k not in ["ISW","NTST","NCOL"]:
                 self[k] = v
-        par = kw.get("PAR",c.get("PAR"))
+        if par is None:
+            par = kw.get("PAR",c.get("PAR"))
         if (par is not None and
             (self.__start_of_header is not None or self.__fullyParsed)):
             self["PAR"] = par
