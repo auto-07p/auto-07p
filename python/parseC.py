@@ -253,7 +253,7 @@ class parseC(dict):
                 value = d                
             elif key in ['s','dat','sv','e','SP']:
                 pass
-            elif key in self.keys():
+            elif key in self:
                 if key[0] in ['I','J','K','L','M','N']:
                     if value[0] == '*':
                         value = 10**len(value)

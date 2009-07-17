@@ -13,10 +13,7 @@ class OptionHandler:
         self.__baseClass = baseClass
 
     def __applyOptionAliases(self,key):
-        if key in self.__optionAliases.keys():
-            return self.__optionAliases[key]
-        else:
-            return key
+        return self.__optionAliases.get(key,key)
 
     def __parseOptions(self,dict):
         for key in list(dict):
@@ -93,6 +90,6 @@ class OptionHandler:
     def simpleOptionDictionary(self):
         options = self.configure()
         dict={}
-        for key in options.keys():
+        for key in options:
             dict[key] = self.cget(key)
         return dict

@@ -88,7 +88,7 @@ class bifDiag(parseB.parseBR):
                     options = options.copy()
                     c = parseC.parseC(options["constants"])
                     options["constants"] = c
-                    for k in c.keys():
+                    for k in c:
                         if k in nonekeys:
                             c[k] = None              
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):

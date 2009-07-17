@@ -832,7 +832,7 @@ class GUIGrapher(InteractiveGrapher):
     def __interactiveConfigureDialog(self):
         diag = Pmw.Dialog(self,buttons=("Ok","Cancel"))
         options = []
-        for key in self.configure().keys():
+        for key in self.configure():
             if self._isInternalOption(key):
                 options.append(self.configure(key)[0])
 

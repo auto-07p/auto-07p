@@ -432,7 +432,7 @@ class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
         widget=self.canvas.get_tk_widget()
         diag = Pmw.Dialog(widget,buttons=("Ok","Cancel"))
         options = []
-        for key in self.configure().keys():
+        for key in self.configure():
             if self._isInternalOption(key):
                 options.append(self.configure(key)[0])
 

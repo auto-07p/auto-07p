@@ -64,7 +64,7 @@ class AUTOSimpleFunctions:
             commandname = truecommandname
             doc = doc + "Command name: "+commandname+"\n"
         doc = doc + "Aliases: "
-        for key in self._aliases.keys():
+        for key in self._aliases:
             if self._aliases[key] == commandname:
                 doc = doc + key + " "
         return doc

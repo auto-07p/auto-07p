@@ -1263,7 +1263,7 @@ def loadbd(name=None,templates=None,**kw):
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
             abbrev[key[0]] = key
             abbrev[key]    = key
-        for key in list(kw.keys()):
+        for key in list(kw):
             # remove long duplicates
             if (key in abbrev and key != abbrev[key] and
                 abbrev[key] in kw):

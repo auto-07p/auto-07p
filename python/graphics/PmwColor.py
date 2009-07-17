@@ -322,7 +322,7 @@ def _recolorTree(widget, oldpalette, newcolors):
     # are named after widget configuration options and the values are
     # the new value for that option.
 
-    for dbOption in newcolors.keys():
+    for dbOption in newcolors:
         option = dbOption.lower()
         try:
             value = str(widget.cget(option))

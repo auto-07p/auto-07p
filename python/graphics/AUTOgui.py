@@ -52,7 +52,7 @@ class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
 
     def create(self,messageFunc=None,textFunc=None,runner=None):
         keys = AUTOCommands.__dict__.keys()
-        self.simple(keys)
+        self.simple()
 
     def simple(self,keys):
         self.addSimpleCommands([AUTOCommands])

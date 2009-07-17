@@ -610,7 +610,7 @@ class MegaArchetype:
         if self._initialiseoptions_counter == 0:
             unusedOptions = []
             keywords = self._constructorKeywords
-            for name in keywords.keys():
+            for name in keywords:
                 used = keywords[name][1]
                 if not used:
                     # This keyword argument has not been used.  If it
@@ -875,7 +875,7 @@ class MegaArchetype:
 
         componentAliases = self.__componentAliases
 
-        names = componentAliases.keys()
+        names = list(componentAliases)
         names.sort()
         rtn = []
         for alias in names:
@@ -1825,7 +1825,7 @@ def _reporterror(func, args):
     # If the argument to the callback is an event, add the event type.
     if eventArg:
         eventNum = int(args[0].type)
-        if eventNum in _eventTypeToName.keys():
+        if eventNum in _eventTypeToName:
             msg = msg + '  Event type: %s (type num: %d)\n' % \
                     (_eventTypeToName[eventNum], eventNum)
         else:
@@ -1842,7 +1842,7 @@ def _reporterror(func, args):
     if eventArg:
         msg = msg + '\n================================================\n'
         msg = msg + '  Event contents:\n'
-        keys = args[0].__dict__.keys()
+        keys = list(args[0].__dict__)
         keys.sort()
         for key in keys:
             msg = msg + '    %s: %s\n' % (key, args[0].__dict__[key])
@@ -2969,7 +2969,7 @@ class EntryField(MegaWidget):
 
                 for sequence in sequences:
                     allSequences[sequence] = None
-            for sequence in allSequences.keys():
+            for sequence in allSequences:
                 root.bind_class('EntryFieldPre', sequence, _preProcess)
                 root.bind_class('EntryFieldPost', sequence, _postProcess)
 
@@ -3063,10 +3063,10 @@ class EntryField(MegaWidget):
 
         if function is not None and not hasattr(function, '__call__'):
             extraValidators = self['extravalidators']
-            extra = extraValidators.keys()
+            extra = list(extraValidators)
             extra.sort()
             extra = tuple(extra)
-            standard = _standardValidators.keys()
+            standard = list(_standardValidators)
             standard.sort()
             standard = tuple(standard)
             msg = 'bad %s value "%s":  must be a function or one of ' \
@@ -3797,13 +3797,13 @@ class MenuBar(MegaWidget):
         self.destroycomponent(menuName + '-menu')
 
     def disableall(self):
-        for menuName in self._menuInfo.keys():
+        for menuName in self._menuInfo:
             if self._menuInfo[menuName][0] is None:
                 menubutton = self.component(menuName + '-button')
                 menubutton.configure(state = 'disabled')
 
     def enableall(self):
-        for menuName in self._menuInfo.keys():
+        for menuName in self._menuInfo:
             if self._menuInfo[menuName][0] is None:
                 menubutton = self.component(menuName + '-button')
                 menubutton.configure(state = 'normal')
@@ -3906,7 +3906,7 @@ class MenuBar(MegaWidget):
 
         hotkeyList = []
         if menuName is None:
-            for menuName in self._menuInfo.keys():
+            for menuName in self._menuInfo:
                 if self._menuInfo[menuName][0] is None:
                     menubutton = self.component(menuName + '-button')
                     underline = int(str(menubutton.cget('underline')))
@@ -4320,7 +4320,7 @@ class NoteBook(MegaArchetype):
             }
 
         # Divide the keyword options into the 'page_' and 'tab_' options.
-        for key in kw.keys():
+        for key in list(kw):
             if key[:5] == 'page_':
                 pageOptions[key[5:]] = kw[key]
                 del kw[key]
@@ -8760,7 +8760,7 @@ class Counter(MegaWidget):
         elif hasattr(datatype, '__call__'):
             self._counterCommand = datatype
         else:
-            validValues = _counterCommands.keys()
+            validValues = list(_counterCommands)
             validValues.sort()
             raise ValueError(('bad datatype value "%s":  must be a' +
                     ' function or one of %s') % (datatype, validValues))

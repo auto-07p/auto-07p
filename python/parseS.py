@@ -420,7 +420,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if names != {}:
                     l = len(self.__parnames)
                     self.__parnames = []
-                    for i in range(1,max(names.keys())+1,l+1):
+                    for i in range(1,max(names)+1,l+1):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             if self.__fullyParsed:
                 self.PAR = AUTOParameters(coordnames=self.__parnames,
@@ -454,7 +454,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if type(names) != type({}):
                     names = dict(names)
                 if names != {}:
-                    for i in range(1,max(names.keys())+1):
+                    for i in range(1,max(names)+1):
                         self.coordnames.append(names.get(i,'U('+str(i)+')'))
             names = kw.get("parnames",c.get("parnames"))
             self.__parnames = []
@@ -462,7 +462,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if type(names) != type({}):
                     names = dict(names)
                 if names != {}:
-                    for i in range(1,max(names.keys())+1):
+                    for i in range(1,max(names)+1):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
                               "ISW", "NTST", "NCOL", "Active ICP", "rldot",
@@ -514,7 +514,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                         #scale to [0,1]
                         for i in range(len(indepvararray)):
                             indepvararray[i] = (indepvararray[i] - t0)/period
-                    if 11 not in dict(par).keys():
+                    if 11 not in dict(par):
                         par = [[11,period]] + par
                 indepvarname = "t"
                 coordnames = []
@@ -539,7 +539,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 self.__fullyParsed = True
                 self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1})
                 if par != []:
-                    p = max(dict(par).keys())*[0.0]
+                    p = max(dict(par))*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
         self.options["solution"] = self
@@ -555,7 +555,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
     def __str__(self):
         if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
-        keys = self.data.keys()
+        keys = list(self.data)
         for key in ["BR","PT","LAB","TY number","ISW","NTST","NCOL"]:
             keys.remove(key)
         keys.sort()

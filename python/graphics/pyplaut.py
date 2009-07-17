@@ -77,7 +77,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "error_symbol": None }
         for k,v in self[self["default_option"]].items():
             dict[k] = v
-        for key in dict.keys():
+        for key in list(dict):
             # check if key was set in .autorc
             config = self.handle.config(key)
             if len(config) > 5 and config[5]:
@@ -534,7 +534,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 def exportFunctions(log=None):
     PyPlautFunctionsInstance = PyPlautInteractiveConsole()
     dict = {}
-    for name in PyPlautInteractiveConsole.__dict__.keys():
+    for name in PyPlautInteractiveConsole.__dict__:
         if name[0] != '_':
             dict[name] = getattr(PyPlautFunctionsInstance, name)
     return dict

@@ -56,11 +56,9 @@ def type_translation(type):
         type=type%10
     else:
         type=-((-type)%10)
-    if type in type_translation_dict.keys():
-        return type_translation_dict[type]
-    else:
-        return {"long name" : "Unknown type",
-                "short name" : "Unknown type"}
+    return type_translation_dict.get(type,
+                                     {"long name" : "Unknown type",
+                                      "short name" : "Unknown type"})
     
 def reverse_type_translation(type):
     """A little dictionary to transform human readable strings to types"""
@@ -389,7 +387,7 @@ class AUTOBranch(Points.Pointset):
             number = int(label[2:])
             i = 0
             for k,v in self.labels.sortByIndex():
-                if label[:2] in v.keys():
+                if label[:2] in v:
                     i  = i + 1
                     if i == number:
                         return self.getIndex(k)
@@ -569,7 +567,7 @@ class AUTOBranch(Points.Pointset):
                 pt = -pt
             tynumber = 0
             lab = 0
-            if i in self.labels.by_index.keys():
+            if i in self.labels.by_index:
                 for k,label in self.labels[i].items():
                     if k in all_point_types:
                         pt = label["PT"]
