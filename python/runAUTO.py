@@ -170,19 +170,20 @@ class runAUTO:
                 pass
         self.internalErr.write(text)
 
+    def __popen(self,args,stdin=None,stderr=None):
+        # subprocess.Popen wrapper:
+        return subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, 
+                                stderr=stderr, bufsize=1,
+                                universal_newlines=True)
+
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
         self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
         self.options["verbose_print"]('Finding processes to kill...')
         if "subprocess" in sys.modules:
-            p1 = subprocess.Popen(["ps","ww"], stdout=subprocess.PIPE,
-                                  universal_newlines=True)
-            p2 = subprocess.Popen(["grep",alarm_demo+".exe"], stdin=p1.stdout,
-                                  stdout=subprocess.PIPE,
-                                  universal_newlines=True)
-            p3 = subprocess.Popen(["grep","-v","grep"], stdin=p2.stdout,
-                                  stdout=subprocess.PIPE,
-                                  universal_newlines=True)
+            p1 = self.__popen(["ps","ww"])
+            p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
+            p3 = self.__popen(["grep","-v","grep"], p2.stdout)
             cout = p3.stdout
         else:
             cout,cin = popen2.popen2(
@@ -256,9 +257,7 @@ class runAUTO:
             os.remove(d+".exe")
         cmd = "make -e %s.exe"%d
         if "subprocess" in sys.modules:
-            p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 universal_newlines=True)
+            p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
             stdout,stderr = p.stdout,p.stderr
         else:
             stdout,stdin,stderr = popen2.popen3(cmd)
@@ -275,9 +274,7 @@ class runAUTO:
             os.chdir(self.options["dir"])
             cmd = "make -e clean"
             if "subprocess" in sys.modules:
-                p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE,
-                                     universal_newlines=True)
+                p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
                 stdout,stderr = p.stdout,p.stderr
             else:
                 stdout,stdin,stderr = popen2.popen3(cmd)
@@ -601,9 +598,7 @@ class runAUTO:
             # later on to see if it is still running.
             if "subprocess" in sys.modules:
                 args = os.path.expandvars(command).split()
-                demo_object = subprocess.Popen(args, stdout=subprocess.PIPE, 
-                                               stderr=subprocess.PIPE,
-                                               universal_newlines=True)
+                demo_object = self.__popen(args, stderr=subprocess.PIPE)
                 stdout, stderr = demo_object.stdout, demo_object.stderr
                 teststatus = None
             else:
