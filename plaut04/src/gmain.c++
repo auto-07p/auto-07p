@@ -2139,7 +2139,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
-                l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -2254,7 +2254,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     else if(coloringMethod == CL_LABELS)
     {
         anOrbit->addChild(setLineAttributesByParameterValue(
-                          l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                          l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                           stability, scaler));
     }
     else if(coloringMethod == CL_COMPONENT)
@@ -2333,7 +2333,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
-                l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -2385,7 +2385,7 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         else if(coloringMethod == CL_LABELS)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
-                              l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                              l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                               stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -2459,7 +2459,7 @@ drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si, float scaler, i
     else if(coloringMethod == CL_LABELS)
     {
         anOrbit->addChild(setLineAttributesByParameterValue(
-           l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+           l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
            stability, scaler));
     }
     else
@@ -2501,7 +2501,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
         else if(coloringMethod == CL_LABELS)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
-                l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -2605,7 +2605,7 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //          always set the first label blue, the last red, namely look all
 //          branches as one.
         anOrbit->addChild(setLineAttributesByParameterValue(
-                 l-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                 l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
                  stability, scaler));
     else if(coloringMethod == CL_COMPONENT)
         anOrbit->addChild(setLineAttributesByParameterValue(
@@ -4608,12 +4608,12 @@ setVariableDefaultValues()
     numPeriodAnimated = 1.0;
 
 #ifdef R3B
-    coloringMethod    = -5;
+    coloringMethod    = CL_STABILITY;
     largePrimRadius   = 1.0;
     smallPrimRadius   = 1.0;
     blMassDependantOption = false;
 #else
-    coloringMethod    = -1;
+    coloringMethod    = CL_COMPONENT;
 #endif
     satRadius         = 1.0;
 
