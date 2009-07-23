@@ -132,6 +132,7 @@ C
 C Find restart label and determine type of restart point.
 C or stop otherwise
 C
+      USE AUTO_CONSTANTS, ONLY: SIRS
       IMPLICIT NONE
       INTEGER IAP(*)
       CHARACTER(258) FILE
@@ -152,7 +153,7 @@ C
          IAP(3)=IRS
          IAP(29)=NFPR
          IF(.NOT.FOUND) THEN
-            WRITE(6,"(' Restart label ',I4,' not found')")IRS
+            WRITE(6,"(' Restart label ',A,' not found')")TRIM(SIRS)
             STOP
          ENDIF
          IAP(31)=MAX(NPARR,IAP(31))
@@ -507,7 +508,7 @@ C
       DOUBLE PRECISION BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=2048) :: STR
       CHARACTER(LEN=1) :: C,PREV
-      INTEGER KEYEND,POS,LISTLEN,NPOS,LISTLEN2,IERR
+      INTEGER KEYEND,POS,LISTLEN,NPOS,LISTLEN2,IERR,ios
 
       TYPE INDEXSTRL
          CHARACTER(13) INDEX
@@ -516,7 +517,7 @@ C
       TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
 
       CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
-     * "NDIM", "IPS ", "IRS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
+     * "NDIM", "IPS ", "    ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
      * "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",
      * "MXBF", "IID ", "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
       INTEGER, PARAMETER :: IDEFAULTS(23) = (/
@@ -604,6 +605,10 @@ C
             ENDIF
          ENDDO
          SELECT CASE(STR(1:KEYEND))
+         CASE('IRS')
+            READ(STR(POS:),*,ERR=3)SIRS
+            IAP(3)=1
+            READ(SIRS,*,IOSTAT=ios)IAP(3)
          CASE('ICP')
             NICP=LISTLEN
             DEALLOCATE(ICU)
@@ -717,6 +722,7 @@ C
       IF(EOF)GOTO 2 ! completely new-style, just keys
       BACKSPACE 2
       READ(2,*,ERR=3,END=4) NDIM,IPS,IRS,ILP
+      WRITE(SIRS,'(I13)')IRS
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NICP
       IF(NICP.GT.0)THEN

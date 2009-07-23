@@ -100,7 +100,7 @@ class parseS(list):
         irs = kw.get("IRS")
         if irs is None:
             irs = (kw.get("constants") or {}).get("IRS")
-        if irs in self.getLabels():
+        if irs in self.getLabels() or isinstance(irs,type("")):
             sol = self(irs)
         elif len(self) > 0 and irs is None:
             sol = self[-1]

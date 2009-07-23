@@ -460,6 +460,26 @@ CONTAINS
     
   END SUBROUTINE HEADNG
 
+! ------------ -------- ------
+  CHARACTER(2) FUNCTION LBTYPE(ITP)
+
+    ! returns the string label type corresponding to numerical type ITP
+    INTEGER, INTENT(IN) :: ITP
+
+    CHARACTER*2, PARAMETER :: ATYPESP(9) = &
+         (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
+    CHARACTER*2, PARAMETER :: ATYPESN(9) = &
+         (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
+
+    IF(MOD(ITP,10)>0)THEN
+       LBTYPE=ATYPESP(MOD(ITP,10))
+    ELSEIF(MOD(ITP,10)<0)THEN
+       LBTYPE=ATYPESN(-MOD(ITP,10))
+    ELSE
+       LBTYPE='  '
+    ENDIF
+  END FUNCTION LBTYPE
+
 ! ---------- ------
   SUBROUTINE WRLINE(IAP,PAR,ICU,IBR,NTOT,LAB,VAXIS,U)
 
@@ -471,10 +491,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: PAR(*),U(*),VAXIS
 ! Local
     CHARACTER*2 ATYPE
-    CHARACTER*2, PARAMETER :: ATYPESP(9) = &
-         (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
-    CHARACTER*2, PARAMETER :: ATYPESN(9) = &
-         (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
     CHARACTER(33) :: F69 ! (I4,I6,2X,A2,I5,**********ES14.5)
     CHARACTER(31) :: F7  ! (I4,I6,I4,I5,**********ES19.10)
     INTEGER MTOT,NDM,ITP,NICP,N1,N2,I
@@ -499,13 +515,7 @@ CONTAINS
     IF(ABS(NTOT).EQ.1)CALL HEADNG(IAP,ICU,7,NICP,N2)
     CALL HEADNG(IAP,ICU,9,N1,N2)
 
-    IF(MOD(ITP,10)>0)THEN
-       ATYPE=ATYPESP(MOD(ITP,10))
-    ELSEIF(MOD(ITP,10)<0)THEN
-       ATYPE=ATYPESN(-MOD(ITP,10))
-    ELSE
-       ATYPE='  '
-    ENDIF
+    ATYPE=LBTYPE(ITP)
 
     IF(NTOT>0)THEN
        MTOT=MOD(NTOT-1,9999)+1
@@ -589,6 +599,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE FINDLB(NAME,IAP,IRS,NFPR,NPAR,FOUND)
 
+    USE AUTO_CONSTANTS, ONLY: SIRS
     INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(INOUT) :: IRS
     INTEGER, INTENT(OUT) :: NFPR,NPAR
@@ -597,7 +608,8 @@ CONTAINS
 
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPARR
-    INTEGER ISW,ITPST,I,ios
+    INTEGER ISW,ITPST,I,ios,number
+    CHARACTER(2) :: ATYPE
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -615,14 +627,22 @@ CONTAINS
        STOP
     ENDIF
     I=0
+    READ(SIRS,'(A2,I11)',IOSTAT=ios)ATYPE,number
+    IF((LGE(ATYPE(1:1),'0').AND.LLE(ATYPE(1:1),'9')).OR.ATYPE(1:1)=='-')THEN
+       number=0
+    ENDIF
     DO
        I=I+1
        READ(3,*,END=2)IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST, &
             NCOL,NPARR
        IF(IBR>MBR)MBR=IBR
        IF(LAB>MLAB)MLAB=LAB
+       IF(ATYPE==LBTYPE(ITP))THEN
+          number=number-1
+          IF(number==0)IRS=LAB
+       ENDIF
 
-       IF((LAB==IRS.OR.IRS==-I).AND..NOT.FOUND)THEN
+       IF((LAB==IRS.OR.IRS==-I).AND..NOT.FOUND.AND.number==0)THEN
           IRS=LAB
           NFPR=NFPRR
           NPAR=NPARR
