@@ -87,7 +87,12 @@ def clean():
     """
     toclean = (glob.glob("fort.*") + glob.glob("*.o") + glob.glob("*.exe")+
                glob.glob("*.*~"))
+    # remove duplicates
+    files = []
     for f in toclean:
+        if f not in files:
+            files.append(f)
+    for f in files:
         os.remove(f)
     info("Deleting fort.* *.o *.exe *.*~ ... done\n")
 commandClean = command(clean,alias=['cl'])
