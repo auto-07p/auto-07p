@@ -1,0 +1,135 @@
+#version 0.0
+
+# Line colors are represented by RGB values from 0 to 1.0.
+# DEFAULT color is also used when animationLabel == 0, i.e.,
+# when showing all solutions and highlighting the solutions 
+# Point Type    RED  GREEN  BLUE
+DEFAULT       = 1.0,  1.0,  1.0, 0xffff
+BP            = 1.0,  0.0,  0.0, 0xffff
+LP ALG        = 0.0,  1.0,  0.0, 0xffff
+HB            = 0.0,  0.0,  1.0, 0xffff
+UZ4           = 1.0,  1.0,  0.0, 0xffff
+UZ-4          = 0.5,  0.5,  0.0, 0xffff
+LP DIF        = 0.0,  0.0,  0.5, 0xffff
+BP DIF        = 0.0,  0.5,  0.5, 0xffff
+PD            = 1.0,  0.0,  1.0, 0xffff
+TR            = 0.0,  1.0,  1.0, 0xffff
+EP            = 0.3,  0.0,  0.3, 0xffff
+MX            = 0.6,  0.0,  0.6, 0xffff
+OTHERS        = 1.0,  1.0,  1.0, 0xffff
+
+# Initialize the line pattern for showing stability:
+UNSTABLE LINE PATTERN = 0xffff
+STABLE LINE PATTERN   = 0xffff
+
+# Initialize the default options:
+Highlight Orbit       = No 
+Orbit Animation       = No 
+Normalize Data        = Yes 
+Draw Background       = No
+Draw Labels           = Yes
+
+# Initialize the default coordinate axes:
+#  0 --- None,
+#  1 --- at geometry center or origin
+#  2 --- at left and behind
+#  3 --- at left and ahead
+Coordinate Type = 3
+
+# Draw Scale:
+Draw Scale = Yes
+
+# Initialize the default graph type:
+#  0 --- Solution (fort.8)
+#  1 --- Bifurcation (fort.7)
+Graph Type    = 0
+
+# Initialize the default graph style
+#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE
+Graph Style  =  1
+
+#Set the window width and height:
+Window Width        = 1000
+Window Height       = 600
+
+# Set X, Y, Z axes for the solution diagram:
+# 0 is Time for X,Y,Z.
+X Axis Solution             = 1,7,10
+Y Axis Solution             = 2,8,11
+Z Axis Solution             = 3,9,12
+
+# Set X, Y, Z axes for the bifurcation diagram:
+X Axis Bifurcation          = 0
+Y Axis Bifurcation          = 1
+Z Axis Bifurcation          = 2
+
+#Labeled solutions:
+#-3 = Show all labeled solutions
+#-2 = Show HALF labeled solutions
+#-1 = Show SPEC labeled solutions
+#0 = Show NONE of the solutions
+#Otherwise, show the specified solution(s)
+Labels              = -3
+
+#Set coloring method:
+# -6 --- STABILITY
+# -5 --- POINT
+# -4 --- BRANCH
+# -3 --- TYPE 
+# -2 --- LABEL 
+# -1 --- COMPONENT 
+# Otherwise, according to the data in the ith column of the solution file.
+# It can only be set to an integer value.
+Coloring Method           = -5
+
+# Line Width Scaler adjusts the thickness of curves:
+Line Width Scaler         = 1.0
+
+# The AniLine Thickness Scaler sets the thickness of animated solution curves:
+AniLine Thickness Scaler  = 3.0
+
+# Background color:
+Background Color  = 0., 0., 0.
+
+# Background transparency:
+Background Transparency = 0.9 
+
+# Axes color:
+X Axis Color    = 1.0,  0.0,   0.0
+Y Axis Color    = 0.0,  1.0,   0.0
+Z Axis Color    = 0.0,  0.0,   1.0
+
+# Stable solution color:
+Stable Solution Color = 0.0, 0.0, 1.0
+
+# UnStable solution color:
+Unstable Solution Color = 1.0, 0.0, 0.0
+
+# Color of the animation object:
+Object Color             = 1.0, 1.0, 1.0
+
+# Set the radius of the animation object:
+# The normal size is 1.0.
+# For smaller radius, use 0.xxx
+# For bigger radius, use  X.XXX
+Object Radius        = 1.0
+
+# Set the maximum and minimum animation speed:
+Object Max Animation Speed = 100
+Object Min Animation Speed = 0
+
+# Set the maximum and minimum highlighting animation speed:
+Orbit Max Animation Speed = 100
+Orbit Min Animation Speed = 0
+
+# Set the active AUTO parameter indices:
+parameter ID = 10
+
+# Choose 3D or 2D graph:
+3DBif  =  No
+3DSol  =  Yes
+
+# Set the number of periods animated.
+# The value should be the power of 2.
+Number of Period Animated = 1
+

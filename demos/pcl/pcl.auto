@@ -4,7 +4,7 @@
 # compute the EtoP connection via Lin's method
 
 print "\n1st run - continue equilibrium 0 and branches of secondary equilibria"
-r1 = run(e='pcl',NDIM=3,ILP=0,ITNW=7,
+r1 = run(e='pcl',ICP=['rho'],NDIM=3,ILP=0,ITNW=7,
          SP=['HB1','UZ1'],UZR={1:31.6},DS=0.1,DSMAX=2.0,
          unames={1:'xgamma',2:'ygamma',3:'zgamma',4:'x',5:'y',6:'z',
                  7:'x+',8:'y+',9:'z+',10:'x-',11:'y-',12:'z-'},
@@ -13,32 +13,33 @@ r1 = run(e='pcl',NDIM=3,ILP=0,ITNW=7,
                    21:'sigma+',22:'sigma-',23:'eta',25:'Zx',26:'Zy'})	
 
 print "\n2nd run - switch to the periodic orbit and continue in rho up to 24.0579"
-r2 = run(r1('HB2'),IPS=2,ICP=['rho','T'],NTST=50,SP=[],UZR={'-rho':24.0579})
+r2 = run(r1('HB2'),ICP=['rho','T'],IPS=2,NTST=50,
+         SP=['UZ1'],UZR={'rho':24.0579})
 
 print "\n3rd run - extend the system"
 r3 = run(r2('UZ1'),ICP=['mu','h','T'],IPS=4,NDIM=6,NBC=7,NINT=1,
-         UZR={},SP=['BP1'],DS=-0.1,DSMIN=1e-7,DSMAX=1.0)
+         SP=['BP1'],UZR={},DS=-0.1,DSMIN=1e-7,DSMAX=1.0)
 
 print "\n4th run - normalize the Floquet bundle"
-r4 = run(r3('BP1'),ISW=-1,SP=[],
-         UZR={'-h': 1.0},DS=1,DSMIN=1e-5,DSMAX=100)
+r4 = run(r3('BP1'),ISW=-1,
+         SP=['UZ1'],UZR={'h':1.0},DS=1,DSMIN=1e-5,DSMAX=100)
 
-print "\n5th run - integrate towards the periodic orbit"
+print "\n5th run - integrate backwards from the periodic orbit"
 print "measures the distance to Sigma = { x=10 } in sigma+"
 print "UZ point corresponds to an intersection with Sigma"
 r5 = run(r4('UZ1'),ICP=['T+','mu','T','sigma+'],ISW=1,NDIM=9,NBC=11,
-         UZR={'-sigma+':0},DS=1.0)
+         UZR={'sigma+':0},DS=1.0)
 
-print "\n6th run - integrate towards the equilibrium up to Sigma"
+print "\n6th run - integrate away from the equilibrium up to Sigma"
 print "(second UZ is the one we want) + put starting"
-print "data for Lin vector and Lin gap in eta, Zx, and Zy"
+print "data for Lin vector and Lin gap in Zx, Zy, Zz and eta"
 r6 = run(r5('UZ1'),ICP=['T-','sigma-','sigma+','mu','T'],NDIM=12,NBC=15,
-         UZR={'sigma-':0},SP=['UZ2'])
+         SP=['UZ2'],UZR={'sigma-':0})
 
 print "\n7th run - close the gap (with some intermediate solutions)"
-r7 = run(r6('UZ2'),ICP=[23,'rho','delta','eps','T+','mu','T'],NBC=17,NPR=10,
-         UZR={'-eta':0},THL={'T':0,'T+':0,'T-':0},
-         DS=-0.01,DSMIN=1e-7,DSMAX=0.1,)
+r7 = run(r6('UZ2'),ICP=['eta','rho','delta','eps','T-','T+','mu','T'],
+         NBC=17,NINT=2,NPR=10,THL={'T':0,'T+':0,'T-':0},
+         SP=['UZ1'],UZR={'eta':0},DS=-0.01,DSMIN=1e-7,DSMAX=0.1)
 save(r7,'closegap')
 
 # plot this, have a look at the solution coordinates 'x-'-vs-'z-' and 'x+'-vs-'z+'
@@ -46,8 +47,9 @@ save(r7,'closegap')
 #wait()
 
 print "\n8th run - keep the gap closed and continue in rho,beta"
-r8 = run(r7('UZ1'),ICP=['rho','beta','delta','eps','T+','mu','T'],
-         DS=0.1,NPR=9999,UZR={1:25,-1:40})
+start8 = load(r7('UZ1'),ICP=['rho','beta','delta','eps','T-','T+','mu','T'],
+         SP=['UZ2','LP1'],UZR={'rho':[25,80]},ILP=1,NPR=200,DS=0.1,DSMAX=1)
+r8 = merge(run(start8) + run(start8,DS='-'))
 save(r8,'cont')
 
 clean()

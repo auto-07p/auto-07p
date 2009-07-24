@@ -54,8 +54,8 @@ type = "solution" # or "bifurcation"
 bifurcation_x = [0]
 bifurcation_y = [2]
 
-solution_x = ['xgamma','x+','x-']
-solution_y = ['zgamma','z+','z-']
+solution_x = ['xgamma','x-','x+']
+solution_y = ['phigamma','phi-','phi+']
 
 ## Sets of columns that the user is likely to want to use
 #bifurcation_column_defaults = None

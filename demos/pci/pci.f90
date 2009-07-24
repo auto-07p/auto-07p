@@ -1,22 +1,22 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
-! lrz/lin: Finding a point-to-cycle heteroclinic connection in the
-!          Lorenz equations
-! 
+! pci: Bifurcations of global reinjection orbits near a saddle-node
+!      Hopf bifurcation: cycle-to-point connections
+!
 ! Parameters:
-!   PAR(1) : rho
-!   PAR(2) : beta
-!   PAR(3) : sigma
+!   PAR(1) : nu1
+!   PAR(2) : nu2
+!   PAR(3) : d
 !
 !   PAR(11) : T: period of the cycle
 !   PAR(12) : mu: log of the Floquet multiplier
 !   PAR(13) : h: norm of eigenfunction for cycle at 0
-!   PAR(14) : T^+: time for connection from section to cycle (U(7:9))
-!   PAR(15) : delta: distance from end connection to cycle
-!   PAR(16) : T^-: time for connection from point to section (U(10:12))
-!   PAR(17) : eps: distance from point to start connection
-!   PAR(21) : sigma+: U0(7)-10 (x-distance W^s(P) from section x=10)
-!   PAR(22) : sigma-: U1(10)-10 (x-distance W^u(E) from section x=10)
+!   PAR(14) : T^-: time for connection from cycle (U(7:9)) to section
+!   PAR(15) : delta: distance from cycle to start connection
+!   PAR(16) : T^+: time for connection from section (U(10:12)) to point
+!   PAR(17) : eps: distance from end connection to point
+!   PAR(21) : sigma-: U1(9)-pi (phi-distance W^u(P) from section phi=pi)
+!   PAR(22) : sigma+: U0(12)-pi (phi-distance W^s(E) from section phi=pi)
 !   PAR(23) : eta: gap size for Lin vector
 !   PAR(24) : Z_x: Lin vector (x-coordinate)
 !   PAR(25) : Z_y: Lin vector (y-coordinate)
@@ -31,33 +31,45 @@
     LOGICAL, INTENT(IN) :: JAC
     DOUBLE PRECISION, INTENT(OUT) :: F(3), A(3,3)
 
-    DOUBLE PRECISION rho, beta, sigma
-    DOUBLE PRECISION x, y, z
+    DOUBLE PRECISION x, y, phi
+    DOUBLE PRECISION nu1, nu2, alpha, beta, omega, c, d, fp, s
+    DOUBLE PRECISION sphi, x2y2, cphinu, cphinu2
 
-    rho = PAR(1)
-    beta = PAR(2)
-    sigma = PAR(3)
+    nu1 = PAR(1)
+    nu2 = PAR(2)
+    d = PAR(3)
+    fp = 4*atan(1.0d0)*d
+    alpha = -1
+    s = -1
+    c = 0
+    omega = 1
+    beta = 0
 
     x = U(1)
     y = U(2)
-    z = U(3)
+    phi = U(3)
 
-    F(1) = sigma * (y - x)
-    F(2) = rho * x - y - x * z
-    F(3) = x * y - beta * z
+    sphi = sin(phi)
+    x2y2 = x*x + y*y
+    cphinu = 2*cos(phi)+nu2
+    cphinu2 = cphinu*cphinu
+
+    F(1) = nu1*x - omega*y - (alpha*x - beta*y)*sphi - x2y2*x + d*cphinu2
+    F(2) = nu1*y + omega*x - (alpha*y + beta*x)*sphi - x2y2*y + fp*cphinu2
+    F(3) = nu2 + s*x2y2 + 2.0*cos(phi) + c*x2y2*x2y2
 
     IF(JAC)THEN
-       A(1,1) = -sigma
-       A(1,2) = sigma
-       A(1,3) = 0
+       A(1,1) = nu1 - alpha*sphi - 3*x**2 - y**2
+       A(1,2) = -omega + beta*sphi - 2*x*y
+       A(1,3) = -(alpha*x - beta*y)*cos(phi) - d*4*(2*cos(phi)+nu2)*sphi
 
-       A(2,1) = rho - z
-       A(2,2) = -1
-       A(2,3) = -x
+       A(2,1) = omega - beta*sphi - 2*x*y
+       A(2,2) = nu1 - alpha*sphi - 3*y**2 - x*x
+       A(2,3) = -(alpha*y + beta*x)*cos(phi) - fp*4*(2*cos(phi) + nu2)*sphi
 
-       A(3,1) = y
-       A(3,2) = x
-       A(3,3) = -beta
+       A(3,1) = 2*s*x + 4*c*x2y2*x
+       A(3,2) = 2*s*y + 4*c*x2y2*y
+       A(3,3) = -2*sphi
     ENDIF
 
   END SUBROUTINE RHS
@@ -110,8 +122,9 @@
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(IN) :: T
 
-    DOUBLE PRECISION, PARAMETER :: delta = 1d-7, eps = 1d-7
-    DOUBLE PRECISION rho, beta, sigma, ev(3), nev
+    DOUBLE PRECISION, PARAMETER :: nu1 = 0, nu2 = -1.46d0, d = 0.01d0
+    DOUBLE PRECISION, PARAMETER :: delta = -1d-5, eps = 1d-6
+    DOUBLE PRECISION fp(3), ev(3)
     DOUBLE PRECISION, SAVE :: s(6)
 
     IF(NDIM==9)THEN
@@ -121,30 +134,18 @@
        U(7:9) = s(1:3) + delta*s(4:6)
        RETURN
     ELSEIF(NDIM==12)THEN
-       rho = PAR(1)
-       beta = PAR(2)
-       sigma = PAR(3)
-
-       ! unstable eigenvector at the 0 equilibrium
-       ev(1) = rho/(-0.5+0.5*sigma+0.5*sqrt(1-2*sigma+sigma*sigma+4*rho*sigma))
-       ev(2) = 1
-       ev(3) = 0
-       nev = sqrt(DOT_PRODUCT(ev,ev))
-       ev(1:3) = ev(1:3) / nev
-
-       U(10:12) = eps*ev(1:3)
+       fp = (/0d0, 0d0, acos(-nu2/2)/)
+       ev = (/0d0, 0d0, 1d0/)
+       U(10:12) = fp(1:3) + eps*ev(1:3)
        RETURN
     ENDIF
 
-    rho = 0
-    beta = 8d0/3d0
-    sigma = 10d0
-    PAR(1:3) = (/rho,beta,sigma/)
+    PAR(1:3) = (/nu1,nu2,d/)
     PAR(15) = delta
     PAR(17) = eps
-    PAR(21:22) = 0
+    PAR(21:22) = 0.0
 
-    U(1:3) = 0
+    U(1:3) = (/ 0.0d0, 0.0d0, 8.0*atan(1.0d0)-acos(-nu2/2) /)
 
   END SUBROUTINE STPNT
 
@@ -157,27 +158,24 @@
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     
     DOUBLE PRECISION, EXTERNAL :: GETP
-    DOUBLE PRECISION d(3),normlv
+    DOUBLE PRECISION d(3), normlv, delta, eps, nu2
     INTEGER i, NBC
-    DOUBLE PRECISION rho, beta, sigma, delta, eps, ev
+    DOUBLE PRECISION pi
 
+    pi = 4d0 * ATAN(1d0)
     IF (NDIM==6) THEN
        delta = PAR(15)
-       PAR(21) = GETP("BV0",1,U) + delta*GETP("BV0",4,U) - 10
+       PAR(21) = GETP("BV0",3,U) + delta*GETP("BV0",6,U) - pi
     ELSEIF (NDIM==9) THEN
-       rho = PAR(1)
-       beta = PAR(2)
-       sigma = PAR(3)
+       ! initialize using fp(3) + eps * ev(3) (see STPNT)
+       nu2 = PAR(2)
        eps = PAR(17)
-
-       ! unstable eigenvector at the 0 equilibrium
-       ev = rho/(-0.5+0.5*sigma+0.5*sqrt(1-2*sigma+sigma*sigma+4*rho*sigma))
-       PAR(22) = eps*ev/sqrt(ev**2+1) - GETP("BV0",7,U)
+       PAR(22) = acos(-nu2/2) + eps - pi
     ELSEIF (NDIM==12) THEN
        NBC = AINT(GETP("NBC",0,U))
        IF (NBC==15) THEN
           DO i=1,3
-             d(i) = GETP("BV0",6+i,U) - GETP("BV1",9+i,U)
+             d(i) = GETP("BV1",6+i,U) - GETP("BV0",9+i,U)
           ENDDO
           normlv = sqrt(DOT_PRODUCT(d,d))
           ! gap size in PAR(23)
@@ -197,7 +195,8 @@
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
     DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
-    DOUBLE PRECISION rho, beta, sigma, delta, eps, ev(3), nev, eta
+    DOUBLE PRECISION nu2, delta, eps, fp(3), ev(3), eta
+    DOUBLE PRECISION pi
 
     ! Periodicity boundary conditions on state variables
     FB(1:3) = U0(1:3) - U1(1:3)
@@ -210,32 +209,26 @@
     IF (NBC==7) RETURN
 
     delta = PAR(15)
-    FB(8:10) = U1(7:9) - (U0(1:3) + delta*U0(4:6))
-    FB(11) = U0(7) - 10 - PAR(21)
+    FB(8:10) = U0(7:9) - (U0(1:3) + delta*U0(4:6))
+    pi = 4d0 * ATAN(1d0)
+    FB(11) = U1(9) - pi - PAR(21)
 
     IF (NBC==11) RETURN
 
-    rho = PAR(1)
-    beta = PAR(2)
-    sigma = PAR(3)
+    nu2 = PAR(2)
     eps = PAR(17)
+    fp = (/0d0, 0d0, acos(-nu2/2)/)
+    ev = (/0d0, 0d0, 1d0/)
 
-    ! unstable eigenvector at the 0 equilibrium
-    ev(1) = rho/(-0.5+0.5*sigma+0.5*sqrt(1-2*sigma+sigma*sigma+4*rho*sigma))
-    ev(2) = 1
-    ev(3) = 0
-    nev = sqrt(DOT_PRODUCT(ev,ev))
-    ev(1:3) = ev(1:3) / nev
-
-    FB(12:14) = U0(10:12) - eps*ev(1:3)
+    FB(12:14) = U1(10:12) - (fp(1:3) + eps*ev(1:3))
 
     IF (NBC==15) THEN
-       FB(15) = U1(10) - 10 - PAR(22)
+       FB(15) = U0(12) - pi - PAR(22)
        RETURN
     ENDIF
 
     eta = PAR(23)
-    FB(15:17) = U0(7:9) - U1(10:12) - eta*PAR(24:26)
+    FB(15:17) = U1(7:9) - U0(10:12) - eta*PAR(24:26)
 
   END SUBROUTINE BCND
 
