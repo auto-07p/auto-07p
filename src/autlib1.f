@@ -607,8 +607,8 @@ C
          SELECT CASE(STR(1:KEYEND))
          CASE('IRS')
             READ(STR(POS:),*,ERR=3)SIRS
-            IAP(3)=1
             READ(SIRS,*,IOSTAT=ios)IAP(3)
+            IF(ios/=0)IAP(3)=1
          CASE('ICP')
             NICP=LISTLEN
             DEALLOCATE(ICU)
@@ -721,8 +721,9 @@ C
 
       IF(EOF)GOTO 2 ! completely new-style, just keys
       BACKSPACE 2
-      READ(2,*,ERR=3,END=4) NDIM,IPS,IRS,ILP
-      WRITE(SIRS,'(I13)')IRS
+      READ(2,*,ERR=3,END=4) NDIM,IPS,SIRS,ILP
+      READ(SIRS,*,IOSTAT=ios)IRS
+      IF(ios/=0)IRS=1
       LINE=LINE+1
       READ(2,*,ERR=3,END=4) NICP
       IF(NICP.GT.0)THEN

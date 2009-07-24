@@ -628,7 +628,8 @@ CONTAINS
     ENDIF
     I=0
     READ(SIRS,'(A2,I11)',IOSTAT=ios)ATYPE,number
-    IF((LGE(ATYPE(1:1),'0').AND.LLE(ATYPE(1:1),'9')).OR.ATYPE(1:1)=='-')THEN
+    IF(ios/=0.OR. &
+       (LGE(ATYPE(1:1),'0').AND.LLE(ATYPE(1:1),'9')).OR.ATYPE(1:1)=='-')THEN
        number=0
     ENDIF
     DO
@@ -637,7 +638,7 @@ CONTAINS
             NCOL,NPARR
        IF(IBR>MBR)MBR=IBR
        IF(LAB>MLAB)MLAB=LAB
-       IF(ATYPE==LBTYPE(ITP))THEN
+       IF(number>0.AND.ATYPE==LBTYPE(ITP))THEN
           number=number-1
           IF(number==0)IRS=LAB
        ENDIF
