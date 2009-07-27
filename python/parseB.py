@@ -851,8 +851,7 @@ class parseBR(UserList,AUTOBranch):
             for idx,val in d.labels.sortByIndex():
                 for k,v in val.items():
                     if k in all_point_types and v["LAB"] != 0:
-                        label = v["LAB"]
-            label = label + 1
+                        label = v["LAB"] + 1
             
     # Given a label, return the correct solution
     def getLabel(self,label):
