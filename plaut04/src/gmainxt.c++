@@ -47,7 +47,7 @@
 #define XmFONTLIST_DEFAULT_TAG NULL
 #endif
 
-SbBool printToPostScript (SoNode *root, FILE *file,
+SbBool printToPostScript (SoNode *root, const char *filename,
 SoXtExaminerViewer *viewer, int printerDPI);
 
 struct ViewerAndScene
@@ -238,7 +238,7 @@ fileMenuPick(Widget, void *userData, XtPointer *)
             exit(0);
             break;
         case PRINT_ITEM:
-            cropScene("myfile");
+            getFileName(PRINT_ITEM);
             break;
         case OPEN_ITEM:
             getFileName(OPEN_ITEM);
@@ -840,9 +840,7 @@ buildFileMenu(Widget menubar)
     const char *quitAccel  = "Ctrl<Key>q";
     XmString openAccelText  = XmStringCreate((char *)"Ctrl+o", XmSTRING_DEFAULT_CHARSET);
     XmString saveAccelText  = XmStringCreate((char *)"Ctrl+s", XmSTRING_DEFAULT_CHARSET);
-#ifdef R3B
     XmString printAccelText = XmStringCreate((char *)"Ctrl+p", XmSTRING_DEFAULT_CHARSET);
-#endif
     XmString quitAccelText  = XmStringCreate((char *)"Ctrl+q", XmSTRING_DEFAULT_CHARSET);
     n = 0;
     XtSetArg(args[n], XmNaccelerator, openAccel); n++;
@@ -855,25 +853,18 @@ buildFileMenu(Widget menubar)
     PUSH_ITEM(items[1], "Export...", SAVE_ITEM, fileMenuPick);
 
     n = 0;
-#ifdef R3B
     const char *printAccel = "Ctrl<Key>p";
     XtSetArg(args[n], XmNaccelerator, printAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, printAccelText); n++;
     PUSH_ITEM(items[2], "Print...", PRINT_ITEM, fileMenuPick);
-#endif
 
     SEP_ITEM("separator");
 
     n = 0;
     XtSetArg(args[n], XmNaccelerator, quitAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, quitAccelText); n++;
-#ifndef R3B
-    PUSH_ITEM(items[2], "Quit",    QUIT_ITEM, fileMenuPick);
-    XtManageChildren(items, 3);
-#else
     PUSH_ITEM(items[3], "Quit",    QUIT_ITEM, fileMenuPick);
     XtManageChildren(items, 4);
-#endif
 
     return pulldown;
 }
@@ -3171,12 +3162,10 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
     SbBool okFile = TRUE;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename);
-#ifdef R3B
     else if(fileMode == PRINT_ITEM)
     {
-        cropScene(filename);
+        printToPostScript(root,f,renderArea,100);
     }
-#endif
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();

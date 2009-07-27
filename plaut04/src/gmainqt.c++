@@ -33,7 +33,7 @@ static QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
 static EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
             *coordSystemMenuItems;
 
-extern SbBool printToPostScript (SoNode *root, FILE *file,
+extern SbBool printToPostScript (SoNode *root, const char *filename,
 SoQtExaminerViewer *viewer, int printerDPI);
 extern SoSeparator * createBoundingBox();
 
@@ -180,7 +180,7 @@ MainWindow::fileMenuPick(int which)
             quit();
             break;
         case PRINT_ITEM:
-            cropScene("myfile");
+            getFileName(PRINT_ITEM);
             break;
         case OPEN_ITEM:
             getFileName(OPEN_ITEM);
@@ -648,10 +648,8 @@ MainWindow::buildFileMenu()
                          Qt::CTRL+Qt::Key_O, OPEN_ITEM);
     pulldown->insertItem("&Export...", this, SLOT(fileMenuPick(int)),
                          Qt::CTRL+Qt::Key_S, SAVE_ITEM);
-#ifdef R3B
     pulldown->insertItem("&Print...", this, SLOT(fileMenuPick(int)),
                          Qt::CTRL+Qt::Key_P, PRINT_ITEM);
-#endif
     pulldown->insertSeparator();
     pulldown->insertItem("&Quit", this, SLOT(fileMenuPick(int)),
                          Qt::CTRL+Qt::Key_Q, QUIT_ITEM);
@@ -2052,11 +2050,10 @@ MainWindow::getFileName(int fileMode)
     if(fileMode == SAVE_ITEM)
         filename = QFileDialog::getSaveFileName(QString::null,
                           "Inventor files (*.iv);;Any files (*)", this );
-#ifdef R3B
     else if(fileMode == PRINT_ITEM)
-        filename = QFileDialog::getSaveFileName(QString::null, QString::null,
+        filename = QFileDialog::getSaveFileName(QString::null,
+			  "PostScript files (*.ps *.eps);;Any files (*)",
                      this, "print file dialog", "Choose a file to print to" );
-#endif
     else
         filename = QFileDialog::getOpenFileName(QString::null,
                           "AUTO files (b.* s.* d.*);;Any files (*)", this);
@@ -2065,12 +2062,10 @@ MainWindow::getFileName(int fileMode)
         return;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename);
-#ifdef R3B
     else if(fileMode == PRINT_ITEM)
     {
-        cropScene(filename);
+	printToPostScript(root,filename,renderArea,100);
     }
-#endif
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();
