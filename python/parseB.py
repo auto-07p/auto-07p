@@ -591,11 +591,7 @@ class AUTOBranch(Points.Pointset):
     def summary(self):
         slist = []
         data = self.coordarray
-        output_line = ["\n  BR    PT  TY  LAB "]
-        if self.headernames != []:
-            for name in self.headernames:
-                output_line.append("%-14s"%name)
-        slist.append("".join(output_line))
+        first = True
         for index,l in self.labels.sortByIndex():
             label = {}
             for k,v in l.items():
@@ -603,16 +599,20 @@ class AUTOBranch(Points.Pointset):
                     label = v
                     break
             ty_number = label["TY number"]
-            if ty_number == 0:
+            if ty_number == 0 or label["LAB"] == 0:
                 continue
+            if first:
+                slist.append("".join(
+                        ["\n  BR    PT  TY  LAB "] +
+                        ["%-14s"%name for name in self.headernames]))
+                first = False
             ty_name = type_translation(ty_number)["short name"]
             if ty_name=='RG':
                 ty_name = '  '
-            output_line = "%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
-                                          ty_name,label["LAB"])
-            for i in range(len(data)):
-                output_line = output_line + "%14.5E"%data[i][index]
-            slist.append(output_line)
+            slist.append("".join(
+                    ["%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
+                                    ty_name,label["LAB"])]+
+                    ["%14.5E"%d[index] for d in data]))
         return "\n".join(slist)
 
     def writeScreen(self):
@@ -1024,7 +1024,9 @@ class parseBR(UserList,AUTOBranch):
     def summary(self):
         slist = []
         for branch in self.data:
-            slist.append(branch.__str__())
+            s = branch.__str__()
+            if s != "":
+                slist.append(s)
         return "\n".join(slist)+"\n"
 
     def __repr__(self):
