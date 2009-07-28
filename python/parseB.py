@@ -923,10 +923,14 @@ class parseBR(UserList,AUTOBranch):
             if len(f0) != len(b0):
                 fw = bw
                 continue
+            cont = False
             for i in range(len(f0)):
                 if f0[i] != b0[i]:
                     fw = bw
-                    continue
+                    cont = True
+                    break
+            if cont:
+                continue
             #now we know that the branches have the same starting point:
             #merge them
             lenbw = len(bw)
