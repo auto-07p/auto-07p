@@ -707,6 +707,10 @@ CONTAINS
 
 ! Set UOLDPS, RLOLD.
 
+    IF(NODIR.NE.-1)THEN
+       ! call PVLS here the first time so the parameters can be initialized
+       CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
+    ENDIF
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
        RLOLD(I)=RLCUR(I)
@@ -722,8 +726,6 @@ CONTAINS
        ISW=1
        IAP(10)=ISW
     ELSE
-       ! call PVLS here the first time so the parameters can be initialized
-       CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
 !      ** Restart from orbit.
        CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
     ENDIF
