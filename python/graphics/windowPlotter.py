@@ -67,14 +67,14 @@ class WindowPlotter(Pmw.MegaToplevel):
                                               Pmw.OptionMenu,box,
                                               labelpos="w",
                                               label_text="Type",
-                                              items=("'bifurcation'","'solution'"))
+                                              items=("bifurcation","solution"))
         else:
             labelEntry = self.createcomponent('labelEntry',
                                               (), None,
                                               Pmw.OptionMenu,box,
                                               labelpos="w",
                                               label_text="Type",
-                                              items=("'solution'","'bifurcation'"))
+                                              items=("solution","bifurcation"))
             
         labelEntry.grid(row=0,column=0)
         labelEntry.configure(command = lambda value,obj=self:obj._modifyOption("type",value))
@@ -133,7 +133,9 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.optionSelctionDialog.destroy()
 
     def _shortstr(self,list):
-        return "[" + ",".join(map(str,list)) + "]"
+        if isinstance(list,str):
+            return list
+        return ",".join(map(str,list))
         
     def setOptionDialog(self,key):
         self.diag = Pmw.Dialog(self.interior(),
@@ -292,10 +294,9 @@ class WindowPlotter2D(WindowPlotter):
             if self.grapher.cget(ox[:-1]+"indepvarname"):
                 indepvarname = self.grapher.cget(ox[:-1]+"indepvarname")
             if indepvarname != "":
-                lst.append("[%s]"%indepvarname)
+                lst.append(indepvarname)
         coordnames = self.grapher._coordnames
-        for s in coordnames:
-            lst.append("[%s]"%s)
+        lst.extend(coordnames)
         self.xEntry.setlist(lst)
         self.yEntry.setlist(lst)
         xlist = self.grapher.cget(ox)
@@ -322,7 +323,7 @@ class WindowPlotter2D(WindowPlotter):
                 labels.append(str(x))
         default_labels = self.grapher.cget("solution").getLabels()
         for i in range(len(default_labels)):
-            labels.append("[%d]"%default_labels[i])
+            labels.append("%d"%default_labels[i])
         labels.append(self._shortstr(default_labels))
         if self.grapher.cget("label") == [0]:
             self.typeEntry.setentry(labels[0])

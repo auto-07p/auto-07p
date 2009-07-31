@@ -115,6 +115,8 @@ class plotter(grapher.GUIGrapher):
         elif key == "label":
             labels = self.cget("solution").getLabels()
             options["index"] =[]
+            if type(value) != type([]) and type(value) != type(()):
+                value = [value]
             for v in value:
                 for j in range(len(labels)):
                     if labels[j] == v:
