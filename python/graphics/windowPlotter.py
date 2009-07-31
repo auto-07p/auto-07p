@@ -132,11 +132,11 @@ class WindowPlotter(Pmw.MegaToplevel):
         if button == "Cancel":
             self.optionSelctionDialog.destroy()
 
-    def _shortstr(self,list):
-        if isinstance(list,str):
-            return list
-        return ",".join(map(str,list))
-        
+    def _shortstr(self,x):
+        if isinstance(x,(list,tuple)):
+            return ",".join(map(str,x))
+        return x
+
     def setOptionDialog(self,key):
         self.diag = Pmw.Dialog(self.interior(),
                           buttons=("Ok","Cancel"))
