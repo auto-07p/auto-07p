@@ -604,7 +604,10 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if type(value) == type({}):
                     value = value.items()
                 for k,v in value:
-                    self.PAR[k-1] = v
+                    if isinstance(k,str):
+                        self.PAR[k] = v
+                    else:
+                        self.PAR[k-1] = v
                 return
             if shortkey == "p":
                 self.PAR = AUTOParameters(coordnames=self.__parnames,
