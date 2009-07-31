@@ -145,7 +145,7 @@ class plotter(grapher.GUIGrapher):
             if (type(columns[coord]) != type([]) and
                 type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
-        xnames, ynames = self.__makeaxistitles(columns[0],columns[1])
+        names, columns = self.__makeaxistitles(columns[0],columns[1])
         for coord in range(2):
             if len(columns[coord]) == 1:
                 columns[coord] = columns[coord] * len(columns[1-coord])
@@ -165,7 +165,7 @@ class plotter(grapher.GUIGrapher):
             for coord in ["x","y"]:
                 label[coord] = self[coord+"label"]
                 if self.config(coord+"label")[3] is None:
-                    label[coord] = ", ".join({"x": xnames, "y": ynames}[coord])
+                    label[coord] = ", ".join(names[{"x": 0, "y": 1}[coord]])
             grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
                                              ylabel=label["y"])
 
@@ -248,7 +248,23 @@ class plotter(grapher.GUIGrapher):
                         print("Unknown column name: %s"%(col))
                         col = "Error"
                     names[j].append(col)
-        return names[0],names[1]
+
+        # translate xcolumns/ycolumns to use parsed coordnames
+        ucoordnames = self.cget(ty+"_coordnames") or []
+        cols = [xcolumns,ycolumns]
+        if ucoordnames != []:
+            cols = []
+            for columns in [xcolumns,ycolumns]:
+                ncol = []
+                for col in columns:
+                    try:
+                        indx = ucoordnames.index(col)
+                        col = parsecoordnames[indx]
+                    except ValueError:
+                        pass
+                    ncol.append(col)
+                cols.append(ncol)
+        return names,cols
 
     def __plot7branch(self,branch,xcolumns,ycolumns):
         symbollist = [
