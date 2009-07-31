@@ -143,29 +143,27 @@ class plotter(grapher.GUIGrapher):
             if (type(columns[coord]) != type([]) and
                 type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
+        xnames, ynames = self.__makeaxistitles(columns[0],columns[1])
+        for coord in range(2):
             if len(columns[coord]) == 1:
                 columns[coord] = columns[coord] * len(columns[1-coord])
-        [xcolumns,ycolumns] = columns
-        xnames = None
-        if (ty == "bifurcation" and len(self.cget("bifurcation_diagram")) and
-            len(self.cget("bifurcation_diagram")[0])):
-            xnames, ynames = self.__plot7(columns[0],columns[1])
-        if ty == "solution" and len(self.cget("solution")) > 0:
-            xnames, ynames = self.__plot8(columns[0],columns[1])
-        if xnames is not None:
+        plot = True
+        if ty == "bifurcation":
+            sol = self.cget(ty+"_diagram")
+        else:
+            sol = self.cget(ty)
+        if ty == "bifurcation" and len(sol) and len(sol[0]):
+            self.__plot7(columns[0],columns[1])
+        elif ty == "solution" and len(sol) > 0:
+            self.__plot8(columns[0],columns[1])
+        else:
+            plot = False
+        if plot:
             label = {}
             for coord in ["x","y"]:
                 label[coord] = self[coord+"label"]
                 if self.config(coord+"label")[3] is None:
-                    names = {"x": xnames, "y": ynames}[coord]
-                    columns = {"x": xcolumns, "y": ycolumns}[coord]
-                    origcolumns = self.cget(ty+"_"+coord)
-                    if ((type(origcolumns) != type([])
-                         and type(origcolumns != type(()))) or
-                        len(origcolumns) == 1):
-                        label[coord] = names[2:len(names)//len(columns)]
-                    else:
-                        label[coord] = names[2:]
+                    label[coord] = ", ".join({"x": xnames, "y": ynames}[coord])
             grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
                                              ylabel=label["y"])
 
@@ -177,7 +175,80 @@ class plotter(grapher.GUIGrapher):
         grapher.GUIGrapher.plot(self)
         self.draw()
 
-    def __plot7(self,xcolumns,ycolumns):
+    def __makeaxistitles(self,xcolumns,ycolumns):
+        # parse coordinate names from bifurcation diagram/solution
+        # then construct the titles from these names
+        ty = self.cget("type")
+        indepvarname = None
+        if ty == "bifurcation":
+            solution = self.cget(ty+"_diagram")
+            # use the "branches" member for parseB objects
+            solution = getattr(solution,"branches",solution)
+        else:
+            solution = self.cget(ty)
+            indepvarname = getattr(solution,"indepvarname","t")
+            if self.cget("solution_indepvarname"):
+                indepvarname = self.cget(ty+"_indepvarname")
+        parsecoordnames = []
+        # first go by column
+        for s in solution:
+            # check for any "MAX"-style member and replace, e.g., U(1) by
+            # MAX U(1)
+            if ty == "bifurcation":
+                for i in range(min(len(parsecoordnames),len(s.coordnames))):
+                    name = s.coordnames[i]
+                    namelist = name.split(None,1)
+                    if (len(namelist) > 1 and 
+                        namelist[0] in ["MAX", "MIN", "INTEGRAL", "L2-NORM"] and
+                        parsecoordnames[i] == namelist[1].strip()):
+                        parsecoordnames[i] = name.strip()
+            if len(s.coordnames) > len(parsecoordnames):
+                parsecoordnames.extend([name.strip() for name in
+                                        s.coordnames[len(parsecoordnames):]])
+        # then add anything not already there
+        for s in solution:
+            for name in s.coordnames:
+                sname = name.strip()
+                if sname not in parsecoordnames:
+                    parsecoordnames.append(sname)
+                                    
+        # override coordnames with user/autorc provided ones
+        coordnames = self.cget(ty+"_coordnames") or []
+        # but if that list is too short, extend it
+        if len(coordnames) < len(parsecoordnames):
+            coordnames.extend(parsecoordnames[len(coordnames):])
+        self._coordnames = coordnames
+
+        # construct titles
+        names = ["Error","Error"]
+        lx = len(xcolumns)
+        ly = len(ycolumns)
+        if len(solution) > 0 and (lx == ly or lx == 1 or ly == 1):
+            names = [[],[]]
+            for j in range(2):
+                columns = [xcolumns,ycolumns][j]
+                for col in columns:
+                    if type(col) == type(1):
+                        # numerical column: check limits
+                        if indepvarname is not None and col == -1:
+                            col = indepvarname
+                        else:
+                            for s in solution:
+                                if col < len(s.coordnames):
+                                    col = coordnames[col]
+                                    break
+                            if type(col) == type(1):
+                                print("The %s-coordinate (set to column %s) "
+                                      "is out of range"%(["x","y"][j],col))
+                                col = "Error"
+                    elif col not in coordnames and (indepvarname is None or
+                                                    col != indepvarname):
+                        print("Unknown column name: %s"%(col))
+                        col = "Error"
+                    names[j].append(col)
+        return names[0],names[1]
+
+    def __plot7branch(self,branch,xcolumns,ycolumns):
         symbollist = [
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
@@ -185,154 +256,140 @@ class plotter(grapher.GUIGrapher):
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
             [[-4],  "user_point_symbol"]]
+        dp = self.cget("stability")
+        coordnames = branch.coordnames
+        for j in range(len(xcolumns)):
+            xycols = []
+            for col in [xcolumns[j],ycolumns[j]]:
+                if type(col) != type(1):
+                    try:
+                        col = coordnames.index(col)
+                    except ValueError:
+                        # check if we have an item that starts with
+                        # MAX, MIN, INTEGRAL, or L2-NORM
+                        # in that case also plot U(1) if given MAX U(1)
+                        namelist = col.split(None,1)
+                        if len(namelist) < 2 or (namelist[0] not in 
+                                  ["MAX", "MIN", "INTEGRAL", "L2-NORM"]):
+                            break
+                        try:
+                            col = coordnames.index(namelist[1])
+                        except ValueError:
+                            break
+                try:
+                    xy = branch.coordarray[col]
+                except IndexError:
+                    break
+                xycols.append(xy)
+            if len(xycols) < 2:
+                continue
+            [x,y] = xycols
+            if dp:
+                #look at stability:
+                newsect = 1
+                old = 0
+                for pt in branch.stability:
+                    abspt = abs(pt)
+                    if abspt > 1 or pt == branch.stability[-1]:
+                        self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
+                                            newsect,stable=pt<0)
+                        old = abspt - 1
+                        newsect = 0
+            else:
+                self.addArrayNoDraw((x,y),1)
+            for i,l in branch.labels.sortByIndex():
+                for k,v in l.items():
+                    if k in parseB.all_point_types:
+                        label = v
+                        break
+                lab = label["LAB"]
+                TYnumber = label["TY number"]
+                if TYnumber>=0:
+                    TYnumber=TYnumber%10
+                else:
+                    TYnumber=-((-TYnumber)%10)
+                text = ""
+                if lab != 0:
+                    text = str(lab)
+                symbol = None
+                for item in symbollist:
+                    if TYnumber in item[0]:
+                        symbol = self.cget(item[1])
+                if not symbol and TYnumber not in [0,4,9]:
+                    symbol = self.cget("error_symbol")
+                self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
+
+    def __plot7(self,xcolumns,ycolumns):
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
-        coordnames = []
-        if hasattr(solution,"coordnames"):
-            coordnames = solution.coordnames
-            branches = solution.branches
-        else:
-            if len(solution) > 0:
-                coordnames = solution[0].coordnames
-            branches = solution
-        if self.cget("bifurcation_coordnames"):
-            coordnames = self.cget("bifurcation_coordnames")
-        dp = self.cget("stability")
-        xnames="Error"
-        ynames="Error"
-        if len(solution) > 0 and len(xcolumns) == len(ycolumns):
-            xnames = ""
-            ynames = ""
-            for j in range(len(xcolumns)):
-                cols = []
-                for col in [xcolumns[j],ycolumns[j]]:
-                    if type(col) != type(1):
+        branches = getattr(solution,"branches",solution)
+        if len(xcolumns) == len(ycolumns):
+            for branch in branches:
+                self.__plot7branch(branch,xcolumns,ycolumns)
+
+    def __plot8solution(self,sol,index,xcolumns,ycolumns):
+        indepvarname = sol.indepvarname
+        tm = sol[indepvarname]
+        label = sol["Label"]
+        if self.cget("solution_indepvarname"):
+            indepvarname = self.cget("solution_indepvarname")
+        coordnames = sol.coordnames
+        for j in range(len(xcolumns)):
+            labels = []
+            xycols = []
+            for col in [xcolumns[j],ycolumns[j]]:
+                if type(col) != type(1):
+                    if indepvarname == col:
+                        col = -1
+                    else:
                         try:
                             col = coordnames.index(col)
                         except ValueError:
-                            print("Unknown column name: %s"%(col))
-                            col = 0
-                    cols.append(col)
-                [xcol,ycol] = cols
-                for branch in branches:
+                            break
+                if col == -1:
+                    xy = tm
+                else:
                     try:
-                        x = branch.coordarray[xcol]
+                        xy = sol.coordarray[col]
                     except IndexError:
-                        print("The x-coordinate (set to column %s) is out of range"%xcol)
                         break
-                    try:
-                        y = branch.coordarray[ycol]
-                    except IndexError:
-                        print("The y-coordinate (set to column %s) is out of range"%ycol)
-                        break
-                    if dp:
-                        #look at stability:
-                        newsect = 1
-                        old = 0
-                        for pt in branch.stability:
-                            abspt = abs(pt)
-                            if abspt > 1 or pt == branch.stability[-1]:
-                                self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
-                                                    newsect,stable=pt<0)
-                                old = abspt - 1
-                                newsect = 0
-                    else:
-                        self.addArrayNoDraw((x,y),1)
-                    for i,l in branch.labels.sortByIndex():
-                        for k,v in l.items():
-                            if k in parseB.all_point_types:
-                                label = v
-                                break
-                        lab = label["LAB"]
-                        TYnumber = label["TY number"]
-                        if TYnumber>=0:
-                            TYnumber=TYnumber%10
-                        else:
-                            TYnumber=-((-TYnumber)%10)
-                        text = ""
-                        if lab != 0:
-                            text = str(lab)
-                        symbol = None
-                        for item in symbollist:
-                            if TYnumber in item[0]:
-                                symbol = self.cget(item[1])
-                        if not symbol and TYnumber not in [0,4,9]:
-                            symbol = self.cget("error_symbol")
-                        self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
-                xnames = xnames + ", " + coordnames[xcol]
-                ynames = ynames + ", " + coordnames[ycol]
-        return xnames, ynames
-        
+                xycols.append(xy)
+            if len(xycols) < 2:
+                continue
+            [x,y] = xycols
+            if not(self.cget("mark_t") is None):
+                for i in range(len(tm)):
+                    if i != 0 and tm[i-1] <= self.cget("mark_t") < tm[i]:
+                        labels.append({"index": i,
+                                       "text": "",
+                                       "symbol": "fillcircle"})
+            if len(tm) <= 15:
+                index = 1
+                if len(tm) <= 1:
+                    index = 0
+            labels.append({"index": index, "text": str(label), "symbol": ""})
+            # Call the base class config
+            if len(x) > 0:
+                self.addArrayNoDraw((x,y))
+            for lab in labels:
+                self.addLabel(len(self)-1,
+                              [x[lab["index"]],y[lab["index"]]],
+                              lab["text"],lab["symbol"])
+
+        index = index + 10
+        if index > len(tm):
+            index = 14
+        return index
+
     def __plot8(self,xcolumns,ycolumns):
         self.delAllData()
-        indepvarname = self.cget("solution").indepvarname
-        if self.cget("solution_indepvarname"):
-            indepvarname = self.cget("solution_indepvarname")
-        coordnames = self.cget("solution").coordnames
-        if self.cget("solution_coordnames"):
-            coordnames = self.cget("solution_coordnames")
-
-        xnames="Error"
-        ynames="Error"
+        solution = self.cget("solution")
         if len(xcolumns) == len(ycolumns):
             index = 9
             for ind in self.cget("index"):
-                sol = self.cget("solution").getIndex(ind)
-                tm = sol[sol.indepvarname]
-                label = sol["Label"]
-                xnames = ""
-                ynames = ""
-                for j in range(len(xcolumns)):
-                    labels = []
-                    cols = []
-                    xycols = []
-                    for col in [xcolumns[j],ycolumns[j]]:
-                        if type(col) == type(1):
-                            if col == -1:
-                                col = indepvarname
-                            else:
-                                try:
-                                    col = coordnames[col]
-                                except IndexError:
-                                    print("Unknown column number: %s"%(col))
-                                    col = indepvarname
-                        if indepvarname == col:
-                            xy = tm
-                        else:
-                            try:
-                                xy = sol[sol.coordnames[coordnames.index(col)]]
-                            except ValueError:
-                                print("Unknown column name: %s"%(col))
-                                xy = tm
-                                col = 't'
-                        cols.append(col)
-                        xycols.append(xy)
-                    [x,y] = xycols
-                    if not(self.cget("mark_t") is None):
-                        for i in range(len(tm)):
-                            if i != 0 and tm[i-1] <= self.cget("mark_t") < tm[i]:
-                                labels.append({"index": i,
-                                               "text": "",
-                                               "symbol": "fillcircle"})
-                    if len(tm) <= 15:
-                        index = 1
-                        if len(tm) <= 1:
-                            index = 0
-                    labels.append({"index": index, "text": str(label), "symbol": ""})
-                    # Call the base class config
-                    if len(x) > 0:
-                        self.addArrayNoDraw((x,y))
-                    for lab in labels:
-                        self.addLabel(len(self)-1,
-                                      [x[lab["index"]],y[lab["index"]]],
-                                      lab["text"],lab["symbol"])
+                sol = solution.getIndex(ind)
+                index = self.__plot8solution(sol,index,xcolumns,ycolumns)
 
-                    xnames = xnames + ", " + cols[0]
-                    ynames = ynames + ", " + cols[1]
-                index = index + 10
-                if index > len(tm):
-                    index = 14
-        return xnames,ynames
 
 
 def test():

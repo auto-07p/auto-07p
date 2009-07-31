@@ -293,13 +293,7 @@ class WindowPlotter2D(WindowPlotter):
                 indepvarname = self.grapher.cget(ox[:-1]+"indepvarname")
             if indepvarname != "":
                 lst.append("[%s]"%indepvarname)
-        coordnames = []
-        if hasattr(sol,"coordnames"):
-            coordnames = sol.coordnames
-        elif len(sol) > 0:
-            coordnames = sol[0].coordnames
-        if self.grapher.cget(ox[:-1]+"coordnames"):
-            coordnames = self.grapher.cget(ox[:-1]+"coordnames")
+        coordnames = self.grapher._coordnames
         for s in coordnames:
             lst.append("[%s]"%s)
         self.xEntry.setlist(lst)
