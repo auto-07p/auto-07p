@@ -78,10 +78,10 @@ CONTAINS
 
     INTEGER MXLB,NLB
     INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-    CHARACTER*132 LINE
-    CHARACTER*4 CHR4,CLAB
-    CHARACTER*1 CH1
-    INTEGER L,LNUM,LEN
+    CHARACTER(LEN=132) LINE
+    CHARACTER(LEN=1) CH1
+    CHARACTER(LEN=9) FMT ! fits "(I99,I99)"
+    INTEGER I,J,L,LNUM,LEN,LAB,IND(4)
     LOGICAL EOL
 
     L=0
@@ -93,15 +93,44 @@ CONTAINS
        EOL=.FALSE.
 97     CONTINUE
        LNUM=LNUM+1
-       CLAB=LINE(16:19)
-       IF(LINE(1:4).NE.'   0' .AND. CLAB.NE.'   0')THEN
+       J=1
+       IND(1)=0
+       DO I=1,4
+          ! skip spaces
+          DO
+             IF(LINE(J:J)/=' ')EXIT
+             J=J+1
+             IF(J>LEN)EXIT
+          ENDDO
+          ! check for header line
+          IF(I==1.AND.LINE(J:J)=='0')THEN
+             EXIT
+          ENDIF
+          ! look for next space after BR/PT/TY/LAB
+          DO
+             IF(LINE(J:J)==' ')EXIT
+             J=J+1
+             IF(J>LEN)EXIT
+          ENDDO
+          IF(J>LEN)THEN
+             IND(1)=0
+             EXIT
+          ENDIF
+          ! Put line index for PT, TY, LAB, rest here
+          IND(I)=J
+       ENDDO
+       LAB=0
+       IF(IND(1)/=0)THEN
+          READ(LINE(IND(3):IND(4)-1),*)LAB
+       ENDIF
+             
+       IF(LAB/=0)THEN
           L=L+1
-          WRITE(CHR4,'(I4)')LLB(L)
-          IF(CLAB.NE.CHR4)THEN
-             WRITE(6,"(A/A,A4,A,I5/A,A4/A/A)", ADVANCE="NO") &
+          IF(LAB.NE.LLB(L))THEN
+             WRITE(6,"(A/A,I5,A,I5/A,I5/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
-                  '  b-file label ',CLAB,' at line ',LNUM, &
-                  '  s-file label ',CHR4, &
+                  '  b-file label',LAB,' at line ',LNUM, &
+                  '  s-file label',LLB(L), &
                   ' New labels may be assigned incorrectly.', &
                   ' Continue ? : '
              READ(5,"(A1)")CH1
@@ -111,8 +140,8 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          WRITE(LINE(11:14),'(I4)')LTY(L)
-          WRITE(LINE(15:19),'(I5)')LNL(L)
+          WRITE(FMT,"(A,I2,A,I2,A)")'(I',IND(3)-IND(2),',I',IND(4)-IND(3),')'
+          WRITE(LINE(IND(2):IND(4)-1),FMT)LTY(L),LNL(L)
        ENDIF
        IF(.NOT.EOL)THEN
           DO
