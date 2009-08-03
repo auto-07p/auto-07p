@@ -7,7 +7,7 @@ except ImportError: # Python 3
     from io import StringIO
 import re
 import glob,stat
-import AUTOExceptions,parseC,parseH
+import AUTOExceptions,parseC,parseH,gc
 try:
     import subprocess
 except ImportError:
@@ -211,6 +211,9 @@ class runAUTO:
             signal.alarm(20)
 
     def __resetInternalLogs(self):
+        # Garbage collect just before the run to make sure we're not
+        # running out of memory quickly.
+        gc.collect()
         if self.internalLog is None:
             self.internalLog = StringIO()
         else:
