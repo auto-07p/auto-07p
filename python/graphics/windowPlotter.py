@@ -288,12 +288,13 @@ class WindowPlotter2D(WindowPlotter):
                 lst.append(str(x))
         sol = self.grapher.cget(o)
         if self.grapher.cget("type") == "solution":
-            indepvarname = ""
-            if hasattr(sol,"indepvarname"):
-                indepvarname = sol.indepvarname
+            indepvarname = None
+            for s in sol:
+                indepvarname = s.indepvarname
+                break
             if self.grapher.cget(ox[:-1]+"indepvarname"):
                 indepvarname = self.grapher.cget(ox[:-1]+"indepvarname")
-            if indepvarname != "":
+            if indepvarname is not None:
                 lst.append(indepvarname)
         coordnames = self.grapher._coordnames
         lst.extend(coordnames)

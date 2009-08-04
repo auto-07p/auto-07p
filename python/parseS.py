@@ -64,7 +64,6 @@ NPAR = 20
 
 class parseS(list):
     def __init__(self,filename=None,**kw):
-        self.name = ''
         if isinstance(filename, str):
             list.__init__(self)
             self.readFilename(filename,**kw)
@@ -77,8 +76,6 @@ class parseS(list):
                 if kw != {}:
                     for i in range(len(self)):
                         self[i] = AUTOSolution(self[i],**kw)
-                self.indepvarname = self[0].indepvarname
-                self.coordnames = self[0].coordnames
 
     def __str__(self):
         rep = ""
@@ -120,7 +117,7 @@ class parseS(list):
     def tryNextPointRead(self,inputfile):
         current_position = inputfile.tell()
         try:
-            self.append(AUTOSolution(inputfile,name=self.name))
+            self.append(AUTOSolution(inputfile,name=inputfile.name))
         except PrematureEndofData:
             inputfile.seek(current_position)
 
@@ -128,12 +125,10 @@ class parseS(list):
         # We now go through the file and read the solutions.
         prev = None
         while len(inputfile.read(1)) > 0:
-            solution = AUTOSolution(inputfile,prev,self.name,**kw)
+            solution = AUTOSolution(inputfile,prev,inputfile.name,**kw)
             self.append(solution)
             prev = solution
         if len(self) > 0:
-            self.indepvarname = self[0].indepvarname
-            self.coordnames = self[0].coordnames
             mbr, mlab = 0, 0
             for d in self:
                 if d["BR"] > mbr: mbr = d["BR"]
@@ -142,15 +137,31 @@ class parseS(list):
                 d._mbr, d._mlab = mbr, mlab
 
     def write(self,output,mlab=False):
-        for x in self[:-1]:
-            x.write(output)
-        #maybe write a header after the last solution so that AUTO can pickup
-        #a new branch and solution label number
-        if len(self) > 0:
-            self[-1].write(output,mlab)
+        inputfile = None
+        filename = None
+        for i in range(len(self)):
+            x = self[i]
+            if x._filename != filename:
+                if inputfile is not None:
+                    inputfile.close()
+                if x._filename is not None:
+                    #avoid too many open()s
+                    try:
+                        inputfile = self.__openFilename(x._filename)
+                    except IOError:
+                        pass
+                filename = x._filename
+            if i == len(self) - 1:
+                # maybe write a header after the last solution so that AUTO can
+                # pickup a new branch and solution label number
+                x.write(output,mlab,inputfile=inputfile)
+            else:
+                x.write(output,inputfile=inputfile)
+        if inputfile is not None:
+            inputfile.close()
         output.flush()
 
-    def readFilename(self,filename,**kw):
+    def __openFilename(self,filename):
         try:
             inputfile = open(filename,"rb")
         except IOError:
@@ -159,7 +170,10 @@ class parseS(list):
                 inputfile = gzip.open(filename+".gz","rb")
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
-        self.name = filename
+        return inputfile
+
+    def readFilename(self,filename,**kw):
+        inputfile = self.__openFilename(filename)
         self.read(inputfile,**kw)
         inputfile.close()
 
@@ -692,7 +706,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             c["IRS"] = self["LAB"]
         return runAUTO.runAUTO.run(self,**c)
 
-    def readAllFilename(self,filename):
+    def __openFilename(self,filename):
         try:
             inputfile = open(filename,"rb")
         except IOError:
@@ -701,18 +715,15 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 inputfile = gzip.open(filename+".gz","rb")
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
+        return inputfile
+
+    def readAllFilename(self,filename):
+        inputfile = self.__openFilename(filename)
         self.readAll(inputfile)
         inputfile.close()
 
     def readFilename(self,filename):
-        try:
-            inputfile = open(filename,"rb")
-        except IOError:
-            try:
-                import gzip
-                inputfile = gzip.open(filename+".gz","rb")
-            except IOError:
-                raise IOError("Could not find solution file %s."%filename)
+        inputfile = self.__openFilename(filename)
         self.read(inputfile)
         inputfile.close()
 
@@ -745,6 +756,11 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             output.write("\n")
             
     def read(self,input,prev=None):
+        # for fort.8 we need to read into self.__data; otherwise load the
+        # data on demand from disk when we really need it
+        self._filename = None
+        if input.name not in ['./fort.8', 'fort.8']:
+            self._filename = input.name
         if prev is None:
             self.__start_of_header = 0
         else:
@@ -773,17 +789,21 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 except:
                     # otherwise the guessed end is not valid
                     end = None
-        input.seek(self.__start_of_data)
         if end is None:
             # We skip the correct number of lines in the entry to
             # determine its end.
             slist = []
+            input.seek(self.__start_of_data)
             for i in range(self.__numLinesPerEntry):
                 slist.append(input.readline())
-            self.__data = "".encode("ascii").join(slist)
+            if self._filename is None:
+                self.__data = "".encode("ascii").join(slist)
             end = input.tell()
-        else:
+        elif self._filename is None:
+            input.seek(self.__start_of_data)
             self.__data = input.read(end - self.__start_of_data)
+        else:
+            input.seek(end)
         self.__end = end
     
     def readAll(self,input,start=None,end=None):
@@ -855,16 +875,24 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         solution = []
         j = 0
         nrows = self.__numSValues
+        if self._filename is None:
+            sdata = self.__data
+        else:
+            input = self.__openFilename(self._filename)
+            input.seek(self.__start_of_data)
+            sdata = input.read(self.__end - self.__start_of_data)
+            input.close()
+
         if hasattr(N,"transpose"):
             if fromstring:
                 fdata = []
-                if self.__data.find("D") == -1:
-                    fdata = fromstring(self.__data, dtype=float, sep=' ')
+                if sdata.find("D") == -1:
+                    fdata = fromstring(sdata, dtype=float, sep=' ')
                 if fdata == [] or len(fdata) != total:
                     fdata = N.array(map(parseB.AUTOatof,
-                                        self.__data.split()), 'd')
+                                        sdata.split()), 'd')
             else:
-                data = self.__data.split()
+                data = sdata.split()
                 try:
                     fdata = N.array(map(float, data), 'd')
                 except ValueError:
@@ -875,7 +903,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self.indepvararray = ups[:,0]
             self.coordarray = N.transpose(ups[:,1:])
         else: #no numpy
-            data = self.__data.split()
+            data = sdata.split()
             try:
                 fdata = map(float, data)
             except ValueError:
@@ -937,7 +965,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
                 "name": self.name})
-        del self.__data
+        if self._filename is None:
+            del self.__data
 
     def __getattr__(self,attr):
         c = self.options["constants"]
@@ -950,7 +979,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         self.__readAll()
         return getattr(self,attr)
 
-    def write(self,output,mlab=False):
+    def write(self,output,mlab=False,inputfile=None):
         try:
             "".encode("ascii") + ""
             def write_enc(s):
@@ -999,10 +1028,19 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                                          )
         write_enc(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
-        # the end of the solution we can just copy from the raw data from the
-        # input file into the output file.
+        # the end of the solution we can just copy from the input file into the
+        # output file or copy from the raw data for ./fort.8.
         if not self.__fullyParsed and self.__end is not None:
-            output.write(self.__data)
+            if self._filename is None:
+                output.write(self.__data)
+            else:
+                input = inputfile
+                if inputfile is None:
+                    input = self.__openFilename(self._filename)
+                input.seek(self.__start_of_data)
+                output.write(input.read(self.__end - self.__start_of_data))
+                if inputfile is None:
+                    input.close()
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:

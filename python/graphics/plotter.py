@@ -188,9 +188,6 @@ class plotter(grapher.GUIGrapher):
             solution = getattr(solution,"branches",solution)
         else:
             solution = self.cget(ty)
-            indepvarname = getattr(solution,"indepvarname","t")
-            if self.cget("solution_indepvarname"):
-                indepvarname = self.cget(ty+"_indepvarname")
         parsecoordnames = []
         # first go by column
         for s in solution:
@@ -204,6 +201,8 @@ class plotter(grapher.GUIGrapher):
                         namelist[0] in ["MAX", "MIN", "INTEGRAL", "L2-NORM"] and
                         parsecoordnames[i] == namelist[1].strip()):
                         parsecoordnames[i] = name.strip()
+            elif indepvarname is None:
+                indepvarname = s.indepvarname
             if len(s.coordnames) > len(parsecoordnames):
                 parsecoordnames.extend([name.strip() for name in
                                         s.coordnames[len(parsecoordnames):]])
@@ -215,6 +214,11 @@ class plotter(grapher.GUIGrapher):
                     parsecoordnames.append(sname)
                                     
         # override coordnames with user/autorc provided ones
+        if ty == "solution":
+            if self.cget("solution_indepvarname"):
+                indepvarname = self.cget("solution_indepvarname")
+            elif indepvarname is None:
+                indepvarname = "t"
         coordnames = self.cget(ty+"_coordnames") or []
         # but if that list is too short, extend it
         if len(coordnames) < len(parsecoordnames):
