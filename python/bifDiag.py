@@ -229,7 +229,9 @@ class bifDiag(parseB.parseBR):
                     new[i].diagnostics = self[i].diagnostics
         else:
             new = self
-        maxlab = max(new.getLabels())
+        newlabels = new.getLabels()
+        if len(newlabels) > 0:
+            maxlab = max(newlabels)
         for d in new:
             for k,x in map(d._gettypelabel, d.labels.getIndices()):
                 if "solution" in x:
