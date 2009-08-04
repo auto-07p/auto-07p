@@ -1157,7 +1157,7 @@ C
      *        .AND. ABS(IPS).LE.1)THEN
 C          ** BP cont (Algebraic Problems) (by F. Dercole)
            NDIM=2*NDIM+2
-           NFPR=3
+           NFPR=ABS(ISW)
 C
          ELSE IF((ITP.EQ.3.OR.(ABS(ITP)/10).EQ.3)
      *               .AND. ABS(IPS).LE.1 )THEN

@@ -461,12 +461,12 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
                ENDDO
                FB(JB)=FB(JB)+PAR(IP+J)**2
             ENDDO
-            FB(JB)=FB(JB)-PAR(IP)
+            FB(JB)=FB(JB)-PAR(IP)**2
             JB=JB+1
          ELSE
             KP=IP+1
             DO I=1,NDM
-               FB(I)=U0(I)-XEQUIB1(I)-PAR(IP)*PAR(IP+1)*
+               FB(I)=U0(I)-XEQUIB1(I)-PAR(IP)*
      *              VR(NDM-NUNSTAB+1,I,1)
             ENDDO
          ENDIF
@@ -1429,7 +1429,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       INTEGER NDIM,IRS,NTST,NCOL,NDM,NDIM3,NDIMRD,NDIMU,NTSTCU
       INTEGER IP,KP,I,J,K
-      DOUBLE PRECISION T
+      DOUBLE PRECISION T,P
 C
        NDIM=IAP(1)
        IRS=IAP(3)
@@ -1497,14 +1497,12 @@ C
        ENDIF
        KP=IP
 C
-C Parameters xi_1=1, xi_i=0, i=2,NSTAB
+C Parameters xi_1=eps_0, xi_i=0, i=2,NSTAB
 C
-       PAR(IP+1)=1.0d0
-       IF(NUNSTAB.GT.1) THEN
-          DO I=2,NUNSTAB
-             PAR(IP+I)=0.0
-          ENDDO
-       ENDIF
+       PAR(IP+1)=PAR(IP)
+       DO I=2,NUNSTAB
+          PAR(IP+I)=0.0
+       ENDDO
        IP=IP+NUNSTAB
 C     
 C Starting guess for homoclinic orbit in real principal unstable direction
@@ -1512,7 +1510,7 @@ C
        DO J=0,NTST*NCOL
           T=PAR(11)*J/(NTST*NCOL)
           DO K=1,NDIM
-             UPS(K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*PAR(KP+1)*
+             UPS(K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*
      +            EXP(RR(NSTAB+1)*T)
           ENDDO
           write(9,111)(ups(k,j),k=1,ndim)
@@ -1525,8 +1523,13 @@ C
        DO I=1,NUNSTAB
           PAR(IP+I)=0.0
           DO J=1,NDM
-             PAR(IP+I)=PAR(IP+I)+VR(NSTAB+1,J)*PAR(KP)*PAR(KP+1)*
-     +            EXP(RR(NSTAB+1)*PAR(11))*VT(NSTAB+I,J)
+             IF(IEQUIB.GE.0) THEN 
+                P=0
+             ELSE
+                P=PAR(11+J)-PAR(11+NDM+J)
+             ENDIF
+             PAR(IP+I)=PAR(IP+I)+(P+VR(NSTAB+1,J)*PAR(KP)*
+     +            EXP(RR(NSTAB+1)*PAR(11)))*VT(NSTAB+I,J)
           ENDDO
        ENDDO
        IP=IP+NUNSTAB
@@ -1892,6 +1895,10 @@ C
       IFAIL=0
 C     
       CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,F,DFDU,DFDP)
+      IF(PAR(11)<0)THEN
+         ! reverse time: reverse eigenvalues/vectors
+         DFDU(:,:)=-DFDU(:,:)
+      ENDIF
 C
       IF (ITRANS==1) THEN
          JOBVL='V'
@@ -2039,6 +2046,10 @@ C
 C
       ALLOCATE(A(NDM,NDM),FDUM(NDM))
       CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,FDUM,A,DDUM)
+      IF(PAR(11)<0)THEN
+         ! reverse time: reverse eigenvalues/vectors
+         A(:,:)=-A(:,:)
+      ENDIF
       DEALLOCATE(FDUM)
 C
 C Compute transpose of A if ITRANS=1
