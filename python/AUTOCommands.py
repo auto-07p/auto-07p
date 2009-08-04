@@ -572,6 +572,12 @@ def dsp(typenames=None,name=None,templates=None):
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
+    Alternatively a boolean user-defined function f that takes a solution
+    can be specified for list, such as
+        def f(s):
+            return s["PAR(9)"]<0
+
+    Type information is NOT kept in the bifurcation diagram.
     """
     deleteLabel(typenames,name,templates)
 commandDeleteSpecialPoints = command(dsp)
@@ -590,6 +596,12 @@ def ksp(typenames=None,name=None,templates=None):
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
+    Alternatively a boolean user-defined function f that takes a solution
+    can be specified for list, such as
+        def f(s):
+            return s["PAR(9)"]<0
+
+    Type information is NOT kept in the bifurcation diagram.
     """
     deleteLabel(typenames,name,templates,keep=1)
 commandKeepSpecialPoints = command(ksp)
@@ -604,10 +616,15 @@ def dlb(typenames=None,name=None,templates=None):
     the data-files b.xxx, and s.xxx.
     Type FUNC(list) to delete the special points in list from
     the data-files fort.7 and fort.8.
-    Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
+    Alternatively a boolean user-defined function f that takes a solution
+    can be specified for list, such as
+        def f(s):
+            return s["PAR(9)"] < 0
+
+    Type information is kept in the bifurcation diagram for plotting.
     """
     deleteLabel(typenames,name,templates,keepTY=1)
 commandDeleteLabels = command(dlb)
@@ -622,11 +639,16 @@ def klb(typenames=None,name=None,templates=None):
     the data-files b.xxx, and s.xxx.
     Type FUNC(list) to only keep the special points in list from
     the data-files fort.7 and fort.8.
-    Type information is kept in the bifurcation diagram for plotting.
     list is a label number or type name code, or a list of those,
     such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
     omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
     regular points.
+    Alternatively a boolean user-defined function f that takes a solution
+    can be specified for list, such as
+        def f(s):
+            return s["PAR(9)"]<0
+
+    Type information is kept in the bifurcation diagram for plotting.
     """
     deleteLabel(typenames,name,templates,keepTY=1,keep=1)
 commandKeepLabels = command(klb)

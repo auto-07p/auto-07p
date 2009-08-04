@@ -9,6 +9,7 @@ import parseD
 import Points
 import AUTOExceptions
 import gzip
+import types
 
 # some constants must not be preserved from run to run. These are:
 nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
@@ -90,13 +91,19 @@ class bifDiag(parseB.parseBR):
                     options["constants"] = c
                     for k in c:
                         if k in nonekeys:
-                            c[k] = None              
-                for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if i < len(solution):
-                        s = solution[i]
-                        if x["LAB"] != 0 or s["LAB"] == 0:
-                            x["solution"] = parseS.AUTOSolution(s, **options)
-                            i = i+1
+                            c[k] = None
+                for ind in d.labels.getIndices():
+                    if i >= len(solution):
+                        break
+                    x = d._gettypelabel(ind)[1]
+                    s = solution[i]
+                    if x["LAB"] != 0 or s["LAB"] == 0:
+                        i = i+1
+                        s = x["solution"] = parseS.AUTOSolution(s, **options)
+                        p = Points.Pointset.__getitem__(d,ind)
+                        for name in p.coordnames:
+                            if name not in s.PAR.coordnames:
+                                s.data[name] = p[name]
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
@@ -203,6 +210,18 @@ class bifDiag(parseB.parseBR):
                     append=True
 
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
+
+        # accept a user-defined boolean function
+        if isinstance(label, types.FunctionType):
+            f = label
+            label = []
+            for d in self:
+                for i in d.labels.getIndices():
+                    k,x = d._gettypelabel(i)
+                    if "solution" in x:
+                        if f(x["solution"]):
+                            label.append(x["LAB"])
+
         new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
         if copy:
             for i in range(len(self)):

@@ -574,10 +574,18 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             keys.remove(key)
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"
+        #add corresponding L2-NORM, etc, from fort.7
+        for key in keys:
+            if key not in self.data_keys:
+                rep = rep+"%19s"%key
         rep=rep+ "\n%4d%6d%4s%5d%4d%5d%5d" % (self["BR"], self["PT"],
                                               self["TY"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
+        for key in list(keys):
+            if key not in self.data_keys:
+                rep = rep+"%19.10E"%self[key]
+                keys.remove(key)
         if self.__start_of_header is not None or self.__fullyParsed:
             rep=rep+"\n"+Points.Pointset.__repr__(self)
         for key in keys:
@@ -654,7 +662,10 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             try:
                 return Points.Pointset.__getitem__(self,key)
             except:
-                return self.PAR[key]
+                try:
+                    return self.PAR[key]
+                except:
+                    return self.data[key]
         ret = Points.Pointset.__getitem__(self,key)
         if not isinstance(key, int):
             return ret
