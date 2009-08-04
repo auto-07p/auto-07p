@@ -81,11 +81,13 @@ CONTAINS
     CHARACTER(LEN=132) LINE
     CHARACTER(LEN=1) CH1
     CHARACTER(LEN=9) FMT ! fits "(I99,I99)"
-    INTEGER I,J,L,LNUM,LEN,LAB,IND(4)
+    INTEGER I,J,L,LNUM,LEN,LAB,IND(4),L2,L3
     LOGICAL EOL
 
     L=0
     LNUM=0
+    L2=0
+    L3=0
     REWIND 27
     DO
        EOL=.TRUE.
@@ -140,7 +142,11 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          WRITE(FMT,"(A,I2,A,I2,A)")'(I',IND(3)-IND(2),',I',IND(4)-IND(3),')'
+          IF(IND(3)-IND(2)/=L2.OR.IND(4)-IND(3)/=L3)THEN
+             L2=IND(3)-IND(2)
+             L3=IND(4)-IND(3)
+             WRITE(FMT,"(A,I2,A,I2,A)")'(I',L2,',I',L3,')'
+          ENDIF
           WRITE(LINE(IND(2):IND(4)-1),FMT)LTY(L),LNL(L)
        ENDIF
        IF(.NOT.EOL)THEN

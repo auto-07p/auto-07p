@@ -8,7 +8,6 @@
 PROGRAM RELABELF
   USE COMPAT
   PARAMETER (MXLB=10000)
-  CHARACTER*1 CMD
   DIMENSION LLB(MXLB)
   CHARACTER*80 INB,OUTB,INS,OUTS
 
@@ -46,9 +45,8 @@ CONTAINS
 
     INTEGER MXLB,NLB,LLB(MXLB)
     INTEGER IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
-    INTEGER I,L,S
+    INTEGER I,L
     CHARACTER(150) LINE
-    LOGICAL EOF
 !
     L=0
     NLB=0
@@ -90,27 +88,61 @@ CONTAINS
     INTEGER NLB,LAB
     INTEGER LLB(NLB)
     CHARACTER*132 LINE
-    CHARACTER*5 CHR5
     CHARACTER*1 CH1
-    INTEGER L,LNUM,LEN
+    INTEGER I,I1,I2,L1,L,LNUM,LEN
     LOGICAL EOL
+    CHARACTER(LEN=5) FMT ! fits "(I99)"
 
     L=0
     LNUM=0
+    L1=0
     DO
        EOL=.TRUE.
        READ(27,"(A)",ADVANCE='NO',EOR=97,END=99,SIZE=LEN)LINE
        EOL=.FALSE.
 97     CONTINUE
        LNUM=LNUM+1
-       IF(LINE(1:4).NE.'   0' .AND. LINE(15:19).NE.'    0')THEN
+       J=1
+       I2=0
+       DO I=1,4
+          ! skip spaces
+          DO
+             IF(LINE(J:J)/=' ')EXIT
+             J=J+1
+             IF(J>LEN)EXIT
+          ENDDO
+          ! check for header line
+          IF(I==1.AND.LINE(J:J)=='0')THEN
+             EXIT
+          ENDIF
+          ! look for next space after BR/PT/TY/LAB
+          DO
+             IF(LINE(J:J)==' ')EXIT
+             J=J+1
+             IF(J>LEN)EXIT
+          ENDDO
+          IF(J>LEN)THEN
+             EXIT
+          ENDIF
+          ! Put line index for LAB, rest here
+          IF(I==3)THEN
+             I1=J
+          ELSEIF(I==4)THEN
+             I2=J
+          ENDIF
+       ENDDO
+       LAB=0
+       IF(I2/=0)THEN
+          READ(LINE(I1:I2-1),*)LAB
+       ENDIF
+
+       IF(LAB/=0)THEN
           L=L+1
-          READ(LINE(15:19),'(I5)')LAB
           IF(L>NLB.OR.LAB/=LLB(L))THEN
-             WRITE(*,"(A/A,A4,A,I5/A,A4/A/A)", ADVANCE="NO") &
+             WRITE(*,"(A/A,I5,A,I5/A,I5/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
-                  '  b-file label ',CLAB,' at line ',LNUM, &
-                  '  s-file label ',CHR4, &
+                  '  b-file label ',LAB,' at line ',LNUM, &
+                  '  s-file label ',LLB(L), &
                   ' New labels may be assigned incorrectly.', &
                   ' Continue ? : '
              READ(*,"(A1)")CH1
@@ -120,7 +152,11 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          WRITE(LINE(15:19),'(I5)')L
+          IF(I2-I1/=L1)THEN
+             L1=I2-I1
+             WRITE(FMT,"(A,I2,A)")'(I',L1,')'
+          ENDIF
+          WRITE(LINE(I1:I2-1),FMT)L
        ENDIF
        IF(.NOT.EOL)THEN
           DO
