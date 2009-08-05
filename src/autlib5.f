@@ -285,9 +285,9 @@ C     ** Rotations */
             XEQUIB2(I)=XEQUIB1(I)
             IF(NRTN(I).NE.0)THEN
                IF(ISTART.LT.0)THEN
-                  PAR(19)=-ISTART*PI(2.d0)
+                  NRTN(I)=-ISTART*NRTN(I)
                ENDIF
-               XEQUIB2(I)=XEQUIB2(I)+PAR(19)*NRTN(I)
+               XEQUIB2(I)=XEQUIB2(I)+PI(2.d0)*NRTN(I)
             ENDIF
          ENDDO
       ELSEIF(IEQUIB.GE.0) THEN
@@ -910,6 +910,7 @@ C
 C     Called by PREHO
 C
       USE BVP, ONLY: NRTN,IRTN
+      USE SUPPORT, ONLY: PI
       USE INTERFACES, ONLY: FUNC
       INTEGER, INTENT(IN) :: NCOLRS,NDM,NDIM,ICP(*),NPAR
       INTEGER, INTENT(INOUT) :: NTSR
@@ -945,7 +946,7 @@ C Just use the point in the middle
          ENDDO
          DO J=0,NTSR
             D1=ABS(UPS(I,J*NCOLRS)-PAR(I+11))
-            UPSI=ABS(UPS(I,J*NCOLRS)-(PAR(I+11)+PAR(19)*NRTN(I)))
+            UPSI=ABS(UPS(I,J*NCOLRS)-(PAR(I+11)+PI(2.d0)*NRTN(I)))
             IF(D1<UPSI)UPSI=D1
             IF(UPSI>UPSMAX)THEN
                UPSMAX=UPSI
@@ -1008,7 +1009,7 @@ C
             DO I=1,NDM
                IF(IRTN.NE.0)THEN
                   PHDIFF=0
-                  IF(IADDPH.NE.0)PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)
+                  IF(IADDPH.NE.0)PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)
                ENDIF
                UPS(I+NDM,LL)=UPS(I,JJ)+PHDIFF
                UDOTPS(I+NDM,LL)=UDOTPS(I,JJ)+PHDIFF
@@ -1016,7 +1017,7 @@ C
                UDOTPS(I,LL)=UDOTPS(I,JJ)
                IF (L<2*NTSR-JMAX-1) THEN
                   IF(IRTN.NE.0)THEN
-                     PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
+                     PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
                   LLL=LL+(1+JMAX)*NCOLRS
                   UPS(I+NDIM-NDM,LLL)=UPS(I,JJ)+PHDIFF
@@ -1069,7 +1070,7 @@ C
             DO K=0,NCOLRS-1
                DO I=NDM+1,2*NDM
                   IF(IRTN.NE.0)THEN
-                     PHDIFF=PAR(19)*NRTN(MOD(I-1,NDM)+1)*(K2/NDM)
+                     PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)*(K2/NDM)
                   ENDIF
                   UPS(I+K2,JJ+K)=UPS(I,JJ+K)+PHDIFF
                   UDOTPS(I+K2,JJ+K)=UDOTPS(I,JJ+K)+PHDIFF
@@ -1087,7 +1088,7 @@ C     Adjust end points
 C
       NTNC=NTSR*NCOLRS
       DO I=1,NDM
-         IF(IRTN.NE.0)PHDIFF=PAR(19)*NRTN(I)
+         IF(IRTN.NE.0)PHDIFF=PI(2.d0)*NRTN(I)
          DO K2=I,NDIM-NDM,NDM
             P=PHDIFF*((K2-I)/NDM-1)
             UPS(K2,NTNC)=UPS(I+NDM,NTNC+NCOLRS)+P
@@ -1097,9 +1098,11 @@ C
          UDOTPS(I+NDIM-NDM,NTNC)=UDOTPS(I,0)+PHDIFF*(-ISTART)
       ENDDO
 C
-C     Rotations: PAR(19) needs adjustment
+C     Rotations: NRTN needs adjustment
 C
-      IF(IRTN.NE.0)PAR(19)=PAR(19)*(-ISTART)
+      IF(IRTN.NE.0)THEN
+         NRTN(1:NDM)=NRTN(1:NDIM)*(-ISTART)
+      ENDIF
       DEALLOCATE(TTM)
       RETURN
       END SUBROUTINE TRANHO
@@ -1203,7 +1206,6 @@ C        Adjust rotations
           NRTN(I)=NINT( (UPS(NAR-NDM+I,NTSR*NCOLRS)-UPS(I,0)) / 
      *          (PI(2.d0) * (-ISTART)) )
           IF(NRTN(I).NE.0)THEN
-             PAR(19)=PI(2.d0)
              IRTN=1
           ENDIF
         ENDDO
@@ -1346,7 +1348,7 @@ C
               DO I=1,NDM
                  IF(NRTN(I)/=0) THEN
                     IF(ABS((UPS(I,J+NCOLRS)-UPS(I,J))/NRTN(I))>
-     *                   ABS(PAR(19)/2)) THEN
+     *                   ABS(PI(1.d0))) THEN
                        JR=J+NCOLRS
                        EXIT ntsrloop
                     ENDIF
@@ -1357,7 +1359,7 @@ C
               DO I=1,NDIM
                  IF (NRTN(I)/=0) THEN
                     DO J=JR,NTSR*NCOLRS
-                       UPS(I,J)=UPS(I,J)+PAR(19)*NRTN(I)
+                       UPS(I,J)=UPS(I,J)+PI(2.d0)*NRTN(I)
                     ENDDO
                  ENDIF
               ENDDO

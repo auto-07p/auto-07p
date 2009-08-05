@@ -979,7 +979,6 @@ CONTAINS
     DO I=1,NDM
        NRTN(I)=NINT( (UPS(I,NTNC)-UPS(I,0)) / PI(2.d0) )
        IF(NRTN(I).NE.0)THEN
-          PAR(19)=PI(2.d0)
           IRTN=1
        ENDIF
     ENDDO

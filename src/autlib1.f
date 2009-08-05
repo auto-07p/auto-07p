@@ -201,8 +201,8 @@ C
            !HB period is stored in PAR(11)
            NPAR=MAX(11,NPAR)
         ELSEIF(IPS>=2.AND.IPS/=5.AND.IPS/=11)THEN
-           !BVPs: rotations may use PAR(19); TR info in PAR(12)
-           NPAR=MAX(19,NPAR)
+           !BVPs: TR info in PAR(12), BP cont uses PAR(21)
+           NPAR=MAX(21,NPAR)
         ENDIF
         IAP(31)=NPAR
         ALLOCATE(PAR(NPAR))

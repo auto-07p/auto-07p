@@ -1071,6 +1071,7 @@ C     ---------- ----
       SUBROUTINE BCPS(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
@@ -1086,7 +1087,7 @@ C
 C Rotations
        IF(IRTN.NE.0)THEN
          DO I=1,NDIM
-           IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
@@ -1156,7 +1157,6 @@ C
       INTEGER NTC,I,J
 C
        PAR(11)=2.d0*PAR(11)
-       IF(IRTN.NE.0)PAR(19)=2.d0*PAR(19)
 C
        DO I=0,NTST-1
          TM(I)=.5d0*TM(I)
@@ -1673,6 +1673,7 @@ C
 C Boundary conditions for continuing folds (Periodic solutions)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
@@ -1689,7 +1690,7 @@ C Rotations
        IF(IRTN.NE.0)THEN
          NDM=IAP(23)
          DO I=1,NDM
-           IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
@@ -1975,6 +1976,7 @@ C
 C Boundary conditions for continuing BP (Periodic solutions)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
@@ -2000,7 +2002,7 @@ C
 C Rotations
        IF(IRTN.NE.0)THEN
          DO I=1,NDM
-           IF(NRTN(I).NE.0)FB(I)=FB(I)+PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)FB(I)=FB(I)+PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
@@ -2468,6 +2470,7 @@ C     ---------- ----
       SUBROUTINE BCPD(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
 C Generate boundary conditions for the 2-parameter continuation
 C of period doubling bifurcations.
@@ -2488,7 +2491,7 @@ C
 C Rotations
        IF(IRTN.NE.0)THEN
          DO I=1,NDM
-           IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
@@ -2720,6 +2723,7 @@ C     ---------- ----
       SUBROUTINE BCTR(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
       INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
@@ -2746,7 +2750,7 @@ C
 C Rotations
        IF(IRTN.NE.0)THEN
          DO I=1,NDM
-           IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
@@ -3012,6 +3016,7 @@ C     ---------- ----
       SUBROUTINE BCPO(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
+      USE SUPPORT, ONLY : PI
 C
 C Generates the boundary conditions for periodic optimization problems.
 C
@@ -3031,7 +3036,7 @@ C
 C Rotations
        IF(IRTN.NE.0)THEN
          DO I=1,NBC/2
-           IF(NRTN(I).NE.0)F(I)=F(I) + PAR(19)*NRTN(I)
+           IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
        ENDIF
 C
