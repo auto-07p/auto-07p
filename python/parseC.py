@@ -217,7 +217,6 @@ class parseC(dict):
                 value = d
             elif key in ['THU','THL','UZR','U','PAR']:
                 d = []
-                v0s = []
                 i = 0
                 while i < len(value):
                     try:
@@ -234,18 +233,9 @@ class parseC(dict):
                         v1 = parseB.AUTOatof(value[i+1])
                         if v0 in v0s:
                             v1 = [v1]
-                    if v0 in v0s:
-                        # add to list when parameter was already encountered
-                        try:
-                            d[v0s.index(v0)][1].extend(v1)
-                        except AttributeError:
-                            d[v0s.index(v0)][1] = [d[v0s.index(v0)][1]]
-                            d[v0s.index(v0)][1].extend(v1)
-                    else:
-                        v0s.append(v0)
-                        d.append([v0,v1])
+                    d.append([v0,v1])
                     i = i + 2
-                value = d
+                value = self.__compactindexed(d)
             elif key in ['unames','parnames']:
                 d = []
                 for i in range(0,len(value),2):
@@ -357,6 +347,25 @@ class parseC(dict):
                     pass
                 item.append([d,parseB.AUTOatof(data[1])])
             self[key] = item
+
+    def __compactindexed(self, value):
+        """compact THL/THU/UZR lists"""
+        d = []
+        v0s = []
+        for v0, v1 in value:
+            if v0 in v0s:
+                if isinstance(v1,float):
+                    v1 = [v1]
+                # add to list when parameter was already encountered
+                try:
+                    d[v0s.index(v0)][1].extend(v1)
+                except AttributeError:
+                    d[v0s.index(v0)][1] = [d[v0s.index(v0)][1]]
+                    d[v0s.index(v0)][1].extend(v1)
+            else:
+                v0s.append(v0)
+                d.append([v0,v1])
+        return d
 
     def __compactstr(self,value):
         """check if we can use more compact output than str..."""
@@ -504,7 +513,9 @@ class parseC(dict):
             return self.__oldstr()
 
     def write(self,output,new=False):
-        if new:        
+        if new:
+            for key in ["UZR", "THL", "THU"]:
+                self[key] = self.__compactindexed(self[key])
             output.write(self.__newstr())
         else:
             output.write(str(self))
