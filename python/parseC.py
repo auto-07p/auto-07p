@@ -231,8 +231,6 @@ class parseC(dict):
                             i = i + 1
                     else:
                         v1 = parseB.AUTOatof(value[i+1])
-                        if v0 in v0s:
-                            v1 = [v1]
                     d.append([v0,v1])
                     i = i + 2
                 value = self.__compactindexed(d)
