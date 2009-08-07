@@ -118,7 +118,17 @@ class runAUTO:
         # first the normal parameters, then IRS=... style parameters
         for key in kw:
             if key in self.options:
-                self.options[key] = kw[key]
+                value = kw[key]
+                ovalue = self.options[key]
+                # preserve unames and parnames if not in a constants file
+                if (key == "constants" and value is not None and
+                    ovalue is not None and (ovalue["unames"] is not None or
+                                            ovalue["parnames"] is not None)):
+                    value = parseC.parseC(value)
+                    for k in ["unames", "parnames"]:
+                        if value[k] is None:
+                            value[k] = ovalue[k]
+                self.options[key] = value
         for key in kw:
             value = kw[key]
             if (key in self.options or key in ['t','LAB','PT','BR','TY']
