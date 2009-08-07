@@ -31,12 +31,13 @@ r5 = run(r4('UZ1'),ICP=['T+','mu','T','sigma+'],ISW=1,NDIM=9,NBC=11,
          UZR={'sigma+':0},DS=1.0)
 
 print "\n6th run - integrate away from the equilibrium up to Sigma"
-print "(second UZ is the one we want) + put starting"
-print "data for Lin vector and Lin gap in Zx, Zy, Zz and eta"
+print "(second UZ is the one we want)"
 r6 = run(r5('UZ1'),ICP=['T-','sigma-','sigma+','mu','T'],NDIM=12,NBC=15,
          SP=['UZ2'],UZR={'sigma-':0})
 
-print "\n7th run - close the gap (with some intermediate solutions)"
+print "\n7th run - put starting data for Lin vector and Lin gap in"
+print "Zx, Zy, Zz and eta"
+print "close the gap (with some intermediate solutions)"
 r7 = run(r6('UZ2'),ICP=['eta','rho','delta','eps','T-','T+','mu','T'],
          NBC=17,NINT=2,NPR=10,THL={'T':0,'T+':0,'T-':0},
          SP=['UZ1'],UZR={'eta':0},DS=-0.01,DSMIN=1e-7,DSMAX=0.1)

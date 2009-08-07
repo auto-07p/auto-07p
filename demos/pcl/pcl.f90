@@ -1,7 +1,7 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
-! lrz/lin: Finding a point-to-cycle heteroclinic connection in the
-!          Lorenz equations
+! pcl: Finding a point-to-cycle heteroclinic connection in the
+!      Lorenz equations
 ! 
 ! Parameters:
 !   PAR(1) : rho
@@ -159,33 +159,32 @@
     DOUBLE PRECISION, EXTERNAL :: GETP
     DOUBLE PRECISION d(3),normlv
     INTEGER i, NBC
-    DOUBLE PRECISION rho, beta, sigma, delta, eps, ev
+    LOGICAL, SAVE :: FIRST = .TRUE.
 
-    IF (NDIM==6) THEN
-       delta = PAR(15)
-       PAR(21) = GETP("BV0",1,U) + delta*GETP("BV0",4,U) - 10
-    ELSEIF (NDIM==9) THEN
-       rho = PAR(1)
-       beta = PAR(2)
-       sigma = PAR(3)
-       eps = PAR(17)
-
-       ! unstable eigenvector at the 0 equilibrium
-       ev = rho/(-0.5+0.5*sigma+0.5*sqrt(1-2*sigma+sigma*sigma+4*rho*sigma))
-       PAR(22) = eps*ev/sqrt(ev**2+1) - GETP("BV0",7,U)
-    ELSEIF (NDIM==12) THEN
-       NBC = AINT(GETP("NBC",0,U))
-       IF (NBC==15) THEN
-          DO i=1,3
-             d(i) = GETP("BV0",6+i,U) - GETP("BV1",9+i,U)
-          ENDDO
-          normlv = sqrt(DOT_PRODUCT(d,d))
-          ! gap size in PAR(23)
-          PAR(23) = normlv
-          ! Lin vector in PAR(24)-PAR(26)
-          PAR(24:26) = d(1:3)/normlv
+    IF (FIRST) THEN ! initialization for BCND
+       FIRST = .FALSE.
+       IF (NDIM==9) THEN
+          PAR(21) = GETP("BV0",7,U) - 10
+       ELSEIF (NDIM == 12) THEN
+          NBC = AINT(GETP("NBC",0,U))
+          IF (NBC == 15) THEN
+             PAR(22) = GETP("BV1",10,U) - 10
+          ELSE
+             ! check if Lin vector initialized:
+             IF (DOT_PRODUCT(PAR(24:26),PAR(24:26)) > 0) RETURN
+             DO i=1,3
+                d(i) = GETP("BV0",6+i,U) - GETP("BV1",9+i,U)
+             ENDDO
+             normlv = sqrt(DOT_PRODUCT(d,d))
+             ! gap size in PAR(23)
+             PAR(23) = normlv
+             ! Lin vector in PAR(24)-PAR(26)
+             PAR(24:26) = d(1:3)/normlv
+          ENDIF
        ENDIF
+       RETURN
     ENDIF
+
   END SUBROUTINE PVLS
 
   SUBROUTINE BCND(NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
