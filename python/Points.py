@@ -38,7 +38,7 @@ def importnumpy():
         except ImportError:
             try:
                 import numarray as N
-                N.array2string = numarray.arrayprint.array2string
+                N.array2string = N.arrayprint.array2string
                 ndarray, float64, int32, bool8 = (
                     N.ArrayType, N.Float64, N.Int32, N.Bool)
                 def nonzero(x):
