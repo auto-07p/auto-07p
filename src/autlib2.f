@@ -1547,6 +1547,7 @@ C
 C Solve for FCC
       IF(NLLV>0)THEN
          CALL NLVC(NCR,NCR,NLLV,E,FCC)
+         DET=0.d0
       ELSE
          IF(NLLV<0)THEN
             DO I=1,NCR-1
