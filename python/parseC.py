@@ -245,6 +245,11 @@ class parseC(dict):
                 if key[0] in ['I','J','K','L','M','N']:
                     if value[0] == '*':
                         value = 10**len(value)
+                    elif key == 'IRS':
+                        try:
+                            value = int(value)
+                        except ValueError:
+                            pass
                     else:
                         value = int(value)
                 else:
@@ -274,7 +279,10 @@ class parseC(dict):
         self.__new = False
         self["NDIM"] = int(data[0])
         self["IPS"] = int(data[1])
-        self["IRS"] = int(data[2])
+        try:
+            self["IRS"] = int(data[2])
+        except ValueError:
+            self["IRS"] = data[2]            
         self["ILP"] = int(data[3])
 
         line = inputfile.readline()
