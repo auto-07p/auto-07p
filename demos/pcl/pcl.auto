@@ -32,7 +32,7 @@ r5 = run(r4('UZ1'),ICP=['T+','mu','T','sigma+'],ISW=1,NDIM=9,NBC=11,
 
 print "\n6th run - integrate away from the equilibrium up to Sigma"
 print "(second UZ is the one we want)"
-r6 = run(r5('UZ1'),ICP=['T-','sigma-','sigma+','mu','T'],NDIM=12,NBC=15,
+r6 = run(r5('UZ1'),ICP=['T-','sigma-','T+','mu','T'],NDIM=12,NBC=15,
          SP=['UZ2'],UZR={'sigma-':0})
 
 print "\n7th run - put starting data for Lin vector and Lin gap in"
