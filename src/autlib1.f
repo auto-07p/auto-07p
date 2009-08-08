@@ -507,7 +507,8 @@ C
       INTEGER NINS,LAB,NTOT,ITP,ITPST,NUZR,NICP
       DOUBLE PRECISION BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=2048) :: STR
-      CHARACTER(LEN=1) :: C,PREV
+      CHARACTER(LEN=1) :: C,QUOTE,PREV
+      LOGICAL QUOTEESC
       INTEGER KEYEND,POS,LISTLEN,NPOS,LISTLEN2,IERR,ios
 
       TYPE INDEXSTRL
@@ -554,12 +555,24 @@ C
          IF(NPOS==1)THEN
             LINE=LINE+1
             READ(2,'(A)',END=5) STR
+            QUOTE=' '
+            QUOTEESC=.FALSE.
             DO I=1,LEN_TRIM(STR)
-               IF(IACHAR(STR(I:I))==9)THEN
-                  WRITE(6,'(A,A,I2,A,I3,A)')"Warning: TAB character in",
-     &                 " constants file on line ", LINE, " column ", I,
-     &                 ". Replacing with a space."
-                  STR(I:I)=' '
+               C=STR(I:I)
+               IF(QUOTE==' ')THEN
+                  ! replace a tab with a spaces if not in a string
+                  IF(IACHAR(C)==9)THEN
+                     STR(I:I)=' '
+                  ELSEIF(C=="'".OR.C=='"')THEN
+                     QUOTE=STR(I:I)
+                  ENDIF
+               ELSEIF(C==QUOTE)THEN
+                  ! ignore "" and ''
+                  IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+                     QUOTEESC=.NOT.QUOTEESC
+                  ELSE
+                     QUOTE=' '
+                  ENDIF
                ENDIF
             ENDDO
          ELSE
