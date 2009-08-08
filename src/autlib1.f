@@ -554,6 +554,14 @@ C
          IF(NPOS==1)THEN
             LINE=LINE+1
             READ(2,'(A)',END=5) STR
+            DO I=1,LEN_TRIM(STR)
+               IF(IACHAR(STR(I:I))==9)THEN
+                  WRITE(6,'(A,A,I2,A,I3,A)')"Warning: TAB character in",
+     &                 " constants file on line ", LINE, " column ", I,
+     &                 ". Replacing with a space."
+                  STR(I:I)=' '
+               ENDIF
+            ENDDO
          ELSE
             STR=STR(NPOS:)
          ENDIF
