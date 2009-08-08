@@ -1,3 +1,4 @@
+#include "gplaut04.h"
 #include "axis.h"
 
 #define FONT_SIZE 12
@@ -20,6 +21,7 @@ Axis::Axis()
     {
         tickers[i] = minValue + i * delta;
     }
+    adjust = 0;
 }
 
 
@@ -77,12 +79,21 @@ Axis::set(int ty, double mxValue, double mnValue, int numTickers,
     {
         tickers[i] = minValue + i * delta;
     }
+    adjust = 0;
+    if(type == COORD_AT_ORIGIN && (maxValue < 0 || minValue > 0))
+    {
+        if(minValue > 0)
+            adjust = minValue;
+        else if(maxValue < 0)
+            adjust = maxValue;
+        adjust *= 1.1 / (maxValue - minValue);
+    }
 }
 
 
 //////////////////////////////////////////////////////////////
 //
-SoSeparator * 
+SoSeparator *
 Axis::createAxis()
 //
 //////////////////////////////////////////////////////////////
@@ -97,13 +108,30 @@ Axis::createAxis()
     SoCylinder *cyl = new SoCylinder;
     cyl->radius = 2.0/500.0;
     cyl->height = 2.2;
+    if(type == COORD_AT_ORIGIN && (maxValue < 0 || minValue > 0))
+    {
+        SoTransform  *xform = new SoTransform;
+        float d;
+        cyl->height = 2 * (1.1 + adjust);
+        if(minValue > 0)
+            d = -adjust;
+        else if(maxValue < 0)
+            d = adjust;
+        if (which == -1) //y
+            xform->translation.setValue(0, -d, 0);
+        else // x or z
+            xform->translation.setValue(0, d, 0);
+        axis->addChild(xform);
+    }
     axis->addChild(cyl);
 
-    if(type == 0)
-        axis->addChild(drawArrow());
-
     float position;
-    if(type != 0)
+    if(type == COORDORIGIN || type == COORD_AT_ORIGIN)
+    {
+        axis->addChild(drawArrow());
+        position = 1.2 + adjust;
+    }
+    else
     {
 #ifdef TD_FONT
         position = 0;
@@ -111,8 +139,6 @@ Axis::createAxis()
         position = 1.1;
 #endif
     }
-    else
-        position = 1.2;
 
     axis->addChild(drawAxisName(position));
 
@@ -153,7 +179,7 @@ Axis::drawAxisName(float pos)
     axName->string.setValue(name);
 
     SoTransform *tkXform = new SoTransform;
-    if(type != 0)
+    if(type == LEFTBACK || type == LEFTAHEAD)
     {
         if(which == -1)
         {
@@ -199,7 +225,7 @@ Axis::drawAxisName(float pos)
         }
         else
         {
-            tkXform->translation.setValue(-0.2, pos, 0.00);
+            tkXform->translation.setValue(0.0, pos, 0.0);
             nameSep->addChild(tkXform);
         }
     }
@@ -227,21 +253,25 @@ Axis::drawTicker(float pos, float height)
 
     if(which == -1)
     {
+        pos -= adjust;
         tkXform->translation.setValue(0.02, pos, 0.00);
+        tkXform->rotation.setValue(SbVec3f(0.0,0.0,1.0),M_PI_2);
     }
     else if(which == 1)
     {
-        tkXform->translation.setValue(-0.02, pos, 0.00);
+        pos += adjust;
+        if(type == LEFTBACK)
+            tkXform->translation.setValue(0.00, pos, 0.02);
+        else
+            tkXform->translation.setValue(0.00, pos, -0.02);
+        tkXform->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI_2);
     }
     else
     {
-        tkXform->translation.setValue(0.02, pos, 0.00);
-    }
-
-    if(show3D)
-        tkXform->rotation.setValue(SbVec3f(0.0,0.0,1.0),M_PI_2);
-    else
+        pos += adjust;
+        tkXform->translation.setValue(0.00, pos, -0.02);
         tkXform->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI_2);
+    }
 
     tkSep->addChild(tkXform);
     tkSep->addChild(ticker);
@@ -263,6 +293,7 @@ Axis::drawScale(float pos, float scale)
     sclFont->size.setValue(FONT_SIZE);
 
     SoTransform *tkXform = new SoTransform;
+    pos += adjust;
     if(which == -1)
     {
         tkXform->translation.setValue(-0.35, -pos, 0.00);
@@ -270,22 +301,14 @@ Axis::drawScale(float pos, float scale)
     }
     else if(which == 1)
     {
-        if(show3D)
-        {
-            tkXform->translation.setValue(0.08, pos-0.05, 0.00);
-            tkXform->rotation.setValue(SbVec3f(0.0,0.0,1.0),M_PI_2);
-        }
+        if(type == LEFTBACK)
+            tkXform->translation.setValue(0.00, pos-0.05, -0.16);
         else
-        {
-            if(type == 2)
-                tkXform->translation.setValue(0.00, pos-0.05, -0.20);
-            else
-                tkXform->translation.setValue(0.00, pos-0.05, 0.20);
-        }
+            tkXform->translation.setValue(0.00, pos-0.05, 0.08);
     }
     else
     {
-        tkXform->translation.setValue(-0.25, pos, 0.00);
+        tkXform->translation.setValue(0, pos, 0.05);
     }
 
     char strScale[10];
@@ -316,11 +339,11 @@ Axis::drawArrow()
     SoTransform * arrXform = new SoTransform;
     if( which == -1 )
     {
-        arrXform->translation.setValue(0.0, -1.1, 0.0);
+        arrXform->translation.setValue(0.0, -1.1-adjust, 0.0);
         arrXform->rotation.setValue(SbVec3f(1, 0, 0), M_PI);
     }
     else
-        arrXform->translation.setValue(0.0, 1.1, 0.0);
+        arrXform->translation.setValue(0.0, 1.1+adjust, 0.0);
 
     arrSep->addChild(arrXform);
 

@@ -380,14 +380,6 @@ createSolutionSceneWithWidgets()
     {
         if(whichCoord != NO_COORD)
         {
-            int cdtype = 0;
-            if(whichCoord==LEFTBACK)
-                cdtype = 2;
-            else if(whichCoord==LEFTAHEAD)
-                cdtype = 1;
-            else if (whichCoord==COORDORIGIN)
-                cdtype = 0;
-
             SoSeparator * coordSep = new SoSeparator;
 
             SoTransform * coordXform = new SoTransform;
@@ -419,7 +411,7 @@ createSolutionSceneWithWidgets()
                 asMin[0] = asMin[1] = asMin[2] = -1;
             }
 
-            coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
+            coordSep->addChild(createCoordinates(setShow3D, whichCoord, asMax, asMin, tickers, &envColors[1]));
             result->addChild(coordSep);
         }
 
@@ -548,14 +540,6 @@ createBifurcationScene()
 
     if(whichCoord != NO_COORD)
     {
-        int cdtype = 0;
-        if(whichCoord==LEFTBACK)
-            cdtype = 2;
-        else if(whichCoord==LEFTAHEAD)
-            cdtype = 1;
-        else if (whichCoord==COORDORIGIN)
-            cdtype = 0;
-
         SoSeparator * coordSep = new SoSeparator;
 
         SoTransform * coordXform = new SoTransform;
@@ -584,7 +568,7 @@ createBifurcationScene()
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
-        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
+        coordSep->addChild(createCoordinates(setShow3D, whichCoord, asMax, asMin, tickers, &envColors[1]));
 
         result->addChild(coordSep);
     }
@@ -4952,6 +4936,7 @@ writePreferValuesToFile()
                 fprintf(outFile, "#  1 --- at geometry center or origin,\n");
                 fprintf(outFile, "#  2 --- at left and behind,\n");
                 fprintf(outFile, "#  3 --- at left and ahead. \n");
+                fprintf(outFile, "#  4 --- always at origin. \n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", whichCoord);
                 break;

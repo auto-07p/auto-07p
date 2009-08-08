@@ -550,6 +550,7 @@ MainWindow::coordMenuDisplay()
         menuItems->items->setItemChecked(COORDORIGIN, false);
         menuItems->items->setItemChecked(LEFTBACK, false);
         menuItems->items->setItemChecked(LEFTAHEAD, false);
+        menuItems->items->setItemChecked(COORD_AT_ORIGIN, false);
         menuItems->items->setItemChecked(DRAW_TICKER, blDrawTicker);
         menuItems->items->setItemChecked(menuItems->which, true);
     }
@@ -818,6 +819,8 @@ MainWindow::buildCoordMenu()
                          0, LEFTBACK);
     pulldown->insertItem("Left and &Ahead", this, SLOT(coordMenuPick(int)),
                          0, LEFTAHEAD);
+    pulldown->insertItem("At &Origin", this, SLOT(coordMenuPick(int)),
+                         0, COORD_AT_ORIGIN);
     pulldown->insertSeparator();
     pulldown->insertItem("&Draw Scale", this, SLOT(coordMenuPick(int)),
                          0, DRAW_TICKER);

@@ -27,8 +27,8 @@ gmainqt.moc.c++: gmainqt.h
 clean:
 	rm -f *.o gmainqt.moc.c++
 
-axis.o: $(INC)/axis.h
-createCoords.o: $(INC)/axis.h
+axis.o: $(INC)/gplaut04.h $(INC)/axis.h
+createCoords.o: $(INC)/gplaut04.h $(INC)/axis.h
 drawCoords.o: $(INC)/gplaut04.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
 gmainxt.o: $(INC)/gplaut04.h

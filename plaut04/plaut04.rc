@@ -34,6 +34,7 @@ Draw Labels           = Yes
 #  1 --- at geometry center or origin
 #  2 --- at left and behind
 #  3 --- at left and ahead
+#  4 --- always at origin
 Coordinate Type = 3
 
 # Draw Scale:

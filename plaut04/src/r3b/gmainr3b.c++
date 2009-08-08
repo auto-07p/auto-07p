@@ -671,14 +671,6 @@ createSolutionInertialFrameScene(float dis)
 // create solution coordinate axis
     if(whichCoord != NO_COORD)
     {
-        int cdtype = 0;
-        if(whichCoord==LEFTBACK)
-            cdtype = 2;
-        else if(whichCoord==LEFTAHEAD)
-            cdtype = 1;
-        else if (whichCoord==COORDORIGIN)
-            cdtype = 0;
-
         SoSeparator * coordSep = new SoSeparator;
 
         SoTransform * coordXform = new SoTransform;
@@ -706,7 +698,7 @@ createSolutionInertialFrameScene(float dis)
             asMin[0] = asMin[1] = asMin[2] = -1;
         }
 
-        coordSep->addChild(createCoordinates(setShow3D, cdtype, asMax, asMin, tickers, whichCoord, &envColors[1]));
+        coordSep->addChild(createCoordinates(setShow3D, whichCoord, asMax, asMin, tickers, &envColors[1]));
 
         aSep->addChild(coordSep);
     }

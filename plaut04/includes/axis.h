@@ -21,6 +21,7 @@ private:
 	                        // type == 2, |_
 	double maxValue ;
 	double minValue ;
+	double adjust ;
 	int numOfTickers ;
 	const char *name;
 	double tickers[11];

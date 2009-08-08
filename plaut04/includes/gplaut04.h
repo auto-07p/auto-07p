@@ -130,8 +130,9 @@
 #define COORDORIGIN    1
 #define LEFTBACK  2
 #define LEFTAHEAD 3
-#define DRAW_TICKER 4
-#define GEOCENTER 5
+#define COORD_AT_ORIGIN    4
+#define DRAW_TICKER 5
+#define GEOCENTER 6
 
 #define TYPE_BP_ALG   1
 #define TYPE_LP_ALG   2
@@ -286,7 +287,7 @@ SoSeparator * createLegend(SbVec3f pos, double val[5]);
 SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
 SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
-SoSeparator * createCoordinates(bool, int type, float mx[3], float mn[3], int tk[3], int where, SbColor color[3]);
+SoSeparator * createCoordinates(bool, int where, float mx[3], float mn[3], int tk[3], SbColor color[3]);
 SoSeparator * drawASphere(float ptb[], float size);
 
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);

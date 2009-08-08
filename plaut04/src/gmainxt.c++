@@ -674,6 +674,7 @@ coordMenuDisplay(Widget, void *userData, XtPointer)
         TOGGLE_OFF(menuItems->items[COORDORIGIN]);
         TOGGLE_OFF(menuItems->items[LEFTBACK]);
         TOGGLE_OFF(menuItems->items[LEFTAHEAD]);
+        TOGGLE_OFF(menuItems->items[COORD_AT_ORIGIN]);
         TOGGLE_OFF(menuItems->items[DRAW_TICKER]);
 
         TOGGLE_ON(menuItems->items[menuItems->which]);
@@ -1086,10 +1087,11 @@ buildCoordMenu(Widget menubar)
     TOGGLE_ITEM(coordMenuItems->items[1], "Coord Center",    COORDORIGIN, coordMenuPick);
     TOGGLE_ITEM(coordMenuItems->items[2], "Left and Back ",   LEFTBACK, coordMenuPick);
     TOGGLE_ITEM(coordMenuItems->items[3], "Left and Ahead",   LEFTAHEAD, coordMenuPick);
+    TOGGLE_ITEM(coordMenuItems->items[4], "At Origin",   COORD_AT_ORIGIN, coordMenuPick);
     SEP_ITEM("separator");
-    TOGGLE_ITEM(coordMenuItems->items[4], "Draw Scale",   DRAW_TICKER, coordMenuPick);
+    TOGGLE_ITEM(coordMenuItems->items[5], "Draw Scale",   DRAW_TICKER, coordMenuPick);
 
-    XtManageChildren(coordMenuItems->items, 5);
+    XtManageChildren(coordMenuItems->items, 6);
 
     return pulldown;
 }
