@@ -19,6 +19,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         locals["auto"] = self.auto
         locals["demofile"] = self.demofile
         locals["dmf"] = self.dmf
+        self.name = filename
         self.stopdemo = False
         self.oldhelp = __builtin__.help
         locals["help"] = self.help
@@ -39,8 +40,17 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
         try:
             raise
         except AUTOExceptions.AUTORuntimeError:
+            import traceback
             e = sys.exc_info()[1]
-            self.write(str(e)+"\n")
+            l = traceback.extract_tb(sys.exc_info()[2])
+            found = False
+            for entry in l:
+                if entry[0] == self.name:
+                    self.write("%s, line %s:\n"%(entry[0],entry[1]))
+                    found = True
+            if found:
+                self.write("\n")
+            self.write("AUTO Runtime Error: %s\n"%e)
             self.stopdemo = True
         except:
             code.InteractiveConsole.showtraceback(self)
@@ -52,6 +62,8 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
     will proceed each time you press Enter.
 
 Aliases: demofile dmf"""
+        oldname = self.name
+        self.name = name
         lines = open(name,"r")
         runline = ''
         for line in lines:
@@ -67,8 +79,10 @@ Aliases: demofile dmf"""
             if not self.runsource(runline):
                 if self.stopdemo:
                     self.stopdemo = False
+                    self.name = oldname
                     raise AUTOExceptions.AUTORuntimeError('Demo interrupted')
                 runline = ''
+        self.name = oldname
 
     def dmf(self,name):
         """Execute an AUTO CLUI script, line by line (demo mode).
@@ -88,13 +102,27 @@ Aliases: auto ex"""
         if name is None:
             automain()
             return
-        lines = open(name,"r")
+        oldname = self.name
+        try:
+            lines = open(name,"r")
+        except IOError:
+            if oldname is None:
+                # to give a simple message for "auto notexists.auto".
+                try:
+                    raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+                except:
+                    self.showtraceback()
+                    return
+            else:    
+                raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+        self.name = name
         source = ""
         for line in lines:
             while len(line) > 0 and line[-1] in "\r\n":
                 line = line[:-1]
             source = source + self.processShorthand(line) + "\n"
         self.runsource(source,name,"exec")
+        self.name = oldname
 
     def ex(self,name=None):
         """Execute an AUTO CLUI script.

@@ -747,7 +747,10 @@ def sl(name=None,templates=None):
     """
     name = filenameTemplate(name,templates)
     n1s = name["solution"] or "fort.8"
-    data = parseS.parseS(n1s)
+    try:
+        data = parseS.parseS(n1s)
+    except IOError:
+        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
     if isinstance(n1s, str):
         info("Parsed file: %s\n"%n1s)
     return data
@@ -766,7 +769,10 @@ def dg(name=None,templates=None):
     n1b = name["bifurcationDiagram"]
     if n1b is None:
         n1b = "fort.7"
-    data = parseB.parseB(n1b)
+    try:
+        data = parseB.parseB(n1b)
+    except IOError:
+        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
     info("Parsed file: %s\n"%n1b)
     return data
 commandParseDiagramFile = command(dg,alias=['diagramget'])
