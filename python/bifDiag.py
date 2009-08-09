@@ -219,12 +219,33 @@ class bifDiag(parseB.parseBR):
         if isinstance(label, types.FunctionType):
             f = label
             label = []
+            cnt = getattr(f,"func_code",getattr(f,"__code__",None)).co_argcount
             for d in self:
                 for i in d.labels.getIndices():
                     k,x = d._gettypelabel(i)
-                    if "solution" in x:
-                        if f(x["solution"]):
-                            label.append(x["LAB"])
+                    if "solution" not in x:
+                        continue
+                    s = x["solution"]
+                    if cnt == 1:
+                        # function takes just one parameter
+                        if f(s):
+                            label.append(s["LAB"])
+                    elif cnt == 2:
+                        # function takes two parameters: compare all solutions
+                        # with each other
+                        for d2 in self:
+                            for i2 in d2.labels.getIndices():
+                                k2,x2 = d2._gettypelabel(i2)
+                                if "solution" not in x2:
+                                    continue
+                                s2 = x2["solution"]
+                                if (s["LAB"] < s2["LAB"] and
+                                    s2["LAB"] not in label and
+                                    f(s, s2)):
+                                    label.append(s2["LAB"])
+                    else:
+                        raise AUTOExceptions.AUTORuntimeError(
+                            "Invalid number of arguments for %s."%f.__name__)
 
         new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
         if copy:
