@@ -1139,6 +1139,9 @@ def configure(runner=None,templates=None,**kw):
                     kw["constants"] = parseC.parseC(kw["constants"])
                     doneread = True
                 except IOError:
+                    if "__constants" not in kw:
+                        raise AUTOExceptions.AUTORuntimeError(
+                            "Constants file %s not found."%kw["constants"])
                     del kw["constants"]
         if "homcont" in kw:
             if isinstance(kw["homcont"], str):
@@ -1148,7 +1151,9 @@ def configure(runner=None,templates=None,**kw):
                     object.readFilename(kw["homcont"])
                     doneread = True
                 except IOError:
-                    #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["homcont"])
+                    if "__homcont" not in kw:
+                        raise AUTOExceptions.AUTORuntimeError(
+                            "HomCont file %s not found."%kw["homcont"])
                     object = None
                 kw["homcont"] = object
         if "solution" in kw:
@@ -1159,7 +1164,9 @@ def configure(runner=None,templates=None,**kw):
                     object.readFilename(kw["solution"],**kw)
                     doneread = True
                 except IOError:
-                    #sys.stdout.write("Could not open file '%s', defaulting to empty file\n"%kw["solution"])
+                    if "__solution" not in kw:
+                        raise AUTOExceptions.AUTORuntimeError(
+                            "Solution file %s not found."%kw["solution"])
                     object = None
                 kw["solution"] = object
         if wantread and not doneread:
@@ -1170,7 +1177,8 @@ def configure(runner=None,templates=None,**kw):
                         doneread = True
                         break
             if not doneread:
-                raise IOError("No files found.")
+                raise AUTOExceptions.AUTORuntimeError(
+                    "No equations file found.")
         return kw
 
     runner = withrunner(runner)
@@ -1261,6 +1269,8 @@ def load(data=None,runner=None,templates=None,**kw):
         for key in ["equation", "constants", "solution", "homcont"]:
             if key not in kw:
                 kw[key] = data
+                # flag for addition from load('name')
+                kw["__"+key] = None
     return configure(runner,templates,**kw)
 commandRunnerLoadName = command(load,SIMPLE,"loadname",alias=['ld'])
 

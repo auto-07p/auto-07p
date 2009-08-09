@@ -324,10 +324,19 @@ class runAUTO:
 
         # figure out equation file name
         equation = self.options["equation"][14:]
+        e = None
         for ext in [".f90",".f",".c"]:
             if os.path.exists(equation+ext):
-                self.options["constants"]["e"] = equation
+                e = equation
                 break
+        if e is None:
+            if equation == "":
+                raise AUTOExceptions.AUTORuntimeError(
+                "The equation file argument is missing.")
+            raise AUTOExceptions.AUTORuntimeError(
+                "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
+                equation,equation,equation))
+        self.options["constants"]["e"] = e
         self.options["constants"].writeFilename("fort.2")
 
         if os.path.exists("fort.3"):
@@ -376,9 +385,9 @@ class runAUTO:
             if os.path.exists(equation+ext):
                 src = equation+ext
         if src == "":
-            print("Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
+            raise AUTOExceptions.AUTORuntimeError(
+                "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
                 equation,equation,equation))
-            return
         # compile
         if fcon:
             equation = "fcon"
