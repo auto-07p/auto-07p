@@ -101,13 +101,10 @@ class bifDiag(parseB.parseBR):
                         i = i+1
                         s = x["solution"] = parseS.AUTOSolution(s, **options)
                         if d.coordnames != []:
-                            p = Points.Pointset.__getitem__(d,ind)
                             for name in d.coordnames:
                                 # Add things like "L2-NORM" to the solution info
-                                if (name not in s.PAR.coordnames and
-                                    name not in s.coordnames and
-                                    name not in s.data):
-                                    s.data[name] = p[name]
+                                if name not in s:
+                                    s.data[name] = d[ind, name]
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):

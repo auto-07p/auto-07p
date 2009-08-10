@@ -415,6 +415,14 @@ class AUTOBranch(Points.Pointset):
     def getIndex(self,index):
         """Return a parseB style line item; if given a string, return the
         relevant column"""
+        if isinstance(index,tuple) and len(index)==2 and not self.__fullyParsed:
+            # retrieve data without parsing everything else
+            i, j = index
+            if isinstance(j, str):
+                j = self.coordnames.index(j)
+            return AUTOatof(self.__datalist[i].split()[4+j])
+        if not Points.numpyimported:
+            Points.importnumpy()
         ret = Points.Pointset.__getitem__(self,index)
         if (not isinstance(ret, Points.Point) or
             isinstance(ret, Points.Pointset)):

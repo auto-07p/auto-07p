@@ -684,6 +684,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
 
     def __contains__(self,key):
         return (key == "data" or key in self.long_data_keys or
+                key in self.__parnames or
                 (not self.__fullyParsed and key in self.data_keys) or
                 (self.__fullyParsed and key in self.data) or
                 Points.Pointset.has_key(self,key))
