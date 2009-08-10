@@ -598,7 +598,8 @@ class AUTOBranch(Points.Pointset):
 
     def summary(self):
         slist = []
-        data = self.coordarray
+        if self.__fullyParsed:
+            data = self.coordarray
         first = True
         for index,l in self.labels.sortByIndex():
             label = {}
@@ -617,10 +618,18 @@ class AUTOBranch(Points.Pointset):
             ty_name = type_translation(ty_number)["short name"]
             if ty_name=='RG':
                 ty_name = '  '
-            slist.append("".join(
-                    ["%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
-                                    ty_name,label["LAB"])]+
-                    ["%14.5E"%d[index] for d in data]))
+                
+            if self.__fullyParsed:
+                linelist = (["%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
+                                             ty_name,label["LAB"])]+
+                            ["%14.5E"%d[index] for d in data])
+            else:
+                linedata = self.__datalist[index].split()
+                linelist = (
+                    ["%4d%6d%4s%5d"%(abs(int(linedata[0])),abs(label["PT"]),
+                                     ty_name,label["LAB"])] +
+                    ["%14.5E"%AUTOatof(d) for d in linedata[4:]])
+            slist.append("".join(linelist))
         return "\n".join(slist)
 
     def writeScreen(self):
