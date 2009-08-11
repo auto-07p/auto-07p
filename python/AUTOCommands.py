@@ -536,7 +536,11 @@ commandDeleteDataFiles = command(delete,alias=['dl'])
 def deleteLabel(codes=None,name1=None,name2=None,templates=None,
                 keepTY=0,keep=0):
     if hasattr(codes,'deleteLabel'):
-        return codes.deleteLabel(name1,keepTY=keepTY,keep=keep,copy=1)
+        origlen=len(codes())
+        new = codes.deleteLabel(name1,keepTY=keepTY,keep=keep,copy=1)
+        newlen=len(codes())
+        info("Deleted %d labels, and kept %d."%(origlen-newlen, newlen))
+        return new
     name1 = filenameTemplate(name1,templates)
     if name1["solution"] is None:
         changedb='fort.7'
@@ -545,7 +549,9 @@ def deleteLabel(codes=None,name1=None,name2=None,templates=None,
         changedb=name1["bifurcationDiagram"]
         changeds=name1["solution"]
     bs=bifDiag.bifDiag(changedb,changeds)
+    origlen=len(bs())
     bs.deleteLabel(codes,keepTY=keepTY,keep=keep)
+    newlen=len(bs())
     if name2 is None:
         origb=changedb+'~'
         origs=changeds+'~'
@@ -563,6 +569,7 @@ def deleteLabel(codes=None,name1=None,name2=None,templates=None,
     else:
         name2 = filenameTemplate(name2,templates)
         bs.writeFilename(name2["bifurcationDiagram"],name2["solution"])
+    info("Deleted %d labels, and kept %d."%(origlen-newlen, newlen))
 
 def dsp(typenames=None,name1=None,name2=None,templates=None):
     """Delete special points.
