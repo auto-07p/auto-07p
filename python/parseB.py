@@ -88,10 +88,7 @@ class BDPointData(UserList):
         self.index = index
     def __getattr__(self, attr):
         if attr == 'data':
-            data = []
-            for i in range(len(self.branch.coordarray)):
-                data.append(self.branch.coordarray[i][self.index])
-            return data
+            return [d[self.index] for d in self.branch.coordarray]
         raise AttributeError
     def __setitem__(self, i, item):
         self.branch.coordarray[i][self.index] = item
@@ -99,10 +96,29 @@ class BDPointData(UserList):
         return str(self.data)
 class BDPoint(Points.Point):
     def __init__(self, p, branch=None, index=None):
-        Points.Point.__init__(self, p)
+        if isinstance(p['coordarray'], list):
+            # not fully parsed
+            self.__fullyParsed = False
+            self.p = p
+            self.coordnames = p['coordnames']
+            self.name_map = dict(zip(p['coordnames'],
+                                     range(len(p['coordnames']))))
+        else:
+            self.__fullyParsed = True
+            Points.Point.__init__(self, p)
         self.index = index
         self.branch = branch
     
+    def __getattr__(self, attr):
+        if not self.__fullyParsed:
+            p = self.p
+            p['coordtype'] = type(p['coordarray'][0])
+            del self.name_map, self.p
+            Points.Point.__init__(self, p)
+            self.__fullyParsed = True
+            return getattr(self, attr)
+        raise AttributeError(attr)
+
     def __contains__(self, key):
         if key in ["TY name","data"] or Points.Point.has_key(self,key):
             return True
@@ -126,6 +142,11 @@ class BDPoint(Points.Point):
 
     def __getitem__(self, coords):
         if type(coords) == type(""):
+            if not self.__fullyParsed:
+                try:
+                    return self.p['coordarray'][self.name_map[coords]]
+                except KeyError:
+                    pass
             for k,v in self.labels.items():
                 if k in all_point_types:
                     if coords in v:
@@ -421,20 +442,31 @@ class AUTOBranch(Points.Pointset):
             if isinstance(j, str):
                 j = self.coordnames.index(j)
             return AUTOatof(self.__datalist[i].split()[4+j])
-        if not Points.numpyimported:
-            Points.importnumpy()
-        ret = Points.Pointset.__getitem__(self,index)
-        if (not isinstance(ret, Points.Point) or
-            isinstance(ret, Points.Pointset)):
-            return ret
+        if self.__fullyParsed or not isinstance(index, int):
+            if not Points.numpyimported:
+                Points.importnumpy()
+            ret = Points.Pointset.__getitem__(self,index)
+            if (not isinstance(ret, Points.Point) or
+                isinstance(ret, Points.Pointset)):
+                return ret
+            labels = ret.labels
+            coordnames = ret.coordnames
+            coordarray = ret.coordarray
+            br = self.BR
+        else:
+            labels = self.labels[index]
+            coordnames = self.coordnames
+            coordarray = self.__datalist[index].split()
+            br = int(coordarray[0])
+            coordarray = map(AUTOatof, coordarray[4:])
         label = {}
-        for k,v in ret.labels.items():
+        for k,v in labels.items():
             if k in all_point_types:
                 label = v
                 break
         if label != {}:
             label["index"] = index
-            label["BR"] = self.BR
+            label["BR"] = br
             label["section"] = 0
         else:
             pt = index+1
@@ -447,11 +479,11 @@ class AUTOBranch(Points.Pointset):
                 pt = -((-pt-1) % 9999) - 1
             else:
                 pt = ((pt-1) % 9999) + 1
-            ret.labels["No Label"] = {"BR": self.BR, "PT": pt, "TY number": 0,
-                                      "LAB": 0, "index": index, "section": 0}
-        return BDPoint({'coordarray': ret.coordarray,
-                        'coordnames': ret.coordnames,
-                        'labels': ret.labels},self,index)
+            labels["No Label"] = {"BR": br, "PT": pt, "TY number": 0,
+                                  "LAB": 0, "index": index, "section": 0}
+        return BDPoint({'coordarray': coordarray,
+                        'coordnames': coordnames,
+                        'labels': labels},self,index)
 
     def getLabels(self):
         """Get all the labels from the solution"""
