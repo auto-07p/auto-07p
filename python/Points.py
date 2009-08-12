@@ -24,8 +24,14 @@ def importnumpy():
     global _seq_types, _num_equivtype
     fromstring = None
     try:
-        import matplotlib.numerix
-        which = matplotlib.numerix.which[0]
+        import matplotlib
+        nn = matplotlib.__version__.split('.')
+        if int(nn[0]) == 0 and int(nn[1]) < 99:
+            # matplotlib >= 0.99 forces numpy
+            import matplotlib.numerix
+            which = matplotlib.numerix.which[0]
+        else:
+            which = ''
     except ImportError:
         which = ''
     # unless matplotlib uses Numeric (which is incompatible) we can use numpy

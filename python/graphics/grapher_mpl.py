@@ -4,7 +4,10 @@ matplotlib.use('TkAgg')
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-from matplotlib.numerix import transpose
+import Points
+if not Points.numpyimported:
+    Points.importnumpy()
+transpose = Points.N.transpose
 
 try:
     import Tkinter
