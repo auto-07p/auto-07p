@@ -29,10 +29,10 @@ SoSeparator * createCoordinates(bool show3D, int where, float sclMax[3], float s
         SoTransform  *zXform = new SoTransform;
         if(where == COORD_AT_ORIGIN)
         {
-            float x, y, z;
+            float x, y;
             x = -1 -sclMin[0] / (sclMax[0] - sclMin[0]) * 2;
             y = -1 -sclMin[1] / (sclMax[1] - sclMin[1]) * 2;
-            zXform->translation.setValue(x, z, -y);
+            zXform->translation.setValue(x, 0, -y);
         }
         else if(where == LEFTBACK || where == LEFTAHEAD)
         {

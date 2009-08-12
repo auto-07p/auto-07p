@@ -111,7 +111,7 @@ Axis::createAxis()
     if(type == COORD_AT_ORIGIN && (maxValue < 0 || minValue > 0))
     {
         SoTransform  *xform = new SoTransform;
-        float d;
+        float d = 0;
         cyl->height = 2 * (1.1 + adjust);
         if(minValue > 0)
             d = -adjust;
