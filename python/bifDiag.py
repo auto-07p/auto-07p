@@ -100,7 +100,8 @@ class bifDiag(parseB.parseBR):
                     if x["LAB"] != 0 or s["LAB"] == 0:
                         i = i+1
                         s = x["solution"] = parseS.AUTOSolution(s, **options)
-                        s.b = d[ind]
+                        if d.coordnames != []:
+                            s.b = d[ind]
 
     #delayed file-based reading to save memory if sv= is used in run()
     def __getattr__(self,attr):
