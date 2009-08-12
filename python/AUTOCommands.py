@@ -569,7 +569,7 @@ def deleteLabel(codes=None,name1=None,name2=None,templates=None,
     else:
         name2 = filenameTemplate(name2,templates)
         bs.writeFilename(name2["bifurcationDiagram"],name2["solution"])
-    info("Deleted %d labels, and kept %d."%(origlen-newlen, newlen))
+    info("Deleted %d labels, and kept %d.\n"%(origlen-newlen, newlen))
 
 def dsp(typenames=None,name1=None,name2=None,templates=None):
     """Delete special points.
