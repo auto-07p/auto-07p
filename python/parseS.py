@@ -653,6 +653,9 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                     self.coordarray = Points.N.array([[0.0]]*max(dict(value)))
                     self.indepvararray = Points.N.array([0.0])
                     self.data.update({"NTST": 1, "NCOL": 0})
+                    del self.data["Active ICP"]
+                    del self.data["rldot"]
+                    del self.data["udotps"]
                 for k,v in value:
                     self.coordarray[k-1][0] = v
                 return
