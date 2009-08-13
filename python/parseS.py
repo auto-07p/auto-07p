@@ -414,6 +414,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         par = None
+        coordarray = None
         if isinstance(input,self.__class__):
             runAUTO.runAUTO.__init__(self,input,**kw)
             if kw == {}:
@@ -565,6 +566,10 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         if (par is not None and
             (self.__start_of_header is not None or self.__fullyParsed)):
             self["PAR"] = par
+        if coordarray is None:
+            u = kw.get("U",c.get("U"))
+            if u is not None:
+                self["U"] = u
 
     def __str__(self):
         if not self.__fullyParsed and self.__start_of_header is not None:
@@ -634,6 +639,22 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             if shortkey == "p":
                 self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=value)
+                return
+            if shortkey == "U":
+                if type(value) == type({}):
+                    value = value.items()
+                for i,(k,v) in enumerate(value):
+                    if isinstance(k,str):
+                        value[i] = self.coordnames.index(k)
+                if len(self.coordarray[0]) > 1:
+                    # reduce solution to one point
+                    del self.coordarray
+                    del self.indepvararray
+                    self.coordarray = Points.N.array([[0.0]]*max(dict(value)))
+                    self.indepvararray = Points.N.array([0.0])
+                    self.data.update({"NTST": 1, "NCOL": 0})
+                for k,v in value:
+                    self.coordarray[k-1][0] = v
                 return
         try:
             Points.Pointset.__setitem__(self,key,value)
