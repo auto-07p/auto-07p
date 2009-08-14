@@ -48,7 +48,8 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         [d["miny"],d["maxy"]] = ax.get_ylim()
         for k in d:
             if d[k] != self.grapher.cget(k):
-                d.update({"xticks": None, "yticks": None})
+                self.grapher._configNoDraw(**d)
+                d = {"xticks": None, "yticks": None}
                 self.grapher._configNoDraw(**d)
                 self.redraw()
                 return

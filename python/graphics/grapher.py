@@ -205,11 +205,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
         if guess_minimum != guess_maximum:
             d = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(**{minc:d["min"],maxc:d["max"],
-                                  coordinate+'ticks':d["divisions"]})
+            self._configNoDraw(**{minc:d["min"],maxc:d["max"]})
+            self._configNoDraw(**{coordinate+'ticks':d["divisions"]})
         elif guess_maximum != None:
-            self._configNoDraw(**{minc:guess_minimum-1,maxc:guess_maximum+1,
-                                  coordinate+'ticks':None})
+            self._configNoDraw(**{minc:guess_minimum-1,maxc:guess_maximum+1})
+            self._configNoDraw(**{coordinate+'ticks':None})
             
     def computeXRange(self,guess_minimum=None,guess_maximum=None):
         self.computeRange("x",guess_minimum,guess_maximum)
