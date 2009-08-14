@@ -184,51 +184,38 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         num = int(round(( maximum - minimum ) / inc))
         return {"min": minimum, "max": maximum, "divisions": num + 1}
 
-    def computeXRange(self,guess_minimum=None,guess_maximum=None):
+    def computeRange(self,coordinate,guess_minimum=None,guess_maximum=None):
+        minc = "min"+coordinate
+        maxc = "max"+coordinate
+        if len(self.data) > 0 and minc not in self.data[0]:
+            return
         if guess_minimum is None:
             minimums=[]
             for entry in self.data:
-                minimums.append(entry["minx"])
+                minimums.append(entry[minc])
             if minimums != []:
                 guess_minimum = min(minimums)
 
         if guess_maximum is None:
             maximums=[]
             for entry in self.data:
-                maximums.append(entry["maxx"])
+                maximums.append(entry[maxc])
             if maximums != []:
                 guess_maximum = max(maximums)
 
         if guess_minimum != guess_maximum:
-            dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(minx=dict["min"],maxx=dict["max"])
-            self._configNoDraw(xticks=dict["divisions"])
+            d = self._computeNiceRanges(guess_minimum,guess_maximum)
+            self._configNoDraw(**{minc:d["min"],maxc:d["max"],
+                                  coordinate+'ticks':d["divisions"]})
         elif guess_maximum != None:
-            self._configNoDraw(minx=guess_minimum-1,maxx=guess_maximum+1)
-            self._configNoDraw(xticks=None)
+            self._configNoDraw(**{minc:guess_minimum-1,maxc:guess_maximum+1,
+                                  coordinate+'ticks':None})
             
+    def computeXRange(self,guess_minimum=None,guess_maximum=None):
+        self.computeRange("x",guess_minimum,guess_maximum)
+
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
-        if guess_minimum is None:
-            minimums=[]
-            for entry in self.data:
-                minimums.append(entry["miny"])
-            if minimums != []:
-                guess_minimum = min(minimums)
-
-        if guess_maximum is None:
-            maximums=[]
-            for entry in self.data:
-                maximums.append(entry["maxy"])
-            if maximums != []:
-                guess_maximum = max(maximums)
-
-        if guess_minimum != guess_maximum:
-            dict = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(miny=dict["min"],maxy=dict["max"])
-            self._configNoDraw(yticks=dict["divisions"])
-        elif guess_minimum != None:
-            self._configNoDraw(miny=guess_minimum-1,maxy=guess_maximum+1)
-            self._configNoDraw(yticks=None)
+        self.computeRange("y",guess_minimum,guess_maximum)
 
     def getXRange(self):
         return [self.cget("minx"),self.cget("maxx")]
@@ -491,7 +478,7 @@ class LabeledGrapher(BasicGrapher):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
                     continue
-                [x,y] = label["xy"]
+                [x,y] = label["xy"][:2]
                 if (x < self["minx"] or x > self["maxx"] or
                     y < self["miny"] or y > self["maxy"]):
                     continue
@@ -712,7 +699,7 @@ class LabeledGrapher(BasicGrapher):
                 l = label["symbol"]
                 if l is None:
                     continue
-                data = self.valueToCanvas(label["xy"])
+                data = self.valueToCanvas(label["xy"][:2])
                 if data is None:
                     continue
                 [x,y] = data

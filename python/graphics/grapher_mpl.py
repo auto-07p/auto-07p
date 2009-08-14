@@ -33,7 +33,6 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         tkwidget = self.get_tk_widget()
 
         toolbar = NavigationToolbar2TkAgg( self, parent )
-        toolbar.zoom(self)
 
         self.grapher = grapher
 
@@ -44,17 +43,16 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         
     def draw(self):
         ax = self.grapher.ax
-        [minx,maxx] = ax.get_xlim()
-        [miny,maxy] = ax.get_ylim()
-        if (minx != self.grapher.cget("minx") or
-            maxx != self.grapher.cget("maxx") or
-            miny != self.grapher.cget("miny") or
-            maxy != self.grapher.cget("maxy")):
-            self.grapher._configNoDraw(minx=minx,maxx=maxx,miny=miny,maxy=maxy)
-            self.grapher._configNoDraw(xticks=None,yticks=None)
-            self.redraw()
-        else:
-            FigureCanvasTkAgg.draw(self)
+        d = {}
+        [d["minx"],d["maxx"]] = ax.get_xlim()
+        [d["miny"],d["maxy"]] = ax.get_ylim()
+        for k in d:
+            if d[k] != self.grapher.cget(k):
+                d.update({"xticks": None, "yticks": None})
+                self.grapher._configNoDraw(**d)
+                self.redraw()
+                return
+        FigureCanvasTkAgg.draw(self)
 
     def show(self):
         fig = self.grapher.ax.get_figure() 
@@ -71,6 +69,7 @@ class BasicGrapher(grapher.BasicGrapher):
     By Randy P. and Bart O."""
     def __init__(self,parent=None,**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
+        self.ax2d = None
         self.ax.set_autoscale_on(0)
         self.canvas = FigureCanvasTkAggRedraw(self,parent)
         tk_widget = self.canvas.get_tk_widget()
@@ -111,14 +110,9 @@ class BasicGrapher(grapher.BasicGrapher):
     def __optionCallback(self,key,value,options):
         if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
             self.redrawlabels = 1
-            if key == "minx":
-                self.ax.set_xlim(xmin=value)
-            elif key == "maxx":
-                self.ax.set_xlim(xmax=value)
-            elif key == "miny":
-                self.ax.set_ylim(ymin=value)
-            elif key == "maxy":
-                self.ax.set_ylim(ymax=value)
+            if key[:3] in ["min", "max"]:
+                func = getattr(self.ax, "set_"+key[3]+"lim")
+                func(**{key[3]+key[:3]:value})
             elif key == "realwidth":
                 lm = self.cget("left_margin")
                 rm = self.cget("right_margin")
@@ -195,8 +189,8 @@ class BasicGrapher(grapher.BasicGrapher):
                 ticks = []
                 min = self.cget("min"+key[0])
                 max = self.cget("max"+key[0])
-                for i in range(value):
-                    ticks.append(min + ((max - min) * i) / (value-1))
+                ticks = [min + ((max - min) * i) / (value-1) 
+                         for i in range(value)]
                 if key == "xticks":
                     self.ax.set_xticks(ticks)
                 else:
@@ -235,23 +229,22 @@ class BasicGrapher(grapher.BasicGrapher):
                 i = i+1
             curve="curve:%d"%(i,)
             fill=color_list[i%len(color_list)]
-            if len(d["x"]) == 1:
+            v = d["x"],d["y"]
+            if len(v[0]) == 1:
                 # If we only have one point we draw a small circle or a pixel
                 if self.cget("type") == "solution":
-                    self.ax.plot(d["x"],d["y"],'o',color=fill)
+                    marker = 'o'
                 else:
-                    self.ax.plot(d["x"],d["y"],',',color=fill)
+                    marker = ','
+                kw = {'marker':marker,'color':fill}
                 #tags=("data_point:%d"%(0,),curve,"data")
             else:
-                xs = d["x"]
-                ys = d["y"]
                 stable = d["stable"]
                 #tags=(curve,"data")
-                if stable is None or stable:
-                    self.ax.plot(xs,ys,color=fill,lw=line_width)
-                else:
-                    self.ax.plot(xs,ys,color=fill,ls='--',
-                                 dashes=dashes,lw=line_width)
+                kw = {'color':fill,'lw':line_width}
+                if stable is not None and not stable:
+                    kw.update({'ls':'--','dashes':dashes})
+            self.ax.plot(*v,**kw)
             d["mpline"] = self.ax.lines[-1]
         self.ax.get_figure().axes = [self.ax]
             
@@ -283,6 +276,12 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     self.ax.texts.remove(label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
+        # set type for next data
+        if self.ax is not self.ax2d:
+            if self.ax2d is None:
+                self.canvas.toolbar.zoom(self)
+                self.ax2d = self.ax
+            self.ax = self.ax2d
 
     def _addData(self,data,newsect=None,stable=None):
         self.labels.append([])
@@ -331,7 +330,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             for label in self.labels[i]:
                 if len(label["text"]) == 0:
                     continue
-                [x,y] = label["xy"]
+                [x,y] = label["xy"][:2]
                 if (x < self["minx"] or x > self["maxx"] or
                     y < self["miny"] or y > self["maxy"]):
                     continue
@@ -372,12 +371,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
     def plotsymbols(self):
         for i in range(len(self.labels)):
             for label in self.labels[i]:
-                [x,y] = label["xy"]
+                v = label["xy"]
                 l = label["symbol"]
                 if l is None:
                     continue
-                c=self.cget("symbol_color")
-                mfc=self.ax.get_axis_bgcolor()
                 if "mpsymline" in label:
                     self.ax.lines.remove(label["mpsymline"])
                     del label["mpsymline"]
@@ -386,31 +383,27 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     del label["mpsymtext"]
                 if not self.cget("use_symbols"):
                     continue
-                elif len(l) == 1:
+                c=self.cget("symbol_color")
+                if len(l) == 1:
                     #font=self.cget("symbol_font"),
-                    self.ax.text(x,y,l,ha="center",va="center",color=c)
+                    self.ax.text(*(v+[l]),
+                                  **{'ha':"center",'va':"center",'color':c})
                     label["mpsymtext"] = self.ax.texts[-1]
                     continue
-                elif l == "fillcircle":
-                    self.ax.plot([x],[y],'o'+c[0])
-                elif l == "circle":
-                    self.ax.plot([x],[y],'o'+c[0],mfc=mfc)
-                elif l == "square":
-                    self.ax.plot([x],[y],'s'+c[0],mfc=mfc)
-                elif l == "crosssquare":
-                    self.ax.plot([x],[y],'x'+c[0])
-                elif l == "fillsquare":
-                    self.ax.plot([x],[y],'s'+c[0])
-                elif l == "diamond":
-                    self.ax.plot([x],[y],'D'+c[0],mfc=mfc,ms=8)
-                elif l == "filldiamond":
-                    self.ax.plot([x],[y],'D'+c[0],ms=8)
-                elif l == "triangle":
-                    self.ax.plot([x],[y],'^'+c[0],mfc=mfc,ms=8)
-                elif l == "doubletriangle":
-                    self.ax.plot([x],[y],'^'+c[0],ms=8)
-                else:
+                v = [[coord] for coord in v]
+                markerdict = {"fillcircle" : "o", "circle": "o",
+                              "square": "s", "crossquare": "x",
+                              "fillsquare": "s", "diamond": "D",
+                              "filldiamond": "D", "triangle": "^",
+                              "doubletriangle": "^"}
+                if l not in markerdict:
                     continue
+                kw = {'marker': markerdict[l], 'color': c}
+                if l in ["circle", "square", "diamond", "triangle"]:
+                    kw['mfc'] = self.ax.get_axis_bgcolor()
+                if l in ["diamond","filldiamond","triangle","doubletriangle"]:
+                    kw['ms'] = 8
+                self.ax.plot(*v,**kw)
                 label["mpsymline"] = self.ax.lines[-1]
 
 # FIXME:  No regression tester

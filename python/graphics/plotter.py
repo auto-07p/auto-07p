@@ -146,9 +146,10 @@ class plotter(grapher.GUIGrapher):
                 type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
         names, columns = self.__makeaxistitles(columns[0],columns[1])
-        for coord in range(2):
-            if len(columns[coord]) == 1:
-                columns[coord] = columns[coord] * len(columns[1-coord])
+        m = max([len(column) for column in columns])
+        for coord, column in enumerate(columns):
+            if column is not None and len(column) == 1:
+                columns[coord] = column * m
         plot = True
         if ty == "bifurcation":
             sol = self.cget(ty+"_diagram")
