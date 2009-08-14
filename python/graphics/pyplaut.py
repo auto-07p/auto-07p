@@ -1,5 +1,5 @@
 #!/usr/bin/env autox
-import bifDiag, parseB
+import bifDiag, parseB, AUTOExceptions
 from graphics import windowPlotter
 import code
 import sys
@@ -62,8 +62,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             b = parseB.parseBR(b)
             options = {"constants": b[0].c}
             bd = bifDiag.bifDiag(b,s,**options)
-        except IOError:
-            bd = bifDiag.bifDiag(b,s)
+        except (IOError, AUTOExceptions.AUTORuntimeError):
+            try:
+                bd = bifDiag.bifDiag(b,s)
+            except AUTOExceptions.AUTORuntimeError:
+                sys.stderr.write(str(sys.exc_info()[1])+"\n")
+                sys.exit(1)
         dict = {
             "bifurcation_diagram": bd,
             "solution": bd(),
