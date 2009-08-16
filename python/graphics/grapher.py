@@ -11,6 +11,7 @@ from graphics import Pmw
 import AUTOutil
 from graphics import optionHandler
 import math
+import sys
 
 GrapherError="GrapherError"
 
@@ -64,8 +65,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionAliases["fg"] = "foreground"
         # __parseOptions uses functions from the Canvas
         # widget, so we need to initialize it first
-        Tkinter.Canvas.__init__(self,parent)
-        optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
+        if kw.get("hide") and 'graphics.grapher_mpl' in sys.modules:
+            optionHandler.OptionHandler.__init__(self)
+        else:
+            Tkinter.Canvas.__init__(self,parent)
+            optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
 
         for key in list(kw):
             if key not in optionDefaults:
@@ -878,6 +882,8 @@ class GUIGrapher(InteractiveGrapher):
             filename = tkFileDialog.asksaveasfilename(defaultextension=".eps",title="Save as Postscript File")
         self.update()
         self.postscript(file=filename,colormode=pscolormode)
+
+    savefig = generatePostscript
 
     def printValueBindings(self):
         self.bind("<ButtonPress-1>",self.printValueWrapper)

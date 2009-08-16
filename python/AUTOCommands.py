@@ -1733,14 +1733,18 @@ try:
         # the return value of this function is the underlying
         # grapher.  So we add 'grapher_' to all options that don't
         # already do
-        for k, v in options.items():
+        for k in list(options):
             if k[:8] != 'grapher_':
+                v = options[k]
                 del options[k]
                 options['grapher_'+k] = v
 
         # Get rid of the initial window
-        root=Tk()
-        root.withdraw()
+        if options.get('grapher_hide'):
+            root=None
+        else:
+            root=Tk()
+            root.withdraw()
         if sys.platform == "cygwin":
             try:
                 readline.set_pre_input_hook(handleevents)
@@ -1784,13 +1788,15 @@ try:
             options["grapher_solution"] = n1b()
         options.update({'grapher_width':600,'grapher_height':480})
         handle = windowPlotter.WindowPlotter2D(root,**options)
-        handle.update()
-        try:
-            def plotterquit():
-                handle.destroy()
-            atexit.register(plotterquit)
-        except:
-            pass
+        if (not options.get('grapher_hide') or
+            'graphics.grapher_mpl' not in sys.modules):
+            handle.update()
+            try:
+                def plotterquit():
+                    handle.destroy()
+                atexit.register(plotterquit)
+            except:
+                pass
         info("Created plotter\n")
         return handle
 

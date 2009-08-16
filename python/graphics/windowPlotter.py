@@ -7,12 +7,24 @@ except ImportError:
 from graphics import Pmw
 import AUTOutil
 from graphics import plotter
+import sys
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
     def __init__(self,grapherClass,parent=None,**kw):
         optiondefs = []
         self.defineoptions(kw,optiondefs)
+        if kw.get('grapher_hide'):
+            if 'graphics.grapher_mpl' in sys.modules:
+                kwnew = {}
+                for k in kw:
+                    if k.startswith('grapher_'):
+                        kwnew[k[8:]] = kw[k]
+                self.grapher = grapherClass(**kwnew)
+                return
+            # without matplotlib, retract the Tk() window
+            parent=Tkinter.Tk()
+            parent.withdraw()
         Pmw.MegaToplevel.__init__(self, parent)
 
         interior = self.interior()
@@ -100,6 +112,9 @@ class WindowPlotter(Pmw.MegaToplevel):
         topbox.columnconfigure(0,weight=1)
 
         self.initialiseoptions(WindowPlotter)
+
+    def savefig(self,*args,**kwargs):
+        self.grapher.savefig(*args,**kwargs)
 
     def __labelFunction(self,list):
         # The return value of a ScrolledListBox is a list of strings, so we change them

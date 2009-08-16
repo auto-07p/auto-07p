@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 import Points
 if not Points.numpyimported:
@@ -71,15 +72,20 @@ class BasicGrapher(grapher.BasicGrapher):
     def __init__(self,parent=None,**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
         self.ax2d = None
+        if kw.get("hide"):
+            self.canvas = FigureCanvasAgg(self.ax.get_figure())
+        else:
+            self.canvas = FigureCanvasTkAggRedraw(self,parent)
+            tk_widget = self.canvas.get_tk_widget()
+            self.quit = tk_widget.quit
+            self.bind = tk_widget.bind
+            self.unbind = tk_widget.unbind
+            self.winfo_rootx = tk_widget.winfo_rootx
+            self.winfo_rooty = tk_widget.winfo_rooty
         self.ax.set_autoscale_on(0)
-        self.canvas = FigureCanvasTkAggRedraw(self,parent)
-        tk_widget = self.canvas.get_tk_widget()
-        self.quit = tk_widget.quit
-        self.bind = tk_widget.bind
-        self.unbind = tk_widget.unbind
         self.postscript = self.canvas.print_figure
-        self.winfo_rootx = tk_widget.winfo_rootx
-        self.winfo_rooty = tk_widget.winfo_rooty
+        self.savefig = self.ax.get_figure().savefig
+
         self.redrawlabels = 0
 
         callback = self.__optionCallback
@@ -105,8 +111,11 @@ class BasicGrapher(grapher.BasicGrapher):
         self.canvas.get_tk_widget().pack(kw)
 
     def update(self):
-        self.canvas.get_tk_widget().update()
-        FigureCanvasTkAgg.draw(self.canvas)
+        if isinstance(self.canvas,FigureCanvasTkAggRedraw):
+            self.canvas.get_tk_widget().update()
+            FigureCanvasTkAgg.draw(self.canvas)
+        else:
+            self.canvas.draw()
 
     def __optionCallback(self,key,value,options):
         if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
@@ -130,7 +139,14 @@ class BasicGrapher(grapher.BasicGrapher):
             else:
                 self.ax.grid(False)
         elif key in ["width", "height"]:
-            self.canvas.get_tk_widget()[key] = value
+            if isinstance(self.canvas,FigureCanvasTkAggRedraw):
+                self.canvas.get_tk_widget()[key] = value
+            else:
+                fig = self.ax.get_figure()
+                if key == "width":
+                    fig.set_figwidth(float(value)/fig.get_dpi())
+                else:
+                    fig.set_figheight(float(value)/fig.get_dpi())
         elif key == "top_title":
             fontsize = self.cget("top_title_fontsize")
             if fontsize is None:
@@ -216,7 +232,10 @@ class BasicGrapher(grapher.BasicGrapher):
         if self.redrawlabels:
             self.plotlabels()
         self.ax.get_figure().axes = [self.ax]
-        FigureCanvasTkAgg.draw(self.canvas)
+        if isinstance(self.canvas,FigureCanvasTkAggRedraw):
+            FigureCanvasTkAgg.draw(self.canvas)
+        else:
+            self.canvas.draw()
 
     def plot(self):
         color_list = self.cget("color_list").split()
@@ -280,7 +299,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         # set type for next data
         if self.ax is not self.ax2d:
             if self.ax2d is None:
-                self.canvas.toolbar.zoom(self)
+                if isinstance(self.canvas,FigureCanvasTkAggRedraw):
+                    self.canvas.toolbar.zoom(self)
                 self.ax2d = self.ax
             self.ax = self.ax2d
 
@@ -416,6 +436,8 @@ class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
     def __init__(self,parent=None,**kw):
         InteractiveGrapher.__init__(self,parent,**kw)
         #self.bind("<ButtonPress-3>",self.popupMenuWrapper)
+        if kw.get("hide"):
+            return
         self.menu=Tkinter.Menu()
 #        self.menu.add_radiobutton(label="print tag",command=self.printTagBindings)
 #        self.menu.add_radiobutton(label="label point",command=self.labelPointBindings)

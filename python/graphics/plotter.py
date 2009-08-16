@@ -60,6 +60,8 @@ class plotter(grapher.GUIGrapher):
         for option in parser.options("AUTO_plotter"):
             v = eval(parser.get("AUTO_plotter",option))
             optionDefaultsRC[option] = v
+        if kw.has_key("hide"):
+            optionDefaultsRC["hide"] = kw["hide"]
 
         self.__needsPlot = None
         grapher.GUIGrapher.__init__(self,parent,**optionDefaultsRC)
