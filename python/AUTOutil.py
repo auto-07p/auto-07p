@@ -148,9 +148,10 @@ except NameError:
         def __int__(self): return self.val
         def __repr__(self): return ('False', 'True')[self.val]
 
-    True, False = bool(1), bool(0)
-    __builtin__.True = True
-    __builtin__.False = False
+    #note : __builtin__.True = True is invalid syntax in Python 3
+    globals()["True"], globals()["False"] = bool(1), bool(0)
+    setattr(__builtin__,"True",True)
+    setattr(__builtin__,"False",False)
     __builtin__.bool = bool
 
 # Pre-2.3 Python has no sum() function.
