@@ -41,7 +41,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["ylabel_fontsize"] = (None,callback)
         optionDefaults["xticks"] = (5,callback)
         optionDefaults["yticks"] = (5,callback)
-        optionDefaults["grid"] = ("yes",callback)
+        optionDefaults["grid"] = (True,callback)
         optionDefaults["tick_label_template"] = ("%.2e",callback)
         optionDefaults["tick_length"] = (0.2,callback)
         optionDefaults["odd_tick_length"] = (0.4,callback)
@@ -93,6 +93,17 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     # for example, if you want to config, but know you
     # will need to redraw later.
     def _configNoDraw(self,cnf=None,**kw):
+        # note: reset xticks/yticks if min/max are set without ticks
+        if (cnf is not None or kw) and not isinstance(cnf, str):
+            dct = (cnf or {}).copy()
+            dct.update(kw)
+            for coord in ["x", "y"]:
+                minc = "min" + coord
+                maxc = "max" + coord
+                ticks = coord + "ticks"
+                if (minc in dct or maxc in dct) and ticks not in dct:
+                    dct[ticks] = None
+            return optionHandler.OptionHandler.config(self,**dct)
         return optionHandler.OptionHandler.config(self,cnf,**kw)
     _configureNoDraw = _configNoDraw
 
@@ -193,27 +204,18 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         maxc = "max"+coordinate
         if len(self.data) > 0 and minc not in self.data[0]:
             return
-        if guess_minimum is None:
-            minimums=[]
-            for entry in self.data:
-                minimums.append(entry[minc])
-            if minimums != []:
-                guess_minimum = min(minimums)
+        if guess_minimum is None and len(self.data) > 0:
+            guess_minimum = min([entry[minc] for entry in self.data])
 
-        if guess_maximum is None:
-            maximums=[]
-            for entry in self.data:
-                maximums.append(entry[maxc])
-            if maximums != []:
-                guess_maximum = max(maximums)
+        if guess_maximum is None and len(self.data) > 0:
+            guess_maximum = max([entry[maxc] for entry in self.data])
 
         if guess_minimum != guess_maximum:
             d = self._computeNiceRanges(guess_minimum,guess_maximum)
-            self._configNoDraw(**{minc:d["min"],maxc:d["max"]})
-            self._configNoDraw(**{coordinate+'ticks':d["divisions"]})
+            self._configNoDraw(**{minc:d["min"],maxc:d["max"],
+                                  coordinate+'ticks':d["divisions"]})
         elif guess_maximum != None:
             self._configNoDraw(**{minc:guess_minimum-1,maxc:guess_maximum+1})
-            self._configNoDraw(**{coordinate+'ticks':None})
             
     def computeXRange(self,guess_minimum=None,guess_maximum=None):
         self.computeRange("x",guess_minimum,guess_maximum)
@@ -336,7 +338,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 self.create_line(tick_x,tick_start_y,tick_x,tick_end_y,fill=self.cget("foreground"))
                 val = self.canvasToValue((tick_x,tick_start_y))
                 self.create_text(tick_x,tick_end_y,text=tick_label_template%(val[0],),anchor="n",fill=self.cget("foreground"))
-                if i != 0 and i != xticks - 1 and self.cget("grid") == "yes":
+                if i != 0 and i != xticks - 1 and self.cget("grid") in ["yes",True]:
                     self.create_line(tick_x,tick_start_y,tick_x,tick_start_y-yw,
                                      fill=self.cget("foreground"),stipple="gray50")
             yticks = self.cget("yticks")
@@ -351,7 +353,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 self.create_line(tick_start_x,tick_y,tick_end_x,tick_y,fill=self.cget("foreground"))
                 val = self.canvasToValue((tick_start_x,tick_y))
                 self.create_text(tick_end_x,tick_y,text=tick_label_template%(val[1],),anchor="e",fill=self.cget("foreground"))
-                if i != 0 and i != yticks - 1 and self.cget("grid") == "yes":
+                if i != 0 and i != yticks - 1 and self.cget("grid") in ["yes",True]:
                     self.create_line(tick_start_x,tick_y,tick_start_x + xw,tick_y,
                                      fill=self.cget("foreground"),stipple="gray50")
 
@@ -636,10 +638,7 @@ class LabeledGrapher(BasicGrapher):
         nx = int(self.cget("realwidth")-sp1-self.cget("right_margin"))//sp2
         ny = int(self.cget("realheight")-sp3-self.cget("top_margin"))//sp4
         r = ny*[0]
-        mp = []
-        for i in range(nx):
-            mp.append(r[:])
-        return mp
+        return [r[:] for i in range(nx)]
 
     #-----------------------------------------------------------------------
     #        Maps the curves in mp array
@@ -799,8 +798,7 @@ class InteractiveGrapher(LabeledGrapher):
     def drawWrapper(self,e):
         # Note: we should not update self["width"] and self["height"] here, because
         # those can be 2 or 4 less
-        self._configNoDraw(realwidth=e.width)
-        self._configNoDraw(realheight=e.height)
+        self._configNoDraw(realwidth=e.width,realheight=e.height)
         self.configure()
         self.clear()
         self.draw()
@@ -911,9 +909,7 @@ class GUIGrapher(InteractiveGrapher):
 
 def test(grapher):
     import math
-    data=[]
-    for i in range(62):
-        data.append(float(i)*0.1)
+    data=[float(i)*0.1 for i in range(62)]
 
     grapher.addArray((data,map(math.sin,data)))
     grapher.addArray((data,map(math.cos,data)))

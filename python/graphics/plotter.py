@@ -72,8 +72,10 @@ class plotter(grapher.GUIGrapher):
         plotter._configNoDraw(self,**kw)
         self._plotNoDraw()
         self.__needsPlot = None
-        self.computeXRange()
-        self.computeYRange()
+        if "minx" not in kw or "maxx" not in kw:
+            self.computeXRange()
+        if "miny" not in kw or "maxy" not in kw:
+            self.computeYRange()
         grapher.GUIGrapher.plot(self)
 
     def config(self,cnf=None,**kw):

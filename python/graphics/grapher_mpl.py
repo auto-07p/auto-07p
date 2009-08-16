@@ -50,8 +50,6 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         for k in d:
             if d[k] != self.grapher.cget(k):
                 self.grapher._configNoDraw(**d)
-                d = {"xticks": None, "yticks": None}
-                self.grapher._configNoDraw(**d)
                 self.redraw()
                 return
         FigureCanvasTkAgg.draw(self)
@@ -123,6 +121,10 @@ class BasicGrapher(grapher.BasicGrapher):
             if key[:3] in ["min", "max"]:
                 func = getattr(self.ax, "set_"+key[3]+"lim")
                 func(**{key[3]+key[:3]:value})
+                tickskey = key[3]+"ticks"
+                ticksval = self.cget(tickskey)
+                if ticksval is not None:
+                    self.__optionCallback(tickskey,ticksval,options)
             elif key == "realwidth":
                 lm = self.cget("left_margin")
                 rm = self.cget("right_margin")
@@ -134,7 +136,7 @@ class BasicGrapher(grapher.BasicGrapher):
                 self.ax.get_figure().subplots_adjust(top=1-tm/value,
                                                      bottom=bm/value)
         elif key == "grid":
-            if value == "yes":
+            if value in ["yes", True]:
                 self.ax.grid(color = self.cget("foreground"))
             else:
                 self.ax.grid(False)
@@ -162,7 +164,7 @@ class BasicGrapher(grapher.BasicGrapher):
         elif key in ["foreground", "fg"]:
             matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
             self.redrawlabels = 1
-            if self.cget("grid") == "yes":
+            if self.cget("grid") in ["yes", True]:
                 self.ax.grid(color=value)
         elif key == "color_list":
             color_list = value.split()
@@ -206,7 +208,7 @@ class BasicGrapher(grapher.BasicGrapher):
                 ticks = []
                 min = self.cget("min"+key[0])
                 max = self.cget("max"+key[0])
-                ticks = [min + ((max - min) * i) / (value-1) 
+                ticks = [min + ((max - min) * i) / float(value-1)
                          for i in range(value)]
                 if key == "xticks":
                     self.ax.set_xticks(ticks)
@@ -214,7 +216,6 @@ class BasicGrapher(grapher.BasicGrapher):
                     self.ax.set_yticks(ticks)
 
     def _delAllData(self):
-        self._configNoDraw(xticks=None,yticks=None)
         for d in self.data:
             if "mpline" in d:
                 self.ax.lines.remove(d["mpline"])

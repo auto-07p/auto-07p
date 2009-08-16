@@ -461,8 +461,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     except:
                         pass
             self.handle.config(type = "bifurcation")
-            self.handle.config(xticks = None, yticks = None,
-                               minx = xmin, maxx = xmax,
+            self.handle.config(minx = xmin, maxx = xmax,
                                miny = ymin, maxy = ymax)
         else:
             self.handle.config(type = "bifurcation")
