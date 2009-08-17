@@ -118,18 +118,13 @@ class plotter(grapher.GUIGrapher):
                 self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":
             labels = self.cget("solution").getLabels()
-            options["index"] =[]
             if type(value) != type([]) and type(value) != type(()):
                 value = [value]
-            for v in value:
-                for j in range(len(labels)):
-                    if labels[j] == v:
-                        options["index"].append(j)
+            options["index"] = [j for v in value
+                    for j, l in enumerate(labels) if l == v]
         elif key == "index":
-            options["label"] =[]
-            for v in value:
-                labels = self.cget("solution").getLabels()
-                options["label"].append(labels[v])
+            labels = self.cget("solution").getLabels()
+            options["label"] = [labels[v] for v in value]
         elif key in ["bifurcation_x","bifurcation_y",
                      "solution_x","solution_y"]:
             if type(value) != type([]) and type(value) != type(()):

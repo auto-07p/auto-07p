@@ -706,6 +706,9 @@ class LabeledGrapher(BasicGrapher):
                 if data is None:
                     continue
                 [x,y] = data
+                if (x < self["minx"] or x > self["maxx"] or
+                    y < self["miny"] or y > self["maxy"]):
+                    continue
                 c = self.cget("symbol_color")
                 if len(l) == 1:
                     self.create_text(x,y,font=self.cget("symbol_font"),
@@ -820,12 +823,9 @@ class GUIGrapher(InteractiveGrapher):
 
     def __interactiveConfigureDialog(self):
         diag = Pmw.Dialog(self,buttons=("Ok","Cancel"))
-        options = []
-        for key in self.configure():
-            if self._isInternalOption(key):
-                options.append(self.configure(key)[0])
+        options = sorted([self.configure(key)[0] for key in self.configure() 
+                          if self._isInternalOption(key)])
 
-        options.sort()
         self.optionList = Pmw.ScrolledListBox(diag.interior(),
                                               items=options,
                                               dblclickcommand=self.__updateInteractiveConfigureDialog)

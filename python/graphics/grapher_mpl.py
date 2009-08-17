@@ -31,9 +31,7 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         parent.wm_title("PyPLAUT")
         FigureCanvasTkAgg.__init__(self,grapher.ax.get_figure(),master=parent)
         
-        tkwidget = self.get_tk_widget()
-
-        toolbar = NavigationToolbar2TkAgg( self, parent )
+        grapher.toolbar = NavigationToolbar2TkAgg( self, parent )
 
         self.grapher = grapher
 
@@ -119,12 +117,15 @@ class BasicGrapher(grapher.BasicGrapher):
         if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
             self.redrawlabels = 1
             if key[:3] in ["min", "max"]:
-                func = getattr(self.ax, "set_"+key[3]+"lim")
-                func(**{key[3]+key[:3]:value})
-                tickskey = key[3]+"ticks"
-                ticksval = self.cget(tickskey)
-                if ticksval is not None:
-                    self.__optionCallback(tickskey,ticksval,options)
+                minc = self.cget("min"+key[3])
+                maxc = self.cget("max"+key[3])
+                if minc < maxc:
+                    func = getattr(self.ax, "set_"+key[3]+"lim")
+                    func(minc,maxc)
+                    tickskey = key[3]+"ticks"
+                    ticksval = self.cget(tickskey)
+                    if ticksval is not None:
+                        self.__optionCallback(tickskey,ticksval,options)
             elif key == "realwidth":
                 lm = self.cget("left_margin")
                 rm = self.cget("right_margin")
@@ -249,20 +250,20 @@ class BasicGrapher(grapher.BasicGrapher):
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
             curve="curve:%d"%(i,)
-            fill=color_list[i%len(color_list)]
-            v = d["x"],d["y"]
+            v = [d["x"],d["y"]]
+            kw = {'color':color_list[i%len(color_list)]}
             if len(v[0]) == 1:
                 # If we only have one point we draw a small circle or a pixel
                 if self.cget("type") == "solution":
                     marker = 'o'
                 else:
                     marker = ','
-                kw = {'marker':marker,'color':fill}
+                v.append(marker)
                 #tags=("data_point:%d"%(0,),curve,"data")
             else:
                 stable = d["stable"]
                 #tags=(curve,"data")
-                kw = {'color':fill,'lw':line_width}
+                kw['lw'] = line_width
                 if stable is not None and not stable:
                     kw.update({'ls':'--','dashes':dashes})
             self.ax.plot(*v,**kw)
@@ -301,7 +302,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         if self.ax is not self.ax2d:
             if self.ax2d is None:
                 if isinstance(self.canvas,FigureCanvasTkAggRedraw):
-                    self.canvas.toolbar.zoom(self)
+                    self.toolbar.zoom(self)
                 self.ax2d = self.ax
             self.ax = self.ax2d
 
@@ -372,7 +373,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     self.ax.plot([xd1,xd2],[yd1,yd2],linewidth=0.5,
                                  color=self.cget("foreground"))
                     self.ax.text(xt,yt,label["text"],ha=ha,va=va,
-                                 color=self.cget("foreground"))
+                                 color=self.cget("foreground"),clip_on=True)
                     label["mpline"] = self.ax.lines[-1]
                     label["mptext"] = self.ax.texts[-1]
 
@@ -409,7 +410,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 if len(l) == 1:
                     #font=self.cget("symbol_font"),
                     self.ax.text(*(v+[l]),
-                                  **{'ha':"center",'va':"center",'color':c})
+                                  **{'ha':"center",'va':"center",'color':c,
+                                     'clip_on':True})
                     label["mpsymtext"] = self.ax.texts[-1]
                     continue
                 v = [[coord] for coord in v]
@@ -420,7 +422,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                               "doubletriangle": "^"}
                 if l not in markerdict:
                     continue
-                kw = {'marker': markerdict[l], 'color': c}
+                v.append(markerdict[l])
+                kw = {'color': c}
                 if l in ["circle", "square", "diamond", "triangle"]:
                     kw['mfc'] = self.ax.get_axis_bgcolor()
                 if l in ["diamond","filldiamond","triangle","doubletriangle"]:
@@ -451,12 +454,9 @@ class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
     def __interactiveConfigureDialog(self):
         widget=self.canvas.get_tk_widget()
         diag = Pmw.Dialog(widget,buttons=("Ok","Cancel"))
-        options = []
-        for key in self.configure():
-            if self._isInternalOption(key):
-                options.append(self.configure(key)[0])
+        options = sorted([self.configure(key)[0] for key in self.configure() 
+                          if self._isInternalOption(key)])
 
-        options.sort()
         self.optionList = Pmw.ScrolledListBox(diag.interior(),
                                               items=options,
                                               dblclickcommand=self.__updateInteractiveConfigureDialog)

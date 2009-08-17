@@ -124,12 +124,8 @@ class WindowPlotter(Pmw.MegaToplevel):
         self._modifyOption("label",str(list))
 
     def _setOptionWindow(self):
-        keys = list(self.grapher.configure())
-        keys.sort()
-        lst = []
-        for key in keys:
-            if self.grapher._isInternalOption(key):
-                lst.append(key)
+        lst = sorted([key for key in self.grapher.configure() 
+                      if self.grapher._isInternalOption(key)])
         self.optionSelctionDialog = Pmw.SelectionDialog(title = 'Options',
                                                         buttons = ('OK', 'Cancel'),
                                                         defaultbutton = 'OK',
@@ -299,8 +295,7 @@ class WindowPlotter2D(WindowPlotter):
 
         lst = []
         if self.grapher.cget(ocd) is not None:
-            for x in self.grapher.cget(ocd):
-                lst.append(str(x))
+            lst = map(str,self.grapher.cget(ocd))
         sol = self.grapher.cget(o)
         if self.grapher.cget("type") == "solution":
             indepvarname = None
@@ -335,11 +330,9 @@ class WindowPlotter2D(WindowPlotter):
         self.yEntry.setentry(self._shortstr(ylist))
         labels = []
         if not(self.grapher.cget("label_defaults") is None):
-            for x in self.grapher.cget("label_defaults"):
-                labels.append(str(x))
+            labels = map(str,self.grapher.cget("label_defaults"))
         default_labels = self.grapher.cget("solution").getLabels()
-        for i in range(len(default_labels)):
-            labels.append("%d"%default_labels[i])
+        labels.extend(["%d"%d for d in default_labels])
         labels.append(self._shortstr(default_labels))
         if self.grapher.cget("label") == [0]:
             self.typeEntry.setentry(labels[0])
