@@ -9,6 +9,7 @@ import parseB
 import parseS
 import AUTOutil
 import os
+Axes3D = grapher.Axes3D
 
 class plotter(grapher.GUIGrapher):
     def __init__(self,parent=None,**kw):
@@ -22,6 +23,9 @@ class plotter(grapher.GUIGrapher):
         # The Y column
         optionDefaults["bifurcation_y"] = ([1],self.__optionCallback)
         optionDefaults["solution_y"]    = ([0],self.__optionCallback)
+        # The Z column
+        optionDefaults["bifurcation_z"] = (None,self.__optionCallback)
+        optionDefaults["solution_z"]    = (None,self.__optionCallback)
         # The coordinate names
         optionDefaults["bifurcation_coordnames"] = (None,self.__optionCallback)
         optionDefaults["solution_indepvarname"]  = (None,self.__optionCallback)
@@ -72,7 +76,7 @@ class plotter(grapher.GUIGrapher):
         plotter._configNoDraw(self,**kw)
         self._plotNoDraw()
         self.__needsPlot = None
-        for coord in 'x', 'y':
+        for coord in 'x', 'y', 'z':
             if "min"+coord not in kw or "max"+coord not in kw:
                 self.computeRange(coord)
         grapher.GUIGrapher.plot(self)
@@ -87,6 +91,7 @@ class plotter(grapher.GUIGrapher):
             self.clear()
             self.computeXRange()
             self.computeYRange()
+            self.computeZRange()
             grapher.GUIGrapher.plot(self)
         else:
             self.clear()
@@ -138,8 +143,8 @@ class plotter(grapher.GUIGrapher):
     def _plotNoDraw(self):
         self.delAllData()
         ty = self.cget("type")
-        columns = [self.cget(ty+"_x"),self.cget(ty+"_y")]
-        for coord in range(2):
+        columns = [self.cget(ty+"_x"),self.cget(ty+"_y"),self.cget(ty+"_z")]
+        for coord in range(3):
             if (type(columns[coord]) != type([]) and
                 type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
@@ -161,22 +166,28 @@ class plotter(grapher.GUIGrapher):
             plot = False
         if plot:
             label = {}
-            for coord in ["x","y"]:
+            for coord in "x","y","z":
                 label[coord] = self[coord+"label"]
                 if self.config(coord+"label")[3] is None:
-                    label[coord] = ", ".join(names[{"x": 0, "y": 1}[coord]])
+                    namescoord = names[{"x": 0, "y": 1, "z": 2}[coord]]
+                    if namescoord is None:
+                        label["z"] = None
+                    else:
+                        label[coord] = ", ".join(namescoord)
             grapher.GUIGrapher._configNoDraw(self,xlabel=label["x"],
-                                             ylabel=label["y"])
+                                             ylabel=label["y"],
+                                             zlabel=label["z"])
 
     def plot(self):
         self._plotNoDraw()
         self.clear()
         self.computeXRange()
         self.computeYRange()
+        self.computeZRange()
         grapher.GUIGrapher.plot(self)
         self.draw()
 
-    def __makeaxistitles(self,xcolumns,ycolumns):
+    def __makeaxistitles(self,xcolumns,ycolumns,zcolumns):
         # parse coordinate names from bifurcation diagram/solution
         # then construct the titles from these names
         ty = self.cget("type")
@@ -228,13 +239,18 @@ class plotter(grapher.GUIGrapher):
         names = [["Error"],["Error"]]
         lx = len(xcolumns)
         ly = len(ycolumns)
-        if lx == 1: lx = ly
-        if ly == 1: ly = lx
-        if len(solution) > 0 and lx == ly:
-            names = [[],[]]
-            for j in range(2):
-                columns = [xcolumns,ycolumns][j]
+        lz = len(zcolumns)
+        if lx == 1: lx = max(ly, lz)
+        if ly == 1: ly = max(lx, lz)
+        if lz == 1: lz = max(lx, ly)
+        if len(solution) > 0 and lx == ly == lz:
+            names = [[],[],[]]
+            for j in range(3):
+                columns = [xcolumns,ycolumns,zcolumns][j]
                 for col in columns:
+                    if col is None:
+                        names[j] = None
+                        continue
                     if type(col) == type(1):
                         # numerical column: check limits
                         if indepvarname is not None and col == -1:
@@ -246,7 +262,7 @@ class plotter(grapher.GUIGrapher):
                                     break
                             if type(col) == type(1):
                                 print("The %s-coordinate (set to column %s) "
-                                      "is out of range"%(["x","y"][j],col))
+                                      "is out of range"%(["x","y","z"][j],col))
                                 col = "Error"
                     elif col not in coordnames and (indepvarname is None or
                                                     col != indepvarname):
@@ -256,10 +272,10 @@ class plotter(grapher.GUIGrapher):
 
         # translate xcolumns/ycolumns to use parsed coordnames
         ucoordnames = self.cget(ty+"_coordnames") or []
-        cols = [xcolumns,ycolumns]
+        cols = [xcolumns,ycolumns,zcolumns]
         if ucoordnames != []:
             cols = []
-            for columns in [xcolumns,ycolumns]:
+            for columns in [xcolumns,ycolumns,zcolumns]:
                 ncol = []
                 for col in columns:
                     try:
@@ -271,7 +287,7 @@ class plotter(grapher.GUIGrapher):
                 cols.append(ncol)
         return names,cols
 
-    def __plot7branch(self,branch,xcolumns,ycolumns):
+    def __plot7branch(self,branch,xcolumns,ycolumns,zcolumns):
         symbollist = [
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
@@ -283,7 +299,9 @@ class plotter(grapher.GUIGrapher):
         coordnames = branch.coordnames
         for j in range(len(xcolumns)):
             xycols = []
-            for col in [xcolumns[j],ycolumns[j]]:
+            for col in [xcolumns[j],ycolumns[j],zcolumns[j]]:
+                if col is None:
+                    break
                 if type(col) != type(1):
                     try:
                         col = coordnames.index(col)
@@ -306,7 +324,11 @@ class plotter(grapher.GUIGrapher):
                 xycols.append(xy)
             if len(xycols) < 2:
                 continue
-            [x,y] = xycols
+            [x,y] = xycols[:2]
+            if len(xycols) == 3:
+                z = xycols[2]
+            else:
+                z = None
             if dp:
                 #look at stability:
                 newsect = 1
@@ -314,12 +336,17 @@ class plotter(grapher.GUIGrapher):
                 for pt in branch.stability:
                     abspt = abs(pt)
                     if abspt > 1 or pt == branch.stability[-1]:
-                        v = x[old:abspt],y[old:abspt]
+                        if z is None:
+                            v = x[old:abspt],y[old:abspt]
+                        else:
+                            v = x[old:abspt],y[old:abspt],z[old:abspt]
                         self.addArrayNoDraw(v,newsect,stable=pt<0)
                         old = abspt - 1
                         newsect = 0
-            else:
+            elif z is None:
                 self.addArrayNoDraw((x,y),1)
+            else:
+                self.addArrayNoDraw((x,y,z),1)
             for i,l in branch.labels.sortByIndex():
                 for k,v in l.items():
                     if k in parseB.all_point_types:
@@ -340,18 +367,21 @@ class plotter(grapher.GUIGrapher):
                         symbol = self.cget(item[1])
                 if not symbol and TYnumber not in [0,4,9]:
                     symbol = self.cget("error_symbol")
-                v = x[i],y[i]
+                if z is None:
+                    v = [x[i],y[i]]
+                else:
+                    v = [x[i],y[i],z[i]]
                 self.addLabel(len(self)-1,v,text,symbol)
 
-    def __plot7(self,xcolumns,ycolumns):
+    def __plot7(self,xcolumns,ycolumns,zcolumns):
         self.delAllData()
         solution = self.cget("bifurcation_diagram")
         branches = getattr(solution,"branches",solution)
-        if len(xcolumns) == len(ycolumns):
+        if len(xcolumns) == len(ycolumns) == len(zcolumns):
             for branch in branches:
-                self.__plot7branch(branch,xcolumns,ycolumns)
+                self.__plot7branch(branch,xcolumns,ycolumns,zcolumns)
 
-    def __plot8solution(self,sol,index,xcolumns,ycolumns):
+    def __plot8solution(self,sol,index,xcolumns,ycolumns,zcolumns):
         indepvarname = sol.indepvarname
         tm = sol[indepvarname]
         label = sol["Label"]
@@ -361,7 +391,7 @@ class plotter(grapher.GUIGrapher):
         for j in range(len(xcolumns)):
             labels = []
             xycols = []
-            for col in [xcolumns[j],ycolumns[j]]:
+            for col in [xcolumns[j],ycolumns[j],zcolumns[j]]:
                 if type(col) != type(1):
                     if indepvarname == col:
                         col = -1
@@ -380,7 +410,10 @@ class plotter(grapher.GUIGrapher):
                 xycols.append(xy)
             if len(xycols) < 2:
                 continue
-            [x,y] = xycols
+            [x,y] = xycols[:2]
+            z = None
+            if len(xycols) == 3:
+                z = xycols[2]
             if not(self.cget("mark_t") is None):
                 for i in range(len(tm)):
                     if i != 0 and tm[i-1] <= self.cget("mark_t") < tm[i]:
@@ -394,9 +427,16 @@ class plotter(grapher.GUIGrapher):
             labels.append({"index": index, "text": str(label), "symbol": ""})
             # Call the base class config
             if len(x) > 0:
-                self.addArrayNoDraw((x,y))
+                if z is None:
+                    self.addArrayNoDraw((x,y))
+                else:
+                    self.addArrayNoDraw((x,y,z))
             for lab in labels:
-                v = x[lab["index"]],y[lab["index"]]
+                l = lab["index"]
+                if z is None:
+                    v = [x[l],y[l]]
+                else:
+                    v = [x[l],y[l],z[l]]
                 self.addLabel(len(self)-1,v,lab["text"],lab["symbol"])
 
         index = index + 10
@@ -404,14 +444,15 @@ class plotter(grapher.GUIGrapher):
             index = 14
         return index
 
-    def __plot8(self,xcolumns,ycolumns):
+    def __plot8(self,xcolumns,ycolumns,zcolumns):
         self.delAllData()
         solution = self.cget("solution")
-        if len(xcolumns) == len(ycolumns):
+        if len(xcolumns) == len(ycolumns) == len(zcolumns):
             index = 9
             for ind in self.cget("index"):
                 sol = solution.getIndex(ind)
-                index = self.__plot8solution(sol,index,xcolumns,ycolumns)
+                index = self.__plot8solution(sol,index,xcolumns,ycolumns,
+                                             zcolumns)
 
 
 

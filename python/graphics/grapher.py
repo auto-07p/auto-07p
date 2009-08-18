@@ -14,6 +14,7 @@ import math
 import sys
 
 GrapherError="GrapherError"
+Axes3D=None
 
 class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     """Documentation string for Basic Grapher
@@ -30,6 +31,10 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["maxx"] = (0,callback)
         optionDefaults["miny"] = (0,callback)
         optionDefaults["maxy"] = (0,callback)
+        optionDefaults["minz"] = (0,callback)
+        optionDefaults["maxz"] = (0,callback)
+        optionDefaults["azimuth"] = (None,callback)
+        optionDefaults["elevation"] = (None,callback)
         optionDefaults["left_margin"] = (80,callback)
         optionDefaults["right_margin"] = (40,callback)
         optionDefaults["top_margin"] = (40,callback)
@@ -39,8 +44,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["xlabel_fontsize"] = (None,callback)
         optionDefaults["ylabel"] = (None,callback)
         optionDefaults["ylabel_fontsize"] = (None,callback)
+        optionDefaults["zlabel"] = (None,callback)
+        optionDefaults["zlabel_fontsize"] = (None,callback)
         optionDefaults["xticks"] = (5,callback)
         optionDefaults["yticks"] = (5,callback)
+        optionDefaults["zticks"] = (5,callback)
         optionDefaults["grid"] = (True,callback)
         optionDefaults["tick_label_template"] = ("%.2e",callback)
         optionDefaults["tick_length"] = (0.2,callback)
@@ -97,7 +105,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         if (cnf is not None or kw) and not isinstance(cnf, str):
             dct = (cnf or {}).copy()
             dct.update(kw)
-            for coord in ["x", "y"]:
+            for coord in ["x", "y", "z"]:
                 minc = "min" + coord
                 maxc = "max" + coord
                 ticks = coord + "ticks"
@@ -122,6 +130,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             new_array={}
             new_array["x"]=array[0]
             new_array["y"]=array[1]
+            if len(array) > 2:
+                new_array["z"]=array[2]
             new_array["stable"]=stable
             new_array["newsect"]=newsect
             if len(array[0]) > 0:
@@ -130,18 +140,23 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             if len(array[1]) > 0:
                 new_array["miny"]=min(array[1])
                 new_array["maxy"]=max(array[1])
+            if "z" in new_array and len(array[2]) > 0:
+                new_array["minz"]=min(array[2])
+                new_array["maxz"]=max(array[2])
             self.data.append(new_array)
         
     def addData(self,data):
         self._addData(data)
         self.computeXRange()
         self.computeYRange()
+        self.computeZRange()
         self.draw()
 
     def addArray(self,array):        
         self._addData((array,))
         self.computeXRange()
         self.computeYRange()
+        self.computeZRange()
         self.draw()
 
     def addDataNoDraw(self,data):        
@@ -223,11 +238,17 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     def computeYRange(self,guess_minimum=None,guess_maximum=None):
         self.computeRange("y",guess_minimum,guess_maximum)
 
+    def computeZRange(self,guess_minimum=None,guess_maximum=None):
+        self.computeRange("z",guess_minimum,guess_maximum)
+
     def getXRange(self):
         return [self.cget("minx"),self.cget("maxx")]
 
     def getYRange(self):
         return [self.cget("miny"),self.cget("maxy")]
+
+    def getZRange(self):
+        return [self.cget("minz"),self.cget("maxz")]
 
     def clear(self):
         for x in self.find_all():

@@ -188,6 +188,9 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.diag.destroy()
         
     def _modifyOption(self,key,entry):
+        if key[-2:] == "_z" and entry == " 2D Plot ":
+            self.grapher[key] = None
+            return
         try:
             self.grapher[key] = eval(entry,{},{})
         except (NameError,SyntaxError):
@@ -230,11 +233,12 @@ class WindowPlotter(Pmw.MegaToplevel):
                        "bifurcation_diagram_filename",
                        "solution_filename",
                        "bifurcation_column_defaults",
-                       "bifurcation_diagram","bifurcation_x","bifurcation_y",
+                       "bifurcation_diagram",
+                       "bifurcation_x","bifurcation_y","bifurcation_z",
                        "bifurcation_coordnames",
                        "solution_column_defaults",
                        "solution_indepvarname","solution_coordnames",
-                       "solution","solution_x","solution_y"]:
+                       "solution","solution_x","solution_y","solution_z"]:
                 self.typeUpdateCallback()
 
     configure = config
@@ -274,6 +278,14 @@ class WindowPlotter2D(WindowPlotter):
                                       label_text="Y")
         self.yEntry.grid(row=0,column=1)
 
+        if plotter.Axes3D is not None:
+            self.zEntry = self.createcomponent('zEntry',
+                                               (), None,
+                                               Pmw.ComboBox,box,
+                                               labelpos="w",
+                                               label_text="Z")
+            self.zEntry.grid(row=0,column=2)
+
         self.checktype()
         self.typeUpdateCallback()
 
@@ -281,17 +293,22 @@ class WindowPlotter2D(WindowPlotter):
         if self.grapher.cget("type") == "bifurcation":
             ox = "bifurcation_x"
             oy = "bifurcation_y"
+            oz = "bifurcation_z"
             ocd = "bifurcation_column_defaults"
             o = "bifurcation_diagram"
         else:
             ox = "solution_x"
             oy = "solution_y"
+            oz = "solution_z"
             ocd = "solution_column_defaults"
             o = "solution"
         self.xEntry.configure(selectioncommand = lambda entry,
                               obj=self,oa=ox:obj._modifyOption(oa,entry))
         self.yEntry.configure(selectioncommand = lambda entry,
                               obj=self,oa=oy:obj._modifyOption(oa,entry))
+        if plotter.Axes3D is not None:
+            self.zEntry.configure(selectioncommand = lambda entry,
+                                  obj=self,oa=oz:obj._modifyOption(oa,entry))
 
         lst = []
         if self.grapher.cget(ocd) is not None:
@@ -310,12 +327,17 @@ class WindowPlotter2D(WindowPlotter):
         lst.extend(coordnames)
         xlist = self.grapher.cget(ox)
         ylist = self.grapher.cget(oy)
+        zlist = self.grapher.cget(oz)
         if type(xlist) == type((0,)):
             xlist = list(xlist)
         if type(ylist) == type((0,)):
             ylist = list(ylist)
+        if type(zlist) == type((0,)):
+            zlist = list(zlist)
         if len(sol) > 0:
-            for xylist in [xlist,ylist]:
+            for xylist in xlist,ylist,zlist:
+                if xylist is None:
+                    break
                 for i in range(len(xylist)):
                     if type(xylist[i]) == type(1):
                         if xylist[i] == -1:    
@@ -326,13 +348,22 @@ class WindowPlotter2D(WindowPlotter):
                             xylist[i] = str(i) 
         xentry = self._shortstr(xlist)
         yentry = self._shortstr(ylist)
-        for entry in [xentry, yentry]:
-            if entry not in lst:
+        zentry = None
+        if plotter.Axes3D is not None:
+            if zlist is None:
+                zentry = " 2D Plot "
+            else:
+                zentry = self._shortstr(zlist)
+        for entry in xentry, yentry, zentry:
+            if entry is not None and entry != " 2D Plot " and entry not in lst:
                 lst.append(entry)
         self.xEntry.setentry(xentry)
         self.xEntry.setlist(lst)
         self.yEntry.setentry(yentry)
         self.yEntry.setlist(lst)
+        if plotter.Axes3D is not None:
+            self.zEntry.setentry(zentry)
+            self.zEntry.setlist([" 2D Plot "]+lst)
         labels = []
         if self.grapher.cget("label_defaults") is not None:
             labels = map(str,self.grapher.cget("label_defaults"))

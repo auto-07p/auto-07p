@@ -6,10 +6,31 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.ticker import AutoLocator, FixedLocator
 import Points
 if not Points.numpyimported:
     Points.importnumpy()
 transpose = Points.N.transpose
+
+try: # mpl >= 0.99
+    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d.proj3d import proj_transform, inv_transform
+except ImportError:
+    try: # mpl < 0.98
+        from matplotlib.axes3d import Axes3D, Axes3DI
+        from matplotlib.proj3d import proj_transform, inv_transform
+        # mpl 0.87.7 bug workaround and compat
+        def autoscale_view(self, scalex=True, scaley=True):
+            self.set_top_view()
+        Axes3DI.autoscale_view = autoscale_view
+        Axes3DI.set_xlim3d = Axes3DI.set_w_xlim
+        Axes3DI.set_ylim3d = Axes3DI.set_w_ylim
+        Axes3DI.set_zlim3d = Axes3DI.set_w_zlim
+        Axes3DI.get_xlim3d = Axes3DI.get_w_xlim
+        Axes3DI.get_ylim3d = Axes3DI.get_w_ylim
+        Axes3DI.get_zlim3d = Axes3DI.get_w_zlim
+    except (ImportError, NotImplementedError):
+        Axes3D = None
 
 try:
     import Tkinter
@@ -33,7 +54,6 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         
         grapher.toolbar = NavigationToolbar2TkAgg( self, parent )
         grapher.toolbar.zoom()
-        grapher.zoom_mode = "zoom rect"
 
         self.grapher = grapher
 
@@ -45,14 +65,28 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
     def draw(self):
         ax = self.grapher.ax
         d = {}
-        [d["minx"],d["maxx"]] = ax.get_xlim()
-        [d["miny"],d["maxy"]] = ax.get_ylim()
+        if ax is self.grapher.ax3d:
+            [d["minx"],d["maxx"]] = ax.get_xlim3d()
+            [d["miny"],d["maxy"]] = ax.get_ylim3d()
+            [d["minz"],d["maxz"]] = ax.get_zlim3d()
+            d["azimuth"] = ax.azim
+            d["elevation"] = ax.elev
+            d["cur_lims"] = ax.get_xlim(), ax.get_ylim()
+        else:
+            [d["minx"],d["maxx"]] = ax.get_xlim()
+            [d["miny"],d["maxy"]] = ax.get_ylim()
         for k in list(d):
             # don't adjust any unchanged settings
-            if d[k] == self.grapher.cget(k):
+            if k == "cur_lims":
+                if d[k] == self.grapher._cur_lims:
+                    del d[k]
+            elif d[k] == self.grapher.cget(k):
                 del d[k]
         if d != {}:
-            self.grapher._configNoDraw(**d)
+            if "cur_lims" in d:
+                del d["cur_lims"]
+            if d != {}:
+                self.grapher._configNoDraw(**d)
             self.redraw()
             return
         FigureCanvasTkAgg.draw(self)
@@ -73,6 +107,7 @@ class BasicGrapher(grapher.BasicGrapher):
     def __init__(self,parent=None,**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
         self.ax2d = self.ax
+        self.ax3d = None
         if kw.get("hide"):
             self.canvas = FigureCanvasAgg(self.ax.get_figure())
         else:
@@ -94,6 +129,7 @@ class BasicGrapher(grapher.BasicGrapher):
         optionDefaults={}
         optionDefaults["xticks"] = (None,callback)
         optionDefaults["yticks"] = (None,callback)
+        optionDefaults["zticks"] = (None,callback)
         optionDefaults["background"] = ("white",callback)
         optionDefaults["width"] = (1,callback)
         optionDefaults["height"] = (1,callback)
@@ -103,8 +139,8 @@ class BasicGrapher(grapher.BasicGrapher):
         self.addOptions(**optionDefaults)
         self.addAliases(**optionAliases)
 
-        for key in ["grid","decorations","xlabel","ylabel","minx","maxx",
-                    "miny","maxy"]:
+        for key in ["grid","decorations","xlabel","ylabel","zlabel",
+                    "minx","maxx","miny","maxy","minz","maxz"]:
             self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
 
@@ -119,18 +155,25 @@ class BasicGrapher(grapher.BasicGrapher):
             self.canvas.draw()
 
     def __optionCallback(self,key,value,options):
-        if key in ["minx","maxx","miny","maxy","realwidth","realheight"]:
+        if key in ["minx","maxx","miny","maxy","minz","maxz",
+                   "realwidth","realheight","azimuth","elevation"]:
             self.redrawlabels = 1
             if key[:3] in ["min", "max"]:
                 minc = self.cget("min"+key[3])
                 maxc = self.cget("max"+key[3])
                 if minc < maxc:
-                    func = getattr(self.ax, "set_"+key[3]+"lim")
-                    func(minc,maxc)
-                    tickskey = key[3]+"ticks"
-                    ticksval = self.cget(tickskey)
-                    if ticksval is not None:
-                        self.__optionCallback(tickskey,ticksval,options)
+                    func = None
+                    if self.ax is self.ax3d:
+                        func = getattr(self.ax, "set_"+key[3]+"lim3d")
+                        self._cur_lims = self.ax.get_xlim(),self.ax.get_ylim()
+                    elif key[3] != 'z':
+                        func = getattr(self.ax, "set_"+key[3]+"lim")
+                    if func is not None:
+                        func(minc,maxc)
+                        tickskey = key[3]+"ticks"
+                        ticksval = self.cget(tickskey)
+                        if ticksval is not None:
+                            self.__optionCallback(tickskey,ticksval,options)
             elif key == "realwidth":
                 lm = self.cget("left_margin")
                 rm = self.cget("right_margin")
@@ -141,6 +184,11 @@ class BasicGrapher(grapher.BasicGrapher):
                 bm = self.cget("bottom_margin")
                 self.ax.get_figure().subplots_adjust(top=1-tm/value,
                                                      bottom=bm/value)
+            elif self.ax is self.ax3d:
+                elev = self.cget("elevation")
+                azim = self.cget("azimuth")
+                if elev is not None and azim is not None:
+                    self.ax.view_init(elev, azim)
         elif key == "grid":
             if value in ["yes", True]:
                 self.ax.grid(color = self.cget("foreground"))
@@ -188,7 +236,7 @@ class BasicGrapher(grapher.BasicGrapher):
             self.plotsymbols()
         elif key == "use_labels":
             self.plotlabels()
-        elif key in ["xlabel","ylabel"]:
+        elif key in ["xlabel","ylabel","zlabel"]:
             if value is None:
                 value = ""
             fontsize = self.cget(key+"_fontsize")
@@ -198,9 +246,12 @@ class BasicGrapher(grapher.BasicGrapher):
                     func(value)
                 else:
                     func(value,fontsize=fontsize)
-        elif key in ["xticks","yticks"]:
+        elif key in ["xticks","yticks","zticks"]:
             if value is None:
-                if key == "xticks":
+                if self.ax is self.ax3d:
+                    axis = getattr(self.ax, "w_"+key[0]+"axis")
+                    axis.set_major_locator(AutoLocator())
+                elif key == "xticks":
                     self.ax.set_xscale('linear')
                 else:
                     self.ax.set_yscale('linear')
@@ -209,9 +260,12 @@ class BasicGrapher(grapher.BasicGrapher):
                 max = self.cget("max"+key[0])
                 ticks = [min + ((max - min) * i) / float(value-1)
                          for i in range(value)]
-                if key == "xticks":
+                if self.ax is self.ax3d:
+                    axis = getattr(self.ax, "w_"+key[0]+"axis")
+                    axis.set_major_locator( FixedLocator(ticks) )
+                elif key == "xticks":
                     self.ax.set_xticks(ticks)
-                else:
+                elif key == "yticks":
                     self.ax.set_yticks(ticks)
 
     def _delAllData(self):
@@ -219,6 +273,44 @@ class BasicGrapher(grapher.BasicGrapher):
             if "mpline" in d:
                 self.ax.lines.remove(d["mpline"])
         self.data=[]
+
+        # set type for next data
+        try:
+            zcolumn = self.cget(self.cget("type")+"_z")
+        except Tkinter.TclError: #in regression test
+            return
+        oldax = self.ax
+        if zcolumn is None or Axes3D is None:
+            if self.ax is self.ax3d:
+                # restore zoom mode
+                new_zoom_mode = self.zoom_mode
+                self.ax = self.ax2d
+        else:
+            if self.ax3d is None:
+                self.ax3d = Axes3D(self.ax.get_figure())
+                self.ax3d.set_autoscale_on(0)
+            if self.ax is self.ax2d:
+                # remember zoom mode and disable zoom
+                self.zoom_mode = self.toolbar.mode
+                new_zoom_mode = ''
+                self.ax = self.ax3d
+        if self.ax is not oldax:
+            if new_zoom_mode != self.toolbar.mode:
+                if new_zoom_mode.find("rect") != -1:
+                    self.toolbar.zoom()
+                elif new_zoom_mode.find("pan") != -1:
+                    self.toolbar.pan()
+                elif self.toolbar.mode.find("rect") != -1:
+                    self.toolbar.zoom()
+                elif self.toolbar.mode.find("pan") != -1:
+                    self.toolbar.pan()
+            #copy settings from 3d to 2d or vice versa
+            for key in ("grid","decorations","xlabel","ylabel","zlabel",
+                        "xticks","yticks","zticks",
+                        "minx","maxx","miny","maxy","minz","maxz",
+                        "azimuth", "elevation",
+                        "top_title", "background"):
+                self.__optionCallback(key,self.cget(key),[])
 
     def _delData(self,index):
         if "mpline" in data[index]:
@@ -248,7 +340,10 @@ class BasicGrapher(grapher.BasicGrapher):
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
             curve="curve:%d"%(i,)
-            v = [d["x"],d["y"]]
+            if self.ax is self.ax2d:
+                v = [d["x"],d["y"]]
+            else:
+                v = [d["x"],d["y"],d["z"]]
             kw = {'color':color_list[i%len(color_list)]}
             if len(v[0]) == 1:
                 # If we only have one point we draw a small circle or a pixel
@@ -264,7 +359,10 @@ class BasicGrapher(grapher.BasicGrapher):
                 kw['lw'] = line_width
                 if stable is not None and not stable:
                     kw.update({'ls':'--','dashes':dashes})
-            self.ax.plot(*v,**kw)
+            if self.ax is self.ax2d:
+                self.ax.plot(*v,**kw)
+            else:
+                self.ax.plot3D(*v,**kw)
             d["mpline"] = self.ax.lines[-1]
         self.ax.get_figure().axes = [self.ax]
             
@@ -320,13 +418,26 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
 
         if hasattr(self.ax.transData,'transform'):
             trans = self.ax.transData.transform
-            def transseq(x,y):
-                return trans(transpose([x,y]))
+            if self.ax is self.ax2d:
+                def transseq(x,y):
+                    return trans(transpose([x,y]))
+            else:
+                # this matrix needs to be initialized or matplotlib only does
+                # that when it draws
+                self.ax.M = self.ax.get_proj()
+                def transseq(x,y,z):
+                    return trans(transpose(proj_transform(x,y,z,self.ax.M)[:2]))
             inv_trans = self.ax.transData.inverted().transform
         else:
             trans = self.ax.transData.xy_tup
-            def transseq(x,y):
-                return transpose(self.ax.transData.numerix_x_y(x,y))
+            if self.ax is self.ax2d:
+                def transseq(x,y):
+                    return transpose(self.ax.transData.numerix_x_y(x,y))
+            else:
+                self.ax.M = self.ax.get_proj()
+                def transseq(x,y,z):
+                    return transpose(self.ax.transData.numerix_x_y(
+                            *(proj_transform(x,y,z,self.ax.M)[:2])))
             inv_trans = self.ax.transData.inverse_xy_tup
         if self.cget("smart_label"):
             mp = self.inarrs()
@@ -335,7 +446,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             sp3 = self.cget("bottom_margin")
             sp4 = 5
             for d in self.data:
-                seq = transseq(d["x"],d["y"])
+                if self.ax is self.ax2d:
+                    seq = transseq(d["x"],d["y"])
+                else:
+                    seq = transseq(d["x"],d["y"],d["z"])
                 seq[:,0] = (seq[:,0] - sp1) / sp2
                 seq[:,1] = (seq[:,1] - sp3) / sp4
                 self.map_curve(mp,seq)
@@ -345,6 +459,11 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 if len(label["text"]) == 0:
                     continue
                 [x,y] = label["xy"][:2]
+                if self.ax is self.ax3d:
+                    # transform 3d to 2d coordinates and compare
+                    # against the 2D limits
+                    z = label["xy"][2]
+                    [x,y,z] = proj_transform(x, y, z, self.ax.M)
                 lim = self.ax.get_xlim()
                 if x < lim[0] or x > lim[1]:
                     continue
@@ -394,6 +513,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         for labels in self.labels:
             for label in labels:
                 v = label["xy"]
+                if Axes3D is None:
+                    v = v[:2]
                 l = label["symbol"]
                 if l is None:
                     continue
@@ -408,9 +529,15 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 c=self.cget("symbol_color")
                 if len(l) == 1:
                     #font=self.cget("symbol_font"),
-                    self.ax.text(*(v+[l]),
-                                  **{'ha':"center",'va':"center",'color':c,
-                                     'clip_on':True})
+                    kw = {'ha':"center",'va':"center",'color':c,'clip_on':True}
+                    if self.ax is self.ax2d:
+                        self.ax.text(*(v+[l]),**kw)
+                    else:
+                        t = self.ax.text3D(*(v+[l]))
+                        t.set_horizontalalignment(kw['ha'])
+                        t.set_verticalalignment(kw['va'])
+                        t.set_color(kw['color'])
+                        t.set_clip_on(True)
                     label["mpsymtext"] = self.ax.texts[-1]
                     continue
                 v = [[coord] for coord in v]
@@ -427,7 +554,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     kw['mfc'] = self.ax.get_axis_bgcolor()
                 if l in ["diamond","filldiamond","triangle","doubletriangle"]:
                     kw['ms'] = 8
-                self.ax.plot(*v,**kw)
+                if self.ax is self.ax2d:
+                    self.ax.plot(*v,**kw)
+                else:
+                    self.ax.plot3D(*v,**kw)
                 label["mpsymline"] = self.ax.lines[-1]
 
 # FIXME:  No regression tester
