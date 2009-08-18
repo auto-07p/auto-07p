@@ -1783,7 +1783,7 @@ try:
                 opt = {"constants": n1b[0].c}
                 n1b = bifDiag.bifDiag(n1b,n1s,**opt)
             except IOError:
-                n1b = bifDiag.bifDiag(b,s)
+                n1b = bifDiag.bifDiag(n1b,n1s)
             options["grapher_bifurcation_diagram"] = n1b
             options["grapher_solution"] = n1b()
         options.update({'grapher_width':600,'grapher_height':480})

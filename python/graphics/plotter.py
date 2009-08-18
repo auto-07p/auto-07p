@@ -243,7 +243,8 @@ class plotter(grapher.GUIGrapher):
         if lx == 1: lx = max(ly, lz)
         if ly == 1: ly = max(lx, lz)
         if lz == 1: lz = max(lx, ly)
-        if len(solution) > 0 and lx == ly == lz:
+        if (len(solution) > 0 and lx == ly == lz and 
+            (ty == "solution" or len(solution[0]) > 0)):
             names = [[],[],[]]
             for j in range(3):
                 columns = [xcolumns,ycolumns,zcolumns][j]
