@@ -315,8 +315,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             return
         self.redrawlabels = 0
 
-        for i in range(len(self.labels)):
-            for label in self.labels[i]:
+        for labels in self.labels:
+            for label in labels:
                 if "mpline" in label:
                     self.ax.lines.remove(label["mpline"])
                     del label["mpline"]
@@ -343,14 +343,14 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
             sp2 = 5 #fontsize
             sp3 = self.cget("bottom_margin")
             sp4 = 5
-            for i in range(len(self.data)):
-                seq = transseq(self.data[i]["x"],self.data[i]["y"])
+            for d in self.data:
+                seq = transseq(d["x"],d["y"])
                 seq[:,0] = (seq[:,0] - sp1) / sp2
                 seq[:,1] = (seq[:,1] - sp3) / sp4
                 self.map_curve(mp,seq)
                                                       
-        for i in range(len(self.labels)):
-            for label in self.labels[i]:
+        for labels in self.labels:
+            for label in labels:
                 if len(label["text"]) == 0:
                     continue
                 [x,y] = label["xy"][:2]
@@ -358,7 +358,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     y < self["miny"] or y > self["maxy"]):
                     continue
                 data = trans((x,y))
-                if not(data is None):
+                if data is not None:
                     [x,y] = data
                     if self.cget("smart_label"):
                         [xoffd1,yoffd1,xoffd2,yoffd2,
@@ -392,8 +392,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         self.plotsymbols()
 
     def plotsymbols(self):
-        for i in range(len(self.labels)):
-            for label in self.labels[i]:
+        for labels in self.labels:
+            for label in labels:
                 v = label["xy"]
                 l = label["symbol"]
                 if l is None:

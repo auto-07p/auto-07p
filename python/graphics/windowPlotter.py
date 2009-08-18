@@ -308,8 +308,6 @@ class WindowPlotter2D(WindowPlotter):
                 lst.append(indepvarname)
         coordnames = self.grapher._coordnames
         lst.extend(coordnames)
-        self.xEntry.setlist(lst)
-        self.yEntry.setlist(lst)
         xlist = self.grapher.cget(ox)
         ylist = self.grapher.cget(oy)
         if type(xlist) == type((0,)):
@@ -326,10 +324,17 @@ class WindowPlotter2D(WindowPlotter):
                             xylist[i] = coordnames[xylist[i]]
                         else:
                             xylist[i] = str(i) 
-        self.xEntry.setentry(self._shortstr(xlist))
-        self.yEntry.setentry(self._shortstr(ylist))
+        xentry = self._shortstr(xlist)
+        yentry = self._shortstr(ylist)
+        for entry in [xentry, yentry]:
+            if entry not in lst:
+                lst.append(entry)
+        self.xEntry.setentry(xentry)
+        self.xEntry.setlist(lst)
+        self.yEntry.setentry(yentry)
+        self.yEntry.setlist(lst)
         labels = []
-        if not(self.grapher.cget("label_defaults") is None):
+        if self.grapher.cget("label_defaults") is not None:
             labels = map(str,self.grapher.cget("label_defaults"))
         default_labels = self.grapher.cget("solution").getLabels()
         labels.extend(["%d"%d for d in default_labels])

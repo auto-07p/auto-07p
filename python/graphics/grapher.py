@@ -478,10 +478,10 @@ class LabeledGrapher(BasicGrapher):
         trans = self.transform_seq
         if self.cget("smart_label"):
             mp = self.inarrs()
-            for i in range(len(self.data)):
-                self.map_curve(mp,trans([self.data[i]["x"],self.data[i]["y"]]))
-        for i in range(len(self.labels)):
-            for label in self.labels[i]:
+            for d in self.data:
+                self.map_curve(mp,trans([d["x"],d["y"]]))
+        for labels in self.labels:
+            for label in labels:
                 if len(label["text"]) == 0:
                     continue
                 [x,y] = label["xy"][:2]
@@ -697,8 +697,8 @@ class LabeledGrapher(BasicGrapher):
         if not self.cget("use_symbols"):
             return
 
-        for i in range(len(self.labels)):
-            for label in self.labels[i]:
+        for labels in self.labels:
+            for label in labels:
                 l = label["symbol"]
                 if l is None:
                     continue
