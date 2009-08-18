@@ -72,10 +72,9 @@ class plotter(grapher.GUIGrapher):
         plotter._configNoDraw(self,**kw)
         self._plotNoDraw()
         self.__needsPlot = None
-        if "minx" not in kw or "maxx" not in kw:
-            self.computeXRange()
-        if "miny" not in kw or "maxy" not in kw:
-            self.computeYRange()
+        for coord in 'x', 'y':
+            if "min"+coord not in kw or "max"+coord not in kw:
+                self.computeRange(coord)
         grapher.GUIGrapher.plot(self)
 
     def config(self,cnf=None,**kw):
@@ -144,7 +143,7 @@ class plotter(grapher.GUIGrapher):
             if (type(columns[coord]) != type([]) and
                 type(columns[coord]) != type(())):
                 columns[coord] = [columns[coord]]
-        names, columns = self.__makeaxistitles(columns[0],columns[1])
+        names, columns = self.__makeaxistitles(*columns)
         m = max([len(column) for column in columns])
         for coord, column in enumerate(columns):
             if column is not None and len(column) == 1:
@@ -155,9 +154,9 @@ class plotter(grapher.GUIGrapher):
         else:
             sol = self.cget(ty)
         if ty == "bifurcation" and len(sol) and len(sol[0]):
-            self.__plot7(columns[0],columns[1])
+            self.__plot7(*columns)
         elif ty == "solution" and len(sol) > 0:
-            self.__plot8(columns[0],columns[1])
+            self.__plot8(*columns)
         else:
             plot = False
         if plot:
@@ -226,10 +225,12 @@ class plotter(grapher.GUIGrapher):
         self._coordnames = coordnames
 
         # construct titles
-        names = ["Error","Error"]
+        names = [["Error"],["Error"]]
         lx = len(xcolumns)
         ly = len(ycolumns)
-        if len(solution) > 0 and (lx == ly or lx == 1 or ly == 1):
+        if lx == 1: lx = ly
+        if ly == 1: ly = lx
+        if len(solution) > 0 and lx == ly:
             names = [[],[]]
             for j in range(2):
                 columns = [xcolumns,ycolumns][j]
@@ -313,8 +314,8 @@ class plotter(grapher.GUIGrapher):
                 for pt in branch.stability:
                     abspt = abs(pt)
                     if abspt > 1 or pt == branch.stability[-1]:
-                        self.addArrayNoDraw((x[old:abspt],y[old:abspt]),
-                                            newsect,stable=pt<0)
+                        v = x[old:abspt],y[old:abspt]
+                        self.addArrayNoDraw(v,newsect,stable=pt<0)
                         old = abspt - 1
                         newsect = 0
             else:
@@ -339,7 +340,8 @@ class plotter(grapher.GUIGrapher):
                         symbol = self.cget(item[1])
                 if not symbol and TYnumber not in [0,4,9]:
                     symbol = self.cget("error_symbol")
-                self.addLabel(len(self)-1,[x[i],y[i]],text,symbol)
+                v = x[i],y[i]
+                self.addLabel(len(self)-1,v,text,symbol)
 
     def __plot7(self,xcolumns,ycolumns):
         self.delAllData()
@@ -394,9 +396,8 @@ class plotter(grapher.GUIGrapher):
             if len(x) > 0:
                 self.addArrayNoDraw((x,y))
             for lab in labels:
-                self.addLabel(len(self)-1,
-                              [x[lab["index"]],y[lab["index"]]],
-                              lab["text"],lab["symbol"])
+                v = x[lab["index"]],y[lab["index"]]
+                self.addLabel(len(self)-1,v,lab["text"],lab["symbol"])
 
         index = index + 10
         if index > len(tm):

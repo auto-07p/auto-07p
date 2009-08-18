@@ -5,6 +5,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 import Points
 if not Points.numpyimported:
     Points.importnumpy()
@@ -18,7 +19,6 @@ except ImportError:
     from tkinter import filedialog as tkFileDialog
 from graphics import Pmw
 import AUTOutil
-from graphics import optionHandler
 import math
 from graphics import grapher
 
@@ -32,6 +32,8 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         FigureCanvasTkAgg.__init__(self,grapher.ax.get_figure(),master=parent)
         
         grapher.toolbar = NavigationToolbar2TkAgg( self, parent )
+        grapher.toolbar.zoom()
+        grapher.zoom_mode = "zoom rect"
 
         self.grapher = grapher
 
@@ -45,11 +47,14 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         d = {}
         [d["minx"],d["maxx"]] = ax.get_xlim()
         [d["miny"],d["maxy"]] = ax.get_ylim()
-        for k in d:
-            if d[k] != self.grapher.cget(k):
-                self.grapher._configNoDraw(**d)
-                self.redraw()
-                return
+        for k in list(d):
+            # don't adjust any unchanged settings
+            if d[k] == self.grapher.cget(k):
+                del d[k]
+        if d != {}:
+            self.grapher._configNoDraw(**d)
+            self.redraw()
+            return
         FigureCanvasTkAgg.draw(self)
 
     def show(self):
@@ -67,7 +72,7 @@ class BasicGrapher(grapher.BasicGrapher):
     By Randy P. and Bart O."""
     def __init__(self,parent=None,**kw):
         self.ax = Figure(figsize=(4.3,3.0)).gca()
-        self.ax2d = None
+        self.ax2d = self.ax
         if kw.get("hide"):
             self.canvas = FigureCanvasAgg(self.ax.get_figure())
         else:
@@ -183,22 +188,16 @@ class BasicGrapher(grapher.BasicGrapher):
             self.plotsymbols()
         elif key == "use_labels":
             self.plotlabels()
-        elif key == "xlabel":
+        elif key in ["xlabel","ylabel"]:
             if value is None:
                 value = ""
-            fontsize = self.cget("xlabel_fontsize")
-            if fontsize is None:
-                self.ax.set_xlabel(value)
-            else:
-                self.ax.set_xlabel(value,fontsize=fontsize)
-        elif key == "ylabel":
-            if value is None:
-                value = ""
-            fontsize = self.cget("ylabel_fontsize")
-            if fontsize is None:
-                self.ax.set_ylabel(value)
-            else:
-                self.ax.set_ylabel(value,fontsize=fontsize)
+            fontsize = self.cget(key+"_fontsize")
+            if hasattr(self.ax,"set_"+key):
+                func = getattr(self.ax,"set_"+key)
+                if fontsize is None:
+                    func(value)
+                else:
+                    func(value,fontsize=fontsize)
         elif key in ["xticks","yticks"]:
             if value is None:
                 if key == "xticks":
@@ -206,7 +205,6 @@ class BasicGrapher(grapher.BasicGrapher):
                 else:
                     self.ax.set_yscale('linear')
             else:
-                ticks = []
                 min = self.cget("min"+key[0])
                 max = self.cget("max"+key[0])
                 ticks = [min + ((max - min) * i) / float(value-1)
@@ -298,13 +296,6 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     self.ax.texts.remove(label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
-        # set type for next data
-        if self.ax is not self.ax2d:
-            if self.ax2d is None:
-                if isinstance(self.canvas,FigureCanvasTkAggRedraw):
-                    self.toolbar.zoom(self)
-                self.ax2d = self.ax
-            self.ax = self.ax2d
 
     def _addData(self,data,newsect=None,stable=None):
         self.labels.append([])
@@ -354,8 +345,11 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 if len(label["text"]) == 0:
                     continue
                 [x,y] = label["xy"][:2]
-                if (x < self["minx"] or x > self["maxx"] or
-                    y < self["miny"] or y > self["maxy"]):
+                lim = self.ax.get_xlim()
+                if x < lim[0] or x > lim[1]:
+                    continue
+                lim = self.ax.get_ylim()
+                if y < lim[0] or y > lim[1]:
                     continue
                 data = trans((x,y))
                 if data is not None:
@@ -370,10 +364,15 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     [xd1,yd1] = inv_trans((x+xoffd1,y+yoffd1))
                     [xd2,yd2] = inv_trans((x+xoffd2,y+yoffd2))
                     [xt,yt] = inv_trans((x+xofft,y+yofft))
-                    self.ax.plot([xd1,xd2],[yd1,yd2],linewidth=0.5,
-                                 color=self.cget("foreground"))
-                    self.ax.text(xt,yt,label["text"],ha=ha,va=va,
-                                 color=self.cget("foreground"),clip_on=True)
+                    # using the low-level line routines to avoid
+                    # rescaling in 3D (even with auto scale off,
+                    # the view is reset after each plot() by
+                    # set_top_view in mplot3d)
+                    line = Line2D([xd1,xd2],[yd1,yd2],linewidth=0.5,
+                                  color=self.cget("foreground"))
+                    self.ax.add_line(line)
+                    self.ax.annotate(label["text"],(xt,yt),ha=ha,va=va,
+                                     color=self.cget("foreground"),clip_on=True)
                     label["mpline"] = self.ax.lines[-1]
                     label["mptext"] = self.ax.texts[-1]
 
