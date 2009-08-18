@@ -291,11 +291,13 @@ class BasicGrapher(grapher.BasicGrapher):
                 self.ax3d.set_autoscale_on(0)
             if self.ax is self.ax2d:
                 # remember zoom mode and disable zoom
-                self.zoom_mode = self.toolbar.mode
-                new_zoom_mode = ''
+                if isinstance(self.canvas,FigureCanvasTkAggRedraw):
+                    self.zoom_mode = self.toolbar.mode
+                    new_zoom_mode = ''
                 self.ax = self.ax3d
         if self.ax is not oldax:
-            if new_zoom_mode != self.toolbar.mode:
+            if (isinstance(self.canvas,FigureCanvasTkAggRedraw) and
+                new_zoom_mode != self.toolbar.mode):
                 if new_zoom_mode.find("rect") != -1:
                     self.toolbar.zoom()
                 elif new_zoom_mode.find("pan") != -1:
