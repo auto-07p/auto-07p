@@ -88,13 +88,14 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 del dict[key]
         self.handle.config(**dict)
         self.defaults = {}
-        for key in ["xlabel", "ylabel", "top_title"]:
+        for key in ["xlabel", "ylabel", "zlabel", "top_title"]:
             self.defaults[key] = self.handle.config(key)[3]
         self.plotdefaults = {}
         for key in ["top_title", "grid", "stability", "use_symbols",
                     "use_labels"]:
             self.plotdefaults[key] = self[key]
         self.normal_usage()
+        self.b3d = False
 
     # this polling loop is here so that Cygwin Python does not "hang" the
     # plot window while Python waits for a user input
@@ -106,7 +107,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         line = ""
         while 1:
             if line == "":
-                print(" ENTER COMMAND\n")
+                if self.b3d:
+                    print(" ENTER <B3D> COMMAND\n")
+                else:
+                    print(" ENTER COMMAND\n")
                 line = raw_input(prompt)
             line = self.process_input(line)
 
@@ -130,6 +134,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         if upper and not lower:
             line=line.lower()
         if line in ["stop","exit","quit","end"]:
+            if self.b3d:
+                self.b3d = False
+                self["bifurcation_z"] = None
+                return ""
             self.orig_destroy()
             sys.exit()
         elif line in ["scr","screen"]:
@@ -166,11 +174,20 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             its = 1
         if "ax" in opts:
             its = 1
-            print(' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :')
             try:
-                [xaxis,yaxis] = map(int,raw_input().split())
-                self["bifurcation_x"] = [xaxis-1]
-                self["bifurcation_y"] = [yaxis-1]
+                if self.b3d:
+                    print(' ENTER THE NEW THREE AXES FOR (X,Y,Z) <B3D>')
+                    line = raw_input().replace(","," ")
+                    [xaxis,yaxis,zaxis] = map(int,line.split())
+                    self["bifurcation_x"] = [xaxis-1]
+                    self["bifurcation_y"] = [yaxis-1]
+                    self["bifurcation_z"] = [zaxis-1]
+                else:
+                    print(' ENTER HORIZONTAL AND VERTICAL AXIS NUMBER (1,2,...) :')
+                    line = raw_input().replace(","," ")
+                    [xaxis,yaxis] = map(int,line.split())
+                    self["bifurcation_x"] = [xaxis-1]
+                    self["bifurcation_y"] = [yaxis-1]
             except:
                 pass
         if "st" in opts:
@@ -204,6 +221,12 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             return ""
         elif line[:2] == "2d":
             self.plotsol()
+            return ""
+        elif line[:2] == "3d":
+            self.plotsol(use3d=True)
+            return ""
+        elif line == "b3d":
+            self.b3d = True
             return ""
         elif line == "sda":
             return ""
@@ -240,7 +263,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.expert = 0
         self.icl = 0
         self.ict = 0
-        for key in ["xlabel", "ylabel", "top_title"]:
+        for key in ["xlabel", "ylabel", "zlabel", "top_title"]:
             setattr(self, key, self.handle.config(key)[3])
 
     def savefile(self):
@@ -251,7 +274,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         self.handle.grapher.postscript(flname)
     
     def settitles(self,tit,rtit,axlb,raxlb):
-        for key in ["xlabel","ylabel"]:
+        if self.b3d:
+            labels = ["xlabel","ylabel","zlabel"]
+        else:
+            labels = ["xlabel","ylabel"]
+        for key in labels:
             if axlb:
                 if raxlb:
                     if not self.expert:
@@ -383,11 +410,14 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             self["label"] = label
         return 1
         
-    def plotsol(self):
+    def plotsol(self,use3d=False):
         xaxsn = [1]
         yaxsn = [2]
+        zaxsn = [3]
         
         self.handle.config(type = "solution")
+        if use3d:
+            self["solution_z"] = [1]
         if not self.enterlabels():
             return
         s = self["solution"]
@@ -395,7 +425,10 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         while 1:
             its = 0
             print('  NUMBER OF COMPONENTS :%5d'%(self.ndim))
-            axisstr = "%s %s"%(xaxsn,yaxsn)
+            if use3d:
+                axisstr = "%s %s %s"%(xaxsn,yaxsn,zaxsn)
+            else:
+                axisstr = "%s %s"%(xaxsn,yaxsn)
             axisstr = axisstr.replace("[","")
             axisstr = axisstr.replace("]","")
             axisstr = axisstr.replace(", ",",")
@@ -418,13 +451,18 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                     self.getopts()
             elif line in ["save","sav","sa","s"]:
                 self.savefile()
-            elif line == '2d':
+            elif (line == '2d' and not use3d) or (line == '3d' and use3d):
                 self.enterlabels()
             else:
                 try:
                     axislist = map(int,line.replace(","," ").split())
-                    xaxsn = axislist[:len(axislist)/2]
-                    yaxsn = axislist[len(axislist)/2:]
+                    if use3d:
+                        xaxsn = axislist[:len(axislist)/3]
+                        yaxsn = axislist[len(axislist)/3:len(axislist)/3*2]
+                        zaxsn = axislist[len(axislist)/3*2:]
+                    else:
+                        xaxsn = axislist[:len(axislist)/2]
+                        yaxsn = axislist[len(axislist)/2:]
                     xaxs = []
                     for x in xaxsn:
                         if x == 1:
@@ -439,6 +477,15 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                             yaxs.append(y-2)
                     self["solution_x"] = xaxs
                     self["solution_y"] = yaxs
+                    self["solution_z"] = None
+                    if use3d:
+                        zaxs = []
+                        for z in zaxsn:
+                            if z == 1:
+                                zaxs.append("t")
+                            else:
+                                zaxs.append(z-2)
+                        self["solution_z"] = zaxs
                 except:
                     print("    INVALID COMMAND,  REENTER")
                 
@@ -448,21 +495,28 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             while 1:
                 if self.expert:
                     print(' LIMITS')
+                elif self.b3d:
+                    print('  ENTER XMIN,XMAX,YMIN,YMAX,ZMIN,ZMAX')
                 else:
                     print('  ENTER XMIN,XMAX,YMIN,YMAX')
-                line = raw_input()
+                line = raw_input().replace(","," ")
                 try:
-                    [xmin,xmax,ymin,ymax] = map(float,line.split())
+                    if self.b3d:
+                        [xmin,xmax,ymin,ymax,
+                         zmin,zmax] = map(float,line.split())
+                    else:
+                        [xmin,xmax,ymin,ymax] = map(float,line.split())
                     break
                 except:
-                    try:
-                        [xmin,xmax,ymin,ymax] = map(float,line.split(","))
-                        break
-                    except:
-                        pass
+                    pass
             self.handle.config(type = "bifurcation")
-            self.handle.config(minx = xmin, maxx = xmax,
-                               miny = ymin, maxy = ymax)
+            if self.b3d:
+                self.handle.config(minx = xmin, maxx = xmax,
+                                   miny = ymin, maxy = ymax,
+                                   minz = zmin, maxz = zmax)
+            else:
+                self.handle.config(minx = xmin, maxx = xmax,
+                                   miny = ymin, maxy = ymax)
         else:
             self.handle.config(type = "bifurcation")
         if not self.dset:
@@ -527,6 +581,9 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
   <LLS>   Set long-short dash size
   <PA>    Set plotting accuracy
   <RES>   Reset curves and symbols
+
+  <3D>    3D plot of labeled solutions
+  <B3D>   3D bifurcation diagram
 
          --- End of Help ---
   """)
