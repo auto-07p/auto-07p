@@ -10,6 +10,7 @@ import Points
 import AUTOExceptions
 import gzip
 import types
+import sys
 
 # some constants must not be preserved from run to run. These are:
 nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
@@ -30,9 +31,11 @@ class bifDiag(parseB.parseBR):
             self.__realinit(fort7_filename,fort8_filename,fort9_filename,kw)
 
     def __realinit(self,fort7_filename,fort8_filename,fort9_filename,options):
+        ioerrors = []
         try:
             parseB.parseBR.__init__(self,fort7_filename)
         except IOError:
+            ioerrors.append(str(sys.exc_info()[1]))
             parseB.parseBR.__init__(self)
             fort7_filename = None
         if isinstance(fort8_filename, parseS.AUTOSolution):
@@ -40,10 +43,10 @@ class bifDiag(parseB.parseBR):
         try:
             solution = parseS.parseS(fort8_filename)
         except IOError:
+            ioerrors.append(str(sys.exc_info()[1]))
             solution = None
             if fort7_filename is None:
-                raise AUTOExceptions.AUTORuntimeError(
-                    "No bifurcation diagram or solution file found.")
+                raise AUTOExceptions.AUTORuntimeError('\n'.join(ioerrors))
         if fort7_filename is None and fort8_filename is not None:
             # simulate a bifurcation diagram
             labels = {}

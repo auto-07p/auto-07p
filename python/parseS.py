@@ -165,11 +165,12 @@ class parseS(list):
         try:
             inputfile = open(filename,"rb")
         except IOError:
+            s = sys.exc_info()[1]
             try:
                 import gzip
                 inputfile = gzip.open(filename+".gz","rb")
             except IOError:
-                raise IOError("Could not find solution file %s."%filename)
+                raise IOError(s)
         return inputfile
 
     def readFilename(self,filename,**kw):

@@ -1153,8 +1153,7 @@ def configure(runner=None,templates=None,**kw):
                     doneread = True
                 except IOError:
                     if "__constants" not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(
-                            "Constants file %s not found."%kw["constants"])
+                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
                     del kw["constants"]
         if "homcont" in kw:
             if isinstance(kw["homcont"], str):
@@ -1165,8 +1164,7 @@ def configure(runner=None,templates=None,**kw):
                     doneread = True
                 except IOError:
                     if "__homcont" not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(
-                            "HomCont file %s not found."%kw["homcont"])
+                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
                     object = None
                 kw["homcont"] = object
         if "solution" in kw:
@@ -1178,11 +1176,11 @@ def configure(runner=None,templates=None,**kw):
                     doneread = True
                 except IOError:
                     if "__solution" not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(
-                            "Solution file %s not found."%kw["solution"])
+                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
                     object = None
                 kw["solution"] = object
         if wantread and not doneread:
+            eq = ""
             if "equation" in kw:
                 eq = kw["equation"][14:]
                 for ext in [".f90",".f",".c"]:
@@ -1191,7 +1189,7 @@ def configure(runner=None,templates=None,**kw):
                         break
             if not doneread:
                 raise AUTOExceptions.AUTORuntimeError(
-                    "No equations file found.")
+                    "No equations file found for: '%s'\n"%eq)
         return kw
 
     runner = withrunner(runner)
@@ -1797,7 +1795,7 @@ try:
                 atexit.register(plotterquit)
             except:
                 pass
-        info("Created plotter\n")
+        info("Created plot\n")
         return handle
 
 except:
