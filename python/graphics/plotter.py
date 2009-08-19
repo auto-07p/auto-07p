@@ -125,16 +125,20 @@ class plotter(grapher.GUIGrapher):
                 self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":
             labels = self.cget("solution").getLabels()
-            if type(value) != type([]) and type(value) != type(()):
+            if not isinstance(value, (list, tuple)):
                 value = [value]
+            if value == ["all"]:
+                value = labels
             options["index"] = [j for v in value
                     for j, l in enumerate(labels) if l == v]
         elif key == "index":
             labels = self.cget("solution").getLabels()
+            if not isinstance(value, (list, tuple)):
+                value = [value]
             options["label"] = [labels[v] for v in value]
         elif key in ["bifurcation_x","bifurcation_y",
                      "solution_x","solution_y"]:
-            if type(value) != type([]) and type(value) != type(()):
+            if not isinstance(value, (list, tuple)):
                 value = [value]
         # We only recreate the data if one of the above options gets set
         # We can't just recreate the data for any option since:

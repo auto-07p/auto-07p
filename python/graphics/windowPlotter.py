@@ -5,6 +5,7 @@ try:
 except ImportError:
     import tkinter as Tkinter # Python 3
 from graphics import Pmw
+import parseC
 import AUTOutil
 from graphics import plotter
 import sys
@@ -191,16 +192,19 @@ class WindowPlotter(Pmw.MegaToplevel):
         if key[-2:] == "_z" and entry == " 2D Plot ":
             self.grapher[key] = None
             return
-        try:
-            self.grapher[key] = eval(entry,{},{})
-        except (NameError,SyntaxError):
-            entry = entry.strip()
-            entry = entry.replace("[","['")
-            entry = entry.replace("]","']")
-            entry = entry.replace(",","','")
-            if entry == "" or entry[0] != '[':
-                entry = "'" + entry + "'"
-            self.grapher[key] = eval(entry,{},{})
+        # convert to list, then use the same method as for constant files
+        entry = entry.strip()
+        if entry[0] != '[':
+            entry = '[' + entry
+        if entry[-1] != ']':
+            entry = entry + ']'
+        lst = parseC.parseC().scanvalue(entry)[0]
+        for i, v in enumerate(lst):
+            try:
+                lst[i] = int(v)
+            except ValueError:
+                pass
+        self.grapher[key] = lst
         if key == "type":
             self.typeUpdateCallback()
 
@@ -371,9 +375,12 @@ class WindowPlotter2D(WindowPlotter):
         labels.extend(["%d"%d for d in default_labels])
         labels.append(self._shortstr(default_labels))
         if self.grapher.cget("label") == [0]:
-            self.typeEntry.setentry(labels[0])
+            entry = labels[0]
         else:
-            self.typeEntry.setentry(self._shortstr(self.grapher.cget("label")))
+            entry = self._shortstr(self.grapher.cget("label"))
+        self.typeEntry.setentry(entry)
+        if entry not in labels:
+            labels.append(entry)
         self.typeEntry.setlist(labels)
 
 
