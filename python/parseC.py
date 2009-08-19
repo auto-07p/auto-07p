@@ -235,10 +235,8 @@ class parseC(dict):
                     i = i + 2
                 value = self.__compactindexed(d)
             elif key in ['unames','parnames']:
-                d = []
-                for i in range(0,len(value),2):
-                    d.append([int(value[i]),value[i+1]])
-                value = d                
+                value = [[int(value[i]),value[i+1]] 
+                         for i in range(0,len(value),2)]
             elif key in ['s','dat','sv','e','SP']:
                 pass
             elif key in self:

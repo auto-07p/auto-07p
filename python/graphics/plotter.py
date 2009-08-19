@@ -92,7 +92,8 @@ class plotter(grapher.GUIGrapher):
             elif w in special:
                 v = special[w]
             elif (option[-2:] in ['_x','_y','_z'] or 
-                  option in ["label","index","label_defaults"]):
+                  option in ["label","index","label_defaults"] or
+                  (option[0] == 'd' and len(option) == 2)):
                 # same technique as windowPlotter entry box
                 if len(v) > 0:
                     if v[0] != '[':
@@ -105,6 +106,8 @@ class plotter(grapher.GUIGrapher):
                         v[i] = int(l)
                     except ValueError:
                         pass
+                if option[0] == 'd' and len(option) == 2:
+                    v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
             else: # simple value
                 try:
                     v = int(v)
