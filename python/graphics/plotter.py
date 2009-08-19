@@ -7,6 +7,7 @@ except ImportError:
     print("using matplotlib (http://matplotlib.sf.net).")
 import parseB
 import parseS
+import parseC
 import AUTOutil
 import os
 Axes3D = grapher.Axes3D
@@ -61,8 +62,36 @@ class plotter(grapher.GUIGrapher):
 
         parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
+        c = parseC.parseC()
+        special = {'none': None, 'true': True, 'false': False,
+                   'yes': True, 'no': False}
         for option in parser.options("AUTO_plotter"):
-            v = eval(parser.get("AUTO_plotter",option))
+            v = parser.get("AUTO_plotter",option)
+            if v[0] in ['"',"'"]:
+                # unquote strings
+                v = v[1:-1]
+            elif v.lower() in special:
+                v = special[v.lower()]
+            else:
+                # see if it's a list; then convert ints/floats inside
+                # else try to take value as int/float
+                val = c.scanvalue(v)
+                if val[1] == '':
+                    v = val[0]
+                    islist = True
+                    if not isinstance(v,list):
+                        islist = False
+                        v = [v]
+                    for i,l in enumerate(v):
+                        try:
+                            v[i] = int(l)
+                        except ValueError:
+                            try:
+                                v[i] = float(l)
+                            except ValueError:
+                                pass
+                    if not islist:
+                        [v] = v
             optionDefaultsRC[option] = v
         if kw.has_key("hide"):
             optionDefaultsRC["hide"] = kw["hide"]
