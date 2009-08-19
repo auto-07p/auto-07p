@@ -63,35 +63,56 @@ class plotter(grapher.GUIGrapher):
         parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
         c = parseC.parseC()
-        special = {'none': None, 'true': True, 'false': False,
-                   'yes': True, 'no': False}
+        special = {'None': None, 'True': True, 'False': False,
+                   'Yes': True, 'No': False}
         for option in parser.options("AUTO_plotter"):
             v = parser.get("AUTO_plotter",option)
-            if v[0] in ['"',"'"]:
-                # unquote strings
-                v = v[1:-1]
-            elif v.lower() in special:
-                v = special[v.lower()]
+            if len(v) > 0:
+                w = v[0].upper() + v[1:]
             else:
-                # see if it's a list; then convert ints/floats inside
-                # else try to take value as int/float
-                val = c.scanvalue(v)
-                if val[1] == '':
-                    v = val[0]
-                    islist = True
-                    if not isinstance(v,list):
-                        islist = False
-                        v = [v]
-                    for i,l in enumerate(v):
-                        try:
-                            v[i] = int(l)
-                        except ValueError:
-                            try:
-                                v[i] = float(l)
-                            except ValueError:
-                                pass
-                    if not islist:
-                        [v] = v
+                w = v[:]
+            i = 0
+            quoted = False
+            while i < len(v) and v[i] in ['"',"'"]:
+                q = v[i]
+                # look for endquote
+                j = v.find(q,i+1)
+                if j < 0:
+                    break
+                # remove quotes
+                quoted = True
+                v = v[:i]+v[i+1:j]+v[j+1:]
+                i = j - 1
+            # remove comment after last quote
+            i = v.find('#',i+1)
+            if i >= 0:
+                v = v[:i].strip()
+            if quoted:
+                pass
+            elif w in special:
+                v = special[w]
+            elif (option[-2:] in ['_x','_y','_z'] or 
+                  option in ["label","index","label_defaults"]):
+                # same technique as windowPlotter entry box
+                if len(v) > 0:
+                    if v[0] != '[':
+                        v = '[' + v
+                    if v[-1] != ']':
+                        v = v + ']'
+                v = c.scanvalue(v)[0]
+                for i, l in enumerate(v):
+                    try:
+                        v[i] = int(l)
+                    except ValueError:
+                        pass
+            else: # simple value
+                try:
+                    v = int(v)
+                except ValueError:
+                    try:
+                        v = float(v)
+                    except ValueError:
+                        pass
             optionDefaultsRC[option] = v
         if kw.has_key("hide"):
             optionDefaultsRC["hide"] = kw["hide"]
@@ -156,7 +177,7 @@ class plotter(grapher.GUIGrapher):
             labels = self.cget("solution").getLabels()
             if not isinstance(value, (list, tuple)):
                 value = [value]
-            if value == ["all"]:
+            if value in [["all"], ["All"]]:
                 value = labels
             options["index"] = [j for v in value
                     for j, l in enumerate(labels) if l == v]

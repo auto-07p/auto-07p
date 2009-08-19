@@ -194,10 +194,11 @@ class WindowPlotter(Pmw.MegaToplevel):
             return
         # convert to list, then use the same method as for constant files
         entry = entry.strip()
-        if entry[0] != '[':
-            entry = '[' + entry
-        if entry[-1] != ']':
-            entry = entry + ']'
+        if len(entry) > 0:
+            if entry[0] != '[':
+                entry = '[' + entry
+            if entry[-1] != ']':
+                entry = entry + ']'
         lst = parseC.parseC().scanvalue(entry)[0]
         for i, v in enumerate(lst):
             try:
