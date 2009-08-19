@@ -120,6 +120,9 @@ class plotter(grapher.GUIGrapher):
                 pass
             if self.cget("label") != [0]:
                 self.__optionCallback("label",self.cget("label"),options)
+        elif key == "solution":
+            if self.cget("label") != [0]:
+                self.__optionCallback("label",self.cget("label"),options)
         elif key == "label":
             labels = self.cget("solution").getLabels()
             if type(value) != type([]) and type(value) != type(()):
