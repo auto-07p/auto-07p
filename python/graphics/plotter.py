@@ -126,24 +126,25 @@ class plotter(grapher.GUIGrapher):
             i = 0
             vlist = []
             for j, ch in enumerate(v):
-                if quote == ' ':
-                    if ch in ['"',"'"]:
-                        quote = ch
-                    elif ch in sep or j == len(v) - 1:
-                        if j == len(v) - 1:
-                            s = v[i:]
-                        else:
-                            s = v[i:j]
-                        s = s.strip()
-                        if len(s) == 0 or s[0] not in ['"',"'"]:
-                            try:
-                                int(s)
-                            except ValueError:
-                                s = "'"+s+"'"
-                        vlist.append(s)
-                        i = j+1
-                elif ch == quote:
-                    quote = ' '
+                if j == len(v) - 1:
+                    s = v[i:]
+                elif ch in sep and quote == ' ':
+                    s = v[i:j]
+                    i = j+1
+                else:
+                    if quote == ' ':
+                        if ch in ['"',"'"]:
+                            quote = ch
+                    elif ch == quote:
+                        quote = ' '
+                    continue
+                s = s.strip()
+                if len(s) == 0 or s[0] not in ['"',"'"]:
+                    try:
+                        int(s)
+                    except ValueError:
+                        s = "'"+s+"'"
+                vlist.append(s)
             v = c.scanvalue("["+",".join(vlist)+"]")[0]
             for i, l in enumerate(v):
                 try:
