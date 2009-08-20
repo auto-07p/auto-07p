@@ -362,7 +362,8 @@ class WindowPlotter2D(WindowPlotter):
             labels = map(str,self.grapher.cget("label_defaults"))
         default_labels = self.grapher.cget("solution").getLabels()
         labels.extend(["%d"%d for d in default_labels])
-        labels.append(self._shortstr(default_labels))
+        if len(default_labels) > 1 or len(labels) == 0:
+            labels.append(self._shortstr(default_labels))
         if self.grapher.cget("label") == [0]:
             entry = labels[0]
         else:
