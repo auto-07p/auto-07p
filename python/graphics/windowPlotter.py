@@ -90,7 +90,7 @@ class WindowPlotter(Pmw.MegaToplevel):
                                               items=("solution","bifurcation"))
             
         labelEntry.grid(row=0,column=0)
-        labelEntry.configure(command = lambda value,obj=self:obj._modifyOption("type",value))
+        labelEntry.configure(command = lambda value:self._modifyOption("type",value))
         self.labelEntry = labelEntry
 
         typeEntry = self.createcomponent('typeEntry',
@@ -100,7 +100,7 @@ class WindowPlotter(Pmw.MegaToplevel):
                                          label_text="Label")
         
         typeEntry.grid(row=0,column=1)
-        typeEntry.configure(selectioncommand = lambda entry,obj=self:obj._modifyOption("label",entry))
+        typeEntry.configure(selectioncommand = lambda entry:self._modifyOption("label",entry))
         self.typeEntry = typeEntry
         box.grid(row=0)
 
@@ -168,9 +168,9 @@ class WindowPlotter(Pmw.MegaToplevel):
                                     labelpos="w",
                                     label_text="New Value")
         valueEntry.pack(side="top")
-        valueEntry.configure(command = lambda button="Ok",entry=valueEntry,data=key,obj=self:obj.__dialogFunction(button,data,entry.get()))
+        valueEntry.configure(command = lambda: self.__dialogFunction("Ok",key,valueEntry.get()))
 
-        self.diag.configure(command = lambda button,entry=valueEntry,data=key,obj=self:obj.__dialogFunction(button,data,entry.get()))
+        self.diag.configure(command = lambda button:self.__dialogFunction(button,key,valueEntry.get()))
         
 
         optionLabel.setentry(key)
@@ -307,13 +307,13 @@ class WindowPlotter2D(WindowPlotter):
             oz = "solution_z"
             ocd = "solution_column_defaults"
             o = "solution"
-        self.xEntry.configure(selectioncommand = lambda entry,
-                              obj=self,oa=ox:obj._modifyOption(oa,entry))
-        self.yEntry.configure(selectioncommand = lambda entry,
-                              obj=self,oa=oy:obj._modifyOption(oa,entry))
+        self.xEntry.configure(selectioncommand = lambda entry:
+                              self._modifyOption(ox,entry))
+        self.yEntry.configure(selectioncommand = lambda entry:
+                              self._modifyOption(oy,entry))
         if plotter.Axes3D is not None:
-            self.zEntry.configure(selectioncommand = lambda entry,
-                                  obj=self,oa=oz:obj._modifyOption(oa,entry))
+            self.zEntry.configure(selectioncommand = lambda entry:
+                                  self._modifyOption(oz,entry))
 
         lst = []
         if self.grapher.cget(ocd) is not None:
