@@ -192,20 +192,8 @@ class WindowPlotter(Pmw.MegaToplevel):
         if key[-2:] == "_z" and entry == " 2D Plot ":
             self.grapher[key] = None
             return
-        # convert to list, then use the same method as for constant files
-        entry = entry.strip()
-        if len(entry) > 0:
-            if entry[0] != '[':
-                entry = '[' + entry
-            if entry[-1] != ']':
-                entry = entry + ']'
-        lst = parseC.parseC().scanvalue(entry)[0]
-        for i, v in enumerate(lst):
-            try:
-                lst[i] = int(v)
-            except ValueError:
-                pass
-        self.grapher[key] = lst
+        self.grapher[key] = self.grapher.parseoption(key, entry, 
+                                                     parseC.parseC())
         if key == "type":
             self.typeUpdateCallback()
 

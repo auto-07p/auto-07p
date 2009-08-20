@@ -63,60 +63,9 @@ class plotter(grapher.GUIGrapher):
         parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
         c = parseC.parseC()
-        special = {'None': None, 'True': True, 'False': False,
-                   'Yes': True, 'No': False}
         for option in parser.options("AUTO_plotter"):
-            v = parser.get("AUTO_plotter",option)
-            if len(v) > 0:
-                w = v[0].upper() + v[1:]
-            else:
-                w = v[:]
-            i = 0
-            quoted = False
-            while i < len(v) and v[i] in ['"',"'"]:
-                q = v[i]
-                # look for endquote
-                j = v.find(q,i+1)
-                if j < 0:
-                    break
-                # remove quotes
-                quoted = True
-                v = v[:i]+v[i+1:j]+v[j+1:]
-                i = j - 1
-            # remove comment after last quote
-            i = v.find('#',i+1)
-            if i >= 0:
-                v = v[:i].strip()
-            if quoted:
-                pass
-            elif w in special:
-                v = special[w]
-            elif (option[-2:] in ['_x','_y','_z'] or 
-                  option in ["label","index","label_defaults"] or
-                  (option[0] == 'd' and len(option) == 2)):
-                # same technique as windowPlotter entry box
-                if len(v) > 0:
-                    if v[0] != '[':
-                        v = '[' + v
-                    if v[-1] != ']':
-                        v = v + ']'
-                v = c.scanvalue(v)[0]
-                for i, l in enumerate(v):
-                    try:
-                        v[i] = int(l)
-                    except ValueError:
-                        pass
-                if option[0] == 'd' and len(option) == 2:
-                    v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
-            else: # simple value
-                try:
-                    v = int(v)
-                except ValueError:
-                    try:
-                        v = float(v)
-                    except ValueError:
-                        pass
-            optionDefaultsRC[option] = v
+            optionDefaultsRC[option] = self.parseoption(
+                option,parser.get("AUTO_plotter",option),c)
         if kw.has_key("hide"):
             optionDefaultsRC["hide"] = kw["hide"]
 
@@ -133,6 +82,85 @@ class plotter(grapher.GUIGrapher):
             if "min"+coord not in kw or "max"+coord not in kw:
                 self.computeRange(coord)
         grapher.GUIGrapher.plot(self)
+
+    def parseoption(self,option,v,c):
+        special = {'None': None, 'True': True, 'False': False,
+                   'Yes': True, 'No': False}
+        i = 0
+        quoted = False
+        while i < len(v) and v[i] in ['"',"'"]:
+            q = v[i]
+            # look for endquote
+            j = v.find(q,i+1)
+            if j < 0:
+                break
+            # remove quotes
+            quoted = True
+            v = v[:i]+v[i+1:j]+v[j+1:]
+            i = j - 1
+        # remove comment after last quote
+        i = v.find('#',i+1)
+        if i >= 0:
+            v = v[:i].strip()
+        if quoted:
+            return v
+        w = v.capitalize()
+        if w in special:
+            v = special[w]
+        elif (option[-2:] in ['_x','_y','_z'] or 
+              option in ["label","index","label_defaults"] or
+              (option[0] == 'd' and len(option) == 2)):
+            # convert to list, quote args if not numbers,
+            # then use the same method as for constant files
+            if option[0] == 'd' and len(option) == 2:
+                brackets = ['{','}']
+                sep = [',',':']
+            else:
+                brackets = ['[',']']
+                sep = [',']
+            if len(v) > 0 and v[0] in brackets[0]:
+                v = v[1:]
+            if len(v) > 0 and v[-1] in brackets[1]:
+                v = v[:-1]
+            quote = ' '
+            i = 0
+            vlist = []
+            for j, ch in enumerate(v):
+                if quote == ' ':
+                    if ch in ['"',"'"]:
+                        quote = ch
+                    elif ch in sep or j == len(v) - 1:
+                        if j == len(v) - 1:
+                            s = v[i:]
+                        else:
+                            s = v[i:j]
+                        s = s.strip()
+                        if len(s) == 0 or s[0] not in ['"',"'"]:
+                            try:
+                                int(s)
+                            except ValueError:
+                                s = "'"+s+"'"
+                        vlist.append(s)
+                        i = j+1
+                elif ch == quote:
+                    quote = ' '
+            v = c.scanvalue("["+",".join(vlist)+"]")[0]
+            for i, l in enumerate(v):
+                try:
+                    v[i] = int(l)
+                except ValueError:
+                    pass
+            if option[0] == 'd' and len(option) == 2:
+                v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
+        else: # simple value
+            try:
+                v = int(v)
+            except ValueError:
+                try:
+                    v = float(v)
+                except ValueError:
+                    pass
+        return v
 
     def config(self,cnf=None,**kw):
         rval = self._configNoDraw(cnf,**kw)
