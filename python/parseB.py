@@ -566,21 +566,11 @@ class AUTOBranch(Points.Pointset):
         return new
 
     def toArray(self):
-        array = []
-        data = self.coordarray
-        for i in range(len(data[0])):
-            row = []
-            for j in range(len(data)):
-                row.append(data[j][i])
-            array.append(row)
-        return array
+        return list(map(list,zip(*self.coordarray)))
 
     def writeRaw(self,output):
-        data = self.coordarray
-        for i in range(len(data[0])):
-            for j in range(len(data)):
-                output.write(str(data[j][i])+" ")
-            output.write("\n")
+        data = self.toArray()
+        output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
                 
     def write(self,output,columnlen=19):
         if columnlen == 19 and not self.__fullyParsed:

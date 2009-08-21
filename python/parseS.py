@@ -781,20 +781,13 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         output.close()
         
     def toArray(self):
-        array = []
-        for vector in self["data"]:
-            array.append([])
-            array[-1].append(vector["t"])
-            for point in vector["u"]:
-                array[-1].append(point)
-        return array
+        return [
+            [vector["t"]] + [point for point in vector["u"]]
+            for vector in self["data"]]
 
     def writeRaw(self,output):
-        for vector in self["data"]:
-            output.write(str(vector["t"])+" ")
-            for point in vector["u"]:
-                output.write(str(point)+" ")
-            output.write("\n")
+        data = self.toArray()
+        output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
             
     def read(self,input,prev=None):
         # for fort.8 we need to read into self.__data; otherwise load the
