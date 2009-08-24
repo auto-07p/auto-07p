@@ -7,7 +7,7 @@
 #include <Inventor/Xt/SoXtMaterialEditor.h>
 #endif
 
-extern char autoDir[256];
+extern const char *autoDir;
 extern float diskTransparency;
 extern bool diskFromFile;
 
@@ -18,9 +18,9 @@ createDisk(float where[], float scaler)
     SoSeparator *diskSep = new SoSeparator;
     static bool obj = diskFromFile;
     SoInput mySceneInput;
-    static char diskFileName[256];
+    char *diskFileName = new char[strlen(autoDir) + 30];
     strcpy(diskFileName, autoDir);
-    strcat(diskFileName,"/r3bplaut04/widgets/disk.iv");
+    strcat(diskFileName, "/plaut04/widgets/disk.iv");
     if (obj && mySceneInput.openFile(diskFileName))
     {
         SoSeparator *disk = SoDB::readAll(&mySceneInput);
@@ -44,6 +44,7 @@ createDisk(float where[], float scaler)
     {
         obj = FALSE;
     }
+    delete [] diskFileName;
 
     if(!obj)
     {
