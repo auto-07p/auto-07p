@@ -442,20 +442,49 @@ def append(name1,name2=None,templates=None):
 commandAppend = command(append,SIMPLE,"append",alias=['ap'])
 
 
-def copy(name1,name2,templates=None):
+def dirfilenames(name1,name2,name3,name4):
+    """Convert arguments to directories and names for copy() and move()"""
+    dir1 = ""
+    dir2 = ""
+    if os.path.isdir(name1):
+        dir1 = name1
+        name1 = name2
+        if name4 is not None:
+            dir2 = name3
+            name2 = name4
+        elif name3 is not None:
+            name2 = name3
+    elif os.path.isdir(name2):
+        dir2 = name2
+        if name3 is not None:
+            name2 = name3
+        else:
+            name2 = name1
+    return dir1,name1,dir2,name2
+
+def copy(name1,name2,name3=None,name4=None,templates=None):
     """Copy data files.
 
     Type FUNC('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
     and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy.
     """
-    name1 = filenameTemplate(name1,templates)
-    name2 = filenameTemplate(name2,templates)
+    
+    dir1, name1, dir2, name2 = dirfilenames(name1,name2,name3,name4)
+    names1 = filenameTemplate(name1,templates)
+    names2 = filenameTemplate(name2,templates)
+    done = False
     for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
-        n1 = name1[s]
-        n2 = name2[s]
+        n1 = os.path.join(dir1,names1[s])
+        n2 = os.path.join(dir2,names2[s])
         if os.path.exists(n1):
             shutil.copy(n1,n2)
             info("Copying %s to %s ... done\n"%(n1,n2))
+            done = True
+    if not done:
+        raise AUTOExceptions.AUTORuntimeError(
+            "Copying: no files found for %s and %s"%(
+                os.path.join(dir1,"[bsdc]."+name1),
+                os.path.join(dir2,"[bsdc]."+name2)))
 commandCopyDataFiles = command(copy)
 
 
@@ -695,22 +724,38 @@ def double(name=None,templates=None):
 commandDouble = command(double,alias=['db'])
 
 
-def move(name1,name2,templates=None):
+def move(name1,name2,name3=None,name4=None,templates=None):
     """Move data-files to a new name.
 
     Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
     and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy.
     """
-    name1 = filenameTemplate(name1,templates)
-    name2 = filenameTemplate(name2,templates)
+    dir1, name1, dir2, name2 = dirfilenames(name1,name2,name3,name4)
+    names1 = filenameTemplate(name1,templates)
+    names2 = filenameTemplate(name2,templates)
+    done = False
     for s in ["bifurcationDiagram","solution","diagnostics","constants"]:
-        n1 = name1[s]
-        n2 = name2[s]
+        n1 = os.path.join(dir1,names1[s])
+        n2 = os.path.join(dir2,names2[s])
+        if s == "constants":
+            try:
+                shutil.copy(n1,n2)
+                info("Copying %s to %s ... done\n"%(n1,n2))
+                done = True
+            except IOError:
+                pass
+            continue
         if os.path.exists(n1):
             if os.path.exists(n2):
                 os.remove(n2)
             os.rename(n1,n2)
             info("Renaming %s as %s ... done\n"%(n1,n2))
+            done = True
+    if not done:
+        raise AUTOExceptions.AUTORuntimeError(
+            "Renaming: no files found for %s and %s"%(
+                os.path.join(dir1,"[bsdc]."+name1),
+                os.path.join(dir2,"[bsdc]."+name2)))
 commandMoveFiles = command(move)
 
 
@@ -1189,7 +1234,7 @@ def configure(runner=None,templates=None,**kw):
                         break
             if not doneread:
                 raise AUTOExceptions.AUTORuntimeError(
-                    "No equations file found for: '%s'\n"%eq)
+                    "No equations file found for: '%s'"%eq)
         return kw
 
     runner = withrunner(runner)

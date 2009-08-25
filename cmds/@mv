@@ -1,9 +1,39 @@
 #!/bin/sh
-mv -f b.$1  b.$2
-mv -f s.$1  s.$2
-mv -f d.$1  d.$2
-cp -f c.$1  c.$2
-echo "Renaming b.$1 as b.$2 ... done"
-echo "Renaming s.$1 as s.$2 ... done"
-echo "Renaming d.$1 as d.$2 ... done"
-echo "Renaming c.$1 as c.$2 ... done"
+error="true"
+name1="$1"
+name2="$2"
+dir1=""
+dir2=""
+if test -d "$1"; then
+    dir1="$1/"
+    name1="$2"
+    if test $# -eq 4; then
+	dir2="$3/"
+	name2="$4"
+    elif test $# -eq 3; then
+	name2="$3"
+    fi
+elif test -d "$2"; then
+    dir2="$2/"
+    if test $# -eq 3; then
+	file2="$3"
+    else
+	file2="$1"
+    fi
+fi
+for prefix in b s d c; do
+    file1="$dir1$prefix.$name1"
+    file2="$dir2$prefix.$name2"
+    if test $prefix == "c"; then
+	if cp -f "$file1" "$file2" 2> /dev/null; then
+	    echo "Copying $file1 to $file2 ... done"
+	    unset error
+	fi
+    elif mv -f "$file1" "$file2" 2> /dev/null; then
+	echo "Renaming $file1 as $file2 ... done"
+	unset error
+    fi
+done
+if test -n "$error"; then
+    echo "Renaming: no files found for $dir1[bsdc].$name1 and $dir2[bsdc].$name2"
+fi
