@@ -12,29 +12,20 @@ try:
 except ImportError:
     import builtins as __builtin__ # Python 3
 
-class AUTOInteractiveConsole(code.InteractiveConsole):
+class AUTOInteractive(object):
     def __init__(self,locals,filename=None):
         locals["execfile"] = self.execfile
         locals["ex"] = self.ex
         locals["auto"] = self.auto
         locals["demofile"] = self.demofile
         locals["dmf"] = self.dmf
-        self.name = filename
+        self.execfilename = filename
         self.stopdemo = False
         self.oldhelp = __builtin__.help
         locals["help"] = self.help
-
-        code.InteractiveConsole.__init__(self,locals)
-        self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
-                                     r'([\?\w\.]+\w*\s*)'
-                                     r'(\(?.*$)')
-        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
-                                          '|^is |^not |^in |^and |^or ')
-
-    def raw_input(self, prompt=None):
-        line = raw_input(prompt)
-        line = self.processShorthand(line)
-        return line
+        self.atcommands = [cmd 
+                           for cmd in os.listdir(os.environ["AUTO_DIR"]+"/cmds")
+                           if cmd[0]=='@' and cmd[-1]!='~']
 
     def showtraceback(self):
         try:
@@ -45,7 +36,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
             l = traceback.extract_tb(sys.exc_info()[2])
             found = False
             for entry in l:
-                if entry[0] == self.name:
+                if entry[0] == self.execfilename:
                     self.write("%s, line %s:\n"%(entry[0],entry[1]))
                     found = True
             if found:
@@ -53,7 +44,7 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
             self.write("AUTO Runtime Error: %s\n"%e)
             self.stopdemo = True
         except:
-            code.InteractiveConsole.showtraceback(self)
+            self.parentclass.showtraceback(self)
 
     def demofile(self,name):
         """Execute an AUTO CLUI script, line by line (demo mode).
@@ -62,8 +53,8 @@ class AUTOInteractiveConsole(code.InteractiveConsole):
     will proceed each time you press Enter.
 
 Aliases: demofile dmf"""
-        oldname = self.name
-        self.name = name
+        oldname = self.execfilename
+        self.execfilename = name
         lines = open(name,"r")
         runline = ''
         for line in lines:
@@ -79,10 +70,10 @@ Aliases: demofile dmf"""
             if not self.runsource(runline):
                 if self.stopdemo:
                     self.stopdemo = False
-                    self.name = oldname
+                    self.execfilename = oldname
                     raise AUTOExceptions.AUTORuntimeError('Demo interrupted')
                 runline = ''
-        self.name = oldname
+        self.execfilename = oldname
 
     def dmf(self,name):
         """Execute an AUTO CLUI script, line by line (demo mode).
@@ -102,7 +93,7 @@ Aliases: auto ex"""
         if name is None:
             automain()
             return
-        oldname = self.name
+        oldname = self.execfilename
         try:
             lines = open(name,"r")
         except IOError:
@@ -115,14 +106,14 @@ Aliases: auto ex"""
                     return
             else:    
                 raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
-        self.name = name
+        self.execfilename = name
         source = ""
         for line in lines:
             while len(line) > 0 and line[-1] in "\r\n":
                 line = line[:-1]
             source = source + self.processShorthand(line) + "\n"
         self.runsource(source,name,"exec")
-        self.name = oldname
+        self.execfilename = oldname
 
     def ex(self,name=None):
         """Execute an AUTO CLUI script.
@@ -144,6 +135,61 @@ Aliases: ex"""
         if len(args) == 0 and len(kwds) == 0:
             print('Press ENTER and then type "man" for help about the AUTO Python CLUI.')
         self.oldhelp(*args,**kwds)
+
+    def processShorthand(self,line):
+        """    Given a line of python input check to see if it is
+        a AUTO shorthand command, if so, change it to
+        its real python equivalent. """
+        lst = line.split()
+
+        shortCommands = ["ls","cd","cat"]
+        shortUnixCommands = ["clear","less","mkdir","rmdir","rm"]
+        # these work both as functions and for the shell
+        shortDuplCommands = ["cp","mv"]
+
+        if len(lst) == 0:
+            return line
+
+        llen = len(line)-len(line.lstrip())
+        lspaces = ' '*llen
+        command = None
+        if lst[0][0]=="!":
+            command = "shell('" + line[llen+1:].strip() +"')"
+        elif len(lst) == 1 or lst[1][0] != '(':
+            if lst[0]=="shell":
+                command = "shell('"+line[llen+5:].strip()+"')"
+            elif lst[0] in self.atcommands:
+                command = ("shell('" + os.path.join(
+                        os.environ["AUTO_DIR"],"cmds",line.strip()) + "')")
+            elif (lst[0] in shortUnixCommands or
+                  (lst[0] in shortDuplCommands and
+                   (len(lst) != 2 or (len(lst) == 2 and lst[1][0] == '-')))):
+                command = "shell('" + line.strip() + "')"
+            elif lst[0] in shortCommands:
+                if len(lst) == 2:
+                    command = "%s('%s')"%lst
+                else:
+                    command = "%s()"%lst[0]
+        if command is not None:
+            return lspaces+command
+        return line
+
+
+class AUTOInteractiveConsole(AUTOInteractive,code.InteractiveConsole):
+    def __init__(self,locals,filename=None):
+        self.parentclass = code.InteractiveConsole
+        AUTOInteractive.__init__(self,locals,filename)
+        code.InteractiveConsole.__init__(self,locals)
+        self.line_split = re.compile(r'^(\s*[,;/]?\s*)'
+                                     r'([\?\w\.]+\w*\s*)'
+                                     r'(\(?.*$)')
+        self.re_exclude_auto = re.compile(r'^[<>,&^\|\*/\+-]'
+                                          '|^is |^not |^in |^and |^or ')
+
+    def raw_input(self, prompt=None):
+        line = raw_input(prompt)
+        line = self.processShorthand(line)
+        return line
 
     def split_user_input(self,line):
         """Split user input into pre-char, function part and rest."""
@@ -253,38 +299,19 @@ Aliases: ex"""
         return newcmd
 
     def processShorthand(self,line):
-        """    Given a line of python input check to see if it is
-        a AUTO shorthand command, if so, change it to
-        its real python equivalent. """
-        lst = line.split()
-        spaces = re.match(" *",line)
+        """Do some IPython-style transformations before passing to Python."""
+        # First the short shell commands
+        line = AUTOInteractive.processShorthand(self,line)
 
-        shortCommands = ["ls","cd","cat"]
-        shortUnixCommands = ["clear","less","mkdir","rmdir","cp","mv","rm"]
-
-        if len(lst) > 0:
-            pre,cmd,theRest = self.split_user_input(line)
-            if lst[0]=="shell":
-                return spaces.group()+"shell('" + line[len(spaces.group())+5:].strip() +"')"
-            elif lst[0][0]=="!":
-                return spaces.group()+"shell('" + line[len(spaces.group())+1:].strip() +"')"
-            elif lst[0][0]=="@" or lst[0] in shortUnixCommands:
-                return spaces.group()+"shell('" + line[len(spaces.group()):].strip() +"')"
-            elif lst[0] in shortCommands:
-                if len(lst) == 2:
-                    command = spaces.group() + lst[0] + "('%s')"%lst[1]
-                else:
-                    command = spaces.group() + lst[0] + "()"
+        pre,cmd,theRest = self.split_user_input(line)
+        if (not(theRest and theRest[0] in '!=()') and
+            (pre == ',' or pre == ';' or pre == '/' or
+             not self.re_exclude_auto.match(theRest))):
+            obj = self._ofind(cmd)
+            if obj is not None and hasattr(obj, '__call__'):
+                command = (line[:(len(line) - len(line.lstrip()))]+
+                           self.handle_auto(pre,cmd,theRest,obj))
                 return command
-            elif (not(theRest and theRest[0] in '!=()') and
-                  (pre == ',' or pre == ';' or pre == '/' or
-                  not self.re_exclude_auto.match(theRest))):
-                obj = self._ofind(cmd)
-                if obj is not None and hasattr(obj, '__call__'):
-                    command = (line[:(len(line) - len(line.lstrip()))]+
-                               self.handle_auto(pre,cmd,theRest,obj))
-                    return command
-            return line
         return line
 
 def test():
@@ -321,9 +348,9 @@ def _testFilename(inputname,outputname):
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")
 
-def autoipython():
+def autoipython(funcs):
     # Use IPython in combination with AUTO
-    # First import the embeddable shell class
+    # First import the shell class
     try:
         import IPython.Shell
     except:
@@ -331,6 +358,7 @@ def autoipython():
         return
 
     import IPython
+    from IPython.iplib import InteractiveShell
 
     # Now create an instance of the embeddable shell. The first argument is a
     # string with options exactly as you would type them if you were starting
@@ -342,11 +370,6 @@ def autoipython():
             '-po','Out[\#]: ',
             '-noconfirm_exit',
             '-autocall','2']
-
-    over = { "alias" : [], "execute" : ["del help"] }
-    for atalias in os.listdir(os.environ["AUTO_DIR"]+"/cmds"):
-        if atalias[0]=='@' and atalias[-1]!='~':
-            over["alias"].append(atalias+" "+atalias)
 
     banner = ['Python %s\n'
               'Type "copyright", "credits" or "license" '
@@ -362,14 +385,23 @@ object? -> Details about 'object'. ?object also works, ?? prints more.
 Welcome to the AUTO IPython CLUI
 man     -> List of AUTO CLUI commands"""]
 
-    ipshell = IPython.Shell.IPShellEmbed(args,
-                           banner = '\n'.join(banner),
-                           exit_msg = '',
-                           rc_override = over)
+    class AUTOInteractiveShell(AUTOInteractive,InteractiveShell):
+        def __init__(self,name,**kw):
+            self.parentclass = InteractiveShell
+            AUTOInteractive.__init__(self, kw["user_ns"], None)
+            InteractiveShell.__init__(self,name,**kw)
 
-    # You can then call ipshell() anywhere you need it (with an optional
-    # message):
-    ipshell()
+        def prefilter(self,line,continue_prompt):
+            if not continue_prompt:
+                line = self.processShorthand(line)
+            line = InteractiveShell.prefilter(self,line,continue_prompt)
+            return line
+
+    ipshell = IPython.Shell.IPShell(args,
+                           user_ns = funcs, user_global_ns = funcs,
+                           shell_class = AUTOInteractiveShell)
+    ipshell.IP.user_ns['help'] = ipshell.IP.help
+    ipshell.mainloop(banner = '\n'.join(banner))
 
 def automain(name=None):
     import AUTOclui
@@ -413,10 +445,7 @@ def automain(name=None):
                             runner.__class__.__name__))
                 runner.demofile(arg)
     elif use_ipython:
-        for name,value in funcs.items():
-            globals()[name] = value
-        del globals()['cat'], globals()['cd'], globals()['ls']
-        autoipython()
+        autoipython(funcs)
     elif "-c" in opts:
         source = ""
         for line in opts["-c"].split("\n"):

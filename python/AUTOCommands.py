@@ -485,7 +485,7 @@ def copy(name1,name2,name3=None,name4=None,templates=None):
             "Copying: no files found for %s and %s"%(
                 os.path.join(dir1,"[bsdc]."+name1),
                 os.path.join(dir2,"[bsdc]."+name2)))
-commandCopyDataFiles = command(copy)
+commandCopyDataFiles = command(copy,alias=['cp'])
 
 
 def save(name1,name2=None,templates=None):
@@ -756,7 +756,7 @@ def move(name1,name2,name3=None,name4=None,templates=None):
             "Renaming: no files found for %s and %s"%(
                 os.path.join(dir1,"[bsdc]."+name1),
                 os.path.join(dir2,"[bsdc]."+name2)))
-commandMoveFiles = command(move)
+commandMoveFiles = command(move,alias=['mv'])
 
 
 def cn(name,templates=None):
