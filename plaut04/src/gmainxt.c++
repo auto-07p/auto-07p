@@ -939,8 +939,10 @@ buildOptionMenu(Widget menubar)
 #ifndef R3B
     TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
-#else
+#endif
     TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Sphere", OPT_REF_SPHERE,optMenuPick); ++mq;
+#ifdef R3B
     TOGGLE_ITEM(menuItems->items[mq], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
     SEP_ITEM("separator");

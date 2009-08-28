@@ -698,9 +698,12 @@ MainWindow::buildOptionMenu()
                          0, OPT_PERIOD_ANI);
     pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
-#else
+#endif
     pulldown->insertItem("Draw &Reference Plane", this, SLOT(optMenuPick(int)),
                          0, OPT_REF_PLAN);
+    pulldown->insertItem("Draw R&eference Sphere", this, SLOT(optMenuPick(int)),
+                         0, OPT_REF_SPHERE);
+#ifdef R3B
     pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
                          0, OPT_PRIMARY);
     pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuPick(int)),

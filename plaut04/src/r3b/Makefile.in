@@ -1,12 +1,12 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o createDisk.o \
+OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o ../createDisk.o \
         createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
         ../stringtrim.o \
         ../printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
         ../createCoords.o ../axis.o ../createLegend.o gmain.o @SOXT_OBJS_R3B@ \
-	../rounding.o gmainr3b.o
+	../rounding.o ../createSphere.o gmainr3b.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes

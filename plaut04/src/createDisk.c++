@@ -7,8 +7,12 @@
 #include <Inventor/Xt/SoXtMaterialEditor.h>
 #endif
 
+#include "gplaut04.h"
+
 extern const char *autoDir;
 extern float diskTransparency;
+extern float diskRotation[4];
+extern float diskHeight;
 extern bool diskFromFile;
 
 SoSeparator *
@@ -58,12 +62,13 @@ createDisk(float where[], float scaler)
         diskComplx->textureQuality = 0.5;
 
         SoTransform *diskXform = new SoTransform;
+        diskXform->rotation.setValue(SbVec3f(diskRotation[0], diskRotation[1],
+					     diskRotation[2]), diskRotation[3]);
         diskXform->translation.setValue(where[0],where[1],where[2]);
-        diskXform->rotation.setValue(SbVec3f(1.0, 0.0, 0.0), M_PI_2);
 
         SoCylinder  *disk = new SoCylinder;
         disk->radius = 1.0 * scaler;
-        disk->height = 0.001;
+        disk->height = diskHeight;
 
         diskSep->addChild(diskXform);
         diskSep->addChild(diskComplx);

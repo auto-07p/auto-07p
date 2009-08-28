@@ -16,8 +16,6 @@ float libPtScaler = 1.0;
 float smallPrimRadius=1.0;
 float largePrimRadius=1.0;
 int   numOfStars = 100;
-float diskTransparency = 0;
-bool diskFromFile = false;
 static float distance = 1;
 static float sPrimPeriod  = 31558118.4;
 static float gravity = 9.18;
@@ -34,10 +32,9 @@ SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
     {
         if(options[OPT_REF_PLAN])
         {
-            float position[3], radius =1;
-            position[0]=position[1]=position[2]=0;
+            float position[3], radius =diskRadius;
             if(whichCoordSystem == INERTIAL_B ) radius = 1-mass;
-            SoSeparator *diskSep = createDisk(position,radius);
+            SoSeparator *diskSep = createDisk(diskPosition,radius);
             result->addChild(diskSep);
         }
         result->addChild(createSolutionInertialFrameScene(dis));
@@ -56,16 +53,17 @@ SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
     if(options[OPT_REF_PLAN])
     {
         float position[3];
+	SoSeparator *diskSep;
         if(whichType == BIFURCATION)
         {
-            position[0]=position[1]=position[2]=0;
+            diskSep = createDisk(diskPosition,diskRadius);
         }
         else
         {
             position[0]=-mass;
             position[1]=position[2]=0;
+	    diskSep = createDisk(position,1.0);
         }
-        SoSeparator *diskSep = createDisk(position,1.0);
         result->addChild(diskSep);
     }
 

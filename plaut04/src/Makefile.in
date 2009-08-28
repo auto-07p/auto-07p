@@ -5,7 +5,7 @@ OBJS = gReadBif.o gReadSol.o drawCoords.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
         createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
-        rounding.o printToPS.o
+        rounding.o printToPS.o createSphere.o createDisk.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes

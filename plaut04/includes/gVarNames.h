@@ -35,6 +35,16 @@
         "Background Transparency",
         "Number of Period Animated",
         "Label Sphere Radius",
+        "Disk Rotation",
+        "Disk Position",
+        "Disk Radius",
+        "Disk Height",
+        "Disk Transparency",
+        "Disk From File",
+        "Sphere Position",
+        "Sphere Radius",
+        "Sphere Transparency",
+        "Sphere From File",
 #ifndef R3B
         "Object Radius",
 #else
@@ -42,8 +52,6 @@
         "Large Primary Radius",
         "Small Primary Radius",
         "Libration Point Size",
-	"Disk Transparency",
-	"Disk From File",
         "Coordinate system",
         "Number of Stars",
 #endif
@@ -84,12 +92,13 @@
 
 const char * graphWidgetItems[]=
 {
-#ifndef R3B
-    "Highlight Orbit",
-#else
     "Draw Reference Plane", 
+    "Draw Reference Sphere", 
+#ifdef R3B
     "Draw Primaries", 
     "Draw Libration Points",
+#else
+    "Highlight Orbit",
 #endif
     "Orbit Animation", 
 #ifdef R3B

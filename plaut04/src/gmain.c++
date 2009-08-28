@@ -42,6 +42,18 @@ bool blDrawTicker = false;
 bool blDrawTicker = true;
 #endif
 
+float diskTransparency = 0.7;
+bool diskFromFile = false;
+float diskRotation[4] = {1,0,0,M_PI_2};
+float diskPosition[3];
+float diskRadius = 1.0;
+float diskHeight = 0.001;
+
+float sphereTransparency = 0.7;
+bool sphereFromFile = false;
+float spherePosition[3];
+float sphereRadius = 1.0;
+
 int whichType= 0 ;
 int whichTypeTemp= 0 ;
 int whichTypeOld = 0 ;
@@ -106,7 +118,7 @@ float satSpeed   = 0.5;
 float satRadius  = 1.0;
 float lineWidthScaler = 1.0;
 float aniLineScaler = 2.0;
-static float sphereRadius = 1.0;
+static float labelRadius = 1.0;
 
 int   coloringMethod = -1;
 int   coloringMethodType[2] = {-1, -1};
@@ -435,6 +447,13 @@ createSolutionSceneWithWidgets()
         result->addChild(addLegend());
     }
 
+#ifndef R3B
+    if (options[OPT_REF_PLAN])
+      result->addChild(createDisk(diskPosition,diskRadius));
+#endif
+    if (options[OPT_REF_SPHERE])
+      result->addChild(createSphere(spherePosition,sphereRadius));
+
     return result;
 }
 
@@ -596,6 +615,13 @@ createBifurcationScene()
         result->addChild(addLegend());
     }
 
+#ifndef R3B
+    if (options[OPT_REF_PLAN])
+      result->addChild(createDisk(diskPosition,diskRadius));
+#endif
+    if (options[OPT_REF_SPHERE])
+      result->addChild(createSphere(spherePosition,sphereRadius));
+
     return result;
 }
 
@@ -674,7 +700,7 @@ drawLabelPtsInBifurcationScene()
             result->addChild(lblMtl);
             normalizeBifData(row, position);
 
-            float size = dis*0.005*sphereRadius;
+            float size = dis*0.005*labelRadius;
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
@@ -698,7 +724,7 @@ drawLabelPtsInBifurcationScene()
 
             normalizeBifData(row, position);
 
-	    float size = dis*0.005*sphereRadius;
+	    float size = dis*0.005*labelRadius;
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
@@ -4285,31 +4311,67 @@ readResourceParameters()
                                 numPeriodAnimated = atof(aString);
                                 break;
                             case 18:
-                                sphereRadius = atof(aString);
+                                labelRadius = atof(aString);
                                 break;
                             case 19:
-                                satRadius = atof(aString);
+			    {
+                                diskRotation[0] = atof(aString);
+                                int sizerot = 3;
+			        readNData(buffer, &diskRotation[1], sizerot);
                                 break;
-#ifdef R3B
+                            }
                             case 20:
-                                largePrimRadius = atof(aString);
+			    {
+                                diskPosition[0] = atof(aString);
+                                int sizeyz = 2;
+			        readNData(buffer, &diskPosition[1], sizeyz);
                                 break;
+                            }
                             case 21:
-                                smallPrimRadius = atof(aString);
+                                diskRadius = atof(aString);
                                 break;
                             case 22:
-                                libPtScaler = atof(aString);
+                                diskHeight = atof(aString);
                                 break;
                             case 23:
                                 diskTransparency = atof(aString);
                                 break;
-                            case 24:
+			    case 24:
                                 diskFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
                                 break;
                             case 25:
+			    {
+                                spherePosition[0] = atof(aString);
+		                int sizeyz = 2;
+			        readNData(buffer, &spherePosition[1], sizeyz);
+                                break;
+                            }
+                            case 26:
+                                sphereRadius = atof(aString);
+                                break;
+                            case 27:
+                                sphereTransparency = atof(aString);
+                                break;
+			    case 28:
+                                sphereFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
+                                break;
+                            case 29:
+                                satRadius = atof(aString);
+                                break;
+#ifdef R3B
+                            case 30:
+                                largePrimRadius = atof(aString);
+                                break;
+                            case 31:
+                                smallPrimRadius = atof(aString);
+                                break;
+                            case 32:
+                                libPtScaler = atof(aString);
+                                break;
+                            case 33:
                                 whichCoordSystem = atoi(aString);
                                 break;
-                            case 26:
+                            case 34:
                                 numOfStars = atoi(aString);
                                 break;
 #endif
@@ -4588,7 +4650,7 @@ setVariableDefaultValues()
     satSpeed          = 1.0;
 #endif
     lineWidthScaler   = 1.0;
-    sphereRadius      = 1.0;
+    labelRadius      = 1.0;
     numPeriodAnimated = 1.0;
 
 #ifdef R3B
@@ -4962,29 +5024,29 @@ writePreferValuesToFile()
                 fprintf(outFile, "# For smaller radius, use 0.xxx\n");
                 fprintf(outFile, "# For bigger radius, use  X.XXX\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", sphereRadius);
+                fprintf(outFile, "%4.1f\n", labelRadius);
                 break;
             case 19:
-#ifdef R3B
-                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
-#else
-                fprintf(outFile, "\n# Set the radius of the animation object:\n");
-#endif
+                fprintf(outFile, "\n# Disk Rotation\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", satRadius);
+                fprintf(outFile, "%f, %f, %f, %f\n", diskRotation[0], 
+			diskRotation[1], diskRotation[2], diskRotation[3] );
                 break;
-#ifdef R3B
             case 20:
+                fprintf(outFile, "\n# Disk Position\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", largePrimRadius);
+                fprintf(outFile, "%f, %f, %f\n", diskPosition[0], 
+			diskPosition[1], diskPosition[2] );
                 break;
             case 21:
+                fprintf(outFile, "\n# Disk Radius\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%4.1f\n", smallPrimRadius);
+                fprintf(outFile, "%f\n", diskRadius );
                 break;
             case 22:
-                fprintf(outFile, "%s = ", intVariableNames[i]);
-                fprintf(outFile, "%f\n", libPtScaler);
+                fprintf(outFile, "\n# Disk Height\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", diskHeight );
                 break;
             case 23:
                 fprintf(outFile, "\n# Disk Transparency [0, 1] \n");
@@ -4997,13 +5059,56 @@ writePreferValuesToFile()
                 (diskFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
                 break;
             case 25:
+                fprintf(outFile, "\n# Sphere Position\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%f, %f, %f\n", spherePosition[0], 
+			spherePosition[1], spherePosition[2] );
+                break;
+            case 26:
+                fprintf(outFile, "\n# Sphere Radius\n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", sphereRadius );
+                break;
+            case 27:
+                fprintf(outFile, "\n# Sphere Transparency [0, 1] \n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", sphereTransparency );
+                break;
+            case 28:
+                fprintf(outFile, "\n# Read Sphere From File \n");
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                (sphereFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
+                break;
+            case 29:
+#ifdef R3B
+                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
+#else
+                fprintf(outFile, "\n# Set the radius of the animation object:\n");
+#endif
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", satRadius);
+                break;
+#ifdef R3B
+            case 30:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", largePrimRadius);
+                break;
+            case 31:
+                fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
+                fprintf(outFile, "%4.1f\n", smallPrimRadius);
+                break;
+            case 32:
+                fprintf(outFile, "%s = ", intVariableNames[i]);
+                fprintf(outFile, "%f\n", libPtScaler);
+                break;
+            case 33:
                 fprintf(outFile, "\n# initialize the default coordinate system");
                 fprintf(outFile, "\n#  0 --- Rotating, 1 --- inertial Bary Centered,");
                 fprintf(outFile, "\n#  2 --- Big Primary Centered, 3 --- Small Primary Centered\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n",whichCoordSystem);
                 break;
-            case 26:
+            case 34:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%d\n", numOfStars);
                 break;

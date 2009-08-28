@@ -116,14 +116,16 @@
 #ifdef R3B
 #include "r3bplaut04.h"
 #else
-#define GRAPH_WIDGET_ITEMS 7
-#define OPT_PERIOD_ANI  0
-#define OPT_SAT_ANI    1
-#define OPT_DRAW_LABELS  2
-#define OPT_LABEL_NUMBERS  3
-#define OPT_BACKGROUND   4
-#define OPT_LEGEND   5
-#define OPT_NORMALIZE_DATA  6
+#define GRAPH_WIDGET_ITEMS 9
+#define OPT_REF_PLAN   0
+#define OPT_REF_SPHERE 1
+#define OPT_PERIOD_ANI  2
+#define OPT_SAT_ANI    3
+#define OPT_DRAW_LABELS  4
+#define OPT_LABEL_NUMBERS  5
+#define OPT_BACKGROUND   6
+#define OPT_LEGEND   7
+#define OPT_NORMALIZE_DATA  8
 #endif
 
 #define NO_COORD  0 
@@ -260,6 +262,9 @@ struct TubeNode{
     float radius;
 };
 
+SoSeparator *createSphere(float where[], float scaler);
+SoSeparator *createDisk(float where[], float scaler);
+
 void pointsToAxisAngle(/*in*/ float *a, /*in*/ float *b, /*out*/TubeNode& cnode);
 void pointToPoints(float a[], float b[], float c[][3]);
 
@@ -355,5 +360,7 @@ extern const char *autoDir;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;
 extern SoSeparator *root;
 extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];
+extern float diskPosition[3];
+extern float diskRadius;
 
 #endif 
