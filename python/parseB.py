@@ -790,8 +790,8 @@ class AUTOBranch(Points.Pointset):
             line = headerlist[-1]
         ncolumns = len(split(self.__datalist[0])) - 4
         self.headernames = []
+        self.coordnames = []
         if line.find(" PT ") != -1:
-            self.coordnames = []
             linelen = len(self.__datalist[0])
             columnlen = (linelen - 19) // ncolumns
             n = linelen - columnlen * ncolumns
@@ -800,9 +800,11 @@ class AUTOBranch(Points.Pointset):
                 self.coordnames.append(line[n:n+columnlen].strip())
                 n = n + columnlen
         if self.coordnames == []:
-            self.coordnames = map(str,range(ncolumns))                
+            self.coordnames = ["COLUMN(%d)"%(i+1) for i in range(ncolumns)]
         dict = parseC.parseC()
         i = 0
+        if len(headerlist) == 0:
+            return
         words = split(headerlist[0])
         if len(words) < 5:
             return
