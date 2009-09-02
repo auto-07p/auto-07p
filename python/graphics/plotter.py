@@ -108,7 +108,7 @@ class plotter(grapher.GUIGrapher):
         if w in special:
             v = special[w]
         elif (option[-2:] in ['_x','_y','_z'] or 
-              option in ["label","index","label_defaults"] or
+              option in ["label","index","label_defaults","dashes"] or
               (option[0] == 'd' and len(option) == 2)):
             # convert to list, quote args if not numbers,
             # then use the same method as for constant files
@@ -116,11 +116,11 @@ class plotter(grapher.GUIGrapher):
                 brackets = ['{','}']
                 sep = [',',':']
             else:
-                brackets = ['[',']']
+                brackets = ['[','(',']',')']
                 sep = [',']
-            if len(v) > 0 and v[0] in brackets[0]:
+            if len(v) > 0 and v[0] in brackets[0:len(brackets)/2]:
                 v = v[1:]
-            if len(v) > 0 and v[-1] in brackets[1]:
+            if len(v) > 0 and v[-1] in brackets[len(brackets)/2:]:
                 v = v[:-1]
             quote = ' '
             i = 0
