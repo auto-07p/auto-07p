@@ -113,15 +113,16 @@ class plotter(grapher.GUIGrapher):
             # convert to list, quote args if not numbers,
             # then use the same method as for constant files
             if option[0] == 'd' and len(option) == 2:
-                brackets = ['{','}']
+                brackets = ['{']
                 sep = [',',':']
             else:
-                brackets = ['[','(',']',')']
+                brackets = ['[','(']
                 sep = [',']
-            if len(v) > 0 and v[0] in brackets[0:len(brackets)/2]:
+            if len(v) > 0 and v[0] in brackets:
+                endbracket = {'{':'}','[':']','(':')'}[v[0]]
                 v = v[1:]
-            if len(v) > 0 and v[-1] in brackets[len(brackets)/2:]:
-                v = v[:-1]
+                if len(v) > 0 and v[-1] == endbracket:
+                    v = v[:-1]
             quote = ' '
             i = 0
             vlist = []
