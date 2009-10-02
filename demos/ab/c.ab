@@ -1,8 +1,7 @@
 NDIM=   2, IPS =   1, IRS =   0, ILP =   1
 ICP =  [2]
 NTST=  50, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
-NMX=  200, RL0=   0.0, RL1= 100.0, A0=   0.0, A1= 100.0
-NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
+NMX=  200, NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =   0.1, DSMIN= 0.001, DSMAX=   0.2, IADS=   1
 THL =  {11: 0.0}, THU =  {}
