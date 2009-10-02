@@ -683,7 +683,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 return self
         if isinstance(key,str) and hasattr(self,"b") and key in self.b:
             if not self.__fullyParsed or not key in self.PAR:
-                return self.b[key]
+                if key not in self.coordnames:
+                    return self.b[key]
         if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
         if isinstance(key, str):
