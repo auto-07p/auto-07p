@@ -386,8 +386,7 @@ class parseC(dict):
             return '['+", ".join(l)+']'
             
     def __newstr(self,lines=None):
-        wdth2keys = ["A0","A1"]
-        wdth3keys = ["RL0","RL1","NMX","NPR","NBC","JAC","e"]
+        wdth3keys = ["NMX","NPR","NBC","JAC","e"]
         wdth5keys = ["EPSU","EPSS"]
         if lines is None:
             lines = [
@@ -397,13 +396,13 @@ class parseC(dict):
                 ["NDIM","IPS","IRS","ILP"],
                 ["ICP"],
                 ["NTST","NCOL","IAD","ISP","ISW","IPLT","NBC","NINT"],
-                ["NMX","RL0","RL1","A0","A1"],
-                ["NPR","MXBF","IID","ITMX","ITNW","NWTN","JAC"],
+                ["NMX","NPR","MXBF","IID","ITMX","ITNW","NWTN","JAC"],
                 ["EPSL","EPSU","EPSS"],
                 ["DS","DSMIN","DSMAX","IADS"],
                 ["NPAR","THL","THU"],
                 ["UZR"],
                 ["SP"],
+                ["RL0","RL1","A0","A1"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
                 ["IREV","IFIXED","IPSI"]]
         olist = []
@@ -416,9 +415,7 @@ class parseC(dict):
                 if pos > 0:
                     olist.append(", ")
                 pos = pos + 1
-                if key in wdth2keys:
-                    s = "%-2s="%key
-                elif key in wdth3keys:
+                if key in wdth3keys:
                     s = "%-3s="%key
                 elif key in wdth5keys:
                     s = "%-5s="%key
