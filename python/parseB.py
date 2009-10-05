@@ -817,7 +817,7 @@ class AUTOBranch(Points.Pointset):
             words = split(line)
             if len(words) < 2:
                 break
-            if words[-1] == "constants:":
+            if words[-1] in ["constants:", "above:"]:
                 userspec = True
                 continue
             if words[1] in ["User-specified", "Active"]:

@@ -61,12 +61,11 @@ CONTAINS
     CHARACTER (LEN=*), PARAMETER :: I4 = "('   0',4(A8,I4))"
     CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',2(A7,I5),3(A8,I4))"
     CHARACTER (LEN=*), PARAMETER :: I6 = "('   0',5(A8,I4))"
-    CHARACTER (LEN=*), PARAMETER :: I7 = "('   0',3(A8,I4),2(A7,I4))"
-    CHARACTER (LEN=*), PARAMETER :: I8 = "('   0',(A7,I5),2(A8,I4),2(A7,I4))"
     INTEGER NDIMA,IPSA,IRSA,ILPA,NTST,NCOL,IAD,IADS,ISPA,ISWA,IPLT,NBCA,NINTA
     INTEGER NMXA,NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,I,NPARA
     INTEGER LSV,LDAT,LE,LS,INDX,io
     DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
+    CHARACTER(LEN=11) :: SDS, SDSA, SDSMAX, SDSMAXA, SDSMIN, SDSMINA
     CHARACTER(LEN=12) :: INDSTR
     CHARACTER(LEN=13) :: name
 
@@ -189,10 +188,69 @@ CONTAINS
        WRITE(7,"(A)")']'
     ENDIF
 
-    WRITE(7,"('   0   User-specified constants:')")
-    WRITE(7,D3)'DS  =',DS,  'DSMIN=',DSMIN,'DSMAX=',DSMAX
-    WRITE(7,I7)'NDIM=',NDIM,'IPS =',IPS, 'IRS =',IRS, 'ILP =',ILP, 'NPAR=',NPAR
-    WRITE(7,I8)'NMX=', NMX, 'ISP =',ISP, 'ISW =',ISW,' NBC =',NBC, 'NINT=',NINT
+    WRITE(SDS,    "(ES11.4)"),DS
+    WRITE(SDSA,   "(ES11.4)"),DSA
+    WRITE(SDSMIN, "(ES11.4)"),DSMIN
+    WRITE(SDSMINA,"(ES11.4)"),DSMINA
+    WRITE(SDSMAX, "(ES11.4)"),DSMAX
+    WRITE(SDSMAXA,"(ES11.4)"),DSMAXA
+
+    IF(SDS/=SDSA.OR.SDSMIN/=SDSMINA.OR.SDSMAX/=SDSMAXA.OR. &
+       NDIM/=NDIMA.OR.IPS/=IPSA.OR.IRS/=IRSA.OR.ILP/=ILPA.OR.NPAR/=NPARA.OR. &
+       NMX/=NMXA.OR.ISP/=ISPA.OR.ISW/=ISWA.OR.NBC/=NBCA.OR.NINT/=NINTA)THEN
+       WRITE(7,"('   0   User-specified constants, where different from above:')")
+       IF(SDS/=SDSA.OR.SDSMIN/=SDSMINA.OR.SDSMAX/=SDSMAXA)THEN
+          WRITE(7,"('   0')", ADVANCE="NO")
+          IF(SDS/=SDSA)THEN
+             WRITE(7, "(A8,A)", ADVANCE="NO")'DS  =',SDS
+          ENDIF
+          IF(SDSMIN/=SDSMINA)THEN
+             WRITE(7, "(A8,A)", ADVANCE="NO")'DSMIN=',SDSMIN
+          ENDIF
+          IF(SDSMAX/=SDSMAXA)THEN
+             WRITE(7, "(A8,A)", ADVANCE="NO")'DSMAX=',SDSMAX
+          ENDIF
+          WRITE(7,*)
+       ENDIF
+       IF(NDIM/=NDIMA.OR.IPS/=IPSA.OR.IRS/=IRSA.OR.ILP/=ILPA.OR.NPAR/=NPARA)THEN
+          WRITE(7,"('   0')", ADVANCE="NO")
+          IF(NDIM/=NDIMA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'NDIM=',NDIM
+          ENDIF
+          IF(IPS/=IPSA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'IPS =',IPS
+          ENDIF
+          IF(IRS/=IRSA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'IRS =',IRS
+          ENDIF
+          IF(ILP/=ILPA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'ILP =',ILP
+          ENDIF
+          IF(NPAR/=NPARA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'NPAR=',NPAR
+          ENDIF
+          WRITE(7,*)
+       ENDIF
+       IF(NMX/=NMXA.OR.ISP/=ISPA.OR.ISW/=ISWA.OR.NBC/=NBCA.OR.NINT/=NINTA)THEN
+          WRITE(7,"('   0')", ADVANCE="NO")
+          IF(NMX/=NMXA)THEN
+             WRITE(7, "(A8,I5)", ADVANCE="NO")'NMX=',NMX
+          ENDIF
+          IF(ISP/=ISPA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'ISP =',ISP
+          ENDIF
+          IF(IRS/=IRSA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'ISW =',ISW
+          ENDIF
+          IF(NBC/=NBCA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'NBC =',NBC
+          ENDIF
+          IF(NINT/=NINTA)THEN
+             WRITE(7, "(A8,I4)", ADVANCE="NO")'NINT=',NINT
+          ENDIF
+          WRITE(7,*)
+       ENDIF
+    ENDIF
 
     WRITE(7,"('   0   User-specified parameter')",ADVANCE="NO")
     IF(SIZE(ICU).EQ.1)THEN
