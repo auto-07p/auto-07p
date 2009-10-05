@@ -10,7 +10,7 @@ MODULE SUPPORT
 IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
-PUBLIC :: CHECKSP, STOPPED
+PUBLIC :: CHECKSP, INITSTOPCNTS, STOPPED
 PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
@@ -468,33 +468,58 @@ CONTAINS
     ENDDO
   END FUNCTION CHECKSP
 
+! ---------- ------------
+  SUBROUTINE INITSTOPCNTS(COUNTS)
+    USE AUTO_CONSTANTS, ONLY : STOPS, SP
+    INTEGER, INTENT(OUT) :: COUNTS(-9:9)
+
+    ! initialize the COUNTS array that determines when we need to stop
+    ! at a special point
+    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:9) = &
+         (/ 'MX','  ','  ','  ','  ','UZ','  ','  ','  ', '  ', &
+            'BP','LP','HB','UZ','LP','BP','PD','TR','EP' /)
+    INTEGER NTY,I
+
+    COUNTS(:) = 0
+    ! look both at SP and STOP: SP is for backwards compatibility
+    ! but STOP is preferred
+    DO I=1,SIZE(SP)
+       IF (LEN_TRIM(SP(I))>2) THEN
+          DO NTY=-9,9
+             IF(SP(I)(1:2)==ATYPES(NTY)) THEN
+                READ(SP(I)(3:),*)COUNTS(NTY)
+             ENDIF
+          ENDDO
+       ENDIF
+    ENDDO
+    DO I=1,SIZE(STOPS)
+       IF (LEN_TRIM(STOPS(I))>2) THEN
+          DO NTY=-9,9
+             IF(STOPS(I)(1:2)==ATYPES(NTY)) THEN
+                READ(STOPS(I)(3:),*)COUNTS(NTY)
+             ENDIF
+          ENDDO
+       ENDIF
+    ENDDO
+  END SUBROUTINE INITSTOPCNTS
+
 ! ------- -------- -------
   LOGICAL FUNCTION STOPPED(ITP,COUNTS)
-    USE AUTO_CONSTANTS, ONLY : SP
     INTEGER, INTENT(IN) :: ITP
     INTEGER, INTENT(INOUT) :: COUNTS(-9:9)
 
     ! determine if the given TY label has been reached n times so
     ! we need to stop
-    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:9) = &
-         (/ 'MX','  ','  ','  ','  ','UZ','  ','  ','  ', '  ', &
-            'BP','LP','HB','UZ','LP','BP','PD','TR','EP' /)
-    CHARACTER(LEN=2) ATYPE
-    INTEGER NTY,I,M
+    INTEGER NTY
 
-    NTY=MOD(ITP,10)
-    ATYPE=ATYPES(NTY)
+    NTY = MOD(ITP,10)
     STOPPED = .FALSE.
-    DO I=1,SIZE(SP)
-       IF (LEN_TRIM(SP(I))>2.AND.SP(I)(1:2)==ATYPE) THEN
-          COUNTS(NTY)=COUNTS(NTY)+1
-          READ(SP(I)(3:),*)M
-          IF(COUNTS(NTY)==M)THEN
-             STOPPED=.TRUE.
-          ENDIF
-          EXIT
+    IF (COUNTS(NTY) > 0) THEN
+       IF (COUNTS(NTY)==1) THEN
+          STOPPED=.TRUE.
        ENDIF
-    ENDDO
+       COUNTS(NTY) = COUNTS(NTY) - 1
+    ENDIF
   END FUNCTION STOPPED
 
 END MODULE SUPPORT

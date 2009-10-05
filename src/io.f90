@@ -47,7 +47,7 @@ CONTAINS
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, unames, parnames, &
          NDIM, IRS, ILP, IPS, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP
+         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP, STOPS
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -178,6 +178,13 @@ CONTAINS
        WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   SP=['",TRIM(SP(1)),"'"
        DO I=2,SIZE(SP)
           WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(SP(I)),"'"
+       ENDDO
+       WRITE(7,"(A)")']'
+    ENDIF
+    IF(SIZE(STOPS)>0)THEN
+       WRITE(7,"(A,A,A)", ADVANCE="NO")"   0   STOP=['",TRIM(STOPS(1)),"'"
+       DO I=2,SIZE(STOPS)
+          WRITE(7,"(A,A,A)", ADVANCE="NO")", '",TRIM(STOPS(I)),"'"
        ENDDO
        WRITE(7,"(A)")']'
     ENDIF

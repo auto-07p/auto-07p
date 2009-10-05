@@ -120,7 +120,7 @@ CONTAINS
 
        NTOT=0
        IAP(32)=NTOT
-       STOPCNTS(:)=0
+       CALL INITSTOPCNTS(STOPCNTS)
        ISTOP=.FALSE.
        NIT=1
 

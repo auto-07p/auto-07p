@@ -65,7 +65,8 @@ class parseC(dict):
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
             'sv', 's', 'dat', 'e', 'unames', 'parnames',
-            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","SP"]:
+            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","SP",
+                    "STOP"]:
             self[key] = None
         if filename:
             self.readFilename(filename)
@@ -237,7 +238,7 @@ class parseC(dict):
             elif key in ['unames','parnames']:
                 value = [[int(value[i]),value[i+1]] 
                          for i in range(0,len(value),2)]
-            elif key in ['s','dat','sv','e','SP']:
+            elif key in ['s','dat','sv','e','SP','STOP']:
                 pass
             elif key in self:
                 if key[0] in ['I','J','K','L','M','N']:
@@ -401,6 +402,7 @@ class parseC(dict):
                 ["DS","DSMIN","DSMAX","IADS"],
                 ["NPAR","THL","THU"],
                 ["UZR"],
+                ["STOP"],
                 ["SP"],
                 ["RL0","RL1","A0","A1"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
@@ -422,7 +424,7 @@ class parseC(dict):
                 else:
                     s = "%-4s="%key
                 olist.append(s)
-                if key in ["ICP","IREV","IFIXED","IPSI","SP"]:
+                if key in ["ICP","IREV","IFIXED","IPSI","STOP","SP"]:
                     s = "  "+str(value)
                 elif key in ["THL","THU","UZR","U","PAR"]:
                     l=[]
@@ -460,6 +462,7 @@ class parseC(dict):
                 ["unames","parnames"],
                 ["U","PAR"],
                 ["NPAR"],
+                ["STOP"],
                 ["SP"],
                 ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
                 ["IREV","IFIXED","IPSI"]])]

@@ -544,7 +544,7 @@ C
       RAP(9)=HUGE(1d0)*0.99995d0
       NICP=1
       ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),parnames(0),unames(0),SP(0))
-      ALLOCATE(UVALS(0),PARVALS(0))
+      ALLOCATE(STOPS(0),UVALS(0),PARVALS(0))
       ICU(1)='1'
       NUZR=0
 
@@ -672,6 +672,10 @@ C
             IF(ALLOCATED(SP))DEALLOCATE(SP)
             ALLOCATE(SP(LISTLEN))
             READ(STR(POS:),*,ERR=3)SP
+         CASE('STOP')
+            IF(ALLOCATED(STOPS))DEALLOCATE(STOPS)
+            ALLOCATE(STOPS(LISTLEN))
+            READ(STR(POS:),*,ERR=3)STOPS
          CASE('PAR')
             IF(ALLOCATED(PARVALS))DEALLOCATE(PARVALS)
             ALLOCATE(PARVALS(LISTLEN))

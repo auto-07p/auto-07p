@@ -8,4 +8,4 @@ EPSL= 1e-06, EPSU = 1e-06, EPSS =0.0001
 DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 THL =  {}, THU =  {}
 UZR =  {'mu': [-2.0, 2.0]}
-SP = ['UZ1']
+STOP = ['UZ1']
