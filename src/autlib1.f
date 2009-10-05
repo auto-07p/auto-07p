@@ -1382,18 +1382,19 @@ C          ** BP cont (BVP; start) (by F. Dercole)
            NBC=3*NBC+NDIM/2+NXP
            NINT=3*NINT+NXP+5
            NFPR=NBC+NINT-NDIM+1
-           ICP(NXP+1)=11+3*NXP+NDIM/4   ! a
-           ICP(NXP+2)=11+3*NXP+NDIM/4+1 ! b
+           ICP(NXP+1)=NPAR+3*NXP+NDIM/4   ! a
+           ICP(NXP+2)=NPAR+3*NXP+NDIM/4+1 ! b
            DO I=1,NXP
-             ICP(NXP+I+2)=11+I          ! q
-             ICP(2*NXP+I+2)=11+NXP+I    ! r
-             ICP(4*NXP+NDIM/4+I+3)=11+3*NXP+NDIM/4+3+I ! d
+             ICP(NXP+I+2)=NPAR+I          ! q
+             ICP(2*NXP+I+2)=NPAR+NXP+I    ! r
+             ICP(4*NXP+NDIM/4+I+3)=NPAR+3*NXP+NDIM/4+3+I ! d
            ENDDO
            DO I=1,NXP+NDIM/4-1
-             ICP(3*NXP+I+2)=11+2*NXP+I  ! psi^*_2,psi^*_3
+             ICP(3*NXP+I+2)=NPAR+2*NXP+I  ! psi^*_2,psi^*_3
            ENDDO
-           ICP(4*NXP+NDIM/4+2)=11+3*NXP+NDIM/4+2 ! c1
-           ICP(4*NXP+NDIM/4+3)=11+3*NXP+NDIM/4+3 ! c2
+           ICP(4*NXP+NDIM/4+2)=NPAR+3*NXP+NDIM/4+2 ! c1
+           ICP(4*NXP+NDIM/4+3)=NPAR+3*NXP+NDIM/4+3 ! c2
+           NPARI=4*NXP+NDIM/4+3
 C
            ILP=0
            ISW=-ABS(ISW)
@@ -1410,14 +1411,15 @@ C          ** BP cont (BVP; restart 1 or 2)
            NFPR=NBC+NINT-NDIM+1
            IF(ABS(ISW)==2)THEN
 C            ** Non-generic case
-             ICP(NXP+2)=11+3*NXP+NDIM/2+1 ! b
+             ICP(NXP+2)=NPAR+3*NXP+NDIM/2+1 ! b
            ENDIF
            DO I=1,NXP+NDIM/2-1
-             ICP(NXP+I+2)=11+2*NXP+I      ! psi^*_2,psi^*_3
+             ICP(NXP+I+2)=NPAR+2*NXP+I      ! psi^*_2,psi^*_3
            ENDDO
            DO I=1,NXP
-             ICP(2*NXP+NDIM/2+I+1)=11+3*NXP+NDIM/2+3+I ! d
+             ICP(2*NXP+NDIM/2+I+1)=NPAR+3*NXP+NDIM/2+3+I ! d
            ENDDO
+           NPARI=4*NXP+NDIM/2+3
 C
          ENDIF
 C

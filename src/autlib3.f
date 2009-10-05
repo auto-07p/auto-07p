@@ -3797,11 +3797,12 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: FI(:),DINT(:,:)
       DOUBLE PRECISION DUM(1),UPOLD(NDM)
-      INTEGER ISW,NBC,NINT,NBC0,NNT0,NFPX,I,J
+      INTEGER ISW,NBC,NINT,NBC0,NNT0,NFPX,I,J,NPARU
 C
        ISW=IAP(10)
        NBC=IAP(12)
        NINT=IAP(13)
+       NPARU=IAP(31)-IAP(24) ! real - internal
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -3828,7 +3829,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NDM
-           F(I)=F(I)-PAR(11+3*NFPX+NDM+1)*U(NDIM-NDM+I)
+           F(I)=F(I)-PAR(NPARU+3*NFPX+NDM+1)*U(NDIM-NDM+I)
          ENDDO
        ENDIF
 C
@@ -3840,7 +3841,7 @@ C        ** restart 1 or 2
              F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
            ENDDO
            DO J=1,NNT0
-             F(NDM+I)=F(NDM+I)+DINT(J,I)*PAR(11+2*NFPX+NBC0+J)
+             F(NDM+I)=F(NDM+I)+DINT(J,I)*PAR(NPARU+2*NFPX+NBC0+J)
            ENDDO
          ENDDO
        ELSE
@@ -3848,19 +3849,19 @@ C        ** start
          DO I=1,NDM
            F(NDM+I)=0.d0
            F(2*NDM+I)=0.d0
-           F(3*NDM+I)=PAR(11+3*NFPX+NDM+2)*U(NDM+I)+
-     *       PAR(11+3*NFPX+NDM+3)*U(2*NDM+I)
+           F(3*NDM+I)=PAR(NPARU+3*NFPX+NDM+2)*U(NDM+I)+
+     *       PAR(NPARU+3*NFPX+NDM+3)*U(2*NDM+I)
            DO J=1,NDM
              F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
              F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
              F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
            ENDDO
            DO J=1,NFPX
-             F(NDM+I)=F(NDM+I)+DFDP(I,ICP(J))*PAR(11+J)
-             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(11+NFPX+J)
+             F(NDM+I)=F(NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+J)
+             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+NFPX+J)
            ENDDO
            DO J=1,NNT0
-             F(3*NDM+I)=F(3*NDM+I)+DINT(J,I)*PAR(11+2*NFPX+NBC0+J)
+             F(3*NDM+I)=F(3*NDM+I)+DINT(J,I)*PAR(NPARU+2*NFPX+NBC0+J)
            ENDDO
          ENDDO
        ENDIF
@@ -3987,11 +3988,12 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 
-      INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J
+      INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J,NPARU
 C
        ISW=IAP(10)
        NINT=IAP(13)
        NDM=IAP(23)
+       NPARU=IAP(31)-IAP(24)
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4010,7 +4012,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NBC0
-           FB(I)=FB(I)+PAR(11+3*NFPX+NDM+1)*PAR(11+2*NFPX+I)
+           FB(I)=FB(I)+PAR(NPARU+3*NFPX+NDM+1)*PAR(NPARU+2*NFPX+I)
          ENDDO
        ENDIF
 C
@@ -4020,15 +4022,16 @@ C        ** restart 1 or 2
            FB(NBC0+I)=-U0(NDM+I)
            FB(NBC0+NDM+I)=U1(NDM+I)
            DO J=1,NBC0
-             FB(NBC0+I)=FB(NBC0+I)+DBC(J,I)*PAR(11+2*NFPX+J)
-             FB(NBC0+NDM+I)=FB(NBC0+NDM+I)+DBC(J,NDM+I)*PAR(11+2*NFPX+J)
+             FB(NBC0+I)=FB(NBC0+I)+DBC(J,I)*PAR(NPARU+2*NFPX+J)
+             FB(NBC0+NDM+I)=FB(NBC0+NDM+I)+
+     *            DBC(J,NDM+I)*PAR(NPARU+2*NFPX+J)
            ENDDO
          ENDDO
          DO I=1,NFPX
-           FB(NBC0+2*NDM+I)=PAR(11+3*NFPX+NDM+3+I)
+           FB(NBC0+2*NDM+I)=PAR(NPARU+3*NFPX+NDM+3+I)
            DO J=1,NBC0
              FB(NBC0+2*NDM+I)=FB(NBC0+2*NDM+I)+
-     *         DBC(J,2*NDM+ICP(I))*PAR(11+2*NFPX+J)
+     *         DBC(J,2*NDM+ICP(I))*PAR(NPARU+2*NFPX+J)
            ENDDO
          ENDDO
        ELSE
@@ -4043,25 +4046,25 @@ C        ** start
              FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,NDM+J)*U1(2*NDM+J)
            ENDDO
            DO J=1,NFPX
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,2*NDM+ICP(J))*PAR(11+J)
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,2*NDM+ICP(J))*PAR(NPARU+J)
              FB(2*NBC0+I)=FB(2*NBC0+I)+
-     *         DBC(I,2*NDM+ICP(J))*PAR(11+NFPX+J)
+     *         DBC(I,2*NDM+ICP(J))*PAR(NPARU+NFPX+J)
            ENDDO
          ENDDO
          DO I=1,NDM
            FB(3*NBC0+I)=-U0(3*NDM+I)
            FB(3*NBC0+NDM+I)=U1(3*NDM+I)
            DO J=1,NBC0
-             FB(3*NBC0+I)=FB(3*NBC0+I)+DBC(J,I)*PAR(11+2*NFPX+J)
+             FB(3*NBC0+I)=FB(3*NBC0+I)+DBC(J,I)*PAR(NPARU+2*NFPX+J)
              FB(3*NBC0+NDM+I)=FB(3*NBC0+NDM+I)+
-     *         DBC(J,NDM+I)*PAR(11+2*NFPX+J)
+     *         DBC(J,NDM+I)*PAR(NPARU+2*NFPX+J)
            ENDDO
          ENDDO
          DO I=1,NFPX
-           FB(3*NBC0+2*NDM+I)=PAR(11+3*NFPX+NDM+3+I)
+           FB(3*NBC0+2*NDM+I)=PAR(NPARU+3*NFPX+NDM+3+I)
            DO J=1,NBC0
              FB(3*NBC0+2*NDM+I)=FB(3*NBC0+2*NDM+I)+
-     *         DBC(J,2*NDM+ICP(I))*PAR(11+2*NFPX+J)
+     *         DBC(J,2*NDM+ICP(I))*PAR(NPARU+2*NFPX+J)
            ENDDO
          ENDDO
        ENDIF
@@ -4180,12 +4183,13 @@ C
 C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
-      INTEGER ISW,NBC,NDM,NBC0,NFPX,NPAR,I,J
+      INTEGER ISW,NBC,NDM,NBC0,NFPX,NPAR,I,J,NPARU
 C
        ISW=IAP(10)
        NBC=IAP(12)
        NDM=IAP(23)
        NPAR=IAP(31)
+       NPARU=NPAR-IAP(24)
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4207,7 +4211,8 @@ C
          IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C          ** Non-generic and/or start
            DO I=1,NNT0
-             FI(I)=FI(I)+PAR(11+3*NFPX+NDM+1)*PAR(11+2*NFPX+NBC0+I)
+             FI(I)=FI(I)+PAR(NPARU+3*NFPX+NDM+1)*
+     *             PAR(NPARU+2*NFPX+NBC0+I)
            ENDDO
          ENDIF
        ENDIF
@@ -4215,13 +4220,13 @@ C
        IF(ISW.GT.0) THEN
 C        ** restart 1 or 2
          DO I=1,NFPX
-           FI(NNT0+I)=-PAR(11+3*NFPX+NDM+3+I)
+           FI(NNT0+I)=-PAR(NPARU+3*NFPX+NDM+3+I)
            DO J=1,NDM
              FI(NNT0+I)=FI(NNT0+I)-DFP(J,ICP(I))*U(NDM+J)
            ENDDO
            DO J=1,NNT0
              FI(NNT0+I)=FI(NNT0+I)+
-     *         DINT(J,NDM+ICP(I))*PAR(11+2*NFPX+NBC0+J)
+     *         DINT(J,NDM+ICP(I))*PAR(NPARU+2*NFPX+NBC0+J)
            ENDDO
          ENDDO
        ELSE
@@ -4234,8 +4239,9 @@ C        ** start
              FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,J)*U(2*NDM+J)
            ENDDO
            DO J=1,NFPX
-             FI(NNT0+I)=FI(NNT0+I)+DINT(I,NDM+ICP(J))*PAR(11+J)
-             FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,NDM+ICP(J))*PAR(11+NFPX+J)
+             FI(NNT0+I)=FI(NNT0+I)+DINT(I,NDM+ICP(J))*PAR(NPARU+J)
+             FI(2*NNT0+I)=FI(2*NNT0+I)+
+     *            DINT(I,NDM+ICP(J))*PAR(NPARU+NFPX+J)
            ENDDO
          ENDDO
          FI(3*NNT0+1)=-1.d0
@@ -4249,30 +4255,30 @@ C        ** start
            FI(3*NNT0+4)=FI(3*NNT0+4)+U(2*NDM+I)*UOLD(NDM+I)
          ENDDO
          DO I=1,NFPX
-           FI(3*NNT0+1)=FI(3*NNT0+1)+PAR(11+I)**2
-           FI(3*NNT0+2)=FI(3*NNT0+2)+PAR(11+NFPX+I)**2
-           FI(3*NNT0+3)=FI(3*NNT0+3)+PAR(11+I)*PAR(11+NFPX+I)
-           FI(3*NNT0+4)=FI(3*NNT0+4)+PAR(11+I)*PAR(11+NFPX+I)
-           FI(3*NNT0+4+I)=-PAR(11+3*NFPX+NDM+3+I)+
-     *       PAR(11+3*NFPX+NDM+2)*PAR(11+I)+
-     *       PAR(11+3*NFPX+NDM+3)*PAR(11+NFPX+I)
+           FI(3*NNT0+1)=FI(3*NNT0+1)+PAR(NPARU+I)**2
+           FI(3*NNT0+2)=FI(3*NNT0+2)+PAR(NPARU+NFPX+I)**2
+           FI(3*NNT0+3)=FI(3*NNT0+3)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
+           FI(3*NNT0+4)=FI(3*NNT0+4)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
+           FI(3*NNT0+4+I)=-PAR(NPARU+3*NFPX+NDM+3+I)+
+     *       PAR(NPARU+3*NFPX+NDM+2)*PAR(NPARU+I)+
+     *       PAR(NPARU+3*NFPX+NDM+3)*PAR(NPARU+NFPX+I)
            DO J=1,NDM
              FI(3*NNT0+4+I)=FI(3*NNT0+4+I)-DFP(J,ICP(I))*U(3*NDM+J)
            ENDDO
            DO J=1,NNT0
              FI(3*NNT0+4+I)=FI(3*NNT0+4+I)+DINT(J,NDM+ICP(I))*
-     *         PAR(11+2*NFPX+NBC0+J)
+     *         PAR(NPARU+2*NFPX+NBC0+J)
            ENDDO
          ENDDO
        ENDIF
        DEALLOCATE(F,DFU,DFP)
 C
-       FI(NINT)=-PAR(11+3*NFPX+NDM)
+       FI(NINT)=-PAR(NPARU+3*NFPX+NDM)
        DO I=1,NDM
          FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
        ENDDO
        DO I=1,NBC0+NNT0
-         FI(NINT)=FI(NINT)+PAR(11+2*NFPX+I)**2
+         FI(NINT)=FI(NINT)+PAR(NPARU+2*NFPX+I)**2
        ENDDO
 C
       RETURN
@@ -4306,7 +4312,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       INTEGER NDIM,NTST,NCOL,ISW,NBC,NINT,NFPR,NDIM3,I,J,IFST,NLLV
-      INTEGER ITPRS,NDM,NBC0,NNT0,NFPX,NDIMRD
+      INTEGER ITPRS,NDM,NBC0,NNT0,NFPX,NDIMRD,NPARU
       DOUBLE PRECISION DUM(1),DET,RDSZ
 C
        NDIM=IAP(1)
@@ -4317,6 +4323,7 @@ C
        NINT=IAP(13)
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPARU=IAP(31)-IAP(24)
 C
        NDIM3=GETNDIM3()
 C
@@ -4420,8 +4427,8 @@ C        ** init UPS,PAR
          UDOTPSR(:,:)=0.d0
 C
          DO I=1,NFPX
-           PAR(11+I)=RLDOTRS(I)
-           PAR(11+NFPX+I)=RVDOT(I)
+           PAR(NPARU+I)=RLDOTRS(I)
+           PAR(NPARU+NFPX+I)=RVDOT(I)
            RLDOT(I)=0.d0
            RLDOT(NFPX+I+2)=0.d0
            RLDOT(2*NFPX+I+2)=0.d0
@@ -4429,18 +4436,18 @@ C
 C
 C        ** init psi^*2,psi^*3
          DO I=1,NBC0+NNT0
-           PAR(11+2*NFPX+I)=0.d0
+           PAR(NPARU+2*NFPX+I)=0.d0
            RLDOT(3*NFPX+I+2)=0.d0
          ENDDO
 C
 C        ** init a,b,c1,c1,d
-         PAR(11+3*NFPX+NDM:11+3*NFPX+NDM+3)=0.d0
+         PAR(NPARU+3*NFPX+NDM:NPARU+3*NFPX+NDM+3)=0.d0
          RLDOT(NFPX+1)=0.d0
          RLDOT(NFPX+2)=1.d0
          RLDOT(4*NFPX+NDM+2)=0.d0
          RLDOT(4*NFPX+NDM+3)=0.d0
          DO I=1,NFPX
-           PAR(11+3*NFPX+NDM+3+I)=0.d0
+           PAR(NPARU+3*NFPX+NDM+3+I)=0.d0
            RLDOT(4*NFPX+NDM+I+3)=0.d0
          ENDDO
 C

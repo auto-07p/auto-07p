@@ -234,7 +234,7 @@ CONTAINS
        IF(NMX/=NMXA.OR.ISP/=ISPA.OR.ISW/=ISWA.OR.NBC/=NBCA.OR.NINT/=NINTA)THEN
           WRITE(7,"('   0')", ADVANCE="NO")
           IF(NMX/=NMXA)THEN
-             WRITE(7, "(A8,I5)", ADVANCE="NO")'NMX=',NMX
+             WRITE(7, "(A7,I5)", ADVANCE="NO")'NMX=',NMX
           ENDIF
           IF(ISP/=ISPA)THEN
              WRITE(7, "(A8,I4)", ADVANCE="NO")'ISP =',ISP
