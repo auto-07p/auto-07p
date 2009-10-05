@@ -673,8 +673,10 @@ CONTAINS
 
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPARR
+    INTEGER NPARI,NDM,IPS,IPRIV
     INTEGER ISW,ITPST,I,ios,number
     CHARACTER(2) :: ATYPE
+    CHARACTER(100) :: HEADER
 
 ! Locates restart point with label IRS and determines type.
 ! If the label can not be located on unit 3 then FOUND will be .FALSE.
@@ -699,8 +701,18 @@ CONTAINS
     ENDIF
     DO
        I=I+1
-       READ(3,*,END=2)IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST, &
-            NCOL,NPARR
+       READ(3,'(A)',END=2)HEADER
+       IF(LEN_TRIM(HEADER) <= 73)THEN
+          READ(HEADER,*)IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST, &
+               NCOL,NPARR
+          NPARI=0
+          NDM=0
+          IPS=0
+          IPRIV=0
+       ELSE
+          READ(HEADER,*)IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST, &
+               NCOL,NPARR,NPARI,NDM,IPS,IPRIV
+       ENDIF
        IF(IBR>MBR)MBR=IBR
        IF(LAB>MLAB)MLAB=LAB
        IF(number>0.AND.ATYPE==LBTYPE(ITP))THEN

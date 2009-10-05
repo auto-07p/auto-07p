@@ -1715,6 +1715,10 @@ CONTAINS
 !  NTST  : The number of time intervals used in the discretization.
 !  NCOL  : The number of collocation points used.
 !  NPAR  : The dimension of the array PAR.
+!  NPARI : Number of internal parameters, at the end of the array PAR.
+!  NDM   : The user-specified dimension.
+!  IPS   : The problem type. 
+!  IPRIV : Private field for use by toolboxes.
 !
 !  Following the above described identifying line there are NTPL lines
 ! containing :
@@ -1739,16 +1743,18 @@ CONTAINS
     DOUBLE PRECISION PAR(*),RLDOT(*)
 
     INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NRD,NROWPR
-    INTEGER MTOT,I,J
+    INTEGER MTOT,I,J,IPS,NDM
     DOUBLE PRECISION T
 !xxx====================================================================
 !xxx Test problem: compute the error
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
 
+    IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
     ISW=IAP(10)
+    NDM=IAP(23)
     ITP=IAP(27)
     NFPR=IAP(29)
     IBR=IAP(30)
@@ -1763,7 +1769,8 @@ CONTAINS
     NRD=(NDIM+7)/7+(NDIM+6)/7
     NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
     MTOT=MOD(NTOT-1,9999)+1
-    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
+    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
+         0,NDM,IPS,0
 
 ! Write the entire solution on unit 8 :
 
@@ -1805,7 +1812,7 @@ CONTAINS
 
     WRITE(8,102)(PAR(I),I=1,NPAR)
 
-101 FORMAT(6I6,I8,I6,I8,3I5)
+101 FORMAT(6I6,I8,I6,I8,7I5)
 102 FORMAT(4X,7ES19.10)
 103 FORMAT(20I5)
 

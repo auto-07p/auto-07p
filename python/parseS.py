@@ -455,7 +455,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self._mlab            = 0
             self.name = name
             self.data.update({"BR":1, "PT":1, "TY number":9, "LAB":0,
-                              "ISW":1, "NTST": 1, "NCOL": 0})
+                              "ISW":1, "NTST": 1, "NCOL": 0,
+                              "NPARI":0, "NDIM": 0, "IPS": None, "IPRIV":0})
             if name == './fort.8':
                 if "equation" in kw:
                     self.name = kw["equation"][14:]
@@ -482,7 +483,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
             self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
                               "ISW", "NTST", "NCOL", "Active ICP", "rldot",
-                              "udotps"]
+                              "udotps", "NPARI", "NDIM", "IPS", "IPRIV"]
             self.long_data_keys = {
                 "Parameters": "p",
                 "parameters": "p",
@@ -553,14 +554,16 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                     pdict["name"] = kw["equation"][14:]
                 Points.Pointset.__init__(self,pdict)
                 self.__fullyParsed = True
-                self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1})
+                self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1,
+                                  "NDIM": ndim})
                 if par != []:
                     p = max(dict(par))*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
         self.options["solution"] = self
         for k,v in kw.items():
-            if k in self.data_keys and k not in ["ISW","NTST","NCOL"]:
+            if k in self.data_keys and k not in ["ISW","NTST","NCOL",
+                                                 "NDIM","IPS"]:
                 self[k] = v
         if par is None:
             par = kw.get("PAR",c.get("PAR"))
@@ -576,11 +579,14 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
         keys = list(self.data)
-        for key in ["BR","PT","LAB","TY number","ISW","NTST","NCOL"]:
+        for key in ["BR","PT","LAB","TY number","ISW","NTST","NCOL","NDIM",
+                    "IPS","IPRIV","NPARI"]:
             keys.remove(key)
         keys.sort()
         rep="  BR    PT  TY  LAB ISW NTST NCOL"
         #add corresponding L2-NORM, etc, from fort.7
+        if self["IPS"] is not None:
+            rep = rep+" NDIM IPS IPRIV"
         for key in keys:
             if key not in self.data_keys:
                 rep = rep+"%19s"%key
@@ -588,6 +594,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                               self["TY"], self["LAB"],
                                               self["ISW"], self["NTST"],
                                               self["NCOL"])
+        if self["IPS"] is not None:
+            rep = rep+"%5d%4d%6d"%(self["NDIM"],self["IPS"],self["IPRIV"])
         for key in list(keys):
             if key not in self.data_keys:
                 rep = rep+"%19.10E"%self[key]
@@ -815,7 +823,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             if len(data) != 0:
                 try:
                     # Check length of line...
-                    if len(data) != 12:
+                    if len(data) != 12 or len(data) != 16:
                         raise IncorrectHeaderLength
                     # and the fact they are all integers
                     map(int,data)
@@ -886,9 +894,18 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self.__numLinesPerEntry = int(data[8])
             self["NTST"] = int(data[9])
             self["NCOL"] = int(data[10])
-            if len(data)==12:
+            self["NPARI"] = 0
+            self["NDIM"] = 0
+            self["IPS"] = None
+            self["IPRIV"] = 0
+            if len(data)>=12:
                 # This is the case for AUTO97 and beyond
                 self.__numFreeParameters = int(data[11])
+                if len(data)>=16:
+                    self["NPARI"] = int(data[12])
+                    self["NDIM"] = int(data[13])
+                    self["IPS"] = int(data[14])
+                    self["IPRIV"] = int(data[15])
             else:
                 # This is the case for AUTO94 and before
                 self.__numFreeParameters = NPAR
@@ -1061,6 +1078,9 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                                          self["NCOL"],
                                                          npar
                                                          )
+        if self["IPS"] is not None:
+            line += "%5d%5d%5d%5d" % (self["NPARI"],self["NDIM"],self["IPS"],
+                                      self["IPRIV"])
         write_enc(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
         # the end of the solution we can just copy from the input file into the
@@ -1144,8 +1164,12 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self._mbr == self["BR"] and self._mlab == self["LAB"]):
             # header for empty solution so that AUTO can pickup the maximal
             # label and branch numbers.
-            write_enc("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%s"%((self._mbr,
-                                   0, 0, self._mlab) + 8*(0,) + (os.linesep,)))
+            if self["IPS"] is not None:
+                write_enc("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%5d%5d%5d%5d%s"%
+                      ((self._mbr, 0, 0, self._mlab) + 12*(0,) + (os.linesep,)))
+            else:
+                write_enc("%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d%s"%
+                      ((self._mbr, 0, 0, self._mlab) + 8*(0,) + (os.linesep,)))
         output.flush()
 
 def pointtest(a,b):
