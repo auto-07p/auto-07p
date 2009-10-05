@@ -3598,10 +3598,11 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NNT0,*)
-      INTEGER NDM,NFPR,NFPX,I,J
+      INTEGER NDM,NFPR,NPAR,NFPX,I,J
 C
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        NFPX=0
        IF(NINT.GT.1) THEN
@@ -3621,8 +3622,8 @@ C
          ENDDO
        ENDIF
 C
-C Note that PAR(11+NFPR/2) is used to keep the norm of the null vector
-       F(NINT)=-PAR(11+NFPR/2)
+C Note that PAR(NPAR) is used to keep the norm of the null vector
+       F(NINT)=-PAR(NPAR)
        DO I=1,NDM
          F(NINT)=F(NINT)+U(NDM+I)*U(NDM+I)
        ENDDO
@@ -3657,11 +3658,12 @@ C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: RLDOTRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-      INTEGER NDIM,NCOL,NDM,NFPR,NFPR0,NFPX,NTST,NDIMRD,ITPRS,I,J
+      INTEGER NDIM,NCOL,NDM,NFPR,NFPR0,NFPX,NTST,NDIMRD,ITPRS,I,J,NPAR
 C
        NDIM=IAP(1)
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
@@ -3688,7 +3690,7 @@ C
          ENDDO
        ENDIF
 C Initialize the norm of the null vector
-       PAR(11+NFPR/2)=0.
+       PAR(NPAR)=0.
        RLDOT(NFPR0+1)=0.d0
 C
        NODIR=0

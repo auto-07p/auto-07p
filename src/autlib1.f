@@ -177,7 +177,7 @@ C
       DOUBLE PRECISION RAP(*)
 
       INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K
-      INTEGER NUZR
+      INTEGER NUZR,NPARI
       INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
       DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
@@ -193,16 +193,19 @@ C
         ALLOCATE(ICP(NNICP))
         ICP(:SIZE(ICU))=ICU(:)
         ICP(SIZE(ICU)+1:)=0
-        CALL INIT1(IAP,RAP,ICP,ICU)
-        NFPR=IAP(29)
         NPAR=IAP(31)
-        NPAR=MAX(MAXVAL(ICP(:NFPR)),MAXVAL(ICU),NPAR)
+        NPAR=MAX(MAXVAL(ICU),NPAR)
+        IAP(31)=NPAR
+        CALL INIT1(IAP,RAP,ICP,ICU)
+        NPARI=IAP(24)
+        NFPR=IAP(29)
+        NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
         IF(ABS(IPS)==1)THEN
            !HB period is stored in PAR(11)
            NPAR=MAX(11,NPAR)
-        ELSEIF(IPS>=2.AND.IPS/=5.AND.IPS/=11)THEN
-           !BVPs: TR info in PAR(12), BP cont uses PAR(21)
-           NPAR=MAX(21,NPAR)
+        ELSEIF(IPS==2.OR.(IPS>=7.AND.IPS/=11))THEN
+           !BVPs, except IPS=4: TR info in PAR(12)
+           NPAR=MAX(12,NPAR)
         ENDIF
         IAP(31)=NPAR
         ALLOCATE(PAR(NPAR))
@@ -504,7 +507,7 @@ C
       INTEGER, INTENT(INOUT) :: LINE
 C
       INTEGER IBR,I,J,IUZR,NFPR,NDM
-      INTEGER NINS,LAB,NTOT,ITP,ITPST,NUZR,NICP
+      INTEGER NINS,LAB,NTOT,ITP,ITPST,NUZR,NICP,NPARI
       DOUBLE PRECISION BIFF,DET,SPBF,HBFF,FLDF
       CHARACTER(LEN=2048) :: STR
       CHARACTER(LEN=1) :: C,QUOTE,PREV
@@ -828,6 +831,7 @@ C
       IAP(22)=JAC
 C
       NDM=NDIM
+      NPARI=0
       IUZR=1
       ITP=0
       ITPST=0
@@ -838,6 +842,7 @@ C
       LAB=0
 C
       IAP(23)=NDM
+      IAP(24)=NPARI
       IAP(26)=IUZR
       IAP(27)=ITP
       IAP(28)=ITPST
@@ -1027,7 +1032,7 @@ C   NMX: set to 5 for starts of extended systems
       DOUBLE PRECISION RAP(*)
 C
 C Local
-      INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX
+      INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX,NPAR,NPARI
       INTEGER ITP,NFPR,NICP,NDM,NXP,I,NNEG,IC,JC
       DOUBLE PRECISION DS,DSMIN,DSMAX,FC
 C
@@ -1042,6 +1047,7 @@ C
        NMX=IAP(14)
        ITP=IAP(27)
        NFPR=IAP(29)
+       NPAR=IAP(31)
        NICP=IAP(35)
 C
        DS=RAP(1)
@@ -1059,6 +1065,7 @@ C
        DS=FC*DS
        DSMIN=DSMIN/FC
        DSMAX=FC*DSMAX
+       NPARI=0
 C
 C Redefinition for waves
        IF(IPS.EQ.11)THEN
@@ -1342,10 +1349,11 @@ C          ** Continuation of folds (BVP; start)
            NXP=NFPR/2-1
            IF(NXP.GT.0)THEN
              DO I=1,NXP
-               ICP(NFPR/2+I+1)=11+I
+               ICP(NFPR/2+I+1)=NPAR+I
              ENDDO
            ENDIF
-           ICP(NFPR/2+1)=11+NFPR/2
+           ICP(NFPR/2+1)=NPAR+NFPR/2
+           NPARI=NFPR/2
            ILP=0
            ISW=-2
            ISP=0
@@ -1361,9 +1369,11 @@ C          ** Continuation of folds (BVP; restart)
            NXP=NFPR/2-1
            IF(NXP.GT.0)THEN
              DO I=1,NXP
-               ICP(NFPR/2+I+1)=11+I
+               ICP(NFPR/2+I+1)=NPAR+I
              ENDDO
            ENDIF
+           ! PAR(NPAR+NFPR/2) contains a norm
+           NPARI=NFPR/2
 C
          ELSE IF( ITP==6 .AND. (IPS==4.OR.IPS==7) )THEN
 C          ** BP cont (BVP; start) (by F. Dercole)
@@ -1432,6 +1442,7 @@ C
        IAP(12)=NBC
        IAP(13)=NINT
        IAP(14)=NMX
+       IAP(24)=NPARI
        IAP(29)=NFPR
        IAP(35)=NICP
 C

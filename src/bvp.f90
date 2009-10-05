@@ -1743,7 +1743,7 @@ CONTAINS
     DOUBLE PRECISION PAR(*),RLDOT(*)
 
     INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NRD,NROWPR
-    INTEGER MTOT,I,J,IPS,NDM
+    INTEGER MTOT,I,J,IPS,NDM,NPARI
     DOUBLE PRECISION T
 !xxx====================================================================
 !xxx Test problem: compute the error
@@ -1755,6 +1755,7 @@ CONTAINS
     NCOL=IAP(6)
     ISW=IAP(10)
     NDM=IAP(23)
+    NPARI=IAP(24)
     ITP=IAP(27)
     NFPR=IAP(29)
     IBR=IAP(30)
@@ -1770,7 +1771,7 @@ CONTAINS
     NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
     MTOT=MOD(NTOT-1,9999)+1
     WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
-         0,NDM,IPS,0
+         NPARI,NDM,IPS,0
 
 ! Write the entire solution on unit 8 :
 
