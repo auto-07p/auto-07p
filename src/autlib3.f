@@ -2734,9 +2734,10 @@ C
       DOUBLE PRECISION THETA,SS,CS
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        NDM2=2*NDM
-       THETA=PAR(12)
+       THETA=PAR(NPAR-1)
 C
        SS=SIN(THETA)
        CS=COS(THETA)
@@ -2756,7 +2757,6 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
        NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
@@ -2770,11 +2770,11 @@ C
          DBC(NDM+I,NDM+I)=-CS
          DBC(NDM+I,NDM2+I)=SS
          DBC(NDM+I,NDIM+NDM+I)=1
-         DBC(NDM+I,2*NDIM+12)=CS*U0(NDM2+I)+SS*U0(NDM+I)
+         DBC(NDM+I,2*NDIM+NPAR-1)=CS*U0(NDM2+I)+SS*U0(NDM+I)
          DBC(NDM2+I,NDM+I)=-SS
          DBC(NDM2+I,NDM2+I)=-CS
          DBC(NDM2+I,NDIM+NDM2+I)=1
-         DBC(NDM2+I,2*NDIM+12)=SS*U0(NDM2+I)-CS*U0(NDM+I)
+         DBC(NDM2+I,2*NDIM+NPAR-1)=SS*U0(NDM2+I)-CS*U0(NDM+I)
        ENDDO
 C
       RETURN
@@ -2793,11 +2793,12 @@ C
       INTEGER NDM,NDM2,NN,NPAR,I,J
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
        NDM2=2*NDM
 C
        F(1)=0.d0
        F(2)=0.d0
-       F(3)=-PAR(13)
+       F(3)=-PAR(NPAR)
 C
        DO I=1,NDM
          F(1)=F(1)+(U(I)-UOLD(I))*UPOLD(I)
@@ -2807,7 +2808,6 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
        NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
@@ -2823,7 +2823,7 @@ C
         DINT(3,NDM2+I)=2*U(NDM2+I)
       ENDDO
 C
-      DINT(3,NDIM+13)=-1
+      DINT(3,NDIM+NPAR)=-1
 C
       RETURN
       END SUBROUTINE ICTR
@@ -2847,11 +2847,12 @@ C
      *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
 C Local
       DOUBLE PRECISION RLDOTRS(4),T,DT
-      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NDIMRD,ITPRS,I,J,K
+      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NPAR,NDIMRD,ITPRS,I,J,K
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -2880,7 +2881,7 @@ C
           T=T+DT
        ENDDO
 C
-       PAR(13)=0.d0
+       PAR(NPAR)=0.d0
 C
        NODIR=0
        NTST=IAP(5)
