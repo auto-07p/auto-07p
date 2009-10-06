@@ -14,7 +14,7 @@ r2 = run(e=pgm,c=pgm,IPS=11)
 
 print "\n%s : third run : wave train solutions of fixed wave speed"%pgm
 r3 = run(r2("HB1"),IPS=12,ICP=[3,11],ILP=0,ISP=0,RL1=700,DS=0.1,DSMAX=1.0,
-         UZR={3:[610.0,638.0], -11:500.0})
+         UZR={3:[610.0,638.0], 11:500.0}, STOP=['UZ4'])
 save(r2+r3,pgm)
 
 print "\n%s : fourth run : fixed wave length waves on a ring"%pgm

@@ -11,17 +11,18 @@ init = run(e='um3',
            NTST=60,IPLT=3,NBC=4,
            DS=5e-2,DSMIN=1e-5,DSMAX=1e1,
            THL={'Period':0.},
-           UZR={'-r1':1.})
+           UZR={'r1':1.},STOP=['UZ1'],
+           NPAR=11)
 save(init, '1')
 
 print "\n***Decrease the value of the problem parameter eps***"
-decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'-eps':0.01})
+decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'eps':0.01})
 save(decr, '2')
 
 print "\n***Part 1 of the unstable manifold***"
 startman = load(decr, ICP=['theta','Period'],NPR=1,
                 DS=5e-2,DSMIN=1e-5,DSMAX=1e0,
-                UZR={'-theta':[1.25,-0.75],'-Period':1e4})
+                UZR={'theta':[1.25,-0.75],'Period':1e4})
 part1 = run(startman)
 
 print "\n***Part 2 of the unstable manifold"
