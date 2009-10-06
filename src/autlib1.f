@@ -200,8 +200,8 @@ C
         NPARI=IAP(24)
         NFPR=IAP(29)
         NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
-        IF(ABS(IPS)==1)THEN
-           !HB period is stored in PAR(11)
+        IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
+           !HB period and period for periodic orbits stored in PAR(11)
            NPAR=MAX(11,NPAR)
         ENDIF
         IAP(31)=NPAR
