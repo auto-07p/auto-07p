@@ -1240,21 +1240,22 @@ C          ** BP cont (Periodic solutions); start (by F. Dercole)
            IF(((ABS(ISW)==2).AND.(ICP(3)==11 .OR. NICP==2)).OR.
      *        ((ABS(ISW)==3).AND.(ICP(4)==11 .OR. NICP==3)))THEN
 C            ** Variable period
-             ICP(2)=17 ! a
-             ICP(3)=18 ! b
+             ICP(2)=NPAR+6 ! a
+             ICP(3)=NPAR+7 ! b
              ICP(4)=11 ! T
            ELSE
 C            ** Fixed period
-             ICP(3)=17 ! a
-             ICP(4)=18 ! b
+             ICP(3)=NPAR+6 ! a
+             ICP(4)=NPAR+7 ! b
            ENDIF
-           ICP(5)=12   ! q1
-           ICP(6)=13   ! q2/beta1
-           ICP(7)=14   ! r1
-           ICP(8)=15   ! r2/beta2
-           ICP(9)=16   ! psi^*_3
-           ICP(10)=20  ! c1
-           ICP(11)=21  ! c2
+           ICP(5)=NPAR+1   ! q1
+           ICP(6)=NPAR+2   ! q2/beta1
+           ICP(7)=NPAR+3   ! r1
+           ICP(8)=NPAR+4   ! r2/beta2
+           ICP(9)=NPAR+5   ! psi^*_3
+           ICP(10)=NPAR+8  ! c1
+           ICP(11)=NPAR+9  ! c2
+           NPARI=9
 C
            ILP=0
            ISW=-ABS(ISW)
@@ -1272,11 +1273,11 @@ C          ** BP cont (Periodic solutions); restart 1 or 2
 C            ** Non-generic case
              IF(ICP(3)==11 .OR. NICP==2)THEN
 C              ** Variable period
-               ICP(3)=18 ! b
+               ICP(3)=NPAR+7 ! b
                ICP(4)=11 ! T
              ELSE
 C              ** Fixed period
-               ICP(4)=18 ! b
+               ICP(4)=NPAR+7 ! b
              ENDIF
            ELSE
 C            ** Generic case
@@ -1285,7 +1286,8 @@ C              ** Variable period
                ICP(4)=11 ! T
              ENDIF
            ENDIF
-           ICP(5)=16     ! psi^*_3
+           ICP(5)=NPAR+5     ! psi^*_3
+           NPARI=9
 C
          ELSE IF(ITP.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
 C          ** Continuation of period doubling bifurcations; start

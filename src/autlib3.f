@@ -1912,11 +1912,12 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
 C Local
       DOUBLE PRECISION DUM(1),UPOLD(NDM)
-      INTEGER ISW,I,J
+      INTEGER ISW,I,J,NPAR
       DOUBLE PRECISION PERIOD
 C
        PERIOD=PAR(11)
        ISW=IAP(10)
+       NPAR=IAP(31)
 C
        CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
@@ -1928,7 +1929,7 @@ C        ** restart 1 or 2
            DO J=1,NDM
              F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
            ENDDO
-           F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(16))
+           F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(NPAR-9+5))
          ENDDO
        ELSE
 C        ** start
@@ -1941,18 +1942,18 @@ C        ** start
              F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
              F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
            ENDDO
-           F(NDM+I)=PERIOD*(F(NDM+I)+DFDP(I,ICP(1))*PAR(12))
-           F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(14))
-           F(3*NDM+I)=PERIOD*(F(3*NDM+I)+UPOLD(I)*PAR(16))+
-     *       PAR(20)*U(NDM+I)+PAR(21)*U(2*NDM+I)
+           F(NDM+I)=PERIOD*(F(NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+1))
+           F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+3))
+           F(3*NDM+I)=PERIOD*(F(3*NDM+I)+UPOLD(I)*PAR(NPAR-9+5))+
+     *       PAR(NPAR-9+8)*U(NDM+I)+PAR(NPAR-9+9)*U(2*NDM+I)
            IF(ICP(4).EQ.11)THEN
 C            ** Variable period
-             F(NDM+I)=F(NDM+I)+F(I)*PAR(13)
-             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(15)
+             F(NDM+I)=F(NDM+I)+F(I)*PAR(NPAR-9+2)
+             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(NPAR-9+4)
            ELSE
 C            ** Fixed period
-             F(NDM+I)=F(NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(13)
-             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(15)
+             F(NDM+I)=F(NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+2)
+             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+4)
            ENDIF
          ENDDO
        ENDIF
@@ -1960,7 +1961,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NDM
-           F(I)=PERIOD*F(I)-PAR(18)*U(NDIM-NDM+I)
+           F(I)=PERIOD*F(I)-PAR(NPAR-9+7)*U(NDIM-NDM+I)
          ENDDO
        ELSE
 C        ** generic and restart
@@ -1989,6 +1990,7 @@ C
 C
        ISW=IAP(10)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        DO I=1,NDIM
          FB(I)=U0(I)-U1(I)
@@ -1997,7 +1999,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NDM
-           FB(I)=FB(I)+PAR(18)*U0(NDIM-NDM+I)
+           FB(I)=FB(I)+PAR(NPAR-9+7)*U0(NDIM-NDM+I)
          ENDDO
        ENDIF
 C
@@ -2010,7 +2012,6 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
        NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
@@ -2026,7 +2027,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NDM
-           DBC(I,NDIM-NDM+I)=PAR(18)
+           DBC(I,NDIM-NDM+I)=PAR(NPAR-9+7)
          ENDDO
        ENDIF
 C
@@ -2035,7 +2036,7 @@ C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
          DO I=1,NDM
-           DBC(I,2*NDIM+18)=U0(NDIM-NDM+I)
+           DBC(I,2*NDIM+NPAR-9+7)=U0(NDIM-NDM+I)
          ENDDO
        ENDIF
 C
@@ -2135,7 +2136,7 @@ C
        CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 C
        FI(1)=0.d0
-       FI(NINT)=PAR(16)**2-PAR(17)
+       FI(NINT)=PAR(NPAR-9+5)**2-PAR(NPAR-9+6)
        DO I=1,NDM
          FI(1)=FI(1)+(U(I)-UOLD(I))*UPOLD(I)
          FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
@@ -2143,7 +2144,7 @@ C
 C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
-         FI(1)=FI(1)+PAR(18)*PAR(16)
+         FI(1)=FI(1)+PAR(NPAR-9+7)*PAR(NPAR-9+5)
        ENDIF
 C
        IF(ISW.GT.0) THEN
@@ -2164,12 +2165,12 @@ C            ** Fixed period
 C        ** start
          FI(2)=0.d0
          FI(3)=0.d0
-         FI(4)=PAR(12)**2+PAR(13)**2-1.d0
-         FI(5)=PAR(14)**2+PAR(15)**2-1.d0
-         FI(6)=PAR(12)*PAR(14)+PAR(13)*PAR(15)
+         FI(4)=PAR(NPAR-9+1)**2+PAR(NPAR-9+2)**2-1.d0
+         FI(5)=PAR(NPAR-9+3)**2+PAR(NPAR-9+4)**2-1.d0
+         FI(6)=PAR(NPAR-9+1)*PAR(NPAR-9+3)+PAR(NPAR-9+2)*PAR(NPAR-9+4)
          FI(7)=FI(6)
-         FI(8)=PAR(20)*PAR(12)+PAR(21)*PAR(14)
-         FI(9)=PAR(20)*PAR(13)+PAR(21)*PAR(15)
+         FI(8)=PAR(NPAR-9+8)*PAR(NPAR-9+1)+PAR(NPAR-9+9)*PAR(NPAR-9+3)
+         FI(9)=PAR(NPAR-9+8)*PAR(NPAR-9+2)+PAR(NPAR-9+9)*PAR(NPAR-9+4)
          DO I=1,NDM
            FI(2)=FI(2)+U(NDM+I)*UPOLD(I)
            FI(3)=FI(3)+U(2*NDM+I)*UPOLD(I)
@@ -2222,7 +2223,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       INTEGER NDIM,NTST,NCOL,NBC,NINT,ISW,NDM,NFPR,NDIM3,IFST,NLLV,ITPRS
-      INTEGER NDIMRD,I,J
+      INTEGER NDIMRD,I,J,NPAR
       DOUBLE PRECISION DET,RDSZ
 C
        NDIM=IAP(1)
@@ -2231,6 +2232,7 @@ C
        ISW=IAP(10)
        NDM=IAP(23)
        NFPR=IAP(29)
+       NPAR=IAP(31)
 C
        NDIM3=GETNDIM3()
 C
@@ -2316,10 +2318,10 @@ C        ** init UPS,PAR
          UDOTPSR(:,:)=0.d0
 C
 C        ** init q,r,psi^*3,a,b,c1,c1
-         PAR(12:13)=RLDOTRS(1:2)
-         PAR(14:15)=RVDOT(1:2)
-         PAR(16:18)=0.d0
-         PAR(20:21)=0.d0
+         PAR(NPAR-9+1:NPAR-9+2)=RLDOTRS(1:2)
+         PAR(NPAR-9+3:NPAR-9+4)=RVDOT(1:2)
+         PAR(NPAR-9+5:NPAR-9+7)=0.d0
+         PAR(NPAR-9+8:NPAR-9+9)=0.d0
          RLDOT(1:2)=0.d0
          IF(ICP(4).EQ.11)THEN
 C          ** Variable period
