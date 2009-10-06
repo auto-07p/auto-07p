@@ -1299,7 +1299,8 @@ C          ** Continuation of period doubling bifurcations; start
 C            ** Variable period
              ICP(2)=11
            ENDIF
-           ICP(3)=13
+           ICP(3)=NPAR+1
+           NPARI=1
            ILP=0
            ISW=-2
            ISP=0
@@ -1316,6 +1317,7 @@ C          ** Continuation of period doubling bifurcations; restart
 C            ** Variable period
              ICP(3)=11
            ENDIF
+           NPARI=1
 C
          ELSE IF(ITP.EQ.8 .AND. IPS.EQ.2)THEN
 C          ** Continuation of torus bifurcations; start

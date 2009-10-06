@@ -2534,9 +2534,10 @@ C
       INTEGER NDM,NPAR,NN,I,J
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        F(1)=0.d0
-       F(2)=-PAR(13)
+       F(2)=-PAR(NPAR)
 C
        DO I=1,NDM
          F(1)=F(1)+(U(I)-UOLD(I))*UPOLD(I)
@@ -2545,7 +2546,6 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
        NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
@@ -2558,7 +2558,7 @@ C
          DINT(2,NDM+I)=2.d0*U(NDM+I)
        ENDDO
 C
-       DINT(2,NDIM+13)=-1.d0
+       DINT(2,NDIM+NPAR)=-1.d0
 C
       RETURN
       END SUBROUTINE ICPD
@@ -2583,10 +2583,11 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       DOUBLE PRECISION RLDOTRS(4)
-      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NDIMRD,ITPRS,J
+      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NDIMRD,ITPRS,J,NPAR
 C
        NDIM=IAP(1)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -2596,7 +2597,7 @@ C
        RLDOT(2)=RLDOTRS(2)
 C
 C Complement starting data 
-         PAR(13)=0.d0
+         PAR(NPAR)=0.d0
          RLDOT(3)=0.d0
          DO J=0,NTSR*NCOLRS
             UPSR(NDM+1:NDIM,J)=0.d0
