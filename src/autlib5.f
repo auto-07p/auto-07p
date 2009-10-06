@@ -686,7 +686,8 @@ C
       DOUBLE PRECISION, PARAMETER :: HMACHHO=1.0d-13
       INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
 
-      INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE,NPAR
+      INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE
+      INTEGER NPARI
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -751,12 +752,9 @@ C
 C        n-homoclinic branch switching
          NFREE=NFREE-ISTART-1
          NDIM=NDM*(-ISTART+1)
-         NPAR=IAP(31)
          ! make sure there is enough room for the Lin vector etc.
-         IF(NPAR<NPARX)THEN
-            NPAR=NPARX
-         ENDIF
-         IAP(31)=NPAR
+         NPARI=2*NDM
+         IAP(24)=NPARI
 C      
 C Free parameter (artificial parameter for psi)
 C nondegeneracy parameter of the adjoint

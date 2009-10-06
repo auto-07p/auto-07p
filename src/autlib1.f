@@ -1119,6 +1119,7 @@ C        Redefine AUTO constants for homoclinic orbits
          NDIM=IAP(1)
          NBC=IAP(12)
          NINT=IAP(13)
+         NPARI=IAP(24)
          NFPR=NBC+NINT-NDIM+1
 C
        ELSE IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
