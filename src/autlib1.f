@@ -1208,8 +1208,9 @@ C          ** Fold continuation (Periodic solutions); start
 C            ** Variable period
              ICP(2)=11
            ENDIF
-           ICP(3)=13
-           ICP(4)=12
+           ICP(3)=NPAR+2
+           ICP(4)=NPAR+1
+           NPARI=2
            ILP=0
            ISW=-2
            ISP=0
@@ -1227,7 +1228,8 @@ C            ** Variable period
              ICP(3)=ICP(2)
              ICP(2)=11
            ENDIF
-           ICP(4)=12
+           ICP(4)=NPAR+1
+           NPARI=2
 C
          ELSE IF( (ITP==6) .AND. IPS==2)THEN
 C          ** BP cont (Periodic solutions); start (by F. Dercole)

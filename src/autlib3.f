@@ -1589,12 +1589,12 @@ C
           ENDDO
           IF(ICP(2)==11)THEN
              DFDP(NDM+1:NDIM,11)=
-     *            (F(NDM+1:NDIM)-PAR(12)/PAR(11)*F(1:NDM))/PAR(11)
+     *            (F(NDM+1:NDIM)-PAR(NPAR-1)/PAR(11)*F(1:NDM))/PAR(11)
           ENDIF
-          DFDP(1:NDM,12)=0d0
-          DFDP(NDM+1:NDIM,12)=DFP(:,ICP(2))/PAR(11)
-          IF(ICP(3)==13)THEN
-             DFDP(1:NDM,13)=0d0
+          DFDP(1:NDM,NPAR-1)=0d0
+          DFDP(NDM+1:NDIM,NPAR-1)=DFP(:,ICP(2))/PAR(11)
+          IF(ICP(3)==NPAR)THEN
+             DFDP(1:NDM,NPAR)=0d0
           ELSE
              DFDP(1:NDM,ICP(3))=PAR(11)*DFP(:,ICP(3))
           ENDIF
@@ -1649,19 +1649,20 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
 
-      INTEGER IJC,I,J
+      INTEGER IJC,I,J,NPAR
 C
        IJC=IJAC
        IF(IJC==0)IJC=-1
        IF(ICP(2)/=11)IJC=2
        CALL FNPS(IAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
+       NPAR=IAP(31)
        DO I=1,NDM
          F(NDM+I)=0.d0
          DO J=1,NDM
            F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
          ENDDO
-         F(NDM+I)=F(NDM+I)+PAR(12)/PAR(11)*DFDP(I,ICP(2))
+         F(NDM+I)=F(NDM+I)+PAR(NPAR-1)/PAR(11)*DFDP(I,ICP(2))
        ENDDO
 C
       RETURN
@@ -1727,10 +1728,11 @@ C
       INTEGER NDM,NPAR,NN,I,J
 C
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        F(1)=0.d0
        F(2)=0.d0
-       F(3)=PAR(12)**2 - PAR(13)
+       F(3)=PAR(NPAR-1)**2 - PAR(NPAR)
 C
        DO I=1,NDM
          F(1)=F(1)+(U(I)-UOLD(I))*UPOLD(I)
@@ -1740,7 +1742,6 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
        NN=NDIM+NPAR
        DO I=1,NINT
          DO J=1,NN
@@ -1754,8 +1755,8 @@ C
          DINT(3,NDM+I)=2.d0*U(NDM+I)
        ENDDO
 C
-       DINT(3,NDIM+12)=2.d0*PAR(12)
-       DINT(3,NDIM+13)=-1.d0
+       DINT(3,NDIM+NPAR-1)=2.d0*PAR(NPAR-1)
+       DINT(3,NDIM+NPAR)=-1.d0
 C
       RETURN
       END SUBROUTINE ICPL
@@ -1779,11 +1780,12 @@ C
      *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
 C Local
       DOUBLE PRECISION RLDOTRS(4)
-      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,ITPRS,NDIMRD,J
+      INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,ITPRS,NDIMRD,J,NPAR
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
        NDIM=IAP(1)
        NDM=IAP(23)
+       NPAR=IAP(31)
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
@@ -1791,8 +1793,8 @@ C
      *      UDOTPSR,TMR,ITPRS,NDIM)
 C
 C Complement starting data
-         PAR(12)=0.d0
-         PAR(13)=0.d0
+         PAR(NPAR-1)=0.d0
+         PAR(NPAR)=0.d0
          IF(ICP(3).EQ.11)THEN
 C          Variable period
            RLDOT(1)=RLDOTRS(1)
