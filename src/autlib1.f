@@ -194,7 +194,7 @@ C
         ICP(:SIZE(ICU))=ICU(:)
         ICP(SIZE(ICU)+1:)=0
         NPAR=IAP(31)
-        NPAR=MAX(MAXVAL(ICU),NPAR)
+        NPAR=MAX(MAXVAL(ABS(ICU)),NPAR)
         IAP(31)=NPAR
         CALL INIT1(IAP,RAP,ICP,ICU)
         NPARI=IAP(24)
