@@ -982,15 +982,15 @@ C
 C     Deallocate some globally allocated arrays.
 C
       USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames,
-     *     SP,PARVALS,UVALS
+     *     SP,STOPS,PARVALS,UVALS
 
       IMPLICIT NONE
 
       DO I=1,SIZE(IVUZR)
          DEALLOCATE(IVUZR(I)%VAR)
       ENDDO
-      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,PARVALS,STOPS,
-     *     UVALS)
+      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,STOPS,
+     *     PARVALS,UVALS)
       END SUBROUTINE CLEANUP
 C
 C-----------------------------------------------------------------------
