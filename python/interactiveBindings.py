@@ -167,7 +167,7 @@ Aliases: ex"""
                 command = "shell('" + line.strip() + "')"
             elif lst[0] in shortCommands:
                 if len(lst) == 2:
-                    command = "%s('%s')"%lst
+                    command = "%s('%s')"%tuple(lst)
                 else:
                     command = "%s()"%lst[0]
         if command is not None:
