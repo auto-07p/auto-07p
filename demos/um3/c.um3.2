@@ -1,18 +1,9 @@
-unames = {1:x,2:y}
-parnames = {1:theta,2:eps,3:r0,4:r1,11:Period}
-NDIM=3
-IPS=4
-IRS=2
-ILP=0
-ISP=0
-ICP=[eps,Period]
-NTST=60
-IPLT=3
-NBC=4
-DS=-5e-2
-DSMIN=1e-5
-DSMAX=1e0
-THL={Period:0}
-UZR={eps:1e-2}
-STOP=['UZ1']
-NPAR=11
+unames={1: 'x', 2: 'y'},
+parnames={1: 'theta', 2: 'eps', 3: 'r0', 4: 'r1', 11: 'Period'}
+NDIM=   3, IPS =   4, IRS =   2, ILP =   0
+ICP =  ['eps', 'Period']
+NTST=  60, ISP =   0, IPLT=   3, NBC=    4
+DS  = -0.05, DSMIN= 1e-05, DSMAX=   1.0
+NPAR=  11, THL =  {'Period': 0.0}
+UZR =  {'eps': 0.01}
+STOP=  ['UZ1']

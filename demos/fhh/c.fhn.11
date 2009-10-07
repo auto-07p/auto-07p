@@ -4,7 +4,7 @@ NTST=  35, NCOL=   4, IAD =   1, ISP =   0, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=   75, NPR=   20, MXBF=   0, IID =   2, ITMX=  10, ITNW= 7, NWTN= 3, JAC= 1
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.01, DSMIN=0.0001, DSMAX=  0.02, IADS=   1
-THL =  {}, THU =  {}
+NPAR = 14, THL =  {}, THU =  {}
 UZR =  {}
 ITWIST = 0
 IFIXED = [2]
