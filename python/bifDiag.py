@@ -11,6 +11,7 @@ import AUTOExceptions
 import gzip
 import types
 import sys
+import struct
 
 # some constants must not be preserved from run to run. These are:
 nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
@@ -121,7 +122,11 @@ class bifDiag(parseB.parseBR):
         raise AttributeError
         
     def __repr__(self):
-        return "<_=%s instance at %#010x>"%(self.__class__.__name__,id(self))
+        result = id(self)
+        if result < 0:
+            # avoid negative addresses and Python 2.3 warnings
+            result += 256 ** struct.calcsize('P')
+        return "<_=%s instance at %#010x>"%(self.__class__.__name__,result)
 
     def getLabel(self,label):
         sols = []

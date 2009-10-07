@@ -19,6 +19,7 @@
 
 import os
 import sys
+import struct
 try:
     from UserDict import UserDict
     from UserList import UserList
@@ -97,12 +98,15 @@ class parseS(list):
         irs = kw.get("IRS")
         if irs is None:
             irs = (kw.get("constants") or {}).get("IRS")
-        if irs in self.getLabels() or isinstance(irs,type("")):
-            sol = self(irs)
-        elif len(self) > 0 and irs is None:
+        sol = None
+        if irs is not None:
+            if irs != 0:
+                try:	
+                    sol = self(irs)
+                except KeyError:
+                    raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+        elif len(self) > 0:
             sol = self[-1]
-        else:
-            sol = None
         if kw != {} or sol is None:
             sol = AUTOSolution(sol,**kw)
         return sol
@@ -617,7 +621,11 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         return rep
 
     def __repr__(self):
-        return "<_=%s instance at %#010x>"%(self.__class__.__name__,id(self))
+        result = id(self)
+        if result < 0:
+            # avoid negative addresses and Python 2.3 warnings
+            result += 256 ** struct.calcsize('P')
+        return "<_=%s instance at %#010x>"%(self.__class__.__name__,result)
 
     def __len__(self):
         return Points.Pointset.__len__(self)
