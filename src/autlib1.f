@@ -199,6 +199,7 @@ C
         CALL INIT1(IAP,RAP,ICP,ICU)
         NPARI=IAP(24)
         NFPR=IAP(29)
+        NPAR=IAP(31)
         NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
         IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
            !HB period and period for periodic orbits stored in PAR(11)

@@ -687,7 +687,7 @@ C
       INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
 
       INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE
-      INTEGER NPARI
+      INTEGER NPARI,NPAR
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -759,10 +759,17 @@ C
 C Free parameter (artificial parameter for psi)
 C nondegeneracy parameter of the adjoint
 C
-      ELSEIF (ITWIST.EQ.1) THEN
-         NFREE = NFREE + 1
-         ICP(NFREE) = 10
-         NDIM=NDM*2
+      ELSE
+         IF (NPSI>0) THEN
+            NPAR=IAP(31)
+            NPAR=MAX(20+MAXVAL(IPSI),NPAR)
+            IAP(31)=NPAR
+         ENDIF
+         IF (ITWIST.EQ.1) THEN
+            NFREE = NFREE + 1
+            ICP(NFREE) = 10
+            NDIM=NDM*2
+         ENDIF
       ENDIF
 C
 C Extra free parameters for equilibrium if iequib=1,2,-2
