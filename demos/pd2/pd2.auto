@@ -10,7 +10,8 @@ r1 = run(e=pgm,c=pgm)
 save(r1,'1')
 
 print "\n%s : second run : continuation of stationary state"%pgm
-r2 = run(r1,IPS=17,ICP=[1],ISP=2,NMX=15,NPR=50,DS=-0.1,DSMAX=1.0,UZR={-1:0.0})
+r2 = run(r1,IPS=17,ICP=[1],ISP=2,NMX=15,NPR=50,DS=-0.1,DSMAX=1.0,UZR={1:0.0},
+   STOP=['UZ1'])
 save(r2,'2')
 
 print "\n***Clean the directory***"

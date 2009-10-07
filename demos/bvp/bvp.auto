@@ -11,7 +11,7 @@ print "\n***Compute bifurcating branches***"
 for bp in bvp("BP"):
     solution = load(bp,ISW=-1,DSMAX=10,UZR={-1:[0.0,5.5],
                                              2:[-6.0,-3.0,3.0,6.0],
-                                            -2:[-9.0,9.0]})
+                                            -2:[-9.0,9.0]},STOP=[])
     print "\n***Branch " , solution["LAB"] , "***"
     bvp = bvp + run(solution)
     bvp = bvp + run(solution,DS='-')

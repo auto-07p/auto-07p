@@ -4,5 +4,5 @@ NTST=  25, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=  100, NPR=  100, MXBF=  10, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-08, EPSU = 1e-08, EPSS = 1e-06
 DS  =  0.02, DSMIN=  0.01, DSMAX=  0.06, IADS=   1
-THL =  {11: 0.0}, THU =  {}
-UZR =  {-1: [0.0, 1.0], -9: -0.25}
+NPAR = 9, THL =  {11: 0.0}, THU =  {}
+UZR =  {1: [0.0, 1.0], 9: -0.25}, STOP = ['UZ1']

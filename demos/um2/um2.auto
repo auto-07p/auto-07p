@@ -16,7 +16,7 @@ init = run(e='um2',
 save(init, '1')
 
 print "\n***Decrease the value of the problem parameter eps***"
-decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'-eps':0.1})
+decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'eps':0.1})
 save(decr, '2')
 
 print "\n***Allow the initial condition to move around a small circle***"

@@ -1,22 +1,22 @@
 # initial part
 print "find the Branch point"
-r = run(e='p2c',NDIM=3,ILP=0,SP="BP1",MXBF=0,DS=0.3,DSMAX=25)
+r = run(e='p2c',NDIM=3,ILP=0,STOP="BP1",MXBF=0,DS=0.3,DSMAX=25,NPAR=23)
 
 # initial part
 print "find the Hopf bifurcation"
-r = r + run(r('BP1'),ISW=-1,SP="HB1")
+r = r + run(r('BP1'),ISW=-1,STOP="HB1")
 
 print "a solution branch starting from the Hopf bifurcation"
-sol = run(r('HB1'),IPS=2,ICP=[1,11],NTST=50,UZR={-1:21})
+sol = run(r('HB1'),IPS=2,ICP=[1,11],NTST=50,UZR={1:21},STOP=["UZ1"])
 
 print "continue zero eigenfunction until eigenvalue"
 zero = run(sol,
 NDIM=6,IPS=4,ICP=[12,11,10],NBC=7,NINT=1,
-ISP=-2,DS=1.e-3,DSMIN=1.e-5,DSMAX=1.e-2,SP=["BP2"])
+ISP=-2,DS=1.e-3,DSMIN=1.e-5,DSMAX=1.e-2,STOP=["BP2"])
 bp = zero('BP1')
 
 print "switch to continuation of nontrivial eigenfunction"
-norm1 = run(bp,ISW=-1,UZR={-10:1.0})
+norm1 = run(bp,ISW=-1,UZR={10:1.0},STOP=["UZ1"])
 
 # Add initial "connection" into the last three dimensions and do
 # the first homotopy
@@ -25,17 +25,17 @@ h1 = run(norm1,
 NDIM=9,ICP=[13,11,12,21,14,15,16,17,18,19,20,22],ISW=1,ISP=0,
 NBC=19,THL={13:0,11:0},
 DS=0.1,DSMIN=1e-10,DSMAX=500,
-UZR={21:0},SP=["UZ3"])
+UZR={21:0},STOP=["UZ3"])
 
 print "homotopy in (r,h2)"
 h2 = run(h1('UZ3'),NINT=0,
 ICP=[11,1,12,14,15,16,17,18,19,20,22],DS=-1,DSMIN=1.e-5,NBC=19,
-UZR={-22:0})
+UZR={22:0},STOP=["UZ1"])
 
 print "homotopy in (T,r)"
 h3 = run(h2,DS=1,
 ICP=[13,1,11,12,14,15,16,17,18,19,20],NBC=19,
-UZR={13:3, 13:4, -13:5})
+UZR={13:3, 13:4, -13:5},STOP=[])
 
 print "fwd continuation in two system parameters"
 cont = load(h3('UZ1'),DS=1.e-5,DSMIN=1.e-7,DSMAX=0.5,

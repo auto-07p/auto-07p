@@ -4,5 +4,5 @@ NTST= 200, NCOL=   4, IAD =   3, ISP =   0, ISW = 1, IPLT= 0, NBC=10, NINT= 1
 NMX=  400, NPR=  900, MXBF=   5, IID =   3, ITMX= 8, ITNW= 7, NWTN= 3, JAC= 0
 EPSL= 1e-06, EPSU = 1e-06, EPSS =0.0001
 DS  =  0.01, DSMIN= 1e-05, DSMAX=   5.0, IADS=   1
-THL =  {21: 0.0, 22: 0.0, 23: 0.0}, THU =  {}
+NPAR = 16, THL =  {21: 0.0, 22: 0.0, 23: 0.0}, THU =  {}
 UZR =  {21: [-0.5, -0.25, 0.0, 0.25, 0.5]}

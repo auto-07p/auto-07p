@@ -10,7 +10,7 @@ r1 = run(e=pgm,c=pgm)
 
 print "\n%s : second run : periodic solutions"%pgm
 r2 = run(r1("HB2"),IPS=2,ICP=[1,11],ILP=0,ISP=1,EPSL=1e-6,EPSU=1e-6,DSMAX=10,
-   UZR={1:[1.25,1.5,1.75,2.1,2.62]})
+   UZR={1:[1.25,1.5,1.75,2.1,2.62]},STOP=[])
 
 print "\n%s : third run : periodic solutions (1st branch; restart)"%pgm
 r3 = run(r2("UZ5"),NTST=100)
