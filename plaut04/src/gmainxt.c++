@@ -47,6 +47,12 @@
 #define XmFONTLIST_DEFAULT_TAG NULL
 #endif
 
+#ifdef USE_EXAM_VIEWER
+static SoXtExaminerViewer *renderArea;
+#else
+static SoXtRenderArea *renderArea;
+#endif
+
 SbBool printToPostScript (SoNode *root, const char *filename,
 SoXtExaminerViewer *viewer, int printerDPI);
 
@@ -1323,12 +1329,6 @@ buildMainWindow(Widget parent, SoSeparator *root)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef USE_EXAM_VIEWER
-    SoXtExaminerViewer *renderArea;
-#else
-    SoXtRenderArea *renderArea;
-#endif
-
     Arg  args[15];
     int  n,i;
 
@@ -3168,7 +3168,7 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
         writeToFile(filename);
     else if(fileMode == PRINT_ITEM)
     {
-        printToPostScript(root,f,renderArea,100);
+        printToPostScript(root,filename,renderArea,100);
     }
     else if(fileMode == OPEN_ITEM)
     {

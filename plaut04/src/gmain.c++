@@ -4971,7 +4971,7 @@ writePreferValuesToFile()
             case 9:
                 fprintf(outFile, "\n# Set the initial, maximum and minimum animation speed:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", (int)round(satSpeed*100));
+                fprintf(outFile, "%i\n", (int)floor(satSpeed*100+0.5));
             case 10:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_SAT_SPEED);
@@ -4983,7 +4983,7 @@ writePreferValuesToFile()
             case 12:
                 fprintf(outFile, "\n# Set the initial, maximum and minimum highlighting animation speed:\n"); 
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
-                fprintf(outFile, "%i\n", (int)round(orbitSpeed*50));
+                fprintf(outFile, "%i\n", (int)floor(orbitSpeed*50+0.5));
             case 13:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%i\n", MAX_ORBIT_SPEED);
