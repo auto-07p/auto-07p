@@ -101,7 +101,7 @@ class parseS(list):
         sol = None
         if irs is not None:
             if irs != 0:
-                try:	
+                try:    
                     sol = self(irs)
                 except KeyError:
                     raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
