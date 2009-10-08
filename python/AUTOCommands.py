@@ -1873,7 +1873,10 @@ def autohelp(command_string=""):
     _aliases = {}
     parser = AUTOutil.getAUTORC("AUTO_command_aliases")
     for option in parser.options("AUTO_command_aliases"):
-        _aliases[option] = parser.get("AUTO_command_aliases",option)
+        cmd = parser.get("AUTO_command_aliases",option)
+        if cmd not in _aliases:
+            _aliases[cmd] = []
+        _aliases[cmd].append(option)
     import AUTOCommands
     if _aliases == {}:
         # Now we copy the commands from the module
@@ -1881,15 +1884,13 @@ def autohelp(command_string=""):
             cmd = getattr(AUTOCommands,key)
             # Check to see if it is a command
             if hasattr(cmd,"fun") and cmd.alias is not None:
-                _aliases[cmd.fun.__name__] = key
-                for alias in cmd.alias:
-                    _aliases[alias] = key
+                _aliases[key] = [cmd.fun.__name__] + cmd.alias
         
     command_list = []
 
     # Here we get a list of the names of all of the commands in AUTOCommands
     for key in AUTOCommands.__dict__:
-        if key in _aliases.values():
+        if key in _aliases:
             command_list.append(key)
 
     return_value = {}
@@ -1914,10 +1915,9 @@ def autohelp(command_string=""):
             return_value[cmd] = {}
             return_value[cmd]["aliases"] = []
             aliases = ""
-            for key in _aliases:
-                if _aliases[key] == cmd:
-                    aliases = aliases + key + " "
-                    return_value[cmd]["aliases"].append(key)
+            for key in _aliases[cmd]:
+                aliases = aliases + key + " "
+                return_value[cmd]["aliases"].append(key)
             doc = getattr(AUTOCommands,cmd).__doc__
             if doc is not None:
                 outputString += " %-25s"%aliases
