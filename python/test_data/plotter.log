@@ -1,7 +1,7 @@
 Copying demo ab ... done
 Runner configured
 gfortran -fopenmp -O -c ab.f90 -o ab.o
-gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
+gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
@@ -12,7 +12,7 @@ Starting ab ...
    1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
    1    51  UZ    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    0.183E-01
+ Total Time    0.123E-01
 ab ... done
 Saving fort.7 as b.ab ... done
 Saving fort.8 as s.ab ... done
@@ -23,7 +23,7 @@ Starting ab ...
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    14  UZ    2   2.50000E-01   7.22011E-01   3.22893E-01   6.45786E-01
 
- Total Time    0.144E-01
+ Total Time    0.682E-02
 ab ... done
-Created plotter
-Created plotter
+Created plot
+Created plot

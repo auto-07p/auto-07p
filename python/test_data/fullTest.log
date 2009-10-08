@@ -1,62 +1,64 @@
 Runner configured
 Copying demo wav ... done
 Runner configured
- ALIASES    DESCRIPTION
+ ALIASES                  DESCRIPTION
  append ap                Append data files.
  cat                      Print the contents of a file
  cd                       Change directories.
- cl clean                 Clean the current directory.
- dm demo                  Copy a demo into the current directory and load it.
- copy                     Copy data files.
+ clean cl                 Clean the current directory.
+ demo dm                  Copy a demo into the current directory and load it.
+ copy cp                  Copy data files.
  copydemo                 Copy a demo into the current directory.
  save sv                  Save data files.
  gui                      Show AUTOs graphical user interface.
- dl delete                Delete data files.
+ delete dl                Delete data files.
  df deletefort            Clear the current directory of fort files.
  dlb                      Delete special labels.
  dsp                      Delete special points.
- db double                Double a solution.
+ double db                Double a solution.
  man                      Get help on the AUTO commands.
  klb                      Keep special labels.
  ksp                      Keep special points.
  ls                       List the current directory.
  merge mb                 Merge branches in data files.
- move                     Move data-files to a new name.
+ move mv                  Move data-files to a new name.
  cn constantsget          Get the current continuation constants.
  bt diagramandsolutionget Parse both bifurcation diagram and solution.
  dg diagramget            Parse a bifurcation diagram.
+ hcn                      Get the current HomCont continuation constants.
  loadbd bd                Load bifurcation diagram files.
- solutionget sl           Parse solution file:
+ sl solutionget           Parse solution file:
  plot pl p2               2D plotting of data.
  plot3 p3                 3D plotting of data.
- bp br branchpoint        Print the ``branch-point function''.
- eigenvalue eg ev         Print eigenvalues of Jacobian (algebraic case).
+ branchpoint bp br        Print the ``branch-point function''.
+ eigenvalue ev eg         Print eigenvalues of Jacobian (algebraic case).
  floquet fl               Print the Floquet multipliers.
  hopf hp hb               Print the value of the ``Hopf function''.
  iterations it            Print the number of Newton interations.
- lm lp limitpoint         Print the value of the ``limit point function''.
+ limitpoint lm lp         Print the value of the ``limit point function''.
  note nt                  Print notes in info file.
  secondaryperiod sp sc    Print value of ``secondary-periodic bif. fcn''.
  stepsize ss st           Print continuation step sizes.
- rl relabel               Relabel data files.
- rn run r                 Run AUTO.
- hch                      Modify continuation constants.
- changeconstant ch cc     Modify continuation constants.
- ld load                  Load files into the AUTO runner or return modified solution data.
+ quit q                   Quit the AUTO CLUI.
+ relabel rl               Relabel data files.
+ run r rn                 Run AUTO.
+ hch                      Modify HomCont continuation constants.
+ ch changeconstant cc     Modify continuation constants.
+ load ld                  Load files into the AUTO runner or return modified solution data.
  hpr                      Print HomCont continuation parameters.
- pr pc printconstant      Print continuation parameters.
+ pr printconstant pc      Print continuation parameters.
  shell                    Run a shell command.
  splabs                   Return special labels
  subtract sb              Subtract branches in data files.
- tr triple                Triple a solution.
- userdata us              Convert user-supplied data files.
+ triple tr                Triple a solution.
+ us userdata              Convert user-supplied data files.
  wait                     Wait for the user to enter a key.
  auto ex                  Execute an AUTO CLUI script.
  demofile dmf             Execute an AUTO CLUI script, line by line (demo mode).
 
 Run AUTO.
 
-    Type r=run([s],[options]) to run AUTO from solution s with the given
+    Type r=run([name],[options]) to run AUTO from solution data with the given
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -64,19 +66,19 @@ Run AUTO.
     and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
-    run(s) runs AUTO in the following way for different types of s:
+    run(data) runs AUTO in the following way for different types of data:
 
-    * A solution: AUTO starts from solution s, with AUTO constants s.c.
+    * A solution: AUTO starts from solution data, with AUTO constants data.c.
 
     * A bifurcation diagram: AUTO start from the solution specified by
       the AUTO constant IRS, or if IRS is not specified, the last solution
-      in s, s()[-1], with AUTO constants s()[-1].c.
+      in data, data()[-1], with AUTO constants data()[-1].c.
 
-    * A string: AUTO uses the solution in the file 's.s' together with the
-      constants in the files 'c.s', and 'h.s'. Not all of these
+    * A string: AUTO uses the solution in the file 's.data' together with the
+      constants in the files 'c.data', and 'h.data'. Not all of these
       files need to be present.
 
-    If no solution s is specified, then the global values from the
+    If no solution data is specified, then the global values from the
     'load' command are used instead, where
     options which are not explicitly set retain their previous value.
 
@@ -98,20 +100,8 @@ Run AUTO.
 Command name: commandRun
 Aliases: rn run r 
 Runner configured
-Starting wav ...
- 
-  BR    PT  TY  LAB    PAR(3)        L2-NORM         U(1)          U(2)     
-   1     1  EP    1   5.00000E+02   1.08768E+02   6.27662E+01   8.88308E+01
-   1    47  LP    2   6.66144E+02   1.81841E+02   4.69085E+01   1.75687E+02
-   1    82  LP    3   6.30891E+02   7.49020E+01   3.23345E+01   6.75632E+01
-   1    94  HB    4   6.62202E+02   3.25591E+01   1.79875E+01   2.71394E+01
-   1   127  UZ    5   8.00000E+02   8.90053E+01   2.79228E+00   8.89614E+01
-
- Total Time    0.407E-01
-wav ... done
-Appending fort.7 to b.wav ... done
-Appending fort.8 to s.wav ... done
-Appending fort.9 to d.wav ... done
+gfortran -fopenmp -O -c wav.f90 -o wav.o
+gfortran -fopenmp -O wav.o -o wav.exe /home/boldeman/auto/07p/lib/*.o
 Starting wav ...
  
   BR    PT  TY  LAB    PAR(3)        L2-NORM         U(1)          U(2)          U(3)          U(4)     
@@ -121,7 +111,7 @@ Starting wav ...
    1    87  HB    4   6.35591E+02   5.49735E+01   2.74121E+01   4.76515E+01   0.00000E+00   0.00000E+00
    1   128  UZ    5   8.00000E+02   8.90054E+01   2.79228E+00   8.89616E+01   0.00000E+00   0.00000E+00
 
- Total Time    0.513E-01
+ Total Time    0.355E-01
 wav ... done
 Appending fort.7 to b.wav ... done
 Appending fort.8 to s.wav ... done
@@ -134,7 +124,7 @@ Starting wav ...
    4   129  UZ    8   6.10000E+02   9.35063E+01   5.67543E+01   1.20462E+02   1.60747E+01   2.40970E+01   1.49753E+01
    4   263  UZ    9   6.04728E+02   1.62520E+02   5.59844E+01   1.54751E+02   1.54409E+01   2.47128E+01   5.00000E+02
 
- Total Time    0.850E+00
+ Total Time    0.348E+00
 wav ... done
 Appending fort.7 to b.wav ... done
 Appending fort.8 to s.wav ... done
@@ -153,21 +143,20 @@ Starting wav ...
    4   450       18   5.91166E+02   1.17394E+02   5.72885E+01   1.30143E+02   1.25078E+01   1.54996E+01  -3.51009E-10
    4   500  EP   19   6.10594E+02   8.30905E+01   5.37594E+01   9.86320E+01   1.34789E+01   1.51711E+01  -4.95168E-09
 
- Total Time    0.182E+01
+ Total Time    0.708E+00
 wav ... done
 Appending fort.7 to b.wav ... done
 Appending fort.8 to s.wav ... done
 Appending fort.9 to d.wav ... done
 Copying demo cir ... done
 Runner configured
-NOTE: This command does not use filename templates
 Starting conversion of cir.dat : 
-(Required files : cir.f, c.cir, cir.dat)
+(Required files : cir.f90, c.cir, cir.dat)
 Finished running: ./fcon
 Conversion done : converted file saved as s.dat
 Runner configured
-gfortran -fopenmp -O -c cir.f -o cir.o
-gfortran -fopenmp -O cir.o -o cir.exe /home/bart/auto/07p/lib/*.o
+gfortran -fopenmp -O -c cir.f90 -o cir.o
+gfortran -fopenmp -O cir.o -o cir.exe /home/boldeman/auto/07p/lib/*.o
 Starting cir ...
  
   BR    PT  TY  LAB     PERIOD       L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      PAR(1)     
@@ -176,7 +165,7 @@ Starting cir ...
    1    42  UZ    3   2.00000E+02   9.09790E-02   4.23210E-01   5.79851E-02   3.32822E-01  -7.21309E-01
    1    50  EP    4   2.40000E+02   8.30521E-02   4.23263E-01   5.80073E-02   3.32917E-01  -7.21309E-01
 
- Total Time    0.246E+00
+ Total Time    0.157E+00
 cir ... done
 Starting cir ...
  
@@ -186,7 +175,7 @@ Starting cir ...
    1    42  UZ    3   2.00000E+02   9.09790E-02   4.23210E-01   5.79851E-02   3.32822E-01  -7.21309E-01
    1    50  EP    4   2.40000E+02   8.30521E-02   4.23263E-01   5.80073E-02   3.32917E-01  -7.21309E-01
 
- Total Time    0.303E+00
+ Total Time    0.160E+00
 cir ... done
 Saving fort.7 as b.cir ... done
 Saving fort.8 as s.cir ... done
@@ -301,12 +290,9 @@ Saving fort.9 as d.cir ... done
 Deleting fort.* *.o *.exe *.*~ ... done
 Copying demo ab ... done
 Runner configured
-Deleting b.ab ... done
-Deleting s.ab ... done
-Deleting d.ab ... done
 Runner configured
 gfortran -fopenmp -O -c ab.f90 -o ab.o
-gfortran -fopenmp -O ab.o -o ab.exe /home/bart/auto/07p/lib/*.o
+gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
@@ -317,7 +303,7 @@ Starting ab ...
    1    46  UZ    5   1.70000E+01   0.00000E+00   0.00000E+00   0.00000E+00
    1    51  UZ    6   1.80000E+01   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    0.184E-01
+ Total Time    0.125E-01
 ab ... done
 RL1 changed to 0.4
 Starting ab ...
@@ -325,7 +311,7 @@ Starting ab ...
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
 
- Total Time    0.657E-02
+ Total Time    0.401E-02
 ab ... done
 Saving fort.7 as b.ab ... done
 Saving fort.8 as s.ab ... done
@@ -339,19 +325,19 @@ Starting ab ...
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    14  UZ    2   2.50000E-01   7.22011E-01   3.22893E-01   6.45786E-01
 
- Total Time    0.963E-02
+ Total Time    0.656E-02
 ab ... done
 Copying b.ab to b.double ... done
 Copying s.ab to s.double ... done
 Copying d.ab to d.double ... done
 Copying c.ab to c.double ... done
-Finished running: /home/bart/auto/07p/bin/double
+Finished running: /home/boldeman/auto/07p/bin/double
 Solution doubling done.
 Renaming b.double as b.triple ... done
 Renaming s.double as s.triple ... done
 Renaming d.double as d.triple ... done
-Renaming c.double as c.triple ... done
-Finished running: /home/bart/auto/07p/bin/triple
+Copying c.double to c.triple ... done
+Finished running: /home/boldeman/auto/07p/bin/triple
 Solution tripling done.
 Parsed file: fort.8
 Parsed file: fort.7

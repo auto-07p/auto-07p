@@ -810,7 +810,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         # for fort.8 we need to read into self.__data; otherwise load the
         # data on demand from disk when we really need it
         self._filename = None
-        if input.name not in ['./fort.8', 'fort.8']:
+        if os.path.basename(input.name) !=  'fort.8':
             self._filename = input.name
         if prev is None:
             self.__start_of_header = 0

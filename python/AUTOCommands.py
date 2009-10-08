@@ -2084,6 +2084,7 @@ def test():
 
     runner = runAUTO.runAUTO(auto_dir=
                              os.path.join(os.environ["AUTO_DIR"],"..","97"))
+    os.environ["PATH"] += os.pathsep+"."
     
     clean      = commandRunDemo("wav","clean",runner)
     first      = commandRunDemo("wav","first",runner)
