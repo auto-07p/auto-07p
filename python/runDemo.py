@@ -3,7 +3,7 @@ import runAUTO
 import AUTOExceptions
 
 def runDemo(demo,**kw):
-    runner = runAUTO.runAUTO(kw)
+    runner = runAUTO.runAUTO(**kw)
     runner.runDemo(demo)
 
 def test():
