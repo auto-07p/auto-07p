@@ -1221,7 +1221,12 @@ def configure(runner=None,templates=None,**kw):
                     doneread = True
                 except IOError:
                     if "__solution" not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+                        irs = kw.get("IRS")
+                        if irs is None:
+                            irs = (kw.get("constants") or {}).get("IRS",0)
+                        if irs != 0:
+                            raise AUTOExceptions.AUTORuntimeError(
+                                sys.exc_info()[1])
                     object = None
                 kw["solution"] = object
         if wantread and not doneread:
