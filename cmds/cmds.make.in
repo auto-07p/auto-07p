@@ -57,14 +57,13 @@ $(EXE): $(OBJ) $(LIBS)
 #
 FLAGS=-I$(AUTO_DIR)/include $(OPT)
 FCON=$(AUTO_DIR)/src/fcon.f
-fcon: $(AUTO_DIR)/src/fcon.f $(AUTO_DIR)/include/fcon.h
+fcon: $(EQUATION_NAME).o $(AUTO_DIR)/src/fcon.f $(AUTO_DIR)/include/fcon.h
 	@if [ -f $(EQUATION_NAME).f90 ]; then \
-	  $(FC) $(FLAGS) $(FFLAGS) $(EQUATION_NAME).f90 $(FCON) -o $@; \
+	  $(FC) $(FLAGS) $(FFLAGS) $(EQUATION_NAME).o $(FCON) -o $@; \
 	elif [ -f $(EQUATION_NAME).f ]; then \
-	  $(FC) $(FLAGS) $(FFLAGS) $(EQUATION_NAME).f $(FCON) -o $@; \
+	  $(FC) $(FLAGS) $(FFLAGS) $(EQUATION_NAME).o $(FCON) -o $@; \
 	elif [ -f $(EQUATION_NAME).c ]; then \
-	  $(CC) $(FLAGS) $(CFLAGS) -c $(EQUATION_NAME).c -o fcon.o; \
-	  $(FC) -L$(AUTO_DIR)/lib $(FFLAGS) $(OPT) fcon.o $(FCON) -o $@ -lauto_c; \
+	  $(FC) -L$(AUTO_DIR)/lib $(FFLAGS) $(OPT) $(EQUATION_NAME).o $(FCON) -o $@ -lauto_c; \
 	fi
 #
 # DO NOT ADD ANYTHING AFTER THIS LINE

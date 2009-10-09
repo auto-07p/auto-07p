@@ -389,8 +389,6 @@ class runAUTO:
                 "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
                 equation,equation,equation))
         # compile
-        if fcon:
-            equation = "fcon"
         if not os.path.exists(equation+'.o') or self.__newer([src],
                                                              equation+'.o'):
             if src[-1] == 'c':
