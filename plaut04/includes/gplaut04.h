@@ -67,8 +67,12 @@
 #define ITEM_THREE    2
 #define ITEM_FOUR     3
 
-#define max(a,b) (a>b?a:b)
-#define min(a,b) (a<b?a:b)
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
+#endif
+#ifndef min
+#define min(a,b) ((a)<(b)?(a):(b))
+#endif
 #define MAX_PAR  100    // Max Number of parameters in AUTO 
 
 #define WIN_WIDTH  1000
