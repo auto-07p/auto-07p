@@ -1,15 +1,12 @@
 #include <math.h>
 #include <Inventor/So.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include "r3bplaut04.h"
 
 #define CR3BP 0
 #define INERTIAL_B  1
 #define INERTIAL_S  2
 #define INERTIAL_E  3
-
-#ifndef MAXAB
-#define max(a,b) (a>b?a:b)
-#endif
 
 static void
 lagpoint (double mu, double LP [7][2], double eps)
