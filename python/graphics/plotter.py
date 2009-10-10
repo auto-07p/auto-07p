@@ -107,7 +107,8 @@ class plotter(grapher.GUIGrapher):
         w = v.capitalize()
         if w in special:
             v = special[w]
-        elif (option[-2:] in ['_x','_y','_z'] or 
+        elif (option[-2:] in ['_x','_y','_z'] or
+              option[-11:] == "_coordnames" or
               option in ["label","index","label_defaults","dashes"] or
               (option[0] == 'd' and len(option) == 2)):
             # convert to list, quote args if not numbers,
@@ -372,7 +373,7 @@ class plotter(grapher.GUIGrapher):
                     try:
                         indx = ucoordnames.index(col)
                         col = parsecoordnames[indx]
-                    except ValueError:
+                    except (ValueError, TypeError):
                         pass
                     ncol.append(col)
                 cols.append(ncol)
