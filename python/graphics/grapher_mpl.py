@@ -29,7 +29,7 @@ except ImportError:
         Axes3DI.get_xlim3d = Axes3DI.get_w_xlim
         Axes3DI.get_ylim3d = Axes3DI.get_w_ylim
         Axes3DI.get_zlim3d = Axes3DI.get_w_zlim
-    except (ImportError, NotImplementedError):
+    except (ImportError, NotImplementedError, NameError):
         Axes3D = None
 
 try:

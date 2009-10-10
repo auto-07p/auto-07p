@@ -67,6 +67,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                 bd = bifDiag.bifDiag(b,s)
             except AUTOExceptions.AUTORuntimeError:
                 sys.stderr.write(str(sys.exc_info()[1])+"\n")
+                self.orig_destroy()
                 sys.exit(1)
         dict = {
             "bifurcation_diagram": bd,

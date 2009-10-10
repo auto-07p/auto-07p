@@ -414,7 +414,7 @@ class runAUTO:
             libs = os.path.join(libdir,"*.o")
             deps = glob.glob(libs) + [equation+'.o']
             execfile = equation + ".exe"
-        if not os.path.exists(equation+'.exe') or self.__newer(deps,equation+'.exe'):
+        if not os.path.exists(execfile) or self.__newer(deps,execfile):
             if src[-1] == 'c':
                 cmd = "%s -L%s %s %s %s.o -o %s %s -lauto_c"%(var["FC"],libdir,
                                    var["FFLAGS"],var["OPT"],equation,execfile,libs)

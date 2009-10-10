@@ -5,7 +5,7 @@
 AUTO_DIR=$HOME/auto/07p
 PATH=$AUTO_DIR/cmds:$AUTO_DIR/bin:$PATH
 # the following is an example (to be uncommented) for Windows+MSYS:
-#PATH="/c/Python25:/bin:/c/Program Files/gfortran/bin:$PATH"
+#PATH="/c/Python26:/bin:/c/Program Files/gfortran/bin:$PATH"
 export AUTO_DIR
 export PATH
 #
