@@ -104,7 +104,7 @@ class parseS(list):
                 try:    
                     sol = self(irs)
                 except KeyError:
-                    raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+                    pass
         elif len(self) > 0:
             sol = self[-1]
         if kw != {} or sol is None:
