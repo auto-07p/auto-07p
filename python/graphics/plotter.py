@@ -84,6 +84,61 @@ class plotter(grapher.GUIGrapher):
                 self.computeRange(coord)
         grapher.GUIGrapher.plot(self)
 
+    def parselist(self,option,v,c,sep):
+        quote = ' '
+        i = 0
+        vlist = []
+        level = 0
+        for j, ch in enumerate(v):
+            if ch == '[' and level == 0 and option[-9:] == "_defaults":
+                level += 1
+                vlist1 = []
+                i = j+1
+                continue
+            if level == 1 and quote == ' ' and ch == ']':
+                s = v[i:j]
+                i = j+1
+            elif j == len(v) - 1:
+                s = v[i:]
+            elif ch in sep and quote == ' ':
+                s = v[i:j]
+                i = j+1
+            else:
+                if quote == ' ':
+                    if ch in ['"',"'"]:
+                        quote = ch
+                elif ch == quote:
+                    quote = ' '
+                continue
+            s = s.strip()
+            if len(s) == 0 or s[0] not in ['"',"'"]:
+                try:
+                    int(s)
+                except ValueError:
+                    s = "'"+s+"'"
+            if level == 1:
+                vlist1.append(s)
+                if ch == ']':
+                    level -= 1
+                    vlist1 = c.scanvalue("["+",".join(vlist1)+"]")[0]
+                    for i1, l1 in enumerate(vlist1):
+                        try:
+                            vlist1[i1] = int(l1)
+                        except ValueError:
+                            pass
+                    vlist.append(vlist1)
+            elif option[-9:] != "_defaults":
+                vlist.append(s)
+        if option[-9:] == "_defaults":
+            return vlist
+        v = c.scanvalue("["+",".join(vlist)+"]")[0]
+        for i, l in enumerate(v):
+            try:
+                v[i] = int(l)
+            except ValueError:
+                pass
+        return v
+
     def parseoption(self,option,v,c):
         special = {'None': None, 'True': True, 'False': False,
                    'Yes': True, 'No': False}
@@ -109,8 +164,9 @@ class plotter(grapher.GUIGrapher):
         if w in special:
             v = special[w]
         elif (option[-2:] in ['_x','_y','_z'] or
+              option[-9:] == "_defaults" or
               option[-11:] == "_coordnames" or
-              option in ["label","index","label_defaults","dashes"] or
+              option in ["label","index","dashes"] or
               (option[0] == 'd' and len(option) == 2)):
             # convert to list, quote args if not numbers,
             # then use the same method as for constant files
@@ -125,35 +181,7 @@ class plotter(grapher.GUIGrapher):
                 v = v[1:]
                 if len(v) > 0 and v[-1] == endbracket:
                     v = v[:-1]
-            quote = ' '
-            i = 0
-            vlist = []
-            for j, ch in enumerate(v):
-                if j == len(v) - 1:
-                    s = v[i:]
-                elif ch in sep and quote == ' ':
-                    s = v[i:j]
-                    i = j+1
-                else:
-                    if quote == ' ':
-                        if ch in ['"',"'"]:
-                            quote = ch
-                    elif ch == quote:
-                        quote = ' '
-                    continue
-                s = s.strip()
-                if len(s) == 0 or s[0] not in ['"',"'"]:
-                    try:
-                        int(s)
-                    except ValueError:
-                        s = "'"+s+"'"
-                vlist.append(s)
-            v = c.scanvalue("["+",".join(vlist)+"]")[0]
-            for i, l in enumerate(v):
-                try:
-                    v[i] = int(l)
-                except ValueError:
-                    pass
+            v = self.parselist(option,v,c,sep)
             if option[0] == 'd' and len(option) == 2:
                 v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
         else: # simple value
