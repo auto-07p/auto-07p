@@ -174,16 +174,16 @@ License (GPL), in particular, Coin, SoQt and Qt. In that case the
 %The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
 %directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
-The {\cal AUTO} file \filef{auto07p-0.6.tar.gz} is
+The {\cal AUTO} file \filef{auto07p-0.7.tar.gz} is
 available via \url{http://cmvl.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
 Here it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
-and that the file \filef{auto07p-0.6.tar.gz} is in your main
+and that the file \filef{auto07p-0.7.tar.gz} is in your main
 directory. See below for OS-specific notes.
 
 While in your main directory, enter the commands
-\commandf{gunzip auto07p-0.6.tar.gz},
-followed by \commandf{tar xvfo auto07p-0.6.tar}.
+\commandf{gunzip auto07p-0.7.tar.gz},
+followed by \commandf{tar xvfo auto07p-0.7.tar}.
 This will result in a directory \filef{auto}, 
 with one subdirectory, \filef{auto/07p}. 
 Type \commandf{cd auto/07p}
@@ -230,6 +230,8 @@ To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} 2D plotter it
 is strongly recommended to install NumPy
 (\url{http://numpy.scipy.org}), TkInter, and
 Matplotlib (\url{http://matplotlib.sourceforge.net/}).
+Note that Matplotlib 0.99 or higher is recommended because it supports
+3D plotting in addition to 2D plotting.
 For enhanced interactive use of the Python CLUI it is also worth
 installing IPython (\url{http://ipython.scipy.org}).
 
@@ -240,7 +242,8 @@ system. These libraries may be available as optional packages,
 though. In order of preference these are:
 \begin{enumerate}
 \item
-Coin3D (version 2.2 or higher), SoQt (1.1.0 or higher), and simage (1.6 or higher).
+Coin3D (version 2.2 or higher), SoQt (1.1.0 or higher), and simage
+(1.6 or higher). With SoQt 1.5.0 or higher, simage is no longer required.
 \item
 Coin3D with the SoXt library, which interfaces with (Open)Motif or
 LessTif (version 2.0 or higher) instead of Qt. The user interface has
@@ -299,7 +302,8 @@ The following packages (and their dependencies) are recommended for
 Fedora:
 \begin{itemize}
 \item Python: \filef{python-matplotlib-tk} and \filef{ipython}.
-\item {\cal PLAUT04}: \filef{SoQt-devel}. To see pictures of stars, the earth
+\item {\cal PLAUT04}: \filef{SoQt-devel}. For SoQt versions older than
+1.5.0, to see pictures of stars, the earth
 and the moon instead of white blobs, compile simage from
 source (see \url{www.coin3d.org}; needs \filef{libjpeg-devel}).
 \item {\cal PLAUT}: \filef{xterm}.
@@ -330,21 +334,28 @@ installed. You do not need to start an X server to run AUTO.
 Furthermore, the following packages are recommended:
 \begin{itemize}
 \item Gfortran: See \url{r.research.att.com/tools/}.
-\item Python: You can install Python, Matplotlib, NumPy,
-  Python-dateutil, and pytz from 
-\url{http://pythonmac.org/packages/py25-fat/index.html}.
-The default Python in Mac OS X may be too old for Matplotlib and NumPy,
-and we found that these packages work better than the Fink packages.
+\item Python: for Mac OS X 10.5 (Leopard) or newer, 
+you can install Python 2.6, NumPy, and Matplotlib \filef{.dmg} files
+from \url{www.python.org}, \url{numpy.scipy.org},
+and \url{matplotlib.sf.net}, respectively.\\
+Alternatively, and for older systems, you can install Python,
+Matplotlib, NumPy, Python-dateutil, and pytz from 
+\url{http://pythonmac.org/packages/py25-fat/index.html}.\\
+The default system Python in Mac OS X is usable, but may be too old for
+Matplotlib and NumPy.
 There are other alternatives, for instance the Enthought Python
-Distribution at \url{www.enthought.com}.\\
+Distribution at \url{www.enthought.com}. Fink should work but native
+graphics provided by the previous alternatives seem to work better.\\
 To be able to plot in the Python CLUI in some versions of OS X,
 \AUTO uses \filef{pythonw} instead of \filef{python}.
 This should happen automatically.
 \item {\cal PLAUT04}: Get a Qt \filef{.dmg} from
-\url{trolltech.com/downloads/opensource/appdev/mac-os-cpp}.
+\url{qt.nokia.com/downloads/mac-os-cpp}.
 Similarly, you can get a binary Coin package from \url{coin3d.org}.
-After that you can compile SoQt and simage from the source code
-at \url{coin3d.org}. Try to make sure that the native (Aqua) Qt
+After that you can compile SoQt from the source code
+at \url{coin3d.org}. Either use at least version 1.5.0, and until that version
+is released, \url{http://ftp.coin3d.org/coin/src/snapshots/SoQt-latest.tar.gz}.
+Try to make sure that the native (Aqua) Qt
 is used by setting {\tt \$QTDIR}, if you also have fink installed.
 \item {\cal PLAUT}: In pre-Leopard OS X it appears that you do not see
 fonts. To solve this issue you need to obtain a different
@@ -356,12 +367,12 @@ version of xterm; see
 
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
-to use GFortran, MSYS (see \url{http://www.mingw.org}),
+to use GFortran, MSYS 1.0.11 or higher (see \url{http://www.mingw.org}),
 combined with a native Win32 version of Python,
 obtained at \url{http://www.python.org}. To install this setup:
 \begin{itemize}
 \item
-Install Python (as of this writing, version 2.5, not 2.6 or 3.0!)
+Install Python (as of this writing, preferably version 2.6, not 3.0!)
 from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
 and Matplotlib from \url{matplotlib.sf.net}, which all come
 with installers.
@@ -379,7 +390,7 @@ puts you in a home directory, where you can unpack
 Make sure that the {\tt gfortran} and {\tt python} binaries
 are in your {\tt PATH}, and that their directories are at the front of it.
 You can do this, for instance, using the shell command
-\commandf{export PATH="/c/Python25:/bin:/c/Program Files/gfortran/bin:\$PATH" }.
+\commandf{export PATH="/c/Python26:/bin:/c/Program Files/gfortran/bin:\$PATH" }.
 You can also inspect, edit and then source the file
 \filef{auto/07p/cmds/auto.env.sh} to achieve this.
 \item
@@ -388,18 +399,9 @@ as shown above.
 \end{itemize}
 
 You can use \AUTO using shell commands from the default MSYS shell
-environment; however the Python CLUI does not cooperate well with it.
-To work around that, you can start the CLUI by double clicking on the file
+environment. You can also start the CLUI by double clicking on the file
 \filef{auto.py} in the \filef{python} folder of \AUTO in Windows Explorer,
 or by creating a shortcut to it.
-
-Or you can start MSYS inside \filef{CMD.EXE}: create a copy of the MSYS
-desktop icon and add \filef{--norxvt} to the ``Target'' field.
-If its behaviour does not change, then replace
-\filef{C:\textbackslash msys \textbackslash 1.0 \textbackslash
-  msys.bat}
-by the file at
-\url{http://mingw.cvs.sourceforge.net/mingw/msys/dvlpr/bin/msys.bat}.
 
 Alternatively, \AUTO runs on Windows as above using the Unix-like
 environment Cygwin (see \url{http://www.cygwin.com}), but the
@@ -410,7 +412,7 @@ and run the old {\cal PLAUT} and GUI94, if you so desire.
 With some effort it is possible to compile {\cal PLAUT04}
 on Windows (without an X server) using Coin, SoQt, and Qt. You can
 also find precompiled {\cal PLAUT04} binaries at
-\url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
+\url{http://sourceforge.net/projects/auto-07p/files}.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
 There are no size restrictions in the file \filef{
