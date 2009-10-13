@@ -8,36 +8,59 @@
 PROGRAM AUTLAB
   USE UTILITY
 
-  PARAMETER (MXLB=10000)
-  CHARACTER*1 CMD
-  DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-  DIMENSION LFR(MXLB),LTO(MXLB)
+  IMPLICIT NONE
+  INTEGER, PARAMETER :: MXLB=10000, MXBR=10000
+  CHARACTER*2 CMD
+  INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+  INTEGER LFR(MXLB),LTO(MXLB)
+  INTEGER BBR(MXBR),BNB(MXBR),LBI(MXLB)
   LOGICAL CHCKLB
+  INTEGER NBR,NLB,NL,I
 
   OPEN(27,FILE='fort.27',STATUS='old',ACCESS='sequential')
   OPEN(28,FILE='fort.28',STATUS='old',ACCESS='sequential')
 
-  CALL RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,28)
+  CALL RDFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,28)
+  CALL RDFILE7(MXBR,NBR,BBR,BNB,NLB,LBI,27)
   CALL SYSTEM('clear')
   DO
      CALL RDCMD(MXLB,CMD,NL,LFR,LTO)
-     SELECT CASE(CMD)
+     SELECT CASE(TRIM(CMD))
      CASE('H')
         CALL SYSTEM('clear')
         CALL HELP
      CASE('L')
         CALL LISTLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,.TRUE.)
+     CASE('LB')
+        CALL LISTBR(NBR,BBR,BNB,NLB,LBI,LNL,NL,LFR,LTO)
      CASE('D')
-        CALL DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
+        CALL DELETE('label',NLB,LLB,LNL,NL,LFR,LTO)
+     CASE('DB')
+        CALL DELETE('branch',NBR,BBR,BNB,NL,LFR,LTO)
+        ! delete all labels on the branch
+        DO I=1,NLB
+           IF(LBI(I)/=0)THEN
+              IF(BNB(LBI(I))==0)THEN
+                 LNL(I)=0
+              ENDIF
+           ENDIF
+        ENDDO
      CASE('R')
-        CALL RELABEL(MXLB,NLB,LLB,LNL,NL,LFR,LTO)
+        CALL RELABEL('label',NLB,LLB,LNL,NL,LFR,LTO)
+     CASE('RB')
+        CALL RELABEL('branch',NBR,BBR,BNB,NL,LFR,LTO)
+        DO I=1,NLB ! sync solutions
+           IF(LBI(I)/=0)THEN
+              LBR(I)=BNB(LBI(I))
+           ENDIF
+        ENDDO
      CASE('W')
         IF(CHCKLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL))THEN
            WRITE(6,"(/,' Rewriting files ... ')")
            OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
            OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
-           CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
-           CALL WRFILE8(LNL)
+           CALL WRFILE7(NBR,BBR,BNB,NLB,LLB,LNL)
+           CALL WRFILE8(LBR,LNL)
            STOP
         ENDIF
      CASE('Q')
@@ -53,7 +76,8 @@ SUBROUTINE RDCMD(MXLB,CMD,NL,LFR,LTO)
   IMPLICIT NONE
   INTEGER MXLB,NL
   INTEGER LFR(MXLB),LTO(MXLB)
-  CHARACTER*1 CMD
+  CHARACTER*1 CMD1
+  CHARACTER*2 CMD
 
   INTEGER, SAVE :: IFIRST
   CHARACTER*1 GETCHR,CHR
@@ -71,19 +95,24 @@ SUBROUTINE RDCMD(MXLB,CMD,NL,LFR,LTO)
      LINE=' '
      READ(5,'(A80)')LINE
      IP=1
-     CMD=GETCHR(LINE,IP)
-     i=INDEX('hldrwq',CMD)
+     CMD1=GETCHR(LINE,IP)
+     i=INDEX('hldrwq',CMD1)
      IF(i>=1)THEN
-        CMD='HLDRWQ'(i:i)
+        CMD1='HLDRWQ'(i:i)
         EXIT
      ENDIF
      WRITE(6,'(/A)',ADVANCE="no")' Invalid Command '
      IFIRST=0
   ENDDO
-  IF(CMD=='L'.OR.CMD=='D'.OR.CMD=='R')THEN
+  CMD=CMD1
+  IF(CMD1=='L'.OR.CMD1=='D'.OR.CMD1=='R')THEN
      NL=0
      DO
         CHR=GETCHR(LINE,IP)
+        IF(CHR=='b'.OR.CHR=='B')THEN
+           CMD(2:2)='B'
+           CYCLE
+        ENDIF
         IF(INDEX('0123456789',CHR)==0)EXIT
         IP=IP-1
         NL=NL+1
@@ -140,41 +169,48 @@ END FUNCTION GETNUM
 !--------- ----
 SUBROUTINE HELP
 
-  WRITE(6,"(/A//A/A/A/A/A/A)") &
+  WRITE(6,"(/A//A/A/A/A/A/A/A)") &
        ' Available commands : ', &
        '   l  :  list labels', &
+       '   lb :  list branch numbers', &
        '   d  :  delete labels', &
+       '   db :  delete branches', &
        '   r  :  relabel', &
+       '   rb :  relabel branches', &
        '   w  :  rewrite files', &
        '   q  :  quit ', &
        '   h  :  help '
-  WRITE(6,"(//A/A//A/A/A)") &
-       ' The l, d, and r commands can be followed on the ', &
+  WRITE(6,"(//A/A//A/A/A/A)") &
+       ' The l, d, r, lb, db, and rb commands can be followed on the ', &
        ' same line by a list of labels, for example, ', &
-       ' l 13        (list label 13)', &
-       ' d 7 13      (delete labels 7 and 13)', &
-       ' r 1 13 6-9  (relabel 1, 13, and 6 to 9)'
-  WRITE(6,"(//A//A/A/A/)") &
+       ' l 13           (list label 13)', &
+       ' d 7 13         (delete labels 7 and 13)', &
+       ' r 1 13 6-9     (relabel 1, 13, and 6 to 9)', &
+       ' rb 1, 3-5, 7-9 (relabel branches 1, 3 to 5, and 7 to 9)'
+  WRITE(6,"(//A//A/A/A/A/)") &
        ' If a list is not specified then the actions are', &
-       ' l           (list all labels)', &
-       ' d           (delete/confirm all labels)', &
-       ' r           (automatic relabeling)'
+       ' l              (list all labels)', &
+       ' d              (delete/confirm all labels)', &
+       ' r              (automatic relabeling)', &
+       ' rb             (automatic relabeling of branches)'
 
 END SUBROUTINE HELP
 
 !--------- ------
-SUBROUTINE DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
+SUBROUTINE DELETE(S,NLB,LLB,LNL,NL,LFR,LTO)
 
   USE UTILITY
-  DIMENSION LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
-  DIMENSION LFR(MXLB),LTO(MXLB)
+  IMPLICIT NONE
+  CHARACTER(*) S
+  INTEGER NLB,LBI(NLB),LLB(NLB),LNL(NLB),LFR(NLB),LTO(NLB),NL
   CHARACTER*1 CH1
+  INTEGER I
 
   IF(NL.EQ.0)THEN
      DO I=1,NLB
         IF(LNL(I).GT.0)THEN
-           WRITE(6,"(A,I4,A)",ADVANCE="no") &
-                ' Delete (old) label ',LLB(I),' ? : '
+           WRITE(6,"(A,A,I5,A)",ADVANCE="no") &
+                ' Delete (old) ',TRIM(S),LLB(I),' ? : '
            READ(5,'(A1)')CH1
            IF(CH1.EQ.'y'.OR.CH1.EQ.'Y')THEN
               LNL(I)=0
@@ -183,7 +219,7 @@ SUBROUTINE DELETE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO)
      ENDDO
   ELSE
      DO I=1,NLB
-        IF(INLIST(MXLB,LLB(I),NL,LFR,LTO))THEN
+        IF(INLIST(NLB,LLB(I),NL,LFR,LTO))THEN
            LNL(I)=0
         ENDIF
      ENDDO
@@ -215,5 +251,50 @@ LOGICAL FUNCTION CHCKLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
 
   RETURN
 END FUNCTION CHCKLB
+
+! ---------- ------
+  SUBROUTINE LISTBR(NBR,BBR,BNB,NLB,LBI,LNL,NB,BFR,BTO)
+!
+    USE UTILITY
+    IMPLICIT NONE
+    INTEGER NBR,BBR(NBR),BNB(NBR),NLB,LBI(NLB),LNL(NLB)
+    INTEGER NB,BFR(NBR),BTO(NBR)
+    LOGICAL FIRST
+    INTEGER I, J
+!
+    IF(NBR.EQ.0)THEN
+       WRITE(6,"(/,' Empty bifurcation diagram file')")
+       RETURN
+    ENDIF
+
+    FIRST=.TRUE.
+    J=1
+    DO I=1,NBR
+       IF(NB==0 .OR. INLIST(NLB,I,NB,BFR,BTO))THEN
+          IF(FIRST)THEN
+             WRITE(6,"(/,'  BR NEW  Labels in branch')")
+             FIRST=.FALSE.
+          ENDIF
+          WRITE(6,"(I4)",ADVANCE="no")BBR(I)
+          IF(I==BNB(I).OR.BNB(I)/=0)THEN
+             WRITE(6,"(I4)",ADVANCE="no")BNB(I)
+             IF(J<=NLB)THEN
+                IF(LBI(J)==I)THEN
+                   WRITE(6,"(I5)",ADVANCE="no"),LNL(J)
+                   J=J+1
+                   DO WHILE(LBI(J)==I)
+                      WRITE(6,"(A,I5)",ADVANCE="no")", ",LNL(J)
+                      J=J+1
+                   ENDDO
+                ENDIF
+             ENDIF
+             WRITE(6,"()")
+          ELSE
+             WRITE(6,"('        DELETED')")
+          ENDIF
+       ENDIF
+    ENDDO
+
+  END SUBROUTINE LISTBR
 !======================================================================
 !======================================================================

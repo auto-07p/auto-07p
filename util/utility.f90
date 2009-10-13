@@ -9,7 +9,7 @@ MODULE UTILITY
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC KEEPMAIN,RDFILE,LISTLB,INLIST,WRFILE7,WRFILE8,RELABEL
+  PUBLIC KEEPMAIN,RDFILE7,RDFILE8,LISTLB,INLIST,WRFILE7,WRFILE8,RELABEL
 
 CONTAINS
 
@@ -27,20 +27,59 @@ CONTAINS
     OPEN(37,FILE='fort.37',STATUS='unknown',ACCESS='sequential')
     OPEN(38,FILE='fort.38',STATUS='unknown',ACCESS='sequential')
 
-    CALL RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,28)
+    CALL RDFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,28)
     DO I=1,NLB
        IF(DELETEFN(I,LTY(I)))THEN
           LNL(I)=0
           LTY(I)=0
        ENDIF
     ENDDO
-    CALL WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
-    CALL WRFILE8(LNL)
+    CALL WRFILE7(0,LBR,LNL,NLB,LBR,LNL)
+    CALL WRFILE8(LBR,LNL)
 
   END SUBROUTINE KEEPMAIN
 
-! ---------- ------
-  SUBROUTINE RDFILE(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,UNIT)
+! ---------- -------
+  SUBROUTINE RDFILE7(MXBR,NBR,BBR,BNB,NLB,LBI,UNIT)
+
+    ! just scan branch numbers and labels on the branch
+    INTEGER, INTENT(IN) :: MXBR, NLB, UNIT
+    INTEGER, INTENT(OUT) :: NBR
+    INTEGER, INTENT(OUT) :: BBR(MXBR), BNB(MXBR), LBI(NLB)
+    INTEGER J,IBR,IPT,ITY,ILB,PREVPT
+
+    NBR=0
+    J=1
+    DO
+       DO
+          READ(UNIT,*,END=99,ERR=99)IBR
+          IF(IBR/=0)EXIT
+       ENDDO
+       NBR=NBR+1
+       BBR(NBR)=ABS(IBR)
+       BNB(NBR)=ABS(IBR)
+       BACKSPACE UNIT
+       READ(UNIT,*,END=99,ERR=98)IBR,IPT,ITY,ILB
+       DO
+          PREVPT=ABS(IPT)
+          IF(ILB/=0)THEN
+             LBI(J)=NBR
+             J=J+1
+          ENDIF
+          READ(UNIT,*,END=99,ERR=98)IBR,IPT,ITY,ILB
+          IF(IBR==0)EXIT
+          IF(ABS(IPT)==1.AND.PREVPT/=9999.AND.PREVPT/=0)THEN
+             BACKSPACE UNIT
+             EXIT
+          ENDIF
+       ENDDO
+98     CONTINUE
+    ENDDO
+99  RETURN
+  END SUBROUTINE RDFILE7
+
+! ---------- -------
+  SUBROUTINE RDFILE8(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,UNIT)
 
     INTEGER MXLB,NLB
     INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB),UNIT
@@ -71,23 +110,28 @@ CONTAINS
     ENDDO
 2   RETURN
 
-  END SUBROUTINE RDFILE
+  END SUBROUTINE RDFILE8
 
 ! ---------- -------
-  SUBROUTINE WRFILE7(MXLB,NLB,LBR,LPT,LTY,LLB,LNL)
+  SUBROUTINE WRFILE7(NBR,BBR,BNB,NLB,LLB,LNL)
 
-    INTEGER MXLB,NLB
-    INTEGER LBR(MXLB),LPT(MXLB),LTY(MXLB),LLB(MXLB),LNL(MXLB)
+    INTEGER NBR,NEWBR,NLB
+    INTEGER BBR(NBR),BNB(NBR),LLB(NLB),LNL(NLB)
     CHARACTER(LEN=132) LINE
     CHARACTER(LEN=1) CH1
-    CHARACTER(LEN=9) FMT ! fits "(I99,I99)"
-    INTEGER I,J,L,LNUM,LEN,LAB,IND(4),L2,L3
-    LOGICAL EOL
+    CHARACTER(LEN=17) FMT ! fits "(I99,I99,I99,I99)"
+    INTEGER I,J,L,LNUM,LEN,BRI,BR,PREVPT,PT,TY,LAB,IND(4),L0,L1,L2,L3
+    LOGICAL EOL, HEADER
 
     L=0
     LNUM=0
+    L0=0
+    L1=0
     L2=0
     L3=0
+    BRI=0
+    HEADER=.FALSE.
+    PT=0
     REWIND 27
     DO
        EOL=.TRUE.
@@ -106,6 +150,10 @@ CONTAINS
           ENDDO
           ! check for header line
           IF(I==1.AND.LINE(J:J)=='0')THEN
+             IF(.NOT.HEADER)THEN
+                BRI=BRI+1
+             ENDIF
+             HEADER=.TRUE.
              EXIT
           ENDIF
           ! look for next space after BR/PT/TY/LAB
@@ -122,13 +170,28 @@ CONTAINS
           IND(I)=J
        ENDDO
        LAB=0
+       BR=0
        IF(IND(1)/=0)THEN
-          READ(LINE(IND(3):IND(4)-1),*)LAB
+          PREVPT=PT
+          READ(LINE(:IND(4)-1),*)BR,PT,TY,LAB
+          IF(.NOT.HEADER.AND.PT==1.AND.PREVPT/=9999.AND.PREVPT/=0)THEN
+             BRI=BRI+1
+          ENDIF
+          HEADER=.FALSE.
        ENDIF
-             
-       IF(LAB/=0)THEN
-          L=L+1
-          IF(LAB.NE.LLB(L))THEN
+       NEWBR=BR
+       IF(BRI<=NBR)THEN
+          NEWBR=BNB(BRI)
+          IF(IND(1)/=0)THEN
+             NEWBR=SIGN(NEWBR,BR)
+          ELSE
+             BR=NEWBR
+          ENDIF
+       ENDIF
+
+       IF(LAB/=0.OR.NEWBR/=BR)THEN
+          IF(LAB/=0)L=L+1
+          IF(LAB/=0.AND.LAB/=LLB(L))THEN
              WRITE(6,"(A/A,I5,A,I5/A,I5/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
                   '  b-file label',LAB,' at line ',LNUM, &
@@ -142,12 +205,22 @@ CONTAINS
                 RETURN
              ENDIF
           ENDIF
-          IF(IND(3)-IND(2)/=L2.OR.IND(4)-IND(3)/=L3)THEN
+          IF(IND(1)-1/=L0.OR.IND(2)-IND(1)/=L1.OR. &
+               IND(3)-IND(2)/=L2.OR.IND(4)-IND(3)/=L3) THEN
+             L0=IND(1)-1
+             L1=IND(2)-IND(1)
              L2=IND(3)-IND(2)
              L3=IND(4)-IND(3)
-             WRITE(FMT,"(A,I2,A,I2,A)")'(I',L2,',I',L3,')'
+             WRITE(FMT,"(A,I2,A,I2,A,I2,A,I2,A)")&
+                  '(I',L0,',I',L1,',I',L2,',I',L3,')'
           ENDIF
-          WRITE(LINE(IND(2):IND(4)-1),FMT)LTY(L),LNL(L)
+          WRITE(LINE(:IND(4)-1),FMT)NEWBR,PT,TY,LNL(L)
+       ENDIF
+       IF(NEWBR==0)THEN ! deleted branch; don't write
+          IF(.NOT.EOL)THEN
+             READ(27,"()",END=99)
+          ENDIF
+          CYCLE
        ENDIF
        IF(.NOT.EOL)THEN
           DO
@@ -162,9 +235,9 @@ CONTAINS
   END SUBROUTINE WRFILE7
 
 ! ---------- -------
-  SUBROUTINE WRFILE8(LNL)
+  SUBROUTINE WRFILE8(LBR,LNL)
 
-    INTEGER LNL(*)
+    INTEGER LBR(*),LNL(*)
     INTEGER IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
     INTEGER NPARI,NDM,IPS,IPRIV
     INTEGER I,L
@@ -180,7 +253,7 @@ CONTAINS
                NAR,NROWPR,NTST,NCOL,NPAR
           L=L+1
           IF(LNL(L)>0)THEN
-             WRITE(38,101)IBR,NTOT,ITP,LNL(L),NFPR,ISW,NTPL, &
+             WRITE(38,101)LBR(L),NTOT,ITP,LNL(L),NFPR,ISW,NTPL, &
                   NAR,NROWPR,NTST,NCOL,NPAR
           ENDIF
        ELSE
@@ -188,7 +261,7 @@ CONTAINS
                NAR,NROWPR,NTST,NCOL,NPAR,NPARI,NDM,IPS,IPRIV
           L=L+1
           IF(LNL(L)>0)THEN
-             WRITE(38,111)IBR,NTOT,ITP,LNL(L),NFPR,ISW,NTPL, &
+             WRITE(38,111)LBR(L),NTOT,ITP,LNL(L),NFPR,ISW,NTPL, &
                   NAR,NROWPR,NTST,NCOL,NPAR,NPARI,NDM,IPS,IPRIV
           ENDIF
        ENDIF
@@ -231,7 +304,6 @@ CONTAINS
 !
 ! Skips the specified number of lines on fort.IUNIT.
 !
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: IUNIT,NSKIP
     LOGICAL, INTENT(OUT) :: EOF
     CHARACTER(12) FMT
@@ -244,7 +316,7 @@ CONTAINS
 
   END SUBROUTINE SKIP
 !
-! LISTLB, TYPE and RELABEL are used by listlabels.f, autlab.f, or relabel.f
+! LISTLB, TYPE, and RELABEL are used by listlabels.f, autlab.f, or relabel.f
 !
 ! ---------- ------
   SUBROUTINE LISTLB(MXLB,NLB,LBR,LPT,LTY,LLB,LNL,NL,LFR,LTO,NEW)
@@ -303,11 +375,12 @@ CONTAINS
   END SUBROUTINE LISTLB
 
 ! ---------- -------
-  SUBROUTINE RELABEL(MXLB,NLB,LLB,LNL,NL,LFR,LTO)
+  SUBROUTINE RELABEL(S,NLB,LLB,LNL,NL,LFR,LTO)
 
-    INTEGER MXLB,NLB,NL
-    INTEGER LLB(MXLB),LNL(MXLB)
-    INTEGER LFR(MXLB),LTO(MXLB)
+    CHARACTER(*) S
+    INTEGER NLB,NL
+    INTEGER LLB(NLB),LNL(NLB)
+    INTEGER LFR(NLB),LTO(NLB)
     INTEGER NN,I
 
     IF(NL==0)THEN
@@ -321,9 +394,9 @@ CONTAINS
     ELSE
        DO I=1,NLB
           IF(NL==0 .OR. &
-               (LNL(I)>0 .AND. INLIST(MXLB,LLB(I),NL,LFR,LTO)) )THEN
-             WRITE(6,"(' Old label ',I4,';  Enter new label : ')", &
-                  ADVANCE="no")LLB(I)
+               (LNL(I)>0 .AND. INLIST(NLB,LLB(I),NL,LFR,LTO)) )THEN
+             WRITE(6,"(' Old ',A,I5,';  Enter new ',A,' : ')", &
+                  ADVANCE="no")S,LLB(I),S
              READ(5,*)LNL(I)
           ENDIF
        ENDDO
