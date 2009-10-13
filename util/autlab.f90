@@ -280,7 +280,7 @@ END FUNCTION CHCKLB
              WRITE(6,"(I4)",ADVANCE="no")BNB(I)
              IF(J<=NLB)THEN
                 IF(LBI(J)==I)THEN
-                   WRITE(6,"(I5)",ADVANCE="no"),LNL(J)
+                   WRITE(6,"(I5)",ADVANCE="no")LNL(J)
                    J=J+1
                    DO WHILE(LBI(J)==I)
                       WRITE(6,"(A,I5)",ADVANCE="no")", ",LNL(J)
