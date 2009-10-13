@@ -232,6 +232,10 @@ is strongly recommended to install NumPy
 Matplotlib (\url{http://matplotlib.sourceforge.net/}).
 Note that Matplotlib 0.99 or higher is recommended because it supports
 3D plotting in addition to 2D plotting.
+Python itself needs to be at least version 2.2 or higher, but 2.4 or
+higher is strongly recommended and required for NumPy and Matplotlib.
+As of this writing Python 3.x is not supported by NumPy and
+Matplotlib, and therefore not recommended.
 For enhanced interactive use of the Python CLUI it is also worth
 installing IPython (\url{http://ipython.scipy.org}).
 
@@ -2573,11 +2577,11 @@ Run \AUTO.
 
     Example: given a bifurcation diagram bd, with a branch point
     solution, switch branches and stop at the first Hopf bifurcation:\\
-    \commandf{hb = run(bd('BP1'),ISW=-1,SP='HB1')}
+    \commandf{hb = run(bd('BP1'),ISW=-1,STOP='HB1')}
     
     Special keyword arguments are \parf{sv} and \parf{ap}; \parf{sv} is also an \AUTO
     constant:\\
-    \commandf{run(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')}\\
+    \commandf{run(bd('BP1'),ISW=-1,STOP='HB1',sv='hb',ap='all')}\\
     saves to the files \filef{b.hb}, \filef{s.hb} and \filef{d.hb},
     and appends to \filef{b.all}, \filef{s.all}, and \filef{d.all}.
 
@@ -4416,13 +4420,13 @@ U = {}, PAR = {}
 NDIM=   2, IPS =   1, IRS =   0, ILP =   1
 ICP =  [1]
 NTST=  20, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
-NMX=99999, RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308
-NPR=99999, MXBF=  10, IID =   2, ITMX=   9, ITNW= 5, NWTN= 3, JAC= 0
+NMX=99999, NPR=99999, MXBF=  10, IID =   2, ITMX=   9, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 NPAR=  36, THL =  {}, THU =  {}
-UZR = {}
-SP = []
+RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308,
+UZR = {},
+SP = [], STOP = []
 NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 1
 IREV = [], IFIXED = [], IPSI = []
 \end{verbatim}
@@ -4652,11 +4656,8 @@ There are three ways to limit the computation of a family~:
 
 \begin{itemize}
 \item[-]
-By appropriate choice of the computational window 
-defined by the constants {\tt RL0}, {\tt RL1}, {\tt A0}, and {\tt A1}.
-One should always check that the starting solution lies within
-this computational window, otherwise the computation will stop immediately
-at the starting point.
+By specifying a stopping condition in the list associated 
+with the constant {\tt STOP}; see Section~\ref{sec:STOP}. 
 
 \item[-]
 By specifying the maximum number of steps, {\tt NMX}.
@@ -4664,6 +4665,26 @@ By specifying the maximum number of steps, {\tt NMX}.
 \item[-]
 By specifying a negative parameter index in the list associated 
 with the constant {\tt UZR}; see Section~\ref{sec:UZR}. 
+
+\item[-]
+By appropriate choice of the computational window 
+defined by the constants {\tt RL0}, {\tt RL1}, {\tt A0}, and {\tt A1}.
+One should always check that the starting solution lies within
+this computational window, otherwise the computation will stop immediately
+at the starting point. Most demos do not specify these constants, and
+use an unbounded window.
+\end{itemize}
+
+\subsection{\tt STOP}  \label{sec:STOP}
+This constant adds stopping conditions. It is specified as a list of
+bifurcation type strings followed by a number $n$ greater than zero.
+These strings specify that the contination should stop as soon as the $n$th
+bifurcation of the associated type has been reached.
+Example:\\
+\begin{itemize}
+\item[-] {\tt STOP=['HB3','UZ3']}\\
+Stop at the third Hopf bifurcation or third user defined point (see
+Section~\ref{sec:UZR}), whichever comes first.
 \end{itemize}
 
 \subsection{\tt NMX} \label{sec:NMX}
@@ -4673,7 +4694,6 @@ The maximum number of steps to be taken along any family.
  The lower bound on the principal continuation parameter.
  (This is the parameter which appears first in the {\tt ICP} list;
  see Section~\ref{sec:ICP}.). 
-
 
 \subsection{\tt RL1}  \label{sec:RL1}
  The upper bound on the principal continuation parameter. 
@@ -4826,12 +4846,13 @@ remain fixed.
 The actual continuation scheme in {\cal AUTO} may use additional free
 parameters that are automatically added.
 The simplest example is the computation of periodic solutions and rotations,
-where {\cal AUTO} automatically adds the period, if not specified.
+where {\cal AUTO} automatically puts the period, if not specified, in
+\parf{PAR(11)}.
 The computation of loci of folds, Hopf bifurcations, and period-doublings
 also requires additional internal continuation parameters.
 These will be automatically added, and their indices will be greater
-than 10.
-
+than \parf{NPAR}.
+Other use depends on \parf{IPS}: see Section~\ref{sec:Restrictions_on_PAR}.
 
 %=====================================================================
 \subsection{ Parameter overspecification.} \label{sec:Parameter_over_specification}
@@ -5298,8 +5319,8 @@ of defining solution measures; see Section~\ref{sec:Parameter_over_specification
  For examples see demos {\tt exp}, {\tt int}, and {\tt fsh}.
 \item[-]
  If such a parameter index is preceded by a minus sign then the computation will
- terminate at such a solution point. See also \texttt{SP} in
- Section~\ref{sec:SP} above for an alternative termination method.
+ terminate at such a solution point. See also \texttt{STOP} in
+ Section~\ref{sec:STOP} above for an alternative termination method.
  (Demos {\tt pen} and {\tt bru}.)
 \end{itemize}
 
@@ -5398,12 +5419,50 @@ The following restrictions apply~:
 \item[-]
   The default maximum number of parameters, \parf{NPAR} has a
   pre-defined value in \filef{auto/07p/ include/auto.h},
-  of \parf{NPARX}=36.  \parf{NPARX} should not normally be increased
-  and it should never be decreased.
-  Any increase of \parf{NPARX} must be followed by recompilation of {\cal AUTO}.
+  of \parf{NPARX}=36.
+  Any change \parf{NPARX} must be followed by recompilation of {\cal AUTO}.
 \item[-]
-  Generally one should only use \parf{PAR(1)-PAR(9)} for equation parameters,
-  as {\cal AUTO} may need the other components internally.  
+  Generally one should avoid certain parameters for equation parameters,
+  as {\cal AUTO} may need those internally, as follows:
+\begin{description}
+\item[\parf{IPS}=0,4:]
+  No additional parameters with indices less than or equal
+  to \parf{NPAR} are reserved.
+\item[\parf{IPS}=$-$1,1,2,7:]
+  \AUTO reserves \parf{PAR(11)} to store the period for stationary
+  solutions at Hopf bifurcations only and continuously for periodic orbits.
+\item[\parf{IPS}=$-$2:]
+  The integration time is stored in \parf{PAR(14)}.
+\item[\parf{IPS}=5:]
+  The value of the objective functional is stored in \parf{PAR(10)}.
+\item[\parf{IPS}=9:]
+  The length in time of the truncated homoclinic or heteroclinic orbit
+  is stored in \parf{PAR(11)}. For the adjoint variational equations,
+  \parf{PAR(10)} is used. The equilibria are stored
+  in \parf{PAR(11)} to \parf{PAR(11+NDIM-1)}/\parf{PAR(11+2*NDIM-1)}
+  (homoclinic/heteroclinic). Test function values may be stored in
+  \parf{PAR(21)} to \parf{PAR(36)}. Homoclinic branch switching uses
+  \parf{PAR(20)} and higher to store time intervals and gap sizes.
+\item[\parf{IPS}=11,12:]
+  The wave speed is in \parf{PAR(10)}, and the diffusion 
+  constants in \parf{PAR(15,16,$\cdots$)}. The period (for periodic
+  solutions and at Hopf bifurcations) is stored in \parf{PAR(11)}.
+\item[\parf{IPS}=14,16:]
+  \AUTO uses \parf{PAR(14)} for the time variable, and the diffusion 
+  constants are in \parf{PAR(15,16,$\cdots$)}. The period is stored in
+  \parf{PAR(11)}. The previous time for each step is stored in \parf{PAR(12)}.
+\item[\parf{IPS}=17:]
+  The diffusion constants are in \parf{PAR(15,16,$\cdots$)}.
+  The period is stored in \parf{PAR(11)}.
+\item[\parf{IPS}=15:]
+  Only \parf{PAR(1-9)} should be used for problem parameters.
+  \parf{PAR(10)} is the value of the objective
+  functional, \parf{PAR(11)} the period, \parf{PAR(12)} the norm of the
+  adjoint variables, \parf{PAR(14)} and \parf{PAR(15)} are internal optimality
+  variables. \parf{PAR(21-29)} and \parf{PAR(31)} are used to monitor the 
+  optimality functionals associated with the problem parameters and
+  the period.
+\end{description}
 \end{itemize}
 
 \section{ Efficiency.} \label{sec:Efficiency}
