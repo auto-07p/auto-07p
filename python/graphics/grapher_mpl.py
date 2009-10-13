@@ -226,7 +226,11 @@ class BasicGrapher(grapher.BasicGrapher):
             for d in self.data:
                 if d["newsect"] is None or d["newsect"]:
                     i = i+1
-                d["mpline"].set_color(color_list[i%len(color_list)])
+                if d["color"] is None:
+                    color = i
+                else:
+                    color = d["color"]
+                d["mpline"].set_color(color_list[color%len(color_list)])
         elif key == "decorations":
             if value:
                 self.ax.set_axis_on()
@@ -346,7 +350,11 @@ class BasicGrapher(grapher.BasicGrapher):
                 v = [d["x"],d["y"]]
             else:
                 v = [d["x"],d["y"],d["z"]]
-            kw = {'color':color_list[i%len(color_list)]}
+            if d["color"] is None:
+                color = i
+            else:
+                color = d["color"]
+            kw = {'color':color_list[color%len(color_list)]}
             if len(v[0]) == 1:
                 # If we only have one point we draw a small circle or a pixel
                 if self.cget("type") == "solution":
@@ -397,9 +405,9 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         self.labels=[]
         BasicGrapher._delAllData(self)
 
-    def _addData(self,data,newsect=None,stable=None):
+    def _addData(self,data,newsect=None,color=None,stable=None):
         self.labels.append([])
-        BasicGrapher._addData(self,data,newsect,stable)
+        BasicGrapher._addData(self,data,newsect,color,stable)
 
     def plotlabels(self):
         if self.cget("realwidth") == 1 or self.cget("realheight") == 1:

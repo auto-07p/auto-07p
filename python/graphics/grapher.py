@@ -123,7 +123,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         else:
             return [self.data[i]["x"][j],self.data[i]["y"][j]]
 
-    def _addData(self,data,newsect=None,stable=None):
+    def _addData(self,data,newsect=None,color=None,stable=None):
         for array in data:
             if len(array[0]) != len(array[1]):
                 raise GrapherError("Array lengths must match")
@@ -134,6 +134,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
                 new_array["z"]=array[2]
             new_array["stable"]=stable
             new_array["newsect"]=newsect
+            new_array["color"]=color
             if len(array[0]) > 0:
                 new_array["minx"]=min(array[0])
                 new_array["maxx"]=max(array[0])
@@ -162,8 +163,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
     def addDataNoDraw(self,data):        
         self._addData(data)
 
-    def addArrayNoDraw(self,array,newsect=None,stable=None):
-        self._addData((array,),newsect,stable)
+    def addArrayNoDraw(self,array,newsect=None,color=None,stable=None):
+        self._addData((array,),newsect,color,stable)
 
     def _delAllData(self):
         self.data=[]
@@ -286,7 +287,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         for d in self.data:
             if d["newsect"] is None or d["newsect"]:
                 i = i+1
-            fill=color_list[i%len(color_list)]
+            if d["color"] is None:
+                color = i
+            else:
+                color = d["color"]
+            fill=color_list[color%len(color_list)]
             curve="curve:%d"%(i,)
             n=len(d["x"])
             [x,y]=self.__valueToCanvasFast([d["x"][0],d["y"][0]],minx,maxx,miny,maxy,
@@ -295,7 +300,7 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
             if n == 1:
                 self.create_oval(x-3,y-3,x+3,y+3,
                                  tags=("data_point:%d"%(0,),"curve:%d"%(i,),"data"),
-                                 fill=color_list[i%len(color_list)])
+                                 fill=fill)
             else:
                 line = [x, y]
                 xs = d["x"]
@@ -485,9 +490,9 @@ class LabeledGrapher(BasicGrapher):
         self.labels=[]
         BasicGrapher._delAllData(self)
 
-    def _addData(self,data,newsect=None,stable=None):
+    def _addData(self,data,newsect=None,color=None,stable=None):
         self.labels.append([])
-        BasicGrapher._addData(self,data,newsect,stable)
+        BasicGrapher._addData(self,data,newsect,color,stable)
 
     def plotlabels(self):
         if self.cget("realwidth") == 1 or self.cget("realheight") == 1:

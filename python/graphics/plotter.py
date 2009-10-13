@@ -59,6 +59,7 @@ class plotter(grapher.GUIGrapher):
 
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
         optionDefaults["stability"]              = (0,self.__optionCallback)
+        optionDefaults["branch_color_list"]      = (False,self.__optionCallback)
 
         parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
@@ -421,6 +422,10 @@ class plotter(grapher.GUIGrapher):
                 z = xycols[2]
             else:
                 z = None
+            if self.cget("branch_color_list"):
+                color = abs(branch.BR)-1
+            else:
+                color = None
             if dp:
                 #look at stability:
                 newsect = 1
@@ -432,13 +437,13 @@ class plotter(grapher.GUIGrapher):
                             v = x[old:abspt],y[old:abspt]
                         else:
                             v = x[old:abspt],y[old:abspt],z[old:abspt]
-                        self.addArrayNoDraw(v,newsect,stable=pt<0)
+                        self.addArrayNoDraw(v,newsect,color,stable=pt<0)
                         old = abspt - 1
                         newsect = 0
             elif z is None:
-                self.addArrayNoDraw((x,y),1)
+                self.addArrayNoDraw((x,y),1,color)
             else:
-                self.addArrayNoDraw((x,y,z),1)
+                self.addArrayNoDraw((x,y,z),1,color)
             for i,l in branch.labels.sortByIndex():
                 for k,v in l.items():
                     if k in parseB.all_point_types:
