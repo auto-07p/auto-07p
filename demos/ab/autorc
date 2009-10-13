@@ -1,0 +1,81 @@
+[AUTO_plotter]
+
+default_option="d1"
+d1 = {"grid": 1, "use_labels": 1, "use_symbols": 1, "stability": 1}
+# similarly you can redefine d0, d2, d3, d4.
+
+grid = 1
+stability = 0
+use_labels = 1
+use_symbols = 0
+
+top_title = 'The A $\to$ B reaction'
+top_title_fontsize = 12
+
+xlabel = None # None uses *_coordnames
+xlabel_fontsize = 12
+ylabel = None # None uses *_coordnames
+ylabel_fontsize = 12
+
+solution_indepvarname = "time"
+solution_coordnames = ["$u_1$","$u_2$"]
+bifurcation_coordnames = ["$p_1$", "L2-norm"]
+
+line_width = 2.0
+dashes = (6.0,6.0)
+background = "white"
+foreground = "black"
+color_list = "black red green green blue blue yellow yellow gray gray gray brown brown orange orange orange"
+coloring_method = "branch"
+symbol_color = "red"
+symbol_font = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+decorations = 1
+smart_label = 1
+minx = 0
+maxx = 0
+miny = 0
+maxy = 0
+width = 800
+height = 800
+left_margin = 80
+right_margin = 40
+top_margin = 40
+bottom_margin = 40
+xticks = 5
+yticks = 5
+tick_label_template = "%.2e"
+tick_length = 0.2
+odd_tick_length = 0.4
+even_tick_length = 0.2
+ps_colormode = "color"
+mark_t = 0.5
+
+type = "bifurcation" # or "solution"
+
+bifurcation_x = [0]
+bifurcation_y = [1]
+
+solution_x = [0]
+solution_y = [1]
+
+# Sets of columns that the user is likely to want to use
+bifurcation_column_defaults = [[0,1],[0,2],[0,3]]
+solution_column_defaults = [[0],[1]]
+
+# The label(s) of the solution we wish to draw
+label = [1,2,3]
+label_defaults = [[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],
+	       [18,19,20,21,22,23,24]]
+# The index/indices of the solution we wish to draw
+index = [0]
+
+bifurcation_diagram_filename = 'fort.7'
+solution_filename = 'fort.8'
+
+bifurcation_symbol = "square"
+limit_point_symbol = None
+hopf_symbol = "fillsquare"
+period_doubling_symbol = "doubletriangle"
+torus_symbol = "filldiamond"
+user_point_symbol = "U"
+error_symbol = None

@@ -16,7 +16,7 @@ class OptionHandler:
         return self.__optionAliases.get(key,key)
 
     def __parseOptions(self,dict):
-        for key in list(dict):
+        for key in dict:
             newkey = self.__applyOptionAliases(key)
             if newkey in self.__options:
                 if self.__options[newkey] != dict[key]:
@@ -24,7 +24,6 @@ class OptionHandler:
                     newcb = self.__optionCallbacks[newkey]
                     if newcb is not None:
                         newcb(key,dict[key],self.__options)
-                del dict[key]
                     
                 
     # Options are of the form data=(default_value,callback=None)
@@ -32,6 +31,9 @@ class OptionHandler:
         for key in kw:
             self.__optionDefaults[key] = kw[key][0]
             self.__options[key] = kw[key][0]
+            if (self.__baseClass is not None and
+                key in self.__baseClass.keys(self)):
+                self.__baseClass.config(self,{key:kw[key][0]})
             self.__optionCallbacks[key] = kw[key][1]
             self.__optionRC[key] = 0
 
@@ -40,6 +42,9 @@ class OptionHandler:
         self.__options.update(kw)
         for key in kw:
             self.__optionRC[key] = 1
+            if (self.__baseClass is not None and
+                key in self.__baseClass.keys(self)):
+                self.__baseClass.config(self, {key: kw[key]})
 
     # Aliases are of the form fg=foreground
     def addAliases(self,**kw):
@@ -72,6 +77,9 @@ class OptionHandler:
         dct.update(kw)
         self.__parseOptions(dct)
         if self.__baseClass is not None:
+            for k in list(dct):
+                if k not in self.__baseClass.keys(self):
+                    del dct[k]
             self.__baseClass.config(self,**dct)
         
     configure = config

@@ -68,6 +68,8 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         optionDefaults["top_title"] = ("",callback)
         optionDefaults["top_title_fontsize"] = (None,callback)
         optionDefaults["dashes"] = ((6.0,6.0),callback)
+        optionDefaults["width"] = (600,callback)
+        optionDefaults["height"] = (480,callback)
 
         optionAliases = {}
         optionAliases["fg"] = "foreground"

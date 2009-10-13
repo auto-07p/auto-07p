@@ -72,7 +72,6 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         dict = {
             "bifurcation_diagram": bd,
             "solution": bd(),
-            "width": 600, "height": 480,
             "bifurcation_symbol": "square",
             "limit_point_symbol": None,
             "hopf_symbol": "fillsquare",

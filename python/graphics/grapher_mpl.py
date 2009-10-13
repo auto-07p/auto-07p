@@ -131,8 +131,6 @@ class BasicGrapher(grapher.BasicGrapher):
         optionDefaults["yticks"] = (None,callback)
         optionDefaults["zticks"] = (None,callback)
         optionDefaults["background"] = ("white",callback)
-        optionDefaults["width"] = (1,callback)
-        optionDefaults["height"] = (1,callback)
         optionAliases = {}
         optionAliases["bg"] = "background"
 
@@ -140,7 +138,8 @@ class BasicGrapher(grapher.BasicGrapher):
         self.addAliases(**optionAliases)
 
         for key in ["grid","decorations","xlabel","ylabel","zlabel",
-                    "minx","maxx","miny","maxy","minz","maxz"]:
+                    "minx","maxx","miny","maxy","minz","maxz", "width",
+                    "height"]:
             self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
 

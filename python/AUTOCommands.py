@@ -1834,7 +1834,6 @@ try:
                 n1b = bifDiag.bifDiag(n1b,n1s)
             options["grapher_bifurcation_diagram"] = n1b
             options["grapher_solution"] = n1b()
-        options.update({'grapher_width':600,'grapher_height':480})
         handle = windowPlotter.WindowPlotter2D(root,**options)
         if (not options.get('grapher_hide') or
             'graphics.grapher_mpl' not in sys.modules):
