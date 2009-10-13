@@ -48,8 +48,8 @@ wait()
 # instead of the default column 0 vs column 1
 plot1.config(bifurcation_x=(0,),bifurcation_y=(3,))
 # This command plots the value of the independent
-# variable 't' vs column 0 in plot2
-plot2.config(solution_x=("t",),solution_y=(0,))
+# variable 'time' vs column 0 in plot2
+plot2.config(solution_x=("time",),solution_y=(0,))
 wait()
 # This command changes the row and column labels
 plot1.config(xlabel="Randy is cool",ylabel="Sebius is cool")
@@ -60,10 +60,10 @@ plot1.config(bifurcation_x=(0,),bifurcation_y=(1,))
 # This command creates two plots in plot2.
 # The first is the independent variable 't' vs column 0 and the second
 # is the independent variable 't' vs column 1
-plot2.config(solution_x=("t","t"),solution_y=(0,1))
+plot2.config(solution_x=("time","time"),solution_y=(0,1))
 wait()
 # This command places a marker at all the places where
-# the independent variable 't' have value 0.1.
+# the independent variable 'time' have value 0.1.
 plot2.config(mark_t=0.1)
 wait()
 # We now try to use the three dimensional plotting capabilities
