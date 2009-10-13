@@ -59,7 +59,7 @@ class plotter(grapher.GUIGrapher):
 
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
         optionDefaults["stability"]              = (0,self.__optionCallback)
-        optionDefaults["branch_color_list"]      = (False,self.__optionCallback)
+        optionDefaults["coloring_method"]        = ("curve",self.__optionCallback)
 
         parser = AUTOutil.getAUTORC("AUTO_plotter")
         optionDefaultsRC = {}
@@ -422,7 +422,7 @@ class plotter(grapher.GUIGrapher):
                 z = xycols[2]
             else:
                 z = None
-            if self.cget("branch_color_list"):
+            if self.cget("coloring_method") == "branch":
                 color = abs(branch.BR)-1
             else:
                 color = None
@@ -485,6 +485,10 @@ class plotter(grapher.GUIGrapher):
         if self.cget("solution_indepvarname"):
             indepvarname = self.cget("solution_indepvarname")
         coordnames = sol.coordnames
+        if self.cget("coloring_method") == "branch":
+            color = sol["BR"]-1
+        else:
+            color = None
         for j in range(len(xcolumns)):
             labels = []
             xycols = []
@@ -525,9 +529,9 @@ class plotter(grapher.GUIGrapher):
             # Call the base class config
             if len(x) > 0:
                 if z is None:
-                    self.addArrayNoDraw((x,y))
+                    self.addArrayNoDraw((x,y),color=color)
                 else:
-                    self.addArrayNoDraw((x,y,z))
+                    self.addArrayNoDraw((x,y,z),color=color)
             for lab in labels:
                 l = lab["index"]
                 if z is None:
