@@ -519,6 +519,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
                                    miny = ymin, maxy = ymax)
         else:
             self.handle.config(type = "bifurcation")
+            self.handle.grapher.plot()
         if not self.dset:
             self.getopts()
         

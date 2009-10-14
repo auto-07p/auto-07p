@@ -81,7 +81,8 @@ class plotter(grapher.GUIGrapher):
         self.__needsPlot = None
         for coord in 'x', 'y', 'z':
             if "min"+coord not in kw or "max"+coord not in kw:
-                self.computeRange(coord)
+                self.computeRange(coord,kw.get("min"+coord),
+                                  kw.get("max"+coord))
         grapher.GUIGrapher.plot(self)
 
     def parselist(self,option,v,c,sep):
