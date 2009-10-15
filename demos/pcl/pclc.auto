@@ -1,0 +1,43 @@
+# AUTO demo pcl using constants files
+#
+# Lorenz system
+# compute the EtoP connection via Lin's method
+
+print "\n1st run - continue equilibrium 0 and branches of secondary equilibria"
+run(e='pcl',c='pcl.1',sv='1')
+
+print "\n2nd run - switch to the periodic orbit and continue in rho up to 24.0579"
+run(c='pcl.2',s='1',sv='2')
+
+print "\n3rd run - extend the system"
+run(c='pcl.3',s='2',sv='3')
+
+print "\n4th run - normalize the Floquet bundle"
+run(c='pcl.4',s='3',sv='4')
+
+print "\n5th run - integrate backwards from the periodic orbit"
+print "measures the distance to Sigma = { x=10 } in sigma+"
+print "UZ point corresponds to an intersection with Sigma"
+run(c='pcl.5',s='4',sv='5')
+
+print "\n6th run - integrate away from the equilibrium up to Sigma"
+print "(second UZ is the one we want)"
+run(c='pcl.6',s='5',sv='6')
+
+print "\n7th run - put starting data for Lin vector and Lin gap in"
+print "Zx, Zy, Zz and eta"
+print "close the gap (with some intermediate solutions)"
+run(c='pcl.7',s='6',sv='7')
+cp('7','closegap')
+
+# plot this, have a look at the solution coordinates 'x-'-vs-'z-' and 'x+'-vs-'z+'
+#plot(r7)
+#wait()
+
+print "\n8th run - keep the gap closed and continue in rho,beta"
+run(c='pcl.8',s='7',sv='8')
+run(c='pcl.8',s='7',ap='8',DS='-')
+merge('8','cont')
+
+clean()
+print "\nDone."

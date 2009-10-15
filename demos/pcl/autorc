@@ -9,7 +9,7 @@ stability = 0
 #use_labels = 1
 #use_symbols = 0
 
-#top_title = "Lorenz: EtoP connections using Lin's method"
+top_title = "Lorenz: EtoP connections using Lin's method"
 #top_title_fontsize = 12
 
 #xlabel = ''
@@ -19,7 +19,7 @@ stability = 0
 
 #solution_indepvarname = "time"
 #solution_coordnames = ["$x$","$y$","$z$"]
-#bifurcation_coordnames = [r"$\rho$", "L2-norm", "max $x$", "max $y$", "max $z$", "beta", "$\gamma$"]
+#bifurcation_coordnames = [r"$\rho$", "L2-norm", "max $x$", "max $y$", "max $z$", "$\beta", "$\gamma$"]
 
 #line_width = 2.0
 #dashes = (6.0,6.0)
