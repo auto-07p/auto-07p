@@ -1216,8 +1216,7 @@ def configure(runner=None,templates=None,**kw):
             if isinstance(kw["solution"], str):
                 wantread = True
                 try:
-                    object = parseS.parseS()
-                    object.readFilename(kw["solution"],**kw)
+                    object = parseS.parseS(kw["solution"])
                     doneread = True
                 except IOError:
                     if "__solution" not in kw:

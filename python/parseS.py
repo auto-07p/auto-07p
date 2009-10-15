@@ -64,19 +64,15 @@ NPAR = 20
 # in the fort.8 file.
 
 class parseS(list):
-    def __init__(self,filename=None,**kw):
+    def __init__(self,filename=None):
         if isinstance(filename, str):
             list.__init__(self)
-            self.readFilename(filename,**kw)
+            self.readFilename(filename)
         else:
             if filename is None:
                 list.__init__(self)
             else:
                 list.__init__(self,filename)
-            if len(self) > 0:
-                if kw != {}:
-                    for i in range(len(self)):
-                        self[i] = AUTOSolution(self[i],**kw)
 
     def __str__(self):
         rep = ""
