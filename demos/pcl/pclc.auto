@@ -35,8 +35,9 @@ cp('7','closegap')
 #wait()
 
 print "\n8th run - keep the gap closed and continue in rho,beta"
-run(c='pcl.8',s='7',sv='8')
-run(c='pcl.8',s='7',ap='8',DS='-')
+load(c='pcl.8',s='7',sv='8')
+run(sv='8')
+run(DS='-',ap='8')
 merge('8','cont')
 
 clean()
