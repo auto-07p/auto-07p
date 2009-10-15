@@ -458,7 +458,7 @@ class AUTOBranch(Points.Pointset):
             coordnames = self.coordnames
             coordarray = self.__datalist[index].split()
             br = int(coordarray[0])
-            coordarray = map(AUTOatof, coordarray[4:])
+            coordarray = list(map(AUTOatof, coordarray[4:]))
         label = {}
         for k,v in labels.items():
             if k in all_point_types:
