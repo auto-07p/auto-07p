@@ -8463,6 +8463,121 @@ Type \commandf{auto clean.auto} to remove all generated files.
 Refer to \citename{DoKoVoKu09} \citeyear{DoKoVoKu09} and 
 \url{http://www.bio.vu.nl/thb/research/project/globif/index_main.html}
 for background information.
+
+\newpage
+ %==============================================================================
+%DEMO=pcl======================================================================
+ %==============================================================================
+\section{ pcl : Lorenz: Point-to-cycle connections with Lin's method.} \label{sec:Demos_pcl}
+This demo computes a point-to-cycle connection (or EtoP connection;
+for equilibrium to periodic orbit) in the Lorenz equations
+\begin{equation} \begin{array}{cl}
+  x' &=  \sigma (y - x), \\
+  y' &=  \rho x - y - x z,  \\
+  z' &=  x y - \beta z, \\ \end{array} \end{equation}
+using Lin's method, as described in \citename{KrRi:08}
+\citeyear{KrRi:08}. Initially, we fix
+$\beta=8/3$, $\sigma=10$, and let $\rho$ vary, starting from $0$.
+Here we have a transition from simple to chaotic dynamics. For
+approximate values of $\rho$ in the interval $[13.9265,24.0579]$
+one finds preturbulence, organized by a pair of symmetrically
+related periodic orbits that emanate from a homoclinic bifurcation
+at $\rho\approx 13.9265$. For $\rho\approx 24.0579$ there exist
+two symmetric point-to-cycle connections that mark the appearance
+of a chaotic attractor for higher values of $\rho$.
+
+The computation to find one of these two connections uses the following steps:
+\begin{enumerate}
+\item
+Find the secondary equilibria emanating from the pitchfork
+bifurcation of the equilibrium at $0$, and their Hopf bifurcations,
+similarly to the demo \filef{lrz}.
+\item
+Follow the periodic orbit emanating from the Hopf bifurcation in
+$\rho$ and its period $T$, until
+$\rho=24.0579$, a value close to where a point-to-cycle connection is
+known to exist.
+\item
+Extend the system, putting the variational equation (the eigenfunction)
+into solution coordinates 4, 5, and 6. The trivial (0) eigenvector is
+continued until we hit a branch point, corresponding to
+where $\mu=$ \parf{PAR(12)} equals the natural logarithm of a Floquet
+multiplier.
+\item
+Switch branches and continue the non-trivial eigenvector until its
+norm $h$ equals 1.
+\item
+Extend the system again from 6 to 9 dimensions
+to calculate a connection from the cross section $\Sigma$, given by
+$x=10$, to the periodic orbit.
+The connection starts at the non-trivial eigenvector with respect
+to the periodic orbit with a distance of $\delta=10^{-7}$,
+and grows backwards in time
+until it hits the section $\Sigma$ at time $T^+$.
+\item
+Extend the system one last time from 9 to 12 dimensions.
+We calculate a connection from the equilibrium at 0, starting at
+its eigenvector over a distance of $\varepsilon=10^{-7}$,
+to the cross section
+$\Sigma$, at time $T^-$.
+The second intersection is the one that is closest to the
+intersection computed in step 5, and it is the one we want.
+\item
+Firstly, in the routine \funcf{PVLS} in the equations file \filef{pcl.f90},
+the Lin vector, a normalized vector between the points of intersection
+computed in steps 5 and 6 is put in $Z_x$, $Z_y$ and $Z_z$
+  (\parf{PAR(24)-PAR(26)}).
+Starting data for the Lin gap, which measures the distance between
+these two points of intersection, is put in $\eta=$ \parf{PAR(23)}.
+Subsequently, close this gap by continuing in 
+$\eta$, $\rho$, $\delta$, $\varepsilon$, $T^-$, $T^+$, $\mu$, and $T$.
+This process is illustrated in Figure~\ref{fig1}.
+\item
+Continue the point to cycle connection obtained in step 7
+in the system parameters $\rho$ and $\beta$, together with
+$\delta$, $\varepsilon$, $T^-$, $T^+$, $\mu$, and $T$.
+Connections for various
+values of $(\rho,\beta)$ are shown in Figure \ref{fig2}.
+\end{enumerate}
+
+The above sequence of calculations can be carried out by
+running the Python script \filef{pcl.auto} (without constants files)
+or \filef{pclc.auto} (with constants files) included in the demo.
+See the script and the Fortran file \filef{pcl.f90} for details on
+how all parameters are mapped and which precise AUTO constants
+are changed at every step.
+\begin{figure}[htb]
+\begin{center}
+\begin{picture}(550,190)
+\put(-10,-20){\includegraphics[scale=0.48]{include/closegap_pcl_par.eps}}
+\put(240,-20){\includegraphics[scale=0.48]{include/closegap_pcl.eps}}
+\end{picture}
+\caption{Closing the Lin-gap to obtain the point-to-cycle
+connection.
+The left panel is a plot of $\rho$ versus the gap size $\eta$,
+and the right panel shows the corresponding orbit segments,
+projected onto the $(x,z)$-plane.
+To obtain these figures run \commandf{plot('closegap')} or
+\commandf{@pp closegap}.}
+\label{fig1}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\begin{picture}(550,190)
+\put(-10,-20){\includegraphics[scale=0.48]{include/cont_pcl_par.eps}}
+\put(240,-20){\includegraphics[scale=0.48]{include/cont_pcl.eps}}
+\end{picture}
+\caption{Parameter space diagram (left) and corresponding
+orbit segments in phase space (right),
+where the connection is continued in $\rho$ and $\beta$.
+To obtain these figures run \commandf{plot('cont')} or
+\commandf{@pp cont}.}
+\label{fig2}
+\end{center}
+\end{figure}
+
 %==============================================================================
 %==============================================================================
 \chapter{ \AUTO Demos : Parabolic PDEs.} \label{ch:Demos_PDE}
