@@ -6,7 +6,7 @@
 
 print "\n1st run - homotopy backwards in time from equilibrium b : x=y=0, phi=acos(-0.5*nu2)"
 r1 = run(e='snh',ICP=['T','omega'],NDIM=3,ILP=0,ITNW=7,IPS=9,ISTART=3,IEQUIB=-2,
-	 PAR={'nu1':0.5,'nu2':-1.88},
+	 PAR={'nu1':0.5,'nu2':-1.88},NPAR=26,
          STOP=['UZ1'],UZR={'omega':0},DS=-0.01,
          unames={1:'xgamma',2:'ygamma',3:'phigamma'},
          parnames={1:'nu1',2:'nu2',3:'d',11:'T',20:'omega'})

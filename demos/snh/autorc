@@ -19,7 +19,7 @@ stability = 0
 
 #solution_indepvarname = "time"
 #solution_coordnames = ["$x$","$y$","$\phi$"]
-#bifurcation_coordnames = [r"$\nu_1$", "L2-norm", "max $x$", "max $y$", "max $z$", r"$\nu_2$", "$\gamma$"]
+#bifurcation_coordnames = ["$\nu_1$", "L2-norm", "max $x$", "max $y$", "max $z$", "$\nu_2$", "$\gamma$"]
 
 #line_width = 2.0
 #dashes = (6.0,6.0)
@@ -49,13 +49,14 @@ stability = 0
 #ps_colormode = "color"
 #mark_t = None #or a real value between 0 and 1
 
-type = "solution" # or "bifurcation"
+type = "bifurcation" # or "solution"
 
 bifurcation_x = [0]
 bifurcation_y = [5]
 
 solution_x = ['xgamma','x-','x+']
-solution_y = ['phigamma','phi-','phi+']
+solution_y = ['ygamma','y-','y+']
+solution_z = ['phigamma','phi-','phi+']
 
 ## Sets of columns that the user is likely to want to use
 #bifurcation_column_defaults = None

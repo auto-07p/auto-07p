@@ -1,6 +1,6 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
-! pci: Bifurcations of global reinjection orbits near a saddle-node
+! snh: Bifurcations of global reinjection orbits near a saddle-node
 !      Hopf bifurcation: cycle-to-point connections
 !
 ! Parameters:
