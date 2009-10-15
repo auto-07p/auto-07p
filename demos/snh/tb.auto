@@ -1,0 +1,55 @@
+# AUTO demo snh
+#
+# Bifurcations of global reinjection orbits near a saddle-node Hopf bifurcation
+# compute the codimension-zero PtoE connection using homotopy
+
+print "\n1st run - find and continue equilibrium a : x=y=0, phi=-acos(-0.5*nu2)"
+# [ b would be x=y=0, phi=acos(-0.5*nu2) ]
+r1 = run(e='snh',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,
+         SP=['HB1'],DS=0.1,DSMAX=1.0,
+         unames={1:'xgamma',2:'ygamma',3:'phigamma',4:'x',5:'y',6:'phi',
+                 7:'x-',8:'y-',9:'phi-'},
+         parnames={1:'nu1',2:'nu2',3:'d',
+                   5:'delta',6:'eps',7:'mu',8:'h',9:'T-',10:'T+',11:'T',
+                   21:'sigma-'})
+
+print "\n2nd run - switch to the periodic orbit and continue in nu1 up to 0.74"
+r2 = run(r1('HB1'),ICP=['nu1','T'],IPS=2,NTST=100,
+         SP=['UZ1'],UZR={'nu1':0.74},DSMAX=0.1)
+
+print "\n3rd run - extend the system"
+r3 = run(r2('UZ1'),ICP=['mu','h','T'],IPS=4,NDIM=6,NBC=7,NINT=1,
+         SP=['BP1'],UZR={},DS=-0.1,DSMAX=1)
+
+print "\n4th run - normalize the Floquet bundle"
+r4 = run(r3('BP1'),ISW=-1,
+         SP=['UZ1'],UZR={'h':1.0},DSMAX=100)
+
+print "\n5th run - integrate away from the periodic orbit in negative time."
+print "puts a starting value into sigma- (which measures the distance to W^u(b))"
+print "UZ points denote intersections with W^u(b)"
+r5 = run(r4('UZ1'),ISW=0,ICP=['T-','mu','T','sigma-'],NDIM=9,NBC=11,
+         PAR={'delta':1e-4},UZR={'sigma-':0},DS=-1.0)
+
+print "\n6th run - improve the connection"
+r6 = run(r5('UZ1'),ICP=['T-','mu','T','delta'],
+         THL={'T':0,'T-':0},UZR={'T-':-200})
+
+print "\n7th run - find folds (tangencies of codimension-zero connection)"
+r7 = run(r6('UZ1'),ICP=['nu1','mu','T','delta','T-'],NINT=2,
+         SP=['LP2'],UZR={},DS=-0.1,DSMAX=0.1)
+
+print "\n8th run - continue left fold (t_b)"
+t = run(r7('LP1'),ICP=['nu1','T','delta','nu2','T-','mu'],ISW=2,ISP=0,
+        SP=['UZ1'],UZR={'mu':-1e-2})
+r8 = merge(run(t)+run(t,DS='-'))
+
+print "\n9th run - continue right fold (t_b)"
+t = run(r7('LP2'),ICP=['nu1','T','delta','nu2','T-','mu'],ISW=2,ISP=0,
+        SP=['UZ1'],UZR={'mu':-1e-2})
+r9 = merge(run(t)+run(t,DS='-'))
+
+save(rl(r8+r9),'tb')
+
+clean()
+print "\nDone."

@@ -46,7 +46,7 @@ Graph Type    = 0
 
 # Initialize the default graph style
 #  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE
-Graph Style  =  1
+Graph Style  =  0
 
 #Set the window width and height:
 Window Width        = 1000
@@ -80,7 +80,7 @@ Labels              = -3
 # -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method           = -5
+Coloring Method           = -2
 
 # Line Width Scaler adjusts the thickness of curves:
 Line Width Scaler         = 1.0

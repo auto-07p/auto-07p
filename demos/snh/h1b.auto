@@ -1,0 +1,25 @@
+# AUTO demo snh
+#
+# Bifurcations of global reinjection orbits near a saddle-node Hopf bifurcation
+# compute the 1-reinjection homoclinic orbit with respect to equilibrium point
+# b
+
+print "\n1st run - homotopy backwards in time from equilibrium b : x=y=0, phi=acos(-0.5*nu2)"
+r1 = run(e='snh',ICP=['T','omega'],NDIM=3,ILP=0,ITNW=7,IPS=9,ISTART=3,IEQUIB=-2,
+	 PAR={'nu1':0.5,'nu2':-1.88},
+         SP=['UZ1'],UZR={'omega':0},DS=-0.01,
+         unames={1:'xgamma',2:'ygamma',3:'phigamma'},
+         parnames={1:'nu1',2:'nu2',3:'d',11:'T',20:'omega'})
+
+print "\n2nd run - improve connection"
+r2 = run(r1('UZ1'),ICP=['T','nu1'],DSMAX=10,UZR={'T':-2000})
+
+print "\n3rd run - follow connection forwards and backwards"
+st = load(r2('UZ1'),ICP=['nu1','nu2'],
+   IEQUIB=1,ISTART=1,DSMIN=1e-9,DS=-0.005,DSMAX=0.005)
+r3 = merge(run(st,UZR={},SP=['LP20'],NTST=200) +
+           run(st,UZR={'nu2':-1.999},SP=['UZ1'],NTST=50,DS='-'))
+save(r3,'h1b')
+
+clean()
+print "\nDone."

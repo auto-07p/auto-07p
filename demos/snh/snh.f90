@@ -8,14 +8,15 @@
 !   PAR(2) : nu2
 !   PAR(3) : d
 !
+!   PAR(5) : delta: distance from cycle to start connection
+!   PAR(6) : eps: distance from end connection to point
+!   PAR(7) : mu: log of the Floquet multiplier
+!   PAR(8) : h: norm of eigenfunction for cycle at 0
+!   PAR(9) : T^-: time for connection from cycle (U(7:9)) to section
+!   PAR(10) : T^+: time for connection from section (U(10:12)) to point
 !   PAR(11) : T: period of the cycle
-!   PAR(12) : mu: log of the Floquet multiplier
-!   PAR(13) : h: norm of eigenfunction for cycle at 0
-!   PAR(14) : T^-: time for connection from cycle (U(7:9)) to section
-!   PAR(15) : delta: distance from cycle to start connection
-!   PAR(16) : T^+: time for connection from section (U(10:12)) to point
-!   PAR(17) : eps: distance from end connection to point
 !   PAR(21) : sigma-: U1(9)-pi (phi-distance W^u(P) from section phi=pi)
+!                     ( distance to W^u(b) for codim 0 connection)
 !   PAR(22) : sigma+: U0(12)-pi (phi-distance W^s(E) from section phi=pi)
 !   PAR(23) : eta: gap size for Lin vector
 !   PAR(24) : Z_x: Lin vector (x-coordinate)
@@ -94,22 +95,22 @@
     T = PAR(11)
     F(1:6) = F(1:6) * T
 
-    ! log of Floquet multiplier in PAR(12)
-    mu = PAR(12)
+    ! log of Floquet multiplier in PAR(7)
+    mu = PAR(7)
     F(4:6) = F(4:6) - mu*U(4:6)
 
     IF (NDIM==6) RETURN
 
     CALL RHS(U(7:9),PAR,F(7:9),.FALSE.,A)
 
-    T = PAR(14)
+    T = PAR(9)
     F(7:9) = F(7:9) * T
 
     IF (NDIM==9) RETURN
 
     CALL RHS(U(10:12),PAR,F(10:12),.FALSE.,A)
 
-    T = PAR(16)
+    T = PAR(10)
     F(10:12) = F(10:12) * T
 
   END SUBROUTINE FUNC
@@ -124,28 +125,41 @@
 
     DOUBLE PRECISION, PARAMETER :: nu1 = 0, nu2 = -1.46d0, d = 0.01d0
     DOUBLE PRECISION, PARAMETER :: delta = -1d-5, eps = 1d-6
-    DOUBLE PRECISION fp(3), ev(3)
+    DOUBLE PRECISION fp(3), ev(3), pi
     DOUBLE PRECISION, SAVE :: s(6)
 
     IF(NDIM==9)THEN
        IF(T==0)THEN
           s(1:6) = U(1:6)
        ENDIF
-       U(7:9) = s(1:3) + delta*s(4:6)
+       U(7:9) = s(1:3) + PAR(5)*s(4:6)
        RETURN
     ELSEIF(NDIM==12)THEN
        fp = (/0d0, 0d0, acos(-nu2/2)/)
        ev = (/0d0, 0d0, 1d0/)
-       U(10:12) = fp(1:3) + eps*ev(1:3)
+       U(10:12) = fp(1:3) + PAR(6)*ev(1:3)
        RETURN
     ENDIF
 
     PAR(1:3) = (/nu1,nu2,d/)
-    PAR(15) = delta
-    PAR(17) = eps
+    PAR(5) = delta
+    PAR(6) = eps
     PAR(21:22) = 0.0
 
-    U(1:3) = (/ 0.0d0, 0.0d0, 8.0*atan(1.0d0)-acos(-nu2/2) /)
+    ! homotopy: equilibrium b and its phase-shifted version, to find
+    ! the "heteroclinic" orbit in negative time.
+    pi = 4 * ATAN(1D0)
+    PAR(11) = -0.1
+    PAR(12) = 0
+    PAR(13) = 0
+    PAR(14) = acos(-PAR(2)/2)
+    PAR(15) = 0
+    PAR(16) = 0
+    PAR(17) = acos(-PAR(2)/2)+2*pi
+    PAR(18) = 0.01d0 ! epsilon_0 distance
+
+    ! equilibrium a
+    U(1:3) = (/ 0.0d0, 0.0d0, 2*pi-acos(-nu2/2) /)
 
   END SUBROUTINE STPNT
 
@@ -158,30 +172,41 @@
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     
     DOUBLE PRECISION, EXTERNAL :: GETP
-    DOUBLE PRECISION d(3), normlv, delta, eps, nu2
+    DOUBLE PRECISION d(3), normlv, mu
     INTEGER i, NBC
     DOUBLE PRECISION pi
+    LOGICAL, SAVE :: FIRST = .TRUE.
 
-    pi = 4d0 * ATAN(1d0)
-    IF (NDIM==6) THEN
-       delta = PAR(15)
-       PAR(21) = GETP("BV0",3,U) + delta*GETP("BV0",6,U) - pi
-    ELSEIF (NDIM==9) THEN
-       ! initialize using fp(3) + eps * ev(3) (see STPNT)
-       nu2 = PAR(2)
-       eps = PAR(17)
-       PAR(22) = acos(-nu2/2) + eps - pi
-    ELSEIF (NDIM==12) THEN
-       NBC = AINT(GETP("NBC",0,U))
-       IF (NBC==15) THEN
-          DO i=1,3
-             d(i) = GETP("BV1",6+i,U) - GETP("BV0",9+i,U)
-          ENDDO
-          normlv = sqrt(DOT_PRODUCT(d,d))
-          ! gap size in PAR(23)
-          PAR(23) = normlv
-          ! Lin vector in PAR(24)-PAR(26)
-          PAR(24:26) = d(1:3)/normlv
+    IF (FIRST) THEN
+       FIRST = .FALSE.
+       ! initialization for BCND
+       pi = 4d0 * ATAN(1d0)
+       IF (NDIM==9) THEN
+          mu = PAR(7)
+          IF (mu < 0) THEN
+             IF (PAR(21)==0) THEN
+                ! distance to W^u(b) where b is the phase-shifted equilibrium
+                PAR(21) = GETP("BV1",9,U) - PAR(17)
+             ENDIF
+          ELSE
+             PAR(21) = GETP("BV0",9,U) - pi
+          ENDIF
+       ELSEIF (NDIM==12) THEN
+          NBC = AINT(GETP("NBC",0,U))
+          IF (NBC==15) THEN
+             PAR(22) = GETP("BV0",12,U) - pi
+          ELSE
+             ! check if Lin vector initialized:
+             IF (DOT_PRODUCT(PAR(24:26),PAR(24:26)) > 0) RETURN
+             DO i=1,3
+                d(i) = GETP("BV1",6+i,U) - GETP("BV0",9+i,U)
+             ENDDO
+             normlv = sqrt(DOT_PRODUCT(d,d))
+             ! gap size in PAR(23)
+             PAR(23) = normlv
+             ! Lin vector in PAR(24)-PAR(26)
+             PAR(24:26) = d(1:3)/normlv
+          ENDIF
        ENDIF
     ENDIF
   END SUBROUTINE PVLS
@@ -195,7 +220,7 @@
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
     DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
-    DOUBLE PRECISION nu2, delta, eps, fp(3), ev(3), eta
+    DOUBLE PRECISION nu2, delta, eps, fp(3), ev(3), eta, mu
     DOUBLE PRECISION pi
 
     ! Periodicity boundary conditions on state variables
@@ -205,18 +230,25 @@
     FB(4:6) = U1(4:6) - U0(4:6)
 
     ! normalization
-    FB(7) = PAR(13) - DOT_PRODUCT(U0(4:6),U0(4:6))
+    FB(7) = PAR(8) - DOT_PRODUCT(U0(4:6),U0(4:6))
     IF (NBC==7) RETURN
 
-    delta = PAR(15)
+    delta = PAR(5)
     FB(8:10) = U0(7:9) - (U0(1:3) + delta*U0(4:6))
     pi = 4d0 * ATAN(1d0)
+    mu = PAR(7)
+    IF(mu < 0)THEN
+       ! projection boundary condition for codimension-zero connection
+       nu2 = PAR(2)
+       FB(11) = COS(U1(9) - PAR(21)) +nu2/2
+       RETURN
+    ENDIF
     FB(11) = U1(9) - pi - PAR(21)
 
     IF (NBC==11) RETURN
 
     nu2 = PAR(2)
-    eps = PAR(17)
+    eps = PAR(6)
     fp = (/0d0, 0d0, acos(-nu2/2)/)
     ev = (/0d0, 0d0, 1d0/)
 
@@ -241,10 +273,18 @@
     DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
     DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
 
+    DOUBLE PRECISION mu
+
     ! Integral phase condition
     FI(1) = DOT_PRODUCT(U(1:3),UPOLD(1:3))
     IF (NINT==1) RETURN
 
+    mu = PAR(7)
+    IF(mu < 0)THEN
+       ! phase condition for codimension-zero connection
+       FI(2) = DOT_PRODUCT(UPOLD(7:9),U(7:9)-UOLD(7:9))
+       RETURN
+    ENDIF
     FI(2) = DOT_PRODUCT(UPOLD(10:12),U(10:12)-UOLD(10:12))
   END SUBROUTINE ICND
 

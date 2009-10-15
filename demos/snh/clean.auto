@@ -1,0 +1,3 @@
+for suffix in ['closegap','cb','tb','h1b','all']:
+    dl(suffix)
+cl()

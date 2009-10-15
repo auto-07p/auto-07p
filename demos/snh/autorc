@@ -5,11 +5,11 @@
 # similarly you can redefine d0, d2, d3, d4.
 
 #grid = "no"
-#stability = 0
+stability = 0
 #use_labels = 1
 #use_symbols = 0
 
-top_title = "Lorenz: EtoP connections using Lin's method"
+#top_title = "SNH with reinjection: EtoP connections using Lin's method"
 #top_title_fontsize = 12
 
 #xlabel = ''
@@ -18,8 +18,8 @@ top_title = "Lorenz: EtoP connections using Lin's method"
 #ylabel_fontsize = 12
 
 #solution_indepvarname = "time"
-#solution_coordnames = ["$x$","$y$","$z$"]
-#bifurcation_coordnames = [r"$\rho$", "L2-norm", "max $x$", "max $y$", "max $z$", "beta", "$\gamma$"]
+#solution_coordnames = ["$x$","$y$","$\phi$"]
+#bifurcation_coordnames = [r"$\nu_1$", "L2-norm", "max $x$", "max $y$", "max $z$", r"$\nu_2$", "$\gamma$"]
 
 #line_width = 2.0
 #dashes = (6.0,6.0)
@@ -52,7 +52,7 @@ top_title = "Lorenz: EtoP connections using Lin's method"
 type = "solution" # or "bifurcation"
 
 bifurcation_x = [0]
-bifurcation_y = [2]
+bifurcation_y = [5]
 
 solution_x = ['xgamma','x-','x+']
 solution_y = ['phigamma','phi-','phi+']

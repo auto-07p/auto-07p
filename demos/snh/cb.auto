@@ -1,17 +1,17 @@
-# AUTO demo pci
+# AUTO demo snh
 #
 # Bifurcations of global reinjection orbits near a saddle-node Hopf bifurcation
 # compute the codimension-one PtoE connection via Lin's method
 
 print "\n1st run - find and continue equilibrium a : x=y=0, phi=-acos(-0.5*nu2)"
 # [ b would be x=y=0, phi=acos(-0.5*nu2) ]
-r1 = run(e='pci',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,
+r1 = run(e='snh',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,
          SP=['HB1'],DS=0.1,DSMAX=1.0,
          unames={1:'xgamma',2:'ygamma',3:'phigamma',4:'x',5:'y',6:'phi',
                  7:'x-',8:'y-',9:'phi-',10:'x+',11:'y+',12:'phi+'},
          parnames={1:'nu1',2:'nu2',3:'d',
-                   11:'T',12:'mu',13:'h',14:'T-',15:'delta',16:'T+',17:'eps',
-                   21:'sigma-',22:'sigma+',23:'eta',24:'Zx',25:'Zy',26:'Zz'})	
+                   5:'delta',6:'eps',7:'mu',8:'h',9:'T-',10:'T+',11:'T',
+                   21:'sigma-',22:'sigma+',23:'eta',24:'Zx',25:'Zy',26:'Zz'})
 
 print "\n2nd run - switch to the periodic orbit and continue in nu1 up to 0.74"
 r2 = run(r1('HB1'),ICP=['nu1','T'],IPS=2,NTST=100,
@@ -34,7 +34,7 @@ r5 = run(r4('UZ1'),ISW=0,ICP=['T-','mu','T','sigma-'],NDIM=9,NBC=11,
 
 print "\n6th run - integrate backwards from the equilibrium b : x=y=0, phi=acos(-0.5*nu2)"
 print "up to Sigma + put starting data for Lin vector and Lin gap in Zx, Zy, Zz, and eta."
-r6 = run(r5('UZ1'),ICP=['T+','sigma+','sigma-','mu','T'],NDIM=12,NBC=15,NPR=10,
+r6 = run(r5('UZ1'),ICP=['T+','sigma+','T-','mu','T'],NDIM=12,NBC=15,NPR=10,
          UZR={'sigma+':0})
 
 print "\n7th run - close the gap (with some intermediate solutions)"
@@ -48,10 +48,10 @@ save(r7,'closegap')
 #wait()
 
 print "\n8th run - keep the gap closed and continue in nu1,nu2"
-start8 = load(r7('UZ1'),ICP=['nu1','nu2','delta','eps','T+','T-','mu','T'],
-              SP=[],UZR={},ILP=1,NPR=100,NMX=1000,DS=0.1,DSMAX=0.1)
-r8 = merge(run(start8) + run(start8,DS='-'))
-save(r8,'cont')
+start8 = load(r7('UZ1'),ICP=['nu1','mu','delta','eps','nu2','T+','T-','T'],
+              SP=[],UZR={},ILP=1,NPR=100,ISP=0,DS=0.1,DSMAX=0.1)
+r8 = merge(run(start8) + run(start8,DS='-',SP=['LP1']))
+save(r8,'cb')
 
 clean()
 print "\nDone."

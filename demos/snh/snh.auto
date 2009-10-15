@@ -1,0 +1,20 @@
+# AUTO demo snh
+#
+# Bifurcations of global reinjection orbits near a saddle-node Hopf bifurcation
+
+# compute the codimension-one PtoE connection via Lin's method
+auto('cb.auto')
+
+# compute the codimension-zero PtoE connection and tangency using homotopy
+auto('tb.auto')
+
+# compute the homoclinic orbit h^1_b using homotopy and HomCont
+auto('h1b.auto')
+
+copy('cb','all')
+append('tb','all')
+append('h1b','all')
+relabel('all')
+
+clean()
+print "\nDone."
