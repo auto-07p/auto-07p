@@ -250,8 +250,8 @@ class plotter(grapher.GUIGrapher):
             if not isinstance(value, (list, tuple)):
                 value = [value]
             options["label"] = [labels[v] for v in value]
-        elif key in ["bifurcation_x","bifurcation_y",
-                     "solution_x","solution_y"]:
+        elif key in ["bifurcation_x","bifurcation_y","bifurcation_z",
+                     "solution_x","solution_y","solution_z"]:
             if not isinstance(value, (list, tuple)):
                 value = [value]
         # We only recreate the data if one of the above options gets set
