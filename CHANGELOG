@@ -1,3 +1,152 @@
+0.7:
+* Main AUTO:
+  - Allow three parameter continuations for torus bifurcations, fixing
+    the angle (Sebius Doedel). See the demo 'tor' for an example.
+  - IRS now support strings like IRS='UZ1' in constant files and Python.
+  - The new "STOP" constant as an alternative to "SP" allows to clearly
+    specify stopping conditions such as STOP=['HB2',UZ2'] which stops at the
+    second Hopf or second user defined point, whichever comes first.
+    This setting does not switch special points off or on, unlike SP.
+  - A problem where extremely flat starts of curves, which sometimes occur
+    with heteroclinic and homoclinic orbits, caused the mesh to be wrongly
+    calculated was fixed (problem reported by Thomas Wagenknecht).
+  - Automatic rotation detection (angular variables) is now switched off
+    for heteroclinic orbits in HomCont. This fixes another problem reported
+    by Thomas Wagenknecht.
+  - Rotations no longer use PAR(19) internally, so this parameter is free to
+    use.
+  - The following types of continuations now use parameters above NPAR, instead
+    of PAR(12), PAR(13), PAR(14), etc. as internal parameters:
+    + fold continuations for periodic orbits and general BVPs.
+    + branch point continuations for periodic orbits and general BVPs.
+    + torus continuations for periodic orbits.
+    + period-doubling continuations for periodic orbits.
+    Only PAR(11) is reserved for periodic orbits; for general BVPs (IPS=4)
+    all parameter indices can be freely used in the equations file.
+    For homoclinic branch switching, the internal parameters for the Lin
+    vector and the point where the gap is located were moved beyond NPAR
+    as well.
+  - Solution file headers now have 4 extra fields on the same line:
+    NPARI, NDM, IPS, IPRIV which mean: number of internal parameters,
+    user dimension, problem type, and a per-problem private field, respectively.
+  - Bifurcation diagram files now only print user-specified constants that are
+    visually different from the ones used internally, under the heading
+    "User-specified constants, where different from above:".
+  - Made sure PVLS is always called first, before FUNC, to be able to initialize
+    state in user equation files.
+  - If pivots are 0 or smaller in absolute value than 1d-308*||A||_max, then
+    AUTO will not converge instead of continuing with NaNs
+  - Portability problems with some versions of GFortran were fixed, for instance
+    avoiding the use of BACKSPACE at EOF for reading constant files.
+* PyPLAUT:
+  - The plotter PyPLAUT can now plot in three dimensions, if used with a
+    suitable version of matplotlib (not 0.98.x). Related new settings for
+    autorc and the Python plot() command are:
+      minz, maxz, zlabel, zlabel_fontsize, zticks, azimuth, elevation,
+      bifurcation_z, solution_z
+    @pp, like @p, now accepts some basic 3D commands too (B3D and 3D).
+  - A new plot() argument, hide=True, hides the graphics, to be used for
+    just printing to a file with matplotlib.
+  - The savefig() method of an object returned by plot() saves the file.
+  - The new setting:
+      coloring_method = "branch"
+    lets the color of the curve depend on the branch number (BR)
+  - label="all" (or label = ["all"]) now plots all labels.
+  - The plotter now primarily plots by label name, which is useful for appended
+    branches of bifurcation diagrams that change the column header name for
+    numbered columns.
+    Here, for example, "U(1)" denotes just point continuations;
+    "MAX U(1)" applies to both "U(1)" and "MAX U(1)" (points and BVPs)
+  - @pp now accepts both ',' and ' ' to separate input lists, similar to PLAUT.
+* PLAUT04
+  - Print support is added to the File menu if Coin3D is used.
+  - With new versions of SoQt, libsimage is no longer necessary. To accomplish
+    this, the images of the Sun, the Earth and the stars were converted to JPEG
+    format.
+  - New settings:
+    Object Animation Speed, Sat Animation Speed, Orbit Animation Speed,
+    which set default values for the speeds.
+  - A new "Draw Coord" menu option, "At Origin" causes the coordinate axes
+    to be drawn at the system origin. This corresponds to Coordinate Type = 4
+    in (r3b)plaut04.rc.
+  - Draw reference planes and spheres, if specified in (r3b)plaut04.rc, via
+    the new settings:
+    Disk Rotation, Disk Position, Disk Radius, Disk Height, Disk Transparency,
+    Read Disk From File, Sphere Position, Sphere Radius, Sphere Transparency,
+    Read Sphere From File
+* Python
+  - The run command no longer redirects output by default: AUTO writes directly
+    to the terminal.
+  - When AUTO crashes, stop immediately with an AUTO Runtime Error.
+  - Skip entries with a 0 label number in @ls and "print" for bifurcation
+    diagrams, and if there are no entries left under a header, don't print the
+    header.
+  - Default command aliases are now set in AUTOCommands.py instead of .autorc.
+  - Before every run(), the Python CLUI explicitly performs memory garbage
+    collection, to avoid memory problems.
+  - Initially, do not read solution files into memory, but just the headers,
+    except for fort.8, because that file is often overwritten.
+  - Solution objects now contains keys for corresponding entries in the
+    bifurcation diagram file such as "L2-NORM".
+  - Add s.b to a solution object, where b is the corresponding point on its
+    branch.
+  - The dlb, dsp, klb, and ksp functions can now take functions as arguments.
+    These functions return a boolean value based on a solution causing it to
+    be deleted or kept. A function with two arguments compare the two solutions
+    for every combination and if satisfied the second one is deleted or kept.
+    This allows for the deletion of "close" solutions.
+  - The dlb, dsp, klb, and ksp functions can now be given two file suffix
+    arguments, such as dlb("old", "new", f).
+  - Improve error reporting: complain about missing files in a clear way,
+    not exposing internals.
+  - Allow the U keyword for load() to update a solution just like PAR does.
+  - Changed writeRaw and toArray to output in table form.
+  - Allow mv() and cp() to be used; without () it'll use the shell command.
+  - Fixed parsing of headerless bifurcation diagram files.
+    The coordinates are then called COLUMN(1), COLUMN(2), etc.
+  - Extend @cp/@mv/copy()/move() to accept up to 4 arguments and directories.
+  - The Python code no longer tries to be compatible with Python 1.5.2; at
+    least Python 2.2 is assumed.
+  - The Python code is mostly compatible with Python 3.x.
+* Configure checks.
+  - Improved Coin3D detection for Mac OS X.
+  - Fixed Coin detection to include cppflags from coin-config.
+  - Added check for C++ compiler existence (not included by default in
+    Ubuntu).
+  - Fix C equation files when using AUTO with g95.
+* Shell commands
+  - @cp and @mv now accept up to 4 arguments and directories.
+  - @rl, @lb, @kuz, @klp, @kbp, and @dlp are more flexible with bifurcation
+    diagram files, and can work with older versions of those.
+  - @fc and us() always generate the .o file for the equation file,
+    in order not to confuse Sun f95.
+  - Added lb, db, and rb commands to @lb (autlab), so it can list, relabel
+    and delete branches.
+* Demos
+  - Converted all demo Fortran files to free-form format.
+  - Use IMPLICIT NONE in all demos.
+  - Modularized the "brf" and "brc" demos.
+    Use dynamic arrays in the "brc" and "brf" demo so NDIM determines the
+    number of collocation points.
+  - Added a 3-parameter continuation fixing the angle to the "tor" demo.
+  - New demo "pcl" that uses Lin's method to connect point-to-cycle connections
+    in the Lorenz equations. Thanks to Thorsten Riess and Bernd Krauskopf.
+  - New demo "snh": bifurcations of global reinjection orbits near a saddle-node
+    Hopf bifurcation: cycle-to-point connections. Also thanks to Thorsten Riess
+    and Bernd Krauskopf.
+  - New demo "fnc": computation of attracting and repelling slow manifolds
+    and the continuation of canard orbits in parameter space in the FitzHugh-
+    Nagumo equations. Thanks to Mathieu Desroches and Bernd Krauskopf.
+  - Use STOP and NPAR in all demos where applicable.
+  - Replaced RL0 and RL1, where used, by conditions in UZR or STOP.
+  - Removed A0, A1 except where they are really used.
+  - Fixed the 'mtn' HomCont demo: we must explicitly specify NSTAB for
+    saddle-node homoclinics.
+  - Added autorc files to the demos ab and tor.
+* GUI94
+  - The old GUI can now work with .f90 equation files (but not with new-style
+    constants files!).
+
 0.6:
 * The 2D plotter PyPLAUT can now use matplotlib, be called via the @pp command,
   and operated like the old PLAUT plotter.
