@@ -88,7 +88,7 @@ class runAUTO:
         self.options["equation"] = "all"
         self.options["redir"] = "yes"
         self.options["verbose"] = "no"
-        self.options["verbose_print"] = sys.stdout
+        self.options["verbose_print"] = None
         self.options["clean"] = "no"
         self.options["dir"] = "."
         self.options["executable"] = None
@@ -112,6 +112,18 @@ class runAUTO:
             self.options["constants"] = item
         else:
             self.__dict__[attr] = item
+
+    def verbose_write(self,s):
+        if self.options["verbose_print"] is None:
+            sys.stdout.write(s)
+        else:
+            self.options["verbose_print"].write(s)
+
+    def verbose_flush(self):
+        if self.options["verbose_print"] is None:
+            sys.stdout.flush()
+        else:
+            self.options["verbose_print"].flush()
 
     def config(self,**kw):
         """     Change the options for this runner object"""
@@ -188,8 +200,8 @@ class runAUTO:
 
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
-        self.options["verbose_print"]('Demo taking too long: '+alarm_demo)
-        self.options["verbose_print"]('Finding processes to kill...')
+        self.verbose_write('Demo taking too long: '+alarm_demo)
+        self.verbose_write('Finding processes to kill...')
         if "subprocess" in sys.modules:
             p1 = self.__popen(["ps","ww"])
             p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
@@ -206,17 +218,17 @@ class runAUTO:
         cout.close()
         pids = pids.splitlines(pids)
         for pid in pids:
-            self.options["verbose_print"]('Killing: '+str(pid))
+            self.verbose_write('Killing: '+str(pid))
             pid = pid.split()
             pid = int(pid[0])
             command = "/bin/kill -KILL %d"%(pid,)
-            self.options["verbose_print"](command)
+            self.verbose_write(command)
             if hasattr(os,"kill"):
                 os.kill(pid,signal.SIGKILL)
             else:
                 os.system("sh -c '%s'"%command)
         # Restart the alarm to make sure everything gets killed
-        self.options["verbose_print"].flush()
+        self.verbose_flush()
         if hasattr(signal,"alarm"):
             signal.alarm(20)
 
@@ -398,7 +410,7 @@ class runAUTO:
                 cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
                                                 var["OPT"],src,equation)
             if self.options["verbose"] == "yes":
-                self.options["verbose_print"].write(cmd+"\n")
+                self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             self.__runCommand(cmd)
         # link
@@ -422,7 +434,7 @@ class runAUTO:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
             if self.options["verbose"] == "yes":
-                self.options["verbose_print"].write(cmd+"\n")
+                self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
             self.__runCommand(cmd)
@@ -486,7 +498,7 @@ class runAUTO:
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
                 if self.options["verbose"] == "yes":
-                    self.options["verbose_print"].write(line)
+                    self.verbose_write(line)
                 self.__printLog(line)
                 for filename in [self.fort7_path,self.fort8_path,
                                  self.fort9_path]:
@@ -500,7 +512,7 @@ class runAUTO:
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
                 if self.options["verbose"] == "yes":
-                    self.options["verbose_print"].write(line)
+                    self.verbose_write(line)
                 self.__printLog(line)
             os.chdir(curdir)
             return data
@@ -601,7 +613,7 @@ class runAUTO:
 
     def __runCommand_noredir(self,command=None):
         args = os.path.expandvars(command).split()
-        self.options["verbose_print"].flush()
+        self.verbose_flush()
         if "subprocess" in sys.modules:
             return subprocess.call(args)
         elif hasattr(os,"spawnlp"):
@@ -631,15 +643,15 @@ class runAUTO:
                 try:
                     line = stdout.readline()
                     if self.options["verbose"] == "yes":
-                        self.options["verbose_print"].write(line)
-                        self.options["verbose_print"].flush()
+                        self.verbose_write(line)
+                        self.verbose_flush()
                     tmp_out.append(line)
                 except:
                     demo_killed = 1
                 status = demo_object.poll()
             if status != 0 and self.options["verbose"] == "yes":
-                self.options["verbose_print"].write(stderr.read())
-                self.options["verbose_print"].flush()
+                self.verbose_write(stderr.read())
+                self.verbose_flush()
         else:
             stdout, stdin, stderr = popen2.popen3(command)
             stdin.close()
@@ -649,8 +661,8 @@ class runAUTO:
         while len(line) > 0:
             tmp_out.append(line)
             if self.options["verbose"] == "yes":
-                self.options["verbose_print"].write(line)
-                self.options["verbose_print"].flush()
+                self.verbose_write(line)
+                self.verbose_flush()
             line = stdout.readline()
         self.__printLog("".join(tmp_out))
         self.__printErr(stderr.read())
