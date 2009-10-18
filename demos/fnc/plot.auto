@@ -35,21 +35,21 @@ p=plot('attrrep',type="solution",label='all',
        color_list="black red blue green gray orange",
        solution_x=["s"],solution_y=["v"], solution_z=None,
        minx=0,maxx=0.72,miny=-2,maxy=0,
-       xlabel="$s$",ylabel="$v$")
+       xlabel="$s$",ylabel="$v$",hide=True)
 p.savefig("fnc_canards3.eps")
 
 p=plot('xis',label=[17,25,31,37,43,49],type="solution",
        solution_x=["s"], solution_y=["v"],solution_z=None,
        color_list="black red blue green gray orange",
-       minx=0,maxx=0.72,miny=-2,maxy=0,
-       xlabel="$s$",ylabel="$v$")
+       minx=0.2,maxx=0.56,miny=-2,maxy=0,
+       xlabel="$s$",ylabel="$v$",width=300,hide=True)
 p.savefig("fnc_canards4.eps")
 
 p=plot('xis',label=[18,26,32,38,44,50],type="solution",
        solution_x=["s"], solution_y=["v"],solution_z=None,
        color_list="black red blue green gray orange",
-       minx=0,maxx=0.72,miny=-2,maxy=0,
-       xlabel="$s$",ylabel="$v$")
+       width=300,minx=0.2,maxx=0.56,miny=-2,maxy=0,
+       xlabel="$s$",ylabel="$v$",width=300,hide=True)
 p.savefig("fnc_canards5.eps")
 
 
