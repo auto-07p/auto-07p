@@ -67,8 +67,10 @@ class plotter(grapher.GUIGrapher):
         for option in parser.options("AUTO_plotter"):
             optionDefaultsRC[option] = self.parseoption(
                 option,parser.get("AUTO_plotter",option),c)
-        if kw.has_key("hide"):
-            optionDefaultsRC["hide"] = kw["hide"]
+        # Let these override the RC options, if specified.
+        for key in ["hide","xlabel","ylabel","zlabel"]:
+            if key in kw:
+                optionDefaultsRC[key] = kw[key]
 
         self.__needsPlot = None
         grapher.GUIGrapher.__init__(self,parent,**optionDefaultsRC)
