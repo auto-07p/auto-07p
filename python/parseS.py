@@ -557,7 +557,11 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1,
                                   "NDIM": ndim})
                 if par != []:
-                    p = max(dict(par))*[0.0]
+                    m = len(self.__parnames)
+                    for k in dict(par):
+                        if not isinstance(k,str):
+                            m = max(k,m)
+                    p = m*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
         self.options["solution"] = self
@@ -807,7 +811,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         # data on demand from disk when we really need it
         self._filename = None
         if os.path.basename(input.name) !=  'fort.8':
-            self._filename = input.name
+            self._filename = os.path.join(os.getcwd(), input.name)
         if prev is None:
             self.__start_of_header = 0
         else:

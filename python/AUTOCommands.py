@@ -143,6 +143,9 @@ def demo(name,runner=None):
     command automatically performs the load command as well.
     """
     lst = [commandCopyDemo(name)]
+    slash = name.rfind("/")
+    if slash != -1:
+        name = name[slash+1:]
     lst.append(commandRunnerLoadName(name,runner))
     return macro(lst)
 commandCopyAndLoadDemo = command(demo,alias=['dm'])
