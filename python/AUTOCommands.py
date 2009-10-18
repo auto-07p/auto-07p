@@ -106,8 +106,23 @@ def copydemo(name):
     'abc'.  To avoid the overwriting of existing
     files, always run demos in a clean work directory.
     """
-    demofiles = glob.glob(os.path.expandvars("$AUTO_DIR/demos/%s/*"%name))
-    for f in demofiles:
+    demodir = os.path.join(os.environ["AUTO_DIR"],"demos",name)
+    for f in glob.glob(os.path.join(demodir,"*")):
+        if os.path.isdir(f):
+            subdir = f[len(demodir)+len(os.sep):]
+            try:
+                os.remove(subdir)
+            except OSError:
+                pass
+            try:
+                os.mkdir(subdir)
+            except OSError:
+                pass
+            for f2 in glob.glob(os.path.join(f,"*")):
+                try:
+                    shutil.copy(f2, subdir)
+                except IOError:
+                    pass
         try:
             shutil.copy(f, ".")
         except IOError:

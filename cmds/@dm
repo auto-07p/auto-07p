@@ -1,3 +1,16 @@
 #!/bin/sh
-cp $AUTO_DIR/demos/$1/* .
+# copy one level deep without hidden files
+for i in $AUTO_DIR/demos/$1/*
+do
+  if test -d "$i"; then
+    d=`expr "$i" : "$AUTO_DIR/demos/$1/\(.*\)"`
+    if test -f "$d"; then
+      rm "$d$"
+    fi
+    mkdir -p $d > /dev/null 2>&1
+    cp "$i"/* $d
+  else
+    cp "$i" .
+  fi
+done
 echo "Copying demo $1 ... done"
