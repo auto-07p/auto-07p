@@ -9,7 +9,7 @@ stability = 0
 #use_labels = 1
 #use_symbols = 0
 
-top_title = "Lorenz: EtoP connections using Lin's method"
+#top_title = "Continuation of canard orbits in parameter space"
 #top_title_fontsize = 12
 
 #xlabel = ''
@@ -71,11 +71,10 @@ solution_z = ['v']
 #bifurcation_diagram_filename = 'fort.7'
 #solution_filename = 'fort.8'
 
-#bifurcation_symbol = "square"
-#limit_point_symbol = None
-#hopf_symbol = "fillsquare"
-#period_doubling_symbol = "doubletriangle"
-#torus_symbol = "filldiamond"
-#user_point_symbol = "U"
-#error_symbol = None
-
+bifurcation_symbol = "square"
+limit_point_symbol = None
+hopf_symbol = "fillsquare"
+period_doubling_symbol = "doubletriangle"
+torus_symbol = "filldiamond"
+user_point_symbol = None
+error_symbol = None

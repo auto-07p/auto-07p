@@ -3,8 +3,54 @@
 # AUTO Demo fnc: plots
 #=====================
 
+#use hide=True in the plot options to avoid on screen display
+
 p=plot('attrrep',type="solution",label='all',azimuth=70,elevation=20,
        minx=-0.1,maxx=0.6,miny=0.35,maxy=0.65,minz=-0.8,maxz=0.1,
-       color_list="black red blue green gray orange")
+       color_list="black red blue green gray orange",
+       solution_x=["s"],solution_y=["h"], solution_z=["v"],
+       xlabel="$s$",ylabel="$h$",zlabel="$v$")
+p.savefig("fnc_attrrep1.eps")
+
+p=plot('attrrep',type="bifurcation",
+       bifurcation_x=["ha1","hr0"], bifurcation_y=["va1","vr0"],
+       xlabel="$h$",ylabel="$v$")
+p.savefig("fnc_attrrep2.eps")
+
+p=plot('xis',type="bifurcation",
+       bifurcation_x=["epsilon"], bifurcation_y=["L2-NORM"], 
+       minx=0,maxx=0.075,miny=1,maxy=5,
+       color_list="black red blue green gray orange",
+       xlabel=r"$\varepsilon$",ylabel="$||\cdot||_2$")
+p.savefig("fnc_canards1.eps")
+
+p=plot('xis',label=[4,8,11,16],type="solution",
+       solution_x=["s"], solution_y=["v"],solution_z=None,
+       color_list="black red blue green",
+       minx=-3.6,maxx=0,miny=-3,maxy=2,
+       xlabel="$s$",ylabel="$v$")
+p.savefig("fnc_canards2.eps")
+
+p=plot('attrrep',type="solution",label='all',
+       color_list="black red blue green gray orange",
+       solution_x=["s"],solution_y=["v"], solution_z=None,
+       minx=0,maxx=0.72,miny=-2,maxy=0,
+       xlabel="$s$",ylabel="$v$")
+p.savefig("fnc_canards3.eps")
+
+p=plot('xis',label=[17,25,31,37,43,49],type="solution",
+       solution_x=["s"], solution_y=["v"],solution_z=None,
+       color_list="black red blue green gray orange",
+       minx=0,maxx=0.72,miny=-2,maxy=0,
+       xlabel="$s$",ylabel="$v$")
+p.savefig("fnc_canards4.eps")
+
+p=plot('xis',label=[18,26,32,38,44,50],type="solution",
+       solution_x=["s"], solution_y=["v"],solution_z=None,
+       color_list="black red blue green gray orange",
+       minx=0,maxx=0.72,miny=-2,maxy=0,
+       xlabel="$s$",ylabel="$v$")
+p.savefig("fnc_canards5.eps")
+
+
 wait()
-#p.savefig(

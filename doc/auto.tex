@@ -8531,13 +8531,13 @@ Starting data for the Lin gap, which measures the distance between
 these two points of intersection, is put in $\eta=$ \parf{PAR(23)}.
 Subsequently, close this gap by continuing in 
 $\eta$, $\rho$, $\delta$, $\varepsilon$, $T^-$, $T^+$, $\mu$, and $T$.
-This process is illustrated in Figure~\ref{fig1}.
+This process is illustrated in Figure~\ref{fig:Demos_pcl1}.
 \item
 Continue the point to cycle connection obtained in step 7
 in the system parameters $\rho$ and $\beta$, together with
 $\delta$, $\varepsilon$, $T^-$, $T^+$, $\mu$, and $T$.
 Connections for various
-values of $(\rho,\beta)$ are shown in Figure \ref{fig2}.
+values of $(\rho,\beta)$ are shown in Figure \ref{fig:Demos_pcl2}.
 \end{enumerate}
 
 The above sequence of calculations can be carried out by
@@ -8559,7 +8559,7 @@ and the right panel shows the corresponding orbit segments,
 projected onto the $(x,z)$-plane.
 To obtain these figures run \commandf{plot('closegap')} or
 \commandf{@pp closegap}.}
-\label{fig1}
+\label{fig:Demos_pcl1}
 \end{center}
 \end{figure}
 
@@ -8574,7 +8574,7 @@ orbit segments in phase space (right),
 where the connection is continued in $\rho$ and $\beta$.
 To obtain these figures run \commandf{plot('cont')} or
 \commandf{@pp cont}.}
-\label{fig2}
+\label{fig:Demos_pcl2}
 \end{center}
 \end{figure}
 
@@ -8654,7 +8654,7 @@ the orbit as a general heteroclinic orbit.
 The resulting homoclinic orbit snakes in parameter space between the two
 tangencies of the codimension-zero connection and terminates at a
 segment of the codimension-one EtoP connection. We show this in
-Figure~\ref{fig5}.
+Figure~\ref{fig:Demos_snh3}.
 
 \subsection{The codimension-one point-to-cycle connection.}
 To compute the codimension-one point-to-cycle connection,
@@ -8701,13 +8701,13 @@ these two points of intersection is put in $\eta=$ \parf{PAR(23)}.
 Close the gap computed in step 6 by continuing in 
 $\eta$, $\nu_1$, $\delta$, $\varepsilon$, $T^+$, $T^-$, $\mu$, and
 $T$. The connection is found at $\nu_1=7.41189$.
-This process is illustrated in Figure~\ref{fig3}.
+This process is illustrated in Figure~\ref{fig:Demos_snh1}.
 \item
 Continue the point to cycle connection obtained in step 7
 in the system parameters $\nu_1$ and $\nu_2$, together with
 $\delta$, $\varepsilon$, $T^+$, $T^-$, $\mu$, and $T$.
 Connections for various
-values of $(\nu_1,\nu_2)$ are shown in Figure \ref{fig4}.
+values of $(\nu_1,\nu_2)$ are shown in Figure \ref{fig:Demos_snh2}.
 \end{enumerate}
 
 \begin{figure}[htb]
@@ -8722,7 +8722,7 @@ and the right panel shows the corresponding orbit segments.
 To obtain these figures run \commandf{plot('closegap')} or
 \commandf{@pp closegap}, and
 \commandf{plot3('closegap')} or \commandf{@pl closegap}.}
-\label{fig3}
+\label{fig:Demos_snh1}
 \end{center}
 \end{figure}
 
@@ -8741,7 +8741,7 @@ or \commandf{@pp cb}, and \commandf{plot3('cb')} or
 at a saddle-node bifurcation of limit cycles,
 and label 16 the smallest one, where the periodic orbit disappears in
 a Hopf bifurcation.}
-\label{fig4}
+\label{Fig:Demos_snh2}
 \end{center}
 \end{figure}
 
@@ -8778,7 +8778,7 @@ Continue the two folds forwards and backwards in two parameters,
 by adding the system parameter $\nu_2$ and setting the \AUTO constant
 \parf{ISW=2}. The folds terminate where $\Gamma$ disappears in a
 Hopf bifurcations (small $\nu_1$) and disappears in a saddle-node bifurcation
-of limit cycles (small $\nu_1$). In both cases the continued
+of limit cycles (large $\nu_1$). In both cases the continued
 connection and orbit stop converging, so \AUTO reports MX.
 \end{enumerate}
 
@@ -8796,7 +8796,170 @@ EtoP connection $c_b$.
 To obtain these figures run \commandf{plot('all')}
 or \commandf{@pp all}, and \commandf{plot3('all')} or
 \commandf{@pl all}.}
-\label{fig5}
+\label{fig:Demos_snh3}
+\end{center}
+\end{figure}
+
+\newpage
+%==============================================================================
+%DEMO=fnc======================================================================
+%==============================================================================
+\section{ fnc : Canards in the FitzHugh-Nagumo system.} \label{sec:Demos_fnc}
+
+This demo computes attracting and repelling slow manifolds
+in the self-coupled FitzHugh-Nagumo system:
+\begin{equation} \label{eq:Demos_fnc} \begin{array}{cl} 
+v' &= h - (v^3 - v + 1) / 2 - \gamma s v,\\
+h' &= -\varepsilon (2h + 2.6 v),\\
+s' &= -\varepsilon \delta s.\\
+\end{array} \end{equation}
+Furthermore, this demo continues canard orbits in parameter space.
+Typically, trajectories in slow-fast systems such as this one
+consist of a slow part
+that follows the attracting slow manifold, followed by a fast part
+when the trajectory hits a fold with respect to the fast direction.
+After this jump, the trajectory follows a slow segment again.
+A canard orbit, on the other hand, does not jump at the fold but
+follows the repelling slow manifold. A central role is played by the
+two-dimensional critical manifold $S$ which is given by the nullcline
+of the fast variable in the limit for $\varepsilon=0$. It consists of
+attracting and repelling sheets $S^a$ and $S^r$, which generically
+meet at fold curves $F$ with respect to the fast flow direction.
+For details, see \citename{DeKrOs:08} \citeyear{DeKrOs:08,DeKrOs:09}.
+
+For system (\ref{eq:Demos_fnc}), where we fix $\gamma=0.5$ and
+$\delta=0.565$, the critical manifold is given by
+\begin{equation} \label{eq:Demos_fnc_S}
+S=\{(v,h,s)\in \mathbb{R}^3| 2h-v^3+v-1-vs=0\},
+\end{equation}
+which is folded with respect to the fast variable $v$ along the folded
+node curve
+\begin{equation} \label{eq:Demos_fnc_F}
+F=\{(v,h,s)\in S| 1 - 3v^2=0\}.
+\end{equation}
+
+The computation of the slow manifolds is performed in three steps.
+They start with a constant-in-time solution at the folded node singularity
+$(v,h,s)=(-0.49,0.6176,0.2797)$ for $\varepsilon=0.015$ on the scaled
+time interval $[0,1]$ with time lengths $T^a=0$ and $T^r=0$, respectively.
+Then, for the computation of the attracting manifold $(v^a,h^a,s^a)$,
+via boundary conditions we always keep the starting point
+$(v^a(0),h^a(0),s^a(0))$ on $S$ and $s^a(1)$ fixed to $0.2797$.
+The steps are as follows:
+\begin{enumerate}
+\item
+Homotopy step 1: grow the orbit segment in $T^a$, continuing also in
+$v^a(0)$, $h^a(0)$, and $s^a(0)$, where the starting point
+is kept on the folded node $F$ until $s^a(0)=0.6$.
+\item
+Homotopy step 2: the extra boundary condition for $F$ is dropped,
+and we now instead fix $s^a(0)=0.6$.
+We continue in $v^a(0)$, $h^a(0)$, and $T^a$ until $h^a(0)=-6.0$.
+\item
+Actual computation: we continue in $v^a(0)$, $s^a(0)$, and $T^a$,
+fixing $h^a(0)=-6.0$. The end-point coordinates $v^a(1)$ and $h^a(1)$
+are monitored so they can be matched with starting points of the
+repelling manifold. These matches were found manually and are
+now indicated at specific values of $T^a$ as UZ labels.
+\end{enumerate}
+
+For the repelling manifold $(v^r,h^r,s^r)$,
+we always keep the end point $(v^r(1),h^r(1),s^r(1))$ on $S$
+and $s^r(0)$ fixed to $0.2797$.
+The steps are now as follows:
+\begin{enumerate}
+\item
+Homotopy step 1: grow the orbit segment in $T^r$ until $s^r(1)=0.05$.
+\item
+Homotopy step 2: the extra boundary condition for $F$ is dropped,
+and we now instead fix $s^r(1)=0.05$. We continue until $v^r(1)=0$.
+\item
+Actual computation: we continue in $s^r(0)$ and $T^r$,
+fixing $v^r(1)=0$. The starting point coordinates $v^r(0)$ and $h^r(0)$
+are now monitored for matches with the attracting manifold.
+\end{enumerate}
+
+The demo contains one folder \filef{attr}
+for the "attracting" slow manifold and one folder \filef{rep} for 
+the "repelling" slow manifold. In each of these two folders, the
+manifolds can be computed by running the commands
+\filef{auto attr.auto} and \filef{auto rep.auto}, respectively.
+The alternative
+script files \filef{attrc.auto} and \filef{repc.auto} use constants
+files for every step instead of specifying the constants in the
+script.
+
+The main folder contains AUTO files to continue in 
+parameter space six of the secondary canards of this systems. The
+script \filef{fnc.auto} first computes the attracting and
+repelling slow manifolds in their respective folders and next
+concatenates matching manifolds in Python.  Six of these canard
+orbits are then continued in $\varepsilon$ in both decreasing and
+increasing direction.
+
+If $T^a_j$ is the integration time for the canard segment $\xi^a_j$ on the 
+attracting slow manifold and $T^r_j$ is the integration time for the orbit 
+segment $\xi^r_j$ on the repelling slow manifold corresponding to the same 
+canard solution, then the concatenated orbit segment $\xi_j$ has
+$T^c_j=T^a_j+T^r_j$ as integration time.
+The orbit $\xi_j$ is obtained from $\xi^a_j$ and $\xi^r_j$ by,
+concatenating $\xi^a_j$ and $\xi^r_j$, and rescaling the time
+so that it runs monotonically from 0 to 1.
+
+Parameters are then also copied, where only those relating to the
+start of the attracting manifold and the end of the repelling manifold
+are kept, for these parameters are used for the boundary conditions of
+the canard orbits. The new integration time $T^c_j$ is stored in
+\parf{PAR(11)}.
+
+Two constant files are provided. They correspond to the continuation
+in epsilon in both decreasing (\filef{c.fnc}) and
+and increasing (\filef{c.fnc.epsplus}) direction.
+Continuation in any other system parameter is 
+easily obtained by editing the \parf{ICP} entry.
+
+The script \filef{plot.auto} produces the plots
+we show here, in Figures~\ref{fig:Demos_fnc1},
+\ref{fig:Demos_fnc2}, and \ref{fig:Demos_fnc3}.
+
+\begin{figure}[h!]
+\begin{center}
+\begin{picture}(550,190)
+\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_attrrep1.eps}}
+\put(251,-15){\includegraphics[scale=0.45]{include/fnc_attrrep2.eps}}
+\end{picture}
+\caption{Repelling and attracting slow manifold curves
+where they match up (left) and their intersection curves at $s=0.2797$ in
+the $(h,v)$ plane (right).}
+\label{fig:Demos_fnc1}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\begin{picture}(550,190)
+\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_canards1.eps}}
+\put(240,-20){\includegraphics[scale=0.48]{include/fnc_canards2.eps}}
+\end{picture}
+\caption{Continuation of canard orbits: the AUTO $L_2$ norm as
+a function of $\varepsilon$ for all six orbits (left), and 
+a projection of labels 4, 8, 11, and 16 (black, red, blue, green)
+of the orbit $\xi_3$ on the $(v,s)$ plane (right).}
+\label{fig:Demos_fnc2}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\begin{picture}(550,130)
+\put(305,-20){\includegraphics[scale=0.335]{include/fnc_canards5.eps}}
+\put(145,-20){\includegraphics[scale=0.335]{include/fnc_canards4.eps}}
+\put(-15,-20){\includegraphics[scale=0.335]{include/fnc_canards3.eps}}
+\end{picture}
+\caption{Continuation of canard orbits: projection of all canard
+orbits on the $(v,s)$ plane for $\varepsilon=0.015$ (left),
+$\varepsilon=10^{-4}$ (middle), and $\varepsilon=10^{-6}$ (right).}
+\label{fig:Demos_fnc3}
 \end{center}
 \end{figure}
 
@@ -10155,7 +10318,7 @@ approached by the orbit as $t \to +\infty$). The same default as for
 \begin{itemize}
 \item[-] \parf{IEQUIB=0}~: 
 Homoclinic orbits to hyperbolic equilibria;  
-the equilibrium is specified explicitly in \parf{PVLS} and stored in
+the equilibrium is specified explicitly in \funcf{PVLS} and stored in
 \parf{PAR(11+I)}, \parf{I=1,NDIM}.
 \item[-] \parf{IEQUIB=1}~(default): 
 Homoclinic orbits to hyperbolic equilibria;  
