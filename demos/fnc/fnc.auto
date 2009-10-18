@@ -1,0 +1,56 @@
+
+#==============
+# AUTO Demo fnc
+#==============
+
+pgm = "fnc"
+print "\nDemo %s is started"%pgm
+
+cd("attr")
+auto("attr.auto")
+attr = loadbd("attr")
+cd("..")
+
+cd("rep")
+auto("rep.auto")
+rep = loadbd("rep")
+cd("..")
+
+# for plotting attracting and repelling manifolds
+save(rl(attr+rep),'attrrep')
+
+pgm = "fnc" #reinitialize
+dl("xis")
+for i in [3,4,5,6,7,8]:
+    print "calculating orbit for xi"+str(i)
+    uzlabel = "UZ"+str(i-2)
+    sola = attr(uzlabel)
+    solr = rep(uzlabel)
+    
+    Ta = sola.PAR["Ta"]
+    Tr = solr.PAR["Tr"]
+    Tc = Ta + Tr
+
+    # concatenate manifold coordinates and rescale t
+    t = ([(ti * Ta)/Tc for ti in sola["t"][:-1]] + 
+         [(ti * Tr + Ta)/Tc for ti in solr["t"]])
+    v = list(sola["v"][:-1]) + list(solr["v"])
+    h = list(sola["h"][:-1]) + list(solr["h"])
+    s = list(sola["s"][:-1]) + list(solr["s"])
+    u = [v,h,s]
+
+    p = {}
+    for j in ["epsilon","gamma","delta","va0","ha0"]:
+        p[j] = sola.PAR[j]
+    p["sr1"] = solr.PAR["sr1"]
+    p["Tc"] = Tc
+
+    rmin = run(u,e=pgm,c=pgm,PAR=p,t=t)
+    rplus = run(u,e=pgm,c=pgm+".epsplus",PAR=p,t=t)
+    r = merge(rmin+rplus)
+    save(r,"xi"+str(i))
+    append(r,"xis")
+
+rl("xis")
+print "\n***Clean the directory***"
+cl()

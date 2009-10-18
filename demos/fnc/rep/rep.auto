@@ -1,0 +1,23 @@
+
+#==================
+# AUTO Demo fnc/rep
+#==================
+
+pgm = "rep"
+print "\nDemo %s is started"%pgm
+
+print '\n%s : first run : Homotopy away from the folded node along the fold curve'%pgm
+r1 = run(e=pgm,c=pgm)
+
+print '\n%s : second run : Homotopy away from the fold curve on the critical manifold'%pgm
+r2 = run(r1('UZ1'),ICP=['vr1','Tr'],NBC=4,UZR={'vr1':0})
+
+print '\n%s : third run: Actual computation of the repelling slow manifold'%pgm
+start3 = load(r2('UZ1'),ICP=['Tr','sr1','vr0','hr0'],
+              UZR = {'Tr':[144.10077659,160.62079695,178.59845751,
+                           197.98334090,218.62796126,240.27107973]})
+r3 = merge(run(start3,STOP='UZ2') + run(start3,STOP='UZ4',DS='-'))
+save(r3,pgm)
+
+print "\n***Clean the directory***"
+cl()

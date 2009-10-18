@@ -1,0 +1,81 @@
+[AUTO_plotter]
+
+#default_option="d1"
+#d1 = {"grid": "no", "use_labels": 1, "use_symbols": 1, "stability": 1}
+# similarly you can redefine d0, d2, d3, d4.
+
+#grid = "no"
+stability = 0
+#use_labels = 1
+#use_symbols = 0
+
+top_title = "Lorenz: EtoP connections using Lin's method"
+#top_title_fontsize = 12
+
+#xlabel = ''
+#xlabel_fontsize = 12
+#ylabel = ''
+#ylabel_fontsize = 12
+
+#solution_indepvarname = "time"
+#solution_coordnames = ["$x$","$y$","$z$"]
+#bifurcation_coordnames = [r"$\rho$", "L2-norm", "max $x$", "max $y$", "max $z$", "$\beta", "$\gamma$"]
+
+#line_width = 2.0
+#dashes = (6.0,6.0)
+#background = "white"
+#foreground = "black"
+#color_list = "black red green blue"
+#symbol_color = "red"
+#symbol_font = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+#decorations = 1
+#smart_label = 1
+#minx = 0
+#maxx = 0
+#miny = 0
+#maxy = 0
+#width = 600
+#height = 480
+#left_margin = 80
+#right_margin = 40
+#top_margin = 40
+#bottom_margin = 40
+#xticks = 5
+#yticks = 5
+#tick_label_template = "%.2e"
+#tick_length = 0.2
+#odd_tick_length = 0.4
+#even_tick_length = 0.2
+#ps_colormode = "color"
+#mark_t = None #or a real value between 0 and 1
+
+type = "bifurcation" # or "solution"
+
+bifurcation_x = ['vr0']
+bifurcation_y = ['hr0']
+
+solution_x = ['v']
+solution_y = ['h']
+solution_z = ['s']
+
+## Sets of columns that the user is likely to want to use
+#bifurcation_column_defaults = None
+#solution_column_defaults = None
+
+# The label(s) of the solution we wish to draw
+#label = [1,2,3]
+#label_defaults = None
+# The index/indices of the solution we wish to draw
+#index = [0]
+
+#bifurcation_diagram_filename = 'fort.7'
+#solution_filename = 'fort.8'
+
+#bifurcation_symbol = "square"
+#limit_point_symbol = None
+#hopf_symbol = "fillsquare"
+#period_doubling_symbol = "doubletriangle"
+#torus_symbol = "filldiamond"
+#user_point_symbol = "U"
+#error_symbol = None
+

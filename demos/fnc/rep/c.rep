@@ -1,0 +1,11 @@
+unames = {1:'v', 2:'h', 3:'s'}
+parnames = {1: 'epsilon', 2: 'gamma', 3: 'delta',
+ 4: 'vr1', 5: 'sr0', 6: 'sr1', 8: 'vr0', 9: 'hr0', 11: 'Tr'}
+NDIM=   3, IPS =   4, IRS =   0, ILP =   0
+ICP =  ['Tr', 'vr1', 'sr1']
+NTST= 100, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 5, NINT= 0
+NMX=  1200, NPR= 1200, MXBF=   0, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
+EPSL= 1e-09, EPSU = 1e-09, EPSS = 1e-07
+DS  = 1.0, DSMIN= 5e-05, DSMAX=  10.0, IADS=   1
+NPAR = 11, THL =  {}, THU =  {}
+UZR =  {'sr1': 0.05}, STOP = ['UZ1']

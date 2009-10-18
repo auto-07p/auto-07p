@@ -1,0 +1,10 @@
+
+#=====================
+# AUTO Demo fnc: plots
+#=====================
+
+p=plot('attrrep',type="solution",label='all',azimuth=70,elevation=20,
+       minx=-0.1,maxx=0.6,miny=0.35,maxy=0.65,minz=-0.8,maxz=0.1,
+       color_list="black red blue green gray orange")
+wait()
+#p.savefig(

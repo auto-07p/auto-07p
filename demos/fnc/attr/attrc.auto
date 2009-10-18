@@ -1,0 +1,21 @@
+
+#===================
+# AUTO Demo fnc/attr
+#===================
+
+pgm = "attr"
+print "\nDemo %s is started"%pgm
+
+print '\n%s : first run : Homotopy away from the folded node along the fold curve'%pgm
+r1 = run(e=pgm,c=pgm,sv='1')
+
+print '\n%s : second run : Homotopy away from the fold curve on the critical manifold'%pgm
+r2 = run(c=pgm+'.2',s='1',sv='2')
+
+print '\n%s : third run: Actual computation of the attracting slow manifold'%pgm
+r3 = run(c=pgm+'.3',s='2',sv='3')
+r4 = run(c=pgm+'.4',s='2',ap='3')
+merge('3',pgm)
+
+print "\n***Clean the directory***"
+cl()

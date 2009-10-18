@@ -1,0 +1,14 @@
+
+#==================
+# AUTO Demo fnc/rep
+#==================
+
+pgm = "rep"
+
+dl('1')
+dl('2')
+dl('3')
+dl(pgm)
+
+print "\n***Clean the directory***"
+cl()
