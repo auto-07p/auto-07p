@@ -52,17 +52,6 @@ C
 C$       TIME0=omp_get_wtime()
        ENDIF
        CALL INIT(IAP,RAP,EOF,KEYS,LINE)
-       IF(FIRST)THEN
-          IF(SVFILE/='')THEN
-             BIFFILE='b.'//SVFILE
-             SOLFILE='s.'//SVFILE
-             DIAFILE='d.'//SVFILE
-          ENDIF
-          OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
-          OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
-          OPEN(9,FILE=DIAFILE,STATUS='unknown',ACCESS='sequential')
-          FIRST=.FALSE.
-       ENDIF
        IF(EOF)THEN
          CALL MPIEND()
          STOP
@@ -258,6 +247,19 @@ C     set IUZ/VUZ
               VUZ(K)=IVUZR(I)%VAR(J)
            ENDDO
         ENDDO
+
+        ! only now open the output files
+        IF(FIRST)THEN
+           IF(SVFILE/='')THEN
+              BIFFILE='b.'//SVFILE
+              SOLFILE='s.'//SVFILE
+              DIAFILE='d.'//SVFILE
+           ENDIF
+           OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
+           OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
+           OPEN(9,FILE=DIAFILE,STATUS='unknown',ACCESS='sequential')
+           FIRST=.FALSE.
+        ENDIF
       ELSE
         ! ignored for MPI workers
         ALLOCATE(ICP(1),PAR(1),THU(1),THL(1),IUZ(1),VUZ(1))

@@ -672,13 +672,14 @@ class runAUTO:
 
     def __outputCommand(self):
         # Check to see if output files were created.
-        # If not, set the two output streams to be None.
+        # If not, there must have been an error
         if (os.path.isfile(self.fort7_path) and
             os.path.isfile(self.fort8_path) and
             os.path.isfile(self.fort9_path)):
             import bifDiag
             return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
                                    self.fort9_path,**self.options)
+        raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
