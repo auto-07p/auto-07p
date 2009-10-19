@@ -4903,7 +4903,7 @@ writePreferValuesToFile()
         fprintf(outFile,"%-21.21s = 0x%lx\n", hexdecimalVarNames[i], stabilityLinePattern[i]);
     }
 
-    fprintf(outFile, "\n#  Initialize the default options\n");
+    fprintf(outFile, "\n# Initialize the default options:\n");
     for(unsigned i = 0; i<XtNumber(graphWidgetItems); ++i)
     {
         fprintf(outFile, "%-21.21s = ",graphWidgetItems[i]);

@@ -5,7 +5,7 @@
 # when showing all solutions and highlighting the solutions 
 # Point Type    RED  GREEN  BLUE
 DEFAULT     = 1.0,  1.0,  1.0, 0xffff
-BP            = 1.0,  0.0,  0.0, 0xffff
+BP ALG        = 1.0,  0.0,  0.0, 0xffff
 LP ALG        = 0.0,  1.0,  0.0, 0xffff
 HB            = 0.0,  0.0,  1.0, 0xffff
 UZ4           = 1.0,  1.0,  0.0, 0xffff
@@ -23,11 +23,15 @@ UNSTABLE LINE PATTERN = 0xffff
 STABLE LINE PATTERN   = 0xffff
 
 # Initialize the default options:
+Draw Reference Plane  = No
+Draw Reference Sphere = No
 Highlight Orbit       = No 
 Orbit Animation       = No 
 Normalize Data        = No
 Draw Background       = No
 Draw Labels           = Yes
+Show Label Numbers    = No
+Draw Legend           = No
 
 # Initialize the default coordinate axes:
 #  0 --- None,
@@ -45,7 +49,7 @@ Draw Scale = Yes
 #  1 --- Bifurcation (fort.7)
 Graph Type    = 0
 
-# Initialize the default graph style
+# Initialize the default graph style:
 #  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE
 Graph Style  =  0
 
@@ -81,7 +85,11 @@ Labels              = -3
 # -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method           = -6 
+#Coloring Method           = -6
+# For the solution diagram:
+Coloring Method Solution  = -6
+# For the bifurcation diagram:
+Coloring Method Bifurcation = -6
 
 # Line Width Scaler adjusts the thickness of curves:
 Line Width Scaler         = 1.0
@@ -92,18 +100,58 @@ AniLine Thickness Scaler  = 3.0
 # Background color:
 Background Color  = 0.0,  0.0,   0.0
 
-# Background transparency:
+# Background transparency
+# [0.0, 1.0] 
 Background Transparency = 0.9 
+
+# Set the radius of the spheres used for labels:
+# The normal size is 1.0.
+# For smaller radius, use 0.xxx
+# For bigger radius, use  X.XXX
+Label Sphere Radius       =  1.0
+
+# Disk Rotation
+Disk Rotation             = 1.000000, 0.000000, 0.000000, 1.570796
+
+# Disk Position
+Disk Position             = 0.000000, 0.000000, 0.000000
+
+# Disk Radius
+Disk Radius               = 1.000000
+
+# Disk Height
+Disk Height               = 0.001000
+
+# Disk Transparency [0, 1] 
+Disk Transparency         =  0.7
+
+# Read Disk From File 
+Disk From File            = No
+
+# Sphere Position
+Sphere Position           = 0.000000, 0.000000, 0.000000
+
+# Sphere Radius
+Sphere Radius             = 1.000000
+
+# Sphere Transparency [0, 1] 
+Sphere Transparency       =  0.7
+
+# Read Sphere From File 
+Sphere From File          = No
 
 # Axes color:
 X Axis Color    = 1.0,  0.0,   0.0
 Y Axis Color    = 0.0,  1.0,   0.0
 Z Axis Color    = 0.0,  0.0,   1.0
 
+# Surface color:
+Surface Color             =  0.0,  1.0,  0.0
+
 # Stable solution color:
 Stable Solution Color = 0.0, 0.0, 1.0
 
-# UNStable solution color:
+# Unstable solution color:
 Unstable Solution Color = 1.0, 0.0, 0.0
 
 # Color of the animation object:
@@ -129,9 +177,14 @@ Orbit Min Animation Speed = 0
 parameter ID = 10
 
 # Choose 3D or 2D graph:
-3D  = No 
+#3D  = No 
+
+# Choose 3D or 2D graph for the bifurcation diagram:
+3DBif = No
+
+# Choose 3D or 2D graph for the solution diagram:
+3DSol = No
 
 # Set the number of periods animated.
 # The value should be the power of 2.
 Number of Period Animated = 1
-

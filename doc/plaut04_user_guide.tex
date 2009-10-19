@@ -336,7 +336,7 @@ Below is a copy of the default resource file.
 # when showing all solutions and animating the solution change.
 # Point Type    RED  GREEN  BLUE PATTERN
 DEFAULT       = 1.0,  1.0,  1.0, 0xffff
-BP            = 1.0,  0.0,  0.0, 0xffff
+BP ALG        = 1.0,  0.0,  0.0, 0xffff
 LP ALG        = 0.0,  1.0,  0.0, 0xffff
 HB            = 0.0,  0.0,  1.0, 0xffff
 UZ4           = 1.0,  1.0,  0.0, 0xffff
@@ -349,24 +349,29 @@ EP            = 0.3,  0.0,  0.3, 0xffff
 MX            = 0.6,  0.0,  0.6, 0xffff
 OTHERS        = 1.0,  1.0,  1.0, 0xffff
 
-# Initialize the line pattern for showing stability
+# Initialize the line pattern for showing stability:
 UNSTABLE LINE PATTERN = 0xffff 
 STABLE LINE PATTERN   = 0xffff
 
 # Initialize the default options:
 Draw Reference Plane  = No
+Draw Reference Sphere = No
 Orbit Animation       = No
 Satellite Animation   = No 
 Draw Primaries        = No 
 Draw Libration Points = No 
-Normalize Data        = Yes 
+Normalize Data        = No
+Draw Labels           = No
+Show Label Numbers    = No
 Draw Background       = No
+Draw Legend           = No
 
 # Initialize the default coordinate axes:
 #  0 --- None,
 #  1 --- at origin
 #  2 --- at left and behind
 #  3 --- at left and ahead
+#  4 --- always at origin
 Coordinate Type = 3
 
 # Draw Scale on the Aexs
@@ -402,14 +407,19 @@ Z Axis Bifurcation          = 6
 Labels              = 0
 
 # Set coloring method:
-# -5 --- STABILITY
-# -4 --- POINT
-# -3 --- BRANCH
-# -2 --- TYPE
-# -1 --- LABEL
+# -6 --- STABILITY
+# -5 --- POINT
+# -4 --- BRANCH
+# -3 --- TYPE 
+# -2 --- LABEL 
+# -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method           = -2
+#Coloring Method           = -3
+# For the solution diagram:
+Coloring Method Solution  = -3
+# For the bifurcation diagram:
+Coloring Method Bifurcation = -3
 Number of Period Animated = 1
 
 # Line Width Scaler adjusts the thickness of curves:
@@ -424,12 +434,41 @@ Background Color  = 0.0,  0.0,   0.0
 # Background transparency:
 Background Transparency = 0.0 
 
-# Disk transparency
-# IF you turn Disk From File to "Yes", you should change the transparency there.
-Disk Transparency = 0.7 
+# Set the radius of the spheres used for labels:
+# The normal size is 1.0.
+# For smaller radius, use 0.xxx
+# For bigger radius, use  X.XXX
+Label Sphere Radius       =  1.0
 
+# Disk Rotation
+Disk Rotation = 1.0, 0.0, 0.0, 1.570796
+
+# Disk Position
+Disk Position = 0.0, 0.0, 0.0
+
+# Disk Radius
+Disk Radius = 1.0
+
+# Disk Height
+Disk Height = 0.001
+
+# Disk Transparency [0, 1]
+Disk Transparency = 0.7 
+ 
 # Read Disk From File
 Disk From File = No 
+ 
+# Sphere Position
+Sphere Position = 0.0, 0.0, 0.0
+
+# Sphere Radius
+Sphere Radius = 1.0
+
+# Sphere Transparency [0, 1]
+Sphere Transparency = 0.7
+
+# Read Sphere From File
+Sphere From File = No
 
 # Axes color:
 X Axis Color    = 1.0,  0.0,   0.0
@@ -442,6 +481,9 @@ large primary Color         = 0.0,  1.0,   0.0
 large primary tail Color    = 0.0,  1.0,   1.0
 small primary Color         = 0.0,  0.0,   1.0
 small primary tail Color    = 0.5,  0.5,   0.0
+
+# Surface color:
+Surface Color         =  0.0,  1.0,  0.0
 
 # Stable solution color:
 Stable Solution Color = 0.0, 0.0, 1.0
@@ -458,11 +500,13 @@ Large Primary Radius    = 1.0
 Small Primary Radius    = 1.0
 Libration Point Size    = 1.0
 
-# Set the maximum and minimum satellite animation speed:
+# Set the initial, maximum and minimum satellite animation speed:
+Sat Animation Speed = 100
 Sat Max Animation Speed = 100
 Sat Min Animation Speed = 0
 
-# Set the maximum and minimum orbit-change animation speed:
+# Set the initial, maximum and minimum orbit-change animation speed:
+Orbit Animation Speed = 50
 Orbit Max Animation Speed = 100
 Orbit Min Animation Speed = 0
 
@@ -470,7 +514,13 @@ Orbit Min Animation Speed = 0
 parameter ID = 10
 
 # Choose 3D or 2D graph:
-3D  = Yes 
+#3D  = Yes 
+
+# Choose 3D or 2D graph for the bifurcation diagram:
+3DBif = Yes
+
+# Choose 3D or 2D graph for the solution diagram:
+3DSol = Yes
 
 \end{verbatim}
 }

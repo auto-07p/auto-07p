@@ -71,9 +71,9 @@
     in (r3b)plaut04.rc.
   - Draw reference planes and spheres, if specified in (r3b)plaut04.rc, via
     the new settings:
-    Disk Rotation, Disk Position, Disk Radius, Disk Height, Disk Transparency,
-    Read Disk From File, Sphere Position, Sphere Radius, Sphere Transparency,
-    Read Sphere From File
+    Draw Reference Plane, Draw Reference Sphere, Disk Rotation, Disk Position,
+    Disk Radius, Disk Height, Disk Transparency, Disk From File, 
+    Sphere Position, Sphere Radius, Sphere Transparency, Sphere From File
 * Python
   - The run command no longer redirects output by default: AUTO writes directly
     to the terminal.
