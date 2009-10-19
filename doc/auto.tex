@@ -2789,21 +2789,48 @@ Plotting of data using PLAUT04.
 \item[copy]
 Copy data files.
 
+    Type \commandf{copy(name1, name2)}, or \commandf{copy(name1,
+      name2, name3)}, or  \commandf{copy(name1, name2, name3, name4)} to
+    copy the data-files \filef{dir1/c.xxx}, \filef{dir1/b.xxx},
+    \filef{dir1/s.xxx}, and \filef{dir1/d.xxx}, to \filef{dir2/c.yyy},
+    \filef{dir2/b.yyy}, \filef{dir2/s.yyy}, and \filef{dir2/d.yyy}.
+
     Type \commandf{copy('xxx','yyy')} to copy the data-files \filef{c.xxx},
     \filef{d.xxx}, \filef{b.xxx}, and \filef{h.xxx} to \filef{c.yyy},
     \filef{d.yyy}, \filef{b.yyy}, and \filef{h.yyy}.
     
-\textbf{Aliases:} commandCopyDataFiles
+    The values of \filef{dir1/?.xxx} and \filef{dir2/?.yyy} are as
+    follows, depending on whether \filef{name1} is a directory or
+    \filef{name2} is a directory:
+
+    \commandf{copy(name1, name2)}\\
+    no directory names: \filef{./?.name1} and \filef{./?.name2}\\
+    \filef{name1} is a directory: \filef{name1/?.name2} and \filef{./?.name2}\\
+    \filef{name2} is a directory: \filef{./?.name1} and \filef{name2/?.name1}
+
+    \commandf{copy(name1, name2, name3)}\\
+    \filef{name1} is a directory: \filef{name1/?.name2} and \filef{./?.name3}\\
+    \filef{name2} is a directory: \filef{./?.name1} and \filef{name2/?.name3}
+
+    \commandf{copy(name1, name2, name3, name4)}\\
+    \filef{name1/?.name2} and \filef{name3/?.name4}
+
+\textbf{Aliases:} cp commandCopyDataFiles
 
 \item[move]
 Move data-files to a new name.
 
-    Type \commandf{move('xxx','yyy')} to move the data-files \filef{b.xxx},
-    \filef{s.xxx}, and \filef{d.xxx} to \filef{b.yyy},
-    \filef{s.yyy}, and \filef{d.yyy}, and 
-    copy the constants file \filef{c.xxx} to \filef{c.yyy}.
+    Type \commandf{move(name1, name2)}, or \commandf{move(name1,
+      name2, name3)}, or  \commandf{move(name1, name2, name3, name4)} to
+    move the data-files \filef{dir1/b.xxx}, \filef{dir1/s.xxx}, and
+    \filef{dir1/d.xxx}, to \filef{dir2/b.yyy}, \filef{dir2/s.yyy}, and
+    \filef{dir2/d.yyy}, and copy the constants
+    file \filef{dir1/c.xxx} to \filef{dir2/c.yyy}.
 
-\textbf{Aliases:} commandMoveFiles
+    The values of \filef{dir1/?.xxx} and \filef{dir2/?.yyy} are determined
+    in the same way as for \commandf{copy} above.
+
+\textbf{Aliases:} mv commandMoveFiles
 
 \item[df]
 Clear the current directory of fort files.
@@ -3529,16 +3556,38 @@ commands that depend on \python are \commandf{@cnvc},
 \begin{itemize}
 
 \item[\tt @cp]~:
-  Type \commandf{@cp xxx yyy} 
-  to copy the data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx} to
-  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
+  Type \commandf{@cp name1 name2}, or \commandf{@cp name1
+   name2 name3}, or  \commandf{@cp name1 name2 name3 name4} to
+  copy the data-files \filef{dir1/c.xxx}, \filef{dir1/b.xxx},
+  \filef{dir1/s.xxx}, and \filef{dir1/d.xxx}, to \filef{dir2/c.yyy},
+  \filef{dir2/b.yyy}, \filef{dir2/s.yyy}, and \filef{dir2/d.yyy}.
+
+  The values of \filef{dir1/?.xxx} and \filef{dir2/?.yyy} are as
+  follows, depending on whether \filef{name1} is a directory or
+  \filef{name2} is a directory:
+
+  \commandf{@cp name1 name2}\\
+  no directory names: \filef{./?.name1} and \filef{./?.name2}\\
+  \filef{name1} is a directory: \filef{name1/?.name2} and \filef{./?.name2}\\
+  \filef{name2} is a directory: \filef{./?.name1} and \filef{name2/?.name1}
+
+  \commandf{@cp name1 name2 name3}\\
+  \filef{name1} is a directory: \filef{name1/?.name2} and \filef{./?.name3}\\
+  \filef{name2} is a directory: \filef{./?.name1} and \filef{name2/?.name3}
+
+  \commandf{@cp name1 name2 name3 name4}\\
+  \filef{name1/?.name2} and \filef{name3/?.name4}
 
 \item[\tt @mv]~:
-  Type \commandf{@mv xxx yyy} 
-  to move the data-files 
-  {\tt b.xxx}, {\tt s.xxx}, {\tt d.xxx}, {\tt c.xxx}, to
-  {\tt b.yyy}, {\tt s.yyy}, {\tt d.yyy}, {\tt c.yyy}, respectively.
+   Type \commandf{@mv name1 name2}, or \commandf{@mv name1 name2
+     name3)}, or  \commandf{@mv name1 name2 name3 name4} to
+   move the data-files \filef{dir1/b.xxx}, \filef{dir1/s.xxx}, and
+   \filef{dir1/d.xxx}, to \filef{dir2/b.yyy}, \filef{dir2/s.yyy}, and
+   \filef{dir2/d.yyy}, and copy the constants
+   file \filef{dir1/c.xxx} to \filef{dir2/c.yyy}.
+
+   The values of \filef{dir1/?.xxx} and \filef{dir2/?.yyy} are determined
+   in the same way as for \commandf{@cp} above.
 
 \item[\tt @df]~:
   Type \commandf{@df} 

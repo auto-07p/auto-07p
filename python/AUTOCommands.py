@@ -483,8 +483,27 @@ def dirfilenames(name1,name2,name3,name4):
 def copy(name1,name2,name3=None,name4=None,templates=None):
     """Copy data files.
 
-    Type FUNC('xxx','yyy') to copy the data-files c.xxx, d.xxx, b.xxx,
-    and h.xxx to c.yyy, d.yyy, b.yyy, and h.yyy.
+    Type FUNC(name1,name2) or
+    FUNC(name1,name2,name3) or
+    FUNC(name1,name2,name3,name4).
+
+    Copy the data-files dir1/c.xxx, dir1/b.xxx, dir1/s.xxx, and dir1/d.xxx
+    to dir2/c.yyy, dir2/b.yyy, dir2/s.yyy, and dir2/d.yyy.
+
+    The values of dir1/?.xxx and dir2/?.yyy are as follows, depending on
+    whether name1 is a directory or name2 is a directory:
+
+    FUNC(name1,name2)
+    no directory names: ./?.name1 and ./?.name2
+    name1 is a directory: name1/?.name2 and ./?.name2
+    name2 is a directory: ./?.name1 and name2/?.name1
+
+    FUNC(name1,name2,name3)
+    name1 is a directory: name1/?.name2 and ./?.name3
+    name2 is a directory: ./?.name1 and name2/?.name3
+
+    FUNC(name1,name2,name3,name4)
+    name1/?.name2 and name3/?.name4
     """
     
     dir1, name1, dir2, name2 = dirfilenames(name1,name2,name3,name4)
@@ -757,8 +776,28 @@ commandDouble = command(double,alias=['db'])
 def move(name1,name2,name3=None,name4=None,templates=None):
     """Move data-files to a new name.
 
-    Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, and d.xxx,
-    to b.yyy, s.yyy, and d.yyy, and copy the constants file c.xxx to c.yyy.
+    Type FUNC(name1,name2) or
+    FUNC(name1,name2,name3) or
+    FUNC(name1,name2,name3,name4)
+
+    Move the data-files dir1/b.xxx, dir1/s.xxx, and dir1/d.xxx,
+    to dir2/b.yyy, dir2/s.yyy, and dir2/d.yyy, and copy the constants
+    file dir1/c.xxx to dir2/c.yyy.
+
+    The values of dir1/?.xxx and dir2/?.yyy are as follows, depending on
+    whether name1 is a directory or name2 is a directory:
+
+    FUNC(name1,name2)
+    no directory names: ./?.name1 and ./?.name2
+    name1 is a directory: name1/?.name2 and ./?.name2
+    name2 is a directory: ./?.name1 and name2/?.name1
+
+    FUNC(name1,name2,name3)
+    name1 is a directory: name1/?.name2 and ./?.name3
+    name2 is a directory: ./?.name1 and name2/?.name3
+
+    FUNC(name1,name2,name3,name4)
+    name1/?.name2 and name3/?.name4
     """
     dir1, name1, dir2, name2 = dirfilenames(name1,name2,name3,name4)
     names1 = filenameTemplate(name1,templates)
