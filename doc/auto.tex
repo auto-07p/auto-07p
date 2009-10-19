@@ -821,7 +821,10 @@ the file {\tt xxx.\{f90,f\}} is described below.
   A routine {\tt FOPT} that defines the objective functional. \\ 
   (Demos {\tt opt}, {\tt ops}.)  
 \item[-] {\tt PVLS}~:~
-  A routine {\tt PVLS} for defining ``solution measures''. \\
+  A routine {\tt PVLS} for defining ``solution measures''.
+  This routine, using a ``\texttt{LOGICAL, SAVE :: first = .TRUE.}''
+  variable can also be used for initialization, as it is called
+  first. \\
   (Demo {\tt pvl}.)
 \end{itemize}
 
@@ -4769,7 +4772,7 @@ must be the one with respect to which the fold was located.
 %=====================================================================
 \subsection{ Folds and period-doublings.}
 The continuation of folds, for periodic orbits and rotations,
-and the continuation of period-doubling bifurcations require two free 
+and the continuation of period-doubling and torus bifurcations require two free 
 problem parameters plus the free period. Thus, one would normally
 specify three parameters.
 For example, in Run~6 of demo {\tt pen}, where a locus of period-doubling
@@ -4787,8 +4790,13 @@ as free parameters.
 However, in this case the period will not appear in the screen output 
 and in the {\tt fort.7} output-file. 
 
-To continue a locus of folds or period-doublings with fixed period, simply
+To continue a locus of folds, period-doubling or torus bifurcations
+with fixed period, simply
 specify three problem parameters, not including {\tt PAR(11)}.
+For torus bifurcations it is also possible to specify
+four problem parameters (possibly including {\tt PAR(11)}). In that
+case the angle of the torus (an internal parameter within AUTO)
+stays fixed.
 
 %=====================================================================
 \subsection{ Boundary value problems.}
@@ -4918,18 +4926,19 @@ bifurcation or third user defined point, whichever comes first.
 \end{itemize}
  
 \subsection{\tt ISP}  \label{sec:ISP}
-This constant controls the detection of branch points,
-period-doubling bifurcations, and torus bifurcations. 
+This constant controls the detection of Hopf bifurcations,
+branch points, period-doubling bifurcations, and torus bifurcations. 
 \begin{itemize}
 \item[-] {\tt ISP=0}~:  
-  This setting disables the detection of branch points, period-doubling 
+  This setting disables the detection of Hopf bifurcations,
+  branch points, period-doubling 
   bifurcations, and torus bifurcations and the computation of 
   Floquet multipliers.
 \item[-] {\tt ISP=1}~:  
-  Branch points are detected for algebraic equations, but not for
-  periodic solutions and boundary value problems.
-  Period-doubling bifurcations and torus bifurcations are not located either.
-  However, Floquet multipliers are computed.
+  Branch points and Hopf bifurcations are detected for algebraic
+  equations. Branch points, period-doubling bifurcations and torus
+  bifurcations are not detected for periodic solutions and boundary
+  value problems. However, Floquet multipliers are computed.
 \item[-] {\tt ISP=2}~: This setting enables the detection of all special 
  solutions.
  For periodic solutions and rotations, the choice {\tt ISP}=2 should be used with
@@ -4943,11 +4952,13 @@ period-doubling bifurcations, and torus bifurcations.
  warning message will be printed in {\tt fort.9}.
  See also Section~\ref{sec:Bifurcations}.
 \item[-] {\tt ISP=3}~:  
-  Branch points will be detected, but {\cal AUTO} will not monitor the 
+  Hopf bifurcations will not be detected. 
+  Branch points will be detected, and {\cal AUTO} will monitor the 
   Floquet multipliers. Period-doubling and torus bifurcations will go undetected. 
   This option is useful for certain problems with non-generic Floquet behavior.
 \item[-] {\tt ISP=4}~:  
-  Branch points are detected for algebraic equations, but not for
+  Branch points and Hopf bifurcations are detected for algebraic
+  equations. Branch points are not detected for
   periodic solutions and boundary value problems.
   {\cal AUTO} will monitor the Floquet multipliers, and period-doubling
   and torus bifurcations will be detected.
@@ -5045,6 +5056,10 @@ is to be restarted.
   restart file. This is especially useful if you do not want to look
   up label numbers and know for sure that the solution to continue
   from is at a fixed position.
+\item[-] {\tt IRS='XYn'}~:
+  Restart the computation at the nth label of type XY in the
+  restart file, for instance 'HB12' to restart at the twelfth Hopf
+  bifurcation.
 \end{itemize}
 
 \subsection{\tt IPS}  \label{sec:IPS}
