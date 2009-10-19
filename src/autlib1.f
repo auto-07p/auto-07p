@@ -177,7 +177,7 @@ C
       DOUBLE PRECISION RAP(*)
 
       INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K
-      INTEGER NUZR,NPARI
+      INTEGER NUZR,NPARI,NICP
       INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
       DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
@@ -197,8 +197,28 @@ C
         NPAR=MAX(MAXVAL(ABS(ICU)),NPAR)
         IAP(31)=NPAR
         CALL INIT1(IAP,RAP,ICP,ICU)
-        NPARI=IAP(24)
+        ! check output (user-specified) parameters
+        NICP=IAP(35)
+        DO I=1,NICP
+           IF(ICU(I)<=0)THEN
+              WRITE(6,'(A,I5,A,I5)')
+     &             "Invalid parameter index ",ICP(I),
+     &             " specified in ICP index ",I
+              STOP
+           ENDIF
+        ENDDO
+        ! check active continuation parameters
         NFPR=IAP(29)
+        DO I=SIZE(ICU)+1,NFPR
+           IF(ICP(I)==0)THEN
+              WRITE(6,'(A/A,I5,A,I5,A)')
+     &             "Insufficient number of parameters in ICP.",
+     &             "You specified ",SIZE(ICU)," but need at least ",
+     &             NFPR-I+1+SIZE(ICU), " continuation parameters."
+              STOP
+           ENDIF
+        ENDDO
+        NPARI=IAP(24)
         NPAR=IAP(31)
         NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
         IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
