@@ -226,7 +226,7 @@ The GUI is not compiled by default. To compile
 \AUTO with the GUI, type \commandf{./configure --enable-gui}
 and then \commandf{make} in the directory \filef{auto/07p}.
 
-To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} 2D plotter it
+To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} plotter it
 is strongly recommended to install NumPy
 (\url{http://numpy.scipy.org}), TkInter, and
 Matplotlib (\url{http://matplotlib.sourceforge.net/}).
@@ -489,6 +489,9 @@ but by {\tt PAR(11)} in the constants file. Equation files
 written in C are used in the homoclinic branch switching
 demo in Chapter~\ref{ch:HomCont_hbs}.
  
+A detailed list of user-visible changes can be found in the file
+\filef{\$AUTO\_DIR/CHANGELOG}.
+
 \section{ Parallel Version.} \label{sec:Parallel}
 \AUTO contains code which allows
 it to run in on parallel computers.  Namely,
@@ -2239,9 +2242,9 @@ lrz ... done
  {\em NOTE:  Defaults for the plotting tool may be included in
  the .autorc file as well.}
 
- \section{ Two Dimensional Plotting Tool}\label{clui:2d plotting}
+ \section{ Plotting Tool}\label{clui:plotting}
 
- The two dimensional plotting tool can be run by using the command
+ The plotting tool can be run by using the command
  \commandf{plot(bd)} to plot a bifurcation diagram object \parf{bd}
  after a calculation has been run, or using the command
  \commandf{plot()} to plot the files \filef{fort.7} and \filef{fort.8},
@@ -2251,16 +2254,19 @@ lrz ... done
  The menu bar provides two buttons.  The \commandf{File}
  button brings up a menu which allows the user to save
  the current plot as a Postscript file or
- to quit the plotter.
+ to quit the plotting tool.
  The \commandf{Options} button allows the plotter
  configuration options to be modified.
  The available options are decribed in
- Table~\ref{tbl:clui 2d plotter specific options}.  In addition, the options can 
- be set from within the CLUI.  For example,
+ Table~\ref{tbl:clui plotter specific options}.  In addition, the options can 
+ be set and figures can be saved from within the CLUI.  For example,
  the set of commands in Figure~\ref{exa:plotter_example} shows how to
- create a plotter and change its background color to black.  The
+ create a plot, change its background color to black, and save it.  The
  demo script \filef{auto/07p/demo/python/plotter.py} contains several
- examples of changing options in plotters.
+ examples of changing options in plotters. 
+ The special argument 
+ \commandf{hide=True} to \commandf{plot} does not produce an on-screen
+ plot, which is useful for quick automatic generation of saved figure files.
 
  If you are using matplotlib, then you will find seven icons that allow
  you to use various zoom functions: a home button to go back to the
@@ -2298,16 +2304,21 @@ lrz ... done
 
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim} 
- AUTO> plot=pl()
- Created plotter
- AUTO> plot.config(bg="black")
- AUTO> 
+ AUTO> p=plot()
+ Created plot
+ AUTO> p.config(bg="black")
+ AUTO> p.savefig("black.eps")
+ AUTO> p=plot(hide=True)
+ Created plot
+ AUTO> p.savefig("white.eps")
  \end{boxedverbatim}
  \end{center} 
  }
- \caption[Configuring a two-dimensional plotter.]
- {This example shows how a plotter is created, and
- how the background color may be changed to black.
+ \caption[Configuring a plotter.]
+ {This example shows how a plotter is created,
+ how the background color may be changed to black,
+ how a figure is saved, and how an invisible plot is
+ saved to a file.
  All other configuration options are set similarily.
  Note, the above commands assume that the files
  fort.7 and fort.8 exist in the current directory.
@@ -2318,6 +2329,8 @@ lrz ... done
  \begin{longtable}{| l | l |}
  \hline
  Query string & Meaning \\
+ \hline
+ azimuth  &  Azimuth of the axes in 3D plots. \\
  \hline
  background  &  The background color of the plot. \\
  \hline
@@ -2335,9 +2348,14 @@ lrz ... done
  \hline
  bifurcation\_y  & The column to plot along the Y-axis for bifurcation diagrams. \\
  \hline
+ bifurcation\_z  & The column to plot along the Z-axis for bifurcation diagrams. \\
+ \hline
  bottom\_margin  & The margin between the graph and the bottom edge. \\
  \hline
  color\_list  &  A list of colors to use for multiple plots. \\
+ \hline
+ coloring\_method  & For color\_list index: 'branch' (BR)
+ or 'curve' (sequentially). \\
  \hline
  d0, d1, d2, d3, d4 & Redefine d0, d1, d2, etc. setting to use with
  {\cal PyPLAUT} (\commandf{@pp}). \\
@@ -2348,6 +2366,8 @@ lrz ... done
  \hline
  default\_option & Default d0, d1, d2, etc. setting to use with {\cal
    PyPLAUT} (\commandf{@pp}). \\
+ \hline
+ elevation &  Elevation of the axes in 3D plots. \\
  \hline
  error\_symbol  &    The symbol to use for error points. \\ 
  \hline
@@ -2363,7 +2383,7 @@ lrz ... done
  \hline
  index  & An array of indices to plot.\\
  \hline
- label  & An array of labels to plot.\\
+ label  & An array of labels to plot, or 'all' for all labels.\\
  \hline
  label\_defaults  & A set of labels that the user is likely to use. \\
  \hline
@@ -2379,9 +2399,13 @@ lrz ... done
  \hline
  maxy  & The upper bound for the y-axis of the plot. \\
  \hline
+ maxz  & The upper bound for the z-axis of the plot. \\
+ \hline
  minx  &  The lower bound for the x-axis of the plot. \\
  \hline
  miny  & The lower bound for the y-axis of the plot. \\
+ \hline
+ minz  & The lower bound for the z-axis of the plot. \\
  \hline
  odd\_tick\_length  & The length of the odd tick marks. \\
  \hline
@@ -2412,6 +2436,8 @@ lrz ... done
  solution\_x  &  The column to plot along the X-axis for solutions. \\
  \hline
  solution\_y  & The column to plot along the Y-axis for solutions. \\
+ \hline
+ solution\_z  & The column to plot along the Z-axis for solutions. \\
  \hline
  stability  & Turn on or off stability information using dashed curves. \\
  \hline
@@ -2453,22 +2479,26 @@ lrz ... done
  \hline
  yticks  & The number of ticks on the y-axis. \\
  \hline
- \caption[The options for the \AUTO CLUI two dimensional
- plotting window.]
+ zlabel  & The label for the z-axis. \\
+ \hline
+ zlabel\_fontsize  & The font size for the z-axis label. \\
+ \hline
+ zticks  & The number of ticks on the z-axis. \\
+ \hline
+ \caption[The options for the PyPLAUT plotting window.]
  {This table shows the options that
- can be set for the \AUTO CLUI two dimensional
- plotting window and their meanings.}
- \label{tbl:clui 2d plotter specific options}
+ can be set for the PyPLAUT plotting window and their meanings.}
+ \label{tbl:clui plotter specific options}
  \end{longtable}
 
- \section{ Three Dimensional Plotting Tool}
+ \section{ The Plotting Tool PLAUT04}
 
- The \AUTO three dimensional plotting tool, {\cal PLAUT04}, as described
+ The \AUTO plotting tool {\cal PLAUT04} as described
  in Chapter~\ref{ch:PLAUT04}, can be run from the Python CLUI
  using the command
  \commandf{plot3} or \commandf{commandPlotter3D}, in a similar
  fashion to \commandf{plot}. It does not use the options that
- are used for the two-dimensional plotting window.
+ are used for the plotting window produced by \commandf{plot}.
 
  \section{ Quick Reference } \label{sec:clui quick reference}
 
@@ -2504,8 +2534,8 @@ cn constantsget & commandParseConstantsFile & Get the current continuation const
 bt diagramandsolutionget & commandParseDiagramAndSolutionFile & Parse both bifurcation diagram and solution.\\ \hline 
 dg diagramget & commandParseDiagramFile & Parse a bifurcation diagram.\\ \hline 
 sl solutionget & commandParseSolutionFile & Parse solution file:\\ \hline 
-plot p2 pl & commandPlotter & 2D plotting of data.\\ \hline 
-plot3 p3 & commandPlotter3D & 3D plotting of data.\\ \hline 
+plot p2 pl & commandPlotter & plotting of data.\\ \hline 
+plot3 p3 & commandPlotter3D & PLAUT04 plotting of data.\\ \hline 
 branchpoint br bp & commandQueryBranchPoint & Print the ``branch-point function''.\\ \hline 
 eigenvalue ev eg & commandQueryEigenvalue & Print eigenvalues of Jacobian (algebraic case).\\ \hline 
 floquet fl & commandQueryFloquet & Print the Floquet multipliers.\\ \hline 
@@ -2547,7 +2577,7 @@ entered directly, without the ``!''.
 \item[run]
 Run \AUTO.
 
-    Type \commandf{r=run([s],[options])} to run \AUTO from solution s with the given
+    Type \commandf{r=run([data],[options])} to run \AUTO from solution data with the given
     \AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -2555,21 +2585,21 @@ Run \AUTO.
     and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
-    \commandf{run(s)} runs \AUTO in the following way for different types of \parf{s}:
+    \commandf{run(data)} runs \AUTO in the following way for different types of \parf{data}:
     \begin{itemize}
     \item
-      A solution: \AUTO starts from solution \parf{s}, with \AUTO constants \parf{s.c}.
+      A solution: \AUTO starts from solution \parf{data}, with \AUTO constants \parf{data.c}.
     \item
       A bifurcation diagram: \AUTO start from the solution specified by
       the \AUTO constant \parf{IRS}, or if \parf{IRS} is not specified, the last solution
-      in \parf{s}, \parf{s()[-1]}, with \AUTO constants \parf{s()[-1].c}.
+      in \parf{data}, \parf{data()[-1]}, with \AUTO constants \parf{data()[-1].c}.
     \item
-      A string: \AUTO uses the solution in the file \filef{s.s} together with the
-      constants in the files \filef{c.s}, and \filef{h.s}. Not all of these
+      A string: \AUTO uses the solution in the file \filef{s.data} together with the
+      constants in the files \filef{c.data}, and \filef{h.data}. Not all of these
       files need to be present.
     \end{itemize}
 
-    If no solution \parf{s} is specified, then the global values from the
+    If no solution \parf{data} is specified, then the global values from the
     \commandf{load} command (below) are used instead, where
     options which are not explicitly set retain their previous value.
 
@@ -2634,8 +2664,7 @@ Load files into the \AUTO runner or return modified solution data.
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
     For example one may type: \commandf{s=load(e='ab',c='ab.1')} to use \filef{ab.c} as
-    the equations file and \filef{c.ab.1} as the constants file (if you are
-    using the default filename templates).
+    the equations file and \filef{c.ab.1} as the constants file.
 
     Type \commandf{s=load('name')} to load all files with base 'name'.
     This does the same thing as running
@@ -2681,8 +2710,7 @@ Save data files.
 
     Type \commandf{save('xxx')} to save the output-files \filef{fort.7},
     \filef{fort.8}, \filef{fort.9}, to \filef{b.xxx}, \filef{s.xxx},
-    \filef{d.xxx} (if you are using the default filename
-    templates).  Existing files with these names will be overwritten.
+    \filef{d.xxx}. Existing files with these names will be overwritten.
 
 \textbf{Aliases:} commandCopyFortFiles
 
@@ -2701,12 +2729,11 @@ Append data files.
     \commandf{x=load('xxx')+x}
 
     Type \commandf{append('xxx')} to append the output-files \filef{fort.7}, \filef{fort.8},
-    \filef{fort.9}, to existing data-files \filef{s.xxx}, \filef{b.xxx}, and \filef{d.xxx} (if you are
-    using the default filename templates).
+    \filef{fort.9}, to existing data-files \filef{s.xxx}, \filef{b.xxx}, and \filef{d.xxx}.
 
     Type \commandf{append('xxx','yyy')} to append existing data-files \filef{s.xxx}, \filef{b.xxx},
     and \filef{d.xxx} to data-files \filef{s.yyy}, \filef{b.yyy}, and
-    \filef{d.yyy} (if you are using the default filename templates).
+    \filef{d.yyy}.
 
     \textbf{Aliases:} ap commandAppend
 \end{description}
@@ -2715,31 +2742,38 @@ Append data files.
 
 \begin{description}
 \item[plot]
-2D plotting of data.
+Plotting of data.
 
     Type \commandf{plot(x)} to run the graphics program PyPLAUT for the graphical
     inspection of bifurcation diagram or solution data in x.
 
     Type \commandf{plot('xxx')} to run the graphics program PyPLAUT for the graphical
-    inspection of the data-files \filef{b.xxx} and \filef{s.xxx} (if you are using the
-    default filename templates).
+    inspection of the data-files \filef{b.xxx} and \filef{s.xxx}.
 
     Type \commandf{plot()} to run the graphics program for the graphical
     inspection of the output-files \filef{fort.7} and \filef{fort.8}.
 
-    The return value will be the handle for the graphics window.
-    
+    Values also present in the file \filef{autorc}, such as
+    \commandf{color\_list="black green red blue orange"} can be provided as
+    keyword arguments, as well as \commandf{hide=True} which hides the
+    on-screen plot.
+
+    The return value, for instance, \commandf{p} for
+    \commandf{p=plot(x)} will be the handle for the graphics window.
+    It has p.config() and p.savefig() methods that allow you to configure
+    and save the plot. When plotting, see \commandf{help(p.config)}
+    and \commandf{help(p.savefig)} for details.
+
 \textbf{Aliases:} p2 pl commandPlotter
 
 \item[plot3]
-3D plotting of data.
+Plotting of data using PLAUT04.
 
     Type \commandf{plot3(x)} to run the graphics program PLAUT04 for the graphical
     inspection of bifurcation diagram or solution data in x.
 
     Type \commandf{plot3('xxx')} to run the graphics program PLAUT04 for the graphical
-    inspection of the data-files \filef{b.xxx} and \filef{s.xxx} (if you are using the
-    default filename templates).
+    inspection of the data-files \filef{b.xxx} and \filef{s.xxx}.
 
     Type \commandf{plot3()} to run the graphics program PLAUT04 for the graphical
     inspection of the output-files \filef{fort.7} and \filef{fort.8}.
@@ -2757,8 +2791,7 @@ Copy data files.
 
     Type \commandf{copy('xxx','yyy')} to copy the data-files \filef{c.xxx},
     \filef{d.xxx}, \filef{b.xxx}, and \filef{h.xxx} to \filef{c.yyy},
-    \filef{d.yyy}, \filef{b.yyy}, and \filef{h.yyy} (if you are using the
-    default filename templates).
+    \filef{d.yyy}, \filef{b.yyy}, and \filef{h.yyy}.
     
 \textbf{Aliases:} commandCopyDataFiles
 
@@ -2766,9 +2799,9 @@ Copy data files.
 Move data-files to a new name.
 
     Type \commandf{move('xxx','yyy')} to move the data-files \filef{b.xxx},
-    \filef{s.xxx}, \filef{d.xxx}, and \filef{c.xxx} to \filef{b.yyy},
-    \filef{s.yyy}, \filef{d.yyy}, and \filef{c.yyy} (if you are using the
-    default filename templates).  
+    \filef{s.xxx}, and \filef{d.xxx} to \filef{b.yyy},
+    \filef{s.yyy}, and \filef{d.yyy}, and 
+    copy the constants file \filef{c.xxx} to \filef{c.yyy}.
 
 \textbf{Aliases:} commandMoveFiles
 
@@ -2949,14 +2982,13 @@ Relabel data files.
     Type \commandf{y=relabel(x)} to return the python object x, with the solution
     labels sequentially relabelled starting at 1, as a new object y.
 
-    Type \commandf{relabel('xxx')} to relabel \filef{s.xxx} and \filef{b.xxx} (if you are
-    using the default filename templates).  Backups of the
+    Type \commandf{relabel('xxx')} to relabel \filef{s.xxx} and
+    \filef{b.xxx}. Backups of the
     original files are saved.
 
     Type \commandf{relabel('xxx','yyy')} to relabel the existing data-files
     \filef{s.xxx} and \filef{b.xxx} and save then to \filef{s.yyy} and
-    \filef{b.yyy}; \filef{d.xxx} is copied to \filef{d.yyy} (if you are using
-    the default filename templates). 
+    \filef{b.yyy}; \filef{d.xxx} is copied to \filef{d.yyy}.
 
 \textbf{Aliases:} rl commandRelabel
 
@@ -2965,8 +2997,8 @@ Double a solution.
 
     Type \commandf{double()} to double the solution in \filef{fort.8}.
 
-    Type \commandf{double('xxx')} to double the solution in \filef{s.xxx} (if you
-    are using the default filename templates).
+    Type \commandf{double('xxx')} to double the solution in
+    \filef{s.xxx}.
     
 \textbf{Aliases:} db commandDouble
 
@@ -2975,8 +3007,8 @@ Triple a solution.
 
     Type \commandf{triple()} to triple the solution in \filef{fort.8}.
 
-    Type \commandf{triple('xxx')} to triple the solution in \filef{s.xxx} (if you
-    are using the default filename templates).
+    Type \commandf{triple('xxx')} to triple the solution in
+    \filef{s.xxx}.
     
 \textbf{Aliases:} tr commandTriple
 
@@ -2999,81 +3031,126 @@ Convert user-supplied data files.
 \item[dlb]
 Delete special labels.
 
-    Type \commandf{dlb(list,x)} to delete the special points in list from
+    Type \commandf{dlb(x,list)} to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
 
-    Type \commandf{dlb(list,'xxx')} to delete the special points in list from
-    the data-files \filef{b.xxx}, and \filef{s.xxx}.
-    (if you are using the default filename templates).
+    Type \commandf{dlb(list,'xxx')} to delete from the data-files 
+    \filef{b.xxx} and \filef{s.xxx}.\\
+    Type \commandf{dlb(list,'xxx','yyy')} to save to \filef{b.yyy} and
+      \filef{s.yyy} instead of \filef{?.xxx}.\\
+    Type \commandf{dlb(list)} to delete from \filef{fort.7} and \filef{fort.8}.
 
-    Type \commandf{dlb(list)} to delete the special points in list from
-    the data-files \filef{fort.7} and \filef{fort.8}.
+    \commandf{list} is a label number or type name code, or a list of those,
+    such as 1, or [2, 3], or 'UZ' or ['BP', 'LP'], or it can be None or
+    omitted to mean the special points ['BP', 'LP', 'HB', 'PD', 'TR',
+    'EP', 'MX']
+
+    Alternatively a boolean user-defined function \commandf{f} that
+    takes a solution can be specified for \commandf{list}, such as
+\begin{verbatim}
+        def f(s):
+            return s["PAR(9)"]<0
+\end{verbatim}
+    where all solutions are deleted that satisfy the given condition, or
+\begin{verbatim}
+        def f(s1,s2):
+            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+\end{verbatim}
+    where all solutions are compared with each other and \commandf{s2}
+    is deleted if the given condition is satisfied.
 
     Type information is kept in the bifurcation diagram for plotting.
-    list is a label number or type name code, or a list of those,
-    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
-    omitted to mean the special points ['BP','LP','HB','PD','TR','EP','MX']
 
 \textbf{Alias:} commandDeleteLabels
 
 \item[klb]
 Keep special labels.
 
-    Type \commandf{klb(list,x)} to only keep the special points in list from
+    Type \commandf{klb(x,list)} to only keep the special points in list in
     the Python object x, which must be a solution list or a bifurcation diagram.
 
-    Type \commandf{klb(list,'xxx')} to only keep the special points in list from
-    the data-files \filef{b.xxx}, and \filef{s.xxx}.
-    (if you are using the default filename templates).
+    Type \commandf{klb(list,'xxx')} to keep them in the data-files
+    \filef{b.xxx} and \filef{s.xxx}.\\
+    Type \commandf{klb(list,'xxx','yyy')} to save to \filef{b.yyy} and
+      \filef{s.yyy} instead of \filef{?.xxx}.\\
+    Type \commandf{klb(list)} to keep them in \filef{fort.7} and \filef{fort.8}.
 
-    Type \commandf{klb(list)} to only keep the special points in list from
-    the data-files \filef{fort.7} and \filef{fort.8}.
+    \commandf{list} is a label number or type name code, or a list of those,
+    such as 1, or [2, 3], or 'UZ' or ['BP', 'LP'], or it can be None or
+    omitted to mean ['BP', 'LP', 'HB', 'PD', 'TR', 'EP', 'MX'], deleting 'UZ' and
+    regular points.
+
+    Alternatively a boolean user-defined function \commandf{f} that
+    takes a solution can be specified for \commandf{list}, such as
+\begin{verbatim}
+        def f(s):
+            return s["PAR(9)"]<0
+\end{verbatim}
+    where only solutions are kept that satisfy the given condition.
 
     Type information is kept in the bifurcation diagram for plotting.
-    list is a label number or type name code, or a list of those,
-    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
-    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
-    regular points.
 
 \textbf{Alias:} commandKeepLabels
 
 \item[dsp]
 Delete special points.
 
-    Type \commandf{dsp(list,x)} to delete the special points in list from
+    Type \commandf{dsp(x,list)} to delete the special points in list from
     the Python object x, which must be a solution list or a bifurcation diagram.
 
-    Type \commandf{dsp(list,'xxx')} to delete the special points in list from
-    the data-files \filef{b.xxx}, and \filef{s.xxx}.
-    (if you are using the default filename templates).
+    Type \commandf{dsp(list,'xxx')} to delete from the data-files
+    \filef{b.xxx}, and \filef{s.xxx}.\\
+    Type \commandf{dsp(list,'xxx','yyy')} to save to \filef{b.yyy} and
+    \filef{s.yyy} instead of \filef{?.xxx}.\\
+    Type \commandf{dsp(list)} to delete from \filef{fort.7} and \filef{fort.8}.
 
-    Type \commandf{dsp(list)} to delete the special points in list from
-    the data-files \filef{fort.7} and \filef{fort.8}.
-
-    list is a label number or type name code, or a list of those,
-    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
+    \commandf{list} is a label number or type name code, or a list of those,
+    such as 1, or [2, 3], or 'UZ' or ['BP', 'LP'], or it can be None or
     omitted to mean the special points ['BP', 'LP', 'HB', 'PD', 'TR', 'EP',
-    'MX']
+    'MX']\\
+    Alternatively a boolean user-defined function \commandf{f} that
+    takes a solution can be specified for \commandf{list}, such as
+\begin{verbatim}
+        def f(s):
+            return s["PAR(9)"]<0
+\end{verbatim}
+    where all solutions are deleted that satisfy the given condition, or
+\begin{verbatim}
+        def f(s1,s2):
+            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+\end{verbatim}
+    where all solutions are compared with each other and \commandf{s2}
+    is deleted if the given condition is satisfied.
+
+    Type information is \emph{not} kept in the bifurcation diagram.
 
 \textbf{Alias:} commandDeleteSpecialPoints
 
 \item[ksp]
 Keep special points.
 
-    Type \commandf{ksp(list,x)} to only keep the special points in list from
+    Type \commandf{ksp(x,list)} to only keep the special points in list in
     the Python object x, which must be a solution list or a bifurcation diagram.
 
-    Type \commandf{ksp(list,'xxx')} to only keep the special points in list from
-    the data-files \filef{b.xxx}, and \filef{s.xxx}.
-    (if you are using the default filename templates).
+    Type \commandf{ksp(list,'xxx')} to keep them in the data-files
+    \filef{b.xxx}, and \filef{s.xxx}.\\
+    Type \commandf{ksp(list,'xxx','yyy')} to save to \filef{b.yyy} and
+    \filef{s.yyy} instead of \filef{?.xxx}.\\
+    Type \commandf{ksp(list)} to keep them in \filef{fort.7} and \filef{fort.8}.
 
-    Type \commandf{ksp(list)} to only keep the special points in list from
-    the data-files \filef{fort.7} and \filef{fort.8}.
+    \commandf{list} is a label number or type name code, or a list of those,
+    such as 1, or [2, 3], or 'UZ' or ['BP', 'LP'], or it can be None or
+    omitted to mean ['BP', 'LP', 'HB', 'PD', 'TR', 'EP', 'MX'], deleting 'UZ' and
+    regular points.\\
+    Alternatively a boolean user-defined function \commandf{f} that
+    takes a solution can be specified for \commandf{list}, such as
+\begin{verbatim}
+        def f(s):
+            return s["PAR(9)"]<0
+\end{verbatim}
+    where only solutions are kept that satisfy the given condition.
 
-    list is a label number or type name code, or a list of those,
-    such as 1, or [2,3], or 'UZ' or ['BP','LP'], or it can be None or
-    omitted to mean ['BP','LP','HB','PD','TR','EP','MX'], deleting 'UZ' and
-    regular points.
+    Type information is \emph{not} kept in the bifurcation diagram.
 
 \textbf{Alias:} commandKeepSpecialPoints
 
@@ -3084,14 +3161,12 @@ Merge branches in data files.
     merged into continuous curves, as a new object y.
 
     Type \commandf{merge('xxx')} to merge branches in \filef{s.xxx},
-    \filef{b.xxx}, and \filef{d.xxx} (if you are
-    using the default filename templates).  Backups of the
+    \filef{b.xxx}, and \filef{d.xxx}.  Backups of the
     original files are saved.
 
     Type \commandf{merge('xxx','yyy')} to merge branches in the existing data-files
     \filef{s.xxx}, \filef{b.xxx}, and \filef{d.xxx} and save them to 
-    \filef{s.yyy}, \filef{b.yyy}, and \filef{d.yyy} (if you
-    are using the default filename templates). 
+    \filef{s.yyy}, \filef{b.yyy}, and \filef{d.yyy}.
 
 \textbf{Aliases:} mb commandMergeBranches
 
@@ -3159,8 +3234,7 @@ Get help on the \AUTO commands.
 Get the current continuation constants.
 
     Type \commandf{cn('xxx')} to get a parsed version of the constants file
-    \filef{c.xxx} (if you are using the default filename templates).
-    This is equivalent to the command\\
+    \filef{c.xxx}. This is equivalent to the command\\
     \commandf{loadbd('xxx').c}
     
 \textbf{Aliases:} constantsget commandParseConstantsFile
@@ -3168,8 +3242,7 @@ Get the current continuation constants.
 \item[dg]
 Parse a bifurcation diagram.
 
-    Type \commandf{dg('xxx')} to get a parsed version of the diagram file \filef{b.xxx}
-    (if you are using the default filename templates).
+    Type \commandf{dg('xxx')} to get a parsed version of the diagram file \filef{b.xxx}.
     This is equivalent to the command \commandf{loadbd('xxx')} but without the
     solutions in \filef{s.xxx} and without the diagnostics in \filef{d.xxx}.
     
@@ -3179,8 +3252,7 @@ Parse a bifurcation diagram.
 Parse solution file:
 
     Type \commandf{sl('xxx')} to get a parsed version of the solution file
-    \filef{s.xxx} (if you are using the default filename templates).
-    This is equivalent to the command\\
+    \filef{s.xxx}. This is equivalent to the command\\
     \commandf{loadbd('xxx')()}
     
 \textbf{Aliases:} solutionget commandParseSolutionFile
@@ -3189,8 +3261,7 @@ Parse solution file:
 Parse both bifurcation diagram and solution.
 
     Type \commandf{bt('xxx')} to get a parsed version of the diagram file \filef{b.xxx}
-    and solution file \filef{s.xxx} (if you are using the default filename
-    templates).
+    and solution file \filef{s.xxx}.
     This is equivalent to the command \commandf{loadbd('xxx')} but without the
     diagnostics in \filef{d.xxx}.
     
@@ -3940,7 +4011,7 @@ The {\cal PLAUT} window (a Tektronix window) will appear, in which {\cal PLAUT}
 commands can be entered.
 To invoke {\cal PyPLAUT}, use the \commandf{@pp} command. The same
 plotting window as you get by using \commandf{plot} in the \python interface
-appears (see Section~\ref{clui:2d plotting}), 
+appears (see Section~\ref{clui:plotting}), 
 but you can also manipulate it by typing {\cal PLAUT}
 commands in the terminal in which you typed \commandf{@pp}.
 For examples of using {\cal PLAUT} and {\cal PyPLAUT} see the tutorial demos {\tt pp2}
@@ -3948,7 +4019,7 @@ and {\tt pp3} in sections~\ref{sec:Demos_pp2} and \ref{sec:Demos_pp3},
 respectively.
 
 The files \filef{.autorc} and \filef{autorc}, as explained in
-Section~\ref{clui:2d plotting}, can be used to customize
+Section~\ref{clui:plotting}, can be used to customize
 {\cal PyPLAUT}'s behaviour and appearance.
 
 \section{ Basic {\cal PLAUT}-Commands.} \label{sec:main_PLAUT_commands}
@@ -5896,7 +5967,7 @@ When using matplotlib
 you can also click on the floppy disk icon to save using a variety of
 file formats.
 Further information on the plotting tool can be found in
-Section~\ref{clui:2d plotting}.
+Section~\ref{clui:plotting}.
 
 \begin{table}[htbp]
 \begin{center}
@@ -5935,8 +6006,8 @@ and the files \filef{b.mu} and \filef{s.mu}}
 \section{ Plotting the Results with \AUTO in 3D.}
 Whilst not very useful for this simple example, you can also plot
 your results in 3D, using the \commandf{plot3} command ({\cal PLAUT04}), for example
-\commandf{plot3('mu')}. Unlike the 2D tool by default, this shows the stable and
-unstable parts: blue is stable, and red is unstable. You can also
+\commandf{plot3('mu')}. Unlike the PyPLAUT tool by default, this shows
+the stable and unstable parts: blue is stable, and red is unstable. You can also
 spin the bifurcation diagram around and zoom in using the mouse.
 
 \section{ Exporting the Results for different plotters.}

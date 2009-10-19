@@ -902,6 +902,9 @@ class GUIGrapher(InteractiveGrapher):
             self.valueEntry.configure(validate={"validator":"alphanumeric"})
         
     def generatePostscript(self,filename=None,pscolormode=None):
+        """
+        Save the plot as postscript.
+        """
         if pscolormode is None:
             pscolormode=self.cget("ps_colormode")
         if filename is None:

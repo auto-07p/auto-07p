@@ -113,9 +113,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         topbox.columnconfigure(0,weight=1)
 
         self.initialiseoptions(WindowPlotter)
-
-    def savefig(self,*args,**kwargs):
-        self.grapher.savefig(*args,**kwargs)
+        self.savefig = self.grapher.savefig
 
     def __labelFunction(self,list):
         # The return value of a ScrolledListBox is a list of strings, so we change them
@@ -213,6 +211,13 @@ class WindowPlotter(Pmw.MegaToplevel):
             self.labelEntry.setvalue("bifurcation")
 
     def config(self,cnf=None,**kw):
+        """
+        Configure settings for a plot.
+    
+        The values for resources are specified as keyword
+        arguments. See the manual and example autorc in $AUTO_DIR/autorc for
+        the list of allowed keyword arguments.
+        """
         rval = self.grapher.config(cnf,**kw)
         if isinstance(cnf, str) or (cnf is None and not kw):
             return rval

@@ -633,6 +633,11 @@ def dsp(typenames=None,name1=None,name2=None,templates=None):
     can be specified for list, such as
         def f(s):
             return s["PAR(9)"]<0
+    where all solutions are deleted that satisfy the given condition, or
+        def f(s1,s2):
+            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+    where all solutions are compared with each other and s2 is deleted if
+    the given condition is satisfied.
 
     Type information is NOT kept in the bifurcation diagram.
     """
@@ -643,7 +648,7 @@ commandDeleteSpecialPoints = command(dsp)
 def ksp(typenames=None,name1=None,name2=None,templates=None):
     """Keep special points.
 
-    Type FUNC(x,list) to only keep the special points in list from
+    Type FUNC(x,list) to only keep the special points in list in
     the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to keep them in the data-files b.xxx and s.xxx.
     Type FUNC(list,'xxx','yyy') to save to b.yyy and s.yyy instead of ?.xxx.
@@ -656,6 +661,7 @@ def ksp(typenames=None,name1=None,name2=None,templates=None):
     can be specified for list, such as
         def f(s):
             return s["PAR(9)"]<0
+    where only solutions are kept that satisfy the given condition.
 
     Type information is NOT kept in the bifurcation diagram.
     """
@@ -678,6 +684,11 @@ def dlb(typenames=None,name1=None,name2=None,templates=None):
     can be specified for list, such as
         def f(s):
             return s["PAR(9)"] < 0
+    where all solutions are deleted that satisfy the given condition, or
+        def f(s1,s2):
+            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+    where all solutions are compared with each other and s2 is deleted if
+    the given condition is satisfied.
 
     Type information is kept in the bifurcation diagram for plotting.
     """
@@ -688,7 +699,7 @@ commandDeleteLabels = command(dlb)
 def klb(typenames=None,name1=None,name2=None,templates=None):
     """Keep special labels.
 
-    Type FUNC(x,list) to only keep the special points in list from
+    Type FUNC(x,list) to only keep the special points in list in
     the Python object x, which must be a solution list or a bifurcation diagram.
     Type FUNC(list,'xxx') to keep them in the data-files b.xxx and s.xxx.
     Type FUNC(list,'xxx','yyy') to save to b.yyy and s.yyy instead of ?.xxx.
@@ -701,6 +712,7 @@ def klb(typenames=None,name1=None,name2=None,templates=None):
     can be specified for list, such as
         def f(s):
             return s["PAR(9)"]<0
+    where only solutions are kept that satisfy the given condition.
 
     Type information is kept in the bifurcation diagram for plotting.
     """
@@ -745,8 +757,8 @@ commandDouble = command(double,alias=['db'])
 def move(name1,name2,name3=None,name4=None,templates=None):
     """Move data-files to a new name.
 
-    Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, d.xxx,
-    and c.xxx to b.yyy, s.yyy, d.yyy, and c.yyy.
+    Type FUNC('xxx','yyy') to move the data-files b.xxx, s.xxx, and d.xxx,
+    to b.yyy, s.yyy, and d.yyy, and copy the constants file c.xxx to c.yyy.
     """
     dir1, name1, dir2, name2 = dirfilenames(name1,name2,name3,name4)
     names1 = filenameTemplate(name1,templates)
@@ -1488,7 +1500,7 @@ commandRunnerConfigFort12 = command(hch,SIMPLE,"changeConstantsHomCont")
 def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     """Run AUTO.
 
-    Type r=FUNC([name],[options]) to run AUTO from solution data with the given
+    Type r=FUNC([data],[options]) to run AUTO from solution data with the given
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -1765,7 +1777,7 @@ try:
     #####################################################
 
     def plot(name=None,templates=None,**kw):
-        """2D plotting of data.
+        """Plotting of data.
 
         Type FUNC(x) to run the graphics program PyPLAUT for the graphical
         inspection of bifurcation diagram or solution data in x.
@@ -1776,7 +1788,16 @@ try:
         Type FUNC() to run the graphics program for the graphical
         inspection of the output-files 'fort.7' and 'fort.8'.
 
-        The return value will be the handle for the graphics window.
+        Values also present in the file autorc, such as
+        color_list="black green red blue orange" can be provided as
+        keyword arguments, as well as hide=True which hides the
+        on-screen plot.
+
+        The return value, for instance, p for p=plot(x) will be the handle
+        for the graphics window.
+        It has p.config() and p.savefig() methods that allow you to configure
+        and save the plot. When plotting, see help(p.config) and help(p.savefig)
+        for details.
         """
 
         options = kw
