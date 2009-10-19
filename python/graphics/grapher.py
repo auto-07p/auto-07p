@@ -170,6 +170,15 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
 
     def _delAllData(self):
         self.data=[]
+        # check type for next data
+        try:
+            zcolumn = self.cget(self.cget("type")+"_z")
+        except Tkinter.TclError: #in regression test
+            return
+        if zcolumn is not None:
+            self._configNoDraw({self.cget("type")+"_z":None})
+            print("\nWithout matplotlib 3D plots are not supported.")
+            print("Plotting only the first two coordinates.")
 
     def delAllData(self):
         self._delAllData()

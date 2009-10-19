@@ -284,6 +284,10 @@ class BasicGrapher(grapher.BasicGrapher):
             return
         oldax = self.ax
         if zcolumn is None or Axes3D is None:
+            if zcolumn is not None:
+                self._configNoDraw({self.cget("type")+"_z":None})
+                print("\nmatplotlib 0.98.x does not support 3D plots.")
+                print("Plotting only the first two coordinates.")
             if self.ax is self.ax3d:
                 # restore zoom mode
                 new_zoom_mode = self.zoom_mode

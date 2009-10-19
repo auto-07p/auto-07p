@@ -22,10 +22,12 @@ class WindowPlotter(Pmw.MegaToplevel):
                     if k.startswith('grapher_'):
                         kwnew[k[8:]] = kw[k]
                 self.grapher = grapherClass(**kwnew)
+                self.savefig = self.grapher.savefig
                 return
             # without matplotlib, retract the Tk() window
             parent=Tkinter.Tk()
             parent.withdraw()
+            print("\nCannot hide the on-screen plot without matplotlib.")
         Pmw.MegaToplevel.__init__(self, parent)
 
         interior = self.interior()
