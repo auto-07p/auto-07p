@@ -457,13 +457,6 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             self.data.update({"BR":1, "PT":1, "TY number":9, "LAB":0,
                               "ISW":1, "NTST": 1, "NCOL": 0,
                               "NPARI":0, "NDIM": 0, "IPS": None, "IPRIV":0})
-            if name == './fort.8':
-                if "equation" in kw:
-                    self.name = kw["equation"][14:]
-                elif "e" in kw:
-                    self.name = kw["e"]
-                elif "e" in c:
-                    self.name = c["e"]
             names = kw.get("unames",c.get("unames"))
             self.indepvarname = 't'
             self.coordnames = []
@@ -564,6 +557,13 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                     p = m*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
+        if self.name == './fort.8':
+            if "equation" in kw:
+                self.name = kw["equation"][14:]
+            elif "e" in kw:
+                self.name = kw["e"]
+            elif "e" in c:
+                self.name = c["e"]
         self.options["solution"] = self
         for k,v in kw.items():
             if k in self.data_keys and k not in ["ISW","NTST","NCOL",

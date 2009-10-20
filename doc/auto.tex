@@ -366,7 +366,7 @@ fonts. To solve this issue you need to obtain a different
 version of xterm; see
 \url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
 \item GUI94: Perhaps possible using Fink but not attempted.
-\item manual: \LaTeX and transfig (comes with xfig).
+\item manual: \LaTeX\xspace and transfig (comes with xfig).
 \end{itemize}
 
 \subsection{Installation on Windows}
@@ -1140,7 +1140,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  (Section~\ref{sec:clui_ref_basic} in the reference)
  uses the user defined functions loaded
  by the \commandf{load(equation='ab')} command, and the \AUTO constants
- loaded by the \commandf{load(constants = 'ab.1')} to run \AUTO.
+ loaded by the \commandf{load(ab, constants = 'ab.1')} to run \AUTO.
 
  The \commandf{run} command returns a bifurcation diagram structure. It can
  be referenced using the special \commandf{\_} variable in interactive
@@ -1168,7 +1168,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \AUTO CLUI into the
  standard names used by \AUTO.  
  The standard filename
- transformations are show in Table~\ref{tbl:clui_filename_translation}. 
+ transformations are shown in Table~\ref{tbl:clui_filename_translation}. 
 
  \begin{table}[htbp]
  \begin{center}
@@ -1497,7 +1497,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \commandf{both = fw + bw} concatenates, using standard Python list
  syntax, the forwards and backwards branches. Subsequently
  \commandf{merged = merge(both)} merges the two branches into one
- continuous branch where, the backwards branch is flipped.
+ continuous branch where the backwards branch is flipped.
  Finally, the command \commandf{bvp = bvp + merged} appends the
  merged branch to the existing results.
 
@@ -2001,8 +2001,8 @@ lrz ... done
  AUTO> s=data()
  AUTO> sol=s[3] #or s(4), data(4), s('HB1'), or data('HB1')
  AUTO> print sol 
-   BR    PT  TY  LAB ISW NTST NCOL
-    2    42  HB    4   1    1    0
+   BR    PT  TY  LAB ISW NTST NCOL NDIM IPS IPRIV
+    2    42  HB    4   1    1    0    3   1     0
  Pointset lrz (parameterized)
  Independent variable:
  t:  [ 0.]
@@ -2021,11 +2021,11 @@ lrz ... done
  Labels by index: Empty
  PAR(1:5):      2.4736843668E+01   2.6666666667E+00   1.0000000000E+01   0   0
  PAR(6:10):     0.0000000000E+00   0.0000000000E+00   0.0000000000E+00   0   0
- PAR(11:15):    6.5283032822E-01   0.0000000000E+00   0.0000000000E+00   0   0
-(...)
- PAR(36:36):    0.0000000000E+00
+ PAR(11:11):    6.5283032822E-01
  AUTO> print sol['LAB']
  4
+ AUTO> print sol['L2-NORM'] # or sol.b['L2-NORM']
+ 26.268502943
  AUTO> sol[0]
  {'u': [7.9560197197999996, 7.9560197197999996, 23.736843667999999],
    't': 0.0, 'u dot': [0.11686227712, 0.11686227712, 0.69738311435]}
@@ -2079,7 +2079,12 @@ lrz ... done
  \hline
  NCOL & \begin{minipage}{4in} \smallskip The number of collocation points used to compute the solution.  See Section~\ref{sec:NCOL}. \smallskip \end{minipage} \\ 
  \hline
- NTST & \begin{minipage}{4in} \smallskip The number of mesh intervals used to compute the solution.  See Section~\ref{sec:NTST}. \smallskip \end{minipage} \\ 
+ NDIM & \begin{minipage}{4in} \smallskip The user-specified number of dimensions. See Section~\ref{sec:NDIM}. \smallskip \end{minipage} \\ 
+ \hline
+ IPS & \begin{minipage}{4in} \smallskip The user-specified problem type.  See Section~\ref{sec:IPS}. \smallskip \end{minipage} \\ 
+ \hline
+ IPRIV & \begin{minipage}{4in} \smallskip A private field for use by
+   toolboxes. \smallskip \end{minipage} \\ 
  \hline
  Parameters & \begin{minipage}{4in} \smallskip The value of all of the parameters for the solution. \smallskip \end{minipage} \\ 
  parameters & \begin{minipage}{4in} \smallskip 'p' and 'parameters' are aliases.\end{minipage} \\ 
@@ -2107,7 +2112,7 @@ lrz ... done
  \end{center}
  \end{table}
 
- The individual elements of the array may, again, be accessed 
+ The individual elements of the list may, again, be accessed 
  in two ways, either by the index of the solution using the
  \commandf{[]} syntax or by label number or type name using the
  \commandf{()} syntax.  For example, assume that the parsed object is contained
@@ -2146,7 +2151,7 @@ lrz ... done
     \commandf{bd['PAR(1')], bd[0]['PAR(1)'], bd[1]['L2-NORM'], ...}.\\
     Here \commandf{bd['PAR(1)']} is a shortcut for \commandf{bd[0]['PAR(1)']}.
    \item[Point]:
-    \commandf{bd[0][0], bd[1](5), bd[1]('UZ1'), ...}.
+    \commandf{bd[0][0], bd[1](5), bd[1]('UZ1'), bd(1).b, bd('UZ1').b, ...}.
    \item[Point list]:
     \commandf{bd[0]('UZ'), bd[0]([1,2]), bd[0](['UZ','HB1',7]), ...}.
    \item[Solution]:
@@ -2154,7 +2159,11 @@ lrz ... done
    \item[Solution list]:
     \commandf{s=bd(), s('UZ'), bd('UZ'), bd([1,2]), bd(['UZ','HB1',7]), ...}.
    \item[Solution column]:
-    \commandf{bd('UZ1')['t'], bd('UZ1')['U(1)'], ...}
+    \commandf{bd('UZ1')['t'], bd('UZ1')['U(1)'], ...}.
+   \item[Solution measures]:
+    \commandf{bd('UZ1')['L2-NORM'], ...}.\\
+    This example is a shortcut for \commandf{bd('UZ1').b['L2-NORM']}: here you
+    can use any column name from the bifurcation diagram.
    \item[Solution point]:
     \commandf{bd('UZ1')(0), bd('UZ1')[0], ...}.\\
     Here the \commandf{bd('UZ1')(t)} notation gives the point at
@@ -3081,10 +3090,11 @@ Delete special labels.
     where all solutions are deleted that satisfy the given condition, or
 \begin{verbatim}
         def f(s1,s2):
-            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+            return abs(s1["L2-NORM"] - s2["L2-NORM"]) < 1e-4
 \end{verbatim}
     where all solutions are compared with each other and \commandf{s2}
-    is deleted if the given condition is satisfied.
+    is deleted if the given condition is satisfied, which causes
+    pruning of solutions that are close to each other.
 
     Type information is kept in the bifurcation diagram for plotting.
 
@@ -3144,10 +3154,11 @@ Delete special points.
     where all solutions are deleted that satisfy the given condition, or
 \begin{verbatim}
         def f(s1,s2):
-            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+            return abs(s1["L2-NORM"] - s2["L2-NORM"]) < 1e-4
 \end{verbatim}
     where all solutions are compared with each other and \commandf{s2}
-    is deleted if the given condition is satisfied.
+    is deleted if the given condition is satisfied, which causes
+    pruning of solutions that are close to each other.
 
     Type information is \emph{not} kept in the bifurcation diagram.
 

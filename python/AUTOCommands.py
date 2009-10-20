@@ -654,9 +654,10 @@ def dsp(typenames=None,name1=None,name2=None,templates=None):
             return s["PAR(9)"]<0
     where all solutions are deleted that satisfy the given condition, or
         def f(s1,s2):
-            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+            return abs(s1["L2-NORM"] - s2["L2-NORM"]) < 1e-4
     where all solutions are compared with each other and s2 is deleted if
-    the given condition is satisfied.
+    the given condition is satisfied, which causes pruning of solutions
+    that are close to each other.
 
     Type information is NOT kept in the bifurcation diagram.
     """
@@ -705,9 +706,10 @@ def dlb(typenames=None,name1=None,name2=None,templates=None):
             return s["PAR(9)"] < 0
     where all solutions are deleted that satisfy the given condition, or
         def f(s1,s2):
-            return abs(s1["PAR(9)"] - s2["PAR(9)"]) < 1e-4
+            return abs(s1["L2-NORM"] - s2["L2-NORM"]) < 1e-4
     where all solutions are compared with each other and s2 is deleted if
-    the given condition is satisfied.
+    the given condition is satisfied, which causes pruning of solutions
+    that are close to each other.
 
     Type information is kept in the bifurcation diagram for plotting.
     """
