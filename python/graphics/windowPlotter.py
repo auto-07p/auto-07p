@@ -176,12 +176,6 @@ class WindowPlotter(Pmw.MegaToplevel):
         optionLabel.setentry(key)
         valueLabel.setentry(str(self.grapher.cget(key)))
         valueEntry.clear()
-        if isinstance(self.grapher.cget(key), int):
-            valueEntry.configure(validate={"validator":"integer"})
-        elif isinstance(self.grapher.cget(key), float):
-            valueEntry.configure(validate={"validator":"real"})
-        elif isinstance(self.grapher.cget(key), str):
-            pass
 
     def __dialogFunction(self,button,key,entry):
         if button == "Ok":

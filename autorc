@@ -1,0 +1,92 @@
+# Example file for autorc: you need to uncomment settings for them
+# to take effect!
+
+[AUTO_plotter]
+
+#default_option="d1"
+#d1 = {"grid": False, "use_labels": True, "use_symbols": True, "stability":True}
+# similarly you can redefine d0, d2, d3, d4.
+
+#grid = False
+#stability = False
+#use_labels = True
+#use_symbols = False
+
+#top_title = ''
+#top_title_fontsize = 12
+
+#xlabel = ''
+#xlabel_fontsize = 12
+#ylabel = ''
+#ylabel_fontsize = 12
+#zlabel = ''
+#zlabel_fontsize = 12
+
+#solution_indepvarname = "time"
+#solution_coordnames = ["$x$","$y$","$z$"]
+#bifurcation_coordnames = ["?", "L2-norm"]
+
+#line_width = 2.0
+#dashes = (6.0,6.0)
+#background = "white"
+#foreground = "black"
+#color_list = "black red green blue"
+#coloring_method = "curve" # or "branch"
+#symbol_color = "red"
+#symbol_font = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+#decorations = True
+#smart_label = True
+#minx = 0
+#maxx = 0
+#miny = 0
+#maxy = 0
+#minz = 0
+#maxz = 0
+#azimuth = -60 # for 3D plots, in degrees
+#elevation = 30 # for 3D plots, in degrees
+#width = 600
+#height = 480
+#left_margin = 80
+#right_margin = 40
+#top_margin = 40
+#bottom_margin = 40
+#xticks = 5
+#yticks = 5
+#zticks = 5
+#tick_label_template = "%.2e"
+#tick_length = 0.2
+#odd_tick_length = 0.4
+#even_tick_length = 0.2
+#ps_colormode = "color"
+#mark_t = None #or a real value between 0 and 1
+
+#type = "bifurcation" # or "solution"
+
+#bifurcation_x = [0]
+#bifurcation_y = [1]
+#bifurcation_z = None
+
+#solution_x = [0,3,6,9]
+#solution_y = [1,4,7,10]
+#solution_z = [2,5,8,11]
+
+## Sets of columns that the user is likely to want to use
+#bifurcation_column_defaults = None
+#solution_column_defaults = [[0,3,6,9],[1,4,7,10],[2,5,8,11],['t','t','t','t']]
+
+# The label(s) of the solution we wish to draw
+#label = [1,2,3] # or "all"
+#label_defaults = None
+# The index/indices of the solution we wish to draw
+#index = [0]
+
+#bifurcation_diagram_filename = 'fort.7'
+#solution_filename = 'fort.8'
+
+#bifurcation_symbol = "square"
+#limit_point_symbol = None
+#hopf_symbol = "fillsquare"
+#period_doubling_symbol = "doubletriangle"
+#torus_symbol = "filldiamond"
+#user_point_symbol = "U"
+#error_symbol = None

@@ -58,7 +58,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["error_symbol"]           = ("X",self.__optionCallback)
 
         optionDefaults["ps_colormode"]           = ("color",self.__optionCallback)
-        optionDefaults["stability"]              = (0,self.__optionCallback)
+        optionDefaults["stability"]              = (False,self.__optionCallback)
         optionDefaults["coloring_method"]        = ("curve",self.__optionCallback)
 
         parser = AUTOutil.getAUTORC("AUTO_plotter")
