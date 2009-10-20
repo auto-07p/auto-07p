@@ -1636,14 +1636,13 @@ commandRun = command(run,SIMPLE,"run",alias=['r','rn'])
 def rundemo(demo,equation="all",runner=None):
     runner = withrunner(runner)
     runner.config(equation=equation)
-    log,err,data = runner.runDemo(demo)
+    log,err = runner.runDemo(demo)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunDemo = command(rundemo,alias=None)
 
 
@@ -1655,27 +1654,25 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runMakefileWithSetup(equation)
+    log,err = runner.runMakefileWithSetup(equation)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 
 
 def runMakefile(equation=None,runner=None):
     runner = withrunner(runner)
-    log,err,data = runner.runMakefile(equation)
+    log,err = runner.runMakefile(equation)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunMakefile = command(runMakefile,alias=None)
 
 
@@ -1687,27 +1684,25 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runExecutableWithSetup(executable)
+    log,err = runner.runExecutableWithSetup(executable)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 
 
 def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
     runner = withrunner(runner)
-    log,err,data = runner.runExecutable(executable)
+    log,err = runner.runExecutable(executable)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunExecutable = command(runExecutable,alias=None)
 
 
@@ -1719,27 +1714,25 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runCommandWithSetup(command)
+    log,err = runner.runCommandWithSetup(command)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 
 
 def runCommand(command=None,runner=None):
     runner = withRunner(runner)
-    log,err,data = runner.runCommand(command)
+    log,err = runner.runCommand(command)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
-    return data
 commandRunCommand = command(runCommand,alias=None)
 
 

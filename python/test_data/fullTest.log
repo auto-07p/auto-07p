@@ -28,7 +28,7 @@ Runner configured
  hcn                      Get the current HomCont continuation constants.
  loadbd bd                Load bifurcation diagram files.
  sl solutionget           Parse solution file:
- plot pl p2               2D plotting of data.
+ plot pl p2               Plotting of data.
  plot3 p3                 3D plotting of data.
  branchpoint bp br        Print the ``branch-point function''.
  eigenvalue ev eg         Print eigenvalues of Jacobian (algebraic case).
@@ -58,7 +58,7 @@ Runner configured
 
 Run AUTO.
 
-    Type r=run([name],[options]) to run AUTO from solution data with the given
+    Type r=run([data],[options]) to run AUTO from solution data with the given
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
@@ -155,7 +155,6 @@ Starting conversion of cir.dat :
 Finished running: ./fcon
 Conversion done : converted file saved as s.dat
 Runner configured
-gfortran -fopenmp -O -c cir.f90 -o cir.o
 gfortran -fopenmp -O cir.o -o cir.exe /home/boldeman/auto/07p/lib/*.o
 Starting cir ...
  

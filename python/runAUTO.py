@@ -252,9 +252,9 @@ class runAUTO:
         
     def runDemo(self,d):
         self.__resetInternalLogs()
-        data = self.__runDemo(d)
+        self.__runDemo(d)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
 
     def __runDemo(self,d):
         """     This function compiles the demo, then calls the runMakefile
@@ -293,7 +293,7 @@ class runAUTO:
         stdout.close()
         stderr.close()
 
-        data = self.__runMakefile()
+        self.__runMakefile()
 
         if self.options["clean"] == "yes":
             os.chdir(self.options["dir"])
@@ -315,7 +315,6 @@ class runAUTO:
             self.__printErr("***Demo was killed because it took too long***\n")
 
         self.__printErr("===%s end===\n"%(d,))
-        return data
 
     def __setup(self):
         """     This function sets up self.options["dir"] by creating
@@ -447,7 +446,11 @@ class runAUTO:
         Returns a bifurcation diagram of the result.
         """
         self.config(**kw)
-        log,err,data = self.runMakefileWithSetup()
+        self.__resetInternalLogs()
+        self.__setup()
+        data = self.__runMakefile()
+        self.__rewindInternalLogs()
+        log,err = self.internalLog,self.internalErr
         if self.options["err"] is None:
             # log was already written if the runner is verbose
             if self.options["verbose"] == "no":
@@ -458,14 +461,14 @@ class runAUTO:
     def runMakefileWithSetup(self,equation=None):
         self.__resetInternalLogs()
         self.__setup()
-        data = self.__runMakefile(equation)
+        self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def runMakefile(self,equation=None):
         self.__resetInternalLogs()
-        data = self.__runMakefile(equation)
+        self.__runMakefile(equation)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def __runMakefile(self,equation=None):        
         """     This function expects self.options["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
@@ -495,6 +498,7 @@ class runAUTO:
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
             equation = self.options["constants"]["e"]
+            data = None
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
                 if self.options["verbose"] == "yes":
@@ -521,19 +525,19 @@ class runAUTO:
             return
         else:
             executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
-        return self.__runExecutable(executable)
+        self.__runExecutable(executable)
 
     def runExecutableWithSetup(self,executable=None):
         self.__resetInternalLogs()
         self.__setup()
-        data = self.__runExecutable(executable)
+        self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def runExecutable(self,executable=None):
         self.__resetInternalLogs()
-        data = self.__runExecutable(executable)
+        self.__runExecutable(executable)
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def __runExecutable(self,executable=None):
         """     This function expects self.options["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
@@ -551,23 +555,19 @@ class runAUTO:
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
         self.__runCommand(executable)
-        data = self.__outputCommand()
         os.chdir(curdir)
-        return data
 
     def runCommand(self,command=None):
         self.__resetInternalLogs()
         self.__runCommand(command)
-        data = self.__outputCommand()
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def runCommandWithSetup(self,command=None):
         self.__resetInternalLogs()
         self.__setup()
         self.__runCommand(command)
-        data = self.__outputCommand()
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        return [self.internalLog,self.internalErr]
     def __runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
@@ -683,13 +683,13 @@ class runAUTO:
 
 def test():
     runner = runAUTO(verbose="yes",clean="yes")
-    [log,err,data]=runner.runDemo("wav")
+    [log,err]=runner.runDemo("wav")
     print(log.read())
     runner.config(equation="clean",verbose="no")
-    [log,err,data]=runner.runDemo("wav")
+    [log,err]=runner.runDemo("wav")
     print(log.read())
     runner.config(equation="first")
-    [log,err,data]=runner.runDemo("wav")
+    [log,err]=runner.runDemo("wav")
     print(log.read())
     
 
