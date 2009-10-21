@@ -103,9 +103,10 @@ class parseS(list):
                     pass
         elif len(self) > 0:
             sol = self[-1]
-        if kw != {} or sol is None:
-            sol = AUTOSolution(sol,**kw)
-        return sol
+        if sol is None:
+            return AUTOSolution(**kw)            
+        else:
+            return AUTOSolution.load(sol,**kw)
 
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
@@ -750,6 +751,8 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
+        if self["LAB"] != 0 and self["LAB"] != self.c.get("IRS"):
+            kw["IRS"] = self["LAB"] 
         return AUTOSolution(self,**kw)
 
     def run(self,**kw):
@@ -758,11 +761,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        c = self.options.copy()
-        c.update(kw)
-        if self["LAB"] != 0:
-            c["IRS"] = self["LAB"]
-        return runAUTO.runAUTO.run(self,**c)
+        return runAUTO.runAUTO.run(self.load(**kw))
 
     def __openFilename(self,filename):
         try:
