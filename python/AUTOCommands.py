@@ -1656,13 +1656,14 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err = runner.runMakefileWithSetup(equation)
+    log,err,data = runner.runMakefileWithSetup(equation)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
+    return data
 commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 
 
@@ -1686,13 +1687,14 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err = runner.runExecutableWithSetup(executable)
+    log,err,data = runner.runExecutableWithSetup(executable)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
+    return data
 commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 
 
@@ -1716,13 +1718,14 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err = runner.runCommandWithSetup(command)
+    log,err,data = runner.runCommandWithSetup(command)
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
     if runner.options["verbose"] != "yes":
         info(log.read())
     info(err.read())
+    return data
 commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 
 

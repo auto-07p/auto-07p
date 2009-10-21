@@ -446,11 +446,7 @@ class runAUTO:
         Returns a bifurcation diagram of the result.
         """
         self.config(**kw)
-        self.__resetInternalLogs()
-        self.__setup()
-        data = self.__runMakefile()
-        self.__rewindInternalLogs()
-        log,err = self.internalLog,self.internalErr
+        log,err,data = self.runMakefileWithSetup()
         if self.options["err"] is None:
             # log was already written if the runner is verbose
             if self.options["verbose"] == "no":
@@ -462,8 +458,9 @@ class runAUTO:
         self.__resetInternalLogs()
         self.__setup()
         self.__runMakefile(equation)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,data]
     def runMakefile(self,equation=None):
         self.__resetInternalLogs()
         self.__runMakefile(equation)
@@ -498,7 +495,6 @@ class runAUTO:
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
             equation = self.options["constants"]["e"]
-            data = None
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
                 if self.options["verbose"] == "yes":
@@ -509,7 +505,6 @@ class runAUTO:
                     if os.path.exists(filename):
                         os.remove(filename)
                 self.__runCommand(os.path.join(".",equation + ".exe"))
-                data = self.__outputCommand()
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
@@ -519,20 +514,19 @@ class runAUTO:
                     self.verbose_write(line)
                 self.__printLog(line)
             os.chdir(curdir)
-            return data
         elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
-            return
         else:
             executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
-        self.__runExecutable(executable)
+            self.__runExecutable(executable)
 
     def runExecutableWithSetup(self,executable=None):
         self.__resetInternalLogs()
         self.__setup()
         self.__runExecutable(executable)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,data]
     def runExecutable(self,executable=None):
         self.__resetInternalLogs()
         self.__runExecutable(executable)
@@ -566,8 +560,9 @@ class runAUTO:
         self.__resetInternalLogs()
         self.__setup()
         self.__runCommand(command)
+        data = self.__outputCommand()
         self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
+        return [self.internalLog,self.internalErr,data]
     def __runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """

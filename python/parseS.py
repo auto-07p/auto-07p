@@ -557,7 +557,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                     p = m*[0.0]
                     self.PAR = AUTOParameters(coordnames=self.__parnames,
                                           coordarray=p, name=self.name)
-        if self.name == './fort.8':
+        if os.path.basename(self.name) == 'fort.8':
             if "equation" in kw:
                 self.name = kw["equation"][14:]
             elif "e" in kw:
