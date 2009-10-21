@@ -1020,11 +1020,11 @@ C
                UDOTPS(I+NDM,LL)=UDOTPS(I,JJ)+PHDIFF
                UPS(I,LL)=UPS(I,JJ)
                UDOTPS(I,LL)=UDOTPS(I,JJ)
-               IF (L<2*NTSR-JMAX-1) THEN
+               IF (L<2*NTSR-JMAX) THEN
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
-                  LLL=LL+(1+JMAX)*NCOLRS
+                  LLL=LL+JMAX*NCOLRS
                   UPS(I+NDIM-NDM,LLL)=UPS(I,JJ)+PHDIFF
                   UDOTPS(I+NDIM-NDM,LLL)=UDOTPS(I,JJ)+PHDIFF
                ENDIF
@@ -1066,7 +1066,7 @@ C
 C     Remesh last part :
 C     
          CALL INTPHO(NDM,NCOLRS,TT(3),T(3)-TT(3),UPS,UDOTPS,
-     *        TM(J),DTM,NDIM-NDM,NDIM,(J2(3)+JMAX)*NCOLRS,JJ)
+     *        TM(J),DTM,NDIM-NDM,NDIM,(J2(3)+JMAX-1)*NCOLRS,JJ)
 C     
 C     Copy middle parts, this applies only for 1->n switching
 C     where n>=3 and NDIM=(n+1)*NDM: (NDIM/NDM)-3 times.
@@ -1229,7 +1229,7 @@ C We hope that Newton's method will do the rest.
          IF (IEQUIB.GT.0) THEN
             ALLOCATE(F(NDM))
             UPSMIN=HUGE(1.d0)
-            JMIN=1
+            JMIN=0
             DO J=0,NTSR*NCOLRS
                CALL FUNC(NDM,UPS(:,J),ICP,PAR,0,F,DUM1,DUM2)
                UPSI=0
@@ -1276,6 +1276,7 @@ C
              ENDDO
              IF(UPSI>COMPZERO)THEN
                 J1=J+1
+                IF(J1==NTSR+1)J1=0
                 EXIT
              ENDIF
              J=J-1
@@ -1289,6 +1290,7 @@ C
              ENDDO
              IF(UPSI>COMPZERO)THEN
                 J2=J-1
+                IF(J2==-1)J2=NTSR
                 EXIT
              ENDIF
              J=J+1
@@ -1298,7 +1300,7 @@ C
              T=(TM(J2)+TM(J1)+1)/2
              IF(T>=1)T=T-1
              IF(TM(J1)<=T)THEN
-                J2=NTSR+1
+                J2=NTSR
              ELSE
                 J1=0
              ENDIF
@@ -1307,7 +1309,11 @@ C
              J1=J1+1
           ENDDO
           JMIN=J1
-          IF(T-TM(JMIN-1).LT.TM(JMIN)-T) JMIN=JMIN-1
+          IF(JMIN==0)THEN
+             IF(T-TM(NTSR)<TM(0)-T) JMIN=NTSR
+          ELSE
+             IF(T-TM(JMIN-1)<TM(JMIN)-T) JMIN=JMIN-1
+          ENDIF
        ENDIF
        TMMIN=TM(JMIN)
 C
