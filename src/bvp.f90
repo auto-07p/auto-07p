@@ -1692,6 +1692,7 @@ CONTAINS
   SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
     USE COMPAT
+    USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
 
 ! Writes plotting and restart data on unit 8, viz.:
 ! (1) data identifying the corresponding point on unit 7,
@@ -1717,7 +1718,7 @@ CONTAINS
 !  NCOL  : The number of collocation points used.
 !  NPAR  : The dimension of the array PAR.
 !  NPARI : Number of internal parameters, at the end of the array PAR.
-!  NDM   : The user-specified dimension.
+!  NDIMU : The user-specified dimension.
 !  IPS   : The problem type. 
 !  IPRIV : Private field for use by toolboxes.
 !
@@ -1744,18 +1745,16 @@ CONTAINS
     DOUBLE PRECISION PAR(*),RLDOT(*)
 
     INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NRD,NROWPR
-    INTEGER MTOT,I,J,IPS,NDM,NPARI
+    INTEGER MTOT,I,J,NPARI
     DOUBLE PRECISION T
 !xxx====================================================================
 !xxx Test problem: compute the error
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
 
-    IPS=IAP(2)
     NTST=IAP(5)
     NCOL=IAP(6)
     ISW=IAP(10)
-    NDM=IAP(23)
     NPARI=IAP(24)
     ITP=IAP(27)
     NFPR=IAP(29)
@@ -1772,7 +1771,7 @@ CONTAINS
     NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
     MTOT=MOD(NTOT-1,9999)+1
     WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
-         NPARI,NDM,IPS,0
+         NPARI,NDIMU,IPS,0
 
 ! Write the entire solution on unit 8 :
 
