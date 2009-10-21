@@ -296,6 +296,19 @@ class AUTOBranch(Points.Pointset):
     def __getitem__(self,index):
         return self.getIndex(index)
 
+    def __setitem__(self,item,value):
+        if item == "BR" and "BR" not in self.coordnames:
+            br = self["BR"]
+            if value != br:
+                br = self.BR # This makes sure __getattr__ parses everything
+                self.BR = value
+            # sync solution BRs, if associated
+            for k,x in map(self._gettypelabel, self.labels.getIndices()):
+                if "solution" in x:
+                    x["solution"]["BR"] = abs(value)
+        else:
+            Points.Pointset.__setitem__(item,value)
+
     def __call__(self,label=None):
         return self.getLabel(label)
 
@@ -442,6 +455,11 @@ class AUTOBranch(Points.Pointset):
             if isinstance(j, str):
                 j = self.coordnames.index(j)
             return AUTOatof(self.__datalist[i].split()[4+j])
+        if index == "BR" and "BR" not in self.coordnames:
+            if self.__fullyParsed:
+                return self.BR
+            else:
+                return int(self.__datalist[0].split(None,1)[0])
         if self.__fullyParsed or not isinstance(index, int):
             if not Points.numpyimported:
                 Points.importnumpy()
