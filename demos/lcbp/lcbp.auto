@@ -31,7 +31,7 @@ for isw in [2,3]:
    run(sw,NMX=50,DS=0.01,sv=solprefix+'fw')
 
    print msg+"(bw)***"
-   run(sw,DS='-',sv=solprefix+'bw')
+   run(sw,NMX=50,DS=-0.01,sv=solprefix+'bw')
 
 print "\n***Clean the directory***"
 cl()

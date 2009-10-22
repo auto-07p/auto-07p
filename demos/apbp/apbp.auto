@@ -14,13 +14,13 @@ print "\n***"+pgm+": run 2: BP cont non-generic (fw)***"
 run(bp,ICP=[1,2],ISW=2,sv=pgm+'.2.fw')
 
 print "\n***"+pgm+": run 2: BP cont non-generic (bw)***"
-run(bp,sv=pgm+'.2.bw',DS='-')
+run(bp,ICP=[1,2],ISW=2,sv=pgm+'.2.bw',DS='-')
 
 print "\n***"+pgm+": run 3: BP cont generic (fw)***"
-run(bp,ICP=[1,2,3],ISW=3,DS='-',sv=pgm+'.3.fw')
+run(bp,ICP=[1,2,3],ISW=3,sv=pgm+'.3.fw')
 
 print "\n***"+pgm+": run 3: BP cont generic (bw)***"
-run(bp,sv=pgm+'.3.bw',DS='-')
+run(bp,ICP=[1,2,3],ISW=3,sv=pgm+'.3.bw',DS='-')
 
 print "\n***Clean the directory***"
 clean()
