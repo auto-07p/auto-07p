@@ -1514,7 +1514,7 @@ def ch(entry=None,value=None,runner=None,**kw):
         runner.options["constants"][entry] = value
         info("%s changed to %s\n"%(entry,value))
     else:
-        configure(runner,None,kw,info=lambda s:None)
+        configure(runner,None,info=lambda s:None,**kw)
         info(str(kw)+'\n')
 commandRunnerConfigFort2 = command(ch,SIMPLE,"changeConstants",
                                    alias=['changeconstant','cc'])
@@ -1534,7 +1534,7 @@ def hch(entry=None,value=None,runner=None,**kw):
         runner.options["homcont"][entry] = value
         info("%s changed to %s\n"%(entry,value))
     else:
-        configure(runner,None,kw,info=lambda s:None)
+        configure(runner,None,info=lambda s:None,**kw)
         info(str(kw)+'\n')
 commandRunnerConfigFort12 = command(hch,SIMPLE,"changeConstantsHomCont")
     
