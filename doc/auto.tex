@@ -265,7 +265,8 @@ we recommend that Coin is used instead of SGI's implementation.
 The \filef{configure} script checks
 for these libraries and outputs a warning if any of these libraries
 cannot be found. It first checks for SoQt, and then for SoXt, unless
-you pass {\tt --disable-plaut04-qt} as an option to \filef{configure}.
+you pass \texttt{\hyphenchar\font45\relax --disable-plaut04-qt}
+as an option to \filef{configure}.
 If the libraries are not available you can still compile
 all other components of \AUTO using \filef{make}.
 
@@ -1977,6 +1978,45 @@ lrz ... done
  \end{center}
  \end{table}
 
+ Additionally three special keys can be used to query a branch: use
+ \commandf{br['BR']} to obtain the branch number, \commandf{br['TY']}
+ for the branch type, and \commandf{br['TY number']} for the
+ corresponding number. These keys are also useful to change
+ bifurcation diagram files, as is illustrated in
+ Figure~\ref{exa:clui branch management}. Note that you can
+ interactively change branch numbers, solution numbers and delete
+ branches and solutions using the \commandf{@lb} command
+ (see Chapter~\ref{sec:command_mode}).
+
+ \begin{figure}[htbp]
+ {\small \begin{center} \begin{boxedverbatim}
+ # get and run the ab demo
+ demo('ab')
+ auto('ab.auto')
+ # load data from b.ab, s.ab, and d.ab
+ ab = loadbd('ab')
+ # change the branch number to either 1 or 2 depending on IPS
+ for branch in ab:
+     branch['BR'] = branch.c['IPS']
+ # delete the last branch
+ del ab[-1]
+ # subtract the first branch from all other branches with respect to PAR(1)
+ ab = subtract(ab, ab, 'PAR(1)')
+ # plot the branches, coloring by branch number
+ plot(ab, coloring_method='branch', color_list='black red')
+ # save data to b.abnew, s.abnew, and d.abnew
+ save(ab, 'abnew')
+ \end{boxedverbatim}
+ \end{center} 
+ }
+ \caption{This example shows how to change branch numbers and delete a
+ branch in the 'ab' demo output file. Using
+ the \parf{coloring\_method='branch'} setting you can then give one
+ color to all branches of fixed points and one other color to all
+ branches of periodic orbits.}
+ \label{exa:clui branch management}
+ \end{figure}
+
  \subsection{ Solutions}
  You can also obtain solutions from a bifurcation diagram structure,
  by using the \commandf{()} syntax directly on the diagram instead of
@@ -2139,6 +2179,16 @@ lrz ... done
  label 4. A for loop can then iterate through the list and provide new
  starting solutions.
 
+ Solutions can be deleted using the commands \commandf{dlb},
+ \commandf{dsp}, \commandf{klb}, and \commandf{ksp}, described in
+ the reference, Section~\ref{sec:clui_ref_filemaint}. The command
+ \commandf{relabel}, as described before, gives each solution a unique
+ label starting at 1. Finally, you can change individual solution
+ labels using the \commandf{relabel} \emph{method}:
+ \commandf{data.relabel(9, 57)} relabels label 9 to label 57, making
+ sure that the label changes both in the bifurcation diagram and in
+ the solution.
+
  \subsection{Summary and reference}
  We have defined the following objects:
  \begin{description}
@@ -2178,6 +2228,27 @@ lrz ... done
     to change between runs. The AUTO constant
     \parf{IRS} is automatically set to the solution label.
  \end{description}
+
+ \section{ Importing data from Python or external tools.} \label{sec:clui_importing}
+ A solution can be created from a Python list or Numerical Python
+ array using the \commandf{load} command. The syntax is slightly
+ different depending on whether you create a point or an orbit.
+
+ Use \commandf{ s = load(u,PAR=p)} where \commandf{u} is a Python list
+ or a numpy array representing a solution. For a point
+ such an array is just the point itself, for example,
+ \commandf{u = [x, y, z]} or
+ \commandf{u = [0, 0, 0]}. For an orbit such an array must be given
+ column-wise, as \commandf{u = [[t0, ..., tn], [x0, ..., xn], [y0,
+   ..., yn], ...]}.
+ The \commandf{PAR=p} keyword argument takes a dictionary \commandf{p}
+ as described in Section~\ref{sec:PAR}, for instance, \commandf{PAR=\{1:5.0,
+ 2:0.0\}} to set \parf{PAR(1)=5.0} and \parf{PAR(2)=0.0}.
+
+ You can check your new solution using the command \commandf{print s}.
+
+ An external orbit from an ASCII file can be directly imported by
+ AUTO via the \parf{dat} AUTO constant, see Section~\ref{sec:dat}.
 
  \section{ Exporting output data for use by Python or external
    visualization tools.} \label{sec:clui_exporting}
@@ -2525,7 +2596,7 @@ cat & commandCat & Print the contents of a file\\ \hline
 cd & commandCd & Change directories.\\ \hline 
 clean cl & commandClean & Clean the current directory.\\ \hline 
 demo dm & commandCopyAndLoadDemo & Copy a demo into the current directory and load it.\\ \hline 
-copy & commandCopyDataFiles & Copy data files.\\ \hline 
+copy cp & commandCopyDataFiles & Copy data files.\\ \hline 
 copydemo & commandCopyDemo & Copy a demo into the current directory.\\ \hline 
 save sv & commandCopyFortFiles & Save data files.\\ \hline 
 gui & commandCreateGUI & Show AUTOs graphical user interface.\\ \hline 
@@ -2539,7 +2610,7 @@ klb & commandKeepLabels & Keep special labels.\\ \hline
 ksp & commandKeepSpecialPoints & Keep special points.\\ \hline 
 ls & commandLs & List the current directory.\\ \hline 
 merge mb & commandMergeBranches & Merge branches in data files. \\ \hline
-move & commandMoveFiles & Move data-files to a new name.\\ \hline 
+move mv & commandMoveFiles & Move data-files to a new name.\\ \hline 
 cn constantsget & commandParseConstantsFile & Get the current continuation constants.\\ \hline 
 bt diagramandsolutionget & commandParseDiagramAndSolutionFile & Parse both bifurcation diagram and solution.\\ \hline 
 dg diagramget & commandParseDiagramFile & Parse a bifurcation diagram.\\ \hline 
@@ -2657,7 +2728,8 @@ Load files into the \AUTO runner or return modified solution data.
     \item
       A Python list array or a numpy array representing a solution,
       returns a solution with the given contents. Such an array must be given
-      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn], ...].
+      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn],
+      ...], or for a point solution as [x, y, z, ...].
     \end{itemize}
 
     There are many possible options:
@@ -2764,7 +2836,7 @@ Plotting of data.
     inspection of the output-files \filef{fort.7} and \filef{fort.8}.
 
     Values also present in the file \filef{autorc}, such as
-    \commandf{color\_list="black green red blue orange"} can be provided as
+    \commandf{color\_list = "black green red blue orange"} can be provided as
     keyword arguments, as well as \commandf{hide=True} which hides the
     on-screen plot.
 
@@ -3010,7 +3082,7 @@ Print the Floquet multipliers.
 \textbf{Aliases:} fl commandQueryFloquet
 \end{description}
 
-\subsection{File-maintenance.}
+\subsection{File-maintenance.} \label{sec:clui_ref_filemaint}
 
 \begin{description}
 \item[relabel]
@@ -3933,7 +4005,7 @@ the main constant file with a {\tt c.} prefix.
 \item[\tt @H]~:
   The command \commandf{@H xxx} is equivalent to the command \commandf{@h xxx} above.
 \item[-]
-  Type \commandf{@H xxx i} in order to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f90}
+  Type \commandf{@H xxx i} to run {\cal AUTO}/{\cal HomCont} with equations-file {\tt xxx.f90}
   and constants-files {\tt c.xxx.i} and {\tt h.xxx.i}
   and, if needed, restart data-file {\tt s.xxx}. 
 \item[-]
@@ -4816,11 +4888,11 @@ bifurcation type strings followed by a number $n$ greater than zero.
 These strings specify that the contination should stop as soon as the $n$th
 bifurcation of the associated type has been reached.
 Example:\\
-\begin{itemize}
-\item[-] {\tt STOP=['HB3','UZ3']}\\
+\begin{description}
+\item[\parf{STOP=['HB3','UZ3']}]
 Stop at the third Hopf bifurcation or third user defined point (see
 Section~\ref{sec:UZR}), whichever comes first.
-\end{itemize}
+\end{description}
 
 \subsection{\tt NMX} \label{sec:NMX}
 The maximum number of steps to be taken along any family.
@@ -5536,7 +5608,7 @@ to user-defined names\\
 {\tt THL, THU} & list of parameter and solution weights \\
 \hline
 {\tt UZR} & list of values for user defined output\\
-{\tt SP} & list of bifurcations to check and bifurcation stop
+{\tt SP}, {\tt STOP} & list of bifurcations to check and bifurcation stop
 conditions\\
 \hline
 {\tt NUNSTAB}, {\tt NSTAB} & HomCont: unstable and stable manifold dimensions\\
@@ -6421,12 +6493,11 @@ as defined in the equations-file {\tt abc.f90}.}
 NDIM=   3, IPS =   1, IRS =   0, ILP =   1
 ICP =  [1]
 NTST=  15, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
-NMX=  130, RL0=   0.0, RL1=   0.4, A0=   0.0, A1=  25.0
-NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
+NMX=  130, NPR=  200, MXBF=  10, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
 DS  =  0.02, DSMIN= 0.001, DSMAX=   0.1, IADS=   1
-THL =  {11: 0.0}, THU =  {}
-UZR =  {-1: 0.4}
+NPAR = 5, THL =  {11: 0.0}, THU =  {}
+UZR =  {1: 0.4}, STOP = ['UZ1']
 \end{boxedverbatim}
 \end{center}
 }
@@ -6445,12 +6516,11 @@ of demo {\tt abc}.}
 NDIM=   3, IPS =   2, IRS =   2, ILP =   1
 ICP =  [1, 11]
 NTST=  25, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
-NMX=  200, RL0=   0.0, RL1=   0.4, A0=   0.0, A1=  25.0
-NPR=  200, MXBF=  10, IID =   2, ITMX=   8, ITNW= 5, NWTN= 3, JAC= 0
+NMX=  200, NPR=  200, MXBF=  10, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
 DS  =  0.02, DSMIN= 0.001, DSMAX=   0.1, IADS=   1
-THL =  {11: 0.0}, THU =  {}
-UZR =  {-1: 0.25}
+NPAR = 5, THL =  {11: 0.0}, THU =  {}
+UZR =  {1: 0.25}, STOP = ['UZ1']
 \end{boxedverbatim}
 \end{center}
 }
@@ -8378,13 +8448,13 @@ For a detailed analysis of the solution behavior see
 %==============================================================================
   \commandf{r2=run(r1,c='spb.1')} & \parbox[t]{3in}{2nd run; let
     $\eps$ tend to zero; restart from the last label of \parf{r0}.
-    constants changed : \parf{IRS, ICP(1), NTST, DS} \vspace{0.2cm}}\\ 
+    constants changed : \parf{IRS, ICP(1), NTST, DS, UZR, STOP} \vspace{0.2cm}}\\ 
   \commandf{save(r2,'1')} & save the output-files as \filef{b.1, s.1, d.1} \\ 
 \hline
 %==============================================================================
   \commandf{r3=run(r2('UZ2'),c='spb.3')} & \parbox[t]{3in}{3rd run;
     continuation in $\gamma$; $\eps=0.001$; restart from 2nd UZ label
-    of \parf{r2}.  Constants changed : \parf{IRS, ICP(1), RL0, ITNW, EPSL, EPSU, UZR} \vspace{0.2cm}} \\ 
+    of \parf{r2}.  Constants changed : \parf{IRS, ICP(1), ITNW, EPSL, EPSU, UZR} \vspace{0.2cm}} \\ 
   \commandf{save(r3,'2')} & save the output-files as \filef{b.2, s.2, d.2} \\ 
 \hline
 %==============================================================================
@@ -8775,7 +8845,7 @@ shifted by $2\pi$ (in other words, the homoclinic orbit reinjects
 once and it is a heteroclinic orbit in the covering space).
 We can most easily compute the homoclinic orbit using a 
 homotopy method
-(see the {\cal HomCont} section \label{sec:Starting_strategies} for details):
+(see the {\cal HomCont} section \ref{sec:Starting_strategies} for details):
 
 \begin{enumerate}
 \item
@@ -12854,7 +12924,8 @@ is now equal to 12. This is not to be confused with the setting
 of the \AUTO constant \parf{NDIM=3}, because {\cal HomCont} handles this
 internally.
 \begin{center}
-\commandf{r10=run(r6('UZ1'),ICP=[21,22,24,5],NMX=300,NPR=10,UZR=\{-22:0.2\},ISTART=-3,IPSI=[])} \\
+\commandf{r10=run(r6('UZ1'), ICP=[21,22,24,5], NMX=300, NPR=10, 
+  UZR=\{-22:0.2\}, ISTART=-3, IPSI=[])} \\
 \commandf{save(r10,'10') }
 \end{center} 
 \begin{verbatim}
@@ -12910,7 +12981,8 @@ These two 3-homoclinic orbits are depicted in Figure~\ref{hom2.eps}(b).
 We can follow both of these back to the inclination flip point, by
 setting \parf{ITWIST} back to 0:
 \begin{center}
-\commandf{r13=run(r6('UZ7'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.13\},ISTART=1,ITWIST=0)}\\
+\commandf{r13=run(r6('UZ7'), ICP=[4,5], NMX=30, DS=-0.01, DSMAX=0.1,
+  UZR=\{4:0.13\}, ISTART=1, ITWIST=0)}\\
 \commandf{r6=r6+r13}
 \end{center} 
 \begin{verbatim}
@@ -12919,7 +12991,8 @@ setting \parf{ITWIST} back to 0:
    3    30  EP   37   9.27258E-02   5.06560E-01 ... -2.76788E-04
 \end{verbatim}
 \begin{center}
-\commandf{r14=run(r6('UZ9'),ICP=[4,5],NMX=30,DS=-0.01,DSMAX=0.1,UZR=\{4:0.145\},ISTART=1,ITWIST=0)} \\
+\commandf{r14=run(r6('UZ9'), ICP=[4,5], NMX=30, DS=-0.01, DSMAX=0.1,
+  UZR=\{4:0.145\}, ISTART=1, ITWIST=0)} \\
 \commandf{r6=r6+r14}
 \commandf{save(r6,'6')}
 \end{center}

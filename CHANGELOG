@@ -71,7 +71,7 @@
     Here, for example, "U(1)" denotes just point continuations;
     "MAX U(1)" applies to both "U(1)" and "MAX U(1)" (points and BVPs)
   - @pp now accepts both ',' and ' ' to separate input lists, similar to PLAUT.
-* PLAUT04
+* PLAUT04:
   - Print support is added to the File menu if Coin3D is used.
   - With new versions of SoQt, libsimage is no longer necessary. To accomplish
     this, the images of the Sun, the Earth and the stars were converted to JPEG
@@ -87,7 +87,7 @@
     Draw Reference Plane, Draw Reference Sphere, Disk Rotation, Disk Position,
     Disk Radius, Disk Height, Disk Transparency, Disk From File, 
     Sphere Position, Sphere Radius, Sphere Transparency, Sphere From File
-* Python
+* Python:
   - The run command no longer redirects output by default: AUTO writes directly
     to the terminal.
   - When AUTO crashes, stop immediately with an AUTO Runtime Error.
@@ -123,13 +123,13 @@
   - The Python code no longer tries to be compatible with Python 1.5.2; at
     least Python 2.2 is assumed.
   - The Python code is mostly compatible with Python 3.x.
-* Configure checks.
+* Configure checks:
   - Improved Coin3D detection for Mac OS X.
   - Fixed Coin detection to include cppflags from coin-config.
   - Added check for C++ compiler existence (not included by default in
     Ubuntu).
   - Fix C equation files when using AUTO with g95.
-* Shell commands
+* Shell commands:
   - @cp and @mv now accept up to 4 arguments and directories.
   - @rl, @lb, @kuz, @klp, @kbp, and @dlp are more flexible with bifurcation
     diagram files, and can work with older versions of those.
@@ -137,7 +137,7 @@
     in order not to confuse Sun f95.
   - Added lb, db, and rb commands to @lb (autlab), so it can list, relabel
     and delete branches.
-* Demos
+* Demos:
   - Converted all demo Fortran files to free-form format.
   - Use IMPLICIT NONE in all demos.
   - Modularized the "brf" and "brc" demos.
@@ -158,7 +158,7 @@
   - Fixed the 'mtn' HomCont demo: we must explicitly specify NSTAB for
     saddle-node homoclinics.
   - Added autorc files to the demos ab and tor.
-* GUI94
+* GUI94:
   - The old GUI can now work with .f90 equation files (but not with new-style
     constants files!).
 

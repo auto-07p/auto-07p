@@ -1363,7 +1363,8 @@ def load(data=None,runner=None,templates=None,**kw):
 
     * A Python list array or a numpy array representing a solution,
       returns a solution with the given contents. Such an array must be given
-      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn], ...].
+      column-wise, as [[t0, ..., tn], [x0, ..., xn], [y0, ..., yn], ...],
+      or for a point solution as [x, y, z, ...].
 
     There are many possible options:
     \\begin{verbatim}
