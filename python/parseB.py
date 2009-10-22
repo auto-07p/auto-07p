@@ -297,15 +297,29 @@ class AUTOBranch(Points.Pointset):
         return self.getIndex(index)
 
     def __setitem__(self,item,value):
-        if item == "BR" and "BR" not in self.coordnames:
-            br = self["BR"]
-            if value != br:
-                br = self.BR # This makes sure __getattr__ parses everything
-                self.BR = value
-            # sync solution BRs, if associated
-            for k,x in map(self._gettypelabel, self.labels.getIndices()):
-                if "solution" in x:
-                    x["solution"]["BR"] = abs(value)
+        if item in ("BR", "TY", "TY number") and item not in self.coordnames:
+            if item == "BR":
+                br = self["BR"]
+                if value != br:
+                    br = self.BR # This makes sure __getattr__ parses everything
+                    self.BR = value
+                # sync solution BRs, if associated
+                for k,x in map(self._gettypelabel, self.labels.getIndices()):
+                    if "solution" in x:
+                        x["solution"]["BR"] = abs(value)
+            else:
+                if item == "TY":
+                    value = reverse_type_translation(value)
+                self.TY = value
+                # sync solution TYs, if associated
+                for k,x in map(self._gettypelabel, self.labels.getIndices()):
+                    if "solution" in x:
+                        v = x["solution"]["TY number"]
+                        if v>=0:
+                            v=v%10
+                        else:
+                            v=-((-v)%10)
+                        x["solution"]["TY number"] = value*10 + v
         else:
             Points.Pointset.__setitem__(item,value)
 
@@ -455,11 +469,16 @@ class AUTOBranch(Points.Pointset):
             if isinstance(j, str):
                 j = self.coordnames.index(j)
             return AUTOatof(self.__datalist[i].split()[4+j])
-        if index == "BR" and "BR" not in self.coordnames:
-            if self.__fullyParsed:
-                return self.BR
-            else:
-                return int(self.__datalist[0].split(None,1)[0])
+        if index in ("BR", "TY", "TY number") and index not in self.coordnames:
+            if index == "BR":
+                if self.__fullyParsed:
+                    return self.BR
+                else:
+                    return int(self.__datalist[0].split(None,1)[0])
+            elif index == "TY":
+                return type_translation(self.TY)["short name"]
+            else: #"TY number"
+                return self.TY
         if self.__fullyParsed or not isinstance(index, int):
             if not Points.numpyimported:
                 Points.importnumpy()
@@ -809,6 +828,7 @@ class AUTOBranch(Points.Pointset):
         ncolumns = len(split(self.__datalist[0])) - 4
         self.headernames = []
         self.coordnames = []
+        self.TY = 0
         if line.find(" PT ") != -1:
             linelen = len(self.__datalist[0])
             columnlen = (linelen - 19) // ncolumns
@@ -838,6 +858,8 @@ class AUTOBranch(Points.Pointset):
             if words[-1] in ["constants:", "above:"]:
                 userspec = True
                 continue
+            if words[1] == 'Branch':
+                self.TY = int(words[3])
             if words[1] in ["User-specified", "Active"]:
                 line = line.replace("s:",":")
                 for ind in range(2,len(words)):

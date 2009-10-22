@@ -455,6 +455,8 @@ class plotter(grapher.GUIGrapher):
                 z = None
             if self.cget("coloring_method") == "branch":
                 color = abs(branch.BR)-1
+            elif self.cget("coloring_method") == "type":
+                color = branch.TY
             else:
                 color = None
             if dp:
@@ -518,6 +520,8 @@ class plotter(grapher.GUIGrapher):
         coordnames = sol.coordnames
         if self.cget("coloring_method") == "branch":
             color = sol["BR"]-1
+        elif self.cget("coloring_method") == "type":
+            color = sol["TY number"]
         else:
             color = None
         for j in range(len(xcolumns)):

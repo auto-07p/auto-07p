@@ -58,9 +58,12 @@
   - A new plot() argument, hide=True, hides the graphics, to be used for
     just printing to a file with matplotlib.
   - The savefig() method of an object returned by plot() saves the file.
-  - The new setting:
+  - The new settings:
       coloring_method = "branch"
-    lets the color of the curve depend on the branch number (BR)
+    or
+      coloring_method = "type"
+    let the color of the curve depend on the branch number (BR)
+    or type number (TY)
   - label="all" (or label = ["all"]) now plots all labels.
   - The plotter now primarily plots by label name, which is useful for appended
     branches of bifurcation diagrams that change the column header name for
@@ -100,6 +103,8 @@
     bifurcation diagram file such as "L2-NORM".
   - Add s.b to a solution object, where b is the corresponding point on its
     branch.
+  - Branch objects now contain "BR", "TY", and "TY number" keys which you
+    can change similar to those of solutions.
   - The dlb, dsp, klb, and ksp functions can now take functions as arguments.
     These functions return a boolean value based on a solution causing it to
     be deleted or kept. A function with two arguments compare the two solutions
