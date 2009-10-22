@@ -4563,7 +4563,7 @@ NPAR=  36, THL =  {}, THU =  {}
 RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308,
 UZR = {},
 SP = [], STOP = []
-NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 1
+NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 5
 IREV = [], IFIXED = [], IPSI = []
 \end{verbatim}
 
@@ -10437,7 +10437,7 @@ constants file, \filef{c.yyy} is written. The command
 \section{ {\cal HomCont}-Constants.} \label{sec:HomCont_Constants}
 An example for the HomCont-specific constants in \filef{c.xxx} is listed below:
 \begin{verbatim}
-          NUNSTAB=1, NSTAB=2, IEQUIB=1, ITWIST=1, ISTART=1
+          NUNSTAB=1, NSTAB=2, IEQUIB=1, ITWIST=1, ISTART=5
           IREV = []
           IFIXED = [13]
           IPSI = [9,10]
@@ -10505,7 +10505,7 @@ Section~\ref{sec:Starting_strategies} for more details.
 
 \subsection{\parf{ISTART}}  \label{sec:ISTART}
 \begin{itemize}
-\item[-] \parf{ISTART=1}~(default):
+\item[-] \parf{ISTART=1}~:
 No special action is taken.
 \item[-] \parf{ISTART=2}~: 
 If \parf{IRS=0}, an explicit solution must be specified in the
@@ -10521,6 +10521,10 @@ equilibrium (either fixed or non-fixed, depending on IEQUIB)
 correspond to $t=0$ and $t=1$. This is necessary if a periodic
 orbit that is close to a homoclinic orbit is continued into
 a homoclinic orbit.
+\item[-] \parf{ISTART=5}~(default):
+Use either \parf{ISTART=1} if the restart solution is a homoclinic
+orbit with problem type \parf{IPS=9} or \parf{ISTART=4} for other
+problem types.
 \item[-] \parf{ISTART=-N, $N=1,2,3,\ldots$}~:
 Homoclinic branch switching: this description is for reference only.
 We refer to the demo in Chapter~\ref{ch:HomCont_hbs} to see how this

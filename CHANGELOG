@@ -7,12 +7,22 @@
     specify stopping conditions such as STOP=['HB2',UZ2'] which stops at the
     second Hopf or second user defined point, whichever comes first.
     This setting does not switch special points off or on, unlike SP.
+  - HomCont now has a new default setting "ISTART=5" which performs a phase
+    shift only if the restart solution is not already a homoclinic orbit
+    that was continued by HomCont.
   - A problem where extremely flat starts of curves, which sometimes occur
     with heteroclinic and homoclinic orbits, caused the mesh to be wrongly
     calculated was fixed (problem reported by Thomas Wagenknecht).
   - Automatic rotation detection (angular variables) is now switched off
     for heteroclinic orbits in HomCont. This fixes another problem reported
     by Thomas Wagenknecht.
+  - Fix crashes with the phase shift algorithm and mesh problems for
+    homoclinic branch switching with HomCont, which occurred in a problem
+    by Daniele Linaro.
+  - Fix crash for BPCONT (algebraic problems) with ISW=2 (reported by
+    David Barton).
+  - Fix problems with the Intel Fortran compiler ifort (reported by
+    Patrick McNeil).
   - Rotations no longer use PAR(19) internally, so this parameter is free to
     use.
   - The following types of continuations now use parameters above NPAR, instead

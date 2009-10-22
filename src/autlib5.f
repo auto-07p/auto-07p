@@ -639,7 +639,7 @@ C
          NSTAB=-1
          IEQUIB=1
          ITWIST=0
-         ISTART=1
+         ISTART=5 ! default is 1 or 4 depending on IPS from solution
          NREV=0
          NFIXED=0
          NPSI=0
@@ -683,11 +683,13 @@ C
 C     ---------- ----
       SUBROUTINE INHO(IAP,ICP)
 C
+      USE IO, ONLY: GETIPS3
+C
       DOUBLE PRECISION, PARAMETER :: HMACHHO=1.0d-13
       INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
 
       INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE
-      INTEGER NPARI,NPAR
+      INTEGER NPARI,NPAR,IPS3
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -794,6 +796,14 @@ C
       HCONST%IREV=>IREV
       HCONST%IFIXED=>IFIXED
       HCONST%IPSI=>IPSI
+      IF (ISTART==5) THEN
+         IPS3=GETIPS3()
+         IF(IPS3==9.OR.IPS3==0)THEN
+            ISTART=1
+         ELSE
+            ISTART=4
+         ENDIF
+      ENDIF
       IF(NSTAB==-1.OR.NUNSTAB==-1)THEN
          IF (IEQUIB.EQ.2) THEN
             NBCPROJ=NDM-1
