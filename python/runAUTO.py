@@ -491,6 +491,7 @@ class runAUTO:
 
         if self.options["makefile"] is None:
             executable = "make -e %s"%self.options["equation"]
+            self.__runExecutable(executable)
         elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make":
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
