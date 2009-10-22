@@ -689,7 +689,7 @@ C
       INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
 
       INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE
-      INTEGER NPARI,NPAR,IPS3
+      INTEGER NPARI,NPAR,IPS3,IRS
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
 C Sets up re-defined constants in IAP. 
@@ -698,6 +698,7 @@ C
 C set various constants 
 C
       NDIM=IAP(1)
+      IRS=IAP(3)
       ISW=IAP(10)
       NBC=IAP(12)
       NINT=IAP(13)
@@ -797,11 +798,12 @@ C
       HCONST%IFIXED=>IFIXED
       HCONST%IPSI=>IPSI
       IF (ISTART==5) THEN
-         IPS3=GETIPS3()
-         IF(IPS3==9.OR.IPS3==0)THEN
-            ISTART=1
-         ELSE
-            ISTART=4
+         ISTART=1
+         IF(IRS/=0)THEN
+            IPS3=GETIPS3()
+            IF(IPS3/=9.AND.IPS3/=0)THEN
+               ISTART=4
+            ENDIF
          ENDIF
       ENDIF
       IF(NSTAB==-1.OR.NUNSTAB==-1)THEN

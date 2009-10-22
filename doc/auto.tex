@@ -10591,9 +10591,10 @@ correspond to $t=0$ and $t=1$. This is necessary if a periodic
 orbit that is close to a homoclinic orbit is continued into
 a homoclinic orbit.
 \item[-] \parf{ISTART=5}~(default):
-Use either \parf{ISTART=1} if the restart solution is a homoclinic
-orbit with problem type \parf{IPS=9} or \parf{ISTART=4} for other
-problem types.
+If \parf{IRS=0}, the restart solution comes from a data file, or
+the restart solution is a homoclinic orbit with problem
+type \parf{IPS=9}, no special action is taken, as for \parf{ISTART=1}.
+For other problem types, use a phase-shift, as for \parf{ISTART=4}.
 \item[-] \parf{ISTART=-N, $N=1,2,3,\ldots$}~:
 Homoclinic branch switching: this description is for reference only.
 We refer to the demo in Chapter~\ref{ch:HomCont_hbs} to see how this
