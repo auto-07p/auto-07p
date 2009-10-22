@@ -551,7 +551,6 @@ class AUTOBranch(Points.Pointset):
             index = abs(pt) - 1
         else:
             index = pt["index"]
-        new = self.__class__(self)
         coordarray = N.array(self.coordarray)
         if not isinstance(other,Points.Pointset):
             other = other[0]
@@ -597,6 +596,7 @@ class AUTOBranch(Points.Pointset):
                 a = coordarray[i]
                 b = other.coordarray[i]
                 a[j]=a[j]-b[k-1]-(a0[j]-b0[k-1])*(b[k]-b[k-1])/(b0[k]-b0[k-1])
+        new = self.__class__(self)
         Points.Pointset.__init__(new, coordarray = coordarray,
                                  coordnames = self.coordnames,
                                  labels = self.labels)
@@ -891,6 +891,9 @@ class parseBR(UserList,AUTOBranch):
             self.readFilename(filename)
         else:
             UserList.__init__(self,filename)
+
+    def __getattr__(self,attr):
+        raise AttributeError
 
     def __getstate__(self):
         return self.__dict__.copy()

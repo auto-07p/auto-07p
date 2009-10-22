@@ -501,7 +501,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if not Points.numpyimported:
                     Points.importnumpy()        
                 N = Points.N
-                if not hasattr(input[0],'append'):
+                if not hasattr(input[0],'__len__'):
                     # point
                     indepvararray = [0.0]
                     coordarray = []
