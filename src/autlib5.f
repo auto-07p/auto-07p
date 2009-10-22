@@ -1012,6 +1012,10 @@ C
       IADDPH=1
       DO L=2*NTSR-1,NTSR-1,-1
          J=L-(2*NTSR-1)+JMAX
+         ! move J=0...JMAX to
+         !      L=2*NTSR-1-JMAX...2*NTSR-1
+         ! move J=JMAX...NTSR-1 to
+         !      L=NTSR-1...2*NTSR-2-JMAX
          IF (J<0) THEN
             J=J+NTSR
             IADDPH=0
@@ -1031,6 +1035,8 @@ C
                UPS(I,LL)=UPS(I,JJ)
                UDOTPS(I,LL)=UDOTPS(I,JJ)
                IF (L<2*NTSR-JMAX) THEN
+                  ! move J=JMAX...NTSR to
+                  !      L+JMAX=NTSR-1+JMAX...2*NTSR-1
                   IF(IRTN.NE.0)THEN
                      PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
