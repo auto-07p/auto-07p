@@ -1025,8 +1025,13 @@ C
                      PHDIFF=PI(2.d0)*NRTN(MOD(I-1,NDM)+1)*(-ISTART-1)
                   ENDIF
                   LLL=LL+JMAX*NCOLRS
-                  UPS(I+NDIM-NDM,LLL)=UPS(I,JJ)+PHDIFF
-                  UDOTPS(I+NDIM-NDM,LLL)=UDOTPS(I,JJ)+PHDIFF
+                  IF(L==2*NTSR-JMAX-1)THEN
+                     UPS(I+NDIM-NDM,LLL)=UPS(I,NTSR*NCOLRS)+PHDIFF
+                     UDOTPS(I+NDIM-NDM,LLL)=UDOTPS(I,NTSR*NCOLRS)+PHDIFF
+                  ELSE
+                     UPS(I+NDIM-NDM,LLL)=UPS(I,JJ)+PHDIFF
+                     UDOTPS(I+NDIM-NDM,LLL)=UDOTPS(I,JJ)+PHDIFF
+                  ENDIF
                ENDIF
             ENDDO
          ENDDO
@@ -1099,8 +1104,8 @@ C
             UPS(K2,NTNC)=UPS(I+NDM,NTNC+NCOLRS)+P
             UDOTPS(K2,NTNC)=UDOTPS(I+NDM,NTNC+NCOLRS)+P
          ENDDO
-         UPS(I+NDIM-NDM,NTNC)=UPS(I,0)+PHDIFF*(-ISTART)
-         UDOTPS(I+NDIM-NDM,NTNC)=UDOTPS(I,0)+PHDIFF*(-ISTART)
+         UPS(I+NDIM-NDM,NTNC)=UPS(I+NDIM-NDM,NTNC+NCOLRS)
+         UDOTPS(I+NDIM-NDM,NTNC)=UDOTPS(I+NDIM-NDM,NTNC+NCOLRS)
       ENDDO
 C
 C     Rotations: NRTN needs adjustment
