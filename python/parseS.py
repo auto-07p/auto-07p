@@ -170,6 +170,7 @@ class parseS(list):
             try:
                 import gzip
                 inputfile = gzip.open(filename+".gz","rb")
+                inputfile.name = filename
             except IOError:
                 raise IOError(s)
         return inputfile
@@ -770,6 +771,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             try:
                 import gzip
                 inputfile = gzip.open(filename+".gz","rb")
+                inputfile.name = filename
             except IOError:
                 raise IOError("Could not find solution file %s."%filename)
         return inputfile
