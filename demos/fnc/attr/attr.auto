@@ -10,7 +10,7 @@ print '\n%s : first run : Homotopy away from the folded node along the fold curv
 r1 = run(e=pgm,c=pgm)
 
 print '\n%s : second run : Homotopy away from the fold curve on the critical manifold'%pgm
-r2 = run(r1('UZ1'),ICP=['ha0','va0','Ta'],DS='-',NBC=5,UZR={'ha0':-6.0})
+r2 = run(r1('UZ1'),ICP=['va0','ha0','Ta'],DS='-',NBC=5,UZR={'ha0':-6.0})
 
 print '\n%s : third run: Actual computation of the attracting slow manifold'%pgm
 start3 = load(r2('UZ1'),ICP=['Ta','va0','sa0','va1','ha1'],STOP=['UZ3'],DS='-',
