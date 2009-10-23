@@ -98,7 +98,7 @@ Run AUTO.
     s.all, and d.all.
     
 Command name: commandRun
-Aliases: rn run r 
+Aliases: run r rn
 Runner configured
 gfortran -fopenmp -O -c wav.f90 -o wav.o
 gfortran -fopenmp -O wav.o -o wav.exe /home/boldeman/auto/07p/lib/*.o
