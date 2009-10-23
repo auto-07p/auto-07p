@@ -1122,7 +1122,10 @@ class Pointset(Point):
             if do_reverse:
                 # finish the operation of reversing the reverse-order
                 # input arrays
-                self.indepvararray = self.indepvararray[::-1]
+                try:
+                    self.indepvararray = self.indepvararray[::-1]
+                except TypeError:
+                    self.indepvararray.reverse()
                 self.reverse()
             if not isincreasing(self.indepvararray):
                 raise ValueError("Independent variable values must be in "
