@@ -1946,12 +1946,13 @@ def autohelp(command_string=""):
     outputString = ""
     # Read in the aliases.
     _aliases = {}
-    parser = AUTOutil.getAUTORC("AUTO_command_aliases")
-    for option in parser.options("AUTO_command_aliases"):
-        cmd = parser.get("AUTO_command_aliases",option)
-        if cmd not in _aliases:
-            _aliases[cmd] = []
-        _aliases[cmd].append(option)
+    parser = AUTOutil.getAUTORC()
+    if parser.has_section("AUTO_command_aliases"):
+        for option in parser.options("AUTO_command_aliases"):
+            cmd = parser.get("AUTO_command_aliases",option)
+            if cmd not in _aliases:
+                _aliases[cmd] = []
+            _aliases[cmd].append(option)
     import AUTOCommands
     if _aliases == {}:
         # Now we copy the commands from the module
@@ -2042,15 +2043,17 @@ def autohelp(command_string=""):
         doc = doc.replace("\\end{verbatim}","")
         doc = doc + "\n"
 
-        command_string = command_string
         if not command_string in command_list:
             # This means help was asked for an alias
-            command_string = _aliases[command_string]
+            for cmd in _aliases:
+                if command_string in _aliases[cmd]:
+                    command_string = cmd
+                    break
             doc = doc + "Command name: "+command_string+"\n"
         return_value["aliases"] = []
         doc = doc + "Aliases: "
-        for key in _aliases:
-            if _aliases[key] == command_string:
+        if command_string in _aliases:
+            for key in _aliases[command_string]:
                 doc = doc + key + " "
                 return_value["aliases"].append(key)
         outputString += doc+"\n"

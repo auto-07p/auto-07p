@@ -27,18 +27,21 @@ class AUTOSimpleFunctions:
         if parser.has_section("AUTO_command_aliases"):
             self._aliases = {}
             for option in parser.options("AUTO_command_aliases"):
-                self._aliases[option] = parser.get("AUTO_command_aliases",
-                                                   option)
+                cmd = parser.get("AUTO_command_aliases",option)
+                if cmd not in self._aliases:
+                    self._aliases[cmd] = []
+                self._aliases[cmd].append(option)
 
         self._addCommands([AUTOCommands])
 
         # Now I resolve the aliases
-        for key, alias in self._aliases.items():
-            f = self._copyfunction(getattr(AUTOCommands,alias).fun, key)
-            setattr(AUTOSimpleFunctions, key, staticmethod(f))
-            doc = getattr(AUTOCommands,alias).__doc__
-            doc = self._adjustdoc(doc, key, alias)
-            f.__doc__ = doc
+        for key, aliases in self._aliases.items():
+            for alias in aliases:
+                f = self._copyfunction(getattr(AUTOCommands,key).fun, alias)
+                setattr(AUTOSimpleFunctions, alias, staticmethod(f))
+                doc = getattr(AUTOCommands,key).__doc__
+                doc = self._adjustdoc(doc, alias, key)
+                f.__doc__ = doc
 
     def _copyfunction(self, f, key):
         if 'FunctionType' in globals():
@@ -64,9 +67,8 @@ class AUTOSimpleFunctions:
             commandname = truecommandname
             doc = doc + "Command name: "+commandname+"\n"
         doc = doc + "Aliases: "
-        for key in self._aliases:
-            if self._aliases[key] == commandname:
-                doc = doc + key + " "
+        if commandname in self._aliases:
+            doc = doc + " ".join(self._aliases[commandname])
         return doc
 
     def _addCommands(self,moduleList):
@@ -80,9 +82,7 @@ class AUTOSimpleFunctions:
                 # Check to see if it is a command
                 if hasattr(cmd,"fun"):
                     if addaliases and cmd.alias is not None:
-                        self._aliases[cmd.fun.__name__] = key
-                        for alias in cmd.alias:
-                            self._aliases[alias] = key
+                        self._aliases[key] = [cmd.fun.__name__] + cmd.alias
                     f = self._copyfunction(cmd.fun, key)
                     setattr(AUTOSimpleFunctions, key, staticmethod(f))
                     doc = cmd.__doc__
