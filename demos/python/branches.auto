@@ -1,0 +1,17 @@
+# get and run the ab demo
+demo('ab')
+auto('ab.auto')
+# load data from b.ab, s.ab, and d.ab
+ab = loadbd('ab')
+# change the branch number to either 1 or 2 depending on IPS
+for branch in ab:
+    branch['BR'] = branch.c['IPS']
+# delete the last branch
+del ab[-1]
+# subtract the first branch from all other branches with respect to PAR(1)
+ab = subtract(ab, ab, 'PAR(1)')
+# plot the branches, coloring by branch number
+plot(ab, coloring_method='branch', color_list='black red')
+wait()
+# save data to b.abnew, s.abnew, and d.abnew
+save(ab, 'abnew')

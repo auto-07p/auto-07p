@@ -993,6 +993,9 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  \hline
  userScript.py & \begin{minipage}{3in}\smallskip The loadable expert demo script from Figure~\ref{exa:clui_complex_interactive}.\smallskip\end{minipage} \\
  \hline
+ branches.auto & \begin{minipage}{3in}\smallskip The branch
+   manipulating script from Figure~\ref{exa:clui branch management}.\smallskip\end{minipage}\\
+ \hline
  fullTest.auto & \begin{minipage}{3in}\smallskip A script which uses the entire \AUTO command set, except for the plotting commands.\smallskip\end{minipage} \\
  \hline
  plotter.auto & \begin{minipage}{3in}\smallskip A demonstration of some of the plotting capabilities of \AUTO. \smallskip\end{minipage}\\
@@ -2004,6 +2007,7 @@ lrz ... done
  ab = subtract(ab, ab, 'PAR(1)')
  # plot the branches, coloring by branch number
  plot(ab, coloring_method='branch', color_list='black red')
+ wait()
  # save data to b.abnew, s.abnew, and d.abnew
  save(ab, 'abnew')
  \end{boxedverbatim}
@@ -2013,7 +2017,9 @@ lrz ... done
  branch in the 'ab' demo output file. Using
  the \parf{coloring\_method='branch'} setting you can then give one
  color to all branches of fixed points and one other color to all
- branches of periodic orbits.}
+ branches of periodic orbits.
+ The source for this script can be found in
+ \filef{\$AUTO\_DIR/demos/python/branches.auto}.}
  \label{exa:clui branch management}
  \end{figure}
 
