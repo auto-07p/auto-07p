@@ -314,7 +314,17 @@ class AUTOInteractiveConsole(AUTOInteractive,code.InteractiveConsole):
                 return command
         return line
 
+def adjust_sys_path():
+    # if the path starts with '' (Python2.2 with current directory)
+    # then add the AUTO python directory to sys.path
+    if sys.path[0] == '':
+        sys.path.insert(1,os.path.join(os.environ["AUTO_DIR"],"python"))
+    else:
+        #add current directory to sys.path
+        sys.path.insert(0, "")
+
 def test():
+    adjust_sys_path()
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
     if "DISPLAY" in os.environ:
@@ -336,6 +346,7 @@ def _testFilename(inputname,outputname):
     log.close()
     os.chdir(old_path)
     cmd = ["diff","--ignore-matching-lines='gfortran.*'",
+           "--ignore-matching-lines='Finished running:.*'",
            "--ignore-matching-lines='.*Total Time.*'","log",outputname]
     if 'subprocess' in locals():
         for i in range(len(cmd)):
@@ -422,6 +433,7 @@ def automain(name=None):
     elif "-i" in opts:
         use_ipython = 1
     elif "-T" in opts:
+        adjust_sys_path()
         _testFilename(opts["-T"],opts["-L"])
         sys.exit()
     elif "-d" in opts:
@@ -432,6 +444,7 @@ def automain(name=None):
     except:
         pass
 
+    adjust_sys_path()
     funcs = AUTOclui.exportFunctions()
     runner = AUTOInteractiveConsole(funcs)
 

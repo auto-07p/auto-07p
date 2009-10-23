@@ -306,7 +306,7 @@ class WindowPlotter2D(WindowPlotter):
 
         lst = []
         if self.grapher.cget(ocd) is not None:
-            lst = map(str,self.grapher.cget(ocd))
+            lst = list(map(str,self.grapher.cget(ocd)))
         sol = self.grapher.cget(o)
         if self.grapher.cget("type") == "solution":
             indepvarname = None
@@ -360,7 +360,7 @@ class WindowPlotter2D(WindowPlotter):
             self.zEntry.setlist([" 2D Plot "]+lst)
         labels = []
         if self.grapher.cget("label_defaults") is not None:
-            labels = map(str,self.grapher.cget("label_defaults"))
+            labels = list(map(str,self.grapher.cget("label_defaults")))
         default_labels = self.grapher.cget("solution").getLabels()
         labels.extend(["%d"%d for d in default_labels])
         if len(default_labels) > 1 or len(labels) == 0:

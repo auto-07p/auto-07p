@@ -4,17 +4,10 @@ if [ -z "$AUTO_DIR" ]; then
     AUTO_DIR=`dirname $bindir`
     export AUTO_DIR
 fi
-PPATH=$AUTO_DIR/python:.
-if [ -z "$PYTHONPATH" ]; then
-    PYTHONPATH=$PPATH
-else
-    PYTHONPATH=$PPATH:$PYTHONPATH
-fi
-export PYTHONPATH
 
 if test "`uname`" = "Darwin"; then
   if which pythonw > /dev/null; then
     exec pythonw $AUTO_DIR/python/interactiveBindings.py ${1+"$@"};
   fi
 fi
-$AUTO_DIR/python/interactiveBindings.py ${1+"$@"};
+exec $AUTO_DIR/python/interactiveBindings.py ${1+"$@"};

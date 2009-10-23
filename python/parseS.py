@@ -1035,7 +1035,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             return c
         if self.__start_of_header is None:
             raise AUTOExceptions.AUTORuntimeError("Solution without data.")
-        if self.__fullyParsed:
+        if self.__fullyParsed or attr == "__del__":
             raise AttributeError
         self.__readAll()
         return getattr(self,attr)

@@ -4,7 +4,7 @@ if [ -z "$AUTO_DIR" ]; then
     AUTO_DIR=`dirname $bindir`
     export AUTO_DIR
 fi
-PPATH=$AUTO_DIR/python:.
+PPATH=$AUTO_DIR/python
 if [ -z "$PYTHONPATH" ]; then
     PYTHONPATH=$PPATH
 else
@@ -17,4 +17,4 @@ if test "`uname`" = "Darwin"; then
     exec pythonw ${1+"$@"};
   fi
 fi
-python ${1+"$@"};
+exec python ${1+"$@"};

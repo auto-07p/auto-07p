@@ -186,7 +186,7 @@ class AUTOBranch(Points.Pointset):
             self.__fullyParsed = False
 
     def __getattr__(self,attr):
-        if self.__fullyParsed:
+        if self.__fullyParsed or attr == "__del__":
             raise AttributeError
         self.__parse()
         return getattr(self,attr)
