@@ -8,18 +8,15 @@ print "\nDemo %s is started"%pgm
 print "\n%s : first run : stationary solutions"%pgm
 r1 = run(e=pgm,c=pgm)
 
-print "\n%s : second run : periodic solutions"%pgm
-r2 = run(r1("HB2"),IPS=2,ICP=[1,11],ILP=0,ISP=1,EPSL=1e-6,EPSU=1e-6,DSMAX=10,
-   UZR={1:[1.25,1.5,1.75,2.1,2.62]},STOP=[])
+print "\n%s : second run : periodic solutions (1st branch)"%pgm
+r2 = run(r1('HB1'),IPS=2,ICP=[1,11],ILP=0,ISP=1,UZR={-11:[1e4]})
 
-print "\n%s : third run : periodic solutions (1st branch; restart)"%pgm
-r3 = run(r2("UZ5"),NTST=100)
+print "\n%s : third run : periodic solutions (2nd branch)"%pgm
+r3 = run(r1('HB2'),IPS=2,ICP=[1,11],ILP=0,ISP=1,
+         UZR={1:[1.25,1.5,1.75,2.1,2.62],-11:[5e4]})
+
 all = r1+r2+r3
-
-print "\n%s : fourth run : periodic solutions (2nd branch)"%pgm
-r4 = run(all("HB1"),IPS=2,ICP=[1,11],ILP=0,ISP=1,NMX=150,NPR=250,
-         EPSL=1e-6,EPSU=1e-6,DS=0.5,DSMAX=10)
-save(all+r4,'pla')
+save(all, 'pla')
 
 print "\n***Clean the directory***"
 cl()
