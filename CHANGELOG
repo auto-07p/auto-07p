@@ -1,3 +1,7 @@
+0.7.1:
+* Python:
+  - Fix solution plotting for plot()/@pp without arguments.
+    (reported by Thomas Wagenknecht)
 0.7:
 * Main AUTO:
   - Allow three parameter continuations for torus bifurcations, fixing
