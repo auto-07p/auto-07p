@@ -562,10 +562,12 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         if self.name is None or os.path.basename(self.name) == 'fort.8':
             if "equation" in kw:
                 self.name = kw["equation"][14:]
-            elif "e" in kw:
+            elif kw.get("e") is not None:
                 self.name = kw["e"]
-            elif "e" in c:
+            elif c.get("e") is not None:
                 self.name = c["e"]
+            elif self.name is None:
+                self.name = ''
         self.options["solution"] = self
         for k,v in kw.items():
             if k in self.data_keys and k not in ["ISW","NTST","NCOL",
