@@ -954,6 +954,12 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 if fdata == [] or len(fdata) != total:
                     fdata = N.array(map(parseB.AUTOatof,
                                         sdata.split()), 'd')
+                else:
+                    #make sure the last element is correct
+                    #(fromstring may not do this correctly for a
+                    #string like -2.05071-106)
+                    fdata[-1] = parseB.AUTOatof(
+                        sdata[sdata.rfind(" ")+1:].strip())
             else:
                 data = sdata.split()
                 try:

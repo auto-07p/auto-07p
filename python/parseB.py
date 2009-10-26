@@ -218,6 +218,11 @@ class AUTOBranch(Points.Pointset):
                 data = fromstring(datalist, dtype=float, sep=' ')
             if len(data) != nrows * ncolumns:
                 data = N.array(map(AUTOatof,datalist.split()), 'd')
+            else:
+                #make sure the last element is correct
+                #(fromstring may not do this correctly for a
+                #string like -2.05071-106)
+                data[-1] = AUTOatof(datalist[datalist.rfind(' ')+1:].strip())
             coordarray = self.__parsenumpy(ncolumns,data)
         else: #numarray, Numeric, array
             datalist = datalist.split()
