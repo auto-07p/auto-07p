@@ -424,7 +424,8 @@ C
 C        ** BP cont (algebraic problems, restart).
          CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.ITP==3 )
+       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
+     *        (ITP==3.OR.ITP==7.OR.ITP==8) )
      * THEN
 C        ** Hopf bifurcation continuation (ODE/waves/maps).
          CALL AUTOAE(IAP,RAP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
@@ -1216,7 +1217,9 @@ C          ** BP cont (Algebraic Problems) (by F. Dercole)
            NDIM=2*NDIM+2
            NFPR=ABS(ISW)
 C
-         ELSE IF((ITP.EQ.3.OR.(ABS(ITP)/10).EQ.3)
+         ELSE IF((ITP==3.OR.(ABS(ITP)/10)==3.OR.
+     *            ITP==7.OR.(ABS(ITP)/10)==7.OR.
+     *            ITP==8.OR.(ABS(ITP)/10)==8)
      *               .AND. ABS(IPS).LE.1 )THEN
 C          ** Hopf bifurcation continuation (Maps, ODE, Waves)
            NDIM=3*NDIM+2

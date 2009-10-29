@@ -56,7 +56,7 @@ CONTAINS
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,K,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
-    DOUBLE PRECISION DS,DSMAX,RDS,REV,RLP,RBP,DSOLD
+    DOUBLE PRECISION DS,DSMAX,RDS,REV,RLP,RBP,DSOLD,EPSS
     LOGICAL ISTOP
     INTEGER STOPCNTS(-9:9)
 
@@ -243,7 +243,12 @@ CONTAINS
              CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNHBAE,FUNI,AA, &
                   U,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
              IF(FOUND)THEN
-                ITP=3+10*ITPST
+                IF(IPS==-1)THEN
+                   EPSS=RAP(13)
+                   ITP=TPSPAE(NDIM,EPSS,ITPST,PAR(11))
+                ELSE
+                   ITP=3+10*ITPST
+                ENDIF
                 IAP(27)=ITP
                 IF(.NOT.STOPPED(ITP,STOPCNTS))THEN
                    RLP=0.d0
@@ -1007,20 +1012,18 @@ CONTAINS
     IF(NINS1.NE.NINS)CHNG=.TRUE.
     NINS=NINS1
     IAP(33)=NINS
-    EVV(:)=EV(:)
 
     IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
 
     WRITE(9,102)ABS(IBR),NTOP+1,NINS
     IF(IPS.EQ.-1)THEN
-       DO I=1,NDM
-          WRITE(9,103)ABS(IBR),NTOP+1,I,EXP(EV(I))
-       ENDDO
+       EVV(:)=EXP(EV(:))
     ELSE
-       DO I=1,NDM
-          WRITE(9,103)ABS(IBR),NTOP+1,I,EV(I)
-       ENDDO
+       EVV(:)=EV(:)
     ENDIF
+    DO I=1,NDM
+       WRITE(9,103)ABS(IBR),NTOP+1,I,EVV(I)
+    ENDDO
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 102 FORMAT(/,I4,I6,9X,'Eigenvalues  :   Stable:',I4)
@@ -1054,6 +1057,29 @@ CONTAINS
 101 FORMAT(I4,I6,9X,'User Func.',I3,1X,ES14.5)
 
   END FUNCTION FNUZAE
+
+! ------- -------- ------
+  INTEGER FUNCTION TPSPAE(NDIM,EPSS,ITPST,PERIOD)
+
+! Determines type of secondary bifurcation of maps.
+    
+    USE SUPPORT, ONLY: PI
+
+    INTEGER, INTENT(IN) :: NDIM,ITPST
+    DOUBLE PRECISION, INTENT(IN) :: EPSS, PERIOD
+
+    IF(PERIOD-2 <= PERIOD/PI(1d0)*SQRT(EPSS))THEN
+!       ** period doubling
+       TPSPAE=7+10*ITPST
+    ELSEIF(PERIOD /= 0 .AND. PERIOD < PI(2d0)/SQRT(EPSS))THEN
+!       ** torus (Neimark-Sacker) bifurcation
+       TPSPAE=8+10*ITPST
+    ELSE
+!       ** something else... (very large PERIOD: close to fold)
+       TPSPAE=0
+    ENDIF
+
+  END FUNCTION TPSPAE
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
