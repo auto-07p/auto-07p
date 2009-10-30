@@ -730,14 +730,42 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 
-      INTEGER I
+      INTEGER I, J, ITDS, NPAR, NFPR
+      DOUBLE PRECISION, ALLOCATABLE :: FN(:),DFDU1(:,:),DFDP1(:,:)
+      DOUBLE PRECISION, ALLOCATABLE :: DFDU2(:,:)
+
 C
+       ITDS=IAP(25)
        CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-       DO I=1,NDIM
-         F(I)=F(I)-U(I)
-       ENDDO
-C
+       IF(ITDS>=2)THEN
+          NFPR=IAP(29)
+          NPAR=IAP(31)
+          ALLOCATE(FN(NDIM),DFDU1(NDIM,NDIM),DFDP1(NDIM,NPAR),
+     *         DFDU2(NDIM,NDIM))
+          DO I=2,ITDS
+             ! with iterations use the chain rule
+             FN(:)=F(:)
+             CALL FUNI(IAP,NDIM,FN,UOLD,ICP,PAR,IJAC,F,DFDU1,DFDP1)
+             IF(IJAC>0)THEN
+                ! DFDU=DFDU1*DFDU
+                CALL DGEMM('n','n',NDIM,NDIM,NDIM,1.d0,DFDU1,
+     *               NDIM,DFDU,NDIM,0.d0,DFDU2,NDIM)
+                DFDU(:,:)=DFDU2(:,:)
+                IF(IJAC>1)THEN
+                   ! DFDP=DFDU1*DFDP+DFDP1
+                   DO J=1,NFPR
+                      CALL DGEMV('n',NDIM,NDIM,1.d0,DFDU1,NDIM,
+     *                     DFDP(1,ICP(J)),1,1d0,DFDP1(1,ICP(J)),1)
+                      DFDP(:,ICP(J))=DFDP1(:,ICP(J))
+                   ENDDO
+                ENDIF
+             ENDIF
+          ENDDO
+          DEALLOCATE(FN,DFDU1,DFDU2,DFDP1)
+       ENDIF
+
+       F(:)=F(:)-U(:)
+
        IF(IJAC.EQ.0)RETURN
 C
        DO I=1,NDIM
