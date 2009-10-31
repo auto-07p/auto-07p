@@ -56,7 +56,7 @@ CONTAINS
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,K,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS
-    DOUBLE PRECISION DS,DSMAX,RDS,REV,RLP,RBP,DSOLD,EPSS
+    DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS
     LOGICAL ISTOP
     INTEGER STOPCNTS(-9:9)
 
@@ -81,7 +81,7 @@ CONTAINS
     DS=RAP(1)
 
     ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1))
-    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR),EVV(NDIM))
+    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR+3),EVV(NDIM))
 
     NINS=0
     IAP(33)=NINS
@@ -112,9 +112,7 @@ CONTAINS
 
     DO NBFC=0,NBFCS !bifurcation switch loop
 
-       RBP=0.d0
-       RLP=0.d0
-       DO I=1,NUZR
+       DO I=1,NUZR+3
           UZR(I)=0.d0
        ENDDO
 
@@ -143,7 +141,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS).EQ.1)THEN
           ! Get stability
-          REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+          UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
@@ -160,111 +158,83 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS).EQ.1)THEN
                 ! Get stability
-                REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
              ENDIF
              ! Store plotting data for second point :
              CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
           ENDIF
        ENDIF
 
-       REV=0.d0
+       UZR(NUZR+3)=0.d0
        DO WHILE(.NOT.ISTOP) ! branch computation loop
           ITP=0
           IAP(27)=ITP
 
 ! Find the next solution point on the branch
-          CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISTOP)
+          CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
+          ISTOP=NIT==0
           DSOLD=RDS
 
-! Check for user supplied parameter output parameter-values.
-
-          IF(.NOT.ISTOP)THEN
-             DO IUZR=1,NUZR
-                IAP(26)=IUZR
-                CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNUZAE,FUNI,AA,&
-                     U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+          DO IUZR=1,NUZR+3
+             IF(ISTOP)EXIT
+             IF(IUZR<=NUZR)THEN
+                ITP=-4 ! Check for user supplied parameter output parameter-values.
+             ELSEIF(IUZR==NUZR+1)THEN
+                ITP=2  ! Check for fold
+             ELSEIF(IUZR==NUZR+2)THEN
+                ITP=1  ! Check for branch point
+             ELSEIF(IUZR==NUZR+3)THEN
+                ITP=3  ! Check for Hopf bifurcation
+             ENDIF
+             IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
+                ! Check for UZ, LP, BP, HB
+                SELECT CASE(ITP)
+                CASE(-4)
+                   IAP(26)=IUZR
+                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNUZAE,FUNI,AA,&
+                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                CASE(2)
+                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNLPAE,FUNI,AA,&
+                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                CASE(1)
+                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNBPAE,FUNI,AA, &
+                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                CASE(3)
+                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNHBAE,FUNI,AA, &
+                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                END SELECT
                 IF(FOUND)THEN
-                   ITP=-4-10*ITPST
-                   IAP(27)=ITP
-                   IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                      DO K=1,NUZR
-                         UZR(K)=0.d0
-                      ENDDO
+                   IF(.NOT.STOPPED(ITP,STOPCNTS).AND.IUZ(IUZR)>=0)THEN
+                      IF(ITP==-4)THEN
+                         UZR(1:NUZR)=0.d0
+                      ELSE
+                         UZR(NUZR+1:NUZR+3)=0.d0
+                      ENDIF
+                      IF(ITP==1)THEN
+                         ! Check for branch point, and if so store data :
+                         CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
+                      ENDIF
                    ELSE
+                      ! *Stop at the first found bifurcation
                       ISTOP=.TRUE.
-                      EXIT
                    ENDIF
+                   IF(ITP==-4)THEN
+                      ITP=ITP-10*ITPST
+                   ELSEIF(ITP==3.AND.IPS==-1)THEN
+                      ITDS=IAP(25)
+                      EPSS=RAP(13)
+                      ITP=TPSPAE(NDIM,EPSS,ITPST,PAR(11))
+                      PAR(11)=PAR(11)*ITDS
+                   ELSE
+                      ITP=ITP+10*ITPST
+                   ENDIF
+                   IAP(27)=ITP
                 ENDIF
-             ENDDO
-          ENDIF
-
-! Check for fold
-
-          IF(.NOT.ISTOP.AND.CHECKSP(2,IPS,ILP,ISP))THEN
-             CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNLPAE,FUNI,AA,&
-                  U,UDOT,RLP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-             IF(FOUND) THEN
-                ITP=2+10*ITPST
-                IAP(27)=ITP
-                IF(ILP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                   RLP=0.d0
-                   RBP=0.d0
-                   REV=0.d0
-                ELSE
-!            *Stop at the first found fold
-                   ISTOP=.TRUE.
-                ENDIF
+             ELSEIF(ITP==3.AND.ABS(IPS).EQ.1)THEN
+                ! Still determine eigenvalue information and stability
+                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
              ENDIF
-          ENDIF
-!
-! Check for branch point, and if so store data :
-!
-          IF(.NOT.ISTOP.AND.CHECKSP(1,IPS,ILP,ISP))THEN
-             CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNBPAE,FUNI,AA, &
-                  U,UDOT,RBP,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-             IF(FOUND)THEN
-                ITP=1+10*ITPST
-                IAP(27)=ITP
-                IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                   CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
-                   RLP=0.d0
-                   RBP=0.d0
-                   REV=0.d0
-                ELSE
-!            *Stop at the first found BP
-                   ISTOP=.TRUE.
-                ENDIF
-             ENDIF
-          ENDIF
-
-! Check for Hopf bifurcation
-
-          IF(.NOT.ISTOP.AND.CHECKSP(3,IPS,ILP,ISP))THEN
-             CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNHBAE,FUNI,AA, &
-                  U,UDOT,REV,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-             IF(FOUND)THEN
-                IF(IPS==-1)THEN
-                   ITDS=IAP(25)
-                   EPSS=RAP(13)
-                   ITP=TPSPAE(NDIM,EPSS,ITPST,PAR(11))
-                   PAR(11)=PAR(11)*ITDS
-                ELSE
-                   ITP=3+10*ITPST
-                ENDIF
-                IAP(27)=ITP
-                IF(.NOT.STOPPED(ITP,STOPCNTS))THEN
-                   RLP=0.d0
-                   RBP=0.d0
-                   REV=0.d0
-                ELSE
-!                  *Stop at the found HB
-                   ISTOP=.TRUE.
-                ENDIF
-             ENDIF
-          ELSEIF(ABS(IPS).EQ.1)THEN
-! Still determine eigenvalue information and stability
-             REV=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
-          ENDIF
+          ENDDO
 
 ! Store plotting data on unit 7 :
 

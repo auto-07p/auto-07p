@@ -166,12 +166,15 @@ C
       DOUBLE PRECISION RAP(*)
 
       INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K
+      INTEGER ILP,ISP
       INTEGER NUZR,NPARI,NICP
       INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
       DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
 
       IPS=IAP(2)
       IRS=IAP(3)
+      ILP=IAP(4)
+      ISP=IAP(9)
       ISW=IAP(10)
       NUZR=IAP(15)
       ITP=IAP(27)
@@ -236,8 +239,8 @@ C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
         DO I=1,SIZE(IVTHU)
            THU(NAMEIDX(IVTHU(I)%INDEX,unames))=IVTHU(I)%VAR
         ENDDO
-C     set IUZ/VUZ
-        ALLOCATE(IUZ(NUZR),VUZ(NUZR))
+C     set IUZ/VUZ (the extra 3 are for internal test functions)
+        ALLOCATE(IUZ(NUZR+3),VUZ(NUZR+3))
         K=0
         DO I=1,SIZE(IVUZR)
            IND=NAMEIDX(IVUZR(I)%INDEX,parnames)
@@ -247,6 +250,9 @@ C     set IUZ/VUZ
               VUZ(K)=IVUZR(I)%VAR(J)
            ENDDO
         ENDDO
+        IUZ(NUZR+1)=ILP
+        IUZ(NUZR+2)=ISP
+        IUZ(NUZR+3)=0
 
         ! only now open the output files
         IF(FIRST)THEN
