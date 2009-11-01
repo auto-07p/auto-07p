@@ -1224,7 +1224,7 @@ C        Use the usual representation again for normal continuation.
       ENDIF
 C     Look for rotations
       IF(IEQUIB.GE.0)THEN
-         CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+         CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS)
       ENDIF
       IF (ISTART.LT.0 .AND. .NOT.(NAR.LT.NDIM .AND. NAR.LT.3*NDM)) THEN
 C        Adjust rotations
@@ -1507,7 +1507,7 @@ C
 C Initialize solution and additional parameters
 C
           IF(IEQUIB.GE.0)THEN
-             CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS,PAR)
+             CALL SETRTN(NDM,NTSR*NCOLRS,NDIM,UPS)
           ENDIF
        ENDIF
 C

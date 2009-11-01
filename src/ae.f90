@@ -55,7 +55,7 @@ CONTAINS
          AA(:,:),U(:),UDOT(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
-    INTEGER ITNW,ITP,I,K,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS
+    INTEGER ITNW,ITP,I,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS
     DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS
     LOGICAL ISTOP
     INTEGER STOPCNTS(-9:9)
@@ -141,7 +141,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS).EQ.1)THEN
           ! Get stability
-          UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+          UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
@@ -158,7 +158,7 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS).EQ.1)THEN
                 ! Get stability
-                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
              ENDIF
              ! Store plotting data for second point :
              CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
@@ -188,21 +188,8 @@ CONTAINS
              ENDIF
              IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
                 ! Check for UZ, LP, BP, HB
-                SELECT CASE(ITP)
-                CASE(-4)
-                   IAP(26)=IUZR
-                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNUZAE,FUNI,AA,&
-                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-                CASE(2)
-                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNLPAE,FUNI,AA,&
-                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-                CASE(1)
-                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNBPAE,FUNI,AA, &
-                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-                CASE(3)
-                   CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,FNHBAE,FUNI,AA, &
-                        U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-                END SELECT
+                CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA,&
+                     U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
                    IF(.NOT.STOPPED(ITP,STOPCNTS).AND.IUZ(IUZR)>=0)THEN
                       IF(ITP==-4)THEN
@@ -223,7 +210,7 @@ CONTAINS
                    ELSEIF(ITP==3.AND.IPS==-1)THEN
                       ITDS=IAP(25)
                       EPSS=RAP(13)
-                      ITP=TPSPAE(NDIM,EPSS,ITPST,PAR(11))
+                      ITP=TPSPAE(EPSS,ITPST,PAR(11))
                       PAR(11)=PAR(11)*ITDS
                    ELSE
                       ITP=ITP+10*ITPST
@@ -232,7 +219,7 @@ CONTAINS
                 ENDIF
              ELSEIF(ITP==3.AND.ABS(IPS).EQ.1)THEN
                 ! Still determine eigenvalue information and stability
-                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
              ENDIF
           ENDDO
 
@@ -509,7 +496,7 @@ CONTAINS
 !        IAP, RAP, ICP, THU, FUNI: constants & function interface
 !        BSW: if true, switch branches, else do normal continuation
 ! Output: NIT: number of iterations taken to converge
-!         after successfull convergence (NIT>0):
+!         after successful convergence (NIT>0):
 !           RAP(14) contains the determinant 
 !           AA contains the extended Jacobian matrix
 !           U, UDOT, PAR are updated
@@ -689,7 +676,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(IAP,RAP,RDS,PAR,ICP,FNCS,FUNI,AA, &
+  SUBROUTINE LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA, &
        U,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
@@ -698,26 +685,15 @@ CONTAINS
 
 ! This subroutine uses the secant method to accurately locate special
 ! points (branch points, folds, Hopf bifurcations, user zeroes).
-! These are characterized as zeroes of the function FNCS supplied in the
-! call.
+! These are characterized as zeroes of the function FNCS.
 ! This subroutine calls CONT and STEPAE with varying stepsize RDS.
 ! The special point is assumed to have been found with sufficient
 ! accuracy if the ratio between RDS and the user supplied value of
 ! DS is less than the user-supplied toler EPSS.
 
     include 'interfaces.h'
-    INTERFACE
-       DOUBLE PRECISION FUNCTION FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
-         INTEGER, INTENT(INOUT) :: IAP(*)
-         DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
-         LOGICAL, INTENT(OUT) :: CHNG
-         DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
-         INTEGER, INTENT(IN) :: IUZ(*)
-         DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
-       END FUNCTION FNCS
-    END INTERFACE
 
-    INTEGER IAP(*),ICP(*),IUZ(*),NIT
+    INTEGER IAP(*),ICP(*),IUZ(*),NIT,IUZR
     DOUBLE PRECISION RAP(*),RDS,PAR(*),THU(*),VUZ(*)
     DOUBLE PRECISION AA(IAP(1)+1,*),U(*),UDOT(*),Q
     LOGICAL, INTENT(OUT) :: ISTOP, FOUND
@@ -736,10 +712,10 @@ CONTAINS
     DSMAX=RAP(3)
     EPSS=RAP(13)
 
-! Check whether FNCS has changed sign (FNCS is EXTERNAL).
+! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+    Q1=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
     NTOT=IAP(32)
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
@@ -780,7 +756,7 @@ CONTAINS
           RETURN
        ENDIF
 
-       Q=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+       Q=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
@@ -794,15 +770,38 @@ CONTAINS
 103 FORMAT(I4,I6,' NOTE:Possible special point')
   END SUBROUTINE LCSPAE
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+! ------ --------- -------- ----
+  DOUBLE PRECISION FUNCTION FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
 
     INTEGER, INTENT(INOUT) :: IAP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
-    INTEGER, INTENT(IN) :: IUZ(*)
+    INTEGER, INTENT(IN) :: IUZ(*),IUZR
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
+
+    INTEGER NUZR
+
+    NUZR=IAP(15)
+
+    IF(IUZR==NUZR+1)THEN
+       FNCS=FNLPAE(IAP,RAP,CHNG,AA)
+    ELSEIF(IUZR==NUZR+2)THEN
+       FNCS=FNBPAE(IAP,RAP,CHNG)
+    ELSEIF(IUZR==NUZR+3)THEN
+       FNCS=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+    ELSE
+       FNCS=FNUZAE(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
+    ENDIF
+
+  END FUNCTION FNCS
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNBPAE(IAP,RAP,CHNG)
+
+    INTEGER, INTENT(INOUT) :: IAP(*)
+    DOUBLE PRECISION, INTENT(IN) :: RAP(*)
+    LOGICAL, INTENT(OUT) :: CHNG
 
     INTEGER IID,IBR,NTOT,NTOP
     DOUBLE PRECISION DET
@@ -824,16 +823,14 @@ CONTAINS
   END FUNCTION FNBPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+  DOUBLE PRECISION FUNCTION FNLPAE(IAP,RAP,CHNG,AA)
 
     USE SUPPORT
 
     INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
-    INTEGER, INTENT(IN) :: IUZ(*)
-    DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: UD(:),AAA(:,:),RHS(:)
 
@@ -870,7 +867,7 @@ CONTAINS
   END FUNCTION FNLPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+  DOUBLE PRECISION FUNCTION FNHBAE(IAP,RAP,PAR,CHNG,AA)
 
     USE SUPPORT
 
@@ -880,8 +877,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
-    INTEGER, INTENT(IN) :: IUZ(*)
-    DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
@@ -1015,19 +1010,17 @@ CONTAINS
   END FUNCTION FNHBAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNUZAE(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ)
+  DOUBLE PRECISION FUNCTION FNUZAE(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
 
     INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
-    DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
-    INTEGER, INTENT(IN) :: IUZ(*)
+    INTEGER, INTENT(IN) :: IUZ(*),IUZR
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 
-    INTEGER IID,IUZR,IBR,NTOT,NTOP
+    INTEGER IID,IBR,NTOT,NTOP
 
     IID=IAP(18)
-    IUZR=IAP(26)
     IBR=IAP(30)
     NTOT=IAP(32)
     NTOP=MOD(NTOT-1,9999)+1
@@ -1041,13 +1034,13 @@ CONTAINS
   END FUNCTION FNUZAE
 
 ! ------- -------- ------
-  INTEGER FUNCTION TPSPAE(NDIM,EPSS,ITPST,PERIOD)
+  INTEGER FUNCTION TPSPAE(EPSS,ITPST,PERIOD)
 
 ! Determines type of secondary bifurcation of maps.
     
     USE SUPPORT, ONLY: PI
 
-    INTEGER, INTENT(IN) :: NDIM,ITPST
+    INTEGER, INTENT(IN) :: ITPST
     DOUBLE PRECISION, INTENT(IN) :: EPSS, PERIOD
 
     IF(PERIOD-2 <= PERIOD/PI(1d0)*SQRT(EPSS))THEN
