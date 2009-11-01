@@ -12,7 +12,7 @@ sol = run(r('HB1'),IPS=2,ICP=[1,11],NTST=50,UZR={1:21},STOP=["UZ1"])
 print "continue zero eigenfunction until eigenvalue"
 zero = run(sol,
 NDIM=6,IPS=4,ICP=[12,11,10],NBC=7,NINT=1,
-ISP=-2,DS=1.e-3,DSMIN=1.e-5,DSMAX=1.e-2,STOP=["BP2"])
+DS=1.e-3,DSMIN=1.e-5,DSMAX=1.e-2,STOP=["BP2"])
 bp = zero('BP1')
 
 print "switch to continuation of nontrivial eigenfunction"
