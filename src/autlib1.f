@@ -252,7 +252,13 @@ C     set IUZ/VUZ (the extra 3 are for internal test functions)
         ENDDO
         IUZ(NUZR+1)=ILP
         IUZ(NUZR+2)=ISP
-        IUZ(NUZR+3)=0
+        IF((IPS<=1.AND.IPS/=-1).OR.IPS==5.OR.IPS==11)THEN
+           ! AE but not maps (for Hopf bifurcations)
+           IUZ(NUZR+3)=0
+        ELSE
+           ! BVPs or maps (for PD/TR)
+           IUZ(NUZR+3)=ISP
+        ENDIF
 
         ! only now open the output files
         IF(FIRST)THEN

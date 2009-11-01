@@ -114,11 +114,11 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),DTM(:)
     DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:),UZR(:)
-    LOGICAL CHNG,FOUND
+    LOGICAL CHNG,FOUND,CHECK
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
-    INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,K,NITPS,NODIR,NTOP,NTOT,NPAR
+    INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,NITPS,NODIR,NTOP,NTOT,NPAR
     INTEGER STOPCNTS(-9:9)
-    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,EPSS,BP1,SP1,RLP
+    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,EPSS,SP1
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -142,7 +142,7 @@ CONTAINS
     ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
     ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
     ALLOCATE(TM(0:NTST),DTM(NTST))
-    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR),EV(NDIM))
+    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR+3),EV(NDIM))
 
     CALL SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
     DS=RAP(1)
@@ -153,14 +153,9 @@ CONTAINS
        ISP=-ISP
        IAP(9)=ISP
     ENDIF
-    SP1=0.d0
-    BP1=0.d0
-    RLP=0.d0
-    IF(NUZR.GT.0)THEN
-       DO I=1,NUZR
-          UZR(I)=0.d0
-       ENDDO
-    ENDIF
+    DO I=1,NUZR+3
+       UZR(I)=0.d0
+    ENDDO
     NITPS=0
     NTOT=0
     IAP(32)=NTOT
@@ -204,7 +199,6 @@ CONTAINS
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
           SP1 = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
-          SP1 = 0.0d0
        ENDIF
     ENDIF
 
@@ -229,93 +223,52 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
-! Check for user supplied parameter output parameter-values.
-
-       IF(ISTOP.EQ.0.AND.NUZR.GT.0)THEN
-          DO IUZR=1,NUZR
+       DO IUZR=1,NUZR+3
+          IF(ISTOP.NE.0)EXIT
+          IF(IUZR<=NUZR)THEN
+             ITP=-4 ! Check for user supplied parameter output parameter-values.
+          ELSEIF(IUZR==NUZR+1)THEN
+             ITP=5  ! Check for fold.
+          ELSEIF(IUZR==NUZR+2)THEN
+             ITP=6  ! Check for branch point.
+          ELSEIF(IUZR==NUZR+3)THEN
+             ITP=7  ! Check for period-doubling and torus bifurcation.
+          ENDIF
+          CHECK=CHECKSP(ITP,IPS,ILP,ISP)
+          IF(ITP==7)THEN
+             CHECK=CHECK.OR.CHECKSP(8,IPS,ILP,ISP)
+          ENDIF
+          IF(CHECK)THEN
              CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI, &
                   UZR(IUZR),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
                   UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
-             IF(ISTOP.EQ.0.AND.FOUND)THEN
-                ITP=-4-10*ITPST
-                IAP(27)=ITP
+             IF(FOUND)THEN
+                IF(ITP==-4)THEN
+                   ITP=ITP-10*ITPST
+                ELSEIF(ITP==7)THEN
+                   ! **Secondary periodic bifurcation: determine type
+                   EPSS=RAP(13)
+                   ITP=TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV)
+                ELSE
+                   ITP=ITP+10*ITPST
+                ENDIF
                 IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                   DO K=1,NUZR
-                      UZR(K)=0.d0
-                   ENDDO
+                   IF(MOD(ITP,10)==-4)THEN
+                      UZR(1:NUZR)=0.d0
+                   ELSE
+                      UZR(NUZR+1:NUZR+3)=0.d0
+                   ENDIF
                 ELSE
-                   ISTOP=-1
+                   ISTOP=-1 ! *Stop at the first found bifurcation
                 ENDIF
-             ENDIF
-          ENDDO
-       ENDIF
-
-! Check for fold.
-
-       IF(ISTOP.EQ.0.AND.CHECKSP(5,IPS,ILP,ISP))THEN
-          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,NUZR+1,FUNI,BCNI,ICNI,PVLI,RLP, &
-               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
-          IF(FOUND)THEN
-             ITP=5+10*ITPST
-             IAP(27)=ITP
-             IF(ILP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                RLP=0.d0
-                BP1=0.d0
-                SP1=0.d0
-             ELSE
-!            *Stop at the first found fold
-                ISTOP=-1
+                IAP(27)=ITP
+             ELSEIF(ITP==7 .AND. ABS(ISP).GT.0 .AND. &
+                  (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+                ! Still determine and print Floquet multipliers
+                UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
              ENDIF
           ENDIF
-       ENDIF
-
-! Check for branch point.
-
-       IF(ISTOP.EQ.0.AND.CHECKSP(6,IPS,ILP,ISP))THEN
-          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,NUZR+2,FUNI,BCNI,ICNI,PVLI,BP1, &
-               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
-          IF(ISTOP.EQ.0.AND.FOUND)THEN
-             ITP=6+10*ITPST
-             IAP(27)=ITP
-             IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                RLP=0.d0
-                BP1=0.d0
-                SP1=0.d0
-             ELSE
-!            *Stop at the first found BP
-                ISTOP=-1
-             ENDIF
-          ENDIF
-       ENDIF
-
-! Check for period-doubling and torus bifurcation.
-
-       IF(ISTOP.EQ.0.AND.(CHECKSP(7,IPS,ILP,ISP).OR.CHECKSP(8,IPS,ILP,ISP)))THEN
-          CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,NUZR+3,FUNI,BCNI,ICNI,PVLI,SP1, &
-               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
-          IF(FOUND)THEN
-!            **Secondary periodic bifurcation: determine type
-             EPSS=RAP(13)
-             IAP(27)=TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV)
-             IF(CHECKSP(IAP(27),IPS,ILP,ISP))THEN
-                IF(ISP>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
-                   RLP=0.d0
-                   BP1=0.d0
-                   SP1=0.d0
-                ELSE
-!            *Stop at the first found SPB
-                   ISTOP=-1
-                ENDIF
-             ENDIF
-          ENDIF
-       ELSEIF(ABS(ISP).GT.0 .AND. &
-            (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
-! Still determine and print Floquet multipliers
-          SP1 = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
-       ENDIF
+       ENDDO
 
 ! Store plotting data.
 

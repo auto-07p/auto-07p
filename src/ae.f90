@@ -191,20 +191,6 @@ CONTAINS
                 CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA,&
                      U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
-                   IF(.NOT.STOPPED(ITP,STOPCNTS).AND.IUZ(IUZR)>=0)THEN
-                      IF(ITP==-4)THEN
-                         UZR(1:NUZR)=0.d0
-                      ELSE
-                         UZR(NUZR+1:NUZR+3)=0.d0
-                      ENDIF
-                      IF(ITP==1)THEN
-                         ! Check for branch point, and if so store data :
-                         CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
-                      ENDIF
-                   ELSE
-                      ! *Stop at the first found bifurcation
-                      ISTOP=.TRUE.
-                   ENDIF
                    IF(ITP==-4)THEN
                       ITP=ITP-10*ITPST
                    ELSEIF(ITP==3.AND.IPS==-1)THEN
@@ -216,6 +202,20 @@ CONTAINS
                       ITP=ITP+10*ITPST
                    ENDIF
                    IAP(27)=ITP
+                   IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                      IF(MOD(ITP,10)==-4)THEN
+                         UZR(1:NUZR)=0.d0
+                      ELSE
+                         UZR(NUZR+1:NUZR+3)=0.d0
+                      ENDIF
+                      IF(MOD(ITP,10)==1)THEN
+                         ! Check for branch point, and if so store data :
+                         CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
+                      ENDIF
+                   ELSE
+                      ! *Stop at the first found bifurcation
+                      ISTOP=.TRUE.
+                   ENDIF
                 ENDIF
              ELSEIF(ITP==3.AND.ABS(IPS).EQ.1)THEN
                 ! Still determine eigenvalue information and stability
