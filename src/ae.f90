@@ -57,7 +57,7 @@ CONTAINS
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS
     DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS
-    LOGICAL ISTOP
+    LOGICAL ISTOP,CHECKEDHB
     INTEGER STOPCNTS(-9:9)
 
     NDIM=IAP(1)
@@ -175,6 +175,7 @@ CONTAINS
           ISTOP=NIT==0
           DSOLD=RDS
 
+          CHECKEDHB=.FALSE.
           DO IUZR=1,NUZR+3
              IF(ISTOP)EXIT
              IF(IUZR<=NUZR)THEN
@@ -188,6 +189,9 @@ CONTAINS
              ENDIF
              IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
                 ! Check for UZ, LP, BP, HB
+                IF(ITP==3)THEN
+                   CHECKEDHB=.TRUE.
+                ENDIF
                 CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA,&
                      U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
@@ -217,11 +221,13 @@ CONTAINS
                       ISTOP=.TRUE.
                    ENDIF
                 ENDIF
-             ELSEIF(ITP==3.AND.ABS(IPS).EQ.1)THEN
-                ! Still determine eigenvalue information and stability
-                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
              ENDIF
           ENDDO
+          IF(.NOT.CHECKEDHB.AND.ABS(IPS)==1)THEN
+             ! Still determine eigenvalue information and stability
+             ! for situations where ISTOP=-1 or SP switched off HB detection
+             UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+          ENDIF
 
 ! Store plotting data on unit 7 :
 

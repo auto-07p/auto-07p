@@ -114,7 +114,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),DTM(:)
     DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:),UZR(:)
-    LOGICAL CHNG,FOUND,CHECK
+    LOGICAL CHNG,FOUND,CHECK,CHECKEDSP
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
     INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,NITPS,NODIR,NTOP,NTOT,NPAR
     INTEGER STOPCNTS(-9:9)
@@ -223,6 +223,7 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
+       CHECKEDSP=.FALSE.
        DO IUZR=1,NUZR+3
           IF(ISTOP.NE.0)EXIT
           IF(IUZR<=NUZR)THEN
@@ -237,6 +238,7 @@ CONTAINS
           CHECK=CHECKSP(ITP,IPS,ILP,ISP)
           IF(ITP==7)THEN
              CHECK=CHECK.OR.CHECKSP(8,IPS,ILP,ISP)
+             CHECKEDSP=CHECK
           ENDIF
           IF(CHECK)THEN
              CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI, &
@@ -263,12 +265,13 @@ CONTAINS
                 ENDIF
                 IAP(27)=ITP
              ENDIF
-          ELSEIF(ITP==7 .AND. ABS(ISP).GT.0 .AND. &
-               (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
-             ! Still determine and print Floquet multipliers
-             UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
           ENDIF
        ENDDO
+       IF(.NOT.CHECKEDSP .AND. ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+          ! Still determine and print Floquet multipliers
+          ! for situations where ISTOP=-1 or SP switched off PD/TR detection
+          UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+       ENDIF
 
 ! Store plotting data.
 
