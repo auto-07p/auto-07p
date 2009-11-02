@@ -262,11 +262,11 @@ CONTAINS
                    ISTOP=-1 ! *Stop at the first found bifurcation
                 ENDIF
                 IAP(27)=ITP
-             ELSEIF(ITP==7 .AND. ABS(ISP).GT.0 .AND. &
-                  (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
-                ! Still determine and print Floquet multipliers
-                UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
              ENDIF
+          ELSEIF(ITP==7 .AND. ABS(ISP).GT.0 .AND. &
+               (IPS.EQ.2.OR.IPS.EQ.7.OR.IPS.EQ.12) )THEN
+             ! Still determine and print Floquet multipliers
+             UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
           ENDIF
        ENDDO
 
