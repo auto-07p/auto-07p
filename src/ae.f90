@@ -169,6 +169,7 @@ CONTAINS
        DO WHILE(.NOT.ISTOP) ! branch computation loop
           ITP=0
           IAP(27)=ITP
+          NINS=IAP(33)
 
 ! Find the next solution point on the branch
           CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
@@ -227,6 +228,12 @@ CONTAINS
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
              UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+          ENDIF
+          ITP=IAP(27) 
+          IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
+             ! for plotter: use stability of previous point
+             ! for bifurcation points
+             IAP(33)=NINS
           ENDIF
 
 ! Store plotting data on unit 7 :

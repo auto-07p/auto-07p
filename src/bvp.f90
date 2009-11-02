@@ -116,7 +116,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:),UZR(:)
     LOGICAL CHNG,FOUND,CHECK,CHECKEDSP
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
-    INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,NITPS,NODIR,NTOP,NTOT,NPAR
+    INTEGER IBR,IPERP,ISTOP,ITNW,IUZR,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
     INTEGER STOPCNTS(-9:9)
     DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,EPSS,SP1
 
@@ -219,6 +219,7 @@ CONTAINS
     DO WHILE(ISTOP==0)
        ITP=0
        IAP(27)=ITP
+       NINS=IAP(33)
        CALL STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
@@ -271,6 +272,12 @@ CONTAINS
           ! Still determine and print Floquet multipliers
           ! for situations where ISTOP=-1 or SP switched off PD/TR detection
           UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+       ENDIF
+       ITP=IAP(27) 
+       IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
+          ! for plotter: use stability of previous point
+          ! for bifurcation points
+          IAP(33)=NINS
        ENDIF
 
 ! Store plotting data.
