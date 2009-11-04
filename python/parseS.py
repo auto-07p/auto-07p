@@ -834,7 +834,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             if len(data) != 0:
                 try:
                     # Check length of line...
-                    if len(data) != 12 or len(data) != 16:
+                    if len(data) != 12 and len(data) != 16:
                         raise IncorrectHeaderLength
                     # and the fact they are all integers
                     map(int,data)
