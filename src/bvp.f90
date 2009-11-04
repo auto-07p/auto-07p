@@ -7,11 +7,11 @@
 !
 MODULE BVP
 
+  USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: AUTOBV,STPNUB,STPNBV,STPNBV1,PVLSBV,SETRTN,IRTN,NRTN
-  INTEGER NPARX,NIAP,NRAP
-  INCLUDE 'auto.h'
 
   INTEGER, POINTER :: NRTN(:)
   INTEGER IRTN
@@ -19,15 +19,16 @@ MODULE BVP
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
+  SUBROUTINE AUTOBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE AUTOMPI
 
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 
-    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
 
     include 'interfaces.h'
 
@@ -39,7 +40,7 @@ CONTAINS
        ENDDO
        RETURN
     ENDIF
-    CALL CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
+    CALL CNRLBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
          PVLI,THL,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOBV
@@ -48,14 +49,13 @@ CONTAINS
   subroutine mpi_setubv_worker(funi,icni,bcni)
     use autompi
     use solvebv
-    integer NIAP,NRAP,NPARX
-    include 'auto.h'
 
     integer iam,kwt
     include 'interfaces.h'
 
     integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
-    integer :: npar, iap(NIAP)
+    integer :: npar
+    type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
@@ -63,16 +63,16 @@ CONTAINS
     integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1),det
 
-    call mpibcasti(iap,NIAP)
+    call mpibcastap(ap)
     iam=mpiiam()
     kwt=mpikwt()
 
-    ndim=iap(1)
-    ntst=iap(5)
-    ncol=iap(6)
-    nint=iap(13)
-    nfpr=iap(29)
-    npar=iap(31)
+    ndim=ap%ndim
+    ntst=ap%ntst
+    ncol=ap%ncol
+    nint=ap%nint
+    nfpr=ap%nfpr
+    npar=ap%npar
 
     allocate(np(kwt))
     call partition(ntst,kwt,np)
@@ -83,9 +83,9 @@ CONTAINS
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
 
-    call mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
+    call mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
-    call solvbv(ifst,iap,det,par,icp,funi,bcni,icni,dum, &
+    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
          nllv,dum1,dum1,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
          dum1,dum1,dum1,dum1,dum1,thu)
 
@@ -95,7 +95,7 @@ CONTAINS
   end subroutine mpi_setubv_worker
 
 ! ---------- ------
-  SUBROUTINE CNRLBV(IAP,RAP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
+  SUBROUTINE CNRLBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI, &
        PVLI,THL,THU,IUZ,VUZ)
 
     USE IO
@@ -106,8 +106,9 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THL(*),THU(*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),VUZ(*),THL(*),THU(*)
 ! Local
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
     DOUBLE PRECISION, ALLOCATABLE :: RLCUR(:),RLOLD(:),RLDOT(:)
@@ -122,21 +123,21 @@ CONTAINS
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    IRS=IAP(3)
-    ILP=IAP(4)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    IAD=IAP(7)
-    IADS=IAP(8)
-    ISP=IAP(9)
-    ISW=IAP(10)
-    NUZR=IAP(15)
-    ITP=IAP(27)
-    ITPST=IAP(28)
-    NFPR=IAP(29)
-    NPAR=IAP(31)
+    NDIM=AP%NDIM
+    IPS=AP%IPS
+    IRS=AP%IRS
+    ILP=AP%ILP
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    IAD=AP%IAD
+    IADS=AP%IADS
+    ISP=AP%ISP
+    ISW=AP%ISW
+    NUZR=AP%NUZR
+    ITP=AP%ITP
+    ITPST=AP%ITPST
+    NFPR=AP%NFPR
+    NPAR=AP%NPAR
 
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
     ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
@@ -144,21 +145,21 @@ CONTAINS
     ALLOCATE(TM(0:NTST),DTM(NTST))
     ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR+3),EV(NDIM))
 
-    CALL SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
-    DS=RAP(1)
+    CALL SETPBV(AP,DTM,NDIM,P0,P1,EV)
+    DS=AP%DS
 
     RDS=DS
     DSOLD=RDS
     IF(ISP.LT.0)THEN
        ISP=-ISP
-       IAP(9)=ISP
+       AP%ISP=ISP
     ENDIF
     DO I=1,NUZR+3
        UZR(I)=0.d0
     ENDDO
     NITPS=0
     NTOT=0
-    IAP(32)=NTOT
+    AP%NTOT=NTOT
     ISTOP=0
     CALL INITSTOPCNTS(STOPCNTS)
 
@@ -174,11 +175,11 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(IAP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD,RLDOT, &
+    CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
 !     don't set global rotations here for homoclinics, but in autlib5.f
-    IF(IPS.NE.9)CALL SETRTN(IAP(23),NTST*NCOL,NDIM,UPS)
+    IF(IPS.NE.9)CALL SETRTN(AP%NDM,NTST*NCOL,NDIM,UPS)
 
     IPERP=2
     IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
@@ -194,33 +195,33 @@ CONTAINS
        IPERP=-1
     ENDIF
     IF(IPERP/=2)THEN
-       CALL STDRBV(IAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
+       CALL STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
-          SP1 = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+          SP1 = FNSPBV(AP,CHNG,P0,P1,EV)
        ENDIF
     ENDIF
 
 ! Store plotting data for restart point :
 
-    CALL STHD(IAP,RAP,ICP)
+    CALL STHD(AP,ICP)
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE
        ITP=0
     ENDIF
-    IAP(27)=ITP
-    CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
-    CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
+    AP%ITP=ITP
+    CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+    CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
     IF(ISTOP==0)THEN
        CALL EXTRBV(NDIM,NTST,NCOL,NFPR,RDS,RLCUR,RLOLD,RLDOT,UPS,UOLDPS,UDOTPS)
     ENDIF
     DO WHILE(ISTOP==0)
        ITP=0
-       IAP(27)=ITP
-       NINS=IAP(33)
-       CALL STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       AP%ITP=ITP
+       NINS=AP%NINS
+       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -242,7 +243,7 @@ CONTAINS
              CHECKEDSP=CHECK
           ENDIF
           IF(CHECK)THEN
-             CALL LCSPBV(IAP,RAP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI, &
+             CALL LCSPBV(AP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI, &
                   UZR(IUZR),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
                   UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
              IF(FOUND)THEN
@@ -250,7 +251,7 @@ CONTAINS
                    ITP=ITP-10*ITPST
                 ELSEIF(ITP==7)THEN
                    ! **Secondary periodic bifurcation: determine type
-                   EPSS=RAP(13)
+                   EPSS=AP%EPSS
                    ITP=TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV)
                 ELSE
                    ITP=ITP+10*ITPST
@@ -264,29 +265,29 @@ CONTAINS
                 ELSE
                    ISTOP=-1 ! *Stop at the first found bifurcation
                 ENDIF
-                IAP(27)=ITP
+                AP%ITP=ITP
              ENDIF
           ENDIF
        ENDDO
        IF(.NOT.CHECKEDSP .AND. ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! Still determine and print Floquet multipliers
           ! for situations where ISTOP=-1 or SP switched off PD/TR detection
-          UZR(NUZR+3) = FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+          UZR(NUZR+3) = FNSPBV(AP,CHNG,P0,P1,EV)
        ENDIF
-       ITP=IAP(27) 
+       ITP=AP%ITP 
        IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
           ! for plotter: use stability of previous point
           ! for bifurcation points
-          IAP(33)=NINS
+          AP%NINS=NINS
        ENDIF
 
 ! Store plotting data.
 
-       CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
-       CALL STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
+       CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+       CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
 
        IF(ISTOP/=0)EXIT
-       NTOT=IAP(32)
+       NTOT=AP%NTOT
 
 ! Adapt the mesh to the solution.
 
@@ -301,17 +302,18 @@ CONTAINS
 
        IF(IADS.NE.0)THEN
           IF(MOD(NTOT,IADS).EQ.0)THEN
-             ITNW=IAP(20)
-             IBR=IAP(30)
+             ITNW=AP%ITNW
+             IBR=AP%IBR
              NTOP=MOD(NTOT-1,9999)+1
-             DSMAX=RAP(3)
+             DSMAX=AP%DSMAX
              CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+             AP%RDS=RDS
           ENDIF
        ENDIF
 
 ! Provide initial approximation and determine next point.
 
-       CALL CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+       CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     ENDDO
@@ -321,7 +323,7 @@ CONTAINS
   END SUBROUTINE CNRLBV
 
 ! ---------- ------
-  SUBROUTINE CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+  SUBROUTINE CONTBV(AP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
        NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     USE MESH
@@ -332,16 +334,17 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),NDIM
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM
     DOUBLE PRECISION DSOLD,PAR(*),RDS
     DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(*)
     DOUBLE PRECISION DTM(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
 
     INTEGER NTST,NCOL,NFPR
 
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    NFPR=IAP(29)
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    NFPR=AP%NFPR
 
 ! Compute rate of change (along branch) of PAR(ICP(1)) and U :
 
@@ -356,7 +359,7 @@ CONTAINS
 
 ! Store time-derivative.
 
-    CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
+    CALL STUPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
 
   END SUBROUTINE CONTBV
 
@@ -379,23 +382,24 @@ CONTAINS
   END SUBROUTINE EXTRBV
 
 ! ---------- ------
-  SUBROUTINE STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
+  SUBROUTINE STUPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
 
 ! Stores U-prime (derivative with respect to T) in UPOLDP.
 
     include 'interfaces.h'
 
-    INTEGER ICP(*),IAP(*),NDIM
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM
     DOUBLE PRECISION UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*)
 ! Local
     INTEGER NTST,NCOL,NFPR,NPAR,I,J
     DOUBLE PRECISION, ALLOCATABLE :: DFDU(:,:),DFDP(:,:)
 
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    NFPR=IAP(29)
-    NPAR=IAP(31)
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    NFPR=AP%NFPR
+    NPAR=AP%NPAR
 
     DO I=1,NFPR
        PAR(ICP(I))=RLOLD(I)
@@ -406,7 +410,7 @@ CONTAINS
     DFDP(:,:)=0.d0
 
     DO J=0,NTST*NCOL
-       CALL FUNI(IAP,NDIM,UOLDPS(:,J),UOLDPS(:,J),ICP,PAR,0,UPOLDP(:,J),&
+       CALL FUNI(AP,NDIM,UOLDPS(:,J),UOLDPS(:,J),ICP,PAR,0,UPOLDP(:,J),&
             DFDU,DFDP)
     ENDDO
 
@@ -418,7 +422,7 @@ CONTAINS
   END SUBROUTINE STUPBV
 
 ! ---------- ------
-  SUBROUTINE STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+  SUBROUTINE STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -431,8 +435,9 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),NDIM,NITPS,ISTOP
-    DOUBLE PRECISION RAP(*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM,NITPS,ISTOP
+    DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
     DOUBLE PRECISION UPOLDP(NDIM,0:*),TM(*),DTM(*)
     DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*)
     DOUBLE PRECISION P0(*),P1(*),DSOLD,RDS
@@ -444,23 +449,23 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:),P0T(:),P1T(:)
     LOGICAL DONE
 
-    IPS=IAP(2)
-    ILP=IAP(4)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    IADS=IAP(8)
-    ISP=IAP(9)
-    IID=IAP(18)
-    ITNW=IAP(20)
-    NWTN=IAP(21)
-    NFPR=IAP(29)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IPS=AP%IPS
+    ILP=AP%ILP
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    IADS=AP%IADS
+    ISP=AP%ISP
+    IID=AP%IID
+    ITNW=AP%ITNW
+    NWTN=AP%NWTN
+    NFPR=AP%NFPR
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    DSMIN=RAP(2)
-    EPSL=RAP(11)
-    EPSU=RAP(12)
+    DSMIN=AP%DSMIN
+    EPSL=AP%EPSL
+    EPSU=AP%EPSU
 
     ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
     DELREF=0
@@ -470,7 +475,7 @@ CONTAINS
 
 ! Write additional output on unit 9 if requested.
 
-       CALL WRTBV9(IAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+       CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
 ! Generate the Jacobian matrix and the right hand side.
 
@@ -482,10 +487,10 @@ CONTAINS
           IFST=0
           IF(NITPS.LE.NWTN)IFST=1
 
-          CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
+          CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
                P0,P1,THL,THU)
-          RAP(14)=DET
+          AP%DET=DET
 
 ! Add Newton increments.
 
@@ -506,7 +511,7 @@ CONTAINS
              ENDDO
           ENDDO
 
-          CALL WRTBV9(IAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+          CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
 ! Check whether user-supplied error tolerances have been met :
 
@@ -526,17 +531,17 @@ CONTAINS
                 IFST=0
                 RDSZ=0.d0
 
-                CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+                CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
                      RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
                      DRL,P0T,P1T,THL,THU)
 
                 ! Scale the direction vector.
                 CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
-                RAP(16)=DRL(1)
+                AP%FLDF=DRL(1)
                 DEALLOCATE(P0T,P1T)
              ENDIF
 
-             CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
+             CALL PVLI(AP,ICP,UPS,NDIM,PAR)
              IF(IID.GE.2)WRITE(9,*)
              DEALLOCATE(DUPS,DRL)
              RETURN
@@ -560,9 +565,10 @@ CONTAINS
 
 ! Reduce stepsize and try again.
 
-       DSMAX=RAP(3)
+       DSMAX=AP%DSMAX
        NITPS=ITNW
        CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+       AP%RDS=RDS
        IF(ABS(RDS).LT.DSMIN)THEN
           ! Minimum stepsize reached.
           WRITE(9,103)IBR,NTOP
@@ -596,7 +602,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE RSPTBV(IAP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD, &
+  SUBROUTINE RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
@@ -611,7 +617,8 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),NDIM,NODIR
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM,NODIR
     DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),TM(0:*),DTM(*),PAR(*)
     DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*)
@@ -620,11 +627,11 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: U(:),UDOT(:)
     INTEGER :: ICPRS(2),IRS,NTST,NCOL,ITP,NFPR,ISW,NCOLRS,NTSRS,I,J
 
-    IRS=IAP(3)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    ITP=IAP(27)
-    NFPR=IAP(29)
+    IRS=AP%IRS
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    ITP=AP%ITP
+    NFPR=AP%NFPR
 
 ! Get restart data :
 
@@ -637,7 +644,7 @@ CONTAINS
     ENDIF
     IF(NCOLRS*NTSRS==0)THEN
        ALLOCATE(U(NDIM),UDOT(NDIM+1))
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       CALL READLB(AP,ICPRS,U,UDOT,PAR)
 
 ! Generate the (initially uniform) mesh.
 
@@ -649,9 +656,9 @@ CONTAINS
 
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
           ! call PVLS here the first time so the parameters can be initialized
-          CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR)
           ! Hopf bifurcation
-          CALL STHOPF(IAP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
+          CALL STHOPF(AP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
                NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
        ELSE
           ! else we just use the uniform mesh with no direction given
@@ -659,12 +666,12 @@ CONTAINS
        ENDIF
        DEALLOCATE(U,UDOT)
     ELSE
-       CALL STPNBVI(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
+       CALL STPNBVI(AP,PAR,ICP,NTSRS,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
     ENDIF
 
 ! Determine a suitable starting label and branch number.
 
-    CALL NEWLAB(IAP)
+    CALL NEWLAB(AP)
 
     DTM(1:NTST)=TM(1:NTST)-TM(0:NTST-1)
 
@@ -672,7 +679,7 @@ CONTAINS
 
     IF(NODIR.NE.-1)THEN
        ! call PVLS here the first time so the parameters can be initialized
-       CALL PVLI(IAP,ICP,UPS,NDIM,PAR)
+       CALL PVLI(AP,ICP,UPS,NDIM,PAR)
     ENDIF
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
@@ -687,38 +694,38 @@ CONTAINS
 !      ** Restart from a Hopf bifurcation.
        NODIR=0
        ISW=1
-       IAP(10)=ISW
+       AP%ISW=ISW
     ELSE
 !      ** Restart from orbit.
-       CALL STUPBV(IAP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
+       CALL STUPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD,NDIM,UOLDPS,UPOLDP)
     ENDIF
 
   END SUBROUTINE RSPTBV
 
 ! ---------- ------
-  SUBROUTINE STPNBV(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT, &
+  SUBROUTINE STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT, &
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),TM(*)
-    DOUBLE PRECISION, INTENT(OUT) :: UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
+    DOUBLE PRECISION, INTENT(OUT) :: UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*)
 
     INTEGER NDIM,IPS,ISW,NTST,NCOL,NDIMRD,NTSRS
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    ISW=IAP(10)
-    NTST=IAP(5)
-    NCOL=IAP(6)
+    NDIM=AP%NDIM
+    IPS=AP%IPS
+    ISW=AP%ISW
+    NTST=AP%NTST
+    NCOL=AP%NCOL
 
     ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR), &
          TMR(0:NTSR))
-    CALL STPNBV1(IAP,PAR,ICP,NDIM,NTSRS,NDIMRD,NCOLRS,RLDOT, &
+    CALL STPNBV1(AP,PAR,ICP,NDIM,NTSRS,NDIMRD,NCOLRS,RLDOT, &
          UPSR,UDOTPSR,TMR,NODIR)
     CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM, &
          TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,IPS==2 .AND. ABS(ISW)<=1)
@@ -727,7 +734,7 @@ CONTAINS
   END SUBROUTINE STPNBV
 
 ! ---------- -------
-  SUBROUTINE STPNBV1(IAP,PAR,ICP,NDIM,NTSRS,NDIMRD,NCOLRS,RLDOT, &
+  SUBROUTINE STPNBV1(AP,PAR,ICP,NDIM,NTSRS,NDIMRD,NCOLRS,RLDOT, &
        UPS,UDOTPS,TM,NODIR)
 
     USE IO
@@ -736,8 +743,8 @@ CONTAINS
 ! restart computation at the point with label IRS.
 ! This information is expected on unit 3.
 
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM
-    INTEGER, INTENT(INOUT) :: IAP(*)
     INTEGER, INTENT(OUT) :: NTSRS,NCOLRS,NDIMRD,NODIR
     DOUBLE PRECISION, INTENT(OUT) :: UPS(*),UDOTPS(*),TM(*)
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*)
@@ -745,10 +752,10 @@ CONTAINS
     INTEGER NFPR,NFPRS,ITPRS,I
     INTEGER, ALLOCATABLE :: ICPRS(:)
 
-    NFPR=IAP(29)
+    NFPR=AP%NFPR
 
     ALLOCATE(ICPRS(NFPR))
-    CALL READBV(IAP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS, &
+    CALL READBV(AP,PAR,ICPRS,NTSRS,NCOLRS,NDIMRD,RLDOT,UPS, &
          UDOTPS,TM,ITPRS,NDIM)
 
 ! Take care of the case where the free parameters have been changed at
@@ -771,7 +778,7 @@ CONTAINS
   END SUBROUTINE STPNBV1
 
 ! ---------- ------
-  SUBROUTINE STPNUB(IAP,PAR,ICP,NTSRS,NCOLRS,RLDOT, &
+  SUBROUTINE STPNUB(AP,PAR,ICP,NTSRS,NCOLRS,RLDOT, &
        UPS,UDOTPS,TM,NODIR)
 
     USE MESH
@@ -782,22 +789,22 @@ CONTAINS
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSRS,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
-    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(IAP(29))
-    DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*)
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(AP%NFPR)
+    DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*)
 
     INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,ios,I,J
     DOUBLE PRECISION TEMP,PERIOD
     DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),UDOTPSR(:,:),U(:)
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    ISW=IAP(10)
+    NDIM=AP%NDIM
+    IPS=AP%IPS
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    ISW=AP%ISW
 
 ! Generate the (initially uniform) mesh.
 
@@ -851,16 +858,16 @@ CONTAINS
     ENDDO
 
     IBR=1
-    IAP(30)=IBR
+    AP%IBR=IBR
     LAB=0
-    IAP(34)=LAB
+    AP%LAB=LAB
 
     NODIR=1
 
   END SUBROUTINE STPNUB
 
 ! ---------- ------
-  SUBROUTINE STHOPF(IAP,U,PAR,ICP,NTST,NCOL, &
+  SUBROUTINE STHOPF(AP,U,PAR,ICP,NTST,NCOL, &
        NFPR,RLDOT,NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
 
     USE IO
@@ -870,7 +877,8 @@ CONTAINS
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
 
-    INTEGER IAP(*),ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
     DOUBLE PRECISION U(NDIM),PAR(*),RLDOT(*),THU(*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     include 'interfaces.h'
@@ -894,7 +902,7 @@ CONTAINS
        SMAT(NDIM+I,NDIM+I)=RIMHB
     ENDDO
 
-    CALL FUNI(IAP,NDIM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+    CALL FUNI(AP,NDIM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
 
 ! Note that the period-scaling in FUNC is taken into account:
     SMAT(1:NDIM,NDIM+1:2*NDIM)=DFU(:,:)/PAR(11)
@@ -949,7 +957,7 @@ CONTAINS
   END SUBROUTINE SETRTN
 
 ! ---------- ------
-  SUBROUTINE STDRBV(IAP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD, &
+  SUBROUTINE STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP, &
        P0,P1,THL,THU)
 
@@ -961,9 +969,10 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),NDIM,IPERP
-    DOUBLE PRECISION UDOTPS(NDIM,0:IAP(5)*IAP(6)),DTM(*)
-    DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*),RLDOT(IAP(29)),THL(*),THU(*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM,IPERP
+    DOUBLE PRECISION UDOTPS(NDIM,0:AP%NTST*AP%NCOL),DTM(*)
+    DOUBLE PRECISION PAR(*),RLCUR(*),RLOLD(*),RLDOT(AP%NFPR),THL(*),THU(*)
     DOUBLE PRECISION UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
 
     INTEGER NTST,NCOL,IID,NFPR,NLLV,IFST,I
@@ -974,10 +983,10 @@ CONTAINS
 ! (Then the last row of the Jacobian will be zero)
 ! in case the starting direction is to be determined.
 
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    IID=IAP(18)
-    NFPR=IAP(29)
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    IID=AP%IID
+    NFPR=AP%NFPR
 
     IF(IPERP.EQ.0)THEN
        UDOTPS(:,:)=0.d0
@@ -988,7 +997,7 @@ CONTAINS
     NLLV=1
     IFST=1
     ALLOCATE(DUPS(NDIM,0:NCOL*NTST),DRL(NFPR))
-    CALL SOLVBV(IFST,IAP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+    CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
          RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
          P0,P1,THL,THU)
 
@@ -1037,7 +1046,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE LCSPBV(IAP,RAP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI,Q, &
+  SUBROUTINE LCSPBV(AP,DSOLD,PAR,ICP,IUZR,FUNI,BCNI,ICNI,PVLI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
 
@@ -1060,8 +1069,9 @@ CONTAINS
     include 'interfaces.h'
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
     LOGICAL CHNG,FOUND
-    INTEGER IAP(*),ICP(*),IUZR,IUZ(*),NDIM,NITPS,ISTOP
-    DOUBLE PRECISION RAP(*),PAR(*),TM(*),DTM(*),DSOLD,Q
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),IUZR,IUZ(*),NDIM,NITPS,ISTOP
+    DOUBLE PRECISION PAR(*),TM(*),DTM(*),DSOLD,Q
     DOUBLE PRECISION UPS(*),UDOTPS(*),UOLDPS(*),UPOLDP(*),VUZ(*)
     DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*),THU(*),P0(*),P1(*)
 
@@ -1069,20 +1079,20 @@ CONTAINS
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S,S0,S1
 
     FOUND=.FALSE.
-    IID=IAP(18)
-    ITMX=IAP(19)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    ITMX=AP%ITMX
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    DS=RAP(1)
-    DSMAX=RAP(3)
-    EPSS=RAP(13)
+    DS=AP%DS
+    DSMAX=AP%DSMAX
+    EPSS=AP%EPSS
 
 ! Check for zero.
 
     Q0=Q
-    Q1=FNCS(IAP,RAP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
+    Q1=FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
 
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
@@ -1116,9 +1126,9 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
-       CALL CONTBV(IAP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
+       CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RDS,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
-       CALL STEPBV(IAP,RAP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)THEN
@@ -1128,7 +1138,7 @@ CONTAINS
 
 ! Check for zero.
 
-       Q=FNCS(IAP,RAP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
+       Q=FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
 
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
@@ -1145,10 +1155,10 @@ CONTAINS
   END SUBROUTINE LCSPBV
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(IAP,RAP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,IUZR)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
@@ -1157,40 +1167,39 @@ CONTAINS
 
     INTEGER NUZR
 
-    NUZR=IAP(15)
+    NUZR=AP%NUZR
 
     IF(IUZR==NUZR+1)THEN
-       FNCS=FNLPBV(IAP,RAP,CHNG)
+       FNCS=FNLPBV(AP,CHNG)
     ELSEIF(IUZR==NUZR+2)THEN
-       FNCS=FNBPBV(IAP,RAP,CHNG,P1)
+       FNCS=FNBPBV(AP,CHNG,P1)
     ELSEIF(IUZR==NUZR+3)THEN
-       FNCS=FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+       FNCS=FNSPBV(AP,CHNG,P0,P1,EV)
     ELSE
-       FNCS=FNUZBV(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
+       FNCS=FNUZBV(AP,PAR,CHNG,IUZ,VUZ,IUZR)
     ENDIF
 
   END FUNCTION FNCS
        
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPBV(IAP,RAP,CHNG)
+  DOUBLE PRECISION FUNCTION FNLPBV(AP,CHNG)
 
     USE MESH
     USE SOLVEBV
 
 ! RETURNS A QUANTITY THAT CHANGES SIGN AT A LIMIT POINT (BVP)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     LOGICAL, INTENT(OUT) :: CHNG
 
     INTEGER IID,IBR,NTOT,NTOP
 
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    FNLPBV=RAP(16)
+    FNLPBV=AP%FLDF
     IF(IID.GE.2)THEN
        WRITE(9,101)ABS(IBR),NTOP+1,FNLPBV
     ENDIF
@@ -1204,12 +1213,11 @@ CONTAINS
   END FUNCTION FNLPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPBV(IAP,RAP,CHNG,P1)
+  DOUBLE PRECISION FUNCTION FNBPBV(AP,CHNG,P1)
 
     USE SUPPORT
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: P1(*)
 
@@ -1218,15 +1226,15 @@ CONTAINS
     INTEGER IID,I,IBR,NTOP,NTOT,NDIM
     DOUBLE PRECISION U(1),F(1),DET,DET0
 
-    NDIM=IAP(1)
-    IID=IAP(18)
+    NDIM=AP%NDIM
+    IID=AP%IID
 
 ! Save the determinant of the reduced system.
 
-    DET=RAP(14)
+    DET=AP%DET
     DET0=DET
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
 ! Compute the determinant of P1.
@@ -1237,7 +1245,7 @@ CONTAINS
     ENDDO
     CALL GEL(NDIM,PP,0,U,F,DET)
     DEALLOCATE(PP)
-    RAP(14)=DET
+    AP%DET=DET
 
 ! Set the determinant of the normalized reduced system.
 
@@ -1248,7 +1256,7 @@ CONTAINS
        FNBPBV=0.d0
        CHNG=.FALSE.
     ENDIF
-    RAP(18)=FNBPBV
+    AP%BIFF=FNBPBV
 
     IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNBPBV
 101 FORMAT(I4,I6,9X,'BP   Function ',ES14.5)
@@ -1256,7 +1264,7 @@ CONTAINS
   END FUNCTION FNBPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(IAP,RAP,CHNG,P0,P1,EV)
+  DOUBLE PRECISION FUNCTION FNSPBV(AP,CHNG,P0,P1,EV)
 
     USE FLOQUET
 
@@ -1266,8 +1274,7 @@ CONTAINS
 ! pair of eigenvalues of the linearized Poincare map moves in or out
 ! of the unit circle or when a real eigenvalues passes through -1.
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
@@ -1277,18 +1284,18 @@ CONTAINS
     INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,LOC,NINS,NINS1,NDIM
     DOUBLE PRECISION D,AMIN,AZM1,tol
 
-    NDIM=IAP(1)
-    ISP=IAP(9)
-    ISW=IAP(10)
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    NDIM=AP%NDIM
+    ISP=AP%ISP
+    ISW=AP%ISW
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
 ! Initialize.
 
     FNSPBV=0.d0
-    RAP(19)=FNSPBV
+    AP%SPBF=FNSPBV
     D=0.d0
     CHNG=.FALSE.
 
@@ -1347,10 +1354,10 @@ CONTAINS
           WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
        ENDDO
        NINS=0
-       IAP(33)=NINS
+       AP%NINS=NINS
        WRITE(9,104)ABS(IBR),NTOP+1,NINS
        ISP=-ISP
-       IAP(9)=ISP
+       AP%ISP=ISP
        RETURN
     ENDIF
 
@@ -1361,7 +1368,7 @@ CONTAINS
        IF(AMIN.LT.1.0E-2)THEN
           WRITE(9,102)ABS(IBR),NTOP+1
           ISP=-ISP
-          IAP(9)=ISP
+          AP%ISP=ISP
        ELSE
           DO I=1,NDIM
              WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
@@ -1380,7 +1387,7 @@ CONTAINS
     IF(NDIM.EQ.1) THEN
        D=0.d0
        FNSPBV=D
-       RAP(19)=FNSPBV
+       AP%SPBF=FNSPBV
     ELSE
        DO I=2,NDIM
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
@@ -1397,21 +1404,21 @@ CONTAINS
           ELSE
              FNSPBV=D
           ENDIF
-          RAP(19)=FNSPBV
-          NINS=IAP(33)
+          AP%SPBF=FNSPBV
+          NINS=AP%NINS
           IF(NINS1.NE.NINS)CHNG=.TRUE.
        ENDIF
     ENDIF
 
     NINS=NINS1
-    IAP(33)=NINS
+    AP%NINS=NINS
     IF( IID>=2 .AND. (ISP==1 .OR. ISP==2 .OR. ISP==4))THEN
        WRITE(9,103)ABS(IBR),NTOP+1,D
     ENDIF
 
 ! Print the Floquet multipliers.
 
-    NINS=IAP(33)
+    NINS=AP%NINS
     WRITE(9,104)ABS(IBR),NTOP+1,NINS
     DO I=1,NDIM
        WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
@@ -1427,9 +1434,9 @@ CONTAINS
   END FUNCTION FNSPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNUZBV(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
+  DOUBLE PRECISION FUNCTION FNUZBV(AP,PAR,CHNG,IUZ,VUZ,IUZR)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     INTEGER, INTENT(IN) :: IUZ(*),IUZR
@@ -1437,9 +1444,9 @@ CONTAINS
 
     INTEGER IID,IBR,NTOT,NTOP
 
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
     FNUZBV=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
@@ -1514,7 +1521,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE STPLBV(IAP,RAP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
+  SUBROUTINE STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
 
     USE IO
     USE MESH
@@ -1546,8 +1553,9 @@ CONTAINS
 !  MAX U(*)   : The maxima of the first few solution components.
 !  PAR(ICP(*)): Further free parameters (if any).
 
-    INTEGER ICP(*),ICU(*),IAP(*),NDIM,ISTOP
-    DOUBLE PRECISION PAR(*),RAP(*),TM(*),DTM(*),UPS(*),THU(*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),NDIM,ISTOP
+    DOUBLE PRECISION PAR(*),TM(*),DTM(*),UPS(*),THU(*)
     DOUBLE PRECISION RLDOT(*),UDOTPS(*)
 ! Local
     DOUBLE PRECISION UMX(7)
@@ -1555,33 +1563,33 @@ CONTAINS
     INTEGER LAB,LABW,N2,NINS,NTOT,NTOTS
     DOUBLE PRECISION RL0,RL1,A0,A1,AMP
 
-    IPS=IAP(2)
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    ISW=IAP(10)
-    IPLT=IAP(11)
-    NMX=IAP(14)
-    NPR=IAP(16)
-    NDM=IAP(23)
-    ITP=IAP(27)
-    ITPST=IAP(28)
-    IBR=IAP(30)
+    IPS=AP%IPS
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    ISW=AP%ISW
+    IPLT=AP%IPLT
+    NMX=AP%NMX
+    NPR=AP%NPR
+    NDM=AP%NDM
+    ITP=AP%ITP
+    ITPST=AP%ITPST
+    IBR=AP%IBR
 
-    RL0=RAP(6)
-    RL1=RAP(7)
-    A0=RAP(8)
-    A1=RAP(9)
+    RL0=AP%RL0
+    RL1=AP%RL1
+    A0=AP%A0
+    A1=AP%A1
 
-    NTOT=IAP(32)
+    NTOT=AP%NTOT
     NTOT=NTOT+1
-    IAP(32)=NTOT
+    AP%NTOT=NTOT
 
 ! ITP is set to 4 every NPR steps along a branch of solns and the entire
 ! solution is written on unit 8.
 
     IF(NPR.NE.0)THEN
        IF(MOD(NTOT,NPR).EQ.0 .AND. MOD(ITP,10).EQ.0)ITP=4+10*ITPST
-       IAP(27)=ITP
+       AP%ITP=ITP
     ENDIF
 
 ! Check whether limits of the bifurcation diagram have been reached :
@@ -1599,13 +1607,13 @@ CONTAINS
     IF(ISTOP.EQ.1)THEN
 !      ** Maximum number of iterations reached somewhere.
        ITP=-9-10*ITPST
-       IAP(27)=ITP
+       AP%ITP=ITP
     ELSE
        IF(PAR(ICP(1)).LT.RL0.OR.PAR(ICP(1)).GT.RL1 &
             .OR. AMP.LT.A0.OR.AMP.GT.A1 .OR. NTOT.GE.NMX)THEN
           ISTOP=1
           ITP=9+10*ITPST
-          IAP(27)=ITP
+          AP%ITP=ITP
        ENDIF
     ENDIF
 
@@ -1613,9 +1621,9 @@ CONTAINS
 
     LABW=0
     IF(MOD(ITP,10).NE.0) THEN
-       LAB=IAP(34)
+       LAB=AP%LAB
        LAB=LAB+1
-       IAP(34)=LAB
+       AP%LAB=LAB
        LABW=LAB
     ENDIF
 
@@ -1640,21 +1648,21 @@ CONTAINS
 
     NTOTS=NTOT
     IF(ABS(ISW).LE.1 .AND. (IPS.EQ.2.OR.IPS.EQ.7))THEN
-       NINS=IAP(33)
+       NINS=AP%NINS
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
-    CALL WRLINE(IAP,PAR,ICU,IBRS,NTOTS,LABW,AMP,UMX)
+    CALL WRLINE(AP,PAR,ICU,IBRS,NTOTS,LABW,AMP,UMX)
 
 ! Write plotting and restart data on unit 8.
 
     IF(MOD(ITP,10).NE.0)THEN
-       CALL WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
+       CALL WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
     ENDIF
 
   END SUBROUTINE STPLBV
 
 ! ---------- ------
-  SUBROUTINE WRTBV8(IAP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
+  SUBROUTINE WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
@@ -1705,7 +1713,8 @@ CONTAINS
 !
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
-    INTEGER IAP(*),ICP(*),NDIM
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),NDIM
     DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
     DOUBLE PRECISION PAR(*),RLDOT(*)
 
@@ -1717,16 +1726,16 @@ CONTAINS
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
 
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    ISW=IAP(10)
-    NPARI=IAP(24)
-    ITP=IAP(27)
-    NFPR=IAP(29)
-    IBR=IAP(30)
-    NPAR=IAP(31)
-    NTOT=IAP(32)
-    LAB=IAP(34)
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    ISW=AP%ISW
+    NPARI=AP%NPARI
+    ITP=AP%ITP
+    NFPR=AP%NFPR
+    IBR=AP%IBR
+    NPAR=AP%NPAR
+    NTOT=AP%NTOT
+    LAB=AP%LAB
 
 ! Write information identifying the solution :
 
@@ -1786,26 +1795,27 @@ CONTAINS
   END SUBROUTINE WRTBV8
 
 ! ---------- ------
-  SUBROUTINE WRTBV9(IAP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+  SUBROUTINE WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
     USE IO
     USE MESH
 
 ! Writes additional output on unit 9.
 
-    INTEGER, INTENT(IN) :: IAP(*),NDIM,NITPS
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: NDIM,NITPS
     DOUBLE PRECISION, INTENT(IN) :: RLCUR(*),DTM(*),UPS(NDIM,0:*),TM(0:*),THU(*)
 
     INTEGER IAB,NTST,NCOL,IPLT,IID,NDM,IBR,NTOT,J,MTOT
     DOUBLE PRECISION T,AMP
 
-    NTST=IAP(5)
-    NCOL=IAP(6)
-    IPLT=IAP(11)
-    IID=IAP(18)
-    NDM=IAP(23)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    IPLT=AP%IPLT
+    IID=AP%IID
+    NDM=AP%NDM
+    IBR=AP%IBR
+    NTOT=AP%NTOT
 
     IAB=ABS(IPLT)
     IF(IAB.EQ.0.OR.IAB.GT.NDIM)AMP=SQRT(RNRMSQ(NTST,NCOL,NDIM,NDM,UPS,DTM,THU))
@@ -1836,15 +1846,16 @@ CONTAINS
   END SUBROUTINE WRTBV9
 
 ! ---------- ------
-  SUBROUTINE PVLSBV(IAP,ICP,UPS,NDIM,PAR)
+  SUBROUTINE PVLSBV(AP,ICP,UPS,NDIM,PAR)
 
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM
     DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
     INTEGER NDM
 
-    NDM=IAP(23)
+    NDM=AP%NDM
     CALL PVLS(NDM,UPS,PAR)
 
   END SUBROUTINE PVLSBV
@@ -1893,17 +1904,16 @@ CONTAINS
   END SUBROUTINE EVECS
 
 ! ---------- ------
-  SUBROUTINE SETPBV(IAP,RAP,DTM,NDIM,P0,P1,EV)
+  SUBROUTINE SETPBV(AP,DTM,NDIM,P0,P1,EV)
 
     USE SUPPORT
     INTEGER, INTENT(IN) :: NDIM
-    INTEGER, TARGET :: IAP(NIAP)
-    DOUBLE PRECISION, TARGET :: RAP(NRAP),DTM(IAP(5))
+    TYPE(AUTOPARAMETERS), TARGET :: AP
+    DOUBLE PRECISION, TARGET :: DTM(AP%NTST)
     DOUBLE PRECISION, TARGET :: P0(NDIM,NDIM),P1(NDIM,NDIM)
     COMPLEX(KIND(1.0D0)), TARGET :: EV(NDIM)
 
-    IAV=>IAP
-    RAV=>RAP
+    AV=>AP
     DTV=>DTM
     P0V=>P0
     P1V=>P1

@@ -8,7 +8,7 @@ C-----------------------------------------------------------------------
 C
       MODULE HOMCONT
 
-      USE AUTO_CONSTANTS, ONLY : HCONST,NPARX,NEWCFILE
+      USE AUTO_CONSTANTS, ONLY : AUTOPARAMETERS,HCONST,NPARX,NEWCFILE
       IMPLICIT NONE
 
       PRIVATE
@@ -29,11 +29,12 @@ C
       CONTAINS
 
 C     ---------- ----
-      SUBROUTINE FNHO(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNHO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for homoclinic bifurcation analysis
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -43,8 +44,8 @@ C Local
       INTEGER NDM,NFPR,I,J
       DOUBLE PRECISION UMX,EP,P,UU
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
@@ -52,7 +53,7 @@ C
         ALLOCATE(DFU(NDIM*NDIM))
       ENDIF
       IF(IJAC.EQ.0)THEN
-        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
         IF(ALLOCATED(DFU))DEALLOCATE(DFU)
         RETURN
       ENDIF
@@ -69,16 +70,16 @@ C
       DO I=1,NDIM
         UU=U(I)
         U(I)=UU-EP
-        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
+        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
         U(I)=UU+EP
-        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
         U(I)=UU
         DO J=1,NDIM
           DFDU(J,I)=(F(J)-DFDU(J,I))/(2*EP)
         ENDDO
       ENDDO
 C
-      CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+      CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
       IF(IJAC==1)THEN
         IF(ALLOCATED(DFU))DEALLOCATE(DFU)
         RETURN
@@ -87,7 +88,7 @@ C
       DO I=1,NFPR
         P=PAR(ICP(I))
         PAR(ICP(I))=P+EP
-        CALL FFHO(IAP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
+        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
         ENDDO
@@ -99,11 +100,12 @@ C
       END SUBROUTINE FNHO
 C
 C     ---------- ----
-      SUBROUTINE FFHO(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       USE INTERFACES, ONLY:FUNI,FUNC
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -119,7 +121,7 @@ C           *Evaluate the R.-H. sides
             CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DDUM1)
          ELSEIF(ITWIST.EQ.1)THEN
 C           *Adjoint variational equations for normal vector
-            CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
+            CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
 C           *Set F = - (Df)^T u
             DO J=1,NDM
                DUM1=0.0D0
@@ -160,11 +162,12 @@ C
       END SUBROUTINE FFHO
 C
 C     ---------- ----
-      SUBROUTINE BCHO(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCHO(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
 C Generates the boundary conditions for homoclinic bifurcation analysis
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -173,11 +176,11 @@ C Local
       INTEGER NFPR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
-       CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.TRUE.,U0,U1,F)
+       CALL FBHO(AP,NDIM,PAR,ICP,NBC,.TRUE.,U0,U1,F)
 C
        IF(IJAC.EQ.0)RETURN
        ALLOCATE(UU(NDIM),FF1(NBC),FF2(NBC))
@@ -194,9 +197,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U0(I)-EP
-         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF1)
+         CALL FBHO(AP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF1)
          UU(I)=U0(I)+EP
-         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF2)
+         CALL FBHO(AP,NDIM,PAR,ICP,NBC,.FALSE.,UU,U1,FF2)
          UU(I)=U0(I)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -215,9 +218,9 @@ C
        ENDDO
        DO I=1,NDIM
          UU(I)=U1(I)-EP
-         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF1)
+         CALL FBHO(AP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF1)
          UU(I)=U1(I)+EP
-         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF2)
+         CALL FBHO(AP,NDIM,PAR,ICP,NBC,.FALSE.,U0,UU,FF2)
          UU(I)=U1(I)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
@@ -227,7 +230,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FBHO(IAP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
+         CALL FBHO(AP,NDIM,PAR,ICP,NBC,.FALSE.,U0,U1,FF2)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
@@ -239,7 +242,7 @@ C
       END SUBROUTINE BCHO
 C
 C     ---------- ----
-      SUBROUTINE FBHO(IAP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
+      SUBROUTINE FBHO(AP,NDIM,PAR,ICP,NBC,CSAVE,U0,U1,FB)
 C
       USE SUPPORT, ONLY: PI
       USE BVP, ONLY: NRTN, IRTN
@@ -247,7 +250,8 @@ C
 C
 C Generates the boundary conditions for homoclinic orbits.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NBC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NBC
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U0(NDIM),U1(NDIM)
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       LOGICAL, INTENT(IN) :: CSAVE
@@ -260,8 +264,8 @@ C Local
       INTEGER NDM,NPAR,NBCN,JB,INEIG,I,J,K,IP,KP
       DOUBLE PRECISION DUM,DUM1(1),DUM2(1)
 C
-      NDM=IAP(23)
-      NPAR=IAP(31)
+      NDM=AP%NDM
+      NPAR=AP%NPAR
       ALLOCATE(VR(NDM,NDM,2),VT(NDM,NDM,2),BOUND(NDM,NDM))
       ALLOCATE(RR(NDM,2),RI(NDM,2),XEQUIB1(NDM),XEQUIB2(NDM))
 C
@@ -304,7 +308,7 @@ C     **Regular Continuation**
       IF(ISTART.NE.3) THEN
 C        *Projection boundary conditions for the homoclinic orbit
 C        *NSTAB boundary conditions at t=0
-             CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
+             CALL PRJCTN(AP,BOUND,CSAVE,XEQUIB1,ICP,PAR,-1,1,1,NDM)
              DO I=1,NSTAB
                 DO K=1,NDM
                    FB(JB)=FB(JB)+(U0(K)-XEQUIB1(K))*BOUND(K,I)
@@ -314,7 +318,7 @@ C        *NSTAB boundary conditions at t=0
 C
 C        *NUNSTAB boundary conditions at t=1
          IF(NREV.EQ.0) THEN
-            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
+            CALL PRJCTN(AP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=1,NUNSTAB
                DO K=1,NDM
                   IF (ISTART.GE.0) THEN
@@ -342,19 +346,19 @@ C
          INEIG=0
 C        *NFIXED extra boundary conditions for the fixed conditions
          IF (NFIXED.GT.0) THEN
-            CALL EIGHO(IAP,2,RR(1,1),RI(1,1),VR(1,1,1),
+            CALL EIGHO(AP,2,RR(1,1),RI(1,1),VR(1,1,1),
      *           XEQUIB1,ICP,PAR,NDM)
             IF(IEQUIB.LT.0) THEN
-               CALL EIGHO(IAP,2,RR(1,2),RI(1,2),VR(1,1,2),
+               CALL EIGHO(AP,2,RR(1,2),RI(1,2),VR(1,1,2),
      *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
                IF((IFIXED(I).GT.10).AND.(INEIG.EQ.0)) THEN
-                  CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+                  CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *                 XEQUIB1,ICP,PAR,NDM)
                   INEIG=1
                   IF(IEQUIB.LT.0) THEN
-                     CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),
+                     CALL EIGHO(AP,1,RR(1,2),RI(1,2),VT(1,1,2),
      *                    XEQUIB2,ICP,PAR,NDM)
                   ENDIF
                ENDIF
@@ -365,7 +369,7 @@ C        *NFIXED extra boundary conditions for the fixed conditions
 C        *extra boundary condition in the case of a saddle-node homoclinic
          IF (IEQUIB.EQ.2) THEN
             IF(INEIG.EQ.0) THEN
-               CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),
+               CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *              XEQUIB1,ICP,PAR,NDM)
                INEIG=1
             ENDIF
@@ -385,7 +389,7 @@ C        *NDM extra initial conditions for the equilibrium if IEQUIB=-2
 C        *boundary conditions for normal vector
          IF ((ISTART.GE.0).AND.(ITWIST.EQ.1)) THEN
 C           *-orthogonal to the unstable directions of A  at t=0
-            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
+            CALL PRJCTN(AP,BOUND,CSAVE,XEQUIB1,ICP,PAR,1,1,2,NDM)
             DO I=1,NUNSTAB
                DUM=0.0
                DO K=1,NDM
@@ -395,7 +399,7 @@ C           *-orthogonal to the unstable directions of A  at t=0
                JB = JB+1
             ENDDO
 C           *-orthogonal to the stable directions of A  at t=1
-            CALL PRJCTN(IAP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
+            CALL PRJCTN(AP,BOUND,CSAVE,XEQUIB2,ICP,PAR,-1,2,2,NDM)
             DO I=1,NSTAB
                DUM=0.0
                DO K=1,NDM
@@ -449,7 +453,7 @@ C     **Starting Solutions using Homotopy**
          ENDIF
          KP=IP
 C        *Explicit boundary conditions for homoclinic orbit at t=0
-         CALL EIGHO(IAP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
+         CALL EIGHO(AP,2,RR,RI,VR,XEQUIB1,ICP,PAR,NDM)
          JB=NDM+1
          IF(NUNSTAB.GT.1) THEN
             FB(JB)=0.0
@@ -471,7 +475,7 @@ C        *Explicit boundary conditions for homoclinic orbit at t=0
             ENDDO
          ENDIF
 C        *Projection boundary conditions for the homoclinic orbit at t=1
-         CALL EIGHO(IAP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
+         CALL EIGHO(AP,1,RR,RI,VT,XEQUIB2,ICP,PAR,NDM)
          DO I=NDM-NUNSTAB+1,NDM
             DUM=0.0D0
             DO J=1,NDM
@@ -508,12 +512,13 @@ C
       END SUBROUTINE FBHO
 C
 C     ---------- ----
-      SUBROUTINE ICHO(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICHO(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Generates integral conditions for homoclinic bifurcation analysis
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -522,8 +527,8 @@ C
       INTEGER NDM,NFPR,I,J
       DOUBLE PRECISION UMX,EP,P,UU
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
@@ -681,27 +686,28 @@ C
       END SUBROUTINE INSTRHO
 C
 C     ---------- ----
-      SUBROUTINE INHO(IAP,ICP)
+      SUBROUTINE INHO(AP,ICP)
 C
       USE IO, ONLY: GETIPS3
 C
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       DOUBLE PRECISION, PARAMETER :: HMACHHO=1.0d-13
-      INTEGER, INTENT(INOUT) :: IAP(*),ICP(*)
+      INTEGER, INTENT(INOUT) :: ICP(*)
 
       INTEGER NDIM,ISW,NBC,NINT,NDM,stat,I,ICORR,LINE,NBCPROJ,NFREE
       INTEGER NPARI,NPAR,IPS3,IRS
 C
 C Reads from fort.11 specific constants for homoclinic continuation.
-C Sets up re-defined constants in IAP. 
+C Sets up re-defined constants in AP. 
 C Sets other constants in the module common blocks.
 C
 C set various constants 
 C
-      NDIM=IAP(1)
-      IRS=IAP(3)
-      ISW=IAP(10)
-      NBC=IAP(12)
-      NINT=IAP(13)
+      NDIM=AP%NDIM
+      IRS=AP%IRS
+      ISW=AP%ISW
+      NBC=AP%NBC
+      NINT=AP%NINT
       NDM=NDIM
       COMPZERO=HMACHHO
 C
@@ -757,16 +763,16 @@ C        n-homoclinic branch switching
          NDIM=NDM*(-ISTART+1)
          ! make sure there is enough room for the Lin vector etc.
          NPARI=2*NDM
-         IAP(24)=NPARI
+         AP%NPARI=NPARI
 C      
 C Free parameter (artificial parameter for psi)
 C nondegeneracy parameter of the adjoint
 C
       ELSE
          IF (NPSI>0) THEN
-            NPAR=IAP(31)
+            NPAR=AP%NPAR
             NPAR=MAX(20+MAXVAL(IPSI),NPAR)
-            IAP(31)=NPAR
+            AP%NPAR=NPAR
          ENDIF
          IF (ITWIST.EQ.1) THEN
             NFREE = NFREE + 1
@@ -854,12 +860,12 @@ C     *starting solutions using homotopy
         NINT=0
       ENDIF
 C
-C write new constants into IAP
+C write new constants into AP
 C
-      IAP(1)=NDIM
-      IAP(12)=NBC
-      IAP(13)=NINT
-      IAP(23)=NDM
+      AP%NDIM=NDIM
+      AP%NBC=NBC
+      AP%NINT=NINT
+      AP%NDM=NDM
 C
       RETURN
 
@@ -1195,7 +1201,7 @@ C
       END SUBROUTINE CPBKHO
 C
 C     ---------- -----
-      SUBROUTINE PREHO(IAP,PAR,ICP,NTSR,NAR,NCOLRS,UPS,UDOTPS,TM)
+      SUBROUTINE PREHO(AP,PAR,ICP,NTSR,NAR,NCOLRS,UPS,UDOTPS,TM)
 C
 C     Special homoclinic orbit preprocessing.
 C
@@ -1203,10 +1209,11 @@ C
       USE SUPPORT, ONLY: PI
       USE INTERFACES, ONLY: FUNC
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NCOLRS
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NCOLRS
       INTEGER, INTENT(INOUT) :: NTSR,NAR
-      DOUBLE PRECISION, INTENT(INOUT) :: UPS(IAP(1),0:NTSR*NCOLRS), 
-     *     TM(0:NTSR),UDOTPS(IAP(1),0:NTSR*NCOLRS),PAR(*)
+      DOUBLE PRECISION, INTENT(INOUT) :: UPS(AP%NDIM,0:NTSR*NCOLRS), 
+     *     TM(0:NTSR),UDOTPS(AP%NDIM,0:NTSR*NCOLRS),PAR(*)
 C
 C Local
 C
@@ -1214,9 +1221,9 @@ C
       INTEGER NDIM,NDM,NPAR,II,IT,IST,I,J,J1,J2,JMIN,JR
       DOUBLE PRECISION T,TMMIN,UPSI,UPSMIN,DUM1(1),DUM2(1)
 C
-      NDIM=IAP(1)
-      NDM=IAP(23)
-      NPAR=IAP(31)
+      NDIM=AP%NDIM
+      NDM=AP%NDM
+      NPAR=AP%NPAR
 C
       IF (ISTART.GE.0.AND.NAR.GT.2*NDM) THEN
 C        Use the usual representation again for normal continuation.
@@ -1438,7 +1445,7 @@ C
       END SUBROUTINE PREHO
 C
 C     ---------- ------
-      SUBROUTINE STPNHO(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+      SUBROUTINE STPNHO(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      * UPS,UDOTPS,TM,NODIR)
 C
       USE BVP, ONLY: STPNUB,STPNBV1,SETRTN
@@ -1455,11 +1462,11 @@ C Generates a starting point for homoclinic continuation
 C If ISTART=2 it calls STPNUB.
 C If ISTART=3 it sets up the homotopy method.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NTSR,NCOLRS,NODIR
-      DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),UPS(IAP(1),0:*),
-     *     UDOTPS(IAP(1),0:*),TM(0:*)
+      DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),UPS(AP%NDIM,0:*),
+     *     UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: RR(:),RI(:),VR(:,:),VT(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
@@ -1467,11 +1474,11 @@ C Local
       INTEGER IP,KP,I,J,K
       DOUBLE PRECISION T,P
 C
-       NDIM=IAP(1)
-       IRS=IAP(3)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NDM=IAP(23)
+       NDIM=AP%NDIM
+       IRS=AP%IRS
+       NTST=AP%NTST
+       NCOL=AP%NCOL
+       NDM=AP%NDM
 C
        IF(IRS.GT.0)THEN
 C
@@ -1490,9 +1497,9 @@ C
           ENDIF
           ALLOCATE(UPSR(NDIMU,0:NTSTCU),UDOTPSR(NDIMU,0:NTSTCU),
      *         TMR(0:NTSTCU))
-          CALL STPNBV1(IAP,PAR,ICP,NDIMU,NTSR,NDIMRD,NCOLRS,RLDOT,
+          CALL STPNBV1(AP,PAR,ICP,NDIMU,NTSR,NDIMRD,NCOLRS,RLDOT,
      *         UPSR,UDOTPSR,TMR,NODIR)
-          CALL PREHO(IAP,PAR,ICP,NTSR,NDIMRD,NCOLRS,UPSR,
+          CALL PREHO(AP,PAR,ICP,NTSR,NDIMRD,NCOLRS,UPSR,
      *         UDOTPSR,TMR)
           CALL ADAPT2(NTSR,NCOLRS,NDIMU,NTST,NCOL,NDIM,
      *         TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
@@ -1501,7 +1508,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-          CALL STPNUB(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+          CALL STPNUB(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      *         UPS,UDOTPS,TM,NODIR)
 C
 C Initialize solution and additional parameters
@@ -1513,9 +1520,9 @@ C
 C
        ALLOCATE(RR(NDM),RI(NDM),VR(NDM,NDM),VT(NDM,NDM))
        CALL PVLS(NDM,UPS,PAR)
-       CALL EIGHO(IAP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
+       CALL EIGHO(AP,1,RR,RI,VT,PAR(12),ICP,PAR,NDM)
        CALL GETSTAB(NUNSTAB,RR,1)
-       CALL EIGHO(IAP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
+       CALL EIGHO(AP,2,RR,RI,VR,PAR(12),ICP,PAR,NDM)
        CALL GETSTAB(NSTAB,RR,-1)
 C
        IF (IRS>0.OR.ISTART/=3)THEN
@@ -1575,11 +1582,12 @@ C
       END SUBROUTINE STPNHO
 C
 C     ---------- ------
-      SUBROUTINE PVLSHO(IAP,ICP,UPS,NDIM,PAR)
+      SUBROUTINE PVLSHO(AP,ICP,UPS,NDIM,PAR)
 C
       USE BVP, ONLY: PVLSBV
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 C Local
@@ -1592,19 +1600,19 @@ C
       ALLOCATE(PU0(NDIM),PU1(NDIM))
       ALLOCATE(RR(NDIM,2),RI(NDIM,2),V(NDIM,NDIM,2),VT(NDIM,NDIM,2))
 C
-       IID=IAP(18)
-       NDM=IAP(23)
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       IID=AP%IID
+       NDM=AP%NDM
+       NTST=AP%NTST
+       NCOL=AP%NCOL
 C
-       CALL PVLSBV(IAP,ICP,UPS,NDIM,PAR)
+       CALL PVLSBV(AP,ICP,UPS,NDIM,PAR)
 C
 C      *Compute eigenvalues
        INEIG=.FALSE.
-       CALL EIGHO(IAP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
+       CALL EIGHO(AP,2,RR(1,1),RI(1,1),V(1,1,1),PAR(12),ICP,
      *      PAR,NDM)
        IF(IEQUIB.LT.0)THEN
-          CALL EIGHO(IAP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
+          CALL EIGHO(AP,2,RR(1,2),RI(1,2),V(1,1,2),PAR(12+NDM),ICP,
      *         PAR,NDM)
        ENDIF
        IF(IID.GE.3)THEN
@@ -1626,10 +1634,10 @@ C      *Compute eigenvalues
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
-          CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *         PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHO(AP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=.TRUE.
@@ -1645,10 +1653,10 @@ C      *Compute eigenvalues
 C
       DO I=1,NPSI
         IF((IPSI(I).GT.10).AND..NOT.INEIG) THEN
-          CALL EIGHO(IAP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
+          CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),PAR(12),ICP,
      *          PAR,NDM)
           IF(IEQUIB.LT.0)THEN
-             CALL EIGHO(IAP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
+             CALL EIGHO(AP,1,RR(1,2),RI(1,2),VT(1,1,2),PAR(12+NDM),
      *            ICP,PAR,NDM)
           ENDIF
           INEIG=.TRUE.
@@ -1894,7 +1902,7 @@ C
       END SUBROUTINE GETSTAB
 C     
 C     ---------- -----
-      SUBROUTINE EIGHO(IAP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
+      SUBROUTINE EIGHO(AP,ITRANS,RR,RI,VRET,XEQUIB,ICP,PAR,NDM)
 C
 C Uses LAPACK routine DGEEV to calculate the eigenvalues/eigenvectors
 C of the linearization matrix a (obtained from DFHO) and orders them
@@ -1913,7 +1921,8 @@ C                  eigenvectors
 C
       USE INTERFACES, ONLY:FUNI
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),ITRANS,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),ITRANS,NDM
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),XEQUIB(*)
       DOUBLE PRECISION, INTENT(OUT) :: RR(NDM),RI(NDM),VRET(NDM,NDM)
 C Local
@@ -1926,11 +1935,11 @@ C Local
       DOUBLE PRECISION TMP
       INTEGER, EXTERNAL :: IDAMAX
 C
-      NPAR=IAP(31)
+      NPAR=AP%NPAR
       ALLOCATE(DFDU(NDM,NDM),DFDP(NDM,NPAR),ZZ(NDM,NDM),F(NDM))
       IFAIL=0
 C     
-      CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,F,DFDU,DFDP)
+      CALL FUNI(AP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,F,DFDU,DFDP)
       IF(PAR(11)<0)THEN
          ! reverse time: reverse eigenvalues/vectors
          DFDU(:,:)=-DFDU(:,:)
@@ -2041,7 +2050,7 @@ C     ------- -------- ------
       END FUNCTION SELNEG
 C
 C     ---------- ------
-      SUBROUTINE PRJCTN(IAP,BOUND,CSAVE,XEQUIB,ICP,PAR,
+      SUBROUTINE PRJCTN(AP,BOUND,CSAVE,XEQUIB,ICP,PAR,
      *                  IMFD,IS,ITRANS,NDM)
 C
 C Compute NUNSTAB (or NSTAB) projection boundary condition functions
@@ -2062,7 +2071,8 @@ C
       USE INTERFACES, ONLY:FUNI
       USE SUPPORT, ONLY: GEL
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),IMFD,IS,ITRANS,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),IMFD,IS,ITRANS,NDM
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),XEQUIB(*)
       DOUBLE PRECISION, INTENT(OUT) :: BOUND(NDM,*)
       LOGICAL, INTENT(IN) :: CSAVE
@@ -2081,7 +2091,7 @@ C
       SAVE CPREV
 C
       ALLOCATE(A(NDM,NDM),FDUM(NDM))
-      CALL FUNI(IAP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,FDUM,A,DDUM)
+      CALL FUNI(AP,NDM,XEQUIB,XEQUIB,ICP,PAR,1,FDUM,A,DDUM)
       IF(PAR(11)<0)THEN
          ! reverse time: reverse eigenvalues/vectors
          A(:,:)=-A(:,:)

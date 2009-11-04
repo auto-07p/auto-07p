@@ -1,5 +1,7 @@
       MODULE INTERFACES
 
+      USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+
       IMPLICIT NONE
       PRIVATE
 
@@ -81,11 +83,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNLP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNLP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-par continuation of folds.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -95,13 +98,13 @@ C Local
       INTEGER NDM,NPAR,I,II,J
       DOUBLE PRECISION UMX,EP,P,UU
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
-       CALL FFLP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
+       CALL FFLP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -133,9 +136,9 @@ C
          IF(I==NDM+1)I=NDIM
          UU=U(I)
          U(I)=UU-EP
-         CALL FFLP(IAP,NDIM,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+         CALL FFLP(AP,NDIM,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FFLP(IAP,NDIM,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
+         CALL FFLP(AP,NDIM,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
          U(I)=UU
          DO J=NDM+1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -151,7 +154,7 @@ C
        PAR(ICP(1))=P+EP
 C
        DFDP(1:NDM,ICP(1))=DFP(:,ICP(1))
-       CALL FFLP(IAP,NDIM,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+       CALL FFLP(AP,NDIM,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
 C
        DO J=NDM+1,NDIM
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
@@ -164,9 +167,10 @@ C
       END SUBROUTINE FNLP
 C
 C     ---------- ----
-      SUBROUTINE FFLP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFLP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -174,15 +178,15 @@ C
 
       INTEGER IPS,IJC,I,J
 C
-       IPS=IAP(2)
+       IPS=AP%IPS
 C
        PAR(ICP(2))=U(NDIM)
        IJC=IJAC
        IF(IJAC==0)IJC=1
        IF(IPS.EQ.-1) THEN
-         CALL FNDS(IAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+         CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
        ELSE
-         CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+         CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
        ENDIF
 C
        DO I=1,NDM
@@ -202,14 +206,14 @@ C
       END SUBROUTINE FFLP
 C
 C     ---------- ------
-      SUBROUTINE STPNLP(IAP,PAR,ICP,U,UDOT,NODIR)
+      SUBROUTINE STPNLP(AP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
 C
 C Generates starting data for the continuation of folds.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -218,17 +222,17 @@ C Local
       DOUBLE PRECISION DUMDFP(1)
       INTEGER ICPRS(2),NDIM,IPS,NDM,I
 C
-       NDIM=IAP(1)
-       IPS=IAP(2)
-       NDM=IAP(23)
+       NDIM=AP%NDIM
+       IPS=AP%IPS
+       NDM=AP%NDM
 C
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
        IF(IPS.EQ.-1)THEN
-         CALL FNDS(IAP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+         CALL FNDS(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
        ELSE
-         CALL FUNI(IAP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+         CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
        ENDIF
        CALL NLVC(NDM,NDM,1,DFU,V)
        CALL NRMLZ(NDM,V)
@@ -249,11 +253,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNBP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNBP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-par continuation of BP.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -263,13 +268,13 @@ C Local
       INTEGER NDM,NPAR,I,J
       DOUBLE PRECISION UMX,EP,P,UU
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
-       CALL FFBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -289,9 +294,9 @@ C
        DO I=1,NDIM
          UU=U(I)
          U(I)=UU-EP
-         CALL FFBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FFBP(IAP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
          U(I)=UU
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -306,7 +311,7 @@ C
        P=PAR(ICP(1))
        PAR(ICP(1))=P+EP
 C
-       CALL FFBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
 C
        DO J=1,NDIM
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
@@ -319,9 +324,10 @@ C
       END SUBROUTINE FNBP
 C
 C     ---------- ----
-      SUBROUTINE FFBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -329,8 +335,8 @@ C
 
       INTEGER IPS,ISW,I,J
 C
-       IPS=IAP(2)
-       ISW=IAP(10)
+       IPS=AP%IPS
+       ISW=AP%ISW
 C
        IF(ISW.EQ.3) THEN
 C        ** Generic case
@@ -339,9 +345,9 @@ C        ** Generic case
        PAR(ICP(2))=U(NDIM-1)
 C
        IF(IPS.EQ.-1) THEN
-         CALL FNDS(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+         CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        ELSE
-         CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+         CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        ENDIF
 C
        IF(ISW.EQ.2) THEN
@@ -372,14 +378,14 @@ C
       END SUBROUTINE FFBP
 C
 C     ---------- ------
-      SUBROUTINE STPNBP(IAP,PAR,ICP,U,UDOT,NODIR)
+      SUBROUTINE STPNBP(AP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
 C
 C Generates starting data for the continuation of BP.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -387,20 +393,20 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE ::DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
       INTEGER :: ICPRS(3),NDIM,IPS,ISW,NDM,NPAR,I,J
 C
-       NDIM=IAP(1)
-       IPS=IAP(2)
-       ISW=IAP(10)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       IPS=AP%IPS
+       ISW=AP%ISW
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR),A(NDM+1,NDM+1))
        ALLOCATE(V(NDM+1),F(NDM))
        IF(IPS.EQ.-1)THEN
-         CALL FNDS(IAP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
+         CALL FNDS(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
        ELSE
-         CALL FUNI(IAP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
+         CALL FUNI(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
        ENDIF
        A(:,1:NDM)=DFU(:,:)
        A(:,NDM+1)=DFP(:,ICP(1))
@@ -442,12 +448,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNC1(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNC1(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generate the equations for the continuation scheme used for
 C the optimization of algebraic systems (one parameter).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -456,14 +463,14 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: DDU(:),DDP(:)
       INTEGER JAC,NDM,NFPR,NPAR,I,II,J
 C
-       JAC=IAP(22)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       JAC=AP%JAC
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
        ALLOCATE(DDU(NDIM),DDP(NPAR))
 C
        PAR(ICP(2))=U(NDIM)
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Rearrange (Since dimensions in FNC1 and FUNI differ).
 C
@@ -501,11 +508,11 @@ C
       END SUBROUTINE FNC1
 C
 C     ---------- ------
-      SUBROUTINE STPNC1(IAP,PAR,ICP,U,UDOT,NODIR)
+      SUBROUTINE STPNC1(AP,PAR,ICP,U,UDOT,NODIR)
 C
 C Generate starting data for optimization problems (one parameter).
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -513,16 +520,16 @@ C Local
       INTEGER NDIM,JAC,NDM,NFPR
       DOUBLE PRECISION DUM(1),T,FOP
 C
-       NDIM=IAP(1)
-       JAC=IAP(22)
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDIM=AP%NDIM
+       JAC=AP%JAC
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
        T=0.d0
        U(:NDIM)=0.d0
        CALL STPNT(NDIM,U,PAR,T)
        NFPR=2
-       IAP(29)=NFPR
+       AP%NFPR=NFPR
        CALL FOPI(JAC,NFPR,NDM,U,ICP,PAR,0,FOP,DUM,DUM)
        PAR(ICP(1))=FOP
        U(NDIM)=PAR(ICP(2))
@@ -533,12 +540,13 @@ C
       END SUBROUTINE STPNC1
 C
 C     ---------- ----
-      SUBROUTINE FNC2(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNC2(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generate the equations for the continuation scheme used for the
 C optimization of algebraic systems (more than one parameter).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -549,13 +557,13 @@ C Local
       INTEGER NDM,NPAR,I,J
       DOUBLE PRECISION UMX,EP
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
-       CALL FFC2(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+       CALL FFC2(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -579,8 +587,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFC2(IAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-         CALL FFC2(IAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         CALL FFC2(AP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFC2(AP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -598,9 +606,10 @@ C
       END SUBROUTINE FNC2
 C
 C     ---------- ----
-      SUBROUTINE FFC2(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFC2(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -610,15 +619,15 @@ C Local
       INTEGER JAC,NFPR,NPAR,NDM2,ICPM,I,J
       DOUBLE PRECISION FOP
 C
-       JAC=IAP(22)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       JAC=AP%JAC
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
        ALLOCATE(DDU(NDM),DDP(NPAR))
 C
        DO I=2,NFPR
          PAR(ICP(I))=U(2*NDM+I)
        ENDDO
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        CALL FOPI(JAC,NFPR,NDM,U,ICP,PAR,2,FOP,DDU,DDP)
 C
        DO I=1,NDM
@@ -651,7 +660,7 @@ C
       END SUBROUTINE FFC2
 C
 C     ---------- ------
-      SUBROUTINE STPNC2(IAP,PAR,ICP,U,UDOT,NODIR)
+      SUBROUTINE STPNC2(AP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -659,7 +668,7 @@ C
 C Generates starting data for the continuation equations for
 C optimization of algebraic systems (More than one parameter).
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -670,20 +679,20 @@ C Local
       INTEGER NDIM,JAC,NDM,NFPR,NPAR,I,J
       DOUBLE PRECISION FOP
 C
-       NDIM=IAP(1)
-       JAC=IAP(22)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       JAC=AP%JAC
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        ALLOCATE(ICPRS(NFPR))
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       CALL READLB(AP,ICPRS,U,UDOT,PAR)
        DEALLOCATE(ICPRS)
 C
        IF(NFPR.EQ.3)THEN
          ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR),F(NDM),V(NDM+1))
          ALLOCATE(DD(NDM+1,NDM+1),DU(NDM),DP(NPAR))
-         CALL FUNI(IAP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
+         CALL FUNI(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
          CALL FOPI(JAC,NFPR,NDM,U,ICP,PAR,2,FOP,DU,DP)
 C       TRANSPOSE
          DO I=1,NDM
@@ -720,11 +729,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNDS(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNDS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generate the equations for continuing fixed points.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -735,17 +745,17 @@ C
       DOUBLE PRECISION, ALLOCATABLE :: DFDU2(:,:)
 
 C
-       ITDS=IAP(25)
-       CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+       ITDS=AP%ITDS
+       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
        IF(ITDS>=2)THEN
-          NFPR=IAP(29)
-          NPAR=IAP(31)
+          NFPR=AP%NFPR
+          NPAR=AP%NPAR
           ALLOCATE(FN(NDIM),DFDU1(NDIM,NDIM),DFDP1(NDIM,NPAR),
      *         DFDU2(NDIM,NDIM))
           DO I=2,ITDS
              ! with iterations use the chain rule
              FN(:)=F(:)
-             CALL FUNI(IAP,NDIM,FN,UOLD,ICP,PAR,IJAC,F,DFDU1,DFDP1)
+             CALL FUNI(AP,NDIM,FN,UOLD,ICP,PAR,IJAC,F,DFDU1,DFDP1)
              IF(IJAC>0)THEN
                 ! DFDU=DFDU1*DFDU
                 CALL DGEMM('n','n',NDIM,NDIM,NDIM,1.d0,DFDU1,
@@ -782,11 +792,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNTI(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNTI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generate the equations for continuing fixed points.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM+1)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -795,7 +806,7 @@ C
       INTEGER I,J
       DOUBLE PRECISION TOLD,DT
 C
-       CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
        TOLD=UOLD(NDIM+1)
        DT=PAR(ICP(1))-TOLD
@@ -824,12 +835,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNHB(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNHB(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-parameter continuation of Hopf
 C bifurcation points in ODE/wave/map.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -839,12 +851,12 @@ C Local
       INTEGER NDM,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
+       NDM=AP%NDM
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDIM*NDIM))
-       CALL FFHB(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+       CALL FFHB(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
@@ -868,8 +880,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFHB(IAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFHB(IAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
+         CALL FFHB(AP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
+         CALL FFHB(AP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -884,7 +896,7 @@ C
        P=PAR(ICP(1))
        PAR(ICP(1))=P+EP
 C
-       CALL FFHB(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU)
+       CALL FFHB(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU)
 C
        DO J=1,NDIM
          DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
@@ -897,11 +909,12 @@ C
       END SUBROUTINE FNHB
 C
 C     ---------- ----
-      SUBROUTINE FFHB(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFHB(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
       USE SUPPORT
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -910,7 +923,7 @@ C Local
       INTEGER IPS,NDM2,I,J
       DOUBLE PRECISION DUMDP(1),THTA,S1,C1,ROM
 C
-       IPS=IAP(2)
+       IPS=AP%IPS
        NDM2=2*NDM
 C
        PAR(ICP(2))=U(NDIM)
@@ -930,9 +943,9 @@ C
           C1=0.d0
        ENDIF
        IF(IPS==11)THEN 
-          CALL FNWS(IAP,NDIM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+          CALL FNWS(AP,NDIM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
        ELSE
-          CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
        ENDIF
 C
        IF(IPS==-1)THEN
@@ -972,7 +985,7 @@ C
       END SUBROUTINE FFHB
 C
 C     ---------- ------
-      SUBROUTINE STPNHB(IAP,PAR,ICP,U,UDOT,NODIR)
+      SUBROUTINE STPNHB(AP,PAR,ICP,U,UDOT,NODIR)
 C
       USE IO
       USE SUPPORT
@@ -980,7 +993,7 @@ C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE/wave/map).
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -989,12 +1002,12 @@ C Local
       INTEGER :: ICPRS(2),NDIM,IPS,NDM,NDM2,I,J
       DOUBLE PRECISION DFP(1),THTA,S1,C1,ROM,PERIOD
 C
-       NDIM=IAP(1)
-       IPS=IAP(2)
-       NDM=IAP(23)
+       NDIM=AP%NDIM
+       IPS=AP%IPS
+       NDM=AP%NDM
        ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
 C
-       CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+       CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
        IF(IPS==-1)THEN
           THTA=PI(2.d0)/PAR(11)
@@ -1010,9 +1023,9 @@ C
           U(NDIM-1)=ROM
        ENDIF
        IF(IPS==11)THEN 
-          CALL FNWS(IAP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
+          CALL FNWS(AP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
        ELSE
-          CALL FUNI(IAP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
+          CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
        ENDIF
 C
        NDM2=2*NDM
@@ -1058,11 +1071,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNPS(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the continuation of periodic orbits.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1073,7 +1087,7 @@ C Local
 C
 C Generate the function.
 C
-       CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,ABS(IJAC),F,DFDU,DFDP)
+       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,ABS(IJAC),F,DFDU,DFDP)
        PERIOD=PAR(11)
        IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
 C          **Variable period continuation
@@ -1096,12 +1110,13 @@ C
       END SUBROUTINE FNPS
 C
 C     ---------- ----
-      SUBROUTINE BCPS(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCPS(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -1121,7 +1136,7 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
+       NPAR=AP%NPAR
        NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
@@ -1138,10 +1153,11 @@ C
       END SUBROUTINE BCPS
 C
 C     ---------- ----
-      SUBROUTINE ICPS(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPS(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -1156,7 +1172,7 @@ C
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
+       NPAR=AP%NPAR
        NN=NDIM+NPAR
        DO I=1,NN
          DINT(1,I)=0.d0
@@ -1204,7 +1220,7 @@ C
       END SUBROUTINE PDBLE
 C
 C     ---------- ------
-      SUBROUTINE STPNPS(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNPS(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -1216,24 +1232,24 @@ C If IPS is not equal to 2 then the user must have supplied
 C BCND, ICND, and period-scaled F in FUNC, and the user period-scaling of F
 C must be taken into account.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       INTEGER NDIM,IPS,IRS,ISW,ITP,NCOL,NTST,NDIMRD,NTSR2
 C
-       NDIM=IAP(1)
-       IPS=IAP(2)
-       IRS=IAP(3)
-       ISW=IAP(10)
-       ITP=IAP(27)
+       NDIM=AP%NDIM
+       IPS=AP%IPS
+       IRS=AP%IRS
+       ISW=AP%ISW
+       ITP=AP%ITP
 C
        IF(IRS==0)THEN
-          CALL STPNUB(IAP,PAR,ICP,NTSR,NCOLRS,
+          CALL STPNUB(AP,PAR,ICP,NTSR,NCOLRS,
      *         RLDOT,UPS,UDOTPS,TM,NODIR)
           RETURN
        ENDIF
@@ -1246,7 +1262,7 @@ C               period doubling
        ENDIF
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR2),
      *      UDOTPSR(NDIM,0:NCOLRS*NTSR2),TMR(0:NTSR2))
-       CALL STPNBV1(IAP,PAR,ICP,NDIM,NTSR,NDIMRD,NCOLRS,
+       CALL STPNBV1(AP,PAR,ICP,NDIM,NTSR,NDIMRD,NCOLRS,
      *      RLDOT,UPSR,UDOTPSR,TMR,NODIR)
        IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
 C
@@ -1255,8 +1271,8 @@ C at a period doubling bifurcation.
 C
           CALL PDBLE(NDIM,NTSR,NCOLRS,UPSR,UDOTPSR,TMR,PAR)
        ENDIF
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       NTST=AP%NTST
+       NCOL=AP%NCOL
        CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
      *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.TRUE.)
        DEALLOCATE(TMR,UPSR,UDOTPSR)
@@ -1270,13 +1286,14 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNWS(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNWS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Sets up equations for the continuation of spatially homogeneous
 C solutions to parabolic systems, for the purpose of finding
 C bifurcations to travelling wave solutions.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1286,8 +1303,8 @@ C Local
       INTEGER NDM,NPAR,NFPR,I,J
       DOUBLE PRECISION C
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
@@ -1300,10 +1317,10 @@ C
          ENDIF
        ENDIF
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
 C
        C=PAR(10)
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DFP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DFP)
 C
        DO I=1,NDM
          F(NDM+I)=-( C*U(NDM+I) + F(I) )/PAR(14+I)
@@ -1359,11 +1376,12 @@ C
       END SUBROUTINE FNWS
 C
 C     ---------- ----
-      SUBROUTINE FNWP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNWP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Equations for the continuation of traveling waves.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1374,7 +1392,7 @@ C
 C
 C Generate the function and Jacobian.
 C
-      CALL FNWS(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      CALL FNWS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
       PERIOD=PAR(11)
       IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
 C        **Variable wave length
@@ -1402,11 +1420,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNSP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNSP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for taking one time step (Implicit Euler).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1416,8 +1435,8 @@ C Local
       INTEGER NDM,NPAR,I,J
       DOUBLE PRECISION PERIOD
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
 C Generate the function and Jacobian.
 C
@@ -1428,7 +1447,7 @@ C
          ENDIF
        ENDIF
 C
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DFU,DFP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DFU,DFP)
 C
        PERIOD=PAR(11)
        DO I=1,NDM
@@ -1474,11 +1493,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNPE(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPE(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for taking one time step (Implicit Euler).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1488,7 +1508,7 @@ C Local
       INTEGER NDM,IIJAC,I,J
       DOUBLE PRECISION DUMDFP(1),T,DT,PERIOD,RLOLD
 C
-       NDM=IAP(23)
+       NDM=AP%NDM
 C
 C Generate the function and Jacobian.
 C
@@ -1512,7 +1532,7 @@ C
 C
        IIJAC=IJAC
        IF(IJAC.GT.1)IIJAC=1
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,IIJAC,F(NDM+1),DFU,DUMDFP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IIJAC,F(NDM+1),DFU,DUMDFP)
 C
        DO I=1,NDM
          F(I)=PERIOD*U(NDM+I)
@@ -1543,12 +1563,13 @@ C
       END SUBROUTINE FNPE
 C
 C     ---------- ----
-      SUBROUTINE ICPE(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPE(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Dummy integral condition subroutine for parabolic systems.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -1559,17 +1580,18 @@ C
       END SUBROUTINE ICPE
 
 C     ---------- ------
-      SUBROUTINE PVLSPE(IAP,ICP,UPS,NDIM,PAR)
+      SUBROUTINE PVLSPE(AP,ICP,UPS,NDIM,PAR)
 
       USE BVP
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
 C     save old time
       
       PAR(12)=PAR(ICP(1))
-      CALL PVLSBV(IAP,ICP,UPS,NDIM,PAR)
+      CALL PVLSBV(AP,ICP,UPS,NDIM,PAR)
 
       END SUBROUTINE PVLSPE
 C
@@ -1580,9 +1602,10 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNPL(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPL(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1592,14 +1615,14 @@ C Local
       INTEGER NDM,NFPR,NPAR,I,J
       DOUBLE PRECISION UMX,UU,EP,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
-       CALL FFPL(IAP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
+       CALL FFPL(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -1639,9 +1662,9 @@ C
        DO I=1,NDM
          UU=U(I)
          U(I)=UU-EP
-         CALL FFPL(IAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+         CALL FFPL(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FFPL(IAP,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
+         CALL FFPL(AP,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
          U(I)=UU
          DO J=NDM+1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -1658,7 +1681,7 @@ C
          IF(ICP(I)==11)CYCLE
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FFPL(IAP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+         CALL FFPL(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
          DO J=NDM+1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -1669,9 +1692,10 @@ C
       END SUBROUTINE FNPL
 C
 C     ---------- ----
-      SUBROUTINE FFPL(IAP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFPL(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(2*NDM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
@@ -1682,9 +1706,9 @@ C
        IJC=IJAC
        IF(IJC==0)IJC=-1
        IF(ICP(2)/=11)IJC=2
-       CALL FNPS(IAP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
-       NPAR=IAP(31)
+       NPAR=AP%NPAR
        DO I=1,NDM
          F(NDM+I)=0.d0
          DO J=1,NDM
@@ -1697,14 +1721,15 @@ C
       END SUBROUTINE FFPL
 C
 C     ---------- ----
-      SUBROUTINE BCPL(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCPL(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
 C Boundary conditions for continuing folds (Periodic solutions)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -1717,7 +1742,7 @@ C
 C
 C Rotations
        IF(IRTN.NE.0)THEN
-         NDM=IAP(23)
+         NDM=AP%NDM
          DO I=1,NDM
            IF(NRTN(I).NE.0)F(I)=F(I) + PI(2.d0)*NRTN(I)
          ENDDO
@@ -1725,7 +1750,7 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
+       NPAR=AP%NPAR
        NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
@@ -1742,12 +1767,13 @@ C
       END SUBROUTINE BCPL
 C
 C     ---------- ----
-      SUBROUTINE ICPL(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPL(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Integral conditions for continuing folds (Periodic solutions)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -1755,8 +1781,8 @@ C
 
       INTEGER NDM,NPAR,NN,I,J
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        F(1)=0.d0
        F(2)=0.d0
@@ -1790,7 +1816,7 @@ C
       END SUBROUTINE ICPL
 C
 C     ---------- ------
-      SUBROUTINE STPNPL(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNPL(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -1800,24 +1826,24 @@ C
 C Generates starting data for the 2-parameter continuation of folds
 C on a branch of periodic solutions.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       DOUBLE PRECISION RLDOTRS(4)
       INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,ITPRS,NDIMRD,J,NPAR
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
-       NDIM=IAP(1)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
      *      UDOTPSR,TMR,ITPRS,NDIM)
 C
 C Complement starting data
@@ -1843,8 +1869,8 @@ C          Fixed period
          ENDDO
 C
        NODIR=0
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       NTST=AP%NTST
+       NCOL=AP%NCOL
        CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
      *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
        DEALLOCATE(TMR,UPSR,UDOTPSR)
@@ -1859,9 +1885,10 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE FNPBP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPBP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1872,14 +1899,14 @@ C Local
       INTEGER NDM,NFPR,NPAR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
-       CALL FFPBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -1903,8 +1930,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFPBP(IAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-         CALL FFPBP(IAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         CALL FFPBP(AP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFPBP(AP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -1919,7 +1946,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FFPBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -1931,9 +1958,10 @@ C
       END SUBROUTINE FNPBP
 C
 C     ---------- -----
-      SUBROUTINE FFPBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFPBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -1944,10 +1972,10 @@ C Local
       DOUBLE PRECISION PERIOD
 C
        PERIOD=PAR(11)
-       ISW=IAP(10)
-       NPAR=IAP(31)
+       ISW=AP%ISW
+       NPAR=AP%NPAR
 C
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
 C
        IF(ISW.GT.0) THEN
@@ -2002,23 +2030,24 @@ C
       END SUBROUTINE FFPBP
 C
 C     ---------- -----
-      SUBROUTINE BCPBP(IAP,NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
+      SUBROUTINE BCPBP(AP,NDIM,PAR,ICP,NBC,U0,U1,FB,IJAC,DBC)
 C
 C Boundary conditions for continuing BP (Periodic solutions)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
       INTEGER ISW,NDM,NPAR,NN,I,J
 C
-       ISW=IAP(10)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       ISW=AP%ISW
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        DO I=1,NDIM
          FB(I)=U0(I)-U1(I)
@@ -2072,12 +2101,13 @@ C
       END SUBROUTINE BCPBP
 C
 C     ---------- -----
-      SUBROUTINE ICPBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      *  F,IJAC,DINT)
 C
 C Integral conditions for continuing BP (Periodic solutions)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -2088,11 +2118,11 @@ C Local
       INTEGER NFPR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
-       CALL FIPBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
+       CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
 C
        IF(IJAC.EQ.0)RETURN
 C
@@ -2114,8 +2144,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FIPBP(IAP,NDIM,PAR,ICP,NINT,UU1,UOLD,UDOT,UPOLD,FF1)
-         CALL FIPBP(IAP,NDIM,PAR,ICP,NINT,UU2,UOLD,UDOT,UPOLD,FF2)
+         CALL FIPBP(AP,NDIM,PAR,ICP,NINT,UU1,UOLD,UDOT,UPOLD,FF1)
+         CALL FIPBP(AP,NDIM,PAR,ICP,NINT,UU2,UOLD,UDOT,UPOLD,FF2)
          DO J=1,NINT
            DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -2130,7 +2160,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FIPBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
+         CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -2143,9 +2173,10 @@ C
       END SUBROUTINE ICPBP
 C
 C     ---------- -----
-      SUBROUTINE FIPBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
+      SUBROUTINE FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
@@ -2156,12 +2187,12 @@ C Local
       DOUBLE PRECISION PERIOD
 C
        PERIOD=PAR(11)
-       ISW=IAP(10)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       ISW=AP%ISW
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 C
        FI(1)=0.d0
        FI(NINT)=PAR(NPAR-9+5)**2-PAR(NPAR-9+6)
@@ -2223,7 +2254,7 @@ C
       END SUBROUTINE FIPBP
 C
 C     ---------- -------
-      SUBROUTINE STPNPBP(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNPBP(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -2234,12 +2265,12 @@ C
 C Generates starting data for the 2-parameter continuation of BP
 C on a branch of periodic solutions.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: VPS(:,:),VDOTPS(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: THU1(:)
@@ -2254,19 +2285,19 @@ C Local
       INTEGER NDIMRD,I,J,NPAR
       DOUBLE PRECISION DET,RDSZ
 C
-       NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       ISW=IAP(10)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NTST=AP%NTST
+       NCOL=AP%NCOL
+       ISW=AP%ISW
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        NDIM3=GETNDIM3()
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
-         CALL STPNBV(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+         CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      *     UPS,UDOTPS,TM,NODIR)
          RETURN
        ENDIF
@@ -2286,7 +2317,7 @@ C        ** allocation
          ALLOCATE(U(NDM),DTM(NTSR))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
+         CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
      *     UDOTPST,TMR,ITPRS,NDM)
 C
          DO I=1,NTSR
@@ -2299,19 +2330,19 @@ C
 C Compute the second null vector
 C
 C        ** redefine IAP
-         IAP(1)=NDM
-         IAP(5)=NTSR
-         IAP(6)=NCOLRS
-         NBC=IAP(12)
-         NINT=IAP(13)
-         IAP(12)=NDM
-         IAP(13)=1
-         IAP(29)=2
+         AP%NDIM=NDM
+         AP%NTST=NTSR
+         AP%NCOL=NCOLRS
+         NBC=AP%NBC
+         NINT=AP%NINT
+         AP%NBC=NDM
+         AP%NINT=1
+         AP%NFPR=2
 C
 C        ** compute UPOLDP
          DO J=0,NTSR*NCOLRS
             U(:)=UPST(:,J)
-            CALL FNPS(IAP,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
+            CALL FNPS(AP,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
          ENDDO
 C
 C        ** unit weights
@@ -2322,7 +2353,7 @@ C        ** call SOLVBV
          RDSZ=0.d0
          NLLV=1
          IFST=1
-         CALL SOLVBV(IFST,IAP,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV,
+         CALL SOLVBV(IFST,AP,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV,
      *     RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT,
      *     DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
 C
@@ -2331,12 +2362,12 @@ C        ** normalization
          CALL SCALEB(NTSR,NCOLRS,NDM,2,VDOTPST,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP
-         IAP(1)=NDIM
-         IAP(5)=NTST
-         IAP(6)=NCOL
-         IAP(12)=NBC
-         IAP(13)=NINT
-         IAP(29)=NFPR
+         AP%NDIM=NDIM
+         AP%NTST=NTST
+         AP%NCOL=NCOL
+         AP%NBC=NBC
+         AP%NINT=NINT
+         AP%NFPR=NFPR
 C
 C        ** init UPS,PAR
          UPSR(1:NDM,:)=UPST(:,:)
@@ -2377,7 +2408,7 @@ C
      *         VDOTPS(2*NDIM,0:NTSR*NCOLRS))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
+         CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
      *     VDOTPS,TMR,ITPRS,2*NDIM)
 C
          UPSR(1:NDM,:)=VPS(1:NDM,:)
@@ -2402,9 +2433,10 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNPD(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPD(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -2414,13 +2446,13 @@ C Local
       INTEGER NDM,NFPR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM))
-       CALL FFPD(IAP,U,UOLD,ICP,PAR,F,NDM,DFU)
+       CALL FFPD(AP,U,UOLD,ICP,PAR,F,NDM,DFU)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
@@ -2444,8 +2476,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFPD(IAP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFPD(IAP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
+         CALL FFPD(AP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
+         CALL FFPD(AP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -2460,7 +2492,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FFPD(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
+         CALL FFPD(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -2472,9 +2504,10 @@ C
       END SUBROUTINE FNPD
 C
 C     ---------- ----
-      SUBROUTINE FFPD(IAP,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFPD(AP,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(2*NDM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
@@ -2484,7 +2517,7 @@ C Local
       DOUBLE PRECISION DUMDP(1),PERIOD
 C
        PERIOD=PAR(11)
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
 C
        DO I=1,NDM
          F(NDM+I)=0.d0
@@ -2499,7 +2532,7 @@ C
       END SUBROUTINE FFPD
 C
 C     ---------- ----
-      SUBROUTINE BCPD(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCPD(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
@@ -2507,13 +2540,14 @@ C
 C Generate boundary conditions for the 2-parameter continuation
 C of period doubling bifurcations.
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 C
       INTEGER NDM,NPAR,NN,I,J
-       NDM=IAP(23)
+       NDM=AP%NDM
 C
        DO I=1,NDM
          F(I)=U0(I)-U1(I)
@@ -2529,7 +2563,7 @@ C Rotations
 C
        IF(IJAC.EQ.0)RETURN
 C
-       NPAR=IAP(31)
+       NPAR=AP%NPAR
        NN=2*NDIM+NPAR
        DO I=1,NBC
          DO J=1,NN
@@ -2550,10 +2584,11 @@ C
       END SUBROUTINE BCPD
 C
 C     ---------- ----
-      SUBROUTINE ICPD(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPD(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -2561,8 +2596,8 @@ C
 
       INTEGER NDM,NPAR,NN,I,J
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        F(1)=0.d0
        F(2)=-PAR(NPAR)
@@ -2592,7 +2627,7 @@ C
       END SUBROUTINE ICPD
 C
 C     ---------- ------
-      SUBROUTINE STPNPD(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNPD(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -2602,24 +2637,24 @@ C
 C Generates starting data for the 2-parameter continuation of
 C period-doubling bifurcations on a branch of periodic solutions.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       DOUBLE PRECISION RLDOTRS(4)
       INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NDIMRD,ITPRS,J,NPAR
 C
-       NDIM=IAP(1)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
      *      UDOTPSR,TMR,ITPRS,NDIM)
        RLDOT(1)=RLDOTRS(1)
        RLDOT(2)=RLDOTRS(2)
@@ -2633,8 +2668,8 @@ C Complement starting data
          ENDDO
 C
        NODIR=0
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       NTST=AP%NTST
+       NCOL=AP%NCOL
        CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
      *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
        DEALLOCATE(TMR,UPSR,UDOTPSR)
@@ -2649,12 +2684,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNTR(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNTR(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-parameter continuation of
 C torus bifurcations.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -2664,13 +2700,13 @@ C Local
       INTEGER NDM,NFPR,I,J
       DOUBLE PRECISION EP,UMX,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM))
-       CALL FFTR(IAP,U,UOLD,ICP,PAR,F,NDM,DFU)
+       CALL FFTR(AP,U,UOLD,ICP,PAR,F,NDM,DFU)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
@@ -2694,8 +2730,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFTR(IAP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFTR(IAP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
+         CALL FFTR(AP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
+         CALL FFTR(AP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -2710,7 +2746,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FFTR(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
+         CALL FFTR(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -2722,9 +2758,10 @@ C
       END SUBROUTINE FNTR
 C
 C     ---------- ----
-      SUBROUTINE FFTR(IAP,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFTR(AP,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM*3)
@@ -2734,7 +2771,7 @@ C Local
       DOUBLE PRECISION DUMDP(1),PERIOD
 C
        PERIOD=PAR(11)
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
 C
        NDM2=2*NDM
        DO I=1,NDM
@@ -2753,12 +2790,13 @@ C
       END SUBROUTINE FFTR
 C
 C     ---------- ----
-      SUBROUTINE BCTR(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCTR(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -2766,8 +2804,8 @@ C
       INTEGER NDM,NDM2,NN,NPAR,I,J
       DOUBLE PRECISION THETA,SS,CS
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        NDM2=2*NDM
        THETA=PAR(NPAR-1)
@@ -2814,10 +2852,11 @@ C
       END SUBROUTINE BCTR
 C
 C     ---------- ----
-      SUBROUTINE ICTR(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICTR(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -2825,8 +2864,8 @@ C
 
       INTEGER NDM,NDM2,NN,NPAR,I,J
 C
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NPAR=AP%NPAR
        NDM2=2*NDM
 C
        F(1)=0.d0
@@ -2862,7 +2901,7 @@ C
       END SUBROUTINE ICTR
 C
 C     ---------- ------
-      SUBROUTINE STPNTR(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNTR(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -2872,24 +2911,24 @@ C
 C Generates starting data for the 2-parameter continuation of torus
 C bifurcations.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       DOUBLE PRECISION RLDOTRS(4),T,DT
       INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NPAR,NDIMRD,ITPRS,I,J,K
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
-       NDIM=IAP(1)
-       NDM=IAP(23)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NDM=AP%NDM
+       NPAR=AP%NPAR
 C
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
      *      UDOTPSR,TMR,ITPRS,NDIM)
 C
        RLDOT(1)=RLDOTRS(1)
@@ -2917,8 +2956,8 @@ C
        PAR(NPAR)=0.d0
 C
        NODIR=0
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       NTST=AP%NTST
+       NCOL=AP%NCOL
        CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
      *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
        DEALLOCATE(TMR,UPSR,UDOTPSR)
@@ -2933,11 +2972,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNPO(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNPO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for periodic optimization problems.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -2947,8 +2987,8 @@ C Local
       INTEGER NDM,NFPR,I,J
       DOUBLE PRECISION UMX,EP,P,PERIOD,UU,DUMDU(1),DUMDP(1)
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate F(UOLD)
 C
@@ -2961,7 +3001,7 @@ C
 C
 C Generate the function.
 C
-      CALL FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU)
+      CALL FFPO(AP,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU)
 C
       IF(IJAC.EQ.0)THEN
         DEALLOCATE(UPOLD)
@@ -2982,9 +3022,9 @@ C
       DO I=1,NDIM
         UU=U(I)
         U(I)=UU-EP
-        CALL FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU)
+        CALL FFPO(AP,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU)
         U(I)=UU+EP
-        CALL FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,FF2,NDM,DFU)
+        CALL FFPO(AP,U,UOLD,UPOLD,ICP,PAR,FF2,NDM,DFU)
         U(I)=UU
         DO J=1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -3000,7 +3040,7 @@ C
       DO I=1,NFPR
         P=PAR(ICP(I))
         PAR(ICP(I))=P+EP
-        CALL FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU)
+        CALL FFPO(AP,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
         ENDDO
@@ -3012,9 +3052,10 @@ C
       END SUBROUTINE FNPO
 C
 C     ---------- ----
-      SUBROUTINE FFPO(IAP,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFPO(AP,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*),UPOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM*2)
@@ -3023,13 +3064,13 @@ C Local
       INTEGER JAC,NFPR,I,J
       DOUBLE PRECISION DUMDP(1),PERIOD,RKAPPA,GAMMA,DFU,FOP
 
-       JAC=IAP(22)
-       NFPR=IAP(29)
+       JAC=AP%JAC
+       NFPR=AP%NFPR
        PERIOD=PAR(11)
        RKAPPA=PAR(13)
        GAMMA =PAR(14)
 C
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,1,F(NDM+1),DFDU,DUMDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F(NDM+1),DFDU,DUMDP)
        CALL FOPI(JAC,NFPR,NDM,U,ICP,PAR,1,FOP,F,DUMDP)
 C
        DO I=1,NDM
@@ -3047,21 +3088,22 @@ C
       END SUBROUTINE FFPO
 C
 C     ---------- ----
-      SUBROUTINE BCPO(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCPO(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
       USE BVP, ONLY: IRTN, NRTN
       USE SUPPORT, ONLY : PI
 C
 C Generates the boundary conditions for periodic optimization problems.
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
       INTEGER NFPR,I,J
 C
-      NFPR=IAP(29)
+      NFPR=AP%NFPR
 C
       DO I=1,NBC
         F(I)=U0(I)-U1(I)
@@ -3091,12 +3133,13 @@ C
       END SUBROUTINE BCPO
 C
 C     ---------- ----
-      SUBROUTINE ICPO(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICPO(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Generates integral conditions for periodic optimization problems.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -3107,15 +3150,15 @@ C Local
       INTEGER NPAR,NDM,NFPR,I,J
       DOUBLE PRECISION UMX,EP,P,UU
 
-      NPAR=IAP(31)
+      NPAR=AP%NPAR
       ALLOCATE(DFU(NDIM*NDIM),DFP(NDIM*NPAR))
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
 C Generate the function.
 C
-       CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,NDM,DFU,DFP)
+       CALL FIPO(AP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -3135,9 +3178,9 @@ C
        DO I=1,NDIM
          UU=U(I)
          U(I)=UU-EP
-         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
+         CALL FIPO(AP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
          U(I)=UU+EP
-         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F2,NDM,DFU,DFP)
+         CALL FIPO(AP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F2,NDM,DFU,DFP)
          U(I)=UU
          DO J=1,NINT
            DINT(J,I)=(F2(J)-F1(J))/(2*EP)
@@ -3147,7 +3190,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FIPO(IAP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
+         CALL FIPO(AP,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F1,NDM,DFU,DFP)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(F1(J)-F(J))/EP
          ENDDO
@@ -3159,10 +3202,11 @@ C
       END SUBROUTINE ICPO
 C
 C     ---------- ----
-      SUBROUTINE FIPO(IAP,PAR,ICP,NINT,
+      SUBROUTINE FIPO(AP,PAR,ICP,NINT,
      * U,UOLD,UDOT,UPOLD,FI,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM,NINT
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM,NINT
       DOUBLE PRECISION, INTENT(IN)::UOLD(2*NDM),UDOT(2*NDM),UPOLD(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(2*NDM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
@@ -3173,9 +3217,9 @@ C Local
       INTEGER JAC,NFPR,NPAR,INDX,I,J,L
       DOUBLE PRECISION FOP
 C
-       JAC=IAP(22)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       JAC=AP%JAC
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        FI(1)=0.d0
        DO I=1,NDM
@@ -3199,7 +3243,7 @@ C
            DFDP(I,J)=0.d0
          ENDDO
        ENDDO
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 C
        DO L=4,NINT
          INDX=ICP(NFPR+L-3)
@@ -3221,7 +3265,7 @@ C
       END SUBROUTINE FIPO
 C
 C     ---------- ------
-      SUBROUTINE STPNPO(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNPO(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -3230,12 +3274,12 @@ C
 C
 C Generates starting data for optimization of periodic solutions.
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: RLDOTRS(:)
@@ -3244,17 +3288,17 @@ C Local
       INTEGER NDIM,NTST,NCOL,NDM,NFPR,NPAR,NDIMRD,ITPRS,I,J,K
       DOUBLE PRECISION FS,DUMU(1),DUMP(1)
 C
-       NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NTST=AP%NTST
+       NCOL=AP%NCOL
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
      *      UDOTPSR,TMR,ITPRS,NDIM)
        DEALLOCATE(ICPRS,RLDOTRS)
        ALLOCATE(U(NDM),TEMP(0:NTSR*NCOLRS),DTMTEMP(NTSR))
@@ -3301,12 +3345,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FNBL(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNBL(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-parameter continuation
 C of folds (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -3316,14 +3361,14 @@ C Local
       INTEGER NDM,NFPR,NFPX,NPAR,I,J
       DOUBLE PRECISION UU,UMX,EP,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
-      CALL FFBL(IAP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+      CALL FFBL(AP,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
       IF(IJAC.EQ.0)THEN
         DEALLOCATE(DFU,DFP)
@@ -3357,9 +3402,9 @@ C
       DO I=1,NDM
         UU=U(I)
         U(I)=UU-EP
-        CALL FFBL(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+        CALL FFBL(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
         U(I)=UU+EP
-        CALL FFBL(IAP,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+        CALL FFBL(AP,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
         U(I)=UU
         DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -3376,7 +3421,7 @@ C
       DO I=1,NFPR-NFPX
         P=PAR(ICP(I))
         PAR(ICP(I))=P+EP
-        CALL FFBL(IAP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+        CALL FFBL(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
         DO J=1,NDIM
           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
         ENDDO
@@ -3388,9 +3433,10 @@ C
       END SUBROUTINE FNBL
 C
 C     ---------- ----
-      SUBROUTINE FFBL(IAP,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFBL(AP,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(2*NDM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
@@ -3398,9 +3444,9 @@ C
 
       INTEGER NFPR,NFPX,I,J
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
 C
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 C
        NFPX=NFPR/2-1
        DO I=1,NDM
@@ -3418,12 +3464,13 @@ C
       END SUBROUTINE FFBL
 C
 C     ---------- ----
-      SUBROUTINE BCBL(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCBL(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
 C Generates the boundary conditions for the 2-parameter continuation
 C of folds (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -3433,15 +3480,15 @@ C Local
       INTEGER NDM,NBC0,NFPR,NPAR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
+       NDM=AP%NDM
        NBC0=NBC/2
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
        ALLOCATE(DFU(NBC0,2*NDM+NPAR))
 C
 C Generate the function.
 C
-       CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,U1,F,DFU)
+       CALL FBBL(AP,NDIM,PAR,ICP,NBC0,U0,U1,F,DFU)
 C
        IF(IJAC.EQ.0)THEN
           DEALLOCATE(DFU)
@@ -3464,8 +3511,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,UU1,U1,FF1,DFU)
-         CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,UU2,U1,FF2,DFU)
+         CALL FBBL(AP,NDIM,PAR,ICP,NBC0,UU1,U1,FF1,DFU)
+         CALL FBBL(AP,NDIM,PAR,ICP,NBC0,UU2,U1,FF2,DFU)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -3485,8 +3532,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,UU1,FF1,DFU)
-         CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,UU2,FF2,DFU)
+         CALL FBBL(AP,NDIM,PAR,ICP,NBC0,U0,UU1,FF1,DFU)
+         CALL FBBL(AP,NDIM,PAR,ICP,NBC0,U0,UU2,FF2,DFU)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -3501,7 +3548,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,U1,FF2,DFU)
+         CALL FBBL(AP,NDIM,PAR,ICP,NBC0,U0,U1,FF2,DFU)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF2(J)-F(J))/EP
          ENDDO
@@ -3513,20 +3560,21 @@ C
       END SUBROUTINE BCBL
 C
 C     ---------- ----
-      SUBROUTINE FBBL(IAP,NDIM,PAR,ICP,NBC0,U0,U1,F,DBC)
+      SUBROUTINE FBBL(AP,NDIM,PAR,ICP,NBC0,U0,U1,F,DBC)
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC0
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC0
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NBC0+IAP(23)+IAP(29)/2-1)
+      DOUBLE PRECISION, INTENT(OUT) :: F(NBC0+AP%NDM+AP%NFPR/2-1)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 C
       INTEGER NDM,NFPR,NFPX,I,J
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
 C
        NFPX=NFPR/2-1
-       CALL BCNI(IAP,NDM,PAR,ICP,NBC0,U0,U1,F,2,DBC)
+       CALL BCNI(AP,NDM,PAR,ICP,NBC0,U0,U1,F,2,DBC)
        DO I=1,NBC0
          F(NBC0+I)=0.d0
          DO J=1,NDM
@@ -3543,13 +3591,14 @@ C
       END SUBROUTINE FBBL
 C
 C     ---------- ----
-      SUBROUTINE ICBL(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICBL(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Generates integral conditions for the 2-parameter continuation of
 C folds (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -3560,15 +3609,15 @@ C Local
       INTEGER NDM,NNT0,NFPR,NPAR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
+       NDM=AP%NDM
        NNT0=(NINT-1)/2
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
        ALLOCATE(DFU(NNT0,NDM+NPAR))
 C
 C Generate the function.
 C
-       CALL FIBL(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F,DFU)
+       CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F,DFU)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
@@ -3593,9 +3642,9 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FIBL(IAP,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
+         CALL FIBL(AP,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
-         CALL FIBL(IAP,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
+         CALL FIBL(AP,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
      *    UPOLD,FF2,DFU)
          DO J=1,NINT
            DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -3611,7 +3660,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FIBL(IAP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+         CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
@@ -3624,24 +3673,25 @@ C
       END SUBROUTINE ICBL
 C
 C     ---------- ----
-      SUBROUTINE FIBL(IAP,PAR,ICP,NINT,NNT0,
+      SUBROUTINE FIBL(AP,PAR,ICP,NINT,NNT0,
      * U,UOLD,UDOT,UPOLD,F,DINT)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NINT,NNT0
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NINT,NNT0
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*),UDOT(*),UPOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NNT0,*)
       INTEGER NDM,NFPR,NPAR,NFPX,I,J
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        NFPX=0
        IF(NINT.GT.1) THEN
          NFPX=NFPR/2-1
-         CALL ICNI(IAP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,F,2,DINT)
+         CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,F,2,DINT)
          DO I=1,NNT0
            F(NNT0+I)=0.d0
            DO J=1,NDM
@@ -3671,7 +3721,7 @@ C
       END SUBROUTINE FIBL
 C
 C     ---------- ------
-      SUBROUTINE STPNBL(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNBL(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE BVP
@@ -3682,27 +3732,27 @@ C
 C Generates starting data for the 2-parameter continuation of folds.
 C (BVP).
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: RLDOTRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
       INTEGER NDIM,NCOL,NDM,NFPR,NFPR0,NFPX,NTST,NDIMRD,ITPRS,I,J,NPAR
 C
-       NDIM=IAP(1)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDIM=AP%NDIM
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        ALLOCATE(ICPRS(NFPR),RLDOTRS(NFPR))
        ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR),
      *      TMR(0:NTSR))
-       CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
+       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPSR,
      *      UDOTPSR,TMR,ITPRS,NDIM)
 C
        NFPR0=NFPR/2
@@ -3728,8 +3778,8 @@ C Initialize the norm of the null vector
        RLDOT(NFPR0+1)=0.d0
 C
        NODIR=0
-       NTST=IAP(5)
-       NCOL=IAP(6)
+       NTST=AP%NTST
+       NCOL=AP%NCOL
        CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM,
      *      TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
        DEALLOCATE(TMR,UPSR,UDOTPSR)
@@ -3744,12 +3794,13 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE FNBBP(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FNBBP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Generates the equations for the 2-parameter continuation
 C of BP (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -3761,14 +3812,14 @@ C Local
       INTEGER NDM,NFPR,NPAR,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
        ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
-       CALL FFBBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+       CALL FFBBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU,DFP)
@@ -3792,8 +3843,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FFBBP(IAP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-         CALL FFBBP(IAP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+         CALL FFBBP(AP,NDIM,UU1,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFBBP(AP,NDIM,UU2,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -3808,7 +3859,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FFBBP(IAP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+         CALL FFBBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
          DO J=1,NDIM
            DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -3821,9 +3872,10 @@ C
       END SUBROUTINE FNBBP
 C
 C     ---------- -----
-      SUBROUTINE FFBBP(IAP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+      SUBROUTINE FFBBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NDM
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -3833,10 +3885,10 @@ C Local
       DOUBLE PRECISION DUM(1),UPOLD(NDM)
       INTEGER ISW,NBC,NINT,NBC0,NNT0,NFPX,I,J,NPARU
 C
-       ISW=IAP(10)
-       NBC=IAP(12)
-       NINT=IAP(13)
-       NPARU=IAP(31)-IAP(24) ! real - internal
+       ISW=AP%ISW
+       NBC=AP%NBC
+       NINT=AP%NINT
+       NPARU=AP%NPAR-AP%NPARI ! real - internal
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -3853,11 +3905,11 @@ C        ** generic case
        ENDIF
        NFPX=NBC0+NNT0-NDM+1
 C
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
        IF(NNT0.GT.0) THEN
          ALLOCATE(FI(NNT0),DINT(NNT0,NDM))
          CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-         CALL ICNI(IAP,NDM,PAR,ICP,NNT0,U,UOLD,DUM,UPOLD,FI,1,DINT)
+         CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,DUM,UPOLD,FI,1,DINT)
        ENDIF
 C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
@@ -3907,12 +3959,13 @@ C
       END SUBROUTINE FFBBP
 C
 C     ---------- -----
-      SUBROUTINE BCBBP(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCBBP(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
 C Generates the boundary conditions for the 2-parameter continuation
 C of BP (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -3922,11 +3975,11 @@ C Local
       INTEGER ISW,NINT,NDM,NFPR,NPAR,NBC0,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       ISW=IAP(10)
-       NINT=IAP(13)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       ISW=AP%ISW
+       NINT=AP%NINT
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -3942,7 +3995,7 @@ C
 C Generate the function.
 C
        ALLOCATE(DFU(NBC0,2*NDM+NPAR))
-       CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
+       CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,F,DFU)
 C
        IF(IJAC.EQ.0)THEN
           DEALLOCATE(DFU)
@@ -3965,8 +4018,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,UU1,U1,FF1,DFU)
-         CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,UU2,U1,FF2,DFU)
+         CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,UU1,U1,FF1,DFU)
+         CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,UU2,U1,FF2,DFU)
          DO J=1,NBC
            DBC(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -3986,8 +4039,8 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU1,FF1,DFU)
-         CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,UU2,FF2,DFU)
+         CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,U0,UU1,FF1,DFU)
+         CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,U0,UU2,FF2,DFU)
          DO J=1,NBC
            DBC(J,NDIM+I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
@@ -4002,7 +4055,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF1,DFU)
+         CALL FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FF1,DFU)
          DO J=1,NBC
            DBC(J,2*NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
@@ -4015,19 +4068,20 @@ C
       END SUBROUTINE BCBBP
 C
 C     ---------- -----
-      SUBROUTINE FBBBP(IAP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB,DBC)
+      SUBROUTINE FBBBP(AP,NDIM,PAR,ICP,NBC,NBC0,U0,U1,FB,DBC)
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,NBC0
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,NBC0
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 
       INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J,NPARU
 C
-       ISW=IAP(10)
-       NINT=IAP(13)
-       NDM=IAP(23)
-       NPARU=IAP(31)-IAP(24)
+       ISW=AP%ISW
+       NINT=AP%NINT
+       NDM=AP%NDM
+       NPARU=AP%NPAR-AP%NPARI
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4041,7 +4095,7 @@ C        ** generic case
        ENDIF
        NFPX=NBC0+NNT0-NDM+1
 C
-       CALL BCNI(IAP,NDM,PAR,ICP,NBC0,U0,U1,FB,2,DBC)
+       CALL BCNI(AP,NDM,PAR,ICP,NBC0,U0,U1,FB,2,DBC)
 C
        IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C        ** Non-generic and/or start
@@ -4107,13 +4161,14 @@ C
       END SUBROUTINE FBBBP
 C
 C     ---------- -----
-      SUBROUTINE ICBBP(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICBBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Generates integral conditions for the 2-parameter continuation
 C of BP (BVP).
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -4124,11 +4179,11 @@ C Local
       INTEGER ISW,NBC,NDM,NFPR,NPAR,NNT0,I,J
       DOUBLE PRECISION UMX,EP,P
 C
-       ISW=IAP(10)
-       NBC=IAP(12)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPAR=IAP(31)
+       ISW=AP%ISW
+       NBC=AP%NBC
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4148,7 +4203,7 @@ C
        ELSE
          ALLOCATE(DFU(1))
        ENDIF
-       CALL FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+       CALL FIBBP(AP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *   UPOLD,F,DFU)
 C
        IF(IJAC.EQ.0)THEN
@@ -4174,9 +4229,9 @@ C
          ENDDO
          UU1(I)=UU1(I)-EP
          UU2(I)=UU2(I)+EP
-         CALL FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
+         CALL FIBBP(AP,NDIM,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
-         CALL FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
+         CALL FIBBP(AP,NDIM,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
      *    UPOLD,FF2,DFU)
          DO J=1,NINT
            DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -4192,7 +4247,7 @@ C
        DO I=1,NFPR
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
-         CALL FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
+         CALL FIBBP(AP,NDIM,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
@@ -4206,10 +4261,11 @@ C
       END SUBROUTINE ICBBP
 C
 C     ---------- -----
-      SUBROUTINE FIBBP(IAP,NDIM,PAR,ICP,NINT,NNT0,
+      SUBROUTINE FIBBP(AP,NDIM,PAR,ICP,NINT,NNT0,
      * U,UOLD,UDOT,UPOLD,FI,DINT)
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,NNT0
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,NNT0
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
@@ -4219,11 +4275,11 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
       INTEGER ISW,NBC,NDM,NBC0,NFPX,NPAR,I,J,NPARU
 C
-       ISW=IAP(10)
-       NBC=IAP(12)
-       NDM=IAP(23)
-       NPAR=IAP(31)
-       NPARU=NPAR-IAP(24)
+       ISW=AP%ISW
+       NBC=AP%NBC
+       NDM=AP%NDM
+       NPAR=AP%NPAR
+       NPARU=NPAR-AP%NPARI
 C
        IF(ISW.LT.0) THEN
 C        ** start
@@ -4238,9 +4294,9 @@ C        ** generic case
        NFPX=NBC0+NNT0-NDM+1
 C
        ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
-       CALL FUNI(IAP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
        IF(NNT0.GT.0) THEN
-         CALL ICNI(IAP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,FI,2,DINT)
+         CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,FI,2,DINT)
 C
          IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
 C          ** Non-generic and/or start
@@ -4319,7 +4375,7 @@ C
       END SUBROUTINE FIBBP
 C
 C     ---------- -------
-      SUBROUTINE STPNBBP(IAP,PAR,ICP,NTSR,NCOLRS,
+      SUBROUTINE STPNBBP(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE SOLVEBV
@@ -4330,12 +4386,12 @@ C
 C Generates starting data for the 2-parameter continuation
 C of BP (BVP).
 C
-      INTEGER, INTENT(INOUT) :: IAP(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*)
       INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
-     *     UPS(IAP(1),0:*),UDOTPS(IAP(1),0:*),TM(0:*)
+     *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
       INTEGER, ALLOCATABLE :: ICPRS(:)
       DOUBLE PRECISION, ALLOCATABLE :: VPS(:,:),VDOTPS(:,:),RVDOT(:)
@@ -4349,21 +4405,21 @@ C Local
       INTEGER ITPRS,NDM,NBC0,NNT0,NFPX,NDIMRD,NPARU
       DOUBLE PRECISION DUM(1),DET,RDSZ
 C
-       NDIM=IAP(1)
-       NTST=IAP(5)
-       NCOL=IAP(6)
-       ISW=IAP(10)
-       NBC=IAP(12)
-       NINT=IAP(13)
-       NDM=IAP(23)
-       NFPR=IAP(29)
-       NPARU=IAP(31)-IAP(24)
+       NDIM=AP%NDIM
+       NTST=AP%NTST
+       NCOL=AP%NCOL
+       ISW=AP%ISW
+       NBC=AP%NBC
+       NINT=AP%NINT
+       NDM=AP%NDM
+       NFPR=AP%NFPR
+       NPARU=AP%NPAR-AP%NPARI
 C
        NDIM3=GETNDIM3()
 C
        IF(NDIM.EQ.NDIM3) THEN
 C        ** restart 2
-         CALL STPNBV(IAP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+         CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      *     UPS,UDOTPS,TM,NODIR)
          RETURN
        ENDIF
@@ -4399,7 +4455,7 @@ C        ** allocation
          ALLOCATE(U(NDM),DTM(NTSR))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
+         CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST,
      *     UDOTPST,TMR,ITPRS,NDM)
 C
          DO I=1,NTSR
@@ -4413,18 +4469,18 @@ C
 C Compute the second null vector
 C
 C        ** redefine IAP
-         IAP(1)=NDM
-         IAP(5)=NTSR
-         IAP(6)=NCOLRS
-         IAP(12)=NBC0
-         IAP(13)=NNT0
-         IAP(29)=NFPX
+         AP%NDIM=NDM
+         AP%NTST=NTSR
+         AP%NCOL=NCOLRS
+         AP%NBC=NBC0
+         AP%NINT=NNT0
+         AP%NFPR=NFPX
 C
 C        ** compute UPOLDP
          IF(NNT0.GT.0) THEN
             DO J=0,NTSR*NCOLRS
                U(:)=UPST(:,J)
-               CALL FUNI(IAP,NDM,U,U,ICPRS,PAR,0,
+               CALL FUNI(AP,NDM,U,U,ICPRS,PAR,0,
      *              UPOLDPT(1,J),DUM,DUM)
             ENDDO
          ENDIF
@@ -4437,7 +4493,7 @@ C        ** call SOLVBV
          RDSZ=0.d0
          NLLV=1
          IFST=1
-         CALL SOLVBV(IFST,IAP,DET,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV,
+         CALL SOLVBV(IFST,AP,DET,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV,
      *     RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT,
      *     DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
 C
@@ -4446,12 +4502,12 @@ C        ** normalization
          CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,VDOTPST,RVDOT,DTM,THL1,THU1)
 C
 C        ** restore IAP
-         IAP(1)=NDIM
-         IAP(5)=NTST
-         IAP(6)=NCOL
-         IAP(12)=NBC
-         IAP(13)=NINT
-         IAP(29)=NFPR
+         AP%NDIM=NDIM
+         AP%NTST=NTST
+         AP%NCOL=NCOL
+         AP%NBC=NBC
+         AP%NINT=NINT
+         AP%NFPR=NFPR
 
 C        ** init UPS,PAR
          UPSR(1:NDM,:)=UPST(:,:)
@@ -4500,7 +4556,7 @@ C
      *         VDOTPS(2*NDIM,0:NTSR*NCOLRS))
 C
 C        ** read the std branch
-         CALL READBV(IAP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
+         CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS,
      *     VDOTPS,TMR,ITPRS,2*NDIM)
 C
          UPSR(1:NDM,:)=VPS(1:NDM,:)
@@ -4527,11 +4583,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- ----
-      SUBROUTINE FUNI(IAP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+      SUBROUTINE FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
 C Interface subroutine to user supplied FUNC.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
@@ -4540,7 +4597,7 @@ C
       INTEGER JAC,I,J,NFPR,IJC
       DOUBLE PRECISION UMX,EP,UU,P
 C
-       JAC=IAP(22)
+       JAC=AP%JAC
 C
 C Generate the function.
 C
@@ -4580,7 +4637,7 @@ C
        ENDIF
        CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP)
        IF(JAC.EQ.1.OR.IJAC.NE.2)RETURN
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P) )
@@ -4596,11 +4653,12 @@ C
       END SUBROUTINE FUNI
 C
 C     ---------- ----
-      SUBROUTINE BCNI(IAP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
+      SUBROUTINE BCNI(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
 C
 C Interface subroutine to the user supplied BCND.
 C
-      INTEGER, INTENT(IN) :: IAP(*),NDIM,ICP(*),NBC,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
@@ -4608,7 +4666,7 @@ C Local
       DOUBLE PRECISION EP,UMX,UU,P
       INTEGER IJC,I,J,JAC,NFPR
 C
-       JAC=IAP(22)
+       JAC=AP%JAC
 C
 C Generate the function.
 C
@@ -4663,7 +4721,7 @@ C
        CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
        IF(JAC==1 .OR. IJAC/=2)RETURN
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P))
@@ -4679,12 +4737,13 @@ C
       END SUBROUTINE BCNI
 C
 C     ---------- ----
-      SUBROUTINE ICNI(IAP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
+      SUBROUTINE ICNI(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
      * F,IJAC,DINT)
 C
 C Interface subroutine to user supplied ICND.
 C
-      INTEGER, INTENT(IN) :: IAP(*),ICP(*),NDIM,NINT,IJAC
+      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
@@ -4693,7 +4752,7 @@ C
       INTEGER JAC,I,J,NFPR,IJC
       DOUBLE PRECISION UMX,EP,UU,P
 C
-       JAC=IAP(22)
+       JAC=AP%JAC
 C
 C Generate the integrand.
 C
@@ -4730,7 +4789,7 @@ C
        CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
        IF(JAC==1 .OR. IJAC/=2)RETURN
 C
-       NFPR=IAP(29)
+       NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P) )

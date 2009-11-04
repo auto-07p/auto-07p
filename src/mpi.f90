@@ -18,11 +18,14 @@
 
 module autompi
 
+use auto_constants, only: autoparameters
+
 implicit none
 private
 
-public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti, mpiscat
-public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti
+public :: mpibcastap
+public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
@@ -64,13 +67,13 @@ integer function mpikwt()
   call MPI_Comm_size(MPI_COMM_WORLD,mpikwt,ierr)
 end function mpikwt
 
-subroutine mpiiap(iap)
+subroutine mpiiap(ap)
   include 'mpif.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer :: iap(*)
+  type(autoparameters) :: ap
 
   ! A few words about what is going on here.  ips, irs, isw, itp, and
   ! nfpr are used to choose which functions are used for funi, icni, bcni, etc.
@@ -83,11 +86,11 @@ subroutine mpiiap(iap)
   integer ierr
   integer funi_icni_params(5)
 
-  funi_icni_params(1)=iap(2)  ! ips
-  funi_icni_params(2)=iap(3)  ! irs
-  funi_icni_params(3)=iap(10) ! isw
-  funi_icni_params(4)=iap(27) ! itp
-  funi_icni_params(5)=iap(29) ! nfpr
+  funi_icni_params(1)=ap%ips
+  funi_icni_params(2)=ap%irs
+  funi_icni_params(3)=ap%isw
+  funi_icni_params(4)=ap%itp
+  funi_icni_params(5)=ap%nfpr
   ! Send message to get worker into init mode
   call MPI_Bcast(AUTO_MPI_INIT_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call mpibcasti(funi_icni_params,5)
@@ -190,17 +193,16 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call mpisum(d,ncb*nrc)
 end subroutine mpicon
 
-subroutine mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
-  integer NIAP,NRAP,NPARX
 
   include 'mpif.h'
-  include 'auto.h'
 
   integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
-  integer :: iap(*),icp(*),ifst,nllv
+  type(autoparameters) :: ap
+  integer :: icp(*),ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
 
@@ -213,12 +215,12 @@ subroutine mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      ! Send message to get worker into setubv mode
      call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
              MPI_COMM_WORLD,ierr)
-     call mpibcasti(iap,NIAP)
+     call mpibcastap(ap)
   endif
 
-  nint=iap(13)
-  nfpr=iap(29)
-  npar=iap(31)
+  nint=ap%nint
+  nfpr=ap%nfpr
+  npar=ap%npar
   call MPI_Pack_size(2+nfpr+nint,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
   call MPI_Pack_size(npar+ndim*8, &
                   MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
@@ -258,8 +260,8 @@ subroutine mpisbv(iap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
 
   deallocate(buffer)
 
-  ntst=iap(5)
-  ncol=iap(6)
+  ntst=ap%ntst
+  ncol=ap%ncol
   call mpiscat(dtm,1,ntst,0)
   call mpiscat(ups,ndim*ncol,ntst,ndim)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
@@ -290,6 +292,34 @@ subroutine mpibcasti(buf,len)
 
   call MPI_Bcast(buf,len,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 end subroutine mpibcasti
+
+subroutine mpibcastap(ap)
+  include 'mpif.h'
+
+  type(autoparameters) :: ap
+
+  integer :: ierr
+  integer :: iap(34)
+
+  iap = (/ap%ndim, ap%ips,  ap%irs,  ap%ilp,   ap%ntst, ap%ncol, ap%iad,  &
+          ap%iads, ap%isp,  ap%isw,  ap%iplt,  ap%nbc,  ap%nint, ap%nmx,  &
+          ap%nuzr, ap%npr,  ap%mxbf, ap%iid,   ap%itmx, ap%itnw, ap%nwtn, &
+          ap%jac,  ap%npar, ap%ndm,  ap%npari, ap%itds, ap%itp,  ap%itpst,&
+          ap%nfpr, ap%ibr,  ap%ntot, ap%nins,  ap%lab,  ap%nicp/)
+  
+  call MPI_Bcast(iap,34,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+
+  ap%ndim = iap(1);  ap%ips  = iap(2);  ap%irs  = iap(3);  ap%ilp  = iap(4)
+  ap%ntst = iap(5);  ap%ncol = iap(6);  ap%iad  = iap(7);  ap%iads = iap(8)
+  ap%isp  = iap(9);  ap%isw  = iap(10); ap%iplt = iap(11); ap%nbc  = iap(12)
+  ap%nint = iap(13); ap%nmx  = iap(14); ap%nuzr = iap(15); ap%npr  = iap(16)
+  ap%mxbf = iap(17); ap%iid  = iap(18); ap%itmx = iap(19); ap%itnw = iap(20)
+  ap%nwtn = iap(21); ap%jac  = iap(22); ap%npar = iap(23); ap%ndm  = iap(24)
+  ap%npari= iap(25); ap%itds = iap(26); ap%itp  = iap(27); ap%itpst= iap(28)
+  ap%nfpr = iap(29); ap%ibr  = iap(30); ap%ntot = iap(31); ap%nins = iap(32)
+  ap%lab  = iap(33); ap%nicp = iap(34);
+
+end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)
   include 'mpif.h'

@@ -2,10 +2,13 @@
 
 module autompi
 
+use auto_constants, only: autoparameters
+
 implicit none
 private
-public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti, mpiscat
-public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti
+public :: mpibcastap
+public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
@@ -20,8 +23,8 @@ integer function mpikwt()
   mpikwt = 1
 end function mpikwt
 
-subroutine mpiiap(iap)
-  integer iap(*)
+subroutine mpiiap(ap)
+  type(autoparameters) :: ap
 end subroutine mpiiap
 
 logical function mpiwfi(autobv)
@@ -35,9 +38,10 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 end subroutine mpicon
 
-subroutine mpisbv(iap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(ap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
-  integer :: nra,iap(*),icp(*),ifst,nllv
+  type(autoparameters) :: ap
+  integer :: nra,icp(*),ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
 end subroutine mpisbv
@@ -50,6 +54,10 @@ end subroutine mpibcast
 subroutine mpibcasti(buf,len)
   integer :: len, buf(len)
 end subroutine mpibcasti
+
+subroutine mpibcastap(ap)
+  type(autoparameters) :: ap
+end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)
   integer ndx,n,add

@@ -7,14 +7,16 @@
 
 MODULE SUPPORT
 
+USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+
 IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
 PUBLIC :: CHECKSP, INITSTOPCNTS, STOPPED
-PUBLIC :: DTV,RAV,IAV,P0V,P1V,EVV
+PUBLIC :: DTV,AV,P0V,P1V,EVV
  
-DOUBLE PRECISION, POINTER, SAVE :: DTV(:),RAV(:),P0V(:,:),P1V(:,:)
-INTEGER, POINTER, SAVE :: IAV(:)
+DOUBLE PRECISION, POINTER, SAVE :: DTV(:),P0V(:,:),P1V(:,:)
+TYPE(AUTOPARAMETERS), POINTER, SAVE :: AV
 COMPLEX(KIND(1.0D0)), POINTER, SAVE :: EVV(:)
 
 CONTAINS
@@ -58,15 +60,17 @@ CONTAINS
   END SUBROUTINE MUELLER
 
 ! ---------- ---
-  SUBROUTINE EIG(IAP,NDIM,M1A,A,EV)
+  SUBROUTINE EIG(AP,NDIM,M1A,A,EV)
 
 ! This subroutine uses the LAPACK subroutine DGEEV to compute the
 ! eigenvalues of the general real matrix A.
 ! NDIM is the dimension of A.
 ! M1A is the first dimension of A as in the DIMENSION statement.
 ! The eigenvalues are to be returned in the complex vector EV.
-
-    INTEGER, INTENT(IN) :: IAP(*), NDIM, M1A
+    
+    USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: NDIM, M1A
     DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,NDIM)
     COMPLEX(KIND(1.0D0)), INTENT(OUT) :: EV(NDIM)
 
@@ -76,9 +80,9 @@ CONTAINS
     DOUBLE PRECISION FV1(1)
     ALLOCATE(WR(NDIM),WI(NDIM),Z(M1A,NDIM))
 
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
     IER=0
@@ -552,17 +556,17 @@ END MODULE SUPPORT
 
     CHARACTER*3, INTENT(IN) :: CODE
     INTEGER, INTENT(IN) :: IC
-    DOUBLE PRECISION, INTENT(IN) :: UPS(IAV(1)*IAV(6),*)
+    DOUBLE PRECISION, INTENT(IN) :: UPS(AV%NDIM*AV%NCOL,*)
 
     INTEGER NDIM,IPS,NTST,NCOL,NBC,NINT
-    DOUBLE PRECISION WI(0:IAV(6))
+    DOUBLE PRECISION WI(0:AV%NCOL)
 
-    NDIM=IAV(1)
-    IPS=IAV(2)
-    NTST=IAV(5)
-    NCOL=IAV(6)
-    NBC=IAV(12)
-    NINT=IAV(13)
+    NDIM=AV%NDIM
+    IPS=AV%IPS
+    NTST=AV%NTST
+    NCOL=AV%NCOL
+    NBC=AV%NBC
+    NINT=AV%NINT
 
     GETP=0
 
@@ -573,9 +577,9 @@ END MODULE SUPPORT
        CASE('INT','int','MAX','max','MIN','min','BV1','bv1')
           GETP=UPS(IC,1)
        CASE('HBF','hbf')
-          GETP=RAV(17)
+          GETP=AV%HBFF
        CASE('BIF','bif')
-          GETP=RAV(14)
+          GETP=AV%DET
        CASE('SPB','spb','MXT','mxt','MNT','mnt','DTM','dtm','WIN','win')
           GETP=0.
        END SELECT
@@ -599,24 +603,24 @@ END MODULE SUPPORT
           CALL WINT(NCOL,WI)
           GETP=WI(IC)
        CASE('BV1','bv1')
-          GETP=UPS(IC,IAV(5)+1)
+          GETP=UPS(IC,AV%NTST+1)
        CASE('HBF','hbf')
           GETP=0.d0
        CASE('BIF','bif')
-          GETP=RAV(18)
+          GETP=AV%BIFF
        CASE('SPB','spb')
-          GETP=RAV(19)
+          GETP=AV%SPBF
        END SELECT
     ENDIF
     SELECT CASE(CODE) 
     CASE('BV0','bv0')
        GETP=UPS(IC,1)
     CASE('STP','stp')
-       GETP=RAV(5)
+       GETP=AV%RDS
     CASE('FLD','fld')
-       GETP=RAV(16)
+       GETP=AV%FLDF
     CASE('STA','sta')
-       GETP=IAV(33)
+       GETP=AV%NINS
     CASE('EIG','eig')
        IF(MOD(IC,2)==1)THEN
           GETP=REAL(EVV((IC+1)/2))
@@ -648,10 +652,10 @@ END MODULE SUPPORT
 
     INTEGER NDIM,IPS,ISP,NTOT
 
-    NDIM=IAV(1)
-    IPS=IAV(2)
-    ISP=IAV(9)
-    NTOT=IAV(32)
+    NDIM=AV%NDIM
+    IPS=AV%IPS
+    ISP=AV%ISP
+    NTOT=AV%NTOT
     NMM=.FALSE.
     IF(NDIM==NDIM1.AND.NTOT>0.AND.ABS(ISP)>0.AND. &
          (IPS==2.OR.IPS==7.OR.IPS==12))THEN

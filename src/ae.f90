@@ -7,23 +7,24 @@
 !
 MODULE AE
 
+  USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: AUTOAE,STPNUS,STPNAE
-  INTEGER NPARX,NIAP,NRAP
-  INCLUDE 'auto.h'
 
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THL,THU,IUZ,VUZ)
 
 ! This is the entry subroutine for algebraic systems.
 
     USE AUTOMPI
 
-    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION RAP(*),PAR(*),THL(*),THU(*),VUZ(*)
+    TYPE(AUTOPARAMETERS)AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
 
     include 'interfaces.h'
 
@@ -32,13 +33,13 @@ CONTAINS
           RETURN
        ENDIF
     ENDIF
-    THU(IAP(1)+1)=THL(1)
-    CALL CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
+    THU(AP%NDIM+1)=THL(1)
+    CALL CNRLAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
 
   END SUBROUTINE AUTOAE
 
 ! ---------- ------
-  SUBROUTINE CNRLAE(IAP,RAP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
+  SUBROUTINE CNRLAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
 
     USE IO
     USE MESH
@@ -48,8 +49,9 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION RAP(*),PAR(*),VUZ(*),THU(*)
+    TYPE(AUTOPARAMETERS)AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),VUZ(*),THU(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: &
          AA(:,:),U(:),UDOT(:),STUD(:,:),STU(:,:),UZR(:)
@@ -60,36 +62,36 @@ CONTAINS
     LOGICAL ISTOP,CHECKEDHB
     INTEGER STOPCNTS(-9:9)
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    IRS=IAP(3)
-    ILP=IAP(4)
-    IADS=IAP(8)
-    ISP=IAP(9)
-    ISW=IAP(10)
-    NUZR=IAP(15)
-    MXBF=IAP(17)
+    NDIM=AP%NDIM
+    IPS=AP%IPS
+    IRS=AP%IRS
+    ILP=AP%ILP
+    IADS=AP%IADS
+    ISP=AP%ISP
+    ISW=AP%ISW
+    NUZR=AP%NUZR
+    MXBF=AP%MXBF
     NBIFS=ABS(MXBF)
     IF(MXBF>0)THEN
        NBFCS=2*NBIFS
     ELSE
        NBFCS=NBIFS
     ENDIF
-    ITPST=IAP(28)
-    IBR=IAP(30)
+    ITPST=AP%ITPST
+    IBR=AP%IBR
 
-    DS=RAP(1)
+    DS=AP%DS
 
     ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1))
     ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR+3),EVV(NDIM))
 
     NINS=0
-    IAP(33)=NINS
+    AP%NINS=NINS
     RDS=DS
     NBIF=0
     IPOS=.TRUE.
     LAB=0
-    IAP(34)=LAB
+    AP%LAB=LAB
 
     DO I=1,NDIM
        U(I)=0.d0
@@ -99,16 +101,16 @@ CONTAINS
 ! Generate the starting point
 
     NODIR=1
-    CALL STPNAEI(IAP,PAR,ICP,U,UDOT,NODIR)
-    CALL PVLSAE(IAP,RAP,U,PAR)
+    CALL STPNAEI(AP,PAR,ICP,U,UDOT,NODIR)
+    CALL PVLSAE(AP,U,PAR)
 
 ! Determine a suitable starting label and branch number
 
-    CALL NEWLAB(IAP)
+    CALL NEWLAB(AP)
 
 ! Write constants
 
-    CALL STHD(IAP,RAP,ICP)
+    CALL STHD(AP,ICP)
 
     DO NBFC=0,NBFCS !bifurcation switch loop
 
@@ -117,7 +119,7 @@ CONTAINS
        ENDDO
 
        NTOT=0
-       IAP(32)=NTOT
+       AP%NTOT=NTOT
        CALL INITSTOPCNTS(STOPCNTS)
        ISTOP=.FALSE.
        NIT=1
@@ -127,52 +129,52 @@ CONTAINS
        ELSE
           ITP=0
        ENDIF
-       IAP(27)=ITP
+       AP%ITP=ITP
        U(NDIM+1)=PAR(ICP(1))
 
 ! Starting procedure  (to get direction vector) :
 
        IF(NODIR==1.AND.ISW>=0)THEN
-          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UDOT,THU,0,AA)
+          CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,0,AA)
        ELSEIF(IRS/=0.AND.ISW<0)THEN
-          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UDOT,THU,1,AA)
+          CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,1,AA)
        ELSEIF(ABS(IPS).EQ.1)THEN
-          CALL STPRAE(IAP,PAR,ICP,FUNI,U,UDOT,THU,-1,AA)
+          CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,-1,AA)
        ENDIF
        IF(ABS(IPS).EQ.1)THEN
           ! Get stability
-          UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+          UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
 ! or for the starting point
 
-       CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
+       CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
 
        IF(.NOT.ISTOP)THEN
 
 ! Provide initial approximation to the second point on the branch and
 ! determine the second point on the bifurcating or original branch
-          CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISW<0)
+          CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISW<0)
 
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS).EQ.1)THEN
                 ! Get stability
-                UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+                UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
              ENDIF
              ! Store plotting data for second point :
-             CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
+             CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
           ENDIF
        ENDIF
 
        UZR(NUZR+3)=0.d0
        DO WHILE(.NOT.ISTOP) ! branch computation loop
           ITP=0
-          IAP(27)=ITP
-          NINS=IAP(33)
+          AP%ITP=ITP
+          NINS=AP%NINS
 
 ! Find the next solution point on the branch
-          CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
+          CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
           ISTOP=NIT==0
           DSOLD=RDS
 
@@ -193,20 +195,20 @@ CONTAINS
                 IF(ITP==3)THEN
                    CHECKEDHB=.TRUE.
                 ENDIF
-                CALL LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA,&
+                CALL LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA,&
                      U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
                    IF(ITP==-4)THEN
                       ITP=ITP-10*ITPST
                    ELSEIF(ITP==3.AND.IPS==-1)THEN
-                      ITDS=IAP(25)
-                      EPSS=RAP(13)
+                      ITDS=AP%ITDS
+                      EPSS=AP%EPSS
                       ITP=TPSPAE(EPSS,ITPST,PAR(11))
                       PAR(11)=PAR(11)*ITDS
                    ELSE
                       ITP=ITP+10*ITPST
                    ENDIF
-                   IAP(27)=ITP
+                   AP%ITP=ITP
                    IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
                       IF(MOD(ITP,10)==-4)THEN
                          UZR(1:NUZR)=0.d0
@@ -227,30 +229,31 @@ CONTAINS
           IF(.NOT.CHECKEDHB.AND.ABS(IPS)==1)THEN
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
-             UZR(NUZR+3)=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+             UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
           ENDIF
-          ITP=IAP(27) 
+          ITP=AP%ITP 
           IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
              ! for plotter: use stability of previous point
              ! for bifurcation points
-             IAP(33)=NINS
+             AP%NINS=NINS
           ENDIF
 
 ! Store plotting data on unit 7 :
 
-          NTOT=IAP(32)
-          CALL STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
+          NTOT=AP%NTOT
+          CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
 
 ! Adapt the stepsize along the branch
 
-          ITP=IAP(27)
+          ITP=AP%ITP
           RDS=DSOLD
           IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
                .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
-             ITNW=IAP(20)
+             ITNW=AP%ITNW
              NTOP=MOD(NTOT-1,9999)+1
-             DSMAX=RAP(3)
+             DSMAX=AP%DSMAX
              CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+             AP%RDS=RDS
           ENDIF
        ENDDO !from branch computation loop
 
@@ -258,16 +261,16 @@ CONTAINS
 
        ! Initialize computation of the next bifurcating branch.
 
-       CALL SWPNT(IAP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
+       CALL SWPNT(AP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
        IF(IPOS)THEN
           NBIF=NBIF-1
        ENDIF
 
        IF(.NOT.IPOS .OR. MXBF.LT.0 )IBR=IBR+1
-       IAP(30)=IBR
+       AP%IBR=IBR
 
-       ! IRS and ISW are for internal use: don't store in IAP!
+       ! IRS and ISW are for internal use: don't store in AP!
        IRS=1
        ISW=-1
     ENDDO !from bifurcation switch loop
@@ -276,13 +279,14 @@ CONTAINS
   END SUBROUTINE CNRLAE
 
 ! ---------- ------
-  SUBROUTINE STPNUS(IAP,PAR,ICP,U,UDOT,NODIR)
+  SUBROUTINE STPNUS(AP,PAR,ICP,U,UDOT,NODIR)
 
 ! Gets the starting data from user supplied STPNT
 
     USE AUTO_CONSTANTS, ONLY : UVALS, PARVALS, unames, parnames
     USE IO, ONLY: NAMEIDX
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
@@ -290,7 +294,7 @@ CONTAINS
     INTEGER NDIM,I
     DOUBLE PRECISION T
 
-    NDIM=IAP(1)
+    NDIM=AP%NDIM
     T=0.d0
     U(:NDIM)=0.d0
 
@@ -311,12 +315,12 @@ CONTAINS
   END SUBROUTINE STPNUS
 
 ! ---------- ------
-  SUBROUTINE STPNAE(IAP,PAR,ICP,U,UDOT,NODIR)
+  SUBROUTINE STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
 
     USE IO
 
 ! Gets the starting data from unit 3
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*)
@@ -328,13 +332,13 @@ CONTAINS
     NFPRS=GETNFPR3()
     ALLOCATE(ICPRS(NFPRS))
     ICPRS(:)=0
-    CALL READLB(IAP,ICPRS,U,UDOT,PAR)
+    CALL READLB(AP,ICPRS,U,UDOT,PAR)
   
 ! Take care of the case where the free parameters have been changed at
 ! the restart point.
 
     NODIR=0
-    NFPR=IAP(29)
+    NFPR=AP%NFPR
     IF(NFPRS/=NFPR)THEN
        NODIR=1
     ELSE
@@ -347,19 +351,19 @@ CONTAINS
     ENDIF
     DEALLOCATE(ICPRS)
 
-    IPS=IAP(2)
-    ISW=IAP(10)
-    ITP=IAP(27)
+    IPS=AP%IPS
+    ISW=AP%ISW
+    ITP=AP%ITP
     IF(IPS==-1.AND.ISW==-1.AND.ITP==7)THEN
        ! period doubling for maps: set iteration count
        ITDS=AINT(PAR(11))
-       IAP(25)=ITDS
+       AP%ITDS=ITDS
     ENDIF
 
   END SUBROUTINE STPNAE
 
 ! ---------- ------
-  SUBROUTINE STPRAE(IAP,PAR,ICP,FUNI,U,UDOT,THU,IPERP,AA)
+  SUBROUTINE STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,IPERP,AA)
 
     USE SUPPORT
 
@@ -367,18 +371,19 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),IPERP
-    DOUBLE PRECISION U(*),UDOT(IAP(1)+1),THU(*),PAR(*)
-    DOUBLE PRECISION AA(IAP(1)+1,IAP(1)+1)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),IPERP
+    DOUBLE PRECISION U(*),UDOT(AP%NDIM+1),THU(*),PAR(*)
+    DOUBLE PRECISION AA(AP%NDIM+1,AP%NDIM+1)
 
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:),F(:),DFDU(:,:),DFDP(:,:)
     INTEGER NDIM,IID,NPAR,I
     DOUBLE PRECISION SIGN,SS
 
-    NDIM=IAP(1)
-    IID=IAP(18)
-    NPAR=IAP(31)
+    NDIM=AP%NDIM
+    IID=AP%IID
+    NPAR=AP%NPAR
 
     ALLOCATE(F(NDIM),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
     DFDU(:,:)=0.d0
@@ -386,7 +391,7 @@ CONTAINS
 
 ! Determine the direction of the branch at the starting point
 
-    CALL FUNI(IAP,NDIM,U,U,ICP,PAR,2,F,DFDU,DFDP)
+    CALL FUNI(AP,NDIM,U,U,ICP,PAR,2,F,DFDU,DFDP)
 
     IF(IPERP==1)THEN
        AA(:NDIM,:NDIM)=DFDU(:,:)
@@ -424,7 +429,7 @@ CONTAINS
   END SUBROUTINE STPRAE
 
 ! ---------- ------
-  SUBROUTINE STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,SW)
+  SUBROUTINE STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,SW)
 
 ! This is the subroutine for computing solution branches. It solves
 ! the equations for finding the next point on the branch at distance RDS
@@ -438,11 +443,12 @@ CONTAINS
     USE MESH
     include 'interfaces.h'
 
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NIT
     DOUBLE PRECISION, INTENT(IN) :: THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: AA(IAP(1)+1,IAP(1)+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(*),UDOT(*),PAR(*),RDS
+    DOUBLE PRECISION, INTENT(OUT) :: AA(AP%NDIM+1,AP%NDIM+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(*),UDOT(*),PAR(*),RDS
     LOGICAL, OPTIONAL, INTENT(IN) :: SW
 ! Local
     INTEGER IADS,IID,ITNW,IBR,NTOT,NTOP
@@ -450,23 +456,23 @@ CONTAINS
     DOUBLE PRECISION DSMIN,DSMAX
     CHARACTER (LEN=7) FIXEDMINIMUM
 
-    IADS=IAP(8)
-    IID=IAP(18)
-    ITNW=IAP(20)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IADS=AP%IADS
+    IID=AP%IID
+    ITNW=AP%ITNW
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    DSMIN=RAP(2)
-    DSMAX=RAP(3)
+    DSMIN=AP%DSMIN
+    DSMAX=AP%DSMAX
 
     BSW=.FALSE.
     IF(PRESENT(SW))BSW=SW
     
     DO
-       CALL SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,BSW)
+       CALL SOLVAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,BSW)
        IF(NIT>0)THEN
-          CALL PVLSAE(IAP,RAP,U,PAR)
+          CALL PVLSAE(AP,U,PAR)
           RETURN
        ENDIF
 
@@ -477,6 +483,7 @@ CONTAINS
 ! Reduce stepsize and try again.
 
        CALL ADPTDS(ITNW,ITNW,IBR,NTOP,DSMAX,RDS)
+       AP%RDS=RDS
        IF(ABS(RDS).LT.DSMIN)EXIT
        IF(IID.GE.2)THEN
           WRITE(9,"(I4,I6,A)")IBR,NTOP,' NOTE:Retrying step'
@@ -501,16 +508,16 @@ CONTAINS
   END SUBROUTINE STEPAE
 
 ! ---------- ------
-  SUBROUTINE SOLVAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,BSW)
+  SUBROUTINE SOLVAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,BSW)
 
 ! This subroutine contains the main predictor-corrector loop
 ! Input: U, UDOT, PAR : extended solution
 !        RDS: step-size
-!        IAP, RAP, ICP, THU, FUNI: constants & function interface
+!        AP AP ICP, THU, FUNI: constants & function interface
 !        BSW: if true, switch branches, else do normal continuation
 ! Output: NIT: number of iterations taken to converge
 !         after successful convergence (NIT>0):
-!           RAP(14) contains the determinant 
+!           AP%DET contains the determinant 
 !           AA contains the extended Jacobian matrix
 !           U, UDOT, PAR are updated
 !         else (NIT==0):
@@ -521,12 +528,13 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NIT
     LOGICAL, INTENT(IN) :: BSW
     DOUBLE PRECISION, INTENT(IN) :: RDS,THU(*)
-    DOUBLE PRECISION, INTENT(OUT) :: AA(IAP(1)+1,IAP(1)+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),U(IAP(1)+1),UDOT(IAP(1)+1),PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: AA(AP%NDIM+1,AP%NDIM+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDIM+1),UDOT(AP%NDIM+1),PAR(*)
 
 ! Local
     INTEGER NDIM,IID,ITNW,IBR,NTOT,NTOP,NIT1,NPAR,I,K,NDM
@@ -538,17 +546,17 @@ CONTAINS
      "(' Branch ',I2,' N=',I5,1X,'IT=',I2,1X,'PAR(',I2,')=', &
         &ES11.3,1X,'U=',7ES11.3)"
 
-    NDIM=IAP(1)
-    IID=IAP(18)
-    ITNW=IAP(20)
-    NDM=IAP(23)
-    IBR=IAP(30)
-    NPAR=IAP(31)
-    NTOT=IAP(32)
+    NDIM=AP%NDIM
+    IID=AP%IID
+    ITNW=AP%ITNW
+    NDM=AP%NDM
+    IBR=AP%IBR
+    NPAR=AP%NPAR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    EPSL=RAP(11)
-    EPSU=RAP(12)
+    EPSL=AP%EPSL
+    EPSU=AP%EPSU
 
     ALLOCATE(RHS(NDIM+1),DU(NDIM+1),DFDU(NDIM,NDIM),DFDP(NDIM,NPAR))
     DFDU(:,:)=0.d0
@@ -582,7 +590,7 @@ CONTAINS
 
        NIT=NIT1
        PAR(ICP(1))=U(NDIM+1)
-       CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
+       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
 
 ! Set up the Jacobian matrix and the right hand side :
 
@@ -613,7 +621,7 @@ CONTAINS
 
        IF(IID.GE.5)CALL WRJAC(NDIM+1,NDIM+1,AA,RHS)
        CALL GEL(NDIM+1,AA,1,DU,RHS,DET)
-       RAP(14)=DET
+       AP%DET=DET
 
 ! Add the Newton increments :
 
@@ -644,7 +652,7 @@ CONTAINS
        IF(RDRLM.LE.EPSL.AND.RDUMX.LE.EPSU)THEN
 ! Recompute Jacobian for test functions
           PAR(ICP(1))=U(NDIM+1)
-          CALL FUNI(IAP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
+          CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,2,RHS,DFDU,DFDP)
           DO I=1,NDIM
              AA(I,NDIM+1)=DFDP(I,ICP(1))
              DO K=1,NDIM
@@ -689,7 +697,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(IAP,RAP,RDS,PAR,ICP,IUZR,FUNI,AA, &
+  SUBROUTINE LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA, &
        U,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
@@ -706,9 +714,10 @@ CONTAINS
 
     include 'interfaces.h'
 
-    INTEGER IAP(*),ICP(*),IUZ(*),NIT,IUZR
-    DOUBLE PRECISION RAP(*),RDS,PAR(*),THU(*),VUZ(*)
-    DOUBLE PRECISION AA(IAP(1)+1,*),U(*),UDOT(*),Q
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER ICP(*),IUZ(*),NIT,IUZR
+    DOUBLE PRECISION RDS,PAR(*),THU(*),VUZ(*)
+    DOUBLE PRECISION AA(AP%NDIM+1,*),U(*),UDOT(*),Q
     LOGICAL, INTENT(OUT) :: ISTOP, FOUND
 
     LOGICAL CHNG
@@ -717,19 +726,19 @@ CONTAINS
 
     ISTOP=.FALSE.
     FOUND=.FALSE.
-    IID=IAP(18)
-    ITMX=IAP(19)
-    IBR=IAP(30)
+    IID=AP%IID
+    ITMX=AP%ITMX
+    IBR=AP%IBR
 
-    DS=RAP(1)
-    DSMAX=RAP(3)
-    EPSS=RAP(13)
+    DS=AP%DS
+    DSMAX=AP%DSMAX
+    EPSS=AP%EPSS
 
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
-    NTOT=IAP(32)
+    Q1=FNCS(AP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
+    NTOT=AP%NTOT
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
        Q=Q1
@@ -762,14 +771,14 @@ CONTAINS
           WRITE(9,101)ITLCSP,RDS
        ENDIF
 
-       CALL STEPAE(IAP,RAP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
+       CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
        IF(NIT==0)THEN
           ISTOP=.TRUE.
           Q=0.d0
           RETURN
        ENDIF
 
-       Q=FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
+       Q=FNCS(AP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
@@ -784,47 +793,46 @@ CONTAINS
   END SUBROUTINE LCSPAE
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(IAP,RAP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,CHNG,AA,IUZ,VUZ,IUZR)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
-    DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
     INTEGER, INTENT(IN) :: IUZ(*),IUZR
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 
     INTEGER NUZR
 
-    NUZR=IAP(15)
+    NUZR=AP%NUZR
 
     IF(IUZR==NUZR+1)THEN
-       FNCS=FNLPAE(IAP,RAP,CHNG,AA)
+       FNCS=FNLPAE(AP,CHNG,AA)
     ELSEIF(IUZR==NUZR+2)THEN
-       FNCS=FNBPAE(IAP,RAP,CHNG)
+       FNCS=FNBPAE(AP,CHNG)
     ELSEIF(IUZR==NUZR+3)THEN
-       FNCS=FNHBAE(IAP,RAP,PAR,CHNG,AA)
+       FNCS=FNHBAE(AP,PAR,CHNG,AA)
     ELSE
-       FNCS=FNUZAE(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
+       FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
     ENDIF
 
   END FUNCTION FNCS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPAE(IAP,RAP,CHNG)
+  DOUBLE PRECISION FUNCTION FNBPAE(AP,CHNG)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(IN) :: RAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     LOGICAL, INTENT(OUT) :: CHNG
 
     INTEGER IID,IBR,NTOT,NTOP
     DOUBLE PRECISION DET
 
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    DET=RAP(14)
+    DET=AP%DET
     FNBPAE=DET
     CHNG=.TRUE.
 
@@ -836,24 +844,23 @@ CONTAINS
   END FUNCTION FNBPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPAE(IAP,RAP,CHNG,AA)
+  DOUBLE PRECISION FUNCTION FNLPAE(AP,CHNG,AA)
 
     USE SUPPORT
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     LOGICAL, INTENT(OUT) :: CHNG
-    DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: UD(:),AAA(:,:),RHS(:)
 
     INTEGER NDIM,IID,IBR,NTOT,NTOP
     DOUBLE PRECISION DET
 
-    NDIM=IAP(1)
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    NDIM=AP%NDIM
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
     ALLOCATE(AAA(NDIM+1,NDIM+1),RHS(NDIM+1))
@@ -869,7 +876,7 @@ CONTAINS
     CALL NRMLZ(NDIM+1,UD)
     FNLPAE=UD(NDIM+1)
     DEALLOCATE(UD,AAA,RHS)
-    RAP(16)=FNLPAE
+    AP%FLDF=FNLPAE
     CHNG=.TRUE.
 
 ! If requested write additional output on unit 9 :
@@ -880,30 +887,30 @@ CONTAINS
   END FUNCTION FNLPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBAE(IAP,RAP,PAR,CHNG,AA)
+  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,CHNG,AA)
 
     USE SUPPORT
 
     DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RLARGE=1.0d+30
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: RAP(*),PAR(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
-    DOUBLE PRECISION, INTENT(INOUT) :: AA(IAP(1)+1,IAP(1)+1)
+    DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
     INTEGER NDIM,NDM,IPS,ISP,ISW,IID,IBR,NTOT,NTOP,NINS,NINS1,I,j,LOC
     DOUBLE PRECISION a,AR,AREV,RIMHB,tol,trace,REV
 
-    NDIM=IAP(1)
-    NDM=IAP(23)
-    IPS=IAP(2)
-    ISP=IAP(9)
-    ISW=IAP(10)
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    NDIM=AP%NDIM
+    NDM=AP%NDM
+    IPS=AP%IPS
+    ISP=AP%ISP
+    ISW=AP%ISW
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
     ALLOCATE(EV(NDIM))
 
@@ -940,7 +947,7 @@ CONTAINS
 
 ! Compute the eigenvalues of the Jacobian
 
-    CALL EIG(IAP,NDM,NDIM+1,AA,EV)
+    CALL EIG(AP,NDM,NDIM+1,AA,EV)
     IF(IPS.EQ.-1)THEN
        DO I=1,NDM
           IF(REAL(EV(I)).NE.-1.d0 .OR. &
@@ -997,11 +1004,11 @@ CONTAINS
     ELSE
        FNHBAE=REV
     ENDIF
-    RAP(17)=FNHBAE
-    NINS=IAP(33)
+    AP%HBFF=FNHBAE
+    NINS=AP%NINS
     IF(NINS1.NE.NINS)CHNG=.TRUE.
     NINS=NINS1
-    IAP(33)=NINS
+    AP%NINS=NINS
 
     IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
 
@@ -1023,9 +1030,9 @@ CONTAINS
   END FUNCTION FNHBAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNUZAE(IAP,PAR,CHNG,IUZ,VUZ,IUZR)
+  DOUBLE PRECISION FUNCTION FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
 
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     INTEGER, INTENT(IN) :: IUZ(*),IUZR
@@ -1033,9 +1040,9 @@ CONTAINS
 
     INTEGER IID,IBR,NTOT,NTOP
 
-    IID=IAP(18)
-    IBR=IAP(30)
-    NTOT=IAP(32)
+    IID=AP%IID
+    IBR=AP%IBR
+    NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
     FNUZAE=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
@@ -1102,14 +1109,15 @@ CONTAINS
   END SUBROUTINE STBIF
 
 ! ---------- -----
-  SUBROUTINE SWPNT(IAP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
+  SUBROUTINE SWPNT(AP,DS,PAR,ICP,RDS,NBIF,NBIFS,STUD,STU,U,UDOT,IPOS)
 
 ! This subroutine retrieves the branching data U, U-dot, PAR(ICP(1)),
 ! PAR(ICP(1))-dot. If this initialization corresponds to the computation
 ! of the bifurcating branch in opposite direction, then only the sign of
 !  the stepsize ( DS ) along the branch is reversed.
 
-    INTEGER IAP(*),ICP(*)
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*)
     INTEGER, INTENT(IN) :: NBIF,NBIFS
     DOUBLE PRECISION, INTENT(IN) :: DS
     DOUBLE PRECISION, INTENT(OUT) :: RDS
@@ -1118,9 +1126,9 @@ CONTAINS
 
     INTEGER NDIM,ISW,MXBF,I,I1
 
-    NDIM=IAP(1)
-    ISW=IAP(10)
-    MXBF=IAP(17)
+    NDIM=AP%NDIM
+    ISW=AP%ISW
+    MXBF=AP%MXBF
 
     RDS=DS
     IF(.NOT.IPOS)RDS=-DS
@@ -1146,7 +1154,7 @@ CONTAINS
   END SUBROUTINE SWPNT
 
 ! ---------- ------
-  SUBROUTINE STPLAE(IAP,RAP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
+  SUBROUTINE STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
 
     USE IO
     USE SUPPORT
@@ -1176,9 +1184,9 @@ CONTAINS
 !  U          : The first few components of the solution vector.
 !  PAR(ICP(*)): Further free parameters (if any).
 !
-    INTEGER, INTENT(INOUT) :: IAP(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ICU(*),NIT
-    DOUBLE PRECISION, INTENT(IN) :: RAP(*),U(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(IN) :: U(*),UDOT(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(INOUT) :: ISTOP
 
@@ -1186,34 +1194,34 @@ CONTAINS
     INTEGER NTOT,NTOTS,IAB,LAB,LABW,NINS
     DOUBLE PRECISION RL0,RL1,A0,A1,AMP
 
-    NDIM=IAP(1)
-    IPS=IAP(2)
-    ISW=IAP(10)
-    IPLT=IAP(11)
-    NMX=IAP(14)
-    NPR=IAP(16)
-    NDM=IAP(23)
-    ITP=IAP(27)
-    ITPST=IAP(28)
-    IBR=IAP(30)
+    NDIM=AP%NDIM
+    IPS=AP%IPS
+    ISW=AP%ISW
+    IPLT=AP%IPLT
+    NMX=AP%NMX
+    NPR=AP%NPR
+    NDM=AP%NDM
+    ITP=AP%ITP
+    ITPST=AP%ITPST
+    IBR=AP%IBR
 
-    RL0=RAP(6)
-    RL1=RAP(7)
-    A0=RAP(8)
-    A1=RAP(9)
+    RL0=AP%RL0
+    RL1=AP%RL1
+    A0=AP%A0
+    A1=AP%A1
 
-    NTOT=IAP(32)
+    NTOT=AP%NTOT
     NTOT=NTOT+1
-    IAP(32)=NTOT
+    AP%NTOT=NTOT
 
-    CALL PVLSAE(IAP,RAP,U,PAR)
+    CALL PVLSAE(AP,U,PAR)
 
 ! ITP is set to 4 every NPR steps along a branch, and the entire
 ! solution is written on unit 8.
 
     IF(NPR.NE.0)THEN
        IF(MOD(NTOT,NPR).EQ.0 .AND. MOD(ITP,10).EQ.0)ITP=4+10*ITPST
-       IAP(27)=ITP
+       AP%ITP=ITP
     ENDIF
 
 ! CHECK WHETHER LIMITS OF THE BIFURCATION DIAGRAM HAVE BEEN REACHED :
@@ -1234,40 +1242,40 @@ CONTAINS
 !        Maximum number of iterations reached somewhere.
        ISTOP=.TRUE.
        ITP=-9-10*ITPST
-       IAP(27)=ITP
+       AP%ITP=ITP
     ELSEIF(U(NDIM+1).LT.RL0.OR.U(NDIM+1).GT.RL1 &
          .OR. AMP.LT.A0.OR.AMP.GT.A1 &
          .OR. NTOT.EQ.NMX) THEN
        ISTOP=.TRUE.
        ITP=9+10*ITPST
-       IAP(27)=ITP
+       AP%ITP=ITP
     ENDIF
 
     LABW=0
     IF(MOD(ITP,10).NE.0)THEN
-       LAB=IAP(34)
+       LAB=AP%LAB
        LAB=LAB+1
-       IAP(34)=LAB
+       AP%LAB=LAB
        LABW=LAB
     ENDIF
 
 ! Determine stability and print output on units 6 and 7.
 
     NTOTS=NTOT
-    NINS=IAP(33)
+    NINS=AP%NINS
     IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1)THEN
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
-    CALL WRLINE(IAP,PAR,ICU,IBR,NTOTS,LABW,AMP,U)
+    CALL WRLINE(AP,PAR,ICU,IBR,NTOTS,LABW,AMP,U)
 
 ! Write restart information for multi-parameter analysis :
 
-    IF(LABW.NE.0)CALL WRTSP8(IAP,PAR,ICP,LABW,U,UDOT)
+    IF(LABW.NE.0)CALL WRTSP8(AP,PAR,ICP,LABW,U,UDOT)
 !
   END SUBROUTINE STPLAE
 
 ! ---------- ------
-  SUBROUTINE WRTSP8(IAP,PAR,ICP,LAB,U,UDOT)
+  SUBROUTINE WRTSP8(AP,PAR,ICP,LAB,U,UDOT)
 
     USE COMPAT
     USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
@@ -1275,7 +1283,8 @@ CONTAINS
 ! Write restart information on singular points, plotting points, etc.,
 ! on unit 8.
 
-    INTEGER, INTENT(IN) :: IAP(*),ICP(*),LAB
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),LAB
     DOUBLE PRECISION, INTENT(IN) :: U(*),UDOT(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
@@ -1283,14 +1292,14 @@ CONTAINS
     INTEGER NPARI
     DOUBLE PRECISION T
 
-    NDIM=IAP(1)
-    ISW=IAP(10)
-    NPARI=IAP(24)
-    ITP=IAP(27)
-    IBR=IAP(30)
-    NFPR=IAP(29)
-    NPAR=IAP(31)
-    NTOT=IAP(32)
+    NDIM=AP%NDIM
+    ISW=AP%ISW
+    NPARI=AP%NPARI
+    ITP=AP%ITP
+    IBR=AP%IBR
+    NFPR=AP%NFPR
+    NPAR=AP%NPAR
+    NTOT=AP%NTOT
 
     NTPL=1
     NAR=NDIM+1
@@ -1338,28 +1347,26 @@ CONTAINS
   END SUBROUTINE WRJAC
 
 ! ---------- ------
-  SUBROUTINE PVLSAE(IAP,RAP,U,PAR)
+  SUBROUTINE PVLSAE(AP,U,PAR)
 
-    INTEGER IAP(*)
-    DOUBLE PRECISION RAP(*),U(*),PAR(*)
+    TYPE(AUTOPARAMETERS)AP
+    DOUBLE PRECISION U(*),PAR(*)
 
     INTEGER NDM
 
-    CALL SETPAE(IAP,RAP)
-    NDM=IAP(23)
+    CALL SETPAE(AP)
+    NDM=AP%NDM
     CALL PVLS(NDM,U,PAR)
 
   END SUBROUTINE PVLSAE
 
 ! ---------- ------
-  SUBROUTINE SETPAE(IAP,RAP)
+  SUBROUTINE SETPAE(AP)
 
     USE SUPPORT
-    INTEGER, TARGET :: IAP(NIAP)
-    DOUBLE PRECISION, TARGET :: RAP(NRAP)
+    TYPE(AUTOPARAMETERS), TARGET :: AP
 
-    IAV=>IAP
-    RAV=>RAP
+    AV=>AP
 
   END SUBROUTINE SETPAE
 
