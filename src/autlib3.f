@@ -934,11 +934,7 @@ C
           ROM=1.d0
        ELSE
           ROM=U(NDIM-1)
-          IF(IPS==11)THEN
-             PAR(ICP(2))=U(NDIM)
-          ELSE
-             PAR(11)=ROM*PI(2.d0)
-          ENDIF
+          PAR(11)=ROM*PI(2.d0)
           S1=1.d0
           C1=0.d0
        ENDIF
@@ -1254,7 +1250,7 @@ C
           RETURN
        ENDIF
 
-       IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
+       IF((IPS==2.OR.IPS==7.OR.IPS==12).AND.ISW==-1.AND.ITP==7) THEN
 C               period doubling
           NTSR2=NTSR*2
        ELSE
@@ -1264,7 +1260,7 @@ C               period doubling
      *      UDOTPSR(NDIM,0:NCOLRS*NTSR2),TMR(0:NTSR2))
        CALL STPNBV1(AP,PAR,ICP,NDIM,NTSR,NDIMRD,NCOLRS,
      *      RLDOT,UPSR,UDOTPSR,TMR,NODIR)
-       IF((IPS.EQ.2.OR.IPS.EQ.7).AND.ISW.EQ.-1.AND.ITP.EQ.7) THEN
+       IF((IPS==2.OR.IPS==7.OR.IPS==12).AND.ISW==-1.AND.ITP==7) THEN
 C
 C Special case : Preprocess restart data in case of branch switching
 C at a period doubling bifurcation.

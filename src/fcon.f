@@ -45,7 +45,7 @@ C
           TMR(I)=(TMR(I)-TMR(0))/PERIOD
         ENDDO
         CALL ADAPT(NOLD,NDIM,NTST,NCOL,NDIM,TMR,UPSR,TM,UPS,
-     &       (IPS.EQ.2 .AND. ABS(ISW).LE.1))
+     &       ((IPS.EQ.2.OR.IPS.EQ.12) .AND. ABS(ISW).LE.1))
 C
         ICP(1)=1
         RLDOT(1)=1.d0

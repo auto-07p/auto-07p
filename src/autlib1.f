@@ -1055,7 +1055,6 @@ C   DSMIN is divided by 1+HMACH
 C   DS and DSMAX are multiplied by 1+HMACH
 
 C   NDIM: set to the dimension of the extended system
-C   IPS: set to 1/2 for IPS=11/12 (waves)
 C   ILP: set to 0 dependent on problem type
 C   ISP: set to 0 dependent on problem type
 C   ISW: set to 1 if equal to 0, to -|ISW| for starts of ext systems
@@ -1103,15 +1102,7 @@ C
        NPARI=0
 C
 C Redefinition for waves
-       IF(IPS.EQ.11)THEN
-         IPS=1
-         AP%IPS=IPS
-         NDIM=2*NDIM
-         NDM=NDIM
-         AP%NDM=NDM
-       ELSEIF(IPS.EQ.12)THEN
-         IPS=2
-         AP%IPS=IPS
+       IF(IPS==11.OR.IPS==12)THEN
          NDIM=2*NDIM
          NDM=NDIM
          AP%NDM=NDM
@@ -1123,7 +1114,7 @@ C
           ! reserve an internal parameter for the torus angle
           NPARI=1
        ENDIF
-       IF(ABS(IPS).LE.1 .AND. ISW.EQ.1 )THEN
+       IF((ABS(IPS)<=1.OR.IPS==11) .AND. ISW==1 )THEN
 C        ** Algebraic Systems
          NFPR=1
 C
@@ -1134,7 +1125,7 @@ C        ** Time integration
          ILP=0
          ICP(1)=14
 C 
-       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.1 )THEN
+       ELSE IF((IPS==2.OR.IPS==12) .AND. ABS(ISW)==1 )THEN
 C        ** Periodic Solutions
          NBC=NDIM
          NINT=1
@@ -1234,7 +1225,7 @@ C
          ELSE IF((ITP==3.OR.(ABS(ITP)/10)==3.OR.
      *            ITP==7.OR.(ABS(ITP)/10)==7.OR.
      *            ITP==8.OR.(ABS(ITP)/10)==8)
-     *               .AND. ABS(IPS).LE.1 )THEN
+     *               .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
 C          ** Hopf bifurcation continuation (Maps, ODE, Waves)
            NDIM=3*NDIM+2
            NFPR=2

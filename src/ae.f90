@@ -138,10 +138,10 @@ CONTAINS
           CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,0,AA)
        ELSEIF(IRS/=0.AND.ISW<0)THEN
           CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,1,AA)
-       ELSEIF(ABS(IPS).EQ.1)THEN
+       ELSEIF(ABS(IPS)==1.OR.IPS==11)THEN
           CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,-1,AA)
        ENDIF
-       IF(ABS(IPS).EQ.1)THEN
+       IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
           UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
        ENDIF
@@ -158,7 +158,7 @@ CONTAINS
           CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISW<0)
 
           IF(ISW<0.OR.NIT==0)THEN
-             IF(ABS(IPS).EQ.1)THEN
+             IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
                 UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
              ENDIF
@@ -226,7 +226,7 @@ CONTAINS
                 ENDIF
              ENDIF
           ENDDO
-          IF(.NOT.CHECKEDHB.AND.ABS(IPS)==1)THEN
+          IF(.NOT.CHECKEDHB.AND.(ABS(IPS)==1.OR.IPS==11))THEN
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
              UZR(NUZR+3)=FNHBAE(AP,PAR,CHNG,AA)
@@ -1165,7 +1165,7 @@ CONTAINS
 !  IBR    : The label of the branch.
 !  NTOT   : The index of the point on the branch.
 !           (Points are numbered consecutively along a branch).
-!           If IPS=1 or -1, then the sign of NTOT indicates stability :
+!           If IPS=1, 11, or -1, then the sign of NTOT indicates stability :
 !            - = stable , + = unstable, unknown, or not relevant.
 !  ITP    : An integer indicating the type of point :
 !
@@ -1263,7 +1263,7 @@ CONTAINS
 
     NTOTS=NTOT
     NINS=AP%NINS
-    IF(ABS(IPS).EQ.1 .AND. ABS(ISW).LE.1)THEN
+    IF((ABS(IPS)==1.OR.IPS==11) .AND. ABS(ISW)<=1)THEN
        IF(NINS.EQ.NDIM)NTOTS=-NTOT
     ENDIF
     CALL WRLINE(AP,PAR,ICU,IBR,NTOTS,LABW,AMP,U)

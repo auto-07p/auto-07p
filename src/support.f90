@@ -446,23 +446,22 @@ CONTAINS
     ENDIF
 
     NTY=MOD(ITP,10)
-    ATYPE=ATYPES(NTY)
 
     CHECKSP = .FALSE.
-    SELECT CASE(ITP)
+    SELECT CASE(NTY)
     CASE(1) ! BP
        CHECKSP = ISP/=0
     CASE(2,5) ! LP
        CHECKSP = ILP/=0
     CASE(3) ! Hopf
-       CHECKSP = ABS(IPS)==1
+       CHECKSP = ABS(IPS)==1.OR.IPS==11
     CASE(6) ! BP (BVP)
        CHECKSP = ABS(ISP)>=2.AND.ABS(ISP)/=4
     CASE(7,8) ! PD,TR
-       CHECKSP = ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12)
+       CHECKSP = ISP/=0 .AND. (IPS==-1.OR.IPS==2.OR.IPS==7.OR.IPS==12)
     END SELECT
 
-    ATYPE=ATYPES(ITP)
+    ATYPE=ATYPES(NTY)
     DO I=1,SIZE(SP)
        IF (SP(I)(1:2)==ATYPE) THEN
           CHECKSP=.TRUE.
