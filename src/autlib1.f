@@ -1199,12 +1199,11 @@ C
        ELSE IF(IPS.EQ.5)THEN
 C        ** Algebraic optimization Problems
          IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
+         ICP(1)=10
          IF(NFPR.EQ.2)THEN
            NDIM=NDIM+1
-           ICP(1)=10
          ELSE
            NDIM=2*NDIM+NFPR
-           ICP(1)=10
          ENDIF
 C
        ELSE IF(IRS.GT.0 .AND. ABS(ISW).GE.2 )THEN
@@ -1478,7 +1477,6 @@ C
        ENDIF
 
        AP%NDIM=NDIM
-       AP%IPS=IPS
        AP%ILP=ILP
        AP%ISP=ISP
        AP%ISW=ISW

@@ -939,7 +939,7 @@ C
           C1=0.d0
        ENDIF
        IF(IPS==11)THEN 
-          CALL FNWS(AP,NDIM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+          CALL FNWS(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
        ELSE
           CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
        ENDIF
@@ -1296,24 +1296,19 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:)
-      INTEGER NDM,NPAR,NFPR,I,J
+      INTEGER NDM,I,J
       DOUBLE PRECISION C
-C
-       NDM=AP%NDM
-       NPAR=AP%NPAR
 C
 C Generate the function.
 C
-       NDM=NDM/2
+       NDM=AP%NDM/2
 C
        IF(IJAC.NE.0)THEN
          ALLOCATE(DFU(NDM,NDM))
          IF(IJAC.NE.1)THEN
-           ALLOCATE(DFP(NDM,NPAR))
+           ALLOCATE(DFP(NDM,AP%NPAR))
          ENDIF
        ENDIF
-C
-       NFPR=AP%NFPR
 C
        C=PAR(10)
        CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DFP)
@@ -1340,11 +1335,11 @@ C
        IF(IJAC.EQ.1)RETURN
 C
        DO I=1,NDM
-         IF(ICP(1).LT.10)THEN
+         IF(ICP(1)/=10)THEN
            DFDP(I,ICP(1))    =0.d0
            DFDP(I+NDM,ICP(1))=-DFP(I,ICP(1))/PAR(14+I)
          ENDIF
-         IF(NFPR.GT.1.AND.ICP(2).LT.10)THEN
+         IF(AP%NFPR>1.AND.ICP(2)/=10)THEN
            DFDP(I,ICP(2))    =0.d0
            DFDP(I+NDM,ICP(2))=-DFP(I,ICP(2))/PAR(14+I)
          ENDIF
