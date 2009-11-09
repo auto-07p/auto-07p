@@ -1767,6 +1767,7 @@ def plot3(name=None,r3b=False):
         if type(name) == type(""):
             arg = [name]
         else:
+            d = name
             for f in ["fort.7","fort.8","fort.9"]:
                 if os.path.exists(f):
                     os.remove(f)
