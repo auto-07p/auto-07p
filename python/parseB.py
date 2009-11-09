@@ -808,15 +808,7 @@ class AUTOBranch(Points.Pointset):
         self.c = self.parseHeader(headerlist)
 
     def readFilename(self,filename):
-        try:
-            inputfile = open(filename,"r")
-        except IOError:
-            s = sys.exc_info()[1]
-            try:
-                import gzip
-                inputfile = gzip.open(filename+".gz","r")
-            except IOError:
-                raise IOError(s)
+        inputfile = AUTOutil.openFilename(filename,"r")
         self.read(inputfile)
         inputfile.close()
 

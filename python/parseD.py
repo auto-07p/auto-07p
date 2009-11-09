@@ -13,6 +13,7 @@ except ImportError: # Python 3
 import getopt
 import math
 import AUTOExceptions
+import AUTOutil
 import parseB
 
 class parseD(UserList):
@@ -111,14 +112,7 @@ class parseD(UserList):
         self.data[-1]["Text"] = self.data[-1]["Text"][:-len(divstr)]
 
     def readFilename(self,filename):
-        try:
-            inputfile = open(filename,"r")
-        except IOError:
-            try:
-                import gzip
-                inputfile = gzip.open(filename+".gz","r")
-            except IOError:
-                raise IOError("Could not find solution file %s."%filename)
+        inputfile = AUTOutil.openFilename(filename, "r")
         self.read(inputfile)
         
     def write(self,output):

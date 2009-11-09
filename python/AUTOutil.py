@@ -6,6 +6,7 @@ except ImportError: # Python 3
     from configparser import ConfigParser
 import os
 import array
+import gzip
 N = array
 
 # This file contains code from the Python distribution.  As
@@ -99,6 +100,19 @@ def getAUTORC(section=None):
     elif os.path.exists("./.autorc"):
         parser.read("./.autorc")
     return parser
+
+def openFilename(filename,mode):
+    try:
+        inputfile = open(filename,mode)
+    except IOError:
+        s = sys.exc_info()[1]
+        try:
+            import gzip
+            inputfile = gzip.open(filename+".gz",mode)
+            inputfile.name = filename
+        except IOError:
+            raise IOError(s)
+    return inputfile
 
 try:
     import __builtin__

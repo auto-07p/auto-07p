@@ -36,6 +36,7 @@ import parseC
 import Points
 import runAUTO
 import gzip
+import AUTOutil
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -149,16 +150,7 @@ class parseS(list):
         output.flush()
 
     def readFilename(self,filename):
-        try:
-            inputfile = open(filename,"rb")
-        except IOError:
-            s = sys.exc_info()[1]
-            try:
-                import gzip
-                inputfile = gzip.open(filename+".gz","rb")
-                inputfile.name = filename
-            except IOError:
-                raise IOError(s)
+        inputfile = AUTOutil.openFilename(filename,"rb")
         self.read(inputfile)
         inputfile.close()
 
@@ -748,25 +740,13 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         """
         return runAUTO.runAUTO.run(self.load(**kw))
 
-    def __openFilename(self,filename):
-        try:
-            inputfile = open(filename,"rb")
-        except IOError:
-            try:
-                import gzip
-                inputfile = gzip.open(filename+".gz","rb")
-                inputfile.name = filename
-            except IOError:
-                raise IOError("Could not find solution file %s."%filename)
-        return inputfile
-
     def readAllFilename(self,filename):
-        inputfile = self.__openFilename(filename)
+        inputfile = AUTOutil.openFilename(filename,"rb")
         self.readAll(inputfile)
         inputfile.close()
 
     def readFilename(self,filename):
-        inputfile = self.__openFilename(filename)
+        inputfile = AUTOutil.openFilename(filename,"rb")
         self.read(inputfile)
         inputfile.close()
 
