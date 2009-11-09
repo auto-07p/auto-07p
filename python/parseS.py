@@ -122,11 +122,11 @@ class parseS(list):
         except PrematureEndofData:
             inputfile.seek(current_position)
 
-    def read(self,inputfile,**kw):
+    def read(self,inputfile):
         # We now go through the file and read the solutions.
         prev = None
         while len(inputfile.read(1)) > 0:
-            solution = AUTOSolution(inputfile,prev,inputfile.name,**kw)
+            solution = AUTOSolution(inputfile,prev,inputfile.name)
             self.append(solution)
             prev = solution
         if len(self) > 0:
@@ -148,7 +148,7 @@ class parseS(list):
                 x.write(output)
         output.flush()
 
-    def readFilename(self,filename,**kw):
+    def readFilename(self,filename):
         try:
             inputfile = open(filename,"rb")
         except IOError:
@@ -159,7 +159,7 @@ class parseS(list):
                 inputfile.name = filename
             except IOError:
                 raise IOError(s)
-        self.read(inputfile,**kw)
+        self.read(inputfile)
         inputfile.close()
 
     def writeFilename(self,filename,append=False,mlab=False):
