@@ -2196,5 +2196,5 @@ C-----------------------------------------------------------------------
       BLOCK DATA
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       DATA ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
-     *       /0,1,1,0,0,-1,-1,0/
+     *       /0,5,1,0,0,-1,-1,0/
       END
