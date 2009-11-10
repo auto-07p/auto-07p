@@ -7,6 +7,7 @@ except ImportError: # Python 3
 import os
 import array
 import gzip
+import sys
 N = array
 
 # This file contains code from the Python distribution.  As
