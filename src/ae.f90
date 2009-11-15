@@ -905,7 +905,7 @@ CONTAINS
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
-    INTEGER NDIM,NDM,IPS,ISP,ISW,IID,IBR,NTOT,NTOP,NINS,NINS1,I,j,LOC
+    INTEGER NDIM,NDM,IPS,ISP,ISW,IID,IBR,NTOT,NTOP,NINS,NINS1,I,j,LOC,ITPST
     DOUBLE PRECISION a,AR,AREV,RIMHB,tol,trace,REV
 
     NDIM=AP%NDIM
@@ -915,6 +915,7 @@ CONTAINS
     ISW=AP%ISW
     IID=AP%IID
     IBR=AP%IBR
+    ITPST=AP%ITPST
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
     ALLOCATE(EV(NDIM))
@@ -982,20 +983,33 @@ CONTAINS
 
 ! Compute the smallest real part.
 
-    RIMHB=0.d0
     AREV=HUGE(AREV)
     REV=0.d0
+    LOC=0
     DO I=1,NDM
-       IF(AIMAG(EV(I)).NE.0.d0)THEN
+       IF(AIMAG(EV(I)).NE.0.d0.OR.(ISW==2.AND.ITPST==2.AND.IPS/=-1))THEN
           AR=ABS(REAL(EV(I)))
           IF(AR.LE.AREV)THEN
              AREV=AR
-             REV=REAL(EV(I))
-             RIMHB=ABS(AIMAG(EV(I)))
-             IF(RIMHB.NE.0.d0.AND.ABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
+             LOC=I
           ENDIF
        ENDIF
     ENDDO
+    IF(ISW==2.AND.ITPST==2.AND.IPS/=-1)THEN
+       ! for Zero-Hopf compute one-but-smallest real part
+       AREV=HUGE(AREV)
+       DO I=1,NDM
+          AR=ABS(REAL(EV(I)))
+          IF(AR.LE.AREV.AND.I/=LOC)THEN
+             AREV=AR
+             REV=REAL(EV(I))
+          ENDIF
+       ENDDO
+    ELSEIF(LOC>0)THEN
+       REV=REAL(EV(LOC))
+       RIMHB=ABS(AIMAG(EV(LOC)))
+       IF(RIMHB.NE.0.d0.AND.ABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
+    ENDIF
 
 ! Count the number of eigenvalues with negative real part.
 
@@ -1004,7 +1018,7 @@ CONTAINS
        IF(REAL(EV(I)).LE.tol)NINS1=NINS1+1
     ENDDO
 
-    IF(ISW.EQ.2 .OR. ISP.EQ.0 .OR. ISP.EQ.3)THEN
+    IF((ISW==2.AND.(ITPST/=2.OR.IPS==-1)) .OR. ISP==0 .OR. ISP==3)THEN
        FNHBAE=0.d0
     ELSE
        FNHBAE=REV
@@ -1048,7 +1062,9 @@ CONTAINS
     INTEGER NDM,NTOP,I
 
     FNBTAE = 0
-    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1)RETURN
+    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+       RETURN
+    ENDIF
 
     NDM=AP%NDM
     ALLOCATE(DFU(NDM,NDM),V(NDM))

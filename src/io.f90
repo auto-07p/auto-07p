@@ -561,7 +561,11 @@ CONTAINS
          (/ '  ','  ','BT','UZ','  ','  ','  ','  ','MX' /)
 
     IF(MOD(ITP,10)>0)THEN
-       LBTYPE=ATYPESP(MOD(ITP,10))
+       IF(ITP==23)THEN
+          LBTYPE='ZH'
+       ELSE
+          LBTYPE=ATYPESP(MOD(ITP,10))
+       ENDIF
     ELSEIF(MOD(ITP,10)<0)THEN
        LBTYPE=ATYPESN(-MOD(ITP,10))
     ELSE

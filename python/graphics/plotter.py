@@ -52,6 +52,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["bifurcation_symbol"]     = ("B",self.__optionCallback)
         optionDefaults["limit_point_symbol"]     = ("L",self.__optionCallback)
         optionDefaults["hopf_symbol"]            = ("H",self.__optionCallback)
+        optionDefaults["zero_hopf_symbol"]       = ("ZH",self.__optionCallback)
         optionDefaults["bogdanov_takens_symbol"] = ("BT",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
@@ -418,6 +419,7 @@ class plotter(grapher.GUIGrapher):
             [[2,5], "limit_point_symbol"],
             [[3],   "hopf_symbol"],
             [[-3],  "bogdanov_takens_symbol"],
+            [[23],  "zero_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
             [[-4],  "user_point_symbol"]]
@@ -486,10 +488,11 @@ class plotter(grapher.GUIGrapher):
                         break
                 lab = label["LAB"]
                 TYnumber = label["TY number"]
-                if TYnumber>=0:
-                    TYnumber=TYnumber%10
-                else:
-                    TYnumber=-((-TYnumber)%10)
+                if TYnumber != 23:
+                    if TYnumber>=0:
+                        TYnumber=TYnumber%10
+                    else:
+                        TYnumber=-((-TYnumber)%10)
                 text = ""
                 if lab != 0:
                     text = str(lab)

@@ -435,17 +435,17 @@ CONTAINS
     INTEGER, INTENT(IN) :: ITP,IPS,ILP,ISP
 
     ! determine if the given TY label needs to be checked
-    CHARACTER(LEN=2), PARAMETER :: ATYPES(1:8) = &
-         (/ 'BP','LP','HB','UZ','LP','BP','PD','TR' /)
+    CHARACTER(LEN=2), PARAMETER :: ATYPES(-3:8) = &
+         (/ 'BT','  ','  ','  ','BP','LP','HB','UZ','LP','BP','PD','TR' /)
     CHARACTER(LEN=2) ATYPE
     INTEGER NTY,I,M
 
-    IF(ITP<0)THEN
+    NTY=MOD(ITP,10)
+
+    IF(NTY==-4)THEN
        CHECKSP=.TRUE.
        RETURN
     ENDIF
-
-    NTY=MOD(ITP,10)
 
     CHECKSP = .FALSE.
     SELECT CASE(NTY)
@@ -453,7 +453,7 @@ CONTAINS
        CHECKSP = ISP/=0
     CASE(2,5) ! LP
        CHECKSP = ILP/=0
-    CASE(3) ! Hopf
+    CASE(-3,3) ! BT, Hopf, ZH
        CHECKSP = ABS(IPS)==1.OR.IPS==11
     CASE(6) ! BP (BVP)
        CHECKSP = ABS(ISP)>=2.AND.ABS(ISP)/=4
@@ -461,7 +461,11 @@ CONTAINS
        CHECKSP = ISP/=0 .AND. (IPS==-1.OR.IPS==2.OR.IPS==7.OR.IPS==12)
     END SELECT
 
-    ATYPE=ATYPES(NTY)
+    IF(ITP==23)THEN
+       ATYPE='ZH'
+    ELSE
+       ATYPE=ATYPES(NTY)
+    ENDIF
     DO I=1,SIZE(SP)
        IF (SP(I)(1:2)==ATYPE) THEN
           CHECKSP=.TRUE.
