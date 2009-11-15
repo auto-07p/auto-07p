@@ -558,7 +558,7 @@ CONTAINS
     CHARACTER*2, PARAMETER :: ATYPESP(9) = &
          (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
     CHARACTER*2, PARAMETER :: ATYPESN(9) = &
-         (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
+         (/ '  ','  ','BT','UZ','  ','  ','  ','  ','MX' /)
 
     IF(MOD(ITP,10)>0)THEN
        LBTYPE=ATYPESP(MOD(ITP,10))

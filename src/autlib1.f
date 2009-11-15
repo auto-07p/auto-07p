@@ -240,7 +240,7 @@ C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
            THU(NAMEIDX(IVTHU(I)%INDEX,unames))=IVTHU(I)%VAR
         ENDDO
 C     set IUZ/VUZ (the extra 3 are for internal test functions)
-        ALLOCATE(IUZ(NUZR+3),VUZ(NUZR+3))
+        ALLOCATE(IUZ(NUZR+4),VUZ(NUZR+4))
         K=0
         DO I=1,SIZE(IVUZR)
            IND=NAMEIDX(IVUZR(I)%INDEX,parnames)
@@ -254,10 +254,10 @@ C     set IUZ/VUZ (the extra 3 are for internal test functions)
         IUZ(NUZR+2)=ISP
         IF((IPS<=1.AND.IPS/=-1).OR.IPS==5.OR.IPS==11)THEN
            ! AE but not maps (for Hopf bifurcations)
-           IUZ(NUZR+3)=0
+           IUZ(NUZR+4)=0
         ELSE
            ! BVPs or maps (for PD/TR)
-           IUZ(NUZR+3)=ISP
+           IUZ(NUZR+4)=ISP
         ENDIF
 
         ! only now open the output files
