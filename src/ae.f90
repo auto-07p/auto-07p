@@ -1062,6 +1062,7 @@ CONTAINS
     INTEGER NDM,NTOP,I
 
     FNBTAE = 0
+    CHNG=.FALSE.
     IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
        RETURN
     ENDIF
@@ -1076,6 +1077,7 @@ CONTAINS
     CALL NRMLZ(NDM,V)
 
     ! take the inner product with the null vector for the Jacobian
+    CHNG=.TRUE.
     FNBTAE = DOT_PRODUCT(U(NDM+1:2*NDM),V(1:NDM))
 
     DEALLOCATE(DFU,V)
