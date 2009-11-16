@@ -846,6 +846,8 @@ C-----------------------------------------------------------------------
 C
 C     ---------- ----
       SUBROUTINE FNHB(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+
+      USE SUPPORT, ONLY: PI
 C
 C Generates the equations for the 2-parameter continuation of Hopf
 C bifurcation points in ODE/wave/map.
@@ -859,7 +861,7 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE ::DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
       INTEGER NDM,I,J
-      DOUBLE PRECISION UMX,EP,P
+      DOUBLE PRECISION UMX,EP,P,KAPPA
 C
        NDM=AP%NDM
 C
@@ -867,6 +869,12 @@ C Generate the function.
 C
        ALLOCATE(DFU(NDIM*NDIM))
        CALL FFHB(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
+       IF(AP%IPS/=-1)THEN
+          KAPPA=U(NDIM-1)
+          IF(KAPPA>0)THEN
+             PAR(11)=PI(2.d0)/SQRT(KAPPA)
+          ENDIF
+       ENDIF
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
@@ -921,7 +929,7 @@ C
 C     ---------- ----
       SUBROUTINE FFHB(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
 C
-      USE SUPPORT
+C     See Kuznetsov, 3rd ed., (10.80) and (10.83)
 C
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
@@ -930,23 +938,19 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
 C Local
-      INTEGER IPS,NDM2,I,J
-      DOUBLE PRECISION DUMDP(1),THTA,S1,C1,ROM
+      INTEGER IPS,I,J,K
+      DOUBLE PRECISION DUMDP(1),THTA,C1,D2,L0,KAPPA
 C
        IPS=AP%IPS
-       NDM2=2*NDM
 C
        PAR(ICP(2))=U(NDIM)
        IF(IPS==-1)THEN
           THTA=U(NDIM-1)
-          S1=SIN(THTA)
-          C1=COS(THTA)
-          ROM=1.d0
+          C1=-2*COS(THTA)
+          KAPPA=1.d0
        ELSE
-          ROM=U(NDIM-1)
-          PAR(11)=ROM*PI(2.d0)
-          S1=1.d0
           C1=0.d0
+          KAPPA=U(NDIM-1)
        ENDIF
        IF(IPS==11)THEN 
           CALL FNWS(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
@@ -957,36 +961,33 @@ C
        IF(IPS==-1)THEN
           DO I=1,NDM
              F(I)=F(I)-U(I)
-             DFDU(I,I)=DFDU(I,I)-C1
           ENDDO
        ENDIF
+
        DO I=1,NDM
-          F(NDM+I)=S1*U(NDM2+I)
-          F(NDM2+I)=-S1*U(NDM+I)
+          F(NDM+I)=KAPPA*U(NDM+I)
           DO J=1,NDM
-             F(NDM+I)=F(NDM+I)+ROM*DFDU(I,J)*U(NDM+J)
-             F(NDM2+I)=F(NDM2+I)+ROM*DFDU(I,J)*U(NDM2+J)
+             D2=0
+             DO K=1,NDM
+                D2=D2+DFDU(K,J)*DFDU(I,K)
+             ENDDO
+             F(NDM+I)=F(NDM+I)+(D2+C1*DFDU(I,J))*U(NDM+J)
           ENDDO
        ENDDO
 C
        F(NDIM-1)=-1
-C
        DO I=1,NDM
-          F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)+U(NDM2+I)*U(NDM2+I)
+          F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)
        ENDDO
 C
        F(NDIM)=0.d0
-C
-       IF(IPS==-1)THEN
-          DO I=1,NDM
-             F(NDIM)=F(NDIM)+UOLD(NDM2+I)*U(NDM+I)-UOLD(NDM+I)*U(NDM2+I)
+       DO I=1,NDM
+          L0=0
+          DO J=1,NDM
+             L0=L0+DFDU(I,J)*(U(NDM+J)-UOLD(NDM+J))
           ENDDO
-       ELSE
-          DO I=1,NDM
-             F(NDIM)=F(NDIM)+UOLD(NDM2+I)*(U(NDM+I)-UOLD(NDM+I)) -
-     *            UOLD(NDM+I)*(U(NDM2+I)-UOLD(NDM2+I))
-          ENDDO
-       ENDIF
+          F(NDIM)=F(NDIM)+L0*U(NDM+I)
+       ENDDO
 C
       END SUBROUTINE FFHB
 C
@@ -1005,28 +1006,26 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),SMAT(:,:),V(:),F(:)
-      INTEGER :: ICPRS(2),NDIM,IPS,NDM,NDM2,I,J
-      DOUBLE PRECISION DFP(1),THTA,S1,C1,ROM,PERIOD
+      INTEGER :: ICPRS(2),NDIM,IPS,NDM,I,J
+      DOUBLE PRECISION DFP(1),THTA,C1,KAPPA,PERIOD
 C
        NDIM=AP%NDIM
        IPS=AP%IPS
        NDM=AP%NDM
-       ALLOCATE(DFU(NDM,NDM),F(NDIM),V(NDIM),SMAT(2*NDM,2*NDM))
+       ALLOCATE(DFU(NDM,NDM),F(NDM),V(NDM),SMAT(NDM,NDM))
 C
        CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
        IF(IPS==-1)THEN
           THTA=PI(2.d0)/PAR(11)
-          S1=DSIN(THTA)
-          C1=DCOS(THTA)
-          ROM=1d0
+          C1=-2*COS(THTA)
+          KAPPA=1d0
           U(NDIM-1)=THTA
        ELSE
           PERIOD=PAR(11)
-          ROM=PERIOD/PI(2.d0)
-          S1=1d0
+          KAPPA=(PI(2.d0)/PERIOD)**2
           C1=0d0
-          U(NDIM-1)=ROM
+          U(NDIM-1)=KAPPA
        ENDIF
        IF(IPS==11)THEN 
           CALL FNWS(AP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
@@ -1034,33 +1033,19 @@ C
           CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
        ENDIF
 C
-       NDM2=2*NDM
-       DO I=1,NDM2
-         DO J=1,NDM2
-           SMAT(I,J)=0.d0
-         ENDDO
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(I,NDM+I)=S1
-       ENDDO
-C
-       DO I=1,NDM
-         SMAT(NDM+I,I)=-S1
-       ENDDO
+       CALL DGEMM('n','n',NDM,NDM,NDM,1.d0,DFU,
+     *      NDM,DFU,NDM,0.d0,SMAT,NDM)
 C
        DO I=1,NDM 
          DO J=1,NDM
-           SMAT(I,J)=ROM*DFU(I,J)
-           SMAT(NDM+I,NDM+J)=ROM*DFU(I,J)
+           SMAT(I,J)=SMAT(I,J)+C1*DFU(I,J)
          ENDDO
-         SMAT(I,I)=SMAT(I,I)-C1
-         SMAT(NDM+I,NDM+I)=SMAT(NDM+I,NDM+I)-C1
+         SMAT(I,I)=SMAT(I,I)+KAPPA
        ENDDO
-       CALL NLVC(NDM2,NDM2,2,SMAT,V)
-       CALL NRMLZ(NDM2,V)
+       CALL NLVC(NDM,NDM,1,SMAT,V)
+       CALL NRMLZ(NDM,V)
 C
-       DO I=1,NDM2
+       DO I=1,NDM
          U(NDM+I)=V(I)
        ENDDO
 C

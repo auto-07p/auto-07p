@@ -1063,24 +1063,29 @@ CONTAINS
 
     FNBTAE = 0
     CHNG=.FALSE.
-    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+    IF(AP%ISW/=2.OR.AP%ITPST==1.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
        RETURN
     ENDIF
 
-    NDM=AP%NDM
-    ALLOCATE(DFU(NDM,NDM),V(NDM))
-    ! get null vector for the transposed Jacobian
-    DO I=1,NDM
-       DFU(1:NDM,I)=AA(I,1:NDM)
-    ENDDO
-    CALL NLVC(NDM,NDM,1,DFU,V)
-    CALL NRMLZ(NDM,V)
+    IF(AP%ITPST==2)THEN
+       NDM=AP%NDM
+       ALLOCATE(DFU(NDM,NDM),V(NDM))
+       ! get null vector for the transposed Jacobian
+       DO I=1,NDM
+          DFU(1:NDM,I)=AA(I,1:NDM)
+       ENDDO
+       CALL NLVC(NDM,NDM,1,DFU,V)
+       CALL NRMLZ(NDM,V)
 
-    ! take the inner product with the null vector for the Jacobian
+       ! take the inner product with the null vector for the Jacobian
+       FNBTAE = DOT_PRODUCT(U(NDM+1:2*NDM),V(1:NDM))
+
+       DEALLOCATE(DFU,V)
+    ELSE
+       ! BT on Hopf curve
+       FNBTAE = U(AP%NDIM-1)
+    ENDIF
     CHNG=.TRUE.
-    FNBTAE = DOT_PRODUCT(U(NDM+1:2*NDM),V(1:NDM))
-
-    DEALLOCATE(DFU,V)
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNBTAE

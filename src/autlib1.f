@@ -252,6 +252,13 @@ C     set IUZ/VUZ (the extra 3 are for internal test functions)
         ENDDO
         IUZ(NUZR+1)=ILP
         IUZ(NUZR+2)=ISP
+        IF(AP%ITPST==3)THEN
+           !BT on Hopf bif must stop it
+           IUZ(NUZR+3)=-1
+        ELSE
+           !BT on LP
+           IUZ(NUZR+3)=ISP
+        ENDIF
         IF((IPS<=1.AND.IPS/=-1).OR.IPS==5.OR.IPS==11)THEN
            ! AE but not maps (for Hopf bifurcations)
            IUZ(NUZR+4)=0
@@ -1226,7 +1233,7 @@ C
      *            ITP==8.OR.(ABS(ITP)/10)==8)
      *               .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
 C          ** Hopf/Neimark-Sacker bifurcation continuation (Maps, ODE, Waves)
-           NDIM=3*NDIM+2
+           NDIM=2*NDIM+2
            NFPR=2
 C
          ELSE IF( ITP==5 .AND. IPS==2 )THEN
