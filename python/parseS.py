@@ -123,8 +123,13 @@ class parseS(list):
         except PrematureEndofData:
             inputfile.seek(current_position)
 
-    def read(self,inputfile):
+    def read(self,inputfile=None):
         # We now go through the file and read the solutions.
+        if inputfile is None:
+            # read everything into memory
+            for solution in self:
+                solution.read()
+            return
         prev = None
         while len(inputfile.read(1)) > 0:
             solution = AUTOSolution(inputfile,prev,inputfile.name)
@@ -152,9 +157,13 @@ class parseS(list):
     def readFilename(self,filename):
         inputfile = AUTOutil.openFilename(filename,"rb")
         self.read(inputfile)
-        inputfile.close()
+        if os.path.basename(filename) == 'fort.8':
+            inputfile.close()
+        # else don't close but garbage collect
 
     def writeFilename(self,filename,append=False,mlab=False):
+        # read all solutions because we may overwrite
+        self.read()
         if append:
             output = open(filename,"ab")
         else:
@@ -557,6 +566,12 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
             if u is not None:
                 self["U"] = u
 
+    def __getstate__(self):
+        # For pickle: read everything
+        if not self.__fullyParsed and self.__start_of_header is not None:
+            self.__readAll()
+        return Points.Pointset.__getstate__(self)
+
     def __str__(self):
         if not self.__fullyParsed and self.__start_of_header is not None:
             self.__readAll()
@@ -748,7 +763,9 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
     def readFilename(self,filename):
         inputfile = AUTOutil.openFilename(filename,"rb")
         self.read(inputfile)
-        inputfile.close()
+        if self.__input is None:
+            inputfile.close()
+        # else don't close the input file but garbage collect
 
     def writeFilename(self,filename,mlab=False):
         output = open(filename,"wb")
@@ -771,8 +788,20 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         data = self.toArray()
         output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
             
-    def read(self,input,prev=None):
-        # initially read into self.__data
+    def read(self,input=None,prev=None):
+        if input is None:
+            # read data into memory
+            if self.__input is not None:
+                input = self.__input
+                input.seek(self.__start_of_data)
+                self.__data = input.read(self.__end - self.__start_of_data)
+                self.__input = None
+            return
+        # for fort.8 we need to read into self.__data; otherwise load the
+        # data on demand from disk when we really need it
+        self.__input = None
+        if os.path.basename(input.name) != 'fort.8':
+            self.__input = input
         if prev is None:
             self.__start_of_header = 0
         else:
@@ -801,17 +830,21 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 except:
                     # otherwise the guessed end is not valid
                     end = None
-        input.seek(self.__start_of_data)
         if end is None:
             # We skip the correct number of lines in the entry to
             # determine its end.
             slist = []
+            input.seek(self.__start_of_data)
             for i in range(self.__numLinesPerEntry):
                 slist.append(input.readline())
-            self.__data = "".encode("ascii").join(slist)
+            if self.__input is None:
+                self.__data = "".encode("ascii").join(slist)
             end = input.tell()
-        else:
+        elif self.__input is None:
+            input.seek(self.__start_of_data)
             self.__data = input.read(end - self.__start_of_data)
+        else:
+            input.seek(end)
         self.__end = end
     
     def readAll(self,input,start=None,end=None):
@@ -892,7 +925,14 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         solution = []
         j = 0
         nrows = self.__numSValues
-        sdata = self.__data
+        if self.__input is None:
+            sdata = self.__data
+            del self.__data
+        else:
+            input = self.__input
+            input.seek(self.__start_of_data)
+            sdata = input.read(self.__end - self.__start_of_data)
+            self.__input = None
 
         if hasattr(N,"transpose"):
             if fromstring:
@@ -941,6 +981,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 self.indepvararray = N.array([fdata[k] for k in xrange(0,n*nrows,n)])
                 for i in range(1,n):
                     self.coordarray.append(N.array([fdata[k] for k in xrange(i,n*nrows,n)]))
+        del sdata
         j = j + n * nrows
 
         # I am using the value of NTST to test to see if it is an algebraic or
@@ -982,7 +1023,6 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
                 "name": self.name})
-        del self.__data
 
     def __getattr__(self,attr):
         c = self.options["constants"]
@@ -1047,9 +1087,15 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                       self["IPRIV"])
         write_enc(line+os.linesep)
         # If the file isn't already parsed, and we happen to know the position of
-        # the end of the solution we can just copy the raw data.
+        # the end of the solution we can just copy from the input file into the
+        # output file or copy from the raw data for ./fort.8.
         if not self.__fullyParsed and self.__end is not None:
-            output.write(self.__data)
+            if self.__input is None:
+                output.write(self.__data)
+            else:
+                input = self.__input
+                input.seek(self.__start_of_data)
+                output.write(input.read(self.__end - self.__start_of_data))
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
