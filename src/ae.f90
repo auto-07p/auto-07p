@@ -418,7 +418,7 @@ CONTAINS
     ENDDO
 
     SIGN=1.d0
-    IF(UDOT(NDIM+1)<0.d0.AND.IPERP/=1)SIGN=-1.d0
+    IF(UDOT(NDIM+1)<0.d0)SIGN=-1.d0
     UDOT(:)=SIGN/SQRT(SS)*UDOT(:)
 
 ! Get the Jacobian for stability computation.
