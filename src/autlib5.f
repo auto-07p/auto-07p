@@ -851,7 +851,7 @@ C     *starting solutions using homotopy
         ELSE
           NBC=NDM*(1+IEQUIB)+NUNSTAB+1
         ENDIF
-        IF (IEQUIB.EQ.2) THEN 
+        IF (IEQUIB.EQ.2.AND.AP%IID>0) THEN 
         WRITE(9,*)'WARNING: IEQUIB=2 NOT ALLOWED WITH ISTART=3'
         ENDIF
         IF (IEQUIB.LT.0) THEN
@@ -1556,7 +1556,9 @@ C
              UPS(K,J)=PAR(11+K)+VR(NSTAB+1,K)*PAR(KP)*
      +            EXP(RR(NSTAB+1)*T)
           ENDDO
-          write(9,111)(ups(k,j),k=1,ndim)
+          IF(AP%IID>0)THEN
+             write(9,111)(ups(k,j),k=1,ndim)
+          ENDIF
  111      format('stpho : ',e20.10)
        ENDDO
 C
@@ -1964,7 +1966,7 @@ C LAPACK call for eigenvalues and eigenvectors
      *     LWORK,IFAIL)
       DEALLOCATE(WORK)
 C
-      IF (IFAIL.NE.0) THEN   
+      IF (IFAIL.NE.0.AND.AP%IID>0) THEN   
          WRITE(9,*) 'LAPACK EIGENVALUE ROUTINE FAILED !'
       ENDIF
 C
@@ -2145,7 +2147,7 @@ C
          ENDDO
          CALL DTRSEN('N', 'V', BWORK, NDM, A, NDM, BOUND, NDM, ER, EI,
      &        ISDIM, S, SEP, WORK, LWORK, IWORK, 1, IFAIL)
-         IF (IFAIL.NE.0) THEN
+         IF (IFAIL.NE.0.AND.AP%IID>0) THEN
             WRITE(9,*)'LAPACK SCHUR DECOMPOSITION ROUTINE FAILED !'
          ENDIF
       ENDIF

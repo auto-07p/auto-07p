@@ -254,7 +254,7 @@ CONTAINS
              ITNW=AP%ITNW
              NTOP=MOD(NTOT-1,9999)+1
              DSMAX=AP%DSMAX
-             CALL ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+             CALL ADPTDS(NIT,ITNW,IBR,NTOP,AP%IID,DSMAX,RDS)
              AP%RDS=RDS
           ENDIF
        ENDDO !from branch computation loop
@@ -484,7 +484,7 @@ CONTAINS
 
 ! Reduce stepsize and try again.
 
-       CALL ADPTDS(ITNW,ITNW,IBR,NTOP,DSMAX,RDS)
+       CALL ADPTDS(ITNW,ITNW,IBR,NTOP,IID,DSMAX,RDS)
        AP%RDS=RDS
        IF(ABS(RDS).LT.DSMIN)EXIT
        IF(IID.GE.2)THEN
@@ -499,13 +499,15 @@ CONTAINS
     ELSE
        FIXEDMINIMUM='minimum'
     ENDIF
-    IF(BSW)THEN
-       WRITE(9,"(I4,I6,A,A,A)")&
-         IBR,NTOP,' NOTE:No convergence when switching branches with ',&
-         FIXEDMINIMUM,' step size'
-    ELSE
-       WRITE(9,"(I4,I6,A,A,A)")&
-            IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
+    IF(IID>0)THEN
+       IF(BSW)THEN
+          WRITE(9,"(I4,I6,A,A,A)")&
+               IBR,NTOP,' NOTE:No convergence when switching branches with ',&
+               FIXEDMINIMUM,' step size'
+       ELSE
+          WRITE(9,"(I4,I6,A,A,A)")&
+               IBR,NTOP,' NOTE:No convergence with ',FIXEDMINIMUM,' step size'
+       ENDIF
     ENDIF
   END SUBROUTINE STEPAE
 
@@ -763,7 +765,7 @@ CONTAINS
        IF(RRDS.LT.EPSS)THEN
           FOUND=.TRUE.
           Q=0.d0
-          WRITE(9,102)RDS
+          IF(IID>0)WRITE(9,102)RDS
           RETURN
        ENDIF
 
@@ -784,7 +786,7 @@ CONTAINS
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
-    WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
+    IF(IID>0)WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
     Q=0.d0
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
@@ -1029,17 +1031,19 @@ CONTAINS
     NINS=NINS1
     AP%NINS=NINS
 
-    IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
-
-    WRITE(9,102)ABS(IBR),NTOP+1,NINS
     IF(IPS.EQ.-1)THEN
        EVV(:)=EXP(EV(:))
     ELSE
        EVV(:)=EV(:)
     ENDIF
-    DO I=1,NDM
-       WRITE(9,103)ABS(IBR),NTOP+1,I,EVV(I)
-    ENDDO
+
+    IF(IID>0)THEN
+       IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
+       WRITE(9,102)ABS(IBR),NTOP+1,NINS
+       DO I=1,NDM
+          WRITE(9,103)ABS(IBR),NTOP+1,I,EVV(I)
+       ENDDO
+    ENDIF
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 102 FORMAT(/,I4,I6,9X,'Eigenvalues  :   Stable:',I4)

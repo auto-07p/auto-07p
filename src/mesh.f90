@@ -214,9 +214,9 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE ADPTDS(NIT,ITNW,IBR,NTOP,DSMAX,RDS)
+  SUBROUTINE ADPTDS(NIT,ITNW,IBR,NTOP,IID,DSMAX,RDS)
 
-    INTEGER, INTENT(IN) :: NIT,ITNW,IBR,NTOP
+    INTEGER, INTENT(IN) :: NIT,ITNW,IBR,NTOP,IID
     DOUBLE PRECISION, INTENT(IN) :: DSMAX
     DOUBLE PRECISION, INTENT(INOUT) :: RDS
 ! Local
@@ -241,8 +241,10 @@ CONTAINS
     ARDS= ABS(RDS)
     IF(ARDS>DSMAX)RDS=RDS*DSMAX/ARDS
 
-    WRITE(9,"(/,I4,I6,8X,A,I3)")ABS(IBR),NTOP,' Iterations   : ',NIT
-    WRITE(9,"(I4,I6,8X,A,ES13.5)")ABS(IBR),NTOP,' Next Step    : ',RDS
+    IF(IID>0)THEN
+       WRITE(9,"(/,I4,I6,8X,A,I3)")ABS(IBR),NTOP,' Iterations   : ',NIT
+       WRITE(9,"(I4,I6,8X,A,ES13.5)")ABS(IBR),NTOP,' Next Step    : ',RDS
+    ENDIF
 
   END SUBROUTINE ADPTDS
 

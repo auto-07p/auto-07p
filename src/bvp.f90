@@ -306,7 +306,7 @@ CONTAINS
              IBR=AP%IBR
              NTOP=MOD(NTOT-1,9999)+1
              DSMAX=AP%DSMAX
-             CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+             CALL ADPTDS(NITPS,ITNW,IBR,NTOP,AP%IID,DSMAX,RDS)
              AP%RDS=RDS
           ENDIF
        ENDIF
@@ -559,7 +559,7 @@ CONTAINS
 ! Maximum number of iterations reached.
 
        IF(IADS.EQ.0)THEN
-          WRITE(9,101)IBR,NTOP
+          IF(IID>0)WRITE(9,101)IBR,NTOP
           EXIT
        ENDIF
 
@@ -567,11 +567,11 @@ CONTAINS
 
        DSMAX=AP%DSMAX
        NITPS=ITNW
-       CALL ADPTDS(NITPS,ITNW,IBR,NTOP,DSMAX,RDS)
+       CALL ADPTDS(NITPS,ITNW,IBR,NTOP,IID,DSMAX,RDS)
        AP%RDS=RDS
        IF(ABS(RDS).LT.DSMIN)THEN
           ! Minimum stepsize reached.
-          WRITE(9,103)IBR,NTOP
+          IF(IID>0)WRITE(9,103)IBR,NTOP
           EXIT
        ENDIF
        RLCUR(:NFPR)=RLOLD(:NFPR)+RDS*RLDOT(:NFPR)
@@ -1116,7 +1116,7 @@ CONTAINS
        IF(RRDS.LT.EPSS) THEN
           FOUND=.TRUE.
 !xx???   Q=0.d0
-          WRITE(9,102)RDS
+          IF(IID>0)WRITE(9,102)RDS
           RETURN
        ENDIF
 
@@ -1144,7 +1144,7 @@ CONTAINS
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
 
-    WRITE(9,103)IBR,NTOP+1
+    IF(IID>0)WRITE(9,103)IBR,NTOP+1
     Q=0.d0
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)
@@ -1349,15 +1349,17 @@ CONTAINS
 
     AMIN= ABS( EV(1) - 1.d0 )
     IF(AMIN>5.0D-2 .AND. (ISP==2 .OR. ISP==4)) THEN
-       IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
-       DO I=1,NDIM
-          WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
-       ENDDO
        NINS=0
        AP%NINS=NINS
-       WRITE(9,104)ABS(IBR),NTOP+1,NINS
        ISP=-ISP
        AP%ISP=ISP
+       IF(IID>0)THEN
+          IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
+          DO I=1,NDIM
+             WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
+          ENDDO
+          WRITE(9,104)ABS(IBR),NTOP+1,NINS
+       ENDIF
        RETURN
     ENDIF
 
@@ -1366,13 +1368,15 @@ CONTAINS
 
     IF(ISP.LT.0)THEN
        IF(AMIN.LT.1.0E-2)THEN
-          WRITE(9,102)ABS(IBR),NTOP+1
+          IF(IID>0)WRITE(9,102)ABS(IBR),NTOP+1
           ISP=-ISP
           AP%ISP=ISP
        ELSE
-          DO I=1,NDIM
-             WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
-          ENDDO
+          IF(IID>0)THEN
+             DO I=1,NDIM
+                WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
+             ENDDO
+          ENDIF
           RETURN
        ENDIF
     ENDIF
@@ -1412,17 +1416,19 @@ CONTAINS
 
     NINS=NINS1
     AP%NINS=NINS
-    IF( IID>=2 .AND. (ISP==1 .OR. ISP==2 .OR. ISP==4))THEN
-       WRITE(9,103)ABS(IBR),NTOP+1,D
-    ENDIF
+
+    IF(IID>0)THEN
+       IF( IID>=2 .AND. (ISP==1 .OR. ISP==2 .OR. ISP==4))THEN
+          WRITE(9,103)ABS(IBR),NTOP+1,D
+       ENDIF
 
 ! Print the Floquet multipliers.
 
-    NINS=AP%NINS
-    WRITE(9,104)ABS(IBR),NTOP+1,NINS
-    DO I=1,NDIM
-       WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
-    ENDDO
+       WRITE(9,104)ABS(IBR),NTOP+1,NINS
+       DO I=1,NDIM
+          WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
+       ENDDO
+    ENDIF
 
 101 FORMAT(I4,I6,' NOTE:Multiplier inaccurate')
 102 FORMAT(I4,I6,' NOTE:Multiplier accurate again')

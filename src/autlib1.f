@@ -73,8 +73,10 @@ C
 C$      TIME1=omp_get_wtime()
       ENDIF
       TOTTIM=TIME1-TIME0
-      CALL WRBAR("=",47)
-      WRITE(9,301)TOTTIM
+      IF(AP%IID>0)THEN
+         CALL WRBAR("=",47)
+         WRITE(9,301)TOTTIM
+      ENDIF
       WRITE(6,301)TOTTIM
       CALL CLEANUP()
       GOTO 1
