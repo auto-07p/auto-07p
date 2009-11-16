@@ -185,6 +185,11 @@ C
        IF(IJAC==0)IJC=1
        IF(IPS.EQ.-1) THEN
          CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+         IF(AP%ITPST==7)THEN ! PD bif for maps
+            DO I=1,NDM
+               DFDU(I,I)=DFDU(I,I)+2
+            ENDDO
+         ENDIF
        ELSE
          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
        ENDIF
@@ -218,7 +223,7 @@ C
       INTEGER, INTENT(OUT) :: NODIR
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
 C Local
-      DOUBLE PRECISION, ALLOCATABLE :: DFU(:),V(:),F(:)
+      DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),V(:),F(:)
       DOUBLE PRECISION DUMDFP(1)
       INTEGER ICPRS(2),NDIM,IPS,NDM,I
 C
@@ -228,9 +233,14 @@ C
 C
        CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
-       ALLOCATE(DFU(NDM*NDM),V(NDM),F(NDM))
+       ALLOCATE(DFU(NDM,NDM),V(NDM),F(NDM))
        IF(IPS.EQ.-1)THEN
          CALL FNDS(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+         IF(AP%ITPST==7)THEN ! PD bif for maps
+            DO I=1,NDM
+               DFU(I,I)=DFU(I,I)+2
+            ENDDO
+         ENDIF
        ELSE
          CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
        ENDIF

@@ -414,15 +414,15 @@ C  Two-Parameter Continuation.
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
- 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2) )
+ 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2.OR.ITP.EQ.7) )
      * THEN
-C        ** Fold continuation (algebraic problems).
+C        ** Fold/PD continuation (algebraic problems).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNLP,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 
-     *         .AND. ( (ABS(ITP)/10).EQ.2 ) )
+     *         .AND. (ABS(ITP)/10.EQ.2 .OR. ABS(ITP)/10.EQ.7))
      * THEN
-C        ** Fold continuation (algebraic problems, restart).
+C        ** Fold/PD continuation (algebraic problems, restart).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND. (ITP.EQ.1) )
@@ -437,14 +437,14 @@ C        ** BP cont (algebraic problems, restart).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNBP,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
-     *        (ITP==3.OR.ITP==7.OR.ITP==8) )
+     *        (ITP==3.OR.ITP==8) )
      * THEN
-C        ** Hopf bifurcation continuation (ODE/waves/maps).
+C        ** Hopf/Neimark-Sacker bifurcation continuation (ODE/waves/maps).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((ABS(IPS)<=1.OR.IPS==11)
-     *        .AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==3 ) THEN
-C        ** Hopf bifurcation continuation (ODE/waves/maps, restart).
+       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
+     *        (ABS(ITP)/10==3.OR.ABS(ITP)/10==8)) THEN
+C        ** Hopf/NS bifurcation continuation (ODE/waves/maps, restart).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN 
@@ -1209,23 +1209,23 @@ C
        ELSE IF(IRS.GT.0 .AND. ABS(ISW).GE.2 )THEN
 C        ** Continuation of singular points
 C
-         IF( ( ITP.EQ.2.OR.(ABS(ITP)/10).EQ.2 )
-     *        .AND. ABS(IPS).LE.1)THEN
-C          ** Fold continuation (Algebraic Problems)
+         IF( ( ITP==2.OR.(ABS(ITP)/10)==2.OR.
+     *         ITP==7.OR.(ABS(ITP)/10)==7 )
+     *        .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
+C          ** Fold/PD continuation (Algebraic Problems)
            NDIM=2*NDIM+1
            NFPR=2
 C
          ELSE IF( ( ITP.EQ.1.OR.(ABS(ITP)/10).EQ.1 )
-     *        .AND. ABS(IPS).LE.1)THEN
+     *        .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
 C          ** BP cont (Algebraic Problems) (by F. Dercole)
            NDIM=2*NDIM+2
            NFPR=ABS(ISW)
 C
          ELSE IF((ITP==3.OR.(ABS(ITP)/10)==3.OR.
-     *            ITP==7.OR.(ABS(ITP)/10)==7.OR.
      *            ITP==8.OR.(ABS(ITP)/10)==8)
      *               .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
-C          ** Hopf bifurcation continuation (Maps, ODE, Waves)
+C          ** Hopf/Neimark-Sacker bifurcation continuation (Maps, ODE, Waves)
            NDIM=3*NDIM+2
            NFPR=2
 C
