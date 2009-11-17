@@ -8,10 +8,13 @@
 PROGRAM RELABELF
   USE COMPAT
   IMPLICIT NONE
-  INTEGER, PARAMETER :: MXLB=10000
-  INTEGER LLB(MXLB)
   CHARACTER*80 INB,OUTB,INS,OUTS
   INTEGER N,NLB
+  TYPE LABEL
+     INTEGER LAB
+     TYPE(LABEL), POINTER :: NEXT
+  END TYPE LABEL
+  TYPE(LABEL), POINTER :: LIST
 
   N=AUTARGC()
   IF (N==4) THEN
@@ -28,13 +31,13 @@ PROGRAM RELABELF
 
   OPEN(28,FILE=INS,STATUS='old',ACCESS='sequential')
   OPEN(38,FILE=OUTS,STATUS='replace',ACCESS='sequential')
-  CALL SFILE(MXLB,NLB,LLB)
+  CALL SFILE(LIST,NLB)
   CLOSE(28)
   CLOSE(38)
 
   OPEN(27,FILE=INB,STATUS='old',ACCESS='sequential')
   OPEN(37,FILE=OUTB,STATUS='replace',ACCESS='sequential')
-  CALL BFILE(NLB,LLB)
+  CALL BFILE(LIST,NLB)
   CLOSE(27)
   CLOSE(37)
 
@@ -43,18 +46,22 @@ PROGRAM RELABELF
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE SFILE(MXLB,NLB,LLB)
+  SUBROUTINE SFILE(LIST,NLB)
 
-    INTEGER MXLB,NLB,LLB(MXLB)
+    INTEGER NLB
     INTEGER IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
     INTEGER NPARI,NDM,IPS,IPRIV
     INTEGER I,L,LEN
     CHARACTER(150) LINE
     LOGICAL OLD
+    TYPE(LABEL), POINTER :: LIST, P
 !
     L=0
     NLB=0
+    ALLOCATE(LIST)
+    P=>LIST
     DO
+       NULLIFY(P%NEXT)
        READ(28,'(A)',END=99)LINE
        IF (LEN_TRIM(LINE) <= 73) THEN
           READ(LINE,*)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL, &
@@ -66,14 +73,8 @@ CONTAINS
           OLD=.FALSE.
        ENDIF
 
-       IF(NLB>=MXLB)THEN
-          WRITE(6,"(A,I6,A,/,A)") &
-               ' ERROR : Maximum number of labels (',MXLB,') exceeded.', &
-               ' Increase MXLB in auto/07p/src/utility.f and recompile.'
-          STOP
-       ENDIF
        NLB=NLB+1
-       LLB(NLB)=LAB
+       P%LAB=LAB
 
        L=L+1
        IF(OLD)THEN
@@ -92,6 +93,8 @@ CONTAINS
 98        CONTINUE
           WRITE(38,"(A)")LINE(1:LEN)
        ENDDO
+       ALLOCATE(P%NEXT)
+       P=>P%NEXT
     ENDDO
 
  101   FORMAT(6I6,I8,I6,I8,3I5)
@@ -100,19 +103,20 @@ CONTAINS
   END SUBROUTINE SFILE
 
 ! ---------- -------
-  SUBROUTINE BFILE(NLB,LLB)
+  SUBROUTINE BFILE(LIST,NLB)
 
     INTEGER NLB,LAB
-    INTEGER LLB(NLB)
     CHARACTER*132 LINE
     CHARACTER*1 CH1
     INTEGER I,J,I1,I2,L1,L,LNUM,LEN
     LOGICAL EOL
     CHARACTER(LEN=5) FMT ! fits "(I99)"
+    TYPE(LABEL), POINTER :: LIST, P
 
     L=0
     LNUM=0
     L1=0
+    P=>LIST
     DO
        EOL=.TRUE.
        READ(27,"(A)",ADVANCE='NO',EOR=97,END=99,SIZE=LEN)LINE
@@ -155,11 +159,11 @@ CONTAINS
 
        IF(LAB/=0)THEN
           L=L+1
-          IF(L>NLB.OR.LAB/=LLB(L))THEN
+          IF(L>NLB.OR.LAB/=P%LAB)THEN
              WRITE(*,"(A/A,I5,A,I5/A,I5/A/A)", ADVANCE="NO") &
                   ' WARNING : The two files have incompatible labels :', &
                   '  b-file label ',LAB,' at line ',LNUM, &
-                  '  s-file label ',LLB(L), &
+                  '  s-file label ',P%LAB, &
                   ' New labels may be assigned incorrectly.', &
                   ' Continue ? : '
              READ(*,"(A1)")CH1
@@ -168,6 +172,9 @@ CONTAINS
                      'Rewrite discontinued. Recover original files'
                 RETURN
              ENDIF
+          ENDIF
+          IF(ASSOCIATED(P%NEXT))THEN
+             P=P%NEXT
           ENDIF
           IF(I2-I1/=L1)THEN
              L1=I2-I1
