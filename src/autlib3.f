@@ -939,7 +939,7 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
 C Local
       INTEGER IPS,I,J,K
-      DOUBLE PRECISION DUMDP(1),THTA,C1,D2,L0,KAPPA
+      DOUBLE PRECISION DUMDP(1),THTA,C1,D2,KAPPA
 C
        IPS=AP%IPS
 C
@@ -980,13 +980,17 @@ C
           F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)
        ENDDO
 C
+       ! This expression approximates the previously used phase condition
+       ! <eta,xi_0> - <eta_0,xi>
+       ! disregarding the factor T/(2*pi).
+       ! where \eta=U(NDM+1:NDM*2), \eta_0=UOLD(NDM+1:NDM*2), and
+       ! \xi=-T/(2*pi)*DFDU \eta
        F(NDIM)=0.d0
        DO I=1,NDM
-          L0=0
           DO J=1,NDM
-             L0=L0+DFDU(I,J)*(U(NDM+J)-UOLD(NDM+J))
+             F(NDIM)=F(NDIM)+DFDU(I,J)*
+     *            (U(NDM+J)*UOLD(NDM+I)-U(NDM+I)*UOLD(NDM+J))
           ENDDO
-          F(NDIM)=F(NDIM)+L0*U(NDM+I)
        ENDDO
 C
       END SUBROUTINE FFHB
