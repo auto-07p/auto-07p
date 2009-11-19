@@ -37,6 +37,7 @@ except NameError: #Python < 3
 type_translation_dict = {
        0: {"long name" : "No Label","short name" : "No Label"},
        1: {"long name" : "Branch point (algebraic problem)","short name" : "BP"},
+      -2: {"long name" : "Cusp (algebraic problem)","short name" : "CP"},
        2: {"long name" : "Fold (algebraic problem)","short name" : "LP"},
        3: {"long name" : "Hopf bifurcation (algebraic problem)","short name" : "HB"},
       23: {"long name" : "Zero-Hopf bifurcation (algebraic problem)","short name" : "ZH"},
@@ -51,7 +52,7 @@ type_translation_dict = {
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
 all_point_types = ["No Label",
-                   "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH"]
+                   "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH","CP"]
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""

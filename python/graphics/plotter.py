@@ -54,6 +54,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["hopf_symbol"]            = ("H",self.__optionCallback)
         optionDefaults["zero_hopf_symbol"]       = ("ZH",self.__optionCallback)
         optionDefaults["bogdanov_takens_symbol"] = ("BT",self.__optionCallback)
+        optionDefaults["cusp_symbol"]            = ("CP",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
@@ -417,6 +418,7 @@ class plotter(grapher.GUIGrapher):
         symbollist = [
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
+            [[-2],  "cusp_symbol"],
             [[3],   "hopf_symbol"],
             [[-3],  "bogdanov_takens_symbol"],
             [[23],  "zero_hopf_symbol"],
