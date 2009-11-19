@@ -315,7 +315,7 @@ struct DefaultAxisItems
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13
 void popupFloquetMultiplierDialog(float data[], int size, int numFM);
-void soxtmain(char *argv[]);
+void soxtmain(int argc, char *argv[]);
 void updateScene();
 void postDeals();
 void cropScene(const char* filename);

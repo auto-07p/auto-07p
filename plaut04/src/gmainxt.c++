@@ -3664,7 +3664,7 @@ popupFloquetMultiplierDialog(float data[], int size, int numFM)
 }
 
 
-void soxtmain(char *argv[])
+void soxtmain(int argc, char *argv[])
 {
 // Initialize Inventor and Xt.
     Widget  mainWindow;

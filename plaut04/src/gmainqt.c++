@@ -2434,10 +2434,10 @@ void popupFloquetMultiplierDialog(float data[], int size, int numFM)
 }
 
 
-void soxtmain(char *argv[])
+void soxtmain(int argc, char *argv[])
 {
 // Initialize Inventor and Qt.
-    SoQt::init(argv[0]);
+    SoQt::init(argc, argv, argv[0]);
 
     root = new SoSeparator;
     root->ref();

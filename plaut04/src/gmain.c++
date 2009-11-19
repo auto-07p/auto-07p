@@ -4808,7 +4808,7 @@ main(int argc, char *argv[])
     initCoordAndLableListItems();
     initTempVariables();
 
-    soxtmain(argv);
+    soxtmain(argc,argv);
 
     return 0;
 }
