@@ -54,7 +54,7 @@ CONTAINS
     DOUBLE PRECISION PAR(*),VUZ(*),THU(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: &
-         AA(:,:),U(:),UDOT(:),STUD(:,:),STU(:,:),UZR(:)
+         AA(:,:),U(:),V(:),UDOT(:),STUD(:,:),STU(:,:),UZR(:)
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS
@@ -82,8 +82,8 @@ CONTAINS
 
     DS=AP%DS
 
-    ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1))
-    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR+4),EVV(NDIM))
+    ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1),V(AP%NDM))
+    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR+5),EVV(NDIM))
 
     NINS=0
     AP%NINS=NINS
@@ -114,7 +114,7 @@ CONTAINS
 
     DO NBFC=0,NBFCS !bifurcation switch loop
 
-       DO I=1,NUZR+4
+       DO I=1,NUZR+5
           UZR(I)=0.d0
        ENDDO
 
@@ -143,7 +143,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
-          UZR(NUZR+4)=FNHBAE(AP,PAR,CHNG,AA)
+          UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
@@ -156,18 +156,19 @@ CONTAINS
 ! Provide initial approximation to the second point on the branch and
 ! determine the second point on the bifurcating or original branch
           CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISW<0)
+          IF(NIT>0)CALL PVLSAE(AP,U,PAR)
 
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
-                UZR(NUZR+4)=FNHBAE(AP,PAR,CHNG,AA)
+                UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
              ENDIF
              ! Store plotting data for second point :
              CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
           ENDIF
        ENDIF
 
-       UZR(NUZR+4)=0.d0
+       UZR(NUZR+5)=0.d0
        DO WHILE(.NOT.ISTOP) ! branch computation loop
           ITP=0
           AP%ITP=ITP
@@ -176,20 +177,26 @@ CONTAINS
 ! Find the next solution point on the branch
           CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
           ISTOP=NIT==0
+          IF(.NOT.ISTOP)THEN
+             CALL RNULLVC(AP,AA,V)
+             CALL PVLSAE(AP,U,PAR)
+          ENDIF
           DSOLD=RDS
 
           CHECKEDHB=.FALSE.
-          DO IUZR=1,NUZR+4
+          DO IUZR=1,NUZR+5
              IF(ISTOP)EXIT
              IF(IUZR<=NUZR)THEN
                 ITP=-4 ! Check for user supplied parameter output parameter-values.
              ELSEIF(IUZR==NUZR+1)THEN
-                ITP=2  ! Check for fold
+                ITP=-2 ! Check for cusp
              ELSEIF(IUZR==NUZR+2)THEN
-                ITP=1  ! Check for branch point
+                ITP=2  ! Check for fold
              ELSEIF(IUZR==NUZR+3)THEN
-                ITP=-3  ! Check for Bogdanov-Takens bifurcation
+                ITP=1  ! Check for branch point
              ELSEIF(IUZR==NUZR+4)THEN
+                ITP=-3 ! Check for Bogdanov-Takens bifurcation
+             ELSEIF(IUZR==NUZR+5)THEN
                 ITP=3  ! Check for Hopf bifurcation
              ENDIF
              IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
@@ -198,7 +205,7 @@ CONTAINS
                    CHECKEDHB=.TRUE.
                 ENDIF
                 CALL LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA,&
-                     U,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                     U,V,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
                    IF(ITP<0)THEN
                       ITP=ITP-10*ITPST
@@ -215,7 +222,7 @@ CONTAINS
                       IF(MOD(ITP,10)==-4)THEN
                          UZR(1:NUZR)=0.d0
                       ELSE
-                         UZR(NUZR+1:NUZR+4)=0.d0
+                         UZR(NUZR+1:NUZR+5)=0.d0
                       ENDIF
                       IF(MOD(ITP,10)==1)THEN
                          ! Check for branch point, and if so store data :
@@ -231,7 +238,7 @@ CONTAINS
           IF(.NOT.CHECKEDHB.AND.(ABS(IPS)==1.OR.IPS==11))THEN
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
-             UZR(NUZR+4)=FNHBAE(AP,PAR,CHNG,AA)
+             UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
           ENDIF
           ITP=AP%ITP 
           IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
@@ -473,10 +480,7 @@ CONTAINS
     
     DO
        CALL SOLVAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,BSW)
-       IF(NIT>0)THEN
-          CALL PVLSAE(AP,U,PAR)
-          RETURN
-       ENDIF
+       IF(NIT>0)RETURN
 
 ! Maximum number of iterations has been reached.
 
@@ -702,7 +706,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA, &
-       U,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+       U,V,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
 
@@ -721,7 +725,7 @@ CONTAINS
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER ICP(*),IUZ(*),NIT,IUZR
     DOUBLE PRECISION RDS,PAR(*),THU(*),VUZ(*)
-    DOUBLE PRECISION AA(AP%NDIM+1,*),U(*),UDOT(*),Q
+    DOUBLE PRECISION AA(AP%NDIM+1,*),U(*),V(*),UDOT(*),Q
     LOGICAL, INTENT(OUT) :: ISTOP, FOUND
 
     LOGICAL CHNG
@@ -741,7 +745,7 @@ CONTAINS
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,CHNG,AA,U,IUZ,VUZ,IUZR)
+    Q1=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR)
     NTOT=AP%NTOT
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
@@ -782,7 +786,9 @@ CONTAINS
           RETURN
        ENDIF
 
-       Q=FNCS(AP,PAR,CHNG,AA,U,IUZ,VUZ,IUZR)
+       CALL RNULLVC(AP,AA,V)
+       CALL PVLSAE(AP,U,PAR)
+       Q=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
@@ -797,13 +803,14 @@ CONTAINS
   END SUBROUTINE LCSPAE
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,CHNG,AA,U,IUZ,VUZ,IUZR)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR)
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
-    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
     INTEGER, INTENT(IN) :: IUZ(*),IUZR
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 
@@ -812,12 +819,14 @@ CONTAINS
     NUZR=AP%NUZR
 
     IF(IUZR==NUZR+1)THEN
-       FNCS=FNLPAE(AP,CHNG,AA)
+       FNCS=FNCPAE(AP,PAR,ICP,CHNG,U,V)
     ELSEIF(IUZR==NUZR+2)THEN
-       FNCS=FNBPAE(AP,CHNG)
+       FNCS=FNLPAE(AP,CHNG,AA)
     ELSEIF(IUZR==NUZR+3)THEN
-       FNCS=FNBTAE(AP,CHNG,AA,U)
+       FNCS=FNBPAE(AP,CHNG)
     ELSEIF(IUZR==NUZR+4)THEN
+       FNCS=FNBTAE(AP,CHNG,U,V)
+    ELSEIF(IUZR==NUZR+5)THEN
        FNCS=FNHBAE(AP,PAR,CHNG,AA)
     ELSE
        FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
@@ -1052,18 +1061,41 @@ CONTAINS
     DEALLOCATE(EV)
   END FUNCTION FNHBAE
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBTAE(AP,CHNG,AA,U)
+! ---------- -------
+  SUBROUTINE RNULLVC(AP,AA,V)
+
+    ! get null vector for the transposed Jacobian for BT/CP detection
 
     USE SUPPORT, ONLY: NLVC, NRMLZ
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
-    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: V(AP%NDM)
+
+    DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:)
+    INTEGER NDM,I
+
+    IF(AP%ISW==2.AND.AP%ITPST==2.AND.AP%IPS/=-1.AND.AP%ISP/=0.AND.&
+         AP%ISP/=3)THEN
+       NDM=AP%NDM
+       ALLOCATE(DFU(NDM,NDM))
+       DO I=1,NDM
+          DFU(1:NDM,I)=AA(I,1:NDM)
+       ENDDO
+       CALL NLVC(NDM,NDM,1,DFU,V)
+       CALL NRMLZ(NDM,V)
+       DEALLOCATE(DFU)
+    ENDIF
+  END SUBROUTINE RNULLVC
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNBTAE(AP,CHNG,U,V)
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    LOGICAL, INTENT(OUT) :: CHNG
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM), V(*)
 ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),V(:)
-    INTEGER NDM,NTOP,I
+    INTEGER NDM,NTOP
 
     FNBTAE = 0
     CHNG=.FALSE.
@@ -1073,18 +1105,10 @@ CONTAINS
 
     IF(AP%ITPST==2)THEN
        NDM=AP%NDM
-       ALLOCATE(DFU(NDM,NDM),V(NDM))
-       ! get null vector for the transposed Jacobian
-       DO I=1,NDM
-          DFU(1:NDM,I)=AA(I,1:NDM)
-       ENDDO
-       CALL NLVC(NDM,NDM,1,DFU,V)
-       CALL NRMLZ(NDM,V)
 
        ! take the inner product with the null vector for the Jacobian
        FNBTAE = DOT_PRODUCT(U(NDM+1:2*NDM),V(1:NDM))
 
-       DEALLOCATE(DFU,V)
     ELSE
        ! BT on Hopf curve
        FNBTAE = U(AP%NDIM-1)
@@ -1096,6 +1120,61 @@ CONTAINS
 101 FORMAT(I4,I6,9X,'BT   Function:',ES14.5)
 
   END FUNCTION FNBTAE
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,CHNG,U,V)
+
+    USE INTERFACES, ONLY: FNWS, FUNC
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    LOGICAL, INTENT(OUT) :: CHNG
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
+    INTEGER, INTENT(IN) :: ICP(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+! Local
+    DOUBLE PRECISION, ALLOCATABLE :: F(:),UU(:)
+    DOUBLE PRECISION DUM(1),H
+    INTEGER NDM,NTOP,I
+
+    FNCPAE = 0
+    CHNG=.FALSE.
+    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+       RETURN
+    ENDIF
+
+    NDM=AP%NDM
+    ALLOCATE(UU(NDM),F(NDM))
+
+    ! Evaluate cusp function:
+    H=0.d0
+    DO I=1,NDM
+       IF(ABS(U(I))>H)H=ABS(U(I))
+    ENDDO
+    H=(EPSILON(H)**(1d0/3))*(1+H)
+
+    UU(:)=U(:NDM)+U(NDM+1:2*NDM)*H
+    IF(AP%IPS==11)THEN
+       CALL FNWS(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
+    ELSE
+       CALL FUNC(NDM,UU,ICP,PAR,0,F,DUM,DUM)
+    ENDIF
+    FNCPAE=DOT_PRODUCT(V(:),F(:))
+    UU(:)=U(:NDM)-U(NDM+1:2*NDM)*H
+    IF(AP%IPS==11)THEN
+       CALL FNWS(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
+    ELSE
+       CALL FUNC(NDM,UU,ICP,PAR,0,F,DUM,DUM)
+    ENDIF
+    FNCPAE=(FNCPAE+DOT_PRODUCT(V(:),F(:)))/H**2
+
+    DEALLOCATE(UU,F)
+    CHNG=.TRUE.
+
+    NTOP=MOD(AP%NTOT-1,9999)+1
+    IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNCPAE
+101 FORMAT(I4,I6,9X,'Cusp Function:',ES14.5)
+
+  END FUNCTION FNCPAE
 
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)

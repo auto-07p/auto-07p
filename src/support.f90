@@ -449,7 +449,7 @@ CONTAINS
 
     CHECKSP = .FALSE.
     SELECT CASE(NTY)
-    CASE(1) ! BP
+    CASE(-2,1) ! BP, CP
        CHECKSP = ISP/=0
     CASE(2,5) ! LP
        CHECKSP = ILP/=0

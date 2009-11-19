@@ -143,7 +143,7 @@ CONTAINS
     ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
     ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
     ALLOCATE(TM(0:NTST),DTM(NTST))
-    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR+3),EV(NDIM))
+    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),UZR(NUZR+5),EV(NDIM))
 
     CALL SETPBV(AP,DTM,NDIM,P0,P1,EV)
     DS=AP%DS
@@ -154,7 +154,7 @@ CONTAINS
        ISP=-ISP
        AP%ISP=ISP
     ENDIF
-    DO I=1,NUZR+3
+    DO I=1,NUZR+5
        UZR(I)=0.d0
     ENDDO
     NITPS=0
@@ -226,16 +226,18 @@ CONTAINS
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
        CHECKEDSP=.FALSE.
-       DO IUZR=1,NUZR+3
+       DO IUZR=1,NUZR+5
           IF(ISTOP.NE.0)EXIT
           IF(IUZR<=NUZR)THEN
              ITP=-4 ! Check for user supplied parameter output parameter-values.
-          ELSEIF(IUZR==NUZR+1)THEN
-             ITP=5  ! Check for fold.
           ELSEIF(IUZR==NUZR+2)THEN
-             ITP=6  ! Check for branch point.
+             ITP=5  ! Check for fold.
           ELSEIF(IUZR==NUZR+3)THEN
+             ITP=6  ! Check for branch point.
+          ELSEIF(IUZR==NUZR+5)THEN
              ITP=7  ! Check for period-doubling and torus bifurcation.
+          ELSE
+             CYCLE
           ENDIF
           CHECK=CHECKSP(ITP,IPS,ILP,ISP)
           IF(ITP==7)THEN
@@ -260,7 +262,7 @@ CONTAINS
                    IF(MOD(ITP,10)==-4)THEN
                       UZR(1:NUZR)=0.d0
                    ELSE
-                      UZR(NUZR+1:NUZR+3)=0.d0
+                      UZR(NUZR+1:NUZR+5)=0.d0
                    ENDIF
                 ELSE
                    ISTOP=-1 ! *Stop at the first found bifurcation
@@ -272,7 +274,7 @@ CONTAINS
        IF(.NOT.CHECKEDSP .AND. ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! Still determine and print Floquet multipliers
           ! for situations where ISTOP=-1 or SP switched off PD/TR detection
-          UZR(NUZR+3) = FNSPBV(AP,CHNG,P0,P1,EV)
+          UZR(NUZR+5) = FNSPBV(AP,CHNG,P0,P1,EV)
        ENDIF
        ITP=AP%ITP 
        IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
@@ -1169,11 +1171,11 @@ CONTAINS
 
     NUZR=AP%NUZR
 
-    IF(IUZR==NUZR+1)THEN
+    IF(IUZR==NUZR+2)THEN
        FNCS=FNLPBV(AP,CHNG)
-    ELSEIF(IUZR==NUZR+2)THEN
-       FNCS=FNBPBV(AP,CHNG,P1)
     ELSEIF(IUZR==NUZR+3)THEN
+       FNCS=FNBPBV(AP,CHNG,P1)
+    ELSEIF(IUZR==NUZR+5)THEN
        FNCS=FNSPBV(AP,CHNG,P0,P1,EV)
     ELSE
        FNCS=FNUZBV(AP,PAR,CHNG,IUZ,VUZ,IUZR)
