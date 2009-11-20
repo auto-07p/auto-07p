@@ -55,6 +55,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["zero_hopf_symbol"]       = ("ZH",self.__optionCallback)
         optionDefaults["bogdanov_takens_symbol"] = ("BT",self.__optionCallback)
         optionDefaults["cusp_symbol"]            = ("CP",self.__optionCallback)
+        optionDefaults["generalized_hopf_symbol"]= ("GH",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
@@ -422,6 +423,7 @@ class plotter(grapher.GUIGrapher):
             [[3],   "hopf_symbol"],
             [[-3],  "bogdanov_takens_symbol"],
             [[23],  "zero_hopf_symbol"],
+            [[35],  "generalized_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
             [[-4],  "user_point_symbol"]]
@@ -490,7 +492,7 @@ class plotter(grapher.GUIGrapher):
                         break
                 lab = label["LAB"]
                 TYnumber = label["TY number"]
-                if TYnumber != 23:
+                if TYnumber not in [23,35]:
                     if TYnumber>=0:
                         TYnumber=TYnumber%10
                     else:

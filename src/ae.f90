@@ -143,7 +143,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
-          UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+          UZR(NUZR+5)=FNHBAE(AP,PAR,ICP,CHNG,U,AA)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
@@ -161,7 +161,7 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
-                UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+                UZR(NUZR+5)=FNHBAE(AP,PAR,ICP,CHNG,U,AA)
              ENDIF
              ! Store plotting data for second point :
              CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
@@ -197,25 +197,30 @@ CONTAINS
              ELSEIF(IUZR==NUZR+4)THEN
                 ITP=-3 ! Check for Bogdanov-Takens bifurcation
              ELSEIF(IUZR==NUZR+5)THEN
-                ITP=3  ! Check for Hopf bifurcation
+                IF(AP%ITPST==3)THEN
+                   ITP=5 ! Check for Generalized Hopf (Bautin)
+                ELSE
+                   ITP=3 ! Check for Hopf bifurcation
+                ENDIF
+             ENDIF
+             IF(ITP<0)THEN
+                ITP=ITP-10*ITPST
+             ELSE
+                ITP=ITP+10*ITPST
              ENDIF
              IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
                 ! Check for UZ, LP, BP, HB
-                IF(ITP==3)THEN
+                IF(IUZR==NUZR+5)THEN
                    CHECKEDHB=.TRUE.
                 ENDIF
                 CALL LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA,&
                      U,V,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
-                   IF(ITP<0)THEN
-                      ITP=ITP-10*ITPST
-                   ELSEIF(ITP==3.AND.IPS==-1)THEN
+                   IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
                       ITDS=AP%ITDS
                       EPSS=AP%EPSS
                       ITP=TPSPAE(EPSS,ITPST,PAR(11))
                       PAR(11)=PAR(11)*ITDS
-                   ELSE
-                      ITP=ITP+10*ITPST
                    ENDIF
                    AP%ITP=ITP
                    IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
@@ -238,7 +243,7 @@ CONTAINS
           IF(.NOT.CHECKEDHB.AND.(ABS(IPS)==1.OR.IPS==11))THEN
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
-             UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+             UZR(NUZR+5)=FNHBAE(AP,PAR,ICP,CHNG,U,AA)
           ENDIF
           ITP=AP%ITP 
           IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
@@ -827,7 +832,7 @@ CONTAINS
     ELSEIF(IUZR==NUZR+4)THEN
        FNCS=FNBTAE(AP,CHNG,U,V)
     ELSEIF(IUZR==NUZR+5)THEN
-       FNCS=FNHBAE(AP,PAR,CHNG,AA)
+       FNCS=FNHBAE(AP,PAR,ICP,CHNG,U,AA)
     ELSE
        FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
     ENDIF
@@ -903,7 +908,7 @@ CONTAINS
   END FUNCTION FNLPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,CHNG,AA)
+  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,ICP,CHNG,U,AA)
 
     USE SUPPORT
 
@@ -911,7 +916,9 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    INTEGER, INTENT(IN) :: ICP(*)
     LOGICAL, INTENT(OUT) :: CHNG
+    DOUBLE PRECISION, INTENT(IN) :: U(*)
     DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
@@ -934,6 +941,11 @@ CONTAINS
 ! INITIALIZE
 
     CHNG=.FALSE.
+
+    IF(ITPST==3)THEN
+       ! on Hopf curves, calculate the first Lyapunov coefficient
+       FNHBAE=FNGHAE(AP,PAR,ICP,CHNG,U,AA)
+    ENDIF
 
 ! Set tolerance for deciding if an eigenvalue is in the positive
 ! half-plane. Use, for example, tol=1d-3 for conservative systems.
@@ -1030,7 +1042,7 @@ CONTAINS
     ENDDO
 
     IF((ISW==2.AND.(ITPST/=2.OR.IPS==-1)) .OR. ISP==0 .OR. ISP==3)THEN
-       FNHBAE=0.d0
+       IF(.NOT.CHNG)FNHBAE=0d0
     ELSE
        FNHBAE=REV
     ENDIF
@@ -1047,7 +1059,17 @@ CONTAINS
     ENDIF
 
     IF(IID>0)THEN
-       IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
+       IF(IID.GE.2)THEN
+          IF(ITPST==3)THEN
+             IF(FNHBAE>=0)THEN
+                WRITE(9,104)ABS(IBR),NTOP+1,FNHBAE
+             ELSE
+                WRITE(9,105)ABS(IBR),NTOP+1,FNHBAE
+             ENDIF
+          ELSE
+             WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
+          ENDIF
+       ENDIF
        WRITE(9,102)ABS(IBR),NTOP+1,NINS
        DO I=1,NDM
           WRITE(9,103)ABS(IBR),NTOP+1,I,EVV(I)
@@ -1057,6 +1079,9 @@ CONTAINS
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 102 FORMAT(/,I4,I6,9X,'Eigenvalues  :   Stable:',I4)
 103 FORMAT(I4,I6,9X,'Eigenvalue',I3,":",2ES14.5)
+
+104 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5,' (subcritical)')
+105 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5,' (supercritical)')
 
     DEALLOCATE(EV)
   END FUNCTION FNHBAE
@@ -1175,6 +1200,223 @@ CONTAINS
 101 FORMAT(I4,I6,9X,'Cusp Function:',ES14.5)
 
   END FUNCTION FNCPAE
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNGHAE(AP,PAR,ICP,CHNG,U,AA)
+
+    ! Evaluate first Lyapunov coefficient for Bautin (GH) bifurcations
+    ! and to determine if the Hopf is subcritical or supercritical.
+
+    USE SUPPORT, ONLY: NRMLZ, NLVC, GEL
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    LOGICAL, INTENT(OUT) :: CHNG
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),AA(AP%NDIM+1,AP%NDIM+1)
+    INTEGER, INTENT(IN) :: ICP(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+! Local
+    DOUBLE PRECISION, ALLOCATABLE :: pR(:),qR(:),pI(:),qI(:),sR(:),sI(:),r(:)
+    DOUBLE PRECISION, ALLOCATABLE :: a(:),b(:),c(:),abc(:),tmp(:)
+    DOUBLE PRECISION, ALLOCATABLE :: f1(:),f2(:),x(:),SMAT(:,:),A1(:,:)
+    DOUBLE PRECISION alpha,beta,DUM(1),h,omega,DET,phi
+    DOUBLE PRECISION delta1,delta2,delta3,delta4,Delta
+    DOUBLE PRECISION gamma1,gamma2,gamma3,gamma4,Gamma
+    DOUBLE PRECISION sigma1,sigma2,Sigma
+    INTEGER n,i
+
+    FNGHAE = 0
+    CHNG = .FALSE.
+    IF(AP%ISW/=2.OR.AP%ITPST/=3.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+       RETURN
+    ENDIF
+    IF((U(AP%NDIM-1))<=0)RETURN
+    omega = SQRT(U(AP%NDIM-1))
+
+    n = AP%NDM
+    ALLOCATE(pI(n),pR(n),qR(n),qI(n),sR(n),sI(n),f1(n),f2(n),x(n),r(n))
+    ALLOCATE(a(n),b(n),c(n),abc(2*n),tmp(2*n),SMAT(2*n,2*n),A1(n,n))
+
+    h = 0.d0
+    DO I = 1,n
+       IF(ABS(U(I))>h) h = ABS(U(I))
+    ENDDO
+    h = (EPSILON(h)**(1d0/3))*(1+h)
+
+    ! Following Kuznetsov, Elements of Applied Bif. Theory, 3rd Ed., 10.2
+    ! Step 1
+    qR = U(n+1:2*n)
+    ! qI=-AA.qR/omega
+    CALL DGEMV('N',n,n,-1/omega,AA,AP%NDIM+1,qR,1,0d0,qI,1)
+
+    ! normalize so that <qR,qI>=0
+    phi = ATAN2(-2*DOT_PRODUCT(qR,qI),1-DOT_PRODUCT(qI,qI))/2
+    alpha = COS(phi)
+    beta = SIN(phi)
+    tmp(:n) = alpha*qR-beta*qI
+    tmp(n+1:) = alpha*qI+beta*qR
+
+    ! normalize so that <qR,qR>+<qI,qI>=1
+    CALL NRMLZ(2*n,tmp)
+    qR = tmp(:n)
+    qI = tmp(n+1:)
+
+    ! compute pR,pI
+    SMAT(:,:) = 0.d0
+    DO I = 1,n
+       SMAT(I,n+I) = -OMEGA
+       SMAT(n+I,I) = OMEGA
+    ENDDO
+    SMAT(1:n,1:n) = TRANSPOSE(AA(1:n,1:n))
+    SMAT(n+1:2*n,n+1:2*n) = SMAT(1:n,1:n)
+    CALL NLVC(2*n,2*n,2,SMAT,tmp)
+    pR = tmp(:n)
+    pI = tmp(n+1:)
+
+    ! normalize so that <pR,qI>-<pI,qR>=0
+    alpha = DOT_PRODUCT(pR,qR)+DOT_PRODUCT(pI,qI)
+    beta = DOT_PRODUCT(pI,qR)-DOT_PRODUCT(pR,qI)
+    tmp(:n) = alpha*pR+beta*pI
+    tmp(n+1:) = alpha*pI-beta*pR
+
+    ! normalize so that <pR,qR>+<pI,qI>=1
+    tmp(:) = tmp(:)/(DOT_PRODUCT(tmp(:n),qR(:))+DOT_PRODUCT(tmp(n+1:),qI(:)))
+    pR = tmp(:n)
+    pI = tmp(n+1:)
+
+    ! Step 2
+    a = DERIV2a(qR)
+    b = DERIV2a(qI)
+    c = DERIV2b(qR, qI)/4
+
+    ! Step 3
+    A1(:,:) = AA(1:n,1:n)
+    f1(:) =  a+b
+    CALL GEL(n,A1,1,r,f1,DET)
+    SMAT(:,:) = 0d0
+    DO I = 1,n
+       SMAT(I,n+I) = -2*omega
+       SMAT(n+I,I) = 2*omega
+    ENDDO
+    SMAT(1:n,1:n) = -AA(1:n,1:n)
+    SMAT(n+1:2*n,n+1:2*n) = SMAT(1:n,1:n)
+    abc(:n) = a-b
+    abc(n+1:) = 2*c
+    CALL GEL(2*n,SMAT,1,tmp,abc,DET)
+    sR = tmp(:n)
+    sI = tmp(n+1:)
+
+    ! Step 4
+    sigma1 = DERIV2c(pR, qR, r)/4
+    sigma2 = DERIV2c(pI, qI, r)/4
+    Sigma = sigma1+sigma2
+
+    ! Step 5
+    delta1 = DERIV2c(pR, qR, sR)/4
+    delta2 = DERIV2c(pR, qI, sI)/4
+    delta3 = DERIV2c(pI, qR, sI)/4
+    delta4 = DERIV2c(pI, qI, sR)/4
+    Delta = delta1+delta2+delta3-delta4
+
+    ! Step 6
+    ! adjust h for third order derivatives
+    h = h * EPSILON(h)**(-1d0/12)
+    gamma1 = DERIV3(pR, qR)
+    gamma2 = DERIV3(pI, qI)
+    sR = pR + pI
+    sI = qR + qI
+    gamma3 = DERIV3(sR, sI)
+    sR = pR - pI
+    sI = qR - qI
+    gamma4 = DERIV3(sR, sI)
+    Gamma = ((gamma1+gamma2)*2)/3 + (gamma3+gamma4)/6
+
+    ! Step 7
+    FNGHAE = (Gamma-2*Sigma+Delta)/(2*omega)
+
+    DEALLOCATE(pI,pR,qR,qI,sR,sI,f1,f2,x,r,a,b,c,abc,tmp,SMAT,A1)
+    CHNG = .TRUE.
+
+    CONTAINS
+      
+      FUNCTION FN(x) RESULT(f)
+        USE INTERFACES, ONLY: FNWS, FUNC
+        DOUBLE PRECISION, INTENT(INOUT) :: x(n)
+        DOUBLE PRECISION f(size(x))
+
+        IF(AP%IPS==11)THEN
+           CALL FNWS(AP,n,x,x,ICP,PAR,0,f,dum,dum)
+        ELSE
+           CALL FUNC(n,x,ICP,PAR,0,f,dum,dum)
+        ENDIF
+      END FUNCTION FN
+
+      FUNCTION DERIV2a(p) RESULT(d)
+        DOUBLE PRECISION, INTENT(IN) :: p(n)
+        DOUBLE PRECISION d(size(p))
+
+        x(:) = U(:n) + h*p
+        f1 = FN(x)
+        x(:) = U(:n) - h*p
+        f2 = FN(x)
+        d = (f1+f2)/h**2
+      END FUNCTION DERIV2a
+
+      FUNCTION DERIV2b(p, q) RESULT(d)
+        DOUBLE PRECISION, INTENT(IN) :: p(n), q(n)
+        DOUBLE PRECISION d(size(p))
+
+        x(:) = U(:n) + h*(p+q)
+        f1 = FN(x)
+        x(:) = U(:n) + h*(p-q)
+        f2 = FN(x)
+        d = f1-f2
+
+        x(:) = U(:n) - h*(p+q)
+        f1 = FN(x)
+        x(:) = U(:n) - h*(p-q)
+        f2 = FN(x)
+        d = (d + f1-f2)/h**2
+      END FUNCTION DERIV2b
+
+      FUNCTION DERIV2c(p, q, r) RESULT(d)
+        DOUBLE PRECISION, INTENT(IN) :: p(n), q(n), r(n)
+        DOUBLE PRECISION d
+
+        x(:) = U(:n) + h*(q+r)
+        f1 = FN(x)
+        x(:) = U(:n) + h*(q-r)
+        f2 = FN(x)
+        d = DOT_PRODUCT(p, f1-f2)
+
+        x(:) = U(:n) - h*(q+r)
+        f1 = FN(x)
+        x(:) = U(:n) - h*(q-r)
+        f2 = FN(x)
+        d = (d + DOT_PRODUCT(p, f1-f2))/h**2
+      END FUNCTION DERIV2c
+
+      FUNCTION DERIV3(p, q) RESULT(d)
+        DOUBLE PRECISION, INTENT(IN) :: p(n), q(n)
+        DOUBLE PRECISION d
+
+        x(:) = U(:n) + 3*h*q
+        f1 = FN(x)
+        d = DOT_PRODUCT(p,f1)
+
+        x(:) = U(:n) + h*q
+        f1 = FN(x)
+        d = d - 3*DOT_PRODUCT(p, f1)
+
+        x(:) = U(:n) - h*q
+        f1 = FN(x)
+        d = d + 3*DOT_PRODUCT(p, f1)
+
+        x(:) = U(:n) - 3*h*q
+        f1 = FN(x)
+        d = (d-DOT_PRODUCT(p, f1))/(8*h**3)
+      END FUNCTION DERIV3
+
+  END FUNCTION FNGHAE
 
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)

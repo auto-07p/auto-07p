@@ -42,6 +42,7 @@ type_translation_dict = {
        3: {"long name" : "Hopf bifurcation (algebraic problem)","short name" : "HB"},
       23: {"long name" : "Zero-Hopf bifurcation (algebraic problem)","short name" : "ZH"},
       -3: {"long name" : "Bogdanov-Takens bifurcation (algebraic problem)","short name" : "BT"},
+      35: {"long name" : "Generalized Hopf bifurcation (algebraic problem)","short name" : "GH"},
        4: {"long name" : "Regular point (every NPR steps)","short name" : "RG"},
       -4: {"long name" : "User requested point","short name" : "UZ"},
        5: {"long name" : "Fold (ODE)","short name" : "LP"},
@@ -52,11 +53,12 @@ type_translation_dict = {
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
 all_point_types = ["No Label",
-                   "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH","CP"]
+                   "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH",
+                   "CP","GH"]
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
-    if type!=23:
+    if type not in [23,35]:
         if type>=0:
             type=type%10
         else:

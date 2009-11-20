@@ -563,6 +563,8 @@ CONTAINS
     IF(MOD(ITP,10)>0)THEN
        IF(ITP==23)THEN
           LBTYPE='ZH'
+       ELSEIF(ITP==35)THEN
+          LBTYPE='GH'
        ELSE
           LBTYPE=ATYPESP(MOD(ITP,10))
        ENDIF

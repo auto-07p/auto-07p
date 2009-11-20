@@ -436,7 +436,7 @@ CONTAINS
 
     ! determine if the given TY label needs to be checked
     CHARACTER(LEN=2), PARAMETER :: ATYPES(-3:8) = &
-         (/ 'BT','  ','  ','  ','BP','LP','HB','UZ','LP','BP','PD','TR' /)
+         (/ 'BT','CP','  ','  ','BP','LP','HB','UZ','LP','BP','PD','TR' /)
     CHARACTER(LEN=2) ATYPE
     INTEGER NTY,I,M
 
@@ -451,8 +451,12 @@ CONTAINS
     SELECT CASE(NTY)
     CASE(-2,1) ! BP, CP
        CHECKSP = ISP/=0
-    CASE(2,5) ! LP
-       CHECKSP = ILP/=0
+    CASE(2,5) ! LP, GH
+       IF(ITP==35)THEN
+          CHECKSP = ABS(IPS)==1.OR.IPS==11 ! GH
+       ELSE
+          CHECKSP = ILP/=0
+       ENDIF
     CASE(-3,3) ! BT, Hopf, ZH
        CHECKSP = ABS(IPS)==1.OR.IPS==11
     CASE(6) ! BP (BVP)
@@ -463,6 +467,8 @@ CONTAINS
 
     IF(ITP==23)THEN
        ATYPE='ZH'
+    ELSEIF(ITP==35)THEN
+       ATYPE='GH'
     ELSE
        ATYPE=ATYPES(NTY)
     ENDIF
