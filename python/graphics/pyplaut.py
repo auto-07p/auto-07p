@@ -78,7 +78,11 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "period_doubling_symbol": "diamond",
             "torus_symbol": "filldiamond",
             "user_point_symbol": None,
-            "error_symbol": None }
+            "error_symbol": None,
+            "bogdanov_takens_symbol": "circle",
+            "cusp_symbol": None,
+            "generalized_hopf_symbol": "triangle",
+            "zero_hopf_symbol": "doubletriangle" }
         for k,v in self[self["default_option"]].items():
             dict[k] = v
         for key in list(dict):
