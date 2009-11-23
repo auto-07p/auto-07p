@@ -2432,23 +2432,24 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
-      DOUBLE PRECISION, ALLOCATABLE ::DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
-      INTEGER NDM,NFPR,I,J
-      DOUBLE PRECISION UMX,EP,P
+      DOUBLE PRECISION, ALLOCATABLE ::DFU(:,:),DFP(:,:),FF1(:),FF2(:)
+      INTEGER NDM,NFPR,I,J,NPAR
+      DOUBLE PRECISION UMX,EP,P,UU,DUMDP(1)
 C
        NDM=AP%NDM
        NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM))
-       CALL FFPD(AP,U,UOLD,ICP,PAR,F,NDM,DFU)
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
+       CALL FFPD(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
          RETURN
        ENDIF
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
+       ALLOCATE(FF1(NDIM),FF2(NDIM))
 C
 C Generate the Jacobian.
 C
@@ -2459,34 +2460,44 @@ C
 C
        EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FFPD(AP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFPD(AP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
-         DO J=1,NDIM
+       DFU(:,:)=PAR(11)*DFU(:,:)
+       DFDU(1:NDM,1:NDM)=DFU(:,:)
+       DFDU(1:NDM,NDM+1:2*NDM)=0
+       DFDU(NDM+1:2*NDM,NDM+1:2*NDM)=DFU(:,:)
+
+       DO I=NDM+1,NDIM
+         UU=U(I)
+         U(I)=UU-EP
+         CALL FFPD(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DUMDP)
+         U(I)=UU+EP
+         CALL FFPD(AP,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DUMDP)
+         U(I)=UU
+         DO J=NDM+1,NDIM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
        ENDDO
 C
-       DEALLOCATE(UU1,UU2,FF2)
+       DEALLOCATE(FF2)
        IF(IJAC.EQ.1)THEN
          DEALLOCATE(FF1,DFU)
          RETURN
        ENDIF
 C
        DO I=1,NFPR
-         P=PAR(ICP(I))
-         PAR(ICP(I))=P+EP
-         CALL FFPD(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
-         DO J=1,NDIM
-           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
-         ENDDO
-         PAR(ICP(I))=P
+         IF(ICP(I)==NPAR)THEN
+            DFDP(:,ICP(I))=0
+         ELSEIF(ICP(I)==11)THEN
+            DFDP(1:NDIM,11)=F(1:NDIM)/PAR(11)
+         ELSE
+            DFDP(1:NDM,ICP(I))=PAR(11)*DFP(:,ICP(I))
+            P=PAR(ICP(I))
+            PAR(ICP(I))=P+EP
+            CALL FFPD(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DUMDP)
+            DO J=NDM+1,NDIM
+               DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
+            ENDDO
+            PAR(ICP(I))=P
+         ENDIF
       ENDDO
 C
       DEALLOCATE(FF1,DFU)
@@ -2494,20 +2505,24 @@ C
       END SUBROUTINE FNPD
 C
 C     ---------- ----
-      SUBROUTINE FFPD(AP,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFPD(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 C
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-      INTEGER, INTENT(IN) :: ICP(*),NDM
+      INTEGER, INTENT(IN) :: ICP(*),NDM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(2*NDM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
-      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
 C Local
-      INTEGER I,J
-      DOUBLE PRECISION DUMDP(1),PERIOD
+      INTEGER I,J,IJC
+      DOUBLE PRECISION PERIOD
 C
+       IJC=IJAC
+       IF(IJC==-1)IJC=2
+       IF(IJC==0)IJC=1
+
        PERIOD=PAR(11)
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
        DO I=1,NDM
          F(NDM+I)=0.d0
@@ -2772,7 +2787,7 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*),DFDP(NDM,*)
 C Local
       INTEGER NDM2,I,J,IJC
-      DOUBLE PRECISION DUMDP(1),PERIOD
+      DOUBLE PRECISION PERIOD
 C
        IJC=IJAC
        IF(IJC==-1)IJC=2
