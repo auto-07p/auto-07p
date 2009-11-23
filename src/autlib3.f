@@ -2446,7 +2446,7 @@ C
        CALL FFPD(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
-         DEALLOCATE(DFU)
+         DEALLOCATE(DFU,DFP)
          RETURN
        ENDIF
        ALLOCATE(FF1(NDIM),FF2(NDIM))
@@ -2465,7 +2465,7 @@ C
        DFDU(1:NDM,NDM+1:2*NDM)=0
        DFDU(NDM+1:2*NDM,NDM+1:2*NDM)=DFU(:,:)
 
-       DO I=NDM+1,NDIM
+       DO I=1,NDM
          UU=U(I)
          U(I)=UU-EP
          CALL FFPD(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DUMDP)
@@ -2479,7 +2479,7 @@ C
 C
        DEALLOCATE(FF2)
        IF(IJAC.EQ.1)THEN
-         DEALLOCATE(FF1,DFU)
+         DEALLOCATE(FF1,DFU,DFP)
          RETURN
        ENDIF
 C
@@ -2500,7 +2500,7 @@ C
          ENDIF
       ENDDO
 C
-      DEALLOCATE(FF1,DFU)
+      DEALLOCATE(FF1,DFU,DFP)
       RETURN
       END SUBROUTINE FNPD
 C
