@@ -2686,23 +2686,24 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
-      DOUBLE PRECISION, ALLOCATABLE ::DFU(:),UU1(:),UU2(:),FF1(:),FF2(:)
-      INTEGER NDM,NFPR,I,J
-      DOUBLE PRECISION EP,UMX,P
+      DOUBLE PRECISION, ALLOCATABLE ::DFU(:,:),DFP(:,:),FF1(:),FF2(:)
+      INTEGER NDM,NFPR,NPAR,I,J
+      DOUBLE PRECISION EP,UMX,P,UU,DUMDP(1)
 C
        NDM=AP%NDM
        NFPR=AP%NFPR
+       NPAR=AP%NPAR
 C
 C Generate the function.
 C
-       ALLOCATE(DFU(NDM*NDM))
-       CALL FFTR(AP,U,UOLD,ICP,PAR,F,NDM,DFU)
+       ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
+       CALL FFTR(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFU,DFP)
 C
        IF(IJAC.EQ.0)THEN
-         DEALLOCATE(DFU)
+         DEALLOCATE(DFU,DFP)
          RETURN
        ENDIF
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NDIM),FF2(NDIM))
+       ALLOCATE(FF1(NDIM),FF2(NDIM))
 C
 C Generate the Jacobian.
 C
@@ -2713,55 +2714,72 @@ C
 C
        EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FFTR(AP,UU1,UOLD,ICP,PAR,FF1,NDM,DFU)
-         CALL FFTR(AP,UU2,UOLD,ICP,PAR,FF2,NDM,DFU)
-         DO J=1,NDIM
+       DFU(:,:)=PAR(11)*DFU(:,:)
+       DFDU(1:NDM,1:NDM)=DFU(:,:)
+       DFDU(1:NDM,NDM+1:3*NDM)=0
+       DFDU(NDM+1:2*NDM,NDM+1:2*NDM)=DFU(:,:)
+       DFDU(NDM+1:2*NDM,2*NDM+1:3*NDM)=0
+       DFDU(2*NDM+1:3*NDM,NDM+1:2*NDM)=0
+       DFDU(2*NDM+1:3*NDM,2*NDM+1:3*NDM)=DFU(:,:)
+
+       DO I=1,NDM
+         UU=U(I)
+         U(I)=UU-EP
+         CALL FFTR(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DUMDP)
+         U(I)=UU+EP
+         CALL FFTR(AP,U,UOLD,ICP,PAR,0,FF2,NDM,DFU,DUMDP)
+         U(I)=UU
+         DO J=NDM+1,3*NDM
            DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
        ENDDO
 C
-       DEALLOCATE(UU1,UU2,FF2)
+       DEALLOCATE(FF2)
        IF(IJAC.EQ.1)THEN
-         DEALLOCATE(FF1,DFU)
+         DEALLOCATE(FF1,DFU,DFP)
          RETURN
        ENDIF
 C
        DO I=1,NFPR
-         P=PAR(ICP(I))
-         PAR(ICP(I))=P+EP
-         CALL FFTR(AP,U,UOLD,ICP,PAR,FF1,NDM,DFU)
-         DO J=1,NDIM
-           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
-         ENDDO
-         PAR(ICP(I))=P
+         IF(ICP(I)==NPAR-1.OR.ICP(I)==NPAR)THEN
+            DFDP(:,ICP(I))=0
+         ELSEIF(ICP(I)==11)THEN
+            DFDP(1:NDIM,11)=F(1:NDIM)/PAR(11)
+         ELSE
+            DFDP(1:NDM,ICP(I))=PAR(11)*DFP(:,ICP(I))
+            P=PAR(ICP(I))
+            PAR(ICP(I))=P+EP
+            CALL FFTR(AP,U,UOLD,ICP,PAR,0,FF1,NDM,DFU,DUMDP)
+            DO J=NDM+1,3*NDM
+               DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
+            ENDDO
+            PAR(ICP(I))=P
+         ENDIF
        ENDDO
 C
-      DEALLOCATE(FF1,DFU)
+      DEALLOCATE(FF1,DFU,DFP)
       RETURN
       END SUBROUTINE FNTR
 C
 C     ---------- ----
-      SUBROUTINE FFTR(AP,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFTR(AP,U,UOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 C
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-      INTEGER, INTENT(IN) :: ICP(*),NDM
+      INTEGER, INTENT(IN) :: ICP(*),NDM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM*3)
-      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*),DFDP(NDM,*)
 C Local
-      INTEGER NDM2,I,J
+      INTEGER NDM2,I,J,IJC
       DOUBLE PRECISION DUMDP(1),PERIOD
 C
+       IJC=IJAC
+       IF(IJC==-1)IJC=2
+       IF(IJC==0)IJC=1
+
        PERIOD=PAR(11)
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DUMDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 C
        NDM2=2*NDM
        DO I=1,NDM
