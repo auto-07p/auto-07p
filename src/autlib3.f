@@ -2930,7 +2930,6 @@ C
       USE BVP
       USE IO
       USE MESH
-      USE SUPPORT, ONLY: PI
 C
 C Generates starting data for the 2-parameter continuation of torus
 C bifurcations.
@@ -2942,7 +2941,7 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(*),
      *     UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 C Local
-      DOUBLE PRECISION RLDOTRS(4),T,DT,PI2
+      DOUBLE PRECISION RLDOTRS(4),T,DT,THETA
       INTEGER ICPRS(4),NDIM,NDM,NCOL,NTST,NPAR,NDIMRD,ITPRS,I,J,K
       DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 C
@@ -2962,7 +2961,7 @@ C
 C
        T=0.d0
        DT=0.d0
-       PI2=PI(2d0)
+       THETA=PAR(NPAR-1)
        DO I=0,NTSR*NCOLRS
           IF(MOD(I,NCOLRS)==0)THEN
              J=I/NCOLRS
@@ -2970,8 +2969,8 @@ C
              IF(J<NTSR)DT=(TMR(J+1)-T)/NCOLRS
           ENDIF
           DO K=NDM+1,2*NDM
-             UPSR(K,I)        = 0.0001d0*SIN(T*PI2)
-             UPSR(K+NDM,I)    = 0.0001d0*COS(T*PI2)
+             UPSR(K,I)        = 0.0001d0*COS(T*THETA)
+             UPSR(K+NDM,I)    = 0.0001d0*SIN(T*THETA)
              UDOTPSR(K,I)     = 0.d0
              UDOTPSR(K+NDM,I) = 0.d0
           ENDDO
