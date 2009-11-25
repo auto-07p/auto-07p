@@ -58,6 +58,8 @@ all_point_types = ["No Label",
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
+    if type == -32:
+        type = 23
     if type not in [23,35]:
         if type>=0:
             type=type%10

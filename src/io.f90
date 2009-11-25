@@ -555,23 +555,16 @@ CONTAINS
     ! returns the string label type corresponding to numerical type ITP
     INTEGER, INTENT(IN) :: ITP
 
-    CHARACTER*2, PARAMETER :: ATYPESP(9) = &
-         (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
-    CHARACTER*2, PARAMETER :: ATYPESN(9) = &
-         (/ '  ','CP','BT','UZ','  ','  ','  ','  ','MX' /)
+    CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
+         (/ 'MX','  ','  ','  ','  ','UZ','BT','CP','  ',' ', &
+            'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
 
-    IF(MOD(ITP,10)>0)THEN
-       IF(ITP==23)THEN
-          LBTYPE='ZH'
-       ELSEIF(ITP==35)THEN
-          LBTYPE='GH'
-       ELSE
-          LBTYPE=ATYPESP(MOD(ITP,10))
-       ENDIF
-    ELSEIF(MOD(ITP,10)<0)THEN
-       LBTYPE=ATYPESN(-MOD(ITP,10))
+    IF(ITP==23.OR.ITP==-32)THEN
+       LBTYPE='ZH'
+    ELSEIF(ITP==35)THEN
+       LBTYPE='GH'
     ELSE
-       LBTYPE='  '
+       LBTYPE=ATYPES(MOD(ITP,10))
     ENDIF
   END FUNCTION LBTYPE
 

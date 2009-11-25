@@ -449,8 +449,12 @@ CONTAINS
 
     CHECKSP = .FALSE.
     SELECT CASE(NTY)
-    CASE(-2,1) ! BP, CP
-       CHECKSP = ISP/=0
+    CASE(-2,1) ! BP, CP, ZH
+       IF(ITP==-32)THEN
+          CHECKSP = ABS(IPS)==1.OR.IPS==11 ! ZH
+       ELSE
+          CHECKSP = ISP/=0
+       ENDIF
     CASE(2,5) ! LP, GH
        IF(ITP==35)THEN
           CHECKSP = ABS(IPS)==1.OR.IPS==11 ! GH
