@@ -20,6 +20,7 @@
 import os
 import sys
 import AUTOExceptions
+import AUTOutil
 import parseB
 
 line1_comment="NDIM,IPS,IRS,ILP"
@@ -359,7 +360,7 @@ class parseC(dict):
         v0s = []
         for v0, v1 in value:
             if v0 in v0s:
-                if isinstance(v1,float):
+                if not AUTOutil.isiterable(v1):
                     v1 = [v1]
                 # add to list when parameter was already encountered
                 try:
@@ -505,8 +506,14 @@ class parseC(dict):
         for k,v in self["THU"] or []:
             olist.append("%s %s\n"%(k,v))
 
-        olist.append("%s          %s\n"%(len(self["UZR"]),line10_comment))
+        uzrlist = []
         for k,v in self["UZR"] or []:
+            if not AUTOutil.isiterable(v):
+                v = [v]
+            for vv in v:
+                uzrlist.append([k,vv])
+        olist.append("%s          %s\n"%(len(uzrlist),line10_comment))
+        for k,v in uzrlist:
             olist.append("%s %s\n"%(k,v))
         return "".join(olist)
 

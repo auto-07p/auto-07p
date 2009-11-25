@@ -74,6 +74,17 @@ N = array
 #
 # Copyright (c) 2001-2004 Twisted Matrix Laboratories
 
+def isiterable(value):
+    try:
+        iter(value)
+        try: # no strings!
+            value+""
+            return False
+        except TypeError:
+            return True
+    except TypeError:
+        return False
+
 def findBaseClass(inputClass,baseClass):
     try:
         for base in inputClass.__bases__:
