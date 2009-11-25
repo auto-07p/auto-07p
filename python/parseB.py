@@ -497,8 +497,12 @@ class AUTOBranch(Points.Pointset):
             if not Points.numpyimported:
                 Points.importnumpy()
             ret = Points.Pointset.__getitem__(self,index)
-            if (not isinstance(ret, Points.Point) or
-                isinstance(ret, Points.Pointset)):
+            if isinstance(ret, Points.Pointset):
+                r = self.__class__(self)
+                r.coordarray = ret.coordarray
+                r.labels = ret.labels
+                return r
+            if not isinstance(ret, Points.Point):
                 return ret
             labels = ret.labels
             coordnames = ret.coordnames
