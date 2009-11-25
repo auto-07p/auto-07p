@@ -2756,7 +2756,7 @@ C
        ENDIF
 C
        DO I=1,NFPR
-         IF(ICP(I)==NPAR-1.OR.ICP(I)==NPAR)THEN
+         IF(ICP(I)==12.OR.ICP(I)==NPAR)THEN
             DFDP(:,ICP(I))=0
          ELSEIF(ICP(I)==11)THEN
             DFDP(1:NDIM,11)=F(1:NDIM)/PAR(11)
@@ -2831,7 +2831,7 @@ C
        NPAR=AP%NPAR
 C
        NDM2=2*NDM
-       THETA=PAR(NPAR-1)
+       THETA=PAR(12)
 C
        SS=SIN(THETA)
        CS=COS(THETA)
@@ -2864,11 +2864,11 @@ C
          DBC(NDM+I,NDM+I)=-CS
          DBC(NDM+I,NDM2+I)=SS
          DBC(NDM+I,NDIM+NDM+I)=1
-         DBC(NDM+I,2*NDIM+NPAR-1)=CS*U0(NDM2+I)+SS*U0(NDM+I)
+         DBC(NDM+I,2*NDIM+12)=CS*U0(NDM2+I)+SS*U0(NDM+I)
          DBC(NDM2+I,NDM+I)=-SS
          DBC(NDM2+I,NDM2+I)=-CS
          DBC(NDM2+I,NDIM+NDM2+I)=1
-         DBC(NDM2+I,2*NDIM+NPAR-1)=SS*U0(NDM2+I)-CS*U0(NDM+I)
+         DBC(NDM2+I,2*NDIM+12)=SS*U0(NDM2+I)-CS*U0(NDM+I)
        ENDDO
 C
       RETURN
@@ -2961,7 +2961,7 @@ C
 C
        T=0.d0
        DT=0.d0
-       THETA=PAR(NPAR-1)
+       THETA=PAR(12)
        DO I=0,NTSR*NCOLRS
           IF(MOD(I,NCOLRS)==0)THEN
              J=I/NCOLRS

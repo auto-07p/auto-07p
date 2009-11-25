@@ -218,6 +218,10 @@ C
         IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
            !HB period and period for periodic orbits stored in PAR(11)
            NPAR=MAX(11,NPAR)
+           IF(CHECKSP(8,IPS,ILP,ISP))THEN
+              ! the torus angle in stored in PAR(12)
+              NPAR=MAX(12,NPAR)
+           ENDIF
         ENDIF
         AP%NPAR=NPAR
         ALLOCATE(PAR(NPAR))
@@ -1120,10 +1124,6 @@ C Redefinition for waves
 C
 C General Redefinition.
 C
-       IF(CHECKSP(8,IPS,ILP,ISP))THEN
-          ! reserve an internal parameter for the torus angle
-          NPARI=1
-       ENDIF
        IF((ABS(IPS)<=1.OR.IPS==11) .AND. ISW==1 )THEN
 C        ** Algebraic Systems
          NFPR=1
@@ -1367,9 +1367,9 @@ C          ** Continuation of torus bifurcations; start
            NINT=3
            NFPR=NBC+NINT-NDIM+1
            ICP(2)=11
-           ICP(3)=NPAR+1
-           ICP(4)=NPAR+2
-           NPARI=2
+           ICP(3)=12
+           ICP(4)=NPAR+1
+           NPARI=1
            ILP=0
            ISP=0
            ISW=-2
@@ -1385,9 +1385,9 @@ C          ** Continuation of torus bifurcations; restart
            IF(NICP.LT.4)THEN
 C            **If not specified by user
              ICP(3)=11
-             ICP(4)=NPAR+1
+             ICP(4)=12
            ENDIF
-           NPARI=2
+           NPARI=1
 C
          ELSE IF( (ITP==5) .AND. (IPS==4.OR.IPS==7) )
      *   THEN
