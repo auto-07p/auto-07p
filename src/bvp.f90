@@ -1511,7 +1511,7 @@ CONTAINS
     IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 !       ** torus bifurcation
        TPSPBV=8+10*ITPST
-       PAR(NPAR)=ASIN(AIMAG(EV(LOC1)))
+       PAR(NPAR)=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
     ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 !       ** period doubling
        TPSPBV=7+10*ITPST
