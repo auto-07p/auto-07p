@@ -58,7 +58,7 @@ CONTAINS
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS,NDM
-    DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS
+    DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS,TMP
     LOGICAL ISTOP,CHECKEDHB
     INTEGER STOPCNTS(-9:9)
 
@@ -144,7 +144,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
-          UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+          TMP=FNHBAE(AP,PAR,CHNG,AA)
           CALL PRINTEIG(AP)
        ENDIF
 
@@ -163,7 +163,7 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
-                UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+                TMP=FNHBAE(AP,PAR,CHNG,AA)
                 CALL PRINTEIG(AP)
              ENDIF
              ! Store plotting data for second point :
@@ -171,7 +171,6 @@ CONTAINS
           ENDIF
        ENDIF
 
-       UZR(NUZR+5)=0.d0
        DO WHILE(.NOT.ISTOP) ! branch computation loop
           ITP=0
           AP%ITP=ITP
@@ -248,7 +247,7 @@ CONTAINS
           IF(.NOT.CHECKEDHB.AND.(ABS(IPS)==1.OR.IPS==11))THEN
              ! Still determine eigenvalue information and stability
              ! for situations where ISTOP=-1 or SP switched off HB detection
-             UZR(NUZR+5)=FNHBAE(AP,PAR,CHNG,AA)
+             TMP=FNHBAE(AP,PAR,CHNG,AA)
              CALL PRINTEIG(AP)
           ENDIF
           ITP=AP%ITP 
@@ -1052,17 +1051,20 @@ CONTAINS
     ENDDO
     IF(ISW==2.AND.IPS/=-1)THEN
        IF(ITPST==2)THEN
-          ! for Zero-Hopf compute one-but-smallest real part
-          AREV=HUGE(AREV)
-          DO I=1,NDM
-             AR=ABS(REAL(EV(I)))
-             IF(AR.LE.AREV.AND.I/=LOC)THEN
-                AREV=AR
-                REV=REAL(EV(I))
-             ENDIF
-          ENDDO
-       ELSE
-          ! Evaluate determinant on Hopf/BP bifurcations.
+          ! for Zero-Hopf on LP curves compute one-but-smallest real part
+          IF(AP%ITP/=-23)THEN ! No Bogdanov-Takens
+             AREV=HUGE(AREV)
+             DO I=1,NDM
+                AR=ABS(REAL(EV(I)))
+                IF(AR.LE.AREV.AND.I/=LOC)THEN
+                   AREV=AR
+                   REV=REAL(EV(I))
+                ENDIF
+             ENDDO
+          ENDIF
+       ELSEIF(MOD(AP%ITP,10)/=1)THEN
+          ! Evaluate determinant on Hopf/BP bifurcations, but suppress
+          ! if a BP was also detected.
           ZTMP=1
           DO I=1,NDM
              ZTMP=ZTMP*EV(I)
