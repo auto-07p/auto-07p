@@ -56,6 +56,8 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["bogdanov_takens_symbol"] = ("BT",self.__optionCallback)
         optionDefaults["cusp_symbol"]            = ("CP",self.__optionCallback)
         optionDefaults["generalized_hopf_symbol"]= ("GH",self.__optionCallback)
+        optionDefaults["1_1_resonance_symbol"]   = ("R1",self.__optionCallback)
+        optionDefaults["1_2_resonance_symbol"]   = ("R2",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
@@ -426,6 +428,8 @@ class plotter(grapher.GUIGrapher):
             [[35],  "generalized_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
+            [[58],  "1_1_resonance_symbol"],
+            [[78],  "1_2_resonance_symbol"],
             [[-4],  "user_point_symbol"]]
         dp = self.cget("stability")
         coordnames = branch.coordnames

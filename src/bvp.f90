@@ -1054,7 +1054,7 @@ CONTAINS
 
     USE SUPPORT
 
-    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
+    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
 ! This subroutine uses the Secant method to accurately locate folds
 ! branch points, and zero(es) of user parameter values.
@@ -1270,8 +1270,6 @@ CONTAINS
 
     USE FLOQUET
 
-    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
-
 ! This function returns a quantity that changes sign when a complex
 ! pair of eigenvalues of the linearized Poincare map moves in or out
 ! of the unit circle or when a real eigenvalues passes through -1.
@@ -1283,8 +1281,8 @@ CONTAINS
 
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
-    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,LOC,NINS,NINS1,NDIM
-    DOUBLE PRECISION D,AMIN,AZM1,tol
+    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM
+    DOUBLE PRECISION D,AMIN,AZM1,tol,V
 
     NDIM=AP%NDIM
     ISP=AP%ISP
@@ -1308,28 +1306,50 @@ CONTAINS
 !  Compute the Floquet multipliers
     CALL FLOWKM(NDIM, P0, P1, IID, EV)
 
-! Find the multiplier closest to z=1.
+! Find the multipliers closest to z=1.
 
-    AMIN=RLARGE
+    IF(ISW==2)THEN
+       IF(AP%ITPST==5.OR.AP%ITPST==7)THEN
+          L=4
+       ELSE ! Torus/BP
+          L=NDIM/AP%NDM
+       ENDIF
+    ELSE
+       L=1
+    ENDIF
     LOC=1
-    DO J=1,NDIM
-       AZM1= ABS( EV(J) - 1.d0 )
-       IF(AZM1.LE.AMIN)THEN
-          AMIN=AZM1
-          LOC=J
+    V=1.d0
+    DO I=1,L
+       AMIN=HUGE(1.d0)
+       LOC=I
+       DO J=I,NDIM
+          AZM1= ABS( EV(J) - V )
+          IF(AZM1<=AMIN)THEN
+             ! try to keep complex conjugates together
+             IF(MOD(I,2)==0)THEN
+                IF(AIMAG(EV(I-1))==0.AND.AIMAG(EV(J))/=0)CYCLE
+                IF(AIMAG(EV(I-1))/=0.AND.AIMAG(EV(J))==0)CYCLE
+             ENDIF
+             AMIN=AZM1
+             LOC=J
+          ENDIF
+       ENDDO
+       IF(LOC.NE.I) THEN
+          ZTMP=EV(LOC)
+          EV(LOC)=EV(I)
+          EV(I)=ZTMP
+       ENDIF
+       ! For PD: Find the multipliers closest to z=-1.
+       IF(I*2==L.AND.AP%ITPST==7)THEN
+          V=-1.d0
        ENDIF
     ENDDO
-    IF(LOC.NE.1) THEN
-       ZTMP=EV(LOC)
-       EV(LOC)=EV(1)
-       EV(1)=ZTMP
-    ENDIF
 
 ! Order the remaining Floquet multipliers by distance from |z|=1.
 
     IF(NDIM.GE.3)THEN
-       DO I=2,NDIM-1
-          AMIN=RLARGE
+       DO I=L+1,NDIM-1
+          AMIN=HUGE(1.d0)
           DO J=I,NDIM
              AZM1= ABS(EV(J)) - 1.d0 
              AZM1=ABS(AZM1)
@@ -1390,31 +1410,35 @@ CONTAINS
     tol=1.d-5
 
     NINS1=1
-    IF(NDIM.EQ.1) THEN
-       D=0.d0
-       FNSPBV=D
-       AP%SPBF=FNSPBV
-    ELSE
+    IF(NDIM>1) THEN
        DO I=2,NDIM
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
        ENDDO
        IF(ISP==2.OR.ISP==4) THEN
-          IF(AIMAG(EV(2)).EQ.0.d0 .AND. REAL(EV(2)).GT.0.d0)THEN
-!            *Ignore if second multiplier is real positive
-             D=0.d0
-          ELSE
-             D= ABS(EV(2)) - 1.d0
-          ENDIF
           IF(ISW.EQ.2)THEN
-             FNSPBV=0.d0
+             IF(NDIM>2.AND.ABS( EV(2) - 1.d0 )<5.0d-2.AND. &
+                  (NDIM==3.OR.ABS(AIMAG(EV(5)))<SQRT(SQRT(AP%EPSS))).AND. &
+                  ((AP%ITPST==5.AND.REAL(EV(5))>0.AND. &
+                  ABS( EV(3)-1.d0 )<5.0d-2.AND.ABS( EV(4)-1.d0 )<5.0d-2).OR. &
+                  ((AP%ITPST==7.AND.REAL(EV(5))<0.AND. &
+                  ABS( EV(3)+1.d0 )<5.0d-2.AND.ABS( EV(4)+1.d0 )<5.0d-2))))THEN
+                ! On LP curve: look for 1:1 resonance
+                ! On PD curve: look for 1:2 resonance
+                D= ABS(EV(5)) - 1.d0
+                CHNG=.TRUE.
+             ENDIF
           ELSE
-             FNSPBV=D
+             IF(AIMAG(EV(2))/=0.d0 .OR. REAL(EV(2))<0.d0)THEN
+!               *Ignore if second multiplier is real positive
+                D= ABS(EV(2)) - 1.d0
+             ENDIF
           ENDIF
-          AP%SPBF=FNSPBV
           NINS=AP%NINS
           IF(NINS1.NE.NINS)CHNG=.TRUE.
        ENDIF
     ENDIF
+    FNSPBV=D
+    AP%SPBF=FNSPBV
 
     NINS=NINS1
     AP%NINS=NINS
@@ -1470,8 +1494,6 @@ CONTAINS
 
 ! Determines type of secondary periodic bifurcation.
 
-    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
-
     INTEGER, INTENT(IN) :: NDIM,ITPST,NPAR
     DOUBLE PRECISION, INTENT(IN) :: EPSS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(NPAR)
@@ -1480,10 +1502,16 @@ CONTAINS
     INTEGER LOC,LOC1,I
     DOUBLE PRECISION AMIN,AZM1,D,AD
 
+    IF(ITPST==5.OR.ITPST==7)THEN
+       ! 1:1 and 1:2 resonances
+       TPSPBV=8+10*ITPST
+       RETURN
+    ENDIF
+
 ! Find the eigenvalue closest to z=1.
 
     LOC=1
-    AMIN=RLARGE
+    AMIN=HUGE(1.d0)
     DO I=1,NDIM
        AZM1= ABS( EV(I) - 1.d0 )
        IF(AZM1.LE.AMIN)THEN
@@ -1496,7 +1524,7 @@ CONTAINS
 ! (excluding the eigenvalue at z=1).
 
     LOC1=1
-    AMIN=RLARGE
+    AMIN=HUGE(1.d0)
     DO I=1,NDIM
        IF(I.NE.LOC)THEN
           D= ABS(EV(I)) - 1.d0
