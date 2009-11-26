@@ -501,6 +501,23 @@ class AUTOBranch(Points.Pointset):
                 r = self.__class__(self)
                 r.coordarray = ret.coordarray
                 r.labels = ret.labels
+                # adjust point numbers
+                for idx,val in r.labels.sortByIndex():
+                    for k in val:
+                        if k in all_point_types:
+                            pt = idx+1
+                            v = val[k].copy()
+                            if v["PT"] < 0:
+                                pt = -pt
+                            if pt < 0:
+                                pt = -((-pt-1) % 9999) - 1
+                            else:
+                                pt = ((pt-1) % 9999) + 1
+                            v["PT"] = pt
+                            if "solution" in v:
+                                v["solution"] = v["solution"].copy()
+                                v["solution"]["PT"] = abs(pt)
+                            val[k] = v
                 return r
             if not isinstance(ret, Points.Point):
                 return ret
