@@ -12,7 +12,7 @@ USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
 IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
-PUBLIC :: CHECKSP, INITSTOPCNTS, STOPPED
+PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED
 PUBLIC :: DTV,AV,P0V,P1V,EVV
  
 DOUBLE PRECISION, POINTER, SAVE :: DTV(:),P0V(:,:),P1V(:,:)
@@ -429,14 +429,37 @@ CONTAINS
     DEALLOCATE(IR,IC)
   END SUBROUTINE GESC
 
+! ------------ -------- ------
+  CHARACTER(2) FUNCTION LBTYPE(ITP)
+
+    ! returns the string label type corresponding to numerical type ITP
+    INTEGER, INTENT(IN) :: ITP
+
+    CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
+         (/ 'MX','R4','  ','  ','R1','UZ','BT','CP','  ',' ', &
+            'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
+
+    IF(ITP==23.OR.ITP==-32)THEN
+       LBTYPE='ZH'
+    ELSEIF(ITP==35)THEN
+       LBTYPE='GH'
+    ELSEIF(ITP==58)THEN
+       LBTYPE='R1'
+    ELSEIF(ITP==78.OR.ITP==87)THEN
+       LBTYPE='R2'
+    ELSEIF(ITP==88)THEN
+       LBTYPE='R3'
+    ELSE
+       LBTYPE=ATYPES(MOD(ITP,10))
+    ENDIF
+  END FUNCTION LBTYPE
+
 ! ------- -------- -------
   LOGICAL FUNCTION CHECKSP(ITP,IPS,ILP,ISP)
     USE AUTO_CONSTANTS, ONLY : SP
     INTEGER, INTENT(IN) :: ITP,IPS,ILP,ISP
 
     ! determine if the given TY label needs to be checked
-    CHARACTER(LEN=2), PARAMETER :: ATYPES(-3:8) = &
-         (/ 'BT','CP','  ','  ','BP','LP','HB','UZ','LP','BP','PD','TR' /)
     CHARACTER(LEN=2) ATYPE
     INTEGER NTY,I,M
 
@@ -465,21 +488,11 @@ CONTAINS
        CHECKSP = ABS(IPS)==1.OR.IPS==11
     CASE(6) ! BP (BVP)
        CHECKSP = ABS(ISP)>=2.AND.ABS(ISP)/=4
-    CASE(7,8) ! PD,TR
+    CASE(7,8,-5,-8) ! PD,TR,R1,R2,R3,R4
        CHECKSP = ISP/=0 .AND. (IPS==-1.OR.IPS==2.OR.IPS==7.OR.IPS==12)
     END SELECT
 
-    IF(ITP==23.OR.ITP==-32)THEN
-       ATYPE='ZH'
-    ELSEIF(ITP==35)THEN
-       ATYPE='GH'
-    ELSEIF(ITP==58)THEN
-       ATYPE='R1'
-    ELSEIF(ITP==78)THEN
-       ATYPE='R2'
-    ELSE
-       ATYPE=ATYPES(NTY)
-    ENDIF
+    ATYPE=LBTYPE(ITP)
     DO I=1,SIZE(SP)
        IF (SP(I)(1:2)==ATYPE) THEN
           CHECKSP=.TRUE.

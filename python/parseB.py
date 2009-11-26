@@ -49,20 +49,26 @@ type_translation_dict = {
        6: {"long name" : "Bifurcation point (ODE)","short name" : "BP"},
        7: {"long name" : "Period doubling bifurcation (ODE)","short name" : "PD"},
        8: {"long name" : "Bifurcation to invariant torus (ODE)","short name" : "TR"},
-      58: {"long name" : "1:1 Resonance bifurcation (ODE)","short name" : "R1"},
-      78: {"long name" : "1:2 Resonace bifurcation (ODE)","short name" : "R2"},
+      -5: {"long name" : "1:1 Resonance bifurcation (ODE)","short name" : "R1"},
+      78: {"long name" : "1:2 Resonance bifurcation (ODE)","short name" : "R2"},
+      88: {"long name" : "1:3 Resonance bifurcation (ODE)","short name" : "R3"},
+      -8: {"long name" : "1:4 Resonance bifurcation (ODE)","short name" : "R4"},
        9: {"long name" : "Normal begin or end","short name" : "EP"},
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
 all_point_types = ["No Label",
                    "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH",
-                   "CP","GH","R1","R2"]
+                   "CP","GH","R1","R2","R3","R4"]
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
     if type == -32:
         type = 23
-    if type not in [23,35,58,78]:
+    elif type == 58:
+        type = -5
+    elif type == 87:
+        type = 78
+    if type not in [23,35,78,88]:
         if type>=0:
             type=type%10
         else:

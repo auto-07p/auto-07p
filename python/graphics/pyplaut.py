@@ -79,6 +79,8 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
             "torus_symbol": "filldiamond",
             "1_1_resonance_symbol": "filldiamond",
             "1_2_resonance_symbol": "filldiamond",
+            "1_3_resonance_symbol": "filldiamond",
+            "1_4_resonance_symbol": "filldiamond",
             "user_point_symbol": None,
             "error_symbol": None,
             "bogdanov_takens_symbol": "circle",

@@ -47,6 +47,7 @@ CONTAINS
   SUBROUTINE STHD(AP,ICP)
 
     USE COMPAT
+    USE SUPPORT, ONLY: LBTYPE
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, unames, parnames, &
          NDIM, IRS, ILP, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
          EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP, STOPS
@@ -549,33 +550,11 @@ CONTAINS
     
   END SUBROUTINE HEADNG
 
-! ------------ -------- ------
-  CHARACTER(2) FUNCTION LBTYPE(ITP)
-
-    ! returns the string label type corresponding to numerical type ITP
-    INTEGER, INTENT(IN) :: ITP
-
-    CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
-         (/ 'MX','  ','  ','  ','  ','UZ','BT','CP','  ',' ', &
-            'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
-
-    IF(ITP==23.OR.ITP==-32)THEN
-       LBTYPE='ZH'
-    ELSEIF(ITP==35)THEN
-       LBTYPE='GH'
-    ELSEIF(ITP==58)THEN
-       LBTYPE='R1'
-    ELSEIF(ITP==78)THEN
-       LBTYPE='R2'
-    ELSE
-       LBTYPE=ATYPES(MOD(ITP,10))
-    ENDIF
-  END FUNCTION LBTYPE
-
 ! ---------- ------
   SUBROUTINE WRLINE(AP,PAR,ICU,IBR,NTOT,LAB,VAXIS,U)
 
     USE COMPAT
+    USE SUPPORT, ONLY: LBTYPE
 
 ! Write one line of output on unit 6 and 7.
 
@@ -698,6 +677,8 @@ CONTAINS
   SUBROUTINE FINDLB(NAME,AP,IRS,NFPR,NPAR,FOUND)
 
     USE AUTO_CONSTANTS, ONLY: SIRS
+    USE SUPPORT, ONLY: LBTYPE
+
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(INOUT) :: IRS
     INTEGER, INTENT(OUT) :: NFPR,NPAR

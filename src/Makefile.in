@@ -44,7 +44,7 @@ compile: $(OBJ)
 ../lib/support.o: support.f90 ../lib/mesh.o ../lib/auto_constants.o
 	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
 #
-../lib/io.o: io.f90 ../lib/auto_constants.o ../lib/compat.o
+../lib/io.o: io.f90 ../lib/support.o ../lib/compat.o
 	$(FC) $(FFLAGS) $(OPT) -c io.f90 -o $@
 #
 ../lib/mesh.o: mesh.f90

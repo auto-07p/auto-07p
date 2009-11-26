@@ -199,7 +199,7 @@ CONTAINS
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
-          SP1 = FNSPBV(AP,CHNG,P0,P1,EV)
+          SP1 = FNSPBV(AP,PAR,CHNG,P0,P1,EV)
        ENDIF
     ENDIF
 
@@ -274,7 +274,7 @@ CONTAINS
        IF(.NOT.CHECKEDSP .AND. ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! Still determine and print Floquet multipliers
           ! for situations where ISTOP=-1 or SP switched off PD/TR detection
-          UZR(NUZR+5) = FNSPBV(AP,CHNG,P0,P1,EV)
+          SP1 = FNSPBV(AP,PAR,CHNG,P0,P1,EV)
        ENDIF
        ITP=AP%ITP 
        IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
@@ -1176,7 +1176,7 @@ CONTAINS
     ELSEIF(IUZR==NUZR+3)THEN
        FNCS=FNBPBV(AP,CHNG,P1)
     ELSEIF(IUZR==NUZR+5)THEN
-       FNCS=FNSPBV(AP,CHNG,P0,P1,EV)
+       FNCS=FNSPBV(AP,PAR,CHNG,P0,P1,EV)
     ELSE
        FNCS=FNUZBV(AP,PAR,CHNG,IUZ,VUZ,IUZR)
     ENDIF
@@ -1266,15 +1266,17 @@ CONTAINS
   END FUNCTION FNBPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(AP,CHNG,P0,P1,EV)
+  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,CHNG,P0,P1,EV)
 
     USE FLOQUET
+    USE SUPPORT, ONLY: PI
 
 ! This function returns a quantity that changes sign when a complex
 ! pair of eigenvalues of the linearized Poincare map moves in or out
 ! of the unit circle or when a real eigenvalues passes through -1.
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(IN) :: PAR(*)
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
@@ -1282,7 +1284,7 @@ CONTAINS
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
     INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM
-    DOUBLE PRECISION D,AMIN,AZM1,tol,V
+    DOUBLE PRECISION D,AMIN,AZM1,tol,V,THETA
 
     NDIM=AP%NDIM
     ISP=AP%ISP
@@ -1396,7 +1398,7 @@ CONTAINS
        ELSE
           IF(IID>0)THEN
              DO I=1,NDIM
-                WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
+                WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
              ENDDO
           ENDIF
           RETURN
@@ -1416,7 +1418,12 @@ CONTAINS
        ENDDO
        IF(ISP==2.OR.ISP==4) THEN
           IF(ISW.EQ.2)THEN
-             IF(NDIM>2.AND.ABS( EV(2) - 1.d0 )<5.0d-2.AND. &
+             IF(AP%ITPST==8)THEN
+                ! check the angle for resonances on Torus bifurcations
+                THETA=PAR(12)
+                D=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
+                CHNG=.TRUE.
+             ELSEIF(NDIM>2.AND.ABS( EV(2) - 1.d0 )<5.0d-2.AND. &
                   (NDIM==3.OR.ABS(AIMAG(EV(5)))<SQRT(SQRT(AP%EPSS))).AND. &
                   ((AP%ITPST==5.AND.REAL(EV(5))>0.AND. &
                   ABS( EV(3)-1.d0 )<5.0d-2.AND.ABS( EV(4)-1.d0 )<5.0d-2).OR. &
@@ -1494,6 +1501,8 @@ CONTAINS
 
 ! Determines type of secondary periodic bifurcation.
 
+    USE SUPPORT, ONLY: PI
+
     INTEGER, INTENT(IN) :: NDIM,ITPST,NPAR
     DOUBLE PRECISION, INTENT(IN) :: EPSS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(NPAR)
@@ -1505,6 +1514,19 @@ CONTAINS
     IF(ITPST==5.OR.ITPST==7)THEN
        ! 1:1 and 1:2 resonances
        TPSPBV=8+10*ITPST
+       RETURN
+    ELSEIF(ITPST==8)THEN
+       TPSPBV=0
+       SELECT CASE(NINT(PAR(12)*6/PI(1d0)))
+       CASE(0) ! 1:1 res
+          TPSPBV=-5-10*ITPST
+       CASE(3) ! 1:4 res
+          TPSPBV=-8-10*ITPST
+       CASE(4) ! 1:3 res
+          TPSPBV=8+10*ITPST
+       CASE(6) ! 1:2 res
+          TPSPBV=7+10*ITPST
+       END SELECT
        RETURN
     ENDIF
 

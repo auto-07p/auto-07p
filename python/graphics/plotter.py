@@ -58,6 +58,8 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["generalized_hopf_symbol"]= ("GH",self.__optionCallback)
         optionDefaults["1_1_resonance_symbol"]   = ("R1",self.__optionCallback)
         optionDefaults["1_2_resonance_symbol"]   = ("R2",self.__optionCallback)
+        optionDefaults["1_3_resonance_symbol"]   = ("R3",self.__optionCallback)
+        optionDefaults["1_4_resonance_symbol"]   = ("R4",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
@@ -424,13 +426,16 @@ class plotter(grapher.GUIGrapher):
             [[-2],  "cusp_symbol"],
             [[3],   "hopf_symbol"],
             [[-3],  "bogdanov_takens_symbol"],
-            [[23],  "zero_hopf_symbol"],
+            [[23,-32],"zero_hopf_symbol"],
             [[35],  "generalized_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
-            [[58],  "1_1_resonance_symbol"],
-            [[78],  "1_2_resonance_symbol"],
+            [[-5,58],"1_1_resonance_symbol"],
+            [[78,87],"1_2_resonance_symbol"],
+            [[88],  "1_3_resonance_symbol"],
+            [[-8],  "1_4_resonance_symbol"],
             [[-4],  "user_point_symbol"]]
+        specialsymbols = [23,-32,35,58,78,87,88]
         dp = self.cget("stability")
         coordnames = branch.coordnames
         for j in range(len(xcolumns)):
@@ -496,7 +501,7 @@ class plotter(grapher.GUIGrapher):
                         break
                 lab = label["LAB"]
                 TYnumber = label["TY number"]
-                if TYnumber not in [23,35]:
+                if TYnumber not in specialsymbols:
                     if TYnumber>=0:
                         TYnumber=TYnumber%10
                     else:
