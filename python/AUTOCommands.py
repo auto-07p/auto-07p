@@ -556,7 +556,11 @@ def save(name1,name2=None,templates=None):
         if (isinstance(parsed,bifDiag.bifDiag) and
             len(parsed) > 0 and len(parsed[0]) > 0):
             parsed.writeFilename(n1b,n1s,n1d)
-            msg = "Saving to %s, %s, and %s ... done\n"%(n1b,n1s,n1d)
+            for d in parsed:
+                if hasattr(d,"diagnostics"):
+                    msg = "Saving to %s, %s, and %s ... done\n"%(n1b,n1s,n1d)
+                    break
+            msg = "Saving to %s and %s ... done\n"%(n1b,n1s)
         else:
             if (type(parsed) == type([]) and
                 isinstance(parsed[0], parseS.AUTOSolution)):
@@ -1448,7 +1452,11 @@ def loadbd(name=None,templates=None,**kw):
         return kw
 
     if name is not None:
-        for key in ["bifurcationDiagram", "solution", "diagnostics"]:
+        if AUTOutil.isiterable(name):
+            lst = ["bifurcationDiagram"]
+        else:
+            lst = ["bifurcationDiagram", "solution", "diagnostics"]
+        for key in lst:
             if key not in kw:
                 kw[key] = name
     dict = __applyBsdConfigResolveAbbreviation(**kw)
