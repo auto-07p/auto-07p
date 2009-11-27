@@ -318,6 +318,26 @@ class AUTOBranch(Points.Pointset):
     def __getitem__(self,index):
         return self.getIndex(index)
 
+    def extend(self,parg):
+        Points.Pointset.extend(self,parg)
+        # adjust point numbers
+        for idx,val in self.labels.sortByIndex():
+            for k in val:
+                if k in all_point_types:
+                    pt = idx+1
+                    v = val[k].copy()
+                    if v["PT"] < 0:
+                        pt = -pt
+                    if pt < 0:
+                        pt = -((-pt-1) % 9999) - 1
+                    else:
+                        pt = ((pt-1) % 9999) + 1
+                    v["PT"] = pt
+                    if "solution" in v:
+                        v["solution"] = v["solution"].copy()
+                        v["solution"]["PT"] = abs(pt)
+                    val[k] = v
+
     def __setitem__(self,item,value):
         if item in ("BR", "TY", "TY number") and item not in self.coordnames:
             if item == "BR":
