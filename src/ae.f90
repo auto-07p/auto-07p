@@ -217,7 +217,7 @@ CONTAINS
                 IF(IUZR==NUZR+5)THEN
                    CHECKEDHB=.TRUE.
                 ENDIF
-                CALL LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA,&
+                CALL LCSPAE(AP,DSOLD,PAR,ICP,IUZR,FUNI,AA,&
                      U,V,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
                    IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
@@ -265,7 +265,6 @@ CONTAINS
 ! Adapt the stepsize along the branch
 
           ITP=AP%ITP
-          RDS=DSOLD
           IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
                .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
              ITNW=AP%ITNW
@@ -715,7 +714,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(AP,RDS,PAR,ICP,IUZR,FUNI,AA, &
+  SUBROUTINE LCSPAE(AP,DSOLD,PAR,ICP,IUZR,FUNI,AA, &
        U,V,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
@@ -734,13 +733,13 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER ICP(*),IUZ(*),NIT,IUZR
-    DOUBLE PRECISION RDS,PAR(*),THU(*),VUZ(*)
+    DOUBLE PRECISION DSOLD,PAR(*),THU(*),VUZ(*)
     DOUBLE PRECISION AA(AP%NDIM+1,*),U(*),V(*),UDOT(*),Q
     LOGICAL, INTENT(OUT) :: ISTOP, FOUND
 
     LOGICAL CHNG
     INTEGER IID,ITMX,IBR,ITLCSP,NTOT
-    DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,S,S0,S1,RRDS
+    DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,S,S0,S1,RDS,RRDS
 
     ISTOP=.FALSE.
     FOUND=.FALSE.
@@ -766,7 +765,7 @@ CONTAINS
 ! Use the secant method for the first step:
 
     S0=0.d0
-    S1=RDS
+    S1=DSOLD
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
     DO ITLCSP=0,ITMX
@@ -795,6 +794,7 @@ CONTAINS
           Q=0.d0
           RETURN
        ENDIF
+       DSOLD=RDS
 
        CALL RNULLVC(AP,AA,V)
        CALL PVLSAE(AP,U,PAR)
