@@ -48,7 +48,24 @@ int func (integer ndim, const doublereal *u, const integer *icp,
   if (ijac == 1) {
     return 0;
   }
-/* No parameter derivatives are specified with this example */
+
+  ARRAY2D(dfdp,0,0) = x - x * x;
+  ARRAY2D(dfdp,0,1) = y;
+  ARRAY2D(dfdp,0,2) = 0;
+  ARRAY2D(dfdp,0,3) = -z * x * (2. - x * 3.);
+  ARRAY2D(dfdp,0,4) = 0;
+
+  ARRAY2D(dfdp,1,0) = y - 1.5 * x * y;
+  ARRAY2D(dfdp,1,1) = x - 1.5 * x * x;
+  ARRAY2D(dfdp,1,2) = 0;
+  ARRAY2D(dfdp,1,3) = z * 2. * y;
+  ARRAY2D(dfdp,1,4) = 0;
+
+  ARRAY2D(dfdp,2,0) = 0;
+  ARRAY2D(dfdp,2,1) = 0;
+  ARRAY2D(dfdp,2,2) = z;
+  ARRAY2D(dfdp,2,3) = x * x * (1. - x) - y * y;
+  ARRAY2D(dfdp,2,4) = x;
 
   return 0;
 }

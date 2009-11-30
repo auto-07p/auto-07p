@@ -12,7 +12,7 @@ save(r3,'3')
 plot(r3)
 
 #fourth run
-r4=run(r3,IPS=9,ICP=[3,5],NPR=60,JAC=1,UZR={3:-2.0},ISTART=4)
+r4=run(r3,IPS=9,ICP=[3,5],NPR=60,UZR={3:-2.0},ISTART=4)
 save(r4,'4')
 
 #fifth run
