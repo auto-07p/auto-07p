@@ -261,7 +261,8 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: XEQUIB1(:),XEQUIB2(:)
       DOUBLE PRECISION, ALLOCATABLE, SAVE :: UMAX(:)
 
-      INTEGER NDM,NPAR,NBCN,JB,INEIG,I,J,K,IP,KP
+      LOGICAL INEIG
+      INTEGER NDM,NPAR,NBCN,JB,I,J,K,IP,KP
       DOUBLE PRECISION DUM,DUM1(1),DUM2(1)
 C
       NDM=AP%NDM
@@ -343,7 +344,7 @@ C
                ENDIF
             ENDDO
          ENDIF
-         INEIG=0
+         INEIG=.FALSE.
 C        *NFIXED extra boundary conditions for the fixed conditions
          IF (NFIXED.GT.0) THEN
             CALL EIGHO(AP,2,RR(1,1),RI(1,1),VR(1,1,1),
@@ -353,11 +354,11 @@ C        *NFIXED extra boundary conditions for the fixed conditions
      *              XEQUIB2,ICP,PAR,NDM)
             ENDIF
             DO I=1,NFIXED
-               IF((IFIXED(I).GT.10).AND.(INEIG.EQ.0)) THEN
+               IF((IFIXED(I)>10).AND..NOT.INEIG) THEN
                   CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *                 XEQUIB1,ICP,PAR,NDM)
-                  INEIG=1
-                  IF(IEQUIB.LT.0) THEN
+                  INEIG=.TRUE.
+                  IF(IEQUIB<0) THEN
                      CALL EIGHO(AP,1,RR(1,2),RI(1,2),VT(1,1,2),
      *                    XEQUIB2,ICP,PAR,NDM)
                   ENDIF
@@ -368,10 +369,10 @@ C        *NFIXED extra boundary conditions for the fixed conditions
          ENDIF
 C        *extra boundary condition in the case of a saddle-node homoclinic
          IF (IEQUIB.EQ.2) THEN
-            IF(INEIG.EQ.0) THEN
+            IF(.NOT.INEIG) THEN
                CALL EIGHO(AP,1,RR(1,1),RI(1,1),VT(1,1,1),
      *              XEQUIB1,ICP,PAR,NDM)
-               INEIG=1
+               INEIG=.TRUE.
             ENDIF
             FB(JB)=RR(NSTAB+1,1)
             JB=JB+1
@@ -1934,7 +1935,7 @@ C Local
       DOUBLE PRECISION, ALLOCATABLE :: F(:),WORK(:)
       DOUBLE PRECISION, SAVE, ALLOCATABLE :: VRPREV(:,:,:)
       INTEGER NPAR,IFAIL,LWORK,I,J,K,L,M
-      DOUBLE PRECISION TMP
+      DOUBLE PRECISION TMP,WORKINFO(1)
       INTEGER, EXTERNAL :: IDAMAX
 C
       NPAR=AP%NPAR
@@ -1956,11 +1957,9 @@ C
       ENDIF
 C
 C LAPACK call for eigenvalues and eigenvectors
-      ALLOCATE(WORK(1))
-      CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
+      CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORKINFO,
      *     -1,IFAIL)
-      LWORK=NINT(WORK(1))
-      DEALLOCATE(WORK)
+      LWORK=NINT(WORKINFO(1))
       ALLOCATE(WORK(LWORK))
       CALL DGEEV(JOBVL,JOBVR,NDM,DFDU,NDM,RR,RI,ZZ,NDM,ZZ,NDM,WORK,
      *     LWORK,IFAIL)
