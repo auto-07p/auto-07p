@@ -447,16 +447,19 @@ def append(name1,name2=None,templates=None):
             n2 = n1
             n1 = "fort."+str(i)
         i = i+1
-        f1 = open(n1,"rb")
-        f2 = open(n2,"ab")
-        while 1:
-            buf = f1.read(1024*1024)
-            if len(buf) == 0:
-                break
-            f2.write(buf)
-        f1.close()
-        f2.close()
-        info("Appending %s to %s ... done\n"%(n1,n2))
+        try:
+            f1 = open(n1,"rb")
+            f2 = open(n2,"ab")
+            while 1:
+                buf = f1.read(1024*1024)
+                if len(buf) == 0:
+                    break
+                f2.write(buf)
+            f1.close()
+            f2.close()
+            info("Appending %s to %s ... done\n"%(n1,n2))
+        except IOError:
+            info("Appending %s to %s: %s\n"%(n1,n2,sys.exc_info()[1]))
 commandAppend = command(append,SIMPLE,"append",alias=['ap'])
 
 
