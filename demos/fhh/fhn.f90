@@ -14,26 +14,36 @@
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
 
       F(1)= U(2)
-      F(2)= PAR(1)*U(2)+U(1)*(U(1)-PAR(2))*(U(1)-1.0)+U(3)
+      F(2)= PAR(1)*U(2)+U(1)*(U(1)-PAR(2))*(U(1)-1)+U(3)
       F(3)= PAR(3)*U(1)/PAR(1)
 
       IF(IJAC.EQ.0)RETURN
 
-      DFDU(1,1)= 0.0
-      DFDU(1,2)= 1.0 
-      DFDU(1,3)= 0.0
+      DFDU(1,1)= 0
+      DFDU(1,2)= 1
+      DFDU(1,3)= 0
 
       DFDU(2,1)= 3*U(1)*U(1)-2*(1+PAR(2))*U(1)+PAR(2)
       DFDU(2,2)= PAR(1)
-      DFDU(2,3)= 1.0
+      DFDU(2,3)= 1
 
       DFDU(3,1)= PAR(3)/PAR(1)
-      DFDU(3,2)= 0.0
-      DFDU(3,3)= 0.0
+      DFDU(3,2)= 0
+      DFDU(3,3)= 0
 
       IF(IJAC.EQ.1)RETURN
 
-! No parameter derivatives are specified with this example
+      DFDP(1,1)= 0
+      DFDP(1,2)= 0
+      DFDP(1,3)= 0
+
+      DFDP(2,1)= U(2)
+      DFDP(2,2)= -U(1)*(U(1)-1)
+      DFDP(2,3)= 0
+
+      DFDP(3,1)= -PAR(3)*U(1)/PAR(1)**2
+      DFDP(3,2)= 0
+      DFDP(3,3)= U(1)/PAR(1)
 
       END SUBROUTINE FUNC
 
