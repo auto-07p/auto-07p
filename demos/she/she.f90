@@ -30,45 +30,54 @@
 
       F(1)=P11SS*T02CS+P11SS*MUS-P12CS*P01CS 
       F(2)=-(P11SS**2+T02CS)
-      F(3)=(4.*SIGMA*P11SS*P01CS+4.*SIGMA*P12CS*MUS-9.                  &
-       *SIGMA*P12CS+4.*P11SS*P01CS+4.*P12CS*MUS)/(4.*(                  &
-       SIGMA+1.))
-      F(4)=(-Q*SIGMA**2*A01CS-PI2*SIGMA**2*P01CS+3.*                    &
-       PI2*SIGMA*P11SS*P12CS+3.*PI2*P11SS*P12CS)/(4.*                   &
-       PI2*SIGMA)
-      F(5)=(ZETA*(P01CS-A01CS))/4.
+      F(3)=P12CS*MUS+P11SS*P01CS-9*SIGMA*P12CS/(4*(SIGMA+1))
+      F(4)=(-Q*SIGMA*A01CS/PI2-SIGMA*P01CS+(3*P11SS*P12CS*(1+1/SIGMA)))/4
+      F(5)=ZETA*(P01CS-A01CS)/4
 
-       IF(IJAC.EQ.0)RETURN
-
-      DO I=1,5
-        DO J=1,5
-          DFDU(I,J)=0.0D0
-        ENDDO
-      ENDDO
+      IF(IJAC.EQ.0)RETURN
 
       DFDU(1,1)=T02CS+MUS    
       DFDU(1,2)=P11SS
       DFDU(1,3)=-P01CS
-      DFDU(1,4)=-P12CS       
+      DFDU(1,4)=-P12CS
+      DFDU(1,5)=0
 
-      DFDU(2,1)=-2.*P11SS
-      DFDU(2,2)=(-1.)
+      DFDU(2,1)=-2*P11SS
+      DFDU(2,2)=-1
+      DFDU(2,3:5)=0
 
       DFDU(3,1)=P01CS
-      DFDU(3,3)=(4.*SIGMA*MUS-9.*SIGMA+4.*MUS)/(4.*(SIGMA+1.))
+      DFDU(3,3)=MUS-9*SIGMA/(4*(SIGMA+1))
       DFDU(3,4)=P11SS
+      DFDU(3,5)=0
 
-      DFDU(4,1)=(3.*P12CS*(SIGMA+1.))/(4.*SIGMA)
-      DFDU(4,3)=(3.*P11SS*(SIGMA+1.))/(4.*SIGMA)
-      DFDU(4,4)=(-SIGMA)/4.
-      DFDU(4,5)=(-Q*SIGMA)/(4.*PI2)
+      DFDU(4,1)=3*P12CS*(SIGMA+1)/(4*SIGMA)
+      DFDU(4,2)=0
+      DFDU(4,3)=3*P11SS*(SIGMA+1)/(4*SIGMA)
+      DFDU(4,4)=-SIGMA/4
+      DFDU(4,5)=-Q*SIGMA/(4*PI2)
 
-      DFDU(5,4)=ZETA/4.
-      DFDU(5,5)=(-ZETA)/4.
+      DFDU(5,1:3)=0
+      DFDU(5,4)=ZETA/4
+      DFDU(5,5)=-ZETA/4
 
       IF(IJAC.EQ.1)RETURN 
 
-! no parameter derivatives are specified with this example
+      DFDP(1,1)=P11SS
+      DFDP(1,2:4)=0
+
+      DFDP(3,1)=P12CS
+      DFDP(3,2)=0
+      DFDP(3,3)=-9*P12CS/(4*(SIGMA+1)**2)
+      DFDP(3,4)=0
+
+      DFDP(4,1)=0
+      DFDP(4,2)=-SIGMA*A01CS/(4*PI2)
+      DFDP(4,3)=(-Q*A01CS/PI2-P01CS-3*P11SS*P12CS/SIGMA**2)/4
+      DFDP(4,4)=0
+
+      DFDP(5,1:3)=0
+      DFDP(5,4)=(P01CS-A01CS)/4
 
       END SUBROUTINE FUNC
 
