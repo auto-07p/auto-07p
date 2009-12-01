@@ -81,7 +81,21 @@ int func (integer ndim, const doublereal *u,
 	return 0;
     }
 
-/* No parameter derivatives are specified with this example */
+    ARRAY2D(dfdp,0,0) = -c * u[0];
+    ARRAY2D(dfdp,0,1) = 0;
+    ARRAY2D(dfdp,0,2) = dhdq1;
+
+    ARRAY2D(dfdp,1,0) = u[0];
+    ARRAY2D(dfdp,1,1) = 0;
+    ARRAY2D(dfdp,1,2) = dhdp1;
+
+    ARRAY2D(dfdp,2,0) = 0;
+    ARRAY2D(dfdp,2,1) = -c * u[2];
+    ARRAY2D(dfdp,2,2) = dhdq2;
+
+    ARRAY2D(dfdp,3,0) = 0;
+    ARRAY2D(dfdp,3,1) = u[2];
+    ARRAY2D(dfdp,3,2) = dhdp2;
 
     return 0;
 } /* func_ */
