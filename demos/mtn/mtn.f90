@@ -21,8 +21,8 @@
       PSIZU1=0.4D0*((1/(0.6D0+U(1)))- (U(1)/((0.6D0+U(1))**2)))
       PSIFU2=2*PAR(2)*( (U(2)/DEM) -(U(2)**3/(DEM**2) ))
 
-      F(1)=(0.5D0*U(1)*(1.0D0-U(1)/PAR(1))-U(2)*PSIZ+PAR(3)*PAR(1))
-      F(2)=(0.6D0*PSIZ*U(2)-0.15D0*U(2)-PSIF)
+      F(1)=0.5D0*U(1)*(1.0D0-U(1)/PAR(1))-U(2)*PSIZ+PAR(3)*PAR(1)
+      F(2)=0.6D0*PSIZ*U(2)-0.15D0*U(2)-PSIF
 
       IF(IJAC.EQ.0)RETURN
 
@@ -34,7 +34,7 @@
 
       IF(IJAC.EQ.1)RETURN
 
-        DFDP(1,1)=PAR(3)
+        DFDP(1,1)=0.5D0*(U(1)/PAR(1))**2+PAR(3)
         DFDP(2,1)=0.d0
 
         DFDP(1,2)=0.0d0
