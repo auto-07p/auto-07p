@@ -512,8 +512,10 @@ class plotter(grapher.GUIGrapher):
                 symbol = None
                 for item in symbollist:
                     if TYnumber in item[0]:
-                        symbol = self.cget(item[1])
-                if not symbol and TYnumber not in [0,4,9]:
+                        symbol = item[1]
+                if symbol is not None:
+                    symbol = self.cget(symbol)
+                elif TYnumber not in [0,4,9]:
                     symbol = self.cget("error_symbol")
                 if z is None:
                     v = [x[i],y[i]]
