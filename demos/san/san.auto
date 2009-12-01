@@ -6,7 +6,7 @@ pgm = 'san'
 
 print "Starting from analytical solution"
 print pgm, ": first run : continuation in PAR(1)"
-san=load('san',IPS=9,NDIM=3,ISP=0,ILP=0,ITNW=7,JAC=1,NTST=35,IEQUIB=0,DS=0.05)
+san=load('san',IPS=9,NDIM=3,ISP=0,ILP=0,ITNW=7,JAC=-1,NTST=35,IEQUIB=0,DS=0.05)
 r1=run(san,ICP=[1,8],UZR={1:0.25},STOP=['UZ1'])
 
 print pgm, ": second run : generate adjoint variables"
