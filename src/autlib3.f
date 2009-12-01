@@ -181,8 +181,7 @@ C
        IPS=AP%IPS
 C
        PAR(ICP(2))=U(NDIM)
-       IJC=IJAC
-       IF(IJAC==0)IJC=1
+       IJC=MIN(IJAC,1)
        IF(IPS.EQ.-1) THEN
          CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
          IF(AP%ITPST==7)THEN ! PD bif for maps
@@ -2514,15 +2513,11 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(2*NDM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
 C Local
-      INTEGER I,J,IJC
+      INTEGER I,J
       DOUBLE PRECISION PERIOD
 C
-       IJC=IJAC
-       IF(IJC==-1)IJC=2
-       IF(IJC==0)IJC=1
-
        PERIOD=PAR(11)
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,MIN(IJAC,1),F,DFDU,DFDP)
 C
        DO I=1,NDM
          F(NDM+I)=0.d0
@@ -2786,15 +2781,11 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDM*3)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,*),DFDP(NDM,*)
 C Local
-      INTEGER NDM2,I,J,IJC
+      INTEGER NDM2,I,J
       DOUBLE PRECISION PERIOD
 C
-       IJC=IJAC
-       IF(IJC==-1)IJC=2
-       IF(IJC==0)IJC=1
-
        PERIOD=PAR(11)
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,MIN(IJAC,1),F,DFDU,DFDP)
 C
        NDM2=2*NDM
        DO I=1,NDM
@@ -4654,13 +4645,15 @@ C
 C
        ENDIF
 C
-       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
+       IF(JAC==0.OR.IJAC==0)THEN
+         IJC=0
+       ELSEIF(JAC==1)THEN
          IJC=IJAC
        ELSE
-         IJC=0
+         IJC=1
        ENDIF
        CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP)
-       IF(JAC.EQ.1.OR.IJAC.NE.2)RETURN
+       IF(JAC==1.OR.IJAC/=2)RETURN
        NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
@@ -4737,10 +4730,12 @@ C
           ENDDO
        ENDIF
 C
-       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
+       IF(JAC==0.OR.IJAC==0)THEN
+         IJC=0
+       ELSEIF(JAC==1)THEN
          IJC=IJAC
        ELSE
-         IJC=0
+         IJC=1
        ENDIF
        CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
        IF(JAC==1 .OR. IJAC/=2)RETURN
@@ -4805,10 +4800,12 @@ C
           ENDDO
        ENDIF
 C
-       IF((IJAC.EQ.1.AND.JAC.NE.0).OR.(IJAC.EQ.2.AND.JAC.EQ.1))THEN
+       IF(JAC==0.OR.IJAC==0)THEN
+         IJC=0
+       ELSEIF(JAC==1)THEN
          IJC=IJAC
        ELSE
-         IJC=0
+         IJC=1
        ENDIF
        CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
        IF(JAC==1 .OR. IJAC/=2)RETURN
