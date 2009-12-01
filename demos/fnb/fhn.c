@@ -42,7 +42,18 @@ int func(integer ndim, const doublereal *u, const integer *icp,
 	return 0;
     }
 
-/* No parameter derivatives are specified with this example */
+
+    ARRAY2D(dfdp,0,0) = 0.;
+    ARRAY2D(dfdp,0,1) = 0.;
+    ARRAY2D(dfdp,0,2) = 0.;
+
+    ARRAY2D(dfdp,1,0) = u[1];
+    ARRAY2D(dfdp,1,1) = -u[0] * (u[0] - 1.);
+    ARRAY2D(dfdp,1,2) = 0.;
+
+    ARRAY2D(dfdp,2,0) = -par[2] * u[0] / (par[0] * par[0]);
+    ARRAY2D(dfdp,2,1) = 0.;
+    ARRAY2D(dfdp,2,2) = u[0] / par[0];
 
     return 0;
 } /* func */
