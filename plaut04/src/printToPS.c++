@@ -7,7 +7,7 @@
 #endif
 
 #if defined(__COIN__) && COIN_MAJOR_VERSION >= 2 && COIN_MINOR_VERSION >= 1
-#include <HardCopy/SoVectorizePSAction.h>
+#include <Inventor/annex/HardCopy/SoVectorizePSAction.h>
 #endif
 
 SbBool
