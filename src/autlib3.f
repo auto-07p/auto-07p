@@ -3619,29 +3619,59 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
 C Local
-      DOUBLE PRECISION, ALLOCATABLE :: UU1(:),UU2(:),FF1(:),FF2(:),
-     *     DFU(:,:)
-      INTEGER NDM,NNT0,NFPR,NPAR,I,J
-      DOUBLE PRECISION UMX,EP,P
+      DOUBLE PRECISION, ALLOCATABLE :: FF1(:),FF2(:),DFU(:,:)
+      INTEGER NDM,NNT0,NFPR,NPAR,I,J,NFPX
+      DOUBLE PRECISION UMX,EP,P,UU
 C
        NDM=AP%NDM
-       NNT0=(NINT-1)/2
        NFPR=AP%NFPR
        NPAR=AP%NPAR
+C
+C Note that PAR(NPAR) is used to keep the norm of the null vector
+C
+       F(NINT)=-PAR(NPAR)
+       DO I=1,NDM
+         F(NINT)=F(NINT)+U(NDM+I)*U(NDM+I)
+       ENDDO
+       IF(IJAC/=0)THEN
+         DINT(NINT,NDM+1:NDIM)=2*U(NDM+1:NDIM)
+         IF(IJAC/=1.AND.ICP(NFPR/2+1)==NPAR)THEN
+           DINT(NINT,NDIM+NPAR)=-1
+         ENDIF
+       ENDIF
+
+       IF(NINT==1)RETURN
+
+       NNT0=(NINT-1)/2
+       NFPX=NFPR/2-1
        ALLOCATE(DFU(NNT0,NDM+NPAR))
 C
 C Generate the function.
 C
        CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,UPOLD,F,DFU)
+       DO I=1,NFPX
+         F(NINT)=F(NINT)+PAR(ICP(NFPR-NFPX+I))**2
+       ENDDO
 C
        IF(IJAC.EQ.0)THEN
          DEALLOCATE(DFU)
          RETURN
        ENDIF
 C
-       ALLOCATE(UU1(NDIM),UU2(NDIM),FF1(NINT),FF2(NINT))
-C
 C Generate the Jacobian.
+C
+       DINT(1:NNT0,1:NDM)=DFU(1:NNT0,1:NDM)
+       DINT(NNT0+1:NINT-1,NDM+1:NDIM)=DFU(1:NNT0,1:NDM)
+       IF(IJAC/=1)THEN
+         DO I=1,NFPR
+           DINT(1:NNT0,NDIM+ICP(I))=DFU(1:NNT0,NDM+ICP(I))
+           IF(I>=NFPR-NFPX+1)THEN
+             DINT(NNT0+1:NINT-1,NDIM+ICP(I))=
+     *             DFU(1:NNT0,NDM+ICP(I-NFPX-1))
+             DINT(NINT,NDIM+ICP(I))=2*PAR(ICP(I))
+           ENDIF
+         ENDDO
+       ENDIF
 C
        UMX=0.d0
        DO I=1,NDIM
@@ -3650,34 +3680,33 @@ C
 C
        EP=HMACH*(1+UMX)
 C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           UU1(J)=U(J)
-           UU2(J)=U(J)
-         ENDDO
-         UU1(I)=UU1(I)-EP
-         UU2(I)=UU2(I)+EP
-         CALL FIBL(AP,PAR,ICP,NINT,NNT0,UU1,UOLD,UDOT,
+       ALLOCATE(FF1(NINT),FF2(NINT))
+       DO I=1,NDM
+         UU=U(I)
+         U(I)=UU-EP
+         CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
-         CALL FIBL(AP,PAR,ICP,NINT,NNT0,UU2,UOLD,UDOT,
+         U(I)=UU+EP
+         CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF2,DFU)
-         DO J=1,NINT
+         U(I)=UU
+         DO J=NNT0+1,NINT-1
            DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
          ENDDO
        ENDDO
 C
-       DEALLOCATE(UU1,UU2,FF2)
+       DEALLOCATE(FF2)
        IF(IJAC.EQ.1)THEN
          DEALLOCATE(FF1,DFU)
          RETURN
        ENDIF
 C
-       DO I=1,NFPR
+       DO I=1,NFPR-NFPX
          P=PAR(ICP(I))
          PAR(ICP(I))=P+EP
          CALL FIBL(AP,PAR,ICP,NINT,NNT0,U,UOLD,UDOT,
      *    UPOLD,FF1,DFU)
-         DO J=1,NINT
+         DO J=NNT0+1,NINT-1
            DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
          ENDDO
          PAR(ICP(I))=P
@@ -3697,40 +3726,23 @@ C
       DOUBLE PRECISION, INTENT(INOUT) :: U(*),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NNT0,*)
-      INTEGER NDM,NFPR,NPAR,NFPX,I,J
+      INTEGER NDM,NFPR,NFPX,I,J
 C
        NDM=AP%NDM
        NFPR=AP%NFPR
-       NPAR=AP%NPAR
+       NFPX=NFPR/2-1
 C
-       NFPX=0
-       IF(NINT.GT.1) THEN
-         NFPX=NFPR/2-1
          CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,UDOT,UPOLD,F,2,DINT)
          DO I=1,NNT0
            F(NNT0+I)=0.d0
            DO J=1,NDM
              F(NNT0+I)=F(NNT0+I)+DINT(I,J)*U(NDM+J)
            ENDDO
-           IF(NFPX.NE.0) THEN
-             DO J=1,NFPX
-               F(NNT0+I)=F(NNT0+I)
+           DO J=1,NFPX
+             F(NNT0+I)=F(NNT0+I)
      *         + DINT(I,NDM+ICP(1+J))*PAR(ICP(NFPR-NFPX+J))
-             ENDDO
-           ENDIF
+           ENDDO
          ENDDO
-       ENDIF
-C
-C Note that PAR(NPAR) is used to keep the norm of the null vector
-       F(NINT)=-PAR(NPAR)
-       DO I=1,NDM
-         F(NINT)=F(NINT)+U(NDM+I)*U(NDM+I)
-       ENDDO
-       IF(NFPX.NE.0) THEN
-         DO I=1,NFPX
-           F(NINT)=F(NINT)+PAR(ICP(NFPR-NFPX+I))**2
-         ENDDO
-       ENDIF
 C
       RETURN
       END SUBROUTINE FIBL
