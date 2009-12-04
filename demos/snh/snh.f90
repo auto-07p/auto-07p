@@ -7,6 +7,7 @@
 !   PAR(1) : nu1
 !   PAR(2) : nu2
 !   PAR(3) : d
+!   PAR(4) : codimension of connection (0 or 1)
 !
 !   PAR(5) : delta: distance from cycle to start connection
 !   PAR(6) : eps: distance from end connection to point
@@ -123,6 +124,7 @@
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(IN) :: T
 
+    INTEGER, PARAMETER :: codim = 1
     DOUBLE PRECISION, PARAMETER :: nu1 = 0, nu2 = -1.46d0, d = 0.01d0
     DOUBLE PRECISION, PARAMETER :: delta = -1d-5, eps = 1d-6
     DOUBLE PRECISION fp(3), ev(3), pi
@@ -142,6 +144,7 @@
     ENDIF
 
     PAR(1:3) = (/nu1,nu2,d/)
+    PAR(4) = codim
     PAR(5) = delta
     PAR(6) = eps
     PAR(21:22) = 0.0
@@ -172,8 +175,8 @@
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     
     DOUBLE PRECISION, EXTERNAL :: GETP
-    DOUBLE PRECISION d(3), normlv, mu
-    INTEGER i, NBC
+    DOUBLE PRECISION d(3), normlv
+    INTEGER i, NBC, codim
     DOUBLE PRECISION pi
     LOGICAL, SAVE :: FIRST = .TRUE.
 
@@ -182,8 +185,8 @@
        ! initialization for BCND
        pi = 4d0 * ATAN(1d0)
        IF (NDIM==9) THEN
-          mu = PAR(7)
-          IF (mu < 0) THEN
+          codim = NINT(PAR(4))
+          IF (codim == 0) THEN
              IF (PAR(21)==0) THEN
                 ! distance to W^u(b) where b is the phase-shifted equilibrium
                 PAR(21) = GETP("BV1",9,U) - PAR(17)
@@ -220,8 +223,9 @@
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
     DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
-    DOUBLE PRECISION nu2, delta, eps, fp(3), ev(3), eta, mu
+    DOUBLE PRECISION nu2, delta, eps, fp(3), ev(3), eta
     DOUBLE PRECISION pi
+    INTEGER codim
 
     ! Periodicity boundary conditions on state variables
     FB(1:3) = U0(1:3) - U1(1:3)
@@ -236,8 +240,8 @@
     delta = PAR(5)
     FB(8:10) = U0(7:9) - (U0(1:3) + delta*U0(4:6))
     pi = 4d0 * ATAN(1d0)
-    mu = PAR(7)
-    IF(mu < 0)THEN
+    codim = NINT(PAR(4))
+    IF(codim == 0)THEN
        ! projection boundary condition for codimension-zero connection
        nu2 = PAR(2)
        FB(11) = COS(U1(9) - PAR(21)) +nu2/2
@@ -264,23 +268,23 @@
 
   END SUBROUTINE BCND
 
-  SUBROUTINE ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI,IJAC,DINT)
+  SUBROUTINE ICND(NDIM,PAR,ICP,NINTS,U,UOLD,UDOT,UPOLD,FI,IJAC,DINT)
   !--------- ----
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NDIM, ICP(*), NINT, IJAC
+    INTEGER, INTENT(IN) :: NDIM, ICP(*), NINTS, IJAC
     DOUBLE PRECISION, INTENT(IN) :: PAR(*)
     DOUBLE PRECISION, INTENT(IN) :: U(NDIM), UOLD(NDIM), UDOT(NDIM), UPOLD(NDIM)
-    DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
-    DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
+    DOUBLE PRECISION, INTENT(OUT) :: FI(NINTS)
+    DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINTS,*)
 
-    DOUBLE PRECISION mu
+    INTEGER codim
 
     ! Integral phase condition
     FI(1) = DOT_PRODUCT(U(1:3),UPOLD(1:3))
-    IF (NINT==1) RETURN
+    IF (NINTS==1) RETURN
 
-    mu = PAR(7)
-    IF(mu < 0)THEN
+    codim = NINT(PAR(4))
+    IF (codim == 0) THEN
        ! phase condition for codimension-zero connection
        FI(2) = DOT_PRODUCT(UPOLD(7:9),U(7:9)-UOLD(7:9))
        RETURN
