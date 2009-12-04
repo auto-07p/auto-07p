@@ -40,8 +40,8 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 C Local
-      DOUBLE PRECISION, ALLOCATABLE :: DFU(:)
-      INTEGER NDM,NFPR,I,J
+      DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:),FF1(:)
+      INTEGER NDM,NFPR,I,J,IT,IEQMAX
       DOUBLE PRECISION UMX,EP,P,UU
 C
        NDM=AP%NDM
@@ -49,79 +49,158 @@ C
 C
 C Generate the function.
 C
-      IF(ISTART.GE.0.AND.ITWIST.EQ.1)THEN
-        ALLOCATE(DFU(NDIM*NDIM))
+      IF(ISTART>=0.AND.ITWIST==0)THEN
+C        *Evaluate the R.-H. sides
+         CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,11)
+         RETURN
       ENDIF
-      IF(IJAC.EQ.0)THEN
-        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
-        IF(ALLOCATED(DFU))DEALLOCATE(DFU)
-        RETURN
+
+      ALLOCATE(DFU(NDM,NDM),DFP(NDM,AP%NPAR))
+
+      IF(ISTART<0)THEN
+C        Homoclinic branch switching
+         DO J=0,NDIM-NDM,NDM
+            IF(IJAC==2)THEN
+               DO I=1,NFPR
+                  DFP(:,ICP(I))=0d0
+               ENDDO
+            ENDIF
+            IF(J==0)THEN
+               IT=10
+            ELSEIF(J==NDIM-NDM)THEN
+               IT=11
+            ELSE
+               IT=19+(J/NDM)*2
+            ENDIF
+            CALL FFHO(AP,NDM,U(J+1),UOLD(J+1),ICP,PAR,IJAC,F(J+1),
+     *           DFU,DFP,IT)
+            IF(IJAC/=0)THEN
+               DFDU(J+1:J+NDM,J+1:J+NDM)=DFU(:,:)
+            ENDIF
+            IF(IJAC==2)THEN
+               DO I=1,NFPR
+                  DFDP(J+1:J+NDM,ICP(I))=DFP(:,ICP(I))
+               ENDDO
+            ENDIF
+         ENDDO
+         DEALLOCATE(DFU,DFP)
+         RETURN
+      ENDIF
+
+C
+C Generate the function + adjoint variational equation for ITWIST=1
+C
+      IF(IJAC/=0)THEN
+C
+C        Generate dF/du for F = - (Df(u))^T U + PAR(10)*f(u)
+C
+         UMX=0.d0
+         DO I=1,NDIM
+            IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+         ENDDO
+C
+         EP=HMACH*(1+UMX)
+C
+         DO I=1,NDM
+            UU=U(I)
+            U(I)=UU-EP
+            CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,1,DFDU(1,I),DFU,DFP,11)
+            U(I)=UU+EP
+            CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,1,F,DFU,DFP,11)
+            U(I)=UU
+            DO J=NDM+1,NDIM
+               DFDU(J,I)=(F(J)-DFDU(J,I))/(2*EP)
+            ENDDO
+         ENDDO
+      ENDIF
+
+      IF(IJAC==2)THEN
+         DO I=1,NFPR
+            DFP(:,ICP(I))=0d0
+         ENDDO
+      ENDIF
+
+      CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,MAX(IJAC,1),F,DFU,DFP,11)
+      IF(IJAC==0)THEN
+         DEALLOCATE(DFU,DFP)
+         RETURN
       ENDIF
 C
-C Generate the Jacobian.
-C
-      UMX=0.d0
-      DO I=1,NDIM
-        IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+      DFDU(1:NDM,1:NDM)=DFU(:,:)
+      DFDU(1:NDM,NDM+1:NDIM)=0d0
+C     *Adjoint variational equations for normal vector
+C     *Set dF/dU for F = - (Df(u))^T U + PAR(10)*f(u)
+      DO J=1,NDM
+         DO I=1,NDM
+            DFDU(NDM+J,NDM+I)=-DFU(I,J)
+         ENDDO
       ENDDO
 C
-      EP=HMACH*(1+UMX)
-C
-      DO I=1,NDIM
-        UU=U(I)
-        U(I)=UU-EP
-        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,DFDU(1,I),NDM,DFU)
-        U(I)=UU+EP
-        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
-        U(I)=UU
-        DO J=1,NDIM
-          DFDU(J,I)=(F(J)-DFDU(J,I))/(2*EP)
-        ENDDO
-      ENDDO
-C
-      CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU)
       IF(IJAC==1)THEN
-        IF(ALLOCATED(DFU))DEALLOCATE(DFU)
+        DEALLOCATE(DFU,DFP)
         RETURN
       ENDIF
 C
+      ALLOCATE(FF1(NDIM))
       DO I=1,NFPR
+         DFDP(1:NDM,ICP(I))=DFP(:,ICP(I))
+      ENDDO
+      IF(IEQUIB<0)THEN
+         ! heteroclinic equilibrium parameters
+         IEQMAX=11+NDM*2
+      ELSE
+         ! homoclinic equilibrium parameters
+         IEQMAX=11+NDM
+      ENDIF
+      DO I=1,NFPR
+        IF(ICP(I)==10)THEN
+           DFDP(NDM+1:NDIM,10)=F(:NDM)
+        ELSEIF(ICP(I)==11)THEN
+           DFDP(NDM+1:NDIM,11)=(F(NDM+1:NDIM)+PAR(10)*F(1:NDM))/PAR(11)
+        ENDIF
+        IF(ICP(I)>=10.AND.ICP(I)<=IEQMAX)CYCLE
         P=PAR(ICP(I))
+        EP=HMACH*( 1 +ABS(P) )
         PAR(ICP(I))=P+EP
-        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,DFDP(1,ICP(I)),NDM,DFU)
-        DO J=1,NDIM
-          DFDP(J,ICP(I))=(DFDP(J,ICP(I))-F(J))/EP
+        CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,1,FF1,DFU,DFP,11)
+        DO J=NDM+1,NDIM
+           DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
         ENDDO
         PAR(ICP(I))=P
       ENDDO
-C
-      IF(ALLOCATED(DFU))DEALLOCATE(DFU)
+
+      DEALLOCATE(FF1,DFU,DFP)
+
       RETURN
       END SUBROUTINE FNHO
 C
 C     ---------- ----
-      SUBROUTINE FFHO(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU)
+      SUBROUTINE FFHO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,IT)
 C
       USE INTERFACES, ONLY:FUNI,FUNC
 C
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-      INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
+      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC,IT
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
-      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(AP%NDM,AP%NDM)
+      DOUBLE PRECISION, INTENT(INOUT) :: DFDP(AP%NDM,*)
 C
 C       Local
-      INTEGER I,J
-      DOUBLE PRECISION DDUM1(1),DUM1
+      INTEGER I,J,NDM
+      DOUBLE PRECISION DUM1,T
+
+      NDM=AP%NDM
 C
+C Generate the function.
+C
+      CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+C
+      T=PAR(IT)
       IF(ISTART.GE.0)THEN
-         IF(ITWIST.EQ.0)THEN
-C           *Evaluate the R.-H. sides
-            CALL FUNC(NDM,U,ICP,PAR,0,F,DFDU,DDUM1)
-         ELSEIF(ITWIST.EQ.1)THEN
+         IF(ITWIST.EQ.1)THEN        
 C           *Adjoint variational equations for normal vector
-            CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFDU,DDUM1)
 C           *Set F = - (Df)^T u
             DO J=1,NDM
                DUM1=0.0D0
@@ -135,28 +214,24 @@ C           *Set F =  F + PAR(10) * f
                F(NDM+J) = F(NDM+J) + PAR(10) * F(J)
             ENDDO
          ENDIF
-      ELSE
-C        Homoclinic branch switching
-         DO J=0,NDIM-NDM,NDM
-            CALL FUNC(NDM,U(J+1),ICP,PAR,0,F(J+1),DFDU,DDUM1)
-         ENDDO
       ENDIF
 C
-C Scale by truncation interval T=PAR(11)
+C Scale by truncation interval T
 C
-      IF (ISTART.GE.0) THEN
-         DO I=1,NDIM
-            F(I)=PAR(11)*F(I)
-         ENDDO
-      ELSE
-         DO I=1,NDM
-            F(I)=PAR(10)*F(I)
-            DO J=1,NDIM/NDM-2
-               F(I+NDM*J)=PAR(19+J*2)*F(I+NDM*J)
+      IF(IJAC/=0)THEN
+         DFDU(:,:)=T*DFDU(:,:)
+         IF(IJAC==2)THEN
+C           **Derivative to truncation interval
+            DO J=1,AP%NFPR
+               IF(ICP(J)==IT)THEN
+                  DFDP(:,IT)=F(:)
+               ELSE
+                  DFDP(:,ICP(J))=T*DFDP(:,ICP(J))
+               ENDIF
             ENDDO
-            F(I+NDIM-NDM)=PAR(11)*F(I+NDIM-NDM)
-         ENDDO   
+         ENDIF
       ENDIF
+      F(:)=T*F(:)
 C       
       RETURN
       END SUBROUTINE FFHO
@@ -518,6 +593,7 @@ C     ---------- ----
 C
 C Generates integral conditions for homoclinic bifurcation analysis
 C
+      USE INTERFACES
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
@@ -525,78 +601,14 @@ C
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
 
-      INTEGER NDM,NFPR,I,J
-      DOUBLE PRECISION UMX,EP,P,UU
+      INTEGER NDM,NFPR,NPAR,I,JB
+      DOUBLE PRECISION, ALLOCATABLE :: DNT(:,:)
+      DOUBLE PRECISION DUM,DUM1(1)
 C
        NDM=AP%NDM
        NFPR=AP%NFPR
-C
-C Generate the function.
-C
-       IF(IJAC.EQ.0)THEN
-         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
-         RETURN
-       ENDIF
-C
-C
-C Generate the Jacobian.
-C
-       UMX=0.d0
-       DO I=1,NDIM
-         IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-       ENDDO
-C
-       EP=HMACH*(1+UMX)
-C
-       DO I=1,NDIM
-         UU=U(I) 
-         U(I)=UU-EP
-         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
-     *    UPOLD,F)
-         U(I)=UU+EP
-         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
-     *    UPOLD,DINT(1,I))
-         U(I)=UU
-C
-         DO J=1,NINT
-           DINT(J,I)=(DINT(J,I)-F(J))/(2*EP)
-         ENDDO
-       ENDDO
-C
-C Generate the function.
-C
-       CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
-C
-       IF(IJAC.EQ.1)RETURN
-       DO I=1,NFPR
-         P=PAR(ICP(I))
-         PAR(ICP(I))=P+EP
-         CALL FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,
-     *    UPOLD,DINT(1,NDIM+ICP(I)))
-         DO J=1,NINT
-           DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
-         ENDDO
-         PAR(ICP(I))=P
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE ICHO
-C
-C     ---------- ----
-      SUBROUTINE FIHO(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
-C
-C Generates the integral conditions for homoclinic orbits.
-C
-      USE INTERFACES, ONLY: ICND
-      INTEGER, INTENT(IN) :: NDM,ICP(*),NINT
-      DOUBLE PRECISION, INTENT(IN) :: UOLD(*),UDOT(*),UPOLD(*),U(*)
-      DOUBLE PRECISION, INTENT(IN) :: PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: FI(*)
-
-      INTEGER JB,I
-      DOUBLE PRECISION DUM,DUM1(1)
-C
-      JB=0
+       NPAR=AP%NPAR
+       JB=0
 C
 C Integral phase condition for homoclinic orbit
 C    
@@ -606,7 +618,11 @@ C
             DUM=DUM+UPOLD(I)*(U(I)-UOLD(I))
          ENDDO
          JB=JB+1
-         FI(JB)=DUM
+         F(JB)=DUM
+         IF(IJAC/=0)THEN
+            DINT(JB,1:NDM)=UPOLD(1:NDM)
+            DINT(JB,NDM+1:NDIM+NPAR)=0.d0
+         ENDIF
 C     
 C Integral phase condition for adjoint equation     
 C
@@ -616,18 +632,34 @@ C
                DUM=DUM+UOLD(NDM+I)*(U(NDM+I)-UOLD(NDM+I))
             ENDDO
             JB=JB+1
-            FI(JB)=DUM
+            F(JB)=DUM
+            IF(IJAC/=0)THEN
+               DINT(JB,1:NDM)=0.d0
+               DINT(JB,NDM+1:2*NDM)=UOLD(NDM+1:2*NDM)
+               DINT(JB,2*NDM+1:NDIM+NPAR)=0.d0
+            ENDIF
          ENDIF
       ENDIF
 C
 C User-defined integral constraints
 C
       IF (JB.LT.NINT) THEN
-         CALL ICND(NDM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI(JB),0,DUM1)
+         IF(IJAC/=0)THEN
+            ALLOCATE(DNT(NINT-JB,NDM))
+            CALL ICNI(AP,NDM,PAR,ICP,NINT-JB,U,UOLD,UDOT,UPOLD,F(JB),
+     *           IJAC,DNT)
+            DINT(JB+1:NINT,1:NDM)=DNT(1:NINT-JB,1:NDM)
+            DINT(JB+1:NINT,NDM+1:NDIM)=0d0
+            DINT(JB+1:NINT,NDIM+1:NDIM+NPAR)=DNT(1:NINT-JB,1:NDM+NPAR)
+            DEALLOCATE(DNT)
+         ELSE
+            CALL ICNI(AP,NDM,PAR,ICP,NINT-JB,U,UOLD,UDOT,UPOLD,F(JB),0,
+     *           DUM1)
+         ENDIF         
       END IF
 C
       RETURN
-      END SUBROUTINE FIHO
+      END SUBROUTINE ICHO
 C
 C     ---------- -------
       SUBROUTINE INSTRHO(KEYSTR,VALSTR,LISTLEN,IERR)
