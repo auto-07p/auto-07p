@@ -3,7 +3,7 @@ C     ------- ----
 C
       USE AUTOMPI
       USE IO
-      USE SUPPORT
+      USE SUPPORT, ONLY:AP=>AV, CHECKSP
       USE AUTO_CONSTANTS,ONLY:SVFILE,SFILE,DATFILE,EFILE,
      *     ICU,parnames,AUTOPARAMETERS
 C$    USE OMP_LIB
@@ -13,7 +13,6 @@ C
 C
       LOGICAL EOF,KEYS
 C Local
-      TYPE(AUTOPARAMETERS) :: AP
       DOUBLE PRECISION TIME0,TIME1,TOTTIM
       INTEGER I,LINE,ios
       INTEGER,ALLOCATABLE :: IICU(:)
@@ -62,7 +61,7 @@ C$       TIME0=omp_get_wtime()
        DO I=1,SIZE(ICU)
           IICU(I)=NAMEIDX(ICU(I),parnames)
        ENDDO
-       CALL AUTOI(AP,IICU,.FALSE.)
+       CALL AUTOI(AP,IICU,SIZE(IICU),.FALSE.)
        DEALLOCATE(IICU)
 C-----------------------------------------------------------------------
 C
@@ -111,7 +110,7 @@ C     ---------- ---------
          AP%ISW = ISW
          AP%ITP = FUNI_ICNI_PARAMS(4) ! itp
          AP%NFPR = FUNI_ICNI_PARAMS(5) ! nfpr
-         CALL AUTOI(AP,ICU,.TRUE.)
+         CALL AUTOI(AP,ICU,SIZE(ICU),.TRUE.)
          ! autoi calls autobv which eventually calls solvbv;
          ! a return means another init message
       ENDDO
@@ -152,7 +151,7 @@ C
       END SUBROUTINE FINDLB_OR_STOP
 C
 C     ---------- -----
-      SUBROUTINE AUTOI(AP,ICU,WORKER)
+      SUBROUTINE AUTOI(AP,ICU,NICU,WORKER)
 C
       USE INTERFACES
       USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
@@ -164,7 +163,7 @@ C
 C
       IMPLICIT NONE
       TYPE(AUTOPARAMETERS) AP
-      INTEGER ICU(:)
+      INTEGER NICU,ICU(NICU)
       LOGICAL WORKER
 
       INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K

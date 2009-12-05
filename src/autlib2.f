@@ -53,6 +53,7 @@ C Local
       INTEGER IAM,KWT,NDIM,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
       INTEGER NA,NTSTNA,IT,NT,MNT,I,J
+      INTEGER ISHAPE(8)
 C
 C Most of the required memory is allocated below
 C
@@ -107,9 +108,12 @@ C$       CALL OMP_SET_NUM_THREADS(NA)
       IF(IFST.EQ.1)THEN
          IF(ALLOCATED(A))THEN
 C            !a sufficient check to see if array dimensions have changed:
-            IF (ANY(SHAPE(A)/=(/NCLM,NROW,NA+1/)).OR.
-     *          ANY(SHAPE(CC)/=(/NDIM,NRC,NTSTNA+1/)).OR.
-     *          ANY(SHAPE(DDBC)/=(/NFPR,NBC/)))THEN
+            ISHAPE(1:3)=SHAPE(A)
+            ISHAPE(4:6)=SHAPE(CC)
+            ISHAPE(7:8)=SHAPE(DDBC)
+            IF(ISHAPE(1)/=NCLM.OR.ISHAPE(2)/=NROW.OR.ISHAPE(3)/=NA+1
+     *     .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTSTNA+1
+     *     .OR.ISHAPE(7)/=NFPR.OR.ISHAPE(8)/=NBC)THEN
 C              Free floating point arrays
                DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,CCBC,DDBC)
 C              Free integer arrays

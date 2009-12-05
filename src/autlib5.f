@@ -1011,7 +1011,7 @@ C Just use the point in the middle
          ENDDO
       ENDIF
       TMMAX=TM(JMAX)
-      CALL FUNC(NDM,UPS(:,JMAX*NCOLRS),ICP,PAR,0,PAR(NPAR-NDM+1),
+      CALL FUNC(NDM,UPS(1,JMAX*NCOLRS),ICP,PAR,0,PAR(NPAR-NDM+1),
      *     DUM1,DUM2)
 C     
 C     PAR(NPAR-NDM+1...NPAR) contains the point furthest from
@@ -1100,9 +1100,15 @@ C     merge TM(1..JMAX)/TMMAX, TM(JMAX..NTSR)-TMMAX,
 C           TM(1..JMAX)+1D0-TMMAX, 
 C           (TM(JMAX..NTSR)-TMMAX)/(1D0-TMMAX)
 C
-      J2 = (/ 2*NTSR-JMAX, NTSR, NTSR      /)
-      A  = (/ TMMAX-1D0,   0D0,  0D0       /)
-      B  = (/ TMMAX,       1D0,  1D0-TMMAX /)
+      J2(1) = 2*NTSR-JMAX
+      J2(2) = NTSR
+      J2(3) = NTSR
+      A(1) = TMMAX-1D0
+      A(2) = 0D0
+      A(3) = 0D0
+      B(1) = TMMAX
+      B(2) = 1D0
+      B(3) = 1D0-TMMAX
       NTSR=NTSR*2-2
       DO I=1,3
          T(I) = (TTM(J2(I))+A(I))/B(I)
@@ -1168,7 +1174,7 @@ C
 C     Rotations: NRTN needs adjustment
 C
       IF(IRTN.NE.0)THEN
-         NRTN(1:NDM)=NRTN(1:NDIM)*(-ISTART)
+         NRTN(1:NDM)=NRTN(1:NDM)*(-ISTART)
       ENDIF
       DEALLOCATE(TTM)
       RETURN
@@ -1294,7 +1300,7 @@ C We hope that Newton's method will do the rest.
             UPSMIN=HUGE(1.d0)
             JMIN=0
             DO J=0,NTSR*NCOLRS
-               CALL FUNC(NDM,UPS(:,J),ICP,PAR,0,F,DUM1,DUM2)
+               CALL FUNC(NDM,UPS(1,J),ICP,PAR,0,F,DUM1,DUM2)
                UPSI=0
                DO I=1,NDM
                   UPSI=UPSI+F(I)*F(I)
@@ -2045,7 +2051,7 @@ C
          ! normalize eigenvector so that the largest (in absolute value)
          ! component is positive
          DO I=1,NDM
-            M=IDAMAX(NDM,ZZ(:,I),1)
+            M=IDAMAX(NDM,ZZ(1,I),1)
             IF(ZZ(M,I)<0)THEN
                ZZ(:,I)=-ZZ(:,I)
             ENDIF
@@ -2162,7 +2168,7 @@ C
      &        EI, BOUND, NDM, WORK, LWORK, BWORK, IFAIL)
       ENDIF
       IF (IFAIL.EQ.0.AND.ISDIM.NE.MCOND) THEN
-         BWORK=.FALSE.
+         BWORK=.TRUE.
 C
 C     Get orthonormal basis for the nstab lowest eigenvalues
 C     or nunstab highest eigenvalues (real part),
@@ -2170,12 +2176,13 @@ C     which do not necessarily all have to be negative/positive
 C
          DO I=1,MCOND
             IF (IMFD.EQ.-1) THEN
-               LOC=MINLOC(ER,.NOT.BWORK)
+               LOC=MINLOC(ER,BWORK)
             ELSE
-               LOC=MAXLOC(ER,.NOT.BWORK)
+               LOC=MAXLOC(ER,BWORK)
             ENDIF
-            BWORK(LOC(1))=.TRUE.
+            BWORK(LOC(1))=.FALSE.
          ENDDO
+         BWORK=.NOT.BWORK
          CALL DTRSEN('N', 'V', BWORK, NDM, A, NDM, BOUND, NDM, ER, EI,
      &        ISDIM, S, SEP, WORK, LWORK, IWORK, 1, IFAIL)
          IF (IFAIL.NE.0.AND.AP%IID>0) THEN

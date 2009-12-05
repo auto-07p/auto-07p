@@ -104,15 +104,21 @@ CONTAINS
     SELECT CASE(NCOL)
        CASE(2)
           C21 = .5d0/SQRT(3.0d0)
-          ZM(:) = (/ .5d0-C21, .5d0+C21 /)
+          ZM(1) = .5d0-C21
+          ZM(2) = .5d0+C21
        CASE(3)
           C31 = .5d0*SQRT(0.6d0)
-          ZM(:) = (/ .5d0-C31, .5d0, .5d0+C31 /)
+          ZM(1) = .5d0-C31
+          ZM(2) = .5d0
+          ZM(3) = .5d0+C31
        CASE(4)
           C4  = .5d0*SQRT(R**2-12.0d0/35.0d0)
           C41 = .5d0*SQRT(3.0d0/7.0d0+C4)
           C42 = .5d0*SQRT(3.0d0/7.0d0-C4)
-          ZM(:) = (/ .5d0-C41, .5d0-C42, .5d0+C42, .5d0+C41 /)
+          ZM(1) = .5d0-C41
+          ZM(2) = .5d0-C42
+          ZM(3) = .5d0+C42
+          ZM(4) = .5d0+C41
        CASE(5)
           ZM(:) = (/ .5d0-C51, .5d0-C52, .5d0, .5d0+C52, .5d0+C51 /)
        CASE(6)

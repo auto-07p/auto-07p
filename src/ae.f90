@@ -1286,7 +1286,9 @@ CONTAINS
        SMAT(I,n+I) = -OMEGA
        SMAT(n+I,I) = OMEGA
     ENDDO
-    SMAT(1:n,1:n) = TRANSPOSE(AA(1:n,1:n))
+    DO I = 1,n
+       SMAT(1:n,:) = AA(:,1:n)
+    ENDDO
     SMAT(n+1:2*n,n+1:2*n) = SMAT(1:n,1:n)
     CALL NLVC(2*n,2*n,2,SMAT,tmp)
     pR = tmp(:n)
@@ -1306,7 +1308,8 @@ CONTAINS
     ! Step 2
     a = DERIV2a(qR)
     b = DERIV2a(qI)
-    c = DERIV2b(qR, qI)/4
+    c = DERIV2b(qR, qI)
+    c = c/4
 
     ! Step 3
     A1(:,:) = AA(1:n,1:n)
@@ -1774,22 +1777,8 @@ CONTAINS
     TYPE(AUTOPARAMETERS)AP
     DOUBLE PRECISION U(*),PAR(*)
 
-    INTEGER NDM
-
-    CALL SETPAE(AP)
-    NDM=AP%NDM
-    CALL PVLS(NDM,U,PAR)
+    CALL PVLS(AP%NDM,U,PAR)
 
   END SUBROUTINE PVLSAE
-
-! ---------- ------
-  SUBROUTINE SETPAE(AP)
-
-    USE SUPPORT
-    TYPE(AUTOPARAMETERS), TARGET :: AP
-
-    AV=>AP
-
-  END SUBROUTINE SETPAE
 
 END MODULE AE
