@@ -526,6 +526,7 @@ class AUTOBranch(Points.Pointset):
                 return type_translation(self.TY)["short name"]
             else: #"TY number"
                 return self.TY
+        pt = None
         if self.__fullyParsed or not isinstance(index, int):
             if not Points.numpyimported:
                 Points.importnumpy()
@@ -554,22 +555,24 @@ class AUTOBranch(Points.Pointset):
             coordnames = self.coordnames
             coordarray = self.__datalist[index].split()
             br = int(coordarray[0])
+            pt = int(coordarray[1])
             coordarray = list(map(AUTOatof, coordarray[4:]))
         label = {}
         for k,v in labels.items():
             if "LAB" in v:
                 label = v
                 break
-        pt = index+1
-        for p in self.stability():
-            if abs(p) >= pt:
-                if p < 0:
-                    pt = -pt
-                break
-        if pt < 0:
-            pt = -((-pt-1) % 9999) - 1
-        else:
-            pt = ((pt-1) % 9999) + 1
+        if pt is None:
+            pt = index+1
+            for p in self.stability():
+                if abs(p) >= pt:
+                    if p < 0:
+                        pt = -pt
+                    break
+            if pt < 0:
+                pt = -((-pt-1) % 9999) - 1
+            else:
+                pt = ((pt-1) % 9999) + 1
         if label != {}:
             label["index"] = index
             label["PT"] = pt
@@ -598,6 +601,8 @@ class AUTOBranch(Points.Pointset):
     def stability(self):
         """Returns a list of point numbers where the stability
         changes: the end point of each part is stored."""
+        if not self.__fullyParsed:
+            self.__parse()
         stab = []
         prevpt = 0
         branchtype = type_translation(self.TY)["short name"]
