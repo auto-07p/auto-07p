@@ -323,19 +323,10 @@ class AUTOBranch(Points.Pointset):
         # adjust point numbers
         for idx,val in self.labels.sortByIndex():
             for k in val:
-                if k in all_point_types:
-                    pt = idx+1
+                if k in all_point_types and "solution" in val[k]:
                     v = val[k].copy()
-                    if v["PT"] < 0:
-                        pt = -pt
-                    if pt < 0:
-                        pt = -((-pt-1) % 9999) - 1
-                    else:
-                        pt = ((pt-1) % 9999) + 1
-                    v["PT"] = pt
-                    if "solution" in v:
-                        v["solution"] = v["solution"].copy()
-                        v["solution"]["PT"] = abs(pt)
+                    v["solution"] = v["solution"].copy()
+                    v["solution"]["PT"] = (idx % 9999) + 1
                     val[k] = v
 
     def __setitem__(self,item,value):
@@ -532,19 +523,10 @@ class AUTOBranch(Points.Pointset):
                 # adjust point numbers
                 for idx,val in r.labels.sortByIndex():
                     for k in val:
-                        if k in all_point_types:
-                            pt = idx+1
+                        if k in all_point_types and "solution" in val[k]:
                             v = val[k].copy()
-                            if v["PT"] < 0:
-                                pt = -pt
-                            if pt < 0:
-                                pt = -((-pt-1) % 9999) - 1
-                            else:
-                                pt = ((pt-1) % 9999) + 1
-                            v["PT"] = pt
-                            if "solution" in v:
-                                v["solution"] = v["solution"].copy()
-                                v["solution"]["PT"] = abs(pt)
+                            v["solution"] = v["solution"].copy()
+                            v["solution"]["PT"] = (idx % 9999) + 1
                             val[k] = v
                 return r
             if not isinstance(ret, Points.Point):
@@ -564,21 +546,22 @@ class AUTOBranch(Points.Pointset):
             if k in all_point_types:
                 label = v
                 break
+        pt = index+1
+        for p in self.stability:
+            if abs(p) >= pt:
+                if p < 0:
+                    pt = -pt
+                break
+        if pt < 0:
+            pt = -((-pt-1) % 9999) - 1
+        else:
+            pt = ((pt-1) % 9999) + 1
         if label != {}:
             label["index"] = index
+            label["PT"] = pt
             label["BR"] = br
             label["section"] = 0
         else:
-            pt = index+1
-            for p in self.stability:
-                if abs(p) >= pt:
-                    if p < 0:
-                        pt = -pt
-                    break
-            if pt < 0:
-                pt = -((-pt-1) % 9999) - 1
-            else:
-                pt = ((pt-1) % 9999) + 1
             labels["No Label"] = {"BR": br, "PT": pt, "TY number": 0,
                                   "LAB": 0, "index": index, "section": 0}
         return BDPoint({'coordarray': coordarray,
@@ -700,7 +683,6 @@ class AUTOBranch(Points.Pointset):
             if i in self.labels.by_index:
                 for k,label in self.labels[i].items():
                     if k in all_point_types:
-                        pt = label["PT"]
                         tynumber = label["TY number"]
                         lab = label["LAB"]
                         break
@@ -742,13 +724,13 @@ class AUTOBranch(Points.Pointset):
                 ty_name = '  '
                 
             if self.__fullyParsed:
-                linelist = (["%4d%6d%4s%5d"%(abs(self.BR),abs(label["PT"]),
+                linelist = (["%4d%6d%4s%5d"%(abs(self.BR),(index % 9999) + 1,
                                              ty_name,label["LAB"])]+
                             ["%14.5E"%d[index] for d in data])
             else:
                 linedata = self.__datalist[index].split()
                 linelist = (
-                    ["%4d%6d%4s%5d"%(abs(int(linedata[0])),abs(label["PT"]),
+                    ["%4d%6d%4s%5d"%(abs(int(linedata[0])),abs(int(linedata[1])),
                                      ty_name,label["LAB"])] +
                     ["%14.5E"%AUTOatof(d) for d in linedata[4:]])
             slist.append("".join(linelist))
@@ -843,8 +825,7 @@ class AUTOBranch(Points.Pointset):
                 ty = int(columns[2])
                 lab = int(columns[3])
                 key = type_translation(ty)["short name"]
-                labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty,
-                                                 "PT":pt}}
+                labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty}}
             for line in inputfile:
                 datalist.append(line)
                 columns = split(line,None,2)
@@ -859,8 +840,7 @@ class AUTOBranch(Points.Pointset):
                     ty = int(columns[2])
                     lab = int(columns[3])
                     key = type_translation(ty)["short name"]
-                    labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty,
-                                                     "PT":pt}}
+                    labels[len(datalist)-1] = {key: {"LAB":lab,"TY number":ty}}
         self.labels = Points.PointInfo(labels)
         self.__datalist = datalist
         self.c = self.parseHeader(headerlist)
@@ -1096,19 +1076,14 @@ class parseBR(UserList,AUTOBranch):
                         pt = pt+l-1
                 return pt
 
-            # adjust point and label numbers
+            # adjust label numbers
             lab = min(fw.getLabels()+bw.getLabels())
             for idx,val in new.labels.sortByIndex():
                 for k,v in val.items():
-                    if k in all_point_types:
-                        pt = pointtrans(v["PT"],idx,lenbw)
-                        if idx < lenbw and idx>0 and v["PT"] in bw.stability:
-                            pt = -pt
+                    if k in all_point_types and v["LAB"] > 0:
                         val[k] = v.copy()
-                        val[k]["PT"] = pt
-                        if v["LAB"] > 0:
-                            val[k]["LAB"] = lab
-                            lab = lab+1
+                        val[k]["LAB"] = lab
+                        lab = lab+1
 
             # adjust stability array
             stability = []

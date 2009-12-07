@@ -294,11 +294,12 @@ class bifDiag(parseB.parseBR):
         new = parseB.parseBR.merge(self)
         mlab = max(self.getLabels())
         for d in new:
-            for k,x in map(d._gettypelabel, d.labels.getIndices()):
+            for idx in d.labels.getIndices():
+                k, x = d._gettypelabel(idx)
                 if "solution" in x:
                     news = x["solution"].__class__(x["solution"])
                     news._mlab = mlab
-                    news["PT"] = abs(x["PT"])
+                    news["PT"] = (idx % 9999) + 1
                     news["LAB"] = x["LAB"]
                     x["solution"] = news
         return new
