@@ -526,7 +526,6 @@ class AUTOBranch(Points.Pointset):
                 return type_translation(self.TY)["short name"]
             else: #"TY number"
                 return self.TY
-        pt = None
         if self.__fullyParsed or not isinstance(index, int):
             if not Points.numpyimported:
                 Points.importnumpy()
@@ -550,19 +549,6 @@ class AUTOBranch(Points.Pointset):
             coordnames = ret.coordnames
             coordarray = ret.coordarray
             br = self.BR
-        else:
-            labels = self.labels[index]
-            coordnames = self.coordnames
-            coordarray = self.__datalist[index].split()
-            br = int(coordarray[0])
-            pt = int(coordarray[1])
-            coordarray = list(map(AUTOatof, coordarray[4:]))
-        label = {}
-        for k,v in labels.items():
-            if "LAB" in v:
-                label = v
-                break
-        if pt is None:
             pt = index+1
             for p in self.stability():
                 if abs(p) >= pt:
@@ -573,6 +559,18 @@ class AUTOBranch(Points.Pointset):
                 pt = -((-pt-1) % 9999) - 1
             else:
                 pt = ((pt-1) % 9999) + 1
+        else:
+            labels = self.labels[index]
+            coordnames = self.coordnames
+            coordarray = self.__datalist[index].split()
+            br = int(coordarray[0])
+            pt = int(coordarray[1])
+            coordarray = list(map(AUTOatof, coordarray[4:]))
+        label = {}
+        for v in labels.values():
+            if "LAB" in v:
+                label = v
+                break
         if label != {}:
             label["index"] = index
             label["PT"] = pt
