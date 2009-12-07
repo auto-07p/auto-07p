@@ -101,7 +101,7 @@ class bifDiag(parseB.parseBR):
                         break
                     x = d._gettypelabel(ind)[1]
                     s = solution[i]
-                    if x["LAB"] != 0 or s["LAB"] == 0:
+                    if x.get("LAB",0) != 0 or s["LAB"] == 0:
                         i = i+1
                         s = x["solution"] = parseS.AUTOSolution(s, **options)
                         if d.coordnames != []:
@@ -171,6 +171,8 @@ class bifDiag(parseB.parseBR):
             i = 0
             for d in self:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if "LAB" not in x:
+                        continue
                     x["solution"] = solution[i]
                     i = i+1
         if fort9_input is not None:
@@ -195,6 +197,8 @@ class bifDiag(parseB.parseBR):
             i = 0
             for d in self:
                 for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if "LAB" not in x:
+                        continue
                     x["solution"] = solution[i]
                     i = i+1
         if not fort9_filename is None:

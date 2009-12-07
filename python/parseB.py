@@ -151,10 +151,9 @@ class BDPoint(Points.Point):
         """Change coordinate array values."""
         if type(ixarg) == type(""):
             for k,v in self.labels.items():
-                if k in all_point_types:
-                    if ixarg in v:
-                        v[ixarg] = val
-                        return
+                if "LAB" in v:
+                    v[ixarg] = val
+                    return
         Points.Point.__setitem__(self, ixarg, val)
 
     def __getitem__(self, coords):
@@ -210,8 +209,9 @@ class AUTOBranch(Points.Pointset):
 
     def _gettypelabel(self,idx):
         for k,v in self.labels[idx].items():
-            if k in all_point_types:
+            if "LAB" in v:
                 return k,v
+        return 'No Label', {}
 
     def __parse(self):
         if self.__fullyParsed:
@@ -240,7 +240,7 @@ class AUTOBranch(Points.Pointset):
                 #(fromstring may not do this correctly for a
                 #string like -2.05071-106)
                 data[-1] = AUTOatof(datalist[datalist.rfind(' ')+1:].strip())
-            coordarray = self.__parsenumpy(ncolumns,data)
+            stability, coordarray = self.__parsenumpy(ncolumns,data)
         else: #numarray, Numeric, array
             datalist = datalist.split()
             try:
@@ -254,9 +254,17 @@ class AUTOBranch(Points.Pointset):
                     data = list(map(parseB.AUTOatof, data))
             if hasattr(N,"transpose"):
                 data = N.array(data,'d')
-                coordarray = self.__parsenumpy(ncolumns,data)
+                stability, coordarray = self.__parsenumpy(ncolumns,data)
             else:
-                coordarray = self.__parsearray(ncolumns,data)
+                stability, coordarray = self.__parsearray(ncolumns,data)
+        # add stability info labels
+        branchtype = type_translation(self.TY)["short name"]
+        for i in stability:
+            if i < 0:
+                stab = "S"
+            else:
+                stab = "U"
+            self.labels.update(abs(i)-1, branchtype, {"stab": stab})
         # sometimes the columns names are the same: add spaces to those
         for i in range(len(self.coordnames)):
             name = self.coordnames[i]
@@ -275,14 +283,14 @@ class AUTOBranch(Points.Pointset):
         data.shape = (-1,ncolumns)
         coordarray = N.transpose(data[:,4:]).copy()
         points = data[:,1]
-        # self.stability gives a list of point numbers where the stability
+        # stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
         stab = N.concatenate((N.nonzero(N.less(points[:-1]*points[1:],0)),
                               [len(points)-1]))
         points = N.less(N.take(points,stab),0)
         stab = stab + 1
-        self.stability = N.where(points,-stab,stab)
-        return coordarray
+        stability = N.where(points,-stab,stab)
+        return stability, coordarray
 
     def __parsearray(self,ncolumns,data):
         global N
@@ -295,7 +303,7 @@ class AUTOBranch(Points.Pointset):
             for i in range(4,ncolumns):
                 coordarray.append(N.array(
                         [data[j] for j in xrange(i,len(data),ncolumns)],'d'))
-        self.stability = []
+        stability = []
         prevpt = data[1]
         stab = []
         for j in range(1,len(data),ncolumns):
@@ -304,13 +312,13 @@ class AUTOBranch(Points.Pointset):
                 p = j//ncolumns
                 if prevpt < 0:
                     p = -p
-                self.stability.append(p)
+                stability.append(p)
             prevpt = pt
         p = len(data)//ncolumns
         if pt < 0:
             p = -p
-        self.stability.append(p)
-        return coordarray
+        stability.append(p)
+        return stability, coordarray
 
     def __str__(self):
         return self.summary()
@@ -323,7 +331,7 @@ class AUTOBranch(Points.Pointset):
         # adjust point numbers
         for idx,val in self.labels.sortByIndex():
             for k in val:
-                if k in all_point_types and "solution" in val[k]:
+                if "solution" in val[k]:
                     v = val[k].copy()
                     v["solution"] = v["solution"].copy()
                     v["solution"]["PT"] = (idx % 9999) + 1
@@ -381,6 +389,8 @@ class AUTOBranch(Points.Pointset):
             new = self
         for idx in new.labels.getIndices():
             ty_name,v = new._gettypelabel(idx)
+            if "LAB" not in v:
+                continue
             if ((not keep and (v["LAB"] in label or ty_name in label)) or
                (keep and not v["LAB"] in label and not ty_name in label)):
                 if copy:
@@ -424,7 +434,7 @@ class AUTOBranch(Points.Pointset):
             for index in self.labels.getIndices():
                 labels[index] = self.labels[index].copy()
                 ty_name,v = self._gettypelabel(index)
-                if v["LAB"] != 0:
+                if v.get("LAB",0) != 0:
                     labels[index][ty_name] = v.copy()
                     labels[index][ty_name]["LAB"] = label
                     if not self.__fullyParsed:
@@ -439,6 +449,8 @@ class AUTOBranch(Points.Pointset):
         for j in range(len(old_label)):
             for index in self.labels.getIndices():
                 v = self._gettypelabel(index)[1]
+                if "LAB" not in v:
+                    continue
                 if v["LAB"] == old_label[j]:
                     v["LAB"] = new_label[j]
                     if not self.__fullyParsed:
@@ -448,7 +460,7 @@ class AUTOBranch(Points.Pointset):
         """Make all labels in the file unique and sequential"""
         for index in self.labels.getIndices():
             v = self._gettypelabel(index)[1]
-            if v["LAB"] != 0:
+            if v.get("LAB",0) != 0:
                 v["LAB"] = label
                 if not self.__fullyParsed:
                     self.__patchline(self.__datalist,index,3,label)
@@ -461,7 +473,7 @@ class AUTOBranch(Points.Pointset):
         if isinstance(label, int):
             for k in self.labels.getIndices():
                 v = self._gettypelabel(k)[1]
-                if v["LAB"] == label:
+                if v.get("LAB",0) == label:
                     return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
         if isinstance(label, str) and len(label) > 2:
@@ -479,6 +491,8 @@ class AUTOBranch(Points.Pointset):
         counts = [0]*len(label)
         for k,val in self.labels.sortByIndex():
             ty_name,v = self._gettypelabel(k)
+            if "LAB" not in v:
+                continue
             for i in range(len(label)):
                 lab = label[i]
                 if (isinstance(lab, str) and len(lab) > 2 and
@@ -523,7 +537,7 @@ class AUTOBranch(Points.Pointset):
                 # adjust point numbers
                 for idx,val in r.labels.sortByIndex():
                     for k in val:
-                        if k in all_point_types and "solution" in val[k]:
+                        if "solution" in val[k]:
                             v = val[k].copy()
                             v["solution"] = v["solution"].copy()
                             v["solution"]["PT"] = (idx % 9999) + 1
@@ -543,11 +557,11 @@ class AUTOBranch(Points.Pointset):
             coordarray = list(map(AUTOatof, coordarray[4:]))
         label = {}
         for k,v in labels.items():
-            if k in all_point_types:
+            if "LAB" in v:
                 label = v
                 break
         pt = index+1
-        for p in self.stability:
+        for p in self.stability():
             if abs(p) >= pt:
                 if p < 0:
                     pt = -pt
@@ -562,8 +576,12 @@ class AUTOBranch(Points.Pointset):
             label["BR"] = br
             label["section"] = 0
         else:
-            labels["No Label"] = {"BR": br, "PT": pt, "TY number": 0,
-                                  "LAB": 0, "index": index, "section": 0}
+            label = {"BR": br, "PT": pt, "TY number": 0,
+                     "LAB": 0, "index": index, "section": 0}
+            if "No Label" in labels:
+                labels["No Label"].update(label)
+            else:
+                labels["No Label"] = label
         return BDPoint({'coordarray': coordarray,
                         'coordnames': coordnames,
                         'labels': labels},self,index)
@@ -573,9 +591,29 @@ class AUTOBranch(Points.Pointset):
         labels = []
         for index in self.labels.getIndices():
             x = self._gettypelabel(index)[1]
-            if x["LAB"] != 0:
+            if x.get("LAB",0) != 0:
                 labels.append(x["LAB"])
         return labels
+
+    def stability(self):
+        """Returns a list of point numbers where the stability
+        changes: the end point of each part is stored."""
+        stab = []
+        prevpt = 0
+        branchtype = type_translation(self.TY)["short name"]
+        for idx,val in self.labels.sortByIndex():
+            if branchtype in val:
+                x = val[branchtype]
+                if x["stab"] == "U":
+                    pt = idx+1
+                else:
+                    pt = -idx-1
+                if pt * prevpt <= 0:
+                    stab.append(pt)
+                else:
+                    stab[-1] = pt
+                prevpt = pt
+        return stab
 
     def writeRawFilename(self,filename):
         output = open(filename,"w")
@@ -674,19 +712,20 @@ class AUTOBranch(Points.Pointset):
         data = self.coordarray
         istab = 0
         format = "%"+str(columnlen)+"."+str(columnlen-9)+"E"
+        stability = self.stability()
         for i in range(len(data[0])):
             pt = i+1
-            if self.stability[istab] < 0:
+            if stability[istab] < 0:
                 pt = -pt
             tynumber = 0
             lab = 0
             if i in self.labels.by_index:
                 for k,label in self.labels[i].items():
-                    if k in all_point_types:
+                    if "LAB" in label:
                         tynumber = label["TY number"]
                         lab = label["LAB"]
                         break
-            if pt == self.stability[istab]:
+            if pt == stability[istab]:
                 istab = istab + 1
             if pt < 0:
                 pt = -((-pt-1) % 9999) - 1
@@ -708,7 +747,7 @@ class AUTOBranch(Points.Pointset):
         for index,l in self.labels.sortByIndex():
             label = {}
             for k,v in l.items():
-                if k in all_point_types:
+                if "LAB" in v:
                     label = v
                     break
             ty_number = label["TY number"]
@@ -822,6 +861,10 @@ class AUTOBranch(Points.Pointset):
             if columns[2][0] != '0': #type
                 columns = split(line,None,4)
                 pt = int(columns[1])
+                if pt < 0:
+                    stab = 'S'
+                else:
+                    stab = 'U'
                 ty = int(columns[2])
                 lab = int(columns[3])
                 key = type_translation(ty)["short name"]
@@ -955,7 +998,7 @@ class parseBR(UserList,AUTOBranch):
                 newd = d.relabel(label)
                 for idx,val in newd.labels.sortByIndex():
                     for k,v in val.items():
-                        if k in all_point_types and v["LAB"] != 0:
+                        if v.get("LAB",0) != 0:
                             label = v["LAB"]
                 new.append(newd)
                 label = label + 1
@@ -970,7 +1013,7 @@ class parseBR(UserList,AUTOBranch):
             d.uniquelyLabel(label)
             for idx,val in d.labels.sortByIndex():
                 for k,v in val.items():
-                    if k in all_point_types and v["LAB"] != 0:
+                    if v.get("LAB",0) != 0:
                         label = v["LAB"] + 1
             
     # Given a label, return the correct solution
@@ -1014,8 +1057,8 @@ class parseBR(UserList,AUTOBranch):
             l = len(d.coordarray[0])
             if i < l:
                 item = d.getIndex(i)
-                item.labels["section"] = section
-                item.labels["index"] = index
+                item["section"] = section
+                item["index"] = index
                 return item
             i = i - l
             section = section + 1
@@ -1063,42 +1106,14 @@ class parseBR(UserList,AUTOBranch):
             new.reverse()
             new.append(fw[1:])
 
-            def pointtrans(pt,idx,l):
-                if idx < l:
-                    if pt < 0:
-                        pt = -(l+pt+1)
-                    else:
-                        pt = l-pt+1
-                else:
-                    if pt < 0:
-                        pt = pt-l+1
-                    else:
-                        pt = pt+l-1
-                return pt
-
             # adjust label numbers
             lab = min(fw.getLabels()+bw.getLabels())
             for idx,val in new.labels.sortByIndex():
                 for k,v in val.items():
-                    if k in all_point_types and v["LAB"] > 0:
+                    if v.get("LAB",0) > 0:
                         val[k] = v.copy()
                         val[k]["LAB"] = lab
                         lab = lab+1
-
-            # adjust stability array
-            stability = []
-            for p in bw.stability:
-                stability.append(-pointtrans(p,abs(p)-1,lenbw))
-            stability.reverse()
-            for p in fw.stability:
-                stability.append(pointtrans(p,lenbw+abs(p)-1,lenbw))
-            bwstablen = len(bw.stability)
-            if (bwstablen>0 and len(fw.stability)>0 and
-                (stability[bwstablen-1] == -stability[bwstablen])):
-                del stability[bwstablen-1:bwstablen+1]
-            if len(stability)>0 and abs(stability[0]) == 1:
-                del stability[0]
-            new.stability = stability
 
             if hasattr(fw,"diagnostics"):
                 if hasattr(bw,"diagnostics"):
@@ -1158,6 +1173,7 @@ class parseBR(UserList,AUTOBranch):
         prevline = None
         coordnames = []
         lastc = None
+        lastTY = 0
         inputfile = iter(inputfile) # for Python 2.2
         while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)
@@ -1169,8 +1185,10 @@ class parseBR(UserList,AUTOBranch):
             if branch.c is None:
                 #for header-less branches use constants of last branch header
                 branch.c = lastc
+                branch.TY = lastTY
             else:
                 lastc = branch.c
+                lastTY = branch.TY
             if prevline is None:
                 break
 

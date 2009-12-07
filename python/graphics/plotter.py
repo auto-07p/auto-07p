@@ -480,9 +480,10 @@ class plotter(grapher.GUIGrapher):
                 #look at stability:
                 newsect = 1
                 old = 0
-                for pt in branch.stability:
+                stability = branch.stability()
+                for pt in stability:
                     abspt = abs(pt)
-                    if abspt > 1 or pt == branch.stability[-1]:
+                    if abspt > 1 or pt == stability[-1]:
                         if z is None:
                             v = x[old:abspt],y[old:abspt]
                         else:
@@ -495,10 +496,14 @@ class plotter(grapher.GUIGrapher):
             else:
                 self.addArrayNoDraw((x,y,z),1,color)
             for i,l in branch.labels.sortByIndex():
-                for k,v in l.items():
-                    if k in parseB.all_point_types:
+                label = None
+                for k in l:
+                    v = l[k]
+                    if "LAB" in v:
                         label = v
                         break
+                if label is None:
+                    continue
                 lab = label["LAB"]
                 TYnumber = label["TY number"]
                 if TYnumber not in specialsymbols:
