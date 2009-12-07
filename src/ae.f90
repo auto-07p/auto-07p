@@ -815,6 +815,8 @@ CONTAINS
 ! ------ --------- -------- ----
   DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR,FIRST)
 
+    USE SUPPORT, ONLY: CHECKSP
+
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
@@ -839,7 +841,7 @@ CONTAINS
        FNCS=FNBTAE(AP,CHNG,U,V)
     ELSEIF(IUZR==NUZR+5)THEN
        FNCS=FNHBAE(AP,PAR,CHNG,AA)
-       IF(.NOT.FIRST)THEN
+       IF(.NOT.FIRST.OR..NOT.CHECKSP(AP%ITPST*10+5,AP%IPS,AP%ILP,AP%ISP))THEN
           CALL PRINTEIG(AP)
        ENDIF
     ELSEIF(IUZR==NUZR+6)THEN
@@ -1257,8 +1259,8 @@ CONTAINS
     ALLOCATE(a(n),b(n),c(n),abc(2*n),tmp(2*n),SMAT(2*n,2*n),A1(n,n))
 
     h = 0.d0
-    DO I = 1,n
-       IF(ABS(U(I))>h) h = ABS(U(I))
+    DO i = 1,n
+       IF(ABS(U(i))>h) h = ABS(U(i))
     ENDDO
     h = (EPSILON(h)**(1d0/3))*(1+h)
 
@@ -1282,12 +1284,12 @@ CONTAINS
 
     ! compute pR,pI
     SMAT(:,:) = 0.d0
-    DO I = 1,n
-       SMAT(I,n+I) = -OMEGA
+    DO i = 1,n
+       SMAT(I,n+i) = -OMEGA
        SMAT(n+I,I) = OMEGA
     ENDDO
-    DO I = 1,n
-       SMAT(1:n,:) = AA(:,1:n)
+    DO i = 1,n
+       SMAT(1:n,i) = AA(i,1:n)
     ENDDO
     SMAT(n+1:2*n,n+1:2*n) = SMAT(1:n,1:n)
     CALL NLVC(2*n,2*n,2,SMAT,tmp)
@@ -1316,9 +1318,9 @@ CONTAINS
     f1(:) =  a+b
     CALL GEL(n,A1,1,r,f1,DET)
     SMAT(:,:) = 0d0
-    DO I = 1,n
-       SMAT(I,n+I) = -2*omega
-       SMAT(n+I,I) = 2*omega
+    DO i = 1,n
+       SMAT(i,n+i) = -2*omega
+       SMAT(n+i,i) = 2*omega
     ENDDO
     SMAT(1:n,1:n) = -AA(1:n,1:n)
     SMAT(n+1:2*n,n+1:2*n) = SMAT(1:n,1:n)
