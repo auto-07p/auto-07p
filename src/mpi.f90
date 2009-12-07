@@ -299,13 +299,13 @@ subroutine mpibcastap(ap)
   type(autoparameters) :: ap
 
   integer :: ierr
-  integer :: iap(34)
+  integer :: iap(35)
 
   iap = (/ap%ndim, ap%ips,  ap%irs,  ap%ilp,   ap%ntst, ap%ncol, ap%iad,  &
           ap%iads, ap%isp,  ap%isw,  ap%iplt,  ap%nbc,  ap%nint, ap%nmx,  &
           ap%nuzr, ap%npr,  ap%mxbf, ap%iid,   ap%itmx, ap%itnw, ap%nwtn, &
           ap%jac,  ap%npar, ap%ndm,  ap%npari, ap%itds, ap%itp,  ap%itpst,&
-          ap%nfpr, ap%ibr,  ap%ntot, ap%nins,  ap%lab,  ap%nicp/)
+          ap%nfpr, ap%ibr,  ap%ntot, ap%nins,  ap%lab,  ap%nicp, ap%nrev /)
   
   call MPI_Bcast(iap,34,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
@@ -317,7 +317,7 @@ subroutine mpibcastap(ap)
   ap%nwtn = iap(21); ap%jac  = iap(22); ap%npar = iap(23); ap%ndm  = iap(24)
   ap%npari= iap(25); ap%itds = iap(26); ap%itp  = iap(27); ap%itpst= iap(28)
   ap%nfpr = iap(29); ap%ibr  = iap(30); ap%ntot = iap(31); ap%nins = iap(32)
-  ap%lab  = iap(33); ap%nicp = iap(34);
+  ap%lab  = iap(33); ap%nicp = iap(34); ap%nrev = iap(35)
 
 end subroutine mpibcastap
 

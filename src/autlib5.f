@@ -16,6 +16,8 @@ C
       PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,INSTRHO
 
 C     This common block is also used by demos: don't remove it!!
+C     Also, don't use the common variables in FNHO and ICHO because 
+C     the MPI code does not transfer them.
 C
       INTEGER ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
@@ -49,7 +51,7 @@ C
 C
 C Generate the function.
 C
-      IF(ISTART>=0.AND.ITWIST==0)THEN
+      IF(AP%NPARI==0.AND.NDIM==NDM)THEN
 C        *Evaluate the R.-H. sides
          CALL FFHO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,11)
          RETURN
@@ -57,7 +59,7 @@ C        *Evaluate the R.-H. sides
 
       ALLOCATE(DFU(NDM,NDM),DFP(NDM,AP%NPAR))
 
-      IF(ISTART<0)THEN
+      IF(AP%NPARI>0)THEN
 C        Homoclinic branch switching
          DO J=0,NDIM-NDM,NDM
             IF(IJAC==2)THEN
@@ -198,8 +200,8 @@ C
       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 C
       T=PAR(IT)
-      IF(ISTART.GE.0)THEN
-         IF(ITWIST.EQ.1)THEN        
+      IF(AP%NPARI==0)THEN
+         IF(NDIM>NDM)THEN        
 C           *Adjoint variational equations for normal vector
 C           *Set F = - (Df)^T u
             DO J=1,NDM
@@ -393,7 +395,7 @@ C        *NSTAB boundary conditions at t=0
              ENDDO
 C
 C        *NUNSTAB boundary conditions at t=1
-         IF(NREV.EQ.0) THEN
+         IF(AP%NREV==0) THEN
             CALL PRJCTN(AP,BOUND,CSAVE,XEQUIB2,ICP,PAR,1,2,1,NDM)
             DO I=1,NUNSTAB
                DO K=1,NDM
@@ -612,7 +614,7 @@ C
 C
 C Integral phase condition for homoclinic orbit
 C    
-      IF((NREV.EQ.0).AND.(ISTART.GE.0)) THEN
+      IF(AP%NREV==0.AND.AP%NPARI==0) THEN
          DUM=0.d0
          DO I=1,NDM
             DUM=DUM+UPOLD(I)*(U(I)-UOLD(I))
@@ -626,7 +628,7 @@ C
 C     
 C Integral phase condition for adjoint equation     
 C
-         IF ((ITWIST.EQ.1)) THEN
+         IF (NDIM>NDM) THEN
             DUM=0.d0
             DO I=1,NDM
                DUM=DUM+UOLD(NDM+I)*(U(NDM+I)-UOLD(NDM+I))
@@ -899,6 +901,7 @@ C
       AP%NBC=NBC
       AP%NINT=NINT
       AP%NDM=NDM
+      AP%NREV=NREV
 C
       RETURN
 
