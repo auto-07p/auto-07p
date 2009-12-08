@@ -601,12 +601,9 @@ class Point(object):
             else:
                 return [self._force_coords_to_ixlist(el)[0] for el in x]
         elif isinstance(x, type(slice(0))):
-            start = x.start or 0
-            if start < 0: start = start + self.dimension
-            stop = min(x.stop or self.dimension, self.dimension)
-            if stop < 0: stop = stop + self.dimension
-            s1, s2, s3 = start, stop, x.step or 1
-            if s1 < 0 or s2 > self.dimension or s1 >= self.dimension:
+            s1, s2, s3 = AUTOutil.sliceindices(x, self.dimension)
+            if ((s3 > 0 and s1 >= self.dimension) or
+                (s3 < 0 and s2 >= self.dimension)):
                 raise ValueError("Slice index out of range")
             return range(s1, s2, s3)
         elif isinstance(x,int):
@@ -1398,15 +1395,8 @@ class Pointset(Point):
             ixmap = invertMap(ref1)
             new_cl_ixs = [ixmap[i] for i in cl_ixs]
         elif isinstance(ref1, type(slice(0))):
-            ls = len(self)
-            stop = min(ref1.stop or ls, ls)
-            if stop < 0:
-                stop = stop + len(self.coordarray[0])
-            start = ref1.start or 0
-            if start < 0:
-                start = start + len(self.coordarray[0])
-            s1, s2, s3 = start, stop, ref1.step or 1
-            if s1 < 0 or s2 > ls or s1 >= ls:
+            s1, s2, s3 = AUTOutil.sliceindices(ref1, len(self.coordarray[0]))
+            if (s3 > 0 and s1 >= len(self)) or (s3 < 0 and s2 >= len(self)):
                 raise ValueError("Slice index out of range")
             ca = take(self.coordarray, range(s1, s2, s3), axis=1)
             try:
@@ -1416,8 +1406,11 @@ class Pointset(Point):
                 pass
             cl = self.labels[ref1]
             cl_ixs = cl.getIndices()
-            lowest_ix = ref1.start or 0
-            new_cl_ixs = [i-lowest_ix for i in cl_ixs]
+            lowest_ix = s1
+            if s3 < 0:
+                new_cl_ixs = [lowest_ix-i for i in cl_ixs]
+            else:
+                new_cl_ixs = [i-lowest_ix for i in cl_ixs]
         else:
             print("ref1 argument = %s"%ref1)
             raise TypeError("Type %s is invalid for Pointset indexing"%str(type(ref1)))
@@ -1508,8 +1501,12 @@ class Pointset(Point):
                 ixmap = invertMap(ix)
                 new_cl_ixs = [ixmap[i] for i in cl_ixs]
                 if isinstance(ix, type(slice(0))):
-                    lowest_ix = ix.start or 0
-                    new_cl_ixs = [i-lowest_ix for i in cl_ics]
+                    idx = AUTOutil.sliceindices(ix, len(self.coordarray[0]))
+                    lowest_ix = idx[0]
+                    if idx[2] < 0:
+                        new_cl_ixs = [lowest_ix-i for i in cl_ixs]
+                    else:
+                        new_cl_ixs = [i-lowest_ix for i in cl_ixs]
                 try:
                     labels.mapIndices(dict(zip(cl_ixs, new_cl_ixs)))
                 except AttributeError:
@@ -2181,12 +2178,8 @@ class PointInfo(object):
                         max_ixs = 0
                     else:
                         max_ixs = max(self_ixs)
-                    stop = min(key.stop or max_ixs+1, max_ixs+1)
-                    if stop < 0: stop = stop + max_ixs+1
-                    start = key.start or 0
-                    if start < 0: start = start + max_ixs+1
                     try:
-                        s1, s2, s3 = start, stop, key.step or 1
+                        s1, s2, s3 = AUTOutil.sliceindices(key, max_ixs+1)
                         ixs = range(s1, s2, s3)
                         key = intersect(ixs, self_ixs)
                     except TypeError:
@@ -2709,7 +2702,7 @@ def test_pointset():
     print("\nMany forms to access individual values or sub-arrays:")
     print("wp(1., 'x1') =>  %s"%wp(1., 'x1'))
     print("wp(1.)('x1') =>  %s"%wp(1.)('x1'))
-    print("wp(1., 1)) =>  %s"%wp(1., 1))
+    print("wp(1., 1) =>  %s"%wp(1., 1))
     print("wp([1.,3.], 1) =>  %s"%wp([1.,3.], 1))
     print("wp([1.,3.])('x1') =>  %s"%wp([1.,3.])['x1'])
     print("wp(1.)([0,1]) =>  %s"%wp(1.)([0,1]))

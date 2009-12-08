@@ -205,6 +205,33 @@ except NameError:
             index += 1
     __builtin__.enumerate = enumerate
 
+# Pre-2.3 Python has no slice index function.
+def sliceindices(s, len):
+    try:
+        return s.indices(len)
+    except AttributeError:
+        stride = s.step or 1
+        start = s.start
+        if start is None:
+            if stride < 0:
+                start = len - 1
+            else:
+                start = 0
+        else:
+            if start < 0:
+                start = start + len
+            start = min(max(start, 0), len)
+        stop = s.stop
+        if stop is None:
+            if stride < 0:
+                stop = -1
+            else:
+                stop = len
+        else:
+            if stop < 0:
+                stop = stop + len
+            stop = min(max(stop, 0), len)
+        return start, stop, stride
 
 try: reversed ## Introduced in 2.4
 except NameError:

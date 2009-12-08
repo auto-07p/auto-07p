@@ -542,6 +542,25 @@ class AUTOBranch(Points.Pointset):
                             v["solution"] = v["solution"].copy()
                             v["solution"]["PT"] = (idx % 9999) + 1
                             val[k] = v
+                # adjust stability info
+                if isinstance(index, type(slice(0))):
+                    prev = 0
+                    stability = []
+                    for p in self.stability():
+                        if p < 0:
+                            stab = "S"
+                        else:
+                            stab = "U"
+                        stability.append((abs(p)-prev)*stab)
+                        prev = abs(p)
+                    stability = "".join(stability)[index]
+                    branchtype = type_translation(self.TY)["short name"]
+                    prev = stability[0]
+                    for i, stab in enumerate(stability):
+                        if stab != prev:
+                            r.labels.update(i-1, branchtype, {"stab": prev})
+                        prev = stab
+                    r.labels.update(len(r)-1, branchtype,{"stab":stability[-1]})
                 return r
             if not isinstance(ret, Points.Point):
                 return ret
@@ -605,9 +624,8 @@ class AUTOBranch(Points.Pointset):
         prevpt = 0
         branchtype = type_translation(self.TY)["short name"]
         for idx,val in self.labels.sortByIndex():
-            if branchtype in val:
-                x = val[branchtype]
-                if x["stab"] == "U":
+            if branchtype in val and "stab" in val[branchtype]:
+                if val[branchtype]["stab"] == "U":
                     pt = idx+1
                 else:
                     pt = -idx-1
@@ -753,7 +771,7 @@ class AUTOBranch(Points.Pointset):
                 if "LAB" in v:
                     label = v
                     break
-            ty_number = label["TY number"]
+            ty_number = label.get("TY number",0)
             if ty_number == 0 or label["LAB"] == 0:
                 continue
             if first:
@@ -1099,15 +1117,9 @@ class parseBR(UserList,AUTOBranch):
                 continue
             #now we know that the branches have the same starting point:
             #merge them
-            lenbw = len(bw)
-            new = bw.__class__(bw)
+            new = bw[::-1]
+            new.extend(fw[1:])
             data[-1] = new
-            new.headerlist = fw.headerlist
-            new.headernames = fw.headernames
-            new.coordarray = new.coordarray
-            new.labels = Points.PointInfo(new.labels.by_index.copy())
-            new.reverse()
-            new.append(fw[1:])
 
             # adjust label numbers
             lab = min(fw.getLabels()+bw.getLabels())
