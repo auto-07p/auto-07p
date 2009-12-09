@@ -391,7 +391,7 @@ class runAUTO:
                 c = c.copy()
                 c['t'] = kw['t']
             import parseS
-            return parseS.AUTOSolution(c["solution"],**c)
+            return parseS.AUTOSolution(c["solution"],**c).load()
 
     def run(self,**kw):
         """Run AUTO.

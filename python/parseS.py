@@ -516,8 +516,8 @@ class AUTOSolution(UserDict,Points.Pointset):
                 if type(names) == type({}):
                     names = names.items()
                 for k,v in names:
-                    if k < len(coordnames):
-                        coordnames[k] = v
+                    if k > 0 and k <= len(coordnames):
+                        coordnames[k-1] = v
                 ndim = len(coordarray)
                 if ndim < len(self.coordnames):
                     self.coordnames = self.coordnames[:ndim]
