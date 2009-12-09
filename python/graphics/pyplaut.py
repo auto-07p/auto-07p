@@ -60,8 +60,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
 
         try:
             b = parseB.parseBR(b)
-            options = {"constants": b[0].c}
-            bd = bifDiag.bifDiag(b,s,**options)
+            bd = bifDiag.bifDiag(b,s,constants=b[0].c)
         except (IOError, AUTOExceptions.AUTORuntimeError):
             try:
                 bd = bifDiag.bifDiag(b,s)

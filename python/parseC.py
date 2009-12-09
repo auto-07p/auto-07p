@@ -91,15 +91,15 @@ class parseC(dict):
                 item = -self[key]
         dict.__setitem__(self, key, item)
 
-    def update(self, d, **kw):
+    def update(self, d=None, **kw):
         if d is None:
             d = {}
         if hasattr(d,'keys'):
             d = d.items()
         for k, v in d:
             self[k] = v
-        for k, v in kw:
-            self[k] = v
+        for k in kw:
+            self[k] = kw[k]
             
     def setdefault(self, *args):
         k = args[0]

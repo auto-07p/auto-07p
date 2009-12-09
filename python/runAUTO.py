@@ -651,7 +651,7 @@ class runAUTO:
             os.path.isfile(self.fort9_path)):
             import bifDiag
             return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,**self.c)
+                                   self.fort9_path,self.c)
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():

@@ -18,20 +18,19 @@ nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
 
 class bifDiag(parseB.parseBR):
     def __init__(self,fort7_filename=None,fort8_filename=None,
-                 fort9_filename=None,**kw):
-        if (kw != {} and
-            kw.get("constants") is not None and
-            kw["constants"]['sv'] is not None and
+                 fort9_filename=None,constants=None):
+        if (constants is not None and constants['sv'] is not None and
             type(fort7_filename) in (type(""),type(None)) and
             type(fort8_filename) in (type(""),type(None)) and
             type(fort9_filename) in (type(""),type(None))):
             #filebased
-            self.options = kw
+            self.c = constants
             self.filenames = [fort7_filename,fort8_filename,fort9_filename]
         else:
-            self.__realinit(fort7_filename,fort8_filename,fort9_filename,kw)
+            self.__realinit(fort7_filename,fort8_filename,fort9_filename,
+                            constants)
 
-    def __realinit(self,fort7_filename,fort8_filename,fort9_filename,options):
+    def __realinit(self,fort7_filename,fort8_filename,fort9_filename,constants):
         ioerrors = []
         try:
             parseB.parseBR.__init__(self,fort7_filename)
@@ -63,7 +62,7 @@ class bifDiag(parseB.parseBR):
                     branch.coordnames = []
                     branch.headernames = []
                     branch.headerlist = []
-                    branch.c = options.get("constants")
+                    branch.c = constants
                     labels = {}
                     i = 0
                 pt = s["Point number"]
@@ -82,20 +81,16 @@ class bifDiag(parseB.parseBR):
                 pass
         i = 0
         if solution is not None:
-            if "constants" not in options:
-                options["constants"] = None
             for d in self:
-                if options["constants"] is None and d.c is not None:
-                    if d.c["e"] is not None and options.get("equation") is None:
-                        options["equation"] = "EQUATION_NAME="+d.c["e"]
-                    options["constants"] = d.c
-                if options["constants"] is not None:
-                    options = options.copy()
-                    c = parseC.parseC(options["constants"])
-                    options["constants"] = c
-                    for k in c:
-                        if k in nonekeys:
-                            c[k] = None
+                if constants is None and d.c is not None:
+                    constants = parseC.parseC(d.c)
+                    if d.c["e"] is not None:
+                        constants["equation"] = "EQUATION_NAME="+d.c["e"]
+                else:
+                    constants = parseC.parseC(constants)
+                for k in constants:
+                    if k in nonekeys:
+                        constants[k] = None
                 for ind in d.labels.getIndices():
                     if i >= len(solution):
                         break
@@ -103,7 +98,8 @@ class bifDiag(parseB.parseBR):
                     s = solution[i]
                     if x.get("LAB",0) != 0 or s["LAB"] == 0:
                         i = i+1
-                        s = x["solution"] = parseS.AUTOSolution(s, **options)
+                        kw = {"constants": constants}
+                        s = x["solution"] = parseS.AUTOSolution(s, **kw)
                         if d.coordnames != []:
                             s.b = d[ind]
 
@@ -115,9 +111,9 @@ class bifDiag(parseB.parseBR):
         elif attr == 'data':
             if hasattr(self,'filenames'):
                 self.__realinit(self.filenames[0], self.filenames[1],
-                                self.filenames[2], self.options)
+                                self.filenames[2], self.c)
                 del self.filenames
-                del self.options
+                del self.c
                 return self.data
         raise AttributeError
         

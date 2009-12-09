@@ -1455,10 +1455,11 @@ def loadbd(name=None,templates=None,**kw):
     bname = dict.get("bifurcationDiagram")
     sname = dict.get("solution")
     dname = dict.get("diagnostics")
-    data = bifDiag.bifDiag(bname,sname,dname,
-                           verbose = _runner.c["verbose"],
-                           redir = _runner.c["redir"],
-                           makefile = _runner.c["makefile"])
+    data = bifDiag.bifDiag(bname,sname,dname)
+    for sol in data():
+        sol.c.update(verbose = _runner.c["verbose"],
+                     redir = _runner.c["redir"],
+                     makefile = _runner.c["makefile"])
     info("Parsed output data\n")
     return data
 commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd",alias=['bd'])
@@ -1905,8 +1906,7 @@ try:
                 n1s = "fort.8"
             try:
                 n1b = parseB.parseBR(n1b)
-                opt = {"constants": n1b[0].c}
-                n1b = bifDiag.bifDiag(n1b,n1s,**opt)
+                n1b = bifDiag.bifDiag(n1b,n1s,constants=n1b[0].c)
             except IOError:
                 n1b = bifDiag.bifDiag(n1b,n1s)
             options["grapher_bifurcation_diagram"] = n1b
