@@ -48,15 +48,18 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 # Once the data is read in the class provides a dictionary
 # interface for manipulating the file.
 
-
+runner_keys = ["log", "err", "auto_dir", "demos_dir", "verbose_print",
+               "executable", "command", "makefile", "solution", "homcont",
+               "equation", "redir", "verbose", "clean", "dir"]
 
 class parseC(dict):
-    def __init__(self,filename=None):
-        self.__new = True
+    def __init__(self,filename=None,**kw):
+        self["new"] = True
         if filename is not None and type(filename) != type(""):
             if isinstance(filename,dict):
-                self.__new = filename.__new
+                self["new"] = filename.get("new",True)
             dict.__init__(self,filename)
+            self.update(**kw)
             return
         dict.__init__(self)
         for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
@@ -71,6 +74,7 @@ class parseC(dict):
             self[key] = None
         if filename:
             self.readFilename(filename)
+        self.update(**kw)
 
     def __setitem__(self,key,item):
         if key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
@@ -92,14 +96,34 @@ class parseC(dict):
         dict.__setitem__(self, key, item)
 
     def update(self, d=None, **kw):
-        if d is None:
-            d = {}
-        if hasattr(d,'keys'):
-            d = d.items()
-        for k, v in d:
-            self[k] = v
-        for k in kw:
-            self[k] = kw[k]
+        """     Change the options for this parseC object"""
+        dct = d
+        if dct is None:
+            dct = {}
+        dct.update(**kw)
+        if dct.get('constants') is not None:
+            value = parseC(dct['constants'])
+            # preserve unames and parnames if not in a constants file
+            # also preserve runner keys
+            for k in ["unames", "parnames"]:
+                if value[k] is None:
+                    value[k] = self[k]
+            for k in runner_keys:
+                if k in self:
+                    value[k] = self[k]
+            self.clear()
+            self.__init__(value)
+        for key in dct:
+            value = dct[key]
+            if self.get("homcont") is not None and key in self["homcont"]:
+                self["homcont"][key] = value
+            elif key in self or key in runner_keys:
+                self[key] = value
+            elif (key not in ['t','LAB','PT','BR','TY','constants',
+                        '__constants','__homcont','__solution','__equation']
+                  and key[:7] != 'Active '):
+                raise AUTOExceptions.AUTORuntimeError(
+                    "Unknown option: %s"%(key,))
             
     def setdefault(self, *args):
         k = args[0]
@@ -278,7 +302,7 @@ class parseC(dict):
         if line == '':
             return
         
-        self.__new = False
+        self["new"] = False
         self["NDIM"] = int(data[0])
         self["IPS"] = int(data[1])
         try:
@@ -520,7 +544,7 @@ class parseC(dict):
         return "".join(olist)
 
     def __str__(self):
-        if self.__new:
+        if self["new"]:
             return self.__newstr()
         else:
             return self.__oldstr()

@@ -396,14 +396,15 @@ class AUTOParameters(Points.Point):
 # read and write methods and letting the outside class take care
 # of opening the file.
 
-class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
+class AUTOSolution(UserDict,Points.Pointset):
     def __init__(self,input=None,offset=None,name=None,**kw):
         c = kw.get("constants",{}) or {}
         par = None
         coordarray = None
         if isinstance(input,self.__class__):
-            runAUTO.runAUTO.__init__(self,input,**kw)
-            self.c = parseC.parseC(self.c)
+            for k,v in input.__dict__.items():
+                self.__dict__[k] = v
+            self.c = parseC.parseC(self.c, **kw)
             self.data = self.data.copy()
             names = kw.get("unames",c.get("unames"))
             if names is not None:
@@ -426,8 +427,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                                           name=self.name)
         else:
             UserDict.__init__(self)
-            runAUTO.runAUTO.__init__(self,**kw)
-            self.c = parseC.parseC(self.c)
+            self.c = parseC.parseC(**kw)
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end             = None
@@ -750,7 +750,11 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        return runAUTO.runAUTO.run(self.load(**kw))
+        c = self.c
+        if kw != {}:
+            c = parseC.parseC(c, **kw)
+        runner = runAUTO.runAUTO(**c)
+        return runner.run()
 
     def readAllFilename(self,filename):
         inputfile = AUTOutil.openFilename(filename,"rb")

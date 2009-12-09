@@ -1387,7 +1387,7 @@ def load(data=None,runner=None,templates=None,**kw):
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
     if runner is None:
-        if isinstance(data, (runAUTO.runAUTO,bifDiag.bifDiag)):
+        if isinstance(data, (parseS.AUTOSolution, bifDiag.bifDiag)):
             runner = data
             data = None
         elif hasattr(data,"__len__") and not isinstance(data, str):
@@ -1585,7 +1585,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     if sv is not None:
         kw['sv'] = sv
     if runner is None:
-        if isinstance(data, (runAUTO.runAUTO, bifDiag.bifDiag)):
+        if isinstance(data, (parseS.AUTOSolution, bifDiag.bifDiag)):
             runner = data
             data = None
         elif isinstance(data, parseS.parseS) and "s" not in kw:

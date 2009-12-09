@@ -58,8 +58,7 @@ class runAUTO:
             for k,v in cnf.__dict__.items():
                 self.__dict__[k] = v
             if kw != {}:
-                self.c = parseC.parseC(self.c)
-                self.config(**kw)
+                self.c = parseC.parseC(self.c,**kw)
             return
 
         # Set the signal handler
@@ -84,9 +83,8 @@ class runAUTO:
         c["makefile"] = None
         c["solution"] = None
         c["homcont"] = None
+        c.update(**kw)
         self.c = c
-
-        self.config(**kw)
             
     def verbose_write(self,s):
         if self.c["verbose_print"] is None:
@@ -102,28 +100,7 @@ class runAUTO:
 
     def config(self,**kw):
         """     Change the options for this runner object"""
-        if 'constants' in kw:
-            self.c.update(kw['constants'])
-        for key in kw:
-            value = kw[key]
-            if key in self.c:
-                ovalue = self.c[key]
-                # preserve unames and parnames if not in a constants file
-                if (key == "constants" and value is not None and
-                    ovalue is not None and (ovalue["unames"] is not None or
-                                            ovalue["parnames"] is not None)):
-                    value = parseC.parseC(value)
-                    for k in ["unames", "parnames"]:
-                        if value[k] is None:
-                            value[k] = ovalue[k]
-                self.c[key] = value
-            elif self.c["homcont"] is not None and key in self.c["homcont"]:
-                self.c["homcont"][key] = value
-            elif (key not in ['t','LAB','PT','BR','TY','constants',
-                        '__constants','__homcont','__solution','__equation']
-                  and key[:7] != 'Active '):
-                raise AUTOExceptions.AUTORuntimeError(
-                    "Unknown option: %s"%(key,))
+        self.c.update(**kw)
 
     def __printLog(self,text):
         # Write out the log information to the appropriate place
