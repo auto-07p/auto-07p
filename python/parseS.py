@@ -403,10 +403,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         coordarray = None
         if isinstance(input,self.__class__):
             runAUTO.runAUTO.__init__(self,input,**kw)
-            if kw == {}:
-                #otherwise already copied
-                self.options = self.options.copy()
-            self.options["constants"] = parseC.parseC(self.options["constants"])
+            self.c = parseC.parseC(self.c)
             self.data = self.data.copy()
             names = kw.get("unames",c.get("unames"))
             if names is not None:
@@ -430,7 +427,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
         else:
             UserDict.__init__(self)
             runAUTO.runAUTO.__init__(self,**kw)
-            self.options["constants"] = parseC.parseC(self.options["constants"])
+            self.c = parseC.parseC(self.c)
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end             = None
@@ -551,7 +548,7 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 self.name = c["e"]
             elif self.name is None:
                 self.name = ''
-        self.options["solution"] = self
+        self.c["solution"] = self
         for k,v in kw.items():
             if k in self.data_keys and k not in ["ISW","NTST","NCOL",
                                                  "NDIM","IPS"]:
@@ -1025,9 +1022,6 @@ class AUTOSolution(UserDict,runAUTO.runAUTO,Points.Pointset):
                 "name": self.name})
 
     def __getattr__(self,attr):
-        c = self.options["constants"]
-        if attr == "c" and c is not None:
-            return c
         if self.__start_of_header is None:
             raise AUTOExceptions.AUTORuntimeError("Solution without data.")
         if self.__fullyParsed or attr == "__del__":

@@ -1327,18 +1327,7 @@ def configure(runner=None,templates=None,**kw):
         info = globals()["info"]
     kw = applyRunnerConfigResolveAbbreviation(**kw)
     kw = applyRunnerConfigResolveFilenames(**kw)
-    if hasattr(runner,'load'):
-        data = runner.load(**kw)
-    else:
-        runner.config(**kw)
-        options = runner.options
-        if hasattr(options["solution"],'load'):
-            data = options["solution"].load(**options)
-        else:
-            if 't' in kw:
-                options = options.copy()
-                options['t'] = kw['t']
-            data = parseS.AUTOSolution(options["solution"],**options)
+    data = runner.load(**kw)
     info("Runner configured\n")
     return data
 commandRunnerConfig = command(configure,alias=None)
@@ -1467,9 +1456,9 @@ def loadbd(name=None,templates=None,**kw):
     sname = dict.get("solution")
     dname = dict.get("diagnostics")
     data = bifDiag.bifDiag(bname,sname,dname,
-                           verbose = _runner.options["verbose"],
-                           redir = _runner.options["redir"],
-                           makefile = _runner.options["makefile"])
+                           verbose = _runner.c["verbose"],
+                           redir = _runner.c["redir"],
+                           makefile = _runner.c["makefile"])
     info("Parsed output data\n")
     return data
 commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd",alias=['bd'])
@@ -1487,9 +1476,9 @@ def pr(parameter=None,runner=None):
     """
     runner = withrunner(runner)
     if parameter is None:
-        info(str(runner.options["constants"]))
+        info(str(runner.c))
     else:
-        return runner.options["constants"][parameter]
+        return runner.c[parameter]
 commandRunnerPrintFort2 = command(pr,alias=['printconstant','pc'])
 
 
@@ -1505,9 +1494,9 @@ def hpr(parameter=None,runner=None):
     """
     runner = withrunner(runner)
     if parameter is None:
-        info(str(runner.options["homcont"]))
+        info(str(runner.c["homcont"]))
     else:
-        return runner.options["homcont"][parameter]
+        return runner.c["homcont"][parameter]
 commandRunnerPrintFort12 = command(hpr)
 
 
@@ -1522,7 +1511,7 @@ def ch(entry=None,value=None,runner=None,**kw):
     """
     runner = withrunner(runner)            
     if entry is not None:
-        runner.options["constants"][entry] = value
+        runner.c[entry] = value
         info("%s changed to %s\n"%(entry,value))
     else:
         configure(runner,None,info=lambda s:None,**kw)
@@ -1542,7 +1531,7 @@ def hch(entry=None,value=None,runner=None,**kw):
     """
     runner = withrunner(runner)
     if entry is not None:
-        runner.options["homcont"][entry] = value
+        runner.c["homcont"][entry] = value
         info("%s changed to %s\n"%(entry,value))
     else:
         configure(runner,None,info=lambda s:None,**kw)
@@ -1604,10 +1593,10 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     origrunner = runner
     kw["info"] = lambda msg:None
     runner = load(data,runner,templates,**kw)
-    sv = (runner.options.get("constants") or {}).get("sv")
+    sv = runner.c.get("sv")
     if sv == '':
         sv = None
-    if runner.options["verbose"] == "no":
+    if runner.c["verbose"] == "no":
         log = StringIO()
         err = StringIO()
         res = runner.run(log=log,err=err)
@@ -1617,7 +1606,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
         info(err.read())
         log.close()
         err.close()
-    elif runner.options["redir"] == "yes":
+    elif runner.c["redir"] == "yes":
         # log was already written if the runner is verbose
         err = StringIO()
         res = runner.run(err=err)
@@ -1640,7 +1629,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     if origrunner is None:
         # delete ["sv"] from the global runner
         global _runner
-        c = _runner.options.get("constants") or {}
+        c = _runner.c
         if "sv" in c:
             c["sv"] = None
     return res
@@ -1654,7 +1643,7 @@ def rundemo(demo,equation="all",runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
 commandRunDemo = command(rundemo,alias=None)
@@ -1672,7 +1661,7 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
     return data
@@ -1685,7 +1674,7 @@ def runMakefile(equation=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
 commandRunMakefile = command(runMakefile,alias=None)
@@ -1703,7 +1692,7 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
     return data
@@ -1716,7 +1705,7 @@ def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
 commandRunExecutable = command(runExecutable,alias=None)
@@ -1734,7 +1723,7 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
     return data
@@ -1747,7 +1736,7 @@ def runCommand(command=None,runner=None):
     # Only return the log if the runner is not verbose
     # since when the runner is verbose it prints to
     # to stdout anyway
-    if runner.options["verbose"] != "yes":
+    if runner.c["verbose"] != "yes":
         info(log.read())
     info(err.read())
 commandRunCommand = command(runCommand,alias=None)

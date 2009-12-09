@@ -58,19 +58,7 @@ class runAUTO:
             for k,v in cnf.__dict__.items():
                 self.__dict__[k] = v
             if kw != {}:
-                self.options = self.options.copy()
-                if self.options["constants"] is not None:
-                    try:
-                        self.options["constants"] = parseC.parseC(
-                            self.options["constants"])
-                    except IOError:
-                        pass
-                if self.options["homcont"] is not None:
-                    try:
-                        self.options["homcont"] = parseH.parseH(
-                            self.options["homcont"])
-                    except IOError:
-                        pass
+                self.c = parseC.parseC(self.c)
                 self.config(**kw)
             return
 
@@ -80,58 +68,46 @@ class runAUTO:
         self.internalLog = None
         self.internalErr = None
 
-        self.options={}
-        self.options["log"] = None
-        self.options["err"] = None
-        self.options["auto_dir"] = None
-        self.options["demos_dir"] = None
-        self.options["equation"] = "all"
-        self.options["redir"] = "yes"
-        self.options["verbose"] = "no"
-        self.options["verbose_print"] = None
-        self.options["clean"] = "no"
-        self.options["dir"] = "."
-        self.options["executable"] = None
-        self.options["command"] = None
-        self.options["makefile"] = None
-        self.options["constants"] = None
-        self.options["solution"] = None
-        self.options["homcont"] = None
+        c = parseC.parseC()
+        c["log"] = None
+        c["err"] = None
+        c["auto_dir"] = None
+        c["demos_dir"] = None
+        c["equation"] = "all"
+        c["redir"] = "yes"
+        c["verbose"] = "no"
+        c["verbose_print"] = None
+        c["clean"] = "no"
+        c["dir"] = "."
+        c["executable"] = None
+        c["command"] = None
+        c["makefile"] = None
+        c["solution"] = None
+        c["homcont"] = None
+        self.c = c
 
         self.config(**kw)
             
-    def __getattr__(self,attr):
-        if self.options is not None:
-            c = self.options["constants"]
-            if attr == "c" and c is not None:
-                return c
-        raise AttributeError
-
-    def __setattr__(self,attr,item):
-        if attr == "c":
-            self.options["constants"] = item
-        else:
-            self.__dict__[attr] = item
-
     def verbose_write(self,s):
-        if self.options["verbose_print"] is None:
+        if self.c["verbose_print"] is None:
             sys.stdout.write(s)
         else:
-            self.options["verbose_print"].write(s)
+            self.c["verbose_print"].write(s)
 
     def verbose_flush(self):
-        if self.options["verbose_print"] is None:
+        if self.c["verbose_print"] is None:
             sys.stdout.flush()
         else:
-            self.options["verbose_print"].flush()
+            self.c["verbose_print"].flush()
 
     def config(self,**kw):
         """     Change the options for this runner object"""
-        # first the normal parameters, then IRS=... style parameters
+        if 'constants' in kw:
+            self.c.update(kw['constants'])
         for key in kw:
-            if key in self.options:
-                value = kw[key]
-                ovalue = self.options[key]
+            value = kw[key]
+            if key in self.c:
+                ovalue = self.c[key]
                 # preserve unames and parnames if not in a constants file
                 if (key == "constants" and value is not None and
                     ovalue is not None and (ovalue["unames"] is not None or
@@ -140,35 +116,25 @@ class runAUTO:
                     for k in ["unames", "parnames"]:
                         if value[k] is None:
                             value[k] = ovalue[k]
-                self.options[key] = value
-        for key in kw:
-            value = kw[key]
-            if (key in self.options or key in ['t','LAB','PT','BR','TY']
-                or key[:7] == 'Active '):
-                continue
-            if value is None:
-                continue
-            if self.options["constants"] is None:
-                self.options["constants"]=parseC.parseC()
-            if (self.options["homcont"] is not None and
-                  key in self.options["homcont"]):
-                self.options["homcont"][key] = value
-            elif key in self.options["constants"]:
-                self.options["constants"][key] = value
-            else:
+                self.c[key] = value
+            elif self.c["homcont"] is not None and key in self.c["homcont"]:
+                self.c["homcont"][key] = value
+            elif (key not in ['t','LAB','PT','BR','TY','constants',
+                        '__constants','__homcont','__solution','__equation']
+                  and key[:7] != 'Active '):
                 raise AUTOExceptions.AUTORuntimeError(
                     "Unknown option: %s"%(key,))
 
     def __printLog(self,text):
         # Write out the log information to the appropriate place
-        if not(self.options["log"] is None):
-            self.options["log"].write(text)
+        if not(self.c["log"] is None):
+            self.c["log"].write(text)
         self.internalLog.write(text)
         # now we also want to look at the log information to try and determine
         # where the data was written to
         files = ["fort.7", "fort.8", "fort.9"]
         v = None
-        c = self.options["constants"]
+        c = self.c
         if c is not None and "sv" in c:
             v = c["sv"]
         else:
@@ -180,14 +146,14 @@ class runAUTO:
         # return as the output data the last filename which was
         # either saved or appended to or
         # otherwise we assume it is fort.7 and fort.8
-        self.fort7_path = os.path.join(self.options["dir"],files[0])
-        self.fort8_path = os.path.join(self.options["dir"],files[1])
-        self.fort9_path = os.path.join(self.options["dir"],files[2])
+        self.fort7_path = os.path.join(self.c["dir"],files[0])
+        self.fort8_path = os.path.join(self.c["dir"],files[1])
+        self.fort9_path = os.path.join(self.c["dir"],files[2])
 
     def __printErr(self,text):
-        if not(self.options["err"] is None):
+        if not(self.c["err"] is None):
             try:
-                self.options["err"].write(text)
+                self.c["err"].write(text)
             except ValueError: # closed file
                 pass
         self.internalErr.write(text)
@@ -261,23 +227,23 @@ class runAUTO:
         method, and then cleans up"""
         global demo_killed
 
-        if self.options["auto_dir"] is None:
+        if self.c["auto_dir"] is None:
             if "AUTO_DIR" in os.environ:
-                self.options["auto_dir"]=os.environ["AUTO_DIR"]
+                self.c["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
         else:
-            os.environ["AUTO_DIR"]=self.options["auto_dir"]
+            os.environ["AUTO_DIR"]=self.c["auto_dir"]
 
 
-        if self.options["demos_dir"] is None:
-            self.options["demos_dir"] = os.path.join(self.options["auto_dir"],
+        if self.c["demos_dir"] is None:
+            self.c["demos_dir"] = os.path.join(self.c["auto_dir"],
                                                      "demos")
-        self.options["dir"] = os.path.join(self.options["demos_dir"],d)
+        self.c["dir"] = os.path.join(self.c["demos_dir"],d)
 
         self.__printErr("===%s start===\n"%(d,))
         curdir = os.getcwd()
-        os.chdir(self.options["dir"])
+        os.chdir(self.c["dir"])
         if os.path.exists(d+".exe"):
             os.remove(d+".exe")
         cmd = "make -e %s.exe"%d
@@ -295,8 +261,8 @@ class runAUTO:
 
         self.__runMakefile()
 
-        if self.options["clean"] == "yes":
-            os.chdir(self.options["dir"])
+        if self.c["clean"] == "yes":
+            os.chdir(self.c["dir"])
             cmd = "make -e clean"
             if "subprocess" in sys.modules:
                 p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
@@ -317,7 +283,7 @@ class runAUTO:
         self.__printErr("===%s end===\n"%(d,))
 
     def __setup(self):
-        """     This function sets up self.options["dir"] by creating
+        """     This function sets up self.c["dir"] by creating
         fort.2, fort.3 and fort.12 files.  The "constants", "solution",
         and "homcont" options 
         can be anything with a writeFilename method.  NOTE:  The
@@ -326,15 +292,11 @@ class runAUTO:
         or runCommand)"""
         if os.path.exists("fort.2"):
             os.remove("fort.2")
-        if self.options["constants"] is None:
-            open("fort.2","wb").close()
-            self.options["constants"] = parseC.parseC()
-        else:
-            self.options["constants"].writeFilename("fort.2")
-        solution = self.options["solution"]
+        self.c.writeFilename("fort.2")
+        solution = self.c["solution"]
 
         # figure out equation file name
-        equation = self.options["equation"][14:]
+        equation = self.c["equation"][14:]
         e = None
         for ext in [".f90",".f",".c"]:
             if os.path.exists(equation+ext):
@@ -347,8 +309,8 @@ class runAUTO:
             raise AUTOExceptions.AUTORuntimeError(
                 "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
                 equation,equation,equation))
-        self.options["constants"]["e"] = e
-        self.options["constants"].writeFilename("fort.2")
+        self.c["e"] = e
+        self.c.writeFilename("fort.2")
 
         if os.path.exists("fort.3"):
             os.remove("fort.3")
@@ -359,8 +321,8 @@ class runAUTO:
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
-        if self.options["homcont"] is not None:
-            self.options["homcont"].writeFilename("fort.12")
+        if self.c["homcont"] is not None:
+            self.c["homcont"].writeFilename("fort.12")
 
     def __newer(self,sources,target):
         targettime = os.stat(target)[stat.ST_MTIME]
@@ -408,7 +370,7 @@ class runAUTO:
             else:
                 cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
                                                 var["OPT"],src,equation)
-            if self.options["verbose"] == "yes":
+            if self.c["verbose"] == "yes":
                 self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             self.__runCommand(cmd)
@@ -432,12 +394,27 @@ class runAUTO:
             else:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
-            if self.options["verbose"] == "yes":
+            if self.c["verbose"] == "yes":
                 self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
             self.__runCommand(cmd)
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
+
+    def load(self,**kw):
+        """Load solution with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants
+        """
+        self.config(**kw)
+        c = self.c
+        if hasattr(c["solution"],'load'):
+            return c["solution"].load(**c)
+        else:
+            if 't' in kw:
+                c = c.copy()
+                c['t'] = kw['t']
+            import parseS
+            return parseS.AUTOSolution(c["solution"],**c)
 
     def run(self,**kw):
         """Run AUTO.
@@ -447,9 +424,9 @@ class runAUTO:
         """
         self.config(**kw)
         log,err,data = self.runMakefileWithSetup()
-        if self.options["err"] is None:
+        if self.c["err"] is None:
             # log was already written if the runner is verbose
-            if self.options["verbose"] == "no":
+            if self.c["verbose"] == "no":
                 sys.stdout.write(log.read())
             sys.stdout.write(err.read())
         return data
@@ -467,38 +444,38 @@ class runAUTO:
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr]
     def __runMakefile(self,equation=None):        
-        """     This function expects self.options["dir"] to be a directory with a Makefile in it and
+        """     This function expects self.c["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
         like with the demos).  Basically it runs:
         cd dir
         make equation"""
         if equation is None:
-            if not(self.options["equation"] is None):
-                equation = self.options["equation"]
+            if not(self.c["equation"] is None):
+                equation = self.c["equation"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("No equation set")
         else:
-            self.options["equation"] = equation
+            self.c["equation"] = equation
 
-        if self.options["auto_dir"] is None:
+        if self.c["auto_dir"] is None:
             if "AUTO_DIR" in os.environ:
-                self.options["auto_dir"]=os.environ["AUTO_DIR"]
+                self.c["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
         else:
-            os.environ["AUTO_DIR"]=self.options["auto_dir"]
+            os.environ["AUTO_DIR"]=self.c["auto_dir"]
 
 
-        if self.options["makefile"] is None:
-            executable = "make -e %s"%self.options["equation"]
+        if self.c["makefile"] is None:
+            executable = "make -e %s"%self.c["equation"]
             self.__runExecutable(executable)
-        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make":
+        elif self.c["makefile"] == "$AUTO_DIR/cmds/cmds.make":
             curdir = os.getcwd()
-            os.chdir(self.options["dir"])
-            equation = self.options["constants"]["e"]
+            os.chdir(self.c["dir"])
+            equation = self.c["e"]
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
-                if self.options["verbose"] == "yes":
+                if self.c["verbose"] == "yes":
                     self.verbose_write(line)
                 self.__printLog(line)
                 for filename in [self.fort7_path,self.fort8_path,
@@ -511,14 +488,14 @@ class runAUTO:
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
-                if self.options["verbose"] == "yes":
+                if self.c["verbose"] == "yes":
                     self.verbose_write(line)
                 self.__printLog(line)
             os.chdir(curdir)
-        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
+        elif self.c["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
         else:
-            executable = "make -f %s -e %s"%(self.options["makefile"],self.options["equation"])
+            executable = "make -f %s -e %s"%(self.c["makefile"],self.c["equation"])
             self.__runExecutable(executable)
 
     def runExecutableWithSetup(self,executable=None):
@@ -534,21 +511,21 @@ class runAUTO:
         self.__rewindInternalLogs()
         return [self.internalLog,self.internalErr]
     def __runExecutable(self,executable=None):
-        """     This function expects self.options["dir"] to be a directory with an executable in it and
+        """     This function expects self.c["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
         Basically it runs:
         cd dir
         executable"""
         if executable is None:
-            if not(self.options["executable"] is None):
-                executable = self.options["executable"]
+            if not(self.c["executable"] is None):
+                executable = self.c["executable"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("No executable set")
         else:
-            self.options["executable"] = executable
+            self.c["executable"] = executable
 
         curdir = os.getcwd()
-        os.chdir(self.options["dir"])
+        os.chdir(self.c["dir"])
         self.__runCommand(executable)
         os.chdir(curdir)
 
@@ -569,19 +546,19 @@ class runAUTO:
         and tries to run it. """
         global demo_killed,alarm_demo,demo_max_time
         if command is None:
-            if not(self.options["command"] is None):
-                command = self.options["command"]
+            if not(self.c["command"] is None):
+                command = self.c["command"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("No command set")
         else:
-            self.options["command"] = command
-        alarm_demo = self.options["dir"]
+            self.c["command"] = command
+        alarm_demo = self.c["dir"]
         if demo_max_time > 0 and hasattr(signal,"alarm"):
             signal.alarm(demo_max_time)
         if hasattr(os,"times"):
             user_time = os.times()[2]
         command = os.path.expandvars(command)
-        if self.options["verbose"] == "yes" and self.options["redir"] == "no":
+        if self.c["verbose"] == "yes" and self.c["redir"] == "no":
             try:
                 status = self.__runCommand_noredir(command)
             except KeyboardInterrupt:
@@ -638,14 +615,14 @@ class runAUTO:
             while status == teststatus:
                 try:
                     line = stdout.readline()
-                    if self.options["verbose"] == "yes":
+                    if self.c["verbose"] == "yes":
                         self.verbose_write(line)
                         self.verbose_flush()
                     tmp_out.append(line)
                 except:
                     demo_killed = 1
                 status = demo_object.poll()
-            if status != 0 and self.options["verbose"] == "yes":
+            if status != 0 and self.c["verbose"] == "yes":
                 self.verbose_write(stderr.read())
                 self.verbose_flush()
         else:
@@ -656,7 +633,7 @@ class runAUTO:
         # Read the rest of the data from stdout
         while len(line) > 0:
             tmp_out.append(line)
-            if self.options["verbose"] == "yes":
+            if self.c["verbose"] == "yes":
                 self.verbose_write(line)
                 self.verbose_flush()
             line = stdout.readline()
@@ -674,7 +651,7 @@ class runAUTO:
             os.path.isfile(self.fort9_path)):
             import bifDiag
             return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,**self.options)
+                                   self.fort9_path,**self.c)
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():

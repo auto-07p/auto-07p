@@ -92,6 +92,8 @@ class parseC(dict):
         dict.__setitem__(self, key, item)
 
     def update(self, d, **kw):
+        if d is None:
+            d = {}
         if hasattr(d,'keys'):
             d = d.items()
         for k, v in d:

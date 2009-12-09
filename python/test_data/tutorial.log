@@ -80,14 +80,14 @@ ab ... done
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-   4   222  UZ   18   2.50000E-01   3.37532E+00   9.87349E-01   5.87487E+00   1.72637E+00
+   4   222  UZ   18   2.50000E-01   3.37532E+00   9.87350E-01   5.87488E+00   1.72637E+00
 
  Total Time    0.504E+00
 ab ... done
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-   6   309  UZ   18   2.50000E-01   3.72137E+00   9.36685E-01   4.12902E+00   1.23162E+00
+   6   309  UZ   18   2.50000E-01   3.72137E+00   9.36686E-01   4.12902E+00   1.23162E+00
 
  Total Time    0.698E+00
 ab ... done
@@ -101,7 +101,7 @@ ab ... done
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-  11   349  UZ   18   1.19455E-01   2.17761E+00   9.99203E-01   9.33871E+00   9.99990E+02
+  11   348  UZ   18   1.19455E-01   2.17761E+00   9.99238E-01   9.34202E+00   9.99990E+02
 
  Total Time    0.815E+00
 ab ... done
@@ -115,7 +115,7 @@ ab ... done
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-  16   217  MX   18   1.13599E-01   2.87898E+00   1.00708E+00   1.26802E+01   6.01279E+00
+  16   211  MX   18   1.12255E-01   2.75942E+00   1.00603E+00   1.25142E+01   6.56297E+00
 
  Total Time    0.507E+00
 ab ... done
@@ -168,7 +168,7 @@ Saving fort.9 as d.2p ... done
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-   7   161  UZ    9   2.50000E-01   3.02968E+00   9.95387E-01   6.87999E+00   2.22034E+00
+   7   161  UZ    9   2.50000E-01   3.02968E+00   9.95388E-01   6.87999E+00   2.22034E+00
 
  Total Time    0.518E+00
 ab ... done
