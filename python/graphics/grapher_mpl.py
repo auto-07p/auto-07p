@@ -41,6 +41,7 @@ except ImportError:
 from graphics import Pmw
 import AUTOutil
 import math
+import string
 from graphics import grapher
 
 GrapherError="GrapherError"
@@ -138,8 +139,10 @@ class BasicGrapher(grapher.BasicGrapher):
         self.addAliases(**optionAliases)
 
         for key in ["grid","decorations","xlabel","ylabel","zlabel",
+                    "xlabel_fontsize", "ylabel_fontsize", "zlabel_fontsize",
                     "minx","maxx","miny","maxy","minz","maxz", "width",
-                    "height"]:
+                    "height", "left_margin", "right_margin", "top_margin",
+                    "bottom_margin"]:
             self.__optionCallback(key,self.cget(key),[])
         matplotlib.rcParams["axes.edgecolor"]=self.cget("foreground")
 
@@ -155,7 +158,8 @@ class BasicGrapher(grapher.BasicGrapher):
 
     def __optionCallback(self,key,value,options):
         if key in ["minx","maxx","miny","maxy","minz","maxz",
-                   "realwidth","realheight","azimuth","elevation"]:
+                   "realwidth","realheight","azimuth","elevation",
+                   "left_margin","right_margin","top_margin","bottom_margin"]:
             self.redrawlabels = 1
             if key[:3] in ["min", "max"]:
                 minc = self.cget("min"+key[3])
@@ -174,15 +178,31 @@ class BasicGrapher(grapher.BasicGrapher):
                         if ticksval is not None:
                             self.__optionCallback(tickskey,ticksval,options)
             elif key == "realwidth":
-                lm = self.cget("left_margin")
-                rm = self.cget("right_margin")
+                lm = float(self.cget("left_margin"))
+                rm = float(self.cget("right_margin"))
                 self.ax.get_figure().subplots_adjust(left=lm/value,
                                                      right=1-rm/value)
             elif key == "realheight":
-                tm = self.cget("top_margin")
-                bm = self.cget("bottom_margin")
+                tm = float(self.cget("top_margin"))
+                bm = float(self.cget("bottom_margin"))
                 self.ax.get_figure().subplots_adjust(top=1-tm/value,
                                                      bottom=bm/value)
+            elif key == "left_margin":
+                fig = self.ax.get_figure()
+                width = fig.get_figwidth()*fig.get_dpi()
+                fig.subplots_adjust(left=value/width)
+            elif key == "right_margin":
+                fig = self.ax.get_figure()
+                width = fig.get_figwidth()*fig.get_dpi()
+                fig.subplots_adjust(right=1-value/width)
+            elif key == "top_margin":
+                fig = self.ax.get_figure()
+                height = fig.get_figheight()*fig.get_dpi()
+                fig.subplots_adjust(top=1-value/height)
+            elif key == "bottom_margin":
+                fig = self.ax.get_figure()
+                height = fig.get_figheight()*fig.get_dpi()
+                fig.subplots_adjust(bottom=value/height)
             elif self.ax is self.ax3d:
                 elev = self.cget("elevation")
                 azim = self.cget("azimuth")
@@ -249,6 +269,14 @@ class BasicGrapher(grapher.BasicGrapher):
                     func(value)
                 else:
                     func(value,fontsize=fontsize)
+        elif key in ["xlabel_fontsize","ylabel_fontsize","zlabel_fontsize"]:
+            label = self.cget(key[:6])
+            if hasattr(self.ax,"set_"+key[:6]):
+                func = getattr(self.ax,"set_"+key[:6])
+                if value is None:
+                    func(label)
+                else:
+                    func(label,fontsize=value)
         elif key in ["xticks","yticks","zticks"]:
             if value is None:
                 if self.ax is self.ax3d:
@@ -559,6 +587,12 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                               "fillsquare": "s", "diamond": "D",
                               "filldiamond": "D", "triangle": "^",
                               "doubletriangle": "^"}
+                ms = None
+                for i, ch in enumerate(l):
+                    if ch in string.digits:
+                        ms = int(l[i:])
+                        l = l[:i]
+                        break
                 if l not in markerdict:
                     continue
                 v.append(markerdict[l])
@@ -567,6 +601,8 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     kw['mfc'] = self.ax.get_axis_bgcolor()
                 if l in ["diamond","filldiamond","triangle","doubletriangle"]:
                     kw['ms'] = 8
+                if ms is not None:
+                    kw['ms'] = ms
                 if self.ax is self.ax2d:
                     self.ax.plot(*v,**kw)
                 else:

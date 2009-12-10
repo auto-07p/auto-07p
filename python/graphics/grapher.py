@@ -750,18 +750,25 @@ class LabeledGrapher(BasicGrapher):
                 if len(l) <= 2:
                     self.create_text(x,y,font=self.cget("symbol_font"),
                                      fill=c,text=l)
-                elif l == "fillcircle":
-                    self.create_oval(x-3,y-3,x+3,y+3,fill=c,outline=c)
+                    continue
+                ms = 3
+                for i, ch in enumerate(l):
+                    if ch in string.digits:
+                        ms = int(l[i:])
+                        l = l[:i]
+                        break
+                if l == "fillcircle":
+                    self.create_oval(x-ms,y-ms,x+ms,y+ms,fill=c,outline=c)
                 elif l == "circle":
-                    self.create_oval(x-3,y-3,x+3,y+3,outline=c)
+                    self.create_oval(x-ms,y-ms,x+ms,y+ms,outline=c)
                 elif l == "square":
-                    self.create_rectangle(x-3,y-3,x+3,y+3,outline=c)
+                    self.create_rectangle(x-ms,y-ms,x+ms,y+ms,outline=c)
                 elif l == "crosssquare":
-                    self.create_rectangle(x-3,y-3,x+3,y+3,outline=c)
-                    self.create_line(x-3,y-3,x+3,y+3,fill=c)
-                    self.create_line(x-3,y+3,x+3,y-3,fill=c)
+                    self.create_rectangle(x-ms,y-ms,x+ms,y+ms,outline=c)
+                    self.create_line(x-ms,y-ms,x+ms,y+ms,fill=c)
+                    self.create_line(x-ms,y+ms,x+ms,y-ms,fill=c)
                 elif l == "fillsquare":
-                    self.create_rectangle(x-3,y-3,x+3,y+3,fill=c,outline=c)
+                    self.create_rectangle(x-ms,y-ms,x+ms,y+ms,fill=c,outline=c)
 
 # FIXME:  No regression tester
 class InteractiveGrapher(LabeledGrapher):
