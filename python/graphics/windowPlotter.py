@@ -37,15 +37,15 @@ class WindowPlotter(Pmw.MegaToplevel):
                 
         self.menuBar = self.createcomponent('menuBar',
                                             (), None,
-                                            Pmw.MenuBar,interior,
+                                            Pmw.MainMenuBar,interior,
                                             hotkeys="true",
                                             hull_relief = 'raised',
                                             hull_borderwidth = 1,
                                             balloon=self.helpBalloon)
+        interior.configure(menu=self.menuBar)
         self.menuBar.addmenu("File","File operations")
         self.menuBar.addmenu("Options","View and set options")
-        self.menuBar.addmenu("Help","View help on the plotting widget",side="right")
-        self.menuBar.pack(fill=Tkinter.X)
+        self.menuBar.addmenu("Help","View help on the plotting widget",name='help')
 
         topbox = Tkinter.Frame(interior,relief="raised",borderwidth=2)
         topbox.pack(side=Tkinter.BOTTOM)
@@ -76,20 +76,17 @@ class WindowPlotter(Pmw.MegaToplevel):
         box = Tkinter.Frame(topbox)
 
         self.grapher.pack(expand=1,fill=Tkinter.BOTH)
-        label = Tkinter.Label(box, text="Type")
-        label.grid(row=0,column=0)
-        labelEntry = Tkinter.StringVar()
-        items = ("bifurcation", "solution")
-        for i, item in enumerate(items):
-            button = Tkinter.Radiobutton(box,
-                                         indicatoron=0,
-                                         text=item,
-                                         variable=labelEntry,
-                                         value=item)
-            button.grid(row=0,column=i+1)
-            button.configure(command = lambda:
-                                 self._modifyOption("type",labelEntry.get()))
-        labelEntry.set(self.grapher.cget("type"))
+        labelEntry = self.createcomponent('labelEntry',
+                                          (), None,
+                                          Pmw.RadioSelect,box,
+                                          labelpos="w",
+                                          label_text="Type")
+        labelEntry.add("bifurcation")
+        labelEntry.add("solution")
+        labelEntry.invoke(self.grapher.cget("type"))
+        labelEntry.configure(command = lambda entry:
+                                 self._modifyOption("type",entry))
+        labelEntry.grid(row=0,column=0)
         self.labelEntry = labelEntry
 
         typeEntry = self.createcomponent('typeEntry',
@@ -98,7 +95,7 @@ class WindowPlotter(Pmw.MegaToplevel):
                                          labelpos="w",
                                          label_text="Label")
         
-        typeEntry.grid(row=0,column=3)
+        typeEntry.grid(row=0,column=1)
         typeEntry.configure(selectioncommand = lambda entry:self._modifyOption("label",entry))
         self.typeEntry = typeEntry
         box.grid(row=0)
@@ -198,10 +195,10 @@ class WindowPlotter(Pmw.MegaToplevel):
         sol = self.grapher.cget("solution")
         if ty == "bifurcation" and (len(bd)==0 or len(bd[0])==0) and len(sol):
             self.grapher.config(type="solution")
-            self.labelEntry.set("solution")
+            self.labelEntry.invoke("solution")
         elif ty == "solution" and len(sol)==0 and len(bd) and len(bd[0]):
             self.grapher.config(type="bifurcation")
-            self.labelEntry.set("bifurcation")
+            self.labelEntry.invoke("bifurcation")
 
     def config(self,cnf=None,**kw):
         """
@@ -219,7 +216,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         dct.update(kw)
         for key,value in dct.items():
             if key == "type":
-                self.labelEntry.set(value)
+                self.labelEntry.invoke(value)
             if key in ["type","label","label_defaults",
                        "bifurcation_diagram_filename",
                        "solution_filename",
