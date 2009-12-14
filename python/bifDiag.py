@@ -67,11 +67,13 @@ class bifDiag(parseB.parseBR):
                     base = 0
                     i = 0
                 pt = s["PT"]
+                lab = s["LAB"]
+                ty = s["TY number"]
                 if i >= base + pt - 1:
                     # point numbers wrapped around
                     base += 9999
                 i = base + pt - 1
-                labels[i] = {s["TY"]: s}
+                labels[i] = {s["TY"]: {"LAB":lab,"TY number":ty,"PT":pt}}
             if labels != {}:
                 branch.labels = Points.PointInfo(labels)
         if fort9_filename is not None and self.data != []:
@@ -92,16 +94,15 @@ class bifDiag(parseB.parseBR):
                 for k in constants:
                     if k in nonekeys:
                         constants[k] = None
-                for ind, val in d.labels.sortByIndex():
+                for ind in d.labels.getIndices():
                     if i >= len(solution):
                         break
+                    x = d._gettypelabel(ind)[1]
                     s = solution[i]
-                    for k in list(val):
-                        if val[k].get("LAB",0) == 0 and s["LAB"] != 0:
-                            continue
+                    if x.get("LAB",0) != 0 or s["LAB"] == 0:
                         i = i+1
                         kw = {"constants": constants}
-                        s = val[k] = parseS.AUTOSolution(s, **kw)
+                        s = x["solution"] = parseS.AUTOSolution(s, **kw)
                         if d.coordnames != []:
                             s.b = d[ind]
 
@@ -132,20 +133,25 @@ class bifDiag(parseB.parseBR):
         mbr, mlab = 0, 0
         for d in self:
             if abs(d["BR"]) > mbr: mbr = abs(d["BR"])
-            for idx,val in d.labels.sortByIndex():
-                for x in val.values():
-                    if x.get("LAB",0) != 0:
-                        sols.append((x, abs(d["BR"]), (idx%9999)+1))
-                        if x["LAB"] > mlab: mlab = x["LAB"]
-        solution = parseS.parseS([sol[0] for sol in sols])
+            for idx in d.labels.getIndices():
+                x = d._gettypelabel(idx)[1]
+                if "solution" in x:
+                    sols.append((x, abs(d["BR"]), (idx%9999)+1))
+                    if x["LAB"] > mlab: mlab = x["LAB"]
+        solution = parseS.parseS([sol[0]["solution"] for sol in sols])
         solution = s = solution(label)
         if not isinstance(s,parseS.parseS):
             solution = [s]
         for i, sol in enumerate(solution):
-            br, pt = sols[i][1:]
-            if ((sol._mlab, sol._mbr, sol["BR"], sol["PT"]) !=
-                (mlab, mbr, br, pt)):
-                solution[i] = sol = sol.__class__(sol, BR=br, PT=pt)
+            br = sols[i][1]
+            pt = sols[i][2]
+            lab = sols[i][0]["LAB"]
+            ty = sols[i][0]["TY number"]
+            if (sol._mlab != mlab or sol._mbr != mbr or
+                br != sol["BR"] or pt != sol["PT"] or
+                ty != sol["TY number"] or lab != sol["LAB"]):
+                solution[i] = sol = sol.__class__(sol, BR=br, PT=pt,
+                                                  LAB=lab, TY=ty)
                 sol._mlab = mlab
                 sol._mbr = mbr
         return s
@@ -167,11 +173,10 @@ class bifDiag(parseB.parseBR):
             solution.read(fort8_input)
             i = 0
             for d in self:
-                for idx, val in d.labels.sortByIndex():
-                    for k in val:
-                        if val[k].get("LAB",0) != 0:
-                            val[k] = solution[i].__class__(solution[i])
-                            i = i+1
+                for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if x.get("LAB",0) != 0:
+                        x["solution"] = solution[i]
+                        i = i+1
         if fort9_input is not None:
             diagnostics = parseD.parseD()
             diagnostics.read(fort9_input)
@@ -193,11 +198,10 @@ class bifDiag(parseB.parseBR):
             solution = parseS.parseS(fort8_filename)
             i = 0
             for d in self:
-                for idx, val in d.labels.sortByIndex():
-                    for k in val:
-                        if val[k].get("LAB",0) != 0:
-                            val[k] = solution[i].__class__(solution[i])
-                            i = i+1
+                for k,x in map(d._gettypelabel, d.labels.getIndices()):
+                    if x.get("LAB",0) != 0:
+                        x["solution"] = solution[i]
+                        i = i+1
         if not fort9_filename is None:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = parseD.parseD(fort9_filename)
