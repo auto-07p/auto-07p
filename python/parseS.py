@@ -285,7 +285,7 @@ class SLPointKey(UserList):
             for i in range(len(self.solution.coordarray)):
                 data.append(self.solution.coordarray[i][self.index])
             return data
-        raise AttributeError
+        return super(SLPointKey, self).__getattribute__(attr)
     def __setitem__(self, i, item):
         self.solution.coordarray[i][self.index] = item
     def __str__(self):
@@ -1028,10 +1028,9 @@ class AUTOSolution(UserDict,Points.Pointset):
     def __getattr__(self,attr):
         if self.__start_of_header is None:
             raise AUTOExceptions.AUTORuntimeError("Solution without data.")
-        if self.__fullyParsed or attr == "__del__":
-            raise AttributeError
-        self.__readAll()
-        return getattr(self,attr)
+        if not self.__fullyParsed and attr != "__del__":
+            self.__readAll()
+        return super(AUTOSolution, self).__getattribute__(attr)
 
     def write(self,output,mlab=False):
         try:

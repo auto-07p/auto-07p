@@ -98,6 +98,54 @@ def reverse_type_translation(type):
 # Once the data is read in the class provides a list all the points
 # in the fort.7 file.
 
+class parseBMixin(object):
+    def __str__(self):
+        return self.summary()
+
+    def __getitem__(self,index):
+        return self.getIndex(index)
+
+    def __call__(self,label=None):
+        return self.getLabel(label)
+
+    def dsp(self,label=None):
+        """Removes solutions with the given labels or type names"""
+        return self.deleteLabel(label,copy=1)
+
+    def ksp(self,label=None):
+        """Keeps solutions with the given labels or type names"""
+        return self.deleteLabel(label,keep=1,copy=1)
+
+    def dlb(self,label=None):
+        """Removes solutions with the given labels or type names"""
+        return self.deleteLabel(label,keepTY=1,copy=1)
+
+    def klb(self,label=None):
+        """Keeps solutions with the given labels or type names"""
+        return self.deleteLabel(label,keepTY=1,keep=1,copy=1)
+
+    def readFilename(self,filename):
+        inputfile = AUTOutil.openFilename(filename,"r")
+        self.read(inputfile)
+        inputfile.close()
+
+    def writeFilename(self,filename,append=False):
+        if append:
+            output = open(filename,"a")
+        else:
+            output = open(filename,"w")
+        self.write(output)
+        output.close()
+
+    def writeRawFilename(self,filename):
+        output = open(filename,"w")
+        self.writeRaw(output)
+        output.flush()
+        output.close()
+        
+    def writeScreen(self):
+        sys.stdout.write(self.summary())
+
 # a point within an AUTOBranch
 class BDPointData(UserList):
     def __init__(self, branch=None, idx=None):
@@ -106,7 +154,7 @@ class BDPointData(UserList):
     def __getattr__(self, attr):
         if attr == 'data':
             return [d[self.idx] for d in self.branch.coordarray]
-        raise AttributeError
+        return super(BDPointData, self).__getattribute__(attr)
     def __setitem__(self, i, item):
         self.branch.coordarray[i][self.idx] = item
     def __str__(self):
@@ -136,8 +184,7 @@ class BDPoint(Points.Point):
             del self.name_map, self.p
             Points.Point.__init__(self, p)
             self.__fullyParsed = True
-            return getattr(self, attr)
-        raise AttributeError(attr)
+        return super(BDPoint, self).__getattribute__(attr)
 
     def __contains__(self, key):
         if (key in ["TY name","data","BR","PT","section","index"] or
@@ -230,7 +277,7 @@ class BDPoint(Points.Point):
     __repr__ = __str__
 
 # a branch within the parseB class
-class AUTOBranch(Points.Pointset):
+class AUTOBranch(parseBMixin, Points.Pointset):
     def __init__(self,input=None,prevline=None,coordnames=[]):
         self.__fullyParsed = True
         if isinstance(input,self.__class__):
@@ -244,7 +291,7 @@ class AUTOBranch(Points.Pointset):
         if self.__fullyParsed or attr == "__del__":
             raise AttributeError
         self.__parse()
-        return getattr(self,attr)
+        return super(AUTOBranch, self).__getattribute__(attr)
 
     def _gettypelabel(self,idx):
         for k,v in self.labels[idx].items():
@@ -359,12 +406,6 @@ class AUTOBranch(Points.Pointset):
         stability.append(p)
         return stability, coordarray
 
-    def __str__(self):
-        return self.summary()
-
-    def __getitem__(self,index):
-        return self.getIndex(index)
-
     def __setitem__(self,item,value):
         if item in ("BR", "TY", "TY number") and item not in self.coordnames:
             if item == "BR":
@@ -386,9 +427,6 @@ class AUTOBranch(Points.Pointset):
                     x["TY number"] = value*10 + v
         else:
             Points.Pointset.__setitem__(item,value)
-
-    def __call__(self,label=None):
-        return self.getLabel(label)
 
     def __len__(self):
         if not self.__fullyParsed:
@@ -429,22 +467,6 @@ class AUTOBranch(Points.Pointset):
                     new.labels.remove(idx)
         if copy:
             return new
-
-    def dsp(self,label=None):
-        """Removes solutions with the given labels or type names"""
-        return self.deleteLabel(label,copy=1)
-
-    def ksp(self,label=None):
-        """Keeps solutions with the given labels or type names"""
-        return self.deleteLabel(label,keep=1,copy=1)
-
-    def dlb(self,label=None):
-        """Removes solutions with the given labels or type names"""
-        return self.deleteLabel(label,keepTY=1,copy=1)
-
-    def klb(self,label=None):
-        """Keeps solutions with the given labels or type names"""
-        return self.deleteLabel(label,keepTY=1,keep=1,copy=1)
 
     def relabel(self,old_label=1,new_label=None):
         """Relabels the first solution with the given label"""
@@ -634,12 +656,6 @@ class AUTOBranch(Points.Pointset):
                 prevpt = pt
         return stab
 
-    def writeRawFilename(self,filename):
-        output = open(filename,"w")
-        self.writeRaw(output)
-        output.flush()
-        output.close()
-        
     def subtract(self,other,ref,pt=None):
         """Subtracts branch branches using interpolation with respect to other
         with monotonically increasing or decreasing reference coordinate ref,
@@ -794,17 +810,6 @@ class AUTOBranch(Points.Pointset):
             slist.append("".join(linelist))
         return "\n".join(slist)
 
-    def writeScreen(self):
-        sys.stdout.write(self.summary())
-
-    def writeFilename(self,filename,append=False):
-        if append:
-            output = open(filename,"a")
-        else:
-            output = open(filename,"w")
-        self.write(output)
-        output.close()
-
     def __patchline(self,datalist,lineno,column,new):
         #patch column of line with new integer value
         newsp = 0
@@ -907,11 +912,6 @@ class AUTOBranch(Points.Pointset):
         self.__datalist = datalist
         self.c = self.parseHeader(headerlist)
 
-    def readFilename(self,filename):
-        inputfile = AUTOutil.openFilename(filename,"r")
-        self.read(inputfile)
-        inputfile.close()
-
     def parseHeader(self,headerlist):
         self.headerlist = headerlist
         if hasattr(str,"split"):
@@ -981,22 +981,13 @@ class AUTOBranch(Points.Pointset):
             dict.parseline(" ".join(words[1:]),userspec)
         return dict
 
-class parseBR(UserList,AUTOBranch):
+class parseBR(parseBMixin, UserList):
     def __init__(self,filename=None):
         if isinstance(filename, str):
             UserList.__init__(self)
             self.readFilename(filename)
         else:
             UserList.__init__(self,filename)
-
-    def __getattr__(self,attr):
-        raise AttributeError
-
-    def __getstate__(self):
-        return self.__dict__.copy()
-
-    def __setstate__(self,state):
-        self.__dict__.update(state)
 
     # Removes solutions with the given labels or type names
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
@@ -1073,7 +1064,7 @@ class parseBR(UserList,AUTOBranch):
         section = 0
         i = index
         for d in self.data:
-            l = len(d.coordarray[0])
+            l = len(d)
             if i < l:
                 item = d.getIndex(i)
                 item["section"] = section

@@ -118,7 +118,7 @@ class bifDiag(parseB.parseBR):
                 del self.filenames
                 del self.c
                 return self.data
-        raise AttributeError
+        return super(bifDiag, self).__getattribute__(attr)
         
     def __repr__(self):
         result = id(self)
