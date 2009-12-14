@@ -100,7 +100,7 @@ class parseC(dict):
         dct = d
         if dct is None:
             dct = {}
-        dct.update(**kw)
+        dct.update(kw)
         if dct.get('constants') is not None:
             value = parseC(dct['constants'])
             # preserve unames and parnames if not in a constants file

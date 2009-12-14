@@ -64,13 +64,14 @@ class bifDiag(parseB.parseBR):
                     branch.headerlist = []
                     branch.c = constants
                     labels = {}
+                    base = 0
                     i = 0
-                pt = s["Point number"]
-                ty = s["Type number"]
-                lab = s["Label"]
-                key = parseB.type_translation(ty)["short name"]
-                labels[i] = {key: {"LAB":lab,"TY number":ty,"PT":pt}}
-                i = i+1
+                pt = s["PT"]
+                if i >= base + pt - 1:
+                    # point numbers wrapped around
+                    base += 9999
+                i = base + pt - 1
+                labels[i] = {s["TY"]: s}
             if labels != {}:
                 branch.labels = Points.PointInfo(labels)
         if fort9_filename is not None and self.data != []:
@@ -91,15 +92,16 @@ class bifDiag(parseB.parseBR):
                 for k in constants:
                     if k in nonekeys:
                         constants[k] = None
-                for ind in d.labels.getIndices():
+                for ind, val in d.labels.sortByIndex():
                     if i >= len(solution):
                         break
-                    x = d._gettypelabel(ind)[1]
                     s = solution[i]
-                    if x.get("LAB",0) != 0 or s["LAB"] == 0:
+                    for k in list(val):
+                        if val[k].get("LAB",0) == 0 and s["LAB"] != 0:
+                            continue
                         i = i+1
                         kw = {"constants": constants}
-                        s = x["solution"] = parseS.AUTOSolution(s, **kw)
+                        s = val[k] = parseS.AUTOSolution(s, **kw)
                         if d.coordnames != []:
                             s.b = d[ind]
 
@@ -126,27 +128,26 @@ class bifDiag(parseB.parseBR):
 
     def getLabel(self,label):
         sols = []
-        for d in self:
-            for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if "solution" in x:
-                    sols.append(x["solution"])
-        solution = parseS.parseS(sols)
-        s = solution(label)
         #adjust maximum label/branch
         mbr, mlab = 0, 0
-        for d in solution:
-            if d["BR"] > mbr: mbr = d["BR"]
-            if d["LAB"] > mlab: mlab = d["LAB"]
-        if isinstance(s,parseS.parseS):
-            for i in range(len(s)):
-                if s[i]._mlab != mlab or s[i]._mbr != mbr:
-                    s[i] = s[i].__class__(s[i])
-                    s[i]._mlab = mlab
-                    s[i]._mbr = mbr
-        elif s._mlab != mlab or s._mbr != mbr:
-            s = s.__class__(s)
-            s._mlab = mlab
-            s._mbr = mbr
+        for d in self:
+            if abs(d["BR"]) > mbr: mbr = abs(d["BR"])
+            for idx,val in d.labels.sortByIndex():
+                for x in val.values():
+                    if x.get("LAB",0) != 0:
+                        sols.append((x, abs(d["BR"]), (idx%9999)+1))
+                        if x["LAB"] > mlab: mlab = x["LAB"]
+        solution = parseS.parseS([sol[0] for sol in sols])
+        solution = s = solution(label)
+        if not isinstance(s,parseS.parseS):
+            solution = [s]
+        for i, sol in enumerate(solution):
+            br, pt = sols[i][1:]
+            if ((sol._mlab, sol._mbr, sol["BR"], sol["PT"]) !=
+                (mlab, mbr, br, pt)):
+                solution[i] = sol = sol.__class__(sol, BR=br, PT=pt)
+                sol._mlab = mlab
+                sol._mbr = mbr
         return s
 
     def __call__(self,label=None):
@@ -166,11 +167,11 @@ class bifDiag(parseB.parseBR):
             solution.read(fort8_input)
             i = 0
             for d in self:
-                for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if "LAB" not in x:
-                        continue
-                    x["solution"] = solution[i]
-                    i = i+1
+                for idx, val in d.labels.sortByIndex():
+                    for k in val:
+                        if val[k].get("LAB",0) != 0:
+                            val[k] = solution[i].__class__(solution[i])
+                            i = i+1
         if fort9_input is not None:
             diagnostics = parseD.parseD()
             diagnostics.read(fort9_input)
@@ -192,11 +193,11 @@ class bifDiag(parseB.parseBR):
             solution = parseS.parseS(fort8_filename)
             i = 0
             for d in self:
-                for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if "LAB" not in x:
-                        continue
-                    x["solution"] = solution[i]
-                    i = i+1
+                for idx, val in d.labels.sortByIndex():
+                    for k in val:
+                        if val[k].get("LAB",0) != 0:
+                            val[k] = solution[i].__class__(solution[i])
+                            i = i+1
         if not fort9_filename is None:
             # for now just attach diagnostics information to the first branch
             self[0].diagnostics = parseD.parseD(fort9_filename)
@@ -242,68 +243,21 @@ class bifDiag(parseB.parseBR):
 
         new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
         if copy:
-            for i in range(len(self)):
-                if hasattr(self[i],"diagnostics"):
-                    new[i].diagnostics = self[i].diagnostics
-        else:
-            new = self
-        newlabels = new.getLabels()
-        if len(newlabels) > 0:
-            maxlab = max(newlabels)
-        for d in new:
-            for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                if "solution" in x:
-                    if x["LAB"] == 0:
-                        del x["solution"]
-                    elif x["solution"]._mlab != maxlab:
-                        if copy:
-                            news = x["solution"].__class__(x["solution"])
-                            x["solution"] = news
-                        x["solution"]._mlab = maxlab
-        if copy:
+            for i, branch in enumerate(self):
+                if hasattr(branch,"diagnostics"):
+                    new[i].diagnostics = branch.diagnostics
             return new
 
     def relabel(self,old_label=None,new_label=None):
         if old_label is None and new_label is None:
             new = parseB.parseBR.relabel(self)
-            label = 0
-            for i in range(len(self)):
-                if hasattr(self[i],"diagnostics"):
-                    new[i].diagnostics = self[i].diagnostics
-            for d in new:
-                for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if "solution" in x and x["LAB"] != 0:
-                        label = label + 1
-                        news = x["solution"].__class__(x["solution"])
-                        news["LAB"] = label
-                        x["solution"] = news
-            for d in new:
-                for k,x in map(d._gettypelabel, d.labels.getIndices()):
-                    if "solution" in x and x["LAB"] != 0:
-                        x["solution"]._mlab = label
+            for i, branch in enumerate(self):
+                if hasattr(branch,"diagnostics"):
+                    new[i].diagnostics = branch.diagnostics
             return new
         parseB.parseBR.relabel(self,old_label,new_label)
         self().relabel(old_label,new_label)
     
-    def uniquelyLabel(self):
-        parseB.parseBR.uniquelyLabel(self)
-        self().uniquelyLabel()
-
-    def merge(self):
-        # Merges branches and then sync solution
-        new = parseB.parseBR.merge(self)
-        mlab = max(self.getLabels())
-        for d in new:
-            for idx in d.labels.getIndices():
-                k, x = d._gettypelabel(idx)
-                if "solution" in x:
-                    news = x["solution"].__class__(x["solution"])
-                    news._mlab = mlab
-                    news["PT"] = (idx % 9999) + 1
-                    news["LAB"] = x["LAB"]
-                    x["solution"] = news
-        return new
-
 def pointtest7(a,b):
     if "TY name" not in a:
         raise AUTOExceptions.AUTORegressionError("No TY name label")

@@ -100,19 +100,19 @@ def reverse_type_translation(type):
 
 # a point within an AUTOBranch
 class BDPointData(UserList):
-    def __init__(self, branch=None, index=None):
+    def __init__(self, branch=None, idx=None):
         self.branch = branch
-        self.index = index
+        self.idx = idx
     def __getattr__(self, attr):
         if attr == 'data':
-            return [d[self.index] for d in self.branch.coordarray]
+            return [d[self.idx] for d in self.branch.coordarray]
         raise AttributeError
     def __setitem__(self, i, item):
-        self.branch.coordarray[i][self.index] = item
+        self.branch.coordarray[i][self.idx] = item
     def __str__(self):
         return str(self.data)
 class BDPoint(Points.Point):
-    def __init__(self, p, branch=None, index=None):
+    def __init__(self, p, branch=None, idx=None, pt=None):
         if isinstance(p['coordarray'], list):
             # not fully parsed
             self.__fullyParsed = False
@@ -123,8 +123,11 @@ class BDPoint(Points.Point):
         else:
             self.__fullyParsed = True
             Points.Point.__init__(self, p)
-        self.index = index
+        self.idx = idx
+        self.pt = pt
         self.branch = branch
+        self.section = 0
+        self.index = idx
     
     def __getattr__(self, attr):
         if not self.__fullyParsed:
@@ -137,7 +140,8 @@ class BDPoint(Points.Point):
         raise AttributeError(attr)
 
     def __contains__(self, key):
-        if key in ["TY name","data"] or Points.Point.has_key(self,key):
+        if (key in ["TY name","data","BR","PT","section","index"] or
+            Points.Point.has_key(self,key)):
             return True
         for k,v in self.labels.items():
             if k in all_point_types:
@@ -150,6 +154,20 @@ class BDPoint(Points.Point):
     def __setitem__(self, ixarg, val):
         """Change coordinate array values."""
         if type(ixarg) == type(""):
+            if ixarg == "BR":
+                self.branch["BR"] = val
+                return
+            elif ixarg == "PT":
+                if not self.__fullyParsed:
+                    self.pt = val
+                # else ignore
+                return
+            elif ixarg == "section":
+                self.section = val
+                return
+            elif ixarg == "index":
+                self.index = val
+                return
             for k,v in self.labels.items():
                 if "LAB" in v:
                     v[ixarg] = val
@@ -163,6 +181,27 @@ class BDPoint(Points.Point):
                     return self.p['coordarray'][self.name_map[coords]]
                 except KeyError:
                     pass
+            if coords == "BR":
+                return self.branch["BR"]
+            elif coords == "PT":
+                if self.__fullyParsed:
+                    pt = self.idx+1
+                    for p in self.branch.stability():
+                        if abs(p) >= pt:
+                            if p < 0:
+                                pt = -pt
+                            break
+                    if pt < 0:
+                        pt = -((-pt-1) % 9999) - 1
+                    else:
+                        pt = ((pt-1) % 9999) + 1
+                else:
+                    pt = self.pt
+                return pt
+            elif coords == "section":
+                return self.section
+            elif coords == "index":
+                return self.index
             for k,v in self.labels.items():
                 if k in all_point_types:
                     if coords in v:
@@ -170,7 +209,7 @@ class BDPoint(Points.Point):
                     elif coords == "TY name":
                         return k
             if coords == "data":
-                return BDPointData(self.branch, self.index)
+                return BDPointData(self.branch, self.idx)
         return Points.Point.__getitem__(self, coords)
 
     def __str__(self):
@@ -179,14 +218,14 @@ class BDPoint(Points.Point):
                 ty_name = k
                 label = v
                 break
-        return str({"BR": label["BR"],
-                "PT": label["PT"],
+        return str({"BR": self["BR"],
+                "PT": self["PT"],
                 "TY number": label["TY number"],
                 "TY name": ty_name,
                 "LAB": label["LAB"],
                 "data": list(self.coordarray),
-                "section": 0,
-                "index": label["index"]})
+                "section": self.section,
+                "index": self.index})
 
     __repr__ = __str__
 
@@ -326,41 +365,25 @@ class AUTOBranch(Points.Pointset):
     def __getitem__(self,index):
         return self.getIndex(index)
 
-    def extend(self,parg):
-        Points.Pointset.extend(self,parg)
-        # adjust point numbers
-        for idx,val in self.labels.sortByIndex():
-            for k in val:
-                if "solution" in val[k]:
-                    v = val[k].copy()
-                    v["solution"] = v["solution"].copy()
-                    v["solution"]["PT"] = (idx % 9999) + 1
-                    val[k] = v
-
     def __setitem__(self,item,value):
         if item in ("BR", "TY", "TY number") and item not in self.coordnames:
             if item == "BR":
                 br = self["BR"]
                 if value != br:
-                    br = self.BR # This makes sure __getattr__ parses everything
+                    self.__parse()
                     self.BR = value
-                # sync solution BRs, if associated
-                for k,x in map(self._gettypelabel, self.labels.getIndices()):
-                    if "solution" in x:
-                        x["solution"]["BR"] = abs(value)
             else:
                 if item == "TY":
                     value = reverse_type_translation(value)
                 self.TY = value
-                # sync solution TYs, if associated
+                # sync solution TYs
                 for k,x in map(self._gettypelabel, self.labels.getIndices()):
-                    if "solution" in x:
-                        v = x["solution"]["TY number"]
-                        if v>=0:
-                            v=v%10
-                        else:
-                            v=-((-v)%10)
-                        x["solution"]["TY number"] = value*10 + v
+                    v = x["TY number"]
+                    if v>=0:
+                        v=v%10
+                    else:
+                        v=-((-v)%10)
+                    x["TY number"] = value*10 + v
         else:
             Points.Pointset.__setitem__(item,value)
 
@@ -534,14 +557,6 @@ class AUTOBranch(Points.Pointset):
                 r = self.__class__(self)
                 r.coordarray = ret.coordarray
                 r.labels = ret.labels
-                # adjust point numbers
-                for idx,val in r.labels.sortByIndex():
-                    for k in val:
-                        if "solution" in val[k]:
-                            v = val[k].copy()
-                            v["solution"] = v["solution"].copy()
-                            v["solution"]["PT"] = (idx % 9999) + 1
-                            val[k] = v
                 # adjust stability info
                 if isinstance(index, type(slice(0))):
                     prev = 0
@@ -567,37 +582,20 @@ class AUTOBranch(Points.Pointset):
             labels = ret.labels
             coordnames = ret.coordnames
             coordarray = ret.coordarray
-            br = self.BR
-            pt = index+1
-            for p in self.stability():
-                if abs(p) >= pt:
-                    if p < 0:
-                        pt = -pt
-                    break
-            if pt < 0:
-                pt = -((-pt-1) % 9999) - 1
-            else:
-                pt = ((pt-1) % 9999) + 1
+            pt = None
         else:
             labels = self.labels[index]
             coordnames = self.coordnames
             coordarray = self.__datalist[index].split()
-            br = int(coordarray[0])
             pt = int(coordarray[1])
             coordarray = list(map(AUTOatof, coordarray[4:]))
-        label = {}
+        label = None
         for v in labels.values():
             if "LAB" in v:
                 label = v
                 break
-        if label != {}:
-            label["index"] = index
-            label["PT"] = pt
-            label["BR"] = br
-            label["section"] = 0
-        else:
-            label = {"BR": br, "PT": pt, "TY number": 0,
-                     "LAB": 0, "index": index, "section": 0}
+        if label is None:
+            label = {"TY number": 0, "LAB": 0}
             if "No Label" in labels:
                 labels["No Label"].update(label)
             else:
