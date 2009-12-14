@@ -133,30 +133,27 @@ class bifDiag(parseB.parseBR):
         mbr, mlab = 0, 0
         for d in self:
             if abs(d["BR"]) > mbr: mbr = abs(d["BR"])
+            for k, x in map(d._gettypelabel, d.labels.getIndices()):
+                if "solution" in x and x["LAB"] > mlab:
+                    mlab = x["LAB"]
+        for d in self:
             for idx in d.labels.getIndices():
                 x = d._gettypelabel(idx)[1]
                 if "solution" in x:
-                    sols.append((x, abs(d["BR"]), (idx%9999)+1))
-                    if x["LAB"] > mlab: mlab = x["LAB"]
-        solution = parseS.parseS([sol[0]["solution"] for sol in sols])
-        solution = s = solution(label)
-        if not isinstance(s,parseS.parseS):
-            solution = [s]
-        for i, sol in enumerate(solution):
-            br = sols[i][1]
-            pt = sols[i][2]
-            lab = sols[i][0]["LAB"]
-            ty = sols[i][0]["TY number"]
-            if (sol._mlab != mlab or sol._mbr != mbr or
-                br != sol["BR"] or pt != sol["PT"] or
-                ty != sol["TY number"] or lab != sol["LAB"]):
-                solution[i] = sol = sol.__class__(sol, BR=br, PT=pt,
-                                                  LAB=lab, TY=ty)
-                sol._mlab = mlab
-                sol._mbr = mbr
-        if not isinstance(s,parseS.parseS):
-            return solution[0]
-        return s
+                    br = abs(d["BR"])
+                    pt = idx%9999 + 1
+                    lab = x["LAB"]
+                    ty = x["TY number"]
+                    sol = x["solution"]
+                    if (sol._mlab != mlab or sol._mbr != mbr or
+                        br != sol["BR"] or pt != sol["PT"] or
+                        ty != sol["TY number"] or lab != sol["LAB"]):
+                        sol = sol.__class__(sol, BR=br, PT=pt,
+                                            LAB=lab, TY=ty)
+                        sol._mlab = mlab
+                        sol._mbr = mbr
+                    sols.append(sol)
+        return parseS.parseS(sols)(label)
 
     def __call__(self,label=None):
         return self.getLabel(label)
