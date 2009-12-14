@@ -154,6 +154,8 @@ class bifDiag(parseB.parseBR):
                                                   LAB=lab, TY=ty)
                 sol._mlab = mlab
                 sol._mbr = mbr
+        if not isinstance(s,parseS.parseS):
+            return solution[0]
         return s
 
     def __call__(self,label=None):
