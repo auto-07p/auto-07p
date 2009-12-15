@@ -3,7 +3,7 @@ import AUTOExceptions
 
 modules = ["parseB", "parseS", "parseBandS", "parseC", "parseH",
            "AUTOclui", "interactiveBindings", "AUTOCommands",
-           "parseD", "bifDiag"] #runDemo,runAUTO
+           "parseD", "bifDiag", "runDemo", "runAUTO"]
 
 regressions = []
 for module in modules:

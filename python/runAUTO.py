@@ -244,6 +244,7 @@ class runAUTO:
                 p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
                 stdout,stderr = p.stdout,p.stderr
             else:
+                import popen2
                 stdout,stdin,stderr = popen2.popen3(cmd)
                 stdin.close()
             self.__printLog(stdout.read())
@@ -631,7 +632,10 @@ class runAUTO:
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
-    runner = runAUTO(verbose="yes",clean="yes")
+    path, auto_dir = os.environ["PATH"], os.environ["AUTO_DIR"]
+    runner = runAUTO(verbose="yes",clean="yes",
+                     auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
+    os.environ["PATH"] += os.pathsep+"."
     [log,err]=runner.runDemo("wav")
     print(log.read())
     runner.config(equation="clean",verbose="no")
@@ -640,6 +644,7 @@ def test():
     runner.config(equation="first")
     [log,err]=runner.runDemo("wav")
     print(log.read())
+    os.environ["PATH"], os.environ["AUTO_DIR"] = path, auto_dir
     
 
 if __name__ == "__main__":

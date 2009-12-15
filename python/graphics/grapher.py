@@ -954,8 +954,9 @@ class GUIGrapher(InteractiveGrapher):
         self.menu.tk_popup(e.x+self.winfo_rootx(),e.y+self.winfo_rooty())
 
 
-def test(grapher):
+def test():
     import math
+    grapher=GUIGrapher()
     data=[float(i)*0.1 for i in range(62)]
 
     grapher.addArray((data,map(math.sin,data)))
@@ -978,7 +979,7 @@ def test(grapher):
     raw_input()
 
 if __name__=='__main__':
-    test(GUIGrapher())
+    test()
 
 
 

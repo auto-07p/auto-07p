@@ -2147,13 +2147,13 @@ commandSpecialPointLabels = command(splabs)
 ############################################
 #  Testing stuff
 ############################################
-def print_test(text):
-    print(text)
-
 def test():
     import runAUTO
     import sys
     
+    def printfunc(text):
+        print(text)
+
     f = StringIO()
     def getinfo(s):
         f.write(s)
@@ -2161,6 +2161,7 @@ def test():
         pass
     global info
 
+    path, auto_dir = os.environ["PATH"], os.environ["AUTO_DIR"]
     runner = runAUTO.runAUTO(auto_dir=
                              os.path.join(os.environ["AUTO_DIR"],"..","97"))
     os.environ["PATH"] += os.pathsep+"."
@@ -2169,7 +2170,7 @@ def test():
     first      = commandRunDemo("wav","first",runner)
     second     = commandRunDemo("wav","second",runner)
     tmacro     = commandMacro((clean,first,first))
-    printer    = commandPrintFunc(print_test,"Hello World")
+    printer    = commandPrintFunc(printfunc,"Hello World")
     quiet      = commandRunnerConfig(runner,verbose="no")
     verbose    = commandRunnerConfig(runner,verbose="yes")
 
@@ -2183,6 +2184,7 @@ def test():
     second()
     print(f.getvalue())
     printer()
+    os.environ["PATH"], os.environ["AUTO_DIR"] = path, auto_dir
 
 if __name__ == "__main__":
     test()
