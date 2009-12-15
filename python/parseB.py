@@ -1196,7 +1196,7 @@ class parseBR(parseBMixin, UserList):
             if prevline is None:
                 break
 
-class parseB(AUTOBranch):
+class parseB(parseBMixin):
     #compatibility class for dg()
     def __init__(self,filename=None):
         self.branches = parseBR(filename)
