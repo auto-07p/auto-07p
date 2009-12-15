@@ -548,7 +548,6 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self.name = c["e"]
             elif self.name is None:
                 self.name = ''
-        self.c["solution"] = self
         for k,v in kw.items():
             if k in self.data_keys and k not in ["ISW","NTST","NCOL",
                                                  "NDIM","IPS"]:
@@ -740,6 +739,9 @@ class AUTOSolution(UserDict,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
+        if "equation" in kw:
+            kw["e"] = kw["equation"][14:]
+            del kw["equation"]
         if self["LAB"] != 0 and self["LAB"] != self.c.get("IRS"):
             kw["IRS"] = self["LAB"] 
         return AUTOSolution(self,**kw)
@@ -750,10 +752,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        c = self.c
-        if kw != {}:
-            c = parseC.parseC(c, **kw)
-        runner = runAUTO.runAUTO(**c)
+        runner = runAUTO.runAUTO(solution=self, constants=self.c, **kw)
         return runner.run()
 
     def readAllFilename(self,filename):

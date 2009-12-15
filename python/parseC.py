@@ -48,9 +48,8 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 # Once the data is read in the class provides a dictionary
 # interface for manipulating the file.
 
-runner_keys = ["log", "err", "auto_dir", "demos_dir", "verbose_print",
-               "executable", "command", "makefile", "solution", "homcont",
-               "equation", "redir", "verbose", "clean", "dir"]
+runner_keys = ["auto_dir", "verbose_print", "makefile",
+               "homcont", "redir", "verbose", "dir"]
 
 class parseC(dict):
     def __init__(self,filename=None,**kw):
@@ -101,27 +100,30 @@ class parseC(dict):
         if dct is None:
             dct = {}
         dct.update(kw)
-        if dct.get('constants') is not None:
-            value = parseC(dct['constants'])
-            # preserve unames and parnames if not in a constants file
+        if "constants" in dct:
+            value = dct["constants"]
+            # preserve e, unames and parnames if not in a constants file
             # also preserve runner keys
-            for k in ["unames", "parnames"]:
+            for k in ["unames", "parnames", "e"]:
                 if value[k] is None:
                     value[k] = self[k]
             for k in runner_keys:
-                if k in self:
+                if k in self and k not in value:
                     value[k] = self[k]
             self.clear()
             self.__init__(value)
+            del dct["constants"]
         for key in dct:
             value = dct[key]
             if self.get("homcont") is not None and key in self["homcont"]:
                 self["homcont"][key] = value
             elif key in self or key in runner_keys:
                 self[key] = value
-            elif (key not in ['t','LAB','PT','BR','TY','constants',
+            elif (key not in ['t','LAB','PT','BR','TY',
                         '__constants','__homcont','__solution','__equation']
                   and key[:7] != 'Active '):
+                raise ValueError(
+                    "Unknown option: %s"%(key,))
                 raise AUTOExceptions.AUTORuntimeError(
                     "Unknown option: %s"%(key,))
             
