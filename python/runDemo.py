@@ -8,8 +8,8 @@ def runDemo(demo,**kw):
 
 def test():
     import os
-    import commands
     import sys
+    import AUTOutil
 
     log=open("log","w")
     err=open("err","w")
@@ -26,12 +26,15 @@ def test():
     log.close()
     err.close()
     
-    #commands.getstatusoutput
-    status,output=commands.getstatusoutput("diff --ignore-matching-lines='.*Total Time.*' log test_data/runDemo.log")
+    status,output=AUTOutil.getstatusoutput(
+        ["diff","--ignore-matching-lines='.*Total Time.*'",
+         "log","test_data/runDemo.log"])
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Log files differ")
 
-    status,output=commands.getstatusoutput("diff --ignore-matching-lines='.*Total Time.*' err test_data/runDemo.err")
+    status,output=AUTOutil.getstatusoutput(
+        ["diff","--ignore-matching-lines='.*Total Time.*'",
+         "err","test_data/runDemo.err"])
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error files differ")
     

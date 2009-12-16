@@ -135,7 +135,7 @@ data=dg()
 # the data
 data=bt()
 # Clean the directory
-! rm -f *
+! rm -rf *
 # Go up one directory level
 cd ..
 # Remove the test directory

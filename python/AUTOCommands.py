@@ -1137,10 +1137,12 @@ def ls(dir=None):
             if os.path.exists(os.path.join(s,"ls.exe")):
                 cmd = "ls"
                 break
-    if dir is None:
+    if dir is not None:
+        cmd = "%s %s"%(cmd,dir)
+    if _runner.options["constants"]["log"] is None:
         os.system(cmd)
     else:
-        os.system("%s %s"%(cmd,dir,))
+        info(AUTOutil.getstatusoutput(cmd, shell=True)[1])
 commandLs = command(ls)
 
 
@@ -1177,13 +1179,18 @@ commandWait = command(wait)
 def cat(f=None):
     """Print the contents of a file
 
-    Type 'FUNC xxx' to list the contents of the file 'xxx'.  This calls the
-    Unix function 'cat' for reading the file.  
+    Type 'FUNC xxx' to list the contents of the file 'xxx'.
     """
-    cmd = "cat"
     if f is not None:
-        cmd = cmd + " " + f
-    return shell(cmd)
+        f = open(f,"r")
+        for line in f:
+            info(line)
+        f.close()
+    else:
+        line = sys.stdin.readline()
+        while line != "":
+            info(line)
+            line = sys.stdin.readline()
 commandCat = command(cat)
 
 

@@ -334,11 +334,7 @@ def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     
 def _testFilename(inputname,outputname):
-    try:
-        import subprocess
-    except ImportError:
-        import commands
-    import AUTOclui
+    import AUTOclui, AUTOutil
     old_path = os.getcwd()
     log = open("log","w")
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
@@ -348,13 +344,7 @@ def _testFilename(inputname,outputname):
     cmd = ["diff","--ignore-matching-lines='gfortran.*'",
            "--ignore-matching-lines='Finished running:.*'",
            "--ignore-matching-lines='.*Total Time.*'","log",outputname]
-    if 'subprocess' in locals():
-        for i in range(len(cmd)):
-            cmd[i] = cmd[i].replace("'","")
-        status = subprocess.call(cmd, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-    else:
-        status = commands.getstatusoutput(" ".join(cmd))[0]
+    status = AUTOutil.getstatusoutput(cmd)[0]
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error: log files differ")
     os.system("rm -f log")

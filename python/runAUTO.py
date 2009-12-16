@@ -131,16 +131,15 @@ class runAUTO:
             p1 = self.__popen(["ps","ww"])
             p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
             p3 = self.__popen(["grep","-v","grep"], p2.stdout)
-            cout = p3.stdout
+            pids = p3.communicate()[0]
+            p1.stdout.close()
+            p2.stdout.close()
         else:
             cout,cin = popen2.popen2(
                 "ps ww | grep %s.exe | grep -v grep"%(alarm_demo,))
             cin.close()
-        pids = cout.read()
-        if "subprocess" in sys.modules:
-            p1.stdout.close()
-            p2.stdout.close()
-        cout.close()
+            pids = cout.read()
+            cout.close()
         pids = pids.splitlines()
         for pid in pids:
             self.__printLog('Killing: %s\n'%pid)
@@ -462,7 +461,9 @@ class runAUTO:
         if hasattr(os,"times"):
             user_time = os.times()[2]
         command = os.path.expandvars(command)
-        if (self.options["constants"]["log"] is None and
+        if (self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make"
+            and
+            self.options["constants"]["log"] is None and
             self.options["constants"]["err"] is None):
             try:
                 status = self.__runCommand_noredir(command)

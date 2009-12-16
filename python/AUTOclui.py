@@ -25,8 +25,7 @@ class AUTOSimpleFunctions:
                     sys.stdout.flush()
 
             writelog = WriteLog()
-            AUTOCommands.info = lambda s: None
-            AUTOCommands.load(log=writelog)
+            AUTOCommands._runner.config(log=writelog)
             AUTOCommands.info = writelog.write
 
         # Read in the aliases.

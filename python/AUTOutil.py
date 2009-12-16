@@ -126,6 +126,20 @@ def openFilename(filename,mode):
             raise IOError(s)
     return inputfile
 
+def getstatusoutput(cmd, shell=False):
+    try:
+        import subprocess, os
+        if not shell:
+            for i in range(len(cmd)):
+                cmd[i] = cmd[i].replace("'","")
+        p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+        output = p.communicate()
+        return p.returncode, output[0]
+    except ImportError:
+        import commands
+        return commands.getstatusoutput(" ".join(cmd))
+
 try:
     import __builtin__
 except ImportError:

@@ -4,6 +4,7 @@
 # We begin by going into a temporary directory
 cd /tmp
 # We create a sub directory
+! rm -rf test
 ! mkdir test
 # and go into it
 cd test
