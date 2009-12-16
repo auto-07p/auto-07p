@@ -1593,11 +1593,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     sv = solution.c.get("sv")
     if sv == '':
         sv = None
-    err = StringIO()
-    err.seek(0)
-    res = solution.run(err=err)
-    info(err.read())
-    err.close()
+    res = solution.run()
     if sv is not None:
         name = filenameTemplate(sv,templates)
         bname = name["bifurcationDiagram"]
@@ -1622,8 +1618,7 @@ commandRun = command(run,SIMPLE,"run",alias=['r','rn'])
 def rundemo(demo,equation="all",runner=None):
     runner = withrunner(runner)
     runner.config(equation=equation)
-    log,err = runner.runDemo(demo)
-    info(err.read())
+    runner.runDemo(demo)
 commandRunDemo = command(rundemo,alias=None)
 
 
@@ -1635,16 +1630,13 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runMakefileWithSetup(equation)
-    info(err.read())
-    return data
+    data = runner.runMakefileWithSetup(equation)
 commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 
 
 def runMakefile(equation=None,runner=None):
     runner = withrunner(runner)
-    log,err = runner.runMakefile(equation)
-    info(err.read())
+    runner.runMakefile(equation)
 commandRunMakefile = command(runMakefile,alias=None)
 
 
@@ -1656,16 +1648,14 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runExecutableWithSetup(executable)
-    info(err.read())
+    data = runner.runExecutableWithSetup(executable)
     return data
 commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 
 
 def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
     runner = withrunner(runner)
-    log,err = runner.runExecutable(executable)
-    info(err.read())
+    runner.runExecutable(executable)
 commandRunExecutable = command(runExecutable,alias=None)
 
 
@@ -1677,16 +1667,13 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    log,err,data = runner.runCommandWithSetup(command)
-    info(err.read())
-    return data
+    return runner.runCommandWithSetup(command)
 commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 
 
 def runCommand(command=None,runner=None):
     runner = withRunner(runner)
-    log,err = runner.runCommand(command)
-    info(err.read())
+    runner.runCommand(command)
 commandRunCommand = command(runCommand,alias=None)
 
 
@@ -2116,8 +2103,8 @@ def test():
     second     = commandRunDemo("wav","second",runner)
     tmacro     = commandMacro((clean,first,first))
     printer    = commandPrintFunc(printfunc,"Hello World")
-    quiet      = commandRunnerConfig(runner,verbose_print=f)
-    verbose    = commandRunnerConfig(runner,verbose_print=None)
+    quiet      = commandRunnerConfig(runner,log=f)
+    verbose    = commandRunnerConfig(runner,log=None)
 
     info = noinfo
     verbose()

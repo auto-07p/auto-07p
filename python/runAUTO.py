@@ -57,18 +57,15 @@ class runAUTO:
         # Set the signal handler
         if hasattr(signal,'SIGALRM'):
             signal.signal(signal.SIGALRM, self.__handler)
-        self.internalLog = None
-        self.internalErr = None
 
         self.options={}
         c = parseC.parseC()
         c["auto_dir"] = None
-        c["verbose_print"] = None
+        c["log"] = None
+        c["err"] = None
         c["dir"] = "."
         c["makefile"] = None
         c["homcont"] = None
-        self.options["log"] = None
-        self.options["err"] = None
         self.options["demos_dir"] = None
         self.options["equation"] = "all"
         self.options["verbose"] = "yes" # note: this is ignored!
@@ -80,18 +77,6 @@ class runAUTO:
 
         self.config(**kw)
             
-    def verbose_write(self,s):
-        if self.options["constants"]["verbose_print"] is None:
-            sys.stdout.write(s)
-        else:
-            self.options["constants"]["verbose_print"].write(s)
-
-    def verbose_flush(self):
-        if self.options["constants"]["verbose_print"] is None:
-            sys.stdout.flush()
-        else:
-            self.options["constants"]["verbose_print"].flush()
-
     def config(self,**kw):
         """     Change the options for this runner object"""
         for key in list(kw):
@@ -102,15 +87,17 @@ class runAUTO:
 
     def __printLog(self,text):
         # Write out the log information to the appropriate place
-        if not(self.options["log"] is None):
-            self.options["log"].write(text)
-        self.internalLog.write(text)
+        f = self.options["constants"]["log"] or sys.stdout
+        f.write(text)
+        f.flush()
+
+    def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
         # where the data was written to
         files = ["fort.7", "fort.8", "fort.9"]
         v = None
         c = self.options["constants"]
-        if c is not None and "sv" in c:
+        if c is not None and c["sv"] is not None:
             v = c["sv"]
         else:
             value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
@@ -126,12 +113,9 @@ class runAUTO:
         self.fort9_path = os.path.join(self.options["constants"]["dir"],files[2])
 
     def __printErr(self,text):
-        if not(self.options["err"] is None):
-            try:
-                self.options["err"].write(text)
-            except ValueError: # closed file
-                pass
-        self.internalErr.write(text)
+        f = self.options["constants"]["err"] or sys.stderr
+        f.write(text)
+        f.flush()
 
     def __popen(self,args,stdin=None,stderr=None):
         # subprocess.Popen wrapper:
@@ -141,8 +125,8 @@ class runAUTO:
 
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
-        self.verbose_write('Demo taking too long: '+alarm_demo+'\n')
-        self.verbose_write('Finding processes to kill...\n')
+        self.__printLog('Demo taking too long: '+alarm_demo+'\n')
+        self.__printLog('Finding processes to kill...\n')
         if "subprocess" in sys.modules:
             p1 = self.__popen(["ps","ww"])
             p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
@@ -159,49 +143,27 @@ class runAUTO:
         cout.close()
         pids = pids.splitlines()
         for pid in pids:
-            self.verbose_write('Killing: %s\n'%pid)
+            self.__printLog('Killing: %s\n'%pid)
             pid = pid.split()
             pid = int(pid[0])
             command = "/bin/kill -KILL %d\n"%(pid,)
-            self.verbose_write(command)
+            self.__printLog(command)
             if hasattr(os,"kill"):
                 os.kill(pid,signal.SIGKILL)
             else:
                 os.system("sh -c '%s'"%command)
         # Restart the alarm to make sure everything gets killed
-        self.verbose_flush()
         if hasattr(signal,"alarm"):
             signal.alarm(20)
 
-    def __resetInternalLogs(self):
-        # Garbage collect just before the run to make sure we're not
-        # running out of memory quickly.
-        gc.collect()
-        if self.internalLog is None:
-            self.internalLog = StringIO()
-        else:
-            self.internalLog.close()
-            self.internalLog = StringIO()
-        if self.internalErr is None:
-            self.internalErr = StringIO()
-        else:
-            self.internalErr.close()
-            self.internalErr = StringIO()
-    def __rewindInternalLogs(self):
-        self.internalLog.seek(0)
-        self.internalErr.seek(0)
-        
     def runDemo(self,d):
-        self.__resetInternalLogs()
-        self.__runDemo(d)
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
-
-    def __runDemo(self,d):
         """     This function compiles the demo, then calls the runMakefile
         method, and then cleans up"""
         global demo_killed
 
+        # Garbage collect just before the run to make sure we're not
+        # running out of memory quickly.
+        gc.collect()
         if self.options["constants"]["auto_dir"] is None:
             if "AUTO_DIR" in os.environ:
                 self.options["constants"]["auto_dir"]=os.environ["AUTO_DIR"]
@@ -231,7 +193,7 @@ class runAUTO:
         stdout.close()
         stderr.close()
 
-        self.__runMakefile()
+        self.runMakefile()
 
         if self.options["clean"] == "yes":
             os.chdir(self.options["constants"]["dir"])
@@ -326,9 +288,8 @@ class runAUTO:
             else:
                 cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
                                                 var["OPT"],src,equation)
-            self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
-            self.__runCommand(cmd)
+            self.runCommand(cmd)
         # link
         libdir = os.path.join(auto_dir,"lib")
         if fcon:
@@ -349,10 +310,9 @@ class runAUTO:
             else:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
-            self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
-            self.__runCommand(cmd)
+            self.runCommand(cmd)
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
 
     def load(self,**kw):
@@ -394,24 +354,13 @@ class runAUTO:
                 equation,equation,equation))
         self.options["equation"] = "EQUATION_NAME=%s"%equation
 
-        log,err,data = self.runMakefileWithSetup()
-        if self.options["err"] is None:
-            sys.stdout.write(err.read())
-        return data
+        return self.runMakefileWithSetup()
 
     def runMakefileWithSetup(self,equation=None):
-        self.__resetInternalLogs()
         self.__setup()
-        self.__runMakefile(equation)
-        data = self.__outputCommand()
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
-    def runMakefile(self,equation=None):
-        self.__resetInternalLogs()
-        self.__runMakefile(equation)
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
-    def __runMakefile(self,equation=None):        
+        self.runMakefile(equation)
+        return self.__outputCommand()
+    def runMakefile(self,equation=None):        
         """     This function expects self.options["constants"]["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
         like with the demos).  Basically it runs:
@@ -437,19 +386,18 @@ class runAUTO:
             equation = self.options["constants"]["e"]
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
-                self.verbose_write(line)
                 self.__printLog(line)
+                self.__analyseLog(line)
                 for filename in [self.fort7_path,self.fort8_path,
                                  self.fort9_path]:
                     if os.path.exists(filename):
                         os.remove(filename)
-                self.__runCommand(os.path.join(".",equation + ".exe"))
+                self.runCommand(os.path.join(".",equation + ".exe"))
                 if os.path.exists("fort.2"):
                     os.remove("fort.2")
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
-                self.verbose_write(line)
                 self.__printLog(line)
             os.chdir(curdir)
         elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
@@ -466,22 +414,14 @@ class runAUTO:
                                self.options["constants"]["auto_dir"]))
             path = os.environ["PATH"]
             os.environ["PATH"] = path+os.pathsep+"."
-            self.__runExecutable(executable)
+            self.runExecutable(executable)
             os.environ["PATH"] = path
 
     def runExecutableWithSetup(self,executable=None):
-        self.__resetInternalLogs()
         self.__setup()
-        self.__runExecutable(executable)
-        data = self.__outputCommand()
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
+        self.runExecutable(executable)
+        return self.__outputCommand()
     def runExecutable(self,executable=None):
-        self.__resetInternalLogs()
-        self.__runExecutable(executable)
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
-    def __runExecutable(self,executable=None):
         """     This function expects self.options["constants"]["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
         Basically it runs:
@@ -497,25 +437,18 @@ class runAUTO:
 
         curdir = os.getcwd()
         os.chdir(self.options["constants"]["dir"])
-        self.__runCommand(executable)
+        self.runCommand(executable)
         os.chdir(curdir)
 
-    def runCommand(self,command=None):
-        self.__resetInternalLogs()
-        self.__runCommand(command)
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr]
     def runCommandWithSetup(self,command=None):
-        self.__resetInternalLogs()
         self.__setup()
-        self.__runCommand(command)
-        data = self.__outputCommand()
-        self.__rewindInternalLogs()
-        return [self.internalLog,self.internalErr,data]
-    def __runCommand(self,command=None):
+        self.runCommand(command)
+        return self.__outputCommand()
+    def runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
         global demo_killed,alarm_demo,demo_max_time
+        gc.collect()
         if command is None:
             if not(self.options["command"] is None):
                 command = self.options["command"]
@@ -529,8 +462,8 @@ class runAUTO:
         if hasattr(os,"times"):
             user_time = os.times()[2]
         command = os.path.expandvars(command)
-        if (self.options["constants"]["verbose_print"] is None and
-            self.options["log"] is None):
+        if (self.options["constants"]["log"] is None and
+            self.options["constants"]["err"] is None):
             try:
                 status = self.__runCommand_noredir(command)
             except KeyboardInterrupt:
@@ -563,7 +496,6 @@ class runAUTO:
 
     def __runCommand_noredir(self,command=None):
         args = os.path.expandvars(command).split()
-        self.verbose_flush()
         if "subprocess" in sys.modules:
             return subprocess.call(args)
         elif hasattr(os,"spawnlp"):
@@ -592,15 +524,11 @@ class runAUTO:
             while status == teststatus:
                 try:
                     line = stdout.readline()
-                    self.verbose_write(line)
-                    self.verbose_flush()
+                    self.__printLog(line)
                     tmp_out.append(line)
                 except IOError:
                     demo_killed = 1
                 status = demo_object.poll()
-            if status != 0:
-                self.verbose_write(stderr.read())
-                self.verbose_flush()
         else:
             stdout, stdin, stderr = popen2.popen3(command)
             stdin.close()
@@ -609,10 +537,9 @@ class runAUTO:
         # Read the rest of the data from stdout
         while len(line) > 0:
             tmp_out.append(line)
-            self.verbose_write(line)
-            self.verbose_flush()
+            self.__printLog(line)
             line = stdout.readline()
-        self.__printLog("".join(tmp_out))
+        self.__analyseLog("".join(tmp_out))
         self.__printErr(stderr.read())
         stdout.close()
         stderr.close()
@@ -630,20 +557,28 @@ class runAUTO:
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
-    class quiet_print(object):
+    log = StringIO()
+    class teeStringIO(object):
+        def write(self,s):
+            sys.stdout.write(s)
+            log.write(s)
+        def flush(self):
+            sys.stdout.flush()
+    class quiet(object):
         def write(self,s): pass
         def flush(self): pass
-
-    runner = runAUTO(clean="yes",
+    runner = runAUTO(clean="yes",log=teeStringIO(),err=quiet(),
                      auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
-    [log,err]=runner.runDemo("wav")
-    print(log.read())
-    runner.config(equation="clean",verbose_print=quiet_print())
-    [log,err]=runner.runDemo("wav")
-    print(log.read())
+    runner.runDemo("wav")
+    print(log.getvalue())
+    log.truncate(0)
+    runner.config(equation="clean",log=log)
+    runner.runDemo("wav")
+    print(log.getvalue())
+    log.truncate(0)
     runner.config(equation="first")
-    [log,err]=runner.runDemo("wav")
-    print(log.read())
+    runner.runDemo("wav")
+    print(log.getvalue())
     
 
 if __name__ == "__main__":

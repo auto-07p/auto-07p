@@ -9,9 +9,18 @@ def runDemo(demo,**kw):
 def test():
     import os
     import commands
+    import sys
+
     log=open("log","w")
     err=open("err","w")
-    runDemo("ab",log=log,err=err,
+    class teelog(object):
+        def write(self,text):
+            log.write(text)
+            sys.stdout.write(text)
+        def flush(self):
+            log.flush()
+            sys.stdout.flush()
+    runDemo("ab",log=teelog(),err=err,
             auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"),
             clean="yes")
     log.close()

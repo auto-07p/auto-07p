@@ -26,7 +26,7 @@ class AUTOSimpleFunctions:
 
             writelog = WriteLog()
             AUTOCommands.info = lambda s: None
-            AUTOCommands.load(verbose_print=writelog)
+            AUTOCommands.load(log=writelog)
             AUTOCommands.info = writelog.write
 
         # Read in the aliases.
