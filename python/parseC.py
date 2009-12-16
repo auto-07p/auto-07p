@@ -48,7 +48,7 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 # Once the data is read in the class provides a dictionary
 # interface for manipulating the file.
 
-runner_keys = ["auto_dir", "log", "err", "makefile", "homcont", "dir"]
+runner_keys = ["auto_dir", "makefile", "homcont", "dir"]
 
 class parseC(dict):
     def __init__(self,filename=None,**kw):

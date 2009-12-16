@@ -16,17 +16,17 @@ class AUTOSimpleFunctions:
         # Initialize the output recorder (if any)
         if outputRecorder:
             # This is here so the log gets kept
+            stdout = sys.stdout
             class WriteLog(object):
                 def write(self,s):
                     outputRecorder.write(s)
-                    sys.stdout.write(s)
+                    stdout.write(s)
                 def flush(self):
                     outputRecorder.flush()
-                    sys.stdout.flush()
+                    stdout.flush()
 
             writelog = WriteLog()
             AUTOCommands._runner.config(log=writelog)
-            AUTOCommands.info = writelog.write
 
         # Read in the aliases.
         self._aliases = None

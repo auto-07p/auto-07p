@@ -1139,7 +1139,7 @@ def ls(dir=None):
                 break
     if dir is not None:
         cmd = "%s %s"%(cmd,dir)
-    if _runner.options["constants"]["log"] is None:
+    if sys.stdout is sys.__stdout__:
         os.system(cmd)
     else:
         info(AUTOutil.getstatusoutput(cmd, shell=True)[1])
@@ -2093,8 +2093,9 @@ def test():
     import sys
     
     def printfunc(text):
-        print(text)
+        stdout.write(text+"\n")
 
+    stdout = sys.stdout
     f = StringIO()
     def getinfo(s):
         f.write(s)
@@ -2113,16 +2114,15 @@ def test():
     quiet      = commandRunnerConfig(runner,log=f)
     verbose    = commandRunnerConfig(runner,log=None)
 
-    info = noinfo
     verbose()
     clean()
     first()
     tmacro()
     quiet()
-    info = getinfo
     second()
-    print(f.getvalue())
+    stdout.write(f.getvalue()+"\n")
     printer()
+    verbose()
 
 if __name__ == "__main__":
     test()

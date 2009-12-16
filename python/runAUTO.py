@@ -61,11 +61,11 @@ class runAUTO:
         self.options={}
         c = parseC.parseC()
         c["auto_dir"] = None
-        c["log"] = None
-        c["err"] = None
         c["dir"] = "."
         c["makefile"] = None
         c["homcont"] = None
+        self.options["log"] = None
+        self.options["err"] = None
         self.options["demos_dir"] = None
         self.options["equation"] = "all"
         self.options["verbose"] = "yes" # note: this is ignored!
@@ -75,21 +75,20 @@ class runAUTO:
         self.options["constants"] = c
         self.options["solution"] = None
 
+        self.stdout, self.stderr = sys.stdout, sys.stderr
         self.config(**kw)
-            
+
     def config(self,**kw):
         """     Change the options for this runner object"""
         for key in list(kw):
             if key in self.options and key != "constants":
+                if key == 'log':
+                    sys.stdout = kw[key] or self.stdout
+                elif key == 'err':
+                    sys.stderr = kw[key] or self.stderr
                 self.options[key] = kw[key]
                 del kw[key]
         self.options["constants"].update(**kw)
-
-    def __printLog(self,text):
-        # Write out the log information to the appropriate place
-        f = self.options["constants"]["log"] or sys.stdout
-        f.write(text)
-        f.flush()
 
     def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
@@ -112,11 +111,6 @@ class runAUTO:
         self.fort8_path = os.path.join(self.options["constants"]["dir"],files[1])
         self.fort9_path = os.path.join(self.options["constants"]["dir"],files[2])
 
-    def __printErr(self,text):
-        f = self.options["constants"]["err"] or sys.stderr
-        f.write(text)
-        f.flush()
-
     def __popen(self,args,stdin=None,stderr=None):
         # subprocess.Popen wrapper:
         return subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, 
@@ -125,8 +119,8 @@ class runAUTO:
 
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
-        self.__printLog('Demo taking too long: '+alarm_demo+'\n')
-        self.__printLog('Finding processes to kill...\n')
+        sys.stdout.write('Demo taking too long: '+alarm_demo+'\n')
+        sys.stdout.write('Finding processes to kill...\n')
         if "subprocess" in sys.modules:
             p1 = self.__popen(["ps","ww"])
             p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
@@ -142,11 +136,11 @@ class runAUTO:
             cout.close()
         pids = pids.splitlines()
         for pid in pids:
-            self.__printLog('Killing: %s\n'%pid)
+            sys.stdout.write('Killing: %s\n'%pid)
             pid = pid.split()
             pid = int(pid[0])
             command = "/bin/kill -KILL %d\n"%(pid,)
-            self.__printLog(command)
+            sys.stdout.write(command)
             if hasattr(os,"kill"):
                 os.kill(pid,signal.SIGKILL)
             else:
@@ -174,7 +168,7 @@ class runAUTO:
                                                      "demos")
         self.options["constants"]["dir"] = os.path.join(self.options["demos_dir"],d)
 
-        self.__printErr("===%s start===\n"%(d,))
+        sys.stderr.write("===%s start===\n"%(d,))
         curdir = os.getcwd()
         os.chdir(self.options["constants"]["dir"])
         if os.path.exists(d+".exe"):
@@ -187,8 +181,8 @@ class runAUTO:
             stdout,stdin,stderr = popen2.popen3(cmd)
             stdin.close()
 
-        self.__printLog(stdout.read())
-        self.__printErr(stderr.read())
+        sys.stdout.write(stdout.read())
+        sys.stderr.write(stderr.read())
         stdout.close()
         stderr.close()
 
@@ -204,17 +198,17 @@ class runAUTO:
                 import popen2
                 stdout,stdin,stderr = popen2.popen3(cmd)
                 stdin.close()
-            self.__printLog(stdout.read())
-            self.__printErr(stderr.read())
+            sys.stdout.write(stdout.read())
+            sys.stderr.write(stderr.read())
             stdout.close()
             stderr.close()
         os.chdir(curdir)
 
         if demo_killed != 0:
-            self.__printLog("***Demo was killed because it took too long***\n")
-            self.__printErr("***Demo was killed because it took too long***\n")
+            sys.stdout.write("***Demo was killed because it took too long***\n")
+            sys.stderr.write("***Demo was killed because it took too long***\n")
 
-        self.__printErr("===%s end===\n"%(d,))
+        sys.stderr.write("===%s end===\n"%(d,))
 
     def __setup(self):
         """     This function sets up self.options["constants"]["dir"] by creating
@@ -287,7 +281,7 @@ class runAUTO:
             else:
                 cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
                                                 var["OPT"],src,equation)
-            self.__printLog(cmd+"\n")
+            sys.stdout.write(cmd+"\n")
             self.runCommand(cmd)
         # link
         libdir = os.path.join(auto_dir,"lib")
@@ -309,7 +303,7 @@ class runAUTO:
             else:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
-            self.__printLog(cmd+"\n")
+            sys.stdout.write(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
             self.runCommand(cmd)
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
@@ -385,7 +379,7 @@ class runAUTO:
             equation = self.options["constants"]["e"]
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
-                self.__printLog(line)
+                sys.stdout.write(line)
                 self.__analyseLog(line)
                 for filename in [self.fort7_path,self.fort8_path,
                                  self.fort9_path]:
@@ -397,7 +391,7 @@ class runAUTO:
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
-                self.__printLog(line)
+                sys.stdout.write(line)
             os.chdir(curdir)
         elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
@@ -462,9 +456,7 @@ class runAUTO:
             user_time = os.times()[2]
         command = os.path.expandvars(command)
         if (self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make"
-            and
-            self.options["constants"]["log"] is None and
-            self.options["constants"]["err"] is None):
+            and sys.stdout is sys.__stdout__):
             try:
                 status = self.__runCommand_noredir(command)
             except KeyboardInterrupt:
@@ -525,7 +517,7 @@ class runAUTO:
             while status == teststatus:
                 try:
                     line = stdout.readline()
-                    self.__printLog(line)
+                    sys.stdout.write(line)
                     tmp_out.append(line)
                 except IOError:
                     demo_killed = 1
@@ -538,10 +530,10 @@ class runAUTO:
         # Read the rest of the data from stdout
         while len(line) > 0:
             tmp_out.append(line)
-            self.__printLog(line)
+            sys.stdout.write(line)
             line = stdout.readline()
         self.__analyseLog("".join(tmp_out))
-        self.__printErr(stderr.read())
+        sys.stderr.write(stderr.read())
         stdout.close()
         stderr.close()
         return status
@@ -559,27 +551,29 @@ class runAUTO:
 
 def test():
     log = StringIO()
+    stdout = sys.stdout
     class teeStringIO(object):
         def write(self,s):
-            sys.stdout.write(s)
+            stdout.write(s)
             log.write(s)
         def flush(self):
-            sys.stdout.flush()
+            stdout.flush()
     class quiet(object):
         def write(self,s): pass
         def flush(self): pass
     runner = runAUTO(clean="yes",log=teeStringIO(),err=quiet(),
                      auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
     runner.runDemo("wav")
-    print(log.getvalue())
+    stdout.write(log.getvalue()+"\n")
     log.truncate(0)
     runner.config(equation="clean",log=log)
     runner.runDemo("wav")
-    print(log.getvalue())
+    stdout.write(log.getvalue()+"\n")
     log.truncate(0)
     runner.config(equation="first")
     runner.runDemo("wav")
-    print(log.getvalue())
+    stdout.write(log.getvalue()+"\n")
+    runner.config(log=None, err=None)
     
 
 if __name__ == "__main__":

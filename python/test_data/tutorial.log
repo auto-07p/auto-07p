@@ -1,5 +1,7 @@
 Copying demo ab ... done
 Runner configured
+
+***Generate starting data***
 gfortran -fopenmp -O -c ab.f90 -o ab.o
 gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
@@ -14,6 +16,8 @@ Starting ab ...
 
  Total Time    0.136E-01
 ab ... done
+
+***Compute stationary solution families***
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)     
@@ -67,8 +71,12 @@ Starting ab ...
 
  Total Time    0.214E-01
 ab ... done
+
+***Relabel and save the output files***
 Relabeling done
 Saving to b.ab, s.ab, and d.ab ... done
+
+***Compute periodic solution families***
 Starting ab ...
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
@@ -118,9 +126,15 @@ Starting ab ...
 
  Total Time    0.280E+00
 ab ... done
+
+***Relabel and save the output files***
 Relabeling done
 Saving to b.ab, s.ab, and d.ab ... done
+
+***Clean the directory***
 Deleting fort.* *.o *.exe *.*~ ... done
+
+***Clean the directory***
 Deleting b.ab ... done
 Deleting s.ab ... done
 Deleting d.ab ... done

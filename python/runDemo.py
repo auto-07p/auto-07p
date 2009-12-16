@@ -5,6 +5,7 @@ import AUTOExceptions
 def runDemo(demo,**kw):
     runner = runAUTO.runAUTO(**kw)
     runner.runDemo(demo)
+    runner.config(log=None, err=None)
 
 def test():
     import os
@@ -13,13 +14,14 @@ def test():
 
     log=open("log","w")
     err=open("err","w")
+    stdout=sys.stdout
     class teelog(object):
         def write(self,text):
             log.write(text)
-            sys.stdout.write(text)
+            stdout.write(text)
         def flush(self):
             log.flush()
-            sys.stdout.flush()
+            stdout.flush()
     runDemo("ab",log=teelog(),err=err,
             auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"),
             clean="yes")

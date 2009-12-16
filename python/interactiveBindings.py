@@ -334,11 +334,12 @@ def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     
 def _testFilename(inputname,outputname):
-    import AUTOclui, AUTOutil
+    import AUTOclui, AUTOutil, AUTOCommands
     old_path = os.getcwd()
     log = open("log","w")
     runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
     runner.execfile(inputname)
+    AUTOCommands._runner.config(log=None)
     log.close()
     os.chdir(old_path)
     cmd = ["diff","--ignore-matching-lines='gfortran.*'",
