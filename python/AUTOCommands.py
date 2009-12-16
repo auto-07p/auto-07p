@@ -2161,10 +2161,8 @@ def test():
         pass
     global info
 
-    path, auto_dir = os.environ["PATH"], os.environ["AUTO_DIR"]
     runner = runAUTO.runAUTO(auto_dir=
                              os.path.join(os.environ["AUTO_DIR"],"..","97"))
-    os.environ["PATH"] += os.pathsep+"."
     
     clean      = commandRunDemo("wav","clean",runner)
     first      = commandRunDemo("wav","first",runner)
@@ -2184,7 +2182,6 @@ def test():
     second()
     print(f.getvalue())
     printer()
-    os.environ["PATH"], os.environ["AUTO_DIR"] = path, auto_dir
 
 if __name__ == "__main__":
     test()

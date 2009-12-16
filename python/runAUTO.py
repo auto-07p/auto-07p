@@ -208,9 +208,6 @@ class runAUTO:
                 self.options["constants"]["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
-        else:
-            os.environ["AUTO_DIR"]=self.options["constants"]["auto_dir"]
-
 
         if self.options["demos_dir"] is None:
             self.options["demos_dir"] = os.path.join(self.options["constants"]["auto_dir"],
@@ -222,7 +219,7 @@ class runAUTO:
         os.chdir(self.options["constants"]["dir"])
         if os.path.exists(d+".exe"):
             os.remove(d+".exe")
-        cmd = "make -e %s.exe"%d
+        cmd = "make -e %s.exe AUTO_DIR=%s"%(d,self.options["constants"]["auto_dir"])
         if "subprocess" in sys.modules:
             p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
             stdout,stderr = p.stdout,p.stderr
@@ -294,8 +291,8 @@ class runAUTO:
     def __make(self,equation,fcon=False):
         # do the same as $AUTO_DIR/cmds/cmds.make but in Python
         # first get the configure-set variables
-        f = open(os.path.join(os.path.expandvars("$AUTO_DIR"),
-                              "cmds","cmds.make"),"r")
+        auto_dir = self.options["constants"]["auto_dir"]
+        f = open(os.path.join(auto_dir,"cmds","cmds.make"),"r")
         var = {}
         for line in f:
             line = line.split()
@@ -309,7 +306,7 @@ class runAUTO:
                         v = ""
                     else:
                         v = " ".join(line[2:])
-                        v = v.replace("$(AUTO_DIR)",os.environ["AUTO_DIR"])
+                        v = v.replace("$(AUTO_DIR)",auto_dir)
                     var[key] = v
         f.close()
         # figure out equation file name
@@ -335,10 +332,10 @@ class runAUTO:
             self.__printLog(cmd+"\n")
             self.__runCommand(cmd)
         # link
-        libdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"lib")
+        libdir = os.path.join(auto_dir,"lib")
         if fcon:
-            srcdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"src")
-            incdir = os.path.join(os.path.expandvars("$AUTO_DIR"),"include")
+            srcdir = os.path.join(auto_dir,"src")
+            incdir = os.path.join(auto_dir,"include")
             libs = os.path.join(srcdir,"fcon.f")
             deps = [libs] + [os.path.join(incdir,"fcon.h")]
             var["FFLAGS"] = var["FFLAGS"] + " -I" +  incdir
@@ -439,14 +436,8 @@ class runAUTO:
                 self.options["constants"]["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
-        else:
-            os.environ["AUTO_DIR"]=self.options["constants"]["auto_dir"]
 
-
-        if self.options["constants"]["makefile"] is None:
-            executable = "make -e %s"%self.options["equation"]
-            self.__runExecutable(executable)
-        elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make":
+        if self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make":
             curdir = os.getcwd()
             os.chdir(self.options["constants"]["dir"])
             equation = self.options["constants"]["e"]
@@ -472,8 +463,19 @@ class runAUTO:
         elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
         else:
-            executable = "make -f %s -e %s"%(self.options["constants"]["makefile"],self.options["equation"])
+            if self.options["constants"]["makefile"] is None:
+                executable = ("make -e %s AUTO_DIR=%s"%
+                              (self.options["equation"],
+                               self.options["constants"]["auto_dir"]))
+            else:
+                executable = ("make -f %s -e %s AUTO_DIR=%s"%
+                              (self.options["constants"]["makefile"],
+                               self.options["equation"],
+                               self.options["constants"]["auto_dir"]))
+            path = os.environ["PATH"]
+            os.environ["PATH"] = path+os.pathsep+"."
             self.__runExecutable(executable)
+            os.environ["PATH"] = path
 
     def runExecutableWithSetup(self,executable=None):
         self.__resetInternalLogs()
@@ -632,10 +634,8 @@ class runAUTO:
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
-    path, auto_dir = os.environ["PATH"], os.environ["AUTO_DIR"]
     runner = runAUTO(verbose="yes",clean="yes",
                      auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
-    os.environ["PATH"] += os.pathsep+"."
     [log,err]=runner.runDemo("wav")
     print(log.read())
     runner.config(equation="clean",verbose="no")
@@ -644,7 +644,6 @@ def test():
     runner.config(equation="first")
     [log,err]=runner.runDemo("wav")
     print(log.read())
-    os.environ["PATH"], os.environ["AUTO_DIR"] = path, auto_dir
     
 
 if __name__ == "__main__":
