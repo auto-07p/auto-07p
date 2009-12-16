@@ -15,10 +15,19 @@ class AUTOSimpleFunctions:
     def __init__(self,outputRecorder=None):
         # Initialize the output recorder (if any)
         if outputRecorder:
-            def newinfo(s):
-                outputRecorder.write(s)
-                sys.stdout.write(s)
-            AUTOCommands.info = newinfo
+            # This is here so the log gets kept
+            class WriteLog(object):
+                def write(self,s):
+                    outputRecorder.write(s)
+                    sys.stdout.write(s)
+                def flush(self):
+                    outputRecorder.flush()
+                    sys.stdout.flush()
+
+            writelog = WriteLog()
+            AUTOCommands.info = lambda s: None
+            AUTOCommands.load(verbose_print=writelog)
+            AUTOCommands.info = writelog.write
 
         # Read in the aliases.
         self._aliases = None

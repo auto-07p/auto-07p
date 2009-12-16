@@ -13,7 +13,6 @@ def test():
     err=open("err","w")
     runDemo("ab",log=log,err=err,
             auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"),
-            verbose="yes",
             clean="yes")
     log.close()
     err.close()

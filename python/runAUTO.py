@@ -63,8 +63,6 @@ class runAUTO:
         self.options={}
         c = parseC.parseC()
         c["auto_dir"] = None
-        c["redir"] = "yes"
-        c["verbose"] = "no"
         c["verbose_print"] = None
         c["dir"] = "."
         c["makefile"] = None
@@ -73,6 +71,7 @@ class runAUTO:
         self.options["err"] = None
         self.options["demos_dir"] = None
         self.options["equation"] = "all"
+        self.options["verbose"] = "yes" # note: this is ignored!
         self.options["clean"] = "no"
         self.options["executable"] = None
         self.options["command"] = None
@@ -142,8 +141,8 @@ class runAUTO:
 
     def __handler(self, signum, frame):
         global demo_killed,alarm_demo,demo_max_time
-        self.verbose_write('Demo taking too long: '+alarm_demo)
-        self.verbose_write('Finding processes to kill...')
+        self.verbose_write('Demo taking too long: '+alarm_demo+'\n')
+        self.verbose_write('Finding processes to kill...\n')
         if "subprocess" in sys.modules:
             p1 = self.__popen(["ps","ww"])
             p2 = self.__popen(["grep",alarm_demo+".exe"], p1.stdout)
@@ -158,12 +157,12 @@ class runAUTO:
             p1.stdout.close()
             p2.stdout.close()
         cout.close()
-        pids = pids.splitlines(pids)
+        pids = pids.splitlines()
         for pid in pids:
-            self.verbose_write('Killing: '+str(pid))
+            self.verbose_write('Killing: %s\n'%pid)
             pid = pid.split()
             pid = int(pid[0])
-            command = "/bin/kill -KILL %d"%(pid,)
+            command = "/bin/kill -KILL %d\n"%(pid,)
             self.verbose_write(command)
             if hasattr(os,"kill"):
                 os.kill(pid,signal.SIGKILL)
@@ -327,8 +326,7 @@ class runAUTO:
             else:
                 cmd = "%s %s %s -c %s -o %s.o"%(var["FC"],var["FFLAGS"],
                                                 var["OPT"],src,equation)
-            if self.options["constants"]["verbose"] == "yes":
-                self.verbose_write(cmd+"\n")
+            self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             self.__runCommand(cmd)
         # link
@@ -351,8 +349,7 @@ class runAUTO:
             else:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
-            if self.options["constants"]["verbose"] == "yes":
-                self.verbose_write(cmd+"\n")
+            self.verbose_write(cmd+"\n")
             self.__printLog(cmd+"\n")
             cmd = cmd.replace(libs, " ".join(deps[:-1]))
             self.__runCommand(cmd)
@@ -399,9 +396,6 @@ class runAUTO:
 
         log,err,data = self.runMakefileWithSetup()
         if self.options["err"] is None:
-            # log was already written if the runner is verbose
-            if self.options["constants"]["verbose"] == "no":
-                sys.stdout.write(log.read())
             sys.stdout.write(err.read())
         return data
 
@@ -443,8 +437,7 @@ class runAUTO:
             equation = self.options["constants"]["e"]
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
-                if self.options["constants"]["verbose"] == "yes":
-                    self.verbose_write(line)
+                self.verbose_write(line)
                 self.__printLog(line)
                 for filename in [self.fort7_path,self.fort8_path,
                                  self.fort9_path]:
@@ -456,8 +449,7 @@ class runAUTO:
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
-                if self.options["constants"]["verbose"] == "yes":
-                    self.verbose_write(line)
+                self.verbose_write(line)
                 self.__printLog(line)
             os.chdir(curdir)
         elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
@@ -537,12 +529,18 @@ class runAUTO:
         if hasattr(os,"times"):
             user_time = os.times()[2]
         command = os.path.expandvars(command)
-        if self.options["constants"]["verbose"] == "yes" and self.options["constants"]["redir"] == "no":
+        if (self.options["constants"]["verbose_print"] is None and
+            self.options["log"] is None):
             try:
                 status = self.__runCommand_noredir(command)
             except KeyboardInterrupt:
                 if hasattr(signal, 'SIGINT'):
                     status = -signal.SIGINT
+                else:
+                    status = 1
+            except OSError:
+                if hasattr(signal, 'SIGKILL'):
+                    status = -signal.SIGKILL
                 else:
                     status = 1
         else:
@@ -594,14 +592,13 @@ class runAUTO:
             while status == teststatus:
                 try:
                     line = stdout.readline()
-                    if self.options["constants"]["verbose"] == "yes":
-                        self.verbose_write(line)
-                        self.verbose_flush()
+                    self.verbose_write(line)
+                    self.verbose_flush()
                     tmp_out.append(line)
-                except:
+                except IOError:
                     demo_killed = 1
                 status = demo_object.poll()
-            if status != 0 and self.options["constants"]["verbose"] == "yes":
+            if status != 0:
                 self.verbose_write(stderr.read())
                 self.verbose_flush()
         else:
@@ -612,9 +609,8 @@ class runAUTO:
         # Read the rest of the data from stdout
         while len(line) > 0:
             tmp_out.append(line)
-            if self.options["constants"]["verbose"] == "yes":
-                self.verbose_write(line)
-                self.verbose_flush()
+            self.verbose_write(line)
+            self.verbose_flush()
             line = stdout.readline()
         self.__printLog("".join(tmp_out))
         self.__printErr(stderr.read())
@@ -634,11 +630,15 @@ class runAUTO:
         raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
-    runner = runAUTO(verbose="yes",clean="yes",
+    class quiet_print(object):
+        def write(self,s): pass
+        def flush(self): pass
+
+    runner = runAUTO(clean="yes",
                      auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
     [log,err]=runner.runDemo("wav")
     print(log.read())
-    runner.config(equation="clean",verbose="no")
+    runner.config(equation="clean",verbose_print=quiet_print())
     [log,err]=runner.runDemo("wav")
     print(log.read())
     runner.config(equation="first")

@@ -1,4 +1,3 @@
-Runner configured
 Copying demo ab ... done
 Runner configured
 gfortran -fopenmp -O -c ab.f90 -o ab.o

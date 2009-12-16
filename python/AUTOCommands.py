@@ -25,8 +25,7 @@ EXPERT=1
 import AUTOExceptions
 
 # Initialize a default runAUTO for those commands that use runAUTO object
-_runner = runAUTO.runAUTO(verbose="yes",makefile="$AUTO_DIR/cmds/cmds.make",
-                          redir="no")
+_runner = runAUTO.runAUTO(makefile="$AUTO_DIR/cmds/cmds.make")
 
 #############################################
 #  commands      
@@ -191,8 +190,7 @@ def us(name,templates=None):
     datfile = "%s.dat"%name
     info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                  datfile))
-    fconrun = runAUTO.runAUTO(verbose="no",
-                              makefile="$AUTO_DIR/cmds/cmds.make fcon")
+    fconrun = runAUTO.runAUTO(makefile="$AUTO_DIR/cmds/cmds.make fcon")
     fconrun.config(e=name)
     fconrun.runMakefile(name)
     if os.path.exists(cfile):
@@ -1458,9 +1456,7 @@ def loadbd(name=None,templates=None,**kw):
     dname = dict.get("diagnostics")
     data = bifDiag.bifDiag(bname,sname,dname)
     for sol in data():
-        sol.c.update(verbose = _runner.options["constants"]["verbose"],
-                     redir = _runner.options["constants"]["redir"],
-                     makefile = _runner.options["constants"]["makefile"])
+        sol.c.update(makefile = _runner.options["constants"]["makefile"])
     info("Parsed output data\n")
     return data
 commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd",alias=['bd'])
@@ -1597,25 +1593,11 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     sv = solution.c.get("sv")
     if sv == '':
         sv = None
-    if solution.c["verbose"] == "no":
-        log = StringIO()
-        err = StringIO()
-        res = solution.run(log=log,err=err)
-        log.seek(0)
-        err.seek(0)
-        info(log.read())
-        info(err.read())
-        log.close()
-        err.close()
-    elif solution.c["redir"] == "yes":
-        # log was already written if the runner is verbose
-        err = StringIO()
-        res = solution.run(err=err)
-        err.seek(0)
-        info(err.read())
-        err.close()
-    else:
-        res = solution.run()
+    err = StringIO()
+    err.seek(0)
+    res = solution.run(err=err)
+    info(err.read())
+    err.close()
     if sv is not None:
         name = filenameTemplate(sv,templates)
         bname = name["bifurcationDiagram"]
@@ -1641,11 +1623,6 @@ def rundemo(demo,equation="all",runner=None):
     runner = withrunner(runner)
     runner.config(equation=equation)
     log,err = runner.runDemo(demo)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
 commandRunDemo = command(rundemo,alias=None)
 
@@ -1659,11 +1636,6 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
     log,err,data = runner.runMakefileWithSetup(equation)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
     return data
 commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
@@ -1672,11 +1644,6 @@ commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 def runMakefile(equation=None,runner=None):
     runner = withrunner(runner)
     log,err = runner.runMakefile(equation)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
 commandRunMakefile = command(runMakefile,alias=None)
 
@@ -1690,11 +1657,6 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
     log,err,data = runner.runExecutableWithSetup(executable)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
     return data
 commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
@@ -1703,11 +1665,6 @@ commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 def runExecutable(executable=None,fort2=None,fort3=None,runner=None):
     runner = withrunner(runner)
     log,err = runner.runExecutable(executable)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
 commandRunExecutable = command(runExecutable,alias=None)
 
@@ -1721,11 +1678,6 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
     log,err,data = runner.runCommandWithSetup(command)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
     return data
 commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
@@ -1734,11 +1686,6 @@ commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 def runCommand(command=None,runner=None):
     runner = withRunner(runner)
     log,err = runner.runCommand(command)
-    # Only return the log if the runner is not verbose
-    # since when the runner is verbose it prints to
-    # to stdout anyway
-    if runner.options["constants"]["verbose"] != "yes":
-        info(log.read())
     info(err.read())
 commandRunCommand = command(runCommand,alias=None)
 
@@ -2169,8 +2116,8 @@ def test():
     second     = commandRunDemo("wav","second",runner)
     tmacro     = commandMacro((clean,first,first))
     printer    = commandPrintFunc(printfunc,"Hello World")
-    quiet      = commandRunnerConfig(runner,verbose="no")
-    verbose    = commandRunnerConfig(runner,verbose="yes")
+    quiet      = commandRunnerConfig(runner,verbose_print=f)
+    verbose    = commandRunnerConfig(runner,verbose_print=None)
 
     info = noinfo
     verbose()

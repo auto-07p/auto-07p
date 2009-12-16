@@ -4,13 +4,6 @@
 # (i.e. some of the same functionality can be accomplished
 # with fewer commands).
 
-# This is here so the log gets kept.  Basically, if verbose="yes" (or
-# is not set) all results get printed to stdout, if verbose="no" the
-# results get sent to a log as well.  This command is NOT needed in
-# general, and only appears in this file since this script is
-# used as one of the AUTO regression tests.
-ld(verbose="no")
-
 # Use the non-python syntax to change directories to /tmp
 cd /tmp
 # The next two commands are sent to the shell
