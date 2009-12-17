@@ -62,7 +62,6 @@ class runAUTO:
         c = parseC.parseC()
         c["auto_dir"] = None
         c["dir"] = "."
-        c["makefile"] = None
         c["homcont"] = None
         self.options["log"] = None
         self.options["err"] = None
@@ -72,6 +71,7 @@ class runAUTO:
         self.options["clean"] = "no"
         self.options["executable"] = None
         self.options["command"] = None
+        self.options["makefile"] = None
         self.options["constants"] = c
         self.options["solution"] = None
 
@@ -373,7 +373,7 @@ class runAUTO:
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
 
-        if self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make":
+        if self.options["makefile"] is None:
             curdir = os.getcwd()
             os.chdir(self.options["constants"]["dir"])
             equation = self.options["constants"]["e"]
@@ -393,16 +393,16 @@ class runAUTO:
                 line = "%s ... done\n"%equation
                 sys.stdout.write(line)
             os.chdir(curdir)
-        elif self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
+        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
         else:
-            if self.options["constants"]["makefile"] is None:
+            if self.options["makefile"] == "":
                 executable = ("make -e %s AUTO_DIR=%s"%
                               (self.options["equation"],
                                self.options["constants"]["auto_dir"]))
             else:
                 executable = ("make -f %s -e %s AUTO_DIR=%s"%
-                              (self.options["constants"]["makefile"],
+                              (self.options["makefile"],
                                self.options["equation"],
                                self.options["constants"]["auto_dir"]))
             path = os.environ["PATH"]
@@ -455,8 +455,7 @@ class runAUTO:
         if hasattr(os,"times"):
             user_time = os.times()[2]
         command = os.path.expandvars(command)
-        if (self.options["constants"]["makefile"] == "$AUTO_DIR/cmds/cmds.make"
-            and sys.stdout is sys.__stdout__):
+        if self.options["makefile"] is None and sys.stdout is sys.__stdout__:
             try:
                 status = self.__runCommand_noredir(command)
             except KeyboardInterrupt:
@@ -562,6 +561,7 @@ def test():
         def write(self,s): pass
         def flush(self): pass
     runner = runAUTO(clean="yes",log=teeStringIO(),err=quiet(),
+                     makefile="",
                      auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
     runner.runDemo("wav")
     stdout.write(log.getvalue()+"\n")

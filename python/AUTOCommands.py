@@ -25,7 +25,7 @@ EXPERT=1
 import AUTOExceptions
 
 # Initialize a default runAUTO for those commands that use runAUTO object
-_runner = runAUTO.runAUTO(makefile="$AUTO_DIR/cmds/cmds.make")
+_runner = runAUTO.runAUTO()
 
 #############################################
 #  commands      
@@ -1462,8 +1462,6 @@ def loadbd(name=None,templates=None,**kw):
     sname = dict.get("solution")
     dname = dict.get("diagnostics")
     data = bifDiag.bifDiag(bname,sname,dname)
-    for sol in data():
-        sol.c.update(makefile = _runner.options["constants"]["makefile"])
     info("Parsed output data\n")
     return data
 commandParseOutputFiles = command(loadbd,SIMPLE,"loadbd",alias=['bd'])
@@ -2103,8 +2101,9 @@ def test():
         pass
     global info
 
-    runner = runAUTO.runAUTO(auto_dir=
-                             os.path.join(os.environ["AUTO_DIR"],"..","97"))
+    runner = runAUTO.runAUTO(
+        makefile="",
+        auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
     
     clean      = commandRunDemo("wav","clean",runner)
     first      = commandRunDemo("wav","first",runner)

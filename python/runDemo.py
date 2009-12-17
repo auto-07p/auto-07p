@@ -22,7 +22,7 @@ def test():
         def flush(self):
             log.flush()
             stdout.flush()
-    runDemo("ab",log=teelog(),err=err,
+    runDemo("ab",log=teelog(),err=err,makefile="",
             auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"),
             clean="yes")
     log.close()
