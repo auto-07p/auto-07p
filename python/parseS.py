@@ -752,7 +752,15 @@ class AUTOSolution(UserDict,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        runner = runAUTO.runAUTO(solution=self, constants=self.c, **kw)
+        self.c.update(**kw)
+        if self.c["e"] == "" or self.c["e"] is None:
+            raise AUTOExceptions.AUTORuntimeError(
+                "The equation file argument is missing.")
+        runner = runAUTO.runAUTO(equation="EQUATION_NAME=%s"%self.c["e"],
+                                 solution=self,
+                                 constants=self.c,
+                                 homcont=self.c["homcont"],
+                                 auto_dir=self.c["auto_dir"])
         return runner.run()
 
     def readAllFilename(self,filename):

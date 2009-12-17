@@ -59,23 +59,21 @@ class runAUTO:
             signal.signal(signal.SIGALRM, self.__handler)
 
         self.options={}
-        c = parseC.parseC()
-        c["auto_dir"] = None
-        c["dir"] = "."
-        c["homcont"] = None
         self.options["log"] = None
         self.options["err"] = None
+        self.options["auto_dir"] = None
         self.options["demos_dir"] = None
         self.options["equation"] = "all"
         self.options["verbose"] = "yes" # note: this is ignored!
         self.options["clean"] = "no"
+        self.options["dir"] = "."
         self.options["executable"] = None
         self.options["command"] = None
         self.options["makefile"] = None
-        self.options["constants"] = c
+        self.options["constants"] = parseC.parseC()
         self.options["solution"] = None
+        self.options["homcont"] = None
 
-        self.stdout, self.stderr = sys.stdout, sys.stderr
         self.config(**kw)
 
     def config(self,**kw):
@@ -83,8 +81,12 @@ class runAUTO:
         for key in list(kw):
             if key in self.options and key != "constants":
                 if key == 'log':
+                    if self.options[key] is None:
+                        self.stdout = sys.stdout
                     sys.stdout = kw[key] or self.stdout
                 elif key == 'err':
+                    if self.options[key] is None:
+                        self.stderr = sys.stderr
                     sys.stderr = kw[key] or self.stderr
                 self.options[key] = kw[key]
                 del kw[key]
@@ -107,9 +109,9 @@ class runAUTO:
         # return as the output data the last filename which was
         # either saved or appended to or
         # otherwise we assume it is fort.7 and fort.8
-        self.fort7_path = os.path.join(self.options["constants"]["dir"],files[0])
-        self.fort8_path = os.path.join(self.options["constants"]["dir"],files[1])
-        self.fort9_path = os.path.join(self.options["constants"]["dir"],files[2])
+        self.fort7_path = os.path.join(self.options["dir"],files[0])
+        self.fort8_path = os.path.join(self.options["dir"],files[1])
+        self.fort9_path = os.path.join(self.options["dir"],files[2])
 
     def __popen(self,args,stdin=None,stderr=None):
         # subprocess.Popen wrapper:
@@ -157,23 +159,23 @@ class runAUTO:
         # Garbage collect just before the run to make sure we're not
         # running out of memory quickly.
         gc.collect()
-        if self.options["constants"]["auto_dir"] is None:
+        if self.options["auto_dir"] is None:
             if "AUTO_DIR" in os.environ:
-                self.options["constants"]["auto_dir"]=os.environ["AUTO_DIR"]
+                self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
 
         if self.options["demos_dir"] is None:
-            self.options["demos_dir"] = os.path.join(self.options["constants"]["auto_dir"],
+            self.options["demos_dir"] = os.path.join(self.options["auto_dir"],
                                                      "demos")
-        self.options["constants"]["dir"] = os.path.join(self.options["demos_dir"],d)
+        self.options["dir"] = os.path.join(self.options["demos_dir"],d)
 
         sys.stderr.write("===%s start===\n"%(d,))
         curdir = os.getcwd()
-        os.chdir(self.options["constants"]["dir"])
+        os.chdir(self.options["dir"])
         if os.path.exists(d+".exe"):
             os.remove(d+".exe")
-        cmd = "make -e %s.exe AUTO_DIR=%s"%(d,self.options["constants"]["auto_dir"])
+        cmd = "make -e %s.exe AUTO_DIR=%s"%(d,self.options["auto_dir"])
         if "subprocess" in sys.modules:
             p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
             stdout,stderr = p.stdout,p.stderr
@@ -189,7 +191,7 @@ class runAUTO:
         self.runMakefile()
 
         if self.options["clean"] == "yes":
-            os.chdir(self.options["constants"]["dir"])
+            os.chdir(self.options["dir"])
             cmd = "make -e clean"
             if "subprocess" in sys.modules:
                 p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
@@ -211,7 +213,7 @@ class runAUTO:
         sys.stderr.write("===%s end===\n"%(d,))
 
     def __setup(self):
-        """     This function sets up self.options["constants"]["dir"] by creating
+        """     This function sets up self.options["dir"] by creating
         fort.2, fort.3 and fort.12 files.  The "constants", "solution",
         and "homcont" options 
         can be anything with a writeFilename method.  NOTE:  The
@@ -232,8 +234,8 @@ class runAUTO:
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
-        if self.options["constants"]["homcont"] is not None:
-            self.options["constants"]["homcont"].writeFilename("fort.12")
+        if self.options["homcont"] is not None:
+            self.options["homcont"].writeFilename("fort.12")
 
     def __newer(self,sources,target):
         targettime = os.stat(target)[stat.ST_MTIME]
@@ -245,7 +247,7 @@ class runAUTO:
     def __make(self,equation,fcon=False):
         # do the same as $AUTO_DIR/cmds/cmds.make but in Python
         # first get the configure-set variables
-        auto_dir = self.options["constants"]["auto_dir"]
+        auto_dir = self.options["auto_dir"]
         f = open(os.path.join(auto_dir,"cmds","cmds.make"),"r")
         var = {}
         for line in f:
@@ -323,38 +325,25 @@ class runAUTO:
             import parseS
             return parseS.AUTOSolution(self.options["solution"],**c).load()
 
-    def run(self,**kw):
+    def run(self):
         """Run AUTO.
 
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        self.config(**kw)
-
-        # figure out equation file name
-        equation = self.options["constants"]["e"]
-        e = None
-        for ext in [".f90",".f",".c"]:
-            if os.path.exists(equation+ext):
-                e = equation
-                break
-        if e is None:
-            if equation == "":
-                raise AUTOExceptions.AUTORuntimeError(
-                "The equation file argument is missing.")
-            raise AUTOExceptions.AUTORuntimeError(
-                "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
-                equation,equation,equation))
-        self.options["equation"] = "EQUATION_NAME=%s"%equation
-
-        return self.runMakefileWithSetup()
+        self.__setup()
+        self.runMakefile()
+        self.__outputCommand()
+        import bifDiag
+        return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
+                                   self.fort9_path,self.options["constants"])
 
     def runMakefileWithSetup(self,equation=None):
         self.__setup()
         self.runMakefile(equation)
-        return self.__outputCommand()
+        self.__outputCommand()
     def runMakefile(self,equation=None):        
-        """     This function expects self.options["constants"]["dir"] to be a directory with a Makefile in it and
+        """     This function expects self.options["dir"] to be a directory with a Makefile in it and
         a equation file all ready to run (i.e. the Makefile does all of the work,
         like with the demos).  Basically it runs:
         cd dir
@@ -367,15 +356,15 @@ class runAUTO:
         else:
             self.options["equation"] = equation
 
-        if self.options["constants"]["auto_dir"] is None:
+        if self.options["auto_dir"] is None:
             if "AUTO_DIR" in os.environ:
-                self.options["constants"]["auto_dir"]=os.environ["AUTO_DIR"]
+                self.options["auto_dir"]=os.environ["AUTO_DIR"]
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
 
         if self.options["makefile"] is None:
             curdir = os.getcwd()
-            os.chdir(self.options["constants"]["dir"])
+            os.chdir(self.options["dir"])
             equation = self.options["constants"]["e"]
             if self.__make(equation):
                 line = "Starting %s ...\n"%equation
@@ -399,12 +388,12 @@ class runAUTO:
             if self.options["makefile"] == "":
                 executable = ("make -e %s AUTO_DIR=%s"%
                               (self.options["equation"],
-                               self.options["constants"]["auto_dir"]))
+                               self.options["auto_dir"]))
             else:
                 executable = ("make -f %s -e %s AUTO_DIR=%s"%
                               (self.options["makefile"],
                                self.options["equation"],
-                               self.options["constants"]["auto_dir"]))
+                               self.options["auto_dir"]))
             path = os.environ["PATH"]
             os.environ["PATH"] = path+os.pathsep+"."
             self.runExecutable(executable)
@@ -413,9 +402,9 @@ class runAUTO:
     def runExecutableWithSetup(self,executable=None):
         self.__setup()
         self.runExecutable(executable)
-        return self.__outputCommand()
+        self.__outputCommand()
     def runExecutable(self,executable=None):
-        """     This function expects self.options["constants"]["dir"] to be a directory with an executable in it and
+        """     This function expects self.options["dir"] to be a directory with an executable in it and
         a equation file all ready to run.
         Basically it runs:
         cd dir
@@ -429,14 +418,14 @@ class runAUTO:
             self.options["executable"] = executable
 
         curdir = os.getcwd()
-        os.chdir(self.options["constants"]["dir"])
+        os.chdir(self.options["dir"])
         self.runCommand(executable)
         os.chdir(curdir)
 
     def runCommandWithSetup(self,command=None):
         self.__setup()
         self.runCommand(command)
-        return self.__outputCommand()
+        self.__outputCommand()
     def runCommand(self,command=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
@@ -449,7 +438,7 @@ class runAUTO:
                 raise AUTOExceptions.AUTORuntimeError("No command set")
         else:
             self.options["command"] = command
-        alarm_demo = self.options["constants"]["dir"]
+        alarm_demo = self.options["dir"]
         if demo_max_time > 0 and hasattr(signal,"alarm"):
             signal.alarm(demo_max_time)
         if hasattr(os,"times"):
@@ -540,13 +529,10 @@ class runAUTO:
     def __outputCommand(self):
         # Check to see if output files were created.
         # If not, there must have been an error
-        if (os.path.isfile(self.fort7_path) and
-            os.path.isfile(self.fort8_path) and
-            os.path.isfile(self.fort9_path)):
-            import bifDiag
-            return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,self.options["constants"])
-        raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
+        if (not os.path.isfile(self.fort7_path) or
+            not os.path.isfile(self.fort8_path) or
+            not os.path.isfile(self.fort9_path)):
+            raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
     log = StringIO()

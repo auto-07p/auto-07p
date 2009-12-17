@@ -48,14 +48,12 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 # Once the data is read in the class provides a dictionary
 # interface for manipulating the file.
 
-runner_keys = ["auto_dir", "homcont", "dir"]
-
 class parseC(dict):
     def __init__(self,filename=None,**kw):
         self["new"] = True
+        self["homcont"] = None
+        self["auto_dir"] = None
         if filename is not None and type(filename) != type(""):
-            if isinstance(filename,dict):
-                self["new"] = filename.get("new",True)
             dict.__init__(self,filename)
             self.update(**kw)
             return
@@ -103,20 +101,17 @@ class parseC(dict):
             value = dct["constants"]
             # preserve e, unames and parnames if not in a constants file
             # also preserve runner keys
-            for k in ["unames", "parnames", "e"]:
+            for k in ["unames", "parnames", "e", "homcont", "auto_dir"]:
                 if value[k] is None:
-                    value[k] = self[k]
-            for k in runner_keys:
-                if k in self and k not in value:
                     value[k] = self[k]
             self.clear()
             self.__init__(value)
             del dct["constants"]
         for key in dct:
             value = dct[key]
-            if self.get("homcont") is not None and key in self["homcont"]:
+            if self["homcont"] is not None and key in self["homcont"]:
                 self["homcont"][key] = value
-            elif key in self or key in runner_keys:
+            elif key in self:
                 self[key] = value
             elif (key not in ['t','LAB','PT','BR','TY',
                         '__constants','__homcont','__solution','__equation']

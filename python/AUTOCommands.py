@@ -1497,9 +1497,9 @@ def hpr(parameter=None,runner=None):
     """
     runner = withrunner(runner)
     if parameter is None:
-        info(str(runner.options["constants"]["homcont"]))
+        info(str(runner.options["homcont"]))
     else:
-        return runner.options["constants"]["homcont"][parameter]
+        return runner.options["homcont"][parameter]
 commandRunnerPrintFort12 = command(hpr)
 
 
@@ -1534,7 +1534,7 @@ def hch(entry=None,value=None,runner=None,**kw):
     """
     runner = withrunner(runner)
     if entry is not None:
-        runner.options["constants"]["homcont"][entry] = value
+        runner.options["homcont"][entry] = value
         info("%s changed to %s\n"%(entry,value))
     else:
         configure(runner,None,info=lambda s:None,**kw)
@@ -1635,7 +1635,7 @@ def runMakefileWithSetup(equation=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    data = runner.runMakefileWithSetup(equation)
+    runner.runMakefileWithSetup(equation)
 commandRunMakefileWithSetup = command(runMakefileWithSetup,alias=None)
 
 
@@ -1653,8 +1653,7 @@ def runExecutableWithSetup(executable=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    data = runner.runExecutableWithSetup(executable)
-    return data
+    runner.runExecutableWithSetup(executable)
 commandRunExecutableWithSetup = command(runExecutableWithSetup,alias=None)
 
 
@@ -1672,7 +1671,7 @@ def runCommandWithSetup(command=None,fort2=None,fort3=None,runner=None):
         runner.config(fort3=fort3)
     # Before this is called runner needs to have the fort2 and fort3
     # options set.  Otherwise this will raise an exception.
-    return runner.runCommandWithSetup(command)
+    runner.runCommandWithSetup(command)
 commandRunCommandWithSetup = command(runCommandWithSetup,alias=None)
 
 
