@@ -74,14 +74,23 @@ N = array
 #
 # Copyright (c) 2001-2004 Twisted Matrix Laboratories
 
+try:
+    unicode
+except NameError:  # 'unicode' is undefined, must be Python 3
+    basestring = (str,bytes) 
+else: # 'unicode' exists, must be Python 2
+    # Python2.2 has not basestring
+    try:
+        basestring
+    except NameError:
+        basestring = (str,unicode)
+
 def isiterable(value):
+    # no strings!
+    if isinstance(value, basestring): return False
     try:
         iter(value)
-        try: # no strings!
-            value+""
-            return False
-        except TypeError:
-            return True
+        return True
     except TypeError:
         return False
 

@@ -19,7 +19,7 @@ nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
 class bifDiag(parseB.parseBR):
     def __init__(self,fort7_filename=None,fort8_filename=None,
                  fort9_filename=None,constants=None):
-        if (constants is not None and constants['sv'] is not None and
+        if (constants is not None and constants.get('sv') is not None and
             type(fort7_filename) in (type(""),type(None)) and
             type(fort8_filename) in (type(""),type(None)) and
             type(fort9_filename) in (type(""),type(None))):
@@ -101,8 +101,8 @@ class bifDiag(parseB.parseBR):
                     s = solution[i]
                     if x.get("LAB",0) != 0 or s["LAB"] == 0:
                         i = i+1
-                        kw = {"constants": constants}
-                        s = x["solution"] = parseS.AUTOSolution(s, **kw)
+                        s = x["solution"] = parseS.AUTOSolution(
+                            s, constants=constants)
                         if d.coordnames != []:
                             s.b = d[ind]
 

@@ -55,7 +55,7 @@ signals = {
 class runAUTO:
     def __init__(self,**kw):
         # Set the signal handler
-        if hasattr(signal,'SIGALRM'):
+        if hasattr(signal,'SIGALRM') and demo_max_time > 0:
             signal.signal(signal.SIGALRM, self.__handler)
 
         self.options={}
@@ -97,15 +97,12 @@ class runAUTO:
         # now we also want to look at the log information to try and determine
         # where the data was written to
         files = ["fort.7", "fort.8", "fort.9"]
-        v = None
-        c = self.options["constants"]
-        if c is not None and c["sv"] is not None:
-            v = c["sv"]
-        else:
+        v = self.options["constants"].get("sv")
+        if v is None:
             value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
             if len(value):
                 v = value[-1][1]
-        if v:
+        if v is not None:
             files = ["b."+v, "s."+v, "d."+v]
         # return as the output data the last filename which was
         # either saved or appended to or
@@ -324,7 +321,7 @@ class runAUTO:
         else:
             import parseS
             solution = parseS.AUTOSolution(self.options["solution"],**kw).load()
-        self.options["constants"] = solution.c
+        self.config(constants=solution.c)
         return solution
 
     def run(self):
@@ -338,7 +335,7 @@ class runAUTO:
         self.__outputCommand()
         import bifDiag
         return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                                   self.fort9_path,self.options["constants"])
+                               self.fort9_path,self.options["constants"])
 
     def runMakefileWithSetup(self,equation=None):
         self.__setup()

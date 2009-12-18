@@ -49,10 +49,14 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 # interface for manipulating the file.
 
 class parseC(dict):
+
+    # These keys are preserved when reading in a new constants file,
+    # and the keys are not in the constants file
+    # Other keys are set to "None"
+    special_keys = ["unames", "parnames", "e", "homcont", "auto_dir"]
+
     def __init__(self,filename=None,**kw):
         self["new"] = True
-        self["homcont"] = None
-        self["auto_dir"] = None
         if filename is not None and type(filename) != type(""):
             dict.__init__(self,filename)
             self.update(**kw)
@@ -64,9 +68,9 @@ class parseC(dict):
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
-            'sv', 's', 'dat', 'e', 'unames', 'parnames',
+            'sv', 's', 'dat',
             "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","SP",
-                    "STOP"]:
+            "STOP"]:
             self[key] = None
         if filename:
             self.readFilename(filename)
@@ -98,20 +102,13 @@ class parseC(dict):
             dct = {}
         dct.update(kw)
         if "constants" in dct:
-            value = dct["constants"]
-            # preserve e, unames and parnames if not in a constants file
-            # also preserve runner keys
-            for k in ["unames", "parnames", "e", "homcont", "auto_dir"]:
-                if value[k] is None:
-                    value[k] = self[k]
-            self.clear()
-            self.__init__(value)
+            self.update(dct['constants'])
             del dct["constants"]
         for key in dct:
             value = dct[key]
-            if self["homcont"] is not None and key in self["homcont"]:
+            if self.get("homcont") is not None and key in self["homcont"]:
                 self["homcont"][key] = value
-            elif key in self:
+            elif key in self or key in self.special_keys:
                 self[key] = value
             elif key[:7] != 'Active ':
                 raise AUTOExceptions.AUTORuntimeError(
