@@ -1333,7 +1333,10 @@ def configure(runner=None,templates=None,**kw):
         info = globals()["info"]
     kw = applyRunnerConfigResolveAbbreviation(**kw)
     kw = applyRunnerConfigResolveFilenames(**kw)
-    solution = runner.load(**kw)
+    if hasattr(runner,'load'):
+        solution = runner.load(**kw)
+    else:
+        solution = parseS.AUTOSolution(runner,**kw).load()
     info("Runner configured\n")
     return solution
 commandRunnerConfig = command(configure,alias=None)
@@ -1394,12 +1397,9 @@ def load(data=None,runner=None,templates=None,**kw):
     """
     runner = withrunner(runner)
     if AUTOutil.isiterable(data):
-        if hasattr(data,'load'):
-            # data is a solution, solution list or bifurcation diagram
-            runner = data
-        else:
-            # data is a Python list array or Numpy list array
-            kw['s'] = data
+        # data is a solution, solution list or bifurcation diagram,
+        # a Python list array or Numpy list array
+        runner = data
     elif data is not None:
         # data is a string, integer or float
         for key in ["equation", "constants", "solution", "homcont"]:

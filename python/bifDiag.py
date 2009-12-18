@@ -89,11 +89,8 @@ class bifDiag(parseB.parseBR):
         if solution is not None:
             for d in self:
                 if constants is None and d.c is not None:
-                    constants = parseC.parseC(d.c)
-                    if d.c.get("e") is not None:
-                        constants["equation"] = "EQUATION_NAME="+d.c["e"]
-                else:
-                    constants = parseC.parseC(constants)
+                    constants = d.c
+                constants = parseC.parseC(constants)
                 for k in constants:
                     if k in self.nonekeys:
                         constants[k] = None

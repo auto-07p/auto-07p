@@ -438,6 +438,9 @@ class AUTOSolution(UserDict,Points.Pointset):
         "Label": "LAB"}
 
     def __init__(self,input=None,offset=None,name=None,**kw):
+        if "equation" in kw:
+            kw["e"] = kw["equation"][14:]
+            del kw["equation"]
         kwdata = {}
         for k in self.data_keys:
             if k in kw and k not in ["ISW","NTST","NCOL","NDIM","IPS"]:
@@ -768,9 +771,6 @@ class AUTOSolution(UserDict,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        if "equation" in kw:
-            kw["e"] = kw["equation"][14:]
-            del kw["equation"]
         if self["LAB"] != 0 and self["LAB"] != self.c.get("IRS"):
             kw["IRS"] = self["LAB"] 
         return AUTOSolution(self,**kw)
