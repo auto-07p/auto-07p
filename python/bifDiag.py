@@ -13,10 +13,11 @@ import types
 import sys
 import struct
 
-# some constants must not be preserved from run to run. These are:
-nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
-
 class bifDiag(parseB.parseBR):
+
+    # some constants must not be preserved from run to run. These are:
+    nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
+
     def __init__(self,fort7_filename=None,fort8_filename=None,
                  fort9_filename=None,constants=None):
         if (constants is not None and constants.get('sv') is not None and
@@ -92,7 +93,7 @@ class bifDiag(parseB.parseBR):
                 else:
                     constants = parseC.parseC(constants)
                 for k in constants:
-                    if k in nonekeys:
+                    if k in self.nonekeys:
                         constants[k] = None
                 for ind in d.labels.getIndices():
                     if i >= len(solution):

@@ -15,7 +15,6 @@ import os
 import AUTOutil
 import sys
 import glob
-import runAUTO
 import shutil
 
 SIMPLE=0
@@ -23,9 +22,6 @@ EXPERT=1
 
 
 import AUTOExceptions
-
-# Initialize a default runAUTO for those commands that use runAUTO object
-_runner = runAUTO.runAUTO()
 
 #############################################
 #  commands      
@@ -141,6 +137,7 @@ def demo(name,runner=None):
     files, always run demos in a clean work directory.  NOTE: This
     command automatically performs the load command as well.
     """
+    runner = withrunner(runner)
     lst = [commandCopyDemo(name)]
     slash = name.rfind("/")
     if slash != -1:
@@ -190,6 +187,7 @@ def us(name,templates=None):
     datfile = "%s.dat"%name
     info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                  datfile))
+    import runAUTO
     fconrun = runAUTO.runAUTO(makefile="$AUTO_DIR/cmds/cmds.make fcon")
     fconrun.config(e=name)
     fconrun.runMakefile(name)
@@ -1196,13 +1194,12 @@ commandCat = command(cat)
 
 ############################################
 #  Commands which use runAUTO
-############################################       
+############################################
+
+# This function is overridden in AUTOclui.py, so the AUTOSimpleFunctions
+# instance's runner can be used.
 def withrunner(runner=None):
-    if runner is None:
-        global _runner
-        return _runner
-    else:
-        return runner
+    return runner
 
 
 def cd(dir=None,runner=None):
@@ -1395,7 +1392,8 @@ def load(data=None,runner=None,templates=None,**kw):
     Special values for DS are '+' (forwards) and '-' (backwards).
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    if runner is None and AUTOutil.isiterable(data):
+    runner = withrunner(runner)
+    if AUTOutil.isiterable(data):
         if hasattr(data,'load'):
             # data is a solution, solution list or bifurcation diagram
             runner = data
@@ -1588,32 +1586,23 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     saves to the files b.hb, s.hb and d.hb, and appends to b.all,
     s.all, and d.all.
     """
+    runner = withrunner(runner)
     if sv is not None:
         kw['sv'] = sv
     solution = load(data,runner,templates,info=lambda msg:None,**kw)
-    sv = solution.c.get("sv")
-    if sv == '':
-        sv = None
     res = solution.run()
-    if sv is not None:
+    sv = solution.c.get("sv")
+    solution.c['sv'] = None
+    if sv is not None and sv != '':
         name = filenameTemplate(sv,templates)
         bname = name["bifurcationDiagram"]
         sname = name["solution"]
         dname = name["diagnostics"]
         info("Saving to %s, %s, and %s ... done\n"%(bname,sname,dname))
-    if ap is not None:
-        if sv is None:
-            append(ap)
-        else:
+        if ap is not None:
             append(sv,ap)
-    # if data is not a solution, solution list or bifurcation diagram
-    if (runner is not None or not hasattr(data,'load') or
-        not AUTOutil.isiterable(data)):
-        # delete ["sv"] from the runner
-        runner = withrunner(runner)
-        c = runner.options["constants"]
-        if "sv" in c:
-            c["sv"] = None
+    elif ap is not None:
+        append(ap)
     return res
 commandRun = command(run,SIMPLE,"run",alias=['r','rn'])
 

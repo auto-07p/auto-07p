@@ -3,6 +3,7 @@ import AUTOutil
 import sys
 import os
 import AUTOCommands
+import runAUTO
 import interactiveBindings
 try:
     import __builtin__
@@ -12,21 +13,13 @@ except ImportError:
     from types import FunctionType
 
 class AUTOSimpleFunctions:
-    def __init__(self,outputRecorder=None):
-        # Initialize the output recorder (if any)
-        if outputRecorder:
-            # This is here so the log gets kept
-            stdout = sys.stdout
-            class WriteLog(object):
-                def write(self,s):
-                    outputRecorder.write(s)
-                    stdout.write(s)
-                def flush(self):
-                    outputRecorder.flush()
-                    stdout.flush()
-
-            writelog = WriteLog()
-            AUTOCommands._runner.config(log=writelog)
+    def __init__(self,runner=None):
+        
+        # Initialize the global AUTO runner
+        if runner is None:
+            self._runner = runAUTO.runAUTO()
+        else:
+            self._runner = runner
 
         # Read in the aliases.
         self._aliases = None
@@ -46,17 +39,25 @@ class AUTOSimpleFunctions:
         for key, aliases in self._aliases.items():
             for alias in aliases:
                 f = self._copyfunction(getattr(AUTOCommands,key).fun, alias)
-                setattr(AUTOSimpleFunctions, alias, staticmethod(f))
+                setattr(self, alias, f)
                 doc = getattr(AUTOCommands,key).__doc__
                 doc = self._adjustdoc(doc, alias, key)
                 f.__doc__ = doc
 
     def _copyfunction(self, f, key):
+
+        def withrunner(runner=None):
+            return self._runner or runner
+
         if 'FunctionType' in globals():
-            return FunctionType(f.__code__, f.__globals__, key,
+            func_globals = f.__globals__.copy()
+            func_globals["withrunner"] = withrunner
+            return FunctionType(f.__code__, func_globals, key,
                                 f.__defaults__, f.__closure__)
         else:
-            return function(f.func_code, f.func_globals, key,
+            func_globals = f.func_globals.copy()
+            func_globals["withrunner"] = withrunner
+            return function(f.func_code, func_globals, key,
                             f.func_defaults or ())
 
     def _adjustdoc(self, doc, commandname, truecommandname = None):
@@ -92,17 +93,17 @@ class AUTOSimpleFunctions:
                     if addaliases and cmd.alias is not None:
                         self._aliases[key] = [cmd.fun.__name__] + cmd.alias
                     f = self._copyfunction(cmd.fun, key)
-                    setattr(AUTOSimpleFunctions, key, staticmethod(f))
+                    setattr(self, key, f)
                     doc = cmd.__doc__
                     doc = self._adjustdoc(doc, key)
                     f.__doc__ = doc
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
-def exportFunctions(log=None):
-    AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(log)
+def exportFunctions(runner=None):
+    AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(runner)
     dict = {}
-    for name in AUTOSimpleFunctions.__dict__:
+    for name in AUTOSimpleFunctionsInstance.__dict__:
         if name[0] != '_':
             dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
     return dict

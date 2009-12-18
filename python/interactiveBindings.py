@@ -53,6 +53,10 @@ class AUTOInteractive(object):
     will proceed each time you press Enter.
 
 Aliases: demofile dmf"""
+        import AUTOclui
+        AUTOInteractiveConsole(AUTOclui.exportFunctions())._demofile(name)
+
+    def _demofile(self,name):
         oldname = self.execfilename
         self.execfilename = name
         lines = open(name,"r")
@@ -121,7 +125,7 @@ Aliases: auto ex"""
     Type ex('xxx.auto') to run the script xxx.auto.
 
 Aliases: auto ex"""
-        self.execfile(name)
+        self.auto(name)
 
     def auto(self,name=None):
         """Execute an AUTO CLUI script.
@@ -129,7 +133,11 @@ Aliases: auto ex"""
     Type auto('xxx.auto') to run the script xxx.auto.
 
 Aliases: ex"""
-        self.execfile(name)
+        import AUTOclui
+        if name is not None:
+            AUTOInteractiveConsole(AUTOclui.exportFunctions()).execfile(name)
+        else:
+            self.execfile()
 
     def help(self,*args,**kwds):
         if len(args) == 0 and len(kwds) == 0:
@@ -334,12 +342,24 @@ def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     
 def _testFilename(inputname,outputname):
-    import AUTOclui, AUTOutil, AUTOCommands
+    import AUTOclui, AUTOutil, runAUTO
     old_path = os.getcwd()
     log = open("log","w")
-    runner = AUTOInteractiveConsole(AUTOclui.exportFunctions(log))
-    runner.execfile(inputname)
-    AUTOCommands._runner.config(log=None)
+
+    # This is here so the log gets kept
+    stdout = sys.stdout
+    class WriteLog(object):
+        def write(self,s):
+            log.write(s)
+            stdout.write(s)
+        def flush(self):
+            log.flush()
+            stdout.flush()
+
+    runner = runAUTO.runAUTO(log=WriteLog())
+    console = AUTOInteractiveConsole(AUTOclui.exportFunctions(runner))
+    console.execfile(inputname)
+    runner.config(log=None)
     log.close()
     os.chdir(old_path)
     cmd = ["diff","--ignore-matching-lines='gfortran.*'",
@@ -447,7 +467,7 @@ def automain(name=None):
                 sys.stdout.write("Python %s on %s\n%s\n(%s)\n" %
                            (sys.version, sys.platform, sys.copyright,
                             runner.__class__.__name__))
-                runner.demofile(arg)
+                runner._demofile(arg)
     elif use_ipython:
         autoipython(funcs)
     elif "-c" in opts:
