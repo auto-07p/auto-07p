@@ -145,6 +145,7 @@ class runAUTO:
                 os.kill(pid,signal.SIGKILL)
             else:
                 os.system("sh -c '%s'"%command)
+        sys.stdout.flush()
         # Restart the alarm to make sure everything gets killed
         if hasattr(signal,"alarm"):
             signal.alarm(20)
@@ -475,6 +476,7 @@ class runAUTO:
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
     def __runCommand_noredir(self,command=None):
+        sys.stdout.flush()
         args = os.path.expandvars(command).split()
         if "subprocess" in sys.modules:
             return subprocess.call(args)
@@ -505,6 +507,7 @@ class runAUTO:
                 try:
                     line = stdout.readline()
                     sys.stdout.write(line)
+                    sys.stdout.flush()
                     tmp_out.append(line)
                 except IOError:
                     demo_killed = 1
@@ -518,6 +521,7 @@ class runAUTO:
         while len(line) > 0:
             tmp_out.append(line)
             sys.stdout.write(line)
+            sys.stdout.flush()
             line = stdout.readline()
         self.__analyseLog("".join(tmp_out))
         sys.stderr.write(stderr.read())
