@@ -1323,6 +1323,9 @@ def configure(runner=None,templates=None,**kw):
             if not doneread:
                 raise AUTOExceptions.AUTORuntimeError(
                     "No equations file found for: '%s'"%eq)
+        for key in ["__constants","__homcont","__solution","__equation"]:
+            if key in kw:
+                del kw[key]
         return kw
 
     runner = withrunner(runner)
@@ -1392,14 +1395,15 @@ def load(data=None,runner=None,templates=None,**kw):
     Special values for DS are '+' (forwards) and '-' (backwards).
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    if runner is None:
-        if isinstance(data, (parseS.AUTOSolution, bifDiag.bifDiag)):
+    if runner is None and hasattr(data,'__len__') and not isinstance(data, str):
+        if hasattr(data,'load'):
+            # data is a solution, solution list or bifurcation diagram
             runner = data
-            data = None
-        elif hasattr(data,"__len__") and not isinstance(data, str):
-            kw["s"] = data
-            data = None
-    if data is not None:
+        else:
+            # data is a Python list array or Numpy list array
+            kw['s'] = data
+    elif data is not None:
+        # data is a string, integer or float
         for key in ["equation", "constants", "solution", "homcont"]:
             if key not in kw:
                 kw[key] = data
@@ -1586,15 +1590,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     """
     if sv is not None:
         kw['sv'] = sv
-    if runner is None:
-        if isinstance(data, (parseS.AUTOSolution, bifDiag.bifDiag)):
-            runner = data
-            data = None
-        elif isinstance(data, parseS.parseS) and "s" not in kw:
-            kw["s"] = data
-            data = None
-    kw["info"] = lambda msg:None
-    solution = load(data,runner,templates,**kw)
+    solution = load(data,runner,templates,info=lambda msg:None,**kw)
     sv = solution.c.get("sv")
     if sv == '':
         sv = None
@@ -1610,10 +1606,11 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
             append(ap)
         else:
             append(sv,ap)
-    if runner is None:
-        # delete ["sv"] from the global runner
-        global _runner
-        c = _runner.options["constants"]
+    # if data is not a solution, solution list or bifurcation diagram
+    if runner is not None or not hasattr(data,'load') or isinstance(data, str):
+        # delete ["sv"] from the runner
+        runner = withrunner(runner)
+        c = runner.options["constants"]
         if "sv" in c:
             c["sv"] = None
     return res

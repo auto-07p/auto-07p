@@ -397,7 +397,29 @@ class AUTOParameters(Points.Point):
 # of opening the file.
 
 class AUTOSolution(UserDict,Points.Pointset):
+
+    data_keys = ["PT", "BR", "TY number", "TY", "LAB",
+                 "ISW", "NTST", "NCOL", "Active ICP", "rldot",
+                 "udotps", "NPARI", "NDIM", "IPS", "IPRIV"]
+
+    long_data_keys = {
+        "Parameters": "p",
+        "parameters": "p",
+        "Parameter NULL vector": "rldot",
+        "Free Parameters": "Active ICP",
+        "Point number": "PT",
+        "Branch number": "BR",
+        "Type number": "TY number",
+        "Type name": "TY",
+        "TY name": "TY",
+        "Label": "LAB"}
+
     def __init__(self,input=None,offset=None,name=None,**kw):
+        kwdata = {}
+        for k in self.data_keys:
+            if k in kw and k not in ["ISW","NTST","NCOL","NDIM","IPS"]:
+                kwdata[k] = kw[k]
+                del kw[k]
         c = kw.get("constants",{}) or {}
         par = None
         coordarray = None
@@ -456,20 +478,6 @@ class AUTOSolution(UserDict,Points.Pointset):
                 if names != {}:
                     for i in range(1,max(names)+1):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
-            self.data_keys = ["PT", "BR", "TY number", "TY", "LAB",
-                              "ISW", "NTST", "NCOL", "Active ICP", "rldot",
-                              "udotps", "NPARI", "NDIM", "IPS", "IPRIV"]
-            self.long_data_keys = {
-                "Parameters": "p",
-                "parameters": "p",
-                "Parameter NULL vector": "rldot",
-                "Free Parameters": "Active ICP",
-                "Point number": "PT",
-                "Branch number": "BR",
-                "Type number": "TY number",
-                "Type name": "TY",
-                "TY name": "TY",
-                "Label": "LAB"}
             if input is None:
                 pass
             elif isinstance(input,(file,gzip.GzipFile)):
@@ -548,10 +556,8 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self.name = c["e"]
             elif self.name is None:
                 self.name = ''
-        for k,v in kw.items():
-            if k in self.data_keys and k not in ["ISW","NTST","NCOL",
-                                                 "NDIM","IPS"]:
-                self[k] = v
+        for k,v in kwdata.items():
+            self[k] = v
         if par is None:
             par = kw.get("PAR",c.get("PAR"))
         if (par is not None and

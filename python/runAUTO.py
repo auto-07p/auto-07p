@@ -74,12 +74,12 @@ class runAUTO:
         self.options["solution"] = None
         self.options["homcont"] = None
 
-        self.config(**kw)
+        kw = self.config(**kw)
 
     def config(self,**kw):
         """     Change the options for this runner object"""
-        for key in list(kw):
-            if key in self.options and key != "constants":
+        for key in self.options:
+            if key in kw:
                 if key == 'log':
                     if self.options[key] is None:
                         self.stdout = sys.stdout
@@ -90,7 +90,8 @@ class runAUTO:
                     sys.stderr = kw[key] or self.stderr
                 self.options[key] = kw[key]
                 del kw[key]
-        self.options["constants"].update(**kw)
+
+        return kw
 
     def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
@@ -314,16 +315,17 @@ class runAUTO:
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        self.config(**kw)
-        c = self.options["constants"].copy()
-        c['e'] = self.options["equation"][14:]
+        kw = self.config(**kw)
+        kw['e'] = self.options["equation"][14:]
+        for key in ["constants", "homcont", "auto_dir"]:
+            kw[key] = self.options[key]
         if hasattr(self.options["solution"],'load'):
-            return self.options["solution"].load(**c)
+            solution = self.options["solution"].load(**kw)
         else:
-            if 't' in kw:
-                c['t'] = kw['t']
             import parseS
-            return parseS.AUTOSolution(self.options["solution"],**c).load()
+            solution = parseS.AUTOSolution(self.options["solution"],**kw).load()
+        self.options["constants"] = solution.c
+        return solution
 
     def run(self):
         """Run AUTO.

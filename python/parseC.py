@@ -113,11 +113,7 @@ class parseC(dict):
                 self["homcont"][key] = value
             elif key in self:
                 self[key] = value
-            elif (key not in ['t','LAB','PT','BR','TY',
-                        '__constants','__homcont','__solution','__equation']
-                  and key[:7] != 'Active '):
-                raise ValueError(
-                    "Unknown option: %s"%(key,))
+            elif key[:7] != 'Active ':
                 raise AUTOExceptions.AUTORuntimeError(
                     "Unknown option: %s"%(key,))
             
