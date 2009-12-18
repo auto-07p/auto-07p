@@ -35,6 +35,8 @@ class bifDiag(parseB.parseBR):
         ioerrors = []
         try:
             parseB.parseBR.__init__(self,fort7_filename)
+            for i, d in enumerate(self):
+                self[i] = bifDiagBranch(d)
         except IOError:
             ioerrors.append(str(sys.exc_info()[1]))
             parseB.parseBR.__init__(self)
@@ -56,7 +58,7 @@ class bifDiag(parseB.parseBR):
                 if labels == {} or br != branch.BR:
                     if labels != {}:
                         branch.labels = Points.PointInfo(labels)
-                    branch = parseB.AUTOBranch()
+                    branch = bifDiagBranch()
                     self.append(branch)
                     branch.BR = br
                     branch.coordarray = []
@@ -88,7 +90,7 @@ class bifDiag(parseB.parseBR):
             for d in self:
                 if constants is None and d.c is not None:
                     constants = parseC.parseC(d.c)
-                    if d.c["e"] is not None:
+                    if d.c.get("e") is not None:
                         constants["equation"] = "EQUATION_NAME="+d.c["e"]
                 else:
                     constants = parseC.parseC(constants)
@@ -129,32 +131,13 @@ class bifDiag(parseB.parseBR):
         return "<_=%s instance at %#010x>"%(self.__class__.__name__,result)
 
     def getLabel(self,label):
-        sols = []
+        sols = parseS.parseS()
         #adjust maximum label/branch
-        mbr, mlab = 0, 0
+        mbr = max([d["BR"] for d in self])
+        mlab = max(self.getLabels())
         for d in self:
-            if abs(d["BR"]) > mbr: mbr = abs(d["BR"])
-            for k, x in map(d._gettypelabel, d.labels.getIndices()):
-                if "solution" in x and x["LAB"] > mlab:
-                    mlab = x["LAB"]
-        for d in self:
-            for idx in d.labels.getIndices():
-                x = d._gettypelabel(idx)[1]
-                if "solution" in x:
-                    br = abs(d["BR"])
-                    pt = idx%9999 + 1
-                    lab = x["LAB"]
-                    ty = x["TY number"]
-                    sol = x["solution"]
-                    if (sol._mlab != mlab or sol._mbr != mbr or
-                        br != sol["BR"] or pt != sol["PT"] or
-                        ty != sol["TY number"] or lab != sol["LAB"]):
-                        sol = sol.__class__(sol, BR=br, PT=pt,
-                                            LAB=lab, TY=ty)
-                        sol._mlab = mlab
-                        sol._mbr = mbr
-                    sols.append(sol)
-        return parseS.parseS(sols)(label)
+            sols.extend(d.getLabel(None,mbr=mbr,mlab=mlab))
+        return sols(label)
 
     def __call__(self,label=None):
         return self.getLabel(label)
@@ -167,6 +150,8 @@ class bifDiag(parseB.parseBR):
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)
+        for i, d in enumerate(self):
+            self[i] = bifDiagBranch(d)
         if fort8_input is not None and (
             isinstance(fort8_input, (file, gzip.GzipFile))):
             solution = parseS.parseS()
@@ -194,6 +179,8 @@ class bifDiag(parseB.parseBR):
 
     def readFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
         parseB.parseBR.readFilename(self,fort7_filename)
+        for i, d in enumerate(self):
+            self[i] = bifDiagBranch(d)
         if fort8_filename is not None and isinstance(fort8_filename, str):
             solution = parseS.parseS(fort8_filename)
             i = 0
@@ -220,47 +207,76 @@ class bifDiag(parseB.parseBR):
                     d.diagnostics.writeFilename(fort9_filename,append)
                     append=True
 
+class bifDiagBranch(parseB.AUTOBranch):
+    def __init__(self,input):
+        parseB.AUTOBranch.__init__(self,input)
+
+    def getLabel(self,label,mbr=None,mlab=None):
+        sols = []
+        for idx in self.labels.getIndices():
+            x = self._gettypelabel(idx)[1]
+            if "solution" in x:
+                br = abs(self["BR"])
+                pt = idx%9999 + 1
+                lab = x["LAB"]
+                ty = x["TY number"]
+                sol = x["solution"]
+                if (sol._mlab != mlab or sol._mbr != mbr or
+                    br != sol["BR"] or pt != sol["PT"] or
+                    ty != sol["TY number"] or lab != sol["LAB"]):
+                    sol = sol.__class__(sol, BR=br, PT=pt,
+                                        LAB=lab, TY=ty)
+                    sol._mlab = mlab
+                    sol._mbr = mbr
+                sols.append(sol)
+        return parseS.parseS(sols)(label)
+
+    def load(self,**kw):
+        """Load solution with the given AUTO constants.
+        Returns a shallow copy with a copied set of updated constants
+        """
+        return self().load(**kw)
+
+    def write(self,fort7_output,fort8_output=None,fort9_output=None):
+        parseB.AUTOBranch.write(self,fort7_output)
+        if fort8_output is not None:
+            self().write(fort8_output)
+        if fort9_output is not None:
+            if hasattr(self,"diagnostics"):
+                self.diagnostics.write(fort9_output)
+
+    def writeFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None,append=False):
+        #if only one filename is given, then just save the solutions file
+        if fort8_filename is None:
+            fort8_filename = fort7_filename
+        elif len(self) > 0:
+            parseB.AUTOBranch.writeFilename(self,fort7_filename,append)
+        if fort8_filename != '':
+            self().writeFilename(fort8_filename,append)
+        if not fort9_filename is None:
+            if hasattr(self,"diagnostics"):
+                self.diagnostics.writeFilename(fort9_filename,append)
+                append=True
+
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
 
         # accept a user-defined boolean function
         if isinstance(label, types.FunctionType):
-            f = label
-            cnt = getattr(f,"func_code",getattr(f,"__code__",None)).co_argcount
-            if cnt == 1:
-                # function takes just one parameter
-                label = [s["LAB"] for s in self() if f(s)]
-            elif cnt == 2:
-                # function takes two parameters: compare all solutions
-                # with each other
-                sols = self()
-                indices = set([])
-                for i1, s1 in enumerate(sols):
-                    if i1 in indices:
-                        continue
-                    for i2 in range(i1+1,len(sols)):
-                        if i2 not in indices and f(s1, sols[i2]):
-                            indices.add(i2)
-                label = [sols[i]["LAB"] for i in sorted(indices)]
-            else:
-                raise AUTOExceptions.AUTORuntimeError(
-                    "Invalid number of arguments for %s."%f.__name__)
-
-        new = parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
+            label = [s["LAB"] for s in self(label)]
+        new = parseB.AUTOBranch.deleteLabel(self,label,keepTY,keep,copy)
         if copy:
-            for i, branch in enumerate(self):
-                if hasattr(branch,"diagnostics"):
-                    new[i].diagnostics = branch.diagnostics
+            if hasattr(self,"diagnostics"):
+                new.diagnostics = self.diagnostics
             return new
 
-    def relabel(self,old_label=None,new_label=None):
-        if old_label is None and new_label is None:
-            new = parseB.parseBR.relabel(self)
-            for i, branch in enumerate(self):
-                if hasattr(branch,"diagnostics"):
-                    new[i].diagnostics = branch.diagnostics
+    def relabel(self,old_label=1,new_label=None):
+        """Relabels the first solution with the given label"""
+        if new_label is None:
+            new = self.__class__(parseB.AUTOBranch.relabel(self,old_label))
+            if hasattr(self,"diagnostics"):
+                new.diagnostics = self.diagnostics
             return new
-        parseB.parseBR.relabel(self,old_label,new_label)
-        self().relabel(old_label,new_label)
+        parseB.AUTOBranch.relabel(self,old_label,new_label)
     
 def pointtest7(a,b):
     if "TY name" not in a:

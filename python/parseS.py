@@ -37,6 +37,7 @@ import Points
 import runAUTO
 import gzip
 import AUTOutil
+import types
 
 # End of data exception definition
 class PrematureEndofData(Exception):
@@ -242,6 +243,28 @@ class parseS(list):
                     if i == number:
                         return d
             raise KeyError("Label %s not found"%label)
+        if isinstance(label, types.FunctionType):
+            # accept a user-defined boolean function
+            f = label
+            cnt = getattr(f,"func_code",getattr(f,"__code__",None)).co_argcount
+            if cnt == 1:
+                # function takes just one parameter
+                s = [s for s in self if f(s)]
+            elif cnt == 2:
+                # function takes two parameters: compare all solutions
+                # with each other
+                indices = set([])
+                for i1, s1 in enumerate(self):
+                    if i1 in indices:
+                        continue
+                    for i2 in range(i1+1,len(sols)):
+                        if i2 not in indices and f(s1, sols[i2]):
+                            indices.add(i2)
+                s = [sols[i] for i in sorted(indices)]
+            else:
+                raise AUTOExceptions.AUTORuntimeError(
+                    "Invalid number of arguments for %s."%f.__name__)
+            return self.__class__(s)
         if isinstance(label, (str, int)):
             label = [label]        
         data = []

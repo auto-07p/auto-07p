@@ -1459,10 +1459,14 @@ def loadbd(name=None,templates=None,**kw):
         for key in lst:
             if key not in kw:
                 kw[key] = name
-    dict = __applyBsdConfigResolveAbbreviation(**kw)
-    bname = dict.get("bifurcationDiagram")
-    sname = dict.get("solution")
-    dname = dict.get("diagnostics")
+    if name is None and kw == {}:
+        bname, sname, dname = "fort.7", "fort.8", "fort.9"
+    else:
+        dict = __applyBsdConfigResolveAbbreviation(**kw)
+        bname = dict.get("bifurcationDiagram")
+        sname = dict.get("solution")
+        dname = dict.get("diagnostics")
+
     data = bifDiag.bifDiag(bname,sname,dname)
     info("Parsed output data\n")
     return data

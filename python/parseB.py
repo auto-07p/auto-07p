@@ -280,7 +280,7 @@ class BDPoint(Points.Point):
 class AUTOBranch(parseBMixin, Points.Pointset):
     def __init__(self,input=None,prevline=None,coordnames=[]):
         self.__fullyParsed = True
-        if isinstance(input,self.__class__):
+        if isinstance(input,AUTOBranch):
             for k,v in input.__dict__.items():
                 self.__dict__[k] = v
         elif input is not None:
