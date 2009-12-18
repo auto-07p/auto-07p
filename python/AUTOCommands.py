@@ -1395,7 +1395,7 @@ def load(data=None,runner=None,templates=None,**kw):
     Special values for DS are '+' (forwards) and '-' (backwards).
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
-    if runner is None and hasattr(data,'__len__') and not isinstance(data, str):
+    if runner is None and AUTOutil.isiterable(data):
         if hasattr(data,'load'):
             # data is a solution, solution list or bifurcation diagram
             runner = data
@@ -1607,7 +1607,8 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
         else:
             append(sv,ap)
     # if data is not a solution, solution list or bifurcation diagram
-    if runner is not None or not hasattr(data,'load') or isinstance(data, str):
+    if (runner is not None or not hasattr(data,'load') or
+        not AUTOutil.isiterable(data)):
         # delete ["sv"] from the runner
         runner = withrunner(runner)
         c = runner.options["constants"]
