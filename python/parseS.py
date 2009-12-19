@@ -454,25 +454,6 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self.__dict__[k] = v
             self.c = parseC.parseC(self.c, **kw)
             self.data = self.data.copy()
-            names = kw.get("unames",c.get("unames"))
-            if names is not None:
-                if type(names) != type({}):
-                    names = dict(names)
-                for i in range(len(self.coordnames)):
-                    self.coordnames[i] = names.get(i+1,'U('+str(i+1)+')')
-            names = kw.get("parnames",c.get("parnames"))
-            if names is not None:
-                if type(names) != type({}):
-                    names = dict(names)
-                if names != {}:
-                    l = len(self.__parnames)
-                    self.__parnames = []
-                    for i in range(1,max(names)+1,l+1):
-                        self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
-            if self.__fullyParsed:
-                self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                          coordarray=Points.array(self.PAR),
-                                          name=self.name)
         else:
             UserDict.__init__(self)
             self.c = parseC.parseC(**kw)
@@ -487,92 +468,45 @@ class AUTOSolution(UserDict,Points.Pointset):
             self.data.update({"BR":1, "PT":1, "TY number":9, "LAB":0,
                               "ISW":1, "NTST": 1, "NCOL": 0,
                               "NPARI":0, "NDIM": 0, "IPS": None, "IPRIV":0})
-            names = kw.get("unames",c.get("unames"))
             self.indepvarname = 't'
             self.coordnames = []
-            if names is not None:
-                if type(names) != type({}):
-                    names = dict(names)
-                if names != {}:
-                    for i in range(1,max(names)+1):
-                        self.coordnames.append(names.get(i,'U('+str(i)+')'))
-            names = kw.get("parnames",c.get("parnames"))
             self.__parnames = []
-            if names is not None:
-                if type(names) != type({}):
-                    names = dict(names)
-                if names != {}:
+
+        names = kw.get("unames",c.get("unames"))
+        if names is not None:
+            if type(names) != type({}):
+                names = dict(names)
+            if isinstance(input,self.__class__):
+                for i in range(len(self.coordnames)):
+                    self.coordnames[i] = names.get(i+1,'U('+str(i+1)+')')
+            elif names != {}:
+                for i in range(1,max(names)+1):
+                    self.coordnames.append(names.get(i,'U('+str(i)+')'))
+
+        names = kw.get("parnames",c.get("parnames"))
+        if names is not None:
+            if type(names) != type({}):
+                names = dict(names)
+            if names != {}:
+                if isinstance(input,self.__class__):
+                    l = len(self.__parnames)
+                    self.__parnames = []
+                    for i in range(1,max(names)+1,l+1):
+                        self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
+                else:
                     for i in range(1,max(names)+1):
                         self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
-            if input is None:
-                pass
-            elif isinstance(input,(file,gzip.GzipFile)):
-                self.read(input,offset)
-            else:
-                par = kw.get("PAR",c.get("PAR")) or []
-                if type(par) == type({}):
-                    par = par.items()
-                #init from array
-                if not Points.numpyimported:
-                    Points.importnumpy()        
-                N = Points.N
-                if not hasattr(input[0],'__len__'):
-                    # point
-                    indepvararray = [0.0]
-                    coordarray = []
-                    ncol = 0
-                    ntst = 1
-                    for d in input:
-                        coordarray.append([d])
-                else:
-                    # time + solution
-                    if "t" in kw:
-                        indepvararray = kw["t"]
-                        coordarray = input
-                    else:
-                        indepvararray = input[0]
-                        coordarray = input[1:]
-                    ncol = 1
-                    ntst = len(indepvararray)-1
-                    t0 = indepvararray[0]
-                    period = indepvararray[-1] - t0
-                    if period != 1.0 or t0 != 0.0:
-                        #scale to [0,1]
-                        for i in range(len(indepvararray)):
-                            indepvararray[i] = (indepvararray[i] - t0)/period
-                    if 11 not in dict(par):
-                        par = [[11,period]] + par
-                indepvarname = "t"
-                coordnames = []
-                for i in range(len(coordarray)):
-                    coordnames.append("U("+str(i+1)+")")
-                names = kw.get("unames",c.get("unames")) or {}
-                if type(names) == type({}):
-                    names = names.items()
-                for k,v in names:
-                    if k > 0 and k <= len(coordnames):
-                        coordnames[k-1] = v
-                ndim = len(coordarray)
-                if ndim < len(self.coordnames):
-                    self.coordnames = self.coordnames[:ndim]
-                pdict = {"indepvararray": indepvararray,
-                         "indepvarname": indepvarname,
-                         "coordarray": coordarray,
-                         "coordnames": coordnames}
-                if "equation" in kw:
-                    pdict["name"] = kw["equation"][14:]
-                Points.Pointset.__init__(self,pdict)
-                self.__fullyParsed = True
-                self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1,
-                                  "NDIM": ndim})
-                if par != []:
-                    m = len(self.__parnames)
-                    for k in dict(par):
-                        if not isinstance(k,str):
-                            m = max(k,m)
-                    p = m*[0.0]
-                    self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                          coordarray=p, name=self.name)
+
+        if isinstance(input,self.__class__):
+            if self.__fullyParsed:
+                self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                          coordarray=Points.array(self.PAR),
+                                          name=self.name)
+        elif isinstance(input,(file,gzip.GzipFile)):
+            self.read(input,offset)
+        elif input is not None:
+            self.__readarray(input,kw,c)
+
         if self.name is None or os.path.basename(self.name) == 'fort.8':
             if "equation" in kw:
                 self.name = kw["equation"][14:]
@@ -1062,6 +996,72 @@ class AUTOSolution(UserDict,Points.Pointset):
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
                 "name": self.name})
+
+    def __readarray(self,input,kw,c):
+        par = kw.get("PAR",c.get("PAR")) or []
+        if type(par) == type({}):
+            par = par.items()
+        #init from array
+        if not Points.numpyimported:
+            Points.importnumpy()        
+        N = Points.N
+        if not hasattr(input[0],'__len__'):
+            # point
+            indepvararray = [0.0]
+            coordarray = []
+            ncol = 0
+            ntst = 1
+            for d in input:
+                coordarray.append([d])
+        else:
+            # time + solution
+            if "t" in kw:
+                indepvararray = kw["t"]
+                coordarray = input
+            else:
+                indepvararray = input[0]
+                coordarray = input[1:]
+            ncol = 1
+            ntst = len(indepvararray)-1
+            t0 = indepvararray[0]
+            period = indepvararray[-1] - t0
+            if period != 1.0 or t0 != 0.0:
+                #scale to [0,1]
+                for i in range(len(indepvararray)):
+                    indepvararray[i] = (indepvararray[i] - t0)/period
+            if 11 not in dict(par):
+                par = [[11,period]] + par
+        indepvarname = "t"
+        coordnames = []
+        for i in range(len(coordarray)):
+            coordnames.append("U("+str(i+1)+")")
+        names = kw.get("unames",c.get("unames")) or {}
+        if type(names) == type({}):
+            names = names.items()
+        for k,v in names:
+            if k > 0 and k <= len(coordnames):
+                coordnames[k-1] = v
+        ndim = len(coordarray)
+        if ndim < len(self.coordnames):
+            self.coordnames = self.coordnames[:ndim]
+        pdict = {"indepvararray": indepvararray,
+                 "indepvarname": indepvarname,
+                 "coordarray": coordarray,
+                 "coordnames": coordnames}
+        if "equation" in kw:
+            pdict["name"] = kw["equation"][14:]
+        Points.Pointset.__init__(self,pdict)
+        self.__fullyParsed = True
+        self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1,
+                          "NDIM": ndim})
+        if par != []:
+            m = len(self.__parnames)
+            for k in dict(par):
+                if not isinstance(k,str):
+                    m = max(k,m)
+            p = m*[0.0]
+            self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                  coordarray=p, name=self.name)
 
     def __getattr__(self,attr):
         if self.__start_of_header is None:
