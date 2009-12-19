@@ -257,10 +257,10 @@ class parseS(list):
                 for i1, s1 in enumerate(self):
                     if i1 in indices:
                         continue
-                    for i2 in range(i1+1,len(sols)):
-                        if i2 not in indices and f(s1, sols[i2]):
+                    for i2 in range(i1+1,len(self)):
+                        if i2 not in indices and f(s1, self[i2]):
                             indices.add(i2)
-                s = [sols[i] for i in sorted(indices)]
+                s = [self[i] for i in sorted(indices)]
             else:
                 raise AUTOExceptions.AUTORuntimeError(
                     "Invalid number of arguments for %s."%f.__name__)
