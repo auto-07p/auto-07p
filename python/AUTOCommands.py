@@ -1282,6 +1282,13 @@ def configure(runner=None,templates=None,**kw):
                     kw[key] = None
                 if "__"+key in kw:
                     del kw["__"+key]
+        if "equation" in kw:
+            eq = kw["equation"][14:]
+            for ext in [".f90",".f",".c"]:
+                if os.path.exists(eq+ext):
+                    return kw
+            raise AUTOExceptions.AUTORuntimeError(
+                "No equations file found for: '%s'"%eq)
         return kw
 
     runner = withrunner(runner)
