@@ -1269,60 +1269,19 @@ def configure(runner=None,templates=None,**kw):
         return kw
 
     def applyRunnerConfigResolveFilenames(**kw):
-        doneread = False
-        wantread = False
-        if "constants" in kw:
-            if isinstance(kw["constants"], str):
-                wantread = True
+        for key in ["constants", "homcont"]:
+            if key in kw and not AUTOutil.isiterable(kw[key]):
                 try:
-                    kw["constants"] = parseC.parseC(kw["constants"])
-                    doneread = True
+                    if key == "constants":
+                        kw[key] = parseC.parseC(kw[key])
+                    else:
+                        kw[key] = parseH.parseH(kw[key])
                 except IOError:
-                    if "__constants" not in kw:
+                    if "__"+key not in kw:
                         raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
-                    del kw["constants"]
-        if "homcont" in kw:
-            if isinstance(kw["homcont"], str):
-                wantread = True
-                object = parseH.parseH()
-                try:
-                    object.readFilename(kw["homcont"])
-                    doneread = True
-                except IOError:
-                    if "__homcont" not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
-                    object = None
-                kw["homcont"] = object
-        if "solution" in kw:
-            if isinstance(kw["solution"], str):
-                wantread = True
-                try:
-                    object = parseS.parseS(kw["solution"])
-                    doneread = True
-                except IOError:
-                    if "__solution" not in kw:
-                        irs = kw.get("IRS")
-                        if irs is None:
-                            irs = (kw.get("constants") or {}).get("IRS",0)
-                        if irs != 0:
-                            raise AUTOExceptions.AUTORuntimeError(
-                                sys.exc_info()[1])
-                    object = None
-                kw["solution"] = object
-        if wantread and not doneread:
-            eq = ""
-            if "equation" in kw:
-                eq = kw["equation"][14:]
-                for ext in [".f90",".f",".c"]:
-                    if os.path.exists(eq+ext):
-                        doneread = True
-                        break
-            if not doneread:
-                raise AUTOExceptions.AUTORuntimeError(
-                    "No equations file found for: '%s'"%eq)
-        for key in ["__constants","__homcont","__solution","__equation"]:
-            if key in kw:
-                del kw[key]
+                    kw[key] = None
+                if "__"+key in kw:
+                    del kw["__"+key]
         return kw
 
     runner = withrunner(runner)
@@ -1402,7 +1361,9 @@ def load(data=None,runner=None,templates=None,**kw):
         runner = data
     elif data is not None:
         # data is a string, integer or float
-        for key in ["equation", "constants", "solution", "homcont"]:
+        if "equation" not in kw:
+            kw["equation"] = data
+        for key in ["constants", "solution", "homcont"]:
             if key not in kw:
                 kw[key] = data
                 # flag for addition from load('name')

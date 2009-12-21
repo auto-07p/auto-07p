@@ -7,7 +7,7 @@ except ImportError: # Python 3
     from io import StringIO
 import re
 import glob,stat
-import AUTOExceptions,parseC,parseH,gc
+import AUTOExceptions,parseC,parseH,parseS,gc
 try:
     import subprocess
 except ImportError:
@@ -71,7 +71,7 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = parseC.parseC()
-        self.options["solution"] = None
+        self.options["solution"] = parseS.AUTOSolution()
         self.options["homcont"] = None
 
         kw = self.config(**kw)
@@ -88,10 +88,26 @@ class runAUTO:
                     if self.options[key] is None:
                         self.stderr = sys.stderr
                     sys.stderr = kw[key] or self.stderr
-                self.options[key] = kw[key]
+                if key == 'constants':
+                    self.options[key].update(kw[key])
+                else:
+                    self.options[key] = kw[key]
                 del kw[key]
-
-        return kw
+        solutionoptional = False
+        if "__solution" in kw:
+            solutionoptional = True
+            del kw["__solution"]
+        self.options["constants"].update(**kw)
+        solution = self.options["solution"]
+        if isinstance(solution, str):
+            try:
+                solution = parseS.parseS(solution)
+            except IOError:
+                irs = self.options["constants"]["IRS"]
+                if not solutionoptional and irs not in [0, None]:
+                    raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+                solution = parseS.AUTOSolution()
+            self.options["solution"] = solution
 
     def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
@@ -313,17 +329,10 @@ class runAUTO:
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        kw = self.config(**kw)
-        kw['e'] = self.options["equation"][14:]
-        for key in ["constants", "homcont", "auto_dir"]:
-            kw[key] = self.options[key]
-        if hasattr(self.options["solution"],'load'):
-            solution = self.options["solution"].load(**kw)
-        else:
-            import parseS
-            solution = parseS.AUTOSolution(self.options["solution"],**kw).load()
-        self.config(constants=solution.c)
-        return solution
+        self.config(**kw)
+        kw = dict([(key,self.options[key])
+                   for key in ["equation", "constants", "homcont", "auto_dir"]])
+        return self.options["solution"].load(**kw)
 
     def run(self):
         """Run AUTO.
