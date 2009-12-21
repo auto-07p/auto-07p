@@ -454,7 +454,10 @@ class Point(object):
                 # in case either original or new array is independently changed.
                 array_temp = array(kw['coordarray'])
                 try:
-                    self.coordtype = _num_equivtype[type(array_temp[0])]
+                    if len(array_temp) == 0:
+                        self.coordtype = _num_equivtype[type(1.0)]
+                    else:
+                        self.coordtype = _num_equivtype[type(array_temp[0])]
                 except KeyError:
                     raise TypeError('Coordinate type %s not valid for Point'%str(ct))
             elif isinstance(kw['coordarray'], list):

@@ -373,13 +373,15 @@ class AUTOParameters(Points.Point):
         if kwd is None and kw == {}:
             self.coordnames = []
             self.dimension = 0
-            self.parnames = []
             return
         coordnames = kw.get("coordnames",[])[:]
-        self.parnames = coordnames[:]
         if "coordarray" in kw:
-            for i in range(len(coordnames),len(kw["coordarray"])):
-                coordnames.append("PAR("+str(i+1)+")")
+            coordarray = kw["coordarray"]
+            if len(coordarray) < len(coordnames):
+                kw["coordarray"] = (list(coordarray) +
+                                    (len(coordnames)-len(coordarray)) * [0.0])
+            for i in range(len(coordnames),len(coordarray)):
+                coordnames.append("PAR(%d)"%(i+1))
             kw["coordtype"] = Points.float64
             kw["coordnames"] = coordnames
         Points.Point.__init__(self,kwd,**kw)
@@ -388,19 +390,20 @@ class AUTOParameters(Points.Point):
         return self.coordarray[index-1]
 
     def __str__(self):
-        parnames = self.parnames
-        rep = ""
+        rep = []
         for i in range(1,len(self)+1,5):
             j = min(i+4,len(self))
-            rep = rep+"\nPAR(%-7s "%(str(i)+':'+str(j)+"):")
-            if parnames is not None and i<=len(parnames):
-                j2 = min(j,len(parnames))
-                for k in range(i,j2+1):
-                    rep = rep+"    %-15s"%parnames[k-1]
-                rep = rep+"\n            "
+            line = "PAR(%-7s "%("%d:%d):"%(i,j))
             for k in range(i,j+1):
-                rep = rep+"%19.10E"%self(k)
-        return rep[1:]
+                if self.coordnames[k-1] != "PAR(%d)"%k:
+                    for k in range(i,j+1):
+                        line += "    %-15s"%self.coordnames[k-1]
+                    rep.append(line)
+                    line = 12*" "
+                    break
+            line += "".join(["%19.10E"%self(k) for k in range(i,j+1)])
+            rep.append(line)
+        return "\n".join(rep)
 
 # The AUTOsolution class parses an AUTO fort.8 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
@@ -441,19 +444,20 @@ class AUTOSolution(UserDict,Points.Pointset):
         if "equation" in kw:
             kw["e"] = kw["equation"][14:]
             del kw["equation"]
+        indepvararray = None
+        if "t" in kw:
+            indepvararray = kw["t"]
+            del kw["t"]
         kwdata = {}
         for k in self.data_keys:
             if k in kw and k not in ["ISW","NTST","NCOL","NDIM","IPS"]:
                 kwdata[k] = kw[k]
                 del kw[k]
-        c = kw.get("constants",{}) or {}
-        par = None
-        coordarray = None
         if isinstance(input,self.__class__):
             for k,v in input.__dict__.items():
                 self.__dict__[k] = v
+            UserDict.__init__(self,input)
             self.c = parseC.parseC(self.c, **kw)
-            self.data = self.data.copy()
         else:
             UserDict.__init__(self)
             self.c = parseC.parseC(**kw)
@@ -472,30 +476,16 @@ class AUTOSolution(UserDict,Points.Pointset):
             self.coordnames = []
             self.__parnames = []
 
-        names = kw.get("unames",c.get("unames"))
-        if names is not None:
-            if type(names) != type({}):
-                names = dict(names)
-            if isinstance(input,self.__class__):
-                for i in range(len(self.coordnames)):
-                    self.coordnames[i] = names.get(i+1,'U('+str(i+1)+')')
-            elif names != {}:
-                for i in range(1,max(names)+1):
-                    self.coordnames.append(names.get(i,'U('+str(i)+')'))
-
-        names = kw.get("parnames",c.get("parnames"))
-        if names is not None:
-            if type(names) != type({}):
-                names = dict(names)
-            if names != {}:
-                if isinstance(input,self.__class__):
-                    l = len(self.__parnames)
-                    self.__parnames = []
-                    for i in range(1,max(names)+1,l+1):
-                        self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
-                else:
-                    for i in range(1,max(names)+1):
-                        self.__parnames.append(names.get(i,'PAR('+str(i)+')'))
+        parnames = dict(self.c.get("parnames") or [])
+        parlen = len(self.__parnames)
+        if parnames != {}:
+            parlen = max(parlen, max(parnames))
+        par = dict(self.c.get("PAR") or [])
+        for key in par:
+            if key not in parnames.values():
+                parlen = max(key, parlen)
+        self.__parnames = [parnames.get(i,"PAR(%d)"%i)
+                           for i in range(1,parlen+1)]
 
         if isinstance(input,self.__class__):
             if self.__fullyParsed:
@@ -505,28 +495,23 @@ class AUTOSolution(UserDict,Points.Pointset):
         elif isinstance(input,(file,gzip.GzipFile)):
             self.read(input,offset)
         elif input is not None:
-            self.__readarray(input,kw,c)
+            self.__readarray(input,indepvararray)
 
         if self.name is None or os.path.basename(self.name) == 'fort.8':
-            if "equation" in kw:
-                self.name = kw["equation"][14:]
-            elif kw.get("e") is not None:
-                self.name = kw["e"]
-            elif c.get("e") is not None:
-                self.name = c["e"]
+            if self.c.get("e") is not None:
+                self.name = self.c["e"]
             elif self.name is None:
                 self.name = ''
         for k,v in kwdata.items():
             self[k] = v
-        if par is None:
-            par = kw.get("PAR",c.get("PAR"))
-        if (par is not None and
-            (self.__start_of_header is not None or self.__fullyParsed)):
+        unames = dict(self.c.get("unames") or [])
+        self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
+                           for i in range(len(self.coordnames))]
+        if self.__start_of_header is not None or self.__fullyParsed:
             self["PAR"] = par
-        if coordarray is None:
-            u = kw.get("U",c.get("U"))
-            if u is not None:
-                self["U"] = u
+        u = self.c.get("U")
+        if u is not None:
+            self["U"] = u
 
     def __getstate__(self):
         # For pickle: read everything
@@ -610,7 +595,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 return
             if shortkey == "p":
                 self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                          coordarray=value)
+                                          coordarray=value, name=self.name)
                 return
             if shortkey == "U":
                 if type(value) == type({}):
@@ -853,7 +838,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self.coordnames = self.coordnames[:ndim]
             for i in range(len(self.coordnames),
                            self.__numEntriesPerBlock-1):
-                self.coordnames.append("U("+str(i+1)+")")
+                self.coordnames.append("U(%d)"%(i+1))
  
             self["BR"] = int(data[0])
             self["PT"] = int(data[1])
@@ -945,15 +930,14 @@ class AUTOSolution(UserDict,Points.Pointset):
                     fdata = list(map(parseB.AUTOatof, data))
             if total != len(fdata):
                 raise PrematureEndofData
-            self.coordarray = []
             try:
                 self.indepvararray = N.array(fdata[:n*nrows:n])
-                for i in range(1,n):
-                    self.coordarray.append(N.array(fdata[i:n*nrows:n]))
-            except TypeError:
+                self.coordarray = [N.array(fdata[i:n*nrows:n])
+                                   for i in range(1,n)]
+            except TypeError: # Python 2.2
                 self.indepvararray = N.array([fdata[k] for k in xrange(0,n*nrows,n)])
-                for i in range(1,n):
-                    self.coordarray.append(N.array([fdata[k] for k in xrange(i,n*nrows,n)]))
+                self.coordarray = [N.array([fdata[k] for k in xrange(i,n*nrows,n)])
+                                   for i in range(1,n)]
         del sdata
         j = j + n * nrows
 
@@ -970,17 +954,17 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self["udotps"] = N.transpose(
                      N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
             else:
-                self["udotps"] = []
                 try:
-                    for i in range(n):
-                        self["udotps"].append(N.array(fdata[i:n*nrows:n]))
-                except TypeError:
-                    for i in range(n):
-                        self["udotps"].append(N.array([fdata[k] for k in xrange(i,n*nrows,n)]))
+                    self["udotps"] = [N.array(fdata[i:n*nrows:n])
+                                      for i in range(n)]
+                except TypeError: # Python 2.2
+                    self["udotps"] = [N.array([fdata[k] for k in 
+                                               xrange(i,n*nrows,n)])
+                                              for i in range(n)]
             udotnames = []
             if self["NTST"] > 0:
                 for i in range(self.__numEntriesPerBlock-1):
-                    udotnames.append("UDOT("+str(i+1)+")")
+                    udotnames.append("UDOT(%d)"%(i+1))
             self["udotps"] = Points.Pointset({
                 "coordarray": self["udotps"],
                 "coordnames": udotnames,
@@ -989,7 +973,8 @@ class AUTOSolution(UserDict,Points.Pointset):
             j = j + n * nrows
 
         self.PAR = AUTOParameters(coordnames=self.__parnames,
-                               coordarray=fdata[j:j+self.__numFreeParameters])
+                                  coordarray=fdata[j:j+self.__numFreeParameters],
+                                  name=self.name)
         Points.Pointset.__init__(self,{
                 "indepvararray": self.indepvararray,
                 "indepvarname": self.indepvarname,
@@ -997,30 +982,23 @@ class AUTOSolution(UserDict,Points.Pointset):
                 "coordnames": self.coordnames,
                 "name": self.name})
 
-    def __readarray(self,input,kw,c):
-        par = kw.get("PAR",c.get("PAR")) or []
-        if type(par) == type({}):
-            par = par.items()
+    def __readarray(self,coordarray,indepvararray=None):
         #init from array
         if not Points.numpyimported:
             Points.importnumpy()        
         N = Points.N
-        if not hasattr(input[0],'__len__'):
+        if not hasattr(coordarray[0],'__len__'):
             # point
             indepvararray = [0.0]
-            coordarray = []
             ncol = 0
             ntst = 1
-            for d in input:
-                coordarray.append([d])
+            coordarray = [[d] for d in coordarray]
+            pararray = []
         else:
             # time + solution
-            if "t" in kw:
-                indepvararray = kw["t"]
-                coordarray = input
-            else:
-                indepvararray = input[0]
-                coordarray = input[1:]
+            if indepvararray is None:
+                indepvararray = coordarray[0]
+                coordarray = coordarray[1:]
             ncol = 1
             ntst = len(indepvararray)-1
             t0 = indepvararray[0]
@@ -1029,39 +1007,19 @@ class AUTOSolution(UserDict,Points.Pointset):
                 #scale to [0,1]
                 for i in range(len(indepvararray)):
                     indepvararray[i] = (indepvararray[i] - t0)/period
-            if 11 not in dict(par):
-                par = [[11,period]] + par
+            # set PAR(11) to period
+            pararray = 10*[0.0] + [period]
         indepvarname = "t"
-        coordnames = []
-        for i in range(len(coordarray)):
-            coordnames.append("U("+str(i+1)+")")
-        names = kw.get("unames",c.get("unames")) or {}
-        if type(names) == type({}):
-            names = names.items()
-        for k,v in names:
-            if k > 0 and k <= len(coordnames):
-                coordnames[k-1] = v
         ndim = len(coordarray)
-        if ndim < len(self.coordnames):
-            self.coordnames = self.coordnames[:ndim]
-        pdict = {"indepvararray": indepvararray,
-                 "indepvarname": indepvarname,
-                 "coordarray": coordarray,
-                 "coordnames": coordnames}
-        if "equation" in kw:
-            pdict["name"] = kw["equation"][14:]
-        Points.Pointset.__init__(self,pdict)
+        coordnames = ["U(%d)"%(i+1) for i in range(ndim)]
+        Points.Pointset.__init__(self,{"indepvararray": indepvararray,
+                                       "indepvarname": indepvarname,
+                                       "coordarray": coordarray,
+                                       "coordnames": coordnames})
         self.__fullyParsed = True
-        self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1,
-                          "NDIM": ndim})
-        if par != []:
-            m = len(self.__parnames)
-            for k in dict(par):
-                if not isinstance(k,str):
-                    m = max(k,m)
-            p = m*[0.0]
-            self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                  coordarray=p, name=self.name)
+        self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1, "NDIM": ndim})
+        self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                  coordarray=pararray,name=self.name)
 
     def __getattr__(self,attr):
         if self.__start_of_header is None:
