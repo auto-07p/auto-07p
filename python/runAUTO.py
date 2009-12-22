@@ -71,7 +71,7 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = parseC.parseC()
-        self.options["solution"] = parseS.AUTOSolution()
+        self.options["solution"] = None
         self.options["homcont"] = None
 
         kw = self.config(**kw)
@@ -88,26 +88,9 @@ class runAUTO:
                     if self.options[key] is None:
                         self.stderr = sys.stderr
                     sys.stderr = kw[key] or self.stderr
-                if key == 'constants':
-                    self.options[key].update(kw[key])
-                else:
-                    self.options[key] = kw[key]
+                self.options[key] = kw[key]
                 del kw[key]
-        solutionoptional = False
-        if "__solution" in kw:
-            solutionoptional = True
-            del kw["__solution"]
-        self.options["constants"].update(**kw)
-        solution = self.options["solution"]
-        if isinstance(solution, str):
-            try:
-                solution = parseS.parseS(solution)
-            except IOError:
-                irs = self.options["constants"]["IRS"]
-                if not solutionoptional and irs not in [0, None]:
-                    raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
-                solution = parseS.AUTOSolution()
-            self.options["solution"] = solution
+        return kw
 
     def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
@@ -235,6 +218,10 @@ class runAUTO:
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
+        self.options["constants"]["e"] = self.options["equation"][14:]
+        if self.options["constants"]["e"] == "":
+            raise AUTOExceptions.AUTORuntimeError(
+                "The equation file argument is missing.")
         if os.path.exists("fort.2"):
             os.remove("fort.2")
         self.options["constants"].writeFilename("fort.2")
@@ -242,10 +229,13 @@ class runAUTO:
         solution = self.options["solution"]
         if os.path.exists("fort.3"):
             os.remove("fort.3")
-        if solution is None:
-            open("fort.3","wb").close()
-        else:
+        irs = self.options["constants"]["IRS"]
+        if irs:
+            if not isinstance(solution,parseS.AUTOSolution):
+                solution = solution(irs)
             solution.writeFilename("fort.3",mlab=True)
+        else:
+            open("fort.3","wb").close()
 
         if os.path.exists("fort.12"):
             os.remove("fort.12")
@@ -329,7 +319,23 @@ class runAUTO:
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        self.config(**kw)
+        if "constants" in kw:
+            self.options["constants"].update(kw["constants"])
+            kw["constants"] = self.options["constants"]
+        kw = self.config(**kw)
+        solution = self.options["solution"]
+        if not hasattr(solution, "load"):
+            if solution is None:
+                solution = parseS.AUTOSolution()
+            else:
+                solution = parseS.AUTOSolution(solution,t=kw.get('t'))
+                if "t" in kw:
+                    del kw["t"]
+                kw["IRS"] = solution["LAB"]
+            self.options["solution"] = solution
+        self.options["constants"]
+        self.options["constants"].update(**kw)
+        self.options["constants"]
         kw = dict([(key,self.options[key])
                    for key in ["equation", "constants", "homcont", "auto_dir"]])
         return self.options["solution"].load(**kw)

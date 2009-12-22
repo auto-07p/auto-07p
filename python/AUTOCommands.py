@@ -1221,7 +1221,7 @@ def cd(dir=None,runner=None):
 commandCd = command(cd)
 
 
-def configure(runner=None,templates=None,**kw):
+def configure(runner=None,templates=None,data=None,**kw):
     """Load files into the AUTO runner or return modified solution data.
 
     Type result=FUNC([options]) to modify the AUTO runner.
@@ -1262,34 +1262,44 @@ def configure(runner=None,templates=None,**kw):
             if key in abbrev:
                 # change the abbreviation to the long version
                 del kw[key]
-                if type(value) in [type(""),type(1),type(1.0)]:
-                    kw[abbrev[key]] = applyTemplate(value,abbrev[key],templates)
-                else:
+                if AUTOutil.isiterable(value):
                     kw[abbrev[key]] = value
+                else:
+                    kw[abbrev[key]] = applyTemplate(value,abbrev[key],templates)
         return kw
 
     def applyRunnerConfigResolveFilenames(**kw):
-        for key in ["constants", "homcont"]:
-            if key in kw and not AUTOutil.isiterable(kw[key]):
+        exception = None
+        objectdict = {"constants": parseC.parseC,
+                      "homcont": parseH.parseH,
+                      "solution": parseS.parseS}
+        for key in ["constants", "homcont", "solution", "equation"]:
+            if key in kw:
+                value = kw[key]
+            elif data is not None:
+                value = applyTemplate(data,key,templates)
+            else:
+                value = None
+            if (value is not None and not AUTOutil.isiterable(value)):
+                if key == "equation":
+                    eq = value[14:]
+                    for ext in [".f90",".f",".c"]:
+                        if os.path.exists(eq+ext):
+                            kw[key] = value
+                            return kw, exception
+                    raise AUTOExceptions.AUTORuntimeError(
+                        "No equations file found for: '%s'"%eq)
                 try:
-                    if key == "constants":
-                        kw[key] = parseC.parseC(kw[key])
-                    else:
-                        kw[key] = parseH.parseH(kw[key])
+                    kw[key] = objectdict[key](value)
                 except IOError:
-                    if "__"+key not in kw:
-                        raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+                    # ignore error for load("xxx")
+                    if key in kw:
+                        # for solution only raise exception later if IRS!=0
+                        exception = sys.exc_info()[1]
+                        if key != "solution":
+                            raise AUTOExceptions.AUTORuntimeError(exception)
                     kw[key] = None
-                if "__"+key in kw:
-                    del kw["__"+key]
-        if "equation" in kw:
-            eq = kw["equation"][14:]
-            for ext in [".f90",".f",".c"]:
-                if os.path.exists(eq+ext):
-                    return kw
-            raise AUTOExceptions.AUTORuntimeError(
-                "No equations file found for: '%s'"%eq)
-        return kw
+        return kw, exception
 
     runner = withrunner(runner)
     if "info" in kw:
@@ -1298,11 +1308,20 @@ def configure(runner=None,templates=None,**kw):
     else:
         info = globals()["info"]
     kw = applyRunnerConfigResolveAbbreviation(**kw)
-    kw = applyRunnerConfigResolveFilenames(**kw)
-    if hasattr(runner,'load'):
-        solution = runner.load(**kw)
+    kw, exception = applyRunnerConfigResolveFilenames(**kw)
+    if data is not None and AUTOutil.isiterable(data) and hasattr(data,"load"):
+        # for load(object,...)
+        solution = data.load(runner,**kw)
     else:
-        solution = parseS.AUTOSolution(runner,**kw).load()
+        if data is not None:
+            # clear existing constants data for load('xxx')
+            runner.config(constants=parseC.parseC())
+            if AUTOutil.isiterable(data):
+                # for load(array,...)
+                kw["solution"] = data
+        solution = runner.load(**kw)
+    if exception is not None and runner.options["constants"]["IRS"]:
+        raise AUTOExceptions.AUTORuntimeError(exception)
     info("Runner configured\n")
     return solution
 commandRunnerConfig = command(configure,alias=None)
@@ -1362,20 +1381,7 @@ def load(data=None,runner=None,templates=None,**kw):
     Example: s = FUNC(s,DS='-') changes s.c['DS'] to -s.c['DS'].
     """
     runner = withrunner(runner)
-    if AUTOutil.isiterable(data):
-        # data is a solution, solution list or bifurcation diagram,
-        # a Python list array or Numpy list array
-        runner = data
-    elif data is not None:
-        # data is a string, integer or float
-        if "equation" not in kw:
-            kw["equation"] = data
-        for key in ["constants", "solution", "homcont"]:
-            if key not in kw:
-                kw[key] = data
-                # flag for addition from load('name')
-                kw["__"+key] = None
-    return configure(runner,templates,**kw)
+    return configure(runner,templates,data,**kw)
 commandRunnerLoadName = command(load,SIMPLE,"loadname",alias=['ld'])
 
 
@@ -1561,10 +1567,10 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     runner = withrunner(runner)
     if sv is not None:
         kw['sv'] = sv
-    solution = load(data,runner,templates,info=lambda msg:None,**kw)
-    res = solution.run()
-    sv = solution.c.get("sv")
-    solution.c['sv'] = None
+    load(data,runner,templates,info=lambda msg:None,**kw)
+    res = runner.run()
+    sv = runner.options["constants"].get("sv")
+    runner.options["constants"]['sv'] = None
     if sv is not None and sv != '':
         name = filenameTemplate(sv,templates)
         bname = name["bifurcationDiagram"]
