@@ -324,21 +324,19 @@ class runAUTO:
             kw["constants"] = self.options["constants"]
         kw = self.config(**kw)
         solution = self.options["solution"]
-        if not hasattr(solution, "load"):
-            if solution is None:
-                solution = parseS.AUTOSolution()
-            else:
-                solution = parseS.AUTOSolution(solution,t=kw.get('t'))
-                if "t" in kw:
-                    del kw["t"]
-                kw["IRS"] = solution["LAB"]
-            self.options["solution"] = solution
-        self.options["constants"]
+        if solution is None:
+            solution = parseS.AUTOSolution()
+        elif not hasattr(solution, "load"):
+            solution = parseS.AUTOSolution(solution,t=kw.get('t'))
+            if "t" in kw:
+                del kw["t"]
         self.options["constants"].update(**kw)
-        self.options["constants"]
         kw = dict([(key,self.options[key])
                    for key in ["equation", "constants", "homcont", "auto_dir"]])
-        return self.options["solution"].load(**kw)
+        solution = solution.load(**kw)
+        if isinstance(solution, parseS.AUTOSolution):
+            self.options["solution"] = solution
+        return solution
 
     def run(self):
         """Run AUTO.

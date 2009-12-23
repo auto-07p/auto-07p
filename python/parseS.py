@@ -444,10 +444,9 @@ class AUTOSolution(UserDict,Points.Pointset):
             for k,v in input.__dict__.items():
                 self.__dict__[k] = v
             UserDict.__init__(self,input)
-            self.c = parseC.parseC(self.c)
         else:
             UserDict.__init__(self)
-            self.c = parseC.parseC()
+            self.c = None
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end             = None
@@ -484,43 +483,46 @@ class AUTOSolution(UserDict,Points.Pointset):
                 else:
                     ckw[key] = kw[key]
                 del kw[key]
-        self.c.update(constants, **ckw)
 
-        unames = dict(self.c.get("unames") or [])
-        self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
-                           for i in range(len(self.coordnames))]
+        if self.c is not None or constants is not None or ckw != {}:
+            self.c = parseC.parseC(self.c)
+            self.c.update(constants, **ckw)
+            unames = dict(self.c.get("unames") or [])
+            self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
+                               for i in range(len(self.coordnames))]
+            parlen = len(self.__parnames)
+            parnames = dict(self.c.get("parnames") or [])
+            if parnames != {}:
+                parlen = max(parlen, max(parnames))
+            par = dict(self.c.get("PAR") or [])
+            for key in par:
+                if key not in parnames.values():
+                    parlen = max(key, parlen)
+            self.__parnames = [parnames.get(i,"PAR(%d)"%i)
+                               for i in range(1,parlen+1)]
+            if ((self.name is None or os.path.basename(self.name) == 'fort.8')
+                and self.c.get("e") is not None):
+                self.name = self.c["e"]
 
-        parnames = dict(self.c.get("parnames") or [])
-        parlen = len(self.__parnames)
-        if parnames != {}:
-            parlen = max(parlen, max(parnames))
-        par = dict(self.c.get("PAR") or [])
-        for key in par:
-            if key not in parnames.values():
-                parlen = max(key, parlen)
-        self.__parnames = [parnames.get(i,"PAR(%d)"%i)
-                           for i in range(1,parlen+1)]
-
+        if self.name is None:
+            self.name = ''
         if self.__fullyParsed:
             self.makeIxMaps()
             self.PAR = AUTOParameters(coordnames=self.__parnames,
                                       coordarray=Points.array(self.PAR),
                                       name=self.name)
-        if self.name is None or os.path.basename(self.name) == 'fort.8':
-            if self.c.get("e") is not None:
-                self.name = self.c["e"]
-            elif self.name is None:
-                self.name = ''
         if dct is not None:
             for k,v in dct.items():
                 self.data[k] = v
         for k,v in kw.items():
             self[k] = v
-        if self.__start_of_header is not None or self.__fullyParsed:
-            self["PAR"] = par
-        u = self.c.get("U")
-        if u is not None:
-            self["U"] = u
+
+        if self.c is not None:
+            if self.__start_of_header is not None or self.__fullyParsed:
+                self["PAR"] = par
+            u = self.c.get("U")
+            if u is not None:
+                self["U"] = u
 
     def __getstate__(self):
         # For pickle: read everything
@@ -699,7 +701,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        if self["LAB"] != 0 and self["LAB"] != self.c.get("IRS"):
+        if self["LAB"] != 0 and self["LAB"] != (self.c or {}).get("IRS"):
             kw["IRS"] = self["LAB"] 
         solution = AUTOSolution(self,**kw)
         if runner is not None:
