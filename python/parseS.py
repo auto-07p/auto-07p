@@ -701,7 +701,9 @@ class AUTOSolution(UserDict,Points.Pointset):
             if key in kw and key not in c:
                 datakw[key] = kw[key]
                 del kw[key]
-        c.update(constants, IRS=self["LAB"], **kw)
+        if self["LAB"] != 0:
+            kw["IRS"] = self["LAB"]
+        c.update(constants, **kw)
         solution = AUTOSolution(self, constants=c, **datakw)
         if runner is not None:
             c = solution.c
