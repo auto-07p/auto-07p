@@ -1108,6 +1108,8 @@ class parseBR(parseBMixin, UserList):
             #merge them
             new = bw[::-1]
             new.extend(fw[1:])
+            new.c = fw.c
+            new.headerlist = fw.headerlist
             data[-1] = new
 
             # adjust label numbers
