@@ -423,9 +423,9 @@ class AUTOParameters(Points.Point):
 
 class AUTOSolution(UserDict,Points.Pointset):
 
-    data_keys = ["PT", "BR", "TY number", "TY", "LAB",
+    data_keys = set(["PT", "BR", "TY number", "TY", "LAB",
                  "ISW", "NTST", "NCOL", "Active ICP", "rldot",
-                 "udotps", "NPARI", "NDIM", "IPS", "IPRIV"]
+                 "udotps", "NPARI", "NDIM", "IPS", "IPRIV"])
 
     long_data_keys = {
         "Parameters": "p",
@@ -439,27 +439,15 @@ class AUTOSolution(UserDict,Points.Pointset):
         "TY name": "TY",
         "Label": "LAB"}
 
-    def __init__(self,input=None,offset=None,name=None,**kw):
-        if "equation" in kw:
-            kw["e"] = kw["equation"][14:]
-            del kw["equation"]
-        indepvararray = None
-        if "t" in kw:
-            indepvararray = kw["t"]
-            del kw["t"]
-        kwdata = {}
-        for k in self.data_keys:
-            if k in kw and k not in ["ISW","NTST","NCOL","NDIM","IPS"]:
-                kwdata[k] = kw[k]
-                del kw[k]
+    def __init__(self,input=None,offset=None,name=None,t=None,**kw):
         if isinstance(input,self.__class__):
             for k,v in input.__dict__.items():
                 self.__dict__[k] = v
             UserDict.__init__(self,input)
-            self.c = parseC.parseC(self.c, **kw)
+            self.c = parseC.parseC(self.c)
         else:
             UserDict.__init__(self)
-            self.c = parseC.parseC(**kw)
+            self.c = parseC.parseC()
             self.__start_of_header = None
             self.__start_of_data   = None
             self.__end             = None
@@ -475,6 +463,33 @@ class AUTOSolution(UserDict,Points.Pointset):
             self.coordnames = []
             self.__parnames = []
 
+            if isinstance(input,(file,gzip.GzipFile)):
+                self.read(input,offset)
+            elif input is not None:
+                self.__readarray(input,t)
+        self.update(**kw)
+
+    def update(self, dct=None, **kw):
+        if "equation" in kw:
+            kw["e"] = kw["equation"][14:]
+            del kw["equation"]
+
+        constants = None
+        ckw = {}
+        for key in list(kw):
+            if key not in self.data_keys or key in ["ISW","NTST","NCOL",
+                                                    "NDIM","IPS"]:
+                if key == "constants":
+                    constants = kw[key]
+                else:
+                    ckw[key] = kw[key]
+                del kw[key]
+        self.c.update(constants, **ckw)
+
+        unames = dict(self.c.get("unames") or [])
+        self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
+                           for i in range(len(self.coordnames))]
+
         parnames = dict(self.c.get("parnames") or [])
         parlen = len(self.__parnames)
         if parnames != {}:
@@ -486,26 +501,21 @@ class AUTOSolution(UserDict,Points.Pointset):
         self.__parnames = [parnames.get(i,"PAR(%d)"%i)
                            for i in range(1,parlen+1)]
 
-        if isinstance(input,self.__class__):
-            if self.__fullyParsed:
-                self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                          coordarray=Points.array(self.PAR),
-                                          name=self.name)
-        elif isinstance(input,(file,gzip.GzipFile)):
-            self.read(input,offset)
-        elif input is not None:
-            self.__readarray(input,indepvararray)
-
+        if self.__fullyParsed:
+            self.makeIxMaps()
+            self.PAR = AUTOParameters(coordnames=self.__parnames,
+                                      coordarray=Points.array(self.PAR),
+                                      name=self.name)
         if self.name is None or os.path.basename(self.name) == 'fort.8':
             if self.c.get("e") is not None:
                 self.name = self.c["e"]
             elif self.name is None:
                 self.name = ''
-        for k,v in kwdata.items():
+        if dct is not None:
+            for k,v in dct.items():
+                self.data[k] = v
+        for k,v in kw.items():
             self[k] = v
-        unames = dict(self.c.get("unames") or [])
-        self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
-                           for i in range(len(self.coordnames))]
         if self.__start_of_header is not None or self.__fullyParsed:
             self["PAR"] = par
         u = self.c.get("U")
@@ -667,7 +677,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         return self.__copy__()
 
     def __contains__(self,key):
-        return (key == "data" or key in self.long_data_keys or
+        return (key in ["data","TY"] or key in self.long_data_keys or
                 key in self.__parnames or
                 (not self.__fullyParsed and key in self.data_keys) or
                 (self.__fullyParsed and key in self.data) or
@@ -970,15 +980,14 @@ class AUTOSolution(UserDict,Points.Pointset):
             self["udotps"]._dims = None
             j = j + n * nrows
 
-        self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                  coordarray=fdata[j:j+self.__numFreeParameters],
-                                  name=self.name)
+        self.PAR = fdata[j:j+self.__numFreeParameters]
         Points.Pointset.__init__(self,{
                 "indepvararray": self.indepvararray,
                 "indepvarname": self.indepvarname,
                 "coordarray": self.coordarray,
                 "coordnames": self.coordnames,
                 "name": self.name})
+        self.update()
 
     def __readarray(self,coordarray,indepvararray=None):
         #init from array
@@ -1016,8 +1025,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                                        "coordnames": coordnames})
         self.__fullyParsed = True
         self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1, "NDIM": ndim})
-        self.PAR = AUTOParameters(coordnames=self.__parnames,
-                                  coordarray=pararray,name=self.name)
+        self.PAR = pararray
 
     def __getattr__(self,attr):
         if self.__start_of_header is None:

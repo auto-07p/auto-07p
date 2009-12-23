@@ -101,9 +101,6 @@ class parseC(dict):
         if dct is None:
             dct = {}
         dct.update(kw)
-        if "constants" in dct:
-            self.update(dct['constants'])
-            del dct["constants"]
         for key in dct:
             value = dct[key]
             if self.get("homcont") is not None and key in self["homcont"]:

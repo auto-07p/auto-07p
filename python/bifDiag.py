@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # this is an enhanced list of bifurcation branches:
 # the labels contain the solutions and diagnostics as well
+import AUTOutil
 import parseB
 import parseC
 import parseH
@@ -16,7 +17,7 @@ import struct
 class bifDiag(parseB.parseBR):
 
     # some constants must not be preserved from run to run. These are:
-    nonekeys = ["IRS", "PAR", "U", "sv", "s", "dat"]
+    nonekeys = set(["IRS", "PAR", "U", "sv", "s", "dat"])
 
     def __init__(self,fort7_filename=None,fort8_filename=None,
                  fort9_filename=None,constants=None):
