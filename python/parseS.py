@@ -469,24 +469,10 @@ class AUTOSolution(UserDict,Points.Pointset):
         self.update(**kw)
 
     def update(self, dct=None, **kw):
-        if "equation" in kw:
-            kw["e"] = kw["equation"][14:]
-            del kw["equation"]
-
-        constants = None
-        ckw = {}
-        for key in list(kw):
-            if key not in self.data_keys or key in ["ISW","NTST","NCOL",
-                                                    "NDIM","IPS"]:
-                if key == "constants":
-                    constants = kw[key]
-                else:
-                    ckw[key] = kw[key]
-                del kw[key]
-
-        if self.c is not None or constants is not None or ckw != {}:
-            self.c = parseC.parseC(self.c)
-            self.c.update(constants, **ckw)
+        par = None
+        if "constants" in kw:
+            self.c = kw["constants"]
+            del kw["constants"]
             unames = dict(self.c.get("unames") or [])
             self.coordnames = [unames.get(i+1,'U(%d)'%(i+1))
                                for i in range(len(self.coordnames))]
@@ -517,7 +503,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         for k,v in kw.items():
             self[k] = v
 
-        if self.c is not None:
+        if par is not None:
             if self.__start_of_header is not None or self.__fullyParsed:
                 self["PAR"] = par
             u = self.c.get("U")
@@ -630,6 +616,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         try:
             Points.Pointset.__setitem__(self,key,value)
         except (TypeError, ValueError, KeyError, IndexError):
+            if self.__start_of_header is None and not self.__fullyParsed:
+                raise AUTOExceptions.AUTORuntimeError("Unknown option: %s"%key)
             self.PAR[key] = value
 
     def __getitem__(self,key):
@@ -701,9 +689,20 @@ class AUTOSolution(UserDict,Points.Pointset):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        if self["LAB"] != 0 and self["LAB"] != (self.c or {}).get("IRS"):
-            kw["IRS"] = self["LAB"] 
-        solution = AUTOSolution(self,**kw)
+        if "equation" in kw:
+            kw["e"] = kw["equation"][14:]
+            del kw["equation"]
+        constants = kw.get("constants")
+        if "constants" in kw:
+            del kw["constants"]
+        c = parseC.parseC(self.c)
+        datakw = {}
+        for key in self.data_keys:
+            if key in kw and key not in c:
+                datakw[key] = kw[key]
+                del kw[key]
+        c.update(constants, IRS=self["LAB"], **kw)
+        solution = AUTOSolution(self, constants=c, **datakw)
         if runner is not None:
             c = solution.c
             runner.config(equation="EQUATION_NAME=%s"%c.get("e",""),
