@@ -333,10 +333,10 @@ class runAUTO:
         self.options["constants"].update(**kw)
         kw = dict([(key,self.options[key])
                    for key in ["equation", "constants", "homcont", "auto_dir"]])
-        solution = solution.load(**kw)
+        ret = solution.load(**kw)
         if isinstance(solution, parseS.AUTOSolution):
-            self.options["solution"] = solution
-        return solution
+            self.options["solution"] = ret
+        return ret
 
     def run(self):
         """Run AUTO.
