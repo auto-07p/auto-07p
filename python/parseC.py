@@ -53,7 +53,7 @@ class parseC(dict):
     # These keys are preserved when reading in a new constants file,
     # and the keys are not in the constants file
     # Other keys are set to "None"
-    special_keys = ["unames", "parnames", "e", "homcont", "auto_dir"]
+    special_keys = ["unames", "parnames", "e", "homcont"]
 
     def __init__(self,filename=None,**kw):
         self["new"] = True

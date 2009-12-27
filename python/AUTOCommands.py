@@ -1265,6 +1265,8 @@ def configure(runner=None,templates=None,data=None,**kw):
                 if AUTOutil.isiterable(value):
                     kw[abbrev[key]] = value
                 else:
+                    if key[0] == 'e':
+                        kw['e'] = value
                     kw[abbrev[key]] = applyTemplate(value,abbrev[key],templates)
         return kw
 
@@ -1273,32 +1275,34 @@ def configure(runner=None,templates=None,data=None,**kw):
         objectdict = {"constants": parseC.parseC,
                       "homcont": parseH.parseH,
                       "solution": parseS.parseS}
-        for key in ["constants", "homcont", "solution", "equation"]:
+        for key in ["constants", "homcont", "solution"]:
             if key in kw:
                 value = kw[key]
             elif data is not None:
                 value = applyTemplate(data,key,templates)
             else:
                 value = None
-            if (value is not None and not AUTOutil.isiterable(value)):
-                if key == "equation":
-                    eq = value[14:]
-                    for ext in [".f90",".f",".c"]:
-                        if os.path.exists(eq+ext):
-                            kw[key] = value
-                            return kw, exception
-                    raise AUTOExceptions.AUTORuntimeError(
-                        "No equations file found for: '%s'"%eq)
+            if value is not None and not AUTOutil.isiterable(value):
                 try:
                     kw[key] = objectdict[key](value)
                 except IOError:
-                    # ignore error for load("xxx")
                     if key in kw:
                         # for solution only raise exception later if IRS!=0
                         exception = sys.exc_info()[1]
                         if key != "solution":
                             raise AUTOExceptions.AUTORuntimeError(exception)
+                    # ignore error, but erase runner data for load("xxx")
                     kw[key] = None
+        if data is not None and "e" not in kw and not AUTOutil.isiterable(data):
+            kw["e"] = data
+            kw["equation"] = applyTemplate(data,"equation",templates)
+        if "e" in kw:
+            eq = kw["e"]
+            for ext in [".f90",".f",".c"]:
+                if os.path.exists(eq+ext):
+                    return kw, exception
+            raise AUTOExceptions.AUTORuntimeError(
+                "No equations file found for: '%s'"%eq)
         return kw, exception
 
     runner = withrunner(runner)
@@ -1309,17 +1313,26 @@ def configure(runner=None,templates=None,data=None,**kw):
         info = globals()["info"]
     kw = applyRunnerConfigResolveAbbreviation(**kw)
     kw, exception = applyRunnerConfigResolveFilenames(**kw)
-    if data is not None and AUTOutil.isiterable(data) and hasattr(data,"load"):
-        # for load(object,...)
-        solution = data.load(runner,**kw)
-    else:
-        if data is not None:
-            # clear existing constants data for load('xxx')
-            runner.config(constants=parseC.parseC())
-            if AUTOutil.isiterable(data):
-                # for load(array,...)
-                kw["solution"] = data
-        solution = runner.load(**kw)
+    if data is not None and AUTOutil.isiterable(data):
+        if hasattr(data,"load"):
+            # for load(object,...)
+            if "equation" in kw:
+                del kw["equation"]
+            solution = data.load(**kw)
+            c = solution.c
+            kw = {"equation": applyTemplate(c.get("e", ""), "equation",
+                                            templates),
+                  "solution": solution, "constants": c,
+                  "homcont": c.get("homcont")}
+        else:
+            # for load(array,...)
+            kw["solution"] = data
+    elif data is None and "constants" in kw:
+        # do not completely replace existing constants data for load(**kw)
+        # but leave the special keys such as unames, parnames, etc, intact
+        runner.options["constants"].update(kw["constants"])
+        kw["constants"] = runner.options["constants"]
+    solution = runner.load(**kw)
     if exception is not None and runner.options["constants"]["IRS"]:
         raise AUTOExceptions.AUTORuntimeError(exception)
     info("Runner configured\n")

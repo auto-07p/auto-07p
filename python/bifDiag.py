@@ -140,11 +140,11 @@ class bifDiag(parseB.parseBR):
     def __call__(self,label=None):
         return self.getLabel(label)
 
-    def load(self,runner=None,**kw):
+    def load(self,**kw):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        return self().load(runner,**kw)
+        return self().load(**kw)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
         parseB.parseBR.read(self,fort7_input)

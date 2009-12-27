@@ -71,26 +71,37 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = parseC.parseC()
-        self.options["solution"] = None
+        self.options["solution"] = parseS.AUTOSolution()
         self.options["homcont"] = None
+        self.options["selected_solution"] = None
 
         kw = self.config(**kw)
 
     def config(self,**kw):
         """     Change the options for this runner object"""
+        # first the normal parameters, then IRS=... style parameters
         for key in self.options:
             if key in kw:
+                value = kw[key]
+                del kw[key]
                 if key == 'log':
                     if self.options[key] is None:
                         self.stdout = sys.stdout
-                    sys.stdout = kw[key] or self.stdout
+                    sys.stdout = value or self.stdout
                 elif key == 'err':
                     if self.options[key] is None:
                         self.stderr = sys.stderr
-                    sys.stderr = kw[key] or self.stderr
-                self.options[key] = kw[key]
-                del kw[key]
-        return kw
+                    sys.stderr = value or self.stderr
+                elif key == 'constants' and value is None:
+                    value = parseC.parseC()
+                elif key == 'solution' and not hasattr(value, "load"):
+                    t=kw.get('t')
+                    if "t" in kw and value is not None:
+                        del kw["t"]
+                    value = parseS.AUTOSolution(value,t=t)
+                self.options[key] = value
+
+        self.options["constants"].update(**kw)
 
     def __analyseLog(self,text):
         # now we also want to look at the log information to try and determine
@@ -218,29 +229,14 @@ class runAUTO:
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
         or runCommand)"""
-        self.options["constants"]["e"] = self.options["equation"][14:]
-        if self.options["constants"]["e"] == "":
-            raise AUTOExceptions.AUTORuntimeError(
-                "The equation file argument is missing.")
-        if os.path.exists("fort.2"):
-            os.remove("fort.2")
-        self.options["constants"].writeFilename("fort.2")
-
-        solution = self.options["solution"]
-        if os.path.exists("fort.3"):
-            os.remove("fort.3")
-        irs = self.options["constants"]["IRS"]
-        if irs:
-            if not isinstance(solution,parseS.AUTOSolution):
-                solution = solution(irs)
-            solution.writeFilename("fort.3",mlab=True)
-        else:
-            open("fort.3","wb").close()
-
-        if os.path.exists("fort.12"):
+        solution = self.options["selected_solution"]
+        constants = solution.c
+        constants.writeFilename("fort.2")
+        solution.writeFilename("fort.3",mlab=True)
+        if constants["homcont"] is not None:
+            constants["homcont"].writeFilename("fort.12")
+        elif os.path.exists("fort.12"):
             os.remove("fort.12")
-        if self.options["homcont"] is not None:
-            self.options["homcont"].writeFilename("fort.12")
 
     def __newer(self,sources,target):
         targettime = os.stat(target)[stat.ST_MTIME]
@@ -319,23 +315,10 @@ class runAUTO:
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        if "constants" in kw:
-            self.options["constants"].update(kw["constants"])
-            kw["constants"] = self.options["constants"]
-        kw = self.config(**kw)
-        solution = self.options["solution"]
-        if solution is None:
-            solution = parseS.AUTOSolution()
-        elif not hasattr(solution, "load"):
-            solution = parseS.AUTOSolution(solution,t=kw.get('t'))
-            if "t" in kw:
-                del kw["t"]
-        self.options["constants"].update(**kw)
-        kw = dict([(key,self.options[key])
-                   for key in ["equation", "constants", "homcont", "auto_dir"]])
-        ret = solution.load(**kw)
-        if isinstance(solution, parseS.AUTOSolution):
-            self.options["solution"] = ret
+        self.config(**kw)
+        ret = self.options["solution"].load(constants=self.options["constants"],
+                                            homcont=self.options["homcont"])
+        self.options["selected_solution"] = ret
         return ret
 
     def run(self):
@@ -345,11 +328,38 @@ class runAUTO:
         Returns a bifurcation diagram of the result.
         """
         self.__setup()
-        self.runMakefile()
+        constants = self.options["selected_solution"].c
+        if self.options["makefile"] is None:
+            if self.options["auto_dir"] is None:
+                if "AUTO_DIR" not in os.environ:
+                    raise AUTOExceptions.AUTORuntimeError(
+                        "AUTO_DIR not set as option or as environment variable")
+                self.options["auto_dir"]=os.environ["AUTO_DIR"]
+            curdir = os.getcwd()
+            os.chdir(self.options["dir"])
+            equation = constants["e"]
+            if self.__make(equation):
+                line = "Starting %s ...\n"%equation
+                sys.stdout.write(line)
+                self.__analyseLog(line)
+                for filename in [self.fort7_path,self.fort8_path,
+                                 self.fort9_path]:
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                self.runCommand(os.path.join(".",equation + ".exe"))
+                if os.path.exists("fort.2"):
+                    os.remove("fort.2")
+                if os.path.exists("fort.3"):
+                    os.remove("fort.3")
+                line = "%s ... done\n"%equation
+                sys.stdout.write(line)
+            os.chdir(curdir)
+        else:
+            self.runMakefile()
         self.__outputCommand()
         import bifDiag
         return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
-                               self.fort9_path,self.options["constants"])
+                               self.fort9_path,constants)
 
     def runMakefileWithSetup(self,equation=None):
         self.__setup()
@@ -375,27 +385,7 @@ class runAUTO:
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
 
-        if self.options["makefile"] is None:
-            curdir = os.getcwd()
-            os.chdir(self.options["dir"])
-            equation = self.options["constants"]["e"]
-            if self.__make(equation):
-                line = "Starting %s ...\n"%equation
-                sys.stdout.write(line)
-                self.__analyseLog(line)
-                for filename in [self.fort7_path,self.fort8_path,
-                                 self.fort9_path]:
-                    if os.path.exists(filename):
-                        os.remove(filename)
-                self.runCommand(os.path.join(".",equation + ".exe"))
-                if os.path.exists("fort.2"):
-                    os.remove("fort.2")
-                if os.path.exists("fort.3"):
-                    os.remove("fort.3")
-                line = "%s ... done\n"%equation
-                sys.stdout.write(line)
-            os.chdir(curdir)
-        elif self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
+        if self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
             self.__make(equation,fcon=True)
         else:
             if self.options["makefile"] == "":

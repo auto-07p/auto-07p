@@ -89,7 +89,7 @@ class parseS(list):
     def __call__(self,label=None):
         return self.getLabel(label)
 
-    def load(self,runner=None,**kw):
+    def load(self,**kw):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
@@ -107,7 +107,7 @@ class parseS(list):
             sol = self[-1]
         if sol is None:
             sol = AUTOSolution()
-        return sol.load(runner,**kw)
+        return sol.load(**kw)
 
     # This function needs a little explanation
     # It trys to read a new point from the input file, and if
@@ -685,13 +685,10 @@ class AUTOSolution(UserDict,Points.Pointset):
     def type(self):
         return parseB.type_translation(self["Type number"])["long name"]
 
-    def load(self,runner=None,**kw):
+    def load(self,**kw):
         """Load solution with the given AUTO constants.
         Returns a shallow copy with a copied set of updated constants
         """
-        if "equation" in kw:
-            kw["e"] = kw["equation"][14:]
-            del kw["equation"]
         constants = kw.get("constants")
         if "constants" in kw:
             del kw["constants"]
@@ -704,15 +701,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         if self["LAB"] != 0:
             kw["IRS"] = self["LAB"]
         c.update(constants, **kw)
-        solution = AUTOSolution(self, constants=c, **datakw)
-        if runner is not None:
-            c = solution.c
-            runner.config(equation="EQUATION_NAME=%s"%c.get("e",""),
-                          solution=solution,
-                          constants=c,
-                          homcont=c.get("homcont"),
-                          auto_dir=c.get("auto_dir"))
-        return solution
+        return AUTOSolution(self, constants=c, **datakw)
 
     def run(self,**kw):
         """Run AUTO.
@@ -720,9 +709,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
-        runner = runAUTO.runAUTO()
-        self.load(runner,**kw)
-        return runner.run()
+        return runAUTO.runAUTO(selected_solution=self.load(**kw)).run()
 
     def readAllFilename(self,filename):
         inputfile = AUTOutil.openFilename(filename,"rb")

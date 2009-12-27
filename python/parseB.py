@@ -590,7 +590,12 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                             stab = "U"
                         stability.append((abs(p)-prev)*stab)
                         prev = abs(p)
-                    stability = "".join(stability)[index]
+                    try:
+                        stability = "".join(stability)[index]
+                    except TypeError: # Python 2.2
+                        stability = "".join(stability)
+                        indices = AUTOutil.sliceindices(index, len(stability))
+                        stability = [stability[i] for i in xrange(*indices)]
                     branchtype = type_translation(self.TY)["short name"]
                     prev = stability[0]
                     for i, stab in enumerate(stability):
