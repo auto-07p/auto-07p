@@ -471,7 +471,6 @@ class runAUTO:
         if status != 0:
             if status < 0:
                 status = abs(status)
-                found = False
                 for s in signals:
                     if hasattr(signal,s) and status == getattr(signal,s):
                         raise AUTOExceptions.AUTORuntimeError(signals[s])

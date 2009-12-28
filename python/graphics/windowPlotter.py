@@ -111,12 +111,12 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.initialiseoptions(WindowPlotter)
         self.savefig = self.grapher.savefig
 
-    def __labelFunction(self,list):
+    def __labelFunction(self,lst):
         # The return value of a ScrolledListBox is a list of strings, so we change them
         # to integers here
-        list=map(int,list)
+        lst=map(int,lst)
         # but the _modifyOption method expects a string, so we change the whole thing to a string here
-        self._modifyOption("label",str(list))
+        self._modifyOption("label",str(lst))
 
     def _setOptionWindow(self):
         lst = sorted([key for key in self.grapher.configure() 
