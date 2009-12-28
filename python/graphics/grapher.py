@@ -12,6 +12,7 @@ import AUTOutil
 from graphics import optionHandler
 import math
 import sys
+import string
 
 GrapherError="GrapherError"
 Axes3D=None
@@ -117,14 +118,6 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         return optionHandler.OptionHandler.config(self,cnf,**kw)
     _configureNoDraw = _configNoDraw
 
-    def getData(self,i,j):
-        if j=="x":
-            return self.data[i]["x"]
-        elif j=="y":
-            return self.data[i]["y"]
-        else:
-            return [self.data[i]["x"][j],self.data[i]["y"][j]]
-
     def _addData(self,data,newsect=None,color=None,stable=None):
         for array in data:
             if len(array[0]) != len(array[1]):
@@ -207,11 +200,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         # and number of divisions so that the number of digits in
         # the the numbers in the value at each tick mark
         # in minimized
-        range = maximum - minimum 
-        inc = math.pow(10,math.ceil(math.log10(range) - 1.0))
-        if range / inc <= 2:
+        therange = maximum - minimum 
+        inc = math.pow(10,math.ceil(math.log10(therange) - 1.0))
+        if therange / inc <= 2:
             inc = inc / 4
-        elif range / inc <= 4:
+        elif therange / inc <= 4:
             inc = inc / 2
         minimumr = self._round(minimum,inc)
         if minimumr > minimum:
@@ -486,8 +479,12 @@ class LabeledGrapher(BasicGrapher):
         self.labels=[]
         BasicGrapher.__init__(self,parent,**kw)
 
-    def addLabel(self,i,xy,input_text,symbol=None):
+    def addLabel(self,i,j,input_text,symbol=None):
         new_label={}
+        new_label["j"]=j
+        xy = [self.data[i]["x"][j], self.data[i]["y"][j]]
+        if "z" in self.data[i]:
+            xy.append(self.data[i]["z"][j])
         new_label["xy"]=xy
         new_label["text"]=input_text
         new_label["symbol"]=symbol
@@ -517,7 +514,7 @@ class LabeledGrapher(BasicGrapher):
             mp = self.inarrs()
             for d in self.data:
                 self.map_curve(mp,trans([d["x"],d["y"]]))
-        for labels in self.labels:
+        for i, labels in enumerate(self.labels):
             for label in labels:
                 if len(label["text"]) == 0:
                     continue
@@ -533,7 +530,7 @@ class LabeledGrapher(BasicGrapher):
                          xofft,yofft,pos] = self.findsp(x,y,mp)
                     else:
                         [xoffd1,yoffd1,xoffd2,yoffd2,
-                         xofft,yofft,pos] = self.dumblabel(i,j,x,y)
+                         xofft,yofft,pos] = self.dumblabel(i,label["j"],x,y)
                     anchor = self.getpos(pos)
                     y = self.cget("realheight") - y
                     self.create_line(x+xoffd1,y-yoffd1,x+xoffd2,y-yoffd2,
@@ -544,7 +541,7 @@ class LabeledGrapher(BasicGrapher):
     # not-so-smart way of plotting labels
     def dumblabel(self,i,j,x,y):
         #Find a neighbor so I can compute the "slope"
-        if j < len(self.getData(i,"x"))-1:
+        if j < len(self.data[i]["x"]) - 1:
             first = j
             second = j+1
         else:
@@ -555,7 +552,8 @@ class LabeledGrapher(BasicGrapher):
         left_margin=self.cget("left_margin")
         top_margin=self.cget("top_margin")
         #pick a good direction for the label
-        if self.getData(i,"y")[second] > self.getData(i,"y")[first]:
+        ys = self.data[i]["y"]
+        if ys[second] > ys[first]:
             if (x < int(realwidth)-(20+left_margin) and
                 y < int(realheight)-(20+top_margin)):
                 xoffset = 10
@@ -612,10 +610,8 @@ class LabeledGrapher(BasicGrapher):
         found = False
         for radius in range(3,71):
             npoint = npoint + 8
-            st     = start
-            rinc   = pi2 / float(npoint)
 
-            for i in range(npoint):
+            for st in [start + (float(i)/npoint)*pi2 for i in range(npoint)]:
                 xd = int(xi + radius * math.cos(st))
                 yd = int(yi + radius * math.sin(st))
                 #-------------------------------------------------------
@@ -635,7 +631,6 @@ class LabeledGrapher(BasicGrapher):
                         if ix>=minsx and ix<=maxsx and iy>=minsy and iy<=maxsy:
                             break
                         found = False
-                st = st + rinc
             if found:
                 break
 
@@ -734,7 +729,7 @@ class LabeledGrapher(BasicGrapher):
         if not self.cget("use_symbols"):
             return
 
-        for labels in self.labels:
+        for i, labels in enumerate(self.labels):
             for label in labels:
                 l = label["symbol"]
                 if l is None:
@@ -801,8 +796,8 @@ class InteractiveGrapher(LabeledGrapher):
             self.addLabel(curve,point,label)
 
     def printTagWrapper(self,e):
-        id=self.find("closest",e.x,e.y)
-        print(self.gettags(id[0]))
+        theid=self.find("closest",e.x,e.y)
+        print(self.gettags(theid[0]))
         
     def printValueWrapper(self,e):
         self.__printValue((e.x,e.y))
@@ -954,15 +949,15 @@ class GUIGrapher(InteractiveGrapher):
         self.menu.tk_popup(e.x+self.winfo_rootx(),e.y+self.winfo_rooty())
 
 
-def test():
-    import math
-    grapher=GUIGrapher()
-    data=[float(i)*0.1 for i in range(62)]
+def test(grapher=None):
+    if grapher is None:
+        grapher = GUIGrapher()
+    data = [float(i)*0.1 for i in range(62)]
 
-    grapher.addArray((data,map(math.sin,data)))
-    grapher.addArray((data,map(math.cos,data)))
-    grapher.addLabel(0,[data[10],math.sin(data[10])],"hello")
-    grapher.addLabel(0,[data[30],math.sin(data[30])],"world")
+    grapher.addArray((data,list(map(math.sin,data))))
+    grapher.addArray((data,list(map(math.cos,data))))
+    grapher.addLabel(0,10,"hello")
+    grapher.addLabel(0,30,"world")
     grapher.pack()
     grapher.plot()
 
@@ -973,7 +968,7 @@ def test():
     raw_input()
 
     grapher.delAllData()
-    grapher.addArray((data,map(math.cos,data)))
+    grapher.addArray((data,list(map(math.cos,data))))
     grapher.plot()
     print("Press <return> to continue")
     raw_input()

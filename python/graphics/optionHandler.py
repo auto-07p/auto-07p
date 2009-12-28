@@ -15,15 +15,15 @@ class OptionHandler:
     def __applyOptionAliases(self,key):
         return self.__optionAliases.get(key,key)
 
-    def __parseOptions(self,dict):
-        for key in dict:
+    def __parseOptions(self,dct):
+        for key in dct:
             newkey = self.__applyOptionAliases(key)
             if newkey in self.__options:
-                if self.__options[newkey] != dict[key]:
-                    self.__options[newkey] = dict[key]
+                if self.__options[newkey] != dct[key]:
+                    self.__options[newkey] = dct[key]
                     newcb = self.__optionCallbacks[newkey]
                     if newcb is not None:
-                        newcb(key,dict[key],self.__options)
+                        newcb(key,dct[key],self.__options)
                     
                 
     # Options are of the form data=(default_value,callback=None)
@@ -55,14 +55,14 @@ class OptionHandler:
 
     def config(self,cnf=None,**kw):
         if cnf is None and not kw:
-            dict={}
+            dct={}
             for key in self.__optionAliases:
-                dict[key] = [key,self.__optionAliases[key]]
+                dct[key] = [key,self.__optionAliases[key]]
             for key in self.__options:
-                dict[key] = OptionHandler.config(self,key)
+                dct[key] = OptionHandler.config(self,key)
             if self.__baseClass is not None:
-                dict.update(self.__baseClass.config(self))
-            return dict
+                dct.update(self.__baseClass.config(self))
+            return dct
         if isinstance(cnf, str):
             cnf = self.__applyOptionAliases(cnf)
             if cnf in self.__options:
@@ -97,7 +97,7 @@ class OptionHandler:
 
     def simpleOptionDictionary(self):
         options = self.configure()
-        dict={}
+        dct={}
         for key in options:
-            dict[key] = self.cget(key)
-        return dict
+            dct[key] = self.cget(key)
+        return dct

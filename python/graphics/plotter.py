@@ -522,11 +522,7 @@ class plotter(grapher.GUIGrapher):
                     symbol = self.cget(symbol)
                 elif TYnumber not in [0,4,9]:
                     symbol = self.cget("error_symbol")
-                if z is None:
-                    v = [x[i],y[i]]
-                else:
-                    v = [x[i],y[i],z[i]]
-                self.addLabel(len(self)-1,v,text,symbol)
+                self.addLabel(len(self)-1, i, text, symbol)
 
     def __plot7(self,xcolumns,ycolumns,zcolumns):
         self.delAllData()
@@ -593,12 +589,8 @@ class plotter(grapher.GUIGrapher):
                 else:
                     self.addArrayNoDraw((x,y,z),color=color)
             for lab in labels:
-                l = lab["index"]
-                if z is None:
-                    v = [x[l],y[l]]
-                else:
-                    v = [x[l],y[l],z[l]]
-                self.addLabel(len(self)-1,v,lab["text"],lab["symbol"])
+                self.addLabel(len(self)-1, lab["index"], lab["text"],
+                              lab["symbol"])
 
         index = index + 10
         if index > len(tm):

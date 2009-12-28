@@ -495,7 +495,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 seq[:,1] = (seq[:,1] - sp3) / sp4
                 self.map_curve(mp,seq)
                                                       
-        for labels in self.labels:
+        for i, labels in enumerate(self.labels):
             for label in labels:
                 if len(label["text"]) == 0:
                     continue
@@ -519,7 +519,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                          xofft,yofft,pos] = self.findsp(x,y,mp)
                     else:
                         [xoffd1,yoffd1,xoffd2,yoffd2,
-                         xofft,yofft,pos] = self.dumblabel(i,j,x,y)
+                         xofft,yofft,pos] = self.dumblabel(i,label["j"],x,y)
                     [ha,va] = self.getpos(pos)
                     [xd1,yd1] = inv_trans((x+xoffd1,y+yoffd1))
                     [xd2,yd2] = inv_trans((x+xoffd2,y+yoffd2))
@@ -669,8 +669,11 @@ class GUIGrapher(InteractiveGrapher,grapher.GUIGrapher):
         #self.postscript(filename,colormode=pscolormode)
         self.postscript(filename)
 
-if __name__=='__main__':
+def test():
     grapher.test(GUIGrapher())
+
+if __name__=='__main__':
+    test()
 
 
 
