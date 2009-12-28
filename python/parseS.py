@@ -744,7 +744,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         data = self.toArray()
         output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
             
-    def read(self,input=None,prev=None):
+    def read(self, input=None, prev=None):
         if input is None:
             # read data into memory
             if self.__input is not None:
@@ -803,8 +803,8 @@ class AUTOSolution(UserDict,Points.Pointset):
             input.seek(end)
         self.__end = end
     
-    def readAll(self,input,start=None,end=None):
-        self.read(input,start,end)
+    def readAll(self, input=None, prev=None):
+        self.read(input, prev)
         self.__readAll()
 
     def _setEnd(self,end):

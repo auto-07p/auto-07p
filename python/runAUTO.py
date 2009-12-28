@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 import getopt,sys,os
-import signal, os, time
+import signal
 try:
     from cStringIO import StringIO
 except ImportError: # Python 3
     from io import StringIO
 import re
 import glob,stat
-import AUTOExceptions,parseC,parseH,parseS,gc
+import AUTOExceptions,parseC,parseS,gc
 try:
     import subprocess
 except ImportError:
@@ -569,8 +569,6 @@ def test():
     
 
 if __name__ == "__main__":
-    import getopt,os
-
     #Parse command line arguements
     opts_list,args=getopt.getopt(sys.argv[1:],"l:")
     opts={}

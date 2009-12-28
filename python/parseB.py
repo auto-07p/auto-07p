@@ -406,7 +406,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         stability.append(p)
         return stability, coordarray
 
-    def __setitem__(self,item,value):
+    def __setitem__(self, item, value):
         if item in ("BR", "TY", "TY number") and item not in self.coordnames:
             if item == "BR":
                 br = self["BR"]
@@ -426,7 +426,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                         v=-((-v)%10)
                     x["TY number"] = value*10 + v
         else:
-            Points.Pointset.__setitem__(item,value)
+            Points.Pointset.__setitem__(self, item, value)
 
     def __len__(self):
         if not self.__fullyParsed:
@@ -733,7 +733,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         data = self.toArray()
         output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
                 
-    def write(self,output,columnlen=19):
+    def write(self, output, columnlen=19):
         if columnlen == 19 and not self.__fullyParsed:
             output.write("".join(self.headerlist))
             output.write("".join(self.__datalist))
@@ -777,7 +777,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
             output.write(output_line+"\n")
 
     def writeShort(self):
-        self.write(sys.stdout,columnlen=14)
+        self.write(sys.stdout, columnlen=14)
 
     def summary(self):
         slist = []

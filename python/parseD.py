@@ -11,8 +11,6 @@ try:
 except ImportError: # Python 3
     from collections import UserList
 import getopt
-import math
-import AUTOExceptions
 import AUTOutil
 import parseB
 

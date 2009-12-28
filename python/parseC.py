@@ -17,22 +17,10 @@
 #    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 #    MA 02111-1307, USA
 
-import os
 import sys
 import AUTOExceptions
 import AUTOutil
 import parseB
-
-line1_comment="NDIM,IPS,IRS,ILP"
-line2_comment="NICP,(ICP(I),I=1 NICP)"
-line3_comment="NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT"
-line4_comment="NMX,RL0,RL1,A0,A1"
-line5_comment="NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC"
-line6_comment="EPSL,EPSU,EPSS"
-line7_comment="DS,DSMIN,DSMAX,IADS"
-line8_comment="NTHL,(/,I,THL(I)),I=1,NTHL)"
-line9_comment="NTHU,(/,I,THU(I)),I=1,NTHU)"
-line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 # The parseC class parses an AUTO parameter file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
@@ -50,15 +38,26 @@ line10_comment="NUZR,(/,I,PAR(I)),I=1,NUZR)"
 
 class parseC(dict):
 
+    line1_comment = "NDIM,IPS,IRS,ILP"
+    line2_comment = "NICP,(ICP(I),I=1 NICP)"
+    line3_comment = "NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT"
+    line4_comment = "NMX,RL0,RL1,A0,A1"
+    line5_comment = "NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC"
+    line6_comment = "EPSL,EPSU,EPSS"
+    line7_comment = "DS,DSMIN,DSMAX,IADS"
+    line8_comment = "NTHL,(/,I,THL(I)),I=1,NTHL)"
+    line9_comment = "NTHU,(/,I,THU(I)),I=1,NTHU)"
+    line10_comment = "NUZR,(/,I,PAR(I)),I=1,NUZR)"
+
     # These keys are preserved when reading in a new constants file,
     # and the keys are not in the constants file
     # Other keys are set to "None"
     special_keys = ["unames", "parnames", "e", "homcont"]
 
-    def __init__(self,filename=None,**kw):
+    def __init__(self, filename=None, **kw):
         self["new"] = True
         if filename is not None and type(filename) != type(""):
-            dict.__init__(self,filename)
+            dict.__init__(self, filename)
             self.update(**kw)
             return
         dict.__init__(self)
@@ -76,17 +75,17 @@ class parseC(dict):
             self.readFilename(filename)
         self.update(**kw)
 
-    def __setitem__(self,key,item):
-        if key in ["THL","THU","UZR","U","PAR","unames","parnames"]:
+    def __setitem__(self, key, item):
+        if key in ["THL", "THU", "UZR", "U", "PAR", "unames", "parnames"]:
             if item is not None:
                 if isinstance(item, dict):
                     item = item.items()
                 new = []
                 for x in item:
                     if isinstance(x, dict):
-                        new.append([x["PAR index"],x["PAR value"]])
+                        new.append([x["PAR index"], x["PAR value"]])
                     else:
-                        new.append([x[0],x[1]])
+                        new.append([x[0], x[1]])
                 item = new
         elif key == "DS" and item == '-':
             if self[key] is None:
@@ -121,17 +120,17 @@ class parseC(dict):
             self[k] = d
         return self.get(*args)
             
-    def readFilename(self,filename):
-        inputfile = open(filename,"r")
+    def readFilename(self, filename):
+        inputfile = open(filename, "r")
         self.read(inputfile)
         inputfile.close()
 
-    def writeFilename(self,filename,new=False):
-        output = open(filename,"w")
-        self.write(output,new)
+    def writeFilename(self, filename, new=False):
+        output = open(filename, "w")
+        self.write(output, new)
         output.close()
 
-    def scanvalue(self,line,inputfile=None):
+    def scanvalue(self, line, inputfile=None):
         # Scans line for a value
         # returns the value, followed by the rest of the line
         # The value is returned as a flat list of strings if the line 
@@ -142,7 +141,6 @@ class parseC(dict):
         prev = ' '
         npos = 0
         value = ''
-        start = 0
         isdict = False
         v = ''
         line = line.strip()
@@ -156,15 +154,15 @@ class parseC(dict):
             npos = i
             c = line[i]
             if quote == ' ':
-                if c in [',',' ']:
+                if c in [',', ' ']:
                     if level == 0:
                         break
                 elif c == ':':
                     pass
-                elif c in [']','}']:
+                elif c in [']', '}']:
                     if c == '}':
                         isdict = False
-                    if level == 1 and prev in ['[','{']:
+                    if level == 1 and prev in ['[', '{']:
                         value = []
                     level = level - 1
                     if v != '':
@@ -173,7 +171,7 @@ class parseC(dict):
                     if c == ']' and isdict:
                         value.append(']')
                 else:
-                    if prev in [',',' ',':'] and level > 0 and v != '':
+                    if prev in [',', ' ', ':'] and level > 0 and v != '':
                         value.append(v)
                         v = ''
                     if c in ['[','{']:
@@ -184,7 +182,7 @@ class parseC(dict):
                             isdict = True
                         elif isdict:
                             value.append('[')
-                    elif c in ['"',"'"]:
+                    elif c in ['"', "'"]:
                         quote = c
                     else:
                         v = v + c
@@ -200,7 +198,7 @@ class parseC(dict):
             i = i + 1
         if v != '':
             value = v
-        while npos < len(line) and line[npos] in [" ",","]:
+        while npos < len(line) and line[npos] in [" ", ","]:
             npos = npos + 1
         if npos >= len(line) - 1:
             line = ''
@@ -208,19 +206,19 @@ class parseC(dict):
             line = line[npos:].strip()
         return value, line
 
-    def parseline(self,line,userspec=False,inputfile=None):
+    def parseline(self, line, userspec=False, inputfile=None):
         # parses a new-style constant file line and puts the keys
         # in the dictionary c; also used for the header of a b. file
         while line != "":
             line = line.strip()
-            if line[0] in ['#','!','_']:
+            if line[0] in ['#', '!', '_']:
                 return
             pos = line.find('=')
             if pos == -1:
                 return
             key = line[:pos].strip()
             value, line = self.scanvalue(line[pos+1:],inputfile)
-            if key in ['ICP','IREV','IFIXED','IPSI']:
+            if key in ['ICP', 'IREV', 'IFIXED', 'IPSI']:
                 d = []
                 for v in value:
                     try:
@@ -229,7 +227,7 @@ class parseC(dict):
                         pass
                     d.append(v)
                 value = d
-            elif key in ['THU','THL','UZR','U','PAR']:
+            elif key in ['THU', 'THL', 'UZR', 'U', 'PAR']:
                 d = []
                 i = 0
                 while i < len(value):
@@ -248,13 +246,13 @@ class parseC(dict):
                     d.append([v0,v1])
                     i = i + 2
                 value = self.__compactindexed(d)
-            elif key in ['unames','parnames']:
+            elif key in ['unames', 'parnames']:
                 value = [[int(value[i]),value[i+1]] 
                          for i in range(0,len(value),2)]
-            elif key in ['s','dat','sv','e','SP','STOP']:
+            elif key in ['s', 'dat', 'sv', 'e', 'SP', 'STOP']:
                 pass
             elif key in self:
-                if key[0] in ['I','J','K','L','M','N']:
+                if key[0] in 'IJKLMN':
                     if value[0] == '*':
                         value = 10**len(value)
                     elif key == 'IRS':
@@ -273,7 +271,7 @@ class parseC(dict):
                     self["Active "+key] = self[key]
                 self[key] = value
 
-    def read(self,inputfile):
+    def read(self, inputfile):
         line = inputfile.readline()
         data = line.split()
         while not data[0][0].isdigit():
@@ -351,7 +349,7 @@ class parseC(dict):
         self["DSMAX"] = parseB.AUTOatof(data[2])
         self["IADS"] = int(data[3])
         
-        for key in ["THL","THU","UZR"]:
+        for key in ["THL", "THU", "UZR"]:
             line = inputfile.readline()
             data = line.split()
             item = []
@@ -363,7 +361,7 @@ class parseC(dict):
                     d = int(d)
                 except ValueError:
                     pass
-                item.append([d,parseB.AUTOatof(data[1])])
+                item.append([d, parseB.AUTOatof(data[1])])
             self[key] = item
 
     def __compactindexed(self, value):
@@ -385,10 +383,10 @@ class parseC(dict):
                 d.append([v0,v1])
         return d
 
-    def __compactstr(self,value):
+    def __compactstr(self, value):
         """check if we can use more compact output than str..."""
         try:
-            str1 = "%.5g"%value
+            str1 = "%.5g" % value
             str2 = str(value)
             if float(str1) == float(str2) and 'e' in str1:
                 return str1
@@ -399,27 +397,27 @@ class parseC(dict):
                 l.append(self.__compactstr(v))
             return '['+", ".join(l)+']'
             
-    def __newstr(self,lines=None):
-        wdth3keys = ["NMX","NPR","NBC","JAC","e"]
-        wdth5keys = ["EPSU","EPSS"]
+    def __newstr(self, lines=None):
+        wdth3keys = ["NMX", "NPR", "NBC", "JAC", "e"]
+        wdth5keys = ["EPSU", "EPSS"]
         if lines is None:
             lines = [
-                ["e","s","dat","sv"],
-                ["unames","parnames"],
-                ["U","PAR"],
-                ["NDIM","IPS","IRS","ILP"],
+                ["e", "s", "dat", "sv"],
+                ["unames", "parnames"],
+                ["U", "PAR"],
+                ["NDIM", "IPS", "IRS", "ILP"],
                 ["ICP"],
-                ["NTST","NCOL","IAD","ISP","ISW","IPLT","NBC","NINT"],
-                ["NMX","NPR","MXBF","IID","ITMX","ITNW","NWTN","JAC"],
-                ["EPSL","EPSU","EPSS"],
-                ["DS","DSMIN","DSMAX","IADS"],
-                ["NPAR","THL","THU"],
+                ["NTST", "NCOL", "IAD", "ISP", "ISW", "IPLT", "NBC", "NINT"],
+                ["NMX", "NPR", "MXBF", "IID", "ITMX", "ITNW", "NWTN", "JAC"],
+                ["EPSL", "EPSU", "EPSS"],
+                ["DS", "DSMIN", "DSMAX", "IADS"],
+                ["NPAR", "THL", "THU"],
                 ["UZR"],
                 ["STOP"],
                 ["SP"],
-                ["RL0","RL1","A0","A1"],
-                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
-                ["IREV","IFIXED","IPSI"]]
+                ["RL0", "RL1", "A0", "A1"],
+                ["NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART"],
+                ["IREV", "IFIXED", "IPSI"]]
         olist = []
         for line in lines:
             pos = 0
@@ -431,39 +429,35 @@ class parseC(dict):
                     olist.append(", ")
                 pos = pos + 1
                 if key in wdth3keys:
-                    s = "%-3s="%key
+                    s = "%-3s=" % key
                 elif key in wdth5keys:
-                    s = "%-5s="%key
+                    s = "%-5s=" % key
                 else:
-                    s = "%-4s="%key
+                    s = "%-4s=" % key
                 olist.append(s)
-                if key in ["ICP","IREV","IFIXED","IPSI","STOP","SP"]:
+                if key in ["ICP", "IREV", "IFIXED", "IPSI", "STOP", "SP"]:
                     s = "  "+str(value)
-                elif key in ["THL","THU","UZR","U","PAR"]:
-                    l=[]
-                    for k,v in value:
-                        l.append(repr(k)+": "+self.__compactstr(v))
+                elif key in ["THL", "THU", "UZR", "U", "PAR"]:
+                    l = [repr(k)+": "+self.__compactstr(v) for k, v in value]
                     s = "  {"+", ".join(l)+"}"
-                elif key in ["unames","parnames"]:
-                    l=[]
-                    for k,v in value:
-                        l.append(str(k)+": "+repr(v))
+                elif key in ["unames", "parnames"]:
+                    l = [str(k)+": "+repr(v) for k, v in value]
                     s = "{"+", ".join(l)+"}"
-                elif key in ["sv","s","dat","e"]:
+                elif key in ["sv", "s", "dat", "e"]:
                     value = "'"+str(value)+"'"
                     if key in wdth3keys:
-                        s = "%5s"%value
+                        s = "%5s" % value
                     else:
-                        s = "%4s"%value
+                        s = "%4s" % value
                 elif key[0] in ["A", "D", "E", "R"]:
                     value = self.__compactstr(value)
-                    s = "%6s"%value
+                    s = "%6s" % value
                 elif pos > 4:
-                    s = "%2s"%value
+                    s = "%2s" % value
                 elif key in wdth3keys:
-                    s = "%5s"%value
+                    s = "%5s" % value
                 else:
-                    s = "%4s"%value
+                    s = "%4s" % value
                 olist.append(s)
             if pos > 0:
                 olist.append("\n")
@@ -471,62 +465,64 @@ class parseC(dict):
 
     def __oldstr(self):
         olist = [self.__newstr([
-                ["e","s","dat","sv"],
-                ["unames","parnames"],
-                ["U","PAR"],
+                ["e", "s", "dat", "sv"],
+                ["unames", "parnames"],
+                ["U", "PAR"],
                 ["NPAR"],
                 ["STOP"],
                 ["SP"],
-                ["NUNSTAB","NSTAB","IEQUIB","ITWIST","ISTART"],
-                ["IREV","IFIXED","IPSI"]])]
+                ["NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART"],
+                ["IREV", "IFIXED", "IPSI"]])]
             
         olist.append("%s %s %s %s           %s\n"%
-                     (self["NDIM"],self["IPS"],self["IRS"],self["ILP"],
-                      line1_comment))
+                     (self["NDIM"], self["IPS"], self["IRS"], self["ILP"],
+                      self.line1_comment))
         
         olist.append(str(len(self["ICP"]))+" ")
         for v in self["ICP"]:
             olist.append(str(v)+" ")
-        olist.append("          "+line2_comment+"\n")
+        olist.append("          "+self.line2_comment+"\n")
         
         olist.append("%s %s %s %s %s %s %s %s           %s\n"%
-                     (self["NTST"],self["NCOL"],self["IAD"],self["ISP"],
-                      self["ISW"],self["IPLT"],self["NBC"],self["NINT"],
-                      line3_comment))
+                     (self["NTST"], self["NCOL"], self["IAD"], self["ISP"],
+                      self["ISW"], self["IPLT"], self["NBC"], self["NINT"],
+                      self.line3_comment))
 
         olist.append("%s %s %s %s %s           %s\n"%
-                     (self["NMX"],self["RL0"],self["RL1"],self["A0"],self["A1"],
-                      line4_comment))
+                     (self["NMX"], self["RL0"], self["RL1"],
+                      self["A0"], self["A1"],
+                      self.line4_comment))
 
         olist.append("%s %s %s %s %s %s %s           %s\n"%
-                     (self["NPR"],self["MXBF"],self["IID"],self["ITMX"],
-                      self["ITNW"],self["NWTN"],self["JAC"],
-                      line5_comment))
+                     (self["NPR"], self["MXBF"], self["IID"], self["ITMX"],
+                      self["ITNW"], self["NWTN"], self["JAC"],
+                      self.line5_comment))
         
         olist.append("%s %s %s           %s\n"%
-                     (self["EPSL"],self["EPSU"],self["EPSS"],line6_comment))
+                     (self["EPSL"], self["EPSU"], self["EPSS"],
+                      self.line6_comment))
 
         olist.append("%s %s %s %s           %s\n"%
-                     (self["DS"],self["DSMIN"],self["DSMAX"],self["IADS"],
-                      line7_comment))
+                     (self["DS"], self["DSMIN"], self["DSMAX"], self["IADS"],
+                      self.line7_comment))
 
-        olist.append("%s          %s\n"%(len(self["THL"]),line8_comment))
-        for k,v in self["THL"] or []:
-            olist.append("%s %s\n"%(k,v))
+        olist.append("%s          %s\n"%(len(self["THL"]), self.line8_comment))
+        for k, v in self["THL"] or []:
+            olist.append("%s %s\n" % (k, v))
 
-        olist.append("%s          %s\n"%(len(self["THU"]),line9_comment))
-        for k,v in self["THU"] or []:
-            olist.append("%s %s\n"%(k,v))
+        olist.append("%s          %s\n"%(len(self["THU"]), self.line9_comment))
+        for k, v in self["THU"] or []:
+            olist.append("%s %s\n" % (k, v))
 
         uzrlist = []
-        for k,v in self["UZR"] or []:
+        for k, v in self["UZR"] or []:
             if not AUTOutil.isiterable(v):
                 v = [v]
             for vv in v:
-                uzrlist.append([k,vv])
-        olist.append("%s          %s\n"%(len(uzrlist),line10_comment))
-        for k,v in uzrlist:
-            olist.append("%s %s\n"%(k,v))
+                uzrlist.append([k, vv])
+        olist.append("%s          %s\n"%(len(uzrlist), self.line10_comment))
+        for k, v in uzrlist:
+            olist.append("%s %s\n" % (k, v))
         return "".join(olist)
 
     def __str__(self):
@@ -535,7 +531,7 @@ class parseC(dict):
         else:
             return self.__oldstr()
 
-    def write(self,output,new=False):
+    def write(self, output, new=False):
         if new:
             for key in ["UZR", "THL", "THU"]:
                 self[key] = self.__compactindexed(self[key])
@@ -558,11 +554,11 @@ def test():
     foo = parseC()
     foo.readFilename("test_data/c.ab")    
     pointtest(foo)
-    foo.write(sys.stdout,new=True)
+    foo.write(sys.stdout, new=True)
 
     print("Testing reading from a stream")
     foo = parseC()
-    fp = open("test_data/c.ab","r")
+    fp = open("test_data/c.ab", "r")
     foo.read(fp)    
     pointtest(foo)
 
