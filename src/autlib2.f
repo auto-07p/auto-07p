@@ -35,9 +35,10 @@ C
       include 'interfaces.h'
       TYPE(AUTOPARAMETERS) AP
       INTEGER IFST,NLLV,ICP(*)
-      DOUBLE PRECISION DET,PAR(*),RDS,RLOLD(*),RLCUR(*)
+      DOUBLE PRECISION DET,PAR(*),RDS
+      DOUBLE PRECISION RLOLD(AP%NFPR),RLCUR(AP%NFPR),RLDOT(AP%NFPR)
       DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),UOLDPS(NDIM,0:*)
-      DOUBLE PRECISION UPOLDP(NDIM,0:*),DUPS(NDIM,0:*),DTM(*),RLDOT(*)
+      DOUBLE PRECISION UPOLDP(NDIM,0:*),DUPS(NDIM,0:*),DTM(*)
       DOUBLE PRECISION DRL(AP%NFPR),P0(*),P1(*),THL(*),THU(*)
 C
 C Local
@@ -278,9 +279,10 @@ C     This subroutine handles a non-parallel part of SETUBV, that is,
 C     * creating the parameter dependent pseudo-arclength parts of FC and D:
 C       (the bottom element FCPA and row DDPA)
 C
-      INTEGER NCB,IFST
-      DOUBLE PRECISION RDS,DDPA(*),FCPA
-      DOUBLE PRECISION RLCUR(*),RLOLD(*),RLDOT(*),THL(*)
+      INTEGER, INTENT(IN) :: NCB,IFST
+      DOUBLE PRECISION, INTENT(IN) :: RDS,THL(NCB)
+      DOUBLE PRECISION, INTENT(IN) :: RLCUR(NCB),RLOLD(NCB),RLDOT(NCB)
+      DOUBLE PRECISION, INTENT(OUT) :: DDPA(NCB),FCPA
 C
 C Local
       INTEGER I
