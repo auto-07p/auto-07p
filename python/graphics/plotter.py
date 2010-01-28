@@ -522,7 +522,18 @@ class plotter(grapher.GUIGrapher):
                     symbol = self.cget(symbol)
                 elif TYnumber not in [0,4,9]:
                     symbol = self.cget("error_symbol")
-                self.addLabel(len(self)-1, i, text, symbol)
+                idp = i
+                if dp:
+                    #adjust i for stability:
+                    old = 0
+                    for pt in stability:
+                        abspt = abs(pt)
+                        if abspt > 1 or pt == stability[-1]:
+                            old = abspt - 1
+                        if old <= i and i < abspt:
+                            idp = i - old
+                            break
+                self.addLabel(len(self)-1, idp, text, symbol)
 
     def __plot7(self,xcolumns,ycolumns,zcolumns):
         self.delAllData()
