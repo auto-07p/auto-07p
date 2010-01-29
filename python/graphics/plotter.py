@@ -439,6 +439,35 @@ class plotter(grapher.GUIGrapher):
         dp = self.cget("stability")
         coordnames = branch.coordnames
         for j in range(len(xcolumns)):
+            labels = []
+            for i,l in branch.labels.sortByIndex():
+                label = None
+                for k in l:
+                    v = l[k]
+                    if "LAB" in v:
+                        label = v
+                        break
+                if label is None:
+                    continue
+                lab = label["LAB"]
+                TYnumber = label["TY number"]
+                if TYnumber not in specialsymbols:
+                    if TYnumber>=0:
+                        TYnumber=TYnumber%10
+                    else:
+                        TYnumber=-((-TYnumber)%10)
+                text = ""
+                if lab != 0:
+                    text = str(lab)
+                symbol = None
+                for item in symbollist:
+                    if TYnumber in item[0]:
+                        symbol = item[1]
+                if symbol is not None:
+                    symbol = self.cget(symbol)
+                elif TYnumber not in [0,4,9]:
+                    symbol = self.cget("error_symbol")
+                labels.append([i, text, symbol])
             xycols = []
             for col in [xcolumns[j],ycolumns[j],zcolumns[j]]:
                 if col is None:
@@ -489,51 +518,19 @@ class plotter(grapher.GUIGrapher):
                         else:
                             v = x[old:abspt],y[old:abspt],z[old:abspt]
                         self.addArrayNoDraw(v,newsect,color,stable=pt<0)
+                        for label in labels:
+                            if old <= label[0] and label[0] < abspt:
+                                self.addLabel(len(self)-1, label[0] - old,
+                                              label[1], label[2])
                         old = abspt - 1
                         newsect = 0
-            elif z is None:
-                self.addArrayNoDraw((x,y),1,color)
             else:
-                self.addArrayNoDraw((x,y,z),1,color)
-            for i,l in branch.labels.sortByIndex():
-                label = None
-                for k in l:
-                    v = l[k]
-                    if "LAB" in v:
-                        label = v
-                        break
-                if label is None:
-                    continue
-                lab = label["LAB"]
-                TYnumber = label["TY number"]
-                if TYnumber not in specialsymbols:
-                    if TYnumber>=0:
-                        TYnumber=TYnumber%10
-                    else:
-                        TYnumber=-((-TYnumber)%10)
-                text = ""
-                if lab != 0:
-                    text = str(lab)
-                symbol = None
-                for item in symbollist:
-                    if TYnumber in item[0]:
-                        symbol = item[1]
-                if symbol is not None:
-                    symbol = self.cget(symbol)
-                elif TYnumber not in [0,4,9]:
-                    symbol = self.cget("error_symbol")
-                idp = i
-                if dp:
-                    #adjust i for stability:
-                    old = 0
-                    for pt in stability:
-                        abspt = abs(pt)
-                        if abspt > 1 or pt == stability[-1]:
-                            old = abspt - 1
-                        if old <= i and i < abspt:
-                            idp = i - old
-                            break
-                self.addLabel(len(self)-1, idp, text, symbol)
+                if z is None:
+                    self.addArrayNoDraw((x,y),1,color)
+                else:
+                    self.addArrayNoDraw((x,y,z),1,color)
+                for label in labels:
+                    self.addLabel(len(self)-1, *label)
 
     def __plot7(self,xcolumns,ycolumns,zcolumns):
         self.delAllData()
