@@ -7,7 +7,7 @@
 
 /* Common Block Declarations */
 
-struct {
+extern struct {
     integer itwist, istart, iequib, nfixed, npsi, nunstab, nstab, nrev;
 } blhom_1;
 

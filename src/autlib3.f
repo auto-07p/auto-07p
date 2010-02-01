@@ -979,7 +979,8 @@ C
           F(NDIM-1)=F(NDIM-1)+U(NDM+I)*U(NDM+I)
        ENDDO
 C
-       ! This expression approximates the previously used phase condition
+       ! This expression approximates the previously used phase
+       ! condition
        ! <eta,xi_0> - <eta_0,xi>
        ! disregarding the factor T/(2*pi).
        ! where \eta=U(NDM+1:NDM*2), \eta_0=UOLD(NDM+1:NDM*2), and
@@ -1295,22 +1296,25 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:)
       INTEGER NDM,I,J
-      DOUBLE PRECISION C
+      DOUBLE PRECISION C,DUMDFU(1),DUMDFP(1)
 C
 C Generate the function.
 C
        NDM=AP%NDM/2
 C
-       IF(IJAC.NE.0)THEN
+       IF(IJAC==0)THEN
+         CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DUMDFU,DUMDFP)
+       ELSE
          ALLOCATE(DFU(NDM,NDM))
-         IF(IJAC.NE.1)THEN
+         IF(IJAC==1)THEN
+           CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DUMDFP)
+         ELSE
            ALLOCATE(DFP(NDM,AP%NPAR))
+           CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DFP)
          ENDIF
        ENDIF
 C
        C=PAR(10)
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F,DFU,DFP)
-C
        DO I=1,NDM
          F(NDM+I)=-( C*U(NDM+I) + F(I) )/PAR(14+I)
          F(I)=U(NDM+I)
@@ -1422,21 +1426,24 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),DFP(:,:)
       INTEGER NDM,NPAR,I,J
-      DOUBLE PRECISION PERIOD
+      DOUBLE PRECISION PERIOD,DUMDFU(1),DUMDFP(1)
 C
        NDM=AP%NDM
        NPAR=AP%NPAR
 C
 C Generate the function and Jacobian.
 C
-       IF(IJAC.NE.0)THEN
+       IF(IJAC==0)THEN
+         CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DUMDFU,DUMDFP)
+       ELSE
          ALLOCATE(DFU(NDM,NDM))
-         IF(IJAC.NE.1)THEN
+         IF(IJAC==1)THEN
+           CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DUMDFU,DFP)
+         ELSE
            ALLOCATE(DFP(NDM,NPAR))
+           CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DFU,DFP)
          ENDIF
        ENDIF
-C
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DFU,DFP)
 C
        PERIOD=PAR(11)
        DO I=1,NDM
@@ -1495,14 +1502,19 @@ C
 C Local
       DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:)
       INTEGER NDM,IIJAC,I,J
-      DOUBLE PRECISION DUMDFP(1),T,DT,PERIOD,RLOLD
+      DOUBLE PRECISION DUMDFU(1),DUMDFP(1),T,DT,PERIOD,RLOLD
 C
        NDM=AP%NDM
 C
 C Generate the function and Jacobian.
 C
-       IF(IJAC.NE.0)THEN
-         ALLOCATE(DFU(NDM,NDM))
+       IF(IJAC==0)THEN
+          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJAC,F(NDM+1),DUMDFU,DUMDFP)
+       ELSE
+          ALLOCATE(DFU(NDM,NDM))
+          IIJAC=IJAC
+          IF(IJAC.GT.1)IIJAC=1
+          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IIJAC,F(NDM+1),DFU,DUMDFP)
        ENDIF
 C
        PERIOD=PAR(11)
@@ -1510,18 +1522,14 @@ C
        RLOLD=PAR(12)
        IF(T==RLOLD)THEN
           ! Two reasons:
-          ! 1. at the start, then UOLD==U, so we can set DT to 1, because
-          !    it is irrelevant.
-          ! 2. from STUPBV, to calculate UPOLDP, which is not needed because
-          !    NINT is forced to 0.
+          ! 1. at the start, then UOLD==U, so we can set DT to 1,
+          !    because it is irrelevant.
+          ! 2. from STUPBV, to calculate UPOLDP, which is not needed
+          !    because NINT is forced to 0.
           DT=1.d0
        ELSE
           DT=T-RLOLD
        ENDIF
-C
-       IIJAC=IJAC
-       IF(IJAC.GT.1)IIJAC=1
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IIJAC,F(NDM+1),DFU,DUMDFP)
 C
        DO I=1,NDM
          F(I)=PERIOD*U(NDM+I)

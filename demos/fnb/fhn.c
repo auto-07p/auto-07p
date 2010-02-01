@@ -1,6 +1,6 @@
 #include "auto_f2c.h"
 
-struct {
+extern struct {
     integer itwist, istart, iequib, nfixed, npsi, nunstab, nstab, nrev;
 } blhom_1;
 

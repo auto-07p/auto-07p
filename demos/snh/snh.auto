@@ -11,8 +11,8 @@ auto('cb.auto')
 # compute the codimension-zero PtoE connection and tangency using homotopy
 auto('tb.auto')
 
-copy('h1b','all')
-append('cb','all')
+copy('cb','all')
+append('h1b','all')
 append('tb','all')
 relabel('all')
 

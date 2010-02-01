@@ -2160,10 +2160,11 @@ C Compute transpose of A if ITRANS=1
 C
 C Call LAPACK routine for the Schur decomposition of A
 C
+      ALLOCATE(ER(NDM),EI(NDM),BWORK(NDM))
       CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,
      &     EI, BOUND, NDM, DDUM, -1, BWORK, IFAIL)
       LWORK = NINT(DDUM(1))
-      ALLOCATE(ER(NDM),EI(NDM),WORK(LWORK),BWORK(NDM))
+      ALLOCATE(WORK(LWORK))
       IF(IMFD.EQ.-1)THEN
          CALL DGEES('V', 'S', SELNEG, NDM, A, NDM, ISDIM, ER,
      &        EI, BOUND, NDM, WORK, LWORK, BWORK, IFAIL)
@@ -2238,6 +2239,7 @@ C-----------------------------------------------------------------------
       END MODULE HOMCONT
 
       BLOCK DATA
+      INTEGER ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       COMMON /BLHOM/ ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
       DATA ITWIST,ISTART,IEQUIB,NFIXED,NPSI,NUNSTAB,NSTAB,NREV
      *       /0,5,1,0,0,-1,-1,0/
