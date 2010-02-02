@@ -506,9 +506,9 @@ class AUTOSolution(UserDict,Points.Pointset):
         if par is not None:
             if self.__start_of_header is not None or self.__fullyParsed:
                 self["PAR"] = par
-            u = self.c.get("U")
-            if u is not None:
-                self["U"] = u
+                u = self.c.get("U")
+                if u is not None:
+                    self["U"] = u
 
     def __getstate__(self):
         # For pickle: read everything
