@@ -262,6 +262,13 @@ class bifDiagBranch(parseB.AUTOBranch):
         if isinstance(label, types.FunctionType):
             label = [s["LAB"] for s in self(label)]
         new = parseB.AUTOBranch.deleteLabel(self,label,keepTY,keep,copy)
+        if keepTY:
+            if not copy:
+                new = self
+            for idx in new.labels.getIndices():
+                x = new._gettypelabel(idx)[1]
+                if x["LAB"] ==0 and "solution" in x:
+                    del x["solution"]
         if copy:
             if hasattr(self,"diagnostics"):
                 new.diagnostics = self.diagnostics
