@@ -131,8 +131,8 @@ class bifDiag(parseB.parseBR):
     def getLabel(self,label):
         sols = parseS.parseS()
         #adjust maximum label/branch
-        mbr = max([abs(d["BR"]) for d in self])
-        mlab = max(self.getLabels())
+        mbr = max([abs(d["BR"]) for d in self] or [None])
+        mlab = max(self.getLabels() or [None])
         for d in self:
             sols.extend(d.getLabel(None,mbr=mbr,mlab=mlab))
         return sols(label)
