@@ -55,6 +55,14 @@ def importnumpy():
                 which = 'numeric'
     if which == 'numeric':
         try:
+            try:
+                import platform
+                arch = platform.architecture()[0]
+            except ImportError:
+                arch = ''
+            if arch == '64bit':
+                # Numeric is buggy on 64-bit systems
+                raise ImportError
             import Numeric as N
             float64, int32, bool8 = N.Float64, N.Int32, N.UnsignedInt8
         except ImportError:
