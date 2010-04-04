@@ -747,7 +747,7 @@ class AUTOSolution(UserDict,Points.Pointset):
     def read(self, input=None, prev=None):
         if input is None:
             # read data into memory
-            if self.__input is not None:
+            if not self.__fullyParsed and self.__input is not None:
                 input = self.__input
                 input.seek(self.__start_of_data)
                 self.__data = input.read(self.__end - self.__start_of_data)

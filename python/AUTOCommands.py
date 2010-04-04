@@ -607,8 +607,8 @@ def deleteLabel(codes=None,name1=None,name2=None,templates=None,
     if hasattr(codes,'deleteLabel'):
         origlen=len(codes())
         new = codes.deleteLabel(name1,keepTY=keepTY,keep=keep,copy=1)
-        newlen=len(codes())
-        info("Deleted %d labels, and kept %d."%(origlen-newlen, newlen))
+        newlen=len(new())
+        info("Deleted %d labels, and kept %d.\n"%(origlen-newlen, newlen))
         return new
     name1 = filenameTemplate(name1,templates)
     if name1["solution"] is None:
@@ -664,7 +664,7 @@ def dsp(typenames=None,name1=None,name2=None,templates=None):
 
     Type information is NOT kept in the bifurcation diagram.
     """
-    deleteLabel(typenames,name1,name2,templates)
+    return deleteLabel(typenames,name1,name2,templates)
 commandDeleteSpecialPoints = command(dsp)
         
 
@@ -688,7 +688,7 @@ def ksp(typenames=None,name1=None,name2=None,templates=None):
 
     Type information is NOT kept in the bifurcation diagram.
     """
-    deleteLabel(typenames,name1,name2,templates,keep=1)
+    return deleteLabel(typenames,name1,name2,templates,keep=1)
 commandKeepSpecialPoints = command(ksp)
 
 
@@ -716,7 +716,7 @@ def dlb(typenames=None,name1=None,name2=None,templates=None):
 
     Type information is kept in the bifurcation diagram for plotting.
     """
-    deleteLabel(typenames,name1,name2,templates,keepTY=1)
+    return deleteLabel(typenames,name1,name2,templates,keepTY=1)
 commandDeleteLabels = command(dlb)
         
 
@@ -740,7 +740,7 @@ def klb(typenames=None,name1=None,name2=None,templates=None):
 
     Type information is kept in the bifurcation diagram for plotting.
     """
-    deleteLabel(typenames,name1,name2,templates,keepTY=1,keep=1)
+    return deleteLabel(typenames,name1,name2,templates,keepTY=1,keep=1)
 commandKeepLabels = command(klb)
 
 
