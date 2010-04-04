@@ -456,42 +456,42 @@ C
 C        ** Hopf/NS bifurcation continuation (ODE/waves/maps, restart).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNAE,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. ITP==5 ) THEN 
+       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.ITP==5) THEN 
 C        ** Fold continuation (Periodic solutions, start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNPL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS==2 .AND. ABS(ISW)==2 .AND. (ABS(ITP)/10)==5 )
+       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==5)
      * THEN
 C        ** Fold continuation (Periodic solutions, restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNBV,
      *   PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS==2 .AND. ABS(ISW)>=2 .AND. 
+       ELSE IF((IPS==2.OR.IPS==12) .AND. ABS(ISW)>=2 .AND. 
      *         (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
 C        ** BP cont (Periodic sol., start and restart) (by F. Dercole).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.2 .OR. IPS.EQ.7)
-     *      .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.7 ) THEN
+       ELSE IF((IPS==2.OR.IPS==7.OR.IPS==12)
+     *      .AND. ABS(ISW)==2 .AND. ITP==7 ) THEN
 C        ** Continuation of period doubling bifurcations (start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNPD,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS.EQ.2 .OR. IPS .EQ.7)
-     *      .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.7)
+       ELSE IF((IPS==2 .OR. IPS==7 .OR. IPS==12)
+     *      .AND. ABS(ISW)==2 .AND. (ABS(ITP)/10)==7)
      * THEN
 C        ** Continuation of period doubling bifurcations (restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. ITP.EQ.8 ) THEN
+       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.ITP==8) THEN
 C        ** Continuation of torus bifurcations (start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNTR,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.2 .AND. ABS(ISW).EQ.2 .AND. (ABS(ITP)/10).EQ.8)
+       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==8)
      * THEN
 C        ** Continuation of torus bifurcations (restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNBV,
@@ -1234,7 +1234,7 @@ C          ** Hopf/Neimark-Sacker bifurcation continuation (Maps, ODE, Waves)
            NDIM=2*NDIM+2
            NFPR=2
 C
-         ELSE IF( ITP==5 .AND. IPS==2 )THEN
+         ELSE IF( ITP==5 .AND. (IPS==2.OR.IPS==12) )THEN
 C          ** Fold continuation (Periodic solutions); start
            NDIM=2*NDIM
            NBC=NDIM
@@ -1253,7 +1253,7 @@ C            ** Variable period
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( (ABS(ITP)/10)==5 .AND. IPS==2 )THEN
+         ELSE IF( (ABS(ITP)/10)==5 .AND. (IPS==2.OR.IPS==12) )THEN
 C          ** Fold continuation (Periodic solutions); restart
            NDIM=2*NDIM
            NBC=NDIM
@@ -1267,7 +1267,7 @@ C            ** Variable period
            ICP(4)=NPAR+1
            NPARI=2
 C
-         ELSE IF( (ITP==6) .AND. IPS==2)THEN
+         ELSE IF( (ITP==6) .AND.  (IPS==2.OR.IPS==12) )THEN
 C          ** BP cont (Periodic solutions); start (by F. Dercole)
            NDIM=4*NDIM
            NBC=NDIM
@@ -1299,7 +1299,7 @@ C
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF( (ABS(ITP)/10==6) .AND. IPS==2)THEN
+         ELSE IF( (ABS(ITP)/10==6) .AND. (IPS==2.OR.IPS==12))THEN
 C          ** BP cont (Periodic solutions); restart 1 or 2
            NDIM=2*NDIM
            NBC=NDIM
@@ -1325,7 +1325,7 @@ C              ** Variable period
            ICP(5)=NPAR+5     ! psi^*_3
            NPARI=9
 C
-         ELSE IF(ITP.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
+         ELSE IF(ITP==7 .AND. (IPS==2.OR.IPS==7.OR.IPS==12))THEN
 C          ** Continuation of period doubling bifurcations; start
            NDIM=2*NDIM
            NBC=NDIM
@@ -1343,7 +1343,7 @@ C            ** Variable period
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF(ABS(ITP)/10.EQ.7 .AND. (IPS.EQ.2 .OR. IPS.EQ.7))THEN
+         ELSE IF(ABS(ITP)/10==7 .AND. (IPS==2.OR.IPS==7.OR.IPS==12))THEN
 C          ** Continuation of period doubling bifurcations; restart
            NDIM=2*NDIM
            NBC=NDIM
@@ -1355,7 +1355,7 @@ C            ** Variable period
            ENDIF
            NPARI=1
 C
-         ELSE IF(ITP.EQ.8 .AND. IPS.EQ.2)THEN
+         ELSE IF(ITP==8 .AND. (IPS==2.OR.IPS==12))THEN
 C          ** Continuation of torus bifurcations; start
            NDIM=3*NDIM
            NBC=NDIM
@@ -1371,7 +1371,7 @@ C          ** Continuation of torus bifurcations; start
            NMX=5
            WRITE(6,101)
 C
-         ELSE IF(ABS(ITP)/10.EQ.8 .AND. IPS.EQ.2)THEN
+         ELSE IF(ABS(ITP)/10==8 .AND. (IPS==2.OR.IPS==12))THEN
 C          ** Continuation of torus bifurcations; restart
            NDIM=3*NDIM
            NBC=NDIM
