@@ -220,10 +220,10 @@ class BasicGrapher(grapher.BasicGrapher):
                 fig = self.ax.get_figure()
                 if key == "width":
                     fig.set_figwidth(float(value)/fig.get_dpi())
-                    self.configure(realwidth=value)
+                    self._configNoDraw(realwidth=value)
                 else:
                     fig.set_figheight(float(value)/fig.get_dpi())
-                    self.configure(realheight=value)
+                    self._configNoDraw(realheight=value)
         elif key == "top_title":
             fontsize = self.cget("top_title_fontsize")
             if fontsize is None:
