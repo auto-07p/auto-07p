@@ -1703,7 +1703,12 @@ C
        IJC=IJAC
        IF(IJC==0)IJC=-1
        IF(ICP(2)/=11)IJC=2
-       CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       IF(AP%IPS==12)THEN
+          ! waves
+          CALL FNWP(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       ELSE
+          CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
+       ENDIF
 C
        NPAR=AP%NPAR
        DO I=1,NDM
