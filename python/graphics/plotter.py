@@ -49,6 +49,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["runner"]         = (None,self.__optionCallback)
         optionDefaults["mark_t"]         = (None,self.__optionCallback)
 
+        optionDefaults["letter_symbols"] = (True,self.__optionCallback)
         optionDefaults["bifurcation_symbol"]     = ("B",self.__optionCallback)
         optionDefaults["limit_point_symbol"]     = ("L",self.__optionCallback)
         optionDefaults["hopf_symbol"]            = ("H",self.__optionCallback)
@@ -85,6 +86,11 @@ class plotter(grapher.GUIGrapher):
 
         self.addOptions(**optionDefaults)
         self.addRCOptions(**optionDefaultsRC)
+        for options in [optionDefaultsRC, kw]:
+            if "letter_symbols" in options:
+                self.__optionCallback("letter_symbols",
+                                      options["letter_symbols"], options)
+                del options["letter_symbols"]
         plotter._configNoDraw(self,**optionDefaultsRC)
         plotter._configNoDraw(self,**kw)
         self._plotNoDraw()
@@ -264,6 +270,27 @@ class plotter(grapher.GUIGrapher):
                      "solution_x","solution_y","solution_z"]:
             if not isinstance(value, (list, tuple)):
                 value = [value]
+        elif key == "letter_symbols":
+            keys = ["bifurcation_symbol", "limit_point_symbol",
+                    "hopf_symbol", "period_doubling_symbol","torus_symbol",
+                    "user_point_symbol", "error_symbol",
+                    "1_1_resonance_symbol", "1_2_resonance_symbol",
+                    "1_3_resonance_symbol", "1_4_resonance_symbol",
+                    "bogdanov_takens_symbol", "cusp_symbol",
+                    "generalized_hopf_symbol", "zero_hopf_symbol"]
+            if value:
+                values = ["B", "L", "H", "D", "T", "U", "X",
+                          "R1", "R2", "R3", "R4", "BT", "CP", "GH", "ZH"]
+            else:
+                values = ["square", None,
+                          "fillsquare", "diamond", "filldiamond",
+                          None, None,
+                          "filldiamond", "filldiamond",
+                          "filldiamond", "filldiamond",
+                          "circle", None,
+                          "triangle", "doubletriangle"]
+            options.update(dict(zip(keys, values)))
+
         # We only recreate the data if one of the above options gets set
         # We can't just recreate the data for any option since:
         #   1)  It is inefficient

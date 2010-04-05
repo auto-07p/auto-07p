@@ -11,6 +11,7 @@
 #stability = False
 #use_labels = True
 #use_symbols = False
+#letter_symbols = True
 
 #top_title = ''
 #top_title_fontsize = 12

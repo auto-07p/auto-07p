@@ -71,21 +71,7 @@ class PyPlautInteractiveConsole(code.InteractiveConsole):
         dict = {
             "bifurcation_diagram": bd,
             "solution": bd(),
-            "bifurcation_symbol": "square",
-            "limit_point_symbol": None,
-            "hopf_symbol": "fillsquare",
-            "period_doubling_symbol": "diamond",
-            "torus_symbol": "filldiamond",
-            "1_1_resonance_symbol": "filldiamond",
-            "1_2_resonance_symbol": "filldiamond",
-            "1_3_resonance_symbol": "filldiamond",
-            "1_4_resonance_symbol": "filldiamond",
-            "user_point_symbol": None,
-            "error_symbol": None,
-            "bogdanov_takens_symbol": "circle",
-            "cusp_symbol": None,
-            "generalized_hopf_symbol": "triangle",
-            "zero_hopf_symbol": "doubletriangle" }
+            "letter_symbols": False }
         for k,v in self[self["default_option"]].items():
             dict[k] = v
         for key in list(dict):
