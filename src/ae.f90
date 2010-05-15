@@ -54,13 +54,13 @@ CONTAINS
     DOUBLE PRECISION PAR(*),VUZ(*),THU(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: &
-         AA(:,:),U(:),V(:),UDOT(:),STUD(:,:),STU(:,:),UZR(:)
+         AA(:,:),U(:),V(:),UDOT(:),STUD(:,:),STU(:,:),TEST(:)
     LOGICAL IPOS,CHNG,FOUND
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
-    INTEGER ITNW,ITP,I,IUZR,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS,NDM
+    INTEGER ITNW,ITP,I,ITEST,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS,NDM
     DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS,TMP
     LOGICAL ISTOP,CHECKEDHB
-    INTEGER STOPCNTS(-9:9)
+    INTEGER STOPCNTS(-9:13)
 
     NDIM=AP%NDIM
     NDM=AP%NDM
@@ -84,7 +84,7 @@ CONTAINS
     DS=AP%DS
 
     ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1),V(AP%NDM))
-    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),UZR(NUZR+6),EVV(NDM))
+    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),TEST(NUZR+6),EVV(NDM))
 
     NINS=0
     AP%NINS=NINS
@@ -116,12 +116,12 @@ CONTAINS
     DO NBFC=0,NBFCS !bifurcation switch loop
 
        DO I=1,NUZR+6
-          UZR(I)=0.d0
+          TEST(I)=0.d0
        ENDDO
 
        NTOT=0
        AP%NTOT=NTOT
-       CALL INITSTOPCNTS(STOPCNTS)
+       CALL INITSTOPCNTS(ISP,ILP,ITPST,STOPCNTS)
        ISTOP=.FALSE.
        NIT=1
 
@@ -186,25 +186,25 @@ CONTAINS
           DSOLD=RDS
 
           CHECKEDHB=.FALSE.
-          DO IUZR=1,NUZR+6
+          DO ITEST=1,NUZR+6
              IF(ISTOP)EXIT
-             IF(IUZR<=NUZR)THEN
+             IF(ITEST<=NUZR)THEN
                 ITP=-4 ! Check for user supplied parameter output parameter-values.
-             ELSEIF(IUZR==NUZR+1)THEN
+             ELSEIF(ITEST==NUZR+1)THEN
                 ITP=-2 ! Check for cusp on fold or Zero-Hopf on Hopf
-             ELSEIF(IUZR==NUZR+2)THEN
+             ELSEIF(ITEST==NUZR+2)THEN
                 ITP=2  ! Check for fold
-             ELSEIF(IUZR==NUZR+3)THEN
+             ELSEIF(ITEST==NUZR+3)THEN
                 ITP=1  ! Check for branch point
-             ELSEIF(IUZR==NUZR+4)THEN
+             ELSEIF(ITEST==NUZR+4)THEN
                 ITP=-3 ! Check for Bogdanov-Takens bifurcation
-             ELSEIF(IUZR==NUZR+5)THEN
+             ELSEIF(ITEST==NUZR+5)THEN
                 IF(AP%ITPST==3)THEN
                    ITP=-2 ! Check for Zero-Hopf
                 ELSE
                    ITP=3 ! Check for Hopf bifurcation
                 ENDIF
-             ELSEIF(IUZR==NUZR+6)THEN
+             ELSEIF(ITEST==NUZR+6)THEN
                 ITP=5 ! Check for Generalized Hopf (Bautin)
              ENDIF
              IF(ITP<0)THEN
@@ -214,11 +214,11 @@ CONTAINS
              ENDIF
              IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
                 ! Check for UZ, LP, BP, HB
-                IF(IUZR==NUZR+5)THEN
+                IF(ITEST==NUZR+5)THEN
                    CHECKEDHB=.TRUE.
                 ENDIF
-                CALL LCSPAE(AP,DSOLD,PAR,ICP,IUZR,FUNI,AA,&
-                     U,V,UDOT,UZR(IUZR),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+                CALL LCSPAE(AP,DSOLD,PAR,ICP,ITEST,FUNI,AA,&
+                     U,V,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
                 IF(FOUND)THEN
                    IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
                       ITDS=AP%ITDS
@@ -227,19 +227,19 @@ CONTAINS
                       PAR(11)=PAR(11)*ITDS
                    ENDIF
                    AP%ITP=ITP
-                   IF(IUZ(IUZR)>=0.AND..NOT.STOPPED(ITP,STOPCNTS))THEN
+                   IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
+                      ! *Stop at the first found bifurcation
+                      ISTOP=.TRUE.
+                   ELSE
                       IF(MOD(ITP,10)==-4)THEN
-                         UZR(1:NUZR)=0.d0
+                         TEST(1:NUZR)=0.d0
                       ELSE
-                         UZR(NUZR+1:NUZR+6)=0.d0
+                         TEST(NUZR+1:NUZR+6)=0.d0
                       ENDIF
                       IF(MOD(ITP,10)==1)THEN
                          ! Check for branch point, and if so store data :
                          CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
                       ENDIF
-                   ELSE
-                      ! *Stop at the first found bifurcation
-                      ISTOP=.TRUE.
                    ENDIF
                 ENDIF
              ENDIF
@@ -293,7 +293,7 @@ CONTAINS
        ISW=-1
     ENDDO !from bifurcation switch loop
 
-    DEALLOCATE(EVV,AA,U,UDOT,STUD,STU,UZR)
+    DEALLOCATE(EVV,AA,U,UDOT,STUD,STU,TEST)
   END SUBROUTINE CNRLAE
 
 ! ---------- ------
@@ -712,7 +712,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 !
 ! ---------- ------
-  SUBROUTINE LCSPAE(AP,DSOLD,PAR,ICP,IUZR,FUNI,AA, &
+  SUBROUTINE LCSPAE(AP,DSOLD,PAR,ICP,ITEST,FUNI,AA, &
        U,V,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
 
     USE SUPPORT
@@ -730,7 +730,7 @@ CONTAINS
     include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER ICP(*),IUZ(*),NIT,IUZR
+    INTEGER ICP(*),IUZ(*),NIT,ITEST
     DOUBLE PRECISION DSOLD,PAR(*),THU(*),VUZ(*)
     DOUBLE PRECISION AA(AP%NDIM+1,*),U(*),V(*),UDOT(*),Q
     LOGICAL, INTENT(OUT) :: ISTOP, FOUND
@@ -752,7 +752,7 @@ CONTAINS
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR,.TRUE.)
+    Q1=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
     NTOT=AP%NTOT
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
@@ -796,7 +796,7 @@ CONTAINS
 
        CALL RNULLVC(AP,AA,V)
        CALL PVLSAE(AP,U,PAR)
-       Q=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR,.FALSE.)
+       Q=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
@@ -811,7 +811,7 @@ CONTAINS
   END SUBROUTINE LCSPAE
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,IUZR,FIRST)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,FIRST)
 
     USE SUPPORT, ONLY: CHECKSP
 
@@ -821,7 +821,7 @@ CONTAINS
     LOGICAL, INTENT(OUT) :: CHNG
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
-    INTEGER, INTENT(IN) :: IUZ(*),IUZR
+    INTEGER, INTENT(IN) :: IUZ(*),ITEST
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
     LOGICAL, INTENT(IN) :: FIRST
 
@@ -829,26 +829,26 @@ CONTAINS
 
     NUZR=AP%NUZR
 
-    IF(IUZR==NUZR+1)THEN
+    IF(ITEST==NUZR+1)THEN
        FNCS=FNCPAE(AP,PAR,ICP,CHNG,U,V)
-    ELSEIF(IUZR==NUZR+2)THEN
+    ELSEIF(ITEST==NUZR+2)THEN
        FNCS=FNLPAE(AP,CHNG,AA)
-    ELSEIF(IUZR==NUZR+3)THEN
+    ELSEIF(ITEST==NUZR+3)THEN
        FNCS=FNBPAE(AP,CHNG)
-    ELSEIF(IUZR==NUZR+4)THEN
+    ELSEIF(ITEST==NUZR+4)THEN
        FNCS=FNBTAE(AP,CHNG,U,V)
-    ELSEIF(IUZR==NUZR+5)THEN
+    ELSEIF(ITEST==NUZR+5)THEN
        FNCS=FNHBAE(AP,PAR,CHNG,AA)
        IF(.NOT.FIRST.OR..NOT.CHECKSP(AP%ITPST*10+5,AP%IPS,AP%ILP,AP%ISP))THEN
           CALL PRINTEIG(AP)
        ENDIF
-    ELSEIF(IUZR==NUZR+6)THEN
+    ELSEIF(ITEST==NUZR+6)THEN
        FNCS=FNGHAE(AP,PAR,ICP,CHNG,U,AA)
        IF(FIRST)THEN
           CALL PRINTEIG(AP)
        ENDIF
     ELSE
-       FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
+       FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,ITEST)
     ENDIF
 
   END FUNCTION FNCS

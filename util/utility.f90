@@ -38,7 +38,7 @@ CONTAINS
     ALLOCATE(LBR(NLB),LPT(NLB),LTY(NLB),LLB(NLB),LNL(NLB))
     CALL GTFILE8(LIST,NLB,LBR,LPT,LTY,LLB,LNL)
     DO I=1,NLB
-       IF(DELETEFN(I,LTY(I)))THEN
+       IF(DELETEFN(I,MOD(LTY(I),10)))THEN
           LNL(I)=0
           LTY(I)=0
        ENDIF
@@ -156,11 +156,7 @@ CONTAINS
        NLB=NLB+1
        P%BR=ABS(IBR)
        P%PT=ABS(NTOT)
-       IF(ITP<0)THEN
-          P%TY=-MOD(-ITP,10)
-       ELSE
-          P%TY= MOD(ITP,10)
-       ENDIF
+       P%TY=ITP
        P%LAB=LAB
        CALL SKIP(UNIT,NSKIP,EOF)
        IF(EOF)RETURN
@@ -419,20 +415,34 @@ CONTAINS
     ENDDO
 
   CONTAINS
-  ! ----------- -------- ----
-    CHARACTER*2 FUNCTION TYPE(ITP)
-      INTEGER ITP
-      CHARACTER*2, PARAMETER :: TYPESP(9) = &
-           (/ 'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
-      CHARACTER*2, PARAMETER :: TYPESN(9) = &
-           (/ '  ','  ','  ','UZ','  ','  ','  ','  ','MX' /)
-      IF(ITP>0)THEN
-         TYPE=TYPESP(MOD(ITP,10))
-      ELSEIF(ITP<0)THEN
-         TYPE=TYPESN(MOD(-ITP,10))
-      ELSE
-         TYPE='  '
-      ENDIF
+
+    CHARACTER(2) FUNCTION TYPE(ITP)
+
+      ! returns the string label type corresponding to numerical type ITP
+      INTEGER, INTENT(IN) :: ITP
+
+      CHARACTER*2, PARAMETER :: ATYPES(-9:13) = &
+           (/ 'MX','R4','  ','  ','R1','UZ','BT','CP','  ','  ', &
+              'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
+              'ZH','GH','R2','R3' /)
+
+      INTEGER NTY
+
+      SELECT CASE(ITP)
+      CASE(23,-32)
+         NTY=10 ! 'ZH'
+      CASE(35)
+         NTY=11 ! 'GH'
+      CASE(58)
+         NTY=-5 ! 'R1'
+      CASE(78,87)
+         NTY=12 ! 'R2'
+      CASE(88)
+         NTY=13 ! 'R3'
+      CASE DEFAULT
+         NTY=MOD(ITP,10)
+      END SELECT
+      TYPE=ATYPES(NTY)
     END FUNCTION TYPE
 
   END SUBROUTINE LISTLB
