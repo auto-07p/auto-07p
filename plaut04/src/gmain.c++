@@ -3855,46 +3855,47 @@ initCoordAndLableListItems()
     myLabels[numLabels + MY_SPEC] = MY_SPEC; // -2
     myLabels[numLabels + MY_HALF] = MY_HALF; // -3
     myLabels[numLabels + MY_ALL] = MY_ALL; // -4
+
+    int nty;
+    char tylabels[][3] = {
+         "MX","R4","  ","  ","R1","UZ","BT","CP","  ","  ",
+         "BP","LP","HB","  ","LP","BP","PD","TR","EP",
+         "ZH","GH","R2","R3" };
     for( i=0; i<numLabels; ++i)
     {
         int jmii = i + SP_LBL_ITEMS;
         sprintf(labels[jmii], "%d", myLabels[i]);
+        nty = 0;
         switch (clientData.labelIndex[i][2])
         {
-            case 1 :  
-                strcat(labels[jmii]," BP");
+            case 23:
+            case -32:
+                nty = 10; // 'ZH'
                 break;
-            case 2 : 
-                strcat(labels[jmii]," LP");
+            case 35:
+                nty = 11; // 'GH'
                 break;
-            case 3 :
-                strcat(labels[jmii]," HB");
+            case 58:
+                nty = -5; // 'R1'
                 break;
-            case -4 :
-                strcat(labels[jmii]," UZ");
+            case 78:
+            case 87:
+                nty = 12; // 'R2'
                 break;
-            case 5 :
-                strcat(labels[jmii]," LP");
+            case 88:
+                nty = 13; // 'R3'
                 break;
-            case 6 : 
-                strcat(labels[jmii]," BP");
+            default:
+                if (clientData.labelIndex[i][2] >= 0)
+                    nty = clientData.labelIndex[i][2] % 10;
+                else
+                    nty = -(-clientData.labelIndex[i][2] % 10);
                 break;
-            case 7 :
-                strcat(labels[jmii]," PD");
-                break;
-            case 8 :
-                strcat(labels[jmii]," TR");
-                break;
-            case 9 :
-                strcat(labels[jmii]," EP");
-                break;
-            case -9 :
-                strcat(labels[jmii]," MX");
-                break;
-            case 0 : 
-            case 4 :
-            default :
-                break;
+        }
+        if (nty != 0)
+        {
+            strcat(labels[jmii], " ");
+            strcat(labels[jmii], tylabels[nty+9]);
         }
     }
 
