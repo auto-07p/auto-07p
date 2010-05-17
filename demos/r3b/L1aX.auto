@@ -6,6 +6,7 @@
 auto('L1a.auto')
 
 print "\n*** 'Wind up' an orbit on the unstable manifold***"
+startL1a = loadbd('startL1a')
 L1a2 = run(startL1a,c='man.L1a.2')
 save(rl(L1a2),'L1a2')
 

@@ -6,6 +6,7 @@
 auto('H1b.auto')
 
 print "\n*** Locate a connecting orbit on the unstable manifold ***"
+startH1b = loadbd('startH1b')
 het1H1b = run(startH1b,c='man.H1b.2')
 save(rl(het1H1b),'het1H1b')
 
