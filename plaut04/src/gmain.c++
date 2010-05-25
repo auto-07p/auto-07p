@@ -3892,7 +3892,7 @@ initCoordAndLableListItems()
                     nty = -(-clientData.labelIndex[i][2] % 10);
                 break;
         }
-        if (nty != 0)
+        if (nty != 0 && tylabels[nty+9][0] != ' ')
         {
             strcat(labels[jmii], " ");
             strcat(labels[jmii], tylabels[nty+9]);
