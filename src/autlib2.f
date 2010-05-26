@@ -476,17 +476,15 @@ C
       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IFST*2,F,DFDU,DFDP)
       IF(IFST.EQ.1)THEN
          DO I=1,NDIM
-C     transpose DFDU for optimal access
-            DO J=I+1,NDIM
-               TMP=DFDU(I,J)
-               DFDU(I,J)=DFDU(J,I)
-               DFDU(J,I)=TMP
+C     use U instead of DFDU in inner loop to better utilize the CPU cache
+            DO J=1,NDIM
+               U(J)=DFDU(I,J)
             ENDDO
             DO IB=0,NCOL
                WTTMP=-WT(IB)
                IB1=IB*NDIM
                DO K=1,NDIM
-                  AA(IB1+K,I)=WTTMP*DFDU(K,I)
+                  AA(IB1+K,I)=WTTMP*U(K)
                ENDDO
                AA(IB1+I,I)=AA(IB1+I,I)+WPLOC(IB)
             ENDDO
