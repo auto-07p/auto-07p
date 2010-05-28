@@ -105,6 +105,9 @@ class parseS(list):
                     pass
         elif len(self) > 0:
             sol = self[-1]
+        else:
+            raise AUTOExceptions.AUTORuntimeError(
+                "Cannot start from empty solution list.")
         if sol is None:
             sol = AUTOSolution()
         return sol.load(**kw)

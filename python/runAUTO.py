@@ -535,6 +535,7 @@ class runAUTO:
         # Check to see if output files were created.
         # If not, there must have been an error
         if (not os.path.isfile(self.fort7_path) or
+            os.path.getsize(self.fort7_path) == 0 or
             not os.path.isfile(self.fort8_path) or
             not os.path.isfile(self.fort9_path)):
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
