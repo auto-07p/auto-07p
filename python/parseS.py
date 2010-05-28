@@ -698,9 +698,11 @@ class AUTOSolution(UserDict,Points.Pointset):
             if key in kw and key not in c:
                 datakw[key] = kw[key]
                 del kw[key]
-        if self["LAB"] != 0:
-            kw["IRS"] = self["LAB"]
         c.update(constants, **kw)
+        if c["IRS"] == 0:
+            return AUTOSolution(constants=c, **datakw)
+        if self["LAB"] != 0:
+            c["IRS"] = self["LAB"]
         return AUTOSolution(self, constants=c, **datakw)
 
     def run(self,**kw):
