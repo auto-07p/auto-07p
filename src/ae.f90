@@ -1774,10 +1774,20 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE PVLSAE(AP,U,PAR)
 
+    USE AUTO_CONSTANTS, ONLY : NPARX
+
     TYPE(AUTOPARAMETERS)AP
     DOUBLE PRECISION U(*),PAR(*)
+    INTEGER i
 
     CALL PVLS(AP%NDM,U,PAR)
+
+    DO i=NPARX,AP%NPAR+1,-1
+       IF(PAR(i)/=0)THEN
+          WRITE(6,"(A,I4)"),'NPAR should be at least ',I
+          STOP
+       ENDIF
+    ENDDO
 
   END SUBROUTINE PVLSAE
 

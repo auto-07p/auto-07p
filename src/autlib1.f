@@ -155,7 +155,7 @@ C     ---------- -----
 C
       USE INTERFACES
       USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
-     &     parnames
+     &     parnames,NPARX
       USE IO, ONLY: NAMEIDX
       USE AE
       USE BVP
@@ -223,7 +223,9 @@ C
            ENDIF
         ENDIF
         AP%NPAR=NPAR
-        ALLOCATE(PAR(NPAR))
+        ! allocate a minimum of NPARX so we can detect overflows 
+        ! past NPAR gracefully
+        ALLOCATE(PAR(MAX(NPAR,NPARX)))
         PAR(:)=0.d0
 C     redefine thl to be nfpr sized and indexed
         ALLOCATE(THL(NFPR))
