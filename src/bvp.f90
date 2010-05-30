@@ -399,8 +399,6 @@ CONTAINS
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
     USE MESH
-    USE SOLVEBV
-    USE SUPPORT, ONLY: CHECKSP
 
 ! Controls the solution of the nonlinear equations (by Newton's method)
 ! for the next solution (PAR(ICP(*)) , U) on a branch of solutions.
@@ -417,124 +415,34 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), RDS
     DOUBLE PRECISION, INTENT(OUT) :: DSOLD, P0(*),P1(*)
 
-    INTEGER NTST,NCOL,IADS,IID,ITNW,NWTN,NFPR,IBR,NTOT,NTOP,IFST,NLLV,I,J,NIT1
-    INTEGER IPS,ILP,ISP
-    DOUBLE PRECISION DSMIN,DSMAX,EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
-    DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX,RDSZ
-    DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:),P0T(:),P1T(:)
-    LOGICAL DONE
+    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I
+    DOUBLE PRECISION DSMIN,DSMAX
+    LOGICAL CONVERGED
 
-    IPS=AP%IPS
-    ILP=AP%ILP
     NTST=AP%NTST
     NCOL=AP%NCOL
     IADS=AP%IADS
-    ISP=AP%ISP
     IID=AP%IID
     ITNW=AP%ITNW
-    NWTN=AP%NWTN
     NFPR=AP%NFPR
     IBR=AP%IBR
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
     DSMIN=AP%DSMIN
-    EPSL=AP%EPSL
-    EPSU=AP%EPSU
 
-    ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
-    DELREF=0
     DO
-       ! Extrapolate to get the approximation to the next solution point.
-
-       RLCUR(:)=RLOLD(:)+RDS*RLDOT(:)
-       UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)+RDS*UDOTPS(:,0:NCOL*NTST)
        DSOLD=RDS
 
-       NITPS=0
+! Perform Newton iterations
 
-! Write additional output on unit 9 if requested.
-
-       CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
-
-! Generate the Jacobian matrix and the right hand side.
-
-       DO NIT1=1,ITNW
-
-          NITPS=NIT1
-          NLLV=0
-
-          IFST=0
-          IF(NITPS.LE.NWTN)IFST=1
-
-          CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
-               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
-               P0,P1,THL,THU)
-          AP%DET=DET
-
-! Add Newton increments.
-
-          DO I=1,NFPR
-             RLCUR(I)=RLCUR(I)+DRL(I)
-             PAR(ICP(I))=RLCUR(I)
-          ENDDO
-
-          DUMX=0.d0
-          UMX=0.d0
-          DO J=0,NTST*NCOL
-             DO I=1,NDIM
-                ADU=ABS(DUPS(I,J))
-                IF(ADU.GT.DUMX)DUMX=ADU
-                AU=ABS(UPS(I,J))
-                IF(AU.GT.UMX)UMX=AU
-                UPS(I,J)=UPS(I,J)+DUPS(I,J)
-             ENDDO
-          ENDDO
-
-          CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
-
-! Check whether user-supplied error tolerances have been met :
-
-          DONE=.TRUE.
-          RDRL=0.d0
-          DO I=1,NFPR
-             ADRL=ABS(DRL(I))/(1.d0+ABS(RLCUR(I)))
-             IF(ADRL.GT.EPSL)DONE=.FALSE.
-             IF(ADRL.GT.RDRL)RDRL=ADRL
-          ENDDO
-          RDUMX=DUMX/(1.d0+UMX)
-          IF(DONE.AND.RDUMX.LT.EPSU)THEN
-             IF(CHECKSP(5,IPS,ILP,ISP))THEN
-                ! Find the direction vector (for test functions)
-                ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
-                NLLV=-1
-                IFST=0
-                RDSZ=0.d0
-
-                CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-                     RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
-                     DRL,P0T,P1T,THL,THU)
-
-                ! Scale the direction vector.
-                CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
-                AP%FLDF=DRL(1)
-                DEALLOCATE(P0T,P1T)
-             ENDIF
-
-             CALL PVLI(AP,ICP,UPS,NDIM,PAR)
-             IF(IID.GE.2)WRITE(9,*)
-             DEALLOCATE(DUPS,DRL)
-             RETURN
-          ENDIF
-
-          IF(NITPS.EQ.1)THEN
-             DELREF=20*DMAX1(RDRL,RDUMX)
-          ELSE
-             DELMAX=DMAX1(RDRL,RDUMX)
-             IF(DELMAX.GT.DELREF)EXIT
-          ENDIF
-
-       ENDDO
+       CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+            TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
+       IF(CONVERGED)THEN
+          ISTOP=0
+          RETURN
+       ENDIF
 
 ! Maximum number of iterations reached.
 
@@ -565,13 +473,151 @@ CONTAINS
     ENDDO
     UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)
     ISTOP=1
-    DEALLOCATE(DUPS,DRL)
 
 101 FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
 102 FORMAT(I4,I6,' NOTE:Retrying step')
 103 FORMAT(I4,I6,' NOTE:No convergence using minimum step size')
 
   END SUBROUTINE STEPBV
+
+! ---------- --------
+  SUBROUTINE NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+       TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
+
+! This subroutine contains the main predictor-corrector loop
+
+    USE MESH, ONLY: SCALEB
+    USE SOLVEBV, ONLY: SOLVBV
+    USE SUPPORT, ONLY: CHECKSP
+
+    include 'interfaces.h'
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*), NDIM
+    INTEGER, INTENT(OUT) :: NITPS
+    DOUBLE PRECISION, INTENT(OUT) :: UPS(NDIM,0:*), RLCUR(AP%NFPR)
+    DOUBLE PRECISION, INTENT(IN) :: UOLDPS(NDIM,0:*), RLOLD(AP%NFPR)
+    DOUBLE PRECISION, INTENT(IN) :: UDOTPS(NDIM,0:*), RLDOT(AP%NFPR), UPOLDP(NDIM,0:*)
+    DOUBLE PRECISION, INTENT(IN) :: TM(*), DTM(*), THL(*), THU(*), RDS
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: P0(*),P1(*)
+    LOGICAL, INTENT(OUT) :: CONVERGED
+
+    INTEGER NTST,NCOL,IID,ITNW,NWTN,NFPR,IFST,NLLV,I,J,NIT1,IPS,ILP,ISP
+    DOUBLE PRECISION EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
+    DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX,RDSZ
+    DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:),P0T(:),P1T(:)
+    LOGICAL DONE
+
+    IPS=AP%IPS
+    ILP=AP%ILP
+    NTST=AP%NTST
+    NCOL=AP%NCOL
+    ISP=AP%ISP
+    IID=AP%IID
+    ITNW=AP%ITNW
+    NWTN=AP%NWTN
+    NFPR=AP%NFPR
+
+    EPSL=AP%EPSL
+    EPSU=AP%EPSU
+
+    ! Extrapolate to get the approximation to the next solution point.
+
+    RLCUR(:)=RLOLD(:)+RDS*RLDOT(:)
+    UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)+RDS*UDOTPS(:,0:NCOL*NTST)
+
+! Write additional output on unit 9 if requested.
+
+    NITPS=0
+    CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+
+! Generate the Jacobian matrix and the right hand side.
+
+    ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
+    CONVERGED=.FALSE.
+    DELREF=0
+    DO NIT1=1,ITNW
+
+       NITPS=NIT1
+       NLLV=0
+
+       IFST=0
+       IF(NITPS.LE.NWTN)IFST=1
+
+       CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDS,NLLV, &
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
+            P0,P1,THL,THU)
+       AP%DET=DET
+
+! Add Newton increments.
+
+       DO I=1,NFPR
+          RLCUR(I)=RLCUR(I)+DRL(I)
+          PAR(ICP(I))=RLCUR(I)
+       ENDDO
+
+       DUMX=0.d0
+       UMX=0.d0
+       DO J=0,NTST*NCOL
+          DO I=1,NDIM
+             ADU=ABS(DUPS(I,J))
+             IF(ADU.GT.DUMX)DUMX=ADU
+             AU=ABS(UPS(I,J))
+             IF(AU.GT.UMX)UMX=AU
+             UPS(I,J)=UPS(I,J)+DUPS(I,J)
+          ENDDO
+       ENDDO
+
+       CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+
+! Check whether user-supplied error tolerances have been met :
+
+       DONE=.TRUE.
+       RDRL=0.d0
+       DO I=1,NFPR
+          ADRL=ABS(DRL(I))/(1.d0+ABS(RLCUR(I)))
+          IF(ADRL.GT.EPSL)DONE=.FALSE.
+          IF(ADRL.GT.RDRL)RDRL=ADRL
+       ENDDO
+       RDUMX=DUMX/(1.d0+UMX)
+       IF(DONE.AND.RDUMX.LT.EPSU)THEN
+          IF(CHECKSP(5,IPS,ILP,ISP))THEN
+             ! Find the direction vector (for test functions)
+             ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
+             NLLV=-1
+             IFST=0
+             RDSZ=0.d0
+
+             CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+                  RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
+                  DRL,P0T,P1T,THL,THU)
+
+             ! Scale the direction vector.
+             CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
+             AP%FLDF=DRL(1)
+             DEALLOCATE(P0T,P1T)
+          ENDIF
+
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+          IF(IID.GE.2)WRITE(9,*)
+          DEALLOCATE(DUPS,DRL)
+          CONVERGED=.TRUE.
+          RETURN
+       ENDIF
+
+       IF(NITPS.EQ.1)THEN
+          DELREF=20*DMAX1(RDRL,RDUMX)
+       ELSE
+          DELMAX=DMAX1(RDRL,RDUMX)
+          IF(DELMAX.GT.DELREF)EXIT
+       ENDIF
+
+    ENDDO
+    DEALLOCATE(DUPS,DRL)
+
+  END SUBROUTINE NEWTONBV
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
