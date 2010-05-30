@@ -1543,7 +1543,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     
     The results are stored in the bifurcation diagram r which you can
     later print with ``print r'', obtain branches from via r[0], r[1], ...,
-    and obtain solutions from via r(3), r(5), r('LP2'), where 1 and 5
+    and obtain solutions from via r(3), r(5), r('LP2'), where 3 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
     FUNC(data) runs AUTO in the following way for different types of data:
@@ -1569,11 +1569,11 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
 
     Example: given a bifurcation diagram bd, with a branch point
     solution, switch branches and stop at the first Hopf bifurcation:
-    hb = FUNC(bd('BP1'),ISW=-1,SP='HB1')
+    hb = FUNC(bd('BP1'),ISW=-1,STOP='HB1')
     
     Special keyword arguments are 'sv' and 'ap'; 'sv' is also an AUTO
     constant:
-    FUNC(bd('BP1'),ISW=-1,SP='HB1',sv='hb',ap='all')
+    FUNC(bd('BP1'),ISW=-1,STOP='HB1',sv='hb',ap='all')
     saves to the files b.hb, s.hb and d.hb, and appends to b.all,
     s.all, and d.all.
     """
