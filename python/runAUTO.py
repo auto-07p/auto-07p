@@ -337,7 +337,7 @@ class runAUTO:
                 self.options["auto_dir"]=os.environ["AUTO_DIR"]
             curdir = os.getcwd()
             os.chdir(self.options["dir"])
-            if (constants["IRS"] not in [0, None] and
+            if (constants["IRS"] and
                 self.options["selected_solution"].coordnames == []):
                 raise AUTOExceptions.AUTORuntimeError(
                     "Restart label IRS=%s not found."%constants["IRS"])
