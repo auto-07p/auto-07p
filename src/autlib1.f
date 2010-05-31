@@ -110,6 +110,7 @@ C     ---------- ---------
          AP%ISW = ISW
          AP%ITP = FUNI_ICNI_PARAMS(4) ! itp
          AP%NFPR = FUNI_ICNI_PARAMS(5) ! nfpr
+         ICU(1) = 0
          CALL AUTOI(AP,ICU,SIZE(ICU),.TRUE.)
          ! autoi calls autobv which eventually calls solvbv;
          ! a return means another init message

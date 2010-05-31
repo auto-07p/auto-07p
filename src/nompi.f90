@@ -41,7 +41,8 @@ end subroutine mpicon
 subroutine mpisbv(ap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   type(autoparameters) :: ap
-  integer :: nra,icp(*),ifst,nllv
+  integer, intent(in) :: nra,icp(*)
+  integer, intent(inout) :: ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
 end subroutine mpisbv
@@ -52,11 +53,12 @@ subroutine mpibcast(buf,len)
 end subroutine mpibcast
 
 subroutine mpibcasti(buf,len)
-  integer :: len, buf(len)
+  integer, intent(in) :: len
+  integer, intent(inout) :: buf(len)
 end subroutine mpibcasti
 
 subroutine mpibcastap(ap)
-  type(autoparameters) :: ap
+  type(autoparameters), intent(inout) :: ap
 end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)

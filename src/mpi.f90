@@ -202,11 +202,12 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
   integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   type(autoparameters) :: ap
-  integer :: icp(*),ifst,nllv
+  integer, intent(in) :: ndim,icp(*)
+  integer, intent(inout) :: ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
 
-  integer :: ncol,npar,ierr,ntst,ndim,iam,nint,nfpr
+  integer :: ncol,npar,ierr,ntst,iam,nint,nfpr
   integer :: pos,bufsize,size_int,size_double
   character*1, allocatable :: buffer(:)
 
@@ -286,7 +287,8 @@ end subroutine mpibcast
 subroutine mpibcasti(buf,len)
   include 'mpif.h'
 
-  integer :: len, buf(len)
+  integer, intent(in) :: len
+  integer, intent(inout) :: buf(len)
 
   integer :: ierr
 
@@ -296,7 +298,7 @@ end subroutine mpibcasti
 subroutine mpibcastap(ap)
   include 'mpif.h'
 
-  type(autoparameters) :: ap
+  type(autoparameters), intent(inout) :: ap
 
   integer :: ierr
   integer :: iap(35)

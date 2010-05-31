@@ -1186,8 +1186,6 @@ C
 C Preprocesses restart data for switching branches at a period doubling
 C
 C
-      USE BVP, ONLY: IRTN
-
       INTEGER, INTENT(IN) :: NDIM,NCOL
       INTEGER, INTENT(INOUT) :: NTST
       DOUBLE PRECISION,INTENT(INOUT) :: TM(0:*),UPS(NDIM,0:*),
