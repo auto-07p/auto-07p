@@ -253,6 +253,11 @@
 
     nu2 = PAR(2)
     eps = PAR(6)
+    IF (abs(nu2) > 2) THEN
+       ! truncate nu2 to [-2,2] to avoid floating point exceptions with acos
+       nu2 = sign(2d0, nu2)
+    ENDIF
+
     fp = (/0d0, 0d0, acos(-nu2/2)/)
     ev = (/0d0, 0d0, 1d0/)
 
