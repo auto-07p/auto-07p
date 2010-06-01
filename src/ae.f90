@@ -55,10 +55,11 @@ CONTAINS
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: &
          AA(:,:),U(:),V(:),UDOT(:),STUD(:,:),STU(:,:),TEST(:)
-    LOGICAL IPOS,CHNG,FOUND
+    LOGICAL IPOS
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
-    INTEGER ITNW,ITP,I,ITEST,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP,ITDS,NDM
-    DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,EPSS,TMP
+    INTEGER ITNW,ITP,I,ITEST,JTEST,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
+    INTEGER NDM,ITDS,ITPDUM
+    DOUBLE PRECISION DS,DSMAX,RDS,DSOLD,TMP
     LOGICAL ISTOP,CHECKEDHB
     INTEGER STOPCNTS(-9:13)
 
@@ -144,7 +145,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
-          TMP=FNHBAE(AP,PAR,CHNG,AA)
+          TMP=FNHBAE(AP,PAR,ITPDUM,AA)
           CALL PRINTEIG(AP)
        ENDIF
 
@@ -163,7 +164,7 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
-                TMP=FNHBAE(AP,PAR,CHNG,AA)
+                TMP=FNHBAE(AP,PAR,ITPDUM,AA)
                 CALL PRINTEIG(AP)
              ENDIF
              ! Store plotting data for second point :
@@ -188,69 +189,38 @@ CONTAINS
           CHECKEDHB=.FALSE.
           DO ITEST=1,NUZR+6
              IF(ISTOP)EXIT
-             IF(ITEST<=NUZR)THEN
-                ITP=-4 ! Check for user supplied parameter output parameter-values.
-             ELSEIF(ITEST==NUZR+1)THEN
-                ITP=-2 ! Check for cusp on fold or Zero-Hopf on Hopf
-             ELSEIF(ITEST==NUZR+2)THEN
-                ITP=2  ! Check for fold
-             ELSEIF(ITEST==NUZR+3)THEN
-                ITP=1  ! Check for branch point
-             ELSEIF(ITEST==NUZR+4)THEN
-                ITP=-3 ! Check for Bogdanov-Takens bifurcation
-             ELSEIF(ITEST==NUZR+5)THEN
-                IF(AP%ITPST==3)THEN
-                   ITP=-2 ! Check for Zero-Hopf
+             ! Check for bifurcations
+             CALL LCSPAE(AP,DSOLD,PAR,ICP,ITEST,FUNI,AA,&
+                  U,V,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ISTOP,ITP)
+             IF(ITP/=0)THEN
+                AP%ITP=ITP
+                IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
+                   ITDS=AP%ITDS
+                   PAR(11)=PAR(11)*ITDS
+                ENDIF
+                IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
+                   ! *Stop at the first found bifurcation
+                   ISTOP=.TRUE.
+                   DO JTEST=ITEST+1,NUZR+6
+                      ! just evaluate test functions to get stability info etc.
+                      TEST(JTEST)=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,JTEST,&
+                           .TRUE.)
+                   ENDDO
                 ELSE
-                   ITP=3 ! Check for Hopf bifurcation
-                ENDIF
-             ELSEIF(ITEST==NUZR+6)THEN
-                ITP=5 ! Check for Generalized Hopf (Bautin)
-             ENDIF
-             IF(ITP<0)THEN
-                ITP=ITP-10*ITPST
-             ELSE
-                ITP=ITP+10*ITPST
-             ENDIF
-             IF(CHECKSP(ITP,IPS,ILP,ISP))THEN
-                ! Check for UZ, LP, BP, HB
-                IF(ITEST==NUZR+5)THEN
-                   CHECKEDHB=.TRUE.
-                ENDIF
-                CALL LCSPAE(AP,DSOLD,PAR,ICP,ITEST,FUNI,AA,&
-                     U,V,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ISTOP,FOUND)
-                IF(FOUND)THEN
-                   IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
-                      ITDS=AP%ITDS
-                      EPSS=AP%EPSS
-                      ITP=TPSPAE(EPSS,ITPST,PAR(11))
-                      PAR(11)=PAR(11)*ITDS
-                   ENDIF
-                   AP%ITP=ITP
-                   IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
-                      ! *Stop at the first found bifurcation
-                      ISTOP=.TRUE.
+                   IF(MOD(ITP,10)==-4)THEN
+                      TEST(1:NUZR)=0.d0
                    ELSE
-                      IF(MOD(ITP,10)==-4)THEN
-                         TEST(1:NUZR)=0.d0
-                      ELSE
-                         TEST(NUZR+1:NUZR+6)=0.d0
-                      ENDIF
-                      IF(MOD(ITP,10)==1)THEN
-                         ! Check for branch point, and if so store data :
-                         CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
-                      ENDIF
+                      TEST(NUZR+1:NUZR+6)=0.d0
+                   ENDIF
+                   IF(MOD(ITP,10)==1)THEN
+                      ! Check for branch point, and if so store data :
+                      CALL STBIF(NDIM,NBIF,NBIFS,STUD,STU,U,UDOT)
                    ENDIF
                 ENDIF
              ENDIF
           ENDDO
-          IF(.NOT.CHECKEDHB.AND.(ABS(IPS)==1.OR.IPS==11))THEN
-             ! Still determine eigenvalue information and stability
-             ! for situations where ISTOP=-1 or SP switched off HB detection
-             TMP=FNHBAE(AP,PAR,CHNG,AA)
-             CALL PRINTEIG(AP)
-          ENDIF
-          ITP=AP%ITP 
+
+          ITP=AP%ITP
           IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
              ! for plotter: use stability of previous point
              ! for bifurcation points
@@ -264,7 +234,6 @@ CONTAINS
 
 ! Adapt the stepsize along the branch
 
-          ITP=AP%ITP
           IF(IADS.NE.0 .AND. MOD(NTOT,IADS).EQ.0 &
                .AND. ( MOD(ITP,10).EQ.0 .OR. MOD(ITP,10).EQ.4) )THEN
              ITNW=AP%ITNW
@@ -713,7 +682,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(AP,DSOLD,PAR,ICP,ITEST,FUNI,AA, &
-       U,V,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,FOUND)
+       U,V,UDOT,Q,THU,IUZ,VUZ,NIT,ISTOP,ITP)
 
     USE SUPPORT
 
@@ -731,18 +700,16 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),IUZ(*),ITEST
-    INTEGER, INTENT(OUT) :: NIT
+    INTEGER, INTENT(OUT) :: NIT,ITP
     DOUBLE PRECISION, INTENT(IN) :: THU(*),VUZ(*)
     DOUBLE PRECISION, INTENT(INOUT) :: DSOLD,Q
     DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,*),PAR(*),U(*),V(*),UDOT(*)
-    LOGICAL, INTENT(OUT) :: ISTOP, FOUND
+    LOGICAL, INTENT(OUT) :: ISTOP
 
-    LOGICAL CHNG
-    INTEGER IID,ITMX,IBR,ITLCSP,NTOT
+    INTEGER IID,ITMX,IBR,ITLCSP,NTOT,ITPDUM
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,S,S0,S1,RDS,RRDS
 
     ISTOP=.FALSE.
-    FOUND=.FALSE.
     IID=AP%IID
     ITMX=AP%ITMX
     IBR=AP%IBR
@@ -754,10 +721,11 @@ CONTAINS
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
+    Q1=FNCS(AP,PAR,ICP,ITP,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
     NTOT=AP%NTOT
     ! do not test via Q0*Q1 to avoid overflow.
-    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
+    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. ITP==0)THEN
+       ITP=0
        Q=Q1
        RETURN
     ENDIF
@@ -776,7 +744,6 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS)THEN
-          FOUND=.TRUE.
           Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
           RETURN
@@ -791,6 +758,7 @@ CONTAINS
        CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
        IF(NIT==0)THEN
           ISTOP=.TRUE.
+          ITP=0
           Q=0.d0
           RETURN
        ENDIF
@@ -798,11 +766,12 @@ CONTAINS
 
        CALL RNULLVC(AP,AA,V)
        CALL PVLSAE(AP,U,PAR)
-       Q=FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
+       Q=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
     IF(IID>0)WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
+    ITP=0
     Q=0.d0
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
@@ -813,14 +782,14 @@ CONTAINS
   END SUBROUTINE LCSPAE
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,CHNG,AA,U,V,IUZ,VUZ,ITEST,FIRST)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,ITP,AA,U,V,IUZ,VUZ,ITEST,FIRST)
 
-    USE SUPPORT, ONLY: CHECKSP
+    USE SUPPORT, ONLY: CHECKSP, FNUZ
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
     INTEGER, INTENT(IN) :: IUZ(*),ITEST
@@ -831,38 +800,45 @@ CONTAINS
 
     NUZR=AP%NUZR
 
-    IF(ITEST==NUZR+1)THEN
-       FNCS=FNCPAE(AP,PAR,ICP,CHNG,U,V)
-    ELSEIF(ITEST==NUZR+2)THEN
-       FNCS=FNLPAE(AP,CHNG,AA)
-    ELSEIF(ITEST==NUZR+3)THEN
-       FNCS=FNBPAE(AP,CHNG)
-    ELSEIF(ITEST==NUZR+4)THEN
-       FNCS=FNBTAE(AP,CHNG,U,V)
-    ELSEIF(ITEST==NUZR+5)THEN
-       FNCS=FNHBAE(AP,PAR,CHNG,AA)
-       IF(.NOT.FIRST.OR..NOT.CHECKSP(AP%ITPST*10+5,AP%IPS,AP%ILP,AP%ISP))THEN
+    FNCS=0.d0
+    ITP=0
+    IF(ITEST==NUZR+1)THEN  ! Check for cusp on fold
+       FNCS=FNCPAE(AP,PAR,ICP,ITP,U,V)
+    ELSEIF(ITEST==NUZR+2)THEN ! Check for fold
+       FNCS=FNLPAE(AP,ITP,AA)
+    ELSEIF(ITEST==NUZR+3)THEN ! Check for branch point
+       FNCS=FNBPAE(AP,ITP)
+    ELSEIF(ITEST==NUZR+4)THEN ! Check for Bogdanov-Takens bifurcation
+       FNCS=FNBTAE(AP,ITP,U,V)
+    ELSEIF(ITEST==NUZR+5)THEN  ! Check for Hopf or Zero-Hopf
+       FNCS=FNHBAE(AP,PAR,ITP,AA)
+       IF(.NOT.FIRST)THEN
           CALL PRINTEIG(AP)
        ENDIF
-    ELSEIF(ITEST==NUZR+6)THEN
-       FNCS=FNGHAE(AP,PAR,ICP,CHNG,U,AA)
+    ELSEIF(ITEST==NUZR+6)THEN ! Check for generalized Hopf (Bautin)
+       FNCS=FNGHAE(AP,PAR,ICP,ITP,U,AA)
        IF(FIRST)THEN
           CALL PRINTEIG(AP)
        ENDIF
-    ELSE
-       FNCS=FNUZAE(AP,PAR,CHNG,IUZ,VUZ,ITEST)
+    ELSEIF(ITEST<=NUZR)THEN ! Check for user-defined point
+       FNCS=FNUZ(AP,PAR,ITP,IUZ,VUZ,ITEST)
     ENDIF
 
   END FUNCTION FNCS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPAE(AP,CHNG)
+  DOUBLE PRECISION FUNCTION FNBPAE(AP,ITP)
+
+    USE SUPPORT, ONLY: CHECKSP
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
 
     INTEGER IID,IBR,NTOT,NTOP
     DOUBLE PRECISION DET
+
+    ITP=0
+    IF(.NOT.CHECKSP('BP',AP%IPS,AP%ILP,AP%ISP))RETURN
 
     IID=AP%IID
     IBR=AP%IBR
@@ -871,7 +847,7 @@ CONTAINS
 
     DET=AP%DET
     FNBPAE=DET
-    CHNG=.TRUE.
+    ITP=1+10*AP%ITPST
 
 ! If requested write additional output on unit 9 :
 
@@ -881,18 +857,21 @@ CONTAINS
   END FUNCTION FNBPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPAE(AP,CHNG,AA)
+  DOUBLE PRECISION FUNCTION FNLPAE(AP,ITP,AA)
 
     USE SUPPORT
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: UD(:),AAA(:,:),RHS(:)
 
     INTEGER NDIM,IID,IBR,NTOT,NTOP
     DOUBLE PRECISION DET
+
+    ITP=0
+    IF(.NOT.CHECKSP('LP',AP%IPS,AP%ILP,AP%ISP))RETURN
 
     NDIM=AP%NDIM
     IID=AP%IID
@@ -914,7 +893,7 @@ CONTAINS
     FNLPAE=UD(NDIM+1)
     DEALLOCATE(UD,AAA,RHS)
     AP%FLDF=FNLPAE
-    CHNG=.TRUE.
+    ITP=2+10*AP%ITPST
 
 ! If requested write additional output on unit 9 :
 
@@ -945,15 +924,15 @@ CONTAINS
   END SUBROUTINE PRINTEIG
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,CHNG,AA)
+  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,ITP,AA)
 
-    USE SUPPORT, ONLY: PI, EVV, EIG
+    USE SUPPORT, ONLY: PI, EVV, EIG, CHECKSP, LBTYPE
 
     DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RLARGE=1.0d+30
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     COMPLEX(KIND(1.0D0)) ZTMP
@@ -975,7 +954,8 @@ CONTAINS
 
 ! INITIALIZE
 
-    CHNG=.FALSE.
+    ITP=0
+    IF(ABS(IPS)/=1.AND.IPS/=11)RETURN
 
 ! Set tolerance for deciding if an eigenvalue is in the positive
 ! half-plane. Use, for example, tol=1d-3 for conservative systems.
@@ -1086,14 +1066,23 @@ CONTAINS
        IF(REAL(EV(I)).LE.tol)NINS1=NINS1+1
     ENDDO
 
-    IF((ISW==2.AND.IPS==-1) .OR. ISP==0 .OR. ISP==3)THEN
+    IF(IPS==-1)THEN
+       ITP=TPSPAE(AP%EPSS,ITPST,PAR(11))
+    ELSEIF(ITPST==3)THEN
+       ITP=-32 ! Check for Zero-Hopf on HB
+    ELSE
+       ITP=3+10*ITPST
+    ENDIF
+    IF((ISW==2.AND.IPS==-1).OR..NOT.CHECKSP(LBTYPE(ITP),IPS,AP%ILP,ISP))THEN
        FNHBAE=0d0
+       ITP=0
     ELSE
        FNHBAE=REV
+       IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
     ENDIF
     AP%HBFF=FNHBAE
     NINS=AP%NINS
-    IF(NINS1.NE.NINS)CHNG=.TRUE.
+    IF(NINS1==NINS)ITP=0
     NINS=NINS1
     AP%NINS=NINS
 
@@ -1102,7 +1091,6 @@ CONTAINS
     ELSE
        EVV(:)=EV(:)
     ENDIF
-    IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 
@@ -1136,17 +1124,19 @@ CONTAINS
   END SUBROUTINE RNULLVC
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBTAE(AP,CHNG,U,V)
+  DOUBLE PRECISION FUNCTION FNBTAE(AP,ITP,U,V)
+
+    USE SUPPORT, ONLY: CHECKSP
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM), V(*)
 ! Local
     INTEGER NDM,NTOP
 
     FNBTAE = 0
-    CHNG=.FALSE.
-    IF(AP%ISW/=2.OR.AP%ITPST==1.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+    ITP=0
+    IF(AP%ISW/=2.OR.AP%ITPST==1.OR..NOT.CHECKSP('BT',AP%IPS,AP%ILP,AP%ISP))THEN
        RETURN
     ENDIF
 
@@ -1160,7 +1150,7 @@ CONTAINS
        ! BT on Hopf curve
        FNBTAE = U(AP%NDIM-1)
     ENDIF
-    CHNG=.TRUE.
+    ITP=-3-10*AP%ITPST
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNBTAE
@@ -1169,12 +1159,13 @@ CONTAINS
   END FUNCTION FNBTAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,CHNG,U,V)
+  DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,ITP,U,V)
 
     USE INTERFACES, ONLY: FNWS, FUNC
+    USE SUPPORT, ONLY: CHECKSP
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
     INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
@@ -1184,8 +1175,8 @@ CONTAINS
     INTEGER NDM,NTOP,I
 
     FNCPAE = 0
-    CHNG=.FALSE.
-    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+    ITP=0
+    IF(AP%ISW/=2.OR.AP%ITPST/=2.OR..NOT.CHECKSP('CP',AP%IPS,AP%ILP,AP%ISP))THEN
        RETURN
     ENDIF
 
@@ -1215,7 +1206,7 @@ CONTAINS
     FNCPAE=(FNCPAE+DOT_PRODUCT(V(:),F(:)))/H**2
 
     DEALLOCATE(UU,F)
-    CHNG=.TRUE.
+    ITP=-22
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNCPAE
@@ -1224,15 +1215,15 @@ CONTAINS
   END FUNCTION FNCPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNGHAE(AP,PAR,ICP,CHNG,U,AA)
+  DOUBLE PRECISION FUNCTION FNGHAE(AP,PAR,ICP,ITP,U,AA)
 
     ! Evaluate first Lyapunov coefficient for Bautin (GH) bifurcations
     ! and to determine if the Hopf is subcritical or supercritical.
 
-    USE SUPPORT, ONLY: NRMLZ, NLVC, GEL
+    USE SUPPORT, ONLY: NRMLZ, NLVC, GEL, CHECKSP
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),AA(AP%NDIM+1,AP%NDIM+1)
     INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
@@ -1247,8 +1238,8 @@ CONTAINS
     INTEGER n,i,NTOP
 
     FNGHAE = 0
-    CHNG = .FALSE.
-    IF(AP%ISW/=2.OR.AP%ITPST/=3.OR.AP%IPS==-1.OR.AP%ISP==0.OR.AP%ISP==3)THEN
+    ITP = 0
+    IF(AP%ISW/=2.OR.AP%ITPST/=3.OR..NOT.CHECKSP('GH',AP%IPS,AP%ILP,AP%ISP))THEN
        RETURN
     ENDIF
     IF((U(AP%NDIM-1))<=0)RETURN
@@ -1359,7 +1350,7 @@ CONTAINS
     FNGHAE = (Gamma-2*Sigma+Delta)/(2*omega)
 
     DEALLOCATE(pI,pR,qR,qI,sR,sI,f1,f2,x,r,a,b,c,abc,tmp,SMAT,A1)
-    CHNG = .TRUE.
+    ITP=35
 
     IF(AP%IID>=2)THEN
        NTOP=MOD(AP%NTOT-1,9999)+1
@@ -1455,30 +1446,6 @@ CONTAINS
       END FUNCTION DERIV3
 
   END FUNCTION FNGHAE
-
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNUZAE(AP,PAR,CHNG,IUZ,VUZ,IUZR)
-
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
-    INTEGER, INTENT(IN) :: IUZ(*),IUZR
-    DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
-
-    INTEGER IID,IBR,NTOT,NTOP
-
-    IID=AP%IID
-    IBR=AP%IBR
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-
-    FNUZAE=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
-    CHNG=.TRUE.
-
-    IF(IID.GE.3)WRITE(9,101)ABS(IBR),NTOP+1,IUZR,FNUZAE
-101 FORMAT(I4,I6,9X,'User Func.',I3,1X,ES14.5)
-
-  END FUNCTION FNUZAE
 
 ! ------- -------- ------
   INTEGER FUNCTION TPSPAE(EPSS,ITPST,PERIOD)

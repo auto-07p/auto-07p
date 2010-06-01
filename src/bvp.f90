@@ -115,11 +115,11 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: RLCUR(:),RLOLD(:),RLDOT(:)
     DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),TEST(:)
-    LOGICAL CHNG,FOUND,CHECK,CHECKEDSP
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
-    INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
+    INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,JTEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
+    INTEGER ITPDUM
     INTEGER STOPCNTS(-9:13)
-    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,EPSS,SP1
+    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,SP1
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -198,7 +198,7 @@ CONTAINS
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
-          SP1 = FNSPBV(AP,PAR,CHNG,P0,P1,EV)
+          SP1 = FNSPBV(AP,PAR,ITPDUM,P0,P1,EV)
        ENDIF
     ENDIF
 
@@ -221,58 +221,28 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
-       CHECKEDSP=.FALSE.
        DO ITEST=1,NUZR+5
           IF(ISTOP.NE.0)EXIT
-          IF(ITEST<=NUZR)THEN
-             ITP=-4 ! Check for user supplied parameter output parameter-values.
-          ELSEIF(ITEST==NUZR+2)THEN
-             ITP=5  ! Check for fold.
-          ELSEIF(ITEST==NUZR+3)THEN
-             ITP=6  ! Check for branch point.
-          ELSEIF(ITEST==NUZR+5)THEN
-             ITP=7  ! Check for period-doubling and torus bifurcation.
-          ELSE
-             CYCLE
-          ENDIF
-          CHECK=CHECKSP(ITP,IPS,ILP,ISP)
-          IF(ITP==7)THEN
-             CHECK=CHECK.OR.CHECKSP(8,IPS,ILP,ISP)
-             CHECKEDSP=CHECK
-          ENDIF
-          IF(CHECK)THEN
-             CALL LCSPBV(AP,DSOLD,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
-                  TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
-             IF(FOUND)THEN
-                IF(ITP==-4)THEN
-                   ITP=ITP-10*ITPST
-                ELSEIF(ITP==7)THEN
-                   ! **Secondary periodic bifurcation: determine type
-                   EPSS=AP%EPSS
-                   ITP=TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV)
-                ELSE
-                   ITP=ITP+10*ITPST
-                ENDIF
-                IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
-                   ISTOP=-1 ! *Stop at the first found bifurcation
-                ELSE
-                   IF(MOD(ITP,10)==-4)THEN
-                      TEST(1:NUZR)=0.d0
-                   ELSE
-                      TEST(NUZR+1:NUZR+5)=0.d0
-                   ENDIF
-                ENDIF
-                AP%ITP=ITP
+          CALL LCSPBV(AP,DSOLD,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
+               TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
+               UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,ITP)
+          IF(ITP/=0)THEN
+             AP%ITP=ITP
+             IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
+                ISTOP=-1 ! *Stop at the first found bifurcation
+                DO JTEST=ITEST+1,NUZR+5
+                   ! just evaluate test functions to get stability info etc.
+                   TEST(JTEST)=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,JTEST)
+                ENDDO
+             ELSEIF(MOD(ITP,10)==-4)THEN
+                TEST(1:NUZR)=0.d0
+             ELSE
+                TEST(NUZR+1:NUZR+5)=0.d0
              ENDIF
           ENDIF
        ENDDO
-       IF(.NOT.CHECKEDSP .AND. ABS(ISP)>0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
-          ! Still determine and print Floquet multipliers
-          ! for situations where ISTOP=-1 or SP switched off PD/TR detection
-          SP1 = FNSPBV(AP,PAR,CHNG,P0,P1,EV)
-       ENDIF
-       ITP=AP%ITP 
+
+       ITP=AP%ITP
        IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
           ! for plotter: use stability of previous point
           ! for bifurcation points
@@ -584,7 +554,7 @@ CONTAINS
        ENDDO
        RDUMX=DUMX/(1.d0+UMX)
        IF(DONE.AND.RDUMX.LT.EPSU)THEN
-          IF(CHECKSP(5,IPS,ILP,ISP))THEN
+          IF(CHECKSP('LP',IPS,ILP,ISP))THEN
              ! Find the direction vector (for test functions)
              ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
              NLLV=-1
@@ -1075,7 +1045,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE LCSPBV(AP,DSOLD,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,FOUND)
+       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,ITP)
 
     USE SUPPORT
 
@@ -1095,10 +1065,9 @@ CONTAINS
 
     include 'interfaces.h'
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
-    LOGICAL, INTENT(OUT) :: FOUND
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM
-    INTEGER, INTENT(OUT) :: NITPS,ISTOP
+    INTEGER, INTENT(OUT) :: NITPS,ISTOP,ITP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UDOTPS(NDIM,0:AP%NCOL*AP%NTST)
@@ -1108,11 +1077,9 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: RLCUR(AP%NFPR),RLOLD(AP%NFPR)
     DOUBLE PRECISION, INTENT(INOUT) :: RLDOT(AP%NFPR),P0(*),P1(*)
 
-    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1
+    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1,ITPDUM
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S,S0,S1
-    LOGICAL CHNG
 
-    FOUND=.FALSE.
     IID=AP%IID
     ITMX=AP%ITMX
     IBR=AP%IBR
@@ -1126,10 +1093,11 @@ CONTAINS
 ! Check for zero.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,ITEST)
+    Q1=FNCS(AP,PAR,ITP,P0,P1,EV,IUZ,VUZ,ITEST)
 
     ! do not test via Q0*Q1 to avoid overflow.
-    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. (.NOT. CHNG))THEN
+    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. ITP==0)THEN
+       ITP=0
        Q=Q1
        RETURN
     ENDIF
@@ -1148,7 +1116,6 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS) THEN
-          FOUND=.TRUE.
 !xx???   Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
           RETURN
@@ -1166,19 +1133,21 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)THEN
+          ITP=0
           Q=0.d0
           RETURN
        ENDIF
 
 ! Check for zero.
 
-       Q=FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,ITEST)
+       Q=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
 
 !        Use Mueller's method with bracketing for subsequent steps
        CALL MUELLER(Q0,Q1,Q,S0,S1,S,RDS)
     ENDDO
 
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
+    ITP=0
     Q=0.d0
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)
@@ -1189,11 +1158,13 @@ CONTAINS
   END SUBROUTINE LCSPBV
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,CHNG,P0,P1,EV,IUZ,VUZ,ITEST)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ITP,P0,P1,EV,IUZ,VUZ,ITEST)
+
+    USE SUPPORT, ONLY: FNUZ
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
     INTEGER, INTENT(IN) :: IUZ(*),ITEST
@@ -1203,30 +1174,36 @@ CONTAINS
 
     NUZR=AP%NUZR
 
+    FNCS=0.d0
     IF(ITEST==NUZR+2)THEN
-       FNCS=FNLPBV(AP,CHNG)
+       FNCS=FNLPBV(AP,ITP)
     ELSEIF(ITEST==NUZR+3)THEN
-       FNCS=FNBPBV(AP,CHNG,P1)
+       FNCS=FNBPBV(AP,ITP,P1)
     ELSEIF(ITEST==NUZR+5)THEN
-       FNCS=FNSPBV(AP,PAR,CHNG,P0,P1,EV)
-    ELSE
-       FNCS=FNUZBV(AP,PAR,CHNG,IUZ,VUZ,ITEST)
+       FNCS=FNSPBV(AP,PAR,ITP,P0,P1,EV)
+    ELSEIF(ITEST<=NUZR)THEN
+       FNCS=FNUZ(AP,PAR,ITP,IUZ,VUZ,ITEST)
     ENDIF
 
   END FUNCTION FNCS
        
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPBV(AP,CHNG)
+  DOUBLE PRECISION FUNCTION FNLPBV(AP,ITP)
 
     USE MESH
     USE SOLVEBV
+    USE SUPPORT, ONLY: CHECKSP
 
 ! RETURNS A QUANTITY THAT CHANGES SIGN AT A LIMIT POINT (BVP)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
 
     INTEGER IID,IBR,NTOT,NTOP
+
+    ITP=0
+    FNLPBV=0d0
+    IF(.NOT.CHECKSP('LP',AP%IPS,AP%ILP,AP%ISP))RETURN
 
     IID=AP%IID
     IBR=AP%IBR
@@ -1240,33 +1217,34 @@ CONTAINS
 
 ! Set the quantity to be returned.
 
-    CHNG=.TRUE.
+    ITP=5+10*AP%ITPST
 
 101 FORMAT(I4,I6,9X,'Fold Function ',ES14.5)
 
   END FUNCTION FNLPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPBV(AP,CHNG,P1)
+  DOUBLE PRECISION FUNCTION FNBPBV(AP,ITP,P1)
 
     USE SUPPORT
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    LOGICAL, INTENT(OUT) :: CHNG
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: P1(*)
 
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: PP(:)
     INTEGER IID,I,IBR,NTOP,NTOT,NDIM
-    DOUBLE PRECISION U(1),F(1),DET,DET0
+    DOUBLE PRECISION U(1),F(1),DET
+
+    ITP=0
+    FNBPBV=0d0
+    AP%BIFF=FNBPBV
+    IF(.NOT.CHECKSP('BP',AP%IPS,AP%ILP,AP%ISP))RETURN
 
     NDIM=AP%NDIM
     IID=AP%IID
 
-! Save the determinant of the reduced system.
-
-    DET=AP%DET
-    DET0=DET
     IBR=AP%IBR
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
@@ -1279,16 +1257,16 @@ CONTAINS
     ENDDO
     CALL GEL(NDIM,PP,0,U,F,DET)
     DEALLOCATE(PP)
-    AP%DET=DET
 
+! AP%DET contains the determinant of the reduced system.
 ! Set the determinant of the normalized reduced system.
 
-    IF(ABS(DET0)/HUGE(DET).LT.ABS(DET))THEN
-       FNBPBV=DET0/DET
-       CHNG=.TRUE.
+    IF(ABS(AP%DET)/HUGE(DET).LT.ABS(DET))THEN
+       FNBPBV=AP%DET/DET
+       ITP=6+10*AP%ITPST
     ELSE
        FNBPBV=0.d0
-       CHNG=.FALSE.
+       ITP=0
     ENDIF
     AP%BIFF=FNBPBV
 
@@ -1298,18 +1276,18 @@ CONTAINS
   END FUNCTION FNBPBV
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,CHNG,P0,P1,EV)
+  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ITP,P0,P1,EV)
 
     USE FLOQUET
-    USE SUPPORT, ONLY: PI
+    USE SUPPORT, ONLY: PI, LBTYPE, CHECKSP
 
 ! This function returns a quantity that changes sign when a complex
 ! pair of eigenvalues of the linearized Poincare map moves in or out
 ! of the unit circle or when a real eigenvalues passes through -1.
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    DOUBLE PRECISION, INTENT(IN) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
 
@@ -1331,7 +1309,9 @@ CONTAINS
     FNSPBV=0.d0
     AP%SPBF=FNSPBV
     D=0.d0
-    CHNG=.FALSE.
+    ITP=0
+
+    IF(ISP==0 .OR. (AP%IPS/=2.AND.AP%IPS/=7.AND.AP%IPS/=12) )RETURN
 
     IF(IID.GE.4)THEN
        CALL EVECS(NDIM,P0,P1)
@@ -1400,11 +1380,15 @@ CONTAINS
        ENDDO
     ENDIF
 
+    ITP=TPSPBV(NDIM,AP%EPSS,AP%ITPST,PAR,AP%NPAR,EV,THETA)
+    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP)) ITP=0
+    IF(MOD(ITP,10)==8) PAR(12)=THETA !try to find TR bif
+
 ! Print error message if the Floquet multiplier at z=1 is inaccurate.
 ! (ISP is set to negative and detection of bifurations is discontinued)
 
     AMIN= ABS( EV(1) - 1.d0 )
-    IF(AMIN>5.0D-2 .AND. (ISP==2 .OR. ISP==4)) THEN
+    IF(AMIN>5.0D-2 .AND. ITP/=0) THEN
        NINS=0
        AP%NINS=NINS
        ISP=-ISP
@@ -1448,13 +1432,12 @@ CONTAINS
        DO I=2,NDIM
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
        ENDDO
-       IF(ISP==2.OR.ISP==4) THEN
+       IF(ITP/=0)THEN
           IF(ISW.EQ.2)THEN
              IF(AP%ITPST==8)THEN
                 ! check the angle for resonances on Torus bifurcations
                 THETA=PAR(12)
                 D=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
-                CHNG=.TRUE.
              ELSEIF(NDIM>2.AND.ABS( EV(2) - 1.d0 )<5.0d-2.AND. &
                   (NDIM==3.OR.ABS(AIMAG(EV(5)))<SQRT(SQRT(AP%EPSS))).AND. &
                   ((AP%ITPST==5.AND.REAL(EV(5))>0.AND. &
@@ -1464,7 +1447,6 @@ CONTAINS
                 ! On LP curve: look for 1:1 resonance
                 ! On PD curve: look for 1:2 resonance
                 D= ABS(EV(5)) - 1.d0
-                CHNG=.TRUE.
              ENDIF
           ELSE
              IF(AIMAG(EV(2))/=0.d0 .OR. REAL(EV(2))<0.d0)THEN
@@ -1472,21 +1454,18 @@ CONTAINS
                 D= ABS(EV(2)) - 1.d0
              ENDIF
           ENDIF
-          NINS=AP%NINS
-          IF(NINS1.NE.NINS)CHNG=.TRUE.
        ENDIF
     ENDIF
+    IF( ITP/=0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
     FNSPBV=D
     AP%SPBF=FNSPBV
 
+    NINS=AP%NINS
+    IF(NINS1==NINS)ITP=0
     NINS=NINS1
     AP%NINS=NINS
 
     IF(IID>0)THEN
-       IF( IID>=2 .AND. (ISP==1 .OR. ISP==2 .OR. ISP==4))THEN
-          WRITE(9,103)ABS(IBR),NTOP+1,D
-       ENDIF
-
 ! Print the Floquet multipliers.
 
        WRITE(9,104)ABS(IBR),NTOP+1,NINS
@@ -1504,32 +1483,8 @@ CONTAINS
 
   END FUNCTION FNSPBV
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNUZBV(AP,PAR,CHNG,IUZ,VUZ,IUZR)
-
-    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    LOGICAL, INTENT(OUT) :: CHNG
-    INTEGER, INTENT(IN) :: IUZ(*),IUZR
-    DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
-
-    INTEGER IID,IBR,NTOT,NTOP
-
-    IID=AP%IID
-    IBR=AP%IBR
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-
-    FNUZBV=PAR(ABS(IUZ(IUZR)))-VUZ(IUZR)
-    CHNG=.TRUE.
-
-    IF(IID.GE.3)WRITE(9,101)ABS(IBR),NTOP+1,IUZR,FNUZBV
-101 FORMAT(I4,I6,9X,'User Func.',I3,1X,ES14.5)
-
-  END FUNCTION FNUZBV
-
 ! ------- -------- ------
-  INTEGER FUNCTION TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV)
+  INTEGER FUNCTION TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV,THETA)
 
 ! Determines type of secondary periodic bifurcation.
 
@@ -1538,11 +1493,13 @@ CONTAINS
     INTEGER, INTENT(IN) :: NDIM,ITPST,NPAR
     DOUBLE PRECISION, INTENT(IN) :: EPSS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(NPAR)
+    DOUBLE PRECISION, INTENT(OUT) :: THETA
     COMPLEX(KIND(1.0D0)), INTENT(IN) :: EV(NDIM)
 
     INTEGER LOC,LOC1,I
     DOUBLE PRECISION AMIN,AZM1,D,AD
 
+    THETA=0
     IF(ITPST==5.OR.ITPST==7)THEN
        ! 1:1 and 1:2 resonances
        TPSPBV=8+10*ITPST
@@ -1593,7 +1550,7 @@ CONTAINS
     IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 !       ** torus bifurcation
        TPSPBV=8+10*ITPST
-       PAR(12)=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
+       THETA=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
     ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 !       ** period doubling
        TPSPBV=7+10*ITPST

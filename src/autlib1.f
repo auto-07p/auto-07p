@@ -218,8 +218,8 @@ C
         IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
            !HB period and period for periodic orbits stored in PAR(11)
            NPAR=MAX(11,NPAR)
-           IF(CHECKSP(8,IPS,ILP,ISP))THEN
-              ! the torus angle in stored in PAR(12)
+           IF(CHECKSP('TR',IPS,ILP,ISP))THEN
+              ! the torus angle is stored in PAR(12)
               NPAR=MAX(12,NPAR)
            ENDIF
         ENDIF
