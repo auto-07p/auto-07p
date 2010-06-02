@@ -116,10 +116,11 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),TEST(:)
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
-    INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,JTEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
-    INTEGER ITPDUM
+    INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
+    INTEGER ITPDUM,IFOUND,ISTEPPED
     INTEGER STOPCNTS(-9:13)
-    DOUBLE PRECISION DS,DSMAX,DSOLD,RDS,SP1
+    DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1
+    LOGICAL STEPPED
 
 ! INITIALIZE COMPUTATION OF BRANCH
 
@@ -221,32 +222,36 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
+       IFOUND=0
+       ISTEPPED=0
+       DSTEST=DSOLD
        DO ITEST=1,NUZR+5
-          IF(ISTOP.NE.0)EXIT
-          CALL LCSPBV(AP,DSOLD,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
+          ! Check for special points
+          CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
                TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-               UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,ITP)
+               UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
+          IF(STEPPED)ISTEPPED=ITEST
           IF(ITP/=0)THEN
+             IFOUND=ITEST
              AP%ITP=ITP
-             IF(STOPPED(IUZ,ITEST,NUZR,ITP,STOPCNTS))THEN
-                ISTOP=-1 ! *Stop at the first found bifurcation
-                DO JTEST=ITEST+1,NUZR+5
-                   ! just evaluate test functions to get stability info etc.
-                   TEST(JTEST)=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,JTEST)
-                ENDDO
-             ELSEIF(MOD(ITP,10)==-4)THEN
-                TEST(1:NUZR)=0.d0
-             ELSE
-                TEST(NUZR+1:NUZR+5)=0.d0
-             ENDIF
           ENDIF
        ENDDO
 
+       DO ITEST=1,ISTEPPED-1
+          ! evaluate the test functions for the next step
+          TEST(ITEST)=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
+       ENDDO
+
        ITP=AP%ITP
-       IF(ITP/=0.AND.MOD(ITP,10)/=-4)THEN
-          ! for plotter: use stability of previous point
-          ! for bifurcation points
-          AP%NINS=NINS
+       IF(ITP/=0)THEN
+          IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
+             ISTOP=-1 ! *Stop at the first found bifurcation
+          ENDIF
+          IF(MOD(ITP,10)/=-4)THEN
+             ! for plotter: use stability of previous point
+             ! for bifurcation points
+             AP%NINS=NINS
+          ENDIF
        ENDIF
 
 ! Store plotting data.
@@ -1043,9 +1048,9 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE LCSPBV(AP,DSOLD,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI,Q, &
+  SUBROUTINE LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ISTOP,ITP)
+       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
 
     USE SUPPORT
 
@@ -1067,28 +1072,39 @@ CONTAINS
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM
-    INTEGER, INTENT(OUT) :: NITPS,ISTOP,ITP
+    INTEGER, INTENT(INOUT) :: NITPS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UDOTPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UPOLDP(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(IN) :: TM(*),DTM(*),THL(*),THU(*),VUZ(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: DSOLD,Q
+    DOUBLE PRECISION, INTENT(INOUT) :: DSOLD,DSTEST,Q
     DOUBLE PRECISION, INTENT(INOUT) :: RLCUR(AP%NFPR),RLOLD(AP%NFPR)
-    DOUBLE PRECISION, INTENT(INOUT) :: RLDOT(AP%NFPR),P0(*),P1(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: RLDOT(AP%NFPR)
+    DOUBLE PRECISION, INTENT(INOUT) :: P0(NDIM,NDIM),P1(NDIM,NDIM)
+    INTEGER, INTENT(OUT) :: ITP
+    LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1,ITPDUM
+    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,ITPDUM,NCOL,NFPR,NTST
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
+    DOUBLE PRECISION DETS,DSOLDS
+
+    DOUBLE PRECISION, ALLOCATABLE :: RLOLDS(:),UOLDPSS(:,:),P0S(:,:),P1S(:,:)
 
     IID=AP%IID
     ITMX=AP%ITMX
     IBR=AP%IBR
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
+    NCOL=AP%NCOL
+    NTST=AP%NTST
+    NFPR=AP%NFPR
 
     DS=AP%DS
     DSMAX=AP%DSMAX
     EPSS=AP%EPSS
+
+    STEPPED=.FALSE.
 
 ! Check for zero.
 
@@ -1105,7 +1121,7 @@ CONTAINS
 ! Use the secant method for the first step:
 
     S0=0.d0
-    S1=DSOLD
+    S1=DSTEST
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
     DO NITSP1=0,ITMX
@@ -1115,8 +1131,9 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS) THEN
-!xx???   Q=0.d0
+          Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
+          IF(NITSP1>0)DEALLOCATE(UOLDPSS,RLOLDS,P0S,P1S)
           RETURN
        ENDIF
 
@@ -1126,28 +1143,52 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
+       IF(.NOT.STEPPED)THEN
+          ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
+          ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM))
+       ENDIF
+
+       ! save state to restore in case of non-convergence
+       UOLDPSS(:,:)=UOLDPS(:,:)
+       RLOLDS(:)=RLOLD(:)
+       P0S(:,:)=P0(:,:)
+       P1S(:,:)=P1(:,:)
+       DETS=AP%DET
+       DSOLDS=DSOLD
+
        CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)THEN
-          ITP=0
-          Q=0.d0
-          RETURN
+          ! set back to previous (converged) state
+          UOLDPS(:,:)=UOLDPSS(:,:)
+          RLOLD(:)=RLOLDS(:)
+          P0(:,:)=P0S(:,:)
+          P1(:,:)=P1S(:,:)
+          AP%DET=DETS
+          DSOLD=DSOLDS
+          EXIT
        ENDIF
+
+       STEPPED=.TRUE.
+       AP%ITP=0
 
 ! Check for zero.
 
        Q=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
 
 !        Use Mueller's method with bracketing for subsequent steps
-       CALL MUELLER(Q0,Q1,Q,S0,S1,S1+RDS,RDS)
+       DSTEST=S1+RDS
+       CALL MUELLER(Q0,Q1,Q,S0,S1,DSTEST,RDS)
     ENDDO
 
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
     ITP=0
     Q=0.d0
+    DEALLOCATE(UOLDPSS,RLOLDS,P0S,P1S)
+
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)
 102 FORMAT(' ==> Location of special point : ', &
