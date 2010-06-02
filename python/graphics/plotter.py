@@ -537,6 +537,7 @@ class plotter(grapher.GUIGrapher):
                 newsect = 1
                 old = 0
                 stability = branch.stability()
+                addedlabels = []
                 for pt in stability:
                     abspt = abs(pt)
                     if abspt > 1 or pt == stability[-1]:
@@ -546,9 +547,11 @@ class plotter(grapher.GUIGrapher):
                             v = x[old:abspt],y[old:abspt],z[old:abspt]
                         self.addArrayNoDraw(v,newsect,color,stable=pt<0)
                         for label in labels:
-                            if old <= label[0] and label[0] < abspt:
+                            if (old <= label[0] and label[0] < abspt and
+                                label not in addedlabels):
                                 self.addLabel(len(self)-1, label[0] - old,
                                               label[1], label[2])
+                                addedlabels.append(label)
                         old = abspt - 1
                         newsect = 0
             else:
