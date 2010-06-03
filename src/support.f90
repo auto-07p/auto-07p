@@ -30,7 +30,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: Q0,Q1,S0,S1
     DOUBLE PRECISION, INTENT(OUT) :: RDS
 
-    DOUBLE PRECISION, PARAMETER :: RSMALL=1.0d-30
     DOUBLE PRECISION H0,H1,D,A,B,C,R,DQ
 
     H0=S0-S
@@ -38,17 +37,15 @@ CONTAINS
     D=H0*H1*(H1-H0)
     A=( H1**2*(Q0-Q) - H0**2*(Q1-Q) ) / D
     B=(-H1*(Q0-Q)    + H0*(Q1-Q)    ) / D
-    IF(ABS(B).LE.RSMALL)THEN
-       RDS=-Q/A
-    ELSE
-       C=A/(2*B)
-       R=DSQRT(C**2-Q/B)
-       IF(C.LT.0.d0)THEN
-          RDS=-C - R
-       ELSE
-          RDS=-C + R
+    IF(A**2>4*B*Q)THEN
+       R=SQRT(A**2-4*B*Q)
+       IF(A<0)THEN
+          R=-R
        ENDIF
+    ELSE
+       R=0
     ENDIF
+    RDS=-2*Q / (A+R)
 
     DQ=Q1*Q
     IF(DQ<0.d0)THEN
