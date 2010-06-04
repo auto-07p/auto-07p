@@ -302,7 +302,7 @@ CONTAINS
     USE MESH
 
 ! Computes new rate of change (UDOTPS,RLDOT) and time derivative (UPOLDP)
-! arrays depending on (UOLDPS,RLDOT) and (UPS,RLCUR), and then replaces
+! arrays depending on (UOLDPS,RLOLD) and (UPS,RLCUR), and then replaces
 ! (UOLDPS,RLOLD) with the current solution in (UPS,RLCUR).
 ! The stepsize used in the preceding step has been stored in DSOLD.
 
@@ -1085,11 +1085,13 @@ CONTAINS
     INTEGER, INTENT(OUT) :: ITP
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,ITPDUM,NCOL,NFPR,NTST
+    INTEGER I,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,ITPDUM,NCOL,NFPR,NTST
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
-    DOUBLE PRECISION DETS,DSOLDS
+    DOUBLE PRECISION DETS,FLDFS,DSOLDS,NITPSS,DSTESTS
 
     DOUBLE PRECISION, ALLOCATABLE :: RLOLDS(:),UOLDPSS(:,:),P0S(:,:),P1S(:,:)
+    DOUBLE PRECISION, ALLOCATABLE :: RLCURS(:),UPSS(:,:)
+    DOUBLE PRECISION, ALLOCATABLE :: RLDOTS(:),UDOTPSS(:,:)
 
     IID=AP%IID
     ITMX=AP%ITMX
@@ -1124,18 +1126,38 @@ CONTAINS
     S1=DSTEST
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
-    DO NITSP1=0,ITMX
-       RDS=(1.d0+HMACH)*RDS
+    RDS=(1.d0+HMACH)*RDS
 
 ! Return if tolerance has been met :
 
-       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
-       IF(RRDS.LT.EPSS) THEN
-          Q=0.d0
-          IF(IID>0)WRITE(9,102)RDS
-          IF(NITSP1>0)DEALLOCATE(UOLDPSS,RLOLDS,P0S,P1S)
-          RETURN
-       ENDIF
+    RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
+    IF(RRDS.LT.EPSS) THEN
+       Q=0.d0
+       IF(IID>0)WRITE(9,102)RDS
+       RETURN
+    ENDIF
+
+    ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
+    ALLOCATE(UDOTPSS(NDIM,0:NTST*NCOL),RLDOTS(NFPR))
+    ALLOCATE(UPSS(NDIM,0:NTST*NCOL),RLCURS(NFPR))
+    ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM))
+    ! save state to restore in case of non-convergence or
+    ! "possible special point"
+    UPSS(:,:)=UPS(:,:)
+    UDOTPSS(:,:)=UDOTPS(:,:)
+    UOLDPSS(:,:)=UOLDPS(:,:)
+    RLCURS(:)=RLCUR(:)
+    RLDOTS(:)=RLDOT(:)
+    RLOLDS(:)=RLOLD(:)
+    P0S(:,:)=P0(:,:)
+    P1S(:,:)=P1(:,:)
+    DETS=AP%DET
+    FLDFS=AP%FLDF
+    DSOLDS=DSOLD
+    NITPSS=NITPS
+    DSTESTS=DSTEST
+
+    DO NITSP1=0,ITMX
 
 ! If requested write additional output on unit 9 :
 
@@ -1143,37 +1165,12 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
-       IF(.NOT.STEPPED)THEN
-          ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
-          ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM))
-       ENDIF
-
-       ! save state to restore in case of non-convergence
-       UOLDPSS(:,:)=UOLDPS(:,:)
-       RLOLDS(:)=RLOLD(:)
-       P0S(:,:)=P0(:,:)
-       P1S(:,:)=P1(:,:)
-       DETS=AP%DET
-       DSOLDS=DSOLD
-
        CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
-       IF(ISTOP.NE.0)THEN
-          ! set back to previous (converged) state
-          UOLDPS(:,:)=UOLDPSS(:,:)
-          RLOLD(:)=RLOLDS(:)
-          P0(:,:)=P0S(:,:)
-          P1(:,:)=P1S(:,:)
-          AP%DET=DETS
-          DSOLD=DSOLDS
-          EXIT
-       ENDIF
-
-       STEPPED=.TRUE.
-       AP%ITP=0
+       IF(ISTOP.NE.0)EXIT
 
 ! Check for zero.
 
@@ -1182,12 +1179,44 @@ CONTAINS
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
        CALL MUELLER(Q0,Q1,Q,S0,S1,DSTEST,RDS)
+
+       RDS=(1.d0+HMACH)*RDS
+
+! Return if tolerance has been met :
+
+       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
+       IF(RRDS.LT.EPSS) THEN
+          Q=0.d0
+          IF(IID>0)WRITE(9,102)RDS
+          DEALLOCATE(UPSS,RLCURS,UOLDPSS,RLOLDS,UDOTPSS,RLDOTS,P0S,P1S)
+          STEPPED=.TRUE.
+          RETURN
+       ENDIF
+
     ENDDO
 
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
     ITP=0
-    Q=0.d0
-    DEALLOCATE(UOLDPSS,RLOLDS,P0S,P1S)
+    ! set back to previous (converged) state
+    UPS(:,:)=UPSS(:,:)
+    UDOTPS(:,:)=UDOTPSS(:,:)
+    UOLDPS(:,:)=UOLDPSS(:,:)
+    RLCUR(:)=RLCURS(:)
+    DO I=1,NFPR
+       PAR(ICP(I))=RLCUR(I)
+    ENDDO
+    RLDOT(:)=RLDOTS(:)
+    RLOLD(:)=RLOLDS(:)
+    P0(:,:)=P0S(:,:)
+    P1(:,:)=P1S(:,:)
+    AP%DET=DETS
+    AP%FLDF=FLDFS
+    DSOLD=DSOLDS
+    DSTEST=DSTESTS
+    NITPS=NITPSS
+    CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+    Q=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
+    DEALLOCATE(UPSS,RLCURS,UOLDPSS,RLOLDS,UDOTPSS,RLDOTS,P0S,P1S)
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)

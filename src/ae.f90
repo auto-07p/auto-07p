@@ -700,15 +700,16 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: NIT
     DOUBLE PRECISION, INTENT(IN) :: THU(*),VUZ(*)
     DOUBLE PRECISION, INTENT(INOUT) :: DSTEST,Q
-    DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1)
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U(*),V(*),UDOT(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1) 
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U(AP%NDIM+1),V(AP%NDM)
+    DOUBLE PRECISION, INTENT(INOUT) :: UDOT(AP%NDIM+1)
     INTEGER, INTENT(OUT) :: ITP
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER IID,ITMX,IBR,ITLCSP,NTOT,ITPDUM,NITS
+    INTEGER I,IID,ITMX,IBR,ITLCSP,NTOT,ITPDUM,NITS
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,S0,S1,RDS,RRDS
-    DOUBLE PRECISION DETS
-    DOUBLE PRECISION, ALLOCATABLE :: AAS(:,:)
+    DOUBLE PRECISION DETS,DSTESTS
+    DOUBLE PRECISION, ALLOCATABLE :: US(:),UDOTS(:),AAS(:,:)
 
     IID=AP%IID
     ITMX=AP%ITMX
@@ -739,18 +740,29 @@ CONTAINS
     S1=DSTEST
     DQ=Q0-Q1
     RDS=Q1/DQ*(S1-S0)
-    DO ITLCSP=0,ITMX
-       RDS=(1.d0+HMACH)*RDS
+
+    RDS=(1.d0+HMACH)*RDS
 
 ! Return if relative tolerance has been met :
 
-       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
-       IF(RRDS.LT.EPSS)THEN
-          Q=0.d0
-          IF(IID>0)WRITE(9,102)RDS
-          IF(ITLCSP>0)DEALLOCATE(AAS)
-          RETURN
-       ENDIF
+    RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
+    IF(RRDS.LT.EPSS)THEN
+       Q=0.d0
+       IF(IID>0)WRITE(9,102)RDS
+       RETURN
+    ENDIF
+
+    ALLOCATE(US(AP%NDIM+1),UDOTS(AP%NDIM+1),AAS(AP%NDIM+1,AP%NDIM+1))
+    ! save state to restore in case of non-convergence or
+    ! "possible special point"
+    US(:)=U(:)
+    UDOTS(:)=UDOT(:)
+    AAS(:,:)=AA(:,:)
+    DETS=AP%DET
+    DSTESTS=DSTEST
+    NITS=NIT
+
+    DO ITLCSP=0,ITMX
 
 ! If requested write additional output on unit 9 :
 
@@ -758,26 +770,10 @@ CONTAINS
           WRITE(9,101)ITLCSP,RDS
        ENDIF
 
-       IF(.NOT.STEPPED)THEN
-          ALLOCATE(AAS(AP%NDIM+1,AP%NDIM+1))
-       ENDIF
-
-       ! save state to restore in case of non-convergence
-       AAS(:,:)=AA(:,:)
-       DETS=AP%DET
-       NITS=NIT
-
        CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
-       IF(NIT==0)THEN
-          ! set back to previous (converged) state
-          AA(:,:)=AAS(:,:)
-          AP%DET=DETS
-          NIT=NITS
-          EXIT
-       ENDIF
+       IF(NIT==0)EXIT
 
        STEPPED=.TRUE.
-       AP%ITP=0
 
        CALL RNULLVC(AP,AA,V)
        CALL PVLSAE(AP,U,PAR)
@@ -787,12 +783,38 @@ CONTAINS
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
        CALL MUELLER(Q0,Q1,Q,S0,S1,DSTEST,RDS)
+
+       RDS=(1.d0+HMACH)*RDS
+
+! Return if relative tolerance has been met :
+
+       RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
+       IF(RRDS.LT.EPSS)THEN
+          Q=0.d0
+          IF(IID>0)WRITE(9,102)RDS
+          DEALLOCATE(US,UDOTS,AAS)
+          STEPPED=.TRUE.
+          RETURN
+       ENDIF
+
     ENDDO
 
     IF(IID>0)WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
     ITP=0
-    Q=0.d0
-    DEALLOCATE(AAS)
+    ! set back to previous (converged) state
+    U(:)=US(:)
+    UDOT(:)=UDOTS(:)
+    AA(:,:)=AAS(:,:)
+    DO I=1,AP%NFPR
+       PAR(ICP(I))=U(AP%NDIM+2-I)
+    ENDDO
+    AP%DET=DETS
+    NIT=NITS
+    DSTEST=DSTESTS
+    CALL RNULLVC(AP,AA,V)
+    CALL PVLSAE(AP,U,PAR)
+    Q=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
+    DEALLOCATE(US,UDOTS,AAS)
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
          '  Step size = ',ES13.5)
@@ -811,7 +833,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
-    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDM)
     INTEGER, INTENT(IN) :: IUZ(*),ITEST
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
     LOGICAL, INTENT(IN) :: FIRST
@@ -1190,7 +1212,7 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(OUT) :: ITP
-    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM),V(AP%NDM)
     INTEGER, INTENT(IN) :: ICP(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 ! Local
