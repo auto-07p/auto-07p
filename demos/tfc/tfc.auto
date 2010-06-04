@@ -8,7 +8,7 @@ r1 = run(e='tfc',c='tfc',sv='tfc.1')
 
 print "\ntfc: run 2: cycle continuation"
 r2 = run(r1("HB1"),ICP=[3,11,7,8],UZR={3:0.75},IPS=2,IPLT=1,
-         EPSL=1.e-10,EPSU=1.e-10,EPSS=1.e-8,sv='tfc.2')
+         EPSL=1.e-9,EPSU=1.e-9,EPSS=1.e-7,ITMX=12,sv='tfc.2')
 
 print "\ntfc: run 3: cycle continuation"
 r3 = run(r2("UZ1"),ICP=[6,11,7,8],UZR={6:0.013},DS=0.001,DSMAX=0.01,sv='tfc.3')
