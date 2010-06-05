@@ -32,7 +32,7 @@ SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
     {
         if(options[OPT_REF_PLAN])
         {
-            float position[3], radius =diskRadius;
+            float radius =diskRadius;
             if(whichCoordSystem == INERTIAL_B ) radius = 1-mass;
             SoSeparator *diskSep = createDisk(diskPosition,radius);
             result->addChild(diskSep);

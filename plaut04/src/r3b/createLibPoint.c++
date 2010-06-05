@@ -207,7 +207,7 @@ createLibrationPoint(float mu, float dis, float scale, int whichCoordSystem)
     libMtl->transparency = 0.0;
     libSep->addChild(libMtl);
 
-    double lp[7][2], eps;
+    double lp[7][2] = {}, eps;
     eps = 1.e-5;
     lagpoint (mu, lp, eps);
 

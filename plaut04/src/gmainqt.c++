@@ -30,8 +30,10 @@
 #define LBL_OFFSET   4
 
 static QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
-static EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems,
-            *coordSystemMenuItems;
+static EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems;
+#ifdef R3B
+static EditMenuItems *coordSystemMenuItems;
+#endif
 
 extern SbBool printToPostScript (SoNode *root, const char *filename,
 SoQtExaminerViewer *viewer, int printerDPI);
