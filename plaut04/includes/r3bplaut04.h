@@ -16,13 +16,6 @@
 #define OPT_LEGEND   9
 #define OPT_NORMALIZE_DATA  10
 
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-#ifndef min
-#define min(a,b) ((a)<(b)?(a):(b))
-#endif
-
 SoSeparator * createR3BPoints(float nodemin[], float nodemax[]);
 SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
 SoSeparator * createLibrationPoint(float mu, float dis, float scale,

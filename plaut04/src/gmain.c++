@@ -312,7 +312,8 @@ updateScene()
 
     SoSeparator * newScene = new SoSeparator;
 
-    int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
+    int mx = std::max(std::max(xCoordIdxSize, yCoordIdxSize), 
+                      std::max(yCoordIdxSize, zCoordIdxSize));
     maxComponent = mx;
 
     // look for the maximum/minum value in the x-axis, y-axis, z-axis
@@ -678,7 +679,8 @@ drawLabelPtsInBifurcationScene()
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    float dis = !options[OPT_NORMALIZE_DATA] ? fabs(max(max((myBifNode.max[0]-myBifNode.min[0]),
+    float dis = !options[OPT_NORMALIZE_DATA] ? fabs(std::max(std::max(
+        (myBifNode.max[0]-myBifNode.min[0]),
         (myBifNode.max[1]-myBifNode.min[1])),
         (myBifNode.max[2]-myBifNode.min[2]))) : 2.0;
 
@@ -925,7 +927,8 @@ drawSolUsingTubes()
 {
     SoSeparator * tubeSep = new SoSeparator;
 
-    float dis = (!options[OPT_NORMALIZE_DATA]) ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float dis = (!options[OPT_NORMALIZE_DATA]) ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2;
 
@@ -1111,7 +1114,8 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    float dis = (!options[OPT_NORMALIZE_DATA]) ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float dis = (!options[OPT_NORMALIZE_DATA]) ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -2130,7 +2134,8 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     SoSeparator * anOrbit = new SoSeparator;
 
     float dis = !options[OPT_NORMALIZE_DATA] ? 
-	               (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+	               (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -2323,7 +2328,8 @@ drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
 {
     SoSeparator * anOrbit = new SoSeparator;
 
-    float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float dis = !options[OPT_NORMALIZE_DATA] ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -2489,7 +2495,8 @@ drawAnOrbitUsingTubes(int iBranch, long int l, long int si, float scaler, int st
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float dis = !options[OPT_NORMALIZE_DATA] ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0 ;
 
@@ -2905,7 +2912,8 @@ animateSolutionUsingTubes(bool aniColoring)
     long int sumX = 0;
     SoSeparator *solGroup = new SoSeparator;
 
-    float dis = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float dis = !options[OPT_NORMALIZE_DATA] ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
 
@@ -3040,7 +3048,8 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
 {
     SoSeparator *satGroup = new SoSeparator;
 
-    float distance = !options[OPT_NORMALIZE_DATA] ? (max(max(fabs(mySolNode.max[0]-mySolNode.min[0]),
+    float distance = !options[OPT_NORMALIZE_DATA] ? (std::max(std::max(
+        fabs(mySolNode.max[0]-mySolNode.min[0]),
         fabs(mySolNode.max[1]-mySolNode.min[1])),
         fabs(mySolNode.max[2]-mySolNode.min[2]))) : 2.0;
     int stability = clientData.labelIndex[j][3];
@@ -3087,7 +3096,7 @@ animateOrbitWithTail(int iBranch, long int j, long int si)
         time[i] = i*dt;
     }
 
-    float dis = distance;// fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float dis = distance;// fabs(std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
     float (*myVertices)[3]= new float[arrSize+1][3];
     float *myColorBase = new float [arrSize+1];
 
@@ -3525,7 +3534,8 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
 {
 
     int varIndices[3];
-    int mx = max(max(xCoordIdxSize, yCoordIdxSize), max(yCoordIdxSize, zCoordIdxSize));
+    int mx = std::max(std::max(xCoordIdxSize, yCoordIdxSize),
+		      std::max(yCoordIdxSize, zCoordIdxSize));
     float minDis = FLT_MAX;
     long int index = 0;
     long int ib = 0;

@@ -25,8 +25,9 @@ bool blMassDependantOption = false;
 SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
 {
     SoSeparator *result = new SoSeparator;
-    float dis = max(max((nodemax[0]-nodemin[0]),(nodemax[1]-nodemin[1])),
-                    (nodemax[2]-nodemin[2]));
+    float dis = std::max(std::max((nodemax[0]-nodemin[0]),
+                                  (nodemax[1]-nodemin[1])),
+                         (nodemax[2]-nodemin[2]));
 
     if(whichType == SOLUTION && whichCoordSystem != ROTATING_F)
     {
@@ -123,7 +124,8 @@ float scaler, int stability, int type)
         }
     }
 
-    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float dis = fabs(std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])),
+                              (maxV[2]-minV[2])));
 
 // animate the orbit
     SoCoordinate3 *myCoords = new SoCoordinate3;
@@ -832,7 +834,8 @@ animateIner2(long int lblJ,long int si)
         if(maxV[2]<mySolNode.xyzCoords[idx+i][2]) maxV[2]=mySolNode.xyzCoords[idx+i][2] ;
         if(minV[2]>mySolNode.xyzCoords[idx+i][2]) minV[2]=mySolNode.xyzCoords[idx+i][2] ;
     }
-    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float dis = fabs(std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])),
+                              (maxV[2]-minV[2])));
     float pta[3], vertices[2][3];
     float rgb1[3], rgb2[3];
     rgb1[0]=0; rgb1[2]=0; rgb1[1]=1;
@@ -962,7 +965,8 @@ animateOrbitMovement(long int j, long int si)
         if(minV[2]>mySolNode.xyzCoords[idx+i][2]) minV[2]=mySolNode.xyzCoords[idx+i][2] ;
         time[i] = i*dt;
     }
-    float dis = max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2]));
+    float dis = std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])),
+                                  (maxV[2]-minV[2]));
 
 // animate the orbit
     ptb[0]=mySolNode.xyzCoords[idx][0];
@@ -1079,7 +1083,8 @@ animateOrbitCalSteps(long int snOrbit, long int si)
         if(minV[2]>mySolNode.xyzCoords[idx+i][2]) minV[2]=mySolNode.xyzCoords[idx+i][2] ;
     }
 
-    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float dis = fabs(std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])),
+                              (maxV[2]-minV[2])));
     for(int i=0; i<upperlimit; i++)
     {
         ptb[0]=mySolNode.xyzCoords[idx+i][0];
@@ -1137,7 +1142,8 @@ animateOrbitWithNurbsCurveTail(long int j, long int si)
         time[i] = i*dt;
     }
 
-    float dis = fabs(max(max((maxV[0]-minV[0]), (maxV[1]-minV[1])), (maxV[2]-minV[2])));
+    float dis = fabs(std::max(std::max((maxV[0]-minV[0]), (maxV[1]-minV[1])),
+                              (maxV[2]-minV[2])));
 
     float (*myVertices)[3]= new float[upperlimit][3];
 

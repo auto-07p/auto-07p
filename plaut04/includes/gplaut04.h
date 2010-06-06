@@ -2,6 +2,8 @@
 #ifndef PLAUT04_H
 #define PLAUT04_H
 
+#include <algorithm>
+
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
@@ -67,12 +69,6 @@
 #define ITEM_THREE    2
 #define ITEM_FOUR     3
 
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-#ifndef min
-#define min(a,b) ((a)<(b)?(a):(b))
-#endif
 #define MAX_PAR  100    // Max Number of parameters in AUTO 
 
 #define WIN_WIDTH  1000
