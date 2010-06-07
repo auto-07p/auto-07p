@@ -1799,7 +1799,7 @@ CONTAINS
 
     DO i=NPARX,AP%NPAR+1,-1
        IF(PAR(i)/=0)THEN
-          WRITE(6,"(A,I4)"),'NPAR should be at least ',I
+          WRITE(6,"(A,I4)")'NPAR should be at least ',I
           STOP
        ENDIF
     ENDDO
