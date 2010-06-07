@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <math.h>
 #include <Inventor/So.h>
 #include <Inventor/nodes/SoTexture2.h>
@@ -241,8 +242,8 @@ createLibrationPoint(float mu, float dis, float scale, int whichCoordSystem)
         libPtMin[2] = (libPtMin[2]<z[libPtId-1]) ? libPtMin[2]  : z[libPtId-1];
     }
 
-    dis = max(max(dis,(libPtMax[0]-libPtMin[0])),
-        max((libPtMax[1]-libPtMin[1]), (libPtMax[2]-libPtMin[2])));
+    dis = std::max(std::max(dis,libPtMax[0]-libPtMin[0]),
+                   std::max(libPtMax[1]-libPtMin[1],libPtMax[2]-libPtMin[2]));
 
 // draw the lib points.
     float sf = scale*dis/100.0;
