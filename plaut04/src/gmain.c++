@@ -95,9 +95,9 @@ bool optionsOld[11];
 bool optBif[11], optSol[11];
 bool setShow3D, setShow3DSol, setShow3DBif;
 
-char sFileName[256];
-char bFileName[256];
-char dFileName[256];
+static std::string sFileName;
+static std::string bFileName;
+static std::string dFileName;
 
 solutionp solHead = NULL;
 long int animationLabel = MY_ALL;
@@ -3334,7 +3334,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
     long int  total=0, rows=0;
     bool blOpenSolFile, blOpenBifFile;
 
-    solHead = parseSolution(sFileName, blOpenSolFile, total, rows);
+    solHead = parseSolution(sFileName.c_str(), blOpenSolFile, total, rows);
     if(!blOpenSolFile)
         printf(" Solution file does not exist.\n");
 
@@ -3358,7 +3358,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
 	    clientData.solData[ml] = &clientData.solData[0][ml*mySolNode.nar];
     }
 
-    blOpenBifFile = parseBifurcation(bFileName) ? true : false;
+    blOpenBifFile = parseBifurcation(bFileName.c_str()) ? true : false;
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
 
     if((!blOpenBifFile) && (!blOpenSolFile) && (!blFirstRead)) return false;
@@ -3380,7 +3380,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
     {
         bool tmp = false;
         if(!blFirstRead) clientData.totalLabels = 0;
-        tmp = readBifurcation(bFileName, varIndices) ? true : false;
+        tmp = readBifurcation(bFileName.c_str(), varIndices) ? true : false;
         if(!tmp) printf(" Failed to read the bifurcation file!\n");
     }
     else
@@ -3391,7 +3391,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
     if( mySolNode.numOrbits > 0 )
     {
         bool tmp = false;
-        tmp = readSolution(solHead, sFileName, varIndices) ? true : false;
+        tmp = readSolution(solHead, sFileName.c_str(), varIndices) ? true : false;
         if(!tmp) printf(" Failed to read the solution file!\n");
         blOpenSolFile = tmp;
 
@@ -3411,7 +3411,7 @@ readSolutionAndBifurcationData(bool blFirstRead)
         exit(1);
     }
 
-    int st = readFM(dFileName, myBifNode.totalNumPoints);
+    int st = readFM(dFileName.c_str(), myBifNode.totalNumPoints);
     if(st!=0)
         printf(" Failed to read the diagnostic file.\n");
 
@@ -4131,10 +4131,10 @@ readResourceParameters()
     std::ifstream inFile("r3bplaut04.rc");
 #endif
 
-    if (inFile.fail())
+    if (!inFile)
     {
         inFile.open(resource.c_str());
-        if(inFile.fail())
+        if(!inFile)
         {
             printf("Unable to open the  resource file. I will use the default values.\n");
             state = 1;
@@ -4686,84 +4686,55 @@ main(int argc, char *argv[])
 // so the mu read from command line is not important in general. It can be used
 // only if the s.xxx file does not exist or the system fails to read it.
 
-    strcpy(sFileName,"fort.8");
-    strcpy(bFileName,"fort.7");
-    strcpy(dFileName,"fort.9");
+    char **pargv = argv;
+    int argcleft = argc - 1;
 
-    if( argc > 1 )
+    if( argcleft > 0 )
     {
-        if(strcmp(argv[1], "97")==0)
+        bool is97 = false;
+        pargv = &argv[1];
+
+        if( argcleft > 1 && strcmp(*pargv, "97")==0 )
         {
-            if( argc == 4)  
-            {
-                strcpy(sFileName,argv[argc-2]);
-                strcat(sFileName,"/q.");
-                strcat(sFileName,argv[argc-1]);
-
-                strcpy(bFileName,argv[argc-2]);
-                strcat(bFileName,"/p.");
-                strcat(bFileName,argv[argc-1]);
-
-                strcpy(dFileName,argv[argc-2]);
-                strcat(dFileName,"/d.");
-                strcat(dFileName,argv[argc-1]);
-
-            } 
-            else if( argc == 3)
-            {
-                strcpy(sFileName,"q.");
-                strcat(sFileName,argv[argc-1]);
-
-                strcpy(bFileName,"p.");
-                strcat(bFileName,argv[argc-1]);
-
-                strcpy(dFileName,"d.");
-                strcat(dFileName,argv[argc-1]);
-            }
-            else if( argc == 2)
-            {
-                strcpy(sFileName,"fort.8");
-                strcpy(bFileName,"fort.7");
-                strcpy(dFileName,"fort.9");
-            }
+            is97 = true;
+            pargv++;
+            argcleft--;
+        }
+        if( argcleft > 1)
+        {
+            sFileName = *pargv;
+            bFileName = *pargv;
+            dFileName = *pargv;
+            pargv++;
+            argcleft--;
+            sFileName += "/";
+            bFileName += "/";
+            dFileName += "/";
+        }
+        if ( is97 )
+        {
+            sFileName += "q.";
+            bFileName += "p.";
+            dFileName += "d.";
         }
         else
         {
-            if( argc == 3)  
-            {
-                strcpy(sFileName,argv[argc-2]);
-                strcat(sFileName,"/s.");
-                strcat(sFileName,argv[argc-1]);
-
-                strcpy(bFileName,argv[argc-2]);
-                strcat(bFileName,"/b.");
-                strcat(bFileName,argv[argc-1]);
-
-                strcpy(dFileName,argv[argc-2]);
-                strcat(dFileName,"/d.");
-                strcat(dFileName,argv[argc-1]);
-
-            } 
-            else if( argc == 2)
-            {
-                strcpy(sFileName,"s.");
-                strcat(sFileName,argv[argc-1]);
-
-                strcpy(bFileName,"b.");
-                strcat(bFileName,argv[argc-1]);
-
-                strcpy(dFileName,"d.");
-                strcat(dFileName,argv[argc-1]);
-            }
+            sFileName += "s.";
+            bFileName += "b.";
+            dFileName += "d.";
         }
-    }
-    else if( argc == 1)
-    {
-        strcpy(sFileName,"fort.8");
-        strcpy(bFileName,"fort.7");
-        strcpy(dFileName,"fort.9");
+        sFileName += *pargv;
+        bFileName += *pargv;
+        dFileName += *pargv;
+        argcleft--;
     }
     else
+    {
+        sFileName = "fort.8";
+        bFileName = "fort.7";
+        dFileName = "fort.9";
+    }
+    if( argcleft > 0)
     {
 #ifndef R3B
         printf(" usage: plaut04 [version] [path] [name]\n");
@@ -5244,36 +5215,31 @@ deleteScene()
 ////////////////////////////////////////////////////////////////////////
 //
 bool 
-parseFileName(const char *fname,char * sFileName, char * bFileName, char * dFileName)
+parseFileName(const char *fname, std::string& sFileName,
+              std::string& bFileName, std::string& dFileName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char * path;
-    char * filename = strdup(fname);
-    char myName[256];
-    char myPath[256];
+    std::stringstream filename(fname);
+    std::string myPath, myName, path;
 
-    path = strtok(filename, "/");
-    myPath[0]='\0';
-    while(path !=NULL)
+    while(getline(filename, path, '/'))
     {
-        strcat(myPath,"/");
-        strcat(myPath, path);
-        strcpy(myName, path);
-        path = strtok(NULL,"/");
+        myPath += "/";
+        myPath += path;
+        myName = path;
     }
 
-    strcpy(sFileName,myPath);
-    strcpy(bFileName,myPath);
-    strcpy(dFileName,myPath);
+    sFileName = myPath;
+    bFileName = myPath;
+    dFileName = myPath;
 
-    int j = strlen(myPath);
-    int i =strlen(myName);
+    int j = myPath.length();
+    int i = myName.length();
     sFileName[j-i]='s'; sFileName[j-i+1]='.';
     bFileName[j-i]='b'; bFileName[j-i+1]='.';
     dFileName[j-i]='d'; dFileName[j-i+1]='.';
 
-    free(filename);
     return true;
 }
 
