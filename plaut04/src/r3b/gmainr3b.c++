@@ -347,7 +347,7 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
         float tTemp = timeEqualDiv[i];
         int m = 0;
         while(tTemp > time[m] && m < arrSize) ++m;
-        if( fabs(tTemp-time[m]) <= 1.0e-9 || fabs(time[m]-time[m-1]<=1.0e-8))
+        if( fabs(tTemp-time[m]) <= 1.0e-9 || fabs(time[m]-time[m-1])<=1.0e-8)
         {
             myVertices[i][0]=workArray[m][0];
             myVertices[i][1]=workArray[m][1];

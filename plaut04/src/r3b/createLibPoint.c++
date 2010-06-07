@@ -74,7 +74,7 @@ lagpoint (double mu, double LP [7][2], double eps)
 
 /*L4 and L5 calculation ---------------------------------------------------*/
     x0 = 0.5 - mu;
-    y0 = sqrt(3)/2.0;
+    y0 = sqrt(3.0)/2.0;
     LP[5][0] = x0;
     LP[5][1] = y0;
     LP[6][0] = x0;
