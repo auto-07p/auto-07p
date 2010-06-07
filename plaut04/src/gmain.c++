@@ -95,10 +95,6 @@ bool optionsOld[11];
 bool optBif[11], optSol[11];
 bool setShow3D, setShow3DSol, setShow3DBif;
 
-static std::string sFileName;
-static std::string bFileName;
-static std::string dFileName;
-
 solutionp solHead = NULL;
 long int animationLabel = MY_ALL;
 int maxComponent = 1;
@@ -3326,8 +3322,11 @@ drawASphereWithColor(float color[], float position[], float size)
 //
 //  initialize win basic things
 //
-bool
-readSolutionAndBifurcationData(bool blFirstRead)
+static bool
+readSolutionAndBifurcationData(bool blFirstRead,
+                               const std::string& sFileName,
+                               const std::string& bFileName,
+                               const std::string& dFileName)
 //
 ///////////////////////////////////////////////////////////////////////
 {
@@ -4688,6 +4687,7 @@ main(int argc, char *argv[])
 
     char **pargv = argv;
     int argcleft = argc - 1;
+    std::string sFileName, bFileName, dFileName;
 
     if( argcleft > 0 )
     {
@@ -4762,7 +4762,7 @@ main(int argc, char *argv[])
 
     readResourceParameters();
 
-    readSolutionAndBifurcationData(1);
+    readSolutionAndBifurcationData(true, sFileName, bFileName, dFileName);
 
     initCoordAndLableListItems();
     initTempVariables();
@@ -5214,7 +5214,7 @@ deleteScene()
 
 ////////////////////////////////////////////////////////////////////////
 //
-bool 
+static bool
 parseFileName(const char *fname, std::string& sFileName,
               std::string& bFileName, std::string& dFileName)
 //
@@ -5256,10 +5256,12 @@ readFile(const char *filename)
 ////////////////////////////////////////////////////////////////////////
 {
     SbString errorMessage;
+    std::string sFileName, bFileName, dFileName;
 
     postDeals();
     parseFileName(filename, sFileName, bFileName, dFileName);
-    bool rs = readSolutionAndBifurcationData(0);
+    bool rs = readSolutionAndBifurcationData(false, sFileName, bFileName,
+                                             dFileName);
     if(!rs)
     {
         SoText2 * errMsg = new SoText2;
