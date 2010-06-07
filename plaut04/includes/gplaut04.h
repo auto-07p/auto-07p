@@ -3,6 +3,7 @@
 #define PLAUT04_H
 
 #include <algorithm>
+#include <string>
 
 #include <ctype.h>
 #include <time.h>
@@ -297,6 +298,9 @@ SoSeparator * drawASphere(float ptb[], float size);
 
 SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
 SoSeparator * createDisk();
+
+void strlefttrim(std::string &str);
+void strrighttrim(std::string &str);
 
 struct DefaultAxisItems
 {

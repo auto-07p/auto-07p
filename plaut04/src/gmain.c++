@@ -1,9 +1,12 @@
 #define XtNumber(arr) ((sizeof(arr) / sizeof(arr[0])))
 
+#include <fstream>
+#include <sstream>
+#include <float.h>
+
 #include "gplaut04.h"
 #include "gVarNames.h"
 #include "tube.h"
-#include <float.h>
 
 #define TIME_IS_OFF  0 
 #define TIME_ON_X    1
@@ -196,9 +199,6 @@ static void copyBifDataToWorkArray(int varIndices[]);
 #if 0
 static void processPrinting(char* filename );
 #endif
-
-extern char * strrighttrim(char*);
-extern char * strlefttrim(char*);
 
 //
 ////////////////////////////////////////////////////////////////////////
@@ -4001,24 +4001,27 @@ initCoordAndLableListItems()
 }
 
 
+static std::stringstream&
+readAString(std::stringstream& buffer, std::string& aString);
+
 ///////////////////////////////////////////////////////////////////
 //  
 //       Read line colors and line pattern from the resource file.
 //       each call of this function, read one line
 //
-void
-readLineColorAndPattern(char* buffer, float *lineColor, unsigned long & linePattern)
+static void
+readLineColorAndPattern(std::stringstream& buffer, float *lineColor, unsigned long & linePattern)
 //
 ///////////////////////////////////////////////////////////////////
 {
-    char * word ;
+    std::string word;
     for(int k=0; k<3; ++k)
     {
-        word = strtok(NULL,",");
-        lineColor[k]=atof(word);
+        readAString(buffer, word);
+        std::stringstream(word) >> lineColor[k];
     }
-    word = strtok(NULL,",");
-    linePattern = strtoul(word,NULL, 16);
+    readAString(buffer, word);
+    std::stringstream(word) >> std::hex >> linePattern;
 }
 
 
@@ -4027,57 +4030,27 @@ readLineColorAndPattern(char* buffer, float *lineColor, unsigned long & linePatt
 //       Read flex number of numbers.
 //       each call of this function, read one line
 //
-void
-readNData(char* buffer, float *data, int &size )
+template <class T>
+static void
+readNData(std::stringstream& buffer, T *data, int &size )
 //
 ///////////////////////////////////////////////////////////////////
 {
-    char * word ; 
+    std::string word;
     int k = 0;
     if(size > 0)
     {
         for(k=0; k<size; ++k)
         {
-            word = strtok(NULL,",");
-            data[k]=atof(word);
+            readAString(buffer, word);
+            std::stringstream(word) >> data[k];
         }
     }
     else
     {
-        while ( (word = strtok(NULL,",") )!= NULL)
+        while ( readAString(buffer, word) )
         {
-            data[k++]=atof(word);
-        }
-        size = k;
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////
-//
-//       Read flex number of integer numbers.
-//       each call of this function, read one line
-//
-void
-readNIntData(char* buffer, int *data, int &size )
-//
-///////////////////////////////////////////////////////////////////
-{
-    char * word ; 
-    int k = 0;
-    if(size > 0)
-    {
-        for(k=0; k<size; ++k)
-        {
-            word = strtok(NULL,",");
-            data[k]=atoi(word);
-        }
-    }
-    else
-    {
-        while ( (word = strtok(NULL,",") )!= NULL)
-        {
-            data[k++]=atoi(word);
+            std::stringstream(word) >> data[k++];
         }
         size = k;
     }
@@ -4089,26 +4062,26 @@ readNIntData(char* buffer, int *data, int &size )
 //       Read a string from the buffer. Used to parse those boolean
 //       variables or sigle value in a line of the resource file.
 //
-void
-readAString(char* buffer, char* aString)
+static std::stringstream&
+readAString(std::stringstream& buffer, std::string& aString)
 //
 ///////////////////////////////////////////////////////////////////
 {
-    char * word = strtok(NULL,",");
-    strcpy(aString, word);
+    std::getline(buffer, aString, ',');
+    return buffer;
 }
 
 
 ///////////////////////////////////////////////////////////////////
 //
-void
-readAHexdecimal(char* buffer, unsigned long & aHexdecimal )
+static void
+readAHexdecimal(std::stringstream& buffer, unsigned long & aHexdecimal )
 //
 ///////////////////////////////////////////////////////////////////
 {
-    char * word;
-    word = strtok(NULL,",");
-    aHexdecimal = strtoul(word,NULL, 16);
+    std::string aString;
+    readAString(buffer, aString);
+    std::stringstream(aString) >> std::hex >> aHexdecimal;
 }
 
 
@@ -4145,27 +4118,23 @@ readResourceParameters()
 {
     int state = 0;
 
-    char buffer[256];
     float aVector[3];
     unsigned long aHex;
-    char aString[256], *strTemp;
-    char resource[256];
+    std::string aString;
 
-    FILE * inFile;
-
-    strcpy(resource, autoDir);
+    std::string resource = autoDir;
 #ifndef R3B
-    strcat(resource,"/plaut04/plaut04.rc");
-    inFile = fopen("plaut04.rc", "r");
+    resource += "/plaut04/plaut04.rc";
+    std::ifstream inFile("plaut04.rc");
 #else
-    strcat(resource,"/plaut04/r3bplaut04.rc");
-    inFile = fopen("r3bplaut04.rc", "r");
+    resource += "/plaut04/r3bplaut04.rc";
+    std::ifstream inFile("r3bplaut04.rc");
 #endif
 
-    if (!inFile)
+    if (inFile.fail())
     {
-        inFile = fopen(resource, "r");
-        if(!inFile)
+        inFile.open(resource.c_str());
+        if(inFile.fail())
         {
             printf("Unable to open the  resource file. I will use the default values.\n");
             state = 1;
@@ -4173,15 +4142,18 @@ readResourceParameters()
         }
     }
 
-    char * next;
-    while ( (next=fgets(buffer, sizeof(buffer),inFile)) != NULL )
+    std::string line;        
+    while ( std::getline(inFile, line) )
     {
-        if(buffer[0] != '#')
+        if(line[0] != '#')
 // else it is a comment line, discard it. Nothing need to do here.
         {
-            strTemp = strtok(buffer,"=");
-            strTemp = strrighttrim(strTemp);
-            strTemp = strlefttrim(strTemp);
+            std::stringstream buffer(line);
+            std::string str;
+            std::getline(buffer, str, '=');
+            strrighttrim(str);
+            strlefttrim(str);
+            const char *strTemp = str.c_str();
 
             bool blDealt = false;
             if( !blDealt )
@@ -4206,8 +4178,9 @@ readResourceParameters()
                     if(strcasecmp(strTemp, graphWidgetItems[i])==0)
                     {
                         readAString(buffer, aString);
-                        char* aNewString = strrighttrim(aString);
-                        aNewString = strlefttrim(aString);
+                        strrighttrim(aString);
+                        strlefttrim(aString);
+                        const char *aNewString = aString.c_str();
                         options[i] = (strcasecmp(aNewString,"Yes")==0) ? true : false;
                         blDealt = true;
                         break;
@@ -4222,8 +4195,9 @@ readResourceParameters()
                     if(strcasecmp(strTemp, blWidgetName[i])==0)
                     {
                         readAString(buffer, aString);
-                        char* aNewString = strrighttrim(aString);
-                        aNewString = strlefttrim(aString);
+                        strrighttrim(aString);
+                        strlefttrim(aString);
+                        const char *aNewString = aString.c_str();
 			switch(i) {
 			case 0:
 			    setShow3DSol = (strcasecmp(aNewString,"Yes")==0);
@@ -4247,8 +4221,9 @@ readResourceParameters()
                 if(strcasecmp(strTemp,"Draw Scale")==0)
                 {
                     readAString(buffer, aString);
-                    char* aNewString = strrighttrim(aString);
-                    aNewString = strlefttrim(aString);
+                    strrighttrim(aString);
+                    strlefttrim(aString);
+                    const char *aNewString = aString.c_str();
                     blDrawTicker = (strcasecmp(aNewString,"Yes")==0) ? true : false;
 
                     blDealt = true;
@@ -4261,129 +4236,132 @@ readResourceParameters()
                 {
                     if(strcasecmp(strTemp, intVariableNames[i])==0)
                     {
-                        readAString(buffer, aString);
-                        char* aNewString = strrighttrim(aString);
-                        aNewString = strlefttrim(aString);
                         switch (i)
                         {
                             case 0:
-                                whichType = atoi(aString);
+                                buffer >> whichType;
                                 break;
                             case 1:
-                                whichStyle = atoi(aString);
+                                buffer >> whichStyle;
                                 break;
                             case 2:
-                                winWidth  = atoi(aString);
+                                buffer >> winWidth;
                                 break;
                             case 3:
-                                winHeight = atoi(aString);
+                                buffer >> winHeight;
                                 break;
                             case 4:
+                                buffer >> coloringMethodType[BIFURCATION];
                                 coloringMethodType[SOLUTION] =
-                                coloringMethodType[BIFURCATION] = atoi(aString);
+                                coloringMethodType[BIFURCATION];
                                 break;
                             case 5:
-                                coloringMethodType[SOLUTION] = atoi(aString);
+                                buffer >> coloringMethodType[SOLUTION];
                                 break;
                             case 6:
-                                coloringMethodType[BIFURCATION] = atoi(aString);
+                                buffer >> coloringMethodType[BIFURCATION];
                                 break;
                             case 7:
-                                lineWidthScaler = atof(aString);
+                                buffer >> lineWidthScaler;
                                 break;
                             case 8:
-                                aniLineScaler= atof(aString);
+                                buffer >> aniLineScaler;
                                 break;
                             case 9:
-                                satSpeed = atoi(aString)/100.0;
+                                buffer >> satSpeed;
+                                satSpeed /= 100.0;
                                 break;
                             case 10:
-                                MAX_SAT_SPEED = atoi(aString);
+                                buffer >> MAX_SAT_SPEED;
                                 break;
                             case 11:
-                                MIN_SAT_SPEED = atoi(aString);
+                                buffer >> MIN_SAT_SPEED;
                                 break;
                             case 12:
-                                orbitSpeed = atoi(aString)/50.0;
+                                buffer >> orbitSpeed;
+                                orbitSpeed /= 50.0;
                                 break;
                             case 13:
-                                MAX_ORBIT_SPEED = atoi(aString);
+                                buffer >> MAX_ORBIT_SPEED;
                                 break;
                             case 14:
-                                MIN_ORBIT_SPEED = atoi(aString);
+                                buffer >> MIN_ORBIT_SPEED;
                                 break;
                             case 15:
-                                whichCoord = atoi(aString);
+                                buffer >> whichCoord;
                                 break;
                             case 16:
-                                bgTransparency = atof(aString);
+                                buffer >> bgTransparency;
                                 break;
                             case 17:
-                                numPeriodAnimated = atof(aString);
+                                buffer >> numPeriodAnimated;
                                 break;
                             case 18:
-                                labelRadius = atof(aString);
+                                buffer >> labelRadius;
                                 break;
                             case 19:
 			    {
-                                diskRotation[0] = atof(aString);
-                                int sizerot = 3;
-			        readNData(buffer, &diskRotation[1], sizerot);
+                                int sizerot = 4;
+			        readNData(buffer, diskRotation, sizerot);
                                 break;
                             }
                             case 20:
 			    {
-                                diskPosition[0] = atof(aString);
-                                int sizeyz = 2;
-			        readNData(buffer, &diskPosition[1], sizeyz);
+                                int sizeyz = 3;
+			        readNData(buffer, diskPosition, sizeyz);
                                 break;
                             }
                             case 21:
-                                diskRadius = atof(aString);
+                                buffer >> diskRadius;
                                 break;
                             case 22:
-                                diskHeight = atof(aString);
+                                buffer >> diskHeight;
                                 break;
                             case 23:
-                                diskTransparency = atof(aString);
+                                buffer >> diskTransparency;
                                 break;
 			    case 24:
-                                diskFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
+                                readAString(buffer, aString);
+                                strrighttrim(aString);
+                                strlefttrim(aString);
+                                diskFromFile = (strcasecmp(aString.c_str(),"Yes")==0) ? true : false;
                                 break;
                             case 25:
 			    {
-                                spherePosition[0] = atof(aString);
-		                int sizeyz = 2;
-			        readNData(buffer, &spherePosition[1], sizeyz);
+		                int sizeyz = 3;
+			        readNData(buffer, spherePosition, sizeyz);
                                 break;
                             }
                             case 26:
-                                sphereRadius = atof(aString);
+                                buffer >> sphereRadius;
                                 break;
                             case 27:
-                                sphereTransparency = atof(aString);
+                                buffer >> sphereTransparency;
                                 break;
 			    case 28:
-                                sphereFromFile = (strcasecmp(aString,"Yes")==0) ? true : false;
+                                readAString(buffer, aString);
+                                strrighttrim(aString);
+                                strlefttrim(aString);
+                                sphereFromFile = (strcasecmp(aString.c_str(),"Yes")==0) ? true : false;
                                 break;
                             case 29:
-                                satRadius = atof(aString);
+                                buffer >> satRadius;
                                 break;
 #ifdef R3B
                             case 30:
-                                largePrimRadius = atof(aString);
+                                buffer >> largePrimRadius;
                                 break;
                             case 31:
-                                smallPrimRadius = atof(aString);
+                                buffer >> smallPrimRadius;
                                 break;
                             case 32:
-                                libPtScaler = atof(aString);
+                                buffer >> libPtScaler;
                                 break;
                             case 33:
-                                whichCoordSystem = atoi(aString);
+                                buffer >> whichCoordSystem;
                                 break;
                             case 34:
-                                numOfStars = atoi(aString);
+                                buffer >> numOfStars;
                                 break;
 #endif
                         }
@@ -4429,7 +4407,7 @@ readResourceParameters()
             {
                 int size = -1;
                 int parIDs[MAX_PAR];
-                readNIntData(buffer, parIDs, size);
+                readNData(buffer, parIDs, size);
                 mySolNode.npar = size;
                 blDealt = true;
                 for(int is=0; is<size; ++is)
@@ -4444,7 +4422,7 @@ readResourceParameters()
             {
                 int size = -1;
                 int lblIdx[MAX_LABEL];
-                readNIntData(buffer, lblIdx, size);
+                readNData(buffer, lblIdx, size);
                 lblIdxSize = size;
                 blDealt = true;
                 for(int is=0; is<size; ++is)
@@ -4463,7 +4441,7 @@ readResourceParameters()
                     {
                         int size = -1;
                         int pars[MAX_PAR];
-                        readNIntData(buffer, pars, size);
+                        readNData(buffer, pars, size);
                         mySolNode.npar = size;
                         blDealt = true;
                         switch ( i )
@@ -4513,7 +4491,6 @@ readResourceParameters()
         setShow3D = setShow3DBif;
     }
     coloringMethod = coloringMethodType[whichType];
-    fclose(inFile);
     return state;
 }
 
