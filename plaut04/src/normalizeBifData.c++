@@ -1,6 +1,5 @@
 #include "normalizeBifData.h"
 
-#include "gplaut04.h"
 #include "bifurcation.h"
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -15,8 +14,8 @@ normalizeBifData(long int idx, float xyzCoords[3])
         if (myBifNode.varIndices[k] == -1)
 	    xyzCoords[k] = 0.0;
 	else
-	    xyzCoords[k] = clientData.bifData[idx*myBifNode.nar + 
-                                              myBifNode.varIndices[k]];
+	    xyzCoords[k] = myBifNode.data[idx*myBifNode.nar + 
+                                          myBifNode.varIndices[k]];
     }
     if(!options[OPT_NORMALIZE_DATA]) return;
     for(int k=0; k<3; k++)

@@ -303,7 +303,7 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
 {
     float (*workArray)[3]  = new float [arrSize][3];
     float *time         = new float [arrSize];
-    float satPeriod = clientData.solPeriod[kth];
+    float satPeriod = mySolNode.period[kth];
     float rpp[3], vpp[3];
     float massCurLabeledOrbit = mySolNode.mass[kth];
 
@@ -316,7 +316,7 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
         {
             if(coloringMethod>=0 && coloringMethod < mySolNode.nar)
                 for(int k=0; k<11; ++k)
-                    myColorBase[i*11+k]  = clientData.solData[sumX+i%orbitSize][coloringMethod];
+                    myColorBase[i*11+k]  = mySolNode.data[sumX+i%orbitSize][coloringMethod];
             else if(coloringMethod==CL_POINT_NUMBER )
                 for(int k=0; k<11; ++k)
                     myColorBase[i*11+k]  = i;
@@ -324,7 +324,7 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
         else
         {
             if(coloringMethod>=0 && coloringMethod < mySolNode.nar)
-                myColorBase[i]=clientData.solData[sumX+i%orbitSize][coloringMethod];
+                myColorBase[i]=mySolNode.data[sumX+i%orbitSize][coloringMethod];
             else if(coloringMethod==CL_POINT_NUMBER )
                 myColorBase[i]=i;
         }
@@ -564,7 +564,7 @@ createSolutionInertialFrameScene(float dis)
                 }
             }
 
-            satPeriod = clientData.solPeriod[kno];
+            satPeriod = mySolNode.period[kno];
             long int orbitSize = mySolNode.numVerticesEachPeriod[kno];
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
 

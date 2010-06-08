@@ -156,17 +156,7 @@
 
 ////////////////////////////////////////////////////////////////////////
 //
-// This struct stores the userdata by using a 
-// two dismensional dynamic array.
 struct UserData{
-    long int maxRowSize;
-    int maxColSize;
-    int totalLabels;
-
-    float **solData;
-    float *bifData;
-
-    float solPeriod[MAX_LABEL];        // from the solution file par[10];
     float (*multipliers)[2];           // from the diagnostic file.
     int maxndim;
     int *numFM;                        // #multipliers (+) or #eigenvalues (-)?

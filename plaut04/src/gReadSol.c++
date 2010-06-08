@@ -173,7 +173,7 @@ bool solutions::read(const char* sFileName, int varIndices[])
                         char dummystr[25];
                         fscanf(inFile,"%24s",dummystr);
                         dummy=fortranatof(dummystr);
-                        clientData.solData[row][j]=dummy;
+                        mySolNode.data[row][j]=dummy;
                         if(row == 0) clientData.solMax[j] = dummy;
                         else
                         if(clientData.solMax[j] < dummy) clientData.solMax[j] = dummy;
@@ -207,7 +207,7 @@ bool solutions::read(const char* sFileName, int varIndices[])
                         {
                             mySolNode.par[counter][nzoo*7+i] = dummy;
                             if( nzoo*7+i==1 ) mySolNode.mass[counter] = dummy;
-                            else if( nzoo*7+i==10 ) clientData.solPeriod[counter]=dummy;
+                            else if( nzoo*7+i==10 ) mySolNode.period[counter]=dummy;
                         }
                     }
                 }
@@ -220,7 +220,6 @@ bool solutions::read(const char* sFileName, int varIndices[])
     mySolNode.numOrbitsInEachBranch[branchCounter]=orbitCounter;
     mySolNode.branchID[branchCounter]=ibr;
 
-    clientData.totalLabels = counter;
     mySolNode.totalLabels = counter;
     mySolNode.numOrbits    = counter;
 

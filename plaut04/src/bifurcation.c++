@@ -148,7 +148,7 @@ Bifurcation::drawLabelPtsInScene()
                 result->addChild( drawALabel(row, size, myBifNode.labels[k]));
 
             ++k;
-        } while( k < clientData.totalLabels);
+        } while( k < myBifNode.totalLabels);
     }
     else if(lbl != MY_NONE)
     {
@@ -261,8 +261,8 @@ long int sumX, float scaler)
         normalizeBifData(idx, path[i]);
         if(coloringMethod>=0)
             for(int k=0; k<11; ++k)
-                colorBase[i*11+k]  = clientData.bifData[idx*myBifNode.nar +
-							coloringMethod];
+                colorBase[i*11+k]  = myBifNode.data[idx*myBifNode.nar +
+						    coloringMethod];
         else if(coloringMethod==CL_POINT_NUMBER)
             for(int k=0; k<11; ++k)
                 colorBase[i*11+k]  = i;
@@ -322,8 +322,8 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
         lastStab = curStab;
         normalizeBifData(idx, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = clientData.bifData[idx * myBifNode.nar +
-						     coloringMethod];
+            colorBase[curSize]  = myBifNode.data[idx * myBifNode.nar +
+						 coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m;
         else if(coloringMethod == CL_STABILITY)
@@ -362,8 +362,8 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
         curSize = 0;
         normalizeBifData(idx-1, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = clientData.bifData[(idx-1) * myBifNode.nar +
-						     coloringMethod];
+            colorBase[curSize]  = myBifNode.data[(idx-1) * myBifNode.nar +
+						 coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m-1;
         else if(coloringMethod == CL_STABILITY)
@@ -397,8 +397,8 @@ Bifurcation::drawABranchUsingNurbsCurve(int iBranch, long int l,
         long idx = si+m;
         normalizeBifData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =clientData.bifData[idx * myBifNode.nar + 
-					      coloringMethod];
+            colorBase[m]  =myBifNode.data[idx * myBifNode.nar + 
+					  coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -462,8 +462,8 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
         long int idx = si+m;
         normalizeBifData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =clientData.bifData[idx * myBifNode.nar +
-					      coloringMethod];
+            colorBase[m]  =myBifNode.data[idx * myBifNode.nar +
+					  coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -625,8 +625,7 @@ Bifurcation::copyDataToWorkArray(int  varIndices[])
         {
             if(varIndices[k]>=0)
             {
-                float dummy = clientData.bifData[row*myBifNode.nar + 
-						 varIndices[k]];
+                float dummy = myBifNode.data[row*myBifNode.nar + varIndices[k]];
 
                 if(dummy>myBifNode.max[k] || row==0 )
                     myBifNode.max[k] = dummy;

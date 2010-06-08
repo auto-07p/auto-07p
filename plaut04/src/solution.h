@@ -36,6 +36,9 @@ struct SolNode {
     // max saves the maximum value of the coordinate.
     // min saves the minimum value of the coordinate.
     float max[3], min[3];
+
+    float period[MAX_LABEL];       // from the solution file par[10];
+    float **data;
 };
 
 extern SolNode mySolNode;

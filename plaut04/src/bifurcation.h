@@ -24,6 +24,8 @@ struct BifNode {
     // max saves the maximum value of the coordinate.
     // min saves the minimum value of the coordinate.
     float max[3], min[3];
+
+    float *data;
 };
 
 extern BifNode myBifNode;

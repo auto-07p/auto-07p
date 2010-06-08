@@ -130,7 +130,7 @@ Solution::drawUsingTubes()
                 else if(coloringMethod == CL_LABELS)
                 {
                     ptSep->addChild(setLineAttributesByParameterValue(
-                        j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                        j, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                         stability, scaler));
                 }
                 else if(coloringMethod == CL_COMPONENT)
@@ -216,7 +216,7 @@ Solution::drawUsingTubes()
                     path[i][2]=mySolNode.xyzCoords[idx][2];
                     if(coloringMethod>=0)
                         for(int k=0; k<11; ++k)
-                            colorBase[i*11+k]  = clientData.solData[idx][coloringMethod];
+                            colorBase[i*11+k]  = mySolNode.data[idx][coloringMethod];
                     if(coloringMethod==CL_POINT_NUMBER)
                         for(int k=0; k<11; ++k)
                             colorBase[i*11+k]  = i;
@@ -240,7 +240,7 @@ Solution::drawUsingTubes()
                     tubeSep->addChild(setLineAttributesByType(stability, type, scaler));
                 else if(coloringMethod == CL_LABELS)
                     tubeSep->addChild(setLineAttributesByParameterValue(
-                            j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                            j, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                             stability, scaler));
                 else if(coloringMethod == CL_COMPONENT)
                     tubeSep->addChild(setLineAttributesByParameterValue(
@@ -897,7 +897,7 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
-                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -982,7 +982,7 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         vertices[m][0]=mySolNode.xyzCoords[idx][0];
         vertices[m][1]=mySolNode.xyzCoords[idx][1];
         vertices[m][2]=mySolNode.xyzCoords[idx][2];
-        if(coloringMethod>=0)colorBase[m]  = clientData.solData[idx][coloringMethod];
+        if(coloringMethod>=0)colorBase[m]  = mySolNode.data[idx][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)colorBase[m]  = m;
     }
 
@@ -1012,7 +1012,7 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     else if(coloringMethod == CL_LABELS)
     {
         anOrbit->addChild(setLineAttributesByParameterValue(
-                          l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                          l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                           stability, scaler));
     }
     else if(coloringMethod == CL_COMPONENT)
@@ -1070,7 +1070,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         else if(coloringMethod == CL_LABELS)
         {
             ptSep->addChild(setLineAttributesByParameterValue(
-                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -1106,7 +1106,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         vertices[m][0]=mySolNode.xyzCoords[idx][0];
         vertices[m][1]=mySolNode.xyzCoords[idx][1];
         vertices[m][2]=mySolNode.xyzCoords[idx][2];
-        if(coloringMethod>=0)colorBase[m]  = clientData.solData[idx][coloringMethod];
+        if(coloringMethod>=0)colorBase[m]  = mySolNode.data[idx][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)colorBase[m]  = m;
 
         if(!aniColoring)
@@ -1122,7 +1122,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         else if(coloringMethod == CL_LABELS)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
-                              l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                              l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                               stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -1197,7 +1197,7 @@ Solution::drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si,
     else if(coloringMethod == CL_LABELS)
     {
         anOrbit->addChild(setLineAttributesByParameterValue(
-           l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+           l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
            stability, scaler));
     }
     else
@@ -1241,7 +1241,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
         else if(coloringMethod == CL_LABELS)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
-                l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                 stability, scaler));
         }
         else if(coloringMethod == CL_COMPONENT)
@@ -1326,7 +1326,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
         vertices[m][2]=mySolNode.xyzCoords[si+m][2];
         if(coloringMethod>=0)
             for(int j=0; j<11; ++j)
-                colorBase[m*11+j]  = clientData.solData[si+m][coloringMethod];
+                colorBase[m*11+j]  = mySolNode.data[si+m][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             for(int j=0; j<11; ++j)
                 colorBase[m*11+j]  = m;
@@ -1345,7 +1345,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
 //          always set the first label blue, the last red, namely look all
 //          branches as one.
         anOrbit->addChild(setLineAttributesByParameterValue(
-                 l, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                 l, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                  stability, scaler));
     else if(coloringMethod == CL_COMPONENT)
         anOrbit->addChild(setLineAttributesByParameterValue(
@@ -1432,7 +1432,7 @@ Solution::animateUsingTubes(bool aniColoring)
                 path[i][2]=mySolNode.xyzCoords[idx][2];
                 if(coloringMethod>=0)
                     for(int j=0; j<11; ++j)
-                        colorBase[i*11+j]  = clientData.solData[idx][coloringMethod];
+                        colorBase[i*11+j]  = mySolNode.data[idx][coloringMethod];
                 if(coloringMethod==CL_POINT_NUMBER)
                     for(int j=0; j<11; ++j)
                         colorBase[i*11+j]  = i;
@@ -1448,7 +1448,7 @@ Solution::animateUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
             else if(coloringMethod == CL_LABELS)
                 anOrbit->addChild(setLineAttributesByParameterValue(
-                    j, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                    j, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                     stability, lineWidthScaler));
             else if(coloringMethod >= mySolNode.nar)
                 anOrbit->addChild(setLineAttributesByParameterValue(
@@ -1544,7 +1544,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
     myVertices[0][0] = myVertices[arrSize][0] = mySolNode.xyzCoords[idx][0];
     myVertices[0][1] = myVertices[arrSize][1] = mySolNode.xyzCoords[idx][1];
     myVertices[0][2] = myVertices[arrSize][2] = mySolNode.xyzCoords[idx][2];
-    if(coloringMethod>=0)myColorBase[0]  = clientData.solData[idx][coloringMethod];
+    if(coloringMethod>=0)myColorBase[0]  = mySolNode.data[idx][coloringMethod];
     if(coloringMethod==CL_POINT_NUMBER)myColorBase[0]  = 0;
     for(long int i=1; i<upperlimit; i++)
     {
@@ -1569,7 +1569,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
                                 mySolNode.xyzCoords[idx+m-1][2])*0.5;
         }
 
-        if(coloringMethod>=0)myColorBase[i]  = clientData.solData[idx+m][coloringMethod];
+        if(coloringMethod>=0)myColorBase[i]  = mySolNode.data[idx+m][coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)myColorBase[i]  = i;
     }
 
@@ -1626,7 +1626,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
         satGroup->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
     else if(coloringMethod == CL_LABELS)
         satGroup->addChild(setLineAttributesByParameterValue(
-                j-1, clientData.totalLabels, clientData.totalLabels/2.0, 0,
+                j-1, mySolNode.totalLabels, mySolNode.totalLabels/2.0, 0,
                 stability, lineWidthScaler));
     else if(coloringMethod == CL_COMPONENT)
         satGroup->addChild(setLineAttributesByParameterValue(
@@ -1697,10 +1697,10 @@ Solution::copyDataToWorkArray(int  varIndices[], int cur, int mx, int to)
     {
         for(long int row=0; row<mySolNode.totalNumPoints; ++row)
         {
-            mySolNode.time[row] = clientData.solData[row][0];
+            mySolNode.time[row] = mySolNode.data[row][0];
             if(varIndices[k]>=0)
             {
-                float dummy = clientData.solData[row][varIndices[k]];
+                float dummy = mySolNode.data[row][varIndices[k]];
                 mySolNode.xyzCoords[row][k] = dummy;
             }
             else if(varIndices[k]<0)

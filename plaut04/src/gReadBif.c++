@@ -67,7 +67,7 @@ readBifurcation(const char *bFileName, int varIndices[])
             int i = 0;
 	    char dummystr[25], c;
             while (fscanf(inFile,"%24s%c", dummystr, &c) == 2) {
-                clientData.bifData[totalPoints*myBifNode.nar+(i++)] =
+                myBifNode.data[totalPoints*myBifNode.nar+(i++)] =
 		    fortranatof(dummystr);
 		if(c=='\n')break;
             }
@@ -116,17 +116,6 @@ readBifurcation(const char *bFileName, int varIndices[])
         myBifNode.numVerticesEachBranch[numBranches-1] = numPtsInThisBranch;
     myBifNode.totalLabels = totalLabels;
 
-    if(clientData.totalLabels != totalLabels && clientData.totalLabels != 0)
-    {
-        printf(" total labels in b-file is: %i, in s-file is: %i\n", totalLabels, clientData.totalLabels);
-        printf(" The total number of labels in the bifurcation file is different from\n");
-        printf(" the total number of labels in the solution file! CHECK IT.\n");
-        exit(1);
-    }
-
-// if no s file, program should still work, so set totalLabels here again.
-    if(clientData.totalLabels == 0) clientData.totalLabels = totalLabels;
-
 #ifdef DEBUG
     cout <<"======================================"<<endl;
     cout <<" myBifNode.nar :         "<<myBifNode.nar<<endl;
@@ -145,8 +134,8 @@ readBifurcation(const char *bFileName, int varIndices[])
     cout <<"======================================"<<endl;
 
     for(int xi=0; xi<220; xi++)
-        cout <<" Index: "<<xi<<" "<<clientData.bifData[xi][0]<<"  "
-            <<clientData.bifData[xi][1]<<"  "<<clientData.bifData[xi][2]<<endl;
+        cout <<" Index: "<<xi<<" "<<myBifNode.data[xi][0]<<"  "
+            <<myBifNode.data[xi][1]<<"  "<<myBifNode.data[xi][2]<<endl;
     cout <<"======================================"<<endl;
 #endif
 
