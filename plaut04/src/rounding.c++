@@ -1,3 +1,4 @@
+#include "rounding.h"
 #include <math.h>
 
 double round(bool key, double value, int digits)

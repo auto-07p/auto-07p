@@ -1,10 +1,7 @@
+#include "printToPS.h"
+
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/SoOffscreenRenderer.h>
-#ifdef USE_SOQT
-#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#else
-#include <Inventor/Xt/viewers/SoXtExaminerViewer.h>
-#endif
 
 #if defined(__COIN__) && COIN_MAJOR_VERSION >= 2 && COIN_MINOR_VERSION >= 1
 #include <Inventor/annex/HardCopy/SoVectorizePSAction.h>

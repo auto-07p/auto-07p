@@ -1,7 +1,9 @@
+#include "createCoords.h"
+
 #include "gplaut04.h"
 #include "axis.h"
 
-struct coordScaleParameters
+static struct coordScaleParameters
 {
     double csclMax;
     double csclMin;

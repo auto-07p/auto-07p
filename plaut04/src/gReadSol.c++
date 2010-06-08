@@ -1,10 +1,10 @@
+#include "gReadSol.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <ctype.h>
 #include <math.h>
-
-#include "gplaut04.h"
 
 #define MAX_LINE_LENGTH 256
 

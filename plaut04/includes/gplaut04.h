@@ -263,44 +263,27 @@ struct TubeNode{
     float radius;
 };
 
-SoSeparator *createSphere(float where[], float scaler);
-SoSeparator *createDisk(float where[], float scaler);
-
-void pointsToAxisAngle(/*in*/ float *a, /*in*/ float *b, /*out*/TubeNode& cnode);
-void pointToPoints(float a[], float b[], float c[][3]);
-
-solutionp parseSolution(const char * sFileName, bool &bl, long int &total,long int &totalNumPoints);
-bool readSolution(/*in*/ solutionp current,
-                  /*in*/ const char* sFileName, 
-                  /*in SolNode& mySolNode,*/
-                  /*in*/ int varIndices[]);
-bool parseBifurcation(const char *bFileName);
-bool readBifurcation(const char *bFileName, int varIndices[]);
-int readFM(const char *bFileName ,const int);
-double fortranatof(char* word);
-
-void normalizeSolData();//SolNode);
-void normalizeBifData(long int idx, float xyzCoords[3]);//BifNode);
-
+// gmain.c++
 SoGroup * setLineAttributesByStability(int stability, float scaler);
 SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, double parMid, double parMin, int stability, float scaler);
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
 SoGroup * setLineColorBlending(float * vertices, long int size, int stability, float scaler);
-SoSeparator * createAxis(float red, float green, float blue);
-SoSeparator * drawCoords(int where, float pos[], SbVec3f colors[], float height); //in/SolNode& mySolNode);
-SoSeparator * createLegend(SbVec3f pos, double val[5]);
-SoSeparator * createDiscreteLegend(SbVec3f pos, SbColor lineColors[13]);
-SoSeparator * createBranchLegend(SbVec3f pos, SbColor lineColors[13]);
-SoSeparator * createStabilityLegend(SbVec3f pos, SbColor lineColors[2]);
-SoSeparator * createCoordinates(bool, int where, float mx[3], float mn[3], int tk[3], SbColor color[3]);
 SoSeparator * drawASphere(float ptb[], float size);
+void updateScene();
+void postDeals();
+void showHelpDialog();
+int writePreferValuesToFile();
+void writeToFile(const char * fileName);
+void deleteScene();
+SbBool readFile(const char *filename);
+void myMousePressCB(void *userData, SoEventCallback *eventCB);
+double fortranatof(char* word);
 
-SoSeparator * createSolutionScene();//in/SolNode& mySolNode);//float (*xyzCoords)[3]);
-SoSeparator * createDisk();
-
-void strlefttrim(std::string &str);
-void strrighttrim(std::string &str);
+// gmainqt.c++ & gmainxt.c++
+void popupFloquetMultiplierDialog(float data[], int size, int numFM);
+void soxtmain(int argc, char *argv[]);
+void setListValue();
 
 struct DefaultAxisItems
 {
@@ -314,18 +297,7 @@ struct DefaultAxisItems
 #define LBL_OFFSET   4
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13
-void popupFloquetMultiplierDialog(float data[], int size, int numFM);
-void soxtmain(int argc, char *argv[]);
-void updateScene();
-void postDeals();
-void cropScene(const char* filename);
-void setListValue();
-void showHelpDialog();
-int writePreferValuesToFile();
-void writeToFile(const char * fileName);
-void deleteScene();
-SbBool readFile(const char *filename);
-void myMousePressCB(void *userData, SoEventCallback *eventCB);
+
 extern float orbitSpeed, satSpeed, numPeriodAnimated, lineWidthScaler;
 extern float fmData[12];
 extern int xCoordIndices[MAX_LIST], xCoordIdxSize;

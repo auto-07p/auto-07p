@@ -1,5 +1,7 @@
+// This file is unused!!!
 
-#include <Inventor/nodes/SoSeparator.h>
+#include "drawCoords.h"
+
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoTransform.h>
@@ -15,9 +17,6 @@
 
 extern SolNode mySolNode;
 extern BifNode myBifNode;
-
-SoSeparator * drawTicker(float pos,float height);
-SoSeparator * createAxis(float red, float green, float blue, float height, const char *);
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -88,7 +87,6 @@ drawCoords(int where, float pos[], SbVec3f axisColors[],  float height)
 
     return myAxis;
 }
-
 
 SoSeparator * createAxis(float red, float green, float blue, float height, const char * label)
 {

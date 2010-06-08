@@ -6,7 +6,18 @@
 
 #include "gplaut04.h"
 #include "gVarNames.h"
+#include "rounding.h"
 #include "tube.h"
+#include "createDisk.h"
+#include "createSphere.h"
+#include "createLegend.h"
+#include "createCoords.h"
+#include "readFM.h"
+#include "normalizeBifData.h"
+#include "normalizeSolData.h"
+#include "gReadBif.h"
+#include "gReadSol.h"
+#include "stringtrim.h"
 
 #define TIME_IS_OFF  0 
 #define TIME_ON_X    1
@@ -15,8 +26,6 @@
 
 float STATIONARY_POINT_RADIUS = 0.01;
 int specialColorItems = CL_SP_ITEMS;
-
-extern void  rounding(double &, double &);
 
 float fmData[12];
 const char *autoDir;
@@ -205,6 +214,7 @@ static void processPrinting(char* filename );
 //
 ////////////////////////////////////////////////////////////////////////
 
+#if 0
 ////////////////////////////////////////////////////////////////////////
 //
 void 
@@ -217,7 +227,7 @@ cropScene(const char* filename)
     system("convert my_temp_cropped.gif my_temp.eps");
     system("rm my_temp.gif my_temp_cropped.gif");
 }
-
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -670,7 +680,7 @@ drawALabel(int row, float xoffset, long int label)
 
 //////////////////////////////////////////////////////////////////////////
 //
-SoSeparator *
+static SoSeparator *
 drawLabelPtsInBifurcationScene()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -793,7 +803,7 @@ setLabelMaterial(int lblType)
 
 /////////////////////////////////////////////////////////////////
 //
-SoSeparator *
+static SoSeparator *
 drawABifBranchUsingTubes(int iBranch, long int l,
 long int sumX, float scaler)
 //
@@ -916,7 +926,7 @@ renderBifurcation()
 // Description: Draw the whole solution family using TUBES.
 // Draw the whole solution family using TUBES.
 //
-SoSeparator *
+static SoSeparator *
 drawSolUsingTubes()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1204,7 +1214,7 @@ drawASolBranchUsingSurface(long obStart, long obEnd, long numVert)
 
 ///////////////////////////////////////////////////////////////////
 //
-SoGroup *
+static SoGroup *
 renderSolutionTubes()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1261,7 +1271,7 @@ renderSolutionTubes()
 
 //////////////////////////////////////////////////////////////////////////
 //
-SoGroup *
+static SoGroup *
 renderSolutionSurface()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1323,7 +1333,7 @@ renderSolutionSurface()
 //           draw the solutions by Mesh points
 //
 //           draw the solutions by Points
-SoGroup *
+static SoGroup *
 renderSolutionPoints(int style)
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1399,7 +1409,7 @@ renderSolutionPoints(int style)
 //
 //           draw the solutions by lines
 //
-SoGroup *
+static SoGroup *
 renderSolutionLines()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1476,7 +1486,7 @@ renderSolutionLines()
 //
 //           draw the solutions using NURBS CURVE lines
 //
-SoGroup *
+static SoGroup *
 renderSolutionNurbsCurve()
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1623,9 +1633,10 @@ animateSolutionUsingLines(bool aniColoring)
 }
 
 
+#if 0
 //////////////////////////////////////////////////////////////////////////
 //
-SoSeparator *
+static SoSeparator *
 animateSolutionUsingNurbsCurve()
 //
 /////////////////////////////////////////////////////////////////
@@ -1652,11 +1663,11 @@ animateSolutionUsingNurbsCurve()
     solGroup->addChild(solBlinker);
     return solGroup;
 }
-
+#endif
 
 /////////////////////////////////////////////////////////////////
 //                  create solution orbits scene
-SoSeparator *
+static SoSeparator *
 renderSolution()
 //
 /////////////////////////////////////////////////////////////////
@@ -2295,7 +2306,7 @@ drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
 
 //////////////////////////////////////////////////////////////////////////
 //
-SoSeparator *
+static SoSeparator *
 drawAPoint(float x, float y, float z, float size, float scale)
 //
 //////////////////////////////////////////////////////////////////////////
@@ -3608,6 +3619,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
 }
 
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////
 //
 void
@@ -3666,11 +3678,12 @@ pointsToAxisAngle(float * a, float * b, TubeNode &value)
         }
     }
 }
+#endif
 
 
 ////////////////////////////////////////////////////////////////////
 //
-SbBool
+static SbBool
 writePickedPath (SoNode *result, const SbViewportRegion &viewport,
 const SbVec2s &cursorPosition)
 //
@@ -3782,7 +3795,7 @@ myMousePressCB(void *userData, SoEventCallback *eventCB)
 //       Initialize the coordinate selection drop down list items
 //       and the drop down label list items.
 //
-void
+static void
 initCoordAndLableListItems()
 //
 ///////////////////////////////////////////////////////////////////
@@ -4499,7 +4512,7 @@ readResourceParameters()
 //       Set initial values for those temp variables according to
 //     their correspondent variables.
 //
-void
+static void
 initTempVariables()
 //
 /////////////////////////////////////////////////////////////////////
@@ -4542,7 +4555,7 @@ initTempVariables()
 //     the graph style, the graph type, orbit animation speed, sattelite
 //     animation speed.
 //
-void
+static void
 setVariableDefaultValues() 
 //
 /////////////////////////////////////////////////////////////////////

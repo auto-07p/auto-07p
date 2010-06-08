@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = gReadBif.o gReadSol.o drawCoords.o \
+OBJS = gReadBif.o gReadSol.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
         createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
@@ -27,16 +27,24 @@ gmainqt.moc.c++: gmainqt.h
 clean:
 	rm -f *.o gmainqt.moc.c++
 
-axis.o: $(INC)/gplaut04.h $(INC)/axis.h
-createCoords.o: $(INC)/gplaut04.h $(INC)/axis.h
-drawCoords.o: $(INC)/gplaut04.h
-gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h
+axis.o: $(INC)/gplaut04.h axis.h
+createBoundingBox.o: createBoundingBox.h
+createCoords.o: createCoords.h $(INC)/gplaut04.h axis.h
+createDisk.o: createDisk.h
+createLegend.o: createLegend.h
+createSphere.o: createSphere.h
+gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h tube.h rounding.h \
+ createDisk.h createSphere.h createLegend.h createCoords.h readFM.h \
+ normalizeBifData.h normalizeSolData.h gReadBif.h gReadSol.h stringtrim.h
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
-gReadBif.o: $(INC)/gplaut04.h
-gReadSol.o: $(INC)/gplaut04.h
-normalizeBifData.o: $(INC)/gplaut04.h
-normalizeSolData.o: $(INC)/gplaut04.h
-polygon3d.o: $(INC)/polygon3d.h
-readFM.o: $(INC)/gplaut04.h
-tube.o: $(INC)/tube.h $(INC)/polygon3d.h
+gReadBif.o: gReadBif.h $(INC)/gplaut04.h
+gReadSol.o: gReadSol.h $(INC)/gplaut04.h
+normalizeBifData.o: normalizeBifData.h $(INC)/gplaut04.h
+normalizeSolData.o: normalizeSolData.h $(INC)/gplaut04.h
+printToPS.o: printToPS.h
+polygon3d.o: polygon3d.h
+readFM.o: readFM.h $(INC)/gplaut04.h
+rounding.o: rounding.h
+stringtrim.o: stringtrim.h
+tube.o: tube.h polygon3d.h

@@ -1,3 +1,5 @@
+#include "createSphere.h"
+
 #include <Inventor/So.h>
 #include <Inventor/SbLinear.h>
 #include "gplaut04.h"

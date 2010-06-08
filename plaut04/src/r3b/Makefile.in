@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o ../createDisk.o \
+OBJS = ../gReadBif.o ../gReadSol.o toInertialFrame.o ../createDisk.o \
         createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
         ../stringtrim.o \
         ../printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
@@ -10,7 +10,7 @@ OBJS = ../gReadBif.o ../gReadSol.o ../drawCoords.o toInertialFrame.o ../createDi
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
-INCLUDES=-I$(INC) @DEPS_INCLUDES@
+INCLUDES=-I$(INC) -I.. @DEPS_INCLUDES@
 CFLAGS=@CFLAGS@ @X_CFLAGS@ -DR3B
 DEPS_LIBS=@DEPS_LIBS@
 LIBS=$(DEPS_LIBS)
@@ -33,9 +33,11 @@ gmainqt.o: ../gmainqt.c++
 clean:
 	rm -f *.o
 
-gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h $(INC)/tube.h Makefile
+gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h ../tube.h ../rounding.h \
+ ../createDisk.h ../createSphere.h ../createLegend.h ../createCoords.h \
+ ../readFM.h ../normalizeBifData.h ../normalizeSolData.h ../gReadBif.h \
+ ../gReadSol.h ../stringtrim.h Makefile
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
 gmainr3b.o: $(INC)/gplaut04.h
-printToPS.o: Makefile
 toInertialFrame.o: $(INC)/gplaut04.h

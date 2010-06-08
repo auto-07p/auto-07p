@@ -6,6 +6,8 @@
 #define _FILE_OFFSET_BITS 64
 #endif
 
+#include "gReadBif.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 

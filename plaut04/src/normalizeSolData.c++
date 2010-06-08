@@ -1,3 +1,5 @@
+#include "normalizeSolData.h"
+
 #include "gplaut04.h"
 
 extern SolNode mySolNode;

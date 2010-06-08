@@ -1,4 +1,5 @@
-#include <string>
+#include "stringtrim.h"
+
 #include <cctype>
 #include "gplaut04.h"
 

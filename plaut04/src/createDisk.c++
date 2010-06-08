@@ -1,3 +1,5 @@
+#include "createDisk.h"
+
 #include <Inventor/So.h>
 #include <Inventor/SbLinear.h>
 
