@@ -104,7 +104,6 @@ bool optionsOld[11];
 bool optBif[11], optSol[11];
 bool setShow3D, setShow3DSol, setShow3DBif;
 
-solutionp solHead = NULL;
 long int animationLabel = MY_ALL;
 int maxComponent = 1;
 int curComponent = 1;
@@ -3343,8 +3342,9 @@ readSolutionAndBifurcationData(bool blFirstRead,
 {
     long int  total=0, rows=0;
     bool blOpenSolFile, blOpenBifFile;
+    solutions sols;
 
-    solHead = parseSolution(sFileName.c_str(), blOpenSolFile, total, rows);
+    sols.parse(sFileName.c_str(), blOpenSolFile, total, rows);
     if(!blOpenSolFile)
         printf(" Solution file does not exist.\n");
 
@@ -3401,7 +3401,7 @@ readSolutionAndBifurcationData(bool blFirstRead,
     if( mySolNode.numOrbits > 0 )
     {
         bool tmp = false;
-        tmp = readSolution(solHead, sFileName.c_str(), varIndices) ? true : false;
+        tmp = sols.read(sFileName.c_str(), varIndices) ? true : false;
         if(!tmp) printf(" Failed to read the solution file!\n");
         blOpenSolFile = tmp;
 
@@ -4631,17 +4631,11 @@ setVariableDefaultValues()
     dai.bifZ[0] = 2;
 #endif
 
-    for(solutionp cur = solHead; solHead != NULL; cur = solHead) {
-        solHead = cur->next;
-        delete cur;
-    }
-
 #ifndef R3B
     setShow3D         = false;
 #else
     setShow3D         = true;
 #endif
-    solHead           = NULL;
     animationLabel    = MY_ALL;
     orbitSpeed        = 1.0;
 #ifndef R3B
@@ -4820,11 +4814,6 @@ postDeals()
     delete [] clientData.solData;
     mySolNode.totalNumPoints  = 0;
     delete [] clientData.bifData;
-
-    for(solutionp cur = solHead; solHead != NULL; cur = solHead) {
-        solHead = cur->next;
-        delete cur;
-    }
 }
 
 

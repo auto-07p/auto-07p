@@ -150,20 +150,6 @@
 #define TYPE_MX       -9
 
 
-struct solution{
-  long position;
-  int nrowpr;
-  int branch;
-  int point;
-  int type;
-  int label;
-  int new_label;
-  struct solution *next;
-};
-                                                                                                                       
-typedef struct solution *solutionp;
-
-
 struct SolNode {
     float mass[MAX_LABEL];
     double *time; // this time is useless?
@@ -329,7 +315,6 @@ extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
 extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
 extern bool optBif[11], optSol[11];
 extern float satRadius, aniLineScaler;
-extern solutionp solHead;
 extern char labels[MAX_LABEL][8];
 extern long int animationLabel;
 extern const char *autoDir;
@@ -339,4 +324,4 @@ extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];
 extern float diskPosition[3];
 extern float diskRadius;
 
-#endif 
+#endif

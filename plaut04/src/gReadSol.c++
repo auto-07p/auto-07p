@@ -6,6 +6,8 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "gplaut04.h"
+
 #define MAX_LINE_LENGTH 256
 
 extern SolNode mySolNode;
@@ -16,15 +18,11 @@ extern UserData clientData;
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
-solutionp
-parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long int &totalNumPoints)
+void solutions::parse( const char* sFileName, bool & blOpenFile, long int &total, long int &totalNumPoints)
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 {
-    solutionp head = NULL;
-    solutionp current = NULL;
-    solutionp last = NULL;
     FILE * inFile;
     long int position, i;
     int ibr,ntot,itp,lab,nfpr,isw,ntpl,nar,nrowpr,ntst,ncol,npar1;
@@ -40,7 +38,6 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
         mySolNode.numOrbits = total;
         mySolNode.totalNumPoints = totalNumPoints;
         mySolNode.nar = maxColSize;
-        return head;
     }
     blOpenFile = true;
 
@@ -60,24 +57,7 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
 	}
 
         totalNumPoints += (ntpl != 1) ? ntpl : 2;
-        current = new solution;
-
-        if(head == NULL)
-            head = current;
-
-        if(last != NULL)
-            last->next = current;
-
-        current->position  = position;
-        current->nrowpr    = nrowpr;
-        current->branch    = ibr;
-        current->point     = ntot;
-        current->type      = itp;
-        current->label     = lab;
-        current->new_label = lab;
-        current->next = NULL;
-
-        last = current;
+        positions.push(position);
 
         for(i=0;i<nrowpr+1;i++)
             while(fgetc(inFile)!='\n');
@@ -96,7 +76,6 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
     mySolNode.totalNumPoints = totalNumPoints;
     mySolNode.numBranches = ++branchCounter;
     mySolNode.nar = maxColSize;
-    return head;
 }
 
 
@@ -104,8 +83,7 @@ parseSolution( const char* sFileName, bool & blOpenFile, long int &total, long i
 //
 // READ solution (orbits) to the array
 //
-bool
-readSolution(solutionp current, const char* sFileName, int varIndices[])
+bool solutions::read(const char* sFileName, int varIndices[])
 //
 ///////////////////////////////////////////////////////////////////////
 
@@ -140,9 +118,10 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
     mySolNode.ntst[0]=0;
     mySolNode.ncol[0]=0;
 
-    while(current != NULL)
+    while(!positions.empty())
     {
-        fseek(inFile,current->position,SEEK_SET);
+        fseek(inFile,positions.front(),SEEK_SET);
+        positions.pop();
 
         fscanf(inFile,"%d %d %d %d %d %d %d %d %d %d %d %d",\
             &ibr,&ntot,&itp,&lab,&nfpr,&isw,&ntpl,&nar,\
@@ -233,7 +212,6 @@ readSolution(solutionp current, const char* sFileName, int varIndices[])
                 }
             }
         }
-        current = current->next;
         if( ntpl != 0) 
             counter++;
     }
