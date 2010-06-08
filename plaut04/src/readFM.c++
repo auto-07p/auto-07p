@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gplaut04.h"
+#include "bifurcation.h"
 
 extern UserData clientData;
 //////////////////////////////////////////////////////////////////////////////////

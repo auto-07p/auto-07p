@@ -1,8 +1,6 @@
 #include "solution.h"
 
 #include "createCoords.h"
-#include "createDisk.h"
-#include "createSphere.h"
 #include "normalizeSolData.h"
 #include "tube.h"
 

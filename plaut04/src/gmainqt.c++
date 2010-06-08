@@ -26,6 +26,7 @@
 
 #include "gplaut04.h"
 #include "solution.h"
+#include "bifurcation.h"
 #include "gmainqt.h"
 
 #define LBL_OFFSET   4

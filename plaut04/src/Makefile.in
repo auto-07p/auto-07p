@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = gReadBif.o gReadSol.o solution.o \
+OBJS = gReadBif.o gReadSol.o bifurcation.o solution.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
         createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
@@ -28,6 +28,7 @@ clean:
 	rm -f *.o gmainqt.moc.c++
 
 axis.o: $(INC)/gplaut04.h axis.h
+bifurcation.o: bifurcation.h $(INC)/gplaut04.h
 createBoundingBox.o: createBoundingBox.h
 createCoords.o: createCoords.h $(INC)/gplaut04.h axis.h
 createDisk.o: createDisk.h

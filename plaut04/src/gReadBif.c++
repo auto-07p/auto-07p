@@ -12,8 +12,8 @@
 #include <stdio.h>
 
 #include "gplaut04.h"
+#include "bifurcation.h"
 
-extern BifNode myBifNode;
 extern UserData clientData;
 
 /*go to the end of the line*/

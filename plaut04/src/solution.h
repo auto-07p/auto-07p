@@ -1,3 +1,6 @@
+#ifndef SOLUTION_H
+#define SOLUTION_H
+
 #include "gplaut04.h"
 
 struct SolNode {
@@ -69,3 +72,4 @@ class Solution {
     SoSeparator *drawAStrip(float stripSet[][3], int size);
 };
 
+#endif

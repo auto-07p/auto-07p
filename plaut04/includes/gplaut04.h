@@ -154,29 +154,6 @@
 #define TIME_ON_Y    2
 #define TIME_ON_Z    3
 
-struct BifNode {
-    int varIndices[3];
-    int32_t *numVerticesEachBranch;
-    int32_t numVerticesEachLabelInterval[MAX_LABEL]; 
-    int *xAxisItems;
-    int *yAxisItems;
-    int *zAxisItems;
-    int nar;
-    int maxndim;
-
-    unsigned char *ptStability;       // start from 0...totalLines-1
-    long int totalNumPoints; // like 10012.
-    long int numBranches;    // like 4.
-    long int *branchID; // branch ID of each branch.
-	long int labels[MAX_LABEL];   // this real lenght should equal to totalLabels;
-    int      numAxis;        // number of groups of axis. 3 is a group.
-	int totalLabels;
-
-    // max saves the maximum value of the coordinate.
-    // min saves the minimum value of the coordinate.
-    float max[3], min[3];
-};
-
 ////////////////////////////////////////////////////////////////////////
 //
 // This struct stores the userdata by using a 
@@ -223,6 +200,7 @@ SoGroup * setLineAttributesByParameterValue(double parValue, double parMax, doub
 SoGroup * setLineAttributesByBranch(int iBranch, int stability, float scaler);
 SoGroup * setLineAttributesByType(int stability, int type, float scaler);
 SoGroup * setLineColorBlending(float * vertices, long int size, int stability, float scaler);
+SoGroup * setLineColorBlendingByStability(float * vertices, long int size, int stab, float scaler);
 SoSeparator * drawASphere(float ptb[], float size);
 void updateScene();
 void postDeals();
@@ -271,7 +249,6 @@ extern SbColor lineColor[], lineColorTemp[], lineColorOld[];
 extern SbColor envColors[];
 extern unsigned long graphWidgetToggleSet, graphWidgetToggleSetTemp,
   graphWidgetToggleSetOld;
-extern BifNode myBifNode;
 extern UserData clientData;
 extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;
 extern int MIN_SAT_SPEED, MAX_SAT_SPEED;
@@ -290,5 +267,6 @@ extern SoSeparator *root;
 extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];
 extern float diskPosition[3];
 extern float diskRadius;
+extern float labelRadius;
 
 #endif
