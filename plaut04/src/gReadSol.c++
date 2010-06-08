@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "gplaut04.h"
+#include "solution.h"
 
 #define MAX_LINE_LENGTH 256
 

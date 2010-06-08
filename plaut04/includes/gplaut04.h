@@ -149,42 +149,10 @@
 #define TYPE_EP_ODE   9
 #define TYPE_MX       -9
 
-
-struct SolNode {
-    float mass[MAX_LABEL];
-    double *time; // this time is useless?
-    float (*xyzCoords)[3];
-    int32_t *numVerticesEachBranch;  // index start from 0 
-    int32_t numVerticesEachPeriod[MAX_LABEL];  // index start from 0
-    int32_t *numOrbitsInEachBranch;  // index start from 0
-    int *xAxisItems;
-    int *yAxisItems;
-    int *zAxisItems;
-    int nar;
-	int npar;
-
-    long int totalNumPoints; // like 10012.
-    long int numBranches;    // like 4.
-    long int *branchID; // for each label/solution
-    long int numOrbits;      // like 43 == UserData.totalLabels == BifNode.totalLabels == totalLabels.
-	long int labels[MAX_LABEL];   // this real lenght should equal to numOrbits; 
-							// labels[0]==0, HERE, we make an assumption that no label equal to 0.
-	long int ntst[MAX_LABEL];   
-	long int ncol[MAX_LABEL];   
-
-    int      numAxis;        // number of groups of axis. 3 is a group.
-	int      totalLabels;
-	double par[MAX_LABEL][MAX_PAR];     // keep the parameter values for each orbit.
-	double (*parMax)[MAX_PAR];     // keep the max parameter values in each branch.
-	double (*parMin)[MAX_PAR];     // keep the min parameter values.
-	double (*parMid)[MAX_PAR];     // keep the mid parameter values.
-	int      parID[MAX_PAR];    // keep the id for the par, namely the x for par(x)
-
-    // max saves the maximum value of the coordinate.
-    // min saves the minimum value of the coordinate.
-    float max[3], min[3];
-};
-
+#define TIME_IS_OFF  0 
+#define TIME_ON_X    1
+#define TIME_ON_Y    2
+#define TIME_ON_Z    3
 
 struct BifNode {
     int varIndices[3];
@@ -303,7 +271,6 @@ extern SbColor lineColor[], lineColorTemp[], lineColorOld[];
 extern SbColor envColors[];
 extern unsigned long graphWidgetToggleSet, graphWidgetToggleSetTemp,
   graphWidgetToggleSetOld;
-extern SolNode mySolNode;
 extern BifNode myBifNode;
 extern UserData clientData;
 extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;

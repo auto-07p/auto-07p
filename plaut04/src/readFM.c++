@@ -17,8 +17,7 @@ readFM(const char* dFileName, const int size)
 
     char buffer[256];
     int branch, point, prevpoint, myid;
-    int maxndim = std::max(myBifNode.maxndim,mySolNode.nar-1);
-    clientData.maxndim = maxndim;
+    int maxndim = clientData.maxndim;
     bool eigenvalues;
 
     float fl1, fl2;

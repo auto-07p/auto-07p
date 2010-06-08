@@ -3,7 +3,7 @@
 
 OBJS = ../gReadBif.o ../gReadSol.o toInertialFrame.o ../createDisk.o \
         createPrimary.o createLibPoint.o ../normalizeSolData.o ../normalizeBifData.o\
-        ../stringtrim.o \
+        ../stringtrim.o solution.o \
         ../printToPS.o ../tube.o ../polygon3d.o ../readFM.o ../createBoundingBox.o\
         ../createCoords.o ../axis.o ../createLegend.o gmain.o @SOXT_OBJS_R3B@ \
 	../rounding.o ../createSphere.o gmainr3b.o
@@ -30,6 +30,9 @@ gmainxt.o: ../gmainxt.c++
 gmainqt.o: ../gmainqt.c++
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+solution.o: ../solution.c++
+	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
 clean:
 	rm -f *.o
 
@@ -40,4 +43,5 @@ gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h ../tube.h ../rounding.h \
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
 gmainr3b.o: $(INC)/gplaut04.h
+solution.o: ../solution.h $(INC)/gplaut04.h
 toInertialFrame.o: $(INC)/gplaut04.h

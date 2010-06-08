@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .c++ .o
 
-OBJS = gReadBif.o gReadSol.o \
+OBJS = gReadBif.o gReadSol.o solution.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
         createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
@@ -46,5 +46,6 @@ printToPS.o: printToPS.h
 polygon3d.o: polygon3d.h
 readFM.o: readFM.h $(INC)/gplaut04.h
 rounding.o: rounding.h
+solution.o: solution.h $(INC)/gplaut04.h
 stringtrim.o: stringtrim.h
 tube.o: tube.h polygon3d.h

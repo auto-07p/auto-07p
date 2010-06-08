@@ -35,6 +35,7 @@
 #include <Inventor/Xt/SoXtMaterialEditor.h>
 
 #include "gplaut04.h"
+#include "solution.h"
 
 #define LBL_OFFSET   4
 
