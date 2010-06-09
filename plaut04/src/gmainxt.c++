@@ -727,12 +727,11 @@ optMenuDisplay(Widget, void *userData, XtPointer)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    int n = 0;
     EditMenuItems *menuItems = (EditMenuItems *) userData;
 
     for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
-        n = 0;
+        if (!useR3B && (i == OPT_PRIMARY || i == OPT_LIB_POINTS)) continue;
         if (graphWidgetToggleSet & (1<<i))
         {
             XmToggleButtonSetState(menuItems->items[i], TRUE, FALSE);
@@ -915,10 +914,10 @@ buildOptionMenu(Widget menubar)
     int        n;
 
     EditMenuItems *menuItems = new EditMenuItems;
-    menuItems->items = new Widget[13];
+    menuItems->items = new Widget[XtNumber (graphWidgetItems)];
 
 // Tell motif to create the menu in the popup plane
-    Arg popupargs[13];
+    Arg popupargs[XtNumber (graphWidgetItems)];
     int popupn = 0;
 
     pulldown = XmCreatePulldownMenu(menubar, (char *)"optionMenu", popupargs, popupn);
@@ -931,26 +930,30 @@ buildOptionMenu(Widget menubar)
     XtSetArg(args[n], XmNuserData, menuItems); n++;
     if(!useR3B)
     {
-        TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
-        TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_PERIOD_ANI], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_SAT_ANI], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
     }
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Sphere", OPT_REF_SPHERE,optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_REF_PLAN], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_REF_SPHERE], "Draw Reference Sphere", OPT_REF_SPHERE,optMenuPick); ++mq;
     if(useR3B)
     {
-        TOGGLE_ITEM(menuItems->items[mq], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
-        TOGGLE_ITEM(menuItems->items[mq], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_PRIMARY], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_LIB_POINTS], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
         SEP_ITEM("separator");
-        TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
-        TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_PERIOD_ANI], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[OPT_SAT_ANI], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
     }
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Labels",          OPT_DRAW_LABELS, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Add Legend",           OPT_LEGEND, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Normalize Data",       OPT_NORMALIZE_DATA, optMenuPick); ++mq;
-    XtManageChildren(menuItems->items, mq);
-
+    TOGGLE_ITEM(menuItems->items[OPT_DRAW_LABELS], "Draw Labels",          OPT_DRAW_LABELS, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_LABEL_NUMBERS], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_BACKGROUND], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_LEGEND], "Add Legend",           OPT_LEGEND, optMenuPick); ++mq;
+    TOGGLE_ITEM(menuItems->items[OPT_NORMALIZE_DATA], "Normalize Data",       OPT_NORMALIZE_DATA, optMenuPick); ++mq;
+    if (useR3B) {
+        XtManageChildren(menuItems->items, mq);
+    } else {
+        XtManageChildren(menuItems->items, OPT_REF_SPHERE+1);
+        XtManageChildren(&menuItems->items[OPT_PERIOD_ANI], mq-OPT_REF_SPHERE-1);
+    }
     Widget pushitem;
     SEP_ITEM("separator");
     PUSH_ITEM(pushitem, "PREFERENCES", ITEM_ONE, createPreferDialog);
@@ -2577,6 +2580,7 @@ createOptionFrameGuts(Widget frame)
 
     for (unsigned int i = 0; i < XtNumber (graphWidgetItems); i++)
     {
+        if (!useR3B && (i == OPT_PRIMARY || i == OPT_LIB_POINTS)) continue;
         graphWidgetToggleSetOld = graphWidgetToggleSet;
         graphWidgetToggleSetTemp= graphWidgetToggleSet;
         n = 0;

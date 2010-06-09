@@ -587,6 +587,7 @@ MainWindow::optMenuDisplay()
 
     for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
+        if (!useR3B && (i == OPT_PRIMARY || i == OPT_LIB_POINTS)) continue;
         menuItems->items->setItemChecked(i, (graphWidgetToggleSet & (1<<i)) != 0);
     }
 
@@ -1588,6 +1589,7 @@ PreferDialog::createOptionFrameGuts(QGroupBox *frame)
     widgetButton = new QCheckBox*[LENGTH (graphWidgetItems)];
     for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
     {
+        if (!useR3B && (i == OPT_PRIMARY || i == OPT_LIB_POINTS)) continue;
         QCheckBox *w = new QCheckBox(graphWidgetItems[i], frame);
         group->addButton(w, i);
 #if QT_VERSION >= 0x40000
@@ -1800,7 +1802,10 @@ void PreferDialog::update()
     graphWidgetToggleSetOld = graphWidgetToggleSet;
     graphWidgetToggleSetTemp= graphWidgetToggleSet;
     for (unsigned i = 0; i < LENGTH (graphWidgetItems); i++)
+    {
+        if (!useR3B && (i == OPT_PRIMARY || i == OPT_LIB_POINTS)) continue;
         widgetButton[i]->setChecked((graphWidgetToggleSet & (1<<i)) != 0);
+    }
 
     whichCoordOld  = whichCoord;
     whichCoordTemp = whichCoord;
