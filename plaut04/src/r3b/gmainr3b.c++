@@ -1,6 +1,4 @@
 #include "gplaut04.h"
-#include "../tube.h"
-#include "../createCoords.h"
 #include "../createDisk.h"
 #include "../solution.h"
 

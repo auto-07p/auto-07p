@@ -2163,9 +2163,6 @@ Solution::dealloc()
 {
     delete [] time_;
     delete [] xyzCoords_;
-    delete [] xAxisItems_;
-    delete [] yAxisItems_;
-    delete [] zAxisItems_;
     delete [] numVerticesEachBranch_;
     delete [] numOrbitsInEachBranch_;
     delete [] branchID_;

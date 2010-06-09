@@ -95,9 +95,6 @@ class Solution {
     int32_t *numVerticesEachBranch_;  // index start from 0 
     int32_t numVerticesEachPeriod_[MAX_LABEL];  // index start from 0
     int32_t *numOrbitsInEachBranch_;  // index start from 0
-    int *xAxisItems_;
-    int *yAxisItems_;
-    int *zAxisItems_;
     int nar_;
     int npar_;
 

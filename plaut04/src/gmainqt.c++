@@ -1624,7 +1624,7 @@ PreferDialog::createGraphCoordPartsFrameGuts(QGroupBox *frame)
         SIGNAL(clicked(int)),
 #endif
                      this, SLOT(graphCoordWidgetToggledCB(int)));
-    coordButton = new QRadioButton*[LENGTH (coordButton)];
+    coordButton = new QRadioButton*[LENGTH (coordItems)];
     for (unsigned i = 0; i < LENGTH (coordItems); i++)
     {
         QRadioButton *w = new QRadioButton(coordItems[i], frame);
