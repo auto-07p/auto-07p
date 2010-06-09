@@ -1,11 +1,27 @@
+/* Allows reading in very large files */
+#ifndef _LARGEFILE_SOURCE
+#define _LARGEFILE_SOURCE
+#endif
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include "bifurcation.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef DEBUG
+using namespace std;
+#include <iostream>
+#endif
+
 #include "createCoords.h"
-#include "normalizeBifData.h"
 #include "rounding.h"
 #include "tube.h"
 
-BifNode myBifNode;
+extern UserData clientData;
+Bifurcation *myBifNode;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -40,8 +56,8 @@ Bifurcation::createScene()
         float asMax[3], asMin[3];
         if(options[OPT_NORMALIZE_DATA])
         {
-            asMax[0]=myBifNode.max[0]; asMax[1]=myBifNode.max[1];asMax[2]=myBifNode.max[2];
-            asMin[0]=myBifNode.min[0]; asMin[1]=myBifNode.min[1];asMin[2]=myBifNode.min[2];
+            asMax[0]=max_[0]; asMax[1]=max_[1];asMax[2]=max_[2];
+            asMin[0]=min_[0]; asMin[1]=min_[1];asMin[2]=min_[2];
         }
         else
         {
@@ -55,7 +71,7 @@ Bifurcation::createScene()
     }
 
     if(useR3B)
-        result->addChild(createR3BPoints(myBifNode.min, myBifNode.max));
+        result->addChild(createR3BPoints(min_, max_));
 
 // create bifurcation graph
     SoSeparator * bifBranchSep = render();
@@ -79,20 +95,20 @@ Bifurcation::drawALabel(int row, float xoffset, long int label)
     labelFont->size.setValue(12);
 
     float xyz[3], firstxyz[3], secondxyz[3];
-    normalizeBifData(row, xyz);
+    normalizeData(row, xyz);
 
     //pick a good direction for the label
     int first = row;
     int second = row + 1;
-    if (second >= myBifNode.totalNumPoints)
+    if (second >= totalNumPoints_)
     {
         first--;
         second--;
     }
     if (first < 0) first = 0;
     float yoffset = xoffset;
-    normalizeBifData(first, firstxyz);
-    normalizeBifData(second, secondxyz);
+    normalizeData(first, firstxyz);
+    normalizeData(second, secondxyz);
     if ((secondxyz[1] - firstxyz[1]) * (secondxyz[0] - firstxyz[0]) >= 0)
     {
         xoffset = -xoffset;
@@ -118,9 +134,9 @@ Bifurcation::drawLabelPtsInScene()
 //////////////////////////////////////////////////////////////////////////
 {
     float dis = !options[OPT_NORMALIZE_DATA] ? fabs(std::max(std::max(
-        (myBifNode.max[0]-myBifNode.min[0]),
-        (myBifNode.max[1]-myBifNode.min[1])),
-        (myBifNode.max[2]-myBifNode.min[2]))) : 2.0;
+        (max_[0]-min_[0]),
+        (max_[1]-min_[1])),
+        (max_[2]-min_[2]))) : 2.0;
 
     SoSeparator * result = new SoSeparator;
     int lbl = myLabels[lblIndices[0]], row = 0;
@@ -138,16 +154,16 @@ Bifurcation::drawLabelPtsInScene()
     
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
-            normalizeBifData(row, position);
+            normalizeData(row, position);
 
             float size = dis*0.005*labelRadius;
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(row, size, myBifNode.labels[k]));
+                result->addChild( drawALabel(row, size, labels_[k]));
 
             ++k;
-        } while( k < myBifNode.totalLabels);
+        } while( k < totalLabels_);
     }
     else if(lbl != MY_NONE)
     {
@@ -162,13 +178,13 @@ Bifurcation::drawLabelPtsInScene()
             lblMtl = setLabelMaterial(lbType);
             result->addChild(lblMtl);
 
-            normalizeBifData(row, position);
+            normalizeData(row, position);
 
 	    float size = dis*0.005*labelRadius;
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(row, size, myBifNode.labels[k]));
+                result->addChild( drawALabel(row, size, labels_[k]));
         }
     }
     return result;
@@ -243,7 +259,7 @@ long int sumX, float scaler)
 /////////////////////////////////////////////////////////////////
 {
     SoSeparator * tSep = new SoSeparator;
-    long int upperlimit = myBifNode.numVerticesEachBranch[l];
+    long int upperlimit = numVerticesEachBranch_[l];
 
     if(upperlimit <= 1)
     {
@@ -257,23 +273,22 @@ long int sumX, float scaler)
     for(long int i=0; i<upperlimit; i++)
     {
         long int idx = i+sumX;
-        normalizeBifData(idx, path[i]);
+        normalizeData(idx, path[i]);
         if(coloringMethod>=0)
             for(int k=0; k<11; ++k)
-                colorBase[i*11+k]  = myBifNode.data[idx*myBifNode.nar +
-						    coloringMethod];
+                colorBase[i*11+k]  = data_[idx*nar_ + coloringMethod];
         else if(coloringMethod==CL_POINT_NUMBER)
             for(int k=0; k<11; ++k)
                 colorBase[i*11+k]  = i;
         else if(coloringMethod == CL_STABILITY)
             for(int k=0; k<11; ++k)
-                colorBase[i*11+k] = myBifNode.ptStability[idx];
+                colorBase[i*11+k] = ptStability_[idx];
     }
 
     if(coloringMethod == CL_BRANCH_NUMBER)
     {
         if(useR3B)
-            iBranch = myBifNode.branchID[iBranch];
+            iBranch = branchID_[iBranch];
         tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
     }
     else if(coloringMethod == CL_STABILITY)
@@ -305,31 +320,30 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
     int32_t  myint[10];
 
     SoSeparator * aBranch = new SoSeparator;
-    long int size         = myBifNode.numVerticesEachBranch[l];
+    long int size         = numVerticesEachBranch_[l];
     float *colorBase      = new float[size];
     float (*vertices)[3]  = new float[size][3];
 
     long int curSize = 0;
 
-    int lastStab = myBifNode.ptStability[si];
+    int lastStab = ptStability_[si];
     int curStab  = lastStab;
     long int m   = 0;
     long int idx = si+m;
     do
     {
         lastStab = curStab;
-        normalizeBifData(idx, vertices[curSize]);
+        normalizeData(idx, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = myBifNode.data[idx * myBifNode.nar +
-						 coloringMethod];
+            colorBase[curSize]  = data_[idx * nar_ + coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m;
         else if(coloringMethod == CL_STABILITY)
-            colorBase[curSize]  = myBifNode.ptStability[idx];
+            colorBase[curSize]  = ptStability_[idx];
         m++;
         idx = si+m;
         if(m < size)
-            curStab = myBifNode.ptStability[idx];
+            curStab = ptStability_[idx];
         curSize++;
         if( (lastStab == curStab || curSize <= 1) && m != size) continue;
 
@@ -344,7 +358,7 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
         if(coloringMethod == CL_BRANCH_NUMBER)
         {
             if (useR3B)
-                iBranch = myBifNode.branchID[iBranch];
+                iBranch = branchID_[iBranch];
             aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
         }
         else if(coloringMethod == CL_STABILITY)
@@ -357,14 +371,13 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
         aBranch->addChild(myLine);
 
         curSize = 0;
-        normalizeBifData(idx-1, vertices[curSize]);
+        normalizeData(idx-1, vertices[curSize]);
         if(coloringMethod >= 0)
-            colorBase[curSize]  = myBifNode.data[(idx-1) * myBifNode.nar +
-						 coloringMethod];
+            colorBase[curSize]  = data_[(idx-1) * nar_ + coloringMethod];
         else if(coloringMethod == CL_POINT_NUMBER)
             colorBase[curSize]  = m-1;
         else if(coloringMethod == CL_STABILITY)
-            colorBase[curSize]  = myBifNode.ptStability[idx-1];
+            colorBase[curSize]  = ptStability_[idx-1];
         curSize++;
     }while( m < size);
 
@@ -386,16 +399,15 @@ Bifurcation::drawABranchUsingNurbsCurve(int iBranch, long int l,
     int32_t  myint[10];
 
     SoSeparator * aBranch = new SoSeparator;
-    long int size = myBifNode.numVerticesEachBranch[l];
+    long int size = numVerticesEachBranch_[l];
     float (*vertices)[3] = new float[size][3];
     float *colorBase = new float[size];
     for(long int m=0; m<size; ++m) 
     {
         long idx = si+m;
-        normalizeBifData(idx, vertices[m]);
+        normalizeData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =myBifNode.data[idx * myBifNode.nar + 
-					  coloringMethod];
+            colorBase[m]  =data_[idx * nar_ + coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -451,16 +463,15 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
     int32_t  myint[10];
 
     SoSeparator * anInterval = new SoSeparator;
-    long int size = myBifNode.numVerticesEachLabelInterval[l];
+    long int size = numVerticesEachLabelInterval_[l];
     float *colorBase = new float[size];
     float (*vertices)[3] = new float[size][3];
     for(int m=0; m<size; m++)
     {
         long int idx = si+m;
-        normalizeBifData(idx, vertices[m]);
+        normalizeData(idx, vertices[m]);
         if(coloringMethod>=0)
-            colorBase[m]  =myBifNode.data[idx * myBifNode.nar +
-					  coloringMethod];
+            colorBase[m]  =data_[idx * nar_ + coloringMethod];
         if(coloringMethod==CL_POINT_NUMBER)
             colorBase[m]  = m;
     }
@@ -500,20 +511,20 @@ drawABifLabelIntervalUsingNurbsCurve(long int l,
 
     SoSeparator * anInterval = new SoSeparator;
     float (*vertices)[3];
-    vertices = new float[myBifNode.numVerticesEachLabelInterval[l]][3];
-    for(int m=0; m<myBifNode.numVerticesEachLabelInterval[l]; m++)
+    vertices = new float[numVerticesEachLabelInterval_[l]][3];
+    for(int m=0; m<numVerticesEachLabelInterval_[l]; m++)
     {
-        vertices[m][0]=myBifNode.xyzCoords[si+m][0];
-        vertices[m][1]=myBifNode.xyzCoords[si+m][1];
-        vertices[m][2]=myBifNode.xyzCoords[si+m][2];
+        vertices[m][0]=xyzCoords_[si+m][0];
+        vertices[m][1]=xyzCoords_[si+m][1];
+        vertices[m][2]=xyzCoords_[si+m][2];
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, myBifNode.numVerticesEachLabelInterval[l], vertices);
-    myint[0]=myBifNode.numVerticesEachLabelInterval[l];
+    myCoords->point.setValues(0, numVerticesEachLabelInterval_[l], vertices);
+    myint[0]=numVerticesEachLabelInterval_[l];
 
     SoGroup *cvGrp = new SoGroup;
 
-    int number = myBifNode.numVerticesEachLabelInterval[l];
+    int number = numVerticesEachLabelInterval_[l];
     float * knots = new float[number+4];
     if(number > 4)
     {
@@ -565,32 +576,32 @@ Bifurcation::render()
     if(whichStyle == TUBE )
     {
         long int si = 0, k = 0;
-        for(int ka=0; ka<myBifNode.numBranches; ka++)
+        for(int ka=0; ka<numBranches_; ka++)
         {
             bifGroup->addChild(drawABranchUsingTubes(ka, k, si, 1*lineWidthScaler));
             k = k+1;
-            si += myBifNode.numVerticesEachBranch[ka];
+            si += numVerticesEachBranch_[ka];
         }
     }
     else if (whichStyle == NURBS)
     {
         long int si = 0, k = 0;
-        for(int ka=0; ka<myBifNode.numBranches; ka++)
+        for(int ka=0; ka<numBranches_; ka++)
         {
             bifGroup->addChild(drawABranchUsingNurbsCurve(ka, k, si, 1*lineWidthScaler));
             k = k+1;
-            si += myBifNode.numVerticesEachBranch[ka];
+            si += numVerticesEachBranch_[ka];
         }
 
     }
     else 
     {
         long int si = 0, k = 0;
-        for(int ka=0; ka<myBifNode.numBranches; ka++)
+        for(int ka=0; ka<numBranches_; ka++)
         {
             bifGroup->addChild(drawABranchUsingLines(ka, k, si, 1*lineWidthScaler));
             k = k+1;
-            si += myBifNode.numVerticesEachBranch[ka];
+            si += numVerticesEachBranch_[ka];
         }
     }
 
@@ -617,29 +628,270 @@ Bifurcation::copyDataToWorkArray(int  varIndices[])
 
     for(int k=0; k<3; k++)
     {
-        myBifNode.varIndices[k] = varIndices[k];
-        for(long int row=0; row<myBifNode.totalNumPoints; ++row)
+        varIndices_[k] = varIndices[k];
+        for(long int row=0; row<totalNumPoints_; ++row)
         {
             if(varIndices[k]>=0)
             {
-                float dummy = myBifNode.data[row*myBifNode.nar + varIndices[k]];
+                float dummy = data_[row*nar_ + varIndices[k]];
 
-                if(dummy>myBifNode.max[k] || row==0 )
-                    myBifNode.max[k] = dummy;
-                if(dummy<myBifNode.min[k] || row==0 )
-                    myBifNode.min[k] = dummy;
+                if(row==0 || dummy>max_[k])
+                    max_[k] = dummy;
+                if(row==0 || dummy<min_[k])
+                    min_[k] = dummy;
             }
             else if(varIndices[k]<0)
             {
-                myBifNode.max[k]= 1;
-                myBifNode.min[k]=-1;
+                max_[k]= 1;
+                min_[k]=-1;
             }
         }
 
-        mx = myBifNode.max[k];
-        mi =myBifNode.min[k];
+        mx = max_[k];
+        mi =min_[k];
         rounding(mx, mi);
-        myBifNode.max[k] = mx;
-        myBifNode.min[k] = mi;
+        max_[k] = mx;
+        min_[k] = mi;
     }
+}
+
+void
+Bifurcation::alloc(void)
+{
+    ptStability_ = new unsigned char[totalNumPoints_];
+    numVerticesEachBranch_ = new int32_t[numBranches_];
+    branchID_ = new long[numBranches_];
+
+    data_ = new float[totalNumPoints_*nar_];
+}
+
+void
+Bifurcation::denormalizePosition(float position[])
+{
+    for(int k=0; k<3; k++) {
+        float div = (max_[k]-min_[k])/2.0;
+        if( !((max_[k]<=1.0 && max_[k]>0.5 &&
+              min_[k]>=-1.0 && min_[k]<-0.5 )||
+            (div<0.00000001)))
+        {
+            float avg = (max_[k]+min_[k])/2.0;
+            position[k] = position[k]*div+avg;
+        }
+    }
+}
+
+/*go to the end of the line*/
+static void go_to_eol(FILE *f)
+{
+    int i;
+    do 
+    {
+        i = fgetc(f);
+    } while (i != '\n' && i != EOF );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+bool
+Bifurcation::read(const char *bFileName, int varIndices[])
+//
+////////////////////////////////////////////////////////////////////////////////
+{
+    int  branch;
+    FILE * inFile;
+    inFile = fopen(bFileName, "rt");
+    maxndim_ = 0;
+    if(!inFile)
+    {
+        printf(" Cannot open input file: %s\n", bFileName);
+        return false;
+    }
+
+    long int numBranches   = 0;
+    long int totalPoints   = 0;
+    long int numPtsInThisBranch = 0;
+    int maxColSize  = 0;
+    int lb, lbType, lbStability;
+    int totalLabels = 0;
+    int numPtInCurrentInterval = 0;
+    int ndim;
+    long int pt;
+
+    while(fscanf(inFile, "%d", &branch) == 1)
+    {
+        int ic = 0;
+        if(branch == 0) {
+            if(fscanf(inFile, " NDIM=%d", &ndim) == 1 &&
+	       ndim > maxndim_)
+	        maxndim_ = ndim;
+            go_to_eol(inFile);
+	}
+	else
+        {
+            fscanf(inFile, "%ld %d %d", &pt, &lbType, &lb);
+            int i = 0;
+	    char dummystr[25], c;
+            while (fscanf(inFile,"%24s%c", dummystr, &c) == 2) {
+                data_[totalPoints*nar_+(i++)] = fortranatof(dummystr);
+		if(c=='\n')break;
+            }
+
+            if(abs(pt) == 1)
+            {
+                branchID_[numBranches] = branch;
+                if(numBranches>0) {
+                    numVerticesEachBranch_[numBranches-1] = numPtsInThisBranch;
+                }
+                ++numBranches;
+                numPtsInThisBranch = 0;
+            }
+            ++numPtsInThisBranch;
+
+            // set the stability of the point
+            if(branch > 0)
+            {
+                lbStability = (pt>0 ? 1 : 2);
+            }
+            else
+            {
+                lbStability = (pt>0 ? 3 : 4);
+            }
+
+            ++numPtInCurrentInterval;
+            if(lb != 0)
+            {
+                numVerticesEachLabelInterval_[totalLabels] = numPtInCurrentInterval;
+                numPtInCurrentInterval = 0;
+                labels_[totalLabels] = lb;
+                clientData.labelIndex[totalLabels][1] = totalPoints;
+                clientData.labelIndex[totalLabels][2] = lbType;
+                clientData.labelIndex[totalLabels][3] = lbStability;
+                totalLabels++;
+            }
+
+            maxColSize=(maxColSize>ic) ? maxColSize : ic;
+            ptStability_[totalPoints] = lbStability;
+            ++totalPoints;
+        }
+    }
+
+    if(numBranches>0)
+        numVerticesEachBranch_[numBranches-1] = numPtsInThisBranch;
+    totalLabels_ = totalLabels;
+
+#ifdef DEBUG
+    cout <<"======================================"<<endl;
+    cout <<" nar_ :         "<<nar_<<endl;
+    cout <<" numBranches_ : "<<numBranches_<<endl;
+    cout <<" totalNumPoints_: "<<totalNumPoints_<<endl;
+    cout <<" ID "<<"  numVerticesEachBranch_: "<<endl;
+    for(int xi=0; xi<numBranches_; xi++)
+       cout << xi<<"    "<<numVerticesEachBranch_[xi]<<endl;
+    for(int xi=0; xi<totalLabels; xi++)
+    {
+         int xxx = clientData.labelIndex[xi][1];
+#if 0
+         cout <<"index"<<xi<<" | Num points in : "<<clientData.labelIndex[xi][1] 
+              <<" | labelIndex: "<<labels_[xi]<< "  | data: "
+             <<data_[xxx-1][0]<<" Type: "<<clientData.labelIndex[xi][2]<<endl; 
+#endif
+    }
+    cout <<"======================================"<<endl;
+
+#if 0
+    for(int xi=0; xi<220; xi++)
+        cout <<" Index: "<<xi<<" "<<data_[xi][0]<<"  "
+            <<data_[xi][1]<<"  "<<data_[xi][2]<<endl;
+#endif
+    cout <<"======================================"<<endl;
+#endif
+
+    fclose(inFile);
+    return true;
+}
+
+
+////////////////////////////////////////////////////////////////////
+//
+bool
+Bifurcation::parse(const char *bFileName)
+//
+////////////////////////////////////////////////////////////////////
+{
+    FILE * inFile;
+    totalLabels_ = 0;
+    maxndim_ = 0;
+    inFile = fopen(bFileName, "rt");
+    if(!inFile)
+    {
+        printf(" Cannot open input file: %s\n", bFileName);
+        return false;
+    }
+
+    long int totalPoints = 0;
+    long int numBranches = 0;
+    int maxColSize = 0;
+    int branch;
+
+    while(fscanf(inFile, "%d", &branch) == 1)
+    {
+        if(branch != 0)
+        {
+            long int pt;
+            fscanf(inFile, "%ld", &pt);
+            if (abs(pt) == 1) numBranches++;
+	    char c;
+            int ic = -1;
+            while (fscanf(inFile,"%*s%c", &c) == 1 && c !='\n') ic++;
+            if (ic > maxColSize) maxColSize = ic;
+            ++totalPoints;
+        }
+        else
+	{
+            go_to_eol(inFile);
+        }
+    }
+    nar_ = maxColSize;
+    totalNumPoints_ = totalPoints;
+    numBranches_ = numBranches;
+
+    fclose(inFile);
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+void
+Bifurcation::normalizeData(long int idx, float xyzCoords[3])
+//
+/////////////////////////////////////////////////////////////////////////////////
+{
+    for(int k=0; k<3; k++)
+    {
+        if (varIndices_[k] == -1)
+	    xyzCoords[k] = 0.0;
+	else
+	    xyzCoords[k] = data_[idx*nar_ + varIndices_[k]];
+    }
+    if(!options[OPT_NORMALIZE_DATA]) return;
+    for(int k=0; k<3; k++)
+    {
+        float avg = (max_[k]+min_[k])/2.0;
+        float div = (max_[k]-min_[k])/2.0;
+        if( !((max_[k]<=1.0  && max_[k]>0.5 &&
+	   min_[k]>=-1.0 && min_[k]<-0.5 )||
+	  (div<0.00000001)))
+        {
+            xyzCoords[k]=(xyzCoords[k]-avg)/div;
+        }
+    }
+}
+
+void
+Bifurcation::dealloc()
+{
+    delete [] ptStability_;
+    delete [] numVerticesEachBranch_;
+    delete [] branchID_;
+    delete [] data_;
 }

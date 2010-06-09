@@ -6,13 +6,10 @@
 
 #include "gplaut04.h"
 #include "gVarNames.h"
-#include "rounding.h"
 #include "createDisk.h"
 #include "createSphere.h"
 #include "createLegend.h"
 #include "readFM.h"
-#include "gReadBif.h"
-#include "gReadSol.h"
 #include "stringtrim.h"
 #include "solution.h"
 #include "bifurcation.h"
@@ -143,15 +140,9 @@ static SoSeparator * createStarryBackground(int total,float diameter);
 
 static SoSeparator * addLegend();
 
-#if 0
-static SoSeparator * drawASphereWithColor(float color[], float position[], float size);
-#endif
-
-static SoMaterial  * setLabelMaterial(int lblType);
 static SoSeparator * drawStarryBackground(char * bgFileName);
 
 static int readResourceParameters();
-static void searchForMaxMin(int component, int  varIndices[]);
 
 #if 0
 static void processPrinting(char* filename );
@@ -282,7 +273,7 @@ updateScene()
             varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
             varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
             varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
-            searchForMaxMin(component, varIndices);
+            mySolNode->searchForMaxMin(component, varIndices);
         }
     }
  
@@ -301,16 +292,14 @@ updateScene()
         SoSeparator *result;
         if(whichType != BIFURCATION)
         {
-            Solution sol;
             animationLabel = myLabels[lblIndices[0]];
-            sol.copyDataToWorkArray(varIndices, i+1, mx, time_on);
-            result = sol.createSceneWithWidgets();
+            mySolNode->copyDataToWorkArray(varIndices, i+1, mx, time_on);
+            result = mySolNode->createSceneWithWidgets();
         }
         else 
         {
-            Bifurcation bif;
-            bif.copyDataToWorkArray(varIndices);
-            result = bif.createScene();
+            myBifNode->copyDataToWorkArray(varIndices);
+            result = myBifNode->createScene();
         }
 
         newScene->addChild( result );
@@ -916,34 +905,6 @@ drawASphere(float position[], float size)
 }
 
 
-#if 0
-///////////////////////////////////////////////////////////////////////////
-//
-SoSeparator *
-drawASphereWithColor(float color[], float position[], float size)
-//
-///////////////////////////////////////////////////////////////////////////
-{
-    SoSeparator *satSep = new SoSeparator;
-    SoTransform *satXform = new SoTransform;
-    satXform->translation.setValue(position[0],position[1],position[2]);
-
-    SoMaterial *satMtl = new SoMaterial;
-    satMtl->diffuseColor.setValue(color);
-    satMtl->transparency = 0.0;
-    satSep->addChild(satMtl);
-
-    SoSphere *satSph = new SoSphere;
-    satSph->radius = size;
-
-    satSep->addChild(satXform);
-    satSep->addChild(satSph);
-
-    return satSep;
-}
-#endif
-
-
 ////////////////////////////////////////////////////////////////////////
 //
 //  initialize win basic things
@@ -956,35 +917,18 @@ readSolutionAndBifurcationData(bool blFirstRead,
 //
 ///////////////////////////////////////////////////////////////////////
 {
-    long int  total=0, rows=0;
     bool blOpenSolFile, blOpenBifFile;
-    solutions sols;
 
-    sols.parse(sFileName.c_str(), blOpenSolFile, total, rows);
+    blOpenSolFile = mySolNode->parse(sFileName.c_str());
     if(!blOpenSolFile)
         printf(" Solution file does not exist.\n");
 
-    mySolNode.time = new double[mySolNode.totalNumPoints];
-    mySolNode.xyzCoords = new float[mySolNode.totalNumPoints][3];
-    mySolNode.numVerticesEachBranch = new int32_t[mySolNode.numBranches];
-    mySolNode.numOrbitsInEachBranch = new int32_t[mySolNode.numBranches];
-    mySolNode.branchID = new long[mySolNode.numBranches];
-    mySolNode.parMax = new double[mySolNode.numBranches][MAX_PAR];
-    mySolNode.parMin = new double[mySolNode.numBranches][MAX_PAR];
-    mySolNode.parMid = new double[mySolNode.numBranches][MAX_PAR];
-    mySolNode.numAxis   = 3;
+    mySolNode->alloc();
 
-    clientData.solMax = new float [mySolNode.nar+1];
-    clientData.solMin = new float [mySolNode.nar+1];
+    clientData.solMax = new float [mySolNode->nar()+1];
+    clientData.solMin = new float [mySolNode->nar()+1];
 
-    mySolNode.data = new float*[mySolNode.totalNumPoints];
-    if (mySolNode.totalNumPoints > 0) {
-        mySolNode.data[0] = new float[mySolNode.totalNumPoints*mySolNode.nar];
-	for(int ml=1; ml<mySolNode.totalNumPoints; ++ml)
-	    mySolNode.data[ml] = &mySolNode.data[0][ml*mySolNode.nar];
-    }
-
-    blOpenBifFile = parseBifurcation(bFileName.c_str()) ? true : false;
+    blOpenBifFile = myBifNode->parse(bFileName.c_str());
     if(!blOpenBifFile) printf(" Bifurcation file does not exist!\n");
 
     if((!blOpenBifFile) && (!blOpenSolFile) && (!blFirstRead)) return false;
@@ -994,43 +938,36 @@ readSolutionAndBifurcationData(bool blFirstRead,
         exit(1);
     }
 
-    myBifNode.ptStability = new unsigned char[myBifNode.totalNumPoints];
-    myBifNode.numVerticesEachBranch = new int32_t[myBifNode.numBranches];
-    myBifNode.branchID = new long[myBifNode.numBranches];
-
-    myBifNode.data = new float[myBifNode.totalNumPoints*myBifNode.nar];
+    myBifNode->alloc();
 
     int varIndices[3];
 
     if( blOpenBifFile)
     {
-        bool tmp = false;
-        if(!blFirstRead) mySolNode.totalLabels = 0;
-        tmp = readBifurcation(bFileName.c_str(), varIndices) ? true : false;
-        if(!tmp) printf(" Failed to read the bifurcation file!\n");
-        else if(mySolNode.totalLabels != myBifNode.totalLabels &&
-                mySolNode.totalLabels != 0)
-        {
-            printf(" total labels in b-file is: %i, in s-file is: %i\n",
-                   myBifNode.totalLabels, mySolNode.totalLabels);
-            printf(" The total number of labels in the bifurcation file is different from\n");
-            printf(" the total number of labels in the solution file! CHECK IT.\n");
-            exit(1);
-        }
+        if (!myBifNode->read(bFileName.c_str(), varIndices))
+            printf(" Failed to read the bifurcation file!\n");
     }
     else
     {
         whichType = SOLUTION;
     }
 
-    if( mySolNode.numOrbits > 0 )
+    if( mySolNode->numOrbits() > 0 )
     {
-        bool tmp = false;
-        tmp = sols.read(sFileName.c_str(), varIndices) ? true : false;
-        if(!tmp) printf(" Failed to read the solution file!\n");
-        blOpenSolFile = tmp;
+        blOpenSolFile = mySolNode->read(sFileName.c_str(), varIndices);
+        if(!blOpenSolFile)
+            printf(" Failed to read the solution file!\n");
+        else if(myBifNode->totalLabels() != 0 &&
+                mySolNode->totalLabels() != myBifNode->totalLabels())
+        {
+            printf(" total labels in b-file is: %i, in s-file is: %i\n",
+                   myBifNode->totalLabels(), mySolNode->totalLabels());
+            printf(" The total number of labels in the bifurcation file is different from\n");
+            printf(" the total number of labels in the solution file! CHECK IT.\n");
+            exit(1);
+        }
 
-        if(mySolNode.nar <= 3)
+        if(mySolNode->nar() <= 3)
 	{
 	    setShow3DSol = false;
 	    if(whichType != BIFURCATION) setShow3D = false;
@@ -1046,50 +983,14 @@ readSolutionAndBifurcationData(bool blFirstRead,
         exit(1);
     }
 
-    clientData.maxndim = std::max(myBifNode.maxndim,mySolNode.nar-1);
-    int st = readFM(dFileName.c_str(), myBifNode.totalNumPoints);
+    clientData.maxndim = std::max(myBifNode->maxndim(),mySolNode->nar()-1);
+    int st = readFM(dFileName.c_str(), myBifNode->totalNumPoints());
     if(st!=0)
         printf(" Failed to read the diagnostic file.\n");
 
     return TRUE;
 }
 
-
-////////////////////////////////////////////////////////////////////////
-//
-//
-//
-void
-searchForMaxMin(int component, int  varIndices[])
-//
-////////////////////////////////////////////////////////////////////////
-{
-    double mx, mi;
-    for(int k=0; k<3; k++)
-    {
-        for(long int row=0; row<mySolNode.totalNumPoints; ++row)
-        {
-            if(varIndices[k]>=0)
-            {
-                float dummy = mySolNode.data[row][varIndices[k]];
-                if(dummy>mySolNode.max[k] || (row==0 && component==1))
-                    mySolNode.max[k] = dummy;
-                if(dummy<mySolNode.min[k] || (row==0 && component==1))
-                    mySolNode.min[k] = dummy;
-            }
-            else if(varIndices[k]<0)
-            {
-                mySolNode.max[k]= 1;
-                mySolNode.min[k]=-1;
-            }
-        }
-        mx = mySolNode.max[k];
-        mi = mySolNode.min[k];
-        rounding(mx, mi);
-        mySolNode.max[k] = mx;
-        mySolNode.min[k] = mi;
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -1117,26 +1018,26 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         long int maxp, sumup = 0;
         if(whichType == BIFURCATION)
         {
-            maxp = myBifNode.totalNumPoints;
+            maxp = myBifNode->totalNumPoints();
         }
         else 
         {
 	    animationLabel = myLabels[lblIndices[0]];
             if(animationLabel == MY_ALL || lblIdxSize >1)
-                maxp = mySolNode.totalNumPoints;
+                maxp = mySolNode->totalNumPoints();
             else
             {
                 for(int j=0; j<lblidx; ++j)
-                    sumup += mySolNode.numVerticesEachPeriod[j];
-                maxp = mySolNode.numVerticesEachPeriod[lblidx];
+                    sumup += mySolNode->numVerticesEachPeriod()[j];
+                maxp = mySolNode->numVerticesEachPeriod()[lblidx];
             }
         }
         for(long int j=0; j<maxp; ++j)
 	{
             if(whichType == BIFURCATION)
-                data = &myBifNode.data[j*myBifNode.nar];
+                data = &myBifNode->data()[j*myBifNode->nar()];
             else
-                data = mySolNode.data[sumup+j];
+                data = mySolNode->data()[sumup+j];
             distance = 0;
             for(int k=0; k<3; ++k)
                 if(varIndices[k] != -1) 
@@ -1154,9 +1055,9 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         {
             if(animationLabel == MY_ALL || lblIdxSize >1)
             {
-                for (ib = 0; ib < mySolNode.totalLabels; ib++)
+                for (ib = 0; ib < mySolNode->totalLabels(); ib++)
                 {
-                    sumup += mySolNode.numVerticesEachPeriod[ib];
+                    sumup += mySolNode->numVerticesEachPeriod()[ib];
                     if (sumup > index) break;
                 }
             }
@@ -1269,29 +1170,14 @@ const SbVec2s &cursorPosition)
     myPosition.getValue(x, y, z);
     position[0]=x; position[1]=y; position[2]=z;
 
-    if (options[OPT_NORMALIZE_DATA]) for(int k=0; k<3; k++) {
+    if (options[OPT_NORMALIZE_DATA]) {
         if(whichType != BIFURCATION)
         {
-            float con = 0.0;
-            float div = (mySolNode.max[k]-mySolNode.min[k])/2.0;
-            if(div/mySolNode.max[k]>1.0e-10) 
-            {
-                div = 1.0/div;
-                con = div*mySolNode.min[k];
-            }
-            if(div/mySolNode.max[k]>1.0e-10)
-	         position[k] = (position[k]+con+1.0)/div;
+            mySolNode->denormalizePosition(position);	  
         }
         else
         {
-            float div = (myBifNode.max[k]-myBifNode.min[k])/2.0;
-            if( !((myBifNode.max[k]<=1.0  && myBifNode.max[k]>0.5 &&
-                myBifNode.min[k]>=-1.0 && myBifNode.min[k]<-0.5 )||
-                (div<0.00000001)))
-            {
-                float avg = (myBifNode.max[k]+myBifNode.min[k])/2.0;
-                position[k] = position[k]*div+avg;
-            }
+            myBifNode->denormalizePosition(position);	  
         }
     }
 
@@ -1300,16 +1186,16 @@ const SbVec2s &cursorPosition)
     float *data;
     if(whichType != BIFURCATION)
     {
-        if(sIdx > mySolNode.totalNumPoints || sIdx < 0)
+        if(sIdx > mySolNode->totalNumPoints() || sIdx < 0)
             return false;
-        size = mySolNode.nar;
-        data = mySolNode.data[sIdx];
+        size = mySolNode->nar();
+        data = mySolNode->data()[sIdx];
     }
     else {
-        if (bIdx > myBifNode.totalNumPoints || bIdx < 0)
+        if (bIdx > myBifNode->totalNumPoints() || bIdx < 0)
             return false;
-        size = myBifNode.nar;
-        data = &myBifNode.data[bIdx * myBifNode.nar];
+        size = myBifNode->nar();
+        data = &myBifNode->data()[bIdx * size];
     }
 
     for(int ms=0; ms<abs(clientData.numFM[bIdx]); ++ms)
@@ -1376,9 +1262,9 @@ initCoordAndLableListItems()
         strcpy(coloringMethodList[5],"COMP"); sp++; //OCT 7 added
         for(i=0; i<MAX_LIST; i++)
                 sprintf(coloringMethodList[i+sp], "%d",i);
-        for(i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
+        for(i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode.parID[i-(mySolNode.nar+sp)]+1);
+            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
         }
     }
     else
@@ -1388,19 +1274,19 @@ initCoordAndLableListItems()
     }
     specialColorItems = sp;
 
-    if(mySolNode.numOrbits > 0)
+    if(mySolNode->numOrbits() > 0)
     {
 // the solution file does exist.
-        numLabels = mySolNode.numOrbits;
-        for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode.labels[j];
+        numLabels = mySolNode->numOrbits();
+        for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode->labels()[j];
         if(useR3B)
         {
 // initial mass dependent options.
-            float lastMass = mySolNode.mass[1];
+            float lastMass = mySolNode->masses()[1];
             blMassDependantOption = true;
-            for(i=1; i<mySolNode.numOrbits; i++)
+            for(i=1; i<mySolNode->numOrbits(); i++)
             {
-                if(fabs(mySolNode.mass[i]-lastMass)/lastMass > 1.0e-3)
+                if(fabs(mySolNode->masses()[i]-lastMass)/lastMass > 1.0e-3)
                 {
                     blMassDependantOption = false;
                     break;
@@ -1411,8 +1297,8 @@ initCoordAndLableListItems()
     }
     else
     {
-        numLabels = myBifNode.totalLabels;
-        for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode.labels[j];
+        numLabels = myBifNode->totalLabels();
+        for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode->labels()[j];
         if(useR3B) blMassDependantOption = false;
     }
 
@@ -1972,12 +1858,8 @@ readResourceParameters()
                 int size = -1;
                 int parIDs[MAX_PAR];
                 readNData(buffer, parIDs, size);
-                mySolNode.npar = size;
+                mySolNode->set_parID(parIDs, size);
                 blDealt = true;
-                for(int is=0; is<size; ++is)
-                {
-                    mySolNode.parID[is] = parIDs[is];
-                }
             }
 
 //---------------------- Begin ---------------------------OCT 7, 04
@@ -2006,7 +1888,7 @@ readResourceParameters()
                         int size = -1;
                         int pars[MAX_PAR];
                         readNData(buffer, pars, size);
-                        mySolNode.npar = size;
+                        mySolNode->set_npar(size);
                         blDealt = true;
                         switch ( i )
                         {
@@ -2201,8 +2083,9 @@ setVariableDefaultValues()
 
     satRadius         = 1.0;
 
-    mySolNode.npar= 1;
-    mySolNode.parID[0] = 10;
+    int parID[1];
+    parID[0] = 10;
+    mySolNode->set_parID(parID,1);
 
     setShow3DSol = setShow3D;
     setShow3DBif = setShow3D;
@@ -2317,6 +2200,9 @@ main(int argc, char *argv[])
         exit(1) ;
     }
 
+    mySolNode = new Solution;
+    myBifNode = new Bifurcation;
+
     setVariableDefaultValues();
 
     readResourceParameters();
@@ -2339,33 +2225,13 @@ postDeals()
 //
 //////////////////////////////////////////////////////////////////////////
 {
-
-    delete [] mySolNode.time;
-    delete [] mySolNode.xyzCoords;
-    delete [] mySolNode.xAxisItems;
-    delete [] mySolNode.yAxisItems;
-    delete [] mySolNode.zAxisItems;
-    delete [] mySolNode.numVerticesEachBranch;
-    delete [] mySolNode.numOrbitsInEachBranch;
-    delete [] mySolNode.branchID;
-    delete [] mySolNode.parMax;
-    delete [] mySolNode.parMin;
-    delete [] mySolNode.parMid;
-
-    delete [] myBifNode.ptStability;
-    delete [] myBifNode.numVerticesEachBranch;
-    delete [] myBifNode.branchID;
+    mySolNode->dealloc();
+    myBifNode->dealloc();
 
     delete [] clientData.multipliers;
     delete [] clientData.numFM;
     delete [] clientData.solMax;
     delete [] clientData.solMin;
-
-    if (mySolNode.totalNumPoints > 0)
-        delete [] mySolNode.data[0];
-    delete [] mySolNode.data;
-    mySolNode.totalNumPoints  = 0;
-    delete [] myBifNode.data;
 }
 
 
@@ -2683,9 +2549,9 @@ writePreferValuesToFile()
 // deal with parameter IDs
     fprintf(outFile,"\n# Set the active AUTO parameter indices:\n"); 
     fprintf(outFile, "parameter ID  = ");
-    for(int is=0; is<mySolNode.npar; ++is)
+    for(int is=0; is<mySolNode->npar(); ++is)
     {
-        fprintf(outFile, " %i, ", mySolNode.parID[is]);
+        fprintf(outFile, " %i, ", mySolNode->parID()[is]);
     }
     fprintf(outFile, " \n");
 

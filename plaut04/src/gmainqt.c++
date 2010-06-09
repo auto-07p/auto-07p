@@ -311,8 +311,8 @@ MainWindow::setListValue()
 ///////////////////////////////////////////////////////////////////////////
 {
     long nItems = (whichType != BIFURCATION) ? 
-                           mySolNode.totalLabels+SP_LBL_ITEMS : 
-                                           myBifNode.totalLabels+SP_LBL_ITEMS;
+                           mySolNode->totalLabels()+SP_LBL_ITEMS : 
+                                           myBifNode->totalLabels()+SP_LBL_ITEMS;
     if(whichType != BIFURCATION)
     {
         xCoordIdxSize = dai.solXSize;
@@ -328,7 +328,7 @@ MainWindow::setListValue()
         xAxisList->clear();
         yAxisList->clear();
         zAxisList->clear();
-        for (int i = 0; i < mySolNode.nar; i++) {
+        for (int i = 0; i < mySolNode->nar(); i++) {
             xAxisList->insertItem(xAxis[i]);
             yAxisList->insertItem(yAxis[i]);
             zAxisList->insertItem(zAxis[i]);
@@ -342,17 +342,17 @@ MainWindow::setListValue()
         strcpy(coloringMethodList[4],"LABL"); sp++;
         strcpy(coloringMethodList[5],"COMP"); sp++;
         specialColorItems = sp;
-        for(int i=sp; i<mySolNode.nar+sp; ++i)
+        for(int i=sp; i<mySolNode->nar()+sp; ++i)
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
         }
-        for(int i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
+        for(int i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode.parID[i-(mySolNode.nar+sp)]+1);
+            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
         }
 
         colorMethodSeletionList->clear();
-        for (int i = 0; i < mySolNode.nar+mySolNode.npar+sp; i++) 
+        for (int i = 0; i < mySolNode->nar()+mySolNode->npar()+sp; i++) 
             colorMethodSeletionList->insertItem(coloringMethodList[i]);
         labelsList->clear();
         for (int i = 0; i < nItems; i++) 
@@ -372,7 +372,7 @@ MainWindow::setListValue()
         xAxisList->clear();
         yAxisList->clear();
         zAxisList->clear();
-        for (int i = 0; i < myBifNode.nar; i++) {
+        for (int i = 0; i < myBifNode->nar(); i++) {
             xAxisList->insertItem(xAxis[i]);
             yAxisList->insertItem(yAxis[i]);
             zAxisList->insertItem(zAxis[i]);
@@ -383,12 +383,12 @@ MainWindow::setListValue()
         strcpy(coloringMethodList[1],"PONT"); sp++;
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         specialColorItems = sp;
-        for(int i=sp; i<myBifNode.nar+sp; ++i)
+        for(int i=sp; i<myBifNode->nar()+sp; ++i)
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
         }
         colorMethodSeletionList->clear();
-        for (int i = 0; i < myBifNode.nar+sp; i++) 
+        for (int i = 0; i < myBifNode->nar()+sp; i++) 
             colorMethodSeletionList->insertItem(coloringMethodList[i]);
         labelsList->clear();
         for (int i = 0; i < nItems; i++) 
@@ -478,10 +478,10 @@ void MainWindow::typeMenuDisplay()
     menuItems->items->setItemEnabled(BIFURCATION, true);
     menuItems->items->setItemEnabled(SOLUTION, true);
 
-    if(mySolNode.numOrbits == 0)
+    if(mySolNode->numOrbits() == 0)
         menuItems->items->setItemEnabled(SOLUTION, false);
 
-    if(myBifNode.totalNumPoints == 0)
+    if(myBifNode->totalNumPoints() == 0)
         menuItems->items->setItemEnabled(BIFURCATION, false);
 }
 
@@ -859,7 +859,7 @@ MainWindow::buildMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QPopupMenu *pulldown2;
+    QPopupMenu *pulldown2 = NULL;
     QPopupMenu *pulldown1, *pulldown3, *pulldown4, *pulldown5, *pulldown6, *pulldown7;
 // menu bar
     pulldown1 = buildFileMenu();
@@ -995,7 +995,7 @@ MainWindow::MainWindow() : QMainWindow()
     // Create an editable Combobox
     xAxisList = new QComboBox(true, listCarrier, "xAxis");
     ADD_LISTCARRIER_WIDGET(xAxisList);
-    int nItems = (whichType != BIFURCATION) ? mySolNode.nar : myBifNode.nar;
+    int nItems = (whichType != BIFURCATION) ? mySolNode->nar() : myBifNode->nar();
     for ( i = 0; i < nItems; i++ )
         xAxisList->insertItem( xAxis[i] );
     xAxisList->setCurrentItem(xCoordIndices[0]);
@@ -1045,8 +1045,8 @@ MainWindow::MainWindow() : QMainWindow()
     QLabel *lLbl = new QLabel("  Label", listCarrier);
     ADD_LISTCARRIER_WIDGET(lLbl);
     nItems = (whichType != BIFURCATION) ? 
-                       mySolNode.totalLabels+SP_LBL_ITEMS : 
-                       myBifNode.totalLabels+SP_LBL_ITEMS;
+                       mySolNode->totalLabels()+SP_LBL_ITEMS : 
+                       myBifNode->totalLabels()+SP_LBL_ITEMS;
     labelsList = new QComboBox(true, listCarrier, "Labels");
     ADD_LISTCARRIER_WIDGET(labelsList);
     for ( i = 0; i < nItems; i++ )
@@ -1066,8 +1066,8 @@ MainWindow::MainWindow() : QMainWindow()
     QLabel *colorLbl = new QLabel("  Color", listCarrier);
     ADD_LISTCARRIER_WIDGET(colorLbl);
     nItems = (whichType != BIFURCATION) ? 
-                      mySolNode.nar+mySolNode.npar+specialColorItems : 
-                                  myBifNode.nar+specialColorItems;
+                      mySolNode->nar()+mySolNode->npar()+specialColorItems : 
+                                  myBifNode->nar()+specialColorItems;
     colorMethodSeletionList = new QComboBox(true, listCarrier,
                                             "coloringMethodlist");
     ADD_LISTCARRIER_WIDGET(colorMethodSeletionList);
@@ -2208,7 +2208,7 @@ MainWindow::lblListCallBack(const QString &str)
     char *manyChoice = strdup(str);
     int choice = labelsList->currentItem();
     int i = 0;
-    int nItems = (whichType != BIFURCATION) ? mySolNode.totalLabels : myBifNode.totalLabels;
+    int nItems = (whichType != BIFURCATION) ? mySolNode->totalLabels() : myBifNode->totalLabels();
     char * tmp;
     static int half = 2;
     tmp = strtok(manyChoice, ",");

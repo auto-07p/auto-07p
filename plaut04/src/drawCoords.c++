@@ -15,9 +15,6 @@
 
 #define FONT_SIZE 24
 
-extern SolNode mySolNode;
-extern BifNode myBifNode;
-
 //////////////////////////////////////////////////////////////////////
 //
 SoSeparator *

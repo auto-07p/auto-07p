@@ -422,8 +422,8 @@ setListValue()
 ///////////////////////////////////////////////////////////////////////////
 {
     long nItems = (whichType != BIFURCATION) ? 
-	                   mySolNode.totalLabels+SP_LBL_ITEMS : 
-					   myBifNode.totalLabels+SP_LBL_ITEMS;
+	                   mySolNode->totalLabels()+SP_LBL_ITEMS : 
+					   myBifNode->totalLabels()+SP_LBL_ITEMS;
     int count = XtNumber (labels);
 
     lblList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
@@ -442,12 +442,12 @@ setListValue()
         for(int i = 0; i<zCoordIdxSize; ++i)
             zCoordIndices[i] = dai.solZ[i];
 
-        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, mySolNode.nar, NULL);
-        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, mySolNode.nar, NULL);
-        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, mySolNode.nar, NULL);
-        lessTifFixupComboBox(xAxisList, xList, mySolNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(yAxisList, yList, mySolNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(zAxisList, zList, mySolNode.nar, 10, 60, 2);
+        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, mySolNode->nar(), NULL);
+        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, mySolNode->nar(), NULL);
+        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, mySolNode->nar(), NULL);
+        lessTifFixupComboBox(xAxisList, xList, mySolNode->nar(), 10, 60, 2);
+        lessTifFixupComboBox(yAxisList, yList, mySolNode->nar(), 10, 60, 2);
+        lessTifFixupComboBox(zAxisList, zList, mySolNode->nar(), 10, 60, 2);
 
         int sp = 0;
         strcpy(coloringMethodList[0],"STAB"); sp++;
@@ -457,13 +457,13 @@ setListValue()
         strcpy(coloringMethodList[4],"LABL"); sp++;
         strcpy(coloringMethodList[5],"COMP"); sp++;
         specialColorItems = sp;
-        for(int i=sp; i<mySolNode.nar+sp; ++i)
+        for(int i=sp; i<mySolNode->nar()+sp; ++i)
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
         }
-        for(int i=mySolNode.nar+sp; i<mySolNode.nar+mySolNode.npar+sp; ++i)
+        for(int i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode.parID[i-(mySolNode.nar+sp)]+1);
+            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
         }
 
         int count = XtNumber (coloringMethodList);
@@ -471,10 +471,10 @@ setListValue()
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
         XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
-		               XmNitemCount, mySolNode.nar+mySolNode.npar+sp, NULL);
+		               XmNitemCount, mySolNode->nar()+mySolNode->npar()+sp, NULL);
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
         lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            mySolNode.nar+mySolNode.npar+sp, 10, 80, 5);
+            mySolNode->nar()+mySolNode->npar()+sp, 10, 80, 5);
         lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
     }
     else
@@ -488,19 +488,19 @@ setListValue()
             yCoordIndices[i] = dai.bifY[i];
         for(int i = 0; i<zCoordIdxSize; ++i)
             zCoordIndices[i] = dai.bifZ[i];
-        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, myBifNode.nar, NULL);
-        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, myBifNode.nar, NULL);
-        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, myBifNode.nar, NULL);
-        lessTifFixupComboBox(xAxisList, xList, myBifNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(yAxisList, yList, myBifNode.nar, 10, 60, 2);
-        lessTifFixupComboBox(zAxisList, zList, myBifNode.nar, 10, 60, 2);
+        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, myBifNode->nar(), NULL);
+        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, myBifNode->nar(), NULL);
+        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, myBifNode->nar(), NULL);
+        lessTifFixupComboBox(xAxisList, xList, myBifNode->nar(), 10, 60, 2);
+        lessTifFixupComboBox(yAxisList, yList, myBifNode->nar(), 10, 60, 2);
+        lessTifFixupComboBox(zAxisList, zList, myBifNode->nar(), 10, 60, 2);
 
         int sp = 0;
         strcpy(coloringMethodList[0],"STAB"); sp++;
         strcpy(coloringMethodList[1],"PONT"); sp++;
         strcpy(coloringMethodList[2],"BRAN"); sp++;
         specialColorItems = sp;
-        for(int i=sp; i<myBifNode.nar+sp; ++i)
+        for(int i=sp; i<myBifNode->nar()+sp; ++i)
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
         }
@@ -508,10 +508,10 @@ setListValue()
         for (int i = 0; i < count; ++i)
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
-        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, myBifNode.nar+sp,NULL);
+        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, myBifNode->nar()+sp,NULL);
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
         lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            myBifNode.nar+sp, 10, 80, 5);
+            myBifNode->nar()+sp, 10, 80, 5);
         lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
     }
 
@@ -603,10 +603,10 @@ typeMenuDisplay(Widget, void *userData, XtPointer)
     XtSetSensitive (menuItems->items[SOLUTION], TRUE);
     XtSetSensitive (menuItems->items[BIFURCATION], TRUE);
 
-    if(mySolNode.numOrbits == 0)
+    if(mySolNode->numOrbits() == 0)
         XtSetSensitive (menuItems->items[SOLUTION], FALSE);
 
-    if(myBifNode.totalNumPoints == 0)
+    if(myBifNode->totalNumPoints() == 0)
         XtSetSensitive (menuItems->items[BIFURCATION], FALSE);
 
 }
@@ -1060,7 +1060,7 @@ buildCoordMenu(Widget menubar)
     int        n;
 
     coordMenuItems = new EditMenuItems;
-    coordMenuItems->items = new Widget[5];
+    coordMenuItems->items = new Widget[6];
     coordMenuItems->which = whichCoord;
 
     Arg popupargs[3];
@@ -1341,7 +1341,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 //build the xAxis drop down list
-    int nItems = (whichType != BIFURCATION) ? mySolNode.nar : myBifNode.nar;
+    int nItems = (whichType != BIFURCATION) ? mySolNode->nar() : myBifNode->nar();
     int count = XtNumber (xAxis);
     xList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (i = 0; i < count; i++)
@@ -1429,8 +1429,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
 // build the LABELs drop down list
     nItems = (whichType != BIFURCATION) ? 
-	               mySolNode.totalLabels+SP_LBL_ITEMS : 
-	               myBifNode.totalLabels+SP_LBL_ITEMS;
+	               mySolNode->totalLabels()+SP_LBL_ITEMS : 
+	               myBifNode->totalLabels()+SP_LBL_ITEMS;
     count = XtNumber (labels);
     lblList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (i = 0; i < count; i++)
@@ -1467,8 +1467,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
 // build the COLORING Method drop down list
     nItems = (whichType != BIFURCATION) ? 
-	              mySolNode.nar+mySolNode.npar+specialColorItems : 
-				  myBifNode.nar+specialColorItems;
+	              mySolNode->nar()+mySolNode->npar()+specialColorItems : 
+				  myBifNode->nar()+specialColorItems;
     count = XtNumber (coloringMethodList);
     clrMethodList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
 
@@ -3341,7 +3341,7 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 {
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
     int choice = (int) cbs->item_position;
-    int nItems = (whichType != BIFURCATION) ? mySolNode.totalLabels : myBifNode.totalLabels;
+    int nItems = (whichType != BIFURCATION) ? mySolNode->totalLabels() : myBifNode->totalLabels();
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
