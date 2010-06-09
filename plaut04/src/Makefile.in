@@ -5,7 +5,9 @@ OBJS = gReadBif.o gReadSol.o bifurcation.o solution.o \
         normalizeSolData.o normalizeBifData.o stringtrim.o \
         tube.o polygon3d.o readFM.o createBoundingBox.o\
         createCoords.o axis.o createLegend.o gmain.o @SOXT_OBJS@ \
-        rounding.o printToPS.o createSphere.o createDisk.o
+        rounding.o printToPS.o createSphere.o createDisk.o \
+        r3b/createLibPoint.o r3b/createPrimary.o r3b/gmainr3b.o \
+        r3b/toInertialFrame.o
 
 CXX=@CXX@
 INC=@top_srcdir@/plaut04/includes
@@ -37,6 +39,7 @@ createSphere.o: createSphere.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h tube.h rounding.h \
  createDisk.h createSphere.h createLegend.h createCoords.h readFM.h \
  normalizeBifData.h normalizeSolData.h gReadBif.h gReadSol.h stringtrim.h
+r3b/gmainr3b.o: $(INC)/gplaut04.h
 gmainxt.o: $(INC)/gplaut04.h
 gmainqt.o: $(INC)/gplaut04.h
 gReadBif.o: gReadBif.h $(INC)/gplaut04.h
@@ -49,4 +52,5 @@ readFM.o: readFM.h $(INC)/gplaut04.h
 rounding.o: rounding.h
 solution.o: solution.h $(INC)/gplaut04.h
 stringtrim.o: stringtrim.h
+r3b/toInertialFrame.o: $(INC)/gplaut04.h
 tube.o: tube.h polygon3d.h
