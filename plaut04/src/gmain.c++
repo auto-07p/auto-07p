@@ -25,11 +25,7 @@ const char *autoDir;
 SbColor lineColor[NUM_SP_POINTS];
 SbColor lineColorTemp[NUM_SP_POINTS];
 SbColor lineColorOld[NUM_SP_POINTS];
-#ifndef R3B
-SbColor envColors[8];
-#else
 SbColor envColors[12];
-#endif
 
 struct DefaultAxisItems dai;
 
@@ -40,11 +36,8 @@ unsigned long linePatternOld[NUM_SP_POINTS];
 unsigned long stabilityLinePattern[2];
 unsigned long stabilityLinePatternTemp[2];
 
-#ifndef R3B
 bool blDrawTicker = false;
-#else
-bool blDrawTicker = true;
-#endif
+bool useR3B = false;
 
 float diskTransparency = 0.7;
 bool diskFromFile = false;
@@ -66,11 +59,7 @@ int whichStyle= 0 ;
 int whichStyleTemp= 0 ;
 int whichStyleOld = 0 ;
 
-#ifndef R3B
 int whichCoord = 0 ;
-#else
-int whichCoord = 3 ;
-#endif
 int whichCoordTemp = 0 ;
 int whichCoordOld = 0 ;
 int whichCoordSystem = 0 ;
@@ -342,10 +331,8 @@ updateScene()
         newScene->addChild(addLegend());
     }
 
-#ifndef R3B
-    if (options[OPT_REF_PLAN])
+    if (!useR3B && options[OPT_REF_PLAN])
         newScene->addChild(createDisk(diskPosition,diskRadius));
-#endif
     if (options[OPT_REF_SPHERE])
         newScene->addChild(createSphere(spherePosition,sphereRadius));
 
@@ -1406,37 +1393,34 @@ initCoordAndLableListItems()
 // the solution file does exist.
         numLabels = mySolNode.numOrbits;
         for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode.labels[j];
-#ifdef R3B
-// initial mass dependent options.
-        float lastMass = mySolNode.mass[1];
-        blMassDependantOption = true;
-        for(i=1; i<mySolNode.numOrbits; i++)
+        if(useR3B)
         {
-            if(fabs(mySolNode.mass[i]-lastMass)/lastMass > 1.0e-3)
+// initial mass dependent options.
+            float lastMass = mySolNode.mass[1];
+            blMassDependantOption = true;
+            for(i=1; i<mySolNode.numOrbits; i++)
             {
-                blMassDependantOption = false;
-                break;
+                if(fabs(mySolNode.mass[i]-lastMass)/lastMass > 1.0e-3)
+                {
+                    blMassDependantOption = false;
+                    break;
+                }
             }
+            if(blMassDependantOption) mass = lastMass;
         }
-        if(blMassDependantOption) mass = lastMass;
-#endif
     }
     else
     {
         numLabels = myBifNode.totalLabels;
         for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode.labels[j];
-#ifdef R3B
-        blMassDependantOption = false;
-#endif
+        if(useR3B) blMassDependantOption = false;
     }
 
-#ifdef R3B
-    if(!blMassDependantOption)
+    if(useR3B && !blMassDependantOption)
     {
         options[OPT_PRIMARY ]= false;
         options[OPT_LIB_POINTS]= false;
     }
-#endif
 
     options[OPT_LEGEND] = false;
     options[OPT_BACKGROUND] = false;
@@ -1702,18 +1686,19 @@ readResourceParameters()
     float aVector[3];
     unsigned long aHex;
     std::string aString;
+    const char *file;
 
-    std::string resource = autoDir;
-#ifndef R3B
-    resource += "/plaut04/plaut04.rc";
-    std::ifstream inFile("plaut04.rc");
-#else
-    resource += "/plaut04/r3bplaut04.rc";
-    std::ifstream inFile("r3bplaut04.rc");
-#endif
+    if(!useR3B)
+        file = "plaut04.rc";
+    else
+        file = "r3bplaut04.rc";
+    std::ifstream inFile(file);
 
     if (!inFile)
     {
+        std::string resource = autoDir;
+        resource += "/plaut04/";
+        resource += file;
         inFile.open(resource.c_str());
         if(!inFile)
         {
@@ -1928,7 +1913,6 @@ readResourceParameters()
                             case 29:
                                 buffer >> satRadius;
                                 break;
-#ifdef R3B
                             case 30:
                                 buffer >> largePrimRadius;
                                 break;
@@ -1944,7 +1928,6 @@ readResourceParameters()
                             case 34:
                                 buffer >> numOfStars;
                                 break;
-#endif
                         }
 
                         blDealt = true;
@@ -2141,9 +2124,7 @@ setVariableDefaultValues()
     static const float envcolors[][3] = {
       {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
       {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 0.0}, 
-#ifdef R3B
       {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}
-#endif
     };
 
     for(unsigned i = 0; i < sizeof(envcolors)/sizeof(envcolors[0]); ++i)
@@ -2161,69 +2142,63 @@ setVariableDefaultValues()
     for(unsigned i = 0; i < sizeof(options); ++i)
         options[i] = false;
 
-#ifndef R3B
-    options[OPT_NORMALIZE_DATA] = true;
-#endif
+    if(!useR3B)
+        options[OPT_NORMALIZE_DATA] = true;
 
 // set default graph type/style specification
     whichCoordSystem = ROTATING_F;
     whichStyle      = 0;  
-#ifdef R3B
-    whichCoord         = 3;
-#endif
+    if(useR3B)
+    {
+        whichCoord         = 3;
+        blDrawTicker = true;
+    }
     whichType       = SOLUTION; 
 
     lblIdxSize       = 1;
 
     lblIndices[0]    = 0;   
 
-#ifdef R3B
-    dai.solXSize = 1; dai.solX[0] = 1;
-    dai.solYSize = 1; dai.solY[0] = 2;
-    dai.solZSize = 1; dai.solZ[0] = 3;
-    dai.bifXSize = 1; dai.bifX[0] = 4;
-    dai.bifYSize = 1; dai.bifY[0] = 5;
-    dai.bifZSize = 1; dai.bifZ[0] = 6;
-#else
-    dai.solXSize = 1;
-    dai.solYSize = 1;
-    dai.solZSize = 1;
-    dai.solX[0] = 0;
-    dai.solY[0] = 1;
-    dai.solZ[0] = 2;
+    if (useR3B)
+    {
+        dai.solXSize = 1; dai.solX[0] = 1;
+        dai.solYSize = 1; dai.solY[0] = 2;
+        dai.solZSize = 1; dai.solZ[0] = 3;
+        dai.bifXSize = 1; dai.bifX[0] = 4;
+        dai.bifYSize = 1; dai.bifY[0] = 5;
+        dai.bifZSize = 1; dai.bifZ[0] = 6;
+        setShow3D         = true;
+        satSpeed          = 1.0;
+        coloringMethod    = CL_STABILITY;
+        largePrimRadius   = 1.0;
+        smallPrimRadius   = 1.0;
+        blMassDependantOption = false;
+        intVariableNames[9] = "Sat Animation Speed";
+        intVariableNames[10] = "Sat Max Animation Speed";
+        intVariableNames[11] = "Sat Min Animation Speed";
+        intVariableNames[29] = "Satellite Radius";
+        nDataVarNames[7] = "satellite Color";
+	graphWidgetItems[OPT_PERIOD_ANI] = "Orbit Animation";
+	graphWidgetItems[OPT_SAT_ANI] = "Satellite Animation";
+    }
+    else {
+        dai.solXSize = 1; dai.solX[0] = 0;
+        dai.solYSize = 1; dai.solY[0] = 1;
+        dai.solZSize = 1; dai.solZ[0] = 2;
 
-    dai.bifXSize = 1;
-    dai.bifYSize = 1;
-    dai.bifZSize = 1;
-    dai.bifX[0] = 0;
-    dai.bifY[0] = 1;
-    dai.bifZ[0] = 2;
-#endif
-
-#ifndef R3B
-    setShow3D         = false;
-#else
-    setShow3D         = true;
-#endif
+        dai.bifXSize = 1; dai.bifX[0] = 0;
+        dai.bifYSize = 1; dai.bifY[0] = 1;
+        dai.bifZSize = 1; dai.bifZ[0] = 2;
+        setShow3D         = false;
+        satSpeed          = 0.5;
+        coloringMethod    = CL_COMPONENT;
+    }
     animationLabel    = MY_ALL;
     orbitSpeed        = 1.0;
-#ifndef R3B
-    satSpeed          = 0.5;
-#else
-    satSpeed          = 1.0;
-#endif
     lineWidthScaler   = 1.0;
     labelRadius      = 1.0;
     numPeriodAnimated = 1.0;
 
-#ifdef R3B
-    coloringMethod    = CL_STABILITY;
-    largePrimRadius   = 1.0;
-    smallPrimRadius   = 1.0;
-    blMassDependantOption = false;
-#else
-    coloringMethod    = CL_COMPONENT;
-#endif
     satRadius         = 1.0;
 
     mySolNode.npar= 1;
@@ -2270,6 +2245,12 @@ main(int argc, char *argv[])
         bool is97 = false;
         pargv = &argv[1];
 
+        if( argcleft > 1 && strcmp(*pargv, "-r3b")==0 )
+        {
+            useR3B = true;
+            pargv++;
+            argcleft--;
+        }
         if( argcleft > 1 && strcmp(*pargv, "97")==0 )
         {
             is97 = true;
@@ -2312,25 +2293,27 @@ main(int argc, char *argv[])
     }
     if( argcleft > 0)
     {
-#ifndef R3B
-        printf(" usage: plaut04 [version] [path] [name]\n");
-#else
-        printf(" usage: r3bplaut04 [path] [name]\n");
-#endif
+        if(!useR3B)
+            printf(" usage: plaut04 [version] [path] [name]\n");
+        else
+            printf(" usage: r3bplaut04 [path] [name]\n");
         printf(" For example:\n");
-#ifndef R3B
-        printf("      plaut04            --- view the fort.7, fort.8 in the current directory \n");
-        printf("      plaut04 H1         --- view s.H1, b.H1 in the current directory \n");
-        printf("      plaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
-        printf("      plaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
-        printf("      plaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
-#else
-        printf("      r3bplaut04            --- view the fort.7, fort.8 in the current directory \n");
-        printf("      r3bplaut04 H1         --- view s.H1, b.H1 in the current directory \n");
-        printf("      r3bplaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
-        printf("      r3bplaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
-        printf("      r3bplaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
-#endif
+        if(!useR3B)
+        {
+            printf("      plaut04            --- view the fort.7, fort.8 in the current directory \n");
+            printf("      plaut04 H1         --- view s.H1, b.H1 in the current directory \n");
+            printf("      plaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
+            printf("      plaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
+            printf("      plaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
+        }
+        else
+        {
+            printf("      r3bplaut04            --- view the fort.7, fort.8 in the current directory \n");
+            printf("      r3bplaut04 H1         --- view s.H1, b.H1 in the current directory \n");
+            printf("      r3bplaut04 /home/he/myR3B/me H1    --- view s.H1, b.H1 in the /home/he/myR3B/me directory \n");
+            printf("      r3bplaut04 97 H1                   --- view AUTO 97 files: q.H1, p.H1 in the current directory \n");
+            printf("      r3bplaut04 97 /home/he/myR3B/me H1 --- view AUTO 97 files: q.H1, p.H1 in the /home/he/myR3B/me directory \n");
+        }
         exit(1) ;
     }
 
@@ -2396,19 +2379,17 @@ writePreferValuesToFile()
     int state = 0;
 
     FILE * outFile;
-#ifndef R3B
-    outFile = fopen("plaut04.rc.out", "w");
-#else
-    outFile = fopen("r3bplaut04.rc.out", "w");
-#endif
+    if(!useR3B)
+        outFile = fopen("plaut04.rc.out", "w");
+    else
+        outFile = fopen("r3bplaut04.rc.out", "w");
 
     if (!outFile)
     {
-#ifndef R3B
-        printf("Unable to open the  resource file. I will use the default values.\n");
-#else
-        printf("Unable to open the  resource file.\n");
-#endif
+        if(!useR3B)
+            printf("Unable to open the  resource file. I will use the default values.\n");
+        else
+            printf("Unable to open the  resource file.\n");
         state = 1;
         return state;
     }
@@ -2539,12 +2520,13 @@ writePreferValuesToFile()
                 fprintf(outFile, "%4.1f\n", bgTransparency );
                 break;
             case 17:
-#ifdef R3B
-                fprintf(outFile, "\n# Set default number of periods animated\n");
-                fprintf(outFile, "\n# The value should be power of 2.\n");
-#else
-                fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
-#endif
+                if(useR3B)
+                {
+                    fprintf(outFile, "\n# Set default number of periods animated\n");
+                    fprintf(outFile, "\n# The value should be power of 2.\n");
+                }
+                else
+                    fprintf(outFile, "\n# set default number of periods showing in inertial frame\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%f\n", numPeriodAnimated);
                 break;
@@ -2610,15 +2592,13 @@ writePreferValuesToFile()
                 (sphereFromFile) ? fprintf(outFile, "Yes \n"): fprintf(outFile, "No\n");
                 break;
             case 29:
-#ifdef R3B
-                fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
-#else
-                fprintf(outFile, "\n# Set the radius of the animation object:\n");
-#endif
+                if(useR3B)
+                    fprintf(outFile, "\n# set the radius of  satellite, large primary, small primary\n");
+                else
+                    fprintf(outFile, "\n# Set the radius of the animation object:\n");
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", satRadius);
                 break;
-#ifdef R3B
             case 30:
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%4.1f\n", largePrimRadius);
@@ -2642,7 +2622,6 @@ writePreferValuesToFile()
                 fprintf(outFile, "%-25.25s = ", intVariableNames[i]);
                 fprintf(outFile, "%d\n", numOfStars);
                 break;
-#endif
         }
     }
 
@@ -2671,16 +2650,13 @@ writePreferValuesToFile()
                 fprintf(outFile, "# Stable solution Color:\n");
                 break;
             case 7 :
-#ifdef R3B
                 fprintf(outFile,"\n# sat, large prim, large prim line, small prim, small prim line\n");
                 /* fall though */
             case 8 :
             case 9 :
             case 10 :
             case 11 :
-#else
                 fprintf(outFile, "# Color of the animation object:\n"); 
-#endif
                 break;
         }
 

@@ -33,9 +33,7 @@
 
 static QSlider *satAniSpeedSlider, *orbitAniSpeedSlider;
 static EditMenuItems *typeMenuItems, *styleMenuItems, *coordMenuItems;
-#ifdef R3B
 static EditMenuItems *coordSystemMenuItems;
-#endif
 
 extern SbBool printToPostScript (SoNode *root, const char *filename,
 SoQtExaminerViewer *viewer, int printerDPI);
@@ -204,7 +202,6 @@ MainWindow::editMenuPick(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
     EditMenuItems *menuItems;
     menuItems = coordSystemMenuItems;
     menuItems->which = which;
@@ -212,7 +209,6 @@ MainWindow::editMenuPick(int which)
     whichCoordSystemOld = whichCoordSystem;
 
     updateScene();
-#endif
 }
 
 
@@ -284,8 +280,7 @@ MainWindow::optMenuPick(int which)
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
 
-#ifdef R3B
-    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+    if(useR3B && graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
     {
         options[OPT_PRIMARY] = false;
         options[OPT_LIB_POINTS] = false;
@@ -294,7 +289,6 @@ MainWindow::optMenuPick(int which)
         graphWidgetToggleSet &= ~(1 << OPT_LIB_POINTS);
         graphWidgetToggleSet &= ~(1 << OPT_PRIMARY);
     }
-#endif
 
     updateScene();
 }
@@ -508,19 +502,13 @@ MainWindow::styleMenuDisplay()
     menuItems->items->setItemChecked(MESH_POINTS, false);
     menuItems->items->setItemChecked(ALL_POINTS, false);
 
-#ifndef R3B
-    if( whichType == BIFURCATION)
-#else
-    if(whichCoordSystem != ROTATING_F || whichType == BIFURCATION)
-#endif
+    if((useR3B && whichCoordSystem != ROTATING_F) || whichType == BIFURCATION)
     {
         menuItems->items->setItemEnabled(SURFACE, false);
         menuItems->items->setItemEnabled(MESH_POINTS, false);
         menuItems->items->setItemEnabled(ALL_POINTS, false);
-#ifdef R3B
-        if(menuItems->which == SURFACE || menuItems->which == MESH_POINTS || menuItems->which == ALL_POINTS)
+        if(useR3B && (menuItems->which == SURFACE || menuItems->which == MESH_POINTS || menuItems->which == ALL_POINTS))
             menuItems->which = LINE;
-#endif
     }
     else
     {
@@ -570,7 +558,6 @@ MainWindow::centerMenuDisplay()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
     EditMenuItems *menuItems = coordSystemMenuItems;
 
     menuItems->items->setItemChecked(ROTATING_F, false);
@@ -584,7 +571,6 @@ MainWindow::centerMenuDisplay()
     menuItems->items->setItemEnabled(INERTIAL_B, enable);
     menuItems->items->setItemEnabled(INERTIAL_E, enable);
     menuItems->items->setItemEnabled(INERTIAL_S, enable);
-#endif
 }
 
 
@@ -604,26 +590,26 @@ MainWindow::optMenuDisplay()
         menuItems->items->setItemChecked(i, (graphWidgetToggleSet & (1<<i)) != 0);
     }
 
-#ifdef R3B
-    menuItems->items->setItemEnabled(OPT_PRIMARY, blMassDependantOption);
-    menuItems->items->setItemEnabled(OPT_LIB_POINTS, blMassDependantOption);
+    if (useR3B) {
+        menuItems->items->setItemEnabled(OPT_PRIMARY, blMassDependantOption);
+        menuItems->items->setItemEnabled(OPT_LIB_POINTS, blMassDependantOption);
 
-    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
-    {
-        menuItems->items->setItemEnabled(OPT_PRIMARY, false);
-        menuItems->items->setItemEnabled(OPT_LIB_POINTS, false);
-        menuItems->items->setItemEnabled(OPT_REF_PLAN, false);
-        menuItems->items->setItemChecked(OPT_PRIMARY, false);
-        menuItems->items->setItemChecked(OPT_LIB_POINTS, false);
-        menuItems->items->setItemChecked(OPT_REF_PLAN, false);
+        if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+        {
+            menuItems->items->setItemEnabled(OPT_PRIMARY, false);
+            menuItems->items->setItemEnabled(OPT_LIB_POINTS, false);
+            menuItems->items->setItemEnabled(OPT_REF_PLAN, false);
+            menuItems->items->setItemChecked(OPT_PRIMARY, false);
+            menuItems->items->setItemChecked(OPT_LIB_POINTS, false);
+            menuItems->items->setItemChecked(OPT_REF_PLAN, false);
+        }
+        else
+        {
+            menuItems->items->setItemEnabled(OPT_PRIMARY, true);
+            menuItems->items->setItemEnabled(OPT_LIB_POINTS, true);
+            menuItems->items->setItemEnabled(OPT_REF_PLAN, true);
+        }
     }
-    else
-    {
-        menuItems->items->setItemEnabled(OPT_PRIMARY, true);
-        menuItems->items->setItemEnabled(OPT_LIB_POINTS, true);
-        menuItems->items->setItemEnabled(OPT_REF_PLAN, true);
-    }
-#endif
 
     menuItems->items->setItemVisible(OPT_PERIOD_ANI, whichType == SOLUTION);
     menuItems->items->setItemVisible(OPT_SAT_ANI, whichType == SOLUTION);
@@ -697,27 +683,29 @@ MainWindow::buildOptionMenu()
     EditMenuItems *menuItems = new EditMenuItems;
     menuItems->items = pulldown;
     optMenuItems = menuItems;
-#ifndef R3B
-    pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
+    if (!useR3B)
+    {
+        pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
-    pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
-#endif
+    }
     pulldown->insertItem("Draw &Reference Plane", this, SLOT(optMenuPick(int)),
                          0, OPT_REF_PLAN);
     pulldown->insertItem("Draw R&eference Sphere", this, SLOT(optMenuPick(int)),
                          0, OPT_REF_SPHERE);
-#ifdef R3B
-    pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
+    if (useR3B)
+    {
+        pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
                          0, OPT_PRIMARY);
-    pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuPick(int)),
                          0, OPT_LIB_POINTS);
-    pulldown->insertSeparator();
-    pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertSeparator();
+        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_PERIOD_ANI);
-    pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
                          0, OPT_SAT_ANI);
-#endif
+    }
     pulldown->insertItem("&Draw Labels", this, SLOT(optMenuPick(int)),
                          0, OPT_DRAW_LABELS);
     pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
@@ -736,7 +724,6 @@ MainWindow::buildOptionMenu()
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This creates the Edit menu and all its items.
@@ -767,7 +754,6 @@ MainWindow::buildCenterMenu()
                          SLOT(editMenuPick(int)), 0, INERTIAL_E);
     return pulldown;
 }
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -873,15 +859,12 @@ MainWindow::buildMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
     QPopupMenu *pulldown2;
-#endif
     QPopupMenu *pulldown1, *pulldown3, *pulldown4, *pulldown5, *pulldown6, *pulldown7;
 // menu bar
     pulldown1 = buildFileMenu();
-#ifdef R3B
-    pulldown2 = buildCenterMenu();
-#endif
+    if(useR3B)
+        pulldown2 = buildCenterMenu();
     pulldown3 = buildStyleMenu();
     pulldown4 = buildTypeMenu();
     pulldown7 = buildCoordMenu();
@@ -891,9 +874,7 @@ MainWindow::buildMenu()
 #ifdef USE_BK_COLOR
 // set the background color for the pull down menus.
     pulldown1->setPaletteBackgroundColor("white");
-#ifdef R3B
-    pulldown2->setPaletteBackgroundColor("white");
-#endif
+    if (useR3B) pulldown2->setPaletteBackgroundColor("white");
     pulldown3->setPaletteBackgroundColor("white");
     pulldown4->setPaletteBackgroundColor("white");
     pulldown5->setPaletteBackgroundColor("white");
@@ -905,9 +886,7 @@ MainWindow::buildMenu()
     menubar->insertItem("&Type", pulldown4);
     menubar->insertItem("&Style", pulldown3);
     menubar->insertItem("&Draw Coord", pulldown7);
-#ifdef R3B
-    menubar->insertItem("&Center", pulldown2);
-#endif
+    if (useR3B) menubar->insertItem("&Center", pulldown2);
     menubar->insertItem("&Options", pulldown5);
     menubar->insertItem("&Help", pulldown6);
 }
@@ -1161,11 +1140,7 @@ MainWindow::MainWindow() : QMainWindow()
     connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(lineWidthCB(int)));
 
 // Create slider to control speed
-#ifndef R3B
-    QLabel *satSldLbl = new QLabel("  Anim", listCarrier);
-#else
-    QLabel *satSldLbl = new QLabel("  Sat ", listCarrier);
-#endif
+    QLabel *satSldLbl = new QLabel(useR3B ? "  Sat " : "  Anim", listCarrier);
     ADD_LISTCARRIER_WIDGET(satSldLbl);
     satAniSpeedSlider = new QSlider(MIN_SAT_SPEED, MAX_SAT_SPEED, 1,
         (int)(satSpeed*100), Qt::Horizontal, listCarrier, "Speed");
@@ -1200,9 +1175,8 @@ MainWindow::MainWindow() : QMainWindow()
     renderArea = new SoQtExaminerViewer(widget);
     renderArea->setSize(SbVec2s(winWidth, winHeight));
     renderArea->setBackgroundColor(envColors[0]);
-#ifdef R3B
-    renderArea->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
-#endif
+    if(useR3B)
+        renderArea->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
 
 #ifdef USE_EXAM_VIEWER
     QFont f("Helvetica", 8);
@@ -1429,13 +1403,10 @@ PreferDialog::graphCoordinateSystemToggledCB(int which)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifdef R3B
-    whichCoordSystemTemp = which;
-#endif
+    if(useR3B) whichCoordSystemTemp = which;
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 void
@@ -1473,7 +1444,6 @@ PreferDialog::createGraphCoordinateSystemFrameGuts(QGroupBox *frame)
 	coordSysButton[i] = w;
     }
 }
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1679,33 +1649,28 @@ PreferDialog::createPreferDefaultPages(QWidget *parent)
     const char * frmNames[]=
     {
         "Optional Widgets", "Graph Type", "Graph Style",
-#ifdef R3B
         "Coordinate System",
-#endif
         "Coordinate Parts"
     };
 
     QVBoxLayout *layout = new QVBoxLayout(parent);
+    unsigned j=0;
     for(unsigned i=0; i<LENGTH(frmNames); ++i) {
+        if(!useR3B && i==3) continue;
 #if QT_VERSION >= 0x40000
-        frameList[i] = new QGroupBox(frmNames[i], parent);
+        frameList[j] = new QGroupBox(frmNames[i], parent);
 #else
-#ifdef R3B
         int rows[] = {2, 1, 1, 1, 1};
-#else
-        int rows[] = {2, 1, 1, 1};
+	frameList[j] = new QGroupBox(rows[i], Qt::Vertical, frmNames[i], parent);
 #endif
-	frameList[i] = new QGroupBox(rows[i], Qt::Vertical, frmNames[i], parent);
-#endif
-        layout->addWidget(frameList[i]);
+        layout->addWidget(frameList[j]);
+        j++;
     }
     num = 0;
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
     createGraphStyleFrameGuts(frameList[num++]);
-#ifdef R3B
-    createGraphCoordinateSystemFrameGuts(frameList[num++]);
-#endif
+    if(useR3B) createGraphCoordinateSystemFrameGuts(frameList[num++]);
     createGraphCoordPartsFrameGuts(frameList[num++]);
 }
 
@@ -1841,11 +1806,12 @@ void PreferDialog::update()
     whichCoordTemp = whichCoord;
     coordButton[whichCoord]->setChecked(true);
 
-#ifdef R3B
-    whichCoordSystemOld  = whichCoordSystem;
-    whichCoordSystemTemp = whichCoordSystem;
-    coordSysButton[whichCoordSystem]->setChecked(true);
-#endif
+    if (useR3B)
+    {
+        whichCoordSystemOld  = whichCoordSystem;
+        whichCoordSystemTemp = whichCoordSystem;
+        coordSysButton[whichCoordSystem]->setChecked(true);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -1875,11 +1841,12 @@ PreferDialog::closePreferDialogAndGiveUpChange()
     whichStyleTemp = whichStyleOld;
     styleMenuItems->which            = whichStyleOld;
 
-#ifdef R3B
-    whichCoordSystem     = whichCoordSystemOld;
-    whichCoordSystemTemp = whichCoordSystemOld;
-    coordSystemMenuItems->which           = whichCoordSystemOld;
-#endif
+    if (useR3B)
+    {
+        whichCoordSystem     = whichCoordSystemOld;
+        whichCoordSystemTemp = whichCoordSystemOld;
+        coordSystemMenuItems->which           = whichCoordSystemOld;
+    }
 
     whichCoord     = whichCoordOld;
     whichCoordTemp = whichCoordOld;
@@ -1927,12 +1894,12 @@ PreferDialog::closePreferDialogAndUpdateScene()
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem    = whichCoordSystemTemp;
-    whichCoordSystemOld = whichCoordSystemTemp;
-    coordSystemMenuItems->which          = whichCoordSystemTemp;
-
-#endif
+    if (useR3B)
+    {
+        whichCoordSystem    = whichCoordSystemTemp;
+        whichCoordSystemOld = whichCoordSystemTemp;
+        coordSystemMenuItems->which          = whichCoordSystemTemp;
+    }
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -1978,11 +1945,12 @@ PreferDialog::savePreferAndUpdateScene()
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem    = whichCoordSystemTemp;
-    whichCoordSystemOld = whichCoordSystemTemp;
-    coordSystemMenuItems->which          = whichCoordSystemTemp;
-#endif
+    if (useR3B)
+    {
+        whichCoordSystem    = whichCoordSystemTemp;
+        whichCoordSystemOld = whichCoordSystemTemp;
+        coordSystemMenuItems->which          = whichCoordSystemTemp;
+    }
 
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
@@ -2025,10 +1993,10 @@ PreferDialog::applyPreferDialogChangeAndUpdateScene()
     whichStyle = whichStyleTemp;
     styleMenuItems->which        = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem = whichCoordSystemTemp;
-    coordSystemMenuItems->which       = whichCoordSystemTemp;
-#endif
+    if (useR3B) {
+       whichCoordSystem = whichCoordSystemTemp;
+       coordSystemMenuItems->which       = whichCoordSystemTemp;
+    }
 
     whichCoord = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -2094,21 +2062,22 @@ MainWindow::showAboutDialog()
 ////////////////////////////////////////////////////////////////////////
 {
     QString str;
-#ifndef R3B
-    str = "  AUTO plaut04\n\n"
-#else
-    str = "  AUTO r3bplaut04\n\n"
-#endif
+    if (useR3B)
+       str = "  AUTO r3bplaut04\n\n"
     "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
     "  Computer Science Department\n"
     "  Concordia University\n\n"
     "  Montreal, Quebec\n"
     "  CANADA\n\n"
-#ifndef R3B
-    "  August, 2004 \n";
-#else
     "  June, 2004 \n";
-#endif
+    else
+       str = "  AUTO plaut04\n\n"
+    "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
+    "  Computer Science Department\n"
+    "  Concordia University\n\n"
+    "  Montreal, Quebec\n"
+    "  CANADA\n\n"
+    "  August, 2004 \n";
 
     QMessageBox::about(this, "About_popup", str);
 }

@@ -257,7 +257,6 @@ fileMenuPick(Widget, void *userData, XtPointer *)
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This is called by Xt when a menu item is picked from the Edit menu.
@@ -279,7 +278,6 @@ editMenuPick( Widget w, void *userData, XmAnyCallbackStruct *cb)
 
     updateScene();
 }
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -380,8 +378,7 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
     else
         XtVaSetValues (orbitAniSpeedSlider, XmNeditable, FALSE, NULL);
 
-#ifdef R3B
-    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+    if(useR3B && (graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA)))
     {
         options[OPT_PRIMARY] = false;
         options[OPT_LIB_POINTS] = false;
@@ -390,7 +387,6 @@ optMenuPick(Widget widget, void *userData, XmAnyCallbackStruct *cb)
         graphWidgetToggleSet &= ~(1 << OPT_LIB_POINTS);
         graphWidgetToggleSet &= ~(1 << OPT_PRIMARY);
     }
-#endif
 
     updateScene();
 }
@@ -632,19 +628,13 @@ styleMenuDisplay(Widget, void *userData, XtPointer)
     TOGGLE_OFF(menuItems->items[MESH_POINTS]);
     TOGGLE_OFF(menuItems->items[ALL_POINTS]);
 
-#ifndef R3B
-    if( whichType == BIFURCATION)
-#else
-    if(whichCoordSystem != ROTATING_F || whichType == BIFURCATION)
-#endif
+    if((useR3B && whichCoordSystem != ROTATING_F) || whichType == BIFURCATION)
     {
         XtSetSensitive (menuItems->items[SURFACE], false);
         XtSetSensitive (menuItems->items[MESH_POINTS], false);
         XtSetSensitive (menuItems->items[ALL_POINTS], false);
-#ifdef R3B
-        if(menuItems->which == SURFACE || menuItems->which == MESH_POINTS || menuItems->which == ALL_POINTS)
+        if(useR3B && (menuItems->which == SURFACE || menuItems->which == MESH_POINTS || menuItems->which == ALL_POINTS))
             menuItems->which = LINE;
-#endif
     }
     else
     {
@@ -692,7 +682,6 @@ coordMenuDisplay(Widget, void *userData, XtPointer)
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This is called by Xt just before the Edit menu is displayed.
@@ -727,7 +716,6 @@ centerMenuDisplay(Widget, void *userData, XtPointer)
     }
 
 }
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -755,34 +743,35 @@ optMenuDisplay(Widget, void *userData, XtPointer)
         }
     }
 
-#ifdef R3B
-    if(!blMassDependantOption)
+    if(useR3B)
     {
-        XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
-        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
-    }
-    else
-    {
-        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
-        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], true);
-    }
+        if(!blMassDependantOption)
+        {
+            XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
+            XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
+        }
+        else
+        {
+            XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+            XtSetSensitive (menuItems->items[OPT_LIB_POINTS], true);
+        }
 
-    if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
-    {
-        XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
-        XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
-        XtSetSensitive (menuItems->items[OPT_REF_PLAN], false);
-        XmToggleButtonSetState(menuItems->items[OPT_PRIMARY], FALSE, FALSE);
-        XmToggleButtonSetState(menuItems->items[OPT_LIB_POINTS], FALSE, FALSE);
-        XmToggleButtonSetState(menuItems->items[OPT_REF_PLAN], FALSE, FALSE);
+        if(graphWidgetToggleSet & (1<<OPT_NORMALIZE_DATA))
+        {
+            XtSetSensitive (menuItems->items[OPT_PRIMARY], false);
+            XtSetSensitive (menuItems->items[OPT_LIB_POINTS], false);
+            XtSetSensitive (menuItems->items[OPT_REF_PLAN], false);
+            XmToggleButtonSetState(menuItems->items[OPT_PRIMARY], FALSE, FALSE);
+            XmToggleButtonSetState(menuItems->items[OPT_LIB_POINTS], FALSE, FALSE);
+            XmToggleButtonSetState(menuItems->items[OPT_REF_PLAN], FALSE, FALSE);
+        }
+        else
+        {
+            XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+            XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
+            XtSetSensitive (menuItems->items[OPT_REF_PLAN], true);
+        }
     }
-    else
-    {
-        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
-        XtSetSensitive (menuItems->items[OPT_PRIMARY], true);
-        XtSetSensitive (menuItems->items[OPT_REF_PLAN], true);
-    }
-#endif
 
     if(whichType == BIFURCATION)
     {
@@ -926,11 +915,7 @@ buildOptionMenu(Widget menubar)
     int        n;
 
     EditMenuItems *menuItems = new EditMenuItems;
-#ifndef R3B
-    menuItems->items = new Widget[8];
-#else
     menuItems->items = new Widget[13];
-#endif
 
 // Tell motif to create the menu in the popup plane
     Arg popupargs[13];
@@ -944,19 +929,21 @@ buildOptionMenu(Widget menubar)
     n = 0;
     int mq = 0;
     XtSetArg(args[n], XmNuserData, menuItems); n++;
-#ifndef R3B
-    TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
-#endif
+    if(!useR3B)
+    {
+        TOGGLE_ITEM(menuItems->items[mq], "Hightlight Orbit",     OPT_PERIOD_ANI, optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_SAT_ANI,    optMenuPick); ++mq;
+    }
     TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Plane", OPT_REF_PLAN,   optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Draw Reference Sphere", OPT_REF_SPHERE,optMenuPick); ++mq;
-#ifdef R3B
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
-    SEP_ITEM("separator");
-    TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
-    TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
-#endif
+    if(useR3B)
+    {
+        TOGGLE_ITEM(menuItems->items[mq], "Draw Primaries",       OPT_PRIMARY,    optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[mq], "Draw Libration Pts",   OPT_LIB_POINTS, optMenuPick); ++mq;
+        SEP_ITEM("separator");
+        TOGGLE_ITEM(menuItems->items[mq], "Orbit Animation",      OPT_PERIOD_ANI, optMenuPick); ++mq;
+        TOGGLE_ITEM(menuItems->items[mq], "Satellite Animation",  OPT_SAT_ANI,    optMenuPick); ++mq;
+    }
     TOGGLE_ITEM(menuItems->items[mq], "Draw Labels",          OPT_DRAW_LABELS, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Show Label Numbers",   OPT_LABEL_NUMBERS, optMenuPick); ++mq;
     TOGGLE_ITEM(menuItems->items[mq], "Draw Background",      OPT_BACKGROUND, optMenuPick); ++mq;
@@ -973,7 +960,6 @@ buildOptionMenu(Widget menubar)
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 //  This creates the Edit menu and all its items.
@@ -1017,7 +1003,6 @@ buildCenterMenu(Widget menubar)
 
     return pulldown;
 }
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1037,12 +1022,8 @@ buildStyleMenu(Widget menubar)
     styleMenuItems->items = new Widget[5];   
     styleMenuItems->which = whichStyle;
 
-#ifndef R3B
-    Arg popupargs[5];                         
-#else
 // Tell motif to create the menu in the popup plane
-    Arg popupargs[3];
-#endif
+    Arg popupargs[5];                         
     int popupn = 0;
 
     pulldown = XmCreatePulldownMenu(menubar, (char *)"styleMenu", popupargs, popupn);
@@ -1154,12 +1135,8 @@ buildMenu(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-#ifndef R3B
-    Widget  menuButtons[6];
-#else
     Widget  menuButtons[7];
     Widget  pulldown2;
-#endif
     Widget  pulldown1, pulldown3, pulldown4, pulldown5, pulldown6, pulldown7;
     Arg     args[8];
     int        n, m;
@@ -1170,9 +1147,8 @@ buildMenu(Widget parent)
     XtVaSetValues (menubar, XmNshadowThickness, 1, NULL);
 #endif
     pulldown1 = buildFileMenu(menubar);
-#ifdef R3B
-    pulldown2 = buildCenterMenu(menubar);
-#endif
+    if(useR3B)
+        pulldown2 = buildCenterMenu(menubar);
     pulldown3 = buildStyleMenu(menubar);
     pulldown4 = buildTypeMenu(menubar);
     pulldown7 = buildCoordMenu(menubar);
@@ -1230,14 +1206,15 @@ buildMenu(Widget parent)
         menubar, args, n);
     ++m;
 
-#ifdef R3B
-    n = 0;
-    XtSetArg(args[n], XmNsubMenuId, pulldown2); n++;
-    menuButtons[m] = XtCreateManagedWidget("Center",
-        xmCascadeButtonGadgetClass,
-        menubar, args, n);
-    ++m;
-#endif
+    if(useR3B)
+    {
+        n = 0;
+        XtSetArg(args[n], XmNsubMenuId, pulldown2); n++;
+        menuButtons[m] = XtCreateManagedWidget("Center",
+            xmCascadeButtonGadgetClass,
+            menubar, args, n);
+        ++m;
+    }
 
     n = 0;
     XtSetArg(args[n], XmNsubMenuId, pulldown5); n++;
@@ -1572,11 +1549,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
     Widget numPeriodLbl = XtVaCreateManagedWidget("Period",xmLabelWidgetClass, listCarrier, NULL);
 
     Widget orbitSldLbl = XtVaCreateManagedWidget("Orbit",xmLabelWidgetClass, listCarrier, NULL);
-#ifndef R3B
-    Widget satSldLbl = XtVaCreateManagedWidget("Anim",xmLabelWidgetClass, listCarrier, NULL);
-#else
-    Widget satSldLbl = XtVaCreateManagedWidget("Sat ",xmLabelWidgetClass, listCarrier, NULL);
-#endif
+    Widget satSldLbl = XtVaCreateManagedWidget(useR3B ? "Sat " : "Anim",xmLabelWidgetClass, listCarrier, NULL);
     Widget spLbl   = XtVaCreateManagedWidget("   Line  ",xmLabelWidgetClass, listCarrier, NULL);
     Widget spLbl2  = XtVaCreateManagedWidget("Thickness",xmLabelWidgetClass, listCarrier, NULL);
 
@@ -1689,9 +1662,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
     renderArea->setSize(SbVec2s(winWidth, winHeight));
     renderArea->setBackgroundColor(envColors[0]);
-#ifdef R3B
-    renderArea->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
-#endif
+    if(useR3B)
+        renderArea->setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
 
 #ifdef USE_EXAM_VIEWER
     n = 0;
@@ -2391,7 +2363,6 @@ createPreferDefaultPageFrames(Widget parent, const char *frameName)
 }
 
 
-#ifdef R3B
 ////////////////////////////////////////////////////////////////////////
 //
 void
@@ -2445,7 +2416,6 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
     XtManageChild (toggleBox);
     XtManageChild (frame);
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -2709,22 +2679,22 @@ createPreferDefaultPages(Widget parent)
     const char * frmNames[]=
     {
         "Optional Widgets", "Graph Type", "Graph Style",
-#ifndef R3B
-        "Coordinate Parts", "Others"
-#else
         "Coordinate System", "Coordinate Parts", "Others"
-#endif
     };
 
+    unsigned j=0;
     for(unsigned int i=0; i<XtNumber(frmNames); ++i)
-        frameList[i] = createPreferDefaultPageFrames(parent, frmNames[i]);
+    {
+        if(!useR3B && i==3)continue;
+        frameList[j] = createPreferDefaultPageFrames(parent, frmNames[i]);
+        j++;
+    }
     num = 0;
     createOptionFrameGuts(frameList[num++]);
     createGraphTypeFrameGuts(frameList[num++]);
     createGraphStyleFrameGuts(frameList[num++]);
-#ifdef R3B
-    createGraphCoordinateSystemFrameGuts(frameList[num++]);
-#endif
+    if(useR3B)
+        createGraphCoordinateSystemFrameGuts(frameList[num++]);
     createGraphCoordPartsFrameGuts(frameList[num++]);
     layoutPreferDefaultPageFrames(frameList, num);
 }
@@ -2897,12 +2867,13 @@ closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer
     whichStyleTemp = whichStyleOld;
     styleMenuItems->which            = whichStyleOld;
 
-#ifdef R3B
-    whichCoordSystem     = whichCoordSystemOld;
-    whichCoordSystemTemp = whichCoordSystemOld;
-    coordSystemMenuItems->which           = whichCoordSystemOld;
+    if (useR3B)
+    {
+        whichCoordSystem     = whichCoordSystemOld;
+        whichCoordSystemTemp = whichCoordSystemOld;
+        coordSystemMenuItems->which           = whichCoordSystemOld;
+    }
 
-#endif
     whichCoord     = whichCoordOld;
     whichCoordTemp = whichCoordOld;
     coordMenuItems->which           = whichCoordOld;
@@ -2962,12 +2933,13 @@ closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer 
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem    = whichCoordSystemTemp;
-    whichCoordSystemOld = whichCoordSystemTemp;
-    coordSystemMenuItems->which          = whichCoordSystemTemp;
+    if (useR3B)
+    {
+        whichCoordSystem    = whichCoordSystemTemp;
+        whichCoordSystemOld = whichCoordSystemTemp;
+        coordSystemMenuItems->which          = whichCoordSystemTemp;
+    }
 
-#endif
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -3027,12 +2999,12 @@ savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_da
     whichStyleOld = whichStyleTemp;
     styleMenuItems->which           = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem    = whichCoordSystemTemp;
-    whichCoordSystemOld = whichCoordSystemTemp;
-    coordSystemMenuItems->which          = whichCoordSystemTemp;
-
-#endif
+    if (useR3B)
+    {
+        whichCoordSystem    = whichCoordSystemTemp;
+        whichCoordSystemOld = whichCoordSystemTemp;
+        coordSystemMenuItems->which          = whichCoordSystemTemp;
+    }
     whichCoord = whichCoordTemp;
     whichCoordOld = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
@@ -3087,11 +3059,12 @@ Widget widget, XtPointer client_data, XtPointer call_data)
     whichStyle = whichStyleTemp;
     styleMenuItems->which        = whichStyleTemp;
 
-#ifdef R3B
-    whichCoordSystem = whichCoordSystemTemp;
-    coordSystemMenuItems->which       = whichCoordSystemTemp;
+    if (useR3B)
+    {
+        whichCoordSystem = whichCoordSystemTemp;
+        coordSystemMenuItems->which       = whichCoordSystemTemp;
+    }
 
-#endif
     whichCoord = whichCoordTemp;
     coordMenuItems->which        = whichCoordTemp;
 
@@ -3195,21 +3168,23 @@ showAboutDialog()
     XmString      t;
     void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
-#ifndef R3B
-    const char *str = "  AUTO plaut04\n\n"
-#else
-    const char *str = "  AUTO r3bplaut04\n\n"
-#endif
+    const char *str;
+    if (useR3B)
+        str = "  AUTO r3bplaut04\n\n"
     "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
     "  Computer Science Department\n"
     "  Concordia University\n\n"
     "  Montreal, Quebec\n"
     "  CANADA\n\n"
-#ifndef R3B
-    "  August, 2004 \n";
-#else
     "  June, 2004 \n";
-#endif
+    else
+        str = "  AUTO plaut04\n\n"
+    "  Zhang, Chenghai, Dr. Eusebius J. Doedel\n\n "
+    "  Computer Science Department\n"
+    "  Concordia University\n\n"
+    "  Montreal, Quebec\n"
+    "  CANADA\n\n"
+    "  August, 2004 \n";
 
     if (!dialog)
     {

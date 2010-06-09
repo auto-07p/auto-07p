@@ -1675,14 +1675,13 @@ def plot3(name=None,r3b=False):
     problem mode.
     """
     cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
-    if r3b:
-        cmd = os.path.join(cmd, "r3bplaut04")
-    else:
-        cmd = os.path.join(cmd, "plaut04")
+    cmd = os.path.join(cmd, "plaut04")
     arg = []
+    if r3b:
+        arg = ["-r3b"]
     if name is not None:
         if type(name) == type(""):
-            arg = [name]
+            arg.append(name)
         else:
             d = name
             for f in ["fort.7","fort.8","fort.9"]:

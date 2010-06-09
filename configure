@@ -6472,7 +6472,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile plaut04/src/r3b/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh"
+ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -7166,7 +7166,6 @@ do
     "plaut/Makefile") CONFIG_FILES="$CONFIG_FILES plaut/Makefile" ;;
     "plaut04/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/Makefile" ;;
     "plaut04/src/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/src/Makefile" ;;
-    "plaut04/src/r3b/Makefile") CONFIG_FILES="$CONFIG_FILES plaut04/src/r3b/Makefile" ;;
     "cmds/cmds.make") CONFIG_FILES="$CONFIG_FILES cmds/cmds.make" ;;
     "cmds/Makefile") CONFIG_FILES="$CONFIG_FILES cmds/Makefile" ;;
     "gui/auto.makefile") CONFIG_FILES="$CONFIG_FILES gui/auto.makefile" ;;

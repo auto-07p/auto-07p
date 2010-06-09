@@ -1,3 +1,2 @@
 #!/bin/sh
-#$AUTO_DIR/r3bplaut04/src/r3bplaut04 $1 $2 
-$AUTO_DIR/bin/r3bplaut04 $1 $2 &
+$AUTO_DIR/bin/plaut04 -r3b $1 $2 &

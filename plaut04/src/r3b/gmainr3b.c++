@@ -1,8 +1,8 @@
 #include "gplaut04.h"
-#include "tube.h"
-#include "createCoords.h"
-#include "createDisk.h"
-#include "solution.h"
+#include "../tube.h"
+#include "../createCoords.h"
+#include "../createDisk.h"
+#include "../solution.h"
 
 #if 0
 static SoSeparator * animateOrbitCalSteps(long int n,long int si);

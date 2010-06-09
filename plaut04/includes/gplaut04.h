@@ -114,20 +114,7 @@
 #define INERTIAL_S	2  // big primary centered, sun
 #define INERTIAL_E	3  // small primary centered, earth.
 
-#ifdef R3B
 #include "r3bplaut04.h"
-#else
-#define GRAPH_WIDGET_ITEMS 9
-#define OPT_REF_PLAN   0
-#define OPT_REF_SPHERE 1
-#define OPT_PERIOD_ANI  2
-#define OPT_SAT_ANI    3
-#define OPT_DRAW_LABELS  4
-#define OPT_LABEL_NUMBERS  5
-#define OPT_BACKGROUND   6
-#define OPT_LEGEND   7
-#define OPT_NORMALIZE_DATA  8
-#endif
 
 #define NO_COORD  0 
 #define COORDORIGIN    1
@@ -258,5 +245,6 @@ extern const char * graphWidgetItems[GRAPH_WIDGET_ITEMS];
 extern float diskPosition[3];
 extern float diskRadius;
 extern float labelRadius;
+extern bool useR3B;
 
 #endif

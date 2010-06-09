@@ -30,10 +30,9 @@ Solution::createSceneWithWidgets()
         normalizeSolData();
     }
 
-#ifdef R3B
-    result->addChild(createR3BPoints(mySolNode.min, mySolNode.max));
-    if(whichCoordSystem == ROTATING_F)
-#endif
+    if(useR3B)
+        result->addChild(createR3BPoints(mySolNode.min, mySolNode.max));
+    if(!useR3B || whichCoordSystem == ROTATING_F)
     {
         if(whichCoord != NO_COORD)
         {
@@ -228,11 +227,10 @@ Solution::drawUsingTubes()
 
 		if(coloringMethod == CL_BRANCH_NUMBER)
                 {
-#ifdef R3B
-                    tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-#else
-                    tubeSep->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
-#endif
+                    if(useR3B)
+                        tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
+                    else
+                        tubeSep->addChild(setLineAttributesByBranch(mySolNode.branchID[iBranch], stability, scaler));
                 }
                 else if(coloringMethod == CL_STABILITY)
                     tubeSep->addChild(setLineAttributesByStability(stability, scaler));
@@ -1000,9 +998,8 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     }
     else if(coloringMethod == CL_BRANCH_NUMBER)
     {
-#ifdef R3B
-        iBranch = mySolNode.branchID[iBranch];
-#endif
+        if(useR3B)
+            iBranch = mySolNode.branchID[iBranch];
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     }
     else if(coloringMethod == CL_STABILITY)

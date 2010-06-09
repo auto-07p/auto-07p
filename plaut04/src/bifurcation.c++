@@ -54,9 +54,8 @@ Bifurcation::createScene()
         result->addChild(coordSep);
     }
 
-#ifdef R3B
-    result->addChild(createR3BPoints(myBifNode.min, myBifNode.max));
-#endif
+    if(useR3B)
+        result->addChild(createR3BPoints(myBifNode.min, myBifNode.max));
 
 // create bifurcation graph
     SoSeparator * bifBranchSep = render();
@@ -273,9 +272,8 @@ long int sumX, float scaler)
 
     if(coloringMethod == CL_BRANCH_NUMBER)
     {
-#ifdef R3B
-        iBranch = myBifNode.branchID[iBranch];
-#endif
+        if(useR3B)
+            iBranch = myBifNode.branchID[iBranch];
         tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
     }
     else if(coloringMethod == CL_STABILITY)
@@ -345,9 +343,8 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
 
         if(coloringMethod == CL_BRANCH_NUMBER)
         {
-#ifdef R3B
-            iBranch = myBifNode.branchID[iBranch];
-#endif
+            if (useR3B)
+                iBranch = myBifNode.branchID[iBranch];
             aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
         }
         else if(coloringMethod == CL_STABILITY)

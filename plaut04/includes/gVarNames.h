@@ -19,15 +19,9 @@
         "Coloring Method Bifurcation",
         "Line Width Scaler",
         "AniLine Thickness Scaler",
-#ifndef R3B
-        "Object Animation Speed",
-        "Object Max Animation Speed",
-        "Object Min Animation Speed",
-#else
-        "Sat Animation Speed",
-        "Sat Max Animation Speed",
-        "Sat Min Animation Speed",
-#endif
+        "Object Animation Speed",    // R3B: "Sat Animation Speed"
+        "Object Max Animation Speed",// R3B: "Sat Max Animation Speed"
+        "Object Min Animation Speed",// R3B: "Sat Min Animation Speed"
         "Orbit Animation Speed",
         "Orbit Max Animation Speed",
         "Orbit Min Animation Speed",
@@ -45,16 +39,12 @@
         "Sphere Radius",
         "Sphere Transparency",
         "Sphere From File",
-#ifndef R3B
-        "Object Radius",
-#else
-        "Satellite Radius",
+        "Object Radius",             // R3B: "Satellite Radius"
         "Large Primary Radius",
         "Small Primary Radius",
         "Libration Point Size",
         "Coordinate system",
         "Number of Stars",
-#endif
     };
 
     const char * hexdecimalVarNames[] =
@@ -72,15 +62,11 @@
         "Surface Color",
         "Unstable Solution Color",
         "Stable Solution Color",
-#ifndef R3B
-        "Object Color",
-#else
-        "satellite Color",
+        "Object Color", // "satellite Color" for R3B
         "large primary Color",
         "large primary tail Color",
         "small primary Color",
         "small primary tail Color",
-#endif
     };
 
     const char * blWidgetName[] =
@@ -94,16 +80,10 @@ const char * graphWidgetItems[]=
 {
     "Draw Reference Plane", 
     "Draw Reference Sphere", 
-#ifdef R3B
-    "Draw Primaries", 
-    "Draw Libration Points",
-#else
-    "Highlight Orbit",
-#endif
-    "Orbit Animation", 
-#ifdef R3B
-    "Satellite Animation",
-#endif
+    "Draw Primaries", // R3B only
+    "Draw Libration Points", // R3B only
+    "Highlight Orbit", // "Orbit Animation" for R3B
+    "Orbit Animation", // "Satellite Animation" for R3B
     "Draw Labels",
     "Show Label Numbers",
     "Draw Background", 

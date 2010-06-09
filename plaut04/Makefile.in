@@ -2,11 +2,9 @@
 
 all:
 	cd src && $(MAKE)
-	cd src/r3b && $(MAKE)
 
 clean:
 	cd src && $(MAKE) clean
-	cd src/r3b && $(MAKE) clean
 
 superclean: clean
-	rm -f Makefile src/Makefile src/r3b/Makefile
+	rm -f Makefile src/Makefile
