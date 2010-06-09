@@ -74,6 +74,8 @@
         "3D",
         "3DBif",
         "3DSol",
+        "Draw Scale",
+        "R3B",
     };
 
 const char * graphWidgetItems[]=

@@ -68,6 +68,11 @@ Y Axis Bifurcation              = 5
 Z Axis Bifurcation              = 6
 
 #Labeled solutions:
+#-3 = Show all labeled solutions
+#-2 = Show HALF labeled solutions
+#-1 = Show SPEC labeled solutions
+#0 = Show NONE of the solutions
+#Otherwise, show the specified solution(s)
 Labels              = -3
 
 #Set coloring method:

@@ -1661,24 +1661,16 @@ readResourceParameters()
 			case 2:
 			    setShow3DSol = (strcasecmp(aNewString,"Yes")==0);
 			    break;
+			case 3:
+			    blDrawTicker = (strcasecmp(aNewString,"Yes")==0);
+			    break;
+			case 4:
+			    useR3B = (strcasecmp(aNewString,"Yes")==0);
+			    break;
 			}
                         blDealt = true;
                         break;
                     }
-                }
-            }
-
-            if( !blDealt )
-            {
-                if(strcasecmp(strTemp,"Draw Scale")==0)
-                {
-                    readAString(buffer, aString);
-                    strrighttrim(aString);
-                    strlefttrim(aString);
-                    const char *aNewString = aString.c_str();
-                    blDrawTicker = (strcasecmp(aNewString,"Yes")==0) ? true : false;
-
-                    blDealt = true;
                 }
             }
 

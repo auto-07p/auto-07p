@@ -22,10 +22,16 @@ OTHERS             = 1.0,  1.0,  1.0, 0xffff
 UNSTABLE LINE PATTERN = 0xffff
 STABLE LINE PATTERN   = 0xffff
 
+# Use r3b mode
+R3B = Yes
+
 # Initialize the default options:
+Draw Reference Plane  = Yes
+Draw Primaries        = Yes
+Draw Libration Points = Yes 
 Highlight Orbit       = No 
 Orbit Animation       = No 
-Normalize Data        = Yes
+Normalize Data        = No 
 Draw Background       = No
 Draw Labels           = Yes
 
@@ -92,12 +98,27 @@ AniLine Thickness Scaler  = 3.0
 Background Color  = 0.8, 0.8, 1.
 
 # Background transparency:
-Background Transparency = 0.2 
+Background Transparency = 0.0 
+
+# Disk transparency
+# IF you turn Disk From File to "Yes", you should change the transparency there.
+Disk Transparency = 0.7 
+
+# Read Disk From File
+Disk From File = No 
 
 # Axes color:
 X Axis Color    = 1.0,  0.0,   0.0
 Y Axis Color    = 0.0,  1.0,   0.0
 Z Axis Color    = 0.0,  0.0,   1.0
+
+# Color of the satellite, large primary, and small primary in animation:
+satellite Color             = 1.0,  0.0,   0.0
+large primary Color         = 0.0,  1.0,   0.0
+large primary tail Color    = 0.0,  1.0,   1.0
+small primary Color         = 0.0,  0.0,   1.0
+small primary tail Color    = 0.5,  0.5,   0.0
+
 
 # Stable solution color:
 Stable Solution Color = 0.0, 0.0, 1.0
@@ -113,6 +134,9 @@ Object Color             = 1.0,  0.0,   0.0
 # For smaller radius, use 0.xxx
 # For bigger radius, use  X.XXX
 Object Radius        = 1.0
+Large Primary Radius    = 3.0
+Small Primary Radius    = 2.0
+Libration Point Size    = 0.5
 
 # Set the maximum and minimum animation speed:
 Object Max Animation Speed = 100
