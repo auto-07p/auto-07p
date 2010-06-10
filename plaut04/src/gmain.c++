@@ -111,12 +111,7 @@ SoSeparator *userScene;
 SoSeparator *root;
 SoSeparator *starryBackground;
 
-char (*xAxis)[5];
-char (*zAxis)[5];
-char (*yAxis)[5];
-char labels[MAX_LABEL][8];
-
-char (*coloringMethodList)[8];
+std::vector<std::string> xAxis, yAxis, zAxis, labels, coloringMethodList;
 int *myLabels;
 
 ///////////////////////////////////////////////////////////////
@@ -945,13 +940,10 @@ readSolutionAndBifurcationData(bool blFirstRead,
 
     myBifNode->alloc();
 
-    coloringMethodList = new char[std::max(myBifNode->nar(),
-       mySolNode->nar()+mySolNode->npar())+CL_SP_ITEMS][8];
     myLabels = new int[std::max(myBifNode->totalLabels(),
                                 mySolNode->totalLabels())+SP_LBL_ITEMS];
-    xAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
-    yAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
-    zAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
+    clientData.labelIndex = new long int[std::max(myBifNode->totalLabels(),
+                                                  mySolNode->totalLabels())][4];
 
     int varIndices[3];
 
@@ -1260,36 +1252,47 @@ initCoordAndLableListItems()
 ///////////////////////////////////////////////////////////////////
 {
     int i = 0;
-    for(i=0; i<std::max(myBifNode->nar(),mySolNode->nar()); i++)
+    int nar = whichType == SOLUTION ? mySolNode->nar() : myBifNode->nar();
+    xAxis.clear();
+    yAxis.clear();
+    zAxis.clear();
+    for(i=0; i<nar; i++)
     {
-        sprintf(xAxis[i], "%d", i);
-        sprintf(yAxis[i], "%d", i);
-        sprintf(zAxis[i], "%d", i);
+        std::stringstream s;
+        s << i;
+        xAxis.push_back(s.str());
+        yAxis.push_back(s.str());
+        zAxis.push_back(s.str());
     }
 
-    int sp = 0;
-    strcpy(coloringMethodList[0],"STAB"); sp++;
-    strcpy(coloringMethodList[1],"PONT"); sp++;
-    strcpy(coloringMethodList[2],"BRAN"); sp++;
+    coloringMethodList.clear();
+    coloringMethodList.push_back("STAB");
+    coloringMethodList.push_back("PONT");
+    coloringMethodList.push_back("BRAN");
+    specialColorItems = 3;
 
     if(whichType == SOLUTION)
     {
-        strcpy(coloringMethodList[3],"TYPE"); sp++;
-        strcpy(coloringMethodList[4],"LABL"); sp++;
-        strcpy(coloringMethodList[5],"COMP"); sp++; //OCT 7 added
-        for(i=0; i<mySolNode->nar(); i++)
-                sprintf(coloringMethodList[i+sp], "%d",i);
-        for(i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
+        coloringMethodList.push_back("TYPE");
+        coloringMethodList.push_back("LABL");
+        coloringMethodList.push_back("COMP");
+        specialColorItems = 6;
+    }
+    for(i=0; i<nar; i++)
+    {
+        std::stringstream s;
+        s << i;
+        coloringMethodList.push_back(s.str());
+    }
+    if(whichType == SOLUTION)
+    {
+        for(i=0; i<mySolNode->npar(); ++i)
         {
-            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode->parID(i-(mySolNode->nar()+sp))+1);
+            std::stringstream s;
+            s << "PAR(" << mySolNode->parID(i)+1 << ")";
+            coloringMethodList.push_back(s.str());
         }
     }
-    else
-    {
-        for(i=0; i<myBifNode->nar(); i++)
-            sprintf(coloringMethodList[i+sp], "%d", i);
-    }
-    specialColorItems = sp;
 
     if(mySolNode->numOrbits() > 0)
     {
@@ -1334,15 +1337,21 @@ initCoordAndLableListItems()
     myLabels[numLabels + MY_HALF] = MY_HALF; // -3
     myLabels[numLabels + MY_ALL] = MY_ALL; // -4
 
+    labels.clear();
+    labels.push_back("ALL");
+    labels.push_back("HALF");
+    labels.push_back("SPEC");
+    labels.push_back("NONE");
+
     int nty;
     char tylabels[][3] = {
          "MX","R4","  ","  ","R1","UZ","BT","CP","  ","  ",
          "BP","LP","HB","  ","LP","BP","PD","TR","EP",
          "ZH","GH","R2","R3" };
-    for( i=0; i<numLabels; ++i)
+    for( i=0; i<numLabels-SP_LBL_ITEMS; ++i)
     {
-        int jmii = i + SP_LBL_ITEMS;
-        sprintf(labels[jmii], "%d", myLabels[i]);
+        std::stringstream s;
+        s << myLabels[i];
         nty = 0;
         switch (clientData.labelIndex[i][2])
         {
@@ -1372,15 +1381,10 @@ initCoordAndLableListItems()
         }
         if (nty != 0 && tylabels[nty+9][0] != ' ')
         {
-            strcat(labels[jmii], " ");
-            strcat(labels[jmii], tylabels[nty+9]);
+            s << " " << tylabels[nty+9];
         }
+        labels.push_back(s.str());
     }
-
-    strcpy(labels[0],"ALL");
-    strcpy(labels[1],"HALF");
-    strcpy(labels[2],"SPEC");
-    strcpy(labels[3],"NONE");
 
     if(whichType == SOLUTION)
     {
@@ -2217,11 +2221,8 @@ postDeals()
     delete [] clientData.solMax;
     delete [] clientData.solMin;
 
-    delete [] coloringMethodList;
     delete [] myLabels;
-    delete [] xAxis;
-    delete [] yAxis;
-    delete [] zAxis;
+    delete [] clientData.labelIndex;
 }
 
 

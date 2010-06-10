@@ -74,8 +74,6 @@
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
 
-#define MAX_LABEL 50000  // maximum number of labels in a solution file
-
 #ifndef M_PI
     #define M_PI 3.1415926
 #endif
@@ -145,7 +143,7 @@ struct UserData{
     float (*multipliers)[2];           // from the diagnostic file.
     int maxndim;
     int *numFM;                        // #multipliers (+) or #eigenvalues (-)?
-    long int labelIndex[MAX_LABEL][4]; // [0] --- saves the start row number in the solData, 
+    long int (*labelIndex)[4];        // [0] --- saves the start row number in the solData, 
 	                              // [1] --- saves the row number in the bifData.
 	                              // [2] --- saves the type of the label.
 								  // [3] --- saves the stability of the solution.
@@ -224,12 +222,12 @@ extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;
 extern int MIN_SAT_SPEED, MAX_SAT_SPEED;
 extern bool blDrawTicker;
 extern struct DefaultAxisItems dai;
-extern char (*coloringMethodList)[8];
+extern std::vector<std::string> coloringMethodList;
 extern int *myLabels;
-extern char (*xAxis)[5], (*yAxis)[5], (*zAxis)[5];
+extern std::vector<std::string> xAxis, yAxis, zAxis;
 extern bool optBif[11], optSol[11];
 extern float satRadius, aniLineScaler;
-extern char labels[MAX_LABEL][8];
+extern std::vector<std::string> labels;
 extern long int animationLabel;
 extern const char *autoDir;
 extern int whichCoordSystem, whichCoordSystemOld, whichCoordSystemTemp;

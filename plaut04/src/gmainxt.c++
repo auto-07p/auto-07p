@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include <X11/Intrinsic.h>
 
 #include <Xm/Xm.h>
@@ -422,87 +424,75 @@ setListValue()
 //
 ///////////////////////////////////////////////////////////////////////////
 {
-    long nItems = (whichType != BIFURCATION) ? 
-	                   mySolNode->totalLabels()+SP_LBL_ITEMS : 
-					   myBifNode->totalLabels()+SP_LBL_ITEMS;
-    int count = XtNumber (labels);
-
+    int nar;
+    int count = labels.size();
     lblList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
     for (int i = 0; i < count; i++)
-        lblList[i] = XmStringCreateLocalized (labels[i]);
+        lblList[i] = XmStringCreateLocalized (const_cast<char *>(labels[i].c_str()));
 
     if(whichType != BIFURCATION)
     {
         xCoordIndices = dai.solX;
         yCoordIndices = dai.solY;
         zCoordIndices = dai.solZ;
-
-        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, mySolNode->nar(), NULL);
-        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, mySolNode->nar(), NULL);
-        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, mySolNode->nar(), NULL);
-        lessTifFixupComboBox(xAxisList, xList, mySolNode->nar(), 10, 60, 2);
-        lessTifFixupComboBox(yAxisList, yList, mySolNode->nar(), 10, 60, 2);
-        lessTifFixupComboBox(zAxisList, zList, mySolNode->nar(), 10, 60, 2);
-
-        int sp = 0;
-        strcpy(coloringMethodList[0],"STAB"); sp++;
-        strcpy(coloringMethodList[1],"PONT"); sp++;
-        strcpy(coloringMethodList[2],"BRAN"); sp++;
-        strcpy(coloringMethodList[3],"TYPE"); sp++;
-        strcpy(coloringMethodList[4],"LABL"); sp++;
-        strcpy(coloringMethodList[5],"COMP"); sp++;
-        specialColorItems = sp;
-        for(int i=sp; i<mySolNode->nar()+sp; ++i)
-        {
-            sprintf(coloringMethodList[i],"%d",i-sp);
-        }
-        for(int i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
-        {
-            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID(i-(mySolNode->nar()+sp))+1);
-        }
-
-        int count = mySolNode->nar()+mySolNode->npar()+sp;
-        for (int i = 0; i < count; ++i)
-            clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
-
-        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
-		               XmNitemCount, count, NULL);
-        XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
-        lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            count, 10, 80, 5);
-        lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
+        nar = mySolNode->nar();
     }
     else
     {
         xCoordIndices = dai.bifX;
         yCoordIndices = dai.bifY;
         zCoordIndices = dai.bifZ;
-        XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, myBifNode->nar(), NULL);
-        XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, myBifNode->nar(), NULL);
-        XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, myBifNode->nar(), NULL);
-        lessTifFixupComboBox(xAxisList, xList, myBifNode->nar(), 10, 60, 2);
-        lessTifFixupComboBox(yAxisList, yList, myBifNode->nar(), 10, 60, 2);
-        lessTifFixupComboBox(zAxisList, zList, myBifNode->nar(), 10, 60, 2);
-
-        int sp = 0;
-        strcpy(coloringMethodList[0],"STAB"); sp++;
-        strcpy(coloringMethodList[1],"PONT"); sp++;
-        strcpy(coloringMethodList[2],"BRAN"); sp++;
-        specialColorItems = sp;
-        for(int i=sp; i<myBifNode->nar()+sp; ++i)
-        {
-            sprintf(coloringMethodList[i],"%d",i-sp);
-        }
-        int count = myBifNode->nar()+sp;
-        for (int i = 0; i < count; ++i)
-            clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
-
-        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, count,NULL);
-        XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
-        lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            count, 10, 80, 5);
-        lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
+        nar = myBifNode->nar();
     }
+
+    XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, nar, NULL);
+    XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, nar, NULL);
+    XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, nar, NULL);
+    lessTifFixupComboBox(xAxisList, xList, nar, 10, 60, 2);
+    lessTifFixupComboBox(yAxisList, yList, nar, 10, 60, 2);
+    lessTifFixupComboBox(zAxisList, zList, nar, 10, 60, 2);
+
+    coloringMethodList.clear();
+    coloringMethodList.push_back("STAB");
+    coloringMethodList.push_back("PONT");
+    coloringMethodList.push_back("BRAN");
+
+    specialColorItems = 3;
+
+    if(whichType != BIFURCATION)
+    {
+        coloringMethodList.push_back("TYPE");
+        coloringMethodList.push_back("LABL");
+        coloringMethodList.push_back("COMP");
+        specialColorItems = 6;
+    }
+    for(int i=0; i<nar; ++i)
+    {
+        std::stringstream s;
+        s << i;
+        coloringMethodList.push_back(s.str());
+    }
+    if(whichType != BIFURCATION)
+    {
+        for(int i=0; i<mySolNode->npar(); ++i)
+        {
+            std::stringstream s;
+            s << "PAR(" << mySolNode->parID(i)+1 << ")";
+            coloringMethodList.push_back(s.str());
+        }
+
+    }
+
+    count = coloringMethodList.size();
+    for (int i = 0; i < count; ++i)
+        clrMethodList[i] = XmStringCreateLocalized (const_cast<char *>(coloringMethodList[i].c_str()));
+    XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
+	               XmNitemCount, count, NULL);
+    long nItems = labels.size();
+    XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
+    lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
+            count, 10, 80, 5);
+    lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
 
     if(setShow3D)
         XtSetSensitive (zAxisList, true);
@@ -823,10 +813,10 @@ buildFileMenu(Widget menubar)
     const char *openAccel  = "Ctrl<Key>o";
     const char *saveAccel  = "Ctrl<Key>s";
     const char *quitAccel  = "Ctrl<Key>q";
-    XmString openAccelText  = XmStringCreate((char *)"Ctrl+o", XmSTRING_DEFAULT_CHARSET);
-    XmString saveAccelText  = XmStringCreate((char *)"Ctrl+s", XmSTRING_DEFAULT_CHARSET);
-    XmString printAccelText = XmStringCreate((char *)"Ctrl+p", XmSTRING_DEFAULT_CHARSET);
-    XmString quitAccelText  = XmStringCreate((char *)"Ctrl+q", XmSTRING_DEFAULT_CHARSET);
+    XmString openAccelText  = XmStringCreate((char *)"Ctrl+o", (char *)XmSTRING_DEFAULT_CHARSET);
+    XmString saveAccelText  = XmStringCreate((char *)"Ctrl+s", (char *)XmSTRING_DEFAULT_CHARSET);
+    XmString printAccelText = XmStringCreate((char *)"Ctrl+p", (char *)XmSTRING_DEFAULT_CHARSET);
+    XmString quitAccelText  = XmStringCreate((char *)"Ctrl+q", (char *)XmSTRING_DEFAULT_CHARSET);
     n = 0;
     XtSetArg(args[n], XmNaccelerator, openAccel); n++;
     XtSetArg(args[n], XmNacceleratorText, openAccelText); n++;
@@ -1331,10 +1321,10 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 //build the xAxis drop down list
-    int nItems = (whichType != BIFURCATION) ? mySolNode->nar() : myBifNode->nar();
+    int nItems = xAxis.size();
     xList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
     for (i = 0; i < nItems; i++)
-        xList[i] = XmStringCreateLocalized (xAxis[i]);
+        xList[i] = XmStringCreateLocalized (const_cast<char *>(xAxis[i].c_str()));
 
     xAxisList=XtVaCreateManagedWidget ("xAxis",
         xmComboBoxWidgetClass, listCarrier,
@@ -1360,9 +1350,10 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the yAxis drop down list
+    nItems = yAxis.size();
     yList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
     for (i = 0; i < nItems; i++)
-        yList[i] = XmStringCreateLocalized (yAxis[i]);
+        yList[i] = XmStringCreateLocalized(const_cast<char *>(yAxis[i].c_str()));
 
     yAxisList=XtVaCreateManagedWidget ("yAxis",
         xmComboBoxWidgetClass, listCarrier,
@@ -1387,9 +1378,10 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the zAxis drop down list
+    nItems = zAxis.size();
     zList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
     for (i = 0; i < nItems; i++)
-        zList[i] = XmStringCreateLocalized (zAxis[i]);
+        zList[i] = XmStringCreateLocalized(const_cast<char *>(zAxis[i].c_str()));
 
     zAxisList=XtVaCreateManagedWidget ("zAxis",
         xmComboBoxWidgetClass, listCarrier,
@@ -1415,12 +1407,10 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the LABELs drop down list
-    nItems = (whichType != BIFURCATION) ? 
-	               mySolNode->totalLabels()+SP_LBL_ITEMS : 
-	               myBifNode->totalLabels()+SP_LBL_ITEMS;
+    nItems = labels.size();
     lblList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
     for (i = 0; i < nItems; i++)
-        lblList[i] = XmStringCreateLocalized (labels[i]);
+        lblList[i] = XmStringCreateLocalized (const_cast<char *>(labels[i].c_str()));
 
     labelsList=XtVaCreateManagedWidget ("Labels",
         xmComboBoxWidgetClass, listCarrier,
@@ -1452,13 +1442,11 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the COLORING Method drop down list
-    nItems = (whichType != BIFURCATION) ? 
-	              mySolNode->nar()+mySolNode->npar()+specialColorItems : 
-				  myBifNode->nar()+specialColorItems;
+    nItems = coloringMethodList.size();
     clrMethodList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
 
     for (i = 0; i < nItems; ++i)
-        clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
+        clrMethodList[i] = XmStringCreateLocalized(const_cast<char *>(coloringMethodList[i].c_str()));
 
     colorMethodSeletionList=XtVaCreateManagedWidget ("coloringMethodlist",
         xmComboBoxWidgetClass, listCarrier,
@@ -3297,7 +3285,7 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 ////////////////////////////////////////////////////////////////////////
 {
     XmComboBoxCallbackStruct *cbs = (XmComboBoxCallbackStruct *)call_data;
-    int choice = (int) cbs->item_position;
+    int choice = (int) cbs->item_position - 1;
     int nItems = (whichType != BIFURCATION) ? mySolNode->totalLabels() : myBifNode->totalLabels();
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
@@ -3307,7 +3295,7 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
     tmp = strtok(manyChoice, ",");
     choice -= SP_LBL_ITEMS;
     lblIndices.clear();
-    if(choice <= MY_ALL || choice >= nItems - SP_LBL_ITEMS)
+    if(choice <= MY_ALL || choice >= nItems)
     {
         do
         {
