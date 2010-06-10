@@ -1,7 +1,9 @@
 #ifndef BIFURCATION_H
 #define BIFURCATION_H
 
-#include "gplaut04.h"
+#include <stdint.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoMaterial.h>
 
 class Bifurcation {
   public:
@@ -18,7 +20,7 @@ class Bifurcation {
 
     int nar() {return nar_;}
     int maxndim() {return maxndim_;}
-    long int *labels() {return labels_;}
+    long int labels(int i) {return orbits_[i].label;}
     int totalLabels() {return totalLabels_;}
     long totalNumPoints() {return totalNumPoints_;}
     int32_t *numVerticesEachBranch() {return numVerticesEachBranch_;}
@@ -38,7 +40,6 @@ class Bifurcation {
 
     int varIndices_[3];
     int32_t *numVerticesEachBranch_;
-    int32_t numVerticesEachLabelInterval_[MAX_LABEL]; 
     int *xAxisItems_;
     int *yAxisItems_;
     int *zAxisItems_;
@@ -49,7 +50,11 @@ class Bifurcation {
     long int totalNumPoints_; // like 10012.
     long int numBranches_;    // like 4.
     long int *branchID_; // branch ID of each branch.
-    long int labels_[MAX_LABEL];   // this real lenght should equal to totalLabels;
+    struct orbit
+    {
+        int32_t numVerticesEachLabelInterval; 
+        long int label;   // this real lenght should equal to totalLabels;
+    } *orbits_;
     int      numAxis_;        // number of groups of axis. 3 is a group.
     int totalLabels_;
 

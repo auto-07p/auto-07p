@@ -1298,7 +1298,7 @@ initCoordAndLableListItems()
     else
     {
         numLabels = myBifNode->totalLabels();
-        for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode->labels()[j];
+        for(int j=0; j<numLabels; j++) myLabels[j] = myBifNode->labels(j);
         if(useR3B) blMassDependantOption = false;
     }
 

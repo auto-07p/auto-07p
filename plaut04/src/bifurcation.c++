@@ -16,6 +16,7 @@ using namespace std;
 #include <iostream>
 #endif
 
+#include "gplaut04.h"
 #include "createCoords.h"
 #include "rounding.h"
 #include "tube.h"
@@ -160,7 +161,7 @@ Bifurcation::drawLabelPtsInScene()
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(row, size, labels_[k]));
+                result->addChild( drawALabel(row, size, orbits_[k].label));
 
             ++k;
         } while( k < totalLabels_);
@@ -184,7 +185,7 @@ Bifurcation::drawLabelPtsInScene()
             size *= lineWidthScaler;
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
-                result->addChild( drawALabel(row, size, labels_[k]));
+                result->addChild( drawALabel(row, size, orbits_[k].label));
         }
     }
     return result;
@@ -463,7 +464,7 @@ drawABifLabelInterval(long int l, long int si, float scaler, int stability, int 
     int32_t  myint[10];
 
     SoSeparator * anInterval = new SoSeparator;
-    long int size = numVerticesEachLabelInterval_[l];
+    long int size = orbits_[l].numVerticesEachLabelInterval;
     float *colorBase = new float[size];
     float (*vertices)[3] = new float[size][3];
     for(int m=0; m<size; m++)
@@ -511,20 +512,20 @@ drawABifLabelIntervalUsingNurbsCurve(long int l,
 
     SoSeparator * anInterval = new SoSeparator;
     float (*vertices)[3];
-    vertices = new float[numVerticesEachLabelInterval_[l]][3];
-    for(int m=0; m<numVerticesEachLabelInterval_[l]; m++)
+    vertices = new float[orbits_[l].numVerticesEachLabelInterval][3];
+    for(int m=0; m<orbits_[l].numVerticesEachLabelInterval; m++)
     {
         vertices[m][0]=xyzCoords_[si+m][0];
         vertices[m][1]=xyzCoords_[si+m][1];
         vertices[m][2]=xyzCoords_[si+m][2];
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, numVerticesEachLabelInterval_[l], vertices);
-    myint[0]=numVerticesEachLabelInterval_[l];
+    myCoords->point.setValues(0, orbits_[l].numVerticesEachLabelInterval, vertices);
+    myint[0]=orbits_[l].numVerticesEachLabelInterval;
 
     SoGroup *cvGrp = new SoGroup;
 
-    int number = numVerticesEachLabelInterval_[l];
+    int number = orbits_[l].numVerticesEachLabelInterval;
     float * knots = new float[number+4];
     if(number > 4)
     {
@@ -663,6 +664,7 @@ Bifurcation::alloc(void)
     branchID_ = new long[numBranches_];
 
     data_ = new float[totalNumPoints_*nar_];
+    orbits_ = new struct orbit[totalLabels_];
 }
 
 void
@@ -760,9 +762,9 @@ Bifurcation::read(const char *bFileName, int varIndices[])
             ++numPtInCurrentInterval;
             if(lb != 0)
             {
-                numVerticesEachLabelInterval_[totalLabels] = numPtInCurrentInterval;
+                orbits_[totalLabels].numVerticesEachLabelInterval = numPtInCurrentInterval;
                 numPtInCurrentInterval = 0;
-                labels_[totalLabels] = lb;
+                orbits_[totalLabels].label = lb;
                 clientData.labelIndex[totalLabels][1] = totalPoints;
                 clientData.labelIndex[totalLabels][2] = lbType;
                 clientData.labelIndex[totalLabels][3] = lbStability;
@@ -777,7 +779,6 @@ Bifurcation::read(const char *bFileName, int varIndices[])
 
     if(numBranches>0)
         numVerticesEachBranch_[numBranches-1] = numPtsInThisBranch;
-    totalLabels_ = totalLabels;
 
 #ifdef DEBUG
     cout <<"======================================"<<endl;
@@ -838,10 +839,12 @@ Bifurcation::parse(const char *bFileName)
         if(branch != 0)
         {
             long int pt;
-            fscanf(inFile, "%ld", &pt);
+	    int lbType, lb;
+            fscanf(inFile, "%ld %d %d", &pt, &lbType, &lb);
+	    if (lb != 0) totalLabels_++;
             if (abs(pt) == 1) numBranches++;
 	    char c;
-            int ic = -1;
+            int ic = 1;
             while (fscanf(inFile,"%*s%c", &c) == 1 && c !='\n') ic++;
             if (ic > maxColSize) maxColSize = ic;
             ++totalPoints;
@@ -894,4 +897,5 @@ Bifurcation::dealloc()
     delete [] numVerticesEachBranch_;
     delete [] branchID_;
     delete [] data_;
+    delete [] orbits_;
 }
