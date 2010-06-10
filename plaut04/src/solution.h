@@ -3,11 +3,11 @@
 
 #include <queue>
 
-#include "gplaut04.h"
+#include <Inventor/nodes/SoSeparator.h>
 
 class Solution {
   public:
-    Solution() {}
+    Solution() {npar_ = 0;}
     ~Solution() {}
     void copyDataToWorkArray(int  varIndices[], int cur, int mx, int to);
     SoSeparator *createSceneWithWidgets();
@@ -19,7 +19,7 @@ class Solution {
     void dealloc();
     void searchForMaxMin(int component, int  varIndices[]);
     void denormalizePosition(float position[]);
-    void set_parID(int parID[], int size);
+    void set_parID(std::queue<int> &parIDs);
 
     int nar() {return nar_;}
     int npar() {return npar_;}
@@ -31,8 +31,6 @@ class Solution {
     int32_t numVerticesEachPeriod(int i) {return orbits_[i].numVerticesEachPeriod;}
     float **data() {return data_;}
     float masses(int i) {return orbits_[i].mass;}
-
-    void set_npar(int npar) {npar_ = npar;}
 
   private:
     SoSeparator *render();
@@ -111,10 +109,10 @@ class Solution {
     } *orbits_;              // we have an array of numOrbits of these
     int      numAxis_;        // number of groups of axis. 3 is a group.
     int      totalLabels_;
-    double (*parMax_)[MAX_PAR];     // keep the max parameter values in each branch.
-    double (*parMin_)[MAX_PAR];     // keep the min parameter values.
-    double (*parMid_)[MAX_PAR];     // keep the mid parameter values.
-    int      parID_[MAX_PAR];    // keep the id for the par, namely the x for par(x)
+    double (**parMax_);     // keep the max parameter values in each branch.
+    double (**parMin_);     // keep the min parameter values.
+    double (**parMid_);     // keep the mid parameter values.
+    int      *parID_;       // keep the id for the par, namely the x for par(x)
 
     // max saves the maximum value of the coordinate.
     // min saves the minimum value of the coordinate.

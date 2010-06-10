@@ -1483,27 +1483,31 @@ readLineColorAndPattern(std::stringstream& buffer, float *lineColor, unsigned lo
 //
 template <class T>
 static void
-readNData(std::stringstream& buffer, T *data, int &size )
+readNData(std::stringstream& buffer, T *data, int size )
 //
 ///////////////////////////////////////////////////////////////////
 {
     std::string word;
-    int k = 0;
-    if(size > 0)
+    for(int k=0; k<size; ++k)
     {
-        for(k=0; k<size; ++k)
-        {
-            readAString(buffer, word);
-            std::stringstream(word) >> data[k];
-        }
+        readAString(buffer, word);
+        std::stringstream(word) >> data[k];
     }
-    else
+}
+
+template <class T>
+static void
+readNData(std::stringstream& buffer, std::queue<T> &data)
+//
+///////////////////////////////////////////////////////////////////
+{
+    std::string word;
+    T item;
+    int k = 0;
+    while ( readAString(buffer, word) )
     {
-        while ( readAString(buffer, word) )
-        {
-            std::stringstream(word) >> data[k++];
-        }
-        size = k;
+        std::stringstream(word) >> item;
+        data.push(item);
     }
 }
 
@@ -1745,14 +1749,12 @@ readResourceParameters()
                                 break;
                             case 19:
 			    {
-                                int sizerot = 4;
-			        readNData(buffer, diskRotation, sizerot);
+			        readNData(buffer, diskRotation, 4);
                                 break;
                             }
                             case 20:
 			    {
-                                int sizeyz = 3;
-			        readNData(buffer, diskPosition, sizeyz);
+			        readNData(buffer, diskPosition, 3);
                                 break;
                             }
                             case 21:
@@ -1772,8 +1774,7 @@ readResourceParameters()
                                 break;
                             case 25:
 			    {
-		                int sizeyz = 3;
-			        readNData(buffer, spherePosition, sizeyz);
+			        readNData(buffer, spherePosition, 3);
                                 break;
                             }
                             case 26:
@@ -1837,7 +1838,7 @@ readResourceParameters()
                 {
                     if(strcasecmp(strTemp, nDataVarNames[i])==0)
                     {
-                        readNData(buffer, colors, size);
+                        readNData(buffer, colors, 3);
                         for(int j=0; j<3; ++j) envColors[i][j]=colors[j];
                         blDealt = true;
                         break;
@@ -1847,10 +1848,9 @@ readResourceParameters()
 
             if(!blDealt && strcasecmp(strTemp, "parameter ID")==0)
             {
-                int size = -1;
-                int parIDs[MAX_PAR];
-                readNData(buffer, parIDs, size);
-                mySolNode->set_parID(parIDs, size);
+                std::queue<int> parIDs;
+                readNData(buffer, parIDs);
+                mySolNode->set_parID(parIDs);
                 blDealt = true;
             }
 
@@ -1858,14 +1858,14 @@ readResourceParameters()
 
             if(!blDealt && strcasecmp(strTemp, "Labels")==0)
             {
-                int size = -1;
-                int lblIdx[MAX_LABEL];
-                readNData(buffer, lblIdx, size);
-                lblIdxSize = size;
+                std::queue <int> lblIdx;
+                readNData(buffer, lblIdx);
+                lblIdxSize = lblIdx.size();
                 blDealt = true;
-                for(int is=0; is<size; ++is)
+                for(int is=0; is<lblIdxSize; ++is)
                 {
-                    lblChoice[is] = lblIdx[is] - 1;
+                    lblChoice[is] = lblIdx.front() - 1;
+                    lblIdx.pop();
                 }
             }
 
@@ -1877,43 +1877,48 @@ readResourceParameters()
                 {
                     if(strcasecmp(strTemp, axesNames[i]) == 0)
                     {
-                        int size = -1;
-                        int pars[MAX_PAR];
-                        readNData(buffer, pars, size);
-                        mySolNode->set_npar(size);
+                        std::queue<int> pars;
+                        readNData(buffer, pars);
+                        int size = pars.size();			
                         blDealt = true;
+                        int *xyz;			
                         switch ( i )
                         {
                             case 0:
                                 dai.solXSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.solX[is] = pars[is];
+                                dai.solX = new int[size];
+                                xyz = dai.solX;
                                 break;
                             case 1:
                                 dai.solYSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.solY[is] = pars[is];
+                                dai.solY = new int[size];
+                                xyz = dai.solY;
                                 break;
                             case 2:
                                 dai.solZSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.solZ[is] = pars[is];
+                                dai.solZ = new int[size];
+                                xyz = dai.solZ;
                                 break;
                             case 3:
                                 dai.bifXSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.bifX[is] = pars[is];
+                                dai.bifX = new int[size];
+                                xyz = dai.bifX;
                                 break;
                             case 4:
                                 dai.bifYSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.bifY[is] = pars[is];
+                                dai.bifY = new int[size];
+                                xyz = dai.bifY;
                                 break;
                             case 5:
                                 dai.bifZSize = size;
-                                for(int is=0; is<size; ++is)
-                                    dai.bifZ[is] = pars[is];
+                                dai.bifZ = new int[size];
+                                xyz = dai.bifZ;
                                 break;
+                        }
+                        for(int is=0; is<size; ++is)
+                        {
+                            xyz[is] = pars.front();
+                            pars.pop();
                         }
                     }
                 }
@@ -2035,12 +2040,13 @@ setVariableDefaultValues()
 
     if (useR3B)
     {
-        dai.solXSize = 1; dai.solX[0] = 1;
-        dai.solYSize = 1; dai.solY[0] = 2;
-        dai.solZSize = 1; dai.solZ[0] = 3;
-        dai.bifXSize = 1; dai.bifX[0] = 4;
-        dai.bifYSize = 1; dai.bifY[0] = 5;
-        dai.bifZSize = 1; dai.bifZ[0] = 6;
+        static int r3bxyz[6] = {1,2,3,4,5,6};
+        dai.solXSize = 1; dai.solX = &r3bxyz[0];
+        dai.solYSize = 1; dai.solY = &r3bxyz[1];
+        dai.solZSize = 1; dai.solZ = &r3bxyz[2];
+        dai.bifXSize = 1; dai.bifX = &r3bxyz[3];
+        dai.bifYSize = 1; dai.bifY = &r3bxyz[4];
+        dai.bifZSize = 1; dai.bifZ = &r3bxyz[5];
         setShow3D         = true;
         satSpeed          = 1.0;
         coloringMethod    = CL_STABILITY;
@@ -2056,13 +2062,14 @@ setVariableDefaultValues()
 	graphWidgetItems[OPT_SAT_ANI] = "Satellite Animation";
     }
     else {
-        dai.solXSize = 1; dai.solX[0] = 0;
-        dai.solYSize = 1; dai.solY[0] = 1;
-        dai.solZSize = 1; dai.solZ[0] = 2;
+        static int xyz[3] = {0,1,2};
+        dai.solXSize = 1; dai.solX = &xyz[0];
+        dai.solYSize = 1; dai.solY = &xyz[1];
+        dai.solZSize = 1; dai.solZ = &xyz[2];
 
-        dai.bifXSize = 1; dai.bifX[0] = 0;
-        dai.bifYSize = 1; dai.bifY[0] = 1;
-        dai.bifZSize = 1; dai.bifZ[0] = 2;
+        dai.bifXSize = 1; dai.bifX = &xyz[0];
+        dai.bifYSize = 1; dai.bifY = &xyz[1];
+        dai.bifZSize = 1; dai.bifZ = &xyz[2];
         setShow3D         = false;
         satSpeed          = 0.5;
         coloringMethod    = CL_COMPONENT;
@@ -2075,9 +2082,9 @@ setVariableDefaultValues()
 
     satRadius         = 1.0;
 
-    int parID[1];
-    parID[0] = 10;
-    mySolNode->set_parID(parID,1);
+    std::queue<int> parIDs;
+    parIDs.push(10);
+    mySolNode->set_parID(parIDs);
 
     setShow3DSol = setShow3D;
     setShow3DBif = setShow3D;

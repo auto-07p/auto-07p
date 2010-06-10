@@ -657,7 +657,7 @@ Bifurcation::copyDataToWorkArray(int  varIndices[])
 }
 
 void
-Bifurcation::alloc(void)
+Bifurcation::alloc()
 {
     ptStability_ = new unsigned char[totalNumPoints_];
     numVerticesEachBranch_ = new int32_t[numBranches_];

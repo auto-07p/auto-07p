@@ -70,8 +70,6 @@
 #define ITEM_THREE    2
 #define ITEM_FOUR     3
 
-#define MAX_PAR  100    // Max Number of parameters in AUTO 
-
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
 
@@ -198,8 +196,8 @@ struct DefaultAxisItems
 {
     int solXSize, solYSize, solZSize;
     int bifXSize, bifYSize, bifZSize;
-    int bifX[MAX_PAR], bifY[MAX_PAR], bifZ[MAX_PAR];
-    int solX[MAX_PAR], solY[MAX_PAR], solZ[MAX_PAR];
+    int *bifX, *bifY, *bifZ;
+    int *solX, *solY, *solZ;
 };
 
 #define CL_SP_ITEMS  6

@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "gplaut04.h"
 #include "createCoords.h"
 #include "tube.h"
 #include "rounding.h"
@@ -2118,9 +2119,21 @@ Solution::alloc()
     numVerticesEachBranch_ = new int32_t[numBranches_];
     numOrbitsInEachBranch_ = new int32_t[numBranches_];
     branchID_ = new long[numBranches_];
-    parMax_ = new double[numBranches_][MAX_PAR];
-    parMin_ = new double[numBranches_][MAX_PAR];
-    parMid_ = new double[numBranches_][MAX_PAR];
+    parMax_ = new double*[numBranches_];
+    parMin_ = new double*[numBranches_];
+    parMid_ = new double*[numBranches_];
+    if (numBranches_ > 0)
+    {
+        parMax_[0] = new double[numBranches_*npar_];
+        parMin_[0] = new double[numBranches_*npar_];
+        parMid_[0] = new double[numBranches_*npar_];
+	for(int i=1; i<numBranches_; ++i)
+	{
+            parMax_[i] = &parMax_[0][i*npar_];
+            parMin_[i] = &parMin_[0][i*npar_];
+            parMid_[i] = &parMid_[0][i*npar_];
+        }
+    }
     numAxis_   = 3;
 
     data_ = new float*[totalNumPoints_];
@@ -2150,12 +2163,15 @@ Solution::denormalizePosition(float position[])
 }
 
 void
-Solution::set_parID(int parIDs[], int size)
+Solution::set_parID(std::queue<int>& parIDs)
 {
-    npar_ = size;
-    for(int is=0; is<size; ++is)
+    if (npar_ != 0) delete [] parID_;
+    npar_ = parIDs.size();
+    parID_ = new int[npar_];
+    for(int is=0; is < npar_; ++is)
     {
-        parID_[is] = parIDs[is];
+        parID_[is] = parIDs.front();
+        parIDs.pop();
     }
 }
 
@@ -2168,6 +2184,12 @@ Solution::dealloc()
     delete [] numVerticesEachBranch_;
     delete [] numOrbitsInEachBranch_;
     delete [] branchID_;
+    if (numBranches_ > 0)
+    {
+        delete [] parMax_[0];
+        delete [] parMin_[0];
+        delete [] parMid_[0];
+    }
     delete [] parMax_;
     delete [] parMin_;
     delete [] parMid_;
