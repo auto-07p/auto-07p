@@ -38,8 +38,8 @@ createSphere.o: createSphere.h
 gmain.o: $(INC)/gplaut04.h $(INC)/gVarNames.h bifurcation.h solution.h \
  createDisk.h createSphere.h createLegend.h readFM.h stringtrim.h
 r3b/gmainr3b.o: $(INC)/gplaut04.h
-gmainxt.o: $(INC)/gplaut04.h
-gmainqt.o: $(INC)/gplaut04.h
+gmainxt.o: solution.h bifurcation.h $(INC)/gplaut04.h
+gmainqt.o: solution.h bifurcation.h $(INC)/gplaut04.h
 printToPS.o: printToPS.h
 polygon3d.o: polygon3d.h
 readFM.o: readFM.h $(INC)/gplaut04.h

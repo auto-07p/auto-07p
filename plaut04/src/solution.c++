@@ -123,7 +123,7 @@ Solution::drawUsingTubes()
             curBranchID = branchID_[++iBranch];
             sumOrbit   += numOrbitsInEachBranch_[iBranch];
         }
-        long int upperlimit = numVerticesEachPeriod_[j];
+        long int upperlimit = orbits_[j].numVerticesEachPeriod;
 
         if(upperlimit >0 )
         {
@@ -262,7 +262,7 @@ Solution::drawUsingTubes()
                             stability, scaler));
                 else if(coloringMethod >= nar_)
                     tubeSep->addChild(setLineAttributesByParameterValue(
-                          par_[j][parID_[coloringMethod-nar_]],
+                          orbits_[j].par[parID_[coloringMethod-nar_]],
                           parMax_[iBranch][coloringMethod-nar_],
                           parMid_[iBranch][coloringMethod-nar_],
                           parMin_[iBranch][coloringMethod-nar_],
@@ -336,7 +336,7 @@ Solution::drawABranchUsingSurface(long obStart, long obEnd, long numVert)
         sum += npt;
         for(int j=obStart; j<obEnd; ++j)
         {
-            npt= numVerticesEachPeriod_[j];
+            npt= orbits_[j].numVerticesEachPeriod;
             if(npt>1)
             {
                 for(int i=0; i<npt; i++)
@@ -416,7 +416,7 @@ Solution::renderTubes()
                 }
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
-                si += numVerticesEachPeriod_[ka];
+                si += orbits_[ka].numVerticesEachPeriod;
             }
 
             if(options[OPT_SAT_ANI])
@@ -464,7 +464,7 @@ Solution::renderSurface()
     for(int iBranch = 0; iBranch < numBranches_; ++iBranch)
     {
         end += numOrbitsInEachBranch_[iBranch];
-        numVert = numVerticesEachPeriod_[sumOrbit];
+        numVert = orbits_[sumOrbit].numVerticesEachPeriod;
         SoSeparator * as = drawABranchUsingSurface(start+1, end, numVert);
         if(as !=NULL)
             solGroup->addChild(as);
@@ -488,7 +488,7 @@ Solution::renderSurface()
         }
         if(myLabels[ka]>=animationLabel) break;
         k = k+1;
-        si += numVerticesEachPeriod_[ka];
+        si += orbits_[ka].numVerticesEachPeriod;
     }
 
     if(options[OPT_SAT_ANI])
@@ -529,7 +529,7 @@ Solution::renderPoints(int style)
             solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             k = k+1;
-            si += numVerticesEachPeriod_[ka];
+            si += orbits_[ka].numVerticesEachPeriod;
         }
     }
     else if(animationLabel != MY_NONE)
@@ -551,7 +551,7 @@ Solution::renderPoints(int style)
 
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
-                si += numVerticesEachPeriod_[ka];
+                si += orbits_[ka].numVerticesEachPeriod;
             }
             if(options[OPT_SAT_ANI])
             {
@@ -605,7 +605,7 @@ Solution::renderLines()
             solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2], true));
             k = k+1;
-            si += numVerticesEachPeriod_[ka];
+            si += orbits_[ka].numVerticesEachPeriod;
         }
     }
     else if(animationLabel != MY_NONE)
@@ -627,7 +627,7 @@ Solution::renderLines()
 
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
-                si += numVerticesEachPeriod_[ka];
+                si += orbits_[ka].numVerticesEachPeriod;
             }
 
             if(options[OPT_SAT_ANI])
@@ -680,7 +680,7 @@ Solution::renderNurbsCurve()
             solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k+1, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
             k = k+1;
-            si += numVerticesEachPeriod_[ka];
+            si += orbits_[ka].numVerticesEachPeriod;
         }
     }
     else if(animationLabel != MY_NONE)
@@ -701,7 +701,7 @@ Solution::renderNurbsCurve()
                 }
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
-                si += numVerticesEachPeriod_[ka];
+                si += orbits_[ka].numVerticesEachPeriod;
             }
 
             if(options[OPT_SAT_ANI])
@@ -743,7 +743,7 @@ Solution::animateUsingPoints(int style, bool aniColoring)
     int sumOrbit = numOrbitsInEachBranch_[iBranch];
     for(int l=0; l<numOrbits_; l++)
     {
-        long numVertices = numVerticesEachPeriod_[l];
+        long numVertices = orbits_[l].numVerticesEachPeriod;
         if(l >= sumOrbit)
         {
             curBranchID = branchID_[++iBranch];
@@ -756,7 +756,7 @@ Solution::animateUsingPoints(int style, bool aniColoring)
         else
             solBlinker->addChild(drawAnOrbitUsingPoints(style, iBranch,/* curBranchID,*/ l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-        si+=numVerticesEachPeriod_[l];
+        si+=orbits_[l].numVerticesEachPeriod;
     }
     solGroup->addChild(solStand);
     solGroup->addChild(solBlinker);
@@ -783,7 +783,7 @@ Solution::animateUsingLines(bool aniColoring)
     int sumOrbit = numOrbitsInEachBranch_[iBranch];
     for(int l=0; l<numOrbits_; l++)
     {
-        long numVertices = numVerticesEachPeriod_[l];
+        long numVertices = orbits_[l].numVerticesEachPeriod;
         if(l >= sumOrbit)
         {
             curBranchID = branchID_[++iBranch];
@@ -796,7 +796,7 @@ Solution::animateUsingLines(bool aniColoring)
         else
             solBlinker->addChild(drawAnOrbitUsingLines(iBranch, l, si, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[l][3], clientData.labelIndex[l][2], aniColoring));
-        si+=numVerticesEachPeriod_[l];
+        si+=orbits_[l].numVerticesEachPeriod;
     }
     solGroup->addChild(solStand);
     solGroup->addChild(solBlinker);
@@ -829,7 +829,7 @@ Solution::animateUsingNurbsCurve()
         }
         solBlinker->addChild(drawAnOrbitUsingNurbsCurve(iBranch, l, si, lineWidthScaler,
             clientData.labelIndex[l][3], clientData.labelIndex[l][2]));
-        si+=numVerticesEachPeriod_[l];
+        si+=orbits_[l].numVerticesEachPeriod;
     }
     solGroup->addChild(solBlinker);
     return solGroup;
@@ -896,7 +896,7 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         fabs(max_[1]-min_[1])),
         fabs(max_[2]-min_[2]))) : 2.0;
 
-    long numVertices = numVerticesEachPeriod_[l];
+    long numVertices = orbits_[l].numVerticesEachPeriod;
     if(numVertices == 1 )
     {
         long int idx = si;
@@ -1001,9 +1001,9 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     }
 
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, numVerticesEachPeriod_[l], vertices);
+    myCoords->point.setValues(0, orbits_[l].numVerticesEachPeriod, vertices);
     int32_t  myint[10];
-    myint[0]=numVerticesEachPeriod_[l];
+    myint[0]=orbits_[l].numVerticesEachPeriod;
 
 // define the solution line set
     SoLineSet *myLine= new SoLineSet;
@@ -1034,14 +1034,14 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
                           stability, scaler));
     else if(coloringMethod >= nar_)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                          par_[l][parID_[coloringMethod-nar_]],
+                          orbits_[l].par[parID_[coloringMethod-nar_]],
                           parMax_[iBranch][coloringMethod-nar_],
                           parMid_[iBranch][coloringMethod-nar_],
                           parMin_[iBranch][coloringMethod-nar_],
                           stability, scaler));
     else
         anOrbit->addChild(setLineColorBlending(colorBase,
-                          numVerticesEachPeriod_[l],stability, scaler));
+                          orbits_[l].numVerticesEachPeriod,stability, scaler));
 
     anOrbit->addChild(myCoords);
     anOrbit->addChild(myLine);
@@ -1067,7 +1067,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         fabs(max_[1]-min_[1])),
         fabs(max_[2]-min_[2]))) : 2.0;
 
-    long numVertices = numVerticesEachPeriod_[l];
+    long numVertices = orbits_[l].numVerticesEachPeriod;
     if(numVertices == 1)
     {
         long int idx = si;
@@ -1145,7 +1145,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         else if(coloringMethod >= nar_)
         {
             anOrbit->addChild(setLineAttributesByParameterValue(
-                              par_[l][parID_[coloringMethod-nar_]],
+                              orbits_[l].par[parID_[coloringMethod-nar_]],
                               parMax_[iBranch][coloringMethod-nar_],
                               parMid_[iBranch][coloringMethod-nar_],
                               parMin_[iBranch][coloringMethod-nar_],
@@ -1153,11 +1153,11 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         }
         else
             anOrbit->addChild(setLineColorBlending(colorBase,
-                              numVerticesEachPeriod_[l],stability, scaler));
+                              orbits_[l].numVerticesEachPeriod,stability, scaler));
 
         if(style == MESH_POINTS)
         {
-            if(m%ncol_[l] == 0)
+            if(m%orbits_[l].ncol == 0)
                 anOrbit->addChild(drawAPoint(xyzCoords_[idx][0], xyzCoords_[idx][1],
                     xyzCoords_[idx][2], dis, STATIONARY_POINT_RADIUS*0.5));
         }else
@@ -1184,23 +1184,23 @@ Solution::drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si,
     int32_t  myint[10];
     SoSeparator * anOrbit = new SoSeparator;
     float (*vertices)[3];
-    vertices = new float[numVerticesEachPeriod_[l]][3];
-    for(int m=0; m<numVerticesEachPeriod_[l]; m++)
+    vertices = new float[orbits_[l].numVerticesEachPeriod][3];
+    for(int m=0; m<orbits_[l].numVerticesEachPeriod; m++)
     {
         vertices[m][0]=xyzCoords_[si+m][0];
         vertices[m][1]=xyzCoords_[si+m][1];
         vertices[m][2]=xyzCoords_[si+m][2];
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
-    myCoords->point.setValues(0, numVerticesEachPeriod_[l], vertices);
-    myint[0]=numVerticesEachPeriod_[l];
+    myCoords->point.setValues(0, orbits_[l].numVerticesEachPeriod, vertices);
+    myint[0]=orbits_[l].numVerticesEachPeriod;
 
-    int number = numVerticesEachPeriod_[l];
+    int number = orbits_[l].numVerticesEachPeriod;
     float * knots = new float[number+4];
     for (int i=0; i<4; ++i) knots[i]=0, knots[i+number]=number-3;
     for(int i=4; i<number; ++i) knots[i]=i-3;
     SoNurbsCurve *myCurve = new SoNurbsCurve;
-    myCurve->numControlPoints = numVerticesEachPeriod_[l];
+    myCurve->numControlPoints = orbits_[l].numVerticesEachPeriod;
     myCurve->knotVector.setValues(0, number+4, knots);
 
     if(coloringMethod == CL_BRANCH_NUMBER)
@@ -1237,7 +1237,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
         fabs(max_[2]-min_[2]))) : 2.0 ;
 
     SoSeparator * anOrbit = new SoSeparator;
-    long int numVertices = numVerticesEachPeriod_[l];
+    long int numVertices = orbits_[l].numVerticesEachPeriod;
     if(numVertices == 1)
     {
         int idx = si;
@@ -1329,10 +1329,10 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
         return anOrbit;
     }
 
-    float (*vertices)[3] = new float[numVerticesEachPeriod_[l]][3];
-    float *colorBase = new float[numVerticesEachPeriod_[l]*11];
+    float (*vertices)[3] = new float[orbits_[l].numVerticesEachPeriod][3];
+    float *colorBase = new float[orbits_[l].numVerticesEachPeriod*11];
     Tube tube;
-    for(int m=0; m<numVerticesEachPeriod_[l]; m++)
+    for(int m=0; m<orbits_[l].numVerticesEachPeriod; m++)
     {
         vertices[m][0]=xyzCoords_[si+m][0];
         vertices[m][1]=xyzCoords_[si+m][1];
@@ -1344,7 +1344,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
             for(int j=0; j<11; ++j)
                 colorBase[m*11+j]  = m;
     }
-    tube = Tube(numVerticesEachPeriod_[l], vertices, lineWidthScaler*0.005, 10);
+    tube = Tube(orbits_[l].numVerticesEachPeriod, vertices, lineWidthScaler*0.005, 10);
 
     if(coloringMethod == CL_BRANCH_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
@@ -1366,14 +1366,14 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
                 stability, scaler));
     else if(coloringMethod >= nar_)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                    par_[l][parID_[coloringMethod-nar_]],
+                    orbits_[l].par[parID_[coloringMethod-nar_]],
                     parMax_[iBranch][coloringMethod-nar_],
                     parMid_[iBranch][coloringMethod-nar_],
                     parMin_[iBranch][coloringMethod-nar_],
                     stability, scaler));
     else
         anOrbit->addChild(setLineColorBlending(colorBase,
-                numVerticesEachPeriod_[l]*11,stability, scaler));
+                orbits_[l].numVerticesEachPeriod*11,stability, scaler));
 
     anOrbit->addChild(tube.createTube());
 
@@ -1407,7 +1407,7 @@ Solution::animateUsingTubes(bool aniColoring)
     int sumOrbit    = numOrbitsInEachBranch_[iBranch];
     for(int j=0; j<numOrbits_; j++)
     {
-        long int upperlimit = numVerticesEachPeriod_[j];
+        long int upperlimit = orbits_[j].numVerticesEachPeriod;
         if(upperlimit == 1)
         {
             int idx = sumX;
@@ -1465,7 +1465,7 @@ Solution::animateUsingTubes(bool aniColoring)
                     stability, lineWidthScaler));
             else if(coloringMethod >= nar_)
                 anOrbit->addChild(setLineAttributesByParameterValue(
-                        par_[j][parID_[coloringMethod-nar_]],
+                        orbits_[j].par[parID_[coloringMethod-nar_]],
                         parMax_[iBranch][coloringMethod-nar_],
                         parMid_[iBranch][coloringMethod-nar_],
                         parMin_[iBranch][coloringMethod-nar_],
@@ -1509,7 +1509,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
     int stability = clientData.labelIndex[j][3];
     int type = clientData.labelIndex[j][2];
 
-    long int upperlimit = numVerticesEachPeriod_[j];
+    long int upperlimit = orbits_[j].numVerticesEachPeriod;
     long int idx = si; 
     if(upperlimit == 1)
     {
@@ -1647,7 +1647,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
                 stability, scaler));
     else if(coloringMethod >= nar_)
         satGroup->addChild(setLineAttributesByParameterValue(
-                par_[j][parID_[coloringMethod-nar_]],
+                orbits_[j].par[parID_[coloringMethod-nar_]],
                 parMax_[iBranch][coloringMethod-nar_],
                 parMid_[iBranch][coloringMethod-nar_],
                 parMin_[iBranch][coloringMethod-nar_],
@@ -1852,7 +1852,7 @@ bool Solution::parse( const char* sFileName )
         for(i=0;i<nrowpr+1;i++)
             while(fgetc(inFile)!='\n');
 
-        if(ntpl != 0 && ntpl != 1)
+        if(ntpl != 0)
         {
             total=total+1;
         }
@@ -1905,9 +1905,9 @@ bool Solution::read(const char* sFileName, int varIndices[])
     long int totalNumPointsInEachBranch= 0;
     int lbStability = 0;
 
-    labels_[0]=0;
-    ntst_[0]=0;
-    ncol_[0]=0;
+    orbits_[0].label=0;
+    orbits_[0].ntst=0;
+    orbits_[0].ncol=0;
 
     while(!positions_.empty())
     {
@@ -1943,10 +1943,10 @@ bool Solution::read(const char* sFileName, int varIndices[])
 
         if( ntpl != 0) 
         {
-            numVerticesEachPeriod_[counter]=ntpl;
-            labels_[counter] = lab;
-            ntst_[counter] = ntst;
-            ncol_[counter] = ncol;
+            orbits_[counter].numVerticesEachPeriod=ntpl;
+            orbits_[counter].label = lab;
+            orbits_[counter].ntst = ntst;
+            orbits_[counter].ncol = ncol;
             orbitCounter++;
         }
 
@@ -1983,6 +1983,7 @@ bool Solution::read(const char* sFileName, int varIndices[])
                 }
 
                 int nLines = (npar1+6)/7;
+                orbits_[counter].par = new double[npar1];
                 for(int nzoo = 0; nzoo<nLines; ++nzoo)
                 {
                     fgets(line, sizeof(line), inFile);
@@ -1995,9 +1996,9 @@ bool Solution::read(const char* sFileName, int varIndices[])
                         dummy=fortranatof(dummystr);
                         if(dummy != 0)
                         {
-                            par_[counter][nzoo*7+i] = dummy;
-                            if( nzoo*7+i==1 ) masses_[counter] = dummy;
-                            else if( nzoo*7+i==10 ) period_[counter]=dummy;
+                            orbits_[counter].par[nzoo*7+i] = dummy;
+                            if( nzoo*7+i==1 ) orbits_[counter].mass = dummy;
+                            else if( nzoo*7+i==10 ) orbits_[counter].period=dummy;
                         }
                     }
                 }
@@ -2023,11 +2024,11 @@ bool Solution::read(const char* sFileName, int varIndices[])
         for(int iBranch=0; iBranch<numBranches_; iBranch++)
         {
             int parid = parID_[jv];	    
-            parMax = parMin = parMid = par_[startBranch][parid];
+            parMax = parMin = parMid = orbits_[startBranch].par[parid];
             endBranch = startBranch+numOrbitsInEachBranch_[iBranch];
             for(int innerLoop = startBranch; innerLoop<endBranch; ++innerLoop)
             {
-                float par = par_[innerLoop][parID_[jv]];
+                float par = orbits_[innerLoop].par[parID_[jv]];
                 if(parMax < par)
                     parMax = par;
                 if(parMin > par)
@@ -2086,7 +2087,7 @@ Solution::normalizeData()
     long int sump = 0;
     for(int i=0; i<np; i++)
     {
-        long int nt = numVerticesEachPeriod_[i];
+        long int nt = orbits_[i].numVerticesEachPeriod;
         for(int j=0; j<nt; j++)
         {
             for(int k=0; k<3; k++)
@@ -2128,6 +2129,7 @@ Solution::alloc()
 	for(int ml=1; ml<totalNumPoints_; ++ml)
 	    data_[ml] = &data_[0][ml*nar_];
     }
+    orbits_ = new struct orbit[numOrbits_];
 }
 
 void
@@ -2173,6 +2175,9 @@ Solution::dealloc()
         delete [] data_[0];
     delete [] data_;
     totalNumPoints_  = 0;
+    for (int i = 0; i < numOrbits_; i++)
+        delete [] orbits_[i].par;
+    delete [] orbits_;
 }
 
 
@@ -2254,7 +2259,7 @@ float scaler, int stability, int type)
         }
         else if(coloringMethod >= nar_)
             satGroup->addChild(setLineAttributesByParameterValue(
-                    par_[iOrbit][parID_[coloringMethod-nar_]],
+                    orbits_[iOrbit].par[parID_[coloringMethod-nar_]],
                     parMax_[iBranch][coloringMethod-nar_],
                     parMid_[iBranch][coloringMethod-nar_],
                     parMin_[iBranch][coloringMethod-nar_],
@@ -2369,7 +2374,7 @@ long int arrSize, float scaler, int stability, int type)
     }
     else if(coloringMethod >= nar_)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                par_[iOrbit][parID_[coloringMethod-nar_]],
+                orbits_[iOrbit].par[parID_[coloringMethod-nar_]],
                 parMax_[iBranch][coloringMethod-nar_],
                 parMid_[iBranch][coloringMethod-nar_],
                 parMin_[iBranch][coloringMethod-nar_],
@@ -2395,9 +2400,9 @@ long int arrSize, long int orbitSize, long int kth, long int sumX)
 {
     float (*workArray)[3]  = new float [arrSize][3];
     float *time         = new float [arrSize];
-    float satPeriod = period_[kth];
+    float satPeriod = orbits_[kth].period;
     float rpp[3], vpp[3];
-    float massCurLabeledOrbit = masses_[kth];
+    float massCurLabeledOrbit = orbits_[kth].mass;
 
     for(int i=0; i<arrSize; ++i)
     {
@@ -2493,7 +2498,7 @@ const float tubeRadiusScaler, const int stability, const int type)
     }
     else if(coloringMethod >= nar_)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                par_[iOrbit][parID_[coloringMethod-nar_]],
+                orbits_[iOrbit].par[parID_[coloringMethod-nar_]],
                 parMax_[iBranch][coloringMethod-nar_],
                 parMid_[iBranch][coloringMethod-nar_],
                 parMin_[iBranch][coloringMethod-nar_],
@@ -2551,7 +2556,7 @@ const float scaler, const int stability, const int type)
     }
     else if(coloringMethod >= nar_)
         anOrbit->addChild(setLineAttributesByParameterValue(
-                par_[iOrbit][parID_[coloringMethod-nar_]],
+                orbits_[iOrbit].par[parID_[coloringMethod-nar_]],
                 parMax_[iBranch][coloringMethod-nar_],
                 parMid_[iBranch][coloringMethod-nar_],
                 parMin_[iBranch][coloringMethod-nar_],
@@ -2595,7 +2600,7 @@ Solution::createInertialFrameScene(float dis)
                 curBranchID = branchID_[++iBranch];
                 sumOrbit   += numOrbitsInEachBranch_[iBranch];
             }
-            orbitSize = numVerticesEachPeriod_[k];
+            orbitSize = orbits_[k].numVerticesEachPeriod;
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
 
             myVertices = new float [arrSize][3];
@@ -2631,7 +2636,7 @@ Solution::createInertialFrameScene(float dis)
                     stability, type));
             }
 
-            si += numVerticesEachPeriod_[k];
+            si += orbits_[k].numVerticesEachPeriod;
             delete [] myVertices;
             delete [] time;
         }
@@ -2648,7 +2653,7 @@ Solution::createInertialFrameScene(float dis)
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
             while(kno<numOrbits_ && myLabels[kno]<animationLabel)
             {
-                si += numVerticesEachPeriod_[kno];
+                si += orbits_[kno].numVerticesEachPeriod;
                 if(kno >= sumOrbit)
                 {
                     curBranchID = branchID_[++iBranch];
@@ -2656,8 +2661,8 @@ Solution::createInertialFrameScene(float dis)
                 }
             }
 
-            satPeriod = period_[kno];
-            long int orbitSize = numVerticesEachPeriod_[kno];
+            satPeriod = orbits_[kno].period;
+            long int orbitSize = orbits_[kno].numVerticesEachPeriod;
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
 
             float (*myVertices)[3] = new float [arrSize][3];
@@ -2815,7 +2820,7 @@ Solution::createInertialFrameScene(float dis)
                 curBranchID = branchID_[++iBranch];
                 sumOrbit   += numOrbitsInEachBranch_[iBranch];
             }
-            long int orbitSize = numVerticesEachPeriod_[k];
+            long int orbitSize = orbits_[k].numVerticesEachPeriod;
             long int arrSize = (numPeriodAnimated==0) ?
                 orbitSize : (int)(numPeriodAnimated * orbitSize);
 
@@ -2828,7 +2833,7 @@ Solution::createInertialFrameScene(float dis)
             solBlinker->addChild(drawAnOrbitInertialSysUsingLines(
                 iBranch,  k, myVertices, myColorBase, arrSize, aniLineScaler*lineWidthScaler,
                 clientData.labelIndex[k][3],clientData.labelIndex[k][2]));
-            si += numVerticesEachPeriod_[k];
+            si += orbits_[k].numVerticesEachPeriod;
             delete [] myVertices;
             delete [] myColorBase;
             delete [] time;
@@ -2862,7 +2867,7 @@ Solution::animateIner2(long int lblJ,long int si)
 
     SoBlinker *satBlker = new SoBlinker;
 
-    int upperlimit = numVerticesEachPeriod_[lblJ];
+    int upperlimit = orbits_[lblJ].numVerticesEachPeriod;
     int idx = si;
     satBlker->speed = 0.5;
 
@@ -2990,7 +2995,7 @@ Solution::animateOrbitMovement(long int j, long int si)
 
     SoBlinker *satBlker = new SoBlinker;
 
-    int upperlimit = numVerticesEachPeriod_[j];
+    int upperlimit = orbits_[j].numVerticesEachPeriod;
     int idx = si;             
     satBlker->speed = satSpeed;
 
@@ -3123,7 +3128,7 @@ Solution::animateOrbitWithNurbsCurveTail(long int j, long int si)
     satStyle->style = SoDrawStyle::FILLED;
     satGroup->addChild(satStyle);
 
-    int upperlimit = numVerticesEachPeriod_[j];
+    int upperlimit = orbits_[j].numVerticesEachPeriod;
     int idx = si;
 
     float maxV[3], minV[3];
@@ -3230,15 +3235,15 @@ Solution::drawEarthMovement(int k)
     eSep->addChild(eMtl);
 
     float vertices[30000][3];
-    for(int i=0; i<numVerticesEachPeriod_[k]; ++i)
+    for(int i=0; i<orbits_[k].numVerticesEachPeriod; ++i)
     {
         vertices[i][0]= cos(time_[i]/2.0/M_PI*360.0);
         vertices[i][1]= sin(time_[i]*360.0/2.0/M_PI);
         vertices[i][2]= 0;
     }
-    myint[0]=numVerticesEachPeriod_[k];
+    myint[0]=orbits_[k].numVerticesEachPeriod;
     SoCoordinate3 * eCoords = new SoCoordinate3;
-    eCoords->point.setValues(0, numVerticesEachPeriod_[k], vertices);
+    eCoords->point.setValues(0, orbits_[k].numVerticesEachPeriod, vertices);
     SoLineSet *eLine= new SoLineSet;
     eLine->numVertices.setValues(0, 1, myint);
     eSep->addChild(eCoords);

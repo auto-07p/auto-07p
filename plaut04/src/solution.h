@@ -25,12 +25,12 @@ class Solution {
     int npar() {return npar_;}
     int *parID() {return parID_;}
     long int numOrbits() {return numOrbits_;}
-    long int *labels() {return labels_;}
+    long int labels(int i) {return orbits_[i].label;}
     int totalLabels() {return totalLabels_;}
     long totalNumPoints() {return totalNumPoints_;}
-    int32_t *numVerticesEachPeriod() {return numVerticesEachPeriod_;}
+    int32_t numVerticesEachPeriod(int i) {return orbits_[i].numVerticesEachPeriod;}
     float **data() {return data_;}
-    float *masses() {return masses_;}
+    float masses(int i) {return orbits_[i].mass;}
 
     void set_npar(int npar) {npar_ = npar;}
 
@@ -89,11 +89,9 @@ class Solution {
 #endif
 
     std::queue<long> positions_;
-    float masses_[MAX_LABEL];
     double *time_; // this time is useless?
     float (*xyzCoords_)[3];
     int32_t *numVerticesEachBranch_;  // index start from 0 
-    int32_t numVerticesEachPeriod_[MAX_LABEL];  // index start from 0
     int32_t *numOrbitsInEachBranch_;  // index start from 0
     int nar_;
     int npar_;
@@ -102,14 +100,17 @@ class Solution {
     long int numBranches_;    // like 4.
     long int *branchID_; // for each label/solution
     long int numOrbits_;      // like 43 == UserData.totalLabels == BifNode.totalLabels == totalLabels.
-    long int labels_[MAX_LABEL];   // this real lenght should equal to numOrbits; 
-							// labels[0]==0, HERE, we make an assumption that no label equal to 0.
-    long int ntst_[MAX_LABEL];
-    long int ncol_[MAX_LABEL];
-
+    struct orbit {
+        long int label;
+        long int ntst;
+        long int ncol;
+        double *par;         // keep the parameter values for each orbit.
+        float mass;
+        float period;        // from the solution file par[10];
+        int32_t numVerticesEachPeriod; // index start from 0
+    } *orbits_;              // we have an array of numOrbits of these
     int      numAxis_;        // number of groups of axis. 3 is a group.
     int      totalLabels_;
-    double par_[MAX_LABEL][MAX_PAR];     // keep the parameter values for each orbit.
     double (*parMax_)[MAX_PAR];     // keep the max parameter values in each branch.
     double (*parMin_)[MAX_PAR];     // keep the min parameter values.
     double (*parMid_)[MAX_PAR];     // keep the mid parameter values.
@@ -119,7 +120,6 @@ class Solution {
     // min saves the minimum value of the coordinate.
     float max_[3], min_[3];
 
-    float period_[MAX_LABEL];       // from the solution file par[10];
     float **data_;
 };
 

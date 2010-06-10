@@ -1028,8 +1028,8 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
             else
             {
                 for(int j=0; j<lblidx; ++j)
-                    sumup += mySolNode->numVerticesEachPeriod()[j];
-                maxp = mySolNode->numVerticesEachPeriod()[lblidx];
+                    sumup += mySolNode->numVerticesEachPeriod(j);
+                maxp = mySolNode->numVerticesEachPeriod(lblidx);
             }
         }
         for(long int j=0; j<maxp; ++j)
@@ -1057,7 +1057,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
             {
                 for (ib = 0; ib < mySolNode->totalLabels(); ib++)
                 {
-                    sumup += mySolNode->numVerticesEachPeriod()[ib];
+                    sumup += mySolNode->numVerticesEachPeriod(ib);
                     if (sumup > index) break;
                 }
             }
@@ -1278,15 +1278,15 @@ initCoordAndLableListItems()
     {
 // the solution file does exist.
         numLabels = mySolNode->numOrbits();
-        for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode->labels()[j];
+        for(int j=0; j<numLabels; j++) myLabels[j] = mySolNode->labels(j);
         if(useR3B)
         {
 // initial mass dependent options.
-            float lastMass = mySolNode->masses()[1];
+            float lastMass = mySolNode->masses(1);
             blMassDependantOption = true;
             for(i=1; i<mySolNode->numOrbits(); i++)
             {
-                if(fabs(mySolNode->masses()[i]-lastMass)/lastMass > 1.0e-3)
+                if(fabs(mySolNode->masses(i)-lastMass)/lastMass > 1.0e-3)
                 {
                     blMassDependantOption = false;
                     break;
