@@ -83,10 +83,8 @@ long int animationLabel = MY_ALL;
 
 int winWidth, winHeight;
 
-int xCoordIndices[MAX_LIST], xCoordIdxSize;
-int yCoordIndices[MAX_LIST], yCoordIdxSize;
-int zCoordIndices[MAX_LIST], zCoordIdxSize;
-int lblIndices[MAX_LABEL], lblChoice[MAX_LABEL], lblIdxSize;
+std::vector<int> xCoordIndices, yCoordIndices, zCoordIndices;
+std::vector<int> lblIndices, lblChoice;
 
 int MAX_SAT_SPEED = 100;
 int MIN_SAT_SPEED = 0;
@@ -113,13 +111,13 @@ SoSeparator *userScene;
 SoSeparator *root;
 SoSeparator *starryBackground;
 
-char xAxis[MAX_LIST][5];
-char zAxis[MAX_LIST][5];
-char yAxis[MAX_LIST][5];
+char (*xAxis)[5];
+char (*zAxis)[5];
+char (*yAxis)[5];
 char labels[MAX_LABEL][8];
 
-char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
-int myLabels[MAX_LABEL+SP_LBL_ITEMS];
+char (*coloringMethodList)[8];
+int *myLabels;
 
 ///////////////////////////////////////////////////////////////
 //
@@ -261,29 +259,36 @@ updateScene()
 
     SoSeparator * newScene = new SoSeparator;
 
-    int mx = std::max(std::max(xCoordIdxSize, yCoordIdxSize), 
-                      std::max(yCoordIdxSize, zCoordIdxSize));
+    std::vector<int>::size_type mx = 
+              std::max(std::max(xCoordIndices.size(), yCoordIndices.size()), 
+                      std::max(yCoordIndices.size(), zCoordIndices.size()));
 
     // look for the maximum/minum value in the x-axis, y-axis, z-axis
     if(whichType != BIFURCATION)
     {
-        for(int i=0; i<mx; i++)
+        for(std::vector<int>::size_type i=0; i<mx; i++)
         {
-            int component = i+1;
-            varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
-            varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
-            varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
+            std::vector<int>::size_type component = i+1;
+            varIndices[0]=xCoordIndices[
+                    (i>=xCoordIndices.size())?(i%xCoordIndices.size()):(i)];
+            varIndices[1]=yCoordIndices[
+                    (i>=yCoordIndices.size())?(i%yCoordIndices.size()):(i)];
+            varIndices[2]=zCoordIndices[
+                    (i>=zCoordIndices.size())?(i%zCoordIndices.size()):(i)];
             mySolNode->searchForMaxMin(component, varIndices);
         }
     }
  
     int time_on = TIME_IS_OFF;
 
-    for(int i=0; i<mx; i++)
+    for(std::vector<int>::size_type i=0; i<mx; i++)
     {
-        varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
-        varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
-        varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
+        varIndices[0]=xCoordIndices[
+                (i>=xCoordIndices.size())?(i%xCoordIndices.size()):(i)];
+        varIndices[1]=yCoordIndices[
+                (i>=yCoordIndices.size())?(i%yCoordIndices.size()):(i)];
+        varIndices[2]=zCoordIndices[
+                (i>=zCoordIndices.size())?(i%zCoordIndices.size()):(i)];
 
         if (varIndices[0] == 0) time_on = TIME_ON_X; 
         if (varIndices[1] == 0) time_on = TIME_ON_Y; 
@@ -940,6 +945,14 @@ readSolutionAndBifurcationData(bool blFirstRead,
 
     myBifNode->alloc();
 
+    coloringMethodList = new char[std::max(myBifNode->nar(),
+       mySolNode->nar()+mySolNode->npar())+CL_SP_ITEMS][8];
+    myLabels = new int[std::max(myBifNode->totalLabels(),
+                                mySolNode->totalLabels())+SP_LBL_ITEMS];
+    xAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
+    yAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
+    zAxis = new char[std::max(myBifNode->nar(),mySolNode->nar())][5];
+
     int varIndices[3];
 
     if( blOpenBifFile)
@@ -1001,19 +1014,23 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
 {
 
     int varIndices[3];
-    int mx = std::max(std::max(xCoordIdxSize, yCoordIdxSize),
-		      std::max(yCoordIdxSize, zCoordIdxSize));
+    std::vector<int>::size_type mx = 
+             std::max(std::max(xCoordIndices.size(), yCoordIndices.size()),
+		      std::max(yCoordIndices.size(), zCoordIndices.size()));
     float minDis = FLT_MAX;
     long int index = 0;
     long int ib = 0;
     float distance;
     float *data;
     sIdx = bIdx = 0;
-    for(int i=0; i<mx; i++)
+    for(std::vector<int>::size_type i=0; i<mx; i++)
     {
-        varIndices[0]=xCoordIndices[(i>=xCoordIdxSize)?(i%xCoordIdxSize):(i)];
-        varIndices[1]=yCoordIndices[(i>=yCoordIdxSize)?(i%yCoordIdxSize):(i)];
-        varIndices[2]=zCoordIndices[(i>=zCoordIdxSize)?(i%zCoordIdxSize):(i)];
+        varIndices[0]=xCoordIndices[
+                 (i>=xCoordIndices.size())?(i%xCoordIndices.size()):(i)];
+        varIndices[1]=yCoordIndices[
+                 (i>=yCoordIndices.size())?(i%yCoordIndices.size()):(i)];
+        varIndices[2]=zCoordIndices[
+                 (i>=zCoordIndices.size())?(i%zCoordIndices.size()):(i)];
         long int lblidx = lblIndices[0];
         long int maxp, sumup = 0;
         if(whichType == BIFURCATION)
@@ -1023,7 +1040,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         else 
         {
 	    animationLabel = myLabels[lblIndices[0]];
-            if(animationLabel == MY_ALL || lblIdxSize >1)
+            if(animationLabel == MY_ALL || lblIndices.size() >1)
                 maxp = mySolNode->totalNumPoints();
             else
             {
@@ -1053,7 +1070,7 @@ lookForThePoint(float position[],long int &bIdx, long int &sIdx)
         }
         if(whichType != BIFURCATION)
         {
-            if(animationLabel == MY_ALL || lblIdxSize >1)
+            if(animationLabel == MY_ALL || lblIndices.size() >1)
             {
                 for (ib = 0; ib < mySolNode->totalLabels(); ib++)
                 {
@@ -1243,7 +1260,7 @@ initCoordAndLableListItems()
 ///////////////////////////////////////////////////////////////////
 {
     int i = 0;
-    for(i=0; i<MAX_LIST; i++)
+    for(i=0; i<std::max(myBifNode->nar(),mySolNode->nar()); i++)
     {
         sprintf(xAxis[i], "%d", i);
         sprintf(yAxis[i], "%d", i);
@@ -1260,16 +1277,16 @@ initCoordAndLableListItems()
         strcpy(coloringMethodList[3],"TYPE"); sp++;
         strcpy(coloringMethodList[4],"LABL"); sp++;
         strcpy(coloringMethodList[5],"COMP"); sp++; //OCT 7 added
-        for(i=0; i<MAX_LIST; i++)
+        for(i=0; i<mySolNode->nar(); i++)
                 sprintf(coloringMethodList[i+sp], "%d",i);
         for(i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
+            sprintf(coloringMethodList[i], "PAR(%d)", mySolNode->parID(i-(mySolNode->nar()+sp))+1);
         }
     }
     else
     {
-        for(i=0; i<MAX_LIST; i++)
+        for(i=0; i<myBifNode->nar(); i++)
             sprintf(coloringMethodList[i+sp], "%d", i);
     }
     specialColorItems = sp;
@@ -1367,46 +1384,33 @@ initCoordAndLableListItems()
 
     if(whichType == SOLUTION)
     {
-        xCoordIdxSize = dai.solXSize;
-        yCoordIdxSize = dai.solYSize;
-        zCoordIdxSize = dai.solZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.solX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.solY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.solZ[i];
+        xCoordIndices = dai.solX;
+        yCoordIndices = dai.solY;
+        zCoordIndices = dai.solZ;
     }
     else
     {
-        xCoordIdxSize = dai.bifXSize;
-        yCoordIdxSize = dai.bifYSize;
-        zCoordIdxSize = dai.bifZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.bifX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.bifY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.bifZ[i];
+        xCoordIndices = dai.bifX;
+        yCoordIndices = dai.bifY;
+        zCoordIndices = dai.bifZ;
     }
 
 //---------------------- Begin ---------------------------OCT 7, 04
 
     int half = 2;
-    int iLbl = 0;
+    lblIndices.clear();
     //tmp = strtok(manyChoice, ",");
     if( lblChoice[0] == MY_ALL) // -4
     {
-        lblIndices[0] = numLabels + MY_ALL;
+        lblIndices.push_back(numLabels + MY_ALL);
         half = 2;
-        iLbl = lblIdxSize;
     }
     else if(lblChoice[0] == MY_HALF)  // -3
     {
         for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
         {
             if(abs(clientData.labelIndex[j][2])!= 4 || (j+1)%half == 0)
-                lblIndices[iLbl++] = j;
+                lblIndices.push_back(j);
         }
 
         half *= 2;
@@ -1417,23 +1421,21 @@ initCoordAndLableListItems()
         {
             if(clientData.labelIndex[j][2] !=  TYPE_UZ    && clientData.labelIndex[j][2] != TYPE_RG &&
                clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-                lblIndices[iLbl++] = j;
+                lblIndices.push_back(j);
         }
         half = 2;
     }
     else if(lblChoice[0] == MY_NONE)  // -1
     {
-        lblIndices[iLbl++] = numLabels + MY_NONE;
+        lblIndices.push_back(numLabels + MY_NONE);
         half = 2;
     }
     else // Specified labels
     {
-        for(int idx = 0; idx < lblIdxSize; idx++)
-            lblIndices[iLbl++] = lblChoice[idx];
+        for(std::vector<int>::size_type idx = 0; idx < lblIndices.size(); idx++)
+            lblIndices.push_back(lblChoice[idx]);
         half = 2;
-        iLbl = lblIdxSize;
     }
-    lblIdxSize = iLbl;
 
     for(int i=0; i<11; ++i)
     {
@@ -1446,7 +1448,7 @@ initCoordAndLableListItems()
 
     if(!setShow3D)
     {
-        for(int i=0; i<MAX_LIST; i++)
+        for(std::vector<int>::size_type i=0; i<zCoordIndices.size(); i++)
             zCoordIndices[i] = -1;
     }
 }
@@ -1503,7 +1505,6 @@ readNData(std::stringstream& buffer, std::queue<T> &data)
 {
     std::string word;
     T item;
-    int k = 0;
     while ( readAString(buffer, word) )
     {
         std::stringstream(word) >> item;
@@ -1832,7 +1833,6 @@ readResourceParameters()
 
             if( !blDealt)
             {
-                int size = 3;
                 float colors[3];
                 for(unsigned i = 0; i<XtNumber(nDataVarNames); ++i)
                 {
@@ -1860,11 +1860,11 @@ readResourceParameters()
             {
                 std::queue <int> lblIdx;
                 readNData(buffer, lblIdx);
-                lblIdxSize = lblIdx.size();
                 blDealt = true;
-                for(int is=0; is<lblIdxSize; ++is)
+                lblChoice.clear();
+                while(!lblIdx.empty())
                 {
-                    lblChoice[is] = lblIdx.front() - 1;
+                    lblChoice.push_back(lblIdx.front() - 1);
                     lblIdx.pop();
                 }
             }
@@ -1881,43 +1881,32 @@ readResourceParameters()
                         readNData(buffer, pars);
                         int size = pars.size();			
                         blDealt = true;
-                        int *xyz;			
+                        std::vector<int> *xyz = 0;
                         switch ( i )
                         {
                             case 0:
-                                dai.solXSize = size;
-                                dai.solX = new int[size];
-                                xyz = dai.solX;
+                                xyz = &dai.solX;
                                 break;
                             case 1:
-                                dai.solYSize = size;
-                                dai.solY = new int[size];
-                                xyz = dai.solY;
+                                xyz = &dai.solY;
                                 break;
                             case 2:
-                                dai.solZSize = size;
-                                dai.solZ = new int[size];
-                                xyz = dai.solZ;
+                                xyz = &dai.solZ;
                                 break;
                             case 3:
-                                dai.bifXSize = size;
-                                dai.bifX = new int[size];
-                                xyz = dai.bifX;
+                                xyz = &dai.bifX;
                                 break;
                             case 4:
-                                dai.bifYSize = size;
-                                dai.bifY = new int[size];
-                                xyz = dai.bifY;
+                                xyz = &dai.bifY;
                                 break;
                             case 5:
-                                dai.bifZSize = size;
-                                dai.bifZ = new int[size];
-                                xyz = dai.bifZ;
+                                xyz = &dai.bifZ;
                                 break;
                         }
+                        xyz->clear();
                         for(int is=0; is<size; ++is)
                         {
-                            xyz[is] = pars.front();
+                            xyz->push_back(pars.front());
                             pars.pop();
                         }
                     }
@@ -2034,19 +2023,16 @@ setVariableDefaultValues()
     }
     whichType       = SOLUTION; 
 
-    lblIdxSize       = 1;
-
-    lblIndices[0]    = 0;   
+    lblIndices.push_back(0);
 
     if (useR3B)
     {
-        static int r3bxyz[6] = {1,2,3,4,5,6};
-        dai.solXSize = 1; dai.solX = &r3bxyz[0];
-        dai.solYSize = 1; dai.solY = &r3bxyz[1];
-        dai.solZSize = 1; dai.solZ = &r3bxyz[2];
-        dai.bifXSize = 1; dai.bifX = &r3bxyz[3];
-        dai.bifYSize = 1; dai.bifY = &r3bxyz[4];
-        dai.bifZSize = 1; dai.bifZ = &r3bxyz[5];
+        dai.solX.push_back(1);
+        dai.solY.push_back(2);
+        dai.solZ.push_back(3);
+        dai.bifX.push_back(4);
+        dai.bifY.push_back(5);
+        dai.bifZ.push_back(6);
         setShow3D         = true;
         satSpeed          = 1.0;
         coloringMethod    = CL_STABILITY;
@@ -2062,14 +2048,13 @@ setVariableDefaultValues()
 	graphWidgetItems[OPT_SAT_ANI] = "Satellite Animation";
     }
     else {
-        static int xyz[3] = {0,1,2};
-        dai.solXSize = 1; dai.solX = &xyz[0];
-        dai.solYSize = 1; dai.solY = &xyz[1];
-        dai.solZSize = 1; dai.solZ = &xyz[2];
+        dai.solX.push_back(0);
+        dai.solY.push_back(1);
+        dai.solZ.push_back(2);
 
-        dai.bifXSize = 1; dai.bifX = &xyz[0];
-        dai.bifYSize = 1; dai.bifY = &xyz[1];
-        dai.bifZSize = 1; dai.bifZ = &xyz[2];
+        dai.bifX.push_back(0);
+        dai.bifY.push_back(1);
+        dai.bifZ.push_back(2);
         setShow3D         = false;
         satSpeed          = 0.5;
         coloringMethod    = CL_COMPONENT;
@@ -2231,6 +2216,12 @@ postDeals()
     delete [] clientData.numFM;
     delete [] clientData.solMax;
     delete [] clientData.solMin;
+
+    delete [] coloringMethodList;
+    delete [] myLabels;
+    delete [] xAxis;
+    delete [] yAxis;
+    delete [] zAxis;
 }
 
 
@@ -2535,7 +2526,7 @@ writePreferValuesToFile()
     fprintf(outFile, "#   -1 = Show SPEC labeled solutions\n");
     fprintf(outFile, "#   0 = Show NONE of the solutions\n");
     fprintf(outFile, "# Otherwise, show the specified solution(s)\n");
-    for(int is=0; is < (lblChoice[is] < 0 ? 1 : lblIdxSize); ++is)
+    for(std::vector<int>::size_type is=0; is < (lblChoice[is] < 0 ? 1 : lblIndices.size()); ++is)
     {
         fprintf(outFile, "Labels   = %i", lblChoice[is]+1);
     }
@@ -2550,7 +2541,7 @@ writePreferValuesToFile()
     fprintf(outFile, "parameter ID  = ");
     for(int is=0; is<mySolNode->npar(); ++is)
     {
-        fprintf(outFile, " %i, ", mySolNode->parID()[is]);
+        fprintf(outFile, " %i, ", mySolNode->parID(is));
     }
     fprintf(outFile, " \n");
 
@@ -2563,47 +2554,47 @@ writePreferValuesToFile()
     fprintf(outFile,"\n# Set X, Y, Z axes for the solution diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[0]);
-    for(int is=0; is<dai.solXSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.solX.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.solX[is]);
-        fprintf(outFile, (is != dai.solXSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.solX.size()-1) ? "," : "\n");
     }
 
     fprintf(outFile,"%-25.25s = ", axesNames[1]);
-    for(int is=0; is<dai.solYSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.solY.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.solY[is]);
-        fprintf(outFile, (is != dai.solYSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.solY.size()-1) ? "," : "\n");
     }
 
     fprintf(outFile,"%-25.25s = ", axesNames[2]);
-    for(int is=0; is<dai.solZSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.solZ.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.solZ[is]);
-        fprintf(outFile, (is != dai.solZSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.solZ.size()-1) ? "," : "\n");
     }
 
     fprintf(outFile,"\n# Set X, Y, Z axes for the bifurcation diagram:\n");
     fprintf(outFile,"# 0 is Time for X,Y,Z.\n");
     fprintf(outFile,"%-25.25s = ", axesNames[3]);
-    for(int is=0; is<dai.bifXSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.bifX.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.bifX[is]);
-        fprintf(outFile, (is != dai.bifXSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.bifX.size()-1) ? "," : "\n");
     }
 
     fprintf(outFile,"%-25.25s = ", axesNames[4]);
-    for(int is=0; is<dai.bifYSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.bifY.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.bifY[is]);
-        fprintf(outFile, (is != dai.bifYSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.bifY.size()-1) ? "," : "\n");
     }
 
     fprintf(outFile,"%-25.25s = ", axesNames[5]);
-    for(int is=0; is<dai.bifZSize; ++is)
+    for(std::vector<int>::size_type is=0; is<dai.bifZ.size(); ++is)
     {
         fprintf(outFile, " %i ", dai.bifZ[is]);
-        fprintf(outFile, (is != dai.bifZSize-1) ? "," : "\n");
+        fprintf(outFile, (is != dai.bifZ.size()-1) ? "," : "\n");
     }
 
     fclose(outFile);

@@ -18,13 +18,13 @@ class Bifurcation {
     bool parse(const char *bFileName);
     void normalizeData(long int idx, float xyzCoords[3]);
 
-    int nar() {return nar_;}
-    int maxndim() {return maxndim_;}
-    long int labels(int i) {return orbits_[i].label;}
-    int totalLabels() {return totalLabels_;}
-    long totalNumPoints() {return totalNumPoints_;}
-    int32_t *numVerticesEachBranch() {return numVerticesEachBranch_;}
-    float *data() {return data_;}
+    int nar() const {return nar_;}
+    int maxndim() const {return maxndim_;}
+    long int labels(int i) const {return orbits_[i].label;}
+    int totalLabels() const {return totalLabels_;}
+    long totalNumPoints() const {return totalNumPoints_;}
+    int32_t numVerticesEachBranch(int i) const {return numVerticesEachBranch_[i];}
+    float *data() const {return data_;}
     
   private:
     SoSeparator *render();

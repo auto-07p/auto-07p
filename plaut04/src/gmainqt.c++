@@ -315,15 +315,9 @@ MainWindow::setListValue()
                                            myBifNode->totalLabels()+SP_LBL_ITEMS;
     if(whichType != BIFURCATION)
     {
-        xCoordIdxSize = dai.solXSize;
-        yCoordIdxSize = dai.solYSize;
-        zCoordIdxSize = dai.solZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.solX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.solY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.solZ[i];
+        xCoordIndices = dai.solX;
+        yCoordIndices = dai.solY;
+        zCoordIndices = dai.solZ;
 
         xAxisList->clear();
         yAxisList->clear();
@@ -348,7 +342,7 @@ MainWindow::setListValue()
         }
         for(int i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
+            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID(i-(mySolNode->nar()+sp))+1);
         }
 
         colorMethodSeletionList->clear();
@@ -360,15 +354,9 @@ MainWindow::setListValue()
     }
     else
     {
-        xCoordIdxSize = dai.bifXSize;
-        yCoordIdxSize = dai.bifYSize;
-        zCoordIdxSize = dai.bifZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.bifX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.bifY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.bifZ[i];
+        xCoordIndices = dai.bifX;
+        yCoordIndices = dai.bifY;
+        zCoordIndices = dai.bifZ;
         xAxisList->clear();
         yAxisList->clear();
         zAxisList->clear();
@@ -406,9 +394,8 @@ MainWindow::setListValue()
         zAxisList->setEnabled(true);
     else
     {
-        for(int i=0; i<MAX_LIST; i++)
-            zCoordIndices[i] = -1;
-        zCoordIdxSize = 1;
+        zCoordIndices.clear();
+        zCoordIndices.push_back(-1);
         zAxisList->setEnabled(false);
     }
 }
@@ -911,9 +898,8 @@ MainWindow::dimensionToggledCB()
     else
     {
         setShow3D = false;
-        for(int i=0; i<MAX_LIST; i++)
-            zCoordIndices[i] = -1;
-        zCoordIdxSize = 1;
+        zCoordIndices.clear();
+        zCoordIndices.push_back(-1);
         zAxisList->setEnabled(false);
         dimButton->setText("2D");
     }
@@ -2102,7 +2088,7 @@ MainWindow::xListCallBack(const QString &str)
 {
     char *manyChoice = strdup(str);
     int i = 0;
-    for(i=0; i<MAX_LIST; i++)
+    for(i=0; i<std::max(myBifNode->nar(),mySolNode->nar()); i++)
         xCoordIndices[i] = -1;
 
     i = 0;
@@ -2112,17 +2098,12 @@ MainWindow::xListCallBack(const QString &str)
     {
         xCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
         tmp = strtok(NULL,",");
-    }while(tmp != NULL && i < MAX_LIST); 
-    xCoordIdxSize = i;
+    }while(tmp != NULL); 
     if(whichType != BIFURCATION)
     {
-        dai.solXSize = xCoordIdxSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            dai.solX[i] = xCoordIndices[i];
+        dai.solX = xCoordIndices;
     } else {
-        dai.bifXSize = xCoordIdxSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            dai.bifX[i] = xCoordIndices[i];
+        dai.bifX = xCoordIndices;
     }
     updateScene();
     free(manyChoice);
@@ -2138,28 +2119,19 @@ MainWindow::yListCallBack(const QString &str)
 {
     char *manyChoice = strdup(str);
 
-    int i = 0;
-    for(i=0; i<MAX_LIST; i++)
-        yCoordIndices[i] = -1;
-
-    i = 0;
     char * tmp;
     tmp = strtok(manyChoice, ",");
+    yCoordIndices.clear();
     do
     {
-        yCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
+        yCoordIndices.push_back((strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp));
         tmp = strtok(NULL,",");
-    }while(tmp != NULL && i < MAX_LIST);
-    yCoordIdxSize = i;
+    }while(tmp != NULL);
     if(whichType != BIFURCATION)
     {
-        dai.solYSize = yCoordIdxSize;
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            dai.solY[i] = yCoordIndices[i];
+        dai.solY = yCoordIndices;
     } else {
-        dai.bifYSize = yCoordIdxSize;
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            dai.bifY[i] = yCoordIndices[i];
+        dai.bifY = yCoordIndices;
     }
     updateScene();
     free(manyChoice);
@@ -2175,28 +2147,19 @@ MainWindow::zListCallBack(const QString &str)
 {
     char *manyChoice = strdup(str);
 
-    int i = 0;
-    for(i=0; i<MAX_LIST; i++)
-        zCoordIndices[i] = -1;
-
-    i = 0;
     char * tmp;
     tmp = strtok(manyChoice, ",");
+    zCoordIndices.clear();
     do
     {
-        zCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
+        zCoordIndices.push_back((strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp));
         tmp = strtok(NULL,",");
-    }while(tmp != NULL && i < MAX_LIST);
-    zCoordIdxSize = i;
+    }while(tmp != NULL);
     if(whichType != BIFURCATION)
     {
-        dai.solZSize = zCoordIdxSize;
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            dai.solZ[i] = zCoordIndices[i];
+        dai.solZ = zCoordIndices;
     } else {
-        dai.bifZSize = zCoordIdxSize;
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            dai.bifZ[i] = zCoordIndices[i];
+        dai.bifZ = zCoordIndices;
     }
     updateScene();
     free(manyChoice);
@@ -2212,27 +2175,27 @@ MainWindow::lblListCallBack(const QString &str)
 {
     char *manyChoice = strdup(str);
     int choice = labelsList->currentItem();
-    int i = 0;
     int nItems = (whichType != BIFURCATION) ? mySolNode->totalLabels() : myBifNode->totalLabels();
     char * tmp;
     static int half = 2;
     tmp = strtok(manyChoice, ",");
     choice -= SP_LBL_ITEMS;
+    lblIndices.clear();
     if(choice <= MY_ALL || choice >= nItems)
     {
         do
         {
-            lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? numLabels + MY_ALL : 
-	      atoi(tmp)-myLabels[0];
+            lblIndices.push_back((strcasecmp(tmp,"all")==0) ? numLabels + MY_ALL : 
+	      atoi(tmp)-myLabels[0]);
             tmp = strtok(NULL,",");
-        }while(tmp != NULL && i < MAX_LABEL);
+        }while(tmp != NULL);
         half = 2;
     }
     else if(choice == MY_HALF) // -3 
     {
         for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
             if(abs(clientData.labelIndex[j][2])!= 4 || (j+1)%half == 0)
-                lblIndices[i++] = j;
+                lblIndices.push_back(j);
         half *= 2;
     }
     else if(choice == MY_SPEC) // -2
@@ -2240,25 +2203,25 @@ MainWindow::lblListCallBack(const QString &str)
         for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
             if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
             && clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-                lblIndices[i++] = j;
+                lblIndices.push_back(j);
         half = 2;
     }
     else if(choice == MY_NONE) // -1
     {
-        lblIndices[i++] = numLabels + MY_NONE;
+        lblIndices.push_back(numLabels + MY_NONE);
         half = 2;
     }
     else
     {
-        lblIndices[i++] = choice;
+        lblIndices.push_back(choice);
         half = 2;
     }
-    lblIdxSize = i;
 
+    lblChoice.clear();
     if(choice < 0)
-        lblChoice[0] = choice;
-    else for (int i = 0; i < lblIdxSize; i++)
-        lblChoice[i] = lblIndices[i];
+        lblChoice.push_back(choice);
+    else for (std::vector<int>::size_type i = 0; i < lblIndices.size(); i++)
+        lblChoice.push_back(lblIndices[i]);
 
     updateScene();
     free(manyChoice);

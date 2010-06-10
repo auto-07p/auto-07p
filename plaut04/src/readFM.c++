@@ -45,7 +45,7 @@ readFM(const char* dFileName, const int size)
         if (strstr(buffer, "Total Time") != NULL)
 	{
             /* New branch */
-            branchcounter += myBifNode->numVerticesEachBranch()[branchi++];
+            branchcounter += myBifNode->numVerticesEachBranch(branchi++);
 	    icounter = branchcounter + 1;
 	}
 

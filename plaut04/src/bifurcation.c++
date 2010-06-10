@@ -168,7 +168,7 @@ Bifurcation::drawLabelPtsInScene()
     }
     else if(lbl != MY_NONE)
     {
-        for(int i=0; i<lblIdxSize; ++i)
+        for(std::vector<int>::size_type i=0; i<lblIndices.size(); ++i)
         {
             SoMaterial *lblMtl;
 

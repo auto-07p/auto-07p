@@ -21,16 +21,16 @@ class Solution {
     void denormalizePosition(float position[]);
     void set_parID(std::queue<int> &parIDs);
 
-    int nar() {return nar_;}
-    int npar() {return npar_;}
-    int *parID() {return parID_;}
-    long int numOrbits() {return numOrbits_;}
-    long int labels(int i) {return orbits_[i].label;}
-    int totalLabels() {return totalLabels_;}
-    long totalNumPoints() {return totalNumPoints_;}
-    int32_t numVerticesEachPeriod(int i) {return orbits_[i].numVerticesEachPeriod;}
-    float **data() {return data_;}
-    float masses(int i) {return orbits_[i].mass;}
+    int nar() const {return nar_;}
+    int npar() const {return npar_;}
+    int parID(int i) const {return parID_[i];}
+    long int numOrbits() const {return numOrbits_;}
+    long int labels(int i) const {return orbits_[i].label;}
+    int totalLabels() const {return totalLabels_;}
+    long totalNumPoints() const {return totalNumPoints_;}
+    int32_t numVerticesEachPeriod(int i) const {return orbits_[i].numVerticesEachPeriod;}
+    float **data() const {return data_;}
+    float masses(int i) const {return orbits_[i].mass;}
 
   private:
     SoSeparator *render();

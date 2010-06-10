@@ -399,7 +399,7 @@ Solution::renderTubes()
         solGroup->addChild(drawUsingTubes());
     else if(animationLabel != MY_NONE)
     {
-        for(int n=0; n<lblIdxSize; ++n)
+        for(std::vector<int>::size_type n=0; n<lblIndices.size(); ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
 
@@ -535,7 +535,7 @@ Solution::renderPoints(int style)
     }
     else if(animationLabel != MY_NONE)
     {
-        for(int n=0; n<lblIdxSize; ++n)
+        for(std::vector<int>::size_type n=0; n<lblIndices.size(); ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
@@ -611,7 +611,7 @@ Solution::renderLines()
     }
     else if(animationLabel != MY_NONE)
     {
-        for(int n=0; n<lblIdxSize; ++n)
+        for(std::vector<int>::size_type n=0; n<lblIndices.size(); ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
@@ -686,7 +686,7 @@ Solution::renderNurbsCurve()
     }
     else if(animationLabel != MY_NONE)
     {
-        for(int n=0; n<lblIdxSize; ++n)
+        for(std::vector<int>::size_type n=0; n<lblIndices.size(); ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
@@ -2666,7 +2666,7 @@ Solution::createInertialFrameScene(float dis)
     else if(animationLabel != MY_NONE)
     {
         float vpp[3];
-        for(int n=0; n<lblIdxSize; ++n)
+        for(std::vector<int>::size_type n=0; n<lblIndices.size(); ++n)
         {
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, kno = 0;

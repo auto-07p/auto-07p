@@ -108,16 +108,17 @@ static void xListCallBack(Widget combo, XtPointer client_data, XtPointer call_da
 static void yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
 static void zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
 static void lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data);
-void fileDialogCB(Widget, XtPointer client_data, XtPointer data);
-void hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data);
-void applyPreferDialogChangeAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
-void closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
-void closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer call_data);
-void savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
+static void fileDialogCB(Widget, XtPointer client_data, XtPointer data);
+static void hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data);
+static void applyPreferDialogChangeAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
+static void closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
+static void closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer call_data);
+static void savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data);
 static void getFileName(int fileMode);
 static void showAboutDialog();
 static void createPreferDialog();
 extern SoSeparator * createBoundingBox();
+static void showAboutCB(Widget, XtPointer, XtPointer);
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -127,7 +128,7 @@ extern SoSeparator * createBoundingBox();
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 orbitSpeedCB(Widget, XtPointer userData, XtPointer callData)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -141,7 +142,7 @@ orbitSpeedCB(Widget, XtPointer userData, XtPointer callData)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 satSpeedCB(Widget, XtPointer userData, XtPointer callData)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -153,7 +154,7 @@ satSpeedCB(Widget, XtPointer userData, XtPointer callData)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -179,7 +180,7 @@ numPeriodAnimatedCB(Widget, XtPointer userData, XtPointer callData)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -203,7 +204,7 @@ colorMethodSelectionCB(Widget, XtPointer userData, XtPointer callData)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 lineWidthCB(Widget, XtPointer userData, XtPointer callData)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -432,15 +433,9 @@ setListValue()
 
     if(whichType != BIFURCATION)
     {
-        xCoordIdxSize = dai.solXSize;
-        yCoordIdxSize = dai.solYSize;
-        zCoordIdxSize = dai.solZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.solX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.solY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.solZ[i];
+        xCoordIndices = dai.solX;
+        yCoordIndices = dai.solY;
+        zCoordIndices = dai.solZ;
 
         XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, mySolNode->nar(), NULL);
         XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, mySolNode->nar(), NULL);
@@ -463,31 +458,25 @@ setListValue()
         }
         for(int i=mySolNode->nar()+sp; i<mySolNode->nar()+mySolNode->npar()+sp; ++i)
         {
-            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID()[i-(mySolNode->nar()+sp)]+1);
+            sprintf(coloringMethodList[i],"PAR(%d)",mySolNode->parID(i-(mySolNode->nar()+sp))+1);
         }
 
-        int count = XtNumber (coloringMethodList);
+        int count = mySolNode->nar()+mySolNode->npar()+sp;
         for (int i = 0; i < count; ++i)
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
         XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, 
-		               XmNitemCount, mySolNode->nar()+mySolNode->npar()+sp, NULL);
+		               XmNitemCount, count, NULL);
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
         lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            mySolNode->nar()+mySolNode->npar()+sp, 10, 80, 5);
+            count, 10, 80, 5);
         lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
     }
     else
     {
-        xCoordIdxSize = dai.bifXSize;
-        yCoordIdxSize = dai.bifYSize;
-        zCoordIdxSize = dai.bifZSize;
-        for(int i = 0; i<xCoordIdxSize; ++i)
-            xCoordIndices[i] = dai.bifX[i];
-        for(int i = 0; i<yCoordIdxSize; ++i)
-            yCoordIndices[i] = dai.bifY[i];
-        for(int i = 0; i<zCoordIdxSize; ++i)
-            zCoordIndices[i] = dai.bifZ[i];
+        xCoordIndices = dai.bifX;
+        yCoordIndices = dai.bifY;
+        zCoordIndices = dai.bifZ;
         XtVaSetValues(xAxisList, XmNitems, xList, XmNitemCount, myBifNode->nar(), NULL);
         XtVaSetValues(yAxisList, XmNitems, yList, XmNitemCount, myBifNode->nar(), NULL);
         XtVaSetValues(zAxisList, XmNitems, zList, XmNitemCount, myBifNode->nar(), NULL);
@@ -504,14 +493,14 @@ setListValue()
         {
             sprintf(coloringMethodList[i],"%d",i-sp);
         }
-        int count = XtNumber (coloringMethodList);
+        int count = myBifNode->nar()+sp;
         for (int i = 0; i < count; ++i)
             clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
-        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, myBifNode->nar()+sp,NULL);
+        XtVaSetValues(colorMethodSeletionList, XmNitems, clrMethodList, XmNitemCount, count,NULL);
         XtVaSetValues(labelsList, XmNitems, lblList, XmNitemCount, nItems, NULL);
         lessTifFixupComboBox(colorMethodSeletionList, clrMethodList, 
-            myBifNode->nar()+sp, 10, 80, 5);
+            count, 10, 80, 5);
         lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
     }
 
@@ -519,9 +508,8 @@ setListValue()
         XtSetSensitive (zAxisList, true);
     else
     {
-        for(int i=0; i<MAX_LIST; i++)
-            zCoordIndices[i] = -1;
-        zCoordIdxSize = 1;
+        zCoordIndices.clear();
+        zCoordIndices.push_back(-1);
         XtSetSensitive (zAxisList, false);
     }
 
@@ -816,7 +804,7 @@ optMenuDisplay(Widget, void *userData, XtPointer)
 //
 //  This creates the File menu and all its items.
 //
-Widget
+static Widget
 buildFileMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -871,7 +859,7 @@ buildFileMenu(Widget menubar)
 //
 //  This creates the Help menu and all its items.
 //
-Widget
+static Widget
 buildHelpMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -904,7 +892,7 @@ buildHelpMenu(Widget menubar)
 //
 //  This creates the TYPE menu and all its items.
 //
-Widget
+static Widget
 buildOptionMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -967,7 +955,7 @@ buildOptionMenu(Widget menubar)
 //
 //  This creates the Edit menu and all its items.
 //
-Widget
+static Widget
 buildCenterMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1012,7 +1000,7 @@ buildCenterMenu(Widget menubar)
 //
 //  This creates the STYLE menu and all its items.
 //
-Widget
+static Widget
 buildStyleMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1053,7 +1041,7 @@ buildStyleMenu(Widget menubar)
 //
 //  This creates the Coordinates menu and all its items.
 //
-Widget
+static Widget
 buildCoordMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1095,7 +1083,7 @@ buildCoordMenu(Widget menubar)
 //
 //  This creates the TYPE menu and all its items.
 //
-Widget
+static Widget
 buildTypeMenu(Widget menubar)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1133,7 +1121,7 @@ buildTypeMenu(Widget menubar)
 //
 //  This creates the pulldown menu bar and its menus.
 //
-Widget
+static Widget
 buildMenu(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1243,7 +1231,7 @@ buildMenu(Widget parent)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void 
+static void 
 dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1262,9 +1250,8 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
     else
     {
         setShow3D = false;
-        for(int i=0; i<MAX_LIST; i++)
-            zCoordIndices[i] = -1;
-        zCoordIdxSize = 1;
+        zCoordIndices.clear();
+        zCoordIndices.push_back(-1);
         XtSetSensitive (zAxisList, false);
         XmString xString = XmStringCreateLocalized((char *)"2D");
         XtVaSetValues (w, XmNlabelString, xString, NULL);
@@ -1282,7 +1269,7 @@ dimensionToggledCB(Widget w, XtPointer client_data, XtPointer cbs)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void 
+static void 
 createBdBoxCB(Widget w, XtPointer client_data, XtPointer cbs)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1306,7 +1293,7 @@ createBdBoxCB(Widget w, XtPointer client_data, XtPointer cbs)
 //  menubar at the top of the window, and a render area filling out
 //  the remainder. These widgets are layed out with a Motif form widget.
 //
-void
+static void
 buildMainWindow(Widget parent, SoSeparator *root)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -1345,9 +1332,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
 //build the xAxis drop down list
     int nItems = (whichType != BIFURCATION) ? mySolNode->nar() : myBifNode->nar();
-    int count = XtNumber (xAxis);
-    xList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
-    for (i = 0; i < count; i++)
+    xList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
+    for (i = 0; i < nItems; i++)
         xList[i] = XmStringCreateLocalized (xAxis[i]);
 
     xAxisList=XtVaCreateManagedWidget ("xAxis",
@@ -1374,9 +1360,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the yAxis drop down list
-    count = XtNumber (yAxis);
-    yList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
-    for (i = 0; i < count; i++)
+    yList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
+    for (i = 0; i < nItems; i++)
         yList[i] = XmStringCreateLocalized (yAxis[i]);
 
     yAxisList=XtVaCreateManagedWidget ("yAxis",
@@ -1402,9 +1387,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
 #endif
 
 // build the zAxis drop down list
-    count = XtNumber (zAxis);
-    zList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
-    for (i = 0; i < count; i++)
+    zList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
+    for (i = 0; i < nItems; i++)
         zList[i] = XmStringCreateLocalized (zAxis[i]);
 
     zAxisList=XtVaCreateManagedWidget ("zAxis",
@@ -1434,9 +1418,8 @@ buildMainWindow(Widget parent, SoSeparator *root)
     nItems = (whichType != BIFURCATION) ? 
 	               mySolNode->totalLabels()+SP_LBL_ITEMS : 
 	               myBifNode->totalLabels()+SP_LBL_ITEMS;
-    count = XtNumber (labels);
-    lblList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
-    for (i = 0; i < count; i++)
+    lblList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
+    for (i = 0; i < nItems; i++)
         lblList[i] = XmStringCreateLocalized (labels[i]);
 
     labelsList=XtVaCreateManagedWidget ("Labels",
@@ -1452,7 +1435,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
     lessTifFixupComboBox(labelsList, lblList, nItems, 10, 86, 6);
 
-    for (i = 0; i < count; i++)
+    for (i = 0; i < nItems; i++)
         XmStringFree(lblList[i]);
 
 // Add Callback function for the LABELs drop down list
@@ -1472,10 +1455,9 @@ buildMainWindow(Widget parent, SoSeparator *root)
     nItems = (whichType != BIFURCATION) ? 
 	              mySolNode->nar()+mySolNode->npar()+specialColorItems : 
 				  myBifNode->nar()+specialColorItems;
-    count = XtNumber (coloringMethodList);
-    clrMethodList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
+    clrMethodList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
 
-    for (i = 0; i < count; ++i)
+    for (i = 0; i < nItems; ++i)
         clrMethodList[i] = XmStringCreateLocalized (coloringMethodList[i]);
 
     colorMethodSeletionList=XtVaCreateManagedWidget ("coloringMethodlist",
@@ -1497,20 +1479,19 @@ buildMainWindow(Widget parent, SoSeparator *root)
 
 // build the numPeriodAnimated drop down list
     nItems = 7;
-    count = nItems;
-    char (*numberPList)[5] = new char [count][5];
-    XmStringTable numPList = (XmStringTable) XtMalloc(count * sizeof (XmString *));
+    char (*numberPList)[5] = new char [nItems][5];
+    XmStringTable numPList = (XmStringTable) XtMalloc(nItems * sizeof (XmString *));
 
     int iam = 1;
     sprintf(numberPList[0], "%i", 0);
-    for (i = 0; i < count-2; ++i)
+    for (i = 0; i < nItems-2; ++i)
     {
         sprintf(numberPList[i+1], "%i", iam);
         iam *= 2;
     }
-    sprintf(numberPList[count-1], "%s", "inf");
+    sprintf(numberPList[nItems-1], "%s", "inf");
 
-    for (i = 0; i < count; ++i)
+    for (i = 0; i < nItems; ++i)
         numPList[i] = XmStringCreateLocalized (numberPList[i]);
 
     if (numPeriodAnimated > 0)
@@ -1518,7 +1499,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
     else if (numPeriodAnimated == 0)
         i = 0;
     else
-        i = count - 1;
+        i = nItems - 1;
 
     Widget numPeriodAnimatedList=XtVaCreateManagedWidget ("list",
         xmComboBoxWidgetClass, listCarrier,
@@ -1537,7 +1518,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
     XtAddCallback (numPeriodAnimatedList, XmNselectionCallback,
         numPeriodAnimatedCB, NULL);
 
-    for (i = 0; i < count; i++)
+    for (i = 0; i < nItems; i++)
         XmStringFree(numPList[i]);
     XtFree((char *)numPList);
 //    delete []numberPList;
@@ -1976,7 +1957,7 @@ buildMainWindow(Widget parent, SoSeparator *root)
 //
 //     When the line color changed, this function will be raised.
 //
-void
+static void
 lineColorValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2001,7 +1982,7 @@ lineColorValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 //
 //     When the line pattern selection changed, this function will be raised.
 //
-void
+static void
 linePatternValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2022,7 +2003,7 @@ linePatternValueChangedCB(Widget w, XtPointer client_data, XtPointer call_data)
 //
 //  This creates the COLOR and LINE preference sheet stuff.
 //
-Widget
+static Widget
 createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2149,7 +2130,7 @@ createLineColorAndPatternPrefSheetGuts(Widget parent, char *name, int id)
 
 ////////////////////////////////////////////////////////////////////////
 //
-Widget 
+static Widget 
 createColorAndLinePrefSheetHeader(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2182,7 +2163,7 @@ createColorAndLinePrefSheetHeader(Widget parent)
 //
 //  This simply creates the default parts of the pref dialog.
 //
-void
+static void
 createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, const char** name)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2209,7 +2190,7 @@ createLineAttrPrefSheetParts(Widget widgetList[], int &num, Widget form, const c
 //  lay them out one after the other and manage them all. The dialog
 //  is them mapped onto the screen.
 //
-void
+static void
 layoutLineAttrPartsOnThePrefSheet(Widget widgetList[],
 int num, Widget form)
 //
@@ -2257,7 +2238,7 @@ int num, Widget form)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createPreferShellAndPanedWindow(Widget &dialog_shell, Widget &panedWin)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2283,7 +2264,7 @@ createPreferShellAndPanedWindow(Widget &dialog_shell, Widget &panedWin)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createPreferActionFormControls(Widget &parent)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2343,7 +2324,7 @@ createPreferActionFormControls(Widget &parent)
 
 ////////////////////////////////////////////////////////////////////////
 //
-Widget
+static Widget
 createPreferDefaultPageFrames(Widget parent, const char *frameName)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2368,7 +2349,7 @@ createPreferDefaultPageFrames(Widget parent, const char *frameName)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 graphCoordinateSystemToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2385,7 +2366,7 @@ graphCoordinateSystemToggledCB(Widget widget, XtPointer client_data, XtPointer c
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createGraphCoordinateSystemFrameGuts(Widget frame)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2422,7 +2403,7 @@ createGraphCoordinateSystemFrameGuts(Widget frame)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 graphStyleWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2439,7 +2420,7 @@ graphStyleWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_d
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createGraphStyleFrameGuts(Widget frame)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2475,7 +2456,7 @@ createGraphStyleFrameGuts(Widget frame)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 graphTypeWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2492,7 +2473,7 @@ graphTypeWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_da
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 graphCoordWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2509,7 +2490,7 @@ graphCoordWidgetToggledCB(Widget widget, XtPointer client_data, XtPointer call_d
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createGraphTypeFrameGuts(Widget frame)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2547,7 +2528,7 @@ createGraphTypeFrameGuts(Widget frame)
 //
 // callback for all ToggleButtons.
 //
-void
+static void
 defaultGraphWidgetToggledCB( Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2564,7 +2545,7 @@ defaultGraphWidgetToggledCB( Widget widget, XtPointer client_data, XtPointer cal
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createOptionFrameGuts(Widget frame)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2596,7 +2577,7 @@ createOptionFrameGuts(Widget frame)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 layoutPreferDefaultPageFrames(Widget widgetList[], int num)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2635,7 +2616,7 @@ layoutPreferDefaultPageFrames(Widget widgetList[], int num)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createGraphCoordPartsFrameGuts(Widget frame)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2673,7 +2654,7 @@ createGraphCoordPartsFrameGuts(Widget frame)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createPreferDefaultPages(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2706,7 +2687,7 @@ createPreferDefaultPages(Widget parent)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createLineAttPages(Widget parent)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2744,7 +2725,7 @@ createLineAttPages(Widget parent)
 
 ///////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createPreferNotebookPages(Widget notebook)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2786,7 +2767,7 @@ createPreferNotebookPages(Widget notebook)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 createPreferNotebookAndActionForm(Widget parentPane, Widget &notebook, Widget &actionForm)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2820,7 +2801,7 @@ createPreferNotebookAndActionForm(Widget parentPane, Widget &notebook, Widget &a
 //  This creates the preference sheet in a separate window. It
 //  calls other routines to create the actual content of the sheet.
 //
-void
+static void
 createPreferDialog()
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2846,7 +2827,7 @@ createPreferDialog()
 ///////////////////////////////////////////////////////////////////
 //         CANCEL CALL BACK
 //
-void
+static void
 closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2912,7 +2893,7 @@ closePreferDialogAndGiveUpChange(Widget widget, XtPointer client_data, XtPointer
 ///////////////////////////////////////////////////////////////////
 //         OK & CLOSE CALL BACK
 //
-void
+static void
 closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -2978,7 +2959,7 @@ closePreferDialogAndUpdateScene(Widget widget, XtPointer client_data, XtPointer 
 ///////////////////////////////////////////////////////////////////
 //         OK & SAVE CALL BACK
 //
-void
+static void
 savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3044,7 +3025,7 @@ savePreferAndUpdateScene(Widget widget, XtPointer client_data, XtPointer call_da
 ///////////////////////////////////////////////////////////////////
 //         APPLY CALL BACK
 //
-void
+static void
 applyPreferDialogChangeAndUpdateScene(
 Widget widget, XtPointer client_data, XtPointer call_data)
 //
@@ -3101,7 +3082,7 @@ Widget widget, XtPointer client_data, XtPointer call_data)
 //        This routine is called to get a file name using the
 // standard file dialog.
 //
-void
+static void
 getFileName(int fileMode)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3130,7 +3111,7 @@ getFileName(int fileMode)
 //
 //        Motif file dialog callback.
 //
-void
+static void
 fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3170,7 +3151,6 @@ showAboutDialog()
 {
     static Widget dialog = (Widget) 0 ;
     XmString      t;
-    void          showAboutCB(Widget, XtPointer, XtPointer);
     unsigned char modality = (unsigned char)XmDIALOG_FULL_APPLICATION_MODAL;
     const char *str;
     if (useR3B)
@@ -3226,28 +3206,19 @@ xListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
     if (cbs->reason == XmCR_SELECT && cbs->event != NULL)
     {
-        int i = 0;
-        for(i=0; i<MAX_LIST; i++)
-            xCoordIndices[i] = -1;
-
-        i = 0;
         char * tmp;
         tmp = strtok(manyChoice, ",");
+        xCoordIndices.clear();
         do
         {
-            xCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
+            xCoordIndices.push_back((strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp));
             tmp = strtok(NULL,",");
-        }while(tmp != NULL && i < MAX_LIST); 
-        xCoordIdxSize = i;
+        }while(tmp != NULL); 
         if(whichType != BIFURCATION)
         {
-            dai.solXSize = xCoordIdxSize;
-            for(int i = 0; i<xCoordIdxSize; ++i)
-                dai.solX[i] = xCoordIndices[i];
+             dai.solX = xCoordIndices;
         } else {
-            dai.bifXSize = xCoordIdxSize;
-            for(int i = 0; i<xCoordIdxSize; ++i)
-                dai.bifX[i] = xCoordIndices[i];
+             dai.bifX = xCoordIndices;
         }
         updateScene();
     }
@@ -3267,28 +3238,19 @@ yListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
     if (cbs->reason == XmCR_SELECT && cbs->event != NULL)
     {
-        int i = 0;
-        for(i=0; i<MAX_LIST; i++)
-            yCoordIndices[i] = -1;
-
-        i = 0;
         char * tmp;
         tmp = strtok(manyChoice, ",");
+        yCoordIndices.clear();
         do
         {
-            yCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
+            yCoordIndices.push_back((strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp));
             tmp = strtok(NULL,",");
-        }while(tmp != NULL && i < MAX_LIST);
-        yCoordIdxSize = i;
+        }while(tmp != NULL);
         if(whichType != BIFURCATION)
         {
-            dai.solYSize = yCoordIdxSize;
-            for(int i = 0; i<yCoordIdxSize; ++i)
-                dai.solY[i] = yCoordIndices[i];
+             dai.solY = yCoordIndices;
         } else {
-            dai.bifYSize = yCoordIdxSize;
-            for(int i = 0; i<yCoordIdxSize; ++i)
-                dai.bifY[i] = yCoordIndices[i];
+             dai.bifY = yCoordIndices;
         }
         updateScene();
     }
@@ -3308,28 +3270,19 @@ zListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
     if (cbs->reason == XmCR_SELECT && cbs->event != NULL)
     {
-        int i = 0;
-        for(i=0; i<MAX_LIST; i++)
-            zCoordIndices[i] = -1;
-
-        i = 0;
         char * tmp;
         tmp = strtok(manyChoice, ",");
+        zCoordIndices.clear();
         do
         {
-            zCoordIndices[i++] = (strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp);
+            zCoordIndices.push_back((strcasecmp(tmp,"t")==0) ? 0 : atoi(tmp));
             tmp = strtok(NULL,",");
-        }while(tmp != NULL && i < MAX_LIST);
-        zCoordIdxSize = i;
+        }while(tmp != NULL);
         if(whichType != BIFURCATION)
         {
-            dai.solZSize = zCoordIdxSize;
-            for(int i = 0; i<zCoordIdxSize; ++i)
-                dai.solZ[i] = zCoordIndices[i];
+             dai.solZ = zCoordIndices;
         } else {
-            dai.bifZSize = zCoordIdxSize;
-            for(int i = 0; i<zCoordIdxSize; ++i)
-                dai.bifZ[i] = zCoordIndices[i];
+             dai.bifZ = zCoordIndices;
         }
         updateScene();
     }
@@ -3349,26 +3302,26 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
     char *manyChoice = (char *) XmStringUnparse (cbs->item_or_text, XmFONTLIST_DEFAULT_TAG,
         XmCHARSET_TEXT, XmCHARSET_TEXT, NULL, 0, XmOUTPUT_ALL);
 
-    int i = 0;
     char * tmp;
     static int half = 2;
     tmp = strtok(manyChoice, ",");
     choice -= SP_LBL_ITEMS;
+    lblIndices.clear();
     if(choice <= MY_ALL || choice >= nItems - SP_LBL_ITEMS)
     {
         do
         {
-            lblIndices[i++] = (strcasecmp(tmp,"all")==0) ? numLabels + MY_ALL : 
-	      atoi(tmp)-myLabels[0];
+            lblIndices.push_back((strcasecmp(tmp,"all")==0) ? numLabels + MY_ALL : 
+	      atoi(tmp)-myLabels[0]);
             tmp = strtok(NULL,",");
-        }while(tmp != NULL && i < MAX_LABEL);
+        }while(tmp != NULL);
         half = 2;
     }
     else if(choice == MY_HALF) // -3 
     {
         for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
             if(abs(clientData.labelIndex[j][2])!= 4 || (j+1)%half == 0)
-                lblIndices[i++] = j;
+                lblIndices.push_back(j);
         half *= 2;
     }
     else if(choice == MY_SPEC) // -2
@@ -3376,25 +3329,25 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
         for(int j = 0; j < numLabels - SP_LBL_ITEMS; j++)
             if(clientData.labelIndex[j][2] !=  TYPE_UZ  && clientData.labelIndex[j][2] != TYPE_RG
             && clientData.labelIndex[j][2] != TYPE_EP_ODE && clientData.labelIndex[j][2] != TYPE_MX)
-                lblIndices[i++] = j;
+                lblIndices.push_back(j);
         half = 2;
     }
     else if(choice == MY_NONE) // -1
     {
-        lblIndices[i++] = numLabels + MY_NONE;
+        lblIndices.push_back(numLabels + MY_NONE);
         half = 2;
     }
     else
     {
-        lblIndices[i++] = choice;
+        lblIndices.push_back(choice);
         half = 2;
     }
-    lblIdxSize = i;
 
+    lblChoice.clear();
     if(choice < 0)
-        lblChoice[0] = choice;
-    else for (int i = 0; i < lblIdxSize; i++)
-        lblChoice[i] = lblIndices[i];
+        lblChoice.push_back(choice);
+    else for (std::vector<int>::size_type i = 0; i < lblIndices.size(); i++)
+        lblChoice.push_back(lblIndices[i]);
 
     updateScene();
 }
@@ -3402,7 +3355,7 @@ lblListCallBack(Widget combo, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void
+static void
 showAboutCB(Widget dialog, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3413,7 +3366,7 @@ showAboutCB(Widget dialog, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void 
+static void
 hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3424,7 +3377,7 @@ hidenDialogShell (Widget widget, XtPointer client_data, XtPointer call_data)
 
 ////////////////////////////////////////////////////////////////////////
 //
-void 
+static void 
 redrawFloqueMultipliers (Widget fmDrawingArea, XtPointer client_data, XtPointer call_data)
 //
 ////////////////////////////////////////////////////////////////////////
@@ -3531,7 +3484,6 @@ popupFloquetMultiplierDialog(float data[], int size, int numFM)
     static Widget dialog_shell = (Widget) 0 ;
     Widget pane = (Widget) 0 ;              
     XmString      str1;
-    void          showAboutCB(Widget, XtPointer, XtPointer);
     char *str, temp[200];
 
     str = new char[size*50];

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include <ctype.h>
 #include <time.h>
@@ -73,7 +74,6 @@
 #define WIN_WIDTH  1000
 #define WIN_HEIGHT 1000 
 
-#define MAX_LIST  3000  // Max number for x-coor, y-coord, z-coord, coloringMethod,  lists.
 #define MAX_LABEL 50000  // maximum number of labels in a solution file
 
 #ifndef M_PI
@@ -194,10 +194,7 @@ void setListValue();
 
 struct DefaultAxisItems
 {
-    int solXSize, solYSize, solZSize;
-    int bifXSize, bifYSize, bifZSize;
-    int *bifX, *bifY, *bifZ;
-    int *solX, *solY, *solZ;
+    std::vector<int> bifX, bifY, bifZ, solX, solY, solZ;
 };
 
 #define CL_SP_ITEMS  6
@@ -207,11 +204,9 @@ struct DefaultAxisItems
 
 extern float orbitSpeed, satSpeed, numPeriodAnimated, lineWidthScaler;
 extern float fmData[12];
-extern int xCoordIndices[MAX_LIST], xCoordIdxSize;
-extern int yCoordIndices[MAX_LIST], yCoordIdxSize;
-extern int zCoordIndices[MAX_LIST], zCoordIdxSize;
+extern std::vector<int> xCoordIndices, yCoordIndices, zCoordIndices;
 extern int coloringMethod, specialColorItems, coloringMethodType[2];
-extern int lblIndices[], lblChoice[], lblIdxSize;
+extern std::vector<int> lblIndices, lblChoice;
 extern bool options[];
 extern long int numLabels;
 extern bool setShow3D, setShow3DSol, setShow3DBif;
@@ -229,9 +224,9 @@ extern int MIN_ORBIT_SPEED, MAX_ORBIT_SPEED;
 extern int MIN_SAT_SPEED, MAX_SAT_SPEED;
 extern bool blDrawTicker;
 extern struct DefaultAxisItems dai;
-extern char coloringMethodList[MAX_LIST+CL_SP_ITEMS][8];
-extern int myLabels[MAX_LABEL+SP_LBL_ITEMS];
-extern char xAxis[MAX_LIST][5], yAxis[MAX_LIST][5], zAxis[MAX_LIST][5];
+extern char (*coloringMethodList)[8];
+extern int *myLabels;
+extern char (*xAxis)[5], (*yAxis)[5], (*zAxis)[5];
 extern bool optBif[11], optSol[11];
 extern float satRadius, aniLineScaler;
 extern char labels[MAX_LABEL][8];
