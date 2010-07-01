@@ -92,8 +92,12 @@ class runAUTO:
                     if self.options[key] is None:
                         self.stderr = sys.stderr
                     sys.stderr = value or self.stderr
-                elif key == 'constants' and value is None:
-                    value = parseC.parseC()
+                elif key == 'constants':
+                    # do not completely replace existing constants data but
+                    # leave the special keys such as unames, parnames, etc,
+                    # intact
+                    self.options[key].update(value)
+                    value = self.options[key]
                 elif key == 'solution' and not hasattr(value, "load"):
                     t=kw.get('t')
                     if "t" in kw and value is not None:

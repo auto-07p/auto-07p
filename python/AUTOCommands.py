@@ -1327,11 +1327,6 @@ def configure(runner=None,templates=None,data=None,**kw):
         else:
             # for load(array,...)
             kw["solution"] = data
-    if "constants" in kw:
-        # do not completely replace existing constants data
-        # but leave the special keys such as unames, parnames, etc, intact
-        runner.options["constants"].update(kw["constants"])
-        kw["constants"] = runner.options["constants"]
     solution = runner.load(**kw)
     if exception is not None and runner.options["constants"]["IRS"]:
         raise AUTOExceptions.AUTORuntimeError(exception)
