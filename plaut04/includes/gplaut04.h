@@ -91,9 +91,10 @@
 #define BIFURCATION 1
 
 // define constant for the coloringMethod
+#define CL_BRANCH_NUMBER -7
 #define CL_STABILITY     -6
 #define CL_POINT_NUMBER  -5
-#define CL_BRANCH_NUMBER -4
+#define CL_CURVE_NUMBER  -4
 #define CL_ORBIT_TYPE    -3 
 #define CL_LABELS        -2
 #define CL_COMPONENT     -1

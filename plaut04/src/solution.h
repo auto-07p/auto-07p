@@ -23,7 +23,8 @@ class Solution {
 
     int nar() const {return nar_;}
     int npar() const {return npar_;}
-    int parID(int i) const {return parID_[i];}
+    int parID(int i) const {return parID_[i];} 
+    long int branchID(int i) const {return branchID_[i];}
     long int numOrbits() const {return numOrbits_;}
     long int labels(int i) const {return orbits_[i].label;}
     int totalLabels() const {return totalLabels_;}

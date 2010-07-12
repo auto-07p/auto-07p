@@ -286,12 +286,8 @@ long int sumX, float scaler)
                 colorBase[i*11+k] = ptStability_[idx];
     }
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
-    {
-        if(useR3B)
-            iBranch = branchID_[iBranch];
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         tSep->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
-    }
     else if(coloringMethod == CL_STABILITY)
         tSep->addChild(setLineColorBlendingByStability(colorBase, upperlimit*11, 0, scaler));
     else /* CL_POINT_NUMBER or >= 0 */
@@ -356,12 +352,8 @@ Bifurcation::drawABranchUsingLines(int iBranch, long int l, long int si,
         SoLineSet *myLine= new SoLineSet;
         myLine->numVertices.setValues(0, 1, myint);
 
-        if(coloringMethod == CL_BRANCH_NUMBER)
-        {
-            if (useR3B)
-                iBranch = branchID_[iBranch];
+        if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             aBranch->addChild(setLineAttributesByBranch(iBranch, lastStab, scaler));
-        }
         else if(coloringMethod == CL_STABILITY)
             aBranch->addChild(setLineColorBlendingByStability(colorBase, curSize, lastStab, scaler));
         else /* CL_POINT_NUMBER or >= 0 */
@@ -435,7 +427,7 @@ Bifurcation::drawABranchUsingNurbsCurve(int iBranch, long int l,
         cvGrp->addChild(myLine);
     }
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         aBranch->addChild(setLineAttributesByBranch(iBranch, 0, scaler));
     else if(coloringMethod == CL_STABILITY)
         aBranch->addChild(setLineAttributesByStability(0, scaler));

@@ -20,6 +20,7 @@ class Bifurcation {
 
     int nar() const {return nar_;}
     int maxndim() const {return maxndim_;}
+    long int branchID(int i) const {return branchID_[i];}
     long int labels(int i) const {return orbits_[i].label;}
     int totalLabels() const {return totalLabels_;}
     long totalNumPoints() const {return totalNumPoints_;}

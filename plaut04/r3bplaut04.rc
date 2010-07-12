@@ -76,9 +76,10 @@ Z Axis Bifurcation              = 6
 Labels              = 0
 
 #Set coloring method:
+# -7 --- BRANCH
 # -6 --- STABILITY
 # -5 --- POINT
-# -4 --- BRANCH
+# -4 --- CURVE
 # -3 --- TYPE 
 # -2 --- LABEL 
 # -1 --- COMPONENT 

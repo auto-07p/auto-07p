@@ -137,7 +137,7 @@ Solution::drawUsingTubes()
                 int type =clientData.labelIndex[j][2];
                 float scaler = lineWidthScaler;
 
-                if(coloringMethod == CL_BRANCH_NUMBER)
+                if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
                     ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
                 else if(coloringMethod == CL_STABILITY)
                     ptSep->addChild(setLineAttributesByStability(stability, scaler));
@@ -242,13 +242,8 @@ Solution::drawUsingTubes()
                 int type =clientData.labelIndex[j][2];
                 float scaler = lineWidthScaler;
 
-		if(coloringMethod == CL_BRANCH_NUMBER)
-                {
-                    if(useR3B)
-                        tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-                    else
-                        tubeSep->addChild(setLineAttributesByBranch(branchID_[iBranch], stability, scaler));
-                }
+                if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
+                    tubeSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
                 else if(coloringMethod == CL_STABILITY)
                     tubeSep->addChild(setLineAttributesByStability(stability, scaler));
                 else if(coloringMethod == CL_ORBIT_TYPE)
@@ -903,7 +898,7 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
         long int idx = si;
         SoSeparator * ptSep = new SoSeparator;
 
-        if(coloringMethod == CL_BRANCH_NUMBER)
+        if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
         else if(coloringMethod == CL_STABILITY)
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
@@ -1013,12 +1008,8 @@ Solution::drawAnOrbitUsingLines(int iBranch,  long int l, long int si,
     {
         anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
     }
-    else if(coloringMethod == CL_BRANCH_NUMBER)
-    {
-        if(useR3B)
-            iBranch = branchID_[iBranch];
+    else if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
-    }
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));
     else if(coloringMethod == CL_ORBIT_TYPE)
@@ -1075,7 +1066,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         SoSeparator * ptSep = new SoSeparator;
         SoTransform * aTrans = new SoTransform;
 
-        if(coloringMethod == CL_BRANCH_NUMBER)
+        if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
         else if(coloringMethod == CL_STABILITY)
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
@@ -1127,7 +1118,7 @@ Solution::drawAnOrbitUsingPoints(int style, int iBranch,  long int l,
         {
             anOrbit->addChild(setLineAttributesByType(stability, 0, scaler));
         }
-        else if(coloringMethod == CL_BRANCH_NUMBER)
+        else if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
         else if(coloringMethod == CL_STABILITY)
             anOrbit->addChild(setLineAttributesByStability(stability, scaler));
@@ -1204,7 +1195,7 @@ Solution::drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si,
     myCurve->numControlPoints = orbits_[l].numVerticesEachPeriod;
     myCurve->knotVector.setValues(0, number+4, knots);
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch,stability,scaler));
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));
@@ -1246,7 +1237,7 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
         SoSphere * aPoint = new SoSphere;
         aPoint->radius = dis * STATIONARY_POINT_RADIUS;
 
-        if(coloringMethod == CL_BRANCH_NUMBER)
+        if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             ptSep->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
         else if(coloringMethod == CL_STABILITY)
             ptSep->addChild(setLineAttributesByStability(stability, scaler));
@@ -1347,12 +1338,10 @@ Solution::drawAnOrbitUsingTubes(int iBranch, long int l, long int si,
     }
     tube = Tube(orbits_[l].numVerticesEachPeriod, vertices, lineWidthScaler*0.005, 10);
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));
-    else if(coloringMethod == CL_BRANCH_NUMBER)
-        anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     else if(coloringMethod == CL_ORBIT_TYPE)
         anOrbit->addChild(setLineAttributesByType(stability, type, scaler));
     else if(coloringMethod == CL_LABELS)
@@ -1456,7 +1445,7 @@ Solution::animateUsingTubes(bool aniColoring)
                 anOrbit->addChild(setLineAttributesByType(stability, 0, lineWidthScaler));
             else if(coloringMethod == CL_STABILITY)
                 anOrbit->addChild(setLineAttributesByStability(stability, lineWidthScaler));
-            else if(coloringMethod == CL_BRANCH_NUMBER)
+            else if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
                 anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, lineWidthScaler));
             else if(coloringMethod == CL_ORBIT_TYPE)
                 anOrbit->addChild(setLineAttributesByType(stability, type, lineWidthScaler));
@@ -1632,7 +1621,7 @@ Solution::animateOrbitWithTail(int iBranch, long int j, long int si)
     float scaler = lineWidthScaler;
 
 //------------------------------------------End-----------------------------------------
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         satGroup->addChild(setLineAttributesByBranch(iBranch, stability, lineWidthScaler));
     else if(coloringMethod == CL_STABILITY)
         satGroup->addChild(setLineAttributesByStability(stability, lineWidthScaler));
@@ -2263,7 +2252,7 @@ float scaler, int stability, int type)
         SoLineSet *myLine= new SoLineSet;
         myLine->numVertices.connectFrom(&myCounter->output);
 
-        if(coloringMethod == CL_BRANCH_NUMBER)
+        if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
             satGroup->addChild(setLineAttributesByBranch(iBranch,stability,scaler));
         else if(coloringMethod == CL_STABILITY)
             satGroup->addChild(setLineAttributesByStability(stability, scaler));
@@ -2378,7 +2367,7 @@ long int arrSize, float scaler, int stability, int type)
     SoLineSet *myLine= new SoLineSet;
     myLine->numVertices.setValues(0,1,myint);
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));
@@ -2502,7 +2491,7 @@ const float tubeRadiusScaler, const int stability, const int type)
 
     Tube tube;
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, tubeRadiusScaler));
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, tubeRadiusScaler));
@@ -2560,7 +2549,7 @@ const float scaler, const int stability, const int type)
     myCurve->numControlPoints = arrSize;
     myCurve->knotVector.setValues(0, number+4, knots);
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         anOrbit->addChild(setLineAttributesByBranch(iBranch, stability, scaler));
     else if(coloringMethod == CL_STABILITY)
         anOrbit->addChild(setLineAttributesByStability(stability, scaler));

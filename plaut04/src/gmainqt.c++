@@ -135,10 +135,11 @@ MainWindow::colorMethodSelectionCB(const QString &myChoice)
 
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
     ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
+    ((strcasecmp(myChoice,"CURV")==0) ? CL_CURVE_NUMBER:
     ((strcasecmp(myChoice,"BRAN")==0) ? CL_BRANCH_NUMBER:
     ((strcasecmp(myChoice,"PONT")==0) ? CL_POINT_NUMBER :
     ((strcasecmp(myChoice,"LABL")==0) ? CL_LABELS:
-    ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems)))));
+     ((strcasecmp(myChoice,"STAB")==0) ? CL_STABILITY : choice - specialColorItems))))));
     coloringMethodType[whichType] = coloringMethod;
 
     updateScene();
@@ -341,15 +342,16 @@ MainWindow::setListValue()
     coloringMethodList.push_back("STAB");
     coloringMethodList.push_back("PONT");
     coloringMethodList.push_back("BRAN");
+    coloringMethodList.push_back("CURV");
 
-    specialColorItems = 3;
+    specialColorItems = 4;
 
     if(whichType != BIFURCATION)
     {
         coloringMethodList.push_back("TYPE");
         coloringMethodList.push_back("LABL");
         coloringMethodList.push_back("COMP");
-        specialColorItems = 6;
+        specialColorItems = 7;
     }
     for(int i=0; i<nar; ++i)
     {
@@ -1675,7 +1677,7 @@ PreferDialog::createLineAttPages(QWidget *parent)
     QGridLayout *layout = new QGridLayout(parent, 8, 18);
     createColorAndLinePrefSheetHeader(parent, layout, 0);
     createColorAndLinePrefSheetHeader(parent, layout, 9);
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
         createLineAttrPrefSheetParts(parent, layout, names2);
     else
         createLineAttrPrefSheetParts(parent, layout, names);

@@ -389,7 +389,7 @@ addLegend()
     SbVec3f lgPos;
     lgPos.setValue(0.85, 0.65, -5.9);
 
-    if(coloringMethod == CL_BRANCH_NUMBER)
+    if(coloringMethod == CL_CURVE_NUMBER || coloringMethod == CL_BRANCH_NUMBER)
     {
         result->addChild(createBranchLegend(lgPos, lineColor));
     }
@@ -502,6 +502,14 @@ setLineAttributesByBranch(int branchID, int stability, float scaler)
     SoMaterial * lineMtl = new SoMaterial;
     lineMtl->diffuseColor.setValue(1.0, 1.0, 1.0);
     lineMtl->transparency = 0.0;
+
+    if(coloringMethod == CL_BRANCH_NUMBER)
+    {
+        if(whichType == SOLUTION)
+            branchID = mySolNode->branchID(branchID);
+        else
+            branchID = myBifNode->branchID(branchID);
+    }
 
     lineStyle->lineWidth   = 1.5*scaler;
     switch(abs(branchID)%13)
@@ -1269,14 +1277,15 @@ initCoordAndLableListItems()
     coloringMethodList.push_back("STAB");
     coloringMethodList.push_back("PONT");
     coloringMethodList.push_back("BRAN");
-    specialColorItems = 3;
+    coloringMethodList.push_back("CURV");
+    specialColorItems = 4;
 
     if(whichType == SOLUTION)
     {
         coloringMethodList.push_back("TYPE");
         coloringMethodList.push_back("LABL");
         coloringMethodList.push_back("COMP");
-        specialColorItems = 6;
+        specialColorItems = 7;
     }
     for(i=0; i<nar; i++)
     {
@@ -2307,9 +2316,10 @@ writePreferValuesToFile()
                 break;
             case 4:
                 fprintf(outFile, "\n# Set coloring method.\n");
+                fprintf(outFile, "#   -7 --- BRANCH\n");
                 fprintf(outFile, "#   -6 --- STABILITY\n");
                 fprintf(outFile, "#   -5 --- POINT\n");
-                fprintf(outFile, "#   -4 --- BRANCH\n");
+                fprintf(outFile, "#   -4 --- CURVE\n");
                 fprintf(outFile, "#   -3 --- TYPE\n");
                 fprintf(outFile, "#   -2 --- LABEL\n");
                 fprintf(outFile, "#   -1 --- COMPONENT\n");
