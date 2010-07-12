@@ -339,9 +339,9 @@ MainWindow::setListValue()
     }
 
     coloringMethodList.clear();
+    coloringMethodList.push_back("BRAN");
     coloringMethodList.push_back("STAB");
     coloringMethodList.push_back("PONT");
-    coloringMethodList.push_back("BRAN");
     coloringMethodList.push_back("CURV");
 
     specialColorItems = 4;

@@ -196,7 +196,7 @@ struct DefaultAxisItems
     std::vector<int> bifX, bifY, bifZ, solX, solY, solZ;
 };
 
-#define CL_SP_ITEMS  6
+#define CL_SP_ITEMS  7
 #define LBL_OFFSET   4
 #define SP_LBL_ITEMS 4
 #define NUM_SP_POINTS 13

@@ -509,6 +509,7 @@ setLineAttributesByBranch(int branchID, int stability, float scaler)
             branchID = mySolNode->branchID(branchID);
         else
             branchID = myBifNode->branchID(branchID);
+        branchID--;
     }
 
     lineStyle->lineWidth   = 1.5*scaler;
@@ -1274,9 +1275,9 @@ initCoordAndLableListItems()
     }
 
     coloringMethodList.clear();
+    coloringMethodList.push_back("BRAN");
     coloringMethodList.push_back("STAB");
     coloringMethodList.push_back("PONT");
-    coloringMethodList.push_back("BRAN");
     coloringMethodList.push_back("CURV");
     specialColorItems = 4;
 
