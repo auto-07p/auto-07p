@@ -338,7 +338,10 @@ you have the development tools
 installed. You do not need to start an X server to run AUTO.
 Furthermore, the following packages are recommended:
 \begin{itemize}
-\item Gfortran: See \url{r.research.att.com/tools/}.
+\item Gfortran: See \url{hpc.sourceforge.net} or
+\url{r.research.att.com/tools/}.
+At the time of writing the first of these is recommended to be able
+to benefit from parallelization.
 \item Python: for Mac OS X 10.5 (Leopard) or newer, 
 you can install Python 2.6, NumPy, and Matplotlib \filef{.dmg} files
 from \url{www.python.org}, \url{numpy.scipy.org},
@@ -357,9 +360,8 @@ This should happen automatically.
 \item {\cal PLAUT04}: Get a Qt \filef{.dmg} from
 \url{qt.nokia.com/downloads/mac-os-cpp}.
 Similarly, you can get a binary Coin package from \url{coin3d.org}.
-After that you can compile SoQt from the source code
-at \url{coin3d.org}. Either use at least version 1.5.0, and until that version
-is released, \url{http://ftp.coin3d.org/coin/src/snapshots/SoQt-latest.tar.gz}.
+After that you can compile SoQt (at least version 1.5.0)
+from the source code at \url{coin3d.org}.
 Try to make sure that the native (Aqua) Qt
 is used by setting {\tt \$QTDIR}, if you also have fink installed.
 \item {\cal PLAUT}: In pre-Leopard OS X it appears that you do not see
@@ -377,7 +379,7 @@ combined with a native Win32 version of Python,
 obtained at \url{http://www.python.org}. To install this setup:
 \begin{itemize}
 \item
-Install Python (as of this writing, preferably version 2.6, not 3.0!)
+Install Python (as of this writing, preferably version 2.6, not 3.1!)
 from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
 and Matplotlib from \url{matplotlib.sf.net}, which all come
 with installers.
@@ -476,6 +478,10 @@ test functions and the initial direction when using the homotopy
 method (you may have to flip the sign of the starting distance
 in the routine STPNT). Eigenvectors are now normalized to avoid
 future problems and improve consistency.
+
+Parameter derivatives in {\tt DFDP} are now significant when using {\cal
+HomCont}. If only the derivatives with respect to phase space variables
+are specified in {\tt DFDU}, please use the setting \parf{JAC=-1}.
 
 When upgrading from {\cal AUTO2000}, you can continue to use
 equations-files written in C. However, there is now a strict
@@ -586,14 +592,20 @@ Specifically, for (\ref{1}) {\cal AUTO} can~:~
   and automatically compute
   bifurcating families. \\ (Demos {\tt pp2}; Run~1, and {\tt apbp}.)
 \item[-]
-  Locate Hopf bifurcation points and continue these in two
-  parameters. \\ (Demo {\tt pp3}.)
+  Locate Hopf bifurcation points, continue these in two
+  parameters, detect whether the Hopf bifurcation is sub- or
+  supercritical, and detect zero-Hopf, Bogdanov-Takens, and 
+  generalized Hopf (Bautin) bifurcations.\\ (Demo {\tt pp3}.)
 \item[-]
-  Locate folds (limit points) and continue these 
-  in two parameters. \\
+  Locate folds (limit points), continue these 
+  in two parameters, and detect cusp, zero-Hopf, and Bogdanov-Takens
+  bifurcations. \\
 \item[-]
-  Do each of the above for fixed points
-  of the discrete dynamical system 
+  Locate branch points, folds, period-doubling, and torus
+  (Neimark-Sacker) bifurcations, continue these in two or three
+  parameters, and switch branches at branch points and
+  period-doubling bifurcations
+  for fixed points of the discrete dynamical system
   $u^{(k+1)}= f( u^{(k)}, p )$ \\ (Demo {\tt dd2}.)
 \item[-]
   Find extrema of an objective function along solution families
@@ -621,7 +633,8 @@ For the ODE (\ref{2}) the program can~:~
   doubling bifurcations.  \\
   (Demos {\tt tor}, {\tt lor}.)
 \item[-]  Continue folds, period-doubling bifurcations,
-  and bifurcations to tori, in two parameters. \\
+  and bifurcations to tori, in two parameters, detecting
+  1:1, 1:2, 1:3 and 1:4 resonances. \\
   (Demos {\tt plp}, {\tt pp3}, {\tt tor}.)
 
   The continuation of orbits of fixed period is also
@@ -840,6 +853,8 @@ If {\cal AUTO}-constant {\tt JAC} equals 0
 then derivatives need not be specified in 
 {\tt FUNC}, {\tt BCND}, {\tt ICND}, and {\tt FOPT}; see Section~\ref{sec:JAC}.
 If {\tt JAC=1} then derivatives must be given.
+If {\tt JAC=-1} then the parameter derivatives may be omitted in 
+{\tt FUNC}.
 This may be necessary for sensitive 
 problems, and is recommended for computations in which {\cal AUTO} 
 generates an extended system.
@@ -1978,6 +1993,38 @@ lrz ... done
  that can be in solution and bifurcation diagram
  files, with their short names and numbers.}
  \label{tbl:clui type translation}
+ \end{center}
+ \end{table}
+
+ \begin{table}[htbp]
+ \begin{center}
+ \begin{tabular}{| l | l | l |}
+ \hline
+ Type & Short Name & Number \\
+ \hline
+ Cusp (algebraic problem) & CP & -22 \\
+\hline
+ Zero-Hopf bifurcation (algebraic problem) & ZH & -32, 23 \\
+\hline
+ Bogdanov-Takens bifurcation (algebraic problem) & BT & -23, -33 \\
+\hline
+ Generalized Hopf bifurcation (algebraic problem) & GH & 35 \\
+\hline
+ 1:1 Resonance bifurcation (ODE) & R1 & 58, -85 \\
+\hline
+ 1:2 Resonance bifurcation (ODE) & R2 & 78, 87 \\
+\hline
+ 1:3 Resonance bifurcation (ODE) & R3 & 88 \\
+\hline
+ 1:4 Resonance bifurcation (ODE) & R4 & -88 \\
+\hline
+ \end{tabular}
+ \caption[Codimension-two type translations.]
+ {This table shows the various types of codimension-two points
+ as in Table~\ref{tbl:clui type translation}. The absolute value
+ of the number divided by 10 gives the type of the branch on which
+ the codimension-two bifurcation occurs.}
+ \label{tbl:clui codim2 type translation}
  \end{center}
  \end{table}
 
@@ -4058,7 +4105,7 @@ the main constant file with a {\tt c.} prefix.
   A summary of the computation is written to standard output, which usually
   corresponds to the window in which {\cal AUTO} is run. 
   Only special, labeled solution points are noted, namely those listed
-  in Table~\ref{tbl:Solution_Types}.
+  in Tables~\ref{tbl:Solution_Types} and \ref{tbl:Codim2_Solution_Types}
   The letter codes in the Table are used in the screen output.
   The numerical codes are used internally and in
   the {\tt fort.7} and {\tt fort.8} output-files described below.
@@ -4095,6 +4142,41 @@ the main constant file with a {\tt c.} prefix.
 \end{center}
 \end{table}
  
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | r | l |}
+\hline
+ CP & (-22) & Cusp bifurcation on fold curve (algebraic systems)\\
+\hline
+ BT & (-23) & Bogdanov-Takens bifurcation on fold curve (algebraic systems)\\
+\hline
+ ZH & (23) & Zero-Hopf on Fold curve (algebraic systems)\\
+\hline
+ ZH & (-32) & Zero-Hopf on Hopf curve \\
+\hline
+ BT & (-33) & Bogdanov-Takens bifurcation on Hopf curve \\
+\hline
+ GH & (35) & Generalized Hopf bifurcation on Hopf curve \\
+\hline
+ R1 & (58) & 1:1 resonance on Fold (periodic solutions) \\
+\hline
+ R2 & (78) & 1:2 resonance on PD (periodic solutions) \\
+\hline
+ R1 & (-85) & 1:1 resonance on Torus (periodic solutions) \\
+\hline
+ R2 & (87) & 1:2 resonance on Torus (periodic solutions) \\
+\hline
+ R3 & (88) & 1:3 resonance on Torus (periodic solutions) \\
+\hline
+ R4 & (-88) & 1:4 resonance on Torus (periodic solutions) \\
+\hline
+\end{tabular}
+\caption{Codimension-two solution types.
+Note that the absolute value of the numerical code divided by 10
+gives the type of the curve on which the special point occurs.}
+\label{tbl:Codim2_Solution_Types}
+\end{center}
+\end{table}
 
 \item[-] {\tt fort.7}~:~ 
   The {\tt fort.7} output-file contains the bifurcation diagram.
@@ -4687,6 +4769,10 @@ are also mentioned.
   an extended system, for example, when {\tt ISW}=2.
   (For {\tt ISW} see Section~\ref{sec:ISW}.) \\
 (Demos {\tt int}, {\tt dd2}, {\tt obt}, {\tt plp}, {\tt ops}.)
+\item[-] {\tt JAC=-1}~:
+  As for {\tt JAC=1}, but derivatives with respect to
+  problem-parameters may be omitted in {\tt FUNC}. \\
+(Demo {\tt san}.)
 \end{itemize}
 %=====================================================================
 \section{ Discretization Constants.} \label{sec:Discretization_constants}
