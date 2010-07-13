@@ -982,8 +982,8 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Table~\ref{tbl:demo_scripts}.  These scripts are fully annotated and
  provide good examples of how \AUTO CLUI scripts are written.  The
  scripts in \filef{auto/07p/demos/python/n-body} are especially lucid
- examples and preform various related parts of a calculation involving
- the gravitional N-body problem.  
+ examples and perform various related parts of a calculation involving
+ the gravitational N-body problem.  
  Scripts which end in the
  suffix \filef{.auto} are called ``basic'' scripts and can
  be run by typing \commandf{auto scriptname.auto}.
@@ -1496,7 +1496,7 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Section~\ref{sec:ISW}), so that a branch switch is performed, and
  the \parf{NTST} value is changed to \parf{50} (see
  Section~\ref{sec:NTST}).
- Only `in memory'' version of the \AUTO constants are modified;
+ Only ``in memory'' versions of the \AUTO constants are modified;
  the original file \filef{c.bvp} is \emp{not} modified.
 
  Some diagnostics are then printed to the screen using a standard \python
@@ -1985,7 +1985,7 @@ lrz ... done
  \hline
  Period doubling bifurcation (ODE) & PD & 7 \\
  \hline
- Bifurcation to invarient torus (ODE) & TR & 8 \\
+ Bifurcation to invariant torus (ODE) & TR & 8 \\
  \hline
  Normal begin or end & EP & 9 \\
  \hline
@@ -2802,7 +2802,8 @@ Load files into the \AUTO runner or return modified solution data.
     \end{verbatim}
     If data is not specified or data is a string then options which
     are not explicitly set retain their previous value.
-    For example one may type: \commandf{s=load(e='ab',c='ab.1')} to use \filef{ab.c} as
+    For example one may type: \commandf{s=load(e='ab',c='ab.1')} to
+    use \filef{ab.f90}, \filef{ab.f}, or \filef{ab.c} as
     the equations file and \filef{c.ab.1} as the constants file.
 
     Type \commandf{s=load('name')} to load all files with base 'name'.
@@ -5997,7 +5998,7 @@ simply type the command given in Table~\ref{tbl:demo_cusp_2}.
   \AUTO-COMMAND  & ACTION \\
 \hline
 %==============================================================================
-  \commandf{demofile('cusp.auto')}  & \parbox[t]{3in}{execute all runs of demo \filef{ab} interactively\vspace{0.2cm}}\\ 
+  \commandf{demofile('cusp.auto')}  & \parbox[t]{3in}{execute all runs of demo \filef{cusp} interactively\vspace{0.2cm}}\\ 
 \hline
 %==============================================================================
 \end{tabular}
