@@ -1,5 +1,5 @@
 #!/bin/sh
-VIEWERS="xpdf evince gv"
+VIEWERS="xpdf acroread evince gv"
 MANUAL="$AUTO_DIR/doc/auto.pdf"
 GOT_VIEWER="false"
 for VIEWER in $VIEWERS; do

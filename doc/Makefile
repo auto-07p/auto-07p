@@ -27,7 +27,7 @@ $(I)optionMenu.pdf $(I)styleMenuNew.pdf $(I)typeMenu.pdf
 all:  manual
 
 manual: auto.pdf ../plaut04/doc/userguide.pdf
-	gv auto.pdf &
+	../cmds/@mn
 
 auto.pdf:auto.tex $(FIGS) $(PLAUT04_FIGS)
 	pdflatex auto.tex
