@@ -1,7 +1,8 @@
 %==============================================================================
 %==============================================================================
 \documentclass[12pt]{report}
-\usepackage{epsf}
+\usepackage{epsfig}
+\usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{include/harvard}
 \usepackage{alltt}
@@ -54,7 +55,10 @@ and
 Chenghai Zhang.\\
 }}
 \date{October 2009}
+\pagenumbering{alph}
 \maketitle
+\pagenumbering{arabic}
+\setcounter{page}{1}
 \tableofcontents
 %
 %
@@ -782,7 +786,7 @@ The user must prepare the two files described below.
 This can be done with the GUI described in Chapter~\ref{ch:GUI}, 
 or independently.
 
-\section{ The Equations-File {\tt xxx.f90}, or {\tt xxx.f}, or {\tt xxx.c}} 
+\section{ The Equations-File \texttt{xxx.f90}, or \texttt{xxx.f}, or \texttt{xxx.c}} 
 A source file {\tt xxx.f90} containing the Fortran routines
 {\tt FUNC}, {\tt STPNT}, {\tt BCND}, {\tt ICND}, {\tt FOPT}, and {\tt PVLS}.
 Here {\tt xxx} stands for a user-selected name. 
@@ -801,7 +805,7 @@ In GUI mode, this file can be directly loaded with the GUI-button
 The equations-file can either be written in fixed-form (old-style)
 Fortran (.f), free-form Fortran (.f90) or in C (.c).
 
-\section{ The Constants-File {\tt c.xxx}} 
+\section{ The Constants-File \texttt{c.xxx}} 
 {\cal AUTO}-constants for {\tt xxx.\{f,f90,c\}} are normally expected 
 in a corresponding file {\tt c.xxx}.
 Specific examples include {\tt ab/c.ab}
@@ -4736,25 +4740,25 @@ are also mentioned.
 
 %=====================================================================
 \section{ Problem Constants.} \label{sec:Problem_constants}
-\subsection{\tt NDIM} \label{sec:NDIM}
+\subsection{\texttt{NDIM}} \label{sec:NDIM}
  Dimension of the system of equations as specified in the user-supplied
  routine {\tt FUNC}.
 
-\subsection{\tt NBC}  \label{sec:NBC}
+\subsection{\texttt{NBC}}  \label{sec:NBC}
  The number of boundary conditions as specified in the user-supplied
  routine {\tt BCND}. \\
 (Demos {\tt exp}, {\tt kar}.)
 
-\subsection{\tt NINT}  \label{sec:NINT}
+\subsection{\texttt{NINT}}  \label{sec:NINT}
  The number of integral conditions as specified in the user-supplied
  routine {\tt ICND}. \\ 
 (Demos {\tt int}, {\tt lin}, {\tt obv}.)
 
-\subsection{\tt NPAR} \label{sec:NPAR}
+\subsection{\texttt{NPAR}} \label{sec:NPAR}
  Maximum parameter number that can be used in all user-supplied
  routines.
 
-\subsection{\tt JAC}  \label{sec:JAC}
+\subsection{\texttt{JAC}}  \label{sec:JAC}
  Used to indicate whether derivatives are supplied by the user
  or to be obtained by differencing~:
 \begin{itemize}
@@ -4776,7 +4780,7 @@ are also mentioned.
 \end{itemize}
 %=====================================================================
 \section{ Discretization Constants.} \label{sec:Discretization_constants}
-\subsection{\tt NTST}  \label{sec:NTST}
+\subsection{\texttt{NTST}}  \label{sec:NTST}
  The number of mesh intervals used for discretization.
  {\tt NTST} remains fixed during any particular run, but can be changed
  when restarting. 
@@ -4785,7 +4789,7 @@ are also mentioned.
  (Demos {\tt exp}, {\tt ab}, {\tt spb}.)
 
 
-\subsection{\tt NCOL}  \label{sec:NCOL}
+\subsection{\texttt{NCOL}}  \label{sec:NCOL}
  The number of Gauss collocation points per mesh interval,
  (2 $\le$ {\tt NCOL} $\le$ 7).
  {\tt NCOL} remains fixed during any given run, but can be changed
@@ -4794,7 +4798,7 @@ are also mentioned.
  If {\tt NDIM} is ``large'' and the solutions ``very smooth'' then
  {\tt NCOL}=2 may be appropriate.
 
-\subsection{\tt IAD} \label{sec:IAD}
+\subsection{\texttt{IAD}} \label{sec:IAD}
 This constant controls the mesh adaption~: 
 \begin{itemize}
 \item[-] {\tt IAD=0}~:
@@ -4813,30 +4817,30 @@ mesh {\tt (IAD=0)}. Be sure to set  {\tt IAD} back to {\tt IAD=3}
 for computing eventual non-trivial bifurcating solution families.
 %=====================================================================
 \section{ Tolerances.} \label{sec:Tolerances}
-\subsection{\tt EPSL}  \label{sec:EPSL}
+\subsection{\texttt{EPSL}}  \label{sec:EPSL}
  Relative convergence criterion for equation parameters in the Newton/Chord 
  method. Most demos use {\tt EPSL}=$10^{-6}$ or {\tt EPSL}=$10^{-7}$,
  which is the recommended value range.
 
-\subsection{\tt EPSU}  \label{sec:EPSU}
+\subsection{\texttt{EPSU}}  \label{sec:EPSU}
  Relative convergence criterion for solution components in the Newton/Chord 
  method. Most demos use {\tt EPSU}=$10^{-6}$ or {\tt EPSU}=$10^{-7}$,
  which is the recommended value range.
 
-\subsection{\tt EPSS}  \label{sec:EPSS}
+\subsection{\texttt{EPSS}}  \label{sec:EPSS}
  Relative arclength convergence criterion for the detection of special solutions. 
  Most demos use {\tt EPSS}=$10^{-4}$ or  {\tt EPSS}=$10^{-5}$,
  which is the recommended value range.
  Generally, {\tt EPSS} should be approximately 100 to 1000 times the value
  of {\tt EPSL}, {\tt EPSU}.
  
-\subsection{\tt ITMX}  \label{sec:ITMX}
+\subsection{\texttt{ITMX}}  \label{sec:ITMX}
  The maximum number of iterations allowed in the accurate
  location of special solutions, such as bifurcations, folds, 
  and user output points, by M\"uller's method with bracketing.
  The recommended value is {\tt ITMX}=8, used in most demos.
 
-\subsection{\tt NWTN}  \label{sec:NWTN}
+\subsection{\texttt{NWTN}}  \label{sec:NWTN}
  After {\tt NWTN} Newton iterations the Jacobian is frozen, i.e.,
  {\cal AUTO} uses full Newton for the first {\tt NWTN} iterations
  and the Chord method for iterations {\tt NWTN}+1 to {\tt ITNW}.
@@ -4845,7 +4849,7 @@ for computing eventual non-trivial bifurcating solution families.
  the piecewise polynomial collocation equations.
  For algebraic systems {\cal AUTO} always uses full Newton.
 
-\subsection{\tt ITNW}  \label{sec:ITNW}
+\subsection{\texttt{ITNW}}  \label{sec:ITNW}
  The maximum number of combined Newton-Chord iterations.
  When this maximum is reached, the step will be retried with 
  half the stepsize.
@@ -4858,7 +4862,7 @@ for computing eventual non-trivial bifurcating solution families.
 
 %=====================================================================
 \section{ Continuation Step Size.} \label{sec:step_size}
-\subsection{\tt DS}  \label{sec:DS}
+\subsection{\texttt{DS}}  \label{sec:DS}
  {\cal AUTO} uses pseudo-arclength continuation for following solution families.
  The pseudo-arclength stepsize is the distance between
  the current solution and the next solution on a family.
@@ -4875,7 +4879,7 @@ for computing eventual non-trivial bifurcating solution families.
  that was found appropriate after some experimentation.
  
 
-\subsection{\tt DSMIN}  \label{sec:DSMIN}
+\subsection{\texttt{DSMIN}}  \label{sec:DSMIN}
  This is minimum allowable absolute value of the pseudo-arclength 
  stepsize. {\tt DSMIN} must be positive.
  It is only effective if the pseudo-arclength step is adaptive,
@@ -4885,7 +4889,7 @@ for computing eventual non-trivial bifurcating solution families.
  experimentation.
  See also the discussion in Section~\ref{sec:Efficiency}.
 
-\subsection{\tt DSMAX}  \label{sec:DSMAX}
+\subsection{\texttt{DSMAX}}  \label{sec:DSMAX}
  The maximum allowable absolute value of the pseudo-arclength stepsize.
  {\tt DSMAX} must be positive.
  It is only effective if the pseudo-arclength step is adaptive,
@@ -4895,7 +4899,7 @@ for computing eventual non-trivial bifurcating solution families.
  experimentation.
  See also the discussion in Section~\ref{sec:Efficiency}.
 
-\subsection{\tt IADS}  \label{sec:IADS}
+\subsection{\texttt{IADS}}  \label{sec:IADS}
 This constant controls the frequency of adaption of the 
 pseudo-arclength stepsize.
 \begin{itemize}
@@ -4917,7 +4921,7 @@ pseudo-arclength stepsize.
   almost all demos.
 \end{itemize}
   
-\subsection{\tt THL}  \label{sec:THL}
+\subsection{\texttt{THL}}  \label{sec:THL}
 By default, the pseudo-arclength stepsize includes all state variables
 (or state functions) and all free parameters.
 Under certain circumstances one may want to modify the weight accorded 
@@ -4938,7 +4942,7 @@ periodic solutions ({\tt IPS=2}).
 Most demos that compute periodic solutions use this option;
 see for example demo {\tt ab}.
 
-\subsection{\tt THU}  \label{sec:THU}
+\subsection{\texttt{THU}}  \label{sec:THU}
 Under certain circumstances one may want to modify the weight accorded 
 to individual state variables (or state functions) in the definition 
 of stepsize.
@@ -4974,7 +4978,7 @@ at the starting point. Most demos do not specify these constants, and
 use an unbounded window.
 \end{itemize}
 
-\subsection{\tt STOP}  \label{sec:STOP}
+\subsection{\texttt{STOP}}  \label{sec:STOP}
 This constant adds stopping conditions. It is specified as a list of
 bifurcation type strings followed by a number $n$ greater than zero.
 These strings specify that the contination should stop as soon as the $n$th
@@ -4986,25 +4990,25 @@ Stop at the third Hopf bifurcation or third user defined point (see
 Section~\ref{sec:UZR}), whichever comes first.
 \end{description}
 
-\subsection{\tt NMX} \label{sec:NMX}
+\subsection{\texttt{NMX}} \label{sec:NMX}
 The maximum number of steps to be taken along any family.
 
-\subsection{\tt RL0}  \label{sec:RL0}
+\subsection{\texttt{RL0}}  \label{sec:RL0}
  The lower bound on the principal continuation parameter.
  (This is the parameter which appears first in the {\tt ICP} list;
  see Section~\ref{sec:ICP}.). 
 
-\subsection{\tt RL1}  \label{sec:RL1}
+\subsection{\texttt{RL1}}  \label{sec:RL1}
  The upper bound on the principal continuation parameter. 
 
-\subsection{\tt A0}  \label{sec:A0}
+\subsection{\texttt{A0}}  \label{sec:A0}
  The lower bound on the principal solution measure.
  (By default, if {\tt IPLT}=0, the principal solution measure
  is the $L_2$-norm of the state vector or state vector function.
  See the {\cal AUTO}-constant {\tt IPLT} in Section~\ref{sec:IPLT} 
  for choosing another principal solution measure.)
 
-\subsection{\tt A1}  \label{sec:A1}
+\subsection{\texttt{A1}}  \label{sec:A1}
  The upper bound on the principal solution measure.
 
 %=====================================================================
@@ -5012,7 +5016,7 @@ The maximum number of steps to be taken along any family.
 \section{ Free Parameters.} \label{sec:Free_parameters}
 
 
-\subsection{\tt ICP}  \label{sec:ICP}
+\subsection{\texttt{ICP}}  \label{sec:ICP}
 For each equation type and for each continuation calculation there is
 a typical (``generic'') number of problem parameters that must be 
 allowed to vary, in order for the calculations to be properly posed.
@@ -5195,7 +5199,7 @@ the other parameters cannot be used as true continuation parameters.
 %=====================================================================
 %=====================================================================
 \section{ Computation Constants.} \label{sec:Computation_constants}
-\subsection{\tt ILP}  \label{sec:ILP}
+\subsection{\texttt{ILP}}  \label{sec:ILP}
 \begin{itemize}
 \item[-] {\tt ILP=0}~: 
   No detection of folds. This choice is recommended.
@@ -5203,7 +5207,7 @@ the other parameters cannot be used as true continuation parameters.
   Detection of folds. To be used if subsequent fold continuation is intended.
 \end{itemize}
 
-\subsection{\tt SP}  \label{sec:SP}
+\subsection{\texttt{SP}}  \label{sec:SP}
 This constant controls the detection of bifurcations and adds stopping
 conditions. It is specified as a list of bifurcation type strings
 followed by an optional number. If this number is 0, then the detection
@@ -5221,7 +5225,7 @@ turn off detection of branch points and stop at the third Hopf
 bifurcation or third user defined point, whichever comes first.
 \end{itemize}
  
-\subsection{\tt ISP}  \label{sec:ISP}
+\subsection{\texttt{ISP}}  \label{sec:ISP}
 This constant controls the detection of Hopf bifurcations,
 branch points, period-doubling bifurcations, and torus bifurcations. 
 \begin{itemize}
@@ -5260,7 +5264,7 @@ branch points, period-doubling bifurcations, and torus bifurcations.
   and torus bifurcations will be detected.
 \end{itemize}
 
-\subsection{\tt ISW}  \label{sec:ISW}
+\subsection{\texttt{ISW}}  \label{sec:ISW}
  This constant controls branch switching at branch points for the case
  of differential equations.
  Note that branch switching is automatic for algebraic equations.
@@ -5286,7 +5290,7 @@ branch points, period-doubling bifurcations, and torus bifurcations.
   continuations; see also Section~\ref{sec:Free_parameters}.
 \end{itemize}
 
-\subsection{\tt MXBF}  \label{sec:MXBF}
+\subsection{\texttt{MXBF}}  \label{sec:MXBF}
  This constant, which is effective for algebraic problems only,
  sets the maximum number of bifurcations to be treated.
  Additional branch points will be noted, but the corresponding bifurcating
@@ -5296,12 +5300,12 @@ branch points, period-doubling bifurcations, and torus bifurcations.
  If {\tt MXBF} is negative then the bifurcating families of the first 
  $\abs{{\tt MXBF}}$ branch points will be traced out in only one direction. 
 
-\subsection{\tt s}  \label{sec:s}
+\subsection{\texttt{s}}  \label{sec:s}
 This constant sets the name of the solution file from which the computation
 is to be restarted, instead of \filef{fort.3}: if {\tt s='xxx'} then the
 name of the restart file is \filef{s.xxx}.
 
-\subsection{\tt dat}  \label{sec:dat}
+\subsection{\texttt{dat}}  \label{sec:dat}
 This constant, where {\tt dat='xxx'}, sets the name of a user-supplied ASCII
 data file {\tt xxx.dat}, from which the contination is to be restarted.
 {\cal AUTO} automatically sets the period in {\tt PAR(11)}.
@@ -5315,19 +5319,19 @@ be set to 0.
 
 (Demos {\tt lor}, {\tt pen}.)
 
-\subsection{\tt U}  \label{sec:U}
+\subsection{\texttt{U}}  \label{sec:U}
 This constant, where {\tt U=\{i1:x1,i2:x2\}}, changes the value of
 {\tt U(i1)} to {\tt x1}, {\tt U(i2)} to {\tt x2}, and so on,
 with respect to the solution to start from. This is only
 valid for restarting from algebraic problems or a constant-in-time
 solution.
 
-\subsection{\tt PAR}  \label{sec:PAR}
+\subsection{\texttt{PAR}}  \label{sec:PAR}
 This constant, where {\tt PAR=\{i1:x1,i2:x2\}}, changes the value of
 {\tt PAR(i1)}  to {\tt x1}, {\tt PAR(i2)} to
 {\tt x2}, and so on, with respect to the solution to start from.
 
-\subsection{\tt IRS}  \label{sec:IRS}
+\subsection{\texttt{IRS}}  \label{sec:IRS}
 This constant sets the label of the solution where the computation
 is to be restarted.
 \begin{itemize}
@@ -5358,7 +5362,7 @@ is to be restarted.
   bifurcation.
 \end{itemize}
 
-\subsection{\tt IPS}  \label{sec:IPS}
+\subsection{\texttt{IPS}}  \label{sec:IPS}
 This constant defines the problem type~:
 \begin{itemize}
 %=====================================================================
@@ -5495,33 +5499,33 @@ This constant defines the problem type~:
 
 
 \section{ Output Control.} \label{sec:Output_control}
-\subsection{\tt unames}  \label{sec:unames}
+\subsection{\texttt{unames}}  \label{sec:unames}
 This constant, where {\tt unames=\{i1:s1,i2:s2\}}, changes the names in all
 output from {\tt U(i1)} to {\tt s1}, from {\tt U(i2)} to {\tt s2}, and so on.
 You can also refer to these strings, instead of the corresponding indices,
 in the constants \texttt{U} and \texttt{THU}.
 
-\subsection{\tt parnames}  \label{sec:parnames}
+\subsection{\texttt{parnames}}  \label{sec:parnames}
 This constant, where {\tt parnames=\{i1:s1,i2:s2\}}, changes the names in all
 output from {\tt PAR(i1)} to {\tt s1}, from {\tt PAR(i2)} to {\tt s2},
 and so on.
 You can also refer to these strings, instead of the corresponding indices,
 in the constants \texttt{ICP}, \texttt{THL}, and \texttt{UZR}.
 
-\subsection{\tt e}  \label{sec:e}
+\subsection{\texttt{e}}  \label{sec:e}
 This constant, where {\tt e='xxx'}, is only for use by post-processors:
 it denotes the name of the equations file and is stored
 in the bifurcation diagram file (\filef{fort.7}), so restarts in the
 Python interface are possible without needing to specify the equations
 file.
 
-\subsection{\tt sv} \label{sec:sv}
+\subsection{\texttt{sv}} \label{sec:sv}
 This constant specifies a string to write the output to instead of
 {\tt fort.7}, {\tt fort.8}, and {\tt fort.9}: if {\tt sv='xxx'}, then
 the output files are
 {\tt b.xxx}, {\tt s.xxx}, and {\tt d.xxx}.
 
-\subsection{\tt NPR}  \label{sec:NPR}
+\subsection{\texttt{NPR}}  \label{sec:NPR}
  This constant can be used to regularly write {\tt fort.8} plotting and restart 
  data.  
  IF {\tt NPR}$>$0 then such output is written every {\tt NPR} steps.
@@ -5533,7 +5537,7 @@ the output files are
  For these reasons, and to limit the output volume, it is recommended that
  {\tt NPR} output be kept to a minimum.
 
-\subsection{\tt IID} \label{sec:IID} 
+\subsection{\texttt{IID}} \label{sec:IID} 
  This constant controls the amount of diagnostic output printed in {\tt fort.9}~:
  the greater {\tt IID} the more detailed the diagnostic output.
 \begin{itemize}
@@ -5573,7 +5577,7 @@ the output files are
   used in combination with MPI parallellization.
 \end{itemize}
 
-\subsection{\tt IPLT}  \label{sec:IPLT}
+\subsection{\texttt{IPLT}}  \label{sec:IPLT}
  This constant allows redefinition of the principal solution measure, which is
  printed as the second (real) column in the screen output and in the {\tt fort.7}
  output-file~:
@@ -5612,7 +5616,7 @@ Note also that the routine {\tt PVLS} provides a second, more general way
 of defining solution measures; see Section~\ref{sec:Parameter_over_specification}.
 
 
-\subsection{\tt UZR} \label{sec:UZR} 
+\subsection{\texttt{UZR}} \label{sec:UZR} 
  This constant allows the setting of parameter values at which labeled plotting 
  and restart information is to be written in the {\tt fort.8} output-file.
  Optionally, it also allows the computation to terminate at such a point.
@@ -5718,7 +5722,7 @@ parameters, test functions\\
 \chapter{ Notes on Using {\cal AUTO}.}  \label{ch:Notes_on_Using_AUTO}
 %==============================================================================
 %==============================================================================
-\section{ Restrictions on the Use of {\tt PAR}.} \label{sec:Restrictions_on_PAR}
+\section{ Restrictions on the Use of \texttt{PAR}.} \label{sec:Restrictions_on_PAR}
 The array {\tt PAR} in the user-supplied routines is available
 for equation parameters that the user wants to vary at some point
 in the computations.
@@ -6219,13 +6223,13 @@ and the files \filef{b.mu} and \filef{s.mu}}
 
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cusp1.eps}}
+\centerline{\epsffile{include/cusp1}}
 \caption{The first bifurcation diagram of demo \filef{cusp}.}
 \label{fig:cusp_1}
 \end{figure}
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cusp2.eps}}
+\centerline{\epsffile{include/cusp2}}
 \caption{The second bifurcation diagram of demo \filef{cusp}.}
 \label{fig:cusp_2}
 \end{figure}
@@ -6438,7 +6442,8 @@ on the two periodic solution families.
 %==============================================================================
 %DEMO=abc======================================================================
 %==============================================================================
-\section{ abc : The A $\to$ B $\to$ C Reaction.} \label{sec:Demos_abc}
+\section{ abc : The A \texorpdfstring{$\to$}{to} B 
+\texorpdfstring{$\to$}{to} C Reaction.} \label{sec:Demos_abc}
 This demo illustrates the computation of 
 stationary solutions,
 Hopf bifurcations 
@@ -6803,7 +6808,7 @@ command and using {\cal PLAUT04}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/pp21.eps}}
+\centerline{\epsffile{include/pp21}}
 \caption{The bifurcation diagram of demo {\tt pp2}.}
 \label{fig:pp2_1}
 \end{figure}
@@ -6812,7 +6817,7 @@ command and using {\cal PLAUT04}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/pp22.eps}}
+\centerline{\epsffile{include/pp22}}
 \caption{The phase plot of solutions 11, 15, 19, and 23 in demo {\tt pp2}.}
 \label{fig:pp2_2}
 \end{figure}
@@ -8860,8 +8865,8 @@ are changed at every step.
 \begin{figure}[htb]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/closegap_pcl_par.eps}}
-\put(240,-20){\includegraphics[scale=0.48]{include/closegap_pcl.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/closegap_pcl_par}}
+\put(240,-20){\includegraphics[scale=0.48]{include/closegap_pcl}}
 \end{picture}
 \caption{Closing the Lin-gap to obtain the point-to-cycle
 connection.
@@ -8874,11 +8879,11 @@ To obtain these figures run \commandf{plot('closegap')} or
 \end{center}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/cont_pcl_par.eps}}
-\put(240,-20){\includegraphics[scale=0.48]{include/cont_pcl.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/cont_pcl_par}}
+\put(240,-20){\includegraphics[scale=0.48]{include/cont_pcl}}
 \end{picture}
 \caption{Parameter space diagram (left) and corresponding
 orbit segments in phase space (right),
@@ -9024,8 +9029,8 @@ values of $(\nu_1,\nu_2)$ are shown in Figure \ref{fig:Demos_snh2}.
 \begin{figure}[htb]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/closegap_snh_par.eps}}
-\put(250,-15){\includegraphics[scale=0.48]{include/closegap_snh.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/closegap_snh_par}}
+\put(250,-15){\includegraphics[scale=0.48]{include/closegap_snh}}
 \end{picture}
 \caption{Closing the Lin-gap to obtain the point-to-cycle connection.
 The left panel is a plot of $\nu_1$ versus the gap size $\eta$,
@@ -9040,8 +9045,8 @@ To obtain these figures run \commandf{plot('closegap')} or
 \begin{figure}[h!]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/cb_snh_par.eps}}
-\put(250,-15){\includegraphics[scale=0.48]{include/cb_snh.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/cb_snh_par}}
+\put(250,-15){\includegraphics[scale=0.48]{include/cb_snh}}
 \end{picture}
 \caption{Parameter space diagram (left) and corresponding orbit
 segments in phase space (right),
@@ -9052,7 +9057,7 @@ or \commandf{@pp cb}, and \commandf{plot3('cb')} or
 at a saddle-node bifurcation of limit cycles,
 and label 16 the smallest one, where the periodic orbit disappears in
 a Hopf bifurcation.}
-\label{Fig:Demos_snh2}
+\label{fig:Demos_snh2}
 \end{center}
 \end{figure}
 
@@ -9096,8 +9101,8 @@ connection and orbit stop converging, so \AUTO reports MX.
 \begin{figure}[h!]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/cont_snh_all_par.eps}}
-\put(251,-15){\includegraphics[scale=0.45]{include/cont_snh_all.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/cont_snh_all_par}}
+\put(251,-15){\includegraphics[scale=0.45]{include/cont_snh_all}}
 \end{picture}
 \caption{Parameter space diagram (left) and the corresponding homoclinic
 orbit on the snaking curve $h_1^b$ for label 20 (right). The snaking
@@ -9236,8 +9241,8 @@ we show here, in Figures~\ref{fig:Demos_fnc1},
 \begin{figure}[h!]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_attrrep1.eps}}
-\put(251,-15){\includegraphics[scale=0.45]{include/fnc_attrrep2.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_attrrep1}}
+\put(251,-15){\includegraphics[scale=0.45]{include/fnc_attrrep2}}
 \end{picture}
 \caption{Repelling and attracting slow manifold curves
 where they match up (left) and their intersection curves at $s=0.2797$ in
@@ -9249,8 +9254,8 @@ the $(h,v)$ plane (right).}
 \begin{figure}[h!]
 \begin{center}
 \begin{picture}(550,190)
-\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_canards1.eps}}
-\put(240,-20){\includegraphics[scale=0.48]{include/fnc_canards2.eps}}
+\put(-10,-20){\includegraphics[scale=0.48]{include/fnc_canards1}}
+\put(240,-20){\includegraphics[scale=0.48]{include/fnc_canards2}}
 \end{picture}
 \caption{Continuation of canard orbits: the AUTO $L_2$ norm as
 a function of $\varepsilon$ for all six orbits (left), and 
@@ -9263,9 +9268,9 @@ of the orbit $\xi_3$ on the $(v,s)$ plane (right).}
 \begin{figure}[h!]
 \begin{center}
 \begin{picture}(550,130)
-\put(-17,-20){\includegraphics[scale=0.5]{include/fnc_canards3.eps}}
-\put(233,-20){\includegraphics[scale=0.5]{include/fnc_canards4.eps}}
-\put(359,-20){\includegraphics[scale=0.5]{include/fnc_canards5.eps}}
+\put(-17,-20){\includegraphics[scale=0.5]{include/fnc_canards3}}
+\put(233,-20){\includegraphics[scale=0.5]{include/fnc_canards4}}
+\put(359,-20){\includegraphics[scale=0.5]{include/fnc_canards5}}
 \end{picture}
 \caption{Continuation of canard orbits: projection of all canard
 orbits on the $(v,s)$ plane for $\varepsilon=0.015$ (left),
@@ -11190,7 +11195,7 @@ and outputs to the screen
 Full output is stored in \filef{b.3}, \filef{s.3} and \filef{d.3}. 
 \begin{figure}[b]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/san1.ps}}
+\centerline{\epsffile{include/san1}}
 \caption{Second versus third component of the solution to the adjoint
 equation at labels 4, 6 and 8}
 \label{Ftest1}
@@ -11290,7 +11295,7 @@ at which parameter value the homoclinic orbit is contained in the $(x,y)$-plane
 
 \begin{figure}[t]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/san2.ps}}
+\centerline{\epsffile{include/san2}}
 \caption{Orbits on either side of the orbit flip bifurcation. The critical
 orbit is contained in the $(x,y)$-plane}
 \label{Ftest2}
@@ -11419,7 +11424,7 @@ Consider the following system of two equations \cite{Sc:95}
 \end{array} \end{equation}
 \begin{figure}[b]
 \epsfysize 10.0cm
-\centerline{\epsffile{include/mtn1.ps}}
+\centerline{\epsffile{include/mtn1}}
 \caption{Parametric portrait of the predator-prey system }
 \label{SNF.1}
 \end{figure}
@@ -11590,7 +11595,7 @@ command \commandf{@pp 1} to reproduce the curve $P$ shown in Figure
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 10.0cm
-\centerline{\epsffile{include/mtn2.ps}}
+\centerline{\epsffile{include/mtn2}}
 \caption{Approximation by a large-period cycle}
 \label{SNF.2}
 \end{figure}
@@ -11598,7 +11603,7 @@ command \commandf{@pp 1} to reproduce the curve $P$ shown in Figure
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/mtn3.ps}}
+\centerline{\epsffile{include/mtn3}}
 \caption{Projection onto the ($K,D_0$)-plane of the 
 three-parameter curve of non-central  saddle-node homoclinic orbit}
 \label{SNF.3}
@@ -11758,7 +11763,7 @@ with $\lambda$ allowed to vary.
 %
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr1.ps}}
+\centerline{\epsffile{include/kpr1}}
 \caption{Projection on the $(x,y)$-plane of solutions 
 of the boundary value 
 problem with $2T=19.08778$.}
@@ -11766,7 +11771,7 @@ problem with $2T=19.08778$.}
 \end{figure}
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr2.ps}}
+\centerline{\epsffile{include/kpr2}}
 \caption{Projection on the $(x,y)$-plane of solutions of the 
 boundary value problem with $2T = 60.0$.}
 \label{kf.1b}
@@ -11813,7 +11818,7 @@ continues the homoclinic orbit in \parf{PAR(1)} and \parf{PAR(2)}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr4.ps}}
+\centerline{\epsffile{include/kpr4}}
 \caption{Projection on the $(x,y)$-plane of solutions $\phi(t)$
 at \parf{1} ($\lambda=-1.825470, k=-0.1760749$) and
 \parf{2} ($\lambda=-1.686154, k=-0.3183548$).}
@@ -11823,7 +11828,7 @@ at \parf{1} ($\lambda=-1.825470, k=-0.1760749$) and
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 8.0cm
-\centerline{\epsffile{include/kpr5.ps}}
+\centerline{\epsffile{include/kpr5}}
 \caption{Three-dimensional blow-up of the solution curves
  $\phi(t)$ 
 at labels \parf{1} (dotted) and \parf{2} (solid line) from Figure 3.8.}
@@ -11882,7 +11887,7 @@ we approach a Bogdanov-Takens point
 %------------------------------------------------------
 \begin{figure}[t]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr6.ps}}
+\centerline{\epsffile{include/kpr6}}
 \caption{Computed homoclinic orbits approaching the BT point}
 \label{kp.6}
 \end{figure}
@@ -11961,7 +11966,7 @@ $\psi_{16}$). Among the output we find
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr7.ps}}
+\centerline{\epsffile{include/kpr7}}
 \caption{Two non-central saddle-node homoclinic orbits, \parf{1} and \parf{3};
 and, \parf{2}, a central saddle-node homoclinic orbit between
 these two points \label{kf.7}}
@@ -11970,7 +11975,7 @@ these two points \label{kf.7}}
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr8.ps}}
+\centerline{\epsffile{include/kpr8}}
 \caption{The big homoclinic orbit approaching a figure-of-eight}
 \label{kp.8}
 \end{figure}
@@ -12057,7 +12062,7 @@ for contrast we shall adopt the second approach here.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/kpr10.ps}}
+\centerline{\epsffile{include/kpr10}}
 \caption{Projection onto the \parf{(PAR(3),PAR(2))}-plane of the non-central
 saddle-node homoclinic orbit curves (labeled \parf{1} and \parf{2}) and the 
 inclination-flip curves (labeled \parf{3} and \parf{4})}.
@@ -12174,7 +12179,7 @@ that as in Figure \ref{kf.7} the orbits look quite distinct in phase space.
 %==============================================================================
 %DEMO=cir======================================================================
 %==============================================================================
-\section{ Electronic Circuit of Freire {\it et al}.}
+\section{ Electronic Circuit of Freire \textit{et al}.}
 Consider the following model of a three-variable electronic circuit
 \cite{FrRLuGaPo:93}
  \begin{equation}
@@ -12249,7 +12254,7 @@ with results saved in \filef{b.2, s.2, d.2}.
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cir1.ps}}
+\centerline{\epsffile{include/cir1}}
 \caption{Solutions of the boundary value problem at labels 6 and 8, 
 either side of the Shil'nikov-Hopf bifurcation}
 \label{Fcircuit1}
@@ -12258,7 +12263,7 @@ either side of the Shil'nikov-Hopf bifurcation}
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/cir2.ps}}
+\centerline{\epsffile{include/cir2}}
 \caption{Phase portraits of three homoclinic orbits 
 on the family, showing the saddle-focus to saddle transition}
 \label{Fcircuit2}
@@ -12419,7 +12424,7 @@ direction along the family from the original starting point (again with \parf{IE
 %------------------------------------------------------
 \begin{figure}[b]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/she1.ps}}
+\centerline{\epsffile{include/she1}}
 \caption{Projections into $(x,y,z)$-space of the family of heteroclinic
 orbits.}
 \label{Fshear}
@@ -12531,7 +12536,7 @@ under $R_1$ and the second for data that is reversible under $R_2$.
 %though we illustrate here the step by step approach.
 
 
-\section{An $R_1$-Reversible Homoclinic Solution.}
+\section{An \texorpdfstring{$R_1$}{R1}-Reversible Homoclinic Solution.}
 
 The first run
 \begin{center}
@@ -12565,7 +12570,7 @@ homoclinic orbit is computed up to its point of symmetry. See Figure
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/rev1.ps}}
+\centerline{\epsffile{include/rev1}}
 \caption{$R_1$-Reversible homoclinic solutions on the half-interval
 $x/T \in [0,1]$ where $T=39.0448429$ for $P$ approaching $2$ (solutions
 with labels \parf{1-5} respectively have decreasing amplitude)}
@@ -12575,7 +12580,7 @@ with labels \parf{1-5} respectively have decreasing amplitude)}
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/rev2.ps}}
+\centerline{\epsffile{include/rev2}}
 \caption{$R_1$-reversible homoclinic orbits with oscillatory decay 
 as $x \to -\infty$ (corresponding to label \parf{6}) and monotone decay 
 (at label \parf{10})}
@@ -12603,7 +12608,7 @@ shows a saddle to saddle-focus transition
 that label the first component of the solution is negative and (up to the
 point of symmetry) monotone decreasing. See Figure \ref{Frev2}.
 
-\section{An $R_2$-Reversible Homoclinic Solution.}
+\section{An \texorpdfstring{$R_2$}{R2}-Reversible Homoclinic Solution.}
 
 \begin{center}
 \commandf{r3=run('rev',c='rev.3',sv='3')}
@@ -12639,7 +12644,7 @@ moving to the left as $P \to -2$ (cf. \citeasnoun{ChSp:93}).
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/rev3.ps}}
+\centerline{\epsffile{include/rev3}}
 \caption{Two $R_2$-reversible homoclinic orbits at $P=1.6$ 
 corresponding to labels \parf{1} (smaller amplitude) and \parf{5} (larger amplitude)}
 \label{Frev3}
@@ -12648,7 +12653,7 @@ corresponding to labels \parf{1} (smaller amplitude) and \parf{5} (larger amplit
 %------------------------------------------------------
 \begin{figure}[p]
 \epsfysize 9.0cm
-\centerline{\epsffile{include/rev4.ps}}
+\centerline{\epsffile{include/rev4}}
 \caption{An $R_2$-reversible homoclinic orbit at label \parf{8}}
 \label{Frev4}
 \end{figure}
@@ -12836,10 +12841,10 @@ Hopf equilibrium to a homoclinic orbit.
 \begin{picture}(400,180)
 \put(0,0){
 \put(157,148){(a)}
-\includegraphics[scale=0.5]{include/hopfbif.eps}}
+\includegraphics[scale=0.5]{include/hopfbif}}
 \put(200,0){
 \put(157,148){(b)}
-\includegraphics[scale=0.5]{include/notshifted.eps}}
+\includegraphics[scale=0.5]{include/notshifted}}
 \end{picture}
 \caption{Periodic orbit growing from a Hopf bifurcation to a
   homoclinic orbit (a). The unshifted homoclinic orbit (b).}
@@ -12945,10 +12950,10 @@ constant value.
 \begin{picture}(400,180)
 \put(0,0){
 \put(157,148){(a)}
-\includegraphics[scale=0.5]{include/loop.eps}}
+\includegraphics[scale=0.5]{include/loop}}
 \put(200,0){
 \put(157,148){(b)}
-\includegraphics[scale=0.5]{include/broken.eps}}
+\includegraphics[scale=0.5]{include/broken}}
 \end{picture}
 \caption{Behaviour of the second piece of the
 `broken homoclinic orbit' when creating a Lin gap (a).
@@ -12991,20 +12996,20 @@ The resulting 2-homoclinic orbits can be seen using
 \begin{center}
 \commandf{plot(r6) }
 \end{center} 
-and is depicted in Figure~\ref{hom2.eps}(a).
+and is depicted in Figure~\ref{hom2}(a).
 \begin{figure}[htb]
 \begin{center}
 \begin{picture}(400,180)
 \put(0,0){
 \put(157,148){(a)}
-\includegraphics[scale=0.5]{include/hom2.eps}}
+\includegraphics[scale=0.5]{include/hom2}}
 \put(200,0){
 \put(157,148){(b)}
-\includegraphics[scale=0.5]{include/hom3.eps}}
+\includegraphics[scale=0.5]{include/hom3}}
 \end{picture}
 \caption{The 2-homoclinic orbit as $a$ is changed (a).
 The two different 3-homoclinic orbits (b).}
-\label{hom2.eps}
+\label{hom2}
 \end{center}
 \end{figure}
 
@@ -13071,7 +13076,7 @@ Note that we have found two zeros of \parf{PAR(24)}, at labels 32 and
 correspond to two different 3-homoclinic
 orbits, which, when followed from periodic orbits, both emanate from
 from the same saddle-node bifurcation.
-These two 3-homoclinic orbits are depicted in Figure~\ref{hom2.eps}(b).
+These two 3-homoclinic orbits are depicted in Figure~\ref{hom2}(b).
 We can follow both of these back to the inclination flip point, by
 setting \parf{ITWIST} back to 0:
 \begin{center}
@@ -13103,7 +13108,7 @@ straightforward to obtain $4, 5, 6, \dots$-homoclinic orbits by
 extending the above strategy.
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.5]{include/parspace.eps}
+\includegraphics[scale=0.5]{include/parspace}
 \caption{Parameter space diagram near an inclination flip. 
 The curve
 through label 17 corresponds to a 1-homoclinic orbit. 
@@ -13252,7 +13257,7 @@ is opened and closed in the continuation process. This is depicted in
 Figure~\ref{shilgap}.
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.5]{include/shilgap.eps}
+\includegraphics[scale=0.5]{include/shilgap}
 \caption{A plot of $\varepsilon_1$ as a function of $T_1$ 
 during our computation of Shil'nikov-type two-homoclinic orbits. 
 Each zero corresponds to a different orbit.}
@@ -13266,7 +13271,7 @@ normal homoclinic orbit by setting \parf{ISTART=1} and
 this as an exercise to the reader.
 
 \section{ Branch switching to a 3-homoclinic orbit in
-a\\ 5th-order Korteweg-De Vries model}
+a 5th-order Korteweg-De Vries model}
 
 In \citeasnoun{ChGr:97} the following water wave model was considered:
 \begin{equation}
@@ -13398,7 +13403,7 @@ lets {\cal HomCont} produce a proper concatenated
 This 3-homoclinic orbit is depicted in Figure~\ref{kdv3hom}.
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.5]{include/kdv3hom.eps}
+\includegraphics[scale=0.5]{include/kdv3hom}
 \caption{A 3-homoclinic orbit in a 5th-order Hamiltonian 
 Korteweg-De Vries model.}
 \label{kdv3hom}
