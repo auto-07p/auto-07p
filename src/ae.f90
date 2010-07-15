@@ -209,7 +209,7 @@ CONTAINS
              IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
                 ISTOP=.TRUE. ! *Stop at the first found bifurcation
              ENDIF
-             IF(MOD(ITP,10)==3.AND.IPS==-1)THEN
+             IF(MOD(ITP,10)==7.AND.IPS==-1)THEN
                 ITDS=AP%ITDS
                 PAR(11)=PAR(11)*ITDS
              ENDIF

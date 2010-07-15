@@ -5,5 +5,5 @@
 
 print "\n***Clean the directory***"
 dl('dd2')
-dl('ns')
+dl('pd')
 cl()

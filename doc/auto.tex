@@ -6347,15 +6347,16 @@ This equation is also considered in
 \section{ dd2 : Fixed Points of a Discrete Dynamical System.} \label{sec:Demos_dd2}
 This demo illustrates the computation of a solution family and
 its bifurcating families for a discrete dynamical system.
-Also illustrated is the continuation of 
-Naimark-Sacker (or Hopf) bifurcations
+Also illustrated are the continuation of 
+period-doubling bifurcations, and branch switching at such
+points.
 The equations, a discrete predator-prey system, are
 \begin{equation} \begin{array}{cl}
  u_1^{k+1} &=p_1
  u_1^{k}(1-u_1^{k})-p_2u_1^{k} u_2^{k},\\
  u_2^{k+1}&=(1-p_3)u_2^{k}+p_2u_1^{k}u_2^{k}.\\
 \end{array} \end{equation}
-In the first run $p_1$ is free.
+In the first, third, and fourth run $p_1$ is free.
 In the second run, both $p_1$ and $p_2$ are free.
 The remaining equation parameter, $p_3$, is fixed in both runs.
 
@@ -6377,7 +6378,17 @@ The remaining equation parameter, $p_3$, is fixed in both runs.
 \hline
 %==============================================================================
   \commandf{r2=run(r1("PD1"),ICP=[1,2],ISW=2)} & \parbox[t]{3in}{2nd run; a locus of period-doubling bifurcations.  \vspace{0.2cm}}\\ 
-  \commandf{save(r2,'ns')} & save output-files as \filef{b.ns, s.ns, d.ns} \\ 
+  \commandf{save(r2,'pd')} & save output-files as \filef{b.pd, s.pd, d.pd} \\ 
+\hline
+%==============================================================================
+  \commandf{r3=run(r1("PD1"),ISW=-1)} & \parbox[t]{3in}{3rd run;
+    the bifurcating period-2 orbit.  \vspace{0.2cm}}\\ 
+  \commandf{append(r3,'dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
+\hline
+%==============================================================================
+  \commandf{r4=run(r3("PD1"))} & \parbox[t]{3in}{4th run; the
+    bifurcation period-4 orbit.  \vspace{0.2cm}}\\ 
+  \commandf{append(r4,'dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{dd2}.}
