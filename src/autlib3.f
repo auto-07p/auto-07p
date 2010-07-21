@@ -5,6 +5,7 @@
       IMPLICIT NONE
       PRIVATE
 
+      PUBLIC :: STPNAE      ! Start (Algebraic Problems)
       PUBLIC :: FNLP,STPNLP ! Folds (Algebraic Problems)
       PUBLIC :: FNBP,STPNBP ! BP (Algebraic Problems)
       PUBLIC :: FNC1,STPNC1 ! Optimizations (Algebraic,NFPR=2)
@@ -75,6 +76,53 @@
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
       CONTAINS
+
+      !---------- ------
+      SUBROUTINE STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
+
+      USE IO
+
+      ! Gets the starting data from unit 3
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+      INTEGER, INTENT(IN) :: ICP(*)
+      INTEGER, INTENT(OUT) :: NODIR
+      DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
+
+      INTEGER NFPR,NFPRS,I,IPS,ITP,ISW,ITDS
+      INTEGER,ALLOCATABLE :: ICPRS(:)
+
+      NFPRS=GETNFPR3()
+      ALLOCATE(ICPRS(NFPRS))
+      ICPRS(:)=0
+      CALL READLB(AP,ICPRS,U,UDOT,PAR)
+  
+      ! Take care of the case where the free parameters have been changed at
+      ! the restart point.
+
+      NODIR=0
+      NFPR=AP%NFPR
+      IF(NFPRS/=NFPR)THEN
+         NODIR=1
+      ELSE
+         DO I=1,NFPR
+            IF(ICPRS(I)/=ICP(I)) THEN
+               NODIR=1
+               EXIT
+            ENDIF
+         ENDDO
+      ENDIF
+      DEALLOCATE(ICPRS)
+
+      IPS=AP%IPS
+      ISW=AP%ISW
+      ITP=AP%ITP
+      IF(IPS==-1.AND.ISW==-1.AND.ITP==7)THEN
+         ! period doubling for maps: set iteration count
+         ITDS=NINT(AINT(PAR(11)))
+         AP%ITDS=ITDS
+      ENDIF
+
+      END SUBROUTINE STPNAE
 
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -214,7 +262,6 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
-      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the continuation of folds.
 C
@@ -399,7 +446,6 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
-      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the continuation of BP.
 C
@@ -1021,7 +1067,6 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
-      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE/wave/map).
