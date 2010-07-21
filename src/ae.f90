@@ -727,6 +727,21 @@ CONTAINS
     Q0=Q
     Q1=FNCS(AP,PAR,ICP,ITP,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
 
+    IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
+         EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
+       ! there could be multiple test functions going through zero
+       ! at a point, for instance CP/LP and BP/CP.
+       ! In general, use "first come, first served", but
+       ! bifurcations override UZ, and CP overrides LP.
+       IF((MOD(AP%ITP,10)==-4.AND.ITP/=0.AND.ITP/=AP%ITP).OR. &
+          (AP%ITP==22.AND.ITP==-22))THEN
+          Q=0.d0
+          IF(IID>0)WRITE(9,102)RDS
+          RETURN
+       ENDIF
+       Q1=0.d0
+    ENDIF
+
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. ITP==0)THEN
        ITP=0
@@ -844,12 +859,12 @@ CONTAINS
 
     FNCS=0.d0
     ITP=0
-    IF(ITEST==NUZR+1)THEN  ! Check for cusp on fold
-       FNCS=FNCPAE(AP,PAR,ICP,ITP,U,V)
-    ELSEIF(ITEST==NUZR+2)THEN ! Check for fold
+    IF(ITEST==NUZR+1)THEN ! Check for fold
        FNCS=FNLPAE(AP,ITP,AA)
-    ELSEIF(ITEST==NUZR+3)THEN ! Check for branch point
+    ELSEIF(ITEST==NUZR+2)THEN ! Check for branch point
        FNCS=FNBPAE(AP,ITP)
+    ELSEIF(ITEST==NUZR+3)THEN  ! Check for cusp on fold
+       FNCS=FNCPAE(AP,PAR,ICP,ITP,U,V)
     ELSEIF(ITEST==NUZR+4)THEN ! Check for Bogdanov-Takens bifurcation
        FNCS=FNBTAE(AP,ITP,U,V)
     ELSEIF(ITEST==NUZR+5)THEN  ! Check for Hopf or Zero-Hopf
@@ -1086,9 +1101,8 @@ CONTAINS
                 ENDIF
              ENDDO
           ENDIF
-       ELSEIF(MOD(AP%ITP,10)/=1)THEN
-          ! Evaluate determinant on Hopf/BP bifurcations, but suppress
-          ! if a BP was also detected.
+       ELSE
+          ! Evaluate determinant on Hopf/BP bifurcations
           ZTMP=1
           DO I=1,NDM
              ZTMP=ZTMP*EV(I)

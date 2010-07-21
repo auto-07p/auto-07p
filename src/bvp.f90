@@ -144,7 +144,7 @@ CONTAINS
     ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
     ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
     ALLOCATE(TM(0:NTST),DTM(NTST))
-    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),TEST(NUZR+5),EV(NDIM))
+    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),TEST(NUZR+3),EV(NDIM))
 
     DS=AP%DS
 
@@ -155,7 +155,7 @@ CONTAINS
        ISP=-ISP
        AP%ISP=ISP
     ENDIF
-    DO I=1,NUZR+5
+    DO I=1,NUZR+3
        TEST(I)=0.d0
     ENDDO
     NITPS=0
@@ -225,7 +225,7 @@ CONTAINS
        IFOUND=0
        ISTEPPED=0
        DSTEST=DSOLD
-       DO ITEST=1,NUZR+5
+       DO ITEST=1,NUZR+3
           ! Check for special points
           CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
                TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
@@ -1113,6 +1113,20 @@ CONTAINS
     Q0=Q
     Q1=FNCS(AP,PAR,ITP,P0,P1,EV,IUZ,VUZ,ITEST)
 
+    IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
+         EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
+       ! there could be multiple test functions going through zero
+       ! at a point. In general, use "first come, first served", but
+       ! In general, use "first come, first served", but
+       ! bifurcations override UZ.
+       IF(MOD(AP%ITP,10)==-4.AND.ITP/=0.AND.ITP/=AP%ITP)THEN
+          Q=0.d0
+          IF(IID>0)WRITE(9,102)RDS
+          RETURN
+       ENDIF
+       Q1=0.d0
+    ENDIF
+
     ! do not test via Q0*Q1 to avoid overflow.
     IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. ITP==0)THEN
        ITP=0
@@ -1244,11 +1258,11 @@ CONTAINS
     NUZR=AP%NUZR
 
     FNCS=0.d0
-    IF(ITEST==NUZR+2)THEN
+    IF(ITEST==NUZR+1)THEN
        FNCS=FNLPBV(AP,ITP)
-    ELSEIF(ITEST==NUZR+3)THEN
+    ELSEIF(ITEST==NUZR+2)THEN
        FNCS=FNBPBV(AP,ITP,P1)
-    ELSEIF(ITEST==NUZR+5)THEN
+    ELSEIF(ITEST==NUZR+3)THEN
        FNCS=FNSPBV(AP,PAR,ITP,P0,P1,EV)
     ELSEIF(ITEST<=NUZR)THEN
        FNCS=FNUZ(AP,PAR,ITP,IUZ,VUZ,ITEST)
