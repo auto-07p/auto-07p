@@ -231,7 +231,7 @@ C
        IPS=AP%IPS
        NDM=AP%NDM
 
-       IF((ABS(AP%ITP)/10==2 .OR. ABS(AP%ITP)/10==7))THEN
+       IF(ABS(AP%ITP)/10==2 .OR. ABS(AP%ITP)/10==7)THEN
           ! restart
           CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
           U(NDIM)=PAR(ICP(2))
@@ -399,6 +399,7 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
+      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the continuation of BP.
 C
@@ -415,6 +416,18 @@ C
        ISW=AP%ISW
        NDM=AP%NDM
        NPAR=AP%NPAR
+
+       IF(ABS(AP%ITP)/10==1)THEN
+          ! restart
+          CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
+          U(NDIM-1)=PAR(ICP(2))
+          IF(ISW==3) THEN 
+             U(NDIM)=PAR(ICP(3)) ! Generic case
+          ELSE
+             U(NDIM)=0.d0        ! Non-generic case
+          ENDIF
+          RETURN
+       ENDIF
 C
        CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C
@@ -1008,6 +1021,7 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
+      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the 2-parameter continuation of
 C Hopf bifurcation point (ODE/wave/map).
@@ -1024,6 +1038,14 @@ C
        NDIM=AP%NDIM
        IPS=AP%IPS
        NDM=AP%NDM
+
+       IF(ABS(AP%ITP)/10==3 .OR. ABS(AP%ITP)/10==8)THEN
+          ! restart
+          CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
+          U(NDIM)=PAR(ICP(2))
+          RETURN
+       ENDIF
+
        ALLOCATE(DFU(NDM,NDM),F(NDM),V(NDM),SMAT(NDM,NDM))
 C
        CALL READLB(AP,ICPRS,U,UDOT,PAR)

@@ -413,27 +413,18 @@ C
      * THEN
 C        ** Fold/PD continuation (algebraic problems).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNLP,THL,THU,IUZ,VUZ)
-       ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND. (ITP.EQ.1) )
+
+       ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND.
+     *        (ITP.EQ.1 .OR. (ABS(ITP)/10).EQ.1) )
      * THEN
 C        ** BP cont (algebraic problems) (by F. Dercole).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNBP,STPNBP,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 
-     *         .AND. ( (ABS(ITP)/10).EQ.1 ) )
-     * THEN
-C        ** BP cont (algebraic problems, restart).
-         CALL AUTOAE(AP,PAR,ICP,ICU,FNBP,STPNAE,THL,THU,IUZ,VUZ)
-C
        ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
-     *        (ITP==3.OR.ITP==8) )
+     *        (ITP==3.OR.ITP==8.OR.ABS(ITP)/10==3.OR.ABS(ITP)/10==8))
      * THEN
 C        ** Hopf/Neimark-Sacker bifurcation continuation (ODE/waves/maps).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
-C
-       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
-     *        (ABS(ITP)/10==3.OR.ABS(ITP)/10==8)) THEN
-C        ** Hopf/NS bifurcation continuation (ODE/waves/maps, restart).
-         CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNAE,THL,THU,IUZ,VUZ)
 C
        ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.ITP==5) THEN 
 C        ** Fold continuation (Periodic solutions, start).
