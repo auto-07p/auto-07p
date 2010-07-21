@@ -214,6 +214,7 @@ C     ---------- ------
 C
       USE IO
       USE SUPPORT
+      USE AE, ONLY: STPNAE
 C
 C Generates starting data for the continuation of folds.
 C
@@ -229,6 +230,13 @@ C
        NDIM=AP%NDIM
        IPS=AP%IPS
        NDM=AP%NDM
+
+       IF((ABS(AP%ITP)/10==2 .OR. ABS(AP%ITP)/10==7))THEN
+          ! restart
+          CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
+          U(NDIM)=PAR(ICP(2))
+          RETURN
+       ENDIF
 C
        CALL READLB(AP,ICPRS,U,UDOT,PAR)
 C

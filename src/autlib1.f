@@ -408,17 +408,11 @@ C  Two-Parameter Continuation.
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
- 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2.OR.ITP.EQ.7) )
+ 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2.OR.ITP.EQ.7.OR.
+     *      ABS(ITP)/10.EQ.2 .OR. ABS(ITP)/10.EQ.7))
      * THEN
 C        ** Fold/PD continuation (algebraic problems).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNLP,THL,THU,IUZ,VUZ)
-C
-       ELSE IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 
-     *         .AND. (ABS(ITP)/10.EQ.2 .OR. ABS(ITP)/10.EQ.7))
-     * THEN
-C        ** Fold/PD continuation (algebraic problems, restart).
-         CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNAE,THL,THU,IUZ,VUZ)
-C
        ELSE IF(IPS.LE.1 .AND. ABS(ISW).GE.2 .AND. (ITP.EQ.1) )
      * THEN
 C        ** BP cont (algebraic problems) (by F. Dercole).
