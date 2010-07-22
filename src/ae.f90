@@ -11,7 +11,7 @@ MODULE AE
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: AUTOAE,STPNUS
+  PUBLIC :: AUTOAE,STPNUS,STPNAE
 
 CONTAINS
 
@@ -296,6 +296,53 @@ CONTAINS
     NODIR=1
     
   END SUBROUTINE STPNUS
+
+! ---------- ------
+  SUBROUTINE STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
+
+    USE IO
+
+    ! Gets the starting data from unit 3
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
+
+    INTEGER NFPR,NFPRS,I,IPS,ITP,ISW,ITDS
+    INTEGER,ALLOCATABLE :: ICPRS(:)
+
+    NFPRS=GETNFPR3()
+    ALLOCATE(ICPRS(NFPRS))
+    ICPRS(:)=0
+    CALL READLB(AP,ICPRS,U,UDOT,PAR)
+  
+    ! Take care of the case where the free parameters have been changed at
+    ! the restart point.
+
+    NODIR=0
+    NFPR=AP%NFPR
+    IF(NFPRS/=NFPR)THEN
+       NODIR=1
+    ELSE
+       DO I=1,NFPR
+          IF(ICPRS(I)/=ICP(I)) THEN
+             NODIR=1
+             EXIT
+          ENDIF
+       ENDDO
+    ENDIF
+    DEALLOCATE(ICPRS)
+
+    IPS=AP%IPS
+    ISW=AP%ISW
+    ITP=AP%ITP
+    IF(IPS==-1.AND.ISW==-1.AND.ITP==7)THEN
+       ! period doubling for maps: set iteration count
+       ITDS=NINT(AINT(PAR(11)))
+       AP%ITDS=ITDS
+    ENDIF
+
+  END SUBROUTINE STPNAE
 
 ! ---------- ------
   SUBROUTINE STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,IPERP,AA)
@@ -1174,7 +1221,8 @@ CONTAINS
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,ITP,U,V)
 
-    USE INTERFACES, ONLY: FNWS, FUNC
+    USE INTERFACES, ONLY: FUNC
+    USE PARABOLIC, ONLY: FNWS
     USE SUPPORT, ONLY: CHECKSP
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
@@ -1381,7 +1429,8 @@ CONTAINS
     CONTAINS
       
       FUNCTION FN(x) RESULT(f)
-        USE INTERFACES, ONLY: FNWS, FUNC
+        USE INTERFACES, ONLY: FUNC
+        USE PARABOLIC, ONLY: FNWS
         DOUBLE PRECISION, INTENT(INOUT) :: x(n)
         DOUBLE PRECISION f(size(x))
 
