@@ -205,6 +205,13 @@ class bifDiag(parseB.parseBR):
                     d.diagnostics.writeFilename(fort9_filename,append)
                     append=True
 
+    # Removes solutions with the given labels or type names
+    def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
+        # accept a user-defined boolean function
+        if isinstance(label, types.FunctionType):
+            label = [s["LAB"] for s in self(label)]
+        parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
+
 class bifDiagBranch(parseB.AUTOBranch):
     def __init__(self,input=None):
         parseB.AUTOBranch.__init__(self,input)
