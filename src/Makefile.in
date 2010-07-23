@@ -20,7 +20,7 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f ../lib/autlib5.o ../lib/optimization.o ../lib/parabolic.o
+../lib/autlib1.o: autlib1.f ../lib/autlib5.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
 	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
 #
 ../lib/autlib2.o: autlib2.f ../lib/support.o ../lib/mpi.o
@@ -38,7 +38,7 @@ compile: $(OBJ)
 ../lib/equilibrium.o: equilibrium.f90 ../lib/autlib3.o
 	$(FC) $(FFLAGS) $(OPT) -c equilibrium.f90 -o $@
 #
-../lib/optimization.o: optimization.f90 ../lib/autlib3.o
+../lib/optimization.o: optimization.f90 ../lib/periodic.o
 	$(FC) $(FFLAGS) $(OPT) -c optimization.f90 -o $@
 #
 ../lib/parabolic.o: parabolic.f90 ../lib/equilibrium.o ../lib/periodic.o
@@ -46,6 +46,9 @@ compile: $(OBJ)
 #
 ../lib/periodic.o: periodic.f90 ../lib/autlib3.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
+#
+../lib/timeint.o: timeint.f90 ../lib/autlib3.o
+	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
 ../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@

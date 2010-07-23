@@ -8,19 +8,76 @@ MODULE PERIODIC
 
   USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
   USE INTERFACES
+  USE BVP
 
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: FNPS,BCPS,ICPS,STPNPS ! Periodic solutions
-  PUBLIC :: FNPL,FNPLF,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
-  PUBLIC :: FNPBP,BCPBP,ICPBP,STPNPBP ! BP cont of periodic sol
-  PUBLIC :: FNPD,BCPD,ICPD,STPNPD ! PD cont of periodic sol
-  PUBLIC :: FNTR,BCTR,ICTR,STPNTR ! Torus cont of periodic sol
+  PUBLIC :: AUTOPS
+  PUBLIC :: BCPS,ICPS,STPNPS ! Periodic solutions
+  PUBLIC :: FNPLF,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
 
   DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
 CONTAINS
+
+! ---------- ------
+  SUBROUTINE AUTOPS(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+    INTEGER IPS, ISW, ITP
+    IPS = AP%IPS
+    ISW = AP%ISW
+    ITP = AP%ITP
+
+    IF(ABS(ISW)<=1)THEN
+       IF(IPS==2)THEN
+          ! ** Periodic solutions
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPS,BCPS,ICPS,STPNPS, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ELSE 
+          ! Boundary value problems with Floquet multipliers. (IPS=7)
+          CALL AUTOBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNPS, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ENDIF
+    ELSE ! here IPS=2
+       IF(ABS(ISW)==2)THEN
+          IF(ITP==5) THEN 
+             ! ** Fold continuation (Periodic solutions, start).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNPL, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF((ABS(ITP)/10)==5)THEN
+             ! ** Fold continuation (Periodic solutions, restart).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNBV, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF(ITP==7) THEN
+             ! ** Continuation of period doubling bifurcations (start).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNPD, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF(ABS(ITP)/10==7)THEN
+             ! ** Continuation of period doubling bifurcations (restart).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNBV, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF(ITP==8)THEN
+             ! ** Continuation of torus bifurcations (start).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNTR, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF(ABS(ITP)/10==8)THEN
+             ! ** Continuation of torus bifurcations (restart).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNBV, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ENDIF
+       ENDIF
+       IF(ITP==6.OR.(ABS(ITP)/10)==6) THEN
+          ! ** BP cont (Periodic sol., start and restart) (by F. Dercole).
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ENDIF
+    ENDIF
+  END SUBROUTINE AUTOPS
 
 ! ---------- ----
   SUBROUTINE FNPS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -185,20 +242,19 @@ CONTAINS
          UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
 
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-    INTEGER NDIM,IPS,IRS,ISW,ITP,NCOL,NTST,NDIMRD,NTSR2
+    INTEGER NDIM,IRS,ISW,ITP,NCOL,NTST,NDIMRD,NTSR2
 
     NDIM=AP%NDIM
-    IPS=AP%IPS
     IRS=AP%IRS
     ISW=AP%ISW
     ITP=AP%ITP
 
     IF(IRS==0)THEN
-       CALL STPNUB(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
+       CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
        RETURN
     ENDIF
 
-    IF((IPS==2.OR.IPS==7.OR.IPS==12).AND.ISW==-1.AND.ITP==7) THEN
+    IF(ISW==-1.AND.ITP==7) THEN
        !               period doubling
        NTSR2=NTSR*2
     ELSE
@@ -208,7 +264,7 @@ CONTAINS
          UDOTPSR(NDIM,0:NCOLRS*NTSR2),TMR(0:NTSR2))
     CALL STPNBV1(AP,PAR,ICP,NDIM,NTSR,NDIMRD,NCOLRS, &
          RLDOT,UPSR,UDOTPSR,TMR,NODIR)
-    IF((IPS==2.OR.IPS==7.OR.IPS==12).AND.ISW==-1.AND.ITP==7) THEN
+    IF(ISW==-1.AND.ITP==7) THEN
 
        ! Special case : Preprocess restart data in case of branch switching
        ! at a period doubling bifurcation.

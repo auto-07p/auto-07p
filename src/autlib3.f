@@ -1,14 +1,12 @@
       MODULE INTERFACES
 
       USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+      USE BVP
 
       IMPLICIT NONE
       PRIVATE
 
-      PUBLIC :: FNTI        ! Time integration
-      PUBLIC :: FNBL,BCBL,ICBL,STPNBL ! Fold cont of BVPs
-      PUBLIC :: FNBBP,BCBBP,ICBBP,STPNBBP ! BP cont of BVPs
-
+      PUBLIC :: AUTOBVP
       PUBLIC :: FUNI,BCNI,ICNI ! Interface subroutines
 
       PUBLIC :: FUNC,STPNT,BCND,ICND,PVLS ! User subroutines
@@ -53,49 +51,41 @@
 
       CONTAINS
 
-C
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C        Subroutines for Time Integration of ODEs
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C
-C     ---------- ----
-      SUBROUTINE FNTI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-C Generate the equations for continuing fixed points.
-C
-      TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-      INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
-      DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
-      DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
-      DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
-      DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+!     ---------- -------
+      SUBROUTINE AUTOBVP(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
 
-      INTEGER I,J
-      DOUBLE PRECISION TOLD,DT
-C
-       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-       TOLD=UOLD(NDIM+1)
-       DT=PAR(ICP(1))-TOLD
-C
-       DO I=1,NDIM
-         DFDP(I,ICP(1))=F(I)
-         F(I)= DT*F(I) - U(I) + UOLD(I)
-       ENDDO
-C
-       IF(IJAC.EQ.0)RETURN
-C
-       DO I=1,NDIM
-         DO J=1,NDIM
-           DFDU(I,J)= DT*DFDU(I,J)
-         ENDDO
-         DFDU(I,I)= DFDU(I,I) - 1.d0
-       ENDDO
-C
-      RETURN
-      END SUBROUTINE FNTI
+      TYPE(AUTOPARAMETERS) AP
+      INTEGER ICP(*),ICU(*),IUZ(*)
+      DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+      INTEGER ISW, ITP
+      ISW = AP%ISW
+      ITP = AP%ITP
+
+      IF(ABS(ISW)<=1)THEN
+         ! ** Boundary value problems (here IPS=4)
+         CALL AUTOBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBV,
+     *        PVLSBV,THL,THU,IUZ,VUZ)
+      ELSE
+         ! Two-Parameter Continuation for IPS=4 or IPS=7.
+         IF(ABS(ISW)==2)THEN
+            IF(ITP==5)THEN
+               ! ** Continuation of folds (BVP, start).
+               CALL AUTOBV(AP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,
+     *              PVLSBV,THL,THU,IUZ,VUZ)
+            ELSE IF(ABS(ITP)/10==5) THEN
+               ! ** Continuation of folds (BVP, restart).
+               CALL AUTOBV(AP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,
+     *              PVLSBV,THL,THU,IUZ,VUZ)
+            ENDIF
+         ENDIF
+         IF((ITP==6.OR.(ABS(ITP)/10)==6)) THEN
+            ! ** BP cont (BVP, start and restart) (by F. Dercole).
+            CALL AUTOBV(AP,PAR,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,
+     *           PVLSBV,THL,THU,IUZ,VUZ)
+         ENDIF
+      ENDIF
+      END SUBROUTINE AUTOBVP
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -495,7 +485,6 @@ C     ---------- ------
       SUBROUTINE STPNBL(AP,PAR,ICP,NTSR,NCOLRS,
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
-      USE BVP
       USE IO
       USE MESH
 C
@@ -1150,7 +1139,6 @@ C     ---------- -------
      * RLDOT,UPS,UDOTPS,TM,NODIR)
 C
       USE SOLVEBV
-      USE BVP
       USE IO
       USE MESH
 C

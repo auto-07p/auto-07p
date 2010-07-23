@@ -1,19 +1,56 @@
 MODULE EQUILIBRIUM
 
   USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+  USE AE
   USE INTERFACES
 
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: FNLP,FNLPF,STPNLP,STPNLPF ! Folds (Algebraic Problems)
-  PUBLIC :: FNBP,STPNBP ! BP (Algebraic Problems)
-  PUBLIC :: FNDS        ! Discrete systems
-  PUBLIC :: FNHB,FNHBF,STPNHB,STPNHBF ! Hopf bifs (ODEs,waves,maps)
+  PUBLIC :: AUTOEQ
+  PUBLIC :: FNLPF,STPNLPF ! Folds (Algebraic Problems)
+  PUBLIC :: FNHBF,STPNHBF ! Hopf bifs
 
   DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
 CONTAINS
+
+! ---------- ------
+  SUBROUTINE AUTOEQ(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+    INTEGER IPS, ISW, ITP
+    IPS = AP%IPS
+    ISW = AP%ISW
+    ITP = AP%ITP
+
+    IF(ABS(ISW)<=1)THEN
+       IF(IPS==-1) THEN
+          ! ** Discrete dynamical systems : fixed points.
+          CALL AUTOAE(AP,PAR,ICP,ICU,FNDS,STPNAE,THL,THU,IUZ,VUZ)
+       ELSE
+          ! Algebraic systems.
+          CALL AUTOAE(AP,PAR,ICP,ICU,FUNI,STPNAE,THL,THU,IUZ,VUZ)
+       ENDIF
+    ELSE
+       IF(ABS(ISW)==2)THEN
+          IF(ITP==2.OR.ITP==7.OR.ABS(ITP)/10==2.OR.ABS(ITP)/10==7)THEN
+             ! ** Fold/PD continuation (algebraic problems).
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNLP,STPNLP,THL,THU,IUZ,VUZ)
+          ELSEIF(ITP==3.OR.ITP==8.OR.ABS(ITP)/10==3.OR.ABS(ITP)/10==8)THEN
+             ! Hopf/Neimark-Sacker bifurcation continuation (ODE/maps).
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
+          ENDIF
+       ENDIF
+       IF(ITP==1.OR.ABS(ITP)/10==1)THEN
+          ! ** BP cont (algebraic problems) (by F. Dercole).
+          CALL AUTOAE(AP,PAR,ICP,ICU,FNBP,STPNBP,THL,THU,IUZ,VUZ)
+       ENDIF
+    ENDIF
+  END SUBROUTINE AUTOEQ
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

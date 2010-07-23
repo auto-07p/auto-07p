@@ -7,14 +7,15 @@
 MODULE OPTIMIZATION
 
   USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
+  USE AE
+  USE BVP
   USE INTERFACES
+  USE PERIODIC
 
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: FNC1,STPNC1 ! Optimizations (Algebraic,NFPR=2)
-  PUBLIC :: FNC2,STPNC2 ! Optimizations (Algebraic,otherwise)
-  PUBLIC :: FNPO,ICPO,STPNPO      ! Optimization of periodic sol
+  PUBLIC :: AUTOOP
 
   DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
@@ -28,6 +29,46 @@ MODULE OPTIMIZATION
   END INTERFACE
 
 CONTAINS
+
+! ---------- ------
+  SUBROUTINE AUTOOP(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ,NFPRPREV)
+
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*),NFPRPREV
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+    INTEGER IPS, ISW, ITP
+    IPS = AP%IPS
+    ISW = AP%ISW
+    ITP = AP%ITP
+
+    IF(IPS==15.AND.ABS(ISW)==1) THEN
+       ! ** Optimization of periodic solutions.
+       IF(NFPRPREV<6)THEN
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPO,BCPS,ICPO,STPNPO, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ELSE
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPO,BCPS,ICPO,STPNBV, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ENDIF
+    ELSE IF(IPS==5) THEN
+       ! ** Algebraic optimization problems.
+       IF(MOD(ITP,10)==2.OR.AP%IRS==0)NFPRPREV=NFPRPREV+1
+       IF(NFPRPREV==2) THEN
+          IF(AP%IRS>0) THEN
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNC1,STPNAE,THL,THU,IUZ,VUZ)
+          ELSE
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNC1,STPNC1,THL,THU,IUZ,VUZ)
+          ENDIF
+       ELSE
+          IF(MOD(ITP,10)/=2) THEN
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNC2,STPNAE,THL,THU,IUZ,VUZ)
+          ELSE
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNC2,STPNC2,THL,THU,IUZ,VUZ)
+          ENDIF
+       ENDIF
+    ENDIF
+  END SUBROUTINE AUTOOP
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

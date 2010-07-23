@@ -9,11 +9,13 @@ C
       MODULE HOMCONT
 
       USE AUTO_CONSTANTS, ONLY : AUTOPARAMETERS,HCONST,NPARX,NEWCFILE
+      USE BVP
+
       IMPLICIT NONE
 
       PRIVATE
 
-      PUBLIC :: FNHO,BCHO,ICHO,PVLSHO,STPNHO,INHO,INSTRHO
+      PUBLIC :: AUTOHO,INHO,INSTRHO
 
 C     This common block is also used by demos: don't remove it!!
 C     Also, don't use the common variables in FNHO and ICHO because 
@@ -29,6 +31,18 @@ C
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
       CONTAINS
+
+!     ---------- -----
+      SUBROUTINE AUTOHO(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+
+      TYPE(AUTOPARAMETERS) AP
+      INTEGER ICP(*),ICU(*),IUZ(*)
+      DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+      CALL AUTOBV(AP,PAR,ICP,ICU,FNHO,BCHO,ICHO,STPNHO,
+     *     PVLSHO,THL,THU,IUZ,VUZ)
+
+      END SUBROUTINE AUTOHO
 
 C     ---------- ----
       SUBROUTINE FNHO(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -1489,7 +1503,7 @@ C     ---------- ------
       SUBROUTINE STPNHO(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      * UPS,UDOTPS,TM,NODIR)
 C
-      USE BVP, ONLY: STPNUB,STPNBV1,SETRTN
+      USE BVP, ONLY: STPNBV,STPNBV1,SETRTN
       USE MESH, ONLY: ADAPT2
       USE IO, ONLY: GETNDIM3
       USE INTERFACES, ONLY: PVLS
@@ -1500,7 +1514,7 @@ C supplied subroutine STPNT where an analytical solution is given.
 C
 C  
 C Generates a starting point for homoclinic continuation
-C If ISTART=2 it calls STPNUB.
+C If ISTART=2 it calls STPNBV (STPNUB).
 C If ISTART=3 it sets up the homotopy method.
 C
       TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
@@ -1550,7 +1564,7 @@ C
 C
 C Generate the (initially uniform) mesh.
 C
-          CALL STPNUB(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
+          CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,
      *         UPS,UDOTPS,TM,NODIR)
 C
 C Initialize solution and additional parameters
