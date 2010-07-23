@@ -41,6 +41,15 @@ CONTAINS
     NDM=AP%NDM
     NPAR=AP%NPAR
 
+    IF(NDIM==NDM)THEN ! reduced function for Cusp detection
+       IF(AP%IPS==11)THEN
+          CALL FNWS(AP,NDM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
+       ELSE
+          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
+       ENDIF
+       RETURN
+    ENDIF
+
     ! Generate the function.
 
     ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR))
@@ -493,6 +502,15 @@ CONTAINS
     DOUBLE PRECISION UMX,EP,P,KAPPA
 
     NDM=AP%NDM
+
+    IF(NDIM==NDM)THEN ! reduced function for Generalized-Hopf detection
+       IF(AP%IPS==11)THEN
+          CALL FNWS(AP,NDM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
+       ELSE
+          CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,0,F,DFDU,DFDP)
+       ENDIF
+       RETURN
+    ENDIF
 
     ! Generate the function.
 

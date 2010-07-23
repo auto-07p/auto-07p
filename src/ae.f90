@@ -201,7 +201,8 @@ CONTAINS
 
           DO ITEST=1,ISTEPPED-1
              ! evaluate the test functions for the next step
-             TEST(ITEST)=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
+             TEST(ITEST)=FNCS(AP,PAR,ICP,ITPDUM,FUNI,AA,U,V,IUZ,VUZ,ITEST,&
+                  .FALSE.)
           ENDDO
 
           ITP=AP%ITP
@@ -725,7 +726,7 @@ CONTAINS
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,ICP,ITP,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
+    Q1=FNCS(AP,PAR,ICP,ITP,FUNI,AA,U,V,IUZ,VUZ,ITEST,.TRUE.)
 
     IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
          EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
@@ -793,7 +794,7 @@ CONTAINS
        CALL RNULLVC(AP,AA,V)
        CALL PVLSAE(AP,U,PAR)
 
-       Q=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
+       Q=FNCS(AP,PAR,ICP,ITPDUM,FUNI,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
@@ -828,7 +829,7 @@ CONTAINS
     DSTEST=DSTESTS
     CALL RNULLVC(AP,AA,V)
     CALL PVLSAE(AP,U,PAR)
-    Q=FNCS(AP,PAR,ICP,ITPDUM,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
+    Q=FNCS(AP,PAR,ICP,ITPDUM,FUNI,AA,U,V,IUZ,VUZ,ITEST,.FALSE.)
     DEALLOCATE(US,UDOTS,AAS)
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
@@ -839,9 +840,11 @@ CONTAINS
   END SUBROUTINE LCSPAE
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,ITP,AA,U,V,IUZ,VUZ,ITEST,FIRST)
+  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ICP,ITP,FUNI,AA,U,V,IUZ,VUZ,ITEST,FIRST)
 
     USE SUPPORT, ONLY: CHECKSP, FNUZ
+
+    include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
@@ -864,7 +867,7 @@ CONTAINS
     ELSEIF(ITEST==NUZR+2)THEN ! Check for branch point
        FNCS=FNBPAE(AP,ITP)
     ELSEIF(ITEST==NUZR+3)THEN  ! Check for cusp on fold
-       FNCS=FNCPAE(AP,PAR,ICP,ITP,U,V)
+       FNCS=FNCPAE(AP,PAR,ICP,ITP,FUNI,U,V)
     ELSEIF(ITEST==NUZR+4)THEN ! Check for Bogdanov-Takens bifurcation
        FNCS=FNBTAE(AP,ITP,U,V)
     ELSEIF(ITEST==NUZR+5)THEN  ! Check for Hopf or Zero-Hopf
@@ -873,7 +876,7 @@ CONTAINS
           CALL PRINTEIG(AP)
        ENDIF
     ELSEIF(ITEST==NUZR+6)THEN ! Check for generalized Hopf (Bautin)
-       FNCS=FNGHAE(AP,PAR,ICP,ITP,U,AA)
+       FNCS=FNGHAE(AP,PAR,ICP,ITP,FUNI,U,AA)
        IF(FIRST)THEN
           CALL PRINTEIG(AP)
        ENDIF
@@ -1219,11 +1222,11 @@ CONTAINS
   END FUNCTION FNBTAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,ITP,U,V)
+  DOUBLE PRECISION FUNCTION FNCPAE(AP,PAR,ICP,ITP,FUNI,U,V)
 
-    USE INTERFACES, ONLY: FUNC
-    USE PARABOLIC, ONLY: FNWS
     USE SUPPORT, ONLY: CHECKSP
+
+    include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(OUT) :: ITP
@@ -1252,18 +1255,10 @@ CONTAINS
     H=(EPSILON(H)**(1d0/3))*(1+H)
 
     UU(:)=U(:NDM)+U(NDM+1:2*NDM)*H
-    IF(AP%IPS==11)THEN
-       CALL FNWS(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
-    ELSE
-       CALL FUNC(NDM,UU,ICP,PAR,0,F,DUM,DUM)
-    ENDIF
+    CALL FUNI(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
     FNCPAE=DOT_PRODUCT(V(:),F(:))
     UU(:)=U(:NDM)-U(NDM+1:2*NDM)*H
-    IF(AP%IPS==11)THEN
-       CALL FNWS(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
-    ELSE
-       CALL FUNC(NDM,UU,ICP,PAR,0,F,DUM,DUM)
-    ENDIF
+    CALL FUNI(AP,NDM,UU,UU,ICP,PAR,0,F,DUM,DUM)
     FNCPAE=(FNCPAE+DOT_PRODUCT(V(:),F(:)))/H**2
 
     DEALLOCATE(UU,F)
@@ -1276,12 +1271,14 @@ CONTAINS
   END FUNCTION FNCPAE
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNGHAE(AP,PAR,ICP,ITP,U,AA)
+  DOUBLE PRECISION FUNCTION FNGHAE(AP,PAR,ICP,ITP,FUNI,U,AA)
 
     ! Evaluate first Lyapunov coefficient for Bautin (GH) bifurcations
     ! and to determine if the Hopf is subcritical or supercritical.
 
     USE SUPPORT, ONLY: NRMLZ, NLVC, GEL, CHECKSP
+
+    include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(OUT) :: ITP
@@ -1429,16 +1426,10 @@ CONTAINS
     CONTAINS
       
       FUNCTION FN(x) RESULT(f)
-        USE INTERFACES, ONLY: FUNC
-        USE PARABOLIC, ONLY: FNWS
         DOUBLE PRECISION, INTENT(INOUT) :: x(n)
         DOUBLE PRECISION f(size(x))
 
-        IF(AP%IPS==11)THEN
-           CALL FNWS(AP,n,x,x,ICP,PAR,0,f,dum,dum)
-        ELSE
-           CALL FUNC(n,x,ICP,PAR,0,f,dum,dum)
-        ENDIF
+        CALL FUNI(AP,n,x,x,ICP,PAR,0,f,dum,dum)
       END FUNCTION FN
 
       FUNCTION DERIV2a(p) RESULT(d)

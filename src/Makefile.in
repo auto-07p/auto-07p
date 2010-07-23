@@ -47,7 +47,7 @@ compile: $(OBJ)
 ../lib/periodic.o: periodic.f90 ../lib/parabolic.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
 #
-../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o ../lib/parabolic.o
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
 ../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/autlib4.o ../lib/io.o
