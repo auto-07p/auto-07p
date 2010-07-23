@@ -161,9 +161,7 @@ C
       USE PERIODIC
       USE HOMCONT
       USE TIMEINT
-      USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,NBC,NINT,NDIM,unames,
-     &     parnames,NPARX
-      USE IO, ONLY: NAMEIDX
+      USE AUTO_CONSTANTS, ONLY: NBC,NINT,NDIM
       USE AE
       USE BVP
 C
@@ -172,11 +170,10 @@ C
       INTEGER NICU,ICU(NICU)
       LOGICAL WORKER
 
-      INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR,NDIMA,IND,I,J,K
+      INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR
       INTEGER ILP,ISP
       INTEGER NUZR,NPARI,NICP
-      INTEGER, ALLOCATABLE :: ICP(:),IUZ(:)
-      DOUBLE PRECISION, ALLOCATABLE :: PAR(:),THL(:),THU(:),VUZ(:)
+      INTEGER, ALLOCATABLE :: ICP(:)
 
       IPS=AP%IPS
       IRS=AP%IRS
@@ -229,41 +226,6 @@ C
            ENDIF
         ENDIF
         AP%NPAR=NPAR
-        ! allocate a minimum of NPARX so we can detect overflows 
-        ! past NPAR gracefully
-        ALLOCATE(PAR(MAX(NPAR,NPARX)))
-        PAR(:)=0.d0
-C     redefine thl to be nfpr sized and indexed
-        ALLOCATE(THL(NFPR))
-        DO I=1,NFPR
-           THL(I)=1.0D0
-           DO J=1,SIZE(IVTHL)
-              IF(ICP(I)==NAMEIDX(IVTHL(J)%INDEX,parnames))THEN
-                 THL(I)=IVTHL(J)%VAR
-              ENDIF
-           ENDDO
-        ENDDO
-C     set thu to 1 higher than NDIM for (u,par) representation in ae.f90
-        NDIMA=AP%NDIM ! active NDIM from INIT1
-        ALLOCATE(THU(NDIMA+1))
-        DO I=1,NDIMA
-           THU(I)=1.d0
-        ENDDO
-        DO I=1,SIZE(IVTHU)
-           THU(NAMEIDX(IVTHU(I)%INDEX,unames))=IVTHU(I)%VAR
-        ENDDO
-C     set IUZ/VUZ
-        ALLOCATE(IUZ(NUZR),VUZ(NUZR))
-        K=0
-        DO I=1,SIZE(IVUZR)
-           IND=NAMEIDX(IVUZR(I)%INDEX,parnames)
-           DO J=1,SIZE(IVUZR(I)%VAR)
-              K=K+1
-              IUZ(K)=IND
-              VUZ(K)=IVUZR(I)%VAR(J)
-           ENDDO
-        ENDDO
-
         ! only now open the output files
         IF(FIRST)THEN
            IF(SVFILE/='')THEN
@@ -278,32 +240,32 @@ C     set IUZ/VUZ
         ENDIF
       ELSE
         ! ignored for MPI workers
-        ALLOCATE(ICP(1),PAR(1),THU(1),THL(1),IUZ(1),VUZ(1))
+        ALLOCATE(ICP(1))
       ENDIF
 
       SELECT CASE(IPS)
       CASE(-1,0,1)
          ! equilibria
-         CALL AUTOEQ(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+         CALL AUTOEQ(AP,ICP,ICU)
       CASE(2,4,7)
          ! periodic solutions and general BVPs
          IF(IPS==2.OR.(IPS==7.AND.ABS(ISW)<=1))THEN
-            CALL AUTOPS(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+            CALL AUTOPS(AP,ICP,ICU)
          ELSE
-            CALL AUTOBVP(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+            CALL AUTOBVP(AP,ICP,ICU)
          ENDIF 
       CASE(-2)
          ! time integration
-         CALL AUTOTI(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+         CALL AUTOTI(AP,ICP,ICU)
       CASE(11,12,14,16,17)
          ! parabolic PDEs
-         CALL AUTOPE(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+         CALL AUTOPE(AP,ICP,ICU)
       CASE(5,15)
          ! optimization
-         CALL AUTOOP(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ,NFPRPREV)
+         CALL AUTOOP(AP,ICP,ICU,NFPRPREV)
       CASE(9)
          ! Homoclinic bifurcation analysis.
-         CALL AUTOHO(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+         CALL AUTOHO(AP,ICP,ICU)
       END SELECT
 
       IF(AP%NTOT==0.AND.MPIIAM()==0)THEN
@@ -315,7 +277,7 @@ C
 C Error Message.
  500  FORMAT(' Initialization Error')
 C
-      DEALLOCATE(ICP,PAR,THL,THU,IUZ,VUZ)
+      DEALLOCATE(ICP)
 
       END SUBROUTINE AUTOI
 C-----------------------------------------------------------------------

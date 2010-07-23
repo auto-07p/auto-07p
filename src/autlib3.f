@@ -52,11 +52,10 @@
       CONTAINS
 
 !     ---------- -------
-      SUBROUTINE AUTOBVP(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+      SUBROUTINE AUTOBVP(AP,ICP,ICU)
 
       TYPE(AUTOPARAMETERS) AP
-      INTEGER ICP(*),ICU(*),IUZ(*)
-      DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+      INTEGER ICP(*),ICU(*)
 
       INTEGER ISW, ITP
       ISW = AP%ISW
@@ -64,25 +63,21 @@
 
       IF(ABS(ISW)<=1)THEN
          ! ** Boundary value problems (here IPS=4)
-         CALL AUTOBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNBV,
-     *        PVLSBV,THL,THU,IUZ,VUZ)
+         CALL AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBV,PVLSBV)
       ELSE
          ! Two-Parameter Continuation for IPS=4 or IPS=7.
          IF(ABS(ISW)==2)THEN
             IF(ITP==5)THEN
                ! ** Continuation of folds (BVP, start).
-               CALL AUTOBV(AP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,
-     *              PVLSBV,THL,THU,IUZ,VUZ)
+               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,PVLSBV)
             ELSE IF(ABS(ITP)/10==5) THEN
                ! ** Continuation of folds (BVP, restart).
-               CALL AUTOBV(AP,PAR,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,
-     *              PVLSBV,THL,THU,IUZ,VUZ)
+               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,PVLSBV)
             ENDIF
          ENDIF
          IF((ITP==6.OR.(ABS(ITP)/10)==6)) THEN
             ! ** BP cont (BVP, start and restart) (by F. Dercole).
-            CALL AUTOBV(AP,PAR,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,
-     *           PVLSBV,THL,THU,IUZ,VUZ)
+            CALL AUTOBV(AP,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,PVLSBV)
          ENDIF
       ENDIF
       END SUBROUTINE AUTOBVP

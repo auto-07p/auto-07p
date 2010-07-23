@@ -16,15 +16,14 @@ MODULE AE
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOAE(AP,ICP,ICU,FUNI,STPNAEI)
 
 ! This is the entry subroutine for algebraic systems.
 
     USE AUTOMPI
 
     TYPE(AUTOPARAMETERS)AP
-    INTEGER ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+    INTEGER ICP(*),ICU(*)
 
     include 'interfaces.h'
 
@@ -33,28 +32,29 @@ CONTAINS
           RETURN
        ENDIF
     ENDIF
-    THU(AP%NDIM+1)=THL(1)
-    CALL CNRLAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
+    CALL CNRLAE(AP,ICP,ICU,FUNI,STPNAEI)
 
   END SUBROUTINE AUTOAE
 
 ! ---------- ------
-  SUBROUTINE CNRLAE(AP,PAR,ICP,ICU,FUNI,STPNAEI,THU,IUZ,VUZ)
+  SUBROUTINE CNRLAE(AP,ICP,ICU,FUNI,STPNAEI)
 
     USE IO
     USE MESH
     USE SUPPORT
+    USE AUTO_CONSTANTS, ONLY: NPARX
 
 ! Controls the bifurcation analysis of algebraic problems
 
     include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS)AP
-    INTEGER ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION PAR(*),VUZ(*),THU(*)
+    INTEGER ICP(*),ICU(*)
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: &
+         PAR(:),VUZ(:),THU(:),THL(:), &
          AA(:,:),U(:),V(:),UDOT(:),STUD(:,:),STU(:,:),TEST(:)
+    INTEGER, ALLOCATABLE :: IUZ(:)
     LOGICAL IPOS
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST,IBR
     INTEGER ITNW,ITP,I,ITEST,LAB,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
@@ -83,6 +83,14 @@ CONTAINS
     IBR=AP%IBR
 
     DS=AP%DS
+
+    ! allocate a minimum of NPARX so we can detect overflows 
+    ! past NPAR gracefully
+    ! set thu to 1 higher than NDIM for (u,par) representation
+    ALLOCATE(PAR(MAX(AP%NPAR,NPARX)),THL(AP%NFPR),THU(NDIM+1))
+    ALLOCATE(IUZ(NUZR),VUZ(NUZR))
+    CALL INIT2(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+    THU(AP%NDIM+1)=THL(1)
 
     ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1),V(AP%NDM))
     ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),TEST(NUZR+6),EVV(NDM))
@@ -260,7 +268,7 @@ CONTAINS
        ISW=-1
     ENDDO !from bifurcation switch loop
 
-    DEALLOCATE(EVV,AA,U,UDOT,STUD,STU,TEST)
+    DEALLOCATE(PAR,THL,THU,IUZ,VUZ,EVV,AA,U,UDOT,STUD,STU,TEST)
   END SUBROUTINE CNRLAE
 
 ! ---------- ------

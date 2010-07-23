@@ -22,11 +22,10 @@ MODULE PERIODIC
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOPS(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOPS(AP,ICP,ICU)
 
     TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+    INTEGER ICP(*),ICU(*)
 
     INTEGER IPS, ISW, ITP
     IPS = AP%IPS
@@ -36,45 +35,36 @@ CONTAINS
     IF(ABS(ISW)<=1)THEN
        IF(IPS==2)THEN
           ! ** Periodic solutions
-          CALL AUTOBV(AP,PAR,ICP,ICU,FNPS,BCPS,ICPS,STPNPS, &
-               PVLSBV,THL,THU,IUZ,VUZ)
+          CALL AUTOBV(AP,ICP,ICU,FNPS,BCPS,ICPS,STPNPS,PVLSBV)
        ELSE 
           ! Boundary value problems with Floquet multipliers. (IPS=7)
-          CALL AUTOBV(AP,PAR,ICP,ICU,FUNI,BCNI,ICNI,STPNPS, &
-               PVLSBV,THL,THU,IUZ,VUZ)
+          CALL AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNPS,PVLSBV)
        ENDIF
     ELSE ! here IPS=2
        IF(ABS(ISW)==2)THEN
           IF(ITP==5) THEN 
              ! ** Fold continuation (Periodic solutions, start).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNPL, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNPL,BCPL,ICPL,STPNPL,PVLSBV)
           ELSE IF((ABS(ITP)/10)==5)THEN
              ! ** Fold continuation (Periodic solutions, restart).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNBV, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNPL,BCPL,ICPL,STPNBV,PVLSBV)
           ELSE IF(ITP==7) THEN
              ! ** Continuation of period doubling bifurcations (start).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNPD, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNPD,BCPD,ICPD,STPNPD,PVLSBV)
           ELSE IF(ABS(ITP)/10==7)THEN
              ! ** Continuation of period doubling bifurcations (restart).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNBV, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNPD,BCPD,ICPD,STPNBV,PVLSBV)
           ELSE IF(ITP==8)THEN
              ! ** Continuation of torus bifurcations (start).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNTR, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNTR,BCTR,ICTR,STPNTR,PVLSBV)
           ELSE IF(ABS(ITP)/10==8)THEN
              ! ** Continuation of torus bifurcations (restart).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNBV, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNTR,BCTR,ICTR,STPNBV,PVLSBV)
           ENDIF
        ENDIF
        IF(ITP==6.OR.(ABS(ITP)/10)==6) THEN
           ! ** BP cont (Periodic sol., start and restart) (by F. Dercole).
-          CALL AUTOBV(AP,PAR,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP, &
-               PVLSBV,THL,THU,IUZ,VUZ)
+          CALL AUTOBV(AP,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP,PVLSBV)
        ENDIF
     ENDIF
   END SUBROUTINE AUTOPS

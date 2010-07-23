@@ -28,11 +28,10 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE AUTOPE(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+  SUBROUTINE AUTOPE(AP,ICP,ICU)
 
     TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*),IUZ(*)
-    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+    INTEGER ICP(*),ICU(*)
 
     INTEGER IPS, ISW, ITP
     IPS = AP%IPS
@@ -43,44 +42,41 @@ CONTAINS
     CASE(11)
        ! ** Waves : Spatially homogeneous solutions,
        IF(ABS(ISW)==1 ) THEN   
-          CALL AUTOAE(AP,PAR,ICP,ICU,FNWS,STPNAE,THL,THU,IUZ,VUZ)
+          CALL AUTOAE(AP,ICP,ICU,FNWS,STPNAE)
        ELSEIF(ABS(ISW)==2)THEN
           IF(ITP==2.OR.ITP==7.OR.ABS(ITP)/10==2.OR.ABS(ITP)/10==7) THEN
              ! ** Fold/PD continuation.
-             CALL AUTOAE(AP,PAR,ICP,ICU,FNWL,STPNWL,THL,THU,IUZ,VUZ)
+             CALL AUTOAE(AP,ICP,ICU,FNWL,STPNWL)
           ELSEIF(ITP==3.OR.ITP==8.OR.ABS(ITP)/10==3.OR.ABS(ITP)/10==8)THEN
              ! ** Hopf/Neimark-Sacker bifurcation continuation.
-             CALL AUTOAE(AP,PAR,ICP,ICU,FNHW,STPNHW,THL,THU,IUZ,VUZ)
+             CALL AUTOAE(AP,ICP,ICU,FNHW,STPNHW)
           ENDIF
        ENDIF
     CASE(12) 
        ! ** Wave train solutions to parabolic systems.
        IF(ABS(ISW)<=1) THEN
-          CALL AUTOBV(AP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNPS, &
-               PVLSBV,THL,THU,IUZ,VUZ)
+          CALL AUTOBV(AP,ICP,ICU,FNWP,BCPS,ICPS,STPNPS,PVLSBV)
        ELSE IF(ABS(ISW)==2) THEN
           IF(ITP==5) THEN 
              ! ** Fold continuation (start).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNWPL,BCPL,ICPL,STPNPL, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNPL,PVLSBV)
           ELSE IF(ABS(ITP)/10==5) THEN
              ! ** Fold continuation (restart).
-             CALL AUTOBV(AP,PAR,ICP,ICU,FNWPL,BCPL,ICPL,STPNBV, &
-                  PVLSBV,THL,THU,IUZ,VUZ)
+             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNBV,PVLSBV)
           ENDIF
        ENDIF
     CASE(14) 
        ! ** Evolution calculations for parabolic systems.
        !    (Periodic boundary conditions.)
-       CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,PVLSPE,THL,THU,IUZ,VUZ)
+       CALL AUTOBV(AP,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,PVLSPE)
     CASE(16)
        ! ** Evolution calculations for parabolic systems.
        !    (User supplied boundary conditions.)
-       CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,PVLSPE,THL,THU,IUZ,VUZ)
+       CALL AUTOBV(AP,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,PVLSPE)
     CASE(17)
        ! ** Continuation of stationary states of parabolic systems.
        !    (User supplied boundary conditions.)
-       CALL AUTOBV(AP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,PVLSBV,THL,THU,IUZ,VUZ)
+       CALL AUTOBV(AP,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,PVLSBV)
     END SELECT
   END SUBROUTINE AUTOPE
 
