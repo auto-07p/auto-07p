@@ -8,14 +8,15 @@ MODULE PARABOLIC
 
   USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
   USE INTERFACES
+  USE EQUILIBRIUM
+  USE PERIODIC
+  USE AE
+  USE BVP
 
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: FNWS        ! Spatially uniform sols (parabolic PDEs)
-  PUBLIC :: FNWP        ! Travelling waves (parabolic PDEs)
-  PUBLIC :: FNSP        ! Stationary states (parabolic PDEs)
-  PUBLIC :: FNPE,ICPE,PVLSPE   ! Time evolution (parabolic PDEs)
+  PUBLIC :: INITPE
 
 CONTAINS
 
@@ -25,6 +26,85 @@ CONTAINS
 !          Travelling Wave Solutions to Parabolic PDEs
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+
+  SUBROUTINE INITPE(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
+
+    TYPE(AUTOPARAMETERS) AP
+    INTEGER ICP(*),ICU(*),IUZ(*)
+    DOUBLE PRECISION PAR(*),THL(*),THU(*),VUZ(*)
+
+    INTEGER IPS, ISW, IRS, ITP
+    IPS = AP%IPS
+    ISW = AP%ISW
+    IRS = AP%IRS
+    ITP = AP%ITP
+
+    SELECT CASE(IPS)
+    CASE(11)
+       ! ** Waves : Spatially homogeneous solutions,
+       IF(ABS(ISW)==1 ) THEN   
+          IF(IRS==0) THEN
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNWS,STPNUS,THL,THU,IUZ,VUZ)
+          ELSE
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNWS,STPNAE,THL,THU,IUZ,VUZ)
+          ENDIF
+       ELSEIF(ABS(ISW)==2)THEN
+          IF(ITP==2.OR.ITP==7.OR.ABS(ITP)/10==2.OR.ABS(ITP)/10==7) THEN
+             ! ** Fold/PD continuation.
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNWL,STPNWL,THL,THU,IUZ,VUZ)
+          ELSEIF(ITP==3.OR.ITP==8.OR.ABS(ITP)/10==3.OR.ABS(ITP)/10==8)THEN
+             ! ** Hopf/Neimark-Sacker bifurcation continuation.
+             CALL AUTOAE(AP,PAR,ICP,ICU,FNHW,STPNHW,THL,THU,IUZ,VUZ)
+          ENDIF
+       ENDIF
+    CASE(12) 
+       ! ** Wave train solutions to parabolic systems.
+       IF(ABS(ISW)<=1) THEN
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNPS, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ELSE IF(ABS(ISW)==2) THEN
+          IF(ITP==5) THEN 
+             ! ** Fold continuation (start).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNWPL,BCPL,ICPL,STPNPL, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ELSE IF(ABS(ITP)/10==5) THEN
+             ! ** Fold continuation (restart).
+             CALL AUTOBV(AP,PAR,ICP,ICU,FNWPL,BCPL,ICPL,STPNBV, &
+                  PVLSBV,THL,THU,IUZ,VUZ)
+          ENDIF
+       ENDIF
+    CASE(14) 
+       ! ** Evolution calculations for parabolic systems.
+       !    (Periodic boundary conditions.)
+       IF(IRS>0) THEN
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNBV, &
+               PVLSPE,THL,THU,IUZ,VUZ)
+       ELSE
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNUB, &
+               PVLSPE,THL,THU,IUZ,VUZ)
+       ENDIF
+    CASE(16)
+       ! ** Evolution calculations for parabolic systems.
+       !    (User supplied boundary conditions.)
+       IF(IRS>0) THEN
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNBV, &
+               PVLSPE,THL,THU,IUZ,VUZ)
+       ELSE
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNUB, &
+               PVLSPE,THL,THU,IUZ,VUZ)
+       ENDIF
+    CASE(17)
+       ! ** Continuation of stationary states of parabolic systems.
+       !    (User supplied boundary conditions.)
+       IF(IRS>0) THEN
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNBV, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ELSE
+          CALL AUTOBV(AP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNUB, &
+               PVLSBV,THL,THU,IUZ,VUZ)
+       ENDIF
+    END SELECT
+  END SUBROUTINE INITPE
 
 ! ---------- ----
   SUBROUTINE FNWS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
@@ -114,6 +194,72 @@ CONTAINS
   END SUBROUTINE FNWS
 
 ! ---------- ----
+  SUBROUTINE FNWL(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+
+    ! Generates the equations for the 2-par continuation of folds.
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+
+    CALL FNLPF(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,FNWS)
+
+  END SUBROUTINE FNWL
+
+! ---------- -------
+  SUBROUTINE STPNWL(AP,PAR,ICP,U,UDOT,NODIR)
+
+    USE IO
+    USE SUPPORT
+    USE AE, ONLY: STPNAE
+
+    ! Generates starting data for the continuation of folds.
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
+
+    CALL STPNLPF(AP,PAR,ICP,U,UDOT,NODIR,FNWS)
+
+  END SUBROUTINE STPNWL
+
+! ---------- ----
+  SUBROUTINE FNHW(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+
+    ! Generates the equations for the 2-parameter continuation of Hopf
+    ! bifurcation points in waves.
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+
+    CALL FNHBF(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,FNWS)
+
+  END SUBROUTINE FNHW
+
+! ---------- ------
+  SUBROUTINE STPNHW(AP,PAR,ICP,U,UDOT,NODIR)
+
+    ! Generates starting data for the 2-parameter continuation of
+    ! Hopf bifurcation point (ODE/wave/map).
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
+
+    CALL STPNHBF(AP,PAR,ICP,U,UDOT,NODIR,FNWS)
+
+  END SUBROUTINE STPNHW
+
+! ---------- ----
   SUBROUTINE FNWP(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 
     ! Equations for the continuation of traveling waves.
@@ -150,6 +296,22 @@ CONTAINS
     ENDDO
 
   END SUBROUTINE FNWP
+
+! ---------- -----
+  SUBROUTINE FNWPL(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+
+    ! Generates starting data for the continuation of folds.
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+
+    CALL FNPLF(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,FNWP)
+
+  END SUBROUTINE FNWPL
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

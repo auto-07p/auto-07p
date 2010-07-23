@@ -279,6 +279,10 @@ C     set IUZ/VUZ
         ! ignored for MPI workers
         ALLOCATE(ICP(1),PAR(1),THU(1),THL(1),IUZ(1),VUZ(1))
       ENDIF
+
+      IF(IPS==11.OR.IPS==12.OR.IPS==14.OR.IPS==16.OR.IPS==17)THEN
+         ! parabolic PDEs
+         CALL INITPE(AP,PAR,ICP,ICU,THL,THU,IUZ,VUZ)
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
@@ -286,20 +290,12 @@ C  One-parameter continuations
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
-       IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. ABS(ISW).LE.1 ) THEN
+       ELSE IF((IPS.EQ.0.OR.IPS.EQ.1) .AND. ABS(ISW).LE.1 ) THEN
 C        ** Algebraic systems.
          IF(IRS.EQ.0) THEN
            CALL AUTOAE(AP,PAR,ICP,ICU,FUNI,STPNUS,THL,THU,IUZ,VUZ)
          ELSE
            CALL AUTOAE(AP,PAR,ICP,ICU,FUNI,STPNAE,THL,THU,IUZ,VUZ)
-         ENDIF
-C
-       ELSE IF(IPS.EQ.11 .AND. ABS(ISW).LE.1 ) THEN
-C        ** Waves : Spatially homogeneous solutions,
-         IF(IRS.EQ.0) THEN
-           CALL AUTOAE(AP,PAR,ICP,ICU,FNWS,STPNUS,THL,THU,IUZ,VUZ)
-         ELSE
-           CALL AUTOAE(AP,PAR,ICP,ICU,FNWS,STPNAE,THL,THU,IUZ,VUZ)
          ENDIF
 C
        ELSE IF((IPS.EQ.-1) .AND. ABS(ISW).LE.1 ) THEN
@@ -323,11 +319,6 @@ C        ** Periodic solutions
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPS,BCPS,ICPS,STPNPS,
      *     PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.12 .AND. ABS(ISW).LE.1 ) THEN
-C        ** Wave train solutions to parabolic systems.
-         CALL AUTOBV(AP,PAR,ICP,ICU,FNWP,BCPS,ICPS,STPNPS,
-     *     PVLSBV,THL,THU,IUZ,VUZ)
-C
        ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)<=1) THEN
 C        ** Boundary value problems. (4)
 C        ** Boundary value problems with Floquet multipliers. (7)
@@ -339,17 +330,6 @@ C        ** Homoclinic bifurcation analysis.
           CALL AUTOBV(AP,PAR,ICP,ICU,FNHO,BCHO,ICHO,STPNHO,
      *         PVLSHO,THL,THU,IUZ,VUZ)
 C
-       ELSE IF(IPS.EQ.14) THEN
-C        ** Evolution calculations for parabolic systems.
-C           (Periodic boundary conditions.)
-         IF(IRS.GT.0) THEN
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,
-     *      PVLSPE,THL,THU,IUZ,VUZ)
-         ELSE
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCPS,ICPE,STPNUB,
-     *      PVLSPE,THL,THU,IUZ,VUZ)
-         ENDIF
-C
        ELSE IF(IPS.EQ.15.AND.ABS(ISW).EQ.1) THEN
 C        ** Optimization of periodic solutions.
          IF(NFPRPREV.LT.6)THEN
@@ -357,28 +337,6 @@ C        ** Optimization of periodic solutions.
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ELSE
            CALL AUTOBV(AP,PAR,ICP,ICU,FNPO,BCPS,ICPO,STPNBV,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
-         ENDIF
-C
-       ELSE IF(IPS.EQ.16) THEN
-C        ** Evolution calculations for parabolic systems.
-C           (User supplied boundary conditions.)
-         IF(IRS.GT.0) THEN
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,
-     *      PVLSPE,THL,THU,IUZ,VUZ)
-         ELSE
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNPE,BCNI,ICPE,STPNUB,
-     *      PVLSPE,THL,THU,IUZ,VUZ)
-         ENDIF
-C
-       ELSE IF(IPS.EQ.17) THEN
-C        ** Continuation of stationary states of parabolic systems.
-C           (User supplied boundary conditions.)
-         IF(IRS.GT.0) THEN
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,
-     *      PVLSBV,THL,THU,IUZ,VUZ)
-         ELSE
-           CALL AUTOBV(AP,PAR,ICP,ICU,FNSP,BCNI,ICPE,STPNUB,
      *      PVLSBV,THL,THU,IUZ,VUZ)
          ENDIF
 C
@@ -399,20 +357,13 @@ C        ** Algebraic optimization problems.
            ENDIF
          ENDIF
 C
-       ELSE 
-C        **None of the above cases
-         GOTO 2
-       ENDIF
-C
-       GOTO 3
-C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C  Two-Parameter Continuation.
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
- 2     IF(IPS.LE.1 .AND. ABS(ISW).EQ.2 .AND. (ITP.EQ.2.OR.ITP.EQ.7.OR.
+       ELSEIF(IPS.LE.1 .AND. ABS(ISW).EQ.2.AND.(ITP.EQ.2.OR.ITP.EQ.7.OR.
      *      ABS(ITP)/10.EQ.2 .OR. ABS(ITP)/10.EQ.7))
      * THEN
 C        ** Fold/PD continuation (algebraic problems).
@@ -424,48 +375,46 @@ C        ** Fold/PD continuation (algebraic problems).
 C        ** BP cont (algebraic problems) (by F. Dercole).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNBP,STPNBP,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((ABS(IPS)<=1.OR.IPS==11).AND.ABS(ISW)==2.AND.
+       ELSE IF(ABS(IPS)<=1.AND.ABS(ISW)==2.AND.
      *        (ITP==3.OR.ITP==8.OR.ABS(ITP)/10==3.OR.ABS(ITP)/10==8))
      * THEN
-C        ** Hopf/Neimark-Sacker bifurcation continuation (ODE/waves/maps).
+C        ** Hopf/Neimark-Sacker bifurcation continuation (ODE/maps).
          CALL AUTOAE(AP,PAR,ICP,ICU,FNHB,STPNHB,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.ITP==5) THEN 
+       ELSE IF(IPS==2.AND.ABS(ISW)==2.AND.ITP==5) THEN 
 C        ** Fold continuation (Periodic solutions, start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNPL,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==5)
+       ELSE IF(IPS==2.AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==5)
      * THEN
 C        ** Fold continuation (Periodic solutions, restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPL,BCPL,ICPL,STPNBV,
      *   PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==12) .AND. ABS(ISW)>=2 .AND. 
+       ELSE IF((IPS==2) .AND. ABS(ISW)>=2 .AND. 
      *         (ITP==6.OR.(ABS(ITP)/10)==6) ) THEN
 C        ** BP cont (Periodic sol., start and restart) (by F. Dercole).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPBP,BCPBP,ICPBP,STPNPBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==7.OR.IPS==12)
-     *      .AND. ABS(ISW)==2 .AND. ITP==7 ) THEN
+       ELSE IF((IPS==2.OR.IPS==7) .AND. ABS(ISW)==2 .AND. ITP==7 ) THEN
 C        ** Continuation of period doubling bifurcations (start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNPD,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2 .OR. IPS==7 .OR. IPS==12)
-     *      .AND. ABS(ISW)==2 .AND. (ABS(ITP)/10)==7)
+       ELSE IF((IPS==2.OR.IPS==7).AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==7)
      * THEN
 C        ** Continuation of period doubling bifurcations (restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNPD,BCPD,ICPD,STPNBV,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.ITP==8) THEN
+       ELSE IF(IPS==2.AND.ABS(ISW)==2.AND.ITP==8) THEN
 C        ** Continuation of torus bifurcations (start).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNTR,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE IF((IPS==2.OR.IPS==12).AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==8)
+       ELSE IF(IPS==2.AND.ABS(ISW)==2.AND.(ABS(ITP)/10)==8)
      * THEN
 C        ** Continuation of torus bifurcations (restart).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNTR,BCTR,ICTR,STPNBV,
@@ -487,12 +436,13 @@ C        ** BP cont (BVP, start and restart) (by F. Dercole).
          CALL AUTOBV(AP,PAR,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,
      *      PVLSBV,THL,THU,IUZ,VUZ)
 C
-       ELSE
+       ENDIF
+
+       IF(AP%NTOT==0.AND.MPIIAM()==0)THEN
 C        ** Error in INIT.
          WRITE(6,500)
          STOP
        ENDIF
- 3     CONTINUE
 C
 C Error Message.
  500  FORMAT(' Initialization Error')
