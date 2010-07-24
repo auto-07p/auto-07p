@@ -54,12 +54,84 @@
 !     ---------- -------
       SUBROUTINE AUTOBVP(AP,ICP,ICU)
 
-      TYPE(AUTOPARAMETERS) AP
-      INTEGER ICP(*),ICU(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+      INTEGER, INTENT(INOUT) :: ICP(:)
+      INTEGER, INTENT(IN) :: ICU(:)
 
-      INTEGER ISW, ITP
+      INTEGER I, ISW, ITP, NDIM, NBC, NINT, NFPR, NXP, NPAR
       ISW = AP%ISW
       ITP = AP%ITP
+      NDIM = AP%NDIM
+      NBC = AP%NBC
+      NINT = AP%NINT
+      NPAR = AP%NPAR
+
+      ! Two-Parameter Continuation for IPS=4 or IPS=7.
+      IF(ABS(ISW)==2.AND.(ITP==5.OR.(ABS(ITP)/10)==5))THEN
+         ! ** Continuation of folds (BVP; start/restart)
+         NDIM=2*NDIM
+         NBC=2*NBC
+         NINT=2*NINT+1
+         NFPR=NBC+NINT-NDIM+1
+         NXP=NFPR/2-1
+         IF(NXP.GT.0)THEN
+            DO I=1,NXP
+               ICP(NFPR/2+I+1)=NPAR+I
+            ENDDO
+         ENDIF
+         ! PAR(NPAR+NFPR/2) contains a norm
+         AP%NPARI=NFPR/2
+         IF(ITP==5)THEN
+            ! ** Continuation of folds (BVP; start)
+            ICP(NFPR/2+1)=NPAR+NFPR/2
+            AP%ISW=-2
+         ENDIF
+      ENDIF
+      IF(ABS(ISW)>=2.AND.(ITP==6.OR.ABS(ITP)/10==6)) THEN
+         ! ** BP cont (BVP, start and restart) (by F. Dercole).
+         NXP=NBC+NINT-NDIM+1
+         IF(ITP==6)THEN
+            ! ** BP cont (BVP; start)
+            NDIM=4*NDIM
+            NBC=3*NBC+NDIM/2+NXP
+            NINT=3*NINT+NXP+5
+            ICP(NXP+1)=NPAR+3*NXP+NDIM/4 ! a
+            ICP(NXP+2)=NPAR+3*NXP+NDIM/4+1 ! b
+            DO I=1,NXP
+               ICP(NXP+I+2)=NPAR+I ! q
+               ICP(2*NXP+I+2)=NPAR+NXP+I ! r
+               ICP(4*NXP+NDIM/4+I+3)=NPAR+3*NXP+NDIM/4+3+I ! d
+            ENDDO
+            DO I=1,NXP+NDIM/4-1
+               ICP(3*NXP+I+2)=NPAR+2*NXP+I ! psi^*_2,psi^*_3
+            ENDDO
+            ICP(4*NXP+NDIM/4+2)=NPAR+3*NXP+NDIM/4+2 ! c1
+            ICP(4*NXP+NDIM/4+3)=NPAR+3*NXP+NDIM/4+3 ! c2
+            AP%NPARI=4*NXP+NDIM/4+3
+
+            AP%ISW=-ABS(ISW)
+         ELSE
+            ! ** BP cont (BVP; restart 1 or 2)
+            NDIM=2*NDIM
+            NBC=NBC+NDIM+NXP
+            NINT=NINT+NXP+1
+            IF(ABS(ISW)==2)THEN
+               ! ** Non-generic case
+               ICP(NXP+2)=NPAR+3*NXP+NDIM/2+1 ! b
+            ENDIF
+            DO I=1,NXP+NDIM/2-1
+               ICP(NXP+I+2)=NPAR+2*NXP+I ! psi^*_2,psi^*_3
+            ENDDO
+            DO I=1,NXP
+               ICP(2*NXP+NDIM/2+I+1)=NPAR+3*NXP+NDIM/2+3+I ! d
+            ENDDO
+            AP%NPARI=4*NXP+NDIM/2+3
+         ENDIF
+      ENDIF
+      AP%NDIM = NDIM
+      AP%NBC = NBC
+      AP%NINT = NINT
+      AP%NFPR = NBC+NINT-NDIM+1
 
       IF(ABS(ISW)<=1)THEN
          ! ** Boundary value problems (here IPS=4)
@@ -80,6 +152,7 @@
             CALL AUTOBV(AP,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,PVLSBV)
          ENDIF
       ENDIF
+
       END SUBROUTINE AUTOBVP
 C
 C-----------------------------------------------------------------------

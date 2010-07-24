@@ -31,18 +31,48 @@ MODULE OPTIMIZATION
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOOP(AP,ICP,ICU,NFPRPREV)
+  SUBROUTINE AUTOOP(AP,ICP,ICU)
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*),NFPRPREV
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(INOUT) :: ICP(:)
+    INTEGER, INTENT(IN) :: ICU(:)
 
-    INTEGER IPS, ISW, ITP
+    INTEGER IPS, ISW, ITP, NDIM, NFPR, NFPRPREV, I, IC, JC, NNEG
     IPS = AP%IPS
     ISW = AP%ISW
     ITP = AP%ITP
+    NDIM = AP%NDIM
+    NFPR = AP%NFPR
 
     IF(IPS==15.AND.ABS(ISW)==1) THEN
        ! ** Optimization of periodic solutions.
+       NFPRPREV=NFPR
+       NFPR=0
+       DO I=1,AP%NICP
+          IF(ICU(I)>0)THEN
+             NFPR=NFPR+1
+             ICP(NFPR)=ICU(I)
+          ENDIF
+       ENDDO
+       ICP(NFPR+1)=10
+       ICP(NFPR+2)=13
+       ICP(NFPR+3)=14
+       NFPR=NFPR+3
+       AP%NFPR=NFPR
+       AP%NDIM=2*NDIM
+       AP%NBC=AP%NDIM
+       AP%NINT=NFPR-1
+       ! overload to define optimality integrals
+       NNEG=0
+       DO I=1,AP%NICP
+          IC=ICU(I)
+          JC=ABS(IC)-20        
+          IF(IC<0.AND.JC>0.AND.JC<=11)THEN
+             NNEG=NNEG+1
+             ICP(NFPR+NNEG)=JC
+          ENDIF
+       ENDDO
+       AP%NICP=NFPR-3
        IF(NFPRPREV<6)THEN
           CALL AUTOBV(AP,ICP,ICU,FNPO,BCPS,ICPO,STPNPO,PVLSBV)
        ELSE
@@ -50,14 +80,18 @@ CONTAINS
        ENDIF
     ELSE IF(IPS==5) THEN
        ! ** Algebraic optimization problems.
-       IF(MOD(ITP,10)==2.OR.AP%IRS==0)NFPRPREV=NFPRPREV+1
-       IF(NFPRPREV==2) THEN
+       IF(MOD(ITP,10)==2.OR.AP%IRS==0)NFPR=NFPR+1
+       AP%NFPR=NFPR
+       ICP(1)=10
+       IF(NFPR==2) THEN
+          AP%NDIM=NDIM+1
           IF(AP%IRS>0) THEN
              CALL AUTOAE(AP,ICP,ICU,FNC1,STPNAE)
           ELSE
              CALL AUTOAE(AP,ICP,ICU,FNC1,STPNC1)
           ENDIF
        ELSE
+          AP%NDIM=2*NDIM+NFPR
           IF(MOD(ITP,10)/=2) THEN
              CALL AUTOAE(AP,ICP,ICU,FNC2,STPNAE)
           ELSE

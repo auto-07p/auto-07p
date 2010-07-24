@@ -25,8 +25,8 @@ CONTAINS
 
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),ICU(*)
 
     include 'interfaces.h'
 
@@ -98,15 +98,15 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT, ONLY: DTM=>DTV, P0=>P0V, P1=>P1V, EV=>EVV, CHECKSP, STOPPED, &
-         INITSTOPCNTS, INIT2
+         INITSTOPCNTS, INIT2, INIT3
     USE AUTO_CONSTANTS, ONLY: NPARX
 
 ! Controls the computation of solution branches.
 
     include 'interfaces.h'
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),ICU(*)
 ! Local
     INTEGER, ALLOCATABLE :: IUZ(:)
     DOUBLE PRECISION, ALLOCATABLE :: PAR(:),VUZ(:),THU(:),THL(:)
@@ -121,6 +121,15 @@ CONTAINS
     LOGICAL STEPPED
 
 ! INITIALIZE COMPUTATION OF BRANCH
+
+    IF(AP%ISW==-2.OR.AP%ISW==-3)THEN
+       AP%ILP=0
+       AP%ISP=0
+       AP%NMX=5
+       WRITE(6,"(/,A,A)")' Generating starting data :', &
+            ' Restart at EP label below :'
+    ENDIF
+    CALL INIT2(AP,ICP,ICU)
 
     NDIM=AP%NDIM
     IPS=AP%IPS
@@ -141,7 +150,7 @@ CONTAINS
     ! allocate a minimum of NPARX so we can detect overflows 
     ! past NPAR gracefully
     ALLOCATE(PAR(MAX(NPAR,NPARX)),THL(NFPR),THU(NDIM),IUZ(NUZR),VUZ(NUZR))
-    CALL INIT2(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+    CALL INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
 
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
     ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
@@ -791,7 +800,7 @@ CONTAINS
 
     USE MESH
     USE AUTO_CONSTANTS, ONLY : DATFILE, PARVALS, parnames
-    USE IO, ONLY: NAMEIDX
+    USE SUPPORT, ONLY: NAMEIDX
 
 ! Generates a starting point for the continuation of a branch of
 ! of solutions to general boundary value problems by calling the user

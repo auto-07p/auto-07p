@@ -13,7 +13,7 @@ MODULE PERIODIC
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: AUTOPS
+  PUBLIC :: AUTOPS,INITPS
   PUBLIC :: BCPS,ICPS,STPNPS ! Periodic solutions
   PUBLIC :: FNPLF,BCPL,ICPL,STPNPL ! Fold cont of periodic sol
 
@@ -22,12 +22,158 @@ MODULE PERIODIC
 CONTAINS
 
 ! ---------- ------
+  SUBROUTINE INITPS(AP,ICP)
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(INOUT) :: ICP(*)
+
+    INTEGER IPS, ITP, ISW, NICP, NDIM, NBC, NINT, NPAR, NPARI
+
+    IPS = AP%IPS
+    ITP = AP%ITP
+    ISW = AP%ISW
+    NICP = AP%NICP
+    NDIM = AP%NDIM
+    NBC = AP%NBC
+    NINT = AP%NINT
+    NPAR = AP%NPAR
+    NPARI = AP%NPARI
+
+    IF(ABS(ISW)<=1)THEN
+       IF(IPS/=7)THEN
+          ! ** Periodic Solutions
+          NBC=NDIM
+          NINT=1
+          ! **ISW=1 when starting from a HB
+          IF(ITP==3.OR.(ABS(ITP)/10)==3)ISW=1
+          IF(NICP==1)THEN
+             ! **Variable period
+             ICP(2)=11
+          ENDIF
+       ENDIF
+    ELSE
+       IF(ABS(ITP)/10==5 .OR. ITP==5)THEN
+          NDIM=2*NDIM
+          NBC=NDIM
+          NINT=3
+          NPARI=2
+          IF(ICP(3)==11 .OR. NICP==2)THEN
+             ! ** Variable period
+             IF( ITP/=5 )ICP(3)=ICP(2)
+             ICP(2)=11
+          ENDIF
+          IF( ITP==5 )THEN
+             ! ** Fold continuation (Periodic solutions); start
+             ISW=-2
+             ICP(3)=NPAR+2
+          ENDIF
+          ICP(4)=NPAR+1
+       ELSEIF(ITP==6.OR.ABS(ITP)/10==6)THEN
+          ! ** BP cont (Periodic solutions); start/restart (by F. Dercole)
+          IF(ITP==6)THEN
+             ! start
+             NDIM=4*NDIM
+             NINT=10
+             IF(((ABS(ISW)==2).AND.(ICP(3)==11 .OR. NICP==2)).OR. &
+                  ((ABS(ISW)==3).AND.(ICP(4)==11 .OR. NICP==3)))THEN
+                ! ** Variable period
+                ICP(2)=NPAR+6 ! a
+                ICP(3)=NPAR+7 ! b
+                ICP(4)=11 ! T
+             ELSE
+                ! ** Fixed period
+                ICP(3)=NPAR+6 ! a
+                ICP(4)=NPAR+7 ! b
+             ENDIF
+             ICP(5)=NPAR+1   ! q1
+             ICP(6)=NPAR+2   ! q2/beta1
+             ICP(7)=NPAR+3   ! r1
+             ICP(8)=NPAR+4   ! r2/beta2
+             ICP(9)=NPAR+5   ! psi^*_3
+             ICP(10)=NPAR+8  ! c1
+             ICP(11)=NPAR+9  ! c2
+             ISW=-ABS(ISW)
+          ELSE
+             ! restart 1 or 2
+             NDIM=2*NDIM
+             NINT=4
+             IF(ABS(ISW)==2)THEN
+                ! ** Non-generic case
+                IF(ICP(3)==11 .OR. NICP==2)THEN
+                   ! ** Variable period
+                   ICP(3)=NPAR+7 ! b
+                   ICP(4)=11 ! T
+                ELSE
+                   ! ** Fixed period
+                   ICP(4)=NPAR+7 ! b
+                ENDIF
+             ELSE
+                ! ** Generic case
+                IF(ICP(4)==11 .OR. NICP==3)THEN
+                   ! ** Variable period
+                   ICP(4)=11 ! T
+                ENDIF
+             ENDIF
+             ICP(5)=NPAR+5     ! psi^*_3
+          ENDIF
+          NBC=NDIM
+          NPARI=9
+       ELSEIF(ITP==7.OR.ABS(ITP)/10==7)THEN
+          ! ** Continuation of period doubling bifurcations; start/restart
+          NDIM=2*NDIM
+          NBC=NDIM
+          NINT=2
+          IF(ITP==7)THEN
+             ! start
+             IF(ICP(3)==11 .OR. NICP==2)THEN
+                ! ** Variable period
+                ICP(2)=11
+             ENDIF
+             ICP(3)=NPAR+1
+             ISW=-2
+          ELSEIF(NICP==2)THEN
+             ! ** restart with variable period
+             ICP(3)=11
+          ENDIF
+          NPARI=1
+       ELSE IF(ITP==8.OR.ABS(ITP)/10==8)THEN
+          ! ** Continuation of torus bifurcations; start/restart
+          NDIM=3*NDIM
+          NBC=NDIM
+          NINT=3
+          IF(ITP==8)THEN
+             ! start
+             ICP(2)=11
+             ICP(3)=12
+             ICP(4)=NPAR+1
+             ISW=-2
+          ELSEIF(NICP<4)THEN
+             ! **restart if not specified by user
+             ICP(3)=11
+             ICP(4)=12
+          ENDIF
+          NPARI=1
+       ENDIF
+    ENDIF
+    AP%NDIM=NDIM
+    AP%NBC=NBC
+    AP%NINT=NINT
+    AP%NFPR=NBC+NINT-NDIM+1
+    AP%NPARI=NPARI
+    AP%ISW=ISW
+
+  END SUBROUTINE INITPS
+
+! ---------- ------
   SUBROUTINE AUTOPS(AP,ICP,ICU)
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(INOUT) :: ICP(:)
+    INTEGER, INTENT(IN) :: ICU(:)
 
     INTEGER IPS, ISW, ITP
+
+    CALL INITPS(AP,ICP)
     IPS = AP%IPS
     ISW = AP%ISW
     ITP = AP%ITP

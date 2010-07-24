@@ -7,7 +7,7 @@ MODULE EQUILIBRIUM
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: AUTOEQ
+  PUBLIC :: AUTOEQ,INITEQ
   PUBLIC :: FNLPF,STPNLPF ! Folds (Algebraic Problems)
   PUBLIC :: FNHBF,STPNHBF ! Hopf bifs
 
@@ -16,12 +16,45 @@ MODULE EQUILIBRIUM
 CONTAINS
 
 ! ---------- ------
+  SUBROUTINE INITEQ(AP)
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+
+    INTEGER ISW, ITP, NDIM, NFPR
+    ISW = AP%ISW
+    ITP = AP%ITP
+    NDIM = AP%NDIM
+    NFPR = 1
+
+    IF(ABS(ISW)>=2)THEN
+       ! ** Continuation of singular points
+       NFPR=2
+       IF(ITP==2.OR.ABS(ITP)/10==2.OR.ITP==7.OR.ABS(ITP)/10==7)THEN
+          ! ** Fold/PD continuation (Algebraic Problems)
+          NDIM=2*NDIM+1
+       ELSE
+          ! Hopf/Neimark-Sacker or BP cont
+          NDIM=2*NDIM+2
+          IF(ITP==1.OR.ABS(ITP)/10==1)THEN
+             ! ** BP cont (Algebraic Problems) (by F. Dercole)
+             NFPR=ABS(ISW)
+          ENDIF
+       ENDIF
+    ENDIF
+    AP%NDIM = NDIM
+    AP%NFPR = NFPR
+  END SUBROUTINE INITEQ
+
+! ---------- ------
   SUBROUTINE AUTOEQ(AP,ICP,ICU)
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(INOUT) :: ICP(:)
+    INTEGER, INTENT(IN) :: ICU(:)
 
     INTEGER IPS, ISW, ITP
+
+    CALL INITEQ(AP)
     IPS = AP%IPS
     ISW = AP%ISW
     ITP = AP%ITP

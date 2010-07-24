@@ -30,17 +30,39 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE AUTOPE(AP,ICP,ICU)
 
-    TYPE(AUTOPARAMETERS) AP
-    INTEGER ICP(*),ICU(*)
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(INOUT) :: ICP(:)
+    INTEGER, INTENT(IN) :: ICU(:)
 
-    INTEGER IPS, ISW, ITP
+    INTEGER IPS, ISW, ITP, NDM, NDIM
     IPS = AP%IPS
     ISW = AP%ISW
     ITP = AP%ITP
+    NDIM = AP%NDIM
+
+! Redefinition for waves
+    NDIM = 2*NDIM
+    AP%NDIM = NDIM
+    IF(IPS==11.OR.IPS==12)THEN
+       NDM=NDIM
+       AP%NDM=NDM
+    ELSEIF(IPS==14.OR.IPS==16.OR.IPS==17)THEN
+       ! **Evolution calculations for Parabolic Systems
+       ! **Stationary calculations for Parabolic Systems
+       AP%NBC=NDIM
+       AP%NINT=0
+       AP%NFPR=1
+       IF(IPS/=17)THEN
+          AP%ILP=0
+          AP%ISP=0
+          ICP(1)=14
+       ENDIF
+    ENDIF
 
     SELECT CASE(IPS)
     CASE(11)
-       ! ** Waves : Spatially homogeneous solutions,
+       ! ** Waves : Spatially homogeneous solutions
+       CALL INITEQ(AP)
        IF(ABS(ISW)==1 ) THEN   
           CALL AUTOAE(AP,ICP,ICU,FNWS,STPNAE)
        ELSEIF(ABS(ISW)==2)THEN
@@ -54,6 +76,7 @@ CONTAINS
        ENDIF
     CASE(12) 
        ! ** Wave train solutions to parabolic systems.
+       CALL INITPS(AP,ICP)
        IF(ABS(ISW)<=1) THEN
           CALL AUTOBV(AP,ICP,ICU,FNWP,BCPS,ICPS,STPNPS,PVLSBV)
        ELSE IF(ABS(ISW)==2) THEN

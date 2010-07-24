@@ -15,7 +15,7 @@ C
 
       PRIVATE
 
-      PUBLIC :: AUTOHO,INHO,INSTRHO
+      PUBLIC :: AUTOHO,INSTRHO
 
 C     This common block is also used by demos: don't remove it!!
 C     Also, don't use the common variables in FNHO and ICHO because 
@@ -35,8 +35,13 @@ C
 !     ---------- -----
       SUBROUTINE AUTOHO(AP,ICP,ICU)
 
-      TYPE(AUTOPARAMETERS) AP
-      INTEGER ICP(*),ICU(*)
+      TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+      INTEGER, INTENT(INOUT) :: ICP(:)
+      INTEGER, INTENT(IN) :: ICU(:)
+
+      ! Redefine AUTO constants for homoclinic orbits
+      CALL INHO(AP,ICP)
+      AP%NFPR=AP%NBC+AP%NINT-AP%NDIM+1
 
       CALL AUTOBV(AP,ICP,ICU,FNHO,BCHO,ICHO,STPNHO,PVLSHO)
 

@@ -3,7 +3,7 @@ C     ------- ----
 C
       USE AUTOMPI
       USE IO
-      USE SUPPORT, ONLY:AP=>AV, CHECKSP
+      USE SUPPORT, ONLY:AP=>AV, CHECKSP, NAMEIDX
       USE AUTO_CONSTANTS,ONLY:SVFILE,SFILE,DATFILE,EFILE,
      *     ICU,parnames,AUTOPARAMETERS
 C$    USE OMP_LIB
@@ -17,7 +17,6 @@ C Local
       INTEGER I,LINE,ios
       INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
-      CHARACTER(258) :: SOLFILE, BIFFILE, DIAFILE
 C
 C Initialization :
 C
@@ -32,9 +31,6 @@ C
        SFILE=''
        SVFILE=''
        DATFILE=''
-       BIFFILE='fort.7'
-       SOLFILE='fort.8'
-       DIAFILE='fort.9'
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
        IF(ios/=0)THEN
           WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ',
@@ -170,19 +166,11 @@ C
       INTEGER NICU,ICU(NICU)
       LOGICAL WORKER
 
-      INTEGER IPS,IRS,ISW,ITP,NFPRPREV,NFPR,NNICP,NPAR
-      INTEGER ILP,ISP
-      INTEGER NUZR,NPARI,NICP
+      INTEGER IPS,ISW,NNICP,NPAR
       INTEGER, ALLOCATABLE :: ICP(:)
 
       IPS=AP%IPS
-      IRS=AP%IRS
-      ILP=AP%ILP
-      ISP=AP%ISP
       ISW=AP%ISW
-      NUZR=AP%NUZR
-      ITP=AP%ITP
-      NFPRPREV=AP%NFPR
 C
       IF(.NOT.WORKER)THEN
         NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
@@ -192,52 +180,7 @@ C
         NPAR=AP%NPAR
         NPAR=MAX(MAXVAL(ABS(ICU)),NPAR)
         AP%NPAR=NPAR
-        CALL INIT1(AP,ICP,ICU)
-        ! check output (user-specified) parameters
-        NICP=AP%NICP
-        DO I=1,NICP
-           IF(ICU(I)<=0)THEN
-              WRITE(6,'(A,I5,A,I5)')
-     &             "Invalid parameter index ",ICP(I),
-     &             " specified in ICP index ",I
-              STOP
-           ENDIF
-        ENDDO
-        ! check active continuation parameters
-        NFPR=AP%NFPR
-        DO I=SIZE(ICU)+1,NFPR
-           IF(ICP(I)==0)THEN
-              WRITE(6,'(A/A,I5,A,I5,A)')
-     &             "Insufficient number of parameters in ICP.",
-     &             "You specified ",SIZE(ICU)," but need at least ",
-     &             NFPR-I+1+SIZE(ICU), " continuation parameters."
-              STOP
-           ENDIF
-        ENDDO
-        NPARI=AP%NPARI
-        NPAR=AP%NPAR
-        NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
-        IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
-           !HB period and period for periodic orbits stored in PAR(11)
-           NPAR=MAX(11,NPAR)
-           IF(CHECKSP('TR',IPS,ILP,ISP))THEN
-              ! the torus angle is stored in PAR(12)
-              NPAR=MAX(12,NPAR)
-           ENDIF
-        ENDIF
-        AP%NPAR=NPAR
-        ! only now open the output files
-        IF(FIRST)THEN
-           IF(SVFILE/='')THEN
-              BIFFILE='b.'//SVFILE
-              SOLFILE='s.'//SVFILE
-              DIAFILE='d.'//SVFILE
-           ENDIF
-           OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
-           OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
-           OPEN(9,FILE=DIAFILE,STATUS='unknown',ACCESS='sequential')
-           FIRST=.FALSE.
-        ENDIF
+        CALL INIT1(AP)
       ELSE
         ! ignored for MPI workers
         ALLOCATE(ICP(1))
@@ -262,7 +205,7 @@ C
          CALL AUTOPE(AP,ICP,ICU)
       CASE(5,15)
          ! optimization
-         CALL AUTOOP(AP,ICP,ICU,NFPRPREV)
+         CALL AUTOOP(AP,ICP,ICU)
       CASE(9)
          ! Homoclinic bifurcation analysis.
          CALL AUTOHO(AP,ICP,ICU)
@@ -800,13 +743,11 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C
 C     ---------- -----
-      SUBROUTINE INIT1(AP,ICP,ICU)
+      SUBROUTINE INIT1(AP)
 C
-      USE HOMCONT, ONLY:INHO
       USE AUTO_CONSTANTS, ONLY:IVTHL
 C
-      DOUBLE PRECISION, PARAMETER ::
-     *     HMACH=1.0d-7,RSMALL=1.0d-30,RLARGE=1.0d+30
+      DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 C
 C General initialization. Redefinition of constants.
 C The following constants are redefined, ie. they are different than in
@@ -826,32 +767,14 @@ C   NINT: set by problem type
 C   NMX: set to 5 for starts of extended systems
 
       TYPE(AUTOPARAMETERS) AP
-      INTEGER ICP(*),ICU(*)
 C
 C Local
-      INTEGER NDIM,IPS,IRS,ILP,ISP,ISW,NBC,NINT,NMX,NPAR,NPARI
-      INTEGER ITP,NFPR,NICP,NDM,NXP,I,NNEG,IC,JC
-      DOUBLE PRECISION DS,DSMIN,DSMAX,FC
-C
-       NDIM=AP%NDIM
-       IPS=AP%IPS
-       IRS=AP%IRS
-       ILP=AP%ILP
-       ISP=AP%ISP
-       ISW=AP%ISW
-       NBC=AP%NBC
-       NINT=AP%NINT
-       NMX=AP%NMX
-       ITP=AP%ITP
-       NFPR=AP%NFPR
-       NPAR=AP%NPAR
-       NICP=AP%NICP
+      DOUBLE PRECISION DS,DSMIN,FC
 C
        DS=AP%DS
        DSMIN=AP%DSMIN
-       DSMAX=AP%DSMAX
 C
-       IF(ISW.EQ.0)ISW=1
+       IF(AP%ISW.EQ.0)AP%ISW=1
 C
 C Check and perturb pseudo arclength stepsize and steplimits.
 C (Perturbed to avoid exact computation of certain singular points).
@@ -859,374 +782,13 @@ C
        IF(DS.EQ.0.d0)DS=0.1
        IF(DSMIN.EQ.0.d0)DSMIN=1.0D-4*ABS(DS)
        FC=1.d0+HMACH
-       DS=FC*DS
-       DSMIN=DSMIN/FC
-       DSMAX=FC*DSMAX
-       NPARI=0
-C
-C Redefinition for waves
-       IF(IPS==11.OR.IPS==12)THEN
-         NDIM=2*NDIM
-         NDM=NDIM
-         AP%NDM=NDM
-       ENDIF
-C
-C General Redefinition.
-C
-       IF((ABS(IPS)<=1.OR.IPS==11) .AND. ISW==1 )THEN
-C        ** Algebraic Systems
-         NFPR=1
-C
-       ELSE IF(IPS.EQ.-2)THEN
-C        ** Time integration
-         NFPR=1
-         ISP=0
-         ILP=0
-         ICP(1)=14
-C 
-       ELSE IF((IPS==2.OR.IPS==12) .AND. ABS(ISW)==1 )THEN
-C        ** Periodic Solutions
-         NBC=NDIM
-         NINT=1
-         NFPR=NBC+NINT-NDIM+1
-C        **ISW=1 when starting from a HB
-         IF(ITP.EQ.3.OR.(ABS(ITP)/10).EQ.3)ISW=1
-         IF(NICP.EQ.1)THEN
-C          **Variable period
-           ICP(2)=11
-         ENDIF
-C
-       ELSE IF((IPS==4.OR.IPS==7) .AND. ABS(ISW)==1  ) THEN
-C        ** Boundary value problems
-         NFPR=NBC+NINT-NDIM+1
-C
-       ELSE IF( IPS.EQ.9 .AND. ABS(ISW).EQ.1  ) THEN
-C        ** Homoclinic bifurcation analysis
-C        Redefine AUTO constants for homoclinic orbits
-         CALL INHO(AP,ICP)
-         NDIM=AP%NDIM
-         NBC=AP%NBC
-         NINT=AP%NINT
-         NPARI=AP%NPARI
-         NFPR=NBC+NINT-NDIM+1
-C
-       ELSE IF(IPS.EQ.14 .OR. IPS.EQ.16)THEN
-C        **Evolution calculations for Parabolic Systems
-         NDIM=2*NDIM
-         NBC=NDIM
-         NINT=0
-         NFPR=1
-         ILP=0
-         ISP=0
-         ICP(1)=14
-C
-       ELSE IF(IPS.EQ.17)THEN
-C        **Stationary calculations for Parabolic Systems
-         NDIM=2*NDIM
-         NBC=NDIM
-         NINT=0
-         NFPR=1
-C
-         ELSE IF(IPS.EQ.15)THEN
-C          ** Optimization of periodic solutions 
-           NFPR=0
-           DO I=1,NICP
-             IF(ICU(I).GT.0)THEN
-               NFPR=NFPR+1
-               ICP(NFPR)=ICU(I)
-             ENDIF
-           ENDDO
-           ICP(NFPR+1)=10
-           ICP(NFPR+2)=13
-           ICP(NFPR+3)=14
-           NFPR=NFPR+3
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=NFPR-1
-C overload to define optimality integrals
-           NNEG=0
-           DO I=1,NICP
-             IC=ICU(I)
-             JC=ABS(IC)-20        
-             IF(IC.LT.0.AND.JC.GT.0.AND.JC.LE.11)THEN
-               NNEG=NNEG+1
-               ICP(NFPR+NNEG)=JC
-             ENDIF
-           ENDDO
-           NICP=NFPR-3
-C
-       ELSE IF(IPS.EQ.5)THEN
-C        ** Algebraic optimization Problems
-         IF(MOD(ITP,10).EQ.2.OR.IRS.EQ.0)NFPR=NFPR+1
-         ICP(1)=10
-         IF(NFPR.EQ.2)THEN
-           NDIM=NDIM+1
-         ELSE
-           NDIM=2*NDIM+NFPR
-         ENDIF
-C
-       ELSE IF(IRS.GT.0 .AND. ABS(ISW).GE.2 )THEN
-C        ** Continuation of singular points
-C
-         IF( ( ITP==2.OR.(ABS(ITP)/10)==2.OR.
-     *         ITP==7.OR.(ABS(ITP)/10)==7 )
-     *        .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
-C          ** Fold/PD continuation (Algebraic Problems)
-           NDIM=2*NDIM+1
-           NFPR=2
-C
-         ELSE IF( ( ITP.EQ.1.OR.(ABS(ITP)/10).EQ.1 )
-     *        .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
-C          ** BP cont (Algebraic Problems) (by F. Dercole)
-           NDIM=2*NDIM+2
-           NFPR=ABS(ISW)
-C
-         ELSE IF((ITP==3.OR.(ABS(ITP)/10)==3.OR.
-     *            ITP==8.OR.(ABS(ITP)/10)==8)
-     *               .AND. (ABS(IPS)<=1.OR.IPS==11))THEN
-C          ** Hopf/Neimark-Sacker bifurcation continuation (Maps, ODE, Waves)
-           NDIM=2*NDIM+2
-           NFPR=2
-C
-         ELSE IF( ITP==5 .AND. (IPS==2.OR.IPS==12) )THEN
-C          ** Fold continuation (Periodic solutions); start
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=3
-           NFPR=NBC+NINT-NDIM+1
-           IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
-C            ** Variable period
-             ICP(2)=11
-           ENDIF
-           ICP(3)=NPAR+2
-           ICP(4)=NPAR+1
-           NPARI=2
-           ILP=0
-           ISW=-2
-           ISP=0
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF( (ABS(ITP)/10)==5 .AND. (IPS==2.OR.IPS==12) )THEN
-C          ** Fold continuation (Periodic solutions); restart
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=3
-           NFPR=NBC+NINT-NDIM+1
-           IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
-C            ** Variable period
-             ICP(3)=ICP(2)
-             ICP(2)=11
-           ENDIF
-           ICP(4)=NPAR+1
-           NPARI=2
-C
-         ELSE IF( (ITP==6) .AND.  (IPS==2.OR.IPS==12) )THEN
-C          ** BP cont (Periodic solutions); start (by F. Dercole)
-           NDIM=4*NDIM
-           NBC=NDIM
-           NINT=10
-           NFPR=NBC+NINT-NDIM+1
-           IF(((ABS(ISW)==2).AND.(ICP(3)==11 .OR. NICP==2)).OR.
-     *        ((ABS(ISW)==3).AND.(ICP(4)==11 .OR. NICP==3)))THEN
-C            ** Variable period
-             ICP(2)=NPAR+6 ! a
-             ICP(3)=NPAR+7 ! b
-             ICP(4)=11 ! T
-           ELSE
-C            ** Fixed period
-             ICP(3)=NPAR+6 ! a
-             ICP(4)=NPAR+7 ! b
-           ENDIF
-           ICP(5)=NPAR+1   ! q1
-           ICP(6)=NPAR+2   ! q2/beta1
-           ICP(7)=NPAR+3   ! r1
-           ICP(8)=NPAR+4   ! r2/beta2
-           ICP(9)=NPAR+5   ! psi^*_3
-           ICP(10)=NPAR+8  ! c1
-           ICP(11)=NPAR+9  ! c2
-           NPARI=9
-C
-           ILP=0
-           ISW=-ABS(ISW)
-           ISP=0
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF( (ABS(ITP)/10==6) .AND. (IPS==2.OR.IPS==12))THEN
-C          ** BP cont (Periodic solutions); restart 1 or 2
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=4
-           NFPR=NBC+NINT-NDIM+1
-           IF(ABS(ISW)==2)THEN
-C            ** Non-generic case
-             IF(ICP(3)==11 .OR. NICP==2)THEN
-C              ** Variable period
-               ICP(3)=NPAR+7 ! b
-               ICP(4)=11 ! T
-             ELSE
-C              ** Fixed period
-               ICP(4)=NPAR+7 ! b
-             ENDIF
-           ELSE
-C            ** Generic case
-             IF(ICP(4)==11 .OR. NICP==3)THEN
-C              ** Variable period
-               ICP(4)=11 ! T
-             ENDIF
-           ENDIF
-           ICP(5)=NPAR+5     ! psi^*_3
-           NPARI=9
-C
-         ELSE IF(ITP==7 .AND. (IPS==2.OR.IPS==7.OR.IPS==12))THEN
-C          ** Continuation of period doubling bifurcations; start
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=2
-           NFPR=NBC+NINT-NDIM+1
-           IF(ICP(3).EQ.11 .OR. NICP.EQ.2)THEN
-C            ** Variable period
-             ICP(2)=11
-           ENDIF
-           ICP(3)=NPAR+1
-           NPARI=1
-           ILP=0
-           ISW=-2
-           ISP=0
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF(ABS(ITP)/10==7 .AND. (IPS==2.OR.IPS==7.OR.IPS==12))THEN
-C          ** Continuation of period doubling bifurcations; restart
-           NDIM=2*NDIM
-           NBC=NDIM
-           NINT=2
-           NFPR=NBC+NINT-NDIM+1
-           IF(NICP.EQ.2)THEN
-C            ** Variable period
-             ICP(3)=11
-           ENDIF
-           NPARI=1
-C
-         ELSE IF(ITP==8 .AND. (IPS==2.OR.IPS==12))THEN
-C          ** Continuation of torus bifurcations; start
-           NDIM=3*NDIM
-           NBC=NDIM
-           NINT=3
-           NFPR=NBC+NINT-NDIM+1
-           ICP(2)=11
-           ICP(3)=12
-           ICP(4)=NPAR+1
-           NPARI=1
-           ILP=0
-           ISP=0
-           ISW=-2
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF(ABS(ITP)/10==8 .AND. (IPS==2.OR.IPS==12))THEN
-C          ** Continuation of torus bifurcations; restart
-           NDIM=3*NDIM
-           NBC=NDIM
-           NINT=3
-           NFPR=NBC+NINT-NDIM+1
-           IF(NICP.LT.4)THEN
-C            **If not specified by user
-             ICP(3)=11
-             ICP(4)=12
-           ENDIF
-           NPARI=1
-C
-         ELSE IF( (ITP==5) .AND. (IPS==4.OR.IPS==7) )
-     *   THEN
-C          ** Continuation of folds (BVP; start)
-           NDIM=2*NDIM
-           NBC=2*NBC
-           NINT=2*NINT+1
-           NFPR=NBC+NINT-NDIM+1
-           NXP=NFPR/2-1
-           IF(NXP.GT.0)THEN
-             DO I=1,NXP
-               ICP(NFPR/2+I+1)=NPAR+I
-             ENDDO
-           ENDIF
-           ICP(NFPR/2+1)=NPAR+NFPR/2
-           NPARI=NFPR/2
-           ILP=0
-           ISW=-2
-           ISP=0
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF( (ABS(ITP)/10)==5 .AND. (IPS==4.OR.IPS==7))THEN
-C          ** Continuation of folds (BVP; restart)
-           NDIM=2*NDIM
-           NBC=2*NBC
-           NINT=2*NINT+1
-           NFPR=NBC+NINT-NDIM+1
-           NXP=NFPR/2-1
-           IF(NXP.GT.0)THEN
-             DO I=1,NXP
-               ICP(NFPR/2+I+1)=NPAR+I
-             ENDDO
-           ENDIF
-           ! PAR(NPAR+NFPR/2) contains a norm
-           NPARI=NFPR/2
-C
-         ELSE IF( ITP==6 .AND. (IPS==4.OR.IPS==7) )THEN
-C          ** BP cont (BVP; start) (by F. Dercole)
-           NXP=NBC+NINT-NDIM+1
-           NDIM=4*NDIM
-           NBC=3*NBC+NDIM/2+NXP
-           NINT=3*NINT+NXP+5
-           NFPR=NBC+NINT-NDIM+1
-           ICP(NXP+1)=NPAR+3*NXP+NDIM/4   ! a
-           ICP(NXP+2)=NPAR+3*NXP+NDIM/4+1 ! b
-           DO I=1,NXP
-             ICP(NXP+I+2)=NPAR+I          ! q
-             ICP(2*NXP+I+2)=NPAR+NXP+I    ! r
-             ICP(4*NXP+NDIM/4+I+3)=NPAR+3*NXP+NDIM/4+3+I ! d
-           ENDDO
-           DO I=1,NXP+NDIM/4-1
-             ICP(3*NXP+I+2)=NPAR+2*NXP+I  ! psi^*_2,psi^*_3
-           ENDDO
-           ICP(4*NXP+NDIM/4+2)=NPAR+3*NXP+NDIM/4+2 ! c1
-           ICP(4*NXP+NDIM/4+3)=NPAR+3*NXP+NDIM/4+3 ! c2
-           NPARI=4*NXP+NDIM/4+3
-C
-           ILP=0
-           ISW=-ABS(ISW)
-           ISP=0
-           NMX=5
-           WRITE(6,101)
-C
-         ELSE IF( (ABS(ITP)/10)==6 .AND. (IPS==4.OR.IPS==7))THEN
-C          ** BP cont (BVP; restart 1 or 2)
-           NXP=NBC+NINT-NDIM+1
-           NDIM=2*NDIM
-           NBC=NBC+NDIM+NXP
-           NINT=NINT+NXP+1
-           NFPR=NBC+NINT-NDIM+1
-           IF(ABS(ISW)==2)THEN
-C            ** Non-generic case
-             ICP(NXP+2)=NPAR+3*NXP+NDIM/2+1 ! b
-           ENDIF
-           DO I=1,NXP+NDIM/2-1
-             ICP(NXP+I+2)=NPAR+2*NXP+I      ! psi^*_2,psi^*_3
-           ENDDO
-           DO I=1,NXP
-             ICP(2*NXP+NDIM/2+I+1)=NPAR+3*NXP+NDIM/2+3+I ! d
-           ENDDO
-           NPARI=4*NXP+NDIM/2+3
-C
-         ENDIF
-C
-       ENDIF
-C
+       AP%DS=FC*DS
+       AP%DSMIN=DSMIN/FC
+       AP%DSMAX=FC*AP%DSMAX
+       AP%NPARI=0
        IF(.NOT.ALLOCATED(IVTHL))THEN
           ! set default for *THL
-          IF(IPS==2)THEN
+          IF(AP%IPS==2.OR.AP%IPS==12)THEN
              ALLOCATE(IVTHL(1))
              IVTHL(1)%INDEX='11'
              IVTHL(1)%VAR=0d0
@@ -1234,25 +796,7 @@ C
              ALLOCATE(IVTHL(0))
           ENDIF
        ENDIF
-
-       AP%NDIM=NDIM
-       AP%ILP=ILP
-       AP%ISP=ISP
-       AP%ISW=ISW
-       AP%NBC=NBC
-       AP%NINT=NINT
-       AP%NMX=NMX
-       AP%NPARI=NPARI
-       AP%NFPR=NFPR
-       AP%NICP=NICP
 C
-       AP%DS=DS
-       AP%DSMIN=DSMIN
-       AP%DSMAX=DSMAX
-C
- 101   FORMAT(/,' Generating starting data :',
-     *          ' Restart at EP label below :')
-
       RETURN
       END SUBROUTINE INIT1
 

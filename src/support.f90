@@ -12,7 +12,7 @@ USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
 IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
-PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED, FNUZ, INIT2
+PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED, FNUZ, INIT2, INIT3, NAMEIDX
 PUBLIC :: DTV,AV,P0V,P1V,EVV
  
 DOUBLE PRECISION, ALLOCATABLE, SAVE :: DTV(:),P0V(:,:),P1V(:,:)
@@ -625,11 +625,89 @@ CONTAINS
 
   END FUNCTION FNUZ
 
-! ---------- -----
-  SUBROUTINE INIT2(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+! ------- -------- -------
+  INTEGER FUNCTION NAMEIDX(NAME,NAMES)
 
-    USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,unames,parnames
-    USE IO, ONLY: NAMEIDX
+    USE AUTO_CONSTANTS, ONLY: INDEXSTR
+    CHARACTER(13), INTENT(IN) :: NAME
+    TYPE(INDEXSTR), INTENT(IN) :: NAMES(:)
+    CHARACTER(13) PNAME
+    INTEGER I,SIGN,ios
+
+    ! map a symbolic parameter name or an ascii integer to an index
+
+    SIGN=1
+    IF(NAME(1:1)=='-')THEN
+       PNAME=NAME(2:)
+       SIGN=-1
+    ELSE
+       PNAME=NAME
+    ENDIF
+    DO I=1,SIZE(NAMES)
+       IF(NAMES(I)%STR==PNAME)THEN
+          NAMEIDX=NAMES(I)%INDEX*SIGN
+          RETURN
+       ENDIF
+    ENDDO
+    IF(TRIM(PNAME)=='PERIOD')THEN
+       NAMEIDX=SIGN*11
+    ELSE
+       READ(NAME,*,IOSTAT=ios)NAMEIDX
+       IF(ios/=0)THEN
+          WRITE(6,"(A,A,A)")"Name '",TRIM(NAME),"' not found."
+          STOP
+       ENDIF
+    ENDIF
+  END FUNCTION NAMEIDX
+
+! ---------- -----
+  SUBROUTINE INIT2(AP,ICP,ICU)
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*), ICU(*)
+
+    INTEGER I,IPS,NICP,NFPR,NPAR,NPARI
+
+    ! check output (user-specified) parameters
+    NICP=AP%NICP
+    DO I=1,NICP
+       IF(ICU(I)<=0)THEN
+          WRITE(6,'(A,I5,A,I5)') &
+                  "Invalid parameter index ",ICU(I), &
+                  " specified in ICP index ",I
+          STOP
+       ENDIF
+    ENDDO
+    ! check active continuation parameters
+    NFPR=AP%NFPR
+    DO I=NICP+1,NFPR
+       IF(ICP(I)==0)THEN
+          WRITE(6,'(A/A,I5,A,I5,A)') &
+               "Insufficient number of parameters in ICP.", &
+               "You specified ",NICP," but need at least ", &
+               NFPR-I+1+NICP, " continuation parameters."
+          STOP
+       ENDIF
+    ENDDO
+    NPARI=AP%NPARI
+    NPAR=AP%NPAR
+    NPAR=MAX(MAXVAL(ICP(:NFPR)),NPAR+NPARI)
+    IPS=AP%IPS
+    IF(ABS(IPS)==1.OR.IPS==2.OR.IPS>=7)THEN
+       !HB period and period for periodic orbits stored in PAR(11)
+       NPAR=MAX(11,NPAR)
+       IF(CHECKSP('TR',IPS,AP%ILP,AP%ISP))THEN
+          ! the torus angle is stored in PAR(12)
+          NPAR=MAX(12,NPAR)
+       ENDIF
+    ENDIF
+    AP%NPAR=NPAR
+  END SUBROUTINE INIT2
+
+! ---------- -----
+  SUBROUTINE INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+
+    USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,unames,parnames,SVFILE
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
@@ -637,6 +715,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: IUZ(*)
 
     INTEGER I,J,K,IND
+    CHARACTER(258) :: SOLFILE, BIFFILE, DIAFILE
 
     PAR(:)=0.d0
     ! redefine thl to be nfpr indexed
@@ -665,7 +744,23 @@ CONTAINS
        ENDDO
     ENDDO
 
-  END SUBROUTINE INIT2
+    ! only now open the output files
+    IF(AP%NTOT==0)THEN
+       IF(SVFILE/='')THEN
+          BIFFILE='b.'//SVFILE
+          SOLFILE='s.'//SVFILE
+          DIAFILE='d.'//SVFILE
+       ELSE
+          BIFFILE='fort.7'
+          SOLFILE='fort.8'
+          DIAFILE='fort.9'
+       ENDIF
+       OPEN(7,FILE=BIFFILE,STATUS='unknown',ACCESS='sequential')
+       OPEN(8,FILE=SOLFILE,STATUS='unknown',ACCESS='sequential')
+       OPEN(9,FILE=DIAFILE,STATUS='unknown',ACCESS='sequential')
+    ENDIF
+
+  END SUBROUTINE INIT3
 
 END MODULE SUPPORT
 
