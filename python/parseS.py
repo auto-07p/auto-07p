@@ -176,8 +176,9 @@ class parseS(list):
 
     # Removes solutions with the given labels or type name
     def deleteLabel(self,label=None,keep=0):
-        if label == None:
-            label=['BP','LP','HB','PD','TR','EP','MX']
+        if label is None:
+            label = [lab for lab in parseB.all_point_types if lab not in
+                     ["No Label", "RG", "UZ"]]
         if isinstance(label, (str, int)):
             label = [label]
         indices = []

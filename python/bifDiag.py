@@ -209,8 +209,15 @@ class bifDiag(parseB.parseBR):
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
         # accept a user-defined boolean function
         if isinstance(label, types.FunctionType):
-            label = [s["LAB"] for s in self(label)]
-        parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
+            deletesols = self(label)
+            data = []
+            for d in self:
+                label = [s["LAB"] for s in deletesols if s.b.branch is d]
+                data.append(d.deleteLabel(label,keepTY,keep,copy))
+            if copy:
+                return self.__class__(data)
+            return
+        return parseB.parseBR.deleteLabel(self,label,keepTY,keep,copy)
 
 class bifDiagBranch(parseB.AUTOBranch):
     def __init__(self,input=None):

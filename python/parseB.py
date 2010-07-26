@@ -437,8 +437,9 @@ class AUTOBranch(parseBMixin, Points.Pointset):
 
     def deleteLabel(self,label=None,keepTY=0,keep=0,copy=0):
         """Removes solutions with the given labels or type names"""
-        if label == None:
-            label=['BP','LP','HB','PD','TR','EP','MX']
+        if label is None:
+            label = [lab for lab in all_point_types if lab not in
+                     ["No Label", "RG", "UZ"]]
         if isinstance(label, (str, int)):
             label = [label]
         if copy:
