@@ -44,7 +44,7 @@ compile: $(OBJ)
 ../lib/parabolic.o: parabolic.f90 ../lib/equilibrium.o ../lib/periodic.o
 	$(FC) $(FFLAGS) $(OPT) -c parabolic.f90 -o $@
 #
-../lib/periodic.o: periodic.f90 ../lib/autlib3.o
+../lib/periodic.o: periodic.f90 ../lib/autlib3.o ../lib/autlib4.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
 #
 ../lib/timeint.o: timeint.f90 ../lib/autlib3.o
@@ -53,7 +53,7 @@ compile: $(OBJ)
 ../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
-../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/autlib4.o ../lib/io.o
+../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/io.o
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
 ../lib/support.o: support.f90 ../lib/mesh.o ../lib/auto_constants.o

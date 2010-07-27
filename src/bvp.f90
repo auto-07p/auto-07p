@@ -11,7 +11,7 @@ MODULE BVP
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: AUTOBV,STPNBV,STPNBV1,PVLSBV,SETRTN,IRTN,NRTN
+  PUBLIC :: AUTOBV,STPNBV,STPNBV1,FNCSBV,SETRTN,IRTN,NRTN
 
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
@@ -19,7 +19,7 @@ MODULE BVP
 CONTAINS
 
 ! ---------- ------
-  SUBROUTINE AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,PVLI)
+  SUBROUTINE AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
     USE AUTOMPI
 
@@ -38,7 +38,7 @@ CONTAINS
        ENDDO
        RETURN
     ENDIF
-    CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,PVLI)
+    CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
   END SUBROUTINE AUTOBV
 
@@ -93,7 +93,7 @@ CONTAINS
   end subroutine mpi_setubv_worker
 
 ! ---------- ------
-  SUBROUTINE CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,PVLI)
+  SUBROUTINE CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
     USE IO
     USE MESH
@@ -187,7 +187,7 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD,RLDOT, &
+    CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,FNCI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
 !     don't set global rotations here for homoclinics, but in autlib5.f
@@ -211,7 +211,7 @@ CONTAINS
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
           ! determine and print Floquet multipliers and stability
-          SP1 = FNSPBV(AP,PAR,ITPDUM,P0,P1,EV)
+          SP1 = FNCI(AP,ICP,UPS,NDIM,PAR,3,ITPDUM)
        ENDIF
     ENDIF
 
@@ -224,13 +224,13 @@ CONTAINS
        ITP=0
     ENDIF
     AP%ITP=ITP
-    CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
     DO WHILE(ISTOP==0)
        ITP=0
        AP%ITP=ITP
        NINS=AP%NINS
-       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -239,7 +239,7 @@ CONTAINS
        DSTEST=DSOLD
        DO ITEST=1,NUZR+3
           ! Check for special points
-          CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI, &
+          CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
                TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
                UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
           IF(STEPPED)ISTEPPED=ITEST
@@ -251,7 +251,7 @@ CONTAINS
 
        DO ITEST=1,ISTEPPED-1
           ! evaluate the test functions for the next step
-          TEST(ITEST)=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
+          TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
        ENDDO
 
        ITP=AP%ITP
@@ -268,7 +268,7 @@ CONTAINS
 
 ! Store plotting data.
 
-       CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+       CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
 
        IF(ISTOP/=0)EXIT
@@ -383,7 +383,7 @@ CONTAINS
   END SUBROUTINE STUPBV
 
 ! ---------- ------
-  SUBROUTINE STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+  SUBROUTINE STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
@@ -425,7 +425,7 @@ CONTAINS
 
 ! Perform Newton iterations
 
-       CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
        IF(CONVERGED)THEN
@@ -470,7 +470,7 @@ CONTAINS
   END SUBROUTINE STEPBV
 
 ! ---------- --------
-  SUBROUTINE NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+  SUBROUTINE NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
 
@@ -589,7 +589,7 @@ CONTAINS
              DEALLOCATE(P0T,P1T)
           ENDIF
 
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
           IF(IID.GE.2)WRITE(9,*)
           DEALLOCATE(DUPS,DRL)
           CONVERGED=.TRUE.
@@ -615,7 +615,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,PVLI,RLCUR,RLOLD, &
+  SUBROUTINE RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,FNCI,RLCUR,RLOLD, &
        RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
     USE IO
@@ -669,7 +669,7 @@ CONTAINS
 
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
           ! call PVLS here the first time so the parameters can be initialized
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
           ! Hopf bifurcation
           CALL STHOPF(AP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
                NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
@@ -692,7 +692,7 @@ CONTAINS
 
     IF(NODIR.NE.-1)THEN
        ! call PVLS here the first time so the parameters can be initialized
-       CALL PVLI(AP,ICP,UPS,NDIM,PAR)
+       CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     ENDIF
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
@@ -1063,7 +1063,7 @@ CONTAINS
 !-----------------------------------------------------------------------
 
 ! ---------- ------
-  SUBROUTINE LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,PVLI,Q, &
+  SUBROUTINE LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
 
@@ -1084,10 +1084,10 @@ CONTAINS
 ! of branches of solutions to general boundary value problems.
 
     include 'interfaces.h'
-    COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM
     INTEGER, INTENT(INOUT) :: NITPS
+    COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UDOTPS(NDIM,0:AP%NCOL*AP%NTST)
@@ -1107,6 +1107,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: RLOLDS(:),UOLDPSS(:,:),P0S(:,:),P1S(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: RLCURS(:),UPSS(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: RLDOTS(:),UDOTPSS(:,:)
+    COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EVS(:)
 
     IID=AP%IID
     ITMX=AP%ITMX
@@ -1126,7 +1127,7 @@ CONTAINS
 ! Check for zero.
 
     Q0=Q
-    Q1=FNCS(AP,PAR,ITP,P0,P1,EV,IUZ,VUZ,ITEST)
+    Q1=FNCS(AP,ICP,UPS,PAR,ITP,IUZ,VUZ,ITEST,FNCI)
 
     IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
          EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
@@ -1169,7 +1170,7 @@ CONTAINS
     ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
     ALLOCATE(UDOTPSS(NDIM,0:NTST*NCOL),RLDOTS(NFPR))
     ALLOCATE(UPSS(NDIM,0:NTST*NCOL),RLCURS(NFPR))
-    ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM))
+    ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM),EVS(NDIM))
     ! save state to restore in case of non-convergence or
     ! "possible special point"
     UPSS(:,:)=UPS(:,:)
@@ -1180,6 +1181,7 @@ CONTAINS
     RLOLDS(:)=RLOLD(:)
     P0S(:,:)=P0(:,:)
     P1S(:,:)=P1(:,:)
+    EVS(:)=EV(:)
     DETS=AP%DET
     FLDFS=AP%FLDF
     DSOLDS=DSOLD
@@ -1196,14 +1198,14 @@ CONTAINS
 
        CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
-       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,PVLI,RDS, &
+       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
        IF(ISTOP.NE.0)EXIT
 
 ! Check for zero.
 
-       Q=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
+       Q=FNCS(AP,ICP,UPS,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
@@ -1238,13 +1240,14 @@ CONTAINS
     RLOLD(:)=RLOLDS(:)
     P0(:,:)=P0S(:,:)
     P1(:,:)=P1S(:,:)
+    EV(:)=EVS(:)
     AP%DET=DETS
     AP%FLDF=FLDFS
     DSOLD=DSOLDS
     DSTEST=DSTESTS
     NITPS=NITPSS
-    CALL PVLI(AP,ICP,UPS,NDIM,PAR)
-    Q=FNCS(AP,PAR,ITPDUM,P0,P1,EV,IUZ,VUZ,ITEST)
+    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+    Q=FNCS(AP,ICP,UPS,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
     DEALLOCATE(UPSS,RLCURS,UOLDPSS,RLOLDS,UDOTPSS,RLDOTS,P0S,P1S)
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &
@@ -1256,34 +1259,56 @@ CONTAINS
   END SUBROUTINE LCSPBV
 
 ! ------ --------- -------- ----
-  DOUBLE PRECISION FUNCTION FNCS(AP,PAR,ITP,P0,P1,EV,IUZ,VUZ,ITEST)
+  DOUBLE PRECISION FUNCTION FNCS(AP,ICP,UPS,PAR,ITP,IUZ,VUZ,ITEST,FNCI)
 
     USE SUPPORT, ONLY: FNUZ
+
+    include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     INTEGER, INTENT(OUT) :: ITP
-    DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
-    COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
-    INTEGER, INTENT(IN) :: IUZ(*),ITEST
+    DOUBLE PRECISION, INTENT(IN) :: UPS(*)
+    INTEGER, INTENT(IN) :: IUZ(*),ICP(*),ITEST
     DOUBLE PRECISION, INTENT(IN) :: VUZ(*)
 
     INTEGER NUZR
 
     NUZR=AP%NUZR
 
-    FNCS=0.d0
-    IF(ITEST==NUZR+1)THEN
-       FNCS=FNLPBV(AP,ITP)
-    ELSEIF(ITEST==NUZR+2)THEN
-       FNCS=FNBPBV(AP,ITP,P1)
-    ELSEIF(ITEST==NUZR+3)THEN
-       FNCS=FNSPBV(AP,PAR,ITP,P0,P1,EV)
-    ELSEIF(ITEST<=NUZR)THEN
+    IF(ITEST<=NUZR)THEN
        FNCS=FNUZ(AP,PAR,ITP,IUZ,VUZ,ITEST)
+    ELSE
+       FNCS=FNCI(AP,ICP,UPS,AP%NDIM,PAR,ITEST-NUZR,ITP)
     ENDIF
 
   END FUNCTION FNCS
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ITP) RESULT(Q)
+
+    USE AUTO_CONSTANTS, ONLY : NPARX
+    USE SUPPORT, ONLY: P0=>P0V, P1=>P1V, EV=>EVV
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    INTEGER, INTENT(IN) :: ITEST
+    INTEGER, INTENT(OUT) :: ITP
+
+    Q=0.d0
+    ITP=0
+    SELECT CASE(ITEST)
+    CASE(0)
+       CALL PVLSBV(AP,UPS,NDIM,PAR)
+    CASE(1)
+       Q=FNLPBV(AP,ITP)
+    CASE(2)
+       Q=FNBPBV(AP,ITP,P1)
+    END SELECT
+
+  END FUNCTION FNCSBV
        
 ! ------ --------- -------- ------
   DOUBLE PRECISION FUNCTION FNLPBV(AP,ITP)
@@ -1372,292 +1397,6 @@ CONTAINS
 101 FORMAT(I4,I6,9X,'BP   Function ',ES14.5)
 
   END FUNCTION FNBPBV
-
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ITP,P0,P1,EV)
-
-    USE FLOQUET
-    USE SUPPORT, ONLY: PI, LBTYPE, CHECKSP
-
-! This function returns a quantity that changes sign when a complex
-! pair of eigenvalues of the linearized Poincare map moves in or out
-! of the unit circle or when a real eigenvalues passes through -1.
-
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    INTEGER, INTENT(OUT) :: ITP
-    DOUBLE PRECISION, INTENT(IN) :: P0(*),P1(*)
-    COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
-
-! Local
-    COMPLEX(KIND(1.0D0)) ZTMP
-    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM
-    DOUBLE PRECISION D,AMIN,AZM1,tol,V,THETA
-
-    NDIM=AP%NDIM
-    ISP=AP%ISP
-    ISW=AP%ISW
-    IID=AP%IID
-    IBR=AP%IBR
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-
-! Initialize.
-
-    FNSPBV=0.d0
-    AP%SPBF=FNSPBV
-    D=0.d0
-    ITP=0
-
-    IF(ISP==0 .OR. (AP%IPS/=2.AND.AP%IPS/=7.AND.AP%IPS/=12) )RETURN
-
-    IF(IID.GE.4)THEN
-       CALL EVECS(NDIM,P0,P1)
-    ENDIF
-
-!  Compute the Floquet multipliers
-    CALL FLOWKM(NDIM, P0, P1, IID, EV)
-
-! Find the multipliers closest to z=1.
-
-    IF(ISW==2)THEN
-       IF(AP%ITPST==5.OR.AP%ITPST==7)THEN
-          L=4
-       ELSE ! Torus/BP
-          L=NDIM/AP%NDM
-       ENDIF
-    ELSE
-       L=1
-    ENDIF
-    LOC=1
-    V=1.d0
-    DO I=1,L
-       AMIN=HUGE(1.d0)
-       LOC=I
-       DO J=I,NDIM
-          AZM1= ABS( EV(J) - V )
-          IF(AZM1<=AMIN)THEN
-             ! try to keep complex conjugates together
-             IF(MOD(I,2)==0)THEN
-                IF(AIMAG(EV(I-1))==0.AND.AIMAG(EV(J))/=0)CYCLE
-                IF(AIMAG(EV(I-1))/=0.AND.AIMAG(EV(J))==0)CYCLE
-             ENDIF
-             AMIN=AZM1
-             LOC=J
-          ENDIF
-       ENDDO
-       IF(LOC.NE.I) THEN
-          ZTMP=EV(LOC)
-          EV(LOC)=EV(I)
-          EV(I)=ZTMP
-       ENDIF
-       ! For PD: Find the multipliers closest to z=-1.
-       IF(I*2==L.AND.AP%ITPST==7)THEN
-          V=-1.d0
-       ENDIF
-    ENDDO
-
-! Order the remaining Floquet multipliers by distance from |z|=1.
-
-    IF(NDIM.GE.3)THEN
-       DO I=L+1,NDIM-1
-          AMIN=HUGE(1.d0)
-          DO J=I,NDIM
-             AZM1= ABS(EV(J)) - 1.d0 
-             AZM1=ABS(AZM1)
-             IF(AZM1.LE.AMIN)THEN
-                AMIN=AZM1
-                LOC=J
-             ENDIF
-          ENDDO
-          IF(LOC.NE.I) THEN
-             ZTMP=EV(LOC)
-             EV(LOC)=EV(I)
-             EV(I)=ZTMP
-          ENDIF
-       ENDDO
-    ENDIF
-
-    ITP=TPSPBV(NDIM,AP%EPSS,AP%ITPST,PAR,AP%NPAR,EV,THETA)
-    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP)) ITP=0
-    IF(MOD(ITP,10)==8) PAR(12)=THETA !try to find TR bif
-
-! Print error message if the Floquet multiplier at z=1 is inaccurate.
-! (ISP is set to negative and detection of bifurations is discontinued)
-
-    AMIN= ABS( EV(1) - 1.d0 )
-    IF(AMIN>5.0D-2 .AND. ITP/=0) THEN
-       NINS=0
-       AP%NINS=NINS
-       ISP=-ISP
-       AP%ISP=ISP
-       IF(IID>0)THEN
-          IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1
-          DO I=1,NDIM
-             WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
-          ENDDO
-          WRITE(9,104)ABS(IBR),NTOP+1,NINS
-       ENDIF
-       RETURN
-    ENDIF
-
-! Restart automatic detection if the Floquet multiplier at z=1 is
-! sufficiently accurate again.
-
-    IF(ISP.LT.0)THEN
-       IF(AMIN.LT.1.0E-2)THEN
-          IF(IID>0)WRITE(9,102)ABS(IBR),NTOP+1
-          ISP=-ISP
-          AP%ISP=ISP
-       ELSE
-          IF(IID>0)THEN
-             DO I=1,NDIM
-                WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
-             ENDDO
-          ENDIF
-          RETURN
-       ENDIF
-    ENDIF
-
-! Count the number of Floquet multipliers inside the unit circle.
-!
-! Set tolerance for deciding if a multiplier is outside |z=1|.
-! Use, for example, tol=1d-3 for conservative systems.
-    tol=1.d-5
-
-    NINS1=1
-    IF(NDIM>1) THEN
-       DO I=2,NDIM
-          IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
-       ENDDO
-       IF(ITP/=0)THEN
-          IF(ISW.EQ.2)THEN
-             IF(AP%ITPST==8)THEN
-                ! check the angle for resonances on Torus bifurcations
-                THETA=PAR(12)
-                D=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
-             ELSEIF(NDIM>2.AND.ABS( EV(2) - 1.d0 )<5.0d-2.AND. &
-                  (NDIM==3.OR.ABS(AIMAG(EV(5)))<SQRT(SQRT(AP%EPSS))).AND. &
-                  ((AP%ITPST==5.AND.REAL(EV(5))>0.AND. &
-                  ABS( EV(3)-1.d0 )<5.0d-2.AND.ABS( EV(4)-1.d0 )<5.0d-2).OR. &
-                  ((AP%ITPST==7.AND.REAL(EV(5))<0.AND. &
-                  ABS( EV(3)+1.d0 )<5.0d-2.AND.ABS( EV(4)+1.d0 )<5.0d-2))))THEN
-                ! On LP curve: look for 1:1 resonance
-                ! On PD curve: look for 1:2 resonance
-                D= ABS(EV(5)) - 1.d0
-             ENDIF
-          ELSE
-             IF(AIMAG(EV(2))/=0.d0 .OR. REAL(EV(2))<0.d0)THEN
-!               *Ignore if second multiplier is real positive
-                D= ABS(EV(2)) - 1.d0
-             ENDIF
-          ENDIF
-       ENDIF
-    ENDIF
-    IF( ITP/=0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
-    FNSPBV=D
-    AP%SPBF=FNSPBV
-
-    NINS=AP%NINS
-    IF(NINS1==NINS)ITP=0
-    NINS=NINS1
-    AP%NINS=NINS
-
-    IF(IID>0)THEN
-! Print the Floquet multipliers.
-
-       WRITE(9,104)ABS(IBR),NTOP+1,NINS
-       DO I=1,NDIM
-          WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
-       ENDDO
-    ENDIF
-
-101 FORMAT(I4,I6,' NOTE:Multiplier inaccurate')
-102 FORMAT(I4,I6,' NOTE:Multiplier accurate again')
-103 FORMAT(I4,I6,9X,'SPB  Function ',ES14.5)
-104 FORMAT(I4,I6,9X,'Multipliers:     Stable:',I4)
-105 FORMAT(I4,I6,9X,'Multiplier',I3,1X,2ES14.5, &
-         '  Abs. Val.',ES14.5)
-
-  END FUNCTION FNSPBV
-
-! ------- -------- ------
-  INTEGER FUNCTION TPSPBV(NDIM,EPSS,ITPST,PAR,NPAR,EV,THETA)
-
-! Determines type of secondary periodic bifurcation.
-
-    USE SUPPORT, ONLY: PI
-
-    INTEGER, INTENT(IN) :: NDIM,ITPST,NPAR
-    DOUBLE PRECISION, INTENT(IN) :: EPSS
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(NPAR)
-    DOUBLE PRECISION, INTENT(OUT) :: THETA
-    COMPLEX(KIND(1.0D0)), INTENT(IN) :: EV(NDIM)
-
-    INTEGER LOC,LOC1,I
-    DOUBLE PRECISION AMIN,AZM1,D,AD
-
-    THETA=0
-    IF(ITPST==5.OR.ITPST==7)THEN
-       ! 1:1 and 1:2 resonances
-       TPSPBV=8+10*ITPST
-       RETURN
-    ELSEIF(ITPST==8)THEN
-       TPSPBV=0
-       SELECT CASE(NINT(PAR(12)*6/PI(1d0)))
-       CASE(0) ! 1:1 res
-          TPSPBV=-5-10*ITPST
-       CASE(3) ! 1:4 res
-          TPSPBV=-8-10*ITPST
-       CASE(4) ! 1:3 res
-          TPSPBV=8+10*ITPST
-       CASE(6) ! 1:2 res
-          TPSPBV=7+10*ITPST
-       END SELECT
-       RETURN
-    ENDIF
-
-! Find the eigenvalue closest to z=1.
-
-    LOC=1
-    AMIN=HUGE(1.d0)
-    DO I=1,NDIM
-       AZM1= ABS( EV(I) - 1.d0 )
-       IF(AZM1.LE.AMIN)THEN
-          AMIN=AZM1
-          LOC=I
-       ENDIF
-    ENDDO
-
-! Find the eigenvalue closest to the unit circle
-! (excluding the eigenvalue at z=1).
-
-    LOC1=1
-    AMIN=HUGE(1.d0)
-    DO I=1,NDIM
-       IF(I.NE.LOC)THEN
-          D= ABS(EV(I)) - 1.d0
-          AD=ABS(D)
-          IF(AD.LE.AMIN)THEN
-             AMIN=AD
-             LOC1=I
-          ENDIF
-       ENDIF
-    ENDDO
-
-    IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
-!       ** torus bifurcation
-       TPSPBV=8+10*ITPST
-       THETA=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
-    ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
-!       ** period doubling
-       TPSPBV=7+10*ITPST
-    ELSE
-!       ** something else...
-       TPSPBV=0
-    ENDIF
-
-  END FUNCTION TPSPBV
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1991,13 +1730,30 @@ CONTAINS
 
   END SUBROUTINE WRTBV9
 
+! ---------- ----
+  SUBROUTINE PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+
+    include 'interfaces.h'
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM
+    DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+
+    DOUBLE PRECISION Q
+    INTEGER ITPDUM
+
+    Q=FNCI(AP,ICP,UPS,NDIM,PAR,0,ITPDUM)
+
+  END SUBROUTINE PVLI
+
 ! ---------- ------
-  SUBROUTINE PVLSBV(AP,ICP,UPS,NDIM,PAR)
+  SUBROUTINE PVLSBV(AP,UPS,NDIM,PAR)
 
     USE AUTO_CONSTANTS, ONLY : NPARX
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM
+    INTEGER, INTENT(IN) :: NDIM
     DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
@@ -2014,48 +1770,5 @@ CONTAINS
     ENDDO
 
   END SUBROUTINE PVLSBV
-
-! ---------- -----
-  SUBROUTINE EVECS(NDIM,P0,P1)
-
-    USE SUPPORT
-
-    INTEGER, INTENT(IN) :: NDIM
-    DOUBLE PRECISION, INTENT(IN) :: P0(NDIM,*),P1(NDIM,*)
-
-! Local
-    DOUBLE PRECISION, ALLOCATABLE :: Q0(:,:),Q1(:,:),P(:,:),Z(:,:),WR(:),WI(:)
-    INTEGER IV1(1),I,J,IERR
-    DOUBLE PRECISION FV1(1),DET
-
-    ALLOCATE(Q0(NDIM,NDIM), Q1(NDIM,NDIM), P(NDIM,NDIM))
-    ALLOCATE(Z(NDIM,NDIM), WR(NDIM), WI(NDIM))
-
-    DO I=1,NDIM
-       DO J=1,NDIM
-          Q0(I,J)=-P0(I,J)
-          Q1(I,J)= P1(I,J)
-       ENDDO
-    ENDDO
-
-    CALL GEL(NDIM,Q1,NDIM,P,Q0,DET)
-    CALL RG(NDIM,NDIM,P,WR,WI,1,Z,IV1,FV1,IERR)
-
-    WRITE(9,100)
-    WRITE(9,101)
-    DO I=1,NDIM
-       WRITE(9,102)WR(I),WI(I),(Z(I,J),J=1,NDIM)
-    ENDDO
-    WRITE(9,101)
-100 FORMAT(" Multipliers + eigenvectors obtained from - P0^-1 P1 :")
-!xx
-    write(9,112)WR(1)*WR(2)
-112 format(" Product = ",ES16.7)       
-!xx
-101 FORMAT(" ")
-102 FORMAT(2ES14.5," | ",8ES14.5)
-
-    DEALLOCATE(Q0,Q1,P,Z,WR,WI)
-  END SUBROUTINE EVECS
 
 END MODULE BVP

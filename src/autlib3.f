@@ -135,21 +135,21 @@
 
       IF(ABS(ISW)<=1)THEN
          ! ** Boundary value problems (here IPS=4)
-         CALL AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBV,PVLSBV)
+         CALL AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBV,FNCSBV)
       ELSE
          ! Two-Parameter Continuation for IPS=4 or IPS=7.
          IF(ABS(ISW)==2)THEN
             IF(ITP==5)THEN
                ! ** Continuation of folds (BVP, start).
-               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,PVLSBV)
+               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBL,FNCSBV)
             ELSE IF(ABS(ITP)/10==5) THEN
                ! ** Continuation of folds (BVP, restart).
-               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,PVLSBV)
+               CALL AUTOBV(AP,ICP,ICU,FNBL,BCBL,ICBL,STPNBV,FNCSBV)
             ENDIF
          ENDIF
          IF((ITP==6.OR.(ABS(ITP)/10)==6)) THEN
             ! ** BP cont (BVP, start and restart) (by F. Dercole).
-            CALL AUTOBV(AP,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,PVLSBV)
+            CALL AUTOBV(AP,ICP,ICU,FNBBP,BCBBP,ICBBP,STPNBBP,FNCSBV)
          ENDIF
       ENDIF
 

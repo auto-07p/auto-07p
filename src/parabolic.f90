@@ -78,28 +78,28 @@ CONTAINS
        ! ** Wave train solutions to parabolic systems.
        CALL INITPS(AP,ICP)
        IF(ABS(ISW)<=1) THEN
-          CALL AUTOBV(AP,ICP,ICU,FNWP,BCPS,ICPS,STPNPS,PVLSBV)
+          CALL AUTOBV(AP,ICP,ICU,FNWP,BCPS,ICPS,STPNPS,FNCSPS)
        ELSE IF(ABS(ISW)==2) THEN
           IF(ITP==5) THEN 
              ! ** Fold continuation (start).
-             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNPL,PVLSBV)
+             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNPL,FNCSPS)
           ELSE IF(ABS(ITP)/10==5) THEN
              ! ** Fold continuation (restart).
-             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNBV,PVLSBV)
+             CALL AUTOBV(AP,ICP,ICU,FNWPL,BCPL,ICPL,STPNBV,FNCSPS)
           ENDIF
        ENDIF
     CASE(14) 
        ! ** Evolution calculations for parabolic systems.
        !    (Periodic boundary conditions.)
-       CALL AUTOBV(AP,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,PVLSPE)
+       CALL AUTOBV(AP,ICP,ICU,FNPE,BCPS,ICPE,STPNBV,FNCSPE)
     CASE(16)
        ! ** Evolution calculations for parabolic systems.
        !    (User supplied boundary conditions.)
-       CALL AUTOBV(AP,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,PVLSPE)
+       CALL AUTOBV(AP,ICP,ICU,FNPE,BCNI,ICPE,STPNBV,FNCSPE)
     CASE(17)
        ! ** Continuation of stationary states of parabolic systems.
        !    (User supplied boundary conditions.)
-       CALL AUTOBV(AP,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,PVLSBV)
+       CALL AUTOBV(AP,ICP,ICU,FNSP,BCNI,ICPE,STPNBV,FNCSBV)
     END SELECT
   END SUBROUTINE AUTOPE
 
@@ -476,20 +476,22 @@ CONTAINS
     F(:)=0d0
   END SUBROUTINE ICPE
 
-! ---------- ------
-  SUBROUTINE PVLSPE(AP,ICP,UPS,NDIM,PAR)
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNCSPE(AP,ICP,UPS,NDIM,PAR,ITEST,ITP) RESULT(Q)
 
     USE BVP
-    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM
     DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    INTEGER, INTENT(IN) :: ITEST
+    INTEGER, INTENT(OUT) :: ITP
 
     !     save old time
 
     PAR(12)=PAR(ICP(1))
-    CALL PVLSBV(AP,ICP,UPS,NDIM,PAR)
+    Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ITP)
 
-  END SUBROUTINE PVLSPE
+  END FUNCTION FNCSPE
 
 END MODULE PARABOLIC
