@@ -1648,7 +1648,7 @@ C     ------ --------- --------
       USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
       TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
       INTEGER, INTENT(IN) :: ICP(*),NDIM
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*)
+      DOUBLE PRECISION, INTENT(IN) :: UPS(*)
       DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
       INTEGER, INTENT(IN) :: ITEST
       INTEGER, INTENT(OUT) :: ITP
@@ -1692,8 +1692,8 @@ C      *Compute eigenvalues
        ENDIF
        IF (((ITWIST.EQ.1).AND.(ISTART.GE.0)).OR.NPSI.GT.0) THEN
           DO I=1,NDIM
-             PU0(I)=UPS(I,0)
-             PU1(I)=UPS(I,NTST*NCOL)
+             PU0(I)=UPS(I)
+             PU1(I)=UPS(I+NTST*NCOL*NDIM)
           ENDDO
        ENDIF
        IF ((ITWIST.EQ.1).AND.(ISTART.GE.0)) THEN
