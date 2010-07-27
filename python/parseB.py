@@ -736,8 +736,8 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 
     def write(self, output, columnlen=19):
         if columnlen == 19 and not self.__fullyParsed:
-            output.write("".join(self.headerlist))
-            output.write("".join(self.__datalist))
+            output.writelines(self.headerlist)
+            output.writelines(self.__datalist)
             return
         format = "%"+str(-columnlen)+"s"
         if self.headerlist != []:
@@ -748,7 +748,8 @@ class AUTOBranch(parseBMixin, Points.Pointset):
             output_line = ["   0    PT  TY  LAB "]
             for name in self.headernames:
                 output_line.append(format%name)
-            output.write("".join(output_line)+'\n')
+            output.writelines(output_line)
+            output.write('\n')
         br = self.BR
         data = self.coordarray
         istab = 0
