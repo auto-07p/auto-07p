@@ -5,7 +5,7 @@
 !-----------------------------------------------------------------------
 !  References:
 !  T. F. Fairgrieve, PhD Thesis, University of Toronto, 1994.
-
+!
 !  T. F. Fairgrieve, A. D. Jepson, O.K. Floquet multipliers,
 !  SIAM J. Numer. Anal. 28. No. 5, 1991, 1446-1462.
 !

@@ -35,7 +35,7 @@ CONTAINS
 ! ---------- ----
   SUBROUTINE FNTI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
 
-    ! Generate the equations for continuing fixed points.
+    ! Generate the equations for time integration.
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC

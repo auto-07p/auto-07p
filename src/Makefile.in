@@ -26,31 +26,34 @@ compile: $(OBJ)
 ../lib/autlib2.o: autlib2.f ../lib/support.o ../lib/mpi.o
 	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
 #
-../lib/autlib3.o: autlib3.f ../lib/ae.o ../lib/bvp.o
+../lib/autlib3.o: autlib3.f ../lib/auto_constants.o
 	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
+#
+../lib/bvpcont.o: bvpcont.f90 ../lib/autlib3.o ../lib/bvp.o
+	$(FC) $(FFLAGS) $(OPT) -c bvpcont.f90 -o $@
 #
 ../lib/floquet.o: floquet.f90
 	$(FC) $(FFLAGS) $(OPT) -c floquet.f90 -o $@
 #
-../lib/homcont.o: homcont.f90 ../lib/autlib3.o
+../lib/homcont.o: homcont.f90 ../lib/bvpcont.o
 	$(FC) $(FFLAGS) $(OPT) -c homcont.f90 -o $@
 #
-../lib/equilibrium.o: equilibrium.f90 ../lib/autlib3.o
+../lib/equilibrium.o: equilibrium.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c equilibrium.f90 -o $@
 #
-../lib/optimization.o: optimization.f90 ../lib/periodic.o
+../lib/optimization.o: optimization.f90 ../lib/periodic.o ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c optimization.f90 -o $@
 #
 ../lib/parabolic.o: parabolic.f90 ../lib/equilibrium.o ../lib/periodic.o
 	$(FC) $(FFLAGS) $(OPT) -c parabolic.f90 -o $@
 #
-../lib/periodic.o: periodic.f90 ../lib/autlib3.o ../lib/floquet.o
+../lib/periodic.o: periodic.f90 ../lib/bvpcont.o ../lib/floquet.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
 #
-../lib/timeint.o: timeint.f90 ../lib/autlib3.o
+../lib/timeint.o: timeint.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
-../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o ../lib/autlib3.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
 ../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/io.o
