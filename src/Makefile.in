@@ -29,8 +29,8 @@ compile: $(OBJ)
 ../lib/autlib3.o: autlib3.f ../lib/ae.o ../lib/bvp.o
 	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
 #
-../lib/autlib4.o: autlib4.f
-	$(FC) $(FFLAGS) $(OPT) -c autlib4.f -o $@
+../lib/floquet.o: floquet.f90
+	$(FC) $(FFLAGS) $(OPT) -c floquet.f90 -o $@
 #
 ../lib/homcont.o: homcont.f90 ../lib/autlib3.o
 	$(FC) $(FFLAGS) $(OPT) -c homcont.f90 -o $@
@@ -44,7 +44,7 @@ compile: $(OBJ)
 ../lib/parabolic.o: parabolic.f90 ../lib/equilibrium.o ../lib/periodic.o
 	$(FC) $(FFLAGS) $(OPT) -c parabolic.f90 -o $@
 #
-../lib/periodic.o: periodic.f90 ../lib/autlib3.o ../lib/autlib4.o
+../lib/periodic.o: periodic.f90 ../lib/autlib3.o ../lib/floquet.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
 #
 ../lib/timeint.o: timeint.f90 ../lib/autlib3.o
