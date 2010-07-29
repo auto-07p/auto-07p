@@ -10,7 +10,7 @@ FC=@FC@
 CFLAGS=@CFLAGS@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-OBJ= ../lib/autlib1.o ../lib/blas.o ../lib/lapack.o
+OBJ= ../lib/main.o ../lib/blas.o ../lib/lapack.o
 RM=rm -f
 #
 all: lib compile ../lib/libauto_c.a move
@@ -20,16 +20,16 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/autlib1.o: autlib1.f ../lib/homcont.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
-	$(FC) $(FFLAGS) $(OPT) -c autlib1.f -o $@
+../lib/main.o: main.f90 ../lib/homcont.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
+	$(FC) $(FFLAGS) $(OPT) -c main.f90 -o $@
 #
-../lib/autlib2.o: autlib2.f ../lib/support.o ../lib/mpi.o
-	$(FC) $(FFLAGS) $(OPT) -c autlib2.f -o $@
+../lib/solvebv.o: solvebv.f90 ../lib/support.o ../lib/mpi.o
+	$(FC) $(FFLAGS) $(OPT) -c solvebv.f90 -o $@
 #
-../lib/autlib3.o: autlib3.f ../lib/auto_constants.o
-	$(FC) $(FFLAGS) $(OPT) -c autlib3.f -o $@
+../lib/interfaces.o: interfaces.f90 ../lib/auto_constants.o
+	$(FC) $(FFLAGS) $(OPT) -c interfaces.f90 -o $@
 #
-../lib/bvpcont.o: bvpcont.f90 ../lib/autlib3.o ../lib/bvp.o
+../lib/bvpcont.o: bvpcont.f90 ../lib/interfaces.o ../lib/bvp.o
 	$(FC) $(FFLAGS) $(OPT) -c bvpcont.f90 -o $@
 #
 ../lib/floquet.o: floquet.f90
@@ -53,10 +53,10 @@ compile: $(OBJ)
 ../lib/timeint.o: timeint.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
-../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o ../lib/autlib3.o
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o ../lib/interfaces.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
-../lib/bvp.o: bvp.f90 ../lib/autlib2.o ../lib/io.o
+../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
 ../lib/support.o: support.f90 ../lib/mesh.o ../lib/auto_constants.o

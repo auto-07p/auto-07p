@@ -1,9 +1,9 @@
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C          Routines for Interface with User Supplied Routines
-C  (To generate Jacobian by differencing, if not supplied analytically)
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!          Routines for Interface with User Supplied Routines
+!  (To generate Jacobian by differencing, if not supplied analytically)
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 
       MODULE INTERFACES
 
@@ -56,40 +56,40 @@ C-----------------------------------------------------------------------
 
       CONTAINS
 
-C     ---------- ----
+!     ---------- ----
       SUBROUTINE FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-C
-C Interface subroutine to user supplied FUNC.
-C
+
+! Interface subroutine to user supplied FUNC.
+
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
-C
+
       INTEGER JAC,I,J,NFPR,IJC
       DOUBLE PRECISION UMX,EP,UU,P
-C
+
        JAC=AP%JAC
-C
-C Generate the function.
-C
-C
-C if the user specified the Jacobian but not the
-C parameter derivatives we do not generate the Jacobian here
-C
+
+! Generate the function.
+
+
+! if the user specified the Jacobian but not the
+! parameter derivatives we do not generate the Jacobian here
+
        IF(JAC.EQ.0.AND.IJAC.NE.0)THEN
-C
-C Generate the Jacobian by differencing.
-C
+
+! Generate the Jacobian by differencing.
+
          UMX=0.d0
          DO I=1,NDIM
            IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
          ENDDO
-C
+
          EP=HMACH*(1+UMX)
-C
+
          DO I=1,NDIM
            UU=U(I)
            U(I)=UU-EP
@@ -101,9 +101,9 @@ C
              DFDU(J,I)=(DFDU(J,I)-F(J))/(2*EP)
            ENDDO
          ENDDO
-C
+
        ENDIF
-C
+
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
        ELSEIF(JAC==1)THEN
@@ -124,39 +124,38 @@ C
          ENDDO
          PAR(ICP(I))=P
        ENDDO
-C
-      RETURN
+
       END SUBROUTINE FUNI
-C
-C     ---------- ----
+
+!     ---------- ----
       SUBROUTINE BCNI(AP,NDIM,PAR,ICP,NBC,U0,U1,F,IJAC,DBC)
-C
-C Interface subroutine to the user supplied BCND.
-C
+
+! Interface subroutine to the user supplied BCND.
+
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: NDIM,ICP(*),NBC,IJAC
       DOUBLE PRECISION, INTENT(INOUT) :: U0(NDIM),U1(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NBC)
       DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
-C Local
+! Local
       DOUBLE PRECISION EP,UMX,UU,P
       INTEGER IJC,I,J,JAC,NFPR
-C
+
        JAC=AP%JAC
-C
-C Generate the function.
-C
+
+! Generate the function.
+
        IF(JAC==0 .AND. IJAC/=0)THEN
-C
-C Generate the Jacobian by differencing.
-C
+
+! Generate the Jacobian by differencing.
+
           UMX=0.d0
           DO I=1,NDIM
              IF(ABS(U0(I)).GT.UMX)UMX=ABS(U0(I))
           ENDDO
-C
+
           EP=HMACH*(1+UMX)
-C
+
           DO I=1,NDIM
              UU=U0(I)
              U0(I)=UU-EP
@@ -168,14 +167,14 @@ C
                 DBC(J,I)=(DBC(J,I)-F(J))/(2*EP)
              ENDDO
           ENDDO
-C
+
           UMX=0.d0
           DO I=1,NDIM
              IF(ABS(U1(I)).GT.UMX)UMX=ABS(U1(I))
           ENDDO
-C
+
           EP=HMACH*(1+UMX)
-C
+
           DO I=1,NDIM
              UU=U1(I)
              U1(I)=UU-EP
@@ -188,7 +187,7 @@ C
              ENDDO
           ENDDO
        ENDIF
-C
+
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
        ELSEIF(JAC==1)THEN
@@ -198,7 +197,7 @@ C
        ENDIF
        CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
        IF(JAC==1 .OR. IJAC/=2)RETURN
-C
+
        NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
@@ -210,55 +209,52 @@ C
          ENDDO
          PAR(ICP(I))=P
        ENDDO
-C
-      RETURN
+
       END SUBROUTINE BCNI
-C
-C     ---------- ----
-      SUBROUTINE ICNI(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
-     * F,IJAC,DINT)
-C
-C Interface subroutine to user supplied ICND.
-C
+
+!     ---------- ----
+      SUBROUTINE ICNI(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJAC,DINT)
+
+! Interface subroutine to user supplied ICND.
+
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
       DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
       DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
-C
+
       INTEGER JAC,I,J,NFPR,IJC
       DOUBLE PRECISION UMX,EP,UU,P
-C
+
        JAC=AP%JAC
-C
-C Generate the integrand.
-C
+
+! Generate the integrand.
+
        IF(JAC==0 .AND. IJAC/=0)THEN
-C
-C Generate the Jacobian by differencing.
-C
+
+! Generate the Jacobian by differencing.
+
           UMX=0.d0
           DO I=1,NDIM
              IF(ABS(U(I)).GT.UMX)UMX=ABS(U(I))
           ENDDO
-C
+
           EP=HMACH*(1+UMX)
-C
+
           DO I=1,NDIM
              UU=U(I)
              U(I)=UU-EP
              CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,0,DINT)
              U(I)=UU+EP
-             CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,DINT(1,I),0,
-     *            DINT)
+             CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,DINT(1,I),0,DINT)
              U(I)=UU
              DO J=1,NINT
                 DINT(J,I)=(DINT(J,I)-F(J))/(2*EP)
              ENDDO
           ENDDO
        ENDIF
-C
+
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
        ELSEIF(JAC==1)THEN
@@ -268,21 +264,20 @@ C
        ENDIF
        CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
        IF(JAC==1 .OR. IJAC/=2)RETURN
-C
+
        NFPR=AP%NFPR
        DO I=1,NFPR
          P=PAR(ICP(I))
          EP=HMACH*( 1 +ABS(P) )
          PAR(ICP(I))=P+EP
-         CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,
-     *        DINT(1,NDIM+ICP(I)),0,DINT)
+         CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD, &
+              DINT(1,NDIM+ICP(I)),0,DINT)
          DO J=1,NINT
            DINT(J,NDIM+ICP(I))=(DINT(J,NDIM+ICP(I))-F(J))/EP
          ENDDO
          PAR(ICP(I))=P
        ENDDO
-C
-      RETURN
+
       END SUBROUTINE ICNI
 
 ! ---------- -----
@@ -309,6 +304,6 @@ C
 
       END SUBROUTINE PVLSI
 
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
       END MODULE INTERFACES

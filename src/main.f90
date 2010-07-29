@@ -1,31 +1,31 @@
-C     ------- ----
+!     ------- ----
       PROGRAM AUTO
-C
+
       USE AUTOMPI
       USE IO
       USE SUPPORT, ONLY:AP=>AV, CHECKSP, NAMEIDX
-      USE AUTO_CONSTANTS,ONLY:SVFILE,SFILE,DATFILE,EFILE,
-     *     ICU,parnames,AUTOPARAMETERS
-C$    USE OMP_LIB
+      USE AUTO_CONSTANTS,ONLY:SVFILE,SFILE,DATFILE,EFILE, &
+           ICU,parnames,AUTOPARAMETERS
+!$    USE OMP_LIB
       USE COMPAT
-C
+
       IMPLICIT NONE
-C
+
       LOGICAL EOF,KEYS
-C Local
+! Local
       DOUBLE PRECISION TIME0,TIME1,TOTTIM
       INTEGER I,LINE,ios
       INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
-C
-C Initialization :
-C
+
+! Initialization :
+
        CALL MPIINI()
        IF(MPIIAM()/=0)THEN
          CALL MPIWORKER(AP)
          STOP
        ENDIF
-C
+
        FIRST=.TRUE.
        EFILE=''
        SFILE=''
@@ -33,18 +33,18 @@ C
        DATFILE=''
        OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
        IF(ios/=0)THEN
-          WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ',
-     *         'could not be found.'
+          WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ', &
+               'could not be found.'
           STOP
        ENDIF
-C
+
        KEYS=.FALSE.
        LINE=0
  1     IF(MPIKWT()>1)THEN
          CALL MPITIM(TIME0)
        ELSE
          TIME0=AUTIM()
-C$       TIME0=omp_get_wtime()
+!$       TIME0=omp_get_wtime()
        ENDIF
        CALL INIT(AP,EOF,KEYS,LINE)
        IF(EOF)THEN
@@ -59,13 +59,13 @@ C$       TIME0=omp_get_wtime()
        ENDDO
        CALL AUTOI(AP,IICU,SIZE(IICU),.FALSE.)
        DEALLOCATE(IICU)
-C-----------------------------------------------------------------------
-C
+!-----------------------------------------------------------------------
+
       IF(MPIKWT()>1)THEN
         CALL MPITIM(TIME1)
       ELSE
         TIME1=AUTIM()
-C$      TIME1=omp_get_wtime()
+!$      TIME1=omp_get_wtime()
       ENDIF
       TOTTIM=TIME1-TIME0
       IF(AP%IID>0)THEN
@@ -75,12 +75,12 @@ C$      TIME1=omp_get_wtime()
       WRITE(6,301)TOTTIM
       CALL CLEANUP()
       GOTO 1
-C
+
  301  FORMAT(/,' Total Time ',E12.3)
-C
+
       CONTAINS
-C
-C     ---------- ---------
+
+!     ---------- ---------
       SUBROUTINE MPIWORKER(AP)
       
       USE AUTOMPI
@@ -112,13 +112,13 @@ C     ---------- ---------
          ! a return means another init message
       ENDDO
       END SUBROUTINE MPIWORKER
-C
-C     ---------- --------------
+
+!     ---------- --------------
       SUBROUTINE FINDLB_OR_STOP(AP)
-C
-C Find restart label and determine type of restart point.
-C or stop otherwise
-C
+
+! Find restart label and determine type of restart point.
+! or stop otherwise
+
       USE AUTO_CONSTANTS, ONLY: SIRS
       IMPLICIT NONE
       TYPE(AUTOPARAMETERS) AP
@@ -146,10 +146,10 @@ C
          AP%NPAR=MAX(NPARR,AP%NPAR)
       ENDIF
       END SUBROUTINE FINDLB_OR_STOP
-C
-C     ---------- -----
+
+!     ---------- -----
       SUBROUTINE AUTOI(AP,ICU,NICU,WORKER)
-C
+
       USE BVPCONT
       USE EQUILIBRIUM
       USE OPTIMIZATION
@@ -158,7 +158,7 @@ C
       USE HOMCONT
       USE TIMEINT
       USE AUTO_CONSTANTS, ONLY: NBC,NINT,NDIM
-C
+
       IMPLICIT NONE
       TYPE(AUTOPARAMETERS) AP
       INTEGER NICU,ICU(NICU)
@@ -169,7 +169,7 @@ C
 
       IPS=AP%IPS
       ISW=AP%ISW
-C
+
       IF(.NOT.WORKER)THEN
         NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
         ALLOCATE(ICP(NNICP))
@@ -210,38 +210,38 @@ C
       END SELECT
 
       IF(AP%NTOT==0.AND.MPIIAM()==0)THEN
-C        ** Error in INIT.
+!        ** Error in INIT.
          WRITE(6,500)
          STOP
       ENDIF
-C
-C Error Message.
+
+! Error Message.
  500  FORMAT(' Initialization Error')
-C
+
       DEALLOCATE(ICP)
 
       END SUBROUTINE AUTOI
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C                    Initialization
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C
-C     ---------- ----
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!                    Initialization
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+!     ---------- ----
       SUBROUTINE INIT(AP,EOF,KEYS,LINE)
-C
+
       USE AUTO_CONSTANTS
       USE HOMCONT, ONLY : INSTRHO
-C
+
       IMPLICIT NONE
-C
-C Reads the file of continuation constants
-C
+
+! Reads the file of continuation constants
+
       TYPE(AUTOPARAMETERS), INTENT(OUT) :: AP
       LOGICAL, INTENT(OUT) :: EOF
       LOGICAL, INTENT(INOUT) :: KEYS
       INTEGER, INTENT(INOUT) :: LINE
-C
+
       INTEGER IAP(23)
       DOUBLE PRECISION RAP(13)
       INTEGER IBR,I,J,NFPR,NDM
@@ -258,21 +258,21 @@ C
       END TYPE INDEXSTRL
       TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
 
-      CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/
-     * "NDIM", "IPS ", "    ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",
-     * "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",
-     * "MXBF", "IID ", "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
-      INTEGER, PARAMETER :: IDEFAULTS(23) = (/
-     * 2, 1, 0, 1, 20, 4, 3, 1,
-     * 2, 1, 0, 0, 0, 99999, 0, 99999,
-     * 10, 2, 9, 5, 3, 0, NPARX /)
-      CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/
-     * "DS   ", "DSMIN", "DSMAX", "     ", "     ", "RL0  ", "RL1  ",
-     * "A0   ", "A1   ", "     ", "EPSL ", "EPSU ", "EPSS " /)
-      DOUBLE PRECISION, PARAMETER :: RDEFAULTS(13) = (/
-     * 0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,
-     * 0d0, 1d-7, 1d-7, 1d-5 /)
-C
+      CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/                &
+       "NDIM", "IPS ", "    ", "ILP ", "NTST", "NCOL", "IAD ", "IADS",  &
+       "ISP ", "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "    ", "NPR ",  &
+       "MXBF", "IID ", "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
+      INTEGER, PARAMETER :: IDEFAULTS(23) = (/ &
+       2, 1, 0, 1, 20, 4, 3, 1,                &
+       2, 1, 0, 0, 0, 99999, 0, 99999,         &
+       10, 2, 9, 5, 3, 0, NPARX /)
+      CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(13) = (/                &
+       "DS   ", "DSMIN", "DSMAX", "     ", "     ", "RL0  ", "RL1  ",   &
+       "A0   ", "A1   ", "     ", "EPSL ", "EPSU ", "EPSS " /)
+      DOUBLE PRECISION, PARAMETER :: RDEFAULTS(13) = (/                 &
+       0.01d0, 0.005d0, 0.1d0, 0d0, 0d0, -1d300, 1d300, -1d300, 1d300,  &
+       0d0, 1d-7, 1d-7, 1d-5 /)
+
       IF(KEYS)THEN
          EOF=.TRUE.
          RETURN
@@ -328,8 +328,8 @@ C
                CYCLE scanloop
             ENDIF
             ! keyword detected
-            IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR.
-     &         (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
+            IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR. &
+               (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
                STR=STR(I:)
                KEYS=.TRUE.
                NEWCFILE=.TRUE.
@@ -445,8 +445,8 @@ C
             CALL INSTRHO(STR(1:KEYEND),STR(POS:),LISTLEN,IERR)
             IF(IERR==3)GOTO 3
             IF(IERR==1)THEN
-               WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ",
-     &              STR(1:KEYEND)," on line ",LINE
+               WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ", &
+                    STR(1:KEYEND)," on line ",LINE
             ENDIF
          END SELECT
       ENDDO scanloop
@@ -473,7 +473,7 @@ C
       NWTN=IAP(21)
       JAC=IAP(22)
       NPAR=IAP(23)
-C
+
       DS=RAP(1)
       DSMIN=RAP(2)
       DSMAX=RAP(3)
@@ -544,7 +544,7 @@ C
         ENDDO
       ENDIF
       KEYS=.FALSE.
-C
+
  2    AP%NDIM=NDIM
       AP%IPS=IPS
       AP%IRS=IRS
@@ -567,7 +567,7 @@ C
       AP%ITNW=ITNW
       AP%NWTN=NWTN      
       AP%JAC=JAC
-C
+
       NDM=NDIM
       NPARI=0
       ITDS=1
@@ -578,7 +578,7 @@ C
       NTOT=0
       NINS=0
       LAB=0
-C
+
       AP%NDM=NDM
       AP%NPARI=NPARI
       AP%ITDS=ITDS
@@ -591,7 +591,7 @@ C
       AP%NINS=NINS
       AP%LAB=LAB
       AP%NICP=NICP
-C
+
       AP%DS=DS
       AP%DSMIN=ABS(DSMIN)
       AP%DSMAX=ABS(DSMAX)
@@ -600,13 +600,13 @@ C
       AP%RL1=RL1
       AP%A0=A0
       AP%A1=A1
-C
+
       DET=0.d0
       FLDF=0.d0
       HBFF=0.d0
       BIFF=0.d0
       SPBF=0.d0
-C
+
       AP%EPSL=EPSL
       AP%EPSU=EPSU
       AP%EPSS=EPSS
@@ -615,32 +615,30 @@ C
       AP%HBFF=HBFF
       AP%BIFF=BIFF
       AP%SPBF=SPBF
-C
+
       EOF=.FALSE.
       RETURN
- 3    WRITE(6,"(A,I2,A)")
-     *     " Error in fort.2 or c. file: bad value on line ",
-     *     LINE,"."
+ 3    WRITE(6,"(A,I2,A)") &
+           " Error in fort.2 or c. file: bad value on line ", LINE,"."
       STOP
- 4    WRITE(6,"(A,I2,A)")
-     *     " Error in fort.2 or c. file: ends prematurely on line ",
-     *     LINE,"."
+ 4    WRITE(6,"(A,I2,A)") &
+           " Error in fort.2 or c. file: ends prematurely on line ", LINE,"."
       EOF=.TRUE.
       RETURN
  5    EOF=.TRUE.
       IF(KEYS)GOTO 1
       END SUBROUTINE INIT
 
-C     ---------- ---------
+!     ---------- ---------
       SUBROUTINE SCANVALUE(STR,NPOS,LISTLEN)
       IMPLICIT NONE
-C
-C     Scans STR(:) for a value
-C     NPOS points to the next keyword on the same line,
-C       or is set to 1 if there is none
-C     LISTLEN gives the number of items in lists delimited by []
-C     [] characters are removed
-C
+
+!     Scans STR(:) for a value
+!     NPOS points to the next keyword on the same line,
+!       or is set to 1 if there is none
+!     LISTLEN gives the number of items in lists delimited by []
+!     [] characters are removed
+
       CHARACTER(*), INTENT(INOUT) :: STR
       INTEGER, INTENT(OUT) :: NPOS,LISTLEN
 
@@ -717,66 +715,66 @@ C
       ENDIF
       END SUBROUTINE SCANVALUE
 
-C     ---------- -------
+!     ---------- -------
       SUBROUTINE CLEANUP()
-C
-C     Deallocate some globally allocated arrays.
-C
-      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames,
-     *     SP,STOPS,PARVALS,UVALS
+
+!     Deallocate some globally allocated arrays.
+
+      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames, &
+           SP,STOPS,PARVALS,UVALS
 
       IMPLICIT NONE
 
       DO I=1,SIZE(IVUZR)
          DEALLOCATE(IVUZR(I)%VAR)
       ENDDO
-      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,STOPS,
-     *     PARVALS,UVALS)
+      DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,STOPS, &
+           PARVALS,UVALS)
       END SUBROUTINE CLEANUP
-C
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C               The leading subroutines of AUTO
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-C
-C     ---------- -----
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!               The leading subroutines of AUTO
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+!     ---------- -----
       SUBROUTINE INIT1(AP)
-C
+
       USE AUTO_CONSTANTS, ONLY:IVTHL
-C
+
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
-C
-C General initialization. Redefinition of constants.
-C The following constants are redefined, ie. they are different than in
-C fort.2 or c.*:
 
-C   DS: if DS is set to 0 it'll be set to 0.1
-C   DS: if DSMIN is set to 0 it'll be set to 1.0d-4 * |DS|
-C   DSMIN is divided by 1+HMACH
-C   DS and DSMAX are multiplied by 1+HMACH
+! General initialization. Redefinition of constants.
+! The following constants are redefined, ie. they are different than in
+! fort.2 or c.*:
 
-C   NDIM: set to the dimension of the extended system
-C   ILP: set to 0 dependent on problem type
-C   ISP: set to 0 dependent on problem type
-C   ISW: set to 1 if equal to 0, to -|ISW| for starts of ext systems
-C   NBC: set by problem type
-C   NINT: set by problem type
-C   NMX: set to 5 for starts of extended systems
+!   DS: if DS is set to 0 it'll be set to 0.1
+!   DS: if DSMIN is set to 0 it'll be set to 1.0d-4 * |DS|
+!   DSMIN is divided by 1+HMACH
+!   DS and DSMAX are multiplied by 1+HMACH
+
+!   NDIM: set to the dimension of the extended system
+!   ILP: set to 0 dependent on problem type
+!   ISP: set to 0 dependent on problem type
+!   ISW: set to 1 if equal to 0, to -|ISW| for starts of ext systems
+!   NBC: set by problem type
+!   NINT: set by problem type
+!   NMX: set to 5 for starts of extended systems
 
       TYPE(AUTOPARAMETERS) AP
-C
-C Local
+
+! Local
       DOUBLE PRECISION DS,DSMIN,FC
-C
+
        DS=AP%DS
        DSMIN=AP%DSMIN
-C
+
        IF(AP%ISW.EQ.0)AP%ISW=1
-C
-C Check and perturb pseudo arclength stepsize and steplimits.
-C (Perturbed to avoid exact computation of certain singular points).
-C
+
+! Check and perturb pseudo arclength stepsize and steplimits.
+! (Perturbed to avoid exact computation of certain singular points).
+
        IF(DS.EQ.0.d0)DS=0.1
        IF(DSMIN.EQ.0.d0)DSMIN=1.0D-4*ABS(DS)
        FC=1.d0+HMACH
@@ -794,10 +792,10 @@ C
              ALLOCATE(IVTHL(0))
           ENDIF
        ENDIF
-C
+
       RETURN
       END SUBROUTINE INIT1
 
       END PROGRAM AUTO
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
