@@ -10,7 +10,7 @@ MODULE IO
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: FINDLB, READLB, READBV, WRLINE, WRBAR, STHD, NEWLAB, &
+  PUBLIC :: READC, FINDLB, READLB, READBV, WRLINE, WRBAR, STHD, NEWLAB, &
        GETNDIM3, GETNTST3, GETNCOL3, GETNFPR3, GETIPS3
 
   TYPE SOLUTION
@@ -42,7 +42,438 @@ CONTAINS
     ENDDO
   END FUNCTION getname
 
+! ---------- -----
+  SUBROUTINE READC(EOF,LINE,NPOS,STR,KEYEND,POS,LISTLEN,IERR)
 
+! Reads the file of continuation constants
+
+    USE AUTO_CONSTANTS
+
+    LOGICAL, INTENT(OUT) :: EOF
+    INTEGER, INTENT(INOUT) :: LINE
+    CHARACTER(*), INTENT(INOUT) :: STR
+    INTEGER, INTENT(INOUT) :: NPOS
+    INTEGER, INTENT(OUT) :: KEYEND, POS, LISTLEN, IERR
+
+    INTEGER I,J,IC
+    INTEGER NICP
+    DOUBLE PRECISION RC
+    CHARACTER(LEN=1) :: C,QUOTE,PREV
+    LOGICAL QUOTEESC
+    INTEGER LISTLEN2,ios
+
+    TYPE INDEXSTRL
+       CHARACTER(13) INDEX
+       CHARACTER(2048) STRL
+    END TYPE INDEXSTRL
+    TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
+
+    CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(21) = (/                    &
+         "NDIM", "IPS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS", "ISP ",  &
+         "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "NPR ", "MXBF", "IID ",  &
+         "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
+    CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(10) = (/                    &
+         "DS   ", "DSMIN", "DSMAX", "RL0  ", "RL1  ", "A0   ", "A1   ",   &
+         "EPSL ", "EPSU ", "EPSS " /)
+
+    EOF=.FALSE.
+    POS=0
+    KEYEND=0
+    LISTLEN=0
+    IERR=0
+    IF(NPOS==1)THEN
+       LINE=LINE+1
+       READ(2,'(A)',IOSTAT=ios) STR
+       IF(ios/=0)THEN
+          EOF=.TRUE.
+          RETURN
+       ENDIF
+       QUOTE=' '
+       QUOTEESC=.FALSE.
+       DO I=1,LEN_TRIM(STR)
+          C=STR(I:I)
+          IF(QUOTE==' ')THEN
+             ! replace a tab with spaces if not in a string
+             IF(IACHAR(C)==9)THEN
+                STR(I:I)=' '
+             ELSEIF(C=="'".OR.C=='"')THEN
+                QUOTE=STR(I:I)
+             ENDIF
+          ELSEIF(C==QUOTE)THEN
+             ! ignore "" and ''
+             IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+                QUOTEESC=.NOT.QUOTEESC
+             ELSE
+                QUOTE=' '
+             ENDIF
+          ENDIF
+       ENDDO
+    ELSE
+       STR=STR(NPOS:)
+    ENDIF
+    STR=ADJUSTL(STR)
+    IF(LEN_TRIM(STR)==0)RETURN
+    DO I=1,LEN_TRIM(STR)
+       ! comment on line
+       IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
+          NPOS=1
+          RETURN
+       ENDIF
+       ! keyword detected
+       IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR. &
+            (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
+          STR=STR(I:)
+          NEWCFILE=.TRUE.
+          EXIT
+       ELSE
+          CALL READOLDC(EOF,LINE,IERR)
+          RETURN
+       ENDIF
+       IF(I==LEN_TRIM(STR))THEN
+          NPOS=1
+          RETURN
+       ENDIF
+    ENDDO
+    ! look for = after keyword
+    KEYEND=SCAN(STR,'= ')-1
+    IF(KEYEND==-1)THEN
+       LINE=LINE-1
+       CALL READOLDC(EOF,LINE,IERR)
+       RETURN
+    ENDIF
+    POS=SCAN(STR,'=')+1
+    STR(POS:)=ADJUSTL(STR(POS:))
+    CALL SCANVALUE(STR(POS:),NPOS,LISTLEN)
+    IF(NPOS/=1)THEN
+       NPOS=NPOS+POS-1
+    ENDIF
+    DO I=1,SIZE(ICONSTANTS)
+       IF(STR(1:KEYEND)==TRIM(ICONSTANTS(I)))THEN
+          READ(STR(POS:),*,ERR=3)IC
+          SELECT CASE(I)
+          CASE(1)
+             NDIM=IC
+          CASE(2)
+             IPS=IC
+          CASE(3)
+             ILP=IC
+          CASE(4)
+             NTST=IC
+          CASE(5)
+             NCOL=IC
+          CASE(6)
+             IAD=IC
+          CASE(7)
+             IADS=IC
+          CASE(8)
+             ISP=IC
+          CASE(9)
+             ISW=IC
+          CASE(10)
+             IPLT=IC
+          CASE(11)
+             NBC=IC
+          CASE(12)
+             NINT=IC
+          CASE(13)
+             NMX=IC
+          CASE(14)
+             NPR=IC
+          CASE(15)
+             MXBF=IC
+          CASE(16)
+             IID=IC
+          CASE(17)
+             ITMX=IC
+          CASE(18)
+             ITNW=IC
+          CASE(19)
+             NWTN=IC
+          CASE(20)
+             JAC=IC
+          CASE(21)
+             NPAR=IC
+          END SELECT
+          RETURN
+       ENDIF
+    ENDDO
+    DO I=1,SIZE(RCONSTANTS)
+       IF(STR(1:KEYEND)==TRIM(RCONSTANTS(I)))THEN
+          READ(STR(POS:),*,ERR=3)RC
+          SELECT CASE(I)
+          CASE(1)
+             DS=RC
+          CASE(2)
+             DSMIN=RC
+          CASE(3)
+             DSMAX=RC
+          CASE(4)
+             RL0=RC
+          CASE(5)
+             RL1=RC
+          CASE(6)
+             A0=RC
+          CASE(7)
+             A1=RC
+          CASE(8)
+             EPSL=RC
+          CASE(9)
+             EPSU=RC
+          CASE(10)
+             EPSS=RC
+          END SELECT
+          RETURN
+       ENDIF
+    ENDDO
+    SELECT CASE(STR(1:KEYEND))
+    CASE('IRS')
+       READ(STR(POS:),*,ERR=3)SIRS
+       READ(SIRS,*,IOSTAT=ios)IRS
+       IF(ios/=0)IRS=1
+    CASE('ICP')
+       NICP=LISTLEN
+       DEALLOCATE(ICU)
+       ALLOCATE(ICU(NICP))
+       READ(STR(POS:),*,ERR=3)ICU            
+    CASE('UZR')
+       ALLOCATE(IVUZRS(LISTLEN))
+       READ(STR(POS:),*,ERR=3)IVUZRS
+       DO I=1,SIZE(IVUZR)
+          DEALLOCATE(IVUZR(I)%VAR)
+       ENDDO
+       DEALLOCATE(IVUZR)
+       ALLOCATE(IVUZR(LISTLEN))
+       DO I=1,LISTLEN
+          PREV=' '
+          LISTLEN2=0
+          DO J=1,LEN_TRIM(IVUZRS(I)%STRL)
+             C=IVUZRS(I)%STRL(J:J)
+             IF(C/=' '.AND.C/=','.AND.(PREV==' '.OR.PREV==','))THEN
+                LISTLEN2=LISTLEN2+1
+             ENDIF
+             PREV=C
+          ENDDO
+          ALLOCATE(IVUZR(I)%VAR(LISTLEN2))
+          IVUZR(I)%INDEX=IVUZRS(I)%INDEX
+          READ(IVUZRS(I)%STRL,*,ERR=3)IVUZR(I)%VAR
+       ENDDO
+       DEALLOCATE(IVUZRS)
+    CASE('THL')
+       IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
+       ALLOCATE(IVTHL(LISTLEN))
+       READ(STR(POS:),*,ERR=3)IVTHL
+    CASE('THU')
+       DEALLOCATE(IVTHU)
+       ALLOCATE(IVTHU(LISTLEN))
+       READ(STR(POS:),*,ERR=3)IVTHU
+    CASE('SP')
+       IF(ALLOCATED(SP))DEALLOCATE(SP)
+       ALLOCATE(SP(LISTLEN))
+       READ(STR(POS:),*,ERR=3)SP
+    CASE('STOP')
+       IF(ALLOCATED(STOPS))DEALLOCATE(STOPS)
+       ALLOCATE(STOPS(LISTLEN))
+       READ(STR(POS:),*,ERR=3)STOPS
+    CASE('PAR')
+       IF(ALLOCATED(PARVALS))DEALLOCATE(PARVALS)
+       ALLOCATE(PARVALS(LISTLEN))
+       READ(STR(POS:),*,ERR=3)PARVALS
+    CASE('U')
+       IF(ALLOCATED(UVALS))DEALLOCATE(UVALS)
+       ALLOCATE(UVALS(LISTLEN))
+       READ(STR(POS:),*,ERR=3)UVALS
+    CASE('parnames')
+       IF(ALLOCATED(parnames))DEALLOCATE(parnames)
+       ALLOCATE(parnames(LISTLEN))
+       READ(STR(POS:),*,ERR=3)parnames
+    CASE('unames')
+       IF(ALLOCATED(unames))DEALLOCATE(unames)
+       ALLOCATE(unames(LISTLEN))
+       READ(STR(POS:),*,ERR=3)unames
+    CASE('s')
+       READ(STR(POS:),*)SFILE
+    CASE('dat')
+       READ(STR(POS:),*)DATFILE
+    CASE('sv')
+       READ(STR(POS:),*)SVFILE
+    CASE('e')
+       READ(STR(POS:),*)EFILE
+    CASE DEFAULT
+       IERR=1
+    END SELECT
+    RETURN
+3   IERR=3
+  END SUBROUTINE READC
+
+! ---------- ---------
+  SUBROUTINE SCANVALUE(STR,NPOS,LISTLEN)
+    IMPLICIT NONE
+
+!   Scans STR(:) for a value
+!   NPOS points to the next keyword on the same line,
+!     or is set to 1 if there is none
+!   LISTLEN gives the number of items in lists delimited by []
+!   [] characters are removed
+
+    CHARACTER(*), INTENT(INOUT) :: STR
+    INTEGER, INTENT(OUT) :: NPOS,LISTLEN
+
+    INTEGER I,LEVEL,LENSTR,ios
+    CHARACTER(1) C,PREV,QUOTE
+    LOGICAL QUOTEESC,ISDICT
+    LISTLEN=1
+    LEVEL=0
+    QUOTE=' '
+    QUOTEESC=.FALSE.
+    PREV=' '
+
+    NPOS=1
+    ISDICT=.FALSE.
+    LENSTR=LEN_TRIM(STR)
+    I=1
+    DO
+       IF(I>LENSTR)THEN
+          IF(LEVEL==0)EXIT
+          LENSTR=LEN_TRIM(STR)
+          READ(2,'(A)',IOSTAT=ios) STR(LENSTR+1:)
+          IF(ios/=0)EXIT
+          LENSTR=LEN_TRIM(STR)
+       ENDIF
+       NPOS=I
+       C=STR(I:I)
+       IF(QUOTE==' ')THEN
+          SELECT CASE(C)
+          CASE(',',' ')
+             IF(LEVEL==0)EXIT
+             IF(PREV==':')C=PREV !eat ',' and ' ' after ':'
+          CASE(':')
+             STR(I:I)=','
+          CASE(']','}')
+             IF(C=='}') ISDICT=.FALSE.
+             STR(I:I)=' '
+             IF(LEVEL==1.AND.(PREV=='['.OR.PREV=='{'))LISTLEN=0
+             LEVEL=LEVEL-1
+             IF(C==']'.AND.ISDICT) STR(I:I)="'"
+          CASE DEFAULT
+             IF((PREV==','.OR.PREV==' ').AND.LEVEL==1)THEN
+                LISTLEN=LISTLEN+1
+             ENDIF
+             SELECT CASE(C)
+             CASE('[','{')
+                STR(I:I)=' '
+                LEVEL=LEVEL+1
+                IF(C=='{')THEN
+                   ISDICT=.TRUE.
+                ELSEIF(ISDICT)THEN
+                   STR(I:I)="'"
+                ENDIF
+             CASE('"',"'")
+                QUOTE=C
+             END SELECT
+          END SELECT
+       ELSEIF(C==QUOTE)THEN
+          ! ignore "" and ''
+          IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+             QUOTEESC=.NOT.QUOTEESC
+          ELSE
+             QUOTE=' '
+          ENDIF
+       ENDIF
+       PREV=C
+       I=I+1
+    ENDDO
+    I=VERIFY(STR(NPOS:)," ,")
+    IF(I==0)THEN
+       NPOS=1
+    ELSE
+       NPOS=NPOS+I-1
+       IF(NPOS>=LEN_TRIM(STR))NPOS=1
+    ENDIF
+  END SUBROUTINE SCANVALUE
+
+! ---------- --------
+  SUBROUTINE READOLDC(EOF,LINE,IERR)
+
+! Reads the continuation constants in the old format
+    USE AUTO_CONSTANTS
+
+    INTEGER I
+    INTEGER NUZR,NICP
+    INTEGER LISTLEN,ios
+
+    LOGICAL, INTENT(INOUT) :: EOF
+    INTEGER, INTENT(INOUT) :: LINE
+    INTEGER, INTENT(OUT) :: IERR
+
+    BACKSPACE 2
+    READ(2,*,ERR=3,END=4) NDIM,IPS,SIRS,ILP
+    READ(SIRS,*,IOSTAT=ios)IRS
+    IF(ios/=0)IRS=1
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) NICP
+    IF(NICP>0)THEN
+       DEALLOCATE(ICU)
+       ALLOCATE(ICU(NICP))
+       BACKSPACE 2
+       READ(2,*,ERR=3,END=4) NICP,(ICU(I),I=1,NICP)
+    ENDIF
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) NMX,RL0,RL1,A0,A1
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) EPSL,EPSU,EPSS
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) DS,DSMIN,DSMAX,IADS
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) LISTLEN
+    !allocate: no THL vs. non-allocated:default THL (in SUB. INIT1)
+    IF(ALLOCATED(IVTHL))DEALLOCATE(IVTHL)
+    ALLOCATE(IVTHL(LISTLEN))
+    IF(LISTLEN>0)THEN
+       DO I=1,LISTLEN
+          LINE=LINE+1
+          READ(2,*,ERR=3,END=4)IVTHL(I)
+       ENDDO
+    ENDIF
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4) LISTLEN
+    IF(LISTLEN>0)THEN
+       DEALLOCATE(IVTHU)
+       ALLOCATE(IVTHU(LISTLEN))
+       DO I=1,LISTLEN
+          LINE=LINE+1
+          READ(2,*,ERR=3,END=4)IVTHU(I)
+       ENDDO
+    ENDIF
+    LINE=LINE+1
+    READ(2,*,ERR=3,END=4)NUZR
+    IF(NUZR>0)THEN
+       DO I=1,SIZE(IVUZR)
+          DEALLOCATE(IVUZR(I)%VAR)
+       ENDDO
+       DEALLOCATE(IVUZR)
+       ALLOCATE(IVUZR(NUZR))
+       DO I=1,NUZR
+          LINE=LINE+1
+          ALLOCATE(IVUZR(I)%VAR(1))
+          READ(2,*,ERR=3,END=4)IVUZR(I)%INDEX,IVUZR(I)%VAR(1)
+       ENDDO
+    ENDIF
+    IERR=-1
+    RETURN
+
+3   IERR=3
+    RETURN
+
+4   WRITE(6,"(A,I2,A)") &
+         " Error in fort.2 or c. file: ends prematurely on line ", LINE,"."
+    EOF=.TRUE.
+
+  END SUBROUTINE READOLDC
+    
 ! ---------- ----
   SUBROUTINE STHD(AP,ICP)
 
@@ -674,16 +1105,15 @@ CONTAINS
   END FUNCTION GETIPS3
 
 ! ---------- ------
-  SUBROUTINE FINDLB(NAME,AP,IRS,NFPR,NPAR,FOUND)
+  SUBROUTINE FINDLB(AP,IRS,NFPR,NPAR,FOUND)
 
-    USE AUTO_CONSTANTS, ONLY: SIRS
+    USE AUTO_CONSTANTS, ONLY: SIRS, SFILE
     USE SUPPORT, ONLY: LBTYPE
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(INOUT) :: IRS
     INTEGER, INTENT(OUT) :: NFPR,NPAR
     LOGICAL, INTENT(OUT) :: FOUND
-    CHARACTER*(*), INTENT(IN) :: NAME
 
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPARR
@@ -701,7 +1131,11 @@ CONTAINS
     NPAR=0
     ISW=AP%ISW
 
-    OPEN(3,FILE=NAME,STATUS='old',ACCESS='sequential',IOSTAT=ios)
+    IF(LEN_TRIM(SFILE)==0)THEN
+       OPEN(3,FILE='fort.3',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+    ELSE
+       OPEN(3,FILE='s.'//SFILE,STATUS='old',ACCESS='sequential',IOSTAT=ios)
+    ENDIF
     IF(ios/=0)THEN
        WRITE(6,'(A,A)')'The solution file (fort.3 or s. file) ',&
             'could not be found.'
