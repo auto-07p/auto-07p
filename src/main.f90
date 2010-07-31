@@ -333,6 +333,15 @@
       AP%NICP=SIZE(ICU)
 
       AP%NDM=NDIM
+      AP%NPARI=0
+      AP%ITDS=1
+      AP%ITP=0
+      AP%ITPST=0
+      AP%NFPR=1
+      AP%IBR=1
+      AP%NTOT=0
+      AP%NINS=0
+      AP%LAB=0
 
       AP%DS=DS
       AP%DSMIN=ABS(DSMIN)
