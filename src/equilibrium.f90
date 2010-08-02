@@ -156,6 +156,11 @@ CONTAINS
     DFDU(1:NDM,NDIM)=DFP(:,ICP(2))
 
     DFDU(NDM+1:2*NDM,NDM+1:2*NDM)=DFU(:,:)
+    IF(AP%ITPST==7)THEN ! PD bif for maps
+       DO I=1,NDM
+          DFDU(NDM+I,NDM+I)=DFDU(NDM+I,NDM+I)+2
+       ENDDO
+    ENDIF
 
     DFDU(NDIM,1:NDM)=0d0
     DFDU(NDIM,NDM+1:2*NDM)=2*U(NDM+1:NDM*2)
@@ -214,11 +219,6 @@ CONTAINS
     IJC=MAX(IJAC,1)
     IF(IPS.EQ.-1) THEN
        CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
-       IF(AP%ITPST==7)THEN ! PD bif for maps
-          DO I=1,NDM
-             DFDU(I,I)=DFDU(I,I)+2
-          ENDDO
-       ENDIF
     ELSE
        CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
     ENDIF
@@ -229,6 +229,11 @@ CONTAINS
           F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
        ENDDO
     ENDDO
+    IF(AP%ITPST==7)THEN ! PD bif for maps
+       DO I=1,NDM
+          F(NDM+I)=F(NDM+I)+2*U(NDM+I)
+       ENDDO
+    ENDIF
 
     F(NDIM)=-1
 
