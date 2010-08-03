@@ -223,6 +223,11 @@ class bifDiagBranch(parseB.AUTOBranch):
     def __init__(self,input=None):
         parseB.AUTOBranch.__init__(self,input)
 
+    def __getattr__(self,attr):
+        if attr == "diagnostics":
+            raise AttributeError
+        return super(bifDiagBranch, self).__getattr__(attr)
+
     def getLabel(self,label,mbr=None,mlab=None):
         sols = []
         for idx in self.labels.getIndices():
