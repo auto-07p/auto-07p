@@ -260,6 +260,8 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE STPNHW(AP,PAR,ICP,U,UDOT,NODIR)
 
+    USE SUPPORT, ONLY: PI
+
     ! Generates starting data for the 2-parameter continuation of
     ! Hopf bifurcation point (ODE/wave/map).
 
@@ -311,7 +313,7 @@ CONTAINS
     IF(AP%ITPST==3)THEN
        ! store matrix/derivatives for extended Hopf system in the
        ! bottom of DFDU
-       CALL FFHBX(NDIM,U,DFDU,DFDU(1,NDIM+1))
+       CALL FFHBX(AP,U,PAR,DFDU,DFDU(1,NDIM+1))
     ENDIF
 
   END SUBROUTINE FNWP

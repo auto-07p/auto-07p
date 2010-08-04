@@ -20,7 +20,7 @@ lib:
 #
 compile: $(OBJ)
 #
-../lib/main.o: main.f90 ../lib/homcont.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
+../lib/main.o: main.f90 ../lib/homcont.o ../lib/maps.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
 	$(FC) $(FFLAGS) $(OPT) -c main.f90 -o $@
 #
 ../lib/solvebv.o: solvebv.f90 ../lib/support.o ../lib/mpi.o
@@ -40,6 +40,9 @@ compile: $(OBJ)
 #
 ../lib/equilibrium.o: equilibrium.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c equilibrium.f90 -o $@
+#
+../lib/maps.o: maps.f90 ../lib/equilibrium.o
+	$(FC) $(FFLAGS) $(OPT) -c maps.f90 -o $@
 #
 ../lib/optimization.o: optimization.f90 ../lib/periodic.o ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c optimization.f90 -o $@

@@ -9,7 +9,8 @@ MODULE EQUILIBRIUM
 
   PUBLIC :: AUTOEQ,INITEQ
   PUBLIC :: FNLPF,STPNLPF,FNCSEQF ! Folds (Algebraic Problems)
-  PUBLIC :: FNHBF,STPNHBF,FFHBX ! Hopf bifs
+  PUBLIC :: FNBPF,STPNBPF ! Branch points
+  PUBLIC :: FNHBF,STPNHBF,FFHBX,STABEQ,PRINTEIG ! Hopf bifs
 
   DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
@@ -21,25 +22,26 @@ CONTAINS
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
 
     INTEGER NDIM, NFPR
+
     NDIM = AP%NDIM
     NFPR = 1
-
     SELECT CASE(AP%ITPST)
     CASE(1)
        ! ** BP cont (Algebraic Problems) (by F. Dercole)
        NDIM=2*NDIM+2
        NFPR=ABS(AP%ISW)
-    CASE(2,7)
-       ! ** Fold/PD continuation (Algebraic Problems)
+    CASE(2)
+       ! ** Fold
        NDIM=2*NDIM+1
        NFPR=2
-    CASE(3,8)
-       ! Hopf/Neimark-Sacker
+    CASE(3)
+       ! Hopf
        NDIM=2*NDIM+2
        NFPR=2
     END SELECT
     AP%NDIM = NDIM
     AP%NFPR = NFPR
+
   END SUBROUTINE INITEQ
 
 ! ---------- ------
@@ -53,21 +55,16 @@ CONTAINS
 
     SELECT CASE(AP%ITPST)
     CASE(0)
-       IF(AP%IPS==-1) THEN
-          ! ** Discrete dynamical systems : fixed points.
-          CALL AUTOAE(AP,ICP,ICU,FNDS,STPNAE,FNCSEQ)
-       ELSE
-          ! Algebraic systems.
-          CALL AUTOAE(AP,ICP,ICU,FUNI,STPNAE,FNCSEQ)
-       ENDIF
+       ! Algebraic systems.
+       CALL AUTOAE(AP,ICP,ICU,FUNI,STPNAE,FNCSEQ)
     CASE(1)
        ! ** BP cont (algebraic problems) (by F. Dercole).
        CALL AUTOAE(AP,ICP,ICU,FNBP,STPNBP,FNCSEQ)
-    CASE(2,7)
-       ! ** Fold/PD continuation (algebraic problems).
+    CASE(2)
+       ! ** Fold continuation (algebraic problems).
        CALL AUTOAE(AP,ICP,ICU,FNLP,STPNLP,FNCSEQ)
-    CASE(3,8)
-       ! Hopf/Neimark-Sacker bifurcation continuation (ODE/maps).
+    CASE(3)
+       ! Hopf bifurcation continuation (ODEs).
        CALL AUTOAE(AP,ICP,ICU,FNHB,STPNHB,FNCSEQ)
     END SELECT
   END SUBROUTINE AUTOEQ
@@ -208,17 +205,11 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
     include 'interfaces.h'
 
-    INTEGER IPS,IJC,I,J
-
-    IPS=AP%IPS
+    INTEGER IJC,I,J
 
     PAR(ICP(2))=U(NDIM)
     IJC=MAX(IJAC,1)
-    IF(IPS.EQ.-1) THEN
-       CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
-    ELSE
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
-    ENDIF
+    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 
     DO I=1,NDM
        F(NDM+I)=0.d0
@@ -275,13 +266,12 @@ CONTAINS
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),V(:),F(:)
     DOUBLE PRECISION DUMDFP(1)
-    INTEGER ICPRS(2),NDIM,IPS,NDM,I
+    INTEGER ICPRS(2),NDIM,NDM,I
 
     NDIM=AP%NDIM
-    IPS=AP%IPS
     NDM=AP%NDM
 
-    IF(ABS(AP%ITP)/10==2 .OR. ABS(AP%ITP)/10==7)THEN
+    IF(ABS(AP%ITP)/10>0)THEN
        ! restart
        CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
        U(NDIM)=PAR(ICP(2))
@@ -291,15 +281,11 @@ CONTAINS
     CALL READLB(AP,ICPRS,U,UDOT,PAR)
 
     ALLOCATE(DFU(NDM,NDM),V(NDM),F(NDM))
-    IF(IPS.EQ.-1)THEN
-       CALL FNDS(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
-       IF(AP%ITPST==7)THEN ! PD bif for maps
-          DO I=1,NDM
-             DFU(I,I)=DFU(I,I)+2
-          ENDDO
-       ENDIF
-    ELSE
-       CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+    CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DUMDFP)
+    IF(AP%ITPST==7)THEN ! PD bif for maps
+       DO I=1,NDM
+          DFU(I,I)=DFU(I,I)+2
+       ENDDO
     ENDIF
     CALL NLVC(NDM,NDM,1,DFU,V)
     CALL NRMLZ(NDM,V)
@@ -329,6 +315,23 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+
+    CALL FNBPF(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,FUNI)
+
+  END SUBROUTINE FNBP
+
+! ---------- -----
+  SUBROUTINE FNBPF(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP,FUNI)
+
+    ! Generates the equations for the 2-par continuation of BP.
+
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
+    DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
+    DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
+    include 'interfaces.h'
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:),DFP(:),FF1(:),FF2(:)
     INTEGER NDM,NPAR,I,J
@@ -340,7 +343,7 @@ CONTAINS
     ! Generate the function.
 
     ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
-    CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP)
+    CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFU,DFP,FUNI)
 
     IF(IJAC.EQ.0)THEN
        DEALLOCATE(DFU,DFP)
@@ -360,9 +363,9 @@ CONTAINS
     DO I=1,NDIM
        UU=U(I)
        U(I)=UU-EP
-       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP,FUNI)
        U(I)=UU+EP
-       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+       CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP,FUNI)
        U(I)=UU
        DO J=1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -377,7 +380,7 @@ CONTAINS
     P=PAR(ICP(1))
     PAR(ICP(1))=P+EP
 
-    CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+    CALL FFBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP,FUNI)
 
     DO J=1,NDIM
        DFDP(J,ICP(1))=(FF1(J)-F(J))/EP
@@ -386,10 +389,10 @@ CONTAINS
     PAR(ICP(1))=P
     DEALLOCATE(FF1,DFU,DFP)
 
-  END SUBROUTINE FNBP
+  END SUBROUTINE FNBPF
 
-  !     ---------- ----
-  SUBROUTINE FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+! ---------- ----
+  SUBROUTINE FFBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP,FUNI)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
@@ -397,10 +400,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
+    include 'interfaces.h'
 
-    INTEGER IPS,ISW,I,J
+    INTEGER ISW,I,J
 
-    IPS=AP%IPS
     ISW=AP%ISW
 
     IF(ISW.EQ.3) THEN
@@ -409,11 +412,7 @@ CONTAINS
     ENDIF
     PAR(ICP(2))=U(NDIM-1)
 
-    IF(IPS.EQ.-1) THEN
-       CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-    ELSE
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-    ENDIF
+    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
     IF(ISW.EQ.2) THEN
        !        ** Non-generic case
@@ -454,17 +453,36 @@ CONTAINS
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
+
+    CALL STPNBPF(AP,PAR,ICP,U,UDOT,NODIR,FUNI)
+
+  END SUBROUTINE STPNBP
+
+! ---------- -------
+  SUBROUTINE STPNBPF(AP,PAR,ICP,U,UDOT,NODIR,FUNI)
+
+    USE IO
+    USE SUPPORT
+    USE AE, ONLY: STPNAE
+
+    ! Generates starting data for the continuation of BP.
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: ICP(*)
+    INTEGER, INTENT(OUT) :: NODIR
+    DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
+    include 'interfaces.h'
+
     ! Local
     DOUBLE PRECISION, ALLOCATABLE ::DFU(:,:),DFP(:,:),A(:,:),V(:),F(:)
-    INTEGER :: ICPRS(3),NDIM,IPS,ISW,NDM,NPAR,I,J
+    INTEGER :: ICPRS(3),NDIM,ISW,NDM,NPAR,I,J
 
     NDIM=AP%NDIM
-    IPS=AP%IPS
     ISW=AP%ISW
     NDM=AP%NDM
     NPAR=AP%NPAR
 
-    IF(ABS(AP%ITP)/10==1)THEN
+    IF(ABS(AP%ITP)/10>0)THEN
        ! restart
        CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
        U(NDIM-1)=PAR(ICP(2))
@@ -480,11 +498,7 @@ CONTAINS
 
     ALLOCATE(DFU(NDM,NDM),DFP(NDM,NPAR),A(NDM,NDM+1))
     ALLOCATE(V(NDM+1),F(NDM))
-    IF(IPS.EQ.-1)THEN
-       CALL FNDS(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
-    ELSE
-       CALL FUNI(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
-    ENDIF
+    CALL FUNI(AP,NDM,U,U,ICP,PAR,2,F,DFU,DFP)
     A(:,1:NDM)=DFU(:,:)
     A(:,NDM+1)=DFP(:,ICP(1))
     CALL NLVC(NDM,NDM+1,2,A,V)
@@ -515,101 +529,7 @@ CONTAINS
     ENDIF
 
     NODIR=1
-  END SUBROUTINE STPNBP
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!        Subroutines for Discrete Dynamical Systems
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-
-! ---------- ----
-  SUBROUTINE FNDS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-
-    ! Generate the equations for continuing fixed points.
-
-    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC
-    DOUBLE PRECISION, INTENT(IN) :: UOLD(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
-    DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
-    DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,*),DFDP(NDIM,*)
-
-    INTEGER I, J, ITDS, NPAR, NFPR
-    DOUBLE PRECISION, ALLOCATABLE :: FN(:),DFDU1(:,:),DFDP1(:,:)
-    DOUBLE PRECISION, ALLOCATABLE :: DFDU2(:,:)
-
-
-    ITDS=AP%ITDS
-    CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
-    IF(ITDS>=2)THEN
-       NFPR=AP%NFPR
-       NPAR=AP%NPAR
-       ALLOCATE(FN(NDIM),DFDU1(NDIM,NDIM),DFDP1(NDIM,NPAR), &
-            DFDU2(NDIM,NDIM))
-       DO I=2,ITDS
-          ! with iterations use the chain rule
-          FN(:)=F(:)
-          CALL FUNI(AP,NDIM,FN,UOLD,ICP,PAR,IJAC,F,DFDU1,DFDP1)
-          IF(IJAC>0)THEN
-             ! DFDU=DFDU1*DFDU
-             CALL DGEMM('n','n',NDIM,NDIM,NDIM,1.d0,DFDU1, &
-                  NDIM,DFDU,NDIM,0.d0,DFDU2,NDIM)
-             DFDU(:,:NDIM)=DFDU2(:,:)
-             IF(IJAC>1)THEN
-                ! DFDP=DFDU1*DFDP+DFDP1
-                DO J=1,NFPR
-                   CALL DGEMV('n',NDIM,NDIM,1.d0,DFDU1,NDIM, &
-                        DFDP(1,ICP(J)),1,1d0,DFDP1(1,ICP(J)),1)
-                   DFDP(:,ICP(J))=DFDP1(:,ICP(J))
-                ENDDO
-             ENDIF
-          ENDIF
-       ENDDO
-       DEALLOCATE(FN,DFDU1,DFDU2,DFDP1)
-    ENDIF
-
-    F(:)=F(:)-U(:)
-
-    IF(IJAC.EQ.0)RETURN
-
-    IF(AP%ITPST==8)THEN
-       ! store matrix/derivatives for extended Neimark-Sacker system in the
-       ! bottom of DFDU
-       CALL FFNSX(NDIM,U,DFDU,DFDU(1,NDIM+1))
-    ENDIF
-
-    DO I=1,NDIM
-       DFDU(I,I)=DFDU(I,I)-1
-    ENDDO
-
-  END SUBROUTINE FNDS
-
-! ---------- -----
-  SUBROUTINE FFNSX(NDM,U,DFDU,DFDV)
-
-    INTEGER, INTENT(IN) :: NDM
-    DOUBLE PRECISION, INTENT(IN) :: U(NDM*2+2), DFDU(NDM,NDM)
-    DOUBLE PRECISION, INTENT(OUT) :: DFDV(NDM,NDM+1)
-
-    ! construct matrix for extended Neimark-Sacker system
-    ! Kuznetsov, 3rd ed., (10.83)
-    ! A^2-2cA+I, and the derivative to theta: 2sA
-    ! where A=DFDU, c=cos(theta), and s=sin(theta)
-
-    INTEGER I
-    DOUBLE PRECISION THTA
-
-    CALL DGEMM('n','n',NDM,NDM,NDM,1.d0,DFDU,NDM,DFDU,NDM,0.d0,DFDV,NDM)
-    THTA=U(NDM*2+1)
-    DFDV(:,:)=DFDV(:,:)-2*COS(THTA)*DFDU(:,:)
-    DO I=1,NDM
-       DFDV(I,I)=DFDV(I,I)+1
-    ENDDO
-    CALL DGEMV('n',NDM,NDM,2*SIN(THTA),DFDU,NDM,U(NDM+1),1,0d0,&
-         DFDV(1,NDM+1),1)
-
-  END SUBROUTINE FFNSX
+  END SUBROUTINE STPNBPF
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -753,19 +673,9 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,2*NDM+2)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDP(NDM,*)
     include 'interfaces.h'
-    ! Local
-    INTEGER IPS,IJC
-
-    IPS=AP%IPS
 
     PAR(ICP(2))=U(NDIM)
-    IJC=MAX(IJAC,1)
-
-    IF(IPS==-1)THEN
-       CALL FNDS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
-    ELSE
-       CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
-    ENDIF
+    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,MAX(IJAC,1),F,DFDU,DFDP)
 
     CALL DGEMV('n',NDM,NDM,1.0d0,DFDU(1,NDM+1),NDM,U(NDM+1),1,0d0,F(NDM+1),1)
     F(NDIM-1)=-1+DOT_PRODUCT(U(NDM+1:2*NDM),U(NDM+1:2*NDM))
@@ -799,19 +709,29 @@ CONTAINS
     CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
     ! store matrix/derivatives for extended Hopf system in the
     ! bottom of DFDU
-    CALL FFHBX(NDIM,U,DFDU,DFDU(1,NDIM+1))
+    CALL FFHBX(AP,U,PAR,DFDU,DFDU(1,NDIM+1))
 
   END SUBROUTINE FUNIHB
 
 ! ---------- -----
-  SUBROUTINE FFHBX(NDM,U,DFDU,DFDV)
+  SUBROUTINE FFHBX(AP,U,PAR,DFDU,DFDV)
 
-    INTEGER, INTENT(IN) :: NDM
-    DOUBLE PRECISION, INTENT(IN) :: U(NDM*2+2), DFDU(NDM,NDM)
-    DOUBLE PRECISION, INTENT(OUT) :: DFDV(NDM,NDM+1)
+    USE SUPPORT, ONLY: PI
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDM*2+2)
+    DOUBLE PRECISION, INTENT(IN) :: PAR(*),DFDU(AP%NDM,AP%NDM)
+    DOUBLE PRECISION, INTENT(OUT) :: DFDV(AP%NDM,AP%NDM+1)
 
-    INTEGER I
-    DOUBLE PRECISION KAPPA
+    INTEGER I,NDM
+    DOUBLE PRECISION PERIOD,KAPPA
+
+    NDM=AP%NDM
+    IF(AP%ITP==3)THEN
+       ! initialization
+       PERIOD=PAR(11)
+       KAPPA=(PI(2.d0)/PERIOD)**2
+       U(2*NDM+1)=KAPPA
+    ENDIF
 
     ! construct matrix for extended Hopf system
     ! Kuznetsov, 3rd ed., (10.80)
@@ -828,15 +748,17 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE STPNHB(AP,PAR,ICP,U,UDOT,NODIR)
 
+    USE SUPPORT
+
     ! Generates starting data for the 2-parameter continuation of
-    ! Hopf bifurcation point (ODE/wave/map).
+    ! Hopf bifurcation point (ODEs).
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
 
-    CALL STPNHBF(AP,PAR,ICP,U,UDOT,NODIR,FUNI)
+    CALL STPNHBF(AP,PAR,ICP,U,UDOT,NODIR,FUNIHB)
 
   END SUBROUTINE STPNHB
 
@@ -856,57 +778,32 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
     include 'interfaces.h'
     ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),SMAT(:,:),V(:),F(:)
-    INTEGER :: ICPRS(2),NDIM,IPS,NDM,I,J
-    DOUBLE PRECISION DFP(1),THTA,C1,KAPPA,PERIOD
+    DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:),V(:),F(:),UOLD(:)
+    INTEGER :: ICPRS(2),NDIM,NDM,I
+    DOUBLE PRECISION DFP(1)
 
     NDIM=AP%NDIM
-    IPS=AP%IPS
     NDM=AP%NDM
 
-    IF(ABS(AP%ITP)/10==3 .OR. ABS(AP%ITP)/10==8)THEN
+    IF(ABS(AP%ITP)/10>0)THEN
        ! restart
        CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
        U(NDIM)=PAR(ICP(2))
        RETURN
     ENDIF
 
-    ALLOCATE(DFU(NDM,NDM),F(NDM),V(NDM),SMAT(NDM,NDM))
-
     CALL READLB(AP,ICPRS,U,UDOT,PAR)
-
-    IF(IPS==-1)THEN
-       THTA=PI(2.d0)/PAR(11)
-       C1=-2*COS(THTA)
-       KAPPA=1d0
-       U(NDIM-1)=THTA
-    ELSE
-       PERIOD=PAR(11)
-       KAPPA=(PI(2.d0)/PERIOD)**2
-       C1=0d0
-       U(NDIM-1)=KAPPA
-    ENDIF
-    CALL FUNI(AP,NDM,U,U,ICP,PAR,1,F,DFU,DFP)
-
-    CALL DGEMM('n','n',NDM,NDM,NDM,1.d0,DFU, &
-         NDM,DFU,NDM,0.d0,SMAT,NDM)
-
-    DO I=1,NDM 
-       DO J=1,NDM
-          SMAT(I,J)=SMAT(I,J)+C1*DFU(I,J)
-       ENDDO
-       SMAT(I,I)=SMAT(I,I)+KAPPA
-    ENDDO
-    CALL NLVC(NDM,NDM,2,SMAT,V)
+    ALLOCATE(DFU(NDM,2*NDM+2),F(NDM),V(NDM),UOLD(NDM))
+    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,1,F,DFU,DFP)
+    CALL NLVC(NDM,NDM,2,DFU(1,NDM+1),V)
     CALL NRMLZ(NDM,V)
 
     DO I=1,NDM
        U(NDM+I)=V(I)
     ENDDO
-
     U(NDIM)=PAR(ICP(2))
 
-    DEALLOCATE(DFU,F,V,SMAT)
+    DEALLOCATE(DFU,F,V)
     NODIR=1
   END SUBROUTINE STPNHBF
 
@@ -990,39 +887,56 @@ CONTAINS
 
   END SUBROUTINE PRINTEIG
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,ITP,AA)
+! ---------- ------
+  SUBROUTINE STABEQ(AP,AA,EV,NINS,LOC)
+ 
+    ! determine stability given eigenvalues
+    ! the eigenvalues are sorted by real part
+    ! on output, NINS contains the number of negative (within tolerance)
+    !  eigenvalues, and LOC the position of the eigenvalue closest
+    !  to 0.
 
-    USE SUPPORT, ONLY: PI, EVV, EIG, CHECKSP, LBTYPE
-
-    DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7,RLARGE=1.0d+30
-
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    INTEGER, INTENT(OUT) :: ITP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
+    COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(:)
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
+    INTEGER, INTENT(OUT) :: NINS, LOC
 ! Local
+    INTEGER NDM,I,j,ITPST
+    DOUBLE PRECISION a,AR,AREV,tol,trace
     COMPLEX(KIND(1.0D0)) ZTMP
-    COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
-    DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:)
-    INTEGER NDM,IPS,ISP,ISW,IID,IBR,NTOT,NTOP,NINS,NINS1,I,j,LOC,ITPST
-    DOUBLE PRECISION a,AR,AREV,RIMHB,tol,trace,REV
 
     NDM=AP%NDM
-    IPS=AP%IPS
-    ISP=AP%ISP
-    ISW=AP%ISW
-    IID=AP%IID
-    IBR=AP%IBR
     ITPST=AP%ITPST
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-    ALLOCATE(EV(NDM))
 
-! INITIALIZE
+! Order the eigenvalues by real part.
+ 
+    DO I=1,NDM-1
+       LOC=I
+       DO J=I+1,NDM
+          IF(REAL(EV(J)).GE.REAL(EV(LOC)))THEN
+             LOC=J
+          ENDIF
+       ENDDO
+       IF(LOC>I) THEN
+          ZTMP=EV(LOC)
+          EV(LOC)=EV(I)
+          EV(I)=ZTMP
+       ENDIF
+    ENDDO
 
-    ITP=0
-    IF(IPS==0)RETURN
+! Compute the smallest real part.
+
+    AREV=HUGE(AREV)
+    LOC=0
+    DO I=1,NDM
+       IF(AIMAG(EV(I)).NE.0.d0.OR.ITPST==2)THEN
+          AR=ABS(REAL(EV(I)))
+          IF(AR.LE.AREV)THEN
+             AREV=AR
+             LOC=I
+          ENDIF
+       ENDIF
+    ENDDO
 
 ! Set tolerance for deciding if an eigenvalue is in the positive
 ! half-plane. Use, for example, tol=1d-3 for conservative systems.
@@ -1051,95 +965,86 @@ CONTAINS
        ENDIF
     ENDIF
 
+! Count the number of eigenvalues with negative real part.
+
+    NINS=0
+    DO I=1,NDM
+       IF(REAL(EV(I)).LE.tol)NINS=NINS+1
+    ENDDO
+  END SUBROUTINE STABEQ
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNHBAE(AP,PAR,ITP,AA)
+
+    USE SUPPORT, ONLY: PI, EVV, EIG, CHECKSP, LBTYPE
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    INTEGER, INTENT(OUT) :: ITP
+    DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
+! Local
+    COMPLEX(KIND(1.0D0)) ZTMP
+    COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
+    DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:)
+    INTEGER NDM,ISP,IID,IBR,NTOT,NTOP,NINS,I,LOC,ITPST
+    DOUBLE PRECISION AR,AREV,RIMHB,REV
+
+    NDM=AP%NDM
+    ISP=AP%ISP
+    IID=AP%IID
+    IBR=AP%IBR
+    ITPST=AP%ITPST
+    NTOT=AP%NTOT
+    NTOP=MOD(NTOT-1,9999)+1
+    ALLOCATE(EV(NDM))
+
+! INITIALIZE
+
+    ITP=0
+    IF(AP%IPS==0)RETURN
+
 ! Compute the eigenvalues of the Jacobian
 
     ALLOCATE(AAA(NDM,NDM))
     AAA(:,:)=AA(1:NDM,1:NDM)
     CALL EIG(AP,NDM,NDM,AAA,EV)
     DEALLOCATE(AAA)
-    IF(IPS.EQ.-1)THEN
-       DO I=1,NDM
-          IF(REAL(EV(I)).NE.-1.d0 .OR. &
-               AIMAG(EV(I)).NE. 0.d0)THEN
-             EV(I)=LOG(1.d0+EV(I))
-          ELSE
-             EV(I)= CMPLX(-RLARGE,0.d0,KIND(1.0D0))
-          ENDIF
-       ENDDO
-    ENDIF
 
-! Order the eigenvalues by real part.
+    CALL STABEQ(AP,AA,EV,NINS,LOC)
+    EVV(:)=EV(:)
 
-    DO I=1,NDM-1
-       LOC=I
-       DO J=I+1,NDM
-          IF(REAL(EV(J)).GE.REAL(EV(LOC)))THEN
-             LOC=J
-          ENDIF
-       ENDDO
-       IF(LOC>I) THEN
-          ZTMP=EV(LOC)
-          EV(LOC)=EV(I)
-          EV(I)=ZTMP
-       ENDIF
-    ENDDO
-
-! Compute the smallest real part.
-
-    AREV=HUGE(AREV)
     REV=0.d0
-    LOC=0
-    DO I=1,NDM
-       IF(AIMAG(EV(I)).NE.0.d0.OR.(ISW==2.AND.ITPST==2.AND.IPS/=-1))THEN
-          AR=ABS(REAL(EV(I)))
-          IF(AR.LE.AREV)THEN
-             AREV=AR
-             LOC=I
-          ENDIF
-       ENDIF
-    ENDDO
-    IF(ISW==2.AND.IPS/=-1)THEN
-       IF(ITPST==2)THEN
-          ! for Zero-Hopf on LP curves compute one-but-smallest real part
-          IF(AP%ITP/=-23)THEN ! No Bogdanov-Takens
-             AREV=HUGE(AREV)
-             DO I=1,NDM
-                AR=ABS(REAL(EV(I)))
-                IF(AR.LE.AREV.AND.I/=LOC)THEN
-                   AREV=AR
-                   REV=REAL(EV(I))
-                ENDIF
-             ENDDO
-          ENDIF
-       ELSE
-          ! Evaluate determinant on Hopf/BP bifurcations
-          ZTMP=1
+    IF(ITPST==2)THEN
+       ! for Zero-Hopf on LP curves compute one-but-smallest real part
+       IF(AP%ITP/=-23)THEN ! No Bogdanov-Takens
+          AREV=HUGE(AREV)
           DO I=1,NDM
-             ZTMP=ZTMP*EV(I)
+             AR=ABS(REAL(EV(I)))
+             IF(AR.LE.AREV.AND.I/=LOC)THEN
+                AREV=AR
+                REV=REAL(EV(I))
+             ENDIF
           ENDDO
-          REV=REAL(ZTMP)
        ENDIF
+    ELSEIF(ITPST/=0)THEN
+       ! Evaluate determinant on Hopf/BP bifurcations
+       ZTMP=1
+       DO I=1,NDM
+          ZTMP=ZTMP*EV(I)
+       ENDDO
+       REV=REAL(ZTMP)
     ELSEIF(LOC>0)THEN
        REV=REAL(EV(LOC))
        RIMHB=ABS(AIMAG(EV(LOC)))
-       IF(RIMHB.NE.0.d0.AND.ABS(ISW).LE.1)PAR(11)=PI(2.d0)/RIMHB
+       IF(RIMHB>0)PAR(11)=PI(2.d0)/RIMHB
     ENDIF
 
-! Count the number of eigenvalues with negative real part.
-
-    NINS1=0
-    DO I=1,NDM
-       IF(REAL(EV(I)).LE.tol)NINS1=NINS1+1
-    ENDDO
-
-    IF(IPS==-1)THEN
-       ITP=TPSPAE(AP%EPSS,ITPST,PAR(11))
-    ELSEIF(ITPST==3)THEN
+    IF(ITPST==3)THEN
        ITP=-32 ! Check for Zero-Hopf on HB
     ELSE
        ITP=3+10*ITPST
     ENDIF
-    IF((ISW==2.AND.IPS==-1).OR..NOT.CHECKSP(LBTYPE(ITP),IPS,AP%ILP,ISP))THEN
+    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
        FNHBAE=0d0
        ITP=0
     ELSE
@@ -1147,20 +1052,13 @@ CONTAINS
        IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBAE
     ENDIF
     AP%HBFF=FNHBAE
-    NINS=AP%NINS
-    IF(IPS/=-1.AND.ISW/=2)THEN
-       IF(ABS(NINS1-NINS)<2)ITP=0
+    IF(ITPST==0)THEN
+       IF(ABS(NINS-AP%NINS)<2)ITP=0
     ELSE
-       IF(NINS1==NINS)ITP=0
+       IF(NINS==AP%NINS)ITP=0
     ENDIF
-    NINS=NINS1
     AP%NINS=NINS
-
-    IF(IPS.EQ.-1)THEN
-       EVV(:)=EXP(EV(:))
-    ELSE
-       EVV(:)=EV(:)
-    ENDIF
+    CALL PRINTEIG(AP)
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 
@@ -1180,17 +1078,14 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:,:)
     INTEGER NDM,I
 
-    IF(AP%ISW==2.AND.AP%ITPST==2.AND.AP%IPS/=-1.AND.AP%ISP/=0.AND.&
-         AP%ISP/=3)THEN
-       NDM=AP%NDM
-       ALLOCATE(DFU(NDM,NDM))
-       DO I=1,NDM
-          DFU(1:NDM,I)=AA(I,1:NDM)
-       ENDDO
-       CALL NLVC(NDM,NDM,1,DFU,V)
-       CALL NRMLZ(NDM,V)
-       DEALLOCATE(DFU)
-    ENDIF
+    NDM=AP%NDM
+    ALLOCATE(DFU(NDM,NDM))
+    DO I=1,NDM
+       DFU(1:NDM,I)=AA(I,1:NDM)
+    ENDDO
+    CALL NLVC(NDM,NDM,1,DFU,V)
+    CALL NRMLZ(NDM,V)
+    DEALLOCATE(DFU)
   END SUBROUTINE RNULLVC
 
 ! ------ --------- -------- ------
@@ -1512,28 +1407,5 @@ CONTAINS
       END FUNCTION DERIV3
 
   END FUNCTION FNGHAE
-
-! ------- -------- ------
-  INTEGER FUNCTION TPSPAE(EPSS,ITPST,PERIOD)
-
-! Determines type of secondary bifurcation of maps.
-    
-    USE SUPPORT, ONLY: PI
-
-    INTEGER, INTENT(IN) :: ITPST
-    DOUBLE PRECISION, INTENT(IN) :: EPSS, PERIOD
-
-    IF(PERIOD-2 <= PERIOD/PI(1d0)*SQRT(EPSS))THEN
-!       ** period doubling
-       TPSPAE=7+10*ITPST
-    ELSEIF(PERIOD /= 0 .AND. PERIOD < PI(2d0)/SQRT(EPSS))THEN
-!       ** torus (Neimark-Sacker) bifurcation
-       TPSPAE=8+10*ITPST
-    ELSE
-!       ** something else... (very large PERIOD: close to fold)
-       TPSPAE=0
-    ENDIF
-
-  END FUNCTION TPSPAE
 
 END MODULE EQUILIBRIUM

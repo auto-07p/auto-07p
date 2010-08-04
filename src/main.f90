@@ -143,6 +143,7 @@
 
       USE BVPCONT
       USE EQUILIBRIUM
+      USE MAPS
       USE OPTIMIZATION
       USE PARABOLIC
       USE PERIODIC
@@ -176,9 +177,12 @@
       ENDIF
 
       SELECT CASE(IPS)
-      CASE(-1,0,1)
+      CASE(0,1)
          ! equilibria
          CALL AUTOEQ(AP,ICP,ICU)
+      CASE(-1)
+         ! fixed points in maps
+         CALL AUTODS(AP,ICP,ICU)
       CASE(2,4,7)
          ! periodic solutions and general BVPs
          IF(IPS==2.OR.(IPS==7.AND.ABS(ISW)<=1))THEN
