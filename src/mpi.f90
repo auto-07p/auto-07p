@@ -27,13 +27,13 @@ public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti
 public :: mpibcastap
 public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
+integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
+integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
+
 contains
 
 subroutine mpiini()
   include 'mpif.h'
-
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer ierr,iam,namelen
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
@@ -70,38 +70,18 @@ end function mpikwt
 subroutine mpiiap(ap)
   include 'mpif.h'
 
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
-
   type(autoparameters) :: ap
 
-  ! A few words about what is going on here.  ips, irs, isw, itp, and
-  ! nfpr are used to choose which functions are used for funi, icni, bcni, etc.
-  ! unfortunately, their values are changed in init1 and chdim.  In the
-  ! old version of AUTO the functions were already choosen by the point
-  ! these values were modified, so there was no problem.  Now, in the
-  ! message passing parallel version, the workers need both versions, since
-  ! they both need to select the appropriate functions (using the old values)
-  ! and actually compute (using the new values).
   integer ierr
-  integer funi_icni_params(5)
 
-  funi_icni_params(1)=ap%ips
-  funi_icni_params(2)=ap%irs
-  funi_icni_params(3)=ap%isw
-  funi_icni_params(4)=ap%itp
-  funi_icni_params(5)=ap%nfpr
   ! Send message to get worker into init mode
   call MPI_Bcast(AUTO_MPI_INIT_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-  call mpibcasti(funi_icni_params,5)
+  call mpibcastap(ap)
 
 end subroutine mpiiap
 
 logical function mpiwfi(autobv)
   include 'mpif.h'
-
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   logical :: autobv
 
@@ -197,9 +177,6 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
 
   include 'mpif.h'
-
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   type(autoparameters) :: ap
   integer, intent(in) :: ndim,icp(*)
@@ -427,9 +404,6 @@ end subroutine mpisum
 
 subroutine mpiend()
   include 'mpif.h'
-
-  integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
-  integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
   integer ierr
 

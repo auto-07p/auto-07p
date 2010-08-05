@@ -43,17 +43,14 @@
 !$           TIME0=omp_get_wtime()
           ENDIF
           CALL INIT(AP,EOF,KEYS,LINE)
-          IF(EOF)THEN
-             CALL MPIEND()
-             EXIT
-          ENDIF
+          IF(EOF)EXIT
           CALL FINDLB_OR_STOP(AP)
           CALL MPIIAP(AP)
           ALLOCATE(IICU(SIZE(ICU)))
           DO I=1,SIZE(ICU)
              IICU(I)=NAMEIDX(ICU(I),parnames)
           ENDDO
-          CALL AUTOI(AP,IICU,SIZE(IICU),.FALSE.)
+          CALL AUTOI(AP,IICU)
           DEALLOCATE(IICU)
 !-----------------------------------------------------------------------
 
@@ -72,6 +69,7 @@
           CALL CLEANUP()
           IF(KEYS)EXIT
        ENDDO
+       CALL MPIEND()
 
  301  FORMAT(/,' Total Time ',E12.3)
 
@@ -84,28 +82,15 @@
       IMPLICIT NONE
 
       TYPE(AUTOPARAMETERS) AP
-      INTEGER ICU(1),IPS,IRS,ISW
-
-      INTEGER FUNI_ICNI_PARAMS(5)
+      INTEGER, ALLOCATABLE :: ICU(:)
 
       DO WHILE(.TRUE.)
-         CALL MPIBCASTI(FUNI_ICNI_PARAMS,5)
-         ! figure out what funi and icni are from
-         ! the iap array. We do it here, since I
-         ! don't know how to pass function pointers
-         ! through MPI in a possibly heterogeneous 
-         ! environment :-)
-         IPS     = FUNI_ICNI_PARAMS(1)
-         AP%IPS  = IPS
-         IRS     = FUNI_ICNI_PARAMS(2)
-         AP%IRS  = IRS
-         ISW     = FUNI_ICNI_PARAMS(3)
-         AP%ISW = ISW
-         AP%ITP = FUNI_ICNI_PARAMS(4) ! itp
-         AP%NFPR = FUNI_ICNI_PARAMS(5) ! nfpr
-         ICU(1) = 0
-         CALL AUTOI(AP,ICU,SIZE(ICU),.TRUE.)
-         ! autoi calls autobv which eventually calls solvbv;
+         CALL MPIBCASTAP(AP)
+         ALLOCATE(ICU(AP%NICP))
+         CALL AUTOI(AP,ICU)
+         DEALLOCATE(ICU)
+         ! autoi eventually calls autobv with the subroutines based on
+         ! ap, which eventually calls solvbv;
          ! a return means another init message
       ENDDO
       END SUBROUTINE MPIWORKER
@@ -139,7 +124,7 @@
       END SUBROUTINE FINDLB_OR_STOP
 
 !     ---------- -----
-      SUBROUTINE AUTOI(AP,ICU,NICU,WORKER)
+      SUBROUTINE AUTOI(AP,ICU)
 
       USE BVPCONT
       USE EQUILIBRIUM
@@ -153,8 +138,7 @@
 
       IMPLICIT NONE
       TYPE(AUTOPARAMETERS) AP
-      INTEGER NICU,ICU(NICU)
-      LOGICAL WORKER
+      INTEGER ICU(AP%NICP)
 
       INTEGER IPS,ISW,NNICP,NPAR
       INTEGER, ALLOCATABLE :: ICP(:)
@@ -162,19 +146,17 @@
       IPS=AP%IPS
       ISW=AP%ISW
 
-      IF(.NOT.WORKER)THEN
-        NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
-        ALLOCATE(ICP(NNICP))
-        ICP(:SIZE(ICU))=ICU(:)
-        ICP(SIZE(ICU)+1:)=0
-        NPAR=AP%NPAR
-        NPAR=MAX(MAXVAL(ABS(ICU)),NPAR)
-        AP%NPAR=NPAR
-        CALL INIT1(AP)
-      ELSE
-        ! ignored for MPI workers
-        ALLOCATE(ICP(1))
-      ENDIF
+      ! transfer ICU array on MPI so the AUTO** subroutines can do their
+      ! work normally on the workers.
+      CALL MPIBCASTI(ICU,AP%NICP)
+      NNICP=MAX(5*(NBC+NINT-NDIM+1)+NDIM+NINT+3,5*SIZE(ICU)+NDIM+3)
+      ALLOCATE(ICP(NNICP))
+      ICP(:SIZE(ICU))=ICU(:)
+      ICP(SIZE(ICU)+1:)=0
+      NPAR=AP%NPAR
+      NPAR=MAX(MAXVAL(ABS(ICU)),NPAR)
+      AP%NPAR=NPAR
+      CALL INIT1(AP)
 
       SELECT CASE(IPS)
       CASE(0,1)
