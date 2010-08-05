@@ -631,7 +631,7 @@ CONTAINS
 
     include 'interfaces.h'
 
-    TYPE(AUTOPARAMETERS) AP
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER ICP(*),NDIM,NODIR
     DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),TM(0:*),DTM(*),PAR(*)
@@ -639,7 +639,7 @@ CONTAINS
     DOUBLE PRECISION THU(*)
 
     DOUBLE PRECISION, ALLOCATABLE :: U(:),UDOT(:)
-    INTEGER :: ICPRS(2),IRS,NTST,NCOL,ITP,NFPR,ISW,NCOLRS,NTSRS,I,J
+    INTEGER :: ICPRS(2),IRS,NTST,NCOL,ITP,NFPR,NCOLRS,NTSRS,I,J
 
     IRS=AP%IRS
     NTST=AP%NTST
@@ -707,8 +707,7 @@ CONTAINS
     IF(NODIR.EQ.-1)THEN
 !      ** Restart from a Hopf bifurcation.
        NODIR=0
-       ISW=1
-       AP%ISW=ISW
+       AP%ISW=1
     ELSE
 !      ** Restart from orbit.
        CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP)
@@ -727,7 +726,7 @@ CONTAINS
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
 
-    TYPE(AUTOPARAMETERS) AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
     DOUBLE PRECISION U(NDIM),PAR(*),RLDOT(AP%NFPR),THU(*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*)
@@ -819,7 +818,7 @@ CONTAINS
 
     include 'interfaces.h'
 
-    TYPE(AUTOPARAMETERS) AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER ICP(*),NDIM,IPERP
     DOUBLE PRECISION UDOTPS(NDIM,0:AP%NTST*AP%NCOL),DTM(*)
     DOUBLE PRECISION PAR(*),RLCUR(AP%NFPR),RLOLD(AP%NFPR),RLDOT(AP%NFPR)
@@ -1130,7 +1129,7 @@ CONTAINS
 !  MAX U(*)   : The maxima of the first few solution components.
 !  PAR(ICP(*)): Further free parameters (if any).
 
-    TYPE(AUTOPARAMETERS) AP
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER ICP(*),ICU(*),NDIM,ISTOP
     DOUBLE PRECISION PAR(*),TM(*),DTM(*),UPS(*),THU(*)
     DOUBLE PRECISION RLDOT(AP%NFPR),UDOTPS(*)
@@ -1290,7 +1289,7 @@ CONTAINS
 !
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
-    TYPE(AUTOPARAMETERS) AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER ICP(*),NDIM
     DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
     DOUBLE PRECISION PAR(*),RLDOT(AP%NFPR)

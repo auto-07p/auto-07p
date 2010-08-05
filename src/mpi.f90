@@ -18,7 +18,7 @@
 
 module autompi
 
-use auto_constants, only: autoparameters
+use auto_constants, only: autoparameters, niap, nrap
 
 implicit none
 private
@@ -30,10 +30,11 @@ public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
+include 'mpif.h'
+
 contains
 
 subroutine mpiini()
-  include 'mpif.h'
 
   integer ierr,iam,namelen
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
@@ -54,22 +55,16 @@ subroutine mpiini()
 end subroutine mpiini
 
 integer function mpiiam()
-  include 'mpif.h'
-
   integer ierr
   call MPI_Comm_rank(MPI_COMM_WORLD,mpiiam,ierr)
 end function mpiiam
 
 integer function mpikwt()
-  include 'mpif.h'
-
   integer ierr
   call MPI_Comm_size(MPI_COMM_WORLD,mpikwt,ierr)
 end function mpikwt
 
 subroutine mpiiap(ap)
-  include 'mpif.h'
-
   type(autoparameters) :: ap
 
   integer ierr
@@ -81,8 +76,6 @@ subroutine mpiiap(ap)
 end subroutine mpiiap
 
 logical function mpiwfi(autobv)
-  include 'mpif.h'
-
   logical :: autobv
 
   integer :: message_type, ierr
@@ -121,8 +114,6 @@ subroutine partition(n,kwt,m)
 end subroutine partition
 
 subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
-  include 'mpif.h'
-
   integer :: ntst, nov, ncb, nrc, ifst
   double precision :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*),cc(nov,nrc,*)
   double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
@@ -175,8 +166,6 @@ end subroutine mpicon
 
 subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
-
-  include 'mpif.h'
 
   type(autoparameters) :: ap
   integer, intent(in) :: ndim,icp(*)
@@ -251,8 +240,6 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
-  include 'mpif.h'
-
   integer :: len
   double precision :: buf(len)
 
@@ -262,8 +249,6 @@ subroutine mpibcast(buf,len)
 end subroutine mpibcast
 
 subroutine mpibcasti(buf,len)
-  include 'mpif.h'
-
   integer, intent(in) :: len
   integer, intent(inout) :: buf(len)
 
@@ -273,36 +258,16 @@ subroutine mpibcasti(buf,len)
 end subroutine mpibcasti
 
 subroutine mpibcastap(ap)
-  include 'mpif.h'
-
   type(autoparameters), intent(inout) :: ap
 
   integer :: ierr
-  integer :: iap(35)
 
-  iap = (/ap%ndim, ap%ips,  ap%irs,  ap%ilp,   ap%ntst, ap%ncol, ap%iad,  &
-          ap%iads, ap%isp,  ap%isw,  ap%iplt,  ap%nbc,  ap%nint, ap%nmx,  &
-          ap%nuzr, ap%npr,  ap%mxbf, ap%iid,   ap%itmx, ap%itnw, ap%nwtn, &
-          ap%jac,  ap%npar, ap%ndm,  ap%npari, ap%itds, ap%itp,  ap%itpst,&
-          ap%nfpr, ap%ibr,  ap%ntot, ap%nins,  ap%lab,  ap%nicp, ap%nrev /)
-  
-  call MPI_Bcast(iap,34,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-
-  ap%ndim = iap(1);  ap%ips  = iap(2);  ap%irs  = iap(3);  ap%ilp  = iap(4)
-  ap%ntst = iap(5);  ap%ncol = iap(6);  ap%iad  = iap(7);  ap%iads = iap(8)
-  ap%isp  = iap(9);  ap%isw  = iap(10); ap%iplt = iap(11); ap%nbc  = iap(12)
-  ap%nint = iap(13); ap%nmx  = iap(14); ap%nuzr = iap(15); ap%npr  = iap(16)
-  ap%mxbf = iap(17); ap%iid  = iap(18); ap%itmx = iap(19); ap%itnw = iap(20)
-  ap%nwtn = iap(21); ap%jac  = iap(22); ap%npar = iap(23); ap%ndm  = iap(24)
-  ap%npari= iap(25); ap%itds = iap(26); ap%itp  = iap(27); ap%itpst= iap(28)
-  ap%nfpr = iap(29); ap%ibr  = iap(30); ap%ntot = iap(31); ap%nins = iap(32)
-  ap%lab  = iap(33); ap%nicp = iap(34); ap%nrev = iap(35)
+  call MPI_Bcast(ap%ndim,NIAP,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(ap%ds,NRAP,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)
-  include 'mpif.h'
-
   integer ndx,n,add
   double precision :: buf(*)
 
@@ -335,8 +300,6 @@ subroutine mpiscat(buf,ndx,n,add)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
-  include 'mpif.h'
-
   integer ndx,n
   double precision :: buf(ndx,*)
 
@@ -370,8 +333,6 @@ subroutine mpigat(buf,ndx,n)
 end subroutine mpigat
 
 subroutine mpisum(buf,len)
-  include 'mpif.h'
-
   integer :: len
   double precision :: buf(len)
 
@@ -403,8 +364,6 @@ subroutine mpisum(buf,len)
 end subroutine mpisum
 
 subroutine mpiend()
-  include 'mpif.h'
-
   integer ierr
 
   call MPI_Bcast(AUTO_MPI_KILL_MESSAGE,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -413,8 +372,6 @@ subroutine mpiend()
 end subroutine mpiend
 
 subroutine mpitim(tim)
-  include 'mpif.h'
-
   double precision tim
   tim = MPI_Wtime()
 end subroutine mpitim  
