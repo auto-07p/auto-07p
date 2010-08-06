@@ -1372,6 +1372,7 @@ initCoordAndLableListItems()
             case 35:
                 nty = 11; // 'GH'
                 break;
+            case 28:
             case 58:
                 nty = -5; // 'R1'
                 break;

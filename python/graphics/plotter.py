@@ -457,7 +457,7 @@ class plotter(grapher.GUIGrapher):
             [[35],  "generalized_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
-            [[-5,58],"1_1_resonance_symbol"],
+            [[-5,28,58],"1_1_resonance_symbol"],
             [[78,87],"1_2_resonance_symbol"],
             [[88],  "1_3_resonance_symbol"],
             [[-8],  "1_4_resonance_symbol"],

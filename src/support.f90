@@ -445,7 +445,7 @@ CONTAINS
        NTY=10 ! 'ZH'
     CASE(35)
        NTY=11 ! 'GH'
-    CASE(58)
+    CASE(28,58)
        NTY=-5 ! 'R1'
     CASE(78,87)
        NTY=12 ! 'R2'
@@ -471,7 +471,7 @@ CONTAINS
     CASE('UZ')
        CHECKSP = .TRUE.
     CASE('HB','BT','ZH','GH','CP')
-       CHECKSP = (IPS==1.OR.IPS==11).AND.ISP/=0.AND.ISP/=3
+       CHECKSP = (IPS==-1.OR.IPS==1.OR.IPS==11).AND.ISP/=0.AND.ISP/=3
     CASE('LP')
        CHECKSP = ILP/=0
     CASE('BP')

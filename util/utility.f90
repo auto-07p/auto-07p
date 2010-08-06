@@ -433,7 +433,7 @@ CONTAINS
          NTY=10 ! 'ZH'
       CASE(35)
          NTY=11 ! 'GH'
-      CASE(58)
+      CASE(28,58)
          NTY=-5 ! 'R1'
       CASE(78,87)
          NTY=12 ! 'R2'

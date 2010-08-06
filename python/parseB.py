@@ -64,7 +64,7 @@ def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
     if type == -32:
         type = 23
-    elif type == 58:
+    elif type == 58 or type == 28:
         type = -5
     elif type == 87:
         type = 78
