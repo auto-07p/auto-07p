@@ -126,7 +126,8 @@
 !     ---------- -----
       SUBROUTINE AUTOI(AP,ICU)
 
-      USE BVPCONT
+      USE TOOLBOXAE
+      USE TOOLBOXBV
       USE EQUILIBRIUM
       USE MAPS
       USE OPTIMIZATION

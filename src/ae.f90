@@ -11,7 +11,7 @@ MODULE AE
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: AUTOAE,STPNAE,FNCSAE
+  PUBLIC :: AUTOAE
 
 CONTAINS
 
@@ -278,92 +278,6 @@ CONTAINS
 
     DEALLOCATE(PAR,THL,THU,IUZ,VUZ,EVV,AA,P1V,U,UDOT,STUD,STU,TEST)
   END SUBROUTINE CNRLAE
-
-! ---------- ------
-  SUBROUTINE STPNUS(AP,PAR,U,UDOT,NODIR)
-
-! Gets the starting data from user supplied STPNT
-
-    USE AUTO_CONSTANTS, ONLY : UVALS, PARVALS, unames, parnames
-    USE SUPPORT, ONLY: NAMEIDX
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(OUT) :: NODIR
-    DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
-
-    INTEGER NDIM,I
-    DOUBLE PRECISION T
-
-    NDIM=AP%NDIM
-    T=0.d0
-    U(:NDIM)=0.d0
-
-    CALL STPNT(NDIM,U,PAR,T)
-
-! override parameter/point values with values from constants file
-
-    DO I=1,SIZE(UVALS)
-       U(NAMEIDX(UVALS(I)%INDEX,unames))=UVALS(I)%VAR
-    ENDDO
-    DO I=1,SIZE(PARVALS)
-       PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
-    ENDDO
-
-    UDOT(1)=0
-    NODIR=1
-    
-  END SUBROUTINE STPNUS
-
-! ---------- ------
-  SUBROUTINE STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
-
-    USE IO
-
-    ! Gets the starting data from unit 3
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(IN) :: ICP(*)
-    INTEGER, INTENT(OUT) :: NODIR
-    DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
-
-    INTEGER NFPR,NFPRS,I,IPS,ITP,ISW,ITDS
-    INTEGER,ALLOCATABLE :: ICPRS(:)
-
-    IF(AP%IRS==0)THEN
-       CALL STPNUS(AP,PAR,U,UDOT,NODIR)
-       RETURN
-    ENDIF
-
-    NFPRS=GETNFPR3()
-    ALLOCATE(ICPRS(NFPRS))
-    ICPRS(:)=0
-    CALL READLB(AP,ICPRS,U,UDOT,PAR)
-  
-    ! Take care of the case where the free parameters have been changed at
-    ! the restart point.
-
-    NODIR=0
-    NFPR=AP%NFPR
-    IF(NFPRS/=NFPR)THEN
-       NODIR=1
-    ELSE
-       DO I=1,NFPR
-          IF(ICPRS(I)/=ICP(I)) THEN
-             NODIR=1
-             EXIT
-          ENDIF
-       ENDDO
-    ENDIF
-    DEALLOCATE(ICPRS)
-
-    IPS=AP%IPS
-    ISW=AP%ISW
-    ITP=AP%ITP
-    IF(IPS==-1.AND.ISW==-1.AND.ITP==7)THEN
-       ! period doubling for maps: set iteration count
-       ITDS=NINT(AINT(PAR(11)))
-       AP%ITDS=ITDS
-    ENDIF
-
-  END SUBROUTINE STPNAE
 
 ! ---------- ------
   SUBROUTINE STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,IPERP,AA)
@@ -858,107 +772,6 @@ CONTAINS
 103 FORMAT(I4,I6,' NOTE:Possible special point')
   END SUBROUTINE LCSPAE
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNCSAE(AP,ICP,U,NDIM,PAR,ITEST,ITP) RESULT(Q)
-
-    USE SUPPORT, ONLY: AA=>P0V
-    USE INTERFACES, ONLY: PVLSI
-
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM
-    DOUBLE PRECISION, INTENT(IN) :: U(*)
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    INTEGER, INTENT(IN) :: ITEST
-    INTEGER, INTENT(OUT) :: ITP
-
-    Q=0.d0
-    ITP=0
-    SELECT CASE(ITEST)
-    CASE(0)
-       CALL PVLSI(AP,U,NDIM,PAR)
-    CASE(1) ! Check for fold
-       Q=FNLPAE(AP,ITP,AA)
-    CASE(2) ! Check for branch point
-       Q=FNBPAE(AP,ITP)
-    END SELECT
-
-  END FUNCTION FNCSAE
-
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBPAE(AP,ITP)
-
-    USE SUPPORT, ONLY: CHECKSP
-
-    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(OUT) :: ITP
-
-    INTEGER IID,IBR,NTOT,NTOP
-    DOUBLE PRECISION DET
-
-    ITP=0
-    IF(.NOT.CHECKSP('BP',AP%IPS,AP%ILP,AP%ISP))RETURN
-
-    IID=AP%IID
-    IBR=AP%IBR
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-
-    DET=AP%DET
-    FNBPAE=DET
-    ITP=1+10*AP%ITPST
-
-! If requested write additional output on unit 9 :
-
-    IF(IID.GE.2)WRITE(9,101)IBR,NTOP+1,FNBPAE
-101 FORMAT(I4,I6,9X,'BP   Function:',ES14.5)
-
-  END FUNCTION FNBPAE
-
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNLPAE(AP,ITP,AA)
-
-    USE SUPPORT
-
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(OUT) :: ITP
-    DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
-! Local
-    DOUBLE PRECISION, ALLOCATABLE :: UD(:),AAA(:,:),RHS(:)
-
-    INTEGER NDIM,IID,IBR,NTOT,NTOP
-    DOUBLE PRECISION DET
-
-    ITP=0
-    IF(.NOT.CHECKSP('LP',AP%IPS,AP%ILP,AP%ISP))RETURN
-
-    NDIM=AP%NDIM
-    IID=AP%IID
-    IBR=AP%IBR
-    NTOT=AP%NTOT
-    NTOP=MOD(NTOT-1,9999)+1
-
-    ALLOCATE(AAA(NDIM+1,NDIM+1),RHS(NDIM+1))
-    AAA(:,:)=AA(:,:)
-    RHS(1:NDIM)=0.d0
-    RHS(NDIM+1)=1.d0
-
-    ALLOCATE(UD(NDIM+1))
-    CALL GEL(NDIM+1,AAA,1,UD,RHS,DET)
-!   don't store DET here: it is for a different matrix than
-!   used with pseudo arclength continuation and sometimes has
-!   a  different sign
-    CALL NRMLZ(NDIM+1,UD)
-    FNLPAE=UD(NDIM+1)
-    DEALLOCATE(UD,AAA,RHS)
-    AP%FLDF=FNLPAE
-    ITP=2+10*AP%ITPST
-
-! If requested write additional output on unit 9 :
-
-    IF(IID.GE.2)WRITE(9,101)ABS(IBR),NTOP+1,FNLPAE
-101 FORMAT(I4,I6,9X,'Fold Function:',ES14.5)
-
-  END FUNCTION FNLPAE
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

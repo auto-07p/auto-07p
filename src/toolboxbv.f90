@@ -4,7 +4,7 @@
 !        (incl. BPs and Folds)
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-MODULE BVPCONT
+MODULE TOOLBOXBV
 
   USE AUTO_CONSTANTS, ONLY : AUTOPARAMETERS
   USE INTERFACES
@@ -1609,4 +1609,4 @@ CONTAINS
     DEALLOCATE(TMR,UPSR,UDOTPSR)
   END SUBROUTINE STPNBBP
 
-END MODULE BVPCONT
+END MODULE TOOLBOXBV

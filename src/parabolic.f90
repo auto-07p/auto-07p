@@ -11,8 +11,9 @@ MODULE PARABOLIC
   USE EQUILIBRIUM
   USE PERIODIC
   USE AE
+  USE TOOLBOXAE
   USE BVP
-  USE BVPCONT
+  USE TOOLBOXBV
 
   IMPLICIT NONE
   PRIVATE
@@ -227,7 +228,6 @@ CONTAINS
 
     USE IO
     USE SUPPORT
-    USE AE, ONLY: STPNAE
 
     ! Generates starting data for the continuation of folds.
 
