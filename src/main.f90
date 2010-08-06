@@ -160,7 +160,10 @@
       CALL INIT1(AP)
 
       SELECT CASE(IPS)
-      CASE(0,1)
+      CASE(0)
+         ! general algebraic equations (no Hopf, eigenvalues, stability)
+         CALL AUTOAEP(AP,ICP,ICU)
+      CASE(1)
          ! equilibria
          CALL AUTOEQ(AP,ICP,ICU)
       CASE(-1)
