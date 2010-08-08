@@ -450,19 +450,19 @@ class plotter(grapher.GUIGrapher):
         symbollist = [
             [[1,6], "bifurcation_symbol"],
             [[2,5], "limit_point_symbol"],
-            [[-2],  "cusp_symbol"],
             [[3],   "hopf_symbol"],
-            [[-3],  "bogdanov_takens_symbol"],
-            [[23,-32],"zero_hopf_symbol"],
-            [[35],  "generalized_hopf_symbol"],
+            [[-1],  "bogdanov_takens_symbol"],
+            [[-2],  "cusp_symbol"],
+            [[-32], "generalized_hopf_symbol"],
+            [[-3],  "zero_hopf_symbol"],
             [[7],   "period_doubling_symbol"],
             [[8],   "torus_symbol"],
-            [[-5,28,58],"1_1_resonance_symbol"],
-            [[78,87],"1_2_resonance_symbol"],
-            [[88],  "1_3_resonance_symbol"],
+            [[-5],  "1_1_resonance_symbol"],
+            [[-6],  "1_2_resonance_symbol"],
+            [[-7],  "1_3_resonance_symbol"],
             [[-8],  "1_4_resonance_symbol"],
             [[-4],  "user_point_symbol"]]
-        specialsymbols = [23,-32,35,58,78,87,88]
+        specialsymbols = [-32]
         dp = self.cget("stability")
         coordnames = branch.coordnames
         for j in range(len(xcolumns)):

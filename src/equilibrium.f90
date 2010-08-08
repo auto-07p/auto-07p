@@ -539,7 +539,7 @@ CONTAINS
     REV=0.d0
     IF(ITPST==2)THEN
        ! for Zero-Hopf on LP curves compute one-but-smallest real part
-       IF(AP%ITP/=-23)THEN ! No Bogdanov-Takens
+       IF(AP%ITP/=-21)THEN ! No Bogdanov-Takens
           AREV=HUGE(AREV)
           DO I=1,NDM
              AR=ABS(REAL(EV(I)))
@@ -562,8 +562,8 @@ CONTAINS
        IF(RIMHB>0)PAR(11)=PI(2.d0)/RIMHB
     ENDIF
 
-    IF(ITPST==3)THEN
-       ITP=-32 ! Check for Zero-Hopf on HB
+    IF(ITPST/=0)THEN
+       ITP=-3-10*ITPST ! Check for Zero-Hopf
     ELSE
        ITP=3+10*ITPST
     ENDIF
@@ -639,14 +639,14 @@ CONTAINS
 
     IF(AP%ITPST==2)THEN
        ! BT on Fold curve
-       FNBTEQ=FNBTAE(AP,ITP,U,AA)
+       FNBTEQ=FNBTAE(AP,U,AA)
     ELSEIF(AP%ITPST==3)THEN
        ! BT on Hopf curve
        FNBTEQ = U(AP%NDIM-1)
     ELSE
        RETURN
     ENDIF
-    ITP=-3-10*AP%ITPST
+    ITP=-1-10*AP%ITPST
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNBTEQ
@@ -792,7 +792,7 @@ CONTAINS
     FNGHEQ = (Gamma-2*Sigma+Delta)/(2*omega)
 
     DEALLOCATE(pI,pR,qR,qI,sR,sI,f1,f2,x,r,a,b,c,abc,tmp,SMAT,A1)
-    ITP=35
+    ITP=-32
 
     IF(AP%IID>=2)THEN
        NTOP=MOD(AP%NTOT-1,9999)+1

@@ -2041,9 +2041,13 @@ CONTAINS
     DOUBLE PRECISION AMIN,AZM1,D,AD
 
     THETA=0
-    IF(ITPST==5.OR.ITPST==7)THEN
-       ! 1:1 and 1:2 resonances
-       TPSPBV=8+10*ITPST
+    IF(ITPST==5)THEN
+       ! 1:1 resonance
+       TPSPBV=-5-10*ITPST
+       RETURN
+    ELSEIF(ITPST==7)THEN
+       ! 1:2 resonance
+       TPSPBV=-6-10*ITPST
        RETURN
     ELSEIF(ITPST==8)THEN
        TPSPBV=0
@@ -2053,9 +2057,9 @@ CONTAINS
        CASE(3) ! 1:4 res
           TPSPBV=-8-10*ITPST
        CASE(4) ! 1:3 res
-          TPSPBV=8+10*ITPST
+          TPSPBV=-7-10*ITPST
        CASE(6) ! 1:2 res
-          TPSPBV=7+10*ITPST
+          TPSPBV=-6-10*ITPST
        END SELECT
        RETURN
     ENDIF

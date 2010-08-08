@@ -433,24 +433,16 @@ CONTAINS
     ! returns the string label type corresponding to numerical type ITP
     INTEGER, INTENT(IN) :: ITP
 
-    CHARACTER*2, PARAMETER :: ATYPES(-9:13) = &
-         (/ 'MX','R4','  ','  ','R1','UZ','BT','CP','  ','  ', &
+    CHARACTER*2, PARAMETER :: ATYPES(-9:10) = &
+         (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
             'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-            'ZH','GH','R2','R3' /)
+            'GH' /)
 
     INTEGER NTY
 
     SELECT CASE(ITP)
-    CASE(23,-32)
-       NTY=10 ! 'ZH'
-    CASE(35)
-       NTY=11 ! 'GH'
-    CASE(28,58)
-       NTY=-5 ! 'R1'
-    CASE(78,87)
-       NTY=12 ! 'R2'
-    CASE(88)
-       NTY=13 ! 'R3'
+    CASE(-32)
+       NTY=10 ! 'GH'
     CASE DEFAULT
        NTY=MOD(ITP,10)
     END SELECT
@@ -506,26 +498,25 @@ CONTAINS
   SUBROUTINE INITSTOPCNTS(ISP,ILP,ITPST,COUNTS)
     USE AUTO_CONSTANTS, ONLY : STOPS, SP
     INTEGER, INTENT(IN) :: ISP,ILP,ITPST
-    INTEGER, INTENT(OUT) :: COUNTS(-9:13)
+    INTEGER, INTENT(OUT) :: COUNTS(-9:10)
 
     ! initialize the COUNTS array that determines when we need to stop
     ! at a special point
-    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:13) = &
-         (/ 'MX','R4','  ','  ','R1','UZ','BT','CP','  ','  ', &
+    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:10) = &
+         (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
             'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-            'ZH','GH','R2','R3' /)
+            'GH' /)
     INTEGER NTY,I
 
     COUNTS(:) = 0
 
     ! initialize from IPS, ISP, ILP, ITPST
     IF(ISP<0)THEN
-       COUNTS(-8) = 1 ! R4
-       COUNTS(-5) = 1 ! R1
-       COUNTS(-3:-2) = 1 ! BT,Cusp
+       COUNTS(-8:-5) = 1 ! R4,R3,R2,R1
+       COUNTS(-3:-1) = 1 ! ZH,Cusp,GH,BT
        COUNTS(1) = 1 ! BP (AE)
+       COUNTS(3) = 1 ! HB (AE)
        COUNTS(6:8) = 1 ! BP(BVP),PD,TR
-       COUNTS(12:13) = 1 ! R2,R3
     ENDIF
     IF(ILP<0)THEN
        COUNTS(2) = 1 ! LP (AE)
@@ -533,14 +524,14 @@ CONTAINS
     ENDIF
     IF(ITPST==3)THEN
        !BT on Hopf bif must always stop it
-       COUNTS(-3) = 1
+       COUNTS(-1) = 1
     ENDIF
 
     ! look both at SP and STOP: SP is for backwards compatibility
     ! but STOP is preferred
     DO I=1,SIZE(SP)
        IF (LEN_TRIM(SP(I))>2) THEN
-          DO NTY=-9,13
+          DO NTY=-9,10
              IF(SP(I)(1:2)==ATYPES(NTY)) THEN
                 READ(SP(I)(3:),*)COUNTS(NTY)
              ENDIF
@@ -549,7 +540,7 @@ CONTAINS
     ENDDO
     DO I=1,SIZE(STOPS)
        IF (LEN_TRIM(STOPS(I))>2) THEN
-          DO NTY=-9,13
+          DO NTY=-9,10
              IF(STOPS(I)(1:2)==ATYPES(NTY)) THEN
                 READ(STOPS(I)(3:),*)COUNTS(NTY)
              ENDIF
@@ -561,7 +552,7 @@ CONTAINS
 ! ------- -------- -------
   LOGICAL FUNCTION STOPPED(IUZ,ITEST,NUZR,ITP,COUNTS)
     INTEGER, INTENT(IN) :: IUZ(*),ITEST,NUZR,ITP
-    INTEGER, INTENT(INOUT) :: COUNTS(-9:13)
+    INTEGER, INTENT(INOUT) :: COUNTS(-9:10)
 
     ! determine if the given TY label has been reached n times so
     ! we need to stop
@@ -575,16 +566,8 @@ CONTAINS
     ENDIF
        
     SELECT CASE(ITP)
-    CASE(23,-32)
-       NTY=10 ! 'ZH'
-    CASE(35)
-       NTY=11 ! 'GH'
-    CASE(58)
-       NTY=-5 ! 'R1'
-    CASE(78,87)
-       NTY=12 ! 'R2'
-    CASE(88)
-       NTY=13 ! 'R3'
+    CASE(-32)
+       NTY=10 ! 'GH'
     CASE DEFAULT
        NTY=MOD(ITP,10)
     END SELECT

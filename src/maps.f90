@@ -310,24 +310,27 @@ CONTAINS
        ! Rn on Fold/PD curve
        IF(AP%ITPST==2)THEN
           IF(.NOT.CHECKSP('R1',AP%IPS,AP%ILP,AP%ISP))RETURN
+          ITP=-5
        ELSE
           IF(.NOT.CHECKSP('R2',AP%IPS,AP%ILP,AP%ISP))RETURN
+          ITP=-6
        ENDIF
-       FNRNDS=FNBTAE(AP,ITP,U,AA)
-       ITP=8+10*ITPST
+       ITP=ITP-10*ITPST
+       FNRNDS=FNBTAE(AP,U,AA)
     ELSEIF(ITPST==8)THEN
        ! check the angle for resonances on Torus bifurcations
        THETA=U(AP%NDIM-1)
        SELECT CASE(NINT(THETA*6/PI(1d0)))
        CASE(3) ! 1:4 res
-          ITP=-8-10*ITPST
+          ITP=-8
        CASE(4) ! 1:3 res
-          ITP=8+10*ITPST
+          ITP=-7
        CASE(6) ! 1:2 res
-          ITP=7+10*ITPST
+          ITP=-6
        CASE DEFAULT ! 1:1 res
-          ITP=-5-10*ITPST
+          ITP=-5
        END SELECT
+       ITP=ITP-10*ITPST
        IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,AP%ISP))ITP=0
        FNRNDS=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
     ELSE

@@ -421,24 +421,16 @@ CONTAINS
       ! returns the string label type corresponding to numerical type ITP
       INTEGER, INTENT(IN) :: ITP
 
-      CHARACTER*2, PARAMETER :: ATYPES(-9:13) = &
-           (/ 'MX','R4','  ','  ','R1','UZ','BT','CP','  ','  ', &
+      CHARACTER*2, PARAMETER :: ATYPES(-9:10) = &
+           (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
               'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-              'ZH','GH','R2','R3' /)
+              'GH' /)
 
       INTEGER NTY
 
       SELECT CASE(ITP)
-      CASE(23,-32)
-         NTY=10 ! 'ZH'
-      CASE(35)
-         NTY=11 ! 'GH'
-      CASE(28,58)
-         NTY=-5 ! 'R1'
-      CASE(78,87)
-         NTY=12 ! 'R2'
-      CASE(88)
-         NTY=13 ! 'R3'
+      CASE(-32)
+         NTY=10 ! 'GH'
       CASE DEFAULT
          NTY=MOD(ITP,10)
       END SELECT

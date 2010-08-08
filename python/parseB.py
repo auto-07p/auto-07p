@@ -40,9 +40,9 @@ type_translation_dict = {
       -2: {"long name" : "Cusp (algebraic problem)","short name" : "CP"},
        2: {"long name" : "Fold (algebraic problem)","short name" : "LP"},
        3: {"long name" : "Hopf bifurcation (algebraic problem)","short name" : "HB"},
-      23: {"long name" : "Zero-Hopf bifurcation (algebraic problem)","short name" : "ZH"},
-      -3: {"long name" : "Bogdanov-Takens bifurcation (algebraic problem)","short name" : "BT"},
-      35: {"long name" : "Generalized Hopf bifurcation (algebraic problem)","short name" : "GH"},
+      -3: {"long name" : "Zero-Hopf bifurcation (algebraic problem)","short name" : "ZH"},
+      -1: {"long name" : "Bogdanov-Takens bifurcation (algebraic problem)","short name" : "BT"},
+      -32: {"long name" : "Generalized Hopf bifurcation (algebraic problem)","short name" : "GH"},
        4: {"long name" : "Regular point (every NPR steps)","short name" : "RG"},
       -4: {"long name" : "User requested point","short name" : "UZ"},
        5: {"long name" : "Fold (ODE)","short name" : "LP"},
@@ -50,8 +50,8 @@ type_translation_dict = {
        7: {"long name" : "Period doubling bifurcation (ODE)","short name" : "PD"},
        8: {"long name" : "Bifurcation to invariant torus (ODE)","short name" : "TR"},
       -5: {"long name" : "1:1 Resonance bifurcation (ODE)","short name" : "R1"},
-      78: {"long name" : "1:2 Resonance bifurcation (ODE)","short name" : "R2"},
-      88: {"long name" : "1:3 Resonance bifurcation (ODE)","short name" : "R3"},
+      -6: {"long name" : "1:2 Resonance bifurcation (ODE)","short name" : "R2"},
+      -7: {"long name" : "1:3 Resonance bifurcation (ODE)","short name" : "R3"},
       -8: {"long name" : "1:4 Resonance bifurcation (ODE)","short name" : "R4"},
        9: {"long name" : "Normal begin or end","short name" : "EP"},
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
@@ -62,13 +62,7 @@ all_point_types = ["No Label",
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
-    if type == -32:
-        type = 23
-    elif type == 58 or type == 28:
-        type = -5
-    elif type == 87:
-        type = 78
-    if type not in [23,35,78,88]:
+    if type not in [-32]:
         if type>=0:
             type=type%10
         else:

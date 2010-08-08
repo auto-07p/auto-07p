@@ -760,20 +760,18 @@ CONTAINS
   END SUBROUTINE RNULLVC
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNBTAE(AP,ITP,U,AA)
+  DOUBLE PRECISION FUNCTION FNBTAE(AP,U,AA)
 
     ! evaluate Bogdanov-Takens/1:1/1:2-resonance test function
     ! this function is used by equilibrium.f90 and maps.f90.
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM), AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     INTEGER NDM
     DOUBLE PRECISION, ALLOCATABLE :: V(:)
 
     FNBTAE = 0
-    ITP=0
 
     NDM=AP%NDM
 
@@ -782,7 +780,6 @@ CONTAINS
     CALL RNULLVC(AP,AA,V)
     FNBTAE = DOT_PRODUCT(U(NDM+1:2*NDM),V(1:NDM))
     DEALLOCATE(V)
-    ITP=-23
 
   END FUNCTION FNBTAE
 

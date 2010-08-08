@@ -1355,9 +1355,9 @@ initCoordAndLableListItems()
 
     int nty;
     char tylabels[][3] = {
-         "MX","R4","  ","  ","R1","UZ","BT","CP","  ","  ",
+         "MX","R4","R3","R2","R1","UZ","ZH","CP","BT","  ",
          "BP","LP","HB","  ","LP","BP","PD","TR","EP",
-         "ZH","GH","R2","R3" };
+         "GH" };
     for( i=0; i<numLabels-SP_LBL_ITEMS; ++i)
     {
         std::stringstream s;
@@ -1365,23 +1365,8 @@ initCoordAndLableListItems()
         nty = 0;
         switch (clientData.labelIndex[i][2])
         {
-            case 23:
             case -32:
-                nty = 10; // 'ZH'
-                break;
-            case 35:
-                nty = 11; // 'GH'
-                break;
-            case 28:
-            case 58:
-                nty = -5; // 'R1'
-                break;
-            case 78:
-            case 87:
-                nty = 12; // 'R2'
-                break;
-            case 88:
-                nty = 13; // 'R3'
+                nty = 10; // 'GH'
                 break;
             default:
                 if (clientData.labelIndex[i][2] >= 0)
