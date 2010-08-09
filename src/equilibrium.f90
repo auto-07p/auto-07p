@@ -384,7 +384,6 @@ CONTAINS
        Q=FNGHEQ(AP,PAR,ICP,ITP,FUNI,U,AA)
     CASE(6) ! Check for Hopf or Zero-Hopf
        Q=FNHBEQ(AP,PAR,ITP,AA)
-       CALL PRINTEIG(AP)
     END SELECT
 
   END FUNCTION FNCSEQF
@@ -452,7 +451,7 @@ CONTAINS
     AREV=HUGE(AREV)
     LOC=0
     DO I=1,NDM
-       IF(AIMAG(EV(I)).NE.0.d0.OR.ITPST==2)THEN
+       IF(AIMAG(EV(I)).NE.0.d0.OR.ITPST==1.OR.ITPST==2)THEN
           AR=ABS(REAL(EV(I)))
           IF(AR.LE.AREV)THEN
              AREV=AR
@@ -537,8 +536,8 @@ CONTAINS
     EVV(:)=EV(:)
 
     REV=0.d0
-    IF(ITPST==2)THEN
-       ! for Zero-Hopf on LP curves compute one-but-smallest real part
+    IF(ITPST==1.OR.ITPST==2)THEN
+       ! Compute one-but-smallest real part
        IF(AP%ITP/=-21)THEN ! No Bogdanov-Takens
           AREV=HUGE(AREV)
           DO I=1,NDM
@@ -549,8 +548,8 @@ CONTAINS
              ENDIF
           ENDDO
        ENDIF
-    ELSEIF(ITPST/=0)THEN
-       ! Evaluate determinant on Hopf/BP bifurcations
+    ELSEIF(ITPST==3)THEN
+       ! Evaluate determinant on Hopf bifurcations
        ZTMP=1
        DO I=1,NDM
           ZTMP=ZTMP*EV(I)
