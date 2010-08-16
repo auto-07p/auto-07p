@@ -11,6 +11,8 @@
 * DLAMCH was rewritten to use Fortran-90 intrinsics, to avoid
 * over-optimization.
 *
+* DGESVJ was changed to not divide by zero for zero columns.
+*
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
 * met:
@@ -2506,10 +2508,14 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAPP.LT.( BIG / AAQQ ) ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+               IF( AAPP.GE.( BIG / AAQQ ) ) THEN
+                  NOSCALE = .FALSE.
+               ENDIF
+            ENDIF
+            IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
-               NOSCALE = .FALSE.
                SVA( p ) = AAPP*( AAQQ*SCALE )
                IF( GOSCALE ) THEN
                   GOSCALE = .FALSE.
@@ -2531,10 +2537,14 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAPP.LT.( BIG / AAQQ ) ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+               IF( AAPP.GE.( BIG / AAQQ ) ) THEN
+                  NOSCALE = .FALSE.
+               ENDIF
+            ENDIF
+            IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
-               NOSCALE = .FALSE.
                SVA( p ) = AAPP*( AAQQ*SCALE )
                IF( GOSCALE ) THEN
                   GOSCALE = .FALSE.
@@ -2556,10 +2566,14 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAPP.LT.( BIG / AAQQ ) ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+               IF( AAPP.GE.( BIG / AAQQ ) ) THEN
+                  NOSCALE = .FALSE.
+               ENDIF
+            ENDIF
+            IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
-               NOSCALE = .FALSE.
                SVA( p ) = AAPP*( AAQQ*SCALE )
                IF( GOSCALE ) THEN
                   GOSCALE = .FALSE.
