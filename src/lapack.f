@@ -681,7 +681,7 @@ C-----------------------------------------------------------------------
          ELSE
             RND = ZERO
             EPS = EPSILON(ONE)
-         ENDIF
+         END IF
          PREC = EPS*RADIX(ONE)
          RMAX = HUGE(ONE)
          SMALL = ONE / RMAX
@@ -693,7 +693,7 @@ C-----------------------------------------------------------------------
             SFMIN = SMALL*( ONE+EPS )
          ELSE
             SFMIN = TINY(ONE)
-         ENDIF
+         END IF
       END IF
 *
       IF( LSAME( CMACH, 'E' ) ) THEN
@@ -2508,11 +2508,11 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.ZERO ) .AND. NOSCALE ) THEN
                IF( AAPP.GE.( BIG / AAQQ ) ) THEN
                   NOSCALE = .FALSE.
-               ENDIF
-            ENDIF
+               END IF
+            END IF
             IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
@@ -2537,11 +2537,11 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.ZERO ) .AND. NOSCALE ) THEN
                IF( AAPP.GE.( BIG / AAQQ ) ) THEN
                   NOSCALE = .FALSE.
-               ENDIF
-            ENDIF
+               END IF
+            END IF
             IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
@@ -2566,11 +2566,11 @@ C-----------------------------------------------------------------------
                RETURN
             END IF
             AAQQ = DSQRT( AAQQ )
-            IF( ( AAQQ.NE.0 ) .AND. NOSCALE ) THEN
+            IF( ( AAQQ.NE.ZERO ) .AND. NOSCALE ) THEN
                IF( AAPP.GE.( BIG / AAQQ ) ) THEN
                   NOSCALE = .FALSE.
-               ENDIF
-            ENDIF
+               END IF
+            END IF
             IF( NOSCALE ) THEN
                SVA( p ) = AAPP*AAQQ
             ELSE
