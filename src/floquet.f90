@@ -264,7 +264,7 @@ CONTAINS
           EV(J+1) = CMPLX( QZALFR(J)/QZBETA(J), QZALFI(J)/QZBETA(J), &
                KIND(1.0D0) )
        ELSE
-          EV(J+1) = ( 1.0D+30, 1.0D+30 )
+          EV(J+1) = CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) )
           INFEV = .TRUE.
        END IF
     ENDDO
@@ -291,7 +291,7 @@ CONTAINS
           /,'        Floquet multiplier calculations may be wrong ')
 903 FORMAT(' NOTE : Warning from subroutine FLOWKM : ', &
           /,'        Infinite Floquet multiplier represented by ', &
-          /,'        CMPLX( 1.0D+30, 1.0D+30 )')
+          /,'        CMPLX( HUGE(1.0D0), HUGE(1.0D0) )')
 
   END SUBROUTINE FLOWKM
 

@@ -11,7 +11,7 @@ USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
 
 IMPLICIT NONE
 PRIVATE
-PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NRMLZ, RNRMV
+PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NULLVC, NRMLZ, RNRMV
 PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED, FNCS, INIT2, INIT3, NAMEIDX
 PUBLIC :: PVLI
 PUBLIC :: DTV,AV,P0V,P1V,EVV
@@ -112,7 +112,7 @@ CONTAINS
   END SUBROUTINE EIG
 
 ! ---------- ------
-  SUBROUTINE NULLVC(m,n,k,A,u,ic)
+  SUBROUTINE NULLVC(m,n,k,A,u,ic,irpiv)
 
 ! Finds a null-vector of a singular matrix A.
 ! The null space of A is assumed to be K-dimensional.
@@ -128,7 +128,7 @@ CONTAINS
 
     INTEGER, INTENT(IN) :: m,n,k
     DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
-    INTEGER, INTENT(OUT) :: ic(n)
+    INTEGER, INTENT(OUT) :: ic(n), irpiv(n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
     INTEGER i,j,jj,kk,l,ipiv,jpiv
@@ -169,6 +169,7 @@ CONTAINS
           A(ipiv,ic(jpiv)) = piv
        ENDIF
 
+       irpiv(jj)=ipiv
        IF(jj/=ipiv)THEN
           DO i=1,n
              tmp=A(jj,i)
@@ -227,11 +228,11 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
-    INTEGER, ALLOCATABLE :: ic(:)
+    INTEGER, ALLOCATABLE :: ic(:),irpiv(:)
 
-    ALLOCATE(ic(n))
-    CALL NULLVC(m,n,k,A,U,ic)
-    DEALLOCATE(ic)
+    ALLOCATE(ic(n),irpiv(n))
+    CALL NULLVC(m,n,k,A,U,ic,irpiv)
+    DEALLOCATE(ic,irpiv)
 
   END SUBROUTINE NLVC
 
