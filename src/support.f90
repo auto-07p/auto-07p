@@ -112,7 +112,7 @@ CONTAINS
   END SUBROUTINE EIG
 
 ! ---------- ------
-  SUBROUTINE NULLVC(m,n,k,A,u,ic,irpiv)
+  SUBROUTINE NULLVC(m,n,k,A,u,icpiv,irpiv)
 
 ! Finds a null-vector of a singular matrix A.
 ! The null space of A is assumed to be K-dimensional.
@@ -128,15 +128,11 @@ CONTAINS
 
     INTEGER, INTENT(IN) :: m,n,k
     DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
-    INTEGER, INTENT(OUT) :: ic(n), irpiv(n)
+    INTEGER, INTENT(OUT) :: icpiv(n), irpiv(n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
-    INTEGER i,j,jj,kk,l,ipiv,jpiv
+    INTEGER i,j,jj,l,ipiv,jpiv
     DOUBLE PRECISION p,piv,rm,sm,tmp,amax
-
-    DO i=1,n
-       ic(i)=i
-    ENDDO
 
 !   Elimination.
 
@@ -147,7 +143,7 @@ CONTAINS
        PIV=0.d0
        DO i=jj,m
           DO j=jj,n
-             p=ABS(A(i,ic(j)))
+             p=ABS(A(i,j))
              IF(p>piv)THEN
                 piv=p
                 ipiv=i
@@ -166,7 +162,7 @@ CONTAINS
                '        A null space may be multi-dimensional'
           ! to avoid overflow in most cases
           piv = MAX(amax/HUGE(piv),TINY(piv))
-          A(ipiv,ic(jpiv)) = piv
+          A(ipiv,jpiv) = piv
        ENDIF
 
        irpiv(jj)=ipiv
@@ -178,18 +174,21 @@ CONTAINS
           ENDDO
        ENDIF
 
+       icpiv(jj)=jpiv
        IF(jj/=jpiv)THEN
-          kk=ic(jj)
-          ic(jj)=ic(jpiv)
-          ic(jpiv)=kk
+          DO i=1,m
+             tmp=A(i,jj)
+             A(i,jj)=A(i,jpiv)
+             A(i,jpiv)=tmp
+          ENDDO
        ENDIF
 
-       piv=A(jj,ic(jj))
+       piv=A(jj,jj)
        DO l=jj+1,m
-          rm=A(l,ic(jj))/piv
+          rm=A(l,jj)/piv
           IF(rm/=0.d0)THEN
              DO i=jj+1,n
-                A(l,ic(i))=A(l,ic(i))-rm*A(jj,ic(i))
+                A(l,i)=A(l,i)-rm*A(jj,i)
              ENDDO
           ENDIF
        ENDDO
@@ -198,15 +197,26 @@ CONTAINS
 !   Backsubstitution :
 
     DO i=n,n-k+1,-1
-       u(ic(i))=1.d0
+       u(i)=1.d0
     ENDDO
 
     DO i=n-k,1,-1
        sm=0.d0
        DO j=i+1,n
-          sm=sm+A(i,ic(j))*u(ic(j))
+          sm=sm+A(i,j)*u(j)
        ENDDO
-       u(ic(i))=-sm/A(i,ic(i))
+       u(i)=-sm/A(i,i)
+    ENDDO
+
+!   undo column swapping on u
+
+    DO i=n-k,1,-1
+       jpiv=icpiv(i)
+       IF(jpiv/=i)THEN
+          tmp=u(i)
+          u(i)=u(jpiv)
+          u(jpiv)=tmp
+       ENDIF
     ENDDO
 
   END SUBROUTINE NULLVC
@@ -228,11 +238,11 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: A(m,n)
     DOUBLE PRECISION, INTENT(OUT) :: U(n)
 
-    INTEGER, ALLOCATABLE :: ic(:),irpiv(:)
+    INTEGER, ALLOCATABLE :: icpiv(:),irpiv(:)
 
-    ALLOCATE(ic(n),irpiv(n))
-    CALL NULLVC(m,n,k,A,U,ic,irpiv)
-    DEALLOCATE(ic,irpiv)
+    ALLOCATE(icpiv(n),irpiv(n))
+    CALL NULLVC(m,n,k,A,U,icpiv,irpiv)
+    DEALLOCATE(icpiv,irpiv)
 
   END SUBROUTINE NLVC
 

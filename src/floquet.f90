@@ -280,7 +280,7 @@ CONTAINS
 102 FORMAT('   C0 : ')
 103 FORMAT('   C1 : ')
 104 FORMAT(1X,6E23.16)
-105 FORMAT(' Deflated cicuit pencil (H2^T)*(C0, C1)*(H1) ')
+105 FORMAT(' Deflated circuit pencil (H2^T)*(C0, C1)*(H1) ')
 106 FORMAT('   (H2^T)*C0*(H1) : ')
 107 FORMAT('   (H2^T)*C1*(H1) : ')
 901 FORMAT(' NOTE : Warning from subroutine FLOWKM : ', &
