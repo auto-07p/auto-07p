@@ -292,7 +292,7 @@ CONTAINS
   END FUNCTION PI
 
 ! ---------- ----
-  SUBROUTINE GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,SCALE)
+  SUBROUTINE GELI(N,M1A,A,NRHS,NDX,U,M1F,F,ICPIV,DET,SCALE)
 
 ! Solves the linear system  A U = F by Gauss elimination
 ! with complete pivoting. Optionally returns a scaled determinant.
@@ -308,24 +308,18 @@ CONTAINS
 !   U   : on exit U contains the solution vector(s),
 !   M1F : first dimension of F from DIMENSION statement,
 !   F   : right hand side vector(s),
-!  IR,IC: integer vectors of dimension at least N.
+!  ICPIV: integer vector of dimension at least N.
 !
 ! The input matrix A is overwritten.
 
     INTEGER, INTENT(IN) :: N,M1A,NRHS,NDX,M1F
     DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,N),F(M1F,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(NDX,NRHS),DET
-    INTEGER, INTENT(OUT) :: IR(N),IC(N)
+    INTEGER, INTENT(OUT) :: ICPIV(N)
     LOGICAL, INTENT(IN) :: SCALE
 
-    INTEGER I,J,K,L,JJ,IRH,IPIV,JPIV
-    DOUBLE PRECISION P,PIV,AP,RM,SM,amax
-    DOUBLE PRECISION, EXTERNAL :: DLAMCH
-
-    DO I=1,N
-       IC(I)=I
-       IR(I)=I
-    ENDDO
+    INTEGER I,J,L,JJ,IRH,IPIV,JPIV
+    DOUBLE PRECISION P,PIV,AP,RM,SM,amax,TMP
 
 !   Elimination.
 
@@ -338,7 +332,7 @@ CONTAINS
        PIV=0.d0
        DO I=JJ,N
           DO J=JJ,N
-             P=ABS(A(IR(I),IC(J)))
+             P=ABS(A(I,J))
              IF(P.GT.PIV)THEN
                 PIV=P
                 IPIV=I
@@ -347,7 +341,7 @@ CONTAINS
           ENDDO
        ENDDO
 
-       AP=A(IR(IPIV),IC(JPIV))
+       AP=A(IPIV,JPIV)
        IF(SCALE)THEN
           DET=DET*LOG10(10+ABS(AP)) * atan(AP)
        ELSE
@@ -365,35 +359,52 @@ CONTAINS
                ' NOTE:Pivot ',JJ,' = ',PIV,' <= ||A||_max/',HUGE(PIV),' = ', &
                amax/HUGE(PIV),' in GE'
           ! to avoid overflow in most cases
-          A(IR(IPIV),IC(JPIV)) = MAX(amax/HUGE(PIV),TINY(PIV))
+          A(IPIV,JPIV) = MAX(amax/HUGE(PIV),TINY(PIV))
        ENDIF
-       K=IR(JJ)
-       IR(JJ)=IR(IPIV)
-       IR(IPIV)=K
 
-       K=IC(JJ)
-       IC(JJ)=IC(JPIV)
-       IC(JPIV)=K
+       IF(IPIV/=JJ)THEN
+          ! swap rows
+          DO I=1,N
+             TMP=A(JJ,I)
+             A(JJ,I)=A(IPIV,I)
+             A(IPIV,I)=TMP
+          ENDDO
+          DO IRH=1,NRHS
+             TMP=F(JJ,IRH)
+             F(JJ,IRH)=F(IPIV,IRH)
+             F(IPIV,IRH)=TMP
+          ENDDO
+       ENDIF
+
+       ICPIV(JJ)=JPIV
+       IF(JPIV/=JJ)THEN
+          ! swap columns
+          DO J=1,N
+             TMP=A(J,JJ)
+             A(J,JJ)=A(J,JPIV)
+             A(J,JPIV)=TMP
+          ENDDO
+       ENDIF
 
        DO L=JJ+1,N
-          RM=A(IR(L),IC(JJ))/A(IR(JJ),IC(JJ))
+          RM=A(L,JJ)/A(JJ,JJ)
           IF(RM.NE.0.d0)THEN
              DO I=JJ+1,N
-                A(IR(L),IC(I))=A(IR(L),IC(I))-RM*A(IR(JJ),IC(I))
+                A(L,I)=A(L,I)-RM*A(JJ,I)
              ENDDO
              DO IRH=1,NRHS
-                F(IR(L),IRH)=F(IR(L),IRH)-RM*F(IR(JJ),IRH)
+                F(L,IRH)=F(L,IRH)-RM*F(JJ,IRH)
              ENDDO
           ENDIF
        ENDDO
     ENDDO
-    AP=A(IR(N),IC(N))
+    AP=A(N,N)
     IF(ABS(AP)<=amax/HUGE(AP))THEN
        WRITE(9,"(8x,A,I3,A,ES11.4E3,A,ES11.4E3,A,ES11.4E3,A)")&
             ' NOTE:Pivot ',N,' = ',ABS(AP),' <= ||A||_max/',HUGE(AP),' = ', &
             amax/HUGE(AP),' in GE'
        ! to avoid overflow in most cases
-       A(IR(N),IC(N)) = MAX(amax/HUGE(AP),TINY(AP))
+       A(N,N) = MAX(amax/HUGE(AP),TINY(AP))
     ENDIF
     IF(SCALE)THEN
        DET=DET*LOG10(10+ABS(AP)) * atan(AP)
@@ -404,14 +415,27 @@ CONTAINS
 !   Backsubstitution :
 
     DO IRH=1,NRHS
-       U(IC(N),IRH)=F(IR(N),IRH)/A(IR(N),IC(N))
+       U(N,IRH)=F(N,IRH)/A(N,N)
        DO I=N-1,1,-1
           SM=0.d0
           DO J=I+1,N
-             SM=SM+A(IR(I),IC(J))*U(IC(J),IRH)
+             SM=SM+A(I,J)*U(J,IRH)
           ENDDO
-          U(IC(I),IRH)=(F(IR(I),IRH)-SM)/A(IR(I),IC(I))
+          U(I,IRH)=(F(I,IRH)-SM)/A(I,I)
        ENDDO
+    ENDDO
+
+!   undo column swapping on U
+
+    DO I=N-1,1,-1
+       JPIV=ICPIV(I)
+       IF(JPIV/=I)THEN
+          DO IRH=1,NRHS
+             TMP=U(I,IRH)
+             U(I,IRH)=U(JPIV,IRH)
+             U(JPIV,IRH)=TMP
+          ENDDO
+       ENDIF
     ENDDO
 
   END SUBROUTINE GELI
@@ -421,10 +445,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: N,NRHS
     DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
-    INTEGER, ALLOCATABLE :: IR(:),IC(:)
-    ALLOCATE(IR(N),IC(N))
-    CALL GELI(N,N,A,NRHS,N,U,N,F,IR,IC,DET,.FALSE.)
-    DEALLOCATE(IR,IC)
+    INTEGER, ALLOCATABLE :: ICPIV(:)
+    ALLOCATE(ICPIV(N))
+    CALL GELI(N,N,A,NRHS,N,U,N,F,ICPIV,DET,.FALSE.)
+    DEALLOCATE(ICPIV)
   END SUBROUTINE GEL
 
 ! ---------- ----
@@ -432,10 +456,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: N,NRHS
     DOUBLE PRECISION, INTENT(INOUT) :: A(N,N),F(N,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(N,NRHS),DET
-    INTEGER, ALLOCATABLE :: IR(:),IC(:)
-    ALLOCATE(IR(N),IC(N))
-    CALL GELI(N,N,A,NRHS,N,U,N,F,IR,IC,DET,.TRUE.)
-    DEALLOCATE(IR,IC)
+    INTEGER, ALLOCATABLE :: ICPIV(:)
+    ALLOCATE(ICPIV(N))
+    CALL GELI(N,N,A,NRHS,N,U,N,F,ICPIV,DET,.TRUE.)
+    DEALLOCATE(ICPIV)
   END SUBROUTINE GESC
 
 ! ------------ -------- ------
@@ -807,11 +831,11 @@ END MODULE SUPPORT
   SUBROUTINE GE(IAM,N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET)
     USE SUPPORT
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: IAM,N,M1A,NRHS,NDX,M1F
+    INTEGER, INTENT(IN) :: IAM,N,M1A,NRHS,NDX,M1F,IR(N)
     DOUBLE PRECISION, INTENT(INOUT) :: A(M1A,N),F(M1F,NRHS)
     DOUBLE PRECISION, INTENT(OUT) :: U(NDX,NRHS),DET
-    INTEGER, INTENT(OUT) :: IR(N),IC(N)
-    CALL GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IR,IC,DET,.FALSE.)
+    INTEGER, INTENT(OUT) :: IC(N)
+    CALL GELI(N,M1A,A,NRHS,NDX,U,M1F,F,IC,DET,.FALSE.)
   END SUBROUTINE GE
 
 ! ------ --------- -------- ----
