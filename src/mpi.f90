@@ -180,7 +180,7 @@ end subroutine mpicon
 recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
 
 ! Arguments
-  integer lo,hi,ntst,ifst,kwt
+  integer lo,hi,ntst,kwt
   logical ia1(*),ia2(*),is1(*),icc(*)
 
 ! Local 
@@ -227,7 +227,7 @@ subroutine mpigatidx(idx,a,nc,nr,np,ntst,iam)
   integer nc, nr, np(*), ntst, iam
   double precision a(nc,nr,*)
 
-  integer base, i, ii, j, ierr, ireq
+  integer base, i, ii, j, ierr
   integer status(MPI_STATUS_SIZE)
 
   base=np(1)
