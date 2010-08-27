@@ -121,27 +121,39 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   double precision, allocatable :: ccb(:,:,:)
   integer,allocatable :: np(:)
   integer :: i,ii,j,k,ierr,iam,kwt
+  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst+1)
+
+  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
+  allocate(np(kwt))
+  call partition(ntst,kwt,np)
 
   ! Worker is running now
 
-  call mpigat(faa,nov,ntst)
+  ia1=.false.
+  ia2=.false.
+  is1=.false.
+  icc=.false.
+  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc)
+
+  call mpigatidx(ia2,faa,1,nov,np,ntst,iam)
   call mpisum(fc,nrc)
 
-  if(ifst==0)return
+  if(ifst==0)then
+     deallocate(np)
+     return
+  endif
 
-  call mpigat(s1,nov*nov,ntst)
-  call mpigat(a1,nov*nov,ntst)
-  call mpigat(a2,nov*nov,ntst)
-  call mpigat(bb,nov*ncb,ntst)
+  call mpigatidx(is1,s1,nov,nov,np,ntst,iam)
+  call mpigatidx(ia1,a1,nov,nov,np,ntst,iam)
+  call mpigatidx(ia2,a2,nov,nov,np,ntst,iam)
+  call mpigatidx(ia2,bb,ncb,nov,np,ntst,iam)
 
-  call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
-  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  allocate(ccb(nov,nrc,kwt),np(kwt))
-  call partition(ntst,kwt,np)
+  allocate(ccb(nov,nrc,kwt))
   call MPI_Gather(cc(1,1,np(iam+1)+1),nov*nrc,MPI_DOUBLE_PRECISION, &
        ccb,nov*nrc,MPI_DOUBLE_PRECISION, &
        0,MPI_COMM_WORLD,ierr)
-  call mpigat(cc,nov*nrc,ntst)
+  call mpigatidx(icc,cc,nov,nrc,np,ntst,iam)
 
   if(iam==0)then
      ii = 0
@@ -163,6 +175,82 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
 
   call mpisum(d,ncb*nrc)
 end subroutine mpicon
+
+!-------- ---------- ---------
+recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
+
+! Arguments
+  integer lo,hi,ntst,ifst,kwt
+  logical ia1(*),ia2(*),is1(*),icc(*)
+
+! Local 
+  integer mid
+
+! This is a check for the master reduction so it will stop as soon
+! as there is no more overlap (already handled by workers).
+  if((lo*kwt-1)/ntst.eq.(hi*kwt-1)/ntst)return
+
+! Obtain indices of matrices used for reduce in the master
+! so we know which parts to send to it.
+
+  mid=(lo+hi)/2
+
+  if(lo<mid) &
+       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc)
+
+  if(mid+1<hi) &
+       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc)
+
+  if(lo==mid)then
+     ia1(mid)=.true.
+  else
+     is1(mid)=.true.
+  endif
+  if(mid+1<hi)then
+     is1(hi)=.true.
+  else
+     ia1(mid+1)=.true.
+  endif
+  ia2(mid)=.true.
+  ia2(hi)=.true.
+  icc(lo)=.true.
+  icc(mid+1)=.true.
+  icc(hi+1)=.true.
+
+end subroutine reduceidx
+
+subroutine mpigatidx(idx,a,nc,nr,np,ntst,iam)
+
+  ! like mpigat() but only sends/receives blocks i for which
+  ! idx(i) is .true.
+  logical idx(*)
+  integer nc, nr, np(*), ntst, iam
+  double precision a(nc,nr,*)
+
+  integer base, i, ii, j, ierr, ireq
+  integer status(MPI_STATUS_SIZE)
+
+  base=np(1)
+  ii=base+np(2)
+  j=2
+  do i=np(1)+1,ntst
+     if(idx(i))then
+        if(iam==0)then
+           call MPI_Recv(a(1,1,i),nc*nr,MPI_DOUBLE_PRECISION,j-1, &
+                MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+        else if(iam==j-1)then
+           call MPI_Send(a(1,1,i-base),nc*nr,MPI_DOUBLE_PRECISION,0, &
+                0, MPI_COMM_WORLD, ierr)
+        endif
+     endif
+     if(i==ii)then
+        j=j+1
+        base=ii
+        ii=ii+np(j)
+     endif
+  enddo
+
+end subroutine mpigatidx
 
 subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
