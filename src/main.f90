@@ -321,6 +321,7 @@
       AP%JAC=JAC
       AP%NPAR=NPAR
       AP%NICP=SIZE(ICU)
+      AP%NTEST=2 ! LP/BP test functions active by default
 
       AP%NDM=NDIM
       AP%NPARI=0

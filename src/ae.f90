@@ -96,7 +96,7 @@ CONTAINS
     THU(AP%NDIM+1)=THL(1)
 
     ALLOCATE(AA(NDIM+1,NDIM+1),U(NDIM+1),UDOT(NDIM+1))
-    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),TEST(NUZR+6),EVV(NDM))
+    ALLOCATE(STUD(NBIFS,NDIM+1),STU(NBIFS,NDIM+1),TEST(AP%NTEST),EVV(NDM))
     ALLOCATE(P1V(NDIM+1,NDIM+1))
 
     NINS=0
@@ -133,7 +133,7 @@ CONTAINS
 
     DO NBFC=0,NBFCS !bifurcation switch loop
 
-       DO I=1,NUZR+6
+       DO I=1,AP%NTEST
           TEST(I)=0.d0
        ENDDO
 
@@ -204,7 +204,7 @@ CONTAINS
 
           IFOUND=0
           ISTEPPED=0
-          DO ITEST=1,NUZR+6
+          DO ITEST=1,AP%NTEST
              ! Check for special points
              CALL LCSPAE(AP,DSTEST,PAR,ICP,ITEST,FUNI,FNCI,AA,&
                   U,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ITP,STEPPED)

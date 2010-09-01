@@ -51,6 +51,9 @@ MODULE AUTO_CONSTANTS
   ! * DS should be the first double precision variable
   ! * NDIM should be the first integer variable  
   ! * NIAP and NRAP are used!
+  ! * For alignment, always keep an even number of integer variables.
+  !   (NIAP should be even;  make the structure length a multiple of its
+  !    largest element)
   INTEGER, PARAMETER :: NIAP = 36
   INTEGER, PARAMETER :: NRAP = 16
   TYPE AUTOPARAMETERS
@@ -66,10 +69,7 @@ MODULE AUTO_CONSTANTS
      INTEGER NWTN, JAC, NPAR, NREV
 
      INTEGER NDM, NPARI, ITDS, ITP, ITPST, NFPR, IBR, NTOT
-     INTEGER NINS, LAB, NICP
-
-     ! makes the structure length a multiple of its largest element
-     INTEGER IDUMMY
+     INTEGER NINS, LAB, NICP, NTEST
 
   END TYPE AUTOPARAMETERS
 

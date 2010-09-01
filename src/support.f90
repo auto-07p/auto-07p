@@ -762,6 +762,7 @@ CONTAINS
        ENDIF
     ENDIF
     AP%NPAR=NPAR
+    AP%NTEST=AP%NTEST+AP%NUZR
   END SUBROUTINE INIT2
 
 ! ---------- -----
