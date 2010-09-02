@@ -7,12 +7,12 @@ r2=run(r1,ICP=[4])
 save(r2,'2')
 
 #third run
-r3=run(r2('HB1'),IPS=2,ICP=[5,11],NMX=200,DS=0.01,DSMAX=0.01,UZR={11:35})
+r3=run(r2('HB1'),IPS=2,ICP=[5,11],NMX=200,DS=0.01,DSMAX=0.01,UZSTOP={11:35})
 save(r3,'3')
 plot(r3)
 
 #fourth run
-r4=run(r3,IPS=9,ICP=[3,5],NPR=60,UZR={3:-2.0},ISTART=4)
+r4=run(r3,IPS=9,ICP=[3,5],NPR=60,UZSTOP={3:-2.0},ISTART=4)
 save(r4,'4')
 
 #fifth run
@@ -20,18 +20,18 @@ r5=run(r4,ICP=[5,8],NMX=2,ITWIST=1,ISTART=1)
 save(r5,'5')
 
 #sixth run
-r6=run(r5,ICP=[4,5,33],NMX=30,DS=-0.01,DSMAX=1.0,UZR={33:0.0,4:0.0},
-       STOP=['UZ2'],IPSI=[13])
+r6=run(r5,ICP=[4,5,33],NMX=30,DS=-0.01,DSMAX=1.0,UZR={33:0.0},
+       UZSTOP={4:0.0},IPSI=[13])
 
 #seventh run
-r7=run(r6('UZ1'),ICP=[21,22,5],NMX=300,NPR=10,UZR={22:0.2},STOP=['UZ1'],
+r7=run(r6('UZ1'),ICP=[21,22,5],NMX=300,NPR=10,UZR={},UZSTOP={22:0.2},
        ISTART=-2,IPSI=[])
 save(r7,'7')
 plot(r7)
 
 #eighth run
-r8=run(r7,ICP=[4,5,22],NPR=310,DS=0.01,DSMAX=0.01,UZR={22:0.0,4:0.074},
-       STOP=['UZ2'])
+r8=run(r7,ICP=[4,5,22],NPR=310,DS=0.01,DSMAX=0.01,UZSTOP={22:0.0},
+       UZR={4:0.074})
 r6=r6+r8
 
 #ninth run
@@ -39,18 +39,18 @@ r9=run(r8,ICP=[4,5],NMX=30,DS='-',DSMAX=0.1,UZR={4:0.15},ISTART=1,ITWIST=0)
 r6=r6+r9
 
 #tenth run
-r10=run(r6('UZ1'),ICP=[21,22,24,5],NMX=300,NPR=10,UZR={22:0.2},STOP=['UZ1'],
+r10=run(r6('UZ1'),ICP=[21,22,24,5],NMX=300,NPR=10,UZSTOP={22:0.2},
         ISTART=-3,IPSI=[])
 save(r10,'10')
 
 #eleventh run
 r11=run(r10,ICP=[4,5,22,24],NPR=310,DS=0.01,DSMAX=0.01,
-        UZR={22:0.0,4:0.082},STOP=['UZ2'])
+        UZR={4:0.082},UZSTOP={22:0.0})
 r6=r6+r11
 
 #twelfth run
 r12=run(r11,ICP=[4,5,23,24],NMX=32,NTST=40,DS=-1.0,DSMAX=1.0,
-  UZR={24:0.0,4:0.18},STOP=[])
+  UZR={24:0.0,4:0.18},UZSTOP={})
 r6=r6+r12
 
 #thirteenth run

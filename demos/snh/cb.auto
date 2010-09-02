@@ -15,32 +15,32 @@ r1 = run(e='snh',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,IPS=1,
 
 print "\n2nd run - switch to the periodic orbit and continue in nu1 up to 0.74"
 r2 = run(r1('HB1'),ICP=['nu1','T'],IPS=2,NTST=100,
-         STOP=['UZ1'],UZR={'nu1':0.74},DSMAX=0.1)
+         STOP=[],UZSTOP={'nu1':0.74},DSMAX=0.1)
 
 print "\n3rd run - extend the system"
 r3 = run(r2('UZ1'),ICP=['mu','h','T'],IPS=4,NDIM=6,NBC=7,NINT=1,
-         STOP=['BP1'],UZR={},DSMAX=1)
+         STOP=['BP1'],UZSTOP={},DSMAX=1)
 
 print "\n4th run - normalize the Floquet bundle"
 print "also put a starting value into sigma- (which"
 print "measures the distance to Sigma = { phi=pi })"
 r4 = run(r3('BP1'),ISW=-1,
-         STOP=['UZ1'],UZR={'h':1.0},DSMAX=100)
+         STOP=[],UZSTOP={'h':1.0},DSMAX=100)
 
 print "\n5th run - integrate away from the periodic orbit, UZ points denote"
 print " intersections with Sigma"
 r5 = run(r4('UZ1'),ISW=0,ICP=['T-','mu','T','sigma-'],NDIM=9,NBC=11,
-         UZR={'sigma-':0},DS=1.0)
+         UZSTOP={'sigma-':0},DS=1.0)
 
 print "\n6th run - integrate backwards from the equilibrium b : x=y=0, phi=acos(-0.5*nu2)"
 print "up to Sigma + put starting data for Lin vector and Lin gap in Zx, Zy, Zz, and eta."
 r6 = run(r5('UZ1'),ICP=['T+','sigma+','T-','mu','T'],NDIM=12,NBC=15,NPR=10,
-         UZR={'sigma+':0})
+         UZSTOP={'sigma+':0})
 
 print "\n7th run - close the gap (with some intermediate solutions)"
 r7 = run(r6('UZ1'),ICP=['eta','nu1','delta','eps','T+','T-','mu','T'],
          NBC=17,NINT=2,NPR=5,THL={'T':0,'T-':0,'T+':0},
-         UZR={'eta':0},DS=-0.01,DSMAX=0.01)
+         UZSTOP={'eta':0},DS=-0.01,DSMAX=0.01)
 save(r7,'closegap')
 
 # plot this, have a look at the solution coordinates 'x-'-vs-'phi-' and 'x+'-vs-'phi+'
@@ -49,7 +49,7 @@ save(r7,'closegap')
 
 print "\n8th run - keep the gap closed and continue in nu1,nu2"
 start8 = load(r7('UZ1'),ICP=['nu1','mu','delta','eps','nu2','T+','T-','T'],
-              STOP=[],UZR={},ILP=1,NPR=100,ISP=0,DS=0.1,DSMAX=0.1)
+              UZSTOP={},ILP=1,NPR=100,ISP=0,DS=0.1,DSMAX=0.1)
 r8 = merge(run(start8) + run(start8,DS='-',STOP=['LP1']))
 save(r8,'cb')
 

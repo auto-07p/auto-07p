@@ -9,11 +9,11 @@ print "\n%s : first run : stationary solutions"%pgm
 r1 = run(e=pgm,c=pgm)
 
 print "\n%s : second run : periodic solutions (1st branch)"%pgm
-r2 = run(r1('HB1'),IPS=2,ICP=[1,11],ILP=0,ISP=1,UZR={-11:[1e4]})
+r2 = run(r1('HB1'),IPS=2,ICP=[1,11],ILP=0,ISP=1,UZSTOP={11:1e4})
 
 print "\n%s : third run : periodic solutions (2nd branch)"%pgm
 r3 = run(r1('HB2'),IPS=2,ICP=[1,11],ILP=0,ISP=1,
-         UZR={1:[1.25,1.5,1.75,2.1,2.62],-11:[5e4]})
+         UZR={1:[1.25,1.5,1.75,2.1,2.62]},UZSTOP={11:5e4})
 
 all = r1+r2+r3
 save(all, 'pla')

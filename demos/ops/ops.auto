@@ -10,7 +10,7 @@ r1 = run(e=pgm,c=pgm)
 
 print "\n%s : second run : compute a branch of periodic solutions"%pgm
 uzr = {3: [0.92, 0.93]}
-r2 = run(r1("HB1"),IPS=2,ICP=[3,11],NMX=150,RL0=0.9,UZR=uzr,STOP=[])
+r2 = run(r1("HB1"),IPS=2,ICP=[3,11],NMX=150,RL0=0.9,UZR=uzr,UZSTOP={})
 save(r1+r2,'0')
 
 print "\n%s : third run : locate a 1-parameter extremum as a bifurcation"%pgm

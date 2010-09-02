@@ -10,8 +10,9 @@ pp3 = r1
 print "\n***Compute periodic solution families***"
 for solution in pp3("HB"):
     print "Computing a periodic solution family from label", solution["LAB"]
-    r=run(solution,IPS=2,ICP=[1,11],STOP=[],UZR=
-          {-1:[1,0,0.30],1:[0.15,0.20,0.25,0.35,0.40],-9:1.20})
+    r=run(solution,IPS=2,ICP=[1,11],
+          UZR   ={1:[0.15,0.20,0.25,0.35,0.40]},
+          UZSTOP={1:[1,0,0.30],9:1.20})
     pp3 = pp3 + r
 
 print "\n***Relabel the output and save***"
@@ -21,7 +22,7 @@ save(pp3,'pp3')
 # get the second Hopf bifurcation from the first run 
 hb2 = r1('HB2')
 print "\n***Compute a locus of Hopf bifurcations from label ", hb2["LAB"], "***"
-hb=run(hb2,ICP=[1,4],ISW=2,UZR={4:4},STOP=['UZ1'])
+hb=run(hb2,ICP=[1,4],ISW=2,UZR={},UZSTOP={4:4})
 
 print "\n***Relabel the output and save***"
 hb=rl(hb)

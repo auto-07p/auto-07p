@@ -5,6 +5,6 @@ NMX=99999, NPR=99999, MXBF=  10, IID =   2, ITMX= 9, ITNW= 7, NWTN= 3, JAC=-1
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  = -0.05, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 NPAR = 14, THL =  {}, THU =  {}
-UZR =  {7: -0.5, 31: 0.0}, STOP = ['UZ2']
+UZR =  {31: 0.0}, UZSTOP = {7: -0.5}
 IEQUIB=   0, ITWIST=   0
 IPSI=  [11]

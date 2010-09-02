@@ -11,17 +11,17 @@ init = run(e='um2',
            NTST=60,IPLT=3,NBC=3,ITNW=7,
            DS=0.05,DSMIN=1e-5,DSMAX=10.0,
            THL={'Period':0},
-           UZR={'r1':0.6},STOP=['UZ1'],
+           UZSTOP={'r1':0.6},
            NPAR=11)
 save(init, '1')
 
 print "\n***Decrease the value of the problem parameter eps***"
-decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZR={'eps':0.1})
+decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZSTOP={'eps':0.1})
 save(decr, '2')
 
 print "\n***Allow the initial condition to move around a small circle***"
 circle = run(decr,ICP=['theta','Period'],NPR=1,DS='-',DSMIN=1e-5,
-             UZR={'theta': [1.25, -0.75]})
+             UZSTOP={'theta': [1.25, -0.75]})
 save(circle, '3')
 
 print "\n***Clean the directory***"

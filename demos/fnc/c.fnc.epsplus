@@ -8,4 +8,4 @@ NMX= 2000, NPR= 2000, MXBF=   0, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-09, EPSU = 1e-09, EPSS = 1e-07
 DS  =1.0, DSMIN= 5e-09, DSMAX=   10.0, IADS=   1
 NPAR = 11, THL =  {'Tc': 0.0}, THU =  {}
-UZR =  {epsilon:[0.05,0.06,0.061,0.063], -epsilon:0.075}, A1 = 5.0
+UZR =  {epsilon:[0.05,0.06,0.061,0.063]}, UZSTOP = {epsilon:0.075}, A1 = 5.0

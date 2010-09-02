@@ -5,4 +5,5 @@ NMX=  200, NPR=  200, MXBF=  10, IID =   2, ITMX= 8, ITNW= 7, NWTN= 3, JAC= 1
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-06
 DS  =   0.1, DSMIN=0.0001, DSMAX=   3.0, IADS=   1
 NPAR = 5, THL =  {}, THU =  {}
-UZR =  {-1: 109.0, 1: 111.0}
+UZR =  {1: 111.0}
+UZSTOP = {1: 109.0}

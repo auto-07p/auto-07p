@@ -8,7 +8,7 @@ pp2 = run(e='pp2',c='pp2')
 
 print "\n***Compute periodic solution families***"
 solution = pp2('HB1')
-ps = run(solution,IPS=2,ICP=[1,11],NPR=2,UZR={1:[0,1],11:36})
+ps = run(solution,IPS=2,ICP=[1,11],NPR=2,UZSTOP={1:[0,1],11:36})
 save(ps,'ps')
 save(pp2+ps,'pp2')
     
