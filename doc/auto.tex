@@ -4730,7 +4730,7 @@ EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 NPAR=  36, THL =  {}, THU =  {}
 RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308,
-UZR = {},
+UZR = {}, UZSTOP = {},
 SP = [], STOP = []
 NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 5
 IREV = [], IFIXED = [], IPSI = []
@@ -4961,12 +4961,16 @@ At present none of the demos use this option.
 %=====================================================================
 \section{ Diagram Limits.} \label{sec:Diagram_limits}
 
-There are three ways to limit the computation of a family~:
+There are five ways to limit the computation of a family~:
 
 \begin{itemize}
 \item[-]
 By specifying a stopping condition in the list associated 
 with the constant {\tt STOP}; see Section~\ref{sec:STOP}. 
+
+\item[-]
+By specifying parameters and parameter values in the list associated 
+with the constant {\tt UZSTOP}; see Section~\ref{sec:UZSTOP}.
 
 \item[-]
 By specifying the maximum number of steps, {\tt NMX}.
@@ -5641,7 +5645,8 @@ of defining solution measures; see Section~\ref{sec:Parameter_over_specification
 \item[-]
  If such a parameter index is preceded by a minus sign then the computation will
  terminate at such a solution point. See also \texttt{STOP} in
- Section~\ref{sec:STOP} above for an alternative termination method.
+ Section~\ref{sec:STOP} above and \texttt{UZSTOP} in
+ Section~\ref{sec:UZSTOP} below for alternative termination methods.
  (Demos {\tt pen} and {\tt bru}.)
 \end{itemize}
 
@@ -5649,6 +5654,13 @@ Note that {\tt fort.8} output can also be written at selected values of
 overspecified parameters. For an example see demo {\tt pvl}.
 For details on overspecified parameters see 
 Section~\ref{sec:Parameter_over_specification}.
+
+\subsection{\texttt{UZSTOP}} \label{sec:UZSTOP}
+ This constant specifies parameter values in the same way as
+ \texttt{UZR} in Section~\ref{sec:UZR} above, but the computation
+ will always terminate if any solution point that is specified is
+ encountered.
+
 %=====================================================================
 
 \section{ Quick reference}
@@ -5709,7 +5721,7 @@ to user-defined names\\
 {\tt NPAR} & Maximum number of parameters \\
 {\tt THL, THU} & list of parameter and solution weights \\
 \hline
-{\tt UZR} & list of values for user defined output\\
+{\tt UZR}, {\tt UZSTOP} & list of values for user defined output\\
 {\tt SP}, {\tt STOP} & list of bifurcations to check and bifurcation stop
 conditions\\
 \hline

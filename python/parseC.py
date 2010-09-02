@@ -68,15 +68,16 @@ class parseC(dict):
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
             'sv', 's', 'dat',
-            "THL","THU","UZR","ICP","IREV","IFIXED","IPSI","U","PAR","SP",
-            "STOP"]:
+            "THL","THU","UZR","UZSTOP","ICP","IREV","IFIXED","IPSI","U","PAR",
+            "SP","STOP"]:
             self[key] = None
         if filename:
             self.readFilename(filename)
         self.update(**kw)
 
     def __setitem__(self, key, item):
-        if key in ["THL", "THU", "UZR", "U", "PAR", "unames", "parnames"]:
+        if key in ["THL", "THU", "UZR", "UZSTOP", "U", "PAR", "unames",
+                   "parnames"]:
             if item is not None:
                 if isinstance(item, dict):
                     item = item.items()
@@ -227,7 +228,7 @@ class parseC(dict):
                         pass
                     d.append(v)
                 value = d
-            elif key in ['THU', 'THL', 'UZR', 'U', 'PAR']:
+            elif key in ['THU', 'THL', 'UZR', 'UZSTOP', 'U', 'PAR']:
                 d = []
                 i = 0
                 while i < len(value):
@@ -413,6 +414,7 @@ class parseC(dict):
                 ["DS", "DSMIN", "DSMAX", "IADS"],
                 ["NPAR", "THL", "THU"],
                 ["UZR"],
+                ["UZSTOP"],
                 ["STOP"],
                 ["SP"],
                 ["RL0", "RL1", "A0", "A1"],
@@ -437,7 +439,7 @@ class parseC(dict):
                 olist.append(s)
                 if key in ["ICP", "IREV", "IFIXED", "IPSI", "STOP", "SP"]:
                     s = "  "+str(value)
-                elif key in ["THL", "THU", "UZR", "U", "PAR"]:
+                elif key in ["THL", "THU", "UZR", "UZSTOP", "U", "PAR"]:
                     l = [repr(k)+": "+self.__compactstr(v) for k, v in value]
                     s = "  {"+", ".join(l)+"}"
                 elif key in ["unames", "parnames"]:

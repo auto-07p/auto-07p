@@ -768,7 +768,7 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
 
-    USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,unames,parnames,SVFILE
+    USE AUTO_CONSTANTS, ONLY: IVTHL,IVTHU,IVUZR,IVUZSTOP,unames,parnames,SVFILE
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
@@ -802,6 +802,14 @@ CONTAINS
           K=K+1
           IUZ(K)=IND
           VUZ(K)=IVUZR(I)%VAR(J)
+       ENDDO
+    ENDDO
+    DO I=1,SIZE(IVUZSTOP)
+       IND=NAMEIDX(IVUZSTOP(I)%INDEX,parnames)
+       DO J=1,SIZE(IVUZSTOP(I)%VAR)
+          K=K+1
+          IUZ(K)=-IND
+          VUZ(K)=IVUZSTOP(I)%VAR(J)
        ENDDO
     ENDDO
 

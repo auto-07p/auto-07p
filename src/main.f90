@@ -263,7 +263,7 @@
       SVFILE=''
       DATFILE=''
 
-      ALLOCATE(ICU(1),IVUZR(0),IVTHU(0),parnames(0),unames(0),SP(0))
+      ALLOCATE(ICU(1),IVUZR(0),IVUZSTOP(0),IVTHU(0),parnames(0),unames(0),SP(0))
       ALLOCATE(STOPS(0),UVALS(0),PARVALS(0))
       ICU(1)='1'
 
@@ -311,6 +311,9 @@
       AP%NUZR=0
       DO I=1,SIZE(IVUZR)
          AP%NUZR=AP%NUZR+SIZE(IVUZR(I)%VAR)
+      ENDDO
+      DO I=1,SIZE(IVUZSTOP)
+         AP%NUZR=AP%NUZR+SIZE(IVUZSTOP(I)%VAR)
       ENDDO
       AP%NPR=NPR
       AP%MXBF=MXBF
@@ -361,13 +364,16 @@
 
 !     Deallocate some globally allocated arrays.
 
-      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVTHL,ICU,parnames,unames, &
-           SP,STOPS,PARVALS,UVALS
+      USE AUTO_CONSTANTS, ONLY : IVTHU,IVUZR,IVUZSTOP,IVTHL,ICU,parnames, &
+           unames,SP,STOPS,PARVALS,UVALS
 
       IMPLICIT NONE
 
       DO I=1,SIZE(IVUZR)
          DEALLOCATE(IVUZR(I)%VAR)
+      ENDDO
+      DO I=1,SIZE(IVUZSTOP)
+         DEALLOCATE(IVUZSTOP(I)%VAR)
       ENDDO
       DEALLOCATE(IVTHU,IVUZR,IVTHL,ICU,parnames,unames,SP,STOPS, &
            PARVALS,UVALS)
