@@ -6,4 +6,4 @@ NMX=  200, NPR=  200, MXBF=  10, IID =   2, ITMX= 8, ITNW= 7, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS =0.0001
 DS  =  -0.1, DSMIN=  0.01, DSMAX=   0.1, IADS=   1
 NPAR = 11, THL =  {11: 0.0}, THU =  {}
-UZR =  {11: 30.0}, STOP = ['UZ1']
+UZSTOP = {11: 30.0}
