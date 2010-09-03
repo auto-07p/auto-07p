@@ -33,9 +33,10 @@ logical function mpiwfi(autobv)
 end function mpiwfi
 
 subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
-  integer :: ntst, nov, ncb, nrc, ifst
-  double precision :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*),cc(nov,nrc,*)
-  double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
+  integer, intent(in) :: ntst, nov, ncb, nrc, ifst
+  double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
+  double precision, intent(inout) :: cc(nov,nrc,*)
+  double precision, intent(inout) :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 end subroutine mpicon
 
 subroutine mpisbv(ap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
@@ -48,8 +49,8 @@ subroutine mpisbv(ap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
-  integer :: len
-  double precision :: buf(len)
+  integer, intent(in) :: len
+  double precision, intent(inout) :: buf(len)
 end subroutine mpibcast
 
 subroutine mpibcasti(buf,len)
@@ -62,13 +63,13 @@ subroutine mpibcastap(ap)
 end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)
-  integer ndx,n,add
-  double precision :: buf(ndx,*)
+  integer, intent(in) :: ndx,n,add
+  double precision, intent(inout) :: buf(ndx,*)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
-  integer ndx,n
-  double precision :: buf(ndx,*)
+  integer, intent(in) :: ndx,n
+  double precision, intent(inout) :: buf(ndx,*)
 end subroutine mpigat
 
 subroutine mpiend()

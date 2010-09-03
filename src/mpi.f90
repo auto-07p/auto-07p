@@ -114,9 +114,10 @@ subroutine partition(n,kwt,m)
 end subroutine partition
 
 subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
-  integer :: ntst, nov, ncb, nrc, ifst
-  double precision :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*),cc(nov,nrc,*)
-  double precision :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
+  integer, intent(in) :: ntst, nov, ncb, nrc, ifst
+  double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
+  double precision, intent(inout) :: cc(nov,nrc,*)
+  double precision, intent(inout) :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 
   double precision, allocatable :: ccb(:,:,:)
   integer,allocatable :: np(:)
@@ -328,8 +329,8 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
-  integer :: len
-  double precision :: buf(len)
+  integer, intent(in) :: len
+  double precision, intent(inout) :: buf(len)
 
   integer :: ierr
 
@@ -356,8 +357,8 @@ subroutine mpibcastap(ap)
 end subroutine mpibcastap
 
 subroutine mpiscat(buf,ndx,n,add)
-  integer ndx,n,add
-  double precision :: buf(*)
+  integer, intent(in) :: ndx,n,add
+  double precision, intent(inout) :: buf(*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
   integer i, ierr, loop_start, iam, kwt, na0
@@ -388,8 +389,8 @@ subroutine mpiscat(buf,ndx,n,add)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
-  integer ndx,n
-  double precision :: buf(ndx,*)
+  integer, intent(in) :: ndx,n
+  double precision, intent(inout) :: buf(ndx,*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
   integer i, ierr, loop_start, iam, kwt, na0
