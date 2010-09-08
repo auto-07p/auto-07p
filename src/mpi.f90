@@ -113,16 +113,15 @@ subroutine partition(n,kwt,m)
   enddo
 end subroutine partition
 
-subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+subroutine mpicon(s1,a1,a2,bb,cc,c2,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   integer, intent(in) :: ntst, nov, ncb, nrc, ifst
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
-  double precision, intent(inout) :: cc(nov,nrc,*)
+  double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
   double precision, intent(inout) :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
 
-  double precision, allocatable :: ccb(:,:,:)
   integer,allocatable :: np(:)
   integer :: i,ii,j,k,ierr,iam,kwt
-  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst+1)
+  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst),ic2(ntst)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
@@ -135,7 +134,8 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   ia2=.false.
   is1=.false.
   icc=.false.
-  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc)
+  ic2=.false.
+  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
   call mpigatidx(ia2,faa,1,nov,np,ntst,iam)
   call mpisum(fc,nrc)
@@ -150,39 +150,20 @@ subroutine mpicon(s1,a1,a2,bb,cc,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call mpigatidx(ia2,a2,nov,nov,np,ntst,iam)
   call mpigatidx(ia2,bb,ncb,nov,np,ntst,iam)
 
-  allocate(ccb(nov,nrc,kwt))
-  call MPI_Gather(cc(1,1,np(iam+1)+1),nov*nrc,MPI_DOUBLE_PRECISION, &
-       ccb,nov*nrc,MPI_DOUBLE_PRECISION, &
-       0,MPI_COMM_WORLD,ierr)
   call mpigatidx(icc,cc,nov,nrc,np,ntst,iam)
+  call mpigatidx(icc,c2,nov,nrc,np,ntst,iam)
 
-  if(iam==0)then
-     ii = 0
-     do i=1,kwt
-        !fix up boundaries between cc parts
-        ii = ii+np(i)
-        do j=1,nrc
-           do k=1,nov
-              if(i==kwt)then
-                 cc(k,j,ii+1)=ccb(k,j,i)
-              else
-                 cc(k,j,ii+1)=cc(k,j,ii+1)+ccb(k,j,i)
-              endif
-           enddo
-        enddo
-     enddo
-  endif
-  deallocate(ccb,np)
+  deallocate(np)
 
   call mpisum(d,ncb*nrc)
 end subroutine mpicon
 
 !-------- ---------- ---------
-recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
+recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
 ! Arguments
   integer lo,hi,ntst,kwt
-  logical ia1(*),ia2(*),is1(*),icc(*)
+  logical ia1(*),ia2(*),is1(*),icc(*),ic2(*)
 
 ! Local 
   integer mid
@@ -197,10 +178,10 @@ recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
   mid=(lo+hi)/2
 
   if(lo<mid) &
-       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc)
+       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
   if(mid+1<hi) &
-       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc)
+       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
   if(lo==mid)then
      ia1(mid)=.true.
@@ -216,7 +197,8 @@ recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
   ia2(hi)=.true.
   icc(lo)=.true.
   icc(mid+1)=.true.
-  icc(hi+1)=.true.
+  ic2(mid)=.true.
+  ic2(hi)=.true.
 
 end subroutine reduceidx
 
