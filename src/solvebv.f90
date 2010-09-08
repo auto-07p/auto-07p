@@ -48,11 +48,11 @@
       DOUBLE PRECISION, ALLOCATABLE, SAVE :: &
            A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:), &
            S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),C2(:,:,:),     &
-           CCBC(:,:,:),DDBC(:,:)
+           CCBC(:,:,:),DD(:,:,:),DDBC(:,:)
       INTEGER, ALLOCATABLE, SAVE :: &
            ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: &
-           DD(:,:,:),FCFC(:,:),FAA(:,:),SOL(:,:),FA(:,:),FC(:)
+           FCFC(:,:),FAA(:,:),SOL(:,:),FA(:,:),FC(:)
       INTEGER, ALLOCATABLE :: NP(:)
       INTEGER IAM,KWT,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
@@ -119,7 +119,7 @@
            .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTSTNA &
            .OR.ISHAPE(7)/=NFPR.OR.ISHAPE(8)/=NBC)THEN
 !              Free floating point arrays
-               DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CCBC,DDBC)
+               DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CCBC,DD,DDBC)
 !              Free integer arrays
                DEALLOCATE(ICF,IRF,IPR,IPC)
             ENDIF
@@ -131,7 +131,8 @@
             ALLOCATE(A1(NDIM,NDIM,NTSTNA),A2(NDIM,NDIM,NTSTNA))
             ALLOCATE(S1(NDIM,NDIM,NTSTNA),S2(NDIM,NDIM,NTSTNA))
             ALLOCATE(BB(NFPR,NDIM,NTSTNA),CC(NDIM,NRC,NTSTNA))
-            ALLOCATE(C2(NDIM,NRC,NTSTNA),CCBC(NDIM,NBC,2),DDBC(NFPR,NBC))
+            ALLOCATE(C2(NDIM,NRC,NTSTNA),CCBC(NDIM,NBC,2))
+            ALLOCATE(DD(NFPR,NRC,NTSTNA),DDBC(NFPR,NBC))
 
             ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTSTNA-1))
             ALLOCATE(IPC(NDIM,NTSTNA-1))
@@ -150,14 +151,10 @@
             CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,UDOTPS, &
                  UPOLDP,DTM,THU,IFST,NLLV)
          ENDIF
-      ELSE
-!     The matrix D and FC are set to zero for all nodes except the first.
-!     zero pseudo-arclength part of matrices, rest is done in setubv()
-         CALL SETFCDD(IFST,D(1,NRC),FC(NFC),NFPR,1)
       ENDIF
+!     The matrices D and FC are unused in all nodes except the first.
 
-      ALLOCATE(DD(NFPR,NRC,NTSTNA),FCFC(NRC,NTSTNA))
-      ALLOCATE(FAA(NDIM,NTSTNA),SOL(NDIM,NTSTNA+1))
+      ALLOCATE(FCFC(NRC,NTSTNA),FAA(NDIM,NTSTNA),SOL(NDIM,NTSTNA+1))
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
 
@@ -179,7 +176,7 @@
 
 !$OMP END PARALLEL
 
-      DEALLOCATE(DD,FCFC,FAA,SOL)
+      DEALLOCATE(FCFC,FAA,SOL)
 
       IF(KWT.GT.1)THEN
 !        Global concatenation of the solution from each node.
