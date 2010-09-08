@@ -144,6 +144,7 @@
          ENDDO
          CALL SUBVBC(NDIM,NTST*NCOL,NBC,NFPR,BCNI, &
                  AP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
+         CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NINT)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
          IF(KWT.GT.1)THEN
             CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,UDOTPS, &
@@ -155,9 +156,7 @@
          CALL SETFCDD(IFST,D(1,NRC),FC(NFC),NFPR,1)
       ENDIF
 
-      IF(MNT.GT.1)THEN
-         ALLOCATE(DD(NFPR,NRC,MNT-1),FCFC(NRC,MNT-1))
-      ENDIF
+      ALLOCATE(DD(NFPR,NRC,NTSTNA),FCFC(NRC,NTSTNA))
       ALLOCATE(FAA(NDIM,NTSTNA),SOL(NDIM,NTSTNA+1))
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
@@ -168,8 +167,8 @@
 !$    NT = OMP_GET_NUM_THREADS()
       IF(NLLV>=0.OR.IFST==1) &
         CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,                &
-         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,D,DD,FA,                        &
-         FC(NBC+1),FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT, &
+         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD,FA,                          &
+         FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT,           &
          IRF,ICF,IID,NLLV)
 
       I = IT*NA/NT+1
@@ -180,8 +179,7 @@
 
 !$OMP END PARALLEL
 
-      IF(MNT.GT.1)DEALLOCATE(DD,FCFC)
-      DEALLOCATE(FAA,SOL)
+      DEALLOCATE(DD,FCFC,FAA,SOL)
 
       IF(KWT.GT.1)THEN
 !        Global concatenation of the solution from each node.
@@ -300,7 +298,7 @@
 
 !     ---------- ------
       SUBROUTINE SETUBV(NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,         &
-       ICNI,AP,PAR,NPAR,ICP,AA,BB,CC,DD,DDD,FA,FC,FCFC,                 &
+       ICNI,AP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FCFC,                        &
        UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT,IRF,ICF,IDB,NLLV)
 
       USE MESH
@@ -309,10 +307,9 @@
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER ICP(*),IRF(NRA,*),ICF(NCA,*),IDB,NLLV
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
-      DOUBLE PRECISION DD(NCB,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*)
-      DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(*)
-      DOUBLE PRECISION DTM(*),PAR(*),THU(*)
-      DOUBLE PRECISION DDD(NCB,NRC,*),FCFC(NRC,*)
+      DOUBLE PRECISION DD(NCB,NRC,*),FA(NRA,*),FCFC(NRC,*)
+      DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),UDOTPS(NDIM,0:*)
+      DOUBLE PRECISION UPOLDP(NDIM,0:*),DTM(*),PAR(*),THU(*)
 
       include 'interfaces.h'
 
@@ -326,19 +323,12 @@
 
       I = IT*NA/NT+1
       N = (IT+1)*NA/NT+1-I
-      IF(IT.EQ.0)THEN
-         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,     &
-              AP,PAR,NPAR,ICP,AA,BB,CC,DD,FA,FC,UPS,                 &
-              UOLDPS,UDOTPS,UPOLDP,DTM,THU,WI,WP,WT,IRF,ICF,IFST,NLLV)
-      ELSE
-         CALL SETFCDD(IFST,DDD(1,NRC,IT),FCFC(NRC,IT),NCB,1)
-         II = (I-1)*NCOL
-         CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,     &
-              AP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),         &
-              DDD(1,1,IT),FA(1,I),FCFC(1,IT),UPS(1,II),UOLDPS(1,II), &
-              UDOTPS(1,II),UPOLDP(1,II),DTM(I),THU,WI,WP,WT,         &
-              IRF(1,I),ICF(1,I),IFST,NLLV)
-      ENDIF
+      II = (I-1)*NCOL
+      CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,     &
+           AP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),         &
+           DD(1,1,I),FA(1,I),FCFC(1,I),UPS(1,II),UOLDPS(1,II),    &
+           UDOTPS(1,II),UPOLDP(1,II),DTM(I),THU,WI,WP,WT,         &
+           IRF(1,I),ICF(1,I),IFST,NLLV)
 
       CONTAINS
 
@@ -354,8 +344,8 @@
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,ICP(*),NPAR
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
-      DOUBLE PRECISION DD(NCB,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*)
-      DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(*)
+      DOUBLE PRECISION DD(NCB,NRC,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*)
+      DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(NRC,*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION WI(0:*),WP(0:NCOL,*),WT(0:NCOL,*)
       INTEGER IRF(NRA,*),ICF(NCA,*),IFST,NLLV
@@ -374,14 +364,6 @@
 
 ! Initialize to zero.
 
-       DO I=1,NINT
-         FC(I)=0.d0
-         IF(IFST.EQ.1)THEN
-            DO K=1,NCB
-               DD(K,I)=0.d0
-            ENDDO
-         ENDIF
-       ENDDO
        DFDU(:)=0.d0
        DFDP(:)=0.d0
        DICD(:)=0.d0
@@ -412,6 +394,8 @@
 !     
 !     Generate CC, DD and FC :
 
+         IF(IFST.EQ.1)DD(:,:,J)=0d0
+         IF(NLLV.EQ.0)FC(:,J)=0d0
          DO K=0,NCOL
             J1=(J-1)*NCOL+K
             K1=K*NDIM+1
@@ -419,7 +403,7 @@
 !     Integral constraints+pseudo-arclength equation :
 !     
             CALL SBVICN(NDIM,NINT,NCB,NCA,ICNI,AP,PRM,ICP,            &
-                 CC(K1,1,J),DD,FC,UPS(1,J1),UOLDPS(1,J1),             &
+                 CC(K1,1,J),DD(1,1,J),FC(1,J),UPS(1,J1),UOLDPS(1,J1), &
                  UDOTPS(1,J1),UPOLDP(1,J1),DTM(J),THU,WI(K),FICD,DICD,&
                  UIC,UIO,UID,UIP,IFST,NLLV)
          ENDDO
@@ -429,11 +413,12 @@
 
 !      Condensation of parameters:
          IF(IFST.EQ.1)THEN
-            CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,     &
-                 CC(1,1,J),DD,FA(1,J),FC,IRF(1,J),ICF(1,J),IAMAX,NLLV)
+            CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,      &
+                 CC(1,1,J),DD(1,1,J),FA(1,J),FC(1,J),IRF(1,J),ICF(1,J),&
+                 IAMAX,NLLV)
          ELSE
             CALL CONRHS(NDIM,NRA,NCA,AA(1,1,J),NRC,                   &
-                 CC(1,1,J),FA(1,J),FC,IRF(1,J))
+                 CC(1,1,J),FA(1,J),FC(1,J),IRF(1,J))
          ENDIF
        ENDDO
 !     
@@ -711,7 +696,7 @@
 !$OMP BARRIER
 !$OMP MASTER
          CALL PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC, &
-           FA,FC,FCFC,NT,IFST,NLLV)
+           FA,FC,FCFC,IFST,NLLV)
 !$OMP END MASTER
 !$OMP BARRIER
          IF(IFST.EQ.1.OR.NLLV>=0)THEN
@@ -721,23 +706,12 @@
                   DO K=1,NRA
                      IAMAX(K)= NOV+IDAMAX(NRA-NOV,A(NOV+1,K,J),1)
                   ENDDO
-                  IF(IT>0)THEN
-                     CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC, &
-                          C(1,1,J),DD(1,1,IT),FA(1,J),FCFC(1,IT),       &
-                          IRF(1,J),ICF(1,J),IAMAX,NLLV)
-                  ELSE
-                     CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC, &
-                          C(1,1,J),D,FA(1,J),FC(NBC+1),                 &
-                          IRF(1,J),ICF(1,J),IAMAX,NLLV)
-                  ENDIF
+                  CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,   &
+                       C(1,1,J),DD(1,1,J),FA(1,J),FCFC(1,J),           &
+                       IRF(1,J),ICF(1,J),IAMAX,NLLV)
                ELSE
-                  IF(IT>0)THEN
-                     CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,              &
-                          C(1,1,J),FA(1,J),FCFC(1,IT),IRF(1,J))
-                  ELSE
-                     CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,              &
-                          C(1,1,J),FA(1,J),FC(NBC+1),IRF(1,J))
-                  ENDIF
+                  CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,                &
+                       C(1,1,J),FA(1,J),FCFC(1,J),IRF(1,J))
                ENDIF
             ENDDO
             DEALLOCATE(IAMAX)
@@ -752,13 +726,11 @@
          FA(:,:N)=0d0
          IF(IT.EQ.0)THEN
             FC(:NFC)=0d0
-         ELSE
-            FCFC(:NRC,IT)=0d0
-         ENDIF
+         ENDIF         
       ENDIF
       CALL CPYRHS(N,NOV,NRA,FAA(1,I),FA)
 
-      CALL REDUCE(A1,A2,BB,CC,C2,D,DD,FAA,FC(NBC+1),FCFC,               &
+      CALL REDUCE(A1,A2,BB,CC,C2,DD,FAA,FCFC,                           &
            NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 
 ! Solve the system generated by REDUCE
@@ -767,6 +739,17 @@
 ! REDUCE already has a barrier.
 !$OMP MASTER
       IF(IAM.EQ.0)THEN
+         ! This is where we sum into the global copy of the d array
+         DO J=1,NRC
+            IF(IFST.EQ.1)THEN
+               DO K=1,NCB
+                  D(K,J)=D(K,J)+DD(K,J,NA)
+               ENDDO
+            ENDIF
+            IF(NLLV.EQ.0)THEN
+               FC(NBC+J)=FC(NBC+J)+FCFC(J,NA)
+            ENDIF
+         ENDDO
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
          CALL DIMRGE(E,CC,C2,CCBC,D,DDBC,FC,                            &
            NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
@@ -1044,7 +1027,7 @@
       END SUBROUTINE CPYRHS
 
 !     ---------- ------
-      SUBROUTINE REDUCE(A1,A2,BB,CC,C2,DD,DDD,FAA,FC,FCFC,         &
+      SUBROUTINE REDUCE(A1,A2,BB,CC,C2,DD,FAA,FCFC,                &
            NTST,NOV,NCB,NRC,S1,S2,IPC,IPR,IFST,NLLV,IT,NT,IAM,KWT)
 
       USE AUTOMPI
@@ -1056,11 +1039,10 @@
       DOUBLE PRECISION, INTENT(INOUT) :: BB(NCB,NOV,*)
       DOUBLE PRECISION, INTENT(OUT) :: S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION, INTENT(INOUT) :: CC(NOV,NRC,*),C2(NOV,NRC,*)
-      DOUBLE PRECISION, INTENT(INOUT) :: DD(NCB,*),DDD(NCB,NRC,*)
-      DOUBLE PRECISION, INTENT(INOUT) :: FAA(NOV,*),FC(*),FCFC(NRC,*)
+      DOUBLE PRECISION, INTENT(INOUT) :: DD(NCB,NRC,*),FAA(NOV,*),FCFC(NRC,*)
 
 ! Local 
-      INTEGER IAMAX,I,J,K,PLO,PHI,BASE,NA
+      INTEGER IAMAX,PLO,PHI,BASE,NA
       ALLOCATABLE IAMAX(:)
 
       ALLOCATE(IAMAX(2*NOV))
@@ -1069,12 +1051,12 @@
       NA=(IAM+1)*NTST/KWT-BASE
       IF(IT.EQ.0)THEN
 !     Reduce non-overlapping 1st piece
-         CALL REDUCER(1,NTST,BASE+1,BASE+NA/NT,DD,FC)
+         CALL REDUCER(1,NTST,BASE+1,BASE+NA/NT)
       ELSE
          PLO = BASE+IT*NA/NT+1
          PHI = BASE+(IT+1)*NA/NT
 !     Reduce non-overlapping pieces
-         CALL REDUCER(1,NTST,PLO,PHI,DDD(1,1,IT),FCFC(1,IT))
+         CALL REDUCER(1,NTST,PLO,PHI)
       ENDIF
 
 !$OMP BARRIER
@@ -1082,26 +1064,12 @@
 
 !     Reduce overlapping pieces
       IF(NT>1) &
-         CALL REDUCER(1,NTST,BASE+1,BASE+NA,DD,FC)
-
-!     This is where we sum into the global copy of the d array
-      DO I=1,NT-1
-         DO J=1,NRC
-            IF(IFST.EQ.1)THEN
-               DO K=1,NCB
-                  DD(K,J)=DD(K,J)+DDD(K,J,I)
-               ENDDO
-            ENDIF
-            IF(NLLV.EQ.0)THEN
-               FC(J)=FC(J)+FCFC(J,I)
-            ENDIF
-         ENDDO
-      ENDDO
+         CALL REDUCER(1,NTST,BASE+1,BASE+NA)
 
       IF(KWT>1)THEN
-         CALL MPICON(S1,A1,A2,BB,CC,C2,DD,FAA,FC,NTST,NOV,NCB,NRC,IFST)
+         CALL MPICON(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST)
          IF(IAM.EQ.0) &
-              CALL REDUCER(1,NTST,0,NTST,DD,FC)
+              CALL REDUCER(1,NTST,0,NTST)
       ENDIF
 !$OMP END MASTER
 
@@ -1110,11 +1078,10 @@
       CONTAINS
 
 !      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI,DD,FC)
+       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI)
 
 ! Arguments
        INTEGER, INTENT(IN) :: LO,HI,PLO,PHI
-       DOUBLE PRECISION, INTENT(INOUT) :: DD(NCB,*),FC(*)
 
 ! Local 
        INTEGER IR,IC,I0,I1,I2,MID
@@ -1134,10 +1101,10 @@
        MID=(LO+HI)/2
 
        IF(LO<MID) &
-            CALL REDUCER(LO,MID,PLO,PHI,DD,FC)
+            CALL REDUCER(LO,MID,PLO,PHI)
 
        IF(MID+1<HI) &
-            CALL REDUCER(MID+1,HI,PLO,PHI,DD,FC)
+            CALL REDUCER(MID+1,HI,PLO,PHI)
 
 ! Thread is not in the [PLO,PHI] range: return
        IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
@@ -1166,17 +1133,23 @@
              DO IC=1,NOV
                 CC(IC,IR,I1+1)=CC(IC,IR,I1+1)+C2(IC,IR,I1)
              ENDDO
+             DO IC=1,NCB
+                DD(IC,IR,I2)=DD(IC,IR,I2)+DD(IC,IR,I1)
+             ENDDO
           ENDDO
 
           CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),   &
                       S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2), &
-                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD,         &
+                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD(1,1,I2), &
                       IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
        ENDIF
        IF(NLLV.EQ.0)THEN
+          DO IR=1,NRC
+             FCFC(IR,I2)=FCFC(IR,I2)+FCFC(IR,I1)
+          ENDDO
           CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),    &
                A1(1,1,I1+1),FAA(1,I2),            &
-               CC(1,1,I1+1),FC,NOV,NRC,IPR(1,I1))
+               CC(1,1,I1+1),FCFC(1,I2),NOV,NRC,IPR(1,I1))
        ENDIF
 
        END SUBROUTINE REDUCER
@@ -1685,15 +1658,16 @@
 
 !     ---------- ------
       SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,FA, &
-       FC,FCFC,NT,IFST,NLLV)
+       FC,FCFC,IFST,NLLV)
 
-      INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,NT,IFST,NLLV
+      INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,IFST,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
       DOUBLE PRECISION CCBC(NCA-NRA,NBC,*),D(NCB,*),DD(NCB,NFC-NBC,*)
       DOUBLE PRECISION DDBC(NCB,*),FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
 
       INTEGER I,IR,IC
-      DOUBLE PRECISION FC1,D1
+      DOUBLE PRECISION, ALLOCATABLE :: D1(:)
+      DOUBLE PRECISION FC1
 
        WRITE(9,101)
        DO I=1,NA
@@ -1725,26 +1699,27 @@
        DO IR=1,NBC
          WRITE(9,103)(DDBC(IC,IR),IC=1,NCB),FC(IR)
        ENDDO
+       ALLOCATE(D1(NCB))
        DO IR=1,NFC-NBC
          DO IC=1,NCB
-           D1=D(IC,IR)
+           D1(IC)=D(IC,IR)
            IF(IFST==1)THEN
-              DO I=1,NT-1
-                 D1=D1+DD(IC,IR,I)
+              DO I=1,NA
+                 D1(IC)=D1(IC)+DD(IC,IR,I)
               ENDDO
            ENDIF
-           WRITE(9,103)D1
          ENDDO
          IF(NLLV==0)THEN
             FC1=FC(NBC+IR)
-            DO I=1,NT-1
+            DO I=1,NA
                FC1=FC1+FCFC(IR,I)
             ENDDO
          ELSE
             FC1=0
          ENDIF
-         WRITE(9,103)FC1
+         WRITE(9,103)(D1(IC),IC=1,NCB),FC1
        ENDDO
+       DEALLOCATE(D1)
 
  101   FORMAT(' AA , BB , FA (Full dimension) :')
  102   FORMAT(' I=',I3)

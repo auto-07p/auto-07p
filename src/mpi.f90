@@ -13,7 +13,6 @@
 ! mpibcast: front-end to MPI_Bcast
 ! mpigat: front-end to MPI_Gatherv
 ! mpiscat: front-end to MPI_Scatterv
-! mpisum: front-end to MPI_Reduce (summation)
 ! mpiend: master tells workers to stop
 
 module autompi
@@ -113,14 +112,15 @@ subroutine partition(n,kwt,m)
   enddo
 end subroutine partition
 
-subroutine mpicon(s1,a1,a2,bb,cc,c2,d,faa,fc,ntst,nov,ncb,nrc,ifst)
+subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
   integer, intent(in) :: ntst, nov, ncb, nrc, ifst
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
-  double precision, intent(inout) :: s1(nov,nov,*),d(ncb,*),faa(nov,*),fc(*)
+  double precision, intent(inout) :: s1(nov,nov,*),dd(ncb,nrc,*),faa(nov,*)
+  double precision, intent(inout) :: fcfc(nrc,*)
 
   integer,allocatable :: np(:)
-  integer :: i,ii,j,k,ierr,iam,kwt
+  integer :: ierr,iam,kwt
   logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst),ic2(ntst)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
@@ -138,7 +138,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,d,faa,fc,ntst,nov,ncb,nrc,ifst)
   call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
   call mpigatidx(ia2,faa,1,nov,np,ntst,iam)
-  call mpisum(fc,nrc)
+  call mpigatidx(ia2,fcfc,1,nrc,np,ntst,iam)
 
   if(ifst==0)then
      deallocate(np)
@@ -152,10 +152,10 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,d,faa,fc,ntst,nov,ncb,nrc,ifst)
 
   call mpigatidx(icc,cc,nov,nrc,np,ntst,iam)
   call mpigatidx(icc,c2,nov,nrc,np,ntst,iam)
+  call mpigatidx(ia2,dd,ncb,nrc,np,ntst,iam)
 
   deallocate(np)
 
-  call mpisum(d,ncb*nrc)
 end subroutine mpicon
 
 !-------- ---------- ---------
@@ -402,37 +402,6 @@ subroutine mpigat(buf,ndx,n)
   deallocate(np)
   if(iam==0)deallocate(counts,displacements)
 end subroutine mpigat
-
-subroutine mpisum(buf,len)
-  integer :: len
-  double precision :: buf(len)
-
-  double precision, allocatable :: temp(:)
-  integer ierr, i, iam
-
-  ! A little explanation of what is going on here
-  ! is in order I believe.  This array is
-  ! created by a summation across all workers,
-  ! hence it needs a summation in the master.
-  !
-  ! We sum into d, which is a local variable initialized to
-  ! 0.0. We then sum our part with the masters part
-  ! in the master.
-  !
-  ! I create a temporary receive buffer for the MPI_Reduce
-  ! command.  This is because there isn't an
-  ! asymmetric version (like MPI_Scatterv).
-  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  if(iam==0)allocate(temp(len))
-  call MPI_Reduce(buf,temp,len,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-       MPI_COMM_WORLD,ierr)
-  if(iam==0)then
-     do i=1,len
-        buf(i)=temp(i)
-     enddo
-     deallocate(temp)
-  endif
-end subroutine mpisum
 
 subroutine mpiend()
   integer ierr
