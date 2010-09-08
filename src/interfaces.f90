@@ -106,10 +106,20 @@
 
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
-       ELSEIF(JAC==1)THEN
-         IJC=IJAC
        ELSE
          IJC=1
+         IF(JAC==1)THEN
+            IJC=IJAC
+         ENDIF
+         IF(AP%NDIM>NDIM)THEN
+            ! zero initialize allocated matrices for extended systems
+            DFDU(:,:)=0d0
+            IF(AP%NDIM>NDIM)THEN
+               DO I=1,AP%NFPR
+                  DFDP(:,ICP(I))=0d0
+               ENDDO
+            ENDIF
+         ENDIF
        ENDIF
        CALL FUNC(NDIM,U,ICP,PAR,IJC,F,DFDU,DFDP)
        IF(JAC==1.OR.IJAC/=2)RETURN
@@ -190,10 +200,20 @@
 
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
-       ELSEIF(JAC==1)THEN
-         IJC=IJAC
        ELSE
          IJC=1
+         IF(JAC==1)THEN
+            IJC=IJAC
+         ENDIF
+         IF(AP%NDIM>NDIM.OR.AP%NBC>NBC)THEN
+            ! zero initialize allocated matrices for extended systems
+            IF(JAC==1)THEN
+               DO I=1,AP%NFPR
+                  DBC(:,2*NDIM+ICP(I))=0d0
+               ENDDO
+            ENDIF
+            DBC(:,:2*NDIM)=0d0
+         ENDIF
        ENDIF
        CALL BCND(NDIM,PAR,ICP,NBC,U0,U1,F,IJC,DBC)
        IF(JAC==1 .OR. IJAC/=2)RETURN
@@ -257,10 +277,20 @@
 
        IF(JAC==0.OR.IJAC==0)THEN
          IJC=0
-       ELSEIF(JAC==1)THEN
-         IJC=IJAC
        ELSE
          IJC=1
+         IF(JAC==1)THEN
+            IJC=IJAC
+         ENDIF
+         IF(AP%NDIM>NDIM.OR.AP%NINT>NINT)THEN
+            ! zero initialize allocated matrices for extended systems
+            IF(JAC==1)THEN
+               DO I=1,AP%NFPR
+                  DINT(:,NDIM+ICP(I))=0d0
+               ENDDO
+            ENDIF
+            DINT(:,:NDIM)=0d0
+         ENDIF
        ENDIF
        CALL ICND(NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJC,DINT)
        IF(JAC==1 .OR. IJAC/=2)RETURN
