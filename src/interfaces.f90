@@ -114,7 +114,7 @@
          IF(AP%NDIM>NDIM)THEN
             ! zero initialize allocated matrices for extended systems
             DFDU(:,:)=0d0
-            IF(AP%NDIM>NDIM)THEN
+            IF(JAC==1.AND.IJAC==2)THEN
                DO I=1,AP%NFPR
                   DFDP(:,ICP(I))=0d0
                ENDDO
@@ -207,7 +207,7 @@
          ENDIF
          IF(AP%NDIM>NDIM.OR.AP%NBC>NBC)THEN
             ! zero initialize allocated matrices for extended systems
-            IF(JAC==1)THEN
+            IF(JAC==1.AND.IJAC==2)THEN
                DO I=1,AP%NFPR
                   DBC(:,2*NDIM+ICP(I))=0d0
                ENDDO
@@ -284,7 +284,7 @@
          ENDIF
          IF(AP%NDIM>NDIM.OR.AP%NINT>NINT)THEN
             ! zero initialize allocated matrices for extended systems
-            IF(JAC==1)THEN
+            IF(JAC==1.AND.IJAC==2)THEN
                DO I=1,AP%NFPR
                   DINT(:,NDIM+ICP(I))=0d0
                ENDDO
