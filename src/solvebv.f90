@@ -740,11 +740,11 @@
          DO J=1,NRC
             IF(IFST.EQ.1)THEN
                DO K=1,NCB
-                  D(K,J)=D(K,J)+DD(K,J,NA)
+                  D(K,J)=D(K,J)+DD(K,J,NTST)
                ENDDO
             ENDIF
             IF(NLLV.EQ.0)THEN
-               FC(NBC+J)=FC(NBC+J)+FCFC(J,NA)
+               FC(NBC+J)=FC(NBC+J)+FCFC(J,NTST)
             ENDIF
          ENDDO
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))

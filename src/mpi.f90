@@ -121,7 +121,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
 
   integer,allocatable :: np(:)
   integer :: ierr,iam,kwt
-  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst),ic2(ntst)
+  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
@@ -134,8 +134,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
   ia2=.false.
   is1=.false.
   icc=.false.
-  ic2=.false.
-  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc,ic2)
+  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc)
 
   call mpigatidx(ia2,faa,1,nov,np,ntst,iam)
   call mpigatidx(ia2,fcfc,1,nrc,np,ntst,iam)
@@ -151,7 +150,7 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
   call mpigatidx(ia2,bb,ncb,nov,np,ntst,iam)
 
   call mpigatidx(icc,cc,nov,nrc,np,ntst,iam)
-  call mpigatidx(icc,c2,nov,nrc,np,ntst,iam)
+  call mpigatidx(ia2,c2,nov,nrc,np,ntst,iam)
   call mpigatidx(ia2,dd,ncb,nrc,np,ntst,iam)
 
   deallocate(np)
@@ -159,11 +158,11 @@ subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
 end subroutine mpicon
 
 !-------- ---------- ---------
-recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
+recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
 
 ! Arguments
   integer lo,hi,ntst,kwt
-  logical ia1(*),ia2(*),is1(*),icc(*),ic2(*)
+  logical ia1(*),ia2(*),is1(*),icc(*)
 
 ! Local 
   integer mid
@@ -178,10 +177,10 @@ recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
   mid=(lo+hi)/2
 
   if(lo<mid) &
-       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc,ic2)
+       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc)
 
   if(mid+1<hi) &
-       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
+       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc)
 
   if(lo==mid)then
      ia1(mid)=.true.
@@ -197,8 +196,6 @@ recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
   ia2(hi)=.true.
   icc(lo)=.true.
   icc(mid+1)=.true.
-  ic2(mid)=.true.
-  ic2(hi)=.true.
 
 end subroutine reduceidx
 
