@@ -1543,8 +1543,8 @@
 ! Local
       INTEGER   I,PLO,PHI,BASE,NA
 
-      BASE=IAM*NTST/KWT
-      NA=(IAM+1)*NTST/KWT-BASE
+      BASE=(IAM*NTST+KWT-1)/KWT
+      NA=((IAM+1)*NTST+KWT-1)/KWT-BASE
 !$OMP MASTER
 ! do global backsubsitution until there is no overlap left
       IF(IAM==0)THEN
