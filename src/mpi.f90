@@ -108,7 +108,7 @@ subroutine partition(n,kwt,m)
   integer n,kwt,m(kwt)
   integer i
   do i=1,kwt
-     m(i) = i*n/kwt - (i-1)*n/kwt
+     m(i) = (i*n+kwt-1)/kwt - ((i-1)*n+kwt-1)/kwt
   enddo
 end subroutine partition
 
@@ -170,7 +170,7 @@ recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc,ic2)
 
 ! This is a check for the master reduction so it will stop as soon
 ! as there is no more overlap (already handled by workers).
-  if((lo*kwt-1)/ntst.eq.(hi*kwt-1)/ntst)return
+  if((lo-1)*kwt/ntst==(hi-1)*kwt/ntst)return
 
 ! Obtain indices of matrices used for reduce in the master
 ! so we know which parts to send to it.

@@ -168,7 +168,7 @@
          FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT,           &
          IRF,ICF,IID,NLLV)
 
-      I = IT*NA/NT+1
+      I = (IT*NA+NT-1)/NT+1
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,          &
         FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,         &
         NFPR,NFC,A1,A2,BB,CC,C2,CCBC,DDBC,                               &
@@ -318,8 +318,8 @@
       CALL WINT(NCOL,WI)
       CALL GENWTS(NCOL,WT,WP)
 
-      I = IT*NA/NT+1
-      N = (IT+1)*NA/NT+1-I
+      I = (IT*NA+NT-1)/NT+1
+      N = ((IT+1)*NA+NT-1)/NT+1-I
       II = (I-1)*NCOL
       CALL SUBVPA(NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,FUNI,ICNI,     &
            AP,PAR,NPAR,ICP,AA(1,1,I),BB(1,1,I),CC(1,1,I),         &
@@ -686,8 +686,8 @@
       DOUBLE PRECISION, ALLOCATABLE :: FCC(:),E(:,:),X(:)
 
       NRC=NFC-NBC
-      I = IT*NA/NT+1
-      N = (IT+1)*NA/NT+1-I
+      I = (IT*NA+NT-1)/NT+1
+      N = ((IT+1)*NA+NT-1)/NT+1-I
 
       IF(IDB.GT.4.and.IAM.EQ.0)THEN
 !$OMP BARRIER
@@ -1044,17 +1044,12 @@
 
       ALLOCATE(IAMAX(2*NOV))
 
-      BASE=IAM*NTST/KWT
-      NA=(IAM+1)*NTST/KWT-BASE
-      IF(IT.EQ.0)THEN
-!     Reduce non-overlapping 1st piece
-         CALL REDUCER(1,NTST,BASE+1,BASE+NA/NT)
-      ELSE
-         PLO = BASE+IT*NA/NT+1
-         PHI = BASE+(IT+1)*NA/NT
+      BASE=(IAM*NTST+KWT-1)/KWT
+      NA=((IAM+1)*NTST+KWT-1)/KWT-BASE
+      PLO = BASE+(IT*NA+NT-1)/NT+1
+      PHI = BASE+((IT+1)*NA+NT-1)/NT
 !     Reduce non-overlapping pieces
-         CALL REDUCER(1,NTST,PLO,PHI)
-      ENDIF
+      CALL REDUCER(1,NTST,PLO,PHI)
 
 !$OMP BARRIER
 !$OMP MASTER
@@ -1087,9 +1082,9 @@
 ! This is a check for the master reduction so it will stop as soon
 ! as there is no more overlap (already handled by workers).
        IF(PLO.EQ.0)THEN
-          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
+          IF((LO-1)*KWT/NTST.EQ.(HI-1)*KWT/NTST)RETURN
        ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
-          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
+          IF((LO-BASE-1)*NT/NA.EQ.(HI-BASE-1)*NT/NA)RETURN
        ENDIF
 
 ! Use nested dissection for reduction; this is naturally a recursive
@@ -1567,8 +1562,8 @@
            CALL BCKSUBR(1,NTST,BASE+1,BASE+NA)
 !$OMP END MASTER
 !$OMP BARRIER
-      PLO=BASE+IT*NA/NT+1
-      PHI=BASE+(IT+1)*NA/NT
+      PLO = BASE+(IT*NA+NT-1)/NT+1
+      PHI = BASE+((IT+1)*NA+NT-1)/NT
       CALL BCKSUBR(1,NTST,PLO,PHI)
 
       CONTAINS
@@ -1585,9 +1580,9 @@
 
        IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
        IF(PLO.EQ.0)THEN
-          IF((LO*KWT-1)/NTST.EQ.(HI*KWT-1)/NTST)RETURN
+          IF((LO-1)*KWT/NTST.EQ.(HI-1)*KWT/NTST)RETURN
        ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
-          IF(((LO-BASE)*NT-1)/NA.EQ.((HI-BASE)*NT-1)/NA)RETURN
+          IF((LO-BASE-1)*NT/NA.EQ.(HI-BASE-1)*NT/NA)RETURN
        ENDIF
        MID=(LO+HI)/2
        I=MID-BASE
