@@ -9,10 +9,10 @@
 ! mpiwfi: main workers' loop, called by AUTOBV with funi and icni known
 !         contains the client side of CONPAR and SETUBV   
 ! mpisbv: sends solvbv input from master to workers
-! mpicon: sends a1, a2 etc from workers to master after conpar.
+! mpireduce: MPI communication for REDUCE
+! mpibcksub: MPI communication for BCKSUB
 ! mpibcast: front-end to MPI_Bcast
 ! mpigat: front-end to MPI_Gatherv
-! mpiscat: front-end to MPI_Scatterv
 ! mpiend: master tells workers to stop
 
 module autompi
@@ -22,9 +22,9 @@ use auto_constants, only: autoparameters, niap, nrap
 implicit none
 private
 
-public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti
-public :: mpibcastap
-public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpibcast
+public :: mpibcasti, mpibcastap
+public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
@@ -112,125 +112,100 @@ subroutine partition(n,kwt,m)
   enddo
 end subroutine partition
 
-subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
-  integer, intent(in) :: ntst, nov, ncb, nrc, ifst
+subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
+     lo,hi)
+  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
   double precision, intent(inout) :: s1(nov,nov,*),dd(ncb,nrc,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
 
-  integer,allocatable :: np(:)
-  integer :: ierr,iam,kwt
-  logical ia1(ntst),ia2(ntst),is1(ntst),icc(ntst)
+  integer :: iam,kwt,mid,nlo,nmid1
 
-  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
-  allocate(np(kwt))
-  call partition(ntst,kwt,np)
-
-  ! Worker is running now
-
-  ia1=.false.
-  ia2=.false.
-  is1=.false.
-  icc=.false.
-  call reduceidx(1,ntst,ntst,kwt,ia1,ia2,is1,icc)
-
-  call mpigatidx(ia2,faa,1,nov,np,ntst,iam)
-  call mpigatidx(ia2,fcfc,1,nrc,np,ntst,iam)
-
-  if(ifst==0)then
-     deallocate(np)
-     return
-  endif
-
-  call mpigatidx(is1,s1,nov,nov,np,ntst,iam)
-  call mpigatidx(ia1,a1,nov,nov,np,ntst,iam)
-  call mpigatidx(ia2,a2,nov,nov,np,ntst,iam)
-  call mpigatidx(ia2,bb,ncb,nov,np,ntst,iam)
-
-  call mpigatidx(icc,cc,nov,nrc,np,ntst,iam)
-  call mpigatidx(ia2,c2,nov,nrc,np,ntst,iam)
-  call mpigatidx(ia2,dd,ncb,nrc,np,ntst,iam)
-
-  deallocate(np)
-
-end subroutine mpicon
-
-!-------- ---------- ---------
-recursive subroutine reduceidx(lo,hi,ntst,kwt,ia1,ia2,is1,icc)
-
-! Arguments
-  integer lo,hi,ntst,kwt
-  logical ia1(*),ia2(*),is1(*),icc(*)
-
-! Local 
-  integer mid
-
-! This is a check for the master reduction so it will stop as soon
-! as there is no more overlap (already handled by workers).
-  if((lo-1)*kwt/ntst==(hi-1)*kwt/ntst)return
-
-! Obtain indices of matrices used for reduce in the master
-! so we know which parts to send to it.
-
+  iam=mpiiam()
+  kwt=mpikwt()
   mid=(lo+hi)/2
-
-  if(lo<mid) &
-       call reduceidx(lo,mid,ntst,kwt,ia1,ia2,is1,icc)
-
-  if(mid+1<hi) &
-       call reduceidx(mid+1,hi,ntst,kwt,ia1,ia2,is1,icc)
-
-  if(lo==mid)then
-     ia1(mid)=.true.
-  else
-     is1(mid)=.true.
-  endif
-  if(mid+1<hi)then
-     is1(hi)=.true.
-  else
-     ia1(mid+1)=.true.
-  endif
-  ia2(mid)=.true.
-  ia2(hi)=.true.
-  icc(lo)=.true.
-  icc(mid+1)=.true.
-
-end subroutine reduceidx
-
-subroutine mpigatidx(idx,a,nc,nr,np,ntst,iam)
-
-  ! like mpigat() but only sends/receives blocks i for which
-  ! idx(i) is .true.
-  logical idx(*)
-  integer nc, nr, np(*), ntst, iam
-  double precision a(nc,nr,*)
-
-  integer base, i, ii, j, ierr
-  integer status(MPI_STATUS_SIZE)
-
-  base=np(1)
-  ii=base+np(2)
-  j=2
-  do i=np(1)+1,ntst
-     if(idx(i))then
-        if(iam==0)then
-           call MPI_Recv(a(1,1,i),nc*nr,MPI_DOUBLE_PRECISION,j-1, &
-                MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
-        else if(iam==j-1)then
-           call MPI_Send(a(1,1,i-base),nc*nr,MPI_DOUBLE_PRECISION,0, &
-                0, MPI_COMM_WORLD, ierr)
+  nlo=(lo-1)*kwt/ntst
+  nmid1=mid*kwt/ntst
+  if(nmid1==iam.and.nlo<iam)then
+     if(nllv.eq.0)then
+        call mpisend(faa(1,hi),nov,nlo)
+        call mpisend(fcfc(1,hi),nrc,nlo)
+     endif
+     if(ifst.eq.1)then
+        ! send hi to lo
+        if(mid+1<hi)then
+           call mpisend(s1(1,1,hi),nov*nov,nlo)
+        else
+           call mpisend(a1(1,1,mid+1),nov*nov,nlo)
         endif
+        call mpisend(a2(1,1,hi),nov*nov,nlo)
+        call mpisend(bb(1,1,hi),nov*ncb,nlo)
+        call mpisend(cc(1,1,mid+1),nov*nrc,nlo)
+        call mpisend(c2(1,1,hi),nov*nrc,nlo)
+        call mpisend(dd(1,1,hi),ncb*nrc,nlo)
      endif
-     if(i==ii)then
-        j=j+1
-        base=ii
-        ii=ii+np(j)
+  elseif(nmid1>iam.and.nlo==iam)then
+     if(nllv.eq.0)then
+        call mpirecv(faa(1,hi),nov,nmid1)
+        call mpirecv(fcfc(1,hi),nrc,nmid1)
+     else
+        faa(:,hi)=0
+        fcfc(:,hi)=0
      endif
-  enddo
+     if(ifst.eq.1)then
+        ! receive hi
+        if(mid+1<hi)then
+           call mpirecv(s1(1,1,hi),nov*nov,nmid1)
+        else
+           call mpirecv(a1(1,1,mid+1),nov*nov,nmid1)
+        endif
+        call mpirecv(a2(1,1,hi),nov*nov,nmid1)
+        call mpirecv(bb(1,1,hi),nov*ncb,nmid1)
+        call mpirecv(cc(1,1,mid+1),nov*nrc,nmid1)
+        call mpirecv(c2(1,1,hi),nov*nrc,nmid1)
+        call mpirecv(dd(1,1,hi),ncb*nrc,nmid1)
+     endif
+  endif
+end subroutine mpireduce
 
-end subroutine mpigatidx
+subroutine mpibcksub(sol,ntst,nov,lo,hi)
+  integer, intent(in) :: ntst,nov,lo,hi
+  double precision, intent(inout) :: sol(nov,*)
+  integer :: iam,kwt,mid,nlo,nmid1
+
+  iam=mpiiam()
+  kwt=mpikwt()
+  mid=(lo+hi)/2
+  nlo=(lo-1)*kwt/ntst
+  nmid1=mid*kwt/ntst
+  if(nmid1==iam.and.nlo<iam)then
+     call mpirecv(sol(1,mid+1),nov,nlo)
+     call mpirecv(sol(1,hi+1),nov,nlo)
+  elseif(nmid1>iam.and.nlo==iam)then
+     call mpisend(sol(1,mid+1),nov,nmid1)
+     call mpisend(sol(1,hi+1),nov,nmid1)
+  endif
+end subroutine mpibcksub
+
+subroutine mpirecv(a,isize,isrc)
+  integer, intent(in) :: isize, isrc
+  double precision, intent(out) :: a(isize)
+
+  integer ierr
+  integer status(MPI_STATUS_SIZE)
+  call MPI_Recv(a,isize,MPI_DOUBLE_PRECISION,isrc, &
+       MPI_ANY_TAG, MPI_COMM_WORLD, status, ierr)
+end subroutine mpirecv
+
+subroutine mpisend(a,isize,idest)
+  integer, intent(in) :: isize, idest
+  double precision, intent(in) :: a(isize)
+
+  integer ierr
+  call MPI_Send(a,isize,MPI_DOUBLE_PRECISION,idest, &
+       0, MPI_COMM_WORLD, ierr)
+end subroutine mpisend
 
 subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)

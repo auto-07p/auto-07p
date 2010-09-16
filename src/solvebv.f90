@@ -56,7 +56,7 @@
       INTEGER, ALLOCATABLE :: NP(:)
       INTEGER IAM,KWT,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
-      INTEGER NA,NTSTNA,IT,NT,MNT,I,J
+      INTEGER NA,IT,NT,MNT,I,J,BASE
       INTEGER ISHAPE(8)
 
 ! Most of the required memory is allocated below
@@ -100,9 +100,7 @@
 !     The value of NTST may be different in different nodes.
       NA=NP(IAM+1)
 
-      NTSTNA=NA
-      IF(IAM.EQ.0)NTSTNA=NTST
-      ALLOCATE(FA(NROW,NTSTNA),FC(NFC))
+      ALLOCATE(FA(NROW,NTST),FC(NFC))
       MNT = 1
 !$    MNT = OMP_GET_MAX_THREADS()
       IF(MNT.GT.NA)THEN
@@ -116,7 +114,7 @@
             ISHAPE(4:6)=SHAPE(CC)
             ISHAPE(7:8)=SHAPE(DDBC)
             IF(ISHAPE(1)/=NCLM.OR.ISHAPE(2)/=NROW.OR.ISHAPE(3)/=NA    &
-           .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTSTNA &
+           .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTST &
            .OR.ISHAPE(7)/=NFPR.OR.ISHAPE(8)/=NBC)THEN
 !              Free floating point arrays
                DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CCBC,DD,DDBC)
@@ -128,14 +126,14 @@
          IF(.NOT.ALLOCATED(A))THEN
             ALLOCATE(A(NCLM,NROW,NA),B(NFPR,NROW,NA))
             ALLOCATE(C(NCLM,NRC,NA),D(NFPR,NRC))
-            ALLOCATE(A1(NDIM,NDIM,NTSTNA),A2(NDIM,NDIM,NTSTNA))
-            ALLOCATE(S1(NDIM,NDIM,NTSTNA),S2(NDIM,NDIM,NTSTNA))
-            ALLOCATE(BB(NFPR,NDIM,NTSTNA),CC(NDIM,NRC,NTSTNA))
-            ALLOCATE(C2(NDIM,NRC,NTSTNA),CCBC(NDIM,NBC,2))
-            ALLOCATE(DD(NFPR,NRC,NTSTNA),DDBC(NFPR,NBC))
+            ALLOCATE(A1(NDIM,NDIM,NTST),A2(NDIM,NDIM,NTST))
+            ALLOCATE(S1(NDIM,NDIM,NTST),S2(NDIM,NDIM,NTST))
+            ALLOCATE(BB(NFPR,NDIM,NTST),CC(NDIM,NRC,NTST))
+            ALLOCATE(C2(NDIM,NRC,NTST),CCBC(NDIM,NBC,2))
+            ALLOCATE(DD(NFPR,NRC,NTST),DDBC(NFPR,NBC))
 
-            ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTSTNA-1))
-            ALLOCATE(IPC(NDIM,NTSTNA-1))
+            ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTST-1))
+            ALLOCATE(IPC(NDIM,NTST-1))
          ENDIF
       ENDIF
       IF(IAM.EQ.0)THEN
@@ -154,7 +152,8 @@
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
 
-      ALLOCATE(FCFC(NRC,NTSTNA),FAA(NDIM,NTSTNA),SOL(NDIM,NTSTNA+1))
+      ALLOCATE(FCFC(NRC,NTST),FAA(NDIM,NTST),SOL(NDIM,NTST+1))
+      BASE=(IAM*NTST+KWT-1)/KWT
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
 
@@ -164,8 +163,8 @@
 !$    NT = OMP_GET_NUM_THREADS()
       IF(NLLV>=0.OR.IFST==1) &
         CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,                &
-         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD,FA,                          &
-         FCFC,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT,           &
+         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD(1,1,BASE+1),FA,              &
+         FCFC(1,BASE+1),UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT, &
          IRF,ICF,IID,NLLV)
 
       I = (IT*NA+NT-1)/NT+1
@@ -681,13 +680,14 @@
       INTEGER   IPR(*),IPC(*),IRF(NRA,*),ICF(NCA,*)
 
 ! Local
-      INTEGER I,J,K,II,N,NRC
+      INTEGER I,J,K,II,N,NRC,BASE
       INTEGER, ALLOCATABLE :: IAMAX(:)
       DOUBLE PRECISION, ALLOCATABLE :: FCC(:),E(:,:),X(:)
 
       NRC=NFC-NBC
-      I = (IT*NA+NT-1)/NT+1
-      N = ((IT+1)*NA+NT-1)/NT+1-I
+      BASE=(IAM*NTST+KWT-1)/KWT
+      I = BASE+(IT*NA+NT-1)/NT+1
+      N = BASE+((IT+1)*NA+NT-1)/NT+1-I
 
       IF(IDB.GT.4.and.IAM.EQ.0)THEN
 !$OMP BARRIER
@@ -1058,11 +1058,6 @@
       IF(NT>1) &
          CALL REDUCER(1,NTST,BASE+1,BASE+NA)
 
-      IF(KWT>1)THEN
-         CALL MPICON(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST)
-         IF(IAM.EQ.0) &
-              CALL REDUCER(1,NTST,0,NTST)
-      ENDIF
 !$OMP END MASTER
 
       DEALLOCATE(IAMAX)
@@ -1081,9 +1076,7 @@
        IF(HI.LT.PLO.OR.LO.GT.PHI)RETURN
 ! This is a check for the master reduction so it will stop as soon
 ! as there is no more overlap (already handled by workers).
-       IF(PLO.EQ.0)THEN
-          IF((LO-1)*KWT/NTST.EQ.(HI-1)*KWT/NTST)RETURN
-       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
+       IF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
           IF((LO-BASE-1)*NT/NA.EQ.(HI-BASE-1)*NT/NA)RETURN
        ENDIF
 
@@ -1099,13 +1092,20 @@
             CALL REDUCER(MID+1,HI,PLO,PHI)
 
 ! Thread is not in the [PLO,PHI] range: return
-       IF(LO.LT.PLO.OR.HI.GT.PHI)RETURN
+       IF(NT.GT.1.AND.PHI-PLO<NA-1)THEN
+          ! OpenMP parallel section without overlap
+          IF(HI>PHI)RETURN
+       ELSEIF(KWT>1)THEN
+          CALL MPIREDUCE(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
+               NLLV,LO,HI)
+       ENDIF
+       IF(LO<PLO)RETURN
 
 ! Initialization
 
-       I0=LO-BASE
-       I1=MID-BASE
-       I2=HI-BASE
+       I0=LO
+       I1=MID
+       I2=HI
        IF(IFST.EQ.1)THEN
           IF(LO.EQ.MID)THEN
              DO IR=1,NOV
@@ -1553,10 +1553,7 @@
          ENDDO
       ENDIF
       IF(KWT>1)THEN
-         IF(IAM==0) &
-              CALL BCKSUBR(1,NTST,0,NTST)
          CALL MPIBCAST(FC,NOV+NCB)
-         CALL MPISCAT(SOL,NOV,NTST,NOV)
       ENDIF
       IF(NT>1) &
            CALL BCKSUBR(1,NTST,BASE+1,BASE+NA)
@@ -1579,19 +1576,20 @@
        INTEGER MID,I,I0,I1
 
        IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
-       IF(PLO.EQ.0)THEN
-          IF((LO-1)*KWT/NTST.EQ.(HI-1)*KWT/NTST)RETURN
-       ELSEIF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
+       IF(NT.GT.1.AND.PHI-PLO.EQ.NA-1.AND.LO.GT.BASE)THEN
           IF((LO-BASE-1)*NT/NA.EQ.(HI-BASE-1)*NT/NA)RETURN
        ENDIF
        MID=(LO+HI)/2
-       I=MID-BASE
-       I0=LO-BASE
-       I1=HI-BASE
-       IF(PLO.LE.LO.AND.HI.LE.PHI)THEN
+       I=MID
+       I0=LO
+       I1=HI
+       IF((PHI-PLO==NA-1.OR.HI<=PHI).AND.LO>=PLO)THEN
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),     &
                FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1), &
                NOV,NCB,IPC(1,I))
+       ENDIF
+       IF(KWT>1.AND.PHI-PLO==NA-1)THEN
+          CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI)
        ENDIF
        CALL BCKSUBR(MID+1,HI,PLO,PHI)
        CALL BCKSUBR(LO,MID,PLO,PHI)

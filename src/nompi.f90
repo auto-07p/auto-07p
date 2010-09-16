@@ -6,9 +6,9 @@ use auto_constants, only: autoparameters
 
 implicit none
 private
-public :: mpiini, mpiiap, mpiwfi, mpicon, mpisbv, mpibcast, mpibcasti
-public :: mpibcastap
-public :: mpiscat, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpibcast
+public :: mpibcasti, mpibcastap
+public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
@@ -32,18 +32,24 @@ logical function mpiwfi(autobv)
   mpiwfi = .false.
 end function mpiwfi
 
-subroutine mpicon(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst)
-  integer, intent(in) :: ntst, nov, ncb, nrc, ifst
+subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
+     lo,hi)
+  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
   double precision, intent(inout) :: s1(nov,nov,*),dd(ncb,nrc,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
-end subroutine mpicon
+end subroutine mpireduce
 
-subroutine mpisbv(ap,par,icp,nra,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpibcksub(sol,ntst,nov,lo,hi)
+  integer, intent(in) :: ntst,nov,lo,hi
+  double precision, intent(inout) :: sol(nov,*)
+end subroutine mpibcksub
+
+subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   type(autoparameters) :: ap
-  integer, intent(in) :: nra,icp(*)
+  integer, intent(in) :: ndim,icp(*)
   integer, intent(inout) :: ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
