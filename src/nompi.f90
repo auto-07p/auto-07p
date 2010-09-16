@@ -52,7 +52,7 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
   integer, intent(in) :: ndim,icp(*)
   integer, intent(inout) :: ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
-  double precision :: ups(nra,*),uoldps(nra,*),udotps(nra,*),upoldp(nra,*)
+  double precision :: ups(ndim,*),uoldps(ndim,*),udotps(ndim,*),upoldp(ndim,*)
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
