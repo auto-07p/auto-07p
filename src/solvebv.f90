@@ -48,7 +48,7 @@
       DOUBLE PRECISION, ALLOCATABLE, SAVE :: &
            A(:,:,:),B(:,:,:),C(:,:,:),D(:,:),A1(:,:,:),A2(:,:,:), &
            S1(:,:,:),S2(:,:,:),BB(:,:,:),CC(:,:,:),C2(:,:,:),     &
-           CCBC(:,:,:),DD(:,:,:),DDBC(:,:)
+           CDBC(:,:),DD(:,:,:)
       INTEGER, ALLOCATABLE, SAVE :: &
            ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: &
@@ -113,12 +113,12 @@
 !            !a sufficient check to see if array dimensions have changed:
             ISHAPE(1:3)=SHAPE(A)
             ISHAPE(4:6)=SHAPE(CC)
-            ISHAPE(7:8)=SHAPE(DDBC)
+            ISHAPE(7:8)=SHAPE(CDBC)
             IF(ISHAPE(1)/=NCLM.OR.ISHAPE(2)/=NROW.OR.ISHAPE(3)/=NA    &
            .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTST &
-           .OR.ISHAPE(7)/=NFPR.OR.ISHAPE(8)/=NBC)THEN
+           .OR.ISHAPE(7)/=2*NDIM+NFPR.OR.ISHAPE(8)/=NBC)THEN
 !              Free floating point arrays
-               DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CCBC,DD,DDBC)
+               DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CDBC,DD)
 !              Free integer arrays
                DEALLOCATE(ICF,IRF,IPR,IPC)
             ENDIF
@@ -130,8 +130,8 @@
             ALLOCATE(A1(NDIM,NDIM,NTST),A2(NDIM,NDIM,NTST))
             ALLOCATE(S1(NDIM,NDIM,NTST),S2(NDIM,NDIM,NTST))
             ALLOCATE(BB(NFPR,NDIM,NTST),CC(NDIM,NRC,NTST))
-            ALLOCATE(C2(NDIM,NRC,NTST),CCBC(NDIM,NBC,2))
-            ALLOCATE(DD(NFPR,NRC,NTST),DDBC(NFPR,NBC))
+            ALLOCATE(C2(NDIM,NRC,NTST),CDBC(2*NDIM+NFPR,NBC))
+            ALLOCATE(DD(NFPR,NRC,NTST))
 
             ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTST-1))
             ALLOCATE(IPC(NDIM,NTST-1))
@@ -143,7 +143,7 @@
             PAR(ICP(I))=RLCUR(I)
          ENDDO
          CALL SUBVBC(NDIM,NTST*NCOL,NBC,NFPR,BCNI, &
-                 AP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
+                 AP,PAR,NPAR,ICP,CDBC,FC,UPS,IFST)
          CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NINT)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
          IF(KWT.GT.1)THEN
@@ -176,7 +176,7 @@
       I = (IT*NA+NT-1)/NT+1
       CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,          &
         FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,         &
-        NFPR,NFC,A1,A2,BB,CC,C2,CCBC,DDBC,                               &
+        NFPR,NFC,A1,A2,BB,CC,C2,CDBC,                                    &
         SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT,REDUCED)
 
 !$OMP END PARALLEL
@@ -222,18 +222,18 @@
 
 !     ---------- ---------
       SUBROUTINE SUBVBC(NDIM,NTNC,NBC,NCB,BCNI, &
-       AP,PAR,NPAR,ICP,CCBC,DDBC,FC,UPS,IFST)
+       AP,PAR,NPAR,ICP,CDBC,FC,UPS,IFST)
 
 !     This subroutine handles a non-parallel part of SETUBV, that is,
 !     * the boundary conditions (not much to parallelize here and
-!       HomCont relies on non-parallel execution): the arrays CCBC,
-!       DDBC, and parts of FC.
+!       HomCont relies on non-parallel execution): the array CDBC
+!       and parts of FC.
 
       include 'interfaces.h'
 
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER NDIM,NTNC,NBC,NCB,ICP(*),IFST,NPAR
-      DOUBLE PRECISION CCBC(NDIM,NBC,*),DDBC(NCB,*)
+      DOUBLE PRECISION CDBC(2*NDIM+NCB,NBC)
       DOUBLE PRECISION UPS(NDIM,0:NTNC),FC(*),PAR(*)
 
 ! Local
@@ -255,11 +255,11 @@
             FC(I)=-FBC(I)
             IF(IFST.EQ.1)THEN
                DO K=1,NDIM
-                  CCBC(K,I,1)=DBC(I,K)
-                  CCBC(K,I,2)=DBC(I,NDIM+K)
+                  CDBC(K,I)=DBC(I,K)
+                  CDBC(NDIM+K,I)=DBC(I,NDIM+K)
                ENDDO
                DO K=1,NCB
-                  DDBC(K,I)=DBC(I,2*NDIM+ICP(K))
+                  CDBC(2*NDIM+K,I)=DBC(I,2*NDIM+ICP(K))
                ENDDO
             ENDIF
          ENDDO    
@@ -548,7 +548,7 @@
 !     ---------- ----
       SUBROUTINE BRBD(A,B,C,D,DD,FA,FAA,FC,FCFC,P0,P1,IFST,  &
         IDB,NLLV,DET,NOV,NTST,NA,NBC,NRA,NCA,                &
-        NCB,NFC,A1,A2,BB,CC,C2,CCBC,DDBC,                    &
+        NCB,NFC,A1,A2,BB,CC,C2,CDBC,                         &
         SOL,S1,S2,IPR,IPC,IRF,ICF,IAM,KWT,IT,NT,REDUCED)
 
 ! Solves linear systems with matrix profile:
@@ -606,12 +606,12 @@
 ! partioned as
 
 
-!      ---------
+!      ---------   ------   ------
 !      !     ! !   !    !   !    !
 !      !  A  !B!   ! XA !   ! FA !
 !      !     ! ! . !    ! = !    !   .
 !      !-----!-!   !----!   !----!
-!      ! CCBC!DDBC !    !   !    !
+!      !  CDBC !   !    !   !    !
 !      !-----!-!   ! XC !   ! FC !
 !      !  C  !D!   !    !   !    !
 !      !-----!-!   !----!   !----!
@@ -633,12 +633,11 @@
 
 !   D      the matrix D above,
 
-!   NFC   the number of rows of the two dimensional matrices C+CCBC, XC and FC
+!   NFC   the number of rows of the two dimensional matrices C+CDBC, XC and FC
 !   C     the matrix C in the schema above,
 
-!   CCBC  the matrix CCBC above,
-!   DDBC  the matrix CCBC above,
-!   NBC   the number of rows of the two dimensional matrices CCBC and DDBC
+!   CDBC  the matrix CDBC above,
+!   NBC   the number of rows of the two dimensional matrix CDBC
 
 !   FA     part of the right hand side vector,
 !          (note that FA is also two dimensional),
@@ -682,7 +681,7 @@
       DOUBLE PRECISION, INTENT(OUT) :: P0(*),P1(*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),CC(NOV,NFC-NBC,*),C2(NOV,NFC-NBC,*)
-      DOUBLE PRECISION CCBC(*),DDBC(*),SOL(NOV,*),S1(*),S2(*)
+      DOUBLE PRECISION CDBC(*),SOL(NOV,*),S1(*),S2(*)
       INTEGER   IPR(*),IPC(*),IRF(NRA,*),ICF(NCA,*)
       LOGICAL REDUCED(*)
 
@@ -699,7 +698,7 @@
       IF(IDB.GT.4.and.IAM.EQ.0)THEN
 !$OMP BARRIER
 !$OMP MASTER
-         CALL PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC, &
+         CALL PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CDBC,D,DD, &
            FA,FC,FCFC,IFST,NLLV)
 !$OMP END MASTER
 !$OMP BARRIER
@@ -754,7 +753,7 @@
             ENDIF
          ENDDO
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
-         CALL DIMRGE(E,CC,C2,CCBC,D,DDBC,FC,                            &
+         CALL DIMRGE(E,CC,C2,CDBC,D,FC,                               &
            NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
          DO II=1,NOV
             SOL(II,1)=FCC(II)
@@ -1409,14 +1408,14 @@
       END SUBROUTINE REDRHSBLK
 
 !     ---------- ------
-      SUBROUTINE DIMRGE(E,CC,C2,CCBC,D,DDBC,FC, &
+      SUBROUTINE DIMRGE(E,CC,C2,CDBC,D,FC, &
            NA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
 
       USE SUPPORT
 ! Arguments
       INTEGER   NA,NFC,NBC,NOV,NCB,IDB,NLLV
       DOUBLE PRECISION E(NOV+NFC,*),CC(NOV,NFC-NBC,*),C2(NOV,NFC-NBC,*)
-      DOUBLE PRECISION CCBC(NOV,NBC,2),D(NCB,*),DDBC(NCB,*)
+      DOUBLE PRECISION CDBC(2*NOV+NCB,NBC),D(NCB,*)
       DOUBLE PRECISION, INTENT(OUT) :: P0(NOV,*),P1(NOV,*)
       DOUBLE PRECISION S(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),FC(*),FCC(*)
@@ -1444,12 +1443,8 @@
       ENDDO
 
       DO I=1,NBC
-         DO J=1,NOV
-            E(NOV+I,J)     = CCBC(J,I,1)
-            E(NOV+I,NOV+J) = CCBC(J,I,2)
-         ENDDO
-         DO J=1,NCB
-            E(NOV+I,2*NOV+J) = DDBC(J,I)
+         DO J=1,2*NOV+NCB
+            E(NOV+I,J)     = CDBC(J,I)
          ENDDO
       ENDDO
       DO I=1,NRC
@@ -1699,13 +1694,13 @@
       END SUBROUTINE INFPAR
 
 !     ---------- ------
-      SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CCBC,D,DD,DDBC,FA, &
+      SUBROUTINE PRINT1(NA,NRA,NCA,NCB,NFC,NBC,A,B,C,CDBC,D,DD,FA, &
        FC,FCFC,IFST,NLLV)
 
       INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,IFST,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION CCBC(NCA-NRA,NBC,*),D(NCB,*),DD(NCB,NFC-NBC,*)
-      DOUBLE PRECISION DDBC(NCB,*),FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
+      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NCB,*),DD(NCB,NFC-NBC,*)
+      DOUBLE PRECISION FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
 
       INTEGER I,IR,IC
       DOUBLE PRECISION, ALLOCATABLE :: D1(:)
@@ -1730,16 +1725,16 @@
            IF(IR.GT.NBC)THEN
              WRITE(9,103)(C(IC,IR-NBC,I),IC=1,NCA)
            ELSEIF(I.EQ.1)THEN
-             WRITE(9,103)(CCBC(IC,IR,1),IC=1,NCA-NRA)
+             WRITE(9,103)(CDBC(IC,IR),IC=1,NCA-NRA)
            ELSEIF(I.EQ.NA)THEN
-             WRITE(9,103)(CCBC(IC,IR,2),IC=1,NCA-NRA)
+             WRITE(9,103)(CDBC(NCA-NRA+IC,IR),IC=1,NCA-NRA)
            ENDIF
          ENDDO
        ENDDO
 
        WRITE(9,105)
        DO IR=1,NBC
-         WRITE(9,103)(DDBC(IC,IR),IC=1,NCB),FC(IR)
+         WRITE(9,103)(CDBC(2*(NCA-NRA)+IC,IR),IC=1,NCB),FC(IR)
        ENDDO
        ALLOCATE(D1(NCB))
        DO IR=1,NFC-NBC
