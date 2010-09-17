@@ -1046,22 +1046,28 @@
       LOGICAL, INTENT(INOUT) :: REDUCED(*)
 
 ! Local 
-      INTEGER IAMAX,PLO,PHI,BASE,NA
+      INTEGER IAMAX,PLO,PHI,NA,MPLO,MPHI
+      LOGICAL DOMPI
       ALLOCATABLE IAMAX(:)
 
       ALLOCATE(IAMAX(2*NOV))
 
-      BASE=(IAM*NTST+KWT-1)/KWT
-      NA=((IAM+1)*NTST+KWT-1)/KWT-BASE
-      PLO = BASE+(IT*NA+NT-1)/NT+1
-      PHI = BASE+((IT+1)*NA+NT-1)/NT
-      CALL REDUCER(1,NTST,PLO,PHI)
+      MPLO = (IAM*NTST+KWT-1)/KWT+1
+      MPHI = ((IAM+1)*NTST+KWT-1)/KWT
+      NA = MPHI-MPLO+1
+      PLO = MPLO+(IT*NA+NT-1)/NT
+      PHI = MPLO+((IT+1)*NA+NT-1)/NT-1
+      DOMPI = KWT>1.AND.NT==1
+      CALL REDUCER(1,NTST)
 
       IF(KWT>1.AND.NT>1)THEN
 !$OMP BARRIER
 !$OMP MASTER
          ! MPI part of reduction if both OpenMP and MPI are used
-         CALL REDUCER(1,NTST,BASE+1,BASE+NA)
+         DOMPI = .TRUE.
+         PLO = MPLO
+         PHI = MPHI
+         CALL REDUCER(1,NTST)
 !$OMP END MASTER
       ENDIF
 
@@ -1070,18 +1076,18 @@
       CONTAINS
 
 !      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDUCER(LO,HI,PLO,PHI)
+       RECURSIVE SUBROUTINE REDUCER(LO,HI)
 
 ! Arguments
-       INTEGER, INTENT(IN) :: LO,HI,PLO,PHI
+       INTEGER, INTENT(IN) :: LO,HI
 
 ! Local 
        INTEGER IR,IC,I0,I1,I2,MID
 
-       IF(HI.LT.PLO.OR.LO.GT.PHI)RETURN
+       IF(HI<PLO.OR.LO>PHI)RETURN
 ! This is a check for the master reduction so it will stop as soon
-! as there is no more overlap (already handled by workers).
-       IF(KWT>1.AND.NT>1.AND.PHI-PLO==NA-1.AND.LO>=PLO.AND.HI<=PHI)RETURN
+! as there is no more overlap (already handled by nodes).
+       IF(DOMPI.AND.NT>1.AND.LO>=PLO.AND.HI<=PHI)RETURN
 
 ! Use nested dissection for reduction; this is naturally a recursive
 ! procedure.
@@ -1089,30 +1095,30 @@
        MID=(LO+HI)/2
 
        IF(LO<MID) &
-            CALL REDUCER(LO,MID,PLO,PHI)
+            CALL REDUCER(LO,MID)
 
        IF(MID+1<HI) &
-            CALL REDUCER(MID+1,HI,PLO,PHI)
+            CALL REDUCER(MID+1,HI)
 
-       IF(KWT>1.AND.PHI-PLO==NA-1)THEN
+       IF(DOMPI)THEN
           CALL MPIREDUCE(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
                NLLV,LO,HI)
-       ELSEIF(NT>1.AND.LO>BASE)THEN
-          ! OpenMP synchronisation
+       ELSEIF(NT>1)THEN
           ! Avoid MPI overlaps
-          IF(HI>BASE+NA)RETURN
+          IF(LO<MPLO.OR.HI>MPHI)RETURN
+          ! OpenMP synchronisation
           IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO)THEN
              REDUCED(MID+1)=.TRUE.
-             ! mark mid+1 as finished by "CALL REDUCER(MID+1,HI,PLO,PHI)"
+             ! mark mid+1 as finished by "CALL REDUCER(MID+1,HI)"
 !$OMP FLUSH
           ELSEIF(MID+1>PHI.AND.LO>=PLO)THEN
 !$OMP FLUSH
              ! The recursion check for LO ensures that 
-             ! "CALL REDUCER(LO,MID,PLO,PHI)" was handled by this
+             ! "CALL REDUCER(LO,MID)" was handled by this
              ! thread and not another one.
              ! But we need to wait for mid+1 to become available:
              ! that means that
-             ! "CALL REDUCER(MID+1,HI,PLO,PHI)",
+             ! "CALL REDUCER(MID+1,HI)",
              ! performed by another thread, has finished.
              DO WHILE(.NOT.REDUCED(MID+1))
 !$OMP FLUSH
@@ -1563,10 +1569,12 @@
       LOGICAL, INTENT(INOUT) :: REDUCED(*)
 
 ! Local
-      INTEGER   I,PLO,PHI,BASE,NA
+      INTEGER I,PLO,PHI,NA,MPLO,MPHI
+      LOGICAL DOMPI
 
-      BASE=(IAM*NTST+KWT-1)/KWT
-      NA=((IAM+1)*NTST+KWT-1)/KWT-BASE
+      MPLO = (IAM*NTST+KWT-1)/KWT+1
+      MPHI = ((IAM+1)*NTST+KWT-1)/KWT
+      NA = MPHI-MPLO+1
 !$OMP MASTER
       IF(IAM==0)THEN
          DO I=1,NOV
@@ -1577,7 +1585,10 @@
          CALL MPIBCAST(FC,NOV+NCB)
          IF(NT>1)THEN
             ! MPI part of back substitution if both OpenMP and MPI are used
-            CALL BCKSUBR(1,NTST,BASE+1,BASE+NA)
+            PLO = MPLO
+            PHI = MPHI
+            DOMPI = .TRUE.
+            CALL BCKSUBR(1,NTST)
          ENDIF
       ENDIF
 !$OMP END MASTER
@@ -1585,40 +1596,43 @@
 !$OMP BARRIER
       ENDIF
 
-      PLO = BASE+(IT*NA+NT-1)/NT+1
-      PHI = BASE+((IT+1)*NA+NT-1)/NT
-      CALL BCKSUBR(1,NTST,PLO,PHI)
+      PLO = MPLO+(IT*NA+NT-1)/NT
+      PHI = MPLO+((IT+1)*NA+NT-1)/NT-1
+      DOMPI = KWT>1.AND.NT==1
+      CALL BCKSUBR(1,NTST)
 
       CONTAINS
 
-!      Back substitution within the interval [PLO,PHI]; no overlap
+!      Back substitution within the interval [MPLO,MPHI]; LO is in [PLO,PHI]
 !      --------- ---------- -------
-       RECURSIVE SUBROUTINE BCKSUBR(LO,HI,PLO,PHI)
+       RECURSIVE SUBROUTINE BCKSUBR(LO,HI)
 
 ! Arguments
-       INTEGER, INTENT(IN) :: LO,HI,PLO,PHI
+       INTEGER, INTENT(IN) :: LO,HI
 
 ! Local
        INTEGER MID,I,I0,I1
 
-       IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
-       IF(KWT>1.AND.NT>1.AND.PHI-PLO==NA-1.AND.LO>=PLO.AND.HI<=PHI)RETURN
+       IF(LO>=HI.OR.HI<PLO.OR.LO>PHI)RETURN
+! This is a check for the master reduction so it will stop as soon
+! as there is no more overlap (already handled by nodes).
+       IF(DOMPI.AND.NT>1.AND.LO>=PLO.AND.HI<=PHI)RETURN
        MID=(LO+HI)/2
        I=MID
        I0=LO
        I1=HI
-       IF(LO>=PLO.AND.(PHI-PLO==NA-1.OR.HI<=BASE+NA))THEN
+       IF(LO>=PLO.AND.(DOMPI.OR.HI<=MPHI))THEN
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),     &
                FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1), &
                NOV,NCB,IPC(1,I))
        ENDIF
-       IF(KWT>1.AND.PHI-PLO==NA-1)THEN
+       IF(DOMPI)THEN
           CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI)
-       ELSEIF(NT>1.AND.LO>BASE)THEN
+       ELSEIF(NT>1.AND.LO>=MPLO.AND.HI<=MPHI)THEN
           ! in an OpenMP thread
           IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO)THEN
              ! wait for mid+1 to become available, so
-             ! BCKSUBR(MID+1,HI,PLO,PHI) can use it
+             ! BCKSUBR(MID+1,HI) can use it
 !$OMP FLUSH
              DO WHILE(REDUCED(MID+1))
 !$OMP FLUSH
@@ -1629,8 +1643,8 @@
 !$OMP FLUSH
           ENDIF
        ENDIF
-       CALL BCKSUBR(MID+1,HI,PLO,PHI)
-       CALL BCKSUBR(LO,MID,PLO,PHI)
+       CALL BCKSUBR(MID+1,HI)
+       CALL BCKSUBR(LO,MID)
 
        END SUBROUTINE BCKSUBR
 
