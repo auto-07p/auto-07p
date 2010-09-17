@@ -1057,6 +1057,14 @@
       PHI = BASE+((IT+1)*NA+NT-1)/NT
       CALL REDUCER(1,NTST,PLO,PHI)
 
+      IF(KWT>1.AND.NT>1)THEN
+!$OMP BARRIER
+!$OMP MASTER
+         ! MPI part of reduction if both OpenMP and MPI are used
+         CALL REDUCER(1,NTST,BASE+1,BASE+NA)
+!$OMP END MASTER
+      ENDIF
+
       DEALLOCATE(IAMAX)
 
       CONTAINS
@@ -1071,6 +1079,9 @@
        INTEGER IR,IC,I0,I1,I2,MID
 
        IF(HI.LT.PLO.OR.LO.GT.PHI)RETURN
+! This is a check for the master reduction so it will stop as soon
+! as there is no more overlap (already handled by workers).
+       IF(KWT>1.AND.NT>1.AND.PHI-PLO==NA-1.AND.LO>=PLO.AND.HI<=PHI)RETURN
 
 ! Use nested dissection for reduction; this is naturally a recursive
 ! procedure.
@@ -1083,18 +1094,18 @@
        IF(MID+1<HI) &
             CALL REDUCER(MID+1,HI,PLO,PHI)
 
-! Thread is not in the [PLO,PHI] range: return
-       IF(KWT>1)THEN
+       IF(KWT>1.AND.PHI-PLO==NA-1)THEN
           CALL MPIREDUCE(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
                NLLV,LO,HI)
-       ENDIF
-       IF(NT>1)THEN
+       ELSEIF(NT>1.AND.LO>BASE)THEN
           ! OpenMP synchronisation
-          IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO.AND.LO>BASE)THEN
+          ! Avoid MPI overlaps
+          IF(HI>BASE+NA)RETURN
+          IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO)THEN
              REDUCED(MID+1)=.TRUE.
              ! mark mid+1 as finished by "CALL REDUCER(MID+1,HI,PLO,PHI)"
 !$OMP FLUSH
-          ELSEIF(MID+1>PHI.AND.LO>=PLO.AND.MID+1<=BASE+NA)THEN
+          ELSEIF(MID+1>PHI.AND.LO>=PLO)THEN
 !$OMP FLUSH
              ! The recursion check for LO ensures that 
              ! "CALL REDUCER(LO,MID,PLO,PHI)" was handled by this
@@ -1557,7 +1568,6 @@
       BASE=(IAM*NTST+KWT-1)/KWT
       NA=((IAM+1)*NTST+KWT-1)/KWT-BASE
 !$OMP MASTER
-! do global backsubsitution until there is no overlap left
       IF(IAM==0)THEN
          DO I=1,NOV
             SOL(I,NTST+1) = FC(I)
@@ -1565,8 +1575,16 @@
       ENDIF
       IF(KWT>1)THEN
          CALL MPIBCAST(FC,NOV+NCB)
+         IF(NT>1)THEN
+            ! MPI part of back substitution if both OpenMP and MPI are used
+            CALL BCKSUBR(1,NTST,BASE+1,BASE+NA)
+         ENDIF
       ENDIF
 !$OMP END MASTER
+      IF(KWT>1.AND.NT>1)THEN
+!$OMP BARRIER
+      ENDIF
+
       PLO = BASE+(IT*NA+NT-1)/NT+1
       PHI = BASE+((IT+1)*NA+NT-1)/NT
       CALL BCKSUBR(1,NTST,PLO,PHI)
@@ -1584,28 +1602,28 @@
        INTEGER MID,I,I0,I1
 
        IF(LO.GE.HI.OR.HI.LT.PLO.OR.LO.GT.PHI)RETURN
+       IF(KWT>1.AND.NT>1.AND.PHI-PLO==NA-1.AND.LO>=PLO.AND.HI<=PHI)RETURN
        MID=(LO+HI)/2
        I=MID
        I0=LO
        I1=HI
-       IF(LO>=PLO)THEN
+       IF(LO>=PLO.AND.(PHI-PLO==NA-1.OR.HI<=BASE+NA))THEN
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),     &
                FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1), &
                NOV,NCB,IPC(1,I))
        ENDIF
-       IF(KWT>1)THEN
+       IF(KWT>1.AND.PHI-PLO==NA-1)THEN
           CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI)
-       ENDIF
-       IF(NT>1)THEN
+       ELSEIF(NT>1.AND.LO>BASE)THEN
           ! in an OpenMP thread
-          IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO.AND.LO>BASE)THEN
+          IF(MID+1>=PLO.AND.MID+1<=PHI.AND.LO<PLO)THEN
              ! wait for mid+1 to become available, so
              ! BCKSUBR(MID+1,HI,PLO,PHI) can use it
 !$OMP FLUSH
              DO WHILE(REDUCED(MID+1))
 !$OMP FLUSH
              ENDDO
-          ELSEIF(MID+1>PHI.AND.LO>=PLO.AND.MID+1<=BASE+NA)THEN
+          ELSEIF(MID+1>PHI.AND.LO>=PLO)THEN
              ! we're done with mid+1 so other threads can use it
              REDUCED(MID+1)=.FALSE.
 !$OMP FLUSH
