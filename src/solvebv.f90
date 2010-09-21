@@ -128,7 +128,7 @@
             ALLOCATE(A(NCLM,NROW,NA),B(NFPR,NROW,NA))
             ALLOCATE(C(NCLM,NRC,NA),D(NFPR,NRC))
             ALLOCATE(A1(NDIM,NDIM,NTST),A2(NDIM,NDIM,NTST))
-            ALLOCATE(S1(NDIM,NDIM,NTST),S2(NDIM,NDIM,NTST))
+            ALLOCATE(S1(NDIM,NDIM,NTST-1),S2(NDIM,NDIM,NTST-1))
             ALLOCATE(BB(NFPR,NDIM,NTST),CC(NDIM,NRC,NTST))
             ALLOCATE(C2(NDIM,NRC,NTST),CDBC(2*NDIM+NFPR,NBC))
             ALLOCATE(DD(NFPR,NRC,NTST))
@@ -754,7 +754,7 @@
          ENDDO
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
          CALL DIMRGE(E,CC,C2,CDBC,D,FC,                               &
-           NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S1,A2,FAA,BB)
+           NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,A1,A2,FAA,BB)
          DO II=1,NOV
             SOL(II,1)=FCC(II)
          ENDDO
@@ -1100,7 +1100,7 @@
             CALL REDUCER(MID+1,HI)
 
        IF(DOMPI)THEN
-          CALL MPIREDUCE(S1,A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
+          CALL MPIREDUCE(A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
                NLLV,LO,HI)
        ELSEIF(NT>1)THEN
           ! Avoid MPI overlaps
@@ -1132,20 +1132,11 @@
        I1=MID
        I2=HI
        IF(IFST.EQ.1)THEN
-          IF(LO.EQ.MID)THEN
-             DO IR=1,NOV
-                DO IC=1,NOV
-                   S1(IC,IR,I1)=A1(IC,IR,I1)
-                ENDDO
+          DO IR=1,NOV
+             DO IC=1,NOV
+                S1(IC,IR,I1)=A1(IC,IR,I0)
              ENDDO
-          ENDIF
-          IF(MID+1.LT.HI)THEN
-             DO IR=1,NOV
-                DO IC=1,NOV
-                   A1(IC,IR,I1+1)=S1(IC,IR,I2)
-                ENDDO
-             ENDDO
-          ENDIF
+          ENDDO
           DO IR=1,NRC
              DO IC=1,NOV
                 CC(IC,IR,I1+1)=CC(IC,IR,I1+1)+C2(IC,IR,I1)
@@ -1156,7 +1147,7 @@
           ENDDO
 
           CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),   &
-                      S1(1,1,I2),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2), &
+                      A1(1,1,I0),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2), &
                       CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD(1,1,I2), &
                       IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
        ENDIF
@@ -1173,7 +1164,7 @@
 
 !      ---------- ------
        SUBROUTINE REDBLK(S11,A21,S21,BB1, &
-                         S12,A12,A22,BB2, &
+                         A11,A12,A22,BB2, &
                          CC1,CC2,CC3,DD,  &
            IPC,IPR,IAMAX,NOV,NCB,NRC)
 
@@ -1181,7 +1172,7 @@
        INTEGER, INTENT(IN) :: NOV,NCB,NRC
        INTEGER, INTENT(OUT) :: IPC(NOV),IPR(NOV),IAMAX(NOV*2)
        DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV,NOV),A21(NOV,NOV)
-       DOUBLE PRECISION, INTENT(OUT)   :: S21(NOV,NOV),S12(NOV,NOV)
+       DOUBLE PRECISION, INTENT(OUT)   :: S21(NOV,NOV),A11(NOV,NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV,NOV),A22(NOV,NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: CC1(NOV,NRC),CC2(NOV,NRC),CC3(NOV,NRC)
        DOUBLE PRECISION, INTENT(INOUT) :: BB1(NCB,NOV),BB2(NCB,NOV),DD(NCB,NRC)
@@ -1193,7 +1184,7 @@
          DO K1=1,NOV
             DO K2=1,NOV
                S21(K2,K1) = 0.0D0
-               S12(K2,K1) = 0.0D0
+               A11(K2,K1) = 0.0D0
             ENDDO
          ENDDO
 
@@ -1243,7 +1234,7 @@
                JPIV        = JPIV2
                IPR(IC)     = NOV+IPIV2
                CALL REDSWP(IC,NOV,NCB, &
-                    S11(1,IC),S12(1,IPIV2),A21(1,IC),A12(1,IPIV2), &
+                    S11(1,IC),A11(1,IPIV2),A21(1,IC),A12(1,IPIV2), &
                     S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2))
             ENDIF
             IAMAX(IPR(IC)) = IAMAX(IC)
@@ -1269,7 +1260,7 @@
 
             DO IR=1,NOV
                CALL REDELIM(IC,NOV,NCB,IAMAX(NOV+IR),JPIV,     &
-                    A12(1,IR),A21(1,IC),S12(1,IR),S11(1,IC),   &
+                    A12(1,IR),A21(1,IC),A11(1,IR),S11(1,IC),   &
                     A22(1,IR),S21(1,IC),BB2(1,IR),BB1(1,IC))
             ENDDO
 
@@ -1287,10 +1278,10 @@
        END SUBROUTINE REDBLK
 
 !      ---------- ------
-       SUBROUTINE REDSWP(IC,NOV,NCB,S11,S12,A12,A21,S21,A22,BB1,BB2)
+       SUBROUTINE REDSWP(IC,NOV,NCB,S11,A11,A12,A21,S21,A22,BB1,BB2)
 
        INTEGER, INTENT(IN) :: IC,NOV,NCB
-       DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV),S12(NOV),A12(NOV),A21(NOV)
+       DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV),A11(NOV),A12(NOV),A21(NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: S21(NOV),A22(NOV),BB1(NCB),BB2(NCB)
 
        INTEGER L
@@ -1298,8 +1289,8 @@
 ! Swapping
        DO L=1,NOV
           TMP    = S11(L)
-          S11(L) = S12(L)
-          S12(L) = TMP                  
+          S11(L) = A11(L)
+          A11(L) = TMP                  
           IF(L.GE.IC)THEN
              TMP    = A21(L)
              A21(L) = A12(L)
@@ -1317,11 +1308,11 @@
        END SUBROUTINE REDSWP
 
 !      ---------- -------
-       SUBROUTINE REDELIM(IC,NOV,NCB,IAMAX,JPIV,A12,A21,S12,S11,A22,S21,BB2,BB1)
+       SUBROUTINE REDELIM(IC,NOV,NCB,IAMAX,JPIV,A12,A21,A11,S11,A22,S21,BB2,BB1)
 
        INTEGER, INTENT(IN) :: IC,NOV,NCB,JPIV
        INTEGER, INTENT(INOUT) :: IAMAX
-       DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV),S12(NOV),A22(NOV),BB2(NCB)
+       DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV),A11(NOV),A22(NOV),BB2(NCB)
        DOUBLE PRECISION, INTENT(IN) :: A21(NOV),S11(NOV),S21(NOV),BB1(NCB)
 
        INTEGER L
@@ -1350,7 +1341,7 @@
              ENDDO
           ENDIF
           DO L=1,NOV
-             S12(L) = S12(L)-RM*S11(L)
+             A11(L) = A11(L)-RM*S11(L)
              A22(L) = A22(L)-RM*S21(L)
           ENDDO
           DO L=1,NCB
@@ -1409,7 +1400,7 @@
 
 !     ---------- ------
       SUBROUTINE DIMRGE(E,CC,C2,CDBC,D,FC, &
-           NA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,S,A2,FAA,BB)
+           NA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,A1,A2,FAA,BB)
 
       USE SUPPORT
 ! Arguments
@@ -1417,7 +1408,7 @@
       DOUBLE PRECISION E(NOV+NFC,*),CC(NOV,NFC-NBC,*),C2(NOV,NFC-NBC,*)
       DOUBLE PRECISION CDBC(2*NOV+NCB,NBC),D(NCB,*)
       DOUBLE PRECISION, INTENT(OUT) :: P0(NOV,*),P1(NOV,*)
-      DOUBLE PRECISION S(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
+      DOUBLE PRECISION A1(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NCB,NOV,*),FC(*),FCC(*)
       DOUBLE PRECISION, INTENT(OUT) :: DET
 
@@ -1432,8 +1423,8 @@
 ! Copy
       DO I=1,NOV
          DO J=1,NOV
-            E(I,J)     = S(J,I,NA)
-            P0(I,J)    = S(J,I,NA)
+            E(I,J)     = A1(J,I,1)
+            P0(I,J)    = A1(J,I,1)
             E(I,NOV+J) = A2(J,I,NA)
             P1(I,J)    = A2(J,I,NA)
          ENDDO

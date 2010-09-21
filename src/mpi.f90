@@ -112,12 +112,12 @@ subroutine partition(n,kwt,m)
   enddo
 end subroutine partition
 
-subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
+subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      lo,hi)
   integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
-  double precision, intent(inout) :: s1(nov,nov,*),dd(ncb,nrc,*),faa(nov,*)
+  double precision, intent(inout) :: dd(ncb,nrc,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
 
   integer :: iam,kwt,mid,nlo,nmid1
@@ -134,11 +134,7 @@ subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      endif
      if(ifst.eq.1)then
         ! send hi to lo
-        if(mid+1<hi)then
-           call mpisend(s1(1,1,hi),nov*nov,nlo)
-        else
-           call mpisend(a1(1,1,mid+1),nov*nov,nlo)
-        endif
+        call mpisend(a1(1,1,mid+1),nov*nov,nlo)
         call mpisend(a2(1,1,hi),nov*nov,nlo)
         call mpisend(bb(1,1,hi),nov*ncb,nlo)
         call mpisend(cc(1,1,mid+1),nov*nrc,nlo)
@@ -155,11 +151,7 @@ subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      endif
      if(ifst.eq.1)then
         ! receive hi
-        if(mid+1<hi)then
-           call mpirecv(s1(1,1,hi),nov*nov,nmid1)
-        else
-           call mpirecv(a1(1,1,mid+1),nov*nov,nmid1)
-        endif
+        call mpirecv(a1(1,1,mid+1),nov*nov,nmid1)
         call mpirecv(a2(1,1,hi),nov*nov,nmid1)
         call mpirecv(bb(1,1,hi),nov*ncb,nmid1)
         call mpirecv(cc(1,1,mid+1),nov*nrc,nmid1)

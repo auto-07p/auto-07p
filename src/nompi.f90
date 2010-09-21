@@ -32,12 +32,12 @@ logical function mpiwfi(autobv)
   mpiwfi = .false.
 end function mpiwfi
 
-subroutine mpireduce(s1,a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
+subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      lo,hi)
   integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
-  double precision, intent(inout) :: s1(nov,nov,*),dd(ncb,nrc,*),faa(nov,*)
+  double precision, intent(inout) :: dd(ncb,nrc,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
 end subroutine mpireduce
 
