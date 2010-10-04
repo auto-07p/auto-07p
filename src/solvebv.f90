@@ -1358,23 +1358,21 @@
 
        END SUBROUTINE REDELIM
 
-      END SUBROUTINE REDUCE
-
-!     ---------- ---------
-      SUBROUTINE REDRHSBLK(A21,FAA1,A12,FAA2,CC,FC,NOV,NRC,IPR)
+!      ---------- ---------
+       SUBROUTINE REDRHSBLK(A21,FAA1,A12,FAA2,CC,FC,NOV,NRC,IPR)
 
 ! Arguments
-      INTEGER, INTENT(IN) :: NOV,NRC,IPR(NOV)
-      DOUBLE PRECISION, INTENT(IN) :: A12(NOV,NOV),A21(NOV,NOV)
-      DOUBLE PRECISION, INTENT(IN) :: CC(NOV,NRC)
-      DOUBLE PRECISION, INTENT(INOUT) :: FAA1(NOV),FAA2(NOV),FC(*)
+       INTEGER, INTENT(IN) :: NOV,NRC,IPR(NOV)
+       DOUBLE PRECISION, INTENT(IN) :: A12(NOV,NOV),A21(NOV,NOV)
+       DOUBLE PRECISION, INTENT(IN) :: CC(NOV,NRC)
+       DOUBLE PRECISION, INTENT(INOUT) :: FAA1(NOV),FAA2(NOV),FC(*)
 
 ! Local
-      INTEGER IC,IR,IPIV1,L1
-      DOUBLE PRECISION RM
+       INTEGER IC,IR,IPIV1,L1
+       DOUBLE PRECISION RM
 
 ! Reduce with the right hand side for one block
-      DO IC=1,NOV
+       DO IC=1,NOV
          IPIV1 = IPR(IC)
          IF(IPIV1.LE.NOV)THEN
             RM          = FAA1(IPIV1)
@@ -1394,9 +1392,11 @@
          DO IR=1,NRC
             FC(IR)= FC(IR)-CC(IC,IR)*RM
          ENDDO
-      ENDDO
+       ENDDO
 
-      END SUBROUTINE REDRHSBLK
+       END SUBROUTINE REDRHSBLK
+
+      END SUBROUTINE REDUCE
 
 !     ---------- ------
       SUBROUTINE DIMRGE(E,CC,C2,CDBC,D,FC, &
@@ -1500,45 +1500,6 @@
       DEALLOCATE(XE)
       END SUBROUTINE DIMRGE
 
-!     ---------- -------
-      SUBROUTINE BCKSUB1(S1,A2,S2,BB,FAA,FCC,SOL1,SOL2,FC,NOV,NCB,IPC)
-
-! Arguments
-      INTEGER, INTENT(IN) :: NOV,NCB,IPC(NOV)
-      DOUBLE PRECISION, INTENT(IN) :: S1(NOV,NOV),S2(NOV,NOV)
-      DOUBLE PRECISION, INTENT(IN) :: A2(NOV,NOV),BB(NCB,NOV)
-      DOUBLE PRECISION, INTENT(IN) :: SOL2(NOV),FAA(NOV),FC(*),FCC(*)
-      DOUBLE PRECISION, INTENT(OUT) :: SOL1(NOV)
-
-! Local
-      INTEGER K,L
-      DOUBLE PRECISION SM,TMP
-
-
-! Backsubstitution process for 1 block row
-      DO K=NOV,1,-1
-         SM=FAA(K)
-         DO L=1,NOV
-            SM=SM-FCC(L)*S1(L,K)
-            SM=SM-SOL2(L)*S2(L,K)
-         ENDDO
-         DO L=1,NCB
-            SM=SM-FC(L)*BB(L,K)
-         ENDDO
-         DO L=K+1,NOV
-            SM=SM-SOL1(L)*A2(L,K)
-         ENDDO
-         SOL1(K)=SM/A2(K,K)
-      ENDDO
-!     Revert column pivoting on SOL1
-      DO K=NOV,1,-1
-         TMP=SOL1(K)
-         SOL1(K)=SOL1(IPC(K))
-         SOL1(IPC(K))=TMP
-      ENDDO
-
-      END SUBROUTINE BCKSUB1
-
 !     ---------- ------
       SUBROUTINE BCKSUB(S1,A2,S2,BB,FAA,SOL,FC,NTST,NOV,NCB,IPC,IT,NT,IAM,KWT,&
            REDUCED)
@@ -1633,6 +1594,44 @@
        CALL BCKSUBR(LO,MID)
 
        END SUBROUTINE BCKSUBR
+
+!      ---------- -------
+       SUBROUTINE BCKSUB1(S1,A2,S2,BB,FAA,FCC,SOL1,SOL2,FC,NOV,NCB,IPC)
+
+! Arguments
+         INTEGER, INTENT(IN) :: NOV,NCB,IPC(NOV)
+         DOUBLE PRECISION, INTENT(IN) :: S1(NOV,NOV),S2(NOV,NOV)
+         DOUBLE PRECISION, INTENT(IN) :: A2(NOV,NOV),BB(NCB,NOV)
+         DOUBLE PRECISION, INTENT(IN) :: SOL2(NOV),FAA(NOV),FC(*),FCC(*)
+         DOUBLE PRECISION, INTENT(OUT) :: SOL1(NOV)
+
+! Local
+         INTEGER K,L
+         DOUBLE PRECISION SM,TMP
+
+! Backsubstitution process for 1 block row
+         DO K=NOV,1,-1
+            SM=FAA(K)
+            DO L=1,NOV
+               SM=SM-FCC(L)*S1(L,K)
+               SM=SM-SOL2(L)*S2(L,K)
+            ENDDO
+            DO L=1,NCB
+               SM=SM-FC(L)*BB(L,K)
+            ENDDO
+            DO L=K+1,NOV
+               SM=SM-SOL1(L)*A2(L,K)
+            ENDDO
+            SOL1(K)=SM/A2(K,K)
+         ENDDO
+!     Revert column pivoting on SOL1
+         DO K=NOV,1,-1
+            TMP=SOL1(K)
+            SOL1(K)=SOL1(IPC(K))
+            SOL1(IPC(K))=TMP
+         ENDDO
+
+       END SUBROUTINE BCKSUB1
 
       END SUBROUTINE BCKSUB
 
