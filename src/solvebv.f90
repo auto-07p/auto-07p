@@ -1175,7 +1175,7 @@
        DOUBLE PRECISION, INTENT(INOUT) :: FAA1(NOV),FAA2(NOV),FC(*)
 
 ! Local
-       INTEGER K1,K2,IR,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2,ITMP
+       INTEGER K1,K2,IR,IC,IPIV1,IPIV2,JPIV,JPIV1,JPIV2,ITMP
        DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
 
          DO K1=1,NOV
@@ -1193,7 +1193,6 @@
          ENDDO
 
          DO IC=1,NOV
-            ICP1=IC+1
 
 ! Complete pivoting; rows are swapped physically, columns also
             PIV1 = 0.d0
@@ -1251,7 +1250,7 @@
 
 ! End of pivoting; Elimination starts here
 
-            DO IR=ICP1,NOV
+            DO IR=IC+1,NOV
                CALL REDELIM(IC,NOV,NCB,IAMAX(IR),JPIV,         &
                     A21(1,IR),A21(1,IC),S11(1,IR),S11(1,IC),   &
                     S21(1,IR),S21(1,IC),BB1(1,IR),BB1(1,IC),   &
