@@ -52,12 +52,12 @@
       INTEGER, ALLOCATABLE, SAVE :: &
            ICF(:,:),IRF(:,:),IPR(:,:),IPC(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: &
-           FCFC(:,:),FAA(:,:),SOL(:,:),FA(:,:),FC(:)
+           FCFC(:,:),FAA(:,:),SOL(:,:),FC(:)
       INTEGER, ALLOCATABLE :: NP(:)
       LOGICAL, ALLOCATABLE :: REDUCED(:)
       INTEGER IAM,KWT,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
-      INTEGER NA,IT,NT,MNT,I,J,BASE
+      INTEGER NA,IT,NT,MNT,I,BASE
       INTEGER ISHAPE(8)
 
 ! Most of the required memory is allocated below
@@ -101,7 +101,7 @@
 !     The value of NTST may be different in different nodes.
       NA=NP(IAM+1)
 
-      ALLOCATE(FA(NROW,NTST),FC(NFC))
+      ALLOCATE(FC(NFC))
       MNT = 1
 !$    MNT = OMP_GET_MAX_THREADS()
       IF(MNT.GT.NA)THEN
@@ -169,12 +169,12 @@
 !$    NT = OMP_GET_NUM_THREADS()
       IF(NLLV>=0.OR.IFST==1) &
         CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,                &
-         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD(1,1,BASE+1),FA,              &
+         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD(1,1,BASE+1),DUPS,            &
          FCFC(1,BASE+1),UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THU,IFST,IAM,IT,NT, &
          IRF,ICF,IID,NLLV)
 
       I = (IT*NA+NT-1)/NT+1
-      CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,FA(1,I),FAA,FC,          &
+      CALL BRBD(A(1,1,I),B(1,1,I),C(1,1,I),D,DD,DUPS(1,(I-1)*NCOL),FAA,FC,&
         FCFC,P0,P1,IFST,IID,NLLV,DET,NDIM,NTST,NA,NBC,NROW,NCLM,         &
         NFPR,NFC,A1,A2,BB,CC,C2,CDBC,                                    &
         SOL,S1,S2,IPR,IPC,IRF(1,I),ICF(1,I),IAM,KWT,IT,NT,REDUCED)
@@ -185,20 +185,15 @@
 
       IF(KWT.GT.1)THEN
 !        Global concatenation of the solution from each node.
-        CALL MPIGAT(FA,NDIM*NCOL,NTST)
+        CALL MPIGAT(DUPS,NDIM*NCOL,NTST)
       ENDIF
 
       IF(IAM.EQ.0)THEN
-         DO I=0,NTST-1
-            DO J=0,NCOL-1
-               DUPS(:,I*NCOL+J)=FA(J*NDIM+1:(J+1)*NDIM,I+1)
-            ENDDO
-         ENDDO
          DUPS(:,NTST*NCOL)=FC(1:NDIM)
          DRL(:)=FC(NDIM+1:)
       ENDIF
 
-      DEALLOCATE(NP,FA,FC)
+      DEALLOCATE(NP,FC)
       END SUBROUTINE SOLVBV
 
 !     ---------- -------
@@ -418,7 +413,7 @@
             CALL CONPAR(NDIM,NRA,NCA,AA(1,1,J),NCB,BB(1,1,J),NRC,      &
                  CC(1,1,J),DD(1,1,J),FA(1,J),FC(1,J),IRF(1,J),ICF(1,J),&
                  IAMAX,NLLV)
-         ELSE
+         ELSEIF(NLLV==0)THEN
             CALL CONRHS(NDIM,NRA,NCA,AA(1,1,J),NRC,                   &
                  CC(1,1,J),FA(1,J),FC(1,J),IRF(1,J))
          ENDIF
@@ -712,7 +707,7 @@
                   CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,   &
                        C(1,1,J),DD(1,1,J),FA(1,J),FCFC(1,J),           &
                        IRF(1,J),ICF(1,J),IAMAX,NLLV)
-               ELSE
+               ELSEIF(NLLV==0)THEN
                   CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,                &
                        C(1,1,J),FA(1,J),FCFC(1,J),IRF(1,J))
                ENDIF
