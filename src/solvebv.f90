@@ -1126,6 +1126,11 @@
        I0=LO
        I1=MID
        I2=HI
+       IF(NLLV==0)THEN
+          DO IR=1,NRC
+             FCFC(IR,I2)=FCFC(IR,I2)+FCFC(IR,I1)
+          ENDDO
+       ENDIF
        IF(IFST.EQ.1)THEN
           DO IR=1,NOV
              DO IC=1,NOV
@@ -1141,15 +1146,11 @@
              ENDDO
           ENDDO
 
-          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),S2(1,1,I1),BB(1,1,I1),   &
-                      A1(1,1,I0),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2), &
-                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD(1,1,I2), &
+          CALL REDBLK(S1(1,1,I1),A2(1,1,I1),  S2(1,1,I1),BB(1,1,I1),FAA(1,I1), &
+                      A1(1,1,I0),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),FAA(1,I2), &
+                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD(1,1,I2),FCFC(1,I2),&
                       IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
-       ENDIF
-       IF(NLLV.EQ.0)THEN
-          DO IR=1,NRC
-             FCFC(IR,I2)=FCFC(IR,I2)+FCFC(IR,I1)
-          ENDDO
+       ELSEIF(NLLV==0)THEN
           CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),    &
                A1(1,1,I1+1),FAA(1,I2),            &
                CC(1,1,I1+1),FCFC(1,I2),NOV,NRC,IPR(1,I1))
@@ -1158,9 +1159,9 @@
        END SUBROUTINE REDUCER
 
 !      ---------- ------
-       SUBROUTINE REDBLK(S11,A21,S21,BB1, &
-                         A11,A12,A22,BB2, &
-                         CC1,CC2,CC3,DD,  &
+       SUBROUTINE REDBLK(S11,A21,S21,BB1,FAA1, &
+                         A11,A12,A22,BB2,FAA2, &
+                         CC1,CC2,CC3,DD,FC,  &
            IPC,IPR,IAMAX,NOV,NCB,NRC)
 
 ! Arguments
@@ -1171,6 +1172,7 @@
        DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV,NOV),A22(NOV,NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: CC1(NOV,NRC),CC2(NOV,NRC),CC3(NOV,NRC)
        DOUBLE PRECISION, INTENT(INOUT) :: BB1(NCB,NOV),BB2(NCB,NOV),DD(NCB,NRC)
+       DOUBLE PRECISION, INTENT(INOUT) :: FAA1(NOV),FAA2(NOV),FC(*)
 
 ! Local
        INTEGER K1,K2,IR,IC,ICP1,IPIV1,IPIV2,JPIV,JPIV1,JPIV2,ITMP
@@ -1224,13 +1226,15 @@
                IF(IC.NE.IPIV1) &
                   CALL REDSWP(IC,NOV,NCB, &
                     S11(1,IC),S11(1,IPIV1),A21(1,IC),A21(1,IPIV1), &
-                    S21(1,IC),S21(1,IPIV1),BB1(1,IC),BB1(1,IPIV1))
+                    S21(1,IC),S21(1,IPIV1),BB1(1,IC),BB1(1,IPIV1), &
+                    FAA1(IC),FAA1(IPIV1))
             ELSE
                JPIV        = JPIV2
                IPR(IC)     = NOV+IPIV2
                CALL REDSWP(IC,NOV,NCB, &
                     S11(1,IC),A11(1,IPIV2),A21(1,IC),A12(1,IPIV2), &
-                    S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2))
+                    S21(1,IC),A22(1,IPIV2),BB1(1,IC),BB2(1,IPIV2), &
+                    FAA1(IC),FAA2(IPIV2))
             ENDIF
             IAMAX(IPR(IC)) = IAMAX(IC)
             IPC(IC) = JPIV
@@ -1250,13 +1254,15 @@
             DO IR=ICP1,NOV
                CALL REDELIM(IC,NOV,NCB,IAMAX(IR),JPIV,         &
                     A21(1,IR),A21(1,IC),S11(1,IR),S11(1,IC),   &
-                    S21(1,IR),S21(1,IC),BB1(1,IR),BB1(1,IC))
+                    S21(1,IR),S21(1,IC),BB1(1,IR),BB1(1,IC),   &
+                    FAA1(IR),FAA1(IC))
             ENDDO
 
             DO IR=1,NOV
                CALL REDELIM(IC,NOV,NCB,IAMAX(NOV+IR),JPIV,     &
                     A12(1,IR),A21(1,IC),A11(1,IR),S11(1,IC),   &
-                    A22(1,IR),S21(1,IC),BB2(1,IR),BB1(1,IC))
+                    A22(1,IR),S21(1,IC),BB2(1,IR),BB1(1,IC),   &
+                    FAA2(IR),FAA1(IC))
             ENDDO
 
             DO IR=1,NRC
@@ -1266,18 +1272,20 @@
                ITMP=0
                CALL REDELIM(IC,NOV,NCB,ITMP,JPIV,              &
                     CC2(1,IR),A21(1,IC),CC1(1,IR),S11(1,IC),   &
-                    CC3(1,IR),S21(1,IC),DD(1,IR),BB1(1,IC))
+                    CC3(1,IR),S21(1,IC),DD(1,IR),BB1(1,IC),    &
+                    FC(IR),FAA1(IC))
             ENDDO
          ENDDO
 
        END SUBROUTINE REDBLK
 
 !      ---------- ------
-       SUBROUTINE REDSWP(IC,NOV,NCB,S11,A11,A12,A21,S21,A22,BB1,BB2)
+       SUBROUTINE REDSWP(IC,NOV,NCB,S11,A11,A12,A21,S21,A22,BB1,BB2,F1,F2)
 
        INTEGER, INTENT(IN) :: IC,NOV,NCB
        DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV),A11(NOV),A12(NOV),A21(NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: S21(NOV),A22(NOV),BB1(NCB),BB2(NCB)
+       DOUBLE PRECISION, INTENT(INOUT) :: F1,F2
 
        INTEGER L
        DOUBLE PRECISION TMP
@@ -1300,15 +1308,19 @@
           BB1(L) = BB2(L)
           BB2(L) = TMP
        ENDDO
+       TMP = F1
+       F1 = F2
+       F2 = TMP
        END SUBROUTINE REDSWP
 
 !      ---------- -------
-       SUBROUTINE REDELIM(IC,NOV,NCB,IAMAX,JPIV,A12,A21,A11,S11,A22,S21,BB2,BB1)
+       SUBROUTINE REDELIM(IC,NOV,NCB,IAMAX,JPIV,A12,A21,A11,S11,A22,S21,&
+            BB2,BB1,F2,F1)
 
        INTEGER, INTENT(IN) :: IC,NOV,NCB,JPIV
        INTEGER, INTENT(INOUT) :: IAMAX
-       DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV),A11(NOV),A22(NOV),BB2(NCB)
-       DOUBLE PRECISION, INTENT(IN) :: A21(NOV),S11(NOV),S21(NOV),BB1(NCB)
+       DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV),A11(NOV),A22(NOV),BB2(NCB),F2
+       DOUBLE PRECISION, INTENT(IN) :: A21(NOV),S11(NOV),S21(NOV),BB1(NCB),F1
 
        INTEGER L
        DOUBLE PRECISION RM,V,PPIV,TPIV
@@ -1342,6 +1354,7 @@
           DO L=1,NCB
              BB2(L) = BB2(L)-RM*BB1(L)
           ENDDO
+          F2 = F2-RM*F1
        ELSEIF(IAMAX.EQ.JPIV)THEN
 !     recalculate absolute maximum for current row
           IF(IC<NOV)THEN
