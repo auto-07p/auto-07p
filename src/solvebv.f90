@@ -1307,9 +1307,11 @@
           BB1(L) = BB2(L)
           BB2(L) = TMP
        ENDDO
-       TMP = F1
-       F1 = F2
-       F2 = TMP
+       IF(NLLV==0)THEN
+          TMP = F1
+          F1 = F2
+          F2 = TMP
+       ENDIF
        END SUBROUTINE REDSWP
 
 !      ---------- -------
@@ -1353,7 +1355,9 @@
           DO L=1,NCB
              BB2(L) = BB2(L)-RM*BB1(L)
           ENDDO
-          F2 = F2-RM*F1
+          IF(NLLV==0)THEN
+             F2 = F2-RM*F1
+          ENDIF
        ELSEIF(IAMAX.EQ.JPIV)THEN
 !     recalculate absolute maximum for current row
           IF(IC<NOV)THEN
