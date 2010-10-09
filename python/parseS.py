@@ -900,7 +900,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         if hasattr(N,"transpose"):
             if fromstring:
                 fdata = []
-                if sdata.find("D") == -1:
+                if "D" not in sdata:
                     fdata = fromstring(sdata, dtype=float, sep=' ')
                 if fdata == [] or len(fdata) != total:
                     fdata = N.array(map(parseB.AUTOatof,

@@ -937,12 +937,12 @@ def queryDiagnostic(diagnostic,name=None,templates=None):
         for branch in n1d:
             if hasattr(branch,"diagnostics"):
                 for s in str(branch.diagnostics).splitlines():
-                    if s.find(diagnostic) != -1:
+                    if diagnostic in s:
                         info(s+"\n")
         info("\n")
         return
     for s in f:
-        if s.find(diagnostic) != -1:
+        if diagnostic in s:
             info(s)
     f.close()
     info("\n")

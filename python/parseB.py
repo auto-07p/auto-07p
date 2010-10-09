@@ -311,7 +311,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         datalist = "".join(datalist)
         if fromstring: #numpy
             data = []
-            if datalist.find("D") == -1:
+            if "D" not in datalist:
                 data = fromstring(datalist, dtype=float, sep=' ')
             if len(data) != nrows * ncolumns:
                 data = N.array(map(AUTOatof,datalist.split()), 'd')
@@ -731,7 +731,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         format = "%"+str(-columnlen)+"s"
         if self.headerlist != []:
             for l in self.headerlist:
-                if l.find(" PT ") == -1:
+                if " PT " not in l:
                     output.write(l)
         if self.headernames != []:
             output_line = ["   0    PT  TY  LAB "]
@@ -922,7 +922,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         self.headernames = []
         self.coordnames = []
         self.TY = 0
-        if line.find(" PT ") != -1:
+        if " PT " in line:
             linelen = len(self.__datalist[0])
             columnlen = (linelen - 19) // ncolumns
             n = linelen - columnlen * ncolumns

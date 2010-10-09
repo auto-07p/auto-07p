@@ -335,13 +335,13 @@ class BasicGrapher(grapher.BasicGrapher):
         if self.ax is not oldax:
             if (isinstance(self.canvas,FigureCanvasTkAggRedraw) and
                 new_zoom_mode != self.toolbar.mode):
-                if new_zoom_mode.find("rect") != -1:
+                if "rect" in new_zoom_mode:
                     self.toolbar.zoom()
-                elif new_zoom_mode.find("pan") != -1:
+                elif "pan" in new_zoom_mode:
                     self.toolbar.pan()
-                elif self.toolbar.mode.find("rect") != -1:
+                elif "rect" in self.toolbar.mode:
                     self.toolbar.zoom()
-                elif self.toolbar.mode.find("pan") != -1:
+                elif "pan" in self.toolbar.mode:
                     self.toolbar.pan()
             #copy settings from 3d to 2d or vice versa
             for key in ("grid","decorations","xlabel","ylabel","zlabel",
