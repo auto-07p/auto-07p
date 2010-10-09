@@ -6,7 +6,7 @@ try:
 except ImportError: # Python 3
     from io import StringIO
 import re
-import glob,stat
+import glob
 import AUTOExceptions,parseC,parseS,gc
 try:
     import subprocess
@@ -243,9 +243,9 @@ class runAUTO:
             os.remove("fort.12")
 
     def __newer(self,sources,target):
-        targettime = os.stat(target)[stat.ST_MTIME]
+        targettime = os.stat(target).st_mtime
         for src in sources:
-            if os.stat(src)[stat.ST_MTIME] > targettime:
+            if os.stat(src).st_mtime > targettime:
                 return True
         return False
 
