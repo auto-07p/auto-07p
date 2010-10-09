@@ -611,8 +611,8 @@ class Point(object):
                 return range(self.dimension)
             else:
                 return [self._force_coords_to_ixlist(el)[0] for el in x]
-        elif isinstance(x, type(slice(0))):
-            s1, s2, s3 = AUTOutil.sliceindices(x, self.dimension)
+        elif isinstance(x, slice):
+            s1, s2, s3 = x.indices(self.dimension)
             if ((s3 > 0 and s1 >= self.dimension) or
                 (s3 < 0 and s2 >= self.dimension)):
                 raise ValueError("Slice index out of range")
@@ -1384,7 +1384,7 @@ class Pointset(Point):
                     ref1 = ix
                     ref2 = None
                     break
-        elif isinstance(ix, (ndarray, type(slice(0)))):
+        elif isinstance(ix, (ndarray, slice)):
             ref1 = ix
             ref2 = None
         else:
@@ -1405,8 +1405,8 @@ class Pointset(Point):
             cl_ixs = cl.getIndices()
             ixmap = invertMap(ref1)
             new_cl_ixs = [ixmap[i] for i in cl_ixs]
-        elif isinstance(ref1, type(slice(0))):
-            s1, s2, s3 = AUTOutil.sliceindices(ref1, len(self.coordarray[0]))
+        elif isinstance(ref1, slice):
+            s1, s2, s3 = ref1.indices(len(self.coordarray[0]))
             if (s3 > 0 and s1 >= len(self)) or (s3 < 0 and s2 >= len(self)):
                 raise ValueError("Slice index out of range")
             ca = take(self.coordarray, range(s1, s2, s3), axis=1)
@@ -1511,8 +1511,8 @@ class Pointset(Point):
                 cl_ixs = labels.getIndices()
                 ixmap = invertMap(ix)
                 new_cl_ixs = [ixmap[i] for i in cl_ixs]
-                if isinstance(ix, type(slice(0))):
-                    idx = AUTOutil.sliceindices(ix, len(self.coordarray[0]))
+                if isinstance(ix, slice):
+                    idx = ix.indices(len(self.coordarray[0]))
                     lowest_ix = idx[0]
                     if idx[2] < 0:
                         new_cl_ixs = [lowest_ix-i for i in cl_ixs]
@@ -2182,15 +2182,15 @@ class PointInfo(object):
         if isinstance(key, tuple):
             raise TypeError("Can only reference PointInfo with a single key")
         else:
-            if isinstance(key, (type(slice(0)), list, ndarray)):
-                if isinstance(key, type(slice(0))):
+            if isinstance(key, (slice, list, ndarray)):
+                if isinstance(key, slice):
                     self_ixs = self.getIndices()
                     if len(self_ixs) == 0:
                         max_ixs = 0
                     else:
                         max_ixs = max(self_ixs)
                     try:
-                        s1, s2, s3 = AUTOutil.sliceindices(key, max_ixs+1)
+                        s1, s2, s3 = key.indices(max_ixs+1)
                         ixs = range(s1, s2, s3)
                         key = intersect(ixs, self_ixs)
                     except TypeError:

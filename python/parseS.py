@@ -935,14 +935,8 @@ class AUTOSolution(UserDict,Points.Pointset):
                     fdata = list(map(parseB.AUTOatof, data))
             if total != len(fdata):
                 raise PrematureEndofData
-            try:
-                self.indepvararray = N.array(fdata[:n*nrows:n])
-                self.coordarray = [N.array(fdata[i:n*nrows:n])
-                                   for i in range(1,n)]
-            except TypeError: # Python 2.2
-                self.indepvararray = N.array([fdata[k] for k in xrange(0,n*nrows,n)])
-                self.coordarray = [N.array([fdata[k] for k in xrange(i,n*nrows,n)])
-                                   for i in range(1,n)]
+            self.indepvararray = N.array(fdata[:n*nrows:n])
+            self.coordarray = [N.array(fdata[i:n*nrows:n]) for i in range(1,n)]
         del sdata
         j = j + n * nrows
 
@@ -959,13 +953,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self["udotps"] = N.transpose(
                      N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
             else:
-                try:
-                    self["udotps"] = [N.array(fdata[i:n*nrows:n])
-                                      for i in range(n)]
-                except TypeError: # Python 2.2
-                    self["udotps"] = [N.array([fdata[k] for k in 
-                                               xrange(i,n*nrows,n)])
-                                              for i in range(n)]
+                self["udotps"] = [N.array(fdata[i:n*nrows:n]) for i in range(n)]
             udotnames = []
             if self["NTST"] > 0:
                 for i in range(self.__numEntriesPerBlock-1):

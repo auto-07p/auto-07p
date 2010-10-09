@@ -575,7 +575,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 r.coordarray = ret.coordarray
                 r.labels = ret.labels
                 # adjust stability info
-                if isinstance(index, type(slice(0))):
+                if isinstance(index, slice):
                     prev = 0
                     stability = []
                     for p in self.stability():
@@ -585,12 +585,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                             stab = "U"
                         stability.append((abs(p)-prev)*stab)
                         prev = abs(p)
-                    try:
-                        stability = "".join(stability)[index]
-                    except TypeError: # Python 2.2
-                        stability = "".join(stability)
-                        indices = AUTOutil.sliceindices(index, len(stability))
-                        stability = [stability[i] for i in xrange(*indices)]
+                    stability = "".join(stability)[index]
                     branchtype = type_translation(self.TY)["short name"]
                     prev = stability[0]
                     for i, stab in enumerate(stability):
@@ -1181,7 +1176,6 @@ class parseBR(parseBMixin, UserList):
         coordnames = []
         lastc = None
         lastTY = 0
-        inputfile = iter(inputfile) # for Python 2.2
         while True:
             branch = AUTOBranch(inputfile,prevline,coordnames)
             if branch.labels is None:

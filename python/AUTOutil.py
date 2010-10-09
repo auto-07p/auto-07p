@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-from __future__ import generators
 try:
     from ConfigParser import ConfigParser
 except ImportError: # Python 3
@@ -78,12 +77,6 @@ try:
     unicode
 except NameError:  # 'unicode' is undefined, must be Python 3
     basestring = (str,bytes) 
-else: # 'unicode' exists, must be Python 2
-    # Python2.2 has not basestring
-    try:
-        basestring
-    except NameError:
-        basestring = (str,unicode)
 
 def isiterable(value):
     # no strings!
@@ -189,73 +182,6 @@ except NameError:
     __builtin__.any = any
     any = any
         
-try: bool, True, False ## Introduced in 2.3
-except NameError:
-    class bool(int):
-        "Simple implementation of Booleans, as in PEP 285"
-        def __init__(self, val): self.val = val
-        def __int__(self): return self.val
-        def __repr__(self): return ('False', 'True')[self.val]
-
-    #note : __builtin__.True = True is invalid syntax in Python 3
-    globals()["True"], globals()["False"] = bool(1), bool(0)
-    setattr(__builtin__,"True",True)
-    setattr(__builtin__,"False",False)
-    __builtin__.bool = bool
-
-# Pre-2.3 Python has no sum() function.
-try: 
-    sum
-except NameError:
-    import operator
-    def sum(seq, start=0):
-        """Sum the elements of seq.
-        >>> sum([1, 2, 3])
-        6
-        """
-        return reduce(operator.add, seq, start)
-    __builtin__.sum = sum
-
-
-# Pre-2.3 Python has no enumerate() function.
-try:
-    enumerate
-except NameError:
-    def enumerate(sequence):
-        index = 0
-        for item in sequence:
-            yield index, item
-            index += 1
-    __builtin__.enumerate = enumerate
-
-# Pre-2.3 Python has no slice index function.
-def sliceindices(s, len):
-    try:
-        return s.indices(len)
-    except AttributeError:
-        stride = s.step or 1
-        start = s.start
-        if start is None:
-            if stride < 0:
-                start = len - 1
-            else:
-                start = 0
-        else:
-            if start < 0:
-                start = start + len
-            start = min(max(start, 0), len)
-        stop = s.stop
-        if stop is None:
-            if stride < 0:
-                stop = -1
-            else:
-                stop = len
-        else:
-            if stop < 0:
-                stop = stop + len
-            stop = min(max(stop, 0), len)
-        return start, stop, stride
-
 try: reversed ## Introduced in 2.4
 except NameError:
     def reversed(seq):
@@ -298,140 +224,11 @@ except NameError:
 try:
     set, frozenset ## set builtin introduced in 2.4
 except NameError:
-    try:
-        import sets ## sets module introduced in 2.3
-        set, frozenset = sets.Set, sets.ImmutableSet
-    except (NameError, ImportError):
-        class BaseSet:
-            "set type (see http://docs.python.org/lib/types-set.html)"
-
-           
-            def __init__(self, elements=[]):
-                self.dict = {}
-                for e in elements:
-                    self.dict[e] = 1
-       
-            def __len__(self):
-                return len(self.dict)
-       
-            def __iter__(self):
-                for e in self.dict:
-                    yield e
-       
-            def __contains__(self, element):
-                return element in self.dict
-       
-            def issubset(self, other):
-                for e in self.dict.keys():
-                    if e not in other:
-                        return False
-                return True
-
-            def issuperset(self, other):
-                for e in other:
-                    if e not in self:
-                        return False
-                return True
-       
-
-            def union(self, other):
-                return type(self)(list(self) + list(other))
-       
-            def intersection(self, other):
-                return type(self)([e for e in self.dict if e in other])
-
-            def difference(self, other):
-                return type(self)([e for e in self.dict if e not in other])
-
-            def symmetric_difference(self, other):
-                return type(self)([e for e in self.dict if e not in other] +
-                                  [e for e in other if e not in self.dict])
-
-            def copy(self):
-                return type(self)(self.dict)
-
-            def __repr__(self):
-                elements = ", ".join(map(str, self.dict))
-                return "%s([%s])" % (type(self).__name__, elements)
-
-            __le__ = issubset
-            __ge__ = issuperset
-            __or__ = union
-            __and__ = intersection
-            __sub__ = difference
-            __xor__ = symmetric_difference
-
-        class frozenset(BaseSet):
-            "A frozenset is a BaseSet that has a hash value and is immutable."
-
-            def __init__(self, elements=[]):
-                BaseSet.__init__(elements)
-                self.hash = 0
-                for e in self:
-                    self.hash |= hash(e)
-
-            def __hash__(self):
-                return self.hash
-
-        class set(BaseSet):  
-            "A set is a BaseSet that does not have a hash, but is mutable."
-       
-            def update(self, other):
-                for e in other:
-                    self.add(e)
-                return self
-
-            def intersection_update(self, other):
-                for e in self.dict.keys():
-                    if e not in other:
-                        self.remove(e)
-                return self
-
-            def difference_update(self, other):
-                for e in self.dict.keys():
-                    if e in other:
-                        self.remove(e)
-                return self
-
-            def symmetric_difference_update(self, other):
-                to_remove1 = [e for e in self.dict if e in other]
-                to_remove2 = [e for e in other if e in self.dict]
-                self.difference_update(to_remove1)
-                self.difference_update(to_remove2)
-                return self
-
-            def add(self, element):
-                self.dict[element] = 1
-               
-            def remove(self, element):
-                del self.dict[element]
-       
-            def discard(self, element):
-                if element in self.dict:
-                    del self.dict[element]
-                   
-            def pop(self):
-                key, val = self.dict.popitem()
-                return key
-       
-            def clear(self):
-                self.dict.clear()
-       
-            __ior__ = update
-            __iand__ = intersection_update
-            __isub__ = difference_update
-            __ixor__ = symmetric_difference_update
-       
+    import sets ## sets module introduced in 2.3
+    set, frozenset = sets.Set, sets.ImmutableSet
     __builtin__.set = set
     __builtin__.frozenset = frozenset
        
-def Dict(**entries):  
-    """Create a dict out of the argument=value arguments.
-    >>> Dict(a=1, b=2, c=3)
-    {'a': 1, 'c': 3, 'b': 2}
-    """
-    return entries
-
 # very basic numpy emulation:
 def array(l, code=None):
     if isinstance(l, N.ArrayType):
