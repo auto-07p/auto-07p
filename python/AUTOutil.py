@@ -230,42 +230,66 @@ except NameError:
     __builtin__.frozenset = frozenset
        
 # very basic numpy emulation:
-def array(l, code=None):
-    if isinstance(l, N.ArrayType):
+class array(object):
+    def __init__(self, l, code=None):
         if code is None:
-            code = l.typecode
-        return N.array(code, l.tolist())
-    if code is None:
-        code = 'd'
-    if isinstance(l, list):
-        if isinstance(l[0], N.ArrayType):
-            return l
-        elif isinstance(l[0], list):
-            a2 = []
-            for a1 in l:
-                a2.append(N.array(code, a1))
-            return a2
-        return N.array(code, l)
-    try:
-        l=list(l)
-        return N.array(code, l) 
-    except TypeError:
-        return N.array(code, [l])
+            if isinstance(l, array):
+                code = l.typecode
+            else:
+                code = 'd'
+        if isinstance(l, array):
+            l = l.tolist()
+        if (isinstance(l, list) and len(l) > 0 and
+            isinstance(l[0], (array, list))):
+            self.data = [array(a1, code) for a1 in l]
+            self.shape = len(l), len(l[0])
+        else:
+            if not isinstance(l, list):
+                try:
+                    l=list(l)
+                except TypeError:
+                    l=[l]
+            self.data = N.array(code, l) 
+            self.shape = len(l),
+        self.typecode = code
+
+    def __eq__(self, other):
+        for a, b in zip(self, other):
+            if a != b:
+                return False
+        return True
+
+    def __setitem__(self, i, v):
+        if isinstance(i, slice) and isinstance(v, array):
+            self.data[i] = v.data
+        else:
+            self.data[i] = v
+
+    def __getitem__(self, i):
+        return self.data[i]
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __str__(self):
+        if len(self.shape) == 1:
+            return str(self.data)
+        return str([e.data for e in self.data])
+
+    def tolist(self):
+        if len(self.shape) == 1:
+            return self.data.tolist()
+        return [e.tolist() for e in self.data]
 
 def rank(a):
-    if isinstance(a, list):
-        return 2
-    return 1
+    return len(a.shape)
 
 def take(a, idx, axis=0):
-    b=[]
     if axis == 1:
-        for j in a:
-            b.append(take(j, idx))
-        return b
+        return [take(j, idx) for j in a]
+    b=[]
     try:
-        for i in idx:
-            b.append(a[i])
+        b = [a[i] for i in idx]
     except TypeError:
         raise IndexError
     return array(b)
@@ -274,35 +298,26 @@ def array2string(a,precision=0):
     return '[ '+"  ".join(map(str, a))+']'
 
 def shape(a):
-    if isinstance(a, list):
-        return (len(a), len(a[0]))
-    else:
-        return (len(a),)
+    return a.shape
         
 def zeros(dim,code):
     if len(dim) == 1:
-        return N.array(code,dim[0]*[0.0])
-    a = []
-    for i in range(dim[0]):
-        a.append(N.array(code,dim[1]*[0.0]))
-    return a
+        return array(dim[0]*[0.0],code)
+    return array([array(dim[1]*[0.0],code) for i in range(dim[0])],code)
 
 def less(a, val):
-    cond = []
-    for v in a:
-        cond.append(v < val)
-    return cond
+    return [v < val for v in a]
 
 def ravel(a):
     return N.array('d',a)
 
-ArrayType = N.ArrayType
+ArrayType = array
 
 def test():
     a=array([1,2,3])
     b=array(a)
     b[0] = 4
-    print(a,b)
+    print("%s,%s"%(a,b))
 
 if __name__ == "__main__":
     test()

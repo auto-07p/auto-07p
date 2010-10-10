@@ -422,7 +422,7 @@ class Point(object):
                         coorddict[c_key] = v[0]
                     else:
                         coorddict[c_key] = array(v)
-                    assert self.coordtype == coorddict[c_key].dtype.type, \
+                    assert compareNumTypes(self.coordtype, coorddict[c_key].dtype.type), \
                         'type mismatch'
                 elif isinstance(v, _float_types):
                     assert compareNumTypes(self.coordtype, float64), \
@@ -453,7 +453,7 @@ class Point(object):
                 self.coordarray = ravel(self.coordarray)
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
-            assert self.dimension == len(self.coordarray), "Invalid coord array"
+            assert self.dimension == self.coordarray.shape[0], "Invalid coord array"
         elif 'coordarray' in kw:
             # 'coordtype' key is optional unless 'array' is actually a list,
             # when this key specifies the internal Python to use
@@ -483,7 +483,7 @@ class Point(object):
                 self.coordarray = ravel(array_temp)
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
-            self.dimension = len(self.coordarray)
+            self.dimension = self.coordarray.shape[0]
             if 'coordnames' in kw:
                 if isinstance(kw['coordnames'], str):
                     coordnames = [kw['coordnames']]
@@ -543,6 +543,9 @@ class Point(object):
             return dict(zip(self._ix_name_map, self.coordarray.tolist()))
         else:
             return dict(zip(self._ix_name_map, self.coordarray))
+
+    def __contains__(self, coord):
+        return coord in self.coordnames
 
     def __delitem__(self, k):
         raise NotImplementedError
@@ -626,8 +629,14 @@ class Point(object):
 
 
     def __call__(self, coords):
-        if coords in range(self.dimension):
-            return self.coordarray[coords]
+        if coords in range(self.dimension+1):
+            if coords == self.dimension:
+                # trap for when Point is used as an iterator, i.e. as
+                # for x in pt -- avoids writing an __iter__ method that
+                # will be inherited by Pointset, which already iterates fine
+                raise StopIteration
+            else:
+                return self.coordarray[coords]
         elif coords in self.coordnames:
             ix = self._name_ix_map[coords]
             return self.coordarray[ix]
@@ -640,6 +649,9 @@ class Point(object):
                       'labels': self.labels})
 
     __getitem__ = __call__
+
+#    def __iter__(self):
+#        return self.coordarray.__iter__()
 
 
     def __setitem__(self, ixarg, val):
@@ -1017,12 +1029,19 @@ class Pointset(Point):
             self.dimension = len(self.coordnames)
             datalist = []
             # loop over coordnames to ensure correct ordering of coordarray
+            if self._parameterized:
+                my_len = len(self.indepvararray)
+            else:
+                my_len = len(coorddict[self.coordnames[0]])
             for c in self.coordnames:
-                if self._parameterized and \
-                           len(self.indepvararray) != len(coorddict[c]):
-                    raise ValueError('Independent variable array length must match '
-                           'that of coordinate array')
-                datalist.append(coorddict[c])
+                xs = coorddict[c]
+                if my_len != len(xs):
+                    if self._parameterized:
+                        raise ValueError('Independent variable array length must match '
+                           'that of each coordinate array')
+                    else:
+                        raise ValueError('All coordinate arrays must have same length')
+                datalist.append(xs)
             self.coordarray = array(datalist, self.coordtype)
             r = rank(self.coordarray)
             if r == 2:
@@ -1033,7 +1052,7 @@ class Pointset(Point):
                 self.coordarray = array([ravel(self.coordarray)], self.coordtype)
             else:
                 raise ValueError("Invalid rank for coordinate array: %i"%r)
-            assert self.dimension == len(self.coordarray), "Invalid coord array"
+            assert self.dimension == self.coordarray.shape[0], "Invalid coord array"
         elif 'coordarray' in kw:
             if not isinstance(kw['coordarray'], _seq_types):
                 raise TypeError('Coordinate type %s not valid for Pointset'%str(type(kw['coordarray'])))
@@ -1058,7 +1077,7 @@ class Pointset(Point):
                 self.coordarray = array([ravel(array_temp)], self.coordtype)
             else:
                 raise ValueError("Invalid rank for coordinate array %i"%r)
-            self.dimension = len(self.coordarray)
+            self.dimension = self.coordarray.shape[0]
             if 'coordnames' in kw:
                 if isinstance(kw['coordnames'], str):
                     coordnames = [kw['coordnames']]
@@ -1083,7 +1102,7 @@ class Pointset(Point):
             assert self.indepvarname not in self.coordnames, \
                    "Independent variable name appeared in coordinate names"
             #            if len(self.coordarray.shape) > 1:
-            assert len(self.coordarray[0]) == len(self.indepvararray), \
+            assert self.coordarray.shape[1] == len(self.indepvararray), \
                    ("Coord array length mismatch with independent variable"
                     " array length")
             #else:
@@ -1337,6 +1356,8 @@ class Pointset(Point):
                     self.coordarray[c,:] = array(p[c], self.coordtype)
                 elif isinstance(p, _seq_types):
                     self.coordarray[c,:] = array(p, self.coordtype)
+                elif isinstance(p, _real_types):
+                    self.coordarray[c,:] = float(p)
                 else:
                     raise TypeError("Invalid data")
             else:
@@ -1345,14 +1366,13 @@ class Pointset(Point):
             raise TypeError("Invalid Pointset reference")
 
 
-
     def __getitem__(self, ix):
         # select points
         if isinstance(ix, _int_types):
             # The labels (PointInfo) object doesn't understand -ve indices,
             # but don't take modulo length otherwise iteration will break
             if ix < 0:
-                ix = ix + len(self.coordarray[0])
+                ix = ix + self.coordarray.shape[1]
             label = self.labels[ix]
             try:
                 pt = self.coordarray[:,ix]
@@ -1406,7 +1426,7 @@ class Pointset(Point):
             ixmap = invertMap(ref1)
             new_cl_ixs = [ixmap[i] for i in cl_ixs]
         elif isinstance(ref1, slice):
-            s1, s2, s3 = ref1.indices(len(self.coordarray[0]))
+            s1, s2, s3 = ref1.indices(self.coordarray.shape[1])
             if (s3 > 0 and s1 >= len(self)) or (s3 < 0 and s2 >= len(self)):
                 raise ValueError("Slice index out of range")
             ca = take(self.coordarray, range(s1, s2, s3), axis=1)
@@ -1512,7 +1532,7 @@ class Pointset(Point):
                 ixmap = invertMap(ix)
                 new_cl_ixs = [ixmap[i] for i in cl_ixs]
                 if isinstance(ix, slice):
-                    idx = ix.indices(len(self.coordarray[0]))
+                    idx = ix.indices(self.coordarray.shape[1])
                     lowest_ix = idx[0]
                     if idx[2] < 0:
                         new_cl_ixs = [lowest_ix-i for i in cl_ixs]
@@ -1563,7 +1583,7 @@ class Pointset(Point):
 
 
     def __len__(self):
-        return len(self.coordarray[0])
+        return self.coordarray.shape[1]
 
 
     def __contains__(self, other):
@@ -1741,9 +1761,17 @@ class Pointset(Point):
             else:
                 raise TypeError("Source Pointset must be parameterized")
         else:
-            p_result = copy(self[:ix])
-            p_result.append(p)
-            p_result.append(self[ix:])
+            if ix > 0:
+                p_result = copy(self[:ix])
+                p_result.append(p)
+            else:
+                p_result = pointsToPointset(p, self.indepvarname)
+            try:
+                p_result.append(self[ix:])
+            except ValueError:
+                # ix > greatest index, so no points left to add
+                # (i.e., p was appended to end)
+                pass
             self.coordarray = p_result.coordarray
             self.labels = p_result.labels
             self.indepvararray = p_result.indepvararray
@@ -1783,7 +1811,7 @@ class Pointset(Point):
                     else:
                         tval = t
                         start_ix = 0
-                    if tval[0] <= self.indepvararray[-1]:
+                    if len(tval) > 0 and tval[0] <= self.indepvararray[-1]:
                         print("%s  <=  %s"%(tval[0],self.indepvararray[-1]))
                         raise ValueError("Independent variable value too small to add pointset")
                     added_len = len(tval)
@@ -1794,13 +1822,13 @@ class Pointset(Point):
                     else:
                         tval = t[:]  # ensures tval is an array (t might be a Pointset)
                         start_ix = 0
-                    if tval[0] <= self.indepvararray[-1]:
+                    if len(tval) > 0 and tval[0] <= self.indepvararray[-1]:
                         raise ValueError("Independent variable value too small to add pointset")
                     added_len = len(tval)
             else:
                 if t is not None:
                     raise TypeError("t argument cannot be used for non-parameterized pointsets")
-                added_len = shape(p.coordarray)[1]
+                added_len = p.coordarray.shape[1]
                 start_ix = 0
             assert pdim == self.dimension, "Dimension mismatch with Pointset"
             if pdim < p.dimension:
@@ -1810,7 +1838,7 @@ class Pointset(Point):
                 pcoords = p.coordnames
             if remain(pcoords, self.coordnames) != []:
                 raise ValueError("Coordinate name mismatch with Pointset")
-            old_len = len(self.coordarray[0])
+            old_len = self.coordarray.shape[1]
             new_len = old_len + added_len
             old_coords = self.coordarray
             self.coordarray = zeros((self.dimension, new_len),
@@ -1861,7 +1889,7 @@ class Pointset(Point):
                 pcoords = p.coordnames
             if remain(pcoords, self.coordnames) != []:
                 raise ValueError("Coordinate name mismatch with Point")
-            new_len = len(self.coordarray[0])+1
+            new_len = self.coordarray.shape[1]+1
             old_coords = self.coordarray
             self.coordarray = zeros((self.dimension, new_len),
                                     _num_equivtype[type(self.coordarray[0][0])])
@@ -2070,12 +2098,15 @@ class Pointset(Point):
         self._match_indepvararray(other)
         return Point.__rdiv__(self, other)
 
-    def find(self, indepval):
+    def find(self, indepval, end=None):
         """find returns an integer index for where to place
         a point having independent variable value <indepval> in
         the Pointset, if <indepval> already exists. Otherwise, a
         pair indicating the nearest independent variable values
-        present in the Pointset is returned."""
+        present in the Pointset is returned.
+
+        To ensure an integer is always returned, choose a left or
+        right side to choose from the pair, using end=0 or 1 respectively."""
         if not self._parameterized:
             raise TypeError("Cannot find index from independent variable for "
                             "a non-parameterized Pointset")
@@ -2089,6 +2120,8 @@ class Pointset(Point):
                 result = (ix-1, ix)
             except ValueError:
                 result = (len(self.indepvararray)-1, len(self.indepvararray))
+            if end is not None:
+                result = result[end]
         return result
 
     # deprecated
@@ -2516,7 +2549,7 @@ def pointsToPointset(pointlist, indepvarname='', indepvararray=None,
                 assert indepvarname in coordnames, \
                     "Independent variable name missing"
                 del xcoordnames[xcoordnames.index(indepvarname)]
-            dv = {}
+            dv = {}.fromkeys(xcoordnames)
             for c in xcoordnames:
                 dv[c] = []
             if p.labels != {}:
@@ -2532,7 +2565,7 @@ def pointsToPointset(pointlist, indepvarname='', indepvararray=None,
                 else:
                     raise TypeError("Type mismatch in points")
             elif compareNumTypes(ptype, float64):
-                if p.coordtype not in (float64, int32):
+                if not compareNumTypes(p.coordtype, (float64, int32)):
                     raise TypeError("Type mismatch in points")
             else:
                 raise TypeError("Type mismatch in points")
