@@ -423,16 +423,16 @@ class Point(object):
                     else:
                         coorddict[c_key] = array(v)
                     assert compareNumTypes(self.coordtype, coorddict[c_key].dtype.type), \
-                        'type mismatch'
+                           'type mismatch'
                 elif isinstance(v, _float_types):
                     assert compareNumTypes(self.coordtype, float64), \
-                        'type mismatch'
+                           'type mismatch'
                     coorddict[c_key] = array([v], self.coordtype)
                 elif isinstance(v, _int_types):
                     assert compareNumTypes(self.coordtype, (int32, float64)), 'type mismatch'
                     coorddict[c_key] = array([v], self.coordtype)
 ##                elif isinstance(v, _complex_types):
-##                    assert compareNumTypes(self.coordtype, complex64), 'type mismatch'
+##                    assert compareNumTypes(self.coordtype, complex), 'type mismatch'
 ##                    coorddict[c_key] = array([v], self.coordtype)
                 else:
                     raise TypeError("Must pass numeric type or sequence of "
@@ -2716,7 +2716,7 @@ def test_pointset():
                   'indepvararray': array([0.0, 1.0, 2.0, 3.0], float64)})"""
     print(wstr)
     exec(wstr,globals())
-    assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
+    assert type(wp.coordarray)==type(array([1,2],float64))
     print("wp.dimension =>  %s"%wp.dimension)
     print("print wp(0.0) =>  %s"%wp(0.0))
     print("type(wp(0.0)) =>  %s"%type(wp(0.0)))
@@ -2753,8 +2753,8 @@ def test_pointset():
     print("but ... wp([1.])(1., [0,1]) =>  %s"%wp([1.])(1., [0,1]))
     print("... because wp([1.]) is a Pointset and wp(1.) is a Point")
     print("This is why wp(1.).toarray() shows a different array shape to wp([1.]).toarray():")
-    print("wp(1.).toarray().shape =>  %s"%str(shape(wp(1.).toarray())))
-    print("wp([1.]).toarray().shape =>  %s"%str(shape(wp([1.]).toarray())))
+    print("wp(1.).toarray().shape =>  %s"%str(wp(1.).toarray().shape))
+    print("wp([1.]).toarray().shape =>  %s"%str(wp([1.]).toarray().shape))
 
     print("\nChange a point in w using wp[indepvar_value] = point:")
     print("Old value at t=1.0:  wp(1.0) => %s"%wp(1.0))
@@ -2762,7 +2762,7 @@ def test_pointset():
     wp[1] = x
     print("w has now been updated for the meshpoint at t=1.0  =>")
     print("New value at t=1.0:  wp(1.0) =>  %s"%wp(1.0))
-    assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
+    assert type(wp.coordarray)==type(array([1,2],float64))
 
     print("\nWe can test equality between arrays, as usual:")
     print("w_at_1 != wp(1.).toarray() =>  %s"%(w_at_1 != wp(1.).toarray()))
@@ -2782,9 +2782,9 @@ def test_pointset():
     print("wp.append(vw)")
     wp.append(vw)
     print("wp.labels --> %s"%wp.labels)
-    assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
+    assert type(wp.coordarray)==type(array([1,2],float64))
     wp.append(Point({'coorddict': {'t': 6.5, 'x0': 2, 'x1': -300, 'x2': -0.9997}}))
-    assert type(wp.coordarray)==type(array([[1,2],[3,4]],float64))
+    assert type(wp.coordarray)==type(array([1,2],float64))
     print("\nwp.toarray() -->\n%s"%wp.toarray())
     print("\nwp(4.5) -->\n%s"%wp(4.5))
     print("\nwp[[3,6]] --> %s"%wp[[3,6]])

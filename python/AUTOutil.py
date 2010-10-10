@@ -232,6 +232,7 @@ except NameError:
 # very basic numpy emulation:
 class array(object):
     def __init__(self, l, code=None):
+        self.base = 0
         if code is None:
             if isinstance(l, array):
                 code = l.typecode
@@ -241,8 +242,14 @@ class array(object):
             l = l.tolist()
         if (isinstance(l, list) and len(l) > 0 and
             isinstance(l[0], (array, list))):
-            self.data = [array(a1, code) for a1 in l]
+            a2 = []
+            for a1 in l:
+                if isinstance(a1, array):
+                    a1 = a1.tolist()
+                a2.extend(a1)
+            self.data = N.array(code, a2)
             self.shape = len(l), len(l[0])
+            self.strides = len(l[0]), 1
         else:
             if not isinstance(l, list):
                 try:
@@ -251,6 +258,7 @@ class array(object):
                     l=[l]
             self.data = N.array(code, l) 
             self.shape = len(l),
+            self.strides = 1,
         self.typecode = code
 
     def __eq__(self, other):
@@ -261,38 +269,61 @@ class array(object):
 
     def __setitem__(self, i, v):
         if isinstance(i, slice) and isinstance(v, array):
-            self.data[i] = v.data
+            start, stop, step = i.indices(self.shape[0])
+            start = self.base+start*self.strides[0]
+            stop = self.base+stop*self.strides[0]
+            step = step*self.strides[0]
+            self.data[start:stop:step] = v.data[v.base:(v.base+
+                                         v.strides[0]*v.shape[0]):v.strides[0]]
         else:
-            self.data[i] = v
+            self.data[self.base+i*self.strides[0]] = v
 
     def __getitem__(self, i):
-        return self.data[i]
+        if len(self.shape) == 1:
+            if not isinstance(i, slice):
+                if i >= self.shape[0]:
+                    raise IndexError
+                return self.data[self.base+i*self.strides[0]]
+        elif not isinstance(i, int):
+            raise TypeError
+        elif self.base+i*self.strides[0] >= len(self.data):
+            raise IndexError
+        new = array([])
+        new.data = self.data
+        if len(self.shape) > 1:
+            start = i
+            new.strides = self.strides[1],
+            new.shape = self.shape[1],
+        else:
+            start, stop, step = i.indices(self.shape[0])
+            new.strides = step*self.strides[0],
+            new.shape = (stop-start)/step,
+        new.base = self.base+start*self.strides[0]
+        return new
 
     def __len__(self):
         return self.shape[0]
 
     def __str__(self):
         if len(self.shape) == 1:
-            return str(self.data)
-        return str([e.data for e in self.data])
+            return str(self.data[self.base:self.base+self.shape[0]])
+        return str([e.data[e.base:e.base+e.shape[0]] for e in self])
 
     def tolist(self):
         if len(self.shape) == 1:
-            return self.data.tolist()
-        return [e.tolist() for e in self.data]
+            return self.data[self.base:self.base+self.shape[0]].tolist()
+        return [e.tolist() for e in self]
 
 def rank(a):
     return len(a.shape)
 
 def take(a, idx, axis=0):
-    if axis == 1:
-        return [take(j, idx) for j in a]
-    b=[]
     try:
-        b = [a[i] for i in idx]
+        if axis == 1:
+            return array([[j[i] for i in idx] for j in a])
+        return array([a[i] for i in idx])
     except TypeError:
         raise IndexError
-    return array(b)
 
 def array2string(a,precision=0):
     return '[ '+"  ".join(map(str, a))+']'
@@ -309,7 +340,14 @@ def less(a, val):
     return [v < val for v in a]
 
 def ravel(a):
-    return N.array('d',a)
+    if len(self.shape) == 1:
+        return a
+    new = array([])
+    new.data = self.data
+    new.strides = self.strides[1],
+    new.shape = self.shape[0]*self.shape[1],
+    new.base = self.base
+    return new
 
 ArrayType = array
 
