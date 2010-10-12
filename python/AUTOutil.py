@@ -262,11 +262,20 @@ class array(object):
             self.strides = 1,
         self.typecode = code
 
+    def __copy__(self):
+        return array(self)
+
     def __eq__(self, other):
         return array([a == b for a, b in zip(self, other)], 'B')
 
     def __ne__(self, other):
         return array([a != b for a, b in zip(self, other)], 'B')
+
+    def __add__(self, other):
+        return array([a + other for a in self], self.typecode)
+
+    def __mul__(self, other):
+        return array([a * other for a in self], self.typecode)
 
     def __subarray(self, i):
         if not isinstance(i, tuple):

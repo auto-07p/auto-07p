@@ -37,7 +37,7 @@ def importnumpy():
     if which != 'numeric':
         try:
             import numpy as N
-            from N import linalg
+            from numpy import linalg
             fromstring, ndarray, float64, int32, bool8 = (
                 N.fromstring, N.ndarray, N.float64, N.int32, N.bool)
             N.nonzero = N.flatnonzero
@@ -432,7 +432,7 @@ class Point(object):
                         coorddict[c_key] = v[0]
                     else:
                         coorddict[c_key] = array(v)
-                    assert compareNumTypes(self.coordtype, coorddict[c_key].dtype.type), \
+                    assert compareNumTypes(self.coordtype, type(coorddict[c_key][0])), \
                            'type mismatch'
                 elif isinstance(v, _float_types):
                     assert compareNumTypes(self.coordtype, float64), \
@@ -873,7 +873,7 @@ class Point(object):
 
 
     def __copy__(self):
-        return Point({'coordarray': array(self.coordarray),
+        return Point({'coordarray': copy(self.coordarray),
                       'coordnames': copy(self.coordnames),
                       'coordtype': self.coordtype,
                       'norm': self._normord,
@@ -1394,13 +1394,12 @@ class Pointset(Point):
             else:
                 return self.coordarray[self._map_names_to_ixs(ix),:]
         elif isinstance(ix, list):
-            ref1 = slice(len(self))
-            ref2 = ix
-            for x in ix:
-                if x not in self.coordnames:
-                    ref1 = ix
-                    ref2 = None
-                    break
+            if all([x in self.coordnames for x in ix]):
+                ref1 = slice(len(self))
+                ref2 = ix
+            else:
+                ref1 = ix
+                ref2 = None
         elif isinstance(ix, (ndarray, slice)):
             ref1 = ix
             ref2 = None
@@ -1986,15 +1985,15 @@ class Pointset(Point):
 
     def __copy__(self):
         if self._parameterized:
-            return Pointset({'coordarray': array(self.coordarray),
+            return Pointset({'coordarray': copy(self.coordarray),
                          'coordnames': copy(self.coordnames),
                          'indepvarname': copy(self.indepvarname),
-                         'indepvararray': array(self.indepvararray),
+                         'indepvararray': copy(self.indepvararray),
                          'norm': self._normord,
                          'labels': copy(self.labels)
                          })
         else:
-            return Pointset({'coordarray': array(self.coordarray),
+            return Pointset({'coordarray': copy(self.coordarray),
                          'coordnames': copy(self.coordnames),
                          'norm': self._normord,
                          'labels': copy(self.labels)})
@@ -2220,10 +2219,7 @@ class PointInfo(object):
                         key = []
                         for l in keylabels:
                             key.extend(self.by_label[l].keys())
-                d = {}
-                for i in key:
-                    d[i] = self.by_index[i]
-                return PointInfo(d)
+                return PointInfo(dict(zip(key,[self.by_index[i] for i in key])))
             elif key in self.by_index:
                 return self.by_index[key]
             elif key in self.by_label:
@@ -2457,14 +2453,9 @@ def comparePointCoords(p1, p2, fussy=False):
     except:
         raise TypeError("Invalid Points, Pointsets, or dictionaries passed "
                         "to comparePointCoords")
-    test1 = True
-    for ks in zip(p1dk, p2dk):
-        if ks[0]!=ks[1]:
-            test1 = False
-    test2 = True
-    for i in range(len(p1dk)):
-        if p1d[p1dk[i]] != p2d[p2dk[i]]:
-            test2 = False
+    test1 = all([ks[0]==ks[1] for ks in zip(p1dk, p2dk)])
+    test2 = all([vs[0]==vs[1] for vs in \
+                 zip([p1d[k] for k in p1dk], [p2d[k] for k in p2dk])])
     if fussy:
         try:
             test3 = p1._normord == p2._normord
@@ -2640,8 +2631,7 @@ def test_point():
     print("type(y(0)) =>  %s"%type(y(0)))
     print("y([0]) =  %s"%y([0]))
     print("y.toarray() =  %s"%y.toarray())
-    if hasattr(N,'transpose'):
-        assert comparePointCoords(x,(x+0)*1,fussy=True)
+    assert comparePointCoords(x,(x+0)*1,fussy=True)
     # pass x back
     return x
 
