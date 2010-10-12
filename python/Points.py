@@ -2288,7 +2288,7 @@ class PointInfo(object):
             else:
                 key2 = self.by_label[key1].keys()
         if byix:
-            for k in key2:
+            for k in list(key2):
                 # have to check k in dict otherwise DefaultDict creates entry!
                 if k in self.by_label:
                     del self.by_index[key1][k]

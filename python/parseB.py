@@ -375,14 +375,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
     def __parsearray(self,ncolumns,data):
         global N
         # for those without numpy...
-        coordarray = []
-        try:
-            for i in range(4,ncolumns):
-                coordarray.append(N.array(data[i::ncolumns],'d'))
-        except TypeError:
-            for i in range(4,ncolumns):
-                coordarray.append(N.array(
-                        [data[j] for j in xrange(i,len(data),ncolumns)],'d'))
+        coordarray = N.array([data[i::ncolumns] for i in range(4,ncolumns)])
         stability = []
         prevpt = data[1]
         stab = []

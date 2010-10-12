@@ -897,46 +897,41 @@ class AUTOSolution(UserDict,Points.Pointset):
             sdata = input.read(self.__end - self.__start_of_data)
             self.__input = None
 
-        if hasattr(N,"transpose"):
-            if fromstring:
-                fdata = []
-                if "D" not in sdata:
-                    fdata = fromstring(sdata, dtype=float, sep=' ')
-                if fdata == [] or len(fdata) != total:
-                    fdata = N.array(map(parseB.AUTOatof,
-                                        sdata.split()), 'd')
-                else:
-                    #make sure the last element is correct
-                    #(fromstring may not do this correctly for a
-                    #string like -2.05071-106)
-                    fdata[-1] = parseB.AUTOatof(
-                        sdata[sdata.rfind(" ")+1:].strip())
+        if fromstring:
+            fdata = []
+            if "D" not in sdata:
+                fdata = fromstring(sdata, dtype=float, sep=' ')
+            if fdata == [] or len(fdata) != total:
+                fdata = N.array(map(parseB.AUTOatof,
+                                    sdata.split()), 'd')
             else:
-                data = sdata.split()
-                try:
-                    fdata = N.array(map(float, data), 'd')
-                except ValueError:
-                    fdata = N.array(map(parseB.AUTOatof, data), 'd')
-            if total != len(fdata):
-                raise PrematureEndofData
-            ups = N.reshape(fdata[:n * nrows],(nrows,n))
-            self.indepvararray = ups[:,0]
-            self.coordarray = N.transpose(ups[:,1:])
-        else: #no numpy
+                #make sure the last element is correct
+                #(fromstring may not do this correctly for a
+                #string like -2.05071-106)
+                fdata[-1] = parseB.AUTOatof(
+                    sdata[sdata.rfind(" ")+1:].strip())
+        else:
             data = sdata.split()
             try:
                 fdata = map(float, data)
             except ValueError:
                 fdata = map(parseB.AUTOatof, data)
-            if not isinstance(fdata,list): # Python 3
+            if hasattr(N,"transpose"):
+                fdata = N.array(fdata, 'd')
+            elif not isinstance(fdata,list): # Python 3
                 try:
                     fdata = list(fdata)
                 except ValueError:
                     fdata = list(map(parseB.AUTOatof, data))
-            if total != len(fdata):
-                raise PrematureEndofData
+        if total != len(fdata):
+            raise PrematureEndofData
+        if hasattr(N,"transpose"):
+            ups = N.reshape(fdata[:n * nrows],(nrows,n))
+            self.indepvararray = ups[:,0]
+            self.coordarray = N.transpose(ups[:,1:])
+        else: #no numpy
             self.indepvararray = N.array(fdata[:n*nrows:n])
-            self.coordarray = [N.array(fdata[i:n*nrows:n]) for i in range(1,n)]
+            self.coordarray = N.array([fdata[i:n*nrows:n] for i in range(1,n)])
         del sdata
         j = j + n * nrows
 
