@@ -1530,6 +1530,8 @@ class Pointset(Point):
                         new_cl_ixs = [lowest_ix-i for i in cl_ixs]
                     else:
                         new_cl_ixs = [i-lowest_ix for i in cl_ixs]
+                elif isinstance(ix, (list, ndarray)):
+                    new_cl_ixs = [ixmap[i] for i in cl_ixs]
                 try:
                     labels.mapIndices(dict(zip(cl_ixs, new_cl_ixs)))
                 except AttributeError:
@@ -2205,20 +2207,15 @@ class PointInfo(object):
                     except TypeError:
                         key = self_ixs
                 else:
-                    ki = None
-                    for k in key:
-                        if not isinstance(k,str):
-                            for k in key:
-                                if not isinstance(k,int):
-                                    raise TypeError(
-                                        "Invalid key type for PointInfo")
-                            ki = intersect(key, self.getIndices())
-                            key = ki
-                    if not ki:
+                    if all([isinstance(k, str) for k in key]):
                         keylabels = intersect(key, self.getLabels())
                         key = []
                         for l in keylabels:
                             key.extend(self.by_label[l].keys())
+                    elif all([isinstance(k, _int_types) for k in key]):
+                        key = intersect(key, self.getIndices())
+                    else:
+                        raise TypeError("Invalid key type for PointInfo")
                 return PointInfo(dict(zip(key,[self.by_index[i] for i in key])))
             elif key in self.by_index:
                 return self.by_index[key]
