@@ -326,9 +326,7 @@ class array(object):
         return self.data[self.base:stop:self.strides[0]]
 
     def __str__(self):
-        if len(self.shape) == 1:
-            return str(self._arrayslice())
-        return str([e._arrayslice() for e in self])
+        return array2string(self)
 
     def tolist(self):
         if len(self.shape) == 1:
@@ -346,7 +344,42 @@ def take(a, idx, axis=0):
     except TypeError:
         raise IndexError
 
-def array2string(a,precision=0):
+def array2string(a,precision=0,format=None):
+    indent = 1
+    if a.typecode == 'd' and format is None:
+        indent = 0
+        absa = [abs(e) for e in ravel(a) if e != 0]
+        if absa != []:
+            minval = min(absa)
+            maxval = max(absa)
+        else:
+            maxval = minval = 1
+        if minval < 0.0001 or maxval > minval * 1000:
+            maxlen = 16 + (0 < minval < 1e-99 or maxval >= 1e100)
+            format = "%%%s.8e"%maxlen
+        else:
+            precision = 0
+            for e in absa:
+                s = "%.8f"%e
+                precision = max(precision, 8 - (len(s) - len(s.rstrip("0"))))
+            maxlen = len(str(int(maxval))) + precision + 2
+            format = "%%#%s.%sf"%(maxlen, precision)
+    if len(a.shape) == 2:
+        return "["+"\n ".join([array2string(e,format=format)
+                               for e in a])+"]"
+    if a.typecode == 'B':
+        return '[ '+"  ".join([str(e == 1) for e in a])+']'
+    if a.typecode == 'd':
+        ss = [format%e for e in a]
+        if format[-1] == 'f':
+            for i, s in enumerate(ss):
+                t = s.rstrip("0")
+                ss[i] = t + (len(s)-len(t))*" "
+        if len(ss) > 0:
+            itemsperline = 77//(1+len(ss[0]))
+            for i in range(itemsperline-1, len(ss)-1, itemsperline):
+                ss[i] = ss[i]+"\n"+" "*indent
+        return '['+" ".join(ss)+']'
     return '[ '+"  ".join(map(str, a))+']'
 
 def shape(a):
@@ -364,13 +397,13 @@ def less(a, val):
     return array([v < val for v in a], a.typecode)
 
 def ravel(a):
-    if len(self.shape) == 1:
+    if len(a.shape) == 1:
         return a
     new = array([])
-    new.data = self.data
-    new.strides = self.strides[1],
-    new.shape = self.shape[0]*self.shape[1],
-    new.base = self.base
+    new.data = a.data
+    new.strides = a.strides[1],
+    new.shape = a.shape[0]*a.shape[1],
+    new.base = a.base
     return new
 
 ArrayType = array
