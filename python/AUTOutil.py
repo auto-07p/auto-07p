@@ -7,6 +7,7 @@ import os
 import array
 import gzip
 import sys
+import AUTOExceptions
 N = array
 
 # This file contains code from the Python distribution.  As
@@ -262,56 +263,76 @@ class array(object):
         self.typecode = code
 
     def __eq__(self, other):
-        for a, b in zip(self, other):
-            if a != b:
-                return False
-        return True
+        return array([a == b for a, b in zip(self, other)], 'B')
+
+    def __ne__(self, other):
+        return array([a != b for a, b in zip(self, other)], 'B')
+
+    def __subarray(self, i):
+        if not isinstance(i, tuple):
+            i = i,
+        if len(i) < len(self.shape):
+            i = i + (slice(None),)
+        base = self.base
+        strides = []
+        shape = []
+        for j, idx in enumerate(i):
+            if isinstance(idx, slice):
+                idx, stop, step = idx.indices(self.shape[j])
+                strides.append(step*self.strides[j])
+                shape.append((stop-idx)//step)
+            else:
+                if idx < 0:
+                    idx += self.shape[j]
+                if idx < 0 or idx >= self.shape[j]:
+                    raise IndexError
+            base += idx*self.strides[j]
+        return base, strides, shape
 
     def __setitem__(self, i, v):
-        if isinstance(i, slice) and isinstance(v, array):
-            start, stop, step = i.indices(self.shape[0])
-            start = self.base+start*self.strides[0]
-            stop = self.base+stop*self.strides[0]
-            step = step*self.strides[0]
-            self.data[start:stop:step] = v.data[v.base:(v.base+
-                                         v.strides[0]*v.shape[0]):v.strides[0]]
+        base, strides, shape = self.__subarray(i)
+        if len(strides) == 0:
+            self.data[base] = v
+        elif len(strides) == 1:
+            stop = base+strides[0]*shape[0]
+            if stop < 0:
+                stop = None
+            if isinstance(v,array):
+                self.data[base:stop:strides[0]] = v._arrayslice()
+            else:
+                self.data[base:stop:strides[0]] = N.array(self.typecode, v)
         else:
-            self.data[self.base+i*self.strides[0]] = v
+            raise AUTOExceptions.AUTORuntimeError("2D updates only "
+                                                  "supported with numpy.")
 
     def __getitem__(self, i):
-        if len(self.shape) == 1:
-            if not isinstance(i, slice):
-                if i >= self.shape[0]:
-                    raise IndexError
-                return self.data[self.base+i*self.strides[0]]
-        elif not isinstance(i, int):
-            raise TypeError
-        elif self.base+i*self.strides[0] >= len(self.data):
-            raise IndexError
+        base, strides, shape = self.__subarray(i)
+        if len(strides) == 0:
+            return self.data[base]
         new = array([])
         new.data = self.data
-        if len(self.shape) > 1:
-            start = i
-            new.strides = self.strides[1],
-            new.shape = self.shape[1],
-        else:
-            start, stop, step = i.indices(self.shape[0])
-            new.strides = step*self.strides[0],
-            new.shape = (stop-start)/step,
-        new.base = self.base+start*self.strides[0]
+        new.base = base
+        new.strides = tuple(strides)
+        new.shape = tuple(shape)
         return new
 
     def __len__(self):
         return self.shape[0]
 
+    def _arrayslice(self):
+        stop = self.base+self.shape[0]*self.strides[0]
+        if stop < 0:
+            stop = None
+        return self.data[self.base:stop:self.strides[0]]
+
     def __str__(self):
         if len(self.shape) == 1:
-            return str(self.data[self.base:self.base+self.shape[0]])
-        return str([e.data[e.base:e.base+e.shape[0]] for e in self])
+            return str(self._arrayslice())
+        return str([e._arrayslice() for e in self])
 
     def tolist(self):
         if len(self.shape) == 1:
-            return self.data[self.base:self.base+self.shape[0]].tolist()
+            return self._arrayslice().tolist()
         return [e.tolist() for e in self]
 
 def rank(a):
@@ -329,7 +350,10 @@ def array2string(a,precision=0):
     return '[ '+"  ".join(map(str, a))+']'
 
 def shape(a):
-    return a.shape
+    try:
+        return a.shape
+    except AttributeError:
+        return array(a).shape
         
 def zeros(dim,code):
     if len(dim) == 1:
@@ -337,7 +361,7 @@ def zeros(dim,code):
     return array([array(dim[1]*[0.0],code) for i in range(dim[0])],code)
 
 def less(a, val):
-    return [v < val for v in a]
+    return array([v < val for v in a], a.typecode)
 
 def ravel(a):
     if len(self.shape) == 1:
@@ -352,10 +376,20 @@ def ravel(a):
 ArrayType = array
 
 def test():
-    a=array([1,2,3])
+    a=array([1,2,3,4])
+    print("%s"%a[::-1])
+    a=array([[1,2],[3,4]])
+    print("%s %s"%(a[:,1],a[1,:]))
+    print("%s"%a[:,::-1])
+    print("%s"%a[::-1,:])
+    print("%s"%a[::-1])
+    print("%s"%a[-1,-1])
+    print("%s"%a[::-1,::-1])
     b=array(a)
-    b[0] = 4
+    b[0][0] = 4
     print("%s,%s"%(a,b))
+    b[0,:]=[7,8]
+    print("%s"%(b))
 
 if __name__ == "__main__":
     test()
