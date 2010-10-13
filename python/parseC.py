@@ -38,16 +38,16 @@ import parseB
 
 class parseC(dict):
 
-    line1_comment = "NDIM,IPS,IRS,ILP"
-    line2_comment = "NICP,(ICP(I),I=1 NICP)"
-    line3_comment = "NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT"
-    line4_comment = "NMX,RL0,RL1,A0,A1"
-    line5_comment = "NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC"
-    line6_comment = "EPSL,EPSU,EPSS"
-    line7_comment = "DS,DSMIN,DSMAX,IADS"
-    line8_comment = "NTHL,(/,I,THL(I)),I=1,NTHL)"
-    line9_comment = "NTHU,(/,I,THU(I)),I=1,NTHU)"
-    line10_comment = "NUZR,(/,I,PAR(I)),I=1,NUZR)"
+    line_comments = ["NDIM,IPS,IRS,ILP",
+                     "NICP,(ICP(I),I=1 NICP)",
+                     "NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT",
+                     "NMX,RL0,RL1,A0,A1",
+                     "NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC",
+                     "EPSL,EPSU,EPSS",
+                     "DS,DSMIN,DSMAX,IADS",
+                     "NTHL,(/,I,THL(I)),I=1,NTHL)",
+                     "NTHU,(/,I,THU(I)),I=1,NTHU)",
+                     "NUZR,(/,I,PAR(I)),I=1,NUZR)"]
 
     # These keys are preserved when reading in a new constants file,
     # and the keys are not in the constants file
@@ -308,48 +308,15 @@ class parseC(dict):
             icp.append(d)
         self["ICP"] = icp
 
-        line = inputfile.readline()
-        data = line.split()
-        self["NTST"] = int(data[0])
-        self["NCOL"] = int(data[1])
-        self["IAD"] = int(data[2])
-        self["ISP"] = int(data[3])
-        self["ISW"] = int(data[4])
-        self["IPLT"] = int(data[5])
-        self["NBC"] = int(data[6])
-        self["NINT"] = int(data[7])
+        for line_comment in self.line_comments[2:7]:
+            line = inputfile.readline()
+            data = line.split()
+            for d, key in zip(data, line_comment.split(",")):
+                if key[0] in 'IJKLMN':
+                    self[key] = int(d)
+                else:
+                    self[key] = parseB.AUTOatof(d)
 
-        line = inputfile.readline()
-        data = line.split()
-        self["NMX"] = int(data[0])
-        self["RL0"] = parseB.AUTOatof(data[1])
-        self["RL1"] = parseB.AUTOatof(data[2])
-        self["A0"] = parseB.AUTOatof(data[3])
-        self["A1"] = parseB.AUTOatof(data[4])
-        
-        line = inputfile.readline()
-        data = line.split()
-        self["NPR"] = int(data[0])
-        self["MXBF"] = int(data[1])
-        self["IID"] = int(data[2])
-        self["ITMX"] = int(data[3])
-        self["ITNW"] = int(data[4])
-        self["NWTN"] = int(data[5])
-        self["JAC"] = int(data[6])
-        
-        line = inputfile.readline()
-        data = line.split()
-        self["EPSL"] = parseB.AUTOatof(data[0])
-        self["EPSU"] = parseB.AUTOatof(data[1])
-        self["EPSS"] = parseB.AUTOatof(data[2])
-
-        line = inputfile.readline()
-        data = line.split()
-        self["DS"] = parseB.AUTOatof(data[0])
-        self["DSMIN"] = parseB.AUTOatof(data[1])
-        self["DSMAX"] = parseB.AUTOatof(data[2])
-        self["IADS"] = int(data[3])
-        
         for key in ["THL", "THU", "UZR"]:
             line = inputfile.readline()
             data = line.split()
@@ -476,55 +443,34 @@ class parseC(dict):
                 ["NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART"],
                 ["IREV", "IFIXED", "IPSI"]])]
             
-        olist.append("%s %s %s %s           %s\n"%
-                     (self["NDIM"], self["IPS"], self["IRS"], self["ILP"],
-                      self.line1_comment))
-        
-        olist.append(str(len(self["ICP"]))+" ")
-        for v in self["ICP"]:
-            olist.append(str(v)+" ")
-        olist.append("          "+self.line2_comment+"\n")
-        
-        olist.append("%s %s %s %s %s %s %s %s           %s\n"%
-                     (self["NTST"], self["NCOL"], self["IAD"], self["ISP"],
-                      self["ISW"], self["IPLT"], self["NBC"], self["NINT"],
-                      self.line3_comment))
+        for j, line_comment in enumerate(self.line_comments):
+            if j==1:
+                s = " ".join([str(len(self["ICP"]))]+map(str,self["ICP"]))
+            elif j==7:
+                s = str(len(self["THL"]))
+            elif j==8:
+                s = str(len(self["THU"]))
+            elif j==9:
+                uzrlist = []
+                for k, v in self["UZR"] or []:
+                    if not AUTOutil.isiterable(v):
+                        v = [v]
+                    for vv in v:
+                        uzrlist.append([k, vv])
+                s = str(len(uzrlist))
+            else:
+                s = " ".join([str(self[d]) for d in line_comment.split(",")])
+            olist.append(s+" "*(max(24-len(s),1))+line_comment+"\n")
+            if j==7:
+                for k, v in self["THL"] or []:
+                    olist.append("%s %s\n" % (k, v))
+            elif j==8:
+                for k, v in self["THU"] or []:
+                    olist.append("%s %s\n" % (k, v))
+            elif j==9:
+                for k, v in uzrlist:
+                    olist.append("%s %s\n" % (k, v))
 
-        olist.append("%s %s %s %s %s           %s\n"%
-                     (self["NMX"], self["RL0"], self["RL1"],
-                      self["A0"], self["A1"],
-                      self.line4_comment))
-
-        olist.append("%s %s %s %s %s %s %s           %s\n"%
-                     (self["NPR"], self["MXBF"], self["IID"], self["ITMX"],
-                      self["ITNW"], self["NWTN"], self["JAC"],
-                      self.line5_comment))
-        
-        olist.append("%s %s %s           %s\n"%
-                     (self["EPSL"], self["EPSU"], self["EPSS"],
-                      self.line6_comment))
-
-        olist.append("%s %s %s %s           %s\n"%
-                     (self["DS"], self["DSMIN"], self["DSMAX"], self["IADS"],
-                      self.line7_comment))
-
-        olist.append("%s          %s\n"%(len(self["THL"]), self.line8_comment))
-        for k, v in self["THL"] or []:
-            olist.append("%s %s\n" % (k, v))
-
-        olist.append("%s          %s\n"%(len(self["THU"]), self.line9_comment))
-        for k, v in self["THU"] or []:
-            olist.append("%s %s\n" % (k, v))
-
-        uzrlist = []
-        for k, v in self["UZR"] or []:
-            if not AUTOutil.isiterable(v):
-                v = [v]
-            for vv in v:
-                uzrlist.append([k, vv])
-        olist.append("%s          %s\n"%(len(uzrlist), self.line10_comment))
-        for k, v in uzrlist:
-            olist.append("%s %s\n" % (k, v))
         return "".join(olist)
 
     def __str__(self):
