@@ -138,7 +138,7 @@ def getstatusoutput(cmd, shell=False):
         p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
         output = p.communicate()
-        return p.returncode, output[0]
+        return p.returncode, output[0].decode('ascii')
     except ImportError:
         import commands
         return commands.getstatusoutput(" ".join(cmd))

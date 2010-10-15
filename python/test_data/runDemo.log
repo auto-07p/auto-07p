@@ -16,7 +16,7 @@ ab : first run : stationary solutions
    1    90  HB    4   1.30900E-01   4.27187E+00   8.95080E-01   4.17704E+00
    1    92  EP    5   1.51241E-01   4.36975E+00   9.15589E-01   4.27275E+00
 
- Total Time    0.187E-01
+ Total Time    0.162E-01
  Saved as *.ab
  
 ab : second run : periodic solutions
@@ -25,27 +25,27 @@ ab : second run : periodic solutions
    4    30        6   1.19881E-01   3.98713E+00   9.91911E-01   7.02034E+00   2.72104E+00
    4    60        7   1.15303E-01   3.14631E+00   9.99578E-01   9.95760E+00   6.14745E+00
    4    90        8   1.05650E-01   2.21919E+00   9.99154E-01   9.36586E+00   1.39976E+01
-   4   120        9   1.05507E-01   1.69685E+00   9.99086E-01   9.29709E+00   9.95600E+01
-   4   150  EP   10   1.05507E-01   1.60084E+00   9.99085E-01   9.29914E+00   4.28656E+03
+   4   120        9   1.05507E-01   1.69685E+00   9.99085E-01   9.29739E+00   9.95601E+01
+   4   150  EP   10   1.05507E-01   1.60084E+00   9.99082E-01   9.29066E+00   4.28596E+03
 
- Total Time    0.201E+00
+ Total Time    0.289E+00
  Appended to *.ab
  
 ab : third run : a 2-parameter locus of folds
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
-   2    27  LP   11   1.35335E-01   2.06133E+00   4.99947E-01   1.99979E+00   2.50000E+00
-   2   100  EP   12   1.09256E-08   2.13663E+01   9.53151E-01   2.13450E+01  -3.74837E-01
+   2    27  LP   11   1.35335E-01   2.06196E+00   5.00099E-01   2.00040E+00   2.50000E+00
+   2   100  EP   12   1.09191E-08   2.13669E+01   9.53152E-01   2.13456E+01  -3.74854E-01
 
- Total Time    0.299E-01
+ Total Time    0.199E-01
  Saved as *.2p
  
 ab : fourth run : the locus of folds in reverse direction
  
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
-   2    36  EP   11  -3.51788E-03   9.90574E-01  -9.56303E-03   9.90528E-01  -1.13516E+00
+   2    35  EP   11  -8.67603E-05   9.99764E-01  -2.35839E-04   9.99764E-01  -1.00330E+00
 
- Total Time    0.126E-01
+ Total Time    0.805E-02
  Appended to *.2p
  
 ab : fifth run : a 2-parameter locus of Hopf points
@@ -53,7 +53,7 @@ ab : fifth run : a 2-parameter locus of Hopf points
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)        PAR(3)     
    4   100  EP   11   1.65104E-06   1.57404E+01   9.16793E-01   1.57137E+01  -1.83188E-01
 
- Total Time    0.321E-01
+ Total Time    0.220E-01
  Appended to *.2p
  
 Demo ab is done
