@@ -896,7 +896,7 @@ CONTAINS
     IF(IUNIT.EQ.7)THEN
        WRITE(7,"(I4/I4,A)",ADVANCE="NO")0,0,'    PT  TY  LAB '
     ELSE
-       WRITE(IUNIT,"(1X/A)",ADVANCE="NO")'  BR    PT  TY  LAB '
+       WRITE(IUNIT,"(/A)",ADVANCE="NO")'  BR    PT  TY  LAB '
     ENDIF
 
     DO J=1,N1+N2+1
