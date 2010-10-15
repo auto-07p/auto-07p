@@ -3,7 +3,7 @@ Runner configured
 gfortran -fopenmp -O -c ab.f90 -o ab.o
 gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
- 
+
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    31  UZ    2   1.40000E+01   0.00000E+00   0.00000E+00   0.00000E+00
@@ -18,7 +18,7 @@ Saving fort.7 as b.ab ... done
 Saving fort.8 as s.ab ... done
 Saving fort.9 as d.ab ... done
 Starting ab ...
- 
+
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    14  UZ    2   2.50000E-01   7.22011E-01   3.22893E-01   6.45786E-01

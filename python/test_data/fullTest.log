@@ -121,7 +121,7 @@ Runner configured
 gfortran -fopenmp -O -c wav.f90 -o wav.o
 gfortran -fopenmp -O wav.o -o wav.exe /home/boldeman/auto/07p/lib/*.o
 Starting wav ...
- 
+
   BR    PT  TY  LAB    PAR(3)        L2-NORM         U(1)          U(2)          U(3)          U(4)     
    1     1  EP    1   5.00000E+02   1.08768E+02   6.27662E+01   8.88308E+01   0.00000E+00   0.00000E+00
    1    47  LP    2   6.66144E+02   1.81841E+02   4.69085E+01   1.75687E+02   0.00000E+00   0.00000E+00
@@ -135,7 +135,7 @@ Appending fort.7 to b.wav ... done
 Appending fort.8 to s.wav ... done
 Appending fort.9 to d.wav ... done
 Starting wav ...
- 
+
   BR    PT  TY  LAB    PAR(3)        L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      MAX U(4)       PERIOD    
    4    26  UZ    6   6.38000E+02   5.85936E+01   3.41194E+01   6.66882E+01   5.23176E+00   7.67732E+00   2.00436E+01
    4    71  UZ    7   6.38000E+02   5.12350E+01   4.32537E+01   6.10864E+01   1.56626E+01   1.44212E+01   1.13908E+01
@@ -148,7 +148,7 @@ Appending fort.7 to b.wav ... done
 Appending fort.8 to s.wav ... done
 Appending fort.9 to d.wav ... done
 Starting wav ...
- 
+
   BR    PT  TY  LAB    PAR(3)        L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      MAX U(4)      PAR(10)    
    4    50       10   6.34892E+02   6.77805E+01   4.88929E+01   8.92232E+01   1.98335E+01   2.26742E+01   3.31358E-01
    4   100       11   6.38185E+02   6.14781E+01   4.47694E+01   7.71809E+01   7.78450E+00   9.26606E+00  -2.81251E-01
@@ -175,7 +175,7 @@ Conversion done : converted file saved as s.dat
 Runner configured
 gfortran -fopenmp -O cir.o -o cir.exe /home/boldeman/auto/07p/lib/*.o
 Starting cir ...
- 
+
   BR    PT  TY  LAB     PERIOD       L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      PAR(1)     
    1     1  EP    1   3.61300E+01   2.14038E-01   4.23177E-01   5.80472E-02   3.32867E-01  -7.21309E-01
    1    21  UZ    2   1.00000E+02   1.28664E-01   4.22987E-01   5.80615E-02   3.32856E-01  -7.21309E-01
@@ -185,7 +185,7 @@ Starting cir ...
  Total Time    0.151E+00
 cir ... done
 Starting cir ...
- 
+
   BR    PT  TY  LAB     PERIOD       L2-NORM       MAX U(1)      MAX U(2)      MAX U(3)      PAR(1)     
    1     1  EP    1   3.61300E+01   2.14038E-01   4.23177E-01   5.80472E-02   3.32867E-01  -7.21309E-01
    1    21  UZ    2   1.00000E+02   1.28664E-01   4.22987E-01   5.80615E-02   3.32856E-01  -7.21309E-01
@@ -311,7 +311,7 @@ Runner configured
 gfortran -fopenmp -O -c ab.f90 -o ab.o
 gfortran -fopenmp -O ab.o -o ab.exe /home/boldeman/auto/07p/lib/*.o
 Starting ab ...
- 
+
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    31  UZ    2   1.40000E+01   0.00000E+00   0.00000E+00   0.00000E+00
@@ -324,7 +324,7 @@ Starting ab ...
 ab ... done
 RL1 changed to 0.4
 Starting ab ...
- 
+
   BR    PT  TY  LAB    PAR(2)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   8.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
 
@@ -337,7 +337,7 @@ Appending fort.7 to b.ab ... done
 Appending fort.8 to s.ab ... done
 Appending fort.9 to d.ab ... done
 Starting ab ...
- 
+
   BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)     
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1    14  UZ    2   2.50000E-01   7.22011E-01   3.22893E-01   6.45786E-01
