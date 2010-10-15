@@ -138,10 +138,15 @@ def getstatusoutput(cmd, shell=False):
         p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
         output = p.communicate()
-        return p.returncode, output[0].decode('ascii')
+        s = output[0].decode('ascii')
+        if s[-1] == '\n':
+            s = s[:-1]	
+        return p.returncode, s
     except ImportError:
         import commands
-        return commands.getstatusoutput(" ".join(cmd))
+        if isiterable(cmd):
+            cmd = " ".join(cmd)
+        return commands.getstatusoutput(cmd)
 
 try:
     import __builtin__

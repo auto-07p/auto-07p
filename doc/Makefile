@@ -54,8 +54,8 @@ clean:
 	@echo "Cleaning auto.doc ..."
 	@$(RM) *.aux *.log *.bbl *.blg *.toc *.out
 	@$(RM) $(FIGS) $(PLAUT04_FIGS)
-	@for i in include/*.eps; do $(RM) $${i%%.eps}.pdf; done
-	@for i in include/*.ps; do $(RM) $${i%%.ps}.pdf; done
+	@for i in include/*.eps; do $(RM) `echo $$i | sed -e "s/\.eps/.pdf/"`; done
+	@for i in include/*.ps; do $(RM) `echo $$i | sed -e "s/\.ps/.pdf/"`; done
 	@echo "Cleaning ... done"
 
 superclean: clean

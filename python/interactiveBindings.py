@@ -362,7 +362,8 @@ def _testFilename(inputname,outputname):
     runner.config(log=None)
     log.close()
     os.chdir(old_path)
-    cmd = ["diff","--ignore-matching-lines='gfortran.*'",
+    cmd = ["diff","--ignore-matching-lines='f95.*'",
+           "--ignore-matching-lines='gfortran.*'",
            "--ignore-matching-lines='Finished running:.*'",
            "--ignore-matching-lines='[uU]sing .*'",
            "--ignore-matching-lines='.*Total Time.*'","log",outputname]

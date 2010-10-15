@@ -1140,7 +1140,7 @@ def ls(dir=None):
     if sys.stdout is sys.__stdout__:
         os.system(cmd)
     else:
-        info(AUTOutil.getstatusoutput(cmd, shell=True)[1])
+        info(AUTOutil.getstatusoutput(cmd, shell=True)[1]+'\n')
 commandLs = command(ls)
 
 

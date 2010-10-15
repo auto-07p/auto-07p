@@ -210,7 +210,6 @@ class runAUTO:
                 p = self.__popen(cmd.split(), stderr=subprocess.PIPE)
                 stdout,stderr = p.stdout,p.stderr
             else:
-                import popen2
                 stdout,stdin,stderr = popen2.popen3(cmd)
                 stdin.close()
             sys.stdout.write(stdout.read())

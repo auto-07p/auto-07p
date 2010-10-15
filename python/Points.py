@@ -21,7 +21,7 @@ ndarray = AUTOutil.ArrayType
 def importnumpy():
     global N, numpyimported, fromstring, ndarray, array, rank, take, less
     global float64, int32, array2string, shape, zeros, ravel, bool8
-    global _seq_types, _num_equivtype
+    global _seq_types, _num_equivtype, linalg
     fromstring = None
     which = ''
     try:
@@ -79,7 +79,6 @@ def importnumpy():
     numpyimported = True
 
     if fromstring is None:
-        global linalg
         class linalg(object):
             def norm(v, normord):
                 n = 0.0
@@ -1414,7 +1413,7 @@ class Pointset(Point):
                 raise ValueError("Invalid variable names given: "%(str(ref1)))
             try:
                 ci = take(self.indepvararray, ref1, axis=0)
-            except (IndexError, AttributeError):
+            except (IndexError, AttributeError, ValueError):
                 # non-parameterized pointset
                 pass
             cl = self.labels[ref1]
@@ -1428,7 +1427,7 @@ class Pointset(Point):
             ca = take(self.coordarray, range(s1, s2, s3), axis=1)
             try:
                 ci = take(self.indepvararray, range(s1, s2, s3),axis=0)
-            except (IndexError, AttributeError):
+            except (IndexError, AttributeError, ValueError):
                 # non-parameterized pointset
                 pass
             cl = self.labels[ref1]
