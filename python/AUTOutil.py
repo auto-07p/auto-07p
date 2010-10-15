@@ -139,7 +139,7 @@ def getstatusoutput(cmd, shell=False):
                              stderr=subprocess.STDOUT)
         output = p.communicate()
         s = output[0].decode('ascii')
-        if s[-1] == '\n':
+        if len(s) > 0 and s[-1] == '\n':
             s = s[:-1]	
         return p.returncode, s
     except ImportError:

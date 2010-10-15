@@ -244,6 +244,10 @@ class WindowPlotter(Pmw.MegaToplevel):
         self.grapher.update()
         Pmw.MegaToplevel.update(self)
 
+    def destroy(self):
+        self.typeEntry.destroy()
+        Pmw.MegaToplevel.destroy(self)        
+
     def destroywindow(self):
         self.destroy()
 
@@ -276,6 +280,13 @@ class WindowPlotter2D(WindowPlotter):
 
         self.checktype()
         self.typeUpdateCallback()
+
+    def destroy(self):
+        self.xEntry.destroy()
+        self.yEntry.destroy()
+        if plotter.Axes3D is not None:
+            self.zEntry.destroy()
+        WindowPlotter.destroy(self)
 
     def typeUpdateCallback(self):
         if self.grapher.cget("type") == "bifurcation":

@@ -3339,7 +3339,8 @@ def _deregisterEntryField(entry):
 def _preProcess(event):
     # Forward preprocess events for an Entry to it's EntryField
 
-    _entryCache[event.widget]._preProcess()
+    if event.widget in _entryCache:
+        _entryCache[event.widget]._preProcess()
 
 def _postProcess(event):
     # Forward postprocess events for an Entry to it's EntryField
@@ -8253,6 +8254,7 @@ class ComboBox(MegaWidget):
         self.initialiseoptions()
 
     def destroy(self):
+        self._entryfield.destroy()
         if self['dropdown'] and self._isPosted:
             popgrab(self._popup)
         MegaWidget.destroy(self)
