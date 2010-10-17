@@ -1964,7 +1964,9 @@ bool Solution::read(const char* sFileName, int varIndices[])
                     ++row;
                 }
 
-		if(ntst != 0)
+                int nLines = (npar1+6)/7;
+		int nrowprsmall = ((nar-1)/7+1)*ntpl + nLines;
+		if(ntst != 0 && nrowpr > nrowprsmall)
                 {
                     int ndim=nar-1;
                     int nrd=(ndim+6)/7;
@@ -1972,7 +1974,6 @@ bool Solution::read(const char* sFileName, int varIndices[])
                     for(i=0; i<nLines; ++i) fgets(line, sizeof(line), inFile);
                 }
 
-                int nLines = (npar1+6)/7;
                 orbits_[counter].par = new double[npar1];
                 for(int nzoo = 0; nzoo<nLines; ++nzoo)
                 {

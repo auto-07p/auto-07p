@@ -7,8 +7,8 @@ C
       IMPLICIT NONE
       include 'fcon.h'
 C
-      INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,ICP(1),I,J,ios
-      DOUBLE PRECISION RLDOT(1),TEMP,T,PERIOD
+      INTEGER NDIM,NOLD,NTST,NCOL,ISW,IPS,NPAR,I,J,ios
+      DOUBLE PRECISION TEMP,T,PERIOD
       DOUBLE PRECISION, ALLOCATABLE :: U(:),TM(:),UPS(:,:)
       DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),PAR(:)
 C
@@ -47,11 +47,9 @@ C
         CALL ADAPT(NOLD,NDIM,NTST,NCOL,NDIM,TMR,UPSR,TM,UPS,
      &       ((IPS.EQ.2.OR.IPS.EQ.12) .AND. ABS(ISW).LE.1))
 C
-        ICP(1)=1
-        RLDOT(1)=1.d0
         PAR(11)=PERIOD
         CALL STPNT(NDIM,U,PAR,T)
-        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,TM,NPAR)
+        CALL WRTBV8(NDIM,NTST,NCOL,ISW,PAR,UPS,TM,NPAR)
 C
         DEALLOCATE(U,TM,TMR,UPS,UPSR)
 C
@@ -394,15 +392,14 @@ C Take care of "small derivative" case.
       END SUBROUTINE EQDF
 
 C     ---------- ------
-      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,ICP,RLDOT,UPS,TM,NPAR)
+      SUBROUTINE WRTBV8(NDIM,NTST,NCOL,ISW,PAR,UPS,TM,NPAR)
 
       IMPLICIT NONE
 
-      INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,ISW,ICP(*),NPAR
-      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*),
-     &     TM(0:*),PAR(*),RLDOT(*)
+      INTEGER, INTENT(IN) :: NDIM,NTST,NCOL,ISW,NPAR
+      DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:*),TM(0:*),PAR(*)
 
-      INTEGER IBR,ITP,NFPR,NTOT,LAB,NTPL,NAR,NRD,NROWPR,MTOT
+      INTEGER IBR,ITP,NFPR,NTOT,LAB,NTPL,NAR,NROWPR,MTOT
 
        ITP=9
        NFPR=1
@@ -414,8 +411,7 @@ C Write information identifying the solution :
 
        NTPL=NCOL*NTST+1
        NAR=NDIM+1
-       NRD=(NDIM+7)/7+(NDIM+6)/7
-       NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
+       NROWPR=((NDIM+6)/7)*NTPL + (NPAR+6)/7
        MTOT=MOD(NTOT-1,9999)+1
        WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,
      &      NTST,NCOL,NPAR
@@ -427,24 +423,12 @@ C Write the entire solution on unit 8 :
          WRITE(8,102)T,UPS(:,J)
        ENDDO
 
-C Write the free parameter indices:
-
-       WRITE(8,103)(ICP(I),I=1,NFPR)
-
-C Write the direction of the branch:
-
-       WRITE(8,102)(RLDOT(I),I=1,NFPR)
-       DO J=0,NTST*NCOL
-         WRITE(8,102)(0.0d0,I=1,NDIM)
-       ENDDO
-
 C Write the parameter values.
 
        WRITE(8,102)(PAR(I),I=1,NPAR)
 
  101   FORMAT(6I6,I8,I6,I8,3I5)
  102   FORMAT(4X,7ES19.10)
- 103   FORMAT(20I5)
 
       END SUBROUTINE WRTBV8
 
