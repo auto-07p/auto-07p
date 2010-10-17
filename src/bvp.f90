@@ -1294,7 +1294,7 @@ CONTAINS
     DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
     DOUBLE PRECISION PAR(*),RLDOT(AP%NFPR)
 
-    INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NRD,NROWPR
+    INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NROWPR
     INTEGER MTOT,I,J,NPARI
     DOUBLE PRECISION T
 !xxx====================================================================
@@ -1317,8 +1317,11 @@ CONTAINS
 
     NTPL=NCOL*NTST+1
     NAR=NDIM+1
-    NRD=(NDIM+7)/7+(NDIM+6)/7
-    NROWPR=NRD*(NCOL*NTST+1) + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
+    NROWPR=(NDIM/7+1)*NTPL + (NPAR+6)/7
+! if NPR is negative and no branch point skip direction info
+    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==6)THEN
+       NROWPR=NROWPR + (NFPR+19)/20 + (NFPR+6)/7 + ((NDIM+6)/7)*NTPL
+    ENDIF
     MTOT=MOD(NTOT-1,9999)+1
     WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
          NPARI,NDIMU,IPS,0
@@ -1348,16 +1351,19 @@ CONTAINS
 !xxx 100   FORMAT(4X,I2,I4,7ES11.3)
 !xxx====================================================================
 
+    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==6)THEN
+! if NPR is negative and no branch point skip direction info
 ! Write the free parameter indices:
 
-    WRITE(8,103)(ICP(I),I=1,NFPR)
+       WRITE(8,103)(ICP(I),I=1,NFPR)
 
 ! Write the direction of the branch:
 
-    WRITE(8,102)(RLDOT(I),I=1,NFPR)
-    DO J=0,NTST*NCOL
-       WRITE(8,102)UDOTPS(:,J)
-    ENDDO
+       WRITE(8,102)(RLDOT(I),I=1,NFPR)
+       DO J=0,NTST*NCOL
+          WRITE(8,102)UDOTPS(:,J)
+       ENDDO
+    ENDIF
 
 ! Write the parameter values.
 

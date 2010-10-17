@@ -984,7 +984,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
     INTEGER NDIM,ISW,ITP,IBR,NFPR,NPAR,NTOT,NROWPR,MTOT,NAR,NTPL,I,K
-    INTEGER NPARI
+    INTEGER NPARI,NTST
     DOUBLE PRECISION T
 
     NDIM=AP%NDIM
@@ -999,19 +999,28 @@ CONTAINS
     NTPL=1
     NAR=NDIM+1
 
-    NROWPR=(NDIM+7)/7+(NDIM+6)/7 + (NFPR+6)/7 + (NPAR+6)/7 + (NFPR+19)/20
+    NROWPR=NDIM/7 + 1 + (NPAR+6)/7
+    NTST=0
+! if NPR is negative and no branch point skip direction info
+    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==1)THEN
+       NROWPR=NROWPR + (NFPR+19)/20 + (NFPR+6)/7 + (NDIM+6)/7
+       NTST=1
+    ENDIF
     PAR(ICP(1))=U(NDIM+1)
     T=0.d0
 
     MTOT=MOD(NTOT-1,9999)+1
-    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,1,0,NPAR,&
+    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,0,NPAR,&
          NPARI,NDIMU,IPS,0
     WRITE(8,102)T,(U(I),I=1,NDIM)
+! if NPR is negative and no branch point skip direction info
+    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==1)THEN
 ! Write the free parameter indices:
-    WRITE(8,103)(ICP(I),I=1,NFPR)
+       WRITE(8,103)(ICP(I),I=1,NFPR)
 ! Write the direction of the branch:
-    WRITE(8,102)UDOT(NDIM+1),(UDOT(NDIM-NFPR+I),I=2,NFPR)
-    WRITE(8,102)(UDOT(K),K=1,NDIM)
+       WRITE(8,102)UDOT(NDIM+1),(UDOT(NDIM-NFPR+I),I=2,NFPR)
+       WRITE(8,102)(UDOT(K),K=1,NDIM)
+    ENDIF
 ! Write the parameter values.
     WRITE(8,102)(PAR(I),I=1,NPAR)
 

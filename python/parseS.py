@@ -882,9 +882,11 @@ class AUTOSolution(UserDict,Points.Pointset):
         self.__fullyParsed = True
         n = self.__numEntriesPerBlock
         total = n * self.__numSValues + self.__numFreeParameters
-        if self["NTST"] != 0:
-            total = (total + 2 * self.__numChangingParameters +
-                     (n-1) * self.__numSValues)
+        nlinessmall = (((n-1)/7+1) * self.__numSValues +
+                       (self.__numFreeParameters+6)/7)
+        if self["NTST"] != 0 and self.__numLinesPerEntry > nlinessmall:
+            total += (2 * self.__numChangingParameters +
+                      (n-1) * self.__numSValues)
         solution = []
         j = 0
         nrows = self.__numSValues
@@ -935,9 +937,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         del sdata
         j = j + n * nrows
 
-        # I am using the value of NTST to test to see if it is an algebraic or
-        # ODE problem.
-        if self["NTST"] != 0:
+        # Check if direction info is given
+        if self["NTST"] != 0 and self.__numLinesPerEntry > nlinessmall:
             nfpr = self.__numChangingParameters
             self["Active ICP"] = list(map(int,fdata[j:j+nfpr]))
             j = j + nfpr
@@ -1030,25 +1031,23 @@ class AUTOSolution(UserDict,Points.Pointset):
             ndim = len(self.coordarray)
             npar = len(self["Parameters"])
             ntpl = len(self)
+            nrowpr = (ndim//7+1) * ntpl + (npar+6)//7
+            if self.__start_of_header is None:
+                nfpr = 1
+            else:
+                nfpr = self.__numChangingParameters
+            if "Active ICP" in self.data:
+                nfpr = len(self.get("Active ICP",[0]))
+                nrowpr += (nfpr+19)//20 + (nfpr+6)//7 + (ndim+6)//7 * ntpl
         else:
             if self.__start_of_header is None:
                 return
             ndim = self.__numEntriesPerBlock-1
             npar = self.__numFreeParameters
             ntpl = self.__numSValues
-
-        if self["NTST"] != 0:
-            if self.__fullyParsed:
-                nfpr = len(self.get("Active ICP",[0]))
-            else:
-                nfpr = self.__numChangingParameters
-            nrd = 2 + ndim//7 + (ndim-1)//7
-            nrowpr = (nrd * (self["NCOL"] * self["NTST"] + 1) +
-                      (nfpr-1)//7+1 + (npar-1)//7+1 + (nfpr-1)//20+1)
-        else:
-            nrowpr = ndim//7+1 + (npar-1)//7+1
             nfpr = self.__numChangingParameters
-            
+            nrowpr = self.__numLinesPerEntry
+
         line = "%6d%6d%6d%6d%6d%6d%8d%6d%8d%5d%5d%5d" % (self["BR"],
                                                          self["PT"],
                                                          self["TY number"],
@@ -1088,11 +1087,10 @@ class AUTOSolution(UserDict,Points.Pointset):
                     slist.append("%19.10E" % (self.coordarray[j-1][i]))
                 slist.append(os.linesep)
             write_enc("".join(slist))
-            # I am using the value of NTST to test to see if it is an algebraic or
-            # ODE problem.
-            if self["NTST"] != 0:
+            if "Active ICP" in self.data:
+                # Solution contains derivative information.
                 j = 0
-                for parameter in self.get("Active ICP",[0]):
+                for parameter in self["Active ICP"]:
                     write_enc("%5d" % (parameter))
                     j = j + 1
                     if j%20==0:
@@ -1102,7 +1100,7 @@ class AUTOSolution(UserDict,Points.Pointset):
 
                 line = "    "
                 i = 0
-                for vi in self.get("rldot",[1.0]):
+                for vi in self["rldot"]:
                     num = "%19.10E" % (vi)
                     if i != 0 and i%7==0:
                         line = line + os.linesep + "    "
@@ -1112,11 +1110,8 @@ class AUTOSolution(UserDict,Points.Pointset):
 
                 # write UDOTPS
                 slist = []
-                if "udotps" in self.data:
-                    c = self["udotps"].coordarray
-                    l = len(c)
-                else:
-                    l = 0
+                c = self["udotps"].coordarray
+                l = len(c)
                 for i in range(len(self.indepvararray)):
                     slist.append("    ")
                     for j in range(len(self.coordarray)):
