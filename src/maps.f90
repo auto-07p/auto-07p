@@ -361,6 +361,12 @@ CONTAINS
     ITPST=AP%ITPST
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
+
+    ITP=0
+    FNHBDS=0d0
+    ! Check if not continuing a BP and not Rn already
+    IF(ITPST==1.OR.MOD(AP%ITP,10)<-4)RETURN
+
     ALLOCATE(EV(NDM))
 
 ! Compute the eigenvalues of the Jacobian
@@ -378,26 +384,31 @@ CONTAINS
        ENDIF
     ENDDO
 
-    CALL STABEQ(AP,AA,EV,NINS,LOC)
+    IF(ITPST==0)THEN
+       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
+    ELSEIF(ITPST==2.OR.ITPST==7)THEN ! LP/PD
+       CALL STABEQ(AP,AA,EV,NINS,LOC,2)
+    ELSE ! ITPST==8, TR
+       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
+    ENDIF
     EVV(:)=EXP(EV(:))
 
     REV=0.d0
     IF(LOC>0)THEN
        REV=REAL(EV(LOC))
        RIMHB=ABS(AIMAG(EV(LOC)))
-       IF(RIMHB.NE.0.d0.AND.ITPST==0)PAR(11)=PI(2.d0)/RIMHB
+       IF(RIMHB/=0.AND.ITPST==0)PAR(11)=PI(2.d0)/RIMHB
+       ITP=TPSPAE(AP%EPSS,ITPST,RIMHB)
     ENDIF
 
-    ITP=TPSPAE(AP%EPSS,ITPST,PAR(11))
-    IF(ITPST/=0.OR..NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
-       FNHBDS=0d0
+    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
        ITP=0
     ELSE
        FNHBDS=REV
        IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBDS
     ENDIF
     AP%HBFF=FNHBDS
-    IF(NINS==AP%NINS.AND.AP%ITPST/=8)ITP=0
+    IF(NINS==AP%NINS)ITP=0
     AP%NINS=NINS
     CALL PRINTEIG(AP)
 
@@ -406,24 +417,46 @@ CONTAINS
   END FUNCTION FNHBDS
 
 ! ------- -------- ------
-  INTEGER FUNCTION TPSPAE(EPSS,ITPST,PERIOD)
+  INTEGER FUNCTION TPSPAE(EPSS,ITPST,RIMHB)
 
 ! Determines type of secondary bifurcation of maps.
     
     USE SUPPORT, ONLY: PI
 
     INTEGER, INTENT(IN) :: ITPST
-    DOUBLE PRECISION, INTENT(IN) :: EPSS, PERIOD
+    DOUBLE PRECISION, INTENT(IN) :: EPSS, RIMHB
 
-    IF(PERIOD-2 <= PERIOD/PI(1d0)*SQRT(EPSS))THEN
-!       ** period doubling
-       TPSPAE=7+10*ITPST
-    ELSEIF(PERIOD /= 0 .AND. PERIOD < PI(2d0)/SQRT(EPSS))THEN
+    INTEGER ITP
+
+    TPSPAE=0
+    ITP=0
+    IF(ABS(RIMHB-PI(1d0)) <= SQRT(EPSS))THEN
+!       ** period doubling (flip)
+       IF(ITPST==0.OR.ITPST==2)THEN ! plain flip or fold+flip
+          ITP=7
+       ELSEIF(ITPST==8)THEN ! torus+flip
+          ITP=6
+       ENDIF
+    ELSEIF(RIMHB > SQRT(EPSS))THEN
 !       ** torus (Neimark-Sacker) bifurcation
-       TPSPAE=8+10*ITPST
+       IF(ITPST==0.OR.ITPST==8)THEN ! plain torus or torus+torus
+          ITP=8
+       ELSEIF(ITPST==2)THEN ! fold+torus
+          ITP=5
+       ELSEIF(ITPST==7)THEN ! flip+torus
+          ITP=6
+       ENDIF
     ELSE
-!       ** something else... (very large PERIOD: close to fold)
-       TPSPAE=0
+!       ** something else... (close to fold -- normal folds are detected
+!       in FNLPAE!)
+       IF(ITPST==7)THEN ! flip+fold
+          ITP=7
+       ELSEIF(ITPST==8)THEN ! torus+fold
+          ITP=5
+       ENDIF
+    ENDIF
+    IF(ITP/=0)THEN
+       TPSPAE=ITP+10*ITPST
     ENDIF
 
   END FUNCTION TPSPAE

@@ -395,20 +395,21 @@ CONTAINS
   END SUBROUTINE PRINTEIG
 
 ! ---------- ------
-  SUBROUTINE STABEQ(AP,AA,EV,NINS,LOC)
+  SUBROUTINE STABEQ(AP,AA,EV,NINS,LOC,N)
  
     ! determine stability given eigenvalues
     ! the eigenvalues are sorted by real part
     ! on output, NINS contains the number of negative (within tolerance)
-    !  eigenvalues, and LOC the position of the eigenvalue closest
-    !  to 0.
+    !  eigenvalues, and LOC the position of the eigenvalue nth-closest
+    !  to 0 (the (n-1)th closest are assumed to be close to 0 already)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(:)
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
     INTEGER, INTENT(OUT) :: NINS, LOC
+    INTEGER, INTENT(IN) :: N
 ! Local
-    INTEGER NDM,I,j,ITPST
+    INTEGER NDM,I,j,k,k1,ITPST,LOCS(N)
     DOUBLE PRECISION a,AR,AREV,tol,trace
     COMPLEX(KIND(1.0D0)) ZTMP
 
@@ -431,19 +432,29 @@ CONTAINS
        ENDIF
     ENDDO
 
-! Compute the smallest real part.
+! Compute the nth smallest real part in magnitude.
 
-    AREV=HUGE(AREV)
-    LOC=0
-    DO I=1,NDM
-       IF(AIMAG(EV(I)).NE.0.d0.OR.ITPST==1.OR.ITPST==2)THEN
-          AR=ABS(REAL(EV(I)))
-          IF(AR.LE.AREV)THEN
-             AREV=AR
-             LOC=I
+    LOCS(:)=0
+    DO J=1,N
+       AREV=HUGE(AREV)
+       DO I=1,NDM
+          K1=0
+          DO K=1,N-1
+             IF(I==LOCS(K))THEN
+                K1=K
+                EXIT
+             ENDIF
+          ENDDO
+          IF(K1==0.AND.(AIMAG(EV(I)).NE.0.d0.OR.ITPST/=0))THEN
+             AR=ABS(REAL(EV(I)))
+             IF(AR.LE.AREV)THEN
+                AREV=AR
+                LOCS(J)=I
+             ENDIF
           ENDIF
-       ENDIF
+       ENDDO
     ENDDO
+    LOC=LOCS(N)
 
 ! Set tolerance for deciding if an eigenvalue is in the positive
 ! half-plane. Use, for example, tol=1d-3 for conservative systems.
@@ -476,7 +487,15 @@ CONTAINS
 
     NINS=0
     DO I=1,NDM
-       IF(REAL(EV(I)).LE.tol)NINS=NINS+1
+       IF(REAL(EV(I)).LE.tol)THEN
+          NINS=NINS+1
+       ELSE
+          DO J=1,N-1
+             IF(I==LOCS(J))THEN
+                NINS=NINS+1
+             ENDIF
+          ENDDO
+       ENDIF
     ENDDO
   END SUBROUTINE STABEQ
 
@@ -490,11 +509,10 @@ CONTAINS
     INTEGER, INTENT(OUT) :: ITP
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
-    COMPLEX(KIND(1.0D0)) ZTMP
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
     DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:)
-    INTEGER NDM,ISP,IID,IBR,NTOT,NTOP,NINS,I,LOC,ITPST
-    DOUBLE PRECISION AR,AREV,RIMHB,REV
+    INTEGER NDM,ISP,IID,IBR,NTOT,NTOP,NINS,LOC,ITPST
+    DOUBLE PRECISION RIMHB,REV
 
     NDM=AP%NDM
     ISP=AP%ISP
@@ -507,8 +525,10 @@ CONTAINS
 
 ! INITIALIZE
 
+    FNHBEQ=0d0
     ITP=0
-    IF(AP%IPS==0)RETURN
+    ! do not detect special bifs on BP curves or if BT already detected
+    IF(ITPST==1.OR.MOD(AP%ITP,10)==-1)RETURN
 
 ! Compute the eigenvalues of the Jacobian
 
@@ -517,52 +537,40 @@ CONTAINS
     CALL EIG(AP,NDM,NDM,AAA,EV)
     DEALLOCATE(AAA)
 
-    CALL STABEQ(AP,AA,EV,NINS,LOC)
+    IF(ITPST==0)THEN
+       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
+    ELSEIF(ITPST==2)THEN
+       CALL STABEQ(AP,AA,EV,NINS,LOC,2)
+    ELSE ! ITPST==3, HB
+       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
+    ENDIF
     EVV(:)=EV(:)
 
     REV=0.d0
-    IF(ITPST==1.OR.ITPST==2)THEN
-       ! Compute one-but-smallest real part
-       IF(AP%ITP/=-21)THEN ! No Bogdanov-Takens
-          AREV=HUGE(AREV)
-          DO I=1,NDM
-             AR=ABS(REAL(EV(I)))
-             IF(AR.LE.AREV.AND.I/=LOC)THEN
-                AREV=AR
-                REV=REAL(EV(I))
-             ENDIF
-          ENDDO
-       ENDIF
-    ELSEIF(ITPST==3)THEN
-       ! Evaluate determinant on Hopf bifurcations
-       ZTMP=1
-       DO I=1,NDM
-          ZTMP=ZTMP*EV(I)
-       ENDDO
-       REV=REAL(ZTMP)
-    ELSEIF(LOC>0)THEN
+    IF(LOC>0)THEN
        REV=REAL(EV(LOC))
-       RIMHB=ABS(AIMAG(EV(LOC)))
-       IF(RIMHB>0)PAR(11)=PI(2.d0)/RIMHB
+       IF(ITPST==0)THEN ! plain Hopf bif, not Zero-Hopf
+          RIMHB=ABS(AIMAG(EV(LOC)))
+          IF(RIMHB>0)PAR(11)=PI(2.d0)/RIMHB
+       ENDIF
     ENDIF
 
-    IF(ITPST/=0)THEN
-       ITP=-3-10*ITPST ! Check for Zero-Hopf
-    ELSE
+    IF(ITPST==0)THEN
        ITP=3+10*ITPST
+    ELSEIF(ITPST==2.OR.ITPST==3)THEN
+       ITP=-3-10*ITPST ! Check for Zero-Hopf
     ENDIF
     IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
-       FNHBEQ=0d0
        ITP=0
     ELSE
        FNHBEQ=REV
        IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBEQ
     ENDIF
     AP%HBFF=FNHBEQ
-    IF(ITPST==0)THEN
-       IF(ABS(NINS-AP%NINS)<2)ITP=0
-    ELSE
+    IF(ITPST==3)THEN ! detect zero on Zero-Hopf
        IF(NINS==AP%NINS)ITP=0
+    ELSE             ! detect plain Hopf or Hopf on LP
+       IF(ABS(NINS-AP%NINS)<2)ITP=0
     ENDIF
     AP%NINS=NINS
     CALL PRINTEIG(AP)
