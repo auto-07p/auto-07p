@@ -68,10 +68,10 @@ CONTAINS
     END TYPE INDEXSTRL
     TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
 
-    CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(21) = (/                    &
+    CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/                    &
          "NDIM", "IPS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS", "ISP ",  &
          "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "NPR ", "MXBF", "IID ",  &
-         "ITMX", "ITNW", "NWTN", "JAC ", "NPAR" /)
+         "ITMX", "ITNW", "NWTN", "JAC ", "NPAR", "IBR ", "LAB " /)
     CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(10) = (/                    &
          "DS   ", "DSMIN", "DSMAX", "RL0  ", "RL1  ", "A0   ", "A1   ",   &
          "EPSL ", "EPSU ", "EPSS " /)
@@ -193,6 +193,10 @@ CONTAINS
              JAC=IC
           CASE(21)
              NPAR=IC
+          CASE(22)
+             IBR=IC
+          CASE(23)
+             LAB=IC
           END SELECT
           RETURN
        ENDIF
@@ -312,6 +316,8 @@ CONTAINS
        READ(STR(POS:),*)SVFILE
     CASE('e')
        READ(STR(POS:),*)EFILE
+    CASE('TY')
+       READ(STR(POS:),*,ERR=3)TY
     CASE DEFAULT
        IERR=1
     END SELECT
@@ -495,7 +501,8 @@ CONTAINS
     USE SUPPORT, ONLY: LBTYPE
     USE AUTO_CONSTANTS, ONLY : IVTHL, IVTHU, IVUZR, IVUZSTOP, unames, parnames,&
          NDIM, IRS, ILP, ISP, ISW, NBC, NINT, NMX, DS, DSMIN, DSMAX, ICU,&
-         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP, STOPS
+         EFILE, SVFILE, SFILE, DATFILE, HCONST, NPAR, UVALS, PARVALS, SP, &
+         STOPS, IBR, LAB, TY
 
 ! Write the values of the user defined parameters on unit 7.
 ! This identifying information is preceded by a '   0' on each line.
@@ -566,6 +573,19 @@ CONTAINS
     WRITE(7,I5)' NMX=',NMXA, 'NPR=', NPR, 'MXBF=',MXBF,'IID =',IID, 'IADS=',IADS
     WRITE(7,I6)'ITMX=',ITMX,'ITNW=',ITNW,'NWTN=',NWTN,'JAC =',JAC,'  NUZR=',NUZR
 
+    IF(IBR>0.OR.LAB>0.OR.LEN_TRIM(TY)>0)THEN
+       WRITE(7,"('   0')",ADVANCE="NO")
+       IF(IBR>0)THEN
+          WRITE(7,"(A8,I4)",ADVANCE="NO")"IBR =",IBR
+       ENDIF
+       IF(LAB>0)THEN
+          WRITE(7,"(A8,I4)",ADVANCE="NO")"LAB =",LAB
+       ENDIF
+       IF(LEN_TRIM(TY)>0)THEN
+          WRITE(7,"(A9,A,A)",ADVANCE="NO")"TY = '",TRIM(TY),"'"
+       ENDIF
+       WRITE(7,*)
+    ENDIF
     WRITE(7,"(A,I4,A)",ADVANCE="NO")"   0   NPAR=",NPARA
     CALL WRITELIST("   THL = ",IVTHL)
     CALL WRITELIST("    THU = ",IVTHU)
@@ -1073,26 +1093,25 @@ CONTAINS
 
 ! Determine a suitable label when restarting.
 
+    USE AUTO_CONSTANTS, ONLY: IBR
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
 
-    INTEGER IPS,IRS,ISW,ITP,LAB,IBR
+    INTEGER IPS,IRS,ISW,ITP
 
     IPS=AP%IPS
     IRS=AP%IRS
     ISW=AP%ISW
     ITP=AP%ITP
 
-    LAB=MLAB
-    AP%LAB=LAB
+    IF(AP%LAB.EQ.0)AP%LAB=MLAB+1
+    IF(IBR.NE.0)RETURN
     IF(ISW.LT.0.OR.IRS.EQ.0)THEN
-       IBR=MBR+1
-       AP%IBR=IBR
+       AP%IBR=MBR+1
     ELSEIF( (ABS(ITP).LT.10.AND.ABS(ISW).EQ.2) &
          .OR. ((IPS.EQ.2.OR.IPS.EQ.12).AND.ITP.EQ.3) &
          .OR. (IPS.EQ.4.AND.ISW.EQ.2.AND.ABS(ITP).LT.10) &
          .OR. (IPS.EQ.5.AND.MOD(ITP,10).EQ.2) )THEN
-       IBR=IRS
-       AP%IBR=IBR
+       AP%IBR=IRS
     ENDIF
 
   END SUBROUTINE NEWLAB
@@ -1191,8 +1210,8 @@ CONTAINS
           NFPR=NFPRR
           NPAR=NPARR
           FOUND=.TRUE.
-          AP%ITP=ITP
-          AP%IBR=IBR
+          IF(AP%ITP==0)AP%ITP=ITP
+          IF(AP%IBR==0)AP%IBR=IBR
           IF(ABS(ISW).GE.2)THEN
              IF(ABS(ITP).LT.10)THEN
                 ITPST=ABS(ITP)
@@ -1356,7 +1375,7 @@ CONTAINS
     USE AUTO_CONSTANTS, ONLY: PARVALS, parnames
     USE SUPPORT, ONLY: NAMEIDX
     INTEGER, INTENT(IN) :: NDIM
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(OUT) :: ICPRS(*),NTSRS,NCOLRS,NDIMRD,ITPRS
     DOUBLE PRECISION, INTENT(OUT) :: RLDOTRS(*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),PAR(*)
@@ -1373,8 +1392,6 @@ CONTAINS
     NCOLRS=CURSOL%NCOL
     NPARR=CURSOL%NPAR
     NPARIR=CURSOL%NPARI
-    AP%IBR=CURSOL%IBR
-    AP%LAB=CURSOL%LAB
 
     NDIMRD=MIN(NDIM,CURSOL%NAR-1)
 

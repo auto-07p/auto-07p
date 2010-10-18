@@ -17,7 +17,7 @@ import struct
 class bifDiag(parseB.parseBR):
 
     # some constants must not be preserved from run to run. These are:
-    nonekeys = set(["IRS", "PAR", "U", "sv", "s", "dat"])
+    nonekeys = set(["IRS", "PAR", "U", "sv", "s", "dat", "TY", "LAB", "IBR"])
 
     def __init__(self,fort7_filename=None,fort8_filename=None,
                  fort9_filename=None,constants=None):

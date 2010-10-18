@@ -699,9 +699,10 @@ class AUTOSolution(UserDict,Points.Pointset):
         c = parseC.parseC(self.c)
         datakw = {}
         for key in self.data_keys:
-            if key in kw and key not in c:
+            if key in kw and (key not in c or key in ["LAB", "TY"]):
                 datakw[key] = kw[key]
-                del kw[key]
+                if key not in ["LAB", "TY"]:
+                    del kw[key]
         oldirs = c["IRS"]
         c.update(constants, **kw)
         if oldirs is not None and c["IRS"] == 0:

@@ -1741,6 +1741,7 @@ CONTAINS
     USE BVP
     USE IO
     USE MESH
+    USE AUTO_CONSTANTS, ONLY: TY
 
     ! Generates starting data for the 2-parameter continuation of torus
     ! bifurcations.
@@ -1772,6 +1773,10 @@ CONTAINS
 
     T=0.d0
     DT=0.d0
+    IF(LEN_TRIM(TY)>2)THEN
+       READ(TY(3:),'(I5)')I
+       PAR(12)=PAR(I)
+    ENDIF
     THETA=PAR(12)
     DO I=0,NTSR*NCOLRS
        IF(MOD(I,NCOLRS)==0)THEN

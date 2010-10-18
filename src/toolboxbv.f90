@@ -215,12 +215,12 @@ CONTAINS
 ! of solutions to general boundary value problems by calling the user
 ! supplied subroutine STPNT where an analytical solution is given.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(AP%NFPR)
     DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*)
 
-    INTEGER NDIM,IPS,NTST,NCOL,ISW,IBR,LAB,NTSR,ios,I,J
+    INTEGER NDIM,IPS,NTST,NCOL,ISW,NTSR,ios,I,J
     DOUBLE PRECISION TEMP,PERIOD
     DOUBLE PRECISION, ALLOCATABLE :: TMR(:),UPSR(:,:),UDOTPSR(:,:),U(:)
 
@@ -282,11 +282,6 @@ CONTAINS
     DO I=1,SIZE(PARVALS)
        PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
     ENDDO
-
-    IBR=1
-    AP%IBR=IBR
-    LAB=0
-    AP%LAB=LAB
 
     NODIR=1
 

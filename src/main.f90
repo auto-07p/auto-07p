@@ -246,6 +246,8 @@
       NWTN = 3
       JAC  = 0
       NPAR = NPARX
+      IBR  = 0
+      LAB  = 0
 
       DS    = 0.01d0
       DSMIN = 0.005d0
@@ -258,6 +260,7 @@
       EPSU  = 1d-7
       EPSS  = 1d-5
 
+      TY='' 
       EFILE=''
       SFILE=''
       SVFILE=''
@@ -323,6 +326,8 @@
       AP%NWTN=NWTN      
       AP%JAC=JAC
       AP%NPAR=NPAR
+      AP%IBR=IBR
+      AP%LAB=LAB
       AP%NICP=SIZE(ICU)
       AP%NTEST=2 ! LP/BP test functions active by default
 
@@ -332,10 +337,8 @@
       AP%ITP=0
       AP%ITPST=0
       AP%NFPR=1
-      AP%IBR=1
       AP%NTOT=0
       AP%NINS=0
-      AP%LAB=0
 
       AP%DS=DS
       AP%DSMIN=ABS(DSMIN)
@@ -388,7 +391,8 @@
 !     ---------- -----
       SUBROUTINE INIT1(AP)
 
-      USE AUTO_CONSTANTS, ONLY:IVTHL
+      USE AUTO_CONSTANTS, ONLY:IVTHL,TY
+      USE SUPPORT, ONLY: LBTYPE
 
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
@@ -437,6 +441,26 @@
              IVTHL(1)%VAR=0d0
           ELSE
              ALLOCATE(IVTHL(0))
+          ENDIF
+       ENDIF
+
+!translate TY constant to typecode in AP%ITP
+       IF(LEN_TRIM(TY)>=2)THEN
+          DO I=-9,9
+             IF(LBTYPE(I)==TY(1:2))THEN
+                AP%ITP=I
+                EXIT
+             ENDIF
+          ENDDO
+          IF(TY(1:2)=='GH')THEN
+             AP%ITP=-32
+          ENDIF
+          IF(.NOT.(AP%IPS<=1.OR.AP%IPS==5.OR.AP%IPS==11))THEN
+             IF(AP%ITP==1)THEN
+                AP%ITP=6
+             ELSEIF(AP%ITP==2)THEN
+                AP%ITP=5
+             ENDIF
           ENDIF
        ENDIF
 

@@ -66,6 +66,7 @@ class parseC(dict):
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
+            'IBR', 'LAB', 'TY',
             'NUNSTAB', 'NSTAB', 'IEQUIB', 'ITWIST', 'ISTART',
             'sv', 's', 'dat',
             "THL","THU","UZR","UZSTOP","ICP","IREV","IFIXED","IPSI","U","PAR",
@@ -250,7 +251,7 @@ class parseC(dict):
             elif key in ['unames', 'parnames']:
                 value = [[int(value[i]),value[i+1]] 
                          for i in range(0,len(value),2)]
-            elif key in ['s', 'dat', 'sv', 'e', 'SP', 'STOP']:
+            elif key in ['s', 'dat', 'sv', 'e', 'SP', 'STOP', 'TY']:
                 pass
             elif key in self:
                 if key[0] in 'IJKLMN':
@@ -380,6 +381,7 @@ class parseC(dict):
                 ["EPSL", "EPSU", "EPSS"],
                 ["DS", "DSMIN", "DSMAX", "IADS"],
                 ["NPAR", "THL", "THU"],
+                ["IBR", "LAB", "TY"],
                 ["UZR"],
                 ["UZSTOP"],
                 ["STOP"],
@@ -412,7 +414,7 @@ class parseC(dict):
                 elif key in ["unames", "parnames"]:
                     l = [str(k)+": "+repr(v) for k, v in value]
                     s = "{"+", ".join(l)+"}"
-                elif key in ["sv", "s", "dat", "e"]:
+                elif key in ["sv", "s", "dat", "e", "TY"]:
                     value = "'"+str(value)+"'"
                     if key in wdth3keys:
                         s = "%5s" % value
@@ -437,7 +439,7 @@ class parseC(dict):
                 ["e", "s", "dat", "sv"],
                 ["unames", "parnames"],
                 ["U", "PAR"],
-                ["NPAR"],
+                ["NPAR", "IBR", "LAB"],
                 ["STOP"],
                 ["SP"],
                 ["NUNSTAB", "NSTAB", "IEQUIB", "ITWIST", "ISTART"],

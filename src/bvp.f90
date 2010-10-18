@@ -621,6 +621,7 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT, ONLY: PVLI
+    USE AUTO_CONSTANTS, ONLY: TY
 
 ! Restarts computation of a branch of solutions at point labelled IRS.
 ! The output written on unit 8 by a previous run is now expected as
@@ -669,6 +670,10 @@ CONTAINS
        ENDDO
 
        IF(ITP==3 .OR. ABS(ITP/10)==3) THEN
+          IF(LEN_TRIM(TY)>2)THEN
+             READ(TY(3:),'(I5)')I
+             PAR(11)=PAR(I)
+          ENDIF
           ! call PVLS here the first time so the parameters can be initialized
           CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
           ! Hopf bifurcation
@@ -722,6 +727,7 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT
+    USE AUTO_CONSTANTS, ONLY: TY
 
 !  Generates starting data for a periodic orbit from a Hopf
 !  bifurcation point (for waves or periodic orbits)
@@ -1136,7 +1142,7 @@ CONTAINS
 ! Local
     DOUBLE PRECISION UMX(7)
     INTEGER IPS,NTST,NCOL,ISW,IPLT,NMX,NPR,NDM,ITP,ITPST,IBR,I,IAB,IBRS,ITMP
-    INTEGER LAB,LABW,N2,NINS,NTOT,NTOTS
+    INTEGER LABW,N2,NINS,NTOT,NTOTS
     DOUBLE PRECISION RL0,RL1,A0,A1,AMP
 
     IPS=AP%IPS
@@ -1197,10 +1203,7 @@ CONTAINS
 
     LABW=0
     IF(MOD(ITP,10).NE.0) THEN
-       LAB=AP%LAB
-       LAB=LAB+1
-       AP%LAB=LAB
-       LABW=LAB
+       LABW=AP%LAB
     ENDIF
 
 ! Compute maxima of solution components.
@@ -1233,6 +1236,7 @@ CONTAINS
 
     IF(MOD(ITP,10).NE.0)THEN
        CALL WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
+       AP%LAB=AP%LAB+1
     ENDIF
 
   END SUBROUTINE STPLBV
