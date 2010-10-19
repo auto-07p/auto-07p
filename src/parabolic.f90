@@ -231,7 +231,7 @@ CONTAINS
 
     ! Generates starting data for the continuation of folds.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -265,7 +265,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Hopf bifurcation point (ODE/wave/map).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)

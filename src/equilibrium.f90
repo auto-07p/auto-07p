@@ -224,9 +224,10 @@ CONTAINS
   SUBROUTINE FFHBX(AP,U,PAR,DFDU,DFDV)
 
     USE SUPPORT, ONLY: PI
+    USE AUTO_CONSTANTS, ONLY: TY
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDM*2+2)
-    DOUBLE PRECISION, INTENT(IN) :: PAR(*),DFDU(AP%NDM,AP%NDM)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDM*2+2),PAR(*)
+    DOUBLE PRECISION, INTENT(IN) :: DFDU(AP%NDM,AP%NDM)
     DOUBLE PRECISION, INTENT(OUT) :: DFDV(AP%NDM,AP%NDM+1)
 
     INTEGER I,NDM
@@ -235,6 +236,10 @@ CONTAINS
     NDM=AP%NDM
     IF(AP%ITP==3)THEN
        ! initialization
+       IF(LEN_TRIM(TY)>2)THEN
+          READ(TY(3:),'(I5)')I
+          PAR(11)=PAR(I)
+       ENDIF
        PERIOD=PAR(11)
        KAPPA=(PI(2.d0)/PERIOD)**2
        U(2*NDM+1)=KAPPA
@@ -260,7 +265,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Hopf bifurcation point (ODEs).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -279,7 +284,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Hopf bifurcation point (ODE/wave/map).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)

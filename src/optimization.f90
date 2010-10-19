@@ -173,7 +173,7 @@ CONTAINS
 
     ! Generate starting data for optimization problems (one parameter).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -189,8 +189,6 @@ CONTAINS
     T=0.d0
     U(:NDIM)=0.d0
     CALL STPNT(NDIM,U,PAR,T)
-    NFPR=2
-    AP%NFPR=NFPR
     CALL FOPI(JAC,NFPR,NDM,U,ICP,PAR,0,FOP,DUM,DUM)
     PAR(ICP(1))=FOP
     U(NDIM)=PAR(ICP(2))
@@ -325,7 +323,7 @@ CONTAINS
     ! Generates starting data for the continuation equations for
     ! optimization of algebraic systems (More than one parameter).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)

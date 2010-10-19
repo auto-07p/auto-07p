@@ -74,7 +74,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: FN(:),DFDU1(:,:),DFDP1(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: DFDU2(:,:)
 
-    ITDS=AP%ITDS
+    ITDS=NINT(PAR(11))
     CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
     IF(ITDS>=2)THEN
        NFPR=AP%NFPR
@@ -116,15 +116,23 @@ CONTAINS
 ! ---------- --------
   SUBROUTINE STPNDS(AP,PAR,ICP,U,UDOT,NODIR)
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
 
     CALL STPNAE(AP,PAR,ICP,U,UDOT,NODIR)
-    IF(AP%ISW==-1.AND.AP%ITP==7)THEN
-       ! period doubling for maps: set iteration count
-       AP%ITDS=NINT(AINT(PAR(11)))
+    IF(PAR(11)==0d0)THEN
+       PAR(11)=1d0
+    ENDIF
+    IF(AP%ISW==-1)THEN
+       IF(AP%ITP==7) THEN
+          ! period doubling
+          PAR(11)=PAR(11)*2
+       ELSEIF(AP%ITP==8.OR.(MOD(AP%ITP,10)==8))THEN
+          ! this could work if the torus has a resonance
+          PAR(11)=PAR(11)*(2d0/PAR(12))
+       ENDIF
     ENDIF
 
   END SUBROUTINE STPNDS
@@ -151,7 +159,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Neimark-Sacker bifurcation point (map).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -182,7 +190,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Neimark-Sacker bifurcation point (map).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -212,10 +220,11 @@ CONTAINS
   SUBROUTINE FFNSX(AP,U,PAR,DFDU,DFDV)
 
     USE SUPPORT, ONLY: PI
+    USE AUTO_CONSTANTS, ONLY: TY
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDM*2+2)
-    DOUBLE PRECISION, INTENT(IN) :: PAR(*), DFDU(AP%NDM,AP%NDM)
+    DOUBLE PRECISION, INTENT(INOUT) :: U(AP%NDM*2+2), PAR(*)
+    DOUBLE PRECISION, INTENT(IN) :: DFDU(AP%NDM,AP%NDM)
     DOUBLE PRECISION, INTENT(OUT) :: DFDV(AP%NDM,AP%NDM+1)
 
     INTEGER I,NDM
@@ -224,7 +233,11 @@ CONTAINS
     NDM=AP%NDM
     IF(AP%ITP==8)THEN
        ! initialization
-       THTA=PI(2.d0)/PAR(11)
+       IF(LEN_TRIM(TY)>2)THEN
+          READ(TY(3:),'(I5)')I
+          PAR(12)=PAR(I)
+       ENDIF
+       THTA=PAR(12)
        U(2*NDM+1)=THTA
     ENDIF
 
@@ -251,7 +264,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! Neimark-Sacker bifurcation point (map).
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(OUT) :: NODIR
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),U(*),UDOT(*)
@@ -397,8 +410,8 @@ CONTAINS
     IF(LOC>0)THEN
        REV=REAL(EV(LOC))
        RIMHB=ABS(AIMAG(EV(LOC)))
-       IF(RIMHB/=0.AND.ITPST==0)PAR(11)=PI(2.d0)/RIMHB
        ITP=TPSPAE(AP%EPSS,ITPST,RIMHB)
+       IF(ITP==8)PAR(12)=RIMHB
     ENDIF
 
     IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN

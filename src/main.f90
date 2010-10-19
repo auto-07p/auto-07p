@@ -333,7 +333,6 @@
 
       AP%NDM=NDIM
       AP%NPARI=0
-      AP%ITDS=1
       AP%ITP=0
       AP%ITPST=0
       AP%NFPR=1
