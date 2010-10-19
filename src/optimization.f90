@@ -634,7 +634,7 @@ CONTAINS
 
     ! Generates starting data for optimization of periodic solutions.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR

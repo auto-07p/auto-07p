@@ -372,7 +372,7 @@ CONTAINS
     ! BCND, ICND, and period-scaled F in FUNC, and the user period-scaling of F
     ! must be taken into account.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
@@ -657,7 +657,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of folds
     ! on a branch of periodic solutions.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
@@ -1066,7 +1066,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of BP
     ! on a branch of periodic solutions.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
@@ -1082,13 +1082,12 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UPST(:,:),UDOTPST(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-    INTEGER NDIM,NTST,NCOL,NBC,NINT,ISW,NDM,NFPR,NDIM3,IFST,NLLV,ITPRS
+    INTEGER NDIM,ISW,NDM,NFPR,NDIM3,IFST,NLLV,ITPRS
     INTEGER NDIMRD,I,J,NPAR
     DOUBLE PRECISION DET,RDSZ
+    TYPE(AUTOPARAMETERS) AP2
 
     NDIM=AP%NDIM
-    NTST=AP%NTST
-    NCOL=AP%NCOL
     ISW=AP%ISW
     NDM=AP%NDM
     NFPR=AP%NFPR
@@ -1130,19 +1129,18 @@ CONTAINS
        ! Compute the second null vector
 
        !        ** redefine IAP
-       AP%NDIM=NDM
-       AP%NTST=NTSR
-       AP%NCOL=NCOLRS
-       NBC=AP%NBC
-       NINT=AP%NINT
-       AP%NBC=NDM
-       AP%NINT=1
-       AP%NFPR=2
+       AP2=AP
+       AP2%NDIM=NDM
+       AP2%NTST=NTSR
+       AP2%NCOL=NCOLRS
+       AP2%NBC=NDM
+       AP2%NINT=1
+       AP2%NFPR=2
 
        !        ** compute UPOLDP
        DO J=0,NTSR*NCOLRS
           U(:)=UPST(:,J)
-          CALL FNPS(AP,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
+          CALL FNPS(AP2,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
        ENDDO
 
        !        ** unit weights
@@ -1153,21 +1151,13 @@ CONTAINS
        RDSZ=0.d0
        NLLV=1
        IFST=1
-       CALL SOLVBV(IFST,AP,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV, &
+       CALL SOLVBV(IFST,AP2,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV, &
             RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT, &
             DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
 
        !        ** normalization
        CALL SCALEB(NTSR,NCOLRS,NDM,2,UDOTPST,RLDOTRS,DTM,THL1,THU1)
        CALL SCALEB(NTSR,NCOLRS,NDM,2,VDOTPST,RVDOT,DTM,THL1,THU1)
-
-       !        ** restore IAP
-       AP%NDIM=NDIM
-       AP%NTST=NTST
-       AP%NCOL=NCOL
-       AP%NBC=NBC
-       AP%NINT=NINT
-       AP%NFPR=NFPR
 
        !        ** init UPS,PAR
        UPSR(1:NDM,:)=UPST(:,:)
@@ -1220,7 +1210,7 @@ CONTAINS
 
     ENDIF
 
-    CALL ADAPT2(NTSR,NCOLRS,NDIM,NTST,NCOL,NDIM, &
+    CALL ADAPT2(NTSR,NCOLRS,NDIM,AP%NTST,AP%NCOL,NDIM, &
          TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
     DEALLOCATE(TMR,UPSR,UDOTPSR)
   END SUBROUTINE STPNPBP
@@ -1441,7 +1431,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of
     ! period-doubling bifurcations on a branch of periodic solutions.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
@@ -1713,7 +1703,7 @@ CONTAINS
     ! Generates starting data for the 2-parameter continuation of torus
     ! bifurcations.
 
-    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*)
     INTEGER, INTENT(INOUT) :: NTSR,NCOLRS
     INTEGER, INTENT(OUT) :: NODIR
