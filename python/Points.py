@@ -306,10 +306,7 @@ def isincreasing(theseq, withVal=False):
         raise ValueError("Problem with sequence passed to "
                          "function `isincreasing` -- is it empty?")
     v = array(theseq)
-    if hasattr(N,"transpose"):
-        res = v[1:] > v[:-1]
-    else:
-        res = [v[i+1] > v[i] for i in range(len(v)-1)]
+    res = v[1:] > v[:-1]
     if withVal:
         if all(res):
             return True, None, None

@@ -320,23 +320,20 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 #(fromstring may not do this correctly for a
                 #string like -2.05071-106)
                 data[-1] = AUTOatof(datalist[datalist.rfind(' ')+1:].strip())
-            stability, coordarray = self.__parsenumpy(ncolumns,data)
         else: #numarray, Numeric, array
             datalist = datalist.split()
             try:
                 data = map(float, datalist)
             except ValueError:
                 data = map(AUTOatof, datalist)
-            if not isinstance(data,list): # Python 3
-                try:
-                    data = list(data)
-                except ValueError:
-                    data = list(map(parseB.AUTOatof, data))
-            if hasattr(N,"transpose"):
-                data = N.array(data,'d')
-                stability, coordarray = self.__parsenumpy(ncolumns,data)
-            else:
-                stability, coordarray = self.__parsearray(ncolumns,data)
+            data = N.array(data,'d')
+        data.shape = (-1,ncolumns)
+        coordarray = N.transpose(data[:,4:]).copy()
+        points = data[:,1]
+        if hasattr(N,"concatenate"):
+            stability = self.__parsenumpy(points)
+        else:
+            stability = self.__parsearray(points)
         # add stability info labels
         branchtype = type_translation(self.TY)["short name"]
         for i in stability:
@@ -358,11 +355,8 @@ class AUTOBranch(parseBMixin, Points.Pointset):
             "labels": self.labels,
             })
 
-    def __parsenumpy(self,ncolumns,data):
+    def __parsenumpy(self,points):
         global N
-        data.shape = (-1,ncolumns)
-        coordarray = N.transpose(data[:,4:]).copy()
-        points = data[:,1]
         # stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
         stab = N.concatenate((N.nonzero(N.less(points[:-1]*points[1:],0)),
@@ -370,28 +364,24 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         points = N.less(N.take(points,stab),0)
         stab = stab + 1
         stability = N.where(points,-stab,stab)
-        return stability, coordarray
+        return stability
 
-    def __parsearray(self,ncolumns,data):
+    def __parsearray(self,points):
         global N
         # for those without numpy...
-        coordarray = N.array([data[i::ncolumns] for i in range(4,ncolumns)])
         stability = []
-        prevpt = data[1]
-        stab = []
-        for j in range(1,len(data),ncolumns):
-            pt = int(data[j])
+        prevpt = points[0]
+        for p, pt in enumerate(points):
             if pt * prevpt < 0:
-                p = j//ncolumns
                 if prevpt < 0:
                     p = -p
                 stability.append(p)
             prevpt = pt
-        p = len(data)//ncolumns
+        p = len(points)
         if pt < 0:
             p = -p
         stability.append(p)
-        return stability, coordarray
+        return stability
 
     def __setitem__(self, item, value):
         if item in ("BR", "TY", "TY number") and item not in self.coordnames:
@@ -757,7 +747,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 pt = ((pt-1) % 9999) + 1
             output_line = "%4d%6d%4d%5d"%(br,pt,tynumber,lab)
             for j in range(len(data)):
-                output_line = output_line + format%data[j][i]
+                output_line = output_line + format%data[j,i]
             output.write(output_line+"\n")
 
     def writeShort(self):

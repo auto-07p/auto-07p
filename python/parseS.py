@@ -307,17 +307,17 @@ class SLPointKey(UserList):
             return [point[self.index] for point in self.solution.coordarray]
         raise AttributeError(attr)
     def __setitem__(self, i, item):
-        self.solution.coordarray[i][self.index] = item
+        self.solution.coordarray[i,self.index] = item
     def __str__(self):
         return str(self.data)
     def append(self, item):
         self.enlarge(1)
-        self.solution.coordarray[-1][self.index] = item
+        self.solution.coordarray[-1,self.index] = item
         self.data.append(item)
     def extend(self, other):
         self.enlarge(len(other))
         for i in range(len(other)):
-            self.solution.coordarray[-len(other)+i][self.index] = other[i]
+            self.solution.coordarray[-len(other)+i,self.index] = other[i]
     def enlarge(self, ext):
         # enlarges the dimension of coordarray and coordnames
         s = self.solution
@@ -607,7 +607,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                     del self.data["rldot"]
                     del self.data["udotps"]
                 for k,v in value:
-                    self.coordarray[k-1][0] = v
+                    self.coordarray[k-1,0] = v
                 return
         try:
             Points.Pointset.__setitem__(self,key,value)
@@ -912,22 +912,12 @@ class AUTOSolution(UserDict,Points.Pointset):
                 fdata = map(float, data)
             except ValueError:
                 fdata = map(parseB.AUTOatof, data)
-            if hasattr(N,"transpose"):
-                fdata = N.array(fdata, 'd')
-            elif not isinstance(fdata,list): # Python 3
-                try:
-                    fdata = list(fdata)
-                except ValueError:
-                    fdata = list(map(parseB.AUTOatof, data))
+            fdata = N.array(fdata, 'd')
         if total != len(fdata):
             raise PrematureEndofData
-        if hasattr(N,"transpose"):
-            ups = N.reshape(fdata[:n * nrows],(nrows,n))
-            self.indepvararray = ups[:,0]
-            self.coordarray = N.transpose(ups[:,1:])
-        else: #no numpy
-            self.indepvararray = N.array(fdata[:n*nrows:n])
-            self.coordarray = N.array([fdata[i:n*nrows:n] for i in range(1,n)])
+        ups = N.reshape(fdata[:n * nrows],(nrows,n))
+        self.indepvararray = ups[:,0]
+        self.coordarray = N.transpose(ups[:,1:])
         del sdata
         j = j + n * nrows
 
@@ -939,11 +929,8 @@ class AUTOSolution(UserDict,Points.Pointset):
             self["rldot"] = fdata[j:j+nfpr]
             j = j + nfpr
             n = n - 1
-            if hasattr(N,"transpose"):
-                self["udotps"] = N.transpose(
-                     N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
-            else:
-                self["udotps"] = [N.array(fdata[i:n*nrows:n]) for i in range(n)]
+            self["udotps"] = N.transpose(
+                N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
             udotnames = ["UDOT(%d)"%(i+1) for i in
                          range(self.__numEntriesPerBlock-1)]
             self["udotps"] = Points.Pointset({
@@ -1076,7 +1063,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 for j in range(1,len(self.coordarray)+1):
                     if j%7==0:
                         slist.append(os.linesep+"    ")
-                    slist.append("%19.10E" % (self.coordarray[j-1][i]))
+                    slist.append("%19.10E" % (self.coordarray[j-1,i]))
                 slist.append(os.linesep)
             write_enc("".join(slist))
             if "Active ICP" in self.data:
@@ -1110,7 +1097,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                         if j!=0 and j%7==0:
                             slist.append(os.linesep+"    ")
                         if j<l:
-                            slist.append("%19.10E" %c[j][i])
+                            slist.append("%19.10E" %c[j,i])
                         else:
                             slist.append("%19.10E" %0)
                     slist.append(os.linesep)

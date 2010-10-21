@@ -235,9 +235,9 @@ except NameError:
     __builtin__.set = set
     __builtin__.frozenset = frozenset
        
-# very basic numpy emulation:
+# very basic 1D/2D numpy emulation:
 class array(object):
-    def __init__(self, l, code=None):
+    def __init__(self, l, code=None, copy=True):
         self.base = 0
         if code is None:
             if isinstance(l, array):
@@ -245,6 +245,13 @@ class array(object):
             else:
                 code = 'd'
         if isinstance(l, array):
+            if not copy:
+                self.base = l.base
+                self.typecode = l.typecode
+                self.data = l.data
+                self.__shape = l.shape
+                self.strides = l.strides
+                return
             l = l.tolist()
         if (isinstance(l, list) and len(l) > 0 and
             isinstance(l[0], (array, list))):
@@ -254,7 +261,7 @@ class array(object):
                     a1 = a1.tolist()
                 a2.extend(a1)
             self.data = N.array(code, a2)
-            self.shape = len(l), len(l[0])
+            self.__shape = len(l), len(l[0])
             self.strides = len(l[0]), 1
         else:
             if not isinstance(l, list):
@@ -263,12 +270,14 @@ class array(object):
                 except TypeError:
                     l=[l]
             self.data = N.array(code, l) 
-            self.shape = len(l),
+            self.__shape = len(l),
             self.strides = 1,
         self.typecode = code
 
     def __copy__(self):
         return array(self)
+
+    copy = __copy__
 
     def __eq__(self, other):
         return array([a == b for a, b in zip(self, other)], 'B')
@@ -276,29 +285,67 @@ class array(object):
     def __ne__(self, other):
         return array([a != b for a, b in zip(self, other)], 'B')
 
+    def __gt__(self, other):
+        return array([a > b for a, b in zip(self, other)], 'B')
+
+    def __lt__(self, other):
+        return array([a < b for a, b in zip(self, other)], 'B')
+
+    def __ge__(self, other):
+        return array([a >= b for a, b in zip(self, other)], 'B')
+
+    def __le__(self, other):
+        return array([a <= b for a, b in zip(self, other)], 'B')
+
     def __add__(self, other):
         return array([a + other for a in self], self.typecode)
 
     def __mul__(self, other):
         return array([a * other for a in self], self.typecode)
 
+    def __setattr__(self, attr, value):
+        if attr == 'shape':
+            length = 1
+            for idx in self.__shape:
+                length *= idx
+            j = None
+            for i, idx in enumerate(value):
+                if idx == -1:
+                    j = i
+                elif idx != 0:
+                    length //= idx
+            if j is not None:
+                value = value[:j] + (length,) + value[j+1:]
+            self.__shape = value
+            if len(value) == 2:
+                self.strides = value[1], 1
+            else:
+                self.strides = 1,
+        else:
+            object.__setattr__(self, attr, value)
+
+    def __getattr__(self, attr):
+        if attr == 'shape':
+            return self.__shape
+        return object.__getattribute__(self, attr)
+
     def __subarray(self, i):
         if not isinstance(i, tuple):
             i = i,
-        if len(i) < len(self.shape):
+        if len(i) < len(self.__shape):
             i = i + (slice(None),)
         base = self.base
         strides = []
         shape = []
         for j, idx in enumerate(i):
             if isinstance(idx, slice):
-                idx, stop, step = idx.indices(self.shape[j])
+                idx, stop, step = idx.indices(self.__shape[j])
                 strides.append(step*self.strides[j])
-                shape.append((stop-idx)//step)
+                shape.append(abs(stop-idx+step-1)//abs(step))
             else:
                 if idx < 0:
-                    idx += self.shape[j]
-                if idx < 0 or idx >= self.shape[j]:
+                    idx += self.__shape[j]
+                if idx < 0 or idx >= self.__shape[j]:
                     raise IndexError
             base += idx*self.strides[j]
         return base, strides, shape
@@ -323,11 +370,10 @@ class array(object):
         base, strides, shape = self.__subarray(i)
         if len(strides) == 0:
             return self.data[base]
-        new = array([])
-        new.data = self.data
+        new = array(self, copy=False)
         new.base = base
-        new.strides = tuple(strides)
         new.shape = tuple(shape)
+        new.strides = tuple(strides)
         return new
 
     def __len__(self):
@@ -349,6 +395,19 @@ class array(object):
 
 def rank(a):
     return len(a.shape)
+
+def reshape(a,shape):
+    new = array(a, copy=False)
+    if isinstance(shape,int):
+        shape = shape,
+    new.shape = shape
+    return new
+
+def transpose(a):
+    new = array(a, copy=False)
+    new.shape = a.shape[::-1]
+    new.strides = a.strides[::-1]
+    return new
 
 def take(a, idx, axis=0):
     try:
@@ -415,8 +474,8 @@ def ravel(a):
         return a
     new = array([])
     new.data = a.data
-    new.strides = a.strides[1],
     new.shape = a.shape[0]*a.shape[1],
+    new.strides = a.strides[1],
     new.base = a.base
     return new
 
