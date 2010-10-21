@@ -965,6 +965,7 @@ CONTAINS
   SUBROUTINE WRTSP8(AP,PAR,ICP,LAB,U,UDOT)
 
     USE COMPAT
+    USE SUPPORT, ONLY: DIRECTION
     USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
 
 ! Write restart information on singular points, plotting points, etc.,
@@ -978,6 +979,7 @@ CONTAINS
     INTEGER NDIM,ISW,ITP,IBR,NFPR,NPAR,NTOT,NROWPR,MTOT,NAR,NTPL,I,K
     INTEGER NPARI,NTST
     DOUBLE PRECISION T
+    LOGICAL DIR
 
     NDIM=AP%NDIM
     ISW=AP%ISW
@@ -991,10 +993,11 @@ CONTAINS
     NTPL=1
     NAR=NDIM+1
 
+! skip direction info based on IIS and ITP
+    DIR=DIRECTION(AP%IIS,ITP)
     NROWPR=NDIM/7 + 1 + (NPAR+6)/7
     NTST=0
-! if NPR is negative and no branch point skip direction info
-    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==1)THEN
+    IF(DIR)THEN
        NROWPR=NROWPR + (NFPR+19)/20 + (NFPR+6)/7 + (NDIM+6)/7
        NTST=1
     ENDIF
@@ -1005,8 +1008,7 @@ CONTAINS
     WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,0,NPAR,&
          NPARI,NDIMU,IPS,0
     WRITE(8,102)T,(U(I),I=1,NDIM)
-! if NPR is negative and no branch point skip direction info
-    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==1)THEN
+    IF(DIR)THEN
 ! Write the free parameter indices:
        WRITE(8,103)(ICP(I),I=1,NFPR)
 ! Write the direction of the branch:

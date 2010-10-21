@@ -68,10 +68,10 @@ CONTAINS
     END TYPE INDEXSTRL
     TYPE(INDEXSTRL),ALLOCATABLE :: IVUZRS(:)
 
-    CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(23) = (/                    &
+    CHARACTER(LEN=*), PARAMETER :: ICONSTANTS(24) = (/                    &
          "NDIM", "IPS ", "ILP ", "NTST", "NCOL", "IAD ", "IADS", "ISP ",  &
          "ISW ", "IPLT", "NBC ", "NINT", "NMX ", "NPR ", "MXBF", "IID ",  &
-         "ITMX", "ITNW", "NWTN", "JAC ", "NPAR", "IBR ", "LAB " /)
+         "ITMX", "ITNW", "NWTN", "JAC ", "NPAR", "IBR ", "LAB ", "IIS " /)
     CHARACTER(LEN=*), PARAMETER :: RCONSTANTS(10) = (/                    &
          "DS   ", "DSMIN", "DSMAX", "RL0  ", "RL1  ", "A0   ", "A1   ",   &
          "EPSL ", "EPSU ", "EPSS " /)
@@ -197,6 +197,8 @@ CONTAINS
              IBR=IC
           CASE(23)
              LAB=IC
+          CASE(24)
+             IIS=IC
           END SELECT
           RETURN
        ENDIF
@@ -517,7 +519,7 @@ CONTAINS
     CHARACTER (LEN=*), PARAMETER :: I5 = "('   0',2(A7,I5),3(A8,I4))"
     CHARACTER (LEN=*), PARAMETER :: I6 = "('   0',5(A8,I4))"
     INTEGER NDIMA,IPS,IRSA,ILPA,NTST,NCOL,IAD,IADS,ISPA,ISWA,IPLT,NBCA,NINTA
-    INTEGER NMXA,NUZR,NPR,MXBF,IID,ITMX,ITNW,NWTN,JAC,NFPR,I,NPARA
+    INTEGER NMXA,NUZR,NPR,MXBF,IIS,IID,ITMX,ITNW,NWTN,JAC,NFPR,I,NPARA
     INTEGER ITPST,LSV,LDAT,LE,LS,INDX,io
     DOUBLE PRECISION DSA,DSMINA,DSMAXA,RL0,RL1,A0,A1,EPSL,EPSU,EPSS
     CHARACTER(LEN=11) :: SDS, SDSA, SDSMAX, SDSMAXA, SDSMIN, SDSMINA
@@ -544,6 +546,7 @@ CONTAINS
     NUZR=AP%NUZR
     NPR=AP%NPR
     MXBF=AP%MXBF
+    IIS=AP%IIS
     IID=AP%IID
     ITMX=AP%ITMX
     ITNW=AP%ITNW
@@ -573,8 +576,11 @@ CONTAINS
     WRITE(7,I5)' NMX=',NMXA, 'NPR=', NPR, 'MXBF=',MXBF,'IID =',IID, 'IADS=',IADS
     WRITE(7,I6)'ITMX=',ITMX,'ITNW=',ITNW,'NWTN=',NWTN,'JAC =',JAC,'  NUZR=',NUZR
 
-    IF(IBR>0.OR.LAB>0.OR.LEN_TRIM(TY)>0)THEN
+    IF(IBR>0.OR.LAB>0.OR.LEN_TRIM(TY)>0.OR.IIS<3)THEN
        WRITE(7,"('   0')",ADVANCE="NO")
+       IF(IIS<3)THEN
+          WRITE(7,"(A8,I4)",ADVANCE="NO")"IIS =",IIS
+       ENDIF
        IF(IBR>0)THEN
           WRITE(7,"(A8,I4)",ADVANCE="NO")"IBR =",IBR
        ENDIF

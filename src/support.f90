@@ -13,7 +13,7 @@ IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NULLVC, NRMLZ, RNRMV
 PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED, FNCS, INIT2, INIT3, NAMEIDX
-PUBLIC :: PVLI
+PUBLIC :: PVLI, DIRECTION
 PUBLIC :: DTV,AV,P0V,P1V,EVV
  
 DOUBLE PRECISION, ALLOCATABLE, SAVE :: DTV(:),P0V(:,:),P1V(:,:)
@@ -615,6 +615,27 @@ CONTAINS
        COUNTS(NTY) = COUNTS(NTY) - 1
     ENDIF
   END FUNCTION STOPPED
+
+! ------- -------- ---------
+  LOGICAL FUNCTION DIRECTION(IIS, ITP)
+
+    ! include direction info in solution files depending on IIS and
+    ! the type of the point
+    INTEGER, INTENT(IN) :: IIS, ITP
+
+    INTEGER ITP0
+
+    ITP0=MOD(ITP,10)
+    DIRECTION=.TRUE.
+    SELECT CASE(IIS)
+    CASE(0) ! never
+       DIRECTION=.FALSE.
+    CASE(1) ! only for BP/LP(BVP)/PD/TR
+       DIRECTION=ITP0==1.OR.(ITP0>=5.AND.ITP0<=8)
+    CASE(2) ! for all points except regular (every NPR step)
+       DIRECTION=ITP0/=4
+    END SELECT
+  END FUNCTION DIRECTION
 
 ! FNCS and FNUZ are the same for AE and BVP
 ! ------ --------- -------- ----

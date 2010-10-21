@@ -240,6 +240,7 @@
       NMX  = 99999
       NPR  = 99999
       MXBF = 10
+      IIS  = 2
       IID  = 2
       ITMX = 9
       ITNW = 5
@@ -320,6 +321,7 @@
       ENDDO
       AP%NPR=NPR
       AP%MXBF=MXBF
+      AP%IIS=IIS
       AP%IID=IID
       AP%ITMX=ITMX
       AP%ITNW=ITNW

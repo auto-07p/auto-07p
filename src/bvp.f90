@@ -1244,6 +1244,7 @@ CONTAINS
   SUBROUTINE WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
 
     USE COMPAT
+    USE SUPPORT, ONLY: DIRECTION
     USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
 
 ! Writes plotting and restart data on unit 8, viz.:
@@ -1300,6 +1301,7 @@ CONTAINS
     INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NROWPR
     INTEGER MTOT,I,J,NPARI
     DOUBLE PRECISION T
+    LOGICAL DIR
 !xxx====================================================================
 !xxx Test problem: compute the error
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
@@ -1317,12 +1319,13 @@ CONTAINS
     LAB=AP%LAB
 
 ! Write information identifying the solution :
+! skip direction info based on IIS and ITP
+    DIR=DIRECTION(AP%IIS,ITP)
 
     NTPL=NCOL*NTST+1
     NAR=NDIM+1
     NROWPR=(NDIM/7+1)*NTPL + (NPAR+6)/7
-! if NPR is negative and no branch point skip direction info
-    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==6)THEN
+    IF(DIR)THEN
        NROWPR=NROWPR + (NFPR+19)/20 + (NFPR+6)/7 + ((NDIM+6)/7)*NTPL
     ENDIF
     MTOT=MOD(NTOT-1,9999)+1
@@ -1354,8 +1357,7 @@ CONTAINS
 !xxx 100   FORMAT(4X,I2,I4,7ES11.3)
 !xxx====================================================================
 
-    IF(AP%NPR>=0.OR.MOD(AP%ITP,10)==6)THEN
-! if NPR is negative and no branch point skip direction info
+    IF(DIR)THEN
 ! Write the free parameter indices:
 
        WRITE(8,103)(ICP(I),I=1,NFPR)

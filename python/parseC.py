@@ -62,7 +62,7 @@ class parseC(dict):
             return
         dict.__init__(self)
         for key in ['NPR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',
-            'IADS', 'IPS', 'IID', 'A1', 'DS', 'NMX', 'NTST',
+            'IADS', 'IPS', 'IID', 'IIS', 'A1', 'DS', 'NMX', 'NTST',
             'NINT', 'NWTN', 'A0', 'EPSL', 'ISP', 'DSMIN', 'MXBF',
             'RL0', 'RL1', 'IPLT', 'ILP', 'NCOL',
             'DSMAX', 'ISW', 'IRS', 'IAD', 'JAC', 'NDIM', 'NPAR',
@@ -208,7 +208,7 @@ class parseC(dict):
             line = line[npos:].strip()
         return value, line
 
-    def parseline(self, line, userspec=False, inputfile=None):
+    def parseline(self, line, userspec=False, inputfile=None, lineno=None):
         # parses a new-style constant file line and puts the keys
         # in the dictionary c; also used for the header of a b. file
         while line != "":
@@ -266,6 +266,9 @@ class parseC(dict):
                         value = int(value)
                 else:
                     value=parseB.AUTOatof(value)
+            elif lineno is not None:
+                raise AUTOExceptions.AUTORuntimeError(
+                    "Unknown AUTO constant %s on line %d"%(key,lineno))
             else:
                 value = None
             if value is not None:
@@ -275,12 +278,15 @@ class parseC(dict):
 
     def read(self, inputfile):
         line = inputfile.readline()
+        lineno = 1
         data = line.split()
         while not data[0][0].isdigit():
-            self.parseline(line,inputfile=inputfile)
+            self.parseline(line,inputfile=inputfile,lineno=lineno)
             line = inputfile.readline()
+            lineno += 1
             while line != '' and line[0] == '\n':
                 line = inputfile.readline()
+                lineno += 1
             if line == '':
                 break
             data = line.split()
@@ -381,7 +387,7 @@ class parseC(dict):
                 ["EPSL", "EPSU", "EPSS"],
                 ["DS", "DSMIN", "DSMAX", "IADS"],
                 ["NPAR", "THL", "THU"],
-                ["IBR", "LAB", "TY"],
+                ["IIS", "IBR", "LAB", "TY"],
                 ["UZR"],
                 ["UZSTOP"],
                 ["STOP"],
