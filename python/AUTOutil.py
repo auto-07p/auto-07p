@@ -264,13 +264,10 @@ class array(object):
             self.__shape = len(l), len(l[0])
             self.strides = len(l[0]), 1
         else:
-            if not isinstance(l, list):
-                try:
-                    l=list(l)
-                except TypeError:
-                    l=[l]
+            if not isiterable(l):
+                l=[l]
             self.data = N.array(code, l) 
-            self.__shape = len(l),
+            self.__shape = len(self.data),
             self.strides = 1,
         self.typecode = code
 
