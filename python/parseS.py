@@ -292,10 +292,7 @@ class parseS(list):
 
     # Return a list of all the labels in the file.
     def getLabels(self):
-        labels = []
-        for x in self:
-            labels.append(x["Label"])
-        return labels
+        return [x["Label"] for x in self]
 
 # an old-style point and point keys within an AUTOSolution
 class SLPointKey(UserList):
@@ -307,10 +304,7 @@ class SLPointKey(UserList):
         self.index = index
     def __getattr__(self, attr):
         if attr == 'data':
-            data = []
-            for i in range(len(self.solution.coordarray)):
-                data.append(self.solution.coordarray[i][self.index])
-            return data
+            return [point[self.index] for point in self.solution.coordarray]
         raise AttributeError(attr)
     def __setitem__(self, i, item):
         self.solution.coordarray[i][self.index] = item
@@ -329,11 +323,9 @@ class SLPointKey(UserList):
         s = self.solution
         if s._dims is None:
             s._dims = [s.dimension]*len(s)
-            c = []
             s0 = s.coordnames[0]
-            for i in range(ext):
-                c.append(s0[0:s0.find('(')+1]+str(s.dimension+i+1)+')')
-            s.extend(c)
+            s.extend([s0[0:s0.find('(')+1]+str(s.dimension+i+1)+')'
+                      for i in range(ext)])
         s._dims[self.index] = s.dimension
         if min(s._dims) == max(s._dims):
             s._dims = None
@@ -789,7 +781,10 @@ class AUTOSolution(UserDict,Points.Pointset):
                         raise IncorrectHeaderLength
                     # and the fact they are all integers
                     map(int,data)
-                    # If it passes both these tests we say it is a header line
+                    # and the fact that NCOL*NTST+1=NTPL
+                    if int(data[9])*int(data[10])+1 != int(data[6]):
+                        end = None
+                    # If it passes all these tests we say it is a header line
                     # and we can read quickly
                 except:
                     # otherwise the guessed end is not valid
@@ -797,10 +792,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         if end is None:
             # We skip the correct number of lines in the entry to
             # determine its end.
-            slist = []
             input.seek(self.__start_of_data)
-            for i in range(self.__numLinesPerEntry):
-                slist.append(input.readline())
+            slist = [input.readline() for i in range(self.__numLinesPerEntry)]
             if self.__input is None:
                 self.__data = "".encode("ascii").join(slist)
             end = input.tell()
@@ -951,10 +944,8 @@ class AUTOSolution(UserDict,Points.Pointset):
                      N.reshape(fdata[j:j+n * self.__numSValues],(-1,n)))
             else:
                 self["udotps"] = [N.array(fdata[i:n*nrows:n]) for i in range(n)]
-            udotnames = []
-            if self["NTST"] > 0:
-                for i in range(self.__numEntriesPerBlock-1):
-                    udotnames.append("UDOT(%d)"%(i+1))
+            udotnames = ["UDOT(%d)"%(i+1) for i in
+                         range(self.__numEntriesPerBlock-1)]
             self["udotps"] = Points.Pointset({
                 "coordarray": self["udotps"],
                 "coordnames": udotnames,
