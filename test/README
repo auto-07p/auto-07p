@@ -1,0 +1,27 @@
+Type "auto selec.auto" to run a selection of demos.
+
+The results are then compared to the results of
+runs on other machines. Such results may already be in files
+in the current directory. Apart from the listed CPU time, 
+there should be no significant differences. 
+In case of suspected portability problems send the file *_log07p
+to doedel@cs.concordia.ca and bartoldeman@gmail.com.
+
+If the test fails completely (no AUTO output at all) then you
+may have a Unix-related problem. First try to run a demo, e.g. ``ab''
+in a clean directory (see the manual for details). If this demo
+does not give results either then you may want to consult a system's 
+analyst.
+===================================================================
+To run all runs of all demos, type "auto all.auto"
+In this very comprehensive test it is likely that some demos will
+give somewhat different results on different machines. This is to
+be expected for very sensitive calculations performed on machines
+of different architecture. 
+===================================================================
+To run a selection of HomCont demos only, type "auto hom.auto"
+===================================================================
+To run all demos that were also present in AUTO97, type 
+"auto all97.auto"
+===================================================================
+
