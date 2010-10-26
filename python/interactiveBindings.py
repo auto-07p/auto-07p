@@ -91,9 +91,8 @@ Aliases: demofile dmf"""
     def execfile(self,name=None):
         """Execute an AUTO CLUI script.
 
-    Type execfile('xxx.auto') to run the script xxx.auto.
-
-Aliases: auto ex"""
+    Type execfile('xxx.auto') to run the script xxx.auto, keeping
+    all local state."""
         if name is None:
             automain()
             return
@@ -132,7 +131,7 @@ Aliases: auto ex"""
 
     Type auto('xxx.auto') to run the script xxx.auto.
 
-Aliases: ex"""
+Aliases: auto ex"""
         import AUTOclui
         if name is not None:
             AUTOInteractiveConsole(AUTOclui.exportFunctions()).execfile(name)
@@ -322,6 +321,9 @@ class AUTOInteractiveConsole(AUTOInteractive,code.InteractiveConsole):
                 return command
         return line
 
+    def close(self):
+        self.locals['_runner'].config(log=None, err=None)
+
 def adjust_sys_path():
     # if the path starts with '' (Python2.2 with current directory)
     # then add the AUTO python directory to sys.path
@@ -346,20 +348,9 @@ def _testFilename(inputname,outputname):
     old_path = os.getcwd()
     log = open("log","w")
 
-    # This is here so the log gets kept
-    stdout = sys.stdout
-    class WriteLog(object):
-        def write(self,s):
-            log.write(s)
-            stdout.write(s)
-        def flush(self):
-            log.flush()
-            stdout.flush()
-
-    runner = runAUTO.runAUTO(log=WriteLog())
-    console = AUTOInteractiveConsole(AUTOclui.exportFunctions(runner))
+    console = AUTOInteractiveConsole(AUTOclui.exportFunctions(log=log))
     console.execfile(inputname)
-    runner.config(log=None)
+    console.close()
     log.close()
     os.chdir(old_path)
     cmd = ["diff","--ignore-matching-lines='f95.*'",

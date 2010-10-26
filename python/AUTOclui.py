@@ -13,13 +13,31 @@ except ImportError:
     from types import FunctionType
 
 class AUTOSimpleFunctions:
-    def __init__(self,runner=None):
+    def __init__(self,outputRecorder=None,errorRecorder=None):
         
         # Initialize the global AUTO runner
-        if runner is None:
-            self._runner = runAUTO.runAUTO()
-        else:
-            self._runner = runner
+        runner = runAUTO.runAUTO()
+        if outputRecorder is not None:
+            stdout = sys.stdout
+            class WriteLog(object):
+                def write(self,s):
+                    outputRecorder.write(s)
+                    stdout.write(s)
+                def flush(self):
+                    outputRecorder.flush()
+                    stdout.flush()
+            runner.config(log=WriteLog())
+        if errorRecorder is not None:
+            stderr = sys.stderr
+            class WriteErr(object):
+                def write(self,s):
+                    errorRecorder.write(s)
+                    stderr.write(s)
+                def flush(self):
+                    errorRecorder.flush()
+                    stderr.flush()
+            runner.config(err=WriteErr())
+        self._runner = runner
 
         # Read in the aliases.
         self._aliases = None
@@ -100,12 +118,11 @@ class AUTOSimpleFunctions:
 
 # Export the functions inside AUTOSimpleFunctions in a dictionary
 # This also allows the setting of the log
-def exportFunctions(runner=None):
-    AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(runner)
+def exportFunctions(log=None,err=None):
+    AUTOSimpleFunctionsInstance = AUTOSimpleFunctions(log,err)
     dict = {}
     for name in AUTOSimpleFunctionsInstance.__dict__:
-        if name[0] != '_':
-            dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
+        dict[name] = getattr(AUTOSimpleFunctionsInstance, name)
     return dict
 
 # Export the functions inside AUTOSimpleFunctions in this modules namespace

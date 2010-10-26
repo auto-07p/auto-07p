@@ -1138,6 +1138,7 @@ def ls(dir=None):
     if dir is not None:
         cmd = "%s %s"%(cmd,dir)
     if sys.stdout is sys.__stdout__:
+        sys.stdout.flush()
         os.system(cmd)
     else:
         info(AUTOutil.getstatusoutput(cmd, shell=True)[1]+'\n')
@@ -1159,6 +1160,7 @@ def shell(cmd):
     Type FUNC('xxx') to run the command 'xxx' in the Unix shell and display
     the results in the AUTO command line user interface.
     """
+    sys.stdout.flush()
     os.system(cmd) 
 commandShell = command(shell)
 
@@ -1694,12 +1696,14 @@ def plot3(name=None,r3b=False):
                 d.writeFilename("fort.7")
             elif isinstance(d,parseS.AUTOSolution):
                 d.writeFilename("fort.8")
-    if hasattr(os,"spawnv"):
+    if sys.stdout is sys.__stdout__:
+        sys.stdout.flush()
         if not os.path.exists(cmd):
             cmd = cmd + '.exe'
         os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
     else:
-        os.system(" ".join([cmd]+arg+["&"]))
+        cmd = " ".join([cmd]+arg+["&"])
+        info(AUTOutil.getstatusoutput(cmd, shell=True)[1]+'\n')
 commandPlotter3D = command(plot3,alias=['p3'])
 
 
@@ -1827,7 +1831,10 @@ try:
             handle.update()
             try:
                 def plotterquit():
-                    handle.destroy()
+                    try:
+                        handle.destroy()
+                    except KeyError:
+                        pass
                 atexit.register(plotterquit)
             except:
                 pass

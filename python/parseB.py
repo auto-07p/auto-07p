@@ -323,10 +323,9 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         else: #numarray, Numeric, array
             datalist = datalist.split()
             try:
-                data = map(float, datalist)
+                data = N.array(map(float, datalist), 'd')
             except ValueError:
-                data = map(AUTOatof, datalist)
-            data = N.array(data,'d')
+                data = N.array(map(AUTOatof, datalist), 'd')
         data.shape = (-1,ncolumns)
         coordarray = N.transpose(data[:,4:]).copy()
         points = data[:,1]
@@ -1219,6 +1218,8 @@ def AUTOatof(input_string):
         return float(input_string)
     except ValueError:
         try:
+            if not isinstance(input_string, str):
+                input_string = input_string.decode('ascii')
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
                 return float(input_string.strip()[0:-1])

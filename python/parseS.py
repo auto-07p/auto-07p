@@ -909,10 +909,9 @@ class AUTOSolution(UserDict,Points.Pointset):
         else:
             data = sdata.split()
             try:
-                fdata = map(float, data)
+                fdata = N.array(map(float, data), 'd')
             except ValueError:
-                fdata = map(parseB.AUTOatof, data)
-            fdata = N.array(fdata, 'd')
+                fdata = N.array(map(parseB.AUTOatof, data), 'd')
         if total != len(fdata):
             raise PrematureEndofData
         ups = N.reshape(fdata[:n * nrows],(nrows,n))
