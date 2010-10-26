@@ -252,7 +252,8 @@ def parse(trial_file,epsilon=None, demo=None, html_dir=None, correct_file=None,
                 if i%5 == 0:
                     table_line.append(demo)
                 i = i + 1
-                demofile = "%s_%s%d.html"%(os.path.basename(fil),demo,i)
+                demofile = "%s_%s%d.html"%(os.path.basename(fil),
+                                           demo.replace(os.sep,"_"),i)
                 report = check_demo(demo,correct_file,fil,epsilon)
                 report_list[report[0]].append(demo)
                 if report[0]==DEMO_OK:
