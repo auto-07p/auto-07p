@@ -56,7 +56,7 @@ CONTAINS
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dtm(:),par(:)
+    double precision, allocatable :: dups(:,:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1),det
 
@@ -79,16 +79,17 @@ CONTAINS
     allocate(icp(nfpr+nint),thu(ndim*8),dtm(na),par(npar))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
+    allocate(dups(ndim,0:na*ncol-1))
 
     call mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     dum=0
     call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
          nllv,dum1,dum1,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
-         dum1,dum1,dum1,dum1,dum1,thu)
+         dups,dum1,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,icp,par)
+    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,thu,icp,par)
 
   end subroutine mpi_setubv_worker
 
@@ -1191,7 +1192,7 @@ CONTAINS
        AP%ITP=ITP
     ELSE
        IF(PAR(ICP(1)).LT.RL0.OR.PAR(ICP(1)).GT.RL1 &
-            .OR. AMP.LT.A0.OR.AMP.GT.A1 .OR. NTOT.GE.NMX)THEN
+            .OR. AMP.LT.A0.OR.AMP.GT.A1 .OR. NTOT.EQ.NMX)THEN
           ISTOP=1
           ITP=9+10*ITPST
           AP%ITP=ITP

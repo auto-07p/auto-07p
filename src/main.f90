@@ -237,8 +237,8 @@
       IPLT = 0
       NBC  = 0
       NINT = 0
-      NMX  = 99999
-      NPR  = 99999
+      NMX  = 0
+      NPR  = 0
       MXBF = 10
       IIS  = 2
       IID  = 2
