@@ -122,7 +122,8 @@ def copydemo(name):
             shutil.copy(f, ".")
         except IOError:
             pass
-    if os.path.exists("c.%s.1"%name):
+    if (os.path.exists(os.path.join(demodir,"c.%s.1"%name)) and
+        not os.path.exists(os.path.join(demodir,"c.%s"%name))):
         shutil.copy("c.%s.1"%name,"c.%s"%name)
     info("Copying demo %s ... done\n"%name)
 commandCopyDemo = command(copydemo,SIMPLE,"demo")
