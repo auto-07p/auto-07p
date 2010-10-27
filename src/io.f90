@@ -718,7 +718,7 @@ CONTAINS
           IF(ISP/=ISPA)THEN
              WRITE(7, "(A8,I4)", ADVANCE="NO")'ISP =',ISP
           ENDIF
-          IF(IRS/=IRSA)THEN
+          IF(ISW/=ISWA)THEN
              WRITE(7, "(A8,I4)", ADVANCE="NO")'ISW =',ISW
           ENDIF
           IF(NBC/=NBCA)THEN
