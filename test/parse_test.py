@@ -10,6 +10,7 @@ try:
 except ImportError: # Python 3
     from urllib.request import pathname2url
 import math
+import parseB
 
 #A few template strings which will be used later for reports, etc.
 
@@ -52,7 +53,7 @@ DEMO_FAILED=4
 
 def check_demo(demo,correct_filename,trial_filename,epsilon):
     # A regular expression for finding floating point numbers
-    float_regex=re.compile('[ -][0-9]\.[0-9]+[eE][-+][0-9]+',re.S)
+    float_regex=re.compile('[ -][0-9]\.[0-9]+[-+eE][-+0-9][0-9]+',re.S)
     # A regular expression for finding each demo block
     demo_regex=re.compile("Demo %s is started.*Demo %s is done"%(demo,demo),re.S,)
     # A regular expression for finding a header
@@ -106,9 +107,9 @@ def check_demo(demo,correct_filename,trial_filename,epsilon):
         start=correct_item.start()
         end=correct_item.end()
         trial_item=float_regex.search(trial_string[start+offset-1:end+offset+1])
-        correct_data=float(correct_item.group())
+        correct_data=parseB.AUTOatof(correct_item.group())
         try:
-            trial_data=float(trial_item.group())
+            trial_data=parseB.AUTOatof(trial_item.group())
             if trial_item.start() > 0:
                 offset=trial_item.start()+offset-1
         except (ValueError, AttributeError):

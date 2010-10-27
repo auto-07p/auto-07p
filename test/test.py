@@ -10,11 +10,6 @@ import platform
 from interactiveBindings import AUTOInteractiveConsole
 import AUTOclui
 import parse_test
-
-#find the runAUTO module
-path = os.path.join(os.getcwd(),"07p/python")
-sys.path.append(path)
-print("Using the runDemo module from %s"%path)
 import runDemo
 
 # selection
