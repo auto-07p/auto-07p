@@ -63,6 +63,7 @@ CONTAINS
     DO
        NULLIFY(P%NEXT)
        READ(28,'(A)',END=99)LINE
+       IF (LEN_TRIM(LINE) == 0) GOTO 99
        IF (LEN_TRIM(LINE) <= 73) THEN
           READ(LINE,*)IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL, &
                NAR,NROWPR,NTST,NCOL,NPAR
