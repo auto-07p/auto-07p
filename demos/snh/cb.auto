@@ -5,7 +5,7 @@
 
 print "\n1st run - find and continue equilibrium a : x=y=0, phi=-acos(-0.5*nu2)"
 # [ b would be x=y=0, phi=acos(-0.5*nu2) ]
-r1 = run(e='snh',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,IPS=1,
+r1 = run(e='snh',ICP=['nu1'],NDIM=3,ILP=0,ITNW=7,ITMX=20,IPS=1,
          UZR={},PAR={},STOP=['HB1'],DS=0.1,DSMAX=1.0,NPAR=26,
          unames={1:'xgamma',2:'ygamma',3:'phigamma',4:'x',5:'y',6:'phi',
                  7:'x-',8:'y-',9:'phi-',10:'x+',11:'y+',12:'phi+'},
@@ -50,7 +50,7 @@ save(r7,'closegap')
 print "\n8th run - keep the gap closed and continue in nu1,nu2"
 start8 = load(r7('UZ1'),ICP=['nu1','mu','delta','eps','nu2','T+','T-','T'],
               UZSTOP={},ILP=1,NPR=100,ISP=0,DS=0.1,DSMAX=0.1)
-r8 = merge(run(start8) + run(start8,DS='-',STOP=['LP1']))
+r8 = merge(run(start8,UZSTOP={'delta':-3e-3}) + run(start8,DS='-',STOP=['LP1']))
 save(r8,'cb')
 
 clean()
