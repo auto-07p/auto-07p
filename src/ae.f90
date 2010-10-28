@@ -287,7 +287,7 @@ CONTAINS
 
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:),F(:),UOLD(:),DFDU(:,:),DFDP(:,:)
-    INTEGER NDIM,IID,NPAR,I
+    INTEGER NDIM,IID,NPAR,I,J
     DOUBLE PRECISION SIGN,SS
 
     NDIM=AP%NDIM
@@ -318,7 +318,9 @@ CONTAINS
        DEALLOCATE(AAA)
     ENDIF
 
-! Scale and make sure that the PAR(ICP(1))-dot is positive.
+! Scale and make sure that PAR(ICP(1))-dot is positive.
+! If PAR(ICP(1))-dot is close to zero, then make sure
+! that the first away-from-zero coordinate is positive.
 
     SS=0.d0
     DO I=1,NDIM+1
@@ -326,7 +328,25 @@ CONTAINS
     ENDDO
 
     SIGN=1.d0
-    IF(UDOT(NDIM+1)<0.d0)SIGN=-1.d0
+    IF(ABS(UDOT(NDIM+1))/(1.d0+ABS(U(NDIM+1)))>AP%EPSL)THEN
+       IF(UDOT(NDIM+1)<0.d0)THEN
+          SIGN=-1.d0
+       ENDIF
+    ELSE
+       DO I=1,NDIM
+          IF(I<AP%NFPR)THEN
+             J=NDIM-AP%NFPR+I+1
+          ELSE
+             J=I-AP%NFPR+1
+          ENDIF
+          IF(ABS(UDOT(J))/(1.d0+ABS(U(J)))>AP%EPSU)THEN
+             IF(UDOT(J)<0.d0)THEN
+                SIGN=-1.d0
+             ENDIF
+             EXIT
+          ENDIF
+       ENDDO
+    ENDIF
     UDOT(:)=SIGN/SQRT(SS)*UDOT(:)
 
 ! Get the Jacobian for stability computation.
