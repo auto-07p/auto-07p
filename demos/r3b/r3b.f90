@@ -127,7 +127,7 @@
          realfm = GETP('EIG',I*2-1,U)
          routh = 0.5d0*(1d0-sqrt(69d0)/9d0)
          ! above Routh's ratio we have one period for L4/L5, otherwise 3.
-         IF (realfm == 0 .OR. rmu < routh .OR. ABS(y) < 0.1) THEN
+         IF (ABS(realfm) < EPSILON(1d0) .OR. rmu < routh .OR. ABS(y) < 0.1) THEN
             PAR(4+j) = imagfm
             j=j+1
          ENDIF
