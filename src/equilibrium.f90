@@ -421,12 +421,44 @@ CONTAINS
     NDM=AP%NDM
     ITPST=AP%ITPST
 
-! Order the eigenvalues by real part.
- 
+! Set tolerance for deciding if an eigenvalue is in the positive
+! half-plane. Use, for example, tol=1d-3 for conservative systems.
+
+! Try to guess whether the system is probably conservative or definitely not:
+! the dimension is even and the trace 0 if it is conservative.
+! In that case we use a tolerance to avoid detecting spurious
+! Hopf bifurcations.
+
+    tol=0.d0
+    IF(MOD(NDM,2)==0)THEN
+       trace=0.d0
+       DO I=1,NDM
+          trace=trace+AA(i,i)
+       ENDDO
+       a=0.d0
+       DO i=1,NDM
+          DO j=1,NDM
+             IF(ABS(AA(i,j))>a)THEN
+                a=ABS(AA(i,j))
+             ENDIF
+          ENDDO
+       ENDDO
+       IF(ABS(trace)<HMACH*a)THEN
+          tol=1.d-5
+       ENDIF
+    ENDIF
+
+! Order the eigenvalues by real part first, and, for purely imaginary
+! eigenvalues in conservative systems, by imaginary part second.
+
     DO I=1,NDM-1
        LOC=I
        DO J=I+1,NDM
-          IF(REAL(EV(J)).GE.REAL(EV(LOC)))THEN
+          IF(ABS(REAL(EV(J)))<tol.AND.ABS(REAL(EV(LOC)))<tol)THEN
+             IF(ABS(AIMAG(EV(J)))>=ABS(AIMAG(EV(LOC))))THEN
+                LOC=J
+             ENDIF
+          ELSEIF(REAL(EV(J))>=REAL(EV(LOC)))THEN
              LOC=J
           ENDIF
        ENDDO
@@ -460,33 +492,6 @@ CONTAINS
        ENDDO
     ENDDO
     LOC=LOCS(N)
-
-! Set tolerance for deciding if an eigenvalue is in the positive
-! half-plane. Use, for example, tol=1d-3 for conservative systems.
-
-! Try to guess whether the system is probably conservative or definitely not:
-! the dimension is even and the trace 0 if it is conservative.
-! In that case we use a tolerance to avoid detecting spurious
-! Hopf bifurcations.
-
-    tol=0.d0
-    IF(MOD(NDM,2)==0)THEN
-       trace=0.d0
-       DO I=1,NDM
-          trace=trace+AA(i,i)
-       ENDDO
-       a=0.d0
-       DO i=1,NDM
-          DO j=1,NDM
-             IF(ABS(AA(i,j))>a)THEN
-                a=ABS(AA(i,j))
-             ENDIF
-          ENDDO
-       ENDDO
-       IF(ABS(trace)<HMACH*a)THEN
-          tol=1.d-5
-       ENDIF
-    ENDIF
 
 ! Count the number of eigenvalues with negative real part.
 
