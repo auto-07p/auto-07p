@@ -17,7 +17,7 @@ print "\ntfc: run 4: BP continuation (sw)"
 r4sw = run(r3("BP1"),ICP=[6,3,11,7,8],ISW=2,DS=0.01,DSMAX=0.1,UZR={})
 
 print "\ntfc: run 4: BP continuation (fw)"
-r4fw = run(r4sw,sv='tfc.4.fw')
+r4fw = run(r4sw,STOP=['LP1','BP1'],sv='tfc.4.fw')
 
 print "\ntfc: run 4: BP continuation (bw)"
 r4bw = run(r4sw,NMX=300,NPR=50,DSMAX=10.0,DS='-',sv='tfc.4.bw')
@@ -36,7 +36,7 @@ print "\ntfc: run 6: iso-periodic BP continuation (fw)"
 r6fw = run(r6sw,sv='tfc.6.fw')
 
 print "\ntfc: run 6: iso-periodic BP continuation (bw)"
-r6bw = run(r6sw,DS='-',sv='tfc.6.bw')
+r6bw = run(r6sw,STOP=['LP1','BP1'],DS='-',sv='tfc.6.bw')
 
 print "\ntfc: run 6: iso-periodic BP continuation (restart)"
 r6rs = run(r6fw()[1],sv='tfc.6.rs')
