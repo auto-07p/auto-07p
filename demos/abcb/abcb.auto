@@ -29,7 +29,7 @@ print "\n***"+pgm+": run 4: cycle continuation (fw)***"
 sf4=run(sb4('EP1'),ITMX=10,DS='-',sv=pgm+'.4.fw')
 
 print "\n***"+pgm+": run 5: switch to BP continuation***"
-sw5=run(sf4('BP1'),ICP=[1,2,3,11],ISW=3,NMX=50,NPR=10,
+sw5=run(sf4('BP1'),ICP=[1,2,3,11],ISW=3,NMX=50,NPR=10,ISP=1,
   DS=0.001,DSMAX=0.01,sv=pgm+'.5.sw')
 
 print "\n***"+pgm+": run 5: BP continuation (fw)***"
