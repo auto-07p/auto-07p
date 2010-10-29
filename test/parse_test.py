@@ -313,9 +313,9 @@ def parse(trial_file,epsilon=None, abseps=None, demo=None, html_dir=None,
             if len(report_list[i]) > 0:            
                 if i==DEMO_MINOR_DATA_ERROR:
                     print(dct[i])
-                    print("         Relative Error Absolute Error")
+                    print("          Relative Error Absolute Error")
                     for lst in report_list[i]:
-                        print("%5s: %15.7e%15.7e"%(lst[0],lst[1],lst[2]))
+                        print("%-6s: %15.7e%15.7e"%(lst[0],lst[1],lst[2]))
                 elif len(report_list[i]) > 0:
                     print(" ".join([dct[i]]+report_list[i]))
         print("Please point your web browser to the following URL "
