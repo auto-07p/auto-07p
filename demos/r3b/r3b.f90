@@ -123,7 +123,7 @@
    PAR(7) = 0
    DO i=1,NDIM
       imagfm = GETP('EIG',I*2,U)
-      IF (imagfm > 0) THEN
+      IF (imagfm > 1d-5) THEN
          realfm = GETP('EIG',I*2-1,U)
          routh = 0.5d0*(1d0-sqrt(69d0)/9d0)
          ! above Routh's ratio we have one period for L4/L5, otherwise 3.

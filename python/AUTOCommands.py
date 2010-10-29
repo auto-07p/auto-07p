@@ -1697,14 +1697,14 @@ def plot3(name=None,r3b=False):
                 d.writeFilename("fort.7")
             elif isinstance(d,parseS.AUTOSolution):
                 d.writeFilename("fort.8")
-    if sys.stdout is sys.__stdout__:
-        sys.stdout.flush()
-        if not os.path.exists(cmd):
-            cmd = cmd + '.exe'
-        os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
-    else:
-        cmd = " ".join([cmd]+arg+["&"])
-        info(AUTOutil.getstatusoutput(cmd, shell=True)[1]+'\n')
+    sys.stdout.flush()
+    if not os.path.exists(cmd):
+        cmd = cmd + '.exe'
+    os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
+    if sys.stdout is not sys.__stdout__:
+        # when testing, wait a little bit
+        import time
+        time.sleep(2)
 commandPlotter3D = command(plot3,alias=['p3'])
 
 
