@@ -38,15 +38,15 @@ class nostdin(object):
     def readline(self):
         return "\n"
 
-def test(selection, versions=None, log_file=None, parse=True):
+def test(demos, versions=None, log_file=None, parse=True):
     sys.stdin = nostdin()
-    if selection == "selec":
+    if demos == "selec":
         demos = DIR1
-    if selection == "hom":
+    if demos == "hom":
         demos = DIR2
-    if selection == "all97":
+    if demos == "all97":
         demos = DIR3
-    if selection == "all":
+    if demos == "all":
         demos = DIR4
 
     if log_file is None:
@@ -144,5 +144,5 @@ if __name__ == '__main__':
     if opts.has_key("-l"):
         log_file=opts["-l"]
 
-    selection = args[0]
+    demos = args[0]
     test(args[0], versions, log_file, parse=False)

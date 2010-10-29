@@ -24,4 +24,7 @@ To run a selection of HomCont demos only, type "auto hom.auto"
 To run all demos that were also present in AUTO97, type 
 "auto all97.auto"
 ===================================================================
+To run some specified demos, type for instance
+"auto demo.auto abc dd2"
+===================================================================
 

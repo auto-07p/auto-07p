@@ -9,7 +9,6 @@ try:
     from urllib import pathname2url
 except ImportError: # Python 3
     from urllib.request import pathname2url
-import math
 import parseB
 
 #A few template strings which will be used later for reports, etc.
@@ -22,12 +21,7 @@ Errors (if any) reported during compilation:
 %s
 """
 
-no_matching_float="""
-Trial string has a non float where the correct string has a float:
-demo:          %s
-correct_value: %s
-trial value:   %s
-
+different_floats="""
 ======================
 trial string:
 ======================
@@ -37,7 +31,16 @@ trial string:
 correct string:
 ======================
 %s
+
 """
+
+no_matching_float="""
+Trial string has a non float where the correct string has a float:
+demo:          %s
+correct_value: %s
+trial value:   %s
+
+"""+different_floats
 
 #All the demos in the AUTO distribution
 all_demos=["pp2","exp","int","dd2","opt","lin","bvp","pp3","wav","plp",
@@ -51,7 +54,7 @@ DEMO_MINOR_DATA_ERROR=1
 DEMO_MAJOR_DATA_ERROR=2
 DEMO_FAILED=4
 
-def check_demo(demo,correct_filename,trial_filename,epsilon):
+def check_demo(demo,correct_filename,trial_filename,epsilon,abseps):
     # A regular expression for finding floating point numbers
     float_regex=re.compile('[ -][0-9]\.[0-9]+[-+eE][-+0-9][0-9]+',re.S)
     # A regular expression for finding each demo block
@@ -96,6 +99,8 @@ def check_demo(demo,correct_filename,trial_filename,epsilon):
     offset=1
     correct_item=header_regex.search(correct_string,0)
     trial_item=header_regex.search(trial_string,0)
+    maxdiff = 0
+    maxratio = 0
     if correct_item is not None and trial_item is not None:
         end=correct_item.end()
         offset=trial_item.end()-end
@@ -113,15 +118,15 @@ def check_demo(demo,correct_filename,trial_filename,epsilon):
             if trial_item.start() > 0:
                 offset=trial_item.start()+offset-1
         except (ValueError, AttributeError):
-            mod_correct_string="%s<font color=Red>%s</font>%s"%(
+            correct_string="%s<B><font color=Red>%s</font></B>%s"%(
                 correct_string[:start],correct_string[start:end],
                 correct_string[end:])
-            mod_trial_string="%s<font color=Red>%s</font>%s"%(
-                trial_string[:start],trial_string[start:end],
-                trial_string[end:])
+            trial_string="%s<B><font color=Red>%s</font></B>%s"%(
+                trial_string[:start+offset],trial_string[start+offset:end+offset],
+                trial_string[end+offset:])
             return (DEMO_MAJOR_DATA_ERROR,
                     no_matching_float%(demo,correct_item.group(),trial_item,
-                                       mod_trial_string,mod_correct_string))
+                                       trial_string,correct_string))
 
         if correct_string[start-7:start-3] == "Time":
             start=end
@@ -132,25 +137,39 @@ def check_demo(demo,correct_filename,trial_filename,epsilon):
                 end=correct_item.end()
                 offset=trial_item.end()-end
         else:
+            diff = abs(trial_data-correct_data)
             if trial_data == 0.0:
-                ratio1 = math.fabs(correct_data)+epsilon
+                ratio1 = abs(correct_data)+epsilon
             else:
-                ratio1 = math.fabs(correct_data-trial_data)/trial_data
+                ratio1 = abs(diff/trial_data)
 
             if correct_data == 0.0:
-                ratio2 = math.fabs(trial_data)+epsilon
+                ratio2 = abs(trial_data)+epsilon
             else:
-                ratio2 = math.fabs(correct_data-trial_data)/correct_data
+                ratio2 = abs(diff/correct_data)
+            ratio = max(ratio1, ratio2)
 
-            if math.fabs(ratio1) > epsilon or math.fabs(ratio2) > epsilon:
+            if diff > abseps and ratio > epsilon:
+                maxdiff = max(diff, maxdiff)
+                maxratio = max(ratio, maxratio)
                 report.write("Files do not match at the %dth character for demo %s\n"%(start,demo))
-                report.write("Value of correct file is %e\n"%correct_data)
-                report.write("Value of trial is %e\n\n"%trial_data)
+                report.write("Value of trial is %e\n"%trial_data)
+                report.write("Value of correct file is %e\n\n"%correct_data)
+                correct_string="%s<I><font color=Blue>%s</font></I>%s"%(
+                    correct_string[:start],correct_string[start:end],
+                    correct_string[end:])
+                trial_string="%s<I><font color=Blue>%s</font></I>%s"%(
+                    trial_string[:start+offset],trial_string[start+offset:end+offset],
+                    trial_string[end+offset:])
+                start += 31
+                end += 31
     report_string = report.getvalue()
     if len(report_string)==0:
         return (DEMO_OK,"")
     else:
-        return (DEMO_MINOR_DATA_ERROR,report_string)
+        return (DEMO_MINOR_DATA_ERROR,report_string+
+                different_floats%(trial_string,correct_string),
+                maxratio,maxdiff)
 
 #====================== HTMLGen style class and functions ========
 
@@ -213,12 +232,14 @@ def Href(text="", url=""):
 
 #====================== main program =============================
 
-def parse(trial_file,epsilon=None, demo=None, html_dir=None, correct_file=None,
-          demos=None):
+def parse(trial_file,epsilon=None, abseps=None, demo=None, html_dir=None,
+          correct_file=None, demos=None):
     if isinstance(trial_file, str):
         trial_file = trial_file,
     if epsilon is None:
         epsilon = 0.01
+    if abseps is None:
+        abseps = 1e-7
     if demo is None:
         demo=""
     if demos is None:
@@ -255,8 +276,11 @@ def parse(trial_file,epsilon=None, demo=None, html_dir=None, correct_file=None,
                 i = i + 1
                 demofile = "%s_%s%d.html"%(os.path.basename(fil),
                                            demo.replace(os.sep,"_"),i)
-                report = check_demo(demo,correct_file,fil,epsilon)
-                report_list[report[0]].append(demo)
+                report = check_demo(demo,correct_file,fil,epsilon,abseps)
+                if report[0]==DEMO_MINOR_DATA_ERROR:
+                    report_list[report[0]].append((demo,)+report[2:])
+                else:
+                    report_list[report[0]].append(demo)
                 if report[0]==DEMO_OK:
                     table_line.append(ok)
                 else:
@@ -286,13 +310,19 @@ def parse(trial_file,epsilon=None, demo=None, html_dir=None, correct_file=None,
                 DEMO_FAILED: "The following demos failed:" }
         for i in [DEMO_OK, DEMO_MINOR_DATA_ERROR,
                   DEMO_MAJOR_DATA_ERROR, DEMO_FAILED]:
-            if len(report_list[i]) > 0:
-                print(" ".join([dct[i]]+report_list[i]))
+            if len(report_list[i]) > 0:            
+                if i==DEMO_MINOR_DATA_ERROR:
+                    print(dct[i])
+                    print("         Relative Error Absolute Error")
+                    for lst in report_list[i]:
+                        print("%5s: %15.7e%15.7e"%(lst[0],lst[1],lst[2]))
+                elif len(report_list[i]) > 0:
+                    print(" ".join([dct[i]]+report_list[i]))
         print("Please point your web browser to the following URL "
               "for detailed results:\nfile://%s"%
               pathname2url(os.path.abspath("verification/index.html")))
     else:
-        check_demo(demo,correct_file,trial_file,epsilon)
+        check_demo(demo,correct_file,trial_file,epsilon,abseps)
 
 if __name__ == "__main__":
     opts_list,args = getopt.getopt(sys.argv[1:],"c:t:d:e:h:")
@@ -302,6 +332,8 @@ if __name__ == "__main__":
     correct_file = None
     trial_file = args
     for x in opts_list:
+        if x[0]=="-a":
+            abseps=float(x[1])
         if x[0]=="-c":
             correct_file=x[1]                         
         if x[0]=="-d":

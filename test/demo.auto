@@ -1,0 +1,5 @@
+#!/usr/bin/env auto
+import sys, test
+test.test(sys.argv[2:])
+quit()
+
