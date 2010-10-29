@@ -2082,7 +2082,7 @@ def test():
 
     runner = runAUTO.runAUTO(
         makefile="",
-        auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
+        demos_dir=os.path.join(os.environ["AUTO_DIR"],"python"))
     
     clean      = commandRunDemo("wav","clean",runner)
     first      = commandRunDemo("wav","first",runner)
@@ -2091,6 +2091,9 @@ def test():
     printer    = commandPrintFunc(printfunc,"Hello World")
     quiet      = commandRunnerConfig(runner,log=f)
     verbose    = commandRunnerConfig(runner,log=None)
+    changedir  = commandCd("wav",runner)
+    constants  = commandParseConstantsFile("wav")
+    changeup   = commandCd("..",runner)
 
     verbose()
     clean()
@@ -2101,6 +2104,10 @@ def test():
     stdout.write(f.getvalue()+"\n")
     printer()
     verbose()
+    clean()
+    changedir()
+    constants()
+    changeup()
 
 if __name__ == "__main__":
     test()

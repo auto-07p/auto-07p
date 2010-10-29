@@ -3,7 +3,8 @@ Type "auto selec.auto" to run a selection of demos.
 The results are then compared to the results of
 runs on other machines. Such results may already be in files
 in the current directory. Apart from the listed CPU time, 
-there should be no significant differences. 
+there should be no significant differences between *_log07p and
+hyper.all.
 In case of suspected portability problems send the file *_log07p
 to doedel@cs.concordia.ca and bartoldeman@gmail.com.
 
@@ -26,5 +27,8 @@ To run all demos that were also present in AUTO97, type
 ===================================================================
 To run some specified demos, type for instance
 "auto demo.auto abc dd2"
+===================================================================
+To run the Python regression tests, run
+"auto python.auto"
 ===================================================================
 

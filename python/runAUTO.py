@@ -183,6 +183,12 @@ class runAUTO:
                                                      "demos")
         self.options["dir"] = os.path.join(self.options["demos_dir"],d)
 
+        var = self.__getmakevars()
+        var["FFLAGS"] = var["FFLAGS"] + " " + var["OPT"]
+        var["CFLAGS"] = var["CFLAGS"] + " " + var["OPT"]
+        del var["OPT"]
+        for envvar in var:
+            os.environ[envvar] = var[envvar]
         sys.stderr.write("===%s start===\n"%(d,))
         curdir = os.getcwd()
         os.chdir(self.options["dir"])
@@ -248,7 +254,7 @@ class runAUTO:
                 return True
         return False
 
-    def __make(self,equation,fcon=False):
+    def __getmakevars(self):
         # do the same as $AUTO_DIR/cmds/cmds.make but in Python
         # first get the configure-set variables
         auto_dir = self.options["auto_dir"]
@@ -269,6 +275,10 @@ class runAUTO:
                         v = v.replace("$(AUTO_DIR)",auto_dir)
                     var[key] = v
         f.close()
+        return var
+
+    def __make(self,equation,fcon=False):
+        var = self.__getmakevars()
         # figure out equation file name
         src = ""
         for ext in [".f90",".f",".c"]:
@@ -290,6 +300,7 @@ class runAUTO:
             sys.stdout.write(cmd+"\n")
             self.runCommand(cmd)
         # link
+        auto_dir = self.options["auto_dir"]
         libdir = os.path.join(auto_dir,"lib")
         if fcon:
             srcdir = os.path.join(auto_dir,"src")
@@ -564,7 +575,7 @@ def test():
         def flush(self): pass
     runner = runAUTO(clean="yes",log=teeStringIO(),err=quiet(),
                      makefile="",
-                     auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"))
+                     demos_dir=os.path.join(os.environ["AUTO_DIR"],"python"))
     runner.runDemo("wav")
     stdout.write(log.getvalue()+"\n")
     log.truncate(0)

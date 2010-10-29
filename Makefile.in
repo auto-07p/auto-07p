@@ -56,6 +56,7 @@ superclean:  clean
 	cd ./doc; $(MAKE) superclean
 	cd ./include; rm -f stamp-h1
 	rm -f python/*.pyc python/graphics/*.pyc
+	rm -f test/*.pyc test/*_log07p* test/verification/*.html
 	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
 	  tek2ps/Makefile gui/auto.makefile include/config.h cmds/cmds.make \
 	  cmds/compat.sh util/Makefile

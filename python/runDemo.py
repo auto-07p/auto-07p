@@ -23,20 +23,21 @@ def test():
             log.flush()
             stdout.flush()
     runDemo("ab",log=teelog(),err=err,makefile="",
-            auto_dir=os.path.join(os.environ["AUTO_DIR"],"..","97"),
+            demos_dir=os.path.join(os.environ["AUTO_DIR"],"python"),
             clean="yes")
     log.close()
     err.close()
     
+    diffopts = ["diff","--ignore-matching-lines='.*Total Time.*'",
+                "--ignore-matching-lines='.*ab\.o.*'",
+                "--ignore-matching-lines='   [0-9]   .*'"]
     status,output=AUTOutil.getstatusoutput(
-        ["diff","--ignore-matching-lines='.*Total Time.*'",
-         "log","test_data/runDemo.log"])
+        diffopts+["log","test_data/runDemo.log"])
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Log files differ")
 
     status,output=AUTOutil.getstatusoutput(
-        ["diff","--ignore-matching-lines='.*Total Time.*'",
-         "err","test_data/runDemo.err"])
+        diffopts+["err","test_data/runDemo.err"])
     if status != 0:
         raise AUTOExceptions.AUTORegressionError("Error files differ")
     

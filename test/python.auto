@@ -1,0 +1,6 @@
+#!/usr/bin/env auto
+import os
+os.chdir(os.path.join("..","python"))
+execfile("test.py")
+quit()
+

@@ -17,3 +17,5 @@ for module in modules:
         regressions.append(module)
 if regressions:
     print("Found regressions in: %s"%", ".join(regressions))
+else:
+    print("All regression tests were successful.")
