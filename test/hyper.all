@@ -1983,6 +1983,107 @@ Saving to b.fsh, s.fsh, and d.fsh ... done
 ***Clean the directory***
 Deleting fort.* *.o *.exe *.*~ ... done
 Demo fsh is done
+Doing hen
+Version 07p
+Copying demo hen ... done
+Demo hen is started
+
+Demo hen is started
+
+hen : first run : fixed point solution branch for beta (alpha=1)
+gfortran -fopenmp -O -c hen.f90 -o hen.o
+gfortran -fopenmp -O hen.o -o hen.exe /cnd0/home/boldeman/auto/07p/lib/*.o
+Starting hen ...
+
+  BR    PT  TY  LAB      beta        L2-NORM          x             y       
+   1     1  EP    1   0.00000E+00   1.41421E+00   1.00000E+00   1.00000E+00
+   1    13  PD    2   6.32992E-01   1.15470E+00   8.16497E-01   8.16497E-01
+   1    18  TR    3   1.00000E+00   1.03528E+00   7.32051E-01   7.32051E-01
+
+ Total Time    0.119E-01
+hen ... done
+Saving to b.beta, s.beta, and d.beta ... done
+
+hen : second run : a 2-parameter curve of Naimark-Sacker bifurcations
+Runner configured
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   3    17  R2    4   3.00000E+00   1.41421E+00   1.00000E+00   1.00000E+00   1.00000E+00
+
+ Total Time    0.153E-01
+hen ... done
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   3    12  R3    4   1.25000E+00   7.07107E-01   5.00000E-01   5.00000E-01   1.00000E+00
+   3    28  R4    5   4.04990E-07   2.86371E-07   2.02495E-07   2.02495E-07   1.00000E+00
+   3    60  R1    6  -1.00000E+00   1.41421E+00  -1.00000E+00  -1.00000E+00   1.00000E+00
+
+ Total Time    0.214E-01
+hen ... done
+Merge done
+Saving to b.hen, s.hen, and d.hen ... done
+
+hen : third run : a 2-parameter curve of Period-Doubling bifurcations
+Runner configured
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   2    15  R2    4   3.00000E+00   1.41421E+00   1.00000E+00   1.00000E+00   1.00000E+00
+   2    26  UZ    5   3.99999E+00   1.63299E+00   1.15470E+00   1.15470E+00   1.30940E+00
+
+ Total Time    0.161E-01
+hen ... done
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   2    33 LPD    4   1.87148E-14   1.16791E-07  -8.25836E-08  -8.25836E-08  -1.00000E+00
+   2    74  UZ    5   3.00000E+00   1.41421E+00  -1.00000E+00  -1.00000E+00  -3.00000E+00
+
+ Total Time    0.251E-01
+hen ... done
+Merge done
+Appending to b.hen, s.hen and d.hen ... done
+
+hen : fourth run : fixed point solution branch for alpha (beta=1)
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y       
+   1     1  EP    1   2.00000E+00   1.41421E+00   1.00000E+00   1.00000E+00
+   1    18  PD    2   7.50001E-01   7.07107E-01   5.00000E-01   5.00000E-01
+   1    36  LP    3  -2.50000E-01   7.07093E-01  -4.99990E-01  -4.99990E-01
+
+ Total Time    0.159E-01
+hen ... done
+Saving to b.alpha, s.alpha, and d.alpha ... done
+
+hen : fifth run : a 2-parameter curve of fold bifurcations
+Runner configured
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   3    24  R1    4  -1.00000E+00   1.41421E+00  -1.00000E+00  -1.00000E+00   1.00000E+00
+   3    39  UZ    5  -1.99993E+00   1.99996E+00  -1.41419E+00  -1.41419E+00   1.82837E+00
+
+ Total Time    0.190E-01
+hen ... done
+Starting hen ...
+
+  BR    PT  TY  LAB     alpha        L2-NORM          x             y            beta     
+   3    30 LPD    4  -6.34813E-17   1.15089E-08   8.13804E-09   8.13804E-09  -1.00000E+00
+   3    71  UZ    5  -1.00004E+00   1.41424E+00   1.00002E+00   1.00002E+00  -3.00004E+00
+
+ Total Time    0.251E-01
+hen ... done
+Merge done
+Appending to b.hen, s.hen and d.hen ... done
+Relabeling succeeded
+Relabeling done
+
+***Clean the directory***
+Deleting fort.* *.o *.exe *.*~ ... done
+Demo hen is done
 Doing int
 Version 07p
 Copying demo int ... done
@@ -2490,6 +2591,84 @@ Saving to b.2p, s.2p, and d.2p ... done
 ***Clean the directory***
 Deleting fort.* *.o *.exe *.*~ ... done
 Demo lin is done
+Doing log
+Version 07p
+Copying demo log ... done
+Demo log is started
+
+Demo log is started
+
+log : first run : fixed point solution branch
+gfortran -fopenmp -O -c log.f90 -o log.o
+gfortran -fopenmp -O log.o -o log.exe /cnd0/home/boldeman/auto/07p/lib/*.o
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00
+   1    58  BP    2   1.00000E+00   0.00000E+00   0.00000E+00
+   1   188  UZ    3   3.60000E+00   0.00000E+00   0.00000E+00
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   2   227  PD    4   3.00000E+00   6.66667E-01   6.66667E-01
+   2   258  UZ    5   3.60000E+00   7.22222E-01   7.22222E-01
+
+ Total Time    0.461E-01
+log ... done
+Saving to b.log, s.log, and d.log ... done
+
+log : perform 5 period-doublings
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   3   185  PD    6   3.44949E+00   4.39960E-01   4.39960E-01
+   3   194  UZ    7   3.60000E+00   4.08149E-01   4.08149E-01
+
+ Total Time    0.355E-01
+log ... done
+Appending to b.log, s.log and d.log ... done
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   4   127  PD    8   3.54409E+00   5.23595E-01   5.23595E-01
+   4   138  UZ    9   3.60000E+00   5.45499E-01   5.45499E-01
+
+ Total Time    0.289E-01
+log ... done
+Appending to b.log, s.log and d.log ... done
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   5    83  PD   10   3.56441E+00   4.90608E-01   4.90608E-01
+   5   108  UZ   11   3.60000E+00   4.68120E-01   4.68120E-01
+
+ Total Time    0.261E-01
+log ... done
+Appending to b.log, s.log and d.log ... done
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   6    45  PD   12   3.56876E+00   5.03750E-01   5.03750E-01
+   6    83  UZ   13   3.60000E+00   5.29808E-01   5.29808E-01
+
+ Total Time    0.230E-01
+log ... done
+Appending to b.log, s.log and d.log ... done
+Starting log ...
+
+  BR    PT  TY  LAB       mu         L2-NORM          x       
+   7    26  PD   14   3.56969E+00   4.98502E-01   4.98502E-01
+   7    93  UZ   15   3.60000E+00   4.70261E-01   4.70261E-01
+
+ Total Time    0.253E-01
+log ... done
+Appending to b.log, s.log and d.log ... done
+Relabeling succeeded
+Relabeling done
+Approximation of Feigenbaum constant: 4.66883518193
+
+***Clean the directory***
+Deleting fort.* *.o *.exe *.*~ ... done
+Demo log is done
 Doing lor
 Version 07p
 Copying demo lor ... done

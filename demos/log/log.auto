@@ -9,7 +9,7 @@ print "\n%s : first run : fixed point solution branch"%pgm
 r = run(e=pgm,c=pgm)
 save(r, pgm)
 
-print "\n%s : perform 5 period-doublings"
+print "\n%s : perform 5 period-doublings"%pgm
 olddiff = 1
 for i in range(5):
     mu = r('PD1')['mu']
