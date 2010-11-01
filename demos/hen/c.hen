@@ -1,0 +1,12 @@
+unames = {1:'x', 2:'y'}
+parnames = {1:'alpha', 2:'beta'}
+NDIM=   2, IPS =  -1, IRS =   0, ILP =   1
+ICP =  ['beta']
+NTST=  10, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
+NMX=  200, NPR=  100, MXBF=   5, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 1
+EPSL= 1e-06, EPSU = 1e-06, EPSS =0.0001
+DS  =  0.02, DSMIN=  0.0005, DSMAX=   0.1, IADS=   1
+NPAR = 3, THL =  {}, THU =  {}
+STOP = ['TR1']
+UZSTOP = {'alpha':[-2.0,4.0],'beta':[-3.0,3.0]}
+

@@ -1,0 +1,11 @@
+unames = {1:'x'}
+parnames = {1:'mu'}
+NDIM=   1, IPS =  -1, IRS =   0, ILP =   1
+ICP =  ['mu']
+NTST=  10, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
+NMX=  300, NPR=    0, MXBF=  -1, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 1
+EPSL= 1e-08, EPSU = 1e-08, EPSS =1e-6
+DS  =  0.0001, DSMIN=  0.0001, DSMAX=   0.02, IADS=   1
+NPAR = 3, THL =  {}, THU =  {}
+UZSTOP = {'mu': 3.6}
+

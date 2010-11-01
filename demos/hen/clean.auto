@@ -1,0 +1,10 @@
+
+#==============
+# AUTO Demo hen
+#==============
+
+print "\n***Clean the directory***"
+dl('alpha')
+dl('beta')
+dl('hen')
+clean()

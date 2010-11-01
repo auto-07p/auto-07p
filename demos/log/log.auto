@@ -1,0 +1,26 @@
+
+#==============
+# AUTO Demo log
+#==============
+
+pgm = "log"
+print "\nDemo %s is started"%pgm
+print "\n%s : first run : fixed point solution branch"%pgm
+r = run(e=pgm,c=pgm)
+save(r, pgm)
+
+print "\n%s : perform 5 period-doublings"
+olddiff = 1
+for i in range(5):
+    mu = r('PD1')['mu']
+    r = run(r('PD1'),ISW=-1,SP=['BP0'])
+    append(r, pgm)
+    diff = r('PD1')['mu'] - mu
+    feig = olddiff/diff
+    olddiff = diff
+
+relabel(pgm)
+print('Approximation of Feigenbaum constant: %s'%feig)
+
+print "\n***Clean the directory***"
+clean()
