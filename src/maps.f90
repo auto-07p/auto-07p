@@ -228,7 +228,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: DFDV(AP%NDM,AP%NDM+1)
 
     INTEGER I,NDM
-    DOUBLE PRECISION THTA
+    DOUBLE PRECISION THTA,F
 
     NDM=AP%NDM
     IF(AP%ITP==8)THEN
@@ -244,15 +244,18 @@ CONTAINS
     ! construct matrix for extended Neimark-Sacker system
     ! Kuznetsov, 3rd ed., (10.83)
     ! A^2-2cA+I, and the derivative to theta: 2sA
-    ! where A=DFDU, c=cos(theta), and s=sin(theta)
+    ! where A=DFDU+I, c=cos(theta), and s=sin(theta), so if B=DFDU:
+    ! (B+I)^2-2c(B+I)+I=B^2+2(1-c)B+2(1-c)I, 2s(B+I)v=2sBv+2sv
     CALL DGEMM('n','n',NDM,NDM,NDM,1.d0,DFDU,NDM,DFDU,NDM,0.d0,DFDV,NDM)
     THTA=U(NDM*2+1)
-    DFDV(:,:)=DFDV(:,:)-2*COS(THTA)*DFDU(:,:)
+    F=2*(1-COS(THTA))
+    DFDV(:,:)=DFDV(:,:)+F*DFDU(:,:)
     DO I=1,NDM
-       DFDV(I,I)=DFDV(I,I)+1
+       DFDV(I,I)=DFDV(I,I)+F
     ENDDO
-    CALL DGEMV('n',NDM,NDM,2*SIN(THTA),DFDU,NDM,U(NDM+1),1,0d0,&
-         DFDV(1,NDM+1),1)
+    F=2*SIN(THTA)
+    CALL DGEMV('n',NDM,NDM,F,DFDU,NDM,U(NDM+1),1,0,DFDV(1,NDM+1),1)
+    DFDV(:,NDM+1)=DFDV(:,NDM+1)+F*U(NDM+1:2*NDM)
 
   END SUBROUTINE FFNSX
 
