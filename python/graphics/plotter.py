@@ -61,6 +61,10 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["1_2_resonance_symbol"]   = ("R2",self.__optionCallback)
         optionDefaults["1_3_resonance_symbol"]   = ("R3",self.__optionCallback)
         optionDefaults["1_4_resonance_symbol"]   = ("R4",self.__optionCallback)
+        optionDefaults["fold_flip_symbol"]       = ("LPD",self.__optionCallback)
+        optionDefaults["fold_torus_symbol"]      = ("LTR",self.__optionCallback)
+        optionDefaults["flip_torus_symbol"]      = ("PTR",self.__optionCallback)
+        optionDefaults["torus_torus_symbol"]     = ("TTR",self.__optionCallback)
         optionDefaults["period_doubling_symbol"] = ("D",self.__optionCallback)
         optionDefaults["torus_symbol"]           = ("T",self.__optionCallback)
         optionDefaults["user_point_symbol"]      = ("U",self.__optionCallback)
@@ -277,10 +281,13 @@ class plotter(grapher.GUIGrapher):
                     "1_1_resonance_symbol", "1_2_resonance_symbol",
                     "1_3_resonance_symbol", "1_4_resonance_symbol",
                     "bogdanov_takens_symbol", "cusp_symbol",
-                    "generalized_hopf_symbol", "zero_hopf_symbol"]
+                    "generalized_hopf_symbol", "zero_hopf_symbol",
+                    "fold_flip_symbol", "fold_torus_symbol",
+                    "flip_torus_symbol", "torus_torus_symbol"]
             if value:
                 values = ["B", "L", "H", "D", "T", "U", "X",
-                          "R1", "R2", "R3", "R4", "BT", "CP", "GH", "ZH"]
+                          "R1", "R2", "R3", "R4", "BT", "CP", "GH", "ZH",
+                          "LPD", "LTR", "PTR", "TTR"]
             else:
                 values = ["square", None,
                           "fillsquare", "diamond", "filldiamond",
@@ -288,7 +295,9 @@ class plotter(grapher.GUIGrapher):
                           "filldiamond", "filldiamond",
                           "filldiamond", "filldiamond",
                           "circle", None,
-                          "triangle", "doubletriangle"]
+                          "triangle", "doubletriangle",
+                          "doubletriangle", "doubletriangle",
+                          "doubletriangle", "doubletriangle"]
             options.update(dict(zip(keys, values)))
 
         # We only recreate the data if one of the above options gets set
@@ -461,8 +470,12 @@ class plotter(grapher.GUIGrapher):
             [[-6],  "1_2_resonance_symbol"],
             [[-7],  "1_3_resonance_symbol"],
             [[-8],  "1_4_resonance_symbol"],
+            [[23,83], "fold_torus_symbol"],
+            [[77,87], "flip_torus_symbol"],
+            [[28,78], "fold_flip_symbol"],
+            [[88],  "torus_torus_symbol"],
             [[-4],  "user_point_symbol"]]
-        specialsymbols = [-32]
+        specialsymbols = [-32,23,83,77,87,28,78,88]
         dp = self.cget("stability")
         coordnames = branch.coordnames
         for j in range(len(xcolumns)):

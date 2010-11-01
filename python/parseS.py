@@ -237,11 +237,14 @@ class parseS(list):
                 if d["Label"] == label:
                     return d
             raise KeyError("Label %s not found"%label)
-        if isinstance(label, str) and len(label) > 2:
-            number = int(label[2:])
+        if isinstance(label, str) and len(label) > 2 and label[-1].isdigit():
+            j = 2
+            if not label[2].isdigit():
+                j = 3
+            number = int(label[j:])
             i = 0
             for d in self:
-                if d["Type name"] == label[:2]:
+                if d["Type name"] == label[:j]:
                     i = i + 1
                     if i == number:
                         return d
@@ -268,8 +271,8 @@ class parseS(list):
                 raise AUTOExceptions.AUTORuntimeError(
                     "Invalid number of arguments for %s."%f.__name__)
             return self.__class__(s)
-        if isinstance(label, (str, int)):
-            label = [label]        
+        if not AUTOutil.isiterable(label):
+            label = [label]
         data = []
         counts = [0]*len(label)
         for d in self:
@@ -278,10 +281,13 @@ class parseS(list):
                 ap = d
             for i in range(len(label)):
                 lab = label[i]
-                if (isinstance(lab, str) and len(lab) > 2 and
-                    d["Type name"] == lab[:2]):
+                j = 2
+                if len(lab) > 2 and not lab[2].isdigit():
+                    j = 3
+                if (isinstance(lab, str) and len(lab) > j and
+                    d["Type name"] == lab[:j]):
                     counts[i] = counts[i] + 1
-                    if counts[i] == int(lab[2:]):
+                    if counts[i] == int(lab[j:]):
                         ap = d
             if ap is not None:
                 data.append(ap)

@@ -53,16 +53,26 @@ type_translation_dict = {
       -6: {"long name" : "1:2 Resonance bifurcation (ODE)","short name" : "R2"},
       -7: {"long name" : "1:3 Resonance bifurcation (ODE)","short name" : "R3"},
       -8: {"long name" : "1:4 Resonance bifurcation (ODE)","short name" : "R4"},
+      23: {"long name" : "Fold-torus bifurcation (maps)","short name" :"LTR"},
+      77: {"long name" : "Flip-torus bifurcation (maps)","short name" :"PTR"},
+      28: {"long name" : "Fold-flip bifurcation (maps)","short name" :"LPD"},
+      88: {"long name" : "Torus-torus bifurcation (maps)","short name" :"TTR"},
        9: {"long name" : "Normal begin or end","short name" : "EP"},
       -9: {"long name" : "Abnormal termination","short name" : "MX"}}
 
 all_point_types = ["No Label",
                    "BP","LP","HB","BT","RG","UZ","PD","TR","EP","MX","ZH",
-                   "CP","GH","R1","R2","R3","R4"]
+                   "CP","GH","R1","R2","R3","R4","LPD","LTR","PTR","TTR"]
 
 def type_translation(type):
     """A little dictionary to transform types to human readable strings"""
-    if type not in [-32]:
+    if type in [28,78]: # LPD
+        type=28
+    elif type in [23,83]: # LTR
+        type=23
+    elif type in [77,87]: # PTR
+        type=77
+    elif type not in [-32,88]:
         if type>=0:
             type=type%10
         else:
@@ -498,17 +508,20 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 if v.get("LAB",0) == label:
                     return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
-        if isinstance(label, str) and len(label) > 2:
-            number = int(label[2:])
+        if isinstance(label, str) and len(label) > 2 and label[-1].isdigit():
+            j = 2
+            if not label[2].isdigit():
+                j = 3
+            number = int(label[j:])
             i = 0
             for k,v in self.labels.sortByIndex():
-                if label[:2] in v:
+                if label[:j] in v:
                     i  = i + 1
                     if i == number:
                         return self.getIndex(k)
             raise KeyError("Label %s not found"%label)
-        if not isinstance(label, list):
-            label = [label]        
+        if not AUTOutil.isiterable(label):
+            label = [label]
         labels = {}
         counts = [0]*len(label)
         for k,val in self.labels.sortByIndex():
@@ -517,10 +530,13 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 continue
             for i in range(len(label)):
                 lab = label[i]
-                if (isinstance(lab, str) and len(lab) > 2 and
-                    ty_name == lab[:2]):
+                j = 2
+                if len(lab) > 2 and not lab[2].isdigit():
+                    j = 3
+                if (isinstance(lab, str) and len(lab) > j and
+                    ty_name == lab[:j]):
                     counts[i] = counts[i] + 1
-                    if counts[i] == int(lab[2:]):
+                    if counts[i] == int(lab[j:]):
                         labels[k] = val
             if v["LAB"] in label or ty_name in label:
                 labels[k] = val
@@ -1006,7 +1022,7 @@ class parseBR(parseBMixin, UserList):
             
     # Given a label, return the correct solution
     def getLabel(self,label):
-        if isinstance(label, (int, str)):
+        if isinstance(label, int):
             i = 0
             section = 0
             for d in self.data:
@@ -1021,11 +1037,33 @@ class parseBR(parseBMixin, UserList):
                 i = i + l
                 section = section + 1
             raise KeyError("Label %s not found"%label)
+        elif isinstance(label, str) and len(label) > 2 and label[-1].isdigit():
+            j = 2
+            if not label[2].isdigit():
+                j = 3
+            number = int(label[j:])
+            for d in self.data:
+                l = len(d.getLabel(label[:j]).getLabels())
+                if number <= l:
+                    return d.getLabel(label[:j]+str(number))
+                number -= l
+            raise KeyError("Label %s not found"%label)
         new = []
+        label = label[:]
         for d in self.data:
             newbranch = d.getLabel(label)
             if newbranch:
                 new.append(newbranch)
+            for i, lab in enumerate(label):
+                if isinstance(lab, str) and len(lab) > 2 and lab[-1].isdigit():
+                    j = 2
+                    if not lab[2].isdigit():
+                        j = 3
+                    number = int(lab[j:])
+                    l = len(d.getLabel(lab[:j]).getLabels())
+                    if number >= l:
+                        number -= l
+                        label[i] = lab[:j]+str(number)
         return self.__class__(new)
 
     def __getitem__(self,index):
@@ -1197,11 +1235,10 @@ class parseB(parseBMixin):
             l += len(d)
         return l
     def getLabel(self,label):
-        if isinstance(label, (int, str)):
+        if isinstance(label, int) or (
+            isinstance(label, str) and len(label) > 2 and label[-1].isdigit()):
             return self.branches.getLabel(label)
-        new = self.__class__()
-        new.branches = self.branches.getLabel(label)
-        return new
+        return self.__class__(self.branches.getLabel(label))
     def read(self,inputfile):
         self.branches.read(inputfile)
         if len(self.branches) > 0:

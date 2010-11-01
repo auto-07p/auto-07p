@@ -742,7 +742,7 @@ class LabeledGrapher(BasicGrapher):
                     y < self["miny"] or y > self["maxy"]):
                     continue
                 c = self.cget("symbol_color")
-                if len(l) <= 2:
+                if len(l) <= 3:
                     self.create_text(x,y,font=self.cget("symbol_font"),
                                      fill=c,text=l)
                     continue

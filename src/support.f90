@@ -463,38 +463,42 @@ CONTAINS
   END SUBROUTINE GESC
 
 ! ------------ -------- ------
-  CHARACTER(2) FUNCTION LBTYPE(ITP)
+  CHARACTER(3) FUNCTION LBTYPE(ITP)
 
     ! returns the string label type corresponding to numerical type ITP
     INTEGER, INTENT(IN) :: ITP
 
-    CHARACTER*2, PARAMETER :: ATYPES(-9:10) = &
+    CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
          (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
-            'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-            'GH' /)
-
-    INTEGER NTY
+            'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
 
     SELECT CASE(ITP)
     CASE(-32)
-       NTY=10 ! 'GH'
+       LBTYPE='GH'
+    CASE(23,83)
+       LBTYPE='LTR'
+    CASE(77,87)
+       LBTYPE='PTR'
+    CASE(28,78)
+       LBTYPE='LPD'
+    CASE(88)
+       LBTYPE='TTR'
     CASE DEFAULT
-       NTY=MOD(ITP,10)
+       LBTYPE=ATYPES(MOD(ITP,10))
     END SELECT
-    LBTYPE=ATYPES(NTY)
   END FUNCTION LBTYPE
 
 ! ------- -------- -------
   LOGICAL FUNCTION CHECKSP(ATYPE,IPS,ILP,ISP)
     USE AUTO_CONSTANTS, ONLY : SP
-    CHARACTER(LEN=2), INTENT(IN) :: ATYPE
+    CHARACTER(LEN=*), INTENT(IN) :: ATYPE
     INTEGER, INTENT(IN) :: IPS,ILP,ISP
 
     ! determine if the given TY label needs to be checked
-    INTEGER I,M
+    INTEGER I,J,M
 
     CHECKSP = .FALSE.
-    SELECT CASE(ATYPE)
+    SELECT CASE(TRIM(ATYPE))
     CASE('UZ')
        CHECKSP = .TRUE.
     CASE('HB','BT','ZH','GH','CP')
@@ -507,7 +511,7 @@ CONTAINS
        ELSE
           CHECKSP = ABS(ISP)>=2.AND.ABS(ISP)/=4 ! BVP
        ENDIF
-    CASE('PD','TR','R1','R2','R3','R4')
+    CASE('PD','TR','R1','R2','R3','R4','LPD','LTR','PTR','TTR')
        IF(IPS==-1)THEN ! maps
           CHECKSP = ISP/=0.AND.IPS/=3
        ELSE ! cycles
@@ -516,10 +520,14 @@ CONTAINS
     END SELECT
 
     DO I=1,SIZE(SP)
-       IF (SP(I)(1:2)==ATYPE) THEN
+       J=SCAN(SP(I)(3:),"-0123456789")+2
+       IF(J==2)THEN
+          J=LEN_TRIM(SP(I))+1
+       ENDIF
+       IF (SP(I)(1:J-1)==TRIM(ATYPE)) THEN
           CHECKSP=.TRUE.
-          IF (LEN_TRIM(SP(I))>2)THEN
-             READ(SP(I)(3:),*)M
+          IF (LEN_TRIM(SP(I))>J-1)THEN
+             READ(SP(I)(J:),*)M
              IF(M==0)THEN
                 CHECKSP=.FALSE.
              ENDIF
@@ -533,25 +541,26 @@ CONTAINS
   SUBROUTINE INITSTOPCNTS(ISP,ILP,ITPST,COUNTS)
     USE AUTO_CONSTANTS, ONLY : STOPS, SP
     INTEGER, INTENT(IN) :: ISP,ILP,ITPST
-    INTEGER, INTENT(OUT) :: COUNTS(-9:10)
+    INTEGER, INTENT(OUT) :: COUNTS(-9:14)
 
     ! initialize the COUNTS array that determines when we need to stop
     ! at a special point
-    CHARACTER(LEN=2), PARAMETER :: ATYPES(-9:10) = &
-         (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
-            'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-            'GH' /)
-    INTEGER NTY,I
+    CHARACTER(LEN=3), PARAMETER :: ATYPES(-9:14) = &
+         (/ 'MX ','R4 ','R3 ','R2 ','R1 ','UZ ','ZH ','CP ','BT ','   ', &
+            'BP ','LP ','HB ','   ','LP ','BP ','PD ','TR ','EP ', &
+            'GH ','LPD','LTR','PTR','TTR' /)
+    INTEGER NTY,I,J
 
     COUNTS(:) = 0
 
     ! initialize from IPS, ISP, ILP, ITPST
     IF(ISP<0)THEN
        COUNTS(-8:-5) = 1 ! R4,R3,R2,R1
-       COUNTS(-3:-1) = 1 ! ZH,Cusp,GH,BT
+       COUNTS(-3:-1) = 1 ! ZH,Cusp,BT
        COUNTS(1) = 1 ! BP (AE)
        COUNTS(3) = 1 ! HB (AE)
        COUNTS(6:8) = 1 ! BP(BVP),PD,TR
+       COUNTS(10:14) = 1 ! GH,LPD,LTR,PTR,TTR
     ENDIF
     IF(ILP<0)THEN
        COUNTS(2) = 1 ! LP (AE)
@@ -565,19 +574,21 @@ CONTAINS
     ! look both at SP and STOP: SP is for backwards compatibility
     ! but STOP is preferred
     DO I=1,SIZE(SP)
-       IF (LEN_TRIM(SP(I))>2) THEN
-          DO NTY=-9,10
-             IF(SP(I)(1:2)==ATYPES(NTY)) THEN
-                READ(SP(I)(3:),*)COUNTS(NTY)
+       J=SCAN(SP(I)(3:),"-0123456789")+2
+       IF (J>2) THEN
+          DO NTY=-9,14
+             IF(SP(I)(1:J-1)==TRIM(ATYPES(NTY))) THEN
+                READ(SP(I)(J:),*)COUNTS(NTY)
              ENDIF
           ENDDO
        ENDIF
     ENDDO
     DO I=1,SIZE(STOPS)
-       IF (LEN_TRIM(STOPS(I))>2) THEN
-          DO NTY=-9,10
-             IF(STOPS(I)(1:2)==ATYPES(NTY)) THEN
-                READ(STOPS(I)(3:),*)COUNTS(NTY)
+       J=SCAN(STOPS(I)(3:),"-0123456789")+2
+       IF (J>2) THEN
+          DO NTY=-9,14
+             IF(STOPS(I)(1:J-1)==TRIM(ATYPES(NTY))) THEN
+                READ(STOPS(I)(J:),*)COUNTS(NTY)
              ENDIF
           ENDDO
        ENDIF
@@ -603,6 +614,14 @@ CONTAINS
     SELECT CASE(ITP)
     CASE(-32)
        NTY=10 ! 'GH'
+    CASE(28,78)
+       NTY=11 ! 'LPD'
+    CASE(23,83)
+       NTY=12 ! 'LTR'
+    CASE(77,87)
+       NTY=13 ! 'PTR'
+    CASE(88)
+       NTY=14 ! 'TTR'
     CASE DEFAULT
        NTY=MOD(ITP,10)
     END SELECT

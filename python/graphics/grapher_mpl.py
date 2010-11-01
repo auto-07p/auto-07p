@@ -570,7 +570,7 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 if not self.cget("use_symbols"):
                     continue
                 c=self.cget("symbol_color")
-                if len(l) <= 2:
+                if len(l) <= 3:
                     #font=self.cget("symbol_font"),
                     kw = {'ha':"center",'va':"center",'color':c,'clip_on':True}
                     if self.ax is self.ax2d:

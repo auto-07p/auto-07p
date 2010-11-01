@@ -402,8 +402,8 @@ CONTAINS
              ENDIF
              FIRST=.FALSE.
           ENDIF
-          WRITE(6,"(I4,I6,2X,A2,I4)",ADVANCE="no")LBR(I),LPT(I), &
-               TYPE(LTY(I)),LLB(I)
+          WRITE(6,"(I4,I6,1X,A3,I4)",ADVANCE="no")LBR(I),LPT(I), &
+               ADJUSTR(TYPE(LTY(I))),LLB(I)
           IF(.NOT.NEW)THEN
              WRITE(6,"()")
           ELSEIF(LLB(I)==LNL(I).OR.LNL(I)/=0)THEN
@@ -416,25 +416,29 @@ CONTAINS
 
   CONTAINS
 
-    CHARACTER(2) FUNCTION TYPE(ITP)
+    CHARACTER(3) FUNCTION TYPE(ITP)
 
       ! returns the string label type corresponding to numerical type ITP
       INTEGER, INTENT(IN) :: ITP
 
-      CHARACTER*2, PARAMETER :: ATYPES(-9:10) = &
+      CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
            (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
-              'BP','LP','HB','  ','LP','BP','PD','TR','EP', &
-              'GH' /)
-
-      INTEGER NTY
+              'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
 
       SELECT CASE(ITP)
       CASE(-32)
-         NTY=10 ! 'GH'
+         TYPE='GH'
+      CASE(23,83)
+         TYPE='LTR'
+      CASE(77,87)
+         TYPE='PTR'
+      CASE(28,78)
+         TYPE='LPD'
+      CASE(88)
+         TYPE='TTR'
       CASE DEFAULT
-         NTY=MOD(ITP,10)
+         TYPE=ATYPES(MOD(ITP,10))
       END SELECT
-      TYPE=ATYPES(NTY)
     END FUNCTION TYPE
 
   END SUBROUTINE LISTLB

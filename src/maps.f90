@@ -445,27 +445,27 @@ CONTAINS
     ITP=0
     IF(ABS(RIMHB-PI(1d0)) <= SQRT(EPSS))THEN
 !       ** period doubling (flip)
-       IF(ITPST==0.OR.ITPST==2)THEN ! plain flip or fold+flip
+       IF(ITPST==0.OR.ITPST==8)THEN ! plain flip or torus + flip
           ITP=7
-       ELSEIF(ITPST==8)THEN ! torus+flip
-          ITP=6
+       ELSEIF(ITPST==2)THEN ! fold+flip
+          ITP=8
        ENDIF
     ELSEIF(RIMHB > SQRT(EPSS))THEN
 !       ** torus (Neimark-Sacker) bifurcation
        IF(ITPST==0.OR.ITPST==8)THEN ! plain torus or torus+torus
           ITP=8
        ELSEIF(ITPST==2)THEN ! fold+torus
-          ITP=5
+          ITP=3
        ELSEIF(ITPST==7)THEN ! flip+torus
-          ITP=6
+          ITP=7
        ENDIF
     ELSE
 !       ** something else... (close to fold -- normal folds are detected
 !       in FNLPAE!)
        IF(ITPST==7)THEN ! flip+fold
-          ITP=7
+          ITP=8
        ELSEIF(ITPST==8)THEN ! torus+fold
-          ITP=5
+          ITP=3
        ENDIF
     ENDIF
     IF(ITP/=0)THEN
