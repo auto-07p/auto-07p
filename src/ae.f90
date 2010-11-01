@@ -200,17 +200,21 @@ CONTAINS
           DSTEST=RDS
 
           IFOUND=0
-          ISTEPPED=0
-          DO ITEST=1,AP%NTEST
-             ! Check for special points
-             CALL LCSPAE(AP,DSTEST,PAR,ICP,ITEST,FUNI,FNCI,AA,&
-                  U,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ITP,STEPPED)
-             IF(STEPPED)ISTEPPED=ITEST
-             IF(ITP/=0)THEN
-                IFOUND=ITEST
-                AP%ITP=ITP
-             ENDIF
-          ENDDO
+          IF(ISTOP)THEN
+             ISTEPPED=AP%NTEST+1
+          ELSE
+             ISTEPPED=0
+             DO ITEST=1,AP%NTEST
+                ! Check for special points
+                CALL LCSPAE(AP,DSTEST,PAR,ICP,ITEST,FUNI,FNCI,AA,&
+                     U,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ITP,STEPPED)
+                IF(STEPPED)ISTEPPED=ITEST
+                IF(ITP/=0)THEN
+                   IFOUND=ITEST
+                   AP%ITP=ITP
+                ENDIF
+             ENDDO
+          ENDIF
 
           DO ITEST=1,ISTEPPED-1
              ! evaluate the test functions for the next step
@@ -741,6 +745,7 @@ CONTAINS
        CALL PVLI(AP,ICP,U,AP%NDIM,PAR,FNCI)
 
        Q=FNCS(AP,ICP,U,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
+       IF(ITPDUM/=0)ITP=ITPDUM
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS

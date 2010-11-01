@@ -236,19 +236,23 @@ CONTAINS
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
        IFOUND=0
-       ISTEPPED=0
        DSTEST=DSOLD
-       DO ITEST=1,AP%NTEST
-          ! Check for special points
-          CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
-               TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-               UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
-          IF(STEPPED)ISTEPPED=ITEST
-          IF(ITP/=0)THEN
-             IFOUND=ITEST
-             AP%ITP=ITP
-          ENDIF
-       ENDDO
+       IF(ISTOP/=0)THEN
+          ISTEPPED=AP%NTEST+1
+       ELSE
+          ISTEPPED=0
+          DO ITEST=1,AP%NTEST
+             ! Check for special points
+             CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
+                  TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
+                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ITP,STEPPED)
+             IF(STEPPED)ISTEPPED=ITEST
+             IF(ITP/=0)THEN
+                IFOUND=ITEST
+                AP%ITP=ITP
+             ENDIF
+          ENDDO
+       ENDIF
 
        DO ITEST=1,ISTEPPED-1
           ! evaluate the test functions for the next step
@@ -1044,6 +1048,7 @@ CONTAINS
 ! Check for zero.
 
        Q=FNCS(AP,ICP,UPS,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
+       IF(ITPDUM/=0)ITP=ITPDUM
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
