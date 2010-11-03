@@ -11,12 +11,12 @@ sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
 import parseS
 
 solutions=parseS.parseS("$file")
-print("\n  BR    PT  TY LAB")
+print("\n  BR    PT  TY  LAB")
 for sol in solutions:
     typename = sol["Type name"]
     if typename == 'RG':
         typename = ''
-    print("%4s%6s%4s%4s"%(sol["Branch number"], sol["Point number"],
+    print("%4s%6s%4s%5s"%(sol["Branch number"], sol["Point number"],
         typename,sol["Label"]))
 EOF
 then

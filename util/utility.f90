@@ -396,13 +396,13 @@ CONTAINS
        IF(NL==0 .OR. INLIST(NLB,LLB(I),NL,LFR,LTO))THEN
           IF(FIRST)THEN
              IF(NEW)THEN
-                WRITE(6,"(/,'  BR    PT  TY LAB  NEW')")
+                WRITE(6,"(/,'  BR    PT  TY  LAB  NEW')")
              ELSE
-                WRITE(6,"(/,'  BR    PT  TY LAB')")
+                WRITE(6,"(/,'  BR    PT  TY  LAB')")
              ENDIF
              FIRST=.FALSE.
           ENDIF
-          WRITE(6,"(I4,I6,1X,A3,I4)",ADVANCE="no")LBR(I),LPT(I), &
+          WRITE(6,"(I4,I6,1X,A3,I5)",ADVANCE="no")LBR(I),LPT(I), &
                ADJUSTR(TYPE(LTY(I))),LLB(I)
           IF(.NOT.NEW)THEN
              WRITE(6,"()")
