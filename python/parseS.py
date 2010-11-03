@@ -747,8 +747,10 @@ class AUTOSolution(UserDict,Points.Pointset):
             for vector in self["data"]]
 
     def writeRaw(self,output):
-        data = self.toArray()
-        output.write("\n".join(["".join(["%24.15E"%v for v in d]) for d in data])+"\n")
+        s = "%24.15E"*(self.coordarray.shape[0]+1)
+        for i in range(self.coordarray.shape[1]):
+            output.write(s%((self.indepvararray[i],)+
+                            tuple(self.coordarray[:,i]))+"\n")
             
     def read(self, input=None, prev=None):
         if input is None:
