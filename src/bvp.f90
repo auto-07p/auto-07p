@@ -884,6 +884,16 @@ CONTAINS
     IF(RLDOT(1).LT.0.d0)THEN
        RLDOT(:)=-RLDOT(:)
        UDOTPS(:,:)=-UDOTPS(:,:)
+    ELSEIF(RLDOT(1).EQ.0.d0)THEN
+       DO I=1,NDIM
+          IF(UDOTPS(I,NTST*NCOL).NE.0.d0)THEN
+             IF(UDOTPS(I,NTST*NCOL).LT.0.d0)THEN
+                RLDOT(:)=-RLDOT(:)
+                UDOTPS(:,:)=-UDOTPS(:,:)
+             ENDIF
+             EXIT
+          ENDIF
+       ENDDO
     ENDIF
 
     IF(IID.GE.2)THEN
@@ -894,7 +904,7 @@ CONTAINS
     ENDIF
 
 101 FORMAT(/,' Starting direction of the free parameter(s) : ')
-102 FORMAT(' PAR(',I3,') :',E11.3)
+102 FORMAT(' PAR(',I3,') :',E20.12)
 
   END SUBROUTINE STDRBV
 
