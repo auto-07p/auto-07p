@@ -65,7 +65,7 @@ compile: $(OBJ)
 ../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
-../lib/support.o: support.f90 ../lib/mpi.o ../lib/mesh.o ../lib/auto_constants.o
+../lib/support.o: support.f90 ../lib/mpi.o ../lib/mesh.o
 	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
 #
 ../lib/io.o: io.f90 ../lib/support.o ../lib/compat.o
@@ -92,7 +92,7 @@ compile: $(OBJ)
 ../lib/compat.o: @COMPAT@.f90
 	$(FC) $(FFLAGS) $(OPT) -c @COMPAT@.f90 -o $@
 #
-../lib/mpi.o: @MPIFILE@
+../lib/mpi.o: @MPIFILE@ ../lib/auto_constants.o
 	$(FC) $(FFLAGS) $(OPT) -c @MPIFILE@ -o $@
 #
 move: $(OBJ)
