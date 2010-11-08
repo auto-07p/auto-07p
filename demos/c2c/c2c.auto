@@ -9,10 +9,10 @@ print pgm, ": third run : continue zero eigenfunction until eigenvalue"
 zero = run(ps,IPS=4,ICP=[11,12,10],NDIM=6,NBC=7,NINT=1,UZR={},STOP=['BP3'])
 
 print pgm, ": fourth run : switch to continuation of nontrivial eigenfunction"
-ef = run(zero,ISW=-1,ILP=0,DSMAX=0.2,UZSTOP={10:1.0})
+ef = run(zero,ISW=-1,ILP=0,DS='-',DSMAX=0.2,UZSTOP={10:1.0})
 
 print pgm, ": fifth run : continue zero eigenfunction until eigenvalue"
-zero1 = run(ef,ISW=1,ICP=[11,4,25,6,26],NDIM=12,NBC=14,NINT=2,UZSTOP={},STOP=['BP1'])
+zero1 = run(ef,ISW=1,ICP=[11,4,25,6,26],DS='-',NDIM=12,NBC=14,NINT=2,UZSTOP={},STOP=['BP1'])
 
 print pgm, ": sixth run : switch to continuation of nontrivial eigenfunction"
 ef1 = run(zero1,ISW=-1,UZSTOP={25:1.0})

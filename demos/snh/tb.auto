@@ -22,7 +22,7 @@ r3 = run(r2('UZ1'),ICP=['mu','h','T'],IPS=4,NDIM=6,NBC=7,NINT=1,
          STOP=['BP1'],UZSTOP={},DS=-0.1,DSMAX=1)
 
 print "\n4th run - normalize the Floquet bundle"
-r4 = run(r3('BP1'),ISW=-1,
+r4 = run(r3('BP1'),ISW=-1,DS=0.1,
          STOP=[],UZSTOP={'h':1.0},DSMAX=100)
 
 print "\n5th run - integrate away from the periodic orbit in negative time."

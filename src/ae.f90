@@ -292,7 +292,7 @@ CONTAINS
 ! Local
     DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:),F(:),UOLD(:),DFDU(:,:),DFDP(:,:)
     INTEGER NDIM,IID,NPAR,I,J
-    DOUBLE PRECISION SIGN,SS
+    DOUBLE PRECISION SS
 
     NDIM=AP%NDIM
     IID=AP%IID
@@ -330,11 +330,11 @@ CONTAINS
     DO I=1,NDIM+1
        SS=SS+THU(I)*UDOT(I)**2
     ENDDO
+    UDOT(:)=UDOT(:)/SQRT(SS)
 
-    SIGN=1.d0
     IF(ABS(UDOT(NDIM+1))/(1.d0+ABS(U(NDIM+1)))>AP%EPSL)THEN
        IF(UDOT(NDIM+1)<0.d0)THEN
-          SIGN=-1.d0
+          UDOT(:)=-UDOT(:)
        ENDIF
     ELSE
        DO I=1,NDIM
@@ -345,13 +345,12 @@ CONTAINS
           ENDIF
           IF(ABS(UDOT(J))/(1.d0+ABS(U(J)))>AP%EPSU)THEN
              IF(UDOT(J)<0.d0)THEN
-                SIGN=-1.d0
+                UDOT(:)=-UDOT(:)
              ENDIF
              EXIT
           ENDIF
        ENDDO
     ENDIF
-    UDOT(:)=SIGN/SQRT(SS)*UDOT(:)
 
 ! Get the Jacobian for stability computation.
     AA(:NDIM,:NDIM)=DFDU(:,:)

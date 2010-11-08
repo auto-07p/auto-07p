@@ -832,7 +832,8 @@ CONTAINS
     INTEGER ICP(*),NDIM,IPERP
     DOUBLE PRECISION UDOTPS(NDIM,0:AP%NTST*AP%NCOL),DTM(*)
     DOUBLE PRECISION PAR(*),RLCUR(AP%NFPR),RLOLD(AP%NFPR),RLDOT(AP%NFPR)
-    DOUBLE PRECISION THL(*),THU(*),UPS(*),UOLDPS(*),UPOLDP(*),P0(*),P1(*)
+    DOUBLE PRECISION THL(*),THU(*),UPS(NDIM,0:AP%NTST*AP%NCOL)
+    DOUBLE PRECISION UOLDPS(*),UPOLDP(*),P0(*),P1(*)
 
     INTEGER NTST,NCOL,IID,NFPR,NLLV,IFST,I
     DOUBLE PRECISION RDSZ,DET
@@ -879,15 +880,22 @@ CONTAINS
 
     CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
 
-! Make sure that RLDOT(1) is positive (unless zero).
+! Make sure that RLDOT(1) is positive (unless practically zero: then look
+! at other variables).
 
-    IF(RLDOT(1).LT.0.d0)THEN
-       RLDOT(:)=-RLDOT(:)
-       UDOTPS(:,:)=-UDOTPS(:,:)
-    ELSEIF(RLDOT(1).EQ.0.d0)THEN
+    DO I=1,NFPR
+       IF(ABS(RLDOT(I))/(1.d0+ABS(RLCUR(I)))>AP%EPSL)THEN
+          IF(RLDOT(I)<0.d0)THEN
+             RLDOT(:)=-RLDOT(:)
+             UDOTPS(:,:)=-UDOTPS(:,:)
+          ENDIF
+          EXIT
+       ENDIF
+    ENDDO
+    IF(I>NFPR)THEN
        DO I=1,NDIM
-          IF(UDOTPS(I,NTST*NCOL).NE.0.d0)THEN
-             IF(UDOTPS(I,NTST*NCOL).LT.0.d0)THEN
+          IF(ABS(UDOTPS(I,NTST*NCOL))/(1.d0+ABS(UPS(I,NTST*NCOL)))>AP%EPSU)THEN
+             IF(UDOTPS(I,NTST*NCOL)<0.d0)THEN
                 RLDOT(:)=-RLDOT(:)
                 UDOTPS(:,:)=-UDOTPS(:,:)
              ENDIF
