@@ -337,6 +337,7 @@ CONTAINS
     USE SUPPORT, ONLY: PI
     USE BVP, ONLY: NRTN, IRTN
     USE INTERFACES, ONLY: FUNC,BCND,PVLS
+    USE SUPPORT, ONLY: AUTOSTOP
 
     ! Generates the boundary conditions for homoclinic orbits.
 
@@ -588,7 +589,7 @@ CONTAINS
        CALL BCND(NDIM,PAR,ICP,NBCN,U0,U1,FB(JB),0,DUM2)
     ELSEIF (NBCN<0) THEN
        PRINT*,'Evil BUG!: Negative number of boundary conditions left'
-       STOP
+       CALL AUTOSTOP()
     END IF
 
     DEALLOCATE(VR,VT,BOUND,RR,RI,XEQUIB1,XEQUIB2)
@@ -724,6 +725,7 @@ CONTAINS
   SUBROUTINE INHO(AP,ICP)
 
     USE IO, ONLY: GETIPS3
+    USE SUPPORT, ONLY: AUTOSTOP
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, PARAMETER :: HMACHHO=1.0d-13
@@ -751,7 +753,7 @@ CONTAINS
        IF(.NOT.NEWCFILE)THEN
           WRITE(6,"(A)") &
            " Error: Using HomCont without fort.12, h., or new-style c. file."
-          STOP
+          CALL AUTOSTOP()
        ENDIF
     ELSE
        LINE=1
@@ -909,7 +911,7 @@ CONTAINS
 2   WRITE(6,"(A,I2,A)") &
          " Error in fort.12 or h. file: ends prematurely on line ",LINE,"."
 3   CLOSE(UNIT=12,STATUS='KEEP')
-    STOP
+    CALL AUTOSTOP()
 
   END SUBROUTINE INHO
 

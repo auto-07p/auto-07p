@@ -309,6 +309,7 @@ CONTAINS
   !       First Edition, Pages 38-43
 
   SUBROUTINE DHHPR ( K, J, N, X, INCX, BETA, V )
+    USE SUPPORT, ONLY: AUTOSTOP
     !     .. Scalar Arguments ..
     INTEGER, INTENT(IN) :: J, K, N, INCX
     DOUBLE PRECISION, INTENT(OUT) :: BETA
@@ -385,15 +386,15 @@ CONTAINS
 
     IF ((K < 1) .OR. (K > J)) THEN
        WRITE (9,*) 'Domain error for K in DHHPR'
-       STOP
+       CALL AUTOSTOP()
     END IF
     IF (J > N) THEN
        WRITE (9,*) 'Domain error for J in DHHPR'
-       STOP
+       CALL AUTOSTOP()
     END IF
     IF (INCX < 1) THEN
        WRITE (9,*) 'Domain error for INCX in DHHPR'
-       STOP
+       CALL AUTOSTOP()
     END IF
 
     !  Number of potential non-zero elements in V.
@@ -445,6 +446,7 @@ CONTAINS
   END SUBROUTINE DHHPR
 
   SUBROUTINE DHHAP ( K, J, N, Q, BETA, V, JOB, A, LDA )
+    USE SUPPORT, ONLY: AUTOSTOP
     !     .. Scalar Arguments ..
     INTEGER, INTENT(IN) :: J, K, N, Q, JOB, LDA
     DOUBLE PRECISION, INTENT(IN) :: BETA
@@ -524,21 +526,21 @@ CONTAINS
 
     IF ((JOB /= 1) .AND. (JOB /= 2)) THEN
        WRITE (9,*) 'Domain error for JOB in DHHAP'
-       STOP
+       CALL AUTOSTOP()
     END IF
     IF ((K < 1) .OR. (K > J)) THEN
        WRITE (9,*) 'Domain error for K in DHHAP'
-       STOP
+       CALL AUTOSTOP()
     END IF
     IF (JOB == 1) THEN
        IF (J > N) THEN
           WRITE (9,*) 'Domain error for J in DHHAP'
-          STOP
+          CALL AUTOSTOP()
        END IF
     ELSE
        IF (J > Q) THEN
           WRITE (9,*) 'Domain error for J in DHHAP'
-          STOP
+          CALL AUTOSTOP()
        END IF
     END IF
 

@@ -23,7 +23,7 @@ compile: $(OBJ)
 ../lib/main.o: main.f90 ../lib/homcont.o ../lib/maps.o ../lib/optimization.o ../lib/parabolic.o ../lib/timeint.o
 	$(FC) $(FFLAGS) $(OPT) -c main.f90 -o $@
 #
-../lib/solvebv.o: solvebv.f90 ../lib/support.o ../lib/mpi.o
+../lib/solvebv.o: solvebv.f90 ../lib/support.o
 	$(FC) $(FFLAGS) $(OPT) -c solvebv.f90 -o $@
 #
 ../lib/interfaces.o: interfaces.f90 ../lib/auto_constants.o
@@ -35,7 +35,7 @@ compile: $(OBJ)
 ../lib/toolboxbv.o: toolboxbv.f90 ../lib/interfaces.o ../lib/bvp.o
 	$(FC) $(FFLAGS) $(OPT) -c toolboxbv.f90 -o $@
 #
-../lib/floquet.o: floquet.f90
+../lib/floquet.o: floquet.f90 ../lib/support.o
 	$(FC) $(FFLAGS) $(OPT) -c floquet.f90 -o $@
 #
 ../lib/homcont.o: homcont.f90 ../lib/toolboxbv.o
@@ -59,13 +59,13 @@ compile: $(OBJ)
 ../lib/timeint.o: timeint.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
-../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/mpi.o ../lib/interfaces.o
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/interfaces.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
 ../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
-../lib/support.o: support.f90 ../lib/mesh.o ../lib/auto_constants.o
+../lib/support.o: support.f90 ../lib/mpi.o ../lib/mesh.o ../lib/auto_constants.o
 	$(FC) $(FFLAGS) $(OPT) -c support.f90 -o $@
 #
 ../lib/io.o: io.f90 ../lib/support.o ../lib/compat.o

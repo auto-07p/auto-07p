@@ -3,7 +3,7 @@
 
       USE AUTOMPI
       USE IO
-      USE SUPPORT, ONLY:AP=>AV, NAMEIDX
+      USE SUPPORT, ONLY:AP=>AV, NAMEIDX, AUTOSTOP
       USE AUTO_CONSTANTS,ONLY: ICU,parnames,AUTOPARAMETERS
 !$    USE OMP_LIB
       USE COMPAT
@@ -22,7 +22,7 @@
        CALL MPIINI()
        IF(MPIIAM()/=0)THEN
          CALL MPIWORKER(AP)
-         STOP
+         ! never returns
        ENDIF
 
        FIRST=.TRUE.
@@ -30,7 +30,7 @@
        IF(ios/=0)THEN
           WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ', &
                'could not be found.'
-          STOP
+          CALL AUTOSTOP()
        ENDIF
 
        KEYS=.FALSE.
@@ -69,7 +69,7 @@
           CALL CLEANUP()
           IF(KEYS)EXIT
        ENDDO
-       CALL MPIEND()
+       CALL AUTOSTOP()
 
  301  FORMAT(/,' Total Time ',E12.3)
 
@@ -117,7 +117,7 @@
          AP%NFPR=NFPR
          IF(.NOT.FOUND) THEN
             WRITE(6,"(' Restart label ',A,' not found')")TRIM(SIRS)
-            STOP
+            CALL AUTOSTOP()
          ENDIF
          AP%NPAR=MAX(NPARR,AP%NPAR)
       ENDIF
@@ -193,7 +193,7 @@
       IF(AP%NTOT==0.AND.MPIIAM()==0)THEN
 !        ** Error in INIT.
          WRITE(6,500)
-         STOP
+         CALL AUTOSTOP()
       ENDIF
 
 ! Error Message.
@@ -286,11 +286,11 @@
          IF(IERR==1)THEN
             WRITE(6,'(A,A,A,I2)')"Unknown AUTO constant ", &
                  STR(1:KEYEND)," on line ",LINE
-            STOP
+            CALL AUTOSTOP()
          ELSEIF(IERR==3)THEN
             WRITE(6,"(A,I2,A)") &
                  " Error in fort.2 or c. file: bad value on line ", LINE,"."
-            STOP
+            CALL AUTOSTOP()
          ENDIF
       ENDDO
 

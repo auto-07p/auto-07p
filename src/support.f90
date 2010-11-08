@@ -13,7 +13,7 @@ IMPLICIT NONE
 PRIVATE
 PUBLIC :: MUELLER, EIG, PI, GESC, GELI, GEL, NLVC, NULLVC, NRMLZ, RNRMV
 PUBLIC :: LBTYPE, CHECKSP, INITSTOPCNTS, STOPPED, FNCS, INIT2, INIT3, NAMEIDX
-PUBLIC :: PVLI, DIRECTION
+PUBLIC :: PVLI, DIRECTION, AUTOSTOP
 PUBLIC :: DTV,AV,P0V,P1V,EVV
  
 DOUBLE PRECISION, ALLOCATABLE, SAVE :: DTV(:),P0V(:,:),P1V(:,:)
@@ -755,7 +755,7 @@ CONTAINS
        READ(NAME,*,IOSTAT=ios)NAMEIDX
        IF(ios/=0)THEN
           WRITE(6,"(A,A,A)")"Name '",TRIM(NAME),"' not found."
-          STOP
+          CALL AUTOSTOP()
        ENDIF
     ENDIF
   END FUNCTION NAMEIDX
@@ -775,7 +775,7 @@ CONTAINS
           WRITE(6,'(A,I5,A,I5)') &
                   "Invalid parameter index ",ICU(I), &
                   " specified in ICP index ",I
-          STOP
+          CALL AUTOSTOP()
        ENDIF
     ENDDO
     ! check active continuation parameters
@@ -786,7 +786,7 @@ CONTAINS
                "Insufficient number of parameters in ICP.", &
                "You specified ",NICP," but need at least ", &
                NFPR-I+1+NICP, " continuation parameters."
-          STOP
+          CALL AUTOSTOP()
        ENDIF
     ENDDO
     NPARI=AP%NPARI
@@ -870,6 +870,12 @@ CONTAINS
     ENDIF
 
   END SUBROUTINE INIT3
+
+  SUBROUTINE AUTOSTOP()
+    USE AUTOMPI, ONLY: MPIEND
+    CALL MPIEND()
+    STOP
+  END SUBROUTINE AUTOSTOP
 
 END MODULE SUPPORT
 

@@ -314,6 +314,7 @@
       SUBROUTINE PVLSI(AP,UPS,NDIM,PAR)
 
       USE AUTO_CONSTANTS, ONLY : NPARX
+      USE SUPPORT, ONLY: AUTOSTOP
 
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER, INTENT(IN) :: NDIM
@@ -328,7 +329,7 @@
       DO i=NPARX,AP%NPAR+1,-1
          IF(PAR(i)/=0)THEN
             WRITE(6,"(A,I4)")'NPAR should be at least ',i
-            STOP
+            CALL AUTOSTOP()
          ENDIF
       ENDDO
 

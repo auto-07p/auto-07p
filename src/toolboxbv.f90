@@ -206,7 +206,7 @@ CONTAINS
 
     USE MESH
     USE AUTO_CONSTANTS, ONLY : DATFILE, PARVALS, parnames
-    USE SUPPORT, ONLY: NAMEIDX
+    USE SUPPORT, ONLY: NAMEIDX, AUTOSTOP
 
 ! Generates a starting point for the continuation of a branch of
 ! of solutions to general boundary value problems by calling the user
@@ -240,7 +240,7 @@ CONTAINS
        ENDIF
        IF(ios/=0)THEN
           WRITE(6,"(A,A,A)")'Datafile ',TRIM(DATFILE),' not found.'
-          STOP
+          CALL AUTOSTOP()
        ENDIF
        NTSR=-1
        DO

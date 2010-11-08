@@ -29,6 +29,7 @@
 
 !$    USE OMP_LIB
       USE AUTOMPI
+      USE SUPPORT, ONLY: AUTOSTOP
 
 ! Sets up and solves the linear equations for one Newton/Chord iteration
 
@@ -92,7 +93,7 @@
       ALLOCATE(NP(KWT))
       IF(KWT.GT.NTST)THEN
         PRINT*,'NTST is less than the number of nodes'
-        STOP
+        CALL AUTOSTOP()
       ELSE
         CALL PARTITION(NTST,KWT,NP)
       ENDIF

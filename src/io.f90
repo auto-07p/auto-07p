@@ -1151,7 +1151,7 @@ CONTAINS
   SUBROUTINE FINDLB(AP,IRS,NFPR,NPAR,FOUND)
 
     USE AUTO_CONSTANTS, ONLY: SIRS, SFILE
-    USE SUPPORT, ONLY: LBTYPE
+    USE SUPPORT, ONLY: LBTYPE, AUTOSTOP
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(INOUT) :: IRS
@@ -1182,7 +1182,7 @@ CONTAINS
     IF(ios/=0)THEN
        WRITE(6,'(A,A)')'The solution file (fort.3 or s. file) ',&
             'could not be found.'
-       STOP
+       CALL AUTOSTOP()
     ENDIF
     I=0
     READ(SIRS,'(A2,I11)',IOSTAT=ios)ATYPE,number
