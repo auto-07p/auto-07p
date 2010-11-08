@@ -26,7 +26,7 @@ compile: $(OBJ)
 ../lib/solvebv.o: solvebv.f90 ../lib/support.o
 	$(FC) $(FFLAGS) $(OPT) -c solvebv.f90 -o $@
 #
-../lib/interfaces.o: interfaces.f90 ../lib/auto_constants.o
+../lib/interfaces.o: interfaces.f90 ../lib/support.o
 	$(FC) $(FFLAGS) $(OPT) -c interfaces.f90 -o $@
 #
 ../lib/toolboxae.o: toolboxae.f90 ../lib/interfaces.o ../lib/ae.o
@@ -59,7 +59,7 @@ compile: $(OBJ)
 ../lib/timeint.o: timeint.f90 ../lib/ae.o
 	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
-../lib/ae.o: ae.f90 ../lib/io.o ../lib/support.o ../lib/interfaces.o
+../lib/ae.o: ae.f90 ../lib/io.o ../lib/interfaces.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
 ../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o
