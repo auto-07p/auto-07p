@@ -505,22 +505,22 @@ class AUTOSolution(UserDict,Points.Pointset):
         for k,v in kw.items():
             self[k] = v
 
-        if par is not None:
-            if self.__start_of_header is not None or self.__fullyParsed:
-                self["PAR"] = par
-                u = self.c.get("U")
-                if u is not None:
-                    self["U"] = u
+        if par is not None and not self.__nodata():
+            self["PAR"] = par
+            u = self.c.get("U")
+            if u is not None:
+                self["U"] = u
+
+    def __nodata(self):
+        return self.__start_of_header is None and not self.__fullyParsed
 
     def __getstate__(self):
         # For pickle: read everything
-        if not self.__fullyParsed and self.__start_of_header is not None:
-            self.__readAll()
+        self.__readAll()
         return Points.Pointset.__getstate__(self)
 
     def __str__(self):
-        if not self.__fullyParsed and self.__start_of_header is not None:
-            self.__readAll()
+        self.__readAll()
         keys = list(self.data)
         for key in ["BR","PT","LAB","TY number","ISW","NTST","NCOL","NDIM",
                     "IPS","IPRIV","NPARI"]:
@@ -543,7 +543,7 @@ class AUTOSolution(UserDict,Points.Pointset):
             if key not in self.data_keys:
                 rep = rep+"%19.10E"%self[key]
                 keys.remove(key)
-        if self.__start_of_header is not None or self.__fullyParsed:
+        if not self.__nodata():
             rep=rep+"\n"+Points.Pointset.__repr__(self)
         for key in keys:
             v = self[key]
@@ -555,7 +555,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                                                           Points.float64]:
                 v = map(str,v)
             rep=rep+"\n"+str(key)+": "+str(v)
-        if self.__start_of_header is not None or self.__fullyParsed:
+        if not self.__nodata():
             rep=rep+"\n"+str(self.PAR)
         return rep
 
@@ -618,7 +618,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         try:
             Points.Pointset.__setitem__(self,key,value)
         except (TypeError, ValueError, KeyError, IndexError):
-            if self.__start_of_header is None and not self.__fullyParsed:
+            if self.__nodata():
                 raise AUTOExceptions.AUTORuntimeError("Unknown option: %s"%key)
             self.PAR[key] = value
 
@@ -627,7 +627,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         if (isinstance(key,str) and key not in self.coordnames and
             key != self.indepvarname and key not in self.__parnames):
             shortkey = self.long_data_keys.get(key,key)
-            if shortkey in big_data_keys and not self.__fullyParsed:
+            if shortkey in big_data_keys:
                 self.__readAll()
             if shortkey in self.data_keys:
                 if shortkey == "TY":
@@ -642,8 +642,7 @@ class AUTOSolution(UserDict,Points.Pointset):
             if not self.__fullyParsed or not key in self.PAR:
                 if key not in self.coordnames:
                     return self.b[key]
-        if not self.__fullyParsed and self.__start_of_header is not None:
-            self.__readAll()
+        self.__readAll()
         if isinstance(key, str):
             try:
                 return Points.Pointset.__getitem__(self,key)
@@ -816,9 +815,6 @@ class AUTOSolution(UserDict,Points.Pointset):
         self.read(input, prev)
         self.__readAll()
 
-    def _setEnd(self,end):
-        self.__end = end
-
     def _getEnd(self):
         return self.__end
 
@@ -877,6 +873,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         self.__start_of_data = inputfile.tell()
         
     def __readAll(self):
+        if self.__fullyParsed or self.__nodata():
+            return
         if not Points.numpyimported:
             Points.importnumpy()        
         fromstring = Points.fromstring
@@ -992,10 +990,11 @@ class AUTOSolution(UserDict,Points.Pointset):
                                        "coordnames": coordnames})
         self.__fullyParsed = True
         self.data.update({"NTST": ntst, "NCOL": ncol, "LAB": 1, "NDIM": ndim})
+        self.__numChangingParameters = 1
         self.PAR = pararray
 
     def __getattr__(self,attr):
-        if self.__start_of_header is None:
+        if self.__nodata():
             raise AUTOExceptions.AUTORuntimeError("Solution without data.")
         if not self.__fullyParsed and attr != "__del__":
             self.__readAll()
@@ -1003,6 +1002,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         raise AttributeError(attr)
 
     def write(self,output,mlab=False):
+        if self.__nodata():
+            return
         try:
             "".encode("ascii") + ""
             def write_enc(s):
@@ -1018,16 +1019,11 @@ class AUTOSolution(UserDict,Points.Pointset):
             npar = len(self["Parameters"])
             ntpl = len(self)
             nrowpr = (ndim//7+1) * ntpl + (npar+6)//7
-            if self.__start_of_header is None:
-                nfpr = 1
-            else:
-                nfpr = self.__numChangingParameters
+            nfpr = self.__numChangingParameters
             if "Active ICP" in self.data:
                 nfpr = len(self.get("Active ICP",[0]))
                 nrowpr += (nfpr+19)//20 + (nfpr+6)//7 + (ndim+6)//7 * ntpl
         else:
-            if self.__start_of_header is None:
-                return
             ndim = self.__numEntriesPerBlock-1
             npar = self.__numFreeParameters
             ntpl = self.__numSValues
@@ -1051,10 +1047,9 @@ class AUTOSolution(UserDict,Points.Pointset):
             line += "%5d%5d%5d%5d" % (self["NPARI"],self["NDIM"],self["IPS"],
                                       self["IPRIV"])
         write_enc(line+os.linesep)
-        # If the file isn't already parsed, and we happen to know the position of
-        # the end of the solution we can just copy from the input file into the
-        # output file or copy from the raw data for ./fort.8.
-        if not self.__fullyParsed and self.__end is not None:
+        # If the file isn't already parsed we can just copy from the input 
+        # file into the output file or copy from the raw data for ./fort.8.
+        if not self.__fullyParsed:
             if self.__input is None:
                 output.write(self.__data)
             else:
