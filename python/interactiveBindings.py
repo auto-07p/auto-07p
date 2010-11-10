@@ -343,8 +343,15 @@ def test():
     adjust_sys_path()
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     _testFilename("../demos/python/tutorial.auto","test_data/tutorial.log")
-    if "DISPLAY" in os.environ:
-        _testFilename("../demos/python/plotter.auto","test_data/plotter.log")
+    try:
+        import Tkinter
+        try:
+            Tkinter.Tk().destroy()
+            _testFilename("../demos/python/plotter.auto","test_data/plotter.log")
+        except Tkinter.TclError:
+            pass
+    except ImportError:
+        pass
 
 def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
