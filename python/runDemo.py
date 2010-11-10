@@ -28,7 +28,7 @@ def test():
     log.close()
     err.close()
     
-    diffopts = ["diff","--ignore-matching-lines='.*Total Time.*'",
+    diffopts = ["diff","-b","--ignore-matching-lines='.*Total Time.*'",
                 "--ignore-matching-lines='.*ab\.o.*'",
                 "--ignore-matching-lines='   [0-9]  .*'"]
     status,output=AUTOutil.getstatusoutput(
