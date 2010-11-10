@@ -319,7 +319,7 @@ def parse(trial_file,epsilon=None, abseps=None, demo=None, html_dir=None,
                 elif len(report_list[i]) > 0:
                     print(" ".join([dct[i]]+report_list[i]))
         print("Please point your web browser to the following URL "
-              "for detailed results:\nfile://%s"%
+              "for detailed results:\nfile:%s"%
               pathname2url(os.path.abspath("verification/index.html")))
     else:
         check_demo(demo,correct_file,trial_file,epsilon,abseps)

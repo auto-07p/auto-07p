@@ -27,7 +27,7 @@ DIR3.sort()
 # Plus new demos
 DIR4=DIR3+["abcb","apbp","c2c","cusp","ffn","fhh","fhn","fnb","fnc","hen",
            "kdv","lcbp","log","man","nep","p2c","pcl","ph1","pla","python",
-           os.path.join("python","n-body"),"r3b","sib",
+           "python/n-body","r3b","sib",
            "snh","sspg","tfc","um2","um3","vhb"]
 DIR4.sort()
 
