@@ -59,7 +59,12 @@ Aliases: demofile dmf"""
     def _demofile(self,name):
         oldname = self.execfilename
         self.execfilename = name
-        lines = open(name,"r")
+        try:
+            f = open(name,"r")
+        except IOError:
+            raise AUTOExceptions.AUTORuntimeError(sys.exc_info()[1])
+        lines = f.readlines()
+        f.close()
         runline = ''
         for line in lines:
             while len(line) > 0 and line[-1] in "\r\n":
@@ -115,6 +120,7 @@ Aliases: demofile dmf"""
             while len(line) > 0 and line[-1] in "\r\n":
                 line = line[:-1]
             source = source + self.processShorthand(line) + "\n"
+        lines.close()
         self.runsource(source,name,"exec")
         self.execfilename = oldname
 
