@@ -30,7 +30,7 @@ def test():
     
     diffopts = ["diff","--ignore-matching-lines='.*Total Time.*'",
                 "--ignore-matching-lines='.*ab\.o.*'",
-                "--ignore-matching-lines='   [0-9]   .*'"]
+                "--ignore-matching-lines='   [0-9]  .*'"]
     status,output=AUTOutil.getstatusoutput(
         diffopts+["log","test_data/runDemo.log"])
     if status != 0:

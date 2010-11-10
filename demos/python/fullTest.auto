@@ -4,8 +4,6 @@
 # (i.e. some of the same functionality can be accomplished
 # with fewer commands).
 
-# Use the non-python syntax to change directories to /tmp
-cd /tmp
 # The next two commands are sent to the shell
 ! rm -rf test
 ! mkdir test

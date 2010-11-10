@@ -5,8 +5,6 @@
 # uses only the problem definition file 'ab.c'
 # and the constant files 'c.ab.1', 'c.ab.2', and 'c.ab.3'
 
-# Use the non-python syntax to change directories to /tmp
-cd /tmp
 # The next two commands are sent to the shell
 ! rm -rf test
 ! mkdir test

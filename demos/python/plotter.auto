@@ -1,8 +1,6 @@
 # This script is a demonstration of some of the plotting
 # capabilities of AUTO 2000
 
-# We begin by going into a temporary directory
-cd /tmp
 # We create a sub directory
 ! rm -rf test
 ! mkdir test

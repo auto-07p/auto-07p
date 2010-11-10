@@ -1,6 +1,5 @@
 Copying demo wav ... done
 Runner configured
-clean.auto
 c.wav
 c.wav.1
 c.wav.2
@@ -8,6 +7,7 @@ c.wav.3
 c.wav.4
 c.wav.5
 c.wav.6
+clean.auto
 plaut04.rc
 wav.auto
 wav.f90

@@ -354,12 +354,13 @@ def _testFilename(inputname,outputname):
     old_path = os.getcwd()
     log = open("log","w")
 
+    os.environ["LANG"]="C"
     console = AUTOInteractiveConsole(AUTOclui.exportFunctions(log=log))
     console.execfile(inputname)
     console.close()
     log.close()
     os.chdir(old_path)
-    cmd = ["diff",
+    cmd = ["diff","-b",
            "--ignore-matching-lines='.*ab\.o.*'",
            "--ignore-matching-lines='.*cir\.o.*'",
            "--ignore-matching-lines='.*wav\.o.*'",
