@@ -51,6 +51,139 @@ class IncorrectHeaderLength(Exception):
 # the header line is this number
 NPAR = 20
 
+class fileS(object):
+    def __init__(self, filename):
+        if isinstance(filename, str):
+            inputfile = AUTOutil.openFilename(filename,"rb")
+        else:
+            inputfile = filename
+        self.inputfile = inputfile
+        self.name = inputfile.name
+        self.solutions = []
+
+        # We now go through the file and read the solutions.
+        prev = None
+        # for fort.8 we need to read everything into memory; otherwise load the
+        # data on demand from disk when we really need it
+        # on Windows always load everything because deleting open files is
+        # impossible there
+        inmemory = (os.path.basename(inputfile.name) == 'fort.8' or
+                    sys.platform in ['cygwin', 'win32'])
+        while len(inputfile.read(1)) > 0:
+            line = inputfile.readline()
+            if not line: raise PrematureEndofData
+            try:
+                header = map(int, line.split())
+            except ValueError:
+                raise PrematureEndofData
+            if len(header) < 10:
+                raise PrematureEndofData
+            if len(header) == 10:
+                # This is the case for AUTO94 and before
+                header = header + [NPAR]
+            numLinesPerEntry = header[8]
+            start_of_data = inputfile.tell()
+            if prev is not None and all(
+                [header[i] == prevheader[i] for i in [4, 6, 7, 8, 11]]):
+                # guess the end from the previous solution
+                end += inputfile.tell() - prev
+                # See if the guess for the solution end is correct
+                inputfile.seek(end)
+                data = inputfile.readline().split()
+                # This is where we detect the end of the file
+                if len(data) == 0:
+                    data = inputfile.read(1)
+                if len(data) != 0:
+                    try:
+                        # Check length of line...
+                        if len(data) != 12 and len(data) != 16:
+                            raise IncorrectHeaderLength
+                        # and the fact they are all integers
+                        map(int,data)
+                        # and the fact that NCOL*NTST+1=NTPL
+                        if int(data[9])*int(data[10])+1 != int(data[6]):
+                            end = None
+                        # If it passes all these tests we say it is a header line
+                        # and we can read quickly
+                    except:
+                        # otherwise the guessed end is not valid
+                        end = None
+            else:
+                end = None
+            data = None
+            if end is None:
+                # We skip the correct number of lines in the entry to
+                # determine its end.
+                inputfile.seek(start_of_data)
+                if inmemory:
+                    data = "".encode("ascii").join([inputfile.readline()
+                                   for i in range(numLinesPerEntry)])
+                else:
+                    for i in range(numLinesPerEntry):
+                        inputfile.readline()
+                end = inputfile.tell()
+            elif inmemory:
+                inputfile.seek(start_of_data)
+                data = inputfile.read(end - start_of_data)
+            else:
+                inputfile.seek(end)
+            if data is None:
+                data = (start_of_data, end)
+            self.solutions.append({'header': header, 'data': data})
+            prev = start_of_data
+            prevheader = header
+
+    def readstr(self, i):
+        solution = self.solutions[i]
+        data = solution['data']
+        if not isinstance(data, tuple):
+            return data
+        start = data[0]
+        end = data[1]
+        self.inputfile.seek(start)
+        solution['data'] = self.inputfile.read(end - start)
+        return solution['data']
+
+    def readfloats(self, i, total):
+        if not Points.numpyimported:
+            Points.importnumpy()       
+        N = Points.N
+        data = self.readstr(i)
+        if isinstance(data, N.ndarray):
+            return data
+        fromstring = Points.fromstring
+        if fromstring:
+            fdata = []
+            if "D" not in data:
+                fdata = fromstring(data, dtype=float, sep=' ')
+            if fdata == [] or len(fdata) != total:
+                fdata = N.array(map(parseB.AUTOatof,
+                                    data.split()), 'd')
+            else:
+                #make sure the last element is correct
+                #(fromstring may not do this correctly for a
+                #string like -2.05071-106)
+                fdata[-1] = parseB.AUTOatof(
+                    data[data.rfind(" ")+1:].strip())
+        else:
+            data = data.split()
+            try:
+                fdata = N.array(map(float, data), 'd')
+            except ValueError:
+                fdata = N.array(map(parseB.AUTOatof, data), 'd')
+        if total != len(fdata):
+            raise PrematureEndofData
+        del self.solutions[i]['data']
+        self.solutions[i]['data'] = fdata
+        return fdata
+
+    def conditionalclose(self):
+        # if everything is in memory, close the file
+        for s in self.solutions:
+            if isinstance(s['data'], tuple):
+                return
+        self.inputfile.close()
+
 # The parseS class parses an AUTO fort.8 file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
 # it provides 4 methods:
@@ -133,11 +266,11 @@ class parseS(list):
             for solution in self:
                 solution.read()
             return
-        prev = None
-        while len(inputfile.read(1)) > 0:
-            solution = AUTOSolution(inputfile,prev,inputfile.name)
+        if not isinstance(inputfile, fileS):
+            inputfile = fileS(inputfile)
+        for i in range(len(inputfile.solutions)):
+            solution = AUTOSolution(inputfile,i,inputfile.name)
             self.append(solution)
-            prev = solution
         if len(self) > 0:
             mbr, mlab = 0, 0
             for d in self:
@@ -158,10 +291,9 @@ class parseS(list):
         output.flush()
 
     def readFilename(self,filename):
-        inputfile = AUTOutil.openFilename(filename,"rb")
+        inputfile = fileS(filename)
         self.read(inputfile)
-        if os.path.basename(filename) == 'fort.8':
-            inputfile.close()
+        inputfile.conditionalclose()
         # else don't close but garbage collect
 
     def writeFilename(self,filename,append=False,mlab=False):
@@ -441,7 +573,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         "TY name": "TY",
         "Label": "LAB"}
 
-    def __init__(self,input=None,offset=None,name=None,t=None,**kw):
+    def __init__(self,input=None,index=None,name=None,t=None,**kw):
         if isinstance(input,self.__class__):
             for k,v in input.__dict__.items():
                 self.__dict__[k] = v
@@ -449,10 +581,8 @@ class AUTOSolution(UserDict,Points.Pointset):
         else:
             UserDict.__init__(self)
             self.c = None
-            self.__start_of_header = None
-            self.__start_of_data   = None
-            self.__end             = None
-            self.__fullyParsed     = False
+            self.__input          = None
+            self.__fullyParsed    = False
             self._dims            = None
             self._mbr             = 0
             self._mlab            = 0
@@ -465,7 +595,9 @@ class AUTOSolution(UserDict,Points.Pointset):
             self.__parnames = []
 
             if isinstance(input,(file,gzip.GzipFile)):
-                self.read(input,offset)
+                input = fileS(input)
+            if isinstance(input,fileS):
+                self.read(input,index)
             elif input is not None:
                 self.__readarray(input,t)
         self.update(**kw)
@@ -512,7 +644,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 self["U"] = u
 
     def __nodata(self):
-        return self.__start_of_header is None and not self.__fullyParsed
+        return self.__input is None and not self.__fullyParsed
 
     def __getstate__(self):
         # For pickle: read everything
@@ -717,15 +849,14 @@ class AUTOSolution(UserDict,Points.Pointset):
         return runAUTO.runAUTO(selected_solution=self.load(**kw)).run()
 
     def readAllFilename(self,filename):
-        inputfile = AUTOutil.openFilename(filename,"rb")
+        inputfile = fileS(filename)
         self.readAll(inputfile)
         inputfile.close()
 
     def readFilename(self,filename):
-        inputfile = AUTOutil.openFilename(filename,"rb")
+        inputfile = fileS(filename)
         self.read(inputfile)
-        if self.__input is None:
-            inputfile.close()
+        inputfile.conditionalclose()
         # else don't close the input file but garbage collect
 
     def writeFilename(self,filename,mlab=False):
@@ -751,180 +882,64 @@ class AUTOSolution(UserDict,Points.Pointset):
             output.write(s%((self.indepvararray[i],)+
                             tuple(self.coordarray[:,i]))+"\n")
             
-    def read(self, input=None, prev=None):
-        if input is None:
+    def read(self, inputfile=None, index=0):
+        if inputfile is None:
             # read data into memory
-            if not self.__fullyParsed and self.__input is not None:
-                input = self.__input
-                input.seek(self.__start_of_data)
-                self.__data = input.read(self.__end - self.__start_of_data)
-                self.__input = None
+            self.__input.readstr(self.__index)
+            self.__input.conditionalclose()
             return
-        # for fort.8 we need to read into self.__data; otherwise load the
-        # data on demand from disk when we really need it
-        self.__input = None
-        if os.path.basename(input.name) != 'fort.8':
-            self.__input = input
-        if prev is None:
-            self.__start_of_header = 0
-        else:
-            self.__start_of_header = prev._getEnd()
-        self.__readHeader(input)
-        end = None
-        if not prev is None and self.__equalSize(prev):
-            # guess the end from the previous solution
-            end = input.tell() + prev._getEnd() - prev._getStartOfData()
-            # See if the guess for the solution end is correct
-            input.seek(end)
-            data = input.readline()
-            data = data.split()
-            # This is where we detect the end of the file
-            if len(data) == 0:
-                data = input.read(1)
-            if len(data) != 0:
-                try:
-                    # Check length of line...
-                    if len(data) != 12 and len(data) != 16:
-                        raise IncorrectHeaderLength
-                    # and the fact they are all integers
-                    map(int,data)
-                    # and the fact that NCOL*NTST+1=NTPL
-                    if int(data[9])*int(data[10])+1 != int(data[6]):
-                        end = None
-                    # If it passes all these tests we say it is a header line
-                    # and we can read quickly
-                except:
-                    # otherwise the guessed end is not valid
-                    end = None
-        if end is None:
-            # We skip the correct number of lines in the entry to
-            # determine its end.
-            input.seek(self.__start_of_data)
-            slist = [input.readline() for i in range(self.__numLinesPerEntry)]
-            if self.__input is None:
-                self.__data = "".encode("ascii").join(slist)
-            end = input.tell()
-        elif self.__input is None:
-            input.seek(self.__start_of_data)
-            self.__data = input.read(end - self.__start_of_data)
-        else:
-            input.seek(end)
-        self.__end = end
+        if not isinstance(inputfile, fileS):
+            inputfile = fileS(inputfile)
+        self.__input = inputfile
+        self.__index = index
+        self.__readHeader()
     
-    def readAll(self, input=None, prev=None):
-        self.read(input, prev)
+    def readAll(self, inputfile):
+        self.read(inputfile)
         self.__readAll()
 
-    def _getEnd(self):
-        return self.__end
+    def __readHeader(self):
+        header = self.__input.solutions[self.__index]['header']
+        self.indepvarname = 't'
+        self.__numEntriesPerBlock = header[7]
+        ndim = self.__numEntriesPerBlock-1
+        if ndim < len(self.coordnames):
+            self.coordnames = self.coordnames[:ndim]
+        for i in range(len(self.coordnames),
+                       self.__numEntriesPerBlock-1):
+            self.coordnames.append("U(%d)"%(i+1))
 
-    def _getStartOfData(self):
-        return self.__start_of_data
-
-    def __equalSize(self,other):
-        return (
-            self.__numEntriesPerBlock == other.__numEntriesPerBlock and
-            self.__numFreeParameters == other.__numFreeParameters and
-            self.__numChangingParameters == other.__numChangingParameters and
-            self.__numSValues == other.__numSValues)
-
-    def __readHeader(self,inputfile):
-        inputfile.seek(self.__start_of_header)
-        line = inputfile.readline()
-        if not line: raise PrematureEndofData
-        data = line.split()
-        try:
-            self.indepvarname = 't'
-            self.__numEntriesPerBlock = int(data[7])
-            ndim = self.__numEntriesPerBlock-1
-            if ndim < len(self.coordnames):
-                self.coordnames = self.coordnames[:ndim]
-            for i in range(len(self.coordnames),
-                           self.__numEntriesPerBlock-1):
-                self.coordnames.append("U(%d)"%(i+1))
- 
-            self["BR"] = int(data[0])
-            self["PT"] = int(data[1])
-            self["TY number"] = int(data[2])
-            self["LAB"] = int(data[3])
-            self.__numChangingParameters = int(data[4])
-            self["ISW"] = int(data[5])
-            self.__numSValues = int(data[6])
-            self.__numLinesPerEntry = int(data[8])
-            self["NTST"] = int(data[9])
-            self["NCOL"] = int(data[10])
-            self["NPARI"] = 0
-            self["NDIM"] = 0
-            self["IPS"] = None
-            self["IPRIV"] = 0
-            if len(data)>=12:
-                # This is the case for AUTO97 and beyond
-                self.__numFreeParameters = int(data[11])
-                if len(data)>=16:
-                    self["NPARI"] = int(data[12])
-                    self["NDIM"] = int(data[13])
-                    self["IPS"] = int(data[14])
-                    self["IPRIV"] = int(data[15])
-            else:
-                # This is the case for AUTO94 and before
-                self.__numFreeParameters = NPAR
-        except IndexError:
-            raise PrematureEndofData
-        self.__start_of_data = inputfile.tell()
+        self.update({"NPARI": 0, "NDIM": 0, "IPS": None, "IPRIV": 0})
+        for i, key in enumerate(["BR", "PT", "TY number", "LAB", "",
+                                 "ISW", "", "", "", "NTST",
+                                 "NCOL", "", "NPARI", "NDIM", "IPS",
+                                 "IPRIV"]):
+            if key and i < len(header):
+                self[key] = header[i]
+        self.__numChangingParameters = header[4]
+        self.__numSValues = header[6]
+        self.__numLinesPerEntry = header[8]
+        self.__numFreeParameters = header[11]
         
     def __readAll(self):
         if self.__fullyParsed or self.__nodata():
             return
         if not Points.numpyimported:
-            Points.importnumpy()        
+            Points.importnumpy()
         fromstring = Points.fromstring
         N = Points.N
         self.__fullyParsed = True
         n = self.__numEntriesPerBlock
-        total = n * self.__numSValues + self.__numFreeParameters
-        nlinessmall = (((n-1)/7+1) * self.__numSValues +
-                       (self.__numFreeParameters+6)/7)
-        if self["NTST"] != 0 and self.__numLinesPerEntry > nlinessmall:
-            total += (2 * self.__numChangingParameters +
-                      (n-1) * self.__numSValues)
-        solution = []
-        j = 0
         nrows = self.__numSValues
-        if self.__input is None:
-            sdata = self.__data
-            del self.__data
-        else:
-            input = self.__input
-            input.seek(self.__start_of_data)
-            sdata = input.read(self.__end - self.__start_of_data)
-            self.__input = None
-
-        if fromstring:
-            fdata = []
-            if "D" not in sdata:
-                fdata = fromstring(sdata, dtype=float, sep=' ')
-            if fdata == [] or len(fdata) != total:
-                fdata = N.array(map(parseB.AUTOatof,
-                                    sdata.split()), 'd')
-            else:
-                #make sure the last element is correct
-                #(fromstring may not do this correctly for a
-                #string like -2.05071-106)
-                fdata[-1] = parseB.AUTOatof(
-                    sdata[sdata.rfind(" ")+1:].strip())
-        else:
-            data = sdata.split()
-            try:
-                fdata = N.array(map(float, data), 'd')
-            except ValueError:
-                fdata = N.array(map(parseB.AUTOatof, data), 'd')
-        if total != len(fdata):
-            raise PrematureEndofData
+        total = n * nrows + self.__numFreeParameters
+        nlinessmall = (((n-1)/7+1) * nrows + (self.__numFreeParameters+6)/7)
+        if self["NTST"] != 0 and self.__numLinesPerEntry > nlinessmall:
+            total += 2 * self.__numChangingParameters + (n-1) * nrows
+        fdata = self.__input.readfloats(self.__index, total)
         ups = N.reshape(fdata[:n * nrows],(nrows,n))
         self.indepvararray = ups[:,0]
         self.coordarray = N.transpose(ups[:,1:])
-        del sdata
-        j = j + n * nrows
+        j = n * nrows
 
         # Check if direction info is given
         if self["NTST"] != 0 and self.__numLinesPerEntry > nlinessmall:
@@ -1047,15 +1062,10 @@ class AUTOSolution(UserDict,Points.Pointset):
             line += "%5d%5d%5d%5d" % (self["NPARI"],self["NDIM"],self["IPS"],
                                       self["IPRIV"])
         write_enc(line+os.linesep)
-        # If the file isn't already parsed we can just copy from the input 
-        # file into the output file or copy from the raw data for ./fort.8.
+        # If the file isn't already parsed, we can just copy from the input
+        # file into the output file
         if not self.__fullyParsed:
-            if self.__input is None:
-                output.write(self.__data)
-            else:
-                input = self.__input
-                input.seek(self.__start_of_data)
-                output.write(input.read(self.__end - self.__start_of_data))
+            output.write(self.__input.readstr(self.__index))
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
@@ -1166,12 +1176,3 @@ def test():
 
 if __name__ == '__main__' :
     test()
-
-
-
-
-
-
-
-
-
