@@ -363,14 +363,15 @@ def _testFilename(inputname,outputname):
            "--ignore-matching-lines='.*ab\.o.*'",
            "--ignore-matching-lines='.*cir\.o.*'",
            "--ignore-matching-lines='.*wav\.o.*'",
-           "--ignore-matching-lines='   [0-9][0-9 ]   .*'",
+           "--ignore-matching-lines='   [0-9][0-9 ]  .*'",
            "--ignore-matching-lines='Finished running:.*'",
-           "--ignore-matching-lines='.*Location of special point.*",
+           "--ignore-matching-lines='.*Location of special point.*'",
            "--ignore-matching-lines='[uU]sing .*'",
            "--ignore-matching-lines='.*Total Time.*'","log",outputname]
-    status = AUTOutil.getstatusoutput(cmd)[0]
+    status, output = AUTOutil.getstatusoutput(cmd)
     if status != 0:
-        raise AUTOExceptions.AUTORegressionError("Error: log files differ")
+        raise AUTOExceptions.AUTORegressionError(
+            "Error: log files differ:\n%s"%output)
     os.system("rm -f log")
 
 def autoipython(funcs):
