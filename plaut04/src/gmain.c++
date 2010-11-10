@@ -135,7 +135,7 @@ static SoSeparator * addLegend();
 
 static SoSeparator * drawStarryBackground(char * bgFileName);
 
-static int readResourceParameters();
+static int readResourceParameters(const char *dir);
 
 #if 0
 static void processPrinting(char* filename );
@@ -1583,7 +1583,7 @@ fortranatof(char* word)
 //    If it does not exist, just return and use default values.
 //
 int
-readResourceParameters()
+readResourceParameters(const char *dir)
 //
 ///////////////////////////////////////////////////////////////////
 {
@@ -1599,6 +1599,14 @@ readResourceParameters()
     else
         file = "r3bplaut04.rc";
     std::ifstream inFile(file);
+
+    if (!inFile && dir)
+    {
+        std::string resource = dir;
+        resource += "/";
+        resource += file;
+        inFile.open(resource.c_str());
+    }
 
     if (!inFile)
     {
@@ -2119,6 +2127,7 @@ main(int argc, char *argv[])
 // only if the s.xxx file does not exist or the system fails to read it.
 
     char **pargv = argv;
+    char *dir = 0;
     int argcleft = argc - 1;
     std::string sFileName, bFileName, dFileName;
 
@@ -2144,6 +2153,7 @@ main(int argc, char *argv[])
             sFileName = *pargv;
             bFileName = *pargv;
             dFileName = *pargv;
+	    dir = *pargv;
             pargv++;
             argcleft--;
             sFileName += "/";
@@ -2204,7 +2214,7 @@ main(int argc, char *argv[])
 
     setVariableDefaultValues();
 
-    readResourceParameters();
+    readResourceParameters(dir);
 
     readSolutionAndBifurcationData(true, sFileName, bFileName, dFileName);
 

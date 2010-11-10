@@ -1700,11 +1700,19 @@ def plot3(name=None,r3b=False):
     sys.stdout.flush()
     if not os.path.exists(cmd):
         cmd = cmd + '.exe'
-    os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
-    if sys.stdout is not sys.__stdout__:
-        # when testing, wait a little bit
+    if sys.stdout is sys.__stdout__:
+        os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd)] + arg)
+    else:
+        # when testing, change directories so plaut04 does not keep
+        # cwd open on Windows and it can be deleted
+        cwd = os.getcwd()
+        os.chdir(os.path.dirname(cmd))
+        os.spawnv(os.P_NOWAIT,cmd,[os.path.basename(cmd), cwd] + arg)
+        # and  wait a little bit
+        os.chdir(cwd)
         import time
         time.sleep(2)
+        
 commandPlotter3D = command(plot3,alias=['p3'])
 
 
