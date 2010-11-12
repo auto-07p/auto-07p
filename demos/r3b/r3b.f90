@@ -68,7 +68,7 @@
    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
 
    DOUBLE PRECISION GETP,rmu,x,y,z,xp,yp,zp,d1,d2,EU,E,realfm,imagfm,ncmplx
-   DOUBLE PRECISION routh
+   DOUBLE PRECISION routh,pi
    INTEGER i,j
 
    rmu = PAR(2)
@@ -121,6 +121,7 @@
    PAR(5) = 0
    PAR(6) = 0
    PAR(7) = 0
+   pi = 4*ATAN(1d0)
    DO i=1,NDIM
       imagfm = GETP('EIG',I*2,U)
       IF (imagfm > 1d-5) THEN
@@ -128,7 +129,7 @@
          routh = 0.5d0*(1d0-sqrt(69d0)/9d0)
          ! above Routh's ratio we have one period for L4/L5, otherwise 3.
          IF (ABS(realfm) < EPSILON(1d0) .OR. rmu < routh .OR. ABS(y) < 0.1) THEN
-            PAR(4+j) = imagfm
+            PAR(4+j) = 2*pi/imagfm            
             j=j+1
          ENDIF
       ENDIF

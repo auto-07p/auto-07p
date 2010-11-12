@@ -3,27 +3,26 @@
 # AUTO Demo r3b
 #==============
 
-import os,compute_lps
+# mass ratio
+mu = 0.063
 
-print "\n***Compute s.start"
-if os.path.exists('s.start'):
-    start=loadbd(s='start')
-else:
-    start=compute_lps.compute()
-[HBL1,HBV1] = start('HB')[:2]
+print "\n***Compute libration points"
+r1=run('r3b',UZR={2:mu})
+import compute_lps
+compute_lps.write_lagrange(r1)
 
 print "\n***Lagrange family L1***"
-L1=run(HBL1,e='r3b',c='r3b.L1')
-sv(rl(L1),'L1')
+L1=run(r1('UZ7'),c='r3b.L1')
+save(relabel(L1),'L1')
 
 print "\n***Halo family H1***"
 H1=run(L1('BP1'),c='r3b.H1')
-sv(rl(H1),'H1')
+save(relabel(H1),'H1')
 
 print "\n***Vertical family V1***"
-V1=run(HBV1,e='r3b',c='r3b.V1')
-sv(rl(V1),'V1')
+V1=run(r1('UZ7'),e='r3b',c='r3b.V1')
+save(relabel(V1),'V1')
 
 print "\n***Clean the directory***"
-cl()
+clean()
 
