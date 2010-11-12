@@ -240,7 +240,7 @@
       NMX  = 0
       NPR  = 0
       MXBF = 10
-      IIS  = 2
+      IIS  = 3
       IID  = 2
       ITMX = 9
       ITNW = 5
