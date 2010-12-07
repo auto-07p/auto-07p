@@ -699,11 +699,11 @@
                      IAMAX(K)= NOV+IDAMAX(NRA-NOV,A(NOV+1,K,J),1)
                   ENDDO
                   CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,   &
-                       C(1,1,J),DD(1,1,J),FA(1,J),FCFC(1,J),           &
+                       C(1,1,J),DD(1,1,I+J-1),FA(1,J),FCFC(1,I+J-1),   &
                        IRF(1,J),ICF(1,J),IAMAX,NLLV)
                ELSEIF(NLLV==0)THEN
                   CALL CONRHS(NOV,NRA,NCA,A(1,1,J),NRC,                &
-                       C(1,1,J),FA(1,J),FCFC(1,J),IRF(1,J))
+                       C(1,1,J),FA(1,J),FCFC(1,I+J-1),IRF(1,J))
                ENDIF
             ENDDO
             DEALLOCATE(IAMAX)
