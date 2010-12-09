@@ -35,12 +35,17 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE AUTOHO(AP,ICP,ICU)
 
+    USE AUTOMPI, ONLY : MPIIAM
+
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(INOUT) :: ICP(:)
     INTEGER, INTENT(IN) :: ICU(:)
 
     ! Redefine AUTO constants for homoclinic orbits
-    CALL INHO(AP,ICP)
+    ! (only on the first node for MPI)
+    IF(MPIIAM()==0)THEN
+       CALL INHO(AP,ICP)
+    ENDIF
     AP%NFPR=AP%NBC+AP%NINT-AP%NDIM+1
 
     CALL AUTOBV(AP,ICP,ICU,FNHO,BCHO,ICHO,STPNHO,FNCSHO)

@@ -47,6 +47,7 @@ subroutine mpiini()
     call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     if(message_type /= AUTO_MPI_INIT_MESSAGE)then
        print *,'Fatal: no init message, message received: ', message_type
+       call MPI_Finalize(ierr)
        stop
     endif
  endif
