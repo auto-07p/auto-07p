@@ -31,6 +31,7 @@ class plotter(grapher.GUIGrapher):
         optionDefaults["bifurcation_coordnames"] = (None,self.__optionCallback)
         optionDefaults["solution_indepvarname"]  = (None,self.__optionCallback)
         optionDefaults["solution_coordnames"]    = (None,self.__optionCallback)
+        optionDefaults["labelnames"]             = (None,self.__optionCallback)
         # Sets of labels that the user is likely to want to use
         optionDefaults["label_defaults"]   = (None,self.__optionCallback)
         # Sets of columns that the user is likely to want to use
@@ -187,11 +188,12 @@ class plotter(grapher.GUIGrapher):
         elif (option[-2:] in ['_x','_y','_z'] or
               option[-9:] == "_defaults" or
               option[-11:] == "_coordnames" or
-              option in ["label","index","dashes"] or
+              option in ["label","index","dashes","labelnames"] or
               (option[0] == 'd' and len(option) == 2)):
             # convert to list, quote args if not numbers,
             # then use the same method as for constant files
-            if option[0] == 'd' and len(option) == 2:
+            if ((option[0] == 'd' and len(option) == 2) or
+                option == "labelnames"):
                 brackets = ['{']
                 sep = [',',':']
             else:
@@ -203,7 +205,8 @@ class plotter(grapher.GUIGrapher):
                 if len(v) > 0 and v[-1] == endbracket:
                     v = v[:-1]
             v = self.parselist(option,v,c,sep)
-            if option[0] == 'd' and len(option) == 2:
+            if ((option[0] == 'd' and len(option) == 2) or
+                option == "labelnames"):
                 v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
         else: # simple value
             try:
@@ -402,6 +405,13 @@ class plotter(grapher.GUIGrapher):
             coordnames.extend(parsecoordnames[len(coordnames):])
         self._coordnames = coordnames
 
+        # construct translation dictionary for unames/parnames in autorc
+        labelnames = self.cget("labelnames") or {}
+        for key in list(labelnames):
+            for prefix in "MIN ", "MAX ", "INTEGRAL ", "L2-NORM ":
+                if prefix+key not in labelnames:
+                    labelnames[prefix+key] = prefix+labelnames[key]
+
         # construct titles
         names = [["Error"],["Error"]]
         lx = len(xcolumns)
@@ -436,7 +446,7 @@ class plotter(grapher.GUIGrapher):
                                                     col != indepvarname):
                         print("Unknown column name: %s"%(col))
                         col = "Error"
-                    names[j].append(col)
+                    names[j].append(labelnames.get(col, col))
 
         # translate xcolumns/ycolumns to use parsed coordnames
         ucoordnames = self.cget(ty+"_coordnames") or []
