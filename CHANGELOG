@@ -1,3 +1,299 @@
+0.8.0:
+* Main AUTO:
+  - Support for codimension-two bifurcations:
+    - Add support for detecting Generalized-Hopf/Bautin (GH), Bogdanov-Takens
+      (BT), Zero-Hopf (ZH), and Cusp (CP) bifurcations in algebraic systems
+      along Hopf (HB) and fold (LP) curves.
+    - Add support for detection of 1:1 (R1), 1:2 (R2), 1:3 (R3), and 1:4 (R4)
+      resonances for limit cycles and maps along fold (LP), period-doubling (PD)
+      and torus (TR) curves.
+    - Add support for detection of fold-flip (LPD), fold-torus (LTR), and
+      flip-torus (PTR), bifurcations for maps along LP, PD, and TR curves.
+  - Improved support for maps:
+    - Display PD or TR instead of HB for period-doubling and Neimark-Sacker
+      bifurcations.
+    - Implement branch switching at period-doubling bifurcations for maps.
+      The discrete period is taken from PAR(11). Maps are then iterated n times
+      and the derivatives are determined from the basic derivatives using the
+      chain rule.
+    - PD continuation for maps now uses a smaller system (2n+1 dim), similar to
+      folds.
+  - Improved support for waves (IPS=11,12):
+    - Fix continuation of Hopf bifurcations.
+    - Period doublings with ISW=-1 are now possible..
+    - Permit continuation of PD/LP/TR/BP, where applicable.
+    - Don't change IPS anymore for waves but check explicitly for 11 or 12
+      instead.
+  - AUTO constants:
+    - Use JAC=-1 if you only specify the function derivatives (DFDU) without
+      parameter derivatives (DFDP) in equation files.
+    - Let IID=0 produce no diagnostic output.
+    - Introduce new AUTO constant IIS to optionally add no direction information
+      to solution files to save space:
+      IIS=0 no directions in s files.
+      IIS=1 only directions for LP(BVP),BP,PD,TR
+      IIS=2 for all points except RG
+      IIS=3 everywhere
+    - New: LAB=n starts with label n
+    - New: IBR=n starts with branch n
+    - New: TY='HB4' redefines type of restart label to be a Hopf bifurcation
+      with period in PAR(4).    
+    - New: UZSTOP, like UZR but stops, to avoid minus signs in the UZR lists.
+    - Change default values of NMX and NPR to 0.
+  - Changed the Hopf/Neimark-Sacker bifurcation following algorithm to use a
+    reduced standard augmented system. (2n+2 instead of 3n+2, see Kuznetsov,
+    3rd ed., (10.80)).
+    This makes it possible to detect BT bifurcations on Hopf curves;
+    the algorithm is forced to stop there.
+    The Hopf phase condition was replaced by a symmetric expression that
+    approximates the previously used phase condition.
+  - Added support for computing the first Lyapunov coefficient for Hopf
+    bifurcations to detect GH bifs and print supercritical/subcritical
+    information in diagnostics file.
+  - Avoid calculating derivatives numerically when possible for HB, LP, PD, TR,
+    and HomCont continuations to improve accuracy and performance.
+    Note (esp. for HomCont) that equation files now need parameter derivatives
+    with JAC=1; use JAC=-1 if only variable derivatives are present.
+    Existing demos were adjusted.
+  - Reorganized test function zero detection:
+    - Merged individual bifurcation checks into a loop.
+    - FNCS is no longer a dummy procedure; the variable ITEST determines the
+      test function that is used. This allows for the removal of many unused
+      arguments. Also eliminate IAP(26) for IUZR.
+    - Do not try to find a special point after non-convergence.
+      Adjust ITP while looking for a special point where appropriate.
+    - Correct mid-value given to Mueller's method in special point locators:
+      RDS can be changed by STEPBV/STEPAE so needs to be added to the right-hand
+      value S1 after instead of before calling it.
+    - Modified the special point locators to be more accurate:
+      * if Newton iterations do not converge, revert to the previous converged
+        state and report "possible special point"
+      * try all special points: do not report one or disable other types
+        as soon as one is found
+      * recompute test functions if the locator has changed UPS through
+        STEPAE/STEPBV, using STEPPED and ISTEPPED variables.
+      * some demos now report new labels (pp3, sib, tfc, tor)
+    - Change Mueller's method to avoid loss of significance, by multiplying
+      -c+r by (-c-r)/(-c-r) and evaluating the result manually.
+    - Completely recover the previous state if a special point is not found.
+    - Added some logic to deal with multiple test functions becoming zero at
+      a special point. Make explicit that "first come, first served" except for
+      a few exceptions.
+  - Do not transpose DFDU in inner loop because it destroys the assumed zeros
+    that can be skipped in the user's FUNC.
+  - Detect overflows for PAR(*) with respect to NPAR after calling PVLS.
+    PAR(*) always has at least NPARX elements.
+  - Only print and use the basic Floquet multipliers for BP/LP/PD/TR
+    continuations of limit cycles. For this, NULLVC needs to return the pivot
+    rows, so a set of independent rows can be found for parts of the monodromy
+    matrix factors.
+  - Reorganized the linear solver so the algorithm works independently
+    of the parallellization so results are identical independent of the number
+    of processors used.
+  - Fix GETP for the step size, that is, GETP('STP',0,U).
+  - Sort purely imaginary eigenvalues for conservative systems returned
+    by GETP('EIG',...) by imaginary part.
+  - Fix stability information for last point on curve.
+  - Improve torus bifurcation initialiation by using the correct sin/cos
+    functions.
+  - Move the torus angle back to PAR(12) so it can be explicitly specified in
+    ICP and monitored that way.
+  - Use consistent sign for branch direction also when switching branches,
+    not just for normal branches.
+  - If the parameter direction is close to zero when starting a new
+    branch, look at the other parameters and coordinates instead to
+    find a positive direction. This should make branch directions
+    unique in most cases across architectures.
+  - Physically swap columns and rows in Gauss elimination routines.
+  - Do not write a space before the header line on standard output.
+  - Update lapack routines to v 3.2.2.
+    Change DGESVJ to not divide by zero for zero columns.
+  - Use a derived type (AUTOPARAMETERS) AP instead of IAP and RAP.
+  - To makes the reduction algorithm in the linear solver more elegant,
+    replaced part of the role of S1 by A1.
+  - Reorganization of source code with toolboxes:
+    - Renamed autlib1.f to main.f90, autlib2.f to solvebv.f90, 
+      autlib4.f to floquet.f90, and autlib5.f to homcont.f90.
+    - Split general bvp interface routines from autlib3.f & bvp.f90 into
+      toolboxbv.f90.
+    - Split off equilibrium (equilibrium.f90), map (maps.f90), periodic
+      solution (periodic.f90), optimization (optimization.f90), and
+      parabolic PDE routines (parabolic.f90) from autlib3.f.
+    - Do allocation of PAR, THU, THL, IUZ, and VUZ arrays later to reduce the
+      number of parameters passed.
+    - Moved function dispatchers to toolboxes.
+    - Moved "redefinition of constants" to toolboxes.
+    - Introduced AP%NTEST, which can be set in the toolboxes, to replace
+      AP%NUZR+xx.
+    - Renamed UZR to TEST and IUZR to ITEST to clarify that this array is used
+      for all test functions and not just user-defined ones.
+    - Renamed PVLI to FNCI to provide a generic test function interface.
+      Called with ITEST=0 it calls PVLS.
+    - Adjusted MPI to work with changed toolbox interface.
+      Transferred AP structure directly with MPI.
+  - MPI improvements:
+    - Only send parts of a1, a2, s1, bb, cc, and faa from workers to master that
+      are needed. This speeds up the MPI parallel code significantly.
+      Let MPI send and receive matrix parts in a recursive fashion on demand.
+      This makes the nested dissection work more in parallel with less
+      communication.
+      Example: reduction for NTST=8, 4 CPUs.
+      CPU  0   1   2   3
+      1.  12  34  56  78, CPU1 sends 4 to CPU0, CPU3 sends 8 to CPU2.
+      2.  24      68    , CPU2 sends 8 to CPU0
+      3.  48
+      This sequence is similar to the sequence documented for AUTO94P but
+      reversed in this way: AUTO94P used:
+      CPU  0   1   2   3
+      1.  12  34  56  78, CPU0 sends 2 to CPU1, CPU2 sends 6 to CPU3.
+      2.      24      68, CPU1 sends 4 to CPU3
+      3.              48
+      The new way has the advantage that all non-parallel processing is
+      done in the master, CPU0.
+    - Make MPI work with HomCont. A few more MPI adjustments to print better
+      error messages.
+    - Replace STOP by CALL AUTOSTOP, to give MPI a chance to cleanly finish.
+* PyPLAUT:
+  - Introduced new boolean "letter_symbols" option to use letters for symbols
+    (like in plot()) or not (like in @pp).
+  - Add "labelnames" plotter option for autorc, so we can do
+    labelnames={"U(1)":"$x",PAR(1):"$p"}.
+  - Improve handing of margins and font sizes in matplotlib plotter.
+  - Allow symbol sizes using "circle5" etc.
+  - Changed the bifurcation/solution selector to radiobutton style.
+  - Uses Pmw's RadioSelect and MainMenuBar widgets.
+* PLAUT04:
+  - Add an option to plot by branch ID instead of sequential branch.
+    Coloring method -4 now correspond to "CURV" and -7 to "BRAN".
+  - New plaut04 option: R3B=Yes to switch on R3B mode. Used by the r3b demo so
+    that @pl works.
+  - Made r3bplaut04 a run-time option instead of a separate binary,
+    ie. "plaut04 -r3b".
+  - Removed some arbitrary limits on the number of parameters and labels in
+    files that are plotted.
+  - When testing PLAUT04, change directories to allow the current directory
+    to be deleted on Windows. Get plaut04.rc from the specified directory
+    in PLAUT04.
+* Python:
+  - Drop Python 2.2 compatibility. Python 2.3 is the new minimum.
+  - Let writeRaw/writeRawFilename use the coordarray and indepvararray
+    structures directly, to be much faster.
+  - Fix dlb/klb/deleteLabel with function argument across multiple branches.
+  - Added error messages if the length of the produced fort.7 file is 0 or
+    you try to run AUTO with an empty solution list or bifurcation diagram.
+  - Add more diagnostics for run() with wrong IRS or missing equation file
+    argument. Fix online help in a few places.
+  - The global runner is now used to always keep the current constants and
+    solution data, so that run() always repeats the latest run, run(DS='-')
+    reverts, etc.
+    load() with a non-keyword argument now always resets the current constants.
+    But handle "unames", "parnames", "e", "homcont", "auto_dir"
+    as special keys for parseC objects: they are not overwritten when a new
+    constants file is read without such keys.
+  - Make the global runner local to the current auto environment.
+    Mainly this is to let auto('foo.auto') use a clean state.
+  - Reset current solution if IRS=0.
+  - Remove unused kw argument from parseS' read() and readFilename() methods.
+  - Simplified log and err redirection system by having only one interface:
+    log and err need to be objects with write() and flush() methods; if None
+    (the default), stdout and stderr are used.
+    Be able to redirect ls and cat so the tests can see everything on
+    sys.stdout.err & log now affect sys.stdout and sys.stderr so we can capture
+    print statements from AUTO scripts as well.
+  - Use an open file so we only read headers using sl('name'). When writing
+    the file, everything is read into memory to avoid overwriting.
+  - Reorganize parseS to keep track of when the s-file if fully read so
+    it can be closed. Always read the file completely on Windows.
+  - Explicitly close auto script files after reading them.
+  - Branches in bifurcation diagrams can now deal with solutions using the ()
+    notation, and will write solutions and diagnostics.
+    Functional notation for deleting labels is generalized to apply to any
+    () notation, to select labels for solution lists of bifurcation diagrams.
+  - Allow loadbd([list]).
+  - Further straightening out of AUTOSolution constructor, also to facilitate
+    adding parameters through PAR.
+    s=load([1,2,3]); s=load(s,PAR={1:2}) now works.
+  - Created an update() method for parseS.AUTOSolution objects.
+    Use a few sets and disallow strange "constants" key for parseC.
+    parseS.AUTOSolution's c attribute can now be None to indicate that no
+    constants are attached.
+  - The AUTOSolution constructor no longer allows AUTO constants as keywords.
+    These are now handled by load().
+  - Fix headers of merged branches to get the header of the forward branch.
+  - Don't try to import Numeric on 64-bit systems.
+* Shell commands:
+  - Eliminated compile-time limits on the maximum number of labels and
+    branches in the utilities using a linked list and dynamic allocation.
+  - Adjust @zr, @db, @tr, PLAUT04, and @fc to solution files without directions
+    generated with IIS<3.
+  - In @ll/listlabels/@lb, use as much space for the label number as in normal
+    AUTO output.
+* Demos:
+  - Added test infrastructure in test directory. See README file there.
+  - Added LP1/BP1 stopping conditions to BPCONT demos since those branches
+    double back in machine-dependent ways.
+  - Use UZSTOP where appropriate.
+  - abcb: Switch off unreliable BP detection during BP cont.
+  - dd2: Improve to perform period-doublings.
+  - fhh: Add stopping condition in because inclination flips with complex
+    eigenvalues do not make sense. Make IF changes to the correct constant file.
+  - fhh: Adjusted tolerances a bit to avoid an MX and further adjustments.
+  - fnb: Increase NTST for robustness.
+  - fnb: Fix starting label for last run to be the third from below.
+  - fnb: Further adjustments to make this demo more robust.
+  - log and hen: Added two demos for maps: Logistic and Hénon.
+  - phs and tor: make more robust. Do not copy c.xxx.1 to c.xxx if c.xxx
+    already exists with copydemo().
+  - pla: Update Plant demo to be less sensitive, mostly as suggested by Sebius.
+  - python/n-body: Added plaut04.rc file to; solve issues with logged plaut04
+    spawning.
+  - r3b: Use a numerical tolerance to determine purely imaginary eigenvalues.
+  - r3b: Setting ITNW=7 for V1 family gives consistent results.
+  - r3b: Made more robust.
+  - r3b: Reorganized initial part using TY= constant.
+  - snh: Fix typo in equation in the manual for SN-Hopf demo.
+  - snh: Truncate nu2 to [-2,2] to avoid floating point exceptions with acos.
+  - snh: Adjusted DSMIN to work with new test function algorithms.
+  - snh: Put a stopping condition on delta to avoid MX-ing sensitively.
+* Manual:
+  - Use hyperref in the manual; change to use pdflatex. Update reference for
+    Desroches paper.
+  - Add acroread to list of viewers.
+0.7.3:
+* Main AUTO:
+  - Fix typo in auto.env.sh
+  - Fix compilation with ifort.
+* Python:
+  - Fix a problem with load(U=...) to change U(*) values with respect to STPNT.
+0.7.2:
+* Main AUTO:
+  - Fix torus bifurcation initialization; a long standing bug was fixed: torus
+    continuations did not work from TR labels where the relevant Floquet
+    multipliers have negative real part.
+  - Fix some intents that are reported as errors by gfortran 4.5 and ifort. 
+  - HomCont: initialize ISTART to 5 in DATA block.
+  - For plotter: in fort.7 use stability of previous point for bifurcation
+    points.
+* Python:
+  - Fix a problem with numpy fromstring and the last element in Fortran
+    exponential notation.
+  - Fix logical "or" which should be "and" in parseS efficiency header length
+    check.
+  - Fix plot3() with bifurcation diagram argument.
+  - Fix UZR handling with old-style constant files.
+  - Fix message for save().
+  - Only complain but do not crash if files are missing for append().
+  - Fix error_symbol handling for plotter.
+* Demos:
+  p2c: Remove superfluous and wrong ISP=-2.
+  snh: use PAR(4) to store the intended integer codimension instead of using
+       mu < 0 which fails when reaching the end of the codim 0 tangencies at
+       the Hopf bifurcations.
+* Shell commands:
+  - Fix bifurcation file write bug in @kuz, @klp, etc.
+* PLAUT04:
+  - Change SoQt init statement to avoid a crash in Fedora 12.
+  - Change HardCopy include path for PLAUT04 for Mac OS X compatibility.
 0.7.1:
 * Python:
   - Fix solution plotting for plot()/@pp without arguments.
