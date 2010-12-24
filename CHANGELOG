@@ -255,6 +255,8 @@
   - snh: Truncate nu2 to [-2,2] to avoid floating point exceptions with acos.
   - snh: Adjusted DSMIN to work with new test function algorithms.
   - snh: Put a stopping condition on delta to avoid MX-ing sensitively.
+  - tfc: Avoid MX by increasing NTST.
+  - tor: set maximum period to avoid MX in last run.
 * Manual:
   - Use hyperref in the manual; change to use pdflatex. Update reference for
     Desroches paper.

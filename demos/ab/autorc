@@ -17,9 +17,11 @@ xlabel_fontsize = 12
 ylabel = None # None uses *_coordnames
 ylabel_fontsize = 12
 
+labelnames = {"U(1)": "$u_1$", "U(2)": "$u_2$", "PAR(1)": "$p_1$",
+              "PAR(2)": "$p_2$", "PAR(3)": "$p_3$", "L2-NORM": "L2-norm"}
 solution_indepvarname = "time"
-solution_coordnames = ["$u_1$","$u_2$"]
-bifurcation_coordnames = ["$p_1$", "L2-norm"]
+#solution_coordnames = ["$u_1$","$u_2$"]
+#bifurcation_coordnames = ["$p_1$", "L2-norm"]
 
 line_width = 2.0
 dashes = (6.0,6.0)

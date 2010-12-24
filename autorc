@@ -22,6 +22,7 @@
 #ylabel_fontsize = 12
 #zlabel = ''
 #zlabel_fontsize = 12
+#labelnames = {"U(1)": "$x$", "U(2)": "$y$", "PAR(1)": "$p$"}
 
 #solution_indepvarname = "time"
 #solution_coordnames = ["$x$","$y$","$z$"]
@@ -84,7 +85,8 @@
 #bifurcation_diagram_filename = 'fort.7'
 #solution_filename = 'fort.8'
 
-#bifurcation_symbol = "square"
+# Here 8 denotes the size of the square
+#bifurcation_symbol = "square8"
 #limit_point_symbol = None
 #hopf_symbol = "fillsquare"
 #period_doubling_symbol = "doubletriangle"
