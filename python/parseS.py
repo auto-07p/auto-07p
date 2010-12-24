@@ -73,7 +73,7 @@ class fileS(object):
             line = inputfile.readline()
             if not line: raise PrematureEndofData
             try:
-                header = map(int, line.split())
+                header = list(map(int, line.split()))
             except ValueError:
                 raise PrematureEndofData
             if len(header) < 10:
@@ -149,7 +149,7 @@ class fileS(object):
             Points.importnumpy()       
         N = Points.N
         data = self.readstr(i)
-        if isinstance(data, N.ndarray):
+        if hasattr(N, "ndarray") and isinstance(data, N.ndarray):
             return data
         fromstring = Points.fromstring
         if fromstring:
