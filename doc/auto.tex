@@ -4730,8 +4730,8 @@ EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.01, DSMIN= 0.005, DSMAX=   0.1, IADS=   1
 NPAR=  36, THL =  {}, THU =  {}
 RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308,
-UZR = {}, UZSTOP = {},
-SP = [], STOP = []
+UZR = {}, UZSTOP = {}, SP = [], STOP = []
+IIS = 3, IBR=0, LAB=0, TY=''
 NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 5
 IREV = [], IFIXED = [], IPSI = []
 \end{verbatim}
@@ -5372,6 +5372,15 @@ is to be restarted.
   bifurcation.
 \end{itemize}
 
+\subsection{\texttt{TY}} \label{sec:TY} 
+ This constant modifies the type from the restart solution.
+ This is sometimes useful in conservative or extended systems,
+ declaring a regular point to be a Hopf bifurcation point ({\tt TY='HB'}) or a
+ branch point ({\tt TY='BP'}). Use {\tt TY='HB4'} to copy the period
+ of the emanating periodic orbit from {\tt PAR(4)} (for example set in
+ the routine {\tt PVLS} in the equations file) to {\tt PAR(11)}.
+ (Demo {\tt r3b}.)
+
 \subsection{\texttt{IPS}}  \label{sec:IPS}
 This constant defines the problem type~:
 \begin{itemize}
@@ -5547,11 +5556,47 @@ the output files are
  For these reasons, and to limit the output volume, it is recommended that
  {\tt NPR} output be kept to a minimum.
 
+\subsection{\texttt{IBR}} \label{sec:IBR} 
+ This constant specifies the initial branch number {\tt BR} that is
+ used. The default {\tt IBR=0} means that that this number is
+ determined automatically.
+
+\subsection{\texttt{LAB}} \label{sec:LAB} 
+ This constant specifies the initial label number {\tt LAB} that is
+ used. The default {\tt LAB=0} means that that this number is
+ determined automatically. Using {\tt LAB=1} means you do not need
+ to relabel after a non-appended continuation if this is desired.
+
+\subsection{\texttt{IIS}} \label{sec:IIS} 
+ This constant controls the amount of information printed in {\tt fort.8}~:
+ the greater {\tt IIS} the more solutions contain the corresponding
+ vector giving the direction of the branch. The direction of the
+ branch is necessary for restart points when switching branches, but
+ make the solution file almost two times bigger than necessary when
+ switching branches is never performed from solutions in this file.
+
+\begin{itemize}
+\item[-] {\tt IIS=0}~:
+  The direction of the branch is never provided.
+\item[-] {\tt IIS=1}~:
+  The direction of the branch is only provided at special points from
+  which branch switching can be performed (types LP (boundary value
+  problems only), BP, PD, TR).
+\item[-] {\tt IIS=2}~:
+  The direction of the branch is provided at all special points but
+  not at regular points without a type label.
+\item[-] {\tt IIS=3}~:
+  The direction of the branch is always provided. This is the default
+  setting.
+\end{itemize}
+
 \subsection{\texttt{IID}} \label{sec:IID} 
  This constant controls the amount of diagnostic output printed in {\tt fort.9}~:
  the greater {\tt IID} the more detailed the diagnostic output.
 \begin{itemize}
 \item[-] {\tt IID=0}~:  
+  No diagnostic output.
+\item[-] {\tt IID=1}~:  
   Minimal diagnostic output. This setting is not recommended.
 \item[-] {\tt IID=2}~: 
   Regular diagnostic output. This is the recommended value of {\tt IID}.
@@ -5664,12 +5709,12 @@ Section~\ref{sec:Parameter_over_specification}.
 %=====================================================================
 
 \section{ Quick reference}
-\vspace{-2mm}
+\vspace{-2.5mm}
 \begin{tabular}{|l|l|}
 \hline
 {\tt e}, {\tt s}, {\tt dat}, {\tt sv} & Define file names: equation
 prefix (.f,.f90,.c), restart solution suffix (s.), \\
-& User data prefix (.dat), output suffix (b.,s.,d.)\\
+& user data prefix (.dat), output suffix (b.,s.,d.)\\
 \hline
 {\tt unames}, {\tt parnames} & Dictionary (mapping) of U(*) and PAR(*)
 to user-defined names\\
@@ -5680,7 +5725,7 @@ to user-defined names\\
            & 4=BVP, 7=BVP with Floquet multipliers, 5=algebraic
            optimization \\
  	   & problem, 15=optimization of periodic solutions \\
-{\tt IRS}  & Start solution label \\
+{\tt IRS}, {\tt TY}  & Start solution label, start solution type\\
 {\tt ILP}  & Fold detection; 1=on, 0=off \\
 \hline
 {\tt ICP}  & Continuation parameters \\
@@ -5704,15 +5749,16 @@ to user-defined names\\
 {\tt NPR} & Print and save restart data every NPR steps \\
 {\tt MXBF} & Automatic branch switching for the first MXBF bifurcation \\
  	  & points if IPS=0, 1 	 \\
-{\tt IID} & Control diagnostic output; 1=little, 2=normal, 4=extensive \\
+{\tt IBR}, {\tt LAB} & Set initial branch and label number; 0=automatic \\
+{\tt IIS} & Control solution output of branch direction vector; 0=never, 3=always \\
+{\tt IID} & Control diagnostic output; 0=none, 1=little, 2=normal, 4=extensive \\
 {\tt ITMX} & Maximum \# of iterations for locating special solutions/points \\
 {\tt ITNW} & Maximum \# of correction steps \\
 {\tt NWTN} & Corrector uses full newton for NWTN steps \\
 {\tt JAC}  & User defines derivatives; 0=no, 1=yes \\
 \hline
-{\tt EPSL} & Convergence criterion for equation parameters \\
-{\tt EPSU} & Convergence criterion for solution components \\
-{\tt EPSS} & Convergence criterion for special solutions/points \\
+{\tt EPSL}, {\tt EPSU}, {\tt EPSS} & Convergence criterion:
+parameters, solution components, special points\\
 \hline
 {\tt DS}  & Start step size \\
 {\tt DSMIN, DSMAX} & Step size interval $\mathtt{DSMIN} \leq h \leq \mathtt{DSMAX}$ \\
