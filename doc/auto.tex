@@ -178,16 +178,16 @@ License (GPL), in particular, Coin, SoQt and Qt. In that case the
 %The {\cal AUTO} files {\filef auto.ps.gz, auto.tar.gz} and {\filef README} 
 %are available via FTP from 
 %directory {\filef pub/doedel/auto} at \url{ftp.cs.concordia.ca}.
-The {\cal AUTO} file \filef{auto07p-0.7.1.tar.gz} is
+The {\cal AUTO} file \filef{auto07p-0.8.tar.gz} is
 available via \url{http://cmvl.cs.concordia.ca/auto}.
 %The {\filef README} file contains the instructions for printing this manual.
 Here it is assumed that you are using the Unix (e.g. \emph{bash}) shell 
-and that the file \filef{auto07p-0.7.1.tar.gz} is in your main
+and that the file \filef{auto07p-0.8.tar.gz} is in your main
 directory. See below for OS-specific notes.
 
 While in your main directory, enter the commands
-\commandf{gunzip auto07p-0.7.1.tar.gz},
-followed by \commandf{tar xvfo auto07p-0.7.1.tar}.
+\commandf{gunzip auto07p-0.8.tar.gz},
+followed by \commandf{tar xvfo auto07p-0.8.tar}.
 This will result in a directory \filef{auto}, 
 with one subdirectory, \filef{auto/07p}. 
 Type \commandf{cd auto/07p}
@@ -342,14 +342,20 @@ you have the development tools
 installed. You do not need to start an X server to run AUTO.
 Furthermore, the following packages are recommended:
 \begin{itemize}
-\item Gfortran: See \url{hpc.sourceforge.net} or
-\url{r.research.att.com/tools/}.
+\item Gfortran: See \url{http://gcc.gnu.org/wiki/GFortranBinaries}.
+Alternatively, see \url{hpc.sourceforge.net} or \url{r.research.att.com/tools/}.
 At the time of writing the first of these is recommended to be able
 to benefit from parallelization.
 \item Python: for Mac OS X 10.5 (Leopard) or newer, 
 you can install Python 2.6, NumPy, and Matplotlib \filef{.dmg} files
 from \url{www.python.org}, \url{numpy.scipy.org},
 and \url{matplotlib.sf.net}, respectively.\\
+For example, download from\\
+\url{http://www.python.org/download/releases/2.6.6/},\\
+\url{http://sourceforge.net/projects/numpy/files/NumPy/1.5.0/numpy-1.5.0-py2.6-python.org.dmg/},\\
+and 
+\url{http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0/matplotlib-1.0.0-python.org-py2.6-macosx10.4.dmg/download}
+
 Alternatively, and for older systems, you can install Python,
 Matplotlib, NumPy, Python-dateutil, and pytz from 
 \url{http://pythonmac.org/packages/py25-fat/index.html}.\\
@@ -361,11 +367,16 @@ graphics provided by the previous alternatives seem to work better.\\
 To be able to plot in the Python CLUI in some versions of OS X,
 \AUTO uses \filef{pythonw} instead of \filef{python}.
 This should happen automatically.
-\item {\cal PLAUT04}: Get a Qt \filef{.dmg} from
-\url{qt.nokia.com/downloads/mac-os-cpp}.
+\item {\cal PLAUT04}: Get a Qt \filef{.dmg} from\\
+\url{http://qt.nokia.com/downloads/qt-for-open-source-cpp-development-on-mac-os-x}.
 Similarly, you can get a binary Coin package from \url{coin3d.org}.
 After that you can compile SoQt (at least version 1.5.0)
 from the source code at \url{coin3d.org}.
+For example, download
+\url{http://ftp.coin3d.org/coin/bin/macosx/all/Coin-3.1.3-gcc4.dmg},
+\url{http://get.qt.nokia.com/qt/source/qt-mac-opensource-4.7.1.dmg}, and
+\url{http://ftp.coin3d.org/coin/src/all/SoQt-1.5.0.tar.gz}.
+
 Try to make sure that the native (Aqua) Qt
 is used by setting {\tt \$QTDIR}, if you also have fink installed.
 \item {\cal PLAUT}: In pre-Leopard OS X it appears that you do not see
@@ -374,6 +385,23 @@ version of xterm; see
 \url{http://sourceforge.net/project/showfiles.php?group_id=21781}.
 \item GUI94: Perhaps possible using Fink but not attempted.
 \item manual: \LaTeX\xspace and transfig (comes with xfig).
+\end{itemize}
+
+Notes for 64-bit Snow Leopard to be able to compile PLAUT04:
+\begin{itemize}
+\item
+To compile and install SoQt, after installing Qt and Coin3D, run
+\begin{verbatim}
+./configure CFLAGS="-m32" CXXFLAGS="-m32" LDFLAGS="-m32" FFLAGS="-m32"
+make
+sudo make install
+\end{verbatim}
+\item
+Then, in the AUTO-07p folder run
+\begin{verbatim}
+./configure CXX="g++ -m32"
+make
+\end{verbatim}
 \end{itemize}
 
 \subsection{Installation on Windows}
@@ -388,13 +416,11 @@ from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
 and Matplotlib from \url{matplotlib.sf.net}, which all come
 with installers.
 \item
-Install the minimal Unix-like environment MSYS from
-\url{http://www.mingw.org}. You do not need to install MinGW
-itself.
+Install MinGW (make sure to include msys-base, gcc and fortran)
+using the MinGW Graphical Installer at \url{http://www.mingw.org}.
 \item
-Install GFortran from \url{http://gcc.gnu.org/wiki/GFortran}.
-\item
-Start MSYS by clicking on its desktop icon, which
+Start MSYS using the Start menu (Start $>$ All Programs $\to$ MinGW
+$\to$ MSYS $\to$ msys) or by clicking on its desktop icon, which
 puts you in a home directory, where you can unpack
 \AUTO using \filef{gunzip} and \filef{tar}, as described above.
 \item
