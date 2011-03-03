@@ -48,7 +48,7 @@ if test x$mpi = "xyes"; then
   if test x$MPIFC = "x"; then
     # sometimes (FC4/5) mpif77 actually calls f95...
     AC_CHECK_PROGS(MPIFC,[mpif90 mpif95 mpif77],"no")
-    if test x$MPIFC = mpif77; then
+    if test x$MPIFC = "xmpif77"; then
       if ! ( $MPIFC -v 2>&1 | grep f95 > /dev/null ) ; then
 	MPIFC=no
       fi
@@ -196,6 +196,17 @@ CPPFLAGS="$CPPFLAGS $COIN_INCLUDES"
 AC_LINK_IFELSE([#include <Inventor/SoDB.h>
                 int main(void){SoDB::init();}],
 		[COIN3D="yes"],[COIN3D="no"])
+if test x$COIN3D = "xno" && test x$CXX = "xg++"; then
+        tmp_CXX=$CXX
+        # for 64-bit Mac OS try with -m32 to link with 32bit coin
+        CXX="g++ -m32"
+        AC_LINK_IFELSE([#include <Inventor/SoDB.h>
+                        int main(void){SoDB::init();}],
+		        [COIN3D="yes"],[COIN3D="no"])
+        if test x$COIN3D = "xno"; then
+               CXX=$tmp_CXX
+        fi
+fi
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 CPPFLAGS=$tmp_CPPFLAGS
