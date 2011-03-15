@@ -421,7 +421,7 @@ CONTAINS
       ! returns the string label type corresponding to numerical type ITP
       INTEGER, INTENT(IN) :: ITP
 
-      CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
+      CHARACTER(2), PARAMETER :: ATYPES(-9:9) = &
            (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
               'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
 

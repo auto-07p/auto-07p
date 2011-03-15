@@ -468,7 +468,7 @@ CONTAINS
     ! returns the string label type corresponding to numerical type ITP
     INTEGER, INTENT(IN) :: ITP
 
-    CHARACTER*2, PARAMETER :: ATYPES(-9:9) = &
+    CHARACTER(2), PARAMETER :: ATYPES(-9:9) = &
          (/ 'MX','R4','R3','R2','R1','UZ','ZH','CP','BT','  ', &
             'BP','LP','HB','  ','LP','BP','PD','TR','EP' /)
 
@@ -900,7 +900,7 @@ END MODULE SUPPORT
     USE SUPPORT
     IMPLICIT NONE
 
-    CHARACTER*3, INTENT(IN) :: CODE
+    CHARACTER(3), INTENT(IN) :: CODE
     INTEGER, INTENT(IN) :: IC
     DOUBLE PRECISION, INTENT(IN) :: UPS(AV%NDIM*AV%NCOL,*)
 
