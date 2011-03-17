@@ -279,17 +279,14 @@ class parseC(dict):
     def read(self, inputfile):
         line = inputfile.readline()
         lineno = 1
-        data = line.split()
-        while not data[0][0].isdigit():
-            self.parseline(line,inputfile=inputfile,lineno=lineno)
+        while line != '':
+            data = line.split()
+            if len(data) > 0:
+                if data[0][0].isdigit():
+                    break
+                self.parseline(line,inputfile=inputfile,lineno=lineno)
             line = inputfile.readline()
             lineno += 1
-            while line != '' and line[0] == '\n':
-                line = inputfile.readline()
-                lineno += 1
-            if line == '':
-                break
-            data = line.split()
                 
         if line == '':
             return
