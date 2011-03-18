@@ -923,11 +923,6 @@ CONTAINS
     NFPX=NBC0+NNT0-NDM+1
 
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-    IF(NNT0>0) THEN
-       ALLOCATE(FI(NNT0),DINT(NNT0,NDM))
-       CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-       CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,DUM,UPOLD,FI,1,DINT)
-    ENDIF
 
     IF((ISW==2).OR.(ISW<0)) THEN
        !        ** Non-generic and/or start
@@ -936,40 +931,41 @@ CONTAINS
        ENDDO
     ENDIF
 
-    IF(ISW>0) THEN
-       !        ** restart 1 or 2
+    DO I=1,NDM
+       F(NDM+I)=0.d0
+       DO J=1,NDM
+          F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
+       ENDDO
+    ENDDO
+
+    IF(NNT0>0) THEN
+       ALLOCATE(FI(NNT0),DINT(NNT0,NDM))
+       CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+       CALL ICNI(AP,NDM,PAR,ICP,NNT0,U,UOLD,DUM,UPOLD,FI,1,DINT)
        DO I=1,NDM
-          F(NDM+I)=0.d0
-          DO J=1,NDM
-             F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
-          ENDDO
           DO J=1,NNT0
              F(NDM+I)=F(NDM+I)+DINT(J,I)*PAR(NPARU+2*NFPX+NBC0+J)
           ENDDO
        ENDDO
-    ELSE
+       DEALLOCATE(FI,DINT)
+    ENDIF
+
+    IF(ISW<0) THEN
        !        ** start
        DO I=1,NDM
-          F(NDM+I)=0.d0
+          F(NDM+I)=F(NDM+I)+PAR(NPARU+3*NFPX+NDM+2)*U(2*NDM+I)+ &
+               PAR(NPARU+3*NFPX+NDM+3)*U(3*NDM+I)
           F(2*NDM+I)=0.d0
-          F(3*NDM+I)=PAR(NPARU+3*NFPX+NDM+2)*U(NDM+I)+ &
-               PAR(NPARU+3*NFPX+NDM+3)*U(2*NDM+I)
+          F(3*NDM+I)=0.d0
           DO J=1,NDM
-             F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
              F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
-             F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
+             F(3*NDM+I)=F(3*NDM+I)+DFDU(I,J)*U(3*NDM+J)
           ENDDO
           DO J=1,NFPX
-             F(NDM+I)=F(NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+J)
-             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+NFPX+J)
-          ENDDO
-          DO J=1,NNT0
-             F(3*NDM+I)=F(3*NDM+I)+DINT(J,I)*PAR(NPARU+2*NFPX+NBC0+J)
+             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+J)
+             F(3*NDM+I)=F(3*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+NFPX+J)
           ENDDO
        ENDDO
-    ENDIF
-    IF(NNT0>0) THEN
-       DEALLOCATE(FI,DINT)
     ENDIF
 
   END SUBROUTINE FFBBP
@@ -1138,10 +1134,10 @@ CONTAINS
           FB(NBC0+I)=0.d0
           FB(2*NBC0+I)=0.d0
           DO J=1,NDM
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,J)*U0(NDM+J)
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,NDM+J)*U1(NDM+J)
-             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,J)*U0(2*NDM+J)
-             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,NDM+J)*U1(2*NDM+J)
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,J)*U0(2*NDM+J)
+             FB(NBC0+I)=FB(NBC0+I)+DBC(I,NDM+J)*U1(2*NDM+J)
+             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,J)*U0(3*NDM+J)
+             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,NDM+J)*U1(3*NDM+J)
           ENDDO
           DO J=1,NFPX
              FB(NBC0+I)=FB(NBC0+I)+DBC(I,2*NDM+ICP(J))*PAR(NPARU+J)
@@ -1150,8 +1146,8 @@ CONTAINS
           ENDDO
        ENDDO
        DO I=1,NDM
-          FB(3*NBC0+I)=-U0(3*NDM+I)
-          FB(3*NBC0+NDM+I)=U1(3*NDM+I)
+          FB(3*NBC0+I)=-U0(NDM+I)
+          FB(3*NBC0+NDM+I)=U1(NDM+I)
           DO J=1,NBC0
              FB(3*NBC0+I)=FB(3*NBC0+I)+DBC(J,I)*PAR(NPARU+2*NFPX+J)
              FB(3*NBC0+NDM+I)=FB(3*NBC0+NDM+I)+ &
@@ -1305,63 +1301,59 @@ CONTAINS
        ENDIF
     ENDIF
 
-    IF(ISW>0) THEN
-       ! ** restart 1 or 2
+    DO I=1,NFPX
+       FI(NNT0+I)=-PAR(NPARU+3*NFPX+NDM+3+I)
+       DO J=1,NDM
+          FI(NNT0+I)=FI(NNT0+I)-DFP(J,ICP(I))*U(NDM+J)
+       ENDDO
+       DO J=1,NNT0
+          FI(NNT0+I)=FI(NNT0+I)+DINT(J,NDM+ICP(I))*PAR(NPARU+2*NFPX+NBC0+J)
+       ENDDO
+    ENDDO
+
+    ! ** start
+    IF(ISW<0) THEN
        DO I=1,NFPX
-          FI(NNT0+I)=-PAR(NPARU+3*NFPX+NDM+3+I)
-          DO J=1,NDM
-             FI(NNT0+I)=FI(NNT0+I)-DFP(J,ICP(I))*U(NDM+J)
-          ENDDO
-          DO J=1,NNT0
-             FI(NNT0+I)=FI(NNT0+I)+DINT(J,NDM+ICP(I))*PAR(NPARU+2*NFPX+NBC0+J)
-          ENDDO
-       ENDDO
-    ELSE
-       ! ** start
-       DO I=1,NNT0
-          FI(NNT0+I)=0.d0
-          FI(2*NNT0+I)=0.d0
-          DO J=1,NDM
-             FI(NNT0+I)=FI(NNT0+I)+DINT(I,J)*U(NDM+J)
-             FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,J)*U(2*NDM+J)
-          ENDDO
-          DO J=1,NFPX
-             FI(NNT0+I)=FI(NNT0+I)+DINT(I,NDM+ICP(J))*PAR(NPARU+J)
-             FI(2*NNT0+I)=FI(2*NNT0+I)+DINT(I,NDM+ICP(J))*PAR(NPARU+NFPX+J)
-          ENDDO
-       ENDDO
-       FI(3*NNT0+1)=-1.d0
-       FI(3*NNT0+2)=-1.d0
-       FI(3*NNT0+3)=0.d0
-       FI(3*NNT0+4)=0.d0
-       DO I=1,NDM
-          FI(3*NNT0+1)=FI(3*NNT0+1)+U(NDM+I)*UOLD(NDM+I)
-          FI(3*NNT0+2)=FI(3*NNT0+2)+U(2*NDM+I)*UOLD(2*NDM+I)
-          FI(3*NNT0+3)=FI(3*NNT0+3)+U(NDM+I)*UOLD(2*NDM+I)
-          FI(3*NNT0+4)=FI(3*NNT0+4)+U(2*NDM+I)*UOLD(NDM+I)
-       ENDDO
-       DO I=1,NFPX
-          FI(3*NNT0+1)=FI(3*NNT0+1)+PAR(NPARU+I)**2
-          FI(3*NNT0+2)=FI(3*NNT0+2)+PAR(NPARU+NFPX+I)**2
-          FI(3*NNT0+3)=FI(3*NNT0+3)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
-          FI(3*NNT0+4)=FI(3*NNT0+4)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
-          FI(3*NNT0+4+I)=-PAR(NPARU+3*NFPX+NDM+3+I)+ &
+          FI(NNT0+I)=FI(NNT0+I)+ &
                PAR(NPARU+3*NFPX+NDM+2)*PAR(NPARU+I)+ &
                PAR(NPARU+3*NFPX+NDM+3)*PAR(NPARU+NFPX+I)
+       ENDDO
+
+       DO I=1,NNT0
+          FI(NFPX+2*NNT0+I)=0.d0
+          FI(NFPX+3*NNT0+I)=0.d0
           DO J=1,NDM
-             FI(3*NNT0+4+I)=FI(3*NNT0+4+I)-DFP(J,ICP(I))*U(3*NDM+J)
+             FI(NFPX+2*NNT0+I)=FI(NFPX+2*NNT0+I)+DINT(I,J)*U(2*NDM+J)
+             FI(NFPX+3*NNT0+I)=FI(NFPX+3*NNT0+I)+DINT(I,J)*U(3*NDM+J)
           ENDDO
-          DO J=1,NNT0
-             FI(3*NNT0+4+I)=FI(3*NNT0+4+I)+DINT(J,NDM+ICP(I))* &
-                  PAR(NPARU+2*NFPX+NBC0+J)
+          DO J=1,NFPX
+             FI(NFPX+2*NNT0+I)=FI(NFPX+2*NNT0+I)+DINT(I,NDM+ICP(J))*PAR(NPARU+J)
+             FI(NFPX+3*NNT0+I)=FI(NFPX+3*NNT0+I)+ &
+                  DINT(I,NDM+ICP(J))*PAR(NPARU+NFPX+J)
           ENDDO
        ENDDO
+       FI(NFPX+4*NNT0+1)=-1.d0
+       FI(NFPX+4*NNT0+2)=-1.d0
+       FI(NFPX+4*NNT0+3)=0.d0
+       FI(NFPX+4*NNT0+4)=0.d0
+       DO I=1,NDM
+          FI(NFPX+4*NNT0+1)=FI(NFPX+4*NNT0+1)+U(2*NDM+I)*UOLD(2*NDM+I)
+          FI(NFPX+4*NNT0+2)=FI(NFPX+4*NNT0+2)+U(3*NDM+I)*UOLD(3*NDM+I)
+          FI(NFPX+4*NNT0+3)=FI(NFPX+4*NNT0+3)+U(2*NDM+I)*UOLD(3*NDM+I)
+          FI(NFPX+4*NNT0+4)=FI(NFPX+4*NNT0+4)+U(3*NDM+I)*UOLD(2*NDM+I)
+       ENDDO
+       DO I=1,NFPX
+          FI(NFPX+4*NNT0+1)=FI(NFPX+4*NNT0+1)+PAR(NPARU+I)**2
+          FI(NFPX+4*NNT0+2)=FI(NFPX+4*NNT0+2)+PAR(NPARU+NFPX+I)**2
+          FI(NFPX+4*NNT0+3)=FI(NFPX+4*NNT0+3)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
+          FI(NFPX+4*NNT0+4)=FI(NFPX+4*NNT0+4)+PAR(NPARU+I)*PAR(NPARU+NFPX+I)
+       ENDDO
+       DEALLOCATE(F,DFU,DFP)
     ENDIF
-    DEALLOCATE(F,DFU,DFP)
 
     FI(NINT)=-PAR(NPARU+3*NFPX+NDM)
     DO I=1,NDM
-       FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
+       FI(NINT)=FI(NINT)+U(NDM+I)**2
     ENDDO
     DO I=1,NBC0+NNT0
        FI(NINT)=FI(NINT)+PAR(NPARU+2*NFPX+I)**2
@@ -1394,7 +1386,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: DTM(:),UPST(:,:),UDOTPST(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-    INTEGER NDIM,ISW,NBC,NINT,NFPR,NDIM3,I,J,IFST,NLLV
+    INTEGER NDIM,ISW,NBC,NINT,NFPR,I,J,IFST,NLLV
     INTEGER ITPRS,NDM,NBC0,NNT0,NFPX,NDIMRD,NPARU
     DOUBLE PRECISION DUM(1),DET,RDSZ
     TYPE(AUTOPARAMETERS) AP2
@@ -1407,148 +1399,117 @@ CONTAINS
     NFPR=AP%NFPR
     NPARU=AP%NPAR-AP%NPARI
 
-    NDIM3=GETNDIM3()
-
-    IF(NDIM==NDIM3) THEN
-       !        ** restart 2
+    IF(ISW>0) THEN
+       !        ** restart
        CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
        RETURN
     ENDIF
 
     ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR), &
          UDOTPSR(NDIM,0:NCOLRS*NTSR),TMR(0:NTSR))
-    IF(ISW<0) THEN
-       !        ** start
-       NBC0=(4*NBC-NINT-5*NDM+2)/15
-       NNT0=(-NBC+4*NINT+5*NDM-23)/15
-    ELSE IF(ISW==2) THEN
-       !        ** Non-generic case
-       NBC0=(2*NBC-NINT-3*NDM)/3
-       NNT0=(-NBC+2*NINT+3*NDM-3)/3
-    ELSE
-       !        ** generic case
-       NBC0=(2*NBC-NINT-3*NDM)/3
-       NNT0=(-NBC+2*NINT+3*NDM-3)/3
-    ENDIF
+    !        ** start
+    NBC0=(4*NBC-NINT-5*NDM+2)/15
+    NNT0=(-NBC+4*NINT+5*NDM-23)/15
     NFPX=NBC0+NNT0-NDM+1
 
     ALLOCATE(ICPRS(NFPR),RLCUR(NFPR),RLDOTRS(NFPR))
-    IF(ISW<0) THEN
 
-       ! Start
+    ! Start
+    
+    ! ** allocation
+    ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
+    ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
+    ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS),RVDOT(NFPX))
+    ALLOCATE(THU1(NDM),THL1(NFPX))
+    ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
+    ALLOCATE(U(NDM),DTM(NTSR))
 
-       ! ** allocation
-       ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
-       ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
-       ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS),RVDOT(NFPX))
-       ALLOCATE(THU1(NDM),THL1(NFPX))
-       ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
-       ALLOCATE(U(NDM),DTM(NTSR))
+    ! ** read the std branch
+    CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST, &
+         UDOTPST,TMR,ITPRS,NDM)
 
-       ! ** read the std branch
-       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST, &
-            UDOTPST,TMR,ITPRS,NDM)
+    DO I=1,NTSR
+       DTM(I)=TMR(I)-TMR(I-1)
+    ENDDO
 
-       DO I=1,NTSR
-          DTM(I)=TMR(I)-TMR(I-1)
+    DO I=1,NFPX
+       RLCUR(I)=PAR(ICPRS(I))
+    ENDDO
+
+    ! Compute the second null vector
+
+    ! ** redefine AP
+    AP2=AP
+    AP2%NDIM=NDM
+    AP2%NTST=NTSR
+    AP2%NCOL=NCOLRS
+    AP2%NBC=NBC0
+    AP2%NINT=NNT0
+    AP2%NFPR=NFPX
+
+    ! ** compute UPOLDP
+    IF(NNT0>0) THEN
+       DO J=0,NTSR*NCOLRS
+          U(:)=UPST(:,J)
+          CALL FUNI(AP2,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
        ENDDO
-
-       DO I=1,NFPX
-          RLCUR(I)=PAR(ICPRS(I))
-       ENDDO
-
-       ! Compute the second null vector
-
-       ! ** redefine AP
-       AP2=AP
-       AP2%NDIM=NDM
-       AP2%NTST=NTSR
-       AP2%NCOL=NCOLRS
-       AP2%NBC=NBC0
-       AP2%NINT=NNT0
-       AP2%NFPR=NFPX
-
-       ! ** compute UPOLDP
-       IF(NNT0>0) THEN
-          DO J=0,NTSR*NCOLRS
-             U(:)=UPST(:,J)
-             CALL FUNI(AP2,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
-          ENDDO
-       ENDIF
-
-       ! ** unit weights
-       THL1(1:NFPX)=1.d0
-       THU1(1:NDM)=1.d0
-
-       ! ** call SOLVBV
-       RDSZ=0.d0
-       NLLV=1
-       IFST=1
-       CALL SOLVBV(IFST,AP2,DET,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-            RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT, &
-            DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
-
-       !        ** normalization
-       CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,UDOTPST,RLDOTRS,DTM,THL1,THU1)
-       CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,VDOTPST,RVDOT,DTM,THL1,THU1)
-
-       !        ** init UPS,PAR
-       UPSR(1:NDM,:)=UPST(:,:)
-       UPSR(NDM+1:2*NDM,:)=UDOTPST(:,:)
-       UPSR(2*NDM+1:3*NDM,:)=VDOTPST(:,:)
-       UPSR(3*NDM+1:4*NDM,:)=0.d0
-       UDOTPSR(:,:)=0.d0
-
-       DO I=1,NFPX
-          PAR(NPARU+I)=RLDOTRS(I)
-          PAR(NPARU+NFPX+I)=RVDOT(I)
-          RLDOT(I)=0.d0
-          RLDOT(NFPX+I+2)=0.d0
-          RLDOT(2*NFPX+I+2)=0.d0
-       ENDDO
-
-       !        ** init psi^*2,psi^*3
-       DO I=1,NBC0+NNT0
-          PAR(NPARU+2*NFPX+I)=0.d0
-          RLDOT(3*NFPX+I+2)=0.d0
-       ENDDO
-
-       !        ** init a,b,c1,c1,d
-       PAR(NPARU+3*NFPX+NDM:NPARU+3*NFPX+NDM+3)=0.d0
-       RLDOT(NFPX+1)=0.d0
-       RLDOT(NFPX+2)=1.d0
-       RLDOT(4*NFPX+NDM+2)=0.d0
-       RLDOT(4*NFPX+NDM+3)=0.d0
-       DO I=1,NFPX
-          PAR(NPARU+3*NFPX+NDM+3+I)=0.d0
-          RLDOT(4*NFPX+NDM+I+3)=0.d0
-       ENDDO
-
-       DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST,RVDOT)
-       DEALLOCATE(THU1,THL1)
-       DEALLOCATE(P0,P1)
-       DEALLOCATE(U,DTM)
-
-       NODIR=0
-
-    ELSE
-
-       ! Restart 1
-
-       ALLOCATE(VPS(2*NDIM,0:NTSR*NCOLRS),VDOTPS(2*NDIM,0:NTSR*NCOLRS))
-
-       !        ** read the std branch
-       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS, &
-            VDOTPS,TMR,ITPRS,2*NDIM)
-
-       UPSR(1:NDM,:)=VPS(1:NDM,:)
-       UPSR(NDM+1:2*NDM,:)=VPS(3*NDM+1:4*NDM,:)
-
-       DEALLOCATE(VPS,VDOTPS)
-
-       NODIR=1
-
     ENDIF
+
+    ! ** unit weights
+    THL1(1:NFPX)=1.d0
+    THU1(1:NDM)=1.d0
+
+    ! ** call SOLVBV
+    RDSZ=0.d0
+    NLLV=1
+    IFST=1
+    CALL SOLVBV(IFST,AP2,DET,PAR,ICPRS,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+         RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT, &
+         DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
+
+    !        ** normalization
+    CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,UDOTPST,RLDOTRS,DTM,THL1,THU1)
+    CALL SCALEB(NTSR,NCOLRS,NDM,NFPX,VDOTPST,RVDOT,DTM,THL1,THU1)
+
+    !        ** init UPS,PAR
+    UPSR(1:NDM,:)=UPST(:,:)
+    UPSR(NDM+1:2*NDM,:)=0.d0
+    UPSR(2*NDM+1:3*NDM,:)=UDOTPST(:,:)
+    UPSR(3*NDM+1:4*NDM,:)=VDOTPST(:,:)
+    UDOTPSR(:,:)=0.d0
+
+    DO I=1,NFPX
+       PAR(NPARU+I)=RLDOTRS(I)
+       PAR(NPARU+NFPX+I)=RVDOT(I)
+       RLDOT(I)=0.d0
+       RLDOT(NFPX+I+2)=0.d0
+       RLDOT(2*NFPX+I+2)=0.d0
+    ENDDO
+
+    !        ** init psi^*2,psi^*3
+    DO I=1,NBC0+NNT0
+       PAR(NPARU+2*NFPX+I)=0.d0
+       RLDOT(3*NFPX+I+2)=0.d0
+    ENDDO
+
+    !        ** init a,b,c1,c1,d
+    PAR(NPARU+3*NFPX+NDM:NPARU+3*NFPX+NDM+3)=0.d0
+    RLDOT(NFPX+1)=0.d0
+    RLDOT(NFPX+2)=1.d0
+    RLDOT(4*NFPX+NDM+2)=0.d0
+    RLDOT(4*NFPX+NDM+3)=0.d0
+    DO I=1,NFPX
+       PAR(NPARU+3*NFPX+NDM+3+I)=0.d0
+       RLDOT(4*NFPX+NDM+I+3)=0.d0
+    ENDDO
+
+    DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST,RVDOT)
+    DEALLOCATE(THU1,THL1)
+    DEALLOCATE(P0,P1)
+    DEALLOCATE(U,DTM)
+
+    NODIR=0
+
     DEALLOCATE(ICPRS,RLDOTRS,RLCUR)
 
     CALL ADAPT2(NTSR,NCOLRS,NDIM,AP%NTST,AP%NCOL,NDIM, &

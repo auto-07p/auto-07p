@@ -776,51 +776,44 @@ CONTAINS
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
     CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
 
-    IF(ISW.GT.0) THEN
-       !        ** restart 1 or 2
-       DO I=1,NDM
-          F(NDM+I)=0.d0
-          DO J=1,NDM
-             F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
-          ENDDO
-          F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(NPAR-9+5))
+    DO I=1,NDM
+       F(NDM+I)=0.d0
+       DO J=1,NDM
+          F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
        ENDDO
-    ELSE
+       F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(NPAR-9+5))
+    ENDDO
+    IF(ISW<0) THEN
        !        ** start
        DO I=1,NDM
-          F(NDM+I)=0.d0
           F(2*NDM+I)=0.d0
           F(3*NDM+I)=0.d0
           DO J=1,NDM
-             F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
              F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
-             F(3*NDM+I)=F(3*NDM+I)-DFDU(J,I)*U(3*NDM+J)
+             F(3*NDM+I)=F(3*NDM+I)+DFDU(I,J)*U(3*NDM+J)
           ENDDO
-          F(NDM+I)=PERIOD*(F(NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+1))
-          F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+3))
-          F(3*NDM+I)=PERIOD*(F(3*NDM+I)+UPOLD(I)*PAR(NPAR-9+5))+ &
-               PAR(NPAR-9+8)*U(NDM+I)+PAR(NPAR-9+9)*U(2*NDM+I)
+          F(NDM+I)=F(NDM+I)+PAR(NPAR-9+8)*U(2*NDM+I)+PAR(NPAR-9+9)*U(3*NDM+I)
+          F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+1))
+          F(3*NDM+I)=PERIOD*(F(3*NDM+I)+DFDP(I,ICP(1))*PAR(NPAR-9+3))
           IF(ICP(4).EQ.11)THEN
              !            ** Variable period
-             F(NDM+I)=F(NDM+I)+F(I)*PAR(NPAR-9+2)
-             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(NPAR-9+4)
+             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(NPAR-9+2)
+             F(3*NDM+I)=F(3*NDM+I)+F(I)*PAR(NPAR-9+4)
           ELSE
              !            ** Fixed period
-             F(NDM+I)=F(NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+2)
-             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+4)
+             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+2)
+             F(3*NDM+I)=F(3*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPAR-9+4)
           ENDIF
        ENDDO
     ENDIF
 
+    DO I=1,NDM
+       F(I)=PERIOD*F(I)
+    ENDDO
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          F(I)=PERIOD*F(I)-PAR(NPAR-9+7)*U(NDIM-NDM+I)
-       ENDDO
-    ELSE
-       !        ** generic and restart
-       DO I=1,NDM
-          F(I)=PERIOD*F(I)
+          F(I)=F(I)-PAR(NPAR-9+7)*U(NDM+I)
        ENDDO
     ENDIF
 
@@ -853,7 +846,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          FB(I)=FB(I)+PAR(NPAR-9+7)*U0(NDIM-NDM+I)
+          FB(I)=FB(I)+PAR(NPAR-9+7)*U0(NDM+I)
        ENDDO
     ENDIF
 
@@ -881,7 +874,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          DBC(I,NDIM-NDM+I)=PAR(NPAR-9+7)
+          DBC(I,NDM+I)=PAR(NPAR-9+7)
        ENDDO
     ENDIF
 
@@ -890,7 +883,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          DBC(I,2*NDIM+NPAR-9+7)=U0(NDIM-NDM+I)
+          DBC(I,2*NDIM+NPAR-9+7)=U0(NDM+I)
        ENDDO
     ENDIF
 
@@ -990,7 +983,7 @@ CONTAINS
     FI(NINT)=PAR(NPAR-9+5)**2-PAR(NPAR-9+6)
     DO I=1,NDM
        FI(1)=FI(1)+(U(I)-UOLD(I))*UPOLD(I)
-       FI(NINT)=FI(NINT)+U(NDIM-NDM+I)**2
+       FI(NINT)=FI(NINT)+U(NDM+I)**2
     ENDDO
 
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
@@ -998,45 +991,36 @@ CONTAINS
        FI(1)=FI(1)+PAR(NPAR-9+7)*PAR(NPAR-9+5)
     ENDIF
 
-    IF(ISW.GT.0) THEN
-       !        ** restart 1 or 2
-       FI(2)=0.d0
-       FI(3)=0.d0
-       DO I=1,NDM
-          FI(2)=FI(2)-PERIOD*DFP(I,ICP(1))*U(NDM+I)
-          IF(ICP(4).EQ.11)THEN
-             !            ** Variable period
-             FI(3)=FI(3)-F(I)*U(NDM+I)
-          ELSE
-             !            ** Fixed period
-             FI(3)=FI(3)-PERIOD*DFP(I,ICP(2))*U(NDM+I)
-          ENDIF
-       ENDDO
-    ELSE
+    FI(2)=0.d0
+    FI(3)=0.d0
+    DO I=1,NDM
+       FI(2)=FI(2)-PERIOD*DFP(I,ICP(1))*U(NDM+I)
+       IF(ICP(4).EQ.11)THEN
+          !            ** Variable period
+          FI(3)=FI(3)-F(I)*U(NDM+I)
+       ELSE
+          !            ** Fixed period
+          FI(3)=FI(3)-PERIOD*DFP(I,ICP(2))*U(NDM+I)
+       ENDIF
+    ENDDO
+
+    IF(ISW<0) THEN
        !        ** start
-       FI(2)=0.d0
-       FI(3)=0.d0
-       FI(4)=PAR(NPAR-9+1)**2+PAR(NPAR-9+2)**2-1.d0
-       FI(5)=PAR(NPAR-9+3)**2+PAR(NPAR-9+4)**2-1.d0
-       FI(6)=PAR(NPAR-9+1)*PAR(NPAR-9+3)+PAR(NPAR-9+2)*PAR(NPAR-9+4)
-       FI(7)=FI(6)
-       FI(8)=PAR(NPAR-9+8)*PAR(NPAR-9+1)+PAR(NPAR-9+9)*PAR(NPAR-9+3)
-       FI(9)=PAR(NPAR-9+8)*PAR(NPAR-9+2)+PAR(NPAR-9+9)*PAR(NPAR-9+4)
+       FI(2)=FI(2)+PAR(NPAR-9+8)*PAR(NPAR-9+1)+PAR(NPAR-9+9)*PAR(NPAR-9+3)
+       FI(3)=FI(3)+PAR(NPAR-9+8)*PAR(NPAR-9+2)+PAR(NPAR-9+9)*PAR(NPAR-9+4)
+       FI(4)=0.d0
+       FI(5)=0.d0
+       FI(6)=PAR(NPAR-9+1)**2+PAR(NPAR-9+2)**2-1.d0
+       FI(7)=PAR(NPAR-9+3)**2+PAR(NPAR-9+4)**2-1.d0
+       FI(8)=PAR(NPAR-9+1)*PAR(NPAR-9+3)+PAR(NPAR-9+2)*PAR(NPAR-9+4)
+       FI(9)=FI(8)
        DO I=1,NDM
-          FI(2)=FI(2)+U(NDM+I)*UPOLD(I)
-          FI(3)=FI(3)+U(2*NDM+I)*UPOLD(I)
-          FI(4)=FI(4)+U(NDM+I)*UOLD(NDM+I)
-          FI(5)=FI(5)+U(2*NDM+I)*UOLD(2*NDM+I)
-          FI(6)=FI(6)+U(NDM+I)*UOLD(2*NDM+I)
-          FI(7)=FI(7)+U(2*NDM+I)*UOLD(NDM+I)
-          FI(8)=FI(8)-PERIOD*DFP(I,ICP(1))*U(3*NDM+I)
-          IF(ICP(4).EQ.11)THEN
-             !            ** Variable period
-             FI(9)=FI(9)-F(I)*U(3*NDM+I)
-          ELSE
-             !            ** Fixed period
-             FI(9)=FI(9)-PERIOD*DFP(I,ICP(2))*U(3*NDM+I)
-          ENDIF
+          FI(4)=FI(4)+U(2*NDM+I)*UPOLD(I)
+          FI(5)=FI(5)+U(3*NDM+I)*UPOLD(I)
+          FI(6)=FI(6)+U(2*NDM+I)*UOLD(2*NDM+I)
+          FI(7)=FI(7)+U(3*NDM+I)*UOLD(3*NDM+I)
+          FI(8)=FI(8)+U(2*NDM+I)*UOLD(3*NDM+I)
+          FI(9)=FI(9)+U(3*NDM+I)*UOLD(2*NDM+I)
        ENDDO
     ENDIF
 
@@ -1071,7 +1055,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UPST(:,:),UDOTPST(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: VDOTPST(:,:),UPOLDPT(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
-    INTEGER NDIM,ISW,NDM,NFPR,NDIM3,IFST,NLLV,ITPRS
+    INTEGER NDIM,ISW,NDM,NFPR,IFST,NLLV,ITPRS
     INTEGER NDIMRD,I,J,NPAR
     DOUBLE PRECISION DET,RDSZ
     TYPE(AUTOPARAMETERS) AP2
@@ -1082,122 +1066,98 @@ CONTAINS
     NFPR=AP%NFPR
     NPAR=AP%NPAR
 
-    NDIM3=GETNDIM3()
-
-    IF(NDIM.EQ.NDIM3) THEN
-       !        ** restart 2
+    IF(ISW>0) THEN
+       !        ** restart
        CALL STPNBV(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
        RETURN
     ENDIF
 
     ALLOCATE(UPSR(NDIM,0:NCOLRS*NTSR),UDOTPSR(NDIM,0:NCOLRS*NTSR), &
          TMR(0:NTSR))
-    IF(ISW.LT.0) THEN
 
-       ! Start
+    ! Start
+    !        ** allocation
+    ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
+    ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
+    ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS))
+    ALLOCATE(THU1(NDM))
+    ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
+    ALLOCATE(U(NDM),DTM(NTSR))
 
-       !        ** allocation
-       ALLOCATE(UPST(NDM,0:NTSR*NCOLRS),UDOTPST(NDM,0:NTSR*NCOLRS))
-       ALLOCATE(UPOLDPT(NDM,0:NTSR*NCOLRS))
-       ALLOCATE(VDOTPST(NDM,0:NTSR*NCOLRS))
-       ALLOCATE(THU1(NDM))
-       ALLOCATE(P0(NDM,NDM),P1(NDM,NDM))
-       ALLOCATE(U(NDM),DTM(NTSR))
+    !        ** read the std branch
+    CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST, &
+         UDOTPST,TMR,ITPRS,NDM)
 
-       !        ** read the std branch
-       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,UPST, &
-            UDOTPST,TMR,ITPRS,NDM)
+    DO I=1,NTSR
+       DTM(I)=TMR(I)-TMR(I-1)
+    ENDDO
 
-       DO I=1,NTSR
-          DTM(I)=TMR(I)-TMR(I-1)
-       ENDDO
+    RLCUR(1)=PAR(ICPRS(1))
+    RLCUR(2)=PAR(ICPRS(2))
 
-       RLCUR(1)=PAR(ICPRS(1))
-       RLCUR(2)=PAR(ICPRS(2))
+    ! Compute the second null vector
 
-       ! Compute the second null vector
+    !        ** redefine IAP
+    AP2=AP
+    AP2%NDIM=NDM
+    AP2%NTST=NTSR
+    AP2%NCOL=NCOLRS
+    AP2%NBC=NDM
+    AP2%NINT=1
+    AP2%NFPR=2
 
-       !        ** redefine IAP
-       AP2=AP
-       AP2%NDIM=NDM
-       AP2%NTST=NTSR
-       AP2%NCOL=NCOLRS
-       AP2%NBC=NDM
-       AP2%NINT=1
-       AP2%NFPR=2
+    !        ** compute UPOLDP
+    DO J=0,NTSR*NCOLRS
+       U(:)=UPST(:,J)
+       CALL FNPS(AP2,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
+    ENDDO
 
-       !        ** compute UPOLDP
-       DO J=0,NTSR*NCOLRS
-          U(:)=UPST(:,J)
-          CALL FNPS(AP2,NDM,U,U,ICPRS,PAR,0,UPOLDPT(1,J),DUM,DUM)
-       ENDDO
+    !        ** unit weights
+    THL1(:)=1.d0
+    THU1(1:NDM)=1.d0
 
-       !        ** unit weights
-       THL1(:)=1.d0
-       THU1(1:NDM)=1.d0
+    !        ** call SOLVBV
+    RDSZ=0.d0
+    NLLV=1
+    IFST=1
+    CALL SOLVBV(IFST,AP2,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV, &
+         RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT, &
+         DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
 
-       !        ** call SOLVBV
-       RDSZ=0.d0
-       NLLV=1
-       IFST=1
-       CALL SOLVBV(IFST,AP2,DET,PAR,ICPRS,FNPS,BCPS,ICPS,RDSZ,NLLV, &
-            RLCUR,RLCUR,RLDOTRS,NDM,UPST,UPST,UDOTPST,UPOLDPT, &
-            DTM,VDOTPST,RVDOT,P0,P1,THL1,THU1)
+    !        ** normalization
+    CALL SCALEB(NTSR,NCOLRS,NDM,2,UDOTPST,RLDOTRS,DTM,THL1,THU1)
+    CALL SCALEB(NTSR,NCOLRS,NDM,2,VDOTPST,RVDOT,DTM,THL1,THU1)
 
-       !        ** normalization
-       CALL SCALEB(NTSR,NCOLRS,NDM,2,UDOTPST,RLDOTRS,DTM,THL1,THU1)
-       CALL SCALEB(NTSR,NCOLRS,NDM,2,VDOTPST,RVDOT,DTM,THL1,THU1)
+    !        ** init UPS,PAR
+    UPSR(1:NDM,:)=UPST(:,:)
+    UPSR(NDM+1:2*NDM,:)=0.d0
+    UPSR(2*NDM+1:3*NDM,:)=UDOTPST(:,:)
+    UPSR(3*NDM+1:4*NDM,:)=VDOTPST(:,:)
+    UDOTPSR(:,:)=0.d0
 
-       !        ** init UPS,PAR
-       UPSR(1:NDM,:)=UPST(:,:)
-       UPSR(NDM+1:2*NDM,:)=UDOTPST(:,:)
-       UPSR(2*NDM+1:3*NDM,:)=VDOTPST(:,:)
-       UPSR(3*NDM+1:4*NDM,:)=0.d0
-       UDOTPSR(:,:)=0.d0
-
-       !        ** init q,r,psi^*3,a,b,c1,c1
-       PAR(NPAR-9+1:NPAR-9+2)=RLDOTRS(1:2)
-       PAR(NPAR-9+3:NPAR-9+4)=RVDOT(1:2)
-       PAR(NPAR-9+5:NPAR-9+7)=0.d0
-       PAR(NPAR-9+8:NPAR-9+9)=0.d0
-       RLDOT(1:2)=0.d0
-       IF(ICP(4).EQ.11)THEN
-          !          ** Variable period
-          RLDOT(3)=1.d0
-          RLDOT(4)=0.d0
-       ELSE
-          !          ** Fixed period
-          RLDOT(3)=0.d0
-          RLDOT(4)=1.d0
-       ENDIF
-       RLDOT(5:11)=0.d0
-
-       DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST)
-       DEALLOCATE(THU1)
-       DEALLOCATE(P0,P1)
-       DEALLOCATE(U,DTM)
-
-       NODIR=0
-
+    !        ** init q,r,psi^*3,a,b,c1,c1
+    PAR(NPAR-9+1:NPAR-9+2)=RLDOTRS(1:2)
+    PAR(NPAR-9+3:NPAR-9+4)=RVDOT(1:2)
+    PAR(NPAR-9+5:NPAR-9+7)=0.d0
+    PAR(NPAR-9+8:NPAR-9+9)=0.d0
+    RLDOT(1:2)=0.d0
+    IF(ICP(4).EQ.11)THEN
+       !          ** Variable period
+       RLDOT(3)=1.d0
+       RLDOT(4)=0.d0
     ELSE
-
-       ! Restart 1
-
-       ALLOCATE(VPS(2*NDIM,0:NTSR*NCOLRS), &
-            VDOTPS(2*NDIM,0:NTSR*NCOLRS))
-
-       !        ** read the std branch
-       CALL READBV(AP,PAR,ICPRS,NTSR,NCOLRS,NDIMRD,RLDOTRS,VPS, &
-            VDOTPS,TMR,ITPRS,2*NDIM)
-
-       UPSR(1:NDM,:)=VPS(1:NDM,:)
-       UPSR(NDM+1:2*NDM,:)=VPS(3*NDM+1:4*NDM,:)
-
-       DEALLOCATE(VPS,VDOTPS)
-
-       NODIR=1
-
+       !          ** Fixed period
+       RLDOT(3)=0.d0
+       RLDOT(4)=1.d0
     ENDIF
+    RLDOT(5:11)=0.d0
+
+    DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST)
+    DEALLOCATE(THU1)
+    DEALLOCATE(P0,P1)
+    DEALLOCATE(U,DTM)
+
+    NODIR=0
 
     CALL ADAPT2(NTSR,NCOLRS,NDIM,AP%NTST,AP%NCOL,NDIM, &
          TMR,UPSR,UDOTPSR,TM,UPS,UDOTPS,.FALSE.)
