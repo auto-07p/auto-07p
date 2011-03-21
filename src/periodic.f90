@@ -659,7 +659,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(AP%NFPR), &
          UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
     ! Local
-    INTEGER ICPRS(4),NDIM,NDM,ITPRS,NDIMRD,J,NPAR
+    INTEGER ICPRS(4),NDIM,NDM,ITPRS,NDIMRD,NPAR
     DOUBLE PRECISION, ALLOCATABLE :: UPSR(:,:),UDOTPSR(:,:),TMR(:)
 
     NDIM=AP%NDIM
@@ -699,9 +699,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:),DFP(:),FF1(:),FF2(:)
-    INTEGER NDM,NFPR,NPAR,I,J
-    DOUBLE PRECISION UMX,EP,P,UU
+    INTEGER NDM,NFPR,NPAR,I,J,ISW,IP
+    DOUBLE PRECISION UMX,EP,P,UU,UPOLD(AP%NDM),DUM(1)
 
+    ISW=AP%ISW
     NDM=AP%NDM
     NFPR=AP%NFPR
     NPAR=AP%NPAR
@@ -711,6 +712,33 @@ CONTAINS
     CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 
     IF(IJAC.EQ.0)RETURN
+
+    CALL EXPANDJAC(DFDU,NDM,NDM,NDIM)
+    CALL EXPANDJAC(DFDP,NPAR,NDM,NDIM)
+
+    DFDU(1:NDM,1:NDM)=PAR(11)*DFDU(1:NDM,1:NDM)
+    DFDU(1:NDM,NDM+1:NDIM)=0
+    IF(ISW==2.OR.ISW<0)THEN
+       !        ** Non-generic and/or start
+       DO I=1,NDM
+          DFDU(I,NDM+I)=-PAR(NPAR-9+7)
+       ENDDO
+    ENDIF
+    DO I=1,NDM
+       DFDU(NDM+1:2*NDM,NDM+I)=-DFDU(I,1:NDM)
+    ENDDO
+    IF(ISW<0)THEN ! start
+       DFDU(NDM+1:2*NDM,2*NDM+1:4*NDM)=0
+       DO I=1,NDM
+          DFDU(NDM+I,2*NDM+I)=PAR(NPAR-9+8)
+          DFDU(NDM+I,3*NDM+I)=PAR(NPAR-9+9)
+       ENDDO
+       DFDU(2*NDM+1:4*NDM,1:2*NDM)=0
+       DFDU(2*NDM+1:3*NDM,2*NDM+1:3*NDM)=DFDU(1:NDM,1:NDM)
+       DFDU(2*NDM+1:3*NDM,3*NDM+1:4*NDM)=0
+       DFDU(3*NDM+1:4*NDM,2*NDM+1:3*NDM)=0
+       DFDU(3*NDM+1:4*NDM,3*NDM+1:4*NDM)=DFDU(1:NDM,1:NDM)
+    ENDIF
 
     ALLOCATE(DFU(NDM*NDM),DFP(NDM*NPAR))
     ALLOCATE(FF1(NDIM),FF2(NDIM))
@@ -724,14 +752,14 @@ CONTAINS
 
     EP=HMACH*(1+UMX)
 
-    DO I=1,NDIM
+    DO I=1,NDM
        UU=U(I)
        U(I)=UU-EP
        CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
        U(I)=UU+EP
        CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
        U(I)=UU
-       DO J=1,NDIM
+       DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
        ENDDO
     ENDDO
@@ -743,13 +771,88 @@ CONTAINS
     ENDIF
 
     DO I=1,NFPR
-       P=PAR(ICP(I))
-       PAR(ICP(I))=P+EP
-       CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
-       DO J=1,NDIM
-          DFDP(J,ICP(I))=(FF1(J)-F(J))/EP
-       ENDDO
-       PAR(ICP(I))=P
+       ! note: restart uses only PAR(NPAR-9+5) and PAR(NPAR-9+7)
+       IP=ICP(I)
+       IF(IP==11)THEN
+          IF(ISW==2.OR.ISW<0)THEN
+             !        ** Non-generic and/or start
+             DFDP(1:NDM,11)=(F(1:NDM)/PAR(11)+PAR(NPAR-9+7)*U(NDM+1:2*NDM))
+          ELSE
+             DFDP(1:NDM,11)=F(1:NDM)/PAR(11)
+          ENDIF
+          DFDP(NDM+1:2*NDM,11)=F(NDM+1:2*NDM)/PAR(11)
+          IF(ISW<0)THEN
+             IF(ICP(4).EQ.11)THEN
+                !            ** Variable period
+                DFDP(2*NDM+1:3*NDM,11)=&
+                     (F(2*NDM+1:3*NDM)-F(1:NDM)/PAR(11)*PAR(NPAR-9+2))/PAR(11)
+                DFDP(3*NDM+1:4*NDM,11)=&
+                     (F(3*NDM+1:4*NDM)-F(1:NDM)/PAR(11)*PAR(NPAR-9+4))/PAR(11)
+             ELSE
+                !            ** Fixed period
+                DFDP(2*NDM+1:NDIM,11)=F(2*NDM+1:NDIM)/PAR(11)
+             ENDIF
+          ENDIF
+       ELSEIF(IP<=NPAR-9)THEN
+          P=PAR(IP)
+          PAR(IP)=P+EP
+          CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+          PAR(IP)=P
+          DFDP(1:NDM,IP)=PAR(11)*DFDP(1:NDM,IP)
+          DO J=NDM+1,NDIM
+             DFDP(J,IP)=(FF1(J)-F(J))/EP
+          ENDDO
+       ELSE
+          SELECT CASE(IP-(NPAR-9))
+          CASE(5)
+             CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+             DFDP(1:NDM,IP)=0
+             DFDP(NDM+1:2*NDM,IP)=PAR(11)*UPOLD(:)
+             DFDP(2*NDM+1:NDIM,IP)=0
+          CASE(6)
+             DFDP(:,IP)=0
+          CASE(7)
+             IF(ISW==2.OR.ISW<0)THEN
+                !        ** Non-generic and/or start
+                DFDP(1:NDM,IP)=-U(NDM+1:2*NDM)
+             ELSE
+                DFDP(1:NDM,IP)=0
+             ENDIF
+             DFDP(NDM+1:NDIM,IP)=0
+          CASE(1,3)
+             DFDP(1:2*NDM,IP)=0
+             IF(IP-(NPAR-9)==1)THEN
+                DFDP(2*NDM+1:3*NDM,IP)=DFDP(1:NDM,ICP(1))
+                DFDP(3*NDM+1:4*NDM,IP)=0
+             ELSE
+                DFDP(2*NDM+1:3*NDM,IP)=0
+                DFDP(3*NDM+1:4*NDM,IP)=DFDP(1:NDM,ICP(1))
+             ENDIF
+          CASE(2,4)
+             DFDP(1:2*NDM,IP)=0
+             IF(IP-(NPAR-9)==2)THEN
+                J=2
+             ELSE
+                J=3
+             ENDIF
+             IF(ICP(4)==11)THEN
+                !            ** Variable period
+                DFDP(J*NDM+1:(J+1)*NDM,IP)=F(1:NDM)/PAR(11)
+             ELSE
+                !            ** Fixed period
+                DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(2))
+             ENDIF
+             DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
+          CASE(8,9)
+             DFDP(1:NDM,IP)=0
+             IF(IP-(NPAR-9)==8)THEN
+                DFDP(NDM+1:2*NDM,IP)=U(2*NDM+1:3*NDM)
+             ELSE
+                DFDP(NDM+1:2*NDM,IP)=U(3*NDM+1:4*NDM)
+             ENDIF
+             DFDP(2*NDM+1:4*NDM,IP)=0
+          END SELECT
+       ENDIF
     ENDDO
 
     DEALLOCATE(DFU,DFP,FF1)
@@ -1046,7 +1149,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: PAR(*),RLDOT(AP%NFPR), &
          UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*),TM(0:*)
     ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: VPS(:,:),VDOTPS(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: THU1(:)
     DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: U(:),DTM(:)
