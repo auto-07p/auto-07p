@@ -696,7 +696,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:),DFP(:),FF1(:),FF2(:)
-    INTEGER NDM,NFPR,NPAR,I,J,ISW,IP,IPARI
+    INTEGER NDM,NFPR,NPAR,I,J,ISW,IP,NPARU
     DOUBLE PRECISION UMX,EP,P,UU,UPOLD(AP%NDM),DUM(1)
 
     ISW=AP%ISW
@@ -716,16 +716,11 @@ CONTAINS
 
     DFDU(1:NDM,1:NDM)=PAR(11)*DFDU(1:NDM,1:NDM)
     DFDU(1:NDM,NDM+1:NDIM)=0
-    IPARI=NPAR-2
+    NPARU=NPAR-AP%NPARI
     IF(ISW==2.OR.ISW<0)THEN
        !        ** Non-generic and/or start
-       IF(ISW<0)THEN
-          IPARI=NPAR-9
-       ELSE
-          IPARI=NPAR-3
-       ENDIF
        DO I=1,NDM
-          DFDU(I,NDM+I)=-PAR(IPARI+3)
+          DFDU(I,NDM+I)=-PAR(NPARU+3)
        ENDDO
     ENDIF
     DO I=1,NDM
@@ -734,8 +729,8 @@ CONTAINS
     IF(ISW<0)THEN ! start
        DFDU(NDM+1:2*NDM,2*NDM+1:4*NDM)=0
        DO I=1,NDM
-          DFDU(NDM+I,2*NDM+I)=PAR(IPARI+8)
-          DFDU(NDM+I,3*NDM+I)=PAR(IPARI+9)
+          DFDU(NDM+I,2*NDM+I)=PAR(NPARU+8)
+          DFDU(NDM+I,3*NDM+I)=PAR(NPARU+9)
        ENDDO
        DFDU(2*NDM+1:4*NDM,1:2*NDM)=0
        DFDU(2*NDM+1:3*NDM,2*NDM+1:3*NDM)=DFDU(1:NDM,1:NDM)
@@ -775,17 +770,17 @@ CONTAINS
     ENDIF
 
     ! parameter derivative for psi^*_3 with upold: avoids reevalulation of FUNC
-    IP=IPARI+1
+    IP=NPARU+1
     DFDP(1:NDM,IP)=0
     DFDP(NDM+1:2*NDM,IP)=PAR(11)*UPOLD(:)
     DFDP(2*NDM+1:NDIM,IP)=0
     DO I=1,NFPR
-       ! note: restart uses only PAR(IPARI+1) and perhaps PAR(IPARI+3)
+       ! note: restart uses only PAR(NPARU+1) and perhaps PAR(NPARU+3)
        IP=ICP(I)
        IF(IP==11)THEN
           IF(ISW==2.OR.ISW<0)THEN
              !        ** Non-generic and/or start
-             DFDP(1:NDM,11)=(F(1:NDM)/PAR(11)+PAR(IPARI+3)*U(NDM+1:2*NDM))
+             DFDP(1:NDM,11)=(F(1:NDM)/PAR(11)+PAR(NPARU+3)*U(NDM+1:2*NDM))
           ELSE
              DFDP(1:NDM,11)=F(1:NDM)/PAR(11)
           ENDIF
@@ -794,15 +789,15 @@ CONTAINS
              IF(ICP(4).EQ.11)THEN
                 !            ** Variable period
                 DFDP(2*NDM+1:3*NDM,11)=&
-                     (F(2*NDM+1:3*NDM)-F(1:NDM)/PAR(11)*PAR(IPARI+5))/PAR(11)
+                     (F(2*NDM+1:3*NDM)-F(1:NDM)/PAR(11)*PAR(NPARU+5))/PAR(11)
                 DFDP(3*NDM+1:4*NDM,11)=&
-                     (F(3*NDM+1:4*NDM)-F(1:NDM)/PAR(11)*PAR(IPARI+7))/PAR(11)
+                     (F(3*NDM+1:4*NDM)-F(1:NDM)/PAR(11)*PAR(NPARU+7))/PAR(11)
              ELSE
                 !            ** Fixed period
                 DFDP(2*NDM+1:NDIM,11)=F(2*NDM+1:NDIM)/PAR(11)
              ENDIF
           ENDIF
-       ELSEIF(IP<=IPARI)THEN
+       ELSEIF(IP<=NPARU)THEN
           P=PAR(IP)
           PAR(IP)=P+EP
           CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
@@ -813,7 +808,7 @@ CONTAINS
              DFDP(J,IP)=(FF1(J)-F(J))/EP
           ENDDO
        ELSE
-          SELECT CASE(IP-IPARI)
+          SELECT CASE(IP-NPARU)
           CASE(2) ! a
              DFDP(:,IP)=0
           CASE(3) ! b, ** Only used for non-generic and/or start
@@ -821,12 +816,12 @@ CONTAINS
              DFDP(NDM+1:NDIM,IP)=0
           CASE(4,6) ! q1, r1 ** All other parameters only used for start
              DFDP(1:2*NDM,IP)=0
-             J=(IP-IPARI)/2
+             J=(IP-NPARU)/2
              DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(1))
              DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
           CASE(5,7) ! q2/beta, r2/beta
              DFDP(1:2*NDM,IP)=0
-             J=(IP-IPARI-1)/2
+             J=(IP-NPARU-1)/2
              IF(ICP(4)==11)THEN
                 !            ** Variable period
                 DFDP(J*NDM+1:(J+1)*NDM,IP)=F(1:NDM)/PAR(11)
@@ -837,7 +832,7 @@ CONTAINS
              DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
           CASE(8,9) ! c1, c2
              DFDP(1:NDM,IP)=0
-             J=IP-IPARI-6
+             J=IP-NPARU-6
              DFDP(NDM+1:2*NDM,IP)=U(J*NDM+1:(J+1)*NDM)
              DFDP(2*NDM+1:4*NDM,IP)=0
           END SELECT
@@ -858,7 +853,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
     ! Local
     DOUBLE PRECISION DUM(1)
-    INTEGER ISW,I,J,NPAR,IPARI
+    INTEGER ISW,I,J,NPAR,NPARU
     DOUBLE PRECISION PERIOD
 
     PERIOD=PAR(11)
@@ -867,18 +862,13 @@ CONTAINS
 
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
-    IPARI=NPAR-2
-    IF(ISW<0) THEN
-       IPARI=NPAR-9
-    ELSEIF(ISW==2)THEN
-       IPARI=NPAR-3
-    ENDIF
+    NPARU=NPAR-AP%NPARI
     DO I=1,NDM
        F(NDM+I)=0.d0
        DO J=1,NDM
           F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
        ENDDO
-       F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(IPARI+1))
+       F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(NPARU+1))
     ENDDO
     IF(ISW<0) THEN
        !        ** start
@@ -889,17 +879,17 @@ CONTAINS
              F(2*NDM+I)=F(2*NDM+I)+DFDU(I,J)*U(2*NDM+J)
              F(3*NDM+I)=F(3*NDM+I)+DFDU(I,J)*U(3*NDM+J)
           ENDDO
-          F(NDM+I)=F(NDM+I)+PAR(IPARI+8)*U(2*NDM+I)+PAR(IPARI+9)*U(3*NDM+I)
-          F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(IPARI+4))
-          F(3*NDM+I)=PERIOD*(F(3*NDM+I)+DFDP(I,ICP(1))*PAR(IPARI+6))
+          F(NDM+I)=F(NDM+I)+PAR(NPARU+8)*U(2*NDM+I)+PAR(NPARU+9)*U(3*NDM+I)
+          F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(NPARU+4))
+          F(3*NDM+I)=PERIOD*(F(3*NDM+I)+DFDP(I,ICP(1))*PAR(NPARU+6))
           IF(ICP(4).EQ.11)THEN
              !            ** Variable period
-             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(IPARI+5)
-             F(3*NDM+I)=F(3*NDM+I)+F(I)*PAR(IPARI+7)
+             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(NPARU+5)
+             F(3*NDM+I)=F(3*NDM+I)+F(I)*PAR(NPARU+7)
           ELSE
              !            ** Fixed period
-             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(IPARI+5)
-             F(3*NDM+I)=F(3*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(IPARI+7)
+             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPARU+5)
+             F(3*NDM+I)=F(3*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPARU+7)
           ENDIF
        ENDDO
     ENDIF
@@ -910,7 +900,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          F(I)=F(I)-PAR(IPARI+3)*U(NDM+I)
+          F(I)=F(I)-PAR(NPARU+3)*U(NDM+I)
        ENDDO
     ENDIF
 
@@ -930,7 +920,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
     DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC,*)
 
-    INTEGER ISW,NDM,NPAR,NN,I,J,IPARI
+    INTEGER ISW,NDM,NPAR,NN,I,J,NPARU
 
     ISW=AP%ISW
     NDM=AP%NDM
@@ -940,16 +930,11 @@ CONTAINS
        FB(I)=U0(I)-U1(I)
     ENDDO
 
-    IPARI=NPAR-2
+    NPARU=NPAR-AP%NPARI
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
-       IF(ISW<0) THEN
-          IPARI=NPAR-9
-       ELSE
-          IPARI=NPAR-3
-       ENDIF
        DO I=1,NDM
-          FB(I)=FB(I)+PAR(IPARI+3)*U0(NDM+I)
+          FB(I)=FB(I)+PAR(NPARU+3)*U0(NDM+I)
        ENDDO
     ENDIF
 
@@ -977,7 +962,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          DBC(I,NDM+I)=PAR(IPARI+3)
+          DBC(I,NDM+I)=PAR(NPARU+3)
        ENDDO
     ENDIF
 
@@ -986,7 +971,7 @@ CONTAINS
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          DBC(I,2*NDIM+IPARI+3)=U0(NDM+I)
+          DBC(I,2*NDIM+NPARU+3)=U0(NDM+I)
        ENDDO
     ENDIF
 
@@ -1071,7 +1056,7 @@ CONTAINS
 
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
-    INTEGER ISW,NDM,NPAR,I,IPARI
+    INTEGER ISW,NDM,NPAR,I,NPARU
     DOUBLE PRECISION PERIOD
 
     PERIOD=PAR(11)
@@ -1082,15 +1067,9 @@ CONTAINS
     ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 
-    IPARI=NPAR-2
-    IF(ISW<0) THEN
-       IPARI=NPAR-9
-    ELSEIF(ISW==2)THEN
-       IPARI=NPAR-3
-    ENDIF
-
+    NPARU=NPAR-AP%NPARI
     FI(1)=0.d0
-    FI(NINT)=PAR(IPARI+1)**2-PAR(IPARI+2)
+    FI(NINT)=PAR(NPARU+1)**2-PAR(NPARU+2)
     DO I=1,NDM
        FI(1)=FI(1)+(U(I)-UOLD(I))*UPOLD(I)
        FI(NINT)=FI(NINT)+U(NDM+I)**2
@@ -1098,7 +1077,7 @@ CONTAINS
 
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
-       FI(1)=FI(1)+PAR(IPARI+3)*PAR(IPARI+1)
+       FI(1)=FI(1)+PAR(NPARU+3)*PAR(NPARU+1)
     ENDIF
 
     FI(2)=0.d0
@@ -1116,13 +1095,13 @@ CONTAINS
 
     IF(ISW<0) THEN
        !        ** start
-       FI(2)=FI(2)+PAR(IPARI+8)*PAR(IPARI+4)+PAR(IPARI+9)*PAR(IPARI+6)
-       FI(3)=FI(3)+PAR(IPARI+8)*PAR(IPARI+5)+PAR(IPARI+9)*PAR(IPARI+7)
+       FI(2)=FI(2)+PAR(NPARU+8)*PAR(NPARU+4)+PAR(NPARU+9)*PAR(NPARU+6)
+       FI(3)=FI(3)+PAR(NPARU+8)*PAR(NPARU+5)+PAR(NPARU+9)*PAR(NPARU+7)
        FI(4)=0.d0
        FI(5)=0.d0
-       FI(6)=PAR(IPARI+4)**2+PAR(IPARI+5)**2-1.d0
-       FI(7)=PAR(IPARI+6)**2+PAR(IPARI+7)**2-1.d0
-       FI(8)=PAR(IPARI+4)*PAR(IPARI+6)+PAR(IPARI+5)*PAR(IPARI+7)
+       FI(6)=PAR(NPARU+4)**2+PAR(NPARU+5)**2-1.d0
+       FI(7)=PAR(NPARU+6)**2+PAR(NPARU+7)**2-1.d0
+       FI(8)=PAR(NPARU+4)*PAR(NPARU+6)+PAR(NPARU+5)*PAR(NPARU+7)
        FI(9)=FI(8)
        DO I=1,NDM
           FI(4)=FI(4)+U(2*NDM+I)*UPOLD(I)
