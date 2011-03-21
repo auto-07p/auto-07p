@@ -706,7 +706,8 @@ CONTAINS
 
     ! Generate the function.
 
-    CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+    CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+    CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 
     IF(IJAC.EQ.0)RETURN
 
@@ -758,9 +759,9 @@ CONTAINS
     DO I=1,NDM
        UU=U(I)
        U(I)=UU-EP
-       CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU,DFP)
        U(I)=UU+EP
-       CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF2,NDM,DFU,DFP)
        U(I)=UU
        DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -773,6 +774,11 @@ CONTAINS
        RETURN
     ENDIF
 
+    ! parameter derivative for psi^*_3 with upold: avoids reevalulation of FUNC
+    IP=IPARI+1
+    DFDP(1:NDM,IP)=0
+    DFDP(NDM+1:2*NDM,IP)=PAR(11)*UPOLD(:)
+    DFDP(2*NDM+1:NDIM,IP)=0
     DO I=1,NFPR
        ! note: restart uses only PAR(IPARI+1) and perhaps PAR(IPARI+3)
        IP=ICP(I)
@@ -799,7 +805,8 @@ CONTAINS
        ELSEIF(IP<=IPARI)THEN
           P=PAR(IP)
           PAR(IP)=P+EP
-          CALL FFPBP(AP,NDIM,U,UOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+          CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
+          CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU,DFP)
           PAR(IP)=P
           DFDP(1:NDM,IP)=PAR(11)*DFDP(1:NDM,IP)
           DO J=NDM+1,NDIM
@@ -807,22 +814,17 @@ CONTAINS
           ENDDO
        ELSE
           SELECT CASE(IP-IPARI)
-          CASE(1)
-             CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-             DFDP(1:NDM,IP)=0
-             DFDP(NDM+1:2*NDM,IP)=PAR(11)*UPOLD(:)
-             DFDP(2*NDM+1:NDIM,IP)=0
-          CASE(2)
+          CASE(2) ! a
              DFDP(:,IP)=0
-          CASE(3) ! ** Only used for non-generic and/or start
+          CASE(3) ! b, ** Only used for non-generic and/or start
              DFDP(1:NDM,IP)=-U(NDM+1:2*NDM)
              DFDP(NDM+1:NDIM,IP)=0
-          CASE(4,6) ! ** All other parameters only used for start
+          CASE(4,6) ! q1, r1 ** All other parameters only used for start
              DFDP(1:2*NDM,IP)=0
              J=(IP-IPARI)/2
              DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(1))
              DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
-          CASE(5,7)
+          CASE(5,7) ! q2/beta, r2/beta
              DFDP(1:2*NDM,IP)=0
              J=(IP-IPARI-1)/2
              IF(ICP(4)==11)THEN
@@ -833,7 +835,7 @@ CONTAINS
                 DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(2))
              ENDIF
              DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
-          CASE(8,9)
+          CASE(8,9) ! c1, c2
              DFDP(1:NDM,IP)=0
              J=IP-IPARI-6
              DFDP(NDM+1:2*NDM,IP)=U(J*NDM+1:(J+1)*NDM)
@@ -846,16 +848,16 @@ CONTAINS
   END SUBROUTINE FNPBP
 
 ! ---------- -----
-  SUBROUTINE FFPBP(AP,NDIM,U,UOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+  SUBROUTINE FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU,DFDP)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
-    DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UPOLD(NDM)
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
     ! Local
-    DOUBLE PRECISION DUM(1),UPOLD(NDM)
+    DOUBLE PRECISION DUM(1)
     INTEGER ISW,I,J,NPAR,IPARI
     DOUBLE PRECISION PERIOD
 
@@ -864,7 +866,6 @@ CONTAINS
     NPAR=AP%NPAR
 
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
-    CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
 
     IPARI=NPAR-2
     IF(ISW<0) THEN
