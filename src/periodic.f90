@@ -76,18 +76,18 @@ CONTAINS
              ! ** Non-generic case
              IF(ICP(3)==11 .OR. NICP==2)THEN
                 ! ** Variable period
-                ICP(3)=NPAR+3 ! b
-                ICP(4)=11 ! T
-             ELSE
-                ! ** Fixed period
-                ICP(4)=NPAR+3 ! b
+                ICP(3)=ICP(2)
+                ICP(2)=11 ! T
              ENDIF
+             ICP(4)=NPAR+3 ! b
              NPARI=3
           ELSE
              ! ** Generic case
              IF(ICP(4)==11 .OR. NICP==3)THEN
                 ! ** Variable period
-                ICP(4)=11 ! T
+                ICP(4)=ICP(3)
+                ICP(3)=ICP(2)
+                ICP(2)=11 ! T
              ENDIF
              NPARI=2
           ENDIF
@@ -98,15 +98,8 @@ CONTAINS
              ! start
              NDIM=2*NDIM
              NINT=10
-             IF(ICP(4)==11)THEN
-                ! ** Variable period
-                ICP(2)=NPAR+2 ! a
-                ICP(3)=NPAR+3 ! b
-             ELSE
-                ! ** Fixed period
-                ICP(3)=NPAR+2 ! a
-                ICP(4)=NPAR+3 ! b
-             ENDIF
+             ICP(3)=NPAR+2   ! a
+             ICP(4)=NPAR+3   ! b
              ICP(6)=NPAR+4   ! q1
              ICP(7)=NPAR+5   ! q2/beta1
              ICP(8)=NPAR+6   ! r1
@@ -227,30 +220,27 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
     ! Local
-    INTEGER J,NFPX
+    INTEGER J
     DOUBLE PRECISION PERIOD
 
     ! Generate the function.
 
     CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,ABS(IJAC),F,DFDU,DFDP)
     PERIOD=PAR(11)
-    IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
-       !          **Variable period continuation
-       DFDP(:,11)=F(:)
+    IF(IJAC==2.OR.IJAC==-1)THEN
+       DO J=1,AP%NFPR
+          IF(ICP(J)==11)THEN
+             !          **Variable period continuation
+             DFDP(:,11)=F(:)
+          ELSEIF(IJAC==2.AND.ICP(J)<=AP%NPAR-AP%NPARI)THEN
+             DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
+          ENDIF
+       ENDDO
     ENDIF
     F(:)=PERIOD*F(:)
     IF(IJAC.EQ.0)RETURN
     !      **Generate the Jacobian.
     DFDU(:,:)=PERIOD*DFDU(:,:)
-    IF(ABS(IJAC).EQ.1)RETURN
-    NFPX=1
-    IF(ICP(2).NE.11)THEN
-       !          **Fixed period continuation
-       NFPX=2
-    ENDIF
-    DO J=1,NFPX
-       DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
-    ENDDO
 
   END SUBROUTINE FNPS
 
@@ -473,8 +463,6 @@ CONTAINS
        DFDP(NDM+1:NDIM,NPAR-1)=DFDP(1:NDM,ICP(2))
        IF(ICP(3)==NPAR)THEN
           DFDP(1:NDM,NPAR)=0d0
-       ELSE
-          DFDP(1:NDM,ICP(3))=PAR(11)*DFDP(1:NDM,ICP(3))
        ENDIF
     ENDIF
 
@@ -707,14 +695,14 @@ CONTAINS
     ! Generate the function.
 
     CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-    CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+    UPOLD(:)=PAR(11)*UPOLD(:)
+    CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 
     IF(IJAC.EQ.0)RETURN
 
     CALL EXPANDJAC(DFDU,NDM,NDM,NDIM)
     CALL EXPANDJAC(DFDP,NPAR,NDM,NDIM)
 
-    DFDU(1:NDM,1:NDM)=PAR(11)*DFDU(1:NDM,1:NDM)
     DFDU(1:NDM,NDM+1:NDIM)=0
     NPARU=NPAR-AP%NPARI
     IF(ISW==2.OR.ISW<0)THEN
@@ -754,9 +742,9 @@ CONTAINS
     DO I=1,NDM
        UU=U(I)
        U(I)=UU-EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
        U(I)=UU+EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF2,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
        U(I)=UU
        DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -772,38 +760,26 @@ CONTAINS
     ! parameter derivative for psi^*_3 with upold: avoids reevalulation of FUNC
     IP=NPARU+1
     DFDP(1:NDM,IP)=0
-    DFDP(NDM+1:2*NDM,IP)=PAR(11)*UPOLD(:)
+    DFDP(NDM+1:2*NDM,IP)=UPOLD(:)
     DFDP(2*NDM+1:NDIM,IP)=0
     DO I=1,NFPR
        ! note: restart uses only PAR(NPARU+1) and perhaps PAR(NPARU+3)
        IP=ICP(I)
        IF(IP==11)THEN
-          IF(ISW==2.OR.ISW<0)THEN
-             !        ** Non-generic and/or start
-             DFDP(1:NDM,11)=(F(1:NDM)/PAR(11)+PAR(NPARU+3)*U(NDM+1:2*NDM))
-          ELSE
-             DFDP(1:NDM,11)=F(1:NDM)/PAR(11)
-          ENDIF
           DFDP(NDM+1:2*NDM,11)=F(NDM+1:2*NDM)/PAR(11)
           IF(ISW<0)THEN
-             IF(ICP(4).EQ.11)THEN
-                !            ** Variable period
-                DFDP(2*NDM+1:3*NDM,11)=&
-                     (F(2*NDM+1:3*NDM)-F(1:NDM)/PAR(11)*PAR(NPARU+5))/PAR(11)
-                DFDP(3*NDM+1:4*NDM,11)=&
-                     (F(3*NDM+1:4*NDM)-F(1:NDM)/PAR(11)*PAR(NPARU+7))/PAR(11)
-             ELSE
-                !            ** Fixed period
-                DFDP(2*NDM+1:NDIM,11)=F(2*NDM+1:NDIM)/PAR(11)
-             ENDIF
+             DFDP(2*NDM+1:3*NDM,11)=&
+                  (F(2*NDM+1:3*NDM)-DFDP(1:NDM,11)*PAR(NPARU+5))/PAR(11)
+             DFDP(3*NDM+1:4*NDM,11)=&
+                  (F(3*NDM+1:4*NDM)-DFDP(1:NDM,11)*PAR(NPARU+7))/PAR(11)
           ENDIF
        ELSEIF(IP<=NPARU)THEN
           P=PAR(IP)
           PAR(IP)=P+EP
           CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-          CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,FF1,NDM,DFU,DFP)
+          UPOLD(:)=UPOLD(:)*PAR(11)
+          CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
           PAR(IP)=P
-          DFDP(1:NDM,IP)=PAR(11)*DFDP(1:NDM,IP)
           DO J=NDM+1,NDIM
              DFDP(J,IP)=(FF1(J)-F(J))/EP
           ENDDO
@@ -822,13 +798,7 @@ CONTAINS
           CASE(5,7) ! q2/beta, r2/beta
              DFDP(1:2*NDM,IP)=0
              J=(IP-NPARU-1)/2
-             IF(ICP(4)==11)THEN
-                !            ** Variable period
-                DFDP(J*NDM+1:(J+1)*NDM,IP)=F(1:NDM)/PAR(11)
-             ELSE
-                !            ** Fixed period
-                DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(2))
-             ENDIF
+             DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(2))
              DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
           CASE(8,9) ! c1, c2
              DFDP(1:NDM,IP)=0
@@ -843,32 +813,35 @@ CONTAINS
   END SUBROUTINE FNPBP
 
 ! ---------- -----
-  SUBROUTINE FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,F,NDM,DFDU,DFDP)
+  SUBROUTINE FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM,NDM
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,IJAC,NDM
     DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UPOLD(NDM)
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
     ! Local
     DOUBLE PRECISION DUM(1)
-    INTEGER ISW,I,J,NPAR,NPARU
-    DOUBLE PRECISION PERIOD
+    INTEGER ISW,I,J,NPARU,IJC
 
-    PERIOD=PAR(11)
     ISW=AP%ISW
-    NPAR=AP%NPAR
 
-    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
+    IF(ISW<0) THEN
+       IJC=MAX(IJAC,2)
+    ELSE
+       IJC=MAX(IJAC,1)
+    ENDIF
+    CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,IJC,F,DFDU,DFDP)
 
-    NPARU=NPAR-AP%NPARI
+    NPARU=AP%NPAR-AP%NPARI
+
     DO I=1,NDM
        F(NDM+I)=0.d0
        DO J=1,NDM
           F(NDM+I)=F(NDM+I)-DFDU(J,I)*U(NDM+J)
        ENDDO
-       F(NDM+I)=PERIOD*(F(NDM+I)+UPOLD(I)*PAR(NPARU+1))
+       F(NDM+I)=F(NDM+I)+UPOLD(I)*PAR(NPARU+1)
     ENDDO
     IF(ISW<0) THEN
        !        ** start
@@ -880,23 +853,13 @@ CONTAINS
              F(3*NDM+I)=F(3*NDM+I)+DFDU(I,J)*U(3*NDM+J)
           ENDDO
           F(NDM+I)=F(NDM+I)+PAR(NPARU+8)*U(2*NDM+I)+PAR(NPARU+9)*U(3*NDM+I)
-          F(2*NDM+I)=PERIOD*(F(2*NDM+I)+DFDP(I,ICP(1))*PAR(NPARU+4))
-          F(3*NDM+I)=PERIOD*(F(3*NDM+I)+DFDP(I,ICP(1))*PAR(NPARU+6))
-          IF(ICP(4).EQ.11)THEN
-             !            ** Variable period
-             F(2*NDM+I)=F(2*NDM+I)+F(I)*PAR(NPARU+5)
-             F(3*NDM+I)=F(3*NDM+I)+F(I)*PAR(NPARU+7)
-          ELSE
-             !            ** Fixed period
-             F(2*NDM+I)=F(2*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPARU+5)
-             F(3*NDM+I)=F(3*NDM+I)+PERIOD*DFDP(I,ICP(2))*PAR(NPARU+7)
-          ENDIF
+          DO J=1,2
+             F(2*NDM+I)=F(2*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+3+J)
+             F(3*NDM+I)=F(3*NDM+I)+DFDP(I,ICP(J))*PAR(NPARU+5+J)
+          ENDDO
        ENDDO
     ENDIF
 
-    DO I=1,NDM
-       F(I)=PERIOD*F(I)
-    ENDDO
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
@@ -1056,7 +1019,7 @@ CONTAINS
 
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
-    INTEGER ISW,NDM,NPAR,I,NPARU
+    INTEGER ISW,NDM,NPAR,I,J,NPARU
     DOUBLE PRECISION PERIOD
 
     PERIOD=PAR(11)
@@ -1065,7 +1028,7 @@ CONTAINS
     NPAR=AP%NPAR
 
     ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
-    CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+    CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 
     NPARU=NPAR-AP%NPARI
     FI(1)=0.d0
@@ -1080,23 +1043,19 @@ CONTAINS
        FI(1)=FI(1)+PAR(NPARU+3)*PAR(NPARU+1)
     ENDIF
 
-    FI(2)=0.d0
-    FI(3)=0.d0
-    DO I=1,NDM
-       FI(2)=FI(2)-PERIOD*DFP(I,ICP(1))*U(NDM+I)
-       IF(ICP(4).EQ.11)THEN
-          !            ** Variable period
-          FI(3)=FI(3)-F(I)*U(NDM+I)
-       ELSE
-          !            ** Fixed period
-          FI(3)=FI(3)-PERIOD*DFP(I,ICP(2))*U(NDM+I)
-       ENDIF
+    DO I=1,2
+       FI(1+I)=0.d0
+       DO J=1,NDM
+          FI(1+I)=FI(1+I)-DFP(J,ICP(I))*U(NDM+J)
+       ENDDO
     ENDDO
 
     IF(ISW<0) THEN
        !        ** start
-       FI(2)=FI(2)+PAR(NPARU+8)*PAR(NPARU+4)+PAR(NPARU+9)*PAR(NPARU+6)
-       FI(3)=FI(3)+PAR(NPARU+8)*PAR(NPARU+5)+PAR(NPARU+9)*PAR(NPARU+7)
+       DO I=1,2
+          FI(1+I)=FI(1+I)+PAR(NPARU+8)*PAR(NPARU+3+I)+&
+               PAR(NPARU+9)*PAR(NPARU+5+I)
+       ENDDO
        FI(4)=0.d0
        FI(5)=0.d0
        FI(6)=PAR(NPARU+4)**2+PAR(NPARU+5)**2-1.d0
@@ -1228,16 +1187,8 @@ CONTAINS
     PAR(NPAR-9+4:NPAR-9+5)=RLDOTRS(1:2)
     PAR(NPAR-9+6:NPAR-9+7)=RVDOT(1:2)
     PAR(NPAR-9+8:NPAR-9+9)=0.d0
-    RLDOT(1:2)=0.d0
-    IF(ICP(4).EQ.11)THEN
-       !          ** Variable period
-       RLDOT(3)=1.d0
-       RLDOT(4)=0.d0
-    ELSE
-       !          ** Fixed period
-       RLDOT(3)=0.d0
-       RLDOT(4)=1.d0
-    ENDIF
+    RLDOT(1:3)=0.d0
+    RLDOT(4)=1.d0
     RLDOT(5:11)=0.d0
 
     DEALLOCATE(UPST,UPOLDPT,UDOTPST,VDOTPST)
