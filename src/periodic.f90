@@ -467,10 +467,10 @@ CONTAINS
     IF(IJAC==2)THEN
        IF(ICP(2)==11)THEN
           DFDP(NDM+1:NDIM,11)= &
-               (F(NDM+1:NDIM)-PAR(NPAR-1)/PAR(11)*F(1:NDM))/PAR(11)
+               (F(NDM+1:NDIM)-PAR(NPAR-1)*DFDP(1:NDM,11))/PAR(11)
        ENDIF
        DFDP(1:NDM,NPAR-1)=0d0
-       DFDP(NDM+1:NDIM,NPAR-1)=DFDP(1:NDM,ICP(2))/PAR(11)
+       DFDP(NDM+1:NDIM,NPAR-1)=DFDP(1:NDM,ICP(2))
        IF(ICP(3)==NPAR)THEN
           DFDP(1:NDM,NPAR)=0d0
        ELSE
@@ -542,7 +542,7 @@ CONTAINS
        DO J=1,NDM
           F(NDM+I)=F(NDM+I)+DFDU(I,J)*U(NDM+J)
        ENDDO
-       F(NDM+I)=F(NDM+I)+PAR(NPAR-1)/PAR(11)*DFDP(I,ICP(2))
+       F(NDM+I)=F(NDM+I)+PAR(NPAR-1)*DFDP(I,ICP(2))
     ENDDO
 
   END SUBROUTINE FFPL
