@@ -1079,7 +1079,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: FB(NBC)
     DOUBLE PRECISION, INTENT(INOUT) :: DBC(NBC0,*)
 
-    INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J,NPARU
+    INTEGER ISW,NINT,NDM,NNT0,NFPX,I,J,NPARU,IBC
 
     ISW=AP%ISW
     NINT=AP%NINT
@@ -1107,53 +1107,38 @@ CONTAINS
        ENDDO
     ENDIF
 
-    IF(ISW>0) THEN
-       !        ** restart 1 or 2
-       DO I=1,NDM
-          FB(NBC0+I)=-U0(NDM+I)
-          FB(NBC0+NDM+I)=U1(NDM+I)
-          DO J=1,NBC0
-             FB(NBC0+I)=FB(NBC0+I)+DBC(J,I)*PAR(NPARU+J)
-             FB(NBC0+NDM+I)=FB(NBC0+NDM+I)+DBC(J,NDM+I)*PAR(NPARU+J)
-          ENDDO
+    DO I=1,NDM
+       FB(NBC0+I)=-U0(NDM+I)
+       FB(NBC0+NDM+I)=U1(NDM+I)
+       DO J=1,NBC0
+          FB(NBC0+I)=FB(NBC0+I)+DBC(J,I)*PAR(NPARU+J)
+          FB(NBC0+NDM+I)=FB(NBC0+NDM+I)+DBC(J,NDM+I)*PAR(NPARU+J)
        ENDDO
-       DO I=1,NFPX
-          FB(NBC0+2*NDM+I)=PAR(NPARU+NFPX+NDM+I)
-          DO J=1,NBC0
-             FB(NBC0+2*NDM+I)=FB(NBC0+2*NDM+I)+ &
-                  DBC(J,2*NDM+ICP(I))*PAR(NPARU+J)
-          ENDDO
+    ENDDO
+    DO I=1,NFPX
+       FB(NBC0+2*NDM+I)=PAR(NPARU+NFPX+NDM+I)
+       DO J=1,NBC0
+          FB(NBC0+2*NDM+I)=FB(NBC0+2*NDM+I)+ &
+               DBC(J,2*NDM+ICP(I))*PAR(NPARU+J)
        ENDDO
-    ELSE
+    ENDDO
+
+    IF(ISW<0) THEN
        !        ** start
+       IBC=NBC0+2*NDM+NFPX
        DO I=1,NBC0
-          FB(NBC0+I)=0.d0
-          FB(2*NBC0+I)=0.d0
+          FB(IBC+I)=0.d0
+          FB(IBC+NBC0+I)=0.d0
           DO J=1,NDM
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,J)*U0(2*NDM+J)
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,NDM+J)*U1(2*NDM+J)
-             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,J)*U0(3*NDM+J)
-             FB(2*NBC0+I)=FB(2*NBC0+I)+DBC(I,NDM+J)*U1(3*NDM+J)
+             FB(IBC+I)=FB(IBC+I)+DBC(I,J)*U0(2*NDM+J)
+             FB(IBC+I)=FB(IBC+I)+DBC(I,NDM+J)*U1(2*NDM+J)
+             FB(IBC+NBC0+I)=FB(IBC+NBC0+I)+DBC(I,J)*U0(3*NDM+J)
+             FB(IBC+NBC0+I)=FB(IBC+NBC0+I)+DBC(I,NDM+J)*U1(3*NDM+J)
           ENDDO
           DO J=1,NFPX
-             FB(NBC0+I)=FB(NBC0+I)+DBC(I,2*NDM+ICP(J))*PAR(NPARU+2*NFPX+NDM+1+J)
-             FB(2*NBC0+I)=FB(2*NBC0+I)+ &
+             FB(IBC+I)=FB(IBC+I)+DBC(I,2*NDM+ICP(J))*PAR(NPARU+2*NFPX+NDM+1+J)
+             FB(IBC+NBC0+I)=FB(IBC+NBC0+I)+ &
                   DBC(I,2*NDM+ICP(J))*PAR(NPARU+3*NFPX+NDM+1+J)
-          ENDDO
-       ENDDO
-       DO I=1,NDM
-          FB(3*NBC0+I)=-U0(NDM+I)
-          FB(3*NBC0+NDM+I)=U1(NDM+I)
-          DO J=1,NBC0
-             FB(3*NBC0+I)=FB(3*NBC0+I)+DBC(J,I)*PAR(NPARU+J)
-             FB(3*NBC0+NDM+I)=FB(3*NBC0+NDM+I)+DBC(J,NDM+I)*PAR(NPARU+J)
-          ENDDO
-       ENDDO
-       DO I=1,NFPX
-          FB(3*NBC0+2*NDM+I)=PAR(NPARU+NFPX+NDM+I)
-          DO J=1,NBC0
-             FB(3*NBC0+2*NDM+I)=FB(3*NBC0+2*NDM+I)+ &
-                  DBC(J,2*NDM+ICP(I))*PAR(NPARU+J)
           ENDDO
        ENDDO
     ENDIF
