@@ -923,7 +923,7 @@ CONTAINS
     IF((ISW==2).OR.(ISW<0)) THEN
        !        ** Non-generic and/or start
        DO I=1,NDM
-          F(I)=F(I)-PAR(NPARU+2*NFPX+NDM+1)*U(NDIM-NDM+I)
+          F(I)=F(I)-PAR(NPARU+2*NFPX+NDM+1)*U(NDM+I)
        ENDDO
     ENDIF
 
