@@ -685,7 +685,7 @@ CONTAINS
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:),DFP(:),FF1(:),FF2(:)
     INTEGER NDM,NFPR,NPAR,I,J,ISW,IP,NPARU
-    DOUBLE PRECISION UMX,EP,P,UU,UPOLD(AP%NDM),DUM(1)
+    DOUBLE PRECISION UMX,EP,P,UU,DUM(1)
 
     ISW=AP%ISW
     NDM=AP%NDM
@@ -694,9 +694,7 @@ CONTAINS
 
     ! Generate the function.
 
-    CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-    UPOLD(:)=PAR(11)*UPOLD(:)
-    CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
+    CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 
     IF(IJAC.EQ.0)RETURN
 
@@ -742,9 +740,9 @@ CONTAINS
     DO I=1,NDM
        UU=U(I)
        U(I)=UU-EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
        U(I)=UU+EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF2,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF2,NDM,DFU,DFP)
        U(I)=UU
        DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -757,11 +755,6 @@ CONTAINS
        RETURN
     ENDIF
 
-    ! parameter derivative for psi^*_3 with upold: avoids reevalulation of FUNC
-    IP=NPARU+1
-    DFDP(1:NDM,IP)=0
-    DFDP(NDM+1:2*NDM,IP)=UPOLD(:)
-    DFDP(2*NDM+1:NDIM,IP)=0
     DO I=1,NFPR
        ! note: restart uses only PAR(NPARU+1) and perhaps PAR(NPARU+3)
        IP=ICP(I)
@@ -776,15 +769,17 @@ CONTAINS
        ELSEIF(IP<=NPARU)THEN
           P=PAR(IP)
           PAR(IP)=P+EP
-          CALL FUNC(NDM,UOLD,ICP,PAR,0,UPOLD,DUM,DUM)
-          UPOLD(:)=UPOLD(:)*PAR(11)
-          CALL FFPBP(AP,NDIM,U,UOLD,UPOLD,ICP,PAR,0,FF1,NDM,DFU,DFP)
+          CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
           PAR(IP)=P
           DO J=NDM+1,NDIM
              DFDP(J,IP)=(FF1(J)-F(J))/EP
           ENDDO
        ELSE
           SELECT CASE(IP-NPARU)
+          CASE(1) ! psi^*_3
+             DFDP(1:NDM,IP)=0
+             DFDP(NDM+1:2*NDM,IP)=UOLD(NDIM+1:NDIM+NDM) ! =UPOLD(1:NDM)
+             DFDP(2*NDM+1:NDIM,IP)=0
           CASE(2) ! a
              DFDP(:,IP)=0
           CASE(3) ! b, ** Only used for non-generic and/or start
