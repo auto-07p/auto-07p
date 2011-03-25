@@ -412,37 +412,40 @@ CONTAINS
 
     ! Generate the Jacobian.
 
-    UMX=0.d0
-    DO I=1,NDIM
-       IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-    ENDDO
-
-    EP=HMACH*(1+UMX)
-
+    ! derivatives for F(x,p)=0 (5)
     CALL EXPANDJAC(DFDU,NDM,NDM,NDIM)
     CALL EXPANDJAC(DFDP,AP%NPAR,NDM,NDIM)
     DFDU(1:NDM,NDM+1:2*NDM)=0d0
-    DO I=1,NDM
-       DFDU(NDM+I,NDM+1:2*NDM)=DFDU(1:NDM,I)
-    ENDDO
-    IF(AP%ISW==2) THEN
-       !        ** Non-generic case
-       DO I=1,NDM
-          DFDU(I,NDM+I)=U(NDIM)
-          DFDU(I,NDIM)=U(NDM+I)
-       ENDDO
-       DFDU(NDM+1:2*NDM,NDIM)=0
-       DFDU(NDIM-1,NDIM)=0
-    ELSE
-       DFDU(1:NDM,NDIM)=DFDP(1:NDM,ICP(3))
-    ENDIF
     DFDU(1:NDM,NDIM-1)=DFDP(1:NDM,ICP(2))
 
-    DFDU(NDIM-1,NDM+1:2*NDM)=DFDP(1:NDM,ICP(1))
+    IF(AP%ISW==2) THEN
+       !        ** Non-generic case, derivatives of b phi^* in (18)
+       DO I=1,NDM
+          DFDU(I,NDM+I)=U(NDIM) ! b
+          DFDU(I,NDIM)=U(NDM+I) ! phi^*
+       ENDDO
+       DFDU(NDM+1:2*NDM,NDIM)=0 ! d(13a)/db
+       DFDU(NDIM-1,NDIM)=0      ! d(13b)/db
+    ELSE
+       DFDU(1:NDM,NDIM)=DFDP(1:NDM,ICP(3)) ! (5)
+    ENDIF
 
+    DO I=1,NDM
+       DFDU(NDM+I,NDM+1:2*NDM)=DFDU(1:NDM,I) ! F_x(x,p)^T (13a)
+    ENDDO
+    DFDU(NDIM-1,NDM+1:2*NDM)=DFDP(1:NDM,ICP(1)) ! F_p(x,p)^T (13b)
+
+    ! derivatives for (13c)
     DFDU(NDIM,1:NDM)=0d0
     DFDU(NDIM,NDM+1:2*NDM)=2*U(NDM+1:NDM*2)
     DFDU(NDIM,NDIM-1:NDIM)=0
+
+    UMX=0.d0
+    DO I=1,NDIM
+       IF(ABS(U(I))>UMX)UMX=ABS(U(I))
+    ENDDO
+
+    EP=HMACH*(1+UMX)
 
     ALLOCATE(FF1(NDIM),FF2(NDIM),DFU(NDM*NDM),DFP(NDM*NPAR))
     DO II=1,NDM+2
@@ -501,15 +504,17 @@ CONTAINS
     ENDIF
     PAR(ICP(2))=U(NDIM-1)
 
+    ! (5) F(x,p) = 0
     CALL FUNI(AP,NDM,U,UOLD,ICP,PAR,2,F,DFDU,DFDP)
 
     IF(ISW.EQ.2) THEN
-       !        ** Non-generic case
+       !        ** Non-generic case (18) F(x,p) + b phi^* = 0
        DO I=1,NDM
           F(I)=F(I)+U(NDIM)*U(NDM+I)
        ENDDO
     ENDIF
 
+    ! (13a) F_x(x,p)^T phi^* = 0
     DO I=1,NDM
        F(NDM+I)=0.d0
        DO J=1,NDM
@@ -517,11 +522,13 @@ CONTAINS
        ENDDO
     ENDDO
 
+    ! (13b) F_p(x,p)^T phi^* = 0
     F(NDIM-1)=0.d0
     DO I=1,NDM
        F(NDIM-1)=F(NDIM-1)+DFDP(I,ICP(1))*U(NDM+I)
     ENDDO
 
+    ! (13c) <phi^*,phi^*> - 1 = 0
     F(NDIM)=-1
     DO I=1,NDM
        F(NDIM)=F(NDIM)+U(NDM+I)*U(NDM+I)
