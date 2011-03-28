@@ -46,13 +46,14 @@ subroutine mpibcksub(sol,ntst,nov,lo,hi)
   double precision, intent(inout) :: sol(nov,*)
 end subroutine mpibcksub
 
-subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp,dtm, &
+subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,rlold,udotps,upoldp,dtm, &
      thu,ifst,nllv)
   type(autoparameters) :: ap
   integer, intent(in) :: ndim,icp(*)
   integer, intent(inout) :: ifst,nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: ups(ndim,*),uoldps(ndim,*),udotps(ndim,*),upoldp(ndim,*)
+  double precision :: rlold(ap%nfpr)
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)

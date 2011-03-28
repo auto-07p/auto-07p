@@ -54,7 +54,7 @@ CONTAINS
     integer :: npar
     type(autoparameters) ap
 
-    double precision, allocatable :: ups(:,:), uoldps(:,:)
+    double precision, allocatable :: ups(:,:), uoldps(:,:), rlold(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dups(:,:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
@@ -76,12 +76,12 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
 
-    allocate(icp(nfpr+nint),thu(ndim*8),dtm(na),par(npar))
+    allocate(icp(nfpr+nint),thu(ndim),dtm(na),par(npar),rlold(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol-1))
 
-    call mpisbv(ap,par,icp,ndim,ups,uoldps,udotps,upoldp, &
+    call mpisbv(ap,par,icp,ndim,ups,uoldps,rlold,udotps,upoldp, &
          dtm,thu,ifst,nllv)
     dum=0
     call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &

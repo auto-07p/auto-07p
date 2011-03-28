@@ -91,7 +91,7 @@ CONTAINS
              ENDIF
              NPARI=2
           ENDIF
-          ICP(5)=NPAR+1     ! psi^*_3
+          ICP(5)=NPAR+1     ! phi^*_3
           NDIM=2*NDIM
           NINT=4
           IF(ITP==6)THEN
@@ -694,7 +694,7 @@ CONTAINS
 
     ! Generate the function.
 
-    CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
+    CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+NFPR+1),ICP,PAR,IJAC,F,NDM,DFDU,DFDP)
 
     IF(IJAC.EQ.0)RETURN
 
@@ -704,21 +704,23 @@ CONTAINS
     DFDU(1:NDM,NDM+1:NDIM)=0
     NPARU=NPAR-AP%NPARI
     IF(ISW==2.OR.ISW<0)THEN
-       !        ** Non-generic and/or start
+       !        ** Non-generic and/or start, derivatives of -b phi_1^* in (18)
        DO I=1,NDM
-          DFDU(I,NDM+I)=-PAR(NPARU+3)
+          DFDU(I,NDM+I)=-PAR(NPARU+3) ! b
        ENDDO
     ENDIF
-    DO I=1,NDM
+    DO I=1,NDM ! d(13a)/d phi_1^* = -f_x(x,p)^T
        DFDU(NDM+1:2*NDM,NDM+I)=-DFDU(I,1:NDM)
     ENDDO
     IF(ISW<0)THEN ! start
        DFDU(NDM+1:2*NDM,2*NDM+1:4*NDM)=0
        DO I=1,NDM
+          ! d(15a)/dv = c1, d(15a)/dw = c2
           DFDU(NDM+I,2*NDM+I)=PAR(NPARU+8)
           DFDU(NDM+I,3*NDM+I)=PAR(NPARU+9)
        ENDDO
        DFDU(2*NDM+1:4*NDM,1:2*NDM)=0
+       ! d(9a)/dv = d(9b)/dw = f_x(x,p)
        DFDU(2*NDM+1:3*NDM,2*NDM+1:3*NDM)=DFDU(1:NDM,1:NDM)
        DFDU(2*NDM+1:3*NDM,3*NDM+1:4*NDM)=0
        DFDU(3*NDM+1:4*NDM,2*NDM+1:3*NDM)=0
@@ -740,9 +742,9 @@ CONTAINS
     DO I=1,NDM
        UU=U(I)
        U(I)=UU-EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+NFPR+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
        U(I)=UU+EP
-       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF2,NDM,DFU,DFP)
+       CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+NFPR+1),ICP,PAR,0,FF2,NDM,DFU,DFP)
        U(I)=UU
        DO J=NDM+1,NDIM
           DFDU(J,I)=(FF2(J)-FF1(J))/(2*EP)
@@ -769,42 +771,46 @@ CONTAINS
        ELSEIF(IP<=NPARU)THEN
           P=PAR(IP)
           PAR(IP)=P+EP
-          CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
+          CALL FFPBP(AP,NDIM,U,UOLD,UOLD(NDIM+NFPR+1),ICP,PAR,0,FF1,NDM,DFU,DFP)
           PAR(IP)=P
           DO J=NDM+1,NDIM
              DFDP(J,IP)=(FF1(J)-F(J))/EP
           ENDDO
-       ELSE
-          SELECT CASE(IP-NPARU)
-          CASE(1) ! psi^*_3
-             DFDP(1:NDM,IP)=0
-             DFDP(NDM+1:2*NDM,IP)=UOLD(NDIM+1:NDIM+NDM) ! =UPOLD(1:NDM)
-             DFDP(2*NDM+1:NDIM,IP)=0
-          CASE(2) ! a
-             DFDP(:,IP)=0
-          CASE(3) ! b, ** Only used for non-generic and/or start
-             DFDP(1:NDM,IP)=-U(NDM+1:2*NDM)
-             DFDP(NDM+1:NDIM,IP)=0
-          CASE(4,6) ! q1, r1 ** All other parameters only used for start
-             DFDP(1:2*NDM,IP)=0
-             J=(IP-NPARU)/2
-             DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(1))
-             DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
-          CASE(5,7) ! q2/beta, r2/beta
-             DFDP(1:2*NDM,IP)=0
-             J=(IP-NPARU-1)/2
-             DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(2))
-             DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
-          CASE(8,9) ! c1, c2
-             DFDP(1:NDM,IP)=0
-             J=IP-NPARU-6
-             DFDP(NDM+1:2*NDM,IP)=U(J*NDM+1:(J+1)*NDM)
-             DFDP(2*NDM+1:4*NDM,IP)=0
-          END SELECT
        ENDIF
     ENDDO
-
     DEALLOCATE(DFU,DFP,FF1)
+
+    IP=NPARU+1 ! phi^*_3
+    DFDP(1:NDM,IP)=0
+    DFDP(NDM+1:2*NDM,IP)=UOLD(NDIM+NFPR+1:NDIM+NFPR+NDM) ! =UPOLD(1:NDM)=h_x
+    DFDP(2*NDM+1:NDIM,IP)=0
+    DFDP(:,NPARU+2)=0 ! a
+
+    IF(ISW<0) THEN
+       ! start
+       DO J=2,3
+          DO I=1,2
+             ! derivatives to q1, q2, r1, r2
+             IP=NPARU+2*J+I-1
+             DFDP(1:2*NDM,IP)=0
+             ! d(9a)/dq = d(9b)/dr = f_p(x,p)
+             DFDP(J*NDM+1:(J+1)*NDM,IP)=DFDP(1:NDM,ICP(I))
+             DFDP((5-J)*NDM+1:(6-J)*NDM,IP)=0
+          ENDDO
+          ! derivatives to c1, c2
+          IP=NPARU+6+J
+          DFDP(1:NDM,IP)=0
+          DFDP(NDM+1:2*NDM,IP)=U(J*NDM+1:(J+1)*NDM)
+          DFDP(2*NDM+1:4*NDM,IP)=0
+       ENDDO
+    ENDIF
+
+    IF(ISW<0.OR.ISW==2)THEN ! non-generic and/or start
+       IP=NPARU+3 ! b
+       DFDP(1:NDM,IP)=-U(NDM+1:2*NDM)
+       DFDP(NDM+1:NDIM,IP)=0
+    ENDIF
+
   END SUBROUTINE FNPBP
 
 ! ---------- -----
@@ -831,6 +837,8 @@ CONTAINS
 
     NPARU=AP%NPAR-AP%NPARI
 
+    ! (13a) \dot phi_1^* = -f_x(x,p)^T phi_1^* + h_x(x,p)^T phi_3^*
+    !       where h_x=DINT
     DO I=1,NDM
        F(NDM+I)=0.d0
        DO J=1,NDM
@@ -840,6 +848,9 @@ CONTAINS
     ENDDO
     IF(ISW<0) THEN
        !        ** start
+       ! (9a) \dot v = f_x(x,p)v + f_p(x,p)q
+       ! (9b) \dot w = f_x(x,p)w + f_p(x,p)r
+       ! (15a) \dot phi_1^* = -f_x(x,p)^T phi_1^*+h_x(x,p)^T phi_3^*+c1 v+c2 w
        DO I=1,NDM
           F(2*NDM+I)=0.d0
           F(3*NDM+I)=0.d0
@@ -857,6 +868,7 @@ CONTAINS
 
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
+       ! (18) \dot x = f(x,p) - b phi_1^*
        DO I=1,NDM
           F(I)=F(I)-PAR(NPARU+3)*U(NDM+I)
        ENDDO
@@ -1008,7 +1020,7 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT
-    DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
+    DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM+AP%NFPR),UDOT(NDIM),UPOLD(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
 
@@ -1026,6 +1038,9 @@ CONTAINS
     CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 
     NPARU=NPAR-AP%NPARI
+    ! (5) int_0^1 h(x,p) dt = 0
+    ! (13c) int_0^1 ||phi_1^*||^2 dt + ||phi_3^*||^2 - a = 0
+    !       (phi_2^*=0 because of periodic BCs)
     FI(1)=0.d0
     FI(NINT)=PAR(NPARU+1)**2-PAR(NPARU+2)
     DO I=1,NDM
@@ -1035,9 +1050,11 @@ CONTAINS
 
     IF((ISW.EQ.2).OR.(ISW.LT.0)) THEN
        !        ** Non-generic and/or start
+       ! (18) int_0^1 h(x,p) dt + b phi_3^* = 0
        FI(1)=FI(1)+PAR(NPARU+3)*PAR(NPARU+1)
     ENDIF
 
+    ! (13b) int_0^1 -f(x,p)^T phi_1^* dt = 0 (h_p=0)
     DO I=1,2
        FI(1+I)=0.d0
        DO J=1,NDM
@@ -1047,16 +1064,23 @@ CONTAINS
 
     IF(ISW<0) THEN
        !        ** start
+       ! (15b) int_0^1 -f(x,p)^T phi_1^* dt + c_1 q + c_2 r = 0
        DO I=1,2
           FI(1+I)=FI(1+I)+PAR(NPARU+8)*PAR(NPARU+3+I)+&
                PAR(NPARU+9)*PAR(NPARU+5+I)
        ENDDO
+       ! (9a) int_0^1 h_x(x,p)v dt = 0
+       ! (9b) int_0^1 h_x(x,p)w dt = 0
+       ! (10a) int_0^1 <v, v_old> dt + <q, q_old> - 1 = 0
+       ! (10b) int_0^1 <w, w_old> dt + <r, r_old> - 1 = 0
+       ! (11a) int_0^1 <v, w_old> dt + <q, r_old> = 0
+       ! (11b) int_0^1 <w, v_old> dt + <r, q_old> = 0
        FI(4)=0.d0
        FI(5)=0.d0
-       FI(6)=PAR(NPARU+4)**2+PAR(NPARU+5)**2-1.d0
-       FI(7)=PAR(NPARU+6)**2+PAR(NPARU+7)**2-1.d0
-       FI(8)=PAR(NPARU+4)*PAR(NPARU+6)+PAR(NPARU+5)*PAR(NPARU+7)
-       FI(9)=FI(8)
+       FI(6)=PAR(NPARU+4)*UOLD(NDIM+6)+PAR(NPARU+5)*UOLD(NDIM+7)-1.d0
+       FI(7)=PAR(NPARU+6)*UOLD(NDIM+8)+PAR(NPARU+7)*UOLD(NDIM+9)-1.d0
+       FI(8)=PAR(NPARU+4)*UOLD(NDIM+8)+PAR(NPARU+5)*UOLD(NDIM+9)
+       FI(9)=PAR(NPARU+6)*UOLD(NDIM+6)+PAR(NPARU+7)*UOLD(NDIM+7)
        DO I=1,NDM
           FI(4)=FI(4)+U(2*NDM+I)*UPOLD(I)
           FI(5)=FI(5)+U(3*NDM+I)*UPOLD(I)
@@ -1177,7 +1201,7 @@ CONTAINS
     UPSR(3*NDM+1:4*NDM,:)=VDOTPST(:,:)
     UDOTPSR(:,:)=0.d0
 
-    !        ** init psi^*3,a,b,q,r,c1,c2
+    !        ** init phi^*_3,a,b,q,r,c1,c2
     PAR(NPAR-9+1:NPAR-9+3)=0.d0
     PAR(NPAR-9+4:NPAR-9+5)=RLDOTRS(1:2)
     PAR(NPAR-9+6:NPAR-9+7)=RVDOT(1:2)
