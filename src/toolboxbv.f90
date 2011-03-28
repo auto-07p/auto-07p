@@ -1247,7 +1247,7 @@ CONTAINS
 
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
-    INTEGER ISW,NBC,NDM,NBC0,NFPX,NPAR,I,J,NPARU
+    INTEGER ISW,NBC,NDM,NBC0,NFPX,NPAR,I,J,K,NPARU
 
     ISW=AP%ISW
     NBC=AP%NBC
@@ -1274,12 +1274,14 @@ CONTAINS
 
        IF((ISW==2).OR.(ISW<0)) THEN
           ! ** Non-generic and/or start
+          ! (18) int_0^1 h(x,p) dt + b phi_3^* = 0
           DO I=1,NNT0
              FI(I)=FI(I)+PAR(NPARU+2*NFPX+NDM+1)*PAR(NPARU+NBC0+I)
           ENDDO
        ENDIF
     ENDIF
 
+    ! (13b) -d + int_0^1 (-f_p(x,p)^T phi_1^* + h_p(x,p)^T phi_3^*) dt = 0
     DO I=1,NFPX
        FI(NNT0+I)=-PAR(NPARU+NFPX+NDM+I)
        DO J=1,NDM
@@ -1292,26 +1294,31 @@ CONTAINS
 
     ! ** start
     IF(ISW<0) THEN
+       ! (15b) int_0^1 -f(x,p)^T phi_1^* dt + c_1 q + c_2 r = 0
        DO I=1,NFPX
           FI(NNT0+I)=FI(NNT0+I)+ &
                PAR(NPARU+4*NFPX+NDM+2)*PAR(NPARU+2*NFPX+NDM+1+I)+ &
                PAR(NPARU+4*NFPX+NDM+3)*PAR(NPARU+3*NFPX+NDM+1+I)
        ENDDO
 
-       DO I=1,NNT0
-          FI(NFPX+2*NNT0+I)=0.d0
-          FI(NFPX+3*NNT0+I)=0.d0
-          DO J=1,NDM
-             FI(NFPX+2*NNT0+I)=FI(NFPX+2*NNT0+I)+DINT(I,J)*U(2*NDM+J)
-             FI(NFPX+3*NNT0+I)=FI(NFPX+3*NNT0+I)+DINT(I,J)*U(3*NDM+J)
-          ENDDO
-          DO J=1,NFPX
-             FI(NFPX+2*NNT0+I)=FI(NFPX+2*NNT0+I)+DINT(I,NDM+ICP(J))* &
-                  PAR(NPARU+2*NFPX+NDM+1+J)
-             FI(NFPX+3*NNT0+I)=FI(NFPX+3*NNT0+I)+ &
-                  DINT(I,NDM+ICP(J))*PAR(NPARU+3*NFPX+NDM+1+J)
+       ! (9a) int_0^1 (h_x(x,p)v + h_p(x,p)q) dt = 0
+       ! (9b) int_0^1 (h_x(x,p)w + h_p(x,p)r) dt = 0
+       DO K=2,3
+          DO I=1,NNT0
+             FI(NFPX+K*NNT0+I)=0.d0
+             DO J=1,NDM
+                FI(NFPX+K*NNT0+I)=FI(NFPX+K*NNT0+I)+DINT(I,J)*U(K*NDM+J)
+             ENDDO
+             DO J=1,NFPX
+                FI(NFPX+K*NNT0+I)=FI(NFPX+K*NNT0+I)+DINT(I,NDM+ICP(J))* &
+                     PAR(NPARU+K*NFPX+NDM+1+J)
+             ENDDO
           ENDDO
        ENDDO
+       ! (10a) int_0^1 <v, v_old> dt + <q, q_old> - 1 = 0
+       ! (10b) int_0^1 <w, w_old> dt + <r, r_old> - 1 = 0
+       ! (11a) int_0^1 <v, w_old> dt + <q, r_old> = 0
+       ! (11b) int_0^1 <w, v_old> dt + <r, q_old> = 0
        FI(NFPX+4*NNT0+1)=-1.d0
        FI(NFPX+4*NNT0+2)=-1.d0
        FI(NFPX+4*NNT0+3)=0.d0
@@ -1335,6 +1342,7 @@ CONTAINS
        DEALLOCATE(F,DFU,DFP)
     ENDIF
 
+    ! (13c) -a + int_0^1 ||phi_1^*||^2 dt + ||phi_2^*||^2 + ||phi_3^*||^2 = 0
     FI(NINT)=-PAR(NPARU+NFPX+NDM)
     DO I=1,NDM
        FI(NINT)=FI(NINT)+U(NDM+I)**2

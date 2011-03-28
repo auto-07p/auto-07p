@@ -685,7 +685,7 @@ CONTAINS
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: DFU(:),DFP(:),FF1(:),FF2(:)
     INTEGER NDM,NFPR,NPAR,I,J,ISW,IP,NPARU
-    DOUBLE PRECISION UMX,EP,P,UU,DUM(1)
+    DOUBLE PRECISION UMX,EP,P,UU
 
     ISW=AP%ISW
     NDM=AP%NDM
@@ -823,7 +823,6 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDM,NDM),DFDP(NDM,*)
     ! Local
-    DOUBLE PRECISION DUM(1)
     INTEGER ISW,I,J,NPARU,IJC
 
     ISW=AP%ISW
@@ -948,7 +947,7 @@ CONTAINS
   END SUBROUTINE BCPBP
 
 ! ---------- -----
-  SUBROUTINE ICPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F,IJAC,DINT)
+  SUBROUTINE ICPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI,IJAC,DINT)
 
     ! Integral conditions for continuing BP (Periodic solutions)
 
@@ -956,88 +955,25 @@ CONTAINS
     INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT,IJAC
     DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM),UDOT(NDIM),UPOLD(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
-    DOUBLE PRECISION, INTENT(OUT) :: F(NINT)
+    DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
     DOUBLE PRECISION, INTENT(INOUT) :: DINT(NINT,*)
 
     ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: FF1(:),FF2(:)
-    INTEGER NFPR,I,J
+    DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:),DFP0(:,:),DFP1(:,:)
+    INTEGER NFPR,NDM,NPAR,NPARU,ISW,I,J,K
     DOUBLE PRECISION UMX,EP,P,UU
 
-    NFPR=AP%NFPR
-
-    ! Generate the function.
-
-    CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,F)
-
-    IF(IJAC.EQ.0)RETURN
-
-    ALLOCATE(FF1(NINT),FF2(NINT))
-
-    ! Generate the Jacobian.
-
-    UMX=0.d0
-    DO I=1,NDIM
-       IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
-    ENDDO
-
-    EP=HMACH*(1+UMX)
-
-    DO I=1,NDIM
-       UU=U(I)
-       U(I)=UU-EP
-       CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
-       U(I)=UU+EP
-       CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF2)
-       U(I)=UU
-       DO J=1,NINT
-          DINT(J,I)=(FF2(J)-FF1(J))/(2*EP)
-       ENDDO
-    ENDDO
-
-    DEALLOCATE(FF2)
-    IF(IJAC.EQ.1)THEN
-       DEALLOCATE(FF1)
-       RETURN
-    ENDIF
-
-    DO I=1,NFPR
-       P=PAR(ICP(I))
-       PAR(ICP(I))=P+EP
-       CALL FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FF1)
-       DO J=1,NINT
-          DINT(J,NDIM+ICP(I))=(FF1(J)-F(J))/EP
-       ENDDO
-       PAR(ICP(I))=P
-    ENDDO
-
-    DEALLOCATE(FF1)
-
-  END SUBROUTINE ICPBP
-
-! ---------- -----
-  SUBROUTINE FIPBP(AP,NDIM,PAR,ICP,NINT,U,UOLD,UDOT,UPOLD,FI)
-
-    TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM,NINT
-    DOUBLE PRECISION, INTENT(IN) :: UOLD(NDIM+AP%NFPR),UDOT(NDIM),UPOLD(NDIM)
-    DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
-    DOUBLE PRECISION, INTENT(OUT) :: FI(NINT)
-
-    ! Local
-    DOUBLE PRECISION, ALLOCATABLE :: F(:),DFU(:,:),DFP(:,:)
-    INTEGER ISW,NDM,NPAR,I,J,NPARU
-    DOUBLE PRECISION PERIOD
-
-    PERIOD=PAR(11)
     ISW=AP%ISW
     NDM=AP%NDM
     NPAR=AP%NPAR
+    NFPR=AP%NFPR
+    NPARU=NPAR-AP%NPARI
+
+    ! Generate the function.
 
     ALLOCATE(F(NDM),DFU(NDM,NDM),DFP(NDM,NPAR))
     CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
 
-    NPARU=NPAR-AP%NPARI
     ! (5) int_0^1 h(x,p) dt = 0
     ! (13c) int_0^1 ||phi_1^*||^2 dt + ||phi_3^*||^2 - a = 0
     !       (phi_2^*=0 because of periodic BCs)
@@ -1054,7 +990,7 @@ CONTAINS
        FI(1)=FI(1)+PAR(NPARU+3)*PAR(NPARU+1)
     ENDIF
 
-    ! (13b) int_0^1 -f(x,p)^T phi_1^* dt = 0 (h_p=0)
+    ! (13b) int_0^1 -f_p(x,p)^T phi_1^* dt = 0 (h_p=0)
     DO I=1,2
        FI(1+I)=0.d0
        DO J=1,NDM
@@ -1091,9 +1027,126 @@ CONTAINS
        ENDDO
     ENDIF
 
-    DEALLOCATE(F,DFU,DFP)
+    IF(IJAC.EQ.0)THEN
+       DEALLOCATE(F,DFU,DFP)
+       RETURN
+    ENDIF
 
-  END SUBROUTINE FIPBP
+    ! Generate the Jacobian.
+
+    ! derivatives for (5) int_0^1 h(x,p) dt = 0
+    DINT(1,1:NDM)=UPOLD(1:NDM)
+    DINT(1,NDM+1:NDIM)=0
+
+    ! derivatives for (13c) int_0^1 ||phi_1^*||^2 dt + ||phi_3^*||^2 - a = 0
+    DINT(NINT,1:NDM)=0d0
+    DINT(NINT,NDM+1:2*NDM)=2*U(NDM+1:2*NDM)
+    DINT(NINT,2*NDM+1:NDIM)=0
+
+    ! derivatives for (13b) int_0^1 -f_p(x,p)^T phi_1^* dt = 0
+    DO I=1,2
+       ! DINT(1+I,1:NDM) determined by finite differences
+       DINT(1+I,NDM+1:2*NDM)=-DFP(1:NDM,ICP(I))
+       DINT(1+I,2*NDM+1:NDIM)=0
+    ENDDO
+
+    IF(ISW<0)THEN
+       ! Derivatives for (9a)-(11b) (see below)
+       DINT(4:9,1:NDIM)=0
+       DINT(4,2*NDM+1:3*NDM)=UPOLD(1:NDM)
+       DINT(5,3*NDM+1:4*NDM)=UPOLD(1:NDM)
+       DINT(6,2*NDM+1:3*NDM)=UOLD(2*NDM+1:3*NDM)
+       DINT(7,3*NDM+1:4*NDM)=UOLD(3*NDM+1:4*NDM)
+       DINT(8,2*NDM+1:3*NDM)=UOLD(3*NDM+1:4*NDM)
+       DINT(9,3*NDM+1:4*NDM)=UOLD(2*NDM+1:3*NDM)
+    ENDIF
+
+    UMX=0.d0
+    DO I=1,NDIM
+       IF(DABS(U(I)).GT.UMX)UMX=DABS(U(I))
+    ENDDO
+
+    EP=HMACH*(1+UMX)
+
+    ALLOCATE(DFP0(NDM,2),DFP1(NDM,2))
+    IF(IJAC/=1)THEN
+       DFP0(:,1)=DFP(:,ICP(1))
+       DFP0(:,2)=DFP(:,ICP(2))
+    ENDIF
+
+    DO I=1,NDM
+       ! derivatives for (13b) int_0^1 -f_p(x,p)^T phi_1^* dt = 0 (h_p=0)
+       UU=U(I)
+       U(I)=UU-EP
+       CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       DFP1(:,1)=DFP(:,ICP(1))
+       DFP1(:,2)=DFP(:,ICP(2))
+       U(I)=UU+EP
+       CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       U(I)=UU
+       DO J=1,2
+          DINT(J+1,I)=0
+          DO K=1,NDM
+             DINT(J+1,I)=DINT(J+1,I)-U(NDM+K)*(DFP(K,ICP(J))-DFP1(K,J))/(2*EP)
+          ENDDO
+       ENDDO
+    ENDDO
+
+    DEALLOCATE(DFP1)
+    IF(IJAC.EQ.1)THEN
+       DEALLOCATE(F,DFU,DFP,DFP0)
+       RETURN
+    ENDIF
+
+    DINT(1:NINT,NDIM+NPARU+1:NDIM+NPAR)=0d0
+    IF(ISW==2.OR.ISW<0)THEN !        ** Non-generic and/or start
+       DINT(1,NDIM+NPARU+3)=PAR(NPARU+1) ! d(18)/db
+       DINT(1,NDIM+NPARU+1)=PAR(NPARU+3) ! d(18)/dphi_3^*
+    ENDIF
+
+    ! derivatives for (13c) int_0^1 ||phi_1^*||^2 dt + ||phi_3^*||^2 - a = 0
+    DINT(NINT,NDIM+NPARU+1)=2*PAR(NPARU+1)
+    DINT(NINT,NDIM+NPARU+2)=-1
+
+    IF(ISW<0) THEN
+       !        ** start
+       ! derivatives for (15b) int_0^1 -f(x,p)^T phi_1^* dt + c_1 q + c_2 r = 0
+       DO I=1,2
+          DINT(1+I,NDIM+NPARU+3+I)=PAR(NPARU+8)
+          DINT(1+I,NDIM+NPARU+8)=PAR(NPARU+3+I)
+          DINT(1+I,NDIM+NPARU+5+I)=PAR(NPARU+9)
+          DINT(1+I,NDIM+NPARU+9)=PAR(NPARU+5+I)
+       ENDDO
+       ! derivatives for (10a)-(11b)
+       DINT(6,NDIM+NPARU+4)=UOLD(NDIM+6)
+       DINT(6,NDIM+NPARU+5)=UOLD(NDIM+7)
+       DINT(7,NDIM+NPARU+6)=UOLD(NDIM+8)
+       DINT(7,NDIM+NPARU+7)=UOLD(NDIM+9)
+       DINT(8,NDIM+NPARU+4)=UOLD(NDIM+8)
+       DINT(8,NDIM+NPARU+5)=UOLD(NDIM+9)
+       DINT(9,NDIM+NPARU+6)=UOLD(NDIM+6)
+       DINT(9,NDIM+NPARU+7)=UOLD(NDIM+7)
+    ENDIF
+
+    DO I=1,NFPR
+       IF(ICP(I)>=NPARU)CYCLE
+       ! derivatives for (13b) int_0^1 -f_p(x,p)^T phi_1^* dt = 0 (h_p=0)
+       P=PAR(ICP(I))
+       PAR(ICP(I))=P+EP
+       CALL FNPS(AP,NDM,U,UOLD,ICP,PAR,2,F,DFU,DFP)
+       DO J=1,2
+          DINT(J+1,NDIM+ICP(I))=0d0
+          DO K=1,NDM
+             DINT(J+1,NDIM+ICP(I))=DINT(J+1,NDIM+ICP(I))-U(NDM+K)* &
+                  (DFP(K,ICP(J))-DFP0(K,J))/EP
+          ENDDO
+       ENDDO
+       PAR(ICP(I))=P
+    ENDDO
+
+    DEALLOCATE(F,DFU,DFP,DFP0)
+
+  END SUBROUTINE ICPBP
 
 ! ---------- -------
   SUBROUTINE STPNPBP(AP,PAR,ICP,NTSR,NCOLRS,RLDOT,UPS,UDOTPS,TM,NODIR)
