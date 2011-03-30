@@ -1333,9 +1333,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: U(*),UDOT(*),PAR(*)
 
     DOUBLE PRECISION, ALLOCATABLE :: UX(:),P(:)
-    INTEGER I,NFPR,NPARR,NPAR,NDIM,NDIMRD
+    INTEGER I,NFPR,NPARR,NPAR,NDIM,NDM,NDMRD
 
     NPAR=AP%NPAR
+    NDM=AP%NDM
 
 ! Reads the restart data for algebraic problems.
 
@@ -1360,15 +1361,27 @@ CONTAINS
        PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
     ENDDO
 
-    NDIMRD=MIN(NDIM,CURSOL%NAR-1)
-    IF(NDIM>CURSOL%NAR-1)THEN
+    NDMRD=CURSOL%NDM
+    IF(NDMRD==0)THEN
+       ! old-style solution file: try to get NDM: this works for
+       ! equilibria/maps/timeint problems (not parabolic/optimization)
+       NDMRD=CURSOL%NAR-1
+       IF(ABS(CURSOL%ISW)==2)THEN
+          IF(CURSOL%ITP/10==3)THEN
+             NDMRD=NDMRD/3 ! HB (old method)
+          ELSE
+             NDMRD=(NDMRD-1)/2 ! PD/BP/LP/TR
+          ENDIF
+       ENDIF
+    ENDIF
+    IF(NDM>NDMRD)THEN
        ! system is extended; call STPNT for extension
-       ALLOCATE(UX(NDIM),P(NPAR))
+       ALLOCATE(UX(NDM),P(NPAR))
        P(:)=PAR(:NPAR)
-       UX(1:NDIMRD)=U(1:NDIMRD)
-       UX(NDIMRD+1:NDIM)=0.d0
-       CALL STPNT(NDIM,UX,P,0d0)
-       U(NDIMRD+1:NDIM)=UX(NDIMRD+1:NDIM)
+       UX(1:NDMRD)=U(1:NDMRD)
+       UX(NDMRD+1:NDM)=0.d0
+       CALL STPNT(NDM,UX,P,0d0)
+       U(NDMRD+1:NDM)=UX(NDMRD+1:NDM)
        DEALLOCATE(UX,P)
     ENDIF
 
@@ -1386,12 +1399,13 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: RLDOTRS(*),UPS(NDIM,0:*),UDOTPS(NDIM,0:*)
     DOUBLE PRECISION, INTENT(OUT) :: TM(0:*),PAR(*)
 ! Local
-    INTEGER I,J,N,NFPR,NFPRS,NPARR,NPARIR,NPAR,NPARI
+    INTEGER I,J,N,NFPR,NFPRS,NPARR,NPARIR,NPAR,NPARI,NDM,NDMRD
     DOUBLE PRECISION, ALLOCATABLE :: U(:),P(:)
 
     NPARI=AP%NPARI
     NFPR=AP%NFPR
     NPAR=AP%NPAR
+    NDM=AP%NDM
     ITPRS=CURSOL%ITP
     NFPRS=CURSOL%NFPR
     NTSRS=CURSOL%NTST
@@ -1442,15 +1456,30 @@ CONTAINS
        PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
     ENDDO
 
-    IF(NDIM>NDIMRD)THEN
+    NDMRD=CURSOL%NDM
+    IF(NDMRD==0)THEN
+       ! old-style solution file: try to get NDM: this works for
+       ! periodic/general BVP problems (not HomCont/parabolic/optimization)
+       NDMRD=CURSOL%NAR-1
+       IF(ABS(CURSOL%ISW)==2)THEN
+          IF(CURSOL%ITP/10==8)THEN
+             NDMRD=NDMRD/3 ! TR
+          ELSEIF(CURSOL%ITP/10==6.AND.CURSOL%ISW==-2)THEN
+             NDMRD=NDMRD/4 ! BP start
+          ELSE
+             NDMRD=NDMRD/2 ! PD/BP/LP
+          ENDIF
+       ENDIF
+    ENDIF
+    IF(NDM>NDMRD)THEN
        ! system is extended; call STPNT for extension
-       ALLOCATE(U(NDIM),P(NPAR))
+       ALLOCATE(U(NDM),P(NPAR))
        P(:)=PAR(:NPAR)
-       U(NDIMRD+1:NDIM)=0.d0
+       U(NDMRD+1:NDM)=0.d0
        DO J=0,NTSRS*NCOLRS
-          U(1:NDIMRD)=UPS(1:NDIMRD,J)
-          CALL STPNT(NDIM,U,P,CURSOL%TM(J))
-          UPS(NDIMRD+1:NDIM,J)=U(NDIMRD+1:NDIM)
+          U(1:NDMRD)=UPS(1:NDMRD,J)
+          CALL STPNT(NDM,U,P,CURSOL%TM(J))
+          UPS(NDMRD+1:NDM,J)=U(NDMRD+1:NDM)
        ENDDO
        DEALLOCATE(U,P)
     ENDIF
