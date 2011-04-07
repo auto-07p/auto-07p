@@ -1952,6 +1952,7 @@ CONTAINS
        AMIN=HUGE(1.d0)
        LOC=2
        DO J=2,NDM
+          IF(EV(J)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
           AZM1= ABS( EV(J) - V )
           IF(AZM1<AMIN)THEN
              AMIN=AZM1
@@ -1976,6 +1977,7 @@ CONTAINS
           LOC=I
           DO J=I,NDM
              IF(AIMAG(EV(J))<0)CYCLE
+             IF(EV(J)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
              AZM1=ABS(ABS(EV(J)) - 1.d0)
              IF(AZM1<AMIN)THEN
                 AMIN=AZM1
@@ -2046,6 +2048,7 @@ CONTAINS
     NINS1=1
     IF(NDM>1) THEN
        DO I=2,NDM
+          IF(EV(I)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
        ENDDO
        IF(ITP/=0)THEN
@@ -2087,7 +2090,11 @@ CONTAINS
 
        WRITE(9,104)ABS(IBR),NTOP+1,NINS
        DO I=1,NDM
-          WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
+          IF(EV(I)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))THEN
+             WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),REAL(EV(I))
+          ELSE
+             WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I),ABS(EV(I))
+          ENDIF
        ENDDO
     ENDIF
 
