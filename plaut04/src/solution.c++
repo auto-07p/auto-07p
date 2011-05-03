@@ -1852,6 +1852,7 @@ bool Solution::parse( const char* sFileName )
 
     fclose(inFile);
 
+    totalLabels_ = total;
     numOrbits_ = total;
     totalNumPoints_ = totalNumPoints;
     numBranches_ = ++branchCounter;
