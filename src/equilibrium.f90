@@ -686,6 +686,8 @@ CONTAINS
     IF(AP%ISW/=2.OR.AP%ITPST/=3.OR..NOT.CHECKSP('GH',AP%IPS,AP%ILP,AP%ISP))THEN
        RETURN
     ENDIF
+    ! do not try to compute first Lyapunov coefficient if BT already detected
+    IF(MOD(AP%ITP,10)==-1)RETURN
     IF((U(AP%NDIM-1))<=0)RETURN
     omega = SQRT(U(AP%NDIM-1))
 
