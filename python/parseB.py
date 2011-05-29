@@ -191,7 +191,7 @@ class BDPoint(Points.Point):
         return super(BDPoint, self).__getattribute__(attr)
 
     def __contains__(self, key):
-        if (key in ["TY name","data","BR","PT","section","index"] or
+        if (key in ["TY","TY name","data","BR","PT","section","index"] or
             Points.Point.has_key(self,key)):
             return True
         for k,v in self.labels.items():
@@ -257,7 +257,7 @@ class BDPoint(Points.Point):
                 if k in all_point_types:
                     if coords in v:
                         return v[coords]
-                    elif coords == "TY name":
+                    elif coords in ("TY name", "TY"):
                         return k
             if coords == "data":
                 return BDPointData(self.branch, self.idx)
@@ -564,6 +564,8 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 return type_translation(self.TY)["short name"]
             else: #"TY number"
                 return self.TY
+        if isinstance(index, int) and index < 0:
+            index = len(self) + index
         if self.__fullyParsed or not isinstance(index, int):
             if not Points.numpyimported:
                 Points.importnumpy()

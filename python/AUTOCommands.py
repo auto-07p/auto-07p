@@ -553,6 +553,9 @@ def save(name1,name2=None,templates=None):
         n1b = name1["bifurcationDiagram"]
         n1s = name1["solution"]
         n1d = name1["diagnostics"]        
+        if (type(parsed) == type([]) and
+            isinstance(parsed[0], parseB.AUTOBranch)):
+            parsed = bifDiag.bifDiag(parsed)
         if (isinstance(parsed,bifDiag.bifDiag) and
             len(parsed) > 0 and len(parsed[0]) > 0):
             parsed.writeFilename(n1b,n1s,n1d)
