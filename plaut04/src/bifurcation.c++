@@ -146,8 +146,7 @@ Bifurcation::drawLabelPtsInScene()
 
     if(lbl == MY_ALL)
     {
-        int k = 0;
-        do
+        for(int k = 0; k < totalLabels_; k++)
         {
             SoMaterial *lblMtl;
             row = clientData.labelIndex[k][1];
@@ -162,9 +161,7 @@ Bifurcation::drawLabelPtsInScene()
             result->addChild( drawASphere(position, size));
             if(options[OPT_LABEL_NUMBERS])
                 result->addChild( drawALabel(row, size, orbits_[k].label));
-
-            ++k;
-        } while( k < totalLabels_);
+        }
     }
     else if(lbl != MY_NONE)
     {
@@ -709,12 +706,13 @@ Bifurcation::read(const char *bFileName, int varIndices[])
     int totalLabels = 0;
     int numPtInCurrentInterval = 0;
     int ndim;
-    long int pt;
+    long int pt = 1;
 
     while(fscanf(inFile, "%d", &branch) == 1)
     {
         int ic = 0;
         if(branch == 0) {
+            pt = 1;
             if(fscanf(inFile, " NDIM=%d", &ndim) == 1 &&
 	       ndim > maxndim_)
 	        maxndim_ = ndim;
@@ -722,6 +720,7 @@ Bifurcation::read(const char *bFileName, int varIndices[])
 	}
 	else
         {
+            long int prevpt = pt;
             fscanf(inFile, "%ld %d %d", &pt, &lbType, &lb);
             int i = 0;
 	    char dummystr[25], c;
@@ -730,7 +729,12 @@ Bifurcation::read(const char *bFileName, int varIndices[])
 		if(c=='\n')break;
             }
 
-            if(abs(pt) == 1)
+            if(abs(pt) == 1 &&
+              // Sometimes the point numbers rotate, like
+              // 9996, 9997, 9998, 9999, 1, 2, ...
+              // -9996, -9997, 1, 0, -1, -2, ... (an AUTO bug)
+              // do not define a new branch if that happens
+              (abs(prevpt) != 9999 && abs(prevpt) != 9997 && abs(prevpt) != 0))
             {
                 branchID_[numBranches] = branch;
                 if(numBranches>0) {
@@ -825,16 +829,23 @@ Bifurcation::parse(const char *bFileName)
     long int numBranches = 0;
     int maxColSize = 0;
     int branch;
+    long int pt = 1;
 
     while(fscanf(inFile, "%d", &branch) == 1)
     {
         if(branch != 0)
         {
-            long int pt;
 	    int lbType, lb;
+            long int prevpt = pt;
             fscanf(inFile, "%ld %d %d", &pt, &lbType, &lb);
 	    if (lb != 0) totalLabels_++;
-            if (abs(pt) == 1) numBranches++;
+            if(abs(pt) == 1 &&
+              // Sometimes the point numbers rotate, like
+              // 9996, 9997, 9998, 9999, 1, 2, ...
+              // -9996, -9997, 1, 0, -1, -2, ... (an AUTO bug)
+              // do not define a new branch if that happens
+               (abs(prevpt) != 9999 && abs(prevpt) != 9997 && abs(prevpt) != 0))
+                numBranches++;
 	    char c;
             int ic = 1;
             while (fscanf(inFile,"%*s%c", &c) == 1 && c !='\n') ic++;
@@ -843,6 +854,7 @@ Bifurcation::parse(const char *bFileName)
         }
         else
 	{
+            pt = 1;
             go_to_eol(inFile);
         }
     }
