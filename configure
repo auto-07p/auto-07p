@@ -6049,7 +6049,6 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-COIN3D="no"
 if test x$COIN3D = "xno" && test x$CXX = "xg++"; then
         tmp_CXX=$CXX
         # for 64-bit Mac OS try with -m32 to link with 32bit coin
