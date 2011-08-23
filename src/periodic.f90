@@ -1811,7 +1811,7 @@ CONTAINS
   END SUBROUTINE STPNTR
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNCSPS(AP,ICP,UPS,NDIM,PAR,ITEST,ITP) RESULT(Q)
+  DOUBLE PRECISION FUNCTION FNCSPS(AP,ICP,UPS,NDIM,PAR,ITEST,ATYPE) RESULT(Q)
     USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
     USE SUPPORT, ONLY: P0=>P0V, P1=>P1V, EV=>EVV
 
@@ -1820,16 +1820,16 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: UPS(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     INTEGER, INTENT(IN) :: ITEST
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
 
-    Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ITP)
+    Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ATYPE)
     IF(ITEST==3)THEN
-        Q=FNSPBV(AP,PAR,ITP,P0,P1,EV)
+        Q=FNSPBV(AP,PAR,ATYPE,P0,P1,EV)
     ENDIF
   END FUNCTION FNCSPS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ITP,P0,P1,EV)
+  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ATYPE,P0,P1,EV)
 
     USE FLOQUET
     USE SUPPORT, ONLY: PI, LBTYPE, CHECKSP, NULLVC
@@ -1840,7 +1840,7 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
     DOUBLE PRECISION, INTENT(IN) :: P0(AP%NDIM,*),P1(AP%NDIM,*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
 
@@ -1865,7 +1865,7 @@ CONTAINS
     FNSPBV=0.d0
     AP%SPBF=FNSPBV
     D=0.d0
-    ITP=0
+    ATYPE=''
 
     IF(ISP==0)RETURN
 
@@ -1998,15 +1998,15 @@ CONTAINS
        ENDDO
     ENDIF
 
-    ITP=TPSPBV(NDM,AP%EPSS,AP%ITPST,PAR,AP%NPAR,EV,THETA)
-    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP)) ITP=0
-    IF(MOD(ITP,10)==8) PAR(12)=THETA !try to find TR bif
+    ATYPE=TPSPBV(NDM,AP%EPSS,AP%ITPST,PAR,AP%NPAR,EV,THETA)
+    IF(.NOT.CHECKSP(ATYPE,AP%IPS,AP%ILP,ISP)) ATYPE=''
+    IF(ATYPE=='TR') PAR(12)=THETA !try to find TR bif
 
 ! Print error message if the Floquet multiplier at z=1 is inaccurate.
 ! (ISP is set to negative and detection of bifurations is discontinued)
 
     AMIN= ABS( EV(1) - 1.d0 )
-    IF(AMIN>5.0D-2 .AND. ITP/=0) THEN
+    IF(AMIN>5.0D-2 .AND. LEN_TRIM(ATYPE)>0) THEN
        NINS=0
        AP%NINS=NINS
        ISP=-ISP
@@ -2051,7 +2051,7 @@ CONTAINS
           IF(EV(I)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
           IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
        ENDDO
-       IF(ITP/=0)THEN
+       IF(LEN_TRIM(ATYPE)>0)THEN
           IF(ISW.EQ.2)THEN
              IF(AP%ITPST==8)THEN
                 ! check the angle for resonances on Torus bifurcations
@@ -2076,12 +2076,12 @@ CONTAINS
           ENDIF
        ENDIF
     ENDIF
-    IF( ITP/=0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
+    IF( LEN_TRIM(ATYPE)>0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
     FNSPBV=D
     AP%SPBF=FNSPBV
 
     NINS=AP%NINS
-    IF(NINS1==NINS.AND.AP%ITPST/=8)ITP=0
+    IF(NINS1==NINS.AND.AP%ITPST/=8)ATYPE=''
     NINS=NINS1
     AP%NINS=NINS
 
@@ -2107,8 +2107,8 @@ CONTAINS
 
   END FUNCTION FNSPBV
 
-! ------- -------- ------
-  INTEGER FUNCTION TPSPBV(NDM,EPSS,ITPST,PAR,NPAR,EV,THETA)
+! ------------ -------- ------
+  CHARACTER(3) FUNCTION TPSPBV(NDM,EPSS,ITPST,PAR,NPAR,EV,THETA)
 
 ! Determines type of secondary periodic bifurcation.
 
@@ -2126,23 +2126,23 @@ CONTAINS
     THETA=0
     IF(ITPST==5)THEN
        ! 1:1 resonance
-       TPSPBV=-5
+       TPSPBV='R1'
        RETURN
     ELSEIF(ITPST==7)THEN
        ! 1:2 resonance
-       TPSPBV=-6
+       TPSPBV='R2'
        RETURN
     ELSEIF(ITPST==8)THEN
-       TPSPBV=0
+       TPSPBV=''
        SELECT CASE(NINT(PAR(12)*6/PI(1d0)))
        CASE(0) ! 1:1 res
-          TPSPBV=-5
+          TPSPBV='R1'
        CASE(3) ! 1:4 res
-          TPSPBV=-8
+          TPSPBV='R4'
        CASE(4) ! 1:3 res
-          TPSPBV=-7
+          TPSPBV='R3'
        CASE(6) ! 1:2 res
-          TPSPBV=-6
+          TPSPBV='R2'
        END SELECT
        RETURN
     ENDIF
@@ -2177,14 +2177,14 @@ CONTAINS
 
     IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 !       ** torus bifurcation
-       TPSPBV=8
+       TPSPBV='TR'
        THETA=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
     ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 !       ** period doubling
-       TPSPBV=7
+       TPSPBV='PD'
     ELSE
 !       ** something else...
-       TPSPBV=0
+       TPSPBV=''
     ENDIF
 
   END FUNCTION TPSPBV

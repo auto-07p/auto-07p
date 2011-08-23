@@ -42,7 +42,7 @@ CONTAINS
     USE IO
     USE MESH
     USE SUPPORT, ONLY: AA=>P0V, P1V, EVV, FNCS, STOPPED, INIT2, INIT3, &
-         INITSTOPCNTS, PVLI
+         INITSTOPCNTS, PVLI, LBITP
     USE AUTO_CONSTANTS, ONLY: NPARX
 
 ! Controls the bifurcation analysis of algebraic problems
@@ -59,10 +59,11 @@ CONTAINS
     LOGICAL IPOS
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST
     INTEGER ITNW,ITP,I,ITEST,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
-    INTEGER NDM,ITPDUM,IFOUND,ISTEPPED
+    INTEGER NDM,IFOUND,ISTEPPED
     DOUBLE PRECISION DS,DSMAX,RDS,DSTEST,TMP
     LOGICAL ISTOP,STEPPED
     INTEGER STOPCNTS(-9:14)
+    CHARACTER(3) ATYPE,ATYPEDUM
 
     CALL INIT2(AP,ICP,ICU)
 
@@ -159,7 +160,7 @@ CONTAINS
        ENDIF
        IF(ABS(IPS)==1.OR.IPS==11)THEN
           ! Get stability
-          TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ITPDUM)
+          TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ATYPEDUM)
        ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
@@ -178,7 +179,7 @@ CONTAINS
           IF(ISW<0.OR.NIT==0)THEN
              IF(ABS(IPS)==1.OR.IPS==11)THEN
                 ! Get stability
-                TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ITPDUM)
+                TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ATYPEDUM)
              ENDIF
              ! Store plotting data for second point :
              CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
@@ -207,18 +208,18 @@ CONTAINS
              DO ITEST=1,AP%NTEST
                 ! Check for special points
                 CALL LCSPAE(AP,DSTEST,PAR,ICP,ITEST,FUNI,FNCI,AA,&
-                     U,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ITP,STEPPED)
+                     U,UDOT,TEST(ITEST),THU,IUZ,VUZ,NIT,ATYPE,STEPPED)
                 IF(STEPPED)ISTEPPED=ITEST
-                IF(ITP/=0)THEN
+                IF(LEN_TRIM(ATYPE)>0)THEN
                    IFOUND=ITEST
-                   AP%ITP=ITP+SIGN(10,ITP)*ITPST
+                   AP%ITP=LBITP(ATYPE)+SIGN(10,ITP)*ITPST
                 ENDIF
              ENDDO
           ENDIF
 
           DO ITEST=1,ISTEPPED-1
              ! evaluate the test functions for the next step
-             TEST(ITEST)=FNCS(AP,ICP,U,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
+             TEST(ITEST)=FNCS(AP,ICP,U,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
           ENDDO
 
           ITP=AP%ITP
@@ -630,7 +631,7 @@ CONTAINS
 !
 ! ---------- ------
   SUBROUTINE LCSPAE(AP,DSTEST,PAR,ICP,ITEST,FUNI,FNCI,AA, &
-       U,UDOT,Q,THU,IUZ,VUZ,NIT,ITP,STEPPED)
+       U,UDOT,Q,THU,IUZ,VUZ,NIT,ATYPE,STEPPED)
 
     USE SUPPORT
 
@@ -654,13 +655,14 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: AA(AP%NDIM+1,AP%NDIM+1) 
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*),U(AP%NDIM+1)
     DOUBLE PRECISION, INTENT(INOUT) :: UDOT(AP%NDIM+1)
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER I,IID,ITMX,IBR,ITLCSP,NTOT,ITPDUM,NITS
+    INTEGER I,IID,ITMX,IBR,ITLCSP,NTOT,NITS
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,S0,S1,RDS,RRDS
     DOUBLE PRECISION DETS,DSTESTS
     DOUBLE PRECISION, ALLOCATABLE :: US(:),UDOTS(:),AAS(:,:)
+    CHARACTER(3) ATYPEDUM
 
     IID=AP%IID
     ITMX=AP%ITMX
@@ -676,7 +678,7 @@ CONTAINS
 ! Check whether FNCS has changed sign.
 
     Q0=Q
-    Q1=FNCS(AP,ICP,U,PAR,ITP,IUZ,VUZ,ITEST,FNCI)
+    Q1=FNCS(AP,ICP,U,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
 
     IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
          EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
@@ -684,8 +686,8 @@ CONTAINS
        ! at a point, for instance CP/LP and BP/CP.
        ! In general, use "first come, first served", but
        ! bifurcations override UZ, and CP overrides LP.
-       IF((MOD(AP%ITP,10)==-4.AND.ITP/=0.AND.ITP/=AP%ITP).OR. &
-          (AP%ITP==22.AND.ITP==-22))THEN
+       IF((MOD(AP%ITP,10)==-4.AND.LEN_TRIM(ATYPE)>0.AND.TRIM(ATYPE)/='UZ').OR. &
+          (AP%ITP==22.AND.TRIM(ATYPE)=='CP'))THEN
           Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
           RETURN
@@ -694,8 +696,8 @@ CONTAINS
     ENDIF
 
     ! do not test via Q0*Q1 to avoid overflow.
-    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. ITP==0)THEN
-       ITP=0
+    IF((Q0>=0.AND.Q1>=0) .OR. (Q0<=0.AND.Q1<=0) .OR. LEN_TRIM(ATYPE)==0)THEN
+       ATYPE=''
        Q=Q1
        RETURN
     ENDIF
@@ -743,8 +745,8 @@ CONTAINS
 
        CALL PVLI(AP,ICP,U,AP%NDIM,PAR,FNCI)
 
-       Q=FNCS(AP,ICP,U,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
-       IF(ITPDUM/=0)ITP=ITPDUM
+       Q=FNCS(AP,ICP,U,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
+       IF(LEN_TRIM(ATYPEDUM)>0)ATYPE=ATYPEDUM
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
@@ -766,7 +768,7 @@ CONTAINS
     ENDDO
 
     IF(IID>0)WRITE(9,103)IBR,MOD(NTOT-1,9999)+1
-    ITP=0
+    ATYPE=''
     ! set back to previous (converged) state
     U(:)=US(:)
     UDOT(:)=UDOTS(:)
@@ -778,7 +780,7 @@ CONTAINS
     NIT=NITS
     DSTEST=DSTESTS
     CALL PVLI(AP,ICP,U,AP%NDIM,PAR,FNCI)
-    Q=FNCS(AP,ICP,U,PAR,ITPDUM,IUZ,VUZ,ITEST,FNCI)
+    Q=FNCS(AP,ICP,U,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
     DEALLOCATE(US,UDOTS,AAS)
 
 101 FORMAT(' ==> Location of special point :  Iteration ',I3, &

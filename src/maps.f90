@@ -277,7 +277,7 @@ CONTAINS
   END SUBROUTINE STPNNS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNCSDS(AP,ICP,U,NDIM,PAR,ITEST,ITP) RESULT(Q)
+  DOUBLE PRECISION FUNCTION FNCSDS(AP,ICP,U,NDIM,PAR,ITEST,ATYPE) RESULT(Q)
 
     USE AUTO_CONSTANTS, ONLY: AUTOPARAMETERS
     USE SUPPORT, ONLY: AA=>P0V
@@ -287,43 +287,43 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: U(*)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
     INTEGER, INTENT(IN) :: ITEST
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
 
     SELECT CASE(ITEST)
     CASE(4)
-       Q=FNRNDS(AP,ITP,U,AA)
+       Q=FNRNDS(AP,ATYPE,U,AA)
     CASE(6)
-       Q=FNHBDS(AP,PAR,ITP,AA)
+       Q=FNHBDS(AP,PAR,ATYPE,AA)
     CASE DEFAULT
-       Q=FNCSEQF(AP,ICP,U,NDIM,PAR,ITEST,ITP,FNDS)
+       Q=FNCSEQF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FNDS)
     END SELECT
 
   END FUNCTION FNCSDS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNRNDS(AP,ITP,U,AA)
+  DOUBLE PRECISION FUNCTION FNRNDS(AP,ATYPE,U,AA)
 
     USE SUPPORT, ONLY: CHECKSP, PI, LBTYPE
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
     DOUBLE PRECISION, INTENT(IN) :: U(AP%NDIM), AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     INTEGER NTOP,ITPST
     DOUBLE PRECISION THETA
 
     FNRNDS = 0
-    ITP=0
+    ATYPE=''
     ITPST=AP%ITPST
 
     IF(ITPST==2.OR.ITPST==7)THEN
        ! Rn on Fold/PD curve
        IF(AP%ITPST==2)THEN
           IF(.NOT.CHECKSP('R1',AP%IPS,AP%ILP,AP%ISP))RETURN
-          ITP=-5
+          ATYPE='R1'
        ELSE
           IF(.NOT.CHECKSP('R2',AP%IPS,AP%ILP,AP%ISP))RETURN
-          ITP=-6
+          ATYPE='R2'
        ENDIF
        FNRNDS=FNBTAE(AP,U,AA)
     ELSEIF(ITPST==8)THEN
@@ -331,28 +331,28 @@ CONTAINS
        THETA=U(AP%NDIM-1)
        SELECT CASE(NINT(THETA*6/PI(1d0)))
        CASE(3) ! 1:4 res
-          ITP=-8
+          ATYPE='R4'
        CASE(4) ! 1:3 res
-          ITP=-7
+          ATYPE='R3'
        CASE(6) ! 1:2 res
-          ITP=-6
+          ATYPE='R2'
        CASE DEFAULT ! 1:1 res
-          ITP=-5
+          ATYPE='R1'
        END SELECT
-       IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,AP%ISP))ITP=0
+       IF(.NOT.CHECKSP(ATYPE,AP%IPS,AP%ILP,AP%ISP))ATYPE=''
        FNRNDS=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
     ELSE
        RETURN
     ENDIF
 
     NTOP=MOD(AP%NTOT-1,9999)+1
-    IF(ITP/=0.AND.AP%IID>=2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNRNDS
+    IF(LEN_TRIM(ATYPE)>0.AND.AP%IID>=2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNRNDS
 101 FORMAT(I4,I6,9X,'Rn   Function:',ES14.5)
 
   END FUNCTION FNRNDS
 
 ! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBDS(AP,PAR,ITP,AA)
+  DOUBLE PRECISION FUNCTION FNHBDS(AP,PAR,ATYPE,AA)
 
     USE SUPPORT, ONLY: PI, EVV, EIG, CHECKSP, LBTYPE
 
@@ -360,7 +360,7 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    INTEGER, INTENT(OUT) :: ITP
+    CHARACTER(3), INTENT(OUT) :: ATYPE
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
@@ -376,7 +376,7 @@ CONTAINS
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
 
-    ITP=0
+    ATYPE=''
     FNHBDS=0d0
     ! Check if not continuing a BP and not Rn already
     IF(ITPST==1.OR.MOD(AP%ITP,10)<-4)RETURN
@@ -411,18 +411,18 @@ CONTAINS
     IF(LOC>0)THEN
        REV=REAL(EV(LOC))
        RIMHB=ABS(AIMAG(EV(LOC)))
-       ITP=TPSPAE(AP%EPSS,ITPST,RIMHB)
-       IF(ITP==8)PAR(12)=RIMHB
+       ATYPE=TPSPAE(AP%EPSS,ITPST,RIMHB)
+       IF(TRIM(ATYPE)=='TR')PAR(12)=RIMHB
     ENDIF
 
-    IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
-       ITP=0
+    IF(.NOT.CHECKSP(ATYPE,AP%IPS,AP%ILP,ISP))THEN
+       ATYPE=''
     ELSE
        FNHBDS=REV
        IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBDS
     ENDIF
     AP%HBFF=FNHBDS
-    IF(NINS==AP%NINS)ITP=0
+    IF(NINS==AP%NINS)ATYPE=''
     AP%NINS=NINS
     CALL PRINTEIG(AP)
 
@@ -430,8 +430,8 @@ CONTAINS
 
   END FUNCTION FNHBDS
 
-! ------- -------- ------
-  INTEGER FUNCTION TPSPAE(EPSS,ITPST,RIMHB) RESULT(ITP)
+! ------------ -------- ------
+  CHARACTER(3) FUNCTION TPSPAE(EPSS,ITPST,RIMHB) RESULT(ATYPE)
 
 ! Determines type of secondary bifurcation of maps.
     
@@ -440,32 +440,36 @@ CONTAINS
     INTEGER, INTENT(IN) :: ITPST
     DOUBLE PRECISION, INTENT(IN) :: EPSS, RIMHB
 
-    INTEGER ITP
+    CHARACTER(3) ATYPE
 
-    ITP=0
+    ATYPE=''
     IF(ABS(RIMHB-PI(1d0)) <= SQRT(EPSS))THEN
 !       ** period doubling (flip)
-       IF(ITPST==0.OR.ITPST==8)THEN ! plain flip or torus + flip
-          ITP=7
+       IF(ITPST==0)THEN ! plain flip
+          ATYPE='PD'
+       ELSEIF(ITPST==8)THEN ! torus + flip
+          ATYPE='PTR'
        ELSEIF(ITPST==2)THEN ! fold+flip
-          ITP=8
+          ATYPE='LPD'
        ENDIF
     ELSEIF(RIMHB > SQRT(EPSS))THEN
 !       ** torus (Neimark-Sacker) bifurcation
-       IF(ITPST==0.OR.ITPST==8)THEN ! plain torus or torus+torus
-          ITP=8
+       IF(ITPST==0)THEN ! plain torus
+          ATYPE='TR'
+       ELSEIF(ITPST==8)THEN ! torus+torus
+          ATYPE='TTR'
        ELSEIF(ITPST==2)THEN ! fold+torus
-          ITP=3
+          ATYPE='LTR'
        ELSEIF(ITPST==7)THEN ! flip+torus
-          ITP=7
+          ATYPE='PTR'
        ENDIF
     ELSE
 !       ** something else... (close to fold -- normal folds are detected
 !       in FNLPAE!)
        IF(ITPST==7)THEN ! flip+fold
-          ITP=8
+          ATYPE='LPD'
        ELSEIF(ITPST==8)THEN ! torus+fold
-          ITP=3
+          ATYPE='LTR'
        ENDIF
     ENDIF
 
