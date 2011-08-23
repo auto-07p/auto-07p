@@ -1161,8 +1161,8 @@ CONTAINS
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPARR
     INTEGER NPARI,NDM,IPS,IPRIV
-    INTEGER ISW,ITPST,I,ios,number
-    CHARACTER(2) :: ATYPE
+    INTEGER ISW,ITPST,I,J,ios,number
+    CHARACTER(3) :: ATYPE
     CHARACTER(100) :: HEADER
 
 ! Locates restart point with label IRS and determines type.
@@ -1185,10 +1185,14 @@ CONTAINS
        CALL AUTOSTOP()
     ENDIF
     I=0
-    READ(SIRS,'(A2,I11)',IOSTAT=ios)ATYPE,number
-    IF(ios/=0.OR. &
-       (LGE(ATYPE(1:1),'0').AND.LLE(ATYPE(1:1),'9')).OR.ATYPE(1:1)=='-')THEN
-       number=0
+    J=SCAN(SIRS,"-0123456789")
+    number=0
+    IF(J>2)THEN
+       ATYPE=SIRS(1:J-1)
+       READ(SIRS(J:),'(I11)',IOSTAT=ios)number
+       IF(ios/=0)THEN
+          number=0
+       ENDIF
     ENDIF
     DO
        I=I+1
