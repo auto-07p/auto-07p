@@ -211,7 +211,7 @@ CONTAINS
                 IF(STEPPED)ISTEPPED=ITEST
                 IF(ITP/=0)THEN
                    IFOUND=ITEST
-                   AP%ITP=ITP
+                   AP%ITP=ITP+SIGN(10,ITP)*ITPST
                 ENDIF
              ENDDO
           ENDIF

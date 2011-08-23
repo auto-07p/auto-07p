@@ -689,7 +689,7 @@ CONTAINS
 
     DET=AP%DET
     FNBPAE=DET
-    ITP=1+10*AP%ITPST
+    ITP=1
 
 ! If requested write additional output on unit 9 :
 
@@ -736,7 +736,7 @@ CONTAINS
     FNLPAE=UD(NDIM+1)
     DEALLOCATE(UD,AAA,RHS)
     AP%FLDF=FNLPAE
-    ITP=2+10*AP%ITPST
+    ITP=2
 
 ! If requested write additional output on unit 9 :
 
@@ -845,7 +845,7 @@ CONTAINS
     FNCPAE=(FNCPAE+DOT_PRODUCT(V(:),F(:)))/H**2
 
     DEALLOCATE(UU,F,V)
-    ITP=-22
+    ITP=-2
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNCPAE

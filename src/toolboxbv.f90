@@ -338,7 +338,7 @@ CONTAINS
 
 ! Set the quantity to be returned.
 
-    ITP=5+10*AP%ITPST
+    ITP=5
 
 101 FORMAT(I4,I6,9X,'Fold Function ',ES14.5)
 
@@ -384,10 +384,7 @@ CONTAINS
 
     IF(ABS(AP%DET)/HUGE(DET).LT.ABS(DET))THEN
        FNBPBV=AP%DET/DET
-       ITP=6+10*AP%ITPST
-    ELSE
-       FNBPBV=0.d0
-       ITP=0
+       ITP=6
     ENDIF
     AP%BIFF=FNBPBV
 

@@ -325,7 +325,6 @@ CONTAINS
           IF(.NOT.CHECKSP('R2',AP%IPS,AP%ILP,AP%ISP))RETURN
           ITP=-6
        ENDIF
-       ITP=ITP-10*ITPST
        FNRNDS=FNBTAE(AP,U,AA)
     ELSEIF(ITPST==8)THEN
        ! check the angle for resonances on Torus bifurcations
@@ -340,7 +339,6 @@ CONTAINS
        CASE DEFAULT ! 1:1 res
           ITP=-5
        END SELECT
-       ITP=ITP-10*ITPST
        IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,AP%ISP))ITP=0
        FNRNDS=THETA*(THETA-PI(.5d0))*(THETA-PI(2d0/3))*(THETA-PI(1d0))
     ELSE
@@ -433,7 +431,7 @@ CONTAINS
   END FUNCTION FNHBDS
 
 ! ------- -------- ------
-  INTEGER FUNCTION TPSPAE(EPSS,ITPST,RIMHB)
+  INTEGER FUNCTION TPSPAE(EPSS,ITPST,RIMHB) RESULT(ITP)
 
 ! Determines type of secondary bifurcation of maps.
     
@@ -444,7 +442,6 @@ CONTAINS
 
     INTEGER ITP
 
-    TPSPAE=0
     ITP=0
     IF(ABS(RIMHB-PI(1d0)) <= SQRT(EPSS))THEN
 !       ** period doubling (flip)
@@ -470,9 +467,6 @@ CONTAINS
        ELSEIF(ITPST==8)THEN ! torus+fold
           ITP=3
        ENDIF
-    ENDIF
-    IF(ITP/=0)THEN
-       TPSPAE=ITP+10*ITPST
     ENDIF
 
   END FUNCTION TPSPAE

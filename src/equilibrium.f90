@@ -566,9 +566,9 @@ CONTAINS
     ENDIF
 
     IF(ITPST==0)THEN
-       ITP=3+10*ITPST
+       ITP=3
     ELSEIF(ITPST==2.OR.ITPST==3)THEN
-       ITP=-3-10*ITPST ! Check for Zero-Hopf
+       ITP=-3 ! Check for Zero-Hopf
     ENDIF
     IF(.NOT.CHECKSP(LBTYPE(ITP),AP%IPS,AP%ILP,ISP))THEN
        ITP=0
@@ -648,7 +648,7 @@ CONTAINS
     ELSE
        RETURN
     ENDIF
-    ITP=-1-10*AP%ITPST
+    ITP=-1
 
     NTOP=MOD(AP%NTOT-1,9999)+1
     IF(AP%IID.GE.2)WRITE(9,101)ABS(AP%IBR),NTOP+1,FNBTEQ
@@ -796,7 +796,7 @@ CONTAINS
     FNGHEQ = (Gamma-2*Sigma+Delta)/(2*omega)
 
     DEALLOCATE(pI,pR,qR,qI,sR,sI,f1,f2,x,r,a,b,c,abc,tmp,SMAT,A1)
-    ITP=-32
+    ITP=-2
 
     IF(AP%IID>=2)THEN
        NTOP=MOD(AP%NTOT-1,9999)+1

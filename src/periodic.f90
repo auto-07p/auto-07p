@@ -2126,23 +2126,23 @@ CONTAINS
     THETA=0
     IF(ITPST==5)THEN
        ! 1:1 resonance
-       TPSPBV=-5-10*ITPST
+       TPSPBV=-5
        RETURN
     ELSEIF(ITPST==7)THEN
        ! 1:2 resonance
-       TPSPBV=-6-10*ITPST
+       TPSPBV=-6
        RETURN
     ELSEIF(ITPST==8)THEN
        TPSPBV=0
        SELECT CASE(NINT(PAR(12)*6/PI(1d0)))
        CASE(0) ! 1:1 res
-          TPSPBV=-5-10*ITPST
+          TPSPBV=-5
        CASE(3) ! 1:4 res
-          TPSPBV=-8-10*ITPST
+          TPSPBV=-8
        CASE(4) ! 1:3 res
-          TPSPBV=-7-10*ITPST
+          TPSPBV=-7
        CASE(6) ! 1:2 res
-          TPSPBV=-6-10*ITPST
+          TPSPBV=-6
        END SELECT
        RETURN
     ENDIF
@@ -2177,11 +2177,11 @@ CONTAINS
 
     IF(ABS(AIMAG(EV(LOC1))).GT.SQRT(EPSS))THEN
 !       ** torus bifurcation
-       TPSPBV=8+10*ITPST
+       TPSPBV=8
        THETA=ABS(ATAN2(AIMAG(EV(LOC1)),REAL(EV(LOC1))))
     ELSE IF(REAL(EV(LOC1)).LT.-.5d0)THEN
 !       ** period doubling
-       TPSPBV=7+10*ITPST
+       TPSPBV=7
     ELSE
 !       ** something else...
        TPSPBV=0
