@@ -578,10 +578,12 @@ CONTAINS
        IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBEQ
     ENDIF
     AP%HBFF=FNHBEQ
-    IF(ITPST==3)THEN ! detect zero on Zero-Hopf
-       IF(NINS==AP%NINS)ATYPE=''
-    ELSE             ! detect plain Hopf or Hopf on LP
-       IF(ABS(NINS-AP%NINS)<2)ATYPE=''
+    IF(LEN_TRIM(ATYPE)>0)THEN
+       IF(ITPST==3)THEN ! detect zero on Zero-Hopf
+          IF(NINS==AP%NINS)ATYPE(3:3)='0'
+       ELSE             ! detect plain Hopf or Hopf on LP
+          IF(ABS(NINS-AP%NINS)<2)ATYPE(3:3)='0'
+       ENDIF
     ENDIF
     AP%NINS=NINS
     CALL PRINTEIG(AP)

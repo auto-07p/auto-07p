@@ -991,6 +991,9 @@ CONTAINS
 
     Q0=Q
     Q1=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+    ! disable detected potential bifurcations without stability changes
+    I=LEN_TRIM(ATYPE)
+    IF(ATYPE(I:I)=='0')ATYPE=''
 
     IF(AP%ITP/=0.AND.ABS((1.d0+HMACH)*Q1*DSTEST) < &
          EPSS*(1+SQRT(ABS(DS*DSMAX)))*ABS(Q0-Q1))THEN
@@ -1068,8 +1071,10 @@ CONTAINS
 
 ! Check for zero.
 
-       Q=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
-       IF(LEN_TRIM(ATYPEDUM)>0)ATYPE=ATYPEDUM
+       Q=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+       ! ignore stability changes
+       I=LEN_TRIM(ATYPE)
+       IF(ATYPE(I:I)=='0')ATYPE=ATYPE(1:I-1)
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
