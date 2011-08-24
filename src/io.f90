@@ -1341,6 +1341,7 @@ CONTAINS
 
     NPAR=AP%NPAR
     NDM=AP%NDM
+    IF(AP%IPS==11)NDM=NDM/2
 
 ! Reads the restart data for algebraic problems.
 
@@ -1410,6 +1411,7 @@ CONTAINS
     NFPR=AP%NFPR
     NPAR=AP%NPAR
     NDM=AP%NDM
+    IF(AP%IPS==12)NDM=NDM/2
     ITPRS=CURSOL%ITP
     NFPRS=CURSOL%NFPR
     NTSRS=CURSOL%NTST
