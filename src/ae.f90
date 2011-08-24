@@ -212,7 +212,8 @@ CONTAINS
                 IF(STEPPED)ISTEPPED=ITEST
                 IF(LEN_TRIM(ATYPE)>0)THEN
                    IFOUND=ITEST
-                   AP%ITP=LBITP(ATYPE)+SIGN(10,ITP)*ITPST
+                   AP%ITP=LBITP(ATYPE,.FALSE.)
+                   AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
                 ENDIF
              ENDDO
           ENDIF

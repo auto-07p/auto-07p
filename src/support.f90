@@ -507,10 +507,11 @@ CONTAINS
   END FUNCTION LBTYPE
 
 ! ------- -------- -----
-  INTEGER FUNCTION LBITP(ATYPE) RESULT(ITP)
+  INTEGER FUNCTION LBITP(ATYPE,BVP) RESULT(ITP)
 
     ! returns the basic numeric type corresponding to string label ATYPE
     CHARACTER(LEN=*), INTENT(IN) :: ATYPE
+    LOGICAL, INTENT(IN) :: BVP
     INTEGER NTY
 
     ITP=0
@@ -525,8 +526,9 @@ CONTAINS
        ITP=8
     CASE DEFAULT
        DO NTY=-9,9
-          IF(ATYPE==ATYPES(NTY)) THEN
+          IF(ATYPE==ATYPES(NTY).AND..NOT.(BVP.AND.(NTY==1.OR.NTY==2))) THEN
              ITP=NTY
+             RETURN
           ENDIF
        ENDDO
     END SELECT
