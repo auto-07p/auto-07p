@@ -442,8 +442,6 @@ CONTAINS
     INTEGER, INTENT(IN) :: ITPST
     DOUBLE PRECISION, INTENT(IN) :: EPSS, RIMHB
 
-    CHARACTER(3) ATYPE
-
     ATYPE=''
     IF(ABS(RIMHB-PI(1d0)) <= SQRT(EPSS))THEN
 !       ** period doubling (flip)

@@ -511,7 +511,7 @@ CONTAINS
 
     ! returns the basic numeric type corresponding to string label ATYPE
     CHARACTER(LEN=*), INTENT(IN) :: ATYPE
-    INTEGER ITP, NTY
+    INTEGER NTY
 
     ITP=0
     SELECT CASE(TRIM(ATYPE))
