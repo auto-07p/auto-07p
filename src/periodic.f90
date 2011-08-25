@@ -2126,6 +2126,11 @@ CONTAINS
     DOUBLE PRECISION AMIN,AZM1,D,AD
 
     THETA=0
+    IF(NDM<=2)THEN
+       ! None of these bifurcations occur for flat systems.
+       TPSPBV=''
+       RETURN
+    ENDIF
     IF(ITPST==5)THEN
        ! 1:1 resonance
        TPSPBV='R1'
