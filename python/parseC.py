@@ -80,6 +80,10 @@ class parseC(dict):
         if key in ["THL", "THU", "UZR", "UZSTOP", "U", "PAR", "unames",
                    "parnames"]:
             if item is not None:
+                if key == "PAR":
+                    import parseS
+                    if isinstance(item,parseS.AUTOParameters):
+                        item = [(k,item(k)) for k in range(1,len(item)+1)]
                 if isinstance(item, dict):
                     item = item.items()
                 new = []
