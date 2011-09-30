@@ -339,7 +339,8 @@ the location of these libraries, for instance {\tt /usr/local/lib}.
 \subsection{Installation on Mac OS X}
 \AUTO runs on Mac OS X using the above instructions provided that
 you have the development tools
-installed. You do not need to start an X server to run AUTO.
+installed (see the Mac OS X Install DVD, Optional Installs, Xcode).
+You do not need to start an X server to run AUTO.
 Furthermore, the following packages are recommended:
 \begin{itemize}
 \item Gfortran: See \url{http://gcc.gnu.org/wiki/GFortranBinaries}.
@@ -5180,8 +5181,7 @@ with fixed period, simply
 specify three problem parameters, not including {\tt PAR(11)}.
 For torus bifurcations it is also possible to specify
 four problem parameters (possibly including {\tt PAR(11)}). In that
-case the angle of the torus (an internal parameter within AUTO)
-stays fixed.
+case the angle of the torus ({\tt PAR(12)}) stays fixed.
 
 %=====================================================================
 \subsection{ Boundary value problems.}
@@ -5884,7 +5884,10 @@ The following restrictions apply~:
   to \parf{NPAR} are reserved.
 \item[\parf{IPS}=$-$1,1,2,7:]
   \AUTO reserves \parf{PAR(11)} to store the period for stationary
-  solutions at Hopf bifurcations only and continuously for periodic orbits.
+  solutions at Hopf bifurcations only and continuously for periodic
+  orbits. For \parf{IPS}=2 and \parf{IPS}=7, \AUTO also
+  reserves \parf{PAR(12)} to store the angle of the torus
+  at torus bifurcations.
 \item[\parf{IPS}=$-$2:]
   The integration time is stored in \parf{PAR(14)}.
 \item[\parf{IPS}=5:]
