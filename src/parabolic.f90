@@ -276,29 +276,26 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
     DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM),DFDP(NDIM,*)
 
-    INTEGER NFPX,J
+    INTEGER J
     DOUBLE PRECISION PERIOD
 
     ! Generate the function and Jacobian.
 
-    CALL FNWS(AP,NDIM,U,UOLD,ICP,PAR,IJAC,F,DFDU,DFDP)
+    CALL FNWS(AP,NDIM,U,UOLD,ICP,PAR,ABS(IJAC),F,DFDU,DFDP)
     PERIOD=PAR(11)
-    IF(ICP(2).EQ.11.AND.(IJAC.EQ.2.OR.IJAC.EQ.-1))THEN
-       !        **Variable wave length
-       DFDP(:,11)=F(:)
+    IF(IJAC==2.OR.IJAC==-1)THEN
+       DO J=1,AP%NFPR
+          IF(ICP(J)==11)THEN
+             !          **Variable wave length
+             DFDP(:,11)=F(:)
+          ELSEIF(IJAC==2.AND.ICP(J)<=AP%NPAR-AP%NPARI)THEN
+             DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
+          ENDIF
+       ENDDO
     ENDIF
     F(:)=PERIOD*F(:)
     IF(IJAC.EQ.0)RETURN
     DFDU(:,:NDIM)=PERIOD*DFDU(:,:NDIM)
-    IF(ABS(IJAC).EQ.1)RETURN
-    NFPX=1
-    IF(ICP(2).NE.11)THEN
-       !        **Fixed wave length
-       NFPX=2
-    ENDIF
-    DO J=1,NFPX
-       DFDP(:,ICP(J))=PERIOD*DFDP(:,ICP(J))
-    ENDDO
 
   END SUBROUTINE FNWP
 
