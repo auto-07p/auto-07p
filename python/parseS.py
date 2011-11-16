@@ -883,6 +883,8 @@ class AUTOSolution(UserDict,Points.Pointset):
                             tuple(self.coordarray[:,i]))+"\n")
             
     def read(self, inputfile=None, index=0):
+        if self.__fullyParsed:
+            return
         if inputfile is None:
             # read data into memory
             self.__input.readstr(self.__index)

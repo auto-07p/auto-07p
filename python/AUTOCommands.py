@@ -1100,7 +1100,7 @@ def stepsize(name=None,templates=None):
     object x.
 
     Type FUNC() to list the continuation step size for each
-    continuation step in  'fort.9. 
+    continuation step in  'fort.9'.
 
     Type FUNC('xxx') to list the continuation step size for each
     continuation step in the info file 'd.xxx'.
