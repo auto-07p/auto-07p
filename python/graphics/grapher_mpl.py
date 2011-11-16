@@ -325,7 +325,11 @@ class BasicGrapher(grapher.BasicGrapher):
         else:
             if self.ax3d is None:
                 self.ax3d = Axes3D(self.ax.get_figure())
-                self.ax3d.set_autoscale_on(0)
+                try:
+                    self.ax3d.set_autoscale_on(0)
+                except TypeError: #Matplotlib 1.1 bug
+                    self.ax2d.set_autoscale_on(0)
+                    self.ax3d.set_autoscalez_on(0)
             if self.ax is self.ax2d:
                 # remember zoom mode and disable zoom
                 if isinstance(self.canvas,FigureCanvasTkAggRedraw):
@@ -357,12 +361,14 @@ class BasicGrapher(grapher.BasicGrapher):
         del self.data[index]
 
     def clear(self):
-        self.ax.get_figure().axes = []
+        if len(self.ax.get_figure().axes) > 0:
+            self.ax.get_figure().delaxes(self.ax.get_figure().axes[0])
 
     def draw(self):
         if self.redrawlabels:
             self.plotlabels()
-        self.ax.get_figure().axes = [self.ax]
+        if len(self.ax.get_figure().axes) == 0:
+            self.ax.get_figure().add_axes(self.ax)
         if isinstance(self.canvas,FigureCanvasTkAggRedraw):
             FigureCanvasTkAgg.draw(self.canvas)
         else:
@@ -407,7 +413,8 @@ class BasicGrapher(grapher.BasicGrapher):
             else:
                 self.ax.plot3D(*v,**kw)
             d["mpline"] = self.ax.lines[-1]
-        self.ax.get_figure().axes = [self.ax]
+        if len(self.ax.get_figure().axes) == 0:
+            self.ax.get_figure().add_axes(self.ax)
             
     def __setitem__(self,key,value):
         self.configure(**{key: value})
