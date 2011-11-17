@@ -1262,20 +1262,26 @@ def AUTOatof(input_string):
             if input_string[-1] == "E":
                 #  This is the case where you have 0.0000000E
                 return float(input_string.strip()[0:-1])
-            if input_string[-4] in ["-","+"]:
-                #  This is the case where you have x.xxxxxxxxx-yyy
-                #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
-                return float(input_string[:-4]+'E'+input_string[-4:])
-            if input_string[-4] == "D":
-                #  This is the case where you have x.xxxxxxxxxD+yy
-                #  or x.xxxxxxxxxD-yy (standard Fortran but not C)
-                return float(input_string[:-4]+'E'+input_string[-3:])
+            if len(input_string) >= 5:
+                if input_string[-4] in ["-","+"]:
+                    #  This is the case where you have x.xxxxxxxxx-yyy
+                    #  or x.xxxxxxxxx+yyy (standard Fortran but not C)
+                    return float(input_string[:-4]+'E'+input_string[-4:])
+                if input_string[-4] == "D":
+                    #  This is the case where you have x.xxxxxxxxxD+yy
+                    #  or x.xxxxxxxxxD-yy (standard Fortran but not C)
+                    return float(input_string[:-4]+'E'+input_string[-3:])
             input_string = input_string.replace("D","E")
             input_string = input_string.replace("d","e")
             try:
                 return float(input_string)
             except ValueError:
-                pass
+                i = input_string.find("-", 1)
+                if i == -1:
+                    i = input_string.find("+", 1)
+                if i != -1 and input_string[i-1] not in ["e", "E"]:
+                    # form x.xxx+yy or x.xxx-yy (standard Fortran but not C)
+                    return float(input_string[:i]+'E'+input_string[i:])
             print("Encountered value I don't understand")
             print(input_string)
             print("Setting to 0")
