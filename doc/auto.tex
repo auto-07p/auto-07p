@@ -6400,8 +6400,7 @@ the bifurcation diagram in GNUPlot.
 %==============================================================================
 This demo illustrates the computation of 
 stationary solutions,
-Hopf bifurcations 
-and 
+Hopf bifurcations and 
 periodic solutions.
 The equations, that model an A $\to$ B  reaction, are those from
 \citename{URP:74} \citeyear{URP:74}, namely
@@ -6409,7 +6408,7 @@ The equations, that model an A $\to$ B  reaction, are those from
   u_1 ' &=  -u_1 + p_1 (1-u_1) e^{u_2}, \\
   u_2 ' &=  -u_2 +  p_1 p_2 ( 1-u_1) e^{u_2} - p_3 u_2.\\
 \end{array} \end{equation}
-This demo is full scripted, see Table~\ref{tbl:demo_ab}.
+This demo is fully scripted, see Table~\ref{tbl:demo_ab}.
 
 \begin{table}[htbp]
 \begin{center}
@@ -6472,12 +6471,33 @@ This equation is also considered in
   \commandf{demo('enz')} & copy the demo files to the work directory \\
 \hline
 %==============================================================================
-  \commandf{r1=run(e='enz',c='enz')} & compute stationary solution families \\ 
-  \commandf{save(r1,'enz')} & save output-files as \filef{b.enz, s.enz, d.enz} \\ 
+  \commandf{run('enz')} & compute stationary solution families \\ 
+  \commandf{save('enz')} & save output-files as \filef{b.enz, s.enz, d.enz} \\ 
 \hline
 \end{tabular}
-\caption{Commands for running demo \filef{enz}.}
+\caption{Python commands for running demo \filef{enz}.}
 \label{tbl:demo_enz}
+\end{center}
+\end{table}
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{mkdir enz} & create an empty work directory \\ 
+  \commandf{cd enz} & change directory \\
+  \commandf{@dm enz} & copy the demo files to the work directory \\
+\hline
+%==============================================================================
+  \commandf{@r enz} & compute stationary solution families \\ 
+  \commandf{@sv enz} & save output-files as \filef{b.enz, s.enz, d.enz} \\ 
+\hline
+\end{tabular}
+\caption{Shell commands for running demo \filef{enz}.}
+\label{tbl:demo_enz2}
 \end{center}
 \end{table}
 
@@ -6515,25 +6535,57 @@ The remaining equation parameter, $p_3$, is fixed in both runs.
 %==============================================================================
  
   \commandf{r1=run(e='dd2',c='dd2')} & 1st run; fixed point solution branches \\ 
-  \commandf{save(r1,'dd2')} & save output-files as \filef{b.dd2, s.dd2, d.dd2} \\ 
+  \commandf{save('dd2')} & save output-files as \filef{b.dd2, s.dd2, d.dd2} \\ 
 \hline
 %==============================================================================
-  \commandf{r2=run(r1("PD1"),ICP=[1,2],ISW=2)} & \parbox[t]{3in}{2nd run; a locus of period-doubling bifurcations.  \vspace{0.2cm}}\\ 
-  \commandf{save(r2,'pd')} & save output-files as \filef{b.pd, s.pd, d.pd} \\ 
+  \commandf{run(r1("PD1"),ICP=["p1","p2"],ISW=2)} & \parbox[t]{3in}{2nd run; a locus of period-doubling bifurcations.  \vspace{0.2cm}}\\ 
+  \commandf{save('pd')} & save output-files as \filef{b.pd, s.pd, d.pd} \\ 
 \hline
 %==============================================================================
   \commandf{r3=run(r1("PD1"),ISW=-1)} & \parbox[t]{3in}{3rd run;
     the bifurcating period-2 orbit.  \vspace{0.2cm}}\\ 
-  \commandf{append(r3,'dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
+  \commandf{append('dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
 \hline
 %==============================================================================
-  \commandf{r4=run(r3("PD1"))} & \parbox[t]{3in}{4th run; the
+  \commandf{run(r3("PD1"))} & \parbox[t]{3in}{4th run; the
     bifurcation period-4 orbit.  \vspace{0.2cm}}\\ 
-  \commandf{append(r4,'dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
+  \commandf{append('dd2')} & append output-files to \filef{b.dd2, s.dd2, d.dd2} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{dd2}.}
 \label{tbl:demo_dd2}
+\end{center}
+\end{table}
+
+\newpage
+%==============================================================================
+%DEMO=log======================================================================
+%==============================================================================
+\section{ log : The Logistic Map.} \label{sec:Demos_log}
+This demo shows 5 subsequent periodic doublings in the logistic map
+\begin{equation} \begin{array}{cl}
+ x^{k+1} &= \mu x (1-x),\\
+\end{array} \end{equation}
+and approximates the Feigenbaum constant. The script
+\filef{log.auto} shows a Python loop in which values
+of $\mu$ for subsequent period-doubling bifurcations are compared.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{mkdir log } & create an empty work directory \\ 
+  \commandf{cd log } & change directory \\
+  \commandf{demo('log') } & copy the demo files to the work directory \\
+  \commandf{auto('log.auto') } & run the script log.auto \\
+  \commandf{plot('log') } & plot the bifurcation diagram \\
+\hline
+\end{tabular}
+\caption{Commands for running demo \filef{log}.}
+\label{tbl:demo_log}
 \end{center}
 \end{table}
 
