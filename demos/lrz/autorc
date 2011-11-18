@@ -4,19 +4,19 @@
 [AUTO_plotter]
 
 # Variable name to use instead of 't' for solutions.
-#solution_indepvarname = "time"
+solution_indepvarname = "time"
 
 # A dictionary mapping names to axis labels.
-labelnames = {"x": "$x$", "y": "$y$", "alpha": "$\alpha$", "beta": "$\beta$",
-  "L2-NORM": "L2-norm"}
+labelnames = {"x": "$x$", "y": "$y$", "z": "$z$", "rho": "$\rho$", 
+ "beta": "$\beta$", "sigma": "$\sigma$", "L2-NORM": "$L_2$-Norm"}
 
 # The type of the plot, either "solution" or "bifurcation"
 #type = "bifurcation" # or "solution"
 
 # The column to plot along the X-axis for bifurcation diagrams.
-bifurcation_x = ["alpha"]
+#bifurcation_x = [0]
 # The column to plot along the Y-axis for bifurcation diagrams.
-bifurcation_y = ["beta"]
+bifurcation_y = [2]
 # The column to plot along the Z-axis for bifurcation diagrams.
 #bifurcation_z = None
 
@@ -35,7 +35,7 @@ bifurcation_y = ["beta"]
 # Turn on or off the grid.
 #grid = False
 # Turn on or off stability information using dashed curves
-stability = False
+#stability = False
 # Whether or not to display label numbers in the graph.
 #use_labels = True
 # Whether or not to display bifurcation symbols in the graph.

@@ -4,5 +4,5 @@
 
 print "\n***Clean the directory***"
 
-dl("lrz")
-cl()
+delete("lrz")
+clean()

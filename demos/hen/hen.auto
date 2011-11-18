@@ -3,28 +3,35 @@
 # AUTO Demo hen
 #==============
 
-pgm = "hen"
-print "\nDemo %s is started"%pgm
-print "\n%s : first run : fixed point solution branch for beta (alpha=1)"%pgm
-r1 = run(e=pgm,c=pgm)
-save(r1,'beta')
+print "\nDemo hen is started"
+print "\nhen : first run : fixed point solution branch for beta (alpha=1)"
+r1 = run('hen')
+save('beta')
 
-print "\n%s : second run : a 2-parameter curve of Naimark-Sacker bifurcations"%pgm
-load(r1("TR1"),ICP=['alpha','beta'],ISW=2,ILP=0,STOP=['R11','R21'])
-save(merge(run()+run(DS='-')),pgm)
+print "\nhen : second run : a 2-parameter curve of Naimark-Sacker bifurcations"
+run(r1("TR1"),ICP=['alpha','beta'],ISW=2,ILP=0,STOP=['R11','R21'])
+save('hen')
+run(DS='-')
+append('hen')
 
-print "\n%s : third run : a 2-parameter curve of Period-Doubling bifurcations"%pgm
-load(r1("PD1"),ICP=['alpha','beta'],ISW=2,ILP=0)
-append(merge(run()+run(DS='-')),pgm)
+print "\nhen : third run : a 2-parameter curve of Period-Doubling bifurcations"
+run(r1("PD1"),ICP=['alpha','beta'],ISW=2,ILP=0)
+append('hen')
+run(DS='-')
+append('hen')
 
-print "\n%s : fourth run : fixed point solution branch for alpha (beta=1)"%pgm
-r4 = run(c=pgm,ICP=['alpha'],DS='-',STOP=['LP1'])
+print "\nhen : fourth run : fixed point solution branch for alpha (beta=1)"
+r4 = run(c='hen',ICP=['alpha'],DS='-',STOP=['LP1'])
 save(r4,'alpha')
 
-print "\n%s : fifth run : a 2-parameter curve of fold bifurcations"%pgm
-load(r4("LP1"),ICP=['alpha','beta'],ISW=2,ILP=0)
-append(merge(run()+run(DS='-')),pgm)
-relabel(pgm)
+print "\nhen : fifth run : a 2-parameter curve of fold bifurcations"
+run(r4("LP1"),ICP=['alpha','beta'],ISW=2,ILP=0)
+append('hen')
+run(DS='-')
+append('hen')
+
+merge('hen')
+relabel('hen')
 
 print "\n***Clean the directory***"
 clean()

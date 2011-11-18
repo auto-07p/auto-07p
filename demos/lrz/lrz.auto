@@ -4,15 +4,17 @@
 #==============
 
 print "\n***Compute stationary solution families***"
-lrz=run(e='lrz',c='lrz')
+lrz=run('lrz')
+save('lrz')
 
 print "\n***Compute the first periodic solution family***"
-lrz=lrz+run(lrz('HB1'),IPS=2,ICP=[1,11],NMX=35,NPR=2,DS=0.5)
+run(lrz('HB1'),IPS=2,ICP=['rho','PERIOD'],NMX=35,NPR=2,DS=0.5)
+append('lrz')
 
 print "\n***Compute the second periodic solution family***"
-lrz=lrz+run(lrz('HB2'),IPS=2,ICP=[1,11],NMX=35,NPR=2,DS=0.5)
-save(lrz,'lrz')
+run(lrz('HB2'),IPS=2,ICP=['rho','PERIOD'],NMX=35,NPR=2,DS=0.5)
+append('lrz')
 
 print "\n***Clean the directory***"
-cl()
+clean()
 

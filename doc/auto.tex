@@ -6589,6 +6589,90 @@ of $\mu$ for subsequent period-doubling bifurcations are compared.
 \end{center}
 \end{table}
 
+\newpage
+%==============================================================================
+%DEMO=hen======================================================================
+%==============================================================================
+\section{ hen: The H\'enon Map.} \label{sec:Demos_hen}
+In this demo, a two-parameter bifurcation analysis of the H\'enon map
+\begin{equation} \begin{array}{cl}
+ x^{k+1} &= y,\\
+ y^{k+1} &= \alpha-\beta x - y^2,\\
+\end{array} \end{equation}
+is performed. This demo features the detection and continuation
+of Naimark-Sacker, period-doubling, and fold bifurcations in two
+parameters. On these codimension-one bifurcation curves
+certain codimension-two bifurcations are detected:
+the 1:1 (R1), 1:2 (R2), 1:3 (R3), and 1:4 (R4) resonance and fold-flip (LPD)
+bifurcation points. After running the script \filef{hen.auto}, the
+results can be plotted using \commandf{plot('hen')} or \commandf{@pp hen}.
+
+\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+  \AUTO-COMMAND  & ACTION \\
+\hline
+%==============================================================================
+  \commandf{mkdir hen } & create an empty work directory \\ 
+  \commandf{cd hen } & change directory \\
+  \commandf{demo('hen') } & copy the demo files to the work directory \\
+  \commandf{r1 = run('hen')} & \parbox[t]{3in}{
+    fixed point solution branch for $\beta$
+    ($\alpha=1$) (detects a period-doubling (PD)
+    and a Naimark-Sacker (TR) bifurcation)\vspace{0.1cm}} \\
+  \commandf{save('beta')} & save output-files as \filef{b.beta, s.beta,
+      d.beta} \\
+\hline
+\parbox[t]{3in}{
+  \commandf{run(r1("TR1"),ICP=['alpha','beta'], ISW=2,ILP=0,STOP=['R11','R21'])}\vspace{0.1cm}}&
+\parbox[t]{3in}{
+  continue the TR bifurcation in two parameters until a 1:1 or 1:2
+  resonance is found\vspace{0.1cm}}\\
+  \commandf{save('hen')} & save output-files as \filef{b.hen, s.hen, d.hen} \\
+  \commandf{run(DS='-')} & compute last continuation the opposite way\\
+  \commandf{append('hen')} & append output-files to \filef{b.hen, s.hen, d.hen} \\
+\hline
+\parbox[t]{3in}{
+  \commandf{run(r1("PD1"),ICP=['alpha','beta'], ISW=2,ILP=0)}\vspace{0.1cm}}&
+\parbox[t]{3in}{
+  continue the PD bifurcation in two parameters\vspace{0.1cm}}\\
+  \commandf{append('hen')} & append output-files as \filef{b.hen, s.hen, d.hen} \\
+  \commandf{run(DS='-')} & compute last continuation the opposite way\\
+  \commandf{append('hen')} & append output-files to \filef{b.hen, s.hen, d.hen} \\
+\hline
+\parbox[t]{3in}{
+  \commandf{r4=run(c='hen',ICP=['alpha'], DS='-',STOP=['LP1'])}\vspace{0.1cm}}&
+  \parbox[t]{3in}{
+    fixed point solution branch for $\alpha$
+    ($\beta=1$) (detects and stops at a fold (LP))\vspace{0.1cm}} \\
+  \commandf{save('alpha')} & save output-files as \filef{b.alpha, s.alpha,
+      d.alpha} \\
+\hline
+\parbox[t]{3in}{
+  \commandf{run(r4("LP1"),ICP=['alpha','beta'], ISW=2,ILP=0)}\vspace{0.1cm}}&
+\parbox[t]{3in}{
+  continue the LP bifurcation in two parameters}\\
+  \commandf{append('hen')} & append output-files as \filef{b.hen, s.hen, d.hen} \\
+  \commandf{run(DS='-')} & compute last continuation the opposite way\\
+  \commandf{append('hen')} & append output-files to \filef{b.hen, s.hen, d.hen} \\
+\hline
+\commandf{merge('hen')} & 
+\parbox[t]{3in}{
+join all forward and backward branches into
+single branches\vspace{0.1cm}}\\
+\commandf{relabel('hen')} & make all labels unique\\
+\hline
+\end{tabular}
+\caption{Commands for running demo \filef{hen}.}
+\label{tbl:demo_hen}
+\end{center}
+\end{table}
+
+%merge('hen')
+%relabel('hen')
+
+
 
 %==============================================================================
 %==============================================================================
@@ -6603,10 +6687,10 @@ of $\mu$ for subsequent period-doubling bifurcations are compared.
 \section{ lrz : The Lorenz Equations.} \label{sec:Demos_lrz}
 This demo computes two symmetric homoclinic orbits in the Lorenz equations
 \begin{equation} \begin{array}{cl}
-  u_1' &=  p_3 (u_2 - u_1), \\
-  u_2' &=  p_1 u_1 - u_2 - u_1 u_3,  \\
-  u_3' &=  u_1 u_2 - p_2 u_3. \\ \end{array} \end{equation}
-Here $p_1$ is the free parameter, and $p_2=8/3$, $p_3=10$.
+  x' &=  \sigma (y - x), \\
+  y' &=  \rho x - y - x z,  \\
+  z' &=  x y - \beta z. \\ \end{array} \end{equation}
+Here $\rho$ is the free parameter, and $\beta=8/3$, $\sigma=10$.
 The two homoclinic orbits correspond to the final, large period orbits 
 on the two periodic solution families.
 
@@ -6624,18 +6708,22 @@ on the two periodic solution families.
 \hline
 %==============================================================================
   \commandf{lrz=run(e='lrz',c='lrz')} & compute stationary solutions \\ 
+  \commandf{save('lrz')} & save all output to \filef{b.lrz, s.lrz, d.lrz} \\ \hline
+%==============================================================================
+\parbox[t]{3in}{
+  \commandf{run(lrz('HB1'),IPS=2,ICP=['rho',
+    'PERIOD'],NMX=35,NPR=2,DS=0.5)}\vspace{0.2cm}}
+& \parbox[t]{3in}{
+ compute periodic solutions; the final orbit is near-homoclinic.
+ \vspace{0.2cm}}\\
+ \commandf{append('lrz')} & append all output to \filef{b.lrz, s.lrz, d.lrz} \\ 
 \hline
 %==============================================================================
 \parbox[t]{3in}{
-  \commandf{lrz=lrz+run(lrz('HB1'),IPS=2,
-   ICP=[1,11],NMX=35,NPR=2,DS=0.5)}\vspace{0.2cm}} & \parbox[t]{3in}{ compute periodic solutions; the final orbit is near-homoclinic. \vspace{0.2cm}} \\ 
-\hline
-%==============================================================================
-\parbox[t]{3in}{
-  \commandf{lrz=lrz+run(lrz('HB2'),IPS=2,
-    ICP=[1,11],NMX=35,NPR=2,DS=0.5)}
+  \commandf{run(lrz('HB2'),IPS=2,ICP=['rho',
+    'PERIOD'],NMX=35,NPR=2,DS=0.5)}
 \vspace{0.2cm}} & compute the symmetric periodic solution family \\ 
-  \commandf{save(lrz,'lrz')} & save all output to \filef{b.lrz, s.lrz, d.lrz} \\ 
+  \commandf{append('lrz')} & append all output to \filef{b.lrz, s.lrz, d.lrz} \\ 
 \hline
 \end{tabular}
 \caption{Commands for running demo \filef{lrz}.}

@@ -3,24 +3,22 @@
 # AUTO Demo dd2
 #==============
 
-pgm = "dd2"
-print "\nDemo %s is started"%pgm
-print "\n%s : first run : fixed point solution branches"%pgm
-r1 = run(e=pgm,c=pgm)
-save(r1,pgm)
+print "\nDemo dd2 is started"
+print "\ndd2 : first run : fixed point solution branches"
+r1 = run("dd2")
+save("dd2")
 
-print "\n%s : second run : a 2-parameter curve of period-doubling bifurcations"%pgm
-r2 = run(r1("PD1"),ICP=[1,2],ISW=2)
-save(r2,'pd')
+print "\ndd2 : second run : a 2-parameter curve of period-doubling bifurcations"
+run(r1("PD1"),ICP=[1,2],ISW=2)
+save("pd")
 
-print "\n%s : third run : perform a period-doubling"%pgm
+print "\ndd2 : third run : perform a period-doubling"
 r3 = run(r1("PD1"),ISW=-1)
-append(r3,pgm)
+append("dd2")
 
-print "\n%s : fourth run : perform another period-doubling (period-4)"%pgm
-r4 = run(r3("PD1"))
-append(r4,pgm)
+print "\ndd2 : fourth run : perform another period-doubling (period-4)"
+run(r3("PD1"))
+append("dd2")
 
 print "\n***Clean the directory***"
-cl()
-
+clean()

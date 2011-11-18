@@ -4,7 +4,7 @@
 #==============
 
 print "\n***Clean the directory***"
-dl('alpha')
-dl('beta')
-dl('hen')
+delete('alpha')
+delete('beta')
+delete('hen')
 clean()

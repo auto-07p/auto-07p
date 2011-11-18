@@ -13,9 +13,19 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
 
-       F(1)= PAR(3) * (U(2)- U(1))
-       F(2)= PAR(1)*U(1) - U(2) - U(1)*U(3)
-       F(3)= U(1)*U(2) -  PAR(2)*U(3)
+      DOUBLE PRECISION x, y, z, rho, beta, sigma
+
+      x=U(1)
+      y=U(2)
+      z=U(3)
+
+      rho=PAR(1)
+      beta=PAR(2)
+      sigma=PAR(3)
+
+       F(1)= sigma * (y-x)
+       F(2)= rho*x - y - x*z
+       F(3)= x*y -  beta*z
 
       END SUBROUTINE FUNC
 
