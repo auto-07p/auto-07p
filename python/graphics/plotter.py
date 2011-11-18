@@ -10,6 +10,7 @@ import parseS
 import parseC
 import AUTOutil
 import os
+import gc
 Axes3D = grapher.Axes3D
 
 class plotter(grapher.GUIGrapher):
@@ -248,6 +249,7 @@ class plotter(grapher.GUIGrapher):
     _configureNoDraw = _configNoDraw
 
     def __optionCallback(self,key,value,options):
+        gc.collect()
         if key == "runner":
             self.cget("bifurcation_diagram").read(value.getBifurcation_diagram())
             self.cget("solution").read(value.getSolution())
