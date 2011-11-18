@@ -208,6 +208,12 @@ class plotter(grapher.GUIGrapher):
             if ((option[0] == 'd' and len(option) == 2) or
                 option == "labelnames"):
                 v = dict([(v[i],v[i+1]) for i in range(0,len(v),2)])
+                if option != "labelnames":
+                    # Convert "True"/"False"/"yes"/"no" to True/False
+                    for k in v:
+                        w = v[k].capitalize()
+                        if w in special:
+                            v[k] = special[w]
         else: # simple value
             try:
                 v = int(v)
