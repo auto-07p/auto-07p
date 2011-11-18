@@ -2133,15 +2133,19 @@ main(int argc, char *argv[])
 
     if( argcleft > 0 )
     {
-        bool is97 = false;
         pargv = &argv[1];
 
-        if( argcleft > 1 && strcmp(*pargv, "-r3b")==0 )
+        if( strcmp(*pargv, "-r3b")==0 )
         {
             useR3B = true;
             pargv++;
             argcleft--;
         }
+    }
+    if( argcleft > 0 )
+    {
+        bool is97 = false;
+
         if( argcleft > 1 && strcmp(*pargv, "97")==0 )
         {
             is97 = true;
