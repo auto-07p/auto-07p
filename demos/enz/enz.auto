@@ -3,12 +3,11 @@
 # AUTO Demo enz
 #==============
 
-pgm = "enz"
-print "\nDemo %s is started"%pgm
-print "\n%s : stationary solution branches"%pgm
-r1 = run(e=pgm,c=pgm)
-save(r1,pgm)
+print "\nDemo enz is started"
+print "\nenz : stationary solution branches"
+run("enz")
+save("enz")
 
 print "\n***Clean the directory***"
-cl()
+clean()
 

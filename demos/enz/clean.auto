@@ -4,5 +4,5 @@
 #==============
 
 print "\n***Clean the directory***"
-dl('enz')
-cl()
+delete('enz')
+clean()

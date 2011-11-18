@@ -13,18 +13,18 @@
       DOUBLE PRECISION, INTENT(OUT) :: F(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: DFDU(NDIM,NDIM), DFDP(NDIM,*)
 
-      DOUBLE PRECISION R,S,S1,S2,S0,RM,RH,RK
+      DOUBLE PRECISION R,s,s1,s2,s0,mu,rho,kappa
 
-       R(S)=S/(1+S+RK*S**2)
-       S1=U(1)
-       S2=U(2)
-       S0=PAR(1)
-       RM=PAR(2)
-       RH=PAR(3)
-       RK=PAR(4)
+       R(s)=s/(1+s+kappa*s**2)
+       s1=U(1)
+       s2=U(2)
+       s0=PAR(1)
+       mu=PAR(2)
+       rho=PAR(3)
+       kappa=PAR(4)
 
-       F(1)=(S0   -S1) + (S2-S1) - RH * R(S1)
-       F(2)=(S0+RM-S2) + (S1-S2) - RH * R(S2)
+       F(1)=(s0   -s1) + (s2-s1) - rho * R(s1)
+       F(2)=(s0+mu-s2) + (s1-s2) - rho * R(s2)
 
       END SUBROUTINE FUNC
 
@@ -36,18 +36,18 @@
       DOUBLE PRECISION, INTENT(INOUT) :: U(NDIM),PAR(*)
       DOUBLE PRECISION, INTENT(IN) :: T
 
-       PAR(1)=0.
-       PAR(2)=0.
-       PAR(3)=100.
-       PAR(4)=1.
+       PAR(1)=0
+       PAR(2)=0
+       PAR(3)=100
+       PAR(4)=1
 
-       U(1)=0.0
-       U(2)=0.0
+       U(1)=0
+       U(2)=0
 
       END SUBROUTINE STPNT
 
       SUBROUTINE BCND
-      END
+      END SUBROUTINE BCND
 
       SUBROUTINE ICND
       END SUBROUTINE ICND

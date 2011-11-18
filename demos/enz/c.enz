@@ -1,8 +1,11 @@
+unames = {1: 's1', 2: 's2'}
+parnames = {1: 's0', 2: 'mu', 3: 'rho', 4: 'kappa'}
 NDIM=   2, IPS =   1, IRS =   0, ILP =   1
-ICP =  [1]
+ICP =  ['s0']
 NTST=  15, NCOL=   4, IAD =   3, ISP =   1, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX=  250, NPR=  250, MXBF=  -1, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =   0.1, DSMIN=  0.01, DSMAX=  0.25, IADS=   1
 NPAR = 4, THL =  {}, THU =  {}
-UZR =  {2: [1.0, 5.0]}
+UZR =  {'mu': [1.0, 5.0]}
+STOP = ['LP3']
