@@ -411,6 +411,7 @@ class plotter(grapher.GUIGrapher):
             elif indepvarname is None:
                 indepvarname = "t"
         coordnames = self.cget(ty+"_coordnames") or []
+        coordnames = coordnames[:]
         # but if that list is too short, extend it
         if len(coordnames) < len(parsecoordnames):
             coordnames.extend(parsecoordnames[len(coordnames):])
@@ -418,6 +419,7 @@ class plotter(grapher.GUIGrapher):
 
         # construct translation dictionary for unames/parnames in autorc
         labelnames = self.cget("labelnames") or {}
+        labelnames = labelnames.copy()
         for key in list(labelnames):
             for prefix in "MIN ", "MAX ", "INTEGRAL ", "L2-NORM ":
                 if prefix+key not in labelnames:
