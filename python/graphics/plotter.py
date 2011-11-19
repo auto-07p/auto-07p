@@ -212,9 +212,12 @@ class plotter(grapher.GUIGrapher):
                 if option != "labelnames":
                     # Convert "True"/"False"/"yes"/"no" to True/False
                     for k in v:
-                        w = v[k].capitalize()
-                        if w in special:
-                            v[k] = special[w]
+                        try:
+                            w = v[k].capitalize()
+                            if w in special:
+                                v[k] = special[w]
+                        except AttributeError:
+                            pass
         else: # simple value
             try:
                 v = int(v)
