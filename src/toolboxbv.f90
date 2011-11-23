@@ -203,7 +203,7 @@ CONTAINS
   SUBROUTINE STPNUB(AP,PAR,RLDOT,UPS,UDOTPS,TM,NODIR)
 
     USE MESH
-    USE AUTO_CONSTANTS, ONLY : DATFILE, PARVALS, parnames
+    USE AUTO_CONSTANTS, ONLY : DATFILE, UVALS, PARVALS, unames, parnames
     USE SUPPORT, ONLY: NAMEIDX, AUTOSTOP
 
 ! Generates a starting point for the continuation of a branch of
@@ -274,6 +274,9 @@ CONTAINS
 
 ! override parameter values with values from constants file
 
+    DO I=1,SIZE(UVALS)
+       UPS(NAMEIDX(UVALS(I)%INDEX,unames),0:NTST*NCOL)=UVALS(I)%VAR
+    ENDDO
     DO I=1,SIZE(PARVALS)
        PAR(NAMEIDX(PARVALS(I)%INDEX,parnames))=PARVALS(I)%VAR
     ENDDO
