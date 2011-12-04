@@ -79,7 +79,7 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         for k in list(d):
             # don't adjust any unchanged settings
             if k == "cur_lims":
-                if d[k] == self.grapher._cur_lims:
+                if map(list, d[k]) == map(list, self.grapher._cur_lims):
                     del d[k]
             elif d[k] == self.grapher.cget(k):
                 del d[k]
@@ -206,7 +206,7 @@ class BasicGrapher(grapher.BasicGrapher):
             elif self.ax is self.ax3d:
                 elev = self.cget("elevation")
                 azim = self.cget("azimuth")
-                if elev is not None and azim is not None:
+                if elev is not None or azim is not None:
                     self.ax.view_init(elev, azim)
         elif key == "grid":
             if value in ["yes", True]:
