@@ -38,9 +38,14 @@ def importnumpy():
         try:
             import numpy as N
             from numpy import linalg
-            fromstring, ndarray, float64, int32, bool8 = (
-                N.fromstring, N.ndarray, N.float64, N.int32, N.bool)
+            fromstring, ndarray, float64, int32, bool8, floating, integer = (
+                N.fromstring, N.ndarray, N.float64, N.int32, N.bool,
+                N.floating, N.integer)
             N.nonzero = N.flatnonzero
+            global _float_types
+            global _int_types
+            _float_types = (type(1), N.floating)
+            _int_types = (type(1), N.integer)
         except ImportError:
             try:
                 import numarray as N

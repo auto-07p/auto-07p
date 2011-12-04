@@ -154,7 +154,7 @@ class fileS(object):
         fromstring = Points.fromstring
         if fromstring:
             fdata = []
-            if "D" not in data:
+            if "D".encode("ascii") not in data:
                 fdata = fromstring(data, dtype=float, sep=' ')
             if fdata == [] or len(fdata) != total:
                 fdata = N.array(map(parseB.AUTOatof,
@@ -164,7 +164,7 @@ class fileS(object):
                 #(fromstring may not do this correctly for a
                 #string like -2.05071-106)
                 fdata[-1] = parseB.AUTOatof(
-                    data[data.rfind(" ")+1:].strip())
+                    data[data.rfind(" ".encode("ascii"))+1:].strip())
         else:
             data = data.split()
             try:
