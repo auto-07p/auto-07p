@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.axes import Axes
 from matplotlib.ticker import AutoLocator, FixedLocator
 import Points
 if not Points.numpyimported:
@@ -72,7 +73,7 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
             [d["minz"],d["maxz"]] = ax.get_zlim3d()
             d["azimuth"] = ax.azim
             d["elevation"] = ax.elev
-            d["cur_lims"] = ax.get_xlim(), ax.get_ylim()
+            d["cur_lims"] = Axes.get_xlim(ax), Axes.get_ylim(ax)
         else:
             [d["minx"],d["maxx"]] = ax.get_xlim()
             [d["miny"],d["maxy"]] = ax.get_ylim()
@@ -168,7 +169,8 @@ class BasicGrapher(grapher.BasicGrapher):
                     func = None
                     if self.ax is self.ax3d:
                         func = getattr(self.ax, "set_"+key[3]+"lim3d")
-                        self._cur_lims = self.ax.get_xlim(),self.ax.get_ylim()
+                        self._cur_lims = (
+                            Axes.get_xlim(self.ax), Axes.get_ylim(self.ax))
                     elif key[3] != 'z':
                         func = getattr(self.ax, "set_"+key[3]+"lim")
                     if func is not None:
@@ -514,10 +516,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                     # against the 2D limits
                     z = label["xy"][2]
                     [x,y,z] = proj_transform(x, y, z, self.ax.M)
-                lim = self.ax.get_xlim()
+                lim = Axes.get_xlim(self.ax)
                 if x < lim[0] or x > lim[1]:
                     continue
-                lim = self.ax.get_ylim()
+                lim = Axes.get_ylim(self.ax)
                 if y < lim[0] or y > lim[1]:
                     continue
                 data = trans((x,y))
