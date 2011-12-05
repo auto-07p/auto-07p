@@ -555,7 +555,7 @@ class plotter(grapher.GUIGrapher):
                 except IndexError:
                     break
                 xycols.append(xy)
-            if len(xycols) < 2:
+            if len(xycols) < 2 or (zcolumns[j] is not None and len(xycols) < 3):
                 continue
             [x,y] = xycols[:2]
             if len(xycols) == 3:
