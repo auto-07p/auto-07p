@@ -55,7 +55,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: NPOS
     INTEGER, INTENT(OUT) :: KEYEND, POS, LISTLEN, IERR
 
-    INTEGER I,J,IC
+    INTEGER I,J,IC,N
     INTEGER NICP
     DOUBLE PRECISION RC
     CHARACTER(LEN=1) :: C,QUOTE,PREV
@@ -83,7 +83,18 @@ CONTAINS
     IERR=0
     IF(NPOS==1)THEN
        LINE=LINE+1
-       READ(2,'(A)',IOSTAT=ios) STR
+       N=READINTEGER(STR(1:1),IERR)
+       IF(IERR/=0)THEN
+          IF(IERR==4)THEN
+             IERR=0
+             EOF=.TRUE.
+          ELSEIF(IERR==-1)THEN
+             CALL READOLDC(N,EOF,LINE,IERR)
+          ENDIF
+          RETURN
+       ENDIF
+       NEWCFILE=.TRUE.
+       READ(2,'(A)',IOSTAT=ios) STR(2:)
        IF(ios/=0)THEN
           EOF=.TRUE.
           RETURN
@@ -113,34 +124,14 @@ CONTAINS
     ENDIF
     STR=ADJUSTL(STR)
     IF(LEN_TRIM(STR)==0)RETURN
-    DO I=1,LEN_TRIM(STR)
-       ! comment on line
-       IF(STR(I:I)=='#'.OR.STR(I:I)=='!')THEN
-          NPOS=1
-          RETURN
-       ENDIF
-       ! keyword detected
-       IF((LGE(STR(I:I),'A').AND.LLE(STR(I:I),'Z')).OR. &
-            (LGE(STR(I:I),'a').AND.LLE(STR(I:I),'z')))THEN
-          STR=STR(I:)
-          NEWCFILE=.TRUE.
-          EXIT
-       ELSE
-          CALL READOLDC(EOF,LINE,IERR)
-          RETURN
-       ENDIF
-       IF(I==LEN_TRIM(STR))THEN
-          NPOS=1
-          RETURN
-       ENDIF
-    ENDDO
-    ! look for = after keyword
-    KEYEND=SCAN(STR,'= ')-1
-    IF(KEYEND==-1)THEN
-       LINE=LINE-1
-       CALL READOLDC(EOF,LINE,IERR)
+    ! comment on line
+    IF(STR(1:1)=='#'.OR.STR(1:1)=='!')THEN
+       NPOS=1
        RETURN
     ENDIF
+    ! look for = after keyword
+    KEYEND=SCAN(STR,'= ')-1
+    IF(KEYEND==-1)GOTO 3
     POS=SCAN(STR,'=')+1
     STR(POS:)=ADJUSTL(STR(POS:))
     CALL SCANVALUE(STR(POS:),NPOS,LISTLEN)
@@ -415,20 +406,30 @@ CONTAINS
   END SUBROUTINE SCANVALUE
 
 ! ------- -------- -----------
-  INTEGER FUNCTION READINTEGER(IERR)
+  INTEGER FUNCTION READINTEGER(C,IERR)
 
     ! read arbitrary positive integer from unit 2 without advancing
     ! input, to work around advance='no' restriction for list-directed
     ! input.
-    CHARACTER(1) C
-    INTEGER N
+    ! on output: C contains the last-read character
+    ! ierr:-1: no problems and number read
+    !       0: no number read
+    !       3: error reading
+    !       4: eof
+    CHARACTER(1), INTENT(OUT) :: C
     INTEGER, INTENT(OUT) :: IERR
+
+    INTEGER N
+
     READINTEGER = 0
 
     N = 0
+    IERR = 0
     DO
        READ(2,'(A1)',ERR=3,END=4,ADVANCE='NO')C
-       IF(IACHAR(C) < IACHAR('0').OR.IACHAR(C) > IACHAR('9'))EXIT
+       IF(IERR==0.AND.(IACHAR(C)==9.OR.C==' '))CYCLE
+       IF(LLT(C, '0').OR.LGT(C, '9'))EXIT
+       IERR = -1
        N = N*10 + IACHAR(C) - IACHAR('0')
     ENDDO
     READINTEGER = N
@@ -443,7 +444,7 @@ CONTAINS
   END FUNCTION READINTEGER
 
 ! ---------- --------
-  SUBROUTINE READOLDC(EOF,LINE,IERR)
+  SUBROUTINE READOLDC(N,EOF,LINE,IERR)
 
 ! Reads the continuation constants in the old format
     USE AUTO_CONSTANTS
@@ -451,18 +452,20 @@ CONTAINS
     INTEGER I
     INTEGER NUZR,NICP
     INTEGER LISTLEN,ios
+    CHARACTER(1) C
 
+    INTEGER, INTENT(IN) :: N
     LOGICAL, INTENT(INOUT) :: EOF
     INTEGER, INTENT(INOUT) :: LINE
     INTEGER, INTENT(OUT) :: IERR
 
-    BACKSPACE 2
-    READ(2,*,ERR=3,END=4) NDIM,IPS,SIRS,ILP
+    NDIM=N
+    READ(2,*,ERR=3,END=4) IPS,SIRS,ILP
     READ(SIRS,*,IOSTAT=ios)IRS
     IF(ios/=0)IRS=1
     LINE=LINE+1
-    LISTLEN=READINTEGER(IERR)
-    IF(IERR==3)GOTO 3
+    LISTLEN=READINTEGER(C,IERR)
+    IF(IERR==0.OR.IERR==3)GOTO 3
     IF(IERR==4)GOTO 4
     DEALLOCATE(ICU)
     NICP=LISTLEN
