@@ -334,7 +334,7 @@ CONTAINS
 !   Scans STR(:) for a value
 !   NPOS points to the next keyword on the same line,
 !     or is set to 1 if there is none
-!   LISTLEN gives the number of items in lists delimited by []
+!   LISTLEN gives the number of items in lists delimited by [] or {}
 !   [] characters are removed
 
     CHARACTER(*), INTENT(INOUT) :: STR
@@ -367,7 +367,8 @@ CONTAINS
           SELECT CASE(C)
           CASE(',',' ')
              IF(LEVEL==0)EXIT
-             IF(PREV==':')C=PREV !eat ',' and ' ' after ':'
+             IF(PREV==':'.OR.PREV=='['.OR.PREV=='{')C=PREV
+             !eat ',' and ' ' after ':', '[', or '{'
           CASE(':')
              STR(I:I)=','
           CASE(']','}')
