@@ -13,7 +13,7 @@
       LOGICAL EOF,KEYS
 ! Local
       DOUBLE PRECISION TIME0,TIME1,TOTTIM
-      INTEGER I,LINE,ios
+      INTEGER I,LINE,ios,UNITC
       INTEGER,ALLOCATABLE :: IICU(:)
       LOGICAL FIRST
 
@@ -26,11 +26,10 @@
        ENDIF
 
        FIRST=.TRUE.
-       OPEN(2,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+       UNITC=2
+       OPEN(UNITC,FILE='fort.2',STATUS='old',ACCESS='sequential',IOSTAT=ios)
        IF(ios/=0)THEN
-          WRITE(6,'(A,A)')'The constants file (fort.2 or c. file) ', &
-               'could not be found.'
-          CALL AUTOSTOP()
+          UNITC=5
        ENDIF
 
        KEYS=.FALSE.
@@ -42,7 +41,7 @@
              TIME0=AUTIM()
 !$           TIME0=omp_get_wtime()
           ENDIF
-          CALL INIT(AP,EOF,KEYS,LINE)
+          CALL INIT(AP,UNITC,EOF,KEYS,LINE)
           IF(EOF)EXIT
           CALL FINDLB_OR_STOP(AP)
           CALL MPIIAP(AP)
@@ -209,7 +208,7 @@
 !-----------------------------------------------------------------------
 
 !     ---------- ----
-      SUBROUTINE INIT(AP,EOF,KEYS,LINE)
+      SUBROUTINE INIT(AP,UNITC,EOF,KEYS,LINE)
 
       USE AUTO_CONSTANTS
       USE HOMCONT, ONLY : INSTRHO
@@ -217,6 +216,7 @@
       IMPLICIT NONE
 
       TYPE(AUTOPARAMETERS), INTENT(OUT) :: AP
+      INTEGER, INTENT(IN) :: UNITC
       LOGICAL, INTENT(OUT) :: EOF
       LOGICAL, INTENT(INOUT) :: KEYS
       INTEGER, INTENT(INOUT) :: LINE
@@ -273,7 +273,7 @@
 
       NPOS=1
       DO
-         CALL READC(EOF,LINE,NPOS,STR,KEYEND,POS,LISTLEN,IERR)
+         CALL READC(UNITC,EOF,LINE,NPOS,STR,KEYEND,POS,LISTLEN,IERR)
          ! IERR=-1: old-style constants file detected and read
          ! IERR= 0: no problems
          ! IERR= 1: unknown AUTO constant: check with HomCont
