@@ -413,6 +413,34 @@ CONTAINS
     ENDIF
   END SUBROUTINE SCANVALUE
 
+! ------- -------- -----------
+  INTEGER FUNCTION READINTEGER(IERR)
+
+    ! read arbitrary positive integer from unit 2 without advancing
+    ! input, to work around advance='no' restriction for list-directed
+    ! input.
+    CHARACTER(1) C
+    INTEGER N
+    INTEGER, INTENT(OUT) :: IERR
+    READINTEGER = 0
+
+    N = 0
+    DO
+       READ(2,'(A1)',ERR=3,END=4,ADVANCE='NO')C
+       IF(IACHAR(C) < IACHAR('0').OR.IACHAR(C) > IACHAR('9'))EXIT
+       N = N*10 + IACHAR(C) - IACHAR('0')
+    ENDDO
+    READINTEGER = N
+    RETURN
+
+3   IERR = 3
+    RETURN
+
+4   IERR = 4
+    RETURN
+
+  END FUNCTION READINTEGER
+
 ! ---------- --------
   SUBROUTINE READOLDC(EOF,LINE,IERR)
 
@@ -432,13 +460,15 @@ CONTAINS
     READ(SIRS,*,IOSTAT=ios)IRS
     IF(ios/=0)IRS=1
     LINE=LINE+1
-    READ(2,*,ERR=3,END=4) NICP
-    IF(NICP>0)THEN
-       DEALLOCATE(ICU)
-       ALLOCATE(ICU(NICP))
-       BACKSPACE 2
-       READ(2,*,ERR=3,END=4) NICP,(ICU(I),I=1,NICP)
-    ENDIF
+    LISTLEN=READINTEGER(IERR)
+    IF(IERR==3)GOTO 3
+    IF(IERR==4)GOTO 4
+    DEALLOCATE(ICU)
+    NICP=LISTLEN
+    IF(LISTLEN==0)NICP=1
+    ALLOCATE(ICU(NICP))
+    ICU(1)='1'
+    READ(2,*,ERR=3,END=4) (ICU(I),I=1,LISTLEN)
     LINE=LINE+1
     READ(2,*,ERR=3,END=4) NTST,NCOL,IAD,ISP,ISW,IPLT,NBC,NINT
     LINE=LINE+1
