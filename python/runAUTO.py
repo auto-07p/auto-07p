@@ -232,7 +232,7 @@ class runAUTO:
 
     def __setup(self):
         """     This function sets up self.options["dir"] by creating
-        fort.2, fort.3 and fort.12 files.  The "constants", "solution",
+        fort.3 and fort.12 files.  The "constants", "solution",
         and "homcont" options 
         can be anything with a writeFilename method.  NOTE:  The
         values set here will often be overridden by
@@ -240,7 +240,8 @@ class runAUTO:
         or runCommand)"""
         solution = self.options["selected_solution"]
         constants = solution.c
-        constants.writeFilename("fort.2")
+        if os.path.exists("fort.2"):
+            os.remove("fort.2")
         solution.writeFilename("fort.3",mlab=True)
         if constants["homcont"] is not None:
             constants["homcont"].writeFilename("fort.12")
@@ -367,9 +368,7 @@ class runAUTO:
                                  self.fort9_path]:
                     if os.path.exists(filename):
                         os.remove(filename)
-                self.runCommand(os.path.join(".",equation + ".exe"))
-                if os.path.exists("fort.2"):
-                    os.remove("fort.2")
+                self.runCommand(os.path.join(".",equation + ".exe"), constants)
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
@@ -448,9 +447,9 @@ class runAUTO:
 
     def runCommandWithSetup(self,command=None):
         self.__setup()
-        self.runCommand(command)
+        self.runCommand(command,self.options["selected_solution"].c)
         self.__outputCommand()
-    def runCommand(self,command=None):
+    def runCommand(self,command=None,constants=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
         global demo_killed,alarm_demo,demo_max_time
@@ -470,7 +469,7 @@ class runAUTO:
         command = os.path.expandvars(command)
         if self.options["makefile"] is None and sys.stdout is sys.__stdout__:
             try:
-                status = self.__runCommand_noredir(command)
+                status = self.__runCommand_noredir(command, constants)
             except KeyboardInterrupt:
                 if hasattr(signal, 'SIGINT'):
                     status = -signal.SIGINT
@@ -482,7 +481,7 @@ class runAUTO:
                 else:
                     status = 1
         else:
-            status = self.__runCommand_redir(command)
+            status = self.__runCommand_redir(command, constants)
         if hasattr(signal,"alarm"):
             signal.alarm(0)
         if hasattr(os,"times"):
@@ -490,6 +489,9 @@ class runAUTO:
         else:
             user_time = 1.0
         if status != 0:
+            # in case of error, write constants to fort.2 to enable
+            # easier debugging.
+            constants.writeFilename('fort.2')
             if status < 0:
                 status = abs(status)
                 for s in signals:
@@ -498,17 +500,30 @@ class runAUTO:
                 raise AUTOExceptions.AUTORuntimeError("Signal %d\n"%status)
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
-    def __runCommand_noredir(self,command=None):
+    def __runCommand_noredir(self,command,constants=None):
         sys.stdout.flush()
         args = os.path.expandvars(command).split()
-        if "subprocess" in sys.modules:
-            return subprocess.call(args)
-        elif hasattr(os,"spawnlp"):
-            return os.spawnlp(os.P_WAIT, args[0], *args)
+        if constants is None:
+            if "subprocess" in sys.modules:
+                return subprocess.call(args)
+            elif hasattr(os,"spawnlp"):
+                return os.spawnlp(os.P_WAIT, args[0], *args)
+            else:
+                return os.system(command)
+        if "subprocess2" in sys.modules:
+            obj = subprocess.Popen(args, stdin=subprocess.PIPE,
+                                   universal_newlines=True)
+            stdin = obj.stdin
         else:
-            return os.system(command)
+            stdin = os.popen(command, "w")
+            status = 0
+        constants.write(stdin)
+        stdin.close()
+        if "subprocess2" in sys.modules:
+            status = obj.wait()
+        return status
 
-    def __runCommand_redir(self,command=None):
+    def __runCommand_redir(self,command,constants=None):
         global demo_killed
         tmp_out = []
         if "subprocess" in sys.modules or hasattr(popen2,"Popen3"):
@@ -517,14 +532,19 @@ class runAUTO:
             # later on to see if it is still running.
             if "subprocess" in sys.modules:
                 args = os.path.expandvars(command).split()
-                demo_object = self.__popen(args, stderr=subprocess.PIPE)
-                stdout, stderr = demo_object.stdout, demo_object.stderr
+                demo_object = self.__popen(args, subprocess.PIPE,
+                                           subprocess.PIPE)
+                stdin, stdout, stderr = (demo_object.stdin, demo_object.stdout,
+                                         demo_object.stderr)
                 teststatus = None
             else:
                 demo_object = popen2.Popen3(command,1,1)
-                demo_object.tochild.close()
-                stdout, stderr = demo_object.fromchild, demo_object.childerr
+                stdin, stdout, stderr = (demo_object.tochild,
+                             demo_object.fromchild, demo_object.childerr)
                 teststatus = -1
+            if constants is not None:
+                constants.write(stdin)
+            stdin.close()
             status = demo_object.poll()
             while status == teststatus:
                 try:
@@ -537,6 +557,7 @@ class runAUTO:
                 status = demo_object.poll()
         else:
             stdout, stdin, stderr = popen2.popen3(command)
+            constants.write(stdin)
             stdin.close()
             status = 0
         line = stdout.readline()

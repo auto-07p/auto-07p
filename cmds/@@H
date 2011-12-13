@@ -1,25 +1,24 @@
 #!/bin/sh
-if (test -r $1.dat) then
-cat $1.dat > fort.4
-fi
-#
+rm -f fort.2
+CFILE=
+SFILE=
 if ( test $# -eq 1 ) then
-	cat c.$1 > fort.2
-	cat h.$1 > fort.12
+	CFILE="$1"
 	if (test -r s.$1) then
-		cat s.$1 > fort.3
+		SFILE="$1"
 	fi
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
 elif ( test $# -eq 2 ) then
-	cat c.$1.$2 > fort.2
-	cat h.$1.$2 > fort.12
+	CFILE="$1.$2"
 	if (test -r s.$1) then
-		cat s.$1 > fort.3
+		SFILE="$1"
 	fi
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
 else
-	cat c.$1.$2 > fort.2
-	cat h.$1.$2 > fort.12
-	cat s.$3 > fort.3
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+	CFILE="$1.$2"
+	SFILE="$3"
+fi
+cat h.$CFILE > fort.12
+if ( test -n "$SFILE" -a -r c.$CFILE ) then
+	echo s=\'$SFILE\' | cat - c.$CFILE | make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+else
+	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1 < c.$CFILE
 fi
