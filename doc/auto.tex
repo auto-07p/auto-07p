@@ -7020,8 +7020,9 @@ The equations, which model a predator-prey system with harvesting, are
 \begin{equation} \begin{array}{cl}
   u_1 ' &= p_2 u_1 (1 - u_1 ) - u_1 u_2 - p_1 (1-e^{-p_3 u_1}) ,\\
   u_2 ' &= -u_2  + p_4 u_1 u_2  .\end{array} \end{equation}
-Here $p_1$ is the principal continuation parameter,
-while $p_2=p_4=3$ and $p_3=5$, are fixed
+Here $p_1$ (quota) is the principal continuation parameter,
+while $p_2=p_4=3$ and $p_3=5$, are fixed. The variables $u_1$ and
+$u_2$ denote prey and predator, for instance fish and sharks.
 The use of {\cal PLAUT} is also illustrated. The saved plots are shown
 in Figure~\ref{fig:pp2_1} and  Figure~\ref{fig:pp2_2}.
 You can obtain similar figures using the Python CLUI's plot
@@ -7127,17 +7128,17 @@ periodic solutions from numerical data obtained, for example, from an
 initial value solver.
 As an illustrative application we consider the Lorenz equations
 \begin{equation} \begin{array}{cl}
-  u_1' &=  p_3 (u_2 - u_1), \\
-  u_2' &=  p_1 u_1 - u_2 - u_1 u_3,  \\
-  u_3' &=  u_1 u_2 - p_2 u_3. \\\end{array} \end{equation}
+  x' &=  \sigma (y - x), \\
+  y' &=  \rho x - y - x z,  \\
+  z' &=  x y - \beta z. \\\end{array} \end{equation}
 Numerical simulations with a simple initial value solver show the
-existence of a stable periodic orbit when $p_1=280$, $p_2=8/3$, $p_3=10$.
+existence of a stable periodic orbit when $\rho=280$, $\beta=8/3$, $\sigma=10$.
 Numerical data representing one complete periodic oscillation are
 contained in the file \filef{lor.dat}. 
 Each row in \filef{lor.dat} contains four real numbers, namely,
-the time variable $t$, $u_1$, $u_2$ and $u_3$.
+the time variable $t$, $x$, $y$ and $z$.
 The correponding parameter values are defined in the user-supplied subroutine
-\filef{stpnt}.
+\filef{STPNT}.
 The \AUTO constant \parf{dat='lor'} then allows for using
 the data in \filef{lor.dat} where we also specify \parf{IRS=0}.
 The mesh will be suitably adapted to the solution, using the number of
@@ -10625,8 +10626,8 @@ becomes
   & u_2'(\xi) = T \bigl[ c u_2 - B(u_1) u_2^{2} - C(u_1)\bigr]. \\
 \end{array} \end{equation}
 For Case~1 this equation has a known exact solution, namely,
-$$ u(\xi) = \frac{1 }{ 1 + exp(T\xi) }, \qquad
-  v(\xi) = \frac{ -\frac{1 }{ 2}  }{ 1 + exp(-T\xi) }. $$
+$$ u(\xi) = \frac{1 }{ 1 + \exp(T\xi) }, \qquad
+  v(\xi) = \frac{ -\frac{1 }{ 2}  }{ 1 + \exp(-T\xi) }. $$
 This solution has wave speed $c=1$.
 In the limit as $T \rightarrow \infty$ its phase plane trajectory
 connects the stationary points $(1,0)$ and $(0,-\frac{1 }{ 2})$.
