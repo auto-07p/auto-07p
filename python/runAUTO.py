@@ -372,7 +372,7 @@ class runAUTO:
                 prefix = os.environ.get("AUTO_COMMAND_PREFIX")
                 if prefix is not None:
                     command = " ".join((prefix, command))
-                self.runCommand(command)
+                self.runCommand(command, constants)
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
