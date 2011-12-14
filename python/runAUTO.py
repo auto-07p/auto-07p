@@ -368,7 +368,11 @@ class runAUTO:
                                  self.fort9_path]:
                     if os.path.exists(filename):
                         os.remove(filename)
-                self.runCommand(os.path.join(".",equation + ".exe"), constants)
+                command = os.path.join(".",equation + ".exe")
+                prefix = os.environ.get("AUTO_COMMAND_PREFIX")
+                if prefix is not None:
+                    command = " ".join((prefix, command))
+                self.runCommand(command)
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation

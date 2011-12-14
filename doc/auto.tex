@@ -54,7 +54,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{October 2009}
+\date{December 2011}
 \pagenumbering{alph}
 \maketitle
 \pagenumbering{arabic}
@@ -574,6 +574,23 @@ line option which defines the number of computational processes is \filef{
 on four processors, with the above external program, you would
 type \filef{mpirun -np 4 file.exe}.  Please see your local MPI
 documentation for more detail.
+
+Both the Python CLUI and the commands in the \filef{ auto/07p/cmds}
+directory described in Chapter~\ref{sec:command_mode} may be used with the
+MPI version as well, by setting the \commandf{ AUTO\_COMMAND\_PREFIX}
+environment variable.  For example, to run \AUTO in parallel using
+the MPI library on 4 processors just type
+\commandf{export AUTO\_COMMAND\_PREFIX='mpirun -np 4'}
+before you run the Python CLUI \commandf{auto} or
+the commands in \filef{ auto/07p/cmds} normally. 
+The previous example
+assumed you are using the \commandf{sh} shell or the \commandf{bash} shell; for
+other shells you should modify the commands appropriately,
+for example \commandf{setenv AUTO\_COMMAND\_PREFIX 'mpirun -np 4'}
+for the \commandf{csh} and \commandf{tcsh} shells. Alternatively,
+inside the Python
+CLUI and scripts you can use \commandf{import os} followed by
+\commandf{os.environ["AUTO\_COMMAND\_PREFIX"]="mpirun -np 4"}.
 
 %==============================================================================
 %==============================================================================
