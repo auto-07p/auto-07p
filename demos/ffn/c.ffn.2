@@ -1,9 +1,12 @@
+parnames = {1: 'a', 2: 'b', 3: 'c', 4: 'amp', 5: 'beta'}
+unames = {1: 'x', 2: 'y', 3: 'sn', 4: 'cs'}
 NDIM=   4, IPS =   2, IRS =   2, ILP =   1
-ICP =  [1, 11]
+ICP =  ['a', 'PERIOD']
 NTST=  25, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 9, NBC= 0, NINT= 0
-NMX=  100, NPR=  100, MXBF=   5, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
+NMX=  100, NPR=    0, MXBF=   5, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-07, EPSU = 1e-07, EPSS = 1e-05
 DS  =  0.03, DSMIN= 0.001, DSMAX=  0.03, IADS=   1
 NPAR = 11, THL =  {}, THU =  {}
-UZR =  {1: [0.25, 0.5]}
-UZSTOP = {1: 1.0}
+UZR =  {'a': [0.25, 0.5]}
+UZSTOP = {'a': 1.0}
+LAB = 1

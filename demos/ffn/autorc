@@ -1,0 +1,191 @@
+# Example file for autorc: you need to uncomment settings for them
+# to take effect!
+
+[AUTO_plotter]
+
+# Variable name to use instead of 't' for solutions.
+solution_indepvarname = "time"
+
+# A dictionary mapping names to axis labels.
+labelnames = {"a": "$a$", "b": "$b$", "c": "$c$", "beta": "$\beta$",
+              "x": "$x$", "y": "$y$", "z": "$z$"}
+
+# The type of the plot, either "solution" or "bifurcation"
+#type = "bifurcation" # or "solution"
+
+# The column to plot along the X-axis for bifurcation diagrams.
+#bifurcation_x = [0]
+# The column to plot along the Y-axis for bifurcation diagrams.
+#bifurcation_y = [1]
+# The column to plot along the Z-axis for bifurcation diagrams.
+#bifurcation_z = None
+
+# The column to plot along the X-axis for solutions. 
+#solution_x = [0,3,6,9]
+# The column to plot along the Y-axis for solutions. 
+#solution_y = [1,4,7,10]
+# The column to plot along the Z-axis for solutions. 
+#solution_z = [2,5,8,11]
+
+# A list of colors to use for multiple plots.
+#color_list = "black red green blue"
+# color_list index: 'branch' (BR), 'type' (TY), or 'curve' (seq.).
+#coloring_method = "curve" # or "branch" or "type"
+
+# Turn on or off the grid.
+#grid = False
+# Turn on or off stability information using dashed curves
+#stability = False
+# Whether or not to display label numbers in the graph.
+#use_labels = True
+# Whether or not to display bifurcation symbols in the graph.
+#use_symbols = False
+# Whether to use letters (True) or symbols (False) for special points.
+#letter_symbols = True
+
+# Default d0, d1, d2, etc. setting to use with PyPLAUT (@pp).
+#default_option="d1"
+#d1 = {"grid": False, "use_labels": True, "use_symbols": True, "stability":True}
+# similarly you can redefine d0, d2, d3, d4.
+
+# The label for the top title.
+#top_title = ''
+# The font size for the top title.
+#top_title_fontsize = 12
+
+# The font size for the x-axis label.
+#xlabel_fontsize = 12
+# The font size for the y-axis label.
+#ylabel_fontsize = 12
+# The font size for the z-axis label.
+#zlabel_fontsize = 12
+
+# Azimuth of the axes in 3D plots.
+#azimuth = -60 # for 3D plots, in degrees
+# Elevation of the axes in 3D plots.
+#elevation = 30 # for 3D plots, in degrees
+
+# The lower bound for the x-axis of the plot.
+#minx = 0
+# The upper bound for the x-axis of the plot.
+#maxx = 0
+# The lower bound for the y-axis of the plot.
+#miny = 0
+# The upper bound for the y-axis of the plot.
+#maxy = 0
+# The lower bound for the z-axis of the plot.
+#minz = 0
+# The upper bound for the z-axis of the plot.
+#maxz = 0
+
+# The label for the x-axis.
+#xlabel = ''
+# The label for the y-axis.
+#ylabel = ''
+# The label for the z-axis.
+#zlabel = ''
+
+# Width to use for lines and curves.
+#line_width = 2.0
+# List of dash, no-dash lengths for dashed lines.
+#dashes = (6.0,6.0)
+# The background color of the plot.
+#background = "white"
+# The foreground color of the plot
+#foreground = "black"
+# The color to use for the marker symbols.
+#symbol_color = "red"
+# The font to use for marker symbols.
+#symbol_font = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+# Turn on or off the axis, tick marks, etc.
+#decorations = True
+# Whether to use a smart but slower label placement algorithm.
+#smart_label = True
+
+# Width of the graph.
+#width = 600
+# Height of the graph.
+#height = 480
+# The margin between the graph and the left edge.
+#left_margin = 80
+# The margin between the graph and the left edge.
+#right_margin = 40
+# The margin between the graph and the top edge.
+#top_margin = 40
+# The margin between the graph and the bottom edge.
+#bottom_margin = 40
+# The number of ticks on the x-axis.
+#xticks = 5
+# The number of ticks on the y-axis.
+#yticks = 5
+# The number of ticks on the z-axis.
+#zticks = 5
+# A string which defines the format of the tick labels.
+#tick_label_template = "%.2e"
+# The length of the tick marks.
+#tick_length = 0.2
+# The length of the odd tick marks.
+#odd_tick_length = 0.4
+# The length of the even tick marks.
+#even_tick_length = 0.2
+# The PostScript output mode: 'color', 'gray' or 'monochrome'.
+#ps_colormode = "color"
+# The t value to marker with a small ball.
+#mark_t = None #or a real value between 0 and 1
+
+# A set of bifurcation columns the user is likely to use.
+#bifurcation_column_defaults = None
+# A set of solution columns the user is likely to use.
+#solution_column_defaults = [[0,3,6,9],[1,4,7,10],[2,5,8,11],['t','t','t','t']]
+
+# An array of labels to plot, or 'all' for all labels.
+#label = [1,2,3] # or "all"
+# A set of labels that the user is likely to use.
+#label_defaults = None
+# The index/indices of the solution we wish to draw
+#index = [0]
+
+# The filename of the bifurcation diagram to plot.
+#bifurcation_diagram_filename = 'fort.7'
+# The filename of the solution to plot.
+#solution_filename = 'fort.8'
+
+# The symbol to use for bifurcation points.
+# Here 8 denotes the size of the square
+#bifurcation_symbol = "square8"
+# The symbol to use for limit points.
+#limit_point_symbol = None
+# The symbol to use for Hopf bifurcation points.
+#hopf_symbol = "fillsquare"
+# The symbol to use for period doubling bifurcation points.
+#period_doubling_symbol = "doubletriangle"
+# The symbol to use for torus bifurcation points.
+#torus_symbol = "filldiamond"
+# The symbol to use for user defined output points.
+#user_point_symbol = "U"
+# The symbol to use for error points.
+#error_symbol = None
+# The symbol to use for Cusp points.
+#cusp_symbol = None
+# The symbol to use for Bogdanov-Takens points.
+#bogdanov_takens_symbol = "circle"
+# The symbol to use for Generalized Hopf points.
+#generalized_hopf_symbol = "triangle"
+# The symbol to use for zero-Hopf points.
+#zero_hopf_symbol = "doubletriangle"
+# The symbol to use for fold-flip points.
+#fold_flip_symbol = "doubletriangle"
+# The symbol to use for fold-torus points.
+#fold_torus_symbol = "doubletriangle"
+# The symbol to use for flip-torus points.
+#flip_torus_symbol = "doubletriangle"
+# The symbol to use for torus-torus points.
+#torus_torus_symbol = "doubletriangle"
+# The symbol to use for 1:1 resonance points.
+#1_1_resonance_symbol = "filldiamond"
+# The symbol to use for 1:2 resonance points.
+#1_2_resonance_symbol = "filldiamond"
+# The symbol to use for 1:3 resonance points.
+#1_3_resonance_symbol = "filldiamond"
+# The symbol to use for 1:4 resonance points.
+#1_4_resonance_symbol = "filldiamond"
