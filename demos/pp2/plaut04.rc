@@ -1,56 +1,19 @@
 #version 0.0
 
-# Line colors are represented by RGB values from 0 to 1.0.
-# DEFAULT color is also used when animationLabel == 0, i.e.,
-# when showing all solutions and highlighting the solutions 
-# Point Type    RED  GREEN  BLUE
-DEFAULT       = 1.0,  1.0,  1.0, 0xffff
-BP            = 1.0,  0.0,  0.0, 0xffff
-LP ALG        = 0.0,  1.0,  0.0, 0xffff
-HB            = 0.0,  0.0,  1.0, 0xffff
-UZ4           = 1.0,  1.0,  0.0, 0xffff
-UZ-4          = 0.5,  0.5,  0.0, 0xffff
-LP DIF        = 0.0,  0.0,  0.5, 0xffff
-BP DIF        = 0.0,  0.5,  0.5, 0xffff
-PD            = 1.0,  0.0,  1.0, 0xffff
-TR            = 0.0,  1.0,  1.0, 0xffff
-EP            = 0.3,  0.0,  0.3, 0xffff
-MX            = 0.6,  0.0,  0.6, 0xffff
-OTHERS        = 1.0,  1.0,  1.0, 0xffff
-
-# Initialize the line pattern for showing stability:
-UNSTABLE LINE PATTERN = 0xffff
-STABLE LINE PATTERN   = 0xffff
-
-# Initialize the default options:
-Highlight Orbit       = No 
-Orbit Animation       = No 
-Normalize Data        = Yes 
-Draw Background       = No
-Draw Labels           = Yes
-
-# Initialize the default coordinate axes:
-#  0 --- None,
-#  1 --- at geometry center or origin
-#  2 --- at left and behind
-#  3 --- at left and ahead
-Coordinate Type = 3
-
-# Draw Scale:
-Draw Scale = Yes
+###############################
+# Primary settings
+###############################
 
 # Initialize the default graph type:
 #  0 --- Solution (fort.8)
 #  1 --- Bifurcation (fort.7)
 Graph Type    = 1
 
-# Initialize the default graph style
-#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE
-Graph Style  =  1
+# Choose 3D or 2D graph for the solution diagram:
+3DSol = No
 
-#Set the window width and height:
-Window Width        = 1000
-Window Height       = 600
+# Choose 3D or 2D graph for the bifurcation diagram:
+3DBif = No
 
 # Set X, Y, Z axes for the solution diagram:
 # 0 is Time for X,Y,Z.
@@ -63,51 +26,61 @@ X Axis Bifurcation          = 0
 Y Axis Bifurcation          = 2
 Z Axis Bifurcation          = 3
 
-#Labeled solutions:
-#-3 = Show all labeled solutions
-#-2 = Show HALF labeled solutions
-#-1 = Show SPEC labeled solutions
-#0 = Show NONE of the solutions
-#Otherwise, show the specified solution(s)
-Labels              = -3
-
 #Set coloring method:
+# -7 --- BRANCH
 # -6 --- STABILITY
 # -5 --- POINT
-# -4 --- BRANCH
+# -4 --- CURVE
 # -3 --- TYPE 
 # -2 --- LABEL 
 # -1 --- COMPONENT 
 # Otherwise, according to the data in the ith column of the solution file.
 # It can only be set to an integer value.
-Coloring Method Solution    = -2
+# For the solution diagram:
+Coloring Method Solution  = -2
+# For the bifurcation diagram:
 Coloring Method Bifurcation = -6
 
-# Line Width Scaler adjusts the thickness of curves:
-Line Width Scaler         = 1.0
+# Initialize the default graph style:
+#  0 --- LINES,  1 --- TUBES, 2 ---- SURFACE
+Graph Style  =  1
 
-# The AniLine Thickness Scaler sets the thickness of animated solution curves:
-AniLine Thickness Scaler  = 3.0
+#Set the window width and height:
+Window Width        = 1000
+Window Height       = 600
 
+# Initialize the default options:
+Draw Reference Plane  = No
+Draw Reference Sphere = No
+Highlight Orbit       = No 
+Orbit Animation       = No 
+Normalize Data        = Yes 
+Draw Background       = No
+Draw Labels           = Yes
+Show Label Numbers    = No
+Draw Legend           = No
+
+# Labeled solutions:
+# -3 = Show all labeled solutions
+# -2 = Show HALF labeled solutions
+# -1 = Show SPEC labeled solutions
+# 0 = Show NONE of the solutions
+# Otherwise, show the specified solution(s)
+Labels              = -3
+
+# Colors are represented by RGB values from 0 to 1.0.
 # Background color:
-Background Color  = 0., 0., 0.
+Background Color  = 0.8, 0.8, 1.
 
-# Background transparency:
+# Background transparency ([0.0, 1.0]):
 Background Transparency = 0.9 
-
-# Axes color:
-X Axis Color    = 1.0,  0.0,   0.0
-Y Axis Color    = 0.0,  1.0,   0.0
-Z Axis Color    = 0.0,  0.0,   1.0
-
-# Stable solution color:
-Stable Solution Color = 0.0, 0.0, 1.0
-
-# UnStable solution color:
-Unstable Solution Color = 1.0, 0.0, 0.0
 
 # Color of the animation object:
 Object Color             = 1.0, 1.0, 1.0
+
+###############################
+# Secondary settings
+###############################
 
 # Set the radius of the animation object:
 # The normal size is 1.0.
@@ -115,21 +88,107 @@ Object Color             = 1.0, 1.0, 1.0
 # For bigger radius, use  X.XXX
 Object Radius        = 1.0
 
+# Stable solution color:
+Stable Solution Color = 0.0, 0.0, 1.0
+
+# Unstable solution color:
+Unstable Solution Color = 1.0, 0.0, 0.0
+
+# Initialize the line pattern for showing stability:
+UNSTABLE LINE PATTERN = 0xffff
+STABLE LINE PATTERN   = 0xffff
+
+# Surface color:
+Surface Color             =  0.0,  1.0,  0.0
+
+# Axes color:
+X Axis Color    = 1.0,  0.0,   0.0
+Y Axis Color    = 0.0,  1.0,   0.0
+Z Axis Color    = 0.0,  0.0,   1.0
+
+# DEFAULT color is also used when animationLabel == 0, i.e.,
+# when showing all solutions and highlighting the solutions 
+# Point Type    RED  GREEN  BLUE
+DEFAULT       = 1.0,  1.0,  1.0, 0xffff
+BP ALG        = 1.0,  0.0,  0.0, 0xffff
+LP ALG        = 0.0,  1.0,  0.0, 0xffff
+HB            = 0.0,  0.0,  1.0, 0xffff
+UZ4           = 1.0,  1.0,  0.0, 0xffff
+UZ-4          = 0.5,  0.5,  0.0, 0xffff
+LP DIF        = 0.0,  0.0,  0.5, 0xffff
+BP DIF        = 0.0,  0.5,  0.5, 0xffff
+PD            = 1.0,  0.0,  1.0, 0xffff
+TR            = 0.0,  1.0,  1.0, 0xffff
+EP            = 0.3,  0.0,  0.3, 0xffff
+MX            = 0.6,  0.0,  0.6, 0xffff
+OTHERS        = 1.0,  1.0,  1.0, 0xffff
+
+# Draw Scale:
+Draw Scale = Yes
+
+# Initialize the default coordinate axes:
+#  0 --- None,
+#  1 --- at geometry center or origin
+#  2 --- at left and behind
+#  3 --- at left and ahead
+#  4 --- always at origin
+Coordinate Type = 3
+
+# Set the radius of the spheres used for labels:
+# The normal size is 1.0.
+# For smaller radius, use 0.xxx
+# For bigger radius, use  X.XXX
+Label Sphere Radius       =  1.0
+
+# Line Width Scaler adjusts the thickness of curves:
+Line Width Scaler         = 1.0
+
+# The AniLine Thickness Scaler sets the thickness of animated solution curves:
+AniLine Thickness Scaler  = 3.0
+
 # Set the maximum and minimum animation speed:
+Object Animation Speed = 50
 Object Max Animation Speed = 100
 Object Min Animation Speed = 0
 
 # Set the maximum and minimum highlighting animation speed:
+Orbit Animation Speed = 50
 Orbit Max Animation Speed = 100
 Orbit Min Animation Speed = 0
+
+# Disk Rotation
+Disk Rotation             = 1.000000, 0.000000, 0.000000, 1.570796
+
+# Disk Position
+Disk Position             = 0.000000, 0.000000, 0.000000
+
+# Disk Radius
+Disk Radius               = 1.000000
+
+# Disk Height
+Disk Height               = 0.001000
+
+# Disk Transparency [0, 1] 
+Disk Transparency         =  0.7
+
+# Read Disk From File 
+Disk From File            = No
+
+# Sphere Position
+Sphere Position           = 0.000000, 0.000000, 0.000000
+
+# Sphere Radius
+Sphere Radius             = 1.000000
+
+# Sphere Transparency [0, 1] 
+Sphere Transparency       =  0.7
+
+# Read Sphere From File 
+Sphere From File          = No
 
 # Set the active AUTO parameter indices:
 parameter ID = 10
 
-# Choose 3D or 2D graph:
-3D  =  No
-
 # Set the number of periods animated.
 # The value should be the power of 2.
 Number of Period Animated = 1
-

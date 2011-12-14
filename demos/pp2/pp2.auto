@@ -4,13 +4,14 @@
 #==============
 
 print "\n***Compute stationary solution families***"
-pp2 = run(e='pp2',c='pp2')
+pp2 = run('pp2')
+save('pp2')
 
 print "\n***Compute periodic solution families***"
-solution = pp2('HB1')
-ps = run(solution,IPS=2,ICP=[1,11],NPR=2,UZSTOP={1:[0,1],11:36})
-save(ps,'ps')
-save(pp2+ps,'pp2')
+run(pp2('HB1'), ICP=['quota','PERIOD'], IPS=2, NPR=2,
+    UZSTOP={'quota': [0.0, 1.0], 'PERIOD': 36.0})
+save('ps')
+append('pp2')
     
 print "\n***Clean the directory***"
-cl()
+clean()

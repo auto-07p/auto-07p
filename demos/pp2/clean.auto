@@ -1,9 +1,9 @@
 
 #==============
-# AUTO Demo pp3
+# AUTO Demo pp2
 #==============
 
 print "\n***Clean the directory***"
-dl('pp2')
-dl('ps')
+delete('pp2')
+delete('ps')
 cl()

@@ -1,8 +1,66 @@
-NDIM=   2, IPS =   1, IRS =   0, ILP =   1
-ICP =  [1]
-NTST=  25, NCOL=   4, IAD =   3, ISP =   2, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
-NMX=  100, NPR=  100, MXBF=  10, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
-EPSL= 1e-08, EPSU = 1e-08, EPSS = 1e-06
-DS  =  0.02, DSMIN=  0.01, DSMAX=  0.06, IADS=   1
-NPAR = 9, THL =  {11: 0.0}, THU =  {}
-UZSTOP = {1: [0.0, 1.0], 9: -0.25}
+############################
+# important primary settings
+############################
+
+# Problem Constants
+NDIM=2
+
+# Output Control
+unames={1: 'fish', 2: 'sharks'}
+parnames={1: 'quota', 9: 'fish'}
+NPR=100
+
+# Free Parameters
+ICP=['quota']
+
+# Limits
+UZSTOP={'quota': [0.0, 1.0], 'fish': -0.25}, NMX=100
+
+# Computation Constants
+IPS=1, IRS=0
+
+# Continuation Step Size
+DS=0.02, DSMIN=0.01, DSMAX=0.06
+
+# Discretization Constants
+NTST=90
+
+################################
+# default secondary settings
+################################
+
+# Problem Constants
+#NPAR=36, JAC=0
+
+# Discretization Constants
+#NCOL=4, IAD=3
+
+# Tolerances
+#EPSL=1e-7, EPSU=1e-7, EPSS=1e-5, ITMX=9, NWTN=3, ITNW=5
+
+# Continuation Step Size
+#IADS=1, THL={'PERIOD': 0.0}, THU={}
+
+# Limits
+#STOP = []
+#RL0=-1.7976e+308, RL1=1.7976e+308, A0=-1.7976e+308, A1=1.7976e+308
+
+# Computation Constants
+#ILP=1, SP=[], ISP=2, ISW=1, MXBF=10, s='', dat='', U={}, PAR={}, TY=''
+
+# Output Control
+#e = '', sv='', IBR=0, LAB=0, IIS=3, IID=2, IPLT=0, UZR={}
+
+###################
+# inactive settings
+###################
+
+# Problem Constants
+#NBC=0, NINT=0
+
+################################
+# HomCont settings
+################################
+
+#NUNSTAB = -1, NSTAB = -1, IEQUIB = 1, ITWIST = 0, ISTART = 5
+#IREV = [], IFIXED = [], IPSI = []
