@@ -22,7 +22,7 @@ RM         = rm -f
 # @rn
 run: $(EXE)
 	@echo "Starting $(EQUATION_NAME) ..."
-	@./$(EXE)
+	@$(AUTO_COMMAND_PREFIX) @./$(EXE)
 	@rm -f fort.2 fort.3
 	@echo "$(EQUATION_NAME) ... done"
 #
