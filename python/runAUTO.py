@@ -231,9 +231,9 @@ class runAUTO:
         sys.stderr.write("===%s end===\n"%(d,))
 
     def __setup(self):
-        """     This function sets up self.options["dir"] by creating
-        fort.3 and fort.12 files.  The "constants", "solution",
-        and "homcont" options 
+        """     This function sets up self.options["dir"] by possibly
+        creating the fort.12 file.  The "constants", "solution",
+        and "homcont" options
         can be anything with a writeFilename method.  NOTE:  The
         values set here will often be overridden by
         runMakefile (thought almost never by runExecutable
@@ -242,7 +242,8 @@ class runAUTO:
         constants = solution.c
         if os.path.exists("fort.2"):
             os.remove("fort.2")
-        solution.writeFilename("fort.3",mlab=True)
+        if os.path.exists("fort.3"):
+            os.remove("fort.3")
         if constants["homcont"] is not None:
             constants["homcont"].writeFilename("fort.12")
         elif os.path.exists("fort.12"):
@@ -343,7 +344,8 @@ class runAUTO:
         Returns a bifurcation diagram of the result.
         """
         self.__setup()
-        constants = self.options["selected_solution"].c
+        solution = self.options["selected_solution"]
+        constants = solution.c
         if self.options["makefile"] is None:
             if self.options["auto_dir"] is None:
                 if "AUTO_DIR" not in os.environ:
@@ -372,7 +374,7 @@ class runAUTO:
                 prefix = os.environ.get("AUTO_COMMAND_PREFIX")
                 if prefix is not None:
                     command = " ".join((prefix, command))
-                self.runCommand(command, constants)
+                self.runCommand(command, solution)
                 if os.path.exists("fort.3"):
                     os.remove("fort.3")
                 line = "%s ... done\n"%equation
@@ -451,9 +453,9 @@ class runAUTO:
 
     def runCommandWithSetup(self,command=None):
         self.__setup()
-        self.runCommand(command,self.options["selected_solution"].c)
+        self.runCommand(command,self.options["selected_solution"])
         self.__outputCommand()
-    def runCommand(self,command=None,constants=None):
+    def runCommand(self,command=None,solution=None):
         """     This is the most generic interface.  It just takes a string as a command
         and tries to run it. """
         global demo_killed,alarm_demo,demo_max_time
@@ -473,7 +475,7 @@ class runAUTO:
         command = os.path.expandvars(command)
         if self.options["makefile"] is None and sys.stdout is sys.__stdout__:
             try:
-                status = self.__runCommand_noredir(command, constants)
+                status = self.__runCommand_noredir(command, solution)
             except KeyboardInterrupt:
                 if hasattr(signal, 'SIGINT'):
                     status = -signal.SIGINT
@@ -485,7 +487,7 @@ class runAUTO:
                 else:
                     status = 1
         else:
-            status = self.__runCommand_redir(command, constants)
+            status = self.__runCommand_redir(command, solution)
         if hasattr(signal,"alarm"):
             signal.alarm(0)
         if hasattr(os,"times"):
@@ -495,8 +497,8 @@ class runAUTO:
         if status != 0:
             # in case of error, write constants to fort.2 to enable
             # easier debugging.
-            if constants is not None:
-                constants.writeFilename('fort.2')
+            if solution is not None:
+                solution.c.writeFilename('fort.2')
             if status < 0:
                 status = abs(status)
                 for s in signals:
@@ -505,10 +507,15 @@ class runAUTO:
                 raise AUTOExceptions.AUTORuntimeError("Signal %d\n"%status)
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
-    def __runCommand_noredir(self,command,constants=None):
+    def __write_constants_solution(self, f, solution):
+        solution.c.write(f)
+        f.write("s='/'\n")
+        solution.write(f)
+
+    def __runCommand_noredir(self,command,solution=None):
         sys.stdout.flush()
         args = os.path.expandvars(command).split()
-        if constants is None:
+        if solution is None:
             if "subprocess" in sys.modules:
                 return subprocess.call(args)
             elif hasattr(os,"spawnlp"):
@@ -522,13 +529,13 @@ class runAUTO:
         else:
             stdin = os.popen(command, "w")
             status = 0
-        constants.write(stdin)
+        self.__write_constants_solution(stdin, solution)
         stdin.close()
         if "subprocess2" in sys.modules:
             status = obj.wait()
         return status
 
-    def __runCommand_redir(self,command,constants=None):
+    def __runCommand_redir(self,command,solution=None):
         global demo_killed
         tmp_out = []
         if "subprocess" in sys.modules or hasattr(popen2,"Popen3"):
@@ -547,8 +554,8 @@ class runAUTO:
                 stdin, stdout, stderr = (demo_object.tochild,
                              demo_object.fromchild, demo_object.childerr)
                 teststatus = -1
-            if constants is not None:
-                constants.write(stdin)
+            if solution is not None:
+                self.__write_constants_solution(stdin, solution)
             stdin.close()
             status = demo_object.poll()
             while status == teststatus:
@@ -562,7 +569,7 @@ class runAUTO:
                 status = demo_object.poll()
         else:
             stdout, stdin, stderr = popen2.popen3(command)
-            constants.write(stdin)
+            self.__write_constants_solution(stdin, solution)
             stdin.close()
             status = 0
         line = stdout.readline()

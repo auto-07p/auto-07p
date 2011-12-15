@@ -43,7 +43,7 @@
           ENDIF
           CALL INIT(AP,UNITC,EOF,KEYS,LINE)
           IF(EOF)EXIT
-          CALL FINDLB_OR_STOP(AP)
+          CALL FINDLB_OR_STOP(AP,UNITC)
           CALL MPIIAP(AP)
           ALLOCATE(IICU(SIZE(ICU)))
           DO I=1,SIZE(ICU)
@@ -95,7 +95,7 @@
       END SUBROUTINE MPIWORKER
 
 !     ---------- --------------
-      SUBROUTINE FINDLB_OR_STOP(AP)
+      SUBROUTINE FINDLB_OR_STOP(AP,UNITC)
 
 ! Find restart label and determine type of restart point.
 ! or stop otherwise
@@ -103,6 +103,7 @@
       USE AUTO_CONSTANTS, ONLY: SIRS
       IMPLICIT NONE
       TYPE(AUTOPARAMETERS) AP
+      INTEGER, INTENT(IN) :: UNITC
 
       INTEGER NFPR,NPARR,IRS
       LOGICAL FOUND
@@ -111,7 +112,7 @@
 
       FOUND=.FALSE.
       IF(IRS/=0) THEN
-         CALL FINDLB(AP,IRS,NFPR,NPARR,FOUND)
+         CALL FINDLB(AP,UNITC,IRS,NFPR,NPARR,FOUND)
          AP%IRS=IRS
          AP%NFPR=NFPR
          IF(.NOT.FOUND) THEN

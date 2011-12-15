@@ -304,6 +304,12 @@ CONTAINS
        READ(STR(POS:),*,ERR=3)unames
     CASE('s')
        READ(STR(POS:),*)SFILE
+       IF(TRIM(SFILE)=='/')THEN
+          ! special case from Python interface: s='/' is followed on
+          ! the next lines by the solution
+          EOF=.TRUE.
+          RETURN
+       ENDIF
     CASE('dat')
        READ(STR(POS:),*)DATFILE
     CASE('sv')
@@ -429,7 +435,7 @@ CONTAINS
     N = 0
     IERR = 0
     DO
-       READ(UNITC,'(A1)',ERR=3,END=4,ADVANCE='NO')C
+       READ(UNITC,'(A1)',ERR=3,END=4,EOR=5,ADVANCE='NO')C
        IF(IERR==0.AND.(IACHAR(C)==9.OR.C==' '))CYCLE
        IF(LLT(C, '0').OR.LGT(C, '9'))EXIT
        IERR = -1
@@ -442,7 +448,7 @@ CONTAINS
     RETURN
 
 4   IERR = 4
-    RETURN
+5   RETURN
 
   END FUNCTION READINTEGER
 
@@ -1185,12 +1191,13 @@ CONTAINS
   END FUNCTION GETIPS3
 
 ! ---------- ------
-  SUBROUTINE FINDLB(AP,IRS,NFPR,NPAR,FOUND)
+  SUBROUTINE FINDLB(AP,UNITC,IRS,NFPR,NPAR,FOUND)
 
     USE AUTO_CONSTANTS, ONLY: SIRS, SFILE
     USE SUPPORT, ONLY: LBTYPE, AUTOSTOP
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    INTEGER, INTENT(IN) :: UNITC
     INTEGER, INTENT(INOUT) :: IRS
     INTEGER, INTENT(OUT) :: NFPR,NPAR
     LOGICAL, INTENT(OUT) :: FOUND
@@ -1198,7 +1205,7 @@ CONTAINS
     LOGICAL EOF3
     INTEGER IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL,NPARR
     INTEGER NPARI,NDM,IPS,IPRIV
-    INTEGER ISW,ITPST,I,J,ios,number
+    INTEGER ISW,ITPST,I,J,ios,number,UNIT
     CHARACTER(3) :: ATYPE
     CHARACTER(100) :: HEADER
 
@@ -1211,10 +1218,15 @@ CONTAINS
     NPAR=0
     ISW=AP%ISW
 
+    UNIT=3
+    ios=0
     IF(LEN_TRIM(SFILE)==0)THEN
-       OPEN(3,FILE='fort.3',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+       OPEN(UNIT,FILE='fort.3',STATUS='old',ACCESS='sequential',IOSTAT=ios)
+    ELSEIF(TRIM(SFILE)=='/')THEN
+       SFILE=''
+       UNIT=UNITC
     ELSE
-       OPEN(3,FILE='s.'//SFILE,STATUS='old',ACCESS='sequential',IOSTAT=ios)
+       OPEN(UNIT,FILE='s.'//SFILE,STATUS='old',ACCESS='sequential',IOSTAT=ios)
     ENDIF
     IF(ios/=0)THEN
        WRITE(6,'(A,A)')'The solution file (fort.3 or s. file) ',&
@@ -1233,7 +1245,7 @@ CONTAINS
     ENDIF
     DO
        I=I+1
-       READ(3,'(A)',END=2)HEADER
+       READ(UNIT,'(A)',END=2)HEADER
        IF(LEN_TRIM(HEADER) <= 73)THEN
           READ(HEADER,*)IBR,NTOT,ITP,LAB,NFPRR,ISWR,NTPL,NAR,NROWPR,NTST, &
                NCOL,NPARR
@@ -1269,27 +1281,27 @@ CONTAINS
              ITPST=0
           ENDIF
           AP%ITPST=ITPST
-          CALL READSOL(IBR,NTOT,ITP,LAB,NFPR,ISWR,NTPL,NAR,NROWPR,NTST,NCOL, &
-               NPAR,NPARI,NDM,IPS,IPRIV)
+          CALL READSOL(UNIT,IBR,NTOT,ITP,LAB,NFPR,ISWR,NTPL,NAR,NROWPR,NTST,&
+               NCOL,NPAR,NPARI,NDM,IPS,IPRIV)
           ! strip internal parameters from returned NPAR so they can
           ! be thrown away when possible
           NPAR=NPAR-NPARI
        ELSE
-          CALL SKIP3(NROWPR,EOF3)
+          CALL SKIPS(UNIT,NROWPR,EOF3)
           IF(EOF3)GOTO 2
        ENDIF
     ENDDO
 
 2   CONTINUE
-    CLOSE(3)
+    CLOSE(UNIT)
 
   END SUBROUTINE FINDLB
 
 ! ---------- -------
-  SUBROUTINE READSOL(IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR,&
-       NPARI,NDM,IPS,IPRIV)
+  SUBROUTINE READSOL(UNIT,IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,&
+       NPAR,NPARI,NDM,IPS,IPRIV)
 
-    INTEGER, INTENT(IN) :: IBR,NTOT,ITP,LAB,NFPR
+    INTEGER, INTENT(IN) :: UNIT,IBR,NTOT,ITP,LAB,NFPR
     INTEGER, INTENT(IN) :: ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR
     INTEGER, INTENT(IN) :: NPARI,NDM,IPS,IPRIV
 
@@ -1302,22 +1314,22 @@ CONTAINS
     CALL NEWSOL(IBR,NTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR,&
          NPARI,NDM,IPS,IPRIV)
     DO J=0,NTNC
-       READ(3,*)CURSOL%TM(J),CURSOL%UPS(:,J)
+       READ(UNIT,*)CURSOL%TM(J),CURSOL%UPS(:,J)
     ENDDO
 
     NROWPRSMALL=((NAR-1)/7+1)*NTPL + (NPAR+6)/7
     IF(NTST>0.AND.NROWPR>NROWPRSMALL)THEN
-       READ(3,*)CURSOL%ICP(:)
-       READ(3,*)CURSOL%RLDOT(:)
+       READ(UNIT,*)CURSOL%ICP(:)
+       READ(UNIT,*)CURSOL%RLDOT(:)
 
 ! Read U-dot (derivative with respect to arclength).
 
-       READ(3,*)CURSOL%UDOTPS(:,:)
+       READ(UNIT,*)CURSOL%UDOTPS(:,:)
     ENDIF
 
 ! Read the parameter values.
 
-    READ(3,*)CURSOL%PAR(:)
+    READ(UNIT,*)CURSOL%PAR(:)
 
   END SUBROUTINE READSOL
 
@@ -1530,11 +1542,11 @@ CONTAINS
   END SUBROUTINE READBV
 
 ! ---------- -----
-  SUBROUTINE SKIP3(NSKIP,EOF3)
+  SUBROUTINE SKIPS(UNIT,NSKIP,EOF3)
 
-! Skips the specified number of lines on unit 3.
+! Skips the specified number of lines on the solution file unit
 
-    INTEGER, INTENT(IN) :: NSKIP
+    INTEGER, INTENT(IN) :: UNIT,NSKIP
     LOGICAL, INTENT(OUT) :: EOF3
     CHARACTER(12) FMT
     INTEGER I
@@ -1542,15 +1554,15 @@ CONTAINS
     EOF3=.TRUE.
     IF(NSKIP<=1)THEN
        DO I=1,NSKIP
-         READ(3,'(A)',END=2)
+         READ(UNIT,'(A)',END=2)
        ENDDO
     ELSE
        WRITE(FMT,'(A,I9,A)')'(',NSKIP-1,'/)'
-       READ(3,FMT,END=2)
+       READ(UNIT,FMT,END=2)
     ENDIF
     EOF3=.FALSE.
 2   RETURN
 
-  END SUBROUTINE SKIP3
+  END SUBROUTINE SKIPS
 
 END MODULE IO
