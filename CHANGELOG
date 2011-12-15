@@ -1,3 +1,106 @@
+0.9.0:
+* Main AUTO:
+  - Allow to use the AUTO constant "U" for constant-in-time solutions for BVPs.
+  - Do not try to compute first Lyapunov coefficient if a Bogdanov-Takens
+    bifurcation function is already detected, which gave erroneous results.
+    (Bug reported by Christoph Kirst <ckirst@nld.ds.mpg.de>)
+  - Turn off detection of PD/TR/Rn bifurcations for 2 dimensional systems.
+    They should not occur but sometimes the Floquet multipliers are
+    inaccurate.
+  - Fix issue with directly reading python/test_data/c.ab from Fortran,
+    ignoring spaces directly after { or [.
+  - Reintroduce the AUTO_COMMAND_PREFIX environment variable from AUTO2000
+    for running with MPI.
+  - Reading AUTO constants from standard input instead of fort.2:
+    - Avoid BACKSPACE for reading the old-style ICP list read NICP manually.
+    - Completely eliminate BACKSPACE for fort.2 reads by manually reading
+      the first non-blank characters on each line and checking for a number:
+      in which case it is an old-style constants file.
+    - If fort.2 does not exist, then read from standard input.
+    - A special value for the AUTO constant 's', namely s='/' is used by the
+      Python interface to also pass solution files using standard input,
+      following the line containing s='/'.
+  - BP continuation (BPCONT) improvements:
+    - Use explicit derivatives where possible for algebraic equations,
+      limit cycles, and BVPs.
+    - Merge common code for boundary conditions for BVPs.
+    - Cleanups, so the indices are consistent between fixed/variable period
+      continuations.
+    - Match coordinates in start/restart systems for BPCONT for LCs/BVPs to
+      simplify code.
+    - Shuffle internal parameters so that unused internal parameters
+      can be dropped after they are no longer necessary.
+    - Pass UPOLD from solvebv to FUNI via extra coordinates in UOLD past NDIM.
+      This eliminates an implementation problem in BPCONT where it is needed to
+      reevaluate F(UOLD) but it did so for the new parameter values.
+    - Avoid unnecessary repeat calculations of UPOLD.
+    - Use UPOLD directly for BP continuation for BVPs.
+    - Add more comments to BP cont functions and make RLOLD accessible to
+      toolbox functions.
+  - Automatically add -m32 to g++ for 64bit Macs with 32bit Coin3D, avoiding
+    the need to specify this manually.
+  - Make extending solutions (in STPNT) possible from loci of bifurcations,
+    including certain old solution files.
+  - Force recalculation of the direction vector if dimensions have changed.
+  - Avoid memory allocations where possible in extended systems with expanded
+    Jacobian matrices.
+  - Copy UOLD in STUPV to avoid problems.
+  - Check for infinite Floquet multipliers to avoid floating-point exceptions.
+  - Centralize ITPST*10+ITP calculations out of toolboxes.
+  - Replace ITP in toolbox test functions by ASCII ATYPE for clarity.
+  - Extract type/number from restarts like IRS='LPD1' manually to deal with
+    three-letter types.
+  - Internally denote special points without stability changes by for example
+    'HB0' witha trailing '0'. Allows for special handling in LCSP**,
+    where these are used in the first detection but ignored after.
+* PyPLAUT:
+  - Fixes and workarounds to get PyPLAUT to work with Matplotlib 1.1:
+    - To get 2D limits for Matplotlib 1.1, use get_xlim/get_ylim explicitly
+      from the 2D Axes class.
+    - Fix 3D graphics problem with Matplotlib 1.1.
+  - Add comments to default autorc file.
+  - Reorder autorc commands to move often-used settings at the top.
+  - Do not plot unplottable 3D curves (when at least one coordinate
+    is invalid for a particular branch).
+  - Deal with d0/d1/... autorc options correctly if they use True/False
+    instead of numbers.
+  - Add a strategic garbage collect call to avoid memory issues.
+  - Fix memory leak when using the labelnames setting.
+  - Use azimuth/elevation settings if one of them is commented out.
+* PLAUT04:
+  - Change order of settings in plaut04.rc in order of importance.
+  - Fix plotting s files without matching b files.
+  - Fix crash when plotting bifurcation curves if no solution is present.
+  - Check for PT 9999 for wraparound in bifurcation diagrams.
+  - Fix "@r3b" or plaut04 -r3b without other arguments.
+* Python:
+  - Parse blank lines with spaces in constants files correctly (reported
+    by Jorge Galan-Vioque).
+  - Make working with branches a little easier:
+    - Negative indices now work on a branch ([-1] for the last point).
+    - save(list of branches, 'xxx') now works.
+    - 'TY' for 'TY name' now works on points in branches.
+  - Allow s.PAR to be used directly as an argument for the PAR= AUTO constant.
+    (Based on a suggestion by Jan-Hendrik Schleimer
+     <jan-hendrik.schleimer@bccn-berlin.de>.)
+  - Avoid read() on already read & parsed solutions.
+  - Parse more Fortran-style floating point constants, in the form of 2-3
+    (which means 2e-3).
+  - Fixes for Python 3.
+  - The run command now uses input redirection instead of fort.2/fort.3
+    to pass constants and solutions to AUTO.
+* Shell commands:
+  - @H, @R, @h, and @r now use input redirection instead of fort.2 to
+    supply AUTO with constants.
+    The @ commands automatically add s='xxx' to avoid copying to fort.3.
+    Together with sv='xxx' this allows running multiple AUTO instances
+    within the same folder.
+* Demos:
+  - Updated enz, log, hen, lrz, dd2, pp2, and ffn demos.
+* Manual:
+  - Document role of PAR(12).
+  - Specify location of Mac OS X development tools.
+  - Updated demos.
 0.8.0:
 * Main AUTO:
   - Support for codimension-two bifurcations:
