@@ -510,7 +510,7 @@ class runAUTO:
     def __write_constants_solution(self, f, solution):
         solution.c.write(f)
         f.write("s='/'\n")
-        solution.write(f)
+        solution.write(f,mlab=True)
 
     def __runCommand_noredir(self,command,solution=None):
         sys.stdout.flush()
