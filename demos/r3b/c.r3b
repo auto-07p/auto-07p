@@ -1,9 +1,11 @@
+parnames = {1: 'lambda', 2: 'mu', 3: 'E', 4: 'fm', 5: 'ev1', 6: 'ev2', 7: 'ev3', 16: 'y'}
+unames = {1: 'x', 2: 'y', 3: 'z', 4: 'xp', 5: 'yp', 6: 'zp'}
 NDIM=   6, IPS =   1, IRS =   0, ILP =   0
-ICP =  [2, 16, 5, 6, 7]
+ICP =  ['mu', 'ev1', 'ev2', 'ev3']
 NTST=  25, NCOL=   4, IAD =   3, ISP =   3, ISW = 1, IPLT= 0, NBC= 0, NINT= 0
 NMX= 2000, NPR= 2000, MXBF=  -3, IID =   2, ITMX= 8, ITNW= 5, NWTN= 3, JAC= 0
 EPSL= 1e-06, EPSU = 1e-06, EPSS =0.0001
 DS  = 0.0001, DSMIN=0.0001, DSMAX=   0.1, IADS=   1
-NPAR = 16, THL =  {11: 0.0}, THU =  {}
-UZSTOP = {16:0.991, 2:[-0.1,1.1]}
-UZR = {2: 0.063}
+NPAR = 16, THL =  {'PERIOD': 0.0}, THU =  {}
+UZSTOP = {'y':0.991, 'mu':[-0.1,1.1]}
+UZR = {'mu': 0.063}

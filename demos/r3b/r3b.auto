@@ -7,22 +7,21 @@
 mu = 0.063
 
 print "\n***Compute libration points"
-r1=run('r3b',UZR={2:mu})
+r1=run('r3b',UZR={'mu':mu})
 import compute_lps
 compute_lps.write_lagrange(r1)
 
 print "\n***Lagrange family L1***"
 L1=run(r1('UZ7'),c='r3b.L1')
-save(relabel(L1),'L1')
+save('L1')
 
 print "\n***Halo family H1***"
-H1=run(L1('BP1'),c='r3b.H1')
-save(relabel(H1),'H1')
+run(L1('BP1'),c='r3b.H1')
+save('H1')
 
 print "\n***Vertical family V1***"
-V1=run(r1('UZ7'),e='r3b',c='r3b.V1')
-save(relabel(V1),'V1')
+run(r1('UZ7'),e='r3b',c='r3b.V1')
+save('V1')
 
 print "\n***Clean the directory***"
 clean()
-
