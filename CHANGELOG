@@ -96,7 +96,7 @@
     Together with sv='xxx' this allows running multiple AUTO instances
     within the same folder.
 * Demos:
-  - Updated enz, log, hen, lrz, dd2, pp2, and ffn demos.
+  - Updated enz, log, hen, lrz, dd2, pp2, ffn, and exp demos.
 * Manual:
   - Document role of PAR(12).
   - Specify location of Mac OS X development tools.
