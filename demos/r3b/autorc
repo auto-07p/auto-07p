@@ -9,7 +9,8 @@ solution_indepvarname = "x"
 
 # A dictionary mapping names to axis labels.
 labelnames = {"x": "$x$", "y": "$y$", "z": "$z$", "lambda": "$\lambda$",
-	   "mu": "$\mu$", "E": "$E$"}
+	   "mu": "$\mu$", "E": "$E$", "rho": "$\rho$",
+	   "eps": "$\varepsilon$"}
 
 # The type of the plot, either "solution" or "bifurcation"
 type = "bifurcation"

@@ -3,16 +3,14 @@
 # AUTO Demo r3b: Computing unstable manifolds
 #============================================
 
-import compute_lps,ext,data,os
+import os,data
 
 if not os.path.exists('s.V1'):
     auto('r3b.auto')
 
-print "\n***Add the zero adjoint variable***"
-sext = ext.get('V1',8,-1e-5)
-
 print "\n*** Compute the Floquet eigenfunction***"
-flq = run(sext,e='flq',c='flq',sv='flq')
+V1 = loadbd('V1')
+flq = run(V1(8),PAR={'rho':0,'eps':-1e-5},c='r3b.flq',sv='flq')
 
 print "\n*** Extract data for the selected orbit from s.flq***"
 startman = data.get(flq('UZ1'))
