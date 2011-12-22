@@ -10,10 +10,10 @@ if not os.path.exists('s.H1'):
 
 print "\n*** Compute the Floquet eigenfunction***"
 H1 = loadbd('H1')
-flq = run(H1(3),PAR={'rho':0,'eps':-1e-5},c='r3b.flq',sv='flq')
+flq = run(H1(3),c='r3b.flq',sv='flq')
 
 print "\n*** Extract data for the selected orbit from s.flq***"
-startman = data.get(flq('UZ1'))
+startman = data.get(flq('UZ1'),eps=-1e-5)
 
 print "\n*** Time integration using continuation***"
 startH1b = run(startman,e='man',c='man.H1b.0',sv='startH1b')
@@ -23,5 +23,5 @@ H1b = run(startH1b,c='man.H1b.1')
 save(rl(H1b),'H1b')
 
 print "\n***Clean the directory***"
-cl()
+clean()
 

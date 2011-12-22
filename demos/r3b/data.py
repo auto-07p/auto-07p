@@ -1,9 +1,9 @@
 from AUTOclui import *
 
-def get(solution):
+def get(solution, eps=1e-3):
     #construct a new constant solution based on the flq solution
     PAR = solution.PAR
-    eps = PAR(6)
+    PAR['eps'] = eps
     u = []
     s0 = solution(0)
     for i in range(6):
@@ -19,7 +19,7 @@ def get(solution):
 
 def create(sfile='flq',label=2):
     solution = loadbd(s=sfile)(label)
-    save(get(solution),'startman')
+    save(get(solution,eps),'startman')
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
