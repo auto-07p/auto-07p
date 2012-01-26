@@ -47,7 +47,7 @@ compile: $(OBJ)
 ../lib/maps.o: maps.f90 ../lib/equilibrium.o
 	$(FC) $(FFLAGS) $(OPT) -c maps.f90 -o $@
 #
-../lib/optimization.o: optimization.f90 ../lib/periodic.o ../lib/ae.o
+../lib/optimization.o: optimization.f90 ../lib/periodic.o ../lib/toolboxae.o
 	$(FC) $(FFLAGS) $(OPT) -c optimization.f90 -o $@
 #
 ../lib/parabolic.o: parabolic.f90 ../lib/equilibrium.o ../lib/periodic.o
@@ -56,7 +56,7 @@ compile: $(OBJ)
 ../lib/periodic.o: periodic.f90 ../lib/toolboxbv.o ../lib/floquet.o
 	$(FC) $(FFLAGS) $(OPT) -c periodic.f90 -o $@
 #
-../lib/timeint.o: timeint.f90 ../lib/ae.o
+../lib/timeint.o: timeint.f90 ../lib/toolboxae.o
 	$(FC) $(FFLAGS) $(OPT) -c timeint.f90 -o $@
 #
 ../lib/ae.o: ae.f90 ../lib/io.o ../lib/interfaces.o
