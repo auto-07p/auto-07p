@@ -508,7 +508,7 @@ class runAUTO:
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
     def __write_constants_solution(self, f, solution):
-        solution.c.write(f)
+        solution.c.write(f,new=True)
         f.write("s='/'\n")
         solution.write(f,mlab=True)
 
