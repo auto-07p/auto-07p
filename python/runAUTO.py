@@ -498,7 +498,9 @@ class runAUTO:
             # in case of error, write constants to fort.2 to enable
             # easier debugging.
             if solution is not None:
-                solution.c.writeFilename('fort.2')
+                f = open('fort.2', 'w')
+                self.__write_constants_solution(f, solution)
+                f.close()
             if status < 0:
                 status = abs(status)
                 for s in signals:
@@ -592,7 +594,10 @@ class runAUTO:
             os.path.getsize(self.fort7_path) == 0 or
             not os.path.isfile(self.fort8_path) or
             not os.path.isfile(self.fort9_path)):
-            self.options["selected_solution"].c.writeFilename('fort.2')
+            f = open('fort.2', 'w')
+            self.__write_constants_solution(f,
+                                            self.options["selected_solution"])
+            f.close()
             raise AUTOExceptions.AUTORuntimeError("Error running AUTO")
 
 def test():
