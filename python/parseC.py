@@ -489,7 +489,7 @@ class parseC(dict):
             return self.__oldstr()
 
     def write(self, output, new=False):
-        if new:
+        if new and not self["new"]:
             for key in ["UZR", "THL", "THU"]:
                 self[key] = self.__compactindexed(self[key])
             output.write(self.__newstr())
