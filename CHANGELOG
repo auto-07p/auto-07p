@@ -1,3 +1,16 @@
+0.9.1:
+* Main AUTO:
+  - Fix makefile dependency problem.
+  - Create *F variants for FNBL, BCBL, and ICBL to allow toolboxes to follow
+    folds in general BVPs by supplying their ODEs, boundary, and integral
+    conditions.
+  - Make HomCont use those new interfaces in toolboxbv.f90 to be able to follow
+    LPs for homoclinic orbits in n+1 parameters.
+* Python:
+  - Fix problem about AUTO complaining about a missing solution file when using
+    old-style constant files.
+  - Write out complete fort.2 file in case of problems to be able to reproduce
+    a run quickly.
 0.9.0:
 * Main AUTO:
   - Allow to use the AUTO constant "U" for constant-in-time solutions for BVPs.
