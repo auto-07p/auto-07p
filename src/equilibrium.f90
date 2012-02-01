@@ -538,8 +538,6 @@ CONTAINS
 
     FNHBEQ=0d0
     ATYPE=''
-    ! do not detect special bifs on BP curves or if BT already detected
-    IF(ITPST==1.OR.MOD(AP%ITP,10)==-1)RETURN
 
 ! Compute the eigenvalues of the Jacobian
 
@@ -548,14 +546,17 @@ CONTAINS
     CALL EIG(AP,NDM,NDM,AAA,EV)
     DEALLOCATE(AAA)
 
-    IF(ITPST==0)THEN
-       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
+    IF(ITPST==3)THEN ! HB
+       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
     ELSEIF(ITPST==2)THEN
        CALL STABEQ(AP,AA,EV,NINS,LOC,2)
-    ELSE ! ITPST==3, HB
-       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
+    ELSE
+       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
     ENDIF
     EVV(:)=EV(:)
+
+    ! do not detect special bifs on BP curves or if BT already detected
+    IF(ITPST==1.OR.MOD(AP%ITP,10)==-1)GOTO 100
 
     REV=0.d0
     IF(LOC>0)THEN
@@ -585,8 +586,9 @@ CONTAINS
           IF(ABS(NINS-AP%NINS)<2)ATYPE(3:3)='0'
        ENDIF
     ENDIF
-    AP%NINS=NINS
+100 AP%NINS=NINS
     CALL PRINTEIG(AP)
+    DEALLOCATE(EV)
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 

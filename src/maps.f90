@@ -378,8 +378,6 @@ CONTAINS
 
     ATYPE=''
     FNHBDS=0d0
-    ! Check if not continuing a BP and not Rn already
-    IF(ITPST==1.OR.MOD(AP%ITP,10)<-4)RETURN
 
     ALLOCATE(EV(NDM))
 
@@ -398,14 +396,17 @@ CONTAINS
        ENDIF
     ENDDO
 
-    IF(ITPST==0)THEN
-       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
+    IF(ITPST==8)THEN ! TR
+       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
     ELSEIF(ITPST==2.OR.ITPST==7)THEN ! LP/PD
        CALL STABEQ(AP,AA,EV,NINS,LOC,2)
-    ELSE ! ITPST==8, TR
-       CALL STABEQ(AP,AA,EV,NINS,LOC,3)
+    ELSE
+       CALL STABEQ(AP,AA,EV,NINS,LOC,1)
     ENDIF
     EVV(:)=EXP(EV(:))
+
+    ! Check if not continuing a BP and not Rn already
+    IF(ITPST==1.OR.MOD(AP%ITP,10)<-4)GOTO 100
 
     REV=0.d0
     IF(LOC>0)THEN
@@ -425,8 +426,9 @@ CONTAINS
     IF(LEN_TRIM(ATYPE)>0)THEN
        IF(NINS==AP%NINS)ATYPE=ATYPE//'0'
     ENDIF
-    AP%NINS=NINS
+100 AP%NINS=NINS
     CALL PRINTEIG(AP)
+    DEALLOCATE(EV)
 
 101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
 
