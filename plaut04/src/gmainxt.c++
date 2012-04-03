@@ -3113,7 +3113,6 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
     XmStringGetLtoR(data->value,
         (XmStringCharSet) XmSTRING_DEFAULT_CHARSET, &filename);
 
-    SbBool okFile = TRUE;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename);
     else if(fileMode == PRINT_ITEM)
@@ -3123,7 +3122,7 @@ fileDialogCB(Widget, XtPointer client_data, XtPointer call_data)
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();
-        okFile = readFile(filename);
+        readFile(filename);
     }
 
     XtFree(filename);

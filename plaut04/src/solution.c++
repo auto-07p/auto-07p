@@ -114,15 +114,13 @@ Solution::drawUsingTubes()
 
     long int sumX = 0;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     int sumOrbit    = numOrbitsInEachBranch_[iBranch];
 
     for(long int j=0; j<numOrbits_; ++j)
     {
         if(j >= sumOrbit)
         {
-            curBranchID = branchID_[++iBranch];
-            sumOrbit   += numOrbitsInEachBranch_[iBranch];
+            sumOrbit   += numOrbitsInEachBranch_[++iBranch];
         }
         long int upperlimit = orbits_[j].numVerticesEachPeriod;
 
@@ -400,15 +398,13 @@ Solution::renderTubes()
 
             int si = 0, k = 0;
             int iBranch = 0;
-            int curBranchID = branchID_[iBranch];
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
 
             for(int ka=0; ka<numOrbits_; ka++)
             {
                 if(ka >= sumOrbit)
                 {
-                    curBranchID = branchID_[++iBranch];
-                    sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                    sumOrbit   += numOrbitsInEachBranch_[++iBranch];
                 }
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
@@ -473,14 +469,12 @@ Solution::renderSurface()
 
     int si = 0, k = 0;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     sumOrbit    = numOrbitsInEachBranch_[iBranch];
     for(int ka=0; ka<numOrbits_; ka++)
     {
         if(ka >= sumOrbit)
         {
-            curBranchID = branchID_[++iBranch];
-            sumOrbit   += numOrbitsInEachBranch_[iBranch];
+            sumOrbit   += numOrbitsInEachBranch_[++iBranch];
         }
         if(myLabels[ka]>=animationLabel) break;
         k = k+1;
@@ -511,15 +505,13 @@ Solution::renderPoints(int style)
     {
         long int si = 0, k = 0;
         int iBranch = 0;
-        int curBranchID = branchID_[iBranch];
         int sumOrbit = numOrbitsInEachBranch_[iBranch];
 
         for(long int ka=0; ka<numOrbits_; ka++)
         {
             if(ka >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit+= numOrbitsInEachBranch_[iBranch];
+                sumOrbit+= numOrbitsInEachBranch_[++iBranch];
             }
 
             solGroup->addChild(drawAnOrbitUsingPoints(style, iBranch, /*curBranchID,*/ k, si, lineWidthScaler,
@@ -535,14 +527,12 @@ Solution::renderPoints(int style)
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
             int iBranch = 0;
-            int curBranchID = branchID_[iBranch];
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
             for(int ka=0; ka<numOrbits_; ka++)
             {
                 if(ka >= sumOrbit)
                 {
-                    curBranchID = branchID_[++iBranch];
-                    sumOrbit+= numOrbitsInEachBranch_[iBranch];
+                    sumOrbit+= numOrbitsInEachBranch_[++iBranch];
                 }
 
                 if(myLabels[ka]>=animationLabel) break;
@@ -587,15 +577,13 @@ Solution::renderLines()
     {
         long int si = 0, k = 0;
         int iBranch = 0;
-        int curBranchID = branchID_[iBranch];
         int sumOrbit = numOrbitsInEachBranch_[iBranch];
 
         for(long int ka=0; ka<numOrbits_; ka++)
         {
             if(ka >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit+= numOrbitsInEachBranch_[iBranch];
+                sumOrbit+= numOrbitsInEachBranch_[++iBranch];
             }
 
             solGroup->addChild(drawAnOrbitUsingLines(iBranch, k, si, lineWidthScaler,
@@ -611,14 +599,12 @@ Solution::renderLines()
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
             int iBranch = 0;
-            int curBranchID = branchID_[iBranch];
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
             for(int ka=0; ka<numOrbits_; ka++)
             {
                 if(ka >= sumOrbit)
                 {
-                    curBranchID = branchID_[++iBranch];
-                    sumOrbit+= numOrbitsInEachBranch_[iBranch];
+                    sumOrbit+= numOrbitsInEachBranch_[++iBranch];
                 }
 
                 if(myLabels[ka]>=animationLabel) break;
@@ -664,14 +650,12 @@ Solution::renderNurbsCurve()
     {
         long int si = 0, k = 0;
         int iBranch = 0;
-        int curBranchID = branchID_[iBranch];
         int sumOrbit    = numOrbitsInEachBranch_[iBranch];
         for(long int ka=0; ka<numOrbits_; ka++)
         {
             if(ka >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                sumOrbit   += numOrbitsInEachBranch_[++iBranch];
             }
             solGroup->addChild(drawAnOrbitUsingNurbsCurve(iBranch, k+1, si, lineWidthScaler,
                 clientData.labelIndex[k][3], clientData.labelIndex[k][2]));
@@ -686,14 +670,12 @@ Solution::renderNurbsCurve()
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, k = 0;
             int iBranch = 0;
-            int curBranchID = branchID_[iBranch];
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
             for(int ka=0; ka<numOrbits_; ka++)
             {
                 if(ka >= sumOrbit)
                 {
-                    curBranchID = branchID_[++iBranch];
-                    sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                    sumOrbit   += numOrbitsInEachBranch_[++iBranch];
                 }
                 if(myLabels[ka]>=animationLabel) break;
                 k = k+1;
@@ -735,15 +717,13 @@ Solution::animateUsingPoints(int style, bool aniColoring)
     solBlinker->speed = orbitSpeed;
     solBlinker->on = TRUE;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     int sumOrbit = numOrbitsInEachBranch_[iBranch];
     for(int l=0; l<numOrbits_; l++)
     {
         long numVertices = orbits_[l].numVerticesEachPeriod;
         if(l >= sumOrbit)
         {
-            curBranchID = branchID_[++iBranch];
-            sumOrbit+= numOrbitsInEachBranch_[iBranch];
+            sumOrbit+= numOrbitsInEachBranch_[++iBranch];
         }
 
         if(numVertices == 1)
@@ -775,15 +755,13 @@ Solution::animateUsingLines(bool aniColoring)
     solBlinker->speed = orbitSpeed;
     solBlinker->on = TRUE;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     int sumOrbit = numOrbitsInEachBranch_[iBranch];
     for(int l=0; l<numOrbits_; l++)
     {
         long numVertices = orbits_[l].numVerticesEachPeriod;
         if(l >= sumOrbit)
         {
-            curBranchID = branchID_[++iBranch];
-            sumOrbit+= numOrbitsInEachBranch_[iBranch];
+            sumOrbit+= numOrbitsInEachBranch_[++iBranch];
         }
 
         if(numVertices == 1)
@@ -814,14 +792,12 @@ Solution::animateUsingNurbsCurve()
     solBlinker->speed = orbitSpeed;
     solBlinker->on = TRUE;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     int sumOrbit    = numOrbitsInEachBranch_[iBranch];
     for(long int l=0; l<numOrbits_; l++)
     {
         if(l >= sumOrbit)
         {
-            curBranchID = branchID_[++iBranch];
-            sumOrbit   += numOrbitsInEachBranch_[iBranch];
+            sumOrbit   += numOrbitsInEachBranch_[++iBranch];
         }
         solBlinker->addChild(drawAnOrbitUsingNurbsCurve(iBranch, l, si, lineWidthScaler,
             clientData.labelIndex[l][3], clientData.labelIndex[l][2]));
@@ -1173,7 +1149,6 @@ Solution::drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si,
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    int32_t  myint[10];
     SoSeparator * anOrbit = new SoSeparator;
     float (*vertices)[3];
     vertices = new float[orbits_[l].numVerticesEachPeriod][3];
@@ -1185,7 +1160,6 @@ Solution::drawAnOrbitUsingNurbsCurve(int iBranch, long int l, long int si,
     }
     SoCoordinate3 *myCoords = new SoCoordinate3;
     myCoords->point.setValues(0, orbits_[l].numVerticesEachPeriod, vertices);
-    myint[0]=orbits_[l].numVerticesEachPeriod;
 
     int number = orbits_[l].numVerticesEachPeriod;
     float * knots = new float[number+4];
@@ -1393,7 +1367,6 @@ Solution::animateUsingTubes(bool aniColoring)
     SoBlinker *tubeBlker = new SoBlinker;
     tubeBlker->speed = orbitSpeed;
     int iBranch = 0;
-    int curBranchID = branchID_[iBranch];
     int sumOrbit    = numOrbitsInEachBranch_[iBranch];
     for(int j=0; j<numOrbits_; j++)
     {
@@ -1423,8 +1396,7 @@ Solution::animateUsingTubes(bool aniColoring)
             Tube tube;
             if(j >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                sumOrbit   += numOrbitsInEachBranch_[++iBranch];
             }
 
             for(int i=0; i<upperlimit; i++)
@@ -2037,10 +2009,6 @@ bool Solution::read(const char* sFileName, int varIndices[])
     if(whichCoordSystem != ROTATING_F)
     {
         float r[3] = {0.0,0.0,0.0};
-        int center = 0;
-        if(whichCoordSystem == INERTIAL_B) center = 0;
-        if(whichCoordSystem == INERTIAL_S) center = 1;
-        if(whichCoordSystem == INERTIAL_E) center = 2;
         for(int i=0; i<totalNumPoints_; i++)
         {
             xyzCoords_[i][0]=r[0];
@@ -2536,11 +2504,9 @@ const float scaler, const int stability, const int type)
 //
 //////////////////////////////////////////////////////////////////////////
 {
-    int32_t  myint[10];
     SoSeparator * anOrbit = new SoSeparator;
     SoCoordinate3 *myCoords = new SoCoordinate3;
     myCoords->point.setValues(0, arrSize, myVertices);
-    myint[0] = -1;
 
 // define a nurbs curve
     int number = arrSize;
@@ -2604,14 +2570,12 @@ Solution::createInertialFrameScene(float dis)
         float *myColorBase;
         float *time;
         int iBranch = 0;
-        int curBranchID = branchID_[iBranch];
         int sumOrbit    = numOrbitsInEachBranch_[iBranch];
         for(int k=0; k<numOrbits_; ++k)
         {
             if(k >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                sumOrbit   += numOrbitsInEachBranch_[++iBranch];
             }
             orbitSize = orbits_[k].numVerticesEachPeriod;
             arrSize = (numPeriodAnimated==0) ? orbitSize : (int)(numPeriodAnimated * orbitSize);
@@ -2662,15 +2626,13 @@ Solution::createInertialFrameScene(float dis)
             animationLabel=myLabels[lblIndices[n]];
             int si = 0, kno = 0;
             int iBranch = 0;
-            int curBranchID = branchID_[iBranch];
             int sumOrbit    = numOrbitsInEachBranch_[iBranch];
             while(kno<numOrbits_ && myLabels[kno]<animationLabel)
             {
                 si += orbits_[kno].numVerticesEachPeriod;
                 if(kno >= sumOrbit)
                 {
-                    curBranchID = branchID_[++iBranch];
-                    sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                    sumOrbit   += numOrbitsInEachBranch_[++iBranch];
                 }
             }
 
@@ -2820,7 +2782,6 @@ Solution::createInertialFrameScene(float dis)
     if(options[OPT_PERIOD_ANI])
     {
         int iBranch = 0;
-        int curBranchID = branchID_[iBranch];
         int sumOrbit    = numOrbitsInEachBranch_[iBranch];
         long int si = 0;
         SoBlinker * solBlinker = new SoBlinker;
@@ -2830,8 +2791,7 @@ Solution::createInertialFrameScene(float dis)
         {
             if(k >= sumOrbit)
             {
-                curBranchID = branchID_[++iBranch];
-                sumOrbit   += numOrbitsInEachBranch_[iBranch];
+                sumOrbit   += numOrbitsInEachBranch_[++iBranch];
             }
             long int orbitSize = orbits_[k].numVerticesEachPeriod;
             long int arrSize = (numPeriodAnimated==0) ?

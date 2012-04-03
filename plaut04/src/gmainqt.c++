@@ -2012,7 +2012,6 @@ MainWindow::getFileName(int fileMode)
     else
         filename = QFileDialog::getOpenFileName(QString::null,
                           "AUTO files (b.* s.* d.*);;Any files (*)", this);
-    SbBool okFile = TRUE;
     if(filename == QString::null)
         return;
     if(fileMode == SAVE_ITEM)
@@ -2024,7 +2023,7 @@ MainWindow::getFileName(int fileMode)
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();
-        okFile = readFile(filename);
+        readFile(filename);
     }
 }
 
