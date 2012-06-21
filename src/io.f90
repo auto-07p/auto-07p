@@ -994,7 +994,7 @@ CONTAINS
              ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
                 CALL WRITECOL(-1, 'L2-NORM '// name)
              ELSE IF(ABS(IPLT)<=NDM) THEN
-                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                IF(IPS<=1.OR.IPS==5.OR.IPS==11)THEN
                    CALL WRITECOL(2, name)
                 ELSE IF(IPLT>0)THEN
                    CALL WRITECOL(-1, 'MAX ' // name)
@@ -1008,7 +1008,7 @@ CONTAINS
              ELSE IF(IPLT>2*NDM.AND.IPLT<=3*NDM) THEN
                 CALL WRITECOL(2,'L2-NORM U',IPLT-2*NDM)
              ELSE IF(IPLT/=0.AND.ABS(IPLT)<=NDM) THEN
-                IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+                IF(IPS<=1.OR.IPS==5.OR.IPS==11)THEN
                    CALL WRITECOL(6,'U',ABS(IPLT))
                 ELSE IF(IPLT>0)THEN
                    CALL WRITECOL(4,'MAX U',IPLT)
@@ -1020,12 +1020,12 @@ CONTAINS
        ELSE !J>2 with N2>0
           name = getname(unames, J-2)
           IF(LEN_TRIM(name)>0)THEN
-             IF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+             IF(IPS<=1.OR.IPS==5.OR.IPS==11)THEN
                 CALL WRITECOL(-1,name)
              ELSE
                 CALL WRITECOL(-1,'MAX '//name)
              ENDIF
-          ELSEIF(ABS(IPS)<=1.OR.IPS==5.OR.IPS==11)THEN
+          ELSEIF(IPS<=1.OR.IPS==5.OR.IPS==11)THEN
              CALL WRITECOL(6,'U',J-2)
           ELSE
              CALL WRITECOL(4,'MAX U',J-2)
