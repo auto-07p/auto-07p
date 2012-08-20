@@ -416,10 +416,10 @@ class parseC(dict):
                 if key in ["ICP", "IREV", "IFIXED", "IPSI", "STOP", "SP"]:
                     s = "  "+str(value)
                 elif key in ["THL", "THU", "UZR", "UZSTOP", "U", "PAR"]:
-                    l = [repr(k)+": "+self.__compactstr(v) for k, v in value]
+                    l = ["'"+str(k)+"': "+self.__compactstr(v) for k, v in value]
                     s = "  {"+", ".join(l)+"}"
                 elif key in ["unames", "parnames"]:
-                    l = [str(k)+": "+repr(v) for k, v in value]
+                    l = [str(k)+": '"+str(v)+"'" for k, v in value]
                     s = "{"+", ".join(l)+"}"
                 elif key in ["sv", "s", "dat", "e", "TY"]:
                     value = "'"+str(value)+"'"
