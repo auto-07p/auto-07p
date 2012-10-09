@@ -59,8 +59,7 @@ CONTAINS
     INTEGER I,J,IC,N
     INTEGER NICP
     DOUBLE PRECISION RC
-    CHARACTER(LEN=1) :: C,QUOTE,PREV
-    LOGICAL QUOTEESC
+    CHARACTER(LEN=1) :: C,PREV
     INTEGER LISTLEN2,ios
 
     TYPE INDEXSTRL
@@ -95,31 +94,8 @@ CONTAINS
           RETURN
        ENDIF
        NEWCFILE=.TRUE.
-       READ(UNITC,'(A)',IOSTAT=ios) STR(2:)
-       IF(ios/=0)THEN
-          EOF=.TRUE.
-          RETURN
-       ENDIF
-       QUOTE=' '
-       QUOTEESC=.FALSE.
-       DO I=1,LEN_TRIM(STR)
-          C=STR(I:I)
-          IF(QUOTE==' ')THEN
-             ! replace a tab with spaces if not in a string
-             IF(IACHAR(C)==9)THEN
-                STR(I:I)=' '
-             ELSEIF(C=="'".OR.C=='"')THEN
-                QUOTE=STR(I:I)
-             ENDIF
-          ELSEIF(C==QUOTE)THEN
-             ! ignore "" and ''
-             IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
-                QUOTEESC=.NOT.QUOTEESC
-             ELSE
-                QUOTE=' '
-             ENDIF
-          ENDIF
-       ENDDO
+       CALL READLINE(UNITC,STR,2,EOF)
+       IF(EOF)RETURN
     ELSE
        STR=STR(NPOS:)
     ENDIF
@@ -325,6 +301,48 @@ CONTAINS
 3   IERR=3
   END SUBROUTINE READC
 
+! ---------- --------
+  SUBROUTINE READLINE(UNITC,STR,NPOS,EOF)
+
+! reads a line from unit unitc into str(npos:), replacing tabs with spaces
+! in str(:) where appropriate
+
+    INTEGER, INTENT(IN) :: UNITC, NPOS
+    CHARACTER(*), INTENT(INOUT) :: STR
+    LOGICAL, INTENT(OUT) :: EOF
+
+    CHARACTER(LEN=1) :: C,QUOTE
+    LOGICAL :: QUOTEESC
+    INTEGER :: ios, I
+
+    EOF=.FALSE.
+    READ(UNITC,'(A)',IOSTAT=ios) STR(NPOS:)
+    IF(ios/=0)THEN
+       EOF=.TRUE.
+       RETURN
+    ENDIF
+    QUOTE=' '
+    QUOTEESC=.FALSE.
+    DO I=1,LEN_TRIM(STR)
+       C=STR(I:I)
+       IF(QUOTE==' ')THEN
+          ! replace a tab with spaces if not in a string
+          IF(IACHAR(C)==9)THEN
+             STR(I:I)=' '
+          ELSEIF(C=="'".OR.C=='"')THEN
+             QUOTE=STR(I:I)
+          ENDIF
+       ELSEIF(C==QUOTE)THEN
+          ! ignore "" and ''
+          IF(STR(I+1:I+1)==C.OR.QUOTEESC)THEN
+             QUOTEESC=.NOT.QUOTEESC
+          ELSE
+             QUOTE=' '
+          ENDIF
+       ENDIF
+    ENDDO
+  END SUBROUTINE READLINE
+
 ! ---------- ---------
   SUBROUTINE SCANVALUE(UNITC,STR,NPOS,LISTLEN)
     IMPLICIT NONE
@@ -339,9 +357,9 @@ CONTAINS
     CHARACTER(*), INTENT(INOUT) :: STR
     INTEGER, INTENT(OUT) :: NPOS,LISTLEN
 
-    INTEGER I,LEVEL,LENSTR,ios
+    INTEGER I,LEVEL,LENSTR
     CHARACTER(1) C,PREV,QUOTE
-    LOGICAL QUOTEESC,ISDICT
+    LOGICAL QUOTEESC,ISDICT,EOF
     LISTLEN=1
     LEVEL=0
     QUOTE=' '
@@ -356,8 +374,8 @@ CONTAINS
        IF(I>LENSTR)THEN
           IF(LEVEL==0)EXIT
           LENSTR=LEN_TRIM(STR)
-          READ(UNITC,'(A)',IOSTAT=ios) STR(LENSTR+1:)
-          IF(ios/=0)EXIT
+          CALL READLINE(UNITC,STR(LENSTR+1:),1,EOF)
+          IF(EOF)EXIT
           LENSTR=LEN_TRIM(STR)
        ENDIF
        NPOS=I
