@@ -385,10 +385,32 @@ def _testFilename(inputname,outputname):
 def autoipython(funcs):
     # Use IPython in combination with AUTO
     # First import the shell class
+    ipython11 = False
     try:
         import IPython.Shell
-    except:
-        print("Sorry, ipython is not available on this system.")
+    except ImportError:
+        try: # Check for ipython >= 0.11
+            from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+            ipython11 = True
+        except ImportError:
+            print("Sorry, ipython is not available on this system.")
+            return
+
+    if ipython11:
+        from IPython.config.loader import Config
+        cfg = Config()
+        cfg.PromptManager.in_template="AUTO In [\\#]: "
+        cfg.PromptManager.in2_template="AUTO    .\\D.: "
+        cfg.PromptManager.out_template="Out[\#]: "
+        cfg.InteractiveShell.confirm_exit = False
+        cfg.InteractiveShell.autocall = 2
+        cfg.InteractiveShell.banner2 ="""
+Welcome to the AUTO IPython CLUI
+man     -> List of AUTO CLUI commands"""
+
+        ipshell = TerminalInteractiveShell(config = cfg, user_ns = funcs )
+        ipshell.show_banner()
+        ipshell.mainloop()
         return
 
     import IPython
