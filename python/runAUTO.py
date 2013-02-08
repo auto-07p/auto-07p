@@ -524,7 +524,7 @@ class runAUTO:
                 return os.spawnlp(os.P_WAIT, args[0], *args)
             else:
                 return os.system(command)
-        if "subprocess2" in sys.modules:
+        if "subprocess" in sys.modules:
             obj = subprocess.Popen(args, stdin=subprocess.PIPE,
                                    universal_newlines=True)
             stdin = obj.stdin
@@ -533,7 +533,7 @@ class runAUTO:
             status = 0
         self.__write_constants_solution(stdin, solution)
         stdin.close()
-        if "subprocess2" in sys.modules:
+        if "subprocess" in sys.modules:
             status = obj.wait()
         return status
 
