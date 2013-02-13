@@ -37,6 +37,7 @@ import Points
 import runAUTO
 import gzip
 import AUTOutil
+from AUTOutil import format19_10E3
 import types
 
 # End of data exception definition
@@ -534,7 +535,7 @@ class AUTOParameters(Points.Point):
                     rep.append(line)
                     line = 12*" "
                     break
-            line += "".join(["%19.10E"%self(k) for k in range(i,j+1)])
+            line += "".join([format19_10E3(self(k)) for k in range(i,j+1)])
             rep.append(line)
         return "\n".join(rep)
 
@@ -673,7 +674,7 @@ class AUTOSolution(UserDict,Points.Pointset):
             rep = rep+"%5d%4d%6d"%(self["NDIM"],self["IPS"],self["IPRIV"])
         for key in list(keys):
             if key not in self.data_keys:
-                rep = rep+"%19.10E"%self[key]
+                rep = rep+format19_10E3(self[key])
                 keys.remove(key)
         if not self.__nodata():
             rep=rep+"\n"+Points.Pointset.__repr__(self)
@@ -1073,11 +1074,11 @@ class AUTOSolution(UserDict,Points.Pointset):
         else:
             slist = []
             for i in range(len(self.indepvararray)):
-                slist.append("    "+"%19.10E" % (self.indepvararray[i]))
+                slist.append("    "+format19_10E3(self.indepvararray[i]))
                 for j in range(1,len(self.coordarray)+1):
                     if j%7==0:
                         slist.append(os.linesep+"    ")
-                    slist.append("%19.10E" % (self.coordarray[j-1,i]))
+                    slist.append(format19_10E3(self.coordarray[j-1,i]))
                 slist.append(os.linesep)
             write_enc("".join(slist))
             if "Active ICP" in self.data:
@@ -1094,7 +1095,7 @@ class AUTOSolution(UserDict,Points.Pointset):
                 line = "    "
                 i = 0
                 for vi in self["rldot"]:
-                    num = "%19.10E" % (vi)
+                    num = format19_10E3(vi)
                     if i != 0 and i%7==0:
                         line = line + os.linesep + "    "
                     line = line + num
@@ -1111,16 +1112,16 @@ class AUTOSolution(UserDict,Points.Pointset):
                         if j!=0 and j%7==0:
                             slist.append(os.linesep+"    ")
                         if j<l:
-                            slist.append("%19.10E" %c[j,i])
+                            slist.append(format19_10E3(c[j,i]))
                         else:
-                            slist.append("%19.10E" %0)
+                            slist.append(format19_10E3(0))
                     slist.append(os.linesep)
                 write_enc("".join(slist))
 
             line = "    "
             j = 0
             for parameter in self.PAR.toarray():
-                num = "%19.10E" % (parameter)
+                num = format19_10E3(parameter)
                 line = line + num 
                 j = j + 1
                 if j%7==0:

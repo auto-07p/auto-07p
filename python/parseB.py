@@ -21,6 +21,7 @@ import os
 import sys
 import AUTOExceptions
 import AUTOutil
+from AUTOutil import format19_10E3
 try:
     from UserList import UserList
 except ImportError: # Python 3
@@ -763,8 +764,12 @@ class AUTOBranch(parseBMixin, Points.Pointset):
             else:
                 pt = ((pt-1) % 9999) + 1
             output_line = "%4d%6d%4d%5d"%(br,pt,tynumber,lab)
-            for j in range(len(data)):
-                output_line = output_line + format%data[j,i]
+            if columnlen == 19:
+                for j in range(len(data)):
+                    output_line = output_line + format19_10E3(data[j,i])
+            else:
+                for j in range(len(data)):
+                    output_line = output_line + format%data[j,i]
             output.write(output_line+"\n")
 
     def writeShort(self):

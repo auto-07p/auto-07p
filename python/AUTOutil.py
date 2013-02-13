@@ -148,6 +148,12 @@ def getstatusoutput(cmd, shell=False):
             cmd = " ".join(cmd)
         return commands.getstatusoutput(cmd)
 
+def format19_10E3(x):
+    s = "%19.10E"%x
+    if s[-4] == 'E':
+        s = s[1:-2] + '0' + s[-2:]
+    return s
+
 try:
     import __builtin__
 except ImportError:

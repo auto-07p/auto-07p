@@ -870,7 +870,7 @@ CONTAINS
          IF(INT(IVLIST(I)%VAR)==IVLIST(I)%VAR)THEN
             WRITE(VARSTR,'(I19)')INT(IVLIST(I)%VAR)
          ELSE
-            WRITE(VARSTR,'(ES19.10)')IVLIST(I)%VAR
+            WRITE(VARSTR,'(ES19.10E3)')IVLIST(I)%VAR
          ENDIF
          WRITE(7,"(A,A,A)", ADVANCE="NO")TRIM(INDSTR),&
               ": ",TRIM(ADJUSTL(VARSTR))
@@ -908,7 +908,7 @@ CONTAINS
             IF(INT(V)==V)THEN
                WRITE(VARSTR,'(I19)')INT(V)
             ELSE
-               WRITE(VARSTR,'(ES19.10)')V
+               WRITE(VARSTR,'(ES19.10E3)')V
             ENDIF
             WRITE(7,"(A)", ADVANCE="NO")TRIM(ADJUSTL(VARSTR))
          ENDDO
@@ -1100,7 +1100,7 @@ CONTAINS
 ! Local
     CHARACTER(3) ATYPE
     CHARACTER(33) :: F69 ! (I4,I6,2X,A2,I5,**********ES14.5)
-    CHARACTER(31) :: F7  ! (I4,I6,I4,I5,**********ES19.10)
+    CHARACTER(33) :: F7  ! (I4,I6,I4,I5,**********ES19.10E3)
     INTEGER MTOT,NDM,ITP,NICP,N1,N2,I
 
     NDM=AP%NDM
@@ -1131,7 +1131,7 @@ CONTAINS
        MTOT=-MOD(-NTOT-1,9999)-1
     ENDIF
     WRITE(F69,"(A,I10,A)") '(I4,I6,1X,A3,I5,',N1+N2+1,'ES14.5)'
-    WRITE(F7,"(A,I10,A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10)'
+    WRITE(F7,"(A,I10,A)") '(I4,I6,I4,I5,',NICP+N2+1,'ES19.10E3)'
     IF(MOD(ITP,10).NE.0)THEN
        WRITE(6,F69)ABS(IBR),ABS(MTOT),ATYPE,LAB,PAR(ICU(1)),VAXIS, &
             (U(I),I=1,N2),(PAR(ICU(I)),I=2,N1)

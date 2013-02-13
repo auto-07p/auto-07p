@@ -428,7 +428,7 @@ C Write the parameter values.
        WRITE(8,102)(PAR(I),I=1,NPAR)
 
  101   FORMAT(6I6,I8,I6,I8,3I5)
- 102   FORMAT(4X,7ES19.10)
+ 102   FORMAT(4X,7ES19.10E3)
 
       END SUBROUTINE WRTBV8
 

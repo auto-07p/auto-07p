@@ -101,11 +101,11 @@ CONTAINS
     IF(MATZ/=0)THEN
        WRITE(9,'(A)')' Eigenvalues:'
        DO I=1,NDIM
-          WRITE(9,'(4X,7ES19.10)')WR(I),WI(I)
+          WRITE(9,'(4X,7ES19.10E3)')WR(I),WI(I)
        ENDDO
        WRITE(9,'(A)')' Eigenvectors (by row):'
        DO I=1,NDIM
-          WRITE(9,'(4X,7ES19.10)')Z(:NDIM,I)
+          WRITE(9,'(4X,7ES19.10E3)')Z(:NDIM,I)
        ENDDO
     ENDIF
 
