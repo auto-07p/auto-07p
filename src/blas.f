@@ -15,11 +15,16 @@ C-----------------------------------------------------------------------
 *  Purpose
 *  =======
 *
-*     takes the sum of the absolute values.
+*     DASUM takes the sum of the absolute values.
+*
+*  Further Details
+*  ===============
+*
 *     jack dongarra, linpack, 3/11/78.
 *     modified 3/93 to return if incx .le. 0.
 *     modified 12/3/93, array(1) declarations changed to array(*)
 *
+*  =====================================================================
 *
 *     .. Local Scalars ..
       DOUBLE PRECISION DTEMP
@@ -31,34 +36,38 @@ C-----------------------------------------------------------------------
       DASUM = 0.0d0
       DTEMP = 0.0d0
       IF (N.LE.0 .OR. INCX.LE.0) RETURN
-      IF (INCX.EQ.1) GO TO 20
-*
-*        code for increment not equal to 1
-*
-      NINCX = N*INCX
-      DO 10 I = 1,NINCX,INCX
-          DTEMP = DTEMP + DABS(DX(I))
-   10 CONTINUE
-      DASUM = DTEMP
-      RETURN
-*
+      IF (INCX.EQ.1) THEN
 *        code for increment equal to 1
 *
 *
 *        clean-up loop
 *
-   20 M = MOD(N,6)
-      IF (M.EQ.0) GO TO 40
-      DO 30 I = 1,M
-          DTEMP = DTEMP + DABS(DX(I))
-   30 CONTINUE
-      IF (N.LT.6) GO TO 60
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,6
-          DTEMP = DTEMP + DABS(DX(I)) + DABS(DX(I+1)) + DABS(DX(I+2)) +
-     +            DABS(DX(I+3)) + DABS(DX(I+4)) + DABS(DX(I+5))
-   50 CONTINUE
-   60 DASUM = DTEMP
+         M = MOD(N,6)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DTEMP = DTEMP + DABS(DX(I))
+            END DO
+            IF (N.LT.6) THEN
+               DASUM = DTEMP
+               RETURN
+            END IF
+         END IF
+         MP1 = M + 1
+         DO I = MP1,N,6
+            DTEMP = DTEMP + DABS(DX(I)) + DABS(DX(I+1)) +
+     $              DABS(DX(I+2)) + DABS(DX(I+3)) +
+     $              DABS(DX(I+4)) + DABS(DX(I+5))
+         END DO
+      ELSE
+*
+*        code for increment not equal to 1
+*
+         NINCX = N*INCX
+         DO I = 1,NINCX,INCX
+            DTEMP = DTEMP + DABS(DX(I))
+         END DO
+      END IF
+      DASUM = DTEMP
       RETURN
       END
 C
@@ -75,11 +84,16 @@ C-----------------------------------------------------------------------
 *  Purpose
 *  =======
 *
-*     copies a vector, x, to a vector, y.
+*     DCOPY copies a vector, x, to a vector, y.
 *     uses unrolled loops for increments equal to one.
+*
+*  Further Details
+*  ===============
+*
 *     jack dongarra, linpack, 3/11/78.
 *     modified 12/3/93, array(1) declarations changed to array(*)
 *
+*  =====================================================================
 *
 *     .. Local Scalars ..
       INTEGER I,IX,IY,M,MP1
@@ -88,100 +102,109 @@ C-----------------------------------------------------------------------
       INTRINSIC MOD
 *     ..
       IF (N.LE.0) RETURN
-      IF (INCX.EQ.1 .AND. INCY.EQ.1) GO TO 20
-*
-*        code for unequal increments or equal increments
-*          not equal to 1
-*
-      IX = 1
-      IY = 1
-      IF (INCX.LT.0) IX = (-N+1)*INCX + 1
-      IF (INCY.LT.0) IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-          DY(IY) = DX(IX)
-          IX = IX + INCX
-          IY = IY + INCY
-   10 CONTINUE
-      RETURN
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
 *
 *        code for both increments equal to 1
 *
 *
 *        clean-up loop
 *
-   20 M = MOD(N,7)
-      IF (M.EQ.0) GO TO 40
-      DO 30 I = 1,M
-          DY(I) = DX(I)
-   30 CONTINUE
-      IF (N.LT.7) RETURN
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,7
-          DY(I) = DX(I)
-          DY(I+1) = DX(I+1)
-          DY(I+2) = DX(I+2)
-          DY(I+3) = DX(I+3)
-          DY(I+4) = DX(I+4)
-          DY(I+5) = DX(I+5)
-          DY(I+6) = DX(I+6)
-   50 CONTINUE
+         M = MOD(N,7)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DY(I) = DX(I)
+            END DO
+            IF (N.LT.7) RETURN
+         END IF   
+         MP1 = M + 1
+         DO I = MP1,N,7
+            DY(I) = DX(I)
+            DY(I+1) = DX(I+1)
+            DY(I+2) = DX(I+2)
+            DY(I+3) = DX(I+3)
+            DY(I+4) = DX(I+4)
+            DY(I+5) = DX(I+5)
+            DY(I+6) = DX(I+6)
+         END DO
+      ELSE      
+*
+*        code for unequal increments or equal increments
+*          not equal to 1
+*
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+            DY(IY) = DX(IX)
+            IX = IX + INCX
+            IY = IY + INCY
+         END DO
+      END IF
       RETURN
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      DOUBLE PRECISION FUNCTION DNRM2 ( N, X, INCX )
+      DOUBLE PRECISION FUNCTION DNRM2(N,X,INCX)
 *     .. Scalar Arguments ..
-      INTEGER                           INCX, N
-*     .. Array Arguments ..
-      DOUBLE PRECISION                  X( * )
+      INTEGER INCX,N
 *     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION X(*)
+*     ..
+*
+*  Purpose
+*  =======
 *
 *  DNRM2 returns the euclidean norm of a vector via the function
 *  name, so that
 *
 *     DNRM2 := sqrt( x'*x )
 *
-*
+*  Further Details
+*  ===============
 *
 *  -- This version written on 25-October-1982.
 *     Modified on 14-October-1993 to inline the call to DLASSQ.
 *     Sven Hammarling, Nag Ltd.
 *
+*  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION      ONE         , ZERO
-      PARAMETER           ( ONE = 1.0D+0, ZERO = 0.0D+0 )
-*     .. Local Scalars ..
-      INTEGER               IX
-      DOUBLE PRECISION      ABSXI, NORM, SCALE, SSQ
-*     .. Intrinsic Functions ..
-      INTRINSIC             ABS, SQRT
+      DOUBLE PRECISION ONE,ZERO
+      PARAMETER (ONE=1.0D+0,ZERO=0.0D+0)
 *     ..
-*     .. Executable Statements ..
-      IF( N.LT.1 .OR. INCX.LT.1 )THEN
-         NORM  = ZERO
-      ELSE IF( N.EQ.1 )THEN
-         NORM  = ABS( X( 1 ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ABSXI,NORM,SCALE,SSQ
+      INTEGER IX
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC ABS,SQRT
+*     ..
+      IF (N.LT.1 .OR. INCX.LT.1) THEN
+          NORM = ZERO
+      ELSE IF (N.EQ.1) THEN
+          NORM = ABS(X(1))
       ELSE
-         SCALE = ZERO
-         SSQ   = ONE
+          SCALE = ZERO
+          SSQ = ONE
 *        The following loop is equivalent to this call to the LAPACK
 *        auxiliary routine:
 *        CALL DLASSQ( N, X, INCX, SCALE, SSQ )
 *
-         DO 10, IX = 1, 1 + ( N - 1 )*INCX, INCX
-            IF( X( IX ).NE.ZERO )THEN
-               ABSXI = ABS( X( IX ) )
-               IF( SCALE.LT.ABSXI )THEN
-                  SSQ   = ONE   + SSQ*( SCALE/ABSXI )**2
-                  SCALE = ABSXI
-               ELSE
-                  SSQ   = SSQ   +     ( ABSXI/SCALE )**2
-               END IF
-            END IF
-   10    CONTINUE
-         NORM  = SCALE * SQRT( SSQ )
+          DO 10 IX = 1,1 + (N-1)*INCX,INCX
+              IF (X(IX).NE.ZERO) THEN
+                  ABSXI = ABS(X(IX))
+                  IF (SCALE.LT.ABSXI) THEN
+                      SSQ = ONE + SSQ* (SCALE/ABSXI)**2
+                      SCALE = ABSXI
+                  ELSE
+                      SSQ = SSQ + (ABSXI/SCALE)**2
+                  END IF
+              END IF
+   10     CONTINUE
+          NORM = SCALE*SQRT(SSQ)
       END IF
 *
       DNRM2 = NORM
@@ -194,51 +217,75 @@ C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       DOUBLE PRECISION FUNCTION DDOT(N,DX,INCX,DY,INCY)
-C
-C     FORMS THE DOT PRODUCT OF TWO VECTORS.
-C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DX(1),DY(1),DTEMP
-      INTEGER I,INCX,INCY,IX,IY,M,MP1,N
-C
-      DDOT = 0.0D0
-      DTEMP = 0.0D0
-      IF(N.LE.0)RETURN
-      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
-C
-C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
-C          NOT EQUAL TO 1
-C
-      IX = 1
-      IY = 1
-      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
-      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-        DTEMP = DTEMP + DX(IX)*DY(IY)
-        IX = IX + INCX
-        IY = IY + INCY
-   10 CONTINUE
+*     .. Scalar Arguments ..
+      INTEGER INCX,INCY,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*),DY(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     DDOT forms the dot product of two vectors.
+*     uses unrolled loops for increments equal to one.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      DOUBLE PRECISION DTEMP
+      INTEGER I,IX,IY,M,MP1
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MOD
+*     ..
+      DDOT = 0.0d0
+      DTEMP = 0.0d0
+      IF (N.LE.0) RETURN
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+*
+*        code for both increments equal to 1
+*
+*
+*        clean-up loop
+*
+         M = MOD(N,5)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DTEMP = DTEMP + DX(I)*DY(I)
+            END DO
+            IF (N.LT.5) THEN
+               DDOT=DTEMP
+            RETURN
+            END IF
+         END IF
+         MP1 = M + 1
+         DO I = MP1,N,5
+          DTEMP = DTEMP + DX(I)*DY(I) + DX(I+1)*DY(I+1) +
+     $            DX(I+2)*DY(I+2) + DX(I+3)*DY(I+3) + DX(I+4)*DY(I+4)
+         END DO
+      ELSE
+*
+*        code for unequal increments or equal increments
+*          not equal to 1
+*
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+            DTEMP = DTEMP + DX(IX)*DY(IY)
+            IX = IX + INCX
+            IY = IY + INCY
+         END DO
+      END IF
       DDOT = DTEMP
-      RETURN
-C
-C        CODE FOR BOTH INCREMENTS EQUAL TO 1
-C
-C
-C        CLEAN-UP LOOP
-C
-   20 M = MOD(N,5)
-      IF( M .EQ. 0 ) GO TO 40
-      DO 30 I = 1,M
-        DTEMP = DTEMP + DX(I)*DY(I)
-   30 CONTINUE
-      IF( N .LT. 5 ) GO TO 60
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,5
-        DTEMP = DTEMP + DX(I)*DY(I) + DX(I + 1)*DY(I + 1) +
-     *   DX(I + 2)*DY(I + 2) + DX(I + 3)*DY(I + 3) + DX(I + 4)*DY(I + 4)
-   50 CONTINUE
-   60 DDOT = DTEMP
       RETURN
       END
 C
@@ -249,7 +296,7 @@ C-----------------------------------------------------------------------
       INTEGER INCX,INCY,N
 *     ..
 *     .. Array Arguments ..
-      DOUBLE PRECISION DPARAM(5),DX(1),DY(1)
+      DOUBLE PRECISION DPARAM(5),DX(*),DY(*)
 *     ..
 *
 *  Purpose
@@ -278,7 +325,7 @@ C-----------------------------------------------------------------------
 *         number of elements in input vector(s)
 *
 *  DX     (input/output) DOUBLE PRECISION array, dimension N
-*         double precision vector with 5 elements
+*         double precision vector with N elements
 *
 *  INCX   (input) INTEGER
 *         storage spacing between elements of DX
@@ -307,319 +354,424 @@ C-----------------------------------------------------------------------
 *     ..
 *
       DFLAG = DPARAM(1)
-      IF (N.LE.0 .OR. (DFLAG+TWO.EQ.ZERO)) GO TO 140
-      IF (.NOT. (INCX.EQ.INCY.AND.INCX.GT.0)) GO TO 70
+      IF (N.LE.0 .OR. (DFLAG+TWO.EQ.ZERO)) RETURN
+      IF (INCX.EQ.INCY.AND.INCX.GT.0) THEN
 *
-      NSTEPS = N*INCX
-      IF (DFLAG) 50,10,30
-   10 CONTINUE
-      DH12 = DPARAM(4)
-      DH21 = DPARAM(3)
-      DO 20 I = 1,NSTEPS,INCX
-          W = DX(I)
-          Z = DY(I)
-          DX(I) = W + Z*DH12
-          DY(I) = W*DH21 + Z
-   20 CONTINUE
-      GO TO 140
-   30 CONTINUE
-      DH11 = DPARAM(2)
-      DH22 = DPARAM(5)
-      DO 40 I = 1,NSTEPS,INCX
-          W = DX(I)
-          Z = DY(I)
-          DX(I) = W*DH11 + Z
-          DY(I) = -W + DH22*Z
-   40 CONTINUE
-      GO TO 140
-   50 CONTINUE
-      DH11 = DPARAM(2)
-      DH12 = DPARAM(4)
-      DH21 = DPARAM(3)
-      DH22 = DPARAM(5)
-      DO 60 I = 1,NSTEPS,INCX
-          W = DX(I)
-          Z = DY(I)
-          DX(I) = W*DH11 + Z*DH12
-          DY(I) = W*DH21 + Z*DH22
-   60 CONTINUE
-      GO TO 140
-   70 CONTINUE
-      KX = 1
-      KY = 1
-      IF (INCX.LT.0) KX = 1 + (1-N)*INCX
-      IF (INCY.LT.0) KY = 1 + (1-N)*INCY
+         NSTEPS = N*INCX
+         IF (DFLAG.LT.ZERO) THEN
+            DH11 = DPARAM(2)
+            DH12 = DPARAM(4)
+            DH21 = DPARAM(3)
+            DH22 = DPARAM(5)
+            DO I = 1,NSTEPS,INCX
+               W = DX(I)
+               Z = DY(I)
+               DX(I) = W*DH11 + Z*DH12
+               DY(I) = W*DH21 + Z*DH22
+            END DO
+         ELSE IF (DFLAG.EQ.ZERO) THEN
+            DH12 = DPARAM(4)
+            DH21 = DPARAM(3)
+            DO I = 1,NSTEPS,INCX
+               W = DX(I)
+               Z = DY(I)
+               DX(I) = W + Z*DH12
+               DY(I) = W*DH21 + Z
+            END DO
+         ELSE
+            DH11 = DPARAM(2)
+            DH22 = DPARAM(5)
+            DO I = 1,NSTEPS,INCX
+               W = DX(I)
+               Z = DY(I)
+               DX(I) = W*DH11 + Z
+               DY(I) = -W + DH22*Z
+            END DO
+         END IF
+      ELSE
+         KX = 1
+         KY = 1
+         IF (INCX.LT.0) KX = 1 + (1-N)*INCX
+         IF (INCY.LT.0) KY = 1 + (1-N)*INCY
 *
-      IF (DFLAG) 120,80,100
-   80 CONTINUE
-      DH12 = DPARAM(4)
-      DH21 = DPARAM(3)
-      DO 90 I = 1,N
-          W = DX(KX)
-          Z = DY(KY)
-          DX(KX) = W + Z*DH12
-          DY(KY) = W*DH21 + Z
-          KX = KX + INCX
-          KY = KY + INCY
-   90 CONTINUE
-      GO TO 140
-  100 CONTINUE
-      DH11 = DPARAM(2)
-      DH22 = DPARAM(5)
-      DO 110 I = 1,N
-          W = DX(KX)
-          Z = DY(KY)
-          DX(KX) = W*DH11 + Z
-          DY(KY) = -W + DH22*Z
-          KX = KX + INCX
-          KY = KY + INCY
-  110 CONTINUE
-      GO TO 140
-  120 CONTINUE
-      DH11 = DPARAM(2)
-      DH12 = DPARAM(4)
-      DH21 = DPARAM(3)
-      DH22 = DPARAM(5)
-      DO 130 I = 1,N
-          W = DX(KX)
-          Z = DY(KY)
-          DX(KX) = W*DH11 + Z*DH12
-          DY(KY) = W*DH21 + Z*DH22
-          KX = KX + INCX
-          KY = KY + INCY
-  130 CONTINUE
-  140 CONTINUE
+         IF (DFLAG.LT.ZERO) THEN
+            DH11 = DPARAM(2)
+            DH12 = DPARAM(4)
+            DH21 = DPARAM(3)
+            DH22 = DPARAM(5)
+            DO I = 1,N
+               W = DX(KX)
+               Z = DY(KY)
+               DX(KX) = W*DH11 + Z*DH12
+               DY(KY) = W*DH21 + Z*DH22
+               KX = KX + INCX
+               KY = KY + INCY
+            END DO
+         ELSE IF (DFLAG.EQ.ZERO) THEN
+            DH12 = DPARAM(4)
+            DH21 = DPARAM(3)
+            DO I = 1,N
+               W = DX(KX)
+               Z = DY(KY)
+               DX(KX) = W + Z*DH12
+               DY(KY) = W*DH21 + Z
+               KX = KX + INCX
+               KY = KY + INCY
+            END DO
+         ELSE
+             DH11 = DPARAM(2)
+             DH22 = DPARAM(5)
+             DO I = 1,N
+                W = DX(KX)
+                Z = DY(KY)
+                DX(KX) = W*DH11 + Z
+                DY(KY) = -W + DH22*Z
+                KX = KX + INCX
+                KY = KY + INCY
+            END DO
+         END IF
+      END IF
       RETURN
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      SUBROUTINE  DSCAL(N,DA,DX,INCX)
-C
-C     SCALES A VECTOR BY A CONSTANT.
-C     USES UNROLLED LOOPS FOR INCREMENT EQUAL TO ONE.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DA,DX(1)
-      INTEGER I,INCX,M,MP1,N,NINCX
-C
-      IF(N.LE.0)RETURN
-      IF(INCX.EQ.1)GO TO 20
-C
-C        CODE FOR INCREMENT NOT EQUAL TO 1
-C
-      NINCX = N*INCX
-      DO 10 I = 1,NINCX,INCX
-        DX(I) = DA*DX(I)
-   10 CONTINUE
-      RETURN
-C
-C        CODE FOR INCREMENT EQUAL TO 1
-C
-C
-C        CLEAN-UP LOOP
-C
-   20 M = MOD(N,5)
-      IF( M .EQ. 0 ) GO TO 40
-      DO 30 I = 1,M
-        DX(I) = DA*DX(I)
-   30 CONTINUE
-      IF( N .LT. 5 ) RETURN
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,5
-        DX(I) = DA*DX(I)
-        DX(I + 1) = DA*DX(I + 1)
-        DX(I + 2) = DA*DX(I + 2)
-        DX(I + 3) = DA*DX(I + 3)
-        DX(I + 4) = DA*DX(I + 4)
-   50 CONTINUE
+      SUBROUTINE DSCAL(N,DA,DX,INCX)
+*     .. Scalar Arguments ..
+      DOUBLE PRECISION DA
+      INTEGER INCX,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     DSCAL scales a vector by a constant.
+*     uses unrolled loops for increment equal to one.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 3/93 to return if incx .le. 0.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      INTEGER I,M,MP1,NINCX
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MOD
+*     ..
+      IF (N.LE.0 .OR. INCX.LE.0) RETURN
+      IF (INCX.EQ.1) THEN
+*
+*        code for increment equal to 1
+*
+*
+*        clean-up loop
+*
+         M = MOD(N,5)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DX(I) = DA*DX(I)
+            END DO
+            IF (N.LT.5) RETURN
+         END IF
+         MP1 = M + 1
+         DO I = MP1,N,5
+            DX(I) = DA*DX(I)
+            DX(I+1) = DA*DX(I+1)
+            DX(I+2) = DA*DX(I+2)
+            DX(I+3) = DA*DX(I+3)
+            DX(I+4) = DA*DX(I+4)
+         END DO
+      ELSE
+*
+*        code for increment not equal to 1
+*
+         NINCX = N*INCX
+         DO I = 1,NINCX,INCX
+            DX(I) = DA*DX(I)
+         END DO
+      END IF
       RETURN
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       INTEGER FUNCTION IDAMAX(N,DX,INCX)
-C
-C     FINDS THE INDEX OF ELEMENT HAVING MAX. ABSOLUTE VALUE.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DX(1),DMAX
-      INTEGER I,INCX,IX,N
-C
+*     .. Scalar Arguments ..
+      INTEGER INCX,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     IDAMAX finds the index of element having max. absolute value.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 3/93 to return if incx .le. 0.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      DOUBLE PRECISION DMAX
+      INTEGER I,IX
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC DABS
+*     ..
       IDAMAX = 0
-      IF( N .LT. 1 ) RETURN
+      IF (N.LT.1 .OR. INCX.LE.0) RETURN
       IDAMAX = 1
-      IF(N.EQ.1)RETURN
-      IF(INCX.EQ.1)GO TO 20
-C
-C        CODE FOR INCREMENT NOT EQUAL TO 1
-C
-      IX = 1
-      DMAX = DABS(DX(1))
-      IX = IX + INCX
-      DO 10 I = 2,N
-         IF(DABS(DX(IX)).LE.DMAX) GO TO 5
-         IDAMAX = I
-         DMAX = DABS(DX(IX))
-    5    IX = IX + INCX
-   10 CONTINUE
-      RETURN
-C
-C        CODE FOR INCREMENT EQUAL TO 1
-C
-   20 DMAX = DABS(DX(1))
-      DO 30 I = 2,N
-         IF(DABS(DX(I)).LE.DMAX) GO TO 30
-         IDAMAX = I
-         DMAX = DABS(DX(I))
-   30 CONTINUE
+      IF (N.EQ.1) RETURN
+      IF (INCX.EQ.1) THEN
+*
+*        code for increment equal to 1
+*
+         DMAX = DABS(DX(1))
+         DO I = 2,N
+            IF (DABS(DX(I)).GT.DMAX) THEN
+               IDAMAX = I
+               DMAX = DABS(DX(I))
+            END IF
+         END DO
+      ELSE
+*
+*        code for increment not equal to 1
+*
+         IX = 1
+         DMAX = DABS(DX(1))
+         IX = IX + INCX
+         DO I = 2,N
+            IF (DABS(DX(IX)).GT.DMAX) THEN
+               IDAMAX = I
+               DMAX = DABS(DX(IX))
+            END IF
+            IX = IX + INCX
+         END DO
+      END IF
       RETURN
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       SUBROUTINE DAXPY(N,DA,DX,INCX,DY,INCY)
-C
-C     CONSTANT TIMES A VECTOR PLUS A VECTOR.
-C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DX(1),DY(1),DA
-      INTEGER I,INCX,INCY,M,MP1,N
-C
-      IF(N.LE.0)RETURN
-      IF (DA .EQ. 0.0D0) RETURN
-      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
-C
-C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
-C          NOT EQUAL TO 1
-C
-      IX = 1
-      IY = 1
-      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
-      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-        DY(IY) = DY(IY) + DA*DX(IX)
-        IX = IX + INCX
-        IY = IY + INCY
-   10 CONTINUE
-      RETURN
-C
-C        CODE FOR BOTH INCREMENTS EQUAL TO 1
-C
-C
-C        CLEAN-UP LOOP
-C
-   20 M = MOD(N,4)
-      IF( M .EQ. 0 ) GO TO 40
-      DO 30 I = 1,M
-        DY(I) = DY(I) + DA*DX(I)
-   30 CONTINUE
-      IF( N .LT. 4 ) RETURN
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,4
-        DY(I) = DY(I) + DA*DX(I)
-        DY(I + 1) = DY(I + 1) + DA*DX(I + 1)
-        DY(I + 2) = DY(I + 2) + DA*DX(I + 2)
-        DY(I + 3) = DY(I + 3) + DA*DX(I + 3)
-   50 CONTINUE
-      RETURN
-      END
-C
-C-----------------------------------------------------------------------
-C-----------------------------------------------------------------------
-      SUBROUTINE  DROT (N,DX,INCX,DY,INCY,C,S)
-C
-C     APPLIES A PLANE ROTATION.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DX(1),DY(1),DTEMP,C,S
-      INTEGER I,INCX,INCY,IX,IY,N
-C
-      IF(N.LE.0)RETURN
-      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
-C
-C       CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS NOT EQUAL
-C         TO 1
-C
-      IX = 1
-      IY = 1
-      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
-      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-        DTEMP = C*DX(IX) + S*DY(IY)
-        DY(IY) = C*DY(IY) - S*DX(IX)
-        DX(IX) = DTEMP
-        IX = IX + INCX
-        IY = IY + INCY
-   10 CONTINUE
-      RETURN
-C
-C       CODE FOR BOTH INCREMENTS EQUAL TO 1
-C
-   20 DO 30 I = 1,N
-        DTEMP = C*DX(I) + S*DY(I)
-        DY(I) = C*DY(I) - S*DX(I)
-        DX(I) = DTEMP
-   30 CONTINUE
+*     .. Scalar Arguments ..
+      DOUBLE PRECISION DA
+      INTEGER INCX,INCY,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*),DY(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     DAXPY constant times a vector plus a vector.
+*     uses unrolled loops for increments equal to one.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      INTEGER I,IX,IY,M,MP1
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MOD
+*     ..
+      IF (N.LE.0) RETURN
+      IF (DA.EQ.0.0d0) RETURN
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+*
+*        code for both increments equal to 1
+*
+*
+*        clean-up loop
+*
+         M = MOD(N,4)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DY(I) = DY(I) + DA*DX(I)
+            END DO
+         END IF
+         IF (N.LT.4) RETURN
+         MP1 = M + 1
+         DO I = MP1,N,4
+            DY(I) = DY(I) + DA*DX(I)
+            DY(I+1) = DY(I+1) + DA*DX(I+1)
+            DY(I+2) = DY(I+2) + DA*DX(I+2)
+            DY(I+3) = DY(I+3) + DA*DX(I+3)
+         END DO
+      ELSE
+*
+*        code for unequal increments or equal increments
+*          not equal to 1
+*
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+          DY(IY) = DY(IY) + DA*DX(IX)
+          IX = IX + INCX
+          IY = IY + INCY
+         END DO
+      END IF
       RETURN
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      SUBROUTINE  DSWAP (N,DX,INCX,DY,INCY)
-C
-C     INTERCHANGES TWO VECTORS.
-C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL ONE.
-C     JACK DONGARRA, LINPACK, 3/11/78.
-C
-      DOUBLE PRECISION DX(1),DY(1),DTEMP
-      INTEGER I,INCX,INCY,IX,IY,M,MP1,N
-C
-      IF(N.LE.0)RETURN
-      IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
-C
-C       CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS NOT EQUAL
-C         TO 1
-C
-      IX = 1
-      IY = 1
-      IF(INCX.LT.0)IX = (-N+1)*INCX + 1
-      IF(INCY.LT.0)IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-        DTEMP = DX(IX)
-        DX(IX) = DY(IY)
-        DY(IY) = DTEMP
-        IX = IX + INCX
-        IY = IY + INCY
-   10 CONTINUE
+      SUBROUTINE DROT(N,DX,INCX,DY,INCY,C,S)
+*     .. Scalar Arguments ..
+      DOUBLE PRECISION C,S
+      INTEGER INCX,INCY,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*),DY(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     DROT applies a plane rotation.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      DOUBLE PRECISION DTEMP
+      INTEGER I,IX,IY
+*     ..
+      IF (N.LE.0) RETURN
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+*
+*       code for both increments equal to 1
+*
+         DO I = 1,N
+            DTEMP = C*DX(I) + S*DY(I)
+            DY(I) = C*DY(I) - S*DX(I)
+            DX(I) = DTEMP
+         END DO
+      ELSE
+*
+*       code for unequal increments or equal increments not equal
+*         to 1
+*
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+            DTEMP = C*DX(IX) + S*DY(IY)
+            DY(IY) = C*DY(IY) - S*DX(IX)
+            DX(IX) = DTEMP
+            IX = IX + INCX
+            IY = IY + INCY
+         END DO
+      END IF
       RETURN
+      END
 C
-C       CODE FOR BOTH INCREMENTS EQUAL TO 1
-C
-C
-C       CLEAN-UP LOOP
-C
-   20 M = MOD(N,3)
-      IF( M .EQ. 0 ) GO TO 40
-      DO 30 I = 1,M
-        DTEMP = DX(I)
-        DX(I) = DY(I)
-        DY(I) = DTEMP
-   30 CONTINUE
-      IF( N .LT. 3 ) RETURN
-   40 MP1 = M + 1
-      DO 50 I = MP1,N,3
-        DTEMP = DX(I)
-        DX(I) = DY(I)
-        DY(I) = DTEMP
-        DTEMP = DX(I + 1)
-        DX(I + 1) = DY(I + 1)
-        DY(I + 1) = DTEMP
-        DTEMP = DX(I + 2)
-        DX(I + 2) = DY(I + 2)
-        DY(I + 2) = DTEMP
-   50 CONTINUE
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+      SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
+*     .. Scalar Arguments ..
+      INTEGER INCX,INCY,N
+*     ..
+*     .. Array Arguments ..
+      DOUBLE PRECISION DX(*),DY(*)
+*     ..
+*
+*  Purpose
+*  =======
+*
+*     interchanges two vectors.
+*     uses unrolled loops for increments equal one.
+*
+*  Further Details
+*  ===============
+*
+*     jack dongarra, linpack, 3/11/78.
+*     modified 12/3/93, array(1) declarations changed to array(*)
+*
+*  =====================================================================
+*
+*     .. Local Scalars ..
+      DOUBLE PRECISION DTEMP
+      INTEGER I,IX,IY,M,MP1
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MOD
+*     ..
+      IF (N.LE.0) RETURN
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+*
+*       code for both increments equal to 1
+*
+*
+*       clean-up loop
+*
+         M = MOD(N,3)
+         IF (M.NE.0) THEN
+            DO I = 1,M
+               DTEMP = DX(I)
+               DX(I) = DY(I)
+               DY(I) = DTEMP
+            END DO
+            IF (N.LT.3) RETURN
+         END IF
+         MP1 = M + 1
+         DO I = MP1,N,3
+            DTEMP = DX(I)
+            DX(I) = DY(I)
+            DY(I) = DTEMP
+            DTEMP = DX(I+1)
+            DX(I+1) = DY(I+1)
+            DY(I+1) = DTEMP
+            DTEMP = DX(I+2)
+            DX(I+2) = DY(I+2)
+            DY(I+2) = DTEMP
+         END DO
+      ELSE
+*
+*       code for unequal increments or equal increments not equal
+*         to 1
+*
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+            DTEMP = DX(IX)
+            DX(IX) = DY(IY)
+            DY(IY) = DTEMP
+            IX = IX + INCX
+            IY = IY + INCY
+         END DO
+      END IF
       RETURN
       END
 C
@@ -628,141 +780,140 @@ C-----------------------------------------------------------------------
 C  BLAS-2 routines needed in the computation of Floquet multipliers
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      SUBROUTINE XERBLA ( SRNAME, INFO )
-*     ..    Scalar Arguments ..
+      SUBROUTINE XERBLA( SRNAME, INFO )
+*
+*  -- LAPACK auxiliary routine (preliminary version) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
+*
+*     .. Scalar Arguments ..
+      CHARACTER*(*)      SRNAME
       INTEGER            INFO
-      CHARACTER*6        SRNAME
 *     ..
 *
 *  Purpose
 *  =======
 *
-*  XERBLA  is an error handler for the Level 2 BLAS routines.
+*  XERBLA  is an error handler for the LAPACK routines.
+*  It is called by an LAPACK routine if an input parameter has an
+*  invalid value.  A message is printed and execution stops.
 *
-*  It is called by the Level 2 BLAS routines if an input parameter is
-*  invalid.
-*
-*  Installers should consider modifying the STOP statement in order to
+*  Installers may consider modifying the STOP statement in order to
 *  call system-specific exception-handling facilities.
 *
-*  Parameters
-*  ==========
+*  Arguments
+*  =========
 *
-*  SRNAME - CHARACTER*6.
-*           On entry, SRNAME specifies the name of the routine which
-*           called XERBLA.
+*  SRNAME  (input) CHARACTER*(*)
+*          The name of the routine which called XERBLA.
 *
-*  INFO   - INTEGER.
-*           On entry, INFO specifies the position of the invalid
-*           parameter in the parameter-list of the calling routine.
+*  INFO    (input) INTEGER
+*          The position of the invalid parameter in the parameter list
+*          of the calling routine.
 *
+* =====================================================================
 *
-*  Auxiliary routine for Level 2 Blas.
-*
-*  Written on 20-July-1986.
-*
+*     .. Intrinsic Functions ..
+      INTRINSIC          LEN_TRIM
+*     ..
 *     .. Executable Statements ..
 *
-      WRITE (*,99999) SRNAME, INFO
+      WRITE( *, FMT = 9999 )SRNAME( 1:LEN_TRIM( SRNAME ) ), INFO
 *
       STOP
 *
-99999 FORMAT ( ' ** On entry to ', A6, ' parameter number ', I2,
-     $         ' had an illegal value' )
+ 9999 FORMAT( ' ** On entry to ', A, ' parameter number ', I2, ' had ',
+     $      'an illegal value' )
 *
-*     End of XERBLA.
+*     End of XERBLA
 *
       END
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      LOGICAL FUNCTION LSAME ( CA, CB )
+      LOGICAL FUNCTION LSAME(CA,CB)
+*
+*  -- LAPACK auxiliary routine (version 3.1) --
+*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+*     November 2006
+*
 *     .. Scalar Arguments ..
-      CHARACTER*1            CA, CB
+      CHARACTER CA,CB
 *     ..
 *
 *  Purpose
 *  =======
 *
-*  LSAME  tests if CA is the same letter as CB regardless of case.
-*  CB is assumed to be an upper case letter. LSAME returns .TRUE. if
-*  CA is either the same as CB or the equivalent lower case letter.
+*  LSAME returns .TRUE. if CA is the same letter as CB regardless of
+*  case.
 *
-*  N.B. This version of the routine is only correct for ASCII code.
-*       Installers must modify the routine for other character-codes.
+*  Arguments
+*  =========
 *
-*       For EBCDIC systems the constant IOFF must be changed to -64.
-*       For CDC systems using 6-12 bit representations, the system-
-*       specific code in comments must be activated.
+*  CA      (input) CHARACTER*1
 *
-*  Parameters
-*  ==========
+*  CB      (input) CHARACTER*1
+*          CA and CB specify the single characters to be compared.
 *
-*  CA     - CHARACTER*1
-*  CB     - CHARACTER*1
-*           On entry, CA and CB specify characters to be compared.
-*           Unchanged on exit.
+* =====================================================================
 *
-*
-*  Auxiliary routine for Level 2 Blas.
-*
-*  -- Written on 20-July-1986
-*     Richard Hanson, Sandia National Labs.
-*     Jeremy Du Croz, Nag Central Office.
-*
-*     .. Parameters ..
-      INTEGER                IOFF
-      PARAMETER            ( IOFF=32 )
 *     .. Intrinsic Functions ..
-      INTRINSIC              ICHAR
-*     .. Executable Statements ..
+      INTRINSIC ICHAR
+*     ..
+*     .. Local Scalars ..
+      INTEGER INTA,INTB,ZCODE
+*     ..
 *
 *     Test if the characters are equal
 *
       LSAME = CA .EQ. CB
+      IF (LSAME) RETURN
 *
-*     Now test for equivalence
+*     Now test for equivalence if both characters are alphabetic.
 *
-      IF ( .NOT.LSAME ) THEN
-         LSAME = ICHAR(CA) - IOFF .EQ. ICHAR(CB)
+      ZCODE = ICHAR('Z')
+*
+*     Use 'Z' rather than 'A' so that ASCII can be detected on Prime
+*     machines, on which ICHAR returns a value with bit 8 set.
+*     ICHAR('A') on Prime machines returns 193 which is the same as
+*     ICHAR('A') on an EBCDIC machine.
+*
+      INTA = ICHAR(CA)
+      INTB = ICHAR(CB)
+*
+      IF (ZCODE.EQ.90 .OR. ZCODE.EQ.122) THEN
+*
+*        ASCII is assumed - ZCODE is the ASCII code of either lower or
+*        upper case 'Z'.
+*
+          IF (INTA.GE.97 .AND. INTA.LE.122) INTA = INTA - 32
+          IF (INTB.GE.97 .AND. INTB.LE.122) INTB = INTB - 32
+*
+      ELSE IF (ZCODE.EQ.233 .OR. ZCODE.EQ.169) THEN
+*
+*        EBCDIC is assumed - ZCODE is the EBCDIC code of either lower or
+*        upper case 'Z'.
+*
+          IF (INTA.GE.129 .AND. INTA.LE.137 .OR.
+     +        INTA.GE.145 .AND. INTA.LE.153 .OR.
+     +        INTA.GE.162 .AND. INTA.LE.169) INTA = INTA + 64
+          IF (INTB.GE.129 .AND. INTB.LE.137 .OR.
+     +        INTB.GE.145 .AND. INTB.LE.153 .OR.
+     +        INTB.GE.162 .AND. INTB.LE.169) INTB = INTB + 64
+*
+      ELSE IF (ZCODE.EQ.218 .OR. ZCODE.EQ.250) THEN
+*
+*        ASCII is assumed, on Prime machines - ZCODE is the ASCII code
+*        plus 128 of either lower or upper case 'Z'.
+*
+          IF (INTA.GE.225 .AND. INTA.LE.250) INTA = INTA - 32
+          IF (INTB.GE.225 .AND. INTB.LE.250) INTB = INTB - 32
       END IF
-*
-      RETURN
-*
-*  The following comments contain code for CDC systems using 6-12 bit
-*  representations.
-*
-*     .. Parameters ..
-*     INTEGER                ICIRFX
-*     PARAMETER            ( ICIRFX=62 )
-*     .. Scalar Arguments ..
-*     CHARACTER*1            CB
-*     .. Array Arguments ..
-*     CHARACTER*1            CA(*)
-*     .. Local Scalars ..
-*     INTEGER                IVAL
-*     .. Intrinsic Functions ..
-*     INTRINSIC              ICHAR, CHAR
-*     .. Executable Statements ..
-*
-*     See if the first character in string CA equals string CB.
-*
-*     LSAME = CA(1) .EQ. CB .AND. CA(1) .NE. CHAR(ICIRFX)
-*
-*     IF (LSAME) RETURN
-*
-*     The characters are not identical. Now check them for equivalence.
-*     Look for the 'escape' character, circumflex, followed by the
-*     letter.
-*
-*     IVAL = ICHAR(CA(2))
-*     IF (IVAL.GE.ICHAR('A') .AND. IVAL.LE.ICHAR('Z')) THEN
-*        LSAME = CA(1) .EQ. CHAR(ICIRFX) .AND. CA(2) .EQ. CB
-*     END IF
+      LSAME = INTA .EQ. INTB
 *
 *     RETURN
 *
-*     End of LSAME.
+*     End of LSAME
 *
       END
 C
@@ -783,7 +934,7 @@ C-----------------------------------------------------------------------
 *
 *  DGEMV  performs one of the matrix-vector operations
 *
-*     y := alpha*A*x + beta*y,   or   y := alpha*A'*x + beta*y,
+*     y := alpha*A*x + beta*y,   or   y := alpha*A**T*x + beta*y,
 *
 *  where alpha and beta are scalars, x and y are vectors and A is an
 *  m by n matrix.
@@ -797,9 +948,9 @@ C-----------------------------------------------------------------------
 *
 *              TRANS = 'N' or 'n'   y := alpha*A*x + beta*y.
 *
-*              TRANS = 'T' or 't'   y := alpha*A'*x + beta*y.
+*              TRANS = 'T' or 't'   y := alpha*A**T*x + beta*y.
 *
-*              TRANS = 'C' or 'c'   y := alpha*A'*x + beta*y.
+*              TRANS = 'C' or 'c'   y := alpha*A**T*x + beta*y.
 *
 *           Unchanged on exit.
 *
@@ -859,8 +1010,11 @@ C-----------------------------------------------------------------------
 *           Y. INCY must not be zero.
 *           Unchanged on exit.
 *
+*  Further Details
+*  ===============
 *
 *  Level 2 Blas routine.
+*  The vector and matrix arguments are not referenced when N = 0, or M = 0
 *
 *  -- Written on 22-October-1986.
 *     Jack Dongarra, Argonne National Lab.
@@ -868,6 +1022,7 @@ C-----------------------------------------------------------------------
 *     Sven Hammarling, Nag Central Office.
 *     Richard Hanson, Sandia National Labs.
 *
+*  =====================================================================
 *
 *     .. Parameters ..
       DOUBLE PRECISION ONE,ZERO
@@ -998,7 +1153,7 @@ C-----------------------------------------------------------------------
           END IF
       ELSE
 *
-*        Form  y := alpha*A'*x + y.
+*        Form  y := alpha*A**T*x + y.
 *
           JY = KY
           IF (INCX.EQ.1) THEN
@@ -1046,7 +1201,7 @@ C-----------------------------------------------------------------------
 *
 *  DTRMV  performs one of the matrix-vector operations
 *
-*     x := A*x,   or   x := A'*x,
+*     x := A*x,   or   x := A**T*x,
 *
 *  where x is an n element vector and  A is an n by n unit, or non-unit,
 *  upper or lower triangular matrix.
@@ -1070,9 +1225,9 @@ C-----------------------------------------------------------------------
 *
 *              TRANS = 'N' or 'n'   x := A*x.
 *
-*              TRANS = 'T' or 't'   x := A'*x.
+*              TRANS = 'T' or 't'   x := A**T*x.
 *
-*              TRANS = 'C' or 'c'   x := A'*x.
+*              TRANS = 'C' or 'c'   x := A**T*x.
 *
 *           Unchanged on exit.
 *
@@ -1122,8 +1277,11 @@ C-----------------------------------------------------------------------
 *           X. INCX must not be zero.
 *           Unchanged on exit.
 *
+*  Further Details
+*  ===============
 *
 *  Level 2 Blas routine.
+*  The vector and matrix arguments are not referenced when N = 0, or M = 0
 *
 *  -- Written on 22-October-1986.
 *     Jack Dongarra, Argonne National Lab.
@@ -1131,6 +1289,7 @@ C-----------------------------------------------------------------------
 *     Sven Hammarling, Nag Central Office.
 *     Richard Hanson, Sandia National Labs.
 *
+*  =====================================================================
 *
 *     .. Parameters ..
       DOUBLE PRECISION ZERO
@@ -1252,7 +1411,7 @@ C-----------------------------------------------------------------------
           END IF
       ELSE
 *
-*        Form  x := A'*x.
+*        Form  x := A**T*x.
 *
           IF (LSAME(UPLO,'U')) THEN
               IF (INCX.EQ.1) THEN
@@ -1313,12 +1472,13 @@ C-----------------------------------------------------------------------
 C
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      SUBROUTINE DGER  ( M, N, ALPHA, X, INCX, Y, INCY, A, LDA )
+      SUBROUTINE DGER(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
 *     .. Scalar Arguments ..
-      DOUBLE PRECISION   ALPHA
-      INTEGER            INCX, INCY, LDA, M, N
+      DOUBLE PRECISION ALPHA
+      INTEGER INCX,INCY,LDA,M,N
+*     ..
 *     .. Array Arguments ..
-      DOUBLE PRECISION   A( LDA, * ), X( * ), Y( * )
+      DOUBLE PRECISION A(LDA,*),X(*),Y(*)
 *     ..
 *
 *  Purpose
@@ -1326,12 +1486,12 @@ C-----------------------------------------------------------------------
 *
 *  DGER   performs the rank 1 operation
 *
-*     A := alpha*x*y' + A,
+*     A := alpha*x*y**T + A,
 *
 *  where alpha is a scalar, x is an m element vector, y is an n element
 *  vector and A is an m by n matrix.
 *
-*  Parameters
+*  Arguments
 *  ==========
 *
 *  M      - INTEGER.
@@ -1381,6 +1541,8 @@ C-----------------------------------------------------------------------
 *           max( 1, m ).
 *           Unchanged on exit.
 *
+*  Further Details
+*  ===============
 *
 *  Level 2 Blas routine.
 *
@@ -1390,79 +1552,81 @@ C-----------------------------------------------------------------------
 *     Sven Hammarling, Nag Central Office.
 *     Richard Hanson, Sandia National Labs.
 *
+*  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ZERO
-      PARAMETER        ( ZERO = 0.0D+0 )
-*     .. Local Scalars ..
-      DOUBLE PRECISION   TEMP
-      INTEGER            I, INFO, IX, J, JY, KX
-*     .. External Subroutines ..
-      EXTERNAL           XERBLA
-*     .. Intrinsic Functions ..
-      INTRINSIC          MAX
+      DOUBLE PRECISION ZERO
+      PARAMETER (ZERO=0.0D+0)
 *     ..
-*     .. Executable Statements ..
+*     .. Local Scalars ..
+      DOUBLE PRECISION TEMP
+      INTEGER I,INFO,IX,J,JY,KX
+*     ..
+*     .. External Subroutines ..
+      EXTERNAL XERBLA
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MAX
+*     ..
 *
 *     Test the input parameters.
 *
       INFO = 0
-      IF     ( M.LT.0 )THEN
-         INFO = 1
-      ELSE IF( N.LT.0 )THEN
-         INFO = 2
-      ELSE IF( INCX.EQ.0 )THEN
-         INFO = 5
-      ELSE IF( INCY.EQ.0 )THEN
-         INFO = 7
-      ELSE IF( LDA.LT.MAX( 1, M ) )THEN
-         INFO = 9
+      IF (M.LT.0) THEN
+          INFO = 1
+      ELSE IF (N.LT.0) THEN
+          INFO = 2
+      ELSE IF (INCX.EQ.0) THEN
+          INFO = 5
+      ELSE IF (INCY.EQ.0) THEN
+          INFO = 7
+      ELSE IF (LDA.LT.MAX(1,M)) THEN
+          INFO = 9
       END IF
-      IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'DGER  ', INFO )
-         RETURN
+      IF (INFO.NE.0) THEN
+          CALL XERBLA('DGER  ',INFO)
+          RETURN
       END IF
 *
 *     Quick return if possible.
 *
-      IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.( ALPHA.EQ.ZERO ) )
-     $   RETURN
+      IF ((M.EQ.0) .OR. (N.EQ.0) .OR. (ALPHA.EQ.ZERO)) RETURN
 *
 *     Start the operations. In this version the elements of A are
 *     accessed sequentially with one pass through A.
 *
-      IF( INCY.GT.0 )THEN
-         JY = 1
+      IF (INCY.GT.0) THEN
+          JY = 1
       ELSE
-         JY = 1 - ( N - 1 )*INCY
+          JY = 1 - (N-1)*INCY
       END IF
-      IF( INCX.EQ.1 )THEN
-         DO 20, J = 1, N
-            IF( Y( JY ).NE.ZERO )THEN
-               TEMP = ALPHA*Y( JY )
-               DO 10, I = 1, M
-                  A( I, J ) = A( I, J ) + X( I )*TEMP
-   10          CONTINUE
-            END IF
-            JY = JY + INCY
-   20    CONTINUE
+      IF (INCX.EQ.1) THEN
+          DO 20 J = 1,N
+              IF (Y(JY).NE.ZERO) THEN
+                  TEMP = ALPHA*Y(JY)
+                  DO 10 I = 1,M
+                      A(I,J) = A(I,J) + X(I)*TEMP
+   10             CONTINUE
+              END IF
+              JY = JY + INCY
+   20     CONTINUE
       ELSE
-         IF( INCX.GT.0 )THEN
-            KX = 1
-         ELSE
-            KX = 1 - ( M - 1 )*INCX
-         END IF
-         DO 40, J = 1, N
-            IF( Y( JY ).NE.ZERO )THEN
-               TEMP = ALPHA*Y( JY )
-               IX   = KX
-               DO 30, I = 1, M
-                  A( I, J ) = A( I, J ) + X( IX )*TEMP
-                  IX        = IX        + INCX
-   30          CONTINUE
-            END IF
-            JY = JY + INCY
-   40    CONTINUE
+          IF (INCX.GT.0) THEN
+              KX = 1
+          ELSE
+              KX = 1 - (M-1)*INCX
+          END IF
+          DO 40 J = 1,N
+              IF (Y(JY).NE.ZERO) THEN
+                  TEMP = ALPHA*Y(JY)
+                  IX = KX
+                  DO 30 I = 1,M
+                      A(I,J) = A(I,J) + X(IX)*TEMP
+                      IX = IX + INCX
+   30             CONTINUE
+              END IF
+              JY = JY + INCY
+   40     CONTINUE
       END IF
 *
       RETURN
@@ -1476,14 +1640,14 @@ C-----------------------------------------------------------------------
 C  BLAS-3 routines needed in the computation of Floquet multipliers
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      SUBROUTINE DGEMM ( TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
-     $                   BETA, C, LDC )
+      SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
 *     .. Scalar Arguments ..
-      CHARACTER*1        TRANSA, TRANSB
-      INTEGER            M, N, K, LDA, LDB, LDC
-      DOUBLE PRECISION   ALPHA, BETA
+      DOUBLE PRECISION ALPHA,BETA
+      INTEGER K,LDA,LDB,LDC,M,N
+      CHARACTER TRANSA,TRANSB
+*     ..
 *     .. Array Arguments ..
-      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * )
+      DOUBLE PRECISION A(LDA,*),B(LDB,*),C(LDC,*)
 *     ..
 *
 *  Purpose
@@ -1495,12 +1659,12 @@ C-----------------------------------------------------------------------
 *
 *  where  op( X ) is one of
 *
-*     op( X ) = X   or   op( X ) = X',
+*     op( X ) = X   or   op( X ) = X**T,
 *
 *  alpha and beta are scalars, and A, B and C are matrices, with op( A )
 *  an m by k matrix,  op( B )  a  k by n matrix and  C an m by n matrix.
 *
-*  Parameters
+*  Arguments
 *  ==========
 *
 *  TRANSA - CHARACTER*1.
@@ -1509,9 +1673,9 @@ C-----------------------------------------------------------------------
 *
 *              TRANSA = 'N' or 'n',  op( A ) = A.
 *
-*              TRANSA = 'T' or 't',  op( A ) = A'.
+*              TRANSA = 'T' or 't',  op( A ) = A**T.
 *
-*              TRANSA = 'C' or 'c',  op( A ) = A'.
+*              TRANSA = 'C' or 'c',  op( A ) = A**T.
 *
 *           Unchanged on exit.
 *
@@ -1521,9 +1685,9 @@ C-----------------------------------------------------------------------
 *
 *              TRANSB = 'N' or 'n',  op( B ) = B.
 *
-*              TRANSB = 'T' or 't',  op( B ) = B'.
+*              TRANSB = 'T' or 't',  op( B ) = B**T.
 *
-*              TRANSB = 'C' or 'c',  op( B ) = B'.
+*              TRANSB = 'C' or 'c',  op( B ) = B**T.
 *
 *           Unchanged on exit.
 *
@@ -1596,6 +1760,8 @@ C-----------------------------------------------------------------------
 *           max( 1, m ).
 *           Unchanged on exit.
 *
+*  Further Details
+*  ===============
 *
 *  Level 3 Blas routine.
 *
@@ -1605,183 +1771,184 @@ C-----------------------------------------------------------------------
 *     Jeremy Du Croz, Numerical Algorithms Group Ltd.
 *     Sven Hammarling, Numerical Algorithms Group Ltd.
 *
+*  =====================================================================
 *
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-*     .. External Subroutines ..
-      EXTERNAL           XERBLA
-*     .. Intrinsic Functions ..
-      INTRINSIC          MAX
-*     .. Local Scalars ..
-      LOGICAL            NOTA, NOTB
-      INTEGER            I, INFO, J, L, NCOLA, NROWA, NROWB
-      DOUBLE PRECISION   TEMP
-*     .. Parameters ..
-      DOUBLE PRECISION   ONE         , ZERO
-      PARAMETER        ( ONE = 1.0D+0, ZERO = 0.0D+0 )
+      LOGICAL LSAME
+      EXTERNAL LSAME
 *     ..
-*     .. Executable Statements ..
+*     .. External Subroutines ..
+      EXTERNAL XERBLA
+*     ..
+*     .. Intrinsic Functions ..
+      INTRINSIC MAX
+*     ..
+*     .. Local Scalars ..
+      DOUBLE PRECISION TEMP
+      INTEGER I,INFO,J,L,NCOLA,NROWA,NROWB
+      LOGICAL NOTA,NOTB
+*     ..
+*     .. Parameters ..
+      DOUBLE PRECISION ONE,ZERO
+      PARAMETER (ONE=1.0D+0,ZERO=0.0D+0)
+*     ..
 *
 *     Set  NOTA  and  NOTB  as  true if  A  and  B  respectively are not
 *     transposed and set  NROWA, NCOLA and  NROWB  as the number of rows
 *     and  columns of  A  and the  number of  rows  of  B  respectively.
 *
-      NOTA  = LSAME( TRANSA, 'N' )
-      NOTB  = LSAME( TRANSB, 'N' )
-      IF( NOTA )THEN
-         NROWA = M
-         NCOLA = K
+      NOTA = LSAME(TRANSA,'N')
+      NOTB = LSAME(TRANSB,'N')
+      IF (NOTA) THEN
+          NROWA = M
+          NCOLA = K
       ELSE
-         NROWA = K
-         NCOLA = M
+          NROWA = K
+          NCOLA = M
       END IF
-      IF( NOTB )THEN
-         NROWB = K
+      IF (NOTB) THEN
+          NROWB = K
       ELSE
-         NROWB = N
+          NROWB = N
       END IF
 *
 *     Test the input parameters.
 *
       INFO = 0
-      IF(      ( .NOT.NOTA                 ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'C' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) )      )THEN
-         INFO = 1
-      ELSE IF( ( .NOT.NOTB                 ).AND.
-     $         ( .NOT.LSAME( TRANSB, 'C' ) ).AND.
-     $         ( .NOT.LSAME( TRANSB, 'T' ) )      )THEN
-         INFO = 2
-      ELSE IF( M  .LT.0               )THEN
-         INFO = 3
-      ELSE IF( N  .LT.0               )THEN
-         INFO = 4
-      ELSE IF( K  .LT.0               )THEN
-         INFO = 5
-      ELSE IF( LDA.LT.MAX( 1, NROWA ) )THEN
-         INFO = 8
-      ELSE IF( LDB.LT.MAX( 1, NROWB ) )THEN
-         INFO = 10
-      ELSE IF( LDC.LT.MAX( 1, M     ) )THEN
-         INFO = 13
+      IF ((.NOT.NOTA) .AND. (.NOT.LSAME(TRANSA,'C')) .AND.
+     +    (.NOT.LSAME(TRANSA,'T'))) THEN
+          INFO = 1
+      ELSE IF ((.NOT.NOTB) .AND. (.NOT.LSAME(TRANSB,'C')) .AND.
+     +         (.NOT.LSAME(TRANSB,'T'))) THEN
+          INFO = 2
+      ELSE IF (M.LT.0) THEN
+          INFO = 3
+      ELSE IF (N.LT.0) THEN
+          INFO = 4
+      ELSE IF (K.LT.0) THEN
+          INFO = 5
+      ELSE IF (LDA.LT.MAX(1,NROWA)) THEN
+          INFO = 8
+      ELSE IF (LDB.LT.MAX(1,NROWB)) THEN
+          INFO = 10
+      ELSE IF (LDC.LT.MAX(1,M)) THEN
+          INFO = 13
       END IF
-      IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'DGEMM ', INFO )
-         RETURN
+      IF (INFO.NE.0) THEN
+          CALL XERBLA('DGEMM ',INFO)
+          RETURN
       END IF
 *
 *     Quick return if possible.
 *
-      IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.
-     $    ( ( ( ALPHA.EQ.ZERO ).OR.( K.EQ.0 ) ).AND.( BETA.EQ.ONE ) ) )
-     $   RETURN
+      IF ((M.EQ.0) .OR. (N.EQ.0) .OR.
+     +    (((ALPHA.EQ.ZERO).OR. (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
 *
 *     And if  alpha.eq.zero.
 *
-      IF( ALPHA.EQ.ZERO )THEN
-         IF( BETA.EQ.ZERO )THEN
-            DO 20, J = 1, N
-               DO 10, I = 1, M
-                  C( I, J ) = ZERO
-   10          CONTINUE
-   20       CONTINUE
-         ELSE
-            DO 40, J = 1, N
-               DO 30, I = 1, M
-                  C( I, J ) = BETA*C( I, J )
-   30          CONTINUE
-   40       CONTINUE
-         END IF
-         RETURN
+      IF (ALPHA.EQ.ZERO) THEN
+          IF (BETA.EQ.ZERO) THEN
+              DO 20 J = 1,N
+                  DO 10 I = 1,M
+                      C(I,J) = ZERO
+   10             CONTINUE
+   20         CONTINUE
+          ELSE
+              DO 40 J = 1,N
+                  DO 30 I = 1,M
+                      C(I,J) = BETA*C(I,J)
+   30             CONTINUE
+   40         CONTINUE
+          END IF
+          RETURN
       END IF
 *
 *     Start the operations.
 *
-      IF( NOTB )THEN
-         IF( NOTA )THEN
+      IF (NOTB) THEN
+          IF (NOTA) THEN
 *
 *           Form  C := alpha*A*B + beta*C.
 *
-            DO 90, J = 1, N
-               IF( BETA.EQ.ZERO )THEN
-                  DO 50, I = 1, M
-                     C( I, J ) = ZERO
-   50             CONTINUE
-               ELSE IF( BETA.NE.ONE )THEN
-                  DO 60, I = 1, M
-                     C( I, J ) = BETA*C( I, J )
-   60             CONTINUE
-               END IF
-               DO 80, L = 1, K
-                  IF( B( L, J ).NE.ZERO )THEN
-                     TEMP = ALPHA*B( L, J )
-                     DO 70, I = 1, M
-                        C( I, J ) = C( I, J ) + TEMP*A( I, L )
-   70                CONTINUE
+              DO 90 J = 1,N
+                  IF (BETA.EQ.ZERO) THEN
+                      DO 50 I = 1,M
+                          C(I,J) = ZERO
+   50                 CONTINUE
+                  ELSE IF (BETA.NE.ONE) THEN
+                      DO 60 I = 1,M
+                          C(I,J) = BETA*C(I,J)
+   60                 CONTINUE
                   END IF
-   80          CONTINUE
-   90       CONTINUE
-         ELSE
+                  DO 80 L = 1,K
+                      IF (B(L,J).NE.ZERO) THEN
+                          TEMP = ALPHA*B(L,J)
+                          DO 70 I = 1,M
+                              C(I,J) = C(I,J) + TEMP*A(I,L)
+   70                     CONTINUE
+                      END IF
+   80             CONTINUE
+   90         CONTINUE
+          ELSE
 *
-*           Form  C := alpha*A'*B + beta*C
+*           Form  C := alpha*A**T*B + beta*C
 *
-            DO 120, J = 1, N
-               DO 110, I = 1, M
-                  TEMP = ZERO
-                  DO 100, L = 1, K
-                     TEMP = TEMP + A( L, I )*B( L, J )
-  100             CONTINUE
-                  IF( BETA.EQ.ZERO )THEN
-                     C( I, J ) = ALPHA*TEMP
-                  ELSE
-                     C( I, J ) = ALPHA*TEMP + BETA*C( I, J )
-                  END IF
-  110          CONTINUE
-  120       CONTINUE
-         END IF
+              DO 120 J = 1,N
+                  DO 110 I = 1,M
+                      TEMP = ZERO
+                      DO 100 L = 1,K
+                          TEMP = TEMP + A(L,I)*B(L,J)
+  100                 CONTINUE
+                      IF (BETA.EQ.ZERO) THEN
+                          C(I,J) = ALPHA*TEMP
+                      ELSE
+                          C(I,J) = ALPHA*TEMP + BETA*C(I,J)
+                      END IF
+  110             CONTINUE
+  120         CONTINUE
+          END IF
       ELSE
-         IF( NOTA )THEN
+          IF (NOTA) THEN
 *
-*           Form  C := alpha*A*B' + beta*C
+*           Form  C := alpha*A*B**T + beta*C
 *
-            DO 170, J = 1, N
-               IF( BETA.EQ.ZERO )THEN
-                  DO 130, I = 1, M
-                     C( I, J ) = ZERO
-  130             CONTINUE
-               ELSE IF( BETA.NE.ONE )THEN
-                  DO 140, I = 1, M
-                     C( I, J ) = BETA*C( I, J )
-  140             CONTINUE
-               END IF
-               DO 160, L = 1, K
-                  IF( B( J, L ).NE.ZERO )THEN
-                     TEMP = ALPHA*B( J, L )
-                     DO 150, I = 1, M
-                        C( I, J ) = C( I, J ) + TEMP*A( I, L )
-  150                CONTINUE
+              DO 170 J = 1,N
+                  IF (BETA.EQ.ZERO) THEN
+                      DO 130 I = 1,M
+                          C(I,J) = ZERO
+  130                 CONTINUE
+                  ELSE IF (BETA.NE.ONE) THEN
+                      DO 140 I = 1,M
+                          C(I,J) = BETA*C(I,J)
+  140                 CONTINUE
                   END IF
-  160          CONTINUE
-  170       CONTINUE
-         ELSE
+                  DO 160 L = 1,K
+                      IF (B(J,L).NE.ZERO) THEN
+                          TEMP = ALPHA*B(J,L)
+                          DO 150 I = 1,M
+                              C(I,J) = C(I,J) + TEMP*A(I,L)
+  150                     CONTINUE
+                      END IF
+  160             CONTINUE
+  170         CONTINUE
+          ELSE
 *
-*           Form  C := alpha*A'*B' + beta*C
+*           Form  C := alpha*A**T*B**T + beta*C
 *
-            DO 200, J = 1, N
-               DO 190, I = 1, M
-                  TEMP = ZERO
-                  DO 180, L = 1, K
-                     TEMP = TEMP + A( L, I )*B( J, L )
-  180             CONTINUE
-                  IF( BETA.EQ.ZERO )THEN
-                     C( I, J ) = ALPHA*TEMP
-                  ELSE
-                     C( I, J ) = ALPHA*TEMP + BETA*C( I, J )
-                  END IF
-  190          CONTINUE
-  200       CONTINUE
-         END IF
+              DO 200 J = 1,N
+                  DO 190 I = 1,M
+                      TEMP = ZERO
+                      DO 180 L = 1,K
+                          TEMP = TEMP + A(L,I)*B(J,L)
+  180                 CONTINUE
+                      IF (BETA.EQ.ZERO) THEN
+                          C(I,J) = ALPHA*TEMP
+                      ELSE
+                          C(I,J) = ALPHA*TEMP + BETA*C(I,J)
+                      END IF
+  190             CONTINUE
+  200         CONTINUE
+          END IF
       END IF
 *
       RETURN
@@ -1812,7 +1979,7 @@ C-----------------------------------------------------------------------
 *  where  alpha  is a scalar,  B  is an m by n matrix,  A  is a unit, or
 *  non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
 *
-*     op( A ) = A   or   op( A ) = A'.
+*     op( A ) = A   or   op( A ) = A**T.
 *
 *  Arguments
 *  ==========
@@ -1843,9 +2010,9 @@ C-----------------------------------------------------------------------
 *
 *              TRANSA = 'N' or 'n'   op( A ) = A.
 *
-*              TRANSA = 'T' or 't'   op( A ) = A'.
+*              TRANSA = 'T' or 't'   op( A ) = A**T.
 *
-*              TRANSA = 'C' or 'c'   op( A ) = A'.
+*              TRANSA = 'C' or 'c'   op( A ) = A**T.
 *
 *           Unchanged on exit.
 *
@@ -1908,6 +2075,8 @@ C-----------------------------------------------------------------------
 *           max( 1, m ).
 *           Unchanged on exit.
 *
+*  Further Details
+*  ===============
 *
 *  Level 3 Blas routine.
 *
@@ -1917,6 +2086,7 @@ C-----------------------------------------------------------------------
 *     Jeremy Du Croz, Numerical Algorithms Group Ltd.
 *     Sven Hammarling, Numerical Algorithms Group Ltd.
 *
+*  =====================================================================
 *
 *     .. External Functions ..
       LOGICAL LSAME
@@ -2025,7 +2195,7 @@ C-----------------------------------------------------------------------
               END IF
           ELSE
 *
-*           Form  B := alpha*A'*B.
+*           Form  B := alpha*A**T*B.
 *
               IF (UPPER) THEN
                   DO 110 J = 1,N
@@ -2091,7 +2261,7 @@ C-----------------------------------------------------------------------
               END IF
           ELSE
 *
-*           Form  B := alpha*B*A'.
+*           Form  B := alpha*B*A**T.
 *
               IF (UPPER) THEN
                   DO 260 K = 1,N
