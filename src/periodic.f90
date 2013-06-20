@@ -1845,9 +1845,9 @@ CONTAINS
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
 
 ! Local
-    COMPLEX(KIND(1.0D0)) ZTMP
-    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM,NDM,ITMP
-    DOUBLE PRECISION D,AMIN,AZM1,tol,V,THETA
+    COMPLEX(KIND(1.0D0)) ZINS,ZTMP
+    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM,NDM,ITMP,SKIP
+    DOUBLE PRECISION D,AMIN,AZM1,AZINS,tol,V,THETA
     DOUBLE PRECISION, ALLOCATABLE :: Q0(:,:),Q1(:,:),U(:)
     INTEGER, ALLOCATABLE :: IC(:),IR(:),IRPIV(:)
 
@@ -1967,34 +1967,33 @@ CONTAINS
     ENDIF
 
 ! Order the remaining Floquet multipliers by distance from |z|=1.
+! Using an insertion sort algorithm with sentinel at EV(L).
 
     IF(NDM.GE.3)THEN
-       DO I=L+1,NDM-1
+       DO I=L+2,NDM
           ! complex conjugate pairs from FLOWKM are ordered a+bi, a-bi
           ! keep them ordered this way
-          IF(AIMAG(EV(I))<0)CYCLE
-          AMIN=HUGE(1.d0)
-          LOC=I
-          DO J=I,NDM
-             IF(AIMAG(EV(J))<0)CYCLE
-             IF(EV(J)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
-             AZM1=ABS(ABS(EV(J)) - 1.d0)
-             IF(AZM1<AMIN)THEN
-                AMIN=AZM1
-                LOC=J
-             ENDIF
-          ENDDO
-          IF(LOC.NE.I) THEN
-             ZTMP=EV(LOC)
-             EV(LOC)=EV(I)
-             EV(I)=ZTMP
-             IF(AIMAG(EV(LOC))>0.AND.LOC<NDM)THEN
-                ! swap other complex conjugate too
-                ZTMP=EV(LOC+1)
-                EV(LOC+1)=EV(I+1)
-                EV(I+1)=ZTMP
-             ENDIF
+          ZINS=EV(I)
+          IF(AIMAG(ZINS)<0)CYCLE ! ignore a-bi
+          IF(ZINS==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
+          AZINS=ABS(ABS(ZINS) - 1.d0) 
+          J=I
+          SKIP=0 ! real number
+          IF(AIMAG(ZINS)>0)THEN
+             ! complex number: shift by two to insert the pair
+             SKIP=1
           ENDIF
+          DO
+             ZTMP=EV(J-1)
+             IF(AIMAG(ZTMP)<=0)THEN
+                ! ignore a+bi for comparison (preceeded by a-bi, counting down)
+                IF(ABS(ABS(ZTMP) - 1.d0)<=AZINS)EXIT
+             ENDIF
+             EV(J+SKIP)=ZTMP
+             J=J-1
+          ENDDO
+          EV(J+SKIP)=CMPLX( REAL(ZINS), -AIMAG(ZINS) ) ! overwritten for real numbers
+          EV(J)=ZINS
        ENDDO
     ENDIF
 
