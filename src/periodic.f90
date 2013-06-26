@@ -1967,7 +1967,7 @@ CONTAINS
     ENDIF
 
 ! Order the remaining Floquet multipliers by distance from |z|=1.
-! Using an insertion sort algorithm with sentinel at EV(L).
+! Using an insertion sort algorithm.
 
     IF(NDM.GE.3)THEN
        DO I=L+2,NDM
@@ -1983,7 +1983,7 @@ CONTAINS
              ! complex number: shift by two to insert the pair
              SKIP=1
           ENDIF
-          DO
+          DO WHILE(J>L+1)
              ZTMP=EV(J-1)
              IF(AIMAG(ZTMP)<=0)THEN
                 ! ignore a+bi for comparison (preceeded by a-bi, counting down)
