@@ -85,7 +85,7 @@ CONTAINS
          dtm,thu,ifst,nllv)
     dum=0
     call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
-         nllv,dum1,dum1,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
+         nllv,dum1,rlold,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
          dups,dum1,dum1,dum1,dum1,thu)
 
     ! free input arrays
