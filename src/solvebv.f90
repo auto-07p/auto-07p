@@ -137,18 +137,20 @@
             ALLOCATE(IPC(NDIM,NTST-1))
          ENDIF
       ENDIF
-      IF(IAM.EQ.0)THEN
+      IF(IAM==0.OR.NLLV==0)THEN
 
          DO I=1,NFPR
             PAR(ICP(I))=RLCUR(I)
          ENDDO
+      ENDIF
+      IF(IAM.EQ.0)THEN
          CALL SUBVBC(NDIM,NTST*NCOL,NBC,NFPR,BCNI, &
                  AP,PAR,NPAR,ICP,CDBC,FC,UPS,IFST)
          CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NINT)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
-         IF(KWT.GT.1)THEN
-            CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RLOLD,UDOTPS, &
-                 UPOLDP,DTM,THU,IFST,NLLV)
+         IF(KWT.GT.1.AND.NLLV/=0)THEN
+            CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
+                 UPOLDP,DTM,THU,NLLV)
          ENDIF
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
@@ -176,7 +178,7 @@
 
 !$OMP END PARALLEL
 
-      DEALLOCATE(FCFC,FAA,SOL)
+      DEALLOCATE(FCFC,FAA)
 
       IF(KWT.GT.1)THEN
 !        Global concatenation of the solution from each node.
@@ -185,10 +187,12 @@
 
       IF(IAM.EQ.0)THEN
          DUPS(:,NTST*NCOL)=FC(1:NDIM)
-         DRL(:)=FC(NDIM+1:)
+      ELSE
+         DUPS(:,NA*NCOL)=SOL(:,BASE+NA+1)
       ENDIF
+      DRL(:)=FC(NDIM+1:)
 
-      DEALLOCATE(NP,FC)
+      DEALLOCATE(NP,FC,SOL)
       END SUBROUTINE SOLVBV
 
 !     ---------- -------

@@ -7,7 +7,7 @@ use auto_constants, only: autoparameters
 implicit none
 private
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpibcast
-public :: mpibcasti, mpibcastap
+public :: mpibcasti, mpibcast1i, mpibcastap
 public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
@@ -46,14 +46,14 @@ subroutine mpibcksub(sol,ntst,nov,lo,hi)
   double precision, intent(inout) :: sol(nov,*)
 end subroutine mpibcksub
 
-subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,rlold,udotps,upoldp,dtm, &
-     thu,ifst,nllv)
+subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,rds,rlold,rldot, &
+     udotps,upoldp,dtm,thu,nllv)
   type(autoparameters) :: ap
   integer, intent(in) :: ndim,icp(*)
-  integer, intent(inout) :: ifst,nllv
+  integer, intent(inout) :: nllv
   double precision :: par(*),dtm(*),thu(*)
-  double precision :: ups(ndim,*),uoldps(ndim,*),udotps(ndim,*),upoldp(ndim,*)
-  double precision :: rlold(ap%nfpr)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
+  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 end subroutine mpisbv
 
 subroutine mpibcast(buf,len)
@@ -65,6 +65,10 @@ subroutine mpibcasti(buf,len)
   integer, intent(in) :: len
   integer, intent(inout) :: buf(len)
 end subroutine mpibcasti
+
+subroutine mpibcast1i(buf)
+  integer, intent(inout) :: buf
+end subroutine mpibcast1i
 
 subroutine mpibcastap(ap)
   type(autoparameters), intent(inout) :: ap

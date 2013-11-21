@@ -34,7 +34,7 @@ CONTAINS
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
        DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(FUNI,ICNI,BCNI)
+          CALL mpi_setubv_worker(FUNI,ICNI,BCNI,FNCI)
        ENDDO
        RETURN
     ENDIF
@@ -43,7 +43,7 @@ CONTAINS
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(funi,icni,bcni)
+  subroutine mpi_setubv_worker(funi,icni,bcni,fnci)
     use autompi
     use solvebv
 
@@ -51,14 +51,16 @@ CONTAINS
     include 'interfaces.h'
 
     integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
-    integer :: npar
+    integer :: npar, nitps
     type(autoparameters) ap
 
-    double precision, allocatable :: ups(:,:), uoldps(:,:), rlold(:)
+    double precision, allocatable :: ups(:,:), uoldps(:,:)
+    double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dups(:,:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1),det
+    double precision :: dum,dum1(1),det,rds
+    logical converged
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -76,17 +78,29 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
 
-    allocate(icp(nfpr+nint),thu(ndim),dtm(na),par(npar),rlold(nfpr))
+    allocate(icp(nfpr+nint),thu(ndim),dtm(na),par(npar))
+    allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
-    allocate(dups(ndim,0:na*ncol-1))
+    allocate(dups(ndim,0:na*ncol))
 
-    call mpisbv(ap,par,icp,ndim,ups,uoldps,rlold,udotps,upoldp, &
-         dtm,thu,ifst,nllv)
+    call mpisbv(ap,par,icp,ndim,ups,uoldps,rds,rlold,rldot,&
+         udotps,upoldp,dtm,thu,nllv)
     dum=0
-    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
-         nllv,dum1,rlold,dum1,ndim,ups,uoldps,udotps,upoldp,dtm, &
-         dups,dum1,dum1,dum1,dum1,thu)
+    if (nllv==0)then
+       call newtonbv(ap,par,icp,funi,bcni,icni,fnci,rds, &
+            rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
+            dum1,dtm,dum1,dum1,dum1,thu,nitps,converged)
+    else
+       if(nllv==-1)then
+          ifst=0
+       else
+          ifst=1
+       endif
+       call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
+            nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
+            dups,dum1,dum1,dum1,dum1,thu)
+    endif
 
     ! free input arrays
     deallocate(ups,uoldps,dtm,udotps,upoldp,dups,thu,icp,par)
@@ -396,6 +410,7 @@ CONTAINS
        TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
 
     USE MESH
+    USE AUTOMPI
 
 ! Controls the solution of the nonlinear equations (by Newton's method)
 ! for the next solution (PAR(ICP(*)) , U) on a branch of solutions.
@@ -412,7 +427,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), RDS
     DOUBLE PRECISION, INTENT(OUT) :: DSOLD, P0(*),P1(*)
 
-    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I
+    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I,NLLV
     DOUBLE PRECISION DSMIN,DSMAX
     LOGICAL CONVERGED
 
@@ -433,6 +448,9 @@ CONTAINS
 
 ! Perform Newton iterations
 
+       NLLV=0
+       CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
+            UPOLDP,DTM,THU,NLLV)
        CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
@@ -487,6 +505,7 @@ CONTAINS
     USE MESH, ONLY: SCALEB
     USE SOLVEBV, ONLY: SOLVBV
     USE SUPPORT, ONLY: CHECKSP, PVLI
+    USE AUTOMPI, ONLY: MPIIAM, MPIKWT, MPIBCAST1I, PARTITION
 
     include 'interfaces.h'
 
@@ -502,6 +521,9 @@ CONTAINS
     LOGICAL, INTENT(OUT) :: CONVERGED
 
     INTEGER NTST,NCOL,IID,ITNW,NWTN,NFPR,IFST,NLLV,I,J,NIT1,IPS,ILP,ISP
+    INTEGER IAM, KWT, NA, NTSTNA, STATE
+    INTEGER, PARAMETER :: NEWTON_CYCLE=0, NEWTON_EXIT=1, NEWTON_CONVERGED=2
+    INTEGER, ALLOCATABLE :: NP(:)
     DOUBLE PRECISION EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
     DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX,RDSZ
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:),P0T(:),P1T(:)
@@ -520,20 +542,35 @@ CONTAINS
     EPSL=AP%EPSL
     EPSU=AP%EPSU
 
+    IAM=MPIIAM()
+    KWT=MPIKWT()
+    ALLOCATE(NP(KWT))
+    CALL PARTITION(NTST,KWT,NP)
+    NA=NP(IAM+1)
+    DEALLOCATE(NP)
+    IF(IAM==0)THEN
+       NTSTNA=NTST
+    ELSE
+       NTSTNA=NA
+    ENDIF
+
     ! Extrapolate to get the approximation to the next solution point.
 
     RLCUR(:)=RLOLD(:)+RDS*RLDOT(:)
-    UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)+RDS*UDOTPS(:,0:NCOL*NTST)
+    UPS(:,0:NCOL*NTSTNA)=UOLDPS(:,0:NCOL*NTSTNA)+RDS*UDOTPS(:,0:NCOL*NTSTNA)
 
 ! Write additional output on unit 9 if requested.
 
     NITPS=0
-    CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+    IF(IAM==0)THEN
+       CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+    ENDIF
 
 ! Generate the Jacobian matrix and the right hand side.
 
-    ALLOCATE(DUPS(NDIM,0:NTST*NCOL),DRL(NFPR))
+    ALLOCATE(DUPS(NDIM,0:NTSTNA*NCOL),DRL(NFPR))
     CONVERGED=.FALSE.
+    STATE=NEWTON_CYCLE
     DELREF=0
     DO NIT1=1,ITNW
 
@@ -557,7 +594,7 @@ CONTAINS
 
        DUMX=0.d0
        UMX=0.d0
-       DO J=0,NTST*NCOL
+       DO J=0,NTSTNA*NCOL
           DO I=1,NDIM
              ADU=ABS(DUPS(I,J))
              IF(ADU.GT.DUMX)DUMX=ADU
@@ -566,6 +603,19 @@ CONTAINS
              UPS(I,J)=UPS(I,J)+DUPS(I,J)
           ENDDO
        ENDDO
+
+       IF(IAM>0)THEN
+          CALL MPIBCAST1I(STATE)
+          SELECT CASE(STATE)
+          CASE(NEWTON_CONVERGED)
+             CONVERGED=.TRUE.
+             RETURN
+          CASE(NEWTON_EXIT)
+             EXIT
+          CASE(NEWTON_CYCLE)
+             CYCLE
+          END SELECT
+       ENDIF
 
        CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
@@ -580,6 +630,8 @@ CONTAINS
        ENDDO
        RDUMX=DUMX/(1.d0+UMX)
        IF(DONE.AND.RDUMX.LT.EPSU)THEN
+          STATE=NEWTON_CONVERGED
+          CALL MPIBCAST1I(STATE)
           IF(CHECKSP('LP',IPS,ILP,ISP))THEN
              ! Find the direction vector (for test functions)
              ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
@@ -608,9 +660,13 @@ CONTAINS
           DELREF=20*DMAX1(RDRL,RDUMX)
        ELSE
           DELMAX=DMAX1(RDRL,RDUMX)
-          IF(DELMAX.GT.DELREF)EXIT
+          IF(DELMAX.GT.DELREF)THEN
+             STATE=NEWTON_EXIT
+             CALL MPIBCAST1I(STATE)
+             EXIT
+          ENDIF
        ENDIF
-
+       CALL MPIBCAST1I(STATE)
     ENDDO
     DEALLOCATE(DUPS,DRL)
 
